@@ -2,9 +2,6 @@ local scripthome = "/home/pschulz/path"
 
 package.path = package.path .. string.format(";%s/?.lua", scripthome) .. string.format(";%s/interface/?.lua", scripthome)
 
-local point = require "point"
-local graphics = require "graphics"
-local pointarray = require "pointarray"
 local layout = require "layout"
 local virtuoso = require "virtuoso"
 
@@ -14,6 +11,6 @@ local width = tonumber(arg[3]) or 6.0
 local sep = tonumber(arg[4]) or 6.0
 local grid = tonumber(arg[5]) or 0.1
 
-local pts = layout.symmetric_inductor(R, r, width, sep, grid)
+local pts = layout.momcap(
 
 virtuoso.print_points(pts)
