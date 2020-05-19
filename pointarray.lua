@@ -1,7 +1,17 @@
 local M = {}
 
+local point = require "point"
+
 local meta = {}
 meta.__index = meta
+
+meta.__tostring = function(self)
+    local t = {}
+    for pt in self:iter_forward() do
+        table.insert(t, tostring(pt))
+    end
+    return table.concat(t, "\n")
+end
 
 function M.create()
     local self = {}

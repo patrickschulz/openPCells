@@ -1,5 +1,6 @@
 local M = {}
 
+local point = require "point"
 local graphics = require "graphics"
 local pointarray = require "pointarray"
 
@@ -51,8 +52,11 @@ function M.symmetric_inductor(R, r, width, sep, grid)
     return final
 end
 
-function M.momcap()
-
+function M.rectangle(center, width, height)
+    local pts = pointarray.create()
+    pts:append(point.create(center.x - 0.5 * width, center.y - 0.5 * height))
+    pts:append(point.create(center.x + 0.5 * width, center.y + 0.5 * height))
+    return pts
 end
 
 return M
