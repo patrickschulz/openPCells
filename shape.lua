@@ -1,25 +1,22 @@
 local M = {}
 
+local pointarray = require "pointarray"
+
 local meta = {}
 meta.__index = meta
 
-function M.create()
-    local self = { sub = {}, current = 0 }
+function M.create(layer, purpose)
+    local self = { pts = pointarray.create(), layer = layer, purpose = purpose }
     setmetatable(self, meta)
     return self
 end
 
-function M.start(self)
-    self.current = self.current + 1
-    self.sub[self.current] = pointarray.create()
-end
-
-function M.stop(self)
-    self.sub[self.current]:close()
-end
-
 function M.add_point(self, pt)
-    self.sub[self.current]:append(pt)
+    self.pts:append(pt)
+end
+
+function M.close(self)
+    self.pts:close()
 end
 
 return M
