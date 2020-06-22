@@ -65,4 +65,4 @@ end
 
 local pts = symmetric_inductor(R, r, width, sep, grid)
 
-virtuoso.print_points(pts)
+virtuoso.print_shape(pts)

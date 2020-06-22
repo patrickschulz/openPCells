@@ -11,11 +11,11 @@ function M.create(layer, purpose)
     return self
 end
 
-function M.add_point(self, pt)
+function meta.add_point(self, pt)
     self.pts:append(pt)
 end
 
-function M.close(self)
+function meta.close(self)
     self.pts:close()
 end
 

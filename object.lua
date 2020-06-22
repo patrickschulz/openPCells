@@ -11,8 +11,17 @@ function M.create()
     return self
 end
 
-function M.add_shape(self, shape)
-    table.insert(shapes, shape)
+function meta.add_shape(self, shape)
+    table.insert(self.shapes, shape)
+end
+
+function meta.iter(self)
+    local idx = 1
+    local iter = function()
+        idx = idx + 1
+        return self.shapes[idx - 1]
+    end
+    return iter
 end
 
 return M
