@@ -10,14 +10,16 @@ function M.register_filename_generation_func(func)
     generate_filename = func
 end
 
-function M.set_layermap(lm)
-
+function M.register_layermap(lm)
+    layermap = lm
 end
 
 local function _write_shape(file, shape)
     local sep = sep or "\n"
+    local layer = layermap[shape.layer]
+    local purpose = shape.purpose -- TODO: also map the purpose
     for pts in shape:iter() do
-        file:write(string.format("%s %s\n", shape.layer, shape.purpose))
+        file:write(string.format("%s %s\n", layer, shape.purpose))
         for i, pt in ipairs(pts) do
             file:write(string.format("%.1f %.1f%s", pt.x, pt.y, sep))
         end

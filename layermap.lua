@@ -3,6 +3,8 @@ return {
     gate        = "PC"
     wellcont    = "CA",
     gatecont    = "CB",
+    firstmetal  = "M1",
+    lastmetal   = "LB",
     M1          = "M1",
     M2          = "M2",
     M3          = "C1",

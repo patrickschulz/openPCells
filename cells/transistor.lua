@@ -25,4 +25,25 @@ obj:add_shape(gates)
 obj:add_shape(active)
 obj:add_shape(sdmetals)
 
+local layermap =  {
+    active      = "RX",
+    gate        = "PC",
+    wellcont    = "CA",
+    gatecont    = "CB",
+    firstmetal  = "M1",
+    lastmetal   = "LB",
+    M1          = "M1",
+    M2          = "M2",
+    M3          = "C1",
+    M4          = "C2",
+    M5          = "C3",
+    M6          = "C4",
+    M7          = "C5",
+    M8          = "JA",
+    M9          = "QA",
+    M10         = "QB",
+    M11         = "LB",
+}
+
+virtuoso.register_layermap(layermap)
 virtuoso.print_object(obj)
