@@ -21,13 +21,8 @@ local function _rectangle(center, width, height)
 end
 
 -- public interface
-function M.rectangle(layer, purpose, center, width, height)
-    local obj = shape.create(layer, purpose)
-    obj:add_pointarray(_rectangle(center, width, height))
-    return obj
-end
-
-function M.rectangle_array(layer, purpose, center, width, height, options)
+function M.rectangle(layer, purpose, center, width, height, options)
+    local options = options or {}
     local xrep = options.xrep or 1
     local yrep = options.yrep or 1
     local xpitch = options.xpitch or 0

@@ -1,6 +1,8 @@
 return {
+    nwell       = "NW",
+    pwell       = nil,
     active      = "RX",
-    gate        = "PC"
+    gate        = "PC",
     wellcont    = "CA",
     gatecont    = "CB",
     firstmetal  = "M1",

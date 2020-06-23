@@ -4,7 +4,7 @@ local M = {}
 local generate_filename = function()
     return os.tmpname()
 end
-local layermap 
+local layermap = nil -- register explicitly
 local gridfmt = "%.3f"
 
 function M.register_filename_generation_func(func)
@@ -15,10 +15,17 @@ function M.register_layermap(lm)
     layermap = lm
 end
 
+local function map_lpp(shape)
+    if not layermap then
+        return shape.layer, shape.purpose
+    end
+    return layermap[shape.layer], shape.purpose -- TODO: map also the purpose
+end
+
 local function _write_shape(file, shape)
     local sep = sep or "\n"
-    local layer = layermap[shape.layer]
-    local purpose = shape.purpose -- TODO: also map the purpose
+    local layer, purpose = map_lpp(shape)
+    if not layer then return end -- empty layers are not written
     local fmt = string.format("%s %s%s", gridfmt, gridfmt, sep)
     for pts in shape:iter() do
         file:write(string.format("%s %s\n", layer, shape.purpose))

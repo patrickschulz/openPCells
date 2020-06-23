@@ -2,51 +2,192 @@ local scripthome = "/home/pschulz/path/"
 package.path = package.path .. string.format(";%s/?.lua", scripthome) .. string.format(";%s/interface/?.lua", scripthome)
 
 local point = require "point"
-local shape = require "shape"
 local object = require "object"
 local layout = require "layout"
 local virtuoso = require "interface.virtuoso"
 
 -- transistor settings
 local fingers = 4
-local gatewidth = 1
-local gatelength = 0.1
-local gatepitch = 0.5
-local activexoverlap = 0.2
-local activeyoverlap = 0.0
+local fwidth = 1
+local gatelength = 0.2
+local actext = 0.03
+local fspace = 0.14
 local sdwidth = 0.1
+local gtopext = 0.2
+local gbotext = 0.2
+local typext = 0.1
 
-local obj = object.create()
+-- derived settings
+local actwidth = fingers * gatelength + fingers * fspace + sdwidth + 2 * actext
+local gatepitch = gatelength + fspace
+local gateheight = fwidth + gtopext + gbotext
+local gateoffset = 0.5 * (gtopext - gbotext)
+
+local transistor = object.create()
 
 local origin = point.create(0, 0)
 
-local gates = layout.rectangle_array("gate", "drawing", origin, gatelength, gatewidth, { xrep = fingers, xpitch = gatepitch })
-local active = layout.rectangle("active", "drawing", origin, (fingers - 1) * gatepitch + gatelength + 2 * activexoverlap, gatewidth + 2 * activeyoverlap)
-local sdmetals = layout.rectangle_array("firstmetal", "drawing", origin, sdwidth, gatewidth, { xrep = fingers + 1, xpitch = gatepitch })
+-- gates
+transistor:add_shape(layout.rectangle(
+    "gate", "drawing", 
+    origin, 
+    gatelength, gateheight, 
+    { 
+        xrep = fingers, 
+        xpitch = gatepitch,
+        yoffset = gateoffset
+    }
+))
 
-obj:add_shape(gates)
-obj:add_shape(active)
-obj:add_shape(sdmetals)
+-- active
+transistor:add_shape(layout.rectangle(
+    "active", "drawing", 
+    origin, 
+    actwidth, fwidth
+))
 
-local layermap =  {
-    active      = "RX",
-    gate        = "PC",
-    wellcont    = "CA",
-    gatecont    = "CB",
-    firstmetal  = "M1",
-    lastmetal   = "LB",
-    M1          = "M1",
-    M2          = "M2",
-    M3          = "C1",
-    M4          = "C2",
-    M5          = "C3",
-    M6          = "C4",
-    M7          = "C5",
-    M8          = "JA",
-    M9          = "QA",
-    M10         = "QB",
-    M11         = "LB",
-}
+-- well
+transistor:add_shape(layout.rectangle(
+    "nwell", "drawing",
+    origin,
+    actwidth + 2 * typext, gateheight + typext,
+    {
+        yoffset = gateoffset
+    }
+))
 
+local layermap = require "layermap"
 virtuoso.register_layermap(layermap)
-virtuoso.print_object(obj)
+
+virtuoso.print_object(transistor)
+
+--[[ skill code for the transistor
+procedure(MSCLayoutDrawTransistor(cv @key 
+        (typ "p") (oxidetype "0.9") (vthtyp "slvt") 
+        (drawtopgate nil) (topgatestrwidth 0.12) (topgatestrext 1) (drawbotgate nil) (botgatestrwidth 0.12) (botgatestrext 1) (topgatecolor "grayColor") (botgatecolor "grayColor")
+         (sdwidth 0.06)  (wellext 0.1)
+        (scolor "mask1Color") (dcolor "mask2Color")
+        (clipbot nil) (cliptop nil) (topgcut nil) (botgcut nil)
+    )
+    let(
+        (
+        )
+        ; gate contacts
+        let(
+        	(shape)
+	        when(drawtopgate
+	            for(i 1 fingers
+	                MSCLayoutCreateVia(pcCellView "PCCBM1" gatelength topgatestrwidth ?x x + (i - 0.5 * (fingers + 1)) * gatepitch ?y y + 0.5 * fwidth + gtopext - 0.5 * topgatestrwidth)
+					shape = MSCLayoutCreateRectangle(pcCellView ?layer "M1" ?width gatelength ?height topgatestrwidth ?xoffset (i - 0.5 * (fingers + 1)) * gatepitch ?yoffset y + 0.5 * fwidth + gtopext - 0.5 * topgatestrwidth)
+					MSCLayoutColorShapes(shape topgatecolor)	            
+	            )
+	            when(fingers > 1
+		            shape = MSCLayoutCreateRectangle(pcCellView ?layer "M1" ?width (fingers - 1 + topgatestrext) * gatepitch ?height topgatestrwidth ?yoffset y + 0.5 * fwidth + gtopext - 0.5 * topgatestrwidth)
+	            	MSCLayoutColorShapes(shape topgatecolor)
+	            )
+	        )
+	        when(drawbotgate
+	            for(i 1 fingers
+	                MSCLayoutCreateVia(pcCellView "PCCBM1" gatelength botgatestrwidth ?x x + (i - 0.5 * (fingers + 1)) * gatepitch ?y y - 0.5 * fwidth - gbotext + 0.5 * botgatestrwidth)
+					shape = MSCLayoutCreateRectangle(pcCellView ?layer "M1" ?width gatelength ?height botgatestrwidth ?xoffset (i - 0.5 * (fingers + 1)) * gatepitch ?yoffset y - 0.5 * fwidth - gbotext + 0.5 * botgatestrwidth)			
+					MSCLayoutColorShapes(shape topgatecolor)
+	            )
+	            when(fingers > 1
+		            shape = MSCLayoutCreateRectangle(pcCellView ?layer "M1" ?width (fingers - 1 + botgatestrext) * gatepitch ?height botgatestrwidth ?yoffset y - 0.5 * fwidth - gbotext + 0.5 * botgatestrwidth)
+					MSCLayoutColorShapes(shape topgatecolor)	            
+	            )
+	        )
+        )
+        
+        ; contacts and coloring
+        for(i 1 fingers + 1
+            MSCLayoutCreateVia(pcCellView "RXCAM1" sdwidth fwidth ?x x + (i - 0.5 * (fingers + 1) - 0.5) * gatepitch ?y y)
+            let(
+            	(shape)
+            	shape = MSCLayoutCreateRectangle(pcCellView ?layer "M1" ?width sdwidth ?height fwidth ?xoffset (i - 0.5 * (fingers + 1) - 0.5) * gatepitch ?yoffset y)
+            	MSCLayoutColorShapes(shape if(evenp(i) dcolor scolor))
+        	)
+        )
+        
+        ; type
+        let(
+            (
+                (layer if(typ == "p" "PPLUS" "NPLUS"))
+            )
+            MSCLayoutCreateRectangle(pcCellView
+                ?layer layer
+                ?width actwidth + 2 * typext
+                ?height gateheight + typext * (if(clipbot 0 1) + if(cliptop 0 1))
+                ?xoffset x
+                ?yoffset y + gateoffset + 0.5 * typext * (if(cliptop 0 1) - if(clipbot 0 1))
+            )
+        )
+        
+        ; oxide type
+        when(oxidetype == "1.8"
+            MSCLayoutCreateRectangle(pcCellView
+                ?layer "EG"
+                ?width fingers * gatelength + (fingers - 1) * fspace + 2 * actext
+                ?height fwidth
+                ?xoffset x
+                ?yoffset y
+            )
+        )
+        
+        ; threshold voltage type
+        if(oxidetype == "0.9"
+            then
+                MSCLayoutCreateRectangle(pcCellView
+                    ?layer upperCase(strcat(vthtyp typ))
+                    ?width actwidth + 2 * typext
+                    ?height gateheight + typext * (if(clipbot 0 1) + if(cliptop 0 1))
+                    ?xoffset x
+                    ?yoffset y + gateoffset + 0.5 * typext * (if(cliptop 0 1) - if(clipbot 0 1))
+                )
+            else
+                MSCLayoutCreateRectangle(pcCellView
+                    ?layer upperCase(strcat("EG" vthtyp typ))
+                    ?width actwidth + 2 * typext
+                    ?height gateheight + typext * (if(clipbot 0 1) + if(cliptop 0 1))
+                    ?xoffset x
+                    ?yoffset y + gateoffset + 0.5 * typext * (if(cliptop 0 1) - if(clipbot 0 1))
+                )
+                MSCLayoutCreateRectangle(pcCellView
+                    ?layer "EG"
+                    ?width actwidth + 2 * typext
+                    ?height gateheight + typext * (if(clipbot 0 1) + if(cliptop 0 1))
+                    ?xoffset x
+                    ?yoffset y + gateoffset + 0.5 * typext * (if(cliptop 0 1) - if(clipbot 0 1))
+                )
+        ) ; if
+        
+        
+        ; gate cut
+        letseq(
+            (
+                (cutext 0.5 * fspace)
+                (cutheight 0.12)
+                (cwidth fingers * gatelength + (fingers - 1) * fspace + 2 * cutext)
+            )
+            when(topgcut
+                MSCLayoutCreateRectangle(pcCellView
+                    ?layer "CT"
+                    ?width cwidth
+                    ?height cutheight
+                    ?xoffset x
+                    ?yoffset y + 0.5 * fwidth + gtopext
+                )
+            )
+            when(botgcut
+                MSCLayoutCreateRectangle(pcCellView
+                    ?layer "CT"
+                    ?width cwidth
+                    ?height cutheight
+                    ?xoffset x
+                    ?yoffset y - 0.5 * fwidth - gbotext
+                )
+            )
+    	) ; letseq
+    ) ; let
+) ; MSCLayoutDrawTransistor
+--]]
