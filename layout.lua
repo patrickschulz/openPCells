@@ -3,60 +3,49 @@ local M = {}
 local point = require "point"
 local graphics = require "graphics"
 local pointarray = require "pointarray"
+local shape = require "shape"
+local object = require "object"
 
-function M.symmetric_inductor(R, r, width, sep, grid)
-    local x0 = 0
-    local y0 = 0
-
-    -- calculate center of auxiliary circle
-    local xc = -0.5 * sep - r
-    local yc = -grid * math.floor(math.sqrt((R + r)^2 - xc^2) / grid)
-
-    -- ** Inner part **
-    -- calculate meeting point
-    local xm = x0 + xc * R / (r + R)
-    local ym = y0 + yc * R / (r + R)
-
-    local main  = graphics.quartercircle(3, x0, y0, R, grid)
-    local aux   = graphics.quartercircle(1, xc, yc, r, grid)
-
-    local inner = graphics.quartercircle(2, x0, y0, R, grid):reverse() -- start with topleft quarter circle
-    inner:merge_append(main:filter_forward(function(pt) return pt.x < xm end))
-    inner:merge_append(aux:filter_backward(function(pt) return pt.x >= xm end))
-    -- mirror points and append
-    inner:reverse_inline()
-    inner:merge_append(inner:xmirror(0):reverse())
-
-    -- ** Outer part **
-    -- calculate meeting point
-    xm = x0 + xc * (R + width) / (r + R)
-    ym = y0 + yc * (R + width) / (r + R)
-
-    main  = graphics.quartercircle(3, x0, y0, R + width, grid)
-    aux   = graphics.quartercircle(1, xc, yc, r - width, grid)
-
-    local outer = graphics.quartercircle(2, x0, y0, R + width, grid):reverse() -- start with topleft quarter circle
-    outer:merge_append(main:filter_forward(function(pt) return pt.x < xm end))
-    outer:merge_append(aux:filter_backward(function(pt) return pt.x >= xm end))
-    -- mirror points and append
-    outer:reverse_inline()
-    outer:merge_append(outer:xmirror(0):reverse())
-
-    -- ** assemble final path **
-    local final = pointarray.create()
-    final:merge_append(inner:reverse())
-    final:merge_append(outer)
-
-    final:close()
-
-    return final
+-- private helper functions
+local function _rectangle(center, width, height)
+    local pts = pointarray.create()
+    -- polygon
+    pts:append(point.create(center.x - 0.5 * width, center.y - 0.5 * height))
+    pts:append(point.create(center.x + 0.5 * width, center.y - 0.5 * height))
+    pts:append(point.create(center.x + 0.5 * width, center.y + 0.5 * height))
+    pts:append(point.create(center.x - 0.5 * width, center.y + 0.5 * height))
+    -- rectangle points (lower left and upper right)
+    --pts:append(point.create(center.x - 0.5 * width, center.y - 0.5 * height))
+    --pts:append(point.create(center.x + 0.5 * width, center.y + 0.5 * height))
+    return pts
 end
 
-function M.rectangle(center, width, height)
-    local pts = pointarray.create()
-    pts:append(point.create(center.x - 0.5 * width, center.y - 0.5 * height))
-    pts:append(point.create(center.x + 0.5 * width, center.y + 0.5 * height))
-    return pts
+-- public interface
+function M.rectangle(layer, purpose, center, width, height)
+    local obj = shape.create(layer, purpose)
+    obj:add_pointarray(_rectangle(center, width, height))
+    return obj
+end
+
+function M.rectangle_array(layer, purpose, center, width, height, options)
+    local xrep = options.xrep or 1
+    local yrep = options.yrep or 1
+    local xpitch = options.xpitch or 0
+    local ypitch = options.ypitch or 0
+    local xoffset = options.xoffset or 0
+    local yoffset = options.yoffset or 0
+    local obj = shape.create(layer, purpose)
+    for x = 1, xrep do
+        for y = 1, yrep do
+            local c = point.create(
+                center.x + xoffset + (x - 1) * xpitch - 0.5 * (xrep - 1) * xpitch, 
+                center.y + yoffset + (y - 1) * ypitch - 0.5 * (yrep - 1) * ypitch
+            )
+            local pts = _rectangle(c, width, height)
+            obj:add_pointarray(pts)
+        end
+    end
+    return obj
 end
 
 return M
