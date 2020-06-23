@@ -5,6 +5,7 @@ local generate_filename = function()
     return os.tmpname()
 end
 local layermap 
+local gridfmt = "%.3f"
 
 function M.register_filename_generation_func(func)
     generate_filename = func
@@ -16,10 +17,11 @@ end
 
 local function _write_shape(file, shape)
     local sep = sep or "\n"
+    local fmt = string.format("%s %s%s", gridfmt, gridfmt, sep)
     for pts in shape:iter() do
         file:write(string.format("%s %s\n", shape.layer, shape.purpose))
         for i, pt in ipairs(pts) do
-            file:write(string.format("%.1f %.1f%s", pt.x, pt.y, sep))
+            file:write(string.format(fmt, pt.x, pt.y, sep))
         end
         file:write("\n")
     end
