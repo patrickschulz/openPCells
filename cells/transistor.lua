@@ -1,3 +1,6 @@
+local scripthome = "/home/pschulz/path/"
+package.path = package.path .. string.format(";%s/?.lua", scripthome) .. string.format(";%s/interface/?.lua", scripthome)
+
 local point = require "point"
 local shape = require "shape"
 local object = require "object"
