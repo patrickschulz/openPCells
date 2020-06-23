@@ -12,6 +12,7 @@ virtuoso. While this allows to build very complex and highly sophisticated PCell
  * SKILL code runs in virtuoso tools and must be developed and debugged from within these tools. May not be a problem
    for you, but it annoys me (I'm a vim guy)
  * PCells within virtuoso are actually too flexible
+
 Ok, what the heck? What's wrong with the last point? Let me elaborate: While trying out some designs it is nice to
 quickly change PCells. However, during tapeout you usually share your design with other people who need to be able to
 use your stuff. If they are missing the respective libraries or worse the supplementary code to execute the PCells, you
@@ -28,4 +29,4 @@ as some interfacing. However, the library is stil far from flexible and doesn't 
 this might be your best shot for some high-quality open-source PCells, that allow to be used in different tools in
 different technologies (not because this library is so awesome -- it's not -- but because the pcell code you find online
 is really terrible and not aimed at portability). If you want to use it, you need to have lua (probably > 5.1, but unsure)
-and then you need to adopt the paths. Look in
+and then you need to adopt the paths. Look in cells/\*.lua for further information.
