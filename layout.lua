@@ -20,12 +20,12 @@ end
 -- public interface
 function M.rectangle(layer, purpose, center, width, height, options)
     local options = options or {}
-    local xrep = options.xrep or 1
-    local yrep = options.yrep or 1
-    local xpitch = options.xpitch or 0
-    local ypitch = options.ypitch or 0
-    local xoffset = options.xoffset or 0
-    local yoffset = options.yoffset or 0
+    local xrep = options.xrep or 1.0
+    local yrep = options.yrep or 1.0
+    local xpitch = options.xpitch or 0.0
+    local ypitch = options.ypitch or 0.0
+    local xoffset = options.xoffset or 0.0
+    local yoffset = options.yoffset or 0.0
     local obj = shape.create(layer, purpose)
     for x = 1, xrep do
         for y = 1, yrep do
