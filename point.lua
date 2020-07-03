@@ -19,4 +19,8 @@ function M.set_tostring_method(fun)
     tostringfun = fun
 end
 
+function meta.unwrap(self)
+    return self.x, self.y
+end
+
 return M

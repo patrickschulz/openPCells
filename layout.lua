@@ -1,10 +1,10 @@
 local M = {}
 
-local point = require "point"
-local graphics = require "graphics"
+local point      = require "point"
+local graphics   = require "graphics"
 local pointarray = require "pointarray"
-local shape = require "shape"
-local object = require "object"
+local shape      = require "shape"
+local object     = require "object"
 
 -- private helper functions
 local function _rectangle(center, width, height)
@@ -14,9 +14,6 @@ local function _rectangle(center, width, height)
     pts:append(point.create(center.x + 0.5 * width, center.y - 0.5 * height))
     pts:append(point.create(center.x + 0.5 * width, center.y + 0.5 * height))
     pts:append(point.create(center.x - 0.5 * width, center.y + 0.5 * height))
-    -- rectangle points (lower left and upper right)
-    --pts:append(point.create(center.x - 0.5 * width, center.y - 0.5 * height))
-    --pts:append(point.create(center.x + 0.5 * width, center.y + 0.5 * height))
     return pts
 end
 

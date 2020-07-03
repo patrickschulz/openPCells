@@ -34,6 +34,7 @@ end
 
 function meta.close(self)
     self.pts[self.current]:close()
+    self.current = nil
 end
 
 function meta.iter(self)
