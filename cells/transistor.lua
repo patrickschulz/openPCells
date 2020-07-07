@@ -4,62 +4,66 @@ package.path = package.path .. string.format(";%s/?.lua", scripthome) .. string.
 local point = require "point"
 local object = require "object"
 local layout = require "layout"
-local virtuoso = require "interface.virtuoso"
 
--- transistor settings
-local fingers = 4
-local fwidth = 1
-local gatelength = 0.2
-local actext = 0.03
-local fspace = 0.14
-local sdwidth = 0.1
-local gtopext = 0.2
-local gbotext = 0.2
-local typext = 0.1
+return function()
+    -- transistor settings
+    local fingers = 4
+    local fwidth = 1
+    local gatelength = 0.2
+    local actext = 0.03
+    local fspace = 0.14
+    local sdwidth = 0.1
+    local gtopext = 0.2
+    local gbotext = 0.2
+    local typext = 0.1
 
--- derived settings
-local actwidth = fingers * gatelength + fingers * fspace + sdwidth + 2 * actext
-local gatepitch = gatelength + fspace
-local gateheight = fwidth + gtopext + gbotext
-local gateoffset = 0.5 * (gtopext - gbotext)
+    -- derived settings
+    local actwidth = fingers * gatelength + fingers * fspace + sdwidth + 2 * actext
+    local gatepitch = gatelength + fspace
+    local gateheight = fwidth + gtopext + gbotext
+    local gateoffset = 0.5 * (gtopext - gbotext)
 
-local transistor = object.create()
+    local transistor = object.create()
 
-local origin = point.create(0, 0)
+    local origin = point.create(0, 0)
 
--- gates
-transistor:add_shape(layout.rectangle(
-    "gate", "drawing", 
-    origin, 
-    gatelength, gateheight, 
-    { 
-        xrep = fingers, 
-        xpitch = gatepitch,
-        yoffset = gateoffset
-    }
-))
+    -- gates
+    transistor:add_shape(layout.rectangle(
+        "gate", "drawing", 
+        origin, 
+        gatelength, gateheight, 
+        { 
+            xrep = fingers, 
+            xpitch = gatepitch,
+            yoffset = gateoffset
+        }
+    ))
 
--- active
-transistor:add_shape(layout.rectangle(
-    "active", "drawing", 
-    origin, 
-    actwidth, fwidth
-))
+    -- active
+    transistor:add_shape(layout.rectangle(
+        "active", "drawing", 
+        origin, 
+        actwidth, fwidth
+    ))
 
--- well
-transistor:add_shape(layout.rectangle(
-    "nwell", "drawing",
-    origin,
-    actwidth + 2 * typext, gateheight + typext,
-    {
-        yoffset = gateoffset
-    }
-))
+    -- well
+    transistor:add_shape(layout.rectangle(
+        "nwell", "drawing",
+        origin,
+        actwidth + 2 * typext, gateheight + typext,
+        {
+            yoffset = gateoffset
+        }
+    ))
+    return transistor
+end
 
+--[[
 local layermap = require "layermap"
 virtuoso.register_layermap(layermap)
 
 virtuoso.print_object(transistor)
+--]]
 
 --[[ skill code for the transistor
 procedure(MSCLayoutDrawTransistor(cv @key 
