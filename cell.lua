@@ -11,10 +11,9 @@ for _, cell in ipairs(celllist) do
 end
 
 function M.create(name, args)
-    print(table.unpack(args))
     local func = cellcode[name]
     if not func then return nil end
-    return func(table.unpack(args))
+    return func(args)
 end
 
 return M
