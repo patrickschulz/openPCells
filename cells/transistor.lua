@@ -2,11 +2,11 @@ local point = require "point"
 local object = require "object"
 local layout = require "layout"
 
-return function()
+return function(fwidth)
     -- transistor settings
     local channeltype = "nmos"
     local fingers = 4
-    local fwidth = 1
+    local fwidth = fwidth or 1.0
     local gatelength = 0.2
     local actext = 0.03
     local fspace = 0.14
