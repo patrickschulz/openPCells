@@ -1,11 +1,22 @@
-local scripthome = "/home/patrick/Workspace/lua/pcells"
+local scripthomes = {
+    "/home/patrick/Workspace/lua/pcells",
+    "/home/pschulz/path"
+}
 
-package.path = package.path .. string.format(";%s/?.lua", scripthome) .. string.format(";%s/interface/?.lua", scripthome)
+for _, scripthome in ipairs(scripthomes) do
+    package.path = package.path .. string.format(";%s/?.lua", scripthome) .. string.format(";%s/interface/?.lua", scripthome)
+end
 
 local virtuoso = require "virtuoso"
 local cell = require "cell"
 
-local cell = cell.create("transistor")
+local cellname = arg[1]
+
+local cell = cell.create(cellname)
+
+if not cell then
+    os.exit(1)
+end
 
 local layermap = require "layermap"
 virtuoso.register_layermap(layermap)

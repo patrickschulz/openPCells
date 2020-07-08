@@ -8,40 +8,46 @@
  */
 let(
 	(
-        (path "/home/pschulz/path/cells")
-        (cell "transistor")
-        ;(cell "momcap")
+        (path "/home/pschulz/path/main.lua")
+        ;(cell "transistor")
+        (cell "momcap")
         command pid filename file
-        state lpp pts
+        state lpp pts exitstatus
     )
-    command = lsprintf("lua %s/%s.lua" path cell)
+    command = lsprintf("lua %s %s" path cell)
 	pid = ipcBeginProcess(command)
 	ipcWait(pid) ; wait for process to finish
-	filename = ipcReadProcess(pid)
-	println(filename)
-	file = infile(filename)
-	state = "header"
-	when(file
-	    while(line = gets(nil file)
-	    	printf("line: %s" line)
-	    	if(line == "\n"
-	    		then
-	    			printf("end: %s" line)
-		    		state = "endshape"
-					dbCreatePolygon(geGetEditCellView() lpp pts)
-					pts = nil ; reset points
-					state = "header"
-				else
-			    	when(state == "points"
-			    		printf("point: %s" line)
-			    		pts = cons(linereadstring(line) pts)
+	exitstatus = ipcGetExitStatus(pid)
+	if(exitstatus != 0
+		then 
+			printf("generator exited with status %d" exitstatus)
+		else
+			filename = ipcReadProcess(pid)
+			println(filename)
+			file = infile(filename)
+			state = "header"
+			when(file
+			    while(line = gets(nil file)
+			    	printf("line: %s" line)
+			    	if(line == "\n"
+			    		then
+			    			printf("end: %s" line)
+				    		state = "endshape"
+							dbCreatePolygon(geGetEditCellView() lpp pts)
+							pts = nil ; reset points
+							state = "header"
+						else
+					    	when(state == "points"
+					    		printf("point: %s" line)
+					    		pts = cons(linereadstring(line) pts)
+					    	)
+					    	when(state == "header"
+					    		printf("header: %s" line)
+					    		lpp = parseString(line)
+					    		state = "points"
+					    	)
 			    	)
-			    	when(state == "header"
-			    		printf("header: %s" line)
-			    		lpp = parseString(line)
-			    		state = "points"
-			    	)
-	    	)
-	    )
-	)
+			    )
+			)
+	) ; when status
 )

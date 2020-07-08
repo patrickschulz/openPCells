@@ -10,17 +10,21 @@ local virtuoso = require "interface.virtuoso"
 
 local M = {}
 
+local installpath = "/home/pschulz/path"
+
 local celllist = {
-    "transistor"
+    "transistor",
+    "momcap"
 }
 
 local cellcode = {}
 for _, cell in ipairs(celllist) do
-    cellcode[cell] = dofile(string.format("cells/%s.lua", cell))
+    cellcode[cell] = dofile(string.format("%s/cells/%s.lua", installpath, cell))
 end
 
 function M.create(name, options)
     local func = cellcode[name]
+    if not func then return nil end
     return func()
 end
 
