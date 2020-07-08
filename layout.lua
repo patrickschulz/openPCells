@@ -17,6 +17,21 @@ local function _rectangle(center, width, height)
     return pts
 end
 
+local function _get_layer_via_lists(startlayer, endlayer)
+    local layers = {}
+    local vias = {}
+    if startlayer == "active" or startlayer == "gate" then
+        table.insert(layers, startlayer)
+        table.insert(vias, startlayer == "active" and "wellcont" or "gatecont")
+    end
+    local startindex = string.match(startlayer, "M(%d)") or 1
+    local endindex = string.match(endlayer, "M(%d)") or 1
+    for i = startindex, endindex do
+        table.insert(layers, string.format("M%d", i))
+    end
+    return layers, vias
+end
+
 -- public interface
 function M.rectangle(layer, purpose, center, width, height, options)
     local options = options or {}
@@ -38,6 +53,21 @@ function M.rectangle(layer, purpose, center, width, height, options)
         end
     end
     return obj
+end
+
+function M.via(spec, width, height)
+    local startlayer, endlayer = string.match(spec, "(%w+)%-%>(%w+)")
+    local shapes = {}
+    local layers, vias = _get_layer_via_lists(startlayer, endlayer)
+    for _, layer in ipairs(layers) do
+        local s = M.rectangle(layer, "drawing", point.create(0, 0), width, height)
+        table.insert(shapes, s)
+        --print(layer)
+    end
+    for _, via in ipairs(vias) do
+        --print(via)
+    end
+    return shapes
 end
 
 return M

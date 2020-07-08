@@ -16,6 +16,7 @@ return function()
     local typext = 0.1
     local cliptop = false
     local clipbot = false
+    local sdwidth = 0.06
 
     -- derived settings
     local actwidth = fingers * gatelength + fingers * fspace + sdwidth + 2 * actext
@@ -66,6 +67,15 @@ return function()
             yoffset = gateoffset
         }
     ))
+
+    --- contacts and coloring
+    --for i = 1, fingers + 1 do
+        local contacts = layout.via("active->M1", sdwidth, fwidth) -- ?x (i - 0.5 * (fingers + 1) - 0.5) * gatepitch)
+        for _, s in ipairs(contacts) do
+            transistor:add_shape(s)
+        end
+    --end
+
     return transistor
 end
 
@@ -73,7 +83,7 @@ end
 procedure(MSCLayoutDrawTransistor(cv @key 
         (typ "p") (oxidetype "0.9") (vthtyp "slvt") 
         (drawtopgate nil) (topgatestrwidth 0.12) (topgatestrext 1) (drawbotgate nil) (botgatestrwidth 0.12) (botgatestrext 1) (topgatecolor "grayColor") (botgatecolor "grayColor")
-         (sdwidth 0.06)  (wellext 0.1)
+           (wellext 0.1)
         (scolor "mask1Color") (dcolor "mask2Color")
         (topgcut nil) (botgcut nil)
     )
@@ -107,15 +117,6 @@ procedure(MSCLayoutDrawTransistor(cv @key
 	        )
         )
         
-        ; contacts and coloring
-        for(i 1 fingers + 1
-            MSCLayoutCreateVia(pcCellView "RXCAM1" sdwidth fwidth ?x (i - 0.5 * (fingers + 1) - 0.5) * gatepitch)
-            let(
-            	(shape)
-            	shape = MSCLayoutCreateRectangle(pcCellView ?layer "M1" ?width sdwidth ?height fwidth ?xoffset (i - 0.5 * (fingers + 1) - 0.5) * gatepitch)
-            	MSCLayoutColorShapes(shape if(evenp(i) dcolor scolor))
-        	)
-        )
         
         
         ; oxide type
