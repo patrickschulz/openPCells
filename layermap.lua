@@ -2,6 +2,8 @@ return {
     nwell       = "NW",
     pwell       = nil,
     active      = "RX",
+    pimpl       = "PPLUS",
+    nimpl       = "NPLUS",
     gate        = "PC",
     wellcont    = "CA",
     gatecont    = "CB",
