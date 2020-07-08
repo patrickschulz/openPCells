@@ -1,13 +1,4 @@
-local scripthomes = {
-    "/home/patrick/Workspace/lua/pcells",
-    "/home/pschulz/path"
-}
-
-for _, scripthome in ipairs(scripthomes) do
-    package.path = package.path .. string.format(";%s/?.lua", scripthome) .. string.format(";%s/interface/?.lua", scripthome)
-end
-
-local virtuoso = require "virtuoso"
+local virtuoso = require "interface.virtuoso"
 local cell = require "cell"
 
 local cellname = arg[1]
