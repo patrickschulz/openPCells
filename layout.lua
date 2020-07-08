@@ -33,7 +33,6 @@ local function _get_layer_via_lists(startlayer, endlayer)
 end
 
 local function _default_options(options)
-    local options   = options or {}
     options.xrep    = options.xrep or 1.0
     options.yrep    = options.yrep or 1.0
     options.xpitch  = options.xpitch or 0.0
@@ -45,7 +44,7 @@ end
 
 -- public interface
 function M.rectangle(layer, purpose, center, width, height, options)
-    local opt = _default_options(options)
+    local opt = _default_options(options or {})
     local obj = shape.create(layer, purpose)
     for x = 1, opt.xrep do
         for y = 1, opt.yrep do
@@ -61,7 +60,7 @@ function M.rectangle(layer, purpose, center, width, height, options)
 end
 
 function M.via(spec, width, height, options)
-    local opt = _default_options(options)
+    local opt = _default_options(options or {})
     local startlayer, endlayer = string.match(spec, "(%w+)%-%>(%w+)")
     local shapes = {}
     local layers, vias = _get_layer_via_lists(startlayer, endlayer)
@@ -69,10 +68,10 @@ function M.via(spec, width, height, options)
     for _, layer in ipairs(layers) do
         local s = M.rectangle(layer, "drawing", origin, width, height)
         table.insert(shapes, s)
-        --print(layer)
     end
     for _, via in ipairs(vias) do
-        --print(via)
+        local s = M.rectangle(via, "drawing", origin, 0.04, 0.06)
+        table.insert(shapes, s)
     end
     return shapes
 end
