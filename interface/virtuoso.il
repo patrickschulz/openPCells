@@ -10,6 +10,7 @@ let(
 	(
         (path "/home/pschulz/path/cells")
         (cell "transistor")
+        ;(cell "momcap")
         command pid filename file
         state lpp pts
     )
