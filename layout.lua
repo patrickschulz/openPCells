@@ -70,7 +70,24 @@ function M.via(spec, width, height, options)
         table.insert(shapes, s)
     end
     for _, via in ipairs(vias) do
-        local s = M.rectangle(via, "drawing", origin, 0.04, 0.06, { yrep = 4, ypitch = 0.14 })
+        local viawidth = 0.03
+        local viaheight = 0.06
+        local viaxspace = 0.116
+        local viayspace = 0.116
+        local viaminxencl = 0.0
+        local viaminyencl = 0.0
+        local cols = math.max(1, math.floor((width + viaxspace - 2 * viaminxencl) / (viawidth + viaxspace)))
+        local rows = math.max(1, math.floor((height + viayspace - 2 * viaminyencl) / (viaheight + viayspace)))
+        --(metalxencl max(viaminxencl 0.5 * (width - cols * viawidth - (cols - 1) * viaxspace)))
+        --(metalyencl max(viaminyencl 0.5 * (height - rows * viaheight - (rows - 1) * viayspace)))
+        local viaopt = {
+            xrep = cols,
+            xpitch = viawidth + viaxspace,
+            yrep = rows,
+            ypitch = viaheight + viayspace
+        }
+
+        local s = M.rectangle(via, "drawing", origin, viawidth, viaheight, viaopt)
         table.insert(shapes, s)
     end
     return shapes
