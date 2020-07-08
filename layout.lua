@@ -32,21 +32,26 @@ local function _get_layer_via_lists(startlayer, endlayer)
     return layers, vias
 end
 
+local function _default_options(options)
+    local options   = options or {}
+    options.xrep    = options.xrep or 1.0
+    options.yrep    = options.yrep or 1.0
+    options.xpitch  = options.xpitch or 0.0
+    options.ypitch  = options.ypitch or 0.0
+    options.xoffset = options.xoffset or 0.0
+    options.yoffset = options.yoffset or 0.0
+    return options
+end
+
 -- public interface
 function M.rectangle(layer, purpose, center, width, height, options)
-    local options = options or {}
-    local xrep = options.xrep or 1.0
-    local yrep = options.yrep or 1.0
-    local xpitch = options.xpitch or 0.0
-    local ypitch = options.ypitch or 0.0
-    local xoffset = options.xoffset or 0.0
-    local yoffset = options.yoffset or 0.0
+    local opt = _default_options(options)
     local obj = shape.create(layer, purpose)
-    for x = 1, xrep do
-        for y = 1, yrep do
+    for x = 1, opt.xrep do
+        for y = 1, opt.yrep do
             local c = point.create(
-                center.x + xoffset + (x - 1) * xpitch - 0.5 * (xrep - 1) * xpitch, 
-                center.y + yoffset + (y - 1) * ypitch - 0.5 * (yrep - 1) * ypitch
+                center.x + opt.xoffset + (x - 1) * opt.xpitch - 0.5 * (opt.xrep - 1) * opt.xpitch, 
+                center.y + opt.yoffset + (y - 1) * opt.ypitch - 0.5 * (opt.yrep - 1) * opt.ypitch
             )
             local pts = _rectangle(c, width, height)
             obj:add_pointarray(pts)
@@ -55,12 +60,14 @@ function M.rectangle(layer, purpose, center, width, height, options)
     return obj
 end
 
-function M.via(spec, width, height)
+function M.via(spec, width, height, options)
+    local opt = _default_options(options)
     local startlayer, endlayer = string.match(spec, "(%w+)%-%>(%w+)")
     local shapes = {}
     local layers, vias = _get_layer_via_lists(startlayer, endlayer)
+    local origin = point.create(opt.xoffset, opt.yoffset)
     for _, layer in ipairs(layers) do
-        local s = M.rectangle(layer, "drawing", point.create(0, 0), width, height)
+        local s = M.rectangle(layer, "drawing", origin, width, height)
         table.insert(shapes, s)
         --print(layer)
     end

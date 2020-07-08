@@ -69,12 +69,12 @@ return function()
     ))
 
     --- contacts and coloring
-    --for i = 1, fingers + 1 do
-        local contacts = layout.via("active->M1", sdwidth, fwidth) -- ?x (i - 0.5 * (fingers + 1) - 0.5) * gatepitch)
+    for i = 1, fingers + 1 do
+        local contacts = layout.via("active->M1", sdwidth, fwidth, { xoffset = (i - 0.5 * (fingers + 1) - 0.5) * gatepitch })
         for _, s in ipairs(contacts) do
             transistor:add_shape(s)
         end
-    --end
+    end
 
     return transistor
 end
