@@ -9,8 +9,8 @@
 let(
 	(
         (path "/home/pschulz/path/main.lua")
-        ;(cell "transistor")
-        (cell "momcap")
+        (cell "transistor")
+        ;(cell "momcap")
         command pid filename file
         state lpp pts exitstatus
     )
@@ -28,21 +28,17 @@ let(
 			state = "header"
 			when(file
 			    while(line = gets(nil file)
-			    	printf("line: %s" line)
 			    	if(line == "\n"
 			    		then
-			    			printf("end: %s" line)
 				    		state = "endshape"
 							dbCreatePolygon(geGetEditCellView() lpp pts)
 							pts = nil ; reset points
 							state = "header"
 						else
 					    	when(state == "points"
-					    		printf("point: %s" line)
 					    		pts = cons(linereadstring(line) pts)
 					    	)
 					    	when(state == "header"
-					    		printf("header: %s" line)
 					    		lpp = parseString(line)
 					    		state = "points"
 					    	)
