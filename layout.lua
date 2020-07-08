@@ -70,7 +70,7 @@ function M.via(spec, width, height, options)
         table.insert(shapes, s)
     end
     for _, via in ipairs(vias) do
-        local s = M.rectangle(via, "drawing", origin, 0.04, 0.06)
+        local s = M.rectangle(via, "drawing", origin, 0.04, 0.06, { yrep = 4, ypitch = 0.14 })
         table.insert(shapes, s)
     end
     return shapes
