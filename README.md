@@ -68,6 +68,10 @@ You can also pass some arguments to the cells (but this is veeery limited curren
 - Basic transistor
 - metal-oxide-metal capacitor (momcap)
 
+## Interfaces
+Currently the only working interface is for cadence virtuoso. Since interfaces are pretty easy to write this should not be a complicated task, but it
+needs access to other tools for testing.
+
 <!---
 vim: tw=150
 -->
