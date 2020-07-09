@@ -117,9 +117,12 @@ procedure(OPCLayoutAddMenu(args)
         momcapitem = hiCreateMenuItem( ?name 'OPCmenumomcap ?itemText "Add Momcap"
             ?callback "OPCplaceCell(\"momcap\")"
         )
+        inductoritem = hiCreateMenuItem( ?name 'OPCmenuinductor ?itemText "Add Symmetric Inductor"
+            ?callback "OPCplaceCell(\"symmetric_inductor\")"
+        )
         
         ; create a menu that includes the menu items
-        menu = hiCreatePulldownMenu('OPCLayoutMenu "OpenPCells" list(transistoritem momcapitem))
+        menu = hiCreatePulldownMenu('OPCLayoutMenu "OpenPCells" list(transistoritem momcapitem inductoritem))
         
         ; insert this menu as the last menu
         hiInsertBannerMenu(win menu length(hiGetBannerMenus(win))) ; install the menu last (before "help")

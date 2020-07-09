@@ -2,7 +2,8 @@ local M = {}
 
 local celllist = {
     "transistor",
-    "momcap"
+    "momcap",
+    "symmetric_inductor"
 }
 
 local cellcode = {}
