@@ -13,9 +13,9 @@ if not cell then
     os.exit(42)
 end
 
-local layermap = require "layermap"
+local layermap = require "layermaps.cmos22fdsoi"
 virtuoso.register_layermap(layermap)
-virtuoso.register_filename_generation_func(function() return "testpoints" end)
+virtuoso.register_filename_generation_func(function() return "openPCells.points" end)
 virtuoso.print_object(cell)
 
 -- signal success
