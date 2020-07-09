@@ -1,5 +1,4 @@
-# openPCells -- A framework for tool-independent layout cell generators
-This project intends to develop a set of parametric cells (PCells) for use in analog integrated circuit design.  Currently this is aimed at providing
+# openPCells -- A framework for tool-independent layout cell generators This project intends to develop a set of parametric cells (PCells) for use in analog integrated circuit design.  Currently this is aimed at providing
 a base set of cells for baseband and RF design (momcaps, inductors, transformers, transistors etc.), but ideally there would be also more complex
 cells such as entire circuits (inverters, opamps etc.).
 
@@ -7,6 +6,23 @@ The key point of this framework is independency of any layout tool such as caden
 in lua and generate platform-independent files describing the cell. In the layout tool the files are read and the actual shapes are drawn. For this,
 interfacing code is provided (currently only for virtuoso, but this is pretty simple to adapt). A second important point for this project is
 technology independece. This is achieved by working in generic layers ('gate', 'metal1') and mapping that with (simple-to-write) layermaps.
+
+# Installation
+The code has no dependencies except a working lua interpreter (>= 5.2), as we try to keep installation as easy as possible. Just clone this repository
+and edit your `LUA_PATH` environment variable to include the path to the code (make sure to run this BEFORE you start virtuoso):
+
+    # in your shell configuration file
+    export LUA_PATH=";;/path/to/pcells/?.lua" # bash/zsh
+    setenv LUA_PATH ";;/path/to/pcells/?.lua" # csh
+
+Now you need to set up your virtuoso interface. The file `interface/virtuoso.il` shows how to do that, you can run that file from the SKILL IDE within
+virtuoso. A better approach is to insert a menu to the layout editor, which is done in `interface/virtuoso_menu.il`. You need to include this file in
+your `.cdsinit`:
+
+    ; in your .cdsinit
+    load("/path/to/pcells/interface/virtuoso_menu.il")
+
+This will install a menu called `openPCells` at the last place before the `help` menu in the layout editor.
 
 # The problem with SKILL-based PCells
 In cadence virtuoso, pcells are built on top of SKILL-routines. SKILL is the closed-source proprietary language behind virtuoso. While this allows to
