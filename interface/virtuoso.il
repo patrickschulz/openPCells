@@ -11,10 +11,12 @@ let(
         (path "/home/pschulz/path/main.lua")
         (cell "transistor")
         ;(cell "momcap")
-        command pid filename file
+        args command pid filename file
         state lpp pts exitstatus
     )
-    command = lsprintf("lua %s %s" path cell)
+    args = lsprintf("%.1f" 1.0)
+    command = lsprintf("lua %s %s %s" path cell args)
+    println(command)
 	pid = ipcBeginProcess(command)
 	ipcWait(pid) ; wait for process to finish
 	exitstatus = ipcGetExitStatus(pid)

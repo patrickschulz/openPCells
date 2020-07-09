@@ -75,15 +75,13 @@ function M.via(spec, width, height, options)
         local viaxspace = 0.116
         local viayspace = 0.116
         local viaminxencl = 0.0
-        local viaminyencl = 0.0
-        local cols = math.max(1, math.floor((width + viaxspace - 2 * viaminxencl) / (viawidth + viaxspace)))
-        local rows = math.max(1, math.floor((height + viayspace - 2 * viaminyencl) / (viaheight + viayspace)))
-        --(metalxencl max(viaminxencl 0.5 * (width - cols * viawidth - (cols - 1) * viaxspace)))
-        --(metalyencl max(viaminyencl 0.5 * (height - rows * viaheight - (rows - 1) * viayspace)))
+        local viaminyencl = 0.03
+        --local metalxencl = math.max(viaminxencl, 0.5 * (width - cols * viawidth - (cols - 1) * viaxspace))
+        --local metalyencl = math.max(viaminyencl, 0.5 * (height - rows * viaheight - (rows - 1) * viayspace))
         local viaopt = {
-            xrep = cols,
+            xrep = math.max(1, math.floor((width + viaxspace - 2 * viaminxencl) / (viawidth + viaxspace))),
             xpitch = viawidth + viaxspace,
-            yrep = rows,
+            yrep = math.max(1, math.floor((height + viayspace - 2 * viaminyencl) / (viaheight + viayspace))),
             ypitch = viaheight + viayspace
         }
 
