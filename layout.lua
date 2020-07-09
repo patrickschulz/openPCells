@@ -29,6 +29,9 @@ local function _get_layer_via_lists(startlayer, endlayer)
     for i = startindex, endindex do
         table.insert(layers, string.format("M%d", i))
     end
+    for i = startindex, endindex - 1 do
+        table.insert(vias, string.format("viaM%dM%d", i, i + 1))
+    end
     return layers, vias
 end
 

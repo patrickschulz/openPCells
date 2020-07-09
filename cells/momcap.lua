@@ -22,6 +22,7 @@ return function()
     local firstmetal = 1
     local lastmetal = 3
     for i = firstmetal, lastmetal do
+        --[[
         momcap:add_shape(layout.rectangle(
             string.format("M%d", i), "drawing", 
             origin, 
@@ -52,6 +53,20 @@ return function()
                 ypitch = 2 * foffset + fheight
             }
         ))
+        --]]
+    end
+    for i = firstmetal, lastmetal - 1 do
+        local vias = layout.via(
+            string.format("M%d->M%d", i, i + 1),
+            (2 * fingers + 1) * (fwidth + fspace), rwidth,
+            { 
+                yrep = 2,
+                ypitch = 2 * foffset + fheight
+            }
+        )
+        for _, s in ipairs(vias) do
+            momcap:add_shape(s)
+        end
     end
 
     return momcap
