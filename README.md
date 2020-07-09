@@ -1,4 +1,5 @@
-# openPCells -- A framework for tool-independent layout cell generators This project intends to develop a set of parametric cells (PCells) for use in analog integrated circuit design.  Currently this is aimed at providing
+# openPCells -- A framework for tool-independent layout cell generators 
+This project intends to develop a set of parametric cells (PCells) for use in analog integrated circuit design.  Currently this is aimed at providing
 a base set of cells for baseband and RF design (momcaps, inductors, transformers, transistors etc.), but ideally there would be also more complex
 cells such as entire circuits (inverters, opamps etc.).
 
