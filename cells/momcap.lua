@@ -19,36 +19,40 @@ return function()
     local origin = point.create(0, 0)
 
     -- fingers
-    momcap:add_shape(layout.rectangle(
-        "M1", "drawing", 
-        origin, 
-        fwidth, fheight, 
-        { 
-            xrep = fingers + 1, 
-            xpitch = 2 * pitch,
-            yoffset = 0.5 * foffset
-        }
-    ))
-    momcap:add_shape(layout.rectangle(
-        "M1", "drawing", 
-        origin, 
-        fwidth, fheight, 
-        { 
-            xrep = fingers, 
-            xpitch = 2 * pitch,
-            yoffset = -0.5 * foffset
-        }
-    ))
-    -- rails
-    momcap:add_shape(layout.rectangle(
-        "M1", "drawing", 
-        origin, 
-        (2 * fingers + 1) * (fwidth + fspace), rwidth,
-        { 
-            yrep = 2,
-            ypitch = 2 * foffset + fheight
-        }
-    ))
+    local firstmetal = 1
+    local lastmetal = 3
+    for i = firstmetal, lastmetal do
+        momcap:add_shape(layout.rectangle(
+            string.format("M%d", i), "drawing", 
+            origin, 
+            fwidth, fheight, 
+            { 
+                xrep = fingers + 1, 
+                xpitch = 2 * pitch,
+                yoffset = 0.5 * foffset
+            }
+        ))
+        momcap:add_shape(layout.rectangle(
+            string.format("M%d", i), "drawing", 
+            origin, 
+            fwidth, fheight, 
+            { 
+                xrep = fingers, 
+                xpitch = 2 * pitch,
+                yoffset = -0.5 * foffset
+            }
+        ))
+        -- rails
+        momcap:add_shape(layout.rectangle(
+            string.format("M%d", i), "drawing", 
+            origin, 
+            (2 * fingers + 1) * (fwidth + fspace), rwidth,
+            { 
+                yrep = 2,
+                ypitch = 2 * foffset + fheight
+            }
+        ))
+    end
 
     return momcap
 end
