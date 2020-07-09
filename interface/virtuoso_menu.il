@@ -1,87 +1,132 @@
-procedure(MSCHiLayoutInductorOptionsForm()
-	when(!boundp('MSCLayoutInductorForm) || (MSCLayoutInductorForm == nil)
-		let(
-			(donutoptions layerfield Rfield rfield widthfield sepfield gridfield grid)
-			donutoptions = hiCreateToggleField(
-				?name 'donutoptions
-				?prompt "Options"
-				?choices list(list('deg45 "Allow Diagonal Shapes"))
-			)
-			layerfield = hiCreateStringField(
-				?name 'layer
-				?prompt "Layer"
-				?value "QB"
-			)
-			Rfield = hiCreateFloatField(
-				?name 'R
-				?prompt "Main Radius"
-				?value 60.0
-			)
-			rfield = hiCreateFloatField(
-				?name 'r
-				?prompt "Line Radius"
-				?value 12.0
-			)
-			widthfield = hiCreateFloatField(
-				?name 'width
-				?prompt "Width"
-				?value 6.0
-			)
-			sepfield = hiCreateFloatField(
-				?name 'sep
-				?prompt "Separation"
-				?value 6.0
-			)
-			gridfield = hiCreateFloatField(
-				?name 'grid
-				?prompt "Grid"
-				?value 0.1
-			)
-			hiCreateAppForm(
-				?name 'MSCLayoutInductorForm
-				;?formType 'options
-				?formTitle "Create Inductor"
-				?buttonLayout 'OKCancel
-				;?dialogStyle 'modal
-				?fields list(
-					layerfield Rfield rfield widthfield sepfield gridfield
-				)
-				?callback lambda( (form) MSCLayoutCreateInductorBase(form) )
-			)
-		)
-	) 
-	MSCLayoutInductorForm
-)
-
-procedure(MSCHiLayoutCreateInductor()
-    MSCHiLayoutInductorOptionsForm()
-    hiDisplayForm('MSCLayoutInductorForm)
-)
-
-procedure(MSCLayoutCreateInductorBase(form)
+procedure(OPCcreateCell(w done pts)
     let(
         (
-        	(layer form->layer->value)
-        	(R form->R->value)
-        	(r form->r->value)
-        	(width form->width->value)
-        	(sep form->sep->value)
-        	(grid form->grid->value)
-            command pid str pts
+            (path "/home/pschulz/path/main.lua")
+            (origin car(pts))
+            args command pid filename file
+            state lpp pts exitstatus
         )
-        command = lsprintf("lua /home/pschulz/path/main.lua %f %f %f %f %f" R r width sep grid)
-        println(command)
-	    pid = ipcBeginProcess(command)
-	    ipcWait(pid)
-	    filename = ipcReadProcess(pid)
-	    println(filename)
-	    file = infile(filename)
-		when(file
-			while(line = lineread(file)
-				pts = cons(line pts)
-			)
-		)
-		println(pts)
-	    dbCreatePolygon(geGetEditCellView() list(layer "drawing") pts)
+        when(done
+        	println(origin)
+	        args = lsprintf("%.1f" 1.0)
+	        command = lsprintf("lua %s %s %s" path cell args)
+	        println(command)
+	        pid = ipcBeginProcess(command)
+	        ipcWait(pid) ; wait for process to finish
+	        exitstatus = ipcGetExitStatus(pid)
+	        if(exitstatus != 0
+	            then 
+	                printf("generator exited with status %d" exitstatus)
+	            else
+	                filename = ipcReadProcess(pid)
+	                println(filename)
+	                file = infile(filename)
+	                state = "header"
+	                when(file
+	                    while(line = gets(nil file)
+	                        if(line == "\n"
+	                            then
+	                                state = "endshape"
+	                                pts = mapcar(lambda( (pt) xCoord(pt) + xCoord(origin):yCoord(pt) + yCoord(origin)) pts)
+	                                dbCreatePolygon(geGetEditCellView() lpp pts)
+	                                pts = nil ; reset points
+	                                state = "header"
+	                            else
+	                                when(state == "points"
+	                                    pts = cons(linereadstring(line) pts)
+	                                )
+	                                when(state == "header"
+	                                    lpp = parseString(line)
+	                                    state = "points"
+	                                )
+	                        )
+	                    )
+	                )
+	        ) ; when status
+        ) ; when done
     )
-)
+) ; OPCcreateCell
+
+procedure(OPCplaceCell(cell)
+	enterPoint(
+		?prompts list("Enter origin")
+		?doneProc "OPCcreateCell"
+	)
+) ; OPCplaceCell
+
+procedure(OPCLayoutAddMenu(args)
+    let( 
+        (
+            (win args->window) deviceitem menu
+        )
+        
+        /*
+        ; create the menu items
+        coloritem = hiCreateMenuItem( ?name 'item4 ?itemText "Lock all colored shapes"
+            ?callback "OPCHiLayoutLockColors()"
+        )
+        flattenitem = hiCreateMenuItem( ?name 'item5 ?itemText "Flatten all PCells..."
+            ?callback "flattenPycells()"
+        )
+        labelitem = hiCreateMenuItem( ?name 'item6 ?itemText "Create Bus Labels..."
+            ?callback "OPCHiLayoutCreateBusLabels()"
+        )
+        groundmeshitem = hiCreateMenuItem( ?name 'item7 ?itemText "Place Groundmesh..."
+            ?callback "OPCHiLayoutCreateGroundmesh()"
+        )
+        fillcellitem = hiCreateMenuItem( ?name 'item8 ?itemText "Place Filling..."
+            ?callback "OPCHiLayoutCreateFillcell()"
+        )
+
+        ; shape menu
+        let(
+            (
+                circleitem ellipseitem donutitem
+            )
+            circleitem = hiCreateMenuItem( ?name 'circleitem ?itemText "Create Circle..."
+                ?callback "OPCHiLayoutCreateCircle()"
+            )
+            ellipseitem = hiCreateMenuItem( ?name 'ellipseitem ?itemText "Create Ellipse..."
+                ?callback "OPCHiLayoutCreateEllipse()"
+            )
+            donutitem = hiCreateMenuItem( ?name 'donutitem ?itemText "Create Donut..."
+                ?callback "OPCHiLayoutCreateDonut()"
+            )
+            shapesubmenu = hiCreatePulldownMenu('OPCLayoutShapeSubMenu "" list(circleitem ellipseitem donutitem))
+            shapeitem = hiCreateSliderMenuItem( ?name 'OPCShapeMenuItem ?itemText "Create Shape" ?subMenu shapesubmenu)
+        )
+
+        ; device menu
+        let(
+            (
+                tlineitem inductoritem devicesubmenu
+            )
+            tlineitem = hiCreateMenuItem( ?name 'tlineitem ?itemText "Create Transmission Line..."
+                ?callback "OPCHiLayoutCreateTransmissionLine()"
+            )
+            inductoritem = hiCreateMenuItem( ?name 'inductoritem ?itemText "Create Inductor..."
+                ?callback "OPCHiLayoutCreateInductor()"
+            )
+            devicesubmenu = hiCreatePulldownMenu('OPCLayoutDeviceSubMenu "" list(tlineitem inductoritem))
+            deviceitem = hiCreateSliderMenuItem( ?name 'OPCDeviceMenuItem ?itemText "Create Device" ?subMenu devicesubmenu)
+        )
+        */
+        transistoritem = hiCreateMenuItem( ?name 'OPCmenutransistor ?itemText "Add Transistor"
+            ?callback "OPCplaceCell(\"transistor\")"
+        )
+        momcapitem = hiCreateMenuItem( ?name 'OPCmenumomcap ?itemText "Add Momcap"
+            ?callback "OPCplaceCell(\"momcap\")"
+        )
+        
+        ; create a menu that includes the menu items
+        menu = hiCreatePulldownMenu('OPCLayoutMenu "OpenPCells" list(transistoritem momcapitem))
+        
+        ; insert this menu as the last menu
+        hiInsertBannerMenu(win menu length(hiGetBannerMenus(win))) ; install the menu last (before "help")
+    );let
+); procedure
+
+; create a user postinstall trigger that automatically adds the menu
+deRegUserTriggers("maskLayout" nil nil 'OPCLayoutAddMenu)
+deRegUserTriggers("maskLayoutXL" nil nil 'OPCLayoutAddMenu)
+deRegUserTriggers("maskLayoutGXL" nil nil 'OPCLayoutAddMenu)
