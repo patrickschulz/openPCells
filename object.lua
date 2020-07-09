@@ -1,3 +1,8 @@
+--[[
+This file is part of the openPCells project.
+
+An 'object' is a collection of 'shapes', that is an object composed of several polygons on several layers.
+--]]
 local M = {}
 
 local shapelib = require "shape"

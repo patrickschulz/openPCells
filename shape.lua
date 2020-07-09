@@ -1,3 +1,13 @@
+--[[
+This file is part of the openPCells project.
+
+A 'shape' in this context is a collection of polygons in one layer-purpose-pair.
+For overlapping shapes this could also be handled by a single polygon, but we also 
+consider a collection of non-overlapping shapes a 'shape'.
+
+TODO:
+ * implement reduction of overlapping polygons
+--]]
 local M = {}
 
 local pointarray = require "pointarray"
