@@ -67,10 +67,6 @@ function M.via(spec, width, height, options)
     local startlayer, endlayer = string.match(spec, "(%w+)%-%>(%w+)")
     local shapes = {}
     local layers, vias = _get_layer_via_lists(startlayer, endlayer)
-    for _, layer in ipairs(layers) do
-        local s = M.rectangle(layer, "drawing", width, height)
-        table.insert(shapes, s)
-    end
     for x = 1, opt.xrep do
         for y = 1, opt.yrep do
             local origin = point.create(opt.xoffset, opt.yoffset)
@@ -78,6 +74,14 @@ function M.via(spec, width, height, options)
                 opt.xoffset + (x - 1) * opt.xpitch - 0.5 * (opt.xrep - 1) * opt.xpitch, 
                 opt.yoffset + (y - 1) * opt.ypitch - 0.5 * (opt.yrep - 1) * opt.ypitch
             )
+            for _, layer in ipairs(layers) do
+                local metalopt = {
+                    xoffset = origin.x,
+                    yoffset = origin.y
+                }
+                local s = M.rectangle(layer, "drawing", width, height, metalopt)
+                table.insert(shapes, s)
+            end
             for _, via in ipairs(vias) do
                 local viawidth = 0.03
                 local viaheight = 0.06
@@ -91,7 +95,9 @@ function M.via(spec, width, height, options)
                     xrep = math.max(1, math.floor((width + viaxspace - 2 * viaminxencl) / (viawidth + viaxspace))),
                     xpitch = viawidth + viaxspace,
                     yrep = math.max(1, math.floor((height + viayspace - 2 * viaminyencl) / (viaheight + viayspace))),
-                    ypitch = viaheight + viayspace
+                    ypitch = viaheight + viayspace,
+                    xoffset = origin.x,
+                    yoffset = origin.y
                 }
 
                 local s = M.rectangle(via, "drawing", viawidth, viaheight, viaopt)
