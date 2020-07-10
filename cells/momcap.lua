@@ -2,14 +2,14 @@ local point = require "point"
 local object = require "object"
 local layout = require "layout"
 
-return function()
+return function(args)
     -- momcap settings
-    local fingers = 4
-    local fwidth = 0.1
-    local fspace = 0.1
-    local fheight = 1
-    local foffset = 0.1
-    local rwidth = 0.1
+    local fingers   = args.fingers  or 4
+    local fwidth    = args.fwidth   or 0.1
+    local fspace    = args.fspace   or 0.1
+    local fheight   = args.fheight  or 1
+    local foffset   = args.foffset  or 0.1
+    local rwidth    = args.rwidth   or 0.1
 
     -- derived settings
     local pitch = fwidth + fspace
@@ -24,7 +24,6 @@ return function()
     for i = firstmetal, lastmetal do
         momcap:add_shape(layout.rectangle(
             string.format("M%d", i), "drawing", 
-            origin, 
             fwidth, fheight, 
             { 
                 xrep = fingers + 1, 
@@ -34,7 +33,6 @@ return function()
         ))
         momcap:add_shape(layout.rectangle(
             string.format("M%d", i), "drawing", 
-            origin, 
             fwidth, fheight, 
             { 
                 xrep = fingers, 
@@ -45,7 +43,6 @@ return function()
         -- rails
         momcap:add_shape(layout.rectangle(
             string.format("M%d", i), "drawing", 
-            origin, 
             (2 * fingers + 1) * (fwidth + fspace), rwidth,
             { 
                 yrep = 2,

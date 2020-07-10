@@ -4,19 +4,19 @@ local layout = require "layout"
 
 return function(args)
     -- transistor settings
-    local channeltype = "nmos"
-    local fingers = 4
-    local fwidth = args[1] or 1.0
-    local gatelength = 0.2
-    local actext = 0.03
-    local fspace = 0.14
-    local sdwidth = 0.1
-    local gtopext = 0.2
-    local gbotext = 0.2
-    local typext = 0.1
-    local cliptop = false
-    local clipbot = false
-    local sdwidth = 0.06
+    local channeltype   = args.channeltype  or "nmos"
+    local fingers       = args.fingers      or 4
+    local fwidth        = args.fwidth       or 1.0
+    local gatelength    = args.gatelength   or 0.2
+    local actext        = args.actext       or 0.03
+    local fspace        = args.fspace       or 0.14
+    local sdwidth       = args.sdwidth      or 0.1
+    local gtopext       = args.gtopext      or 0.2
+    local gbotext       = args.gbotext      or 0.2
+    local typext        = args.typext       or 0.1
+    local cliptop       = args.cliptop      or false
+    local clipbot       = args.clipbot      or false
+    local sdwidth       = args.sdwidth      or 0.06
 
     -- derived settings
     local actwidth = fingers * gatelength + fingers * fspace + sdwidth + 2 * actext
@@ -32,7 +32,6 @@ return function(args)
     -- gates
     transistor:add_shape(layout.rectangle(
         "gate", "drawing", 
-        origin, 
         gatelength, gateheight, 
         { 
             xrep = fingers, 
@@ -44,13 +43,11 @@ return function(args)
     -- active
     transistor:add_shape(layout.rectangle(
         "active", "drawing", 
-        origin, 
         actwidth, fwidth
     ))
     transistor:add_shape(layout.rectangle(
         (channeltype == "nmos") and "nimpl" or "pimpl",
         "drawing",
-        origin,
         actwidth + 2 * typext,
         gateheight + typext * clipshift,
         {
@@ -61,14 +58,13 @@ return function(args)
     -- well
     transistor:add_shape(layout.rectangle(
         "nwell", "drawing",
-        origin,
         actwidth + 2 * typext, gateheight + typext,
         {
             yoffset = gateoffset
         }
     ))
 
-    --- contacts and coloring
+    -- contacts
     for i = 1, fingers + 1 do
         local contacts = layout.via("active->M1", sdwidth, fwidth, { xoffset = (i - 0.5 * (fingers + 1) - 0.5) * gatepitch })
         for _, s in ipairs(contacts) do

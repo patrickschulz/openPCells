@@ -9,6 +9,7 @@ procedure(OPCcreateCell(w done pts)
         when(done
         	println(origin)
 	        args = lsprintf("%.1f" 1.0)
+            ; 'cell' is defined one level above (in OPCplaceCell)
 	        command = lsprintf("lua %s %s %s" path cell args)
 	        println(command)
 	        pid = ipcBeginProcess(command)

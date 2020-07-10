@@ -2,9 +2,13 @@ local virtuoso = require "interface.virtuoso"
 local cell = require "cell"
 
 local cellname = arg[1]
-local cellargs = {}
+local t = {}
 for i = 2, #arg do
-    cellargs[i - 1] = arg[i]
+    t[i - 1] = arg[i]
+end
+local cellargs = {}
+for k, v in string.gmatch(table.concat(t, " "), "(%w+)%s*=%s*(%w+)") do
+    cellargs[k] = v
 end
 
 local cell = cell.create(cellname, cellargs)

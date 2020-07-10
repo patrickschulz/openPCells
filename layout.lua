@@ -46,14 +46,14 @@ local function _default_options(options)
 end
 
 -- public interface
-function M.rectangle(layer, purpose, center, width, height, options)
+function M.rectangle(layer, purpose, width, height, options)
     local opt = _default_options(options or {})
     local obj = shape.create(layer, purpose)
     for x = 1, opt.xrep do
         for y = 1, opt.yrep do
             local c = point.create(
-                center.x + opt.xoffset + (x - 1) * opt.xpitch - 0.5 * (opt.xrep - 1) * opt.xpitch, 
-                center.y + opt.yoffset + (y - 1) * opt.ypitch - 0.5 * (opt.yrep - 1) * opt.ypitch
+                opt.xoffset + (x - 1) * opt.xpitch - 0.5 * (opt.xrep - 1) * opt.xpitch, 
+                opt.yoffset + (y - 1) * opt.ypitch - 0.5 * (opt.yrep - 1) * opt.ypitch
             )
             local pts = _rectangle(c, width, height)
             obj:add_pointarray(pts)
@@ -67,29 +67,37 @@ function M.via(spec, width, height, options)
     local startlayer, endlayer = string.match(spec, "(%w+)%-%>(%w+)")
     local shapes = {}
     local layers, vias = _get_layer_via_lists(startlayer, endlayer)
-    local origin = point.create(opt.xoffset, opt.yoffset)
     for _, layer in ipairs(layers) do
-        local s = M.rectangle(layer, "drawing", origin, width, height)
+        local s = M.rectangle(layer, "drawing", width, height)
         table.insert(shapes, s)
     end
-    for _, via in ipairs(vias) do
-        local viawidth = 0.03
-        local viaheight = 0.06
-        local viaxspace = 0.116
-        local viayspace = 0.116
-        local viaminxencl = 0.0
-        local viaminyencl = 0.03
-        --local metalxencl = math.max(viaminxencl, 0.5 * (width - cols * viawidth - (cols - 1) * viaxspace))
-        --local metalyencl = math.max(viaminyencl, 0.5 * (height - rows * viaheight - (rows - 1) * viayspace))
-        local viaopt = {
-            xrep = math.max(1, math.floor((width + viaxspace - 2 * viaminxencl) / (viawidth + viaxspace))),
-            xpitch = viawidth + viaxspace,
-            yrep = math.max(1, math.floor((height + viayspace - 2 * viaminyencl) / (viaheight + viayspace))),
-            ypitch = viaheight + viayspace
-        }
+    for x = 1, opt.xrep do
+        for y = 1, opt.yrep do
+            local origin = point.create(opt.xoffset, opt.yoffset)
+            local origin = point.create(
+                opt.xoffset + (x - 1) * opt.xpitch - 0.5 * (opt.xrep - 1) * opt.xpitch, 
+                opt.yoffset + (y - 1) * opt.ypitch - 0.5 * (opt.yrep - 1) * opt.ypitch
+            )
+            for _, via in ipairs(vias) do
+                local viawidth = 0.03
+                local viaheight = 0.06
+                local viaxspace = 0.116
+                local viayspace = 0.116
+                local viaminxencl = 0.0
+                local viaminyencl = 0.03
+                --local metalxencl = math.max(viaminxencl, 0.5 * (width - cols * viawidth - (cols - 1) * viaxspace))
+                --local metalyencl = math.max(viaminyencl, 0.5 * (height - rows * viaheight - (rows - 1) * viayspace))
+                local viaopt = {
+                    xrep = math.max(1, math.floor((width + viaxspace - 2 * viaminxencl) / (viawidth + viaxspace))),
+                    xpitch = viawidth + viaxspace,
+                    yrep = math.max(1, math.floor((height + viayspace - 2 * viaminyencl) / (viaheight + viayspace))),
+                    ypitch = viaheight + viayspace
+                }
 
-        local s = M.rectangle(via, "drawing", origin, viawidth, viaheight, viaopt)
-        table.insert(shapes, s)
+                local s = M.rectangle(via, "drawing", viawidth, viaheight, viaopt)
+                table.insert(shapes, s)
+            end
+        end
     end
     return shapes
 end
