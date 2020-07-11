@@ -4,19 +4,27 @@ local layout = require "layout"
 
 return function(args)
     -- transistor settings
-    local channeltype   = args.channeltype  or "nmos"
-    local fingers       = args.fingers      or 4
-    local fwidth        = args.fwidth       or 1.0
-    local gatelength    = args.gatelength   or 0.2
-    local actext        = args.actext       or 0.03
-    local fspace        = args.fspace       or 0.14
-    local sdwidth       = args.sdwidth      or 0.1
-    local gtopext       = args.gtopext      or 0.2
-    local gbotext       = args.gbotext      or 0.2
-    local typext        = args.typext       or 0.1
-    local cliptop       = args.cliptop      or false
-    local clipbot       = args.clipbot      or false
-    local sdwidth       = args.sdwidth      or 0.06
+    local channeltype       = args.channeltype      or "nmos"
+    local fingers           = args.fingers          or 4
+    local fwidth            = args.fwidth           or 1.0
+    local gatelength        = args.gatelength       or 0.1
+    local actext            = args.actext           or 0.03
+    local fspace            = args.fspace           or 0.14
+    local sdwidth           = args.sdwidth          or 0.1
+    local gtopext           = args.gtopext          or 0.2
+    local gbotext           = args.gbotext          or 0.2
+    local typext            = args.typext           or 0.1
+    local cliptop           = args.cliptop          or false
+    local clipbot           = args.clipbot          or false
+    local sdwidth           = args.sdwidth          or 0.06
+    local drawtopgate       = args.drawtopgate      or false
+    local drawbotgate       = args.drawbotgate      or false
+    local topgatestrwidth   = args.topgatestrwidth  or 0.12
+    local topgatestrext     = args.topgatestrext    or 1
+    local botgatestrwidth   = args.botgatestrwidth  or 0.12
+    local botgatestrext     = args.botgatestrext    or 1
+    local topgcut           = args.topgcut          or false
+    local botgcut           = args.botgcut          or false
 
     -- derived settings
     local actwidth = fingers * gatelength + fingers * fspace + sdwidth + 2 * actext
@@ -64,12 +72,88 @@ return function(args)
         }
     ))
 
-    -- contacts
-    for i = 1, fingers + 1 do
-        local contacts = layout.via("active->M1", sdwidth, fwidth, { xoffset = (i - 0.5 * (fingers + 1) - 0.5) * gatepitch })
+    -- drain/source contacts
+    local contacts = layout.via(
+        "active->M1", 
+        sdwidth, fwidth, 
+        { 
+            xrep = fingers + 1,
+            xpitch = gatepitch
+        }
+    )
+    for _, s in ipairs(contacts) do
+        transistor:add_shape(s)
+    end
+
+    -- gate contacts
+    if drawtopgate then
+        local contacts = layout.via(
+            "gate->M1", 
+            gatelength, topgatestrwidth, 
+            { 
+                xrep = fingers,
+                xpitch = gatepitch,
+                yoffset = 0.5 * fwidth + gtopext - 0.5 * topgatestrwidth
+            }
+        )
         for _, s in ipairs(contacts) do
             transistor:add_shape(s)
         end
+        if fingers > 1 then
+            transistor:add_shape(layout.rectangle(
+                "M1", "drawing",
+                (fingers - 1 + topgatestrext) * gatepitch, topgatestrwidth,
+                {
+                    yoffset = 0.5 * fwidth + gtopext - 0.5 * topgatestrwidth
+                }
+            ))
+        end
+    end
+    if drawbotgate then
+        local contacts = layout.via(
+            "gate->M1", 
+            gatelength, botgatestrwidth, 
+            { 
+                xrep = fingers,
+                xpitch = gatepitch,
+                yoffset = 0.5 * fwidth + gbotext - 0.5 * botgatestrwidth
+            }
+        )
+        for _, s in ipairs(contacts) do
+            transistor:add_shape(s)
+        end
+        if fingers > 1 then
+            transistor:add_shape(layout.rectangle(
+                "M1", "drawing",
+                (fingers - 1 + botgatestrext) * gatepitch, botgatestrwidth,
+                {
+                    yoffset = 0.5 * fwidth + gbotext - 0.5 * botgatestrwidth
+                }
+            ))
+        end
+    end
+
+    -- gate cut
+    local cutext = 0.5 * fspace
+    local cutheight = 0.12
+    local cwidth = fingers * gatelength + (fingers - 1) * fspace + 2 * cutext
+    if topgcut then
+        transistor:add_shape(layout.rectangle(
+            "gatecut", "drawing",
+            cwidth, cutheight,
+            {
+                yoffset = 0.5 * fwidth + gtopext
+            }
+        ))
+    end
+    if botgcut then
+        transistor:add_shape(layout.rectangle(
+            "gatecut", "drawing",
+            cwidth, cutheight,
+            {
+                yoffset = -0.5 * fwidth - gbotext
+            }
+        ))
     end
 
     return transistor
@@ -78,43 +162,10 @@ end
 --[[ skill code for the transistor
 procedure(MSCLayoutDrawTransistor(cv @key 
         (typ "p") (oxidetype "0.9") (vthtyp "slvt") 
-        (drawtopgate nil) (topgatestrwidth 0.12) (topgatestrext 1) (drawbotgate nil) (botgatestrwidth 0.12) (botgatestrext 1) (topgatecolor "grayColor") (botgatecolor "grayColor")
-           (wellext 0.1)
-        (scolor "mask1Color") (dcolor "mask2Color")
-        (topgcut nil) (botgcut nil)
     )
     let(
         (
         )
-        ; gate contacts
-        let(
-        	(shape)
-	        when(drawtopgate
-	            for(i 1 fingers
-	                MSCLayoutCreateVia(pcCellView "PCCBM1" gatelength topgatestrwidth ?x (i - 0.5 * (fingers + 1)) * gatepitch ?y 0.5 * fwidth + gtopext - 0.5 * topgatestrwidth)
-					shape = MSCLayoutCreateRectangle(pcCellView ?layer "M1" ?width gatelength ?height topgatestrwidth ?xoffset (i - 0.5 * (fingers + 1)) * gatepitch ?yoffset 0.5 * fwidth + gtopext - 0.5 * topgatestrwidth)
-					MSCLayoutColorShapes(shape topgatecolor)	            
-	            )
-	            when(fingers > 1
-		            shape = MSCLayoutCreateRectangle(pcCellView ?layer "M1" ?width (fingers - 1 + topgatestrext) * gatepitch ?height topgatestrwidth ?yoffset 0.5 * fwidth + gtopext - 0.5 * topgatestrwidth)
-	            	MSCLayoutColorShapes(shape topgatecolor)
-	            )
-	        )
-	        when(drawbotgate
-	            for(i 1 fingers
-	                MSCLayoutCreateVia(pcCellView "PCCBM1" gatelength botgatestrwidth ?x (i - 0.5 * (fingers + 1)) * gatepitch ?y 0.5 * fwidth - gbotext + 0.5 * botgatestrwidth)
-					shape = MSCLayoutCreateRectangle(pcCellView ?layer "M1" ?width gatelength ?height botgatestrwidth ?xoffset (i - 0.5 * (fingers + 1)) * gatepitch ?yoffset 0.5 * fwidth - gbotext + 0.5 * botgatestrwidth)			
-					MSCLayoutColorShapes(shape topgatecolor)
-	            )
-	            when(fingers > 1
-		            shape = MSCLayoutCreateRectangle(pcCellView ?layer "M1" ?width (fingers - 1 + botgatestrext) * gatepitch ?height botgatestrwidth ?yoffset 0.5 * fwidth - gbotext + 0.5 * botgatestrwidth)
-					MSCLayoutColorShapes(shape topgatecolor)	            
-	            )
-	        )
-        )
-        
-        
-        
         ; oxide type
         when(oxidetype == "1.8"
             MSCLayoutCreateRectangle(pcCellView
@@ -147,32 +198,6 @@ procedure(MSCLayoutDrawTransistor(cv @key
                     ?yoffset gateoffset + 0.5 * typext * (if(cliptop 0 1) - if(clipbot 0 1))
                 )
         ) ; if
-        
-        
-        ; gate cut
-        letseq(
-            (
-                (cutext 0.5 * fspace)
-                (cutheight 0.12)
-                (cwidth fingers * gatelength + (fingers - 1) * fspace + 2 * cutext)
-            )
-            when(topgcut
-                MSCLayoutCreateRectangle(pcCellView
-                    ?layer "CT"
-                    ?width cwidth
-                    ?height cutheight
-                    ?yoffset 0.5 * fwidth + gtopext
-                )
-            )
-            when(botgcut
-                MSCLayoutCreateRectangle(pcCellView
-                    ?layer "CT"
-                    ?width cwidth
-                    ?height cutheight
-                    ?yoffset - 0.5 * fwidth - gbotext
-                )
-            )
-    	) ; letseq
     ) ; let
 ) ; MSCLayoutDrawTransistor
 --]]

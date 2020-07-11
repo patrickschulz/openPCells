@@ -5,6 +5,7 @@ return {
     pimpl       = "PPLUS",
     nimpl       = "NPLUS",
     gate        = "PC",
+    gatecut     = "CT",
     wellcont    = "CA",
     gatecont    = "CB",
     firstmetal  = "M1",

@@ -11,7 +11,7 @@ return function()
     local r = 14.0
     local width = 6.0
     local sep = 6.0
-    local grid = 0.1
+    local grid = 0.2
 
     local x0 = 0
     local y0 = 0
