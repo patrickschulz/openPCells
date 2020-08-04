@@ -1,10 +1,14 @@
 return function(args)
-    local radius = pcell.process_args(args, "radius", "number", 40.0)
-    local cornerradius = pcell.process_args(args, "cornerradius", "number", 14.0)
-    local width = pcell.process_args(args, "width", "number", 6.0)
-    local separation = pcell.process_args(args, "separation", "number", 6.0)
-    local extension = pcell.process_args(args, "extension", "number", 40.0)
-    local grid = pcell.process_args(args, "grid", "number", 0.2)
+    pcell.setup(args)
+
+    local radius       = pcell.process_args("radius", "number", 40.0)
+    local cornerradius = pcell.process_args("cornerradius", "number", 14.0)
+    local width        = pcell.process_args("width", "number", 6.0)
+    local separation   = pcell.process_args("separation", "number", 6.0)
+    local extension    = pcell.process_args("extension", "number", 40.0)
+    local grid         = pcell.process_args("grid", "number", 0.2)
+
+    pcell.check_args()
 
     -- calculate center of auxiliary circle
     local xc = -0.5 * separation - cornerradius
@@ -41,14 +45,10 @@ return function(args)
     outer:merge_append(outer:xmirror(0):reverse())
 
     -- ** assemble final path **
-    local final = pointarray.create()
-    final:merge_append(inner:reverse())
-    final:merge_append(outer)
-
-    final:close()
-
-    local s = shape.create("lastmetal", "drawing")
-    s:add_pointarray(final)
+    local s = shape.create("lastmetal")
+    s.points:merge_append(inner:reverse())
+    s.points:merge_append(outer)
+    s.points:close()
 
     local inductor = object.create()
 

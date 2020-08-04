@@ -6,13 +6,12 @@ local pointarray = require "pointarray"
 local shape      = require "shape"
 local object     = require "object"
 
-function M.rectangle(layer, purpose, width, height)
-    local S = shape.create(layer, purpose)
-    S:start()
-    S:add_point(point.create(-0.5 * width, -0.5 * height))
-    S:add_point(point.create( 0.5 * width, -0.5 * height))
-    S:add_point(point.create( 0.5 * width,  0.5 * height))
-    S:add_point(point.create(-0.5 * width,  0.5 * height))
+function M.rectangle(layer, width, height)
+    local S = shape.create(layer)
+    S.points:append(point.create(-0.5 * width, -0.5 * height))
+    S.points:append(point.create( 0.5 * width, -0.5 * height))
+    S.points:append(point.create( 0.5 * width,  0.5 * height))
+    S.points:append(point.create(-0.5 * width,  0.5 * height))
     return object.make_from_shape(S)
 end
 
@@ -33,12 +32,12 @@ function M.cross(width, height, crosssize)
     return pts
 end
 
-function M.ring(layer, purpose, width, height, ringwidth)
+function M.ring(layer, width, height, ringwidth)
     local obj = object.create()
-    obj:merge_into(M.rectangle(layer, purpose, width + ringwidth, ringwidth):translate(0,  0.5 * height))
-    obj:merge_into(M.rectangle(layer, purpose, width + ringwidth, ringwidth):translate(0, -0.5 * height))
-    obj:merge_into(M.rectangle(layer, purpose, ringwidth, height + ringwidth):translate( 0.5 * width, 0))
-    obj:merge_into(M.rectangle(layer, purpose, ringwidth, height + ringwidth):translate(-0.5 * width, 0))
+    obj:merge_into(M.rectangle(layer, width + ringwidth, ringwidth):translate(0,  0.5 * height))
+    obj:merge_into(M.rectangle(layer, width + ringwidth, ringwidth):translate(0, -0.5 * height))
+    obj:merge_into(M.rectangle(layer, ringwidth, height + ringwidth):translate( 0.5 * width, 0))
+    obj:merge_into(M.rectangle(layer, ringwidth, height + ringwidth):translate(-0.5 * width, 0))
     return obj
 end
 
@@ -133,14 +132,13 @@ local function _get_path_pts(pts, width, miterjoin)
     return poly
 end
 
-function M.path(layer, purpose, pts, width, miterjoin)
-    local pathpts = _get_path_pts(pts, width, miterjoin)
-    local S = shape.create(layer, purpose)
-    S:add_pointarray(pathpts)
+function M.path(layer, pts, width, miterjoin)
+    local S = shape.create(layer)
+    S.points = _get_path_pts(pts, width, miterjoin)
     return object.make_from_shape(S)
 end
 
-function M.path_midpoint(layer, purpose, pts, width, method, miterjoin)
+function M.path_midpoint(layer, pts, width, method, miterjoin)
     local newpts = pointarray.create()
     newpts:append(pts[1])
     for i = 2, #pts - 1 do
@@ -155,11 +153,11 @@ function M.path_midpoint(layer, purpose, pts, width, method, miterjoin)
         newpts:append(point.create(pts[i].x + factor * math.cos(postangle), pts[i].y + factor * math.sin(postangle)))
     end
     newpts:append(pts[#pts])
-    return M.path(layer, purpose, newpts, width, miterjoin)
+    return M.path(layer, newpts, width, miterjoin)
 end
 
-function M.corner(layer, purpose, startpt, endpt, width, radius, grid)
-    local S = shape.create(layer, purpose)
+function M.corner(layer, startpt, endpt, width, radius, grid)
+    local S = shape.create(layer)
     local dy = endpt.y - startpt.y - radius
     local pathpts = _get_path_pts({ point.create(startpt.x, startpt.y), point.create(startpt.x, endpt.y - radius) }, width)
     S:add_pointarray(pathpts)
@@ -189,12 +187,12 @@ function M.via(spec, width, height, nometal)
     local obj = object.create()
     if not nometal then
         for _, metal in ipairs(metals) do
-            local o = M.rectangle(metal, "drawing", width, height)
+            local o = M.rectangle(metal, width, height)
             obj:merge_into(o)
         end
     end
     for _, via in ipairs(vias) do
-        obj:merge_into(M.rectangle(via, "drawing", width, height))
+        obj:merge_into(M.rectangle(via, width, height))
     end
     return obj
 end

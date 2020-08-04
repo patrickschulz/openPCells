@@ -23,6 +23,16 @@ local recordtypes = {
     ENDEL       = 0x11,
 }
 
+local datatypes = {
+    NONE                = 0x00,
+    BIT_ARRAY           = 0x01,
+    TWO_BYTE_INTEGER    = 0x02,
+    FOUR_BYTE_INTEGER   = 0x03,
+    FOUR_BYTE_REAL      = 0x04,
+    EIGHT_BYTE_REAL     = 0x05,
+    ASCII_STRING        = 0x06,
+}
+
 -- helper functions
 local function _gdsfloat_to_number(data, width)
     local sign      =  data[1] & 0x80
@@ -164,10 +174,10 @@ local function _write_record(file, recordtype, datatype, content)
 end
 
 local function _start_stream(file)
-    _write_record(file, recordtypes.HEADER, 0x02, { 5 })
-    _write_record(file, recordtypes.BGNLIB, 0x02, { 2020, 7, 5, 18, 17, 51, 2020, 7, 5, 18, 17, 51 })
-    _write_record(file, recordtypes.LIBNAME, 0x06, "testlib")
-    _write_record(file, recordtypes.UNITS, 0x05, { 0.001, 1e-9 })
+    _write_record(file, recordtypes.HEADER, datatypes.TWO_BYTE_INTEGER, { 5 })
+    _write_record(file, recordtypes.BGNLIB, datatypes.TWO_BYTE_INTEGER, { 2020, 7, 5, 18, 17, 51, 2020, 7, 5, 18, 17, 51 })
+    _write_record(file, recordtypes.LIBNAME, datatypes.ASCII_STRING, "testlib")
+    _write_record(file, recordtypes.UNITS, datatypes.EIGHT_BYTE_REAL, { 0.001, 1e-9 })
 end
 
 local function _unpack_points(pts, multiplier)
@@ -180,29 +190,27 @@ local function _unpack_points(pts, multiplier)
 end
 
 local function _write_shape(file, shape)
-    if not shape.layer then return end
-    for pts in shape:iter() do
-        _write_record(file, recordtypes.BOUNDARY, 0x00)
-        _write_record(file, recordtypes.LAYER, 0x02, { shape.layer.number })
-        _write_record(file, recordtypes.DATATYPE, 0x02, { shape.purpose.number })
-        _write_record(file, recordtypes.XY, 0x03, _unpack_points(pts, 1000))
-        _write_record(file, recordtypes.ENDEL, 0x00)
-    end
+    if not shape.lpp then return end
+    _write_record(file, recordtypes.BOUNDARY, datatypes.NONE)
+    _write_record(file, recordtypes.LAYER, datatypes.TWO_BYTE_INTEGER, { shape.lpp.layer.number })
+    _write_record(file, recordtypes.DATATYPE, datatypes.TWO_BYTE_INTEGER, { shape.lpp.purpose.number })
+    _write_record(file, recordtypes.XY, datatypes.FOUR_BYTE_INTEGER, _unpack_points(shape.points, 1000))
+    _write_record(file, recordtypes.ENDEL, datatypes.NONE)
 end
 
 local function _end_stream(file)
-    _write_record(file, recordtypes.ENDLIB, 0x00)
+    _write_record(file, recordtypes.ENDLIB, datatypes.NONE)
 end
 
 function M.print_object(file, obj)
     _start_stream(file)
-    _write_record(file, recordtypes.BGNSTR, 0x02, { 2020, 7, 5, 18, 17, 51, 2020, 7, 5, 18, 17, 51 })
-    _write_record(file, recordtypes.STRNAME, 0x06, "toplevelcell")
+    _write_record(file, recordtypes.BGNSTR, datatypes.TWO_BYTE_INTEGER, { 2020, 7, 5, 18, 17, 51, 2020, 7, 5, 18, 17, 51 })
+    _write_record(file, recordtypes.STRNAME, datatypes.ASCII_STRING, "toplevelcell")
     for shape in obj:iter() do
         _write_shape(file, shape)
     end
     -- write ENDSTR
-    _write_record(file, recordtypes.ENDSTR, 0x00)
+    _write_record(file, recordtypes.ENDSTR, datatypes.NONE)
     _end_stream(file)
 end
 

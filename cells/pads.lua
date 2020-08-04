@@ -10,7 +10,7 @@ return function(args)
     local pads = object.create()
 
     pads:merge_into(layout.multiple(
-        layout.rectangle("outermetal", "drawing", padwidth, padheight),
+        layout.rectangle("outermetal", padwidth, padheight),
         numpads, 1, padpitch, 0
     ))
 

@@ -18,16 +18,16 @@ return function(args)
 
     for i = firstmetal, lastmetal do
         momcap:merge_into(layout.multiple(
-            layout.rectangle(string.format("M%d", i), "drawing", fwidth, fheight),
+            layout.rectangle(string.format("M%d", i), fwidth, fheight),
             fingers + 1, 1, 2 * pitch, 0
         ):translate(0, foffset))
         momcap:merge_into(layout.multiple(
-            layout.rectangle(string.format("M%d", i), "drawing", fwidth, fheight),
+            layout.rectangle(string.format("M%d", i), fwidth, fheight),
             fingers, 1, 2 * pitch, 0
         ):translate(0, -foffset))
         -- rails
         momcap:merge_into(layout.multiple(
-            layout.rectangle(string.format("M%d", i), "drawing", (2 * fingers + 1) * (fwidth + fspace), rwidth),
+            layout.rectangle(string.format("M%d", i), (2 * fingers + 1) * (fwidth + fspace), rwidth),
             1, 2, 0, 2 * foffset + fheight + rwidth
         ))
     end

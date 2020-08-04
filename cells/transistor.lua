@@ -39,14 +39,14 @@ return function(args)
 
     -- gates
     transistor:merge_into(layout.multiple(
-        layout.rectangle("gate", "drawing", gatelength, gateheight),
+        layout.rectangle("gate", gatelength, gateheight),
         fingers, 1, gatepitch, 0
     ):translate(0, gateoffset))
 
     --[[
     -- oxide type
     transistor:merge_into(layout.rectangle(
-        string.format("oxthick%d", oxidetype), "drawing",
+        string.format("oxthick%d", oxidetype), 
         origin,
         fingers * gatelength + (fingers - 1) * fspace + 2 * actext, fwidth
     ))
@@ -54,17 +54,17 @@ return function(args)
 
     -- active
     transistor:merge_into(layout.rectangle(
-        "active", "drawing", 
+        "active", 
         actwidth, fwidth
     ))
     transistor:merge_into(layout.rectangle(
-        (channeltype == "nmos") and "nimpl" or "pimpl", "drawing",
+        (channeltype == "nmos") and "nimpl" or "pimpl", 
         actwidth + 2 * typext, gateheight + typext * clipshift
     ):translate(0, gateoffset + 0.5 * typext * clipshift))
 
     -- well
     transistor:merge_into(layout.rectangle(
-        (channeltype == "nmos") and "pwell" or "nwell", "drawing",
+        (channeltype == "nmos") and "pwell" or "nwell", 
         actwidth + 2 * typext, gateheight + typext
     ):translate(0, gateoffset))
 
@@ -84,7 +84,7 @@ return function(args)
         )
         if fingers > 1 then
             transistor:merge_into(layout.rectangle(
-                "M1", "drawing",
+                "M1", 
                 (fingers - 1 + topgatestrext) * gatepitch, topgatestrwidth
             ):translate(0, 0.5 * fwidth + gtopext - 0.5 * topgatestrwidth))
         end
@@ -97,7 +97,7 @@ return function(args)
         )
         if fingers > 1 then
             transistor:merge_into(layout.rectangle(
-                "M1", "drawing",
+                "M1", 
                 (fingers - 1 + botgatestrext) * gatepitch, botgatestrwidth
             ):translate(0, 0.5 * fwidth + gbotext - 0.5 * botgatestrwidth))
         end
@@ -109,13 +109,13 @@ return function(args)
     local cwidth = fingers * gatelength + (fingers - 1) * fspace + 2 * cutext
     if topgcut then
         transistor:merge_into(layout.rectangle(
-            "gatecut", "drawing",
+            "gatecut", 
             cwidth, cutheight
         ):translate(0, 0.5 * fwidth + gtopext))
     end
     if botgcut then
         transistor:merge_into(layout.rectangle(
-            "gatecut", "drawing",
+            "gatecut", 
             cwidth, cutheight
         ):translate(0, -0.5 * fwidth - gbotext))
     end

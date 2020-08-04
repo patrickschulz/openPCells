@@ -1,29 +1,31 @@
 local M = {}
 
-local layout = require "layout"
-
 local layermap
 local viarules
 local config
 
 local function map_shape(shape)
-    local t = layermap[shape.layer]
+    local t = layermap[shape.lpp]
     if not t then
-        print(string.format("no layer information for '%s'\nif the layer is not provided, set it to 'UNUSED'", shape.layer))
+        print(string.format("no layer information for '%s'\nif the layer is not provided, set it to 'UNUSED'", shape.lpp))
         os.exit(1)
     end
     if t == "UNUSED" then
-        shape.layer = nil
-        shape.purpose = nil
+        shape.lpp = nil
     else
-        shape.layer = t.layer
-        shape.purpose = t.purpose
+        shape.lpp = t
     end
+end
+
+local function _is_unmapped(shape)
+    return type(shape.lpp) == "string"
 end
 
 function M.map_layer(obj, layermap)
     for shape in obj:iter() do
-        map_shape(shape, layermap)
+        if _is_unmapped(shape) then
+            map_shape(shape, layermap)
+        end
     end
 end
 
@@ -46,11 +48,21 @@ local function _place_vias(cell, layer, pts)
     local yrep = math.max(1, math.floor((height + viaspec.yspace - 2 * viaspec.yencl) / (viaspec.height + viaspec.yspace)))
     local xpitch = viaspec.width + viaspec.xspace
     local ypitch = viaspec.height + viaspec.yspace
-    local o = layout.multiple(
-        layout.rectangle(layer, "drawing", viaspec.width, viaspec.height),
-        xrep, yrep, xpitch, ypitch
-    )
-    cell:merge_into(o:translate(x, y))
+    for _, lay in ipairs(viaspec.layers) do
+        local o = layout.multiple(
+            layout.rectangle(lay, viaspec.width, viaspec.height),
+            xrep, yrep, xpitch, ypitch
+        )
+        cell:merge_into(o:translate(x, y))
+    end
+end
+
+local function _is_via(shape)
+    if _is_unmapped(shape) then
+        if string.match(shape.lpp, "^via") then
+            return true
+        end
+    end
 end
 
 function M.translate_vias(cell)
@@ -58,12 +70,10 @@ function M.translate_vias(cell)
     local toremove = {}
     for i = 1, numshapes do
         local s = cell.shapes[i]
-        if string.match(s.layer, "^via") then
+        if _is_via(s) then
             table.insert(toremove, i)
-            local layer = string.match(s.layer, "^via(.+)$")
-            for pts in s:iter() do
-                _place_vias(cell, layer, pts)
-            end
+            local layer = string.match(s.lpp, "^via(.+)$")
+            _place_vias(cell, layer, s.points)
         end
     end
     -- remove dummy via entries
@@ -80,10 +90,8 @@ end
 
 function M.fix_to_grid(obj)
     for s in obj:iter() do
-        for pts in s:iter() do
-            for pt in pts:iter_forward() do
-                _fix_pt_to_grid(pt)
-            end
+        for pt in s.points:iter_forward() do
+            _fix_pt_to_grid(pt)
         end
     end
 end

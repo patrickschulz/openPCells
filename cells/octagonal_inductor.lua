@@ -1,13 +1,15 @@
 
 return function(args)
-    pcell.clear()
-    local initradius = pcell.process_args(args, "radius",     "number", 30.0)
-    local turns      = pcell.process_args(args, "turns",      "number", 3.0)
-    local separation = pcell.process_args(args, "separation", "number", 6.0)
-    local width      = pcell.process_args(args, "width",      "number", 6.0)
-    local extension  = pcell.process_args(args, "extension",  "number", 10.0)
-    local extsep     = pcell.process_args(args, "extsep",     "number", 6.0)
-    pcell.check_args(args)
+    pcell.setup(args)
+
+    local initradius = pcell.process_args("radius",     "number", 30.0)
+    local turns      = pcell.process_args("turns",      "number", 3.0)
+    local separation = pcell.process_args("separation", "number", 6.0)
+    local width      = pcell.process_args("width",      "number", 6.0)
+    local extension  = pcell.process_args("extension",  "number", 10.0)
+    local extsep     = pcell.process_args("extsep",     "number", 6.0)
+
+    pcell.check_args()
 
     local inductor = object.create()
 
@@ -42,8 +44,8 @@ return function(args)
             uppts:append(point.create( 0.5 * (separation + width), -sign * (radius + separation + width)))
             uppts:append(point.create( 0.5 * (separation + width) + 0.5 * tanpi8 * width, -sign * (radius + separation + width)))
             uppts:append(point.create( 0.5 * (initradius * tanpi8 + 0.5 * (separation + width)), -sign * (radius + separation + width)))
-            inductor:merge_into(layout.path("lastmetal", "drawing", uppts, width, true))
-            inductor:merge_into(layout.path("M9", "drawing", uppts:xmirror(), width, true))
+            inductor:merge_into(layout.path("lastmetal", uppts, width, true))
+            inductor:merge_into(layout.path("M9", uppts:xmirror(), width, true))
             -- place vias
             inductor:merge_into(layout.via("M9->M10", width, width):translate(
                 -0.5 * (initradius * tanpi8 + 0.5 * (separation + width)), 
@@ -73,8 +75,8 @@ return function(args)
             end
         end
 
-        inductor:merge_into(layout.path("lastmetal", "drawing", pathpts, width, true))
-        inductor:merge_into(layout.path("lastmetal", "drawing", pathpts:xmirror(), width, true))
+        inductor:merge_into(layout.path("lastmetal", pathpts, width, true))
+        inductor:merge_into(layout.path("lastmetal", pathpts:xmirror(), width, true))
     end
 
     return inductor
