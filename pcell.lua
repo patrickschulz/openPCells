@@ -19,7 +19,8 @@ local evaluators = {
 local used
 local args
 
-function M.process_args(name, argtype, default, posvals)
+function M.process_args(name, default, argtype, posvals)
+    local argtype = argtype or type(default)
     local eval = evaluators[argtype]
     local res
     if args[name] then
