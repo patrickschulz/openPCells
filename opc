@@ -13,9 +13,11 @@ local techlib = require "technology"
 local interface = require "interface"
 local celllib = require "cell"
 
+-- prepare arguments
 local techname = arg[1]
 local interfacename = arg[2]
 local cellname = arg[3]
+-- all remaining arguments are processed by the cell
 local t = {}
 for i = 4, #arg do
     table.insert(t, arg[i])
