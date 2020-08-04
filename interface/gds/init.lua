@@ -25,7 +25,7 @@ local recordtypes = {
 
 -- helper functions
 local function _gdsfloat_to_number(data, width)
-    local sign      = data[1] & 0x80
+    local sign      =  data[1] & 0x80
     local exp       = (data[1] & 0x7f) - 64
     local mantissa  = 0
     for m = 2, width do
