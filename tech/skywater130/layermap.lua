@@ -7,7 +7,6 @@ return {
     pwell = "UNUSED",
     gate = { layer = { number = 66, name = "poly" }, purpose = { number = 20, name = "drawing" } },
     M1 = { layer = { number = 67, name = "li1" }, purpose = { number = 20, name = "drawing" } },
-    wellcont = { layer = { number = 66, name = "licon1" }, purpose = { number = 44, name = "drawing" } },
     lastmetal = { layer = { number = 72, name = "met5" }, purpose = { number = 20, name = "drawing" } },
 }
 --[[
