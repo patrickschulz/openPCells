@@ -13,8 +13,8 @@ The code has no dependencies except a working lua interpreter (>= 5.2), as we tr
 and edit your `LUA_PATH` environment variable to include the path to the code (make sure to run this BEFORE you start virtuoso):
 
     # in your shell configuration file
-    export LUA_PATH=";;/path/to/pcells/?.lua" # bash/zsh
-    setenv LUA_PATH ";;/path/to/pcells/?.lua" # csh
+    export LUA_PATH=";;/path/to/pcells/?.lua;/path/to/pcells/?/init.lua" # bash/zsh
+    setenv LUA_PATH ";;/path/to/pcells/?.lua;/path/to/pcells/?/init.lua" # csh
 
 Now you need to set up your virtuoso interface. The file `interface/virtuoso.il` shows how to do that, you can run that file from the SKILL IDE within
 virtuoso. A better approach is to insert a menu to the layout editor, which is done in `interface/virtuoso_menu.il`. You need to include this file in
