@@ -1,3 +1,30 @@
+procedure(OPCcreateShapes()
+    filename = ipcReadProcess(pid)
+    println(filename)
+    file = infile(filename)
+    state = "header"
+    when(file
+        while(line = gets(nil file)
+            if(line == "\n"
+                then
+                    state = "endshape"
+                    pts = mapcar(lambda( (pt) xCoord(pt) + xCoord(origin):yCoord(pt) + yCoord(origin)) pts)
+                    dbCreatePolygon(geGetEditCellView() lpp pts)
+                    pts = nil ; reset points
+                    state = "header"
+                else
+                    when(state == "points"
+                        pts = cons(linereadstring(line) pts)
+                    )
+                    when(state == "header"
+                        lpp = parseString(line)
+                        state = "points"
+                    )
+            )
+        )
+    ) ; when file
+)
+
 procedure(OPCcreateCell(w done pts)
     let(
         (
@@ -19,31 +46,7 @@ procedure(OPCcreateCell(w done pts)
 	            then 
 	                printf("generator exited with status %d" exitstatus)
 	            else
-	                filename = ipcReadProcess(pid)
-	                println(filename)
-	                file = infile(filename)
-	                state = "header"
-	                when(file
-	                    while(line = gets(nil file)
-	                        if(line == "\n"
-	                            then
-	                                state = "endshape"
-	                                pts = mapcar(lambda( (pt) xCoord(pt) + xCoord(origin):yCoord(pt) + yCoord(origin)) pts)
-	                                dbCreatePolygon(geGetEditCellView() lpp pts)
-	                                pts = nil ; reset points
-	                                state = "header"
-	                            else
-	                                when(state == "points"
-	                                    pts = cons(linereadstring(line) pts)
-	                                )
-	                                when(state == "header"
-	                                    lpp = parseString(line)
-	                                    state = "points"
-	                                )
-	                        )
-	                    )
-	                )
-	        ) ; when status
+	        ) ; if exitstatus
         ) ; when done
     )
 ) ; OPCcreateCell
