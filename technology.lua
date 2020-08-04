@@ -59,7 +59,7 @@ end
 
 local function _is_via(shape)
     if _is_unmapped(shape) then
-        if string.match(shape.lpp, "^via") then
+        if string.match(shape.lpp, "^via") or string.match(shape.lpp, "wellcont") or string.match(shape.lpp, "gatecont") then
             return true
         end
     end
@@ -72,8 +72,7 @@ function M.translate_vias(cell)
         local s = cell.shapes[i]
         if _is_via(s) then
             table.insert(toremove, i)
-            local layer = string.match(s.lpp, "^via(.+)$")
-            _place_vias(cell, layer, s.points)
+            _place_vias(cell, s.lpp, s.points)
         end
     end
     -- remove dummy via entries
