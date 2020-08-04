@@ -1,8 +1,3 @@
-local point = require "point"
-local object = require "object"
-local layout = require "layout"
-local pcell = require "pcell"
-
 return function(args)
     local contype = pcell.process_args(args, "type", "string", "p")
     local width = pcell.process_args(args, "width", "number", 5.0)

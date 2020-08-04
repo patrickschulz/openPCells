@@ -1,5 +1,14 @@
 #! /usr/bin/lua
 
+-- load API into global space
+object     = require "object"
+shape      = require "shape"
+point      = require "point"
+pointarray = require "pointarray"
+layout     = require "layout"
+graphics   = require "graphics"
+pcell      = require "pcell"
+
 local techlib = require "technology"
 local interface = require "interface"
 local celllib = require "cell"

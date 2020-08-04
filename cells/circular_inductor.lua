@@ -1,11 +1,3 @@
-local point = require "point"
-local graphics = require "graphics"
-local pointarray = require "pointarray"
-local layout = require "layout"
-local shape = require "shape"
-local object = require "object"
-local pcell = require "pcell"
-
 return function(args)
     local radius = pcell.process_args(args, "radius", "number", 40.0)
     local cornerradius = pcell.process_args(args, "cornerradius", "number", 14.0)

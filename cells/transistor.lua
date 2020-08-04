@@ -1,8 +1,3 @@
-local point = require "point"
-local object = require "object"
-local layout = require "layout"
-local pcell = require "pcell"
-
 return function(args)
     pcell.clear()
 

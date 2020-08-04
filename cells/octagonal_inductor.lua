@@ -1,21 +1,17 @@
-local point = require "point"
-local pointarray = require "pointarray"
-local layout = require "layout"
-local shape = require "shape"
-local object = require "object"
-local pcell = require "pcell"
-
-local tanpi8 = math.tan(math.pi / 8)
 
 return function(args)
+    pcell.clear()
     local initradius = pcell.process_args(args, "radius",     "number", 30.0)
     local turns      = pcell.process_args(args, "turns",      "number", 3.0)
     local separation = pcell.process_args(args, "separation", "number", 6.0)
     local width      = pcell.process_args(args, "width",      "number", 6.0)
     local extension  = pcell.process_args(args, "extension",  "number", 10.0)
     local extsep     = pcell.process_args(args, "extsep",     "number", 6.0)
+    pcell.check_args(args)
 
     local inductor = object.create()
+
+    local tanpi8 = math.tan(math.pi / 8)
 
     -- draw left and right segments
     local sign = (turns % 2 == 0) and 1 or -1

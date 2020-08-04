@@ -1,8 +1,5 @@
-local object = require "object"
-local layout = require "layout"
-local pcell = require "pcell"
-
 return function(args)
+    pcell.clear()
     -- momcap settings
     local fingers    = pcell.process_args(args, "fingers", "number", 4)
     local fwidth     = pcell.process_args(args, "fwidth", "number", 0.1)
@@ -12,6 +9,7 @@ return function(args)
     local rwidth     = pcell.process_args(args, "rwidth", "number", 0.1)
     local firstmetal = pcell.process_args(args, "firstmetal", "number", 1)
     local lastmetal  = pcell.process_args(args, "lastmetal", "number", 2)
+    pcell.check_args(args)
 
     -- derived settings
     local pitch = fwidth + fspace
