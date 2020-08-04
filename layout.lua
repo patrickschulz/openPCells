@@ -46,7 +46,7 @@ local function _get_layer_via_lists(startlayer, endlayer)
     local vias = {}
     if startlayer == "active" or startlayer == "gate" then
         table.insert(layers, startlayer)
-        table.insert(vias, startlayer == "active" and "viawellcont" or "viagatecont")
+        table.insert(vias, startlayer == "active" and "wellcont" or "gatecont")
     end
     local startindex = string.match(startlayer, "M(%d+)") or 1
     local endindex = string.match(endlayer, "M(%d+)") or 1
