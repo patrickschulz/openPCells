@@ -1,44 +1,15 @@
-procedure(OPCcreateShapes()
-    filename = ipcReadProcess(pid)
-    println(filename)
-    file = infile(filename)
-    state = "header"
-    when(file
-        while(line = gets(nil file)
-            if(line == "\n"
-                then
-                    state = "endshape"
-                    pts = mapcar(lambda( (pt) xCoord(pt) + xCoord(origin):yCoord(pt) + yCoord(origin)) pts)
-                    dbCreatePolygon(geGetEditCellView() lpp pts)
-                    pts = nil ; reset points
-                    state = "header"
-                else
-                    when(state == "points"
-                        pts = cons(linereadstring(line) pts)
-                    )
-                    when(state == "header"
-                        lpp = parseString(line)
-                        state = "points"
-                    )
-            )
-        )
-    ) ; when file
-)
-
 procedure(OPCcreateCell(w done pts)
     let(
         (
-            (path "/home/pschulz/path/main.lua")
+            (path "/home/pschulz/path/opc")
             (origin car(pts))
             args command pid filename file
             state lpp pts exitstatus
         )
         when(done
-        	println(origin)
 	        args = lsprintf("%.1f" 1.0)
             ; 'cell' is defined one level above (in OPCplaceCell)
-	        command = lsprintf("lua %s %s %s" path cell args)
-	        println(command)
+	        command = lsprintf("%s cmos22fdsoi virtuoso %s" path cell)
 	        pid = ipcBeginProcess(command)
 	        ipcWait(pid) ; wait for process to finish
 	        exitstatus = ipcGetExitStatus(pid)
@@ -46,6 +17,7 @@ procedure(OPCcreateCell(w done pts)
 	            then 
 	                printf("generator exited with status %d" exitstatus)
 	            else
+                    load("openPCells.il")
 	        ) ; if exitstatus
         ) ; when done
     )
