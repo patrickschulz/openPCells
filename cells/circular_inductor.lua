@@ -1,12 +1,12 @@
 return function(args)
     pcell.setup(args)
 
-    local radius       = pcell.process_args("radius", "number", 40.0)
-    local cornerradius = pcell.process_args("cornerradius", "number", 14.0)
-    local width        = pcell.process_args("width", "number", 6.0)
-    local separation   = pcell.process_args("separation", "number", 6.0)
-    local extension    = pcell.process_args("extension", "number", 40.0)
-    local grid         = pcell.process_args("grid", "number", 0.2)
+    local radius       = pcell.process_args("radius",       40.0)
+    local cornerradius = pcell.process_args("cornerradius", 14.0)
+    local width        = pcell.process_args("width",         6.0)
+    local separation   = pcell.process_args("separation",    6.0)
+    local extension    = pcell.process_args("extension",    40.0)
+    local grid         = pcell.process_args("grid",          0.2)
 
     pcell.check_args()
 

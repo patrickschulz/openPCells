@@ -1,15 +1,15 @@
 return function(args)
-    pcell.clear()
+    pcell.setup(args)
     -- momcap settings
-    local fingers    = pcell.process_args(args, "fingers", "number", 4)
-    local fwidth     = pcell.process_args(args, "fwidth", "number", 0.1)
-    local fspace     = pcell.process_args(args, "fspace", "number", 0.1)
-    local fheight    = pcell.process_args(args, "fheight", "number", 1)
-    local foffset    = pcell.process_args(args, "foffset", "number", 0.1)
-    local rwidth     = pcell.process_args(args, "rwidth", "number", 0.1)
-    local firstmetal = pcell.process_args(args, "firstmetal", "number", 1)
-    local lastmetal  = pcell.process_args(args, "lastmetal", "number", 2)
-    pcell.check_args(args)
+    local fingers    = pcell.process_args("fingers", 4)
+    local fwidth     = pcell.process_args("fwidth", 0.1)
+    local fspace     = pcell.process_args("fspace", 0.1)
+    local fheight    = pcell.process_args("fheight", 1)
+    local foffset    = pcell.process_args("foffset", 0.1)
+    local rwidth     = pcell.process_args("rwidth", 0.1)
+    local firstmetal = pcell.process_args("firstmetal", 1)
+    local lastmetal  = pcell.process_args("lastmetal", 2)
+    pcell.check_args()
 
     -- derived settings
     local pitch = fwidth + fspace

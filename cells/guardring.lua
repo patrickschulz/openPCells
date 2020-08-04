@@ -1,11 +1,15 @@
 return function(args)
-    local contype = pcell.process_args(args, "type", "string", "p")
-    local width = pcell.process_args(args, "width", "number", 5.0)
-    local height = pcell.process_args(args, "height", "number", 5.0)
-    local ringwidth = pcell.process_args(args, "ringwidth", "number", 0.2)
-    local extension = pcell.process_args(args, "extension", "number", 0.05)
-    local fillwell = pcell.process_args(args, "fillwell", "boolean", true)
-    local drawdeepwell = pcell.process_args(args, "drawdeepwell", "boolean", false)
+    pcell.setup(args)
+
+    local contype      = pcell.process_args("type",         "p")
+    local width        = pcell.process_args("width",        5.0)
+    local height       = pcell.process_args("height",       5.0)
+    local ringwidth    = pcell.process_args("ringwidth",    0.2)
+    local extension    = pcell.process_args("extension",    0.05)
+    local fillwell     = pcell.process_args("fillwell",     true)
+    local drawdeepwell = pcell.process_args("drawdeepwell", false)
+
+    pcell.check_args()
 
     local guardring = object.create()
 

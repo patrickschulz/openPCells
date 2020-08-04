@@ -1,11 +1,10 @@
 return function(args)
-    pcell.clear()
-    -- pads settings
-    local numpads   = pcell.process_args(args, "numpads", "number", 3)
-    local padwidth  = pcell.process_args(args, "padwidth", "number", 60.0)
-    local padheight = pcell.process_args(args, "padheight", "number", 80.0)
-    local padpitch  = pcell.process_args(args, "padpitch", "number", 100.0)
-    pcell.check_args(args)
+    pcell.setup(args)
+    local numpads   = pcell.process_args("numpads",    3)
+    local padwidth  = pcell.process_args("padwidth",  60.0)
+    local padheight = pcell.process_args("padheight", 80.0)
+    local padpitch  = pcell.process_args("padpitch", 100.0)
+    pcell.check_args()
 
     local pads = object.create()
 

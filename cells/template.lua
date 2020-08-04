@@ -1,8 +1,9 @@
 return function(args)
     -- start pcell parameters
-    pcell.clear()
-    local channeltype = pcell.process_args(args, "size", "number", 10)
-    pcell.check_args(args) -- finish cell parametrization. This function checks for misspelled arguments 
+    pcell.setup(args)
+    --local channeltype = pcell.process_args("size", 10, "number")
+    local channeltype = pcell.process_args("size", 10) -- normally, the type can be inferred, but it can be explicitly given
+    pcell.check_args() -- finish cell parametrization. This function checks for misspelled arguments 
 
     -- create the main object
     local obj = object.create()

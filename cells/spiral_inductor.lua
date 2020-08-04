@@ -1,10 +1,10 @@
 return function(args)
-    pcell.clear()
-    local turns = pcell.process_args(args, "turns", "number", 3)
-    local width = pcell.process_args(args, "width", "number", 6)
-    local spacing = pcell.process_args(args, "spacing", "number", 6)
-    local innerdiameter = pcell.process_args(args, "innerdiameter", "number", 10)
-    pcell.check_args(args)
+    pcell.setup(args)
+    local turns         = pcell.process_args("turns",         3)
+    local width         = pcell.process_args("width",         6.0)
+    local spacing       = pcell.process_args("spacing",       6.0)
+    local innerdiameter = pcell.process_args("innerdiameter", 10)
+    pcell.check_args()
 
     local pathpts = pointarray.create()
     for i = 1, turns do

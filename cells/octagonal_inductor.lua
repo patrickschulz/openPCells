@@ -2,12 +2,12 @@
 return function(args)
     pcell.setup(args)
 
-    local initradius = pcell.process_args("radius",     "number", 30.0)
-    local turns      = pcell.process_args("turns",      "number", 3.0)
-    local separation = pcell.process_args("separation", "number", 6.0)
-    local width      = pcell.process_args("width",      "number", 6.0)
-    local extension  = pcell.process_args("extension",  "number", 10.0)
-    local extsep     = pcell.process_args("extsep",     "number", 6.0)
+    local initradius = pcell.process_args("radius",    30.0)
+    local turns      = pcell.process_args("turns",      3.0)
+    local separation = pcell.process_args("separation", 6.0)
+    local width      = pcell.process_args("width",      6.0)
+    local extension  = pcell.process_args("extension", 10.0)
+    local extsep     = pcell.process_args("extsep",     6.0)
 
     pcell.check_args()
 
