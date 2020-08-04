@@ -36,6 +36,23 @@ local function _get_viaspec(layer)
     return viarules[layer]
 end
 
+local function _place_vias(cell, layer, pts)
+    local viaspec = _get_viaspec(layer)
+    local width = math.abs(pts[3].x - pts[1].x)
+    local height = math.abs(pts[3].y - pts[1].y)
+    local x = 0.5 * (pts[1].x + pts[3].x)
+    local y = 0.5 * (pts[1].y + pts[3].y)
+    local xrep = math.max(1, math.floor((width + viaspec.xspace - 2 * viaspec.xencl) / (viaspec.width + viaspec.xspace)))
+    local yrep = math.max(1, math.floor((height + viaspec.yspace - 2 * viaspec.yencl) / (viaspec.height + viaspec.yspace)))
+    local xpitch = viaspec.width + viaspec.xspace
+    local ypitch = viaspec.height + viaspec.yspace
+    local o = layout.multiple(
+        layout.rectangle(layer, "drawing", viaspec.width, viaspec.height),
+        xrep, yrep, xpitch, ypitch
+    )
+    cell:merge_into(o:translate(x, y))
+end
+
 function M.translate_vias(cell)
     local numshapes = #cell.shapes
     local toremove = {}
@@ -44,21 +61,8 @@ function M.translate_vias(cell)
         if string.match(s.layer, "^via") then
             table.insert(toremove, i)
             local layer = string.match(s.layer, "^via(.+)$")
-            local viaspec = _get_viaspec(layer)
             for pts in s:iter() do
-                local width = math.abs(pts[3].x - pts[1].x)
-                local height = math.abs(pts[3].y - pts[1].y)
-                local x = 0.5 * (pts[1].x + pts[3].x)
-                local y = 0.5 * (pts[1].y + pts[3].y)
-                local xrep = math.max(1, math.floor((width + viaspec.xspace - 2 * viaspec.xencl) / (viaspec.width + viaspec.xspace)))
-                local yrep = math.max(1, math.floor((height + viaspec.yspace - 2 * viaspec.yencl) / (viaspec.height + viaspec.yspace)))
-                local xpitch = viaspec.width + viaspec.xspace
-                local ypitch = viaspec.height + viaspec.yspace
-                local o = layout.multiple(
-                    layout.rectangle(layer, "drawing", viaspec.width, viaspec.height),
-                    xrep, yrep, xpitch, ypitch
-                )
-                cell:merge_into(o:translate(x, y))
+                _place_vias(cell, layer, pts)
             end
         end
     end
