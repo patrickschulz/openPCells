@@ -8,13 +8,13 @@ in lua and generate platform-independent files describing the cell. In the layou
 interfacing code is provided (currently only for virtuoso, but this is pretty simple to adapt). A second important point for this project is
 technology independece. This is achieved by working in generic layers ('gate', 'metal1') and mapping that with (simple-to-write) layermaps.
 
-# Installation
+# Installation for Cadence Virtuoso
 The code has no dependencies except a working lua interpreter (>= 5.2), as we try to keep installation as easy as possible. Just clone this repository
 and edit your `LUA_PATH` environment variable to include the path to the code (make sure to run this BEFORE you start virtuoso):
 
     # in your shell configuration file
-    export LUA_PATH=";;/path/to/pcells/?.lua" # bash/zsh
-    setenv LUA_PATH ";;/path/to/pcells/?.lua" # csh
+    export LUA_PATH=";;/path/to/pcells/?.lua;/path/to/pcells/?/init.lua" # bash/zsh
+    setenv LUA_PATH ";;/path/to/pcells/?.lua;/path/to/pcells/?/init.lua" # csh
 
 Now you need to set up your virtuoso interface. The file `interface/virtuoso.il` shows how to do that, you can run that file from the SKILL IDE within
 virtuoso. A better approach is to insert a menu to the layout editor, which is done in `interface/virtuoso_menu.il`. You need to include this file in
@@ -56,22 +56,24 @@ Set your `LUA_PATH` environment variable to the base path:
 
     export LUA_PATH=";;/path/to/pcells/?.lua"
 
-The cell generator is used by passing the name of the cell to `main.lua`:
+The cell generator is used by passing the name of the cell, the to-be-used interface and the technology to the main program `opc`:
 
-    lua main.lua transistor
+    ./opc skywater130 gds transistor
 
-You can also pass some arguments to the cells (but this is veeery limited currently):
+You can also pass some arguments to the cells:
 
-    lua main.lua transistor 2.0 # use a different finger width
+    ./opc skywater130 gds transistor gatelength=0.2
 
 # Status
 ## Available Cells
 - Basic transistor
 - metal-oxide-metal capacitor (momcap)
+- octagonal inductor
+- pads
+- rounded inductor
 
 ## Interfaces
-Currently the only working interface is for cadence virtuoso. Since interfaces are pretty easy to write this should not be a complicated task, but it
-needs access to other tools for testing.
+Currently there is an interface for cadence virtuoso and a direct GDS export.
 
 <!---
 vim: tw=150

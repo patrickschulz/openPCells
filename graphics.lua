@@ -2,6 +2,7 @@
 
 local M = {}
 
+local point      = require "point"
 local pointarray = require "pointarray"
 
 function M.bresenham_arc(radius, grid)
@@ -11,7 +12,7 @@ function M.bresenham_arc(radius, grid)
     local err = 2 - 2 * r -- II. Quadrant
     local pts = pointarray.create()
     repeat
-        pts:append({ x = -grid * x, y = grid * y })
+        pts:append(point.create(-grid * x, grid * y))
         r = err
         if r <= y then
             y = y + 1
@@ -32,13 +33,13 @@ function M.quartercircle(quadrant, xm, ym, radius, grid)
     local yi = quadrant < 3 and 1 or -1
     for i = 1, #ptsi do
         local pt = ptsi[i]
-        pts:append({ x = xm + xi * pt.x, y = ym + yi * pt.y })
+        pts:append(point.create(xm + xi * pt.x, ym + yi * pt.y))
     end
     return pts
 end
 
 function M.halfcircle(xm, ym, radius, grid)
-    local pts = {}
+    local pts = pointarray.create()
     local ptsi = M.bresenham_arc(radius, grid)
     for num, shift in ipairs({ { -1, 1 }, { -1, -1 } }) do
         local startidx, endidx, inc
@@ -66,6 +67,7 @@ function M.circle(xm, ym, radius, grid, startslope, endslope)
     local endslope = endslope or 2 * math.pi
     local pts_pre = {}
     local ptsi = M.bresenham_arc(radius, grid)
+    -- we have to reorder the points since this matters for polygons (as opposed to pixels, for what the bresenham algorithm was designed)
     for num, shift in ipairs({ { 1, 1 }, { -1, 1 }, { -1, -1 }, { 1, -1 } }) do
         local startidx, endidx, inc
         if num % 2 == 0 then
@@ -97,23 +99,36 @@ function M.circle(xm, ym, radius, grid, startslope, endslope)
     return pts
 end
 
---[[
-function M.arc(xm, ym, px, py, theta, N)
-    local dx = px - xm
-    local dy = py - ym
-    local r2 = dx * dx + dy * dy
-    local r = math.sqrt(r2)
-    local ctheta = math.cos(theta/(N-1))
-    local stheta = math.sin(theta/(N-1))
-    print(xm + dx, ym + dy)
-    for i = 1, N do
-        local dxtemp = ctheta * dx - stheta * dy
-        dy = stheta * dx + ctheta * dy
-        dx = dxtemp
-        print(xm + dx, ym + dy)
+function M.arc(center, radius, startangle, endangle, grid)
+    local startslope = startslope or 0
+    local endslope = endslope or 2 * math.pi
+    local pts_pre = {}
+    local ptsi = M.bresenham_arc(radius, grid)
+    -- we have to reorder the points since this matters for polygons (as opposed to pixels, for what the bresenham algorithm was designed)
+    for num, shift in ipairs({ { 1, 1 }, { -1, 1 }, { -1, -1 }, { 1, -1 } }) do
+        local startidx, endidx, inc
+        if num % 2 == 0 then
+            startidx = #ptsi
+            endidx = 1
+            inc = -1
+        else
+            startidx = 1
+            endidx = #ptsi
+            inc = 1
+        end
+        local xi = shift[1]
+        local yi = shift[2]
+        for i = startidx, endidx, inc do
+            local pt = ptsi[i]
+            table.insert(pts_pre, point.create( xi * pt.x, yi * pt.y))
+        end
     end
+    local pts = {}
+    for _, pt in ipairs(pts_pre) do
+        table.insert(pts, point.create(xm + pt.x, ym + pt.y))
+    end
+    return pts
 end
---]]
 
 function M.xmirror(pts, xcenter)
     local res = {}
@@ -184,7 +199,10 @@ function M.line(x0, y0, x1, y1, grid)
     return pts
 end
 
-function M.quadbezierseg(x0, y0, x1, y1, x2, y2)
+function M.quadbezierseg(startpt, endpt, ctrlpt, grid)
+    local x0, y0 = startpt:unwrap(1 / grid)
+    local x1, y1 = ctrlpt:unwrap(1 / grid)
+    local x2, y2 = endpt:unwrap(1 / grid)
     local sx = x2 -x1
     local sy = y2 -y1
     local xx = x0 - x1
@@ -197,7 +215,7 @@ function M.quadbezierseg(x0, y0, x1, y1, x2, y2)
 
     assert(xx * sx <= 0 and yy * sy <= 0) -- sign of gradient must not change
 
-    local pts = {}
+    local pts = pointarray.create()
 
     if sx * sx + sy * sy > xx * xx +yy * yy then -- begin with longer part
         x2 = x0
@@ -230,7 +248,7 @@ function M.quadbezierseg(x0, y0, x1, y1, x2, y2)
         yy = yy + yy
         err = dx + dy + xy
         repeat
-            table.insert(pts, { x = x0, y = y0 })
+            pts:append(point.create(grid * x0, grid * y0))
             if x0 == x2 and y0 == y2 then return pts end -- last pixel -> curve finished
             if 2 * err > dy then 
                 x0 = x0 + sx
@@ -246,7 +264,7 @@ function M.quadbezierseg(x0, y0, x1, y1, x2, y2)
             end
         until dy >= dx
     end
-    --plotLine(x0,y0, x2,y2);                  /* plot remaining part to end */
+    local linepts = M.line(x0, y0, x2, y2) -- plot remaining part to end
 end
 
 return M

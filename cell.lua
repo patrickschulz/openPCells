@@ -1,19 +1,11 @@
 local M = {}
 
-local celllist = {
-    "transistor",
-    "momcap",
-    "symmetric_inductor"
-}
-
-local cellcode = {}
-for _, cell in ipairs(celllist) do
-    cellcode[cell] = require(string.format("cells.%s", cell))
-end
-
+-- public interface
 function M.create(name, args)
-    local func = cellcode[name]
-    if not func then return nil end
+    local func = require(string.format("cells.%s", name))
+    if not func then 
+        return nil, string.format("unknown cell '%s'", name)
+    end
     return func(args)
 end
 

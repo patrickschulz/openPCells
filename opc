@@ -1,0 +1,59 @@
+#! /usr/bin/lua
+
+-- load API into global space
+object     = require "object"
+shape      = require "shape"
+point      = require "point"
+pointarray = require "pointarray"
+layout     = require "layout"
+graphics   = require "graphics"
+pcell      = require "pcell"
+
+local techlib = require "technology"
+local interface = require "interface"
+local celllib = require "cell"
+
+-- prepare arguments
+local techname = arg[1]
+local interfacename = arg[2]
+local cellname = arg[3]
+-- all remaining arguments are processed by the cell
+local t = {}
+for i = 4, #arg do
+    table.insert(t, arg[i])
+end
+local cellargs = {}
+for k, v in string.gmatch(table.concat(t, " "), "(%w+)%s*=%s*(%S+)") do
+    cellargs[k] = v
+end
+
+if not techname then
+    print("no technology given")
+    os.exit(1)
+end
+if not interfacename then
+    print("no interface given")
+    os.exit(1)
+end
+if not cellname then
+    print("no cell type given")
+    os.exit(1)
+end
+
+techlib.load(techname)
+interface.load(interfacename)
+
+local cell, msg = celllib.create(cellname, cellargs)
+
+if not cell then
+    print(string.format("error while creating cell, received: %s", msg))
+    os.exit(1)
+end
+
+techlib.translate_vias(cell)
+techlib.fix_to_grid(cell)
+techlib.map_layer(cell)
+
+interface.write_cell("openPCells", cell)
+
+-- vim: ft=lua

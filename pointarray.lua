@@ -19,12 +19,42 @@ function M.create()
     return self
 end
 
+function meta.concat(self, func, delim)
+    local st = {}
+    local delim = delim or " "
+    for _, pt in ipairs(self) do
+        table.insert(st, func(pt))
+    end
+    return table.concat(st, delim)
+end
+
+function meta.copy(self)
+    local new = M.create()
+    for i, pt in ipairs(self) do
+        new[i] = pt:copy()
+    end
+    return new
+end
+
 function meta.insert(self, idx, pt)
     table.insert(self, idx, pt)
 end
 
+function meta.prepend(self, pt)
+    table.insert(self, pt, 1)
+end
+
 function meta.append(self, pt)
     table.insert(self, pt)
+end
+
+function meta.move(self, dx, dy)
+    local dx = dx or 0
+    local dy = dx or 0
+    for i in ipairs(self) do
+        self[i].x = self[i].x + dx
+        self[i].y = self[i].y + dy
+    end
 end
 
 function meta.prepend(self, pt)
@@ -97,10 +127,17 @@ function meta.iter_backward(self)
     return iter
 end
 
+function meta.map(self, func, ...)
+    for _, pt in ipairs(self) do
+        func(pt, ...)
+    end
+end
+
 function meta.xmirror(self, xcenter)
     local mirrored = M.create()
+    local xcenter = xcenter or 0
     for pt in self:iter_forward() do
-        mirrored:append({ x = 2 * xcenter - pt.x, y = pt.y })
+        mirrored:append(point.create(2 * xcenter - pt.x, pt.y))
     end
     return mirrored
 end

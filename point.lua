@@ -15,12 +15,30 @@ function M.create(x, y)
     return self
 end
 
+function meta.copy(self)
+    local new = M.create(self.x, self.y)
+    return new
+end
+
 function M.set_tostring_method(fun)
     tostringfun = fun
 end
 
-function meta.unwrap(self)
-    return self.x, self.y
+function meta.translate(self, dx, dy)
+    self.x = self.x + dx
+    self.y = self.y + dy
+    return self
+end
+
+function meta.scale(self, factor)
+    self.x = self.x * factor
+    self.y = self.y * factor
+    return self
+end
+
+function meta.unwrap(self, mul)
+    local mul = mul or 1
+    return mul * self.x, mul * self.y
 end
 
 return M

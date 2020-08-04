@@ -6,15 +6,39 @@ local pointarray = require "pointarray"
 local shape      = require "shape"
 local object     = require "object"
 
--- private helper functions
-local function _rectangle(center, width, height)
+function M.rectangle(layer, width, height)
+    local S = shape.create(layer)
+    S.points:append(point.create(-0.5 * width, -0.5 * height))
+    S.points:append(point.create( 0.5 * width, -0.5 * height))
+    S.points:append(point.create( 0.5 * width,  0.5 * height))
+    S.points:append(point.create(-0.5 * width,  0.5 * height))
+    return object.make_from_shape(S)
+end
+
+function M.cross(width, height, crosssize)
     local pts = pointarray.create()
-    -- polygon
-    pts:append(point.create(center.x - 0.5 * width, center.y - 0.5 * height))
-    pts:append(point.create(center.x + 0.5 * width, center.y - 0.5 * height))
-    pts:append(point.create(center.x + 0.5 * width, center.y + 0.5 * height))
-    pts:append(point.create(center.x - 0.5 * width, center.y + 0.5 * height))
+    pts:append(point.create(-0.5 * width,     -0.5 * crosssize))
+    pts:append(point.create(-0.5 * width,      0.5 * crosssize))
+    pts:append(point.create(-0.5 * crosssize,  0.5 * crosssize))
+    pts:append(point.create(-0.5 * crosssize,  0.5 * height))
+    pts:append(point.create( 0.5 * crosssize,  0.5 * height))
+    pts:append(point.create( 0.5 * crosssize,  0.5 * crosssize))
+    pts:append(point.create( 0.5 * width,      0.5 * crosssize))
+    pts:append(point.create( 0.5 * width,     -0.5 * crosssize))
+    pts:append(point.create( 0.5 * crosssize, -0.5 * crosssize))
+    pts:append(point.create( 0.5 * crosssize, -0.5 * height))
+    pts:append(point.create(-0.5 * crosssize, -0.5 * height))
+    pts:append(point.create(-0.5 * crosssize, -0.5 * crosssize))
     return pts
+end
+
+function M.ring(layer, width, height, ringwidth)
+    local obj = object.create()
+    obj:merge_into(M.rectangle(layer, width + ringwidth, ringwidth):translate(0,  0.5 * height))
+    obj:merge_into(M.rectangle(layer, width + ringwidth, ringwidth):translate(0, -0.5 * height))
+    obj:merge_into(M.rectangle(layer, ringwidth, height + ringwidth):translate( 0.5 * width, 0))
+    obj:merge_into(M.rectangle(layer, ringwidth, height + ringwidth):translate(-0.5 * width, 0))
+    return obj
 end
 
 local function _get_layer_via_lists(startlayer, endlayer)
@@ -24,8 +48,8 @@ local function _get_layer_via_lists(startlayer, endlayer)
         table.insert(layers, startlayer)
         table.insert(vias, startlayer == "active" and "wellcont" or "gatecont")
     end
-    local startindex = string.match(startlayer, "M(%d)") or 1
-    local endindex = string.match(endlayer, "M(%d)") or 1
+    local startindex = string.match(startlayer, "M(%d+)") or 1
+    local endindex = string.match(endlayer, "M(%d+)") or 1
     for i = startindex, endindex do
         table.insert(layers, string.format("M%d", i))
     end
@@ -35,77 +59,156 @@ local function _get_layer_via_lists(startlayer, endlayer)
     return layers, vias
 end
 
-local function _default_options(options)
-    options.xrep    = options.xrep or 1.0
-    options.yrep    = options.yrep or 1.0
-    options.xpitch  = options.xpitch or 0.0
-    options.ypitch  = options.ypitch or 0.0
-    options.xoffset = options.xoffset or 0.0
-    options.yoffset = options.yoffset or 0.0
-    return options
+local function _intersection(pt1, pt2, pt3, pt4)
+    local num = (pt1.x - pt3.x) * (pt3.y - pt4.y) - (pt1.y - pt3.y) * (pt3.x - pt4.x)
+    local den = (pt1.x - pt2.x) * (pt3.y - pt4.y) - (pt1.y - pt2.y) * (pt3.x - pt4.x)
+
+    if den == 0 then
+        return nil
+    end
+
+    local t = num / den
+    local pt = point.create(pt1.x + t * (pt2.x - pt1.x), pt1.y + t * (pt2.y - pt1.y))
+    if t < 0 or t > 1 then
+        return nil, pt
+    end
+    return pt
 end
 
--- public interface
-function M.rectangle(layer, purpose, width, height, options)
-    local opt = _default_options(options or {})
-    local obj = shape.create(layer, purpose)
-    for x = 1, opt.xrep do
-        for y = 1, opt.yrep do
-            local c = point.create(
-                opt.xoffset + (x - 1) * opt.xpitch - 0.5 * (opt.xrep - 1) * opt.xpitch, 
-                opt.yoffset + (y - 1) * opt.ypitch - 0.5 * (opt.yrep - 1) * opt.ypitch
-            )
-            local pts = _rectangle(c, width, height)
-            obj:add_pointarray(pts)
+local function _shift_line(pt1, pt2, width)
+    local angle = math.atan(pt2.y - pt1.y, pt2.x - pt1.x) - math.pi / 2
+    local spt1 = point.create(pt1.x + width * math.cos(angle), pt1.y + width * math.sin(angle))
+    local spt2 = point.create(pt2.x + width * math.cos(angle), pt2.y + width * math.sin(angle))
+    return spt1, spt2
+end
+
+local function _get_path_pts(pts, width, miterjoin)
+    local tmp = {}
+    local poly = pointarray.create()
+    local segs = #pts - 1
+    local i = 1
+    -- start to end
+    for i = 1, #pts - 1 do
+        local spt1, spt2 = _shift_line(pts[i], pts[i + 1], 0.5 * width)
+        table.insert(tmp, spt1)
+        table.insert(tmp, spt2)
+    end
+    -- end to start (shift in other direction)
+    for i = #pts, 2, -1 do
+        local spt1, spt2 = _shift_line(pts[i], pts[i - 1], 0.5 * width)
+        table.insert(tmp, spt1)
+        table.insert(tmp, spt2)
+    end
+    local midpointfunc = function(i)
+        local inner, outer = _intersection(tmp[i - 1], tmp[i], tmp[i + 1], tmp[i + 2])
+        if not inner then
+            if miterjoin then
+                poly:append(outer)
+            else
+                poly:append(tmp[i])
+                poly:append(tmp[i + 1])
+            end
+        else
+            poly:append(inner)
         end
+    end
+    -- first start point
+    poly:append(tmp[1])
+    -- first middle points
+    for seg = 1, segs - 1 do
+        local i = 1 + 2 * (seg - 1) + 1
+        midpointfunc(i)
+    end
+    -- end points
+    poly:append(tmp[1 + (segs - 1) * 2 + 1])
+    poly:append(tmp[1 + (segs - 1) * 2 + 2])
+    -- second middle points
+    for seg = 1, segs - 1 do
+        local i = 1 + (segs - 1) * 2 + 2 + 2 * (seg - 1) + 1
+        midpointfunc(i)
+    end
+    -- second start point
+    poly:append(tmp[#tmp])
+    return poly
+end
+
+function M.path(layer, pts, width, miterjoin)
+    local S = shape.create(layer)
+    S.points = _get_path_pts(pts, width, miterjoin)
+    return object.make_from_shape(S)
+end
+
+function M.path_midpoint(layer, pts, width, method, miterjoin)
+    local newpts = pointarray.create()
+    newpts:append(pts[1])
+    for i = 2, #pts - 1 do
+        local preangle = math.atan(pts[i].y - pts[i - 1].y, pts[i].x - pts[i - 1].x)
+        local postangle = math.atan(pts[i + 1].y - pts[i].y, pts[i + 1].x - pts[i].x)
+        local pt = pts[i]
+        local factor = 0.6 * math.min(
+            math.sqrt((pts[i].x - pts[i - 1].x)^2 + (pts[i].y - pts[i - 1].y)^2),
+            math.sqrt((pts[i + 1].x - pts[i].x)^2 + (pts[i + 1].y - pts[i].y)^2)
+            ) * math.tan(math.pi / 8)
+        newpts:append(point.create(pts[i].x - factor * math.cos(preangle), pts[i].y - factor * math.sin(preangle)))
+        newpts:append(point.create(pts[i].x + factor * math.cos(postangle), pts[i].y + factor * math.sin(postangle)))
+    end
+    newpts:append(pts[#pts])
+    return M.path(layer, newpts, width, miterjoin)
+end
+
+function M.corner(layer, startpt, endpt, width, radius, grid)
+    local S = shape.create(layer)
+    local dy = endpt.y - startpt.y - radius
+    local pathpts = _get_path_pts({ point.create(startpt.x, startpt.y), point.create(startpt.x, endpt.y - radius) }, width)
+    S:add_pointarray(pathpts)
+    pathpts = _get_path_pts({ point.create(startpt.x + radius, endpt.y), point.create(endpt.x, endpt.y) }, width)
+    S:add_pointarray(pathpts)
+    local pts = graphics.quadbezierseg(
+        point.create(startpt.x - 0.5 * width, endpt.y - radius),
+        point.create(startpt.x + radius, endpt.y + 0.5 * width),
+        point.create(startpt.x - 0.5 * width, endpt.y + 0.5 * width), 
+        grid
+    )
+    local pts2 = graphics.quadbezierseg(
+        point.create(startpt.x + 0.5 * width, endpt.y - radius),
+        point.create(startpt.x + radius, endpt.y - 0.5 * width),
+        point.create(startpt.x + 0.5 * width, endpt.y - 0.5 * width), 
+        grid
+    )
+    pts:merge_append(pts2:reverse())
+    S:add_pointarray(pts)
+
+    return object.make_from_shape(S)
+end
+
+function M.via(spec, width, height, nometal)
+    local startlayer, endlayer = string.match(spec, "(%w+)%-%>(%w+)")
+    local metals, vias = _get_layer_via_lists(startlayer, endlayer)
+    local obj = object.create()
+    if not nometal then
+        for _, metal in ipairs(metals) do
+            local o = M.rectangle(metal, width, height)
+            obj:merge_into(o)
+        end
+    end
+    for _, via in ipairs(vias) do
+        obj:merge_into(M.rectangle(via, width, height))
     end
     return obj
 end
 
-function M.via(spec, width, height, options)
-    local opt = _default_options(options or {})
-    local startlayer, endlayer = string.match(spec, "(%w+)%-%>(%w+)")
-    local shapes = {}
-    local layers, vias = _get_layer_via_lists(startlayer, endlayer)
-    for x = 1, opt.xrep do
-        for y = 1, opt.yrep do
-            local origin = point.create(opt.xoffset, opt.yoffset)
-            local origin = point.create(
-                opt.xoffset + (x - 1) * opt.xpitch - 0.5 * (opt.xrep - 1) * opt.xpitch, 
-                opt.yoffset + (y - 1) * opt.ypitch - 0.5 * (opt.yrep - 1) * opt.ypitch
+function M.multiple(obj, xrep, yrep, xpitch, ypitch)
+    local final = object.create()
+    for x = 1, xrep do
+        for y = 1, yrep do
+            local center = point.create(
+                (x - 1) * xpitch - 0.5 * (xrep - 1) * xpitch, 
+                (y - 1) * ypitch - 0.5 * (yrep - 1) * ypitch
             )
-            for _, layer in ipairs(layers) do
-                local metalopt = {
-                    xoffset = origin.x,
-                    yoffset = origin.y
-                }
-                local s = M.rectangle(layer, "drawing", width, height, metalopt)
-                table.insert(shapes, s)
-            end
-            for _, via in ipairs(vias) do
-                local viawidth = 0.03
-                local viaheight = 0.06
-                local viaxspace = 0.116
-                local viayspace = 0.116
-                local viaminxencl = 0.0
-                local viaminyencl = 0.03
-                --local metalxencl = math.max(viaminxencl, 0.5 * (width - cols * viawidth - (cols - 1) * viaxspace))
-                --local metalyencl = math.max(viaminyencl, 0.5 * (height - rows * viaheight - (rows - 1) * viayspace))
-                local viaopt = {
-                    xrep = math.max(1, math.floor((width + viaxspace - 2 * viaminxencl) / (viawidth + viaxspace))),
-                    xpitch = viawidth + viaxspace,
-                    yrep = math.max(1, math.floor((height + viayspace - 2 * viaminyencl) / (viaheight + viayspace))),
-                    ypitch = viaheight + viayspace,
-                    xoffset = origin.x,
-                    yoffset = origin.y
-                }
-
-                local s = M.rectangle(via, "drawing", viawidth, viaheight, viaopt)
-                table.insert(shapes, s)
-            end
+            final:merge_into(obj:copy():translate(center.x, center.y))
         end
     end
-    return shapes
+    return final
 end
 
 return M

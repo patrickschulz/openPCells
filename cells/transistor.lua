@@ -1,30 +1,32 @@
-local point = require "point"
-local object = require "object"
-local layout = require "layout"
-
 return function(args)
+    pcell.setup(args)
+
     -- transistor settings
-    local channeltype       = args.channeltype      or "nmos"
-    local fingers           = args.fingers          or 4
-    local fwidth            = args.fwidth           or 1.0
-    local gatelength        = args.gatelength       or 0.1
-    local actext            = args.actext           or 0.03
-    local fspace            = args.fspace           or 0.14
-    local sdwidth           = args.sdwidth          or 0.1
-    local gtopext           = args.gtopext          or 0.2
-    local gbotext           = args.gbotext          or 0.2
-    local typext            = args.typext           or 0.1
-    local cliptop           = args.cliptop          or false
-    local clipbot           = args.clipbot          or false
-    local sdwidth           = args.sdwidth          or 0.06
-    local drawtopgate       = args.drawtopgate      or false
-    local drawbotgate       = args.drawbotgate      or false
-    local topgatestrwidth   = args.topgatestrwidth  or 0.12
-    local topgatestrext     = args.topgatestrext    or 1
-    local botgatestrwidth   = args.botgatestrwidth  or 0.12
-    local botgatestrext     = args.botgatestrext    or 1
-    local topgcut           = args.topgcut          or false
-    local botgcut           = args.botgcut          or false
+    local channeltype       = pcell.process_args("channeltype",     "nmos")
+    local oxidetype         = pcell.process_args("oxidetype",       1)
+    local vthtype           = pcell.process_args("vthtype",         1)
+    local fingers           = pcell.process_args("fingers",         4)
+    local fwidth            = pcell.process_args("fwidth",          1.0)
+    local gatelength        = pcell.process_args("gatelength",      0.1)
+    local actext            = pcell.process_args("actext",          0.03)
+    local fspace            = pcell.process_args("fspace",          0.14)
+    local sdwidth           = pcell.process_args("sdwidth",         0.1)
+    local gtopext           = pcell.process_args("gtopext",         0.2)
+    local gbotext           = pcell.process_args("gbotext",         0.2)
+    local typext            = pcell.process_args("typext",          0.1)
+    local cliptop           = pcell.process_args("cliptop",         false)
+    local clipbot           = pcell.process_args("clipbot",         false)
+    local sdwidth           = pcell.process_args("sdwidth",         0.06)
+    local drawtopgate       = pcell.process_args("drawtopgate",     false)
+    local drawbotgate       = pcell.process_args("drawbotgate",     false)
+    local topgatestrwidth   = pcell.process_args("topgatestrwidth", 0.12)
+    local topgatestrext     = pcell.process_args("topgatestrext",   1)
+    local botgatestrwidth   = pcell.process_args("botgatestrwidth", 0.12)
+    local botgatestrext     = pcell.process_args("botgatestrext",   1)
+    local topgcut           = pcell.process_args("topgcut",         false)
+    local botgcut           = pcell.process_args("botgcut",         false)
+
+    pcell.check_args()
 
     -- derived settings
     local actwidth = fingers * gatelength + fingers * fspace + sdwidth + 2 * actext
@@ -35,101 +37,69 @@ return function(args)
 
     local transistor = object.create()
 
-    local origin = point.create(0, 0)
-
     -- gates
-    transistor:add_shape(layout.rectangle(
-        "gate", "drawing", 
-        gatelength, gateheight, 
-        { 
-            xrep = fingers, 
-            xpitch = gatepitch,
-            yoffset = gateoffset
-        }
+    transistor:merge_into(layout.multiple(
+        layout.rectangle("gate", gatelength, gateheight),
+        fingers, 1, gatepitch, 0
+    ):translate(0, gateoffset))
+
+    --[[
+    -- oxide type
+    transistor:merge_into(layout.rectangle(
+        string.format("oxthick%d", oxidetype), 
+        origin,
+        fingers * gatelength + (fingers - 1) * fspace + 2 * actext, fwidth
     ))
+    --]]
 
     -- active
-    transistor:add_shape(layout.rectangle(
-        "active", "drawing", 
+    transistor:merge_into(layout.rectangle(
+        "active", 
         actwidth, fwidth
     ))
-    transistor:add_shape(layout.rectangle(
-        (channeltype == "nmos") and "nimpl" or "pimpl",
-        "drawing",
-        actwidth + 2 * typext,
-        gateheight + typext * clipshift,
-        {
-            yoffset = gateoffset + 0.5 * typext * clipshift
-        }
-    ))
+    transistor:merge_into(layout.rectangle(
+        (channeltype == "nmos") and "nimpl" or "pimpl", 
+        actwidth + 2 * typext, gateheight + typext * clipshift
+    ):translate(0, gateoffset + 0.5 * typext * clipshift))
 
     -- well
-    transistor:add_shape(layout.rectangle(
-        "nwell", "drawing",
-        actwidth + 2 * typext, gateheight + typext,
-        {
-            yoffset = gateoffset
-        }
-    ))
+    transistor:merge_into(layout.rectangle(
+        (channeltype == "nmos") and "pwell" or "nwell", 
+        actwidth + 2 * typext, gateheight + typext
+    ):translate(0, gateoffset))
 
     -- drain/source contacts
-    local contacts = layout.via(
-        "active->M1", 
-        sdwidth, fwidth, 
-        { 
-            xrep = fingers + 1,
-            xpitch = gatepitch
-        }
-    )
-    for _, s in ipairs(contacts) do
-        transistor:add_shape(s)
-    end
+    transistor:merge_into(layout.multiple(
+        layout.via("active->M1", sdwidth, fwidth),
+        fingers + 1, 1,
+        gatepitch, 0
+    ))
 
     -- gate contacts
     if drawtopgate then
-        local contacts = layout.via(
-            "gate->M1", 
-            gatelength, topgatestrwidth, 
-            { 
-                xrep = fingers,
-                xpitch = gatepitch,
-                yoffset = 0.5 * fwidth + gtopext - 0.5 * topgatestrwidth
-            }
+        transistor:merge_into(layout.multiple(
+            layout.via("gate->M1", gatelength, topgatestrwidth),
+            fingers, 1, gatepitch, 0)
+            :translate(0, 0.5 * fwidth + gtopext - 0.5 * topgatestrwidth)
         )
-        for _, s in ipairs(contacts) do
-            transistor:add_shape(s)
-        end
         if fingers > 1 then
-            transistor:add_shape(layout.rectangle(
-                "M1", "drawing",
-                (fingers - 1 + topgatestrext) * gatepitch, topgatestrwidth,
-                {
-                    yoffset = 0.5 * fwidth + gtopext - 0.5 * topgatestrwidth
-                }
-            ))
+            transistor:merge_into(layout.rectangle(
+                "M1", 
+                (fingers - 1 + topgatestrext) * gatepitch, topgatestrwidth
+            ):translate(0, 0.5 * fwidth + gtopext - 0.5 * topgatestrwidth))
         end
     end
     if drawbotgate then
-        local contacts = layout.via(
-            "gate->M1", 
-            gatelength, botgatestrwidth, 
-            { 
-                xrep = fingers,
-                xpitch = gatepitch,
-                yoffset = 0.5 * fwidth + gbotext - 0.5 * botgatestrwidth
-            }
+        transistor:merge_into(layout.multiple(
+            layout.via("gate->M1", gatelength, botgatestrwidth),
+            fingers, 1, gatepitch, 0)
+            :translate(0, 0.5 * fwidth + gbotext - 0.5 * botgatestrwidth)
         )
-        for _, s in ipairs(contacts) do
-            transistor:add_shape(s)
-        end
         if fingers > 1 then
-            transistor:add_shape(layout.rectangle(
-                "M1", "drawing",
-                (fingers - 1 + botgatestrext) * gatepitch, botgatestrwidth,
-                {
-                    yoffset = 0.5 * fwidth + gbotext - 0.5 * botgatestrwidth
-                }
-            ))
+            transistor:merge_into(layout.rectangle(
+                "M1", 
+                (fingers - 1 + botgatestrext) * gatepitch, botgatestrwidth
+            ):translate(0, 0.5 * fwidth + gbotext - 0.5 * botgatestrwidth))
         end
     end
 
@@ -138,66 +108,17 @@ return function(args)
     local cutheight = 0.12
     local cwidth = fingers * gatelength + (fingers - 1) * fspace + 2 * cutext
     if topgcut then
-        transistor:add_shape(layout.rectangle(
-            "gatecut", "drawing",
-            cwidth, cutheight,
-            {
-                yoffset = 0.5 * fwidth + gtopext
-            }
-        ))
+        transistor:merge_into(layout.rectangle(
+            "gatecut", 
+            cwidth, cutheight
+        ):translate(0, 0.5 * fwidth + gtopext))
     end
     if botgcut then
-        transistor:add_shape(layout.rectangle(
-            "gatecut", "drawing",
-            cwidth, cutheight,
-            {
-                yoffset = -0.5 * fwidth - gbotext
-            }
-        ))
+        transistor:merge_into(layout.rectangle(
+            "gatecut", 
+            cwidth, cutheight
+        ):translate(0, -0.5 * fwidth - gbotext))
     end
 
     return transistor
 end
-
---[[ skill code for the transistor
-procedure(MSCLayoutDrawTransistor(cv @key 
-        (typ "p") (oxidetype "0.9") (vthtyp "slvt") 
-    )
-    let(
-        (
-        )
-        ; oxide type
-        when(oxidetype == "1.8"
-            MSCLayoutCreateRectangle(pcCellView
-                ?layer "EG"
-                ?width fingers * gatelength + (fingers - 1) * fspace + 2 * actext
-                ?height fwidth
-            )
-        )
-        
-        ; threshold voltage type
-        if(oxidetype == "0.9"
-            then
-                MSCLayoutCreateRectangle(pcCellView
-                    ?layer upperCase(strcat(vthtyp typ))
-                    ?width actwidth + 2 * typext
-                    ?height gateheight + typext * (if(clipbot 0 1) + if(cliptop 0 1))
-                    ?yoffset gateoffset + 0.5 * typext * (if(cliptop 0 1) - if(clipbot 0 1))
-                )
-            else
-                MSCLayoutCreateRectangle(pcCellView
-                    ?layer upperCase(strcat("EG" vthtyp typ))
-                    ?width actwidth + 2 * typext
-                    ?height gateheight + typext * (if(clipbot 0 1) + if(cliptop 0 1))
-                    ?yoffset gateoffset + 0.5 * typext * (if(cliptop 0 1) - if(clipbot 0 1))
-                )
-                MSCLayoutCreateRectangle(pcCellView
-                    ?layer "EG"
-                    ?width actwidth + 2 * typext
-                    ?height gateheight + typext * (if(clipbot 0 1) + if(cliptop 0 1))
-                    ?yoffset gateoffset + 0.5 * typext * (if(cliptop 0 1) - if(clipbot 0 1))
-                )
-        ) ; if
-    ) ; let
-) ; MSCLayoutDrawTransistor
---]]
