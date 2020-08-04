@@ -17,8 +17,9 @@ local evaluators = {
 }
 
 local used
+local args
 
-function M.process_args(args, name, argtype, default, posvals)
+function M.process_args(name, argtype, default, posvals)
     local eval = evaluators[argtype]
     local res
     if args[name] then
@@ -33,11 +34,12 @@ function M.process_args(args, name, argtype, default, posvals)
     return res
 end
 
-function M.clear()
+function M.setup(a)
     used = {}
+    args = a
 end
 
-function M.check_args(args)
+function M.check_args()
     for k in pairs(args) do
         if not used[k] then
             print(string.format("argument '%s' was not used, maybe it was spelled wrong?", k))
