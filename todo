@@ -1,2 +1,12 @@
 * split polygons with too many points
 * merge polygons
+* implement 2-byte 2's complement integer for GDS
+* add pcells:
+    - transmission line
+    - guard ring
+    - transformer
+    - balun
+    - bus
+    - ground mesh
+* implement non-rectangular mosaics (based on some sort of specification)
+* clean-up code and remove unused functions from pointarray.lua, shape.lua and object.lua
