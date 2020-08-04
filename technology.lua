@@ -49,8 +49,9 @@ local function _place_vias(cell, layer, pts)
     local xpitch = viaspec.width + viaspec.xspace
     local ypitch = viaspec.height + viaspec.yspace
     for _, lay in ipairs(viaspec.layers) do
+        local enlarge = lay.enlarge or 0.0
         local o = layout.multiple(
-            layout.rectangle(lay, viaspec.width, viaspec.height),
+            layout.rectangle(lay.lpp, viaspec.width + enlarge, viaspec.height + enlarge),
             xrep, yrep, xpitch, ypitch
         )
         cell:merge_into(o:translate(x, y))
