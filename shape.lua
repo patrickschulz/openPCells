@@ -40,6 +40,11 @@ function meta.translate(self, dx, dy)
     return self
 end
 
+function meta.scale(self, factor)
+    self.points:map(function(pt) pt:scale(factor) end)
+    return self
+end
+
 function meta.add_point(self, pt)
     self.points:append(pt)
 end
