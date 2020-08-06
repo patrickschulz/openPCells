@@ -48,8 +48,8 @@ local function _get_layer_via_lists(startlayer, endlayer)
         table.insert(layers, startlayer)
         table.insert(vias, startlayer == "active" and "wellcont" or "gatecont")
     end
-    local startindex = string.match(startlayer, "M(%d+)") or 1
-    local endindex = string.match(endlayer, "M(%d+)") or 1
+    local startindex = string.match(startlayer, "M([-%d]+)") or 1
+    local endindex = string.match(endlayer, "M([-%d]+)") or 1
     for i = startindex, endindex do
         table.insert(layers, string.format("M%d", i))
     end
@@ -182,7 +182,7 @@ function M.corner(layer, startpt, endpt, width, radius, grid)
 end
 
 function M.via(spec, width, height, nometal)
-    local startlayer, endlayer = string.match(spec, "(%w+)%-%>(%w+)")
+    local startlayer, endlayer = string.match(spec, "([M%d-]+)%-%>([M%d-]+)")
     local metals, vias = _get_layer_via_lists(startlayer, endlayer)
     local obj = object.create()
     if not nometal then
