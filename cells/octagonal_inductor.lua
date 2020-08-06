@@ -16,9 +16,9 @@ return function(args)
     local tanpi8 = math.tan(math.pi / 8)
     local pitch = separation + width
 
-    local mainmetal = string.format("M%d", metalnum)
-    local auxmetal = string.format("M%d", metalnum - 1)
-    local via = string.format("%s->%s", auxmetal, mainmetal)
+    local mainmetal = generics.metal(metalnum)
+    local auxmetal = generics.metal(metalnum - 1)
+    local via = generics.via(metalnum, metalnum - 1)
 
     -- draw left and right segments
     local sign = (turns % 2 == 0) and 1 or -1
@@ -52,11 +52,11 @@ return function(args)
             inductor:merge_into(layout.path(mainmetal, uppts, width, true))
             inductor:merge_into(layout.path(auxmetal, uppts:xmirror(), width, true))
             -- place vias
-            inductor:merge_into(layout.via(via, width, width):translate(
+            inductor:merge_into(layout.rectangle(via, width, width):translate(
                 -0.5 * (initradius * tanpi8 + 0.5 * pitch), 
                 -sign * (radius + pitch)
             ))
-            inductor:merge_into(layout.via(via, width, width):translate(
+            inductor:merge_into(layout.rectangle(via, width, width):translate(
                 0.5 * (initradius * tanpi8 + 0.5 * pitch), 
                 -sign * radius
             ))

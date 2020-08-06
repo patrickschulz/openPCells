@@ -8,6 +8,7 @@ pointarray = require "pointarray"
 layout     = require "layout"
 graphics   = require "graphics"
 pcell      = require "pcell"
+generics   = require "generics"
 
 local techlib = require "technology"
 local interface = require "interface"
