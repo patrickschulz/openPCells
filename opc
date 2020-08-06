@@ -50,9 +50,10 @@ if not cell then
     os.exit(1)
 end
 
+techlib.translate_metals(cell)
 techlib.translate_vias(cell)
-techlib.fix_to_grid(cell)
 techlib.map_layer(cell)
+techlib.fix_to_grid(cell)
 
 interface.write_cell("openPCells", cell)
 

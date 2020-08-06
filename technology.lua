@@ -4,7 +4,7 @@ local layermap
 local viarules
 local config
 
-local function map_shape(shape)
+local function _map_shape(shape)
     local t = layermap[shape.lpp]
     if not t then
         print(string.format("no layer information for '%s'\nif the layer is not provided, set it to 'UNUSED'", shape.lpp))
@@ -17,14 +17,39 @@ local function map_shape(shape)
     end
 end
 
+function M.translate_metals(cell)
+    for s in cell:iter() do
+        if string.match(s.lpp, "[M%d-]+") then
+            if string.match(s.lpp, "via") then
+                local num1, num2 = string.match(s.lpp, "viaM([%d-]+)M([%d-]+)")
+                num1, num2 = tonumber(num1), tonumber(num2)
+                if num1 < 0 then
+                    num1 = config.metals + num1 + 1
+                end
+                if num2 < 0 then
+                    num2 = config.metals + num2 + 1
+                end
+                s.lpp = string.format("viaM%dM%d", num1, num2)
+            else
+                local num = tonumber(string.match(s.lpp, "M([%d-]+)"))
+                if num < 0 then
+                    s.lpp = string.format("M%d", config.metals + num + 1)
+                else
+                    -- nothing to do
+                end
+            end
+        end
+    end
+end
+
 local function _is_unmapped(shape)
     return type(shape.lpp) == "string"
 end
 
-function M.map_layer(obj, layermap)
+function M.map_layer(obj)
     for shape in obj:iter() do
         if _is_unmapped(shape) then
-            map_shape(shape, layermap)
+            _map_shape(shape)
         end
     end
 end
