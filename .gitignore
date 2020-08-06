@@ -1,3 +1,6 @@
 openPCells.gds
 openPCells.il
 tech/cmos22fdsoi
+
+*.aux
+*.log
