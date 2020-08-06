@@ -1,3 +1,3 @@
 .PHONY: all
 all:
-	lualatex techdoc.tex
+	lualatex -output-directory techdoc techdoc/techdoc.tex
