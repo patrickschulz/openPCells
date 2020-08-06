@@ -37,7 +37,7 @@ local function _is_unmapped(shape)
     return type(shape.lpp) == "string"
 end
 
-function M.map_layer(obj)
+function M.map_layers(obj)
     for shape in obj:iter() do
         if _is_unmapped(shape) then
             _map_shape(shape)

@@ -53,7 +53,7 @@ end
 
 techlib.translate_metals(cell)
 techlib.translate_vias(cell)
-techlib.map_layer(cell)
+techlib.map_layers(cell)
 techlib.fix_to_grid(cell)
 
 interface.write_cell("openPCells", cell)
