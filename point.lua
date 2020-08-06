@@ -1,6 +1,6 @@
 local M = {}
 
-local tostringfun = function (self) return string.format("{ x = %6.3f, y = %6.3f }", self.x, self.y) end
+local tostringfun = function (self) return string.format("{ x = %7.3f, y = %7.3f }", self.x, self.y) end
 
 local meta = {}
 meta.__index = meta
