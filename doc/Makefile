@@ -1,3 +1,3 @@
 .PHONY: all
 all:
-	lualatex main.tex
+	lualatex techdoc.tex
