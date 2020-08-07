@@ -93,13 +93,13 @@ return function(args)
         transistor:merge_into(layout.multiple(
             layout.rectangle(generics.contact("gate"), gatelength, botgatestrwidth),
             fingers, 1, gatepitch, 0)
-            :translate(0, 0.5 * fwidth + gbotext - 0.5 * botgatestrwidth)
+            :translate(0, -0.5 * fwidth - gbotext + 0.5 * botgatestrwidth)
         )
         if fingers > 1 then
             transistor:merge_into(layout.rectangle(
                 generics.other("M1"), 
                 (fingers - 1 + botgatestrext) * gatepitch, botgatestrwidth
-            ):translate(0, 0.5 * fwidth + gbotext - 0.5 * botgatestrwidth))
+            ):translate(0, -0.5 * fwidth - gbotext + 0.5 * botgatestrwidth))
         end
     end
 
