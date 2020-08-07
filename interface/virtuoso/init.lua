@@ -10,7 +10,7 @@ local gridfmt = "%.3f"
 local function _write_shape(file, shape)
     local sep = sep or "\n"
     local fmt = string.format("%s %s%s", gridfmt, gridfmt, sep)
-    file:write(string.format('    dbCreatePolygon(cv list("%s" "%s") ', shape.lpp.layer.name, shape.lpp.purpose.name))
+    file:write(string.format('    dbCreatePolygon(cv list("%s" "%s") ', shape.lpp:get().layer.name, shape.lpp:get().purpose.name))
     file:write(string.format("list(%s)", shape.points:concat(function(pt) return string.format(gridfmt .. ":" .. gridfmt, pt.x, pt.y) end)))
     file:write(")\n")
 end
