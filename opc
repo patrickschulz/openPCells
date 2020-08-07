@@ -52,7 +52,8 @@ if not cell then
 end
 
 techlib.translate_metals(cell)
-techlib.translate_vias(cell)
+techlib.split_vias(cell)
+techlib.create_via_geometries(cell)
 techlib.map_layers(cell)
 techlib.fix_to_grid(cell)
 

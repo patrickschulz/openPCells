@@ -45,7 +45,7 @@ return function(args)
     outer:merge_append(outer:xmirror(0):reverse())
 
     -- ** assemble final path **
-    local s = shape.create("lastmetal")
+    local s = shape.create(generics.metal(-1))
     s.points:merge_append(inner:reverse())
     s.points:merge_append(outer)
     s.points:close()

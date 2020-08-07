@@ -14,19 +14,19 @@ return function(args)
     local guardring = object.create()
 
     -- active, implant and SOI opening
-    guardring:merge_into(layout.ring("active", width, height, ringwidth))
-    guardring:merge_into(layout.ring(string.format("%simpl", contype), width, height, ringwidth + extension))
-    guardring:merge_into(layout.ring("soiopen", width, height, ringwidth + extension))
+    guardring:merge_into(layout.ring(generics.other("active"), width, height, ringwidth))
+    guardring:merge_into(layout.ring(generics.other(string.format("%simpl", contype)), width, height, ringwidth + extension))
+    guardring:merge_into(layout.ring(generics.other("soiopen"), width, height, ringwidth + extension))
 
     -- well
     if fillwell then
-        guardring:merge_into(layout.rectangle(string.format("%swell", contype), width + ringwidth + extension, height + ringwidth + extension))
+        guardring:merge_into(layout.rectangle(generics.other(string.format("%swell", contype)), width + ringwidth + extension, height + ringwidth + extension))
     else
-        guardring:merge_into(layout.ring(string.format("%swell", contype), width, height, ringwidth + extension))
+        guardring:merge_into(layout.ring(generics.other(string.format("%swell", contype)), width, height, ringwidth + extension))
     end
     -- draw deep n/p-well
     if drawdeepwell then
-        guardring:merge_into(layout.rectangle(string.format("deep%swell", contype), width + ringwidth + extension, height + ringwidth + extension))
+        guardring:merge_into(layout.rectangle(generics.other(string.format("deep%swell", contype)), width + ringwidth + extension, height + ringwidth + extension))
     end
 
     return guardring

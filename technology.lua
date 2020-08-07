@@ -4,45 +4,61 @@ local layermap
 local viarules
 local config
 
-local function _map_shape(shape)
-    local t = layermap[shape.lpp]
+function M.translate_metals(cell)
+    -- make relative metal (negative indices) absolute
+    for s in cell:iter() do
+        if s.lpp.typ == "metal" then
+            if s.lpp.value < 0 then
+                s.lpp.value = config.metals + s.lpp.value + 1
+            end
+        elseif s.lpp.typ == "via" then
+            if s.lpp.value.from < 0 then
+                s.lpp.value.from = config.metals + s.lpp.value.from + 1
+            end
+            if s.lpp.value.to < 0 then
+                s.lpp.value.to = config.metals + s.lpp.value.to + 1
+            end
+            -- reorder
+            if s.lpp.value.from > s.lpp.value.to then
+                s.lpp.value.from, s.lpp.value.to = s.lpp.value.to, s.lpp.value.from
+            end
+        end
+    end
+end
+
+local function _map_layer(layer)
+    local t = layermap[layer]
     if not t then
         print(string.format("no layer information for '%s'\nif the layer is not provided, set it to 'UNUSED'", shape.lpp))
         os.exit(1)
     end
     if t == "UNUSED" then
-        shape.lpp = nil
+        return nil
     else
-        shape.lpp = t
+        return generics.mapped(t)
     end
 end
 
-function M.translate_metals(cell)
-    for s in cell:iter() do
-        if s.lpp.typ == "metal" then
-            s.lpp = string.format("M%d", config.metals + s.lpp.value + 1)
-        elseif s.lpp.typ == "via" then
-            local from, to = s.lpp.value.from, s.lpp.value.to
-            from = config.metals + from + 1
-            to = config.metals + to + 1
-            if from > to then
-                from, to = to, from
-            end
-            s.lpp = string.format("viaM%dM%d", from, to)
+local function _remove_unused_shapes(cell)
+    local i = 1
+    while true do
+        local s = cell.shapes[i]
+        if not s then break end
+        if not s.lpp then
+            table.remove(cell.shapes, i)
+        else
+            i = i + 1
         end
     end
 end
 
-local function _is_unmapped(shape)
-    return type(shape.lpp) == "string"
-end
-
-function M.map_layers(obj)
-    for shape in obj:iter() do
-        if _is_unmapped(shape) then
-            _map_shape(shape)
+function M.map_layers(cell)
+    for shape in cell:iter() do
+        if shape.lpp.typ ~= "mapped" then
+            shape.lpp = _map_layer(shape.lpp:str())
         end
     end
+    _remove_unused_shapes(cell)
 end
 
 local function _get_viaspec(layer)
@@ -67,29 +83,44 @@ local function _place_vias(cell, layer, pts)
     for _, lay in ipairs(viaspec.layers) do
         local enlarge = lay.enlarge or 0.0
         local o = layout.multiple(
-            layout.rectangle(lay.lpp, viaspec.width + enlarge, viaspec.height + enlarge),
+            layout.rectangle(generics.mapped(lay.lpp), viaspec.width + enlarge, viaspec.height + enlarge),
             xrep, yrep, xpitch, ypitch
         )
         cell:merge_into(o:translate(x, y))
     end
 end
 
-local function _is_via(shape)
-    if _is_unmapped(shape) then
-        if string.match(shape.lpp, "^via") or string.match(shape.lpp, "wellcont") or string.match(shape.lpp, "gatecont") then
-            return true
-        end
-    end
-end
-
-function M.translate_vias(cell)
+function M.split_vias(cell)
     local numshapes = #cell.shapes
     local toremove = {}
     for i = 1, numshapes do
         local s = cell.shapes[i]
-        if _is_via(s) then
+        if s.lpp.typ == "via" then
             table.insert(toremove, i)
-            _place_vias(cell, s.lpp, s.points)
+            local from, to = s.lpp:get()
+            for i = from, to - 1 do
+                local sc = s:copy()
+                sc.lpp = generics.via(i, i + 1)
+                cell:add_shape(sc)
+            end
+        end
+    end
+    -- remove dummy via entries
+    for i, idx in ipairs(toremove) do
+        -- table.remove shifts the element, so we have to shift the index by the number of deleted entries
+        table.remove(cell.shapes, idx - i + 1)
+    end
+end
+
+function M.create_via_geometries(cell)
+    local numshapes = #cell.shapes
+    local toremove = {}
+    for i = 1, numshapes do
+        local s = cell.shapes[i]
+        if s.lpp.typ == "via" or s.lpp.typ == "contact" then
+            table.insert(toremove, i)
+            local layer = s.lpp:str()
+            _place_vias(cell, layer, s.points)
         end
     end
     -- remove dummy via entries
@@ -104,8 +135,8 @@ local function _fix_pt_to_grid(pt)
     pt.y = config.grid * math.floor(pt.y / config.grid)
 end
 
-function M.fix_to_grid(obj)
-    for s in obj:iter() do
+function M.fix_to_grid(cell)
+    for s in cell:iter() do
         for pt in s.points:iter_forward() do
             _fix_pt_to_grid(pt)
         end
@@ -124,7 +155,7 @@ end
 function M.load(name)
     layermap = _load_technology_file(name, "layermap")
     viarules = _load_technology_file(name, "viarules")
-    config = _load_technology_file(name, "config")
+    config   = _load_technology_file(name, "config")
 end
 
 return M

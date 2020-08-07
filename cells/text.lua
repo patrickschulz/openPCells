@@ -1000,7 +1000,7 @@ local letteroutlines = {
 return function(args)
     pcell.setup(args)
 
-    local t = pcell.process_args("text", "P. KURTH")
+    local t = pcell.process_args("text", "TEXT")
     local scale = pcell.process_args("scale", 1)
     local spacing = pcell.process_args("spacing", 0.2)
     local leading = pcell.process_args("leading", 0.2)
@@ -1020,7 +1020,7 @@ return function(args)
         else
             local outline = letteroutlines[char]
             if outline then
-                local S = shape.create("M-1")
+                local S = shape.create(generics.metal(-1))
                 for _, pt in ipairs(outline) do
                     S.points:append(point.create(pt.x, pt.y))
                 end

@@ -41,24 +41,6 @@ function M.ring(layer, width, height, ringwidth)
     return obj
 end
 
-local function _get_layer_via_lists(startlayer, endlayer)
-    local layers = {}
-    local vias = {}
-    if startlayer == "active" or startlayer == "gate" then
-        table.insert(layers, startlayer)
-        table.insert(vias, startlayer == "active" and "wellcont" or "gatecont")
-    end
-    local startindex = string.match(startlayer, "M([-%d]+)") or 1
-    local endindex = string.match(endlayer, "M([-%d]+)") or 1
-    for i = startindex, endindex do
-        table.insert(layers, string.format("M%d", i))
-    end
-    for i = startindex, endindex - 1 do
-        table.insert(vias, string.format("viaM%dM%d", i, i + 1))
-    end
-    return layers, vias
-end
-
 local function _intersection(pt1, pt2, pt3, pt4)
     local num = (pt1.x - pt3.x) * (pt3.y - pt4.y) - (pt1.y - pt3.y) * (pt3.x - pt4.x)
     local den = (pt1.x - pt2.x) * (pt3.y - pt4.y) - (pt1.y - pt2.y) * (pt3.x - pt4.x)
@@ -179,22 +161,6 @@ function M.corner(layer, startpt, endpt, width, radius, grid)
     S:add_pointarray(pts)
 
     return object.make_from_shape(S)
-end
-
-function M.via(spec, width, height, nometal)
-    local startlayer, endlayer = string.match(spec, "([M%d-]+)%-%>([M%d-]+)")
-    local metals, vias = _get_layer_via_lists(startlayer, endlayer)
-    local obj = object.create()
-    if not nometal then
-        for _, metal in ipairs(metals) do
-            local o = M.rectangle(metal, width, height)
-            obj:merge_into(o)
-        end
-    end
-    for _, via in ipairs(vias) do
-        obj:merge_into(M.rectangle(via, width, height))
-    end
-    return obj
 end
 
 function M.multiple(obj, xrep, yrep, xpitch, ypitch)

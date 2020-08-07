@@ -39,7 +39,7 @@ return function(args)
 
     -- gates
     transistor:merge_into(layout.multiple(
-        layout.rectangle("gate", gatelength, gateheight),
+        layout.rectangle(generics.other("gate"), gatelength, gateheight),
         fingers, 1, gatepitch, 0
     ):translate(0, gateoffset))
 
@@ -54,23 +54,23 @@ return function(args)
 
     -- active
     transistor:merge_into(layout.rectangle(
-        "active", 
+        generics.other("active"), 
         actwidth, fwidth
     ))
     transistor:merge_into(layout.rectangle(
-        (channeltype == "nmos") and "nimpl" or "pimpl", 
+        (channeltype == "nmos") and generics.other("nimpl") or generics.other("pimpl"), 
         actwidth + 2 * typext, gateheight + typext * clipshift
     ):translate(0, gateoffset + 0.5 * typext * clipshift))
 
     -- well
     transistor:merge_into(layout.rectangle(
-        (channeltype == "nmos") and "pwell" or "nwell", 
+        (channeltype == "nmos") and generics.other("pwell") or generics.other("nwell"), 
         actwidth + 2 * typext, gateheight + typext
     ):translate(0, gateoffset))
 
     -- drain/source contacts
     transistor:merge_into(layout.multiple(
-        layout.via("active->M1", sdwidth, fwidth),
+        layout.rectangle(generics.contact("active"), sdwidth, fwidth),
         fingers + 1, 1,
         gatepitch, 0
     ))
@@ -78,26 +78,26 @@ return function(args)
     -- gate contacts
     if drawtopgate then
         transistor:merge_into(layout.multiple(
-            layout.via("gate->M1", gatelength, topgatestrwidth),
+            layout.rectangle(generics.contact("gate"), gatelength, topgatestrwidth),
             fingers, 1, gatepitch, 0)
             :translate(0, 0.5 * fwidth + gtopext - 0.5 * topgatestrwidth)
         )
         if fingers > 1 then
             transistor:merge_into(layout.rectangle(
-                "M1", 
+                generics.other("M1"), 
                 (fingers - 1 + topgatestrext) * gatepitch, topgatestrwidth
             ):translate(0, 0.5 * fwidth + gtopext - 0.5 * topgatestrwidth))
         end
     end
     if drawbotgate then
         transistor:merge_into(layout.multiple(
-            layout.via("gate->M1", gatelength, botgatestrwidth),
+            layout.rectangle(generics.contact("gate"), gatelength, botgatestrwidth),
             fingers, 1, gatepitch, 0)
             :translate(0, 0.5 * fwidth + gbotext - 0.5 * botgatestrwidth)
         )
         if fingers > 1 then
             transistor:merge_into(layout.rectangle(
-                "M1", 
+                generics.other("M1"), 
                 (fingers - 1 + botgatestrext) * gatepitch, botgatestrwidth
             ):translate(0, 0.5 * fwidth + gbotext - 0.5 * botgatestrwidth))
         end
@@ -109,13 +109,13 @@ return function(args)
     local cwidth = fingers * gatelength + (fingers - 1) * fspace + 2 * cutext
     if topgcut then
         transistor:merge_into(layout.rectangle(
-            "gatecut", 
+            generics.other("gatecut"), 
             cwidth, cutheight
         ):translate(0, 0.5 * fwidth + gtopext))
     end
     if botgcut then
         transistor:merge_into(layout.rectangle(
-            "gatecut", 
+            generics.other("gatecut"), 
             cwidth, cutheight
         ):translate(0, -0.5 * fwidth - gbotext))
     end
