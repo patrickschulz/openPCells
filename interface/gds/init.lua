@@ -35,8 +35,10 @@ local datatypes = {
 
 -- helper functions
 local function _gdsfloat_to_number(data, width)
-    local sign      =  data[1] & 0x80
-    local exp       = (data[1] & 0x7f) - 64
+    --local sign      =  data[1] & 0x80
+    --local exp       = (data[1] & 0x7f) - 64
+    local sign      = bit32.band(data[1], 0x80)
+    local exp       = bit32.band(data[1], 0x7f) - 64
     local mantissa  = 0
     for m = 2, width do
         mantissa = mantissa + data[m] * (256 ^ (1 - m))
@@ -69,9 +71,11 @@ local function _number_to_gdsfloat(num, width)
         exp = exp - 1
     end
     if sign then
-        data[1] = 0x80 + (exp + 64) & 0x7f
+        --data[1] = 0x80 + (exp + 64) & 0x7f
+        data[1] = 0x80 + bit32.band((exp + 64), 0x7f)
     else
-        data[1] = 0x00 + (exp + 64) & 0x7f
+        --data[1] = 0x00 + (exp + 64) & 0x7f
+        data[1] = 0x00 + bit32.band((exp + 64), 0x7f)
     end
     for i = 2, width do
         local int, frac = math.modf(num * 256)
@@ -84,9 +88,15 @@ end
 local function _split_in_bytes(number, bytes)
     local bits = 8
     local t = {}
+    local num = number
+    local sign = number < 0 and 1 or 0
     for i = bytes, 1, -1 do
-        local byte = (number & ((2^bits - 1) << (i - 1) * bits)) >> (i - 1) * bits
+        local byte = math.floor(num / 2^(bits * (i - 1)))
+        num = num - byte * 2^(bits * (i - 1))
         table.insert(t, byte)
+    end
+    if number < 0 then -- compensate for two's complement
+        t[1] = t[1] + 256
     end
     return t
 end
