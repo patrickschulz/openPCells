@@ -35,10 +35,8 @@ local datatypes = {
 
 -- helper functions
 local function _gdsfloat_to_number(data, width)
-    --local sign      =  data[1] & 0x80
-    --local exp       = (data[1] & 0x7f) - 64
-    local sign      = bit32.band(data[1], 0x80)
-    local exp       = bit32.band(data[1], 0x7f) - 64
+    local sign      = bitop.band(data[1], 0x80, 8)
+    local exp       = bitop.band(data[1], 0x7f, 8) - 64
     local mantissa  = 0
     for m = 2, width do
         mantissa = mantissa + data[m] * (256 ^ (1 - m))
@@ -71,11 +69,9 @@ local function _number_to_gdsfloat(num, width)
         exp = exp - 1
     end
     if sign then
-        --data[1] = 0x80 + (exp + 64) & 0x7f
-        data[1] = 0x80 + bit32.band((exp + 64), 0x7f)
+        data[1] = 0x80 + bitop.band((exp + 64), 0x7f)
     else
-        --data[1] = 0x00 + (exp + 64) & 0x7f
-        data[1] = 0x00 + bit32.band((exp + 64), 0x7f)
+        data[1] = 0x00 + bitop.band((exp + 64), 0x7f, 8)
     end
     for i = 2, width do
         local int, frac = math.modf(num * 256)
@@ -178,8 +174,7 @@ local function _write_record(file, recordtype, datatype, content)
         table.insert(data, 0x00)
     end
     local lenbytes = _split_in_bytes(#data, 2)
-    data[1] = lenbytes[1]
-    data[2] = lenbytes[2]
+    data[1], data[2] = lenbytes[1], lenbytes[2]
     file:write(_assemble(data))
 end
 

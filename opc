@@ -9,6 +9,7 @@ layout     = require "layout"
 graphics   = require "graphics"
 pcell      = require "pcell"
 generics   = require "generics"
+bitop      = require "bitop"
 
 local techlib = require "technology"
 local interface = require "interface"
