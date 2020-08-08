@@ -89,6 +89,16 @@ function meta.reverse_inline(self)
     end
 end
 
+function meta.width(self)
+    local minx =  math.huge
+    local maxx = -math.huge
+    for _, pt in ipairs(self) do
+        minx = math.min(minx, pt.x)
+        maxx = math.max(maxx, pt.x)
+    end
+    return maxx - minx
+end
+
 function meta.filter_forward(self, fun)
     local filtered = M.create()
     for pt in self:iter_forward(self) do

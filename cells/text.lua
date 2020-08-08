@@ -1000,23 +1000,25 @@ local letteroutlines = {
 return function(args)
     pcell.setup(args)
 
-    local t = pcell.process_args("text", "TEXT")
-    local scale = pcell.process_args("scale", 1)
-    local spacing = pcell.process_args("spacing", 0.2)
-    local leading = pcell.process_args("leading", 0.2)
+    local t         = pcell.process_args("text",      "TEXT")
+    local scale     = pcell.process_args("scale",     1)
+    local spacing   = pcell.process_args("spacing",   0.2)
+    local leading   = pcell.process_args("leading",   0.2)
+    local alignment = pcell.process_args("alignment", "left")
 
     pcell.check_args()
 
     local text = object.create()
 
-    local pitch = 1
     local shift = 1
+    local x = 0
     local y = 0
+    local lastwidth = 0
     for i = 1, #t do
         local char = string.sub(t, i, i)
         if char == "\n" then
+            x = 0
             y = y - 1 - leading
-            shift = 1
         else
             local outline = letteroutlines[char]
             if outline then
@@ -1024,10 +1026,10 @@ return function(args)
                 for _, pt in ipairs(outline) do
                     S.points:append(point.create(pt.x, pt.y))
                 end
-                S:translate(shift * pitch, y)
+                S:translate(x, y)
+                x = x + S.points:width() + spacing
                 S:scale(scale)
                 text:add_shape(S)
-                shift = shift + 0.8 + spacing
             end
         end
     end
