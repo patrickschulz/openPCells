@@ -1,0 +1,58 @@
+\documentclass[parskip=half]{scrartcl}
+
+\usepackage{tikz}
+\usetikzlibrary{positioning, shapes, patterns}
+\tikzset{
+    state/.style = {draw, align=center, minimum width = 2.1cm, rectangle split, rectangle split parts = 3, thick, minimum height = 5cm},
+    tip/.style = {thick, ->, >=stealth}
+}
+\usepackage{wrapfig}
+
+\usepackage{fontspec}
+\setmainfont{Linux Libertine O}
+
+\usepackage{listings}
+\lstset{
+    language=[5.3]Lua,
+    backgroundcolor = \color{blue!10!white},
+    basicstyle = \small\ttfamily,
+    keywordstyle = \color{blue},
+    commentstyle = \color{red},
+    stringstyle = \color{green!70!black},
+    showstringspaces = false,
+    tabsize = 4,
+    gobble = 4,
+    emph = {
+        pointarray,
+        path,
+        layout.rectangle, 
+        layout.multiple, 
+        layout.path, 
+        pcell.setup, 
+        pcell.process_args, 
+        pcell.check_args,
+        generics,
+        generics.metal,
+        generics.via,
+        generics.contact,
+        generics.other,
+        generics.mapped,
+    },
+    emphstyle = \color{blue!60!green}\bfseries,
+    belowskip=-0.2\baselineskip
+}
+
+\usepackage{siunitx}
+\usepackage{csquotes}
+
+\frenchspacing
+
+% code listings
+\lstnewenvironment{lua}{\lstset{language=lua}}{}
+\lstnewenvironment{shell}{\lstset{language=bash, keywordstyle = \relax, commentstyle = \relax}}{}
+\newcommand{\shellinline}[1]{\lstinline!#1!}
+
+% API documentation commands
+\newcommand{\param}[1]{\textcolor{blue!60!green}{\bfseries\ttfamily #1}}
+
+\newenvironment{apifunc}[1]{\par\hspace*{-2em}\lstinline!#1!\leftskip=2em\par}{\par}
