@@ -1,5 +1,6 @@
 openPCells.gds
 openPCells.il
+openPCells.debug
 tech/cmos22fdsoi
 
 *.aux
