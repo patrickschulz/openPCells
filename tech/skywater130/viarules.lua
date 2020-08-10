@@ -1,9 +1,11 @@
 return {
-    wellcont = {
+    contactactive = {
         layers = {
             {
-                layer = { number = 66, name = "licon1" }, 
-                purpose = { number = 44, name = "drawing" }
+                lpp = {
+                    layer = { number = 66, name = "licon1" }, 
+                    purpose = { number = 44, name = "drawing" }
+                }
             },
         },
         width = 0.040,
@@ -13,7 +15,7 @@ return {
         xencl = 0.01, 
         yencl = 0.02
     },
-    gatecont = {
+    contactgate = {
         layers = {
             {
                 lpp = {
