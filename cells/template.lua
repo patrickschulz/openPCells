@@ -8,7 +8,8 @@ return function(args)
     -- create the main object
     local obj = object.create()
 
-    -- all layout functions also return an object, in order to add them to the main object you need to merge them:
+    -- all layout functions also return an object, in order to add them to the main object you need to 
+    -- merge them (in this simple example you could of course just return the value from layout.rectangle)
     obj:merge_into(layout.rectange("M1", size, size))
 
     return obj

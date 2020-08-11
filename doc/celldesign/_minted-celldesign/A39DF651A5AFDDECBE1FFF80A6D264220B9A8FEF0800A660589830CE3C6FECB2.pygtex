@@ -1,0 +1,90 @@
+\begin{Verbatim}[commandchars=\\\{\}]
+\PYG{k+kr}{return} \PYG{k+kr}{function}\PYG{p}{(}\PYG{n}{args}\PYG{p}{)}
+    \PYG{n}{pcell}\PYG{p}{.}\PYG{n}{setup}\PYG{p}{(}\PYG{n}{args}\PYG{p}{)}
+
+    \PYG{k+kd}{local} \PYG{n}{initradius} \PYG{o}{=} \PYG{n}{pcell}\PYG{p}{.}\PYG{n}{process\PYGZus{}args}\PYG{p}{(}\PYG{l+s+s2}{\PYGZdq{}radius\PYGZdq{}}\PYG{p}{,}    \PYG{l+m+mf}{30.0}\PYG{p}{)}
+    \PYG{k+kd}{local} \PYG{n}{turns}      \PYG{o}{=} \PYG{n}{pcell}\PYG{p}{.}\PYG{n}{process\PYGZus{}args}\PYG{p}{(}\PYG{l+s+s2}{\PYGZdq{}turns\PYGZdq{}}\PYG{p}{,}      \PYG{l+m+mf}{3.0}\PYG{p}{)}
+    \PYG{k+kd}{local} \PYG{n}{separation} \PYG{o}{=} \PYG{n}{pcell}\PYG{p}{.}\PYG{n}{process\PYGZus{}args}\PYG{p}{(}\PYG{l+s+s2}{\PYGZdq{}separation\PYGZdq{}}\PYG{p}{,} \PYG{l+m+mf}{6.0}\PYG{p}{)}
+    \PYG{k+kd}{local} \PYG{n}{width}      \PYG{o}{=} \PYG{n}{pcell}\PYG{p}{.}\PYG{n}{process\PYGZus{}args}\PYG{p}{(}\PYG{l+s+s2}{\PYGZdq{}width\PYGZdq{}}\PYG{p}{,}      \PYG{l+m+mf}{6.0}\PYG{p}{)}
+    \PYG{k+kd}{local} \PYG{n}{extension}  \PYG{o}{=} \PYG{n}{pcell}\PYG{p}{.}\PYG{n}{process\PYGZus{}args}\PYG{p}{(}\PYG{l+s+s2}{\PYGZdq{}extension\PYGZdq{}}\PYG{p}{,} \PYG{l+m+mf}{10.0}\PYG{p}{)}
+    \PYG{k+kd}{local} \PYG{n}{extsep}     \PYG{o}{=} \PYG{n}{pcell}\PYG{p}{.}\PYG{n}{process\PYGZus{}args}\PYG{p}{(}\PYG{l+s+s2}{\PYGZdq{}extsep\PYGZdq{}}\PYG{p}{,}     \PYG{l+m+mf}{6.0}\PYG{p}{)}
+    \PYG{k+kd}{local} \PYG{n}{metalnum}   \PYG{o}{=} \PYG{n}{pcell}\PYG{p}{.}\PYG{n}{process\PYGZus{}args}\PYG{p}{(}\PYG{l+s+s2}{\PYGZdq{}metalnum\PYGZdq{}}\PYG{p}{,}  \PYG{o}{\PYGZhy{}}\PYG{l+m+mi}{1}\PYG{p}{,} \PYG{l+s+s2}{\PYGZdq{}integer\PYGZdq{}}\PYG{p}{)}
+
+    \PYG{n}{pcell}\PYG{p}{.}\PYG{n}{check\PYGZus{}args}\PYG{p}{()}
+
+    \PYG{k+kd}{local} \PYG{n}{inductor} \PYG{o}{=} \PYG{n}{object}\PYG{p}{.}\PYG{n}{create}\PYG{p}{()}
+
+    \PYG{k+kd}{local} \PYG{n}{tanpi8} \PYG{o}{=} \PYG{n+nb}{math.tan}\PYG{p}{(}\PYG{n+nb}{math.pi} \PYG{o}{/} \PYG{l+m+mi}{8}\PYG{p}{)}
+    \PYG{k+kd}{local} \PYG{n}{pitch} \PYG{o}{=} \PYG{n}{separation} \PYG{o}{+} \PYG{n}{width}
+
+    \PYG{k+kd}{local} \PYG{n}{mainmetal} \PYG{o}{=} \PYG{n}{generics}\PYG{p}{.}\PYG{n}{metal}\PYG{p}{(}\PYG{n}{metalnum}\PYG{p}{)}
+    \PYG{k+kd}{local} \PYG{n}{auxmetal} \PYG{o}{=} \PYG{n}{generics}\PYG{p}{.}\PYG{n}{metal}\PYG{p}{(}\PYG{n}{metalnum} \PYG{o}{\PYGZhy{}} \PYG{l+m+mi}{1}\PYG{p}{)}
+    \PYG{k+kd}{local} \PYG{n}{via} \PYG{o}{=} \PYG{n}{generics}\PYG{p}{.}\PYG{n}{via}\PYG{p}{(}\PYG{n}{metalnum}\PYG{p}{,} \PYG{n}{metalnum} \PYG{o}{\PYGZhy{}} \PYG{l+m+mi}{1}\PYG{p}{)}
+
+    \PYG{c+c1}{\PYGZhy{}\PYGZhy{} draw left and right segments}
+    \PYG{k+kd}{local} \PYG{n}{sign} \PYG{o}{=} \PYG{p}{(}\PYG{n}{turns} \PYG{o}{\PYGZpc{}} \PYG{l+m+mi}{2} \PYG{o}{==} \PYG{l+m+mi}{0}\PYG{p}{)} \PYG{o+ow}{and} \PYG{l+m+mi}{1} \PYG{o+ow}{or} \PYG{o}{\PYGZhy{}}\PYG{l+m+mi}{1}
+    \PYG{k+kr}{for} \PYG{n}{i} \PYG{o}{=} \PYG{l+m+mi}{1}\PYG{p}{,} \PYG{n}{turns} \PYG{k+kr}{do}
+        \PYG{k+kd}{local} \PYG{n}{radius} \PYG{o}{=} \PYG{n}{initradius} \PYG{o}{+} \PYG{p}{(}\PYG{n}{i} \PYG{o}{\PYGZhy{}} \PYG{l+m+mi}{1}\PYG{p}{)} \PYG{o}{*} \PYG{n}{pitch}
+        \PYG{k+kd}{local} \PYG{n}{r} \PYG{o}{=} \PYG{n}{radius} \PYG{o}{*} \PYG{n}{tanpi8}
+        \PYG{n}{sign} \PYG{o}{=} \PYG{o}{\PYGZhy{}}\PYG{n}{sign}
+
+\PYG{k+kd}{local} \PYG{n}{pathpts} \PYG{o}{=} \PYG{n}{pointarray}\PYG{p}{.}\PYG{n}{create}\PYG{p}{()}
+
+\PYG{n}{pathpts}\PYG{p}{:}\PYG{n}{append}\PYG{p}{(}\PYG{n}{point}\PYG{p}{.}\PYG{n}{create}\PYG{p}{(}\PYG{o}{\PYGZhy{}}\PYG{n}{r} \PYG{o}{+} \PYG{l+m+mf}{0.5} \PYG{o}{*} \PYG{n}{tanpi8} \PYG{o}{*} \PYG{n}{width}\PYG{p}{,}  \PYG{n}{sign} \PYG{o}{*} \PYG{n}{radius}\PYG{p}{))}
+\PYG{n}{pathpts}\PYG{p}{:}\PYG{n}{append}\PYG{p}{(}\PYG{n}{point}\PYG{p}{.}\PYG{n}{create}\PYG{p}{(}\PYG{o}{\PYGZhy{}}\PYG{n}{r}\PYG{p}{,}  \PYG{n}{sign} \PYG{o}{*} \PYG{n}{radius}\PYG{p}{))}
+\PYG{n}{pathpts}\PYG{p}{:}\PYG{n}{append}\PYG{p}{(}\PYG{n}{point}\PYG{p}{.}\PYG{n}{create}\PYG{p}{(}\PYG{o}{\PYGZhy{}}\PYG{n}{radius}\PYG{p}{,}  \PYG{n}{sign} \PYG{o}{*} \PYG{n}{r}\PYG{p}{))}
+\PYG{n}{pathpts}\PYG{p}{:}\PYG{n}{append}\PYG{p}{(}\PYG{n}{point}\PYG{p}{.}\PYG{n}{create}\PYG{p}{(}\PYG{o}{\PYGZhy{}}\PYG{n}{radius}\PYG{p}{,} \PYG{o}{\PYGZhy{}}\PYG{n}{sign} \PYG{o}{*} \PYG{n}{r}\PYG{p}{))}
+\PYG{n}{pathpts}\PYG{p}{:}\PYG{n}{append}\PYG{p}{(}\PYG{n}{point}\PYG{p}{.}\PYG{n}{create}\PYG{p}{(}\PYG{o}{\PYGZhy{}}\PYG{n}{r}\PYG{p}{,} \PYG{o}{\PYGZhy{}}\PYG{n}{sign} \PYG{o}{*} \PYG{n}{radius}\PYG{p}{))}
+\PYG{n}{pathpts}\PYG{p}{:}\PYG{n}{append}\PYG{p}{(}\PYG{n}{point}\PYG{p}{.}\PYG{n}{create}\PYG{p}{(}\PYG{o}{\PYGZhy{}}\PYG{n}{r} \PYG{o}{+} \PYG{l+m+mf}{0.5} \PYG{o}{*} \PYG{n}{tanpi8} \PYG{o}{*} \PYG{n}{width}\PYG{p}{,} \PYG{o}{\PYGZhy{}}\PYG{n}{sign} \PYG{o}{*} \PYG{n}{radius}\PYG{p}{))}
+
+        \PYG{c+c1}{\PYGZhy{}\PYGZhy{} draw underpass}
+        \PYG{k+kr}{if} \PYG{n}{i} \PYG{o}{\PYGZlt{}} \PYG{n}{turns} \PYG{k+kr}{then}
+            \PYG{c+c1}{\PYGZhy{}\PYGZhy{} create connection to underpass}
+            \PYG{n}{pathpts}\PYG{p}{:}\PYG{n}{prepend}\PYG{p}{(}\PYG{n}{point}\PYG{p}{.}\PYG{n}{create}\PYG{p}{(}\PYG{o}{\PYGZhy{}}\PYG{l+m+mf}{0.5} \PYG{o}{*} \PYG{p}{(}\PYG{n}{initradius} \PYG{o}{*} \PYG{n}{tanpi8} \PYG{o}{+} \PYG{l+m+mf}{0.5} \PYG{o}{*} \PYG{n}{pitch}\PYG{p}{),}  \PYG{n}{sign} \PYG{o}{*} \PYG{n}{radius}\PYG{p}{))}
+            \PYG{n}{pathpts}\PYG{p}{:}\PYG{n}{append}\PYG{p}{(} \PYG{n}{point}\PYG{p}{.}\PYG{n}{create}\PYG{p}{(}\PYG{o}{\PYGZhy{}}\PYG{l+m+mf}{0.5} \PYG{o}{*} \PYG{p}{(}\PYG{n}{initradius} \PYG{o}{*} \PYG{n}{tanpi8} \PYG{o}{+} \PYG{l+m+mf}{0.5} \PYG{o}{*} \PYG{n}{pitch}\PYG{p}{),} \PYG{o}{\PYGZhy{}}\PYG{n}{sign} \PYG{o}{*} \PYG{n}{radius}\PYG{p}{))}
+            \PYG{c+c1}{\PYGZhy{}\PYGZhy{} create underpass}
+            \PYG{k+kd}{local} \PYG{n}{uppts} \PYG{o}{=} \PYG{n}{pointarray}\PYG{p}{.}\PYG{n}{create}\PYG{p}{()}
+            \PYG{n}{uppts}\PYG{p}{:}\PYG{n}{append}\PYG{p}{(}\PYG{n}{point}\PYG{p}{.}\PYG{n}{create}\PYG{p}{(}\PYG{o}{\PYGZhy{}}\PYG{l+m+mf}{0.5} \PYG{o}{*} \PYG{p}{(}\PYG{n}{initradius} \PYG{o}{*} \PYG{n}{tanpi8} \PYG{o}{+} \PYG{l+m+mf}{0.5} \PYG{o}{*} \PYG{n}{pitch}\PYG{p}{),} \PYG{o}{\PYGZhy{}}\PYG{n}{sign} \PYG{o}{*} \PYG{n}{radius}\PYG{p}{))}
+            \PYG{n}{uppts}\PYG{p}{:}\PYG{n}{append}\PYG{p}{(}\PYG{n}{point}\PYG{p}{.}\PYG{n}{create}\PYG{p}{(}\PYG{o}{\PYGZhy{}}\PYG{l+m+mf}{0.5} \PYG{o}{*} \PYG{n}{pitch} \PYG{o}{\PYGZhy{}} \PYG{l+m+mf}{0.5} \PYG{o}{*} \PYG{n}{tanpi8} \PYG{o}{*} \PYG{n}{width}\PYG{p}{,} \PYG{o}{\PYGZhy{}}\PYG{n}{sign} \PYG{o}{*} \PYG{n}{radius}\PYG{p}{))}
+            \PYG{n}{uppts}\PYG{p}{:}\PYG{n}{append}\PYG{p}{(}\PYG{n}{point}\PYG{p}{.}\PYG{n}{create}\PYG{p}{(}\PYG{o}{\PYGZhy{}}\PYG{l+m+mf}{0.5} \PYG{o}{*} \PYG{n}{pitch}\PYG{p}{,} \PYG{o}{\PYGZhy{}}\PYG{n}{sign} \PYG{o}{*} \PYG{n}{radius}\PYG{p}{))}
+            \PYG{n}{uppts}\PYG{p}{:}\PYG{n}{append}\PYG{p}{(}\PYG{n}{point}\PYG{p}{.}\PYG{n}{create}\PYG{p}{(} \PYG{l+m+mf}{0.5} \PYG{o}{*} \PYG{n}{pitch}\PYG{p}{,} \PYG{o}{\PYGZhy{}}\PYG{n}{sign} \PYG{o}{*} \PYG{p}{(}\PYG{n}{radius} \PYG{o}{+} \PYG{n}{pitch}\PYG{p}{)))}
+            \PYG{n}{uppts}\PYG{p}{:}\PYG{n}{append}\PYG{p}{(}\PYG{n}{point}\PYG{p}{.}\PYG{n}{create}\PYG{p}{(} \PYG{l+m+mf}{0.5} \PYG{o}{*} \PYG{n}{pitch} \PYG{o}{+} \PYG{l+m+mf}{0.5} \PYG{o}{*} \PYG{n}{tanpi8} \PYG{o}{*} \PYG{n}{width}\PYG{p}{,} \PYG{o}{\PYGZhy{}}\PYG{n}{sign} \PYG{o}{*} \PYG{p}{(}\PYG{n}{radius} \PYG{o}{+} \PYG{n}{pitch}\PYG{p}{)))}
+            \PYG{n}{uppts}\PYG{p}{:}\PYG{n}{append}\PYG{p}{(}\PYG{n}{point}\PYG{p}{.}\PYG{n}{create}\PYG{p}{(} \PYG{l+m+mf}{0.5} \PYG{o}{*} \PYG{p}{(}\PYG{n}{initradius} \PYG{o}{*} \PYG{n}{tanpi8} \PYG{o}{+} \PYG{l+m+mf}{0.5} \PYG{o}{*} \PYG{n}{pitch}\PYG{p}{),} \PYG{o}{\PYGZhy{}}\PYG{n}{sign} \PYG{o}{*} \PYG{p}{(}\PYG{n}{radius} \PYG{o}{+} \PYG{n}{pitch}\PYG{p}{)))}
+            \PYG{n}{inductor}\PYG{p}{:}\PYG{n}{merge\PYGZus{}into}\PYG{p}{(}\PYG{n}{layout}\PYG{p}{.}\PYG{n}{path}\PYG{p}{(}\PYG{n}{mainmetal}\PYG{p}{,} \PYG{n}{uppts}\PYG{p}{,} \PYG{n}{width}\PYG{p}{,} \PYG{k+kc}{true}\PYG{p}{))}
+            \PYG{n}{inductor}\PYG{p}{:}\PYG{n}{merge\PYGZus{}into}\PYG{p}{(}\PYG{n}{layout}\PYG{p}{.}\PYG{n}{path}\PYG{p}{(}\PYG{n}{auxmetal}\PYG{p}{,} \PYG{n}{uppts}\PYG{p}{:}\PYG{n}{xmirror}\PYG{p}{(),} \PYG{n}{width}\PYG{p}{,} \PYG{k+kc}{true}\PYG{p}{))}
+            \PYG{c+c1}{\PYGZhy{}\PYGZhy{} place vias}
+            \PYG{n}{inductor}\PYG{p}{:}\PYG{n}{merge\PYGZus{}into}\PYG{p}{(}\PYG{n}{layout}\PYG{p}{.}\PYG{n}{rectangle}\PYG{p}{(}\PYG{n}{via}\PYG{p}{,} \PYG{n}{width}\PYG{p}{,} \PYG{n}{width}\PYG{p}{):}\PYG{n}{translate}\PYG{p}{(}
+                \PYG{o}{\PYGZhy{}}\PYG{l+m+mf}{0.5} \PYG{o}{*} \PYG{p}{(}\PYG{n}{initradius} \PYG{o}{*} \PYG{n}{tanpi8} \PYG{o}{+} \PYG{l+m+mf}{0.5} \PYG{o}{*} \PYG{n}{pitch}\PYG{p}{),} 
+                \PYG{o}{\PYGZhy{}}\PYG{n}{sign} \PYG{o}{*} \PYG{p}{(}\PYG{n}{radius} \PYG{o}{+} \PYG{n}{pitch}\PYG{p}{)}
+            \PYG{p}{))}
+            \PYG{n}{inductor}\PYG{p}{:}\PYG{n}{merge\PYGZus{}into}\PYG{p}{(}\PYG{n}{layout}\PYG{p}{.}\PYG{n}{rectangle}\PYG{p}{(}\PYG{n}{via}\PYG{p}{,} \PYG{n}{width}\PYG{p}{,} \PYG{n}{width}\PYG{p}{):}\PYG{n}{translate}\PYG{p}{(}
+                \PYG{l+m+mf}{0.5} \PYG{o}{*} \PYG{p}{(}\PYG{n}{initradius} \PYG{o}{*} \PYG{n}{tanpi8} \PYG{o}{+} \PYG{l+m+mf}{0.5} \PYG{o}{*} \PYG{n}{pitch}\PYG{p}{),} 
+                \PYG{o}{\PYGZhy{}}\PYG{n}{sign} \PYG{o}{*} \PYG{n}{radius}
+            \PYG{p}{))}
+        \PYG{k+kr}{end}
+
+        \PYG{c+c1}{\PYGZhy{}\PYGZhy{} draw inner connection between left and right}
+        \PYG{k+kr}{if} \PYG{n}{i} \PYG{o}{==} \PYG{l+m+mi}{1} \PYG{k+kr}{then}
+            \PYG{n}{pathpts}\PYG{p}{:}\PYG{n}{prepend}\PYG{p}{(}\PYG{n}{point}\PYG{p}{.}\PYG{n}{create}\PYG{p}{(} \PYG{l+m+mi}{0}\PYG{p}{,} \PYG{n}{sign} \PYG{o}{*} \PYG{n}{radius}\PYG{p}{))}
+        \PYG{k+kr}{end}
+
+        \PYG{c+c1}{\PYGZhy{}\PYGZhy{} draw connector}
+        \PYG{k+kr}{if} \PYG{n}{i} \PYG{o}{==} \PYG{n}{turns} \PYG{k+kr}{then}
+            \PYG{c+c1}{\PYGZhy{}\PYGZhy{} create connection to underpass}
+            \PYG{n}{pathpts}\PYG{p}{:}\PYG{n}{prepend}\PYG{p}{(}\PYG{n}{point}\PYG{p}{.}\PYG{n}{create}\PYG{p}{(}\PYG{o}{\PYGZhy{}}\PYG{l+m+mf}{0.5} \PYG{o}{*} \PYG{p}{(}\PYG{n}{initradius} \PYG{o}{*} \PYG{n}{tanpi8} \PYG{o}{+} \PYG{l+m+mf}{0.5} \PYG{o}{*} \PYG{n}{pitch}\PYG{p}{),} \PYG{n}{sign} \PYG{o}{*} \PYG{n}{radius}\PYG{p}{))}
+            \PYG{k+kr}{if} \PYG{l+m+mf}{0.5} \PYG{o}{*} \PYG{n}{extsep} \PYG{o}{+} \PYG{n}{width} \PYG{o}{\PYGZgt{}} \PYG{n}{r} \PYG{o}{+} \PYG{l+m+mf}{0.5} \PYG{o}{*} \PYG{n}{width} \PYG{o}{*} \PYG{n}{tanpi8} \PYG{k+kr}{then}
+                \PYG{n}{pathpts}\PYG{p}{:}\PYG{n}{append}\PYG{p}{(}\PYG{n}{point}\PYG{p}{.}\PYG{n}{create}\PYG{p}{(}\PYG{o}{\PYGZhy{}}\PYG{l+m+mf}{0.5} \PYG{o}{*} \PYG{p}{(}\PYG{n}{extsep} \PYG{o}{+} \PYG{n}{width}\PYG{p}{),} \PYG{o}{\PYGZhy{}}\PYG{n}{r} \PYG{o}{\PYGZhy{}} \PYG{n}{radius} \PYG{o}{+} \PYG{l+m+mf}{0.5} \PYG{o}{*} \PYG{p}{(}\PYG{n}{extsep} \PYG{o}{+} \PYG{n}{width}\PYG{p}{)))}
+                \PYG{n}{pathpts}\PYG{p}{:}\PYG{n}{append}\PYG{p}{(}\PYG{n}{point}\PYG{p}{.}\PYG{n}{create}\PYG{p}{(}\PYG{o}{\PYGZhy{}}\PYG{l+m+mf}{0.5} \PYG{o}{*} \PYG{p}{(}\PYG{n}{extsep} \PYG{o}{+} \PYG{n}{width}\PYG{p}{),} \PYG{o}{\PYGZhy{}}\PYG{n}{r} \PYG{o}{\PYGZhy{}} \PYG{n}{radius} \PYG{o}{+} \PYG{l+m+mf}{0.5} \PYG{o}{*} \PYG{p}{(}\PYG{n}{extsep} \PYG{o}{+} \PYG{n}{width}\PYG{p}{)} \PYG{o}{\PYGZhy{}} \PYG{n}{extension}\PYG{p}{))}
+            \PYG{k+kr}{else}
+                \PYG{n}{pathpts}\PYG{p}{:}\PYG{n}{append}\PYG{p}{(}\PYG{n}{point}\PYG{p}{.}\PYG{n}{create}\PYG{p}{(}\PYG{o}{\PYGZhy{}}\PYG{l+m+mf}{0.5} \PYG{o}{*} \PYG{p}{(}\PYG{n}{extsep} \PYG{o}{+} \PYG{n}{width}\PYG{p}{),} \PYG{o}{\PYGZhy{}}\PYG{n}{radius}\PYG{p}{))}
+                \PYG{n}{pathpts}\PYG{p}{:}\PYG{n}{append}\PYG{p}{(}\PYG{n}{point}\PYG{p}{.}\PYG{n}{create}\PYG{p}{(}\PYG{o}{\PYGZhy{}}\PYG{l+m+mf}{0.5} \PYG{o}{*} \PYG{p}{(}\PYG{n}{extsep} \PYG{o}{+} \PYG{n}{width}\PYG{p}{),} \PYG{o}{\PYGZhy{}}\PYG{p}{(}\PYG{n}{radius} \PYG{o}{+} \PYG{n}{extension}\PYG{p}{)))}
+            \PYG{k+kr}{end}
+        \PYG{k+kr}{end}
+
+        \PYG{n}{inductor}\PYG{p}{:}\PYG{n}{merge\PYGZus{}into}\PYG{p}{(}\PYG{n}{layout}\PYG{p}{.}\PYG{n}{path}\PYG{p}{(}\PYG{n}{mainmetal}\PYG{p}{,} \PYG{n}{pathpts}\PYG{p}{,} \PYG{n}{width}\PYG{p}{,} \PYG{k+kc}{true}\PYG{p}{))}
+        \PYG{n}{inductor}\PYG{p}{:}\PYG{n}{merge\PYGZus{}into}\PYG{p}{(}\PYG{n}{layout}\PYG{p}{.}\PYG{n}{path}\PYG{p}{(}\PYG{n}{mainmetal}\PYG{p}{,} \PYG{n}{pathpts}\PYG{p}{:}\PYG{n}{xmirror}\PYG{p}{(),} \PYG{n}{width}\PYG{p}{,} \PYG{k+kc}{true}\PYG{p}{))}
+    \PYG{k+kr}{end}
+
+    \PYG{k+kr}{return} \PYG{n}{inductor}
+\PYG{k+kr}{end}
+\end{Verbatim}
