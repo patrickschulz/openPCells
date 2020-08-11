@@ -14,6 +14,10 @@ local function _create(value)
         str = function(self)
             if self.typ == "metal" then
                 return string.format("M%d", self.value)
+            elseif self.typ == "via" then
+                return string.format("viaM%dM%d", self:get())
+            elseif self.typ == "contact" then
+                return string.format("contact%s", self:get())
             else
                 return self.value
             end
@@ -30,14 +34,12 @@ end
 function M.via(from, to)
     local self = _create({ from = from, to = to })
     self.typ = "via"
-    self.str = function(self) return string.format("viaM%dM%d", self:get()) end
     return self
 end
 
 function M.contact(region)
     local self = _create(region)
     self.typ = "contact"
-    self.str = function(self) return string.format("contact%s", self:get()) end
     return self
 end
 

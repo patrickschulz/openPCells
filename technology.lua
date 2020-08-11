@@ -70,7 +70,28 @@ local function _get_viaspec(layer)
     return viarules[layer]
 end
 
-local function _place_vias(cell, layer, pts)
+local function _place_metals(cell, lpp, pts)
+    if lpp.typ == "via" then
+        local m1, m2 = lpp:get()
+        local s1 = shape.create(generics.metal(m1))
+        s1.points = pts
+        local s2 = shape.create(generics.metal(m2))
+        s2.points = pts
+        cell:add_shape(s1)
+        cell:add_shape(s2)
+    elseif lpp.typ == "contact" then
+        local semi = lpp:get()
+        local ssemi = shape.create(generics.other(semi))
+        ssemi.points = pts
+        local smetal = shape.create(generics.metal(1))
+        smetal.points = pts
+        cell:add_shape(ssemi)
+        cell:add_shape(smetal)
+    end
+end
+
+local function _place_vias(cell, lpp, pts)
+    local layer = lpp:str()
     local viaspec = _get_viaspec(layer)
     local width = math.abs(pts[3].x - pts[1].x)
     local height = math.abs(pts[3].y - pts[1].y)
@@ -103,6 +124,12 @@ function M.split_vias(cell)
                 sc.lpp = generics.via(i, i + 1)
                 cell:add_shape(sc)
             end
+            -- if start == end we still want to get the metal
+            if from == to then
+                local sc = s:copy()
+                sc.lpp = generics.metal(from)
+                cell:add_shape(sc)
+            end
         end
     end
     -- remove dummy via entries
@@ -119,8 +146,8 @@ function M.create_via_geometries(cell)
         local s = cell.shapes[i]
         if s.lpp.typ == "via" or s.lpp.typ == "contact" then
             table.insert(toremove, i)
-            local layer = s.lpp:str()
-            _place_vias(cell, layer, s.points)
+            _place_metals(cell, s.lpp, s.points)
+            _place_vias(cell, s.lpp, s.points)
         end
     end
     -- remove dummy via entries

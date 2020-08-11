@@ -10,10 +10,10 @@ graphics   = require "graphics"
 pcell      = require "pcell"
 generics   = require "generics"
 bitop      = require "bitop"
+celllib    = require "cell"
 
 local techlib = require "technology"
 local interface = require "interface"
-local celllib = require "cell"
 
 -- prepare arguments
 local techname = arg[1]
