@@ -12,7 +12,7 @@ function M.rectangle(layer, width, height)
     S.points:append(point.create( 0.5 * width, -0.5 * height))
     S.points:append(point.create( 0.5 * width,  0.5 * height))
     S.points:append(point.create(-0.5 * width,  0.5 * height))
-    S.points:close()
+    --S.points:close()
     return object.make_from_shape(S)
 end
 
