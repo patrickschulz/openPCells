@@ -7,11 +7,16 @@ end
 -- private variables
 local gridfmt = "%.3f"
 
+local function _get_color_opacity(shape)
+    local color = shape.lpp:get().color or "black"
+    local opacity = shape.lpp:get().opacity or 0.1
+    return color, opacity
+end
+
 local function _write_shape(file, shape, scale)
     local pointstr = shape.points:concat(function(pt) return string.format(gridfmt .. "," .. gridfmt, scale * pt.x, scale * pt.y) end)
-    local color = "black"
     local strokewidth = "1"
-    local opacity = 0.1
+    local color, opacity = _get_color_opacity(shape)
     local str = string.format('<polyline points="%s" stroke="%s" stroke-width="%s" fill="%s" opacity = "%.2f" />', pointstr, color, strokewidth, color, opacity)
     file:write(str)
     file:write("\n")
@@ -37,8 +42,8 @@ function M.print_object(file, cell)
     local width, height = _get_dimensions(cell)
     local target = 1000
     local scale = math.ceil(target / math.max(width, height))
-    local x = math.ceil(scale * width)
-    local y = math.ceil(scale * height)
+    local x = math.ceil(1.1 * scale * width)
+    local y = math.ceil(1.1 * scale * height)
     if x % 2 == 1 then x = x + 1 end
     if y % 2 == 1 then y = y + 1 end
     local lines = {
