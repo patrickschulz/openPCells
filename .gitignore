@@ -1,7 +1,10 @@
 openPCells.gds
 openPCells.il
 openPCells.debug
+openPCells.mag
 tech/cmos22fdsoi
 
 *.aux
 *.log
+*.pygtex
+*_minted*

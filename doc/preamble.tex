@@ -11,76 +11,16 @@
 \usepackage{fontspec}
 \setmainfont{Linux Libertine O}
 
-\usepackage{listings}
-\lstset{
-    language=[5.3]Lua,
-    backgroundcolor = \color{blue!10!white},
-    basicstyle = \small\ttfamily,
-    keywordstyle = \color{blue},
-    commentstyle = \color{red},
-    stringstyle = \color{green!70!black},
-    showstringspaces = false,
-    tabsize = 4,
-    gobble = 4,
-    emph = {
-        pointarray,
-        path,
-        layout.rectangle, 
-        layout.multiple, 
-        layout.path, 
-        pcell.setup, 
-        pcell.process_args, 
-        pcell.check_args,
-        generics,
-        generics.metal,
-        generics.via,
-        generics.contact,
-        generics.other,
-        generics.mapped,
-    },
-    emphstyle = \color{blue!60!green}\bfseries,
-    belowskip=-0.2\baselineskip
-}
-% code listings
-%\lstnewenvironment{lua}{\lstset{language=lua}}{}
-\lstnewenvironment{shell}{\lstset{language=bash, keywordstyle = \relax, commentstyle = \relax}}{}
-\newcommand{\shellinline}[1]{\lstinline!#1!}
-% API documentation commands
-\newcommand{\param}[1]{\textcolor{blue!60!green}{\bfseries\ttfamily #1}}
-\newenvironment{apifunc}[1]{\par\hspace*{-2em}\lstinline!#1!\leftskip=2em\par}{\par}
-
 \usepackage{minted}
-\newminted{lua}{fontsize = \small}
+\usemintedstyle{igor}
+\newminted{shell}{fontsize = \small}
+\newmintinline{shell}{}
+\newmintinline{lua}{}
 \newmintedfile[lualisting]{lua}{autogobble, fontsize = \small}
-%\usemintedstyle{manni} % A colorful style, inspired by the terminal highlighting style.
-%\usemintedstyle{igor} % Pygments version of the official colors for Igor Pro procedures.
-\usemintedstyle{lovelace} % The style used in Lovelace interactive learning environment. Tries to avoid the "angry fruit salad" effect with desaturated and dim colours.
-%\usemintedstyle{xcode} % Style similar to the Xcode default colouring theme.
-%\usemintedstyle{vim} % Styles somewhat like vim 7.0
-%\usemintedstyle{autumn} % A colorful style, inspired by the terminal highlighting style.
-%\usemintedstyle{abap} % 
-%\usemintedstyle{vs} % 
-%\usemintedstyle{rrt} % Minimalistic "rrt" theme, based on Zap and Emacs defaults.
-%\usemintedstyle{native} % Pygments version of the "native" vim theme.
-%\usemintedstyle{perldoc} % Style similar to the style used in the perldoc code blocks.
-%\usemintedstyle{borland} % Style similar to the style used in the borland IDEs.
-%\usemintedstyle{arduino} % The Arduino® language style. This style is designed to highlight the Arduino source code, so exepect the best results with it.
-%\usemintedstyle{tango} % The Crunchy default Style inspired from the color palette from the Tango Icon Theme Guidelines.
-%\usemintedstyle{emacs} % The default style (inspired by Emacs 22).
-%\usemintedstyle{friendly} % A modern style based on the VIM pyte theme.
-%\usemintedstyle{monokai} % This style mimics the Monokai color scheme.
-%\usemintedstyle{paraiso-dark} % 
-%\usemintedstyle{colorful} % A colorful style, inspired by CodeRay.
-%\usemintedstyle{murphy} % Murphy's style from CodeRay.
-%\usemintedstyle{bw} % 
-%\usemintedstyle{pastie} % Style similar to the pastie default style.
-%\usemintedstyle{rainbow_dash} % A bright and colorful syntax highlighting theme.
-%\usemintedstyle{algol_nu} % 
-%\usemintedstyle{paraiso-light} % 
-%\usemintedstyle{trac} % Port of the default trac highlighter design.
-%\usemintedstyle{default} % The default style (inspired by Emacs 22).
-%\usemintedstyle{algol:} % 
-%\usemintedstyle{fruity} % Pygments version of the "native" vim theme.
+% API documentation commands
+\newcommand{\param}[1]{\luainline{#1}}
+\newenvironment{apifunc}[1]{\par\hspace*{-2em}\luainline{#1}\leftskip=2em\par}{\par}
+
 
 \usepackage{siunitx}
 \usepackage{csquotes}

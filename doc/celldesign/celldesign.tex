@@ -41,7 +41,7 @@ than one cell is used.
 Now that we have set up the arguments, we can actually parse them:
 \lualisting[firstline = 5, lastline = 6]{code/simple_rectangle.lua}
 Arguments are passed in key-value-pairs, we have to provide the key and the default value. The processing will parse and evaluate it's arguments depending on the
-type, which we can state explicitly (as third argument to \lstinline!pcell.process_args!), but usually the type can be inferred automatically (this is not the case
+type, which we can state explicitly (as third argument to \luainline{pcell.process_args}), but usually the type can be inferred automatically (this is not the case
 if you only allow integers for numbers, for example). The default value for both parameters is 1.0, which is a \emph{size}, meaning it has a unit. What does 1.0
 mean? It could be (and mostly will be) \SI{1}{\micro\meter}, but we don't know that yet. It depends on the technology settings, but we don't care about that here.
 
@@ -51,11 +51,11 @@ This is optional, but good practice.
 
 Now that we have all the layout parameters, we can finally create the rectangle:
 \lualisting[firstline = 10, lastline = 10]{code/simple_rectangle.lua}
-There is a lot going on here: We use the \lstinline!layout.rectangle! function to create a rectangle with with and height (second and third argument). Since we are
+There is a lot going on here: We use the \luainline{layout.rectangle} function to create a rectangle with with and height (second and third argument). Since we are
 creating shapes of IC geometry, we have to specify a layer. But we also want to create technology-independent pcells, so there is a generics system for layers. Right
-now we are just using the \lstinline!generics.metal! function, which takes a single number as argument. \lstinline!generics.metal(1)! specifies the first metal
-(counted from silicon), you can also say something like \lstinline!generics.metal(-2)!, where -1 is the index of the highest metal. Lastly we save the return value
-of \lstinline!layout.rectangle! in a local variable \lstinline!obj!, which is a hint to the type: All layout functions return \lstinline!objects!, which has some
+now we are just using the \luainline{generics.metal} function, which takes a single number as argument. \luainline{generics.metal(1)} specifies the first metal
+(counted from silicon), you can also say something like \luainline{generics.metal(-2)}, where -1 is the index of the highest metal. Lastly we save the return value
+of \luainline{layout.rectangle} in a local variable \luainline{obj}, which is a hint to the type: All layout functions return \luainline{objects}, which has some
 consequences for the use of these functions. We will get into that later.
 
 That is all we have to do for the geometry of the cell, so we can return what we have created:
@@ -75,20 +75,20 @@ The default arguments are \num{2.0} for the pitch and \num{10} for the number of
 
 For the repetition we could use a loop to create the objects:
 \lualisting[firstline = 15, lastline = 22]{code/rectangle_array.lua}
-Looks ok, but what's with the \lstinline!obj:merge_into(o)!? This is a \emph{method} of objects and needs a little explaining of the object system. As mentioned
+Looks ok, but what's with the \luainline{obj:merge_into(o)}? This is a \emph{method} of objects and needs a little explaining of the object system. As mentioned
 earlier, every layout function creates what is called an object. An object is a collection of shapes, where each shape is made up of a layer-purpose-pair and an
 array of points (which are currently mostly interpreted as polygon). The cell generation systems expects to receive only one object from the main cell function, so
 how do we return more than one shape? We can merge several objects into one, which is exactly what we are doing here. We silently dropped the line about the creation
-of the main cell object \lstinline!obj!, which simply looks like this (and of course comes before the loops):
+of the main cell object \luainline{obj}, which simply looks like this (and of course comes before the loops):
 \lualisting[firstline = 12, lastline = 12]{code/rectangle_array.lua}
-This whole way of creating is a bit cumbersome, so there is a function that does exactly that: \lstinline!layout.multiple!. It takes an object as first argument and
+This whole way of creating is a bit cumbersome, so there is a function that does exactly that: \luainline{layout.multiple}. It takes an object as first argument and
 then the repetition in x and y and the pitch in x and y and returns an array of repeated objects with the center in the origin. With it, we can replace the whole
 loop construct with:
 \lualisting[firstline = 25, lastline = 28]{code/rectangle_array.lua}
-\lstinline!layout.multiple! also already merges all objects so we don't have to take care of that. Therefor, we receive a single object which we simply can return as
+\luainline{layout.multiple} also already merges all objects so we don't have to take care of that. Therefor, we receive a single object which we simply can return as
 before. The whole cell looks like this:
 \lualisting{code/rectangle_array.lua}
-Now you already now how to create rectangles, the existence of generic layers, \lstinline!layout.multiple! and object merging. With this, one can already built a
+Now you already now how to create rectangles, the existence of generic layers, \luainline{layout.multiple} and object merging. With this, one can already built a
 surprising amount of pcells. However, we have to discuss how we can create layers other than metals, vias and shapes with more complex outlines than rectangles. We
 will talk about that in the remaining cell tutorials.
 
@@ -100,18 +100,18 @@ metals and the width of the connecting rails:
 \lualisting[firstline = 1, lastline = 11]{../../cells/momcap.lua}
 As before, we create the main object:
 \lualisting[firstline = 15, lastline = 15]{../../cells/momcap.lua}
-For the fingers we loop over all metals. We don't have to create every finger separately, with \lstinline!layout.multiple! this becomes very simple. Since the upper
-and lower fingers are one-off and \lstinline!layout.multiple! centeres all objects, we only have to move them a little bit up/down. This is down with
-\lstinline!translate!, which is a method of an object taking an x- and y-offset as arguments:
+For the fingers we loop over all metals. We don't have to create every finger separately, with \luainline{layout.multiple} this becomes very simple. Since the upper
+and lower fingers are one-off and \luainline{layout.multiple} centeres all objects, we only have to move them a little bit up/down. This is down with
+\luainline{translate}, which is a method of an object taking an x- and y-offset as arguments:
 \lualisting[firstline = 17, lastline = 25]{../../cells/momcap.lua}
 We create two arrays of fingers, one for the \enquote{upper plate}, one for the \enquote{lower plate}. All fingers have the same width, height and pitch. For the
-upper plate, we use one more finger, the placement in \lstinline!layout.multiple! automatically arranges them centered, so that this \enquote{just works}.
+upper plate, we use one more finger, the placement in \luainline{layout.multiple} automatically arranges them centered, so that this \enquote{just works}.
 
 The rails connecting the fingers are created in a similar manner:
 \lualisting[firstline = 27, lastline = 33]{../../cells/momcap.lua}
-The \param{xpitch} for \lstinline!layout.multiple! is \num{0}, which is ok since we only have a \param{xrep} of \num{1}. The \lstinline!end! delimits the for loop.
+The \param{xpitch} for \luainline{layout.multiple} is \num{0}, which is ok since we only have a \param{xrep} of \num{1}. The \luainline{end} delimits the for loop.
 
-What remains is the drawing of the vias between the metals. For this we introduce a new \lstinline!generics! function: \lstinline!generics.via!. It takes two
+What remains is the drawing of the vias between the metals. For this we introduce a new \luainline{generics} function: \luainline{generics.via}. It takes two
 arguments for the start- and end-metal for the via stack. We don't have to specify the individual vias between each layer in the stack, this is resolved later by the
 technology translation.
 \lualisting[firstline = 34, lastline = 39]{../../cells/momcap.lua}
@@ -123,18 +123,18 @@ RF designs often require on-chip inductors, which usually are built in an octago
 approximations available). We will show how to built a differential (symmetric) octagonal inductor with a variable number of turns (integers). We will skip some
 basic techniques that we already discussed a few times such as setting up the cell body, cell parameters, main object and return value.
 
-An inductor is basically a wire routed in a special manner, therefor we will describe the inductor as a \lstinline!path!. This is a series of points that gets converted
-into a polygon with a width. To create a path, we have to pass the points, which we will store in a \lstinline!pointarray!. Internally, most of the layout functions
+An inductor is basically a wire routed in a special manner, therefor we will describe the inductor as a \luainline{path}. This is a series of points that gets converted
+into a polygon with a width. To create a path, we have to pass the points, which we will store in a \luainline{pointarray}. Internally, most of the layout functions
 and shapes work with pointarrays, but for simpler cells we don't need to deal with them. Here is how this looks for the octagonal inductor:
 \lualisting[firstline = 30, lastline = 37]{../../cells/octagonal_inductor.lua}
 This is just an excerpt from the cell, the entire code generating the path points is a bit complex and involves some mathematical thoughts. Since this tutorial is
 about how to build the code for cells, the actual points will not be discussed.
 
 After the points are assembled, we can create the path. The cell only draws half of the inductor, so we draw the path twice, one time with mirrored points (notice
-\lstinline!pathpts:xmirror()! in the second line):
+\luainline{pathpts:xmirror()} in the second line):
 \lualisting[firstline = 83, lastline = 84]{../../cells/octagonal_inductor.lua}
-The \lstinline!layout.path! function takes four arguments: the layer, the points of the path, the width and whether to use a miter- or a bevel-join. Bevel-join is
-default, so \lstinline!true! is specified for a miter-join.
+The \luainline{layout.path} function takes four arguments: the layer, the points of the path, the width and whether to use a miter- or a bevel-join. Bevel-join is
+default, so \luainline{true} is specified for a miter-join.
 
 \section{Available PCells}
 \section{API Documentation}
@@ -143,9 +143,9 @@ default, so \lstinline!true! is specified for a miter-join.
     Create a rectangular shape with a width of \param{width} and a height of \param{height} in the layer-purpose-pair \param{layer} (usually a generic). The function
     returns an object.
 \end{apifunc}
-\begin{apifunc}{layout.multiple(layer, width, height)} 
-    Create a rectangular shape with a width of \param{width} and a height of \param{height} in the layer-purpose-pair \param{layer} (usually a generic). The function
-    returns an object.
+\begin{apifunc}{layout.multiple(obj, xrep, yrep, xpitch, ypitch)} 
+    Creates a rectangular array (mosaic) of an object with \param{xrep} repetitions in x and \param{yrep} repetitions in y. \param{xpitch} and \param{ypitch} are the
+    center-to-center space in x and y direction. The entire array gets centered. The function returns the merged objects.
 \end{apifunc}
 \subsection{Object Module}
 \subsection{Shape Module}

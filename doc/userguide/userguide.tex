@@ -19,46 +19,46 @@
 
 \section{Quick Start}
 If you did not do this yet, clone the repository:
-\begin{shell}
+\begin{shellcode}
     $ git clone https://github.com/patrickschulz/openPCells
-\end{shell}
+\end{shellcode}
 Go to the repository, in the main directory is a file called \shellinline{opc}, which is the main program.
 
 Check that you have a working lua interpreter by invoking \shellinline{lua}. You should get a message similiar to
-\begin{shell}
+\begin{shellcode}
     $ lua 
     Lua 5.3.3  Copyright (C) 1994-2016 Lua.org, PUC-Rio
     > 
-\end{shell}
+\end{shellcode}
 although the version can be different. Supported versions are 5.2 and 5.3 (both tested), but it is expected that every 5.x should work.
 
 Now run the program:
-\begin{shell}
+\begin{shellcode}
     $ lua opc
-\end{shell}
+\end{shellcode}
 You should see the following message:
-\begin{shell}
+\begin{shellcode}
     no technology given
-\end{shell}
+\end{shellcode}
 This indicates that everything is working fine. In order that your toolchain can find all modules, you have to modify your \shellinline{LUA_PATH}. This depends on the type of your
 shell. For bash/zsh:
-\begin{shell}
+\begin{shellcode}
     export LUA_PATH=";;/path/to/pcells/?.lua;/path/to/pcells/?/init.lua"
-\end{shell}
+\end{shellcode}
 For (t)csh:
-\begin{shell}
+\begin{shellcode}
     setenv LUA_PATH ";;/path/to/pcells/?.lua;/path/to/pcells/?/init.lua"
-\end{shell}
+\end{shellcode}
 The semicolons are important, and of course you need to adapt the path to the OpenPCells directory. 
 
 Now call the program from a different location with all the needed data: technology, interface and cell. Since skywater130 is open source, the repository includes a
 draft of technology files for it, which is at least enough to test the setup. However, other technologies are under NDA so we can't provide any technology files.
 Most likely you will have to write them yourself, which is not too hard. See the guide about writing technology files. Let's call the program:
-\begin{shell}
+\begin{shellcode}
     opc skywater130 gds transistor
     # or
     opc skywater130 virtuoso transistor
-\end{shell}
+\end{shellcode}
 The gds interface creates a \shellinline{openPCells.gds} file, the virtuoso interface a \shellinline{openPCells.il}, which can be read with a text editor.
 
 \section{Introduction}
