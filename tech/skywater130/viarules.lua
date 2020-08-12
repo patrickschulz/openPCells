@@ -3,17 +3,17 @@ return {
         layers = {
             {
                 lpp = {
-                    layer = { number = 66, name = "licon1" }, 
+                    layer   = { number = 66, name = "licon1" }, 
                     purpose = { number = 44, name = "drawing" }
                 }
             },
         },
-        width = 0.040,
-        height = 0.040, 
-        xspace = 0.094, 
-        yspace = 0.094, 
-        xencl = 0.01, 
-        yencl = 0.02
+        width = 0.17,
+        height = 0.17, 
+        xspace = 0.17, 
+        yspace = 0.17, 
+        xencl = 0.04, 
+        yencl = 0.04
     },
     contactgate = {
         layers = {

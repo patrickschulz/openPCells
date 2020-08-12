@@ -1,4 +1,6 @@
 return {
+    oxthick1  = "UNUSED",
+    vthtype1  = "UNUSED",
     active    = { layer = { number = 65, name = "diff"      }, purpose = { number = 20, name = "drawing" } },
     nimpl     = { layer = { number = 93, name = "nsdm"      }, purpose = { number = 44, name = "drawing" } },
     pimpl     = { layer = { number = 94, name = "psdm"      }, purpose = { number = 20, name = "drawing" } },

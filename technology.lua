@@ -29,7 +29,7 @@ end
 local function _map_layer(layer)
     local t = layermap[layer]
     if not t then
-        print(string.format("no layer information for '%s'\nif the layer is not provided, set it to 'UNUSED'", shape.lpp))
+        print(string.format("no layer information for '%s'\nif the layer is not provided, set it to 'UNUSED'", layer))
         os.exit(1)
     end
     if t == "UNUSED" then
