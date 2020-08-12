@@ -7,16 +7,15 @@ return function(args)
     local vthtype           = pcell.process_args("vthtype",         1)
     local fingers           = pcell.process_args("fingers",         4)
     local fwidth            = pcell.process_args("fwidth",          1.0)
-    local gatelength        = pcell.process_args("gatelength",      0.1)
+    local gatelength        = pcell.process_args("gatelength",      0.15)
     local actext            = pcell.process_args("actext",          0.03)
-    local fspace            = pcell.process_args("fspace",          0.14)
-    local sdwidth           = pcell.process_args("sdwidth",         0.1)
+    local fspace            = pcell.process_args("fspace",          0.27)
+    local sdwidth           = pcell.process_args("sdwidth",         0.2)
     local gtopext           = pcell.process_args("gtopext",         0.2)
     local gbotext           = pcell.process_args("gbotext",         0.2)
     local typext            = pcell.process_args("typext",          0.1)
     local cliptop           = pcell.process_args("cliptop",         false)
     local clipbot           = pcell.process_args("clipbot",         false)
-    local sdwidth           = pcell.process_args("sdwidth",         0.06)
     local drawtopgate       = pcell.process_args("drawtopgate",     false)
     local drawbotgate       = pcell.process_args("drawbotgate",     false)
     local topgatestrwidth   = pcell.process_args("topgatestrwidth", 0.12)
@@ -43,14 +42,17 @@ return function(args)
         fingers, 1, gatepitch, 0
     ):translate(0, gateoffset))
 
-    --[[
     -- oxide type
     transistor:merge_into(layout.rectangle(
-        string.format("oxthick%d", oxidetype), 
-        origin,
+        generics.other(string.format("oxthick%d", oxidetype)),
         fingers * gatelength + (fingers - 1) * fspace + 2 * actext, fwidth
     ))
-    --]]
+    
+    -- threshold voltage
+    transistor:merge_into(layout.rectangle(
+        generics.other(string.format("vthtype%d", vthtype)),
+        fingers * gatelength + (fingers - 1) * fspace + 2 * actext, fwidth
+    ))
 
     -- active
     transistor:merge_into(layout.rectangle(
