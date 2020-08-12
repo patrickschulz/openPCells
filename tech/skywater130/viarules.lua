@@ -3,8 +3,9 @@ return {
         layers = {
             {
                 lpp = {
-                    layer   = { number = 66, name = "licon1" }, 
-                    purpose = { number = 44, name = "drawing" }
+                    gds      = { layer = 66,       purpose = 44 }, 
+                    virtuoso = { layer = "licon1", purpose = "drawing" },
+                    svg      = { color = "yellow", opacity = 0.4, fill = true},
                 }
             },
         },
@@ -19,22 +20,22 @@ return {
         layers = {
             {
                 lpp = {
-                    layer   = { name = "poly",    number = 66 },
-                    purpose = { name = "drawing", number = 20 },
+                    gds      = { layer = 66,     purpose = 20 },
+                    virtuoso = { layer = "poly", purpose = "drawing", },
                 },
                 enlarge = 0.1
             },
             {
                 lpp = {
-                    layer   = { name = "npc",     number = 95 },
-                    purpose = { name = "drawing", number = 20 },
+                    gds      = { layer = 95,      purpose = 20 },
+                    virtuoso = { layer = "npc", purpose = "drawing", },
                 },
                 enlarge = 0.1
             },
             {
                 lpp = {
-                    layer   = { name = "licon1",  number = 66 },
-                    purpose = { name = "drawing", number = 44 },
+                    gds      = { layer = 66,   purpose = 44 },
+                    virtuoso = { layer = "licon1", purpose = "drawing", },
                 },
             },
         },
@@ -48,8 +49,8 @@ return {
     viaM1M2 = {
         layers = {
             lpp = {
-                layer   = { name = "mcon",    number = 67 },
-                purpose = { name = "drawing", number = 44 },
+                gds      = { layer = 67,     purpose = 44 },
+                virtuoso = { layer = "mcon", purpose = "drawing", },
             },
         },
         width = 0.17,
@@ -62,8 +63,8 @@ return {
     viaM2M3 = {
         layers = {
             lpp = {
-                layer   = { name = "via",     number = 68 },
-                purpose = { name = "drawing", number = 44 },
+                gds      = { layer = 68,      purpose = 44 },
+                virtuoso = { layer = "via", purpose = "drawing", },
             },
         },
         width = 0.17,
@@ -76,8 +77,8 @@ return {
     viaM3M4 = {
         layers = {
             lpp = {
-                layer   = { name = "via2",    number = 69 },
-                purpose = { name = "drawing", number = 44 },
+                gds      = { layer = 69,     purpose = 44 },
+                virtuoso = { layer = "via2", purpose = "drawing", },
             },
         },
         width = 0.17,
@@ -90,8 +91,8 @@ return {
     viaM4M5 = {
         layers = {
             lpp = {
-                layer   = { name = "via3",    number = 70 },
-                purpose = { name = "drawing", number = 44 },
+                gds      = { layer = 70,     purpose = 44 },
+                virtuoso = { layer = "via3", purpose = "drawing", },
             },
         },
         width = 0.17,
@@ -104,8 +105,8 @@ return {
     viaM5M6 = {
         layers = {
             lpp = {
-                layer   = { name = "via4",    number = 71 },
-                purpose = { name = "drawing", number = 44 },
+                gds      = { layer = 71,     purpose = 44 },
+                virtuoso = { layer = "via4", purpose = "drawing" },
             },
         },
         width = 0.17,

@@ -8,16 +8,27 @@ end
 local gridfmt = "%.3f"
 
 local function _get_color_opacity(shape)
-    local color = shape.lpp:get().color or "black"
-    local opacity = shape.lpp:get().opacity or 0.1
-    return color, opacity
+    if not shape.lpp:get().svg then
+        return "black", 0.1
+    end
+    local color = shape.lpp:get().svg.color or "black"
+    local opacity = shape.lpp:get().svg.opacity or 0.1
+    local fill = shape.lpp:get().svg.fill or false
+    return color, opacity, fill
 end
 
 local function _write_shape(file, shape, scale)
     local pointstr = shape.points:concat(function(pt) return string.format(gridfmt .. "," .. gridfmt, scale * pt.x, scale * pt.y) end)
-    local strokewidth = "1"
-    local color, opacity = _get_color_opacity(shape)
-    local str = string.format('<polyline points="%s" stroke="%s" stroke-width="%s" fill="%s" opacity = "%.2f" />', pointstr, color, strokewidth, color, opacity)
+    local strokewidth = "5"
+    local color, opacity, fill = _get_color_opacity(shape)
+    opacity = 1
+    local str = string.format('<polyline points="%s" stroke="%s" stroke-width="%s" fill="%s" opacity = "%.2f" />', 
+        pointstr, 
+        color, 
+        strokewidth, 
+        fill and color or "none",
+        opacity
+    )
     file:write(str)
     file:write("\n")
 end

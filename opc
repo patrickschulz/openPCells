@@ -15,37 +15,32 @@ celllib    = require "cell"
 local techlib = require "technology"
 local interface = require "interface"
 
--- prepare arguments
-local techname = arg[1]
-local interfacename = arg[2]
-local cellname = arg[3]
--- all remaining arguments are processed by the cell
-local t = {}
-for i = 4, #arg do
-    table.insert(t, arg[i])
-end
+local argparse = require "argparse"
+local args = argparse.parse(arg)
+
+-- prepare cell arguments
 local cellargs = {}
-for k, v in string.gmatch(table.concat(t, " "), "(%w+)%s*=%s*(%S+)") do
+for k, v in string.gmatch(table.concat(args.cellargs, " "), "(%w+)%s*=%s*(%S+)") do
     cellargs[k] = v
 end
 
-if not techname then
+if not args.technology then
     print("no technology given")
     os.exit(1)
 end
-if not interfacename then
+if not args.interface then
     print("no interface given")
     os.exit(1)
 end
-if not cellname then
+if not args.cell then
     print("no cell type given")
     os.exit(1)
 end
 
-techlib.load(techname)
-interface.load(interfacename)
+techlib.load(args.technology)
+interface.load(args.interface)
 
-local cell, msg = celllib.create(cellname, cellargs)
+local cell, msg = celllib.create(args.cell, cellargs)
 
 if not cell then
     print(string.format("error while creating cell, received: %s", msg))
@@ -58,6 +53,7 @@ techlib.create_via_geometries(cell)
 techlib.map_layers(cell)
 techlib.fix_to_grid(cell)
 
-interface.write_cell("openPCells", cell)
+local filename = args.filename or "openPCells"
+interface.write_cell(filename, cell)
 
 -- vim: ft=lua
