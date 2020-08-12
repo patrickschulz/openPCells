@@ -99,6 +99,16 @@ function meta.width(self)
     return maxx - minx
 end
 
+function meta.height(self)
+    local miny =  math.huge
+    local maxy = -math.huge
+    for _, pt in ipairs(self) do
+        miny = math.min(miny, pt.y)
+        maxy = math.max(maxy, pt.y)
+    end
+    return maxy - miny
+end
+
 function meta.filter_forward(self, fun)
     local filtered = M.create()
     for pt in self:iter_forward(self) do
