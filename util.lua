@@ -9,6 +9,40 @@ function M.xmirror(pts, xcenter)
     return mirrored
 end
 
+function M.filter_forward(pts, fun)
+    local filtered = {}
+    for i = 1, #pts, 1 do
+        if fun(pts[i]) then
+            table.insert(filtered, pts[i]:copy())
+        end
+    end
+    return filtered
+end
+
+function M.filter_backward(pts, fun)
+    local filtered = {}
+    for i = #pts, 1, -1 do
+        if fun(pts[i]) then
+            table.insert(filtered, pts[i]:copy())
+        end
+    end
+    return filtered
+end
+
+function M.merge(pts, pts2)
+    for _, pt in ipairs(pts2) do
+        table.insert(pts, pt)
+    end
+end
+
+function M.reverse(pts)
+    local new = {}
+    for _, pt in ipairs(pts) do
+        table.insert(new, 1, pt:copy())
+    end
+    return new
+end
+
 function M.is_point_in_polygon(pt, pts)
     local j = #pts
     local c = nil 
