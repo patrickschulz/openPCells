@@ -65,10 +65,7 @@ local function _get_dimensions(cell)
     return maxx - minx, maxy - miny
 end
 
-function M.print_object(file, cell)
-    local width, height = _get_dimensions(cell)
-    local target = 1000
-    local scale = math.ceil(target / math.max(width, height))
+local function _write_header(file, scale, width, height)
     local x = math.ceil(1.1 * scale * width)
     local y = math.ceil(1.1 * scale * height)
     if x % 2 == 1 then x = x + 1 end
@@ -79,10 +76,28 @@ function M.print_object(file, cell)
         '<rect fill="#fff" x="-50%" y="-50%" width="100%" height="100%"/>',
     }
     file:write(table.concat(lines, '\n') .. '\n')
+end
+
+local function _write_style(file)
+    local lines = {
+        '<style type = "text/css">',
+        'rect {}',
+        '.poly { fill:#ff0000 }',
+        '</style>',
+    }
+    file:write(table.concat(lines, '\n') .. '\n')
+end
+
+function M.print_object(file, cell)
+    local width, height = _get_dimensions(cell)
+    local target = 1000
+    local scale = math.ceil(target / math.max(width, height))
+    _write_header(file, scale, width, height)
+    _write_style(file)
     for shape in cell:iter() do
         _write_shape(file, shape, scale)
     end
-    file:write('\n</svg>\n')
+    file:write('</svg>')
 end
 
 return M
