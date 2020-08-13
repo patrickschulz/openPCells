@@ -7,9 +7,9 @@ function M.bresenham_arc(radius, grid)
     local x = -r
     local y = 0
     local err = 2 - 2 * r -- II. Quadrant
-    local pts = polygon.create()
+    local pts = {}
     repeat
-        pts:append(point.create(-grid * x, grid * y))
+        table.insert(pts, point.create(-grid * x, grid * y))
         r = err
         if r <= y then
             y = y + 1
@@ -24,19 +24,19 @@ function M.bresenham_arc(radius, grid)
 end
 
 function M.quartercircle(quadrant, xm, ym, radius, grid)
-    local pts = polygon.create()
+    local pts = {}
     local ptsi = M.bresenham_arc(radius, grid)
     local xi = (quadrant > 1 and quadrant < 4) and -1 or 1
     local yi = quadrant < 3 and 1 or -1
     for i = 1, #ptsi do
         local pt = ptsi[i]
-        pts:append(point.create(xm + xi * pt.x, ym + yi * pt.y))
+        table.insert(pts, point.create(xm + xi * pt.x, ym + yi * pt.y))
     end
     return pts
 end
 
 function M.halfcircle(xm, ym, radius, grid)
-    local pts = polygon.create()
+    local pts = {}
     local ptsi = M.bresenham_arc(radius, grid)
     for num, shift in ipairs({ { -1, 1 }, { -1, -1 } }) do
         local startidx, endidx, inc
@@ -212,7 +212,7 @@ function M.quadbezierseg(startpt, endpt, ctrlpt, grid)
 
     assert(xx * sx <= 0 and yy * sy <= 0) -- sign of gradient must not change
 
-    local pts = polygon.create()
+    local pts = {}
 
     if sx * sx + sy * sy > xx * xx +yy * yy then -- begin with longer part
         x2 = x0
@@ -245,7 +245,7 @@ function M.quadbezierseg(startpt, endpt, ctrlpt, grid)
         yy = yy + yy
         err = dx + dy + xy
         repeat
-            pts:append(point.create(grid * x0, grid * y0))
+            table.insert(pts, point.create(grid * x0, grid * y0))
             if x0 == x2 and y0 == y2 then return pts end -- last pixel -> curve finished
             if 2 * err > dy then 
                 x0 = x0 + sx

@@ -22,12 +22,12 @@ return function(args)
     local main = graphics.quartercircle(3, 0, 0, radius, grid)
     local aux  = graphics.quartercircle(1, xc, yc, cornerradius, grid)
 
-    local inner = graphics.quartercircle(2, 0, 0, radius, grid):reverse() -- start with topleft quarter circle
-    inner:merge_append(main:filter_forward(function(pt) return pt.x < xm end))
-    inner:merge_append(aux:filter_backward(function(pt) return pt.x >= xm end))
+    local inner = util.reverse(graphics.quartercircle(2, 0, 0, radius, grid)) -- start with topleft quarter circle
+    util.merge(inner, util.filter_forward(main, function(pt) return pt.x < xm end))
+    util.merge(inner, util.filter_backward(aux, function(pt) return pt.x >= xm end))
     -- mirror points and append
-    inner:reverse_inline()
-    inner:merge_append(inner:xmirror(0):reverse())
+    inner = util.reverse(inner)
+    util.merge(inner, util.reverse(util.xmirror(inner)))
 
     -- ** Outer part **
     -- calculate meeting point
@@ -37,22 +37,17 @@ return function(args)
     main  = graphics.quartercircle(3, 0, 0, radius + width, grid)
     aux   = graphics.quartercircle(1, xc, yc, cornerradius - width, grid)
 
-    local outer = graphics.quartercircle(2, 0, 0, radius + width, grid):reverse() -- start with topleft quarter circle
-    outer:merge_append(main:filter_forward(function(pt) return pt.x < xm end))
-    outer:merge_append(aux:filter_backward(function(pt) return pt.x >= xm end))
+    local outer = util.reverse(graphics.quartercircle(2, 0, 0, radius + width, grid)) -- start with topleft quarter circle
+    util.merge(outer, util.filter_forward(main, function(pt) return pt.x < xm end))
+    util.merge(outer, util.filter_backward(aux, function(pt) return pt.x >= xm end))
     -- mirror points and append
-    outer:reverse_inline()
-    outer:merge_append(outer:xmirror(0):reverse())
+    outer = util.reverse(outer)
+    util.merge(outer, util.reverse(util.xmirror(outer)))
 
     -- ** assemble final path **
-    local s = shape.create(generics.metal(-1))
-    s.points:merge_append(inner:reverse())
-    s.points:merge_append(outer)
-    s.points:close()
+    local s = shape.create_polygon(generics.metal(-1))
+    s.points = util.reverse(inner)
+    util.merge(s.points, outer)
 
-    local inductor = object.create()
-
-    inductor:add_shape(s)
-
-    return inductor
+    return object.make_from_shape(s)
 end
