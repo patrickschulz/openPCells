@@ -24,12 +24,19 @@ function M.cross(layer, width, height, crosssize)
 end
 
 function M.ring(layer, width, height, ringwidth)
-    local obj = object.create()
-    obj:merge_into(M.rectangle(layer, width + ringwidth, ringwidth):translate(0,  0.5 * height))
-    obj:merge_into(M.rectangle(layer, width + ringwidth, ringwidth):translate(0, -0.5 * height))
-    obj:merge_into(M.rectangle(layer, ringwidth, height + ringwidth):translate( 0.5 * width, 0))
-    obj:merge_into(M.rectangle(layer, ringwidth, height + ringwidth):translate(-0.5 * width, 0))
-    return obj
+    local S = shape.create_polygon(layer)
+    table.insert(S.points, point.create(-0.5 * (width + ringwidth), -0.5 * (height + ringwidth)))
+    table.insert(S.points, point.create( 0.5 * (width + ringwidth), -0.5 * (height + ringwidth)))
+    table.insert(S.points, point.create( 0.5 * (width + ringwidth),  0.5 * (height + ringwidth)))
+    table.insert(S.points, point.create(-0.5 * (width + ringwidth),  0.5 * (height + ringwidth)))
+    table.insert(S.points, point.create(-0.5 * (width + ringwidth), -0.5 * (height - ringwidth)))
+    table.insert(S.points, point.create(-0.5 * (width - ringwidth), -0.5 * (height - ringwidth)))
+    table.insert(S.points, point.create(-0.5 * (width - ringwidth),  0.5 * (height - ringwidth)))
+    table.insert(S.points, point.create( 0.5 * (width - ringwidth),  0.5 * (height - ringwidth)))
+    table.insert(S.points, point.create( 0.5 * (width - ringwidth), -0.5 * (height - ringwidth)))
+    table.insert(S.points, point.create(-0.5 * (width + ringwidth), -0.5 * (height - ringwidth)))
+    table.insert(S.points, point.create(-0.5 * (width + ringwidth), -0.5 * (height + ringwidth))) -- close polygon
+    return object.make_from_shape(S)
 end
 
 local function _intersection(pt1, pt2, pt3, pt4)
