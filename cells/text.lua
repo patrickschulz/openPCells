@@ -1015,19 +1015,19 @@ return function(args)
     local y = 0
     local lastwidth = 0
     for i = 1, #t do
-        local char = string.sub(t, i, i)
+        local char = string.sub(string.upper(t), i, i)
         if char == "\n" then
             x = 0
             y = y - 1 - leading
         else
             local outline = letteroutlines[char]
             if outline then
-                local S = shape.create(generics.metal(-1))
+                local S = shape.create_polygon(generics.metal(-1))
                 for _, pt in ipairs(outline) do
-                    S.points:append(point.create(pt.x, pt.y))
+                    table.insert(S.points, point.create(pt.x, pt.y))
                 end
                 S:translate(x, y)
-                x = x + S.points:width() + spacing
+                x = x + S:width() + spacing
                 S:scale(scale)
                 text:add_shape(S)
             end
