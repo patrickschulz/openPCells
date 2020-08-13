@@ -5,15 +5,15 @@ function M.get_extension()
 end
 
 local function _get_layer(shape)
-    return shape.lpp:get().layer.name
+    return shape.lpp:get().magic.layer
 end
 
 local function _write_layer(file, layer, pcol)
     file:write(string.format("<< %s >>\n", layer))
-    local grid = 1000
     for _, pts in ipairs(pcol) do
-        local xbot, ybot = pts[1]:unwrap(grid)
-        local xtop, ytop = pts[3]:unwrap(grid)
+        local grid = 1000
+        local xbot, ybot = pts.bl:unwrap(grid)
+        local xtop, ytop = pts.tr:unwrap(grid)
         file:write(string.format("rect %d %d %d %d\n", math.floor(xbot), math.floor(ybot), math.floor(xtop), math.floor(ytop)))
     end
 end

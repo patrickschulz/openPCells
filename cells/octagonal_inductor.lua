@@ -27,30 +27,30 @@ return function(args)
         local r = radius * tanpi8
         sign = -sign
 
-        local pathpts = pointarray.create()
+        local pathpts = {}
 
-        pathpts:append(point.create(-r + 0.5 * tanpi8 * width,  sign * radius))
-        pathpts:append(point.create(-r,  sign * radius))
-        pathpts:append(point.create(-radius,  sign * r))
-        pathpts:append(point.create(-radius, -sign * r))
-        pathpts:append(point.create(-r, -sign * radius))
-        pathpts:append(point.create(-r + 0.5 * tanpi8 * width, -sign * radius))
+        table.insert(pathpts, point.create(-r + 0.5 * tanpi8 * width,  sign * radius))
+        table.insert(pathpts, point.create(-r,  sign * radius))
+        table.insert(pathpts, point.create(-radius,  sign * r))
+        table.insert(pathpts, point.create(-radius, -sign * r))
+        table.insert(pathpts, point.create(-r, -sign * radius))
+        table.insert(pathpts, point.create(-r + 0.5 * tanpi8 * width, -sign * radius))
         
         -- draw underpass
         if i < turns then
             -- create connection to underpass
-            pathpts:prepend(point.create(-0.5 * (initradius * tanpi8 + 0.5 * pitch),  sign * radius))
-            pathpts:append( point.create(-0.5 * (initradius * tanpi8 + 0.5 * pitch), -sign * radius))
+            table.insert(pathpts, 1, point.create(-0.5 * (initradius * tanpi8 + 0.5 * pitch),  sign * radius))
+            table.insert(pathpts, point.create(-0.5 * (initradius * tanpi8 + 0.5 * pitch), -sign * radius))
             -- create underpass
-            local uppts = pointarray.create()
-            uppts:append(point.create(-0.5 * (initradius * tanpi8 + 0.5 * pitch), -sign * radius))
-            uppts:append(point.create(-0.5 * pitch - 0.5 * tanpi8 * width, -sign * radius))
-            uppts:append(point.create(-0.5 * pitch, -sign * radius))
-            uppts:append(point.create( 0.5 * pitch, -sign * (radius + pitch)))
-            uppts:append(point.create( 0.5 * pitch + 0.5 * tanpi8 * width, -sign * (radius + pitch)))
-            uppts:append(point.create( 0.5 * (initradius * tanpi8 + 0.5 * pitch), -sign * (radius + pitch)))
+            local uppts = {}
+            table.insert(uppts, point.create(-0.5 * (initradius * tanpi8 + 0.5 * pitch), -sign * radius))
+            table.insert(uppts, point.create(-0.5 * pitch - 0.5 * tanpi8 * width, -sign * radius))
+            table.insert(uppts, point.create(-0.5 * pitch, -sign * radius))
+            table.insert(uppts, point.create( 0.5 * pitch, -sign * (radius + pitch)))
+            table.insert(uppts, point.create( 0.5 * pitch + 0.5 * tanpi8 * width, -sign * (radius + pitch)))
+            table.insert(uppts, point.create( 0.5 * (initradius * tanpi8 + 0.5 * pitch), -sign * (radius + pitch)))
             inductor:merge_into(layout.path(mainmetal, uppts, width, true))
-            inductor:merge_into(layout.path(auxmetal, uppts:xmirror(), width, true))
+            inductor:merge_into(layout.path(auxmetal, util.xmirror(uppts), width, true))
             -- place vias
             inductor:merge_into(layout.rectangle(via, width, width):translate(
                 -0.5 * (initradius * tanpi8 + 0.5 * pitch), 
@@ -64,24 +64,24 @@ return function(args)
         
         -- draw inner connection between left and right
         if i == 1 then
-            pathpts:prepend(point.create( 0, sign * radius))
+            table.insert(pathpts, 1, point.create( 0, sign * radius))
         end
 
         -- draw connector
         if i == turns then
             -- create connection to underpass
-            pathpts:prepend(point.create(-0.5 * (initradius * tanpi8 + 0.5 * pitch), sign * radius))
+            table.insert(pathpts, 1, point.create(-0.5 * (initradius * tanpi8 + 0.5 * pitch), sign * radius))
             if 0.5 * extsep + width > r + 0.5 * width * tanpi8 then
-                pathpts:append(point.create(-0.5 * (extsep + width), -r - radius + 0.5 * (extsep + width)))
-                pathpts:append(point.create(-0.5 * (extsep + width), -r - radius + 0.5 * (extsep + width) - extension))
+                table.insert(pathpts, point.create(-0.5 * (extsep + width), -r - radius + 0.5 * (extsep + width)))
+                table.insert(pathpts, point.create(-0.5 * (extsep + width), -r - radius + 0.5 * (extsep + width) - extension))
             else
-                pathpts:append(point.create(-0.5 * (extsep + width), -radius))
-                pathpts:append(point.create(-0.5 * (extsep + width), -(radius + extension)))
+                table.insert(pathpts, point.create(-0.5 * (extsep + width), -radius))
+                table.insert(pathpts, point.create(-0.5 * (extsep + width), -(radius + extension)))
             end
         end
 
         inductor:merge_into(layout.path(mainmetal, pathpts, width, true))
-        inductor:merge_into(layout.path(mainmetal, pathpts:xmirror(), width, true))
+        inductor:merge_into(layout.path(mainmetal, util.xmirror(pathpts), width, true))
     end
 
     return inductor

@@ -2,15 +2,12 @@
 
 local M = {}
 
-local point      = require "point"
-local pointarray = require "pointarray"
-
 function M.bresenham_arc(radius, grid)
     local r = radius / grid
     local x = -r
     local y = 0
     local err = 2 - 2 * r -- II. Quadrant
-    local pts = pointarray.create()
+    local pts = polygon.create()
     repeat
         pts:append(point.create(-grid * x, grid * y))
         r = err
@@ -27,7 +24,7 @@ function M.bresenham_arc(radius, grid)
 end
 
 function M.quartercircle(quadrant, xm, ym, radius, grid)
-    local pts = pointarray.create()
+    local pts = polygon.create()
     local ptsi = M.bresenham_arc(radius, grid)
     local xi = (quadrant > 1 and quadrant < 4) and -1 or 1
     local yi = quadrant < 3 and 1 or -1
@@ -39,7 +36,7 @@ function M.quartercircle(quadrant, xm, ym, radius, grid)
 end
 
 function M.halfcircle(xm, ym, radius, grid)
-    local pts = pointarray.create()
+    local pts = polygon.create()
     local ptsi = M.bresenham_arc(radius, grid)
     for num, shift in ipairs({ { -1, 1 }, { -1, -1 } }) do
         local startidx, endidx, inc
@@ -215,7 +212,7 @@ function M.quadbezierseg(startpt, endpt, ctrlpt, grid)
 
     assert(xx * sx <= 0 and yy * sy <= 0) -- sign of gradient must not change
 
-    local pts = pointarray.create()
+    local pts = polygon.create()
 
     if sx * sx + sy * sy > xx * xx +yy * yy then -- begin with longer part
         x2 = x0

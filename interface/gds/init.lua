@@ -198,7 +198,9 @@ local function _write_shape(file, shape)
     _write_record(file, recordtypes.BOUNDARY, datatypes.NONE)
     _write_record(file, recordtypes.LAYER, datatypes.TWO_BYTE_INTEGER, { shape.lpp:get().gds.layer })
     _write_record(file, recordtypes.DATATYPE, datatypes.TWO_BYTE_INTEGER, { shape.lpp:get().gds.purpose})
-    _write_record(file, recordtypes.XY, datatypes.FOUR_BYTE_INTEGER, _unpack_points(shape.points, 1000))
+    local s = shape:convert_to_polygon()
+    local points = _unpack_points(s.points, 1000)
+    _write_record(file, recordtypes.XY, datatypes.FOUR_BYTE_INTEGER, points)
     _write_record(file, recordtypes.ENDEL, datatypes.NONE)
 end
 

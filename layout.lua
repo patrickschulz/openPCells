@@ -1,36 +1,25 @@
 local M = {}
 
-local point      = require "point"
-local graphics   = require "graphics"
-local pointarray = require "pointarray"
-local shape      = require "shape"
-local object     = require "object"
-
 function M.rectangle(layer, width, height)
-    local S = shape.create(layer)
-    S.points:append(point.create(-0.5 * width, -0.5 * height))
-    S.points:append(point.create( 0.5 * width, -0.5 * height))
-    S.points:append(point.create( 0.5 * width,  0.5 * height))
-    S.points:append(point.create(-0.5 * width,  0.5 * height))
-    --S.points:close()
+    local S = shape.create_rectangle(layer, width, height)
     return object.make_from_shape(S)
 end
 
 function M.cross(layer, width, height, crosssize)
-    local S = shape.create(layer)
-    S.points:append(point.create(-0.5 * width,     -0.5 * crosssize))
-    S.points:append(point.create(-0.5 * width,      0.5 * crosssize))
-    S.points:append(point.create(-0.5 * crosssize,  0.5 * crosssize))
-    S.points:append(point.create(-0.5 * crosssize,  0.5 * height))
-    S.points:append(point.create( 0.5 * crosssize,  0.5 * height))
-    S.points:append(point.create( 0.5 * crosssize,  0.5 * crosssize))
-    S.points:append(point.create( 0.5 * width,      0.5 * crosssize))
-    S.points:append(point.create( 0.5 * width,     -0.5 * crosssize))
-    S.points:append(point.create( 0.5 * crosssize, -0.5 * crosssize))
-    S.points:append(point.create( 0.5 * crosssize, -0.5 * height))
-    S.points:append(point.create(-0.5 * crosssize, -0.5 * height))
-    S.points:append(point.create(-0.5 * crosssize, -0.5 * crosssize))
-    S.points:close()
+    local S = shape.create_polygon(layer)
+    table.insert(S.points, point.create(-0.5 * width,     -0.5 * crosssize))
+    table.insert(S.points, point.create(-0.5 * width,      0.5 * crosssize))
+    table.insert(S.points, point.create(-0.5 * crosssize,  0.5 * crosssize))
+    table.insert(S.points, point.create(-0.5 * crosssize,  0.5 * height))
+    table.insert(S.points, point.create( 0.5 * crosssize,  0.5 * height))
+    table.insert(S.points, point.create( 0.5 * crosssize,  0.5 * crosssize))
+    table.insert(S.points, point.create( 0.5 * width,      0.5 * crosssize))
+    table.insert(S.points, point.create( 0.5 * width,     -0.5 * crosssize))
+    table.insert(S.points, point.create( 0.5 * crosssize, -0.5 * crosssize))
+    table.insert(S.points, point.create( 0.5 * crosssize, -0.5 * height))
+    table.insert(S.points, point.create(-0.5 * crosssize, -0.5 * height))
+    table.insert(S.points, point.create(-0.5 * crosssize, -0.5 * crosssize))
+    table.insert(S.points, point.create(-0.5 * width,     -0.5 * crosssize)) -- close polygon
     return object.make_from_shape(S)
 end
 
@@ -68,7 +57,7 @@ end
 
 local function _get_path_pts(pts, width, miterjoin)
     local tmp = {}
-    local poly = pointarray.create()
+    local poly = {}
     local segs = #pts - 1
     local i = 1
     -- start to end
@@ -87,44 +76,44 @@ local function _get_path_pts(pts, width, miterjoin)
         local inner, outer = _intersection(tmp[i - 1], tmp[i], tmp[i + 1], tmp[i + 2])
         if not inner then
             if miterjoin then
-                poly:append(outer)
+                table.insert(poly, outer)
             else
-                poly:append(tmp[i])
-                poly:append(tmp[i + 1])
+                table.insert(poly, tmp[i])
+                table.insert(poly, tmp[i + 1])
             end
         else
-            poly:append(inner)
+            table.insert(poly, inner)
         end
     end
     -- first start point
-    poly:append(tmp[1])
+    table.insert(poly, tmp[1])
     -- first middle points
     for seg = 1, segs - 1 do
         local i = 1 + 2 * (seg - 1) + 1
         midpointfunc(i)
     end
     -- end points
-    poly:append(tmp[1 + (segs - 1) * 2 + 1])
-    poly:append(tmp[1 + (segs - 1) * 2 + 2])
+    table.insert(poly, tmp[1 + (segs - 1) * 2 + 1])
+    table.insert(poly, tmp[1 + (segs - 1) * 2 + 2])
     -- second middle points
     for seg = 1, segs - 1 do
         local i = 1 + (segs - 1) * 2 + 2 + 2 * (seg - 1) + 1
         midpointfunc(i)
     end
     -- second start point
-    poly:append(tmp[#tmp])
+    table.insert(poly, tmp[#tmp])
     return poly
 end
 
 function M.path(layer, pts, width, miterjoin)
-    local S = shape.create(layer)
+    local S = shape.create_polygon(layer)
     S.points = _get_path_pts(pts, width, miterjoin)
     return object.make_from_shape(S)
 end
 
 function M.path_midpoint(layer, pts, width, method, miterjoin)
-    local newpts = pointarray.create()
-    newpts:append(pts[1])
+    local newpts = {}
+    table.insert(newpts, pts[1])
     for i = 2, #pts - 1 do
         local preangle = math.atan(pts[i].y - pts[i - 1].y, pts[i].x - pts[i - 1].x)
         local postangle = math.atan(pts[i + 1].y - pts[i].y, pts[i + 1].x - pts[i].x)
@@ -133,10 +122,10 @@ function M.path_midpoint(layer, pts, width, method, miterjoin)
             math.sqrt((pts[i].x - pts[i - 1].x)^2 + (pts[i].y - pts[i - 1].y)^2),
             math.sqrt((pts[i + 1].x - pts[i].x)^2 + (pts[i + 1].y - pts[i].y)^2)
             ) * math.tan(math.pi / 8)
-        newpts:append(point.create(pts[i].x - factor * math.cos(preangle), pts[i].y - factor * math.sin(preangle)))
-        newpts:append(point.create(pts[i].x + factor * math.cos(postangle), pts[i].y + factor * math.sin(postangle)))
+        table.insert(newpts, point.create(pts[i].x - factor * math.cos(preangle), pts[i].y - factor * math.sin(preangle)))
+        table.insert(newpts, point.create(pts[i].x + factor * math.cos(postangle), pts[i].y + factor * math.sin(postangle)))
     end
-    newpts:append(pts[#pts])
+    table.insert(newpts, pts[#pts])
     return M.path(layer, newpts, width, miterjoin)
 end
 
@@ -144,9 +133,9 @@ function M.corner(layer, startpt, endpt, width, radius, grid)
     local S = shape.create(layer)
     local dy = endpt.y - startpt.y - radius
     local pathpts = _get_path_pts({ point.create(startpt.x, startpt.y), point.create(startpt.x, endpt.y - radius) }, width)
-    S:add_pointarray(pathpts)
+    S:add_polygon(pathpts)
     pathpts = _get_path_pts({ point.create(startpt.x + radius, endpt.y), point.create(endpt.x, endpt.y) }, width)
-    S:add_pointarray(pathpts)
+    S:add_polygon(pathpts)
     local pts = graphics.quadbezierseg(
         point.create(startpt.x - 0.5 * width, endpt.y - radius),
         point.create(startpt.x + radius, endpt.y + 0.5 * width),
@@ -160,7 +149,7 @@ function M.corner(layer, startpt, endpt, width, radius, grid)
         grid
     )
     pts:merge_append(pts2:reverse())
-    S:add_pointarray(pts)
+    S:add_polygon(pts)
 
     return object.make_from_shape(S)
 end

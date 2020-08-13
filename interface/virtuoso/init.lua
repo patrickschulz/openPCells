@@ -10,8 +10,15 @@ local gridfmt = "%.3f"
 local function _write_shape(file, shape)
     local sep = sep or "\n"
     local fmt = string.format("%s %s%s", gridfmt, gridfmt, sep)
-    file:write(string.format('    dbCreatePolygon(cv list("%s" "%s") ', shape.lpp:get().virtuoso.layer, shape.lpp:get().virtuoso.purpose))
-    file:write(string.format("list(%s)", shape.points:concat(function(pt) return string.format(gridfmt .. ":" .. gridfmt, pt.x, pt.y) end)))
+    local st
+    if shape.typ == "polygon" then
+        st = "Polygon"
+    elseif shape.typ == "rectangle" then
+        st = "Rectangle"
+    end
+    file:write(string.format('    dbCreate%s(cv list("%s" "%s") ', st, shape.lpp:get().virtuoso.layer, shape.lpp:get().virtuoso.purpose))
+    local pointlist = shape:concat_points(function(pt) return string.format(gridfmt .. ":" .. gridfmt, pt.x, pt.y) end)
+    file:write(string.format("list(%s)", table.concat(pointlist, " ")))
     file:write(")\n")
 end
 

@@ -70,33 +70,32 @@ local function _get_viaspec(layer)
     return viarules[layer]
 end
 
-local function _place_metals(cell, lpp, pts)
-    if lpp.typ == "via" then
-        local m1, m2 = lpp:get()
-        local s1 = shape.create(generics.metal(m1))
-        s1.points = pts
-        local s2 = shape.create(generics.metal(m2))
-        s2.points = pts
+local function _place_metals(cell, s)
+    if s.lpp.typ == "via" then
+        local m1, m2 = s.lpp:get()
+        local s1 = s:copy()
+        s1.lpp = generics.metal(m1)
+        local s2 = s:copy()
+        s2.lpp = generics.metal(m2)
         cell:add_shape(s1)
         cell:add_shape(s2)
-    elseif lpp.typ == "contact" then
-        local semi = lpp:get()
-        local ssemi = shape.create(generics.other(semi))
-        ssemi.points = pts
-        local smetal = shape.create(generics.metal(1))
-        smetal.points = pts
+    elseif s.lpp.typ == "contact" then
+        local semi = s.lpp:get()
+        local ssemi = s:copy()
+        ssemi.lpp = generics.other(semi)
+        local smetal = s:copy()
+        smetal.lpp = generics.metal(1)
         cell:add_shape(ssemi)
         cell:add_shape(smetal)
     end
 end
 
-local function _place_vias(cell, lpp, pts)
-    local layer = lpp:str()
+local function _place_vias(cell, s)
+    local layer = s.lpp:str()
     local viaspec = _get_viaspec(layer)
-    local width = math.abs(pts[3].x - pts[1].x)
-    local height = math.abs(pts[3].y - pts[1].y)
-    local x = 0.5 * (pts[1].x + pts[3].x)
-    local y = 0.5 * (pts[1].y + pts[3].y)
+    local width = s:width()
+    local height = s:height()
+    local c = s:center()
     local xrep = math.max(1, math.floor((width + viaspec.xspace - 2 * viaspec.xencl) / (viaspec.width + viaspec.xspace)))
     local yrep = math.max(1, math.floor((height + viaspec.yspace - 2 * viaspec.yencl) / (viaspec.height + viaspec.yspace)))
     local xpitch = viaspec.width + viaspec.xspace
@@ -107,7 +106,7 @@ local function _place_vias(cell, lpp, pts)
             layout.rectangle(generics.mapped(lay.lpp), viaspec.width + enlarge, viaspec.height + enlarge),
             xrep, yrep, xpitch, ypitch
         )
-        cell:merge_into(o:translate(x, y))
+        cell:merge_into(o:translate(c.x, c.y))
     end
 end
 
@@ -146,8 +145,8 @@ function M.create_via_geometries(cell)
         local s = cell.shapes[i]
         if s.lpp.typ == "via" or s.lpp.typ == "contact" then
             table.insert(toremove, i)
-            _place_metals(cell, s.lpp, s.points)
-            _place_vias(cell, s.lpp, s.points)
+            _place_metals(cell, s)
+            _place_vias(cell, s)
         end
     end
     -- remove dummy via entries
@@ -164,8 +163,13 @@ end
 
 function M.fix_to_grid(cell)
     for s in cell:iter() do
-        for pt in s.points:iter_forward() do
-            _fix_pt_to_grid(pt)
+        if s.typ == "polygon" then
+            for _, pt in ipairs(s.points) do
+                _fix_pt_to_grid(pt)
+            end
+        elseif s.typ == "rectangle" then
+            _fix_pt_to_grid(s.points.bl)
+            _fix_pt_to_grid(s.points.tr)
         end
     end
 end
