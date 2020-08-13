@@ -18,18 +18,34 @@ local function _get_color_opacity(shape)
 end
 
 local function _write_shape(file, shape, scale)
-    local pointstr = shape.points:concat(function(pt) return string.format(gridfmt .. "," .. gridfmt, scale * pt.x, scale * pt.y) end)
     local strokewidth = "5"
     local color, opacity, fill = _get_color_opacity(shape)
-    opacity = 1
-    local str = string.format('<polyline points="%s" stroke="%s" stroke-width="%s" fill="%s" opacity = "%.2f" />', 
-        pointstr, 
-        color, 
-        strokewidth, 
-        fill and color or "none",
-        opacity
-    )
-    file:write(str)
+    if shape.typ == "polygon" then
+        local pointstr = shape:concat_points(function(pt) return string.format(gridfmt .. "," .. gridfmt, scale * pt.x, scale * pt.y) end)
+        local str = string.format('<polyline points="%s" stroke="%s" stroke-width="%s" fill="%s" opacity = "%.2f" />', 
+            table.concat(pointstr, ' '),
+            color, 
+            strokewidth, 
+            fill and color or "none",
+            opacity
+        )
+        file:write(str)
+    elseif shape.typ == "rectangle" then
+        local pointstr = string.format('x="%f" y="%f" width="%f" height="%f"', 
+            scale * shape.points.bl.x, 
+            scale * shape.points.bl.y, 
+            scale * shape:width(), 
+            scale * shape:height()
+        )
+        local str = string.format('<rect %s stroke="%s" stroke-width="%s" fill="%s" opacity = "%.2f" />', 
+            pointstr, 
+            color, 
+            strokewidth, 
+            fill and color or "none",
+            opacity
+        )
+        file:write(str)
+    end
     file:write("\n")
 end
 
