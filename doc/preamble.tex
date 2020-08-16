@@ -11,16 +11,74 @@
 \usepackage{fontspec}
 \setmainfont{Linux Libertine O}
 
-\usepackage{minted}
-\usemintedstyle{igor}
-\newminted{shell}{fontsize = \small}
-\newmintinline{shell}{}
-\newmintinline{lua}{}
-\newmintedfile[lualisting]{lua}{autogobble, fontsize = \small}
+%\usepackage{minted, mdframed}
+%\usemintedstyle{igor}
+%\newminted{shell}{fontsize = \small}
+%\newmintinline{shell}{}
+%\newmintinline{lua}{}
+%\newmintedfile[lualisting]{lua}{autogobble, fontsize = \small}
+%% API documentation commands
+%\newcommand{\param}[1]{\luainline{#1}}
+%\newenvironment{apifunc}[1]{\par\hspace*{-2em}\luainline{#1}\leftskip=2em\par}{\par}
+\usepackage{listings}
+\lstset{
+    language=[5.3]Lua,
+    backgroundcolor = \color{blue!10!white},
+    basicstyle = \small\ttfamily,
+    keywordstyle = \color{blue},
+    commentstyle = \color{red},
+    stringstyle = \color{green!70!black},
+    showstringspaces = false,
+    tabsize = 4,
+    gobble = 4,
+    emph = {
+        pointarray,
+        path,
+        layout.rectangle, 
+        layout.multiple, 
+        layout.path, 
+        pcell.setup, 
+        pcell.process_args, 
+        pcell.check_args,
+        generics,
+        generics.metal,
+        generics.via,
+        generics.contact,
+        generics.other,
+        generics.mapped,
+    },
+    emphstyle = \color{blue!60!green}\bfseries,
+    belowskip=-0.2\baselineskip
+}
+% -------------------------------------------------------------------------------------------------------------
+% taken from https://tex.stackexchange.com/questions/48903/how-to-extend-the-lstinputlisting-command
+\errorcontextlines=\maxdimen
+
+\newlength{\rawgobble}
+\newlength{\gobble}
+% Remove a single space
+\settowidth{\rawgobble}{\small\ttfamily\ }
+\setlength{\rawgobble}{-\rawgobble}
+
+\makeatletter
+\lst@Key{widthgobble}{0}{%
+    % Reindent a bit by multiplying with 0.9, then multiply by tabsize and number of indentation levels
+    %\setlength{\gobble}{0.9\rawgobble}%
+    \setlength{\gobble}{#1\rawgobble}%
+    %\setlength{\gobble}{\sepstartwo\gobble}%
+    \def\lst@xleftmargin{\gobble}%
+    \def\lst@framexleftmargin{\gobble}%
+}
+\makeatother
+% -------------------------------------------------------------------------------------------------------------
+\newcommand{\shellinline}[1]{\lstinline!#1!}
+\lstnewenvironment{shellcode}{\lstset{language=bash, keywordstyle = \relax, commentstyle = \relax}}{}
+\newcommand{\luainline}[1]{\lstinline!#1!}
+\newcommand{\lualisting}[2][]{\lstinputlisting[#1]{#2}}
+%\newmintedfile[lualisting]{lua}{autogobble, fontsize = \small}
 % API documentation commands
 \newcommand{\param}[1]{\luainline{#1}}
 \newenvironment{apifunc}[1]{\par\hspace*{-2em}\luainline{#1}\leftskip=2em\par}{\par}
-
 
 \usepackage{siunitx}
 \usepackage{csquotes}
