@@ -178,13 +178,6 @@ local function _write_record(file, recordtype, datatype, content)
     file:write(_assemble(data))
 end
 
-local function _start_stream(file)
-    _write_record(file, recordtypes.HEADER, datatypes.TWO_BYTE_INTEGER, { 5 })
-    _write_record(file, recordtypes.BGNLIB, datatypes.TWO_BYTE_INTEGER, { 2020, 7, 5, 18, 17, 51, 2020, 7, 5, 18, 17, 51 })
-    _write_record(file, recordtypes.LIBNAME, datatypes.ASCII_STRING, "testlib")
-    _write_record(file, recordtypes.UNITS, datatypes.EIGHT_BYTE_REAL, { 0.001, 1e-9 })
-end
-
 local function _unpack_points(pts, multiplier)
     local stream = {}
     for _, pt in ipairs(pts) do
@@ -204,12 +197,18 @@ local function _write_shape(file, shape)
     _write_record(file, recordtypes.ENDEL, datatypes.NONE)
 end
 
-local function _end_stream(file)
+function M.at_begin(file)
+    _write_record(file, recordtypes.HEADER, datatypes.TWO_BYTE_INTEGER, { 5 })
+    _write_record(file, recordtypes.BGNLIB, datatypes.TWO_BYTE_INTEGER, { 2020, 7, 5, 18, 17, 51, 2020, 7, 5, 18, 17, 51 })
+    _write_record(file, recordtypes.LIBNAME, datatypes.ASCII_STRING, "testlib")
+    _write_record(file, recordtypes.UNITS, datatypes.EIGHT_BYTE_REAL, { 0.001, 1e-9 })
+end
+
+function M.at_end(file)
     _write_record(file, recordtypes.ENDLIB, datatypes.NONE)
 end
 
 function M.print_object(file, obj)
-    _start_stream(file)
     _write_record(file, recordtypes.BGNSTR, datatypes.TWO_BYTE_INTEGER, { 2020, 7, 5, 18, 17, 51, 2020, 7, 5, 18, 17, 51 })
     _write_record(file, recordtypes.STRNAME, datatypes.ASCII_STRING, "toplevelcell")
     for shape in obj:iter() do
@@ -217,7 +216,6 @@ function M.print_object(file, obj)
     end
     -- write ENDSTR
     _write_record(file, recordtypes.ENDSTR, datatypes.NONE)
-    _end_stream(file)
 end
 
 return M
