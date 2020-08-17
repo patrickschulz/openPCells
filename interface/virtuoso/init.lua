@@ -14,7 +14,7 @@ local function _write_shape(file, shape)
     if shape.typ == "polygon" then
         st = "Polygon"
     elseif shape.typ == "rectangle" then
-        st = "Rectangle"
+        st = "Rect"
     end
     file:write(string.format('    dbCreate%s(cv list("%s" "%s") ', st, shape.lpp:get().virtuoso.layer, shape.lpp:get().virtuoso.purpose))
     local pointlist = shape:concat_points(function(pt) return string.format(gridfmt .. ":" .. gridfmt, pt.x, pt.y) end)
