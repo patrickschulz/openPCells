@@ -1,125 +1,125 @@
-return function(args)
-    pcell.setup(args)
+function parameters()
+    pcell.add_parameters(
+        { "channeltype",     "nmos" },
+        { "oxidetype",       1 },
+        { "vthtype",         1 },
+        { "fingers",         4 },
+        { "fwidth",          1.0 },
+        { "gatelength",      0.15 },
+        { "actext",          0.03 },
+        { "fspace",          0.27 },
+        { "sdwidth",         0.2 },
+        { "gtopext",         0.2 },
+        { "gbotext",         0.2 },
+        { "typext",          0.1 },
+        { "cliptop",         false },
+        { "clipbot",         false },
+        { "drawtopgate",     false },
+        { "drawbotgate",     false },
+        { "topgatestrwidth", 0.12 },
+        { "topgatestrext",   1 },
+        { "botgatestrwidth", 0.12 },
+        { "botgatestrext",   1 },
+        { "topgcut",         false },
+        { "botgcut",         false }
+    )
+end
 
-    -- transistor settings
-    local channeltype       = pcell.process_args("channeltype",     "nmos")
-    local oxidetype         = pcell.process_args("oxidetype",       1)
-    local vthtype           = pcell.process_args("vthtype",         1)
-    local fingers           = pcell.process_args("fingers",         4)
-    local fwidth            = pcell.process_args("fwidth",          1.0)
-    local gatelength        = pcell.process_args("gatelength",      0.15)
-    local actext            = pcell.process_args("actext",          0.03)
-    local fspace            = pcell.process_args("fspace",          0.27)
-    local sdwidth           = pcell.process_args("sdwidth",         0.2)
-    local gtopext           = pcell.process_args("gtopext",         0.2)
-    local gbotext           = pcell.process_args("gbotext",         0.2)
-    local typext            = pcell.process_args("typext",          0.1)
-    local cliptop           = pcell.process_args("cliptop",         false)
-    local clipbot           = pcell.process_args("clipbot",         false)
-    local drawtopgate       = pcell.process_args("drawtopgate",     false)
-    local drawbotgate       = pcell.process_args("drawbotgate",     false)
-    local topgatestrwidth   = pcell.process_args("topgatestrwidth", 0.12)
-    local topgatestrext     = pcell.process_args("topgatestrext",   1)
-    local botgatestrwidth   = pcell.process_args("botgatestrwidth", 0.12)
-    local botgatestrext     = pcell.process_args("botgatestrext",   1)
-    local topgcut           = pcell.process_args("topgcut",         false)
-    local botgcut           = pcell.process_args("botgcut",         false)
+function layout()
+    local P = pcell.get_params()
 
-    pcell.check_args()
-
-    -- derived settings
-    local actwidth = fingers * gatelength + fingers * fspace + sdwidth + 2 * actext
-    local gatepitch = gatelength + fspace
-    local gateheight = fwidth + gtopext + gbotext
-    local gateoffset = 0.5 * (gtopext - gbotext)
-    local clipshift = (cliptop and 0 or 1) - (clipbot and 0 or 1)
+    local actwidth = P.fingers * (P.gatelength + P.fspace) + P.sdwidth + 2 * P.actext
+    local gatepitch = P.gatelength + P.fspace
+    local gateheight = P.fwidth + P.gtopext + P.gbotext
+    local gateoffset = 0.5 * (P.gtopext - P.gbotext)
+    local clipshift = (P.cliptop and 0 or 1) - (P.clipbot and 0 or 1)
 
     local transistor = object.create()
 
     -- gates
-    transistor:merge_into(layout.multiple(
-        layout.rectangle(generics.other("gate"), gatelength, gateheight),
-        fingers, 1, gatepitch, 0
+    transistor:merge_into(geometry.multiple(
+        geometry.rectangle(generics.other("gate"), P.gatelength, gateheight),
+        P.fingers, 1, gatepitch, 0
     ):translate(0, gateoffset))
 
     -- oxide type
-    transistor:merge_into(layout.rectangle(
-        generics.other(string.format("oxthick%d", oxidetype)),
-        fingers * gatelength + (fingers - 1) * fspace + 2 * actext, fwidth
+    transistor:merge_into(geometry.rectangle(
+        generics.other(string.format("oxthick%d", P.oxidetype)),
+        P.fingers * P.gatelength + (P.fingers - 1) * P.fspace + 2 * P.actext, P.fwidth
     ))
     
     -- threshold voltage
-    transistor:merge_into(layout.rectangle(
-        generics.other(string.format("vthtype%d", vthtype)),
-        fingers * gatelength + (fingers - 1) * fspace + 2 * actext, fwidth
+    transistor:merge_into(geometry.rectangle(
+        generics.other(string.format("vthtype%d", P.vthtype)),
+        P.fingers * P.gatelength + (P.fingers - 1) * P.fspace + 2 * P.actext, P.fwidth
     ))
 
     -- active
-    transistor:merge_into(layout.rectangle(
+    transistor:merge_into(geometry.rectangle(
         generics.other("active"), 
-        actwidth, fwidth
+        actwidth, P.fwidth
     ))
-    transistor:merge_into(layout.rectangle(
-        (channeltype == "nmos") and generics.other("nimpl") or generics.other("pimpl"), 
-        actwidth + 2 * typext, gateheight + typext * clipshift
-    ):translate(0, gateoffset + 0.5 * typext * clipshift))
+    transistor:merge_into(geometry.rectangle(
+        (P.channeltype == "nmos") and generics.other("nimpl") or generics.other("pimpl"), 
+        actwidth + 2 * P.typext, gateheight + P.typext * clipshift
+    ):translate(0, gateoffset + 0.5 * P.typext * clipshift))
 
     -- well
-    transistor:merge_into(layout.rectangle(
+    transistor:merge_into(geometry.rectangle(
         (channeltype == "nmos") and generics.other("pwell") or generics.other("nwell"), 
-        actwidth + 2 * typext, gateheight + typext
+        actwidth + 2 * P.typext, gateheight + P.typext
     ):translate(0, gateoffset))
 
     -- drain/source contacts
-    transistor:merge_into(layout.multiple(
-        layout.rectangle(generics.contact("active"), sdwidth, fwidth),
-        fingers + 1, 1,
+    transistor:merge_into(geometry.multiple(
+        geometry.rectangle(generics.contact("active"), P.sdwidth, P.fwidth),
+        P.fingers + 1, 1,
         gatepitch, 0
     ))
 
     -- gate contacts
     if drawtopgate then
-        transistor:merge_into(layout.multiple(
-            layout.rectangle(generics.contact("gate"), gatelength, topgatestrwidth),
-            fingers, 1, gatepitch, 0)
-            :translate(0, 0.5 * fwidth + gtopext - 0.5 * topgatestrwidth)
+        transistor:merge_into(geometry.multiple(
+            geometry.rectangle(generics.contact("gate"), P.gatelength, P.topgatestrwidth),
+            P.fingers, 1, gatepitch, 0)
+            :translate(0, 0.5 * P.fwidth + P.gtopext - 0.5 * P.topgatestrwidth)
         )
         if fingers > 1 then
-            transistor:merge_into(layout.rectangle(
-                generics.other("M1"), 
-                (fingers - 1 + topgatestrext) * gatepitch, topgatestrwidth
-            ):translate(0, 0.5 * fwidth + gtopext - 0.5 * topgatestrwidth))
+            transistor:merge_into(geometry.rectangle(
+                generics.metal(1), 
+                (P.fingers - 1 + P.topgatestrext) * gatepitch, P.topgatestrwidth
+            ):translate(0, 0.5 * P.fwidth + P.gtopext - 0.5 * P.topgatestrwidth))
         end
     end
     if drawbotgate then
-        transistor:merge_into(layout.multiple(
-            layout.rectangle(generics.contact("gate"), gatelength, botgatestrwidth),
-            fingers, 1, gatepitch, 0)
-            :translate(0, -0.5 * fwidth - gbotext + 0.5 * botgatestrwidth)
+        transistor:merge_into(geometry.multiple(
+            geometry.rectangle(generics.contact("gate"), P.gatelength, P.botgatestrwidth),
+            P.fingers, 1, gatepitch, 0)
+            :translate(0, -0.5 * P.fwidth - P.gbotext + 0.5 * P.botgatestrwidth)
         )
         if fingers > 1 then
-            transistor:merge_into(layout.rectangle(
-                generics.other("M1"), 
-                (fingers - 1 + botgatestrext) * gatepitch, botgatestrwidth
-            ):translate(0, -0.5 * fwidth - gbotext + 0.5 * botgatestrwidth))
+            transistor:merge_into(geometry.rectangle(
+                generics.metal(1), 
+                (P.fingers - 1 + P.botgatestrext) * gatepitch, P.botgatestrwidth
+            ):translate(0, -0.5 * P.fwidth - P.gbotext + 0.5 * P.botgatestrwidth))
         end
     end
 
     -- gate cut
-    local cutext = 0.5 * fspace
+    local cutext = 0.5 * P.fspace
     local cutheight = 0.12
-    local cwidth = fingers * gatelength + (fingers - 1) * fspace + 2 * cutext
+    local cwidth = P.fingers * P.gatelength + (P.fingers - 1) * P.fspace + 2 * cutext
     if topgcut then
-        transistor:merge_into(layout.rectangle(
+        transistor:merge_into(geometry.rectangle(
             generics.other("gatecut"), 
-            cwidth, cutheight
-        ):translate(0, 0.5 * fwidth + gtopext))
+            P.cwidth, cutheight
+        ):translate(0, 0.5 * P.fwidth + P.gtopext))
     end
     if botgcut then
-        transistor:merge_into(layout.rectangle(
+        transistor:merge_into(geometry.rectangle(
             generics.other("gatecut"), 
-            cwidth, cutheight
-        ):translate(0, -0.5 * fwidth - gbotext))
+            P.cwidth, cutheight
+        ):translate(0, -0.5 * P.fwidth - P.gbotext))
     end
 
     return transistor

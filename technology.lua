@@ -102,8 +102,8 @@ local function _place_vias(cell, s)
     local ypitch = viaspec.height + viaspec.yspace
     for _, lay in ipairs(viaspec.layers) do
         local enlarge = lay.enlarge or 0.0
-        local o = layout.multiple(
-            layout.rectangle(generics.mapped(lay.lpp), viaspec.width + enlarge, viaspec.height + enlarge),
+        local o = geometry.multiple(
+            geometry.rectangle(generics.mapped(lay.lpp), viaspec.width + enlarge, viaspec.height + enlarge),
             xrep, yrep, xpitch, ypitch
         )
         cell:merge_into(o:translate(c.x, c.y))

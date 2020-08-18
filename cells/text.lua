@@ -997,16 +997,18 @@ local letteroutlines = {
     },
 }
 
-return function(args)
-    pcell.setup(args)
+function parameters()
+    pcell.add_parameters(
+        { "text",      "TEXT" },
+        { "scale",     1      },
+        { "spacing",   0.2    },
+        { "leading",   0.2    },
+        { "alignment", "left" }
+    )
+end
 
-    local t         = pcell.process_args("text",      "TEXT")
-    local scale     = pcell.process_args("scale",     1)
-    local spacing   = pcell.process_args("spacing",   0.2)
-    local leading   = pcell.process_args("leading",   0.2)
-    local alignment = pcell.process_args("alignment", "left")
-
-    pcell.check_args()
+function layout()
+    local P = pcell.get_params()
 
     local text = object.create()
 
@@ -1014,11 +1016,11 @@ return function(args)
     local x = 0
     local y = 0
     local lastwidth = 0
-    for i = 1, #t do
-        local char = string.sub(string.upper(t), i, i)
+    for i = 1, #P.text do
+        local char = string.sub(string.upper(P.text), i, i)
         if char == "\n" then
             x = 0
-            y = y - 1 - leading
+            y = y - 1 - P.leading
         else
             local outline = letteroutlines[char]
             if outline then
@@ -1027,8 +1029,8 @@ return function(args)
                     table.insert(S.points, point.create(pt.x, pt.y))
                 end
                 S:translate(x, y)
-                x = x + S:width() + spacing
-                S:scale(scale)
+                x = x + S:width() + P.spacing
+                S:scale(P.scale)
                 text:add_shape(S)
             end
         end

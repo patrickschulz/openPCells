@@ -4,7 +4,7 @@
 object     = require "object"
 shape      = require "shape"
 point      = require "point"
-layout     = require "layout"
+geometry   = require "geometry"
 graphics   = require "graphics"
 pcell      = require "pcell"
 generics   = require "generics"
@@ -15,13 +15,24 @@ util       = require "util"
 local techlib = require "technology"
 local interface = require "interface"
 
+-- parse command line arguments
 local argparse = require "argparse"
 local args = argparse.parse(arg)
-
 -- prepare cell arguments
 local cellargs = {}
 for k, v in string.gmatch(table.concat(args.cellargs, " "), "(%w+)%s*=%s*(%S+)") do
     cellargs[k] = v
+end
+
+if not args.cell then
+    print("no cell type given")
+    os.exit(1)
+end
+
+-- output cell parameters
+if args.params then
+    print("params") 
+    os.exit(0)
 end
 
 if not args.technology then
@@ -32,15 +43,11 @@ if not args.interface then
     print("no interface given")
     os.exit(1)
 end
-if not args.cell then
-    print("no cell type given")
-    os.exit(1)
-end
 
 techlib.load(args.technology)
 interface.load(args.interface)
 
-local cell, msg = celllib.create(args.cell, cellargs)
+local cell, msg = celllib.create_layout(args.cell, cellargs)
 
 if not cell then
     print(string.format("error while creating cell, received: %s", msg))

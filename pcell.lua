@@ -16,37 +16,46 @@ local evaluators = {
     table = nil -- not yet implemented
 }
 
-local used
-local args
+local params 
 
-function M.process_args(name, default, argtype, posvals)
-    local argtype = argtype or type(default)
-    local eval = evaluators[argtype]
-    local res
-    if args[name] then
-        used[name] = true
-        res = eval(args[name])
-    else
-        res = default
-    end
-    if posvals then
-
-    end
-    return res
+local function _unpack_param(param)
+    return param[1], param[2], param[3], param[4]
 end
 
-function M.setup(a)
-    used = {}
-    args = a
+function M.add_parameters(...)
+    for _, param in ipairs({...}) do
+        local name, default, argtype, posvals = _unpack_param(param)
+        params[name] = { 
+            value = default,
+            argtype = argtype or type(default),
+            posvals = posvals
+        }
+    end
 end
 
-function M.check_args()
-    for k in pairs(args) do
-        if not used[k] then
-            print(string.format("argument '%s' was not used, maybe it was spelled wrong?", k))
+function M.setup()
+    -- reset parameters
+    params = {}
+end
+
+function M.process(args)
+    for name, value in pairs(args) do
+        if not params[name] then
+            print(string.format("argument '%s' was not used, maybe it was spelled wrong?", name))
             os.exit(1)
         end
+        local param = params[name]
+        local eval = evaluators[param.argtype]
+        param.value = eval(value) -- replace default value
     end
+end
+
+function M.get_params()
+    local P = {}
+    for k, v in pairs(params) do
+        P[k] = v.value
+    end
+    return P
 end
 
 return M

@@ -4,6 +4,7 @@ openPCells.debug
 openPCells.mag
 openPCells.svg
 tech/cmos22fdsoi
+config.lua
 
 *.aux
 *.log
