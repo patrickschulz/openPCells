@@ -9,7 +9,12 @@ interfacing code is provided (currently only for virtuoso, but this is pretty si
 technology independece. This is achieved by working in generic layers ('gate', 'metal1') and mapping that with (simple-to-write) layermaps.
 
 # How to use
-The project supplies some technology files for skywater130, so you can directly test the setup. In the main directory of the repository, run 
+The project supplies some technology files for skywater130, so you can directly test the setup. For the first run, you have to generate the main
+program by running 
+
+    ./setup.sh
+
+Now a file `opc` should have been generated. Run it as follows:
 
     ./opc -T skywater130 -I svg -C transistor
 
@@ -18,15 +23,6 @@ This produces the following image:
 ![Example Transistor](./example_transistor.png). 
 
 If you get an error, you should check your setup (just run `lua`, which will tell you the version. You need 5.2 or higher).
-
-If the simple test is working you can put some paths in your shell configuration so you can access all modules from outside of this repository:
-Set your `LUA_PATH` environment variable to the base path:
-
-    # in your shell configuration file
-    export LUA_PATH=";;/path/to/pcells/?.lua;/path/to/pcells/?/init.lua" # bash/zsh
-    setenv LUA_PATH ";;/path/to/pcells/?.lua;/path/to/pcells/?/init.lua" # csh
-
-Now you should be able to run `opc` from any directory (however, you have to specify the path to the executable or you can modify PATH).
 
 <!---
 # Installation for Cadence Virtuoso
