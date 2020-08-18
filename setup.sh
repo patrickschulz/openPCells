@@ -1,13 +1,13 @@
 #! /bin/sh
 
-echo "return {" > config.lua
-printf '    home = "%s"\n' $(pwd) >> config.lua
-echo "}" >> config.lua
+mainfile=opc
 
 # write main content
-echo '#! /usr/bin/lua\n'              > opc
-printf 'local path = "%s"\n\n' $(pwd) >> opc
-cat main.lua                          >> opc
+echo   '#! /usr/bin/lua\n'        > $mainfile
+echo   'function _get_opc_home()' >> $mainfile
+printf '    return "%s"\n' $(pwd) >> $mainfile
+echo   'end\n'                    >> $mainfile
+cat main.lua                      >> $mainfile
 
 # make executable
-chmod 750 opc
+chmod 750 $mainfile

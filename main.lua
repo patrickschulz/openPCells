@@ -1,26 +1,27 @@
-local function _loader(name)
+function _load_module(name)
+    local path = _get_opc_home()
     local filename = string.format("%s/%s.lua", path, name)
     local module = dofile(filename)
     return module
 end
 
 -- load API into global space
-object     = _loader("object")
-shape      = _loader("shape")
-point      = _loader("point")
-geometry   = _loader("geometry")
-graphics   = _loader("graphics")
-pcell      = _loader("pcell")
-generics   = _loader("generics")
-bitop      = _loader("bitop")
-celllib    = _loader("cell")
-util       = _loader("util")
+object   = _load_module("object")
+shape    = _load_module("shape")
+point    = _load_module("point")
+geometry = _load_module("geometry")
+graphics = _load_module("graphics")
+pcell    = _load_module("pcell")
+generics = _load_module("generics")
+bitop    = _load_module("bitop")
+celllib  = _load_module("cell")
+util     = _load_module("util")
 
-local techlib = _loader("technology")
-local interface = _loader("interface")
+local techlib = _load_module("technology")
+local interface = _load_module("interface")
 
 -- parse command line arguments
-local argparse = _loader("argparse")
+local argparse = _load_module("argparse")
 local args = argparse.parse(arg)
 -- prepare cell arguments
 local cellargs = {}

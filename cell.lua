@@ -1,9 +1,7 @@
 local M = {}
 
-local config = require "config"
-
 local function _load(name)
-    local file = io.open(string.format("%s/cells/%s.lua", config.codepath, name))
+    local file = io.open(string.format("%s/cells/%s.lua", _get_opc_home(), name))
     if not file then
         return nil, string.format("unknown cell '%s'", name)
     end

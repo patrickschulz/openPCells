@@ -3,7 +3,7 @@ local M = {}
 local interface
 
 function M.load(name)
-    interface = require(string.format("interface.%s", name))
+    interface = dofile(string.format("%s/interface/%s/init.lua", _get_opc_home(), name))
 end
 
 local function _call_if_present(func, ...)

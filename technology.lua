@@ -175,8 +175,9 @@ function M.fix_to_grid(cell)
 end
 
 local function _load_technology_file(name, what)
-    local status, ret = pcall(require, string.format("tech.%s.%s", name, what))
+    local status, ret = pcall(dofile, string.format("%s/tech/%s/%s.lua", _get_opc_home(), name, what))
     if not status then
+        print(ret)
         print(string.format("no %s for technology '%s' found", what, name))
         os.exit(1)
     end
