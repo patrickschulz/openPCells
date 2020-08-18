@@ -14,3 +14,10 @@ celldesign/celldesign.pdf: celldesign/celldesign.tex preamble.tex ${cells}
 
 techfiles/techfiles.pdf: techfiles/techfiles.tex preamble.tex
 	$(MAKE) -C techfiles all
+
+.PHONY: clean
+clean:
+	$(MAKE) -C userguide clean
+	$(MAKE) -C techdoc clean
+	$(MAKE) -C celldesign clean
+	$(MAKE) -C techfiles clean

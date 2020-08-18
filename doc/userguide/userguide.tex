@@ -20,46 +20,51 @@
 \section{Quick Start}
 If you did not do this yet, clone the repository:
 \begin{shellcode}
-    $ git clone https://github.com/patrickschulz/openPCells
+    > git clone https://github.com/patrickschulz/openPCells
 \end{shellcode}
-Go to the repository, in the main directory is a file called \shellinline{opc}, which is the main program.
+Go to the repository, in the main directory is a file called \shellinline{setup.sh}, which creates the main program. Execute it:
+\begin{shellcode}
+    > ./setup.sh
+    * generating 'opc' *
+    See doc/userguide/userguide.pdf for a quick start and general documentation.
+\end{shellcode}
 
 Check that you have a working lua interpreter by invoking \shellinline{lua}. You should get a message similiar to
 \begin{shellcode}
-    $ lua 
+    > lua 
     Lua 5.3.3  Copyright (C) 1994-2016 Lua.org, PUC-Rio
     > 
 \end{shellcode}
-although the version can be different. Supported versions are 5.2 and 5.3 (both tested), but it is expected that every 5.x should work.
+although the version can be different. Supported versions are 5.2 and 5.3 (both tested), but it is expected that 5.4 should also work. Due to the way cells are
+loaded, lua versions below 5.2 are not supported.
 
 Now run the program:
 \begin{shellcode}
-    $ lua opc
+    > lua opc
 \end{shellcode}
 You should see the following message:
 \begin{shellcode}
-    no technology given
+    no cell type given
 \end{shellcode}
-This indicates that everything is working fine. In order that your toolchain can find all modules, you have to modify your \shellinline{LUA_PATH}. This depends on the type of your
-shell. For bash/zsh:
-\begin{shellcode}
-    export LUA_PATH=";;/path/to/pcells/?.lua;/path/to/pcells/?/init.lua"
-\end{shellcode}
-For (t)csh:
-\begin{shellcode}
-    setenv LUA_PATH ";;/path/to/pcells/?.lua;/path/to/pcells/?/init.lua"
-\end{shellcode}
-The semicolons are important, and of course you need to adapt the path to the OpenPCells directory. 
+This indicates that everything is working fine. Due to \shellinline{./setup.sh}, the paths for the toolchain are already set. You should be able to call
+\shellinline{opc} from any path (of course by using the full name including path or modifying your shell PATH variable accordingly).
 
 Now call the program from a different location with all the needed data: technology, interface and cell. Since skywater130 is open source, the repository includes a
 draft of technology files for it, which is at least enough to test the setup. However, other technologies are under NDA so we can't provide any technology files.
 Most likely you will have to write them yourself, which is not too hard. See the guide about writing technology files. Let's call the program:
 \begin{shellcode}
-    opc skywater130 gds transistor
+    opc -T skywater130 -I gds -C transistor
     # or
-    opc skywater130 virtuoso transistor
+    opc -T skywater130 -I virtuoso -C transistor
 \end{shellcode}
-The gds interface creates a \shellinline{openPCells.gds} file, the virtuoso interface a \shellinline{openPCells.il}, which can be read with a text editor.
+The gds interface creates a \shellinline{openPCells.gds} file, the virtuoso interface a \shellinline{openPCells.il}, which can be read with a text editor. Further
+current available interfaces are SVG, magic and a debugging export.
+
+This already concludes the quick start. For next steps, have a look in \shellinline{cells/} to see how the pcells are implemented. Furthermore, \shellinline{tech/}
+contains the technology files, of which there are three: skywater130 (working), freePDK45 (very old, will be updated) and a template (which is a little bit outdated,
+take skywater130 as template). The documentation is split in several files, this document is a general user guide containing broad information about
+\enquote{everything}. For a detailed guide on how to write cell generators, see celldesign.pdf. The procedure of writing technology files is described in
+techfiles.pdf. For developers, techdoc.pdf gives an insight on the implementation, especially on the technology translation.
 
 \section{Introduction}
 Semiconductor technologies from the perspective of a designer of integrated circuits is a set of layers, in which shapes are created to make up the physical
@@ -87,7 +92,7 @@ do anyways for the foundry) but this removes the parameterized part, also removi
 Besides problems with persistence and sharing of designs, pcells also are inherently technology-bound. Every PDK comes with its own set of pcells, which can be
 annyoing.
 
-This project aims at solving all these problems. We want to built technology-independent cell generators that can be easily accessed from any tool (open or closed
+This project aims to solve all these problems. We want to built technology-independent cell generators that can be easily accessed from any tool (open or closed
 source), but are tool-independent. Therefor the entire project is implemented in an easy-to-learn-install-and-embed language (lua) without any dependencies at all. A
 framework for writing tool interfaces is provided as well as templates for technology files. The project comes with a set of predefined cells which are actively
 maintained and developed.

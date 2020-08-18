@@ -11,5 +11,8 @@ config.lua
 
 *.aux
 *.log
+*.toc
 *.pygtex
 *_minted*
+
+todo

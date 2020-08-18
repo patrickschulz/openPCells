@@ -1,3 +1,0 @@
-\contentsline {section}{\numberline {1}Quick Start}{1}
-\contentsline {section}{\numberline {2}Introduction}{2}
-\contentsline {section}{\numberline {3}Installation}{3}
