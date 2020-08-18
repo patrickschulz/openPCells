@@ -5,8 +5,6 @@ An 'object' is a collection of 'shapes', that is an object composed of several p
 --]]
 local M = {}
 
-local shapelib = require "shape"
-
 local meta = {}
 meta.__index = meta
 
