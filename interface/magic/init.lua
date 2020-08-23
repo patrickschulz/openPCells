@@ -18,23 +18,11 @@ local function _write_layer(file, layer, pcol)
     end
 end
 
-local function _order_shapes(obj)
-    local shapes = {}
-    for shape in obj:iter() do
-        local layer = _get_layer(shape)
-        if not shapes[layer] then
-            shapes[layer] = {}
-        end
-        table.insert(shapes[layer], shape.points)
-    end
-    return shapes
-end
-
-function M.print_object(file, obj)
+function M.print_object(file, cell)
     file:write(string.format("%s\n", "magic"))
     file:write(string.format("tech %s\n", "sky130A")) -- FIXME: make flexible
     file:write(string.format("timestamp %s\n", os.time()))
-    for layer, pcol in pairs(_order_shapes(obj)) do
+    for layer, pcol in pairs(_collect_shapes(cell, _get_layer)) do
         _write_layer(file, layer, pcol)
     end
     file:write(string.format("%s\n", "<< end >>"))
