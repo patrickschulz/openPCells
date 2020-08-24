@@ -36,6 +36,20 @@ local function _bitop(lhs, rhs, numbits, op)
     return _tonum(res)
 end
 
+function M.binv(lhs, numbits)
+    local bl = _tobits(lhs, numbits)
+
+    local res = {}
+    for i = 1, numbits do
+        if bl[i] == 1 then
+            res[i] = 0
+        else
+            res[i] = 1
+        end
+    end
+    return _tonum(res)
+end
+
 function M.band(lhs, rhs, numbits)
     return _bitop(lhs, rhs, numbits, function(bl, br) return bl == 1 and br == 1 end)
 end
