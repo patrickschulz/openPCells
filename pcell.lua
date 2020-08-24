@@ -38,15 +38,19 @@ function M.setup()
     params = {}
 end
 
-function M.process(args)
+function M.process(args, evaluate)
     for name, value in pairs(args) do
         if not params[name] then
             print(string.format("argument '%s' was not used, maybe it was spelled wrong?", name))
             os.exit(1)
         end
         local param = params[name]
-        local eval = evaluators[param.argtype]
-        param.value = eval(value) -- replace default value
+        if evaluate then
+            local eval = evaluators[param.argtype]
+            param.value = eval(value) -- replace default value
+        else
+            param.value = value
+        end
     end
 end
 
