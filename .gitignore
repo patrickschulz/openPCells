@@ -5,6 +5,7 @@ openPCells.il
 openPCells.debug
 openPCells.mag
 openPCells.svg
+openPCells.tikz
 
 tech/cmos22fdsoi
 config.lua
