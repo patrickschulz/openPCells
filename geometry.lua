@@ -1,5 +1,12 @@
 local M = {}
 
+local _make_append_xy = function(pts) return function(x, y) table.insert(pts, point.create(x, y)) end end
+local _make_append_pts = function(pts) return function(...) 
+    for _, pt in ipairs({ ... }) do 
+        table.insert(pts, pt) end
+    end
+end
+
 function M.rectangle(layer, width, height)
     local S = shape.create_rectangle(layer, width, height)
     return object.make_from_shape(S)
@@ -7,35 +14,37 @@ end
 
 function M.cross(layer, width, height, crosssize)
     local S = shape.create_polygon(layer)
-    table.insert(S.points, point.create(-0.5 * width,     -0.5 * crosssize))
-    table.insert(S.points, point.create(-0.5 * width,      0.5 * crosssize))
-    table.insert(S.points, point.create(-0.5 * crosssize,  0.5 * crosssize))
-    table.insert(S.points, point.create(-0.5 * crosssize,  0.5 * height))
-    table.insert(S.points, point.create( 0.5 * crosssize,  0.5 * height))
-    table.insert(S.points, point.create( 0.5 * crosssize,  0.5 * crosssize))
-    table.insert(S.points, point.create( 0.5 * width,      0.5 * crosssize))
-    table.insert(S.points, point.create( 0.5 * width,     -0.5 * crosssize))
-    table.insert(S.points, point.create( 0.5 * crosssize, -0.5 * crosssize))
-    table.insert(S.points, point.create( 0.5 * crosssize, -0.5 * height))
-    table.insert(S.points, point.create(-0.5 * crosssize, -0.5 * height))
-    table.insert(S.points, point.create(-0.5 * crosssize, -0.5 * crosssize))
-    table.insert(S.points, point.create(-0.5 * width,     -0.5 * crosssize)) -- close polygon
+    local append = _make_append_xy(S.points)
+    append(-0.5 * width,     -0.5 * crosssize)
+    append(-0.5 * width,      0.5 * crosssize)
+    append(-0.5 * crosssize,  0.5 * crosssize)
+    append(-0.5 * crosssize,  0.5 * height)
+    append( 0.5 * crosssize,  0.5 * height)
+    append( 0.5 * crosssize,  0.5 * crosssize)
+    append( 0.5 * width,      0.5 * crosssize)
+    append( 0.5 * width,     -0.5 * crosssize)
+    append( 0.5 * crosssize, -0.5 * crosssize)
+    append( 0.5 * crosssize, -0.5 * height)
+    append(-0.5 * crosssize, -0.5 * height)
+    append(-0.5 * crosssize, -0.5 * crosssize)
+    append(-0.5 * width,     -0.5 * crosssize) -- close polygon
     return object.make_from_shape(S)
 end
 
 function M.ring(layer, width, height, ringwidth)
     local S = shape.create_polygon(layer)
-    table.insert(S.points, point.create(-0.5 * (width + ringwidth), -0.5 * (height + ringwidth)))
-    table.insert(S.points, point.create( 0.5 * (width + ringwidth), -0.5 * (height + ringwidth)))
-    table.insert(S.points, point.create( 0.5 * (width + ringwidth),  0.5 * (height + ringwidth)))
-    table.insert(S.points, point.create(-0.5 * (width + ringwidth),  0.5 * (height + ringwidth)))
-    table.insert(S.points, point.create(-0.5 * (width + ringwidth), -0.5 * (height - ringwidth)))
-    table.insert(S.points, point.create(-0.5 * (width - ringwidth), -0.5 * (height - ringwidth)))
-    table.insert(S.points, point.create(-0.5 * (width - ringwidth),  0.5 * (height - ringwidth)))
-    table.insert(S.points, point.create( 0.5 * (width - ringwidth),  0.5 * (height - ringwidth)))
-    table.insert(S.points, point.create( 0.5 * (width - ringwidth), -0.5 * (height - ringwidth)))
-    table.insert(S.points, point.create(-0.5 * (width + ringwidth), -0.5 * (height - ringwidth)))
-    table.insert(S.points, point.create(-0.5 * (width + ringwidth), -0.5 * (height + ringwidth))) -- close polygon
+    local append = _make_append_xy(S.points)
+    append(-0.5 * (width + ringwidth), -0.5 * (height + ringwidth))
+    append( 0.5 * (width + ringwidth), -0.5 * (height + ringwidth))
+    append( 0.5 * (width + ringwidth),  0.5 * (height + ringwidth))
+    append(-0.5 * (width + ringwidth),  0.5 * (height + ringwidth))
+    append(-0.5 * (width + ringwidth), -0.5 * (height - ringwidth))
+    append(-0.5 * (width - ringwidth), -0.5 * (height - ringwidth))
+    append(-0.5 * (width - ringwidth),  0.5 * (height - ringwidth))
+    append( 0.5 * (width - ringwidth),  0.5 * (height - ringwidth))
+    append( 0.5 * (width - ringwidth), -0.5 * (height - ringwidth))
+    append(-0.5 * (width + ringwidth), -0.5 * (height - ringwidth))
+    append(-0.5 * (width + ringwidth), -0.5 * (height + ringwidth)) -- close polygon
     return object.make_from_shape(S)
 end
 
@@ -49,7 +58,7 @@ local function _intersection(pt1, pt2, pt3, pt4)
 
     local t = num / den
     local pt = point.create(pt1.x + t * (pt2.x - pt1.x), pt1.y + t * (pt2.y - pt1.y))
-    if t < 0 or t > 1 then
+    if t < 0 or t > 1 then -- line segments don't truly intersect
         return nil, pt
     end
     return pt
