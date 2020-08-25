@@ -157,8 +157,11 @@ function M.create_via_geometries(cell)
 end
 
 local function _fix_pt_to_grid(pt)
-    pt.x = config.grid * math.floor(pt.x / config.grid)
-    pt.y = config.grid * math.floor(pt.y / config.grid)
+    local round = function(num)
+        return num >= 0 and math.floor(num + 0.5) or math.ceil(num - 0.5)
+    end
+    pt.x = config.grid * round(pt.x / config.grid)
+    pt.y = config.grid * round(pt.y / config.grid)
 end
 
 function M.fix_to_grid(cell)
