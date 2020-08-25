@@ -13,8 +13,6 @@ local function _load(name)
         if s then s = s .. "\n" end
         return s
     end
-    --local env = setmetatable({}, { __index = _ENV })
-    --local chunk, msg = load(get_content, string.format("=(loading cells/%s.lua)", name), "t", env)
     local chunk, msg = load(get_content, string.format("=(loading cells/%s.lua)", name))
     if not chunk then
         return nil, string.format("syntax error in cell '%s': %s", name, msg)
