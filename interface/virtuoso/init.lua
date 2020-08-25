@@ -35,10 +35,8 @@ function M.at_end(file)
 end
 
 function M.write_layer(file, layer, pcol)
-    file:write(string.format("    foreach(pts list(%s)\n", table.concat(pcol, " ")))
-    for _, pts in ipairs(pcol) do
-        file:write(string.format("        %s pts)\n", layer))
-    end
+    file:write(string.format("    foreach(pts\n        list(\n%s\n        )\n", aux.concat(pcol, "", string.rep(" ", 12), nil, true)))
+    file:write(string.format("        %s pts)\n", layer))
     file:write("    )\n")
 end
 
