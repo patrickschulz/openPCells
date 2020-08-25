@@ -36,7 +36,6 @@ function layout()
 
     local transistor = object.create()
 
-    --[[
     -- gates
     transistor:merge_into(geometry.multiple(
         geometry.rectangle(generics.other("gate"), P.gatelength, gateheight),
@@ -70,7 +69,6 @@ function layout()
         (P.channeltype == "nmos") and generics.other("pwell") or generics.other("nwell"), 
         actwidth + 2 * P.typext, gateheight + P.typext
     ):translate(0, gateoffset))
-    --]]
 
     -- drain/source contacts
     transistor:merge_into(geometry.multiple(
@@ -79,7 +77,6 @@ function layout()
         gatepitch, 0
     ))
 
-    --[[
     -- gate contacts
     if P.drawtopgate then
         transistor:merge_into(geometry.multiple(
@@ -130,7 +127,6 @@ function layout()
     transistor:add_anchor("botgate", point.create(0, -0.5 * P.fwidth - P.gbotext + 0.5 * P.botgatestrwidth))
     transistor:add_anchor("leftdrainsource",  point.create(-0.5 * P.fingers * (P.gatelength + P.fspace), 0))
     transistor:add_anchor("rightdrainsource", point.create( 0.5 * P.fingers * (P.gatelength + P.fspace), 0))
-    --]]
 
     return transistor
 end
