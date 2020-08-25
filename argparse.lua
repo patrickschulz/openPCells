@@ -10,6 +10,15 @@ local function _next_arg(args, state)
     return args[state.i]
 end
 
+local function _next_args(args, state, num)
+    _advance(state, num)
+    local t = {}
+    for i = state.i - num + 1, state.i do
+        table.insert(t, args[i])
+    end
+    return t
+end
+
 local function _consume_until_hyphen(args, state)
     local t = {}
     while true do
@@ -21,25 +30,36 @@ local function _consume_until_hyphen(args, state)
     return table.concat(t, " ")
 end
 
+local function _store_func(name)
+    return function(res, state, args)
+        res[name] = _next_arg(args, state)
+    end
+end
+
+local function _switch_func(name)
+    return function(res)
+        res[name] = true
+    end
+end
+
+local function _consumer_func(name)
+    return function(res, state, args)
+        res[name] = _consume_until_hyphen(args, state)
+    end
+end
+
 local actions = {
-    ["-P"] = function(res)
-        res.params = true 
-    end,
-    ["-T"] = function(res, state, args) 
-        res.technology = _next_arg(args, state)
-    end,
-    ["-I"] = function(res, state, args) 
-        res.interface = _next_arg(args, state)
-    end,
-    ["-C"] = function(res, state, args) 
-        res.cell = _next_arg(args, state)
-    end,
-    ["-f"] = function(res, state, args) 
-        res.filename = _next_arg(args, state)
-    end,
-    ["--iopt"] = function(res, state, args)
-        res.interface_options = _consume_until_hyphen(args, state)
-    end,
+    ["-P"]           = _switch_func("params"),
+    ["--parameters"] = _switch_func("params"),
+    ["-T"]           = _store_func("technology"),
+    ["--technology"] = _store_func("technology"),
+    ["-I"]           = _store_func("interface"),
+    ["--interface"]  = _store_func("interface"),
+    ["-C"]           = _store_func("cell"),
+    ["--cell"]       = _store_func("cell"),
+    ["-f"]           = _store_func("filename"),
+    ["--filename"]   = _store_func("filename"),
+    ["--iopt"]       = _consumer_func("interface_options"),
 }
 
 function M.parse(args)
