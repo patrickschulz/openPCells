@@ -26,9 +26,12 @@ procedure(OPCcreateCell(w done pts)
 ) ; OPCcreateCell
 
 procedure(OPCplaceCell(cell)
+    OPCCreateOptionsForm(cell)
 	enterPoint(
 		?prompts list("Enter origin")
 		?doneProc "OPCcreateCell"
+        ?form OPCParamForm
+        ?alwaysMap t
 	)
 ) ; OPCplaceCell
 
@@ -87,7 +90,7 @@ procedure(OPCLayoutAddMenu(args)
     );let
 ); procedure
 
-procedure(OPCCreateOptionsForm()
+procedure(OPCCreateOptionsForm(cell)
     let(
         (fieldlist field (i 0))
         foreach(name names

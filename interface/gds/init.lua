@@ -8,19 +8,45 @@ end
 local gridfmt = "%.3f"
 
 local recordtypes = {
-    HEADER      = 0x00,
-    BGNLIB      = 0x01,
-    LIBNAME     = 0x02,
-    UNITS       = 0x03,
-    ENDLIB      = 0x04,
-    BGNSTR      = 0x05,
-    STRNAME     = 0x06,
-    ENDSTR      = 0x07,
-    BOUNDARY    = 0x08,
-    LAYER       = 0x0d,
-    DATATYPE    = 0x0e,
-    XY          = 0x10,
-    ENDEL       = 0x11,
+    HEADER       = 0x00,
+    BGNLIB       = 0x01,
+    LIBNAME      = 0x02,
+    UNITS        = 0x03,
+    ENDLIB       = 0x04,
+    BGNSTR       = 0x05,
+    STRNAME      = 0x06,
+    ENDSTR       = 0x07,
+    BOUNDARY     = 0x08,
+    PATH         = 0x09,
+    SREF         = 0x0a,
+    AREF         = 0x0b,
+    TEXT         = 0x0c,
+    LAYER        = 0x0d,
+    DATATYPE     = 0x0e,
+    WIDTH        = 0x0f,
+    XY           = 0x10,
+    ENDEL        = 0x11,
+    SNAME        = 0x12,
+    COLROW       = 0x13,
+    TEXTNODE     = 0x14,
+    NODE         = 0x15,
+    TEXTTYPE     = 0x16,
+    PRESENTATION = 0x17,
+    SPACING      = 0x18,
+    STRING       = 0x19,
+    STRANS       = 0x1a,
+    MAG          = 0x1b,
+    ANGLE        = 0x1c,
+    UINTEGER     = 0x1d,
+    USTRING      = 0x1e,
+    REFLIBS      = 0x1f,
+    FONTS        = 0x20,
+    PATHTYPE     = 0x21,
+    GENERATIONS  = 0x22,
+    ATTRTABLE    = 0x23,
+    STYPTABLE    = 0x24,
+    STRTYPE      = 0x25,
+    ELFLAGS      = 0x26,
 }
 
 local datatypes = {
@@ -187,14 +213,14 @@ local function _unpack_points(pts, multiplier)
     return stream
 end
 
-local function _write_shape(file, shape)
-    _write_record(file, recordtypes.BOUNDARY, datatypes.NONE)
-    _write_record(file, recordtypes.LAYER, datatypes.TWO_BYTE_INTEGER, { shape.lpp:get().gds.layer })
-    _write_record(file, recordtypes.DATATYPE, datatypes.TWO_BYTE_INTEGER, { shape.lpp:get().gds.purpose})
+function M.get_layer(shape)
+    return { layer = shape.lpp:get().gds.layer, purpose = shape.lpp:get().gds.purpose }
+end
+
+function M.get_points(shape)
     local s = shape:convert_to_polygon()
     local points = _unpack_points(s.points, 1000)
-    _write_record(file, recordtypes.XY, datatypes.FOUR_BYTE_INTEGER, points)
-    _write_record(file, recordtypes.ENDEL, datatypes.NONE)
+    return points
 end
 
 function M.at_begin(file)
@@ -208,14 +234,23 @@ function M.at_end(file)
     _write_record(file, recordtypes.ENDLIB, datatypes.NONE)
 end
 
-function M.print_object(file, obj)
+function M.at_begin_cell(file)
     _write_record(file, recordtypes.BGNSTR, datatypes.TWO_BYTE_INTEGER, { 2020, 7, 5, 18, 17, 51, 2020, 7, 5, 18, 17, 51 })
     _write_record(file, recordtypes.STRNAME, datatypes.ASCII_STRING, "toplevelcell")
-    for shape in obj:iter() do
-        _write_shape(file, shape)
-    end
-    -- write ENDSTR
+end
+
+function M.at_end_cell(file)
     _write_record(file, recordtypes.ENDSTR, datatypes.NONE)
+end
+
+function M.write_layer(file, layer, pcol)
+    for _, pts in ipairs(pcol) do
+        _write_record(file, recordtypes.BOUNDARY, datatypes.NONE)
+        _write_record(file, recordtypes.LAYER, datatypes.TWO_BYTE_INTEGER, { layer.layer })
+        _write_record(file, recordtypes.DATATYPE, datatypes.TWO_BYTE_INTEGER, { layer.purpose})
+        _write_record(file, recordtypes.XY, datatypes.FOUR_BYTE_INTEGER, pts)
+        _write_record(file, recordtypes.ENDEL, datatypes.NONE)
+    end
 end
 
 return M
