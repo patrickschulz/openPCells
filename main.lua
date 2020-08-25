@@ -6,16 +6,17 @@ function _load_module(name)
 end
 
 -- load API into global space
-object   = _load_module("object")
-shape    = _load_module("shape")
-point    = _load_module("point")
-geometry = _load_module("geometry")
-graphics = _load_module("graphics")
-pcell    = _load_module("pcell")
-generics = _load_module("generics")
-bitop    = _load_module("bitop")
-celllib  = _load_module("cell")
-util     = _load_module("util")
+object     = _load_module("object")
+shape      = _load_module("shape")
+point      = _load_module("point")
+geometry   = _load_module("geometry")
+graphics   = _load_module("graphics")
+pcell      = _load_module("pcell")
+generics   = _load_module("generics")
+bitop      = _load_module("bitop")
+celllib    = _load_module("cell")
+stringfile = _load_module("stringfile")
+util       = _load_module("util")
 
 local techlib = _load_module("technology")
 local interface = _load_module("interface")
@@ -66,6 +67,7 @@ techlib.map_layers(cell)
 techlib.fix_to_grid(cell)
 
 local filename = args.filename or "openPCells"
+interface.set_options(args.interface_options)
 interface.write_cell(filename, cell)
 
 -- vim: ft=lua
