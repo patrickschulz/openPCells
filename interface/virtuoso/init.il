@@ -26,12 +26,12 @@ procedure(OPCcreateCell(w done pts)
 ) ; OPCcreateCell
 
 procedure(OPCplaceCell(cell)
-    OPCCreateOptionsForm(cell)
+    ;OPCCreateOptionsForm(cell)
 	enterPoint(
 		?prompts list("Enter origin")
 		?doneProc "OPCcreateCell"
-        ?form OPCParamForm
-        ?alwaysMap t
+        ;?form OPCParamForm
+        ;?alwaysMap t
 	)
 ) ; OPCplaceCell
 
