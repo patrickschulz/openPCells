@@ -46,12 +46,6 @@ local function _iter_shapes(shapes)
     end
 end
 
-local function _call_if_present(func, ...)
-    if func then
-        return func(...)
-    end
-end
-
 function M.load(name)
     interface = dofile(string.format("%s/interface/%s/init.lua", _get_opc_home(), name))
 end
@@ -59,19 +53,19 @@ end
 function M.write_cell(filename, cell)
     local extension = interface.get_extension()
     local file = stringfile.open(string.format("%s.%s", filename, extension))
-    local precomputed = _call_if_present(interface.precompute, cell)
-    _call_if_present(interface.at_begin, file, precomputed)
-    _call_if_present(interface.at_begin_cell, file, precomputed)
+    local precomputed = aux.call_if_present(interface.precompute, cell)
+    aux.call_if_present(interface.at_begin, file, precomputed)
+    aux.call_if_present(interface.at_begin_cell, file, precomputed)
     for layer, pcol in _iter_shapes(_collect_shapes(cell, interface.get_layer, interface.get_index, interface.get_points, precomputed)) do
         interface.write_layer(file, layer, pcol)
     end
-    _call_if_present(interface.at_end_cell, file, precomputed)
-    _call_if_present(interface.at_end, file, precomputed)
+    aux.call_if_present(interface.at_end_cell, file, precomputed)
+    aux.call_if_present(interface.at_end, file, precomputed)
     file:truewrite()
 end
 
 function M.set_options(opt)
-    _call_if_present(interface.set_options, opt)
+    aux.call_if_present(interface.set_options, opt)
 end
 
 return M

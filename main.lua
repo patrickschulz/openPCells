@@ -17,6 +17,7 @@ bitop      = _load_module("bitop")
 celllib    = _load_module("cell")
 stringfile = _load_module("stringfile")
 util       = _load_module("util")
+aux        = _load_module("aux")
 
 local techlib = _load_module("technology")
 local interface = _load_module("interface")
