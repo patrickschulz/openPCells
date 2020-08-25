@@ -9,17 +9,17 @@
 \usepackage{wrapfig}
 
 \usepackage{fontspec}
+\usepackage{unicode-math}
+\usepackage{microtype}
 \setmainfont{Linux Libertine O}
+\setmathfont{Libertinus Math}
 
-%\usepackage{minted, mdframed}
-%\usemintedstyle{igor}
-%\newminted{shell}{fontsize = \small}
-%\newmintinline{shell}{}
-%\newmintinline{lua}{}
-%\newmintedfile[lualisting]{lua}{autogobble, fontsize = \small}
-%% API documentation commands
-%\newcommand{\param}[1]{\luainline{#1}}
-%\newenvironment{apifunc}[1]{\par\hspace*{-2em}\luainline{#1}\leftskip=2em\par}{\par}
+% maths
+\usepackage{IEEEtrantools}
+
+% tables
+\usepackage{booktabs}
+
 \usepackage{listings}
 \lstset{
     language=[5.3]Lua,
