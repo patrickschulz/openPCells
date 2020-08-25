@@ -22,6 +22,7 @@ local function _load(name)
 end
 
 function M.create_layout(name, args, evaluate)
+    local args = args or {}
     local cellfuncs, msg = _load(name)
     if not cellfuncs then return nil, msg end
     -- create parameters
