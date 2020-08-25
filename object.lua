@@ -8,14 +8,6 @@ local M = {}
 local meta = {}
 meta.__index = meta
 
-meta.__tostring = function(self)
-    local t = { "object:" }
-    for shape in self:iter() do
-        table.insert(t, tostring(shape))
-    end
-    return table.concat(t, "\n")
-end
-
 function M.create()
     local self = { shapes = {}, anchors = {} }
     setmetatable(self, meta)
