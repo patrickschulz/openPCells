@@ -1,10 +1,9 @@
 local M = {}
 
+local options = {}
+
 function M.get_extension()
     return "tikz"
-end
-
-local function _write_shape(file, shape)
 end
 
 function M.print_object(file, cell)
@@ -19,15 +18,23 @@ function M.print_object(file, cell)
 end
 
 function M.at_begin(file)
+    if options.standalone then
+        file:write('\\documentclass{standalone}\n')
+        file:write('\\usepackage{tikz}\n')
+        file:write('\\begin{document}\n')
+    end
     file:write('\\begin{tikzpicture}\n')
 end
 
 function M.at_end(file)
     file:write('\\end{tikzpicture}\n')
+    if options.standalone then
+        file:write('\\end{document}\n')
+    end
 end
 
 function M.get_layer(shape)
-    return "unused"
+    return shape.lpp:get().virtuoso.layer
 end
 
 function M.get_points(shape)
@@ -41,7 +48,13 @@ end
 
 function M.write_layer(file, layer, pcol)
     for _, pts in ipairs(pcol) do
-        file:write(string.format('    \\draw %s rectangle %s;\n', pts.first, pts.second))
+        file:write(string.format('    \\draw[%s] %s rectangle %s;\n', layer, pts.first, pts.second))
+    end
+end
+
+function M.set_options(opt)
+    if opt then
+        options = opt
     end
 end
 
