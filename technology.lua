@@ -182,7 +182,7 @@ local function _load_technology_file(name, what)
     if not status then
         print(ret)
         print(string.format("no %s for technology '%s' found", what, name))
-        os.exit(1)
+        os.exit(exitcodes.technotfound)
     end
     return ret
 end

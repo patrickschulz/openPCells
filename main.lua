@@ -18,6 +18,7 @@ celllib    = _load_module("cell")
 stringfile = _load_module("stringfile")
 util       = _load_module("util")
 aux        = _load_module("aux")
+exitcodes  = _load_module("exitcodes")
 
 local techlib = _load_module("technology")
 local interface = _load_module("interface")
@@ -33,22 +34,22 @@ end
 
 if not args.cell then
     print("no cell type given")
-    os.exit(1)
+    os.exit(exitcodes.nocelltype)
 end
 
 -- output cell parameters
 if args.params then
-    print("params") 
+    celllib.print_parameters(args.cell)
     os.exit(0)
 end
 
 if not args.technology then
     print("no technology given")
-    os.exit(1)
+    os.exit(exitcodes.notechnology)
 end
 if not args.interface then
     print("no interface given")
-    os.exit(1)
+    os.exit(exitcodes.nointerface)
 end
 
 techlib.load(args.technology)
@@ -58,7 +59,7 @@ local cell, msg = celllib.create_layout(args.cell, cellargs)
 
 if not cell then
     print(string.format("error while creating cell, received: %s", msg))
-    os.exit(1)
+    os.exit(exitcodes.errorincell)
 end
 
 techlib.translate_metals(cell)
