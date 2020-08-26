@@ -58,7 +58,6 @@ interface.load(args.interface)
 local cell, msg = celllib.create_layout(args.cell, cellargs)
 if args.origin then
     local dx, dy = string.match(args.origin, "%(%s*([.%d]+)%s*,%s*([.%d]+)%s*%)")
-    print(dx, dy)
     cell:translate(dx, dy)
 end
 
