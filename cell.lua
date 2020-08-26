@@ -41,7 +41,7 @@ function M.parameters(name)
     else
         cellfuncs.parameters()
     end
-    for k, v in pcell.get_params() do
+    for k, v in pcell.iter() do
         print(string.format("%s %s %s", k, v.value, v.argtype))
     end
 end
