@@ -39,7 +39,7 @@ end
 
 -- output cell parameters
 if args.params then
-    celllib.print_parameters(args.cell)
+    celllib.parameters(args.cell)
     os.exit(0)
 end
 

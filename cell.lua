@@ -32,7 +32,7 @@ function M.create_layout(name, args, evaluate)
     return cellfuncs.layout(args)
 end
 
-function M.params(name)
+function M.parameters(name)
     local cellfuncs, msg = _load(name)
     if not cellfuncs then return nil, msg end
     -- create parameters
@@ -41,7 +41,9 @@ function M.params(name)
     else
         cellfuncs.parameters()
     end
-    pcell.process(args)
+    for k, v in pcell.get_params() do
+        print(string.format("%s %s %s", k, v.value, v.argtype))
+    end
 end
 
 return M

@@ -55,11 +55,7 @@ function M.process(args, evaluate)
 end
 
 function M.get_params()
-    local P = {}
-    for k, v in pairs(params) do
-        P[k] = v.value
-    end
-    return P
+    return pairs(params)
 end
 
 return M
