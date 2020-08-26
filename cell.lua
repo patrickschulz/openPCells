@@ -42,7 +42,7 @@ function M.parameters(name)
         cellfuncs.parameters()
     end
     for k, v in pcell.iter() do
-        print(string.format("%s %s %s", k, v.value, v.argtype))
+        print(string.format("%s %s %s", tostring(k), tostring(v.value), tostring(v.argtype)))
     end
 end
 
