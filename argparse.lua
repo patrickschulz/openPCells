@@ -73,6 +73,7 @@ local actions = {
     ["--cell"]       = _store_func("cell"),
     ["-f"]           = _store_func("filename"),
     ["--filename"]   = _store_func("filename"),
+    ["--origin"]     = _consumer_string_func("origin"),
     ["--iopt"]       = _consumer_table_func("interface_options"),
 }
 

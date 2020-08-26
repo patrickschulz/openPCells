@@ -13,6 +13,6 @@ echo   "end\n"                    >> $mainfile
 cat main.lua                      >> $mainfile
 
 # make executable
-chmod 555 $mainfile
+chmod 755 $mainfile
 
 echo 'See doc/userguide/userguide.pdf for a quick start and general documentation.'
