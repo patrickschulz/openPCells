@@ -28,12 +28,12 @@ procedure(OPCcreateCell(w done pts)
 ) ; OPCcreateCell
 
 procedure(OPCplaceCell(cell)
-    ;OPCCreateOptionsForm(cell)
+    OPCCreateOptionsForm(cell)
 	enterPoint(
 		?prompts list("Enter origin")
 		?doneProc "OPCcreateCell"
-        ;?form OPCParamForm
-        ;?alwaysMap t
+        ?form OPCParamForm
+        ?alwaysMap t
 	)
 ) ; OPCplaceCell
 
@@ -94,22 +94,65 @@ procedure(OPCLayoutAddMenu(args)
 
 procedure(OPCCreateOptionsForm(cell)
     let(
-        (fieldlist field (i 0))
-        foreach(name names
-            field = hiCreateFloatField(
-                ?name stringToSymbol(name)
-                ?value 5.0
-                ?prompt name
-            )
-            fieldlist = cons(list(field 0:30*i 200:30 120) fieldlist)
+        (
+            (path "/home/pschulz/path/opc")
+            (filename "openPCells")
+            command pid exitstatus result
+            name type fieldlist field (i 0)
         )
-        hiCreateAppForm(
-            ?name 'OPCParamForm
-            ?formType 'options
-            ?formTitle "OPC Cell Parameters"
-            ?buttonLayout 'HideCancelDef
-            ?fields fieldlist
-        )
+        command = lsprintf("%s -P -C %s" path cell)
+        println(command)
+        pid = ipcBeginProcess(command)
+        ipcWait(pid) ; wait for process to finish
+        exitstatus = ipcGetExitStatus(pid)
+        result = ipcReadProcess(pid)
+        if(exitstatus != 0
+            then 
+                printf("generator exited with status %d. Message:" exitstatus)
+                printf("%s" result)
+            else
+                foreach(line parseString(result "\n")
+                    name = car(parseString(line))
+                    type = caddr(parseString(line))
+                    default = cadr(parseString(line))
+                    case(type
+                        ("number"
+                            field = hiCreateFloatField(
+                                ?name stringToSymbol(name)
+                                ?value atof(default)
+                                ?prompt name
+                            )
+                            fieldlist = cons(list(field 0:30*i 200:30 120) fieldlist)
+                            i = i + 1
+                        )
+                        ("boolean"
+                            field = hiCreateToggleField(
+                                ?name stringToSymbol(lsprintf("%s_togglefield" name))
+                                ?choices list(list(stringToSymbol(name)))
+                                ?prompt name
+                            )
+                            fieldlist = cons(list(field 0:30*i 200:30 120) fieldlist)
+                            i = i + 1
+                        )
+                        ("string"
+                            field = hiCreateStringField(
+                                ?name stringToSymbol(name)
+                                ?value default
+                                ?prompt name
+                            )
+                            fieldlist = cons(list(field 0:30*i 200:30 120) fieldlist)
+                            i = i + 1
+                        )
+                    )
+                )
+                hiCreateAppForm(
+                    ?name 'OPCParamForm
+                    ?formType 'options
+                    ?formTitle "OPC Cell Parameters"
+                    ?buttonLayout 'HideCancelDef
+                    ?fields fieldlist
+                )
+        ) ; if exitstatus
     )
 ) ; procedure
 
