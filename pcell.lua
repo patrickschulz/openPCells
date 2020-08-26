@@ -23,12 +23,16 @@ local function _unpack_param(param)
 end
 
 function M.add_parameters(...)
-    for _, param in ipairs({...}) do
+    for i, param in ipairs({...}) do
         local name, default, argtype, posvals = _unpack_param(param)
-        params[name] = { 
-            value = default,
+        local pname, dname = string.match(name, "^([^(]+)%(([^)]+)%)")
+        if not pname then pname = name end
+        params[pname] = { 
+            display = dname,
+            value   = default,
             argtype = argtype or type(default),
-            posvals = posvals
+            posvals = posvals,
+            index = i
         }
     end
 end
@@ -63,7 +67,17 @@ function M.get_params()
 end
 
 function M.iter()
-    return pairs(params)
+    local t = {}
+    for name, entry in pairs(params) do
+        t[entry.index] = {
+            name = name,
+            display = entry.display,
+            default = entry.value,
+            argtype = entry.argtype,
+            posvals = entry.posvals,
+        }
+    end
+    return ipairs(t)
 end
 
 return M

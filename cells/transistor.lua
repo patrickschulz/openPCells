@@ -1,6 +1,6 @@
 function parameters()
     pcell.add_parameters(
-        { "channeltype",     "nmos" },
+        { "channeltype(Channel Type)",     "nmos" },
         { "oxidetype",       1 },
         { "vthtype",         1 },
         { "fingers",         4 },

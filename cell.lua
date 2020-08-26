@@ -41,8 +41,8 @@ function M.parameters(name)
     else
         cellfuncs.parameters()
     end
-    for k, v in pcell.iter() do
-        print(string.format("%s %s %s", tostring(k), tostring(v.value), tostring(v.argtype)))
+    for _, v in pcell.iter() do
+        print(string.format("%s %s %s", tostring(v.name), tostring(v.default), tostring(v.argtype)))
     end
 end
 
