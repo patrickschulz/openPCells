@@ -4,14 +4,15 @@ procedure(OPCcreateCell(w done pts)
             (path "/home/pschulz/path/opc")
             (tech "cmos22fdsoi")
             (interface "virtuoso")
+            (filename "openPCells")
             (origin car(pts))
-            args command pid filename file
-            state lpp pts exitstatus
+            args command pid exitstatus 
         )
         when(done
-	        args = lsprintf("%.1f" 1.0)
+	        args = ""
             ; 'cell' is defined one level above (in OPCplaceCell)
-	        command = lsprintf("%s -T %s -I %s -C %s %s" path tech interface cell args)
+	        command = lsprintf("%s -T %s -I %s -C %s --origin '(%f, %f)' -f %s %s" path tech interface cell xCoord(origin) yCoord(origin) filename args)
+            println(command)
 	        pid = ipcBeginProcess(command)
 	        ipcWait(pid) ; wait for process to finish
 	        exitstatus = ipcGetExitStatus(pid)
@@ -19,7 +20,7 @@ procedure(OPCcreateCell(w done pts)
 	            then 
 	                printf("generator exited with status %d" exitstatus)
 	            else
-                    load("openPCells.il")
+                    load(lsprintf("%s.il" filename))
 	        ) ; if exitstatus
         ) ; when done
     )
