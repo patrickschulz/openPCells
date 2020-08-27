@@ -1,23 +1,32 @@
 cells := ../cells/momcap.lua ../cells/octagonal_inductor.lua
+documents := userguide.pdf techdoc.pdf techfiles.pdf celldesign.pdf
 
 .PHONY: all
-all: userguide/userguide.pdf techdoc/techdoc.pdf celldesign/celldesign.pdf techfiles/techfiles.pdf
+all: ${documents}
 
-userguide/userguide.pdf: userguide/userguide.tex preamble.tex
-	$(MAKE) -C userguide all
+userguide.pdf: src/userguide/main.tex src/preamble.tex
+	$(MAKE) -C src/userguide main.pdf
+	mv src/userguide/main.pdf userguide.pdf
 
-techdoc/techdoc.pdf: techdoc/techdoc.tex preamble.tex
-	$(MAKE) -C techdoc all
+techdoc.pdf: src/techdoc/main.tex src/preamble.tex
+	$(MAKE) -C src/techdoc main.pdf
+	mv src/techdoc/main.pdf techdoc.pdf
 
-celldesign/celldesign.pdf: celldesign/celldesign.tex preamble.tex ${cells}
-	$(MAKE) -C celldesign all
+celldesign.pdf: src/celldesign/main.tex src/preamble.tex ${cells}
+	$(MAKE) -C src/celldesign main.pdf
+	mv src/celldesign/main.pdf celldesign.pdf
 
-techfiles/techfiles.pdf: techfiles/techfiles.tex preamble.tex
-	$(MAKE) -C techfiles all
+techfiles.pdf: src/techfiles/main.tex src/preamble.tex
+	$(MAKE) -C src/techfiles main.pdf
+	mv src/techfiles/main.pdf techfiles.pdf
+
+# in src directories
+main.pdf:
+	lualatex -shell-escape main.tex
 
 .PHONY: clean
 clean:
-	$(MAKE) -C userguide clean
-	$(MAKE) -C techdoc clean
-	$(MAKE) -C celldesign clean
-	$(MAKE) -C techfiles clean
+	$(MAKE) -C userguide singleclean
+	$(MAKE) -C techdoc singleclean
+	$(MAKE) -C celldesign singleclean
+	$(MAKE) -C techfiles singleclean
