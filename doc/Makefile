@@ -12,7 +12,7 @@ techdoc.pdf: src/techdoc/main.tex src/preamble.tex
 	$(MAKE) -C src/techdoc main.pdf
 	mv src/techdoc/main.pdf techdoc.pdf
 
-celldesign.pdf: src/celldesign/main.tex src/preamble.tex ${cells}
+celldesign.pdf: src/celldesign/main.tex src/preamble.tex ${cells} src/celldesign/code/*
 	$(MAKE) -C src/celldesign main.pdf
 	mv src/celldesign/main.pdf celldesign.pdf
 
