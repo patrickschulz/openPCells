@@ -21,14 +21,24 @@ local function _load(name)
     return { parameters = parameters, layout = layout }
 end
 
-function M.create_layout(name, args, evaluate)
-    local args = args or {}
+function M.load_cell(name)
     local cellfuncs, msg = _load(name)
-    if not cellfuncs then return nil, msg end
-    -- create parameters
+    if not cellfuncs then
+        print(msg)
+        os.exit(exitcodes.syntaxerrorincell)
+    end
+    return cellfuncs
+end
+
+function M.load_parameters(cellfuncs, args, evaluate)
     pcell.setup()
     aux.call_if_present(cellfuncs.parameters)
-    pcell.process(args, evaluate)
+    pcell.process(args or {}, evaluate)
+end
+
+function M.create_layout(name, args, evaluate)
+    local cellfuncs = M.load_cell(name)
+    M.load_parameters(cellfuncs, args, evaluate)
     local status, cell = pcall(cellfuncs.layout, args)
     if not status then
         print(string.format("could not create cell '%s': %s", name, cell))

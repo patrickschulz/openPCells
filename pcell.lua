@@ -22,7 +22,20 @@ local function _unpack_param(param)
     return param[1], param[2], param[3], param[4]
 end
 
+local function _max_index()
+    local index = 0
+    for _, v in pairs(params) do
+        index = math.max(index, v.index)
+    end
+    return index
+end
+
+local function _add_parameter()
+end
+
 function M.add_parameters(...)
+    debug.print("pcell", "add_parameters()")
+    local start = _max_index()
     for i, param in ipairs({...}) do
         local name, default, argtype, posvals = _unpack_param(param)
         local pname, dname = string.match(name, "^([^(]+)%(([^)]+)%)")
@@ -32,14 +45,33 @@ function M.add_parameters(...)
             value   = default,
             argtype = argtype or type(default),
             posvals = posvals,
-            index = i
+            index = i + start
         }
     end
 end
 
-function M.setup()
-    -- reset parameters
-    params = {}
+function M.inherit_parameters(name, ...)
+    debug.print("pcell", "inherit_parameters()")
+    local prev = params -- store current parameters
+
+    celllib.load_parameters(celllib.load_cell(name))
+    local inherited = params -- save loaded parameters
+
+    M.setup(prev) -- reset state
+    local start = _max_index()
+    for i, k in ipairs({...}) do
+        if not inherited[k] then
+            print(string.format("trying to inherit unknown parameter '%s'", k))
+            os.exit(exitcodes.unknownparameter)
+        end
+        params[k] = inherited[k]
+        params[k].index = i + start -- fix index
+    end
+end
+
+function M.setup(p)
+    debug.print("pcell", string.format("resetting parameters (%s)", tostring(p)))
+    params = p or {}
 end
 
 function M.process(args, evaluate)

@@ -9,4 +9,5 @@ return {
     technotfound      = 6,
 
     anchornotfound    = 32,
+    unknownparameter  = 33
 }
