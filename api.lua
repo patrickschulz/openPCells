@@ -12,6 +12,8 @@ util       = _load_module("util")
 aux        = _load_module("aux")
 exitcodes  = _load_module("exitcodes")
 
+debug      = _load_module("debug")
+
 function enable(bool, value)
     return (bool and 1 or 0) * value
 end

@@ -19,6 +19,8 @@ for k, v in string.gmatch(table.concat(args.cellargs, " "), "(%w+)%s*=%s*(%S+)")
     cellargs[k] = v
 end
 
+debug.set(args.debug)
+
 if not args.cell then
     print("no cell type given")
     os.exit(exitcodes.nocelltype)

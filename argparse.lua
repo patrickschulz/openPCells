@@ -75,6 +75,9 @@ local actions = {
     ["--filename"]   = _store_func("filename"),
     ["--origin"]     = _consumer_string_func("origin"),
     ["--iopt"]       = _consumer_table_func("interface_options"),
+    ["--check"]      = _switch_func("check"),
+    ["-D"]           = _store_func("debug"),
+    ["--debug"]      = _store_func("debug"),
 }
 
 --local positional = _consumer_table_func("cellargs")
@@ -82,17 +85,20 @@ local positional = function(res, state, args)
     table.insert(res["cellargs"], args[state.i])
 end
 
+local function _get_action(state, args)
+    if not actions[args[state.i]] then
+        return positional
+    else
+        return actions[args[state.i]]
+    end
+end
+
 function M.parse(args)
     local state = { i = 1 }
     local res = { cellargs = {} }
     while state.i <= #args do
-        local arg = args[state.i]
-        local action = actions[arg]
-        if not action then
-            positional(res, state, args)
-        else
-            action(res, state, args)
-        end
+        local action = _get_action(state, args)
+        action(res, state, args)
         _advance(state)
     end
     return res
