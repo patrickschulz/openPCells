@@ -29,7 +29,12 @@ function M.create_layout(name, args, evaluate)
     pcell.setup()
     aux.call_if_present(cellfuncs.parameters)
     pcell.process(args, evaluate)
-    return cellfuncs.layout(args)
+    local status, cell = pcall(cellfuncs.layout, args)
+    if not status then
+        print(string.format("could not create cell '%s': %s", name, cell))
+        os.exit(exitcodes.syntaxerrorincell)
+    end
+    return cell
 end
 
 function M.parameters(name)
