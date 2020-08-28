@@ -80,4 +80,24 @@ function M.iter()
     return ipairs(t)
 end
 
+local meta = {
+    overwrite = function(self, mod)
+        for k, v in pairs(mod) do
+            self[k] = v
+        end
+    end,
+    modify = function(self, mod)
+        local new = M.make_options({})
+        new:overwrite(self) -- copy self
+        new:overwrite(mod)  -- overwrite options
+        return new
+    end,
+}
+meta.__index = meta
+function M.make_options(opt)
+    local opt = opt or {}
+    setmetatable(opt, meta)
+    return opt
+end
+
 return M
