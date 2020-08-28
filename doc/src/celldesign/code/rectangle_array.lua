@@ -1,30 +1,32 @@
--- put the cell inside a function
-return function(args)
-    -- process cell arguments (parameters)
-    pcell.setup(args)
-    local width  = pcell.process_args("width",  1.0)
-    local height = pcell.process_args("height", 1.0)
-    local pitch  = pcell.process_args("pitch",  2.0)
-    local rep    = pcell.process_args("rep",    10)
-    pcell.check_args()
+function parameters()
+    pcell.add_parameters(
+        { "width",  1.0 },
+        { "height", 1.0 },
+        { "pitch",  2.0 },
+        { "rep",    10  }
+    )
+end
+
+function layout()
+    local P = pcell.get_params()
 
     -- create the main object
     local obj = object.create()
 
-    -- first naive attempt
-    for i = 1, rep do
-        for j = 1, rep do
-            local o = layout.rectangle(
-                generics.metal(1), width, height
+    -- first naive (and wrong) attempt (don't use!)
+    for i = 1, P.rep do
+        for j = 1, P.rep do
+            local o = geometry.rectangle(
+                generics.metal(1), P.width, P.height
             )
             obj:merge_into(o)
         end
     end
 
     -- better approach
-    local obj = layout.multiple(
-        layout.rectangle(generics.metal(1), width, height),
-        rep, rep, pitch, pitch
+    local obj = geometry.multiple(
+        geometry.rectangle(generics.metal(1), P.width, P.height),
+        P.rep, P.rep, P.pitch, P.pitch
     )
 
     -- return the object
