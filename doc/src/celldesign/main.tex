@@ -23,45 +23,39 @@ Every cell is defined by a function where all shapes making up the shape are des
 receive one object as return value of that function.
 
 \subsection{Simple Rectangle}
-The first example is a simple rectangle of variable width and height. As mentioned, all the code for the rectangle resides in a function that we have to return (the
-whole cell is a lua module. If you are not familiar with this, just keep in mind that you have to start your file with 'return function()'). Then we will define some
-parameters of the cell and afterwards create the rectangle. Finally the created cell is returned (now from within the function, so it is the return value of the
-function. Don't confuse it with returning the function from the module).
+The first example is a simple rectangle of variable width and height. As mentioned, all the code for the rectangle resides in a function \luainline{layout()}.
+The parameters of the cell are defined in a function \luainline{parameters()}, which is optional in theory, but since we're designing pcells, there is not much point
+of leaving it out. In \luainline{layout()}, we get the defined parameters, create the rectangle and finally return the created cell.
 
 The simple rectangle looks like this:
 \lualisting{code/simple_rectangle.lua}
-Let's walk through this line-by-line (sort of). First, the function for the cell-generation is started. We also pass some arguments to the cell, which allows us to
-use parametrization.
+Let's walk through this line-by-line (sort of). First, we declare the function for the parameter definition:
 \lualisting[firstline = 2, lastline = 2]{code/simple_rectangle.lua}
-In general, every cell will include this line at some point. Next we start the argument parsing:
-\lualisting[widthgobble=4, firstline = 4, lastline = 4]{code/simple_rectangle.lua}
-This will store the argument table, so that we don't have to refer to it for every process call. Furthermore it resets internal pcell states and is needed if more
-than one cell is used.
+In the function, we add the parameters, here we use the width and the height of the rectangle:
+\lualisting[widthgobble=4, firstline = 3, lastline = 6]{code/simple_rectangle.lua}
+We can add as many parameters as we like (\luainline{pcell.add_parameters()} accepts any number of arguments). For every argument, the first entry in the table is
+the name of the parameter, the second entry is the default value. This is the simplest form, we can supply more information for finer control. We will see some
+examples of this later on.
 
-Now that we have set up the arguments, we can actually parse them:
-\lualisting[widthgobble = 4, firstline = 5, lastline = 6]{code/simple_rectangle.lua}
-Arguments are passed in key-value-pairs, we have to provide the key and the default value. The processing will parse and evaluate it's arguments depending on the
-type, which we can state explicitly (as third argument to \luainline{pcell.process_args}), but usually the type can be inferred automatically (this is not the case
-if you only allow integers for numbers, for example). The default value for both parameters is 1.0, which is a \emph{size}, meaning it has a unit. What does 1.0
-mean? It could be (and mostly will be) \SI{1}{\micro\meter}, but we don't know that yet. It depends on the technology settings, but we don't care about that here.
+The default value for both parameters is 1.0, which is a \emph{size}, meaning it has a unit. What does 1.0 mean? It could be (and mostly will be)
+\SI{1}{\micro\meter}, but we don't know that yet. It depends on the technology settings, but we don't care about that here.
 
-After we have parsed all arguments, we can check if everything went right. This will catch any wrongly spelled arguments: 
-\lualisting[widthgobble = 4, firstline = 7, lastline = 7]{code/simple_rectangle.lua}
-This is optional, but good practice.
+This is all for the \luainline{parameters()} function, so let's move on to \luainline{layout()}. Here we load the parameters for the cell (which already includes any
+parsed arguments given before the cell creation). We can store them in any variable, a common name is simply \luainline{P}. Of course it is also possible to
+\enquote{unpack} the parameters, storing them in individual variables, but for cells with many parameters this rather is a bloat.
+\lualisting[widthgobble = 4, firstline = 12, lastline = 12]{code/simple_rectangle.lua}
 
-Now that we have all the layout parameters, we can finally create the rectangle:
-\lualisting[widthgobble = 4, firstline = 10, lastline = 10]{code/simple_rectangle.lua}
-There is a lot going on here: We use the \luainline{layout.rectangle} function to create a rectangle with with and height (second and third argument). Since we are
+Now that we have all the layout parameters, we can already create the rectangle:
+\lualisting[widthgobble = 4, firstline = 15, lastline = 15]{code/simple_rectangle.lua}
+There is a lot going on here: We use the \luainline{geometry.rectangle} function to create a rectangle with with and height (second and third argument). Since we are
 creating shapes of IC geometry, we have to specify a layer. But we also want to create technology-independent pcells, so there is a generics system for layers. Right
 now we are just using the \luainline{generics.metal} function, which takes a single number as argument. \luainline{generics.metal(1)} specifies the first metal
-(counted from silicon), you can also say something like \luainline{generics.metal(-2)}, where -1 is the index of the highest metal. Lastly we save the return value
-of \luainline{layout.rectangle} in a local variable \luainline{obj}, which is a hint to the type: All layout functions return \luainline{objects}, which has some
+(counted from silicon), you can also say something like \luainline{generics.metal(-2)}, where \luainline{-1} is the index of the highest metal. Lastly we save the return value
+of \luainline{geometry.rectangle} in a local variable \luainline{obj}, which is a hint to the type: All geometry functions return \luainline{objects}, which has some
 consequences for the use of these functions. We will get into that later.
 
 That is all we have to do for the geometry of the cell, so we can return what we have created:
-\lualisting[widthgobble = 4, firstline = 13, lastline = 13]{code/simple_rectangle.lua}
-And to write correct lua we finally close the function body:
-\lualisting[firstline = 14, lastline = 14]{code/simple_rectangle.lua}
+\lualisting[widthgobble = 4, firstline = 18, lastline = 18]{code/simple_rectangle.lua}
 This cell can now be created by calling the main program with an appropriate interface and technology. Note that there's another manual about that, so we won't get
 into any details here.
 
@@ -69,26 +63,27 @@ into any details here.
 Now that we know how to create a rectangle, we want to create an entire array, that is a rectangular area made up of several individual rectangles. This could be
 used for example as filling. We will setup the cell exactly as before, we only have to add two new parameters: the repetition and the pitch (we will start with
 quadratic arrays with equal pitch in both directions):
-\lualisting[widthgobble = 4, firstline = 4, lastline = 9]{code/rectangle_array.lua}
+\lualisting[firstline = 1, lastline = 8]{code/rectangle_array.lua}
 The default arguments are \num{2.0} for the pitch and \num{10} for the number of repetitions, which creates a ten-by-ten array of rectangles with a spacing of
 \num{1.0} and a width and height of \num{1.0}. Again, remember that we don't care about real dimensions and units here.
 
 For the repetition we could use a loop to create the objects:
-\lualisting[widthgobble = 4, firstline = 15, lastline = 22]{code/rectangle_array.lua}
+\lualisting[widthgobble = 4, firstline = 17, lastline = 24]{code/rectangle_array.lua}
 Looks ok, but what's with the \luainline{obj:merge_into(o)}? This is a \emph{method} of objects and needs a little explaining of the object system. As mentioned
-earlier, every layout function creates what is called an object. An object is a collection of shapes, where each shape is made up of a layer-purpose-pair and an
-array of points (which are currently mostly interpreted as polygon). The cell generation systems expects to receive only one object from the main cell function, so
+earlier, every geometry function creates what is called an object. An object is a collection of shapes, where each shape is made up of a layer-purpose-pair and an
+points (which are currently mostly interpreted as rectangle). The cell generation systems expects to receive only one object from the main cell function, so
 how do we return more than one shape? We can merge several objects into one, which is exactly what we are doing here. We silently dropped the line about the creation
 of the main cell object \luainline{obj}, which simply looks like this (and of course comes before the loops):
-\lualisting[widthgobble = 4, firstline = 12, lastline = 12]{code/rectangle_array.lua}
-This whole way of creating is a bit cumbersome, so there is a function that does exactly that: \luainline{layout.multiple}. It takes an object as first argument and
-then the repetition in x and y and the pitch in x and y and returns an array of repeated objects with the center in the origin. With it, we can replace the whole
-loop construct with:
-\lualisting[widthgobble = 4, firstline = 25, lastline = 28]{code/rectangle_array.lua}
-\luainline{layout.multiple} also already merges all objects so we don't have to take care of that. Therefor, we receive a single object which we simply can return as
+\lualisting[widthgobble = 4, firstline = 14, lastline = 14]{code/rectangle_array.lua}
+In order for this to work, we also have to move the rectangles to the correct position, something that we didn't learn yet. This comes later, as this also involves
+some math we don't want to talk right now. Just keep in mind that the above loop is wrong and cumbersome. In any ways, there is a function that does exactly that:
+\luainline{geometry.multiple}. It takes an object as first argument and then the repetition in x and y and the pitch in x and y and returns an array of repeated
+objects with the center in the origin. With it, we can replace the whole loop construct with:
+\lualisting[widthgobble = 4, firstline = 27, lastline = 30]{code/rectangle_array.lua}
+\luainline{geometry.multiple} also already merges all objects so we don't have to take care of that. Therefor, we receive a single object which we simply can return as
 before. The whole cell looks like this:
 \lualisting{code/rectangle_array.lua}
-Now you already now how to create rectangles, the existence of generic layers, \luainline{layout.multiple} and object merging. With this, one can already built a
+Now you already now how to create rectangles, with generic layers, \luainline{geometry.multiple} and object merging. With this, one can already built a
 surprising amount of pcells. However, we have to discuss how we can create layers other than metals, vias and shapes with more complex outlines than rectangles. We
 will talk about that in the remaining cell tutorials.
 
@@ -97,53 +92,164 @@ Many technologies don't have so-called metal-insulator-metal capacitors (mimcaps
 Let's do that. As before, we set up the pcell. Useful parameters are the number of fingers, the width and height of the fingers and the spacing in between.
 Furthermore, we shift one collection of fingers (one plate) up and the other down to separate them and connect them together. Lastly, we also specify the used
 metals and the width of the connecting rails:
-\lualisting[firstline = 1, lastline = 11]{../../../cells/momcap.lua}
-As before, we create the main object:
-\lualisting[widthgobble = 4, firstline = 15, lastline = 15]{../../../cells/momcap.lua}
-For the fingers we loop over all metals. We don't have to create every finger separately, with \luainline{layout.multiple} this becomes very simple. Since the upper
-and lower fingers are one-off and \luainline{layout.multiple} centeres all objects, we only have to move them a little bit up/down. This is down with
-\luainline{translate}, which is a method of an object taking an x- and y-offset as arguments:
-\lualisting[widthgobble = 4, firstline = 17, lastline = 25]{../../../cells/momcap.lua}
+\lualisting[firstline = 1, lastline = 12]{../../../cells/momcap.lua}
+In \luainline{layout()}, we start by getting the parameters and creating the main object:
+\lualisting[widthgobble = 4, firstline = 15, lastline = 19]{../../../cells/momcap.lua}
+For the fingers we loop over all metals. We don't have to create every finger separately, with \luainline{geometry.multiple} this becomes very simple. Since the upper
+and lower fingers are one-off and \luainline{geometry.multiple} centeres all objects, we only have to move them a little bit up/down. This is done with
+\luainline{object.translate} (a method of an object), taking x- and y-offset as arguments:
+\lualisting[widthgobble = 4, firstline = 21, lastline = 29]{../../../cells/momcap.lua}
 We create two arrays of fingers, one for the \enquote{upper plate}, one for the \enquote{lower plate}. All fingers have the same width, height and pitch. For the
-upper plate, we use one more finger, the placement in \luainline{layout.multiple} automatically arranges them centered, so that this \enquote{just works}.
+upper plate, we use one more finger, the placement in \luainline{geometry.multiple} automatically arranges them centered, so that this \enquote{just works}.
+The \param{ypitch} for \luainline{geometry.multiple} is \num{0}, which is ok since we only have a \param{yrep} of \num{1}. 
 
 The rails connecting the fingers are created in a similar manner:
-\lualisting[widthgobble = 4, firstline = 27, lastline = 33]{../../../cells/momcap.lua}
-The \param{xpitch} for \luainline{layout.multiple} is \num{0}, which is ok since we only have a \param{xrep} of \num{1}. The \luainline{end} delimits the for loop.
+\lualisting[widthgobble = 4, firstline = 31, lastline = 37]{../../../cells/momcap.lua}
+The \luainline{end} delimits the \luainline{for}-loop.
 
 What remains is the drawing of the vias between the metals. For this we introduce a new \luainline{generics} function: \luainline{generics.via}. It takes two
 arguments for the start- and end-metal for the via stack. We don't have to specify the individual vias between each layer in the stack, this is resolved later by the
 technology translation.
-\lualisting[widthgobble = 4, firstline = 34, lastline = 39]{../../../cells/momcap.lua}
+\lualisting[widthgobble = 4, firstline = 38, lastline = 43]{../../../cells/momcap.lua}
 With this the pcell is finished, we only have to remember to return the created object and close the function:
-\lualisting[firstline = 41, lastline = 42]{../../../cells/momcap.lua}
+\lualisting[firstline = 45, lastline = 46]{../../../cells/momcap.lua}
+The entire listing is in \texttt{cells/momcap.lua}.
 
 \subsection{Octagonal Inductor}
 RF designs often require on-chip inductors, which usually are built in an octagonal shape due to angle restrictions in most technologies (no true circles or better
 approximations available). We will show how to built a differential (symmetric) octagonal inductor with a variable number of turns (integers). We will skip some
-basic techniques that we already discussed a few times such as setting up the cell body, cell parameters, main object and return value.
+basic techniques that we already discussed a few times such as setting up the cell body, cell parameters, main object and return value. Look into
+\texttt{cells/octagonal\_inductor.lua} for the defined parameters.
 
-An inductor is basically a wire routed in a special manner, therefor we will describe the inductor as a \luainline{path}. This is a series of points that gets converted
-into a polygon with a width. To create a path, we have to pass the points, which we will store in a \luainline{pointarray}. Internally, most of the layout functions
-and shapes work with pointarrays, but for simpler cells we don't need to deal with them. Here is how this looks for the octagonal inductor:
-\lualisting[widthgobble = 8, firstline = 30, lastline = 37]{../../../cells/octagonal_inductor.lua}
+An inductor is basically a wire routed in a special manner, therefor we will describe the inductor as a \luainline{path}. This is a series of points that gets
+converted into a polygon with a \luainline{width}. To create a path, we have to pass the points, which we will store in a \luainline{table}. Here is how this looks
+for the octagonal inductor: 
+\lualisting[widthgobble = 8, firstline = 32, lastline = 40]{../../../cells/octagonal_inductor.lua} 
+\luainline{util.make_append_xy} is a helper functions, that returns a function that appends points to an array. It's purpose is to simplify code, one might as well
+just use \luainline{table.insert}.
+
 This is just an excerpt from the cell, the entire code generating the path points is a bit complex and involves some mathematical thoughts. Since this tutorial is
 about how to build the code for cells, the actual points will not be discussed.
 
 After the points are assembled, we can create the path. The cell only draws half of the inductor, so we draw the path twice, one time with mirrored points (notice
-\luainline{pathpts:xmirror()} in the second line):
-\lualisting[widthgobble = 8, firstline = 83, lastline = 84]{../../../cells/octagonal_inductor.lua}
-The \luainline{layout.path} function takes four arguments: the layer, the points of the path, the width and whether to use a miter- or a bevel-join. Bevel-join is
+\luainline{util.xmirror(pathpts)} in the second line):
+\lualisting[widthgobble = 8, firstline = 86, lastline = 91]{../../../cells/octagonal_inductor.lua}
+The \luainline{geometry.path} function takes four arguments: the layer, the points of the path, the width and whether to use a miter- or a bevel-join. Bevel-join is
 default, so \luainline{true} is specified for a miter-join.
 
 \section{Available PCells}
+In the following subsections, all available cells will be documented. The current status is rather a poor one, but work is ongoing.
+\subsection{Transistor}
+The transistor might be the most important cell and currently it's also definitely the most complex one. Therefor, this documentation starts with a description of
+the goal. Figure \ref{fig:transistor} shows an example with all geometrical parameters, a summary of all parameters can be found in table \ref{tab:transistor}. The
+cell draws a number of gates on top of an active area (with some implant/well/etc. markers). 
+\begin{figure}[htb]
+    \centering
+    \definecolor{activegreen}{RGB}{0,204,102}
+    \begin{tikzpicture}
+        [
+            %marker/.style = {draw = yellow, pattern = dots, pattern color = yellow},
+            %active/.style = {draw = activegreen, pattern = grid, pattern color = activegreen},
+            %gate/.style = {draw = red, pattern = crosshatch, pattern color = red},
+            %metal/.style = {draw = blue, pattern = crosshatch dots, pattern color = blue},
+            marker/.style = {draw = none, fill = yellow, opacity = 0.5},
+            active/.style = {draw = none, fill = activegreen},
+            gate/.style = {draw = none, fill = red},
+            metal/.style = {draw = none, fill = blue, opacity = 0.5},
+            annotation/.style = {<->, >=stealth, very thick}
+        ]
+        \def\fingers{4}
+        \def\flength{0.5}
+        \def\fwidth{4}
+        \def\fspace{2}
+        \def\gtopext{1}
+        \def\gbotext{1}
+        \def\gatestrwidth{0.75}
+        \def\sdwidth{0.8}
+        \def\actext{1.0}
+        % active marker
+        \draw[marker] ({-0.5 * \fingers * (\flength + \fspace) - \actext}, {-0.5 * \fwidth - \actext}) rectangle 
+                      ({ 0.5 * \fingers * (\flength + \fspace) + \actext}, { 0.5 * \fwidth + \actext});
+        % active
+        \draw[active] ({-0.5 * \fingers * (\flength + \fspace)}, {-0.5 * \fwidth}) rectangle 
+                      ({ 0.5 * \fingers * (\flength + \fspace)}, { 0.5 * \fwidth});
+        % active
+        \draw[active] ({-0.5 * \fingers * (\flength + \fspace)}, {-0.5 * \fwidth}) rectangle ({0.5 * \fingers * (\flength + \fspace)}, {0.5 * \fwidth});
+        % gates
+        \foreach \x in {1, ..., \fingers}
+        {
+            \draw[gate] ({\fspace * (\x - 0.5 * (\fingers - 1) - 1) - 0.5 * \flength}, { -0.5 * \fwidth - \gbotext}) rectangle 
+                        ({\fspace * (\x - 0.5 * (\fingers - 1) - 1) + 0.5 * \flength}, {  0.5 * \fwidth + \gtopext});
+        }
+        % metal
+        \draw[metal] ({-0.5 * \fingers * (\flength + \fspace)}, {-0.5 * \gatestrwidth + 0.5 * \fwidth + \gtopext}) rectangle 
+                     ({ 0.5 * \fingers * (\flength + \fspace)}, { 0.5 * \gatestrwidth + 0.5 * \fwidth + \gtopext});
+        \draw[metal] ({-0.5 * \fingers * (\flength + \fspace)}, {-0.5 * \gatestrwidth - 0.5 * \fwidth - \gbotext}) rectangle 
+                     ({ 0.5 * \fingers * (\flength + \fspace)}, { 0.5 * \gatestrwidth - 0.5 * \fwidth - \gbotext});
+        \foreach \x in {0, ..., \fingers}
+        {
+            \draw[metal] ({\fspace * (\x - 0.5 * \fingers) - 0.5 * \sdwidth}, { -0.5 * \fwidth}) rectangle 
+                         ({\fspace * (\x - 0.5 * \fingers) + 0.5 * \sdwidth}, {  0.5 * \fwidth});
+        }
+        % annotations
+        \draw[annotation] ({-0.5 * \fingers * (\flength + \fspace)}, {-0.5 * \fwidth}) -- node[left] {fwidth} ({-0.5 * \fingers * (\flength + \fspace)}, {0.5 * \fwidth});
+        \draw[annotation] ({\fspace * (1 - 0.5 * (\fingers - 1) - 1) - 0.5 * \flength}, {-0.25 * \fwidth}) -- node[below] {flength} ++(\flength, 0);
+        \draw[annotation] ({\fspace * (1 - 0.5 * (\fingers - 1) - 1) + 0.5 * \flength}, { 0.25 * \fwidth}) -- node[below] {fspace}  ++({\fspace - \flength}, 0);
+        \draw[annotation] ({\fspace * (\fingers - 0.5 * (\fingers - 1) - 1) + 0.5 * \flength}, { -0.5 * \fwidth - \gbotext}) -- node[right] {gbotext} ++(0,  \gbotext);
+        \draw[annotation] ({\fspace * (\fingers - 0.5 * (\fingers - 1) - 1) + 0.5 * \flength}, {  0.5 * \fwidth + \gtopext}) -- node[right] {gtopext} ++(0, -\gbotext);
+        \draw[annotation] ({\fspace * (3 - 0.5 * \fingers) - 0.5 * \sdwidth}, { 0.25 * \fwidth}) -- node[below] {sdwidth}  ++(\sdwidth, 0);
+        \draw[annotation] ({ 0.5 * \fingers * (\flength + \fspace)}, 0) -- node[above] {actext} ++(\actext, 0);
+    \end{tikzpicture}
+    \caption{Overview of the transistor}
+    \label{fig:transistor}
+\end{figure}
+Furthermore, it draws some metals and vias (not shown in figure \ref{fig:transistor}) in the source/drain regions and for gate contacts.
+
+\begin{table}[htb]
+    \centering
+    \begin{tabular}{llc}
+        \toprule
+        Parameter & Meaning & Default \\
+        \midrule
+        channeltype     & Type of Transistor & "nmos" \\
+        oxidetype       & Oxide Thickness Index & 1 \\
+        vthtype         & Threshold Voltage Index & 1 \\
+        fingers         & Number of Fingers& 4 \\
+        fwidth          & Finger Width & 1.0 \\
+        gatelength      & Finger Length & 0.15 \\
+        fspace          & Space between Fingers & 0.27 \\
+        actext          & Left/Right Extension of Active Area & 0.03 \\
+        sdwidth         & Width of Source/Drain Metals & 0.2 \\
+        sdconnwidth     & Width of Source/Drain Connection Rails Metal & 0.2 \\
+        sdconnspace     & Space of Source/Drain Connection Rails Metal & 0.2 \\
+        gtopext         & Gate Top Extension & 0.2 \\
+        gbotext         & Gate Bottom Extension & 0.2 \\
+        typext          & Implant/Well Extension around Active & 0.1 \\
+        cliptop         & Clip Top Marking Layers (Implant, Well, etc.) & false \\
+        clipbot         & Clip Bottom Marking Layers (Implant, Well, etc.) & false \\
+        drawtopgate     & Draw Top Gate Strap & false \\
+        drawbotgate     & Draw Bottom Gate Strap & false \\
+        topgatestrwidth && 0.12 \\
+        topgatestrext   && 1 \\
+        botgatestrwidth && 0.12 \\
+        botgatestrext   && 1 \\
+        topgcut         & Draw Top Poly Cut & false \\
+        botgcut         & Draw Bottom Poly Cut & false \\
+        connectsource   & Connect all Sources together & false \\
+        connectdrain    & Connect all Drains together & false\\
+        \bottomrule
+    \end{tabular}
+    \caption{Summary of Transistor Parameters}
+    \label{tab:transistor}
+\end{table}
+
 \section{API Documentation}
-\subsection{Layout Module}
-\begin{apifunc}{layout.rectangle(layer, width, height)} 
+\subsection{geometry Module}
+\begin{apifunc}{geometry.rectangle(layer, width, height)} 
     Create a rectangular shape with a width of \param{width} and a height of \param{height} in the layer-purpose-pair \param{layer} (usually a generic). The function
     returns an object.
 \end{apifunc}
-\begin{apifunc}{layout.multiple(obj, xrep, yrep, xpitch, ypitch)} 
+\begin{apifunc}{geometry.multiple(obj, xrep, yrep, xpitch, ypitch)} 
     Creates a rectangular array (mosaic) of an object with \param{xrep} repetitions in x and \param{yrep} repetitions in y. \param{xpitch} and \param{ypitch} are the
     center-to-center space in x and y direction. The entire array gets centered. The function returns the merged objects.
 \end{apifunc}
