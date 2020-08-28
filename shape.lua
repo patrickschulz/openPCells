@@ -119,6 +119,18 @@ function meta.translate(self, dx, dy)
     return self
 end
 
+function meta.rotate(self, angle)
+    if self.typ == "polygon" then
+        for _, pt in ipairs(self.points) do
+            pt:rotate(angle)
+        end
+    elseif self.typ == "rectangle" then
+        self.points.bl:rotate(angle)
+        self.points.tr:rotate(angle)
+    end
+    return self
+end
+
 function meta.scale(self, factor)
     if self.typ == "polygon" then
         for _, pt in ipairs(self.points) do

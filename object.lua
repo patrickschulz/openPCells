@@ -66,6 +66,16 @@ function meta.translate(self, dx, dy)
     return self
 end
 
+function meta.rotate(self, angle)
+    for _, shape in ipairs(self.shapes) do
+        shape:rotate(angle)
+    end
+    for _, anchor in pairs(self.anchors) do
+        anchor:rotate(angle)
+    end
+    return self
+end
+
 function meta.bounding_box(self)
     local minx =  math.huge
     local maxx = -math.huge
@@ -101,6 +111,10 @@ end
 function meta.move_anchor(self, name, where)
     local where = where or point.create(0, 0)
     local pt = self.anchors[name]
+    if not pt then
+        print(string.format("anchor '%s' is unknown", name))
+        os.exit(exitcodes.anchornotfound)
+    end
     self:translate(where.x - pt.x, where.y - pt.y)
     return self
 end

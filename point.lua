@@ -30,6 +30,13 @@ function meta.translate(self, dx, dy)
     return self
 end
 
+function meta.rotate(self, angle)
+    local x, y = self:unwrap()
+    self.x = x * math.cos(angle) - y * math.sin(angle)
+    self.y = x * math.sin(angle) + y * math.cos(angle)
+    return self
+end
+
 function meta.scale(self, factor)
     self.x = self.x * factor
     self.y = self.y * factor
