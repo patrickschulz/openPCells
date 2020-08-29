@@ -17,6 +17,7 @@ local evaluators = {
 }
 
 local params 
+local overrides = {}
 
 local function _unpack_param(param)
     return param[1], param[2], param[3], param[4]
@@ -54,7 +55,7 @@ function M.inherit_parameters(name, ...)
     debug.print("pcell", "inherit_parameters()")
     local prev = params -- store current parameters
 
-    celllib.load_parameters(celllib.load_cell(name))
+    celllib.load_cell(name)
     local inherited = params -- save loaded parameters
 
     M.setup(prev) -- reset state
@@ -75,6 +76,7 @@ function M.setup(p)
 end
 
 function M.process(args, evaluate)
+    local args = args or {}
     for name, value in pairs(args) do
         if not params[name] then
             print(string.format("argument '%s' was not used, maybe it was spelled wrong?", name))
@@ -86,6 +88,24 @@ function M.process(args, evaluate)
             param.value = eval(value) -- replace default value
         else
             param.value = value
+        end
+    end
+end
+
+function M.override_defaults(cell, ...)
+    if not overrides[cell] then overrides[cell] = {} end
+    local ov = overrides[cell]
+    for _, p in ipairs({...}) do
+        local name = p[1]
+        local value = p[2]
+        ov[name] = value
+    end
+end
+
+function M.set_overrides(cell)
+    if overrides[cell] then
+        for name, value in pairs(overrides[cell]) do
+            params[name].value = value
         end
     end
 end

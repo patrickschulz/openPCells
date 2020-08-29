@@ -21,25 +21,23 @@ local function _load(name)
     return { parameters = parameters, layout = layout }
 end
 
-function M.load_cell(name)
+function M.load_cell(name, args, evaluate)
+    debug.print("cell", string.format("loading cell '%s'", name))
     local cellfuncs, msg = _load(name)
     if not cellfuncs then
         print(msg)
         os.exit(exitcodes.syntaxerrorincell)
     end
+    pcell.setup()
+    aux.call_if_present(cellfuncs.parameters)
+    pcell.process(args, evaluate)
+    pcell.set_overrides(name)
     return cellfuncs
 end
 
-function M.load_parameters(cellfuncs, args, evaluate)
-    pcell.setup()
-    aux.call_if_present(cellfuncs.parameters)
-    pcell.process(args or {}, evaluate)
-end
-
 function M.create_layout(name, args, evaluate)
-    local cellfuncs = M.load_cell(name)
-    M.load_parameters(cellfuncs, args, evaluate)
-    local status, cell = pcall(cellfuncs.layout, args)
+    local cellfuncs = M.load_cell(name, args, evaluate)
+    local status, cell = pcall(cellfuncs.layout)
     if not status then
         print(string.format("could not create cell '%s': %s", name, cell))
         os.exit(exitcodes.syntaxerrorincell)
@@ -48,14 +46,7 @@ function M.create_layout(name, args, evaluate)
 end
 
 function M.parameters(name)
-    local cellfuncs, msg = _load(name)
-    if not cellfuncs then return nil, msg end
-    -- create parameters
-    pcell.setup()
-    if not cellfuncs.parameters then
-    else
-        cellfuncs.parameters()
-    end
+    local cellfuncs = M.load_cell(name)
     for _, v in pcell.iter() do
         print(string.format("%s %s %s", tostring(v.name), tostring(v.default), tostring(v.argtype)))
     end
