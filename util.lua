@@ -43,18 +43,29 @@ function M.reverse(pts)
     return new
 end
 
-function M.make_append_xy(pts) 
-    return function(x, y) table.insert(pts, point.create(x, y)) end
-end
-
-function M.make_append_pts(pts) 
-    return function(...) 
-        for _, pt in ipairs({ ... }) do 
-            table.insert(pts, pt)
-        end
+function M.make_insert_xy(pts, idx) 
+    if idx then
+        return function(x, y) table.insert(pts, idx, point.create(x, y)) end
+    else
+        return function(x, y) table.insert(pts, point.create(x, y)) end
     end
 end
 
+function M.make_insert_pts(pts, idx) 
+    if idx then
+        return function(...) 
+            for _, pt in ipairs({ ... }) do 
+                table.insert(pts, idx, pt)
+            end
+        end
+    else
+        return function(...) 
+            for _, pt in ipairs({ ... }) do 
+                table.insert(pts, pt)
+            end
+        end
+    end
+end
 
 function M.is_point_in_polygon(pt, pts)
     local j = #pts
