@@ -14,6 +14,7 @@ exitcodes  = _load_module("exitcodes")
 
 debug      = _load_module("debug")
 
+-- FIXME: put this somewhere else (and is this really the best name?)
 function enable(bool, value)
     return (bool and 1 or 0) * value
 end
