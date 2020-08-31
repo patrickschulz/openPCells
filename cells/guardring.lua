@@ -1,32 +1,32 @@
-return function(args)
-    pcell.setup(args)
+function parameters()
+    pcell.add_parameters(
+        { "type",         "p" },
+        { "width",        5.0 },
+        { "height",       5.0 },
+        { "ringwidth",    0.2 },
+        { "extension",    0.05 },
+        { "fillwell",     true },
+        { "drawdeepwell", false }
+    )
+end
 
-    local contype      = pcell.process_args("type",         "p")
-    local width        = pcell.process_args("width",        5.0)
-    local height       = pcell.process_args("height",       5.0)
-    local ringwidth    = pcell.process_args("ringwidth",    0.2)
-    local extension    = pcell.process_args("extension",    0.05)
-    local fillwell     = pcell.process_args("fillwell",     true)
-    local drawdeepwell = pcell.process_args("drawdeepwell", false)
-
-    pcell.check_args()
-
+function layout()
     local guardring = object.create()
 
     -- active, implant and SOI opening
-    guardring:merge_into(layout.ring(generics.other("active"), width, height, ringwidth))
-    guardring:merge_into(layout.ring(generics.other(string.format("%simpl", contype)), width, height, ringwidth + extension))
-    guardring:merge_into(layout.ring(generics.other("soiopen"), width, height, ringwidth + extension))
+    guardring:merge_into(layout.ring(generics.other("active"), _P.width, _P.height, _P.ringwidth))
+    guardring:merge_into(layout.ring(generics.other(string.format("%simpl", contype)), _P.width, _P.height, _P.ringwidth + _P.extension))
+    guardring:merge_into(layout.ring(generics.other("soiopen"), _P.width, _P.height, _P.ringwidth + _P.extension))
 
     -- well
-    if fillwell then
-        guardring:merge_into(layout.rectangle(generics.other(string.format("%swell", contype)), width + ringwidth + extension, height + ringwidth + extension))
+    if _P.fillwell then
+        guardring:merge_into(layout.rectangle(generics.other(string.format("%swell", contype)), _P.width + _P.ringwidth + _P.extension, _P.height + _P.ringwidth + _P.extension))
     else
-        guardring:merge_into(layout.ring(generics.other(string.format("%swell", contype)), width, height, ringwidth + extension))
+        guardring:merge_into(layout.ring(generics.other(string.format("%swell", contype)), _P.width, _P.height, _P.ringwidth + _P.extension))
     end
     -- draw deep n/p-well
-    if drawdeepwell then
-        guardring:merge_into(layout.rectangle(generics.other(string.format("deep%swell", contype)), width + ringwidth + extension, height + ringwidth + extension))
+    if _P.drawdeepwell then
+        guardring:merge_into(layout.rectangle(generics.other(string.format("deep%swell", contype)), _P.width + _P.ringwidth + _P.extension, _P.height + _P.ringwidth + _P.extension))
     end
 
     return guardring

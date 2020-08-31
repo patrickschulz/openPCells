@@ -28,20 +28,26 @@ function M.load_cell(name, args, evaluate)
         print(msg)
         os.exit(exitcodes.syntaxerrorincell)
     end
-    pcell.setup()
-    aux.call_if_present(cellfuncs.parameters)
-    pcell.process(args, evaluate)
-    pcell.set_overrides(name)
+    debug.down()
+    pcell.process(cellfuncs.parameters, name, args, evaluate)
+    debug.up()
     return cellfuncs
 end
 
 function M.create_layout(name, args, evaluate)
+    debug.print("cell", string.format("creating layout '%s'", name))
+    debug.down()
     local cellfuncs = M.load_cell(name, args, evaluate)
+    local _P_old = _P
+    _P = pcell.get_parameters(name)
     local status, cell = pcall(cellfuncs.layout)
     if not status then
         print(string.format("could not create cell '%s': %s", name, cell))
         os.exit(exitcodes.syntaxerrorincell)
     end
+    -- restore _P
+    _P = _P_old
+    debug.up()
     return cell
 end
 

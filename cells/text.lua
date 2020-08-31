@@ -571,7 +571,7 @@ local letteroutlines = {
         { x = 0.10, y = 0.90 },
         { x = 0.00, y = 0.90 },
     },
-    ["P"] = {
+    ["_P"] = {
         { x = 0.00, y = 0.00 },
         { x = 0.20, y = 0.00 },
         { x = 0.20, y = 0.40 },
@@ -1008,19 +1008,17 @@ function parameters()
 end
 
 function layout()
-    local P = pcell.get_params()
-
     local text = object.create()
 
     local shift = 1
     local x = 0
     local y = 0
     local lastwidth = 0
-    for i = 1, #P.text do
-        local char = string.sub(string.upper(P.text), i, i)
+    for i = 1, #_P.text do
+        local char = string.sub(string.upper(_P.text), i, i)
         if char == "\n" then
             x = 0
-            y = y - 1 - P.leading
+            y = y - 1 - _P.leading
         else
             local outline = letteroutlines[char]
             if outline then
@@ -1029,8 +1027,8 @@ function layout()
                     table.insert(S.points, point.create(pt.x, pt.y))
                 end
                 S:translate(x, y)
-                x = x + S:width() + P.spacing
-                S:scale(P.scale)
+                x = x + S:width() + _P.spacing
+                S:scale(_P.scale)
                 text:add_shape(S)
             end
         end

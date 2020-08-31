@@ -10,21 +10,19 @@ function parameters()
 end
 
 function layout()
-    local P = pcell.get_params()
-
     -- calculate center of auxiliary circle
-    local xc = -0.5 * P.separation - P.cornerradius
-    local yc = -P.grid * math.floor(math.sqrt((P.radius + P.cornerradius)^2 - xc^2) / P.grid)
+    local xc = -0.5 * _P.separation - _P.cornerradius
+    local yc = -_P.grid * math.floor(math.sqrt((_P.radius + _P.cornerradius)^2 - xc^2) / _P.grid)
 
     -- ** Inner part **
     -- calculate meeting point
-    local xm = xc * P.radius / (P.cornerradius + P.radius)
-    local ym = yc * P.radius / (P.cornerradius + P.radius)
+    local xm = xc * _P.radius / (_P.cornerradius + _P.radius)
+    local ym = yc * _P.radius / (_P.cornerradius + _P.radius)
 
-    local main = graphics.quartercircle(3, 0, 0, P.radius, P.grid)
-    local aux  = graphics.quartercircle(1, xc, yc, P.cornerradius, P.grid)
+    local main = graphics.quartercircle(3, 0, 0, _P.radius, _P.grid)
+    local aux  = graphics.quartercircle(1, xc, yc, _P.cornerradius, _P.grid)
 
-    local inner = util.reverse(graphics.quartercircle(2, 0, 0, P.radius, P.grid)) -- start with topleft quarter circle
+    local inner = util.reverse(graphics.quartercircle(2, 0, 0, _P.radius, _P.grid)) -- start with topleft quarter circle
     util.merge(inner, util.filter_forward(main, function(pt) return pt.x < xm end))
     util.merge(inner, util.filter_backward(aux, function(pt) return pt.x >= xm end))
     -- mirror points and append
@@ -33,13 +31,13 @@ function layout()
 
     -- ** Outer part **
     -- calculate meeting point
-    xm = xc * (P.radius + P.width) / (P.cornerradius + P.radius)
-    ym = yc * (P.radius + P.width) / (P.cornerradius + P.radius)
+    xm = xc * (_P.radius + _P.width) / (_P.cornerradius + _P.radius)
+    ym = yc * (_P.radius + _P.width) / (_P.cornerradius + _P.radius)
 
-    main  = graphics.quartercircle(3, 0, 0, P.radius + P.width, P.grid)
-    aux   = graphics.quartercircle(1, xc, yc, P.cornerradius - P.width, P.grid)
+    main  = graphics.quartercircle(3, 0, 0, _P.radius + _P.width, _P.grid)
+    aux   = graphics.quartercircle(1, xc, yc, _P.cornerradius - _P.width, _P.grid)
 
-    local outer = util.reverse(graphics.quartercircle(2, 0, 0, P.radius + P.width, P.grid)) -- start with topleft quarter circle
+    local outer = util.reverse(graphics.quartercircle(2, 0, 0, _P.radius + _P.width, _P.grid)) -- start with topleft quarter circle
     util.merge(outer, util.filter_forward(main, function(pt) return pt.x < xm end))
     util.merge(outer, util.filter_backward(aux, function(pt) return pt.x >= xm end))
     -- mirror points and append
