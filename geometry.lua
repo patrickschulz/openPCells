@@ -7,7 +7,7 @@ end
 
 function M.cross(layer, width, height, crosssize)
     local S = shape.create_polygon(layer)
-    local append = util.make_append_xy(S.points)
+    local append = util.make_insert_xy(S.points)
     append(-0.5 * width,     -0.5 * crosssize)
     append(-0.5 * width,      0.5 * crosssize)
     append(-0.5 * crosssize,  0.5 * crosssize)
@@ -26,7 +26,7 @@ end
 
 function M.ring(layer, width, height, ringwidth)
     local S = shape.create_polygon(layer)
-    local append = util.make_append_xy(S.points)
+    local append = util.make_insert_xy(S.points)
     append(-0.5 * (width + ringwidth), -0.5 * (height + ringwidth))
     append( 0.5 * (width + ringwidth), -0.5 * (height + ringwidth))
     append( 0.5 * (width + ringwidth),  0.5 * (height + ringwidth))
