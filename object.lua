@@ -76,6 +76,29 @@ function meta.rotate(self, angle)
     return self
 end
 
+function meta.width_height(self)
+    local minx =  math.huge
+    local maxx = -math.huge
+    local miny =  math.huge
+    local maxy = -math.huge
+    for shape in self:iter() do
+        if shape.typ == "polygon" then
+            for _, pt in ipairs(shape.points) do
+                minx = math.min(minx, pt.x)
+                maxx = math.max(maxx, pt.x)
+                miny = math.min(miny, pt.y)
+                maxy = math.max(maxy, pt.y)
+            end
+        elseif shape.typ == "rectangle" then
+            minx = math.min(minx, shape.points.bl.x, shape.points.tr.x)
+            maxx = math.max(maxx, shape.points.bl.x, shape.points.tr.x)
+            miny = math.min(miny, shape.points.bl.y, shape.points.tr.y)
+            maxy = math.max(maxy, shape.points.bl.y, shape.points.tr.y)
+        end
+    end
+    return maxx - minx, maxy - miny
+end
+
 function meta.bounding_box(self)
     local minx =  math.huge
     local maxx = -math.huge
