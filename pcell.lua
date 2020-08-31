@@ -97,7 +97,7 @@ function M.add_parameters(...)
     end
 end
 
-function M.add_bind_parameter(name, othercell, othername)
+function M.bind_parameter(name, othercell, othername)
     debug.print("pcell", string.format("add_bind_parameter(%s, %s, %s) (currentcell = %s)", name, othercell, othername, currentcell))
     if not overrides[othercell] then overrides[othercell] = {} end
     local ov = overrides[othercell]
@@ -138,7 +138,7 @@ function M.inherit_and_bind_parameter(othercell, name)
     paramdir[currentcell][name] = inherited[name]
     paramdir[currentcell][name].index = start + 1 -- fix index
     
-    pcell.add_bind_parameter(name, othercell, name)
+    pcell.bind_parameter(name, othercell, name)
 end
 
 function M.override_defaults(othercell, ...)
