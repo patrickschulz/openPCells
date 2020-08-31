@@ -1,12 +1,9 @@
 function parameters()
-    pcell.add_bind_parameter("gatelen", "transistor", "gatelength")
-    --pcell.inherit_and_bind_parameter("transistor", "gatelength")
-    --pcell.inherit_parameters("transistor", "gatelength")
+    pcell.inherit_and_bind_parameter("transistor", "gatelength")
     pcell.add_parameters(
         { "ifingers", 4 },
         { "ofingers", 4 },
-        { "gatestrapspace", 0.2 },
-        { "gatelen", 0.2 }
+        { "gatestrapspace", 0.2 }
     )
 end
 
@@ -21,8 +18,7 @@ function layout()
         gtopext = 0.5, gbotext = 0.5,
     })
 
-    --local mosdiode = celllib.create_layout("transistor", options)
-    local mosdiode = celllib.create_layout("transistor")
+    local mosdiode = celllib.create_layout("transistor", options)
     currentmirror:merge_into(mosdiode)
 
     -- diode connections

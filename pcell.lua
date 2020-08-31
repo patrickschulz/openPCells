@@ -34,12 +34,13 @@ end
 
 local function _process(args, evaluate)
     local args = args or {}
+    local params = paramdir[currentcell]
     for name, value in pairs(args) do
-        if not currentparams[name] then
+        if not params[name] then
             print(string.format("argument '%s' was not used, maybe it was spelled wrong?", name))
             os.exit(1)
         end
-        local param = currentparams[name]
+        local param = params[name]
         if evaluate then
             local eval = evaluators[param.argtype]
             param.value = eval(value) -- replace default value
@@ -50,12 +51,13 @@ local function _process(args, evaluate)
 end
 
 local function _set_overrides(cellname)
+    local params = paramdir[currentcell]
     if overrides[cellname] then
         for name, value in pairs(overrides[cellname]) do
             if value.func then
-                currentparams[name].value = M.get_parameter(value.func.cell, value.func.name)
+                params[name].value = M.get_parameter(value.func.cell, value.func.name)
             else
-                currentparams[name].value = value.value
+                params[name].value = value.value
             end
         end
     end
@@ -71,7 +73,7 @@ local function _add_parameter(param, index, start)
     debug.print("pcell", string.format("_add_parameter(%s)", param[1]))
     local name, default, argtype, posvals = _unpack_param(param)
     local pname, dname = _get_pname_dname(name)
-    currentparams[pname] = { 
+    paramdir[currentcell][pname] = { 
         display = dname,
         value   = default,
         argtype = argtype or type(default),
@@ -84,13 +86,12 @@ local function _set_cell(cellname)
     debug.print("pcell", string.format("_set_cell() with '%s'", cellname))
     paramdir[cellname] = {}
     currentcell = cellname
-    currentparams = paramdir[cellname]
 end
 
 -- public functions
 function M.add_parameters(...)
     debug.print("pcell", string.format("add_parameters() for '%s'", currentcell))
-    local start = _max_index(currentparams)
+    local start = _max_index(paramdir[currentcell])
     for i, param in ipairs({...}) do
         _add_parameter(param, i, start)
     end
@@ -105,19 +106,39 @@ function M.add_bind_parameter(name, othercell, othername)
 end
 
 function M.inherit_parameter(othercell, name)
-    debug.print("pcell", "inherit_parameters()")
-    local prev = params -- store current parameters
+    debug.print("pcell", string.format("inherit_parameters(%s, %s)", othercell, name))
 
+    local _currentcell = currentcell -- save current cell name
     celllib.load_cell(othercell)
-    local inherited = params -- save loaded parameters
+    local inherited = paramdir[othercell]
+    currentcell = _currentcell -- restor current cell name
 
-    local start = _max_index()
+    local start = _max_index(paramdir[currentcell])
     if not inherited[name] then
         print(string.format("trying to inherit unknown parameter '%s'", k))
         os.exit(exitcodes.unknownparameter)
     end
-    currentparams[name] = inherited[name]
-    currentparams[name].index = start + 1 -- fix index
+    paramdir[currentcell][name] = inherited[name]
+    paramdir[currentcell][name].index = start + 1 -- fix index
+end
+
+function M.inherit_and_bind_parameter(othercell, name)
+    debug.print("pcell", string.format("inherit_parameters(%s, %s)", othercell, name))
+
+    local _currentcell = currentcell -- save current cell name
+    celllib.load_cell(othercell)
+    local inherited = paramdir[othercell]
+    currentcell = _currentcell -- restor current cell name
+
+    local start = _max_index(paramdir[currentcell])
+    if not inherited[name] then
+        print(string.format("trying to inherit unknown parameter '%s'", k))
+        os.exit(exitcodes.unknownparameter)
+    end
+    paramdir[currentcell][name] = inherited[name]
+    paramdir[currentcell][name].index = start + 1 -- fix index
+    
+    pcell.add_bind_parameter(name, othercell, name)
 end
 
 function M.override_defaults(othercell, ...)
@@ -130,16 +151,24 @@ function M.override_defaults(othercell, ...)
     end
 end
 
-function M.process(paramfunc, cellname, cellargs, evaluate)
+function M.load(paramfunc, cellname)
     _set_cell(cellname)
     aux.call_if_present(paramfunc)
+end
+
+function M.process(cellname, cellargs, evaluate)
     _process(cellargs, evaluate)
     _set_overrides(cellname)
 end
 
 function M.get_parameter(cellname, parameter)
     debug.print("pcell", string.format("get_parameter(%s, %s)", cellname, parameter))
-    return paramdir[cellname][parameter].value
+    local p = paramdir[cellname][parameter]
+    if not p then
+        print(string.format("trying to access undefined parameter '%s' in cell '%s'", parameter, cellname))
+        os.exit(exitcodes.undefinedparameter)
+    end
+    return p.value
 end
 
 function M.get_parameters(cellname)
@@ -153,7 +182,7 @@ end
 
 function M.iter()
     local t = {}
-    for name, entry in pairs(currentparams) do
+    for name, entry in pairs(paramdir[currentcell]) do
         t[entry.index] = {
             name = name,
             display = entry.display,

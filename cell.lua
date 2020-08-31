@@ -29,7 +29,7 @@ function M.load_cell(name, args, evaluate)
         os.exit(exitcodes.syntaxerrorincell)
     end
     debug.down()
-    pcell.process(cellfuncs.parameters, name, args, evaluate)
+    pcell.load(cellfuncs.parameters, name)
     debug.up()
     return cellfuncs
 end
@@ -38,6 +38,7 @@ function M.create_layout(name, args, evaluate)
     debug.print("cell", string.format("creating layout '%s'", name))
     debug.down()
     local cellfuncs = M.load_cell(name, args, evaluate)
+    pcell.process(name, args, evaluate)
     local _P_old = _P
     _P = pcell.get_parameters(name)
     local status, cell = pcall(cellfuncs.layout)
