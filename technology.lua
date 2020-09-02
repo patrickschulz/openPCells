@@ -5,13 +5,18 @@ local viarules
 local config
 
 function M.translate_metals(cell)
+    debug.print("technology", "translate_metals()")
+    debug.down()
     -- make relative metal (negative indices) absolute
     for s in cell:iter() do
+        debug.print("technology", string.format("translating '%s'", s.lpp.typ))
+        debug.down()
         if s.lpp.typ == "metal" then
             if s.lpp.value < 0 then
                 s.lpp.value = config.metals + s.lpp.value + 1
             end
         elseif s.lpp.typ == "via" then
+            debug.print("technology", string.format("via(%s, %s)", s.lpp.value.from, s.lpp.value.to))
             if s.lpp.value.from < 0 then
                 s.lpp.value.from = config.metals + s.lpp.value.from + 1
             end
@@ -23,7 +28,9 @@ function M.translate_metals(cell)
                 s.lpp.value.from, s.lpp.value.to = s.lpp.value.to, s.lpp.value.from
             end
         end
+        debug.up()
     end
+    debug.up()
 end
 
 local function _map_layer(layer)
