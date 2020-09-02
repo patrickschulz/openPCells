@@ -32,6 +32,10 @@ function M.metal(num)
 end
 
 function M.via(from, to)
+    if not from or not to then
+        print("generic.via with nil")
+        os.exit(exitcodes.genericsargument)
+    end
     local self = _create({ from = from, to = to })
     self.typ = "via"
     return self
