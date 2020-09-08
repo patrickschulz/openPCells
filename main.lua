@@ -7,6 +7,9 @@ end
 
 _load_module("api")
 
+-- for random shuffle
+math.randomseed(os.time())
+
 local techlib = _load_module("technology")
 local interface = _load_module("interface")
 
