@@ -26,4 +26,24 @@ function M.up()
     indent = indent - 1
 end
 
+function M.serialize(t, indent)
+    local indent = indent or 4
+    local indentstr = string.rep(" ", indent)
+    local res = {}
+    table.insert(res, "{")
+    for k, v in pairs(t) do
+        local str = string.format("%s%s = ", indentstr, k)
+        if type(v) == "table" then
+            str = str .. M.serialize(v, indent + 4)
+        elseif type(v) == "function" then
+            str = str .. string.format("%s,", v)
+        else
+            str = str .. string.format("%s,", v)
+        end
+        table.insert(res, str)
+    end
+    table.insert(res, string.format("%s}", string.rep(" ", indent - 4)))
+    return table.concat(res, "\n")
+end
+
 return M
