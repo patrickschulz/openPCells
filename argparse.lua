@@ -62,6 +62,21 @@ local function _consumer_table_func(name)
     end
 end
 
+local function _display_help()
+    print([[openPCells generator
+    -h, --help           display this help
+    -C, --cell           specify cell
+    -P, --parameters     display available cell parameters and exit
+    -T, --technology     specify technology
+    -I, --interface      specify interface
+    --filename           output filename
+    --origin             origin of cell (move (0, 0))
+    --iopt               pass special options to interface
+    --check              check cell code
+    -D, --debug          enable debugging output (specify modules separated by commas)]])
+    os.exit(0)
+end
+
 local actions = {
     ["-P"]           = _switch_func("params"),
     ["--parameters"] = _switch_func("params"),
@@ -69,6 +84,8 @@ local actions = {
     ["--technology"] = _store_func("technology"),
     ["-I"]           = _store_func("interface"),
     ["--interface"]  = _store_func("interface"),
+    ["-E"]           = _store_func("export"),
+    ["--export"]     = _store_func("export"),
     ["-C"]           = _store_func("cell"),
     ["--cell"]       = _store_func("cell"),
     ["-f"]           = _store_func("filename"),
@@ -78,6 +95,8 @@ local actions = {
     ["--check"]      = _switch_func("check"),
     ["-D"]           = _store_func("debug"),
     ["--debug"]      = _store_func("debug"),
+    ["-h"]           = _display_help,
+    ["--help"]       = _display_help,
 }
 
 --local positional = _consumer_table_func("cellargs")
