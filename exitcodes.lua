@@ -10,5 +10,7 @@ return {
 
     anchornotfound     = 32,
     unknownparameter   = 33,
-    undefinedparameter = 34
+    undefinedparameter = 34,
+    genericsarguments  = 35,
+    parameternotfound  = 36,
 }

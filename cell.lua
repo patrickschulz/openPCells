@@ -39,15 +39,13 @@ function M.create_layout(name, args, evaluate)
     debug.down()
     local cellfuncs = M.load_cell(name, args, evaluate)
     pcell.process(name, args, evaluate)
-    local _P_old = _P
-    _P = pcell.get_parameters(name)
-    local status, cell = pcall(cellfuncs.layout)
+    local cell = object.create()
+    local parameters = pcell.get_parameters(name)
+    local status, msg = pcall(cellfuncs.layout, cell, parameters)
     if not status then
-        print(string.format("could not create cell '%s': %s", name, cell))
+        print(string.format("could not create cell '%s': %s", name, msg))
         os.exit(exitcodes.syntaxerrorincell)
     end
-    -- restore _P
-    _P = _P_old
     debug.up()
     return cell
 end
@@ -55,7 +53,7 @@ end
 function M.parameters(name)
     local cellfuncs = M.load_cell(name)
     for _, v in pcell.iter() do
-        print(string.format("%s %s %s", tostring(v.name), tostring(v.default), tostring(v.argtype)))
+        print(string.format("%s %s %s", tostring(v.name), tostring(v.value), tostring(v.argtype)))
     end
 end
 
