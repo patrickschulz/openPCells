@@ -10,9 +10,7 @@ function parameters()
     )
 end
 
-function layout()
-    local inductor = object.create()
-
+function layout(inductor, _P)
     local tanpi8 = math.tan(math.pi / 8)
     local pitch = _P.separation + _P.width
 

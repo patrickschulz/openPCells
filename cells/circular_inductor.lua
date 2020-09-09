@@ -5,11 +5,12 @@ function parameters()
         { "width",         6.0 },
         { "separation",    6.0 },
         { "extension",    40.0 },
-        { "grid",          0.2 }
+        { "grid",          0.2 },
+        { "metalnum",  -1, "integer" }
     )
 end
 
-function layout()
+function layout(inductor, _P)
     -- calculate center of auxiliary circle
     local xc = -0.5 * _P.separation - _P.cornerradius
     local yc = -_P.grid * math.floor(math.sqrt((_P.radius + _P.cornerradius)^2 - xc^2) / _P.grid)
@@ -45,9 +46,9 @@ function layout()
     util.merge(outer, util.reverse(util.xmirror(outer)))
 
     -- ** assemble final path **
-    local s = shape.create_polygon(generics.metal(-1))
+    local s = shape.create_polygon(generics.metal(_P.metalnum))
     s.points = util.reverse(inner)
     util.merge(s.points, outer)
 
-    return object.make_from_shape(s)
+    inductor:add_shape(s)
 end
