@@ -77,6 +77,7 @@ return {
     momcap    = { layer = { number = 82, name = "capacitor" }, purpose = { number = 64, name = "drawing" } },
     polyres1  = { layer = { number = 86, name = "rpm"       }, purpose = { number = 20, name = "drawing" } },
     polyres2  = { layer = { number = 79, name = "urpm"      }, purpose = { number = 20, name = "drawing" } },
+    gatecut   = "UNUSED"
 }
 
 -- processed (some are only present in the viarules file)
