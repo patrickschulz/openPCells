@@ -23,11 +23,9 @@ function parameters()
     )
 end
 
-function layout()
+function layout(inverter, _P)
     local xpitch = _P.gspace + _P.glength
     local dummycontheight = 0.08
-
-    local inverter = object.create()
 
     -- pfet
     local pmos = celllib.create_layout("transistor",
