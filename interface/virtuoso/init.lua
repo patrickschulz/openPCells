@@ -47,7 +47,7 @@ function M.get_layer(shape)
     elseif shape.typ == "rectangle" then
         st = "Rect"
     end
-    return string.format('dbCreate%s(cv list("%s" "%s")', st, shape.lpp:get().virtuoso.layer, shape.lpp:get().virtuoso.purpose)
+    return string.format('dbCreate%s(cv list("%s" "%s")', st, shape.lpp:get().layer, shape.lpp:get().purpose)
 end
 
 function M.get_points(shape)

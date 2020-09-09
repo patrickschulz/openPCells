@@ -8,7 +8,7 @@ end
 
 function M.print_object(file, cell)
     file:write("[\n")
-    for layer in pairs(_collect_shapes(cell, function(s) return s.lpp:get().virtuoso.layer end)) do
+    for layer in pairs(_collect_shapes(cell, function(s) return s.lpp:get().layer end)) do
         file:write(string.format("    %s/.style = {},\n", layer))
     end
     file:write("]\n")
@@ -34,7 +34,7 @@ function M.at_end(file)
 end
 
 function M.get_layer(shape)
-    return shape.lpp:get().virtuoso.layer
+    return shape.lpp:get().layer
 end
 
 function M.get_points(shape)

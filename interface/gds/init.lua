@@ -214,7 +214,7 @@ local function _unpack_points(pts, multiplier)
 end
 
 function M.get_layer(shape)
-    return { layer = shape.lpp:get().gds.layer, purpose = shape.lpp:get().gds.purpose }
+    return { layer = shape.lpp:get().layer, purpose = shape.lpp:get().purpose }
 end
 
 function M.get_points(shape)

@@ -12,14 +12,19 @@ function M.write_layer(file, layer, pcol)
 end
 
 function M.get_layer(shape)
-    return shape.lpp:get().magic.layer
+    return shape.lpp:get().layer
 end
 
 function M.get_points(shape)
-    local grid = 1000
-    local xbot, ybot = shape.points.bl:unwrap(grid)
-    local xtop, ytop = shape.points.tr:unwrap(grid)
-    return string.format("%d %d %d %d", math.floor(xbot), math.floor(ybot), math.floor(xtop), math.floor(ytop))
+    if shape.typ == "rectangle" then
+        local grid = 1000
+        local xbot, ybot = shape.points.bl:unwrap(grid)
+        local xtop, ytop = shape.points.tr:unwrap(grid)
+        return string.format("%d %d %d %d", math.floor(xbot), math.floor(ybot), math.floor(xtop), math.floor(ytop))
+    else
+        print("sorry, the magic interface does not (yet) support polygons")
+        return nil
+    end
 end
 
 function M.at_begin(file)

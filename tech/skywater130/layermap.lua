@@ -54,7 +54,7 @@ return {
         magic    = { layer ="met2", purpose = "drawing", },
     },
     M4 = { 
-        gds     = { layer = 70,    purpose = 20 }, 
+        gds      = { layer = 70,    purpose = 20 }, 
         virtuoso = { layer ="met3", purpose = "drawing", },
         magic    = { layer ="met3", purpose = "drawing", },
     },

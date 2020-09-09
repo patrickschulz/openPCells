@@ -8,20 +8,20 @@ end
 local gridfmt = "%.3f"
 
 function M.get_layer(shape)
-    if not shape.lpp:get().svg then
+    if not shape.lpp:get() then
         return string.format('fill="%s" opacity="%s"', "black", "0.1")
     end
-    local color = shape.lpp:get().svg.color or "black"
-    local opacity = shape.lpp:get().svg.opacity or 0.1
-    local fill = shape.lpp:get().svg.fill or false
+    local color = shape.lpp:get().color or "black"
+    local opacity = shape.lpp:get().opacity or 0.1
+    local fill = shape.lpp:get().fill or false
     return string.format('stroke="%s" fill="%s" opacity="%s"', color, fill and color or "none", opacity)
 end
 
 function M.get_index(shape)
-    if not shape.lpp:get().svg then
+    if not shape.lpp:get() then
         return 1
     end
-    local order = shape.lpp:get().svg.order or 1
+    local order = shape.lpp:get().order or 1
     return order
 end
 

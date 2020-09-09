@@ -33,8 +33,8 @@ function M.translate_metals(cell)
     debug.up()
 end
 
-local function _map_layer(layer)
-    local t = layermap[layer]
+local function _map_layer(layer, interface)
+    local t = layermap[layer][interface]
     if not t then
         print(string.format("no layer information for '%s'\nif the layer is not provided, set it to 'UNUSED'", layer))
         os.exit(1)
@@ -59,10 +59,10 @@ local function _remove_unused_shapes(cell)
     end
 end
 
-function M.map_layers(cell)
+function M.map_layers(cell, interface)
     for shape in cell:iter() do
         if shape.lpp.typ ~= "mapped" then
-            shape.lpp = _map_layer(shape.lpp:str())
+            shape.lpp = _map_layer(shape.lpp:str(), interface)
         end
     end
     _remove_unused_shapes(cell)
@@ -74,7 +74,7 @@ local function _get_viaspec(layer)
         print(string.format("no via geometry specification for '%s'", layer))
         os.exit(1)
     end
-    return viarules[layer]
+    return t
 end
 
 local function _place_metals(cell, s)
@@ -97,7 +97,7 @@ local function _place_metals(cell, s)
     end
 end
 
-local function _place_vias(cell, s)
+local function _place_vias(cell, s, interface)
     local layer = s.lpp:str()
     local viaspec = _get_viaspec(layer)
     local width = s:width()
@@ -110,7 +110,7 @@ local function _place_vias(cell, s)
     for _, lay in ipairs(viaspec.layers) do
         local enlarge = lay.enlarge or 0.0
         local o = geometry.multiple(
-            geometry.rectangle(generics.mapped(lay.lpp), viaspec.width + enlarge, viaspec.height + enlarge),
+            geometry.rectangle(generics.mapped(lay.lpp[interface]), viaspec.width + enlarge, viaspec.height + enlarge),
             xrep, yrep, xpitch, ypitch
         )
         cell:merge_into(o:translate(c.x, c.y))
@@ -145,7 +145,7 @@ function M.split_vias(cell)
     end
 end
 
-function M.create_via_geometries(cell)
+function M.create_via_geometries(cell, interface)
     local numshapes = #cell.shapes
     local toremove = {}
     for i = 1, numshapes do
@@ -153,7 +153,7 @@ function M.create_via_geometries(cell)
         if s.lpp.typ == "via" or s.lpp.typ == "contact" then
             table.insert(toremove, i)
             _place_metals(cell, s)
-            _place_vias(cell, s)
+            _place_vias(cell, s, interface)
         end
     end
     -- remove dummy via entries

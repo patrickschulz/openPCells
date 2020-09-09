@@ -1,38 +1,31 @@
 local M = {}
 
-local pretty = require "pl.pretty"
-
 function M.get_extension()
     return "debug"
 end
 
-local function _serialize_table(t, indent)
-    local indent = indent or 4
-    local indentstr = string.rep(" ", indent)
-    local res = {}
-    table.insert(res, "{")
-    for k, v in pairs(t) do
-        local str = string.format("%s%s = ", indentstr, k)
-        if type(v) == "table" then
-            str = str .. _serialize_table(v, indent + 4)
-        elseif type(v) == "function" then
-            str = str .. string.format("%s,", v)
-        else
-            str = str .. string.format("%s,", v)
+function M.get_points(shape)
+    if shape.typ == "rectangle" then
+        local xbot, ybot = shape.points.bl:unwrap()
+        local xtop, ytop = shape.points.tr:unwrap()
+        return string.format("(%8.3f %8.3f) (%8.3f %8.3f)", xbot, ybot, xtop, ytop)
+    else
+        local t = {}
+        for _, pt in ipairs(shape.points) do
+            table.insert(t, string.format("(%8.3f, %8.3f)", pt:unwrap()))
         end
-        table.insert(res, str)
+        return table.concat(t, " \n")
     end
-    table.insert(res, string.format("%s}", string.rep(" ", indent - 4)))
-    return table.concat(res, "\n")
 end
 
-function M.print_object(file, obj)
-    for shape in obj:iter() do
-        file:write(string.format("%s\n", ">>>>> Start Shape >>>>>"))
-        local str = _serialize_table(shape)
-        file:write(string.format("%s\n", str))
-        file:write(string.format("%s\n", "<<<<<  End Shape  <<<<<"))
+function M.write_layer(file, layer, pcol)
+    file:write(string.format("%s\n", ">>>>> Start Shape >>>>>"))
+    file:write(string.format(" %s\n", layer:str()))
+    for _, pts in ipairs(pcol) do
+        file:write(string.format("%s\n", pts))
+        file:write("---\n")
     end
+    file:write(string.format("%s\n", "<<<<<  End Shape  <<<<<"))
 end
 
 return M
