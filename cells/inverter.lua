@@ -31,7 +31,7 @@ function layout(inverter, _P)
     local pmos = celllib.create_layout("transistor",
         {
             channeltype = "pmos",
-            fingers = _P.fingers, gatelength = _P.glength, fwidth = _P.pwidth, fspace = _P.gspace,
+            fingers = _P.fingers, gatelength = _P.glength, fwidth = _P.pwidth, gatespace = _P.gspace,
             sdwidth = _P.sdwidth,
             gtopext = _P.powerspace + dummycontheight, gbotext = 0.5 * _P.separation,
             drawbotgate = true,
@@ -44,7 +44,7 @@ function layout(inverter, _P)
     local nmos = celllib.create_layout("transistor",
         {
             channeltype = "nmos",
-            fingers = _P.fingers, gatelength = _P.glength, fwidth = _P.pwidth, fspace = _P.gspace,
+            fingers = _P.fingers, gatelength = _P.glength, fwidth = _P.pwidth, gatespace = _P.gspace,
             sdwidth = _P.sdwidth,
             gbotext = _P.powerspace + dummycontheight, gtopext = 0.5 * _P.separation,
             drawtopgate = true,
@@ -57,7 +57,7 @@ function layout(inverter, _P)
     local pmosdummy = celllib.create_layout("transistor",
         {
             channeltype = "pmos",
-            fingers = _P.dummies, gatelength = _P.glength, fwidth = _P.pwidth, fspace = _P.gspace,
+            fingers = _P.dummies, gatelength = _P.glength, fwidth = _P.pwidth, gatespace = _P.gspace,
             sdwidth = _P.sdwidth,
             gtopext = _P.powerspace + dummycontheight, gbotext = 0.5 * _P.separation,
             clipbot = true, botgcut = true
@@ -68,7 +68,7 @@ function layout(inverter, _P)
     local nmosdummy = celllib.create_layout("transistor",
         {
             channeltype = "nmos",
-            fingers = _P.dummies, gatelength = _P.glength, fwidth = _P.pwidth, fspace = _P.gspace,
+            fingers = _P.dummies, gatelength = _P.glength, fwidth = _P.pwidth, gatespace = _P.gspace,
             sdwidth = _P.sdwidth,
             gbotext = _P.powerspace + dummycontheight, gtopext = 0.5 * _P.separation,
             cliptop = true, topgcut = true
