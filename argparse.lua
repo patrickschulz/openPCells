@@ -73,6 +73,7 @@ local function _display_help()
     --origin             origin of cell (move (0, 0))
     --iopt               pass special options to interface
     --check              check cell code
+    --notech             disable all technology translation functions (metal translation, via arrayzation, layer mapping grid fixing)
     -D, --debug          enable debugging output (specify modules separated by commas)]])
     os.exit(0)
 end
@@ -93,6 +94,7 @@ local actions = {
     ["--origin"]     = _consumer_string_func("origin"),
     ["--iopt"]       = _consumer_table_func("interface_options"),
     ["--check"]      = _switch_func("check"),
+    ["--notech"]     = _switch_func("notech"),
     ["-D"]           = _store_func("debug"),
     ["--debug"]      = _store_func("debug"),
     ["-h"]           = _display_help,

@@ -58,11 +58,14 @@ if not cell then
     os.exit(exitcodes.errorincell)
 end
 
-techlib.translate_metals(cell)
-techlib.split_vias(cell)
-techlib.create_via_geometries(cell)
-techlib.map_layers(cell)
-techlib.fix_to_grid(cell)
+local techintf = args.interface
+if not args.notech then
+    techlib.translate_metals(cell)
+    techlib.split_vias(cell)
+    techlib.create_via_geometries(cell, techintf)
+    techlib.map_layers(cell, techintf)
+    techlib.fix_to_grid(cell)
+end
 
 local filename = args.filename or "openPCells"
 interface.set_options(args.interface_options)
