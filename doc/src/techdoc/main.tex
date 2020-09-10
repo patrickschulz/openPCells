@@ -168,6 +168,11 @@ The stage of layer mapping is the last of the technology translation, as some ea
 generate instances of \enquote{M1}). Layer mapping is a simple process, as no shapes have to be modified. Here only \enquote{mapped} and \enquote{other} layers
 remain, where the former are naturally ignored.
 
+\section{Cell Parameterization}
+Cell parameters are defined in the \luainline{parameters()} function via the \luainline{pcell} module. It uses one state to store all parameters, so everytime a
+layout is created, the parameters have to be defined first. A different approach to this would be to store all loaded parameters and retrieve the right ones when a
+cell layout is created. Since currently there are no performance issues, no storing is made as code complexity increases (one has to check if loaded parameters exist
+etc.). 
 \end{document}
 
 % vim: ft=tex
