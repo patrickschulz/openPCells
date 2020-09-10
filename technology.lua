@@ -34,16 +34,19 @@ function M.translate_metals(cell)
 end
 
 local function _map_layer(layer, interface)
-    local t = layermap[layer][interface]
+    local t = layermap[layer]
+    if t == "UNUSED" then
+        return nil
+    end
     if not t then
         print(string.format("no layer information for '%s'\nif the layer is not provided, set it to 'UNUSED'", layer))
         os.exit(1)
     end
-    if t == "UNUSED" then
-        return nil
-    else
-        return generics.mapped(t)
+    if not t[interface] then
+        print(string.format("no layer information for '%s' for interface '%s'", layer, interface))
+        os.exit(1)
     end
+    return generics.mapped(t)
 end
 
 local function _remove_unused_shapes(cell)
