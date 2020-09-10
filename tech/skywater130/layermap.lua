@@ -70,7 +70,6 @@ return {
         magic    = { layer = "met5", purpose = "drawing" },
         svg      = { color = "red",  opacity = 1, fill = true },
     },
-    { layer = { number = 72, name = "met5"      }, purpose = { number = 20, name = "drawing" }, color = "red", opacity = 1 },
     lastmetal = { layer = { number = 72, name = "met5"      }, purpose = { number = 20, name = "drawing" } },
     passopen  = { layer = { number = 76, name = "pad"       }, purpose = { number = 20, name = "drawing" } },
     inductor  = { layer = { number = 82, name = "inductor"  }, purpose = { number = 24, name = "drawing" } },

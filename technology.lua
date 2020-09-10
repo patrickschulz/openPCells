@@ -46,7 +46,7 @@ local function _map_layer(layer, interface)
         print(string.format("no layer information for '%s' for interface '%s'", layer, interface))
         os.exit(1)
     end
-    return generics.mapped(t)
+    return generics.mapped(t[interface])
 end
 
 local function _remove_unused_shapes(cell)
