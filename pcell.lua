@@ -194,13 +194,10 @@ function M.load(paramfunc, cellname)
     aux.call_if_present(paramfunc)
 end
 
-function M.process(cellname, cellargs, evaluate)
+function M.get_parameters(cellname, cellargs, evaluate)
+    debug.print("pcell", string.format("get_parameters() with '%s'", cellname))
     _set_overrides(cellname)
     _process(cellargs, evaluate)
-end
-
-function M.get_parameters(cellname)
-    debug.print("pcell", string.format("get_parameters() with '%s'", cellname))
     local P = {}
     for _, v in ipairs(_get_parameters(cellname)) do
         P[v.name] = v.value
