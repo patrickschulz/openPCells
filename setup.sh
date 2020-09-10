@@ -1,6 +1,11 @@
 #! /bin/sh
 
 mainfile=opc
+if [ -z "$1" ]; then
+    mainfile=opc
+else
+    mainfile=$1
+fi
 
 printf "* generating '%s' *\n" $mainfile
 
