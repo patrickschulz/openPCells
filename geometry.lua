@@ -58,7 +58,9 @@ local function _intersection(pt1, pt2, pt3, pt4)
 end
 
 local function _shift_line(pt1, pt2, width)
-    local angle = math.atan(pt2.y - pt1.y, pt2.x - pt1.x) - math.pi / 2
+    --local angle = compat.atan2(pt2.y - pt1.y, pt2.x - pt1.x) - math.pi / 2
+    --local angle = math.atan(pt2.y - pt1.y, pt2.x - pt1.x) - math.pi / 2
+    local angle = math.atan2(pt2.y - pt1.y, pt2.x - pt1.x) - math.pi / 2
     local spt1 = point.create(pt1.x + width * math.cos(angle), pt1.y + width * math.sin(angle))
     local spt2 = point.create(pt2.x + width * math.cos(angle), pt2.y + width * math.sin(angle))
     return spt1, spt2
