@@ -71,7 +71,9 @@ function layout(inductor, _P)
         -- draw connector
         if i == _P.turns then
             -- create connection to underpass
-            prepend(-0.5 * (_P.radius * tanpi8 + 0.5 * pitch), sign * radius)
+            if i > 1 then
+                prepend(-0.5 * (_P.radius * tanpi8 + 0.5 * pitch), sign * radius)
+            end
             if 0.5 * _P.extsep + _P.width > r + 0.5 * _P.width * tanpi8 then
                 append(-0.5 * (_P.extsep + _P.width), -r - radius + 0.5 * (_P.extsep + _P.width))
                 append(-0.5 * (_P.extsep + _P.width), -r - radius + 0.5 * (_P.extsep + _P.width) - _P.extension)
