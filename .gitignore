@@ -1,14 +1,8 @@
 opc
 
-openPCells.gds
-openPCells.il
-openPCells.debug
-openPCells.mag
-openPCells.svg
-openPCells.tikz
+openPCells.*
 
 tech/cmos22fdsoi
-config.lua
 
 *.aux
 *.log
