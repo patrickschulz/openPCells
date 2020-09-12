@@ -11,8 +11,12 @@ stringfile = _load_module("stringfile")
 util       = _load_module("util")
 aux        = _load_module("aux")
 exitcodes  = _load_module("exitcodes")
+funcobject = _load_module("funcobject")
 
-debug      = _load_module("debug")
+debuglib   = _load_module("debug")
+
+-- lua version compatibility fixes
+table.unpack = table.unpack or unpack
 
 -- FIXME: put this somewhere else (and is this really the best name?)
 function enable(bool, value)
