@@ -1,5 +1,7 @@
 local M = {}
 
+local loadedcells = {}
+
 local function _load(name)
     local file = io.open(string.format("%s/cells/%s.lua", _get_opc_home(), name))
     if not file then
@@ -22,21 +24,20 @@ local function _load(name)
 end
 
 function M.load_cell(name, args, evaluate)
-    debug.print("cell", string.format("loading cell '%s'", name))
+    if loadedcells[name] then
+        return loadedcells[name]
+    end
     local cellfuncs, msg = _load(name)
     if not cellfuncs then
         print(msg)
         os.exit(exitcodes.syntaxerrorincell)
     end
-    debug.down()
     pcell.load(cellfuncs.parameters, name)
-    debug.up()
+    loadedcells[name] = cellfuncs
     return cellfuncs
 end
 
 function M.create_layout(name, args, evaluate)
-    debug.print("cell", string.format("creating layout '%s'", name))
-    debug.down()
     local cellfuncs = M.load_cell(name, args, evaluate)
     local cell = object.create()
     local parameters = pcell.get_parameters(name, args, evaluate)
@@ -45,7 +46,6 @@ function M.create_layout(name, args, evaluate)
         print(string.format("could not create cell '%s': %s", name, msg))
         os.exit(exitcodes.syntaxerrorincell)
     end
-    debug.up()
     return cell
 end
 
