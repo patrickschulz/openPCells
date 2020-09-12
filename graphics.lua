@@ -173,6 +173,10 @@ function M.spiral_points(arc, separation, numpts, grid)
 end
 
 function M.line(x0, y0, x1, y1, grid)
+    local x0 = aux.fix_to_grid(x0, grid)
+    local y0 = aux.fix_to_grid(y0, grid)
+    local x1 = aux.fix_to_grid(x1, grid)
+    local y1 = aux.fix_to_grid(y1, grid)
     local dx = math.abs(x1 - x0)
     local sx = x0 < x1 and grid or -grid
     local dy = -math.abs(y1 - y0)
@@ -181,8 +185,9 @@ function M.line(x0, y0, x1, y1, grid)
 
     local pts = {}
     while true do
-        table.insert(pts, { x = x0, y = y0 })
-        if x0 == x1 and y0 == y1 then break end
+        table.insert(pts, point.create(x0, y0))
+        --if x0 == x1 and y0 == y1 then break end
+        if aux.equal(x0, x1, 0.5 * grid) and aux.equal(y0, y1, 0.5 * grid) then break end
         e2 = 2 * err;
         if e2 >= dy then 
             err = err + dy

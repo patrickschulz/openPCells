@@ -77,4 +77,14 @@ function M.round(num)
     return num >= 0 and math.floor(num + 0.5) or math.ceil(num - 0.5)
 end
 
+function M.fix_to_grid(num, grid)
+    return grid * aux.round(num / grid)
+end
+
+function M.equal(num1, num2, eps)
+    if math.abs(num1 - num2) < eps then
+        return true
+    end
+end
+
 return M

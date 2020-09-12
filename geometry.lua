@@ -116,9 +116,30 @@ local function _get_path_pts(pts, width, miterjoin)
     return poly
 end
 
+local function _get_any_angle_path_pts(pts, width, grid, miterjoin)
+    local pathpts = _get_path_pts(pts, width, miterjoin)
+    table.insert(pathpts, pts[1]:copy()) -- close path
+    local poly = {}
+    for i = 1, #pathpts - 1 do
+        local pstart = pathpts[i]
+        local pend = pathpts[i + 1]
+        local linepts = graphics.line(pstart.x, pstart.y, pend.x, pend.y, grid)
+        for _, pt in ipairs(linepts) do
+            table.insert(poly, pt)
+        end
+    end
+    return poly
+end
+
 function M.path(layer, pts, width, miterjoin)
     local S = shape.create_polygon(layer)
     S.points = _get_path_pts(pts, width, miterjoin)
+    return object.make_from_shape(S)
+end
+
+function M.any_angle_path(layer, pts, width, grid, miterjoin)
+    local S = shape.create_polygon(layer)
+    S.points = _get_any_angle_path_pts(pts, width, grid, miterjoin)
     return object.make_from_shape(S)
 end
 
