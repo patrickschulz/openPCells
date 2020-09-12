@@ -10,6 +10,14 @@ _load_module("api")
 -- for random shuffle
 math.randomseed(os.time())
 
+-- debugging
+local function _trace (event)
+    local s = debug.getinfo(2).name
+    print(s)
+end
+
+--debug.sethook(_trace, "c")
+
 local techlib = _load_module("technology")
 local interface = _load_module("interface")
 
@@ -22,7 +30,7 @@ for k, v in string.gmatch(table.concat(args.cellargs, " "), "(%w+)%s*=%s*(%S+)")
     cellargs[k] = v
 end
 
-debug.set(args.debug)
+debuglib.set(args.debug)
 
 if not args.cell then
     print("no cell type given")
