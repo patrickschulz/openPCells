@@ -5,18 +5,13 @@ local viarules
 local config
 
 function M.translate_metals(cell)
-    debug.print("technology", "translate_metals()")
-    debug.down()
     -- make relative metal (negative indices) absolute
     for s in cell:iter() do
-        debug.print("technology", string.format("translating '%s'", s.lpp.typ))
-        debug.down()
         if s.lpp.typ == "metal" then
             if s.lpp.value < 0 then
                 s.lpp.value = config.metals + s.lpp.value + 1
             end
         elseif s.lpp.typ == "via" then
-            debug.print("technology", string.format("via(%s, %s)", s.lpp.value.from, s.lpp.value.to))
             if s.lpp.value.from < 0 then
                 s.lpp.value.from = config.metals + s.lpp.value.from + 1
             end
@@ -28,9 +23,7 @@ function M.translate_metals(cell)
                 s.lpp.value.from, s.lpp.value.to = s.lpp.value.to, s.lpp.value.from
             end
         end
-        debug.up()
     end
-    debug.up()
 end
 
 local function _map_layer(layer, interface)
@@ -154,9 +147,14 @@ function M.create_via_geometries(cell, interface)
     for i = 1, numshapes do
         local s = cell.shapes[i]
         if s.lpp.typ == "via" or s.lpp.typ == "contact" then
-            table.insert(toremove, i)
-            _place_metals(cell, s)
-            _place_vias(cell, s, interface)
+            if s.typ == "rectangle" then
+                table.insert(toremove, i)
+                _place_metals(cell, s)
+                _place_vias(cell, s, interface)
+            elseif s.typ == "polygon" then
+                print("sorry, via translation of polygons is currently not supported")
+                os.exit(1)
+            end
         end
     end
     -- remove dummy via entries
@@ -167,11 +165,8 @@ function M.create_via_geometries(cell, interface)
 end
 
 local function _fix_pt_to_grid(pt)
-    local round = function(num)
-        return num >= 0 and math.floor(num + 0.5) or math.ceil(num - 0.5)
-    end
-    pt.x = config.grid * round(pt.x / config.grid)
-    pt.y = config.grid * round(pt.y / config.grid)
+    pt.x = config.grid * aux.round(pt.x / config.grid)
+    pt.y = config.grid * aux.round(pt.y / config.grid)
 end
 
 function M.fix_to_grid(cell)
