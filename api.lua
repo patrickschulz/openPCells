@@ -15,9 +15,6 @@ funcobject = _load_module("funcobject")
 
 debuglib   = _load_module("debug")
 
--- lua version compatibility fixes
-table.unpack = table.unpack or unpack
-
 -- FIXME: put this somewhere else (and is this really the best name?)
 function enable(bool, value)
     return (bool and 1 or 0) * value

@@ -7,20 +7,14 @@ local function _load(name)
     if not file then
         return nil, string.format("unknown cell '%s'", name)
     end
-    local get_content = function()
-        local s = file:read()
-        -- catch empty lines
-        if s == "" then s = " " end
-        -- append newline (otherwise comments mess up the interpreter)
-        if s then s = s .. "\n" end
-        return s
-    end
-    local chunk, msg = load(get_content, string.format("=(loading cells/%s.lua)", name))
+    local content = file:read("*a")
+    local env = setmetatable({}, { __index = _ENV })
+    local chunk, msg = load(content, "=(OPC cell loading)", "t", env)
     if not chunk then
         return nil, string.format("syntax error in cell '%s': %s", name, msg)
     end
     chunk()
-    return { parameters = parameters, layout = layout }
+    return env
 end
 
 function M.load_cell(name, args, evaluate)
