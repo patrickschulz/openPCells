@@ -66,6 +66,14 @@ if not cell then
     os.exit(exitcodes.errorincell)
 end
 
+--[[
+local maxpolypoints = 500
+if maxpolypoints then
+    sanitize.reduce_shape_point_count(cell, maxpolypoints)
+end
+--]]
+--sanitize.triangulate(cell)
+
 local techintf = args.interface
 if not args.notech then
     techlib.translate_metals(cell)

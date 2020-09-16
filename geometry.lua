@@ -114,6 +114,37 @@ local function _get_path_pts(pts, width, miterjoin)
     return poly
 end
 
+local function _remove_superfluous_points(pts)
+    local new = {}
+    table.insert(new, pts[1])
+    for i = 2, #pts - 1 do
+        local dxl = pts[i].x - pts[i - 1].x
+        local dyl = pts[i].y - pts[i - 1].y
+        local dxr = pts[i + 1].x - pts[i].x
+        local dyr = pts[i + 1].y - pts[i].y
+        if not ((dxl == dxr) and (dyl == dyr)) then
+            table.insert(new, pts[i])
+        end
+    end
+    table.insert(new, pts[#pts])
+    return new
+end
+
+local function _get_any_angle_path_pts(pts, width, grid, miterjoin)
+    local pathpts = _get_path_pts(pts, width, miterjoin)
+    table.insert(pathpts, pts[1]:copy()) -- close path
+    local poly = {}
+    for i = 1, #pathpts - 1 do
+        local pstart = pathpts[i]
+        local pend = pathpts[i + 1]
+        local linepts = graphics.line(pstart.x, pstart.y, pend.x, pend.y, grid)
+        for _, pt in ipairs(linepts) do
+            table.insert(poly, pt)
+        end
+    end
+    return _remove_superfluous_points(poly)
+end
+
 function M.path(layer, pts, width, miterjoin)
     local S = shape.create_polygon(layer)
     S.points = _get_path_pts(pts, width, miterjoin)

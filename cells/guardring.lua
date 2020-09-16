@@ -1,6 +1,6 @@
 function parameters()
     pcell.add_parameters(
-        { "type",         "p" },
+        { "contype",      "p" },
         { "width",        5.0 },
         { "height",       5.0 },
         { "ringwidth",    0.2 },
@@ -14,19 +14,19 @@ function layout()
     local guardring = object.create()
 
     -- active, implant and SOI opening
-    guardring:merge_into(layout.ring(generics.other("active"), _P.width, _P.height, _P.ringwidth))
-    guardring:merge_into(layout.ring(generics.other(string.format("%simpl", contype)), _P.width, _P.height, _P.ringwidth + _P.extension))
-    guardring:merge_into(layout.ring(generics.other("soiopen"), _P.width, _P.height, _P.ringwidth + _P.extension))
+    guardring:merge_into(geometry.ring(generics.other("active"), _P.width, _P.height, _P.ringwidth))
+    guardring:merge_into(geometry.ring(generics.other(string.format("%simpl", _P.contype)), _P.width, _P.height, _P.ringwidth + _P.extension))
+    guardring:merge_into(geometry.ring(generics.other("soiopen"), _P.width, _P.height, _P.ringwidth + _P.extension))
 
     -- well
     if _P.fillwell then
-        guardring:merge_into(layout.rectangle(generics.other(string.format("%swell", contype)), _P.width + _P.ringwidth + _P.extension, _P.height + _P.ringwidth + _P.extension))
+        guardring:merge_into(geometry.rectangle(generics.other(string.format("%swell", _P.contype)), _P.width + _P.ringwidth + _P.extension, _P.height + _P.ringwidth + _P.extension))
     else
-        guardring:merge_into(layout.ring(generics.other(string.format("%swell", contype)), _P.width, _P.height, _P.ringwidth + _P.extension))
+        guardring:merge_into(geometry.ring(generics.other(string.format("%swell", _P.contype)), _P.width, _P.height, _P.ringwidth + _P.extension))
     end
     -- draw deep n/p-well
     if _P.drawdeepwell then
-        guardring:merge_into(layout.rectangle(generics.other(string.format("deep%swell", contype)), _P.width + _P.ringwidth + _P.extension, _P.height + _P.ringwidth + _P.extension))
+        guardring:merge_into(geometry.rectangle(generics.other(string.format("deep%swell", _P.contype)), _P.width + _P.ringwidth + _P.extension, _P.height + _P.ringwidth + _P.extension))
     end
 
     return guardring

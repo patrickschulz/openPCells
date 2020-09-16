@@ -12,6 +12,12 @@ util       = _load_module("util")
 aux        = _load_module("aux")
 exitcodes  = _load_module("exitcodes")
 funcobject = _load_module("funcobject")
+delaunay   = _load_module("delaunay")
+helpers    = _load_module("helpers")
+class      = _load_module("class")
+edge       = _load_module("edge")
+triangle   = _load_module("triangle")
+sanitize   = _load_module("sanitize")
 
 debuglib   = _load_module("debug")
 
