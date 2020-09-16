@@ -151,6 +151,12 @@ function M.path(layer, pts, width, miterjoin)
     return object.make_from_shape(S)
 end
 
+function M.any_angle_path(layer, pts, width, grid, miterjoin)
+    local S = shape.create_polygon(layer)
+    S.points = _get_any_angle_path_pts(pts, width, grid, miterjoin)
+    return object.make_from_shape(S)
+end
+
 function M.path_midpoint(layer, pts, width, method, miterjoin)
     local newpts = {}
     table.insert(newpts, pts[1])
