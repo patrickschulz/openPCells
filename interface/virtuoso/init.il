@@ -134,9 +134,11 @@ procedure(OPCCreateOptionsForm(cell)
                             i = i + 1
                         )
                         ("integer"
-                            field = hiCreateIntField(
+                            ; integers also get floatFields (for now), since this make the 
+                            ; assembly of the argument string (see above) easier
+                            field = hiCreateFloatField(
                                 ?name stringToSymbol(name)
-                                ?value atoi(default)
+                                ?value atof(default)
                                 ?prompt name
                             )
                             fieldlist = cons(list(field 0:30*i 200:30 120) fieldlist)
