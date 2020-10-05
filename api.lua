@@ -12,11 +12,13 @@ exitcodes  = _load_module("exitcodes")
 funcobject = _load_module("funcobject")
 
 -- for polygon triangulation
+--[[
 delaunay   = _load_module("delaunay")
 helpers    = _load_module("helpers")
 edge       = _load_module("edge")
 triangle   = _load_module("triangle")
 sanitize   = _load_module("sanitize")
+--]]
 
 debuglib   = _load_module("debug")
 
