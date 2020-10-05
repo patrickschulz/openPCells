@@ -24,8 +24,8 @@ function layout(inductor, _P)
     local aux  = graphics.quartercircle(1, xc, yc, _P.cornerradius, _P.grid)
 
     local inner = util.reverse(graphics.quartercircle(2, 0, 0, _P.radius, _P.grid)) -- start with topleft quarter circle
-    util.merge(inner, util.filter_forward(main, function(pt) return pt.x < xm end))
-    util.merge(inner, util.filter_backward(aux, function(pt) return pt.x >= xm end))
+    util.merge(inner, util.filter_forward(main, function(pt) return pt:getx() < xm end))
+    util.merge(inner, util.filter_backward(aux, function(pt) return pt:getx() >= xm end))
     -- mirror points and append
     inner = util.reverse(inner)
     util.merge(inner, util.reverse(util.xmirror(inner)))
@@ -39,8 +39,8 @@ function layout(inductor, _P)
     aux   = graphics.quartercircle(1, xc, yc, _P.cornerradius - _P.width, _P.grid)
 
     local outer = util.reverse(graphics.quartercircle(2, 0, 0, _P.radius + _P.width, _P.grid)) -- start with topleft quarter circle
-    util.merge(outer, util.filter_forward(main, function(pt) return pt.x < xm end))
-    util.merge(outer, util.filter_backward(aux, function(pt) return pt.x >= xm end))
+    util.merge(outer, util.filter_forward(main, function(pt) return pt:getx() < xm end))
+    util.merge(outer, util.filter_backward(aux, function(pt) return pt:getx() >= xm end))
     -- mirror points and append
     outer = util.reverse(outer)
     util.merge(outer, util.reverse(util.xmirror(outer)))

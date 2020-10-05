@@ -30,7 +30,7 @@ function M.quartercircle(quadrant, xm, ym, radius, grid)
     local yi = quadrant < 3 and 1 or -1
     for i = 1, #ptsi do
         local pt = ptsi[i]
-        table.insert(pts, point.create(xm + xi * pt.x, ym + yi * pt.y))
+        table.insert(pts, point.create(xm + xi * pt:getx(), ym + yi * pt:gety()))
     end
     return pts
 end
