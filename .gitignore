@@ -10,7 +10,7 @@ tech/cmos22fdsoi
 
 # lua object files
 lua/*.o
-lua/lualib.a
+lua/liblua.a
 
 # tex auxiliary files
 *.aux
