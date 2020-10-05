@@ -10,6 +10,9 @@ procedure(OPCcreateCell(w done pts)
         )
         when(done
 	        args = ""
+            foreach(field OPCParamForm->fieldList
+                args = lsprintf("%s %s" args lsprintf("%s=%g" field get(OPCParamForm field)->value))
+            )
             ; 'cell' is defined one level above (in OPCplaceCell)
 	        command = lsprintf(
                 "%s -T %s -I %s -C %s --origin '(%d, %d)' -f %s %s" 
