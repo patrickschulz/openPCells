@@ -1,20 +1,18 @@
 function parameters()
     pcell.add_parameters(
-        { "fingers",    4   },
-        { "fwidth",     0.1 },
-        { "fspace",     0.1 },
-        { "fheight",    1   },
-        { "foffset",    0.1 },
-        { "rwidth",     0.1 },
-        { "firstmetal", 1   },
-        { "lastmetal",  2   }
+        { "fingers",       4 },
+        { "fwidth",      100 },
+        { "fspace",      100 },
+        { "fheight",    1000 },
+        { "foffset",     100 },
+        { "rwidth",      100 },
+        { "firstmetal",    1 },
+        { "lastmetal",     2 }
     )
 end
 
-function layout()
+function layout(momcap, _P)
     local pitch = _P.fwidth + _P.fspace
-
-    local momcap = object.create()
 
     for i = _P.firstmetal, _P.lastmetal do
         momcap:merge_into(geometry.multiple(
@@ -39,6 +37,4 @@ function layout()
         ),
         1, 2, 0, 2 * _P.foffset + _P.fheight + _P.rwidth
     ))
-
-    return momcap
 end
