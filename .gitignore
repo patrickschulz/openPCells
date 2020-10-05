@@ -8,6 +8,10 @@ openPCells.*
 # NDA-related
 tech/cmos22fdsoi
 
+# lua object files
+lua/*.o
+lua/lualib.a
+
 # tex auxiliary files
 *.aux
 *.log
