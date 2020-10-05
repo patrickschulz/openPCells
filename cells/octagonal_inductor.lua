@@ -1,7 +1,7 @@
 function parameters()
     pcell.add_parameters(
         { "radius",    30000 },
-        { "turns",      3000 },
+        { "turns",         3 },
         { "separation", 6000 },
         { "width",      6000 },
         { "extension", 10000 },
