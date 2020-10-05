@@ -133,6 +133,15 @@ procedure(OPCCreateOptionsForm(cell)
                             fieldlist = cons(list(field 0:30*i 200:30 120) fieldlist)
                             i = i + 1
                         )
+                        ("integer"
+                            field = hiCreateIntField(
+                                ?name stringToSymbol(name)
+                                ?value atoi(default)
+                                ?prompt name
+                            )
+                            fieldlist = cons(list(field 0:30*i 200:30 120) fieldlist)
+                            i = i + 1
+                        )
                         ("boolean"
                             field = hiCreateToggleField(
                                 ?name stringToSymbol(lsprintf("%s_togglefield" name))
