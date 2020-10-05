@@ -48,4 +48,36 @@ function meta.unwrap(self, mul)
     return mul * self.x, mul * self.y
 end
 
+function meta.getx(self)
+    return self.x
+end
+
+function meta.gety(self)
+    return self.y
+end
+
+function meta.fix(self, grid)
+    self.x = grid * aux.round(self.x / grid);
+    self.y = grid * aux.round(self.y / grid);
+end
+
+local function _format_number(num, baseunit)
+    local fmt
+    if baseunit == 1 then
+        fmt = "%d"
+    else
+        fmt = string.format("%%d.%%0%dd", math.log(baseunit, 10))
+    end
+    local int = num // baseunit
+    local frac = num - baseunit * int
+    return string.format(fmt, int, frac)
+end
+
+function meta.format(self, baseunit, sep)
+    local x, y = self:unwrap()
+    local xs = _format_number(x, baseunit)
+    local ys = _format_number(y, baseunit)
+    return string.format("%s%s%s", xs, sep, ys)
+end
+
 return M

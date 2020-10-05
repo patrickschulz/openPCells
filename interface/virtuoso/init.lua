@@ -1,24 +1,9 @@
 local M = {}
 
+local baseunit = 1000
+
 function M.get_extension()
     return "il"
-end
-
--- private variables
-local gridfmt = "%.3f"
-
-local function _write_shape(file, shape)
-    local sep = sep or "\n"
-    local fmt = string.format("%s %s%s", gridfmt, gridfmt, sep)
-    local st
-    if shape.typ == "polygon" then
-        st = "Polygon"
-    elseif shape.typ == "rectangle" then
-        st = "Rect"
-    end
-    local pointlist = shape:concat_points(function(pt) return string.format(gridfmt .. ":" .. gridfmt, pt.x, pt.y) end)
-    file:write(string.format("list(%s)", table.concat(pointlist, " ")))
-    file:write(")\n")
 end
 
 function M.at_begin(file)
@@ -51,8 +36,8 @@ function M.get_layer(shape)
 end
 
 function M.get_points(shape)
-    local fmt = string.format("%s %s", gridfmt, gridfmt)
-    local pointlist = shape:concat_points(function(pt) return string.format(gridfmt .. ":" .. gridfmt, pt.x, pt.y) end)
+    --local pointlist = shape:concat_points(function(pt) return string.format("%d:%d", pt:unwrap()) end)
+    local pointlist = shape:concat_points(function(pt) return pt:format(baseunit, ":") end)
     return string.format("list(%s)", table.concat(pointlist, " "))
 end
 

@@ -25,18 +25,17 @@ static void fix_and_normalize(lfrac_t* f)
     f->denominator /= div;
 }
 
-static void calculate_numden(double d, lfrac_t* f)
+/*
+static void calculate_numden(double d, lfrac_sign_t* sign, lfrac_int_t* num, lfrac_int_t* den)
 {
-    lfrac_sign_t sign = d < 0 ? 1 : 0;
-    d *= (1 - 2 * sign);
-    lfrac_int_t num = 0;
-    lfrac_int_t den = CONVPRECISION;
-    d *= den;
-    num = (int)d;
-    f->sign = sign;
-    f->numerator = num;
-    f->denominator = den;
+    *sign = d < 0 ? 1 : 0;
+    d *= (1 - 2 * *sign);
+    *num = 0;
+    *den = CONVPRECISION;
+    d *= *den;
+    *num = (int)d;
 }
+*/
 
 static int lfrac_tostring(lua_State* L)
 {
@@ -184,11 +183,35 @@ static int lfrac_unm(lua_State* L)
 
 static int lfrac_create(lua_State* L)
 {
-    lua_Number d = luaL_checknumber(L, -1);
-    int num, den;
+    lfrac_int_t num, den;
+    lfrac_sign_t sign;
+    size_t args = lua_gettop(L);
+    if(args == 0)
+    {
+        num = 0;
+        den = 1;
+        sign = 0;
+    }
+    else if(args == 1)
+    {
+        int n = lua_tointeger(L, -1);
+        sign = n < 0 ? 1 : 0;
+        num = n;
+        den = 1;
+    }
+    else
+    {
+        int n = lua_tointeger(L, -2);
+        int d = lua_tointeger(L, -1);
+        sign = (n / d) < 0 ? 1 : 0;
+        num = n;
+        den = d;
+    }
     lfrac_t* data = lua_newuserdata(L, sizeof(lfrac_t));
     luaL_setmetatable(L, TYPENAME);
-    calculate_numden(d, data);
+    data->numerator = num;
+    data->denominator = den;
+    data->sign = sign;
     fix_and_normalize(data);
     return 1;
 }

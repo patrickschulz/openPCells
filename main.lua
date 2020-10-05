@@ -1,9 +1,11 @@
+--[[
 function _load_module(name)
     local path = _get_opc_home()
     local filename = string.format("%s/%s.lua", path, name)
     local module = dofile(filename)
     return module
 end
+--]]
 
 _load_module("api")
 
@@ -52,7 +54,7 @@ if not args.interface then
     os.exit(exitcodes.nointerface)
 end
 
-techlib.load(args.technology)
+local tech = techlib.load(args.technology)
 interface.load(args.interface)
 
 local cell, msg = celllib.create_layout(args.cell, cellargs, true)

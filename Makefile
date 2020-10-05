@@ -1,3 +1,5 @@
+PROGNAME=opc
+
 CC= gcc -std=gnu99
 CFLAGS= -O2 -Wall -Wextra $(SYSCFLAGS) $(MYCFLAGS)
 LDFLAGS= $(SYSLDFLAGS) $(MYLDFLAGS)
@@ -16,18 +18,18 @@ default:
 	@echo Guessing `$(UNAME)`
 	@$(MAKE) `$(UNAME)`
 
-main: main.c lua/liblua.a lfrac.c lfrac.h opc
-	gcc -DLUA_COMPAT_5_3 -DLUA_USE_LINUX -o main main.c lfrac.c lua/liblua.a -lm -ldl
+$(PROGNAME): config.h main.c lua/liblua.a lfrac.c lfrac.h lpoint.c lpoint.h lbind.h lbind.c
+	gcc -Wall -Wextra -DLUA_COMPAT_5_3 -DLUA_USE_LINUX -o $(PROGNAME) main.c lbind.c lpoint.c lua/liblua.a -lm -ldl
 
-lua/liblua.a:
+lua/liblua.a: lua/*.c lua/*.h
 	$(MAKE) -C lua liblua.a
 
-opc: main.lua
-	./setup_path.sh
+config.h:
+	echo '#define OPC_HOME "$(CURDIR)"' > config.h
 
 .PHONY:
 clean:
-	rm -f main
+	rm -f $(PROGNAME)
 	rm -f lua/*.o lua/liblua.a
 
 AIX aix:
@@ -50,7 +52,7 @@ generic: $(ALL)
 Linux linux:	linux-noreadline
 
 linux-noreadline:
-	$(MAKE) main SYSCFLAGS="-DLUA_USE_LINUX" SYSLIBS="-Wl,-E -ldl"
+	$(MAKE) $(PROGNAME) SYSCFLAGS="-DLUA_USE_LINUX" SYSLIBS="-Wl,-E -ldl"
 
 Darwin macos macosx:
 	$(MAKE) $(ALL) SYSCFLAGS="-DLUA_USE_MACOSX -DLUA_USE_READLINE" SYSLIBS="-lreadline"

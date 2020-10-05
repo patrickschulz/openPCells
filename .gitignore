@@ -1,16 +1,20 @@
+# main programs and generated code files
 opc
-main
+config.h
 
+# generated layouts
 openPCells.*
 
+# NDA-related
 tech/cmos22fdsoi
 
+# tex auxiliary files
 *.aux
 *.log
 *.toc
 *.pygtex
 *_minted*
 
+# development information
 todo
-
 info

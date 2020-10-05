@@ -42,15 +42,19 @@ function M.ring(layer, width, height, ringwidth)
 end
 
 local function _intersection(pt1, pt2, pt3, pt4)
-    local num = (pt1.x - pt3.x) * (pt3.y - pt4.y) - (pt1.y - pt3.y) * (pt3.x - pt4.x)
-    local den = (pt1.x - pt2.x) * (pt3.y - pt4.y) - (pt1.y - pt2.y) * (pt3.x - pt4.x)
+    local x1, y1 = pt1:unwrap()
+    local x2, y2 = pt2:unwrap()
+    local x3, y3 = pt3:unwrap()
+    local x4, y4 = pt4:unwrap()
+    local num = (x1 - x3) * (y3 - y4) - (y1 - y3) * (x3 - x4)
+    local den = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4)
 
     if den == 0 then
         return nil
     end
 
     local t = num / den
-    local pt = point.create(pt1.x + t * (pt2.x - pt1.x), pt1.y + t * (pt2.y - pt1.y))
+    local pt = point.create(x1 + t * (x2 - x1), y1 + t * (y2 - y1))
     if t < 0 or t > 1 then -- line segments don't truly intersect
         return nil, pt
     end
@@ -58,9 +62,11 @@ local function _intersection(pt1, pt2, pt3, pt4)
 end
 
 local function _shift_line(pt1, pt2, width)
-    local angle = math.atan(pt2.y - pt1.y, pt2.x - pt1.x) - math.pi / 2
-    local spt1 = point.create(pt1.x + width * math.cos(angle), pt1.y + width * math.sin(angle))
-    local spt2 = point.create(pt2.x + width * math.cos(angle), pt2.y + width * math.sin(angle))
+    local x1, y1 = pt1:unwrap()
+    local x2, y2 = pt2:unwrap()
+    local angle = math.atan(y2 - y1, x2 - x1) - math.pi / 2
+    local spt1 = point.create(x1 + width * math.cos(angle), y1 + width * math.sin(angle))
+    local spt2 = point.create(x2 + width * math.cos(angle), y2 + width * math.sin(angle))
     return spt1, spt2
 end
 
@@ -138,6 +144,11 @@ local function _get_any_angle_path_pts(pts, width, grid, miterjoin)
         local pstart = pathpts[i]
         local pend = pathpts[i + 1]
         local linepts = graphics.line(pstart.x, pstart.y, pend.x, pend.y, grid)
+        --[[
+        local x1, y1 = pathpts[i]:unwrap()
+        local x2, y2 = pathpts[i + 1]:unwrap()
+        local linepts = graphics.line(x1, y1, x2, y2, grid)
+        --]]
         for _, pt in ipairs(linepts) do
             table.insert(poly, pt)
         end
@@ -208,7 +219,7 @@ function M.multiple(obj, xrep, yrep, xpitch, ypitch)
                 (x - 1) * xpitch - 0.5 * (xrep - 1) * xpitch, 
                 (y - 1) * ypitch - 0.5 * (yrep - 1) * ypitch
             )
-            final:merge_into(obj:copy():translate(center.x, center.y))
+            final:merge_into(obj:copy():translate(center:unwrap()))
         end
     end
     return final

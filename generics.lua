@@ -1,7 +1,9 @@
 local M = {}
 
+M.__index = M
+
 local function _create(value)
-    return {
+    local self = {
         value = value,
         isgeneric = true,
         get = function(self)
@@ -23,6 +25,8 @@ local function _create(value)
             end
         end
     }
+    setmetatable(self, M)
+    return self
 end
 
 function M.metal(num)
@@ -57,6 +61,11 @@ function M.mapped(layer)
     local self = _create(layer)
     self.typ = "mapped"
     return self
+end
+
+function M.is_type(self, ...)
+    local comp = function(v) return self.typ == v end
+    return aux.any_of(comp, { ... })
 end
 
 return M

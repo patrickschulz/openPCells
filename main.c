@@ -15,20 +15,35 @@
 #include "lua/lauxlib.h"
 #include "lua/lualib.h"
 
-#include "lfrac.h"
+#include <math.h>
+#include <ctype.h>
+#include <string.h>
 
-static lua_State* globalL = NULL;
+//#include "lfrac.h"
+#include "lpoint.h"
+#include "lload.h"
+#include "lbind.h"
 
-static const char* progname = "opc";
+#include "config.h"
+
+/*
+#define READERBUFSIZE 200
+#define READSIZE 50 
+#define NUMBUFSIZE 50
+*/
+
+//static lua_State* globalL = NULL;
+
+static const char* progname = "main.lua";
 
 /*
 ** Hook set by signal function to stop the interpreter.
 */
-static void lstop (lua_State* L, lua_Debug* ar) {
-  (void)ar;  /* unused arg. */
-  lua_sethook(L, NULL, 0, 0);  /* reset hook */
-  luaL_error(L, "interrupted!");
-}
+//static void lstop (lua_State* L, lua_Debug* ar) {
+//  (void)ar;  /* unused arg. */
+//  lua_sethook(L, NULL, 0, 0);  /* reset hook */
+//  luaL_error(L, "interrupted!");
+//}
 
 
 /*
@@ -37,11 +52,11 @@ static void lstop (lua_State* L, lua_Debug* ar) {
 ** this function only sets a hook that, when called, will stop the
 ** interpreter.
 */
-static void laction (int i) {
-  int flag = LUA_MASKCALL | LUA_MASKRET | LUA_MASKLINE | LUA_MASKCOUNT;
-  signal(i, SIG_DFL); /* if another SIGINT happens, terminate process */
-  lua_sethook(globalL, lstop, flag, 1);
-}
+//static void laction (int i) {
+//  int flag = LUA_MASKCALL | LUA_MASKRET | LUA_MASKLINE | LUA_MASKCOUNT;
+//  signal(i, SIG_DFL); /* if another SIGINT happens, terminate process */
+//  lua_sethook(globalL, lstop, flag, 1);
+//}
 
 
 /*
@@ -71,18 +86,24 @@ static int report (lua_State* L, int status) {
 /*
 ** Message handler used to run all chunks
 */
-static int msghandler (lua_State* L) {
-  const char* msg = lua_tostring(L, 1);
-  if (msg == NULL) {  /* is error object not a string? */
-    if (luaL_callmeta(L, 1, "__tostring") &&  /* does it have a metamethod */
-        lua_type(L, -1) == LUA_TSTRING)  /* that produces a string? */
-      return 1;  /* that is the message */
-    else
-      msg = lua_pushfstring(L, "(error object is a %s value)",
-                               luaL_typename(L, 1));
-  }
-  luaL_traceback(L, L, msg, 1);  /* append a standard traceback */
-  return 1;  /* return the traceback */
+//static int msghandler (lua_State* L) {
+//  const char* msg = lua_tostring(L, 1);
+//  if (msg == NULL) {  /* is error object not a string? */
+//    if (luaL_callmeta(L, 1, "__tostring") &&  /* does it have a metamethod */
+//        lua_type(L, -1) == LUA_TSTRING)  /* that produces a string? */
+//      return 1;  /* that is the message */
+//    else
+//      msg = lua_pushfstring(L, "(error object is a %s value)",
+//                               luaL_typename(L, 1));
+//  }
+//  luaL_traceback(L, L, msg, 1);  /* append a standard traceback */
+//  return 1;  /* return the traceback */
+//}
+
+static int call_main_program(lua_State* L)
+{
+    int status = luaL_loadfile(L, OPC_HOME "/" "main.lua");
+    return status;
 }
 
 int main (int argc, char** argv) {
@@ -95,20 +116,29 @@ int main (int argc, char** argv) {
 
     luaL_checkversion(L);  /* check that interpreter has correct version */
     luaL_openlibs(L);  /* open standard libraries */
-    open_lfrac_lib(L);
+    open_lpoint_lib(L);
     lua_gc(L, LUA_GCGEN, 0, 0);  /* GC in generational mode */
+
+    // create _load_module and _get_opc_home()
+    lua_pushcfunction(L, opc_load_module);
+    lua_setglobal(L, "_load_module");
+    lua_pushcfunction(L, opc_get_home);
+    lua_setglobal(L, "_get_opc_home");
+
+    // create bind()
+    lua_pushcfunction(L, lbind);
+    lua_setglobal(L, "bind");
 
     // create global argument table
     lua_newtable(L);
-    for(size_t i = 1; i < argc; ++i)
+    for(int i = 1; i < argc; ++i)
     {
         lua_pushstring(L, argv[i]);
         lua_rawseti(L, -2, i);
     }
     lua_setglobal(L, "arg");
 
-    const char* fname = "opc";
-    int status = luaL_loadfile(L, fname);
+    int status = call_main_program(L);
     if (status == LUA_OK) {
         status = lua_pcall(L, 0, 0, 0);
     }

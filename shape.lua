@@ -1,13 +1,12 @@
 local M = {}
 
-local meta = {}
-meta.__index = meta
+M.__index = M
 
 local function _create(lpp, typ)
     assert(typ, "creating a shape without a type")
     local typ = typ
     local self = { lpp = lpp, unmapped = true, typ = typ }
-    setmetatable(self, meta)
+    setmetatable(self, M)
     return self
 end
 
@@ -26,21 +25,23 @@ function M.create_polygon(lpp)
     return self
 end
 
-function meta.convert_to_polygon(self)
+function M.convert_to_polygon(self)
     if self.typ == "rectangle" then
+        local blx, bly = self.points.bl:unwrap()
+        local trx, try = self.points.tr:unwrap()
         local new = M.create_polygon(self.lpp)
-        table.insert(new.points, point.create(self.points.bl.x, self.points.bl.y))
-        table.insert(new.points, point.create(self.points.tr.x, self.points.bl.y))
-        table.insert(new.points, point.create(self.points.tr.x, self.points.tr.y))
-        table.insert(new.points, point.create(self.points.bl.x, self.points.tr.y))
-        table.insert(new.points, point.create(self.points.bl.x, self.points.bl.y)) -- close polygon
+        table.insert(new.points, point.create(blx, bly))
+        table.insert(new.points, point.create(trx, bly))
+        table.insert(new.points, point.create(trx, try))
+        table.insert(new.points, point.create(blx, try))
+        table.insert(new.points, point.create(blx, bly)) -- close polygon
         return new
     elseif self.typ == "polygon" then
         return self:copy()
     end
 end
 
-function meta.copy(self)
+function M.copy(self)
     local new
     if self.typ == "polygon" then
         new = M.create_polygon(self.lpp)
@@ -56,45 +57,53 @@ function meta.copy(self)
     return new
 end
 
-function meta.width(self)
+function M.width(self)
     if self.typ == "polygon" then
         local minx =  math.huge
         local maxx = -math.huge
         for _, pt in ipairs(self.points) do
-            minx = math.min(minx, pt.x)
-            maxx = math.max(maxx, pt.x)
+            local x = pt:getx()
+            minx = math.min(minx, x)
+            maxx = math.max(maxx, x)
         end
         return maxx - minx
     elseif self.typ == "rectangle" then
-        return self.points.tr.x - self.points.bl.x
+        local x1 = self.points.bl:getx()
+        local x2 = self.points.tr:getx()
+        return x2 - x1
     end
 end
 
-function meta.height(self)
+function M.height(self)
     if self.typ == "polygon" then
         local miny =  math.huge
         local maxy = -math.huge
         for _, pt in ipairs(self.points) do
-            miny = math.min(miny, pt.y)
-            maxy = math.max(maxy, pt.y)
+            local y = pt:gety()
+            miny = math.min(miny, y)
+            maxy = math.max(maxy, y)
         end
         return maxy - miny
     elseif self.typ == "rectangle" then
-        return self.points.tr.y - self.points.bl.y
+        local y1 = self.points.bl:gety()
+        local y2 = self.points.tr:gety()
+        return y2 - y1
     end
 end
 
-function meta.center(self)
+function M.center(self)
     if self.typ == "polygon" then
         error("no implementation for center() for polygons")
     elseif self.typ == "rectangle" then
-        local x = 0.5 * (self.points.bl.x + self.points.tr.x)
-        local y = 0.5 * (self.points.bl.y + self.points.tr.y)
+        local x1, y1 = self.points.bl:unwrap()
+        local x2, y2 = self.points.tr:unwrap()
+        local x = 0.5 * (x1 + x2)
+        local y = 0.5 * (y1 + y2)
         return point.create(x, y)
     end
 end
 
-function meta.concat_points(self, func)
+function M.concat_points(self, func)
     local st = {}
     if self.typ == "polygon" then
         for _, pt in ipairs(self.points) do
@@ -107,19 +116,22 @@ function meta.concat_points(self, func)
     return st
 end
 
-function meta.translate(self, dx, dy)
+function M.translate(self, dx, dy)
     if self.typ == "polygon" then
         for _, pt in ipairs(self.points) do
             pt:translate(dx, dy)
         end
     elseif self.typ == "rectangle" then
+        if not dx then
+            print(debug.traceback())
+        end
         self.points.bl:translate(dx, dy)
         self.points.tr:translate(dx, dy)
     end
     return self
 end
 
-function meta.rotate(self, angle)
+function M.rotate(self, angle)
     if self.typ == "polygon" then
         for _, pt in ipairs(self.points) do
             pt:rotate(angle)
@@ -131,7 +143,7 @@ function meta.rotate(self, angle)
     return self
 end
 
-function meta.scale(self, factor)
+function M.scale(self, factor)
     if self.typ == "polygon" then
         for _, pt in ipairs(self.points) do
             pt:scale(factor)
@@ -141,6 +153,14 @@ function meta.scale(self, factor)
         self.points.tr:scale(factor)
     end
     return self
+end
+
+function M.is_type(self, typ)
+    return self.typ == typ
+end
+
+function M.is_lpp_type(self, typ)
+    return self.lpp.typ == typ
 end
 
 return M

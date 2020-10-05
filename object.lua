@@ -32,7 +32,7 @@ function M.make_from_shape(shape)
 end
 
 function meta.merge_into(self, other)
-    for shape in other:iter() do
+    for _, shape in other:iter() do
         self:add_shape(shape)
     end
 end
@@ -47,13 +47,41 @@ function meta.add_shapes(self, shapes)
     end
 end
 
-function meta.iter(self)
-    local idx = 1
+-- this function returns an iterator over all shapes in a cell
+-- (possibly only selecting a subset)
+-- First all shapes are collected in an auxiliary table, which enables 
+-- modification of the self.shapes table within the iteration
+-- Furthermore, the list is iterated from the end, which allows 
+-- element removal in the loop
+function meta.iter(self, comp)
+    local shapes = {}
+    local indices = {}
+    local comp = comp or function() return true end
+    for i, s in ipairs(self.shapes) do
+        if comp(s) then
+            table.insert(shapes, s)
+            table.insert(indices, i)
+        end
+    end
+    local idx = #shapes + 1 -- start at the end
     local iter = function()
-        idx = idx + 1
-        return self.shapes[idx - 1]
+        idx = idx - 1
+        return indices[idx], shapes[idx]
     end
     return iter
+end
+
+function meta.find(self, comp)
+    local shapes = {}
+    local indices = {}
+    local comp = comp or function() return true end
+    for i, s in ipairs(self.shapes) do
+        if comp(s) then
+            table.insert(shapes, s)
+            table.insert(indices, i)
+        end
+    end
+    return indices, shapes
 end
 
 function meta.translate(self, dx, dy)
@@ -81,7 +109,7 @@ function meta.width_height(self)
     local maxx = -math.huge
     local miny =  math.huge
     local maxy = -math.huge
-    for shape in self:iter() do
+    for _, shape in self:iter() do
         if shape.typ == "polygon" then
             for _, pt in ipairs(shape.points) do
                 minx = math.min(minx, pt.x)
@@ -104,7 +132,7 @@ function meta.bounding_box(self)
     local maxx = -math.huge
     local miny =  math.huge
     local maxy = -math.huge
-    for shape in self:iter() do
+    for _, shape in self:iter() do
         if shape.typ == "polygon" then
             for _, pt in ipairs(shape.points) do
                 minx = math.min(minx, pt.x)

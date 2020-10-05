@@ -77,4 +77,22 @@ function M.round(num)
     return num >= 0 and math.floor(num + 0.5) or math.ceil(num - 0.5)
 end
 
+function M.any_of(comp, t, ...)
+    for _, v in ipairs(t) do
+        if comp(v, ...) then
+            return true
+        end
+    end
+    return false
+end
+
+function M.all_of(comp, t, ...)
+    for _, v in ipairs(t) do
+        if not comp(v, ...) then
+            return false
+        end
+    end
+    return true
+end
+
 return M
