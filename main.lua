@@ -59,7 +59,11 @@ interface.load(args.interface)
 
 local cell, msg = celllib.create_layout(args.cell, cellargs, true)
 if args.origin then
-    local dx, dy = string.match(args.origin, "%(%s*([-.%d]+)%s*,%s*([-.%d]+)%s*%)")
+    local dx, dy = string.match(args.origin, "%(%s*([-%d]+)%s*,%s*([-%d]+)%s*%)")
+    if not dx then 
+        print(string.format("could not parse origin (%s)", args.origin))
+        os.exit(exitcodes.unknown)
+    end
     cell:translate(dx, dy)
 end
 

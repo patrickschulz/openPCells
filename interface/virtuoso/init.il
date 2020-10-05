@@ -11,7 +11,7 @@ procedure(OPCcreateCell(w done pts)
         when(done
 	        args = ""
             ; 'cell' is defined one level above (in OPCplaceCell)
-	        command = lsprintf("%s -T %s -I %s -C %s --origin '(%f, %f)' -f %s %s" path tech interface cell float(xCoord(origin)) float(yCoord(origin)) filename args)
+	        command = lsprintf("%s -T %s -I %s -C %s --origin '(%d, %d)' -f %s %s" path tech interface cell 1000 * xCoord(origin) 1000 * yCoord(origin) filename args)
             println(command)
 	        pid = ipcBeginProcess(command)
 	        ipcWait(pid) ; wait for process to finish

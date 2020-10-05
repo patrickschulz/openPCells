@@ -13,4 +13,6 @@ return {
     undefinedparameter = 34,
     genericsarguments  = 35,
     parameternotfound  = 36,
+
+    unknown = 255
 }
