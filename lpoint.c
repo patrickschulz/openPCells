@@ -186,6 +186,8 @@ int open_lpoint_lib(lua_State* L)
     lua_pushstring(L, "__index");
     lua_pushvalue(L, -2); 
     lua_rawset(L, -3);
+    // remove metatable from stack
+    lua_pop(L, 1);
 
     static const luaL_Reg modfuncs[] =
     {

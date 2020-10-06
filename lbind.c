@@ -23,3 +23,9 @@ int lbind(lua_State* L)
     return 1;
 }
 
+int open_lbind_lib(lua_State* L)
+{
+    lua_pushcfunction(L, lbind);
+    lua_setglobal(L, "bind");
+    return 0;
+}
