@@ -9,6 +9,8 @@ openPCells.*
 tech/cmos22fdsoi
 
 # lua object files
+lua/lua
+lua/luac
 lua/*.o
 lua/liblua.a
 
