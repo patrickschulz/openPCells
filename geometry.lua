@@ -212,12 +212,14 @@ function M.corner(layer, startpt, endpt, width, radius, grid)
 end
 
 function M.multiple(obj, xrep, yrep, xpitch, ypitch)
+    assert(xpitch % 2 == 0)
+    assert(ypitch % 2 == 0)
     local final = object.create()
     for x = 1, xrep do
         for y = 1, yrep do
             local center = point.create(
-                (x - 1) * xpitch - 0.5 * (xrep - 1) * xpitch, 
-                (y - 1) * ypitch - 0.5 * (yrep - 1) * ypitch
+                (x - 1) * xpitch - (xrep - 1) * xpitch / 2, 
+                (y - 1) * ypitch - (yrep - 1) * ypitch / 2
             )
             final:merge_into(obj:copy():translate(center:unwrap()))
         end
