@@ -50,6 +50,8 @@ local function _prepare_cell_environment(cellname)
             create_layout = M.create_layout
         },
         geometry = geometry,
+        graphics = graphics,
+        shape = shape,
         generics = generics,
         point = point,
         util = util,
