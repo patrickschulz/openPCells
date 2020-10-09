@@ -9,10 +9,7 @@ local function _get_reader(filename)
     end
 end
 
-function _load_module(modname)
-    local filename = string.format("%s/%s.lua", _get_opc_home(), modname)
-    local chunkname = string.format("@%s", modname)
-
+local function _generic_load(filename, chunkname)
     local reader, msg = _get_reader(filename)
     if not reader then
         print(msg)
@@ -33,4 +30,11 @@ function _load_module(modname)
     end
 
     return chunk
+end
+
+function _load_module(modname)
+    local filename = string.format("%s/%s.lua", _get_opc_home(), modname)
+    local chunkname = string.format("@%s", modname)
+
+    return _generic_load(filename, chunkname)
 end

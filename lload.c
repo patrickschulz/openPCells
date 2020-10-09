@@ -15,6 +15,6 @@ int open_lload_lib(lua_State* L)
     lua_setglobal(L, "_get_opc_home");
     // _load_module is written in lua
     // no error checks, we know what we are doing
-    (luaL_dofile(L, OPC_HOME "/" "load.lua"));
+    (void) (luaL_loadfile(L, OPC_HOME "/" "load.lua") || lua_pcall(L, 0, LUA_MULTRET, 0));
     return 0;
 }
