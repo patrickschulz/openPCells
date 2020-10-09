@@ -1,3 +1,11 @@
+--[[
+This file is part of the openPCells project.
+
+This module provides a collection of geometry-related helper functions such as:
+    - manipulation of point arrays
+    - easier insertion of points in arrays
+--]]
+
 local M = {}
 
 function M.xmirror(pts, xcenter)

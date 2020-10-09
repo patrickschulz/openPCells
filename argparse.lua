@@ -1,3 +1,9 @@
+--[[
+This file is part of the openPCells project.
+
+This module provides a simple argument parser for the main program
+--]]
+
 local M = {}
 
 local function _advance(state, num)

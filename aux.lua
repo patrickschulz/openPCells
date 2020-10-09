@@ -1,3 +1,9 @@
+--[[
+This file is part of the openPCells project.
+
+This module provides a collection of helper functions (not geometry-related)
+--]]
+
 local M = {}
 
 function M.call_if_present(func, ...)
