@@ -2,7 +2,8 @@ do
     local origin = point.create(0, 0)
     local radius = 1000
     local grid = 100
-    local pts = graphics.circle(radius, grid)
+    local allow45 = true
+    local pts = graphics.circle(origin, radius, grid, allow45)
     local ref = {
         point.create( 1000,     0),
         point.create( 1000,   100),
@@ -62,7 +63,10 @@ do
         point.create( 1000,  -100),
         point.create( 1000,     0),
     }
-    check_points(pts, ref)
+    local status, msg = check_points(pts, ref)
+    if not status then
+        return nil, msg
+    end
 end
 
 -- if all test ran positively, we reach this point

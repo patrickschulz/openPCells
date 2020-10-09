@@ -36,11 +36,18 @@ if all or enabled["graphics"] then
     print("running graphics test...")
     run_test("graphics", "line")
     run_test("graphics", "circle")
-    run_test("graphics", "bresenham_arc")
+    --run_test("graphics", "bresenham_arc")
 end
 
+-- support checks
 if all or enabled["support"] then
     print("running support systems test...")
     run_test("support", "bind")
     run_test("support", "reduce")
+end
+
+-- geometry checks
+if all or enabled["geometry"] then
+    print("running geometry test...")
+    run_test("geometry", "path")
 end
