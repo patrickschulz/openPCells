@@ -3,23 +3,47 @@
 local M = {}
 
 function M.bresenham_arc(radius, grid)
-    local r = radius / grid
-    local x = -r
-    local y = 0
-    local err = 2 - 2 * r -- II. Quadrant
+    -- x^2 + y^2 - r^2 = 0
+    local x, y = -radius, 0 -- II. Quadrant
+    local err = 2 * grid + 2 * x
     local pts = {}
     repeat
-        table.insert(pts, point.create(-grid * x, grid * y))
-        r = err
-        if r <= y then
-            y = y + 1
-            err = err + y * 2 + 1 -- e_xy + e_y < 0 
+        table.insert(pts, point.create(-x, y))
+        local e2 = err
+        if y >= err then
+            y = y + grid
+            err = err + y * 2 + grid -- e_xy + e_y < 0 
         end
-        if r > x or err > y then
-            x = x + 1
-            err = err + x * 2 + 1 -- e_xy + e_x > 0 or no 2nd y-step
+        if x < e2 or y < err  then
+            x = x + grid
+            err = err + x * 2 + grid -- e_xy + e_x > 0 or no 2nd y-step
         end
     until x >= 0
+    -- insert last point
+    table.insert(pts, point.create(0, radius))
+    return pts
+end
+
+function M.circle(radius, grid)
+    local arcpts = M.bresenham_arc(radius, grid)
+    local pts = {}
+    local append = util.make_insert_xy(pts)
+    for i = 1, #arcpts do
+        local x, y = arcpts[i]:unwrap()
+        append(x, y)
+    end
+    for i = 2, #arcpts do
+        local x, y = arcpts[#arcpts - i + 1]:unwrap()
+        append(-x, y)
+    end
+    for i = 2, #arcpts do
+        local x, y = arcpts[i]:unwrap()
+        append(-x, -y)
+    end
+    for i = 2, #arcpts do
+        local x, y = arcpts[#arcpts - i + 1]:unwrap()
+        append(x, -y)
+    end
     return pts
 end
 
@@ -59,7 +83,9 @@ function M.halfcircle(xm, ym, radius, grid)
     return pts
 end
 
-function M.circle(xm, ym, radius, grid, startslope, endslope)
+--[[
+function M.circle(origin, radius, grid, startslope, endslope)
+    local xm, ym = origin:unwrap()
     local startslope = startslope or 0
     local endslope = endslope or 2 * math.pi
     local pts_pre = {}
@@ -79,8 +105,8 @@ function M.circle(xm, ym, radius, grid, startslope, endslope)
         local xi = shift[1]
         local yi = shift[2]
         for i = startidx, endidx, inc do
-            local pt = ptsi[i]
-            table.insert(pts_pre, { x = xi * pt.x, y = yi * pt.y })
+            local x, y = ptsi[i]:unwrap()
+            table.insert(pts_pre, { x = xi * x, y = yi * y })
         end
     end
     local insert = false
@@ -90,11 +116,12 @@ function M.circle(xm, ym, radius, grid, startslope, endslope)
         if slope > startslope then insert = true end
         if slope > endslope then insert = false end
         if insert then
-            table.insert(pts, { x = xm + pt.x, y = ym + pt.y })
+            table.insert(pts, point.create(xm + pt.x, ym + pt.y))
         end
     end
     return pts
 end
+--]]
 
 function M.arc(center, radius, startangle, endangle, grid)
     local startslope = startslope or 0
@@ -172,25 +199,35 @@ function M.spiral_points(arc, separation, numpts, grid)
     return pts
 end
 
-function M.line(x0, y0, x1, y1, grid)
-    local dx = math.abs(x1 - x0)
-    local sx = x0 < x1 and grid or -grid
-    local dy = -math.abs(y1 - y0)
-    local sy = y0 < y1 and grid or -grid
-    local err = dx + dy, e2; -- error value e_xy
+function M.line(pt1, pt2, grid)
+    local x1, y1 = pt1:unwrap()
+    local x2, y2 = pt2:unwrap()
+    local dx = math.abs(x2 - x1)
+    local dy = -math.abs(y2 - y1)
+    -- handle vertical, horizontal or diagonal lines specially
+    if x1 == x2 or y1 == y2 or dx == -dy then
+        return {
+            pt1:copy(),
+            pt2:copy()
+        }
+    end
+    local sx = x1 < x2 and grid or -grid
+    local sy = y1 < y2 and grid or -grid
+    local err = dx + dy -- error value e_xy
+    local e2
 
     local pts = {}
     while true do
-        table.insert(pts, { x = x0, y = y0 })
-        if x0 == x1 and y0 == y1 then break end
-        e2 = 2 * err;
+        table.insert(pts, point.create(x1, y1))
+        if x1 == x2 and y1 == y2 then break end
+        e2 = 2 * err
         if e2 >= dy then 
             err = err + dy
-            x0 = x0 + sx -- e_xy+e_x > 0
+            x1 = x1 + sx -- e_xy + e_x > 0
         end
         if e2 <= dx then 
             err = err + dx
-            y0 = y0 + sy -- e_xy+e_y < 0 */
+            y1 = y1 + sy -- e_xy + e_y < 0
         end
     end
     return pts
