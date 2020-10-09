@@ -5,11 +5,7 @@
 #define LPOINTMETA "lpoint"
 #define LPOINTMODULE "point"
 
-//typedef uint64_t lpoint_coordinate_t;
-//#define lpoint_check_coordinate luaL_checkinteger
-
-typedef double lpoint_coordinate_t;
-#define lpoint_check_coordinate luaL_checknumber
+typedef int64_t lpoint_coordinate_t;
 
 typedef struct _point
 {

@@ -1,16 +1,34 @@
 #include "lua/lua.h"
 #include "lua/lauxlib.h"
 
-#include <stdio.h>
-#include <stdint.h>
 #include <math.h>
 #include <string.h>
 
 #include "lpoint.h"
+#include "lsupport.h"
 
 static lpoint_coordinate_t checkcoordinate(lua_State* L, int idx)
 {
-    return lpoint_check_coordinate(L, idx);
+    int isnum;
+    lua_Integer d = lua_tointegerx(L, idx, &isnum);
+    if(!isnum) 
+    {
+        lua_Debug debug;
+        int level = 1;
+        while(1)
+        {
+            lua_getstack(L, level, &debug);
+            lua_getinfo(L, "Snlt", &debug);
+            if(strncmp("cell", debug.short_src, 4) == 0)
+            {
+                break;
+            }
+            ++level;
+        }
+        fprintf(stderr, "non-integer number generated in %s: line %d\n", debug.short_src, debug.currentline);
+        lexit(L, 1);
+    }
+    return d;
 }
 
 /*
@@ -23,6 +41,21 @@ static int lpoint_tostring(lua_State* L)
     return 1;
 }
 */
+
+static int lpoint_eq(lua_State* L)
+{
+    lpoint_t* lhs = lua_touserdata(L, -2);
+    lpoint_t* rhs = lua_touserdata(L, -1);
+    if(lhs->x == rhs->x && lhs->y == rhs->y)
+    {
+        lua_pushboolean(L, 1);
+    }
+    else
+    {
+        lua_pushboolean(L, 0);
+    }
+    return 1;
+}
 
 static int lpoint_create(lua_State* L)
 {
@@ -81,26 +114,26 @@ static int lpoint_unwrap(lua_State* L)
     unsigned int index = -1;
     if(lua_gettop(L) > 1)
     {
-        mul = lua_tonumber(L, -1);
+        mul = lua_tointeger(L, -1);
         index = -2;
     }
     lpoint_t* p = lua_touserdata(L, index);
-    lua_pushnumber(L, p->x * mul);
-    lua_pushnumber(L, p->y * mul);
+    lua_pushinteger(L, p->x * mul);
+    lua_pushinteger(L, p->y * mul);
     return 2;
 }
 
 static int lpoint_getx(lua_State* L)
 {
     lpoint_t* p = lua_touserdata(L, -1);
-    lua_pushnumber(L, p->x);
+    lua_pushinteger(L, p->x);
     return 1;
 }
 
 static int lpoint_gety(lua_State* L)
 {
     lpoint_t* p = lua_touserdata(L, -1);
-    lua_pushnumber(L, p->y);
+    lua_pushinteger(L, p->y);
     return 1;
 }
 
@@ -169,6 +202,7 @@ int open_lpoint_lib(lua_State* L)
     static const luaL_Reg metafuncs[] =
     {
         //{ "__tostring",     lpoint_tostring   },
+        { "__eq",           lpoint_eq         },
         { "getx",           lpoint_getx       },
         { "gety",           lpoint_gety       },
         { "copy",           lpoint_copy       },
