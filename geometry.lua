@@ -1,6 +1,8 @@
 local M = {}
 
 function M.rectangle(layer, width, height)
+    assert(width % 2 == 0)
+    assert(height % 2 == 0)
     local S = shape.create_rectangle(layer, width, height)
     return object.make_from_shape(S)
 end
@@ -8,36 +10,36 @@ end
 function M.cross(layer, width, height, crosssize)
     local S = shape.create_polygon(layer)
     local append = util.make_insert_xy(S.points)
-    append(-0.5 * width,     -0.5 * crosssize)
-    append(-0.5 * width,      0.5 * crosssize)
-    append(-0.5 * crosssize,  0.5 * crosssize)
-    append(-0.5 * crosssize,  0.5 * height)
-    append( 0.5 * crosssize,  0.5 * height)
-    append( 0.5 * crosssize,  0.5 * crosssize)
-    append( 0.5 * width,      0.5 * crosssize)
-    append( 0.5 * width,     -0.5 * crosssize)
-    append( 0.5 * crosssize, -0.5 * crosssize)
-    append( 0.5 * crosssize, -0.5 * height)
-    append(-0.5 * crosssize, -0.5 * height)
-    append(-0.5 * crosssize, -0.5 * crosssize)
-    append(-0.5 * width,     -0.5 * crosssize) -- close polygon
+    append(    -width / 2, -crosssize / 2)
+    append(    -width / 2,  crosssize / 2)
+    append(-crosssize / 2,  crosssize / 2)
+    append(-crosssize / 2,     height / 2)
+    append( crosssize / 2,     height / 2)
+    append( crosssize / 2,  crosssize / 2)
+    append(     width / 2,  crosssize / 2)
+    append(     width / 2, -crosssize / 2)
+    append( crosssize / 2, -crosssize / 2)
+    append( crosssize / 2,    -height / 2)
+    append(-crosssize / 2,    -height / 2)
+    append(-crosssize / 2, -crosssize / 2)
+    append(    -width / 2, -crosssize / 2) -- close polygon
     return object.make_from_shape(S)
 end
 
 function M.ring(layer, width, height, ringwidth)
     local S = shape.create_polygon(layer)
     local append = util.make_insert_xy(S.points)
-    append(-0.5 * (width + ringwidth), -0.5 * (height + ringwidth))
-    append( 0.5 * (width + ringwidth), -0.5 * (height + ringwidth))
-    append( 0.5 * (width + ringwidth),  0.5 * (height + ringwidth))
-    append(-0.5 * (width + ringwidth),  0.5 * (height + ringwidth))
-    append(-0.5 * (width + ringwidth), -0.5 * (height - ringwidth))
-    append(-0.5 * (width - ringwidth), -0.5 * (height - ringwidth))
-    append(-0.5 * (width - ringwidth),  0.5 * (height - ringwidth))
-    append( 0.5 * (width - ringwidth),  0.5 * (height - ringwidth))
-    append( 0.5 * (width - ringwidth), -0.5 * (height - ringwidth))
-    append(-0.5 * (width + ringwidth), -0.5 * (height - ringwidth))
-    append(-0.5 * (width + ringwidth), -0.5 * (height + ringwidth)) -- close polygon
+    append(-(width + ringwidth) / 2, -(height + ringwidth) / 2)
+    append( (width + ringwidth) / 2, -(height + ringwidth) / 2)
+    append( (width + ringwidth) / 2,  (height + ringwidth) / 2)
+    append(-(width + ringwidth) / 2,  (height + ringwidth) / 2)
+    append(-(width + ringwidth) / 2, -(height - ringwidth) / 2)
+    append(-(width - ringwidth) / 2, -(height - ringwidth) / 2)
+    append(-(width - ringwidth) / 2,  (height - ringwidth) / 2)
+    append( (width - ringwidth) / 2,  (height - ringwidth) / 2)
+    append( (width - ringwidth) / 2, -(height - ringwidth) / 2)
+    append(-(width + ringwidth) / 2, -(height - ringwidth) / 2)
+    append(-(width + ringwidth) / 2, -(height + ringwidth) / 2) -- close polygon
     return object.make_from_shape(S)
 end
 
@@ -53,7 +55,7 @@ local function _intersection(pt1, pt2, pt3, pt4)
         return nil
     end
 
-    local t = num / den
+    local t = num // den
     local pt = point.create(x1 + t * (x2 - x1), y1 + t * (y2 - y1))
     if t < 0 or t > 1 then -- line segments don't truly intersect
         return nil, pt
@@ -64,9 +66,11 @@ end
 local function _shift_line(pt1, pt2, width)
     local x1, y1 = pt1:unwrap()
     local x2, y2 = pt2:unwrap()
+    -- cos(atan(x)) == 1 / sqrt(1 + x^2)
+    -- sin(atan(x)) == x / sqrt(1 + x^2)
     local angle = math.atan(y2 - y1, x2 - x1) - math.pi / 2
-    local spt1 = point.create(x1 + width * math.cos(angle), y1 + width * math.sin(angle))
-    local spt2 = point.create(x2 + width * math.cos(angle), y2 + width * math.sin(angle))
+    local spt1 = point.create(x1 + math.floor(width * math.cos(angle)), y1 + math.floor(width * math.sin(angle)))
+    local spt2 = point.create(x2 + math.floor(width * math.cos(angle)), y2 + math.floor(width * math.sin(angle)))
     return spt1, spt2
 end
 
@@ -77,13 +81,13 @@ local function _get_path_pts(pts, width, miterjoin)
     local i = 1
     -- start to end
     for i = 1, #pts - 1 do
-        local spt1, spt2 = _shift_line(pts[i], pts[i + 1], 0.5 * width)
+        local spt1, spt2 = _shift_line(pts[i], pts[i + 1], width / 2)
         table.insert(tmp, spt1)
         table.insert(tmp, spt2)
     end
     -- end to start (shift in other direction)
     for i = #pts, 2, -1 do
-        local spt1, spt2 = _shift_line(pts[i], pts[i - 1], 0.5 * width)
+        local spt1, spt2 = _shift_line(pts[i], pts[i - 1], width / 2)
         table.insert(tmp, spt1)
         table.insert(tmp, spt2)
     end
@@ -120,22 +124,6 @@ local function _get_path_pts(pts, width, miterjoin)
     return poly
 end
 
-local function _remove_superfluous_points(pts)
-    local new = {}
-    table.insert(new, pts[1])
-    for i = 2, #pts - 1 do
-        local dxl = pts[i].x - pts[i - 1].x
-        local dyl = pts[i].y - pts[i - 1].y
-        local dxr = pts[i + 1].x - pts[i].x
-        local dyr = pts[i + 1].y - pts[i].y
-        if not ((dxl == dxr) and (dyl == dyr)) then
-            table.insert(new, pts[i])
-        end
-    end
-    table.insert(new, pts[#pts])
-    return new
-end
-
 local function _get_any_angle_path_pts(pts, width, grid, miterjoin)
     local pathpts = _get_path_pts(pts, width, miterjoin)
     table.insert(pathpts, pts[1]:copy()) -- close path
@@ -143,7 +131,7 @@ local function _get_any_angle_path_pts(pts, width, grid, miterjoin)
     for i = 1, #pathpts - 1 do
         local pstart = pathpts[i]
         local pend = pathpts[i + 1]
-        local linepts = graphics.line(pstart.x, pstart.y, pend.x, pend.y, grid)
+        local linepts = graphics.line(pstart, pstart, pend, pend, grid)
         --[[
         local x1, y1 = pathpts[i]:unwrap()
         local x2, y2 = pathpts[i + 1]:unwrap()
@@ -153,7 +141,7 @@ local function _get_any_angle_path_pts(pts, width, grid, miterjoin)
             table.insert(poly, pt)
         end
     end
-    return _remove_superfluous_points(poly)
+    return poly
 end
 
 function M.path(layer, pts, width, miterjoin)
@@ -186,6 +174,7 @@ function M.path_midpoint(layer, pts, width, method, miterjoin)
     return M.path(layer, newpts, width, miterjoin)
 end
 
+--[[
 function M.corner(layer, startpt, endpt, width, radius, grid)
     local S = shape.create(layer)
     local dy = endpt.y - startpt.y - radius
@@ -210,6 +199,7 @@ function M.corner(layer, startpt, endpt, width, radius, grid)
 
     return object.make_from_shape(S)
 end
+--]]
 
 function M.multiple(obj, xrep, yrep, xpitch, ypitch)
     assert(xpitch % 2 == 0)
