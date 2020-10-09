@@ -8,6 +8,8 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <sys/types.h>
+#include <unistd.h>
 
 #include <signal.h>
 
@@ -136,13 +138,13 @@ static int call_main_program(lua_State* L, const char* filename)
     return status;
 }
 
-int main (int argc, char** argv)
+lua_State* create_and_initialize_lua()
 {
     lua_State* L = luaL_newstate();
     if (L == NULL) 
     {
         fprintf(stderr, "%s\n", "cannot create state: not enough memory");
-        return EXIT_FAILURE;
+        exit(EXIT_FAILURE);
     }
 
     // lua libraries
@@ -153,6 +155,12 @@ int main (int argc, char** argv)
     open_lload_lib(L);
     open_lbind_lib(L);
     load_api(L);
+    return L;
+}
+
+int main (int argc, char** argv)
+{
+    lua_State* L = create_and_initialize_lua();
 
     if(argc > 1 && (strcmp(argv[1], "test") == 0))
     {
@@ -161,9 +169,25 @@ int main (int argc, char** argv)
     }
     else if(argc > 1 && (strcmp(argv[1], "watch") == 0))
     {
-        puts("you called opc with 'watch', but this is currently not implemented. Ignoring and moving on.");
-        create_argument_table(L, argc - 1, argv + 1); // remove 'watch' from arguments
-        call_main_program(L, OPC_HOME "/" MAINPROGNAME);
+        pid_t pid = fork();
+        if(pid == 0) // child
+        {
+            create_argument_table(L, argc - 1, argv + 1); // remove 'watch' from arguments
+            while(1)
+            {
+                call_main_program(L, OPC_HOME "/" MAINPROGNAME);
+                sleep(2);
+                lua_close(L);
+
+                L = create_and_initialize_lua();
+                create_argument_table(L, argc - 1, argv + 1); // remove 'watch' from arguments
+            }
+                
+        }
+        else // parent
+        {
+            printf("created child process (pid: %d)\n", pid);
+        }
     }
     else
     {
