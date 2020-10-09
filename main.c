@@ -27,6 +27,7 @@
 #include "config.h"
 
 #define MAINPROGNAME "main.lua"
+#define TESTPROGNAME "testsuite/main.lua"
 
 //static lua_State* globalL = NULL;
 
@@ -76,6 +77,36 @@ static int msghandler (lua_State* L)
     return 1;
 }
 
+static void load_api(lua_State* L)
+{
+    char* modules[] = {
+        "object",
+        "shape",
+        "geometry",
+        "graphics",
+        "pcell",
+        "generics",
+        "stringfile",
+        "util",
+        "aux",
+        "exitcodes",
+        "funcobject",
+        "reduce",
+        NULL
+    };
+    char** ptr = modules;
+    lua_getglobal(L, "_load_module");
+    while(*ptr)
+    {
+        lua_pushvalue(L, -1); // copy _load_module
+        lua_pushstring(L, *ptr);
+        lua_call(L, 1, 1); // unprotected call since errors are handled in _load_module
+        lua_setglobal(L, *ptr);
+        ++ptr;
+    }
+    lua_pop(L, 1); // remove _load_module
+}
+
 static void create_argument_table(lua_State* L, int argc, char** argv)
 {
     lua_newtable(L);
@@ -87,9 +118,9 @@ static void create_argument_table(lua_State* L, int argc, char** argv)
     lua_setglobal(L, "arg");
 }
 
-static int call_main_program(lua_State* L)
+static int call_main_program(lua_State* L, const char* filename)
 {
-    int status = luaL_loadfile(L, OPC_HOME "/" MAINPROGNAME);
+    int status = luaL_loadfile(L, filename);
     if (status == LUA_OK) {
         lua_pushcfunction(L, msghandler);
         lua_insert(L, 1);
@@ -121,9 +152,24 @@ int main (int argc, char** argv)
     open_lpoint_lib(L);
     open_lload_lib(L);
     open_lbind_lib(L);
+    load_api(L);
 
-    create_argument_table(L, argc, argv);
-    call_main_program(L);
+    if(argc > 1 && (strcmp(argv[1], "test") == 0))
+    {
+        create_argument_table(L, argc - 1, argv + 1); // remove 'test' from arguments
+        call_main_program(L, OPC_HOME "/" TESTPROGNAME);
+    }
+    else if(argc > 1 && (strcmp(argv[1], "watch") == 0))
+    {
+        puts("you called opc with 'watch', but this is currently not implemented. Ignoring and moving on.");
+        create_argument_table(L, argc - 1, argv + 1); // remove 'watch' from arguments
+        call_main_program(L, OPC_HOME "/" MAINPROGNAME);
+    }
+    else
+    {
+        create_argument_table(L, argc, argv);
+        call_main_program(L, OPC_HOME "/" MAINPROGNAME);
+    }
     lexit(L, 0);
     return 0; // never reached
 }

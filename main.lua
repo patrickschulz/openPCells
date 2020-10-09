@@ -1,14 +1,3 @@
---[[
-function _load_module(name)
-    local path = _get_opc_home()
-    local filename = string.format("%s/%s.lua", path, name)
-    local module = dofile(filename)
-    return module
-end
---]]
-
-_load_module("api")
-
 -- for random shuffle
 math.randomseed(os.time())
 
@@ -32,7 +21,7 @@ for k, v in string.gmatch(table.concat(args.cellargs, " "), "(%w+)%s*=%s*(%S+)")
     cellargs[k] = v
 end
 
-debuglib.set(args.debug)
+--debuglib.set(args.debug)
 
 if not args.cell then
     print("no cell type given")
@@ -41,7 +30,7 @@ end
 
 -- output cell parameters
 if args.params then
-    celllib.parameters(args.cell)
+    pcell.parameters(args.cell)
     os.exit(0)
 end
 
@@ -57,7 +46,11 @@ end
 local tech = techlib.load(args.technology)
 interface.load(args.interface)
 
-local cell, msg = celllib.create_layout(args.cell, cellargs, true)
+local cell, msg = pcell.create_layout(args.cell, cellargs, true)
+if not cell then
+    print(string.format("error while creating cell, received: %s", msg))
+    os.exit(exitcodes.errorincell)
+end
 if args.origin then
     local dx, dy = string.match(args.origin, "%(%s*([-%d]+)%s*,%s*([-%d]+)%s*%)")
     if not dx then 
@@ -66,19 +59,6 @@ if args.origin then
     end
     cell:translate(dx, dy)
 end
-
-if not cell then
-    print(string.format("error while creating cell, received: %s", msg))
-    os.exit(exitcodes.errorincell)
-end
-
---[[
-local maxpolypoints = 500
-if maxpolypoints then
-    sanitize.reduce_shape_point_count(cell, maxpolypoints)
-end
---]]
---sanitize.triangulate(cell)
 
 local techintf = args.interface
 if not args.notech then

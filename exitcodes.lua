@@ -6,7 +6,9 @@ return {
     -- errors
     syntaxerrorincell  = 4,
     errorincell        = 5,
-    technotfound       = 6,
+    usererrorincell    = 6,
+
+    technotfound       = 16,
 
     anchornotfound     = 32,
     unknownparameter   = 33,
