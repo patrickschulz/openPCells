@@ -1,11 +1,11 @@
 function parameters()
     pcell.add_parameters(
-        { "contype",      "p" },
-        { "width",        5.0 },
-        { "height",       5.0 },
-        { "ringwidth",    0.2 },
-        { "extension",    0.05 },
-        { "fillwell",     true },
+        { "contype",        "p" },
+        { "width",         5000 },
+        { "height",        5000 },
+        { "ringwidth",      200 },
+        { "extension",       50 },
+        { "fillwell",      true },
         { "drawdeepwell", false }
     )
 end

@@ -1,12 +1,12 @@
 function parameters()
     pcell.add_parameters(
-        { "turns",         3 },
-        { "width",         6.0 },
-        { "spacing",       6.0 },
-        { "innerdiameter", 10 },
-        { "points",        8 },
-        { "metalnum",      -1 },
-        { "grid",          0.1 }
+        { "turns",             3 },
+        { "width",          6000 },
+        { "spacing",        6000 },
+        { "innerdiameter", 10000 },
+        { "points",            8 },
+        { "metalnum",         -1 },
+        { "grid",            100 }
     )
 end
 

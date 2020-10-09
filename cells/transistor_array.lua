@@ -8,7 +8,7 @@ function layout(array, _P)
     local gatepitch = _P.gatelength + _P.gatespace
     local numtransistors = #_P.fingers
     local numfingers = aux.sum(_P.fingers)
-    local gatestrspace = 0.2
+    local gatestrspace = 200
 
     local ttypes = {}
     local indices = {}
@@ -27,7 +27,7 @@ function layout(array, _P)
     end
     aux.shuffle(indices)
     for i = 1, #indices do
-        local offset = (i - 1) - 0.5 * (2 * #indices - 1)
+        local offset = (i - 1) - (2 * #indices - 1) / 2
         local ttype = ttypes[indices[i]]
         array:merge_into(
             celllib.create_layout("single_transistor", ttype)
@@ -41,11 +41,11 @@ function layout(array, _P)
     for i = 1, #ttypes do
         array:merge_into(geometry.rectangle(
             generics.metal(1), numfingers * gatepitch, _P.topgatestrwidth
-            ):translate(0, 0.5 * (_P.fwidth + _P.topgatestrwidth) + i * gatestrspace + (i - 1) * _P.topgatestrwidth)
+            ):translate(0, (_P.fwidth + _P.topgatestrwidth) / 2 + i * gatestrspace + (i - 1) * _P.topgatestrwidth)
         )
         array:merge_into(geometry.rectangle(
             generics.metal(1), numfingers * gatepitch, _P.topgatestrwidth
-            ):translate(0, -0.5 * (_P.fwidth + _P.botgatestrwidth) - i * gatestrspace - (i - 1) * _P.botgatestrwidth)
+            ):translate(0, -(_P.fwidth + _P.botgatestrwidth) / 2 - i * gatestrspace - (i - 1) * _P.botgatestrwidth)
         )
     end
 end

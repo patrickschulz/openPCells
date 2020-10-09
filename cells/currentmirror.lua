@@ -10,8 +10,8 @@ function parameters()
     pcell.add_parameters(
         { "ifingers", 4 },
         { "ofingers", 4 },
-        { "gatestrapwidth", 0.2 },
-        { "gatestrapspace", 0.2 },
+        { "gatestrapwidth", 200 },
+        { "gatestrapspace", 200 },
         { "sourcemetal", 2 },
         { "outmetal", 3 }
     )
@@ -22,8 +22,8 @@ function layout(currentmirror, _P)
         fingers = _P.ifingers + _P.ofingers,
         drawtopgate = true, drawbotgate = true, connectsource = true, connectdrain = true,
         topgatestrspace = _P.gatestrapspace,
-        sdconnwidth = 0.2,
-        gtopext = 0.5, gbotext = 0.5,
+        sdconnwidth = 200,
+        gtopext = 500, gbotext = 500,
     })
 
     -- transistor (one for both)
@@ -33,8 +33,8 @@ function layout(currentmirror, _P)
     -- diode drain connections
     currentmirror:merge_into(geometry.multiple(
         geometry.rectangle(generics.metal(1), _P.sdwidth, _P.gatestrapspace),
-        math.floor(0.25 * (_P.ifingers + _P.ofingers)), 1, 4 * (_P.gatelength + _P.gatespace), 0
-    ):translate(-_P.gatelength - _P.gatespace, 0.5 * (_P.fwidth + _P.gatestrapspace)))
+        math.floor((_P.ifingers + _P.ofingers) / 4), 1, 4 * (_P.gatelength + _P.gatespace), 0
+    ):translate(-_P.gatelength - _P.gatespace, (_P.fwidth + _P.gatestrapspace) / 2))
     
     --[[
     -- mirror drain connections

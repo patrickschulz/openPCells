@@ -10,8 +10,11 @@ function parameters()
     )
 end
 
+local function _scale_tanpi8(num)
+    return math.floor(num * 5741 / 13860) -- rational approximation of tan(pi / 8)
+end
+
 function layout(inductor, _P)
-    local tanpi8 = math.tan(math.pi / 8)
     local pitch = _P.separation + _P.width
 
     local mainmetal = generics.metal(_P.metalnum)
@@ -22,43 +25,43 @@ function layout(inductor, _P)
     local sign = (_P.turns % 2 == 0) and 1 or -1
     for i = 1, _P.turns do
         local radius = _P.radius + (i - 1) * pitch
-        local r = radius * tanpi8
+        local r = _scale_tanpi8(radius)
         sign = -sign
 
         local pathpts = {}
         local prepend = util.make_insert_xy(pathpts, 1)
         local append = util.make_insert_xy(pathpts)
 
-        append(-r + 0.5 * tanpi8 * _P.width,  sign * radius)
+        append(-r + _scale_tanpi8(_P.width / 2),  sign * radius)
         append(-r,  sign * radius)
         append(-radius,  sign * r)
         append(-radius, -sign * r)
         append(-r, -sign * radius)
-        append(-r + 0.5 * tanpi8 * _P.width, -sign * radius)
+        append(-r + _scale_tanpi8(_P.width / 2), -sign * radius)
         
         -- draw underpass
         if i < _P.turns then
             -- create connection to underpass
-            prepend(-0.5 * (_P.radius * tanpi8 + 0.5 * pitch),  sign * radius)
-            append(-0.5 * (_P.radius * tanpi8 + 0.5 * pitch), -sign * radius)
+            prepend(-(_scale_tanpi8(_P.radius) + pitch / 2) / 2,  sign * radius)
+            append(-(_scale_tanpi8(_P.radius) + pitch / 2) / 2, -sign * radius)
             -- create underpass
             local uppts = {}
             local append = util.make_insert_xy(uppts)
-            append(-0.5 * (_P.radius * tanpi8 + 0.5 * pitch), -sign * radius)
-            append(-0.5 * pitch - 0.5 * tanpi8 * _P.width, -sign * radius)
-            append(-0.5 * pitch, -sign * radius)
-            append( 0.5 * pitch, -sign * (radius + pitch))
-            append( 0.5 * pitch + 0.5 * tanpi8 * _P.width, -sign * (radius + pitch))
-            append( 0.5 * (_P.radius * tanpi8 + 0.5 * pitch), -sign * (radius + pitch))
+            append(-(_scale_tanpi8(_P.radius) + pitch / 2) / 2, -sign * radius)
+            append(-pitch / 2 - _scale_tanpi8(_P.width / 2), -sign * radius)
+            append(-pitch / 2, -sign * radius)
+            append( pitch / 2, -sign * (radius + pitch))
+            append( pitch / 2 + _scale_tanpi8(_P.width / 2), -sign * (radius + pitch))
+            append( (_scale_tanpi8(_P.radius) + pitch / 2) / 2, -sign * (radius + pitch))
             inductor:merge_into(geometry.path(mainmetal, uppts, _P.width, true))
             inductor:merge_into(geometry.path(auxmetal, util.xmirror(uppts), _P.width, true))
             -- place vias
             inductor:merge_into(geometry.rectangle(via, _P.width, _P.width):translate(
-                -0.5 * (_P.radius * tanpi8 + 0.5 * pitch), 
+                -(_scale_tanpi8(_P.radius) + pitch / 2) / 2, 
                 -sign * (radius + pitch)
             ))
             inductor:merge_into(geometry.rectangle(via, _P.width, _P.width):translate(
-                0.5 * (_P.radius * tanpi8 + 0.5 * pitch), 
+                (_scale_tanpi8(_P.radius) + pitch / 2) / 2, 
                 -sign * radius
             ))
         end
@@ -72,14 +75,14 @@ function layout(inductor, _P)
         if i == _P.turns then
             -- create connection to underpass
             if i > 1 then
-                prepend(-0.5 * (_P.radius * tanpi8 + 0.5 * pitch), sign * radius)
+                prepend(-(_scale_tanpi8(_P.radius) + pitch / 2) / 2, sign * radius)
             end
-            if 0.5 * _P.extsep + _P.width > r + 0.5 * _P.width * tanpi8 then
-                append(-0.5 * (_P.extsep + _P.width), -r - radius + 0.5 * (_P.extsep + _P.width))
-                append(-0.5 * (_P.extsep + _P.width), -r - radius + 0.5 * (_P.extsep + _P.width) - _P.extension)
-            else
-                append(-0.5 * (_P.extsep + _P.width), -radius)
-                append(-0.5 * (_P.extsep + _P.width), -(radius + _P.extension))
+            if _P.extsep / 2 + _P.width > r + _scale_tanpi8(_P.width / 2) then
+                append(-(_P.extsep + _P.width) / 2, -r - radius + (_P.extsep + _P.width) / 2)
+                append(-(_P.extsep + _P.width) / 2, -r - radius + (_P.extsep + _P.width) / 2 - _P.extension)
+            else                                   
+                append(-(_P.extsep + _P.width) / 2, -radius)
+                append(-(_P.extsep + _P.width) / 2, -(radius + _P.extension))
             end
         end
 

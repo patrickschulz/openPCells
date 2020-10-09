@@ -3,29 +3,29 @@ function parameters()
         { "oxidetype",  "0.9" },
         { "pvthtype",   "slvt" },
         { "nvthtype",   "slvt" },
-        { "pwidth",     1 },
-        { "nwidth",     1 },
-        { "glength",    0.2 },
-        { "gext",       0.1 },
-        { "sdwidth",    0.2 },
-        { "gspace",     0.27 },
-        { "gstwidth",   0.1 },
-        { "fingers",    4 },
-        { "dummies",    2 },
-        { "separation", 0.4 },
-        { "ttypeext",   0.1 },
-        { "powerwidth", 0.2 },
-        { "powerspace", 0.5 },
-        { "conngate",   1 },
-        { "connmetal",  3 },
-        { "connwidth",  0.1 },
-        { "connoffset", 1 }
+        { "pwidth",       1 },
+        { "nwidth",       1 },
+        { "glength",    200 },
+        { "gext",       100 },
+        { "sdwidth",    200 },
+        { "gspace",     270 },
+        { "gstwidth",   100 },
+        { "fingers",      4 },
+        { "dummies",      2 },
+        { "separation", 400 },
+        { "ttypeext",   100 },
+        { "powerwidth", 200 },
+        { "powerspace", 500 },
+        { "conngate",     1 },
+        { "connmetal",    3 },
+        { "connwidth",  100 },
+        { "connoffset",   1 }
     )
 end
 
 function layout(inverter, _P)
     local xpitch = _P.gspace + _P.glength
-    local dummycontheight = 0.08
+    local dummycontheight = 80
 
     -- pfet
     local pmos = celllib.create_layout("transistor",
@@ -33,7 +33,7 @@ function layout(inverter, _P)
             channeltype = "pmos",
             fingers = _P.fingers, gatelength = _P.glength, fwidth = _P.pwidth, gatespace = _P.gspace,
             sdwidth = _P.sdwidth,
-            gtopext = _P.powerspace + dummycontheight, gbotext = 0.5 * _P.separation,
+            gtopext = _P.powerspace + dummycontheight, gbotext = _P.separation / 2,
             drawbotgate = true,
             clipbot = true
         }
@@ -46,7 +46,7 @@ function layout(inverter, _P)
             channeltype = "nmos",
             fingers = _P.fingers, gatelength = _P.glength, fwidth = _P.pwidth, gatespace = _P.gspace,
             sdwidth = _P.sdwidth,
-            gbotext = _P.powerspace + dummycontheight, gtopext = 0.5 * _P.separation,
+            gbotext = _P.powerspace + dummycontheight, gtopext = _P.separation / 2,
             drawtopgate = true,
             cliptop = true
         }
@@ -59,7 +59,7 @@ function layout(inverter, _P)
             channeltype = "pmos",
             fingers = _P.dummies, gatelength = _P.glength, fwidth = _P.pwidth, gatespace = _P.gspace,
             sdwidth = _P.sdwidth,
-            gtopext = _P.powerspace + dummycontheight, gbotext = 0.5 * _P.separation,
+            gtopext = _P.powerspace + dummycontheight, gbotext = _P.separation / 2,
             clipbot = true, botgcut = true
         }
     )
@@ -70,7 +70,7 @@ function layout(inverter, _P)
             channeltype = "nmos",
             fingers = _P.dummies, gatelength = _P.glength, fwidth = _P.pwidth, gatespace = _P.gspace,
             sdwidth = _P.sdwidth,
-            gbotext = _P.powerspace + dummycontheight, gtopext = 0.5 * _P.separation,
+            gbotext = _P.powerspace + dummycontheight, gtopext = _P.separation / 2,
             cliptop = true, topgcut = true
         }
     )
@@ -125,10 +125,10 @@ function layout(inverter, _P)
     -- power rails
     inverter:merge_into(geometry.rectangle(generics.metal(1),
         (_P.fingers + 2 * _P.dummies) * xpitch + _P.sdwidth, _P.powerwidth
-    ):translate(0, -0.5 * _P.separation - _P.nwidth - 0.5 * _P.powerwidth - _P.powerspace))
+    ):translate(0, -_P.separation / 2 - _P.nwidth - _P.powerwidth / 2 - _P.powerspace))
     inverter:merge_into(geometry.rectangle(generics.metal(1),
         (_P.fingers + 2 * _P.dummies) * xpitch + _P.sdwidth, _P.powerwidth
-    ):translate(0, 0.5 * _P.separation + _P.pwidth + 0.5 * _P.powerwidth + _P.powerspace))
+    ):translate(0, _P.separation / 2 + _P.pwidth + _P.powerwidth / 2 + _P.powerspace))
 
     ---[[
     -- connections
@@ -136,7 +136,7 @@ function layout(inverter, _P)
         inverter:merge_into(geometry.multiple(
             geometry.rectangle(generics.metal(1), _P.sdwidth, _P.powerspace),
             _P.dummies + 1, 2, xpitch, _P.nwidth + _P.pwidth + _P.separation + _P.powerspace
-        ):translate(i * 0.5 * (_P.fingers + _P.dummies) * xpitch, 0.5 * (_P.pwidth - _P.nwidth)))
+        ):translate(i * (_P.fingers + _P.dummies) / 2 * xpitch, (_P.pwidth - _P.nwidth) / 2))
     end
     --]]
 

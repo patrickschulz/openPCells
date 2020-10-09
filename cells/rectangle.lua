@@ -1,4 +1,5 @@
 function parameters()
+    --pcell.add_parameter("width", 50)
     pcell.add_parameters(
         { "width", 50 }
     )
