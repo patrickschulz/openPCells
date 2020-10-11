@@ -76,6 +76,12 @@ function M.make_insert_pts(pts, idx)
     end
 end
 
+function M.check_grid(grid, ...)
+    for _, num in ipairs({ ... }) do
+        assert(num % grid == 0, string.format("number is not on-grid: %d", num))
+    end
+end
+
 function M.is_point_in_polygon(pt, pts)
     local j = #pts
     local c = nil 

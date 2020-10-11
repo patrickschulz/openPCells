@@ -31,12 +31,6 @@ local function _rasterize(x1, y1, x2, y2, grid, calc_error, allow45)
     return pts
 end
 
-local function _check_grid(grid, ...)
-    for _, num in ipairs({ ... }) do
-        assert(num % grid == 0, string.format("number is not on-grid: %d", num))
-    end
-end
-
 function M.line(pt1, pt2, grid, allow45)
     local x1, y1 = pt1:unwrap()
     local x2, y2 = pt2:unwrap()
@@ -49,7 +43,7 @@ function M.line(pt1, pt2, grid, allow45)
         }
     end
 
-    _check_grid(grid, x1, y1, x2, y2)
+    util.check_grid(grid, x1 - x2, y1 - y2)
 
     local function calc_error(x, y)
         return (y - y1) * (x2 - x1) - (x - x1) * (y2 - y1)
@@ -63,7 +57,7 @@ function M.ellipse(origin, xradius, yradius, grid, allow45)
     local x1, y1 = xc + xradius, yc
     local x2, y2 = xc, yc + yradius
 
-    _check_grid(grid, xc, yc, xradius, yradius)
+    util.check_grid(grid, xc, yc, xradius, yradius)
 
     local function calc_error(x, y)
         return (x - xc) * (x - xc) * xradius * xradius + (y - yc) * (y - yc) * yradius * yradius - xradius * xradius * yradius * yradius
