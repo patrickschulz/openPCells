@@ -55,9 +55,13 @@ local function _prepare_cell_environment(cellname)
         generics = generics,
         point = point,
         util = util,
+        aux = aux,
         math = math,
         enable = function(bool, val) return (bool and 1 or 0) * val end,
-        string = string
+        string = string,
+        table = table,
+        print = print,
+        ipairs = ipairs
     }
 end
 
