@@ -48,16 +48,20 @@ local function _intersection(pt1, pt2, pt3, pt4)
     local x2, y2 = pt2:unwrap()
     local x3, y3 = pt3:unwrap()
     local x4, y4 = pt4:unwrap()
-    local num = (x1 - x3) * (y3 - y4) - (y1 - y3) * (x3 - x4)
-    local den = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4)
+    local num = (x1 - x3) * (y3 - y4) - (x3 - x4) * (y1 - y3)
+    local den = (x1 - x2) * (y3 - y4) - (x3 - x4) * (y1 - y2)
 
     if den == 0 then
         return nil
     end
 
-    local t = num // den
-    local pt = point.create(x1 + t * (x2 - x1), y1 + t * (y2 - y1))
-    if t < 0 or t > 1 then -- line segments don't truly intersect
+    local pt = point.create(x1 + num * (x2 - x1) // den, y1 + num * (y2 - y1) // den)
+    -- FIXME: can num and den have different signs?
+    if 
+        (num < 0 and den > 0) or 
+        (num > 0 and den < 0) or 
+        math.abs(num) > math.abs(den) 
+    then -- line segments don't truly intersect
         return nil, pt
     end
     return pt
@@ -69,11 +73,21 @@ local function _shift_line(pt1, pt2, width)
     -- cos(atan(x)) == 1 / sqrt(1 + x^2)
     -- sin(atan(x)) == x / sqrt(1 + x^2)
     local angle = math.atan(y2 - y1, x2 - x1) - math.pi / 2
-    local spt1 = point.create(x1 + math.floor(width * math.cos(angle)), y1 + math.floor(width * math.sin(angle)))
-    local spt2 = point.create(x2 + math.floor(width * math.cos(angle)), y2 + math.floor(width * math.sin(angle)))
+    local spt1 = point.create(x1 + math.floor(width * math.cos(angle) + 0.5), y1 + math.floor(width * math.sin(angle) + 0.5))
+    local spt2 = point.create(x2 + math.floor(width * math.cos(angle) + 0.5), y2 + math.floor(width * math.sin(angle) + 0.5))
     return spt1, spt2
 end
 
+-- calculate the outline points of a path with a width
+-- this works as follows:
+-- shift the middle path to the left and to the right
+-- if adjacent lines intersect, that point is part of the outline
+-- if adjacent lines don't intersect, either:
+--      * insert both endpoints (well, the endpoint of the first segment and the startpoint of the second segment).
+--        This is a bevel join
+--      * insert the point where the extended line segments meet 
+--        This is a miter join
+-- the endpoints of the path need extra care
 local function _get_path_pts(pts, width, miterjoin)
     local tmp = {}
     local poly = {}
@@ -93,31 +107,32 @@ local function _get_path_pts(pts, width, miterjoin)
     end
     local midpointfunc = function(i)
         local inner, outer = _intersection(tmp[i - 1], tmp[i], tmp[i + 1], tmp[i + 2])
-        if not inner then
-            if miterjoin then
-                table.insert(poly, outer)
-            else
-                table.insert(poly, tmp[i])
-                table.insert(poly, tmp[i + 1])
-            end
+        if inner then
+            return inner
         else
-            table.insert(poly, inner)
+            if miterjoin then
+                return outer
+            else
+                return tmp[i], tmp[i + 1]
+            end
         end
     end
     -- first start point
     table.insert(poly, tmp[1])
     -- first middle points
     for seg = 1, segs - 1 do
-        local i = 1 + 2 * (seg - 1) + 1
-        midpointfunc(i)
+        local i = 2 * seg
+        local new = { midpointfunc(i) }
+        for _, pt in ipairs(new) do table.insert(poly, pt) end
     end
     -- end points
-    table.insert(poly, tmp[1 + (segs - 1) * 2 + 1])
-    table.insert(poly, tmp[1 + (segs - 1) * 2 + 2])
+    table.insert(poly, tmp[2 * segs])
+    table.insert(poly, tmp[2 * segs + 1])
     -- second middle points
     for seg = 1, segs - 1 do
-        local i = 1 + (segs - 1) * 2 + 2 + 2 * (seg - 1) + 1
-        midpointfunc(i)
+        local i = 2 * (segs + seg)
+        local new = { midpointfunc(i) }
+        for _, pt in ipairs(new) do table.insert(poly, pt) end
     end
     -- second start point
     table.insert(poly, tmp[#tmp])
@@ -129,14 +144,7 @@ local function _get_any_angle_path_pts(pts, width, grid, miterjoin)
     table.insert(pathpts, pts[1]:copy()) -- close path
     local poly = {}
     for i = 1, #pathpts - 1 do
-        local pstart = pathpts[i]
-        local pend = pathpts[i + 1]
-        local linepts = graphics.line(pstart, pstart, pend, pend, grid)
-        --[[
-        local x1, y1 = pathpts[i]:unwrap()
-        local x2, y2 = pathpts[i + 1]:unwrap()
-        local linepts = graphics.line(x1, y1, x2, y2, grid)
-        --]]
+        local linepts = graphics.line(pathpts[i], pathpts[i + 1], grid)
         for _, pt in ipairs(linepts) do
             table.insert(poly, pt)
         end
@@ -156,6 +164,7 @@ function M.any_angle_path(layer, pts, width, grid, miterjoin)
     return object.make_from_shape(S)
 end
 
+--[[
 function M.path_midpoint(layer, pts, width, method, miterjoin)
     local newpts = {}
     table.insert(newpts, pts[1])
@@ -173,6 +182,7 @@ function M.path_midpoint(layer, pts, width, method, miterjoin)
     table.insert(newpts, pts[#pts])
     return M.path(layer, newpts, width, miterjoin)
 end
+--]]
 
 --[[
 function M.corner(layer, startpt, endpt, width, radius, grid)
