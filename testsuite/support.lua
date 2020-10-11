@@ -27,12 +27,29 @@ function check_points(pts, ref, ignoreorder)
     return true
 end
 
+local reporttab
+function report(what, result, msg)
+    table.insert(reporttab, { what = what, result = result, msg = msg })
+end
+
 function run_test(module, test)
-    local status, msg = dofile(string.format("testsuite/%s/%s.lua", module, test))
-    io.write(string.format("  * %s: ", test))
+    -- reset reporttab
+    reporttab = {}
+    print(string.format("  * %s: ", test))
+    dofile(string.format("testsuite/%s/%s.lua", module, test))
+    for _, r in ipairs(reporttab) do
+        io.write(string.format("    x %s: ", r.what))
+        if r.result then
+            print("success")
+        else
+            print(string.format("failure: %s", r.msg))
+        end
+    end
+    --[[
     if status then
         print("success")
     else
         print(string.format("failure: %s", msg))
     end
+    --]]
 end

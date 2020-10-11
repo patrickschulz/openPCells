@@ -50,4 +50,5 @@ end
 if all or enabled["geometry"] then
     print("running geometry test...")
     run_test("geometry", "path")
+    run_test("geometry", "any_angle_path")
 end
