@@ -1,21 +1,28 @@
 function parameters()
     pcell.add_parameters(
-        { "turns",         3 },
-        { "width",         6.0 },
-        { "spacing",       6.0 },
-        { "innerdiameter", 10 }
+        { "turns",             3 },
+        { "width",          6000 },
+        { "spacing",        6000 },
+        { "innerdiameter", 10000 },
+        { "points",            8 },
+        { "metalnum",         -1 },
+        { "grid",            100 }
     )
 end
 
-function layout()
+function layout(inductor, _P)
+    local pitch = _P.width + _P.spacing
+    local pathpts = {}
+    local append = util.make_insert_xy(pathpts)
+    local angle = 2 * math.pi / _P.points
+    local numpoints = _P.turns * _P.points
 
-    local pathpts = pointarray.create()
-    for i = 1, turns do
-        local xy = 0.5 * innerdiameter + 0.5 * width + (i - 1) * (width + spacing)
-        pathpts:append(point.create( xy + 0.00 * (width + spacing), -xy + 0.00 * (width + spacing)))
-        pathpts:append(point.create( xy + 0.00 * (width + spacing),  xy + 0.50 * (width + spacing)))
-        pathpts:append(point.create(-xy - 0.50 * (width + spacing),  xy + 0.50 * (width + spacing)))
-        pathpts:append(point.create(-xy - 0.50 * (width + spacing), -xy - 1.00 * (width + spacing)))
+    for i = 1, numpoints + 1 do
+        local r = _P.turns * i / numpoints
+        local a = (i - 1) * angle-- + 0.5 * angle
+        local x = pitch * (r + 2) *  math.cos(a)
+        local y = pitch * (r + 2) * math.sin(a)
+        append(x, y)
     end
-    return layout.path_midpoint("lastmetal", pathpts, width, "halfangle", true)
+    inductor:merge_into(geometry.any_angle_path(generics.metal(_P.metalnum), pathpts, _P.width, _P.grid))
 end
