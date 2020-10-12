@@ -30,11 +30,11 @@ function layout(array, _P)
         local offset = (i - 1) - (2 * #indices - 1) / 2
         local ttype = ttypes[indices[i]]
         array:merge_into(
-            celllib.create_layout("single_transistor", ttype)
+            pcell.create_layout("single_transistor", ttype)
             :translate( offset * gatepitch, 0)
         )
         array:merge_into(
-            celllib.create_layout("single_transistor", ttype)
+            pcell.create_layout("single_transistor", ttype)
             :translate(-offset * gatepitch, 0)
         )
     end
