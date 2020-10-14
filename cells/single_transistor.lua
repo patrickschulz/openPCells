@@ -17,11 +17,9 @@ function parameters()
         { "clipbot(Clip Bottom Marker Layers)",            false },
         { "drawtopgate(Draw Top Gate Strap)",              false },
         { "topgatestrwidth(Top Gate Strap Width)",           120 },
-        { "topgatestrext(Top Gate Strap Extension)",           1 },
         { "topgatestrspace(Top Gate Strap Space)",           200 },
         { "drawbotgate(Draw Bottom Gate Strap)",           false },
         { "botgatestrwidth(Bottom Gate Strap Width)",        120 },
-        { "botgatestrext(Bottom Gate Strap Extension)",        1 },
         { "botgatestrspace(Bottom Gate Strap Space)",        200 },
         { "topgcut(Draw Top Gate Cut)",                    false },
         { "botgcut(Draw Bottom Gate Cut)",                 false },
@@ -71,8 +69,7 @@ function layout(transistor, _P)
     -- gate contacts
     if _P.drawtopgate then
         transistor:merge_into(geometry.rectangle(generics.contact("gate"), _P.gatelength, _P.topgatestrwidth)
-            :translate(0, _P.fwidth / 2 + _P.topgatestrspace + _P.topgatestrwidth / 2)
-        )
+            :translate(0, _P.fwidth / 2 + _P.topgatestrspace + _P.topgatestrwidth / 2))
     end
     if _P.drawbotgate then
         transistor:merge_into(geometry.rectangle(generics.contact("gate"), _P.gatelength, _P.botgatestrwidth)
@@ -95,4 +92,6 @@ function layout(transistor, _P)
             cwidth, cutheight
         ):translate(0, -gateheight / 2 + gateoffset))
     end
+    transistor:add_anchor("topgate", point.create(0,  gateheight / 2 + gateoffset - _P.topgatestrwidth / 2))
+    transistor:add_anchor("botgate", point.create(0, -gateheight / 2 + gateoffset + _P.botgatestrwidth / 2))
 end
