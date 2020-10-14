@@ -52,3 +52,15 @@ if all or enabled["geometry"] then
     run_test("geometry", "path")
     run_test("geometry", "any_angle_path")
 end
+
+-- pcell checks
+if all or enabled["pcell"] then
+    print("running pcell test...")
+    run_test("pcell", "inheritance")
+end
+
+-- point checks
+if all or enabled["point"] then
+    print("running point test...")
+    run_test("point", "basic")
+end

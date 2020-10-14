@@ -13,6 +13,15 @@ function check_number(val, ref)
     return true
 end
 
+function check_point(pt, ref)
+    if pt ~= ref then
+        local px, py = pt:unwrap()
+        local rx, ry = ref:unwrap()
+        return nil, string.format("point does not match: (%d, %d) vs. (%d, %d)", px, py, rx, ry)
+    end
+    return true
+end
+
 function check_points(pts, ref, ignoreorder)
     if #pts ~= #ref then
         return nil, string.format("number of points does not match: %d vs %d", #pts, #ref)
