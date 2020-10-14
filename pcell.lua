@@ -235,16 +235,23 @@ function inherit_and_bind_all_parameters(cellname, othercell)
     end
 end
 
-local backuptable = {}
+local backupstack = {}
 function overwrite_defaults(cellname, cellargs)
     local cellparams = loadedcells[cellname].parameters
     local backup = _process_input_parameters(cellname, cellargs)
-    backuptable[cellname] = backup
-    -- FIXME: do something with backup (see restore_defaults())
+    if not backupstack[cellname] then
+        backupstack[cellname] = stack.create()
+    end
+    backupstack[cellname]:push(backup)
 end
 
 function restore_defaults(cellname)
-    _restore_parameters(cellname, backuptable[cellname])
+    if (not backupstack[cellname]) or (not backupstack[cellname]:peek()) then
+        print(string.format("trying to restore default parameters for '%s', but there where no overwrites before", cellname))
+        os.exit(exitcodes.unknown)
+    end
+    _restore_parameters(cellname, backupstack[cellname]:top())
+    backupstack[cellname]:pop()
 end
 --------------------------------------------------------------------
 

@@ -94,6 +94,7 @@ static void load_api(lua_State* L)
         "exitcodes",
         "funcobject",
         "reduce",
+        "stack",
         NULL
     };
     char** ptr = modules;
