@@ -38,19 +38,22 @@ local function _get_dimensions(cell)
     local maxx = -math.huge
     local miny =  math.huge
     local maxy = -math.huge
-    for shape in cell:iter() do
+    for _, shape in cell:iter() do
         if shape.typ == "polygon" then
             for _, pt in ipairs(shape.points) do
-                minx = math.min(minx, pt.x)
-                maxx = math.max(maxx, pt.x)
-                miny = math.min(miny, pt.y)
-                maxy = math.max(maxy, pt.y)
+                local x, y = pt:unwrap()
+                minx = math.min(minx, x)
+                maxx = math.max(maxx, x)
+                miny = math.min(miny, y)
+                maxy = math.max(maxy, y)
             end
         elseif shape.typ == "rectangle" then
-            minx = math.min(minx, shape.points.bl.x, shape.points.tr.x)
-            maxx = math.max(maxx, shape.points.bl.x, shape.points.tr.x)
-            miny = math.min(miny, shape.points.bl.y, shape.points.tr.y)
-            maxy = math.max(maxy, shape.points.bl.y, shape.points.tr.y)
+            local blx, bly = shape.points.bl:unwrap()
+            local trx, try = shape.points.tr:unwrap()
+            minx = math.min(minx, blx, trx)
+            maxx = math.max(maxx, blx, trx)
+            miny = math.min(miny, bly, try)
+            maxy = math.max(maxy, bly, try)
         end
     end
     return maxx - minx, maxy - miny
@@ -93,12 +96,14 @@ function M.get_points(shape, precomputed)
     local scale = precomputed.scale
     local fmt
     if shape.typ == "polygon" then
-        local pointstr = table.concat(shape:concat_points(function(pt) return string.format(gridfmt .. "," .. gridfmt, scale * pt.x, scale * pt.y) end), ' ')
+        local x, y = pt:unwrap()
+        local pointstr = table.concat(shape:concat_points(function(pt) return string.format(gridfmt .. "," .. gridfmt, scale * x, scale * y) end), ' ')
         fmt = string.format('<polyline points="%s" />', pointstr)
     elseif shape.typ == "rectangle" then
+        local x, y = shape.points.bl:unwrap()
         local pointstr = string.format('x="%f" y="%f" width="%f" height="%f"', 
-            scale * shape.points.bl.x, 
-            scale * shape.points.bl.y, 
+            scale * x,
+            scale * y,
             scale * shape:width(), 
             scale * shape:height()
         )
