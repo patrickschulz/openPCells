@@ -57,24 +57,35 @@ static int lpoint_eq(lua_State* L)
     return 1;
 }
 
-static int lpoint_create(lua_State* L)
+static lpoint_t* _create(lua_State* L, lpoint_coordinate_t x, lpoint_coordinate_t y)
 {
-    lpoint_coordinate_t x = checkcoordinate(L, -2);
-    lpoint_coordinate_t y = checkcoordinate(L, -1);
     lpoint_t* p = lua_newuserdata(L, sizeof(lpoint_t));
     luaL_setmetatable(L, LPOINTMETA);
     p->x = x;
     p->y = y;
+    return p;
+}
+
+static int lpoint_add(lua_State* L)
+{
+    lpoint_t* lhs = lua_touserdata(L, -2);
+    lpoint_t* rhs = lua_touserdata(L, -1);
+    _create(L, lhs->x + rhs->x, lhs->y + rhs->y);
+    return 1;
+}
+
+static int lpoint_create(lua_State* L)
+{
+    lpoint_coordinate_t x = checkcoordinate(L, -2);
+    lpoint_coordinate_t y = checkcoordinate(L, -1);
+    _create(L, x, y);
     return 1;
 }
 
 static int lpoint_copy(lua_State* L)
 {
     lpoint_t* p = lua_touserdata(L, -1);
-    lpoint_t* new = lua_newuserdata(L, sizeof(lpoint_t));
-    luaL_setmetatable(L, LPOINTMETA);
-    new->x = p->x;
-    new->y = p->y;
+    _create(L, p->x, p->y);
     return 1;
 }
 
@@ -203,6 +214,7 @@ int open_lpoint_lib(lua_State* L)
     {
         //{ "__tostring",     lpoint_tostring   },
         { "__eq",           lpoint_eq         },
+        { "__add",          lpoint_add        },
         { "getx",           lpoint_getx       },
         { "gety",           lpoint_gety       },
         { "copy",           lpoint_copy       },
