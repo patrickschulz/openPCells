@@ -20,4 +20,8 @@ function meta.replace(self, func)
     self.func = func
 end
 
+function meta.get(self)
+    return self.func
+end
+
 return M
