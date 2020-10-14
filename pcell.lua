@@ -39,14 +39,20 @@ local evaluators = {
 }
 
 local function _prepare_cell_environment(cellname)
+    local bindcell = function(func)
+        return bind(func, 1, cellname)
+    end
     return {
         pcell = {
-            add_parameter                   = bind(add_parameter,                   1, cellname),
-            add_parameters                  = bind(add_parameters,                  1, cellname),
-            inherit_parameter               = bind(inherit_parameter,               1, cellname),
-            bind_parameter                  = bind(bind_parameter,                  1, cellname),
-            inherit_and_bind_parameter      = bind(inherit_and_bind_parameter,      1, cellname),
-            inherit_and_bind_all_parameters = bind(inherit_and_bind_all_parameters, 1, cellname),
+            add_parameter                   = bindcell(add_parameter),
+            add_parameters                  = bindcell(add_parameters),
+            inherit_parameter               = bindcell(inherit_parameter),
+            bind_parameter                  = bindcell(bind_parameter),
+            inherit_and_bind_parameter      = bindcell(inherit_and_bind_parameter),
+            inherit_and_bind_all_parameters = bindcell(inherit_and_bind_all_parameters),
+            -- following functions don't not need cell binding as they are called for other cells
+            overwrite_defaults              = overwrite_defaults,
+            restore_defaults                = restore_defaults,
             create_layout = M.create_layout
         },
         geometry = geometry,
@@ -101,7 +107,8 @@ meta.__index = function(t, cellname)
         indices = {},
         num = 0
     }
-    t[cellname] = cell
+    rawset(t, cellname, cell)
+    funcs.parameters()
     return cell
 end
 local loadedcells = setmetatable({}, meta)
@@ -132,9 +139,66 @@ local function _add_parameter(cellname, name, value, argtype, posvals, overwrite
 end
 
 local function _load_cell(cellname)
-    local cell = loadedcells[cellname]
-    cell.funcs.parameters()
-    return cell
+    return loadedcells[cellname]
+end
+
+local function _process_input_parameters(cellname, cellargs, evaluate)
+    local cellparams = loadedcells[cellname].parameters
+    local cellargs = cellargs or {}
+
+    local backup = {}
+
+    -- process input arguments
+    local args = args or {}
+    for name, value in pairs(cellargs) do
+        local p = cellparams[name]
+        if not p then
+            print(string.format("argument '%s' has no matching parameter, maybe it was spelled wrong?", name))
+            os.exit(1)
+        end
+        if evaluate then
+            local eval = evaluators[p.argtype]
+            value = eval(value)
+        end
+        -- store old function for restoration
+        backup[name] = p.func:get()
+        -- important: use :replace(), don't create a new function object. 
+        -- Otherwise parameter binding does not work, because bound parameters link to the original function object
+        p.func:replace(function() return value end)
+    end
+
+    return backup
+end
+
+local function _get_parameters(cellname, cellargs, evaluate)
+    local cellparams = loadedcells[cellname].parameters
+
+    local backup = _process_input_parameters(cellname, cellargs, evaluate)
+
+    -- store parameters in user-readable table
+    local P = {}
+    for name, entry in pairs(cellparams) do
+        P[name] = entry.func()
+    end
+
+    -- install meta method for non-existing parameters as safety check 
+    -- this avoids arithmetic-with-nil-errors
+    setmetatable(P, {
+        __index = function(t, k)
+            print(string.format("trying to access undefined parameter value '%s'", k))
+            os.exit(exitcodes.parameternotfound)
+        end
+    })
+
+    return P, backup
+end
+
+local function _restore_parameters(cellname, backup)
+    local cellparams = loadedcells[cellname].parameters
+    -- restore old functions
+    for name, func in pairs(backup) do
+        cellparams[name].func:replace(func)
+    end
 end
 
 --------------------------------------------------------------------
@@ -154,8 +218,8 @@ function inherit_parameter(cellname, othercell, name)
 end
 
 function bind_parameter(cellname, name, othercell, othername)
-    local otherparam = loadedcells[othercell].parameters[othername]
     local param = loadedcells[cellname].parameters[name]
+    local otherparam = loadedcells[othercell].parameters[othername]
     otherparam.func = param.func
 end
 
@@ -165,57 +229,31 @@ function inherit_and_bind_parameter(cellname, othercell, name)
 end
 
 function inherit_and_bind_all_parameters(cellname, othercell)
-    local inherited = _load_cell(othercell)
+    local inherited = loadedcells[othercell]
     for name, param in pairs(inherited.parameters) do 
         inherit_and_bind_parameter(cellname, othercell, name)
     end
 end
---------------------------------------------------------------------
 
-function M.get_parameters(cellname, cellargs, evaluate)
+local backuptable = {}
+function overwrite_defaults(cellname, cellargs)
     local cellparams = loadedcells[cellname].parameters
-    local cellargs = cellargs or {}
-
-    -- process input arguments
-    local args = args or {}
-    for name, value in pairs(cellargs) do
-        local p = cellparams[name]
-        if not p then
-            print(string.format("argument '%s' has no matching parameter, maybe it was spelled wrong?", name))
-            os.exit(1)
-        end
-        if evaluate then
-            local eval = evaluators[p.argtype]
-            value = eval(value)
-        end
-        -- important: use :replace(), don't create a new function object. 
-        -- Otherwise parameter binding does not work, because bound parameters link to the original function object
-        p.func:replace(function() return value end)
-    end
-
-    -- store parameters in user-readable table
-    local P = {}
-    for name, entry in pairs(cellparams) do
-        P[name] = entry.func()
-    end
-    
-    -- install meta method for non-existing parameters as safety check 
-    -- this avoids arithmetic-with-nil-errors
-    setmetatable(P, {
-        __index = function(t, k)
-            print(string.format("trying to access undefined parameter value '%s'", k))
-            os.exit(exitcodes.parameternotfound)
-        end
-    })
-
-    return P
+    local backup = _process_input_parameters(cellname, cellargs)
+    backuptable[cellname] = backup
+    -- FIXME: do something with backup (see restore_defaults())
 end
 
+function restore_defaults(cellname)
+    _restore_parameters(cellname, backuptable[cellname])
+end
+--------------------------------------------------------------------
+
 function M.create_layout(name, args, evaluate)
-    local cell = _load_cell(name)
+    local cell = loadedcells[name]
     local obj = object.create()
-    local parameters = M.get_parameters(name, args, evaluate)
+    local parameters, backup = _get_parameters(name, args, evaluate)
     local status, msg = pcall(cell.funcs.layout, obj, parameters)
+    _restore_parameters(name, backup)
     if not status then
         print(string.format("could not create cell '%s': %s", name, msg))
         os.exit(exitcodes.syntaxerrorincell)
@@ -224,7 +262,7 @@ function M.create_layout(name, args, evaluate)
 end
 
 function M.parameters(name)
-    local cellfuncs = _load_cell(name)
+    local cellfuncs = loadedcells[name]
     for _, v in pcell.iter() do
         print(string.format("%s %s %s", tostring(v.name), tostring(v.value), tostring(v.argtype)))
     end
