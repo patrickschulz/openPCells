@@ -28,19 +28,20 @@ function parameters()
         { "oxidetype",  "0.9" },
         { "pvthtype",   "slvt" },
         { "nvthtype",   "slvt" },
-        { "pwidth",    1000 },
-        { "nwidth",    1000 },
-        { "glength",    200 },
-        { "gspace",     270 },
+        { "pwidth",     500 },
+        { "nwidth",     500 },
+        { "glength",    100 },
+        { "gspace",     150 },
         { "gext",       100 },
         { "sdwidth",     60 },
         { "gstwidth",   100 },
         { "fingers",      1 },
-        { "dummies",      2 },
+        { "dummies",      1 },
+        { "dummycontheight",      80 },
         { "separation", 400 },
         { "ttypeext",   100 },
         { "powerwidth", 200 },
-        { "powerspace", 500 },
+        { "powerspace", 100 },
         { "conngate",     1 },
         { "connmetal",    3 },
         { "connwidth",  100 },
@@ -51,12 +52,15 @@ end
 function layout(gate, _P)
     local xpitch = _P.gspace + _P.glength
 
+    gate:merge_into(pcell.create_layout("logic/harness", { innerfingers = 2 * _P.fingers, dummies = _P.dummies, dummycontheight = _P.dummycontheight }))
+
     -- common transistor options
     pcell.overwrite_defaults("transistor", { 
-        fingers = _P.fingers,
+        fingers = 2 * _P.fingers,
         gatelength = _P.glength,
         gatespace = _P.gspace,
         sdwidth = _P.sdwidth,
+        -- not really common for all transistor, but they only matter if the gate contact is drawn
         topgatestrwidth = _P.gstwidth,
         botgatestrwidth = _P.gstwidth,
         topgatestrspace = (_P.separation - _P.gstwidth) / 2,
@@ -68,10 +72,15 @@ function layout(gate, _P)
         channeltype = "pmos",
         fwidth = _P.pwidth,
         drawbotgate = true,
-        clipbot = true
+        drawbotgatestrap = false,
+        gtopext = _P.powerspace + _P.dummycontheight,
+        clipbot = true,
+        innersourcedrainsize = _P.pwidth / 2,
+        innersourcedrainalign = "top",
+        outersourcedrainsize = _P.pwidth / 2,
+        outersourcedrainalign = "top"
     })
-    gate:merge_into(pcell.create_layout("transistor"):move_anchor("rightbotgate"))
-    gate:merge_into(pcell.create_layout("transistor"):move_anchor("leftbotgate"))
+    gate:merge_into(pcell.create_layout("transistor"):move_anchor("botgate"))
     pcell.restore_defaults("transistor")
 
     -- nmos
@@ -79,22 +88,26 @@ function layout(gate, _P)
         channeltype = "nmos",
         fwidth = _P.nwidth,
         drawtopgate = true,
-        cliptop = true
+        drawtopgatestrap = false,
+        gbotext = _P.powerspace + _P.dummycontheight, gtopext = _P.separation / 2,
+        cliptop = true,
+        drawinnersourcedrain = false,
+        outersourcedrainsize = _P.nwidth / 2,
+        outersourcedrainalign = "bottom"
     })
-    gate:merge_into(pcell.create_layout("transistor"):move_anchor("righttopgate"))
-    gate:merge_into(pcell.create_layout("transistor"):move_anchor("lefttopgate"))
+    gate:merge_into(pcell.create_layout("transistor"):move_anchor("topgate"))
     pcell.restore_defaults("transistor")
 
-    -- power rails...
-    gate:merge_into(geometry.multiple(
-        geometry.rectangle(generics.metal(1), (2 * _P.fingers + 2 * _P.dummies) * xpitch + _P.sdwidth, _P.powerwidth),
-        1, 2, 0, _P.separation + _P.pwidth + _P.nwidth + 2 * _P.powerspace + _P.powerwidth
-    ):translate(0, (_P.pwidth - _P.nwidth) / 2))
-    -- ... with connections
-    for i = -1, 1, 2 do
-        gate:merge_into(geometry.multiple(
-            geometry.rectangle(generics.metal(1), _P.sdwidth, _P.powerspace),
-            _P.dummies + 1, 2, xpitch, _P.separation + _P.pwidth + _P.nwidth + _P.powerspace
-        ):translate(i * (2 * _P.fingers + _P.dummies) / 2 * xpitch, (_P.pwidth - _P.nwidth) / 2))
-    end
+    -- drain connection
+    gate:merge_into(geometry.path(
+        generics.metal(1),
+        {
+            point.create(0, _P.separation / 2 + _P.pwidth),
+            point.create(0, _P.separation / 2 + _P.sdwidth / 2),
+            point.create(xpitch, _P.separation / 2 + _P.sdwidth / 2),
+            point.create(xpitch, -_P.separation / 2 - _P.nwidth),
+        },
+        _P.sdwidth, 
+        true
+    ))
 end
