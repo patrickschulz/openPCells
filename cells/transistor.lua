@@ -29,6 +29,10 @@ function parameters()
         { "botgcut(Draw Bottom Gate Cut)",                         false },
         { "drawinnersourcedrain(Draw Inner Source/Drain Contacts)", true },
         { "drawoutersourcedrain(Draw Outer Source/Drain Contacts)", true },
+        { "innersourcedrainsize(Inner Source/Drain Size)",          1000, follow = "fwidth" },
+        { "innersourcedrainalign(Inner Source/Drain Alignement)",  "top" },
+        { "outersourcedrainsize(Outer Source/Drain Size)",          1000, follow = "fwidth" },
+        { "outersourcedrainalign(Outer Source/Drain Alignement)",  "top" },
         { "connectsource(Connect Source)",                         false },
         { "connsourcemetal(Source Connection Metal)",                  1 },
         { "connectdrain(Connect Drain)",                           false },
@@ -77,16 +81,32 @@ function layout(transistor, _P)
 
     -- drain/source contacts
     if _P.drawinnersourcedrain and _P.fingers > 1 then
+        local align
+        if _P.innersourcedrainalign == "top" then
+            align = (_P.fwidth - _P.innersourcedrainsize) / 2
+        elseif _P.innersourcedrainalign == "bottom" then
+            align = -(_P.fwidth - _P.innersourcedrainsize) / 2
+        else
+            align = 0
+        end
         transistor:merge_into(geometry.multiple(
-            geometry.rectangle(generics.contact("active"), _P.sdwidth, _P.fwidth),
+            geometry.rectangle(generics.contact("active"), _P.sdwidth, _P.innersourcedrainsize),
             _P.fingers - 1, 1, gatepitch, 0
-        ))
+        ):translate(0, align))
     end
     if _P.drawoutersourcedrain then
+        local align
+        if _P.outersourcedrainalign == "top" then
+            align = (_P.fwidth - _P.outersourcedrainsize) / 2
+        elseif _P.outersourcedrainalign == "bottom" then
+            align = -(_P.fwidth - _P.outersourcedrainsize) / 2
+        else
+            align = 0
+        end
         transistor:merge_into(geometry.multiple(
-            geometry.rectangle(generics.contact("active"), _P.sdwidth, _P.fwidth),
+            geometry.rectangle(generics.contact("active"), _P.sdwidth, _P.outersourcedrainsize),
             2, 1, _P.fingers * gatepitch, 0
-        ))
+        ):translate(0, align))
     end
     transistor:merge_into(geometry.rectangle(generics.via(1, _P.connsourcemetal), _P.sdwidth, _P.fwidth):translate(-gatepitch / 2, 0))
     transistor:merge_into(geometry.rectangle(generics.via(1, _P.conndrainmetal), _P.sdwidth, _P.fwidth):translate(gatepitch / 2, 0))
