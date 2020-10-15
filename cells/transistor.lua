@@ -17,10 +17,11 @@ function parameters()
         { "cliptop(Clip Top Marker Layers)",                       false },
         { "clipbot(Clip Bottom Marker Layers)",                    false },
         { "drawtopgate(Draw Top Gate Contact)",                    false },
-        { "drawtopgatestrap(Draw Top Gate Strap)",                 false },
+        { "drawtopgatestrap(Draw Top Gate Strap)",                 false, follow = "drawtopgate" },
         { "topgatestrwidth(Top Gate Strap Width)",                   120 },
         { "topgatestrspace(Top Gate Strap Space)",                   200 },
         { "drawbotgate(Draw Bottom Gate Contact)",                 false },
+        { "drawbotgatestrap(Draw Bot Gate Strap)",                 false, follow = "drawbotgate" },
         { "drawbotgatestrap(Draw Bot Gate Strap)",                 false },
         { "botgatestrwidth(Bottom Gate Strap Width)",                120 },
         { "botgatestrspace(Bottom Gate Strap Space)",                200 },
@@ -38,11 +39,17 @@ end
 function layout(transistor, _P)
     local gatepitch = _P.gatelength + _P.gatespace
     local actwidth = _P.fingers * gatepitch + _P.sdwidth + 2 * _P.actext
-    local gateheight = _P.fwidth + math.max(_P.gtopext, enable(_P.drawtopgate, _P.topgatestrspace) + _P.topgatestrwidth)
-                                 + math.max(_P.gbotext, enable(_P.drawbotgate, _P.botgatestrspace) + _P.botgatestrwidth)
-    local gateoffset = (math.max(_P.gtopext, enable(_P.drawtopgate, _P.topgatestrspace) + _P.topgatestrwidth)
-                             - math.max(_P.gbotext, enable(_P.drawbotgate, _P.botgatestrspace) + _P.botgatestrwidth)) / 2
-    local clipshift = (_P.cliptop and 0 or 1) - (_P.clipbot and 0 or 1)
+    local gateheight = _P.fwidth + math.max(_P.gtopext, enable(_P.drawtopgate, _P.topgatestrspace + _P.topgatestrwidth))
+                                 + math.max(_P.gbotext, enable(_P.drawbotgate, _P.botgatestrspace + _P.botgatestrwidth))
+    local gateoffset = (math.max(_P.gtopext, enable(_P.drawtopgate, _P.topgatestrspace + _P.topgatestrwidth))
+                      - math.max(_P.gbotext, enable(_P.drawbotgate, _P.botgatestrspace + _P.botgatestrwidth))
+                       ) / 2
+    local clipoffset = enable(_P.clipbot, _P.typext) + enable(_P.cliptop, _P.typext)
+                     + enable(_P.clipbot and _P.drawbotgate, _P.botgatestrwidth / 2)
+                     + enable(_P.cliptop and _P.drawtopgate, _P.topgatestrwidth / 2)
+    local clipshift  = (enable(_P.clipbot, _P.typext) - enable(_P.cliptop, _P.typext)) / 2
+                     + enable(_P.clipbot and _P.drawbotgate, _P.botgatestrwidth / 4)
+                     - enable(_P.cliptop and _P.drawtopgate, _P.topgatestrwidth / 4)
 
     -- gates
     transistor:merge_into(geometry.multiple(
@@ -59,8 +66,8 @@ function layout(transistor, _P)
     -- active
     transistor:merge_into(geometry.rectangle(generics.other("active"), actwidth, _P.fwidth))
     transistor:merge_into(geometry.rectangle( (_P.channeltype == "nmos") and generics.other("nimpl") or generics.other("pimpl"), 
-        actwidth + 2 * _P.typext, gateheight
-    ):translate(0, gateoffset + _P.typext / 2 * clipshift))
+        actwidth + 2 * _P.typext, gateheight + 2 * _P.typext - clipoffset
+    ):translate(0, gateoffset + clipshift))
 
     -- well
     transistor:merge_into(geometry.rectangle(
@@ -148,8 +155,8 @@ function layout(transistor, _P)
     end
 
     -- add anchors
-    transistor:add_anchor("topgate", point.create(0,  gateheight / 2 + gateoffset - _P.topgatestrwidth / 2))
-    transistor:add_anchor("botgate", point.create(0, -gateheight / 2 + gateoffset + _P.botgatestrwidth / 2))
+    transistor:add_anchor("topgate", point.create(0,  gateheight / 2 + gateoffset - enable(_P.drawtopgate, _P.topgatestrwidth / 2)))
+    transistor:add_anchor("botgate", point.create(0, -gateheight / 2 + gateoffset + enable(_P.drawbotgate, _P.botgatestrwidth / 2)))
     transistor:add_anchor("leftdrainsource",  point.create(-_P.fingers / 2 * (_P.gatelength + _P.gatespace), 0))
     transistor:add_anchor("rightdrainsource", point.create( _P.fingers / 2 * (_P.gatelength + _P.gatespace), 0))
     transistor:add_anchor("lefttopgate", transistor:get_anchor("topgate") + transistor:get_anchor("leftdrainsource"))
