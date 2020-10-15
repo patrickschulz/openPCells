@@ -50,7 +50,7 @@ local function _prepare_cell_environment(cellname)
             bind_parameter                  = bindcell(bind_parameter),
             inherit_and_bind_parameter      = bindcell(inherit_and_bind_parameter),
             inherit_and_bind_all_parameters = bindcell(inherit_and_bind_all_parameters),
-            -- following functions don't not need cell binding as they are called for other cells
+            -- the following functions don't not need cell binding as they are called for other cells
             overwrite_defaults              = overwrite_defaults,
             restore_defaults                = restore_defaults,
             create_layout = M.create_layout
@@ -67,7 +67,8 @@ local function _prepare_cell_environment(cellname)
         string = string,
         table = table,
         print = print,
-        ipairs = ipairs
+        ipairs = ipairs,
+        pairs = pairs,
     }
 end
 
@@ -119,19 +120,23 @@ local function _get_pname_dname(name)
     return pname, dname
 end
 
-local function _add_parameter(cellname, name, value, argtype, posvals, overwrite)
+local function _add_parameter(cellname, name, value, argtype, posvals, follow, overwrite)
     local argtype = argtype or type(value)
     local pname, dname = _get_pname_dname(name)
     local new = {
         display = dname,
         func    = funcobject.identity(value),
         argtype = argtype,
-        posvals = posvals
+        posvals = posvals,
+        followers = {}
     }
-    if not loadedcells[cellname].parameters[ppname] or overwrite then
+    if not loadedcells[cellname].parameters[pname] or overwrite then
         loadedcells[cellname].parameters[pname] = new
         loadedcells[cellname].num = loadedcells[cellname].num + 1
         loadedcells[cellname].indices[pname] = loadedcells[cellname].num
+        if follow then
+            loadedcells[cellname].parameters[follow].followers[pname] = true
+        end
     else
         return false
     end
@@ -177,8 +182,15 @@ local function _get_parameters(cellname, cellargs, evaluate)
 
     -- store parameters in user-readable table
     local P = {}
+    local handled = {}
     for name, entry in pairs(cellparams) do
-        P[name] = entry.func()
+        if not handled[name] or cellargs[name] then
+            P[name] = entry.func()
+        end
+        for follower in pairs(entry.followers) do
+            P[follower] = entry.func()
+            handled[follower] = true
+        end
     end
 
     -- install meta method for non-existing parameters as safety check 
@@ -202,13 +214,15 @@ local function _restore_parameters(cellname, backup)
 end
 
 --------------------------------------------------------------------
-function add_parameter(cellname, name, value, argtype)
-    _add_parameter(cellname, name, value, argtype)
+function add_parameter(cellname, name, value, argtype, posvals, follow)
+    _add_parameter(cellname, name, value, argtype, posvals, follow)
 end
 
 function add_parameters(cellname, ...)
     for _, parameter in ipairs({ ... }) do
-        add_parameter(cellname, table.unpack(parameter))
+        local name, value, argtype, posvals = table.unpack(parameter)
+        local follow = parameter.follow
+        add_parameter(cellname, name, value, argtype, posvals, follow)
     end
 end
 
