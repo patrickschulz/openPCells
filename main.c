@@ -169,25 +169,30 @@ int main (int argc, char** argv)
         call_main_program(L, OPC_HOME "/" TESTPROGNAME);
     }
     else if(argc > 1 && (strcmp(argv[1], "watch") == 0))
-    {
+    { 
+        // remove 'watch' from arguments
+        argc = argc - 1;
+        argv = argv + 1;
+
         pid_t pid = fork();
         if(pid == 0) // child
         {
-            create_argument_table(L, argc - 1, argv + 1); // remove 'watch' from arguments
             while(1)
             {
+                create_argument_table(L, argc, argv);
                 call_main_program(L, OPC_HOME "/" MAINPROGNAME);
-                sleep(2);
-                lua_close(L);
 
+                // now reinitialize the program
+                // this works as if the program had beed started again, which is what we want
+                sleep(1);
+                lua_close(L);
                 L = create_and_initialize_lua();
-                create_argument_table(L, argc - 1, argv + 1); // remove 'watch' from arguments
             }
                 
         }
         else // parent
         {
-            printf("created child process (pid: %d)\n", pid);
+            printf("created child process (pid: %d)\nyou have to kill it manually once you're done\n", pid);
         }
     }
     else
