@@ -15,7 +15,7 @@ local function _create(value)
         end,
         str = function(self)
             if self.typ == "metal" then
-                return string.format("M%d", self.value)
+                return string.format("M%d", self:get())
             elseif self.typ == "via" then
                 return string.format("viaM%dM%d", self:get())
             elseif self.typ == "contact" then
