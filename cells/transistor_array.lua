@@ -1,7 +1,7 @@
 function parameters()
     pcell.add_parameters({ "transistors(Number of Transistors)", 2, "integer" })
     pcell.add_parameters({ "fingers(Number of Fingers)", { 4, 4 }, "table" })
-    pcell.inherit_and_bind_all_parameters("single_transistor")
+    pcell.inherit_and_bind_all_parameters("transistor")
 end
 
 function layout(array, _P)
@@ -30,11 +30,11 @@ function layout(array, _P)
         local offset = (i - 1) - (2 * #indices - 1) / 2
         local ttype = ttypes[indices[i]]
         array:merge_into(
-            pcell.create_layout("single_transistor", ttype)
+            pcell.create_layout("transistor", ttype)
             :translate( offset * gatepitch, 0)
         )
         array:merge_into(
-            pcell.create_layout("single_transistor", ttype)
+            pcell.create_layout("transistor", ttype)
             :translate(-offset * gatepitch, 0)
         )
     end
