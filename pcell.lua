@@ -147,7 +147,7 @@ local function _load_cell(cellname)
     return loadedcells[cellname]
 end
 
-local function _process_input_parameters(cellname, cellargs, evaluate)
+local function _process_input_parameters(cellname, cellargs, evaluate, overwrite)
     local cellparams = loadedcells[cellname].parameters
     local cellargs = cellargs or {}
 
@@ -160,6 +160,9 @@ local function _process_input_parameters(cellname, cellargs, evaluate)
         if not p then
             print(string.format("argument '%s' has no matching parameter, maybe it was spelled wrong?", name))
             os.exit(1)
+        end
+        if overwrite then
+            p.overwritten = true
         end
         if evaluate then
             local eval = evaluators[p.argtype]
@@ -187,10 +190,12 @@ local function _get_parameters(cellname, cellargs, evaluate)
     for name, entry in pairs(cellparams) do
         if not handled[name] or cellargs[name] then
             P[name] = entry.func()
-            handled[name] = true
+            if cellargs[name] then
+                handled[name] = true
+            end
         end
         for follower in pairs(entry.followers) do
-            if not handled[follower] then
+            if not (handled[follower] or cellparams[follower].overwritten) then
                 P[follower] = entry.func()
                 handled[follower] = true
             end
@@ -214,6 +219,7 @@ local function _restore_parameters(cellname, backup)
     -- restore old functions
     for name, func in pairs(backup) do
         cellparams[name].func:replace(func)
+        cellparams[name].overwritten = nil
     end
 end
 
@@ -256,7 +262,7 @@ end
 local backupstack = {}
 function overwrite_defaults(cellname, cellargs)
     local cellparams = loadedcells[cellname].parameters
-    local backup = _process_input_parameters(cellname, cellargs)
+    local backup = _process_input_parameters(cellname, cellargs, false, true)
     if not backupstack[cellname] then
         backupstack[cellname] = stack.create()
     end
@@ -265,7 +271,7 @@ end
 
 function restore_defaults(cellname)
     if (not backupstack[cellname]) or (not backupstack[cellname]:peek()) then
-        print(string.format("trying to restore default parameters for '%s', but there where no overwrites before", cellname))
+        print(string.format("trying to restore default parameters for '%s', but there where no previous overwrites", cellname))
         os.exit(exitcodes.unknown)
     end
     _restore_parameters(cellname, backupstack[cellname]:top())
