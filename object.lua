@@ -37,6 +37,10 @@ function meta.merge_into(self, other)
     end
 end
 
+function meta.is_empty(self)
+    return #self.shapes == 0
+end
+
 function meta.add_shape(self, shape)
     table.insert(self.shapes, shape:copy())
 end
