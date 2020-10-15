@@ -177,6 +177,7 @@ end
 
 local function _get_parameters(cellname, cellargs, evaluate)
     local cellparams = loadedcells[cellname].parameters
+    local cellargs = cellargs or {}
 
     local backup = _process_input_parameters(cellname, cellargs, evaluate)
 
@@ -186,10 +187,13 @@ local function _get_parameters(cellname, cellargs, evaluate)
     for name, entry in pairs(cellparams) do
         if not handled[name] or cellargs[name] then
             P[name] = entry.func()
+            handled[name] = true
         end
         for follower in pairs(entry.followers) do
-            P[follower] = entry.func()
-            handled[follower] = true
+            if not handled[follower] then
+                P[follower] = entry.func()
+                handled[follower] = true
+            end
         end
     end
 
