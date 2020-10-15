@@ -42,7 +42,11 @@ function layout(gate, _P)
             fwidth = _P.pwidth,
             gtopext = _P.powerspace + _P.dummycontheight,
             drawbotgate = true, botgatestrwidth = _P.gstwidth, botgatestrspace = (_P.separation - _P.gstwidth) / 2,
-            clipbot = true
+            clipbot = true,
+            innersourcedrainsize = _P.pwidth / 2,
+            innersourcedrainalign = "top",
+            outersourcedrainsize = _P.pwidth / 2,
+            outersourcedrainalign = "top"
         }
     ):move_anchor("botgate")
     gate:merge_into(pmos)
@@ -55,7 +59,10 @@ function layout(gate, _P)
             sdwidth = _P.sdwidth,
             gbotext = _P.powerspace + _P.dummycontheight, gtopext = _P.separation / 2,
             drawtopgate = true, topgatestrwidth = _P.gstwidth, topgatestrspace = (_P.separation - _P.gstwidth) / 2,
-            cliptop = true
+            cliptop = true,
+            drawinnersourcedrain = false,
+            outersourcedrainsize = _P.nwidth / 2,
+            outersourcedrainalign = "bottom"
         }
     ):move_anchor("topgate")
     gate:merge_into(nmos)
@@ -86,4 +93,6 @@ function layout(gate, _P)
             _P.sdwidth, _P.nwidth
         ):translate((i - 0.25 * _P.fingers - 0.5) * 2 * xpitch, -0.5 * (_P.pwidth + _P.separation)))
     end
+    gate:add_anchor("left", point.create(-(_P.fingers + _P.dummies) * xpitch / 2, 0))
+    gate:add_anchor("right", point.create((_P.fingers + _P.dummies) * xpitch / 2, 0))
 end

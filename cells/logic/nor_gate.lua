@@ -113,4 +113,6 @@ function layout(gate, _P)
         _P.sdwidth, 
         true
     ))
+    gate:add_anchor("left", point.create(-(2 * _P.fingers + _P.dummies) * xpitch / 2, 0))
+    gate:add_anchor("right", point.create((2 * _P.fingers + _P.dummies) * xpitch / 2, 0))
 end

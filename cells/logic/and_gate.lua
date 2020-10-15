@@ -25,6 +25,6 @@ function parameters()
 end
 
 function layout(gate, _P)
-    gate:merge_into(pcell.create_layout("logic/nand_gate"):translate(-5000, 0))
-    gate:merge_into(pcell.create_layout("logic/not_gate"):translate(5000, 0))
+    gate:merge_into(pcell.create_layout("logic/nand_gate", { dummies = 0 }):move_anchor("right"))
+    gate:merge_into(pcell.create_layout("logic/not_gate", { dummies = 0 }):move_anchor("left"))
 end

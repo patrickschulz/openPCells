@@ -52,7 +52,7 @@ end
 function layout(gate, _P)
     local xpitch = _P.gspace + _P.glength
 
-    gate:merge_into(pcell.create_layout("logic/harness", { innerfingers = 2 * _P.fingers, dummies = _P.dummies, dummycontheight = _P.dummycontheight }))
+    gate:merge_into(pcell.create_layout("logic/harness", { glength = _P.glength, innerfingers = 2 * _P.fingers, dummies = _P.dummies, dummycontheight = _P.dummycontheight }))
 
     -- common transistor options
     pcell.overwrite_defaults("transistor", { 
@@ -110,4 +110,6 @@ function layout(gate, _P)
         _P.sdwidth, 
         true
     ))
+    gate:add_anchor("left", point.create(-(2 * _P.fingers + _P.dummies) * xpitch / 2, 0))
+    gate:add_anchor("right", point.create((2 * _P.fingers + _P.dummies) * xpitch / 2, 0))
 end
