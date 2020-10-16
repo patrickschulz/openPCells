@@ -152,7 +152,16 @@ local function _get_any_angle_path_pts(pts, width, grid, miterjoin)
     return poly
 end
 
+local function _make_unique_points(pts)
+    for i = #pts, 2, -1 do -- iterate from the end for in-situ deletion
+        if pts[i] == pts[i - 1] then
+            table.remove(pts, i)
+        end
+    end
+end
+
 function M.path(layer, pts, width, miterjoin)
+    _make_unique_points(pts)
     local S = shape.create_polygon(layer)
     S.points = _get_path_pts(pts, width, miterjoin)
     return object.make_from_shape(S)
