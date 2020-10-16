@@ -10,25 +10,8 @@ end
 
 -- module loading tests
 if all or enabled["module"] then
-    print("running module test")
-    local modules = {
-        { 
-            module = "testsuite/moduletest/correct",
-            status = true
-        },
-        { 
-            module = "testsuite/moduletest/syntaxerror",
-            status = false
-        },
-        { 
-            module = "testsuite/moduletest/semanticerror",
-            status = false
-        },
-    }
-    for _, pair in ipairs(modules) do
-        local status, M = pcall(_load_module, pair.module)
-        assert(status == pair.status)
-    end
+    print("running module test...")
+    run_test("module", "all")
 end
 
 -- graphic checks
@@ -50,17 +33,31 @@ end
 if all or enabled["geometry"] then
     print("running geometry test...")
     run_test("geometry", "path")
-    run_test("geometry", "any_angle_path")
+    --run_test("geometry", "any_angle_path")
 end
 
 -- pcell checks
+--[[
 if all or enabled["pcell"] then
     print("running pcell test...")
     run_test("pcell", "inheritance")
 end
+--]]
 
 -- point checks
 if all or enabled["point"] then
     print("running point test...")
     run_test("point", "basic")
+end
+
+-- object checks
+if all or enabled["object"] then
+    print("running object test...")
+    run_test("object", "all")
+end
+
+-- util checks
+if all or enabled["util"] then
+    print("running util test...")
+    run_test("util", "all")
 end

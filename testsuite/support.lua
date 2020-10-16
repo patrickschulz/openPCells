@@ -1,8 +1,3 @@
-function error(fmt, ...)
-    print(string.format(fmt, ...))
-    os.exit(1)
-end
-
 function check_number(val, ref)
     if type(val) ~= "number" then
         return nil, string.format("value is not a number: %s", val)
