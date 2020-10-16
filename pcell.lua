@@ -48,6 +48,7 @@ local function _prepare_cell_environment(cellname)
             add_parameters                  = bindcell(add_parameters),
             inherit_parameter               = bindcell(inherit_parameter),
             bind_parameter                  = bindcell(bind_parameter),
+            inherit_all_parameters          = bindcell(inherit_all_parameters),
             inherit_and_bind_parameter      = bindcell(inherit_and_bind_parameter),
             inherit_and_bind_all_parameters = bindcell(inherit_and_bind_all_parameters),
             -- the following functions don't not need cell binding as they are called for other cells
@@ -58,6 +59,7 @@ local function _prepare_cell_environment(cellname)
         geometry = geometry,
         graphics = graphics,
         shape = shape,
+        object = object,
         generics = generics,
         point = point,
         util = util,
@@ -247,6 +249,13 @@ function bind_parameter(cellname, name, othercell, othername)
     otherparam.func = param.func
 end
 
+function inherit_all_parameters(cellname, othercell)
+    local inherited = loadedcells[othercell]
+    for name, param in pairs(inherited.parameters) do 
+        inherit_parameter(cellname, othercell, name)
+    end
+end
+
 function inherit_and_bind_parameter(cellname, othercell, name)
     inherit_parameter(cellname, othercell, name)
     bind_parameter(cellname, name, othercell, name)
@@ -281,6 +290,10 @@ end
 
 function M.create_layout(name, args, evaluate)
     local cell = loadedcells[name]
+    if not cell.funcs.layout then
+        print(string.format("cell '%s' has no layout definition", name))
+        os.exit(exitcodes.nolayoutfunction)
+    end
     local obj = object.create()
     local parameters, backup = _get_parameters(name, args, evaluate)
     local status, msg = pcall(cell.funcs.layout, obj, parameters)
