@@ -18,6 +18,16 @@ function M.xmirror(pts, xcenter)
     return mirrored
 end
 
+function M.ymirror(pts, ycenter)
+    local mirrored = {}
+    local ycenter = ycenter or 0
+    for i, pt in ipairs(pts) do
+        local x, y = pt:unwrap()
+        mirrored[i] = point.create(x, 2 * ycenter - y)
+    end
+    return mirrored
+end
+
 function M.filter_forward(pts, fun)
     local filtered = {}
     for i = 1, #pts, 1 do

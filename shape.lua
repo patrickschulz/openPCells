@@ -131,6 +131,32 @@ function M.translate(self, dx, dy)
     return self
 end
 
+function M.flipx(self, xcenter)
+    local xcenter = xcenter or 0
+    if self.typ == "polygon" then
+        self.points = util.xmirror(self.points, xcenter)
+    elseif self.typ == "rectangle" then
+        local blx, bly = self.points.bl:unwrap()
+        local trx, try = self.points.tr:unwrap()
+        self.points.bl = point.create(2 * xcenter - trx, bly)
+        self.points.tr = point.create(2 * xcenter - blx, try)
+    end
+    return self
+end
+
+function M.flipy(self, ycenter)
+    local ycenter = ycenter or 0
+    if self.typ == "polygon" then
+        self.points = util.ymirror(self.points, ycenter)
+    elseif self.typ == "rectangle" then
+        local blx, bly = self.points.bl:unwrap()
+        local trx, try = self.points.tr:unwrap()
+        self.points.bl = point.create(blx, 2 * ycenter - try)
+        self.points.tr = point.create(trx, 2 * ycenter - bly)
+    end
+    return self
+end
+
 function M.rotate(self, angle)
     if self.typ == "polygon" then
         for _, pt in ipairs(self.points) do

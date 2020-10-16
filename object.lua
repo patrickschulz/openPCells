@@ -98,6 +98,20 @@ function meta.translate(self, dx, dy)
     return self
 end
 
+function meta.flipx(self, xcenter)
+    for _, shape in ipairs(self.shapes) do
+        shape:flipx(xcenter)
+    end
+    return self
+end
+
+function meta.flipy(self, ycenter)
+    for _, shape in ipairs(self.shapes) do
+        shape:flipy(ycenter)
+    end
+    return self
+end
+
 function meta.rotate(self, angle)
     for _, shape in ipairs(self.shapes) do
         shape:rotate(angle)
