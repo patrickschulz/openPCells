@@ -66,7 +66,7 @@ function layout(gate, _P)
     pcell.overwrite_defaults("transistor", { 
         channeltype = "nmos",
         fwidth = _P.nwidth,
-        gbotext = _P.powerspace + _P.dummycontheight, gtopext = _P.separation / 2,
+        gbotext = _P.powerspace + _P.dummycontheight,
         gtopext = _P.separation / 2,
         cliptop = true,
     })
