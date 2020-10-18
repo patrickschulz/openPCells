@@ -1,30 +1,16 @@
 function parameters()
+    pcell.inherit_all_parameters("logic/_base")
     pcell.add_parameters(
-        { "oxidetype",  "0.9" },
-        { "pvthtype",   "slvt" },
-        { "nvthtype",   "slvt" },
-        { "pwidth",     500 },
-        { "nwidth",     500 },
-        { "glength",    100 },
-        { "gspace",     150 },
-        { "gext",       100 },
-        { "sdwidth",     60 },
-        { "gstwidth",   100 },
-        { "fingers",      1 },
-        { "dummies",      1 },
-        { "dummycontheight",      80 },
-        { "separation", 400 },
-        { "ttypeext",   100 },
-        { "powerwidth", 200 },
-        { "powerspace", 100 },
-        { "conngate",     1 },
-        { "connmetal",    3 },
-        { "connwidth",  100 },
-        { "connoffset",   1 }
+        { "nandfingers", 1 },
+        { "notfingers", 1 }
     )
 end
 
 function layout(gate, _P)
-    gate:merge_into(pcell.create_layout("logic/nand_gate", { dummies = 0 }):move_anchor("right"))
-    gate:merge_into(pcell.create_layout("logic/not_gate", { dummies = 0 }):move_anchor("left"))
+    local _P1 = pcell.clone_parameters(_P)
+    --_P1.fingers = _P.nandfingers
+    local _P2 = pcell.clone_parameters(_P)
+    --_P2.fingers = _P.notfingers
+    gate:merge_into(pcell.create_layout("logic/nand_gate", _P1):move_anchor("right"))
+    gate:merge_into(pcell.create_layout("logic/not_gate", _P2):move_anchor("left"))
 end
