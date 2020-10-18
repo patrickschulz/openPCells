@@ -11,6 +11,7 @@ procedure(OPCcreateCell(w done pts)
         when(done
 	        args = ""
             foreach(field OPCParamForm->fieldList
+                printf("%s\n" field)
                 args = lsprintf("%s %s" args lsprintf("%s=%g" field get(OPCParamForm field)->value))
             )
             ; 'cell' is defined one level above (in OPCplaceCell)
@@ -35,7 +36,7 @@ procedure(OPCcreateCell(w done pts)
     )
 ) ; OPCcreateCell
 
-procedure(OPCplaceCell(cell)
+procedure(OPCPlaceCell(cell)
     OPCCreateOptionsForm(cell)
 	enterPoint(
 		?prompts list("Enter origin")
@@ -46,58 +47,31 @@ procedure(OPCplaceCell(cell)
 ) ; OPCplaceCell
 
 procedure(OPCLayoutAddMenu(args)
-    let( 
-        (
-            (win args->window) 
-            utilityitem
-            passiveitem
-            transistoritem
-            menu
-        )
-        
-        ; utilities
-        let(
-            (
-                guardringitem utilitysubmenu
-            )
-            guardringitem = hiCreateMenuItem( ?name 'OPCmenuguardring ?itemText "Guardring"
-                ?callback "OPCplaceCell(\"guardring\")"
-            )
-            utilitysubmenu = hiCreatePulldownMenu('OPCLayoutUtilitySubMenu "" list(guardringitem))
-            utilityitem = hiCreateSliderMenuItem( ?name 'OPCUtilityMenuItem ?itemText "Utility Components" ?subMenu utilitysubmenu)
-        )
-        ; passives
-        let(
-            (
-                momcapitem cinductoritem oinductoritem sinductoritem passivesubmenu
-            )
-            momcapitem = hiCreateMenuItem( ?name 'OPCmenumomcap ?itemText "Momcap"
-                ?callback "OPCplaceCell(\"momcap\")"
-            )
-            cinductoritem = hiCreateMenuItem( ?name 'OPCmenucinductor ?itemText "Circular Inductor"
-                ?callback "OPCplaceCell(\"circular_inductor\")"
-            )
-            oinductoritem = hiCreateMenuItem( ?name 'OPCmenuoinductor ?itemText "Octagonal Inductor"
-                ?callback "OPCplaceCell(\"octagonal_inductor\")"
-            )
-            sinductoritem = hiCreateMenuItem( ?name 'OPCmenusinductor ?itemText "Spiral Inductor"
-                ?callback "OPCplaceCell(\"spiral_inductor\")"
-            )
-            passivesubmenu = hiCreatePulldownMenu('OPCLayoutPassiveSubMenu "" list(momcapitem cinductoritem oinductoritem sinductoritem))
-            passiveitem = hiCreateSliderMenuItem( ?name 'OPCPassiveMenuItem ?itemText "Passive Components" ?subMenu passivesubmenu)
-        )
-
-        ; transistor
-        transistoritem = hiCreateMenuItem( ?name 'OPCmenutransistor ?itemText "Transistor"
-            ?callback "OPCplaceCell(\"transistor\")"
-        )
-        
-        ; create a menu that includes the menu items
-        menu = hiCreatePulldownMenu('OPCLayoutMenu "OpenPCells" list(transistoritem passiveitem))
-        
-        ; insert this menu as the last menu
-        hiInsertBannerMenu(win menu length(hiGetBannerMenus(win)))
-    );let
+	let(
+		(
+			(win args->window)
+			menu item itemlist cellname
+			(path "/home/pschulz/path/cells")
+		)
+		foreach(filename getDirFiles(path)
+			unless(filename == "." || filename == ".."		
+				if(isFile(lsprintf("%s/%s" path filename))
+					then
+						cellname = substring(filename 1 strlen(filename) - 4) ; strip '.lua'
+						item = hiCreateMenuItem( 
+							?name stringToSymbol(cellname)
+							?itemText cellname 
+							?callback lsprintf("OPCPlaceCell(\"%s\")" cellname)
+						)	
+						itemlist = cons(item itemlist)	
+					else 
+						println("directory")
+				)
+			)
+		)
+		menu = hiCreatePulldownMenu('OPCLayoutMenu "OpenPCells" itemlist)
+		hiInsertBannerMenu(win menu length(hiGetBannerMenus(win)))
+	) ; let
 ); procedure
 
 procedure(OPCCreateOptionsForm(cell)
