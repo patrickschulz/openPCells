@@ -10,14 +10,14 @@ function layout(gate, _P)
     local xpitch = _P.gspace + _P.glength
 
     -- common transistor options
-    pcell.overwrite_defaults("transistor", { 
+    pcell.overwrite_defaults("basic/transistor", { 
         gatelength = _P.glength,
         gatespace = _P.gspace,
         sdwidth = _P.sdwidth,
     })
 
     -- pmos
-    pcell.overwrite_defaults("transistor", { 
+    pcell.overwrite_defaults("basic/transistor", { 
         channeltype = "pmos",
         fwidth = _P.pwidth,
         drawtopgate = true,
@@ -32,32 +32,32 @@ function layout(gate, _P)
     })
     if _P.rightdummies > 1 then
         gate:merge_into(
-            pcell.create_layout("transistor", { fingers = _P.rightdummies - 1 })
+            pcell.create_layout("basic/transistor", { fingers = _P.rightdummies - 1 })
             :move_anchor("leftbotgate", point.create((_P.fingers + 2) * xpitch / 2, 0))
         )
     end
     if _P.leftdummies > 1 then
         gate:merge_into(
-            pcell.create_layout("transistor", { fingers = _P.leftdummies - 1 })
+            pcell.create_layout("basic/transistor", { fingers = _P.leftdummies - 1 })
             :move_anchor("rightbotgate", point.create(-(_P.fingers + 2) * xpitch / 2, 0))
         )
     end
     if _P.rightdummies > 0 then
         gate:merge_into(
-            pcell.create_layout("transistor", { fingers = 1, drawoutersourcedrain = not _P.rightadapt })
+            pcell.create_layout("basic/transistor", { fingers = 1, drawoutersourcedrain = not _P.rightadapt })
             :move_anchor("leftbotgate", point.create(_P.fingers * xpitch / 2, 0))
         )
     end
     if _P.leftdummies > 0 then
         gate:merge_into(
-            pcell.create_layout("transistor", { fingers = 1, drawoutersourcedrain = not _P.leftadapt })
+            pcell.create_layout("basic/transistor", { fingers = 1, drawoutersourcedrain = not _P.leftadapt })
             :move_anchor("rightbotgate", point.create(-_P.fingers * xpitch / 2, 0))
         )
     end
-    pcell.restore_defaults("transistor")
+    pcell.restore_defaults("basic/transistor")
 
     -- nmos
-    pcell.overwrite_defaults("transistor", { 
+    pcell.overwrite_defaults("basic/transistor", { 
         channeltype = "nmos",
         fwidth = _P.nwidth,
         drawbotgate = true,
@@ -73,29 +73,29 @@ function layout(gate, _P)
 
     if _P.rightdummies > 1 then
         gate:merge_into(
-            pcell.create_layout("transistor", { fingers = _P.rightdummies - 1 })
+            pcell.create_layout("basic/transistor", { fingers = _P.rightdummies - 1 })
             :move_anchor("lefttopgate", point.create((_P.fingers + 2) * xpitch / 2, 0))
         )
     end
     if _P.leftdummies > 1 then
         gate:merge_into(
-            pcell.create_layout("transistor", { fingers = _P.leftdummies - 1 })
+            pcell.create_layout("basic/transistor", { fingers = _P.leftdummies - 1 })
             :move_anchor("righttopgate", point.create(-(_P.fingers + 2) * xpitch / 2, 0))
         )
     end
     if _P.rightdummies > 0 then
         gate:merge_into(
-            pcell.create_layout("transistor", { fingers = 1, drawoutersourcedrain = not _P.rightadapt })
+            pcell.create_layout("basic/transistor", { fingers = 1, drawoutersourcedrain = not _P.rightadapt })
             :move_anchor("lefttopgate", point.create(_P.fingers * xpitch / 2, 0))
         )
     end
     if _P.leftdummies > 0 then
         gate:merge_into(
-            pcell.create_layout("transistor", { fingers = 1, drawoutersourcedrain = not _P.leftadapt })
+            pcell.create_layout("basic/transistor", { fingers = 1, drawoutersourcedrain = not _P.leftadapt })
             :move_anchor("righttopgate", point.create(-_P.fingers * xpitch / 2, 0))
         )
     end
-    pcell.restore_defaults("transistor")
+    pcell.restore_defaults("basic/transistor")
 
     -- draw missing contacts
     if _P.leftdummies > 0 and _P.leftadapt then

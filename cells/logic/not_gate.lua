@@ -16,7 +16,7 @@ function layout(gate, _P)
     }))
 
     -- common transistor options
-    pcell.overwrite_defaults("transistor", {
+    pcell.overwrite_defaults("basic/transistor", {
         fingers = _P.fingers, 
         gatelength = _P.glength, 
         gatespace = _P.gspace,
@@ -24,7 +24,7 @@ function layout(gate, _P)
     })
 
     -- pfet
-    local pmos = pcell.create_layout("transistor",
+    local pmos = pcell.create_layout("basic/transistor",
         {
             channeltype = "pmos",
             fwidth = _P.pwidth,
@@ -40,7 +40,7 @@ function layout(gate, _P)
     gate:merge_into(pmos)
 
     -- nfet
-    local nmos = pcell.create_layout("transistor",
+    local nmos = pcell.create_layout("basic/transistor",
         {
             channeltype = "nmos",
             fwidth = _P.nwidth,
