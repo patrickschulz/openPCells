@@ -1,4 +1,4 @@
-procedure(OPCcreateCell(w done pts)
+procedure(OPCCreateCell(w done pts)
     let(
         (
             (path "/home/pschulz/path/opc")
@@ -11,17 +11,16 @@ procedure(OPCcreateCell(w done pts)
         when(done
 	        args = ""
             foreach(field OPCParamForm->fieldList
-                printf("%s\n" field)
-                args = lsprintf("%s %s" args lsprintf("%s=%g" field get(OPCParamForm field)->value))
+                args = lsprintf("%s %s" args lsprintf("%s=%A" field get(OPCParamForm field)->value))
             )
-            ; 'cell' is defined one level above (in OPCplaceCell)
+            ; 'cell' is defined one level above (in OPCPlaceCell)
 	        command = lsprintf(
-                "%s -T %s -I %s -C %s --origin '(%d, %d)' -f %s %s" 
+                "%s --technology %s --interface %s --cell %s --origin '(%d, %d)' -f %s %s" 
                 path tech interface cell 
                 fix(1000 * xCoord(origin)) fix(1000 * yCoord(origin)) 
                 filename args
             )
-            println(command)
+            printf("calling opc:\n  %s\n" command)
 	        pid = ipcBeginProcess(command)
 	        ipcWait(pid) ; wait for process to finish
 	        exitstatus = ipcGetExitStatus(pid)
@@ -34,23 +33,24 @@ procedure(OPCcreateCell(w done pts)
 	        ) ; if exitstatus
         ) ; when done
     )
-) ; OPCcreateCell
+) ; OPCCreateCell
 
 procedure(OPCPlaceCell(cell)
     OPCCreateOptionsForm(cell)
 	enterPoint(
 		?prompts list("Enter origin")
-		?doneProc "OPCcreateCell"
+		?doneProc "OPCCreateCell"
         ?form OPCParamForm
         ?alwaysMap t
 	)
-) ; OPCplaceCell
+) ; OPCPlaceCell
 
+/*
 procedure(OPCLayoutAddMenu(args)
 	let(
 		(
 			(win args->window)
-			menu item itemlist cellname
+			menu submenu slideritem item itemlist subitemlist cellname
 			(path "/home/pschulz/path/cells")
 		)
 		foreach(filename getDirFiles(path)
@@ -65,13 +65,74 @@ procedure(OPCLayoutAddMenu(args)
 						)	
 						itemlist = cons(item itemlist)	
 					else 
-						println("directory")
+                        subitemlist = nil
+                        foreach(subfile getDirFiles(lsprintf("%s/%s" path filename))
+                            unless(subfile == "." || subfile == ".."		
+                                if(isFile(lsprintf("%s/%s/%s" path filename subfile))
+                                    then
+                                        cellname = substring(subfile 1 strlen(subfile) - 4) ; strip '.lua'
+                                        subitem = hiCreateMenuItem( 
+                                            ?name stringToSymbol(cellname)
+                                            ?itemText cellname 
+                                            ?callback lsprintf("OPCPlaceCell(\"%s\")" cellname)
+                                        )	
+                                        subitemlist = cons(subitem subitemlist)	
+                                    else 
+                                        println("can't handle directory depth > 1 right now (easy to fix, I'm just lazy)")
+                                )
+                            )
+                        )
+                        submenu = hiCreatePulldownMenu(stringToSymbol(lsprintf("OPCLayout%sSubMenu" filename)) "" subitemlist)
+                        item = hiCreateSliderMenuItem( ?name stringToSymbol(lsprintf("OPCLayout%sItem" filename)) ?itemText filename 
+                                ?subMenu submenu)
+						itemlist = cons(item itemlist)	
 				)
 			)
 		)
 		menu = hiCreatePulldownMenu('OPCLayoutMenu "OpenPCells" itemlist)
 		hiInsertBannerMenu(win menu length(hiGetBannerMenus(win)))
 	) ; let
+); procedure
+*/
+
+procedure(dirtree(path prepend)
+    let(
+        (itemlist item)
+        foreach(file getDirFiles(path)
+            unless(file == "." || file == ".."
+                if(isFile(lsprintf("%s/%s" path file))
+                    then
+                        item = hiCreateMenuItem( 
+                            ?name stringToSymbol(substring(file 1 strlen(file) - 4)) 
+                            ?itemText substring(file 1 strlen(file) - 4)
+                            ?callback lsprintf("OPCPlaceCell(\"%s\")" substring(file 1 strlen(file) - 4))
+                        )   
+                    else
+                        let((submenu)
+                            submenu = hiCreatePulldownMenu(
+                                'OPCLayoutPassiveSubMenu "" 
+                                dirtree(lsprintf("%s/%s" path file) file)
+                            )
+                            item = hiCreateSliderMenuItem(
+                                ?name stringToSymbol(file) 
+                                ?itemText file
+                                ?subMenu submenu
+                            )
+                        )
+                )
+                itemlist = cons(item itemlist)
+            ) ; unless
+        ) ; foreach
+        itemlist
+    ) ; lfet
+) ; procedure
+
+procedure(OPCLayoutAddMenu(args)
+    let( (menu itemlist (win args->window))
+        itemlist = dirtree("/home/pschulz/path/cells" "")
+        menu = hiCreatePulldownMenu('OPCLayoutMenu "OpenPCells" itemlist)
+        hiInsertBannerMenu(win menu length(hiGetBannerMenus(win)))
+    )
 ); procedure
 
 procedure(OPCCreateOptionsForm(cell)
@@ -118,15 +179,15 @@ procedure(OPCCreateOptionsForm(cell)
                             fieldlist = cons(list(field 0:30*i 200:30 120) fieldlist)
                             i = i + 1
                         )
-                        ("boolean"
-                            field = hiCreateToggleField(
-                                ?name stringToSymbol(lsprintf("%s_togglefield" name))
-                                ?choices list(list(stringToSymbol(name)))
-                                ?prompt name
-                            )
-                            fieldlist = cons(list(field 0:30*i 200:30 120) fieldlist)
-                            i = i + 1
-                        )
+                        ;("boolean"
+                        ;    field = hiCreateToggleField(
+                        ;        ?name stringToSymbol(lsprintf("%s_togglefield" name))
+                        ;        ?choices list(list(stringToSymbol(name)))
+                        ;        ?prompt name
+                        ;    )
+                        ;    fieldlist = cons(list(field 0:30*i 200:30 120) fieldlist)
+                        ;    i = i + 1
+                        ;)
                         ("string"
                             field = hiCreateStringField(
                                 ?name stringToSymbol(name)
@@ -150,6 +211,6 @@ procedure(OPCCreateOptionsForm(cell)
 ) ; procedure
 
 ; create a user postinstall trigger that automatically adds the menu
-deRegUserTriggers("maskLayout" nil nil 'OPCLayoutAddMenu)
+;deRegUserTriggers("maskLayout" nil nil 'OPCLayoutAddMenu)
 deRegUserTriggers("maskLayoutXL" nil nil 'OPCLayoutAddMenu)
-deRegUserTriggers("maskLayoutGXL" nil nil 'OPCLayoutAddMenu)
+;deRegUserTriggers("maskLayoutGXL" nil nil 'OPCLayoutAddMenu)
