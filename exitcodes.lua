@@ -15,6 +15,9 @@ return {
     undefinedparameter = 34,
     genericsarguments  = 35,
     parameternotfound  = 36,
+    nolayoutfunction   = 37,
+
+    exportemptycell    = 127,
 
     unknown = 255
 }
