@@ -53,6 +53,10 @@ function M.load(name)
 end
 
 function M.write_cell(filename, cell)
+    if cell:is_empty() then
+        print("interface: cell is empty")
+        os.exit(exitcodes.exportemptycell)
+    end
     local extension = interface.get_extension()
     local file = stringfile.open(string.format("%s.%s", filename, extension))
     local precomputed = aux.call_if_present(interface.precompute, cell)
