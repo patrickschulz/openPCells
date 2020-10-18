@@ -6,7 +6,6 @@ function parameters()
         { "fingers",          1 },
         { "glength",        100 },
         { "gspace",         150 },
-        { "gext",           100 },
         { "pwidth",         500 },
         { "nwidth",         500 },
         { "sdwidth",         60 },
