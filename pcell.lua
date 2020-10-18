@@ -316,9 +316,9 @@ function M.create_layout(name, args, evaluate)
 end
 
 function M.parameters(name)
-    local cellfuncs = loadedcells[name]
-    for _, v in pcell.iter() do
-        print(string.format("%s %s %s", tostring(v.name), tostring(v.value), tostring(v.argtype)))
+    local cell = loadedcells[name]
+    for k, v in pairs(cell.parameters) do
+        print(string.format("%s %s %s", tostring(k), tostring(v.func()), tostring(v.argtype)))
     end
 end
 
