@@ -45,56 +45,6 @@ procedure(OPCPlaceCell(cell)
 	)
 ) ; OPCPlaceCell
 
-/*
-procedure(OPCLayoutAddMenu(args)
-	let(
-		(
-			(win args->window)
-			menu submenu slideritem item itemlist subitemlist cellname
-			(path "/home/pschulz/path/cells")
-		)
-		foreach(filename getDirFiles(path)
-			unless(filename == "." || filename == ".."		
-				if(isFile(lsprintf("%s/%s" path filename))
-					then
-						cellname = substring(filename 1 strlen(filename) - 4) ; strip '.lua'
-						item = hiCreateMenuItem( 
-							?name stringToSymbol(cellname)
-							?itemText cellname 
-							?callback lsprintf("OPCPlaceCell(\"%s\")" cellname)
-						)	
-						itemlist = cons(item itemlist)	
-					else 
-                        subitemlist = nil
-                        foreach(subfile getDirFiles(lsprintf("%s/%s" path filename))
-                            unless(subfile == "." || subfile == ".."		
-                                if(isFile(lsprintf("%s/%s/%s" path filename subfile))
-                                    then
-                                        cellname = substring(subfile 1 strlen(subfile) - 4) ; strip '.lua'
-                                        subitem = hiCreateMenuItem( 
-                                            ?name stringToSymbol(cellname)
-                                            ?itemText cellname 
-                                            ?callback lsprintf("OPCPlaceCell(\"%s\")" cellname)
-                                        )	
-                                        subitemlist = cons(subitem subitemlist)	
-                                    else 
-                                        println("can't handle directory depth > 1 right now (easy to fix, I'm just lazy)")
-                                )
-                            )
-                        )
-                        submenu = hiCreatePulldownMenu(stringToSymbol(lsprintf("OPCLayout%sSubMenu" filename)) "" subitemlist)
-                        item = hiCreateSliderMenuItem( ?name stringToSymbol(lsprintf("OPCLayout%sItem" filename)) ?itemText filename 
-                                ?subMenu submenu)
-						itemlist = cons(item itemlist)	
-				)
-			)
-		)
-		menu = hiCreatePulldownMenu('OPCLayoutMenu "OpenPCells" itemlist)
-		hiInsertBannerMenu(win menu length(hiGetBannerMenus(win)))
-	) ; let
-); procedure
-*/
-
 procedure(dirtree(path prepend)
     let(
         (itemlist item)
@@ -105,13 +55,13 @@ procedure(dirtree(path prepend)
                         item = hiCreateMenuItem( 
                             ?name stringToSymbol(substring(file 1 strlen(file) - 4)) 
                             ?itemText substring(file 1 strlen(file) - 4)
-                            ?callback lsprintf("OPCPlaceCell(\"%s\")" substring(file 1 strlen(file) - 4))
+                            ?callback lsprintf("OPCPlaceCell(\"%s%s\")" prepend substring(file 1 strlen(file) - 4))
                         )   
                     else
                         let((submenu)
                             submenu = hiCreatePulldownMenu(
                                 'OPCLayoutPassiveSubMenu "" 
-                                dirtree(lsprintf("%s/%s" path file) file)
+                                dirtree(lsprintf("%s/%s" path file) lsprintf("%s/" file))
                             )
                             item = hiCreateSliderMenuItem(
                                 ?name stringToSymbol(file) 
