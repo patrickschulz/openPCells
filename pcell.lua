@@ -52,6 +52,7 @@ local function _prepare_cell_environment(cellname)
             inherit_and_bind_parameter      = bindcell(inherit_and_bind_parameter),
             inherit_and_bind_all_parameters = bindcell(inherit_and_bind_all_parameters),
             -- the following functions don't not need cell binding as they are called for other cells
+            clone_parameters                = clone_parameters,
             overwrite_defaults              = overwrite_defaults,
             restore_defaults                = restore_defaults,
             create_layout = M.create_layout
@@ -210,7 +211,7 @@ local function _get_parameters(cellname, cellargs, evaluate)
         __index = function(t, k)
             print(string.format("trying to access undefined parameter value '%s'", k))
             os.exit(exitcodes.parameternotfound)
-        end
+        end,
     })
 
     return P, backup
@@ -227,6 +228,7 @@ end
 
 --------------------------------------------------------------------
 function add_parameter(cellname, name, value, argtype, posvals, follow)
+    print(name)
     _add_parameter(cellname, name, value, argtype, posvals, follow)
 end
 
@@ -234,7 +236,7 @@ function add_parameters(cellname, ...)
     for _, parameter in ipairs({ ... }) do
         local name, value, argtype, posvals = table.unpack(parameter)
         local follow = parameter.follow
-        add_parameter(cellname, name, value, argtype, posvals, follow)
+        _add_parameter(cellname, name, value, argtype, posvals, follow)
     end
 end
 
@@ -285,6 +287,14 @@ function restore_defaults(cellname)
     end
     _restore_parameters(cellname, backupstack[cellname]:top())
     backupstack[cellname]:pop()
+end
+
+function clone_parameters(P)
+    local new = {}
+    for k, v in pairs(P) do
+        new[k] = v
+    end
+    return new
 end
 --------------------------------------------------------------------
 
