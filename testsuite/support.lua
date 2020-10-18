@@ -40,7 +40,7 @@ function run_test(module, test)
     -- reset reporttab
     reporttab = {}
     print(string.format("  * %s: ", test))
-    dofile(string.format("testsuite/%s/%s.lua", module, test))
+    dofile(string.format("%s/testsuite/%s/%s.lua", _get_opc_home(), module, test))
     for _, r in ipairs(reporttab) do
         io.write(string.format("    x %s: ", r.what))
         if r.result then
