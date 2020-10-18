@@ -1,31 +1,3 @@
---[[
-
-----------------------*---------------
-                      |
-                      |
-                    --
-             A ]--o| 
-                    <-
-                      |
-                      |
-                      |
-                    --
-             B ]--o| 
-                    <-
-                      |
-             *--------*--------*-----[ Z
-             |                 |
-             |                 |
-           --                --
-    A ]---|           B ]---| 
-           ->                ->
-             |                 |
-             |                 |
--------------*-----------------*------
-
-
-
---]]
 function parameters()
     pcell.inherit_all_parameters("logic/_base")
 end
@@ -33,17 +5,10 @@ end
 function layout(gate, _P)
     local xpitch = _P.gspace + _P.glength
 
-    gate:merge_into(pcell.create_layout("logic/harness", { 
-        pwidth = _P.pwidth,
-        nwidth = _P.nwidth,
-        glength = _P.glength, 
-        fingers = 2 * _P.fingers, 
-        leftdummies = _P.leftdummies, 
-        rightdummies = _P.rightdummies, 
-        separation = _P.separation,
-        dummycontheight = _P.dummycontheight,
-        leftadapt = _P.fingers % 2 ~= 0,
-    }))
+    local _PH = pcell.clone_parameters(_P)
+    _PH.fingers = 2 * _P.fingers
+    _PH.leftadapt = _P.fingers % 2 ~= 0,
+    gate:merge_into(pcell.create_layout("logic/harness", _PH))
 
     local block = object.create()
 
@@ -118,6 +83,7 @@ function layout(gate, _P)
         2, 1, 2 * xpitch, 0
     ):translate(0, -_P.separation / 2 - _P.nwidth - _P.powerspace / 2))
 
+    -- place block
     for i = 1, _P.fingers do
         local shift = 2 * (i - 1) - (_P.fingers - 1)
         if i % 2 == 0 then
