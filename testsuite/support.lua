@@ -42,11 +42,12 @@ function run_test(module, test)
     print(string.format("  * %s: ", test))
     dofile(string.format("%s/testsuite/%s/%s.lua", _get_opc_home(), module, test))
     for _, r in ipairs(reporttab) do
-        io.write(string.format("    x %s: ", r.what))
         if r.result then
-            print("success")
+            local msg = string.format("    x %s: ", r.what) .. "success"
+            print(colorize(msg, "green"))
         else
-            print(string.format("failure: %s", r.msg))
+            local msg = string.format("    x %s: ", r.what) .. string.format("failure: %s", r.msg)
+            print(colorize(msg, "red"))
         end
     end
     --[[
@@ -57,3 +58,20 @@ function run_test(module, test)
     end
     --]]
 end
+
+function colorize(msg, color)
+    local colortable = {
+        black   = "30",
+        red     = "31",
+        green   = "32",
+        yellow  = "33",
+        blue    = "34",
+        magenta = "35",
+        cyan    = "36",
+        white   = "37",
+    }
+    local pre  = string.char(27, 91) .. colortable[color] .. "m"
+    local post = string.char(27, 91) .. "0m"
+    return string.format("%s%s%s", pre, msg, post)
+end
+
