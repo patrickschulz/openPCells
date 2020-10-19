@@ -1,13 +1,21 @@
 local M = {}
 
 function M.rectangle(layer, width, height)
-    assert(width % 2 == 0)
-    assert(height % 2 == 0)
+    assert(width % 2 == 0, "rectangle: width must be a multiple of 2. Use rectanglebltr if you need odd coordinates")
+    assert(height % 2 == 0, "rectangle: height must be a multiple of 2. Use rectanglebltr if you need odd coordinates")
     local S = shape.create_rectangle(layer, width, height)
     return object.make_from_shape(S)
 end
 
+function M.rectanglebltr(layer, bl, tr)
+    local S = shape.create_rectangle_bltr(layer, bl, tr)
+    return object.make_from_shape(S)
+end
+
 function M.cross(layer, width, height, crosssize)
+    assert(width % 2 == 0, "cross: width must be a multiple of 2")
+    assert(height % 2 == 0, "cross: height must be a multiple of 2")
+    assert(crosssize % 2 == 0, "cross: crosssize must be a multiple of 2")
     local S = shape.create_polygon(layer)
     local append = util.make_insert_xy(S.points)
     append(    -width / 2, -crosssize / 2)
@@ -27,6 +35,8 @@ function M.cross(layer, width, height, crosssize)
 end
 
 function M.ring(layer, width, height, ringwidth)
+    assert((width + ringwidth) % 2 == 0, "ring: width +- ringwidth must be a multiple of 2")
+    assert((height + ringwidth) % 2 == 0, "ring: height +- ringwidth must be a multiple of 2")
     local S = shape.create_polygon(layer)
     local append = util.make_insert_xy(S.points)
     append(-(width + ringwidth) / 2, -(height + ringwidth) / 2)

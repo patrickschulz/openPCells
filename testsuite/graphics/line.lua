@@ -9,9 +9,7 @@ do
         point.create(0,  500),
     }
     local status, msg = check_points(pts, ref)
-    if not status then
-        return nil, msg
-    end
+    report("vertical", status, msg)
 end
 
 -- diagonal test
@@ -25,9 +23,7 @@ do
         point.create( 500,  500),
     }
     local status, msg = check_points(pts, ref)
-    if not status then
-        return nil, msg
-    end
+    report("diagonal", status, msg)
 end
 
 -- other test
@@ -53,10 +49,5 @@ do
     }
 
     local status, msg = check_points(pts, ref)
-    if not status then
-        return nil, msg
-    end
+    report("other", status, msg)
 end
-
--- if all test ran positively, we reach this point
-return true

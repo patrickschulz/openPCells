@@ -16,7 +16,7 @@ function layout(gate, _P)
     }))
 
     -- common transistor options
-    pcell.overwrite_defaults("basic/transistor", {
+    pcell.push_overwrites("basic/transistor", {
         fingers = _P.fingers, 
         gatelength = _P.glength, 
         gatespace = _P.gspace,
@@ -54,6 +54,8 @@ function layout(gate, _P)
         }
     ):move_anchor("topgate")
     gate:merge_into(nmos)
+
+    pcell.pop_overwrites("basic/transistor")
 
     -- signal transistors source connections
     gate:merge_into(geometry.multiple(

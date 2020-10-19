@@ -7,13 +7,9 @@ function parameters()
     )
 end
 
-function layout()
-    local pads = object.create()
-
-    pads:merge_into(layout.multiple(
-        layout.rectangle(generics.metal(-1), _P.padwidth, _P.padheight),
+function layout(pads, _P)
+    pads:merge_into(geometry.multiple(
+        geometry.rectangle(generics.metal(-1), _P.padwidth, _P.padheight),
         _P.numpads, 1, _P.padpitch, 0
     ))
-
-    return pads
 end

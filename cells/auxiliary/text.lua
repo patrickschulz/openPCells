@@ -1000,16 +1000,14 @@ local letteroutlines = {
 function parameters()
     pcell.add_parameters(
         { "text",      "TEXT" },
-        { "scale",     1      },
-        { "spacing",   0.2    },
-        { "leading",   0.2    },
+        { "scale",       1000 },
+        { "spacing",      200 },
+        { "leading",      200 },
         { "alignment", "left" }
     )
 end
 
-function layout()
-    local text = object.create()
-
+function layout(text, _P)
     local shift = 1
     local x = 0
     local y = 0
@@ -1024,15 +1022,12 @@ function layout()
             if outline then
                 local S = shape.create_polygon(generics.metal(-1))
                 for _, pt in ipairs(outline) do
-                    table.insert(S.points, point.create(pt.x, pt.y))
+                    table.insert(S.points, point.create(_P.scale * pt.x, _P.scale * pt.y))
                 end
                 S:translate(x, y)
                 x = x + S:width() + _P.spacing
-                S:scale(_P.scale)
                 text:add_shape(S)
             end
         end
     end
-
-    return text
 end

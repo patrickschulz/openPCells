@@ -10,9 +10,7 @@ function parameters()
     )
 end
 
-function layout()
-    local guardring = object.create()
-
+function layout(guardring, _P)
     -- active, implant and SOI opening
     guardring:merge_into(geometry.ring(generics.other("active"), _P.width, _P.height, _P.ringwidth))
     guardring:merge_into(geometry.ring(generics.other(string.format("%simpl", _P.contype)), _P.width, _P.height, _P.ringwidth + _P.extension))

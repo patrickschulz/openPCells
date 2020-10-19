@@ -20,10 +20,11 @@ function layout(inductor, _P)
     local xm = xc * _P.radius / (_P.cornerradius + _P.radius)
     local ym = yc * _P.radius / (_P.cornerradius + _P.radius)
 
-    local main = graphics.quartercircle(3, 0, 0, _P.radius, _P.grid)
-    local aux  = graphics.quartercircle(1, xc, yc, _P.cornerradius, _P.grid)
+    local main = graphics.quartercircle(3, point.create(0, 0), _P.radius, _P.grid)
+    local aux  = graphics.quartercircle(1, point.create(xc, yc), _P.cornerradius, _P.grid)
 
-    local inner = util.reverse(graphics.quartercircle(2, 0, 0, _P.radius, _P.grid)) -- start with topleft quarter circle
+    ---[[
+    local inner = util.reverse(graphics.quartercircle(2, point.create(0, 0), _P.radius, _P.grid)) -- start with topleft quarter circle
     util.merge(inner, util.filter_forward(main, function(pt) return pt:getx() < xm end))
     util.merge(inner, util.filter_backward(aux, function(pt) return pt:getx() >= xm end))
     -- mirror points and append
@@ -35,10 +36,10 @@ function layout(inductor, _P)
     xm = xc * (_P.radius + _P.width) / (_P.cornerradius + _P.radius)
     ym = yc * (_P.radius + _P.width) / (_P.cornerradius + _P.radius)
 
-    main  = graphics.quartercircle(3, 0, 0, _P.radius + _P.width, _P.grid)
-    aux   = graphics.quartercircle(1, xc, yc, _P.cornerradius - _P.width, _P.grid)
+    main  = graphics.quartercircle(3, point.create(0, 0), _P.radius + _P.width, _P.grid)
+    aux   = graphics.quartercircle(1, point.create(xc, yc), _P.cornerradius - _P.width, _P.grid)
 
-    local outer = util.reverse(graphics.quartercircle(2, 0, 0, _P.radius + _P.width, _P.grid)) -- start with topleft quarter circle
+    local outer = util.reverse(graphics.quartercircle(2, point.create(0, 0), _P.radius + _P.width, _P.grid)) -- start with topleft quarter circle
     util.merge(outer, util.filter_forward(main, function(pt) return pt:getx() < xm end))
     util.merge(outer, util.filter_backward(aux, function(pt) return pt:getx() >= xm end))
     -- mirror points and append
@@ -51,4 +52,5 @@ function layout(inductor, _P)
     util.merge(s.points, outer)
 
     inductor:add_shape(s)
+    --]]
 end

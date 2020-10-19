@@ -1,12 +1,12 @@
 function parameters()
-    pcell.inherit_and_bind_parameter("transistor", "fwidth")
-    pcell.inherit_and_bind_parameter("transistor", "gatelength")
-    pcell.inherit_and_bind_parameter("transistor", "gatespace")
-    pcell.inherit_and_bind_parameter("transistor", "sdwidth")
-    pcell.bind_parameter("gatestrapwidth", "transistor", "topgatestrwidth")
-    pcell.bind_parameter("gatestrapwidth", "transistor", "botgatestrwidth")
-    pcell.bind_parameter("sourcemetal", "transistor", "connsourcemetal")
-    pcell.bind_parameter("outmetal", "transistor", "conndrainmetal")
+    pcell.inherit_and_bind_parameter("basic/transistor", "fwidth")
+    pcell.inherit_and_bind_parameter("basic/transistor", "gatelength")
+    pcell.inherit_and_bind_parameter("basic/transistor", "gatespace")
+    pcell.inherit_and_bind_parameter("basic/transistor", "sdwidth")
+    pcell.inherit_and_bind_parameter_as("gatestrapwidth", "basic/transistor", "topgatestrwidth")
+    pcell.inherit_and_bind_parameter_as("gatestrapwidth", "basic/transistor", "botgatestrwidth")
+    pcell.inherit_and_bind_parameter_as("sourcemetal", "basic/transistor", "connsourcemetal")
+    pcell.inherit_and_bind_parameter_as("outmetal", "basic/transistor", "conndrainmetal")
     pcell.add_parameters(
         { "ifingers", 4 },
         { "ofingers", 4 },
@@ -18,6 +18,7 @@ function parameters()
 end
 
 function layout(currentmirror, _P)
+    --[[
     local options = pcell.make_options({ 
         fingers = _P.ifingers + _P.ofingers,
         drawtopgate = true, drawbotgate = true, connectsource = true, connectdrain = true,
@@ -27,7 +28,7 @@ function layout(currentmirror, _P)
     })
 
     -- transistor (one for both)
-    local mosdiode = celllib.create_layout("transistor", options)
+    local mosdiode = pcell.create_layout("basic/transistor", options)
     currentmirror:merge_into(mosdiode)
 
     -- diode drain connections

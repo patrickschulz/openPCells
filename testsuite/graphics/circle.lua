@@ -64,10 +64,6 @@ do
         point.create( 1000,     0),
     }
     local status, msg = check_points(pts, ref)
-    if not status then
-        return nil, msg
-    end
+    report("main", status, msg)
 end
 
--- if all test ran positively, we reach this point
-return true

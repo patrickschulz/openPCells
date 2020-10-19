@@ -63,26 +63,59 @@ function M.ellipse(origin, xradius, yradius, grid, allow45)
         return (x - xc) * (x - xc) * xradius * xradius + (y - yc) * (y - yc) * yradius * yradius - xradius * xradius * yradius * yradius
     end
 
-    local quadrant = _rasterize(x1, y1, x2, y2, grid, calc_error, allow45)
+    local quarter = _rasterize(x1, y1, x2, y2, grid, calc_error, allow45)
     local pts = {}
     local append = util.make_insert_xy(pts)
-    for i = 1, #quadrant do
-        local x, y = quadrant[i]:unwrap()
+    for i = 1, #quarter do
+        local x, y = quarter[i]:unwrap()
         append(x, y)
     end
-    for i = 2, #quadrant do
-        local x, y = quadrant[#quadrant - i + 1]:unwrap()
+    for i = 2, #quarter do
+        local x, y = quarter[#quarter - i + 1]:unwrap()
         append(-x, y)
     end
-    for i = 2, #quadrant do
-        local x, y = quadrant[i]:unwrap()
+    for i = 2, #quarter do
+        local x, y = quarter[i]:unwrap()
         append(-x, -y)
     end
-    for i = 2, #quadrant do
-        local x, y = quadrant[#quadrant - i + 1]:unwrap()
+    for i = 2, #quarter do
+        local x, y = quarter[#quarter - i + 1]:unwrap()
         append(x, -y)
     end
     return pts
+end
+
+function M.quarterellipse(quadrant, origin, xradius, yradius, grid, allow45)
+    local xc, yc = origin:unwrap()
+    local x1, y1 = xc + xradius, yc
+    local x2, y2 = xc, yc + yradius
+
+    util.check_grid(grid, xc, yc, xradius, yradius)
+
+    local function calc_error(x, y)
+        return (x - xc) * (x - xc) * xradius * xradius + (y - yc) * (y - yc) * yradius * yradius - xradius * xradius * yradius * yradius
+    end
+
+    local quarter = _rasterize(x1, y1, x2, y2, grid, calc_error, allow45)
+    local pts = {}
+    local append = util.make_insert_xy(pts)
+    if quadrant == 1 then
+        return quarter
+    end
+    if quadrant == 2 then
+        return util.reverse(util.xmirror(quarter))
+    end
+    if quadrant == 3 then
+        return util.xmirror(util.ymirror(quarter))
+    end
+    if quadrant == 4 then
+        return util.reverse(util.ymirror(quarter))
+    end
+    assert(nil, string.format("wrong quadrant: %d", quadrant))
+end
+
+function M.quartercircle(quadrant, origin, radius, grid, allow45)
+    return M.quarterellipse(quadrant, origin, radius, radius, grid, allow45)
 end
 
 function M.circle(origin, radius, grid, allow45)

@@ -10,14 +10,14 @@ function layout(gate, _P)
     local xpitch = _P.gspace + _P.glength
 
     -- common transistor options
-    pcell.overwrite_defaults("basic/transistor", { 
+    pcell.push_overwrites("basic/transistor", { 
         gatelength = _P.glength,
         gatespace = _P.gspace,
         sdwidth = _P.sdwidth,
     })
 
     -- pmos
-    pcell.overwrite_defaults("basic/transistor", { 
+    pcell.push_overwrites("basic/transistor", { 
         channeltype = "pmos",
         fwidth = _P.pwidth,
         drawtopgate = true,
@@ -54,10 +54,10 @@ function layout(gate, _P)
             :move_anchor("rightbotgate", point.create(-_P.fingers * xpitch / 2, 0))
         )
     end
-    pcell.restore_defaults("basic/transistor")
+    pcell.pop_overwrites("basic/transistor")
 
     -- nmos
-    pcell.overwrite_defaults("basic/transistor", { 
+    pcell.push_overwrites("basic/transistor", { 
         channeltype = "nmos",
         fwidth = _P.nwidth,
         drawbotgate = true,
@@ -95,7 +95,7 @@ function layout(gate, _P)
             :move_anchor("righttopgate", point.create(-_P.fingers * xpitch / 2, 0))
         )
     end
-    pcell.restore_defaults("basic/transistor")
+    pcell.pop_overwrites("basic/transistor")
 
     -- draw missing contacts
     if _P.leftdummies > 0 and _P.leftadapt then

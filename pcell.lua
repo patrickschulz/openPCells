@@ -47,14 +47,16 @@ local function _prepare_cell_environment(cellname)
             add_parameter                   = bindcell(add_parameter),
             add_parameters                  = bindcell(add_parameters),
             inherit_parameter               = bindcell(inherit_parameter),
+            inherit_parameter_as            = bindcell(inherit_parameter_as),
             bind_parameter                  = bindcell(bind_parameter),
             inherit_all_parameters          = bindcell(inherit_all_parameters),
             inherit_and_bind_parameter      = bindcell(inherit_and_bind_parameter),
+            inherit_and_bind_parameter_as   = bindcell(inherit_and_bind_parameter_as),
             inherit_and_bind_all_parameters = bindcell(inherit_and_bind_all_parameters),
             -- the following functions don't not need cell binding as they are called for other cells
             clone_parameters                = clone_parameters,
-            overwrite_defaults              = overwrite_defaults,
-            restore_defaults                = restore_defaults,
+            push_overwrites                 = push_overwrites,
+            pop_overwrites                  = pop_overwrites,
             create_layout = M.create_layout
         },
         geometry = geometry,
@@ -144,10 +146,6 @@ local function _add_parameter(cellname, name, value, argtype, posvals, follow, o
     return true
 end
 
-local function _load_cell(cellname)
-    return loadedcells[cellname]
-end
-
 local function _process_input_parameters(cellname, cellargs, evaluate, overwrite)
     local cellparams = loadedcells[cellname].parameters
     local cellargs = cellargs or {}
@@ -222,9 +220,17 @@ local function _restore_parameters(cellname, backup)
     end
 end
 
+local function _restore_parameters(cellname, backup)
+    local cellparams = loadedcells[cellname].parameters
+    -- restore old functions
+    for name, func in pairs(backup) do
+        cellparams[name].func:replace(func)
+        cellparams[name].overwritten = nil
+    end
+end
+
 --------------------------------------------------------------------
 function add_parameter(cellname, name, value, argtype, posvals, follow)
-    print(name)
     _add_parameter(cellname, name, value, argtype, posvals, follow)
 end
 
@@ -241,8 +247,16 @@ function inherit_parameter(cellname, othercell, name)
     _add_parameter(cellname, name, param.func(), param.argtype, param.posvals)
 end
 
+function inherit_parameter_as(cellname, name, othercell, othername)
+    local param = loadedcells[othercell].parameters[othername]
+    _add_parameter(cellname, name, param.func(), param.argtype, param.posvals)
+end
+
 function bind_parameter(cellname, name, othercell, othername)
     local param = loadedcells[cellname].parameters[name]
+    if not param then 
+        error(string.format("trying to bind '%s.%s' to '%s.%s', which is unknown", othercell, othername, cellname, name), 0)
+    end
     local otherparam = loadedcells[othercell].parameters[othername]
     otherparam.func = param.func
 end
@@ -259,6 +273,11 @@ function inherit_and_bind_parameter(cellname, othercell, name)
     bind_parameter(cellname, name, othercell, name)
 end
 
+function inherit_and_bind_parameter_as(cellname, name, othercell, othername)
+    inherit_parameter_as(cellname, name, othercell, othername)
+    bind_parameter(cellname, name, othercell, othername)
+end
+
 function inherit_and_bind_all_parameters(cellname, othercell)
     local inherited = loadedcells[othercell]
     for name, param in pairs(inherited.parameters) do 
@@ -267,7 +286,7 @@ function inherit_and_bind_all_parameters(cellname, othercell)
 end
 
 local backupstack = {}
-function overwrite_defaults(cellname, cellargs)
+function push_overwrites(cellname, cellargs)
     local cellparams = loadedcells[cellname].parameters
     local backup = _process_input_parameters(cellname, cellargs, false, true)
     if not backupstack[cellname] then
@@ -276,12 +295,22 @@ function overwrite_defaults(cellname, cellargs)
     backupstack[cellname]:push(backup)
 end
 
-function restore_defaults(cellname)
+function pop_overwrites(cellname)
     if (not backupstack[cellname]) or (not backupstack[cellname]:peek()) then
         error(string.format("trying to restore default parameters for '%s', but there where no previous overwrites", cellname), 0)
     end
     _restore_parameters(cellname, backupstack[cellname]:top())
     backupstack[cellname]:pop()
+end
+
+function empty_overwrite_stack(cellname)
+    -- restore all cell defaults
+    if backupstack[cellname] then
+        while backupstack[cellname]:peek() do
+            _restore_parameters(cellname, backupstack[cellname]:top())
+            backupstack[cellname]:pop()
+        end
+    end
 end
 
 function clone_parameters(P)
@@ -293,17 +322,16 @@ function clone_parameters(P)
 end
 --------------------------------------------------------------------
 
-function M.create_layout(name, args, evaluate)
-    local cell = loadedcells[name]
+function M.create_layout(cellname, args, evaluate)
+    local cell = loadedcells[cellname]
     if not cell.funcs.layout then
-        error(string.format("cell '%s' has no layout definition", name), 0)
+        error(string.format("cell '%s' has no layout definition", cellname), 0)
     end
     local obj = object.create()
-    local parameters, backup = _get_parameters(name, args, evaluate)
+    local parameters, backup = _get_parameters(cellname, args, evaluate)
     local status, msg = pcall(cell.funcs.layout, obj, parameters)
-    _restore_parameters(name, backup)
     if not status then
-        error(string.format("could not create cell '%s': %s", name, msg), 0)
+        error(string.format("could not create cell '%s': %s", cellname, msg), 0)
     end
     return obj
 end

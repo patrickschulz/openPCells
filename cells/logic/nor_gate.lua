@@ -13,7 +13,7 @@ function layout(gate, _P)
     local block = object.create()
 
     -- common transistor options
-    pcell.overwrite_defaults("basic/transistor", { 
+    pcell.push_overwrites("basic/transistor", { 
         fingers = 2,
         gatelength = _P.glength,
         gatespace = _P.gspace,
@@ -23,7 +23,7 @@ function layout(gate, _P)
     })
 
     -- pmos
-    pcell.overwrite_defaults("basic/transistor", { 
+    pcell.push_overwrites("basic/transistor", { 
         channeltype = "pmos",
         fwidth = _P.pwidth,
         gtopext = _P.powerspace + _P.dummycontheight,
@@ -31,10 +31,10 @@ function layout(gate, _P)
         clipbot = true,
     })
     block:merge_into(pcell.create_layout("basic/transistor"):move_anchor("botgate"))
-    pcell.restore_defaults("basic/transistor")
+    pcell.pop_overwrites("basic/transistor")
 
     -- nmos
-    pcell.overwrite_defaults("basic/transistor", { 
+    pcell.push_overwrites("basic/transistor", { 
         channeltype = "nmos",
         fwidth = _P.nwidth,
         gbotext = _P.powerspace + _P.dummycontheight,
@@ -42,7 +42,7 @@ function layout(gate, _P)
         cliptop = true,
     })
     block:merge_into(pcell.create_layout("basic/transistor"):move_anchor("topgate"))
-    pcell.restore_defaults("basic/transistor")
+    pcell.pop_overwrites("basic/transistor")
     -- gate contacts
     block:merge_into(geometry.rectangle(
         generics.contact("gate"), _P.glength, _P.gstwidth
@@ -109,4 +109,6 @@ function layout(gate, _P)
     -- anchors
     gate:add_anchor("left", point.create(-(2 * _P.fingers + _P.leftdummies) * xpitch / 2, 0))
     gate:add_anchor("right", point.create((2 * _P.fingers + _P.rightdummies) * xpitch / 2, 0))
+
+    pcell.pop_overwrites("basic/transistor")
 end

@@ -1,6 +1,6 @@
 function parameters()
     pcell.add_parameters({ "fingers(Number of Fingers)", 4 })
-    pcell.inherit_and_bind_all_parameters("transistor")
+    pcell.inherit_and_bind_all_parameters("basic/transistor")
 end
 
 function layout(oscillator, _P)
@@ -10,7 +10,7 @@ function layout(oscillator, _P)
     --local gatestrspace = 0.2
 
     oscillator:merge_into(geometry.multiple(
-        celllib.create_layout("transistor"),
+        pcell.create_layout("basic/transistor"),
         1, 1, 0, 0)
     )
 end

@@ -132,9 +132,9 @@ static int call_main_program(lua_State* L, const char* filename)
         const char* msg = lua_tostring(L, -1);
         fprintf(stderr, "%s\n", msg);
         lua_pop(L, 1);
-        return 0;
+        return LUA_ERRRUN;
     }
-    return status;
+    return LUA_OK;
 }
 
 lua_State* create_and_initialize_lua()
@@ -200,6 +200,6 @@ int main (int argc, char** argv)
         status = call_main_program(L, OPC_HOME "/" MAINPROGNAME);
     }
     lua_close(L);
-    return status == 0;
+    return status == LUA_OK ? 0 : 1;
 }
 

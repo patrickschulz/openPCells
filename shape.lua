@@ -13,8 +13,17 @@ end
 function M.create_rectangle(lpp, width, height)
     local self = _create(lpp, "rectangle")
     self.points = {
-        bl = point.create(-0.5 * width, -0.5 * height),
-        tr = point.create( 0.5 * width,  0.5 * height)
+        bl = point.create(-width / 2, -height / 2),
+        tr = point.create( width / 2,  height / 2)
+    }
+    return self
+end
+
+function M.create_rectangle_bltr(lpp, bl, tr)
+    local self = _create(lpp, "rectangle")
+    self.points = {
+        bl = bl:copy(),
+        tr = tr:copy(),
     }
     return self
 end
