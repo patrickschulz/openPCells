@@ -61,3 +61,9 @@ if all or enabled["util"] then
     print("running util test...")
     run_test("util", "all")
 end
+
+-- cell checks
+if all or enabled["cells"] then
+    print("running cells test...")
+    run_test("cells", "all")
+end
