@@ -24,8 +24,7 @@ end
 --debuglib.set(args.debug)
 
 if not args.cell then
-    print("no cell type given")
-    os.exit(exitcodes.nocelltype)
+    error("no cell type given", 0)
 end
 
 -- output cell parameters
@@ -35,12 +34,10 @@ if args.params then
 end
 
 if not args.technology then
-    print("no technology given")
-    os.exit(exitcodes.notechnology)
+    error("no technology given", 0)
 end
 if not args.interface then
-    print("no interface given")
-    os.exit(exitcodes.nointerface)
+    error("no interface given", 0)
 end
 
 local tech = techlib.load(args.technology)
@@ -48,14 +45,12 @@ interface.load(args.interface)
 
 local cell, msg = pcell.create_layout(args.cell, cellargs, true)
 if not cell then
-    print(string.format("error while creating cell, received: %s", msg))
-    os.exit(exitcodes.errorincell)
+    error(string.format("error while creating cell, received: %s", msg), 0)
 end
 if args.origin then
     local dx, dy = string.match(args.origin, "%(%s*([-%d]+)%s*,%s*([-%d]+)%s*%)")
     if not dx then 
-        print(string.format("could not parse origin (%s)", args.origin))
-        os.exit(exitcodes.unknown)
+        error(string.format("could not parse origin (%s)", args.origin), 0)
     end
     cell:translate(dx, dy)
 end

@@ -171,8 +171,7 @@ function meta.move_anchor(self, name, where)
     local where = where or point.create(0, 0)
     local pt = self.anchors[name]
     if not pt then
-        print(string.format("anchor '%s' is unknown", name))
-        os.exit(exitcodes.anchornotfound)
+        error(string.format("anchor '%s' is unknown", name), 0)
     end
     local wx, wy = where:unwrap()
     local x, y = pt:unwrap()

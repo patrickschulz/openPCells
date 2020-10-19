@@ -54,8 +54,7 @@ end
 
 function M.write_cell(filename, cell)
     if cell:is_empty() then
-        print("interface: cell is empty")
-        os.exit(exitcodes.exportemptycell)
+        error("interface: cell is empty", 0)
     end
     local extension = interface.get_extension()
     local file = stringfile.open(string.format("%s.%s", filename, extension))

@@ -98,12 +98,10 @@ local meta = {}
 meta.__index = function(t, cellname)
     local funcs, msg = _load(cellname)
     if not funcs then
-        print(msg)
-        os.exit(exitcodes.syntaxerrorincell)
+        error(msg, 0)
     end
     if not (funcs.parameters or funcs.layout) then
-        print("every cell must define the public functions 'parameters' and 'layout'")
-        os.exit(exitcodes.usererrorincell)
+        error("every cell must define at least the public functions 'parameters' or 'layout'", 0)
     end
     local cell = {
         funcs = funcs,
@@ -161,8 +159,7 @@ local function _process_input_parameters(cellname, cellargs, evaluate, overwrite
     for name, value in pairs(cellargs) do
         local p = cellparams[name]
         if not p then
-            print(string.format("argument '%s' has no matching parameter, maybe it was spelled wrong?", name))
-            os.exit(1)
+            error(string.format("argument '%s' has no matching parameter, maybe it was spelled wrong?", name), 0)
         end
         if overwrite then
             p.overwritten = true
@@ -209,8 +206,7 @@ local function _get_parameters(cellname, cellargs, evaluate)
     -- this avoids arithmetic-with-nil-errors
     setmetatable(P, {
         __index = function(t, k)
-            print(string.format("trying to access undefined parameter value '%s'", k))
-            os.exit(exitcodes.parameternotfound)
+            error(string.format("trying to access undefined parameter value '%s'", k), 0)
         end,
     })
 
@@ -282,8 +278,7 @@ end
 
 function restore_defaults(cellname)
     if (not backupstack[cellname]) or (not backupstack[cellname]:peek()) then
-        print(string.format("trying to restore default parameters for '%s', but there where no previous overwrites", cellname))
-        os.exit(exitcodes.unknown)
+        error(string.format("trying to restore default parameters for '%s', but there where no previous overwrites", cellname), 0)
     end
     _restore_parameters(cellname, backupstack[cellname]:top())
     backupstack[cellname]:pop()
@@ -301,16 +296,14 @@ end
 function M.create_layout(name, args, evaluate)
     local cell = loadedcells[name]
     if not cell.funcs.layout then
-        print(string.format("cell '%s' has no layout definition", name))
-        os.exit(exitcodes.nolayoutfunction)
+        error(string.format("cell '%s' has no layout definition", name), 0)
     end
     local obj = object.create()
     local parameters, backup = _get_parameters(name, args, evaluate)
     local status, msg = pcall(cell.funcs.layout, obj, parameters)
     _restore_parameters(name, backup)
     if not status then
-        print(string.format("could not create cell '%s': %s", name, msg))
-        os.exit(exitcodes.syntaxerrorincell)
+        error(string.format("could not create cell '%s': %s", name, msg), 0)
     end
     return obj
 end

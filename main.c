@@ -24,7 +24,6 @@
 #include "lpoint.h"
 #include "lload.h"
 #include "lbind.h"
-#include "lsupport.h"
 
 #include "config.h"
 
@@ -75,7 +74,7 @@ static int msghandler (lua_State* L)
                     luaL_typename(L, 1));
         }
     }
-    luaL_traceback(L, L, msg, 1);
+    //luaL_traceback(L, L, msg, 1);
     return 1;
 }
 
@@ -91,7 +90,6 @@ static void load_api(lua_State* L)
         "stringfile",
         "util",
         "aux",
-        "exitcodes",
         "funcobject",
         "reduce",
         "stack",
@@ -163,10 +161,11 @@ int main (int argc, char** argv)
 {
     lua_State* L = create_and_initialize_lua();
 
+    int status;
     if(argc > 1 && (strcmp(argv[1], "test") == 0))
     {
         create_argument_table(L, argc - 1, argv + 1); // remove 'test' from arguments
-        call_main_program(L, OPC_HOME "/" TESTPROGNAME);
+        status = call_main_program(L, OPC_HOME "/" TESTPROGNAME);
     }
     else if(argc > 1 && (strcmp(argv[1], "watch") == 0))
     { 
@@ -180,7 +179,7 @@ int main (int argc, char** argv)
             while(1)
             {
                 create_argument_table(L, argc, argv);
-                call_main_program(L, OPC_HOME "/" MAINPROGNAME);
+                status = call_main_program(L, OPC_HOME "/" MAINPROGNAME);
 
                 // now reinitialize the program
                 // this works as if the program had beed started again, which is what we want
@@ -198,9 +197,9 @@ int main (int argc, char** argv)
     else
     {
         create_argument_table(L, argc, argv);
-        call_main_program(L, OPC_HOME "/" MAINPROGNAME);
+        status = call_main_program(L, OPC_HOME "/" MAINPROGNAME);
     }
-    lexit(L, 0);
-    return 0; // never reached
+    lua_close(L);
+    return status == 0;
 }
 

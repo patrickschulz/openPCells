@@ -5,7 +5,6 @@
 #include <string.h>
 
 #include "lpoint.h"
-#include "lsupport.h"
 
 static lpoint_coordinate_t checkcoordinate(lua_State* L, int idx)
 {
@@ -25,8 +24,8 @@ static lpoint_coordinate_t checkcoordinate(lua_State* L, int idx)
             }
             ++level;
         }
-        fprintf(stderr, "non-integer number generated in %s: line %d\n", debug.short_src, debug.currentline);
-        lexit(L, 1);
+        lua_pushfstring(L, "non-integer number generated in %s: line %d", debug.short_src, debug.currentline);
+        lua_error(L);
     }
     return d;
 }

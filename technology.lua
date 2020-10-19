@@ -32,12 +32,10 @@ local function _map_layer(S, interface)
         return false
     end
     if not t then
-        print(string.format("no layer information for '%s'\nif the layer is not provided, set it to 'UNUSED'", layer))
-        os.exit(1)
+        error(string.format("no layer information for '%s'\nif the layer is not provided, set it to 'UNUSED'", layer), 0)
     end
     if not t[interface] then
-        print(string.format("no layer information for '%s' for interface '%s'", layer, interface))
-        os.exit(1)
+        error(string.format("no layer information for '%s' for interface '%s'", layer, interface), 0)
     end
     S.lpp = generics.mapped(t[interface])
     return true
@@ -57,8 +55,7 @@ end
 local function _get_viaspec(layer)
     local t = viarules[layer]
     if not t then
-        print(string.format("no via geometry specification for '%s'", layer))
-        os.exit(1)
+        error(string.format("no via geometry specification for '%s'", layer), 0)
     end
     return t
 end
@@ -121,8 +118,7 @@ function M.create_via_geometries(cell, interface)
                 return (s:is_lpp_type("via") or s:is_lpp_type("contact")) and s:is_type("polygon") 
             end
         ) > 0 then
-        print("sorry, via translation of polygons is currently not supported")
-        os.exit(1)
+        error("sorry, via translation of polygons is currently not supported", 0)
     end
     for i, s in cell:iter(function(s) return s:is_lpp_type("via") or s:is_lpp_type("contact") end) do
         table.remove(cell.shapes, i)
@@ -142,9 +138,7 @@ end
 local function _load_technology_file(name, what)
     local status, ret = pcall(dofile, string.format("%s/tech/%s/%s.lua", _get_opc_home(), name, what))
     if not status then
-        print(ret)
-        print(string.format("no %s for technology '%s' found", what, name))
-        os.exit(exitcodes.technotfound)
+        error(string.format("no %s for technology '%s' found", what, name), 0)
     end
     return ret
 end
