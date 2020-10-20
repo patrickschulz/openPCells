@@ -6,31 +6,34 @@ procedure(OPCCreateCell(w done pts)
             (interface "virtuoso")
             (filename "openPCells")
             (origin car(pts))
+            (cv geGetEditCellView())
             args command pid exitstatus 
         )
         when(done
-	        args = ""
-            foreach(field OPCParamForm->fieldList
-                args = lsprintf("%s %s" args lsprintf("%s=%A" field get(OPCParamForm field)->value))
-            )
-            ; 'cell' is defined one level above (in OPCPlaceCell)
-	        command = lsprintf(
-                "%s --technology %s --interface %s --cell %s --origin '(%d, %d)' -f %s %s" 
-                path tech interface cell 
-                fix(1000 * xCoord(origin)) fix(1000 * yCoord(origin)) 
-                filename args
-            )
-            printf("calling opc:\n  %s\n" command)
-	        pid = ipcBeginProcess(command)
-	        ipcWait(pid) ; wait for process to finish
-	        exitstatus = ipcGetExitStatus(pid)
-	        if(exitstatus != 0
-	            then 
-	                printf("generator exited with status %d. Message:" exitstatus)
-                    printf("%s" ipcReadProcess(pid))
-	            else
-                    load(lsprintf("%s.il" filename))
-	        ) ; if exitstatus
+            when(cv->mode == "a" ; check if cell is open for editing
+                args = ""
+                foreach(field OPCParamForm->fieldList
+                    args = lsprintf("%s %s" args lsprintf("%s=%A" field get(OPCParamForm field)->value))
+                )
+                ; 'cell' is defined one level above (in OPCPlaceCell)
+                command = lsprintf(
+                    "%s --technology %s --interface %s --cell %s --origin '(%d, %d)' -f %s %s" 
+                    path tech interface cell 
+                    fix(1000 * xCoord(origin)) fix(1000 * yCoord(origin)) 
+                    filename args
+                )
+                printf("calling opc:\n  %s\n" command)
+                pid = ipcBeginProcess(command)
+                ipcWait(pid) ; wait for process to finish
+                exitstatus = ipcGetExitStatus(pid)
+                if(exitstatus != 0
+                    then 
+                        printf("generator exited with status %d. Message:" exitstatus)
+                        printf("%s" ipcReadProcess(pid))
+                    else
+                        load(lsprintf("%s.il" filename))
+                ) ; if exitstatus
+            ) ; when mode == "a"
         ) ; when done
     )
 ) ; OPCCreateCell
@@ -45,7 +48,7 @@ procedure(OPCPlaceCell(cell)
 	)
 ) ; OPCPlaceCell
 
-procedure(dirtree(path prepend)
+procedure(OPCWalkCellDir(path prepend)
     let(
         (itemlist item)
         foreach(file getDirFiles(path)
@@ -60,8 +63,8 @@ procedure(dirtree(path prepend)
                     else
                         let((submenu)
                             submenu = hiCreatePulldownMenu(
-                                'OPCLayoutPassiveSubMenu "" 
-                                dirtree(lsprintf("%s/%s" path file) lsprintf("%s/" file))
+                                stringToSymbol(lsprintf("OPCLayout%sSubMenu" lsprintf("%s%s/" prepend file))) "" 
+                                OPCWalkCellDir(lsprintf("%s/%s" path file) lsprintf("%s%s/" prepend file))
                             )
                             item = hiCreateSliderMenuItem(
                                 ?name stringToSymbol(file) 
@@ -79,7 +82,7 @@ procedure(dirtree(path prepend)
 
 procedure(OPCLayoutAddMenu(args)
     let( (menu itemlist (win args->window))
-        itemlist = dirtree("/home/pschulz/path/cells" "")
+        itemlist = OPCWalkCellDir("/home/pschulz/path/cells" "")
         menu = hiCreatePulldownMenu('OPCLayoutMenu "OpenPCells" itemlist)
         hiInsertBannerMenu(win menu length(hiGetBannerMenus(win)))
     )
@@ -149,6 +152,9 @@ procedure(OPCCreateOptionsForm(cell)
                         )
                     )
                 )
+                ;if(boundp('OPCParamForm)
+                ;    hiDeleteForm(OPCParamForm)
+                ;)
                 hiCreateAppForm(
                     ?name 'OPCParamForm
                     ?formType 'options

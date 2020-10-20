@@ -9,9 +9,7 @@ end
 function M.at_begin(file)
     file:write([[
 let(
-    (
-        (cv geGetEditCellView())
-    )
+    ()
 ]])
 end
 
