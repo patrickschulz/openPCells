@@ -338,9 +338,11 @@ end
 
 function M.parameters(name)
     local cell = loadedcells[name]
+    local str = {}
     for k, v in pairs(cell.parameters) do
-        print(string.format("%s %s %s", tostring(k), tostring(v.func()), tostring(v.argtype)))
+        table.insert(str, string.format("%s %s %s", tostring(k), tostring(v.func()), tostring(v.argtype)))
     end
+    return str
 end
 
 return M

@@ -1,14 +1,6 @@
 -- for random shuffle
 math.randomseed(os.time())
 
--- debugging
-local function _trace (event)
-    local s = debug.getinfo(2).name
-    print(s)
-end
-
---debug.sethook(_trace, "c")
-
 local techlib = _load_module("technology")
 local interface = _load_module("interface")
 
@@ -21,15 +13,15 @@ for k, v in string.gmatch(table.concat(args.cellargs, " "), "(%w+)%s*=%s*(%S+)")
     cellargs[k] = v
 end
 
---debuglib.set(args.debug)
-
 if not args.cell then
     error("no cell type given", 0)
 end
 
 -- output cell parameters
 if args.params then
-    pcell.parameters(args.cell)
+    local sep = args.separator or "\n"
+    local params = pcell.parameters(args.cell)
+    print(table.concat(params, sep))
     os.exit(0)
 end
 
