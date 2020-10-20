@@ -340,7 +340,7 @@ function M.parameters(name)
     local cell = loadedcells[name]
     local str = {}
     for k, v in pairs(cell.parameters) do
-        table.insert(str, string.format("%s %s %s", tostring(k), tostring(v.func()), tostring(v.argtype)))
+        str[cell.indices[k]] = string.format("%s %s %s", tostring(k), tostring(v.func()), tostring(v.argtype))
     end
     return str
 end
