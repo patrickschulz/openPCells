@@ -93,7 +93,7 @@ procedure(OPCCreateOptionsForm(cell)
             command pid exitstatus result
             name type fieldlist field (i 0)
         )
-        command = lsprintf("%s -P -C %s" path cell)
+        command = lsprintf("%s -P --separator ';' --cell %s" path cell)
         println(command)
         pid = ipcBeginProcess(command)
         ipcWait(pid) ; wait for process to finish
@@ -104,7 +104,7 @@ procedure(OPCCreateOptionsForm(cell)
                 printf("generator exited with status %d. Message:" exitstatus)
                 printf("%s" result)
             else
-                foreach(line parseString(result "\n")
+                foreach(line parseString(result ";")
                     name = car(parseString(line))
                     type = caddr(parseString(line))
                     default = cadr(parseString(line))
