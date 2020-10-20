@@ -161,7 +161,7 @@ int main (int argc, char** argv)
 {
     lua_State* L = create_and_initialize_lua();
 
-    int status;
+    int status = LUA_OK;
     if(argc > 1 && (strcmp(argv[1], "test") == 0))
     {
         create_argument_table(L, argc - 1, argv + 1); // remove 'test' from arguments
