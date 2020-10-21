@@ -1,10 +1,29 @@
+--[[
+This file is part of the openPCells project.
+
+This module provides a collection of geometry-related helper functions such as:
+    - manipulation of point arrays
+    - easier insertion of points in arrays
+--]]
+
 local M = {}
 
 function M.xmirror(pts, xcenter)
     local mirrored = {}
     local xcenter = xcenter or 0
     for i, pt in ipairs(pts) do
-        mirrored[i] = point.create(2 * xcenter - pt.x, pt.y)
+        local x, y = pt:unwrap()
+        mirrored[i] = point.create(2 * xcenter - x, y)
+    end
+    return mirrored
+end
+
+function M.ymirror(pts, ycenter)
+    local mirrored = {}
+    local ycenter = ycenter or 0
+    for i, pt in ipairs(pts) do
+        local x, y = pt:unwrap()
+        mirrored[i] = point.create(x, 2 * ycenter - y)
     end
     return mirrored
 end
@@ -67,13 +86,20 @@ function M.make_insert_pts(pts, idx)
     end
 end
 
+function M.check_grid(grid, ...)
+    for _, num in ipairs({ ... }) do
+        assert(num % grid == 0, string.format("number is not on-grid: %d", num))
+    end
+end
+
 function M.is_point_in_polygon(pt, pts)
     local j = #pts
     local c = nil 
+    local x, y = pt:unwrap()
     for i = 1, #pts do
-        local pti = pts[i]
-        local ptj = pts[j]
-        if ((pti.y > pt.y) ~= (ptj.y > pt.y)) and (pt.x < pti.x + (ptj.x - pti.x) * (pt.y - pti.y) / (ptj.y - pti.y)) 
+        local xi, yi = pts[i]:unwrap()
+        local xj, yj = pts[j]:unwrap()
+        if ((yi > y) ~= (yj > y)) and (x < xi + (xj - xi) * (y - yi) / (yj - yi)) 
             then
             c = not(c)
         end

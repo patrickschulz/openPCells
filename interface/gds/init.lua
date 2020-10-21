@@ -4,8 +4,7 @@ function M.get_extension()
     return "gds"
 end
 
--- private variables
-local gridfmt = "%.3f"
+local baseunit = 1
 
 local recordtypes = {
     HEADER       = 0x00,
@@ -61,8 +60,8 @@ local datatypes = {
 
 -- helper functions
 local function _gdsfloat_to_number(data, width)
-    local sign      = bitop.band(data[1], 0x80, 8)
-    local exp       = bitop.band(data[1], 0x7f, 8) - 64
+    local sign      = data[1] & 0x80
+    local exp       = data[1] & 0x7f - 64
     local mantissa  = 0
     for m = 2, width do
         mantissa = mantissa + data[m] * (256 ^ (1 - m))
@@ -95,9 +94,9 @@ local function _number_to_gdsfloat(num, width)
         exp = exp - 1
     end
     if sign then
-        data[1] = 0x80 + bitop.band((exp + 64), 0x7f)
+        data[1] = 0x80 + ((exp + 64) & 0x7f)
     else
-        data[1] = 0x00 + bitop.band((exp + 64), 0x7f, 8)
+        data[1] = 0x00 + ((exp + 64) & 0x7f)
     end
     for i = 2, width do
         local int, frac = math.modf(num * 256)
@@ -207,8 +206,9 @@ end
 local function _unpack_points(pts, multiplier)
     local stream = {}
     for _, pt in ipairs(pts) do
-        table.insert(stream, math.floor(pt.x * multiplier))
-        table.insert(stream, math.floor(pt.y * multiplier))
+        local x, y = pt:unwrap(multiplier)
+        table.insert(stream, math.floor(x))
+        table.insert(stream, math.floor(y))
     end
     return stream
 end
@@ -219,7 +219,7 @@ end
 
 function M.get_points(shape)
     local s = shape:convert_to_polygon()
-    local points = _unpack_points(s.points, 1000)
+    local points = _unpack_points(s.points, baseunit)
     return points
 end
 
@@ -227,7 +227,7 @@ function M.at_begin(file)
     _write_record(file, recordtypes.HEADER, datatypes.TWO_BYTE_INTEGER, { 5 })
     _write_record(file, recordtypes.BGNLIB, datatypes.TWO_BYTE_INTEGER, { 2020, 7, 5, 18, 17, 51, 2020, 7, 5, 18, 17, 51 })
     _write_record(file, recordtypes.LIBNAME, datatypes.ASCII_STRING, "testlib")
-    _write_record(file, recordtypes.UNITS, datatypes.EIGHT_BYTE_REAL, { 0.001, 1e-9 })
+    _write_record(file, recordtypes.UNITS, datatypes.EIGHT_BYTE_REAL, { 1 / baseunit, 1e-9 })
 end
 
 function M.at_end(file)

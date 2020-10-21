@@ -1,7 +1,9 @@
 local M = {}
 
+M.__index = M
+
 local function _create(value)
-    return {
+    local self = {
         value = value,
         isgeneric = true,
         get = function(self)
@@ -13,7 +15,7 @@ local function _create(value)
         end,
         str = function(self)
             if self.typ == "metal" then
-                return string.format("M%d", self.value)
+                return string.format("M%d", self:get())
             elseif self.typ == "via" then
                 return string.format("viaM%dM%d", self:get())
             elseif self.typ == "contact" then
@@ -23,6 +25,8 @@ local function _create(value)
             end
         end
     }
+    setmetatable(self, M)
+    return self
 end
 
 function M.metal(num)
@@ -33,8 +37,7 @@ end
 
 function M.via(from, to)
     if not from or not to then
-        print("generic.via with nil")
-        os.exit(exitcodes.genericsargument)
+        error("generic.via with nil", 0)
     end
     local self = _create({ from = from, to = to })
     self.typ = "via"
@@ -57,6 +60,11 @@ function M.mapped(layer)
     local self = _create(layer)
     self.typ = "mapped"
     return self
+end
+
+function M.is_type(self, ...)
+    local comp = function(v) return self.typ == v end
+    return aux.any_of(comp, { ... })
 end
 
 return M

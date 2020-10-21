@@ -7,6 +7,42 @@ end
 -- private variables
 local gridfmt = "%.3f"
 
+local function _get_dimensions(cell)
+    local minx =  math.huge
+    local maxx = -math.huge
+    local miny =  math.huge
+    local maxy = -math.huge
+    for _, shape in cell:iter() do
+        if shape.typ == "polygon" then
+            for _, pt in ipairs(shape.points) do
+                local x, y = pt:unwrap()
+                minx = math.min(minx, x)
+                maxx = math.max(maxx, x)
+                miny = math.min(miny, y)
+                maxy = math.max(maxy, y)
+            end
+        elseif shape.typ == "rectangle" then
+            local blx, bly = shape.points.bl:unwrap()
+            local trx, try = shape.points.tr:unwrap()
+            minx = math.min(minx, blx, trx)
+            maxx = math.max(maxx, blx, trx)
+            miny = math.min(miny, bly, try)
+            maxy = math.max(maxy, bly, try)
+        end
+    end
+    return maxx - minx, maxy - miny
+end
+
+local function _write_style(file)
+    local lines = {
+        '<style type = "text/css">',
+        'rect {}',
+        '.poly { fill:#ff0000 }',
+        '</style>',
+    }
+    file:write(table.concat(lines, '\n') .. '\n')
+end
+
 function M.get_layer(shape)
     if not shape.lpp:get() then
         return string.format('fill="%s" opacity="%s"', "black", "0.1")
@@ -14,7 +50,7 @@ function M.get_layer(shape)
     local color = shape.lpp:get().color or "black"
     local opacity = shape.lpp:get().opacity or 0.1
     local fill = shape.lpp:get().fill or false
-    return string.format('stroke="%s" fill="%s" opacity="%s"', color, fill and color or "none", opacity)
+    return string.format('stroke="%s" fill="%s" opacity="%s" stroke-width="0.5%%"', color, fill and color or "none", opacity)
 end
 
 function M.get_index(shape)
@@ -33,38 +69,6 @@ function M.write_layer(file, layer, pcol)
     file:write("</g>\n")
 end
 
-local function _get_dimensions(cell)
-    local minx =  math.huge
-    local maxx = -math.huge
-    local miny =  math.huge
-    local maxy = -math.huge
-    for shape in cell:iter() do
-        if shape.typ == "polygon" then
-            for _, pt in ipairs(shape.points) do
-                minx = math.min(minx, pt.x)
-                maxx = math.max(maxx, pt.x)
-                miny = math.min(miny, pt.y)
-                maxy = math.max(maxy, pt.y)
-            end
-        elseif shape.typ == "rectangle" then
-            minx = math.min(minx, shape.points.bl.x, shape.points.tr.x)
-            maxx = math.max(maxx, shape.points.bl.x, shape.points.tr.x)
-            miny = math.min(miny, shape.points.bl.y, shape.points.tr.y)
-            maxy = math.max(maxy, shape.points.bl.y, shape.points.tr.y)
-        end
-    end
-    return maxx - minx, maxy - miny
-end
-
-local function _write_style(file)
-    local lines = {
-        '<style type = "text/css">',
-        'rect {}',
-        '.poly { fill:#ff0000 }',
-        '</style>',
-    }
-    file:write(table.concat(lines, '\n') .. '\n')
-end
 
 function M.precompute(cell)
     local width, height = _get_dimensions(cell)
@@ -83,7 +87,7 @@ function M.at_begin(file, precomputed)
     if y % 2 == 1 then y = y + 1 end
     local lines = {
         string.format('<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'),
-        string.format('<svg width="%d" height="%d" viewBox="-%d -%d %d %d">', x, y, 0.5 * x, 0.5 * y, x, y),
+        string.format('<svg width="%d" height="%d" viewBox="-%d -%d %d %d">', x, y, x/ 2, y / 2, x, y),
         '<rect fill="#fff" x="-50%" y="-50%" width="100%" height="100%"/>',
     }
     file:write(table.concat(lines, '\n') .. '\n')
@@ -93,12 +97,18 @@ function M.get_points(shape, precomputed)
     local scale = precomputed.scale
     local fmt
     if shape.typ == "polygon" then
-        local pointstr = table.concat(shape:concat_points(function(pt) return string.format(gridfmt .. "," .. gridfmt, scale * pt.x, scale * pt.y) end), ' ')
+        local pointstr = table.concat(shape:concat_points(
+            function(pt) 
+                local x, y = pt:unwrap()
+                return string.format(gridfmt .. "," .. gridfmt, scale * x, scale * y) end
+            ), ' '
+        )
         fmt = string.format('<polyline points="%s" />', pointstr)
     elseif shape.typ == "rectangle" then
+        local x, y = shape.points.bl:unwrap()
         local pointstr = string.format('x="%f" y="%f" width="%f" height="%f"', 
-            scale * shape.points.bl.x, 
-            scale * shape.points.bl.y, 
+            scale * x,
+            scale * y,
             scale * shape:width(), 
             scale * shape:height()
         )

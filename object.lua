@@ -32,9 +32,13 @@ function M.make_from_shape(shape)
 end
 
 function meta.merge_into(self, other)
-    for shape in other:iter() do
+    for _, shape in other:iter() do
         self:add_shape(shape)
     end
+end
+
+function meta.is_empty(self)
+    return #self.shapes == 0
 end
 
 function meta.add_shape(self, shape)
@@ -47,13 +51,41 @@ function meta.add_shapes(self, shapes)
     end
 end
 
-function meta.iter(self)
-    local idx = 1
+-- this function returns an iterator over all shapes in a cell
+-- (possibly only selecting a subset)
+-- First all shapes are collected in an auxiliary table, which enables 
+-- modification of the self.shapes table within the iteration
+-- Furthermore, the list is iterated from the end, which allows 
+-- element removal in the loop
+function meta.iter(self, comp)
+    local shapes = {}
+    local indices = {}
+    local comp = comp or function() return true end
+    for i, s in ipairs(self.shapes) do
+        if comp(s) then
+            table.insert(shapes, s)
+            table.insert(indices, i)
+        end
+    end
+    local idx = #shapes + 1 -- start at the end
     local iter = function()
-        idx = idx + 1
-        return self.shapes[idx - 1]
+        idx = idx - 1
+        return indices[idx], shapes[idx]
     end
     return iter
+end
+
+function meta.find(self, comp)
+    local shapes = {}
+    local indices = {}
+    local comp = comp or function() return true end
+    for i, s in ipairs(self.shapes) do
+        if comp(s) then
+            table.insert(shapes, s)
+            table.insert(indices, i)
+        end
+    end
+    return indices, shapes
 end
 
 function meta.translate(self, dx, dy)
@@ -62,6 +94,20 @@ function meta.translate(self, dx, dy)
     end
     for _, anchor in pairs(self.anchors) do
         anchor:translate(dx, dy)
+    end
+    return self
+end
+
+function meta.flipx(self, xcenter)
+    for _, shape in ipairs(self.shapes) do
+        shape:flipx(xcenter)
+    end
+    return self
+end
+
+function meta.flipy(self, ycenter)
+    for _, shape in ipairs(self.shapes) do
+        shape:flipy(ycenter)
     end
     return self
 end
@@ -76,49 +122,39 @@ function meta.rotate(self, angle)
     return self
 end
 
-function meta.width_height(self)
+local function _get_minmax_xy(self)
     local minx =  math.huge
     local maxx = -math.huge
     local miny =  math.huge
     local maxy = -math.huge
-    for shape in self:iter() do
+    for _, shape in self:iter() do
         if shape.typ == "polygon" then
             for _, pt in ipairs(shape.points) do
-                minx = math.min(minx, pt.x)
-                maxx = math.max(maxx, pt.x)
-                miny = math.min(miny, pt.y)
-                maxy = math.max(maxy, pt.y)
+                local x, y = pt:unwrap()
+                minx = math.min(minx, x)
+                maxx = math.max(maxx, x)
+                miny = math.min(miny, y)
+                maxy = math.max(maxy, y)
             end
         elseif shape.typ == "rectangle" then
-            minx = math.min(minx, shape.points.bl.x, shape.points.tr.x)
-            maxx = math.max(maxx, shape.points.bl.x, shape.points.tr.x)
-            miny = math.min(miny, shape.points.bl.y, shape.points.tr.y)
-            maxy = math.max(maxy, shape.points.bl.y, shape.points.tr.y)
+            local blx, bly = shape.points.bl:unwrap()
+            local trx, try = shape.points.tr:unwrap()
+            minx = math.min(minx, blx, trx)
+            maxx = math.max(maxx, blx, trx)
+            miny = math.min(miny, bly, try)
+            maxy = math.max(maxy, bly, try)
         end
     end
+    return minx, maxx, miny, maxy
+end
+
+function meta.width_height(self)
+    local minx, maxx, miny, maxy = _get_minmax_xy(self)
     return maxx - minx, maxy - miny
 end
 
 function meta.bounding_box(self)
-    local minx =  math.huge
-    local maxx = -math.huge
-    local miny =  math.huge
-    local maxy = -math.huge
-    for shape in self:iter() do
-        if shape.typ == "polygon" then
-            for _, pt in ipairs(shape.points) do
-                minx = math.min(minx, pt.x)
-                maxx = math.max(maxx, pt.x)
-                miny = math.min(miny, pt.y)
-                maxy = math.max(maxy, pt.y)
-            end
-        elseif shape.typ == "rectangle" then
-            minx = math.min(minx, shape.points.bl.x, shape.points.tr.x)
-            maxx = math.max(maxx, shape.points.bl.x, shape.points.tr.x)
-            miny = math.min(miny, shape.points.bl.y, shape.points.tr.y)
-            maxy = math.max(maxy, shape.points.bl.y, shape.points.tr.y)
-        end
-    end
+    local minx, maxx, miny, maxy = _get_minmax_xy(self)
     return { bl = point.create(minx, miny), tr = point.create(maxx, maxy) }
 end
 
@@ -135,10 +171,11 @@ function meta.move_anchor(self, name, where)
     local where = where or point.create(0, 0)
     local pt = self.anchors[name]
     if not pt then
-        print(string.format("anchor '%s' is unknown", name))
-        os.exit(exitcodes.anchornotfound)
+        error(string.format("anchor '%s' is unknown", name), 0)
     end
-    self:translate(where.x - pt.x, where.y - pt.y)
+    local wx, wy = where:unwrap()
+    local x, y = pt:unwrap()
+    self:translate(wx - x, wy - y)
     return self
 end
 

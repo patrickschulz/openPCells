@@ -10,12 +10,12 @@ return {
                 }
             },
         },
-        width = 0.17,
-        height = 0.17, 
-        xspace = 0.17, 
-        yspace = 0.17, 
-        xencl = 0.04, 
-        yencl = 0.04
+        width = 170,
+        height = 170, 
+        xspace = 170, 
+        yspace = 170, 
+        xencl = 40, 
+        yencl = 40
     },
     contactgate = {
         layers = {
@@ -25,7 +25,7 @@ return {
                     virtuoso = { layer = "poly", purpose = "drawing", },
                     magic    = { layer = "poly", purpose = "drawing", },
                 },
-                enlarge = 0.1
+                enlarge = 100
             },
             {
                 lpp = {
@@ -33,7 +33,7 @@ return {
                     virtuoso = { layer = "npc", purpose = "drawing", },
                     magic    = { layer = "npc", purpose = "drawing", },
                 },
-                enlarge = 0.1
+                enlarge = 100
             },
             {
                 lpp = {
@@ -43,12 +43,12 @@ return {
                 },
             },
         },
-        width = 0.17,
-        height = 0.17, 
-        xspace = 0.25, 
-        yspace = 0.17, 
-        xencl = 0.04, 
-        yencl = 0.08
+        width = 170,
+        height = 170, 
+        xspace = 250, 
+        yspace = 170, 
+        xencl = 40, 
+        yencl = 80
     },
     viaM1M2 = {
         layers = {
@@ -60,12 +60,12 @@ return {
                 },
             },
         },
-        width = 0.17,
-        height = 0.17, 
-        xspace = 0.25, 
-        yspace = 0.17, 
-        xencl = 0.04, 
-        yencl = 0.08
+        width = 170,
+        height = 170, 
+        xspace = 250, 
+        yspace = 170, 
+        xencl = 40, 
+        yencl = 80
     },
     viaM2M3 = {
         layers = {
@@ -77,12 +77,12 @@ return {
                 },
             },
         },
-        width = 0.15,
-        height = 0.15, 
-        xspace = 0.17, 
-        yspace = 0.17, 
-        xencl = 0.055, 
-        yencl = 0.055
+        width = 150,
+        height = 150, 
+        xspace = 170, 
+        yspace = 170, 
+        xencl = 55, 
+        yencl = 55
     },
     viaM3M4 = {
         layers = {
@@ -94,12 +94,12 @@ return {
                 },
             },
         },
-        width = 0.2,
-        height = 0.2, 
-        xspace = 0.2, 
-        yspace = 0.2, 
-        xencl = 0.04, 
-        yencl = 0.04
+        width = 200,
+        height = 200, 
+        xspace = 200, 
+        yspace = 200, 
+        xencl = 40, 
+        yencl = 40
     },
     viaM4M5 = {
         layers = {
@@ -111,12 +111,12 @@ return {
                 },
             },
         },
-        width = 0.2,
-        height = 0.2, 
-        xspace = 0.2, 
-        yspace = 0.2, 
-        xencl = 0.06, 
-        yencl = 0.06
+        width = 200,
+        height = 200, 
+        xspace = 200, 
+        yspace = 200, 
+        xencl = 60, 
+        yencl = 60
     },
     viaM5M6 = {
         layers = {
@@ -128,11 +128,11 @@ return {
                 },
             },
         },
-        width = 0.8,
-        height = 0.8, 
-        xspace = 0.8, 
-        yspace = 0.8, 
-        xencl = 0.19, 
-        yencl = 0.19
+        width = 800,
+        height = 800, 
+        xspace = 800, 
+        yspace = 800, 
+        xencl = 190, 
+        yencl = 190
     },
 }

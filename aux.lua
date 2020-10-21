@@ -1,3 +1,9 @@
+--[[
+This file is part of the openPCells project.
+
+This module provides a collection of helper functions (not geometry-related)
+--]]
+
 local M = {}
 
 function M.call_if_present(func, ...)
@@ -77,14 +83,22 @@ function M.round(num)
     return num >= 0 and math.floor(num + 0.5) or math.ceil(num - 0.5)
 end
 
-function M.fix_to_grid(num, grid)
-    return grid * aux.round(num / grid)
+function M.any_of(comp, t, ...)
+    for _, v in ipairs(t) do
+        if comp(v, ...) then
+            return true
+        end
+    end
+    return false
 end
 
-function M.equal(num1, num2, eps)
-    if math.abs(num1 - num2) < eps then
-        return true
+function M.all_of(comp, t, ...)
+    for _, v in ipairs(t) do
+        if not comp(v, ...) then
+            return false
+        end
     end
+    return true
 end
 
 return M

@@ -1,3 +1,19 @@
+--[[
+This file is part of the openPCells project.
+
+This module provides the pcell functionality:
+    - functions for cell parameterization
+    - parameter inheritance and binding (cell hierarchies)
+    - layout generation
+    - parameter summary
+
+Implementation note:
+    Every parameter stores a function return its value, which is only
+    evaluated when it is needed: at the moment of shape creation.
+    This more complex approach (compared to just storing the values)
+    allows for easy binding and inheritance of parameters.
+--]]
+
 local M = {}
 
 local function identity(arg) return arg end
@@ -14,7 +30,6 @@ local function totable(arg)
     end
     return t
 end
-
 local evaluators = {
     number = tonumber,
     integer = tointeger,
@@ -23,27 +38,85 @@ local evaluators = {
     table = totable,
 }
 
-local paramdir = {}
-local currentcell
-
-local function _get_parameters(cellname)
-    if not paramdir[cellname] then
-        local _currentcell = currentcell -- save current cell name
-        celllib.load_cell(cellname)
-        currentcell = _currentcell -- restore current cell name
+local function _prepare_cell_environment(cellname)
+    local bindcell = function(func)
+        return bind(func, 1, cellname)
     end
-    return paramdir[cellname]
+    return {
+        pcell = {
+            add_parameter                   = bindcell(add_parameter),
+            add_parameters                  = bindcell(add_parameters),
+            inherit_parameter               = bindcell(inherit_parameter),
+            inherit_parameter_as            = bindcell(inherit_parameter_as),
+            bind_parameter                  = bindcell(bind_parameter),
+            inherit_all_parameters          = bindcell(inherit_all_parameters),
+            inherit_and_bind_parameter      = bindcell(inherit_and_bind_parameter),
+            inherit_and_bind_parameter_as   = bindcell(inherit_and_bind_parameter_as),
+            inherit_and_bind_all_parameters = bindcell(inherit_and_bind_all_parameters),
+            -- the following functions don't not need cell binding as they are called for other cells
+            clone_parameters                = clone_parameters,
+            clone_matching_parameters       = clone_matching_parameters,
+            push_overwrites                 = push_overwrites,
+            pop_overwrites                  = pop_overwrites,
+            create_layout = M.create_layout
+        },
+        geometry = geometry,
+        graphics = graphics,
+        shape = shape,
+        object = object,
+        generics = generics,
+        point = point,
+        util = util,
+        aux = aux,
+        math = math,
+        enable = function(bool, val) return (bool and 1 or 0) * val end,
+        string = string,
+        table = table,
+        print = print,
+        ipairs = ipairs,
+        pairs = pairs,
+    }
 end
 
-local function _get_parameter(cellname, name, silent)
-    local dir = _get_parameters(cellname)
-    local p = dir.parameters[name]
-    if not p and not silent then
-        print(string.format("trying to access undefined parameter definition '%s' in cell '%s'", name, cellname))
-        os.exit(exitcodes.undefinedparameter)
+local function _load(cellname)
+    local file = io.open(string.format("%s/cells/%s.lua", _get_opc_home(), cellname))
+    if not file then
+        return nil, string.format("unknown cell '%s'", cellname)
     end
-    return p
+    local content = file:read("*a")
+    local env = _prepare_cell_environment(cellname)
+    local chunkname = string.format("=cell '%s'", cellname)
+    local chunk, msg = load(content, chunkname, "t", env)
+    if not chunk then
+        return nil, string.format("syntax error in cell '%s': %s", cellname, msg)
+    end
+    local status, msg = pcall(chunk)
+    if not status then
+        return nil, string.format("semantic error in cell '%s': %s", cellname, msg)
+    end
+    return env
 end
+
+local meta = {}
+meta.__index = function(t, cellname)
+    local funcs, msg = _load(cellname)
+    if not funcs then
+        error(msg, 0)
+    end
+    if not (funcs.parameters or funcs.layout) then
+        error("every cell must define at least the public functions 'parameters' or 'layout'", 0)
+    end
+    local cell = {
+        funcs = funcs,
+        parameters = {},
+        indices = {},
+        num = 0
+    }
+    rawset(t, cellname, cell)
+    funcs.parameters()
+    return cell
+end
+local loadedcells = setmetatable({}, meta)
 
 local function _get_pname_dname(name)
     local pname, dname = string.match(name, "^([^(]+)%(([^)]+)%)")
@@ -51,134 +124,229 @@ local function _get_pname_dname(name)
     return pname, dname
 end
 
-local function _add_parameter(cell, name, value, argtype, posvals, overwrite)
+local function _add_parameter(cellname, name, value, argtype, posvals, follow, overwrite)
     local argtype = argtype or type(value)
     local pname, dname = _get_pname_dname(name)
     local new = {
         display = dname,
         func    = funcobject.identity(value),
         argtype = argtype,
-        posvals = posvals
+        posvals = posvals,
+        followers = {}
     }
-    if not paramdir[cell].parameters[pname] or overwrite then
-        paramdir[cell].parameters[pname] = new
-        paramdir[cell].num = paramdir[cell].num + 1
-        paramdir[cell].indices[pname] = paramdir[cell].num
+    if not loadedcells[cellname].parameters[pname] or overwrite then
+        loadedcells[cellname].parameters[pname] = new
+        loadedcells[cellname].num = loadedcells[cellname].num + 1
+        loadedcells[cellname].indices[pname] = loadedcells[cellname].num
+        if follow then
+            loadedcells[cellname].parameters[follow].followers[pname] = true
+        end
     else
         return false
     end
     return true
 end
 
-local function _process(args, evaluate)
+local function _process_input_parameters(cellname, cellargs, evaluate, overwrite)
+    local cellparams = loadedcells[cellname].parameters
+    local cellargs = cellargs or {}
+
+    local backup = {}
+
+    -- process input arguments
     local args = args or {}
-    for name, value in pairs(args) do
-        local p = _get_parameter(currentcell, name, true)
+    for name, value in pairs(cellargs) do
+        local p = cellparams[name]
         if not p then
-            print(string.format("argument '%s' has no matching parameter, maybe it was spelled wrong?", name))
-            os.exit(1)
+            error(string.format("argument '%s' has no matching parameter, maybe it was spelled wrong?", name), 0)
         end
-        local v = value
+        if overwrite then
+            p.overwritten = true
+        end
         if evaluate then
             local eval = evaluators[p.argtype]
-            v = eval(value) -- replace default value
+            value = eval(value)
         end
+        -- store old function for restoration
+        backup[name] = p.func:get()
         -- important: use :replace(), don't create a new function object. 
         -- Otherwise parameter binding does not work, because bound parameters link to the original function object
-        p.func:replace(function() return v end)
+        p.func:replace(function() return value end)
+    end
+
+    return backup
+end
+
+local function _get_parameters(cellname, cellargs, evaluate)
+    local cellparams = loadedcells[cellname].parameters
+    local cellargs = cellargs or {}
+
+    local backup = _process_input_parameters(cellname, cellargs, evaluate)
+
+    -- store parameters in user-readable table
+    local P = {}
+    local handled = {}
+    for name, entry in pairs(cellparams) do
+        if not handled[name] or cellargs[name] then
+            P[name] = entry.func()
+            if cellargs[name] then
+                handled[name] = true
+            end
+        end
+        for follower in pairs(entry.followers) do
+            if not (handled[follower] or cellparams[follower].overwritten) then
+                P[follower] = entry.func()
+                handled[follower] = true
+            end
+        end
+    end
+
+    -- install meta method for non-existing parameters as safety check 
+    -- this avoids arithmetic-with-nil-errors
+    setmetatable(P, {
+        __index = function(t, k)
+            error(string.format("trying to access undefined parameter value '%s'", k), 0)
+        end,
+    })
+
+    return P, backup
+end
+
+local function _restore_parameters(cellname, backup)
+    local cellparams = loadedcells[cellname].parameters
+    -- restore old functions
+    for name, func in pairs(backup) do
+        cellparams[name].func:replace(func)
+        cellparams[name].overwritten = nil
     end
 end
 
-local function _set_cell(cellname)
-    paramdir[cellname] = {
-        parameters = {},
-        indices = {},
-        num = 0
-    }
-    currentcell = cellname
+--------------------------------------------------------------------
+function add_parameter(cellname, name, value, argtype, posvals, follow)
+    _add_parameter(cellname, name, value, argtype, posvals, follow)
 end
 
--- public functions
-function M.add_parameters(...)
-    for _, param in ipairs({...}) do
-        local name, default, argtype, posvals = table.unpack(param)
-        _add_parameter(currentcell, name, default, argtype, posvals)
+function add_parameters(cellname, ...)
+    for _, parameter in ipairs({ ... }) do
+        local name, value, argtype, posvals = table.unpack(parameter)
+        local follow = parameter.follow
+        _add_parameter(cellname, name, value, argtype, posvals, follow)
     end
 end
 
-function M.inherit_parameter(othercell, name)
-    local param = _get_parameter(othercell, name)
-    _add_parameter(currentcell, name, param.func(), param.argtype, param.posvals)
+function inherit_parameter(cellname, othercell, name)
+    local param = loadedcells[othercell].parameters[name]
+    _add_parameter(cellname, name, param.func(), param.argtype, param.posvals)
 end
 
-function M.bind_parameter(name, othercell, othername)
-    local otherparam = _get_parameter(othercell, othername)
-    local param = _get_parameter(currentcell, name)
+function inherit_parameter_as(cellname, name, othercell, othername)
+    local param = loadedcells[othercell].parameters[othername]
+    _add_parameter(cellname, name, param.func(), param.argtype, param.posvals)
+end
+
+function bind_parameter(cellname, name, othercell, othername)
+    local param = loadedcells[cellname].parameters[name]
+    if not param then 
+        error(string.format("trying to bind '%s.%s' to '%s.%s', which is unknown", othercell, othername, cellname, name), 0)
+    end
+    local otherparam = loadedcells[othercell].parameters[othername]
     otherparam.func = param.func
 end
 
-function M.inherit_and_bind_parameter(othercell, name)
-    M.inherit_parameter(othercell, name)
-    M.bind_parameter(name, othercell, name)
-end
-
-function M.inherit_and_bind_all_parameters(othercell, overwrite)
-    local inherited = _get_parameters(othercell)
+function inherit_all_parameters(cellname, othercell)
+    local inherited = loadedcells[othercell]
     for name, param in pairs(inherited.parameters) do 
-        M.inherit_and_bind_parameter(othercell, name)
+        inherit_parameter(cellname, othercell, name)
     end
 end
 
-function M.load(paramfunc, cellname)
-    _set_cell(cellname)
-    aux.call_if_present(paramfunc)
+function inherit_and_bind_parameter(cellname, othercell, name)
+    inherit_parameter(cellname, othercell, name)
+    bind_parameter(cellname, name, othercell, name)
 end
 
-function M.get_parameters(cellname, cellargs, evaluate)
-    _process(cellargs, evaluate)
-    local P = {}
-    for name, entry in pairs(paramdir[cellname].parameters) do
-        P[name] = entry.func()
+function inherit_and_bind_parameter_as(cellname, name, othercell, othername)
+    inherit_parameter_as(cellname, name, othercell, othername)
+    bind_parameter(cellname, name, othercell, othername)
+end
+
+function inherit_and_bind_all_parameters(cellname, othercell)
+    local inherited = loadedcells[othercell]
+    for name, param in pairs(inherited.parameters) do 
+        inherit_and_bind_parameter(cellname, othercell, name)
     end
-    local meta = {
-        __index = function(t, k)
-            print(string.format("trying to access undefined parameter value '%s'", k))
-            os.exit(exitcodes.parameternotfound)
+end
+
+local backupstack = {}
+function push_overwrites(cellname, cellargs)
+    local cellparams = loadedcells[cellname].parameters
+    local backup = _process_input_parameters(cellname, cellargs, false, true)
+    if not backupstack[cellname] then
+        backupstack[cellname] = stack.create()
+    end
+    backupstack[cellname]:push(backup)
+end
+
+function pop_overwrites(cellname)
+    if (not backupstack[cellname]) or (not backupstack[cellname]:peek()) then
+        error(string.format("trying to restore default parameters for '%s', but there where no previous overwrites", cellname), 0)
+    end
+    _restore_parameters(cellname, backupstack[cellname]:top())
+    backupstack[cellname]:pop()
+end
+
+function empty_overwrite_stack(cellname)
+    -- restore all cell defaults
+    if backupstack[cellname] then
+        while backupstack[cellname]:peek() do
+            _restore_parameters(cellname, backupstack[cellname]:top())
+            backupstack[cellname]:pop()
         end
-    }
-    setmetatable(P, meta)
-    return P
-end
-
-function M.iter()
-    local ret = {}
-    local params = _get_parameters(currentcell)
-    for k, v in pairs(params.parameters) do
-        ret[params.indices[k]] = { name = k, value = v.func(), argtype = v.argtype }
     end
-    return ipairs(ret)
 end
 
---[[
-local meta = {
-    overwrite = function(self, mod)
-        for k, v in pairs(mod) do
-            self[k] = v
-        end
-    end,
-    modify = function(self, mod)
-        local new = M.make_options({})
-        new:overwrite(self) -- copy self
-        new:overwrite(mod)  -- overwrite options
-        return new
-    end,
-}
-meta.__index = meta
-function M.make_options(opt)
-    local opt = opt or {}
-    setmetatable(opt, meta)
-    return opt
+function clone_parameters(P)
+    local new = {}
+    for k, v in pairs(P) do
+        new[k] = v
+    end
+    return new
 end
---]]
+
+function clone_matching_parameters(cellname, P)
+    local cell = loadedcells[cellname]
+    local new = {}
+    for k, v in pairs(P) do
+        if cell.parameters[k] then
+            new[k] = v
+        end
+    end
+    return new
+end
+--------------------------------------------------------------------
+
+function M.create_layout(cellname, args, evaluate)
+    local cell = loadedcells[cellname]
+    if not cell.funcs.layout then
+        error(string.format("cell '%s' has no layout definition", cellname), 0)
+    end
+    local obj = object.create()
+    local parameters, backup = _get_parameters(cellname, args, evaluate)
+    _restore_parameters(cellname, backup)
+    local status, msg = pcall(cell.funcs.layout, obj, parameters)
+    if not status then
+        error(string.format("could not create cell '%s': %s", cellname, msg), 0)
+    end
+    return obj
+end
+
+function M.parameters(name)
+    local cell = loadedcells[name]
+    local str = {}
+    for k, v in pairs(cell.parameters) do
+        str[cell.indices[k]] = string.format("%s %s %s", tostring(k), tostring(v.func()), tostring(v.argtype))
+    end
+    return str
+end
 
 return M

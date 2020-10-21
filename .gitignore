@@ -1,15 +1,25 @@
+# main programs and generated code files
 opc
+config.h
 
+# generated layouts
 openPCells.*
 
+# NDA-related
 tech/cmos22fdsoi
 
+# lua object files
+lua/lua
+lua/luac
+lua/*.o
+lua/liblua.a
+
+# tex auxiliary files
 *.aux
 *.log
 *.toc
 *.pygtex
 *_minted*
 
-todo
-
+# development information
 info

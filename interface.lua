@@ -10,7 +10,7 @@ local function _collect_shapes(cell, get_layer_func, get_index_func, point_func,
     end
     local get_layer_func = get_layer_func or function(s) return s.lpp end
     local point_func = point_func or function(s) return s.points end
-    for shape in cell:iter() do
+    for i, shape in cell:iter() do
         local layer = get_layer_func(shape, precomputed)
         if shapes.indexed then
             local index = get_index_func(shape, precomputed)
@@ -53,6 +53,9 @@ function M.load(name)
 end
 
 function M.write_cell(filename, cell)
+    if cell:is_empty() then
+        error("interface: cell is empty", 0)
+    end
     local extension = interface.get_extension()
     local file = stringfile.open(string.format("%s.%s", filename, extension))
     local precomputed = aux.call_if_present(interface.precompute, cell)

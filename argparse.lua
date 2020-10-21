@@ -1,3 +1,9 @@
+--[[
+This file is part of the openPCells project.
+
+This module provides a simple argument parser for the main program
+--]]
+
 local M = {}
 
 local function _advance(state, num)
@@ -81,6 +87,7 @@ end
 local actions = {
     ["-P"]           = _switch_func("params"),
     ["--parameters"] = _switch_func("params"),
+    ["--separator"]  = _store_func("separator"),
     ["-T"]           = _store_func("technology"),
     ["--technology"] = _store_func("technology"),
     ["-I"]           = _store_func("interface"),
