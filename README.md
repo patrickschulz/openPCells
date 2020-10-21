@@ -1,28 +1,30 @@
 # openPCells -- A framework for tool-independent layout cell generators 
-This project intends to develop a set of parametric cells (PCells) for use in analog integrated circuit design. Currently this is aimed at providing a
-base set of cells for baseband and RF design (momcaps, inductors, transformers, transistors etc.), but ideally there would be also more complex cells
-such as entire circuits (inverters, opamps etc.).
+This project intends to develop a set of parametric cells (PCells) for use in analog/digital integrated circuit design. Currently this is aimed at
+providing a base set of cells for baseband and RF design (momcaps, inductors, transformers, transistors etc.), but ideally there would be also more
+complex cells such as entire circuits (inverters, opamps etc.). For digital designs, a set of simple standard cells exists (nand, nor, not).
 
 The key point of this framework is independency of any layout tool such as cadence virtuoso. In order to achieve this, the core generators are written
 in lua and generate platform-independent files describing the cell. In the layout tool the files are read and the actual shapes are drawn. For this,
-interfacing code is provided (currently only for virtuoso, but this is pretty simple to adapt). A second important point for this project is
-technology independece. This is achieved by working in generic layers ('gate', 'metal1') and mapping that with (simple-to-write) layermaps.
+interfacing/exporting code is provided (currently for virtuoso, magic, gds, tikz (LaTeX) and svg; other interfaces are easy to add). A second
+important point for this project is technology independece. This is achieved by working in generic layers ('gate', 'metal1') and mapping that with
+(simple-to-write) layermaps.
 
 # How to use
 The project supplies some technology files for skywater130, so you can directly test the setup. For the first run, you have to generate the main
 program by running 
 
-    ./setup.sh
+    make
 
 Now a file `opc` should have been generated. Run it as follows:
 
-    ./opc -T skywater130 -I svg -C transistor
+    ./opc --technology skywater130 --interface svg --cell basic/transistor
 
 This produces the following image: 
 
 ![Example Transistor](./example_transistor.png). 
 
-If you get an error, you should check your setup (just run `lua`, which will tell you the version. You need 5.2 or higher).
+The only dependencies are a C compiler, as the lua interpreter is included in the repository. Most of the project is written in lua which only the
+main entry points and a few modules written in C.
 
 <!---
 # Installation for Cadence Virtuoso
