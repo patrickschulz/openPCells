@@ -62,10 +62,10 @@ function layout(transistor, _P)
     ):translate(0, gateoffset))
 
     -- oxide type
-    transistor:merge_into(geometry.rectangle(generics.other(string.format("oxthick%d", _P.oxidetype)), _P.gatelength + 2 * _P.actext, _P.fwidth))
+    transistor:merge_into(geometry.rectangle(generics.other(string.format("%soxthick%d", _P.channeltype, _P.oxidetype)), _P.gatelength + 2 * _P.actext, _P.fwidth))
     
     -- threshold voltage
-    transistor:merge_into(geometry.rectangle(generics.other(string.format("vthtype%d", _P.oxidetype)), _P.gatelength + 2 * _P.actext, _P.fwidth))
+    transistor:merge_into(geometry.rectangle(generics.other(string.format("%svthtype%d", _P.channeltype, _P.oxidetype)), _P.gatelength + 2 * _P.actext, _P.fwidth))
 
     -- active
     transistor:merge_into(geometry.rectangle(generics.other("active"), actwidth, _P.fwidth))
