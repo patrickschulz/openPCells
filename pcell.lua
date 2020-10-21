@@ -55,6 +55,7 @@ local function _prepare_cell_environment(cellname)
             inherit_and_bind_all_parameters = bindcell(inherit_and_bind_all_parameters),
             -- the following functions don't not need cell binding as they are called for other cells
             clone_parameters                = clone_parameters,
+            clone_matching_parameters       = clone_matching_parameters,
             push_overwrites                 = push_overwrites,
             pop_overwrites                  = pop_overwrites,
             create_layout = M.create_layout
@@ -220,15 +221,6 @@ local function _restore_parameters(cellname, backup)
     end
 end
 
-local function _restore_parameters(cellname, backup)
-    local cellparams = loadedcells[cellname].parameters
-    -- restore old functions
-    for name, func in pairs(backup) do
-        cellparams[name].func:replace(func)
-        cellparams[name].overwritten = nil
-    end
-end
-
 --------------------------------------------------------------------
 function add_parameter(cellname, name, value, argtype, posvals, follow)
     _add_parameter(cellname, name, value, argtype, posvals, follow)
@@ -320,6 +312,17 @@ function clone_parameters(P)
     end
     return new
 end
+
+function clone_matching_parameters(cellname, P)
+    local cell = loadedcells[cellname]
+    local new = {}
+    for k, v in pairs(P) do
+        if cell.parameters[k] then
+            new[k] = v
+        end
+    end
+    return new
+end
 --------------------------------------------------------------------
 
 function M.create_layout(cellname, args, evaluate)
@@ -329,6 +332,7 @@ function M.create_layout(cellname, args, evaluate)
     end
     local obj = object.create()
     local parameters, backup = _get_parameters(cellname, args, evaluate)
+    _restore_parameters(cellname, backup)
     local status, msg = pcall(cell.funcs.layout, obj, parameters)
     if not status then
         error(string.format("could not create cell '%s': %s", cellname, msg), 0)
