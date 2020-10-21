@@ -5,15 +5,9 @@ end
 function layout(gate, _P)
     local xpitch = _P.gspace + _P.glength
 
-    gate:merge_into(pcell.create_layout("logic/harness", { 
-        glength = _P.glength, 
-        fingers = _P.fingers, 
-        pwidth = _P.pwidth,
-        nwidth = _P.nwidth,
-        leftdummies = _P.leftdummies, 
-        rightdummies = _P.rightdummies, 
-        dummycontheight = _P.dummycontheight
-    }))
+    local _PH = pcell.clone_parameters(_P)
+    _PH.fingers = _P.fingers
+    gate:merge_into(pcell.create_layout("logic/harness", _PH))
 
     -- common transistor options
     pcell.push_overwrites("basic/transistor", {
@@ -44,7 +38,7 @@ function layout(gate, _P)
         {
             channeltype = "nmos",
             fwidth = _P.nwidth,
-            gbotext = _P.powerspace + _P.dummycontheight, gtopext = _P.separation / 2,
+            gbotext = _P.powerspace + _P.dummycontheight, 
             drawtopgate = true, topgatestrwidth = _P.gstwidth, topgatestrspace = (_P.separation - _P.gstwidth) / 2,
             cliptop = true,
             innersourcedrainsize = _P.nwidth / 2,

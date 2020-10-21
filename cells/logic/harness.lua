@@ -96,6 +96,7 @@ function layout(gate, _P)
         )
     end
     pcell.pop_overwrites("basic/transistor")
+    pcell.pop_overwrites("basic/transistor")
 
     -- draw missing contacts
     if _P.leftdummies > 0 and _P.leftadapt then

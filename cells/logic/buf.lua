@@ -1,19 +1,19 @@
 function parameters()
     pcell.inherit_all_parameters("logic/_base")
     pcell.add_parameters(
-        { "nandfingers", 1 },
-        { "notfingers", 1 }
+        { "infingers", 1 },
+        { "outfingers", 1 }
     )
 end
 
 function layout(gate, _P)
-    local _P1 = pcell.clone_matching_parameters("logic/nand_gate", _P)
-    _P1.fingers = _P.nandfingers
+    local _P1 = pcell.clone_matching_parameters("logic/not_gate", _P)
+    _P1.fingers = _P.infingers
     _P1.rightdummies = 0
     local _P2 = pcell.clone_matching_parameters("logic/not_gate", _P)
-    _P2.fingers = _P.notfingers
+    _P2.fingers = _P.outfingers
     _P2.leftdummies = 0
-    gate:merge_into(pcell.create_layout("logic/nand_gate", _P1):move_anchor("right"))
+    gate:merge_into(pcell.create_layout("logic/not_gate", _P1):move_anchor("right"))
     gate:merge_into(pcell.create_layout("logic/not_gate", _P2):move_anchor("left"))
 
     -- draw connection
