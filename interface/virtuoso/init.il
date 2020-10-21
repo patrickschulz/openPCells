@@ -55,11 +55,13 @@ procedure(OPCWalkCellDir(path prepend)
             unless(file == "." || file == ".."
                 if(isFile(lsprintf("%s/%s" path file))
                     then
-                        item = hiCreateMenuItem( 
-                            ?name stringToSymbol(substring(file 1 strlen(file) - 4)) 
-                            ?itemText substring(file 1 strlen(file) - 4)
-                            ?callback lsprintf("OPCPlaceCell(\"%s%s\")" prepend substring(file 1 strlen(file) - 4))
-                        )   
+                        unless(substring(file 1 1) == "_"
+                            item = hiCreateMenuItem( 
+                                ?name stringToSymbol(substring(file 1 strlen(file) - 4)) 
+                                ?itemText substring(file 1 strlen(file) - 4)
+                                ?callback lsprintf("OPCPlaceCell(\"%s%s\")" prepend substring(file 1 strlen(file) - 4))
+                            )   
+                        )
                     else
                         let((submenu)
                             submenu = hiCreatePulldownMenu(

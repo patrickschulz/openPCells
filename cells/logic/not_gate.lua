@@ -7,7 +7,7 @@ function layout(gate, _P)
 
     local _PH = pcell.clone_parameters(_P)
     _PH.fingers = _P.fingers
-    gate:merge_into(pcell.create_layout("logic/harness", _PH))
+    gate:merge_into(pcell.create_layout("logic/_harness", _PH))
 
     -- common transistor options
     pcell.push_overwrites("basic/transistor", {
