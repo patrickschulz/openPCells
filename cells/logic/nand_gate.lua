@@ -7,7 +7,7 @@ function layout(gate, _P)
 
     local _PH = pcell.clone_parameters(_P)
     _PH.fingers = 2 * _P.fingers
-    _PH.leftadapt = _P.fingers % 2 ~= 0,
+    _PH.leftadapt = _P.fingers % 2 ~= 0
     gate:merge_into(pcell.create_layout("logic/_harness", _PH))
 
     local block = object.create()
