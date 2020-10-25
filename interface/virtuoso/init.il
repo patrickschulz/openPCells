@@ -120,39 +120,32 @@ procedure(OPCCreateOptionsForm(cell)
                                 ?value atof(default)
                                 ?prompt name
                             )
-                            fieldlist = cons(list(field 0:30*i 200:30 120) fieldlist)
-                            i = i + 1
                         )
                         ("integer"
-                            ; integers also get floatFields (for now), since this make the 
-                            ; assembly of the argument string (see above) easier
-                            field = hiCreateFloatField(
+                            field = hiCreateIntField(
                                 ?name stringToSymbol(name)
-                                ?value atof(default)
+                                ?value default
                                 ?prompt name
                             )
-                            fieldlist = cons(list(field 0:30*i 200:30 120) fieldlist)
-                            i = i + 1
                         )
-                        ;("boolean"
-                        ;    field = hiCreateToggleField(
-                        ;        ?name stringToSymbol(lsprintf("%s_togglefield" name))
-                        ;        ?choices list(list(stringToSymbol(name)))
-                        ;        ?prompt name
-                        ;    )
-                        ;    fieldlist = cons(list(field 0:30*i 200:30 120) fieldlist)
-                        ;    i = i + 1
-                        ;)
+                        ("boolean"
+                            field = hiCreateRadioField(
+                                ?name stringToSymbol(name)
+                                ?choices list("true" "false")
+                                ?value default
+                                ?prompt name
+                            )
+                        )
                         ("string"
                             field = hiCreateStringField(
                                 ?name stringToSymbol(name)
                                 ?value default
                                 ?prompt name
                             )
-                            fieldlist = cons(list(field 0:30*i 200:30 120) fieldlist)
-                            i = i + 1
                         )
                     )
+                    fieldlist = cons(list(field 0:30*i 200:30 120) fieldlist)
+                    i = i + 1
                 )
                 ;if(boundp('OPCParamForm)
                 ;    hiDeleteForm(OPCParamForm)
