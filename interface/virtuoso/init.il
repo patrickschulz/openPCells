@@ -13,7 +13,9 @@ procedure(OPCCreateCell(w done pts)
             when(cv->mode == "a" ; check if cell is open for editing
                 args = ""
                 foreach(field OPCParamForm->fieldList
-                    args = lsprintf("%s %s" args lsprintf("%s=%A" field get(OPCParamForm field)->value))
+                    unless(get(OPCParamForm field)->value == get(OPCParamForm field)->defValue
+                        args = lsprintf("%s %s" args lsprintf("%s=%A" field get(OPCParamForm field)->value))
+                    )
                 )
                 ; 'cell' is defined one level above (in OPCPlaceCell)
                 command = lsprintf(

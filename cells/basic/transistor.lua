@@ -57,12 +57,28 @@ function layout(transistor, _P)
 
     -- gates
     transistor:merge_into(geometry.multiple(
-        geometry.rectangle(generics.gate(_P.channeltype, _P.vthtype, _P.oxidetype), _P.gatelength, gateheight),
+        geometry.rectangle(generics.other("gate"), _P.gatelength, gateheight),
         _P.fingers, 1, gatepitch, 0
     ):translate(0, gateoffset))
 
     -- active
-    transistor:merge_into(geometry.rectangle(generics.active(_P.channeltype, _P.vthtype, _P.oxidetype), actwidth, _P.fwidth))
+    transistor:merge_into(geometry.rectangle(generics.other("active"), actwidth, _P.fwidth))
+
+    -- boundary for feol implant/well etc. layers
+    print(_P.cliptop, _P.clipbot)
+    transistor:merge_into(geometry.rectangle(generics.feol(
+        { 
+            channeltype = _P.channeltype, 
+            vthtype = _P.vthtype, 
+            oxidetype = _P.oxidetype,
+            expand = {
+                left = true,
+                right = true,
+                top = not _P.cliptop,
+                bottom = not _P.clipbot,
+            },
+        }
+    ), actwidth, gateheight):translate(0, gateoffset))
 
     -- drain/source contacts
     if _P.drawinnersourcedrain and _P.fingers > 1 then

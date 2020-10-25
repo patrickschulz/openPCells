@@ -5,21 +5,22 @@ local config
 
 -- make relative metal (negative indices) absolute
 function M.translate_metals(cell)
-    for _, s in cell:iter(function(S) return S.lpp:is_type("metal") end) do
-        if s.lpp.value < 0 then
-            s.lpp.value = config.metals + s.lpp.value + 1
+    for _, S in cell:iter(function(S) return S.lpp:is_type("metal") end) do
+        if S.lpp.value < 0 then
+            S.lpp.value = config.metals + S.lpp.value + 1
         end
     end
-    for _, s in cell:iter(function(S) return S.lpp:is_type("via") end) do
-        if s.lpp.value.from < 0 then
-            s.lpp.value.from = config.metals + s.lpp.value.from + 1
+    for _, S in cell:iter(function(S) return S.lpp:is_type("via") end) do
+        local value = S.lpp.value
+        if value.from < 0 then
+            value.from = config.metals + value.from + 1
         end
-        if s.lpp.value.to < 0 then
-            s.lpp.value.to = config.metals + s.lpp.value.to + 1
+        if value.to < 0 then
+            value.to = config.metals + value.to + 1
         end
         -- reorder
-        if s.lpp.value.from > s.lpp.value.to then
-            s.lpp.value.from, s.lpp.value.to = s.lpp.value.to, s.lpp.value.from
+        if value.from > value.to then
+            value.from, value.to = value.to, value.from
         end
     end
 end
@@ -65,6 +66,40 @@ local function _get_lpp(lpp, interface)
     return lpp[interface]
 end
 
+local function _do_map(cell, S, entry, interface)
+    local entry = entry.func(S.lpp:get())
+    if entry.lpp then
+        local new = S:copy()
+        new.lpp = generics.mapped(_get_lpp(entry.lpp, interface))
+        if entry.left   > 0 or 
+           entry.right  > 0 or
+           entry.top    > 0 or
+           entry.bottom > 0 
+        then -- this check ensures that not-resized polygons work
+            print(entry.left, entry.right, entry.top, entry.bottom)
+            new:resize_lrtb(entry.left, entry.right, entry.top, entry.bottom)
+        end
+        cell:add_shape(new)
+    end
+end
+
+local function _do_array(cell, S, entry, interface)
+    local lpp = entry.lpp
+    local width = S:width()
+    local height = S:height()
+    local c = S:center()
+    local xrep = math.max(1, math.floor((width + entry.xspace - 2 * entry.xencl) / (entry.width + entry.xspace)))
+    local yrep = math.max(1, math.floor((height + entry.yspace - 2 * entry.yencl) / (entry.height + entry.yspace)))
+    local xpitch = entry.width + entry.xspace
+    local ypitch = entry.height + entry.yspace
+    local enlarge = 0
+    local cut = geometry.multiple(
+        geometry.rectangle(generics.mapped(_get_lpp(lpp, interface)), entry.width + enlarge, entry.height + enlarge),
+        xrep, yrep, xpitch, ypitch
+    )
+    cell:merge_into(cut:translate(c:unwrap()))
+end
+
 function M.translate(cell, interface)
     for i, S in cell:iter() do
         local layer = S.lpp:str()
@@ -73,33 +108,10 @@ function M.translate(cell, interface)
             error(string.format("no layer information for '%s'\nif the layer is not provided, set it to {}", layer), 0)
         end
         for _, entry in ipairs(mappings) do
-            local lpp = entry.lpp
             if entry.action == "map" then
-                if type(lpp) == "function" then
-                    lpp = lpp(S.lpp:get())
-                end
-                if lpp then
-                    local new = S:copy()
-                    new.lpp = generics.mapped(_get_lpp(lpp, interface))
-                    if entry.xsize > 0 or entry.ysize > 0 then
-                        new:resize(entry.xsize, entry.ysize)
-                    end
-                    cell:add_shape(new)
-                end
+                _do_map(cell, S, entry, interface)
             elseif entry.action == "array" then
-                local width = S:width()
-                local height = S:height()
-                local c = S:center()
-                local xrep = math.max(1, math.floor((width + entry.xspace - 2 * entry.xencl) / (entry.width + entry.xspace)))
-                local yrep = math.max(1, math.floor((height + entry.yspace - 2 * entry.yencl) / (entry.height + entry.yspace)))
-                local xpitch = entry.width + entry.xspace
-                local ypitch = entry.height + entry.yspace
-                local enlarge = 0
-                local cut = geometry.multiple(
-                    geometry.rectangle(generics.mapped(_get_lpp(lpp, interface)), entry.width + enlarge, entry.height + enlarge),
-                    xrep, yrep, xpitch, ypitch
-                )
-                cell:merge_into(cut:translate(c:unwrap()))
+                _do_array(cell, S, entry, interface)
             end
         end
         cell:remove_shape(i)
@@ -117,12 +129,25 @@ end
 local function _load_layermap(name)
     local env = {
         map = function(entry)
-            return {
-                action = "map",
-                lpp = entry.lpp,
-                xsize = entry.xsize or 0,
-                ysize = entry.ysize or 0,
-            }
+            if type(entry) == "function" then
+                return {
+                    action = "map",
+                    func = entry,
+                }
+            else -- table
+                return {
+                    action = "map",
+                    func = function()
+                        return {
+                            lpp = entry.lpp,
+                            left = entry.left or 0,
+                            right = entry.right or 0,
+                            top = entry.top or 0,
+                            bottom = entry.bottom or 0,
+                        }
+                    end,
+                }
+            end
         end,
         array = function(entry)
             return {
