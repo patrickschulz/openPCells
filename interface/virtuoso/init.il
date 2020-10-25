@@ -124,7 +124,7 @@ procedure(OPCCreateOptionsForm(cell)
                         ("integer"
                             field = hiCreateIntField(
                                 ?name stringToSymbol(name)
-                                ?value default
+                                ?value atoi(default)
                                 ?prompt name
                             )
                         )
