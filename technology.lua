@@ -74,6 +74,9 @@ function M.translate(cell, interface)
                     end
                     local new = S:copy()
                     new.lpp = generics.mapped(lpp[interface])
+                    if entry.xsize > 0 or entry.ysize > 0 then
+                        new:resize(entry.xsize, entry.ysize)
+                    end
                     cell:add_shape(new)
                 end
             elseif entry.action == "array" then
