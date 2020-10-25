@@ -60,8 +60,11 @@ local function _prepare_cell_environment(cellname)
             pop_overwrites                  = pop_overwrites,
             create_layout = M.create_layout
         },
-        geometry = geometry,
-        graphics = graphics,
+        -- fake modules, the shapes are really created later
+        -- this enables some tricks for example regarding even/odd metals 
+        -- to build metal grids with unknown number of metals
+        geometry = abstract.geometry,
+        graphics = abstract.graphics,
         shape = shape,
         object = object,
         generics = generics,

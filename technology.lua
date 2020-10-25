@@ -55,6 +55,16 @@ function M.split_vias(cell)
     end
 end
 
+local function _get_lpp(lpp, interface)
+    if type(lpp) == "function" then
+        lpp = lpp()
+    end
+    if not lpp[interface] then
+        error(string.format("no layer information for '%s' for interface '%s'", layer, interface), 0)
+    end
+    return lpp[interface]
+end
+
 function M.translate(cell, interface)
     for i, S in cell:iter() do
         local layer = S.lpp:str()
@@ -69,20 +79,14 @@ function M.translate(cell, interface)
                     lpp = lpp(S.lpp:get())
                 end
                 if lpp then
-                    if not lpp[interface] then
-                        error(string.format("no layer information for '%s' for interface '%s'", layer, interface), 0)
-                    end
                     local new = S:copy()
-                    new.lpp = generics.mapped(lpp[interface])
+                    new.lpp = generics.mapped(_get_lpp(lpp, interface))
                     if entry.xsize > 0 or entry.ysize > 0 then
                         new:resize(entry.xsize, entry.ysize)
                     end
                     cell:add_shape(new)
                 end
             elseif entry.action == "array" then
-                if not lpp[interface] then
-                    error(string.format("no layer information for '%s' for interface '%s'", layer, interface), 0)
-                end
                 local width = S:width()
                 local height = S:height()
                 local c = S:center()
@@ -92,7 +96,7 @@ function M.translate(cell, interface)
                 local ypitch = entry.height + entry.yspace
                 local enlarge = 0
                 local cut = geometry.multiple(
-                    geometry.rectangle(generics.mapped(lpp[interface]), entry.width + enlarge, entry.height + enlarge),
+                    geometry.rectangle(generics.mapped(_get_lpp(lpp, interface)), entry.width + enlarge, entry.height + enlarge),
                     xrep, yrep, xpitch, ypitch
                 )
                 cell:merge_into(cut:translate(c:unwrap()))
@@ -110,7 +114,7 @@ function M.fix_to_grid(cell)
     end
 end
 
-local function _load_technology_file(name, what)
+local function _load_layermap(name)
     local env = {
         map = function(entry)
             return {
@@ -132,24 +136,42 @@ local function _load_technology_file(name, what)
                 yencl = entry.yencl,
             }
         end,
+        refer = function(reference)
+            return function()
+                return layermap[reference]
+            end
+        end,
     }
     local chunk, msg = loadfile(
-        string.format("%s/tech/%s/%s.lua", _get_opc_home(), name, what),
+        string.format("%s/tech/%s/layermap.lua", _get_opc_home(), name, layermap),
         "t", env
     )
     if not chunk then
-        error(string.format("error while loading %s for technology '%s': %s", what, name, msg), 0)
+        error(string.format("error while loading layermap for technology '%s': %s", name, msg), 0)
     end
     local status, ret = pcall(chunk)
     if not status then
-        error(string.format("semantic error in %s for technology '%s': %s", what, name, ret))
+        error(string.format("semantic error in layermap for technology '%s': %s", name, ret))
     end
     return ret
 end
 
+local function _load_config(name)
+    local chunk, msg = loadfile(string.format("%s/tech/%s/config.lua", _get_opc_home(), name))
+    if not chunk then
+        error(string.format("error while loading configuration for technology '%s': %s", name, msg), 0)
+    end
+    local status, ret = pcall(chunk)
+    if not status then
+        error(string.format("semantic error in configuration for technology '%s': %s", name, ret))
+    end
+    return ret
+end
+
+
 function M.load(name)
-    layermap = _load_technology_file(name, "layermap")
-    config   = _load_technology_file(name, "config")
+    layermap = _load_layermap(name)
+    config   = _load_config(name)
 end
 
 return M
