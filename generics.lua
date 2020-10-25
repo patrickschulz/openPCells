@@ -9,6 +9,8 @@ local function _create(value)
         get = function(self)
             if self.typ == "via" then
                 return self.value.from, self.value.to
+            elseif self.typ == "gate" or self.typ == "active" then
+                return self.value.channeltype, self.value.vthtype, self.value.oxidetype
             else
                 return self.value
             end
@@ -20,6 +22,10 @@ local function _create(value)
                 return string.format("viaM%dM%d", self:get())
             elseif self.typ == "contact" then
                 return string.format("contact%s", self:get())
+            elseif self.typ == "gate" then
+                return "gate"
+            elseif self.typ == "active" then
+                return "active"
             else
                 return self.value
             end
@@ -47,6 +53,18 @@ end
 function M.contact(region)
     local self = _create(region)
     self.typ = "contact"
+    return self
+end
+
+function M.gate(channeltype, vthtype, oxidetype)
+    local self = _create({ channeltype = channeltype, vthtype = vthtype, oxidetype = oxidetype })
+    self.typ = "gate"
+    return self
+end
+
+function M.active(channeltype, vthtype, oxidetype)
+    local self = _create({ channeltype = channeltype, vthtype = vthtype, oxidetype = oxidetype })
+    self.typ = "active"
     return self
 end
 

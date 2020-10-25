@@ -57,27 +57,12 @@ function layout(transistor, _P)
 
     -- gates
     transistor:merge_into(geometry.multiple(
-        geometry.rectangle(generics.other("gate"), _P.gatelength, gateheight),
+        geometry.rectangle(generics.gate(_P.channeltype, _P.vthtype, _P.oxidetype), _P.gatelength, gateheight),
         _P.fingers, 1, gatepitch, 0
     ):translate(0, gateoffset))
 
-    -- oxide type
-    transistor:merge_into(geometry.rectangle(generics.other(string.format("%soxthick%d", _P.channeltype, _P.oxidetype)), _P.gatelength + 2 * _P.actext, _P.fwidth))
-    
-    -- threshold voltage
-    transistor:merge_into(geometry.rectangle(generics.other(string.format("%svthtype%d", _P.channeltype, _P.oxidetype)), _P.gatelength + 2 * _P.actext, _P.fwidth))
-
     -- active
-    transistor:merge_into(geometry.rectangle(generics.other("active"), actwidth, _P.fwidth))
-    transistor:merge_into(geometry.rectangle( (_P.channeltype == "nmos") and generics.other("nimpl") or generics.other("pimpl"), 
-        actwidth + 2 * _P.typext, gateheight + 2 * _P.typext - clipoffset
-    ):translate(0, gateoffset + clipshift))
-
-    -- well
-    transistor:merge_into(geometry.rectangle(
-        (_P.channeltype == "nmos") and generics.other("pwell") or generics.other("nwell"), 
-        actwidth + 2 * _P.typext, gateheight + _P.typext
-    ):translate(0, gateoffset))
+    transistor:merge_into(geometry.rectangle(generics.active(_P.channeltype, _P.vthtype, _P.oxidetype), actwidth, _P.fwidth))
 
     -- drain/source contacts
     if _P.drawinnersourcedrain and _P.fingers > 1 then

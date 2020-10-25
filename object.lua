@@ -45,6 +45,10 @@ function meta.add_shape(self, shape)
     table.insert(self.shapes, shape:copy())
 end
 
+function meta.remove_shape(self, idx)
+    table.remove(self.shapes, idx)
+end
+
 function meta.add_shapes(self, shapes)
     for _, s in ipairs(shapes) do
         self:add_shape(s)

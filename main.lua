@@ -51,8 +51,8 @@ local techintf = args.interface
 if not args.notech then
     techlib.translate_metals(cell)
     techlib.split_vias(cell)
-    techlib.create_via_geometries(cell, techintf)
-    techlib.map_layers(cell, techintf)
+    techlib.place_via_conductors(cell, techintf)
+    techlib.translate(cell, techintf)
     techlib.fix_to_grid(cell)
 end
 
