@@ -23,19 +23,27 @@ end
 local function tointeger(arg)
     return math.floor(tonumber(arg))
 end
-local function totable(arg)
+local function tonumtable(arg)
     local t = {}
     for e in string.gmatch(arg, "[^;,]+") do
-        table.insert(t, e)
+        table.insert(t, tonumber(e))
+    end
+    return t
+end
+local function tostrable(arg)
+    local t = {}
+    for e in string.gmatch(arg, "[^;,]+") do
+        table.insert(t, tostring(e))
     end
     return t
 end
 local evaluators = {
-    number = tonumber,
-    integer = tointeger,
-    string = identity,
-    boolean = toboolean,
-    table = totable,
+    number   = tonumber,
+    integer  = tointeger,
+    string   = identity,
+    boolean  = toboolean,
+    numtable = tonumtable,
+    strtable = tostrtable,
 }
 
 local function _prepare_cell_environment(cellname)
@@ -76,6 +84,7 @@ local function _prepare_cell_environment(cellname)
         string = string,
         table = table,
         print = print,
+        type = type,
         ipairs = ipairs,
         pairs = pairs,
     }
@@ -347,7 +356,13 @@ function M.parameters(name)
     local cell = loadedcells[name]
     local str = {}
     for k, v in pairs(cell.parameters) do
-        str[cell.indices[k]] = string.format("%s %s %s", tostring(k), tostring(v.func()), tostring(v.argtype))
+        local val = v.func()
+        if type(val) == "table" then
+            val = table.concat(val, ",")
+        else
+            val = tostring(val)
+        end
+        str[cell.indices[k]] = string.format("%s %s %s", tostring(k), val, tostring(v.argtype))
     end
     return str
 end
