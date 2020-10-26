@@ -13,7 +13,6 @@ function parameters()
         { "sdconnspace(Source/Drain Rails Metal Space)",             200 },
         { "gtopext(Gate Top Extension)",                               0 },
         { "gbotext(Gate Bottom Extension)",                            0 },
-        { "typext(Type Marker Extension)",                           100 },
         { "cliptop(Clip Top Marker Layers)",                       false },
         { "clipbot(Clip Bottom Marker Layers)",                    false },
         { "drawtopgate(Draw Top Gate Contact)",                    false },
@@ -48,12 +47,6 @@ function layout(transistor, _P)
     local gateoffset = (math.max(_P.gtopext, enable(_P.drawtopgate, _P.topgatestrspace + _P.topgatestrwidth))
                       - math.max(_P.gbotext, enable(_P.drawbotgate, _P.botgatestrspace + _P.botgatestrwidth))
                        ) / 2
-    local clipoffset = enable(_P.clipbot, _P.typext) + enable(_P.cliptop, _P.typext)
-                     + enable(_P.clipbot and _P.drawbotgate, _P.botgatestrwidth / 2)
-                     + enable(_P.cliptop and _P.drawtopgate, _P.topgatestrwidth / 2)
-    local clipshift  = (enable(_P.clipbot, _P.typext) - enable(_P.cliptop, _P.typext)) / 2
-                     + enable(_P.clipbot and _P.drawbotgate, _P.botgatestrwidth / 4)
-                     - enable(_P.cliptop and _P.drawtopgate, _P.topgatestrwidth / 4)
 
     -- gates
     transistor:merge_into(geometry.multiple(
