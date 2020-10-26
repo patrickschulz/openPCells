@@ -146,6 +146,20 @@ procedure(OPCCreateOptionsForm(cell)
                                 ?prompt name
                             )
                         )
+                        ("numtable"
+                            field = hiCreateStringField(
+                                ?name stringToSymbol(name)
+                                ?value default
+                                ?prompt name
+                            )
+                        )
+                        ("strtable"
+                            field = hiCreateStringField(
+                                ?name stringToSymbol(name)
+                                ?value default
+                                ?prompt name
+                            )
+                        )
                     )
                     fieldlist = cons(list(field 0:30*i 200:30 120) fieldlist)
                     i = i + 1
