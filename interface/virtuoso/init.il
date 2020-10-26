@@ -63,6 +63,7 @@ procedure(OPCWalkCellDir(path prepend)
                                 ?itemText substring(file 1 strlen(file) - 4)
                                 ?callback lsprintf("OPCPlaceCell(\"%s%s\")" prepend substring(file 1 strlen(file) - 4))
                             )   
+                            itemlist = cons(item itemlist)
                         )
                     else
                         let((submenu)
@@ -75,9 +76,9 @@ procedure(OPCWalkCellDir(path prepend)
                                 ?itemText file
                                 ?subMenu submenu
                             )
+                            itemlist = cons(item itemlist)
                         )
                 )
-                itemlist = cons(item itemlist)
             ) ; unless
         ) ; foreach
         itemlist
