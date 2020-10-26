@@ -76,7 +76,6 @@ local function _do_map(cell, S, entry, interface)
            entry.top    > 0 or
            entry.bottom > 0 
         then -- this check ensures that not-resized polygons work
-            print(entry.left, entry.right, entry.top, entry.bottom)
             new:resize_lrtb(entry.left, entry.right, entry.top, entry.bottom)
         end
         cell:add_shape(new)

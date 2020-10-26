@@ -65,7 +65,6 @@ function layout(transistor, _P)
     transistor:merge_into(geometry.rectangle(generics.other("active"), actwidth, _P.fwidth))
 
     -- boundary for feol implant/well etc. layers
-    print(_P.cliptop, _P.clipbot)
     transistor:merge_into(geometry.rectangle(generics.feol(
         { 
             channeltype = _P.channeltype, 
