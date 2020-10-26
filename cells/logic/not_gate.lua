@@ -23,7 +23,7 @@ function layout(gate, _P)
             channeltype = "pmos",
             fwidth = _P.pwidth,
             gtopext = _P.powerspace + _P.dummycontheight,
-            drawbotgate = true, botgatestrwidth = _P.gstwidth, botgatestrspace = (_P.separation - _P.gstwidth) / 2,
+            gbotext = _P.separation / 2,
             clipbot = true,
             innersourcedrainsize = _P.pwidth / 2,
             innersourcedrainalign = "top",
@@ -39,7 +39,7 @@ function layout(gate, _P)
             channeltype = "nmos",
             fwidth = _P.nwidth,
             gbotext = _P.powerspace + _P.dummycontheight, 
-            drawtopgate = true, topgatestrwidth = _P.gstwidth, topgatestrspace = (_P.separation - _P.gstwidth) / 2,
+            gtopext = _P.separation / 2,
             cliptop = true,
             innersourcedrainsize = _P.nwidth / 2,
             innersourcedrainalign = "bottom",
@@ -50,6 +50,12 @@ function layout(gate, _P)
     gate:merge_into(nmos)
 
     pcell.pop_overwrites("basic/transistor")
+
+    -- gate contact
+    gate:merge_into(geometry.multiple(
+        geometry.rectangle(generics.contact("gate"), _P.glength, _P.gstwidth),
+        _P.fingers, 1, xpitch, 0
+    ))
 
     -- signal transistors source connections
     gate:merge_into(geometry.multiple(
