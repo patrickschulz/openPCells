@@ -112,7 +112,8 @@ static void load_api(lua_State* L)
 static void create_argument_table(lua_State* L, int argc, char** argv)
 {
     lua_newtable(L);
-    for(int i = 1; i < argc; ++i)
+    int i;
+    for(i = 1; i < argc; ++i)
     {
         lua_pushstring(L, argv[i]);
         lua_rawseti(L, -2, i);

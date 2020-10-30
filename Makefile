@@ -19,10 +19,10 @@ default:
 	@$(MAKE) `$(UNAME)`
 
 $(PROGNAME): config.h main.c lua/liblua.a lpoint.c lpoint.h lbind.h lbind.c lload.h lload.c 
-	@gcc -Wall -Wextra -DLUA_COMPAT_5_3 -DLUA_USE_LINUX -o $(PROGNAME) main.c lbind.c lpoint.c lload.c lua/liblua.a -lm -ldl
+	$(CC) $(CFLAGS) -DLUA_COMPAT_5_3 -DLUA_USE_LINUX -o $(PROGNAME) main.c lbind.c lpoint.c lload.c lua/liblua.a -lm -ldl
 
 test: config.h test.c lua/liblua.a lpoint.c lpoint.h lbind.h lbind.c lload.h lload.c 
-	@gcc -Wall -Wextra -DLUA_COMPAT_5_3 -DLUA_USE_LINUX -o test test.c lbind.c lpoint.c lload.c lua/liblua.a -lm -ldl
+	$(CC) $(CFLAGS) -DLUA_COMPAT_5_3 -DLUA_USE_LINUX -o test test.c lbind.c lpoint.c lload.c lua/liblua.a -lm -ldl
 
 lua/liblua.a: lua/*.c lua/*.h
 	@$(MAKE) -s -C lua liblua.a

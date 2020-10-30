@@ -1,6 +1,8 @@
 #ifndef LPOINT_H
 #define LPOINT_H
 
+#include <stdint.h>
+
 //#define MAXDIGITS 80
 #define LPOINTMETA "lpoint"
 #define LPOINTMODULE "point"
