@@ -98,6 +98,7 @@ function layout(gate, _P)
         )
     end
     pcell.pop_overwrites("basic/transistor")
+    -- pop general transistor settings
     pcell.pop_overwrites("basic/transistor")
 
     -- draw missing contacts

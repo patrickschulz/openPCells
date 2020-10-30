@@ -40,7 +40,7 @@ function M.get_points(shape)
 end
 
 function M.write_port(file, name, layer, where)
-    file:write(string.format('    dbCreateLabel(cv list("%s" "label") %s "%s" "centerCenter" "R0" "roman" 0.2)\n', layer, where:format(baseunit, ":"), name))
+    file:write(string.format('    dbCreateLabel(cv list("%s" "label") %s "%s" "centerCenter" "R0" "roman" 0.1)\n', layer, where:format(baseunit, ":"), name))
 end
 
 return M

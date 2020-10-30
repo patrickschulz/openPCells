@@ -57,6 +57,7 @@ end
 
 function meta.add_port(self, name, layer, where)
     self.ports[name] = { layer = layer, where = where }
+    self.anchors[name] = where:copy() -- copy point, otherwise translation acts twice
 end
 
 -- this function returns an iterator over all shapes in a cell
@@ -102,6 +103,9 @@ function meta.translate(self, dx, dy)
     end
     for _, anchor in pairs(self.anchors) do
         anchor:translate(dx, dy)
+    end
+    for _, port in pairs(self.ports) do
+        port.where:translate(dx, dy)
     end
     return self
 end

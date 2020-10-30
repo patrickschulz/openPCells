@@ -133,7 +133,7 @@ function layout(transistor, _P)
     -- gate cut
     local cutext = _P.gatespace / 2
     local cutheight = 120
-    local cwidth = _P.gatelength + 2 * cutext
+    local cwidth = _P.fingers * _P.gatelength + (_P.fingers - 1) * _P.gatespace + 2 * cutext
     if _P.drawtopgcut then
         transistor:merge_into(geometry.rectangle(
             generics.other("gatecut"), 

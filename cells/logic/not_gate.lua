@@ -56,6 +56,10 @@ function layout(gate, _P)
         geometry.rectangle(generics.contact("gate"), _P.glength, _P.gstwidth),
         _P.fingers, 1, xpitch, 0
     ))
+    gate:merge_into(geometry.rectangle(
+        generics.metal(1),
+        _P.fingers * _P.glength + (_P.fingers - 1) * _P.gspace, _P.gstwidth
+    ))
 
     -- signal transistors source connections
     gate:merge_into(geometry.multiple(
@@ -91,6 +95,12 @@ function layout(gate, _P)
         xrep, 1,
         2 * xpitch, 0
     ):translate(xshift, -(_P.separation + _P.nwidth) / 2))
+
+    -- ports
+    gate:add_port("I", generics.metal(1), point.create(0, 0))
+    gate:add_port("O", generics.metal(1), point.create(_P.fingers * xpitch / 2, 0))
+    gate:add_port("VDD", generics.metal(1), point.create(0,  _P.separation / 2 + _P.pwidth + _P.powerspace + _P.powerwidth / 2))
+    gate:add_port("VSS", generics.metal(1), point.create(0, -_P.separation / 2 - _P.nwidth - _P.powerspace - _P.powerwidth / 2))
 
     -- anchors
     gate:add_anchor("left", point.create(-(_P.fingers + _P.leftdummies) * xpitch / 2, 0))
