@@ -21,4 +21,9 @@ function layout(gate, _P)
         point.create(-_P.sdwidth / 2, 0),
         point.create(_P.glength + _P.gspace / 2, 0),
     }, _P.sdwidth))
+
+    -- ports
+    gate:add_port("A", generics.metal(1), point.create(-xpitch, 0))
+    gate:add_port("Z", generics.metal(1), point.create(xpitch, 0))
+
 end
