@@ -9,7 +9,7 @@ local meta = {}
 meta.__index = meta
 
 function M.create()
-    local self = { shapes = {}, anchors = {} }
+    local self = { shapes = {}, ports = {}, anchors = {} }
     setmetatable(self, meta)
     return self
 end
@@ -53,6 +53,10 @@ function meta.add_shapes(self, shapes)
     for _, s in ipairs(shapes) do
         self:add_shape(s)
     end
+end
+
+function meta.add_port(self, name, layer, where)
+    self.ports[name] = { layer = layer, where = where }
 end
 
 -- this function returns an iterator over all shapes in a cell

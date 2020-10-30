@@ -64,6 +64,13 @@ function M.write_cell(filename, cell)
     for layer, pcol in _iter_shapes(_collect_shapes(cell, interface.get_layer, interface.get_index, interface.get_points, precomputed)) do
         interface.write_layer(file, layer, pcol)
     end
+    if interface.write_port then
+        for name, port in pairs(cell.ports) do
+            --interface.write_port(file, name, port.layer, port.where)
+            -- FIXME: only for testing purposes
+            interface.write_port(file, name, "M1", port.where)
+        end
+    end
     aux.call_if_present(interface.at_end_cell, file, precomputed)
     aux.call_if_present(interface.at_end, file, precomputed)
     file:truewrite()
