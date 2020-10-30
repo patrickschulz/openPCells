@@ -83,6 +83,7 @@ local function _do_map(cell, S, entry, interface)
 end
 
 local function _do_array(cell, S, entry, interface)
+    local entry = entry.func(S.lpp:get())
     local lpp = entry.lpp
     local width = S:width()
     local height = S:height()
@@ -114,6 +115,9 @@ function M.translate(cell, interface)
             end
         end
         cell:remove_shape(i)
+    end
+    for _, port in pairs(cell.ports) do
+        local layer = port.layer:str()
     end
 end
 
@@ -149,16 +153,27 @@ local function _load_layermap(name)
             end
         end,
         array = function(entry)
-            return {
-                action = "array",
-                lpp = entry.lpp,
-                width = entry.width,
-                height = entry.height,
-                xspace = entry.xspace,
-                yspace = entry.yspace,
-                xencl = entry.xencl,
-                yencl = entry.yencl,
-            }
+            if type(entry) == "function" then
+                return {
+                    action = "array",
+                    func = entry
+                }
+            else
+                return {
+                    action = "array",
+                    func = function() 
+                        return {
+                            lpp = entry.lpp,
+                            width = entry.width,
+                            height = entry.height,
+                            xspace = entry.xspace,
+                            yspace = entry.yspace,
+                            xencl = entry.xencl,
+                            yencl = entry.yencl,
+                        }
+                    end,
+                }
+            end
         end,
         refer = function(reference)
             return function()
