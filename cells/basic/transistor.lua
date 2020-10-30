@@ -24,8 +24,8 @@ function parameters()
         { "drawbotgatestrap(Draw Bot Gate Strap)",                 false },
         { "botgatestrwidth(Bottom Gate Strap Width)",                120 },
         { "botgatestrspace(Bottom Gate Strap Space)",                200 },
-        { "topgcut(Draw Top Gate Cut)",                            false },
-        { "botgcut(Draw Bottom Gate Cut)",                         false },
+        { "drawtopgcut(Draw Top Gate Cut)",                        false },
+        { "drawbotgcut(Draw Bottom Gate Cut)",                     false },
         { "drawinnersourcedrain(Draw Inner Source/Drain Contacts)", true },
         { "drawoutersourcedrain(Draw Outer Source/Drain Contacts)", true },
         { "innersourcedrainsize(Inner Source/Drain Size)",          1000, follow = "fwidth" },
@@ -134,13 +134,13 @@ function layout(transistor, _P)
     local cutext = _P.gatespace / 2
     local cutheight = 120
     local cwidth = _P.gatelength + 2 * cutext
-    if _P.topgcut then
+    if _P.drawtopgcut then
         transistor:merge_into(geometry.rectangle(
             generics.other("gatecut"), 
             cwidth, cutheight
         ):translate(0, gateheight / 2 + gateoffset))
     end
-    if _P.botgcut then
+    if _P.drawbotgcut then
         transistor:merge_into(geometry.rectangle(
             generics.other("gatecut"), 
             cwidth, cutheight
