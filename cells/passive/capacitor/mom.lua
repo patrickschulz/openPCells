@@ -1,13 +1,13 @@
 function parameters()
     pcell.add_parameters(
-        { "fingers",       4 },
-        { "fwidth",      100 },
-        { "fspace",      100 },
-        { "fheight",    1000 },
-        { "foffset",     100 },
-        { "rwidth",      100 },
-        { "firstmetal",    1 },
-        { "lastmetal",     2 }
+        { "fingers(Number of Fingers)", 4 },
+        { "fwidth(Finger Width)",     100 },
+        { "fspace(Finger Spacing)",   100 },
+        { "fheight(Finger Height)",  1000 },
+        { "foffset(Finger Offset)",   100 },
+        { "rwidth(Rail Width)",       100 },
+        { "firstmetal(Start Metal)",    1 },
+        { "lastmetal(End Metal)",       2 }
     )
 end
 

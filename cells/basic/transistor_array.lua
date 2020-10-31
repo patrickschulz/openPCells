@@ -1,5 +1,5 @@
 function parameters()
-    pcell.add_parameters({ "fingers(Number of Fingers)", { 4, 4 }, "numtable" })
+    pcell.add_parameters({ "fingers(Number of Fingers)", { 4, 4 }, argtype = "numtable" })
     pcell.inherit_and_bind_all_parameters("basic/transistor")
 end
 
