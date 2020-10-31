@@ -99,9 +99,9 @@ procedure(OPCCreateOptionsForm(cell)
             (path "/home/pschulz/path/opc")
             (filename "openPCells")
             command pid exitstatus result
-            name type fieldlist field (i 0)
+            fieldlist field (i 0)
         )
-        command = lsprintf("%s -P --separator ';' --cell %s" path cell)
+        command = lsprintf("%s --parameters --separator ';' --cell %s" path cell)
         println(command)
         pid = ipcBeginProcess(command)
         ipcWait(pid) ; wait for process to finish
@@ -112,61 +112,69 @@ procedure(OPCCreateOptionsForm(cell)
                 printf("generator exited with status %d. Message:" exitstatus)
                 printf("%s" result)
             else
-                foreach(line parseString(result ";")
-                    name    =    car(parseString(line ":"))
-                    default =  caddr(parseString(line ":"))
-                    type    = cadddr(parseString(line ":"))
-                    case(type
-                        ("number"
-                            field = hiCreateFloatField(
-                                ?name stringToSymbol(name)
-                                ?value atof(default)
-                                ?prompt name
+                let(
+                    (linelist name display default type)
+                    foreach(line parseString(result ";")
+                        linelist = parseString(line ":")
+                        name    =    car(linelist)
+                        display =   cadr(linelist)
+                        default =  caddr(linelist)
+                        type    = cadddr(linelist)
+                        when(display == "_NONE_"
+                            display = name
+                        )
+                        case(type
+                            ("number"
+                                field = hiCreateFloatField(
+                                    ?name stringToSymbol(name)
+                                    ?value atof(default)
+                                    ?prompt display
+                                )
+                            )
+                            ("integer"
+                                field = hiCreateIntField(
+                                    ?name stringToSymbol(name)
+                                    ?value atoi(default)
+                                    ?prompt display
+                                )
+                            )
+                            ("boolean"
+                                field = hiCreateRadioField(
+                                    ?name stringToSymbol(name)
+                                    ?choices list("true" "false")
+                                    ?value default
+                                    ?prompt display
+                                )
+                            )
+                            ("string"
+                                field = hiCreateStringField(
+                                    ?name stringToSymbol(name)
+                                    ?value default
+                                    ?prompt display
+                                )
+                            )
+                            ("numtable"
+                                field = hiCreateStringField(
+                                    ?name stringToSymbol(name)
+                                    ?value default
+                                    ?prompt display
+                                )
+                            )
+                            ("strtable"
+                                field = hiCreateStringField(
+                                    ?name stringToSymbol(name)
+                                    ?value default
+                                    ?prompt display
+                                )
                             )
                         )
-                        ("integer"
-                            field = hiCreateIntField(
-                                ?name stringToSymbol(name)
-                                ?value atoi(default)
-                                ?prompt name
-                            )
-                        )
-                        ("boolean"
-                            field = hiCreateRadioField(
-                                ?name stringToSymbol(name)
-                                ?choices list("true" "false")
-                                ?value default
-                                ?prompt name
-                            )
-                        )
-                        ("string"
-                            field = hiCreateStringField(
-                                ?name stringToSymbol(name)
-                                ?value default
-                                ?prompt name
-                            )
-                        )
-                        ("numtable"
-                            field = hiCreateStringField(
-                                ?name stringToSymbol(name)
-                                ?value default
-                                ?prompt name
-                            )
-                        )
-                        ("strtable"
-                            field = hiCreateStringField(
-                                ?name stringToSymbol(name)
-                                ?value default
-                                ?prompt name
-                            )
-                        )
+                        fieldlist = cons(list(field 0:30*i 350:30 250) fieldlist)
+                        i = i + 1
                     )
-                    fieldlist = cons(list(field 0:30*i 200:30 120) fieldlist)
-                    i = i + 1
-                )
-                ;if(boundp('OPCParamForm)
-                ;    hiDeleteForm(OPCParamForm)
-                ;)
+                    ;if(boundp('OPCParamForm)
+                    ;    hiDeleteForm(OPCParamForm)
+                    ;)
+                ) ; let
                 hiCreateAppForm(
                     ?name 'OPCParamForm
                     ?formType 'options

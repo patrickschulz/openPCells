@@ -1,20 +1,20 @@
 function parameters()
     pcell.add_parameters(
-        { "oxidetype",    "0.9" },
-        { "pvthtype",    "slvt" },
-        { "nvthtype",    "slvt" },
-        { "fingers",          1 },
-        { "glength",        100 },
-        { "gspace",         150 },
-        { "pwidth",         500 },
-        { "nwidth",         500 },
-        { "sdwidth",         60 },
-        { "gstwidth",        60 },
-        { "separation",     400 },
-        { "powerwidth",     200 },
-        { "powerspace",     100 },
-        { "leftdummies",      1 },
-        { "rightdummies",     1 },
-        { "dummycontheight", 80 }
+        { "oxidetype(Oxide Type)",                        1 },
+        { "pvthtype(PMOS Threshold Voltage Type) ",       1 },
+        { "nvthtype(NMOS Threshold Voltage Type)",        1 },
+        { "fingers(Number of Fingers)",                   1 },
+        { "glength(Gate Length)",                       100 },
+        { "gspace(Gate Spacing)",                       150 },
+        { "pwidth(PMOS Finger Width)",                  500 },
+        { "nwidth(NMOS Finger Width)",                  500 },
+        { "sdwidth(Source/Drain Metal Width)",           60 },
+        { "gstwidth(Gate Strap Metal Width)",            60 },
+        { "separation(PMOS/NMOS Separation)",           400 },
+        { "powerwidth(Power Rail Metal Width)",         200 },
+        { "powerspace(Power Rail Space)",               100 },
+        { "leftdummies(Number of Left Dummies)",          1 },
+        { "rightdummies(Number of Right Dummies)",        1 },
+        { "dummycontheight(Dummy Gate Contact Height)", 100 }
     )
 end

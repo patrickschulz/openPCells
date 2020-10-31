@@ -251,6 +251,9 @@ end
 
 function inherit_parameter(cellname, othercell, name)
     local param = loadedcells[othercell].parameters[name]
+    if param.display then
+        name = string.format("%s(%s)", name, param.display)
+    end
     _add_parameter(cellname, name, param.func(), param.argtype, param.posvals)
 end
 
@@ -365,7 +368,7 @@ function M.parameters(name)
         else
             val = tostring(val)
         end
-        str[cell.indices[k]] = string.format("%s:%s:%s:%s", k, v.display, val, tostring(v.argtype))
+        str[cell.indices[k]] = string.format("%s:%s:%s:%s", k, v.display or "_NONE_", val, tostring(v.argtype))
     end
     return str
 end
