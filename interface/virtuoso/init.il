@@ -113,9 +113,9 @@ procedure(OPCCreateOptionsForm(cell)
                 printf("%s" result)
             else
                 foreach(line parseString(result ";")
-                    name = car(parseString(line))
-                    type = caddr(parseString(line))
-                    default = cadr(parseString(line))
+                    name    =    car(parseString(line ":"))
+                    default =  caddr(parseString(line ":"))
+                    type    = cadddr(parseString(line ":"))
                     case(type
                         ("number"
                             field = hiCreateFloatField(
