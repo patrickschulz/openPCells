@@ -234,15 +234,18 @@ local function _restore_parameters(cellname, backup)
 end
 
 --------------------------------------------------------------------
-function add_parameter(cellname, name, value, argtype, posvals, follow)
-    _add_parameter(cellname, name, value, argtype, posvals, follow)
+function add_parameter(cellname, name, value, opt)
+    _add_parameter(cellname, name, value, opt.argtype, opt.posvals, opt.follow)
 end
 
 function add_parameters(cellname, ...)
     for _, parameter in ipairs({ ... }) do
-        local name, value, argtype, posvals = table.unpack(parameter)
-        local follow = parameter.follow
-        _add_parameter(cellname, name, value, argtype, posvals, follow)
+        local name, value = parameter[1], parameter[2]
+        _add_parameter(
+            cellname, 
+            name, value, 
+            parameter.argtype, parameter.posvals, parameter.follow
+        )
     end
 end
 
@@ -289,30 +292,30 @@ function inherit_and_bind_all_parameters(cellname, othercell)
     end
 end
 
-local backupstack = {}
+local backupstacks = {}
 function push_overwrites(cellname, cellargs)
     local cellparams = loadedcells[cellname].parameters
     local backup = _process_input_parameters(cellname, cellargs, false, true)
-    if not backupstack[cellname] then
-        backupstack[cellname] = stack.create()
+    if not backupstacks[cellname] then
+        backupstacks[cellname] = stack.create()
     end
-    backupstack[cellname]:push(backup)
+    backupstacks[cellname]:push(backup)
 end
 
 function pop_overwrites(cellname)
-    if (not backupstack[cellname]) or (not backupstack[cellname]:peek()) then
+    if (not backupstacks[cellname]) or (not backupstacks[cellname]:peek()) then
         error(string.format("trying to restore default parameters for '%s', but there where no previous overwrites", cellname), 0)
     end
-    _restore_parameters(cellname, backupstack[cellname]:top())
-    backupstack[cellname]:pop()
+    _restore_parameters(cellname, backupstacks[cellname]:top())
+    backupstacks[cellname]:pop()
 end
 
 function empty_overwrite_stack(cellname)
     -- restore all cell defaults
-    if backupstack[cellname] then
-        while backupstack[cellname]:peek() do
-            _restore_parameters(cellname, backupstack[cellname]:top())
-            backupstack[cellname]:pop()
+    if backupstacks[cellname] then
+        while backupstacks[cellname]:peek() do
+            _restore_parameters(cellname, backupstacks[cellname]:top())
+            backupstacks[cellname]:pop()
         end
     end
 end
@@ -362,7 +365,7 @@ function M.parameters(name)
         else
             val = tostring(val)
         end
-        str[cell.indices[k]] = string.format("%s %s %s", tostring(k), val, tostring(v.argtype))
+        str[cell.indices[k]] = string.format("%s:%s:%s:%s", k, v.display, val, tostring(v.argtype))
     end
     return str
 end
