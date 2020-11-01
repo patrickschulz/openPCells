@@ -1,6 +1,9 @@
 -- for random shuffle
 math.randomseed(os.time())
 
+-- load user configuration
+config.get_user_config()
+
 local techlib = _load_module("technology")
 local interface = _load_module("interface")
 

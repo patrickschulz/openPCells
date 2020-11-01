@@ -81,6 +81,7 @@ static int msghandler (lua_State* L)
 static void load_api(lua_State* L)
 {
     char* modules[] = {
+        "config",
         "object",
         "shape",
         "geometry",
