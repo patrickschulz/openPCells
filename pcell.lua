@@ -90,8 +90,19 @@ local function _prepare_cell_environment(cellname)
     }
 end
 
+local cellpaths = {}
+function M.add_cellpath(path)
+    table.insert(cellpaths, path)
+end
+
 local function _load(cellname)
     local file = io.open(string.format("%s/cells/%s.lua", _get_opc_home(), cellname))
+    for _, path in ipairs(cellpaths) do
+        local tmp = io.open(string.format("%s/%s.lua", path, cellname))
+        if tmp then
+            file = tmp
+        end
+    end
     if not file then
         return nil, string.format("unknown cell '%s'", cellname)
     end
@@ -129,6 +140,8 @@ meta.__index = function(t, cellname)
     return cell
 end
 local loadedcells = setmetatable({}, meta)
+local bindings = {}
+local bindingsbackup = {}
 
 local function _get_pname_dname(name)
     local pname, dname = string.match(name, "^([^(]+)%(([^)]+)%)")
@@ -233,6 +246,34 @@ local function _restore_parameters(cellname, backup)
     end
 end
 
+local function _install_bindings(cellname)
+    if bindings[cellname] then
+        if not bindingsbackup[cellname] then
+            bindingsbackup[cellname] = stack.create()
+        end
+        local backup = {}
+        for name, other in pairs(bindings[cellname]) do
+            local param = loadedcells[cellname].parameters[name]
+            local otherparam = loadedcells[other.cell].parameters[other.name]
+            table.insert(backup, { cell = other.cell, name = other.name, func = otherparam.func })
+            otherparam.func = param.func
+        end
+        bindingsbackup[cellname]:push(backup)
+    end
+end
+
+local function _remove_bindings(cellname)
+    if bindingsbackup[cellname] then
+        if bindingsbackup[cellname]:peek() then
+            for _, other in ipairs(bindingsbackup[cellname]:top()) do
+                local otherparam = loadedcells[other.cell].parameters[other.name]
+                otherparam.func = other.func
+            end
+            bindingsbackup[cellname]:pop()
+        end
+    end
+end
+
 --------------------------------------------------------------------
 function add_parameter(cellname, name, value, opt)
     _add_parameter(cellname, name, value, opt.argtype, opt.posvals, opt.follow)
@@ -267,8 +308,8 @@ function bind_parameter(cellname, name, othercell, othername)
     if not param then 
         error(string.format("trying to bind '%s.%s' to '%s.%s', which is unknown", othercell, othername, cellname, name), 0)
     end
-    local otherparam = loadedcells[othercell].parameters[othername]
-    otherparam.func = param.func
+    if not bindings[cellname] then bindings[cellname] = {} end
+    bindings[cellname][name] = { cell = othercell, name = othername }
 end
 
 function inherit_all_parameters(cellname, othercell)
@@ -351,7 +392,9 @@ function M.create_layout(cellname, args, evaluate)
     local obj = object.create()
     local parameters, backup = _get_parameters(cellname, args, evaluate)
     _restore_parameters(cellname, backup)
+    _install_bindings(cellname)
     local status, msg = pcall(cell.funcs.layout, obj, parameters)
+    _remove_bindings(cellname)
     if not status then
         error(string.format("could not create cell '%s': %s", cellname, msg), 0)
     end
