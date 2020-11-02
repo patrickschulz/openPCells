@@ -9,21 +9,30 @@ local function _get_reader(filename)
     end
 end
 
-local function _generic_load(filename, chunkname)
+function _generic_load(filename, chunkname, synerrmsg, semerrmsg, env)
     local reader, msg = _get_reader(filename)
     if not reader then
         error(msg)
     end
 
-    local func, msg = load(reader, chunkname)
+    local env = env or _ENV
+    local func, msg = load(reader, chunkname, "t", env)
 
     if not func then
-        error(msg)
+        if synerrmsg then
+            error(string.format("%s: %s", synerrmsg, msg), 0)
+        else
+            error(msg, 0)
+        end
     end
 
     local status, chunk = pcall(func)
     if not status then
-        error(chunk)
+        if semerrmsg then
+            error(string.format("%s: %s", semerrmsg, chunk), 0)
+        else
+            error(chunk, 0)
+        end
     end
 
     return chunk
