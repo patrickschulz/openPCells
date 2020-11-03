@@ -19,10 +19,11 @@ function layout(inductor, _P)
 
     for i = 1, numpoints + 1 do
         local r = _P.turns * i / numpoints
-        local a = (i - 1) * angle-- + 0.5 * angle
-        local x = pitch * (r + 2) *  math.cos(a)
-        local y = pitch * (r + 2) * math.sin(a)
+        local a = (i - 1) * angle + 0.5 * angle
+        local x = _P.grid * math.floor(pitch * (r + 2) * math.cos(a) / _P.grid)
+        local y = _P.grid * math.floor(pitch * (r + 2) * math.sin(a) / _P.grid)
         append(x, y)
     end
-    inductor:merge_into(geometry.any_angle_path(generics.metal(_P.metalnum), pathpts, _P.width, _P.grid))
+    --inductor:merge_into(geometry.any_angle_path(generics.metal(_P.metalnum), pathpts, _P.width, _P.grid))
+    inductor:merge_into(geometry.path(generics.metal(_P.metalnum), pathpts, _P.width))
 end

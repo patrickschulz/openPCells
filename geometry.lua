@@ -220,25 +220,47 @@ function M.any_angle_path(layer, pts, width, grid, miterjoin)
     return object.make_from_shape(S)
 end
 
---[[
 function M.path_midpoint(layer, pts, width, method, miterjoin)
     local newpts = {}
-    table.insert(newpts, pts[1])
-    for i = 2, #pts - 1 do
-        local preangle = math.atan(pts[i].y - pts[i - 1].y, pts[i].x - pts[i - 1].x)
-        local postangle = math.atan(pts[i + 1].y - pts[i].y, pts[i + 1].x - pts[i].x)
-        local pt = pts[i]
-        local factor = 0.6 * math.min(
-            math.sqrt((pts[i].x - pts[i - 1].x)^2 + (pts[i].y - pts[i - 1].y)^2),
-            math.sqrt((pts[i + 1].x - pts[i].x)^2 + (pts[i + 1].y - pts[i].y)^2)
-            ) * math.tan(math.pi / 8)
-        table.insert(newpts, point.create(pts[i].x - factor * math.cos(preangle), pts[i].y - factor * math.sin(preangle)))
-        table.insert(newpts, point.create(pts[i].x + factor * math.cos(postangle), pts[i].y + factor * math.sin(postangle)))
+    local append = util.make_insert_xy(newpts)
+    if method == "halfangle" then
+        table.insert(newpts, pts[1])
+        for i = 2, #pts - 1 do
+            local x0, y0 = pts[i - 1]:unwrap()
+            local x1, y1 = pts[i]:unwrap()
+            local x2, y2 = pts[i + 1]:unwrap()
+            local preangle = math.atan(y1 - y0, x1 - x0)
+            local postangle = math.atan(y2 - y1, x2 - x1)
+            local pt = pts[i]
+            local factor = 0.6 * math.min(
+                math.sqrt((x1 - x0)^2 + (y1 - y0)^2),
+                math.sqrt((x2 - x1)^2 + (y2 - y1)^2)
+                ) * math.tan(math.pi / 8)
+            table.insert(newpts, point.create(x1 - math.floor(factor * math.cos(preangle)), y1 - math.floor(factor * math.sin(preangle))))
+            table.insert(newpts, point.create(x1 + math.floor(factor * math.cos(postangle)), y1 + math.floor(factor * math.sin(postangle))))
+        end
+        table.insert(newpts, pts[#pts])
+    elseif method == "rectangularyx" then
+        for i = 1, #pts - 1 do
+            local x1, y1 = pts[i]:unwrap()
+            local x2, y2 = pts[i + 1]:unwrap()
+            append(x1, y1)
+            append(x1, y2)
+        end
+        append(pts[#pts]:unwrap())
+    elseif method == "rectangularxy" then
+        for i = 1, #pts - 1 do
+            local x1, y1 = pts[i]:unwrap()
+            local x2, y2 = pts[i + 1]:unwrap()
+            append(x1, y1)
+            append(x2, y1)
+        end
+        append(pts[#pts]:unwrap())
+    else
+        error(string.format("unknown midpoint path method: %s", method))
     end
-    table.insert(newpts, pts[#pts])
     return M.path(layer, newpts, width, miterjoin)
 end
---]]
 
 --[[
 function M.corner(layer, startpt, endpt, width, radius, grid)
@@ -262,7 +284,6 @@ function M.corner(layer, startpt, endpt, width, radius, grid)
     )
     pts:merge_append(pts2:reverse())
     S:add_polygon(pts)
-
     return object.make_from_shape(S)
 end
 --]]
