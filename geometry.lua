@@ -214,6 +214,7 @@ function M.path(layer, pts, width, miterjoin)
 end
 
 function M.any_angle_path(layer, pts, width, grid, miterjoin)
+    _make_unique_points(pts)
     local S = shape.create_polygon(layer)
     S.points = _get_any_angle_path_pts(pts, width, grid, miterjoin)
     return object.make_from_shape(S)
