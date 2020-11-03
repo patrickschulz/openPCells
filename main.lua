@@ -28,14 +28,16 @@ if args.params then
     os.exit(0)
 end
 
-if not args.technology then
+if not args.notech and not args.technology then
     error("no technology given", 0)
 end
 if not args.interface then
     error("no interface given", 0)
 end
 
-local tech = techlib.load(args.technology)
+if not args.notech then
+    techlib.load(args.technology)
+end
 interface.load(args.interface)
 
 local cell, msg = pcell.create_layout(args.cell, cellargs, true)
