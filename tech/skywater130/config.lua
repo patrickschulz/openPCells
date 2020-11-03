@@ -1,4 +1,4 @@
 return {
-    grid = 0.005,
+    grid = 5, -- in nm
     metals = 6
 }
