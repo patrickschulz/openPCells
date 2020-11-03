@@ -24,7 +24,7 @@ end
 if args.params then
     local sep = args.separator or "\n"
     local params = pcell.parameters(args.cell)
-    print(table.concat(params, sep))
+    io.write(table.concat(params, sep) .. sep)
     os.exit(0)
 end
 
