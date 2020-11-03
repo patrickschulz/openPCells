@@ -999,11 +999,11 @@ local letteroutlines = {
 
 function parameters()
     pcell.add_parameters(
-        { "text",      "TEXT" },
-        { "scale",       1000 },
-        { "spacing",      200 },
-        { "leading",      200 },
-        { "alignment", "left" }
+        { "text(Text)",                "TEXT" },
+        { "scale(Letter Scaling)",       1000 },
+        { "spacing(Letter Spacing)",      200 },
+        { "leading(Line Leading)",        200 },
+        { "alignment(Text Alignment)", "left" }
     )
 end
 

@@ -81,6 +81,7 @@ static int msghandler (lua_State* L)
 static void load_api(lua_State* L)
 {
     char* modules[] = {
+        "config",
         "object",
         "shape",
         "geometry",
@@ -93,6 +94,7 @@ static void load_api(lua_State* L)
         "funcobject",
         "reduce",
         "stack",
+        "abstract", // this must be loaded AFTER geometry and graphics. Just leave this at the end
         NULL
     };
     char** ptr = modules;
@@ -101,8 +103,16 @@ static void load_api(lua_State* L)
     {
         lua_pushvalue(L, -1); // copy _load_module
         lua_pushstring(L, *ptr);
-        lua_call(L, 1, 1); // unprotected call since errors are handled in _load_module
-        lua_setglobal(L, *ptr);
+        if(lua_pcall(L, 1, 1, 0) == LUA_OK)
+        {
+            lua_setglobal(L, *ptr);
+        }
+        else
+        {
+            fprintf(stderr, "%s\n", lua_tostring(L, -1));
+            lua_close(L);
+            exit(1);
+        }
         ++ptr;
     }
     lua_pop(L, 1); // remove _load_module
@@ -111,7 +121,8 @@ static void load_api(lua_State* L)
 static void create_argument_table(lua_State* L, int argc, char** argv)
 {
     lua_newtable(L);
-    for(int i = 1; i < argc; ++i)
+    int i;
+    for(i = 1; i < argc; ++i)
     {
         lua_pushstring(L, argv[i]);
         lua_rawseti(L, -2, i);
@@ -153,7 +164,7 @@ lua_State* create_and_initialize_lua()
     open_lpoint_lib(L);
     open_lload_lib(L);
     open_lbind_lib(L);
-    load_api(L);
+    load_api(L); // could fail
     return L;
 }
 

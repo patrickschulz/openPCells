@@ -23,19 +23,27 @@ end
 local function tointeger(arg)
     return math.floor(tonumber(arg))
 end
-local function totable(arg)
+local function tonumtable(arg)
     local t = {}
     for e in string.gmatch(arg, "[^;,]+") do
-        table.insert(t, e)
+        table.insert(t, tonumber(e))
+    end
+    return t
+end
+local function tostrable(arg)
+    local t = {}
+    for e in string.gmatch(arg, "[^;,]+") do
+        table.insert(t, tostring(e))
     end
     return t
 end
 local evaluators = {
-    number = tonumber,
-    integer = tointeger,
-    string = identity,
-    boolean = toboolean,
-    table = totable,
+    number   = tonumber,
+    integer  = tointeger,
+    string   = identity,
+    boolean  = toboolean,
+    numtable = tonumtable,
+    strtable = tostrtable,
 }
 
 local function _prepare_cell_environment(cellname)
@@ -60,8 +68,11 @@ local function _prepare_cell_environment(cellname)
             pop_overwrites                  = pop_overwrites,
             create_layout = M.create_layout
         },
-        geometry = geometry,
-        graphics = graphics,
+        -- fake modules, the shapes are really created later
+        -- this enables some tricks for example regarding even/odd metals 
+        -- to build metal grids with unknown number of metals
+        geometry = abstract.geometry,
+        graphics = abstract.graphics,
         shape = shape,
         object = object,
         generics = generics,
@@ -73,13 +84,25 @@ local function _prepare_cell_environment(cellname)
         string = string,
         table = table,
         print = print,
+        type = type,
         ipairs = ipairs,
         pairs = pairs,
     }
 end
 
+local cellpaths = {}
+function M.add_cellpath(path)
+    table.insert(cellpaths, path)
+end
+
 local function _load(cellname)
     local file = io.open(string.format("%s/cells/%s.lua", _get_opc_home(), cellname))
+    for _, path in ipairs(cellpaths) do
+        local tmp = io.open(string.format("%s/%s.lua", path, cellname))
+        if tmp then
+            file = tmp
+        end
+    end
     if not file then
         return nil, string.format("unknown cell '%s'", cellname)
     end
@@ -117,6 +140,8 @@ meta.__index = function(t, cellname)
     return cell
 end
 local loadedcells = setmetatable({}, meta)
+local bindings = {}
+local bindingsbackup = {}
 
 local function _get_pname_dname(name)
     local pname, dname = string.match(name, "^([^(]+)%(([^)]+)%)")
@@ -221,21 +246,56 @@ local function _restore_parameters(cellname, backup)
     end
 end
 
+local function _install_bindings(cellname)
+    if bindings[cellname] then
+        if not bindingsbackup[cellname] then
+            bindingsbackup[cellname] = stack.create()
+        end
+        local backup = {}
+        for name, other in pairs(bindings[cellname]) do
+            local param = loadedcells[cellname].parameters[name]
+            local otherparam = loadedcells[other.cell].parameters[other.name]
+            table.insert(backup, { cell = other.cell, name = other.name, func = otherparam.func })
+            otherparam.func = param.func
+        end
+        bindingsbackup[cellname]:push(backup)
+    end
+end
+
+local function _remove_bindings(cellname)
+    if bindingsbackup[cellname] then
+        if bindingsbackup[cellname]:peek() then
+            for _, other in ipairs(bindingsbackup[cellname]:top()) do
+                local otherparam = loadedcells[other.cell].parameters[other.name]
+                otherparam.func = other.func
+            end
+            bindingsbackup[cellname]:pop()
+        end
+    end
+end
+
 --------------------------------------------------------------------
-function add_parameter(cellname, name, value, argtype, posvals, follow)
-    _add_parameter(cellname, name, value, argtype, posvals, follow)
+function add_parameter(cellname, name, value, opt)
+    local opt = opt or {}
+    _add_parameter(cellname, name, value, opt.argtype, opt.posvals, opt.follow)
 end
 
 function add_parameters(cellname, ...)
     for _, parameter in ipairs({ ... }) do
-        local name, value, argtype, posvals = table.unpack(parameter)
-        local follow = parameter.follow
-        _add_parameter(cellname, name, value, argtype, posvals, follow)
+        local name, value = parameter[1], parameter[2]
+        _add_parameter(
+            cellname, 
+            name, value, 
+            parameter.argtype, parameter.posvals, parameter.follow
+        )
     end
 end
 
 function inherit_parameter(cellname, othercell, name)
     local param = loadedcells[othercell].parameters[name]
+    if param.display then
+        name = string.format("%s(%s)", name, param.display)
+    end
     _add_parameter(cellname, name, param.func(), param.argtype, param.posvals)
 end
 
@@ -249,13 +309,17 @@ function bind_parameter(cellname, name, othercell, othername)
     if not param then 
         error(string.format("trying to bind '%s.%s' to '%s.%s', which is unknown", othercell, othername, cellname, name), 0)
     end
-    local otherparam = loadedcells[othercell].parameters[othername]
-    otherparam.func = param.func
+    if not bindings[cellname] then bindings[cellname] = {} end
+    bindings[cellname][name] = { cell = othercell, name = othername }
 end
 
 function inherit_all_parameters(cellname, othercell)
     local inherited = loadedcells[othercell]
-    for name, param in pairs(inherited.parameters) do 
+    local parameters = {}
+    for k in pairs(inherited.parameters) do
+        parameters[inherited.indices[k]] = k
+    end
+    for _, name in ipairs(parameters) do
         inherit_parameter(cellname, othercell, name)
     end
 end
@@ -277,30 +341,30 @@ function inherit_and_bind_all_parameters(cellname, othercell)
     end
 end
 
-local backupstack = {}
+local backupstacks = {}
 function push_overwrites(cellname, cellargs)
     local cellparams = loadedcells[cellname].parameters
     local backup = _process_input_parameters(cellname, cellargs, false, true)
-    if not backupstack[cellname] then
-        backupstack[cellname] = stack.create()
+    if not backupstacks[cellname] then
+        backupstacks[cellname] = stack.create()
     end
-    backupstack[cellname]:push(backup)
+    backupstacks[cellname]:push(backup)
 end
 
 function pop_overwrites(cellname)
-    if (not backupstack[cellname]) or (not backupstack[cellname]:peek()) then
+    if (not backupstacks[cellname]) or (not backupstacks[cellname]:peek()) then
         error(string.format("trying to restore default parameters for '%s', but there where no previous overwrites", cellname), 0)
     end
-    _restore_parameters(cellname, backupstack[cellname]:top())
-    backupstack[cellname]:pop()
+    _restore_parameters(cellname, backupstacks[cellname]:top())
+    backupstacks[cellname]:pop()
 end
 
 function empty_overwrite_stack(cellname)
     -- restore all cell defaults
-    if backupstack[cellname] then
-        while backupstack[cellname]:peek() do
-            _restore_parameters(cellname, backupstack[cellname]:top())
-            backupstack[cellname]:pop()
+    if backupstacks[cellname] then
+        while backupstacks[cellname]:peek() do
+            _restore_parameters(cellname, backupstacks[cellname]:top())
+            backupstacks[cellname]:pop()
         end
     end
 end
@@ -333,7 +397,9 @@ function M.create_layout(cellname, args, evaluate)
     local obj = object.create()
     local parameters, backup = _get_parameters(cellname, args, evaluate)
     _restore_parameters(cellname, backup)
+    _install_bindings(cellname)
     local status, msg = pcall(cell.funcs.layout, obj, parameters)
+    _remove_bindings(cellname)
     if not status then
         error(string.format("could not create cell '%s': %s", cellname, msg), 0)
     end
@@ -344,7 +410,13 @@ function M.parameters(name)
     local cell = loadedcells[name]
     local str = {}
     for k, v in pairs(cell.parameters) do
-        str[cell.indices[k]] = string.format("%s %s %s", tostring(k), tostring(v.func()), tostring(v.argtype))
+        local val = v.func()
+        if type(val) == "table" then
+            val = table.concat(val, ",")
+        else
+            val = tostring(val)
+        end
+        str[cell.indices[k]] = string.format("%s:%s:%s:%s", k, v.display or "_NONE_", val, tostring(v.argtype))
     end
     return str
 end

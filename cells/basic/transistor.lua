@@ -13,7 +13,6 @@ function parameters()
         { "sdconnspace(Source/Drain Rails Metal Space)",             200 },
         { "gtopext(Gate Top Extension)",                               0 },
         { "gbotext(Gate Bottom Extension)",                            0 },
-        { "typext(Type Marker Extension)",                           100 },
         { "cliptop(Clip Top Marker Layers)",                       false },
         { "clipbot(Clip Bottom Marker Layers)",                    false },
         { "drawtopgate(Draw Top Gate Contact)",                    false },
@@ -25,8 +24,8 @@ function parameters()
         { "drawbotgatestrap(Draw Bot Gate Strap)",                 false },
         { "botgatestrwidth(Bottom Gate Strap Width)",                120 },
         { "botgatestrspace(Bottom Gate Strap Space)",                200 },
-        { "topgcut(Draw Top Gate Cut)",                            false },
-        { "botgcut(Draw Bottom Gate Cut)",                         false },
+        { "drawtopgcut(Draw Top Gate Cut)",                        false },
+        { "drawbotgcut(Draw Bottom Gate Cut)",                     false },
         { "drawinnersourcedrain(Draw Inner Source/Drain Contacts)", true },
         { "drawoutersourcedrain(Draw Outer Source/Drain Contacts)", true },
         { "innersourcedrainsize(Inner Source/Drain Size)",          1000, follow = "fwidth" },
@@ -48,12 +47,6 @@ function layout(transistor, _P)
     local gateoffset = (math.max(_P.gtopext, enable(_P.drawtopgate, _P.topgatestrspace + _P.topgatestrwidth))
                       - math.max(_P.gbotext, enable(_P.drawbotgate, _P.botgatestrspace + _P.botgatestrwidth))
                        ) / 2
-    local clipoffset = enable(_P.clipbot, _P.typext) + enable(_P.cliptop, _P.typext)
-                     + enable(_P.clipbot and _P.drawbotgate, _P.botgatestrwidth / 2)
-                     + enable(_P.cliptop and _P.drawtopgate, _P.topgatestrwidth / 2)
-    local clipshift  = (enable(_P.clipbot, _P.typext) - enable(_P.cliptop, _P.typext)) / 2
-                     + enable(_P.clipbot and _P.drawbotgate, _P.botgatestrwidth / 4)
-                     - enable(_P.cliptop and _P.drawtopgate, _P.topgatestrwidth / 4)
 
     -- gates
     transistor:merge_into(geometry.multiple(
@@ -61,29 +54,23 @@ function layout(transistor, _P)
         _P.fingers, 1, gatepitch, 0
     ):translate(0, gateoffset))
 
-    -- oxide type
-    transistor:merge_into(geometry.rectangle(
-        generics.other(string.format("%soxthick%d", _P.channeltype, _P.oxidetype)), 
-        _P.fingers * (_P.gatelength + _P.gatespace) + 2 * _P.actext, _P.fwidth + 2 * _P.actext)
-    )
-    
-    -- threshold voltage
-    transistor:merge_into(geometry.rectangle(
-        generics.other(string.format("%svthtype%d", _P.channeltype, _P.oxidetype)), 
-        _P.fingers * (_P.gatelength + _P.gatespace) + 2 * _P.actext, _P.fwidth + 2 * _P.actext)
-    )
-
     -- active
     transistor:merge_into(geometry.rectangle(generics.other("active"), actwidth, _P.fwidth))
-    transistor:merge_into(geometry.rectangle( (_P.channeltype == "nmos") and generics.other("nimpl") or generics.other("pimpl"), 
-        actwidth + 2 * _P.typext, gateheight + 2 * _P.typext - clipoffset
-    ):translate(0, gateoffset + clipshift))
 
-    -- well
-    transistor:merge_into(geometry.rectangle(
-        (_P.channeltype == "nmos") and generics.other("pwell") or generics.other("nwell"), 
-        actwidth + 2 * _P.typext, gateheight + _P.typext
-    ):translate(0, gateoffset))
+    -- boundary for feol implant/well etc. layers
+    transistor:merge_into(geometry.rectangle(generics.feol(
+        { 
+            channeltype = _P.channeltype, 
+            vthtype = _P.vthtype, 
+            oxidetype = _P.oxidetype,
+            expand = {
+                left = true,
+                right = true,
+                top = not _P.cliptop,
+                bottom = not _P.clipbot,
+            },
+        }
+    ), actwidth, gateheight):translate(0, gateoffset))
 
     -- drain/source contacts
     if _P.drawinnersourcedrain and _P.fingers > 1 then
@@ -146,14 +133,14 @@ function layout(transistor, _P)
     -- gate cut
     local cutext = _P.gatespace / 2
     local cutheight = 120
-    local cwidth = _P.gatelength + 2 * cutext
-    if _P.topgcut then
+    local cwidth = _P.fingers * _P.gatelength + (_P.fingers - 1) * _P.gatespace + 2 * cutext
+    if _P.drawtopgcut then
         transistor:merge_into(geometry.rectangle(
             generics.other("gatecut"), 
             cwidth, cutheight
         ):translate(0, gateheight / 2 + gateoffset))
     end
-    if _P.botgcut then
+    if _P.drawbotgcut then
         transistor:merge_into(geometry.rectangle(
             generics.other("gatecut"), 
             cwidth, cutheight

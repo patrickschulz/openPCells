@@ -1,13 +1,13 @@
 function parameters()
     pcell.add_parameters(
-        { "radius",           40000 },
-        { "cornerradius",     14000 },
-        { "width",             6000 },
-        { "separation",        6000 },
-        { "extension",        40000 },
-        { "grid",               200 },
-        { "metalnum", -1, "integer" },
-        { "allow45",           true }
+        { "radius(Radius)",                        40000 },
+        { "cornerradius(Corner Radius)",           14000 },
+        { "width(Width)",                           6000 },
+        { "separation(Line Separation)",            6000 },
+        { "extension(Line Extension)",             40000 },
+        { "grid(Grid)",                              200 },
+        { "metalnum(Conductor Metal)",     -1, "integer" },
+        { "allow45(Allow Angles with 45 Degrees)",  true }
     )
 end
 

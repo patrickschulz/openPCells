@@ -1,4 +1,4 @@
-local function _get_reader(filename)
+function _get_reader(filename)
     local file = io.open(filename, "r")
     if not file then
         return nil, string.format("could not open file '%s'", filename)
@@ -9,21 +9,25 @@ local function _get_reader(filename)
     end
 end
 
-local function _generic_load(filename, chunkname)
-    local reader, msg = _get_reader(filename)
-    if not reader then
-        error(msg)
-    end
-
-    local func, msg = load(reader, chunkname)
+function _generic_load(filename, reader, chunkname, synerrmsg, semerrmsg, env)
+    local env = env or _ENV
+    local func, msg = load(reader, chunkname, "t", env)
 
     if not func then
-        error(msg)
+        if synerrmsg then
+            error(string.format("%s: %s", synerrmsg, msg), 0)
+        else
+            error(msg, 0)
+        end
     end
 
     local status, chunk = pcall(func)
     if not status then
-        error(chunk)
+        if semerrmsg then
+            error(string.format("%s: %s", semerrmsg, chunk), 0)
+        else
+            error(chunk, 0)
+        end
     end
 
     return chunk
@@ -36,5 +40,10 @@ function _load_module(modname)
     local filename = string.format("%s/%s.lua", _get_opc_home(), modname)
     local chunkname = string.format("@%s", modname)
 
-    return _generic_load(filename, chunkname)
+    local reader, msg = _get_reader(filename)
+    if not reader then
+        error(msg)
+    end
+
+    return _generic_load(filename, reader, chunkname)
 end

@@ -13,7 +13,9 @@ procedure(OPCCreateCell(w done pts)
             when(cv->mode == "a" ; check if cell is open for editing
                 args = ""
                 foreach(field OPCParamForm->fieldList
-                    args = lsprintf("%s %s" args lsprintf("%s=%A" field get(OPCParamForm field)->value))
+                    unless(get(OPCParamForm field)->value == get(OPCParamForm field)->defValue
+                        args = lsprintf("%s %s" args lsprintf("%s=%A" field get(OPCParamForm field)->value))
+                    )
                 )
                 ; 'cell' is defined one level above (in OPCPlaceCell)
                 command = lsprintf(
@@ -61,6 +63,7 @@ procedure(OPCWalkCellDir(path prepend)
                                 ?itemText substring(file 1 strlen(file) - 4)
                                 ?callback lsprintf("OPCPlaceCell(\"%s%s\")" prepend substring(file 1 strlen(file) - 4))
                             )   
+                            itemlist = cons(item itemlist)
                         )
                     else
                         let((submenu)
@@ -73,9 +76,9 @@ procedure(OPCWalkCellDir(path prepend)
                                 ?itemText file
                                 ?subMenu submenu
                             )
+                            itemlist = cons(item itemlist)
                         )
                 )
-                itemlist = cons(item itemlist)
             ) ; unless
         ) ; foreach
         itemlist
@@ -96,9 +99,9 @@ procedure(OPCCreateOptionsForm(cell)
             (path "/home/pschulz/path/opc")
             (filename "openPCells")
             command pid exitstatus result
-            name type fieldlist field (i 0)
+            fieldlist field (i 0)
         )
-        command = lsprintf("%s -P --separator ';' --cell %s" path cell)
+        command = lsprintf("%s --parameters --separator ';' --cell %s" path cell)
         println(command)
         pid = ipcBeginProcess(command)
         ipcWait(pid) ; wait for process to finish
@@ -109,54 +112,69 @@ procedure(OPCCreateOptionsForm(cell)
                 printf("generator exited with status %d. Message:" exitstatus)
                 printf("%s" result)
             else
-                foreach(line parseString(result ";")
-                    name = car(parseString(line))
-                    type = caddr(parseString(line))
-                    default = cadr(parseString(line))
-                    case(type
-                        ("number"
-                            field = hiCreateFloatField(
-                                ?name stringToSymbol(name)
-                                ?value atof(default)
-                                ?prompt name
-                            )
-                            fieldlist = cons(list(field 0:30*i 200:30 120) fieldlist)
-                            i = i + 1
+                let(
+                    (linelist name display default type)
+                    foreach(line parseString(result ";")
+                        linelist = parseString(line ":")
+                        name    =    car(linelist)
+                        display =   cadr(linelist)
+                        default =  caddr(linelist)
+                        type    = cadddr(linelist)
+                        when(display == "_NONE_"
+                            display = name
                         )
-                        ("integer"
-                            ; integers also get floatFields (for now), since this make the 
-                            ; assembly of the argument string (see above) easier
-                            field = hiCreateFloatField(
-                                ?name stringToSymbol(name)
-                                ?value atof(default)
-                                ?prompt name
+                        case(type
+                            ("number"
+                                field = hiCreateFloatField(
+                                    ?name stringToSymbol(name)
+                                    ?value atof(default)
+                                    ?prompt display
+                                )
                             )
-                            fieldlist = cons(list(field 0:30*i 200:30 120) fieldlist)
-                            i = i + 1
-                        )
-                        ;("boolean"
-                        ;    field = hiCreateToggleField(
-                        ;        ?name stringToSymbol(lsprintf("%s_togglefield" name))
-                        ;        ?choices list(list(stringToSymbol(name)))
-                        ;        ?prompt name
-                        ;    )
-                        ;    fieldlist = cons(list(field 0:30*i 200:30 120) fieldlist)
-                        ;    i = i + 1
-                        ;)
-                        ("string"
-                            field = hiCreateStringField(
-                                ?name stringToSymbol(name)
-                                ?value default
-                                ?prompt name
+                            ("integer"
+                                field = hiCreateIntField(
+                                    ?name stringToSymbol(name)
+                                    ?value atoi(default)
+                                    ?prompt display
+                                )
                             )
-                            fieldlist = cons(list(field 0:30*i 200:30 120) fieldlist)
-                            i = i + 1
+                            ("boolean"
+                                field = hiCreateRadioField(
+                                    ?name stringToSymbol(name)
+                                    ?choices list("true" "false")
+                                    ?value default
+                                    ?prompt display
+                                )
+                            )
+                            ("string"
+                                field = hiCreateStringField(
+                                    ?name stringToSymbol(name)
+                                    ?value default
+                                    ?prompt display
+                                )
+                            )
+                            ("numtable"
+                                field = hiCreateStringField(
+                                    ?name stringToSymbol(name)
+                                    ?value default
+                                    ?prompt display
+                                )
+                            )
+                            ("strtable"
+                                field = hiCreateStringField(
+                                    ?name stringToSymbol(name)
+                                    ?value default
+                                    ?prompt display
+                                )
+                            )
                         )
+                        fieldlist = cons(list(field 0:30*i 350:30 250) fieldlist)
+                        i = i + 1
                     )
-                )
-                ;if(boundp('OPCParamForm)
-                ;    hiDeleteForm(OPCParamForm)
-                ;)
+                    ;if(boundp('OPCParamForm)
+                    ;    hiDeleteForm(OPCParamForm)
+                    ;)
+                ) ; let
                 hiCreateAppForm(
                     ?name 'OPCParamForm
                     ?formType 'options

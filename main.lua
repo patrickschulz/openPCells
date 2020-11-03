@@ -1,6 +1,9 @@
 -- for random shuffle
 math.randomseed(os.time())
 
+-- load user configuration
+config.get_user_config()
+
 local techlib = _load_module("technology")
 local interface = _load_module("interface")
 
@@ -21,18 +24,20 @@ end
 if args.params then
     local sep = args.separator or "\n"
     local params = pcell.parameters(args.cell)
-    print(table.concat(params, sep))
+    io.write(table.concat(params, sep) .. sep)
     os.exit(0)
 end
 
-if not args.technology then
+if not args.notech and not args.technology then
     error("no technology given", 0)
 end
 if not args.interface then
     error("no interface given", 0)
 end
 
-local tech = techlib.load(args.technology)
+if not args.notech then
+    techlib.load(args.technology)
+end
 interface.load(args.interface)
 
 local cell, msg = pcell.create_layout(args.cell, cellargs, true)
@@ -47,12 +52,14 @@ if args.origin then
     cell:translate(dx, dy)
 end
 
+abstract.realize_shapes()
+
 local techintf = args.interface
 if not args.notech then
     techlib.translate_metals(cell)
     techlib.split_vias(cell)
-    techlib.create_via_geometries(cell, techintf)
-    techlib.map_layers(cell, techintf)
+    techlib.place_via_conductors(cell, techintf)
+    techlib.translate(cell, techintf)
     techlib.fix_to_grid(cell)
 end
 

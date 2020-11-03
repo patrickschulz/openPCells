@@ -20,6 +20,8 @@ local function _create(value)
                 return string.format("viaM%dM%d", self:get())
             elseif self.typ == "contact" then
                 return string.format("contact%s", self:get())
+            elseif self.typ == "feol" then
+                return "feol"
             else
                 return self.value
             end
@@ -47,6 +49,12 @@ end
 function M.contact(region)
     local self = _create(region)
     self.typ = "contact"
+    return self
+end
+
+function M.feol(settings)
+    local self = _create(settings)
+    self.typ = "feol"
     return self
 end
 

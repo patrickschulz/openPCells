@@ -66,6 +66,19 @@ function M.copy(self)
     return new
 end
 
+function M.resize(self, xsize, ysize)
+    M.resize_lrtb(self, xsize / 2, xsize / 2, ysize / 2, ysize/ 2)
+end
+
+function M.resize_lrtb(self, left, right, top, bottom)
+    if self.typ == "polygon" then
+        error("sorry, resizing is currently only implemented for rectangles", 0)
+    elseif self.typ == "rectangle" then
+        self.points.bl:translate(-left, -bottom)
+        self.points.tr:translate(right, top)
+    end
+end
+
 function M.width(self)
     if self.typ == "polygon" then
         local minx =  math.huge

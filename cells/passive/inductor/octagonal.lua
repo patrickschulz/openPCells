@@ -1,12 +1,12 @@
 function parameters()
     pcell.add_parameters(
-        { "radius",    30000 },
-        { "turns",         3 },
-        { "separation", 6000 },
-        { "width",      6000 },
-        { "extension", 10000 },
-        { "extsep",     6000 },
-        { "metalnum",  -1, "integer" }
+        { "radius(Radius)",                        40000 },
+        { "turns(Number of Turns)",                    3 },
+        { "width(Width)",                           6000 },
+        { "separation(Line Separation)",            6000 },
+        { "extension(Line Extension)",             40000 },
+        { "extsep(Extension Separation)",           6000 },
+        { "metalnum(Conductor Metal)",     -1, "integer" }
     )
 end
 

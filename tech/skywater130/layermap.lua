@@ -1,82 +1,256 @@
 return {
-    oxthick1  = "UNUSED",
-    vthtype1  = "UNUSED",
+    oxthick1  = {},
+    vthtype1  = {},
+    contactactive = {
+        array {
+            lpp = {
+                gds      = { layer = 66,       purpose = 44 }, 
+                virtuoso = { layer = "licon1", purpose = "drawing" },
+                magic    = { layer = "licon1", purpose = "drawing" },
+                svg      = { color = "yellow", opacity = 0.4, fill = true},
+            },
+            width = 170,
+            height = 170, 
+            xspace = 170, 
+            yspace = 170, 
+            xencl = 40, 
+            yencl = 40
+        },
+    },
+    --[[ old version, technology.lua needs to be fixed for this (FIXME: enlarge)
+    contactgate = {
+        layers = {
+            {
+                lpp = {
+                    gds      = { layer = 66,     purpose = 20 },
+                    virtuoso = { layer = "poly", purpose = "drawing", },
+                    magic    = { layer = "poly", purpose = "drawing", },
+                },
+                enlarge = 100
+            },
+            {
+                lpp = {
+                    gds      = { layer = 95,      purpose = 20 },
+                    virtuoso = { layer = "npc", purpose = "drawing", },
+                    magic    = { layer = "npc", purpose = "drawing", },
+                },
+                enlarge = 100
+            },
+            {
+                lpp = {
+                    gds      = { layer = 66,   purpose = 44 },
+                    virtuoso = { layer = "licon1", purpose = "drawing", },
+                    magic    = { layer = "licon1", purpose = "drawing", },
+                },
+            },
+        },
+        width = 170,
+        height = 170, 
+        xspace = 250, 
+        yspace = 170, 
+        xencl = 40, 
+        yencl = 80
+    },
+    --]]
     active = { 
-        gds      = { layer = 65,    purpose = 20 }, 
-        virtuoso = { layer ="diff", purpose = "drawing" },
-        magic    = { layer ="diff", purpose = "drawing" },
-        svg      = { color ="green",  opacity = 0.4, fill = true },
+        map {
+            lpp = {
+                gds      = { layer = 65,    purpose = 20 }, 
+                virtuoso = { layer ="diff", purpose = "drawing" },
+                magic    = { layer ="diff", purpose = "drawing" },
+                svg      = { color ="green",  opacity = 0.4, fill = true },
+            },
+        },
     },
     nimpl = { 
-        gds      = { layer = 93,    purpose = 44 }, 
-        virtuoso = { layer ="nsdm", purpose = "drawing" },
-        magic    = { layer ="nsdm", purpose = "drawing" },
-        svg      = { color ="black", opacity = 1, fill = false  },
+        map {
+            lpp = {
+                gds      = { layer = 93,    purpose = 44 }, 
+                virtuoso = { layer ="nsdm", purpose = "drawing" },
+                magic    = { layer ="nsdm", purpose = "drawing" },
+                svg      = { color ="black", opacity = 1, fill = false  },
+            },
+        },
     },
     pimpl = { 
-        gds      = { layer = 94,    purpose = 20 }, 
-        virtuoso = { layer ="psdm", purpose = "drawing" },
-        magic    = { layer ="psdm", purpose = "drawing" },
+        map {
+            lpp = {
+                gds      = { layer = 94,    purpose = 20 }, 
+                virtuoso = { layer ="psdm", purpose = "drawing" },
+                magic    = { layer ="psdm", purpose = "drawing" },
+            },
+        },
     },
-    soiopen = "UNUSED",
+    soiopen = {},
     nwell = { 
-        gds      = { layer = 64,     purpose = 20 }, 
-        virtuoso = { layer ="nwell", purpose = "drawing" },
-        magic    = { layer ="nwell", purpose = "drawing" },
-        svg      = { color ="yellow",  opacity = 0.1, fill = true },
+        map {
+            lpp = {
+                gds      = { layer = 64,     purpose = 20 }, 
+                virtuoso = { layer ="nwell", purpose = "drawing" },
+                magic    = { layer ="nwell", purpose = "drawing" },
+                svg      = { color ="yellow",  opacity = 0.1, fill = true },
+            },
+        },
     },
-    pwell = "UNUSED",
+    pwell = {},
     deepnwell = { 
-        gds      = { layer = 64,       purpose = 18 }, 
-        virtuoso = { layer = "dnwell", purpose = "drawing" },
-        magic    = { layer = "dnwell", purpose = "drawing" },
+        map {
+            lpp = {
+                gds      = { layer = 64,       purpose = 18 }, 
+                virtuoso = { layer = "dnwell", purpose = "drawing" },
+                magic    = { layer = "dnwell", purpose = "drawing" },
+            },
+        },
     },
     gate = { 
-        gds      = { layer = 66,    purpose = 20 }, 
-        virtuoso = { layer ="poly", purpose = "drawing" },
-        magic    = { layer ="poly", purpose = "drawing" },
-        svg      = { color ="red",  opacity = 0.4, fill = true },
+        map {
+            lpp = {
+                gds      = { layer = 66,    purpose = 20 }, 
+                virtuoso = { layer ="poly", purpose = "drawing" },
+                magic    = { layer ="poly", purpose = "drawing" },
+                svg      = { color ="red",  opacity = 0.4, fill = true },
+            },
+        },
     },
     M1 = { 
-        gds      = { layer = 67,    purpose = 20 }, 
-        virtuoso = { layer ="li1",  purpose = "drawing" },
-        magic    = { layer ="li1",  purpose = "drawing" },
-        svg      = { color ="blue", opacity = 0.4, fill = true },
+        map {
+            lpp = {
+                gds      = { layer = 67,    purpose = 20 }, 
+                virtuoso = { layer ="li1",  purpose = "drawing" },
+                magic    = { layer ="li1",  purpose = "drawing" },
+                svg      = { color ="blue", opacity = 0.4, fill = true },
+            },
+        },
+    },
+    viaM1M2 = {
+        array {
+            lpp = {
+                gds      = { layer = 67,     purpose = 44 },
+                virtuoso = { layer = "mcon", purpose = "drawing", },
+                magic    = { layer = "mcon", purpose = "drawing", },
+            },
+            width = 170,
+            height = 170, 
+            xspace = 250, 
+            yspace = 170, 
+            xencl = 40, 
+            yencl = 80
+        }
     },
     M2 = { 
-        gds      = { layer = 68,    purpose = 20 }, 
-        virtuoso = { layer ="met1", purpose = "drawing", },
-        magic    = { layer ="met1", purpose = "drawing", },
+        map {
+            lpp = {
+                gds      = { layer = 68,    purpose = 20 }, 
+                virtuoso = { layer ="met1", purpose = "drawing", },
+                magic    = { layer ="met1", purpose = "drawing", },
+            },
+        },
+    },
+    viaM2M3 = {
+        array {
+            lpp = {
+                gds      = { layer = 68,      purpose = 44 },
+                virtuoso = { layer = "via", purpose = "drawing", },
+                magic    = { layer = "via", purpose = "drawing", },
+            },
+            width = 150,
+            height = 150, 
+            xspace = 170, 
+            yspace = 170, 
+            xencl = 55, 
+            yencl = 55
+        },
     },
     M3 = { 
-        gds      = { layer = 69,    purpose = 20 }, 
-        virtuoso = { layer ="met2", purpose = "drawing", },
-        magic    = { layer ="met2", purpose = "drawing", },
+        map {
+            lpp = {
+                gds      = { layer = 69,    purpose = 20 }, 
+                virtuoso = { layer ="met2", purpose = "drawing", },
+                magic    = { layer ="met2", purpose = "drawing", },
+            },
+        },
+    },
+    viaM3M4 = {
+        array {
+            lpp = {
+                gds      = { layer = 69,     purpose = 44 },
+                virtuoso = { layer = "via2", purpose = "drawing", },
+                magic    = { layer = "via2", purpose = "drawing", },
+            },
+            width = 200,
+            height = 200, 
+            xspace = 200, 
+            yspace = 200, 
+            xencl = 40, 
+            yencl = 40
+        },
     },
     M4 = { 
-        gds      = { layer = 70,    purpose = 20 }, 
-        virtuoso = { layer ="met3", purpose = "drawing", },
-        magic    = { layer ="met3", purpose = "drawing", },
+        map {
+            lpp = {
+                gds      = { layer = 70,    purpose = 20 }, 
+                virtuoso = { layer ="met3", purpose = "drawing", },
+                magic    = { layer ="met3", purpose = "drawing", },
+            },
+        },
+    },
+    viaM4M5 = {
+        array {
+            lpp = {
+                gds      = { layer = 70,     purpose = 44 },
+                virtuoso = { layer = "via3", purpose = "drawing", },
+                magic    = { layer = "via3", purpose = "drawing", },
+            },
+            width = 200,
+            height = 200, 
+            xspace = 200, 
+            yspace = 200, 
+            xencl = 60, 
+            yencl = 60
+        },
     },
     M5 = { 
-        gds      = { layer = 71, purpose = 20 }, 
-        virtuoso = { layer = "met4", purpose = "drawing", },
-        magic    = { layer = "met4", purpose = "drawing", },
-        svg      = { color = "blue", opacity = 0.5, fill = true, order = 1 },
+        map {
+            lpp = {
+                gds      = { layer = 71, purpose = 20 }, 
+                virtuoso = { layer = "met4", purpose = "drawing", },
+                magic    = { layer = "met4", purpose = "drawing", },
+                svg      = { color = "blue", opacity = 0.5, fill = true, order = 1 },
+            },
+        },
     },
-    M6 = {
-        gds      = { layer = 72,     purpose = 20        },
-        virtuoso = { layer = "met5", purpose = "drawing" },
-        magic    = { layer = "met5", purpose = "drawing" },
-        svg      = { color = "red",  opacity = 0.5, fill = true, order = 2 },
+    viaM5M6 = {
+        array {
+            lpp = {
+                gds      = { layer = 71,     purpose = 44 },
+                virtuoso = { layer = "via4", purpose = "drawing" },
+                magic    = { layer = "via4", purpose = "drawing" },
+            },
+            width = 800,
+            height = 800, 
+            xspace = 800, 
+            yspace = 800, 
+            xencl = 190, 
+            yencl = 190
+        },
     },
-    lastmetal = { layer = { number = 72, name = "met5"      }, purpose = { number = 20, name = "drawing" } },
-    passopen  = { layer = { number = 76, name = "pad"       }, purpose = { number = 20, name = "drawing" } },
-    inductor  = { layer = { number = 82, name = "inductor"  }, purpose = { number = 24, name = "drawing" } },
-    momcap    = { layer = { number = 82, name = "capacitor" }, purpose = { number = 64, name = "drawing" } },
-    polyres1  = { layer = { number = 86, name = "rpm"       }, purpose = { number = 20, name = "drawing" } },
-    polyres2  = { layer = { number = 79, name = "urpm"      }, purpose = { number = 20, name = "drawing" } },
-    gatecut   = "UNUSED"
+    M6 = { 
+        map {
+            lpp = {
+                gds      = { layer = 72,     purpose = 20        },
+                virtuoso = { layer = "met5", purpose = "drawing" },
+                magic    = { layer = "met5", purpose = "drawing" },
+                svg      = { color = "red",  opacity = 0.5, fill = true, order = 2 },
+            }
+        }
+    },
+    --lastmetal = { layer = { number = 72, name = "met5"      }, purpose = { number = 20, name = "drawing" } },
+    --passopen  = { layer = { number = 76, name = "pad"       }, purpose = { number = 20, name = "drawing" } },
+    --inductor  = { layer = { number = 82, name = "inductor"  }, purpose = { number = 24, name = "drawing" } },
+    --momcap    = { layer = { number = 82, name = "capacitor" }, purpose = { number = 64, name = "drawing" } },
+    --polyres1  = { layer = { number = 86, name = "rpm"       }, purpose = { number = 20, name = "drawing" } },
+    --polyres2  = { layer = { number = 79, name = "urpm"      }, purpose = { number = 20, name = "drawing" } },
+    gatecut   = {},
 }
 
 -- processed (some are only present in the viarules file)

@@ -11,7 +11,7 @@ function M.get_points(shape)
         return string.format("rectangle: (%d %d) (%d %d)", xbot, ybot, xtop, ytop)
     else
         local t = {}
-        table.insert("polygon:")
+        table.insert(t, "polygon:")
         for _, pt in ipairs(shape.points) do
             table.insert(t, string.format("(%d, %d)", pt:unwrap()))
         end

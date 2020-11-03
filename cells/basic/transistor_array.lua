@@ -1,6 +1,5 @@
 function parameters()
-    pcell.add_parameters({ "basic/transistors(Number of Transistors)", 2, "integer" })
-    pcell.add_parameters({ "fingers(Number of Fingers)", { 4, 4 }, "table" })
+    pcell.add_parameters({ "fingers(Number of Fingers)", { 4, 4 }, argtype = "numtable" })
     pcell.inherit_and_bind_all_parameters("basic/transistor")
 end
 
@@ -14,19 +13,21 @@ function layout(array, _P)
     local indices = {}
     for i, f in ipairs(_P.fingers) do
         ttypes[i] = { 
-            fingers = f,
-            drawtopgate = true, 
-            drawbotgate = true, 
             topgatestrspace = i * gatestrspace + (i - 1) * _P.topgatestrwidth,
             botgatestrspace = i * gatestrspace + (i - 1) * _P.botgatestrwidth,
-            gtopext = numtransistors * (gatestrspace + _P.topgatestrwidth),
-            gbotext = numtransistors * (gatestrspace + _P.botgatestrwidth),
         }
         for j = 1, f / 2 do
             table.insert(indices, i)
         end
     end
     aux.shuffle(indices)
+    pcell.push_overwrites("basic/transistor", { 
+        fingers = 1,
+        drawtopgate = true, 
+        drawbotgate = true, 
+        gtopext = numtransistors * (gatestrspace + _P.topgatestrwidth),
+        gbotext = numtransistors * (gatestrspace + _P.botgatestrwidth),
+    })
     for i = 1, #indices do
         local offset = (i - 1) - (2 * #indices - 1) / 2
         local ttype = ttypes[indices[i]]
@@ -39,6 +40,9 @@ function layout(array, _P)
             :translate(-offset * gatepitch, 0)
         )
     end
+    pcell.pop_overwrites("basic/transistor")
+
+    -- gate connections
     for i = 1, #ttypes do
         array:merge_into(geometry.rectangle(
             generics.metal(1), numfingers * gatepitch, _P.topgatestrwidth
