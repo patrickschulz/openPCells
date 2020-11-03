@@ -83,9 +83,56 @@ local function _shift_line(pt1, pt2, width)
     -- cos(atan(x)) == 1 / sqrt(1 + x^2)
     -- sin(atan(x)) == x / sqrt(1 + x^2)
     local angle = math.atan(y2 - y1, x2 - x1) - math.pi / 2
-    local spt1 = point.create(x1 + math.floor(width * math.cos(angle) + 0.5), y1 + math.floor(width * math.sin(angle) + 0.5))
-    local spt2 = point.create(x2 + math.floor(width * math.cos(angle) + 0.5), y2 + math.floor(width * math.sin(angle) + 0.5))
+    local xshift = math.floor(width * math.cos(angle) + 0.5)
+    local yshift = math.floor(width * math.sin(angle) + 0.5)
+    local spt1 = point.create(x1 + xshift, y1 + yshift)
+    local spt2 = point.create(x2 + xshift, y2 + yshift)
     return spt1, spt2
+end
+
+local function _shift_gridded_line(pt1, pt2, width, grid)
+    local x1, y1 = pt1:unwrap()
+    local x2, y2 = pt2:unwrap()
+    local angle = math.atan(y2 - y1, x2 - x1) - math.pi / 2
+    local xshift = grid * math.floor(math.floor(width * math.cos(angle) + 0.5) / grid)
+    local yshift = grid * math.floor(math.floor(width * math.sin(angle) + 0.5) / grid)
+    local spt1 = point.create(x1 + xshift, y1 + yshift)
+    local spt2 = point.create(x2 + xshift, y2 + yshift)
+    return spt1, spt2
+end
+
+local function _get_edge_segments(pts, width)
+    local edges = {}
+    -- start to end
+    for i = 1, #pts - 1 do
+        local spt1, spt2 = _shift_line(pts[i], pts[i + 1], width / 2)
+        table.insert(edges, spt1)
+        table.insert(edges, spt2)
+    end
+    -- end to start (shift in other direction)
+    for i = #pts, 2, -1 do
+        local spt1, spt2 = _shift_line(pts[i], pts[i - 1], width / 2)
+        table.insert(edges, spt1)
+        table.insert(edges, spt2)
+    end
+    return edges
+end
+
+local function _get_gridded_edge_segments(pts, width, grid)
+    local edges = {}
+    -- start to end
+    for i = 1, #pts - 1 do
+        local spt1, spt2 = _shift_gridded_line(pts[i], pts[i + 1], width / 2, grid)
+        table.insert(edges, spt1)
+        table.insert(edges, spt2)
+    end
+    -- end to start (shift in other direction)
+    for i = #pts, 2, -1 do
+        local spt1, spt2 = _shift_gridded_line(pts[i], pts[i - 1], width / 2, grid)
+        table.insert(edges, spt1)
+        table.insert(edges, spt2)
+    end
+    return edges
 end
 
 -- calculate the outline points of a path with a width
@@ -98,46 +145,33 @@ end
 --      * insert the point where the extended line segments meet 
 --        This is a miter join
 -- the endpoints of the path need extra care
-local function _get_path_pts(pts, width, miterjoin)
-    local tmp = {}
-    local poly = {}
-    local segs = #pts - 1
+local function _get_path_pts(edges, width, miterjoin)
     local i = 1
-    -- start to end
-    for i = 1, #pts - 1 do
-        local spt1, spt2 = _shift_line(pts[i], pts[i + 1], width / 2)
-        table.insert(tmp, spt1)
-        table.insert(tmp, spt2)
-    end
-    -- end to start (shift in other direction)
-    for i = #pts, 2, -1 do
-        local spt1, spt2 = _shift_line(pts[i], pts[i - 1], width / 2)
-        table.insert(tmp, spt1)
-        table.insert(tmp, spt2)
-    end
     local midpointfunc = function(i)
-        local inner, outer = _intersection(tmp[i - 1], tmp[i], tmp[i + 1], tmp[i + 2])
+        local inner, outer = _intersection(edges[i - 1], edges[i], edges[i + 1], edges[i + 2])
         if inner then
             return inner
         else
             if miterjoin then
                 return outer
             else
-                return tmp[i], tmp[i + 1]
+                return edges[i], edges[i + 1]
             end
         end
     end
+    local poly = {}
     -- first start point
-    table.insert(poly, tmp[1])
+    table.insert(poly, edges[1])
     -- first middle points
+    local segs = #edges / 4
     for seg = 1, segs - 1 do
         local i = 2 * seg
         local new = { midpointfunc(i) }
         for _, pt in ipairs(new) do table.insert(poly, pt) end
     end
     -- end points
-    table.insert(poly, tmp[2 * segs])
-    table.insert(poly, tmp[2 * segs + 1])
+    table.insert(poly, edges[2 * segs])
+    table.insert(poly, edges[2 * segs + 1])
     -- second middle points
     for seg = 1, segs - 1 do
         local i = 2 * (segs + seg)
@@ -145,13 +179,14 @@ local function _get_path_pts(pts, width, miterjoin)
         for _, pt in ipairs(new) do table.insert(poly, pt) end
     end
     -- second start point
-    table.insert(poly, tmp[#tmp])
+    table.insert(poly, edges[#edges])
     return poly
 end
 
 local function _get_any_angle_path_pts(pts, width, grid, miterjoin)
-    local pathpts = _get_path_pts(pts, width, miterjoin)
-    table.insert(pathpts, pts[1]:copy()) -- close path
+    local edges = _get_gridded_edge_segments(pts, width, grid)
+    local pathpts = _get_path_pts(edges, width, miterjoin)
+    table.insert(pathpts, edges[1]:copy()) -- close path
     local poly = {}
     for i = 1, #pathpts - 1 do
         local linepts = graphics.line(pathpts[i], pathpts[i + 1], grid)
@@ -173,7 +208,8 @@ end
 function M.path(layer, pts, width, miterjoin)
     _make_unique_points(pts)
     local S = shape.create_polygon(layer)
-    S.points = _get_path_pts(pts, width, miterjoin)
+    local edges = _get_edge_segments(pts, width)
+    S.points = _get_path_pts(edges, width, miterjoin)
     return object.make_from_shape(S)
 end
 

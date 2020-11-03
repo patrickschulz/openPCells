@@ -36,7 +36,7 @@ function M.line(pt1, pt2, grid, allow45)
     local x2, y2 = pt2:unwrap()
 
     -- handle vertical, horizontal or diagonal lines specially
-    if x1 == x2 or y1 == y2 or (x2 - x1) == (y2 - y1) then
+    if x1 == x2 or y1 == y2 or math.abs(x2 - x1) == math.abs(y2 - y1) then
         return {
             pt1:copy(),
             pt2:copy()
