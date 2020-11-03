@@ -347,6 +347,7 @@ end
 
 local backupstacks = {}
 function push_overwrites(cellname, cellargs)
+    assert(type(cellname) == "string", "push_overwrites: cellname must be a string")
     local cellparams = loadedcells[cellname].parameters
     local backup = _process_input_parameters(cellname, cellargs, false, true)
     if not backupstacks[cellname] then
