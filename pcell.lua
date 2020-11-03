@@ -276,6 +276,7 @@ end
 
 --------------------------------------------------------------------
 function add_parameter(cellname, name, value, opt)
+    local opt = opt or {}
     _add_parameter(cellname, name, value, opt.argtype, opt.posvals, opt.follow)
 end
 
