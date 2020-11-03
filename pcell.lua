@@ -314,7 +314,11 @@ end
 
 function inherit_all_parameters(cellname, othercell)
     local inherited = loadedcells[othercell]
-    for name, param in pairs(inherited.parameters) do 
+    local parameters = {}
+    for k in pairs(inherited.parameters) do
+        parameters[inherited.indices[k]] = k
+    end
+    for _, name in ipairs(parameters) do
         inherit_parameter(cellname, othercell, name)
     end
 end
