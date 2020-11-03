@@ -22,43 +22,33 @@ If you did not do this yet, clone the repository:
 \begin{shellcode}
     > git clone https://github.com/patrickschulz/openPCells
 \end{shellcode}
-Go to the repository, in the main directory is a file called \shellinline{setup.sh}, which creates the main program. Execute it:
+Go to the repository and create the main program:
 \begin{shellcode}
-    > ./setup.sh
-    * generating 'opc' *
-    See doc/userguide/userguide.pdf for a quick start and general documentation.
+    > make
 \end{shellcode}
-
-Check that you have a working lua interpreter by invoking \shellinline{lua}. You should get a message similiar to
-\begin{shellcode}
-    > lua 
-    Lua 5.3.3  Copyright (C) 1994-2016 Lua.org, PUC-Rio
-    > 
-\end{shellcode}
-although the version can be different. Supported versions are 5.2 and 5.3 (both tested), but it is expected that 5.4 should also work. Due to the way cells are
-loaded, lua versions below 5.2 are not supported.
+The project supplies a lua interpreter (the official code with some modifications) that simplify compatibility problems and path setup issues.
 
 Now run the program:
 \begin{shellcode}
-    > lua opc
+    > ./opc
 \end{shellcode}
 You should see the following message:
 \begin{shellcode}
     no cell type given
 \end{shellcode}
-This indicates that everything is working fine. Due to \shellinline{./setup.sh}, the paths for the toolchain are already set. You should be able to call
+This indicates that everything is working fine. Due to the non-standard interpreter, the paths for the toolchain are already set. You should be able to call
 \shellinline{opc} from any path (of course by using the full name including path or modifying your shell PATH variable accordingly).
 
 Now call the program from a different location with all the needed data: technology, interface and cell. Since skywater130 is open source, the repository includes a
 draft of technology files for it, which is at least enough to test the setup. However, other technologies are under NDA so we can't provide any technology files.
 Most likely you will have to write them yourself, which is not too hard. See the guide about writing technology files. Let's call the program:
 \begin{shellcode}
-    opc -T skywater130 -I gds -C transistor
+    opc --technology skywater130 --interface gds --cell basic/transistor
     # or
-    opc -T skywater130 -I virtuoso -C transistor
+    opc --technology skywater130 --interface virtuoso --cell basic/transistor
 \end{shellcode}
 The gds interface creates a \shellinline{openPCells.gds} file, the virtuoso interface a \shellinline{openPCells.il}, which can be read with a text editor. Further
-current available interfaces are SVG, magic and a debugging export.
+current available interfaces are SVG, magic, tikz and a debugging export.
 
 This already concludes the quick start. For next steps, have a look in \shellinline{cells/} to see how the pcells are implemented. Furthermore, \shellinline{tech/}
 contains the technology files, of which there are three: skywater130 (working), freePDK45 (very old, will be updated) and a template (which is a little bit outdated,
@@ -98,8 +88,21 @@ framework for writing tool interfaces is provided as well as templates for techn
 maintained and developed.
 
 \section{Installation}
-The OpenPCells project aims to have zero dependencies and be compatible with several available versions of lua. This should make the installation as easy as
-possible.
+The OpenPCells project aims to have zero dependencies (besides a C compiler) by writing all modules from scratch and including a lua interpreter. Therefore a
+simple \shellinline{make} should be enough to build the project. The main Makefile is partly based on the Makefile from the lua project and tries to figure out
+the platform it is running on. There is no reason why this project should not also run on systems where lua runs on, but it is only tested for linux.
+
+\subsection{Virtuoso}
+The virtuoso interface consists of two parts: an export module to create .il files to be loaded in virtuoso as well as a menu that helps creating a menu and
+callling the program with the right options. You can install this by loading \shellinline{interface/virtuoso/init.il} BEFORE you open a layout view (this
+installs a trigger). The best option is to put the following line in your \shellinline{.cdsinit}:
+\begin{shellcode}
+    load("/path/to/opc/interface/virtuoso.il")
+\end{shellcode}
+Of course you need to adapt the path.
+
+Now open a layout view, there should be a new menu at the end of the available menus (right) called OpenPCells. If not, check your log window and write me an
+email.
 
 \end{document}
 
