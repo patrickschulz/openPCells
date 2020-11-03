@@ -9,7 +9,7 @@
 \begin{abstract}
     \noindent This is the official documentation of the OpenPCells project.  It is split in several different files for clarity. This document provides an overview
     of the creation of PCells in the OpenPCells environment as well as a detailed API documentation.  If you are looking for a general overview of the project and
-    how to use it, start with the user guide, which also contains a tutorial for getting started quickly. If you want to now more about the technical details and
+    how to use it, start with the user guide, which also contains a tutorial for getting started quickly. If you want to know more about the technical details and
     implementation notes, look into the technical documentation.
 \end{abstract}
 
@@ -19,13 +19,13 @@
 We will start this documentation by a series of examples to show the main features and API functions. The to-be-created cells will get increasingly complex to
 demonstrate various features.
 
-Every cell is defined by a function where all shapes making up the shape are described. This function gets called by the cell generation system which expects to
-receive one object as return value of that function.
+Every cell is defined by a function where all shapes making up the shape are described. This function gets called by the cell generation system, which passes the
+main object and a table with all defined parameters.
 
 \subsection{Simple Rectangle}
 The first example is a simple rectangle of variable width and height. As mentioned, all the code for the rectangle resides in a function \luainline{layout()}.
 The parameters of the cell are defined in a function \luainline{parameters()}, which is optional in theory, but since we're designing pcells, there is not much point
-of leaving it out. In \luainline{layout()}, we get the defined parameters, create the rectangle and finally return the created cell.
+of leaving it out. In \luainline{layout()}, we receive the main object and the defined parameters. Here we can modify the object based on the parameters.
 
 The simple rectangle looks like this:
 \lualisting{code/simple_rectangle.lua}
@@ -37,25 +37,29 @@ We can add as many parameters as we like (\luainline{pcell.add_parameters()} acc
 the name of the parameter, the second entry is the default value. This is the simplest form, we can supply more information for finer control. We will see some
 examples of this later on.
 
-The default value for both parameters is 1.0, which is a \emph{size}, meaning it has a unit. What does 1.0 mean? It could be (and mostly will be)
-\SI{1}{\micro\meter}, but we don't know that yet. It depends on the technology settings, but we don't care about that here.
+The default value for both parameters is 100, which is a \emph{size}, meaning it has a unit. Physical/geometrical parameters like width or height are specified
+in nanometers.\footnote{Of course you can do what you want in a cell, but the modules that process the cells after creation work in nanometers. It is best
+practice to do the same.}
 
-This is all for the \luainline{parameters()} function, so let's move on to \luainline{layout()}. Here we load the parameters for the cell (which already includes any
-parsed arguments given before the cell creation). We can store them in any variable, a common name is simply \luainline{P}. Of course it is also possible to
-\enquote{unpack} the parameters, storing them in individual variables, but for cells with many parameters this rather is a bloat.
-\lualisting[widthgobble = 4, firstline = 12, lastline = 12]{code/simple_rectangle.lua}
+This is all for the \luainline{parameters()} function, so let's move on to \luainline{layout()}. This functions takes two arguments: the main object that will be
+placed in the layout and the table with parameters for the cell (which already includes any parsed arguments given before the cell creation). 
+
+We can name them in any way that pleases us, the common name used in all standard cells distributed by this project is \luainline{_P} (as hommage to the global
+environment \luainline{_G} in lua).
+Of course it is possible to \enquote{unpack} the parameters, storing them in individual variables, but for cells with many parameters this rather is a bloat.
+\lualisting[widthgobble = 0, firstline = 10, lastline = 10]{code/simple_rectangle.lua}
 
 Now that we have all the layout parameters, we can already create the rectangle:
-\lualisting[widthgobble = 4, firstline = 15, lastline = 15]{code/simple_rectangle.lua}
+\lualisting[widthgobble = 4, firstline = 12, lastline = 12]{code/simple_rectangle.lua}
 There is a lot going on here: We use the \luainline{geometry.rectangle} function to create a rectangle with with and height (second and third argument). Since we are
 creating shapes of IC geometry, we have to specify a layer. But we also want to create technology-independent pcells, so there is a generics system for layers. Right
 now we are just using the \luainline{generics.metal} function, which takes a single number as argument. \luainline{generics.metal(1)} specifies the first metal
 (counted from silicon), you can also say something like \luainline{generics.metal(-2)}, where \luainline{-1} is the index of the highest metal. Lastly we save the return value
-of \luainline{geometry.rectangle} in a local variable \luainline{obj}, which is a hint to the type: All geometry functions return \luainline{objects}, which has some
+of \luainline{geometry.rectangle} in a local variable \luainline{rect}, which is a hint to the type: All geometry functions return \luainline{objects}, which has some
 consequences for the use of these functions. We will get into that later.
 
-That is all we have to do for the geometry of the cell, so we can return what we have created:
-\lualisting[widthgobble = 4, firstline = 18, lastline = 18]{code/simple_rectangle.lua}
+That is all we have to do for the geometry of the cell, so we merge that into the main cell:
+\lualisting[widthgobble = 4, firstline = 14, lastline = 14]{code/simple_rectangle.lua}
 This cell can now be created by calling the main program with an appropriate interface and technology. Note that there's another manual about that, so we won't get
 into any details here.
 
@@ -64,24 +68,24 @@ Now that we know how to create a rectangle, we want to create an entire array, t
 used for example as filling. We will setup the cell exactly as before, we only have to add two new parameters: the repetition and the pitch (we will start with
 quadratic arrays with equal pitch in both directions):
 \lualisting[firstline = 1, lastline = 8]{code/rectangle_array.lua}
-The default arguments are \num{2.0} for the pitch and \num{10} for the number of repetitions, which creates a ten-by-ten array of rectangles with a spacing of
-\num{1.0} and a width and height of \num{1.0}. Again, remember that we don't care about real dimensions and units here.
+The default arguments are \num{200} for the pitch and \num{10} for the number of repetitions, which creates a ten-by-ten array of rectangles with a spacing of
+\num{100} and a width and height of \num{100}. Again, remember that we work in nanometers here.
 
 For the repetition we could use a loop to create the objects:
-\lualisting[widthgobble = 4, firstline = 17, lastline = 24]{code/rectangle_array.lua}
+\lualisting[widthgobble = 4, firstline = 12, lastline = 19]{code/rectangle_array.lua}
 Looks ok, but what's with the \luainline{obj:merge_into(o)}? This is a \emph{method} of objects and needs a little explaining of the object system. As mentioned
-earlier, every geometry function creates what is called an object. An object is a collection of shapes, where each shape is made up of a layer-purpose-pair and an
-points (which are currently mostly interpreted as rectangle). The cell generation systems expects to receive only one object from the main cell function, so
-how do we return more than one shape? We can merge several objects into one, which is exactly what we are doing here. We silently dropped the line about the creation
-of the main cell object \luainline{obj}, which simply looks like this (and of course comes before the loops):
-\lualisting[widthgobble = 4, firstline = 14, lastline = 14]{code/rectangle_array.lua}
+earlier, every geometry function creates what is called an object. An object is a collection of shapes, where each shape is made up of a layer-purpose-pair and
+points (which can currently be interpreted as rectangle or polygon). The cell generation systems expects to receive only one object from the main cell function,
+so how do we return more than one shape? We can merge several objects into one, which is exactly what we are doing here. 
+
 In order for this to work, we also have to move the rectangles to the correct position, something that we didn't learn yet. This comes later, as this also involves
-some math we don't want to talk right now. Just keep in mind that the above loop is wrong and cumbersome. In any ways, there is a function that does exactly that:
+some math we don't want to talk about right now. Just keep in mind that the above loop is wrong and cumbersome. In any ways, there is a function that does
+exactly what we want to achieve:
 \luainline{geometry.multiple}. It takes an object as first argument and then the repetition in x and y and the pitch in x and y and returns an array of repeated
 objects with the center in the origin. With it, we can replace the whole loop construct with:
-\lualisting[widthgobble = 4, firstline = 27, lastline = 30]{code/rectangle_array.lua}
-\luainline{geometry.multiple} also already merges all objects so we don't have to take care of that. Therefor, we receive a single object which we simply can return as
-before. The whole cell looks like this:
+\lualisting[widthgobble = 4, firstline = 22, lastline = 25]{code/rectangle_array.lua}
+\luainline{geometry.multiple} also already merges all objects so we don't have to take care of that. Therefor, we receive a single object which we simply can
+merge directly into the main cell. The whole cell looks like this:
 \lualisting{code/rectangle_array.lua}
 Now you already now how to create rectangles, with generic layers, \luainline{geometry.multiple} and object merging. With this, one can already built a
 surprising amount of pcells. However, we have to discuss how we can create layers other than metals, vias and shapes with more complex outlines than rectangles. We
@@ -92,48 +96,48 @@ Many technologies don't have so-called metal-insulator-metal capacitors (mimcaps
 Let's do that. As before, we set up the pcell. Useful parameters are the number of fingers, the width and height of the fingers and the spacing in between.
 Furthermore, we shift one collection of fingers (one plate) up and the other down to separate them and connect them together. Lastly, we also specify the used
 metals and the width of the connecting rails:
-\lualisting[firstline = 1, lastline = 12]{../../../cells/momcap.lua}
-In \luainline{layout()}, we start by getting the parameters and creating the main object:
-\lualisting[widthgobble = 4, firstline = 15, lastline = 19]{../../../cells/momcap.lua}
-For the fingers we loop over all metals. We don't have to create every finger separately, with \luainline{geometry.multiple} this becomes very simple. Since the upper
-and lower fingers are one-off and \luainline{geometry.multiple} centeres all objects, we only have to move them a little bit up/down. This is done with
-\luainline{object.translate} (a method of an object), taking x- and y-offset as arguments:
-\lualisting[widthgobble = 4, firstline = 21, lastline = 29]{../../../cells/momcap.lua}
+\lualisting[firstline = 1, lastline = 12]{../../../cells/passive/capacitor/mom.lua}
+The parameter definition also shows how you can use better names for displaying: Simply write them in parantheses. When querying the defined parameters of a
+cell, the display names are used, but within the cell the regular names are significant. This enables easier syntax: \luainline{_P.fingers} as opposed to
+\luainline{_P["Number of Fingers"]}.
+
+In \luainline{layout()} we  loop over all metals to draw the fingers. We don't have to create every finger separately, with \luainline{geometry.multiple} this
+becomes very simple. Since the upper and lower fingers are one-off and \luainline{geometry.multiple} centeres all objects, we only have to move them a little bit
+up/down. This is done with \luainline{object.translate} (a method of an object), taking x- and y-offset as arguments: 
+\lualisting[widthgobble = 4, firstline = 15, lastline = 25]{../../../cells/passive/capacitor/mom.lua} 
 We create two arrays of fingers, one for the \enquote{upper plate}, one for the \enquote{lower plate}. All fingers have the same width, height and pitch. For the
-upper plate, we use one more finger, the placement in \luainline{geometry.multiple} automatically arranges them centered, so that this \enquote{just works}.
-The \param{ypitch} for \luainline{geometry.multiple} is \num{0}, which is ok since we only have a \param{yrep} of \num{1}. 
+upper plate, we use one more finger, the placement in \luainline{geometry.multiple} automatically arranges them centered, so that this \enquote{just works}.  The
+\param{ypitch} for \luainline{geometry.multiple} is \num{0}, which is ok since we only have a \param{yrep} of \num{1}. 
 
 The rails connecting the fingers are created in a similar manner:
-\lualisting[widthgobble = 4, firstline = 31, lastline = 37]{../../../cells/momcap.lua}
+\lualisting[widthgobble = 4, firstline = 27, lastline = 33]{../../../cells/passive/capacitor/mom.lua}
 The \luainline{end} delimits the \luainline{for}-loop.
 
 What remains is the drawing of the vias between the metals. For this we introduce a new \luainline{generics} function: \luainline{generics.via}. It takes two
 arguments for the start- and end-metal for the via stack. We don't have to specify the individual vias between each layer in the stack, this is resolved later by the
-technology translation.
-\lualisting[widthgobble = 4, firstline = 38, lastline = 43]{../../../cells/momcap.lua}
-With this the pcell is finished, we only have to remember to return the created object and close the function:
-\lualisting[firstline = 45, lastline = 46]{../../../cells/momcap.lua}
-The entire listing is in \texttt{cells/momcap.lua}.
+technology translation. The vias are placed in the rails:
+\lualisting[widthgobble = 4, firstline = 34, lastline = 39]{../../../cells/passive/capacitor/mom.lua}
+With this the pcell is finished, the entire listing is in \texttt{cells/passive/capacitor/mom.lua}.
 
 \subsection{Octagonal Inductor}
-RF designs often require on-chip inductors, which usually are built in an octagonal shape due to angle restrictions in most technologies (no true circles or better
-approximations available). We will show how to built a differential (symmetric) octagonal inductor with a variable number of turns (integers). We will skip some
-basic techniques that we already discussed a few times such as setting up the cell body, cell parameters, main object and return value. Look into
-\texttt{cells/octagonal\_inductor.lua} for the defined parameters.
+RF designs often require on-chip inductors, which usually are built in an octagonal shape due to angle restrictions in most technologies (no true circles or
+better approximations available). We will show how to built a differential (symmetric) octagonal inductor with a variable number of turns (integers). We will
+skip some basic techniques that we already discussed a few times such as setting up the cell body, cell parameters and main object. Look into
+\texttt{cells/passive/inductor/octagonal.lua} for the defined parameters.
 
 An inductor is basically a wire routed in a special manner, therefor we will describe the inductor as a \luainline{path}. This is a series of points that gets
 converted into a polygon with a \luainline{width}. To create a path, we have to pass the points, which we will store in a \luainline{table}. Here is how this looks
 for the octagonal inductor: 
-\lualisting[widthgobble = 8, firstline = 32, lastline = 40]{../../../cells/octagonal_inductor.lua} 
-\luainline{util.make_append_xy} is a helper functions, that returns a function that appends points to an array. It's purpose is to simplify code, one might as well
-just use \luainline{table.insert}.
+\lualisting[widthgobble = 8, firstline = 31, lastline = 40]{../../../cells/passive/inductor/octagonal.lua} 
+\luainline{util.make_insert_xy} is a helper function, that returns a function that appends/prepends points to an array. It's purpose is to simplify code, one
+might as well just use \luainline{table.insert}.
 
 This is just an excerpt from the cell, the entire code generating the path points is a bit complex and involves some mathematical thoughts. Since this tutorial is
 about how to build the code for cells, the actual points will not be discussed.
 
 After the points are assembled, we can create the path. The cell only draws half of the inductor, so we draw the path twice, one time with mirrored points (notice
 \luainline{util.xmirror(pathpts)} in the second line):
-\lualisting[widthgobble = 8, firstline = 86, lastline = 91]{../../../cells/octagonal_inductor.lua}
+\lualisting[widthgobble = 8, firstline = 89, lastline = 94]{../../../cells/passive/inductor/octagonal.lua}
 The \luainline{geometry.path} function takes four arguments: the layer, the points of the path, the width and whether to use a miter- or a bevel-join. Bevel-join is
 default, so \luainline{true} is specified for a miter-join.
 

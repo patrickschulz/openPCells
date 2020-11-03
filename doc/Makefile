@@ -1,4 +1,4 @@
-cells := ../cells/momcap.lua ../cells/octagonal_inductor.lua
+cells := ../cells/passive/capacitor/mom.lua ../cells/passive/inductor/octagonal.lua
 documents := userguide.pdf techdoc.pdf techfiles.pdf celldesign.pdf
 
 .PHONY: all

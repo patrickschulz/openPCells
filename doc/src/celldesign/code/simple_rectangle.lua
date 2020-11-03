@@ -1,19 +1,15 @@
 -- define parameters
 function parameters()
     pcell.add_parameters(
-        { "width",  1.0 },
-        { "height", 1.0 }
+        { "width",  100 },
+        { "height", 100 }
     )
 end
 
 -- define layout
-function layout()
-    -- get parameters
-    local P = pcell.get_params()
-
+function layout(obj, _P)
     -- create the shape
-    local obj = geometry.rectangle(generics.metal(1), width, height)
-
-    -- return the object
-    return obj
+    local rect = geometry.rectangle(generics.metal(1), width, height)
+    -- merge into main cell
+    obj:merge_into(rect)
 end
