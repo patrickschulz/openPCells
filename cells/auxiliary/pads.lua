@@ -3,7 +3,7 @@ function parameters()
         { "numpads(Number of Pads)",                 3 },
         { "padwidth(Width of Pad)",              60000 },
         { "padheight(Height of Pad)",            80000 },
-        { "padpitch(Pitch between Pads)",       100000 }
+        { "padpitch(Pitch between Pads)",       100000 },
         { "orientation(Pad Orientation)", "horizontal" }
     )
 end

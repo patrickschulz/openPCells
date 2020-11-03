@@ -7,7 +7,7 @@ function parameters()
         { "extension(Line Extension)",             40000 },
         { "extsep(Extension Separation)",           6000 },
         { "grid(Grid)",                              200 },
-        { "metalnum(Conductor Metal)",     -1, "integer" },
+        { "metalnum(Conductor Metal)",     -1, "integer" }
     )
 end
 
