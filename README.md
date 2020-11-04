@@ -41,6 +41,7 @@ but I need to find the time to do it. Most of the work is building GUIs for the 
 that. If you want to add this, look in the menu.il, there is some old code of mine that can be adapted to do something like that.
 -->
 
+<!---
 # Technology translation and mapping
 ## Introduction
 The pcells are defined in general layers (such as "gate" or "M1" or "lastmetal"), which have to be translated into a specific technology for
@@ -107,6 +108,7 @@ have a poly nitride cut). A typical entry looks like this (taken from tech/skywa
 
 The entry describes the geometry of the actual cuts and the needed layers. This works ok currently, but assumes that metal/poly strips with SEVERAL
 cuts are drawn explicitly. I am working on this to improve that, but it works right now with this method.
+-->
 
 # Roadmap
 This project started as a way of designing pcells independently of SKILL/virtuoso and technologies, but I have shifted a bit my goals and am thinking
