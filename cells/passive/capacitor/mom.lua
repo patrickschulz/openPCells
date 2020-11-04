@@ -25,14 +25,14 @@ function layout(momcap, _P)
         ):translate(0, -_P.foffset))
         -- rails
         momcap:merge_into(geometry.multiple(
-            geometry.rectangle(generics.metal(i), 
+            geometry.rectangle(generics.metal(i),
                 (2 * _P.fingers + 1) * (_P.fwidth + _P.fspace), _P.rwidth
             ),
             1, 2, 0, 2 * _P.foffset + _P.fheight + _P.rwidth
         ))
     end
     momcap:merge_into(geometry.multiple(
-        geometry.rectangle(generics.via(_P.firstmetal, _P.lastmetal), 
+        geometry.rectangle(generics.via(_P.firstmetal, _P.lastmetal),
             (2 * _P.fingers + 1) * (_P.fwidth + _P.fspace), _P.rwidth
         ),
         1, 2, 0, 2 * _P.foffset + _P.fheight + _P.rwidth

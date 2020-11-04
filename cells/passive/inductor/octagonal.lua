@@ -38,7 +38,7 @@ function layout(inductor, _P)
         append(-radius, -sign * r)
         append(-r, -sign * radius)
         append(-r + _scale_tanpi8(_P.width / 2), -sign * radius)
-        
+
         -- draw underpass
         if i < _P.turns then
             -- create connection to underpass
@@ -46,6 +46,7 @@ function layout(inductor, _P)
             append(-(_scale_tanpi8(_P.radius) + pitch / 2) / 2, -sign * radius)
             -- create underpass
             local uppts = {}
+            -- luacheck: ignore append
             local append = util.make_insert_xy(uppts)
             append(-(_scale_tanpi8(_P.radius) + pitch / 2) / 2, -sign * radius)
             append(-pitch / 2 - _scale_tanpi8(_P.width / 2), -sign * radius)
@@ -57,15 +58,15 @@ function layout(inductor, _P)
             inductor:merge_into(geometry.path(auxmetal, util.xmirror(uppts), _P.width, true))
             -- place vias
             inductor:merge_into(geometry.rectangle(via, _P.width, _P.width):translate(
-                -(_scale_tanpi8(_P.radius) + pitch / 2) / 2, 
+                -(_scale_tanpi8(_P.radius) + pitch / 2) / 2,
                 -sign * (radius + pitch)
             ))
             inductor:merge_into(geometry.rectangle(via, _P.width, _P.width):translate(
-                (_scale_tanpi8(_P.radius) + pitch / 2) / 2, 
+                (_scale_tanpi8(_P.radius) + pitch / 2) / 2,
                 -sign * radius
             ))
         end
-        
+
         -- draw inner connection between left and right
         if i == 1 then
             prepend(0, sign * radius)
@@ -80,7 +81,7 @@ function layout(inductor, _P)
             if _P.extsep / 2 + _P.width > r + _scale_tanpi8(_P.width / 2) then
                 append(-(_P.extsep + _P.width) / 2, -r - radius + (_P.extsep + _P.width) / 2)
                 append(-(_P.extsep + _P.width) / 2, -r - radius + (_P.extsep + _P.width) / 2 - _P.extension)
-            else                                   
+            else
                 append(-(_P.extsep + _P.width) / 2, -radius)
                 append(-(_P.extsep + _P.width) / 2, -(radius + _P.extension))
             end

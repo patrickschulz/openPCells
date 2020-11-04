@@ -1,3 +1,4 @@
+-- luacheck: globals report check_points
 -- horizontal piece
 do
     local pathpts = {

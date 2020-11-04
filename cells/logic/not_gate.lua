@@ -11,8 +11,8 @@ function layout(gate, _P)
 
     -- common transistor options
     pcell.push_overwrites("basic/transistor", {
-        fingers = _P.fingers, 
-        gatelength = _P.glength, 
+        fingers = _P.fingers,
+        gatelength = _P.glength,
         gatespace = _P.gspace,
         sdwidth = _P.sdwidth,
     })
@@ -38,7 +38,7 @@ function layout(gate, _P)
         {
             channeltype = "nmos",
             fwidth = _P.nwidth,
-            gbotext = _P.powerspace + _P.dummycontheight, 
+            gbotext = _P.powerspace + _P.dummycontheight,
             gtopext = _P.separation / 2,
             cliptop = true,
             innersourcedrainsize = _P.nwidth / 2,
@@ -77,7 +77,7 @@ function layout(gate, _P)
             point.create(_P.fingers * xpitch / 2, -(_P.separation + _P.sdwidth) / 2),
             point.create(-_P.fingers * xpitch / 2 + xpitch, -(_P.separation + _P.sdwidth) / 2),
         },
-        _P.sdwidth, 
+        _P.sdwidth,
         true
     ))
     local xrep = (_P.fingers % 2 == 0) and

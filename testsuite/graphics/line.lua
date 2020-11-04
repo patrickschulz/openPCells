@@ -1,3 +1,4 @@
+-- luacheck: globals report check_points
 -- vertical test
 do
     local pt1 = point.create(0, 0)

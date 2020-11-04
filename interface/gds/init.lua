@@ -59,6 +59,7 @@ local datatypes = {
 }
 
 -- helper functions
+--[[ not used right now
 local function _gdsfloat_to_number(data, width)
     local sign      = data[1] & 0x80
     local exp       = data[1] & 0x7f - 64
@@ -73,6 +74,7 @@ local function _gdsfloat_to_number(data, width)
         return num
     end
 end
+--]]
 
 local function _number_to_gdsfloat(num, width)
     local data = {}
@@ -82,7 +84,6 @@ local function _number_to_gdsfloat(num, width)
         end
         return data
     end
-    local num = num
     local sign = num < 0
     local exp = 0
     while num >= 1 do
@@ -110,7 +111,6 @@ local function _split_in_bytes(number, bytes)
     local bits = 8
     local t = {}
     local num = number
-    local sign = number < 0 and 1 or 0
     for i = bytes, 1, -1 do
         local byte = math.floor(num / 2^(bits * (i - 1)))
         num = num - byte * 2^(bits * (i - 1))
@@ -124,27 +124,27 @@ end
 
 local datatable = {
     [0x00] = nil,
-    [0x01] = function(nums) 
+    [0x01] = function(nums)
         local data = {}
-        for _, num in ipairs(nums) do 
+        for _, num in ipairs(nums) do
             for _, b in ipairs(_split_in_bytes(num, 2)) do
                 table.insert(data, b)
             end
         end
         return data
     end,
-    [0x02] = function(nums) 
+    [0x02] = function(nums)
         local data = {}
-        for _, num in ipairs(nums) do 
+        for _, num in ipairs(nums) do
             for _, b in ipairs(_split_in_bytes(num, 2)) do
                 table.insert(data, b)
             end
         end
         return data
     end,
-    [0x03] = function(nums) 
+    [0x03] = function(nums)
         local data = {}
-        for _, num in ipairs(nums) do 
+        for _, num in ipairs(nums) do
             for _, b in ipairs(_split_in_bytes(num, 4)) do
                 table.insert(data, b)
             end

@@ -67,10 +67,10 @@ local function _intersection(pt1, pt2, pt3, pt4)
 
     local pt = point.create(x1 + num * (x2 - x1) // den, y1 + num * (y2 - y1) // den)
     -- FIXME: can num and den have different signs?
-    if 
-        (num < 0 and den > 0) or 
-        (num > 0 and den < 0) or 
-        math.abs(num) > math.abs(den) 
+    if
+        (num < 0 and den > 0) or
+        (num > 0 and den < 0) or
+        math.abs(num) > math.abs(den)
     then -- line segments don't truly intersect
         return nil, pt
     end
@@ -142,11 +142,10 @@ end
 -- if adjacent lines don't intersect, either:
 --      * insert both endpoints (well, the endpoint of the first segment and the startpoint of the second segment).
 --        This is a bevel join
---      * insert the point where the extended line segments meet 
+--      * insert the point where the extended line segments meet
 --        This is a miter join
 -- the endpoints of the path need extra care
-local function _get_path_pts(edges, width, miterjoin)
-    local i = 1
+local function _get_path_pts(edges, miterjoin)
     local midpointfunc = function(i)
         local inner, outer = _intersection(edges[i - 1], edges[i], edges[i + 1], edges[i + 2])
         if inner then
@@ -185,7 +184,7 @@ end
 
 local function _get_any_angle_path_pts(pts, width, grid, miterjoin)
     local edges = _get_gridded_edge_segments(pts, width, grid)
-    local pathpts = _get_path_pts(edges, width, miterjoin)
+    local pathpts = _get_path_pts(edges, miterjoin)
     table.insert(pathpts, edges[1]:copy()) -- close path
     local poly = {}
     for i = 1, #pathpts - 1 do
@@ -226,7 +225,7 @@ local function _crossing(layer1, layer2, width, dxy, ext, direction, mode, separ
     local obj = object.create()
     local pts = {}
     local append = util.make_insert_xy(pts)
-    local separation = separation or 0
+    separation = separation or 0
     if mode == "rectangular" then
         if direction == "x" then
             append(-dxy / 2 - ext, -dxy / 2)
@@ -317,7 +316,6 @@ function M.path_midpoint(layer, pts, width, method, miterjoin)
             local x2, y2 = pts[i + 1]:unwrap()
             local preangle = math.atan(y1 - y0, x1 - x0)
             local postangle = math.atan(y2 - y1, x2 - x1)
-            local pt = pts[i]
             local factor = 0.6 * math.min(
                 math.sqrt((x1 - x0)^2 + (y1 - y0)^2),
                 math.sqrt((x2 - x1)^2 + (y2 - y1)^2)
@@ -359,13 +357,13 @@ function M.corner(layer, startpt, endpt, width, radius, grid)
     local pts = graphics.quadbezierseg(
         point.create(startpt.x - 0.5 * width, endpt.y - radius),
         point.create(startpt.x + radius, endpt.y + 0.5 * width),
-        point.create(startpt.x - 0.5 * width, endpt.y + 0.5 * width), 
+        point.create(startpt.x - 0.5 * width, endpt.y + 0.5 * width),
         grid
     )
     local pts2 = graphics.quadbezierseg(
         point.create(startpt.x + 0.5 * width, endpt.y - radius),
         point.create(startpt.x + radius, endpt.y - 0.5 * width),
-        point.create(startpt.x + 0.5 * width, endpt.y - 0.5 * width), 
+        point.create(startpt.x + 0.5 * width, endpt.y - 0.5 * width),
         grid
     )
     pts:merge_append(pts2:reverse())
@@ -381,7 +379,7 @@ function M.multiple(obj, xrep, yrep, xpitch, ypitch)
     for x = 1, xrep do
         for y = 1, yrep do
             local center = point.create(
-                (x - 1) * xpitch - (xrep - 1) * xpitch / 2, 
+                (x - 1) * xpitch - (xrep - 1) * xpitch / 2,
                 (y - 1) * ypitch - (yrep - 1) * ypitch / 2
             )
             final:merge_into(obj:copy():translate(center:unwrap()))

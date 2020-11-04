@@ -10,7 +10,7 @@ local M = {}
 
 function M.xmirror(pts, xcenter)
     local mirrored = {}
-    local xcenter = xcenter or 0
+    xcenter = xcenter or 0
     for i, pt in ipairs(pts) do
         local x, y = pt:unwrap()
         mirrored[i] = point.create(2 * xcenter - x, y)
@@ -20,7 +20,7 @@ end
 
 function M.ymirror(pts, ycenter)
     local mirrored = {}
-    local ycenter = ycenter or 0
+    ycenter = ycenter or 0
     for i, pt in ipairs(pts) do
         local x, y = pt:unwrap()
         mirrored[i] = point.create(x, 2 * ycenter - y)
@@ -62,7 +62,7 @@ function M.reverse(pts)
     return new
 end
 
-function M.make_insert_xy(pts, idx) 
+function M.make_insert_xy(pts, idx)
     if idx then
         return function(x, y) table.insert(pts, idx, point.create(x, y)) end
     else
@@ -70,16 +70,16 @@ function M.make_insert_xy(pts, idx)
     end
 end
 
-function M.make_insert_pts(pts, idx) 
+function M.make_insert_pts(pts, idx)
     if idx then
-        return function(...) 
-            for _, pt in ipairs({ ... }) do 
+        return function(...)
+            for _, pt in ipairs({ ... }) do
                 table.insert(pts, idx, pt)
             end
         end
     else
-        return function(...) 
-            for _, pt in ipairs({ ... }) do 
+        return function(...)
+            for _, pt in ipairs({ ... }) do
                 table.insert(pts, pt)
             end
         end
@@ -94,12 +94,12 @@ end
 
 function M.is_point_in_polygon(pt, pts)
     local j = #pts
-    local c = nil 
+    local c = nil
     local x, y = pt:unwrap()
     for i = 1, #pts do
         local xi, yi = pts[i]:unwrap()
         local xj, yj = pts[j]:unwrap()
-        if ((yi > y) ~= (yj > y)) and (x < xi + (xj - xi) * (y - yi) / (yj - yi)) 
+        if ((yi > y) ~= (yj > y)) and (x < xi + (xj - xi) * (y - yi) / (yj - yi))
             then
             c = not(c)
         end
@@ -122,20 +122,20 @@ procedure(MSCUtilSanitizePoints(pts grid)
 			y = grid * fix(yCoord(pt) / grid)
 			dx = x - xCoord(prevpt)
 			dy = y - yCoord(prevpt)
-			
+
 			when(abs(dx) <= grid dx = 0.0)
 			when(abs(dy) <= grid dy = 0.0)
-			
-			when(abs(dx) > 0 && abs(dy) > 0 
+
+			when(abs(dx) > 0 && abs(dy) > 0
 				if(abs(dx) > abs(dy)
 					dy = dy / abs(dy) * abs(dx)
 					dx = dx / abs(dx) * abs(dy)
 				)
 			)
-			
+
 			x = xCoord(prevpt) + dx
 			y = yCoord(prevpt) + dy
-			
+
 			res = tconc(res x:y)
 			prevpt = x:y
 		)

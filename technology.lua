@@ -26,7 +26,7 @@ function M.translate_metals(cell)
 end
 
 function M.place_via_conductors(cell)
-    for i, S in cell:iter() do
+    for _, S in cell:iter() do
         if S.lpp:is_type("via") then
             local m1, m2 = S.lpp:get()
             local s1 = S:copy()
@@ -47,9 +47,9 @@ end
 function M.split_vias(cell)
     for i, S in cell:iter(function(S) return S:is_lpp_type("via") end) do
         local from, to = S.lpp:get()
-        for i = from, to - 1 do
+        for j = from, to - 1 do
             local sc = S:copy()
-            sc.lpp = generics.via(i, i + 1)
+            sc.lpp = generics.via(j, j + 1)
             cell:add_shape(sc)
         end
         cell:remove_shape(i)
@@ -61,20 +61,20 @@ local function _get_lpp(lpp, interface)
         lpp = lpp()
     end
     if not lpp[interface] then
-        error(string.format("no layer information for '%s' for interface '%s'", layer, interface), 0)
+        error(string.format("no layer information for interface '%s'", interface), 0)
     end
     return lpp[interface]
 end
 
 local function _do_map(cell, S, entry, interface)
-    local entry = entry.func(S.lpp:get())
+    entry = entry.func(S.lpp:get())
     if entry.lpp then
         local new = S:copy()
         new.lpp = generics.mapped(_get_lpp(entry.lpp, interface))
-        if entry.left   > 0 or 
+        if entry.left   > 0 or
            entry.right  > 0 or
            entry.top    > 0 or
-           entry.bottom > 0 
+           entry.bottom > 0
         then -- this check ensures that not-resized polygons work
             new:resize_lrtb(entry.left, entry.right, entry.top, entry.bottom)
         end
@@ -83,7 +83,7 @@ local function _do_map(cell, S, entry, interface)
 end
 
 local function _do_array(cell, S, entry, interface)
-    local entry = entry.func(S.lpp:get())
+    entry = entry.func(S.lpp:get())
     local lpp = entry.lpp
     local width = S:width()
     local height = S:height()
@@ -117,7 +117,7 @@ function M.translate(cell, interface)
         cell:remove_shape(i)
     end
     for _, port in pairs(cell.ports) do
-        local layer = port.layer:str()
+        --local layer = port.layer:str()
     end
 end
 
@@ -161,7 +161,7 @@ local function _load_layermap(name)
             else
                 return {
                     action = "array",
-                    func = function() 
+                    func = function()
                         return {
                             lpp = entry.lpp,
                             width = entry.width,

@@ -1008,10 +1008,8 @@ function parameters()
 end
 
 function layout(text, _P)
-    local shift = 1
     local x = 0
     local y = 0
-    local lastwidth = 0
     for i = 1, #_P.text do
         local char = string.sub(string.upper(_P.text), i, i)
         if char == "\n" then

@@ -7,7 +7,7 @@ This module provides a simple argument parser for the main program
 local M = {}
 
 local function _advance(state, num)
-    local num = num or 1
+    num = num or 1
     state.i = state.i + num
 end
 
@@ -16,6 +16,7 @@ local function _next_arg(args, state)
     return args[state.i]
 end
 
+--[[
 local function _next_args(args, state, num)
     _advance(state, num)
     local t = {}
@@ -24,6 +25,7 @@ local function _next_args(args, state, num)
     end
     return t
 end
+--]]
 
 local function _consume_until_hyphen(args, state)
     local t = {}

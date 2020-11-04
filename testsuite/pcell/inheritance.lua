@@ -1,3 +1,4 @@
+-- luacheck: globals report check_points
 do
     local pathpts = {
         point.create(    0, 0),

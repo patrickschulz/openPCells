@@ -46,7 +46,7 @@ if not cell then
 end
 if args.origin then
     local dx, dy = string.match(args.origin, "%(%s*([-%d]+)%s*,%s*([-%d]+)%s*%)")
-    if not dx then 
+    if not dx then
         error(string.format("could not parse origin (%s)", args.origin), 0)
     end
     cell:translate(dx, dy)

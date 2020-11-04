@@ -1,3 +1,4 @@
+-- luacheck: globals check_number report
 -- bind first argument
 do
     local div = function(a, b) return a / b end

@@ -12,19 +12,19 @@ function layout(array, _P)
     local ttypes = {}
     local indices = {}
     for i, f in ipairs(_P.fingers) do
-        ttypes[i] = { 
+        ttypes[i] = {
             topgatestrspace = i * gatestrspace + (i - 1) * _P.topgatestrwidth,
             botgatestrspace = i * gatestrspace + (i - 1) * _P.botgatestrwidth,
         }
-        for j = 1, f / 2 do
+        for _ = 1, f / 2 do
             table.insert(indices, i)
         end
     end
     aux.shuffle(indices)
-    pcell.push_overwrites("basic/transistor", { 
+    pcell.push_overwrites("basic/transistor", {
         fingers = 1,
-        drawtopgate = true, 
-        drawbotgate = true, 
+        drawtopgate = true,
+        drawbotgate = true,
         gtopext = numtransistors * (gatestrspace + _P.topgatestrwidth),
         gbotext = numtransistors * (gatestrspace + _P.botgatestrwidth),
     })

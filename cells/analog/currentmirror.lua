@@ -19,7 +19,7 @@ end
 
 function layout(currentmirror, _P)
     --[[
-    local options = pcell.make_options({ 
+    local options = pcell.make_options({
         fingers = _P.ifingers + _P.ofingers,
         drawtopgate = true, drawbotgate = true, connectsource = true, connectdrain = true,
         topgatestrspace = _P.gatestrapspace,
@@ -36,7 +36,7 @@ function layout(currentmirror, _P)
         geometry.rectangle(generics.metal(1), _P.sdwidth, _P.gatestrapspace),
         math.floor((_P.ifingers + _P.ofingers) / 4), 1, 4 * (_P.gatelength + _P.gatespace), 0
     ):translate(-_P.gatelength - _P.gatespace, (_P.fwidth + _P.gatestrapspace) / 2))
-    
+
     --[[
     -- mirror drain connections
     currentmirror:merge_into(geometry.multiple(

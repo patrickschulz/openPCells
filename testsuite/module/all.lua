@@ -1,3 +1,4 @@
+-- luacheck: globals report
 do
     local status, msg = pcall(_load_module, "testsuite/module/modules/correct")
     report("correct", status, msg)

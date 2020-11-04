@@ -13,7 +13,7 @@ local function _make_lazy(func)
 end
 --]]
 
-local geometrylut = {}
+--local geometrylut = {}
 M.geometry = {}
 for name, func in pairs(geometry) do
     M.geometry[name] = func

@@ -17,7 +17,7 @@ Implementation note:
 local M = {}
 
 local function identity(arg) return arg end
-local function toboolean(arg) 
+local function toboolean(arg)
     return arg == "true" and true or false
 end
 local function tointeger(arg)
@@ -30,7 +30,7 @@ local function tonumtable(arg)
     end
     return t
 end
-local function tostrable(arg)
+local function tostrtable(arg)
     local t = {}
     for e in string.gmatch(arg, "[^;,]+") do
         table.insert(t, tostring(e))
@@ -69,7 +69,7 @@ local function _prepare_cell_environment(cellname)
             create_layout = M.create_layout
         },
         -- fake modules, the shapes are really created later
-        -- this enables some tricks for example regarding even/odd metals 
+        -- this enables some tricks for example regarding even/odd metals
         -- to build metal grids with unknown number of metals
         geometry = abstract.geometry,
         graphics = abstract.graphics,
@@ -194,7 +194,7 @@ local function _process_input_parameters(cellname, cellargs, evaluate, overwrite
         end
         -- store old function for restoration
         backup[name] = p.func:get()
-        -- important: use :replace(), don't create a new function object. 
+        -- important: use :replace(), don't create a new function object.
         -- Otherwise parameter binding does not work, because bound parameters link to the original function object
         p.func:replace(function() return value end)
     end
@@ -226,7 +226,7 @@ local function _get_parameters(cellname, cellargs, evaluate)
         end
     end
 
-    -- install meta method for non-existing parameters as safety check 
+    -- install meta method for non-existing parameters as safety check
     -- this avoids arithmetic-with-nil-errors
     setmetatable(P, {
         __index = function(t, k)
@@ -284,8 +284,8 @@ function add_parameters(cellname, ...)
     for _, parameter in ipairs({ ... }) do
         local name, value = parameter[1], parameter[2]
         _add_parameter(
-            cellname, 
-            name, value, 
+            cellname,
+            name, value,
             parameter.argtype, parameter.posvals, parameter.follow
         )
     end
@@ -306,7 +306,7 @@ end
 
 function bind_parameter(cellname, name, othercell, othername)
     local param = loadedcells[cellname].parameters[name]
-    if not param then 
+    if not param then
         error(string.format("trying to bind '%s.%s' to '%s.%s', which is unknown", othercell, othername, cellname, name), 0)
     end
     if not bindings[cellname] then bindings[cellname] = {} end
@@ -375,6 +375,7 @@ function empty_overwrite_stack(cellname)
 end
 
 function clone_parameters(P)
+    assert(P, "pcell.clone_parameters: no parameters given")
     local new = {}
     for k, v in pairs(P) do
         new[k] = v

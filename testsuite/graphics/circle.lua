@@ -1,3 +1,4 @@
+-- luacheck: globals report check_points
 do
     local origin = point.create(0, 0)
     local radius = 1000

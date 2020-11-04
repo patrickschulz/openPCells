@@ -97,8 +97,6 @@ function M.quarterellipse(quadrant, origin, xradius, yradius, grid, allow45)
     end
 
     local quarter = _rasterize(x1, y1, x2, y2, grid, calc_error, allow45)
-    local pts = {}
-    local append = util.make_insert_xy(pts)
     if quadrant == 1 then
         return quarter
     end

@@ -8,9 +8,9 @@ local function _collect_shapes(cell, get_layer_func, get_index_func, point_func,
         shapes.indexed = true
         shapes.maxindex = 0
     end
-    local get_layer_func = get_layer_func or function(s) return s.lpp end
-    local point_func = point_func or function(s) return s.points end
-    for i, shape in cell:iter() do
+    get_layer_func = get_layer_func or function(s) return s.lpp end
+    point_func = point_func or function(s) return s.points end
+    for _, shape in cell:iter() do
         local layer = get_layer_func(shape, precomputed)
         if shapes.indexed then
             local index = get_index_func(shape, precomputed)

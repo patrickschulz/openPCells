@@ -5,43 +5,43 @@
 
 -- For every generic layer, mappings for the layer and the purpose must be given
 -- For the support of different interfaces, a number (for GDS) and a name (for virtuoso) must be given, this may change in the future
--- Some generic layers are mapped to nothing, for example a standard p-bulk process has no pwell. You have to explicitly state that 
+-- Some generic layers are mapped to nothing, for example a standard p-bulk process has no pwell. You have to explicitly state that
 -- the mapping is not needed, otherwise it would look like a missing mapping (see below)
 
 -- Example for a standard triple-well p-bulk process
---                                                                                         
---             ---------------------------------------------------                         
---             |                                                 |                         
---             |                                                 |                         
---             |                                                 |                         
---             |             Metal 3                             |                         
---             |                                                 |                         
---             |                                                 |                         
---             |                                                 |                         
---             ---------------------------------------------------                         
---                       |             |                                                        
---                       |             |                                                        
---                       |     Via     |                                                        
---                       |    M2->M3   |                                                        
---                       |             |                                                        
---                       |             |                                                        
---                  ---------------------------------------------------                         
---                  |                                                 |                         
---                  |             Metal 2                             |                         
---                  |                                                 |                         
---                  ---------------------------------------------------                         
---                                                       |         |                        
---                                                       |   Via   |                        
---                                                       |  M1->M2 |                        
---                                                       |         |                        
---                                 ---------------------------------------------------                         
---                                 |                                                 |                         
---                                 |             Metal 1                             |                         
---                                 |                                                 |                         
---                                 ---------------------------------------------------                         
---                                    |  Gate   |      |          |                                       
---                                    | Contact |      |          |                                      
---                                    |         |      |   Well   |                                 
+--
+--             ---------------------------------------------------
+--             |                                                 |
+--             |                                                 |
+--             |                                                 |
+--             |             Metal 3                             |
+--             |                                                 |
+--             |                                                 |
+--             |                                                 |
+--             ---------------------------------------------------
+--                       |             |
+--                       |             |
+--                       |     Via     |
+--                       |    M2->M3   |
+--                       |             |
+--                       |             |
+--                  ---------------------------------------------------
+--                  |                                                 |
+--                  |             Metal 2                             |
+--                  |                                                 |
+--                  ---------------------------------------------------
+--                                                       |         |
+--                                                       |   Via   |
+--                                                       |  M1->M2 |
+--                                                       |         |
+--                                 ---------------------------------------------------
+--                                 |                                                 |
+--                                 |             Metal 1                             |
+--                                 |                                                 |
+--                                 ---------------------------------------------------
+--                                    |  Gate   |      |          |
+--                                    | Contact |      |          |
+--                                    |         |      |   Well   |
 --                                .-----------------.  | Conctact |
 --                                |       Gate      |  |          |
 --                                |                 |  |          |
@@ -53,7 +53,7 @@
 --             \                                                               /-----------------------------------------------------------
 --              \                       n-well                                /                         deep n-well                       |
 --               *-----------------------------------------------------------*-------------------------------------------------------------
---                                                                             
+--
 --                                                                            p-bulk
 return {
     -- every entry has the following form:

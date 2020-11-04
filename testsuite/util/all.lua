@@ -1,5 +1,6 @@
+-- luacheck: globals check_points report
 do
-    local pts = { 
+    local pts = {
         point.create(0, 0),
         point.create(10, 10),
     }
@@ -12,7 +13,7 @@ do
 end
 
 do
-    local pts = { 
+    local pts = {
         point.create(0, 0),
         point.create(10, 10),
     }
@@ -25,7 +26,7 @@ do
 end
 
 do
-    local pts = { 
+    local pts = {
         point.create(0, 0),
         point.create(10, 10),
     }
@@ -38,7 +39,7 @@ do
 end
 
 do
-    local pts = { 
+    local pts = {
         point.create(0, 0),
         point.create(10, 10),
     }

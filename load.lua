@@ -9,7 +9,7 @@ function _get_reader(filename)
     end
 end
 
-function _generic_load(filename, reader, chunkname, synerrmsg, semerrmsg, env)
+function _generic_load(reader, chunkname, synerrmsg, semerrmsg, env)
     local env = env or _ENV
     local func, msg = load(reader, chunkname, "t", env)
 
@@ -45,5 +45,5 @@ function _load_module(modname)
         error(msg)
     end
 
-    return _generic_load(filename, reader, chunkname)
+    return _generic_load(reader, chunkname)
 end

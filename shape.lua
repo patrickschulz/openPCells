@@ -4,7 +4,6 @@ M.__index = M
 
 local function _create(lpp, typ)
     assert(typ, "creating a shape without a type")
-    local typ = typ
     local self = { lpp = lpp, unmapped = true, typ = typ }
     setmetatable(self, M)
     return self
@@ -154,7 +153,7 @@ function M.translate(self, dx, dy)
 end
 
 function M.flipx(self, xcenter)
-    local xcenter = xcenter or 0
+    xcenter = xcenter or 0
     if self.typ == "polygon" then
         self.points = util.xmirror(self.points, xcenter)
     elseif self.typ == "rectangle" then
@@ -167,7 +166,7 @@ function M.flipx(self, xcenter)
 end
 
 function M.flipy(self, ycenter)
-    local ycenter = ycenter or 0
+    ycenter = ycenter or 0
     if self.typ == "polygon" then
         self.points = util.ymirror(self.points, ycenter)
     elseif self.typ == "rectangle" then

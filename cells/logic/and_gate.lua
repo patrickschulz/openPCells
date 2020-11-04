@@ -7,7 +7,6 @@ function parameters()
 end
 
 function layout(gate, _P)
-    local xpitch = _P.glength + _P.gspace
     local _P1 = pcell.clone_matching_parameters("logic/nand_gate", _P)
     _P1.fingers = _P.nandfingers
     _P1.rightdummies = 0

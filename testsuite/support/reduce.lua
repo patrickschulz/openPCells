@@ -1,3 +1,4 @@
+-- luacheck: globals check_points
 do
     local pts = {
         point.create(0, 0),

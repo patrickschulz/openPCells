@@ -9,7 +9,7 @@ function M.get_user_config()
         local env = {
             addcellpath = pcell.add_cellpath
         }
-        return _generic_load(filename, reader, chunkname, "error while loading user configuration", "error while loading user configuration", env)
+        return _generic_load(reader, chunkname, "error while loading user configuration", "error while loading user configuration", env)
     end
 end
 

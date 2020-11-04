@@ -10,14 +10,14 @@ function layout(gate, _P)
     local xpitch = _P.gspace + _P.glength
 
     -- common transistor options
-    pcell.push_overwrites("basic/transistor", { 
+    pcell.push_overwrites("basic/transistor", {
         gatelength = _P.glength,
         gatespace = _P.gspace,
         sdwidth = _P.sdwidth,
     })
 
     -- pmos
-    pcell.push_overwrites("basic/transistor", { 
+    pcell.push_overwrites("basic/transistor", {
         channeltype = "pmos",
         fwidth = _P.pwidth,
         drawtopgate = true,
@@ -58,7 +58,7 @@ function layout(gate, _P)
     pcell.pop_overwrites("basic/transistor")
 
     -- nmos
-    pcell.push_overwrites("basic/transistor", { 
+    pcell.push_overwrites("basic/transistor", {
         channeltype = "nmos",
         fwidth = _P.nwidth,
         drawbotgate = true,

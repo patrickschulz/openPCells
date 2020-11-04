@@ -62,14 +62,14 @@ end
 
 -- this function returns an iterator over all shapes in a cell
 -- (possibly only selecting a subset)
--- First all shapes are collected in an auxiliary table, which enables 
+-- First all shapes are collected in an auxiliary table, which enables
 -- modification of the self.shapes table within the iteration
--- Furthermore, the list is iterated from the end, which allows 
+-- Furthermore, the list is iterated from the end, which allows
 -- element removal in the loop
 function meta.iter(self, comp)
     local shapes = {}
     local indices = {}
-    local comp = comp or function() return true end
+    comp = comp or function() return true end
     for i, s in ipairs(self.shapes) do
         if comp(s) then
             table.insert(shapes, s)
@@ -87,7 +87,7 @@ end
 function meta.find(self, comp)
     local shapes = {}
     local indices = {}
-    local comp = comp or function() return true end
+    comp = comp or function() return true end
     for i, s in ipairs(self.shapes) do
         if comp(s) then
             table.insert(shapes, s)
@@ -171,7 +171,7 @@ function meta.bounding_box(self)
 end
 
 function meta.add_anchor(self, name, where)
-    local where = where or point.create(0, 0)
+    where = where or point.create(0, 0)
     self.anchors[name] = where
 end
 
@@ -180,7 +180,7 @@ function meta.get_anchor(self, name)
 end
 
 function meta.move_anchor(self, name, where)
-    local where = where or point.create(0, 0)
+    where = where or point.create(0, 0)
     local pt = self.anchors[name]
     if not pt then
         error(string.format("anchor '%s' is unknown", name), 0)

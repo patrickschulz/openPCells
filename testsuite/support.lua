@@ -1,3 +1,4 @@
+-- luacheck: globals dofile check_number check_point check_points colorize report run_test
 function check_number(val, ref)
     if type(val) ~= "number" then
         return nil, string.format("value is not a number: %s", val)
@@ -17,7 +18,7 @@ function check_point(pt, ref)
     return true
 end
 
-function check_points(pts, ref, ignoreorder)
+function check_points(pts, ref)
     if #pts ~= #ref then
         return nil, string.format("number of points does not match: %d vs %d", #pts, #ref)
     end

@@ -4,16 +4,16 @@ return {
     contactactive = {
         array {
             lpp = {
-                gds      = { layer = 66,       purpose = 44 }, 
+                gds      = { layer = 66,       purpose = 44 },
                 virtuoso = { layer = "licon1", purpose = "drawing" },
                 magic    = { layer = "licon1", purpose = "drawing" },
                 svg      = { color = "yellow", opacity = 0.4, fill = true},
             },
             width = 170,
-            height = 170, 
-            xspace = 170, 
-            yspace = 170, 
-            xencl = 40, 
+            height = 170,
+            xspace = 170,
+            yspace = 170,
+            xencl = 40,
             yencl = 40
         },
     },
@@ -45,47 +45,47 @@ return {
             },
         },
         width = 170,
-        height = 170, 
-        xspace = 250, 
-        yspace = 170, 
-        xencl = 40, 
+        height = 170,
+        xspace = 250,
+        yspace = 170,
+        xencl = 40,
         yencl = 80
     },
     --]]
-    active = { 
+    active = {
         map {
             lpp = {
-                gds      = { layer = 65,    purpose = 20 }, 
+                gds      = { layer = 65,    purpose = 20 },
                 virtuoso = { layer ="diff", purpose = "drawing" },
                 magic    = { layer ="diff", purpose = "drawing" },
                 svg      = { color ="green",  opacity = 0.4, fill = true },
             },
         },
     },
-    nimpl = { 
+    nimpl = {
         map {
             lpp = {
-                gds      = { layer = 93,    purpose = 44 }, 
+                gds      = { layer = 93,    purpose = 44 },
                 virtuoso = { layer ="nsdm", purpose = "drawing" },
                 magic    = { layer ="nsdm", purpose = "drawing" },
                 svg      = { color ="black", opacity = 1, fill = false  },
             },
         },
     },
-    pimpl = { 
+    pimpl = {
         map {
             lpp = {
-                gds      = { layer = 94,    purpose = 20 }, 
+                gds      = { layer = 94,    purpose = 20 },
                 virtuoso = { layer ="psdm", purpose = "drawing" },
                 magic    = { layer ="psdm", purpose = "drawing" },
             },
         },
     },
     soiopen = {},
-    nwell = { 
+    nwell = {
         map {
             lpp = {
-                gds      = { layer = 64,     purpose = 20 }, 
+                gds      = { layer = 64,     purpose = 20 },
                 virtuoso = { layer ="nwell", purpose = "drawing" },
                 magic    = { layer ="nwell", purpose = "drawing" },
                 svg      = { color ="yellow",  opacity = 0.1, fill = true },
@@ -93,29 +93,29 @@ return {
         },
     },
     pwell = {},
-    deepnwell = { 
+    deepnwell = {
         map {
             lpp = {
-                gds      = { layer = 64,       purpose = 18 }, 
+                gds      = { layer = 64,       purpose = 18 },
                 virtuoso = { layer = "dnwell", purpose = "drawing" },
                 magic    = { layer = "dnwell", purpose = "drawing" },
             },
         },
     },
-    gate = { 
+    gate = {
         map {
             lpp = {
-                gds      = { layer = 66,    purpose = 20 }, 
+                gds      = { layer = 66,    purpose = 20 },
                 virtuoso = { layer ="poly", purpose = "drawing" },
                 magic    = { layer ="poly", purpose = "drawing" },
                 svg      = { color ="red",  opacity = 0.4, fill = true },
             },
         },
     },
-    M1 = { 
+    M1 = {
         map {
             lpp = {
-                gds      = { layer = 67,    purpose = 20 }, 
+                gds      = { layer = 67,    purpose = 20 },
                 virtuoso = { layer ="li1",  purpose = "drawing" },
                 magic    = { layer ="li1",  purpose = "drawing" },
                 svg      = { color ="blue", opacity = 0.4, fill = true },
@@ -130,17 +130,17 @@ return {
                 magic    = { layer = "mcon", purpose = "drawing", },
             },
             width = 170,
-            height = 170, 
-            xspace = 250, 
-            yspace = 170, 
-            xencl = 40, 
+            height = 170,
+            xspace = 250,
+            yspace = 170,
+            xencl = 40,
             yencl = 80
         }
     },
-    M2 = { 
+    M2 = {
         map {
             lpp = {
-                gds      = { layer = 68,    purpose = 20 }, 
+                gds      = { layer = 68,    purpose = 20 },
                 virtuoso = { layer ="met1", purpose = "drawing", },
                 magic    = { layer ="met1", purpose = "drawing", },
             },
@@ -154,17 +154,17 @@ return {
                 magic    = { layer = "via", purpose = "drawing", },
             },
             width = 150,
-            height = 150, 
-            xspace = 170, 
-            yspace = 170, 
-            xencl = 55, 
+            height = 150,
+            xspace = 170,
+            yspace = 170,
+            xencl = 55,
             yencl = 55
         },
     },
-    M3 = { 
+    M3 = {
         map {
             lpp = {
-                gds      = { layer = 69,    purpose = 20 }, 
+                gds      = { layer = 69,    purpose = 20 },
                 virtuoso = { layer ="met2", purpose = "drawing", },
                 magic    = { layer ="met2", purpose = "drawing", },
             },
@@ -178,17 +178,17 @@ return {
                 magic    = { layer = "via2", purpose = "drawing", },
             },
             width = 200,
-            height = 200, 
-            xspace = 200, 
-            yspace = 200, 
-            xencl = 40, 
+            height = 200,
+            xspace = 200,
+            yspace = 200,
+            xencl = 40,
             yencl = 40
         },
     },
-    M4 = { 
+    M4 = {
         map {
             lpp = {
-                gds      = { layer = 70,    purpose = 20 }, 
+                gds      = { layer = 70,    purpose = 20 },
                 virtuoso = { layer ="met3", purpose = "drawing", },
                 magic    = { layer ="met3", purpose = "drawing", },
             },
@@ -202,17 +202,17 @@ return {
                 magic    = { layer = "via3", purpose = "drawing", },
             },
             width = 200,
-            height = 200, 
-            xspace = 200, 
-            yspace = 200, 
-            xencl = 60, 
+            height = 200,
+            xspace = 200,
+            yspace = 200,
+            xencl = 60,
             yencl = 60
         },
     },
-    M5 = { 
+    M5 = {
         map {
             lpp = {
-                gds      = { layer = 71, purpose = 20 }, 
+                gds      = { layer = 71, purpose = 20 },
                 virtuoso = { layer = "met4", purpose = "drawing", },
                 magic    = { layer = "met4", purpose = "drawing", },
                 svg      = { color = "blue", opacity = 0.5, fill = true, order = 1 },
@@ -227,14 +227,14 @@ return {
                 magic    = { layer = "via4", purpose = "drawing" },
             },
             width = 800,
-            height = 800, 
-            xspace = 800, 
-            yspace = 800, 
-            xencl = 190, 
+            height = 800,
+            xspace = 800,
+            yspace = 800,
+            xencl = 190,
             yencl = 190
         },
     },
-    M6 = { 
+    M6 = {
         map {
             lpp = {
                 gds      = { layer = 72,     purpose = 20        },
@@ -317,7 +317,7 @@ areaid.mt,identifier,81:10,Location of e-test modules within the frame
 areaid.dt,identifier,81:11,Location of dice within the frame
 areaid.ft,identifier,81:12,Boundary of the frame
 areaid.ww,identifier,81:13,Waffle window (used to prevent waffle shifting)
-areaid.ld,identifier,81:14,Low tap density (15um between taps) area.  Must be at least 50um from padframe 
+areaid.ld,identifier,81:14,Low tap density (15um between taps) area.  Must be at least 50um from padframe
 areaid.ns,identifier,81:15,Non-critical side.  Blocks stress DRC rules
 areaid.ij,identifier,81:17,Identification for areas susceptible to injection
 areaid.zr,identifier,81:18,Zener diode identifier

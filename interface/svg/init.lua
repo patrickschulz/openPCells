@@ -33,6 +33,7 @@ local function _get_dimensions(cell)
     return maxx - minx, maxy - miny
 end
 
+--[[
 local function _write_style(file)
     local lines = {
         '<style type = "text/css">',
@@ -42,6 +43,7 @@ local function _write_style(file)
     }
     file:write(table.concat(lines, '\n') .. '\n')
 end
+--]]
 
 function M.get_layer(shape)
     if not shape.lpp:get() then
@@ -98,7 +100,7 @@ function M.get_points(shape, precomputed)
     local fmt
     if shape.typ == "polygon" then
         local pointstr = table.concat(shape:concat_points(
-            function(pt) 
+            function(pt)
                 local x, y = pt:unwrap()
                 return string.format(gridfmt .. "," .. gridfmt, scale * x, scale * y) end
             ), ' '
@@ -106,10 +108,10 @@ function M.get_points(shape, precomputed)
         fmt = string.format('<polyline points="%s" />', pointstr)
     elseif shape.typ == "rectangle" then
         local x, y = shape.points.bl:unwrap()
-        local pointstr = string.format('x="%f" y="%f" width="%f" height="%f"', 
+        local pointstr = string.format('x="%f" y="%f" width="%f" height="%f"',
             scale * x,
             scale * y,
-            scale * shape:width(), 
+            scale * shape:width(),
             scale * shape:height()
         )
         fmt = string.format('<rect %s />', pointstr)
@@ -122,7 +124,7 @@ function M.at_end(file)
 end
 
 function M.set_options(opt)
-    local opt = opt or {}
+    opt = opt or {}
     for k, v in pairs(opt) do print(k, v) end
 end
 

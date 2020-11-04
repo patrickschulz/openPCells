@@ -1,3 +1,5 @@
+-- luacheck: globals run_test
+
 _load_module("testsuite/support")
 
 local enabled = {}
@@ -5,7 +7,7 @@ local all = true
 for _, v in ipairs(arg) do
     enabled[v] = true
     -- if any args are found, run only selected tests
-    all = false 
+    all = false
 end
 
 -- module loading tests

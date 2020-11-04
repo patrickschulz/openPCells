@@ -19,7 +19,6 @@ function layout(inductor, _P)
     -- ** Inner part **
     -- calculate meeting point
     local xm = xc * _P.radius / (_P.cornerradius + _P.radius)
-    local ym = yc * _P.radius / (_P.cornerradius + _P.radius)
 
     local main = graphics.quartercircle(3, point.create(0, 0), _P.radius, _P.grid, _P.allow45)
     local aux  = graphics.quartercircle(1, point.create(xc, yc), _P.cornerradius, _P.grid, _P.allow45)
@@ -34,7 +33,6 @@ function layout(inductor, _P)
     -- ** Outer part **
     -- calculate meeting point
     xm = xc * (_P.radius + _P.width) / (_P.cornerradius + _P.radius)
-    ym = yc * (_P.radius + _P.width) / (_P.cornerradius + _P.radius)
 
     main  = graphics.quartercircle(3, point.create(0, 0), _P.radius + _P.width, _P.grid, _P.allow45)
     aux   = graphics.quartercircle(1, point.create(xc, yc), _P.cornerradius - _P.width, _P.grid, _P.allow45)

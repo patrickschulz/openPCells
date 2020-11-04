@@ -13,7 +13,7 @@ function layout(gate, _P)
     local block = object.create()
 
     -- common transistor options
-    pcell.push_overwrites("basic/transistor", { 
+    pcell.push_overwrites("basic/transistor", {
         fingers = 2,
         gatelength = _P.glength,
         gatespace = _P.gspace,
@@ -23,7 +23,7 @@ function layout(gate, _P)
     })
 
     -- pmos
-    pcell.push_overwrites("basic/transistor", { 
+    pcell.push_overwrites("basic/transistor", {
         channeltype = "pmos",
         fwidth = _P.pwidth,
         gtopext = _P.powerspace + _P.dummycontheight,
@@ -34,7 +34,7 @@ function layout(gate, _P)
     pcell.pop_overwrites("basic/transistor")
 
     -- nmos
-    pcell.push_overwrites("basic/transistor", { 
+    pcell.push_overwrites("basic/transistor", {
         channeltype = "nmos",
         fwidth = _P.nwidth,
         gbotext = _P.powerspace + _P.dummycontheight,
@@ -102,7 +102,7 @@ function layout(gate, _P)
             point.create(_P.fingers * xpitch, (_P.separation + _P.sdwidth) / 2),
             point.create(-poffset * xpitch, (_P.separation + _P.sdwidth) / 2),
         },
-        _P.sdwidth, 
+        _P.sdwidth,
         true
     ))
 

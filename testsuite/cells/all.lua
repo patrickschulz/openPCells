@@ -1,3 +1,4 @@
+-- luacheck: globals report
 do
     local cells = {
         { name = "analog/cross_coupled_pair",   result =  true },

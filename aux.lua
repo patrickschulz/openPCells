@@ -21,9 +21,9 @@ function M.map(t, func)
 end
 
 function M.concat(data, sep, pre, post, newline)
-    local pre = pre or ""
-    local post = post or ""
-    local sep = sep or ", "
+    pre = pre or ""
+    post = post or ""
+    sep = sep or ", "
     if newline then
         sep = sep .. "\n"
     end
@@ -53,7 +53,7 @@ end
 
 function M.gcd(a, b)
 	if b ~= 0 then
-		return gcd(b, a % b)
+		return M.gcd(b, a % b)
 	else
 		return a
 	end
@@ -64,7 +64,7 @@ function M.tabgcd(t)
     for i = 1, #t do
         for j = 1, #t do
             if i ~= j then
-                gcd = math.min(gcd, gcd(t[i], t[j]))
+                gcd = math.min(gcd, M.gcd(t[i], t[j]))
             end
         end
     end
@@ -102,7 +102,7 @@ function M.all_of(comp, t, ...)
 end
 
 function M.assert_one_of(msg, key, ...)
-    assert(M.any_of(function(v) return v == key end, { ... }), 
+    assert(M.any_of(function(v) return v == key end, { ... }),
         string.format("%s must be one of { %s }", msg, table.concat({ ... }, ", "))
     )
 end
