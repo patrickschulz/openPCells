@@ -21,7 +21,7 @@ Now a file `opc` should have been generated. Run it as follows:
 
 This produces the following image: 
 
-![Example Transistor](./example_transistor.png). 
+![Example Transistor](./doc/info/example_transistor.png). 
 
 The only dependencies are a C compiler, as the lua interpreter is included in the repository. Most of the project is written in lua which only the
 main entry points and a few modules written in C.
