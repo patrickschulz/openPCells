@@ -327,7 +327,7 @@ function M.path_midpoint(layer, pts, width, method, miterjoin)
     elseif method == "rectangularyx" then
         for i = 1, #pts - 1 do
             local x1, y1 = pts[i]:unwrap()
-            local x2, y2 = pts[i + 1]:unwrap()
+            local _, y2 = pts[i + 1]:unwrap()
             append(x1, y1)
             append(x1, y2)
         end
@@ -335,7 +335,7 @@ function M.path_midpoint(layer, pts, width, method, miterjoin)
     elseif method == "rectangularxy" then
         for i = 1, #pts - 1 do
             local x1, y1 = pts[i]:unwrap()
-            local x2, y2 = pts[i + 1]:unwrap()
+            local x2 = pts[i + 1]:unwrap()
             append(x1, y1)
             append(x2, y1)
         end

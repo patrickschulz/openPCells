@@ -116,9 +116,11 @@ function M.translate(cell, interface)
         end
         cell:remove_shape(i)
     end
+    --[[
     for _, port in pairs(cell.ports) do
-        --local layer = port.layer:str()
+        local layer = port.layer:str()
     end
+    --]]
 end
 
 function M.fix_to_grid(cell)
@@ -181,32 +183,35 @@ local function _load_layermap(name)
             end
         end,
     }
-    local chunk, msg = loadfile(
-        string.format("%s/tech/%s/layermap.lua", _get_opc_home(), name, layermap),
-        "t", env
+    local filename = string.format("%s/tech/%s/layermap.lua", _get_opc_home(), name)
+    local chunkname = "@techfile"
+
+    local reader = _get_reader(filename)
+    if not reader then
+        error(string.format("no techfile for technology '%s' found", name), 0)
+    end
+    return _generic_load(
+        reader, chunkname,
+        string.format("syntax error while loading layermap for technology '%s'", name),
+        string.format("semantic error while loading layermap for technology '%s'", name),
+        env
     )
-    if not chunk then
-        error(string.format("error while loading layermap for technology '%s': %s", name, msg), 0)
-    end
-    local status, ret = pcall(chunk)
-    if not status then
-        error(string.format("semantic error in layermap for technology '%s': %s", name, ret))
-    end
-    return ret
 end
 
 local function _load_config(name)
-    local chunk, msg = loadfile(string.format("%s/tech/%s/config.lua", _get_opc_home(), name))
-    if not chunk then
-        error(string.format("error while loading configuration for technology '%s': %s", name, msg), 0)
-    end
-    local status, ret = pcall(chunk)
-    if not status then
-        error(string.format("semantic error in configuration for technology '%s': %s", name, ret))
-    end
-    return ret
-end
+    local filename = string.format("%s/tech/%s/config.lua", _get_opc_home(), name)
+    local chunkname = "@techconfig"
 
+    local reader = _get_reader(filename)
+    if not reader then
+        error(string.format("no config for technology '%s' found", name), 0)
+    end
+    return _generic_load(
+        reader, chunkname,
+        string.format("syntax error while loading config for technology '%s'", name),
+        string.format("semantic error while loading config for technology '%s'", name)
+    )
+end
 
 function M.load(name)
     layermap = _load_layermap(name)

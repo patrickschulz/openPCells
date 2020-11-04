@@ -22,6 +22,8 @@ std = {
         -- opc global symbols
         "_load_module",
         "_get_opc_home",
+        "_get_reader",
+        "_generic_load",
         "point",
         "pcell",
         "object",

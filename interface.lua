@@ -49,7 +49,14 @@ local function _iter_shapes(shapes)
 end
 
 function M.load(name)
-    interface = dofile(string.format("%s/interface/%s/init.lua", _get_opc_home(), name))
+    local filename = string.format("%s/interface/%s/init.lua", _get_opc_home(), name)
+    local chunkname = "@interface"
+
+    local reader = _get_reader(filename)
+    if not reader then
+        error(string.format("interface '%s' not found", name), 0)
+    end
+    interface = _generic_load(reader, chunkname)
 end
 
 function M.write_cell(filename, cell)

@@ -1,3 +1,4 @@
+-- luacheck: ignore _get_reader _generic_load _load_module load
 function _get_reader(filename)
     local file = io.open(filename, "r")
     if not file then
@@ -10,7 +11,7 @@ function _get_reader(filename)
 end
 
 function _generic_load(reader, chunkname, synerrmsg, semerrmsg, env)
-    local env = env or _ENV
+    env = env or _ENV
     local func, msg = load(reader, chunkname, "t", env)
 
     if not func then
