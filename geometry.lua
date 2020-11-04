@@ -220,6 +220,92 @@ function M.any_angle_path(layer, pts, width, grid, miterjoin)
     return object.make_from_shape(S)
 end
 
+-- FIXME: rectangular-separated does not work in y direction
+-- This could be fixed by using a more general (and cleaner) approach by tweaking the mirroring, not the points
+local function _crossing(layer1, layer2, width, dxy, ext, direction, mode, separation)
+    local obj = object.create()
+    local pts = {}
+    local append = util.make_insert_xy(pts)
+    local separation = separation or 0
+    if mode == "rectangular" then
+        if direction == "x" then
+            append(-dxy / 2 - ext, -dxy / 2)
+            append(0, -dxy / 2)
+            append(0, dxy / 2)
+            append( dxy / 2 + ext, dxy / 2)
+        elseif direction == "y" then
+            append(-dxy / 2, -dxy / 2 - ext)
+            append(-dxy / 2, 0)
+            append( dxy / 2, 0)
+            append( dxy / 2,  dxy / 2 + ext)
+        end
+    elseif mode == "rectangular-separated" then
+        if direction == "x" then
+            append(-dxy / 2 - ext,   -dxy / 2)
+            append(-separation / 2 - width / 2, -dxy / 2)
+            append(-separation / 2 - width / 2,  dxy / 2)
+            append( dxy / 2 + ext,   dxy / 2)
+        elseif direction == "y" then
+            append(-dxy / 2, -dxy / 2 - ext)
+            append(-dxy / 2, -separation / 2 - width / 2)
+            append( dxy / 2, -separation / 2 - width / 2)
+            append( dxy / 2,  dxy / 2 + ext)
+        end
+    elseif mode == "diagonal" then
+        local w2tan8 = math.floor(width * 5741 / 27720) -- rational approximation of tan(pi / 8) == 5741 / 13860
+        if direction == "x" then
+            if ext > width / 2 * math.tan(math.pi / 8) then
+                append(-dxy / 2 - ext, -dxy / 2)
+            else
+                append(-dxy / 2 - w2tan8, -dxy / 2)
+            end
+            append(-dxy / 2, -dxy / 2)
+            append( dxy / 2,  dxy / 2)
+            if ext > width / 2 * math.tan(math.pi / 8) then
+                append( dxy / 2 + ext, dxy / 2)
+            else
+                append( dxy / 2 + w2tan8, dxy / 2)
+            end
+        elseif direction == "y" then
+            if ext > width / 2 * math.tan(math.pi / 8) then
+                append(-dxy / 2, -dxy / 2 - ext)
+            else
+                append(-dxy / 2, -dxy / 2 - w2tan8)
+            end
+            append(-dxy / 2, -dxy / 2)
+            append( dxy / 2,  dxy / 2)
+            if ext > width / 2 * math.tan(math.pi / 8) then
+                append( dxy / 2,  dxy / 2 + ext)
+            else
+                append( dxy / 2, dxy / 2 + w2tan8)
+            end
+        end
+    end
+    obj:merge_into(geometry.path(layer1, pts, width, true))
+    obj:merge_into(geometry.path(layer2, util.xmirror(pts), width, true))
+    return obj
+end
+
+function M.crossing(layer1, layer2, width, tl, br, mode)
+    aux.assert_one_of("geometry.crossing: mode", mode, "diagonal", "rectangular", "rectangular-separated")
+    local tlx, tly = tl:unwrap()
+    local brx, bry = br:unwrap()
+    local direction
+    local dxy
+    local ext = (math.abs(brx - tlx) - math.abs(tly - bry)) / 2
+    if ext > 0 then
+        direction = "x"
+        dxy = math.abs(tly - bry)
+    else
+        direction = "y"
+        ext = -ext
+        dxy = math.abs(brx - tlx)
+    end
+    local obj = _crossing(layer1, layer2, width, dxy, ext, direction, mode)
+    obj:translate(0, tly - dxy / 2)
+    return obj
+end
+
 function M.path_midpoint(layer, pts, width, method, miterjoin)
     local newpts = {}
     local append = util.make_insert_xy(newpts)
