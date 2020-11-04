@@ -101,4 +101,10 @@ function M.all_of(comp, t, ...)
     return true
 end
 
+function M.assert_one_of(msg, key, ...)
+    assert(M.any_of(function(v) return v == key end, { ... }), 
+        string.format("%s must be one of { %s }", msg, table.concat({ ... }, ", "))
+    )
+end
+
 return M
