@@ -96,6 +96,7 @@ static int lpoint_translate(lua_State* L)
     lpoint_coordinate_t dy = checkcoordinate(L, -1);
     p->x += dx;
     p->y += dy;
+    lua_rotate(L, -3, 2);
     return 1;
 }
 
