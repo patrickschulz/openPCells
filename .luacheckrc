@@ -19,6 +19,7 @@ std = {
         "tostring",
         "tonumber",
         "setmetatable",
+        "rawset",
         -- opc global symbols
         "_load_module",
         "_get_opc_home",
@@ -36,9 +37,11 @@ std = {
         "config",
         "reduce",
         "util",
+        "stack",
         "aux",
         "bind",
         "enable",
+        "funcobject",
         -- layermap globals
         "map",
         "array",
