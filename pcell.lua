@@ -96,36 +96,32 @@ function M.add_cellpath(path)
 end
 
 local function _load(cellname)
-    local file = io.open(string.format("%s/cells/%s.lua", _get_opc_home(), cellname))
+    local filename = string.format("%s/cells/%s.lua", _get_opc_home(), cellname)
     for _, path in ipairs(cellpaths) do
-        local tmp = io.open(string.format("%s/%s.lua", path, cellname))
+        local tmp = string.format("%s/%s.lua", path, cellname)
         if tmp then
-            file = tmp
+            filename = tmp
         end
     end
-    if not file then
-        return nil, string.format("unknown cell '%s'", cellname)
+    local chunkname = string.format("@cell '%s'", cellname)
+
+    local reader = _get_reader(filename)
+    if not reader then
+        error(string.format("unknown cell '%s'", cellname))
     end
-    local content = file:read("*a")
     local env = _prepare_cell_environment(cellname)
-    local chunkname = string.format("=cell '%s'", cellname)
-    local chunk, msg = load(content, chunkname, "t", env)
-    if not chunk then
-        return nil, string.format("syntax error in cell '%s': %s", cellname, msg)
-    end
-    local status, msg = pcall(chunk)
-    if not status then
-        return nil, string.format("semantic error in cell '%s': %s", cellname, msg)
-    end
+    _generic_load(
+        reader, chunkname,
+        string.format("syntax error in cell '%s'", cellname),
+        string.format("semantic error in cell '%s'", cellname),
+        env
+    )
     return env
 end
 
 local meta = {}
 meta.__index = function(t, cellname)
-    local funcs, msg = _load(cellname)
-    if not funcs then
-        error(msg, 0)
-    end
+    local funcs = _load(cellname)
     if not (funcs.parameters or funcs.layout) then
         error("every cell must define at least the public functions 'parameters' or 'layout'", 0)
     end
@@ -150,7 +146,7 @@ local function _get_pname_dname(name)
 end
 
 local function _add_parameter(cellname, name, value, argtype, posvals, follow, overwrite)
-    local argtype = argtype or type(value)
+    argtype = argtype or type(value)
     local pname, dname = _get_pname_dname(name)
     local new = {
         display = dname,
@@ -174,29 +170,28 @@ end
 
 local function _process_input_parameters(cellname, cellargs, evaluate, overwrite)
     local cellparams = loadedcells[cellname].parameters
-    local cellargs = cellargs or {}
-
-    local backup = {}
 
     -- process input arguments
-    local args = args or {}
-    for name, value in pairs(cellargs) do
-        local p = cellparams[name]
-        if not p then
-            error(string.format("argument '%s' has no matching parameter, maybe it was spelled wrong?", name), 0)
+    local backup = {}
+    if cellargs then
+        for name, value in pairs(cellargs) do
+            local p = cellparams[name]
+            if not p then
+                error(string.format("argument '%s' has no matching parameter, maybe it was spelled wrong?", name), 0)
+            end
+            if overwrite then
+                p.overwritten = true
+            end
+            if evaluate then
+                local eval = evaluators[p.argtype]
+                value = eval(value)
+            end
+            -- store old function for restoration
+            backup[name] = p.func:get()
+            -- important: use :replace(), don't create a new function object.
+            -- Otherwise parameter binding does not work, because bound parameters link to the original function object
+            p.func:replace(function() return value end)
         end
-        if overwrite then
-            p.overwritten = true
-        end
-        if evaluate then
-            local eval = evaluators[p.argtype]
-            value = eval(value)
-        end
-        -- store old function for restoration
-        backup[name] = p.func:get()
-        -- important: use :replace(), don't create a new function object.
-        -- Otherwise parameter binding does not work, because bound parameters link to the original function object
-        p.func:replace(function() return value end)
     end
 
     return backup
@@ -204,7 +199,7 @@ end
 
 local function _get_parameters(cellname, cellargs, evaluate)
     local cellparams = loadedcells[cellname].parameters
-    local cellargs = cellargs or {}
+    cellargs = cellargs or {}
 
     local backup = _process_input_parameters(cellname, cellargs, evaluate)
 
@@ -229,7 +224,7 @@ local function _get_parameters(cellname, cellargs, evaluate)
     -- install meta method for non-existing parameters as safety check
     -- this avoids arithmetic-with-nil-errors
     setmetatable(P, {
-        __index = function(t, k)
+        __index = function(_, k)
             error(string.format("trying to access undefined parameter value '%s'", k), 0)
         end,
     })
@@ -276,7 +271,7 @@ end
 
 --------------------------------------------------------------------
 function add_parameter(cellname, name, value, opt)
-    local opt = opt or {}
+    opt = opt or {}
     _add_parameter(cellname, name, value, opt.argtype, opt.posvals, opt.follow)
 end
 
@@ -348,7 +343,6 @@ end
 local backupstacks = {}
 function push_overwrites(cellname, cellargs)
     assert(type(cellname) == "string", "push_overwrites: cellname must be a string")
-    local cellparams = loadedcells[cellname].parameters
     local backup = _process_input_parameters(cellname, cellargs, false, true)
     if not backupstacks[cellname] then
         backupstacks[cellname] = stack.create()
