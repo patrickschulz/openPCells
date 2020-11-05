@@ -1,6 +1,6 @@
 local M = {}
 
-local baseunit = 1000
+local baseunit = 1000 -- virtuoso is micrometer-based
 
 function M.get_extension()
     return "il"
@@ -34,7 +34,6 @@ function M.get_layer(shape)
 end
 
 function M.get_points(shape)
-    --local pointlist = shape:concat_points(function(pt) return string.format("%d:%d", pt:unwrap()) end)
     local pointlist = shape:concat_points(function(pt) return pt:format(baseunit, ":") end)
     return string.format("list(%s)", table.concat(pointlist, " "))
 end

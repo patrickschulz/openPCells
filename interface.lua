@@ -59,6 +59,12 @@ function M.load(name)
     interface = _generic_load(reader, chunkname)
 end
 
+function M.get_techinterface()
+    if interface.techinterface then
+        return interface.techinterface()
+    end
+end
+
 function M.write_cell(filename, cell)
     if cell:is_empty() then
         error("interface: cell is empty", 0)

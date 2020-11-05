@@ -174,14 +174,7 @@ static uint32_t intlog10(uint32_t num)
 static void _format_number(lpoint_coordinate_t num, uint32_t baseunit, luaL_Buffer* buf)
 {
     char fmt[LUAL_BUFFERSIZE];
-    if(baseunit == 1)
-    {
-        strncpy(fmt, "%d", LUAL_BUFFERSIZE);
-    }
-    else
-    {
-        snprintf(fmt, LUAL_BUFFERSIZE, "%%s%%u.%%0%uu", intlog10(baseunit));
-    }
+    snprintf(fmt, LUAL_BUFFERSIZE, "%%s%%u.%%0%uu", intlog10(baseunit));
     const char* sign = "";
     if(num < 0)
     {

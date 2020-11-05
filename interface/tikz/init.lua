@@ -2,10 +2,17 @@ local M = {}
 
 local options = {}
 
+local baseunit = 100000
+
 function M.get_extension()
     return "tikz"
 end
 
+function M.techinterface()
+    return "svg"
+end
+
+--[[
 function M.print_object(file, cell)
     file:write("[\n")
     for layer in pairs(_collect_shapes(cell, function(s) return s.lpp:get().layer end)) do
@@ -16,6 +23,7 @@ function M.print_object(file, cell)
         _write_shape(file, shape)
     end
 end
+--]]
 
 function M.at_begin(file)
     if options.standalone then
@@ -34,21 +42,21 @@ function M.at_end(file)
 end
 
 function M.get_layer(shape)
-    return shape.lpp:get().layer
+    return shape.lpp:get().color
 end
 
 function M.get_points(shape)
-    local xbot, ybot = shape.points.bl:unwrap()
-    local xtop, ytop = shape.points.tr:unwrap()
-    return { 
-        first = string.format("(%f, %f)", xbot, ybot),
-        second = string.format("(%f, %f)", xtop, ytop)
-    }
+    if shape.typ == "polygon" then
+        local pointlist = shape:concat_points(function(pt) return string.format("(%s)", pt:format(baseunit, ", ")) end)
+        return table.concat(pointlist, " -- ")
+    else
+        return string.format("(%s) rectangle (%s)", shape.points.bl:format(baseunit, ", "), shape.points.tr:format(baseunit, ", "))
+    end
 end
 
 function M.write_layer(file, layer, pcol)
     for _, pts in ipairs(pcol) do
-        file:write(string.format('    \\draw[%s] %s rectangle %s;\n', layer, pts.first, pts.second))
+        file:write(string.format('    \\fill[%s] %s;\n', layer, pts))
     end
 end
 
