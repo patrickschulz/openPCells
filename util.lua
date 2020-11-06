@@ -108,38 +108,28 @@ function M.is_point_in_polygon(pt, pts)
     return c
 end
 
+function M.intersection(s1, s2, c1, c2)
+    local s1x, s1y = s1:unwrap()
+    local s2x, s2y = s2:unwrap()
+    local c1x, c1y = c1:unwrap()
+    local c2x, c2y = c2:unwrap()
+    local snum = (c2x - c1x) * (s1y - c1y) - (s1x - c1x) * (c2y - c1y)
+    local cnum = (s2x - s1x) * (s1y - c1y) - (s1x - c1x) * (s2y - s1y)
+    local den = (s2x - s1x) * (c2y - c1y) - (c2x - c1x) * (s2y - s1y)
+    if den == 0 then
+        return nil
+    end
+
+    -- you can use cnum with c-edge or snum with s-edge
+    local pt = point.create(s1x + snum * (s2x - s1x) // den, s1y + snum * (s2y - s1y) // den)
+    --local pt = point.create(c1x + cnum * (c2x - c1x) // den, c1y + cnum * (c2y - c1y) // den)
+    -- the comparison is complex to avoid division
+    if (snum == 0 or (snum < 0 and den < 0 and snum >= den) or (snum > 0 and den > 0 and snum <= den)) and
+       (cnum == 0 or (cnum < 0 and den < 0 and cnum >= den) or (cnum > 0 and den > 0 and cnum <= den)) then
+       return pt
+    end
+    -- if the edges don't truly overlap, we return the imaginary intersection after nil:
+    return nil, pt
+end
+
 return M
-
---[[
-procedure(MSCUtilSanitizePoints(pts grid)
-	let(
-		(x y dx dy pt prevpt res)
-		prevpt = MSCUtilSnapToGrid(car(pts) grid)
-		res = tconc(nil prevpt)
-		for(i 2 length(pts)
-			pt = nthelem(i pts)
-			x = grid * fix(xCoord(pt) / grid)
-			y = grid * fix(yCoord(pt) / grid)
-			dx = x - xCoord(prevpt)
-			dy = y - yCoord(prevpt)
-
-			when(abs(dx) <= grid dx = 0.0)
-			when(abs(dy) <= grid dy = 0.0)
-
-			when(abs(dx) > 0 && abs(dy) > 0
-				if(abs(dx) > abs(dy)
-					dy = dy / abs(dy) * abs(dx)
-					dx = dx / abs(dx) * abs(dy)
-				)
-			)
-
-			x = xCoord(prevpt) + dx
-			y = yCoord(prevpt) + dy
-
-			res = tconc(res x:y)
-			prevpt = x:y
-		)
-		car(res)
-	)
-)
---]]

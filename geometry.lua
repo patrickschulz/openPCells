@@ -53,30 +53,6 @@ function M.ring(layer, width, height, ringwidth)
     return object.make_from_shape(S)
 end
 
-local function _intersection(pt1, pt2, pt3, pt4)
-    local x1, y1 = pt1:unwrap()
-    local x2, y2 = pt2:unwrap()
-    local x3, y3 = pt3:unwrap()
-    local x4, y4 = pt4:unwrap()
-    local num = (x1 - x3) * (y3 - y4) - (x3 - x4) * (y1 - y3)
-    local den = (x1 - x2) * (y3 - y4) - (x3 - x4) * (y1 - y2)
-
-    if den == 0 then
-        return nil
-    end
-
-    local pt = point.create(x1 + num * (x2 - x1) // den, y1 + num * (y2 - y1) // den)
-    -- FIXME: can num and den have different signs?
-    if
-        (num < 0 and den > 0) or
-        (num > 0 and den < 0) or
-        math.abs(num) > math.abs(den)
-    then -- line segments don't truly intersect
-        return nil, pt
-    end
-    return pt
-end
-
 local function _shift_line(pt1, pt2, width)
     local x1, y1 = pt1:unwrap()
     local x2, y2 = pt2:unwrap()
@@ -147,7 +123,7 @@ end
 -- the endpoints of the path need extra care
 local function _get_path_pts(edges, miterjoin)
     local midpointfunc = function(i)
-        local inner, outer = _intersection(edges[i - 1], edges[i], edges[i + 1], edges[i + 2])
+        local inner, outer = util.intersection(edges[i - 1], edges[i], edges[i + 1], edges[i + 2])
         if inner then
             return inner
         else
