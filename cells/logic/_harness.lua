@@ -26,10 +26,10 @@ function layout(gate, _P)
         topgatestrspace = _P.powerspace,
         gbotext = _P.separation / 2,
         clipbot = true,
-        outersourcedrainsize = _P.pwidth / 2,
-        innersourcedrainsize = _P.pwidth / 2,
-        outersourcedrainalign = "top",
-        innersourcedrainalign = "top",
+        sourcesize = _P.pwidth / 2,
+        drainsize  = _P.pwidth / 2,
+        sourcealign = "top",
+        drainalign  = "top",
     })
     if _P.rightdummies > 1 then
         gate:merge_into(
@@ -67,10 +67,10 @@ function layout(gate, _P)
         botgatestrspace = _P.powerspace,
         gtopext = _P.separation / 2,
         cliptop = true,
-        outersourcedrainsize = _P.nwidth / 2,
-        innersourcedrainsize = _P.nwidth / 2,
-        outersourcedrainalign = "bottom",
-        innersourcedrainalign = "bottom",
+        sourcesize = _P.nwidth / 2,
+        drainsize  = _P.nwidth / 2,
+        sourcealign = "bottom",
+        drainalign  = "bottom",
     })
 
     if _P.rightdummies > 1 then

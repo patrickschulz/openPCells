@@ -25,10 +25,10 @@ function layout(gate, _P)
             gtopext = _P.powerspace + _P.dummycontheight,
             gbotext = _P.separation / 2,
             clipbot = true,
-            innersourcedrainsize = _P.pwidth / 2,
-            innersourcedrainalign = "top",
-            outersourcedrainsize = _P.pwidth / 2,
-            outersourcedrainalign = "top"
+            sourcesize = _P.pwidth / 2,
+            sourcealign = "top",
+            drainsize = _P.pwidth / 2,
+            drainalign = "top"
         }
     ):move_anchor("botgate")
     gate:merge_into(pmos)
@@ -41,10 +41,10 @@ function layout(gate, _P)
             gbotext = _P.powerspace + _P.dummycontheight,
             gtopext = _P.separation / 2,
             cliptop = true,
-            innersourcedrainsize = _P.nwidth / 2,
-            innersourcedrainalign = "bottom",
-            outersourcedrainsize = _P.nwidth / 2,
-            outersourcedrainalign = "bottom"
+            sourcesize = _P.nwidth / 2,
+            sourcealign = "bottom",
+            drainsize = _P.nwidth / 2,
+            drainalign = "bottom"
         }
     ):move_anchor("topgate")
     gate:merge_into(nmos)
