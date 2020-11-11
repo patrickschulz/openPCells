@@ -205,6 +205,19 @@ int main (int argc, char** argv)
             printf("created child process (pid: %d)\nyou have to kill it manually once you're done\n", pid);
         }
     }
+    else if(argc > 2 && (strcmp(argv[1], "run") == 0))
+    {
+        const char* filename = argv[2];
+
+        // remove 'watch' from arguments
+        argc = argc - 2;
+        argv = argv + 2;
+
+        create_argument_table(L, argc, argv);
+        char path[200];
+        snprintf(path, 200, "%s/%s", OPC_HOME, filename);
+        status = call_main_program(L, path);
+    }
     else
     {
         create_argument_table(L, argc, argv);
