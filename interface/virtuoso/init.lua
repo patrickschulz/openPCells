@@ -15,6 +15,7 @@ end
 
 function M.at_end(file)
     file:write(") ; let\n")
+    file:write('deleteFile("openPCells.il") ; clean up after ourselves\n')
 end
 
 function M.write_layer(file, layer, pcol)
