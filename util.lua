@@ -94,7 +94,7 @@ end
 
 function M.is_point_in_polygon(pt, pts)
     local j = #pts
-    local c = nil
+    local c = false
     local x, y = pt:unwrap()
     for i = 1, #pts do
         local xi, yi = pts[i]:unwrap()
