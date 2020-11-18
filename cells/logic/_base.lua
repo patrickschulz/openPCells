@@ -15,6 +15,7 @@ function parameters()
         { "powerspace(Power Rail Space)",               100 },
         { "leftdummies(Number of Left Dummies)",          1 },
         { "rightdummies(Number of Right Dummies)",        1 },
-        { "dummycontheight(Dummy Gate Contact Height)", 100 }
+        { "dummycontheight(Dummy Gate Contact Height)", 100 },
+        { "compact(Compact Layout)",                   true }
     )
 end

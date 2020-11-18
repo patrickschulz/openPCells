@@ -119,15 +119,16 @@ function layout(gate, _P)
     end
     
     -- drain connection
+    local xincr = _P.compact and 0 or 1
     local yinvert = _P.gatetype == "nand" and 1 or -1
     local poffset = _P.fingers % 2 == 0 and (_P.fingers - 2) or _P.fingers
     gate:merge_into(geometry.path(
         generics.metal(1),
         {
-            point.create(-_P.fingers * xpitch + xpitch,  yinvert * (_P.separation + _P.sdwidth) / 2),
-            point.create( _P.fingers * xpitch,           yinvert * (_P.separation + _P.sdwidth) / 2),
-            point.create( _P.fingers * xpitch,          -yinvert * (_P.separation + _P.sdwidth) / 2),
-            point.create(   -poffset * xpitch,          -yinvert * (_P.separation + _P.sdwidth) / 2),
+            point.create(-_P.fingers * xpitch + xpitch,   yinvert * (_P.separation + _P.sdwidth) / 2),
+            point.create( (_P.fingers + xincr) * xpitch,  yinvert * (_P.separation + _P.sdwidth) / 2),
+            point.create( (_P.fingers + xincr) * xpitch, -yinvert * (_P.separation + _P.sdwidth) / 2),
+            point.create(   -poffset * xpitch,           -yinvert * (_P.separation + _P.sdwidth) / 2),
         },
         _P.sdwidth,
         true
