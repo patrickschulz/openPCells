@@ -191,7 +191,7 @@ function layout(transistor, _P)
                 ):translate(math.floor(_P.fingers / 2) * gatepitch + shift, sourcealign))
                 if _P.drawsourcevia and _P.connsourcemetal > 1 then
                     transistor:merge_into(geometry.rectangle(
-                        generics.via(1, _P.connectsource), _P.sdwidth, _P.sourcesize
+                        generics.via(1, _P.connsourcemetal), _P.sdwidth, _P.sourcesize
                     ):translate(math.floor(_P.fingers / 2) * gatepitch + shift, sourcealign))
                 end
             end
@@ -202,7 +202,7 @@ function layout(transistor, _P)
                 ):translate(math.floor(_P.fingers / 2) * gatepitch + shift, drainalign))
                 if _P.drawdrainvia and _P.conndrainmetal > 1 then
                     transistor:merge_into(geometry.rectangle(
-                        generics.via(1, _P.connectdrain), _P.sdwidth, _P.drainsize
+                        generics.via(1, _P.conndrainmetal), _P.sdwidth, _P.drainsize
                     ):translate(math.floor(_P.fingers / 2) * gatepitch + shift, drainalign))
                 end
             end
