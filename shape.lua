@@ -71,7 +71,7 @@ end
 
 function M.resize_lrtb(self, left, right, top, bottom)
     if self.typ == "polygon" then
-        error("sorry, resizing is currently only implemented for rectangles", 0)
+        error("sorry, resizing is currently only implemented for rectangles")
     elseif self.typ == "rectangle" then
         self.points.bl:translate(-left, -bottom)
         self.points.tr:translate(right, top)

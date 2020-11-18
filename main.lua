@@ -17,7 +17,7 @@ for k, v in string.gmatch(table.concat(args.cellargs, " "), "(%w+)%s*=%s*(%S+)")
 end
 
 if not args.cell then
-    error("no cell type given", 0)
+    error("no cell type given")
 end
 
 -- output cell parameters
@@ -29,10 +29,10 @@ if args.params then
 end
 
 if not args.notech and not args.technology then
-    error("no technology given", 0)
+    error("no technology given")
 end
 if not args.interface then
-    error("no interface given", 0)
+    error("no interface given")
 end
 
 if not args.notech then
@@ -42,12 +42,12 @@ interface.load(args.interface)
 
 local cell, msg = pcell.create_layout(args.cell, cellargs, true)
 if not cell then
-    error(string.format("error while creating cell, received: %s", msg), 0)
+    error(string.format("error while creating cell, received: %s", msg))
 end
 if args.origin then
     local dx, dy = string.match(args.origin, "%(%s*([-%d]+)%s*,%s*([-%d]+)%s*%)")
     if not dx then
-        error(string.format("could not parse origin (%s)", args.origin), 0)
+        error(string.format("could not parse origin (%s)", args.origin))
     end
     cell:translate(dx, dy)
 end

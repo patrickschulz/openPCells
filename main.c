@@ -74,7 +74,7 @@ static int msghandler (lua_State* L)
                     luaL_typename(L, 1));
         }
     }
-    //luaL_traceback(L, L, msg, 1);
+    luaL_traceback(L, L, msg, 2);
     return 1;
 }
 

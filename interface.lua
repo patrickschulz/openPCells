@@ -54,7 +54,7 @@ function M.load(name)
 
     local reader = _get_reader(filename)
     if not reader then
-        error(string.format("interface '%s' not found", name), 0)
+        error(string.format("interface '%s' not found", name))
     end
     interface = _generic_load(reader, chunkname)
 end
@@ -67,7 +67,7 @@ end
 
 function M.write_cell(filename, cell)
     if cell:is_empty() then
-        error("interface: cell is empty", 0)
+        error("interface: cell is empty")
     end
     local extension = interface.get_extension()
     local file = stringfile.open(string.format("%s.%s", filename, extension))

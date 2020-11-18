@@ -123,7 +123,7 @@ local meta = {}
 meta.__index = function(t, cellname)
     local funcs = _load(cellname)
     if not (funcs.parameters or funcs.layout) then
-        error("every cell must define at least the public functions 'parameters' or 'layout'", 0)
+        error("every cell must define at least the public functions 'parameters' or 'layout'")
     end
     local cell = {
         funcs = funcs,
@@ -177,7 +177,7 @@ local function _process_input_parameters(cellname, cellargs, evaluate, overwrite
         for name, value in pairs(cellargs) do
             local p = cellparams[name]
             if not p then
-                error(string.format("argument '%s' has no matching parameter, maybe it was spelled wrong?", name), 0)
+                error(string.format("argument '%s' has no matching parameter, maybe it was spelled wrong?", name))
             end
             if overwrite then
                 p.overwritten = true
@@ -225,7 +225,7 @@ local function _get_parameters(cellname, cellargs, evaluate)
     -- this avoids arithmetic-with-nil-errors
     setmetatable(P, {
         __index = function(_, k)
-            error(string.format("trying to access undefined parameter value '%s'", k), 0)
+            error(string.format("trying to access undefined parameter value '%s'", k))
         end,
     })
 
@@ -302,7 +302,7 @@ end
 function bind_parameter(cellname, name, othercell, othername)
     local param = loadedcells[cellname].parameters[name]
     if not param then
-        error(string.format("trying to bind '%s.%s' to '%s.%s', which is unknown", othercell, othername, cellname, name), 0)
+        error(string.format("trying to bind '%s.%s' to '%s.%s', which is unknown", othercell, othername, cellname, name))
     end
     if not bindings[cellname] then bindings[cellname] = {} end
     bindings[cellname][name] = { cell = othercell, name = othername }
@@ -352,7 +352,7 @@ end
 
 function pop_overwrites(cellname)
     if (not backupstacks[cellname]) or (not backupstacks[cellname]:peek()) then
-        error(string.format("trying to restore default parameters for '%s', but there where no previous overwrites", cellname), 0)
+        error(string.format("trying to restore default parameters for '%s', but there where no previous overwrites", cellname))
     end
     _restore_parameters(cellname, backupstacks[cellname]:top())
     backupstacks[cellname]:pop()
@@ -392,7 +392,7 @@ end
 function M.create_layout(cellname, args, evaluate)
     local cell = loadedcells[cellname]
     if not cell.funcs.layout then
-        error(string.format("cell '%s' has no layout definition", cellname), 0)
+        error(string.format("cell '%s' has no layout definition", cellname))
     end
     local obj = object.create()
     local parameters, backup = _get_parameters(cellname, args, evaluate)
@@ -401,7 +401,7 @@ function M.create_layout(cellname, args, evaluate)
     local status, msg = pcall(cell.funcs.layout, obj, parameters)
     _remove_bindings(cellname)
     if not status then
-        error(string.format("could not create cell '%s': %s", cellname, msg), 0)
+        error(string.format("could not create cell '%s': %s", cellname, msg))
     end
     return obj
 end

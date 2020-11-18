@@ -16,18 +16,18 @@ function _generic_load(reader, chunkname, synerrmsg, semerrmsg, env)
 
     if not func then
         if synerrmsg then
-            error(string.format("%s: %s", synerrmsg, msg), 0)
+            error(string.format("%s: %s", synerrmsg, msg))
         else
-            error(msg, 0)
+            error(msg)
         end
     end
 
     local status, chunk = pcall(func)
     if not status then
         if semerrmsg then
-            error(string.format("%s: %s", semerrmsg, chunk), 0)
+            error(string.format("%s: %s", semerrmsg, chunk))
         else
-            error(chunk, 0)
+            error(chunk)
         end
     end
 

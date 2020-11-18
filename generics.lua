@@ -39,7 +39,7 @@ end
 
 function M.via(from, to)
     if not from or not to then
-        error("generic.via with nil", 0)
+        error("generic.via with nil")
     end
     local self = _create({ from = from, to = to })
     self.typ = "via"

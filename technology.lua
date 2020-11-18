@@ -61,7 +61,7 @@ local function _get_lpp(lpp, interface)
         lpp = lpp()
     end
     if not lpp[interface] then
-        error(string.format("no layer information for interface '%s'", interface), 0)
+        error(string.format("no layer information for interface '%s'", interface))
     end
     return lpp[interface]
 end
@@ -105,7 +105,7 @@ function M.translate(cell, interface)
         local layer = S.lpp:str()
         local mappings = layermap[layer]
         if not mappings then
-            error(string.format("no layer information for '%s'\nif the layer is not provided, set it to {}", layer), 0)
+            error(string.format("no layer information for '%s'\nif the layer is not provided, set it to {}", layer))
         end
         for _, entry in ipairs(mappings) do
             if entry.action == "map" then
@@ -188,7 +188,7 @@ local function _load_layermap(name)
 
     local reader = _get_reader(filename)
     if not reader then
-        error(string.format("no techfile for technology '%s' found", name), 0)
+        error(string.format("no techfile for technology '%s' found", name))
     end
     return _generic_load(
         reader, chunkname,
@@ -204,7 +204,7 @@ local function _load_config(name)
 
     local reader = _get_reader(filename)
     if not reader then
-        error(string.format("no config for technology '%s' found", name), 0)
+        error(string.format("no config for technology '%s' found", name))
     end
     return _generic_load(
         reader, chunkname,
