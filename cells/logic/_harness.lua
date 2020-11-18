@@ -1,8 +1,8 @@
 function parameters()
     pcell.inherit_all_parameters("logic/_base")
     pcell.add_parameters(
-        { "leftadapt",  false },
-        { "rightadapt", false }
+        { "leftadapt",  true },
+        { "rightadapt", true }
     )
 end
 
