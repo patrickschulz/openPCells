@@ -207,9 +207,9 @@ local function _get_parameters(cellname, cellargs, evaluate)
     local P = {}
     local handled = {}
     for name, entry in pairs(cellparams) do
-        if not handled[name] or cellargs[name] then
+        if not handled[name] or rawget(cellargs, name) then
             P[name] = entry.func()
-            if cellargs[name] then
+            if rawget(cellargs, name) then
                 handled[name] = true
             end
         end
