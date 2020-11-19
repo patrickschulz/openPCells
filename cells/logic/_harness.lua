@@ -1,55 +1,56 @@
 function parameters()
-    pcell.inherit_all_parameters("logic/_base")
     pcell.add_parameters(
+        { "fingers",       1 },
         { "leftadapt",  true },
         { "rightadapt", true }
     )
 end
 
 function layout(gate, _P)
-    local xpitch = _P.gspace + _P.glength
+    local bp = pcell.get_parameters("logic/_base")
+    local xpitch = bp.gspace + bp.glength
 
     -- common transistor options
     pcell.push_overwrites("basic/transistor", {
-        gatelength = _P.glength,
-        gatespace = _P.gspace,
-        sdwidth = _P.sdwidth,
+        gatelength = bp.glength,
+        gatespace = bp.gspace,
+        sdwidth = bp.sdwidth,
     })
 
     -- pmos
     pcell.push_overwrites("basic/transistor", {
         channeltype = "pmos",
-        fwidth = _P.pwidth,
+        fwidth = bp.pwidth,
         drawtopgate = true,
         drawbotgcut = true,
-        topgatestrwidth = _P.dummycontheight,
-        topgatestrspace = _P.powerspace,
-        gbotext = _P.separation / 2,
+        topgatestrwidth = bp.dummycontheight,
+        topgatestrspace = bp.powerspace + bp.powerwidth / 2 - bp.dummycontheight / 2,
+        gbotext = bp.separation / 2,
         clipbot = true,
-        sourcesize = _P.pwidth / 2,
-        drainsize  = _P.pwidth / 2,
+        sourcesize = bp.pwidth / 2,
+        drainsize  = bp.pwidth / 2,
         sourcealign = "top",
         drainalign  = "top",
     })
-    if _P.rightdummies > 1 then
+    if bp.rightdummies > 1 then
         gate:merge_into(
-            pcell.create_layout("basic/transistor", { fingers = _P.rightdummies - 1 })
+            pcell.create_layout("basic/transistor", { fingers = bp.rightdummies - 1 })
             :move_anchor("leftbotgate", point.create((_P.fingers + 2) * xpitch / 2, 0))
         )
     end
-    if _P.leftdummies > 1 then
+    if bp.leftdummies > 1 then
         gate:merge_into(
-            pcell.create_layout("basic/transistor", { fingers = _P.leftdummies - 1 })
+            pcell.create_layout("basic/transistor", { fingers = bp.leftdummies - 1 })
             :move_anchor("rightbotgate", point.create(-(_P.fingers + 2) * xpitch / 2, 0))
         )
     end
-    if _P.rightdummies > 0 then
+    if bp.rightdummies > 0 then
         gate:merge_into(
             pcell.create_layout("basic/transistor", { fingers = 1, drawoutersourcedrain = not _P.rightadapt })
             :move_anchor("leftbotgate", point.create(_P.fingers * xpitch / 2, 0))
         )
     end
-    if _P.leftdummies > 0 then
+    if bp.leftdummies > 0 then
         gate:merge_into(
             pcell.create_layout("basic/transistor", { fingers = 1, drawoutersourcedrain = not _P.leftadapt })
             :move_anchor("rightbotgate", point.create(-_P.fingers * xpitch / 2, 0))
@@ -60,38 +61,38 @@ function layout(gate, _P)
     -- nmos
     pcell.push_overwrites("basic/transistor", {
         channeltype = "nmos",
-        fwidth = _P.nwidth,
+        fwidth = bp.nwidth,
         drawbotgate = true,
         drawtopgcut = true,
-        botgatestrwidth = _P.dummycontheight,
-        botgatestrspace = _P.powerspace,
-        gtopext = _P.separation / 2,
+        botgatestrwidth = bp.dummycontheight,
+        botgatestrspace = bp.powerspace + bp.powerwidth / 2 - bp.dummycontheight / 2,
+        gtopext = bp.separation / 2,
         cliptop = true,
-        sourcesize = _P.nwidth / 2,
-        drainsize  = _P.nwidth / 2,
+        sourcesize = bp.nwidth / 2,
+        drainsize  = bp.nwidth / 2,
         sourcealign = "bottom",
         drainalign  = "bottom",
     })
 
-    if _P.rightdummies > 1 then
+    if bp.rightdummies > 1 then
         gate:merge_into(
-            pcell.create_layout("basic/transistor", { fingers = _P.rightdummies - 1 })
+            pcell.create_layout("basic/transistor", { fingers = bp.rightdummies - 1 })
             :move_anchor("lefttopgate", point.create((_P.fingers + 2) * xpitch / 2, 0))
         )
     end
-    if _P.leftdummies > 1 then
+    if bp.leftdummies > 1 then
         gate:merge_into(
-            pcell.create_layout("basic/transistor", { fingers = _P.leftdummies - 1 })
+            pcell.create_layout("basic/transistor", { fingers = bp.leftdummies - 1 })
             :move_anchor("righttopgate", point.create(-(_P.fingers + 2) * xpitch / 2, 0))
         )
     end
-    if _P.rightdummies > 0 then
+    if bp.rightdummies > 0 then
         gate:merge_into(
             pcell.create_layout("basic/transistor", { fingers = 1, drawoutersourcedrain = not _P.rightadapt })
             :move_anchor("lefttopgate", point.create(_P.fingers * xpitch / 2, 0))
         )
     end
-    if _P.leftdummies > 0 then
+    if bp.leftdummies > 0 then
         gate:merge_into(
             pcell.create_layout("basic/transistor", { fingers = 1, drawoutersourcedrain = not _P.leftadapt })
             :move_anchor("righttopgate", point.create(-_P.fingers * xpitch / 2, 0))
@@ -102,39 +103,39 @@ function layout(gate, _P)
     pcell.pop_overwrites("basic/transistor")
 
     -- draw missing contacts
-    if _P.leftdummies > 0 and _P.leftadapt then
+    if bp.leftdummies > 0 and _P.leftadapt then
         gate:merge_into(geometry.rectangle(
-            generics.contact("active"), _P.sdwidth, _P.nwidth / 2
-        ):translate(-xpitch / 2 * (_P.fingers + 2), -_P.separation / 2 - _P.nwidth * 3 / 4))
+            generics.contact("active"), bp.sdwidth, bp.nwidth / 2
+        ):translate(-xpitch / 2 * (_P.fingers + 2), -bp.separation / 2 - bp.nwidth * 3 / 4))
         gate:merge_into(geometry.rectangle(
-            generics.contact("active"), _P.sdwidth, _P.pwidth / 2
-        ):translate(-xpitch / 2 * (_P.fingers + 2), _P.separation / 2 + _P.pwidth * 3 / 4))
+            generics.contact("active"), bp.sdwidth, bp.pwidth / 2
+        ):translate(-xpitch / 2 * (_P.fingers + 2), bp.separation / 2 + bp.pwidth * 3 / 4))
     end
-    if _P.rightdummies > 0 and _P.rightadapt then
+    if bp.rightdummies > 0 and _P.rightadapt then
         gate:merge_into(geometry.rectangle(
-            generics.contact("active"), _P.sdwidth, _P.nwidth / 2
-        ):translate(xpitch / 2 * (_P.fingers + 2), -_P.separation / 2 - _P.nwidth * 3 / 4))
+            generics.contact("active"), bp.sdwidth, bp.nwidth / 2
+        ):translate(xpitch / 2 * (_P.fingers + 2), -bp.separation / 2 - bp.nwidth * 3 / 4))
         gate:merge_into(geometry.rectangle(
-            generics.contact("active"), _P.sdwidth, _P.pwidth / 2
-        ):translate(xpitch / 2 * (_P.fingers + 2), _P.separation / 2 + _P.pwidth * 3 / 4))
+            generics.contact("active"), bp.sdwidth, bp.pwidth / 2
+        ):translate(xpitch / 2 * (_P.fingers + 2), bp.separation / 2 + bp.pwidth * 3 / 4))
     end
 
     -- power rails...
     gate:merge_into(geometry.multiple(
-        geometry.rectangle(generics.metal(1), (_P.fingers + _P.leftdummies + _P.rightdummies) * xpitch + _P.sdwidth, _P.powerwidth),
-        1, 2, 0, _P.separation + _P.pwidth + _P.nwidth + 2 * _P.powerspace + _P.powerwidth
-    ):translate((_P.rightdummies - _P.leftdummies) * xpitch / 2, (_P.pwidth - _P.nwidth) / 2))
+        geometry.rectangle(generics.metal(1), (_P.fingers + bp.leftdummies + bp.rightdummies) * xpitch + bp.sdwidth, bp.powerwidth),
+        1, 2, 0, bp.separation + bp.pwidth + bp.nwidth + 2 * bp.powerspace + bp.powerwidth
+    ):translate((bp.rightdummies - bp.leftdummies) * xpitch / 2, (bp.pwidth - bp.nwidth) / 2))
     -- ... with connections
-    if _P.leftdummies > 0 then
+    if bp.leftdummies > 0 then
         gate:merge_into(geometry.multiple(
-            geometry.rectangle(generics.metal(1), _P.sdwidth, _P.powerspace),
-            _P.leftdummies, 2, xpitch, _P.separation + _P.pwidth + _P.nwidth + _P.powerspace
-        ):translate(-(_P.fingers + _P.leftdummies + 1) * xpitch / 2, (_P.pwidth - _P.nwidth) / 2))
+            geometry.rectangle(generics.metal(1), bp.sdwidth, bp.powerspace),
+            bp.leftdummies, 2, xpitch, bp.separation + bp.pwidth + bp.nwidth + bp.powerspace
+        ):translate(-(_P.fingers + bp.leftdummies + 1) * xpitch / 2, (bp.pwidth - bp.nwidth) / 2))
     end
-    if _P.rightdummies > 0 then
+    if bp.rightdummies > 0 then
         gate:merge_into(geometry.multiple(
-            geometry.rectangle(generics.metal(1), _P.sdwidth, _P.powerspace),
-            _P.rightdummies, 2, xpitch, _P.separation + _P.pwidth + _P.nwidth + _P.powerspace
-        ):translate((_P.fingers + _P.rightdummies + 1) * xpitch / 2, (_P.pwidth - _P.nwidth) / 2))
+            geometry.rectangle(generics.metal(1), bp.sdwidth, bp.powerspace),
+            bp.rightdummies, 2, xpitch, bp.separation + bp.pwidth + bp.nwidth + bp.powerspace
+        ):translate((_P.fingers + bp.rightdummies + 1) * xpitch / 2, (bp.pwidth - bp.nwidth) / 2))
     end
 end
