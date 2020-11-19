@@ -12,7 +12,7 @@ local argparse = _load_module("argparse")
 local args = argparse.parse(arg)
 -- prepare cell arguments
 local cellargs = {}
-for k, v in string.gmatch(table.concat(args.cellargs, " "), "(%w+)%s*=%s*(%S+)") do
+for k, v in string.gmatch(table.concat(args.cellargs, " "), "([%w/._]+)%s*=%s*(%S+)") do
     cellargs[k] = v
 end
 

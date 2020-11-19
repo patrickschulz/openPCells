@@ -66,6 +66,7 @@ local function _prepare_cell_environment(cellname)
             clone_matching_parameters       = clone_matching_parameters,
             push_overwrites                 = push_overwrites,
             pop_overwrites                  = pop_overwrites,
+            get_parameters                  = function(cellname) return _get_parameters(cellname) end,
             create_layout = M.create_layout
         },
         -- fake modules, the shapes are really created later
@@ -168,36 +169,57 @@ local function _add_parameter(cellname, name, value, argtype, posvals, follow, o
     return true
 end
 
-local function _process_input_parameters(cellname, cellargs, evaluate, overwrite)
-    local cellparams = loadedcells[cellname].parameters
+local function _split_input_arguments(args)
+    local t = {}
+    for name, value in pairs(args) do
+        local parent, arg = string.match(name, "^([^.]+)%.(.+)$")
+        if not parent then
+            arg = name
+        end
+        table.insert(t, { parent = parent, name = arg, value = value })
+    end
+    return t
+end
 
-    -- process input arguments
+local function _set_parameter_function(cellname, name, value, backup, evaluate, overwrite)
+    local p = loadedcells[cellname].parameters[name]
+    if not p then
+        error(string.format("argument '%s' has no matching parameter in cell '%s', maybe it was spelled wrong?", name, cellname))
+    end
+    if overwrite then
+        p.overwritten = true
+    end
+    local value = value
+    if evaluate then
+        local eval = evaluators[p.argtype]
+        value = eval(value)
+    end
+    -- store old function for restoration
+    backup[name] = p.func:get()
+    -- important: use :replace(), don't create a new function object.
+    -- Otherwise parameter binding does not work, because bound parameters link to the original function object
+    p.func:replace(function() return value end)
+end
+
+local function _process_input_parameters(cellname, cellargs, evaluate, overwrite)
     local backup = {}
     if cellargs then
-        for name, value in pairs(cellargs) do
-            local p = cellparams[name]
-            if not p then
-                error(string.format("argument '%s' has no matching parameter, maybe it was spelled wrong?", name))
+        local args = _split_input_arguments(cellargs)
+        for _, arg in ipairs(args) do
+            if arg.parent then
+                _set_parameter_function(arg.parent, arg.name, arg.value, {}, evaluate, overwrite)
+            else
+                _set_parameter_function(cellname, arg.name, arg.value, backup, evaluate, overwrite)
             end
-            if overwrite then
-                p.overwritten = true
-            end
-            if evaluate then
-                local eval = evaluators[p.argtype]
-                value = eval(value)
-            end
-            -- store old function for restoration
-            backup[name] = p.func:get()
-            -- important: use :replace(), don't create a new function object.
-            -- Otherwise parameter binding does not work, because bound parameters link to the original function object
-            p.func:replace(function() return value end)
         end
     end
-
     return backup
 end
 
-local function _get_parameters(cellname, cellargs, evaluate)
+-- FIXME: this function was local, but the order of the functions matters, 
+-- since they are added to the sandbox environment for the cell layout functions
+-- This is not very good, work on this
+function _get_parameters(cellname, cellargs, evaluate)
     local cellparams = loadedcells[cellname].parameters
     cellargs = cellargs or {}
 
