@@ -72,8 +72,8 @@ local function _prepare_cell_environment(cellname)
         -- fake modules, the shapes are really created later
         -- this enables some tricks for example regarding even/odd metals
         -- to build metal grids with unknown number of metals
-        geometry = abstract.geometry,
-        graphics = abstract.graphics,
+        geometry = geometry,
+        graphics = graphics,
         shape = shape,
         object = object,
         generics = generics,

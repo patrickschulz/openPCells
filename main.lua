@@ -52,8 +52,6 @@ if args.origin then
     cell:translate(dx, dy)
 end
 
-abstract.realize_shapes()
-
 local techintf = interface.get_techinterface() or args.interface
 if not args.notech then
     techlib.translate_metals(cell)

@@ -94,7 +94,6 @@ static void load_api(lua_State* L)
         "funcobject",
         "reduce",
         "stack",
-        "abstract", // this must be loaded AFTER geometry and graphics. Just leave this at the end
         NULL
     };
     char** ptr = modules;
