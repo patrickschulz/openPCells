@@ -88,6 +88,6 @@ function layout(gate, _P)
     gate:add_port("VSS", generics.metal(1), point.create(0, -bp.separation / 2 - bp.nwidth - bp.powerspace - bp.powerwidth / 2))
 
     -- anchors
-    gate:add_anchor("left", point.create(-(_P.fingers + bp.leftdummies) * xpitch / 2, 0))
-    gate:add_anchor("right", point.create((_P.fingers + bp.rightdummies) * xpitch / 2, 0))
+    gate:add_anchor("left", point.create(-_P.fingers * xpitch / 2 + bp.leftdummies * xpitch, 0))
+    gate:add_anchor("right", point.create(_P.fingers * xpitch / 2 + bp.rightdummies * xpitch, 0))
 end
