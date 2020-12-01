@@ -80,7 +80,6 @@ function layout(gate, _P)
 
     -- ports
     gate:add_port("D", generics.metal(1), inv:get_anchor("I"))
-    gate:add_port("CLK", generics.metal(1), cinv:get_anchor("O"))
     gate:add_port("VDD", generics.metal(1), point.create(0,  bp.separation / 2 + bp.pwidth + bp.powerspace + bp.powerwidth / 2))
     gate:add_port("VSS", generics.metal(1), point.create(0, -bp.separation / 2 - bp.nwidth - bp.powerspace - bp.powerwidth / 2))
 end
