@@ -81,13 +81,15 @@ function layout(gate, _P)
         true
     ))
 
+    -- anchors
+    gate:add_anchor("left", point.create(-_P.fingers * xpitch / 2 - bp.leftdummies * xpitch, 0))
+    gate:add_anchor("right", point.create(_P.fingers * xpitch / 2 + bp.rightdummies * xpitch, 0))
+    gate:add_anchor("in", point.create(0, 0))
+    gate:add_anchor("out", point.create(_P.fingers * xpitch / 2, 0))
+
     -- ports
-    gate:add_port("I", generics.metal(1), point.create(0, 0))
-    gate:add_port("O", generics.metal(1), point.create(_P.fingers * xpitch / 2, 0))
+    gate:add_port("I", generics.metal(1), gate:get_anchor("in"))
+    gate:add_port("O", generics.metal(1), gate:get_anchor("out"))
     gate:add_port("VDD", generics.metal(1), point.create(0,  bp.separation / 2 + bp.pwidth + bp.powerspace + bp.powerwidth / 2))
     gate:add_port("VSS", generics.metal(1), point.create(0, -bp.separation / 2 - bp.nwidth - bp.powerspace - bp.powerwidth / 2))
-
-    -- anchors
-    gate:add_anchor("left", point.create(-_P.fingers * xpitch / 2 + bp.leftdummies * xpitch, 0))
-    gate:add_anchor("right", point.create(_P.fingers * xpitch / 2 + bp.rightdummies * xpitch, 0))
 end

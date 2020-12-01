@@ -12,7 +12,7 @@ function layout(gate, _P)
 
     -- common transistor options
     pcell.push_overwrites("basic/transistor", {
-        fingers = 2,
+        fingers = 1,
         gatelength = bp.glength,
         gatespace = bp.gspace,
         sdwidth = bp.sdwidth,
@@ -28,7 +28,10 @@ function layout(gate, _P)
         gbotext = bp.separation / 2,
         clipbot = true,
     })
-    block:merge_into(pcell.create_layout("basic/transistor"):move_anchor("botgate"))
+    block:merge_into(pcell.create_layout("basic/transistor"):move_anchor("leftbotgate"))
+    pcell.push_overwrites("basic/transistor", { drawbotgcut = true })
+    block:merge_into(pcell.create_layout("basic/transistor"):move_anchor("rightbotgate"))
+    pcell.pop_overwrites("basic/transistor")
     pcell.pop_overwrites("basic/transistor")
 
     -- nmos
@@ -39,24 +42,33 @@ function layout(gate, _P)
         gtopext = bp.separation / 2,
         cliptop = true,
     })
-    block:merge_into(pcell.create_layout("basic/transistor"):move_anchor("topgate"))
+    block:merge_into(pcell.create_layout("basic/transistor"):move_anchor("lefttopgate"))
+    pcell.push_overwrites("basic/transistor", { drawtopgcut = true })
+    block:merge_into(pcell.create_layout("basic/transistor"):move_anchor("righttopgate"))
+    pcell.pop_overwrites("basic/transistor")
     pcell.pop_overwrites("basic/transistor")
 
     -- gate contacts
     block:merge_into(geometry.rectangle(
         generics.contact("gate"), bp.glength, bp.gstwidth
-    ):translate(xpitch / 2, bp.separation / 4))
+    ):translate(xpitch / 2, 0))
     block:merge_into(geometry.rectangle(
         generics.contact("gate"), bp.glength, bp.gstwidth
-    ):translate(-xpitch / 2, -bp.separation / 4))
+    ):translate(-xpitch / 2, -bp.separation / 4 - bp.sdwidth / 4))
+    block:merge_into(geometry.rectangle(
+        generics.contact("gate"), bp.glength, bp.gstwidth
+    ):translate(-xpitch / 2, bp.separation / 4 + bp.sdwidth / 4))
     local num = 2 * _P.fingers - 1 - math.abs(_P.fingers % 2 - 1)
     local num2 = 2 * _P.fingers - 1 + math.abs(_P.fingers % 2 - 1)
     gate:merge_into(geometry.rectangle(
         generics.metal(1), num * bp.glength + (num - 1) * bp.gspace, bp.gstwidth
-    ):translate(-(_P.fingers % 2) * xpitch / 2, -bp.separation / 4))
+    ):translate(-(_P.fingers % 2) * xpitch / 2, -bp.separation / 4 - bp.sdwidth / 4))
+    gate:merge_into(geometry.rectangle(
+        generics.metal(1), num * bp.glength + (num - 1) * bp.gspace, bp.gstwidth
+    ):translate(-(_P.fingers % 2) * xpitch / 2,  bp.separation / 4 + bp.sdwidth / 4))
     gate:merge_into(geometry.rectangle(
         generics.metal(1), num2 * bp.glength + (num2 - 1) * bp.gspace, bp.gstwidth
-    ):translate((_P.fingers % 2) * xpitch / 2, bp.separation / 4))
+    ):translate((_P.fingers % 2) * xpitch / 2, 0))
 
     -- pmos source/drain contacts
     block:merge_into(geometry.rectangle(
@@ -107,6 +119,10 @@ function layout(gate, _P)
     pcell.pop_overwrites("basic/transistor")
 
     -- anchors
-    gate:add_anchor("left", point.create(-(_P.fingers + bp.leftdummies) * (bp.glength + bp.gspace), 0))
-    gate:add_anchor("right", point.create((_P.fingers + bp.rightdummies) * (bp.glength + bp.gspace), 0))
+    gate:add_anchor("egatep", point.create(-xpitch / 2,  bp.separation / 4 + bp.sdwidth / 4))
+    gate:add_anchor("egaten", point.create(-xpitch / 2, -bp.separation / 4 - bp.sdwidth / 4))
+    gate:add_anchor("dgatenp", point.create(xpitch / 2, 0))
+    gate:add_anchor("out", point.create((_P.fingers + 1) * xpitch / 2, 0))
+    gate:add_anchor("left", point.create(-(_P.fingers + bp.leftdummies) * xpitch, 0))
+    gate:add_anchor("right", point.create((_P.fingers + bp.rightdummies) * xpitch, 0))
 end

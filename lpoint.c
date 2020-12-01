@@ -82,6 +82,41 @@ static int lpoint_create(lua_State* L)
     return 1;
 }
 
+static int lpoint_combine(lua_State* L)
+{
+    lpoint_t* lhs = lua_touserdata(L, -2);
+    lpoint_t* rhs = lua_touserdata(L, -1);
+
+    lpoint_coordinate_t x1 = lhs->x;
+    lpoint_coordinate_t y1 = lhs->y;
+    lpoint_coordinate_t x2 = rhs->x;
+    lpoint_coordinate_t y2 = rhs->y;
+    _create(L, (x1 + x2) / 2, (y1 + y2) / 2);
+    return 1;
+}
+
+static int lpoint_combine_xy(lua_State* L)
+{
+    lpoint_t* lhs = lua_touserdata(L, -2);
+    lpoint_t* rhs = lua_touserdata(L, -1);
+
+    lpoint_coordinate_t x1 = lhs->x;
+    lpoint_coordinate_t y2 = rhs->y;
+    _create(L, x1, y2);
+    return 1;
+}
+
+static int lpoint_combine_yx(lua_State* L)
+{
+    lpoint_t* lhs = lua_touserdata(L, -2);
+    lpoint_t* rhs = lua_touserdata(L, -1);
+
+    lpoint_coordinate_t y1 = lhs->y;
+    lpoint_coordinate_t x2 = rhs->x;
+    _create(L, x2, y1);
+    return 1;
+}
+
 static int lpoint_copy(lua_State* L)
 {
     lpoint_t* p = lua_touserdata(L, -1);
@@ -231,8 +266,11 @@ int open_lpoint_lib(lua_State* L)
 
     static const luaL_Reg modfuncs[] =
     {
-        { "create",         lpoint_create   },
-        { NULL,             NULL            }
+        { "create",         lpoint_create      },
+        { "combine",        lpoint_combine     },
+        { "combine_xy",     lpoint_combine_xy  },
+        { "combine_yx",     lpoint_combine_yx  },
+        { NULL,             NULL               }
     };
     lua_newtable(L);
     luaL_setfuncs(L, modfuncs, 0);
