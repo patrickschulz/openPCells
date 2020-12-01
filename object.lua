@@ -98,6 +98,9 @@ function meta.find(self, comp)
 end
 
 function meta.translate(self, dx, dy)
+    if type(dx) == "userdata" then
+        dx, dy = dx:unwrap()
+    end
     for _, shape in ipairs(self.shapes) do
         shape:translate(dx, dy)
     end
@@ -171,12 +174,12 @@ function meta.bounding_box(self)
 end
 
 function meta.add_anchor(self, name, where)
-    where = where or point.create(0, 0)
+    where = where:copy() or point.create(0, 0)
     self.anchors[name] = where
 end
 
 function meta.get_anchor(self, name)
-    return self.anchors[name]
+    return self.anchors[name]:copy()
 end
 
 function meta.move_anchor(self, name, where)
