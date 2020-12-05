@@ -237,6 +237,36 @@ static int lpoint_format(lua_State* L)
     return 1;
 }
 
+static int lpoint_is_lpoint(lua_State* L)
+{
+    if(lua_gettop(L) != 1)
+    {
+        lua_pushliteral(L, "is_lpoint expects exactly one argument");
+        lua_error(L);
+    }
+    lpoint_t* p = lua_touserdata(L, -1);
+    if(p)
+    {
+        lua_getmetatable(L, -1);
+        if(lua_gettop(L) == 2)
+        {
+            lua_pushliteral(L, "__name");
+            lua_gettable(L, -2);
+            lua_pushliteral(L, LPOINTMETA);
+            lua_pushboolean(L, lua_compare(L, -1, -2, LUA_OPEQ));
+        }
+        else
+        {
+            lua_pushboolean(L, 0);
+        }
+    }
+    else
+    {
+        lua_pushboolean(L, 0);
+    }
+    return 1;
+}
+
 int open_lpoint_lib(lua_State* L)
 {
     static const luaL_Reg metafuncs[] =
@@ -275,6 +305,10 @@ int open_lpoint_lib(lua_State* L)
     lua_newtable(L);
     luaL_setfuncs(L, modfuncs, 0);
     lua_setglobal(L, LPOINTMODULE);
+
+    // add global is_lpoint function
+    lua_pushcfunction(L, lpoint_is_lpoint);
+    lua_setglobal(L, "is_lpoint");
     return 0;
 }
 
