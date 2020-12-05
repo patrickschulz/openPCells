@@ -98,7 +98,7 @@ function meta.find(self, comp)
 end
 
 function meta.translate(self, dx, dy)
-    if type(dx) == "userdata" then
+    if is_lpoint(dx) then
         dx, dy = dx:unwrap()
     end
     for _, shape in ipairs(self.shapes) do
