@@ -253,4 +253,17 @@ function M.write_layer(file, layer, pcol)
     end
 end
 
+function M.write_port(file, name, layer, where)
+    -- FIXME: use correct layer
+    _write_record(file, recordtypes.TEXT, datatypes.NONE)
+    _write_record(file, recordtypes.LAYER, datatypes.TWO_BYTE_INTEGER, { 15 })
+    _write_record(file, recordtypes.TEXTTYPE, datatypes.TWO_BYTE_INTEGER, { 0 })
+    _write_record(file, recordtypes.PRESENTATION, datatypes.BIT_ARRAY, { 0x0005 })
+    --_write_record(file, recordtypes.STRANS, datatypes.BIT_ARRAY, { 0x8006 })
+    --_write_record(file, recordtypes.MAG, datatypes.EIGHT_BYTE_REAL, { 10.0 })
+    _write_record(file, recordtypes.XY, datatypes.FOUR_BYTE_INTEGER, _unpack_points({ where }, baseunit))
+    _write_record(file, recordtypes.STRING, datatypes.ASCII_STRING, name)
+    _write_record(file, recordtypes.ENDEL, datatypes.NONE)
+end
+
 return M
