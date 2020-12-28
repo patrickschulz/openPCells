@@ -10,9 +10,9 @@ static lpoint_coordinate_t checkcoordinate(lua_State* L, int idx)
 {
     int isnum;
     lua_Integer d = lua_tointegerx(L, idx, &isnum);
-    double num = lua_tonumber(L, idx);
     if(!isnum) 
     {
+        /*
         lua_Debug debug;
         int level = 1;
         while(1)
@@ -26,6 +26,9 @@ static lpoint_coordinate_t checkcoordinate(lua_State* L, int idx)
             ++level;
         }
         lua_pushfstring(L, "non-integer number (%f) generated in %s: line %d", num, debug.short_src, debug.currentline);
+        */
+        lua_Number num = lua_tonumber(L, idx);
+        lua_pushfstring(L, "non-integer number (%f) generated", num);
         lua_error(L);
     }
     return d;

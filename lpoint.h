@@ -7,7 +7,7 @@
 #define LPOINTMETA "lpoint"
 #define LPOINTMODULE "point"
 
-typedef int64_t lpoint_coordinate_t;
+typedef long long int lpoint_coordinate_t;
 
 typedef struct _point
 {
