@@ -18,6 +18,10 @@ local M = {}
 
 local function identity(arg) return arg end
 local function toboolean(arg)
+    assert(
+        string.match(arg, "true") or string.match(arg, "false"), 
+        string.format("toboolean: argument must be 'true' or 'false' (is '%s')", arg)
+    )
     return arg == "true" and true or false
 end
 local function tointeger(arg)
