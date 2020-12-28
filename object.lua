@@ -9,7 +9,7 @@ local meta = {}
 meta.__index = meta
 
 function M.create()
-    local self = { shapes = {}, ports = {}, anchors = {} }
+    local self = { shapes = {}, ports = {}, anchors = {}, origin = point.create(0, 0) }
     setmetatable(self, meta)
     return self
 end
@@ -60,12 +60,9 @@ function meta.add_port(self, name, layer, where)
     self.anchors[name] = where:copy() -- copy point, otherwise translation acts twice
 end
 
--- this function returns an iterator over all shapes in a cell
--- (possibly only selecting a subset)
--- First all shapes are collected in an auxiliary table, which enables
--- modification of the self.shapes table within the iteration
--- Furthermore, the list is iterated from the end, which allows
--- element removal in the loop
+-- this function returns an iterator over all shapes in a cell (possibly only selecting a subset)
+-- First all shapes are collected in an auxiliary table, which enables modification of the self.shapes table within the iteration
+-- Furthermore, the list is iterated from the end, which allows element removal in the loop
 function meta.iter(self, comp)
     local shapes = {}
     local indices = {}
@@ -110,12 +107,23 @@ function meta.translate(self, dx, dy)
     for _, port in pairs(self.ports) do
         port.where:translate(dx, dy)
     end
+    self.origin:translate(dx, dy)
     return self
 end
 
 function meta.flipx(self, xcenter)
+    xcenter = xcenter or 0
+    local selfxcenter = self.origin:unwrap()
     for _, shape in ipairs(self.shapes) do
-        shape:flipx(xcenter)
+        shape:flipx(xcenter + selfxcenter)
+    end
+    for _, anchor in ipairs(self.anchors) do
+        local x, y = anchor:unwrap()
+        anchor:translate(-2 * x, 0)
+    end
+    for _, port in pairs(self.ports) do
+        local x, y = port.where:unwrap()
+        port.where:translate(-2 * x, 0)
     end
     return self
 end
@@ -123,6 +131,14 @@ end
 function meta.flipy(self, ycenter)
     for _, shape in ipairs(self.shapes) do
         shape:flipy(ycenter)
+    end
+    for _, anchor in ipairs(self.anchors) do
+        local x, y = anchor:unwrap()
+        anchor:translate(0, -2 * y)
+    end
+    for _, port in pairs(self.ports) do
+        local x, y = port.where:unwrap()
+        port.where:translate(0, -2 * y)
     end
     return self
 end
