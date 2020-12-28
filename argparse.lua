@@ -79,6 +79,7 @@ local function _display_help()
     -I, --interface      specify interface
     --filename           output filename
     --origin             origin of cell (move (0, 0))
+    --orientation        orientation of cell (possible values: 0 (regular), fx (flip x), fy (flip y), fxy (flip x and y))
     --iopt               pass special options to interface
     --check              check cell code
     --notech             disable all technology translation functions (metal translation, via arrayzation, layer mapping grid fixing)
@@ -87,27 +88,28 @@ local function _display_help()
 end
 
 local actions = {
-    ["-P"]           = _switch_func("params"),
-    ["--parameters"] = _switch_func("params"),
-    ["--separator"]  = _store_func("separator"),
-    ["-T"]           = _store_func("technology"),
-    ["--technology"] = _store_func("technology"),
-    ["-I"]           = _store_func("interface"),
-    ["--interface"]  = _store_func("interface"),
-    ["-E"]           = _store_func("export"),
-    ["--export"]     = _store_func("export"),
-    ["-C"]           = _store_func("cell"),
-    ["--cell"]       = _store_func("cell"),
-    ["-f"]           = _store_func("filename"),
-    ["--filename"]   = _store_func("filename"),
-    ["--origin"]     = _consumer_string_func("origin"),
-    ["--iopt"]       = _consumer_table_func("interface_options"),
-    ["--check"]      = _switch_func("check"),
-    ["--notech"]     = _switch_func("notech"),
-    ["-D"]           = _store_func("debug"),
-    ["--debug"]      = _store_func("debug"),
-    ["-h"]           = _display_help,
-    ["--help"]       = _display_help,
+    ["-P"]             = _switch_func("params"),
+    ["--parameters"]   = _switch_func("params"),
+    ["--separator"]    = _store_func("separator"),
+    ["-T"]             = _store_func("technology"),
+    ["--technology"]   = _store_func("technology"),
+    ["-I"]             = _store_func("interface"),
+    ["--interface"]    = _store_func("interface"),
+    ["-E"]             = _store_func("export"),
+    ["--export"]       = _store_func("export"),
+    ["-C"]             = _store_func("cell"),
+    ["--cell"]         = _store_func("cell"),
+    ["-f"]             = _store_func("filename"),
+    ["--filename"]     = _store_func("filename"),
+    ["--origin"]       = _consumer_string_func("origin"),
+    ["--orientation"]  = _consumer_string_func("orientation"),
+    ["--iopt"]         = _consumer_table_func("interface_options"),
+    ["--check"]        = _switch_func("check"),
+    ["--notech"]       = _switch_func("notech"),
+    ["-D"]             = _store_func("debug"),
+    ["--debug"]        = _store_func("debug"),
+    ["-h"]             = _display_help,
+    ["--help"]         = _display_help,
 }
 
 --local positional = _consumer_table_func("cellargs")

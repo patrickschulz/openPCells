@@ -44,12 +44,29 @@ local cell, msg = pcell.create_layout(args.cell, cellargs, true)
 if not cell then
     error(string.format("error while creating cell, received: %s", msg))
 end
+
+-- move origin
 if args.origin then
     local dx, dy = string.match(args.origin, "%(%s*([-%d]+)%s*,%s*([-%d]+)%s*%)")
     if not dx then
         error(string.format("could not parse origin (%s)", args.origin))
     end
     cell:translate(dx, dy)
+end
+
+-- orientation
+if args.orientation then
+    local lut = {
+        ["0"] = function() end, -- do nothing
+        ["fx"] = function() cell:flipx() end,
+        ["fy"] = function() cell:flipy() end,
+        ["fxy"] = function() cell:flipx(); cell:flipy() end,
+    }
+    local f = lut[args.orientation]
+    if not f then
+        error(string.format("unknown orientation: %s", args.orientation))
+    end
+    f()
 end
 
 local techintf = interface.get_techinterface() or args.interface
