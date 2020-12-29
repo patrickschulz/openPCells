@@ -32,9 +32,9 @@ function layout(gate, _P)
     -- anchors
     gate:add_anchor("left", iinv:get_anchor("left"))
     gate:add_anchor("right", oinv:get_anchor("right"))
-    gate:add_anchor("in", point.create(0, 0))
-    gate:add_anchor("iout", iinv:get_anchor("out"):translate(0, -bp.separation / 4 - bp.sdwidth / 4))
-    gate:add_anchor("bout", oinv:get_anchor("out"):translate(0,  bp.separation / 4 + bp.sdwidth / 4))
+    gate:add_anchor("in", iinv:get_anchor("in"))
+    gate:add_anchor("iout", oinv:get_anchor("out"):translate(0, -bp.separation / 4 - bp.sdwidth / 4))
+    gate:add_anchor("bout", iinv:get_anchor("out"):translate(0,  bp.separation / 4 + bp.sdwidth / 4))
 
     -- ports
     gate:add_port("I", generics.metal(1), iinv:get_anchor("I"))

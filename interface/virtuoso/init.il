@@ -10,32 +10,36 @@ procedure(OPCCreateCell(w done pts)
             args command pid exitstatus 
         )
         when(done
-            when(cv->mode == "a" ; check if cell is open for editing
-                args = ""
-                foreach(field OPCParamForm->fieldList
-                    unless(get(OPCParamForm field)->value == get(OPCParamForm field)->defValue
-                        args = lsprintf("%s %s" args lsprintf("%s=%A" field get(OPCParamForm field)->value))
-                    )
-                )
-                ; 'cell' is defined one level above (in OPCPlaceCell)
-                command = lsprintf(
-                    "%s --technology %s --interface %s --cell %s --origin '(%d, %d)' -f %s %s" 
-                    path tech interface cell 
-                    fix(1000 * xCoord(origin)) fix(1000 * yCoord(origin)) 
-                    filename args
-                )
-                printf("calling opc:\n  %s\n" command)
-                pid = ipcBeginProcess(command)
-                ipcWait(pid) ; wait for process to finish
-                exitstatus = ipcGetExitStatus(pid)
-                if(exitstatus != 0
-                    then 
-                        printf("generator exited with status %d. Message:" exitstatus)
-                        printf("%s" ipcReadProcess(pid))
-                    else
-                        load(lsprintf("%s.il" filename))
-                ) ; if exitstatus
-            ) ; when mode == "a"
+        	println("done")
+            if(cv->mode == "a" ; check if cell is open for editing
+            	then
+	                args = ""
+	                foreach(field OPCParamForm->fieldList
+	                    unless(get(OPCParamForm field)->value == get(OPCParamForm field)->defValue
+	                        args = lsprintf("%s %s" args lsprintf("%s=%A" field get(OPCParamForm field)->value))
+	                    )
+	                )
+	                ; 'cell' is defined one level above (in OPCPlaceCell)
+	                command = lsprintf(
+	                    "%s --technology %s --interface %s --cell %s --origin '(%d, %d)' -f %s %s" 
+	                    path tech interface cell 
+	                    fix(1000 * xCoord(origin)) fix(1000 * yCoord(origin)) 
+	                    filename args
+	                )
+	                printf("calling opc:\n  %s\n" command)
+	                pid = ipcBeginProcess(command)
+	                ipcWait(pid) ; wait for process to finish
+	                exitstatus = ipcGetExitStatus(pid)
+	                if(exitstatus != 0
+	                    then 
+	                        printf("generator exited with status %d. Message:" exitstatus)
+	                        printf("%s" ipcReadProcess(pid))
+	                    else
+	                        load(lsprintf("%s.il" filename))
+	                ) ; if exitstatus
+	        	else 
+	        		println("cellview not in editing mode")
+            ) ; if mode == "a"
         ) ; when done
     )
 ) ; OPCCreateCell
