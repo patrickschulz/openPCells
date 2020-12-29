@@ -3,7 +3,6 @@
 
 #include <stdint.h>
 
-//#define MAXDIGITS 80
 #define LPOINTMETA "lpoint"
 #define LPOINTMODULE "point"
 

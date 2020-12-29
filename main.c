@@ -81,6 +81,7 @@ static int msghandler (lua_State* L)
 static void load_api(lua_State* L)
 {
     char* modules[] = {
+        "lpoint", // lua part of lpoint module
         "config",
         "object",
         "shape",
@@ -160,7 +161,7 @@ lua_State* create_and_initialize_lua()
     luaL_openlibs(L);
 
     // opc libraries
-    open_lpoint_lib(L);
+    open_lpoint_lib(L); // must be called before 'load_api'
     open_lload_lib(L);
     open_lbind_lib(L);
     load_api(L); // could fail
