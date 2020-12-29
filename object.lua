@@ -8,8 +8,8 @@ local M = {}
 local meta = {}
 meta.__index = meta
 
-function M.create()
-    local self = { shapes = {}, ports = {}, anchors = {}, origin = point.create(0, 0) }
+function M.create(name)
+    local self = { name = name, shapes = {}, ports = {}, anchors = {}, origin = point.create(0, 0) }
     setmetatable(self, meta)
     return self
 end
@@ -196,18 +196,27 @@ function meta.add_anchor(self, name, where)
     self.anchors[name] = where
 end
 
+local function _get_anchor(self, name)
+    if not self.anchors[name] then
+        if self.name then
+            error(string.format("trying to access anchor '%s' in cell '%s'", name, self.name))
+        else
+            error(string.format("trying to access anchor '%s'", name))
+        end
+    end
+    return self.anchors[name]
+end
+
 function meta.get_anchor(self, name)
-    return self.anchors[name]:copy()
+    local anchor = _get_anchor(self, name)
+    return anchor:copy()
 end
 
 function meta.move_anchor(self, name, where)
     where = where or point.create(0, 0)
-    local pt = self.anchors[name]
-    if not pt then
-        error(string.format("anchor '%s' is unknown", name))
-    end
+    local anchor = _get_anchor(self, name)
     local wx, wy = where:unwrap()
-    local x, y = pt:unwrap()
+    local x, y = anchor:unwrap()
     self:translate(wx - x, wy - y)
     return self
 end

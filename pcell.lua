@@ -420,7 +420,7 @@ function M.create_layout(cellname, args, evaluate)
     if not cell.funcs.layout then
         error(string.format("cell '%s' has no layout definition", cellname))
     end
-    local obj = object.create()
+    local obj = object.create(cellname)
     local parameters, backup = _get_parameters(cellname, args, evaluate)
     _restore_parameters(cellname, backup)
     _install_bindings(cellname)
