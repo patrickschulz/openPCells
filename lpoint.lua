@@ -14,6 +14,10 @@ function meta.__add(lhs, rhs)
     return point.create(x1 + x2, y1 + y2)
 end
 
+function meta.unwrap(self)
+    return point._unwrap(self)
+end
+
 function meta.getx(self)
     local x = self:unwrap()
     return x
@@ -26,13 +30,13 @@ end
 
 function meta.translate(self, dx, dy)
     local x, y = self:unwrap()
-    point.update(self, x + dx, y + dy)
+    point._update(self, x + dx, y + dy)
     return self
 end
 
 function meta.scale(self, factor)
     local x, y = self:unwrap()
-    point.update(self, x * factor, y * factor)
+    point._update(self, x * factor, y * factor)
     return self
 end
 
@@ -40,13 +44,13 @@ function meta.rotate(self, angle)
     local x, y = self:unwrap()
     local nx = x * math.cos(angle) - y * math.sin(angle)
     local ny = x * math.sin(angle) + y * math.cos(angle)
-    point.update(self, math.floor(nx), math.floor(ny))
+    point._update(self, math.floor(nx), math.floor(ny))
     return self
 end
 
 function meta.fix(self, grid)
     local x, y = self:unwrap()
-    point.update(self, grid * (x // grid), grid * (y // grid))
+    point._update(self, grid * (x // grid), grid * (y // grid))
 end
 
 local function intlog10(num)

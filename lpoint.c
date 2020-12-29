@@ -45,12 +45,6 @@ static int lpoint_create(lua_State* L)
     return 1;
 }
 
-static int lpoint_getmetatable(lua_State* L)
-{
-    luaL_getmetatable(L, LPOINTMETA);
-    return 1;
-}
-
 static int lpoint_update(lua_State* L)
 {
     lpoint_t* p = luaL_checkudata(L, -3, LPOINTMETA);
@@ -76,15 +70,16 @@ static int lpoint_unwrap(lua_State* L)
     return 2;
 }
 
+static int lpoint_getmetatable(lua_State* L)
+{
+    luaL_getmetatable(L, LPOINTMETA);
+    return 1;
+}
+
 int open_lpoint_lib(lua_State* L)
 {
-    static const luaL_Reg metafuncs[] =
-    {
-        { "unwrap",         lpoint_unwrap     },
-        { NULL,             NULL             }
-    };
+    // create metatable for points
     luaL_newmetatable(L, LPOINTMETA);
-    luaL_setfuncs(L, metafuncs, 0);
     // add __index
     lua_pushstring(L, "__index");
     lua_pushvalue(L, -2); 
@@ -94,10 +89,11 @@ int open_lpoint_lib(lua_State* L)
 
     static const luaL_Reg modfuncs[] =
     {
-        { "create",         lpoint_create         },
-        { "update",         lpoint_update         },
-        { "_getmetatable",  lpoint_getmetatable   },
-        { NULL,             NULL                  }
+        { "create",        lpoint_create       },
+        { "_unwrap",       lpoint_unwrap       },
+        { "_update",       lpoint_update       },
+        { "_getmetatable", lpoint_getmetatable },
+        { NULL,            NULL                }
     };
     lua_newtable(L);
     luaL_setfuncs(L, modfuncs, 0);
