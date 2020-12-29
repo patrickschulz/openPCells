@@ -28,6 +28,10 @@ function layout(gate, _P)
         point.create(bp.glength + bp.gspace / 2, 0),
     }, bp.sdwidth))
 
+    -- anchors
+    gate:add_anchor("left", nand:get_anchor("left"))
+    gate:add_anchor("right", nand:get_anchor("right"))
+
     -- ports
     gate:add_port("A", generics.metal(1), nand:get_anchor("A"))
     gate:add_port("B", generics.metal(1), nand:get_anchor("B"))
