@@ -9,18 +9,23 @@ end
 function M.at_begin(file)
     file:write([[
 let(
-    ()
+    (
+        (cv geGetEditCellView())
+        (group dbCreateFigGroup(cv "Group0" t 0:0 "R0"))
+        shape
+    )
 ]])
 end
 
 function M.at_end(file)
     file:write(") ; let\n")
-    file:write('deleteFile("openPCells.il") ; clean up after ourselves\n')
+    file:write('deleteFile(lsprintf("%s.il" filename)) ; clean up after ourselves\n')
 end
 
 function M.write_layer(file, layer, pcol)
     file:write(string.format("    foreach(pts\n        list(\n%s\n        )\n", aux.concat(pcol, "", string.rep(" ", 12), nil, true)))
-    file:write(string.format("        %s pts)\n", layer))
+    file:write(string.format("        shape = %s pts)\n", layer))
+    file:write(string.format("        dbAddFigToFigGroup(group shape)\n", layer))
     file:write("    )\n")
 end
 
@@ -40,7 +45,7 @@ function M.get_points(shape)
 end
 
 function M.write_port(file, name, layer, where)
-    file:write(string.format('    dbCreateLabel(cv list("%s" "label") %s "%s" "centerCenter" "R0" "roman" 0.1)\n', layer, where:format(baseunit, ":"), name))
+    file:write(string.format('    shape = dbCreateLabel(cv list("%s" "label") %s "%s" "centerCenter" "R0" "roman" 0.1)\n', layer, where:format(baseunit, ":"), name))
 end
 
 return M
