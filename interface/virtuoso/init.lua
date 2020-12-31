@@ -25,7 +25,7 @@ end
 function M.write_layer(file, layer, pcol)
     file:write(string.format("    foreach(pts\n        list(\n%s\n        )\n", aux.concat(pcol, "", string.rep(" ", 12), nil, true)))
     file:write(string.format("        shape = %s pts)\n", layer))
-    file:write(string.format("        dbAddFigToFigGroup(group shape)\n", layer))
+    file:write(              "        dbAddFigToFigGroup(group shape)\n")
     file:write("    )\n")
 end
 
@@ -46,6 +46,7 @@ end
 
 function M.write_port(file, name, layer, where)
     file:write(string.format('    shape = dbCreateLabel(cv list("%s" "label") %s "%s" "centerCenter" "R0" "roman" 0.1)\n', layer, where:format(baseunit, ":"), name))
+    file:write("    dbAddFigToFigGroup(group shape)\n")
 end
 
 return M
