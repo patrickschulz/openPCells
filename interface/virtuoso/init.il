@@ -33,6 +33,7 @@ procedure(OPCCreateCell(w done pts)
 	                        printf("%s" ipcReadProcess(pid))
 	                    else
 	                        load(lsprintf("%s.il" OPCFilename))
+                            deleteFile(lsprintf("%s.il" OPCFilename)) ; clean up after ourselves
 	                ) ; if exitstatus
 	        	else 
 	        		println("cellview not in editing mode")
