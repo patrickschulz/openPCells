@@ -33,7 +33,9 @@ and edit your `LUA_PATH` environment variable (described above) to include the p
 Then you need to set up your virtuoso interface. You need to include this file in your `.cdsinit`:
 
     ; in your .cdsinit
-    load("/path/to/pcells/interface/virtuoso/init.il")
+    OPCTech = "skywater130"     ; edit to match your PDK
+    OPCPath = "/path/to/pcells" ; edit to match the path to opc
+    load(lsprintf("%s/%s" OPCPath "interface/virtuoso/init.il")
 
 This will install a menu called `openPCells` at the last place before the `help` menu in the layout editor. This interface currently only includes
 three cells: transistor, momcap and circular_inductor and is anyways pretty limited, as it does not allow any parametrization. This is easy to add,
