@@ -1,33 +1,30 @@
 procedure(OPCCreateCell(w done pts)
     let(
         (
-            (path "/home/pschulz/path/opc")
-            (tech "cmos22fdsoi")
-            (interface "virtuoso")
-            (filename "openPCells")
-            (origin car(pts))
+            (OPCFilename "openPCells")
+            (OPCOrigin car(pts))
             (cv geGetEditCellView())
-            args command pid exitstatus 
+            OPCArgs OPCCommand pid exitstatus 
         )
         when(done
         	println("done")
             if(cv->mode == "a" ; check if cell is open for editing
             	then
-	                args = ""
+                    OPCArgs = ""
 	                foreach(field OPCParamForm->fieldList
 	                    unless(get(OPCParamForm field)->value == get(OPCParamForm field)->defValue
-	                        args = lsprintf("%s %s" args lsprintf("%s=%A" field get(OPCParamForm field)->value))
+	                        OPCArgs = lsprintf("%s %s" OPCArgs lsprintf("%s=%A" field get(OPCParamForm field)->value))
 	                    )
 	                )
 	                ; 'cell' is defined one level above (in OPCPlaceCell)
-	                command = lsprintf(
+	                OPCCommand = lsprintf(
 	                    "%s --technology %s --interface %s --cell %s --origin '(%d, %d)' -f %s %s" 
-	                    path tech interface cell 
-	                    fix(1000 * xCoord(origin)) fix(1000 * yCoord(origin)) 
-	                    filename args
+	                    OPCPath OPCTech OPCInterface cell 
+	                    fix(1000 * xCoord(OPCOrigin)) fix(1000 * yCoord(OPCOrigin)) 
+	                    OPCFilename OPCArgs
 	                )
-	                printf("calling opc:\n  %s\n" command)
-	                pid = ipcBeginProcess(command)
+	                printf("calling opc:\n  %s\n" OPCCommand)
+	                pid = ipcBeginProcess(OPCCommand)
 	                ipcWait(pid) ; wait for process to finish
 	                exitstatus = ipcGetExitStatus(pid)
 	                if(exitstatus != 0
@@ -35,7 +32,7 @@ procedure(OPCCreateCell(w done pts)
 	                        printf("generator exited with status %d. Message:" exitstatus)
 	                        printf("%s" ipcReadProcess(pid))
 	                    else
-	                        load(lsprintf("%s.il" filename))
+	                        load(lsprintf("%s.il" OPCFilename))
 	                ) ; if exitstatus
 	        	else 
 	        		println("cellview not in editing mode")
@@ -54,12 +51,12 @@ procedure(OPCPlaceCell(cell)
 	)
 ) ; OPCPlaceCell
 
-procedure(OPCWalkCellDir(path prepend)
+procedure(OPCWalkCellDir(OPCPath prepend)
     let(
         (itemlist item)
-        foreach(file getDirFiles(path)
+        foreach(file getDirFiles(OPCPath)
             unless(file == "." || file == ".."
-                if(isFile(lsprintf("%s/%s" path file))
+                if(isFile(lsprintf("%s/%s" OPCPath file))
                     then
                         unless(substring(file 1 1) == "_"
                             item = hiCreateMenuItem( 
@@ -73,7 +70,7 @@ procedure(OPCWalkCellDir(path prepend)
                         let((submenu)
                             submenu = hiCreatePulldownMenu(
                                 stringToSymbol(lsprintf("OPCLayout%sSubMenu" lsprintf("%s%s/" prepend file))) "" 
-                                OPCWalkCellDir(lsprintf("%s/%s" path file) lsprintf("%s%s/" prepend file))
+                                OPCWalkCellDir(lsprintf("%s/%s" OPCPath file) lsprintf("%s%s/" prepend file))
                             )
                             item = hiCreateSliderMenuItem(
                                 ?name stringToSymbol(file) 
@@ -100,14 +97,12 @@ procedure(OPCLayoutAddMenu(args)
 procedure(OPCCreateOptionsForm(cell)
     let(
         (
-            (path "/home/pschulz/path/opc")
-            (filename "openPCells")
-            command pid exitstatus result
+            OPCCommand pid exitstatus result
             fieldlist field (i 0)
         )
-        command = lsprintf("%s --parameters --separator ';' --cell %s" path cell)
-        println(command)
-        pid = ipcBeginProcess(command)
+        OPCCommand = lsprintf("%s --parameters --separator ';' --cell %s" OPCPath cell)
+        println(OPCCommand)
+        pid = ipcBeginProcess(OPCCommand)
         ipcWait(pid) ; wait for process to finish
         exitstatus = ipcGetExitStatus(pid)
         result = ipcReadProcess(pid)
