@@ -26,22 +26,17 @@ This produces the following image:
 The only dependencies are a C compiler, as the lua interpreter is included in the repository. 
 Most of the project is written in lua, only the main entry points and a few modules are written in C.
 
-<!---
 # Installation for Cadence Virtuoso
-The code has no dependencies except a working lua interpreter (>= 5.2), as we try to keep installation as easy as possible. Just clone this repository
-and edit your `LUA_PATH` environment variable (described above) to include the path to the code (make sure to run this BEFORE you start virtuoso).
-Then you need to set up your virtuoso interface. You need to include this file in your `.cdsinit`:
+After you compiled the program and checked if it works (see previous section), you can integrate it in virtuoso.
+You need to include these lines in your `.cdsinit`:
 
     ; in your .cdsinit
     OPCTech = "skywater130"     ; edit to match your PDK
     OPCPath = "/path/to/pcells" ; edit to match the path to opc
     load(lsprintf("%s/%s" OPCPath "interface/virtuoso/init.il")
 
-This will install a menu called `openPCells` at the last place before the `help` menu in the layout editor. This interface currently only includes
-three cells: transistor, momcap and circular_inductor and is anyways pretty limited, as it does not allow any parametrization. This is easy to add,
-but I need to find the time to do it. Most of the work is building GUIs for the parameters for every cell, which is boring, hence there is no work on
-that. If you want to add this, look in the menu.il, there is some old code of mine that can be adapted to do something like that.
--->
+This will install a menu in layout editor called `openPCells` at the last place before the `help` menu in the layout editor. You have to restart
+virtuoso or execute the three lines in that order in your CIW to activate the menu.
 
 <!---
 # Technology translation and mapping
