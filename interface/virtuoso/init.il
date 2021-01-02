@@ -16,10 +16,10 @@ procedure(OPCCreateCell(w done pts)
 	                        OPCArgs = lsprintf("%s %s" OPCArgs lsprintf("%s=%A" field get(OPCParamForm field)->value))
 	                    )
 	                )
-	                ; 'cell' is defined one level above (in OPCPlaceCell)
+	                ; 'OPCCell' is defined one level above (in OPCPlaceCell)
 	                OPCCommand = lsprintf(
-	                    "%s --technology %s --interface %s --cell %s --origin '(%d, %d)' -f %s %s" 
-	                    OPCPath OPCTech OPCInterface cell 
+	                    "%s --technology %s --interface virtuoso --cell %s --origin '(%d, %d)' -f %s %s" 
+	                    OPCPath OPCTech OPCCell 
 	                    fix(1000 * xCoord(OPCOrigin)) fix(1000 * yCoord(OPCOrigin)) 
 	                    OPCFilename OPCArgs
 	                )
@@ -41,8 +41,8 @@ procedure(OPCCreateCell(w done pts)
     )
 ) ; OPCCreateCell
 
-procedure(OPCPlaceCell(cell)
-    OPCCreateOptionsForm(cell)
+procedure(OPCPlaceCell(OPCCell)
+    OPCCreateOptionsForm(OPCCell)
 	enterPoint(
 		?prompts list("Enter origin")
 		?doneProc "OPCCreateCell"
@@ -94,13 +94,13 @@ procedure(OPCLayoutAddMenu(args)
     )
 ); procedure
 
-procedure(OPCCreateOptionsForm(cell)
+procedure(OPCCreateOptionsForm(OPCCell)
     let(
         (
             OPCCommand pid exitstatus result
             fieldlist field (i 0)
         )
-        OPCCommand = lsprintf("%s --parameters --separator ';' --cell %s" OPCPath cell)
+        OPCCommand = lsprintf("%s --parameters --separator ';' --cell %s" OPCPath OPCCell)
         println(OPCCommand)
         pid = ipcBeginProcess(OPCCommand)
         ipcWait(pid) ; wait for process to finish
