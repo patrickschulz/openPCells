@@ -1,12 +1,12 @@
 --[[
-                             |\                            |\         
+                             |\                            |\
                              | \ Inverter                  | \ Inverter
                         |----|  O----|                |----|  O----|
-         |\ Clocked     |    | /     |                |    | /     |       |\  
-         | \ Inverter   |    |/      |        /       |    |/      |       | \ 
+         |\ Clocked     |    | /     |                |    | /     |       |\
+         | \ Inverter   |    |/      |        /       |    |/      |       | \
     D o--|  O-----------*            *-------o -------*            *-------|  O----o Q
-         | /            |      /|    |  Transmission  |      /|    |       | / 
-         |/             |     / |    |      Gate      |     / |    |       |/  
+         | /            |      /|    |  Transmission  |      /|    |       | /
+         |/             |     / |    |      Gate      |     / |    |       |/
                         |----O  |----|                |----O  |----|
                               \ | Clocked                   \ | Clocked
                                \| Inverter                   \| Inverter

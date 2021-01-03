@@ -118,11 +118,11 @@ function meta.flipx(self, xcenter)
         shape:flipx(xcenter + selfxcenter)
     end
     for _, anchor in pairs(self.anchors) do
-        local x, y = anchor:unwrap()
+        local x = anchor:getx()
         anchor:translate(2 * (selfxcenter - x), 0)
     end
     for _, port in pairs(self.ports) do
-        local x, y = port.where:unwrap()
+        local x = port.where:getx()
         port.where:translate(2 * (selfxcenter - x), 0)
     end
     return self
@@ -135,11 +135,11 @@ function meta.flipy(self, ycenter)
         shape:flipy(ycenter + selfycenter)
     end
     for _, anchor in pairs(self.anchors) do
-        local x, y = anchor:unwrap()
+        local y = anchor:gety()
         anchor:translate(0, 2 * (selfycenter - y))
     end
     for _, port in pairs(self.ports) do
-        local x, y = port.where:unwrap()
+        local y = port.where:gety()
         port.where:translate(0, 2 * (selfycenter - y))
     end
     return self

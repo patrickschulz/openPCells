@@ -25,6 +25,8 @@ std = {
         "_get_opc_home",
         "_get_reader",
         "_generic_load",
+        "walkdir",
+        "is_lpoint",
         "point",
         "pcell",
         "object",
