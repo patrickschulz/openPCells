@@ -16,17 +16,6 @@ local function _next_arg(args, state)
     return args[state.i]
 end
 
---[[
-local function _next_args(args, state, num)
-    _advance(state, num)
-    local t = {}
-    for i = state.i - num + 1, state.i do
-        table.insert(t, args[i])
-    end
-    return t
-end
---]]
-
 local function _consume_until_hyphen(args, state)
     local t = {}
     while true do
