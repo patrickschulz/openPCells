@@ -1,3 +1,7 @@
+function config()
+    pcell.set_property("hidden", true)
+end
+
 function parameters()
     pcell.add_parameters(
         { "oxidetype(Oxide Type)",                        1 },

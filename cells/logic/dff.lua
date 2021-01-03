@@ -15,16 +15,16 @@
           clk                 ~clk          ~clk            clk
 --]]
 function parameters()
-    pcell.inherit_all_parameters("logic/_base")
+    pcell.inherit_all_parameters("logic/base")
 end
 
 function layout(gate, _P)
-    local bp = pcell.get_parameters("logic/_base")
+    local bp = pcell.get_parameters("logic/base")
 
     local xpitch = bp.gspace + bp.glength
 
     -- general settings
-    pcell.push_overwrites("logic/_base", {
+    pcell.push_overwrites("logic/base", {
         leftdummies = 0,
         rightdummies = 0
     })
@@ -34,7 +34,7 @@ function layout(gate, _P)
     gate:merge_into(clockbuf)
 
     -- isolation dummy
-    local isogate = pcell.create_layout("logic/_isogate")
+    local isogate = pcell.create_layout("logic/isogate")
     isogate:move_anchor("left", clockbuf:get_anchor("right"))
     gate:merge_into(isogate:copy())
 
@@ -78,14 +78,14 @@ function layout(gate, _P)
     gate:merge_into(fbcinv2)
 
     -- pop general settings (restores correct number of right dummies for the entire cell)
-    pcell.pop_overwrites("logic/_base")
+    pcell.pop_overwrites("logic/base")
 
     -- output buffer
-    pcell.push_overwrites("logic/_base", {
+    pcell.push_overwrites("logic/base", {
         leftdummies = 0
     })
     local outbuf = pcell.create_layout("logic/not_gate"):move_anchor("left", fbcinv2:get_anchor("left"))
-    pcell.pop_overwrites("logic/_base")
+    pcell.pop_overwrites("logic/base")
     gate:merge_into(outbuf)
 
     -- draw connections

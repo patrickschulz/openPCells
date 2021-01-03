@@ -1,3 +1,7 @@
+function config()
+    pcell.set_property("hidden", true)
+end
+
 function parameters()
     pcell.add_parameters(
         { "fingers",       1 },
@@ -7,7 +11,7 @@ function parameters()
 end
 
 function layout(gate, _P)
-    local bp = pcell.get_parameters("logic/_base")
+    local bp = pcell.get_parameters("logic/base")
     local xpitch = bp.gspace + bp.glength
 
     -- common transistor options

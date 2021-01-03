@@ -13,7 +13,7 @@ local args = argparse.parse(arg)
 
 -- list available cells
 if args.listcells then
-    support.listcells("cells")
+    pcell.list()
     os.exit(0)
 end
 

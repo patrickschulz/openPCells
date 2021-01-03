@@ -1,11 +1,11 @@
 function parameters()
-    pcell.inherit_all_parameters("logic/_base")
+    pcell.inherit_all_parameters("logic/base")
     pcell.add_parameter("fingers", 1)
 end
 
 function layout(gate, _P)
-    local bp = pcell.get_parameters("logic/_base")
-    local base = pcell.create_layout("logic/_nand_nor_layout_base", { fingers = _P.fingers, gatetype = "nor" })
+    local bp = pcell.get_parameters("logic/base")
+    local base = pcell.create_layout("logic/nand_nor_layout_base", { fingers = _P.fingers, gatetype = "nor" })
     gate:merge_into(base)
 
     -- anchors

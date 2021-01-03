@@ -1,5 +1,5 @@
 function parameters()
-    pcell.inherit_all_parameters("logic/_base")
+    pcell.inherit_all_parameters("logic/base")
     pcell.add_parameters(
         { "ifingers", 1 },
         { "ofingers", 1 }
@@ -7,21 +7,21 @@ function parameters()
 end
 
 function layout(gate, _P)
-    local bp = pcell.get_parameters("logic/_base")
+    local bp = pcell.get_parameters("logic/base")
 
     -- inverter
-    pcell.push_overwrites("logic/_base", {
+    pcell.push_overwrites("logic/base", {
         rightdummies = _P.ifingers % 2 == 0 and 0 or 1
     })
     local inv = pcell.create_layout("logic/not_gate", { fingers = _P.ifingers }):move_anchor("right")
-    pcell.pop_overwrites("logic/_base")
+    pcell.pop_overwrites("logic/base")
 
     -- clocked inverter
-    pcell.push_overwrites("logic/_base", {
+    pcell.push_overwrites("logic/base", {
         leftdummies = _P.ofingers % 2 == 0 and 0 or 1
     })
     local cinv = pcell.create_layout("logic/cinv", { fingers = _P.ofingers }):move_anchor("left")
-    pcell.pop_overwrites("logic/_base")
+    pcell.pop_overwrites("logic/base")
     gate:merge_into(inv)
     gate:merge_into(cinv)
 

@@ -56,6 +56,7 @@ local function _prepare_cell_environment(cellname)
     end
     return {
         pcell = {
+            set_property                    = bindcell(set_property),
             add_parameter                   = bindcell(add_parameter),
             add_parameters                  = bindcell(add_parameters),
             inherit_parameter               = bindcell(inherit_parameter),
@@ -128,16 +129,20 @@ local meta = {}
 meta.__index = function(t, cellname)
     local funcs = _load(cellname)
     if not (funcs.parameters or funcs.layout) then
-        error("every cell must define at least the public functions 'parameters' or 'layout'")
+        error("every cell must define at least the public function 'parameters' or 'layout'")
     end
     local cell = {
         funcs = funcs,
         parameters = {},
         indices = {},
+        properties = {},
         num = 0
     }
     rawset(t, cellname, cell)
     funcs.parameters()
+    if funcs.config then
+        funcs.config()
+    end
     return cell
 end
 local loadedcells = setmetatable({}, meta)
@@ -296,6 +301,11 @@ local function _remove_bindings(cellname)
 end
 
 --------------------------------------------------------------------
+function set_property(cellname, property, value)
+    local cell = loadedcells[cellname]
+    cell.properties[property] = value
+end
+
 function add_parameter(cellname, name, value, opt)
     opt = opt or {}
     _add_parameter(cellname, name, value, opt.argtype, opt.posvals, opt.follow)
@@ -445,6 +455,15 @@ function M.parameters(name)
         str[cell.indices[k]] = string.format("%s:%s:%s:%s", k, v.display or "_NONE_", val, tostring(v.argtype))
     end
     return str
+end
+
+function M.list()
+    for _, cellname in ipairs(support.listcells("cells")) do
+        local cell = loadedcells[cellname]
+        if not cell.properties.hidden then
+            print(cellname)
+        end
+    end
 end
 
 return M

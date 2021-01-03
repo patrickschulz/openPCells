@@ -1,14 +1,18 @@
+function config()
+    pcell.set_property("hidden", true)
+end
+
 function parameters()
 
 end
 
 function layout(gate, _P)
-    local bp = pcell.get_parameters("logic/_base")
+    local bp = pcell.get_parameters("logic/base")
     local xpitch = bp.gspace + bp.glength
 
-    pcell.push_overwrites("logic/_base", { leftdummies = 0, rightdummies = 0 })
-    gate:merge_into(pcell.create_layout("logic/_harness", { fingers = 1 }))
-    pcell.pop_overwrites("logic/_base")
+    pcell.push_overwrites("logic/base", { leftdummies = 0, rightdummies = 0 })
+    gate:merge_into(pcell.create_layout("logic/harness", { fingers = 1 }))
+    pcell.pop_overwrites("logic/base")
 
     -- common transistor options
     pcell.push_overwrites("basic/transistor", {

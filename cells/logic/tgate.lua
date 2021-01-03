@@ -1,13 +1,13 @@
 function parameters()
-    pcell.inherit_all_parameters("logic/_base")
+    pcell.inherit_all_parameters("logic/base")
     pcell.add_parameter("fingers", 1)
 end
 
 function layout(gate, _P)
-    local bp = pcell.get_parameters("logic/_base")
+    local bp = pcell.get_parameters("logic/base")
     local xpitch = bp.gspace + bp.glength
 
-    gate:merge_into(pcell.create_layout("logic/_harness", { fingers = _P.fingers }))
+    gate:merge_into(pcell.create_layout("logic/harness", { fingers = _P.fingers }))
 
     -- common transistor options
     pcell.push_overwrites("basic/transistor", {

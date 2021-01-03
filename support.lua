@@ -1,20 +1,23 @@
 local M = {}
 
-function M.listcells(path, indent)
-    indent = indent or 0
+local function _collect_cells(path, cells, prepend)
+    prepend = prepend or ""
     for _, entry in ipairs(walkdir(path)) do
         if entry.name:sub(1, 1) ~= "." then
-            for i = 1, indent do
-                io.write("    ")
-            end
-            if entry.type == "regular" then
-                print(entry.name)
+            if entry.type == "regular" and string.match(entry.name, "%.lua$") then
+                local name = string.match(entry.name, "^([%w_]+)%.lua$")
+                table.insert(cells, string.format("%s%s", prepend, name))
             elseif entry.type == "directory" then
-                print(entry.name)
-                M.listcells(string.format("%s/%s", path, entry.name), indent + 1)
+                _collect_cells(string.format("%s/%s", path, entry.name), cells, prepend .. entry.name .. "/")
             end
         end
     end
+end
+
+function M.listcells(path)
+    local cells = {}
+    _collect_cells(path, cells)
+    return cells
 end
 
 return M
