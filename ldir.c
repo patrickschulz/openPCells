@@ -1,6 +1,5 @@
 #include "ldir.h"
 
-#include "lua/lua.h"
 #include <dirent.h>
 
 int walk_dir(lua_State* L)
