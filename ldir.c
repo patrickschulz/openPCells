@@ -1,12 +1,23 @@
-#include <dirent.h>
+#include "ldir.h"
 
 #include "lua/lua.h"
+#include <dirent.h>
 
 int walk_dir(lua_State* L)
 {
     const char* path = lua_tostring(L, -1);
+    if(!path)
+    {
+        lua_pushstring(L, "walkdir: path is nil");
+        lua_error(L);
+    }
     lua_newtable(L);
     DIR* dir = opendir(path);
+    if(!dir)
+    {
+        lua_pushfstring(L, "walkdir: could not open directory '%s'", path);
+        lua_error(L);
+    }
     int i = 1;
     while(1)
     {
