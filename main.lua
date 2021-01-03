@@ -10,14 +10,21 @@ local interface = _load_module("interface")
 -- parse command line arguments
 local argparse = _load_module("argparse")
 local args = argparse.parse(arg)
--- prepare cell arguments
-local cellargs = {}
-for k, v in string.gmatch(table.concat(args.cellargs, " "), "([%w/._]+)%s*=%s*(%S+)") do
-    cellargs[k] = v
+
+-- list available cells
+if args.listcells then
+    support.listcells("cells")
+    os.exit(0)
 end
 
 if not args.cell then
     error("no cell type given")
+end
+
+-- prepare cell arguments
+local cellargs = {}
+for k, v in string.gmatch(table.concat(args.cellargs, " "), "([%w/._]+)%s*=%s*(%S+)") do
+    cellargs[k] = v
 end
 
 -- output cell parameters

@@ -24,6 +24,7 @@
 #include "lpoint.h"
 #include "lload.h"
 #include "lbind.h"
+#include "ldir.h"
 
 #include "config.h"
 
@@ -95,6 +96,7 @@ static void load_api(lua_State* L)
         "funcobject",
         "reduce",
         "stack",
+        "support",
         NULL
     };
     char** ptr = modules;
@@ -161,6 +163,7 @@ lua_State* create_and_initialize_lua()
     luaL_openlibs(L);
 
     // opc libraries
+    open_ldir_lib(L);
     open_lpoint_lib(L); // must be called before 'load_api'
     open_lload_lib(L);
     open_lbind_lib(L);

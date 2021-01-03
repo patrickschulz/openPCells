@@ -90,6 +90,8 @@ end
 local actions = {
     ["-P"]             = _switch_func("params"),
     ["--parameters"]   = _switch_func("params"),
+    ["-L"]             = _switch_func("listcells"),
+    ["--list"]         = _switch_func("listcells"),
     ["--separator"]    = _store_func("separator"),
     ["-T"]             = _store_func("technology"),
     ["--technology"]   = _store_func("technology"),
