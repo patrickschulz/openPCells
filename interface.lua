@@ -65,7 +65,7 @@ function M.get_techinterface()
     end
 end
 
-function M.write_cell(filename, cell)
+function M.write_cell(filename, cell, fake)
     if cell:is_empty() then
         error("interface: cell is empty")
     end
@@ -86,7 +86,9 @@ function M.write_cell(filename, cell)
     end
     aux.call_if_present(interface.at_end_cell, file, precomputed)
     aux.call_if_present(interface.at_end, file, precomputed)
-    file:truewrite()
+    if not fake then
+        file:truewrite()
+    end
 end
 
 function M.set_options(opt)

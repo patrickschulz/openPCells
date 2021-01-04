@@ -73,6 +73,8 @@ local function _display_help()
     --iopt               pass special options to interface
     --check              check cell code
     --notech             disable all technology translation functions (metal translation, via arrayzation, layer mapping grid fixing)
+    --dryrun             perform all calculations, but don't actually write any files. This is useful for profiling, where the program should
+                         run normally but should not produce any output
     -D, --debug          enable debugging output (specify modules separated by commas)]])
     os.exit(0)
 end
@@ -102,6 +104,7 @@ local actions = {
     ["--debug"]        = _store_func("debug"),
     ["-p"]             = _switch_func("profile"),
     ["--profile"]      = _switch_func("profile"),
+    ["--dryrun"]       = _switch_func("dryrun"),
     ["-h"]             = _display_help,
     ["--help"]         = _display_help,
 }

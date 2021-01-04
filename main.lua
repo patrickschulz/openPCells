@@ -112,7 +112,7 @@ end
 
 local filename = args.filename or "openPCells"
 interface.set_options(args.interface_options)
-interface.write_cell(filename, cell)
+interface.write_cell(filename, cell, args.dryrun)
 
 -- remove profiler hook
 debug.sethook()
@@ -124,7 +124,7 @@ if args.profile then
     end
     table.sort(sorted, function(lhs, rhs) return lhs.count < rhs.count end)
     for _, entry in ipairs(sorted) do
-        --print(string.format("%30s %15s: %5d", entry.name, "(" .. info[entry.name].source .. ")", entry.count))
+        print(string.format("%30s %15s: %5d", entry.name, "(" .. info[entry.name].source .. ")", entry.count))
     end
 end
 
