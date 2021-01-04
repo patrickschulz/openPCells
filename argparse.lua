@@ -62,6 +62,7 @@ end
 local function _display_help()
     print([[openPCells generator
     -h, --help           display this help
+    -p, --profile        collect and display profiling data
     -C, --cell           specify cell
     -P, --parameters     display available cell parameters and exit
     -T, --technology     specify technology
@@ -99,6 +100,8 @@ local actions = {
     ["--notech"]       = _switch_func("notech"),
     ["-D"]             = _store_func("debug"),
     ["--debug"]        = _store_func("debug"),
+    ["-p"]             = _switch_func("profile"),
+    ["--profile"]      = _switch_func("profile"),
     ["-h"]             = _display_help,
     ["--help"]         = _display_help,
 }
