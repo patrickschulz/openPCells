@@ -14,6 +14,12 @@ function meta.__add(lhs, rhs)
     return point.create(x1 + x2, y1 + y2)
 end
 
+function meta.__sub(lhs, rhs)
+    local x1, y1 = lhs:unwrap()
+    local x2, y2 = rhs:unwrap()
+    return point.create(x1 - x2, y1 - y2)
+end
+
 function meta.unwrap(self)
     return point._unwrap(self)
 end
