@@ -50,8 +50,7 @@ function M.display()
     end
     table.sort(sorted, function(lhs, rhs) return lhs.data.time < rhs.data.time end)
     for _, entry in ipairs(sorted) do
-        --print(string.format("%30s %15s: %5d", entry.name, "(" .. info[entry.name].source .. ")", entry.count))
-        print(string.format("%30s: %10f", entry.name, entry.data.time))
+        print(string.format("%30s: %10f (%d)", entry.name, entry.data.time, entry.data.count))
     end
 end
 
