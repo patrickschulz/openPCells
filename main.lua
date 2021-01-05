@@ -89,9 +89,11 @@ if not args.notech then
     techlib.fix_to_grid(cell)
 end
 
-local filename = args.filename or "openPCells"
-interface.set_options(args.interface_options)
-interface.write_cell(filename, cell, args.dryrun)
+if not args.nointerface then
+    local filename = args.filename or "openPCells"
+    interface.set_options(args.interface_options)
+    interface.write_cell(filename, cell, args.dryrun)
+end
 
 if args.profile then
     profiler.stop()

@@ -73,6 +73,8 @@ local function _display_help()
     --iopt               pass special options to interface
     --check              check cell code
     --notech             disable all technology translation functions (metal translation, via arrayzation, layer mapping grid fixing)
+    --nointerface        disable all interface/export functions. This is different from --dryrun, which calls the interface translation, but does not
+                         write any files. Both options are mostly related to profiling, if interfaces should be profiled --dryrun must be used
     --dryrun             perform all calculations, but don't actually write any files. This is useful for profiling, where the program should
                          run normally but should not produce any output
     -D, --debug          enable debugging output (specify modules separated by commas)]])
@@ -100,6 +102,7 @@ local actions = {
     ["--iopt"]         = _consumer_table_func("interface_options"),
     ["--check"]        = _switch_func("check"),
     ["--notech"]       = _switch_func("notech"),
+    ["--nointerface"]  = _switch_func("nointerface"),
     ["-D"]             = _store_func("debug"),
     ["--debug"]        = _store_func("debug"),
     ["-p"]             = _switch_func("profile"),
