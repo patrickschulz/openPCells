@@ -11,29 +11,8 @@ local interface = _load_module("interface")
 local argparse = _load_module("argparse")
 local args = argparse.parse(arg)
 
--- profiler
-local histo = {}
-local info = {}
 if args.profile then
-    local logcall = function(...)
-        local callinfo = debug.getinfo(1)
-        local funcinfo = debug.getinfo(2)
-        local name = funcinfo.name
-        local namewhat = funcinfo.namewhat
-        if name then
-            if not histo[name] then 
-                histo[name] = 0 
-            end
-            if not info[name] then
-                print(callinfo.namewhat)
-                info[name] = {
-                    source = funcinfo.source
-                }
-            end
-            histo[name] = histo[name] + 1
-        end
-    end
-    debug.sethook(logcall, "c")
+    profiler.start()
 end
 
 -- list available cells
@@ -114,18 +93,9 @@ local filename = args.filename or "openPCells"
 interface.set_options(args.interface_options)
 interface.write_cell(filename, cell, args.dryrun)
 
--- remove profiler hook
-debug.sethook()
-
 if args.profile then
-    local sorted = {}
-    for k, v in pairs(histo) do
-        table.insert(sorted, { name = k, count = v })
-    end
-    table.sort(sorted, function(lhs, rhs) return lhs.count < rhs.count end)
-    for _, entry in ipairs(sorted) do
-        print(string.format("%30s %15s: %5d", entry.name, "(" .. info[entry.name].source .. ")", entry.count))
-    end
+    profiler.stop()
+    profiler.display()
 end
 
 -- vim: ft=lua
