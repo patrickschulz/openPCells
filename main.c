@@ -97,6 +97,7 @@ static void load_api(lua_State* L)
         "reduce",
         "stack",
         "support",
+        "profiler",
         NULL
     };
     char** ptr = modules;
