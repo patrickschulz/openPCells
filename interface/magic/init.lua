@@ -18,8 +18,12 @@ end
 function M.get_points(shape)
     if shape.typ == "rectangle" then
         local grid = 1000
-        local xbot, ybot = shape.points.bl:unwrap(grid)
-        local xtop, ytop = shape.points.tr:unwrap(grid)
+        local xbot, ybot = shape.points.bl:unwrap()
+        xbot = xbot * grid
+        ybot = ybot * grid
+        local xtop, ytop = shape.points.tr:unwrap()
+        xtop = xtop * grid
+        ytop = ytop * grid
         return string.format("%d %d %d %d", math.floor(xbot), math.floor(ybot), math.floor(xtop), math.floor(ytop))
     else
         print("sorry, the magic interface does not (yet) support polygons")

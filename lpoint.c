@@ -57,16 +57,9 @@ static int lpoint_update(lua_State* L)
 
 static int lpoint_unwrap(lua_State* L)
 {
-    lpoint_coordinate_t mul = 1;
-    unsigned int index = -1;
-    if(lua_gettop(L) > 1)
-    {
-        mul = lua_tointeger(L, -1);
-        index = -2;
-    }
-    lpoint_t* p = luaL_checkudata(L, index, LPOINTMETA);
-    lua_pushinteger(L, p->x * mul);
-    lua_pushinteger(L, p->y * mul);
+    lpoint_t* p = luaL_checkudata(L, -1, LPOINTMETA);
+    lua_pushinteger(L, p->x);
+    lua_pushinteger(L, p->y);
     return 2;
 }
 
