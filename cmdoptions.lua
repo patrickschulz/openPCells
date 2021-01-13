@@ -1,4 +1,11 @@
 return {
+    {
+        name  = "profile",
+        short = "-p",
+        long  = "--profile",
+        func  = "switch",
+        help  = "collect and display profiling data"
+    },
     { 
         name  = "params",
         short = "-P",
