@@ -4,12 +4,14 @@ math.randomseed(os.time())
 -- load user configuration
 config.get_user_config()
 
-local techlib = _load_module("technology")
+technology = _load_module("technology")
 local interface = _load_module("interface")
 
 -- parse command line arguments
 local argparse = _load_module("argparse")
-local args = argparse.parse(arg)
+local cmdopt = _load_module("cmdoptions")
+argparse:register_options(cmdopt)
+local args = argparse:parse(arg)
 
 if args.profile then
     profiler.start()
@@ -23,12 +25,6 @@ end
 
 if not args.cell then
     error("no cell type given")
-end
-
--- prepare cell arguments
-local cellargs = {}
-for k, v in string.gmatch(table.concat(args.cellargs, " "), "([%w/._]+)%s*=%s*(%S+)") do
-    cellargs[k] = v
 end
 
 -- output cell parameters
@@ -47,10 +43,21 @@ if not args.interface then
 end
 
 if not args.notech then
-    techlib.load(args.technology)
+    technology.load(args.technology)
 end
 interface.load(args.interface)
 
+-- show technology constraints for this cell
+if args.constraints then
+    print("show technology constraints")
+    os.exit(0)
+end
+
+-- prepare cell arguments
+local cellargs = {}
+for k, v in string.gmatch(table.concat(args.cellargs, " "), "([%w/._]+)%s*=%s*(%S+)") do
+    cellargs[k] = v
+end
 local cell, msg = pcell.create_layout(args.cell, cellargs, true)
 if not cell then
     error(string.format("error while creating cell, received: %s", msg))
@@ -82,11 +89,11 @@ end
 
 local techintf = interface.get_techinterface() or args.interface
 if not args.notech then
-    techlib.translate_metals(cell)
-    techlib.split_vias(cell)
-    techlib.place_via_conductors(cell, techintf)
-    techlib.translate(cell, techintf)
-    techlib.fix_to_grid(cell)
+    technology.translate_metals(cell)
+    technology.split_vias(cell)
+    technology.place_via_conductors(cell, techintf)
+    technology.translate(cell, techintf)
+    technology.fix_to_grid(cell)
 end
 
 if not args.nointerface then
