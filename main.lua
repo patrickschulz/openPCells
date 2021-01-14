@@ -4,9 +4,6 @@ math.randomseed(os.time())
 -- load user configuration
 config.get_user_config()
 
-technology = _load_module("technology")
-local interface = _load_module("interface")
-
 -- parse command line arguments
 local argparse = _load_module("argparse")
 local cmdopt = _load_module("cmdoptions")

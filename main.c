@@ -83,6 +83,8 @@ static void load_api(lua_State* L)
 {
     char* modules[] = {
         "lpoint", // lua part of lpoint module
+        "technology",
+        "interface",
         "config",
         "object",
         "shape",
