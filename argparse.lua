@@ -34,17 +34,18 @@ local function _parse_key_value_pairs(str)
 end
 
 local function _display_help(self)
-    local maxwidth = 0
+    local displaywidth <const> = 80
+    local optwidth = 0
     for _, opt in ipairs(self.optionsdef) do
         if opt.short and not opt.long then
-            maxwidth = math.max(maxwidth, string.len(string.format("%s", opt.short)))
+            optwidth = math.max(optwidth, string.len(string.format("%s", opt.short)))
         elseif not opt.short and opt.long then
-            maxwidth = math.max(maxwidth, string.len(string.format("%s", opt.long)))
+            optwidth = math.max(optwidth, string.len(string.format("%s", opt.long)))
         else
-            maxwidth = math.max(maxwidth, string.len(string.format("%s,%s", opt.short, opt.long)))
+            optwidth = math.max(optwidth, string.len(string.format("%s,%s", opt.short, opt.long)))
         end
     end
-    local fmt = string.format("    %%-%ds    %%s", maxwidth)
+    local fmt = string.format("    %%-%ds    %%s", optwidth)
     print("openPCells generator")
     for _, opt in ipairs(self.optionsdef) do
         local cmdstr
@@ -55,7 +56,27 @@ local function _display_help(self)
         else
             cmdstr = string.format("%s,%s", opt.short, opt.long)
         end
-        print(string.format(fmt, cmdstr, opt.help))
+
+        -- break long help strings into lines
+        local helpstrtab = {}
+        local line = {}
+        local linewidth = 0
+        for word in string.gmatch(opt.help, "(%S+)") do
+            local width = string.len(word)
+            linewidth = linewidth + width
+            if linewidth > displaywidth then
+                table.insert(helpstrtab, table.concat(line, " "))
+                line = {}
+                linewidth = 0
+            end
+            table.insert(line, word)
+        end
+        -- insert remaining part of the line
+        table.insert(helpstrtab, table.concat(line, " "))
+
+        local helpstr = table.concat(helpstrtab, string.format("\n%s", string.rep(" ", optwidth + 8))) -- +8 to compensate for spaces in format string
+
+        print(string.format(fmt, cmdstr, helpstr))
     end
     os.exit(0)
 end
