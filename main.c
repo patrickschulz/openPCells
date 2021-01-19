@@ -90,7 +90,6 @@ static void load_api(lua_State* L)
         "shape",
         "geometry",
         "graphics",
-        "pcell",
         "generics",
         "stringfile",
         "util",
@@ -100,6 +99,7 @@ static void load_api(lua_State* L)
         "stack",
         "support",
         "profiler",
+        "pcell", // load as last module
         NULL
     };
     char** ptr = modules;

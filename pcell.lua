@@ -18,45 +18,24 @@ local M = {}
 
 local evaluators = _load_module("pcell.evaluators")
 
-local function _prepare_cell_environment(cellname)
+local function _prepare_cell_environment(env, cellname)
     local bindcell = function(func)
         return bind(func, 1, cellname)
     end
-    return {
-        pcell = {
-            set_property                    = bindcell(set_property),
-            add_parameter                   = bindcell(add_parameter),
-            add_parameters                  = bindcell(add_parameters),
-            inherit_parameter               = bindcell(inherit_parameter),
-            inherit_parameter_as            = bindcell(inherit_parameter_as),
-            inherit_all_parameters          = bindcell(inherit_all_parameters),
-            -- the following functions don't not need cell binding as they are called for other cells
-            clone_parameters                = clone_parameters,
-            clone_matching_parameters       = clone_matching_parameters,
-            push_overwrites                 = push_overwrites,
-            pop_overwrites                  = pop_overwrites,
-            get_parameters                  = function(cellname) return _get_parameters(cellname) end,
-            create_layout = M.create_layout
-        },
-        tech = { 
-            get_dimension = technology.get_dimension
-        },
-        geometry = geometry,
-        graphics = graphics,
-        shape = shape,
-        object = object,
-        generics = generics,
-        point = point,
-        util = util,
-        aux = aux,
-        math = math,
-        enable = function(bool, val) return (bool and 1 or 0) * val end,
-        string = string,
-        table = table,
-        print = print,
-        type = type,
-        ipairs = ipairs,
-        pairs = pairs,
+    env.pcell = {
+        set_property                    = bindcell(set_property),
+        add_parameter                   = bindcell(add_parameter),
+        add_parameters                  = bindcell(add_parameters),
+        inherit_parameter               = bindcell(inherit_parameter),
+        inherit_parameter_as            = bindcell(inherit_parameter_as),
+        inherit_all_parameters          = bindcell(inherit_all_parameters),
+        -- the following functions don't not need cell binding as they are called for other cells
+        clone_parameters                = clone_parameters,
+        clone_matching_parameters       = clone_matching_parameters,
+        push_overwrites                 = push_overwrites,
+        pop_overwrites                  = pop_overwrites,
+        get_parameters                  = function(cellname) return _get_parameters(cellname) end,
+        create_layout = M.create_layout
     }
 end
 
@@ -79,21 +58,49 @@ local function _load(cellname, env)
     if not reader then
         error(string.format("unknown cell '%s'", cellname))
     end
+    -- don't overwrite the global cell environment
+    local newenv = setmetatable({}, { __index = env })
     _generic_load(
         reader, chunkname,
         string.format("syntax error in cell '%s'", cellname),
         string.format("semantic error in cell '%s'", cellname),
-        env
+        newenv
     )
-    return env
+    return newenv
 end
 
+-- main directory for loaded cells
 local loadedcells = {}
 
-local function _get_cell(cellname, env, nocallparams)
-    if not loadedcells[cellname] or env then
-        env = env or _prepare_cell_environment(cellname)
-        local funcs = _load(cellname, env)
+-- prepare global cell environment
+local cellenv = {
+    tech = { 
+        get_dimension = technology.get_dimension
+    },
+    geometry = geometry,
+    graphics = graphics,
+    shape = shape,
+    object = object,
+    generics = generics,
+    point = point,
+    util = util,
+    aux = aux,
+    math = math,
+    enable = function(bool, val) return (bool and 1 or 0) * val end,
+    string = string,
+    table = table,
+    print = print,
+    type = type,
+    ipairs = ipairs,
+    pairs = pairs,
+}
+
+local function _get_cell(cellname, norefreshenv, nocallparams)
+    if not loadedcells[cellname] then
+        if not norefreshenv then
+            _prepare_cell_environment(cellenv, cellname)
+        end
+        local funcs = _load(cellname, cellenv)
         if not (funcs.parameters or funcs.layout) then
             error(string.format("cell '%s' must define at least the public function 'parameters' or 'layout'", cellname))
         end
@@ -364,7 +371,7 @@ end
 function M.list()
     local str = {}
     for _, cellname in ipairs(support.listcells("cells")) do
-        local cell = _get_cell(cellname, nil, true) -- no custom environment (nil), don't call funcs.params() (true)
+        local cell = _get_cell(cellname, false, true) -- refresh cell environment (false), don't call funcs.params() (true)
         if not cell.properties.hidden then
             table.insert(str, cellname)
         end
@@ -373,14 +380,16 @@ function M.list()
 end
 
 function M.constraints(cellname)
-    local env = _prepare_cell_environment(cellname)
     -- replace tech module in environment
     local constraints = {}
-    env.tech = {
+    local techbackup = cellenv.tech
+    cellenv.tech = {
         get_dimension = function(name) constraints[name] = true end
     }
     -- load cell, this fills the 'constraints' table
-    _get_cell(cellname, env)
+    _get_cell(cellname, true) -- don't refresh cell environment
+    -- restore tech in cell environment
+    cellenv.tech = techbackup
     local str = {}
     for constraint in pairs(constraints) do
         table.insert(str, constraint)
