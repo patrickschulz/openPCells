@@ -362,12 +362,14 @@ function M.parameters(cellname)
 end
 
 function M.list()
+    local str = {}
     for _, cellname in ipairs(support.listcells("cells")) do
         local cell = _get_cell(cellname, nil, true) -- no custom environment (nil), don't call funcs.params() (true)
         if not cell.properties.hidden then
-            print(cellname)
+            table.insert(str, cellname)
         end
     end
+    return str
 end
 
 function M.constraints(cellname)

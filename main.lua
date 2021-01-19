@@ -16,7 +16,9 @@ end
 
 -- list available cells
 if args.listcells then
-    pcell.list()
+    local sep = args.separator or "\n"
+    local cells = pcell.list()
+    io.write(table.concat(cells, sep) .. sep)
     os.exit(0)
 end
 
