@@ -24,6 +24,14 @@ if not args.cell then
     error("no cell type given")
 end
 
+-- show technology constraints for this cell
+if args.constraints then
+    local sep = args.separator or "\n"
+    local params = pcell.constraints(args.cell)
+    io.write(table.concat(params, sep) .. sep)
+    os.exit(0)
+end
+
 -- check and load technology
 if not args.notech and not args.technology then
     error("no technology given")
@@ -36,14 +44,6 @@ end
 if args.params then
     local sep = args.separator or "\n"
     local params = pcell.parameters(args.cell)
-    io.write(table.concat(params, sep) .. sep)
-    os.exit(0)
-end
-
--- show technology constraints for this cell
-if args.constraints then
-    local sep = args.separator or "\n"
-    local params = pcell.constraints(args.cell)
     io.write(table.concat(params, sep) .. sep)
     os.exit(0)
 end
