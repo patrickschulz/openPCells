@@ -16,39 +16,7 @@ Implementation note:
 
 local M = {}
 
-local function identity(arg) return arg end
-local function toboolean(arg)
-    assert(
-        string.match(arg, "true") or string.match(arg, "false"), 
-        string.format("toboolean: argument must be 'true' or 'false' (is '%s')", arg)
-    )
-    return arg == "true" and true or false
-end
-local function tointeger(arg)
-    return math.floor(tonumber(arg))
-end
-local function tonumtable(arg)
-    local t = {}
-    for e in string.gmatch(arg, "[^;,]+") do
-        table.insert(t, tonumber(e))
-    end
-    return t
-end
-local function tostrtable(arg)
-    local t = {}
-    for e in string.gmatch(arg, "[^;,]+") do
-        table.insert(t, tostring(e))
-    end
-    return t
-end
-local evaluators = {
-    number   = tonumber,
-    integer  = tointeger,
-    string   = identity,
-    boolean  = toboolean,
-    numtable = tonumtable,
-    strtable = tostrtable,
-}
+local evaluators = _load_module("pcell.evaluators")
 
 local function _prepare_cell_environment(cellname)
     local bindcell = function(func)
@@ -122,12 +90,12 @@ end
 
 local loadedcells = {}
 
-local function _get_cell(cellname, env)
+local function _get_cell(cellname, env, nocallparams)
     if not loadedcells[cellname] or env then
         env = env or _prepare_cell_environment(cellname)
         local funcs = _load(cellname, env)
         if not (funcs.parameters or funcs.layout) then
-            error("every cell must define at least the public function 'parameters' or 'layout'")
+            error(string.format("cell '%s' must define at least the public function 'parameters' or 'layout'", cellname))
         end
         local cell = {
             funcs = funcs,
@@ -137,9 +105,11 @@ local function _get_cell(cellname, env)
             num = 0
         }
         rawset(loadedcells, cellname, cell)
-        local status, msg = pcall(funcs.parameters)
-        if not status then
-            error(string.format("could not create parameters of cell '%s': %s", cellname, msg))
+        if not nocallparams then
+            local status, msg = pcall(funcs.parameters)
+            if not status then
+                error(string.format("could not create parameters of cell '%s': %s", cellname, msg))
+            end
         end
         if funcs.config then
             funcs.config()
@@ -393,7 +363,7 @@ end
 
 function M.list()
     for _, cellname in ipairs(support.listcells("cells")) do
-        local cell = _get_cell(cellname)
+        local cell = _get_cell(cellname, nil, true) -- no custom environment (nil), don't call funcs.params() (true)
         if not cell.properties.hidden then
             print(cellname)
         end
