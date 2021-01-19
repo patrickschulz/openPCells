@@ -24,6 +24,14 @@ if not args.cell then
     error("no cell type given")
 end
 
+-- check and load technology
+if not args.notech and not args.technology then
+    error("no technology given")
+end
+if not args.notech then
+    technology.load(args.technology)
+end
+
 -- output cell parameters
 if args.params then
     local sep = args.separator or "\n"
@@ -32,21 +40,11 @@ if args.params then
     os.exit(0)
 end
 
-if not args.notech and not args.technology then
-    error("no technology given")
-end
-if not args.interface then
-    error("no interface given")
-end
-
-if not args.notech then
-    technology.load(args.technology)
-end
-interface.load(args.interface)
-
 -- show technology constraints for this cell
 if args.constraints then
-    print("show technology constraints")
+    local sep = args.separator or "\n"
+    local params = pcell.constraints(args.cell)
+    io.write(table.concat(params, sep) .. sep)
     os.exit(0)
 end
 
@@ -83,6 +81,11 @@ if args.orientation then
     end
     f()
 end
+
+if not args.interface then
+    error("no interface given")
+end
+interface.load(args.interface)
 
 local techintf = interface.get_techinterface() or args.interface
 if not args.notech then
