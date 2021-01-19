@@ -1,3 +1,15 @@
+/*
+ * Reduce the number of arguments a function takes. This is *not* a boost-like bind with placeholders that can be in several places.
+ * The idea is (for instance) to create a function that has a class object bound to the method.
+ * Example:
+ * function foo(a)
+ *     print(a)
+ * end
+ * f = bind(foo, 1, 42)
+ * f() -- prints 42
+ *
+ */
+
 #include "lua/lua.h"
 #include "lua/lauxlib.h"
 
