@@ -131,6 +131,14 @@ function M.fix_to_grid(cell)
     end
 end
 
+function M.get_dimension(dimension)
+    local value = constraints[dimension]
+    if not value then
+        error(string.format("no dimension '%s' found", dimension))
+    end
+    return value
+end
+
 local function _load_layermap(name)
     local env = {
         map = function(entry)
@@ -198,6 +206,21 @@ local function _load_layermap(name)
     )
 end
 
+local function _load_constraints(name)
+    local filename = string.format("%s/tech/%s/constraints.lua", _get_opc_home(), name)
+    local chunkname = "@techconstraints"
+
+    local reader = _get_reader(filename)
+    if not reader then
+        error(string.format("no constraints for technology '%s' found", name))
+    end
+    return _generic_load(
+        reader, chunkname,
+        string.format("syntax error while loading constraints for technology '%s'", name),
+        string.format("semantic error while loading constraints for technology '%s'", name)
+    )
+end
+
 local function _load_config(name)
     local filename = string.format("%s/tech/%s/config.lua", _get_opc_home(), name)
     local chunkname = "@techconfig"
@@ -214,8 +237,9 @@ local function _load_config(name)
 end
 
 function M.load(name)
-    layermap = _load_layermap(name)
-    config   = _load_config(name)
+    layermap    = _load_layermap(name)
+    constraints = _load_constraints(name)
+    config      = _load_config(name)
 end
 
 return M
