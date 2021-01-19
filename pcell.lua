@@ -61,11 +61,7 @@ local function _prepare_cell_environment(cellname)
             add_parameters                  = bindcell(add_parameters),
             inherit_parameter               = bindcell(inherit_parameter),
             inherit_parameter_as            = bindcell(inherit_parameter_as),
-            bind_parameter                  = bindcell(bind_parameter),
             inherit_all_parameters          = bindcell(inherit_all_parameters),
-            inherit_and_bind_parameter      = bindcell(inherit_and_bind_parameter),
-            inherit_and_bind_parameter_as   = bindcell(inherit_and_bind_parameter_as),
-            inherit_and_bind_all_parameters = bindcell(inherit_and_bind_all_parameters),
             -- the following functions don't not need cell binding as they are called for other cells
             clone_parameters                = clone_parameters,
             clone_matching_parameters       = clone_matching_parameters,
@@ -125,8 +121,6 @@ local function _load(cellname, env)
 end
 
 local loadedcells = {}
-local bindings = {}
-local bindingsbackup = {}
 
 local function _get_cell(cellname, env)
     if not loadedcells[cellname] or env then
@@ -281,37 +275,6 @@ local function _restore_parameters(cellname, backup)
     end
 end
 
-local function _install_bindings(cellname)
-    if bindings[cellname] then
-        if not bindingsbackup[cellname] then
-            bindingsbackup[cellname] = stack.create()
-        end
-        local backup = {}
-        for name, other in pairs(bindings[cellname]) do
-            local cell = _get_cell(cellname)
-            local othercell = _get_cell(cellname)
-            local param = cell.parameters[name]
-            local otherparam = othercell.parameters[other.name]
-            table.insert(backup, { cell = other.cell, name = other.name, func = otherparam.func })
-            otherparam.func = param.func
-        end
-        bindingsbackup[cellname]:push(backup)
-    end
-end
-
-local function _remove_bindings(cellname)
-    if bindingsbackup[cellname] then
-        if bindingsbackup[cellname]:peek() then
-            for _, other in ipairs(bindingsbackup[cellname]:top()) do
-                local othercell = _get_cell(other.cell)
-                local otherparam = othercell.parameters[other.name]
-                otherparam.func = other.func
-            end
-            bindingsbackup[cellname]:pop()
-        end
-    end
-end
-
 --------------------------------------------------------------------
 function set_property(cellname, property, value)
     local cell = _get_cell(cellname)
@@ -349,16 +312,6 @@ function inherit_parameter_as(cellname, name, othercell, othername)
     _add_parameter(cellname, name, param.func(), param.argtype, param.posvals)
 end
 
-function bind_parameter(cellname, name, othercell, othername)
-    local cell = _get_cell(cellname)
-    local param = cell.parameters[name]
-    if not param then
-        error(string.format("trying to bind '%s.%s' to '%s.%s', which is unknown", othercell, othername, cellname, name))
-    end
-    if not bindings[cellname] then bindings[cellname] = {} end
-    bindings[cellname][name] = { cell = othercell, name = othername }
-end
-
 function inherit_all_parameters(cellname, othercell)
     local inherited = _get_cell(othercell)
     local parameters = {}
@@ -367,27 +320,6 @@ function inherit_all_parameters(cellname, othercell)
     end
     for _, name in ipairs(parameters) do
         inherit_parameter(cellname, othercell, name)
-    end
-end
-
-function inherit_and_bind_parameter(cellname, othercell, name)
-    inherit_parameter(cellname, othercell, name)
-    bind_parameter(cellname, name, othercell, name)
-end
-
-function inherit_and_bind_parameter_as(cellname, name, othercell, othername)
-    inherit_parameter_as(cellname, name, othercell, othername)
-    bind_parameter(cellname, name, othercell, othername)
-end
-
-function inherit_and_bind_all_parameters(cellname, othercell)
-    local inherited = _get_cell(othercell)
-    local parameters = {}
-    for k in pairs(inherited.parameters) do
-        parameters[inherited.indices[k]] = k
-    end
-    for _, name in ipairs(parameters) do
-        inherit_and_bind_parameter(cellname, othercell, name)
     end
 end
 
@@ -449,9 +381,7 @@ function M.create_layout(cellname, args, evaluate)
     local obj = object.create(cellname)
     local parameters, backup = _get_parameters(cellname, args, evaluate)
     _restore_parameters(cellname, backup)
-    _install_bindings(cellname)
     local status, msg = pcall(cell.funcs.layout, obj, parameters)
-    _remove_bindings(cellname)
     if not status then
         error(string.format("could not create cell '%s': %s", cellname, msg))
     end
