@@ -74,9 +74,9 @@ local function _prepare_cell_environment(cellname)
             get_parameters                  = function(cellname) return _get_parameters(cellname) end,
             create_layout = M.create_layout
         },
-        -- fake modules, the shapes are really created later
-        -- this enables some tricks for example regarding even/odd metals
-        -- to build metal grids with unknown number of metals
+        tech = { 
+            get_dimension = technology.get_dimension
+        },
         geometry = geometry,
         graphics = graphics,
         shape = shape,
@@ -125,29 +125,31 @@ local function _load(cellname)
     return env
 end
 
-local meta = {}
-meta.__index = function(t, cellname)
-    local funcs = _load(cellname)
-    if not (funcs.parameters or funcs.layout) then
-        error("every cell must define at least the public function 'parameters' or 'layout'")
-    end
-    local cell = {
-        funcs = funcs,
-        parameters = {},
-        indices = {},
-        properties = {},
-        num = 0
-    }
-    rawset(t, cellname, cell)
-    funcs.parameters()
-    if funcs.config then
-        funcs.config()
-    end
-    return cell
-end
-local loadedcells = setmetatable({}, meta)
+local loadedcells = {}
 local bindings = {}
 local bindingsbackup = {}
+
+local function _get_cell(cellname)
+    if not loadedcells[cellname] then
+        local funcs = _load(cellname)
+        if not (funcs.parameters or funcs.layout) then
+            error("every cell must define at least the public function 'parameters' or 'layout'")
+        end
+        local cell = {
+            funcs = funcs,
+            parameters = {},
+            indices = {},
+            properties = {},
+            num = 0
+        }
+        rawset(loadedcells, cellname, cell)
+        funcs.parameters()
+        if funcs.config then
+            funcs.config()
+        end
+    end
+    return rawget(loadedcells, cellname)
+end
 
 local function _get_pname_dname(name)
     local pname, dname = string.match(name, "^([^(]+)%(([^)]+)%)")
@@ -165,12 +167,13 @@ local function _add_parameter(cellname, name, value, argtype, posvals, follow, o
         posvals = posvals,
         followers = {}
     }
-    if not loadedcells[cellname].parameters[pname] or overwrite then
-        loadedcells[cellname].parameters[pname] = new
-        loadedcells[cellname].num = loadedcells[cellname].num + 1
-        loadedcells[cellname].indices[pname] = loadedcells[cellname].num
+    local cell = _get_cell(cellname)
+    if not cell.parameters[pname] or overwrite then
+        cell.parameters[pname] = new
+        cell.num = cell.num + 1
+        cell.indices[pname] = cell.num
         if follow then
-            loadedcells[cellname].parameters[follow].followers[pname] = true
+            cell.parameters[follow].followers[pname] = true
         end
     else
         return false
@@ -191,7 +194,8 @@ local function _split_input_arguments(args)
 end
 
 local function _set_parameter_function(cellname, name, value, backup, evaluate, overwrite)
-    local p = loadedcells[cellname].parameters[name]
+    local cell = _get_cell(cellname)
+    local p = cell.parameters[name]
     if not p then
         error(string.format("argument '%s' has no matching parameter in cell '%s', maybe it was spelled wrong?", name, cellname))
     end
@@ -229,7 +233,8 @@ end
 -- since they are added to the sandbox environment for the cell layout functions
 -- This is not very good, work on this
 function _get_parameters(cellname, cellargs, evaluate)
-    local cellparams = loadedcells[cellname].parameters
+    local cell = _get_cell(cellname)
+    local cellparams = cell.parameters
     cellargs = cellargs or {}
 
     local backup = _process_input_parameters(cellname, cellargs, evaluate)
@@ -264,7 +269,8 @@ function _get_parameters(cellname, cellargs, evaluate)
 end
 
 local function _restore_parameters(cellname, backup)
-    local cellparams = loadedcells[cellname].parameters
+    local cell = _get_cell(cellname)
+    local cellparams = cell.parameters
     -- restore old functions
     for name, func in pairs(backup) do
         cellparams[name].func:replace(func)
@@ -279,8 +285,10 @@ local function _install_bindings(cellname)
         end
         local backup = {}
         for name, other in pairs(bindings[cellname]) do
-            local param = loadedcells[cellname].parameters[name]
-            local otherparam = loadedcells[other.cell].parameters[other.name]
+            local cell = _get_cell(cellname)
+            local othercell = _get_cell(cellname)
+            local param = cell.parameters[name]
+            local otherparam = othercell.parameters[other.name]
             table.insert(backup, { cell = other.cell, name = other.name, func = otherparam.func })
             otherparam.func = param.func
         end
@@ -292,7 +300,8 @@ local function _remove_bindings(cellname)
     if bindingsbackup[cellname] then
         if bindingsbackup[cellname]:peek() then
             for _, other in ipairs(bindingsbackup[cellname]:top()) do
-                local otherparam = loadedcells[other.cell].parameters[other.name]
+                local othercell = _get_cell(other.cell)
+                local otherparam = othercell.parameters[other.name]
                 otherparam.func = other.func
             end
             bindingsbackup[cellname]:pop()
@@ -302,7 +311,7 @@ end
 
 --------------------------------------------------------------------
 function set_property(cellname, property, value)
-    local cell = loadedcells[cellname]
+    local cell = _get_cell(cellname)
     cell.properties[property] = value
 end
 
@@ -323,7 +332,8 @@ function add_parameters(cellname, ...)
 end
 
 function inherit_parameter(cellname, othercell, name)
-    local param = loadedcells[othercell].parameters[name]
+    local othercell = _get_cell(othercell)
+    local param = othercell.parameters[name]
     if param.display then
         name = string.format("%s(%s)", name, param.display)
     end
@@ -331,12 +341,14 @@ function inherit_parameter(cellname, othercell, name)
 end
 
 function inherit_parameter_as(cellname, name, othercell, othername)
-    local param = loadedcells[othercell].parameters[othername]
+    local othercell = _get_cell(othercell)
+    local param = othercell.parameters[othername]
     _add_parameter(cellname, name, param.func(), param.argtype, param.posvals)
 end
 
 function bind_parameter(cellname, name, othercell, othername)
-    local param = loadedcells[cellname].parameters[name]
+    local cell = _get_cell(cellname)
+    local param = cell.parameters[name]
     if not param then
         error(string.format("trying to bind '%s.%s' to '%s.%s', which is unknown", othercell, othername, cellname, name))
     end
@@ -345,7 +357,7 @@ function bind_parameter(cellname, name, othercell, othername)
 end
 
 function inherit_all_parameters(cellname, othercell)
-    local inherited = loadedcells[othercell]
+    local inherited = _get_cell(othercell)
     local parameters = {}
     for k in pairs(inherited.parameters) do
         parameters[inherited.indices[k]] = k
@@ -366,7 +378,7 @@ function inherit_and_bind_parameter_as(cellname, name, othercell, othername)
 end
 
 function inherit_and_bind_all_parameters(cellname, othercell)
-    local inherited = loadedcells[othercell]
+    local inherited = _get_cell(othercell)
     local parameters = {}
     for k in pairs(inherited.parameters) do
         parameters[inherited.indices[k]] = k
@@ -414,7 +426,7 @@ function clone_parameters(P)
 end
 
 function clone_matching_parameters(cellname, P)
-    local cell = loadedcells[cellname]
+    local cell = _get_cell(cellname)
     local new = {}
     for k, v in pairs(P) do
         if cell.parameters[k] then
@@ -426,7 +438,7 @@ end
 --------------------------------------------------------------------
 
 function M.create_layout(cellname, args, evaluate)
-    local cell = loadedcells[cellname]
+    local cell = _get_cell(cellname)
     if not cell.funcs.layout then
         error(string.format("cell '%s' has no layout definition", cellname))
     end
@@ -443,7 +455,7 @@ function M.create_layout(cellname, args, evaluate)
 end
 
 function M.parameters(name)
-    local cell = loadedcells[name]
+    local cell = _get_cell(name)
     local str = {}
     for k, v in pairs(cell.parameters) do
         local val = v.func()
@@ -459,11 +471,26 @@ end
 
 function M.list()
     for _, cellname in ipairs(support.listcells("cells")) do
-        local cell = loadedcells[cellname]
+        local cell = _get_cell(cellname)
         if not cell.properties.hidden then
             print(cellname)
         end
     end
+end
+
+function M.constraints(name)
+    local cell = _get_cell(name)
+    local str = {}
+    for k, v in pairs(cell.parameters) do
+        local val = v.func()
+        if type(val) == "table" then
+            val = table.concat(val, ",")
+        else
+            val = tostring(val)
+        end
+        str[cell.indices[k]] = string.format("%s:%s:%s:%s", k, v.display or "_NONE_", val, tostring(v.argtype))
+    end
+    return str
 end
 
 return M
