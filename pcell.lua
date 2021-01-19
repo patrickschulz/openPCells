@@ -101,7 +101,7 @@ function M.add_cellpath(path)
     table.insert(cellpaths, path)
 end
 
-local function _load(cellname)
+local function _load(cellname, env)
     local filename = string.format("%s/cells/%s.lua", _get_opc_home(), cellname)
     for _, path in ipairs(cellpaths) do
         local tmp = string.format("%s/%s.lua", path, cellname)
@@ -115,7 +115,6 @@ local function _load(cellname)
     if not reader then
         error(string.format("unknown cell '%s'", cellname))
     end
-    local env = _prepare_cell_environment(cellname)
     _generic_load(
         reader, chunkname,
         string.format("syntax error in cell '%s'", cellname),
@@ -129,9 +128,10 @@ local loadedcells = {}
 local bindings = {}
 local bindingsbackup = {}
 
-local function _get_cell(cellname)
-    if not loadedcells[cellname] then
-        local funcs = _load(cellname)
+local function _get_cell(cellname, env)
+    if not loadedcells[cellname] or env then
+        env = env or _prepare_cell_environment(cellname)
+        local funcs = _load(cellname, env)
         if not (funcs.parameters or funcs.layout) then
             error("every cell must define at least the public function 'parameters' or 'layout'")
         end
@@ -143,7 +143,10 @@ local function _get_cell(cellname)
             num = 0
         }
         rawset(loadedcells, cellname, cell)
-        funcs.parameters()
+        local status, msg = pcall(funcs.parameters)
+        if not status then
+            error(string.format("could not create parameters of cell '%s': %s", cellname, msg))
+        end
         if funcs.config then
             funcs.config()
         end
@@ -437,6 +440,7 @@ function clone_matching_parameters(cellname, P)
 end
 --------------------------------------------------------------------
 
+-- Public functions
 function M.create_layout(cellname, args, evaluate)
     local cell = _get_cell(cellname)
     if not cell.funcs.layout then
@@ -454,8 +458,8 @@ function M.create_layout(cellname, args, evaluate)
     return obj
 end
 
-function M.parameters(name)
-    local cell = _get_cell(name)
+function M.parameters(cellname)
+    local cell = _get_cell(cellname)
     local str = {}
     for k, v in pairs(cell.parameters) do
         local val = v.func()
@@ -478,17 +482,18 @@ function M.list()
     end
 end
 
-function M.constraints(name)
-    local cell = _get_cell(name)
+function M.constraints(cellname)
+    local env = _prepare_cell_environment(cellname)
+    -- replace tech module in environment
+    local constraints = {}
+    env.tech = {
+        get_dimension = function(name) constraints[name] = true end
+    }
+    -- load cell, this fills the 'constraints' table
+    _get_cell(cellname, env)
     local str = {}
-    for k, v in pairs(cell.parameters) do
-        local val = v.func()
-        if type(val) == "table" then
-            val = table.concat(val, ",")
-        else
-            val = tostring(val)
-        end
-        str[cell.indices[k]] = string.format("%s:%s:%s:%s", k, v.display or "_NONE_", val, tostring(v.argtype))
+    for constraint in pairs(constraints) do
+        table.insert(str, constraint)
     end
     return str
 end
