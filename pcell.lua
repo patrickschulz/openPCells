@@ -297,19 +297,17 @@ function add_parameters(cellname, ...)
     end
 end
 
-function inherit_parameter(cellname, othercell, name)
+function inherit_parameter_as(cellname, name, othercell, othername)
     local othercell = _get_cell(othercell)
-    local param = othercell.parameters[name]
+    local param = othercell.parameters[othername]
     if param.display then
-        name = string.format("%s(%s)", name, param.display)
+        name = string.format("%s(%s)", othername, param.display)
     end
     _add_parameter(cellname, name, param.func(), param.argtype, param.posvals)
 end
 
-function inherit_parameter_as(cellname, name, othercell, othername)
-    local othercell = _get_cell(othercell)
-    local param = othercell.parameters[othername]
-    _add_parameter(cellname, name, param.func(), param.argtype, param.posvals)
+function inherit_parameter(cellname, othercell, othername)
+    inherit_parameter_as(cellname, othername, othercell, othername)
 end
 
 function inherit_all_parameters(cellname, othercell)
@@ -339,16 +337,6 @@ function pop_overwrites(cellname)
     end
     _restore_parameters(cellname, backupstacks[cellname]:top())
     backupstacks[cellname]:pop()
-end
-
-function empty_overwrite_stack(cellname)
-    -- restore all cell defaults
-    if backupstacks[cellname] then
-        while backupstacks[cellname]:peek() do
-            _restore_parameters(cellname, backupstacks[cellname]:top())
-            backupstacks[cellname]:pop()
-        end
-    end
 end
 
 function clone_parameters(P)
