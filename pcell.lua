@@ -65,7 +65,7 @@ function M.add_cellpath(path)
     table.insert(cellpaths, path)
 end
 
-local function _load(cellname, env)
+local function _load_cell(cellname, env)
     local filename = string.format("%s/cells/%s.lua", _get_opc_home(), cellname)
     for _, path in ipairs(cellpaths) do
         local tmp = string.format("%s/%s.lua", path, cellname)
@@ -93,7 +93,7 @@ local loadedcells = {}
 local function _get_cell(cellname, env, nocallparams)
     if not loadedcells[cellname] or env then
         env = env or _prepare_cell_environment(cellname)
-        local funcs = _load(cellname, env)
+        local funcs = _load_cell(cellname, env)
         if not (funcs.parameters or funcs.layout) then
             error(string.format("cell '%s' must define at least the public function 'parameters' or 'layout'", cellname))
         end
