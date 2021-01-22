@@ -132,4 +132,90 @@ function M.intersection(s1, s2, c1, c2)
     return nil, pt
 end
 
+function M.intersection_ab(P, Q)
+    local P1x, P1y = P[1]:unwrap()
+    local P2x, P2y = P[2]:unwrap()
+    local Q1x, Q1y = Q[1]:unwrap()
+    local Q2x, Q2y = Q[2]:unwrap()
+
+    local A = function(P, Q, R)
+        local Px, Py = P:unwrap()
+        local Qx, Qy = Q:unwrap()
+        local Rx, Ry = R:unwrap()
+        return (Qx - Px) * (Ry - Py) - (Qy - Py) * (Rx - Px)
+    end
+
+    -- edges are parallel
+    if (A(P[1], Q[1], Q[2]) - A(P[2], Q[1], Q[2])) == 0 and (A(Q[1], P[1], P[2]) - A(Q[2], P[1], P[2])) == 0 then
+        local function dot(P, Q)
+            local Px, Py = P:unwrap()
+            local Qx, Qy = Q:unwrap()
+            return Px * Qx + Py * Qy
+        end
+        local anum = dot(Q[1] - P[1], P[2] - P[1])
+        local aden = dot(P[2] - P[1], P[2] - P[1])
+        local bnum = dot(P[1] - Q[1], Q[2] - Q[1])
+        local bden = dot(Q[2] - Q[1], Q[2] - Q[1])
+
+        -- T-Overlap (a < 0 or a >= 1 and 0 < b < 1 OR b = 0 and 0 < a < 1)
+        if (anum > 0 and anum > aden or anum < 0 and aden > 0)      and
+           (bnum > 0 and bden > 0) or (bnum < 0 and bden < 0)       and
+           (bnum < 0 and bnum > bden) or (bnum > 0 and bnum < bden) then
+           return P[1]
+        end
+        if (bnum > 0 and bnum > bden or bnum < 0 and bden > 0)      and
+           (anum > 0 and aden > 0) or (anum < 0 and aden < 0)       and
+           (anum < 0 and anum > aden) or (anum > 0 and anum < aden) then
+           return Q[1]
+        end
+
+        -- V-Overlap (a == b == 0)
+        if anum == 0 and bnum == 0 then
+            return P[1] -- or Q[1]
+        end
+
+        -- X-Overlap (0 < a, b < 1)
+        if (anum > 0 and aden > 0) or (anum < 0 and aden < 0)       and
+           (anum < 0 and anum > aden) or (anum > 0 and anum < aden) and
+           (bnum > 0 and bden > 0) or (bnum < 0 and bden < 0)       and
+           (bnum < 0 and bnum > bden) or (bnum > 0 and bnum < bden) then
+        end
+        local a = anum / aden
+        return point.create((1 - a) * P1x + a * P2x, (1 - a) * P1y + a * P2y)
+    else
+        local anum = A(P[1], Q[1], Q[2])
+        local aden = A(P[1], Q[1], Q[2]) - A(P[2], Q[1], Q[2])
+        local bnum = A(Q[1], P[1], P[2])
+        local bden = A(Q[1], P[1], P[2]) - A(Q[2], P[1], P[2])
+
+        -- T-Intersection (a = 0 and 0 < b < 1 OR b = 0 and 0 < a < 1)
+        if anum == 0 and bnum ~= 0 then
+            if (bnum > 0 and bden > 0) or (bnum < 0 and bden < 0) and
+               (bnum < 0 and bnum > bden) or (bnum > 0 and bnum < bden) then
+                return P[1]
+            end
+        end
+        if bnum == 0 and anum ~= 0 then
+            if (anum > 0 and aden > 0) or (anum < 0 and aden < 0) and
+               (anum < 0 and anum > aden) or (anum > 0 and anum < aden) then
+                return Q[1]
+            end
+        end
+
+        -- V-Intersection (a == b == 0)
+        if anum == 0 and bnum == 0 then
+            return P[1] -- or Q[1]
+        end
+
+        -- X-Intersection (0 < a, b < 1)
+        if (anum > 0 and aden > 0) or (anum < 0 and aden < 0)       and
+           (anum < 0 and anum > aden) or (anum > 0 and anum < aden) and
+           (bnum > 0 and bden > 0) or (bnum < 0 and bden < 0)       and
+           (bnum < 0 and bnum > bden) or (bnum > 0 and bnum < bden) then
+        end
+        local a = anum / aden
+        return point.create((1 - a) * P1x + a * P2x, (1 - a) * P1y + a * P2y)
+    end
+end
+
 return M
