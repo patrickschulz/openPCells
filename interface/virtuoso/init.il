@@ -18,8 +18,8 @@ procedure(OPCCreateCell(w done pts)
 	                )
 	                ; 'OPCCell' is defined one level above (in OPCPlaceCell)
 	                OPCCommand = lsprintf(
-	                    "%s --technology %s --interface virtuoso --cell %s --origin '(%d, %d)' -f %s %s" 
-	                    OPCPath OPCTech OPCCell 
+	                    "%s/%s --technology %s --interface virtuoso --cell %s --origin '(%d, %d)' -f %s %s" 
+	                    OPCPath OPCExec OPCTech OPCCell 
 	                    fix(1000 * xCoord(OPCOrigin)) fix(1000 * yCoord(OPCOrigin)) 
 	                    OPCFilename OPCArgs
 	                )
@@ -52,12 +52,12 @@ procedure(OPCPlaceCell(OPCCell)
 	)
 ) ; OPCPlaceCell
 
-procedure(OPCWalkCellDir(OPCPath prepend)
+procedure(OPCWalkCellDir(path prepend)
     let(
         (itemlist item)
-        foreach(file getDirFiles(OPCPath)
+        foreach(file getDirFiles(path)
             unless(file == "." || file == ".."
-                if(isFile(lsprintf("%s/%s" OPCPath file))
+                if(isFile(lsprintf("%s/%s" path file))
                     then
                         unless(substring(file 1 1) == "_"
                             item = hiCreateMenuItem( 
@@ -71,7 +71,7 @@ procedure(OPCWalkCellDir(OPCPath prepend)
                         let((submenu)
                             submenu = hiCreatePulldownMenu(
                                 stringToSymbol(lsprintf("OPCLayout%sSubMenu" lsprintf("%s%s/" prepend file))) "" 
-                                OPCWalkCellDir(lsprintf("%s/%s" OPCPath file) lsprintf("%s%s/" prepend file))
+                                OPCWalkCellDir(lsprintf("%s/%s" path file) lsprintf("%s%s/" prepend file))
                             )
                             item = hiCreateSliderMenuItem(
                                 ?name stringToSymbol(file) 
@@ -84,12 +84,12 @@ procedure(OPCWalkCellDir(OPCPath prepend)
             ) ; unless
         ) ; foreach
         itemlist
-    ) ; lfet
+    ) ; let
 ) ; procedure
 
 procedure(OPCLayoutAddMenu(args)
     let( (menu itemlist (win args->window))
-        itemlist = OPCWalkCellDir("/home/pschulz/path/cells" "")
+        itemlist = OPCWalkCellDir(lsprintf("%s/cells" OPCPath) "")
         menu = hiCreatePulldownMenu('OPCLayoutMenu "OpenPCells" itemlist)
         hiInsertBannerMenu(win menu length(hiGetBannerMenus(win)))
     )
@@ -101,7 +101,7 @@ procedure(OPCCreateOptionsForm(OPCCell)
             OPCCommand pid exitstatus result
             fieldlist field (i 0)
         )
-        OPCCommand = lsprintf("%s --parameters --separator ';' --cell %s" OPCPath OPCCell)
+        OPCCommand = lsprintf("%s/%s --technology %s --parameters --separator ';' --cell %s" OPCPath OPCExec OPCTech OPCCell)
         println(OPCCommand)
         pid = ipcBeginProcess(OPCCommand)
         ipcWait(pid) ; wait for process to finish
