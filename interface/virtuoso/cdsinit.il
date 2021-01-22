@@ -1,0 +1,15 @@
+; this is a sample .cdsinit that show how to set up openPCells with virtuoso
+
+; the used technology has to be defined, this will be passed verbatim to opc
+; so if you call opc like this: opc --technology tech42 ...
+; then OPCTech should be "tech42"
+OPCTech = "tech42"
+
+; the installation DIRECTORY of openPCells has to be given:
+OPCPath = "/path/to/opc"
+
+; the name of the executable (which will be 'opc' if you don't change this manually)
+OPCExec = "opc"
+
+; lastly, we load the opc interface for virtuoso
+load(lsprintf("%s/interface/virtuoso/init.il"))
