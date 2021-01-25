@@ -239,22 +239,21 @@ local function inherit_all_parameters(state, cellname, othercell)
     end
 end
 
-local backupstacks = {}
 local function push_overwrites(state, cellname, cellargs)
     assert(type(cellname) == "string", "push_overwrites: cellname must be a string")
     local backup = _process_input_parameters(state, cellname, cellargs, false, true)
-    if not backupstacks[cellname] then
-        backupstacks[cellname] = stack.create()
+    if not state.backupstacks[cellname] then
+        state.backupstacks[cellname] = stack.create()
     end
-    backupstacks[cellname]:push(backup)
+    state.backupstacks[cellname]:push(backup)
 end
 
 local function pop_overwrites(state, cellname)
-    if (not backupstacks[cellname]) or (not backupstacks[cellname]:peek()) then
+    if (not state.backupstacks[cellname]) or (not state.backupstacks[cellname]:peek()) then
         error(string.format("trying to restore default parameters for '%s', but there where no previous overwrites", cellname))
     end
-    _restore_parameters(state, cellname, backupstacks[cellname]:top())
-    backupstacks[cellname]:pop()
+    _restore_parameters(state, cellname, state.backupstacks[cellname]:top())
+    state.backupstacks[cellname]:pop()
 end
 
 local function clone_parameters(state, P, predicate)
@@ -277,6 +276,7 @@ end
 local state = {
     cellpaths = {},
     loadedcells = {},
+    backupstacks = {},
 }
 
 function state.create_cellenv(state, cellname)
@@ -287,7 +287,7 @@ function state.create_cellenv(state, cellname)
     end
     local bindstate = function(func)
         return function(...)
-            func(state, ...)
+            return func(state, ...)
         end
     end
     return {
