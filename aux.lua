@@ -35,6 +35,17 @@ function M.concat(data, sep, pre, post, newline)
     return tabstr
 end
 
+function M.clone_shallow(t, predicate)
+    local new = {}
+    predicate = predicate or function() return true end
+    for k, v in pairs(new) do
+        if predicate(k, v) then
+            new[k] = v
+        end
+    end
+    return new
+end
+
 function M.find(t, crit)
     for i, v in ipairs(t) do
         if crit(v) then

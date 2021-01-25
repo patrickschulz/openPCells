@@ -43,7 +43,7 @@ end
 
 local function _get_cell(state, cellname, env, nocallparams)
     if not state.loadedcells[cellname] or env then
-        env = env or state:_prepare_cell_environment(cellname)
+        env = env or state:create_cellenv(cellname)
         local funcs = _load_cell(state, cellname, env)
         if not (funcs.parameters or funcs.layout) then
             error(string.format("cell '%s' must define at least the public function 'parameters' or 'layout'", cellname))
@@ -257,24 +257,18 @@ local function pop_overwrites(state, cellname)
     backupstacks[cellname]:pop()
 end
 
-local function clone_parameters(state, P)
+local function clone_parameters(state, P, predicate)
     assert(P, "pcell.clone_parameters: no parameters given")
-    local new = {}
-    for k, v in pairs(P) do
-        new[k] = v
-    end
-    return new
+    return aux.clone_shallow(P, predicate)
 end
 
 local function clone_matching_parameters(state, cellname, P)
+    assert(cellname, "pcell.clone_matching_parameters: no cellname given")
     local cell = _get_cell(state, cellname)
-    local new = {}
-    for k, v in pairs(P) do
-        if cell.parameters[k] then
-            new[k] = v
-        end
+    local predicate = function(k, v)
+        return not not cell.parameters[k]
     end
-    return new
+    return clone_parameters(state, P, predicate)
 end
 
 -- main state storing various data
@@ -285,7 +279,7 @@ local state = {
     loadedcells = {},
 }
 
-function state._prepare_cell_environment(state, cellname)
+function state.create_cellenv(state, cellname)
     local bindcell = function(func)
         return function(...)
             func(state, cellname, ...)
@@ -309,9 +303,8 @@ function state._prepare_cell_environment(state, cellname)
             clone_matching_parameters       = bindstate(clone_matching_parameters),
             push_overwrites                 = bindstate(push_overwrites),
             pop_overwrites                  = bindstate(pop_overwrites),
-            --get_parameters                  = bindstate(_get_parameters),
-            get_parameters                  = function(cellname) return _get_parameters(state, cellname) end,
-            create_layout = M.create_layout
+            get_parameters                  = bindstate(_get_parameters),
+            create_layout                   = M.create_layout
         },
         tech = { 
             get_dimension = technology.get_dimension
@@ -382,7 +375,7 @@ function M.list()
 end
 
 function M.constraints(cellname)
-    local env = state:_prepare_cell_environment(cellname)
+    local env = state:create_cellenv(cellname)
     -- replace tech module in environment
     local constraints = {}
     env.tech = {
