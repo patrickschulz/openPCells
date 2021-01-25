@@ -81,6 +81,11 @@ local function _display_help(self)
     os.exit(0)
 end
 
+local function _display_version(self)
+    print("openPCells (opc) 0.1.0")
+    print("Copyright 2020-2021 Patrick Kurth")
+    os.exit(0)
+end
 
 --local positional = _consumer_table_func("cellargs")
 local positional = function(self, res, args)
@@ -137,7 +142,11 @@ function meta.register_options(self, optdef)
     -- install help
     self.actions["-h"] = _display_help
     self.actions["--help"] = _display_help
-    table.insert(self.optionsdef, 1, { short = "-h", long = "--help", help = "display this help" })
+    table.insert(self.optionsdef, 1, { short = "-h", long = "--help", help = "display this help and exit" })
+    -- install version
+    self.actions["-v"] = _display_version
+    self.actions["--version"] = _display_version
+    table.insert(self.optionsdef, 1, { short = "-v", long = "--version", help = "display version and exit" })
 end
 
 function meta.parse(self, args)
