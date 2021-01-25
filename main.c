@@ -197,6 +197,11 @@ int main (int argc, char** argv)
             {
                 create_argument_table(L, argc, argv);
                 status = call_main_program(L, OPC_HOME "/" MAINPROGNAME);
+                if(status != LUA_OK)
+                {
+                    fprintf(stderr, "%s\n", "opc encountered an error, watch mode will be aborted");
+                    break;
+                }
 
                 // now reinitialize the program
                 // this works as if the program had beed started again, which is what we want
