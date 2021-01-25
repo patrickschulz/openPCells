@@ -95,6 +95,9 @@ end
 local function _get_action(self, args)
     local action = self.actions[args[self.state.i]]
     if not action then
+        if string.match(args[self.state.i], "^-") then
+            error(string.format("commandline arguments: unknown option '%s'", args[self.state.i]))
+        end
         return positional
     else
         return action
@@ -156,6 +159,12 @@ function meta.parse(self, args)
         action(self, res, args)
         _advance(self.state)
     end
+    -- split key=value pairs
+    local cellargs = {}
+    for k, v in string.gmatch(table.concat(res.cellargs, " "), "([%w/._]+)%s*=%s*(%S+)") do
+        cellargs[k] = v
+    end
+    res.cellargs = cellargs
     return res
 end
 

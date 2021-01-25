@@ -50,13 +50,8 @@ if args.params then
     os.exit(0)
 end
 
--- prepare cell arguments
--- the gmatch/pattern expression splits expressions like 'foo=bar' into 'foo' and 'bar'
-local cellargs = {}
-for k, v in string.gmatch(table.concat(args.cellargs, " "), "([%w/._]+)%s*=%s*(%S+)") do
-    cellargs[k] = v
-end
-local cell, msg = pcell.create_layout(args.cell, cellargs, true)
+-- create cell
+local cell, msg = pcell.create_layout(args.cell, args.cellargs, true)
 if not cell then
     error(string.format("error while creating cell, received: %s", msg))
 end
