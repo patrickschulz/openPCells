@@ -51,6 +51,7 @@ if args.params then
 end
 
 -- prepare cell arguments
+-- the gmatch/pattern expression splits expressions like 'foo=bar' into 'foo' and 'bar'
 local cellargs = {}
 for k, v in string.gmatch(table.concat(args.cellargs, " "), "([%w/._]+)%s*=%s*(%S+)") do
     cellargs[k] = v
@@ -72,7 +73,7 @@ end
 -- orientation
 if args.orientation then
     local lut = {
-        ["0"] = function() end, -- do nothing
+        ["0"] = function() end, -- do nothing, but allow this as command line option
         ["fx"] = function() cell:flipx() end,
         ["fy"] = function() cell:flipy() end,
         ["fxy"] = function() cell:flipx(); cell:flipy() end,
