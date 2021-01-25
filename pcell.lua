@@ -99,18 +99,6 @@ local function _add_parameter(state, cellname, name, value, argtype, posvals, fo
     return true
 end
 
-local function _split_input_arguments(args)
-    local t = {}
-    for name, value in pairs(args) do
-        local parent, arg = string.match(name, "^([^.]+)%.(.+)$")
-        if not parent then
-            arg = name
-        end
-        table.insert(t, { parent = parent, name = arg, value = value })
-    end
-    return t
-end
-
 local function _set_parameter_function(state, cellname, name, value, backup, evaluate, overwrite)
     local cell = _get_cell(state, cellname)
     local p = cell.parameters[name]
@@ -130,6 +118,18 @@ local function _set_parameter_function(state, cellname, name, value, backup, eva
     -- important: use :replace(), don't create a new function object.
     -- Otherwise parameter binding does not work, because bound parameters link to the original function object
     p.func:replace(function() return value end)
+end
+
+local function _split_input_arguments(args)
+    local t = {}
+    for name, value in pairs(args) do
+        local parent, arg = string.match(name, "^([^.]+)%.(.+)$")
+        if not parent then
+            arg = name
+        end
+        table.insert(t, { parent = parent, name = arg, value = value })
+    end
+    return t
 end
 
 local function _process_input_parameters(state, cellname, cellargs, evaluate, overwrite)
