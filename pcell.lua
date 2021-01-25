@@ -49,11 +49,11 @@ local function _get_cell(state, cellname, env, nocallparams)
             error(string.format("cell '%s' must define at least the public function 'parameters' or 'layout'", cellname))
         end
         local cell = {
-            funcs = funcs,
-            parameters = {},
-            indices = {},
-            properties = {},
-            num = 0
+            funcs       = funcs,
+            parameters  = {},
+            names       = {},
+            properties  = {},
+            num         = 0
         }
         rawset(state.loadedcells, cellname, cell)
         if not nocallparams then
@@ -88,8 +88,7 @@ local function _add_parameter(state, cellname, name, value, argtype, posvals, fo
     local cell = _get_cell(state, cellname)
     if not cell.parameters[pname] or overwrite then
         cell.parameters[pname] = new
-        cell.num = cell.num + 1
-        cell.indices[pname] = cell.num
+        table.insert(cell.names, pname)
         if follow then
             cell.parameters[follow].followers[pname] = true
         end
@@ -215,6 +214,10 @@ local function add_parameters(state, cellname, ...)
     end
 end
 
+local function reference_all_parameters(state, cellname, othercell)
+
+end
+
 local function inherit_parameter_as(state, cellname, name, othercell, othername)
     local othercell = _get_cell(state, othercell)
     local param = othercell.parameters[othername]
@@ -231,10 +234,7 @@ end
 local function inherit_all_parameters(state, cellname, othercell)
     local inherited = _get_cell(state, othercell)
     local parameters = {}
-    for k in pairs(inherited.parameters) do
-        parameters[inherited.indices[k]] = k
-    end
-    for _, name in ipairs(parameters) do
+    for _, name in ipairs(inherited.names) do
         inherit_parameter(state, cellname, othercell, name)
     end
 end
@@ -295,6 +295,7 @@ function state.create_cellenv(state, cellname)
             set_property                    = bindcell(set_property),
             add_parameter                   = bindcell(add_parameter),
             add_parameters                  = bindcell(add_parameters),
+            reference_all_parameters        = bindcell(reference_all_parameters),
             inherit_parameter               = bindcell(inherit_parameter),
             inherit_parameter_as            = bindcell(inherit_parameter_as),
             inherit_all_parameters          = bindcell(inherit_all_parameters),
@@ -351,14 +352,15 @@ end
 function M.parameters(cellname)
     local cell = _get_cell(state, cellname)
     local str = {}
-    for k, v in pairs(cell.parameters) do
+    for _, name in ipairs(cell.names) do
+        local v = cell.parameters[name]
         local val = v.func()
         if type(val) == "table" then
             val = table.concat(val, ",")
         else
             val = tostring(val)
         end
-        str[cell.indices[k]] = string.format("%s:%s:%s:%s", k, v.display or "_NONE_", val, tostring(v.argtype))
+        table.insert(str,  string.format("%s:%s:%s:%s", name, v.display or "_NONE_", val, tostring(v.argtype)))
     end
     return str
 end
