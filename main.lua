@@ -34,17 +34,20 @@ if args.constraints then
 end
 
 -- check and load technology
-if not args.notech and not args.technology then
-    error("no technology given")
-end
 if not args.notech then
-    technology.load(args.technology)
+    if not args.technology and not args.params then
+        error("no technology given")
+    elseif not args.technology and args.params then
+        -- ok, don't load technology but also don't raise an error
+    else 
+        technology.load(args.technology)
+    end
 end
 
 -- output cell parameters
 if args.params then
     local sep = args.separator or "\n"
-    local params = pcell.parameters(args.cell)
+    local params = pcell.parameters(args.cell, not args.technology)
     io.write(table.concat(params, sep) .. sep)
     os.exit(0)
 end

@@ -355,8 +355,19 @@ function M.constraints(cellname)
     return str
 end
 
-function M.parameters(cellname)
-    local cell = _get_cell(state, cellname)
+function M.parameters(cellname, generictech)
+    local cell
+    if generictech then
+        local env = state:create_cellenv(cellname)
+        -- replace tech module in environment
+        local constraints = {}
+        env.tech = {
+            get_dimension = function(name) return string.format('tech.get_dimension("%s")', name) end,
+        }
+        cell = _get_cell(state, cellname, env)
+    else
+        cell = _get_cell(state, cellname)
+    end
     local str = {}
     for _, name in ipairs(cell.parameters:get_names()) do
         local v = cell.parameters:get(name)
