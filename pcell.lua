@@ -41,6 +41,8 @@ local function _load_cell(state, cellname, env)
     return env
 end
 
+local paramlib = _load_module("pcell.parameter")
+
 local function _get_cell(state, cellname, env, nocallparams)
     if not state.loadedcells[cellname] or env then
         env = env or state:create_cellenv(cellname)
@@ -50,8 +52,7 @@ local function _get_cell(state, cellname, env, nocallparams)
         end
         local cell = {
             funcs       = funcs,
-            parameters  = {},
-            names       = {},
+            parameters  = paramlib.create_directory(),
             properties  = {},
             num         = 0
         }
@@ -69,38 +70,17 @@ local function _get_cell(state, cellname, env, nocallparams)
     return rawget(state.loadedcells, cellname)
 end
 
-local function _get_pname_dname(name)
-    local pname, dname = string.match(name, "^([^(]+)%(([^)]+)%)")
-    if not pname then pname = name end -- no display name
-    return pname, dname
-end
-
 local function _add_parameter(state, cellname, name, value, argtype, posvals, follow, overwrite)
     argtype = argtype or type(value)
-    local pname, dname = _get_pname_dname(name)
-    local new = {
-        display = dname,
-        func    = funcobject.identity(value),
-        argtype = argtype,
-        posvals = posvals,
-        followers = {}
-    }
     local cell = _get_cell(state, cellname)
-    if not cell.parameters[pname] or overwrite then
-        cell.parameters[pname] = new
-        table.insert(cell.names, pname)
-        if follow then
-            cell.parameters[follow].followers[pname] = true
-        end
-    else
-        return false
-    end
-    return true
+    cell.parameters:set_overwrite(overwrite)
+    cell.parameters:set_follow(follow)
+    return cell.parameters:add(name, value, argtype, posvals)
 end
 
 local function _set_parameter_function(state, cellname, name, value, backup, evaluate, overwrite)
     local cell = _get_cell(state, cellname)
-    local p = cell.parameters[name]
+    local p = cell.parameters:get(name)
     if not p then
         error(string.format("argument '%s' has no matching parameter in cell '%s', maybe it was spelled wrong?", name, cellname))
     end
@@ -148,7 +128,7 @@ end
 
 local function _get_parameters(state, cellname, cellargs, evaluate)
     local cell = _get_cell(state, cellname)
-    local cellparams = cell.parameters
+    local cellparams = cell.parameters:get_values()
     cellargs = cellargs or {}
 
     local backup = _process_input_parameters(state, cellname, cellargs, evaluate)
@@ -184,7 +164,7 @@ end
 
 local function _restore_parameters(state, cellname, backup)
     local cell = _get_cell(state, cellname)
-    local cellparams = cell.parameters
+    local cellparams = cell.parameters:get_values()
     -- restore old functions
     for name, func in pairs(backup) do
         cellparams[name].func:replace(func)
@@ -220,7 +200,7 @@ end
 
 local function inherit_parameter_as(state, cellname, name, othercell, othername)
     local othercell = _get_cell(state, othercell)
-    local param = othercell.parameters[othername]
+    local param = othercell.parameters:get(othername)
     if param.display then
         name = string.format("%s(%s)", othername, param.display)
     end
@@ -234,7 +214,7 @@ end
 local function inherit_all_parameters(state, cellname, othercell)
     local inherited = _get_cell(state, othercell)
     local parameters = {}
-    for _, name in ipairs(inherited.names) do
+    for _, name in ipairs(inherited.parameters:get_names()) do
         inherit_parameter(state, cellname, othercell, name)
     end
 end
@@ -265,7 +245,7 @@ local function clone_matching_parameters(state, cellname, P)
     assert(cellname, "pcell.clone_matching_parameters: no cellname given")
     local cell = _get_cell(state, cellname)
     local predicate = function(k, v)
-        return not not cell.parameters[k]
+        return not not cell.parameters:get(k)
     end
     return clone_parameters(state, P, predicate)
 end
@@ -349,22 +329,6 @@ function M.create_layout(cellname, args, evaluate)
     return obj
 end
 
-function M.parameters(cellname)
-    local cell = _get_cell(state, cellname)
-    local str = {}
-    for _, name in ipairs(cell.names) do
-        local v = cell.parameters[name]
-        local val = v.func()
-        if type(val) == "table" then
-            val = table.concat(val, ",")
-        else
-            val = tostring(val)
-        end
-        table.insert(str,  string.format("%s:%s:%s:%s", name, v.display or "_NONE_", val, tostring(v.argtype)))
-    end
-    return str
-end
-
 function M.list()
     local str = {}
     for _, cellname in ipairs(support.listcells("cells")) do
@@ -388,6 +352,22 @@ function M.constraints(cellname)
     local str = {}
     for constraint in pairs(constraints) do
         table.insert(str, constraint)
+    end
+    return str
+end
+
+function M.parameters(cellname)
+    local cell = _get_cell(state, cellname)
+    local str = {}
+    for _, name in ipairs(cell.parameters:get_names()) do
+        local v = cell.parameters:get(name)
+        local val = v.func()
+        if type(val) == "table" then
+            val = table.concat(val, ",")
+        else
+            val = tostring(val)
+        end
+        table.insert(str,  string.format("%s:%s:%s:%s", name, v.display or "_NONE_", val, tostring(v.argtype)))
     end
     return str
 end
