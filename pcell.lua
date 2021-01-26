@@ -54,7 +54,6 @@ local function _get_cell(state, cellname, env, nocallparams)
             funcs       = funcs,
             parameters  = paramlib.create_directory(),
             properties  = {},
-            num         = 0
         }
         rawset(state.loadedcells, cellname, cell)
         if not nocallparams then
