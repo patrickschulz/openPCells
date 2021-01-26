@@ -107,38 +107,56 @@ end
 local meta = {}
 meta.__index = meta
 
-local function _resolve_func(name, funcname)
-    if funcname == "store" then
-        return function(self, res, args)
-            res[name] = _next_arg(args, self.state)
-        end
-    elseif funcname == "switch" then
-        return function(self, res, args)
-            res[name] = true
-        end
-    elseif funcname == "consumer_string" then
-        return function(self, res, args)
-            res[name] = _consume_until_hyphen(args, self.state)
-        end
-    elseif funcname == "consumer_table" then
-        return function(self, res, args)
-            res[name] = _parse_key_value_pairs(_consume_until_hyphen(args, self.state))
-        end
-    else
-        error(string.format("unknown action '%s'", funcname))
+local function _load_options(options)
+    if not options then
+        error("no commandline options filename name given")
     end
+    local filename = string.format("%s/%s.lua", _get_opc_home(), options)
+    local chunkname = string.format("@%s", options)
+
+    local reader, msg = _get_reader(filename)
+    if not reader then
+        error(msg)
+    end
+
+    local env = {
+        switch = function(t)
+            t.func = function(self, res, args)
+                res[t.name] = true
+            end
+            return t
+        end,
+        store = function(t)
+            t.func = function(self, res, args)
+                res[t.name] = _next_arg(args, self.state)
+            end
+            return t
+        end,
+        consumer_string = function(t)
+            t.func = function(self, res, args)
+                res[t.name] = _consume_until_hyphen(args, self.state)
+            end
+            return t
+        end,
+        consumer_table = function(t)
+            t.func = function(self, res, args)
+                res[t.name] = _parse_key_value_pairs(_consume_until_hyphen(args, self.state))
+            end
+            return t
+        end,
+    }
+    return _generic_load(reader, chunkname, nil, nil, env)
 end
 
-function meta.register_options(self, optdef)
-    self.optionsdef = optdef
+function meta.load_options(self, options)
+    self.optionsdef = _load_options(options)
     self.actions = {}
     for _, opt in ipairs(self.optionsdef) do
-        local func = _resolve_func(opt.name, opt.func)
         if opt.short then
-            self.actions[opt.short] = func
+            self.actions[opt.short] = opt.func
         end
         if opt.long then
-            self.actions[opt.long] = func
+            self.actions[opt.long] = opt.func
         end
     end
 
