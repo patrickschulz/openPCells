@@ -21,12 +21,6 @@ function meta.set_follow(self, follow)
     self.follow = follow
 end
 
-local function _get_pname_dname(name)
-    local pname, dname = string.match(name, "^([^(]+)%(([^)]+)%)")
-    if not pname then pname = name end -- no display name
-    return pname, dname
-end
-
 function meta.add(self, name, value, argtype, posvals)
     local pname, dname = string.match(name, "^([^(]+)%(([^)]+)%)")
     if not pname then pname = name end -- no display name
