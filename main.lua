@@ -6,8 +6,7 @@ config.get_user_config()
 
 -- parse command line arguments
 local argparse = _load_module("argparse")
-local cmdopt = _load_module("cmdoptions")
-argparse:register_options(cmdopt)
+argparse:load_options("cmdoptions")
 local args = argparse:parse(arg)
 
 if args.profile then
