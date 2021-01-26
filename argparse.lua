@@ -167,7 +167,7 @@ function meta.load_options(self, options)
     -- install version
     self.actions["-v"] = _display_version
     self.actions["--version"] = _display_version
-    table.insert(self.optionsdef, 1, { short = "-v", long = "--version", help = "display version and exit" })
+    table.insert(self.optionsdef, 2, { short = "-v", long = "--version", help = "display version and exit" })
 end
 
 function meta.parse(self, args)

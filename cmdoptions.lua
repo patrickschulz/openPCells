@@ -1,7 +1,6 @@
 return {
     switch{
         name  = "profile",
-        short = "-p",
         long  = "--profile",
         help  = "collect and display profiling data"
     },
@@ -44,6 +43,12 @@ return {
         short = "-C",
         long  = "--cell",
         help  = "specify cell"
+    },
+    store{ 
+        name  = "paramfile",
+        short = "-p",
+        long  = "--pfile",
+        help  = "file to read parameters from. This file should be a regular lua file returning a table with the parameters"
     },
     --[[
     store{ 
