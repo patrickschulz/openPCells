@@ -87,9 +87,42 @@ procedure(OPCWalkCellDir(path prepend)
     ) ; let
 ) ; procedure
 
+procedure(OPCAboutCallback()
+    let(
+        (OPCAboutForm)
+        OPCAboutForm = hiCreateAppForm(
+            ?name 'OPCAboutForm
+            ?formTitle "openPCells About"
+            ?buttonLayout 'OKCancel
+            ?fields list(
+                hiCreateHypertextField(
+                    ?name 'OPCHTMLField 
+                    ?title ""
+                    ?value "<div style=\"text-align:center\"><h1>openPCells &ndash; A framework for open layout cell generators</h1><p>openPCells (opc) 0.1.0 &ndash; &copy;Patrick Kurth 2020&ndash;2021</p><A href=https://github.com/patrickschulz/openPCells>Website</A>" 
+                )
+            )
+        )
+        hiDisplayForm(OPCAboutForm 100:100)
+    )
+) ; procedure
+
 procedure(OPCLayoutAddMenu(args)
-    let( (menu itemlist (win args->window))
-        itemlist = OPCWalkCellDir(lsprintf("%s/cells" OPCPath) "")
+    let( (menu itemlist about separator settings cellmenu cellitem (win args->window))
+        ; basic information
+        about = hiCreateMenuItem(?name 'OPCAbout ?itemText "About" ?callback "OPCAboutCallback()")
+        separator = hiCreateSeparatorMenuItem(?name 'OPCLayoutMenuSeparator)
+
+        ; create cell menu
+        cellmenu = hiCreatePulldownMenu(
+            'OPCCellMenu
+            "foobar"
+            OPCWalkCellDir(lsprintf("%s/cells" OPCPath) "")
+        )
+        cellitem = hiCreateSliderMenuItem(?name 'OPCCellItem ?itemText "Create Cell..." ?subMenu cellmenu)
+        settings = hiCreateMenuItem(?name 'OPCSettings ?itemText "Settings" ?callback "println(\"openPCells Settings\")")
+
+        ; assemble main menu
+        itemlist = list(about separator cellitem settings)
         menu = hiCreatePulldownMenu('OPCLayoutMenu "OpenPCells" itemlist)
         hiInsertBannerMenu(win menu length(hiGetBannerMenus(win)))
     )
