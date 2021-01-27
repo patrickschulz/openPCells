@@ -16,6 +16,13 @@ end
 -- set default path for pcells
 pcell.add_cellpath(string.format("%s/cells", _get_opc_home()))
 
+-- add user-defined cellpaths
+if args.cellpath then
+    for _, path in ipairs(args.cellpath) do
+        pcell.add_cellpath(path)
+    end
+end
+
 -- list available cells
 if args.listcells then
     local sep = args.separator or "\n"
@@ -25,7 +32,8 @@ if args.listcells then
 end
 
 if not args.cell then
-    error("no cell type given")
+    errprint("no cell type given")
+    os.exit(1)
 end
 
 -- show technology constraints for this cell
@@ -39,7 +47,8 @@ end
 -- check and load technology
 if not args.notech then
     if not args.technology and not args.params then
-        error("no technology given")
+        errprint("no technology given")
+        os.exit(1)
     elseif not args.technology and args.params then
         -- ok, don't load technology but also don't raise an error
     else 
@@ -58,14 +67,16 @@ end
 -- create cell
 local cell, msg = pcell.create_layout(args.cell, args.cellargs, true)
 if not cell then
-    error(string.format("error while creating cell, received: %s", msg))
+    errprint(string.format("error while creating cell, received: %s", msg))
+    os.exit(1)
 end
 
 -- move origin
 if args.origin then
     local dx, dy = string.match(args.origin, "%(%s*([-%d]+)%s*,%s*([-%d]+)%s*%)")
     if not dx then
-        error(string.format("could not parse origin (%s)", args.origin))
+        errprint(string.format("could not parse origin (%s)", args.origin))
+        os.exit(1)
     end
     cell:translate(dx, dy)
 end
@@ -80,13 +91,15 @@ if args.orientation then
     }
     local f = lut[args.orientation]
     if not f then
-        error(string.format("unknown orientation: %s", args.orientation))
+        errprint(string.format("unknown orientation: %s", args.orientation))
+        os.exit(1)
     end
     f()
 end
 
 if not args.interface then
-    error("no interface given")
+    errprint("no interface given")
+    os.exit(1)
 end
 interface.load(args.interface)
 

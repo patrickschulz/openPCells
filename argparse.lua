@@ -132,6 +132,13 @@ local function _load_options(options)
             end
             return t
         end,
+        store_multiple = function(t)
+            t.func = function(self, res, args)
+                if not res[t.name] then res[t.name] = {} end
+                table.insert(res[t.name], _next_arg(args, self.state))
+            end
+            return t
+        end,
         consumer_string = function(t)
             t.func = function(self, res, args)
                 res[t.name] = _consume_until_hyphen(args, self.state)

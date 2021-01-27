@@ -79,6 +79,11 @@ return {
         long  = "--iopt",
         help  = "pass special options to interface"
     },
+    store_multiple{
+        name = "cellpath",
+        long = "--cellpath",
+        help = "add searchpath for cells (can be used multiple times: --cellpath foo --cellpath bar)"
+    },
     switch{ 
         name  = "check",
         long  = "--check",

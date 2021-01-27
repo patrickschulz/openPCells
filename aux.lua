@@ -6,6 +6,11 @@ This module provides a collection of helper functions (not geometry-related)
 
 local M = {}
 
+function errprint(msg)
+    io.stderr:write(msg)
+    io.stderr:write("\n")
+end
+
 function M.call_if_present(func, ...)
     if func then
         return func(...)
