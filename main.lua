@@ -13,6 +13,9 @@ if args.profile then
     profiler.start()
 end
 
+-- set default path for pcells
+pcell.add_cellpath(string.format("%s/cells", _get_opc_home()))
+
 -- list available cells
 if args.listcells then
     local sep = args.separator or "\n"

@@ -16,22 +16,31 @@ Implementation note:
 
 local M = {}
 
+-- submodules
 local evaluators = _load_module("pcell.evaluators")
+local paramlib = _load_module("pcell.parameter")
 
-local function _load_cell(state, cellname, env)
-    local filename = string.format("%s/cells/%s.lua", _get_opc_home(), cellname)
+local function _get_cell_filename(state, cellname)
     for _, path in ipairs(state.cellpaths) do
-        local tmp = string.format("%s/%s.lua", path, cellname)
-        if tmp then
-            filename = tmp
+        local filename = string.format("%s/%s.lua", path, cellname)
+        if dir.exists(filename) then
+            -- first found matching cell is used
+            return filename
         end
     end
-    local chunkname = string.format("@cell '%s'", cellname)
+end
+
+local function _load_cell(state, cellname, env)
+    local filename = _get_cell_filename(state, cellname)
+    if not filename then
+        error(string.format("unknown cell '%s'", cellname))
+    end
 
     local reader = _get_reader(filename)
     if not reader then
-        error(string.format("unknown cell '%s'", cellname))
+        error(string.format("could not open cell file '%s'", filename))
     end
+    local chunkname = string.format("@cell '%s'", cellname)
     _generic_load(
         reader, chunkname,
         string.format("syntax error in cell '%s'", cellname),
@@ -40,8 +49,6 @@ local function _load_cell(state, cellname, env)
     )
     return env
 end
-
-local paramlib = _load_module("pcell.parameter")
 
 local function _get_cell(state, cellname, env, nocallparams)
     if not state.loadedcells[cellname] or env then
@@ -286,7 +293,7 @@ function state.create_cellenv(state, cellname)
             get_parameters                  = bindstate(_get_parameters),
             create_layout                   = M.create_layout
         },
-        tech = { 
+        tech = {
             get_dimension = technology.get_dimension
         },
         geometry = geometry,

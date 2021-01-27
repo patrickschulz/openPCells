@@ -2,7 +2,7 @@ local M = {}
 
 local function _collect_cells(path, cells, prepend)
     prepend = prepend or ""
-    for _, entry in ipairs(walkdir(path)) do
+    for _, entry in ipairs(dir.walk(path)) do
         if entry.name:sub(1, 1) ~= "." then
             if entry.type == "regular" and string.match(entry.name, "%.lua$") then
                 local name = string.match(entry.name, "^([%w_]+)%.lua$")
