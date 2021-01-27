@@ -6,13 +6,15 @@ config.get_user_config()
 
 -- parse command line arguments
 local argparse = _load_module("argparse")
-local cmdopt = _load_module("cmdoptions")
-argparse:register_options(cmdopt)
+argparse:load_options("cmdoptions")
 local args = argparse:parse(arg)
 
 if args.profile then
     profiler.start()
 end
+
+-- set default path for pcells
+pcell.add_cellpath(string.format("%s/cells", _get_opc_home()))
 
 -- list available cells
 if args.listcells then
@@ -35,28 +37,26 @@ if args.constraints then
 end
 
 -- check and load technology
-if not args.notech and not args.technology then
-    error("no technology given")
-end
 if not args.notech then
-    technology.load(args.technology)
+    if not args.technology and not args.params then
+        error("no technology given")
+    elseif not args.technology and args.params then
+        -- ok, don't load technology but also don't raise an error
+    else 
+        technology.load(args.technology)
+    end
 end
 
 -- output cell parameters
 if args.params then
     local sep = args.separator or "\n"
-    local params = pcell.parameters(args.cell)
+    local params = pcell.parameters(args.cell, not args.technology)
     io.write(table.concat(params, sep) .. sep)
     os.exit(0)
 end
 
--- prepare cell arguments
--- the gmatch/pattern expression splits expressions like 'foo=bar' into 'foo' and 'bar'
-local cellargs = {}
-for k, v in string.gmatch(table.concat(args.cellargs, " "), "([%w/._]+)%s*=%s*(%S+)") do
-    cellargs[k] = v
-end
-local cell, msg = pcell.create_layout(args.cell, cellargs, true)
+-- create cell
+local cell, msg = pcell.create_layout(args.cell, args.cellargs, true)
 if not cell then
     error(string.format("error while creating cell, received: %s", msg))
 end

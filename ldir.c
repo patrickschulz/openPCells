@@ -1,8 +1,10 @@
 #include "ldir.h"
+#include "lua/lauxlib.h"
 
 #include <dirent.h>
+#include <sys/stat.h>
 
-int walk_dir(lua_State* L)
+int ldir_walk(lua_State* L)
 {
     const char* path = lua_tostring(L, -1);
     if(!path)
@@ -65,9 +67,36 @@ int walk_dir(lua_State* L)
     return 1;
 }
 
+static int ldir_exists(lua_State* L)
+{
+    const char* path = lua_tostring(L, -1);
+    if(!path)
+    {
+        lua_pushstring(L, "exists: path is nil");
+        lua_error(L);
+    }
+    struct stat buf;
+    if(stat(path, &buf))
+    {
+        lua_pushboolean(L, 0);
+    }
+    else
+    {
+        lua_pushboolean(L, 1);
+    }
+    return 1;
+}
+
 int open_ldir_lib(lua_State* L)
 {
-    lua_pushcfunction(L, walk_dir);
-    lua_setglobal(L, "walkdir");
+    static const luaL_Reg modfuncs[] =
+    {
+        { "walk",   ldir_walk   },
+        { "exists", ldir_exists },
+        { NULL,     NULL        }
+    };
+    lua_newtable(L);
+    luaL_setfuncs(L, modfuncs, 0);
+    lua_setglobal(L, "dir");
     return 0;
 }

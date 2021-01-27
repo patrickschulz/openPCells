@@ -79,9 +79,34 @@ static int msghandler (lua_State* L)
     return 1;
 }
 
+static const luaL_Reg loadedlibs[] = {
+    {LUA_GNAME, luaopen_base},
+    //{LUA_LOADLIBNAME, luaopen_package},
+    //{LUA_COLIBNAME, luaopen_coroutine},
+    {LUA_TABLIBNAME, luaopen_table},
+    {LUA_IOLIBNAME, luaopen_io},
+    {LUA_OSLIBNAME, luaopen_os}, // replace os.exit and os.time, then this 'dependency' can also be removed
+    {LUA_STRLIBNAME, luaopen_string},
+    {LUA_MATHLIBNAME, luaopen_math},
+    {LUA_UTF8LIBNAME, luaopen_utf8},
+    {LUA_DBLIBNAME, luaopen_debug},
+    {NULL, NULL}
+};
+
+/* this is taken from lua/init.c, but the list of modules is modified, we don't need package for instance */
+void load_lualibs(lua_State *L)
+{
+    const luaL_Reg *lib;
+    /* "require" functions from 'loadedlibs' and set results to global table */
+    for (lib = loadedlibs; lib->func; lib++) {
+        luaL_requiref(L, lib->name, lib->func, 1);
+        lua_pop(L, 1);  /* remove lib */
+    }
+}
+
 static void load_api(lua_State* L)
 {
-    char* modules[] = {
+    const char* const modules[] = {
         "lpoint", // lua part of lpoint module
         "technology",
         "interface",
@@ -102,7 +127,7 @@ static void load_api(lua_State* L)
         "pcell", // load as last module
         NULL
     };
-    char** ptr = modules;
+    const char* const * ptr = modules;
     lua_getglobal(L, "_load_module");
     while(*ptr)
     {
@@ -163,7 +188,7 @@ lua_State* create_and_initialize_lua()
     }
 
     // lua libraries
-    luaL_openlibs(L);
+    load_lualibs(L);
 
     // opc libraries
     open_ldir_lib(L);
@@ -197,6 +222,11 @@ int main (int argc, char** argv)
             {
                 create_argument_table(L, argc, argv);
                 status = call_main_program(L, OPC_HOME "/" MAINPROGNAME);
+                if(status != LUA_OK)
+                {
+                    fprintf(stderr, "%s\n", "opc encountered an error, watch mode will be aborted");
+                    break;
+                }
 
                 // now reinitialize the program
                 // this works as if the program had beed started again, which is what we want

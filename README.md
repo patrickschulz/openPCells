@@ -33,6 +33,7 @@ You need to include these lines in your `.cdsinit`:
     ; in your .cdsinit
     OPCTech = "skywater130"     ; edit to match your PDK
     OPCPath = "/path/to/pcells" ; edit to match the path to opc
+    OPCExec = "opc"             ; edit to match the name of the executable (usually 'opc')
     load(lsprintf("%s/%s" OPCPath "interface/virtuoso/init.il")
 
 This will install a menu in layout editor called `openPCells` at the last place before the `help` menu in the layout editor. You have to restart
