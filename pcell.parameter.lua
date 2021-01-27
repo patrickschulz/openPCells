@@ -25,11 +25,12 @@ function meta.add(self, name, value, argtype, posvals)
     local pname, dname = string.match(name, "^([^(]+)%(([^)]+)%)")
     if not pname then pname = name end -- no display name
     local new = {
-        display = dname,
-        func    = funcobject.identity(value),
-        argtype = argtype,
-        posvals = posvals,
-        followers = {}
+        display   = dname,
+        func      = funcobject.identity(value),
+        argtype   = argtype,
+        posvals   = posvals,
+        followers = {},
+        ptype     = "R"
     }
     if not self.values[pname] or self.overwrite then
         self.values[pname] = new

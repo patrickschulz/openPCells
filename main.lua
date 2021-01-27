@@ -8,9 +8,23 @@ config.get_user_config()
 local argparse = _load_module("argparse")
 argparse:load_options("cmdoptions")
 local args = argparse:parse(arg)
+-- check command line options sanity
+if args.human and args.machine then
+    errprint("you can't specify --human and --machine at the same time")
+    os.exit(1)
+end
 
 if args.profile then
     profiler.start()
+end
+
+-- set environment variables
+envlib.set("humannotmachine", true)
+if args.human then
+    envlib.set("humannotmachine", true)
+end
+if args.machine then
+    envlib.set("humannotmachine", false)
 end
 
 -- set default path for pcells

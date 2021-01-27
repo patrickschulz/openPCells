@@ -277,6 +277,9 @@ function state.create_cellenv(state, cellname)
         end
     end
     return {
+        -- "global" functions for posvals entries:
+        set = function() end,
+        interval = function() end,
         pcell = {
             set_property                    = bindcell(set_property),
             add_parameter                   = bindcell(add_parameter),
@@ -382,7 +385,12 @@ function M.parameters(cellname, generictech)
         else
             val = tostring(val)
         end
-        table.insert(str,  string.format("%s:%s:%s:%s", name, v.display or "_NONE_", val, tostring(v.argtype)))
+        local ptype = "R"
+        if envlib.get("humannotmachine") then
+            table.insert(str, string.format("%s %s", v.display or name, val))
+        else
+            table.insert(str, string.format("%s:%s:%s:%s:%s", ptype, name, v.display or "_NONE_", val, tostring(v.argtype)))
+        end
     end
     return str
 end

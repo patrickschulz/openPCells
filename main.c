@@ -123,6 +123,7 @@ static void load_api(lua_State* L)
         "reduce",
         "stack",
         "support",
+        "envlib",
         "profiler",
         "pcell", // load as last module
         NULL

@@ -134,7 +134,7 @@ procedure(OPCCreateOptionsForm(OPCCell)
             OPCCommand pid exitstatus result
             fieldlist field (i 0)
         )
-        OPCCommand = lsprintf("%s/%s --technology %s --parameters --separator ';' --cell %s" OPCPath OPCExec OPCTech OPCCell)
+        OPCCommand = lsprintf("%s/%s --machine --technology %s --parameters --separator ';' --cell %s" OPCPath OPCExec OPCTech OPCCell)
         println(OPCCommand)
         pid = ipcBeginProcess(OPCCommand)
         ipcWait(pid) ; wait for process to finish
