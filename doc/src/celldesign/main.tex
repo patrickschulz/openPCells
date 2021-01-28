@@ -60,6 +60,11 @@ consequences for the use of these functions. We will get into that later.
 
 That is all we have to do for the geometry of the cell, so we merge that into the main cell:
 \lualisting[widthgobble = 4, firstline = 14, lastline = 14]{code/simple_rectangle.lua}
+\luainline{merge_into} is a \emph{method} of objects and needs a little explaining of the object system. As mentioned
+earlier, every geometry function creates what is called an object. An object is a collection of shapes, where each shape is made up of a layer-purpose-pair and
+points (which can currently be interpreted as rectangle or polygon). The cell generation systems expects all created shapes to be merged into the main object
+passed as argument (\luainline{obj} in this case).
+
 This cell can now be created by calling the main program with an appropriate interface and technology. Note that there's another manual about that, so we won't get
 into any details here.
 
@@ -73,11 +78,6 @@ The default arguments are \num{200} for the pitch and \num{10} for the number of
 
 For the repetition we could use a loop to create the objects:
 \lualisting[widthgobble = 4, firstline = 12, lastline = 19]{code/rectangle_array.lua}
-Looks ok, but what's with the \luainline{obj:merge_into(o)}? This is a \emph{method} of objects and needs a little explaining of the object system. As mentioned
-earlier, every geometry function creates what is called an object. An object is a collection of shapes, where each shape is made up of a layer-purpose-pair and
-points (which can currently be interpreted as rectangle or polygon). The cell generation systems expects to receive only one object from the main cell function,
-so how do we return more than one shape? We can merge several objects into one, which is exactly what we are doing here. 
-
 In order for this to work, we also have to move the rectangles to the correct position, something that we didn't learn yet. This comes later, as this also involves
 some math we don't want to talk about right now. Just keep in mind that the above loop is wrong and cumbersome. In any ways, there is a function that does
 exactly what we want to achieve:
@@ -140,6 +140,20 @@ After the points are assembled, we can create the path. The cell only draws half
 \lualisting[widthgobble = 8, firstline = 89, lastline = 94]{../../../cells/passive/inductor/octagonal.lua}
 The \luainline{geometry.path} function takes four arguments: the layer, the points of the path, the width and whether to use a miter- or a bevel-join. Bevel-join is
 default, so \luainline{true} is specified for a miter-join.
+
+\subsection{References and Inheritance}
+In order to be able to build larger layouts, cells must be reused in hierarchies (for instance, a current mirror is made up of several transistors). It would be
+a good decision to build everything from scratch. Therefore, openPCells offers some basic support for such things. We will look at logic gates to illustrate the
+different options. All gates are built from transistors, so we will assume for now that there is a cell to place one. Furthermore, digital designs mostly
+(always?) use a few geometry parameters for all cells, such as the gate length. It makes sense to store this in one place so we can redefine it for all cells in
+a hierarchy, if we want to change that. In the supplied logic cell family (\texttt{cells/logic}), this is handled by the \texttt{base} cell. It is a abstract
+cell, that is, it does not define a layout function, so it can't be called. But it does store the relevant parameters, which get referenced by the top cells (and
+temporarily changed). Other cells then access the parameters, for instance \texttt{not\_gate.lua}:
+\lualisting[firstline = 1, lastline = 7]{../../../cells/logic/not_gate.lua}
+This cell has only one parameter \texttt{fingers}, but uses the supplied parameters of \texttt{base.lua} for the layout function. These parameters reflect the
+current values, that is if a top cell instantiates the inverter, it can overwrite the values of referenced parameters, affecting all sub cells. This is achieved
+by calling \luainline{pcell.push_overwrites}:
+\lualisting[widthgobble = 4, firstline = 12, lastline = 18]{../../../cells/logic/not_gate.lua}
 
 \section{Available PCells}
 In the following subsections, all available cells will be documented. The current status is rather a poor one, but work is ongoing.
