@@ -61,6 +61,7 @@ local function _get_cell(state, cellname, env, nocallparams)
             funcs       = funcs,
             parameters  = paramlib.create_directory(),
             properties  = {},
+            references  = {},
         }
         rawset(state.loadedcells, cellname, cell)
         if not nocallparams then
@@ -132,9 +133,13 @@ local function _process_input_parameters(state, cellname, cellargs, evaluate, ov
     return backup
 end
 
-local function _get_parameters(state, cellname, cellargs, evaluate)
+local function _get_parameters(state, cellname, othercell, cellargs, evaluate)
     local cell = _get_cell(state, cellname)
-    local cellparams = cell.parameters:get_values()
+    if not cellname == othercell and not cell.references[othercell] then
+        error("trying to access parameters of unreferenced cell")
+    end
+    local othercell = _get_cell(state, othercell)
+    local cellparams = othercell.parameters:get_values()
     cellargs = cellargs or {}
 
     local backup = _process_input_parameters(state, cellname, cellargs, evaluate)
@@ -198,6 +203,11 @@ local function add_parameters(state, cellname, ...)
             parameter.argtype, parameter.posvals, parameter.follow
         )
     end
+end
+
+local function reference_cell(state, cellname, othercell)
+    local cell = _get_cell(state, cellname)
+    cell.references[othercell] = true
 end
 
 local function reference_all_parameters(state, cellname, othercell)
@@ -268,7 +278,7 @@ local state = {
 function state.create_cellenv(state, cellname)
     local bindcell = function(func)
         return function(...)
-            func(state, cellname, ...)
+            return func(state, cellname, ...)
         end
     end
     local bindstate = function(func)
@@ -284,16 +294,17 @@ function state.create_cellenv(state, cellname)
             set_property                    = bindcell(set_property),
             add_parameter                   = bindcell(add_parameter),
             add_parameters                  = bindcell(add_parameters),
-            reference_all_parameters        = bindcell(reference_all_parameters),
+            --reference_all_parameters        = bindcell(reference_all_parameters),
+            reference_cell                  = bindcell(reference_all_parameters),
             inherit_parameter               = bindcell(inherit_parameter),
             inherit_parameter_as            = bindcell(inherit_parameter_as),
             inherit_all_parameters          = bindcell(inherit_all_parameters),
+            get_parameters                  = bindcell(_get_parameters),
             -- the following functions don't not need cell binding as they are called for other cells
             clone_parameters                = bindstate(clone_parameters),
             clone_matching_parameters       = bindstate(clone_matching_parameters),
             push_overwrites                 = bindstate(push_overwrites),
             pop_overwrites                  = bindstate(pop_overwrites),
-            get_parameters                  = bindstate(_get_parameters),
             create_layout                   = M.create_layout
         },
         tech = {
@@ -329,7 +340,7 @@ function M.create_layout(cellname, args, evaluate)
         error(string.format("cell '%s' has no layout definition", cellname))
     end
     local obj = object.create(cellname)
-    local parameters, backup = _get_parameters(state, cellname, args, evaluate)
+    local parameters, backup = _get_parameters(state, cellname, cellname, args, evaluate) -- cellname needs to be passed twice
     _restore_parameters(state, cellname, backup)
     local status, msg = pcall(cell.funcs.layout, obj, parameters)
     if not status then
