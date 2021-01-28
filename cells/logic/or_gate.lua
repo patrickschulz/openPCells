@@ -1,5 +1,5 @@
 function parameters()
-    pcell.inherit_all_parameters("logic/base")
+    pcell.reference_cell("logic/base")
     pcell.add_parameters(
         { "norfingers", 1 },
         { "notfingers", 1 }

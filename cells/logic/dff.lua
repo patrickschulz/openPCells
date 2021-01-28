@@ -15,7 +15,7 @@
           clk                 ~clk          ~clk            clk
 --]]
 function parameters()
-    pcell.inherit_all_parameters("logic/base")
+    pcell.reference_cell("logic/base")
 end
 
 function layout(gate, _P)

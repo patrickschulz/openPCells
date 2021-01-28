@@ -1,5 +1,5 @@
 function parameters()
-    pcell.inherit_all_parameters("logic/base")
+    pcell.reference_cell("logic/base")
     pcell.add_parameter("fingers", 1)
     pcell.add_parameter("swapinputs", false)
     pcell.add_parameter("swapoutputs", false)

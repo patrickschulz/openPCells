@@ -33,7 +33,13 @@ end
 local function _load_cell(state, cellname, env)
     local filename = _get_cell_filename(state, cellname)
     if not filename then
-        error(string.format("unknown cell '%s'", cellname))
+        local str = {
+            string.format("could not find cell '%s' in:", cellname),
+        }
+        for _, path in ipairs(state.cellpaths) do
+            table.insert(str, string.format("  %s", path))
+        end
+        error(table.concat(str, "\n"))
     end
 
     local reader = _get_reader(filename)
@@ -61,7 +67,9 @@ local function _get_cell(state, cellname, env, nocallparams)
             funcs       = funcs,
             parameters  = paramlib.create_directory(),
             properties  = {},
-            references  = {},
+            references  = {
+                [cellname] = true -- a cell can always refer to its own parameters
+            },
         }
         rawset(state.loadedcells, cellname, cell)
         if not nocallparams then
@@ -135,8 +143,8 @@ end
 
 local function _get_parameters(state, cellname, othercell, cellargs, evaluate)
     local cell = _get_cell(state, cellname)
-    if not cellname == othercell and not cell.references[othercell] then
-        error("trying to access parameters of unreferenced cell")
+    if not cell.references[othercell] then
+        error(string.format("trying to access parameters of unreferenced cell (%s from %s)", othercell, cellname))
     end
     local othercell = _get_cell(state, othercell)
     local cellparams = othercell.parameters:get_values()
@@ -208,10 +216,6 @@ end
 local function reference_cell(state, cellname, othercell)
     local cell = _get_cell(state, cellname)
     cell.references[othercell] = true
-end
-
-local function reference_all_parameters(state, cellname, othercell)
-
 end
 
 local function inherit_parameter_as(state, cellname, name, othercell, othername)
@@ -294,8 +298,7 @@ function state.create_cellenv(state, cellname)
             set_property                    = bindcell(set_property),
             add_parameter                   = bindcell(add_parameter),
             add_parameters                  = bindcell(add_parameters),
-            --reference_all_parameters        = bindcell(reference_all_parameters),
-            reference_cell                  = bindcell(reference_all_parameters),
+            reference_cell                  = bindcell(reference_cell),
             inherit_parameter               = bindcell(inherit_parameter),
             inherit_parameter_as            = bindcell(inherit_parameter_as),
             inherit_all_parameters          = bindcell(inherit_all_parameters),
