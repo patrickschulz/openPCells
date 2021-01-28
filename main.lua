@@ -19,10 +19,7 @@ if args.profile then
 end
 
 -- set environment variables
-envlib.set("humannotmachine", true)
-if args.human then
-    envlib.set("humannotmachine", true)
-end
+envlib.set("humannotmachine", true) -- default is --human
 if args.machine then
     envlib.set("humannotmachine", false)
 end
@@ -41,7 +38,12 @@ end
 if args.listcells then
     local sep = args.separator or "\n"
     local cells = pcell.list()
-    io.write(table.concat(cells, sep) .. sep)
+    for _, entry in ipairs(cells) do
+        print(string.format("%s:", entry.path))
+        for _, cellname in ipairs(entry.cells) do
+            print(string.format("  %s", cellname))
+        end
+    end
     os.exit(0)
 end
 

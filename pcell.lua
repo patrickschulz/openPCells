@@ -353,14 +353,17 @@ function M.create_layout(cellname, args, evaluate)
 end
 
 function M.list()
-    local str = {}
-    for _, cellname in ipairs(support.listcells("cells")) do
-        local cell = _get_cell(state, cellname, nil, true) -- no custom environment (nil), don't call funcs.params() (true)
-        if not cell.properties.hidden then
-            table.insert(str, cellname)
+    local cells = {}
+    for i, path in ipairs(state.cellpaths) do
+        cells[i] = { path = path, cells = {} }
+        for _, cellname in ipairs(support.listcells(path)) do
+            local cell = _get_cell(state, cellname, nil, true) -- no custom environment (nil), don't call funcs.params() (true)
+            if not cell.properties.hidden then
+                table.insert(cells[i].cells, cellname)
+            end
         end
     end
-    return str
+    return cells
 end
 
 function M.constraints(cellname)
