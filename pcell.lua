@@ -363,6 +363,11 @@ function M.list()
             end
         end
     end
+
+    -- pcell.list() renders the loaded cells unusable, as the cell environment is modified for data collection
+    -- perhaps there is a better way, but the current fix for this is to reset ALL cells
+    state.loadedcells = {}
+
     return cells
 end
 
