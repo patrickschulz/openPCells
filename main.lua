@@ -67,6 +67,7 @@ if not args.notech then
         os.exit(1)
     elseif not args.technology and args.params then
         -- ok, don't load technology but also don't raise an error
+        -- this enables pcell.parameters to display the cell parameters with generic technology expressions
     else 
         technology.load(args.technology)
     end
