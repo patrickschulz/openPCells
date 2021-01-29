@@ -107,6 +107,19 @@ local function _set_parameter_function(state, cellname, name, value, backup, eva
         local eval = evaluators[p.argtype]
         value = eval(value)
     end
+    if p.posvals then
+        if p.posvals.type == "set" then
+            local found = aux.find(p.posvals.values, function(v) return v == value end)
+            if not found then
+                error(string.format("parameter '%s' (%s) can only be %s", name, value, table.concat(p.posvals.values, " or ")))
+            end
+        elseif p.posvals.type == "interval" then
+            if value < p.posvals.values.lower or value > p.posvals.values.upper then
+                error(string.format("parameter '%s' (%s) out of range from %s to %s", name, value, p.posvals.values.lower, p.posvals.values.upper))
+            end
+        else
+        end
+    end
     -- store old function for restoration
     backup[name] = p.func:get()
     -- important: use :replace(), don't create a new function object.
@@ -296,8 +309,9 @@ function state.create_cellenv(state, cellname)
     end
     return {
         -- "global" functions for posvals entries:
-        set = function() end,
-        interval = function() end,
+        set = function(...) return { type = "set", values = { ... } } end,
+        interval = function(lower, upper) return { type= "interval", values = { lower = lower, upper = upper }} end,
+        inf = math.huge,
         pcell = {
             set_property                    = bindcell(set_property),
             add_parameter                   = bindcell(add_parameter),
