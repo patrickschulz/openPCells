@@ -2,7 +2,8 @@ function parameters()
     pcell.reference_cell("basic/transistor")
     pcell.add_parameters(
         { "ifingers", 4 },
-        { "ofingers", 4 }
+        { "ofingers", 4 },
+        { "interdigitate", false }
         --{ "sourcemetal", 2 },
         --{ "outmetal", 3 }
     )

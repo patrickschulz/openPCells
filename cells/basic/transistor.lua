@@ -11,8 +11,8 @@ function parameters()
         { "sdwidth(Source/Drain Metal Width)",                         tech.get_dimension("Minimum M1 Width"), "integer" },
         { "sdconnwidth(Source/Drain Rails Metal Width)",               tech.get_dimension("Minimum M1 Width"), "integer" },
         { "sdconnspace(Source/Drain Rails Metal Space)",               tech.get_dimension("Minimum M1 Width"), "integer" },
-        { "gtopext(Gate Top Extension)",                                 0 },
-        { "gbotext(Gate Bottom Extension)",                              0 },
+        { "gtopext(Gate Top Extension)",                               tech.get_dimension("Minimum Gate Extension") },
+        { "gbotext(Gate Bottom Extension)",                            tech.get_dimension("Minimum Gate Extension") },
         { "cliptop(Clip Top Marker Layers)",                         false },
         { "clipbot(Clip Bottom Marker Layers)",                      false },
         { "drawtopgate(Draw Top Gate Contact)",                      false },
@@ -46,35 +46,40 @@ end
 function layout(transistor, _P)
     local gatepitch = _P.gatelength + _P.gatespace
     local actwidth = _P.fingers * gatepitch + _P.sdwidth + 2 * _P.actext
-    local gateheight = _P.fwidth + math.max(_P.gtopext, enable(_P.drawtopgate, _P.topgatestrspace + _P.topgatestrwidth))
-                                 + math.max(_P.gbotext, enable(_P.drawbotgate, _P.botgatestrspace + _P.botgatestrwidth))
-    local gateoffset = (math.max(_P.gtopext, enable(_P.drawtopgate, _P.topgatestrspace + _P.topgatestrwidth))
-                      - math.max(_P.gbotext, enable(_P.drawbotgate, _P.botgatestrspace + _P.botgatestrwidth))
-                       ) / 2
+
+    local gateaddtop = math.max(_P.gtopext, enable(_P.drawtopgate, _P.topgatestrspace + _P.topgatestrwidth))
+    local gateaddbot = math.max(_P.gbotext, enable(_P.drawbotgate, _P.botgatestrspace + _P.botgatestrwidth))
 
     -- gates
     transistor:merge_into(geometry.multiple(
-        geometry.rectangle(generics.other("gate"), _P.gatelength, gateheight),
+        geometry.rectanglebltr(generics.other("gate"), 
+            point.create(-_P.gatelength / 2, -_P.fwidth / 2 - gateaddbot),
+            point.create( _P.gatelength / 2,  _P.fwidth / 2 + gateaddtop)
+        ),
         _P.fingers, 1, gatepitch, 0
-    ):translate(0, gateoffset))
+    ))
 
     -- active
     transistor:merge_into(geometry.rectangle(generics.other("active"), actwidth, _P.fwidth))
 
     -- boundary for feol implant/well etc. layers
-    transistor:merge_into(geometry.rectangle(generics.feol(
-        {
-            channeltype = _P.channeltype,
-            vthtype = _P.vthtype,
-            oxidetype = _P.oxidetype,
-            expand = {
-                left = true,
-                right = true,
-                top = not _P.cliptop,
-                bottom = not _P.clipbot,
-            },
-        }
-    ), actwidth, gateheight):translate(0, gateoffset))
+    transistor:merge_into(geometry.rectanglebltr(
+        generics.feol(
+            {
+                channeltype = _P.channeltype,
+                vthtype = _P.vthtype,
+                oxidetype = _P.oxidetype,
+                expand = {
+                    left = true,
+                    right = true,
+                    top = not _P.cliptop,
+                    bottom = not _P.clipbot,
+                },
+            }
+        ), 
+        point.create(-actwidth / 2, -_P.fwidth / 2 - gateaddbot),
+        point.create( actwidth / 2,  _P.fwidth / 2 + gateaddtop)
+    ))
 
     -- gate contacts
     if _P.drawtopgate then
@@ -230,8 +235,8 @@ function layout(transistor, _P)
     end
 
     -- anchors
-    transistor:add_anchor("topgate", point.create(0,  gateheight / 2 + gateoffset - enable(_P.drawtopgate, _P.topgatestrwidth / 2)))
-    transistor:add_anchor("botgate", point.create(0, -gateheight / 2 + gateoffset + enable(_P.drawbotgate, _P.botgatestrwidth / 2)))
+    transistor:add_anchor("topgate", point.create(0,  _P.fwidth / 2 + gateaddtop - _P.topgatestrwidth / 2))
+    transistor:add_anchor("botgate", point.create(0, -_P.fwidth / 2 - gateaddbot + _P.botgatestrwidth / 2))
 
     transistor:add_anchor("topgatestrapleft", point.create(
         -_P.fingers * _P.gatelength / 2 - (_P.fingers - 1) * _P.gatespace / 2,
