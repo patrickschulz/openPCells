@@ -107,10 +107,13 @@ procedure(OPCAboutCallback()
 ) ; procedure
 
 procedure(OPCLayoutAddMenu(args)
-    let( (menu itemlist about separator settings cellmenu cellitem (win args->window))
+    let( (menu itemlist about separator script settings cellmenu cellitem (win args->window))
         ; basic information
         about = hiCreateMenuItem(?name 'OPCAbout ?itemText "About" ?callback "OPCAboutCallback()")
         separator = hiCreateSeparatorMenuItem(?name 'OPCLayoutMenuSeparator)
+
+        ; execute script
+        script = hiCreateMenuItem(?name 'OPCScript ?itemText "Execute Script..." ?callback "OPC call script not yet implemented")
 
         ; create cell menu
         cellmenu = hiCreatePulldownMenu(
@@ -122,7 +125,7 @@ procedure(OPCLayoutAddMenu(args)
         settings = hiCreateMenuItem(?name 'OPCSettings ?itemText "Settings" ?callback "println(\"openPCells Settings\")")
 
         ; assemble main menu
-        itemlist = list(about separator cellitem settings)
+        itemlist = list(about separator script separator cellitem settings)
         menu = hiCreatePulldownMenu('OPCLayoutMenu "OpenPCells" itemlist)
         hiInsertBannerMenu(win menu length(hiGetBannerMenus(win)))
     )
