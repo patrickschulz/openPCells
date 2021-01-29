@@ -430,7 +430,7 @@ function M.parameters(cellname, generictech)
         if othercellname ~= cellname then
             local env = _get_param_env(state, othercellname, generictech)
             local othercell = _get_cell(state, othercellname, env)
-            _collect_parameters(othercell, string.format("R(%s)", othercellname), othercellname .. "/", str) -- 'referenced' parameter
+            _collect_parameters(othercell, string.format("R(%s)", othercellname), othercellname .. ".", str) -- 'referenced' parameter
         end
     end
     return str
