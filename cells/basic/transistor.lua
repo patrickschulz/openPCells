@@ -118,19 +118,21 @@ function layout(transistor, _P)
 
     -- gate cut
     local cutext = _P.gatespace / 2
-    local cutheight = 120
-    local cwidth = _P.fingers * _P.gatelength + (_P.fingers - 1) * _P.gatespace + 2 * cutext
+    local cuthalfheight = 60
+    local cutwidth = _P.fingers * _P.gatelength + (_P.fingers - 1) * _P.gatespace + 2 * cutext
     if _P.drawtopgcut then
-        transistor:merge_into(geometry.rectangle(
+        transistor:merge_into(geometry.rectanglebltr(
             generics.other("gatecut"),
-            cwidth, cutheight
-        ):translate(0, gateheight / 2 + gateoffset))
+            point.create(-cutwidth / 2, _P.fwidth / 2 + gateaddtop + cuthalfheight),
+            point.create( cutwidth / 2, _P.fwidth / 2 + gateaddtop - cuthalfheight)
+        ))
     end
     if _P.drawbotgcut then
-        transistor:merge_into(geometry.rectangle(
+        transistor:merge_into(geometry.rectanglebltr(
             generics.other("gatecut"),
-            cwidth, cutheight
-        ):translate(0, -gateheight / 2 + gateoffset))
+            point.create(-cutwidth / 2, -_P.fwidth / 2 - gateaddbot + cuthalfheight),
+            point.create( cutwidth / 2, -_P.fwidth / 2 - gateaddbot - cuthalfheight)
+        ))
     end
 
     -- source/drain contacts and vias
