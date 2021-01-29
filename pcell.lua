@@ -387,7 +387,8 @@ function M.constraints(cellname)
     return str
 end
 
-local function _collect_parameters(cell, ptype, str)
+local function _collect_parameters(cell, ptype, prefix, str)
+    prefix = prefix or ""
     for _, name in ipairs(cell.parameters:get_names()) do
         local v = cell.parameters:get(name)
         local val = v.func()
@@ -400,7 +401,7 @@ local function _collect_parameters(cell, ptype, str)
         if envlib.get("humannotmachine") then
             table.insert(str, string.format("%s %s", v.display or name, val))
         else
-            table.insert(str, string.format("%s:%s:%s:%s:%s", ptype, name, v.display or "_NONE_", val, tostring(v.argtype)))
+            table.insert(str, string.format("%s:%s:%s:%s:%s", ptype, prefix .. name, v.display or "_NONE_", val, tostring(v.argtype)))
         end
     end
 end
@@ -422,14 +423,14 @@ function M.parameters(cellname, generictech)
 
     local env = _get_param_env(state, cellname, generictech)
     local cell = _get_cell(state, cellname, env)
-    _collect_parameters(cell, nil, str) -- use ptype of parameter
+    _collect_parameters(cell, nil, nil, str) -- use ptype of parameter, no prefix
 
     -- display referenced parameters
     for othercellname in pairs(cell.references) do
         if othercellname ~= cellname then
             local env = _get_param_env(state, othercellname, generictech)
             local othercell = _get_cell(state, othercellname, env)
-            _collect_parameters(othercell, "R", str) -- 'referenced' parameter
+            _collect_parameters(othercell, string.format("R(%s)", othercellname), othercellname .. "/", str) -- 'referenced' parameter
         end
     end
     return str

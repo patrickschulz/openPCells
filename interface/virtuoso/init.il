@@ -146,17 +146,18 @@ procedure(OPCCreateOptionsForm(OPCCell)
                 printf("%s" result)
             else
                 let(
-                    (linelist name display default type)
+                    (linelist ptype name display default vtype)
                     foreach(line parseString(result ";")
                         linelist = parseString(line ":")
-                        name    =    car(linelist)
-                        display =   cadr(linelist)
-                        default =  caddr(linelist)
-                        type    = cadddr(linelist)
+                        ptype   =                 car(linelist)
+                        name    =             car(cdr(linelist))
+                        display =         car(cdr(cdr(linelist)))
+                        default =     car(cdr(cdr(cdr(linelist))))
+                        vtype    = car(cdr(cdr(cdr(cdr(linelist)))))
                         when(display == "_NONE_"
                             display = name
                         )
-                        case(type
+                        case(vtype
                             ("number"
                                 field = hiCreateFloatField(
                                     ?name stringToSymbol(name)
