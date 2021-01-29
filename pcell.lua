@@ -239,21 +239,25 @@ local function inherit_all_parameters(state, cellname, othercell)
     end
 end
 
-local function push_overwrites(state, cellname, cellargs)
+local function push_overwrites(state, cellname, othercell, cellargs)
     assert(type(cellname) == "string", "push_overwrites: cellname must be a string")
-    local backup = _process_input_parameters(state, cellname, cellargs, false, true)
-    if not state.backupstacks[cellname] then
-        state.backupstacks[cellname] = stack.create()
+    local cell = _get_cell(state, cellname)
+    if not cell.references[othercell] then
+        error(string.format("trying to access parameters of unreferenced cell (%s from %s)", othercell, cellname))
     end
-    state.backupstacks[cellname]:push(backup)
+    local backup = _process_input_parameters(state, othercell, cellargs, false, true)
+    if not state.backupstacks[othercell] then
+        state.backupstacks[othercell] = stack.create()
+    end
+    state.backupstacks[othercell]:push(backup)
 end
 
-local function pop_overwrites(state, cellname)
-    if (not state.backupstacks[cellname]) or (not state.backupstacks[cellname]:peek()) then
-        error(string.format("trying to restore default parameters for '%s', but there where no previous overwrites", cellname))
+local function pop_overwrites(state, cellname, othercell)
+    if (not state.backupstacks[othercell]) or (not state.backupstacks[othercell]:peek()) then
+        error(string.format("trying to restore default parameters for '%s', but there where no previous overwrites", othercell))
     end
-    _restore_parameters(state, cellname, state.backupstacks[cellname]:top())
-    state.backupstacks[cellname]:pop()
+    _restore_parameters(state, othercell, state.backupstacks[othercell]:top())
+    state.backupstacks[othercell]:pop()
 end
 
 local function clone_parameters(state, P, predicate)
@@ -303,11 +307,11 @@ function state.create_cellenv(state, cellname)
             inherit_parameter_as            = bindcell(inherit_parameter_as),
             inherit_all_parameters          = bindcell(inherit_all_parameters),
             get_parameters                  = bindcell(_get_parameters),
+            push_overwrites                 = bindcell(push_overwrites),
+            pop_overwrites                  = bindcell(pop_overwrites),
             -- the following functions don't not need cell binding as they are called for other cells
             clone_parameters                = bindstate(clone_parameters),
             clone_matching_parameters       = bindstate(clone_matching_parameters),
-            push_overwrites                 = bindstate(push_overwrites),
-            pop_overwrites                  = bindstate(pop_overwrites),
             create_layout                   = M.create_layout
         },
         tech = {

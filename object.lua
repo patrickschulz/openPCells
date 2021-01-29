@@ -9,7 +9,14 @@ local meta = {}
 meta.__index = meta
 
 function M.create(name)
-    local self = { name = name, shapes = {}, ports = {}, anchors = {}, origin = point.create(0, 0) }
+    local self = {
+        name = name,
+        shapes = {},
+        ports = {},
+        anchors = {},
+        alignementbox = nil,
+        origin = point.create(0, 0)
+    }
     setmetatable(self, meta)
     return self
 end
@@ -191,6 +198,10 @@ function meta.bounding_box(self)
     return { bl = point.create(minx, miny), tr = point.create(maxx, maxy) }
 end
 
+function meta.set_alignement_box(bl, tr)
+
+end
+
 function meta.add_anchor(self, name, where)
     where = where:copy() or point.create(0, 0)
     self.anchors[name] = where
@@ -210,6 +221,30 @@ end
 function meta.get_anchor(self, name)
     local anchor = _get_anchor(self, name)
     return anchor:copy()
+end
+
+function meta.align(self, where)
+    local blx, bly = self.alignementbox.bl:unwrap()
+    local trx, try = self.alignementbox.tr:unwrap()
+        if where == "left"        then
+        return point.create(blx, (bly + try) / 2)
+    elseif where == "right"       then
+        return point.create(trx, (bly + try) / 2)
+    elseif where == "top"         then
+        return point.create((blx + trx) / 2, try)
+    elseif where == "bottom"      then
+        return point.create((blx + trx) / 2, bly)
+    elseif where == "topleft"     then
+        return point.create(blx, try)
+    elseif where == "topright"    then
+        return point.create(trx, try)
+    elseif where == "bottomleft"  then
+        return point.create(blx, bly)
+    elseif where == "bottomright" then
+        return point.create(trx, bly)
+    else 
+        error(string.format("unknown alignement anchor '%s'", where))
+    end
 end
 
 function meta.move_anchor(self, name, where)
