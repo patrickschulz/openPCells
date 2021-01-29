@@ -224,7 +224,7 @@ local function inherit_parameter_as(state, cellname, name, othercell, othername)
     if param.display then
         name = string.format("%s(%s)", othername, param.display)
     end
-    _add_parameter(state, cellname, name, param.func(), param.argtype, param.posvals)
+    --_add_parameter(state, cellname, name, param.func(), param.argtype, param.posvals)
 end
 
 local function inherit_parameter(state, cellname, othercell, othername)
@@ -387,18 +387,7 @@ function M.constraints(cellname)
     return str
 end
 
-function M.parameters(cellname, generictech)
-    local env = nil
-    if generictech then
-        env = state:create_cellenv(cellname)
-        -- replace tech module in environment
-        local constraints = {}
-        env.tech = {
-            get_dimension = function(name) return string.format('tech.get_dimension("%s")', name) end,
-        }
-    end
-    local cell = _get_cell(state, cellname, env)
-    local str = {}
+local function _collect_parameters(cell, ptype, str)
     for _, name in ipairs(cell.parameters:get_names()) do
         local v = cell.parameters:get(name)
         local val = v.func()
@@ -407,11 +396,40 @@ function M.parameters(cellname, generictech)
         else
             val = tostring(val)
         end
-        local ptype = "R"
+        local ptype = ptype or v.ptype
         if envlib.get("humannotmachine") then
             table.insert(str, string.format("%s %s", v.display or name, val))
         else
             table.insert(str, string.format("%s:%s:%s:%s:%s", ptype, name, v.display or "_NONE_", val, tostring(v.argtype)))
+        end
+    end
+end
+
+local function _get_param_env(state, cellname, generictech)
+    if generictech then
+        env = state:create_cellenv(cellname)
+        -- replace tech module in environment
+        local constraints = {}
+        env.tech = {
+            get_dimension = function(name) return string.format('tech.get_dimension("%s")', name) end,
+        }
+        return env
+    end
+end
+
+function M.parameters(cellname, generictech)
+    local str = {}
+
+    local env = _get_param_env(state, cellname, generictech)
+    local cell = _get_cell(state, cellname, env)
+    _collect_parameters(cell, nil, str) -- use ptype of parameter
+
+    -- display referenced parameters
+    for othercellname in pairs(cell.references) do
+        if othercellname ~= cellname then
+            local env = _get_param_env(state, othercellname, generictech)
+            local othercell = _get_cell(state, othercellname, env)
+            _collect_parameters(othercell, "R", str) -- 'referenced' parameter
         end
     end
     return str

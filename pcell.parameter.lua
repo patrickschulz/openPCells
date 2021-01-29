@@ -30,7 +30,7 @@ function meta.add(self, name, value, argtype, posvals)
         argtype   = argtype,
         posvals   = posvals,
         followers = {},
-        ptype     = "R"
+        ptype     = "N" -- 'normal' parameter
     }
     if not self.values[pname] or self.overwrite then
         self.values[pname] = new
