@@ -1,4 +1,5 @@
 function config()
+    pcell.reference_cell("basic/transistor")
     pcell.reference_cell("logic/base")
     pcell.set_property("hidden", true)
 end

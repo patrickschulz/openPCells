@@ -1,14 +1,7 @@
-function config()
+function parameters()
     pcell.reference_cell("basic/transistor")
     pcell.reference_cell("logic/base")
-    pcell.set_property("hidden", true)
-end
-
-function parameters()
-    pcell.add_parameters(
-        { "fingers",       1 },
-        { "gatetype", "nand" }
-    )
+    pcell.add_parameter("fingers", 1)
 end
 
 function layout(gate, _P)
@@ -16,11 +9,11 @@ function layout(gate, _P)
     local xpitch = bp.gspace + bp.glength
     local block = object.create()
 
-    gate:merge_into(pcell.create_layout("logic/harness", { fingers = 2 * _P.fingers }))
+    gate:merge_into(pcell.create_layout("logic/harness", { fingers = 4 * _P.fingers }))
 
     -- common transistor options
     pcell.push_overwrites("basic/transistor", {
-        fingers = 2,
+        fingers = 4,
         gatelength = bp.glength,
         gatespace = bp.gspace,
         sdwidth = bp.sdwidth,
@@ -50,6 +43,7 @@ function layout(gate, _P)
     block:merge_into(pcell.create_layout("basic/transistor"):move_anchor("topgate"))
     pcell.pop_overwrites("basic/transistor")
 
+    --[[
     -- gate contacts
     block:merge_into(geometry.rectangle(
         generics.contact("gate"), bp.glength, bp.gstwidth
@@ -114,6 +108,7 @@ function layout(gate, _P)
             2, 1, 2 * xpitch, 0
         ):translate(0, -bp.separation / 2 - bp.nwidth - bp.powerspace / 2))
     end
+    --]]
 
     -- place block
     for i = 1, _P.fingers do
@@ -125,6 +120,7 @@ function layout(gate, _P)
         end
     end
     
+    --[[
     -- drain connection
     local xincr = bp.compact and 0 or 1
     local yinvert = _P.gatetype == "nand" and 1 or -1
@@ -140,6 +136,7 @@ function layout(gate, _P)
         bp.sdwidth,
         true
     ))
+    --]]
 
     pcell.pop_overwrites("basic/transistor")
 end

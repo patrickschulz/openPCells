@@ -1,4 +1,5 @@
 function parameters()
+    pcell.reference_cell("logic/base")
     pcell.add_parameter("bitwidth", 8)
 end
 

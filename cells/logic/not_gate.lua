@@ -1,5 +1,7 @@
 function parameters()
+    pcell.reference_cell("basic/transistor")
     pcell.reference_cell("logic/base")
+    pcell.reference_cell("logic/isogate")
     pcell.add_parameter("fingers", 1)
 end
 
@@ -80,6 +82,18 @@ function layout(gate, _P)
         bp.sdwidth,
         true
     ))
+
+    -- alignement box
+    gate:set_alignement_box(
+        point.create(
+            -_P.fingers * xpitch / 2 - bp.leftdummies * xpitch, 
+            -bp.separation / 2 - bp.nwidth - bp.powerspace - bp.powerwidth / 2
+        ),
+        point.create(
+            _P.fingers * xpitch / 2 + bp.rightdummies * xpitch, 
+            bp.separation / 2 + bp.pwidth + bp.powerspace + bp.powerwidth / 2
+        )
+    )
 
     -- anchors
     gate:add_anchor("left", point.create(-_P.fingers * xpitch / 2 - bp.leftdummies * xpitch, 0))
