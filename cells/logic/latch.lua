@@ -35,47 +35,47 @@ function layout(gate, _P)
     -- draw connections
     gate:merge_into(geometry.path(generics.metal(2), {
         clockbuf:get_anchor("bout"),
-        cinv1:get_anchor("egatep")
+        cinv1:get_anchor("EP")
     }, bp.sdwidth))
     gate:merge_into(geometry.rectangle(generics.via(1, 2), bp.sdwidth, bp.sdwidth):translate(clockbuf:get_anchor("bout")))
-    gate:merge_into(geometry.rectangle(generics.via(1, 2), bp.glength, bp.sdwidth):translate(cinv1:get_anchor("egatep")))
+    gate:merge_into(geometry.rectangle(generics.via(1, 2), bp.glength, bp.sdwidth):translate(cinv1:get_anchor("EP")))
     gate:merge_into(geometry.path(generics.metal(1), {
         clockbuf:get_anchor("iout"),
-        cinv1:get_anchor("egaten")
+        cinv1:get_anchor("EP")
     }, bp.sdwidth))
     gate:merge_into(geometry.path(generics.metal(2), {
-        cinv1:get_anchor("egatep"),
-        point.combine_xy(cinv1:get_anchor("egatep"), cinv2:get_anchor("egaten")),
-        cinv2:get_anchor("egaten")
+        cinv1:get_anchor("EP"),
+        point.combine_xy(cinv1:get_anchor("EP"), cinv2:get_anchor("EN")),
+        cinv2:get_anchor("EN")
     }, bp.sdwidth))
-    gate:merge_into(geometry.rectangle(generics.via(1, 2), bp.glength, bp.sdwidth):translate(cinv2:get_anchor("egaten")))
+    gate:merge_into(geometry.rectangle(generics.via(1, 2), bp.glength, bp.sdwidth):translate(cinv2:get_anchor("EN")))
     gate:merge_into(geometry.path(generics.metal(1), {
-        cinv1:get_anchor("egaten"),
-        cinv1:get_anchor("egaten"):translate((bp.glength + bp.gspace) / 2, 0),
-        point.combine_xy(cinv1:get_anchor("egaten"):translate((bp.glength + bp.gspace) / 2, 0), cinv2:get_anchor("egatep")),
+        cinv1:get_anchor("EN"),
+        cinv1:get_anchor("EN"):translate((bp.glength + bp.gspace) / 2, 0),
+        point.combine_xy(cinv1:get_anchor("EN"):translate((bp.glength + bp.gspace) / 2, 0), cinv2:get_anchor("EP")),
     }, bp.sdwidth))
     gate:merge_into(geometry.path(generics.metal(2), {
-        point.combine_xy(cinv1:get_anchor("egaten"):translate((bp.glength + bp.gspace) / 2, 0), cinv2:get_anchor("egatep")),
-        cinv2:get_anchor("egatep"),
+        point.combine_xy(cinv1:get_anchor("EN"):translate((bp.glength + bp.gspace) / 2, 0), cinv2:get_anchor("EP")),
+        cinv2:get_anchor("EP"),
     }, bp.sdwidth))
     gate:merge_into(geometry.rectangle(
         generics.via(1, 2), bp.sdwidth, bp.sdwidth
-    ):translate(point.combine_xy(cinv1:get_anchor("egaten"):translate((bp.glength + bp.gspace) / 2, 0), cinv2:get_anchor("egatep"))))
-    gate:merge_into(geometry.rectangle(generics.via(1, 2), bp.glength, bp.sdwidth):translate(cinv2:get_anchor("egatep")))
+    ):translate(point.combine_xy(cinv1:get_anchor("EN"):translate((bp.glength + bp.gspace) / 2, 0), cinv2:get_anchor("EP"))))
+    gate:merge_into(geometry.rectangle(generics.via(1, 2), bp.glength, bp.sdwidth):translate(cinv2:get_anchor("EP")))
 
     gate:merge_into(geometry.path(generics.metal(1), {
-        cinv1:get_anchor("out"),
+        cinv1:get_anchor("O"),
         inv:get_anchor("in")
     }, bp.sdwidth))
     gate:merge_into(geometry.path(generics.metal(1), {
-        inv:get_anchor("out"),
-        cinv2:get_anchor("dgatenp")
+        inv:get_anchor("O"),
+        cinv2:get_anchor("EP")
     }, bp.sdwidth))
     gate:merge_into(geometry.path(generics.metal(2), {
-        cinv2:get_anchor("out"),
+        cinv2:get_anchor("O"),
         inv:get_anchor("in")
     }, bp.sdwidth))
-    gate:merge_into(geometry.rectangle(generics.via(1, 2), bp.sdwidth, bp.sdwidth):translate(cinv2:get_anchor("out")))
+    gate:merge_into(geometry.rectangle(generics.via(1, 2), bp.sdwidth, bp.sdwidth):translate(cinv2:get_anchor("O")))
     gate:merge_into(geometry.rectangle(generics.via(1, 2), bp.glength, bp.sdwidth):translate(inv:get_anchor("in")))
 
     -- ports
