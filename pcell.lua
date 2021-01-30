@@ -117,6 +117,14 @@ local function _set_parameter_function(state, cellname, name, value, backup, eva
             if value < p.posvals.values.lower or value > p.posvals.values.upper then
                 error(string.format("parameter '%s' (%s) out of range from %s to %s", name, value, p.posvals.values.lower, p.posvals.values.upper))
             end
+        elseif p.posvals.type == "even" then
+            if value % 2 ~= 0 then
+                error(string.format("parameter '%s' (%s) must be even", name, value))
+            end
+        elseif p.posvals.type == "odd" then
+            if value % 2 ~= 1 then
+                error(string.format("parameter '%s' (%s) must be odd", name, value))
+            end
         else
         end
     end
@@ -311,6 +319,8 @@ function state.create_cellenv(state, cellname)
         -- "global" functions for posvals entries:
         set = function(...) return { type = "set", values = { ... } } end,
         interval = function(lower, upper) return { type= "interval", values = { lower = lower, upper = upper }} end,
+        even = function() return { type= "even" } end,
+        odd = function() return { type= "odd" } end,
         inf = math.huge,
         pcell = {
             set_property                    = bindcell(set_property),
