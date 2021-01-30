@@ -13,6 +13,31 @@ function M.create_directory()
     return self
 end
 
+function M.check_constraints(parameter, value)
+    local posvals = parameter.posvals
+    if posvals then
+        if posvals.type == "set" then
+            local found = aux.find(posvals.values, function(v) return v == value end)
+            if not found then
+                error(string.format("parameter '%s' (%s) can only be %s", name, value, table.concat(posvals.values, " or ")))
+            end
+        elseif posvals.type == "interval" then
+            if value < posvals.values.lower or value > posvals.values.upper then
+                error(string.format("parameter '%s' (%s) out of range from %s to %s", name, value, posvals.values.lower, posvals.values.upper))
+            end
+        elseif posvals.type == "even" then
+            if value % 2 ~= 0 then
+                error(string.format("parameter '%s' (%s) must be even", name, value))
+            end
+        elseif posvals.type == "odd" then
+            if value % 2 ~= 1 then
+                error(string.format("parameter '%s' (%s) must be odd", name, value))
+            end
+        else
+        end
+    end
+end
+
 function meta.set_overwrite(self, overwrite)
     self.overwrite = overwrite
 end

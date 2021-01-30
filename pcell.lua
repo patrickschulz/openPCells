@@ -107,27 +107,7 @@ local function _set_parameter_function(state, cellname, name, value, backup, eva
         local eval = evaluators[p.argtype]
         value = eval(value)
     end
-    if p.posvals then
-        if p.posvals.type == "set" then
-            local found = aux.find(p.posvals.values, function(v) return v == value end)
-            if not found then
-                error(string.format("parameter '%s' (%s) can only be %s", name, value, table.concat(p.posvals.values, " or ")))
-            end
-        elseif p.posvals.type == "interval" then
-            if value < p.posvals.values.lower or value > p.posvals.values.upper then
-                error(string.format("parameter '%s' (%s) out of range from %s to %s", name, value, p.posvals.values.lower, p.posvals.values.upper))
-            end
-        elseif p.posvals.type == "even" then
-            if value % 2 ~= 0 then
-                error(string.format("parameter '%s' (%s) must be even", name, value))
-            end
-        elseif p.posvals.type == "odd" then
-            if value % 2 ~= 1 then
-                error(string.format("parameter '%s' (%s) must be odd", name, value))
-            end
-        else
-        end
-    end
+    paramlib.check_constraints(p, value)
     -- store old function for restoration
     backup[name] = p.func:get()
     -- important: use :replace(), don't create a new function object.
