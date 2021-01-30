@@ -71,6 +71,10 @@ return {
         name = "cellpath", long = "--cellpath",
         help = "add searchpath for cells (can be used multiple times: --cellpath foo --cellpath bar)"
     },
+    store{
+        name = "script", short = "-S", long = "--script",
+        help = "execute cell script"
+    },
     switch{ 
         name  = "check", long  = "--check",
         help  = "check cell code"

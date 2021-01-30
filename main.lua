@@ -14,6 +14,13 @@ if args.human and args.machine then
     os.exit(1)
 end
 
+-- check for script firsts, nothing gets defined for scripts
+if args.script then
+    dofile(args.script)
+    --print("executing script... (not yet implemented)")
+    os.exit(0)
+end
+
 if args.profile then
     profiler.start()
 end
