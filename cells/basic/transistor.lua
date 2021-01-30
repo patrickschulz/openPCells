@@ -7,7 +7,7 @@ function parameters()
         { "fwidth(Finger Width)",                                      tech.get_dimension("Minimum Gate Width"), "integer" },
         { "gatelength(Gate Length)",                                   tech.get_dimension("Minimum Gate Length"), "integer" },
         { "gatespace(Gate Spacing)",                                   tech.get_dimension("Minimum Gate Space"), "integer" },
-        { "actext(Active Extension)",                                   30 },
+        { "actext(Active Extension)",                                   30, posvals = even() },
         { "sdwidth(Source/Drain Metal Width)",                         tech.get_dimension("Minimum M1 Width"), "integer" },
         { "sdconnwidth(Source/Drain Rails Metal Width)",               tech.get_dimension("Minimum M1 Width"), "integer" },
         { "sdconnspace(Source/Drain Rails Metal Space)",               tech.get_dimension("Minimum M1 Width"), "integer" },
@@ -28,12 +28,12 @@ function parameters()
         { "botgatemetal(Bottom Gate Strap Metal)",                       1 },
         { "drawtopgcut(Draw Top Gate Cut)",                          false },
         { "drawbotgcut(Draw Bottom Gate Cut)",                       false },
-        { "drawinnersourcedrain(Draw Inner Source/Drain Contacts)", "both", posvales = { "both", "source", "drain", "none" } },
-        { "drawoutersourcedrain(Draw Outer Source/Drain Contacts)", "both", posvales = { "both", "source", "drain", "none" } },
+        { "drawinnersourcedrain(Draw Inner Source/Drain Contacts)", "both", posvals = { "both", "source", "drain", "none" } },
+        { "drawoutersourcedrain(Draw Outer Source/Drain Contacts)", "both", posvals = { "both", "source", "drain", "none" } },
         { "sourcesize(Source Size)",                                  1000, follow = "fwidth" },
         { "drainsize(Drain Size)",                                    1000, follow = "fwidth" },
-        { "sourcealign(Source Alignement)",                          "top" },
-        { "drainalign(Drain Alignement)",                            "top" },
+        { "sourcealign(Source Alignement)",                          "bottom", posvals = set("top", "bottom") },
+        { "drainalign(Drain Alignement)",                            "top", posvals = set("top", "bottom") },
         { "drawsourcevia(Draw Source Via)",                          false },
         { "connectsource(Connect Source)",                           false },
         { "connsourcemetal(Source Connection Metal)",                    1 },
@@ -135,18 +135,19 @@ function layout(transistor, _P)
         ))
     end
 
+
     -- source/drain contacts and vias
-    local sourcealign = 0
+    local sourcesubtop, sourcesubbot = 0, 0
     if _P.sourcealign == "top" then
-        sourcealign = (_P.fwidth - _P.sourcesize) / 2
+        sourcesubbot = _P.fwidth - _P.sourcesize
     elseif _P.sourcealign == "bottom" then
-        sourcealign = -(_P.fwidth - _P.sourcesize) / 2
+        sourcesubtop = _P.fwidth - _P.sourcesize
     end
-    local drainalign = 0
+    local drainsubtop, drainsubbot = 0, 0
     if _P.drainalign == "top" then
-        drainalign = (_P.fwidth - _P.drainsize) / 2
+        drainsubbot = _P.fwidth - _P.drainsize
     elseif _P.drainalign == "bottom" then
-        drainalign = -(_P.fwidth - _P.drainsize) / 2
+        drainsubtop = _P.fwidth - _P.drainsize
     end
     local shift = _P.fingers % 2 == 1 and gatepitch / 2 or 0
     -- drain/source contacts
@@ -154,63 +155,87 @@ function layout(transistor, _P)
         -- source
         if _P.drawinnersourcedrain == "both" or _P.drawinnersourcedrain == "source" then
             transistor:merge_into(geometry.multiple(
-                geometry.rectangle(generics.contact("active"), _P.sdwidth, _P.sourcesize),
+                geometry.rectanglebltr(generics.contact("active"), 
+                    point.create(-_P.sdwidth / 2, -_P.fwidth / 2 + sourcesubbot),
+                    point.create( _P.sdwidth / 2,  _P.fwidth / 2 - sourcesubtop)
+                ),
                 math.floor((_P.fingers - 1) / 2), 1, 2 * gatepitch, 0
-            ):translate(shift, sourcealign))
+            ):translate(shift, 0))
             if _P.drawsourcevia and _P.connsourcemetal > 1 then
                 transistor:merge_into(geometry.multiple(
-                    geometry.rectangle(generics.via(1, _P.connsourcemetal), _P.sdwidth, _P.sourcesize),
+                    geometry.rectanglebltr(generics.via(1, _P.connsourcemetal), 
+                        point.create(-_P.sdwidth / 2, -_P.fwidth / 2 + sourcesubbot),
+                        point.create( _P.sdwidth / 2,  _P.fwidth / 2 - sourcesubtop)
+                    ),
                     math.floor((_P.fingers - 1) / 2), 1, 2 * gatepitch, 0
-                ):translate(shift, sourcealign))
+                ):translate(shift, 0))
             end
         end
         -- drain
         if _P.drawinnersourcedrain == "both" or _P.drawinnersourcedrain == "drain" then
             transistor:merge_into(geometry.multiple(
-                geometry.rectangle(generics.contact("active"), _P.sdwidth, _P.drainsize),
+                geometry.rectanglebltr(generics.contact("active"), 
+                    point.create(-_P.sdwidth / 2, -_P.fwidth / 2 + drainsubbot),
+                    point.create( _P.sdwidth / 2,  _P.fwidth / 2 - drainsubtop)
+                ),
                 math.floor(_P.fingers / 2), 1, 2 * gatepitch, 0
-            ):translate(-shift, drainalign))
+            ):translate(-shift, 0))
             if _P.drawdrainvia and _P.conndrainmetal > 1 then
                 transistor:merge_into(geometry.multiple(
-                    geometry.rectangle(generics.via(1, _P.conndrainmetal), _P.sdwidth, _P.drainsize),
+                    geometry.rectanglebltr(generics.via(1, _P.conndrainmetal), 
+                        point.create(-_P.sdwidth / 2, -_P.fwidth / 2 + drainsubbot),
+                        point.create( _P.sdwidth / 2,  _P.fwidth / 2 - drainsubtop)
+                    ),
                     math.floor(_P.fingers / 2), 1, 2 * gatepitch, 0
-                ):translate(-shift, drainalign))
+                ):translate(-shift, 0))
             end
         end
     end
     if _P.drawoutersourcedrain ~= "none" then
         -- left (source)
         if _P.drawoutersourcedrain == "both" or _P.drawoutersourcedrain == "source" then
-            transistor:merge_into(geometry.rectangle(
-                generics.contact("active"), _P.sdwidth, _P.sourcesize
-            ):translate(-math.floor(_P.fingers / 2) * gatepitch - shift, sourcealign))
+            transistor:merge_into(geometry.rectanglebltr(
+                    generics.contact("active"), 
+                    point.create(-_P.sdwidth / 2, -_P.fwidth / 2 + sourcesubbot),
+                    point.create( _P.sdwidth / 2,  _P.fwidth / 2 - sourcesubtop)
+            ):translate(-math.floor(_P.fingers / 2) * gatepitch - shift, 0))
             if _P.drawsourcevia and _P.connsourcemetal > 1 then
-                transistor:merge_into(geometry.rectangle(
-                    generics.via(1, _P.connsourcemetal), _P.sdwidth, _P.sourcesize
-                ):translate(-math.floor(_P.fingers / 2) * gatepitch - shift, sourcealign))
+                transistor:merge_into(geometry.rectanglebltr(
+                        generics.via(1, _P.connsourcemetal),
+                        point.create(-_P.sdwidth / 2, -_P.fwidth / 2 + sourcesubbot),
+                        point.create( _P.sdwidth / 2,  _P.fwidth / 2 - sourcesubtop)
+                ):translate(-math.floor(_P.fingers / 2) * gatepitch - shift, 0))
             end
         end
         -- right (source or drain)
         if _P.fingers % 2 == 0 then -- source
             if _P.drawoutersourcedrain == "both" or _P.drawoutersourcedrain == "source" then
-                transistor:merge_into(geometry.rectangle(
-                    generics.contact("active"), _P.sdwidth, _P.sourcesize
-                ):translate(math.floor(_P.fingers / 2) * gatepitch + shift, sourcealign))
+                transistor:merge_into(geometry.rectanglebltr(
+                        generics.contact("active"), 
+                        point.create(-_P.sdwidth / 2, -_P.fwidth / 2 + sourcesubbot),
+                        point.create( _P.sdwidth / 2,  _P.fwidth / 2 - sourcesubtop)
+                ):translate(math.floor(_P.fingers / 2) * gatepitch + shift, 0))
                 if _P.drawsourcevia and _P.connsourcemetal > 1 then
-                    transistor:merge_into(geometry.rectangle(
-                        generics.via(1, _P.connsourcemetal), _P.sdwidth, _P.sourcesize
-                    ):translate(math.floor(_P.fingers / 2) * gatepitch + shift, sourcealign))
+                    transistor:merge_into(geometry.rectanglebltr(
+                            generics.via(1, _P.connsourcemetal), 
+                            point.create(-_P.sdwidth / 2, -_P.fwidth / 2 + sourcesubbot),
+                            point.create( _P.sdwidth / 2,  _P.fwidth / 2 - sourcesubtop)
+                    ):translate(math.floor(_P.fingers / 2) * gatepitch + shift, 0))
                 end
             end
         else -- drain
             if _P.drawoutersourcedrain == "both" or _P.drawoutersourcedrain == "drain" then
-                transistor:merge_into(geometry.rectangle(
-                    generics.contact("active"), _P.sdwidth, _P.sourcesize
-                ):translate(math.floor(_P.fingers / 2) * gatepitch + shift, drainalign))
+                transistor:merge_into(geometry.rectanglebltr(
+                        generics.contact("active"), 
+                        point.create(-_P.sdwidth / 2, -_P.fwidth / 2 + drainsubbot),
+                        point.create( _P.sdwidth / 2,  _P.fwidth / 2 - drainsubtop)
+                ):translate(math.floor(_P.fingers / 2) * gatepitch + shift, 0))
                 if _P.drawdrainvia and _P.conndrainmetal > 1 then
-                    transistor:merge_into(geometry.rectangle(
-                        generics.via(1, _P.conndrainmetal), _P.sdwidth, _P.drainsize
-                    ):translate(math.floor(_P.fingers / 2) * gatepitch + shift, drainalign))
+                    transistor:merge_into(geometry.rectanglebltr(
+                            generics.via(1, _P.conndrainmetal), 
+                            point.create(-_P.sdwidth / 2, -_P.fwidth / 2 + drainsubbot),
+                            point.create( _P.sdwidth / 2,  _P.fwidth / 2 - drainsubtop)
+                    ):translate(math.floor(_P.fingers / 2) * gatepitch + shift, 0))
                 end
             end
         end
