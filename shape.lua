@@ -118,8 +118,9 @@ function M.center(self)
     elseif self.typ == "rectangle" then
         local x1, y1 = self.points.bl:unwrap()
         local x2, y2 = self.points.tr:unwrap()
-        local x = 0.5 * (x1 + x2)
-        local y = 0.5 * (y1 + y2)
+        -- NOTE: odd lengths are chopped off (integer division)
+        local x = (x1 + x2) // 2
+        local y = (y1 + y2) // 2
         return point.create(x, y)
     end
 end
