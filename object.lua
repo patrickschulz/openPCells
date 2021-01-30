@@ -67,27 +67,6 @@ function meta.add_port(self, name, layer, where)
     self.anchors[name] = where:copy() -- copy point, otherwise translation acts twice
 end
 
--- this function returns an iterator over all shapes in a cell (possibly only selecting a subset)
--- First all shapes are collected in an auxiliary table, which enables modification of the self.shapes table within the iteration
--- Furthermore, the list is iterated from the end, which allows element removal in the loop
-function meta.iter(self, comp)
-    local shapes = {}
-    local indices = {}
-    comp = comp or function() return true end
-    for i, s in ipairs(self.shapes) do
-        if comp(s) then
-            table.insert(shapes, s)
-            table.insert(indices, i)
-        end
-    end
-    local idx = #shapes + 1 -- start at the end
-    local iter = function()
-        idx = idx - 1
-        return indices[idx], shapes[idx]
-    end
-    return iter
-end
-
 function meta.find(self, comp)
     local shapes = {}
     local indices = {}
@@ -99,6 +78,19 @@ function meta.find(self, comp)
         end
     end
     return indices, shapes
+end
+
+-- this function returns an iterator over all shapes in a cell (possibly only selecting a subset)
+-- First all shapes are collected in an auxiliary table, which enables modification of the self.shapes table within the iteration
+-- Furthermore, the list is iterated from the end, which allows element removal in the loop
+function meta.iter(self, comp)
+    local indices, shapes = meta.find(self, comp)
+    local idx = #shapes + 1 -- start at the end
+    local iter = function()
+        idx = idx - 1
+        return indices[idx], shapes[idx]
+    end
+    return iter
 end
 
 function meta.translate(self, dx, dy)
