@@ -157,17 +157,6 @@ local datatable = {
     [0x06] = function(str) return { string.byte(str, 1, #str) } end,
 }
 
-local function _assemble(...)
-    local args = { ... }
-    local t = {}
-    for _, data in ipairs(args) do
-        for _, datum in ipairs(data) do
-            table.insert(t, string.char(datum))
-        end
-    end
-    return table.concat(t)
-end
-
 local function _write_record(file, recordtype, datatype, content)
     local data = {
         0x00, 0x00, -- dummy bytes for length, will be filled later
@@ -185,7 +174,7 @@ local function _write_record(file, recordtype, datatype, content)
     end
     local lenbytes = binarylib.split_in_bytes(#data, 2)
     data[1], data[2] = lenbytes[1], lenbytes[2]
-    file:write(_assemble(data))
+    file:write_binary(data)
 end
 
 local function _unpack_points(pts, multiplier)
