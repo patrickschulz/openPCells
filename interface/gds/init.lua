@@ -107,27 +107,12 @@ local function _number_to_gdsfloat(num, width)
     return data
 end
 
-local function _split_in_bytes(number, bytes)
-    local bits = 8
-    local t = {}
-    local num = number
-    for i = bytes, 1, -1 do
-        local byte = math.floor(num / 2^(bits * (i - 1)))
-        num = num - byte * 2^(bits * (i - 1))
-        table.insert(t, byte)
-    end
-    if number < 0 then -- compensate for two's complement
-        t[1] = t[1] + 256
-    end
-    return t
-end
-
 local datatable = {
     [0x00] = nil,
     [0x01] = function(nums)
         local data = {}
         for _, num in ipairs(nums) do
-            for _, b in ipairs(_split_in_bytes(num, 2)) do
+            for _, b in ipairs(binarylib.split_in_bytes(num, 2)) do
                 table.insert(data, b)
             end
         end
@@ -136,7 +121,7 @@ local datatable = {
     [0x02] = function(nums)
         local data = {}
         for _, num in ipairs(nums) do
-            for _, b in ipairs(_split_in_bytes(num, 2)) do
+            for _, b in ipairs(binarylib.split_in_bytes(num, 2)) do
                 table.insert(data, b)
             end
         end
@@ -145,7 +130,7 @@ local datatable = {
     [0x03] = function(nums)
         local data = {}
         for _, num in ipairs(nums) do
-            for _, b in ipairs(_split_in_bytes(num, 4)) do
+            for _, b in ipairs(binarylib.split_in_bytes(num, 4)) do
                 table.insert(data, b)
             end
         end
@@ -198,7 +183,7 @@ local function _write_record(file, recordtype, datatype, content)
     if #data % 2 ~= 0 then
         table.insert(data, 0x00)
     end
-    local lenbytes = _split_in_bytes(#data, 2)
+    local lenbytes = binarylib.split_in_bytes(#data, 2)
     data[1], data[2] = lenbytes[1], lenbytes[2]
     file:write(_assemble(data))
 end
