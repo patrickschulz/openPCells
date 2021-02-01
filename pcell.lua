@@ -444,4 +444,43 @@ function M.parameters(cellname, generictech)
     return str
 end
 
+local function _perform_cell_check(cellname, name, values)
+    for _, pval in ipairs(values) do
+        local status, msg = pcall(M.create_layout, cellname, { [name] = pval })
+        io.write(string.format("checking parameter '%s' with '%s':", name, pval))
+        if not status then
+            print(msg)
+            print(" failure")
+        else
+            print(" success")
+        end
+    end
+end
+
+function M.check(cellname)
+    local env = _get_param_env(state, cellname, true)
+    local cell = _get_cell(state, cellname, env)
+
+    for _, name in ipairs(cell.parameters:get_names()) do
+        local parameter = cell.parameters:get(name)
+        if parameter.argtype == "number" or parameter.argtype == "integer" then
+            if not parameter.posvals then
+                _perform_cell_check(cellname, name, { 1, 2 })
+            elseif parameter.posvals.type == "even" then
+                _perform_cell_check(cellname, name, { 2 })
+            elseif parameter.posvals.type == "odd" then
+                _perform_cell_check(cellname, name, { 1 })
+            elseif parameter.posvals.type == "set" then
+                _perform_cell_check(cellname, name, parameter.posvals.values)
+            elseif parameter.posvals.type == "interval" then
+                local values = { parameter.posvals.values.lower, parameter.posvals.values.upper }
+                if parameter.posvals.values.upper == math.huge then
+                    values[2] = 1000
+                end
+                _perform_cell_check(cellname, name, values)
+            end
+        end
+    end
+end
+
 return M

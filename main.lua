@@ -59,6 +59,11 @@ if not args.cell then
     os.exit(1)
 end
 
+if args.check then
+    pcell.check(args.cell)
+    os.exit(0)
+end
+
 -- show technology constraints for this cell
 if args.constraints then
     local sep = args.separator or "\n"
@@ -89,11 +94,7 @@ if args.params then
 end
 
 -- create cell
-local cell, msg = pcell.create_layout(args.cell, args.cellargs, true)
-if not cell then
-    errprint(string.format("error while creating cell, received: %s", msg))
-    os.exit(1)
-end
+local cell = pcell.create_layout(args.cell, args.cellargs, true)
 
 -- move origin
 if args.origin then
