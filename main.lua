@@ -1,9 +1,3 @@
--- for random shuffle
-math.randomseed(os.time())
-
--- load user configuration
-config.get_user_config()
-
 -- parse command line arguments
 local argparse = _load_module("argparse")
 argparse:load_options("cmdoptions")
@@ -11,15 +5,22 @@ local args = argparse:parse(arg)
 -- check command line options sanity
 if args.human and args.machine then
     errprint("you can't specify --human and --machine at the same time")
-    os.exit(1)
+    return 1
 end
 
 -- check for script firsts, nothing gets defined for scripts
 if args.script then
     dofile(args.script)
     --print("executing script... (not yet implemented)")
-    os.exit(0)
+    return 0
 end
+
+-- for random shuffle
+math.randomseed(os.time())
+
+-- load user configuration
+config.get_user_config()
+
 
 if args.profile then
     profiler.start()
@@ -51,17 +52,17 @@ if args.listcells then
             print(string.format("  %s", cellname))
         end
     end
-    os.exit(0)
+    return 0
 end
 
 if not args.cell then
     errprint("no cell type given")
-    os.exit(1)
+    return 1
 end
 
 if args.check then
     pcell.check(args.cell)
-    os.exit(0)
+    return 0
 end
 
 -- show technology constraints for this cell
@@ -69,14 +70,14 @@ if args.constraints then
     local sep = args.separator or "\n"
     local params = pcell.constraints(args.cell)
     io.write(table.concat(params, sep) .. sep)
-    os.exit(0)
+    return 0
 end
 
 -- check and load technology
 if not args.notech then
     if not args.technology and not args.params then
         errprint("no technology given")
-        os.exit(1)
+        return 1
     elseif not args.technology and args.params then
         -- ok, don't load technology but also don't raise an error
         -- this enables pcell.parameters to display the cell parameters with generic technology expressions
@@ -90,7 +91,7 @@ if args.params then
     local sep = args.separator or "\n"
     local params = pcell.parameters(args.cell, not args.technology)
     io.write(table.concat(params, sep) .. sep)
-    os.exit(0)
+    return 0
 end
 
 -- create cell
@@ -101,7 +102,7 @@ if args.origin then
     local dx, dy = string.match(args.origin, "%(%s*([-%d]+)%s*,%s*([-%d]+)%s*%)")
     if not dx then
         errprint(string.format("could not parse origin (%s)", args.origin))
-        os.exit(1)
+        return 1
     end
     cell:translate(dx, dy)
 end
@@ -117,14 +118,14 @@ if args.orientation then
     local f = lut[args.orientation]
     if not f then
         errprint(string.format("unknown orientation: %s", args.orientation))
-        os.exit(1)
+        return 1
     end
     f()
 end
 
 if not args.interface then
     errprint("no interface given")
-    os.exit(1)
+    return 1
 end
 interface.load(args.interface)
 
