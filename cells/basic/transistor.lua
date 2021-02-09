@@ -262,8 +262,8 @@ function layout(transistor, _P)
     end
 
     -- anchors
-    transistor:add_anchor("topgate", point.create(0,  _P.fwidth / 2 + gateaddtop - _P.topgatestrwidth / 2))
-    transistor:add_anchor("botgate", point.create(0, -_P.fwidth / 2 - gateaddbot + _P.botgatestrwidth / 2))
+    transistor:add_anchor("topgate", point.create(0,  _P.fwidth / 2 + gateaddtop))
+    transistor:add_anchor("botgate", point.create(0, -_P.fwidth / 2 - gateaddbot))
 
     transistor:add_anchor("topgatestrapleft", point.create(
         -_P.fingers * _P.gatelength / 2 - (_P.fingers - 1) * _P.gatespace / 2,
