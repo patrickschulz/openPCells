@@ -84,7 +84,7 @@ function layout(gate, _P)
     ))
 
     -- alignement box
-    gate:set_alignement_box(
+    gate:set_alignment_box(
         point.create(
             -_P.fingers * xpitch / 2 - bp.leftdummies * xpitch, 
             -bp.separation / 2 - bp.nwidth - bp.powerspace - bp.powerwidth / 2
@@ -96,8 +96,6 @@ function layout(gate, _P)
     )
 
     -- anchors
-    gate:add_anchor("left", point.create(-_P.fingers * xpitch / 2 - bp.leftdummies * xpitch, 0))
-    gate:add_anchor("right", point.create(_P.fingers * xpitch / 2 + bp.rightdummies * xpitch, 0))
     gate:add_anchor("in", point.create(0, 0))
     gate:add_anchor("out", point.create(_P.fingers * xpitch / 2, 0))
 

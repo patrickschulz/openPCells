@@ -169,9 +169,17 @@ function layout(gate, _P)
 
     pcell.pop_overwrites("basic/transistor")
 
-    -- anchors
-    gate:add_anchor("left", point.create(-(_P.fingers + bp.leftdummies) * xpitch, 0))
-    gate:add_anchor("right", point.create((_P.fingers + bp.rightdummies) * xpitch, 0))
+    -- alignement box
+    gate:set_alignment_box(
+        point.create(
+            -_P.fingers * xpitch - bp.leftdummies * xpitch, 
+            -bp.separation / 2 - bp.nwidth - bp.powerspace - bp.powerwidth / 2
+        ),
+        point.create(
+            _P.fingers * xpitch + bp.rightdummies * xpitch, 
+            bp.separation / 2 + bp.pwidth + bp.powerspace + bp.powerwidth / 2
+        )
+    )
 
     -- ports
     if _P.swapinputs then

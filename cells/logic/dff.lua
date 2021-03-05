@@ -56,12 +56,15 @@ function layout(gate, _P)
     fbcinv1:flipx()
     gate:merge_into(fbcinv1)
 
-    isogate:move_anchor("left", fbcinv1:get_anchor("left"))
+    isogate:move_anchor("left", fbcinv1:get_anchor("right"))
     gate:merge_into(isogate:copy())
 
     -- transmission gate
     local tgate = pcell.create_layout("logic/tgate"):move_anchor("left", isogate:get_anchor("right"))
     gate:merge_into(tgate)
+
+    --gate:merge_into(geometry.rectangle(generics.metal(2), 1000, 10):translate(tgate:get_anchor("left")))
+    --gate:merge_into(geometry.rectangle(generics.metal(2), 10, 1000):translate(tgate:get_anchor("left")))
 
     isogate:move_anchor("left", tgate:get_anchor("right"))
     gate:merge_into(isogate:copy())
@@ -84,7 +87,7 @@ function layout(gate, _P)
     pcell.push_overwrites("logic/base", {
         leftdummies = 0
     })
-    local outbuf = pcell.create_layout("logic/not_gate"):move_anchor("left", fbcinv2:get_anchor("left"))
+    local outbuf = pcell.create_layout("logic/not_gate"):move_anchor("left", fbcinv2:get_anchor("right"))
     pcell.pop_overwrites("logic/base")
     gate:merge_into(outbuf)
 

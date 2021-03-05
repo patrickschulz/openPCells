@@ -60,7 +60,8 @@ function layout(gate, _P)
 
     pcell.pop_overwrites("basic/transistor")
 
-    -- anchors
-    gate:add_anchor("left", point.create(-xpitch / 2, 0))
-    gate:add_anchor("right", point.create(xpitch / 2, 0))
+    gate:set_alignment_box(
+        point.create(-xpitch / 2, -bp.separation / 2 - bp.nwidth - bp.powerspace - bp.powerwidth / 2),
+        point.create(xpitch / 2, bp.separation / 2 + bp.pwidth + bp.powerspace + bp.powerwidth / 2)
+    )
 end

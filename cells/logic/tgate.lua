@@ -110,9 +110,17 @@ function layout(gate, _P)
         true
     ))
 
-    -- anchors
-    gate:add_anchor("left", point.create(-_P.fingers * xpitch / 2 - bp.leftdummies * xpitch, 0))
-    gate:add_anchor("right", point.create(_P.fingers * xpitch / 2 + bp.rightdummies * xpitch, 0))
+    -- alignement box
+    gate:set_alignment_box(
+        point.create(
+            -_P.fingers * xpitch / 2 - bp.leftdummies * xpitch, 
+            -bp.separation / 2 - bp.nwidth - bp.powerspace - bp.powerwidth / 2
+        ),
+        point.create(
+            _P.fingers * xpitch / 2 + bp.rightdummies * xpitch, 
+            bp.separation / 2 + bp.pwidth + bp.powerspace + bp.powerwidth / 2
+        )
+    )
 
     -- ports
     gate:add_port("I", generics.metal(1), point.create(-_P.fingers * xpitch / 2, 0))
