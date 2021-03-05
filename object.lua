@@ -209,24 +209,25 @@ end
 local function _get_anchor(self, name)
     if not self.anchors[name] then
         if self.alignmentbox then
+            local cx, cy = self.origin:unwrap()
             local blx, bly = self.alignmentbox.bl:unwrap()
             local trx, try = self.alignmentbox.tr:unwrap()
             if name == "left" then
-                return point.create(blx, 0)
+                return point.create(cx + blx, cy)
             elseif name == "right" then
-                return point.create(trx, 0)
+                return point.create(cx + trx, cy)
             elseif name == "top" then
-                return point.create(0, try)
+                return point.create(cx, cy + try)
             elseif name == "bottom" then
-                return point.create(0, bly)
+                return point.create(cx, cy + bly)
             elseif name == "bottomleft" then
-                return point.create(blx, bly)
+                return point.create(cx + blx, cy + bly)
             elseif name == "bottomright" then
-                return point.create(trx, bly)
+                return point.create(cx + trx, cy + bly)
             elseif name == "topleft" then
-                return point.create(blx, try)
+                return point.create(cx + blx, cy + try)
             elseif name == "topright" then
-                return point.create(trx, try)
+                return point.create(cx + trx, cy + try)
             end
         end
         if self.name then
