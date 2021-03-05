@@ -14,7 +14,7 @@ function M.create(name)
         shapes = {},
         ports = {},
         anchors = {},
-        alignementbox = nil,
+        alignmentbox = nil,
         origin = point.create(0, 0)
     }
     setmetatable(self, meta)
@@ -190,17 +190,45 @@ function meta.bounding_box(self)
     return { bl = point.create(minx, miny), tr = point.create(maxx, maxy) }
 end
 
-function meta.set_alignement_box(bl, tr)
-
+function meta.set_alignment_box(self, bl, tr)
+    self.alignmentbox = { bl = bl:copy(), tr = tr:copy() }
 end
 
+local _reserved_anchors = {
+    "left", "right", "bottom", "top"
+}
+
 function meta.add_anchor(self, name, where)
+    if aux.find(_reserved_anchors, function(n) return n == name end) then
+        error(string.format("trying to add reserved anchor '%s'", name))
+    end
     where = where:copy() or point.create(0, 0)
     self.anchors[name] = where
 end
 
 local function _get_anchor(self, name)
     if not self.anchors[name] then
+        if self.alignmentbox then
+            local blx, bly = self.alignmentbox.bl:unwrap()
+            local trx, try = self.alignmentbox.tr:unwrap()
+            if name == "left" then
+                return point.create(blx, 0)
+            elseif name == "right" then
+                return point.create(trx, 0)
+            elseif name == "top" then
+                return point.create(0, try)
+            elseif name == "bottom" then
+                return point.create(0, bly)
+            elseif name == "bottomleft" then
+                return point.create(blx, bly)
+            elseif name == "bottomright" then
+                return point.create(trx, bly)
+            elseif name == "topleft" then
+                return point.create(blx, try)
+            elseif name == "topright" then
+                return point.create(trx, try)
+            end
+        end
         if self.name then
             error(string.format("trying to access anchor '%s' in cell '%s'", name, self.name))
         else
@@ -216,8 +244,8 @@ function meta.get_anchor(self, name)
 end
 
 function meta.align(self, where)
-    local blx, bly = self.alignementbox.bl:unwrap()
-    local trx, try = self.alignementbox.tr:unwrap()
+    local blx, bly = self.alignmentbox.bl:unwrap()
+    local trx, try = self.alignmentbox.tr:unwrap()
         if where == "left"        then
         return point.create(blx, (bly + try) / 2)
     elseif where == "right"       then
@@ -235,7 +263,7 @@ function meta.align(self, where)
     elseif where == "bottomright" then
         return point.create(trx, bly)
     else 
-        error(string.format("unknown alignement anchor '%s'", where))
+        error(string.format("unknown alignment anchor '%s'", where))
     end
 end
 
