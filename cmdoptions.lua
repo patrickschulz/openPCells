@@ -73,7 +73,7 @@ return {
     },
     store{
         name = "script", short = "-S", long = "--script",
-        help = "execute cell script"
+        help = "execute cell script. This can also be used to run lua code with the opc API loaded"
     },
     switch{ 
         name  = "check", long  = "--check",
