@@ -28,9 +28,8 @@ function layout(gate, _P)
         point.create(bp.glength + bp.gspace / 2, 0),
     }, bp.sdwidth))
 
-    -- anchors
-    gate:add_anchor("left", nor:get_anchor("left"))
-    gate:add_anchor("right", nor:get_anchor("right"))
+    gate:inherit_alignment_box(nor)
+    gate:inherit_alignment_box(inv)
 
     -- ports
     gate:add_port("A", generics.metal(1), nor:get_anchor("A"))

@@ -9,10 +9,6 @@ function layout(gate, _P)
     local base = pcell.create_layout("logic/nand_nor_layout_base", { fingers = _P.fingers, gatetype = "nand" })
     gate:merge_into(base)
 
-    -- anchors
-    gate:add_anchor("left", point.create(-(2 * _P.fingers + bp.leftdummies) * (bp.glength + bp.gspace) / 2, 0))
-    gate:add_anchor("right", point.create((2 * _P.fingers + bp.rightdummies) * (bp.glength + bp.gspace) / 2, 0))
-
     -- ports
     gate:add_port("A", generics.metal(1), point.create( (bp.glength + bp.gspace) / 2,  bp.separation / 4))
     gate:add_port("B", generics.metal(1), point.create(-(bp.glength + bp.gspace) / 2, -bp.separation / 4))

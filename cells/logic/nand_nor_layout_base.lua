@@ -142,4 +142,9 @@ function layout(gate, _P)
     ))
 
     pcell.pop_overwrites("basic/transistor")
+
+    gate:set_alignment_box(
+        point.create(-(2 * _P.fingers + bp.leftdummies) * (bp.glength + bp.gspace) / 2, -bp.separation / 2 - bp.nwidth - bp.powerspace - bp.powerwidth / 2),
+        point.create((2 * _P.fingers + bp.rightdummies) * (bp.glength + bp.gspace) / 2, bp.separation / 2 + bp.pwidth + bp.powerspace + bp.powerwidth / 2)
+    )
 end
