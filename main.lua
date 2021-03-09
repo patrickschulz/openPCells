@@ -19,8 +19,7 @@ end
 math.randomseed(os.time())
 
 -- load user configuration
-config.get_user_config()
-
+config.load_user_config()
 
 if args.profile then
     profiler.start()
