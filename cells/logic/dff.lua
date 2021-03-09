@@ -63,9 +63,6 @@ function layout(gate, _P)
     local tgate = pcell.create_layout("logic/tgate"):move_anchor("left", isogate:get_anchor("right"))
     gate:merge_into(tgate)
 
-    --gate:merge_into(geometry.rectangle(generics.metal(2), 1000, 10):translate(tgate:get_anchor("left")))
-    --gate:merge_into(geometry.rectangle(generics.metal(2), 10, 1000):translate(tgate:get_anchor("left")))
-
     isogate:move_anchor("left", tgate:get_anchor("right"))
     gate:merge_into(isogate:copy())
 
@@ -176,6 +173,9 @@ function layout(gate, _P)
         fbcinv2:get_anchor("I"),
         outbuf:get_anchor("I")
     }, bp.sdwidth))
+
+    gate:inherit_alignment_box(clockbuf)
+    gate:inherit_alignment_box(outbuf)
 
     -- ports
     gate:add_port("D", generics.metal(1), cinv1:get_anchor("I"))
