@@ -188,6 +188,24 @@ function M.path(layer, pts, width, miterjoin)
     return object.make_from_shape(S)
 end
 
+local function _modify_point_stream(pts, func)
+    for idx = 1, #pts - 1, 2 do -- increment by 2 to skip new points
+        local pt1, pt2 = pts[idx], pts[idx + 1]
+        local newpt = func(pt1, pt2)
+        table.insert(pts, idx + 1, newpt)
+    end
+end
+
+function M.path_xy(layer, pts, width, miterjoin)
+    _modify_point_stream(pts, point.combine_xy)
+    return M.path(layer, pts, width, miterjoin)
+end
+
+function M.path_yx(layer, pts, width, miterjoin)
+    _modify_point_stream(pts, point.combine_yx)
+    return M.path(layer, pts, width, miterjoin)
+end
+
 function M.any_angle_path(layer, pts, width, grid, miterjoin)
     _make_unique_points(pts)
     local S = shape.create_polygon(layer)
