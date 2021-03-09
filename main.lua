@@ -18,6 +18,9 @@ end
 -- for random shuffle
 math.randomseed(os.time())
 
+-- set default path for pcells
+pcell.add_cellpath(string.format("%s/cells", _get_opc_home()))
+
 -- load user configuration
 config.load_user_config()
 
@@ -30,9 +33,7 @@ envlib.set("humannotmachine", true) -- default is --human
 if args.machine then
     envlib.set("humannotmachine", false)
 end
-
--- set default path for pcells
-pcell.add_cellpath(string.format("%s/cells", _get_opc_home()))
+envlib.set("verbose", args.verbose)
 
 -- add user-defined cellpaths
 if args.cellpath then

@@ -32,6 +32,9 @@ end
 
 local function _load_cell(state, cellname, env)
     local filename = _get_cell_filename(state, cellname)
+    if envlib.get("verbose") then
+        print(string.format("pcell: loading cell definition in %s", filename))
+    end
     if not filename then
         local str = {
             string.format("could not find cell '%s' in:", cellname),
