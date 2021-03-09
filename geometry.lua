@@ -197,12 +197,12 @@ local function _modify_point_stream(pts, func)
 end
 
 function M.path_xy(layer, pts, width, miterjoin)
-    _modify_point_stream(pts, point.combine_xy)
+    _modify_point_stream(pts, point.combine_12)
     return M.path(layer, pts, width, miterjoin)
 end
 
 function M.path_yx(layer, pts, width, miterjoin)
-    _modify_point_stream(pts, point.combine_yx)
+    _modify_point_stream(pts, point.combine_21)
     return M.path(layer, pts, width, miterjoin)
 end
 

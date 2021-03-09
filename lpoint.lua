@@ -95,12 +95,12 @@ function meta.copy(self)
 end
 
 -- point module functions
-function point.combine_xy(lhs, rhs)
+function point.combine_12(lhs, rhs)
     return point.create(lhs:getx(), rhs:gety())
 end
 
-function point.combine_yx(lhs, rhs)
-    return point.create(lhs.gety(), rhs.getx())
+function point.combine_21(lhs, rhs)
+    return point.create(rhs:getx(), lhs:gety())
 end
 
 function point.combine(lhs, rhs)
