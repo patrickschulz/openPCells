@@ -7,6 +7,7 @@ openPCells.*
 
 # NDA-related
 tech/GF22FDSOI
+tech/cmos22fdsoi
 tech/TSMC28HPCplus
 
 # lua object files

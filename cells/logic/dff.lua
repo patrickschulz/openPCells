@@ -193,6 +193,16 @@ function layout(gate, _P)
         outbuf:get_anchor("I")
     }, bp.sdwidth))
 
+    gate:inherit_alignment_box(clockbuf)
+    gate:inherit_alignment_box(isogate)
+    gate:inherit_alignment_box(cinv1)
+    gate:inherit_alignment_box(fbinv1)
+    gate:inherit_alignment_box(fbcinv1)
+    gate:inherit_alignment_box(fbinv2)
+    gate:inherit_alignment_box(fbcinv2)
+    gate:inherit_alignment_box(tgate)
+    gate:inherit_alignment_box(outbuf)
+ 
     -- ports
     gate:add_port("D", generics.metal(1), cinv1:get_anchor("I"))
     gate:add_port("Q", generics.metal(1), outbuf:get_anchor("O"))
