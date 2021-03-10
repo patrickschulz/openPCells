@@ -3,6 +3,8 @@ local M = {}
 local meta = {}
 meta.__index = meta
 
+local funcobject = _load_module("pcell.funcobject")
+
 function M.create_directory()
     local self = {
         names = {},
