@@ -91,6 +91,10 @@ return {
         name  = "dryrun", long  = "--dryrun",
         help  = "perform all calculations, but don't actually write any files. This is useful for profiling, where the program should run normally but should not produce any output"
     },
+    switch{ 
+        name  = "verbose", short = "-v", long  = "--verbose",
+        help  = "enable verbose output"
+    },
     store{ 
         name  = "debug", short = "-D", long  = "--debug",
         help  = "enable debugging output (specify modules separated by commas)"
