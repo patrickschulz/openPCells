@@ -26,7 +26,7 @@ function layout(gate, _P)
     gate:merge_into(nandgate)
 
    --  draw connections
-    gate:merge_into(geometry.path(generics.metal(1), {
+    gate:merge_into(geometry.path_xy(generics.metal(1), {
         orgate:get_anchor("Z"), nandgate:get_anchor("B")
     }, bp.sdwidth))
 

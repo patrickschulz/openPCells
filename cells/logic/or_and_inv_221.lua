@@ -40,19 +40,27 @@ function layout(gate, _P)
     local nandgate = pcell.create_layout("logic/nand_gate"):move_anchor("left",
                                                                         orgate_b:get_anchor(
                                                                             "right"))
+    -- nandgate:flipx()
 
     gate:merge_into(nandgate)
 
     -- draw connections
-    gate:merge_into(geometry.path(generics.metal(1), {
+    gate:merge_into(geometry.path_xy(generics.metal(1), {
         orgate_c:get_anchor("Z"), andgate:get_anchor("B")
     }, bp.sdwidth))
-    gate:merge_into(geometry.path(generics.metal(1), {
-        orgate_b:get_anchor("Z"), nandgate:get_anchor("B")
+    gate:merge_into(geometry.path_xy(generics.metal(1), {
+        orgate_b:get_anchor("Z"), nandgate:get_anchor("A")
     }, bp.sdwidth))
-    gate:merge_into(geometry.path(generics.metal(1), {
-        andgate:get_anchor("Z"), nandgate:get_anchor("A")
+    gate:merge_into(geometry.path_yx(generics.metal(2), {
+        andgate:get_anchor("Z"), nandgate:get_anchor("B")
     }, bp.sdwidth))
+    gate:merge_into(geometry.rectangle(generics.via(1, 2), bp.glength,
+                                       bp.sdwidth):translate(
+                        andgate:get_anchor("Z")))
+    gate:merge_into(geometry.rectangle(generics.via(1, 2), bp.glength,
+                                       bp.sdwidth):translate(
+                        nandgate:get_anchor("B")))
+        
 
     gate:inherit_alignment_box(andgate)
     gate:inherit_alignment_box(orgate_c)

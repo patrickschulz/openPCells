@@ -1,7 +1,7 @@
 --[[
           INV   OAI_221     FF_OUT  
    OAI_21 INV   OAI_221     FF_BUF
-                OAI_221     FF_IN
+   NAND   INV    OAI_221     FF_IN
 ]] --
 function parameters() pcell.reference_cell("logic/base") end
 
@@ -63,4 +63,16 @@ function layout(gate, _P)
                                                                           "left"))
     gate:merge_into(inv_out)
 
+    local inv_in = pcell.create_layout("logic/not_gate"):move_anchor("right",
+                                                                     orandinv221_in:get_anchor(
+                                                                         "left"))
+    gate:merge_into(inv_in)
+
+    local nand_in = pcell.create_layout("logic/nand_gate"):move_anchor("right",
+                                                                       inv_in:get_anchor(
+                                                                           "left"))
+    gate:merge_into(nand_in)
+
+    -- draw connections
+    -- gate:merge_into()
 end
