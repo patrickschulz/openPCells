@@ -89,7 +89,7 @@ return {
     },
     switch{ 
         name  = "notech", long  = "--notech",
-        help  = "disable all technology translation functions (metal translation, via arrayzation, layer mapping grid fixing)"
+        help  = "disable all technology translation functions (metal translation, via arrayzation, layer mapping, grid fixing)"
     },
     switch{ 
         name  = "nointerface", long  = "--nointerface",
