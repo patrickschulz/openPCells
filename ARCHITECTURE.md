@@ -22,12 +22,17 @@ This provides graphical routine for the geometry system. These are similar to cl
 curve). Currently provides functions for lines, ellipses and circles. Extensions like bezier curves enable full SVG support for drawing pictures in layouts.
 
 ### `generics.lua`
+This module provides functions for generating generic layer objects. These are used in cell definitions and are technology-independent (e.g. a generic metal is
+used instead of M1). Besides that, the `technology` module makes heavy use of this module.
 
 ### `pcell.lua`
+Main module for handling cell definitions.
 
 ### `object.lua`, `shape.lua` and the point module
+Modules for handling of layout objects. Objects are collections of shapes, which use points (for description of polygons and rectangles).
 
 ### `technology.lua`
+Module for technology translation. Here all generic layers are mapped to technology-specific layers. Read technology definitions in `tech/`.
 
 ### `interface.lua`
 
@@ -47,7 +52,17 @@ ldir.h
 `config.lua`, `envlib.lua`
 
 ### `profiler.lua`
+Rudimentary profiler, which is off by default (option `--profile`). Cell generation can take a while for big (-ish unfortunately) cells. The profiler helps
+finding bottlenecks.
 
 ### `load.lua`
+Provides `_load_module`, a fancy `require`. Used to load the API and submodules within modules.
 
 ### `argparse.lua` and `cmdoptions.lua`
+Simple argument parser for command line options as well as the definition of these options.
+
+## Implementation Notes
+This project aims for zero dependencies and easy installation for users without admin privileges. Because of this, some modules implement
+functionality, that can be easily found in other libraries (lua-penlight for argument parsing, for instance). The only dependency needed is a C compiler and
+`make` for building.
+

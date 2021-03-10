@@ -121,7 +121,6 @@ static void load_api(lua_State* L)
         "stringfile",
         "util",
         "aux",
-        "funcobject",
         "reduce",
         "stack",
         "support",
