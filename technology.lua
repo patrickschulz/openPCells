@@ -56,21 +56,21 @@ function M.split_vias(cell)
     end
 end
 
-local function _get_lpp(lpp, interface)
+local function _get_lpp(lpp, export)
     if type(lpp) == "function" then
         lpp = lpp()
     end
-    if not lpp[interface] then
-        error(string.format("no layer information for interface '%s'", interface))
+    if not lpp[export] then
+        error(string.format("no layer information for export type '%s'", export))
     end
-    return lpp[interface]
+    return lpp[export]
 end
 
-local function _do_map(cell, S, entry, interface)
+local function _do_map(cell, S, entry, export)
     entry = entry.func(S.lpp:get())
     if entry.lpp then
         local new = S:copy()
-        new.lpp = generics.mapped(_get_lpp(entry.lpp, interface))
+        new.lpp = generics.mapped(_get_lpp(entry.lpp, export))
         if entry.left   > 0 or
            entry.right  > 0 or
            entry.top    > 0 or
@@ -82,7 +82,7 @@ local function _do_map(cell, S, entry, interface)
     end
 end
 
-local function _do_array(cell, S, entry, interface)
+local function _do_array(cell, S, entry, export)
     entry = entry.func(S.lpp:get())
     local lpp = entry.lpp
     local width = S:width()
@@ -94,13 +94,13 @@ local function _do_array(cell, S, entry, interface)
     local ypitch = entry.height + entry.yspace
     local enlarge = 0
     local cut = geometry.multiple(
-        geometry.rectangle(generics.mapped(_get_lpp(lpp, interface)), entry.width + enlarge, entry.height + enlarge),
+        geometry.rectangle(generics.mapped(_get_lpp(lpp, export)), entry.width + enlarge, entry.height + enlarge),
         xrep, yrep, xpitch, ypitch
     )
     cell:merge_into(cut:translate(c:unwrap()))
 end
 
-function M.translate(cell, interface)
+function M.translate(cell, export)
     for i, S in cell:iter() do
         local layer = S.lpp:str()
         local mappings = layermap[layer]
@@ -109,9 +109,9 @@ function M.translate(cell, interface)
         end
         for _, entry in ipairs(mappings) do
             if entry.action == "map" then
-                _do_map(cell, S, entry, interface)
+                _do_map(cell, S, entry, export)
             elseif entry.action == "array" then
-                _do_array(cell, S, entry, interface)
+                _do_array(cell, S, entry, export)
             end
         end
         cell:remove_shape(i)

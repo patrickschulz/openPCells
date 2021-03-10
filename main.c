@@ -111,7 +111,7 @@ static void load_api(lua_State* L)
     const char* const modules[] = {
         "lpoint", // lua part of lpoint module
         "technology",
-        "interface",
+        "export",
         "config",
         "object",
         "shape",

@@ -5,7 +5,7 @@ complex cells such as entire circuits (inverters, opamps etc.). For digital desi
 
 The key point of this framework is independency of any layout tool such as cadence virtuoso. In order to achieve this, the core generators are written
 in lua and generate platform-independent files describing the cell. In the layout tool the files are read and the actual shapes are drawn. For this,
-interfacing/exporting code is provided (currently for virtuoso, magic, gds, tikz (LaTeX) and svg; other interfaces are easy to add). A second
+interfacing/exporting code is provided (currently for virtuoso, magic, gds, tikz (LaTeX) and svg; other export types are easy to add). A second
 important point for this project is technology independece. This is achieved by working in generic layers ('gate', 'metal1') and mapping that with
 (simple-to-write) layermaps.
 
@@ -17,7 +17,7 @@ program by running
 
 Now a file `opc` should have been generated. Run it as follows:
 
-    ./opc --technology skywater130 --interface svg --cell basic/transistor
+    ./opc --technology skywater130 --export svg --cell basic/transistor
 
 This produces the following image: 
 
@@ -34,7 +34,7 @@ You need to include these lines in your `.cdsinit`:
     OPCTech = "skywater130"     ; edit to match your PDK
     OPCPath = "/path/to/pcells" ; edit to match the path to opc
     OPCExec = "opc"             ; edit to match the name of the executable (usually 'opc')
-    load(lsprintf("%s/%s" OPCPath "interface/virtuoso/init.il")
+    load(lsprintf("%s/%s" OPCPath "export/virtuoso/init.il")
 
 This will install a menu in layout editor called `openPCells` at the last place before the `help` menu in the layout editor. You have to restart
 virtuoso or execute the three lines in that order in your CIW to activate the menu.

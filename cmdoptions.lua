@@ -9,12 +9,12 @@ return {
         help  = "specify cell"
     },
     store{ 
-        name  = "interface", short = "-I", long  = "--interface",
-        help  = "specify interface"
+        name  = "export", short = "-E", long  = "--export",
+        help  = "specify export type"
     },
     consumer_table{ 
-        name  = "interface_options", long  = "--iopt",
-        help  = "pass special options to interface"
+        name  = "export_options", long  = "--iopt",
+        help  = "pass special options to export"
     },
     store{
         name = "script", short = "-S", long = "--script",
@@ -27,7 +27,7 @@ return {
     },
     store{ 
         name  = "filename", short = "-f", long  = "--filename",
-        help  = "specify output filename for interface and export"
+        help  = "specify output filename for export"
     },
     consumer_string{ 
         name  = "origin", long  = "--origin",
@@ -92,19 +92,11 @@ return {
         help  = "disable all technology translation functions (metal translation, via arrayzation, layer mapping, grid fixing)"
     },
     switch{ 
-        name  = "nointerface", long  = "--nointerface",
-        help  = "disable all interface/export functions. This is different from --dryrun, which calls the interface translation, but does not write any files. Both options are mostly related to profiling, if interfaces should be profiled --dryrun must be used"
+        name  = "noexport", long  = "--noexport",
+        help  = "disable all export functions. This is different from --dryrun, which calls the export translation, but does not write any files. Both options are mostly related to profiling, if exporting should be profiled --dryrun must be used"
     },
     switch{ 
         name  = "dryrun", long  = "--dryrun",
         help  = "perform all calculations, but don't actually write any files. This is useful for profiling, where the program should run normally but should not produce any output"
     },
 }
-    --[[
-    store{ 
-        name  = "export",
-        short = "-E",
-        long  = "--export",
-        help  = "specify export"
-    },
-    --]]

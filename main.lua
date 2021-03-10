@@ -130,13 +130,13 @@ if args.orientation then
     f()
 end
 
-if not args.interface then
-    errprint("no interface given")
+if not args.export then
+    errprint("no export type given")
     return 1
 end
-interface.load(args.interface)
+export.load(args.export)
 
-local techintf = interface.get_techinterface() or args.interface
+local techintf = export.get_techexport() or args.export
 if not args.notech then
     technology.translate_metals(cell)
     technology.split_vias(cell)
@@ -145,10 +145,10 @@ if not args.notech then
     technology.fix_to_grid(cell)
 end
 
-if not args.nointerface then
+if not args.noexport then
     local filename = args.filename or "openPCells"
-    interface.set_options(args.interface_options)
-    interface.write_cell(filename, cell, args.dryrun)
+    export.set_options(args.export_options)
+    export.write_cell(filename, cell, args.dryrun)
 end
 
 if args.profile then

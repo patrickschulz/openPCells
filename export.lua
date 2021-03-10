@@ -1,6 +1,6 @@
 local M = {}
 
-local interface
+local export
 
 local function _collect_shapes(cell, get_layer_func, get_index_func, point_func, precomputed)
     local shapes = {}
@@ -49,50 +49,50 @@ local function _iter_shapes(shapes)
 end
 
 function M.load(name)
-    local filename = string.format("%s/interface/%s/init.lua", _get_opc_home(), name)
-    local chunkname = "@interface"
+    local filename = string.format("%s/export/%s/init.lua", _get_opc_home(), name)
+    local chunkname = "@export"
 
     local reader = _get_reader(filename)
     if not reader then
-        error(string.format("interface '%s' not found", name))
+        error(string.format("export '%s' not found", name))
     end
-    interface = _generic_load(reader, chunkname)
+    export = _generic_load(reader, chunkname)
 end
 
-function M.get_techinterface()
-    if interface.techinterface then
-        return interface.techinterface()
+function M.get_techexport()
+    if export.techexport then
+        return export.techexport()
     end
 end
 
 function M.write_cell(filename, cell, fake)
     if cell:is_empty() then
-        error("interface: cell is empty")
+        error("export: cell is empty")
     end
-    local extension = interface.get_extension()
+    local extension = export.get_extension()
     local file = stringfile.open(string.format("%s.%s", filename, extension))
-    local precomputed = aux.call_if_present(interface.precompute, cell)
-    aux.call_if_present(interface.at_begin, file, precomputed)
-    aux.call_if_present(interface.at_begin_cell, file, precomputed)
-    for layer, pcol in _iter_shapes(_collect_shapes(cell, interface.get_layer, interface.get_index, interface.get_points, precomputed)) do
-        interface.write_layer(file, layer, pcol)
+    local precomputed = aux.call_if_present(export.precompute, cell)
+    aux.call_if_present(export.at_begin, file, precomputed)
+    aux.call_if_present(export.at_begin_cell, file, precomputed)
+    for layer, pcol in _iter_shapes(_collect_shapes(cell, export.get_layer, export.get_index, export.get_points, precomputed)) do
+        export.write_layer(file, layer, pcol)
     end
-    if interface.write_port then
+    if export.write_port then
         for name, port in pairs(cell.ports) do
-            --interface.write_port(file, name, port.layer, port.where)
+            --export.write_port(file, name, port.layer, port.where)
             -- FIXME: only for testing purposes
-            interface.write_port(file, name, "M1", port.where)
+            export.write_port(file, name, "M1", port.where)
         end
     end
-    aux.call_if_present(interface.at_end_cell, file, precomputed)
-    aux.call_if_present(interface.at_end, file, precomputed)
+    aux.call_if_present(export.at_end_cell, file, precomputed)
+    aux.call_if_present(export.at_end, file, precomputed)
     if not fake then
         file:truewrite()
     end
 end
 
 function M.set_options(opt)
-    aux.call_if_present(interface.set_options, opt)
+    aux.call_if_present(export.set_options, opt)
 end
 
 return M
