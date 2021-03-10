@@ -60,3 +60,9 @@ Provides `_load_module`, a fancy `require`. Used to load the API and submodules 
 
 ### `argparse.lua` and `cmdoptions.lua`
 Simple argument parser for command line options as well as the definition of these options.
+
+## Implementation Notes
+This project aims for zero dependencies and easy installation for users without admin privileges. Because of this, some modules implement
+functionality, that can be easily found in other libraries (lua-penlight for argument parsing, for instance). The only dependency needed is a C compiler and
+`make` for building.
+
