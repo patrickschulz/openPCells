@@ -25,7 +25,8 @@ lua/liblua.a: lua/*.c lua/*.h
 	@$(MAKE) -C lua liblua.a
 
 config.h:
-	echo '#define OPC_HOME "$(CURDIR)"' > config.h
+	echo '/* This file is auto-generated. Do not edit it. */' > config.h
+	echo '#define OPC_HOME "$(CURDIR)"' >> config.h
 
 .PHONY:
 clean:
