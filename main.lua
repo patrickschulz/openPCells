@@ -1,7 +1,11 @@
 -- parse command line arguments
 local argparse = _load_module("argparse")
 argparse:load_options("cmdoptions")
-local args = argparse:parse(arg)
+local args, msg = argparse:parse(arg)
+if not args then
+    print(msg)
+    return 1
+end
 -- check command line options sanity
 if args.human and args.machine then
     errprint("you can't specify --human and --machine at the same time")
@@ -11,8 +15,11 @@ end
 -- check for script firsts, nothing gets defined for scripts
 if args.script then
     dofile(args.script)
-    --print("executing script... (not yet implemented)")
     return 0
+end
+
+if args.profile then
+    profiler.start()
 end
 
 -- for random shuffle
@@ -20,12 +27,19 @@ math.randomseed(os.time())
 
 -- set default path for pcells
 pcell.add_cellpath(string.format("%s/cells", _get_opc_home()))
+-- add user-defined cellpaths
+if args.cellpath then
+    for _, path in ipairs(args.cellpath) do
+        pcell.add_cellpath(path)
+    end
+end
 
 -- load user configuration
 config.load_user_config()
 
-if args.profile then
-    profiler.start()
+if args.listpaths then
+    pcell.list_cellpaths()
+    return 0
 end
 
 -- set environment variables
@@ -34,13 +48,6 @@ if args.machine then
     envlib.set("humannotmachine", false)
 end
 envlib.set("verbose", args.verbose)
-
--- add user-defined cellpaths
-if args.cellpath then
-    for _, path in ipairs(args.cellpath) do
-        pcell.add_cellpath(path)
-    end
-end
 
 -- list available cells
 if args.listcells then

@@ -348,6 +348,12 @@ function M.add_cellpath(path)
     table.insert(state.cellpaths, path)
 end
 
+function M.list_cellpaths()
+    for _, path in ipairs(state.cellpaths) do
+        print(path)
+    end
+end
+
 function M.create_layout(cellname, args, evaluate)
     local cell = _get_cell(state, cellname)
     if not cell.funcs.layout then

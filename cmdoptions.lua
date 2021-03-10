@@ -1,19 +1,45 @@
 return {
-    switch{
-        name  = "profile", long  = "--profile",
-        help  = "collect and display profiling data"
+    section("Main generation functions"),
+    store{ 
+        name  = "technology", short = "-T", long  = "--technology",
+        help  = "specify technology"
     },
-    switch{ 
-        name  = "params", short = "-P", long  = "--parameters",
-        help  = "display available cell parameters and exit"
+    store{ 
+        name  = "cell", short = "-C", long  = "--cell",
+        help  = "specify cell"
     },
-    switch{ 
-        name  = "listcells", short = "-L", long  = "--list",
-        help  = "list available cells"
+    store{ 
+        name  = "interface", short = "-I", long  = "--interface",
+        help  = "specify interface"
     },
-    switch{ 
-        name  = "constraints", long  = "--constraints",
-        help  = "show required technology parameter (needs --cell and --technology)"
+    consumer_table{ 
+        name  = "interface_options", long  = "--iopt",
+        help  = "pass special options to interface"
+    },
+    store{
+        name = "script", short = "-S", long = "--script",
+        help = "execute cell script. This can also be used to run lua code with the opc API loaded"
+    },
+    section("Auxiliary generation functions"),
+    store{ 
+        name  = "paramfile", short = "-p", long  = "--pfile",
+        help  = "file to read parameters from. This file should be a regular lua file returning a table with the parameters"
+    },
+    store{ 
+        name  = "filename", short = "-f", long  = "--filename",
+        help  = "specify output filename for interface and export"
+    },
+    consumer_string{ 
+        name  = "origin", long  = "--origin",
+        help  = "origin of cell (move (0, 0))"
+    },
+    consumer_string{ 
+        name  = "orientation", long  = "--orientation",
+        help  = "orientation of cell (possible values: 0 (regular), fx (flip x), fy (flip y), fxy (flip x and y))"
+    },
+    store_multiple{
+        name = "cellpath", long = "--cellpath",
+        help = "add searchpath for cells (can be used multiple times: --cellpath foo --cellpath bar)"
     },
     switch{
         name = "human", long = "--human",
@@ -27,53 +53,35 @@ return {
         name  = "separator", long  = "--separator",
         help  = "cell parameter separator (default \\n)"
     },
-    store{ 
-        name  = "technology", short = "-T", long  = "--technology",
-        help  = "specify technology"
+    section("Info functions"),
+    switch{ 
+        name  = "params", short = "-P", long  = "--parameters",
+        help  = "display available cell parameters and exit (requires --cell)"
+    },
+    switch{ 
+        name  = "constraints", long  = "--constraints",
+        help  = "show required technology parameter (requires --cell and --technology)"
+    },
+    switch{ 
+        name  = "listcells", short = "-L", long  = "--list",
+        help  = "list available cells"
+    },
+    switch{
+        name = "listpaths", long = "--listpaths",
+        help = "list cell search paths"
+    },
+    section("Diagnostic functions"),
+    switch{
+        name  = "profile", long  = "--profile",
+        help  = "collect and display profiling data"
+    },
+    switch{ 
+        name  = "verbose", short = "-v", long  = "--verbose",
+        help  = "enable verbose output"
     },
     store{ 
-        name  = "interface", short = "-I", long  = "--interface",
-        help  = "specify interface"
-    },
-    store{ 
-        name  = "cell", short = "-C", long  = "--cell",
-        help  = "specify cell"
-    },
-    store{ 
-        name  = "paramfile", short = "-p", long  = "--pfile",
-        help  = "file to read parameters from. This file should be a regular lua file returning a table with the parameters"
-    },
-    --[[
-    store{ 
-        name  = "export",
-        short = "-E",
-        long  = "--export",
-        help  = "specify export"
-    },
-    --]]
-    store{ 
-        name  = "filename", short = "-f", long  = "--filename",
-        help  = "specify output filename for interface and export"
-    },
-    consumer_string{ 
-        name  = "origin", long  = "--origin",
-        help  = "origin of cell (move (0, 0))"
-    },
-    consumer_string{ 
-        name  = "orientation", long  = "--orientation",
-        help  = "orientation of cell (possible values: 0 (regular), fx (flip x), fy (flip y), fxy (flip x and y))"
-    },
-    consumer_table{ 
-        name  = "interface_options", long  = "--iopt",
-        help  = "pass special options to interface"
-    },
-    store_multiple{
-        name = "cellpath", long = "--cellpath",
-        help = "add searchpath for cells (can be used multiple times: --cellpath foo --cellpath bar)"
-    },
-    store{
-        name = "script", short = "-S", long = "--script",
-        help = "execute cell script. This can also be used to run lua code with the opc API loaded"
+        name  = "debug", short = "-D", long  = "--debug",
+        help  = "enable debugging output (specify modules separated by commas)"
     },
     switch{ 
         name  = "check", long  = "--check",
@@ -91,12 +99,12 @@ return {
         name  = "dryrun", long  = "--dryrun",
         help  = "perform all calculations, but don't actually write any files. This is useful for profiling, where the program should run normally but should not produce any output"
     },
-    switch{ 
-        name  = "verbose", short = "-v", long  = "--verbose",
-        help  = "enable verbose output"
-    },
-    store{ 
-        name  = "debug", short = "-D", long  = "--debug",
-        help  = "enable debugging output (specify modules separated by commas)"
-    },
 }
+    --[[
+    store{ 
+        name  = "export",
+        short = "-E",
+        long  = "--export",
+        help  = "specify export"
+    },
+    --]]

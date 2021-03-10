@@ -48,35 +48,39 @@ local function _display_help(self)
     local fmt = string.format("    %%-%ds    %%s", optwidth)
     print("openPCells generator")
     for _, opt in ipairs(self.optionsdef) do
-        local cmdstr
-        if opt.short and not opt.long then
-            cmdstr = string.format("%s", opt.short)
-        elseif not opt.short and opt.long then
-            cmdstr = string.format("%s", opt.long)
+        if opt.issection then
+            print(opt.name)
         else
-            cmdstr = string.format("%s,%s", opt.short, opt.long)
-        end
-
-        -- break long help strings into lines
-        local helpstrtab = {}
-        local line = {}
-        local linewidth = 0
-        for word in string.gmatch(opt.help, "(%S+)") do
-            local width = string.len(word)
-            linewidth = linewidth + width
-            if linewidth > displaywidth then
-                table.insert(helpstrtab, table.concat(line, " "))
-                line = {}
-                linewidth = 0
+            local cmdstr
+            if opt.short and not opt.long then
+                cmdstr = string.format("%s", opt.short)
+            elseif not opt.short and opt.long then
+                cmdstr = string.format("%s", opt.long)
+            else
+                cmdstr = string.format("%s,%s", opt.short, opt.long)
             end
-            table.insert(line, word)
+
+            -- break long help strings into lines
+            local helpstrtab = {}
+            local line = {}
+            local linewidth = 0
+            for word in string.gmatch(opt.help, "(%S+)") do
+                local width = string.len(word)
+                linewidth = linewidth + width
+                if linewidth > displaywidth then
+                    table.insert(helpstrtab, table.concat(line, " "))
+                    line = {}
+                    linewidth = 0
+                end
+                table.insert(line, word)
+            end
+            -- insert remaining part of the line
+            table.insert(helpstrtab, table.concat(line, " "))
+
+            local helpstr = table.concat(helpstrtab, string.format("\n%s", string.rep(" ", optwidth + 8))) -- +8 to compensate for spaces in format string
+
+            print(string.format(fmt, cmdstr, helpstr))
         end
-        -- insert remaining part of the line
-        table.insert(helpstrtab, table.concat(line, " "))
-
-        local helpstr = table.concat(helpstrtab, string.format("\n%s", string.rep(" ", optwidth + 8))) -- +8 to compensate for spaces in format string
-
-        print(string.format(fmt, cmdstr, helpstr))
     end
     os.exit(0)
 end
@@ -151,6 +155,9 @@ local function _load_options(options)
             end
             return t
         end,
+        section = function(name)
+            return { issection = true, name = name }
+        end
     }
     return _generic_load(reader, chunkname, nil, nil, env)
 end
@@ -158,12 +165,14 @@ end
 function meta.load_options(self, options)
     self.optionsdef = _load_options(options)
     self.actions = {}
-    for _, opt in ipairs(self.optionsdef) do
-        if opt.short then
-            self.actions[opt.short] = opt.func
-        end
-        if opt.long then
-            self.actions[opt.long] = opt.func
+    for key, opt in ipairs(self.optionsdef) do
+        if not opt.issection then
+            if opt.short then
+                self.actions[opt.short] = opt.func
+            end
+            if opt.long then
+                self.actions[opt.long] = opt.func
+            end
         end
     end
 
@@ -171,6 +180,7 @@ function meta.load_options(self, options)
     self.actions["-h"] = _display_help
     self.actions["--help"] = _display_help
     table.insert(self.optionsdef, 1, { short = "-h", long = "--help", help = "display this help and exit" })
+
     -- install version
     self.actions["-v"] = _display_version
     self.actions["--version"] = _display_version
