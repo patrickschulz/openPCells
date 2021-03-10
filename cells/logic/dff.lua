@@ -88,6 +88,10 @@ function layout(gate, _P)
     pcell.pop_overwrites("logic/base")
     gate:merge_into(outbuf)
 
+    -- output not_gate
+    local outnot = pcell.create_layout("logic/not_gate"):move_anchor("left", outbuf:get_anchor("right"))
+    gate:merge_into(outnot)
+
     -- draw connections
     gate:merge_into(geometry.path(generics.metal(1), {
         cinv1:get_anchor("O"),
@@ -128,6 +132,11 @@ function layout(gate, _P)
         point.combine_12(clockbuf:get_anchor("bout"), fbcinv2:get_anchor("EN")),
         fbcinv2:get_anchor("EN") + point.create(xpitch / 2, 0)
     }, bp.sdwidth))
+    gate:merge_into(geometry.path(generics.metal(1), {
+        outbuf:get_anchor("O"),
+        outnot:get_anchor("I"),
+    }, bp.sdwidth))
+
     -- clk connections
     gate:merge_into(geometry.rectangle(generics.via(1, 2), bp.glength, bp.sdwidth):translate(fbcinv1:get_anchor("EP")))
     gate:merge_into(geometry.rectangle(generics.via(1, 2), bp.glength, bp.sdwidth):translate(fbcinv1:get_anchor("EN")))
@@ -175,11 +184,12 @@ function layout(gate, _P)
     }, bp.sdwidth))
 
     gate:inherit_alignment_box(clockbuf)
-    gate:inherit_alignment_box(outbuf)
+    gate:inherit_alignment_box(outnot)
 
     -- ports
     gate:add_port("D", generics.metal(1), cinv1:get_anchor("I"))
     gate:add_port("Q", generics.metal(1), outbuf:get_anchor("O"))
+    gate:add_port("NQ", generics.metal(1), outnot:get_anchor("O"))
     gate:add_port("CLK", generics.metal(1), clockbuf:get_anchor("in"))
     gate:add_port("VDD", generics.metal(1), point.create(0,  bp.separation / 2 + bp.pwidth + bp.powerspace + bp.powerwidth / 2))
     gate:add_port("VSS", generics.metal(1), point.create(0, -bp.separation / 2 - bp.nwidth - bp.powerspace - bp.powerwidth / 2))
