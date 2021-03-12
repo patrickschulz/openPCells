@@ -38,8 +38,16 @@ return {
         help  = "orientation of cell (possible values: 0 (regular), fx (flip x), fy (flip y), fxy (flip x and y))"
     },
     store_multiple{
+        name = "cellpath", long = "--append-cellpath",
+        help = "append searchpath for cells (can be used multiple times: --append-cellpath foo --append-cellpath bar)"
+    },
+    store_multiple{
+        name = "prependcellpath", long = "--prepend-cellpath",
+        help = "prepend searchpath for cells (can be used multiple times: --prepend-cellpath foo --prepend-cellpath bar)"
+    },
+    store_multiple{
         name = "cellpath", long = "--cellpath",
-        help = "append searchpath for cells (can be used multiple times: --cellpath foo --cellpath bar)"
+        help = "synonym for --append-cellpath"
     },
     switch{
         name = "human", long = "--human",

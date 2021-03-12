@@ -25,6 +25,9 @@ end
 -- for random shuffle
 math.randomseed(os.time())
 
+-- load user configuration
+config.load_user_config()
+
 -- set default path for pcells
 pcell.append_cellpath(string.format("%s/cells", _get_opc_home()))
 -- add user-defined cellpaths
@@ -33,9 +36,11 @@ if args.cellpath then
         pcell.append_cellpath(path)
     end
 end
-
--- load user configuration
-config.load_user_config()
+if args.prependcellpath then
+    for _, path in ipairs(args.prependcellpath) do
+        pcell.prepend_cellpath(path)
+    end
+end
 
 if args.listpaths then
     pcell.list_cellpaths()
