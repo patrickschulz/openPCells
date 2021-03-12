@@ -1,6 +1,5 @@
 function parameters()
-    --pcell.inherit_and_bind_all_parameters("basic/transistor")
-    pcell.inherit_all_parameters("basic/transistor")
+    pcell.reference_cell("basic/transistor")
     pcell.add_parameters(
         { "connmetal", 4 },
         { "connwidth", 60 },
@@ -9,11 +8,12 @@ function parameters()
 end
 
 function layout(ccp, _P)
+    local bp = pcell.get_parameters("basic/transistor")
     pcell.push_overwrites("basic/transistor", {
         fingers = 4,
-        gatelength = _P.gatelength,
-        gatespace = _P.gatespace,
-        sdwidth = _P.sdwidth,
+        gatelength = bp.gatelength,
+        gatespace = bp.gatespace,
+        sdwidth = bp.sdwidth,
         sourcesize = 500,
         sourcealign = "bottom",
         drainsize = 500,
