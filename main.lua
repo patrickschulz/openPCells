@@ -26,11 +26,11 @@ end
 math.randomseed(os.time())
 
 -- set default path for pcells
-pcell.add_cellpath(string.format("%s/cells", _get_opc_home()))
+pcell.append_cellpath(string.format("%s/cells", _get_opc_home()))
 -- add user-defined cellpaths
 if args.cellpath then
     for _, path in ipairs(args.cellpath) do
-        pcell.add_cellpath(path)
+        pcell.append_cellpath(path)
     end
 end
 

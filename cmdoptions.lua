@@ -39,7 +39,7 @@ return {
     },
     store_multiple{
         name = "cellpath", long = "--cellpath",
-        help = "add searchpath for cells (can be used multiple times: --cellpath foo --cellpath bar)"
+        help = "append searchpath for cells (can be used multiple times: --cellpath foo --cellpath bar)"
     },
     switch{
         name = "human", long = "--human",

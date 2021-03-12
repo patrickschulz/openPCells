@@ -344,8 +344,12 @@ function state.create_cellenv(state, cellname)
 end
 
 -- Public functions
-function M.add_cellpath(path)
+function M.append_cellpath(path)
     table.insert(state.cellpaths, path)
+end
+
+function M.prepend_cellpath(path)
+    table.insert(state.cellpaths, 1, path)
 end
 
 function M.list_cellpaths()
