@@ -17,6 +17,7 @@ end
 
 function M.check_constraints(parameter, value)
     local posvals = parameter.posvals
+    local name = parameter.name
     if posvals then
         if posvals.type == "set" then
             local found = aux.find(posvals.values, function(v) return v == value end)
@@ -52,6 +53,7 @@ function meta.add(self, name, value, argtype, posvals)
     local pname, dname = string.match(name, "^([^(]+)%(([^)]+)%)")
     if not pname then pname = name end -- no display name
     local new = {
+        name      = pname,
         display   = dname,
         func      = funcobject.identity(value),
         argtype   = argtype,
