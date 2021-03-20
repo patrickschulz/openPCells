@@ -50,11 +50,11 @@ return {
         help = "synonym for --append-cellpath"
     },
     switch{
-        name = "human", long = "--human",
+        name = "human", short = "-H", long = "--human",
         help = "format info output (parameters, cell lists etc.) for humans"
     },
     switch{
-        name = "machine", long = "--machine",
+        name = "machine", short = "-M", long = "--machine",
         help = "format info output (parameters, cell lists etc.) for machines (computer). Use this for parsing the data for interfaces"
     },
     store{ 
