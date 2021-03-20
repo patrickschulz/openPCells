@@ -55,9 +55,9 @@ end
 envlib.set("verbose", args.verbose)
 
 -- list available cells
-if args.listcells then
+if args.listcells or args.listallcells then
     local sep = args.separator or "\n"
-    local cells = pcell.list()
+    local cells = pcell.list(args.listallcells)
     for _, entry in ipairs(cells) do
         print(string.format("%s:", entry.path))
         for _, cellname in ipairs(entry.cells) do

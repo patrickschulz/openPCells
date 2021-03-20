@@ -74,6 +74,10 @@ return {
         name  = "listcells", short = "-L", long  = "--list",
         help  = "list available cells"
     },
+    switch{ 
+        name  = "listallcells", long  = "--list-all",
+        help  = "list all available cells (including hidden cells)"
+    },
     switch{
         name = "listpaths", long = "--listpaths",
         help = "list cell search paths"

@@ -373,13 +373,13 @@ function M.create_layout(cellname, args, evaluate)
     return obj
 end
 
-function M.list()
+function M.list(listhidden)
     local cells = {}
     for i, path in ipairs(state.cellpaths) do
         cells[i] = { path = path, cells = {} }
         for _, cellname in ipairs(support.listcells(path)) do
-            local cell = _get_cell(state, cellname, nil, true) -- no custom environment (nil), don't call funcs.params() (true)
-            if not cell.properties.hidden then
+            local cell = _get_cell(state, cellname, true) -- don't call funcs.params()
+            if not cell.properties.hidden or listhidden then
                 table.insert(cells[i].cells, cellname)
             end
         end
@@ -387,6 +387,7 @@ function M.list()
 
     -- pcell.list() renders the loaded cells unusable, as the cell environment is modified for data collection
     -- perhaps there is a better way, but the current fix for this is to reset ALL cells
+    -- FIXME: unsure if this is true anymore after some important changes to the cell environment system.
     state.loadedcells = {}
 
     return cells
