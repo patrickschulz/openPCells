@@ -59,9 +59,21 @@ local function _load_cell(state, cellname, env)
     return env
 end
 
-local function _get_cell(state, cellname, env, nocallparams)
-    if not state.loadedcells[cellname] or env then
-        env = env or state:create_cellenv(cellname)
+local _cellenv
+local function _override_cell_environment(what, t)
+    if what then
+        if not _cellenv then
+            _cellenv = {}
+        end
+        _cellenv[what] = t
+    else
+        _cellenv = nil
+    end
+end
+
+local function _get_cell(state, cellname, nocallparams)
+    if not state.loadedcells[cellname] then
+        local env = state:create_cellenv(cellname, _cellenv)
         local funcs = _load_cell(state, cellname, env)
         if not (funcs.parameters or funcs.layout) then
             error(string.format("cell '%s' must define at least the public function 'parameters' or 'layout'", cellname))
@@ -220,6 +232,8 @@ end
 local function reference_cell(state, cellname, othercell)
     local cell = _get_cell(state, cellname)
     cell.references[othercell] = true
+    -- load the referenced cell, needed for 'constraints'
+    _get_cell(state, othercell)
 end
 
 local function inherit_parameter_as(state, cellname, name, othercell, othername)
@@ -287,7 +301,7 @@ local state = {
     backupstacks = {},
 }
 
-function state.create_cellenv(state, cellname)
+function state.create_cellenv(state, cellname, ovrenv)
     local bindcell = function(func)
         return function(...)
             return func(state, cellname, ...)
@@ -298,12 +312,13 @@ function state.create_cellenv(state, cellname)
             return func(state, ...)
         end
     end
-    return {
+    local env = {
         -- "global" functions for posvals entries:
         set = function(...) return { type = "set", values = { ... } } end,
         interval = function(lower, upper) return { type= "interval", values = { lower = lower, upper = upper }} end,
         even = function() return { type= "even" } end,
         odd = function() return { type= "odd" } end,
+        multiple = function(val) return { type = "multiple", value = val } end,
         inf = math.huge,
         pcell = {
             set_property                    = bindcell(set_property),
@@ -341,6 +356,12 @@ function state.create_cellenv(state, cellname)
         ipairs = ipairs,
         pairs = pairs,
     }
+    if ovrenv then
+        for k, v in pairs(ovrenv) do
+            env[k] = v
+        end
+    end
+    return env
 end
 
 -- Public functions
@@ -394,18 +415,20 @@ function M.list(listhidden)
 end
 
 function M.constraints(cellname)
-    local env = state:create_cellenv(cellname)
     -- replace tech module in environment
     local constraints = {}
-    env.tech = {
+    local t = {
         get_dimension = function(name) constraints[name] = true end
     }
+    _override_cell_environment("tech", t)
+
     -- load cell, this fills the 'constraints' table
-    _get_cell(state, cellname, env)
+    _get_cell(state, cellname)
     local str = {}
     for constraint in pairs(constraints) do
         table.insert(str, constraint)
     end
+    _override_cell_environment(nil)
     return str
 end
 
@@ -428,33 +451,25 @@ local function _collect_parameters(cell, ptype, prefix, str)
     end
 end
 
-local function _get_param_env(state, cellname, generictech)
-    if generictech then
-        env = state:create_cellenv(cellname)
-        -- replace tech module in environment
-        local constraints = {}
-        env.tech = {
-            get_dimension = function(name) return string.format('tech.get_dimension("%s")', name) end,
-        }
-        return env
-    end
-end
-
 function M.parameters(cellname, generictech)
     local str = {}
 
-    local env = _get_param_env(state, cellname, generictech)
-    local cell = _get_cell(state, cellname, env)
+    local t = {
+        get_dimension = function(name) return string.format('tech.get_dimension("%s")', name) end,
+    }
+    _override_cell_environment("tech", t)
+
+    local cell = _get_cell(state, cellname)
     _collect_parameters(cell, nil, nil, str) -- use ptype of parameter, no prefix
 
     -- display referenced parameters
     for othercellname in pairs(cell.references) do
         if othercellname ~= cellname then
-            local env = _get_param_env(state, othercellname, generictech)
-            local othercell = _get_cell(state, othercellname, env)
+            local othercell = _get_cell(state, othercellname)
             _collect_parameters(othercell, string.format("R(%s)", othercellname), othercellname .. ".", str) -- 'referenced' parameter
         end
     end
+    _override_cell_environment(nil)
     return str
 end
 
@@ -472,9 +487,29 @@ local function _perform_cell_check(cellname, name, values)
 end
 
 function M.check(cellname)
-    local env = _get_param_env(state, cellname, true)
-    local cell = _get_cell(state, cellname, env)
+    -- collect parameter names
+    local t = {
+        get_dimension = function(name) return string.format('tech.get_dimension("%s")', name) end,
+    }
+    _override_cell_environment("tech", t)
+    local cell = _get_cell(state, cellname)
+    _override_cell_environment(nil)
 
+    -- all loaded cells are in a unusable state after collecting the parameters. Reset and start again
+    state.loadedcells = {}
+
+    -- check if cell is instantiable
+    local t = {
+        get_dimension = function(name) return 4 end, -- FIXME: find a suitable return value
+    }
+    _override_cell_environment("tech", t)
+    local status, msg = pcall(M.create_layout, cellname)
+    if not status then
+        print(string.format("cell '%s' is not instantiable. Error: %s", cellname, msg))
+        return
+    end
+
+    -- check cell parameters
     for _, name in ipairs(cell.parameters:get_names()) do
         local parameter = cell.parameters:get(name)
         if parameter.argtype == "number" or parameter.argtype == "integer" then

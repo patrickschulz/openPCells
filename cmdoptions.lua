@@ -97,7 +97,7 @@ return {
     },
     switch{ 
         name  = "check", long  = "--check",
-        help  = "check cell code"
+        help  = "check cell code and parameter variations. Strict checking, e.g. if a cell parameter can not work with even values, specify the parameter as even()"
     },
     switch{ 
         name  = "notech", long  = "--notech",
