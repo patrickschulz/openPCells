@@ -169,7 +169,7 @@ static int call_main_program(lua_State* L, const char* filename)
     if (status == LUA_OK) {
         lua_pushcfunction(L, msghandler);
         lua_insert(L, 1);
-        status = lua_pcall(L, 0, 0, 1);
+        status = lua_pcall(L, 0, 1, 1);
     }
     if(status != LUA_OK) 
     {
@@ -251,7 +251,9 @@ int main (int argc, char** argv)
         create_argument_table(L, argc, argv);
         status = call_main_program(L, OPC_HOME "/" MAINPROGNAME);
     }
+    int retval = lua_tointeger(L, -1);
     lua_close(L);
-    return status == LUA_OK ? 0 : 1;
+    //return status == LUA_OK ? 0 : 1;
+    return retval;
 }
 
