@@ -127,6 +127,7 @@ static void load_api(lua_State* L)
         "support",
         "envlib",
         "profiler",
+        "globals",
         "pcell", // load as last module (FIXME: no longer needed, I think)
         NULL
     };

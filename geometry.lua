@@ -2,10 +2,10 @@ local M = {}
 
 function M.rectangle(layer, width, height)
     if width % 2 ~= 0 then 
-        error("geometry.rectangle: width must be a multiple of 2. Use rectanglebltr if you need odd coordinates", 0)
+        moderror("geometry.rectangle: width must be a multiple of 2. Use rectanglebltr if you need odd coordinates")
     end
     if height % 2 ~= 0 then 
-        error("geometry.rectangle: height must be a multiple of 2. Use rectanglebltr if you need odd coordinates", 0)
+        moderror("geometry.rectangle: height must be a multiple of 2. Use rectanglebltr if you need odd coordinates")
     end
     local S = shape.create_rectangle(layer, width, height)
     return object.make_from_shape(S)
@@ -17,9 +17,9 @@ function M.rectanglebltr(layer, bl, tr)
 end
 
 function M.cross(layer, width, height, crosssize)
-    assert(width % 2 == 0, "cross: width must be a multiple of 2")
-    assert(height % 2 == 0, "cross: height must be a multiple of 2")
-    assert(crosssize % 2 == 0, "cross: crosssize must be a multiple of 2")
+    modassert(width % 2 == 0, "geometry.cross: width must be a multiple of 2")
+    modassert(height % 2 == 0, "geometry.cross: height must be a multiple of 2")
+    modassert(crosssize % 2 == 0, "geometry.cross: crosssize must be a multiple of 2")
     local S = shape.create_polygon(layer)
     local append = util.make_insert_xy(S.points)
     append(    -width / 2, -crosssize / 2)
@@ -39,8 +39,8 @@ function M.cross(layer, width, height, crosssize)
 end
 
 function M.ring(layer, width, height, ringwidth)
-    assert((width + ringwidth) % 2 == 0, "ring: width +- ringwidth must be a multiple of 2")
-    assert((height + ringwidth) % 2 == 0, "ring: height +- ringwidth must be a multiple of 2")
+    modassert((width + ringwidth) % 2 == 0, "geometry.ring: width +- ringwidth must be a multiple of 2")
+    modassert((height + ringwidth) % 2 == 0, "geometry.ring: height +- ringwidth must be a multiple of 2")
     local S = shape.create_polygon(layer)
     local append = util.make_insert_xy(S.points)
     append(-(width + ringwidth) / 2, -(height + ringwidth) / 2)
@@ -368,7 +368,7 @@ function M.path_midpoint(layer, pts, width, method, miterjoin)
         end
         append(pts[#pts]:unwrap())
     else
-        error(string.format("unknown midpoint path method: %s", method))
+        moderror(string.format("unknown midpoint path method: %s", method))
     end
     return M.path(layer, newpts, width, miterjoin)
 end
@@ -400,8 +400,8 @@ end
 --]]
 
 function M.multiple(obj, xrep, yrep, xpitch, ypitch)
-    assert(xpitch % 2 == 0)
-    assert(ypitch % 2 == 0)
+    modassert(xpitch % 2 == 0, "geometry.multiple: xpitch must be even")
+    modassert(ypitch % 2 == 0, "geometry.multiple: ypitch must be even")
     local final = object.create()
     for x = 1, xrep do
         for y = 1, yrep do
