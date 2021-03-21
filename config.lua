@@ -8,13 +8,15 @@ function M.load_user_config()
     if reader then
         local env = {
             prependcellpath = pcell.prepend_cellpath,
-            appendcellpath = pcell.append_cellpath
+            appendcellpath = pcell.append_cellpath,
+            --set_option = 
         }
-        local status, c = pcall(_generic_load, reader, chunkname, nil, nil, env)
+        local status, msg = pcall(_generic_load, reader, chunkname, nil, nil, env)
         if not status then
-            print(c)
+            print(msg)
+            return false
         else
-            return c
+            return true
         end
     end
 end
