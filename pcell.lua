@@ -355,6 +355,7 @@ function state.create_cellenv(state, cellname, ovrenv)
         type = type,
         ipairs = ipairs,
         pairs = pairs,
+        error = error,
     }
     if ovrenv then
         for k, v in pairs(ovrenv) do
@@ -379,6 +380,18 @@ function M.list_cellpaths()
     end
 end
 
+local function _find_cell_traceback()
+    local level = 2
+    while true do
+        local d = debug.getinfo(level, "Slnt")
+        if not d then break end
+        if string.match(d.source, "^@cell") then
+            return d.currentline
+        end
+        level = level + 1
+    end
+end
+
 function M.create_layout(cellname, args, evaluate)
     local cell = _get_cell(state, cellname)
     if not cell.funcs.layout then
@@ -387,9 +400,9 @@ function M.create_layout(cellname, args, evaluate)
     local obj = object.create(cellname)
     local parameters, backup = _get_parameters(state, cellname, cellname, args, evaluate) -- cellname needs to be passed twice
     _restore_parameters(state, cellname, backup)
-    local status, msg = pcall(cell.funcs.layout, obj, parameters)
+    local status, msg = xpcall(cell.funcs.layout, function(err) return { msg = err, where = _find_cell_traceback() } end, obj, parameters)
     if not status then
-        error(string.format("could not create cell '%s': %s", cellname, msg))
+        error(string.format("could not create cell '%s'. Error in line %d: %s", cellname, msg.where, msg.msg), 0)
     end
     return obj
 end

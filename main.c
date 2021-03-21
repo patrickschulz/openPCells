@@ -106,6 +106,7 @@ void load_lualibs(lua_State *L)
     }
 }
 
+
 static void load_api(lua_State* L)
 {
     const char* const modules[] = {
@@ -126,7 +127,7 @@ static void load_api(lua_State* L)
         "support",
         "envlib",
         "profiler",
-        "pcell", // load as last module
+        "pcell", // load as last module (FIXME: no longer needed, I think)
         NULL
     };
     const char* const * ptr = modules;

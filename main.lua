@@ -107,7 +107,11 @@ if args.params then
 end
 
 -- create cell
-local cell = pcell.create_layout(args.cell, args.cellargs, true)
+local status, cell = pcall(pcell.create_layout, args.cell, args.cellargs, true)
+if not status then
+    errprint(cell)
+    return 1
+end
 
 -- move origin
 if args.origin then
