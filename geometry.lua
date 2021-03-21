@@ -1,8 +1,12 @@
 local M = {}
 
 function M.rectangle(layer, width, height)
-    assert(width % 2 == 0, "rectangle: width must be a multiple of 2. Use rectanglebltr if you need odd coordinates")
-    assert(height % 2 == 0, "rectangle: height must be a multiple of 2. Use rectanglebltr if you need odd coordinates")
+    if width % 2 ~= 0 then 
+        error("geometry.rectangle: width must be a multiple of 2. Use rectanglebltr if you need odd coordinates", 0)
+    end
+    if height % 2 ~= 0 then 
+        error("geometry.rectangle: height must be a multiple of 2. Use rectanglebltr if you need odd coordinates", 0)
+    end
     local S = shape.create_rectangle(layer, width, height)
     return object.make_from_shape(S)
 end
@@ -194,6 +198,35 @@ local function _modify_point_stream(pts, func)
         local newpt = func(pt1, pt2)
         table.insert(pts, idx + 1, newpt)
     end
+end
+
+function M.path_points_xy(startpt, movements)
+    local pts = {}
+    table.insert(pts, startpt)
+    local xnoty = true
+    local lastx, lasty = startpt:unwrap()
+    for _, mov in ipairs(movements) do
+        if is_lpoint(mov) then
+            local x, y = mov:unwrap()
+            if xnoty then
+                table.insert(pts, point.create(x, lasty))
+            else
+                table.insert(pts, point.create(lastx, y))
+            end
+            lastx = x
+            lasty = y
+            xnoty = not xnoty
+        else
+            if xnoty then
+                lastx = lastx + mov
+            else
+                lasty = lasty + mov
+            end
+        end
+        table.insert(pts, point.create(lastx, lasty))
+        xnoty = not xnoty
+    end
+    return pts
 end
 
 function M.path_xy(layer, pts, width, miterjoin)

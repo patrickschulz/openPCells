@@ -21,6 +21,7 @@ This is not part of the test suite, which tests openPCells itself. This checks c
 already partly implemented in --check but needs more attention. 
 ## improve error messages for cell generators 2/2
 Due to the way cells are loaded, the error messages caused by the code in the cell does not actually tell the location in the cell but in `pcell.lua`. This does
-not help the user and has to be fixed.
+not help the user and has to be fixed. UPDATE: I've fixed this partly, the error message is now helpful. For a better user interface the underlying calls to the
+error functions in all modules need improvements. See geometry.rectangle as a positive example.
 ## create a logo -/- (not a code issue)
 I would like to have a nice logo, perhaps something with a wafer in it.

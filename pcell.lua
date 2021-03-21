@@ -402,7 +402,7 @@ function M.create_layout(cellname, args, evaluate)
     _restore_parameters(state, cellname, backup)
     local status, msg = xpcall(cell.funcs.layout, function(err) return { msg = err, where = _find_cell_traceback() } end, obj, parameters)
     if not status then
-        error(string.format("could not create cell '%s'. Error in line %d: %s", cellname, msg.where, msg.msg), 0)
+        error(string.format("could not create cell '%s'. Error in line %d\n  -> %s", cellname, msg.where, msg.msg), 0)
     end
     return obj
 end
