@@ -139,6 +139,10 @@ if args.orientation then
     f()
 end
 
+if args.layerfilter then
+    -- TODO
+end
+
 if not args.export then
     errprint("no export type given")
     return 1

@@ -49,6 +49,10 @@ return {
         name = "cellpath", long = "--cellpath",
         help = "synonym for --append-cellpath"
     },
+    store_multiple{
+        name = "layerfilter", long = "--filter",
+        help = "filter layers to be generated. Any layer (in generic notation) in this list will not be generated. (not yet implemented)"
+    },
     switch{
         name = "human", short = "-H", long = "--human",
         help = "format info output (parameters, cell lists etc.) for humans"
