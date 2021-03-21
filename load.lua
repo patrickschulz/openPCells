@@ -16,18 +16,18 @@ function _generic_load(reader, chunkname, synerrmsg, semerrmsg, env)
 
     if not func then
         if synerrmsg then
-            error(string.format("%s: %s", synerrmsg, msg))
+            moderror(string.format("%s: %s", synerrmsg, msg))
         else
-            error(msg)
+            moderror(msg)
         end
     end
 
     local status, chunk = pcall(func)
     if not status then
         if semerrmsg then
-            error(string.format("%s: %s", semerrmsg, chunk))
+            moderror(string.format("%s: %s", semerrmsg, chunk))
         else
-            error(chunk)
+            moderror(chunk)
         end
     end
 
@@ -36,14 +36,14 @@ end
 
 function _load_module(modname)
     if not modname then
-        error("no module name given")
+        moderror("no module name given")
     end
     local filename = string.format("%s/%s.lua", _get_opc_home(), modname)
     local chunkname = string.format("@%s", modname)
 
     local reader, msg = _get_reader(filename)
     if not reader then
-        error(msg)
+        moderror(msg)
     end
 
     return _generic_load(reader, chunkname)

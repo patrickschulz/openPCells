@@ -26,7 +26,9 @@ end
 math.randomseed(os.time())
 
 -- load user configuration
-config.load_user_config()
+if not config.load_user_config() then
+    return 1
+end
 
 -- set default path for pcells
 pcell.append_cellpath(string.format("%s/cells", _get_opc_home()))
