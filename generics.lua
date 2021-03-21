@@ -9,6 +9,8 @@ local function _create(value)
         get = function(self)
             if self.typ == "via" then
                 return self.value.from, self.value.to
+            elseif self.typ == "contact" then
+                return self.value, self.special
             else
                 return self.value
             end
@@ -46,9 +48,10 @@ function M.via(from, to)
     return self
 end
 
-function M.contact(region)
+function M.contact(region, special)
     local self = _create(region)
     self.typ = "contact"
+    self.special = special
     return self
 end
 

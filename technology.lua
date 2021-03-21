@@ -97,6 +97,7 @@ local function _do_array(cell, S, entry, export)
         geometry.rectangle(generics.mapped(_get_lpp(lpp, export)), entry.width + enlarge, entry.height + enlarge),
         xrep, yrep, xpitch, ypitch
     )
+    cut:translate(entry.xshift or 0, entry.yshift or 0)
     cell:merge_into(cut:translate(c:unwrap()))
 end
 
