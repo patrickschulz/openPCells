@@ -106,8 +106,26 @@ if args.params then
     return 0
 end
 
+-- read parameters from pfile and merge with command line parameters
+local cellargs = {}
+if args.paramfile then
+    local t = dofile(args.paramfile)
+    for cellname, params in pairs(t) do
+        if type(params) == "table" then
+            for n, p in pairs(params) do
+                cellargs[string.format("%s.%s", cellname, n)] = p
+            end
+        else -- direct parameter for the cell, cellname == parameter name
+            cellargs[cellname] = params
+        end
+    end
+end
+for k, v in pairs(args.cellargs) do
+    cellargs[k] = v
+end
+
 -- create cell
-local status, cell = pcall(pcell.create_layout, args.cell, args.cellargs, true)
+local status, cell = pcall(pcell.create_layout, args.cell, cellargs, true)
 if not status then
     errprint(cell)
     return 1
@@ -141,6 +159,17 @@ end
 
 if args.layerfilter then
     -- TODO
+    for i, S in cell:iter() do
+        for _, layer in ipairs(args.layerfilter) do
+            local delete = false
+            if S.lpp:str() == layer then
+                delete = true
+            end
+            if delete then
+                cell:remove_shape(i)
+            end
+        end
+    end
 end
 
 if not args.export then
