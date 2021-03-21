@@ -23,5 +23,7 @@ already partly implemented in --check but needs more attention.
 Due to the way cells are loaded, the error messages caused by the code in the cell does not actually tell the location in the cell but in `pcell.lua`. This does
 not help the user and has to be fixed. UPDATE: I've fixed this partly, the error message is now helpful. For a better user interface the underlying calls to the
 error functions in all modules need improvements. See geometry.rectangle as a positive example.
+## simplify lload.c
+The code is copied from the standard lua distribution, which offers features not needed (e.g. skipBOM).
 ## create a logo -/- (not a code issue)
 I would like to have a nice logo, perhaps something with a wafer in it.
