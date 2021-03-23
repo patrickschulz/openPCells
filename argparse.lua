@@ -97,7 +97,8 @@ local positional = function(self, res, args)
 end
 
 local function _get_action(self, args)
-    local action = self.actions[args[self.state.i]]
+    local name = self.nameresolve[args[self.state.i]]
+    local action = self.actions[name]
     if not action then
         if string.match(args[self.state.i], "^-") then
             error(string.format("commandline arguments: unknown option '%s'", args[self.state.i]))
@@ -164,47 +165,45 @@ end
 
 function meta.load_options(self, options)
     self.optionsdef = _load_options(options)
-    self.actions = {}
+    table.insert(self.optionsdef, 1, { name = "help", short = "-h", long = "--help", help = "display this help and exit", func = _display_help })
+    table.insert(self.optionsdef, 2, { name = "version", short = "-v", long = "--version", help = "display version and exit", func = _display_version })
     for key, opt in ipairs(self.optionsdef) do
         if not opt.issection then
             if opt.short then
-                self.actions[opt.short] = opt.func
+                self.nameresolve[opt.short] = opt.name
             end
             if opt.long then
-                self.actions[opt.long] = opt.func
+                self.nameresolve[opt.long] = opt.name
             end
+            self.actions[opt.name] = opt.func
         end
     end
-
-    -- install help
-    self.actions["-h"] = _display_help
-    self.actions["--help"] = _display_help
-    table.insert(self.optionsdef, 1, { short = "-h", long = "--help", help = "display this help and exit" })
-
-    -- install version
-    self.actions["-v"] = _display_version
-    self.actions["--version"] = _display_version
-    table.insert(self.optionsdef, 2, { short = "-v", long = "--version", help = "display version and exit" })
 end
 
 function meta.parse(self, args)
-    local res = { cellargs = {} }
     while self.state.i <= #args do
         local action = _get_action(self, args)
-        action(self, res, args)
+        action(self, self.res, args)
         _advance(self.state)
     end
     -- split key=value pairs
     local cellargs = {}
-    for k, v in string.gmatch(table.concat(res.cellargs, " "), "([%w/._]+)%s*=%s*(%S+)") do
+    for k, v in string.gmatch(table.concat(self.res.cellargs, " "), "([%w/._]+)%s*=%s*(%S+)") do
         cellargs[k] = v
     end
-    res.cellargs = cellargs
-    return res
+    self.res.cellargs = cellargs
+    return self.res
+end
+
+function meta.set_option(self, arg, value)
+    local action = self.actions[arg]
 end
 
 local self = {
-    state = { i = 1 }
+    state = { i = 1 },
+    actions = {},
+    nameresolve = {},
+    res = { cellargs = {} }
 }
 setmetatable(self, meta)
 return self
