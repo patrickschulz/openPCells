@@ -9,7 +9,7 @@ function M.load_user_config()
         local env = {
             prependcellpath = pcell.prepend_cellpath,
             appendcellpath = pcell.append_cellpath,
-            --set_option = 
+            set_option = function(key, val) argparse:set_option(key, val) end,
         }
         local status, msg = pcall(_generic_load, reader, chunkname, nil, nil, env)
         if not status then
