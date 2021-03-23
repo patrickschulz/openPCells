@@ -65,6 +65,11 @@ return {
         name  = "separator", long  = "--separator",
         help  = "cell parameter separator (default \\n)"
     },
+    section("Miscellaneous functions"),
+    switch{
+        name = "nouserconfig", long = "--nouserconfig",
+        help = "don't load the user config"
+    },
     section("Info functions"),
     switch{ 
         name  = "params", short = "-P", long  = "--parameters",

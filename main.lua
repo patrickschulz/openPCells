@@ -25,8 +25,10 @@ end
 math.randomseed(os.time())
 
 -- load user configuration
-if not config.load_user_config() then
-    return 1
+if not args.nouserconfig then
+    if not config.load_user_config() then
+        return 1
+    end
 end
 
 -- set default path for pcells
