@@ -1,5 +1,4 @@
 -- parse command line arguments
-local argparse = _load_module("argparse")
 argparse:load_options("cmdoptions")
 local args, msg = argparse:parse(arg)
 if not args then

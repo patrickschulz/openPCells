@@ -110,6 +110,7 @@ void load_lualibs(lua_State *L)
 static void load_api(lua_State* L)
 {
     const char* const modules[] = {
+        "argparse",
         "lpoint", // lua part of lpoint module
         "technology",
         "export",
