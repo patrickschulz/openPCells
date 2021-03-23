@@ -97,7 +97,7 @@ return {
         help  = "collect and display profiling data"
     },
     switch{ 
-        name  = "verbose", short = "-v", long  = "--verbose",
+        name  = "verbose", short = "-V", long  = "--verbose",
         help  = "enable verbose output"
     },
     store{ 

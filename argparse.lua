@@ -96,19 +96,6 @@ local positional = function(self, res, args)
     table.insert(res["cellargs"], args[self.state.i])
 end
 
-local function _get_action(self, args)
-    local name = self.nameresolve[args[self.state.i]]
-    local action = self.actions[name]
-    if not action then
-        if string.match(args[self.state.i], "^-") then
-            error(string.format("commandline arguments: unknown option '%s'", args[self.state.i]))
-        end
-        return positional
-    else
-        return action
-    end
-end
-
 local meta = {}
 meta.__index = meta
 
@@ -126,34 +113,39 @@ local function _load_options(options)
 
     local env = {
         switch = function(t)
-            t.func = function(self, res, args)
-                res[t.name] = true
+            t.func = function(self)
+                self.res[t.name] = true
             end
+            t.parser = function() end
             return t
         end,
         store = function(t)
-            t.func = function(self, res, args)
-                res[t.name] = _next_arg(args, self.state)
+            t.func = function(self, arg)
+                self.res[t.name] = arg
             end
+            t.parser = function(self, args) return _next_arg(args, self.state) end
             return t
         end,
         store_multiple = function(t)
-            t.func = function(self, res, args)
+            t.func = function(self, arg)
                 if not res[t.name] then res[t.name] = {} end
-                table.insert(res[t.name], _next_arg(args, self.state))
+                table.insert(res[t.name], arg)
             end
+            t.parser = function(self, args) return _next_arg(args, self.state) end
             return t
         end,
         consumer_string = function(t)
-            t.func = function(self, res, args)
-                res[t.name] = _consume_until_hyphen(args, self.state)
+            t.func = function(self, arg)
+                res[t.name] = arg
             end
+            t.parser = function(self, args) return _consume_until_hyphen(args, self.state) end
             return t
         end,
         consumer_table = function(t)
-            t.func = function(self, res, args)
-                res[t.name] = _parse_key_value_pairs(_consume_until_hyphen(args, self.state))
+            t.func = function(self, arg)
+                res[t.name] = arg
             end
+            t.parser = function(self, args) return _parse_key_value_pairs(_consume_until_hyphen(args, self.state)) end
             return t
         end,
         section = function(name)
@@ -165,8 +157,8 @@ end
 
 function meta.load_options(self, options)
     self.optionsdef = _load_options(options)
-    table.insert(self.optionsdef, 1, { name = "help", short = "-h", long = "--help", help = "display this help and exit", func = _display_help })
-    table.insert(self.optionsdef, 2, { name = "version", short = "-v", long = "--version", help = "display version and exit", func = _display_version })
+    table.insert(self.optionsdef, 1, { name = "help", short = "-h", long = "--help", help = "display this help and exit", func = _display_help, parser = function() end })
+    table.insert(self.optionsdef, 2, { name = "version", short = "-v", long = "--version", help = "display version and exit", func = _display_version, parser = function() end })
     for key, opt in ipairs(self.optionsdef) do
         if not opt.issection then
             if opt.short then
@@ -175,15 +167,40 @@ function meta.load_options(self, options)
             if opt.long then
                 self.nameresolve[opt.long] = opt.name
             end
+            self.parsers[opt.name] = opt.parser
             self.actions[opt.name] = opt.func
         end
     end
 end
 
+local function _get_parser(self, args)
+    local name = self.nameresolve[args[self.state.i]]
+    local parser = self.parsers[name]
+    return parser
+end
+
+local function _get_action(self, args)
+    local name = self.nameresolve[args[self.state.i]]
+    local action = self.actions[name]
+    if not action then
+        if string.match(args[self.state.i], "^-") then
+            return nil, string.format("commandline arguments: unknown option '%s'", args[self.state.i])
+        end
+        return positional
+    else
+        return action
+    end
+end
+
 function meta.parse(self, args)
     while self.state.i <= #args do
-        local action = _get_action(self, args)
-        action(self, self.res, args)
+        local parser = _get_parser(self, args)
+        local action, msg = _get_action(self, args)
+        local arg = parser(self, args)
+        if not action then
+            return nil, msg
+        end
+        action(self, arg)
         _advance(self.state)
     end
     -- split key=value pairs
@@ -195,12 +212,14 @@ function meta.parse(self, args)
     return self.res
 end
 
-function meta.set_option(self, arg, value)
-    local action = self.actions[arg]
+function meta.set_option(self, param, arg)
+    local action = self.actions[param]
+    action(self, arg)
 end
 
 local self = {
     state = { i = 1 },
+    parsers = {},
     actions = {},
     nameresolve = {},
     res = { cellargs = {} }
