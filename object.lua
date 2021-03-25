@@ -229,13 +229,13 @@ local function _get_anchor(self, name)
             local blx, bly = self.alignmentbox.bl:unwrap()
             local trx, try = self.alignmentbox.tr:unwrap()
             if name == "left" then
-                return point.create(blx, 0)
+                return point.create(blx, (bly + try) / 2)
             elseif name == "right" then
-                return point.create(trx, 0)
+                return point.create(trx, (bly + try) / 2)
             elseif name == "top" then
-                return point.create(0, try)
+                return point.create((blx + trx) / 2, try)
             elseif name == "bottom" then
-                return point.create(0, bly)
+                return point.create((blx + trx) / 2, bly)
             elseif name == "bottomleft" then
                 return point.create(blx, bly)
             elseif name == "bottomright" then
@@ -258,30 +258,6 @@ end
 function meta.get_anchor(self, name)
     local anchor = _get_anchor(self, name)
     return anchor:copy()
-end
-
-function meta.align(self, where)
-    local blx, bly = self.alignmentbox.bl:unwrap()
-    local trx, try = self.alignmentbox.tr:unwrap()
-        if where == "left"        then
-        return point.create(blx, (bly + try) / 2)
-    elseif where == "right"       then
-        return point.create(trx, (bly + try) / 2)
-    elseif where == "top"         then
-        return point.create((blx + trx) / 2, try)
-    elseif where == "bottom"      then
-        return point.create((blx + trx) / 2, bly)
-    elseif where == "topleft"     then
-        return point.create(blx, try)
-    elseif where == "topright"    then
-        return point.create(trx, try)
-    elseif where == "bottomleft"  then
-        return point.create(blx, bly)
-    elseif where == "bottomright" then
-        return point.create(trx, bly)
-    else 
-        error(string.format("unknown alignment anchor '%s'", where))
-    end
 end
 
 function meta.move_anchor(self, name, where)
