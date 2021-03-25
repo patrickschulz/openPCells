@@ -34,6 +34,10 @@ return {
         help  = "origin of cell (move (0, 0))"
     },
     consumer_string{ 
+        name  = "translate", long  = "--translate",
+        help  = "move cell by (x, y)"
+    },
+    consumer_string{ 
         name  = "orientation", long  = "--orientation",
         help  = "orientation of cell (possible values: 0 (regular), fx (flip x), fy (flip y), fxy (flip x and y))"
     },
@@ -69,6 +73,10 @@ return {
     switch{
         name = "drawaxes", long = "--draw-axes",
         help = "draw axes. They are drawn in the 'special' layer, so your layermap needs to have an entry for that."
+    },
+    store{
+        name = "drawanchor", long = "--draw-anchor",
+        help = "draw a cell anchor. It is drawn in the 'special' layer, so your layermap needs to have an entry for that."
     },
     switch{
         name = "drawalignmentbox", long = "--draw-alignmentbox",

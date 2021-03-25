@@ -144,6 +144,16 @@ if args.origin then
     cell:translate(dx, dy)
 end
 
+-- translate
+if args.translate then
+    local dx, dy = string.match(args.origin, "%(%s*([-%d]+)%s*,%s*([-%d]+)%s*%)")
+    if not dx then
+        errprint(string.format("could not parse translation (%s)", args.translate))
+        return 1
+    end
+    cell:translate(dx, dy)
+end
+
 -- orientation
 if args.orientation then
     local lut = {
@@ -168,6 +178,13 @@ if args.drawaxes then
     local factor = 2
     cell:merge_into(geometry.rectanglebltr(generics.special(), point.create(-5, factor * miny), point.create(5, factor * maxy)))
     cell:merge_into(geometry.rectanglebltr(generics.special(), point.create(factor * minx, -5), point.create(factor * maxx, 5)))
+end
+
+if args.drawanchor then
+    local anchor = cell:get_anchor(args.drawanchor)
+    local x, y = anchor:unwrap()
+    cell:merge_into(geometry.rectanglebltr(generics.special(), point.create(x - 5, y - 100), point.create(x + 5, y + 100)))
+    cell:merge_into(geometry.rectanglebltr(generics.special(), point.create(x - 100, y - 5), point.create(x + 100, y + 5)))
 end
 
 -- add drawing of alignment box
