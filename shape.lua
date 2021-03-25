@@ -163,6 +163,7 @@ function M.flipx(self, xcenter)
         self.points.bl = point.create(2 * xcenter - trx, bly)
         self.points.tr = point.create(2 * xcenter - blx, try)
     end
+    self.lpp:flipx()
     return self
 end
 
@@ -176,6 +177,7 @@ function M.flipy(self, ycenter)
         self.points.bl = point.create(blx, 2 * ycenter - try)
         self.points.tr = point.create(trx, 2 * ycenter - bly)
     end
+    self.lpp:flipy()
     return self
 end
 

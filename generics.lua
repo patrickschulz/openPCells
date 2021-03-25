@@ -29,6 +29,16 @@ local function _create(value)
             else
                 return self.value
             end
+        end,
+        flipx = function(self)
+            if self.typ == "feol" then
+                self.value.expand.left, self.value.expand.right = self.value.expand.right, self.value.expand.left
+            end
+        end,
+        flipy = function(self)
+            if self.typ == "feol" then
+                self.value.expand.top, self.value.expand.bottom = self.value.expand.bottom, self.value.expand.top
+            end
         end
     }
     setmetatable(self, M)
