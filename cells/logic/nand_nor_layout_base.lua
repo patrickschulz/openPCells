@@ -16,7 +16,9 @@ function layout(gate, _P)
     local xpitch = bp.gspace + bp.glength
     local block = object.create()
 
+    pcell.push_overwrites("logic/base", { rightdummies = 0 })
     gate:merge_into(pcell.create_layout("logic/harness", { fingers = 2 * _P.fingers }))
+    pcell.pop_overwrites("logic/base")
 
     -- common transistor options
     pcell.push_overwrites("basic/transistor", {
@@ -53,18 +55,18 @@ function layout(gate, _P)
     -- gate contacts
     block:merge_into(geometry.rectangle(
         generics.contact("gate"), bp.glength, bp.gstwidth
-    ):translate(xpitch / 2, bp.separation / 4))
+    ):translate(xpitch / 2, bp.separation / 4 + bp.sdwidth / 4))
     block:merge_into(geometry.rectangle(
         generics.contact("gate"), bp.glength, bp.gstwidth
-    ):translate(-xpitch / 2, -bp.separation / 4))
-    local num = 2 * _P.fingers - 1 - math.abs(_P.fingers % 2 - 1)
-    local num2 = 2 * _P.fingers - 1 + math.abs(_P.fingers % 2 - 1)
+    ):translate(-xpitch / 2, -bp.separation / 4 - bp.sdwidth / 4))
+    local num2 = 2 * _P.fingers - 1 - math.abs(_P.fingers % 2 - 1)
+    local num = 2 * _P.fingers - 1 + math.abs(_P.fingers % 2 - 1)
     gate:merge_into(geometry.rectangle(
         generics.metal(1), num * bp.glength + (num - 1) * bp.gspace, bp.gstwidth
-    ):translate(-(_P.fingers % 2) * xpitch / 2, -bp.separation / 4))
+    ):translate((_P.fingers % 2) * xpitch / 2, bp.separation / 4 + bp.sdwidth / 4))
     gate:merge_into(geometry.rectangle(
         generics.metal(1), num2 * bp.glength + (num2 - 1) * bp.gspace, bp.gstwidth
-    ):translate((_P.fingers % 2) * xpitch / 2, bp.separation / 4))
+    ):translate(-(_P.fingers % 2) * xpitch / 2, -bp.separation / 4 -bp.sdwidth / 4))
 
     -- TODO: improve structure by re-using statements
     -- pmos source/drain contacts
@@ -129,6 +131,7 @@ function layout(gate, _P)
     local xincr = bp.compact and 0 or 1
     local yinvert = _P.gatetype == "nand" and 1 or -1
     local poffset = _P.fingers % 2 == 0 and (_P.fingers - 2) or _P.fingers
+    --[[
     gate:merge_into(geometry.path(
         generics.metal(1),
         {
@@ -140,11 +143,43 @@ function layout(gate, _P)
         bp.sdwidth,
         true
     ))
+    --]]
+    if _P.fingers % 2 == 0 then
+        gate:merge_into(geometry.path(
+            generics.metal(1),
+            geometry.path_points_xy(
+                point.create(-(_P.fingers - 1) * xpitch, yinvert * (bp.separation + bp.sdwidth) / 2),
+                {
+                    2 * (_P.fingers - 1) * xpitch + 3 * xpitch / 2,
+                    -bp.separation - bp.sdwidth,
+                    -(2 * (_P.fingers) - 2) * xpitch - xpitch / 2
+                }
+            ),
+            bp.sdwidth,
+            true
+        ))
+    else
+        gate:merge_into(geometry.path(
+            generics.metal(1),
+            geometry.path_points_xy(
+                point.create((_P.fingers - 1) * xpitch, yinvert * (bp.separation + bp.sdwidth) / 2),
+                {
+                    -2 * (_P.fingers - 1) * xpitch - xpitch / 2,
+                    -bp.separation / 2 - bp.sdwidth / 2,
+                    (2 * (_P.fingers - 1) + 1) * xpitch,
+                    -bp.separation / 2 - bp.sdwidth / 2,
+                    -(2 * (_P.fingers - 1) + 1) * xpitch - xpitch / 2
+                }
+            ),
+            bp.sdwidth,
+            true
+        ))
+    end
 
     pcell.pop_overwrites("basic/transistor")
 
     gate:set_alignment_box(
-        point.create(-(2 * _P.fingers + bp.leftdummies) * (bp.glength + bp.gspace) / 2, -bp.separation / 2 - bp.nwidth - bp.powerspace - bp.powerwidth / 2),
-        point.create((2 * _P.fingers + bp.rightdummies) * (bp.glength + bp.gspace) / 2, bp.separation / 2 + bp.pwidth + bp.powerspace + bp.powerwidth / 2)
+        point.create(-(2 * _P.fingers + 2 * bp.leftdummies) * (bp.glength + bp.gspace) / 2, -bp.separation / 2 - bp.nwidth - bp.powerspace - bp.powerwidth / 2),
+        point.create((2 * _P.fingers + 2 * bp.rightdummies) * (bp.glength + bp.gspace) / 2, bp.separation / 2 + bp.pwidth + bp.powerspace + bp.powerwidth / 2)
     )
 end
