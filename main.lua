@@ -160,22 +160,6 @@ if args.orientation then
     f()
 end
 
--- filter layers
-if args.layerfilter then
-    -- TODO
-    for i, S in cell:iter() do
-        for _, layer in ipairs(args.layerfilter) do
-            local delete = false
-            if S.lpp:str() == layer then
-                delete = true
-            end
-            if delete then
-                cell:remove_shape(i)
-            end
-        end
-    end
-end
-
 -- add axes
 if args.drawaxes then
     local bb = cell:bounding_box()
@@ -192,6 +176,22 @@ if args.drawalignmentbox then
     if ab then
         local box = geometry.rectanglebltr(generics.special(), ab.bl, ab.tr)
         cell:merge_into(box)
+    end
+end
+
+-- filter layers
+if args.layerfilter then
+    -- TODO
+    for i, S in cell:iter() do
+        for _, layer in ipairs(args.layerfilter) do
+            local delete = false
+            if S.lpp:str() == layer then
+                delete = true
+            end
+            if delete then
+                cell:remove_shape(i)
+            end
+        end
     end
 end
 
