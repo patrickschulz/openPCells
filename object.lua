@@ -44,6 +44,13 @@ function meta.merge_into(self, other)
     end
 end
 
+function meta.merge_into_update_alignmentbox(self, other)
+    meta.inherit_alignment_box(self, other)
+    for _, shape in other:iter() do
+        self:add_shape(shape)
+    end
+end
+
 function meta.is_empty(self)
     return #self.shapes == 0
 end
