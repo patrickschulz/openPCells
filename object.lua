@@ -107,6 +107,10 @@ function meta.translate(self, dx, dy)
         port.where:translate(dx, dy)
     end
     self.origin:translate(dx, dy)
+    if self.alignmentbox then
+        self.alignmentbox.bl:translate(dx, dy)
+        self.alignmentbox.tr:translate(dx, dy)
+    end
     return self
 end
 
@@ -222,25 +226,24 @@ end
 local function _get_anchor(self, name)
     if not self.anchors[name] then
         if self.alignmentbox then
-            local cx, cy = self.origin:unwrap()
             local blx, bly = self.alignmentbox.bl:unwrap()
             local trx, try = self.alignmentbox.tr:unwrap()
             if name == "left" then
-                return point.create(cx + blx, cy)
+                return point.create(blx, 0)
             elseif name == "right" then
-                return point.create(cx + trx, cy)
+                return point.create(trx, 0)
             elseif name == "top" then
-                return point.create(cx, cy + try)
+                return point.create(0, try)
             elseif name == "bottom" then
-                return point.create(cx, cy + bly)
+                return point.create(0, bly)
             elseif name == "bottomleft" then
-                return point.create(cx + blx, cy + bly)
+                return point.create(blx, bly)
             elseif name == "bottomright" then
-                return point.create(cx + trx, cy + bly)
+                return point.create(trx, bly)
             elseif name == "topleft" then
-                return point.create(cx + blx, cy + try)
+                return point.create(blx, try)
             elseif name == "topright" then
-                return point.create(cx + trx, cy + try)
+                return point.create(trx, try)
             end
         end
         if self.name then
