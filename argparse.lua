@@ -91,9 +91,8 @@ local function _display_version(self)
     os.exit(0)
 end
 
---local positional = _consumer_table_func("cellargs")
-local positional = function(self, res, args)
-    table.insert(res["cellargs"], args[self.state.i])
+local positional = function(self, arg)
+    table.insert(self.res.cellargs, arg)
 end
 
 local meta = {}
@@ -176,6 +175,9 @@ end
 local function _get_parser(self, args)
     local name = self.nameresolve[args[self.state.i]]
     local parser = self.parsers[name]
+    if not parser then
+        return function(self, args) return args[self.state.i] end -- dummy parser for positional arguments
+    end
     return parser
 end
 

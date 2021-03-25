@@ -2,7 +2,7 @@
 argparse:load_options("cmdoptions")
 local args, msg = argparse:parse(arg)
 if not args then
-    print(msg)
+    errprint(msg)
     return 1
 end
 -- check command line options sanity
@@ -62,9 +62,9 @@ if args.listcells or args.listallcells then
     local sep = args.separator or "\n"
     local cells = pcell.list(args.listallcells)
     for _, entry in ipairs(cells) do
-        print(string.format("%s:", entry.path))
+        infoprint(string.format("%s:", entry.path))
         for _, cellname in ipairs(entry.cells) do
-            print(string.format("  %s", cellname))
+            infoprint(string.format("  %s", cellname))
         end
     end
     return 0
@@ -124,6 +124,7 @@ if args.paramfile then
     end
 end
 for k, v in pairs(args.cellargs) do
+    print(k, v)
     cellargs[k] = v
 end
 

@@ -6,6 +6,12 @@ This module provides a collection of helper functions (not geometry-related)
 
 local M = {}
 
+function infoprint(msg)
+    -- wrap print because I use it for simple debugging
+    -- infoprint expresses permanent intention
+    print(msg)
+end
+
 function errprint(msg)
     io.stderr:write(msg)
     io.stderr:write("\n")
