@@ -24,6 +24,8 @@ local function _create(value)
                 return string.format("contact%s", self:get())
             elseif self.typ == "feol" then
                 return "feol"
+            elseif self.typ == "special" then
+                return "special"
             else
                 return self.value
             end
@@ -64,6 +66,12 @@ end
 function M.other(layer)
     local self = _create(layer)
     self.typ = "other"
+    return self
+end
+
+function M.special(layer)
+    local self = _create(layer)
+    self.typ = "special"
     return self
 end
 

@@ -124,7 +124,6 @@ if args.paramfile then
     end
 end
 for k, v in pairs(args.cellargs) do
-    print(k, v)
     cellargs[k] = v
 end
 
@@ -161,6 +160,7 @@ if args.orientation then
     f()
 end
 
+-- filter layers
 if args.layerfilter then
     -- TODO
     for i, S in cell:iter() do
@@ -173,6 +173,25 @@ if args.layerfilter then
                 cell:remove_shape(i)
             end
         end
+    end
+end
+
+-- add axes
+if args.drawaxes then
+    local bb = cell:bounding_box()
+    local minx, miny = bb.bl:unwrap()
+    local maxx, maxy = bb.tr:unwrap()
+    local factor = 2
+    cell:merge_into(geometry.rectanglebltr(generics.special(), point.create(-5, factor * miny), point.create(5, factor * maxy)))
+    cell:merge_into(geometry.rectanglebltr(generics.special(), point.create(factor * minx, -5), point.create(factor * maxx, 5)))
+end
+
+-- add drawing of alignment box
+if args.drawalignmentbox then
+    local ab = cell.alignmentbox
+    if ab then
+        local box = geometry.rectanglebltr(generics.special(), ab.bl, ab.tr)
+        cell:merge_into(box)
     end
 end
 

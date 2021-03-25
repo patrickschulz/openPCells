@@ -51,7 +51,7 @@ return {
     },
     store_multiple{
         name = "layerfilter", long = "--filter",
-        help = "filter layers to be generated. Any layer (in generic notation) in this list will not be generated. (not yet implemented)"
+        help = "filter layers to be generated. Any layer (in generic notation) in this list will not be generated."
     },
     switch{
         name = "human", short = "-H", long = "--human",
@@ -64,6 +64,16 @@ return {
     store{ 
         name  = "separator", long  = "--separator",
         help  = "cell parameter separator (default \\n)"
+    },
+    section("Layout debugging functions"),
+    switch{
+        name = "drawaxes", long = "--draw-axes",
+        help = "draw axes. They are drawn in the 'special' layer, so your layermap needs to have an entry for that."
+    },
+    switch{
+        name = "drawalignmentbox", long = "--draw-alignmentbox",
+        --help = "draw the alignment box (if present). This option requires a layer to be specified (generic notation, e.g. --draw-alignmentbox M1)."
+        help = "draw the alignment box (if present). The box is drawn in the 'special' layer, so your layermap needs to have an entry for that."
     },
     section("Miscellaneous functions"),
     switch{
