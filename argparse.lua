@@ -127,22 +127,22 @@ local function _load_options(options)
         end,
         store_multiple = function(t)
             t.func = function(self, arg)
-                if not res[t.name] then res[t.name] = {} end
-                table.insert(res[t.name], arg)
+                if not self.res[t.name] then self.res[t.name] = {} end
+                table.insert(self.res[t.name], arg)
             end
             t.parser = function(self, args) return _next_arg(args, self.state) end
             return t
         end,
         consumer_string = function(t)
             t.func = function(self, arg)
-                res[t.name] = arg
+                self.res[t.name] = arg
             end
             t.parser = function(self, args) return _consume_until_hyphen(args, self.state) end
             return t
         end,
         consumer_table = function(t)
             t.func = function(self, arg)
-                res[t.name] = arg
+                self.res[t.name] = arg
             end
             t.parser = function(self, args) return _parse_key_value_pairs(_consume_until_hyphen(args, self.state)) end
             return t
