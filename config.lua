@@ -18,6 +18,9 @@ function M.load_user_config()
         else
             return true
         end
+    else
+        -- no user config found, this is not an error
+        return true
     end
 end
 
