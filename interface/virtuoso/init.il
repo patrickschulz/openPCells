@@ -18,7 +18,7 @@ procedure(OPCCreateCell(w done pts)
 	                )
 	                ; 'OPCCell' is defined one level above (in OPCPlaceCell)
 	                OPCCommand = lsprintf(
-	                    "%s/%s --technology %s --interface virtuoso --cell %s --origin '(%d, %d)' -f %s %s" 
+	                    "%s/%s --technology %s --export SKILL --cell %s --origin '(%d, %d)' -f %s %s" 
 	                    OPCPath OPCExec OPCTech OPCCell 
 	                    fix(1000 * xCoord(OPCOrigin)) fix(1000 * yCoord(OPCOrigin)) 
 	                    OPCFilename OPCArgs
