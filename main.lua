@@ -96,6 +96,7 @@ if not args.notech then
     elseif not args.technology and args.params then
         -- ok, don't load technology but also don't raise an error
         -- this enables pcell.parameters to display the cell parameters with generic technology expressions
+        -- this empty elseif clause is left to express intent
     else 
         technology.load(args.technology)
     end
@@ -141,12 +142,13 @@ if args.origin then
         errprint(string.format("could not parse origin (%s)", args.origin))
         return 1
     end
-    cell:translate(dx, dy)
+    local cx, cy = cell.origin:unwrap()
+    cell:translate(dx - cx, dy - cy)
 end
 
 -- translate
 if args.translate then
-    local dx, dy = string.match(args.origin, "%(%s*([-%d]+)%s*,%s*([-%d]+)%s*%)")
+    local dx, dy = string.match(args.translate, "%(%s*([-%d]+)%s*,%s*([-%d]+)%s*%)")
     if not dx then
         errprint(string.format("could not parse translation (%s)", args.translate))
         return 1

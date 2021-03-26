@@ -31,11 +31,11 @@ return {
     },
     consumer_string{ 
         name  = "origin", long  = "--origin",
-        help  = "origin of cell (move (0, 0))"
+        help  = "origin of cell (move (0, 0)). This option expects a point input, e.g. '(10, 10)' (with parantheses)"
     },
     consumer_string{ 
         name  = "translate", long  = "--translate",
-        help  = "move cell by (x, y)"
+        help  = "move cell by (x, y). This option expects a point input, e.g. '(10, 10)' (with parantheses)"
     },
     consumer_string{ 
         name  = "orientation", long  = "--orientation",
