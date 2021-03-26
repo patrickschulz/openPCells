@@ -467,10 +467,12 @@ end
 function M.parameters(cellname, generictech)
     local str = {}
 
-    local t = {
-        get_dimension = function(name) return string.format('tech.get_dimension("%s")', name) end,
-    }
-    _override_cell_environment("tech", t)
+    if generictech then
+        local t = {
+            get_dimension = function(name) return string.format('tech.get_dimension("%s")', name) end,
+        }
+        _override_cell_environment("tech", t)
+    end
 
     local cell = _get_cell(state, cellname)
     _collect_parameters(cell, nil, nil, str) -- use ptype of parameter, no prefix
