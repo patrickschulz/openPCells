@@ -130,9 +130,9 @@ local function _set_parameter_function(state, cellname, name, value, backup, eva
     p.func:replace(function() return value end)
 end
 
-local function _split_input_arguments(args)
+local function _split_input_arguments(cellargs)
     local t = {}
-    for name, value in pairs(args) do
+    for name, value in pairs(cellargs) do
         local parent, arg = string.match(name, "^([^.]+)%.(.+)$")
         if not parent then
             arg = name
@@ -392,14 +392,14 @@ local function _find_cell_traceback()
     end
 end
 
-function M.create_layout(cellname, args, evaluate)
+function M.create_layout(cellname, cellargs, evaluate)
     local cell = _get_cell(state, cellname)
     if not cell.funcs.layout then
         error(string.format("cell '%s' has no layout definition", cellname))
     end
-    local obj = object.create(cellname)
-    local parameters, backup = _get_parameters(state, cellname, cellname, args, evaluate) -- cellname needs to be passed twice
+    local parameters, backup = _get_parameters(state, cellname, cellname, cellargs, evaluate) -- cellname needs to be passed twice
     _restore_parameters(state, cellname, backup)
+    local obj = object.create(cellname)
     local status, msg = xpcall(cell.funcs.layout, function(err) return { msg = err, where = _find_cell_traceback() } end, obj, parameters)
     if not status then
         error(string.format("could not create cell '%s'. Error in line %d\n  -> %s", cellname, msg.where, msg.msg), 0)
@@ -464,7 +464,7 @@ local function _collect_parameters(cell, ptype, prefix, str)
     end
 end
 
-function M.parameters(cellname, generictech)
+function M.parameters(cellname, cellargs, generictech)
     local str = {}
 
     if generictech then
@@ -475,6 +475,8 @@ function M.parameters(cellname, generictech)
     end
 
     local cell = _get_cell(state, cellname)
+    local parameters, backup = _get_parameters(state, cellname, cellname, cellargs, true) -- cellname needs to be passed twice
+    --_restore_parameters(state, cellname, backup)
     _collect_parameters(cell, nil, nil, str) -- use ptype of parameter, no prefix
 
     -- display referenced parameters

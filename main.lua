@@ -102,14 +102,6 @@ if not args.notech then
     end
 end
 
--- output cell parameters
-if args.params then
-    local sep = args.separator or "\n"
-    local params = pcell.parameters(args.cell, not args.technology)
-    io.write(table.concat(params, sep) .. sep)
-    return 0
-end
-
 -- read parameters from pfile and merge with command line parameters
 local cellargs = {}
 if args.paramfile then
@@ -126,6 +118,14 @@ if args.paramfile then
 end
 for k, v in pairs(args.cellargs) do
     cellargs[k] = v
+end
+
+-- output cell parameters AFTER parameters have been processed in order to respect value changes in pfiles
+if args.params then
+    local sep = args.separator or "\n"
+    local params = pcell.parameters(args.cell, cellargs, not args.technology)
+    io.write(table.concat(params, sep) .. sep)
+    return 0
 end
 
 -- create cell
