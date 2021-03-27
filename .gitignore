@@ -2,8 +2,9 @@
 opc
 config.h
 
-# generated layouts
+# generated layouts and helpers
 openPCells.*
+pfile.lua
 
 # NDA-related
 tech/GF22FDSOI
