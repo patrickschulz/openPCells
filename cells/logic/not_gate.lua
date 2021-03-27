@@ -94,15 +94,29 @@ function layout(gate, _P)
         ))
     end
     if _P.connectoutput then
-        gate:merge_into(geometry.path(
-            generics.metal(1),
-            {
-                point.create(_P.fingers * xpitch / 2,  (bp.separation + bp.sdwidth) / 2),
-                point.create(_P.fingers * xpitch / 2, -(bp.separation + bp.sdwidth) / 2),
-            },
-            bp.sdwidth,
-            true
-        ))
+        if bp.compact then
+            gate:merge_into(geometry.path(
+                generics.metal(1),
+                {
+                    point.create(_P.fingers * xpitch / 2,  (bp.separation + bp.sdwidth) / 2),
+                    point.create(_P.fingers * xpitch / 2, -(bp.separation + bp.sdwidth) / 2),
+                },
+                bp.sdwidth,
+                true
+            ))
+        else
+            gate:merge_into(geometry.path(
+                generics.metal(1),
+                {
+                    point.create(_P.fingers * xpitch / 2,  (bp.separation + bp.sdwidth) / 2),
+                    point.create(_P.fingers * xpitch,  (bp.separation + bp.sdwidth) / 2),
+                    point.create(_P.fingers * xpitch, -(bp.separation + bp.sdwidth) / 2),
+                    point.create(_P.fingers * xpitch / 2, -(bp.separation + bp.sdwidth) / 2),
+                },
+                bp.sdwidth,
+                true
+            ))
+        end
     end
 
     -- alignement box
@@ -127,7 +141,11 @@ function layout(gate, _P)
 
     -- ports
     gate:add_port("I", generics.metal(1), point.create(0, _P.shiftinput))
-    gate:add_port("O", generics.metal(1), point.create(_P.fingers * xpitch / 2, 0))
+    if bp.compact then
+        gate:add_port("O", generics.metal(1), point.create(_P.fingers * xpitch / 2, 0))
+    else
+        gate:add_port("O", generics.metal(1), point.create(_P.fingers * xpitch, 0))
+    end
     gate:add_port("VDD", generics.metal(1), point.create(0,  bp.separation / 2 + bp.pwidth + bp.powerspace + bp.powerwidth / 2))
     gate:add_port("VSS", generics.metal(1), point.create(0, -bp.separation / 2 - bp.nwidth - bp.powerspace - bp.powerwidth / 2))
 end

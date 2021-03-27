@@ -126,7 +126,13 @@ function layout(gate, _P)
     ):translate(3 * xpitch / 2, -bp.separation / 2 - bp.nwidth * 3 / 4))
     block:merge_into(geometry.rectangle(generics.metal(1), xpitch, bp.sdwidth):translate(3 * xpitch / 2, -bp.separation / 2 - 3 * bp.nwidth / 4))
 
-    block:merge_into(geometry.rectangle(generics.metal(1), bp.sdwidth, bp.separation))
+    -- output connection
+    block:merge_into(geometry.path(generics.metal(1), {
+        point.create(0, bp.separation / 2 + bp.sdwidth / 2),
+        point.create(3 * xpitch, bp.separation / 2 + bp.sdwidth / 2),
+        point.create(3 * xpitch, -bp.separation / 2 - bp.sdwidth / 2),
+        point.create(0, -bp.separation / 2 - bp.sdwidth / 2),
+    }, bp.sdwidth))
 
     -- place block
     for i = 1, _P.fingers do
@@ -147,33 +153,37 @@ function layout(gate, _P)
     gate:merge_into_update_alignmentbox(invb)
 
     -- inverter B
+    pcell.push_overwrites("logic/base", { compact = false })
     local inva = pcell.create_layout("logic/not_gate", { shiftinput = -routingshift })
     inva:move_anchor("right", invb:get_anchor("left"))
     gate:merge_into_update_alignmentbox(inva)
     pcell.pop_overwrites("logic/base")
+    pcell.pop_overwrites("logic/base")
 
-    gate:merge_into(geometry.path(generics.metal(2), geometry.path_points_xy(
-        inva:get_anchor("I"), 
-        { xpitch, -bp.separation / 2 + routingshift - bp.sdwidth / 2, point.create(5 * xpitch / 2, -routingshift) }
-        ), bp.sdwidth))
     gate:merge_into(geometry.path(generics.metal(2), geometry.path_points_xy(
         point.combine_12(inva:get_anchor("I"), invb:get_anchor("I")), 
         { point.create(xpitch / 2, routingshift) }
         ), bp.sdwidth))
     gate:merge_into(geometry.path(generics.metal(1), geometry.path_points_xy(
-        inva:get_anchor("O"):translate(0, -routingshift), { 5 * xpitch / 2, point.create(-3 * xpitch / 2, routingshift), -2 * routingshift }), bp.sdwidth))
+        inva:get_anchor("O"):translate(0, -routingshift), { 2 * xpitch, point.create(-3 * xpitch / 2, routingshift), -2 * routingshift }), bp.sdwidth))
     gate:merge_into(geometry.path(generics.metal(1), geometry.path_points_xy(
         invb:get_anchor("OTR"), { point.create(-xpitch / 2, routingshift) }), bp.sdwidth))
     gate:merge_into(geometry.path(generics.metal(1), geometry.path_points_xy(
         invb:get_anchor("OBR"), { point.create(-xpitch / 2, routingshift) }), bp.sdwidth))
     gate:merge_into(geometry.path(generics.metal(2), geometry.path_points_xy(
-        inva:get_anchor("I"), { point.create(-5 * xpitch / 2, -routingshift) }), bp.sdwidth))
+        inva:get_anchor("I"), { 
+            point.create(-5 * xpitch / 2, -routingshift), 
+            bp.glength / 2 - bp.sdwidth / 2, 
+            -bp.separation / 2 + routingshift - bp.sdwidth / 2, 
+            point.create(5 * xpitch / 2, -routingshift) 
+        }), bp.sdwidth))
     gate:merge_into(geometry.path(generics.metal(2), {
         point.create(-3 * xpitch / 2, -routingshift),
         point.create( 3 * xpitch / 2, -routingshift),
         }, bp.sdwidth))
 
     -- M1 -> M2 vias
+    gate:merge_into(geometry.rectangle(generics.via(1, 2), bp.glength, bp.sdwidth):translate(point.combine_12(inva:get_anchor("I"), invb:get_anchor("I"))))
     gate:merge_into(geometry.rectangle(generics.via(1, 2), bp.glength, bp.sdwidth):translate(inva:get_anchor("I")))
     gate:merge_into(geometry.rectangle(generics.via(1, 2), bp.glength, bp.sdwidth):translate(invb:get_anchor("I")))
     gate:merge_into(geometry.rectangle(generics.via(1, 2), bp.glength, bp.sdwidth):translate(point.create(xpitch / 2, routingshift)))
@@ -183,8 +193,8 @@ function layout(gate, _P)
     gate:merge_into(geometry.rectangle(generics.via(1, 2), bp.glength, bp.sdwidth):translate(point.create(-5 * xpitch / 2, -routingshift)))
 
     gate:add_port("A", generics.metal(1), inva:get_anchor("I"))
-    gate:add_port("B", generics.metal(1), invb:get_anchor("I"))
-    gate:add_port("Z", generics.metal(1), point.create(0, 0))
+    gate:add_port("B", generics.metal(1), point.combine_12(inva:get_anchor("I"), invb:get_anchor("I")))
+    gate:add_port("Z", generics.metal(1), point.create(3 * xpitch, 0))
     gate:add_port("VDD", generics.metal(1), point.create(0, bp.separation / 2 + bp.pwidth + bp.powerspace + bp.powerwidth / 2))
     gate:add_port("VSS", generics.metal(1), point.create(0, -bp.separation / 2 - bp.nwidth - bp.powerspace - bp.powerwidth / 2))
 end
