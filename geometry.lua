@@ -229,6 +229,35 @@ function M.path_points_xy(startpt, movements)
     return pts
 end
 
+function M.path_points_yx(startpt, movements)
+    local pts = {}
+    table.insert(pts, startpt)
+    local xnoty = false
+    local lastx, lasty = startpt:unwrap()
+    for _, mov in ipairs(movements) do
+        if is_lpoint(mov) then
+            local x, y = mov:unwrap()
+            if xnoty then
+                table.insert(pts, point.create(x, lasty))
+            else
+                table.insert(pts, point.create(lastx, y))
+            end
+            lastx = x
+            lasty = y
+            xnoty = not xnoty
+        else
+            if xnoty then
+                lastx = lastx + mov
+            else
+                lasty = lasty + mov
+            end
+        end
+        table.insert(pts, point.create(lastx, lasty))
+        xnoty = not xnoty
+    end
+    return pts
+end
+
 function M.path_xy(layer, pts, width, miterjoin)
     _modify_point_stream(pts, point.combine_12)
     return M.path(layer, pts, width, miterjoin)
@@ -399,7 +428,17 @@ function M.corner(layer, startpt, endpt, width, radius, grid)
 end
 --]]
 
-function M.multiple(obj, xrep, yrep, xpitch, ypitch)
+function M.multiple_x(obj, xrep, xpitch)
+    modassert(xpitch % 2 == 0, "geometry.multiple_x: xpitch must be even")
+    return M.multiple_xy(obj, xrep, 1, xpitch, 0)
+end
+
+function M.multiple_y(obj, yrep, ypitch)
+    modassert(ypitch % 2 == 0, "geometry.multiple_y: ypitch must be even")
+    return M.multiple_xy(obj, 1, yrep, 0, ypitch)
+end
+
+function M.multiple_xy(obj, xrep, yrep, xpitch, ypitch)
     modassert(xpitch % 2 == 0, "geometry.multiple: xpitch must be even")
     modassert(ypitch % 2 == 0, "geometry.multiple: ypitch must be even")
     local final = object.create()

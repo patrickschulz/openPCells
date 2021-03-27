@@ -3,6 +3,8 @@ function parameters()
     pcell.reference_cell("logic/base")
     pcell.reference_cell("logic/isogate")
     pcell.add_parameter("fingers", 1)
+    pcell.add_parameter("shiftinput", 0)
+    pcell.add_parameter("connectoutput", true)
 end
 
 function layout(gate, _P)
@@ -54,34 +56,54 @@ function layout(gate, _P)
     pcell.pop_overwrites("basic/transistor")
 
     -- gate contact
-    gate:merge_into(geometry.multiple(
+    gate:merge_into(geometry.multiple_x(
         geometry.rectangle(generics.contact("gate"), bp.glength, bp.gstwidth),
-        _P.fingers, 1, xpitch, 0
-    ))
+        _P.fingers, xpitch
+    ):translate(0, _P.shiftinput))
     gate:merge_into(geometry.rectangle(
         generics.metal(1),
         _P.fingers * bp.glength + (_P.fingers - 1) * bp.gspace, bp.gstwidth
-    ))
+    ):translate(0, _P.shiftinput))
 
     -- signal transistors source connections
-    gate:merge_into(geometry.multiple(
+    gate:merge_into(geometry.multiple_xy(
         geometry.rectangle(generics.metal(1), bp.sdwidth, bp.powerspace),
         _P.fingers / 2 + 1, 2,
         2 * xpitch, bp.nwidth + bp.pwidth + bp.separation + bp.powerspace
     ):translate(0, (bp.pwidth - bp.nwidth) / 2))
 
     -- signal transistors drain connections
-    gate:merge_into(geometry.path(
-        generics.metal(1),
-        {
-            point.create(-_P.fingers * xpitch / 2 + xpitch, (bp.separation + bp.sdwidth) / 2),
-            point.create(_P.fingers * xpitch / 2,  (bp.separation + bp.sdwidth) / 2),
-            point.create(_P.fingers * xpitch / 2, -(bp.separation + bp.sdwidth) / 2),
-            point.create(-_P.fingers * xpitch / 2 + xpitch, -(bp.separation + bp.sdwidth) / 2),
-        },
-        bp.sdwidth,
-        true
-    ))
+    if _P.fingers > 2 then
+        gate:merge_into(geometry.path(
+            generics.metal(1),
+            {
+                point.create(-_P.fingers * xpitch / 2 + xpitch, (bp.separation + bp.sdwidth) / 2),
+                point.create(_P.fingers * xpitch / 2,  (bp.separation + bp.sdwidth) / 2),
+            },
+            bp.sdwidth,
+            true
+        ))
+        gate:merge_into(geometry.path(
+            generics.metal(1),
+            {
+                point.create(_P.fingers * xpitch / 2, -(bp.separation + bp.sdwidth) / 2),
+                point.create(-_P.fingers * xpitch / 2 + xpitch, -(bp.separation + bp.sdwidth) / 2),
+            },
+            bp.sdwidth,
+            true
+        ))
+    end
+    if _P.connectoutput then
+        gate:merge_into(geometry.path(
+            generics.metal(1),
+            {
+                point.create(_P.fingers * xpitch / 2,  (bp.separation + bp.sdwidth) / 2),
+                point.create(_P.fingers * xpitch / 2, -(bp.separation + bp.sdwidth) / 2),
+            },
+            bp.sdwidth,
+            true
+        ))
+    end
 
     -- alignement box
     gate:set_alignment_box(
@@ -96,12 +118,16 @@ function layout(gate, _P)
     )
 
     -- anchors
-    gate:add_anchor("in", point.create(0, 0))
-    gate:add_anchor("out", point.create(_P.fingers * xpitch / 2, 0))
+    local ls = (_P.fingers == 1) and 1 or -math.max(_P.fingers - 2, 0)
+    local rs = (_P.fingers % 2 == 0) and math.max(_P.fingers - 2, 0) or _P.fingers
+    gate:add_anchor("OTL", point.create(ls * xpitch / 2,  bp.separation / 2 + bp.sdwidth / 2))
+    gate:add_anchor("OTR", point.create(rs * xpitch / 2,  bp.separation / 2 + bp.sdwidth / 2))
+    gate:add_anchor("OBL", point.create(ls * xpitch / 2, -bp.separation / 2 - bp.sdwidth / 2))
+    gate:add_anchor("OBR", point.create(rs * xpitch / 2, -bp.separation / 2 - bp.sdwidth / 2))
 
     -- ports
-    gate:add_port("I", generics.metal(1), gate:get_anchor("in"))
-    gate:add_port("O", generics.metal(1), gate:get_anchor("out"))
+    gate:add_port("I", generics.metal(1), point.create(0, _P.shiftinput))
+    gate:add_port("O", generics.metal(1), point.create(_P.fingers * xpitch / 2, 0))
     gate:add_port("VDD", generics.metal(1), point.create(0,  bp.separation / 2 + bp.pwidth + bp.powerspace + bp.powerwidth / 2))
     gate:add_port("VSS", generics.metal(1), point.create(0, -bp.separation / 2 - bp.nwidth - bp.powerspace - bp.powerwidth / 2))
 end

@@ -127,21 +127,26 @@ function layout(gate, _P)
     end
 
     -- power rails...
-    gate:merge_into(geometry.multiple(
+    gate:merge_into(geometry.multiple_y(
         geometry.rectangle(generics.metal(1), (_P.fingers + bp.leftdummies + bp.rightdummies) * xpitch + bp.sdwidth, bp.powerwidth),
-        1, 2, 0, bp.separation + bp.pwidth + bp.nwidth + 2 * bp.powerspace + bp.powerwidth
+        2, bp.separation + bp.pwidth + bp.nwidth + 2 * bp.powerspace + bp.powerwidth
     ):translate((bp.rightdummies - bp.leftdummies) * xpitch / 2, (bp.pwidth - bp.nwidth) / 2))
     -- ... with connections
     if bp.leftdummies > 0 then
-        gate:merge_into(geometry.multiple(
+        gate:merge_into(geometry.multiple_xy(
             geometry.rectangle(generics.metal(1), bp.sdwidth, bp.powerspace),
             bp.leftdummies, 2, xpitch, bp.separation + bp.pwidth + bp.nwidth + bp.powerspace
         ):translate(-(_P.fingers + bp.leftdummies + 1) * xpitch / 2, (bp.pwidth - bp.nwidth) / 2))
     end
     if bp.rightdummies > 0 then
-        gate:merge_into(geometry.multiple(
+        gate:merge_into(geometry.multiple_xy(
             geometry.rectangle(generics.metal(1), bp.sdwidth, bp.powerspace),
             bp.rightdummies, 2, xpitch, bp.separation + bp.pwidth + bp.nwidth + bp.powerspace
         ):translate((_P.fingers + bp.rightdummies + 1) * xpitch / 2, (bp.pwidth - bp.nwidth) / 2))
     end
+
+    gate:set_alignment_box(
+        point.create(-(_P.fingers + 2 * bp.leftdummies) * (bp.glength + bp.gspace) / 2, -bp.separation / 2 - bp.nwidth - bp.powerspace - bp.powerwidth / 2),
+        point.create((_P.fingers + 2 * bp.rightdummies) * (bp.glength + bp.gspace) / 2, bp.separation / 2 + bp.pwidth + bp.powerspace + bp.powerwidth / 2)
+    )
 end

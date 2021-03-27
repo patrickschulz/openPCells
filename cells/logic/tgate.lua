@@ -55,17 +55,17 @@ function layout(gate, _P)
     pcell.pop_overwrites("basic/transistor")
 
     -- gate contact
-    gate:merge_into(geometry.multiple(
+    gate:merge_into(geometry.multiple_x(
         geometry.rectangle(generics.contact("gate"), bp.glength, bp.gstwidth),
-        _P.fingers, 1, xpitch, 0
+        _P.fingers, xpitch
     ):translate(0, bp.separation / 4 + bp.sdwidth / 4))
     gate:merge_into(geometry.rectangle(
         generics.metal(1),
         _P.fingers * bp.glength + (_P.fingers - 1) * bp.gspace, bp.gstwidth
     ):translate(0, bp.separation / 4 + bp.sdwidth / 4))
-    gate:merge_into(geometry.multiple(
+    gate:merge_into(geometry.multiple_x(
         geometry.rectangle(generics.contact("gate"), bp.glength, bp.gstwidth),
-        _P.fingers, 1, xpitch, 0
+        _P.fingers, xpitch
     ):translate(0, -bp.separation / 4 - bp.sdwidth / 4))
     gate:merge_into(geometry.rectangle(
         generics.metal(1),

@@ -75,13 +75,13 @@ function layout(gate, _P)
         block:merge_into(geometry.rectangle( -- drain contact
             generics.contact("active"), bp.sdwidth, bp.pwidth / 2
         ):translate(0, (bp.separation + bp.pwidth / 2) / 2))
-        block:merge_into(geometry.multiple(  -- source contact
+        block:merge_into(geometry.multiple_x(  -- source contact
             geometry.rectangle(generics.contact("active"), bp.sdwidth, bp.pwidth / 2),
-            2, 1, 2 * xpitch, 0
+            2, 2 * xpitch
         ):translate(0, bp.separation / 2 + bp.pwidth * 3 / 4))
-        block:merge_into(geometry.multiple( -- source to power connection
+        block:merge_into(geometry.multiple_x( -- source to power connection
             geometry.rectangle(generics.metal(1), bp.sdwidth, bp.powerspace),
-            2, 1, 2 * xpitch, 0
+            2, 2 * xpitch
         ):translate(0, bp.separation / 2 + bp.pwidth + bp.powerspace / 2))
         -- nmos source/drain contacts
         block:merge_into(geometry.rectangle(
@@ -108,13 +108,13 @@ function layout(gate, _P)
         block:merge_into(geometry.rectangle(
             generics.contact("active"), bp.sdwidth, bp.nwidth / 2
         ):translate(0, -(bp.separation + bp.nwidth / 2) / 2))
-        block:merge_into(geometry.multiple(
+        block:merge_into(geometry.multiple_x(
             geometry.rectangle(generics.contact("active"), bp.sdwidth, bp.nwidth / 2),
-            2, 1, 2 * xpitch, 0
+            2, 2 * xpitch
         ):translate(0, -bp.separation / 2 - bp.nwidth * 3 / 4))
-        block:merge_into(geometry.multiple(
+        block:merge_into(geometry.multiple_x(
             geometry.rectangle(generics.metal(1), bp.sdwidth, bp.powerspace),
-            2, 1, 2 * xpitch, 0
+            2, 2 * xpitch
         ):translate(0, -bp.separation / 2 - bp.nwidth - bp.powerspace / 2))
     end
 
@@ -129,39 +129,28 @@ function layout(gate, _P)
     end
     
     -- drain connection
-    local conn
+    local connpts
     if _P.fingers % 2 == 0 then
-        conn = geometry.path(
-            generics.metal(1),
-            geometry.path_points_xy(
-                point.create(-(_P.fingers - 1) * xpitch, yinvert * (bp.separation + bp.sdwidth) / 2),
-                {
-                    (2 * _P.fingers - 1) * xpitch,
-                    -yinvert * (bp.separation + bp.sdwidth),
-                    -2 * (_P.fingers - 1) * xpitch
-                }
-            ),
-            bp.sdwidth,
-            true
-        )
+        connpts = {
+            (2 * _P.fingers - 1) * xpitch,
+            -yinvert * (bp.separation + bp.sdwidth),
+            -2 * (_P.fingers - 1) * xpitch
+        }
     else
-        conn = geometry.path(
-            generics.metal(1),
-            geometry.path_points_xy(
-                point.create((_P.fingers - 1) * xpitch, yinvert * (bp.separation + bp.sdwidth) / 2),
-                {
-                    -2 * (_P.fingers - 1) * xpitch - xpitch / 2,
-                    -yinvert * (bp.separation + bp.sdwidth) / 2,
-                    (2 * (_P.fingers - 1) + 1) * xpitch,
-                    -yinvert * (bp.separation + bp.sdwidth) / 2,
-                    -(2 * (_P.fingers - 1) + 1) * xpitch - xpitch / 2
-                }
-            ),
-            bp.sdwidth,
-            true
-        )
+        connpts = {
+            -2 * (_P.fingers - 1) * xpitch - xpitch / 2,
+            -yinvert * (bp.separation + bp.sdwidth) / 2,
+            (2 * (_P.fingers - 1) + 1) * xpitch,
+            -yinvert * (bp.separation + bp.sdwidth) / 2,
+            -(2 * (_P.fingers - 1) + 1) * xpitch - xpitch / 2
+        }
     end
-    gate:merge_into(conn)
+    gate:merge_into(geometry.path(
+        generics.metal(1),
+        geometry.path_points_xy(point.create((_P.fingers - 1) * xpitch, yinvert * (bp.separation + bp.sdwidth) / 2), connpts),
+        bp.sdwidth,
+        true
+    ))
 
     pcell.pop_overwrites("basic/transistor")
 

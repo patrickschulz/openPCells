@@ -93,7 +93,7 @@ local function _do_array(cell, S, entry, export)
     local xpitch = entry.width + entry.xspace
     local ypitch = entry.height + entry.yspace
     local enlarge = 0
-    local cut = geometry.multiple(
+    local cut = geometry.multiple_xy(
         geometry.rectangle(generics.mapped(_get_lpp(lpp, export)), entry.width + enlarge, entry.height + enlarge),
         xrep, yrep, xpitch, ypitch
     )
