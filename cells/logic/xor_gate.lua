@@ -165,11 +165,15 @@ function layout(gate, _P)
         { point.create(xpitch / 2, routingshift) }
         ), bp.sdwidth))
     gate:merge_into(geometry.path(generics.metal(1), geometry.path_points_xy(
-        inva:get_anchor("O"):translate(0, -routingshift), { 2 * xpitch, point.create(-3 * xpitch / 2, routingshift), -2 * routingshift }), bp.sdwidth))
+        inva:get_anchor("O"):translate(0, -routingshift), { 2 * xpitch, point.create(-3 * xpitch / 2 - bp.glength / 2 + bp.sdwidth / 2, routingshift), -2 * routingshift }), bp.sdwidth))
     gate:merge_into(geometry.path(generics.metal(1), geometry.path_points_xy(
-        invb:get_anchor("OTR"), { point.create(-xpitch / 2, routingshift) }), bp.sdwidth))
-    gate:merge_into(geometry.path(generics.metal(1), geometry.path_points_xy(
-        invb:get_anchor("OBR"), { point.create(-xpitch / 2, routingshift) }), bp.sdwidth))
+        invb:get_anchor("OTR"), { 
+            point.create(-xpitch / 2 - bp.glength / 2 + bp.sdwidth / 2, routingshift), 
+            0, -- toggle xy
+            invb:get_anchor("OBR") 
+        }), bp.sdwidth))
+    --gate:merge_into(geometry.path(generics.metal(1), geometry.path_points_xy(
+    --    invb:get_anchor("OBR"), { point.create(-xpitch / 2, routingshift) }), bp.sdwidth))
     gate:merge_into(geometry.path(generics.metal(2), geometry.path_points_xy(
         inva:get_anchor("I"), { 
             point.create(-5 * xpitch / 2, -routingshift), 
@@ -183,9 +187,9 @@ function layout(gate, _P)
         }, bp.sdwidth))
 
     -- M1 -> M2 vias
-    gate:merge_into(geometry.rectangle(generics.via(1, 2), bp.glength, bp.sdwidth):translate(point.combine_12(inva:get_anchor("I"), invb:get_anchor("I"))))
-    gate:merge_into(geometry.rectangle(generics.via(1, 2), bp.glength, bp.sdwidth):translate(inva:get_anchor("I")))
-    gate:merge_into(geometry.rectangle(generics.via(1, 2), bp.glength, bp.sdwidth):translate(invb:get_anchor("I")))
+    gate:merge_into(geometry.rectangle(generics.via(1, 2), xpitch, bp.sdwidth):translate(point.combine_12(inva:get_anchor("I"), invb:get_anchor("I"))))
+    gate:merge_into(geometry.rectangle(generics.via(1, 2), xpitch, bp.sdwidth):translate(inva:get_anchor("I")))
+    gate:merge_into(geometry.rectangle(generics.via(1, 2), xpitch, bp.sdwidth):translate(invb:get_anchor("I")))
     gate:merge_into(geometry.rectangle(generics.via(1, 2), bp.glength, bp.sdwidth):translate(point.create(xpitch / 2, routingshift)))
     gate:merge_into(geometry.rectangle(generics.via(1, 2), bp.glength, bp.sdwidth):translate(point.create(-3 * xpitch / 2, -routingshift)))
     gate:merge_into(geometry.rectangle(generics.via(1, 2), bp.glength, bp.sdwidth):translate(point.create( 3 * xpitch / 2, -routingshift)))
