@@ -194,6 +194,7 @@ function layout(gate, _P)
     gate:merge_into(geometry.rectangle(generics.via(1, 2), bp.glength, bp.sdwidth):translate(point.create(-3 * xpitch / 2, -routingshift)))
     gate:merge_into(geometry.rectangle(generics.via(1, 2), 2 * bp.glength + bp.gspace, bp.sdwidth):translate(point.create(xpitch, -routingshift)))
     gate:merge_into(geometry.rectangle(generics.via(1, 2, true), bp.glength, bp.sdwidth):translate(point.create(5 * xpitch / 2, -routingshift)))
+    gate:merge_into(geometry.rectangle(generics.metal(1), bp.glength, bp.sdwidth):translate(point.create(5 * xpitch / 2, -routingshift)))
     gate:merge_into(geometry.rectangle(generics.via(1, 2), bp.glength, bp.sdwidth):translate(point.create(-5 * xpitch / 2, -routingshift)))
 
     gate:add_port("A", generics.metal(1), inva:get_anchor("I"))
