@@ -179,7 +179,7 @@ function layout(gate, _P)
     gate:merge_into(geometry.path(generics.metal(2), geometry.path_points_yx(
         point.create(-4 * xpitch, -routingshift + bp.sdwidth / 2), {
             -bp.separation / 2 + routingshift - bp.sdwidth,
-            point.create(5 * xpitch / 2, -routingshift + bp.sdwidth / 2) 
+            point.create(5 * xpitch / 2, routingshift + bp.sdwidth / 2) 
         }), bp.sdwidth))
     gate:merge_into(geometry.path(generics.metal(2), {
         point.create(-3 * xpitch / 2, -routingshift),
@@ -193,7 +193,7 @@ function layout(gate, _P)
     gate:merge_into(geometry.rectangle(generics.via(1, 2), 2 * bp.glength + bp.gspace, bp.sdwidth):translate(point.create(xpitch, routingshift)))
     gate:merge_into(geometry.rectangle(generics.via(1, 2), bp.glength, bp.sdwidth):translate(point.create(-3 * xpitch / 2, -routingshift)))
     gate:merge_into(geometry.rectangle(generics.via(1, 2), 2 * bp.glength + bp.gspace, bp.sdwidth):translate(point.create(xpitch, -routingshift)))
-    gate:merge_into(geometry.rectangle(generics.via(1, 2), bp.glength, bp.sdwidth):translate(point.create(5 * xpitch / 2, -routingshift)))
+    gate:merge_into(geometry.rectangle(generics.via(1, 2, true), bp.glength, bp.sdwidth):translate(point.create(5 * xpitch / 2, -routingshift)))
     gate:merge_into(geometry.rectangle(generics.via(1, 2), bp.glength, bp.sdwidth):translate(point.create(-5 * xpitch / 2, -routingshift)))
 
     gate:add_port("A", generics.metal(1), inva:get_anchor("I"))

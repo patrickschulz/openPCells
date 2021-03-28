@@ -27,7 +27,7 @@ end
 
 function M.place_via_conductors(cell)
     for _, S in cell:iter() do
-        if S.lpp:is_type("via") then
+        if S.lpp:is_type("via") and not S.lpp.bare then
             local m1, m2 = S.lpp:get()
             local s1 = S:copy()
             s1.lpp = generics.metal(m1)
@@ -49,7 +49,7 @@ function M.split_vias(cell)
         local from, to = S.lpp:get()
         for j = from, to - 1 do
             local sc = S:copy()
-            sc.lpp = generics.via(j, j + 1)
+            sc.lpp = generics.via(j, j + 1, S.lpp.bare)
             cell:add_shape(sc)
         end
         cell:remove_shape(i)

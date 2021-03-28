@@ -51,12 +51,13 @@ function M.metal(num)
     return self
 end
 
-function M.via(from, to)
+function M.via(from, to, bare)
     if not from or not to then
         error("generic.via with nil")
     end
     local self = _create({ from = from, to = to })
     self.typ = "via"
+    self.bare = bare
     return self
 end
 
