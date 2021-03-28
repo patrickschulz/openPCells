@@ -33,7 +33,7 @@ end
 function layout(gate, _P)
     local bp = pcell.get_parameters("logic/base")
     local xpitch = bp.gspace + bp.glength
-    local routingshift = bp.separation / 4 - bp.sdwidth / 2
+    local routingshift = bp.sdwidth / 2 + (bp.separation - 2 * bp.sdwidth) / 6
 
     local block = object.create()
 
