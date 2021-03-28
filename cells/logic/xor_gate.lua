@@ -129,8 +129,8 @@ function layout(gate, _P)
     -- output connection
     block:merge_into(geometry.path(generics.metal(1), {
         point.create(0, bp.separation / 2 + bp.sdwidth / 2),
-        point.create(3 * xpitch, bp.separation / 2 + bp.sdwidth / 2),
-        point.create(3 * xpitch, -bp.separation / 2 - bp.sdwidth / 2),
+        point.create(4 * xpitch, bp.separation / 2 + bp.sdwidth / 2),
+        point.create(4 * xpitch, -bp.separation / 2 - bp.sdwidth / 2),
         point.create(0, -bp.separation / 2 - bp.sdwidth / 2),
     }, bp.sdwidth))
 
@@ -172,14 +172,14 @@ function layout(gate, _P)
             0, -- toggle xy
             invb:get_anchor("OBR") 
         }), bp.sdwidth))
-    --gate:merge_into(geometry.path(generics.metal(1), geometry.path_points_xy(
-    --    invb:get_anchor("OBR"), { point.create(-xpitch / 2, routingshift) }), bp.sdwidth))
     gate:merge_into(geometry.path(generics.metal(2), geometry.path_points_xy(
         inva:get_anchor("I"), { 
             point.create(-5 * xpitch / 2, -routingshift), 
-            bp.glength / 2 - bp.sdwidth / 2, 
-            -bp.separation / 2 + routingshift - bp.sdwidth / 2, 
-            point.create(5 * xpitch / 2, -routingshift) 
+        }), bp.sdwidth))
+    gate:merge_into(geometry.path(generics.metal(2), geometry.path_points_yx(
+        point.create(-4 * xpitch, -routingshift + bp.sdwidth / 2), {
+            -bp.separation / 2 + routingshift - bp.sdwidth,
+            point.create(5 * xpitch / 2, -routingshift + bp.sdwidth / 2) 
         }), bp.sdwidth))
     gate:merge_into(geometry.path(generics.metal(2), {
         point.create(-3 * xpitch / 2, -routingshift),
