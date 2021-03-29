@@ -91,7 +91,7 @@ function layout(gate, _P)
         generics.contact("active"), bp.sdwidth, bp.pwidth / 2
     ):translate(0, (bp.separation + bp.pwidth / 2) / 2))
     block:merge_into(geometry.multiple_x(
-        geometry.rectangle(generics.contact("active"), bp.sdwidth, bp.nwidth / 2),
+        geometry.rectangle(generics.contact("active"), bp.sdwidth, bp.pwidth / 2),
         2, 5 * xpitch
     ):translate(-xpitch / 2, bp.separation / 2 + bp.pwidth * 3 / 4))
     block:merge_into(geometry.multiple_x(
@@ -99,11 +99,11 @@ function layout(gate, _P)
         2, 5 * xpitch
     ):translate(-xpitch / 2, bp.separation / 2 + bp.pwidth + bp.powerspace / 2))
     block:merge_into(geometry.multiple_x(
-        geometry.rectangle(generics.contact("active"), bp.sdwidth, bp.nwidth / 2),
+        geometry.rectangle(generics.contact("active"), bp.sdwidth, bp.pwidth / 2),
         2, 1 * xpitch
     ):translate(-3 * xpitch / 2, bp.separation / 2 + bp.pwidth * 3 / 4))
     block:merge_into(geometry.rectangle(
-        generics.contact("active"), bp.sdwidth, bp.nwidth / 2
+        generics.contact("active"), bp.sdwidth, bp.pwidth / 2
     ):translate(3 * xpitch, bp.separation / 2 + bp.pwidth * 3 / 4))
     block:merge_into(geometry.rectangle(
         generics.metal(1), bp.sdwidth, bp.powerspace
@@ -211,6 +211,9 @@ function layout(gate, _P)
     gate:add_port("A", generics.metal(1), inva:get_anchor("I"))
     gate:add_port("B", generics.metal(1), point.combine_12(inva:get_anchor("I"), invb:get_anchor("I")))
     gate:add_port("Z", generics.metal(1), point.create(4 * xpitch, 0))
-    gate:add_port("VDD", generics.metal(1), point.create(0, bp.separation / 2 + bp.pwidth + bp.powerspace + bp.powerwidth / 2))
-    gate:add_port("VSS", generics.metal(1), point.create(0, -bp.separation / 2 - bp.nwidth - bp.powerspace - bp.powerwidth / 2))
+    gate:add_port("VDD", generics.metal(1), point.create(-2 * xpitch, bp.separation / 2 + bp.pwidth + bp.powerspace + bp.powerwidth / 2))
+    gate:add_port("VSS", generics.metal(1), point.create(-2 * xpitch, -bp.separation / 2 - bp.nwidth - bp.powerspace - bp.powerwidth / 2))
+    
+    -- center cell
+    gate:translate(2 * xpitch, 0)
 end
