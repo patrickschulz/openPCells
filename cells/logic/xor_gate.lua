@@ -28,6 +28,7 @@ function parameters()
     pcell.reference_cell("basic/transistor")
     pcell.reference_cell("logic/base")
     pcell.add_parameter("fingers", 1)
+    --pcell.require_parameter_expression(
 end
 
 function layout(gate, _P)
@@ -162,12 +163,18 @@ function layout(gate, _P)
     pcell.pop_overwrites("logic/base")
     pcell.pop_overwrites("logic/base")
 
+    -- B
     gate:merge_into(geometry.path(generics.metal(2), geometry.path_points_xy(
         point.combine_12(inva:get_anchor("I"), invb:get_anchor("I")), 
         { point.create(xpitch / 2, routingshift) }
         ), bp.sdwidth))
+    -- not A
     gate:merge_into(geometry.path(generics.metal(1), geometry.path_points_xy(
-        inva:get_anchor("O"):translate(0, -routingshift), { 2 * xpitch, point.create(-3 * xpitch / 2 - bp.glength / 2 + bp.sdwidth / 2, routingshift), -2 * routingshift }), bp.sdwidth))
+        inva:get_anchor("O"):translate(0, -routingshift), { 
+            2 * xpitch, 
+            point.create(-3 * xpitch / 2 - bp.glength / 2 + bp.sdwidth / 2, routingshift), 
+            -2 * routingshift - bp.sdwidth / 2
+        }), bp.sdwidth))
     gate:merge_into(geometry.path(generics.metal(1), geometry.path_points_xy(
         invb:get_anchor("OTR"), { 
             point.create(-xpitch / 2 - bp.glength / 2 + bp.sdwidth / 2, routingshift), 
