@@ -348,7 +348,7 @@ function state.create_cellenv(state, cellname, ovrenv)
         util = util,
         aux = aux,
         math = math,
-        enable = function(bool, val) return (bool and 1 or 0) * val end,
+        enable = function(bool, val) return (bool and 1 or 0) * (val or 1) end,
         string = string,
         table = table,
         print = print,
