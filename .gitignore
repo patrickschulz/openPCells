@@ -4,6 +4,7 @@ config.h
 
 # generated layouts and helpers
 openPCells.*
+openPCells_extracted.cir
 pfile.lua
 
 # NDA-related
