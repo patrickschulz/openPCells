@@ -98,17 +98,19 @@ function layout(gate, _P)
     end
 
     -- signal transistors drain connections
-    gate:merge_into(geometry.path(
-        generics.metal(1),
-        {
-            point.create(-_P.fingers * xpitch / 2 + xpitch,  (bp.separation + bp.sdwidth) / 2),
-            point.create( _P.fingers * xpitch / 2,           (bp.separation + bp.sdwidth) / 2),
-            point.create( _P.fingers * xpitch / 2,          -(bp.separation + bp.sdwidth) / 2),
-            point.create(-_P.fingers * xpitch / 2 + xpitch, -(bp.separation + bp.sdwidth) / 2),
-        },
-        bp.sdwidth,
-        true
-    ))
+    if bp.connectoutput then
+        gate:merge_into(geometry.path(
+            generics.metal(1),
+            {
+                point.create(-_P.fingers * xpitch / 2 + xpitch,  (bp.separation + bp.sdwidth) / 2),
+                point.create( _P.fingers * xpitch / 2,           (bp.separation + bp.sdwidth) / 2),
+                point.create( _P.fingers * xpitch / 2,          -(bp.separation + bp.sdwidth) / 2),
+                point.create(-_P.fingers * xpitch / 2 + xpitch, -(bp.separation + bp.sdwidth) / 2),
+            },
+            bp.sdwidth,
+            true
+        ))
+    end
 
     -- alignement box
     gate:set_alignment_box(

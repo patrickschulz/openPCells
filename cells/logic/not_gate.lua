@@ -4,6 +4,7 @@ function parameters()
     pcell.reference_cell("logic/isogate")
     pcell.add_parameter("fingers", 1)
     pcell.add_parameter("shiftinput", 0)
+    pcell.add_parameter("shiftoutput", 0)
 end
 
 function layout(gate, _P)
@@ -23,6 +24,7 @@ function layout(gate, _P)
     end
     local harness = pcell.create_layout("logic/harness", { 
         fingers = _P.fingers,
+        shiftgatecontacts = _P.shiftinput,
         pcontactpos = pcontactpos,
         ncontactpos = ncontactpos,
     })
@@ -56,8 +58,8 @@ function layout(gate, _P)
             generics.metal(1),
             {
                 point.create((_P.fingers - 2 * enable(_P.fingers % 2 == 0)) * xpitch / 2,      (bp.separation + bp.sdwidth) / 2),
-                point.create((_P.fingers - 0) * xpitch / 2 + xpitch * enable(not bp.compact),  (bp.separation + bp.sdwidth) / 2),
-                point.create((_P.fingers - 0) * xpitch / 2 + xpitch * enable(not bp.compact), -(bp.separation + bp.sdwidth) / 2),
+                point.create((_P.fingers - 0) * xpitch / 2 + _P.shiftoutput,  (bp.separation + bp.sdwidth) / 2),
+                point.create((_P.fingers - 0) * xpitch / 2 + _P.shiftoutput, -(bp.separation + bp.sdwidth) / 2),
                 point.create((_P.fingers - 2 * enable(_P.fingers % 2 == 0)) * xpitch / 2,     -(bp.separation + bp.sdwidth) / 2),
             },
             bp.sdwidth,
@@ -75,7 +77,7 @@ function layout(gate, _P)
 
     -- ports
     gate:add_port("I", generics.metal(1), point.create(0, _P.shiftinput))
-    gate:add_port("O", generics.metal(1), point.create((_P.fingers - 0) * xpitch / 2 + xpitch * enable(not bp.compact), 0))
+    gate:add_port("O", generics.metal(1), point.create((_P.fingers - 0) * xpitch / 2 + _P.shiftoutput, 0))
     gate:add_port("VDD", generics.metal(1), point.create(0,  bp.separation / 2 + bp.pwidth + bp.powerspace + bp.powerwidth / 2))
     gate:add_port("VSS", generics.metal(1), point.create(0, -bp.separation / 2 - bp.nwidth - bp.powerspace - bp.powerwidth / 2))
 end
