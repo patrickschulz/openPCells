@@ -1,5 +1,5 @@
 function parameters()
-    pcell.reference_cell("basic/transistor")
+    pcell.reference_cell("basic/mosfet")
     pcell.reference_cell("logic/base")
     pcell.add_parameter("fingers", 1)
 end
@@ -11,7 +11,7 @@ function layout(gate, _P)
     gate:merge_into(pcell.create_layout("logic/harness", { fingers = _P.fingers }))
 
     -- common transistor options
-    pcell.push_overwrites("basic/transistor", {
+    pcell.push_overwrites("basic/mosfet", {
         fingers = _P.fingers,
         gatelength = bp.glength,
         gatespace = bp.gspace,
@@ -19,7 +19,7 @@ function layout(gate, _P)
     })
 
     -- pfet
-    local pmos = pcell.create_layout("basic/transistor",
+    local pmos = pcell.create_layout("basic/mosfet",
         {
             channeltype = "pmos",
             fwidth = bp.pwidth,
@@ -36,7 +36,7 @@ function layout(gate, _P)
     gate:merge_into(pmos)
 
     -- nfet
-    local nmos = pcell.create_layout("basic/transistor",
+    local nmos = pcell.create_layout("basic/mosfet",
         {
             channeltype = "nmos",
             fwidth = bp.nwidth,
@@ -52,7 +52,7 @@ function layout(gate, _P)
     ):move_anchor("topgate")
     gate:merge_into(nmos)
 
-    pcell.pop_overwrites("basic/transistor")
+    pcell.pop_overwrites("basic/mosfet")
 
     -- gate contact
     gate:merge_into(geometry.multiple_x(

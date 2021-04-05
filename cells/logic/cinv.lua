@@ -1,5 +1,5 @@
 function parameters()
-    pcell.reference_cell("basic/transistor")
+    pcell.reference_cell("basic/mosfet")
     pcell.reference_cell("logic/base")
     pcell.add_parameter("fingers", 1)
     pcell.add_parameter("swapinputs", false)
@@ -16,7 +16,7 @@ function layout(gate, _P)
     gate:merge_into(pcell.create_layout("logic/harness", { fingers = 2 * _P.fingers }))
 
     -- common transistor options
-    pcell.push_overwrites("basic/transistor", {
+    pcell.push_overwrites("basic/mosfet", {
         fingers = 1,
         gatelength = bp.glength,
         gatespace = bp.gspace,
@@ -26,32 +26,32 @@ function layout(gate, _P)
     })
 
     -- pmos
-    pcell.push_overwrites("basic/transistor", {
+    pcell.push_overwrites("basic/mosfet", {
         channeltype = "pmos",
         fwidth = bp.pwidth,
         gtopext = bp.powerspace + bp.dummycontheight / 2 + bp.powerwidth / 2,
         gbotext = bp.separation / 2,
         clipbot = true,
     })
-    block:merge_into(pcell.create_layout("basic/transistor"):move_anchor("leftbotgate"))
-    pcell.push_overwrites("basic/transistor", { drawbotgcut = true })
-    block:merge_into(pcell.create_layout("basic/transistor"):move_anchor("rightbotgate"))
-    pcell.pop_overwrites("basic/transistor")
-    pcell.pop_overwrites("basic/transistor")
+    block:merge_into(pcell.create_layout("basic/mosfet"):move_anchor("leftbotgate"))
+    pcell.push_overwrites("basic/mosfet", { drawbotgcut = true })
+    block:merge_into(pcell.create_layout("basic/mosfet"):move_anchor("rightbotgate"))
+    pcell.pop_overwrites("basic/mosfet")
+    pcell.pop_overwrites("basic/mosfet")
 
     -- nmos
-    pcell.push_overwrites("basic/transistor", {
+    pcell.push_overwrites("basic/mosfet", {
         channeltype = "nmos",
         fwidth = bp.nwidth,
         gbotext = bp.powerspace + bp.dummycontheight / 2 + bp.powerwidth / 2,
         gtopext = bp.separation / 2,
         cliptop = true,
     })
-    block:merge_into(pcell.create_layout("basic/transistor"):move_anchor("lefttopgate"))
-    pcell.push_overwrites("basic/transistor", { drawtopgcut = true })
-    block:merge_into(pcell.create_layout("basic/transistor"):move_anchor("righttopgate"))
-    pcell.pop_overwrites("basic/transistor")
-    pcell.pop_overwrites("basic/transistor")
+    block:merge_into(pcell.create_layout("basic/mosfet"):move_anchor("lefttopgate"))
+    pcell.push_overwrites("basic/mosfet", { drawtopgcut = true })
+    block:merge_into(pcell.create_layout("basic/mosfet"):move_anchor("righttopgate"))
+    pcell.pop_overwrites("basic/mosfet")
+    pcell.pop_overwrites("basic/mosfet")
 
     -- gate contacts
     if _P.swapinputs then
@@ -167,7 +167,7 @@ function layout(gate, _P)
         ))
     end
 
-    pcell.pop_overwrites("basic/transistor")
+    pcell.pop_overwrites("basic/mosfet")
 
     -- alignement box
     gate:set_alignment_box(

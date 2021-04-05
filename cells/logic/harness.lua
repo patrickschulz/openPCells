@@ -1,5 +1,5 @@
 function config()
-    pcell.reference_cell("basic/transistor")
+    pcell.reference_cell("basic/mosfet")
     pcell.reference_cell("logic/base")
     pcell.set_property("hidden", true)
 end
@@ -23,7 +23,7 @@ function layout(gate, _P)
     local fingers = _P.fingers + bp.leftdummies + bp.rightdummies
 
     -- common transistor options
-    pcell.push_overwrites("basic/transistor", {
+    pcell.push_overwrites("basic/mosfet", {
         gatelength = bp.glength,
         gatespace = bp.gspace,
         sdwidth = bp.sdwidth,
@@ -33,7 +33,7 @@ function layout(gate, _P)
 
     -- pmos
     gate:merge_into(
-        pcell.create_layout("basic/transistor", { 
+        pcell.create_layout("basic/mosfet", { 
             channeltype = "pmos",
             fingers = fingers,
             vthtype = bp.pvthtype,
@@ -46,7 +46,7 @@ function layout(gate, _P)
 
     -- nmos
     gate:merge_into(
-        pcell.create_layout("basic/transistor", { 
+        pcell.create_layout("basic/mosfet", { 
             channeltype = "nmos",
             fingers = fingers,
             vthtype = bp.nvthtype,
@@ -58,7 +58,7 @@ function layout(gate, _P)
     )
 
     -- pop general transistor settings
-    pcell.pop_overwrites("basic/transistor")
+    pcell.pop_overwrites("basic/mosfet")
 
     -- power rails
     gate:merge_into(geometry.multiple_y(

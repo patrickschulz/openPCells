@@ -1,5 +1,4 @@
 function parameters()
-    pcell.reference_cell("basic/transistor")
     pcell.reference_cell("logic/base")
     pcell.reference_cell("logic/isogate")
     pcell.add_parameter("fingers", 1)

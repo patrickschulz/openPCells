@@ -1,5 +1,5 @@
 function config()
-    pcell.reference_cell("basic/transistor")
+    pcell.reference_cell("basic/mosfet")
     pcell.reference_cell("logic/base")
     pcell.set_property("hidden", true)
 end
@@ -17,7 +17,7 @@ function layout(gate, _P)
     pcell.pop_overwrites("logic/base")
 
     -- common transistor options
-    pcell.push_overwrites("basic/transistor", {
+    pcell.push_overwrites("basic/mosfet", {
         fingers = 1,
         gatelength = bp.glength,
         gatespace = bp.gspace,
@@ -27,7 +27,7 @@ function layout(gate, _P)
     })
 
     -- pfet
-    local pmos = pcell.create_layout("basic/transistor",
+    local pmos = pcell.create_layout("basic/mosfet",
         {
             channeltype = "pmos",
             fwidth = bp.pwidth,
@@ -43,7 +43,7 @@ function layout(gate, _P)
     gate:merge_into(pmos)
 
     -- nfet
-    local nmos = pcell.create_layout("basic/transistor",
+    local nmos = pcell.create_layout("basic/mosfet",
         {
             channeltype = "nmos",
             fwidth = bp.nwidth,
@@ -58,7 +58,7 @@ function layout(gate, _P)
     ):move_anchor("topgate")
     gate:merge_into(nmos)
 
-    pcell.pop_overwrites("basic/transistor")
+    pcell.pop_overwrites("basic/mosfet")
 
     gate:set_alignment_box(
         point.create(-xpitch / 2, -bp.separation / 2 - bp.nwidth - bp.powerspace - bp.powerwidth / 2),

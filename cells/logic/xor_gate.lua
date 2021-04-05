@@ -25,7 +25,6 @@
 --]]
 
 function parameters()
-    pcell.reference_cell("basic/transistor")
     pcell.reference_cell("logic/base")
     pcell.add_parameter("fingers", 1, { posvals = set(1) })
 end

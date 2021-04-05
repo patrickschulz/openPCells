@@ -1,5 +1,5 @@
 function parameters()
-    pcell.reference_cell("basic/transistor")
+    pcell.reference_cell("basic/mosfet")
     pcell.add_parameters(
         { "ifingers", 4 },
         { "ofingers", 4 },
@@ -10,15 +10,15 @@ function parameters()
 end
 
 function layout(currentmirror, _P)
-    local tp = pcell.get_parameters("basic/transistor")
-    pcell.push_overwrites("basic/transistor", { drawtopgate = true, connectsource = true })
-    local diode = pcell.create_layout("basic/transistor", { fingers = _P.ifingers, connectdrain = true })
-    local mirror = pcell.create_layout("basic/transistor", { fingers = _P.ofingers })
+    local tp = pcell.get_parameters("basic/mosfet")
+    pcell.push_overwrites("basic/mosfet", { drawtopgate = true, connectsource = true })
+    local diode = pcell.create_layout("basic/mosfet", { fingers = _P.ifingers, connectdrain = true })
+    local mirror = pcell.create_layout("basic/mosfet", { fingers = _P.ofingers })
     diode:move_anchor("rightdrainsource")
     mirror:move_anchor("leftdrainsource")
     currentmirror:merge_into(diode)
     currentmirror:merge_into(mirror)
-    pcell.pop_overwrites("basic/transistor")
+    pcell.pop_overwrites("basic/mosfet")
 
     -- gate connection
     currentmirror:merge_into(geometry.path(generics.metal(1), {
