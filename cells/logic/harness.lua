@@ -6,13 +6,12 @@ end
 
 function parameters()
     pcell.add_parameters(
-        { "fingers",       1 },
+        { "fingers", 1 },
         { "drawgatecontacts", true },
+        { "gatecontactpos", { } },
         { "shiftgatecontacts", 0 },
-        { "pcontactpos", { nil, nil } },
-        { "ncontactpos", { nil, nil } },
-        { "leftadapt",  true },
-        { "rightadapt", true }
+        { "pcontactpos", { } },
+        { "ncontactpos", { } }
     )
 end
 
@@ -69,9 +68,23 @@ function layout(gate, _P)
     -- draw gate contacts
     if _P.drawgatecontacts then
         for i = 1, _P.fingers do
-            gate:merge_into(geometry.rectangle(
-                generics.contact("gate"), bp.glength, bp.gstwidth
-            ):translate((2 * i - _P.fingers - 1 + bp.leftdummies - bp.rightdummies) * xpitch / 2 + xshift, _P.shiftgatecontacts))
+            if _P.gatecontactpos[i] == "center" then
+                local pt = point.create((2 * i - _P.fingers - 1 + bp.leftdummies - bp.rightdummies) * xpitch / 2 + xshift, _P.shiftgatecontacts)
+                gate:merge_into(geometry.rectangle(
+                    generics.contact("gate"), bp.glength, bp.gstwidth
+                ):translate(pt))
+                gate:add_anchor(string.format("G%d", i), pt)
+            end
+            if _P.gatecontactpos[i] == "split" then
+                local routingshift = bp.sdwidth / 2 + (bp.separation - 2 * bp.sdwidth) / 6
+                local pt = point.create((2 * i - _P.fingers - 1 + bp.leftdummies - bp.rightdummies) * xpitch / 2 + xshift, _P.shiftgatecontacts)
+                gate:merge_into(geometry.multiple_y(
+                    geometry.rectangle(generics.contact("gate"), bp.glength, bp.gstwidth),
+                    2, 2 * routingshift
+                ):translate(pt))
+                gate:add_anchor(string.format("G%dupper", i), pt:copy():translate(0,  routingshift))
+                gate:add_anchor(string.format("G%dlower", i), pt:copy():translate(0, -routingshift))
+            end
         end
     end
     gate:merge_into(geometry.multiple_xy(
@@ -112,7 +125,7 @@ function layout(gate, _P)
     -- draw source/drain contacts
     local indexshift = _P.fingers + 2 + bp.rightdummies - bp.leftdummies
     for i = 1, _P.fingers + 1 do
-        if _P.pcontactpos[i] == "power" or _P.pcontactpos[i] == "top" then
+        if _P.pcontactpos[i] == "power" or _P.pcontactpos[i] == "outer" then
             gate:merge_into(geometry.rectangle(
                 generics.contact("active"), bp.sdwidth, bp.pwidth / 2
             ):translate((2 * i - indexshift) * xpitch / 2 + xshift, bp.separation / 2 + bp.pwidth * 3 / 4))
@@ -122,12 +135,12 @@ function layout(gate, _P)
                 :translate((2 * i - indexshift) * xpitch / 2 + xshift, bp.separation / 2 + bp.pwidth + bp.powerspace / 2))
             end
         end
-        if _P.pcontactpos[i] == "bottom" then
+        if _P.pcontactpos[i] == "inner" then
             gate:merge_into(geometry.rectangle(
                 generics.contact("active"), bp.sdwidth, bp.pwidth / 2
             ):translate((2 * i - indexshift) * xpitch / 2 + xshift, bp.separation / 2 + bp.pwidth / 4))
         end
-        if _P.ncontactpos[i] == "power" or _P.ncontactpos[i] == "bottom" then
+        if _P.ncontactpos[i] == "power" or _P.ncontactpos[i] == "outer" then
             gate:merge_into(geometry.rectangle(
                 generics.contact("active"), bp.sdwidth, bp.nwidth / 2
             ):translate((2 * i - indexshift) * xpitch / 2 + xshift, -bp.separation / 2 - bp.nwidth * 3 / 4))
@@ -137,7 +150,7 @@ function layout(gate, _P)
                 :translate((2 * i - indexshift) * xpitch / 2 + xshift, -bp.separation / 2 - bp.nwidth - bp.powerspace / 2))
             end
         end
-        if _P.ncontactpos[i] == "top" then
+        if _P.ncontactpos[i] == "inner" then
             gate:merge_into(geometry.rectangle(
                 generics.contact("active"), bp.sdwidth, bp.pwidth / 2
             ):translate((2 * i - indexshift) * xpitch / 2 + xshift, -bp.separation / 2 - bp.pwidth / 4))
