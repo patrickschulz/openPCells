@@ -21,6 +21,12 @@ function M.create(name)
     return self
 end
 
+function M.create_omni()
+    local self = M.create()
+    setmetatable(self.anchors, { __index = function() return point.create(0, 0) end })
+    return self
+end
+
 function meta.copy(self)
     local new = M.create()
     for i, shape in ipairs(self.shapes) do

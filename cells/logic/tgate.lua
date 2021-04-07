@@ -1,5 +1,4 @@
 function parameters()
-    pcell.reference_cell("basic/mosfet")
     pcell.reference_cell("logic/base")
     pcell.add_parameter("fingers", 1)
 end
@@ -8,69 +7,36 @@ function layout(gate, _P)
     local bp = pcell.get_parameters("logic/base")
     local xpitch = bp.gspace + bp.glength
 
-    gate:merge_into(pcell.create_layout("logic/harness", { fingers = _P.fingers }))
+    local gatecontactpos = {}
+    for i = 1, _P.fingers do gatecontactpos[i] = "split" end
 
-    -- common transistor options
-    pcell.push_overwrites("basic/mosfet", {
+    local contactpos = {}
+    for i = 1, _P.fingers + 1 do
+        if i % 2 == 0 then
+            contactpos[i] = "inner"
+        else
+            contactpos[i] = "outer"
+        end
+    end
+    local harness = pcell.create_layout("logic/harness", { 
         fingers = _P.fingers,
-        gatelength = bp.glength,
-        gatespace = bp.gspace,
-        sdwidth = bp.sdwidth,
+        gatecontactpos = gatecontactpos,
+        pcontactpos = contactpos,
+        ncontactpos = contactpos,
     })
+    gate:merge_into_update_alignmentbox(harness)
 
-    -- pfet
-    local pmos = pcell.create_layout("basic/mosfet",
-        {
-            channeltype = "pmos",
-            fwidth = bp.pwidth,
-            gtopext = bp.powerspace + bp.dummycontheight / 2 + bp.powerwidth / 2,
-            gbotext = bp.separation / 2,
-            clipbot = true,
-            drawbotgcut = true,
-            sourcesize = bp.pwidth / 2,
-            sourcealign = "top",
-            drainsize = bp.pwidth / 2,
-            drainalign = "bottom"
-        }
-    ):move_anchor("botgate")
-    gate:merge_into(pmos)
-
-    -- nfet
-    local nmos = pcell.create_layout("basic/mosfet",
-        {
-            channeltype = "nmos",
-            fwidth = bp.nwidth,
-            gbotext = bp.powerspace + bp.dummycontheight / 2 + bp.powerwidth / 2,
-            gtopext = bp.separation / 2,
-            cliptop = true,
-            drawtopgcut = true,
-            sourcesize = bp.nwidth / 2,
-            sourcealign = "top",
-            drainsize = bp.nwidth / 2,
-            drainalign = "top"
-        }
-    ):move_anchor("topgate")
-    gate:merge_into(nmos)
-
-    pcell.pop_overwrites("basic/mosfet")
-
-    -- gate contact
-    gate:merge_into(geometry.multiple_x(
-        geometry.rectangle(generics.contact("gate"), bp.glength, bp.gstwidth),
-        _P.fingers, xpitch
-    ):translate(0, bp.separation / 4 + bp.sdwidth / 4))
-    gate:merge_into(geometry.rectangle(
-        generics.metal(1),
-        _P.fingers * bp.glength + (_P.fingers - 1) * bp.gspace, bp.gstwidth
-    ):translate(0, bp.separation / 4 + bp.sdwidth / 4))
-    gate:merge_into(geometry.multiple_x(
-        geometry.rectangle(generics.contact("gate"), bp.glength, bp.gstwidth),
-        _P.fingers, xpitch
-    ):translate(0, -bp.separation / 4 - bp.sdwidth / 4))
-    gate:merge_into(geometry.rectangle(
-        generics.metal(1),
-        _P.fingers * bp.glength + (_P.fingers - 1) * bp.gspace, bp.gstwidth
-    ):translate(0, -bp.separation / 4 - bp.sdwidth / 4))
+    -- gate straps
+    if _P.fingers > 1 then
+        gate:merge_into(geometry.path(
+            generics.metal(1), { harness:get_anchor("G1upper"), harness:get_anchor(string.format("G%dupper", _P.fingers)) },
+            bp.gstwidth
+        ))
+        gate:merge_into(geometry.path(
+            generics.metal(1), { harness:get_anchor("G1lower"), harness:get_anchor(string.format("G%dlower", _P.fingers)) },
+            bp.gstwidth
+        ))
+    end
 
     -- signal transistors source connections
     if _P.fingers > 1 then
@@ -111,18 +77,6 @@ function layout(gate, _P)
             true
         ))
     end
-
-    -- alignement box
-    gate:set_alignment_box(
-        point.create(
-            -_P.fingers * xpitch / 2 - bp.leftdummies * xpitch, 
-            -bp.separation / 2 - bp.nwidth - bp.powerspace - bp.powerwidth / 2
-        ),
-        point.create(
-            _P.fingers * xpitch / 2 + bp.rightdummies * xpitch, 
-            bp.separation / 2 + bp.pwidth + bp.powerspace + bp.powerwidth / 2
-        )
-    )
 
     -- ports
     gate:add_port("I", generics.metal(1), point.create(-_P.fingers * xpitch / 2, 0))

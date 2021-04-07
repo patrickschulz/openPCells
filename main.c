@@ -113,6 +113,7 @@ static void load_api(lua_State* L)
         "argparse",
         "lpoint", // lua part of lpoint module
         "technology",
+        "postprocess",
         "export",
         "config",
         "object",
