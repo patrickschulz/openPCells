@@ -141,6 +141,12 @@ function meta.flipx(self, xcenter)
         local x = port.where:getx()
         port.where:translate(2 * (selfxcenter - x), 0)
     end
+    if self.alignmentbox then
+        local blx, bly = self.alignmentbox.bl:unwrap()
+        local trx, try = self.alignmentbox.tr:unwrap()
+        self.alignmentbox.bl = point.create(2 * (xcenter + selfxcenter) - trx, bly)
+        self.alignmentbox.tr = point.create(2 * (xcenter + selfxcenter) - blx, try)
+    end
     return self
 end
 
@@ -157,6 +163,12 @@ function meta.flipy(self, ycenter)
     for _, port in pairs(self.ports) do
         local y = port.where:gety()
         port.where:translate(0, 2 * (selfycenter - y))
+    end
+    if self.alignmentbox then
+        local blx, bly = self.alignmentbox.bl:unwrap()
+        local trx, try = self.alignmentbox.tr:unwrap()
+        self.alignmentbox.bl = point.create(blx, 2 * (ycenter + selfycenter) - try)
+        self.alignmentbox.tr = point.create(trx, 2 * (ycenter + selfycenter) - bly)
     end
     return self
 end
