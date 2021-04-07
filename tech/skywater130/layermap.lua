@@ -17,7 +17,23 @@ return {
             yencl = 40
         },
     },
-    --[[ old version, technology.lua needs to be fixed for this (FIXME: enlarge)
+    contactgate = {
+        array {
+            lpp = {
+                gds      = { layer = 66,   purpose = 44 },
+                virtuoso = { layer = "licon1", purpose = "drawing", },
+                magic    = { layer = "licon1", purpose = "drawing", },
+            },
+            width = 170,
+            height = 170,
+            xspace = 250,
+            yspace = 170,
+            xencl = 40,
+            yencl = 80
+        },
+    },
+    feol = {},
+    --[[
     contactgate = {
         layers = {
             {

@@ -67,8 +67,10 @@ function layout(gate, _P)
     gate:merge_into(isogate:copy())
 
     -- second feedback inverter cell
+    pcell.push_overwrites("logic/base", { connectoutput = false })
     local fbinv2 = pcell.create_layout("logic/not_gate"):move_anchor("left", isogate:get_anchor("right"))
     gate:merge_into(fbinv2)
+    pcell.pop_overwrites("logic/base")
 
     isogate:move_anchor("left", fbinv2:get_anchor("right"))
     gate:merge_into(isogate:copy())

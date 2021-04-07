@@ -1,5 +1,5 @@
 function parameters()
-    pcell.reference_cell("basic/transistor")
+    pcell.reference_cell("basic/mosfet")
     pcell.add_parameters(
         { "connmetal", 4 },
         { "connwidth", 60 },
@@ -8,8 +8,8 @@ function parameters()
 end
 
 function layout(ccp, _P)
-    local bp = pcell.get_parameters("basic/transistor")
-    pcell.push_overwrites("basic/transistor", {
+    local bp = pcell.get_parameters("basic/mosfet")
+    pcell.push_overwrites("basic/mosfet", {
         fingers = 4,
         gatelength = bp.gatelength,
         gatespace = bp.gatespace,
@@ -26,17 +26,17 @@ function layout(ccp, _P)
     })
 
     -- create center dummy
-    local dummy = pcell.create_layout("basic/transistor", { fingers = _P.centerdummies, drawtopgate = false, drawdrainvia = false })
+    local dummy = pcell.create_layout("basic/mosfet", { fingers = _P.centerdummies, drawtopgate = false, drawdrainvia = false })
     ccp:merge_into(dummy)
 
-    local left = pcell.create_layout("basic/transistor")
+    local left = pcell.create_layout("basic/mosfet")
     left:move_anchor("rightdrainsource", dummy:get_anchor("leftdrainsource"))
-    local right = pcell.create_layout("basic/transistor")
+    local right = pcell.create_layout("basic/mosfet")
     right:move_anchor("leftdrainsource", dummy:get_anchor("rightdrainsource"))
     ccp:merge_into(left)
     ccp:merge_into(right)
 
-    pcell.pop_overwrites("basic/transistor")
+    pcell.pop_overwrites("basic/mosfet")
 
     local leftgate = left:get_anchor("topgatestrapright")
     local rightgate = right:get_anchor("topgatestrapleft"):copy():translate(0, -200)

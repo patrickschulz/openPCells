@@ -202,18 +202,7 @@ end
 
 -- filter layers
 if args.layerfilter then
-    -- TODO
-    for i, S in cell:iter() do
-        for _, layer in ipairs(args.layerfilter) do
-            local delete = false
-            if S.lpp:str() == layer then
-                delete = true
-            end
-            if delete then
-                cell:remove_shape(i)
-            end
-        end
-    end
+    postprocess.filter(cell, args.layerfilter)
 end
 
 if not args.export then
