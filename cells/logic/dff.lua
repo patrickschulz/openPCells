@@ -30,7 +30,7 @@ function layout(gate, _P)
     })
 
     -- clock inverter/buffer
-    local clockbuf = pcell.create_layout("logic/buf"):move_anchor("left")
+    local clockbuf = pcell.create_layout("logic/buf"):move_anchor("right")
     gate:merge_into(clockbuf)
 
     -- isolation dummy
@@ -128,6 +128,16 @@ function layout(gate, _P)
         point.combine_12(clockbuf:get_anchor("bout"), fbcinv2:get_anchor("EN")),
         fbcinv2:get_anchor("EN") + point.create(xpitch / 2, 0)
     }, bp.sdwidth))
+
+    -- QN connection
+    gate:merge_into(geometry.path(generics.metal(2), {
+        outbuf:get_anchor("I"),
+        outbuf:get_anchor("right")
+    }, bp.sdwidth))
+
+    gate:merge_into(geometry.rectangle(generics.via(1, 2), bp.glength, bp.sdwidth):translate(outbuf:get_anchor("right")))
+   
+
     -- clk connections
     gate:merge_into(geometry.rectangle(generics.via(1, 2), bp.glength, bp.sdwidth):translate(fbcinv1:get_anchor("EP")))
     gate:merge_into(geometry.rectangle(generics.via(1, 2), bp.glength, bp.sdwidth):translate(fbcinv1:get_anchor("EN")))
@@ -174,17 +184,14 @@ function layout(gate, _P)
         outbuf:get_anchor("I")
     }, bp.sdwidth))
 
-    -- inherit alignment boxes, only use most-left and most-right block
     gate:inherit_alignment_box(clockbuf)
     gate:inherit_alignment_box(outbuf)
 
     -- ports
     gate:add_port("D", generics.metal(1), cinv1:get_anchor("I"))
     gate:add_port("Q", generics.metal(1), outbuf:get_anchor("O"))
+    gate:add_port("QN", generics.metal(1), outbuf:get_anchor("right"))
     gate:add_port("CLK", generics.metal(1), clockbuf:get_anchor("in"))
     gate:add_port("VDD", generics.metal(1), point.create(0,  bp.separation / 2 + bp.pwidth + bp.powerspace + bp.powerwidth / 2))
     gate:add_port("VSS", generics.metal(1), point.create(0, -bp.separation / 2 - bp.nwidth - bp.powerspace - bp.powerwidth / 2))
-
-    -- center cell (after port placement)
-    gate:translate(-10 * xpitch, 0)
 end
