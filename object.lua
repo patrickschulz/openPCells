@@ -105,6 +105,14 @@ function meta.find(self, comp)
     return indices, shapes
 end
 
+function meta.layers(self)
+    local lpps = {}
+    for _, S in self:iter() do
+        lpps[S.lpp:str()] = S.lpp
+    end
+    return pairs(lpps)
+end
+
 -- this function returns an iterator over all shapes in a cell (possibly only selecting a subset)
 -- First all shapes are collected in an auxiliary table, which enables modification of the self.shapes table within the iteration
 -- Furthermore, the list is iterated from the end, which allows element removal in the loop

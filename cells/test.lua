@@ -1,11 +1,7 @@
 function parameters()
-    pcell.add_parameters(
-        { "foo", 100, posvals = even() }
-        --{ "bar", 100, posvals = set(100, 200) }
-    )
 end
 
 function layout(cell, _P)
-    cell:merge_into(geometry.rectangle(generics.metal(1), _P.foo , _P.foo))
-    --cell:merge_into(geometry.rectangle(generics.metal(1), _P.bar , _P.bar))
+    cell:merge_into(geometry.rectanglebltr(generics.metal(1), point.create(0, 0), point.create(10, 10)))
+    cell:merge_into(geometry.rectanglebltr(generics.metal(1), point.create(5, 0), point.create(15, 10)))
 end

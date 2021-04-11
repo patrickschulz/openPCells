@@ -137,6 +137,8 @@ end
 -- FIXME: implement hierarchies
 cell:flatten_shallow()
 
+--reduce.merge_shapes(cell)
+
 -- move origin
 if args.origin then
     local dx, dy = string.match(args.origin, "%(%s*([-%d]+)%s*,%s*([-%d]+)%s*%)")

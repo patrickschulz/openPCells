@@ -18,4 +18,23 @@ function M.remove_superfluous_points(pts)
     return new
 end
 
+function M.merge_shapes(cell)
+    -- merge rectangles
+    for _, lpp in cell:layers() do
+        local rectangles = {}
+        for i, S in cell:iter(function(S) return S.lpp:str() == lpp:str() end) do
+            if S:is_type("rectangle") then
+                table.insert(rectangles, S.points)
+                cell:remove_shape(i)
+            end
+        end
+        union.rectangle_all(rectangles)
+        for i = 1, #rectangles do
+            local result = rectangles[i]
+            local S = shape.create_rectangle_bltr(lpp, result.bl, result.tr)
+            cell:add_shape(S)
+        end
+    end
+end
+
 return M
