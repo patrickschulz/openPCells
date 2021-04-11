@@ -11,6 +11,7 @@ meta.__index = meta
 function M.create(name)
     local self = {
         name = name,
+        subs = {},
         shapes = {},
         ports = {},
         anchors = {},
@@ -44,6 +45,10 @@ function M.make_from_shape(shape)
     return self
 end
 
+function meta.add(self, other)
+    table.insert(self.subs, other)
+end
+
 function meta.merge_into(self, other)
     for _, shape in other:iter() do
         self:add_shape(shape)
@@ -55,6 +60,13 @@ function meta.merge_into_update_alignmentbox(self, other)
     for _, shape in other:iter() do
         self:add_shape(shape)
     end
+end
+
+function meta.flatten_shallow(self)
+    for _, sub in ipairs(self.subs) do
+        self:merge_into(sub)
+    end
+    self.subs = {}
 end
 
 function meta.is_empty(self)
