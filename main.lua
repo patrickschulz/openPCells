@@ -102,6 +102,12 @@ if not args.notech then
     end
 end
 
+--[[
+if args.checktech then
+    return 0
+end
+--]]
+
 -- read parameters from pfile and merge with command line parameters
 local cellargs = {}
 if args.paramfile then
@@ -136,8 +142,6 @@ if not status then
 end
 -- FIXME: implement hierarchies
 cell:flatten_shallow()
-
---reduce.merge_shapes(cell)
 
 -- move origin
 if args.origin then
@@ -206,7 +210,7 @@ end
 
 -- filter layers
 if args.layerfilter then
-    postprocess.filter(cell, args.layerfilter)
+    postprocess.filter(cell, args.layerfilter, args.layerfilterlist or "black")
 end
 
 if not args.export then
@@ -222,6 +226,10 @@ if not args.notech then
     technology.place_via_conductors(cell, techintf)
     technology.translate(cell, techintf)
     technology.fix_to_grid(cell)
+end
+
+if not args.nomerge then
+    --reduce.merge_shapes(cell)
 end
 
 if not args.noexport then

@@ -70,7 +70,7 @@ local function _do_map(cell, S, entry, export)
     entry = entry.func(S.lpp:get())
     if entry.lpp then
         local new = S:copy()
-        new.lpp = generics.mapped(_get_lpp(entry.lpp, export))
+        new.lpp = generics.mapped(entry.name, _get_lpp(entry.lpp, export))
         if entry.left   > 0 or
            entry.right  > 0 or
            entry.top    > 0 or
@@ -94,7 +94,7 @@ local function _do_array(cell, S, entry, export)
     local ypitch = entry.height + entry.yspace
     local enlarge = 0
     local cut = geometry.multiple_xy(
-        geometry.rectangle(generics.mapped(_get_lpp(lpp, export)), entry.width + enlarge, entry.height + enlarge),
+        geometry.rectangle(generics.mapped(entry.name, _get_lpp(lpp, export)), entry.width + enlarge, entry.height + enlarge),
         xrep, yrep, xpitch, ypitch
     )
     cut:translate(entry.xshift or 0, entry.yshift or 0)
@@ -153,6 +153,7 @@ local function _load_layermap(name)
                     action = "map",
                     func = function()
                         return {
+                            name = entry.name,
                             lpp = entry.lpp,
                             left = entry.left or 0,
                             right = entry.right or 0,
@@ -174,6 +175,7 @@ local function _load_layermap(name)
                     action = "array",
                     func = function()
                         return {
+                            name = entry.name,
                             lpp = entry.lpp,
                             width = entry.width,
                             height = entry.height,

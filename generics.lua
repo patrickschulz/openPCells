@@ -26,8 +26,12 @@ local function _create(value)
                 return "feol"
             elseif self.typ == "special" then
                 return "special"
-            else
+            elseif self.typ == "mapped" then
+                return self.name
+            elseif self.typ == "other" then
                 return self.value
+            else
+                error(string.format("unknown generic: '%s'", self.typ))
             end
         end,
         flipx = function(self)
@@ -86,9 +90,10 @@ function M.special(layer)
     return self
 end
 
-function M.mapped(layer)
+function M.mapped(name, layer)
     local self = _create(layer)
     self.typ = "mapped"
+    self.name = name
     return self
 end
 
