@@ -4,7 +4,7 @@ function parameters()
     pcell.add_parameter("fingers", 1)
     pcell.add_parameter("swapinputs", false)
     pcell.add_parameter("swapoutputs", false)
-    pcell.add_parameter("drawoutputs", true)
+    pcell.add_parameter("shiftoutput", 0)
 end
 
 function layout(gate, _P)
@@ -14,10 +14,18 @@ function layout(gate, _P)
 
     local gatecontactpos = { }
     for i = 1, 2 * _P.fingers do
-        if i % 4 > 1 then
-            gatecontactpos[i] = "split"
+        if not _P.swapinputs then
+            if i % 4 > 1 then
+                gatecontactpos[i] = "split"
+            else
+                gatecontactpos[i] = "center"
+            end
         else
-            gatecontactpos[i] = "center"
+            if i % 4 > 1 then
+                gatecontactpos[i] = "center"
+            else
+                gatecontactpos[i] = "split"
+            end
         end
     end
 
@@ -42,53 +50,93 @@ function layout(gate, _P)
 
     -- gate straps
     if _P.fingers > 1 then
-        gate:merge_into(geometry.path(
-            generics.metal(1),
-            {
-                harness:get_anchor("G1"),
-                harness:get_anchor(string.format("G%d", 
-                    _P.fingers % 2 == 0 and 
-                        (2 * _P.fingers) or
-                        (2 * _P.fingers - 1)
-                )),
-            },
-            bp.sdwidth
-        ))
-        gate:merge_into(geometry.path(
-            generics.metal(1),
-            {
-                harness:get_anchor("G2upper"),
-                harness:get_anchor(string.format("G%dupper", 
-                    _P.fingers % 2 == 0 and 
-                        (2 * _P.fingers - 1) or
-                        (2 * _P.fingers)
-                )),
-            },
-            bp.sdwidth
-        ))
-        gate:merge_into(geometry.path(
-            generics.metal(1),
-            {
-                harness:get_anchor("G2lower"),
-                harness:get_anchor(string.format("G%dlower", 
-                    _P.fingers % 2 == 0 and 
-                        (2 * _P.fingers - 1) or
-                        (2 * _P.fingers)
-                )),
-            },
-            bp.sdwidth
-        ))
+        if _P.swapinputs then
+            gate:merge_into(geometry.path(
+                generics.metal(1),
+                {
+                    harness:get_anchor("G2"),
+                    harness:get_anchor(string.format("G%d", 
+                        _P.fingers % 2 == 0 and 
+                            (2 * _P.fingers - 1) or
+                            (2 * _P.fingers)
+                    )),
+                },
+                bp.sdwidth
+            ))
+            gate:merge_into(geometry.path(
+                generics.metal(1),
+                {
+                    harness:get_anchor("G1upper"),
+                    harness:get_anchor(string.format("G%dupper", 
+                        _P.fingers % 2 == 0 and 
+                            (2 * _P.fingers) or
+                            (2 * _P.fingers - 1)
+                    )),
+                },
+                bp.sdwidth
+            ))
+            gate:merge_into(geometry.path(
+                generics.metal(1),
+                {
+                    harness:get_anchor("G1lower"),
+                    harness:get_anchor(string.format("G%dlower", 
+                        _P.fingers % 2 == 0 and 
+                            (2 * _P.fingers) or
+                            (2 * _P.fingers - 1)
+                    )),
+                },
+                bp.sdwidth
+            ))
+        else
+            gate:merge_into(geometry.path(
+                generics.metal(1),
+                {
+                    harness:get_anchor("G1"),
+                    harness:get_anchor(string.format("G%d", 
+                        _P.fingers % 2 == 0 and 
+                            (2 * _P.fingers) or
+                            (2 * _P.fingers - 1)
+                    )),
+                },
+                bp.sdwidth
+            ))
+            gate:merge_into(geometry.path(
+                generics.metal(1),
+                {
+                    harness:get_anchor("G2upper"),
+                    harness:get_anchor(string.format("G%dupper", 
+                        _P.fingers % 2 == 0 and 
+                            (2 * _P.fingers - 1) or
+                            (2 * _P.fingers)
+                    )),
+                },
+                bp.sdwidth
+            ))
+            gate:merge_into(geometry.path(
+                generics.metal(1),
+                {
+                    harness:get_anchor("G2lower"),
+                    harness:get_anchor(string.format("G%dlower", 
+                        _P.fingers % 2 == 0 and 
+                            (2 * _P.fingers - 1) or
+                            (2 * _P.fingers)
+                    )),
+                },
+                bp.sdwidth
+            ))
+        end
     end
 
     -- drain connection
-    if _P.drawoutputs then
+    if bp.connectoutput then
         local poffset = _P.fingers % 2 == (_P.swapoutputs and 1 or 0) and (_P.fingers - 2) or _P.fingers
         gate:merge_into(geometry.path(
             generics.metal(1),
             {
                 point.create(-poffset * xpitch,               (bp.separation + bp.sdwidth) / 2),
-                point.create( (_P.fingers + xincr) * xpitch,  (bp.separation + bp.sdwidth) / 2),
-                point.create( (_P.fingers + xincr) * xpitch, -(bp.separation + bp.sdwidth) / 2),
+                point.create(-poffset * xpitch,               (bp.separation + bp.sdwidth) / 2),
+                point.create(_P.fingers * xpitch + _P.shiftoutput,  (bp.separation + bp.sdwidth) / 2),
+                point.create(_P.fingers * xpitch + _P.shiftoutput, -(bp.separation + bp.sdwidth) / 2),
                 point.create(-poffset * xpitch,              -(bp.separation + bp.sdwidth) / 2),
             },
             bp.sdwidth,
@@ -98,15 +146,15 @@ function layout(gate, _P)
 
     -- ports
     if _P.swapinputs then
-        gate:add_port("EP", generics.metal(1), point.create(-xpitch / 2,  bp.separation / 4 + bp.sdwidth / 4))
-        gate:add_port("EN", generics.metal(1), point.create(-xpitch / 2, -bp.separation / 4 - bp.sdwidth / 4))
-        gate:add_port("I", generics.metal(1), point.create(xpitch / 2, 0))
+        gate:add_port("I", generics.metal(1), harness:get_anchor("G2"))
+        gate:add_port("EP", generics.metal(1), harness:get_anchor("G1upper"))
+        gate:add_port("EN", generics.metal(1), harness:get_anchor("G1lower"))
     else
-        gate:add_port("EP", generics.metal(1), point.create(xpitch / 2,  bp.separation / 4 + bp.sdwidth / 4))
-        gate:add_port("EN", generics.metal(1), point.create(xpitch / 2, -bp.separation / 4 - bp.sdwidth / 4))
-        gate:add_port("I", generics.metal(1), point.create(-xpitch / 2, 0))
+        gate:add_port("I", generics.metal(1), harness:get_anchor("G1"))
+        gate:add_port("EP", generics.metal(1), harness:get_anchor("G2upper"))
+        gate:add_port("EN", generics.metal(1), harness:get_anchor("G2lower"))
     end
-    gate:add_port("O", generics.metal(1), point.create((_P.fingers + xincr) * xpitch, 0))
+    gate:add_port("O", generics.metal(1), point.create(_P.fingers * xpitch + _P.shiftoutput, 0))
     gate:add_port("VDD", generics.metal(1), point.create(0,  bp.separation / 2 + bp.pwidth + bp.powerspace + bp.powerwidth / 2))
     gate:add_port("VSS", generics.metal(1), point.create(0, -bp.separation / 2 - bp.nwidth - bp.powerspace - bp.powerwidth / 2))
 end

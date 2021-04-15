@@ -1,6 +1,7 @@
 function parameters()
     pcell.reference_cell("logic/base")
     pcell.add_parameter("fingers", 1)
+    pcell.add_parameter("shiftinputoutput", 0)
 end
 
 function layout(gate, _P)
@@ -45,6 +46,10 @@ function layout(gate, _P)
             {
                 point.create( _P.fingers * xpitch / 2,  (bp.separation + 2 * bp.pwidth - bp.sdwidth) / 2),
                 point.create(-_P.fingers * xpitch / 2,  (bp.separation + 2 * bp.pwidth - bp.sdwidth) / 2),
+                point.create(-_P.fingers * xpitch / 2,  (bp.separation + bp.sdwidth) / 2),
+                point.create(-_P.fingers * xpitch / 2 - _P.shiftinputoutput,  (bp.separation + bp.sdwidth) / 2),
+                point.create(-_P.fingers * xpitch / 2 - _P.shiftinputoutput, -(bp.separation + bp.sdwidth) / 2),
+                point.create(-_P.fingers * xpitch / 2, -(bp.separation + bp.sdwidth) / 2),
                 point.create(-_P.fingers * xpitch / 2, -(bp.separation + 2 * bp.nwidth - bp.sdwidth) / 2),
                 point.create( _P.fingers * xpitch / 2, -(bp.separation + 2 * bp.nwidth - bp.sdwidth) / 2),
             },
@@ -56,6 +61,10 @@ function layout(gate, _P)
             generics.metal(1),
             {
                 point.create(-_P.fingers * xpitch / 2,  (bp.separation + 2 * bp.pwidth - bp.sdwidth) / 2),
+                point.create(-_P.fingers * xpitch / 2,  (bp.separation + bp.sdwidth) / 2),
+                point.create(-_P.fingers * xpitch / 2 - _P.shiftinputoutput,  (bp.separation + bp.sdwidth) / 2),
+                point.create(-_P.fingers * xpitch / 2 - _P.shiftinputoutput, -(bp.separation + bp.sdwidth) / 2),
+                point.create(-_P.fingers * xpitch / 2, -(bp.separation + bp.sdwidth) / 2),
                 point.create(-_P.fingers * xpitch / 2, -(bp.separation + 2 * bp.nwidth - bp.sdwidth) / 2),
             },
             bp.sdwidth,
@@ -70,6 +79,10 @@ function layout(gate, _P)
             {
                 point.create(-_P.fingers * xpitch / 2 + xpitch,  (bp.separation + bp.sdwidth) / 2),
                 point.create( _P.fingers * xpitch / 2,           (bp.separation + bp.sdwidth) / 2),
+                point.create( _P.fingers * xpitch / 2,  (bp.separation + bp.sdwidth) / 2),
+                point.create( _P.fingers * xpitch / 2 + _P.shiftinputoutput,  (bp.separation + bp.sdwidth) / 2),
+                point.create( _P.fingers * xpitch / 2 + _P.shiftinputoutput, -(bp.separation + bp.sdwidth) / 2),
+                point.create( _P.fingers * xpitch / 2, -(bp.separation + bp.sdwidth) / 2),
                 point.create( _P.fingers * xpitch / 2,          -(bp.separation + bp.sdwidth) / 2),
                 point.create(-_P.fingers * xpitch / 2 + xpitch, -(bp.separation + bp.sdwidth) / 2),
             },
@@ -79,10 +92,10 @@ function layout(gate, _P)
     end
 
     -- ports
-    gate:add_port("I", generics.metal(1), point.create(-_P.fingers * xpitch / 2, 0))
-    gate:add_port("O", generics.metal(1), point.create(_P.fingers * xpitch / 2, 0))
-    gate:add_port("EP", generics.metal(1), point.create(0, bp.separation / 4 + bp.sdwidth / 4))
-    gate:add_port("EN", generics.metal(1), point.create(0, -bp.separation / 4 - bp.sdwidth / 4))
+    gate:add_port("I", generics.metal(1), point.create(-_P.fingers * xpitch / 2 - _P.shiftinputoutput, 0))
+    gate:add_port("O", generics.metal(1), point.create(_P.fingers * xpitch / 2 + _P.shiftinputoutput, 0))
+    gate:add_port("EP", generics.metal(1), harness:get_anchor("G1upper"))
+    gate:add_port("EN", generics.metal(1), harness:get_anchor("G1lower"))
     gate:add_port("VDD", generics.metal(1), point.create(0,  bp.separation / 2 + bp.pwidth + bp.powerspace + bp.powerwidth / 2))
     gate:add_port("VSS", generics.metal(1), point.create(0, -bp.separation / 2 - bp.nwidth - bp.powerspace - bp.powerwidth / 2))
 end

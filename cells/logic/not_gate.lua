@@ -67,10 +67,10 @@ function layout(gate, _P)
     end
 
     -- anchors
-    gate:add_anchor("OTL", point.create(-_P.fingers * xpitch / 2 + xpitch,  bp.separation / 2 + bp.sdwidth / 2))
-    gate:add_anchor("OBL", point.create(-_P.fingers * xpitch / 2 + xpitch, -bp.separation / 2 - bp.sdwidth / 2))
-    gate:add_anchor("OTR", point.create(_P.fingers * xpitch / 2 - xpitch * enable(_P.fingers % 2 == 0),  bp.separation / 2 + bp.sdwidth / 2))
-    gate:add_anchor("OBR", point.create(_P.fingers * xpitch / 2 - xpitch * enable(_P.fingers % 2 == 0), -bp.separation / 2 - bp.sdwidth / 2))
+    gate:add_anchor("OTL", harness:get_anchor(string.format("pSD%d", 1)))
+    gate:add_anchor("OBL", harness:get_anchor(string.format("nSD%d", 1)))
+    gate:add_anchor("OTR", harness:get_anchor(string.format("pSD%d", _P.fingers + 1)))
+    gate:add_anchor("OBR", harness:get_anchor(string.format("nSD%d", _P.fingers + 1)))
 
     -- ports
     gate:add_port("I", generics.metal(1), point.create(0, _P.shiftinput))
