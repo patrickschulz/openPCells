@@ -70,3 +70,9 @@ if all or enabled["cells"] then
     print("running cells test...")
     run_test("cells", "all")
 end
+
+-- union checks
+if all or enabled["union"] then
+    print("running union test...")
+    run_test("union", "all")
+end

@@ -1,6 +1,8 @@
 local M = {}
 
 local function rect_order(bl1, tr1, bl2, tr2)
+    if bl1  < bl2 and tr1  > tr2 then return "OUTER" end
+    if bl2  < bl1 and tr2  > tr1 then return "INNER" end
     if bl1 == bl2 and tr1 == tr2 then return "EQUAL" end
     if bl1 == bl2 and tr1  < tr2 then return "HALFEQUALLEFTREGULAR" end
     if bl1 == bl2 and tr1  > tr2 then return "HALFEQUALLEFTINVERSE" end
@@ -45,71 +47,67 @@ local function rectangle_union(rect1, rect2)
         return nil
     end
     local blx, bly, trx, try = 0, 0, 0, 0
-    if is_partially_equal(xorder) then
+    --if is_partially_equal(xorder) then
         if xorder == "HALFEQUALLEFTREGULAR" then
             blx = rect1.bl:getx()
             trx = rect2.tr:getx()
-        end
-        if "HALFEQUALLEFTINVERSE" then
+        elseif xorder == "HALFEQUALLEFTINVERSE" then
             blx = rect1.bl:getx()
             trx = rect1.tr:getx()
-        end
-        if "HALFEQUALRIGHTREGULAR" then
+        elseif xorder == "HALFEQUALRIGHTREGULAR" then
             blx = rect1.bl:getx()
             trx = rect1.tr:getx()
-        end
-        if "HALFEQUALRIGHTINVERSE" then
+        elseif xorder == "HALFEQUALRIGHTINVERSE" then
             blx = rect2.bl:getx()
             trx = rect1.tr:getx()
-        end
-        if "EQUAL" then
+        elseif xorder == "EQUAL" then
             blx = rect1.bl:getx()
             trx = rect1.tr:getx()
-        end
-        if yorder == "REGULAR" then
-            bly = rect1.bl:gety()
-            try = rect2.tr:gety()
-        else
-            bly = rect2.bl:gety()
-            try = rect1.tr:gety()
-        end
-    end
-    if is_partially_equal(yorder) then
-        if yorder == "HALFEQUALLEFTREGULAR" then
-            bly = rect1.bl:gety()
-            try = rect2.tr:gety()
-        end
-        if yorder == "HALFEQUALLEFTINVERSE" then
-            bly = rect1.bl:gety()
-            try = rect1.tr:gety()
-        end
-        if yorder == "HALFEQUALRIGHTREGULAR" then
-            bly = rect1.bl:gety()
-            try = rect1.tr:gety()
-        end
-        if yorder ==  "HALFEQUALRIGHTINVERSE" then
-            bly = rect2.bl:gety()
-            try = rect1.tr:gety()
-        end
-        if yorder == "EQUAL" then
-            bly = rect1.bl:gety()
-            try = rect1.tr:gety()
-        end
-        if xorder == "REGULAR" then
+        elseif xorder == "OUTER" then
+            blx = rect1.bl:getx()
+            trx = rect1.tr:getx()
+        elseif xorder == "INNER" then
+            blx = rect2.bl:getx()
+            trx = rect2.tr:getx()
+        elseif xorder == "REGULAR" then
             blx = rect1.bl:getx()
             trx = rect2.tr:getx()
         else
             blx = rect2.bl:getx()
             trx = rect1.tr:getx()
         end
-    end
+    --end
+    --if is_partially_equal(yorder) then
+        if yorder == "HALFEQUALLEFTREGULAR" then
+            bly = rect1.bl:gety()
+            try = rect2.tr:gety()
+        elseif yorder == "HALFEQUALLEFTINVERSE" then
+            bly = rect1.bl:gety()
+            try = rect1.tr:gety()
+        elseif yorder == "HALFEQUALRIGHTREGULAR" then
+            bly = rect1.bl:gety()
+            try = rect1.tr:gety()
+        elseif yorder ==  "HALFEQUALRIGHTINVERSE" then
+            bly = rect2.bl:gety()
+            try = rect1.tr:gety()
+        elseif yorder == "EQUAL" then
+            bly = rect1.bl:gety()
+            try = rect1.tr:gety()
+        elseif yorder == "REGULAR" then
+            bly = rect1.bl:gety()
+            try = rect2.tr:gety()
+        else
+            bly = rect2.bl:gety()
+            try = rect1.tr:gety()
+        end
+    --end
     return { bl = point.create(blx, bly), tr = point.create(trx, try) }
 end
 
 function M.rectangle_all(rectangles)
     local i = 1
     local j = 2
-    while true do
+    while #rectangles > 1 do
         if i == #rectangles and j == #rectangles + 1 then break end
         local rect1 = rectangles[i]
         local rect2 = rectangles[j]

@@ -229,7 +229,7 @@ if not args.notech then
 end
 
 if not args.nomerge then
-    --reduce.merge_shapes(cell)
+    reduce.merge_shapes(cell)
 end
 
 if not args.noexport then
