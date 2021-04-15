@@ -8,10 +8,10 @@ function parameters()
     pcell.add_parameters(
         { "fingers", 1 },
         { "drawgatecontacts", true },
-        { "gatecontactpos", { } },
+        { "gatecontactpos", { }, argtype = "strtable" },
         { "shiftgatecontacts", 0 },
-        { "pcontactpos", {} },
-        { "ncontactpos", {} },
+        { "pcontactpos", {}, argtype = "strtable" },
+        { "ncontactpos", {}, argtype = "strtable" },
         { "shiftpcontactsinner", 0 },
         { "shiftpcontactsouter", 0 },
         { "shiftncontactsinner", 0 },
@@ -98,9 +98,6 @@ function layout(gate, _P)
     end
     pcell.pop_overwrites("basic/mosfet")
 
-    -- pop general transistor settings
-    pcell.pop_overwrites("basic/mosfet")
-
     -- power rails
     gate:merge_into(geometry.multiple_y(
         geometry.rectangle(generics.metal(1), (_P.fingers + bp.leftdummies + bp.rightdummies) * xpitch + bp.sdwidth, bp.powerwidth),
@@ -119,13 +116,33 @@ function layout(gate, _P)
             end
             if _P.gatecontactpos[i] == "split" then
                 local routingshift = bp.sdwidth / 2 + (bp.separation - 2 * bp.sdwidth) / 6
-                local pt = point.create((2 * i - _P.fingers - 1 + bp.leftdummies - bp.rightdummies) * xpitch / 2 + xshift, _P.shiftgatecontacts)
+                local x = (2 * i - _P.fingers - 1 + bp.leftdummies - bp.rightdummies) * xpitch / 2 + xshift
+                local y = _P.shiftgatecontacts
                 gate:merge_into(geometry.multiple_y(
                     geometry.rectangle(generics.contact("gate"), bp.glength, bp.gstwidth),
                     2, 2 * routingshift
-                ):translate(pt))
-                gate:add_anchor(string.format("G%dupper", i), pt:copy():translate(0,  routingshift))
-                gate:add_anchor(string.format("G%dlower", i), pt:copy():translate(0, -routingshift))
+                ):translate(x, y))
+                gate:add_anchor(string.format("G%dupper", i), point.create(x, y + routingshift))
+                gate:add_anchor(string.format("G%dlower", i), point.create(x, y - routingshift))
+                -- FIXME: simplify gate cut drawing
+                pcell.push_overwrites("basic/mosfet", {
+                    channeltype = "pmos",
+                    vthtype = bp.pvthtype,
+                    fwidth = bp.pwidth,
+                    gbotext = bp.separation / 2,
+                    gtopext = bp.powerspace + bp.powerwidth,
+                    clipbot = true,
+                })
+                gate:merge_into(pcell.create_layout("basic/mosfet", { fingers = 1, drawbotgcut = true }):move_anchor("botgate", point.create(x, 0)))
+                pcell.push_overwrites("basic/mosfet", {
+                    channeltype = "nmos",
+                    vthtype = bp.nvthtype,
+                    fwidth = bp.nwidth,
+                    gtopext = bp.separation / 2,
+                    gbotext = bp.powerspace + bp.powerwidth,
+                    cliptop = true,
+                })
+                gate:merge_into(pcell.create_layout("basic/mosfet", { fingers = 1, drawtopgcut = true }):move_anchor("topgate", point.create(x, 0)))
             end
         end
     end
@@ -209,6 +226,9 @@ function layout(gate, _P)
             gate:add_anchor(string.format("nSD%d", i), point.create(x, y + bp.pwidth / 4 - _P.shiftpcontactsinner))
         end
     end
+
+    -- pop general transistor settings
+    pcell.pop_overwrites("basic/mosfet")
 
     gate:set_alignment_box(
         point.create(-(_P.fingers + bp.leftdummies + bp.rightdummies) * (bp.glength + bp.gspace) / 2 + xshift, -bp.separation / 2 - bp.nwidth - bp.powerspace - bp.powerwidth / 2),
