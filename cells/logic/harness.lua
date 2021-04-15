@@ -134,6 +134,7 @@ function layout(gate, _P)
                     clipbot = true,
                 })
                 gate:merge_into(pcell.create_layout("basic/mosfet", { fingers = 1, drawbotgcut = true }):move_anchor("botgate", point.create(x, 0)))
+                pcell.pop_overwrites("basic/mosfet")
                 pcell.push_overwrites("basic/mosfet", {
                     channeltype = "nmos",
                     vthtype = bp.nvthtype,
@@ -143,6 +144,7 @@ function layout(gate, _P)
                     cliptop = true,
                 })
                 gate:merge_into(pcell.create_layout("basic/mosfet", { fingers = 1, drawtopgcut = true }):move_anchor("topgate", point.create(x, 0)))
+                pcell.pop_overwrites("basic/mosfet")
             end
         end
     end
