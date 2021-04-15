@@ -1,5 +1,4 @@
 function config()
-    pcell.reference_cell("basic/mosfet")
     pcell.reference_cell("logic/base")
     pcell.set_property("hidden", true)
 end
@@ -20,38 +19,6 @@ function layout(gate, _P)
     pcell.push_overwrites("logic/base", { rightdummies = 0 })
     gate:merge_into(pcell.create_layout("logic/harness", { fingers = 2 * _P.fingers }))
     pcell.pop_overwrites("logic/base")
-
-    -- common transistor options
-    pcell.push_overwrites("basic/mosfet", {
-        fingers = 2,
-        gatelength = bp.glength,
-        gatespace = bp.gspace,
-        sdwidth = bp.sdwidth,
-        drawinnersourcedrain = false,
-        drawoutersourcedrain = false,
-    })
-
-    -- pmos
-    pcell.push_overwrites("basic/mosfet", {
-        channeltype = "pmos",
-        fwidth = bp.pwidth,
-        gtopext = bp.powerspace + bp.dummycontheight / 2 + bp.powerwidth / 2,
-        gbotext = bp.separation / 2,
-        clipbot = true,
-    })
-    block:merge_into(pcell.create_layout("basic/mosfet"):move_anchor("botgate"))
-    pcell.pop_overwrites("basic/mosfet")
-
-    -- nmos
-    pcell.push_overwrites("basic/mosfet", {
-        channeltype = "nmos",
-        fwidth = bp.nwidth,
-        gbotext = bp.powerspace + bp.dummycontheight / 2 + bp.powerwidth / 2,
-        gtopext = bp.separation / 2,
-        cliptop = true,
-    })
-    block:merge_into(pcell.create_layout("basic/mosfet"):move_anchor("topgate"))
-    pcell.pop_overwrites("basic/mosfet")
 
     -- gate contacts
     block:merge_into(geometry.rectangle(
@@ -154,8 +121,6 @@ function layout(gate, _P)
         bp.sdwidth,
         true
     ))
-
-    pcell.pop_overwrites("basic/mosfet")
 
     gate:set_alignment_box(
         point.create(-(2 * _P.fingers + 2 * bp.leftdummies) * (bp.glength + bp.gspace) / 2, -bp.separation / 2 - bp.nwidth - bp.powerspace - bp.powerwidth / 2),
