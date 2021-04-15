@@ -29,14 +29,6 @@ local function rect_yorder(rect1, rect2)
     return rect_order(bl1y, tr1y, bl2y, tr2y)
 end
 
-local function is_partially_equal(order)
-    return order == "EQUAL" or 
-           order == "HALFEQUALLEFTREGULAR" or
-           order == "HALFEQUALLEFTINVERSE" or
-           order == "HALFEQUALRIGHTREGULAR" or
-           order == "HALFEQUALRIGHTINVERSE"
-end
-
 local function rectangle_union(rect1, rect2)
     local xorder = rect_xorder(rect1, rect2)
     local yorder = rect_yorder(rect1, rect2)
@@ -47,60 +39,62 @@ local function rectangle_union(rect1, rect2)
         return nil
     end
     local blx, bly, trx, try = 0, 0, 0, 0
-    --if is_partially_equal(xorder) then
-        if xorder == "HALFEQUALLEFTREGULAR" then
-            blx = rect1.bl:getx()
-            trx = rect2.tr:getx()
-        elseif xorder == "HALFEQUALLEFTINVERSE" then
-            blx = rect1.bl:getx()
-            trx = rect1.tr:getx()
-        elseif xorder == "HALFEQUALRIGHTREGULAR" then
-            blx = rect1.bl:getx()
-            trx = rect1.tr:getx()
-        elseif xorder == "HALFEQUALRIGHTINVERSE" then
-            blx = rect2.bl:getx()
-            trx = rect1.tr:getx()
-        elseif xorder == "EQUAL" then
-            blx = rect1.bl:getx()
-            trx = rect1.tr:getx()
-        elseif xorder == "OUTER" then
-            blx = rect1.bl:getx()
-            trx = rect1.tr:getx()
-        elseif xorder == "INNER" then
-            blx = rect2.bl:getx()
-            trx = rect2.tr:getx()
-        elseif xorder == "REGULAR" then
-            blx = rect1.bl:getx()
-            trx = rect2.tr:getx()
-        else
-            blx = rect2.bl:getx()
-            trx = rect1.tr:getx()
-        end
-    --end
-    --if is_partially_equal(yorder) then
-        if yorder == "HALFEQUALLEFTREGULAR" then
-            bly = rect1.bl:gety()
-            try = rect2.tr:gety()
-        elseif yorder == "HALFEQUALLEFTINVERSE" then
-            bly = rect1.bl:gety()
-            try = rect1.tr:gety()
-        elseif yorder == "HALFEQUALRIGHTREGULAR" then
-            bly = rect1.bl:gety()
-            try = rect1.tr:gety()
-        elseif yorder ==  "HALFEQUALRIGHTINVERSE" then
-            bly = rect2.bl:gety()
-            try = rect1.tr:gety()
-        elseif yorder == "EQUAL" then
-            bly = rect1.bl:gety()
-            try = rect1.tr:gety()
-        elseif yorder == "REGULAR" then
-            bly = rect1.bl:gety()
-            try = rect2.tr:gety()
-        else
-            bly = rect2.bl:gety()
-            try = rect1.tr:gety()
-        end
-    --end
+    if xorder == "HALFEQUALLEFTREGULAR" then
+        blx = rect1.bl:getx()
+        trx = rect2.tr:getx()
+    elseif xorder == "HALFEQUALLEFTINVERSE" then
+        blx = rect1.bl:getx()
+        trx = rect1.tr:getx()
+    elseif xorder == "HALFEQUALRIGHTREGULAR" then
+        blx = rect1.bl:getx()
+        trx = rect1.tr:getx()
+    elseif xorder == "HALFEQUALRIGHTINVERSE" then
+        blx = rect2.bl:getx()
+        trx = rect1.tr:getx()
+    elseif xorder == "EQUAL" then
+        blx = rect1.bl:getx()
+        trx = rect1.tr:getx()
+    elseif xorder == "OUTER" then
+        blx = rect1.bl:getx()
+        trx = rect1.tr:getx()
+    elseif xorder == "INNER" then
+        blx = rect2.bl:getx()
+        trx = rect2.tr:getx()
+    elseif xorder == "REGULAR" then
+        blx = rect1.bl:getx()
+        trx = rect2.tr:getx()
+    else
+        blx = rect2.bl:getx()
+        trx = rect1.tr:getx()
+    end
+    if yorder == "HALFEQUALLEFTREGULAR" then
+        bly = rect1.bl:gety()
+        try = rect2.tr:gety()
+    elseif yorder == "HALFEQUALLEFTINVERSE" then
+        bly = rect1.bl:gety()
+        try = rect1.tr:gety()
+    elseif yorder == "HALFEQUALRIGHTREGULAR" then
+        bly = rect1.bl:gety()
+        try = rect1.tr:gety()
+    elseif yorder ==  "HALFEQUALRIGHTINVERSE" then
+        bly = rect2.bl:gety()
+        try = rect1.tr:gety()
+    elseif yorder == "EQUAL" then
+        bly = rect1.bl:gety()
+        try = rect1.tr:gety()
+    elseif yorder == "OUTER" then
+        bly = rect1.bl:gety()
+        try = rect1.tr:gety()
+    elseif yorder == "INNER" then
+        bly = rect2.bl:gety()
+        try = rect2.tr:gety()
+    elseif yorder == "REGULAR" then
+        bly = rect1.bl:gety()
+        try = rect2.tr:gety()
+    else
+        bly = rect2.bl:gety()
+        try = rect1.tr:gety()
+    end
     return { bl = point.create(blx, bly), tr = point.create(trx, try) }
 end
 
