@@ -24,8 +24,8 @@ function layout(gate, _P)
 
     -- draw connection
     gate:merge_into(geometry.path(generics.metal(1), {
-        point.create(-bp.sdwidth / 2, 0),
-        point.create(bp.glength + bp.gspace / 2, 0),
+        nor:get_anchor("Z"),
+        inv:get_anchor("I")
     }, bp.sdwidth))
 
     gate:inherit_alignment_box(nor)

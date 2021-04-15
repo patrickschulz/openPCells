@@ -130,13 +130,16 @@ function layout(gate, _P)
     
     -- drain connection
     local connpts
+    local startpt
     if _P.fingers % 2 == 0 then
+        startpt = point.create(-(_P.fingers - 1) * xpitch, yinvert * (bp.separation + bp.sdwidth) / 2)
         connpts = {
             (2 * _P.fingers - 1) * xpitch,
             -yinvert * (bp.separation + bp.sdwidth),
             -2 * (_P.fingers - 1) * xpitch
         }
     else
+        startpt = point.create((_P.fingers - 1) * xpitch, yinvert * (bp.separation + bp.sdwidth) / 2)
         connpts = {
             -2 * (_P.fingers - 1) * xpitch - xpitch / 2,
             -yinvert * (bp.separation + bp.sdwidth) / 2,
@@ -147,7 +150,7 @@ function layout(gate, _P)
     end
     gate:merge_into(geometry.path(
         generics.metal(1),
-        geometry.path_points_xy(point.create((_P.fingers - 1) * xpitch, yinvert * (bp.separation + bp.sdwidth) / 2), connpts),
+        geometry.path_points_xy(startpt, connpts),
         bp.sdwidth,
         true
     ))
