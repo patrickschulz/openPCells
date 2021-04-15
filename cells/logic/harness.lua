@@ -10,8 +10,6 @@ function parameters()
         { "drawgatecontacts", true },
         { "gatecontactpos", { } },
         { "shiftgatecontacts", 0 },
-        --{ "pcontactpos", { "power", "inner" } },
-        --{ "ncontactpos", { "power", "inner" } },
         { "pcontactpos", {} },
         { "ncontactpos", {} },
         { "shiftpcontactsinner", 0 },
