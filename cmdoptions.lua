@@ -62,8 +62,8 @@ return {
         help = "set filter list type (white or black, default black)"
     },
     switch{
-        name = "nomerge", long = "--no-merge",
-        help = "don't merge rectangles"
+        name = "mergerectangles", long = "--merge-rectangles",
+        help = "merge rectangles"
     },
     switch{
         name = "human", short = "-H", long = "--human",

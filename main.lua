@@ -228,7 +228,7 @@ if not args.notech then
     technology.fix_to_grid(cell)
 end
 
-if not args.nomerge then
+if args.mergerectangles then
     reduce.merge_shapes(cell)
 end
 
