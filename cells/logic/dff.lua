@@ -19,7 +19,7 @@ function parameters()
     pcell.reference_cell("logic/harness")
     pcell.add_parameter("clockpolarity", "positiv", { posvals = set("positiv", "negativ") })
     pcell.add_parameter("enableQ", true)
-    pcell.add_parameter("enableNQ", false)
+    pcell.add_parameter("enableQN", false)
 end
 
 function layout(gate, _P)
@@ -101,7 +101,7 @@ function layout(gate, _P)
         leftdummies = 0
     })
     local outbuf
-    if _P.enableQ and _P.enableNQ then
+    if _P.enableQ and _P.enableQN then
         outbuf = pcell.create_layout("logic/buf"):move_anchor("left", fbcinv2:get_anchor("right"))
     else
         outbuf = pcell.create_layout("logic/not_gate", { shiftoutput = xpitch / 2 }):move_anchor("left", fbcinv2:get_anchor("right"))
@@ -256,13 +256,13 @@ function layout(gate, _P)
 
     -- ports
     gate:add_port("D", generics.metal(1), cinv:get_anchor("I"))
-    if _P.enableQ and _P.enableNQ then
+    if _P.enableQ and _P.enableQN then
         gate:add_port("Q", generics.metal(1), outbuf:get_anchor("iout"))
-        gate:add_port("NQ", generics.metal(1), outbuf:get_anchor("O"))
+        gate:add_port("QN", generics.metal(1), outbuf:get_anchor("O"))
     elseif _P.enableQ then
         gate:add_port("Q", generics.metal(1), outbuf:get_anchor("O"))
-    elseif _P.enableNQ then
-        gate:add_port("NQ", generics.metal(1), outbuf:get_anchor("O"))
+    elseif _P.enableQN then
+        gate:add_port("QN", generics.metal(1), outbuf:get_anchor("O"))
     end
     gate:add_port("CLK", generics.metal(1), clockbuf:get_anchor("in"))
     gate:add_port("VDD", generics.metal(1), point.create(0,  bp.separation / 2 + bp.pwidth + bp.powerspace + bp.powerwidth / 2))
