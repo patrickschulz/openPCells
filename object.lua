@@ -292,9 +292,9 @@ local function _get_anchor(self, name)
             end
         end
         if self.name then
-            error(string.format("trying to access anchor '%s' in cell '%s'", name, self.name))
+            error(string.format("trying to access undefined anchor '%s' in cell '%s'", name, self.name))
         else
-            error(string.format("trying to access anchor '%s'", name))
+            error(string.format("trying to access undefined anchor '%s'", name))
         end
     end
     return self.anchors[name]
