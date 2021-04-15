@@ -37,8 +37,8 @@ function layout(gate, _P)
 
     -- anchors
     gate:add_anchor("in", iinv:get_anchor("I"))
-    gate:add_anchor("iout", iinv:get_anchor("O"):translate(0, -bp.separation / 4 - bp.sdwidth / 4))
-    gate:add_anchor("bout", oinv:get_anchor("O"):translate(0,  bp.separation / 4 + bp.sdwidth / 4))
+    gate:add_anchor("iout", iinv:get_anchor("O"))
+    gate:add_anchor("bout", oinv:get_anchor("O"))
 
     gate:add_anchor("OTR", oinv:get_anchor("OTR"))
     gate:add_anchor("OBR", oinv:get_anchor("OBR"))
