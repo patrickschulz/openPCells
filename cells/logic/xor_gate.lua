@@ -27,6 +27,7 @@
 function parameters()
     pcell.reference_cell("logic/base")
     pcell.add_parameter("fingers", 1, { posvals = set(1) })
+    pcell.add_parameter("shiftoutput", 0)
 end
 
 function layout(gate, _P)
@@ -40,8 +41,8 @@ function layout(gate, _P)
     local harness = pcell.create_layout("logic/harness", { 
         fingers = 6 * _P.fingers, 
         drawgatecontacts = false,
-        pcontactpos = { "power", "top", "top", "bottom", nil, "power", "power" },
-        ncontactpos = { "power", "power", nil, "top", "bottom", "bottom", "power" }
+        pcontactpos = { "power", "outer", "outer", "inner", nil, "power", "power" },
+        ncontactpos = { "power", "power", nil, "inner", "outer", "outer", "power" }
     })
     gate:merge_into(harness)
     pcell.pop_overwrites("logic/base")
@@ -65,8 +66,8 @@ function layout(gate, _P)
     -- output connection
     block:merge_into(geometry.path(generics.metal(1), {
         point.create(0, bp.separation / 2 + bp.sdwidth / 2),
-        point.create(4 * xpitch, bp.separation / 2 + bp.sdwidth / 2),
-        point.create(4 * xpitch, -bp.separation / 2 - bp.sdwidth / 2),
+        point.create(3 * xpitch + _P.shiftoutput, bp.separation / 2 + bp.sdwidth / 2),
+        point.create(3 * xpitch + _P.shiftoutput, -bp.separation / 2 - bp.sdwidth / 2),
         point.create(0, -bp.separation / 2 - bp.sdwidth / 2),
     }, bp.sdwidth))
 
@@ -152,7 +153,7 @@ function layout(gate, _P)
 
     gate:add_port("A", generics.metal(1), inva:get_anchor("I"))
     gate:add_port("B", generics.metal(1), point.combine_12(inva:get_anchor("I"), invb:get_anchor("I")))
-    gate:add_port("Z", generics.metal(1), point.create(4 * xpitch, 0))
+    gate:add_port("Z", generics.metal(1), point.create(3 * xpitch + _P.shiftoutput, 0))
     gate:add_port("VDD", generics.metal(1), point.create(-2 * xpitch, bp.separation / 2 + bp.pwidth + bp.powerspace + bp.powerwidth / 2))
     gate:add_port("VSS", generics.metal(1), point.create(-2 * xpitch, -bp.separation / 2 - bp.nwidth - bp.powerspace - bp.powerwidth / 2))
     
