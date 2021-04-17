@@ -43,32 +43,34 @@ function layout(gate, _P)
     pcell.pop_overwrites("logic/base")
 
     -- gate straps
-    if _P.fingers % 2 == 0 then
-        gate:merge_into(geometry.path(generics.metal(1), 
-            {
-                harness:get_anchor("G2"),
-                harness:get_anchor(string.format("G%d", 2 * _P.fingers - 1))
-            }, bp.gstwidth
-        ))
-        gate:merge_into(geometry.path(generics.metal(1), 
-            {
-                harness:get_anchor("G1"),
-                harness:get_anchor(string.format("G%d", 2 * _P.fingers))
-            }, bp.gstwidth
-        ))
-    else
-        gate:merge_into(geometry.path(generics.metal(1), 
-            {
-                harness:get_anchor("G2"),
-                harness:get_anchor(string.format("G%d", 2 * _P.fingers))
-            }, bp.gstwidth
-        ))
-        gate:merge_into(geometry.path(generics.metal(1), 
-            {
-                harness:get_anchor("G1"),
-                harness:get_anchor(string.format("G%d", 2 * _P.fingers - 1))
-            }, bp.gstwidth
-        ))
+    if _P.fingers > 1 then
+        if _P.fingers % 2 == 0 then
+            gate:merge_into(geometry.path(generics.metal(1), 
+                {
+                    harness:get_anchor("G2"),
+                    harness:get_anchor(string.format("G%d", 2 * _P.fingers - 1))
+                }, bp.gstwidth
+            ))
+            gate:merge_into(geometry.path(generics.metal(1), 
+                {
+                    harness:get_anchor("G1"),
+                    harness:get_anchor(string.format("G%d", 2 * _P.fingers))
+                }, bp.gstwidth
+            ))
+        else
+            gate:merge_into(geometry.path(generics.metal(1), 
+                {
+                    harness:get_anchor("G2"),
+                    harness:get_anchor(string.format("G%d", 2 * _P.fingers))
+                }, bp.gstwidth
+            ))
+            gate:merge_into(geometry.path(generics.metal(1), 
+                {
+                    harness:get_anchor("G1"),
+                    harness:get_anchor(string.format("G%d", 2 * _P.fingers - 1))
+                }, bp.gstwidth
+            ))
+        end
     end
 
     -- TODO: improve structure by re-using statements
@@ -155,5 +157,5 @@ function layout(gate, _P)
 
     gate:add_anchor("A", harness:get_anchor("G1"))
     gate:add_anchor("B", harness:get_anchor("G2"))
-    gate:add_anchor("Z", point.create(_P.fingers * (bp.glength + bp.gspace) / 2, 0))
+    gate:add_anchor("Z", point.create(_P.fingers * (bp.glength + bp.gspace), 0))
 end
