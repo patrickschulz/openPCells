@@ -6,7 +6,8 @@ end
 function parameters()
     pcell.add_parameters(
         { "fingers",       1 },
-        { "gatetype", "nand" }
+        { "gatetype", "nand" },
+        { "swapinputs", false }
     )
 end
 
@@ -16,25 +17,59 @@ function layout(gate, _P)
     local yinvert = _P.gatetype == "nand" and 1 or -1
     local block = object.create()
 
+    local gatecontactpos = { }
+    for i = 1, 2 * _P.fingers do
+        if not _P.swapinputs then
+            if i % 4 > 1 then
+                gatecontactpos[i] = "upper"
+            else
+                gatecontactpos[i] = "lower"
+            end
+        else
+            if i % 4 > 1 then
+                gatecontactpos[i] = "lower"
+            else
+                gatecontactpos[i] = "upper"
+            end
+        end
+    end
+
     pcell.push_overwrites("logic/base", { rightdummies = 0 })
-    gate:merge_into(pcell.create_layout("logic/harness", { fingers = 2 * _P.fingers }))
+    local harness = pcell.create_layout("logic/harness", { 
+        fingers = 2 * _P.fingers,
+        gatecontactpos = gatecontactpos,
+    })
+    gate:merge_into(harness)
     pcell.pop_overwrites("logic/base")
 
-    -- gate contacts
-    block:merge_into(geometry.rectangle(
-        generics.contact("gate"), bp.glength, bp.gstwidth
-    ):translate(xpitch / 2, yinvert * (bp.separation + bp.sdwidth) / 4))
-    block:merge_into(geometry.rectangle(
-        generics.contact("gate"), bp.glength, bp.gstwidth
-    ):translate(-xpitch / 2, -yinvert * (bp.separation + bp.sdwidth) / 4))
-    local num2 = 2 * _P.fingers - 1 - math.abs(_P.fingers % 2 - 1)
-    local num = 2 * _P.fingers - 1 + math.abs(_P.fingers % 2 - 1)
-    gate:merge_into(geometry.rectangle(
-        generics.metal(1), num * bp.glength + (num - 1) * bp.gspace, bp.gstwidth
-    ):translate((_P.fingers % 2) * xpitch / 2, yinvert * (bp.separation + bp.sdwidth) / 4))
-    gate:merge_into(geometry.rectangle(
-        generics.metal(1), num2 * bp.glength + (num2 - 1) * bp.gspace, bp.gstwidth
-    ):translate(-(_P.fingers % 2) * xpitch / 2, -yinvert * (bp.separation + bp.sdwidth) / 4))
+    -- gate straps
+    if _P.fingers % 2 == 0 then
+        gate:merge_into(geometry.path(generics.metal(1), 
+            {
+                harness:get_anchor("G2"),
+                harness:get_anchor(string.format("G%d", 2 * _P.fingers - 1))
+            }, bp.gstwidth
+        ))
+        gate:merge_into(geometry.path(generics.metal(1), 
+            {
+                harness:get_anchor("G1"),
+                harness:get_anchor(string.format("G%d", 2 * _P.fingers))
+            }, bp.gstwidth
+        ))
+    else
+        gate:merge_into(geometry.path(generics.metal(1), 
+            {
+                harness:get_anchor("G2"),
+                harness:get_anchor(string.format("G%d", 2 * _P.fingers))
+            }, bp.gstwidth
+        ))
+        gate:merge_into(geometry.path(generics.metal(1), 
+            {
+                harness:get_anchor("G1"),
+                harness:get_anchor(string.format("G%d", 2 * _P.fingers - 1))
+            }, bp.gstwidth
+        ))
+    end
 
     -- TODO: improve structure by re-using statements
     -- pmos source/drain contacts
@@ -97,23 +132,14 @@ function layout(gate, _P)
     
     -- drain connection
     local connpts
-    local startpt
+    local startpt = point.create(-(_P.fingers - 1) * xpitch, yinvert * (bp.separation + bp.sdwidth) / 2)
+    local connpts = {
+        (2 * _P.fingers - 1) * xpitch,
+        -yinvert * (bp.separation + bp.sdwidth),
+        -2 * _P.fingers * xpitch
+    }
     if _P.fingers % 2 == 0 then
-        startpt = point.create(-(_P.fingers - 1) * xpitch, yinvert * (bp.separation + bp.sdwidth) / 2)
-        connpts = {
-            (2 * _P.fingers - 1) * xpitch,
-            -yinvert * (bp.separation + bp.sdwidth),
-            -2 * (_P.fingers - 1) * xpitch
-        }
-    else
-        startpt = point.create((_P.fingers - 1) * xpitch, yinvert * (bp.separation + bp.sdwidth) / 2)
-        connpts = {
-            -2 * (_P.fingers - 1) * xpitch - xpitch / 2,
-            -yinvert * (bp.separation + bp.sdwidth) / 2,
-            (2 * (_P.fingers - 1) + 1) * xpitch,
-            -yinvert * (bp.separation + bp.sdwidth) / 2,
-            -(2 * (_P.fingers - 1) + 1) * xpitch - xpitch / 2
-        }
+        connpts[#connpts] = connpts[#connpts] + 2 * xpitch
     end
     gate:merge_into(geometry.path(
         generics.metal(1),
@@ -126,4 +152,8 @@ function layout(gate, _P)
         point.create(-(2 * _P.fingers + 2 * bp.leftdummies) * (bp.glength + bp.gspace) / 2, -bp.separation / 2 - bp.nwidth - bp.powerspace - bp.powerwidth / 2),
         point.create((2 * _P.fingers + 2 * bp.rightdummies) * (bp.glength + bp.gspace) / 2, bp.separation / 2 + bp.pwidth + bp.powerspace + bp.powerwidth / 2)
     )
+
+    gate:add_anchor("A", harness:get_anchor("G1"))
+    gate:add_anchor("B", harness:get_anchor("G2"))
+    gate:add_anchor("Z", point.create(_P.fingers * (bp.glength + bp.gspace) / 2, 0))
 end

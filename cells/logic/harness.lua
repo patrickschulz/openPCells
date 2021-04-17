@@ -107,15 +107,27 @@ function layout(gate, _P)
     -- draw gate contacts
     if _P.drawgatecontacts then
         for i = 1, _P.fingers do
+            local x = (2 * i - _P.fingers - 1 + bp.leftdummies - bp.rightdummies) * xpitch / 2 + xshift
+            local routingshift = bp.sdwidth / 2 + (bp.separation - 2 * bp.sdwidth) / 6
             if _P.gatecontactpos[i] == "center" then
-                local pt = point.create((2 * i - _P.fingers - 1 + bp.leftdummies - bp.rightdummies) * xpitch / 2 + xshift, _P.shiftgatecontacts)
+                local pt = point.create(x, _P.shiftgatecontacts)
                 gate:merge_into(geometry.rectangle(
                     generics.contact("gate"), bp.glength, bp.gstwidth
                 ):translate(pt))
                 gate:add_anchor(string.format("G%d", i), pt)
-            end
-            if _P.gatecontactpos[i] == "split" then
-                local routingshift = bp.sdwidth / 2 + (bp.separation - 2 * bp.sdwidth) / 6
+            elseif _P.gatecontactpos[i] == "upper" then
+                local pt = point.create(x, routingshift + _P.shiftgatecontacts)
+                gate:merge_into(geometry.rectangle(
+                    generics.contact("gate"), bp.glength, bp.gstwidth
+                ):translate(pt))
+                gate:add_anchor(string.format("G%d", i), pt)
+            elseif _P.gatecontactpos[i] == "lower" then
+                local pt = point.create(x, -routingshift + _P.shiftgatecontacts)
+                gate:merge_into(geometry.rectangle(
+                    generics.contact("gate"), bp.glength, bp.gstwidth
+                ):translate(pt))
+                gate:add_anchor(string.format("G%d", i), pt)
+            elseif _P.gatecontactpos[i] == "split" then
                 local x = (2 * i - _P.fingers - 1 + bp.leftdummies - bp.rightdummies) * xpitch / 2 + xshift
                 local y = _P.shiftgatecontacts
                 gate:merge_into(geometry.multiple_y(
