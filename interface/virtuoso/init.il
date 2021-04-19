@@ -7,8 +7,7 @@ procedure(OPCCreateCell(w done pts)
             OPCArgs OPCCommand pid exitstatus 
         )
         when(done
-        	println("done")
-            if(cv->mode == "a" ; check if cell is open for editing
+            if(cv->mode == "a" || cv->mode == "w" ; check if cell is open for editing
             	then
                     OPCArgs = ""
 	                foreach(field OPCParamForm->fieldList
