@@ -113,7 +113,7 @@ local cellargs = {}
 if args.paramfile then
     local status, t = pcall(_dofile, args.paramfile)
     if not status then
-        print(string.format("could not load parameter file '%s'", args.paramfile))
+        print(string.format("could not load parameter file '%s', error: %s", args.paramfile, t))
         return 1
     end
     for cellname, params in pairs(t) do
