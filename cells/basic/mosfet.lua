@@ -28,6 +28,7 @@ function parameters()
         { "botgatemetal(Bottom Gate Strap Metal)",                       1 },
         { "drawtopgcut(Draw Top Gate Cut)",                          false },
         { "drawbotgcut(Draw Bottom Gate Cut)",                       false },
+        { "cutheight",                                                  60, posvals = even() },
         { "drawinnersourcedrain(Draw Inner Source/Drain Contacts)", "both", posvals = { "both", "source", "drain", "none" } },
         { "drawoutersourcedrain(Draw Outer Source/Drain Contacts)", "both", posvals = { "both", "source", "drain", "none" } },
         { "sourcesize(Source Size)",                                  tech.get_dimension("Minimum Gate Width"), argtype = "integer", follow = "fwidth" },
@@ -118,20 +119,19 @@ function layout(transistor, _P)
 
     -- gate cut
     local cutext = _P.gatespace / 2
-    local cuthalfheight = 60
     local cutwidth = _P.fingers * _P.gatelength + (_P.fingers - 1) * _P.gatespace + 2 * cutext
     if _P.drawtopgcut then
         transistor:merge_into(geometry.rectanglebltr(
             generics.other("gatecut"),
-            point.create(-cutwidth / 2, _P.fwidth / 2 + gateaddtop + cuthalfheight),
-            point.create( cutwidth / 2, _P.fwidth / 2 + gateaddtop - cuthalfheight)
+            point.create(-cutwidth / 2, _P.fwidth / 2 + gateaddtop + _P.cutheight / 2),
+            point.create( cutwidth / 2, _P.fwidth / 2 + gateaddtop - _P.cutheight / 2)
         ))
     end
     if _P.drawbotgcut then
         transistor:merge_into(geometry.rectanglebltr(
             generics.other("gatecut"),
-            point.create(-cutwidth / 2, -_P.fwidth / 2 - gateaddbot + cuthalfheight),
-            point.create( cutwidth / 2, -_P.fwidth / 2 - gateaddbot - cuthalfheight)
+            point.create(-cutwidth / 2, -_P.fwidth / 2 - gateaddbot + _P.cutheight / 2),
+            point.create( cutwidth / 2, -_P.fwidth / 2 - gateaddbot - _P.cutheight / 2)
         ))
     end
 
