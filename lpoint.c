@@ -34,10 +34,11 @@ static lpoint_coordinate_t checkcoordinate(lua_State* L, int idx)
     return d;
 }
 
-static int lpoint_create(lua_State* L)
+int lpoint_create(lua_State* L)
 {
     lpoint_coordinate_t x = checkcoordinate(L, -2);
     lpoint_coordinate_t y = checkcoordinate(L, -1);
+    lua_pop(L, 2);
     lpoint_t* p = lua_newuserdata(L, sizeof(lpoint_t));
     luaL_setmetatable(L, LPOINTMETA);
     p->x = x;
