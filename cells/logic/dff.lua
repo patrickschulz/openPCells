@@ -35,7 +35,7 @@ function layout(gate, _P)
     })
 
     -- clock inverter/buffer
-    local clockbuf = pcell.create_layout("logic/buf", { shiftinput2 = -routingshift })
+    local clockbuf = pcell.create_layout("logic/buf", { shiftinput2 = routingshift })
     gate:merge_into(clockbuf)
 
     -- isolation dummy
@@ -44,7 +44,7 @@ function layout(gate, _P)
     gate:merge_into(isogate:copy())
 
     -- first clocked inverter
-    local cinv = pcell.create_layout("logic/cinv", { swapoutputs = true, shiftoutput = xpitch * 3 / 2 }):move_anchor("left", isogate:get_anchor("right"))
+    local cinv = pcell.create_layout("logic/cinv", { swapoutputs = true, inputpos = "lower", shiftoutput = xpitch * 3 / 2 }):move_anchor("left", isogate:get_anchor("right"))
     gate:merge_into(cinv)
 
     isogate:move_anchor("left", cinv:get_anchor("right"))
@@ -129,42 +129,26 @@ function layout(gate, _P)
         bp.sdwidth))
     end
 
-    --[[
-    for _, c in ipairs({ fbcinv1, fbcinv2 }) do
-        gate:merge_into(geometry.path(generics.metal(1), 
-            point.relative_array(c:get_anchor("O"),
-            {
-                { 0, bp.separation / 2 + bp.pwidth / 2 },
-                { 0, 100 },
-                { - 3 * xpitch / 2, 0 },
-                { 0, -bp.separation / 2 - bp.pwidth / 2 - 100 },
-                { 0, -bp.separation / 2 - bp.nwidth / 2 - 100 },
-                { 3 * xpitch / 2, 0 },
-                { 0, 100 },
-            },
-            true -- skip first point
-        ), bp.sdwidth))
-    end
-    --]]
-
     -- clk connections
     if _P.clockpolarity == "positiv" then
         -- M2 bars
-        gate:merge_into(geometry.path(generics.metal(2), {
-            point.combine_12(clockbuf:get_anchor("bout"), fbcinv2:get_anchor("EP")),
+        gate:merge_into(geometry.path_xy(generics.metal(2), {
+            clockbuf:get_anchor("OTR"):translate(0, -bp.pwidth / 4 + bp.sdwidth / 2),
+            fbcinv1:get_anchor("EP") + point.create(-2 * xpitch, 0),
             fbcinv2:get_anchor("EP") + point.create(-xpitch, 0)
         }, bp.sdwidth))
         gate:merge_into(geometry.path_xy(generics.metal(2), {
-            point.combine_12(clockbuf:get_anchor("iout"), fbcinv2:get_anchor("EN")),
+            point.combine_12(clockbuf:get_anchor("iout"), fbcinv2:get_anchor("EP")),
+            fbcinv1:get_anchor("EN") + point.create(-3 * xpitch, 0),
             fbcinv2:get_anchor("EP")
         }, bp.sdwidth))
         -- vias
         gate:merge_into(
             geometry.rectangle(generics.via(1, 2), 2 * bp.glength + bp.gspace, bp.sdwidth)
-            :translate(point.combine_12(clockbuf:get_anchor("bout"), tgate:get_anchor("EP")):translate(-xpitch / 2, 0)))
+            :translate(clockbuf:get_anchor("OTR"):translate(0, -bp.pwidth / 4 + bp.sdwidth / 2)))
         gate:merge_into(
             geometry.rectangle(generics.via(1, 2), bp.sdwidth + xpitch, bp.sdwidth)
-            :translate(point.combine_12(clockbuf:get_anchor("iout"), tgate:get_anchor("EN")):translate(xpitch / 2, 0)))
+            :translate(point.combine_12(clockbuf:get_anchor("iout"), tgate:get_anchor("EP")):translate(xpitch / 2, 0)))
 
         -- cinv clk connection
         gate:merge_into(geometry.path(generics.metal(1), 
@@ -174,13 +158,13 @@ function layout(gate, _P)
         bp.sdwidth))
         -- cinv ~clk connection
         gate:merge_into(
-            geometry.rectangle(generics.via(1, 2), bp.sdwidth, bp.sdwidth)
-            :translate(cinv:get_anchor("EN") + point.create(xpitch, 0)))
-        gate:merge_into(geometry.path(generics.metal(1), 
-            geometry.path_points_yx(cinv:get_anchor("EN") + point.create(xpitch, 0), {
-                cinv:get_anchor("EP")
-            }),
-        bp.sdwidth))
+            geometry.rectangle(generics.via(1, 2), 2 * bp.glength + bp.gspace, bp.sdwidth)
+            :translate(cinv:get_anchor("EP"):translate(-xpitch / 2, 0)))
+        --gate:merge_into(geometry.path(generics.metal(1), 
+        --    geometry.path_points_yx(cinv:get_anchor("EN") + point.create(xpitch, 0), {
+        --        cinv:get_anchor("EP")
+        --    }),
+        --bp.sdwidth))
 
         -- fbcinv2 connections
         gate:merge_into(

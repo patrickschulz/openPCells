@@ -2,6 +2,7 @@ function parameters()
     pcell.reference_cell("basic/mosfet")
     pcell.reference_cell("logic/base")
     pcell.add_parameter("fingers", 1)
+    pcell.add_parameter("inputpos", "center")
     pcell.add_parameter("swapinputs", false)
     pcell.add_parameter("swapoutputs", false)
     pcell.add_parameter("shiftoutput", 0)
@@ -18,11 +19,11 @@ function layout(gate, _P)
             if i % 4 > 1 then
                 gatecontactpos[i] = "split"
             else
-                gatecontactpos[i] = "center"
+                gatecontactpos[i] = _P.inputpos
             end
         else
             if i % 4 > 1 then
-                gatecontactpos[i] = "center"
+                gatecontactpos[i] = _P.inputpos
             else
                 gatecontactpos[i] = "split"
             end

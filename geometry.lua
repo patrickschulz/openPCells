@@ -193,10 +193,15 @@ function M.path(layer, pts, width, miterjoin)
 end
 
 local function _modify_point_stream(pts, func)
-    for idx = 1, #pts - 1, 2 do -- increment by 2 to skip new points
+    local idx = 1
+    while true do
         local pt1, pt2 = pts[idx], pts[idx + 1]
         local newpt = func(pt1, pt2)
         table.insert(pts, idx + 1, newpt)
+        idx = idx + 2
+        if idx > #pts - 1 then
+            break
+        end
     end
 end
 
