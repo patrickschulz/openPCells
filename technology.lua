@@ -125,8 +125,8 @@ function M.translate(cell, export)
 end
 
 function M.fix_to_grid(cell)
-    for _, s in cell:iter() do
-        for _, pt in pairs(s.points) do
+    for _, S in cell:iter() do
+        for _, pt in pairs(S:get_points()) do
             pt:fix(config.grid)
         end
     end

@@ -21,7 +21,7 @@ function M.cross(layer, width, height, crosssize)
     modassert(height % 2 == 0, "geometry.cross: height must be a multiple of 2")
     modassert(crosssize % 2 == 0, "geometry.cross: crosssize must be a multiple of 2")
     local S = shape.create_polygon(layer)
-    local append = util.make_insert_xy(S.points)
+    local append = util.make_insert_xy(S:get_points())
     append(    -width / 2, -crosssize / 2)
     append(    -width / 2,  crosssize / 2)
     append(-crosssize / 2,  crosssize / 2)
@@ -42,7 +42,7 @@ function M.ring(layer, width, height, ringwidth)
     modassert((width + ringwidth) % 2 == 0, "geometry.ring: width +- ringwidth must be a multiple of 2")
     modassert((height + ringwidth) % 2 == 0, "geometry.ring: height +- ringwidth must be a multiple of 2")
     local S = shape.create_polygon(layer)
-    local append = util.make_insert_xy(S.points)
+    local append = util.make_insert_xy(S:get_points())
     append(-(width + ringwidth) / 2, -(height + ringwidth) / 2)
     append( (width + ringwidth) / 2, -(height + ringwidth) / 2)
     append( (width + ringwidth) / 2,  (height + ringwidth) / 2)
@@ -186,9 +186,9 @@ end
 
 function M.path(layer, pts, width, miterjoin)
     _make_unique_points(pts)
-    local S = shape.create_polygon(layer)
     local edges = _get_edge_segments(pts, width)
-    S.points = _get_path_pts(edges, width, miterjoin)
+    local points = _get_path_pts(edges, width, miterjoin)
+    local S = shape.create_polygon(layer, points)
     return object.make_from_shape(S)
 end
 
@@ -270,8 +270,8 @@ end
 
 function M.any_angle_path(layer, pts, width, grid, miterjoin)
     _make_unique_points(pts)
-    local S = shape.create_polygon(layer)
-    S.points = _get_any_angle_path_pts(pts, width, grid, miterjoin)
+    local points = _get_any_angle_path_pts(pts, width, grid, miterjoin)
+    local S = shape.create_polygon(layer, points)
     return object.make_from_shape(S)
 end
 

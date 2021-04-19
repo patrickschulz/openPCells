@@ -192,8 +192,8 @@ function M.get_layer(shape)
 end
 
 function M.get_points(shape)
-    local s = shape:convert_to_polygon()
-    local points = _unpack_points(s.points, baseunit)
+    local S = shape:convert_to_polygon()
+    local points = _unpack_points(S:get_points(), baseunit)
     return points
 end
 

@@ -1,43 +1,12 @@
-local M = {}
-
-M.__index = M
-
-local function _create(lpp, typ)
-    assert(typ, "creating a shape without a type")
-    local self = { lpp = lpp, unmapped = true, typ = typ }
-    setmetatable(self, M)
-    return self
+function shape.get_points(self)
+    return self.points
 end
 
-function M.create_rectangle(lpp, width, height)
-    local self = _create(lpp, "rectangle")
-    self.points = {
-        bl = point.create(-width / 2, -height / 2),
-        tr = point.create( width / 2,  height / 2)
-    }
-    return self
-end
-
-function M.create_rectangle_bltr(lpp, bl, tr)
-    local self = _create(lpp, "rectangle")
-    self.points = {
-        bl = bl:copy(),
-        tr = tr:copy(),
-    }
-    return self
-end
-
-function M.create_polygon(lpp)
-    local self = _create(lpp, "polygon")
-    self.points = {}
-    return self
-end
-
-function M.convert_to_polygon(self)
+function shape.convert_to_polygon(self)
     if self.typ == "rectangle" then
         local blx, bly = self.points.bl:unwrap()
         local trx, try = self.points.tr:unwrap()
-        local new = M.create_polygon(self.lpp)
+        local new = shape.create_polygon(self.lpp)
         table.insert(new.points, point.create(blx, bly))
         table.insert(new.points, point.create(trx, bly))
         table.insert(new.points, point.create(trx, try))
@@ -49,27 +18,27 @@ function M.convert_to_polygon(self)
     end
 end
 
-function M.copy(self)
+function shape.copy(self)
     local new
     if self.typ == "polygon" then
-        new = M.create_polygon(self.lpp)
+        new = shape.create_polygon(self.lpp)
         for i, pt in ipairs(self.points) do
             new.points[i] = pt:copy()
         end
         return new
     elseif self.typ == "rectangle" then
-        new = M.create_rectangle(self.lpp, 0, 0) -- dummy width and length
+        new = shape.create_rectangle(self.lpp, 0, 0) -- dummy width and length
         new.points.bl = self.points.bl:copy()
         new.points.tr = self.points.tr:copy()
     end
     return new
 end
 
-function M.resize(self, xsize, ysize)
-    M.resize_lrtb(self, xsize / 2, xsize / 2, ysize / 2, ysize/ 2)
+function shape.resize(self, xsize, ysize)
+    shape.resize_lrtb(self, xsize / 2, xsize / 2, ysize / 2, ysize/ 2)
 end
 
-function M.resize_lrtb(self, left, right, top, bottom)
+function shape.resize_lrtb(self, left, right, top, bottom)
     if self.typ == "polygon" then
         error("sorry, resizing is currently only implemented for rectangles")
     elseif self.typ == "rectangle" then
@@ -78,7 +47,7 @@ function M.resize_lrtb(self, left, right, top, bottom)
     end
 end
 
-function M.width(self)
+function shape.width(self)
     if self.typ == "polygon" then
         local minx =  math.huge
         local maxx = -math.huge
@@ -95,7 +64,7 @@ function M.width(self)
     end
 end
 
-function M.height(self)
+function shape.height(self)
     if self.typ == "polygon" then
         local miny =  math.huge
         local maxy = -math.huge
@@ -112,7 +81,7 @@ function M.height(self)
     end
 end
 
-function M.center(self)
+function shape.center(self)
     if self.typ == "polygon" then
         error("no implementation for center() for polygons")
     elseif self.typ == "rectangle" then
@@ -125,7 +94,7 @@ function M.center(self)
     end
 end
 
-function M.concat_points(self, func)
+function shape.concat_points(self, func)
     local st = {}
     if self.typ == "polygon" then
         for _, pt in ipairs(self.points) do
@@ -138,7 +107,7 @@ function M.concat_points(self, func)
     return st
 end
 
-function M.translate(self, dx, dy)
+function shape.translate(self, dx, dy)
     if self.typ == "polygon" then
         for _, pt in ipairs(self.points) do
             pt:translate(dx, dy)
@@ -153,7 +122,7 @@ function M.translate(self, dx, dy)
     return self
 end
 
-function M.flipx(self, xcenter)
+function shape.flipx(self, xcenter)
     xcenter = xcenter or 0
     if self.typ == "polygon" then
         self.points = util.xmirror(self.points, xcenter)
@@ -167,7 +136,7 @@ function M.flipx(self, xcenter)
     return self
 end
 
-function M.flipy(self, ycenter)
+function shape.flipy(self, ycenter)
     ycenter = ycenter or 0
     if self.typ == "polygon" then
         self.points = util.ymirror(self.points, ycenter)
@@ -181,7 +150,7 @@ function M.flipy(self, ycenter)
     return self
 end
 
-function M.rotate(self, angle)
+function shape.rotate(self, angle)
     if self.typ == "polygon" then
         for _, pt in ipairs(self.points) do
             pt:rotate(angle)
@@ -193,7 +162,7 @@ function M.rotate(self, angle)
     return self
 end
 
-function M.scale(self, factor)
+function shape.scale(self, factor)
     if self.typ == "polygon" then
         for _, pt in ipairs(self.points) do
             pt:scale(factor)
@@ -205,12 +174,12 @@ function M.scale(self, factor)
     return self
 end
 
-function M.is_type(self, typ)
+function shape.is_type(self, typ)
     return self.typ == typ
 end
 
-function M.is_lpp_type(self, typ)
+function shape.is_lpp_type(self, typ)
     return self.lpp.typ == typ
 end
 
-return M
+return shape

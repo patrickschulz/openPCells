@@ -9,7 +9,7 @@ local function _collect_shapes(cell, get_layer_func, get_index_func, point_func,
         shapes.maxindex = 0
     end
     get_layer_func = get_layer_func or function(s) return s.lpp end
-    point_func = point_func or function(s) return s.points end
+    point_func = point_func or function(s) return s:get_points() end
     for _, shape in cell:iter() do
         local layer = get_layer_func(shape, precomputed)
         if shapes.indexed then
@@ -18,7 +18,7 @@ local function _collect_shapes(cell, get_layer_func, get_index_func, point_func,
                 shapes[index] = { layer = layer, points = {} }
                 shapes.maxindex = math.max(shapes.maxindex, index)
             end
-            table.insert(shapes[index].points, point_func(shape, precomputed))
+            table.insert(shapes[index]:get_points(), point_func(shape, precomputed))
         else
             if not shapes[layer] then
                 shapes[layer] = {}
@@ -40,7 +40,7 @@ local function _iter_shapes(shapes)
                 end
                 if shapes[idx - 1] then break end
             end
-            return shapes[idx - 1].layer, shapes[idx - 1].points
+            return shapes[idx - 1].layer, shapes[idx - 1]:get_points()
         end
         return iter
     else

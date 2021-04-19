@@ -30,8 +30,8 @@ end
 
 function meta.copy(self)
     local new = M.create()
-    for i, shape in ipairs(self.shapes) do
-        new.shapes[i] = shape:copy()
+    for i, S in ipairs(self.shapes) do
+        new.shapes[i] = S:copy()
     end
     for name, pt in pairs(self.anchors) do
         new.anchors[name] = pt:copy()
@@ -39,9 +39,9 @@ function meta.copy(self)
     return new
 end
 
-function M.make_from_shape(shape)
+function M.make_from_shape(S)
     local self = M.create()
-    self:add_shape(shape)
+    self:add_shape(S)
     return self
 end
 
@@ -50,15 +50,15 @@ function meta.add(self, other)
 end
 
 function meta.merge_into(self, other)
-    for _, shape in other:iter() do
-        self:add_shape(shape)
+    for _, S in other:iter() do
+        self:add_shape(S)
     end
 end
 
 function meta.merge_into_update_alignmentbox(self, other)
     meta.inherit_alignment_box(self, other)
-    for _, shape in other:iter() do
-        self:add_shape(shape)
+    for _, S in other:iter() do
+        self:add_shape(S)
     end
 end
 
@@ -73,8 +73,8 @@ function meta.is_empty(self)
     return #self.shapes == 0
 end
 
-function meta.add_shape(self, shape)
-    table.insert(self.shapes, shape:copy())
+function meta.add_shape(self, S)
+    table.insert(self.shapes, S:copy())
 end
 
 function meta.remove_shape(self, idx)
@@ -130,8 +130,8 @@ function meta.translate(self, dx, dy)
     if is_lpoint(dx) then
         dx, dy = dx:unwrap()
     end
-    for _, shape in ipairs(self.shapes) do
-        shape:translate(dx, dy)
+    for _, S in ipairs(self.shapes) do
+        S:translate(dx, dy)
     end
     for _, anchor in pairs(self.anchors) do
         anchor:translate(dx, dy)
@@ -150,8 +150,8 @@ end
 function meta.flipx(self, xcenter)
     xcenter = xcenter or 0
     local selfxcenter = self.origin:unwrap()
-    for _, shape in ipairs(self.shapes) do
-        shape:flipx(xcenter + selfxcenter)
+    for _, S in ipairs(self.shapes) do
+        S:flipx(xcenter + selfxcenter)
     end
     for _, anchor in pairs(self.anchors) do
         local x = anchor:getx()
@@ -173,8 +173,8 @@ end
 function meta.flipy(self, ycenter)
     ycenter = ycenter or 0
     local _, selfycenter = self.origin:unwrap()
-    for _, shape in ipairs(self.shapes) do
-        shape:flipy(ycenter + selfycenter)
+    for _, S in ipairs(self.shapes) do
+        S:flipy(ycenter + selfycenter)
     end
     for _, anchor in pairs(self.anchors) do
         local y = anchor:gety()
@@ -194,8 +194,8 @@ function meta.flipy(self, ycenter)
 end
 
 function meta.rotate(self, angle)
-    for _, shape in ipairs(self.shapes) do
-        shape:rotate(angle)
+    for _, S in ipairs(self.shapes) do
+        S:rotate(angle)
     end
     for _, anchor in pairs(self.anchors) do
         anchor:rotate(angle)
@@ -208,18 +208,18 @@ local function _get_minmax_xy(self)
     local maxx = -math.huge
     local miny =  math.huge
     local maxy = -math.huge
-    for _, shape in self:iter() do
-        if shape.typ == "polygon" then
-            for _, pt in ipairs(shape.points) do
+    for _, S in self:iter() do
+        if S.typ == "polygon" then
+            for _, pt in ipairs(S:get_points()) do
                 local x, y = pt:unwrap()
                 minx = math.min(minx, x)
                 maxx = math.max(maxx, x)
                 miny = math.min(miny, y)
                 maxy = math.max(maxy, y)
             end
-        elseif shape.typ == "rectangle" then
-            local blx, bly = shape.points.bl:unwrap()
-            local trx, try = shape.points.tr:unwrap()
+        elseif S.typ == "rectangle" then
+            local blx, bly = S:get_points().bl:unwrap()
+            local trx, try = S:get_points().tr:unwrap()
             minx = math.min(minx, blx, trx)
             maxx = math.max(maxx, blx, trx)
             miny = math.min(miny, bly, try)

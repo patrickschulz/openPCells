@@ -27,6 +27,8 @@
 #include "ldir.h"
 #include "lbinary.h"
 #include "lstringbuffer.h"
+#include "lshape.h"
+#include "lunion.h"
 
 #include "config.h"
 
@@ -204,6 +206,9 @@ lua_State* create_and_initialize_lua()
     open_lbind_lib(L);
     open_lbinary_lib(L);
     open_lstringbuffer_lib(L);
+    open_lshape_lib(L);
+    open_lunion_lib(L);
+
     load_api(L); // could fail
     return L;
 }
