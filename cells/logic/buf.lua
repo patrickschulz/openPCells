@@ -2,7 +2,9 @@ function parameters()
     pcell.reference_cell("logic/base")
     pcell.add_parameters(
         { "ifingers", 1 },
-        { "ofingers", 1 }
+        { "ofingers", 1 },
+        { "shiftinput1", 0 },
+        { "shiftinput2", 0 }
     )
 end
 
@@ -12,20 +14,28 @@ function layout(gate, _P)
     pcell.push_overwrites("logic/base", {
         rightdummies = _P.ifingers % 2 == 0 and 0 or 1
     })
-    local iinv = pcell.create_layout("logic/not_gate", { fingers = _P.ifingers, shiftoutput = bp.glength / 2 + bp.gspace / 2 }):move_anchor("right")
+    local iinv = pcell.create_layout("logic/not_gate", { 
+        fingers = _P.ifingers, 
+        shiftinput = _P.shiftinput1, 
+        shiftoutput = bp.glength / 2 + bp.gspace / 2 
+    }):move_anchor("right")
     pcell.pop_overwrites("logic/base")
 
     pcell.push_overwrites("logic/base", {
         leftdummies = 0,
     })
-    local oinv = pcell.create_layout("logic/not_gate", { fingers = _P.ofingers, shiftoutput = bp.glength / 2 + bp.gspace / 2 }):move_anchor("left")
+    local oinv = pcell.create_layout("logic/not_gate", { 
+        fingers = _P.ofingers, 
+        shiftinput = _P.shiftinput2, 
+        shiftoutput = bp.glength / 2 + bp.gspace / 2 
+    }):move_anchor("left")
     pcell.pop_overwrites("logic/base")
     gate:merge_into(iinv)
     gate:merge_into(oinv)
 
     -- draw connection
     local ishift = _P.ifingers % 2 == 0 and 0 or 1
-    gate:merge_into(geometry.path(generics.metal(1), {
+    gate:merge_into(geometry.path_yx(generics.metal(1), {
         iinv:get_anchor("O"),
         oinv:get_anchor("I"),
     }, bp.sdwidth))

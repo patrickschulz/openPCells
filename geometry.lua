@@ -259,12 +259,12 @@ function M.path_points_yx(startpt, movements)
 end
 
 function M.path_xy(layer, pts, width, miterjoin)
-    _modify_point_stream(pts, point.combine_12)
+    _modify_point_stream(pts, point.combine_21)
     return M.path(layer, pts, width, miterjoin)
 end
 
 function M.path_yx(layer, pts, width, miterjoin)
-    _modify_point_stream(pts, point.combine_21)
+    _modify_point_stream(pts, point.combine_12)
     return M.path(layer, pts, width, miterjoin)
 end
 
