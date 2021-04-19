@@ -208,7 +208,7 @@ function M.at_end(file)
     _write_record(file, recordtypes.ENDLIB, datatypes.NONE)
 end
 
-function M.at_begin_cell(file)
+function M.at_begin_cell(file, cellname)
     _write_record(file, recordtypes.BGNSTR, datatypes.TWO_BYTE_INTEGER, { 2020, 7, 5, 18, 17, 51, 2020, 7, 5, 18, 17, 51 })
     _write_record(file, recordtypes.STRNAME, datatypes.ASCII_STRING, "toplevelcell")
 end
