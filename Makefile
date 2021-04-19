@@ -14,12 +14,15 @@ SYSCFLAGS=
 SYSLDFLAGS=
 SYSLIBS=
 
+OPCHEADERS:=lpoint.h lbind.h lload.h lbinary.h lstringbuffer.h lshape.h lunion.h
+OPCCSOURCES:=ldir.c lpoint.c lbind.c lload.c lbinary.c lstringbuffer.c lshape.c lunion.c
+
 default:
 	@echo Guessing `$(UNAME)`
 	@$(MAKE) `$(UNAME)`
 
-$(PROGNAME): config.h main.c lua/liblua.a ldir.c lpoint.c lpoint.h lbind.h lbind.c lload.h lload.c lbinary.h lbinary.c lstringbuffer.h lstringbuffer.c
-	$(CC) $(CFLAGS) -DLUA_COMPAT_5_3 -DLUA_USE_LINUX -o $(PROGNAME) main.c lbind.c ldir.c lpoint.c lload.c lbinary.c lstringbuffer.c lua/liblua.a -lm -ldl
+$(PROGNAME): config.h main.c lua/liblua.a $(OPCHEADERS) $(OPCCSOURCES)
+	$(CC) $(CFLAGS) -DLUA_COMPAT_5_3 -DLUA_USE_LINUX -o $(PROGNAME) main.c $(OPCCSOURCES) lua/liblua.a -lm -ldl
 
 lua/liblua.a: lua/*.c lua/*.h
 	@$(MAKE) -C lua liblua.a
