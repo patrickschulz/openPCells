@@ -111,7 +111,11 @@ end
 -- read parameters from pfile and merge with command line parameters
 local cellargs = {}
 if args.paramfile then
-    local t = dofile(args.paramfile)
+    local status, t = pcall(_dofile, args.paramfile)
+    if not status then
+        print(string.format("could not load parameter file '%s'", args.paramfile))
+        return 1
+    end
     for cellname, params in pairs(t) do
         if type(params) == "table" then
             for n, p in pairs(params) do
