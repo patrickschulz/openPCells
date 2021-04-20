@@ -93,7 +93,7 @@ function layout(gate, _P)
     gate:merge_into(isogate:copy())
 
     pcell.push_overwrites("logic/base", { connectoutput = true })
-    local fbcinv2 = pcell.create_layout("logic/cinv", { swapinputs = false, swapoutputs = true, shiftoutput = xpitch * 3 / 2 }):move_anchor("left", isogate:get_anchor("right"))
+    local fbcinv2 = pcell.create_layout("logic/cinv", { inputpos = "lower", swapinputs = false, swapoutputs = true, shiftoutput = xpitch * 3 / 2 }):move_anchor("left", isogate:get_anchor("right"))
     fbcinv2:flipx()
     gate:merge_into(fbcinv2)
     pcell.pop_overwrites("logic/base")
@@ -109,7 +109,7 @@ function layout(gate, _P)
     if _P.enableQ and _P.enableQN then
         outbuf = pcell.create_layout("logic/buf"):move_anchor("left", fbcinv2:get_anchor("right"))
     else
-        outbuf = pcell.create_layout("logic/not_gate", { shiftoutput = xpitch / 2 }):move_anchor("left", fbcinv2:get_anchor("right"))
+        outbuf = pcell.create_layout("logic/not_gate", { inputpos = "lower", shiftoutput = xpitch / 2 }):move_anchor("left", fbcinv2:get_anchor("right"))
     end
     pcell.pop_overwrites("logic/base")
     gate:merge_into(outbuf)

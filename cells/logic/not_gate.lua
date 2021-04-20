@@ -2,6 +2,7 @@ function parameters()
     pcell.reference_cell("logic/base")
     pcell.add_parameter("fingers", 1)
     pcell.add_parameter("shiftinput", 0)
+    pcell.add_parameter("inputpos", "center", { posvals = set("center", "lower", "upper") })
     pcell.add_parameter("shiftoutput", 0)
 end
 
@@ -10,7 +11,7 @@ function layout(gate, _P)
     local xpitch = bp.gspace + bp.glength
 
     local gatecontactpos = {}
-    for i = 1, _P.fingers do gatecontactpos[i] = "center" end
+    for i = 1, _P.fingers do gatecontactpos[i] = _P.inputpos end
 
     local contactpos = {}
     for i = 1, _P.fingers + 1 do
@@ -73,7 +74,7 @@ function layout(gate, _P)
     gate:add_anchor("OBR", harness:get_anchor(string.format("nSD%d", _P.fingers + 1)))
 
     -- ports
-    gate:add_port("I", generics.metal(1), point.create(0, _P.shiftinput))
+    gate:add_port("I", generics.metal(1), harness:get_anchor("G1"))
     gate:add_port("O", generics.metal(1), point.create((_P.fingers - 0) * xpitch / 2 + _P.shiftoutput, 0))
     gate:add_port("VDD", generics.metal(1), point.create(0,  bp.separation / 2 + bp.pwidth + bp.powerspace + bp.powerwidth / 2))
     gate:add_port("VSS", generics.metal(1), point.create(0, -bp.separation / 2 - bp.nwidth - bp.powerspace - bp.powerwidth / 2))
