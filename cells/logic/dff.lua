@@ -159,11 +159,14 @@ function layout(gate, _P)
             fbcinv1:get_anchor("EP") + point.create(-2 * xpitch, 0),
             fbcinv2:get_anchor("EP") + point.create(-xpitch, 0)
         }, bp.sdwidth))
-        gate:merge_into(geometry.path_xy(generics.metal(2), {
-            point.combine_12(clockinv1:get_anchor("O"), fbcinv2:get_anchor("EP")),
-            fbcinv1:get_anchor("EN") + point.create(-3 * xpitch, 0),
-            fbcinv2:get_anchor("EP")
-        }, bp.sdwidth))
+        gate:merge_into(geometry.path(generics.metal(2), 
+            geometry.path_points_xy(
+                point.combine_12(clockinv1:get_anchor("O"), fbcinv2:get_anchor("EP")), {
+                fbcinv1:get_anchor("EN") + point.create(-3 * xpitch, 0),
+                outbuf:get_anchor("I"),
+                0,
+                fbcinv2:get_anchor("EP")
+        }), bp.sdwidth))
         -- vias
         gate:merge_into(
             geometry.rectangle(generics.via(1, 2), 2 * bp.glength + bp.gspace, bp.sdwidth)
@@ -175,7 +178,8 @@ function layout(gate, _P)
         -- cinv clk connection
         gate:merge_into(geometry.path(generics.metal(1), 
             geometry.path_points_xy(clockinv2:get_anchor("OBR"):translate(0, bp.nwidth / 4 - bp.sdwidth / 2), {
-                cinv:get_anchor("EN")
+                cinv:get_anchor("EN"),
+                --xpitch
             }),
         bp.sdwidth))
         -- cinv ~clk connection
