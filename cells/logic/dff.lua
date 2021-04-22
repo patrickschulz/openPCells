@@ -17,7 +17,7 @@
 function parameters()
     pcell.reference_cell("logic/base")
     pcell.reference_cell("logic/harness")
-    pcell.add_parameter("clockpolarity", "positiv", { posvals = set("positiv", "negativ") })
+    pcell.add_parameter("clockpolarity", "positive", { posvals = set("positive", "negative") })
     pcell.add_parameter("enableQ", true)
     pcell.add_parameter("enableQN", false)
 end
@@ -36,9 +36,15 @@ function layout(gate, _P)
 
     -- clock inverter/buffer
     pcell.push_overwrites("logic/base", { rightdummies = 1 })
-    local clockinv1 = pcell.create_layout("logic/not_gate", { shiftinput = routingshift, shiftoutput = xpitch / 2 })
+    local clockinv1 = pcell.create_layout("logic/not_gate", { 
+        shiftinput = _P.clockpolarity == "positive" and -routingshift or routingshift, 
+        shiftoutput = xpitch / 2 
+    })
     pcell.pop_overwrites("logic/base")
-    local clockinv2 = pcell.create_layout("logic/not_gate", { shiftinput = routingshift, shiftoutput = xpitch / 2 }):move_anchor("left", clockinv1:get_anchor("right"))
+    local clockinv2 = pcell.create_layout("logic/not_gate", { 
+        shiftinput = _P.clockpolarity == "positive" and -routingshift or routingshift, 
+        shiftoutput = xpitch / 2 
+    }):move_anchor("left", clockinv1:get_anchor("right"))
     gate:merge_into(clockinv1)
     gate:merge_into(clockinv2)
 
@@ -48,7 +54,11 @@ function layout(gate, _P)
     gate:merge_into(isogate:copy())
 
     -- first clocked inverter
-    local cinv = pcell.create_layout("logic/cinv", { swapoutputs = true, inputpos = "lower", shiftoutput = xpitch * 3 / 2 }):move_anchor("left", isogate:get_anchor("right"))
+    local cinv = pcell.create_layout("logic/cinv", { 
+        swapoutputs = true, 
+        inputpos = _P.clockpolarity == "positive" and "upper" or "lower", 
+        shiftoutput = xpitch * 3 / 2 
+    }):move_anchor("left", isogate:get_anchor("right"))
     gate:merge_into(cinv)
 
     isogate:move_anchor("left", cinv:get_anchor("right"))
@@ -152,7 +162,7 @@ function layout(gate, _P)
     }, bp.sdwidth))
 
     -- clk connections
-    if _P.clockpolarity == "positiv" then
+    if _P.clockpolarity == "negative" then
         -- M2 bars
         gate:merge_into(geometry.path_xy(generics.metal(2), {
             clockinv2:get_anchor("OTR"):translate(0, -bp.pwidth / 4 + bp.sdwidth / 2),
@@ -200,42 +210,43 @@ function layout(gate, _P)
             :translate(fbcinv2:get_anchor("EP"):translate(xpitch / 2, 0)))
     else
         -- M2 bars
-        gate:merge_into(geometry.path(generics.metal(2), {
-            point.combine_12(clockinv2:get_anchor("O"), fbcinv2:get_anchor("EN")),
+        gate:merge_into(geometry.path_xy(generics.metal(2), {
+            clockinv2:get_anchor("OBR"):translate(0, bp.nwidth / 4 - bp.sdwidth / 2),
+            fbcinv1:get_anchor("EN") + point.create(-2 * xpitch, 0),
             fbcinv2:get_anchor("EN") + point.create(-xpitch, 0)
         }, bp.sdwidth))
-        gate:merge_into(geometry.path_xy(generics.metal(2), {
-            point.combine_12(clockinv1:get_anchor("O"), fbcinv2:get_anchor("EP")),
-            fbcinv2:get_anchor("EN")
-        }, bp.sdwidth))
+        gate:merge_into(geometry.path(generics.metal(2), 
+            geometry.path_points_xy(
+                point.combine_12(clockinv1:get_anchor("O"), fbcinv2:get_anchor("EN")), {
+                fbcinv1:get_anchor("EP") + point.create(-3 * xpitch, 0),
+                outbuf:get_anchor("I"),
+                0,
+                fbcinv2:get_anchor("EN")
+        }), bp.sdwidth))
         -- vias
         gate:merge_into(
-            geometry.rectangle(generics.via(1, 2), bp.sdwidth, bp.sdwidth)
-            :translate(point.combine_12(clockinv2:get_anchor("O"), tgate:get_anchor("EN"))))
+            geometry.rectangle(generics.via(1, 2), 2 * bp.glength + bp.gspace, bp.sdwidth)
+            :translate(clockinv2:get_anchor("OBR"):translate(0, bp.nwidth / 4 - bp.sdwidth / 2)))
         gate:merge_into(
-            geometry.rectangle(generics.via(1, 2), bp.sdwidth, bp.sdwidth)
-            :translate(point.combine_12(clockinv1:get_anchor("O"), tgate:get_anchor("EP"))))
+            geometry.rectangle(generics.via(1, 2), bp.sdwidth + xpitch, bp.sdwidth)
+            :translate(point.combine_12(clockinv1:get_anchor("O"), tgate:get_anchor("EN")):translate(xpitch / 2, 0)))
 
         -- cinv clk connection
         gate:merge_into(geometry.path(generics.metal(1), 
             geometry.path_points_xy(clockinv2:get_anchor("OTR"):translate(0, -bp.pwidth / 4 + bp.sdwidth / 2), {
-                cinv:get_anchor("EP")
+                cinv:get_anchor("EP"),
+                --xpitch
             }),
         bp.sdwidth))
         -- cinv ~clk connection
         gate:merge_into(
-            geometry.rectangle(generics.via(1, 2), bp.sdwidth, bp.sdwidth)
-            :translate(cinv:get_anchor("EP") + point.create(xpitch, 0)))
-        gate:merge_into(geometry.path(generics.metal(1), 
-            geometry.path_points_yx(cinv:get_anchor("EP") + point.create(xpitch, 0), {
-                cinv:get_anchor("EN")
-            }),
-        bp.sdwidth))
+            geometry.rectangle(generics.via(1, 2), 2 * bp.glength + bp.gspace, bp.sdwidth)
+            :translate(cinv:get_anchor("EN"):translate(-xpitch / 2, 0)))
 
         -- fbcinv2 connections
         gate:merge_into(
-            geometry.rectangle(generics.via(1, 2), bp.sdwidth, bp.sdwidth)
-            :translate(fbcinv2:get_anchor("EN") + point.create(-xpitch, 0)))
+            geometry.rectangle(generics.via(1, 2), 2 * bp.glength + bp.gspace, bp.sdwidth)
+            :translate(fbcinv2:get_anchor("EN"):translate(-xpitch * 3 / 2, 0)))
         gate:merge_into(geometry.path_yx(generics.metal(1), {
             fbcinv2:get_anchor("EN") + point.create(-xpitch, 0),
             fbcinv2:get_anchor("EP")
