@@ -129,7 +129,7 @@ function layout(gate, _P)
     })
     local outinv1
     local outinv2
-    if _P.enableQ and _P.enableQN then
+    if _P.enableQN then
         outinv1 = pcell.create_layout("logic/not_gate"):move_anchor("left", fbcinv2:get_anchor("right"))
         outinv2 = pcell.create_layout("logic/not_gate", { inputpos = "center" }):move_anchor("left", outinv1:get_anchor("right"))
         gate:merge_into(outinv1)
@@ -305,13 +305,11 @@ function layout(gate, _P)
 
     -- ports
     gate:add_port("D", generics.metal(1), point.combine_21(cinv:get_anchor("I"), clockinv1:get_anchor("I")))
-    if _P.enableQ and _P.enableQN then
-        gate:add_port("Q", generics.metal(1), outinv2:get_anchor("I"))
-        gate:add_port("QN", generics.metal(1), outinv2:get_anchor("O"))
-    elseif _P.enableQ then
+    if _P.enableQ then
         gate:add_port("Q", generics.metal(1), outinv1:get_anchor("O"))
-    elseif _P.enableQN then
-        gate:add_port("QN", generics.metal(1), outinv1:get_anchor("O"))
+    end
+    if _P.enableQN then
+        gate:add_port("QN", generics.metal(1), outinv2:get_anchor("O"))
     end
     gate:add_port("CLK", generics.metal(1), clockinv1:get_anchor("I"))
     gate:add_port("VDD", generics.metal(1), point.create(0,  bp.separation / 2 + bp.pwidth + bp.powerspace + bp.powerwidth / 2))
