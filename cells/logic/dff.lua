@@ -94,7 +94,9 @@ function layout(gate, _P)
     -- second feedback inverter cell
     pcell.push_overwrites("logic/base", { connectoutput = false })
     pcell.push_overwrites("logic/harness", { shiftpcontactsinner = bp.pwidth / 2, shiftncontactsinner = bp.nwidth / 2 })
-    local fbinv2 = pcell.create_layout("logic/not_gate", { inputpos = "lower" }):move_anchor("left", isogate:get_anchor("right"))
+    local fbinv2 = pcell.create_layout("logic/not_gate", { 
+        inputpos = _P.clockpolarity == "positive" and "upper" or "lower"
+    }):move_anchor("left", isogate:get_anchor("right"))
     gate:merge_into(fbinv2)
     pcell.pop_overwrites("logic/base")
     pcell.pop_overwrites("logic/harness")
