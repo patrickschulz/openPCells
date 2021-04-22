@@ -17,6 +17,7 @@
 function parameters()
     pcell.reference_cell("logic/base")
     pcell.reference_cell("logic/harness")
+    pcell.reference_cell("logic/not_gate")
     pcell.add_parameter("clockpolarity", "positive", { posvals = set("positive", "negative") })
     pcell.add_parameter("enableQ", true)
     pcell.add_parameter("enableQN", false)
@@ -122,17 +123,25 @@ function layout(gate, _P)
     pcell.push_overwrites("logic/base", {
         leftdummies = 0
     })
-    local outbuf
+    pcell.push_overwrites("logic/not_gate", {
+        inputpos = _P.clockpolarity == "positive" and "upper" or "lower",
+        shiftoutput = xpitch / 2 ,
+    })
+    local outinv1
+    local outinv2
     if _P.enableQ and _P.enableQN then
-        outbuf = pcell.create_layout("logic/buf"):move_anchor("left", fbcinv2:get_anchor("right"))
+        outinv1 = pcell.create_layout("logic/not_gate"):move_anchor("left", fbcinv2:get_anchor("right"))
+        outinv2 = pcell.create_layout("logic/not_gate", { inputpos = "center" }):move_anchor("left", outinv1:get_anchor("right"))
+        gate:merge_into(outinv1)
+        gate:merge_into(outinv2)
+        gate:merge_into(geometry.path(generics.metal(1), { outinv1:get_anchor("O"), outinv2:get_anchor("I") }, bp.sdwidth))
     else
-        outbuf = pcell.create_layout("logic/not_gate", { 
-            inputpos = _P.clockpolarity == "positive" and "upper" or "lower",
-            shiftoutput = xpitch / 2 
+        outinv1 = pcell.create_layout("logic/not_gate", { 
         }):move_anchor("left", fbcinv2:get_anchor("right"))
+        gate:merge_into(outinv1)
     end
+    pcell.pop_overwrites("logic/not_gate")
     pcell.pop_overwrites("logic/base")
-    gate:merge_into(outbuf)
 
     -- draw connections
     -- fbinv.O to fbcinv.I
@@ -154,14 +163,14 @@ function layout(gate, _P)
         geometry.path_points_xy(fbinv2:get_anchor("OTR"), {
             2 * xpitch,
             -bp.pwidth * 3 / 4 + bp.sdwidth / 2,
-            outbuf:get_anchor("I")
+            outinv1:get_anchor("I")
         }),
     bp.sdwidth))
     gate:merge_into(geometry.path(generics.metal(1), 
         geometry.path_points_xy(fbinv2:get_anchor("OBR"), {
             2 * xpitch,
             bp.nwidth * 3 / 4 - bp.sdwidth / 2,
-            outbuf:get_anchor("I")
+            outinv1:get_anchor("I")
         }),
     bp.sdwidth))
 
@@ -183,7 +192,7 @@ function layout(gate, _P)
             geometry.path_points_xy(
                 point.combine_12(clockinv1:get_anchor("O"), fbcinv2:get_anchor("EP")), {
                 fbcinv1:get_anchor("EN") + point.create(-3 * xpitch, 0),
-                outbuf:get_anchor("I"),
+                outinv1:get_anchor("I"),
                 0,
                 fbcinv2:get_anchor("EP")
         }), bp.sdwidth))
@@ -229,7 +238,7 @@ function layout(gate, _P)
             geometry.path_points_xy(
                 point.combine_12(clockinv1:get_anchor("O"), fbcinv2:get_anchor("EN")), {
                 fbcinv1:get_anchor("EP") + point.create(-3 * xpitch, 0),
-                outbuf:get_anchor("I"),
+                outinv1:get_anchor("I"),
                 0,
                 fbcinv2:get_anchor("EN")
         }), bp.sdwidth))
@@ -287,22 +296,22 @@ function layout(gate, _P)
     -- output connection
     gate:merge_into(geometry.path(generics.metal(1), {
         fbcinv2:get_anchor("I"),
-        outbuf:get_anchor("I"),
+        outinv1:get_anchor("I"),
     }, bp.sdwidth))
 
     -- inherit alignment boxes, only use most-left and most-right block
     gate:inherit_alignment_box(clockinv1)
-    gate:inherit_alignment_box(outbuf)
+    gate:inherit_alignment_box(outinv1)
 
     -- ports
     gate:add_port("D", generics.metal(1), point.combine_21(cinv:get_anchor("I"), clockinv1:get_anchor("I")))
     if _P.enableQ and _P.enableQN then
-        gate:add_port("Q", generics.metal(1), outbuf:get_anchor("iout"))
-        gate:add_port("QN", generics.metal(1), outbuf:get_anchor("O"))
+        gate:add_port("Q", generics.metal(1), outinv2:get_anchor("I"))
+        gate:add_port("QN", generics.metal(1), outinv2:get_anchor("O"))
     elseif _P.enableQ then
-        gate:add_port("Q", generics.metal(1), outbuf:get_anchor("O"))
+        gate:add_port("Q", generics.metal(1), outinv1:get_anchor("O"))
     elseif _P.enableQN then
-        gate:add_port("QN", generics.metal(1), outbuf:get_anchor("O"))
+        gate:add_port("QN", generics.metal(1), outinv1:get_anchor("O"))
     end
     gate:add_port("CLK", generics.metal(1), clockinv1:get_anchor("I"))
     gate:add_port("VDD", generics.metal(1), point.create(0,  bp.separation / 2 + bp.pwidth + bp.powerspace + bp.powerwidth / 2))
