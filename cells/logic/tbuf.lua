@@ -23,7 +23,7 @@ function layout(gate, _P)
     local cinv = pcell.create_layout("logic/cinv", { fingers = _P.ofingers }):move_anchor("left")
     pcell.pop_overwrites("logic/base")
     gate:merge_into(inv)
-    gate:merge_into(cinv)
+    gate:merge_into(cinv:translate(2000, 0))
 
     -- draw connection
     local ishift = _P.ifingers % 2 == 0 and 1 or 0

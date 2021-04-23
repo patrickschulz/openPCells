@@ -37,7 +37,7 @@ function layout(gate, _P)
 
     local block = object.create()
 
-    pcell.push_overwrites("logic/base", { leftdummies = 0, rightdummies = 0 })
+    pcell.push_overwrites("logic/base", { leftdummies = 0 })
     local harness = pcell.create_layout("logic/harness", { 
         fingers = 6 * _P.fingers, 
         drawgatecontacts = false,
@@ -84,19 +84,17 @@ function layout(gate, _P)
     gate:inherit_alignment_box(harness)
 
     -- inverter A
-    pcell.push_overwrites("logic/base", { leftdummies = 0 })
-    pcell.push_overwrites("logic/base", { connectoutput = false })
+    pcell.push_overwrites("logic/base", { leftdummies = 0, rightdummies = 1, connectoutput = false })
     local invb = pcell.create_layout("logic/not_gate", { shiftinput = routingshift })
     invb:move_anchor("right", gate:get_anchor("left"))
     gate:merge_into_update_alignmentbox(invb)
     pcell.pop_overwrites("logic/base")
 
     -- inverter B
-    pcell.push_overwrites("logic/base", { compact = false })
+    pcell.push_overwrites("logic/base", { rightdummies = 1, compact = false })
     local inva = pcell.create_layout("logic/not_gate", { shiftinput = -routingshift, shiftoutput = xpitch / 2 })
     inva:move_anchor("right", invb:get_anchor("left"))
     gate:merge_into_update_alignmentbox(inva)
-    pcell.pop_overwrites("logic/base")
     pcell.pop_overwrites("logic/base")
 
     -- B

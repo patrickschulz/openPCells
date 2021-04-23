@@ -34,13 +34,11 @@ function layout(gate, _P)
         end
     end
 
-    pcell.push_overwrites("logic/base", { rightdummies = 0 })
     local harness = pcell.create_layout("logic/harness", { 
         fingers = 2 * _P.fingers,
         gatecontactpos = gatecontactpos,
     })
     gate:merge_into(harness)
-    pcell.pop_overwrites("logic/base")
 
     -- gate straps
     if _P.fingers > 1 then

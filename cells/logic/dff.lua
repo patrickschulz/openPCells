@@ -29,19 +29,18 @@ function layout(gate, _P)
     local xpitch = bp.gspace + bp.glength
     local routingshift = bp.sdwidth / 2 + (bp.separation - 2 * bp.sdwidth) / 6
 
-    -- general settings
-    pcell.push_overwrites("logic/base", {
-        leftdummies = 0,
-        rightdummies = 0
-    })
-
-    -- clock inverter/buffer
+    -- first part of clock inverter/buffer
     pcell.push_overwrites("logic/base", { rightdummies = 1 })
     local clockinv1 = pcell.create_layout("logic/not_gate", { 
         shiftinput = _P.clockpolarity == "positive" and -routingshift or routingshift, 
         shiftoutput = xpitch / 2 
     })
     pcell.pop_overwrites("logic/base")
+
+    -- general settings for following cells
+    pcell.push_overwrites("logic/base", { leftdummies = 0, rightdummies = 0 })
+
+    -- second part of clock inverter/buffer
     local clockinv2 = pcell.create_layout("logic/not_gate", { 
         shiftinput = _P.clockpolarity == "positive" and -routingshift or routingshift, 
         shiftoutput = xpitch / 2 
@@ -130,7 +129,12 @@ function layout(gate, _P)
     local outinv1
     local outinv2
     if _P.enableQN then
+        pcell.push_overwrites("logic/base", {
+            rightdummies = 1,
+            leftdummies = 0
+        })
         outinv1 = pcell.create_layout("logic/not_gate"):move_anchor("left", fbcinv2:get_anchor("right"))
+        pcell.pop_overwrites("logic/base")
         outinv2 = pcell.create_layout("logic/not_gate", { inputpos = "center" }):move_anchor("left", outinv1:get_anchor("right"))
         gate:merge_into(outinv1)
         gate:merge_into(outinv2)
