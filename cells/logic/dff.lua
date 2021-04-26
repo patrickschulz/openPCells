@@ -143,6 +143,7 @@ function layout(gate, _P)
         outinv1 = pcell.create_layout("logic/not_gate", { 
         }):move_anchor("left", fbcinv2:get_anchor("right"))
         gate:merge_into(outinv1)
+        outinv2 = outinv1 -- simple hack for alignmentbox
     end
     pcell.pop_overwrites("logic/not_gate")
     pcell.pop_overwrites("logic/base")
@@ -305,7 +306,7 @@ function layout(gate, _P)
 
     -- inherit alignment boxes, only use most-left and most-right block
     gate:inherit_alignment_box(clockinv1)
-    gate:inherit_alignment_box(outinv1)
+    gate:inherit_alignment_box(outinv2)
 
     -- ports
     gate:add_port("D", generics.metal(1), point.combine_21(cinv:get_anchor("I"), clockinv1:get_anchor("I")))
