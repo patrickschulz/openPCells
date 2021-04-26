@@ -13,7 +13,13 @@ function layout(gate, _P)
     local xpitch = bp.gspace + bp.glength
 
     pcell.push_overwrites("logic/base", { leftdummies = 1, rightdummies = 0 })
-    gate:merge_into_update_alignmentbox(pcell.create_layout("logic/harness", { fingers = 0, drawdummyactivecontacts = false }))
+    local harness = pcell.create_layout("logic/harness", { fingers = 0, drawdummyactivecontacts = false })
+    gate:merge_into_update_alignmentbox(harness)
     pcell.pop_overwrites("logic/base")
+
+    gate:add_anchor("VDD", harness:get_anchor("top"))
+    gate:add_anchor("VSS", harness:get_anchor("bottom"))
+
+    -- center gate
     gate:translate(xpitch / 2, 0)
 end
