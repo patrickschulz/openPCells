@@ -42,8 +42,9 @@ function layout(gate, _P)
         vthtype = bp.pvthtype,
         fwidth = bp.pwidth,
         gbotext = bp.separation / 2,
-        gtopext = bp.powerspace + bp.powerwidth,
+        gtopext = bp.powerspace + bp.powerwidth / 2,
         clipbot = true,
+        drawtopgcut = true
     })
     -- main
     local pmos
@@ -73,8 +74,9 @@ function layout(gate, _P)
         vthtype = bp.nvthtype,
         fwidth = bp.nwidth,
         gtopext = bp.separation / 2,
-        gbotext = bp.powerspace + bp.powerwidth,
+        gbotext = bp.powerspace + bp.powerwidth / 2,
         cliptop = true,
+        drawbotgcut = true,
     })
     local nmos
     -- main
@@ -142,7 +144,7 @@ function layout(gate, _P)
                     vthtype = bp.pvthtype,
                     fwidth = bp.pwidth,
                     gbotext = bp.separation / 2,
-                    gtopext = bp.powerspace + bp.powerwidth,
+                    gtopext = bp.powerspace + bp.powerwidth / 2,
                     clipbot = true,
                 })
                 gate:merge_into(pcell.create_layout("basic/mosfet", { fingers = 1, drawbotgcut = true }):move_anchor("botgate", point.create(x, 0)))
@@ -152,7 +154,7 @@ function layout(gate, _P)
                     vthtype = bp.nvthtype,
                     fwidth = bp.nwidth,
                     gtopext = bp.separation / 2,
-                    gbotext = bp.powerspace + bp.powerwidth,
+                    gbotext = bp.powerspace + bp.powerwidth / 2,
                     cliptop = true,
                 })
                 gate:merge_into(pcell.create_layout("basic/mosfet", { fingers = 1, drawtopgcut = true }):move_anchor("topgate", point.create(x, 0)))
@@ -162,12 +164,12 @@ function layout(gate, _P)
     end
     if _P.drawdummygatecontacts then
         gate:merge_into(geometry.multiple_xy(
-            geometry.rectangle(generics.contact("gate"), bp.glength, bp.powerwidth),
-            bp.leftdummies, 2, xpitch, bp.separation + bp.pwidth + bp.nwidth + 2 * bp.powerspace + bp.powerwidth
+            geometry.rectangle(generics.contact("gate"), bp.glength, bp.dummycontheight),
+            bp.leftdummies, 2, xpitch, bp.separation + bp.pwidth + bp.nwidth + 2 * bp.powerspace + bp.dummycontheight
         ):translate(-(_P.fingers + bp.rightdummies) * xpitch / 2 + xshift, (bp.pwidth - bp.nwidth) / 2))
         gate:merge_into(geometry.multiple_xy(
-            geometry.rectangle(generics.contact("gate"), bp.glength, bp.powerwidth),
-            bp.rightdummies, 2, xpitch, bp.separation + bp.pwidth + bp.nwidth + 2 * bp.powerspace + bp.powerwidth
+            geometry.rectangle(generics.contact("gate"), bp.glength, bp.dummycontheight),
+            bp.rightdummies, 2, xpitch, bp.separation + bp.pwidth + bp.nwidth + 2 * bp.powerspace + bp.dummycontheight
         ):translate( (_P.fingers + bp.leftdummies) * xpitch / 2 + xshift, (bp.pwidth - bp.nwidth) / 2))
     end
 
