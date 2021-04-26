@@ -36,6 +36,9 @@ function meta.copy(self)
     for name, pt in pairs(self.anchors) do
         new.anchors[name] = pt:copy()
     end
+    if self.alignmentbox then
+        new.alignmentbox = { bl = self.alignmentbox.bl:copy(), tr = self.alignmentbox.tr:copy() }
+    end
     return new
 end
 
@@ -257,7 +260,7 @@ function meta.inherit_alignment_box(self, other)
 end
 
 local _reserved_anchors = {
-    "left", "right", "bottom", "top"
+    "left", "right", "bottom", "top", "bottomleft", "bottomright", "topleft", "topright"
 }
 
 function meta.add_anchor(self, name, where)
