@@ -129,4 +129,17 @@ function M.assert_one_of(msg, key, ...)
     )
 end
 
+function M.deepcopy(orig, copy)
+    local copy = copy
+    if type(orig) == "table" then
+        copy = {}
+        for orig_key, orig_value in next, orig, nil do
+            copy[M.deepcopy(orig_key)] = M.deepcopy(orig_value)
+        end
+    else -- number, string, boolean, etc
+        copy = orig
+    end
+    return copy
+end
+
 return M
