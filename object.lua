@@ -317,4 +317,8 @@ function meta.move_anchor(self, name, where)
     return self
 end
 
+function meta.get_all_anchors(self)
+    return self.anchors
+end
+
 return M
