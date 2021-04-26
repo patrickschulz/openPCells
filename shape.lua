@@ -21,13 +21,13 @@ end
 function shape.copy(self)
     local new
     if self.typ == "polygon" then
-        new = shape.create_polygon(self.lpp)
+        new = shape.create_polygon(self.lpp:copy())
         for i, pt in ipairs(self.points) do
             new.points[i] = pt:copy()
         end
         return new
     elseif self.typ == "rectangle" then
-        new = shape.create_rectangle(self.lpp, 0, 0) -- dummy width and length
+        new = shape.create_rectangle(self.lpp:copy(), 0, 0) -- dummy width and length
         new.points.bl = self.points.bl:copy()
         new.points.tr = self.points.tr:copy()
     end

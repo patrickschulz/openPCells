@@ -5,7 +5,6 @@ M.__index = M
 local function _create(value)
     local self = {
         value = value,
-        isgeneric = true,
         get = function(self)
             if self.typ == "via" then
                 return self.value.from, self.value.to
@@ -47,6 +46,12 @@ local function _create(value)
     }
     setmetatable(self, M)
     return self
+end
+
+function M.copy(self)
+    local new = aux.deepcopy(self, new)
+    setmetatable(new, M)
+    return new
 end
 
 function M.metal(num)
