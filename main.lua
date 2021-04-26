@@ -45,8 +45,22 @@ if args.prependcellpath then
     end
 end
 
-if args.listpaths then
+if args.listcellpaths then
     pcell.list_cellpaths()
+    return 0
+end
+
+-- set default path for technology files
+technology.add_techpath(string.format("%s/tech", _get_opc_home()))
+-- add user-defined cellpaths
+if args.techpath then
+    for _, path in ipairs(args.techpath) do
+        technology.add_techpath(path)
+    end
+end
+
+if args.listtechpaths then
+    technology.list_techpaths()
     return 0
 end
 

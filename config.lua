@@ -9,6 +9,7 @@ function M.load_user_config()
         local env = {
             prependcellpath = pcell.prepend_cellpath,
             appendcellpath = pcell.append_cellpath,
+            addtechpath = technology.add_techpath,
             set_option = function(key, val) argparse:set_option(key, val) end,
         }
         local status, msg = pcall(_generic_load, reader, chunkname, nil, nil, env)

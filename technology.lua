@@ -3,6 +3,8 @@ local M = {}
 local layermap
 local config
 
+local techpaths = {}
+
 -- make relative metal (negative indices) absolute
 function M.translate_metals(cell)
     for _, S in cell:iter(function(S) return S.lpp:is_type("metal") end) do
@@ -140,6 +142,16 @@ function M.get_dimension(dimension)
     return value
 end
 
+local function _get_tech_filename(name, what)
+    for _, path in ipairs(techpaths) do
+        local filename = string.format("%s/%s/%s.lua", path, name, what)
+        if dir.exists(filename) then
+            -- first found matching techfile is used
+            return filename
+        end
+    end
+end
+
 local function _load_layermap(name)
     local env = {
         map = function(entry)
@@ -194,7 +206,10 @@ local function _load_layermap(name)
             end
         end,
     }
-    local filename = string.format("%s/tech/%s/layermap.lua", _get_opc_home(), name)
+    local filename = _get_tech_filename(name, "layermap")
+    if not filename then
+        error(string.format("no techfile for technology '%s' found", name))
+    end
     local chunkname = "@techfile"
 
     local reader = _get_reader(filename)
@@ -210,7 +225,7 @@ local function _load_layermap(name)
 end
 
 local function _load_constraints(name)
-    local filename = string.format("%s/tech/%s/constraints.lua", _get_opc_home(), name)
+    local filename = _get_tech_filename(name, "constraints")
     local chunkname = "@techconstraints"
 
     local reader = _get_reader(filename)
@@ -225,7 +240,7 @@ local function _load_constraints(name)
 end
 
 local function _load_config(name)
-    local filename = string.format("%s/tech/%s/config.lua", _get_opc_home(), name)
+    local filename = _get_tech_filename(name, "config")
     local chunkname = "@techconfig"
 
     local reader = _get_reader(filename)
@@ -243,6 +258,16 @@ function M.load(name)
     layermap    = _load_layermap(name)
     constraints = _load_constraints(name)
     config      = _load_config(name)
+end
+
+function M.add_techpath(path)
+    table.insert(techpaths, path)
+end
+
+function M.list_techpaths()
+    for _, path in ipairs(techpaths) do
+        print(path)
+    end
 end
 
 return M

@@ -21,6 +21,10 @@ return {
         help = "execute cell script. This can also be used to run lua code with the opc API loaded"
     },
     section("Auxiliary generation functions"),
+    store_multiple{
+        name = "techpath", long = "--techpath",
+        help = "add (append) searchpath for technology files (can be used multiple times: --techpath foo --techpath bar)"
+    },
     store{ 
         name  = "paramfile", short = "-p", long  = "--pfile",
         help  = "file to read parameters from. This file should be a regular lua file returning a table with the parameters"
@@ -113,8 +117,12 @@ return {
         help  = "list all available cells (including hidden cells)"
     },
     switch{
-        name = "listpaths", long = "--listpaths",
+        name = "listcellpaths", long = "--listcellpaths",
         help = "list cell search paths"
+    },
+    switch{
+        name = "listtechpaths", long = "--listtechpaths",
+        help = "list technology search paths"
     },
     section("Diagnostic functions"),
     switch{
