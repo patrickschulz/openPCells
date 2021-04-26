@@ -35,6 +35,9 @@ local function rectangle_union(rect1, rect2)
     if xorder == "NOINTERSECTION" or yorder == "NOINTERSECTION" then
         return nil
     end
+    if xorder == "OUTER" and (yorder == "HALFEQUALLEFTINVERSE" or yorder == "HALFEQUALRIGHTREGULAR") then
+        return { bl = rect1.bl:copy(), tr = rect1.tr:copy() }
+    end
     if xorder ~= "EQUAL" and yorder ~= "EQUAL" then -- polygon union, one order has to be EQUAL for rectangle union
         return nil
     end
