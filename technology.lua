@@ -37,7 +37,7 @@ function M.place_via_conductors(cell)
             s2:set_lpp(generics.metal(m2))
             cell:add_shape(s1)
             cell:add_shape(s2)
-        elseif S:get_lpp():is_type("contact") then
+        elseif S:get_lpp():is_type("contact") and not S:get_lpp().bare then
             -- FIXME: can't place active contact surrounding as this needs more data than available here
             local smetal = S:copy()
             smetal:set_lpp(generics.metal(1))
