@@ -94,6 +94,4 @@ function layout(inductor, _P)
             geometry.path(mainmetal, util.xmirror(pathpts), _P.width, true)
         )
     end
-
-    return inductor
 end
