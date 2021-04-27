@@ -262,9 +262,15 @@ function layout(transistor, _P)
     end
 
     -- anchors
+
+    transistor:add_anchor("leftdrainsource",  point.create(-_P.fingers / 2 * (_P.gatelength + _P.gatespace), 0))
+    transistor:add_anchor("rightdrainsource", point.create( _P.fingers / 2 * (_P.gatelength + _P.gatespace), 0))
+    transistor:add_anchor("lefttopgate", transistor:get_anchor("topgate") + transistor:get_anchor("leftdrainsource"))
+    transistor:add_anchor("righttopgate", transistor:get_anchor("topgate") + transistor:get_anchor("rightdrainsource"))
+    transistor:add_anchor("leftbotgate", transistor:get_anchor("botgate") + transistor:get_anchor("leftdrainsource"))
+    transistor:add_anchor("rightbotgate", transistor:get_anchor("botgate") + transistor:get_anchor("rightdrainsource"))
     transistor:add_anchor("topgate", point.create(0,  _P.fwidth / 2 + gateaddtop))
     transistor:add_anchor("botgate", point.create(0, -_P.fwidth / 2 - gateaddbot))
-
     transistor:add_anchor("topgatestrapleft", point.create(
         -_P.fingers * _P.gatelength / 2 - (_P.fingers - 1) * _P.gatespace / 2,
         _P.fwidth / 2 + _P.topgatestrspace + _P.topgatestrwidth / 2
@@ -281,11 +287,4 @@ function layout(transistor, _P)
         _P.fingers * _P.gatelength / 2 + (_P.fingers - 1) * _P.gatespace / 2,
         -_P.fwidth / 2 - _P.botgatestrspace - _P.botgatestrwidth / 2
     ))
-
-    transistor:add_anchor("leftdrainsource",  point.create(-_P.fingers / 2 * (_P.gatelength + _P.gatespace), 0))
-    transistor:add_anchor("rightdrainsource", point.create( _P.fingers / 2 * (_P.gatelength + _P.gatespace), 0))
-    transistor:add_anchor("lefttopgate", transistor:get_anchor("topgate") + transistor:get_anchor("leftdrainsource"))
-    transistor:add_anchor("righttopgate", transistor:get_anchor("topgate") + transistor:get_anchor("rightdrainsource"))
-    transistor:add_anchor("leftbotgate", transistor:get_anchor("botgate") + transistor:get_anchor("leftdrainsource"))
-    transistor:add_anchor("rightbotgate", transistor:get_anchor("botgate") + transistor:get_anchor("rightdrainsource"))
 end
