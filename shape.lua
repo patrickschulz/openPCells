@@ -2,6 +2,14 @@ function shape.get_points(self)
     return self.points
 end
 
+function shape.get_lpp(self)
+    return self.lpp
+end
+
+function shape.set_lpp(self, lpp)
+    self.lpp = lpp
+end
+
 function shape.convert_to_polygon(self)
     if self.typ == "rectangle" then
         local blx, bly = self.points.bl:unwrap()
