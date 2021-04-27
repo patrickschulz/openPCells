@@ -164,11 +164,11 @@ function layout(gate, _P)
     end
     if _P.drawdummygatecontacts then
         gate:merge_into(geometry.multiple_xy(
-            geometry.rectangle(generics.contact("gate"), bp.glength, bp.dummycontheight),
+            geometry.rectangle(generics.contact("gate", nil, true), bp.glength, bp.dummycontheight),
             bp.leftdummies, 2, xpitch, bp.separation + bp.pwidth + bp.nwidth + 2 * bp.powerspace + bp.dummycontheight
         ):translate(-(_P.fingers + bp.rightdummies) * xpitch / 2 + xshift, (bp.pwidth - bp.nwidth) / 2))
         gate:merge_into(geometry.multiple_xy(
-            geometry.rectangle(generics.contact("gate"), bp.glength, bp.dummycontheight),
+            geometry.rectangle(generics.contact("gate", nil, true), bp.glength, bp.dummycontheight),
             bp.rightdummies, 2, xpitch, bp.separation + bp.pwidth + bp.nwidth + 2 * bp.powerspace + bp.dummycontheight
         ):translate( (_P.fingers + bp.leftdummies) * xpitch / 2 + xshift, (bp.pwidth - bp.nwidth) / 2))
     end

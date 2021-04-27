@@ -70,10 +70,11 @@ function M.via(from, to, bare)
     return self
 end
 
-function M.contact(region, special)
+function M.contact(region, special, bare)
     local self = _create(region)
     self.typ = "contact"
     self.special = special
+    self.bare = bare
     return self
 end
 
