@@ -111,7 +111,8 @@ end
 function meta.layers(self)
     local lpps = {}
     for _, S in self:iter() do
-        lpps[S.lpp:str()] = S.lpp
+        local lpp = S:get_lpp()
+        lpps[lpp:str()] = lpp
     end
     return pairs(lpps)
 end

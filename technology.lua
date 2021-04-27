@@ -7,13 +7,13 @@ local techpaths = {}
 
 -- make relative metal (negative indices) absolute
 function M.translate_metals(cell)
-    for _, S in cell:iter(function(S) return S.lpp:is_type("metal") end) do
-        if S.lpp.value < 0 then
-            S.lpp.value = config.metals + S.lpp.value + 1
+    for _, S in cell:iter(function(S) return S:get_lpp():is_type("metal") end) do
+        if S:get_lpp().value < 0 then
+            S:get_lpp().value = config.metals + S:get_lpp().value + 1
         end
     end
-    for _, S in cell:iter(function(S) return S.lpp:is_type("via") end) do
-        local value = S.lpp.value
+    for _, S in cell:iter(function(S) return S:get_lpp():is_type("via") end) do
+        local value = S:get_lpp().value
         if value.from < 0 then
             value.from = config.metals + value.from + 1
         end
@@ -29,18 +29,18 @@ end
 
 function M.place_via_conductors(cell)
     for _, S in cell:iter() do
-        if S.lpp:is_type("via") and not S.lpp.bare then
-            local m1, m2 = S.lpp:get()
+        if S:get_lpp():is_type("via") and not S:get_lpp().bare then
+            local m1, m2 = S:get_lpp():get()
             local s1 = S:copy()
-            s1.lpp = generics.metal(m1)
+            s1:set_lpp(generics.metal(m1))
             local s2 = S:copy()
-            s2.lpp = generics.metal(m2)
+            s2:set_lpp(generics.metal(m2))
             cell:add_shape(s1)
             cell:add_shape(s2)
-        elseif S.lpp:is_type("contact") then
+        elseif S:get_lpp():is_type("contact") then
             -- FIXME: can't place active contact surrounding as this needs more data than available here
             local smetal = S:copy()
-            smetal.lpp = generics.metal(1)
+            smetal:set_lpp(generics.metal(1))
             cell:add_shape(smetal)
         end
     end
@@ -48,10 +48,10 @@ end
 
 function M.split_vias(cell)
     for i, S in cell:iter(function(S) return S:is_lpp_type("via") end) do
-        local from, to = S.lpp:get()
+        local from, to = S:get_lpp():get()
         for j = from, to - 1 do
             local sc = S:copy()
-            sc.lpp = generics.via(j, j + 1, S.lpp.bare)
+            sc:set_lpp(generics.via(j, j + 1, S:get_lpp().bare))
             cell:add_shape(sc)
         end
         cell:remove_shape(i)
@@ -69,10 +69,10 @@ local function _get_lpp(lpp, export)
 end
 
 local function _do_map(cell, S, entry, export)
-    entry = entry.func(S.lpp:get())
+    entry = entry.func(S:get_lpp():get())
     if entry.lpp then
         local new = S:copy()
-        new.lpp = generics.mapped(entry.name, _get_lpp(entry.lpp, export))
+        new:set_lpp(generics.mapped(entry.name, _get_lpp(entry.lpp, export)))
         if entry.left   > 0 or
            entry.right  > 0 or
            entry.top    > 0 or
@@ -85,7 +85,7 @@ local function _do_map(cell, S, entry, export)
 end
 
 local function _do_array(cell, S, entry, export)
-    entry = entry.func(S.lpp:get())
+    entry = entry.func(S:get_lpp():get())
     local lpp = entry.lpp
     local width = S:width()
     local height = S:height()
@@ -105,7 +105,7 @@ end
 
 function M.translate(cell, export)
     for i, S in cell:iter() do
-        local layer = S.lpp:str()
+        local layer = S:get_lpp():str()
         local mappings = layermap[layer]
         if not mappings then
             error(string.format("no layer information for '%s'\nif the layer is not provided, set it to {}", layer))

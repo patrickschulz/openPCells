@@ -22,7 +22,7 @@ function M.merge_shapes(cell)
     -- merge rectangles
     for _, lpp in cell:layers() do
         local rectangles = {}
-        for i, S in cell:iter(function(S) return S.lpp:str() == lpp:str() end) do
+        for i, S in cell:iter(function(S) return S:get_lpp():str() == lpp:str() end) do
             if S:is_type("rectangle") then
                 table.insert(rectangles, S:get_points())
                 cell:remove_shape(i)
