@@ -2,56 +2,72 @@ local M = {}
 
 M.__index = M
 
+local proxymeta = {}
+proxymeta.__index = function(self, key) return self.obj[key] end
+proxymeta.__newindex = function(self, key, value) self.obj[key] = value end
+
 local function _create(value)
-    local self = {
-        value = value,
-        get = function(self)
-            if self.typ == "via" then
-                return self.value.from, self.value.to
-            elseif self.typ == "contact" then
-                return self.value, self.special
-            else
-                return self.value
-            end
-        end,
-        str = function(self)
-            if self.typ == "metal" then
-                return string.format("M%d", self:get())
-            elseif self.typ == "via" then
-                return string.format("viaM%dM%d", self:get())
-            elseif self.typ == "contact" then
-                return string.format("contact%s", self:get())
-            elseif self.typ == "feol" then
-                return "feol"
-            elseif self.typ == "special" then
-                return "special"
-            elseif self.typ == "mapped" then
-                return self.name
-            elseif self.typ == "other" then
-                return self.value
-            else
-                error(string.format("unknown generic: '%s'", self.typ))
-            end
-        end,
-        flipx = function(self)
-            if self.typ == "feol" then
-                self.value.expand.left, self.value.expand.right = self.value.expand.right, self.value.expand.left
-            end
-        end,
-        flipy = function(self)
-            if self.typ == "feol" then
-                self.value.expand.top, self.value.expand.bottom = self.value.expand.bottom, self.value.expand.top
-            end
-        end
+    local obj = {
+        value = value
     }
-    setmetatable(self, M)
+    setmetatable(obj, M)
+    local self = { obj = obj }
+    setmetatable(self, proxymeta)
     return self
 end
 
 function M.copy(self)
-    local new = aux.deepcopy(self, new)
-    setmetatable(new, M)
+    local new = { obj = self.obj }
+    setmetatable(new, proxymeta)
     return new
+end
+
+function M.get(self)
+    if self.typ == "via" then
+        return self.value.from, self.value.to
+    elseif self.typ == "contact" then
+        return self.value, self.special
+    else
+        return self.value
+    end
+end
+
+function M.str(self)
+    if self.typ == "metal" then
+        return string.format("M%d", self:get())
+    elseif self.typ == "via" then
+        return string.format("viaM%dM%d", self:get())
+    elseif self.typ == "contact" then
+        return string.format("contact%s", self:get())
+    elseif self.typ == "feol" then
+        return "feol"
+    elseif self.typ == "special" then
+        return "special"
+    elseif self.typ == "mapped" then
+        return self.name
+    elseif self.typ == "other" then
+        return self.value
+    else
+        error(string.format("unknown generic: '%s'", self.typ))
+    end
+end
+
+function M.flipx(self)
+    if self.typ == "feol" then
+        local oldobj = self.obj
+        self.obj = aux.deepcopy(oldobj)
+        setmetatable(self.obj, M)
+        self.value.expand.left, self.value.expand.right = self.value.expand.right, self.value.expand.left
+    end
+end
+
+function M.flipy(self)
+    if self.typ == "feol" then
+        local oldobj = self.obj
+        self.obj = aux.deepcopy(oldobj)
+        setmetatable(self.obj, M)
+        self.value.expand.top, self.value.expand.bottom = self.value.expand.bottom, self.value.expand.top
+    end
 end
 
 function M.metal(num)
