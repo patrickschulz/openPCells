@@ -1,9 +1,9 @@
 --[[ 
-A --------------- GATE2
-                  GATE2 ---- Z
-B ----- GATE1 --- GATE2
-        GATE1
-C ----- GATE1
+A  --------------- GATE2
+                   GATE2 ---- Z
+B2 ----- GATE1 --- GATE2
+         GATE1
+B1 ----- GATE1
 ]]
 function parameters() 
     pcell.reference_cell("logic/base") 
@@ -15,8 +15,6 @@ end
 
 function layout(gate, _P)
     local bp = pcell.get_parameters("logic/base");
-
-    local xpitch = bp.gspace + bp.glength
 
     local isogate = pcell.create_layout("logic/isogate")
     gate:merge_into_update_alignmentbox(isogate)
@@ -38,8 +36,8 @@ function layout(gate, _P)
 
     --draw ports
     gate:add_port("A", generics.metal(1), gate2:get_anchor("A"))
-    gate:add_port("B", generics.metal(1), gate1:get_anchor("A"))
-    gate:add_port("C", generics.metal(1), gate1:get_anchor("B"))
+    gate:add_port("B1", generics.metal(1), gate1:get_anchor("A"))
+    gate:add_port("B2", generics.metal(1), gate1:get_anchor("B"))
     gate:add_port("Z", generics.metal(1), gate2:get_anchor("Z"))
     gate:add_port("VDD", generics.metal(1), isogate:get_anchor("VDD"))
     gate:add_port("VSS", generics.metal(1), isogate:get_anchor("VSS"))
