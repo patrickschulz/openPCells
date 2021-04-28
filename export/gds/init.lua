@@ -180,7 +180,8 @@ end
 local function _unpack_points(pts, multiplier)
     local stream = {}
     for _, pt in ipairs(pts) do
-        local x, y = pt:unwrap(multiplier)
+        --local x, y = pt:unwrap(multiplier)
+        local x, y = pt:unwrap()
         table.insert(stream, math.floor(x))
         table.insert(stream, math.floor(y))
     end

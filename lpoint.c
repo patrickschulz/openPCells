@@ -46,6 +46,16 @@ int lpoint_create(lua_State* L)
     return 1;
 }
 
+int lpoint_copy(lua_State* L)
+{
+    lpoint_t* p = luaL_checkudata(L, -1, LPOINTMETA);
+    lpoint_t* new = lua_newuserdata(L, sizeof(lpoint_t));
+    luaL_setmetatable(L, LPOINTMETA);
+    new->x = p->x;
+    new->y = p->y;
+    return 1;
+}
+
 static int lpoint_update(lua_State* L)
 {
     lpoint_t* p = luaL_checkudata(L, -3, LPOINTMETA);
@@ -64,6 +74,39 @@ static int lpoint_unwrap(lua_State* L)
     return 2;
 }
 
+static int lpoint_getx(lua_State* L)
+{
+    lpoint_t* p = luaL_checkudata(L, -1, LPOINTMETA);
+    lua_pushinteger(L, p->x);
+    return 1;
+}
+
+static int lpoint_gety(lua_State* L)
+{
+    lpoint_t* p = luaL_checkudata(L, -1, LPOINTMETA);
+    lua_pushinteger(L, p->y);
+    return 1;
+}
+
+static int lpoint_translate(lua_State* L)
+{
+    lpoint_t* p = luaL_checkudata(L, -3, LPOINTMETA);
+    lpoint_coordinate_t x = checkcoordinate(L, -2);
+    lpoint_coordinate_t y = checkcoordinate(L, -1);
+    p->x = p->x + x;
+    p->y = p->y + y;
+    lua_rotate(L, -3, 2);
+    return 1;
+}
+
+static int lpoint_equal(lua_State* L)
+{
+    lpoint_t* lhs = luaL_checkudata(L, -2, LPOINTMETA);
+    lpoint_t* rhs = luaL_checkudata(L, -1, LPOINTMETA);
+    lua_pushboolean(L, lhs->x == rhs->x && lhs->y == rhs->y);
+    return 1;
+}
+
 static int lpoint_getmetatable(lua_State* L)
 {
     luaL_getmetatable(L, LPOINTMETA);
@@ -72,19 +115,32 @@ static int lpoint_getmetatable(lua_State* L)
 
 int open_lpoint_lib(lua_State* L)
 {
+    static const luaL_Reg metafuncs[] =
+    {
+        { "copy",      lpoint_copy      },
+        { "unwrap",    lpoint_unwrap    },
+        { "getx",      lpoint_getx      },
+        { "gety",      lpoint_gety      },
+        { "translate", lpoint_translate },
+        { "__eq",      lpoint_equal     },
+        { NULL,     NULL          }
+    };
     // create metatable for points
     luaL_newmetatable(L, LPOINTMETA);
     // add __index
     lua_pushstring(L, "__index");
     lua_pushvalue(L, -2); 
     lua_rawset(L, -3);
+
+    // set meta functions
+    luaL_setfuncs(L, metafuncs, 0);
+
     // remove metatable from stack
     lua_pop(L, 1);
 
     static const luaL_Reg modfuncs[] =
     {
         { "create",        lpoint_create       },
-        { "_unwrap",       lpoint_unwrap       },
         { "_update",       lpoint_update       },
         { "_getmetatable", lpoint_getmetatable },
         { NULL,            NULL                }

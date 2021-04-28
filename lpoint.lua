@@ -2,12 +2,6 @@
 local meta = point._getmetatable()
 point._getmetatable = nil -- remove metatable access
 
-function meta.__eq(lhs, rhs)
-    local x1, y1 = lhs:unwrap()
-    local x2, y2 = rhs:unwrap()
-    return (x1 == x2) and (y1 == y2)
-end
-
 function meta.__add(lhs, rhs)
     local x1, y1 = lhs:unwrap()
     local x2, y2 = rhs:unwrap()
@@ -18,26 +12,6 @@ function meta.__sub(lhs, rhs)
     local x1, y1 = lhs:unwrap()
     local x2, y2 = rhs:unwrap()
     return point.create(x1 - x2, y1 - y2)
-end
-
-function meta.unwrap(self)
-    return point._unwrap(self)
-end
-
-function meta.getx(self)
-    local x = self:unwrap()
-    return x
-end
-
-function meta.gety(self)
-    local _, y = self:unwrap()
-    return y
-end
-
-function meta.translate(self, dx, dy)
-    local x, y = self:unwrap()
-    point._update(self, x + dx, y + dy)
-    return self
 end
 
 function meta.scale(self, factor)
@@ -89,11 +63,6 @@ function meta.format(self, baseunit, sep)
     return string.format("%s%s%s", sx, sep, sy)
 end
 
-function meta.copy(self)
-    local x1, y1 = self:unwrap()
-    return point.create(x1, y1)
-end
-
 -- point module functions
 function point.combine_12(lhs, rhs)
     return point.create(lhs:getx(), rhs:gety())
@@ -107,20 +76,6 @@ function point.combine(lhs, rhs)
     local x1, y1 = lhs:unwrap()
     local x2, y2 = rhs:unwrap()
     return point.create((x1 + x2) / 2, (y1 + y2) / 2)
-end
-
-function point.relative_array(startpt, increments, skipfirst)
-    local collection = {}
-    local x, y = startpt:unwrap()
-    if not skipfirst then
-        table.insert(collection, startpt:copy())
-    end
-    for _, pt in ipairs(increments) do
-        x = x + pt[1]
-        y = y + pt[2]
-        table.insert(collection, point.create(x, y))
-    end
-    return collection
 end
 
 function is_lpoint(obj)
