@@ -256,6 +256,14 @@ if not args.noexport then
     export.write_cell(filename, cell, args.dryrun)
 end
 
+if args.cellinfo then
+    print(string.format("number of shapes: %d", #cell.shapes))
+    print("used layers:")
+    for _, lpp in cell:layers() do
+        print(string.format("  %s", lpp:str()))
+    end
+end
+
 if args.profile then
     profiler.stop()
     profiler.display()

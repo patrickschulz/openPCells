@@ -126,6 +126,10 @@ return {
     },
     section("Diagnostic functions"),
     switch{
+        name = "cellinfo", long = "--show-cellinfo",
+        help = "show some cell information: shape count, used layers, etc."
+    },
+    switch{
         name  = "profile", long  = "--profile",
         help  = "collect and display profiling data"
     },
