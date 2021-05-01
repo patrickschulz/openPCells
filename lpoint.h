@@ -19,5 +19,6 @@ typedef struct
 int lpoint_create(lua_State* L);
 
 int open_lpoint_lib(lua_State* L);
+int lpoint_register_cfunctions(lua_State* L);
 
 #endif // LPOINT_H

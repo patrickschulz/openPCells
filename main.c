@@ -112,8 +112,9 @@ void load_lualibs(lua_State *L)
 static void load_api(lua_State* L)
 {
     const char* const modules[] = {
+        "profiler", // load before other modules so register_cfunction is available
         "argparse",
-        "lpoint", // lua part of lpoint module
+        "lpoint",
         "technology",
         "postprocess",
         "export",
@@ -130,7 +131,6 @@ static void load_api(lua_State* L)
         "stack",
         "support",
         "envlib",
-        "profiler",
         "globals",
         "union",
         "pcell", // load as last module (FIXME: no longer needed, I think)
@@ -210,6 +210,9 @@ lua_State* create_and_initialize_lua()
     open_lunion_lib(L);
 
     load_api(L); // could fail
+
+    lpoint_register_cfunctions(L);
+
     return L;
 }
 

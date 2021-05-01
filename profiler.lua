@@ -3,18 +3,37 @@ local M = {}
 local lastcalled = {}
 local data = {}
 local info = {}
+local cfunctions = {}
+
+function M.register_cfunction(module, name, func)
+    cfunctions[func] = { name = name, source = "@" .. module }
+end
 
 function M.start()
     local logcall = function(event)
         local funcinfo = debug.getinfo(2)
-        if funcinfo.what ~= "Lua" then return end
         if not funcinfo.name then return end
-        local key = funcinfo.name .. funcinfo.source
+        local key
+        local name
+        local source
+        if funcinfo.what == "Lua" then
+            key = funcinfo.name .. funcinfo.source
+            name = funcinfo.name
+            source = funcinfo.source .. ":lua"
+        else
+            if cfunctions[funcinfo.func] then
+                key = funcinfo.func
+                name = cfunctions[funcinfo.func].name
+                source = cfunctions[funcinfo.func].source .. ":C"
+            else
+                return
+            end
+        end
         if event == "call" then
             if not info[key] then
                 info[key] = { 
-                    name = funcinfo.name,
-                    source = funcinfo.source,
+                    name = name,
+                    source = source,
                     line = funcinfo.linedefined
                 }
             end
