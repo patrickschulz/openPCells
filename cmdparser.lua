@@ -154,8 +154,12 @@ local function _load_options(options)
     return _generic_load(reader, chunkname, nil, nil, env)
 end
 
+function meta.load_options_from_file(self, options)
+    meta.load_options(self, _load_options(options))
+end
+
 function meta.load_options(self, options)
-    self.optionsdef = _load_options(options)
+    self.optionsdef = options
     table.insert(self.optionsdef, 1, { name = "help", short = "-h", long = "--help", help = "display this help and exit", func = _display_help, parser = function() end })
     table.insert(self.optionsdef, 2, { name = "version", short = "-v", long = "--version", help = "display version and exit", func = _display_version, parser = function() end })
     for key, opt in ipairs(self.optionsdef) do
@@ -219,12 +223,14 @@ function meta.set_option(self, param, arg)
     action(self, arg)
 end
 
-local self = {
-    state = { i = 1 },
-    parsers = {},
-    actions = {},
-    nameresolve = {},
-    res = { cellargs = {} }
-}
-setmetatable(self, meta)
-return self
+return function()
+    local self = {
+        state = { i = 1 },
+        parsers = {},
+        actions = {},
+        nameresolve = {},
+        res = { cellargs = {} }
+    }
+    setmetatable(self, meta)
+    return self
+end

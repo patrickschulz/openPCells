@@ -1,6 +1,7 @@
 local M = {}
 
 local export
+local _name
 
 local function _collect_shapes(cell, get_layer_func, get_index_func, point_func, precomputed)
     local shapes = {}
@@ -51,12 +52,12 @@ end
 function M.load(name)
     local filename = string.format("%s/export/%s/init.lua", _get_opc_home(), name)
     local chunkname = "@export"
-
     local reader = _get_reader(filename)
     if not reader then
         error(string.format("export '%s' not found", name))
     end
     export = _generic_load(reader, chunkname)
+    _name = name
 end
 
 function M.get_techexport()
@@ -92,7 +93,20 @@ function M.write_cell(filename, cell, fake)
 end
 
 function M.set_options(opt)
-    aux.call_if_present(export.set_options, opt)
+    if opt and export.set_options then
+        local argparse = cmdparser()
+        argparse:load_options_from_file(string.format("export/%s/cmdoptions", _name))
+        local arg = {}
+        for a in string.gmatch(opt, "(%S+)") do
+            table.insert(arg, a)
+        end
+        local args, msg = argparse:parse(arg)
+        if not args then
+            errprint(msg)
+            return 1
+        end
+        export.set_options(args)
+    end
 end
 
 return M

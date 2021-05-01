@@ -12,9 +12,9 @@ return {
         name  = "export", short = "-E", long  = "--export",
         help  = "specify export type"
     },
-    consumer_table{ 
-        name  = "export_options", long  = "--iopt",
-        help  = "pass special options to export"
+    store{ 
+        name  = "export_options", short = "-X", long  = "--xopts",
+        help  = "pass special options to export. This passes the next argument (separated by white space) literally. This means that several arguments have to be grouped, usually by enclosing it in quotations marks (e.g. -X '--foo --bar')"
     },
     store{
         name = "script", short = "-S", long = "--script",

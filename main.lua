@@ -1,5 +1,6 @@
 -- parse command line arguments
-argparse:load_options("cmdoptions")
+local argparse = cmdparser()
+argparse:load_options_from_file("cmdoptions")
 local args, msg = argparse:parse(arg)
 if not args then
     errprint(msg)
@@ -26,7 +27,7 @@ math.randomseed(os.time())
 
 -- load user configuration
 if not args.nouserconfig then
-    if not config.load_user_config() then
+    if not config.load_user_config(argparse) then
         return 1
     end
 end

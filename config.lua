@@ -1,6 +1,6 @@
 local M = {}
 
-function M.load_user_config()
+function M.load_user_config(argparse)
     local filename = string.format("%s/.opcconfig.lua", os.getenv("HOME"))
     local chunkname = string.format("@%s", filename)
 

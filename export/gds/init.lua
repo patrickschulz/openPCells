@@ -4,6 +4,11 @@ function M.get_extension()
     return "gds"
 end
 
+local libname = "opclib"
+function M.set_options(opt)
+    libname = opt.libname
+end
+
 local baseunit = 1
 
 local recordtypes = {
@@ -201,7 +206,7 @@ end
 function M.at_begin(file)
     _write_record(file, recordtypes.HEADER, datatypes.TWO_BYTE_INTEGER, { 5 })
     _write_record(file, recordtypes.BGNLIB, datatypes.TWO_BYTE_INTEGER, { 2020, 7, 5, 18, 17, 51, 2020, 7, 5, 18, 17, 51 })
-    _write_record(file, recordtypes.LIBNAME, datatypes.ASCII_STRING, "testlib")
+    _write_record(file, recordtypes.LIBNAME, datatypes.ASCII_STRING, libname)
     _write_record(file, recordtypes.UNITS, datatypes.EIGHT_BYTE_REAL, { 1 / baseunit, 1e-9 })
 end
 

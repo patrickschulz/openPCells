@@ -113,7 +113,7 @@ static void load_api(lua_State* L)
 {
     const char* const modules[] = {
         "profiler", // load before other modules so register_cfunction is available
-        "argparse",
+        "cmdparser",
         "lpoint",
         "technology",
         "postprocess",
