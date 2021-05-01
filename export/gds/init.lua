@@ -4,9 +4,11 @@ function M.get_extension()
     return "gds"
 end
 
-local libname = "opclib"
+local __libname = "opclib"
+local __cellname = "opctoplevelcell"
 function M.set_options(opt)
-    libname = opt.libname
+    if opt.libname then __libname = opt.libname end
+    if opt.cellname then __cellname = opt.cellname end
 end
 
 local baseunit = 1
@@ -206,7 +208,7 @@ end
 function M.at_begin(file)
     _write_record(file, recordtypes.HEADER, datatypes.TWO_BYTE_INTEGER, { 5 })
     _write_record(file, recordtypes.BGNLIB, datatypes.TWO_BYTE_INTEGER, { 2020, 7, 5, 18, 17, 51, 2020, 7, 5, 18, 17, 51 })
-    _write_record(file, recordtypes.LIBNAME, datatypes.ASCII_STRING, libname)
+    _write_record(file, recordtypes.LIBNAME, datatypes.ASCII_STRING, __libname)
     _write_record(file, recordtypes.UNITS, datatypes.EIGHT_BYTE_REAL, { 1 / baseunit, 1e-9 })
 end
 
@@ -215,8 +217,9 @@ function M.at_end(file)
 end
 
 function M.at_begin_cell(file, cellname)
+    local cellname = cellname or __cellname
     _write_record(file, recordtypes.BGNSTR, datatypes.TWO_BYTE_INTEGER, { 2020, 7, 5, 18, 17, 51, 2020, 7, 5, 18, 17, 51 })
-    _write_record(file, recordtypes.STRNAME, datatypes.ASCII_STRING, "toplevelcell")
+    _write_record(file, recordtypes.STRNAME, datatypes.ASCII_STRING, cellname)
 end
 
 function M.at_end_cell(file)
