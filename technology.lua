@@ -1,6 +1,9 @@
 local M = {}
 
 local layermap
+local constraintsmeta = {}
+constraintsmeta.__index = function() return 1 end -- fake get_dimension
+local constraints = setmetatable({}, constraintsmeta)
 local config
 
 local techpaths = {}

@@ -151,7 +151,7 @@ return {
     },
     switch{ 
         name  = "notech", long  = "--notech",
-        help  = "disable all technology translation functions (metal translation, via arrayzation, layer mapping, grid fixing)"
+        help  = "disable all technology translation functions (metal translation, via arrayzation, layer mapping, grid fixing). This also installs a dummy technology that can be used for debugging"
     },
     switch{ 
         name  = "noexport", long  = "--noexport",
