@@ -159,6 +159,8 @@ if not status then
     errprint(cell)
     return 1
 end
+-- FIXME: technoloy.translate has a bug, without a flatten here the translation is incorrect
+cell:flatten()
 
 -- move origin
 if args.origin then

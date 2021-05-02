@@ -107,6 +107,9 @@ local function _do_array(cell, S, entry, export)
 end
 
 function M.translate(cell, export)
+    for _, child in cell:iterate_children() do
+        M.translate(child, export)
+    end
     for i, S in cell:iterate_shapes() do
         local layer = S:get_lpp():str()
         local mappings = layermap[layer]
