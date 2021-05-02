@@ -16,6 +16,10 @@ return {
         name  = "export_options", short = "-X", long  = "--xopts",
         help  = "pass special options to export. This passes the next argument (separated by white space) literally. This means that several arguments have to be grouped, usually by enclosing it in quotations marks (e.g. -X '--foo --bar')"
     },
+    switch{
+        name = "flatten", long = "--flat",
+        help = "flatten hierarchy before exporting"
+    },
     store{
         name = "script", short = "-S", long = "--script",
         help = "execute cell script. This can also be used to run lua code with the opc API loaded"

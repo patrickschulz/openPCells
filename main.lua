@@ -249,6 +249,10 @@ if args.mergerectangles then
     reduce.merge_shapes(cell)
 end
 
+if args.flatten then
+    cell:flatten()
+end
+
 if not args.noexport then
     local filename = args.filename or "openPCells"
     export.set_options(args.export_options)
