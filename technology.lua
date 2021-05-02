@@ -106,10 +106,7 @@ local function _do_array(cell, S, entry, export)
     cell:merge_into(cut:translate(c:unwrap()))
 end
 
-function M.translate(cell, export)
-    for _, child in cell:iterate_children() do
-        M.translate(child, export)
-    end
+function M.translate_layers(cell, export)
     for i, S in cell:iterate_shapes() do
         local layer = S:get_lpp():str()
         local mappings = layermap[layer]
@@ -130,6 +127,19 @@ function M.translate(cell, export)
         local layer = port.layer:str()
     end
     --]]
+end
+
+function M.translate(cell, export)
+    -- translate cell itself
+    M.translate_metals(cell)
+    M.split_vias(cell)
+    M.place_via_conductors(cell, export)
+    M.translate_layers(cell, export)
+    M.fix_to_grid(cell)
+    -- translate children
+    for _, child in cell:iterate_children() do
+        M.translate(child, export)
+    end
 end
 
 function M.fix_to_grid(cell)

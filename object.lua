@@ -74,7 +74,7 @@ function meta.flatten(self)
 end
 
 function meta.is_empty(self)
-    return #self.shapes == 0
+    return #self.shapes == 0 and #self.children == 0
 end
 
 function meta.add_shape(self, S)

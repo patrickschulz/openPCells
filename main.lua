@@ -160,7 +160,7 @@ if not status then
     return 1
 end
 -- FIXME: technoloy.translate has a bug, without a flatten here the translation is incorrect
-cell:flatten()
+--cell:flatten()
 
 -- move origin
 if args.origin then
@@ -240,11 +240,7 @@ export.load(args.export)
 
 local techintf = export.get_techexport() or args.export
 if not args.notech then
-    technology.translate_metals(cell)
-    technology.split_vias(cell)
-    technology.place_via_conductors(cell, techintf)
     technology.translate(cell, techintf)
-    technology.fix_to_grid(cell)
 end
 
 if args.mergerectangles then
@@ -258,7 +254,7 @@ end
 if not args.noexport then
     local filename = args.filename or "openPCells"
     export.set_options(args.export_options)
-    export.write_cell(filename, cell, args.dryrun)
+    export.write_toplevel(filename, cell, args.dryrun)
 end
 
 if args.cellinfo then
