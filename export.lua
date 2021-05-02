@@ -11,7 +11,7 @@ local function _collect_shapes(cell, get_layer_func, get_index_func, point_func,
     end
     get_layer_func = get_layer_func or function(s) return s:get_lpp() end
     point_func = point_func or function(s) return s:get_points() end
-    for _, shape in cell:iter() do
+    for _, shape in cell:iterate_shapes() do
         local layer = get_layer_func(shape, precomputed)
         if shapes.indexed then
             local index = get_index_func(shape, precomputed)
