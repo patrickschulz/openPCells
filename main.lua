@@ -159,8 +159,6 @@ if not status then
     errprint(cell)
     return 1
 end
--- FIXME: implement hierarchies
-cell:flatten_shallow()
 
 -- move origin
 if args.origin then
