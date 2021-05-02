@@ -10,12 +10,12 @@ local techpaths = {}
 
 -- make relative metal (negative indices) absolute
 function M.translate_metals(cell)
-    for _, S in cell:iter(function(S) return S:get_lpp():is_type("metal") end) do
+    for _, S in cell:iterate_shapes(function(S) return S:get_lpp():is_type("metal") end) do
         if S:get_lpp().value < 0 then
             S:get_lpp().value = config.metals + S:get_lpp().value + 1
         end
     end
-    for _, S in cell:iter(function(S) return S:get_lpp():is_type("via") end) do
+    for _, S in cell:iterate_shapes(function(S) return S:get_lpp():is_type("via") end) do
         local value = S:get_lpp().value
         if value.from < 0 then
             value.from = config.metals + value.from + 1
@@ -31,7 +31,7 @@ function M.translate_metals(cell)
 end
 
 function M.place_via_conductors(cell)
-    for _, S in cell:iter() do
+    for _, S in cell:iterate_shapes() do
         if S:get_lpp():is_type("via") and not S:get_lpp().bare then
             local m1, m2 = S:get_lpp():get()
             local s1 = S:copy()
@@ -50,7 +50,7 @@ function M.place_via_conductors(cell)
 end
 
 function M.split_vias(cell)
-    for i, S in cell:iter(function(S) return S:is_lpp_type("via") end) do
+    for i, S in cell:iterate_shapes(function(S) return S:is_lpp_type("via") end) do
         local from, to = S:get_lpp():get()
         for j = from, to - 1 do
             local sc = S:copy()
@@ -107,7 +107,7 @@ local function _do_array(cell, S, entry, export)
 end
 
 function M.translate(cell, export)
-    for i, S in cell:iter() do
+    for i, S in cell:iterate_shapes() do
         local layer = S:get_lpp():str()
         local mappings = layermap[layer]
         if not mappings then
@@ -130,7 +130,7 @@ function M.translate(cell, export)
 end
 
 function M.fix_to_grid(cell)
-    for _, S in cell:iter() do
+    for _, S in cell:iterate_shapes() do
         for _, pt in pairs(S:get_points()) do
             pt:fix(config.grid)
         end
