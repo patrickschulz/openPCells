@@ -11,7 +11,7 @@ meta.__index = meta
 function M.create(name)
     local self = {
         name = name,
-        subs = {},
+        children = {},
         shapes = {},
         ports = {},
         anchors = {},
@@ -48,28 +48,29 @@ function M.make_from_shape(S)
     return self
 end
 
-function meta.add(self, other)
-    table.insert(self.subs, other)
+function meta.add_child(self, other)
+    table.insert(self.children, other)
 end
 
 function meta.merge_into(self, other)
-    for _, S in other:iter() do
+    for _, S in other:iterate_shapes() do
         self:add_shape(S)
     end
 end
 
 function meta.merge_into_update_alignmentbox(self, other)
     meta.inherit_alignment_box(self, other)
-    for _, S in other:iter() do
+    for _, S in other:iterate_shapes() do
         self:add_shape(S)
     end
 end
 
-function meta.flatten_shallow(self)
-    for _, sub in ipairs(self.subs) do
+function meta.flatten(self)
+    -- FIXME: current implementation is shallow
+    for _, sub in ipairs(self.children) do
         self:merge_into(sub)
     end
-    self.subs = {}
+    self.children = {}
 end
 
 function meta.is_empty(self)
@@ -95,7 +96,7 @@ function meta.add_port(self, name, layer, where)
     self.anchors[name] = where:copy() -- copy point, otherwise translation acts twice
 end
 
-function meta.find(self, comp)
+function meta.find_shapes(self, comp)
     local shapes = {}
     local indices = {}
     comp = comp or function() return true end
@@ -110,18 +111,31 @@ end
 
 function meta.layers(self)
     local lpps = {}
-    for _, S in self:iter() do
+    for _, S in self:iterate_shapes() do
         local lpp = S:get_lpp()
         lpps[lpp:str()] = lpp
     end
     return pairs(lpps)
 end
 
+function meta.iterate_children(self)
+    local idx = #self.children + 1 -- start at the end
+    local iter = function()
+        idx = idx - 1
+        if idx > 0 then
+            return idx, self.children[idx]
+        else
+            return nil
+        end
+    end
+    return iter
+end
+
 -- this function returns an iterator over all shapes in a cell (possibly only selecting a subset)
 -- First all shapes are collected in an auxiliary table, which enables modification of the self.shapes table within the iteration
 -- Furthermore, the list is iterated from the end, which allows element removal in the loop
-function meta.iter(self, comp)
-    local indices, shapes = meta.find(self, comp)
+function meta.iterate_shapes(self, comp)
+    local indices, shapes = meta.find_shapes(self, comp)
     local idx = #shapes + 1 -- start at the end
     local iter = function()
         idx = idx - 1
@@ -212,7 +226,7 @@ local function _get_minmax_xy(self)
     local maxx = -math.huge
     local miny =  math.huge
     local maxy = -math.huge
-    for _, S in self:iter() do
+    for _, S in self:iterate_shapes() do
         if S.typ == "polygon" then
             for _, pt in ipairs(S:get_points()) do
                 local x, y = pt:unwrap()
