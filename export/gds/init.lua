@@ -205,13 +205,13 @@ local function _write_record(file, recordtype, datatype, content)
     file:write_binary(data)
 end
 
-local function _unpack_points(pts, multiplier)
+local function _unpack_points(x0, y0, pts, multiplier)
     local stream = {}
     for _, pt in ipairs(pts) do
         --local x, y = pt:unwrap(multiplier)
         local x, y = pt:unwrap()
-        table.insert(stream, math.floor(x))
-        table.insert(stream, math.floor(y))
+        table.insert(stream, x + x0)
+        table.insert(stream, y + y0)
     end
     return stream
 end
@@ -220,14 +220,6 @@ function M.get_layer(S)
     local lpp = S:get_lpp():get()
     return { layer = lpp.layer, purpose = lpp.purpose }
 end
-
---[[
-function M.get_points(shape)
-    local S = shape:convert_to_polygon()
-    local points = _unpack_points(S:get_points(), baseunit)
-    return points
-end
---]]
 
 function M.at_begin(file)
     _write_record(file, recordtypes.HEADER, datatypes.TWO_BYTE_INTEGER, { 258 }) -- release 6.0
@@ -238,54 +230,51 @@ function M.at_begin(file)
     })
     _write_record(file, recordtypes.LIBNAME, datatypes.ASCII_STRING, __libname)
     _write_record(file, recordtypes.UNITS, datatypes.EIGHT_BYTE_REAL, { 1 / baseunit, 1e-9 })
-    -- FIXME: fake structure
-    --do -- structure
-    --    _write_record(file, recordtypes.BGNSTR, datatypes.TWO_BYTE_INTEGER, { 2020, 7, 5, 18, 17, 51, 2020, 7, 5, 18, 17, 51 })
-    --    _write_record(file, recordtypes.STRNAME, datatypes.ASCII_STRING, "teststructure")
-    --    do
-    --        _write_record(file, recordtypes.BOUNDARY, datatypes.NONE)
-    --        _write_record(file, recordtypes.LAYER, datatypes.TWO_BYTE_INTEGER, { 17 })
-    --        _write_record(file, recordtypes.DATATYPE, datatypes.TWO_BYTE_INTEGER, { 0 })
-    --        _write_record(file, recordtypes.XY, datatypes.FOUR_BYTE_INTEGER, { -100, -100, 100, -100, 100, 100, -100, 100 })
-    --        _write_record(file, recordtypes.ENDEL, datatypes.NONE)
-    --    end
-    --    _write_record(file, recordtypes.ENDSTR, datatypes.NONE)
-    --end
 end
 
 function M.at_end(file)
     _write_record(file, recordtypes.ENDLIB, datatypes.NONE)
 end
 
+local cellcounter = 1
 function M.at_begin_cell(file, cellname)
     local cellname = cellname or __cellname
-    _write_record(file, recordtypes.BGNSTR, datatypes.TWO_BYTE_INTEGER, { 2020, 7, 5, 18, 17, 51, 2020, 7, 5, 18, 17, 51 })
+    cellname = cellname .. tostring(cellcounter)
+    cellcounter = cellcounter + 1
+    local date = os.date("*t")
+    _write_record(file, recordtypes.BGNSTR, datatypes.TWO_BYTE_INTEGER, { 
+        date.year, date.month, date.day, date.hour, date.min, date.sec, -- last modification time
+        date.year, date.month, date.day, date.hour, date.min, date.sec  -- last access time
+    })
     _write_record(file, recordtypes.STRNAME, datatypes.ASCII_STRING, cellname)
-        --_write_record(file, recordtypes.SREF, datatypes.NONE)
-        --_write_record(file, recordtypes.SNAME, datatypes.ASCII_STRING, "teststructure")
-        --_write_record(file, recordtypes.XY, datatypes.FOUR_BYTE_INTEGER, { -200, 0 })
-        --_write_record(file, recordtypes.ENDEL, datatypes.NONE)
 end
 
 function M.at_end_cell(file)
     _write_record(file, recordtypes.ENDSTR, datatypes.NONE)
 end
 
-function M.write_rectangle(file, layer, bl, tr)
+function M.write_rectangle(file, layer, x0, y0, bl, tr)
     _write_record(file, recordtypes.BOX, datatypes.NONE)
     _write_record(file, recordtypes.LAYER, datatypes.TWO_BYTE_INTEGER, { layer.layer })
     _write_record(file, recordtypes.BOXTYPE, datatypes.TWO_BYTE_INTEGER, { layer.purpose})
-    local ptstream = _unpack_points({ bl, point.combine_21(bl, tr), tr, point.combine_12(bl, tr), bl }, baseunit)
+    local ptstream = _unpack_points(x0, y0, { bl, point.combine_21(bl, tr), tr, point.combine_12(bl, tr), bl }, baseunit)
     _write_record(file, recordtypes.XY, datatypes.FOUR_BYTE_INTEGER, ptstream)
     _write_record(file, recordtypes.ENDEL, datatypes.NONE)
 end
 
 function M.write_polygon(file, layer, pts)
-    local ptstream = _unpack_points(pts, baseunit)
+    local ptstream = _unpack_points(0, 0, pts, baseunit)
     _write_record(file, recordtypes.BOUNDARY, datatypes.NONE)
     _write_record(file, recordtypes.LAYER, datatypes.TWO_BYTE_INTEGER, { layer.layer })
     _write_record(file, recordtypes.DATATYPE, datatypes.TWO_BYTE_INTEGER, { layer.purpose})
     _write_record(file, recordtypes.XY, datatypes.FOUR_BYTE_INTEGER, ptstream)
+    _write_record(file, recordtypes.ENDEL, datatypes.NONE)
+end
+
+function M.write_cell_reference(file, cell)
+    _write_record(file, recordtypes.SREF, datatypes.NONE)
+    _write_record(file, recordtypes.SNAME, datatypes.ASCII_STRING, "opctoplevelcell1")
+    _write_record(file, recordtypes.XY, datatypes.FOUR_BYTE_INTEGER, { -200, 0 })
     _write_record(file, recordtypes.ENDEL, datatypes.NONE)
 end
 
@@ -297,7 +286,7 @@ function M.write_port(file, name, layer, where)
     _write_record(file, recordtypes.PRESENTATION, datatypes.BIT_ARRAY, { 0x0005 })
     --_write_record(file, recordtypes.STRANS, datatypes.BIT_ARRAY, { 0x8006 })
     --_write_record(file, recordtypes.MAG, datatypes.EIGHT_BYTE_REAL, { 10.0 })
-    _write_record(file, recordtypes.XY, datatypes.FOUR_BYTE_INTEGER, _unpack_points({ where }, baseunit))
+    _write_record(file, recordtypes.XY, datatypes.FOUR_BYTE_INTEGER, _unpack_points(0, 0, { where }, baseunit))
     _write_record(file, recordtypes.STRING, datatypes.ASCII_STRING, name)
     _write_record(file, recordtypes.ENDEL, datatypes.NONE)
 end

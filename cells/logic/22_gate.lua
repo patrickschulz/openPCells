@@ -31,6 +31,7 @@ function layout(gate, _P)
     isogate:move_anchor("left", gate1:get_anchor("right"))
     gate:merge_into(isogate:copy())
 
+    --[[
     -- gate 2
     pcell.push_overwrites("logic/base", { leftdummies = 0, rightdummies = 0 })
     local gate2 = pcell.create_layout(string.format("logic/%s", _P.gate2)):move_anchor("left", isogate:get_anchor( "right"))
@@ -67,4 +68,5 @@ function layout(gate, _P)
     gate:add_port("Z", generics.metal(1), gate3:get_anchor("Z"))
     gate:add_port("VDD", generics.metal(1), isogate:get_anchor("VDD"))
     gate:add_port("VSS", generics.metal(1), isogate:get_anchor("VSS"))
+    --]]
 end
