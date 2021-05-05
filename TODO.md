@@ -3,6 +3,7 @@ The todos are annotated with two numbers from 1 (easy) to 5 (hard): (complexity 
 instance is a hard, isolated problem while 1/5 is a very easy problem breaking an aweful lot of existing code.
 ## implement union of polygons 5/1
 no draft pushed to the repository. Complex problem, if you're not me and want to work on this, ask me for the existing code.
+UPDATE: I've implemented a rectangle union, which is far more important. It seems to work fine but needs some testing.
 ## implement partition of polygons 5/1
 Opposite problem of polygon union. Very large any_angle_paths could create polygons with more points as allowed for e.g. GDS. These polygons have to be
 partitioned.
