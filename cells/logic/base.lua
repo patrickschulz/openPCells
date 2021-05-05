@@ -14,7 +14,7 @@ function parameters()
         { "sdwidth(Source/Drain Metal Width)",            tech.get_dimension("Minimum M1 Width"), even() },
         { "gstwidth(Gate Strap Metal Width)",             tech.get_dimension("Minimum M1 Width") },
         { "gstspace(Gate Strap Metal Space)",             tech.get_dimension("Minimum M1 Space") },
-        { "numinnerroutes(Number of inner M1 routes)",    3 },
+        { "numinnerroutes(Number of inner M1 routes)",    3, readonly = true },
         { "powerwidth(Power Rail Metal Width)",           tech.get_dimension("Minimum M1 Width") },
         { "powerspace(Power Rail Space)",                 tech.get_dimension("Minimum M1 Space") },
         { "leftdummies(Number of Left Dummies)",          1 },

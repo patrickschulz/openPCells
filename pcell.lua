@@ -100,12 +100,12 @@ local function _get_cell(state, cellname, nocallparams)
     return rawget(state.loadedcells, cellname)
 end
 
-local function _add_parameter(state, cellname, name, value, argtype, posvals, follow, overwrite)
+local function _add_parameter(state, cellname, name, value, argtype, posvals, follow, overwrite, readonly)
     argtype = argtype or type(value)
     local cell = _get_cell(state, cellname)
     cell.parameters:set_overwrite(overwrite)
     cell.parameters:set_follow(follow)
-    return cell.parameters:add(name, value, argtype, posvals)
+    return cell.parameters:add(name, value, argtype, posvals, readonly)
 end
 
 local function _set_parameter_function(state, cellname, name, value, backup, evaluate, overwrite)
@@ -123,6 +123,7 @@ local function _set_parameter_function(state, cellname, name, value, backup, eva
         value = eval(value)
     end
     paramlib.check_constraints(p, value)
+    paramlib.check_readonly(p)
     -- store old function for restoration
     backup[name] = p.func:get()
     -- important: use :replace(), don't create a new function object.
@@ -214,7 +215,7 @@ end
 
 local function add_parameter(state, cellname, name, value, opt)
     opt = opt or {}
-    _add_parameter(state, cellname, name, value, opt.argtype, opt.posvals, opt.follow)
+    _add_parameter(state, cellname, name, value, opt.argtype, opt.posvals, opt.follow, opt.readonly)
 end
 
 local function add_parameters(state, cellname, ...)
@@ -224,7 +225,7 @@ local function add_parameters(state, cellname, ...)
             state,
             cellname,
             name, value,
-            parameter.argtype, parameter.posvals, parameter.follow
+            parameter.argtype, parameter.posvals, parameter.follow, nil, parameter.readonly
         )
     end
 end
