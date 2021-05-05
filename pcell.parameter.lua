@@ -41,6 +41,12 @@ function M.check_constraints(parameter, value)
     end
 end
 
+function M.check_readonly(parameter)
+    if parameter.readonly then
+        moderror(string.format("parameter '%s' is read-only", parameter.name))
+    end
+end
+
 function meta.set_overwrite(self, overwrite)
     self.overwrite = overwrite
 end
@@ -49,7 +55,7 @@ function meta.set_follow(self, follow)
     self.follow = follow
 end
 
-function meta.add(self, name, value, argtype, posvals)
+function meta.add(self, name, value, argtype, posvals, readonly)
     local pname, dname = string.match(name, "^([^(]+)%(([^)]+)%)")
     if not pname then pname = name end -- no display name
     local new = {
@@ -59,6 +65,7 @@ function meta.add(self, name, value, argtype, posvals)
         argtype   = argtype,
         posvals   = posvals,
         followers = {},
+        readonly  = not not readonly,
         ptype     = "N" -- 'normal' parameter
     }
     if not self.values[pname] or self.overwrite then

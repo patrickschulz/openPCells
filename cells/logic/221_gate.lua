@@ -22,6 +22,7 @@ end
 
 function layout(gate, _P)
     local bp = pcell.get_parameters("logic/base");
+    local separation = bp.numinnerroutes * bp.gstwidth + (bp.numinnerroutes + 1) * bp.gstspace
 
     -- gate 1
     pcell.push_overwrites("logic/base", { rightdummies = 0 })
@@ -66,7 +67,7 @@ function layout(gate, _P)
     }, bp.sdwidth))
     gate:merge_into(geometry.path(generics.metal(2), 
         geometry.path_points_yx(gate3:get_anchor("Z"), {
-            (_P.flipconnection and -1 or 1) * (bp.separation / 2 + bp.sdwidth / 2),
+            (_P.flipconnection and -1 or 1) * (separation / 2 + bp.sdwidth / 2),
             gate4:get_anchor("A")
     }), bp.sdwidth))
     gate:merge_into(geometry.rectangle(generics.via(1, 2), bp.sdwidth, bp.sdwidth):translate( gate3:get_anchor("Z")))

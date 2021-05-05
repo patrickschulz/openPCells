@@ -186,6 +186,20 @@ end
 
 function M.path(layer, pts, width, miterjoin)
     _make_unique_points(pts)
+    if #pts == 2 then -- rectangle
+        local x1, y1 = pts[1]:unwrap()
+        local x2, y2 = pts[2]:unwrap()
+        if     x1  < x2 and y1 == y2 then
+            return M.rectanglebltr(layer, point.create(x1, y1 - width / 2), point.create(x2, y1 + width / 2))
+        elseif x1  > x2 and y1 == y2 then
+            return M.rectanglebltr(layer, point.create(x2, y1 - width / 2), point.create(x1, y1 + width / 2))
+        elseif x1 == x2 and y1  > y2 then
+            return M.rectanglebltr(layer, point.create(x1 - width / 2, y2), point.create(x1 + width / 2, y1))
+        elseif x1 == x2 and y1  < y2 then
+            return M.rectanglebltr(layer, point.create(x1 - width / 2, y1), point.create(x1 + width / 2, y2))
+        end
+    end
+    -- polygon
     local edges = _get_edge_segments(pts, width)
     local points = _get_path_pts(edges, width, miterjoin)
     local S = shape.create_polygon(layer, points)

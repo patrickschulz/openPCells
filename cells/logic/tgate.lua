@@ -41,55 +41,22 @@ function layout(gate, _P)
     end
 
     -- signal transistors source connections
-    if _P.fingers > 1 then
-        gate:merge_into(geometry.path(
-            generics.metal(1),
-            {
-                point.create( _P.fingers * xpitch / 2,  (bp.separation + 2 * bp.pwidth - bp.sdwidth) / 2),
-                point.create(-_P.fingers * xpitch / 2,  (bp.separation + 2 * bp.pwidth - bp.sdwidth) / 2),
-                point.create(-_P.fingers * xpitch / 2,  (bp.separation + bp.sdwidth) / 2),
-                point.create(-_P.fingers * xpitch / 2 - _P.shiftinput,  (bp.separation + bp.sdwidth) / 2),
-                point.create(-_P.fingers * xpitch / 2 - _P.shiftinput, -(bp.separation + bp.sdwidth) / 2),
-                point.create(-_P.fingers * xpitch / 2, -(bp.separation + bp.sdwidth) / 2),
-                point.create(-_P.fingers * xpitch / 2, -(bp.separation + 2 * bp.nwidth - bp.sdwidth) / 2),
-                point.create( _P.fingers * xpitch / 2, -(bp.separation + 2 * bp.nwidth - bp.sdwidth) / 2),
-            },
-            bp.sdwidth,
-            true
-        ))
-    else
-        gate:merge_into(geometry.path(
-            generics.metal(1),
-            {
-                point.create(-_P.fingers * xpitch / 2,  (bp.separation + 2 * bp.pwidth - bp.sdwidth) / 2),
-                point.create(-_P.fingers * xpitch / 2,  (bp.separation + bp.sdwidth) / 2),
-                point.create(-_P.fingers * xpitch / 2 - _P.shiftinput,  (bp.separation + bp.sdwidth) / 2),
-                point.create(-_P.fingers * xpitch / 2 - _P.shiftinput, -(bp.separation + bp.sdwidth) / 2),
-                point.create(-_P.fingers * xpitch / 2, -(bp.separation + bp.sdwidth) / 2),
-                point.create(-_P.fingers * xpitch / 2, -(bp.separation + 2 * bp.nwidth - bp.sdwidth) / 2),
-            },
-            bp.sdwidth,
-            true
-        ))
-    end
+    local n = _P.fingers + (_P.fingers % 2 == 0 and 1 or 0)
+    gate:merge_into(geometry.path(generics.metal(1), geometry.path_points_xy(
+        harness:get_anchor(string.format("pSDo%d", n)):translate(0, -bp.sdwidth / 2), {
+            harness:get_anchor("G1upper"):translate(-xpitch / 2 - _P.shiftinput, 0),
+            0, -- toggle xy
+            harness:get_anchor(string.format("nSDo%d", n)):translate(0,  bp.sdwidth / 2),
+        }), bp.sdwidth))
 
     -- signal transistors drain connections
     if bp.connectoutput then
-        gate:merge_into(geometry.path(
-            generics.metal(1),
-            {
-                point.create(-_P.fingers * xpitch / 2 + xpitch,  (bp.separation + bp.sdwidth) / 2),
-                point.create( _P.fingers * xpitch / 2,           (bp.separation + bp.sdwidth) / 2),
-                point.create( _P.fingers * xpitch / 2,  (bp.separation + bp.sdwidth) / 2),
-                point.create( _P.fingers * xpitch / 2 + _P.shiftoutput,  (bp.separation + bp.sdwidth) / 2),
-                point.create( _P.fingers * xpitch / 2 + _P.shiftoutput, -(bp.separation + bp.sdwidth) / 2),
-                point.create( _P.fingers * xpitch / 2, -(bp.separation + bp.sdwidth) / 2),
-                point.create( _P.fingers * xpitch / 2,          -(bp.separation + bp.sdwidth) / 2),
-                point.create(-_P.fingers * xpitch / 2 + xpitch, -(bp.separation + bp.sdwidth) / 2),
-            },
-            bp.sdwidth,
-            true
-        ))
+        gate:merge_into(geometry.path(generics.metal(1), geometry.path_points_xy(
+            harness:get_anchor("pSDi2"):translate(0, bp.sdwidth / 2), {
+                harness:get_anchor(string.format("G%dlower", _P.fingers)):translate(xpitch / 2 + _P.shiftoutput, 0),
+                0, -- toggle xy
+                harness:get_anchor("nSDi2"):translate(0, -bp.sdwidth / 2),
+        }), bp.sdwidth))
     end
 
     -- ports
@@ -97,6 +64,6 @@ function layout(gate, _P)
     gate:add_port("O", generics.metal(1), point.create(_P.fingers * xpitch / 2 + _P.shiftoutput, 0))
     gate:add_port("EP", generics.metal(1), harness:get_anchor("G1upper"))
     gate:add_port("EN", generics.metal(1), harness:get_anchor("G1lower"))
-    gate:add_port("VDD", generics.metal(1), point.create(0,  bp.separation / 2 + bp.pwidth + bp.powerspace + bp.powerwidth / 2))
-    gate:add_port("VSS", generics.metal(1), point.create(0, -bp.separation / 2 - bp.nwidth - bp.powerspace - bp.powerwidth / 2))
+    gate:add_port("VDD", generics.metal(1), harness:get_anchor("top"))
+    gate:add_port("VSS", generics.metal(1), harness:get_anchor("bottom"))
 end
