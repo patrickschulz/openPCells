@@ -14,6 +14,6 @@ function layout(gate, _P)
     gate:add_port("A", generics.metal(1), base:get_anchor("A"))
     gate:add_port("B", generics.metal(1), base:get_anchor("B"))
     gate:add_port("Z", generics.metal(1), base:get_anchor("Z"))
-    gate:add_port("VDD", generics.metal(1), point.create(0,  bp.separation / 2 + bp.pwidth + bp.powerspace + bp.powerwidth / 2))
-    gate:add_port("VSS", generics.metal(1), point.create(0, -bp.separation / 2 - bp.nwidth - bp.powerspace - bp.powerwidth / 2))
+    gate:add_port("VDD", generics.metal(1), base:get_anchor("VDD"))
+    gate:add_port("VSS", generics.metal(1), base:get_anchor("VSS"))
 end
