@@ -20,7 +20,9 @@ function parameters()
         { "powerwidth(Power Rail Metal Width)",           200 },
         { "powerspace(Power Rail Space)",                 100 },
         { "pcontactpos", {}, argtype = "strtable" },
-        { "ncontactpos", {}, argtype = "strtable" }
+        { "ncontactpos", {}, argtype = "strtable" },
+        { "pcontactheight", 500, follow = "pwidth" },
+        { "ncontactheight", 500, follow = "nwidth" }
     )
 end
 
@@ -97,48 +99,6 @@ function layout(gate, _P)
         end
     end
 
-    --[[
-    if _P.drawdummygatecontacts then
-        gate:merge_into(geometry.multiple_xy(
-            geometry.rectangle(generics.contact("gate", nil, true), _P.glength, _P.dummycontheight),
-            _P.leftdummies, 2, xpitch, separation + _P.pwidth + _P.nwidth + 2 * _P.powerspace + _P.dummycontheight
-        ):translate(-(_P.fingers + _P.rightdummies) * xpitch / 2, (_P.pwidth - _P.nwidth) / 2))
-        gate:merge_into(geometry.multiple_xy(
-            geometry.rectangle(generics.contact("gate", nil, true), _P.glength, _P.dummycontheight),
-            _P.rightdummies, 2, xpitch, separation + _P.pwidth + _P.nwidth + 2 * _P.powerspace + _P.dummycontheight
-        ):translate( (_P.fingers + _P.leftdummies) * xpitch / 2, (_P.pwidth - _P.nwidth) / 2))
-    end
-
-    -- dummy source/drain contacts
-    if _P.drawdummyactivecontacts then
-        gate:merge_into(geometry.multiple_x(
-            geometry.rectangle(generics.contact("active"), _P.sdwidth, _P.pwidth / 2),
-            _P.leftdummies, xpitch
-        ):translate(-(_P.fingers + _P.rightdummies + 1) * xpitch / 2, separation / 2 + _P.pwidth * 3 / 4))
-        gate:merge_into(geometry.multiple_x(
-            geometry.rectangle(generics.contact("active"), _P.sdwidth, _P.nwidth / 2),
-            _P.leftdummies, xpitch
-        ):translate(-(_P.fingers + _P.rightdummies + 1) * xpitch / 2, -separation / 2 - _P.nwidth * 3 / 4))
-        gate:merge_into(geometry.multiple_xy(
-            geometry.rectangle(generics.metal(1), _P.sdwidth, _P.powerspace),
-            _P.leftdummies, 2, xpitch, separation + _P.pwidth + _P.nwidth + _P.powerspace
-        ):translate(-(_P.fingers + _P.rightdummies + 1) * xpitch / 2, (_P.pwidth - _P.nwidth) / 2))
-        gate:merge_into(geometry.multiple_x(
-            geometry.rectangle(generics.contact("active"), _P.sdwidth, _P.pwidth / 2),
-            _P.rightdummies, xpitch
-        ):translate( (_P.fingers + _P.leftdummies + 1) * xpitch / 2, separation / 2 + _P.pwidth * 3 / 4))
-        gate:merge_into(geometry.multiple_x(
-            geometry.rectangle(generics.contact("active"), _P.sdwidth, _P.nwidth / 2),
-            _P.rightdummies, xpitch
-        ):translate( (_P.fingers + _P.leftdummies + 1) * xpitch / 2, -separation / 2 - _P.nwidth * 3 / 4))
-        gate:merge_into(geometry.multiple_xy(
-            geometry.rectangle(generics.metal(1), _P.sdwidth, _P.powerspace),
-            _P.rightdummies, 2, xpitch, separation + _P.pwidth + _P.nwidth + _P.powerspace
-        ):translate( (_P.fingers + _P.leftdummies + 1) * xpitch / 2, (_P.pwidth - _P.nwidth) / 2))
-    end
-    --]]
-
-    ---[[
     -- draw source/drain contacts
     local indexshift = _P.fingers + 2
     for i = 1, _P.fingers + 1 do
@@ -147,30 +107,31 @@ function layout(gate, _P)
         -- p contacts
         if _P.pcontactpos[i] == "power" or _P.pcontactpos[i] == "outer" then
             gate:merge_into(geometry.rectangle(
-                generics.contact("active"), _P.sdwidth, _P.pwidth / 2
-            ):translate(x, y + _P.pwidth / 4))
+                generics.contact("active"), _P.sdwidth, _P.pcontactheight
+            ):translate(x, y + _P.pwidth / 2 - _P.pcontactheight / 2))
             if _P.pcontactpos[i] == "power" then
                 gate:merge_into(geometry.rectangle(
                     generics.metal(1), _P.sdwidth, _P.powerspace)
                 :translate(x, y + _P.pwidth / 2 + _P.powerspace / 2))
             end
-            gate:add_anchor(string.format("pSDc%d", i), point.create(x, y + _P.pwidth / 4))
+            gate:add_anchor(string.format("pSDc%d", i), point.create(x, y + _P.pwidth / 2 - _P.pcontactheight / 2))
             gate:add_anchor(string.format("pSDi%d", i), point.create(x, y))
-            gate:add_anchor(string.format("pSDo%d", i), point.create(x, y + _P.pwidth / 2))
+            gate:add_anchor(string.format("pSDo%d", i), point.create(x, y + _P.pcontactheight))
         elseif _P.pcontactpos[i] == "inner" then
             gate:merge_into(geometry.rectangle(
-                generics.contact("active"), _P.sdwidth, _P.pwidth / 2
-            ):translate(x, y - _P.pwidth / 4))
-            gate:add_anchor(string.format("pSDc%d", i), point.create(x, y - _P.pwidth / 4))
+                generics.contact("active"), _P.sdwidth, _P.pcontactheight
+            ):translate(x, y - _P.pwidth / 2 + _P.pcontactheight / 2))
+            gate:add_anchor(string.format("pSDc%d", i), point.create(x, y - _P.pwidth / 2 + _P.pcontactheight / 2))
             gate:add_anchor(string.format("pSDi%d", i), point.create(x, y - _P.pwidth / 2))
-            gate:add_anchor(string.format("pSDo%d", i), point.create(x, y))
+            gate:add_anchor(string.format("pSDo%d", i), point.create(x, y - _P.pwidth / 2 + _P.pcontactheight))
         end
-        y = -_P.separation / 2 - _P.nwidth / 2
+        y = -_P.separation / 2 - _P.ncontactheight
         -- n contacts
+        local y = -_P.separation / 2 - _P.nwidth / 2
         if _P.ncontactpos[i] == "power" or _P.ncontactpos[i] == "outer" then
             gate:merge_into(geometry.rectangle(
-                generics.contact("active"), _P.sdwidth, _P.nwidth / 2
-            ):translate(x, y - _P.nwidth / 4))
+                generics.contact("active"), _P.sdwidth, _P.ncontactheight
+            ):translate(x, y - _P.nwidth / 2 + _P.ncontactheight / 2))
             if _P.ncontactpos[i] == "power" then
                 gate:merge_into(geometry.rectangle(
                     generics.metal(1), _P.sdwidth, _P.powerspace)
@@ -178,15 +139,14 @@ function layout(gate, _P)
             end
             gate:add_anchor(string.format("nSDc%d", i), point.create(x, y - _P.pwidth / 4))
             gate:add_anchor(string.format("nSDi%d", i), point.create(x, y))
-            gate:add_anchor(string.format("nSDo%d", i), point.create(x, y - _P.pwidth / 2))
+            gate:add_anchor(string.format("nSDo%d", i), point.create(x, y - _P.ncontactheight))
         elseif _P.ncontactpos[i] == "inner" then
             gate:merge_into(geometry.rectangle(
-                generics.contact("active"), _P.sdwidth, _P.pwidth / 2
-            ):translate(x, y + _P.pwidth / 4))
-            gate:add_anchor(string.format("nSDc%d", i), point.create(x, y + _P.pwidth / 4))
-            gate:add_anchor(string.format("nSDi%d", i), point.create(x, y + _P.pwidth / 2))
-            gate:add_anchor(string.format("nSDo%d", i), point.create(x, y))
+                generics.contact("active"), _P.sdwidth, _P.ncontactheight
+            ):translate(x, y + _P.nwidth / 2 - _P.ncontactheight / 2))
+            gate:add_anchor(string.format("nSDc%d", i), point.create(x, y + _P.nwidth / 2 - _P.ncontactheight / 2))
+            gate:add_anchor(string.format("nSDi%d", i), point.create(x, y + _P.nwidth / 2))
+            gate:add_anchor(string.format("nSDc%d", i), point.create(x, y + _P.nwidth / 2 - _P.ncontactheight))
         end
     end
-    --]]
 end

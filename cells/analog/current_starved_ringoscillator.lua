@@ -2,7 +2,9 @@ function parameters()
     pcell.reference_cell("basic/cmos")
     pcell.add_parameters(
         { "invfingers", 2 },
-        { "numinv", 7 }
+        { "numinv", 7 },
+        { "pfingerwidth", 500 },
+        { "nfingerwidth", 500 }
     )
 end
 
@@ -29,9 +31,13 @@ function layout(oscillator, _P)
     end
     local mosarray = pcell.create_layout("basic/cmos", { 
         fingers = 2 * _P.invfingers * _P.numinv, 
+        pwidth = _P.pfingerwidth,
+        nwidth = _P.nfingerwidth,
         gatecontactpos = gatecontacts, 
         pcontactpos = activecontacts, 
-        ncontactpos = activecontacts
+        ncontactpos = activecontacts,
+        pcontactheight = 300,
+        ncontactheight = 300,
     })
     oscillator:merge_into(mosarray)
 
@@ -54,9 +60,9 @@ function layout(oscillator, _P)
     -- draw inverter connections
     for i = 3, 2 * _P.invfingers * _P.numinv, 4 do
         oscillator:merge_into(geometry.path(generics.metal(1), geometry.path_points_xy(
-            mosarray:get_anchor(string.format("pSDc%d", i)), {
+            mosarray:get_anchor(string.format("pSDi%d", i)):translate(0, cbp.gstwidth / 2), {
                 _P.invfingers * xpitch,
-                mosarray:get_anchor(string.format("nSDc%d", i)),
+                mosarray:get_anchor(string.format("nSDi%d", i)):translate(0, -cbp.gstwidth / 2),
             }), cbp.gstwidth
         ))
         if i < 2 * _P.invfingers * (_P.numinv - 1) then
