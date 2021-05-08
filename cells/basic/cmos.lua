@@ -8,8 +8,8 @@ function parameters()
         { "oxidetype(Oxide Type)",                        1 },
         { "pvthtype(PMOS Threshold Voltage Type) ",       1 },
         { "nvthtype(NMOS Threshold Voltage Type)",        1 },
-        { "glength(Gate Length)",                         100 },
-        { "gspace(Gate Spacing)",                         110 },
+        { "glength(Gate Length)",                         200 },
+        { "gspace(Gate Spacing)",                         140 },
         { "pwidth(PMOS Finger Width)",                    500 },
         { "nwidth(NMOS Finger Width)",                    500 },
         { "separation(PMOS/NMOS y-Space)",                 200 },
@@ -115,8 +115,8 @@ function layout(gate, _P)
                 :translate(x, y + _P.pwidth / 2 + _P.powerspace / 2))
             end
             gate:add_anchor(string.format("pSDc%d", i), point.create(x, y + _P.pwidth / 2 - _P.pcontactheight / 2))
-            gate:add_anchor(string.format("pSDi%d", i), point.create(x, y))
-            gate:add_anchor(string.format("pSDo%d", i), point.create(x, y + _P.pcontactheight))
+            gate:add_anchor(string.format("pSDi%d", i), point.create(x, y + _P.pwidth / 2 - _P.pcontactheight))
+            gate:add_anchor(string.format("pSDo%d", i), point.create(x, y + _P.pwidth / 2))
         elseif _P.pcontactpos[i] == "inner" then
             gate:merge_into(geometry.rectangle(
                 generics.contact("active"), _P.sdwidth, _P.pcontactheight
@@ -137,9 +137,9 @@ function layout(gate, _P)
                     generics.metal(1), _P.sdwidth, _P.powerspace)
                 :translate(x, y - _P.nwidth / 2 - _P.powerspace / 2))
             end
-            gate:add_anchor(string.format("nSDc%d", i), point.create(x, y - _P.pwidth / 4))
-            gate:add_anchor(string.format("nSDi%d", i), point.create(x, y))
-            gate:add_anchor(string.format("nSDo%d", i), point.create(x, y - _P.ncontactheight))
+            gate:add_anchor(string.format("nSDc%d", i), point.create(x, y - _P.nwidth / 2 + _P.ncontactheight / 2))
+            gate:add_anchor(string.format("nSDi%d", i), point.create(x, y - _P.nwidth / 2 + _P.ncontactheight))
+            gate:add_anchor(string.format("nSDo%d", i), point.create(x, y - _P.nwidth / 2))
         elseif _P.ncontactpos[i] == "inner" then
             gate:merge_into(geometry.rectangle(
                 generics.contact("active"), _P.sdwidth, _P.ncontactheight

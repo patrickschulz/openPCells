@@ -13,6 +13,7 @@ function layout(oscillator, _P)
 
     local xpitch = cbp.glength + cbp.gspace
 
+    -- place inverter cells
     local gatecontacts = {}
     for i = 1, 2 * _P.invfingers * _P.numinv do
         if (i % 4 == 2) or (i % 4 == 3) then
@@ -27,6 +28,8 @@ function layout(oscillator, _P)
             activecontacts[i] = "inner"
         elseif i % 4 == 1 then
             activecontacts[i] = "power"
+        else
+            activecontacts[i] = "outer"
         end
     end
     local mosarray = pcell.create_layout("basic/cmos", { 
@@ -40,6 +43,11 @@ function layout(oscillator, _P)
         ncontactheight = 300,
     })
     oscillator:merge_into(mosarray)
+
+    -- place current mirror
+    local currentmirror = pcell.create_layout("analog/currentmirror")
+    currentmirror:translate(-5000, 0)
+    --oscillator:merge_into(currentmirror)
 
     -- draw gate straps
     oscillator:merge_into(geometry.rectanglebltr(generics.metal(1), 
@@ -59,6 +67,14 @@ function layout(oscillator, _P)
 
     -- draw inverter connections
     for i = 3, 2 * _P.invfingers * _P.numinv, 4 do
+        oscillator:merge_into(geometry.rectanglebltr(generics.metal(1), 
+            mosarray:get_anchor(string.format("pSDo%d", i - 1)):translate(0, -cbp.gstwidth),
+            mosarray:get_anchor(string.format("pSDo%d", i + 1))
+        ))
+        oscillator:merge_into(geometry.rectanglebltr(generics.metal(1), 
+            mosarray:get_anchor(string.format("nSDo%d", i - 1)):translate(0,  cbp.gstwidth),
+            mosarray:get_anchor(string.format("nSDo%d", i + 1))
+        ))
         oscillator:merge_into(geometry.path(generics.metal(1), geometry.path_points_xy(
             mosarray:get_anchor(string.format("pSDi%d", i)):translate(0, cbp.gstwidth / 2), {
                 _P.invfingers * xpitch,
