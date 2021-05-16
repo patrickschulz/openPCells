@@ -393,13 +393,21 @@ local function _find_cell_traceback()
         local d = debug.getinfo(level, "Slnt")
         if not d then break end
         if string.match(d.source, "^@cell") then
-            return d.currentline
+            return { source = d.source, line = d.currentline }
         end
         level = level + 1
     end
 end
 
 function M.create_layout(cellname, cellargs, evaluate)
+    if state.debug then 
+        local status = _find_cell_traceback()
+        if not status then -- main call to create_layout 
+            print(string.format("creating layout of cell '%s' (main call)", cellname))
+        else
+            print(string.format("creating layout of cell '%s' in %s:%d", cellname, status.source, status.line))
+        end
+    end
     local cell = _get_cell(state, cellname)
     if not cell.funcs.layout then
         error(string.format("cell '%s' has no layout definition", cellname))
@@ -409,7 +417,7 @@ function M.create_layout(cellname, cellargs, evaluate)
     local obj = object.create(cellname)
     local status, msg = xpcall(cell.funcs.layout, function(err) return { msg = err, where = _find_cell_traceback() } end, obj, parameters)
     if not status then
-        error(string.format("could not create cell '%s'. Error in line %d\n  -> %s", cellname, msg.where, msg.msg), 0)
+        error(string.format("could not create cell '%s'. Error in line %d\n  -> %s", cellname, msg.where.line, msg.msg), 0)
     end
     return obj
 end
