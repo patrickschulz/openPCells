@@ -23,6 +23,7 @@ typedef enum
 
 static order_t rect_order(lpoint_coordinate_t bl1, lpoint_coordinate_t tr1, lpoint_coordinate_t bl2, lpoint_coordinate_t tr2)
 {
+    if(bl1  > tr2 || bl2  > tr1) return NOINTERSECTION;
     if(bl1  < bl2 && tr1  > tr2) return OUTER;
     if(bl2  < bl1 && tr2  > tr1) return INNER;
     if(bl1 == bl2 && tr1 == tr2) return EQUAL;

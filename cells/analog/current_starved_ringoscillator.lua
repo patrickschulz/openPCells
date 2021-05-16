@@ -39,8 +39,8 @@ function layout(oscillator, _P)
         gatecontactpos = gatecontacts, 
         pcontactpos = activecontacts, 
         ncontactpos = activecontacts,
-        pcontactheight = 300,
-        ncontactheight = 300,
+        pcontactheight = _P.pfingerwidth - 120,
+        ncontactheight = _P.nfingerwidth - 120,
     })
     oscillator:merge_into(mosarray)
 
