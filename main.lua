@@ -154,6 +154,7 @@ if args.params then
 end
 
 -- create cell
+pcell.enable_debug(args.debugcell)
 local status, cell = pcall(pcell.create_layout, args.cell, cellargs, true)
 if not status then
     errprint(cell)

@@ -94,6 +94,10 @@ return {
         name = "drawalignmentbox", long = "--draw-alignmentbox",
         help = "draw the alignment box (if present). The box is drawn in the 'special' layer, so your layermap needs to have an entry for that."
     },
+    switch{
+        name = "debugcell", long = "--debug-cell",
+        help = "enables debugging print statements in cell layout definitions"
+    },
     section("Miscellaneous functions"),
     switch{
         name = "nouserconfig", long = "--nouserconfig",

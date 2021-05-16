@@ -73,6 +73,7 @@ end
 
 local function _get_cell(state, cellname, nocallparams)
     if not state.loadedcells[cellname] then
+        if state.debug then print(string.format("loading cell '%s'", cellname)) end
         local env = state:create_cellenv(cellname, _cellenv)
         local funcs = _load_cell(state, cellname, env)
         if not (funcs.parameters or funcs.layout) then
@@ -300,6 +301,7 @@ local state = {
     cellpaths = {},
     loadedcells = {},
     backupstacks = {},
+    debug = false,
 }
 
 function state.create_cellenv(state, cellname, ovrenv)
@@ -352,7 +354,7 @@ function state.create_cellenv(state, cellname, ovrenv)
         enable = function(bool, val) return (bool and 1 or 0) * (val or 1) end,
         string = string,
         table = table,
-        print = print,
+        dprint = function(...) if state.debug then print(...) end end,
         type = type,
         ipairs = ipairs,
         pairs = pairs,
@@ -367,6 +369,10 @@ function state.create_cellenv(state, cellname, ovrenv)
 end
 
 -- Public functions
+function M.enable_debug(d)
+    state.debug = d
+end
+
 function M.append_cellpath(path)
     table.insert(state.cellpaths, path)
 end
