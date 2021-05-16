@@ -7,7 +7,7 @@ function parameters()
         { "fingers", 8 },
         { "oxidetype(Oxide Type)",                        1 },
         { "pvthtype(PMOS Threshold Voltage Type) ",       1 },
-        { "nvthtype(NMOS Threshold Voltage Type)",        1 },
+        { "nvthtype(NMOS Threshold Voltage Type)",        3 },
         { "glength(Gate Length)",                         200 },
         { "gspace(Gate Spacing)",                         140 },
         { "pwidth(PMOS Finger Width)",                    500 },

@@ -1,7 +1,7 @@
 function parameters()
     pcell.reference_cell("basic/cmos")
     pcell.add_parameters(
-        { "invfingers", 2 },
+        { "invfingers", 2, posvals = even() },
         { "numinv", 7 },
         { "pfingerwidth", 500 },
         { "nfingerwidth", 500 }
@@ -44,10 +44,12 @@ function layout(oscillator, _P)
     })
     oscillator:merge_into(mosarray)
 
+    --[[
     -- place current mirror
     local currentmirror = pcell.create_layout("analog/currentmirror")
     currentmirror:translate(-5000, 0)
-    --oscillator:merge_into(currentmirror)
+    oscillator:merge_into(currentmirror)
+    --]]
 
     -- draw gate straps
     oscillator:merge_into(geometry.rectanglebltr(generics.metal(1), 
@@ -58,10 +60,10 @@ function layout(oscillator, _P)
         mosarray:get_anchor("Gp1"):translate(0, -cbp.gstwidth / 2),
         mosarray:get_anchor(string.format("Gp%d", 2 * _P.invfingers * _P.numinv)):translate(0, cbp.gstwidth / 2)
     ))
-    for i = 2, 2 * _P.invfingers * _P.numinv, 4 do
+    for i = 2, 2 * _P.invfingers * _P.numinv, 2 * _P.invfingers do
         oscillator:merge_into(geometry.rectanglebltr(generics.metal(1), 
             mosarray:get_anchor(string.format("G%d", i + 0)):translate(0, -cbp.gstwidth / 2),
-            mosarray:get_anchor(string.format("G%d", i + 1)):translate(0,  cbp.gstwidth / 2)
+            mosarray:get_anchor(string.format("G%d", i + 4 * (_P.invfingers / 2 - 1) + 1)):translate(0,  cbp.gstwidth / 2)
         ))
     end
 
@@ -75,17 +77,41 @@ function layout(oscillator, _P)
             mosarray:get_anchor(string.format("nSDo%d", i - 1)):translate(0,  cbp.gstwidth),
             mosarray:get_anchor(string.format("nSDo%d", i + 1))
         ))
-        oscillator:merge_into(geometry.path(generics.metal(1), geometry.path_points_xy(
-            mosarray:get_anchor(string.format("pSDi%d", i)):translate(0, cbp.gstwidth / 2), {
-                _P.invfingers * xpitch,
-                mosarray:get_anchor(string.format("nSDi%d", i)):translate(0, -cbp.gstwidth / 2),
-            }), cbp.gstwidth
-        ))
+        if _P.invfingers > 2 then
+            oscillator:merge_into(geometry.rectanglebltr(generics.via(1, 2), 
+                mosarray:get_anchor(string.format("pSDo%d", i - 1)):translate(0, -cbp.gstwidth),
+                mosarray:get_anchor(string.format("pSDo%d", i + 1))
+            ))
+            oscillator:merge_into(geometry.rectanglebltr(generics.via(1, 2), 
+                mosarray:get_anchor(string.format("nSDo%d", i - 1)):translate(0,  cbp.gstwidth),
+                mosarray:get_anchor(string.format("nSDo%d", i + 1))
+            ))
+        end
+        -- connect drains to gate of next inverter
         if i < 2 * _P.invfingers * (_P.numinv - 1) then
             oscillator:merge_into(geometry.path(generics.metal(1), {
                 mosarray:get_anchor(string.format("G%d", i + 3)):translate(-3 * xpitch / 2, 0),
                 mosarray:get_anchor(string.format("G%d", i + 3)),
             }, cbp.gstwidth))
         end
+    end
+    for i = 1, _P.numinv do
+        -- connect current sources drains on M2
+        if _P.invfingers > 2 then
+            oscillator:merge_into(geometry.rectanglebltr(generics.metal(2), 
+                mosarray:get_anchor(string.format("pSDo%d", (i - 1) * 2 * _P.invfingers + 2)):translate(0, -cbp.gstwidth),
+                mosarray:get_anchor(string.format("pSDo%d", (i - 1) * 2 * _P.invfingers + 2 * _P.invfingers))
+            ))
+            oscillator:merge_into(geometry.rectanglebltr(generics.metal(2), 
+                mosarray:get_anchor(string.format("nSDo%d", (i - 1) * 2 * _P.invfingers + 2)):translate(0, cbp.gstwidth),
+                mosarray:get_anchor(string.format("nSDo%d", (i - 1) * 2 * _P.invfingers + 2 * _P.invfingers))
+            ))
+        end
+        oscillator:merge_into(geometry.path(generics.metal(1), geometry.path_points_xy(
+            mosarray:get_anchor(string.format("pSDi%d", (i - 1) * 2 * _P.invfingers + 3)):translate(0, cbp.gstwidth / 2), {
+                2 + 2 * (_P.invfingers - 1) * xpitch,
+                mosarray:get_anchor(string.format("nSDi%d", (i - 1) * 2 * _P.invfingers + 3)):translate(0, -cbp.gstwidth / 2),
+            }), cbp.gstwidth
+        ))
     end
 end
