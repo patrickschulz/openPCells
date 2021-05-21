@@ -53,7 +53,7 @@ function layout(obj, _P)
         gbotext = _P.separation / 2,
         gtopext = _P.powerspace + _P.powerwidth + _P.outergstspace + _P.gstwidth,
         clipbot = true,
-        drawtopactivedummy = true
+        drawtopactivedummy = _P.drawdummyactive
     })
     pmos = pcell.create_layout("basic/mosfet", { fingers = _P.fingers }):move_anchor("botgate")
     obj:merge_into(pmos)
@@ -67,7 +67,7 @@ function layout(obj, _P)
         gtopext = _P.separation / 2,
         gbotext = _P.powerspace + _P.powerwidth + _P.outergstspace + _P.gstwidth,
         cliptop = true,
-        drawbotactivedummy = true
+        drawbotactivedummy = _P.drawdummyactive
     })
     nmos = pcell.create_layout("basic/mosfet", { fingers = _P.fingers }):move_anchor("topgate")
     obj:merge_into(nmos)
@@ -75,11 +75,6 @@ function layout(obj, _P)
 
     -- general transistor settings
     pcell.pop_overwrites("basic/mosfet")
-
-    -- dummy active regions
-    if _P.drawdummyactive then
-        obj:merge_into(geometry.rectangle(generics.other("active"), actwidth, _P.fwidth))
-    end
 
     -- power rails
     obj:merge_into(geometry.multiple_y(
