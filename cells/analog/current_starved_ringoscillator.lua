@@ -76,7 +76,7 @@ function parameters()
     pcell.reference_cell("basic/cmos")
     pcell.add_parameters(
         { "invfingers", 2, posvals = even() },
-        { "numinv", 7, posvals = odd() },
+        { "numinv", 17, posvals = odd() },
         { "pmosdiodefingers",    2, posvals = even() },
         { "pmoszerofingers",     7   },
         { "pmostunefingers",     2, posvals = even() },
@@ -87,11 +87,14 @@ function parameters()
         { "pfingerwidth",        500 },
         { "nfingerwidth",        500 },
         { "separation",          400 },
-        { "gstwidth",            60  }
+        { "gstwidth",             60 },
+        { "powerwidth",          120 },
+        { "powerspace",           60 }
     )
 end
 
 function layout(oscillator, _P)
+    local cbp = pcell.get_parameters("basic/cmos")
     local xpitch = _P.glength + _P.gspace
 
     pcell.push_overwrites("basic/cmos", {
@@ -100,6 +103,8 @@ function layout(oscillator, _P)
         gspace = _P.gspace,
         pwidth = _P.pfingerwidth,
         nwidth = _P.nfingerwidth,
+        powerwidth = _P.powerwidth,
+        powerspace = _P.powerspace,
     })
 
     -- place inverter cells
@@ -129,6 +134,7 @@ function layout(oscillator, _P)
         pcontactheight = _P.pfingerwidth - 120,
         ncontactheight = _P.nfingerwidth - 120,
     })
+    vcoarray:move_anchor("left")
     oscillator:merge_into(vcoarray)
 
     -- current mirror settings
@@ -391,6 +397,27 @@ function layout(oscillator, _P)
     )
     oscillator:merge_into(
         geometry.rectangle(generics.via(1, 2), 2 * _P.glength + _P.gspace, _P.gstwidth)
-        :translate(-(_P.numinv - 1) * _P.invfingers * (_P.glength + _P.gspace), 0)
+        :translate(vcoarray:get_anchor(string.format("G%d", 2)):translate(xpitch / 2, 0))
     )
+
+    -- center oscillator
+    oscillator:translate((cmfingers - 2 * _P.numinv * _P.invfingers) * xpitch / 2, 0)
+
+    -- place guardring
+    local ringwidth = 200
+    oscillator:merge_into(pcell.create_layout("auxiliary/guardring", { 
+        contype = "p",
+        fillwell = true,
+        ringwidth = ringwidth,
+        width = (cmfingers + 2 * _P.numinv * _P.invfingers + 4) * xpitch, 
+        height = 6 * _P.separation + _P.pfingerwidth + _P.nfingerwidth + ringwidth
+    }))
+    oscillator:merge_into(pcell.create_layout("auxiliary/guardring", { 
+        contype = "n",
+        fillwell = false,
+        drawdeepwell = true,
+        ringwidth = ringwidth,
+        width = (cmfingers + 2 * _P.numinv * _P.invfingers + 4) * xpitch + 2 * _P.separation + 2 * ringwidth,
+        height = 8 * _P.separation + _P.pfingerwidth + _P.nfingerwidth + ringwidth + 2 * ringwidth
+    }))
 end
