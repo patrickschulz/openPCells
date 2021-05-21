@@ -135,7 +135,7 @@ function layout(obj, _P)
         if _P.pcontactpos[i] == "power" or _P.pcontactpos[i] == "outer" then
             y = y + _P.pwidth / 2 - _P.pcontactheight / 2
             obj:merge_into(geometry.rectangle(
-                generics.contact("active"), _P.sdwidth, _P.pcontactheight
+                generics.contact("sourcedrain"), _P.sdwidth, _P.pcontactheight
             ):translate(x, y))
             if _P.pcontactpos[i] == "power" then
                 obj:merge_into(geometry.rectangle(
@@ -145,7 +145,7 @@ function layout(obj, _P)
         elseif _P.pcontactpos[i] == "inner" then
             y = y - _P.pwidth / 2 + _P.ncontactheight / 2
             obj:merge_into(geometry.rectangle(
-                generics.contact("active"), _P.sdwidth, _P.pcontactheight
+                generics.contact("sourcedrain"), _P.sdwidth, _P.pcontactheight
             ):translate(x, y))
         end
         obj:add_anchor(string.format("pSDi%d", i), point.create(x, y - _P.pcontactheight / 2))
@@ -156,7 +156,7 @@ function layout(obj, _P)
         if _P.ncontactpos[i] == "power" or _P.ncontactpos[i] == "outer" then
             y = y - _P.nwidth / 2 + _P.ncontactheight / 2
             obj:merge_into(geometry.rectangle(
-                generics.contact("active"), _P.sdwidth, _P.ncontactheight
+                generics.contact("sourcedrain"), _P.sdwidth, _P.ncontactheight
             ):translate(x, y))
             if _P.ncontactpos[i] == "power" then
                 obj:merge_into(geometry.rectangle(
@@ -166,7 +166,7 @@ function layout(obj, _P)
         elseif _P.ncontactpos[i] == "inner" then
             y = y + _P.nwidth / 2 - _P.ncontactheight / 2
             obj:merge_into(geometry.rectangle(
-                generics.contact("active"), _P.sdwidth, _P.ncontactheight
+                generics.contact("sourcedrain"), _P.sdwidth, _P.ncontactheight
             ):translate(x, y))
         end
         obj:add_anchor(string.format("nSDi%d", i), point.create(x, y + _P.ncontactheight / 2))
