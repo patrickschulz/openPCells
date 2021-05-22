@@ -85,7 +85,7 @@ if args.listcells or args.listallcells then
     return 0
 end
 
-if not args.cell then
+if not args.cell and not args.cellscript then
     errprint("no cell type given")
     return 1
 end
@@ -155,10 +155,25 @@ end
 
 -- create cell
 pcell.enable_debug(args.debugcell)
-local status, cell = pcall(pcell.create_layout, args.cell, cellargs, true)
-if not status then
-    errprint(cell)
-    return 1
+local cell
+if args.cellscript then
+    local status, c = pcall(_dofile, args.cellscript)
+    if not status then
+        errprint(c)
+        return 1
+    end
+    if not c then
+        errprint("cellscript did not return an object")
+        return 1
+    end
+    cell = c
+else
+    local status, c = pcall(pcell.create_layout, args.cell, cellargs, true)
+    if not status then
+        errprint(c)
+        return 1
+    end
+    cell = c
 end
 -- FIXME: implement hierarchies
 cell:flatten_shallow()

@@ -17,8 +17,8 @@ return {
         help  = "pass special options to export. This passes the next argument (separated by white space) literally. This means that several arguments have to be grouped, usually by enclosing it in quotations marks (e.g. -X '--foo --bar')"
     },
     store{
-        name = "script", short = "-S", long = "--script",
-        help = "execute cell script. This can also be used to run lua code with the opc API loaded"
+        name = "cellscript", short = "-c", long = "--cellscript",
+        help = "execute cell script. The called file should return an object."
     },
     section("Auxiliary generation functions"),
     store_multiple{
@@ -102,6 +102,10 @@ return {
     switch{
         name = "nouserconfig", long = "--nouserconfig",
         help = "don't load the user config"
+    },
+    store{
+        name = "script", short = "-S", long = "--script",
+        help = "execute arbitrary script. This can be used to run lua code with the opc API loaded. If a cell is generated in this file, --cellscript is recommended, as then no manual technology/export/etc. loading is necessary."
     },
     section("Info functions"),
     switch{ 
