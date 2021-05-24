@@ -11,7 +11,7 @@ meta.__index = meta
 function M.create(name)
     local self = {
         name = name,
-        children = {},
+        children = { lookup = {} },
         shapes = {},
         ports = {},
         anchors = {},
@@ -50,8 +50,12 @@ function M.make_from_shape(S)
     return self
 end
 
-function meta.add_child(self, other)
-    table.insert(self.children, other)
+function meta.add_child(self, other, where)
+    local identifier = tostring(other) -- TODO: find better identifier
+    if not self.children.lookup[identifier] then
+        self.children.lookup[identifier] = other
+    end
+    table.insert(self.children, { origin = where, identifier = identifier })
 end
 
 function meta.merge_into(self, other)
@@ -120,6 +124,10 @@ function meta.layers(self)
 end
 
 function meta.iterate_children(self)
+    return pairs(self.children.lookup)
+end
+
+function meta.iterate_children_links(self)
     local idx = #self.children + 1 -- start at the end
     local iter = function()
         idx = idx - 1

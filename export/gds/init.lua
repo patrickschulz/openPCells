@@ -236,11 +236,7 @@ function M.at_end(file)
     _write_record(file, recordtypes.ENDLIB, datatypes.NONE)
 end
 
-local cellcounter = 1
 function M.at_begin_cell(file, cellname)
-    local cellname = cellname or __cellname
-    cellname = cellname .. tostring(cellcounter)
-    cellcounter = cellcounter + 1
     local date = os.date("*t")
     _write_record(file, recordtypes.BGNSTR, datatypes.TWO_BYTE_INTEGER, { 
         date.year, date.month, date.day, date.hour, date.min, date.sec, -- last modification time
@@ -271,10 +267,10 @@ function M.write_polygon(file, layer, pts)
     _write_record(file, recordtypes.ENDEL, datatypes.NONE)
 end
 
-function M.write_cell_reference(file, cell)
+function M.write_cell_reference(file, identifier, origin)
     _write_record(file, recordtypes.SREF, datatypes.NONE)
-    _write_record(file, recordtypes.SNAME, datatypes.ASCII_STRING, "opctoplevelcell1")
-    _write_record(file, recordtypes.XY, datatypes.FOUR_BYTE_INTEGER, { -200, 0 })
+    _write_record(file, recordtypes.SNAME, datatypes.ASCII_STRING, identifier)
+    _write_record(file, recordtypes.XY, datatypes.FOUR_BYTE_INTEGER, _unpack_points(0, 0, { origin }))
     _write_record(file, recordtypes.ENDEL, datatypes.NONE)
 end
 

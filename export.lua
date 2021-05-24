@@ -20,8 +20,8 @@ function M.get_techexport()
     end
 end
 
-local function _write_cell(file, cell)
-    aux.call_if_present(export.at_begin_cell, file)
+local function _write_cell(file, cell, name)
+    aux.call_if_present(export.at_begin_cell, file, name)
     local x0, y0 = cell.x0, cell.y0
     for _, S in cell:iterate_shapes() do
         local layer = export.get_layer(S)
@@ -31,8 +31,8 @@ local function _write_cell(file, cell)
             export.write_rectangle(file, layer, 0, 0, S.points.bl, S.points.tr)
         end
     end
-    for _, child in cell:iterate_children() do
-        export.write_cell_reference(file, child)
+    for _, child in cell:iterate_children_links() do
+        export.write_cell_reference(file, child.identifier, child.origin)
     end
     aux.call_if_present(export.at_end_cell, file)
 end
@@ -48,10 +48,10 @@ function M.write_toplevel(filename, cell, fake)
     local file = stringfile.open(string.format("%s.%s", filename, extension))
     aux.call_if_present(export.at_begin, file)
 
-    for _, child in cell:iterate_children() do
-        _write_cell(file, child)
+    for name, child in cell:iterate_children() do
+        _write_cell(file, child, name)
     end
-    _write_cell(file, cell)
+    _write_cell(file, cell, "opctoplevel")
 
     aux.call_if_present(export.at_end, file)
     if not fake then
