@@ -21,4 +21,5 @@ function layout(inductor, _P)
         append(-xy - 0.50 * pitch, -xy - 1.00 * pitch)
     end
     inductor:merge_into(geometry.path_midpoint(generics.metal(_P.metalnum), pathpts, _P.width, _P.method, true))
+    inductor:merge_into(geometry.rectangle(generics.metal(-2), 2 * math.floor(math.sqrt(2) * _P.innerdiameter / 2 / 2), 2 * math.floor(math.sqrt(2) * _P.innerdiameter / 2 / 2)))
 end
