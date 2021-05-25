@@ -3,7 +3,11 @@ function parameters()
 end
 
 function layout(cell, _P)
+    -- place flat rectangle
+    cell:merge_into(geometry.rectangle(generics.metal(1), 200, 200))
+
+    -- place two subcells
     local sub = pcell.create_layout("__test/sub")
-    cell:merge_into(sub:copy():translate(0, 100))
-    cell:merge_into(sub:translate(0, -100))
+    cell:add_child(sub, point.create(0,  500))
+    cell:add_child(sub, point.create(0, -500))
 end

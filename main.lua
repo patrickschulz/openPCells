@@ -175,8 +175,6 @@ else
     end
     cell = c
 end
--- FIXME: implement hierarchies
-cell:flatten_shallow()
 
 -- move origin
 if args.origin then
@@ -256,21 +254,21 @@ export.load(args.export)
 
 local techintf = export.get_techexport() or args.export
 if not args.notech then
-    technology.translate_metals(cell)
-    technology.split_vias(cell)
-    technology.place_via_conductors(cell, techintf)
     technology.translate(cell, techintf)
-    technology.fix_to_grid(cell)
 end
 
 if args.mergerectangles then
     reduce.merge_shapes(cell)
 end
 
+if args.flatten then
+    cell:flatten()
+end
+
 if not args.noexport then
     local filename = args.filename or "openPCells"
     export.set_options(args.export_options)
-    export.write_cell(filename, cell, args.dryrun)
+    export.write_toplevel(filename, cell, args.dryrun)
 end
 
 if args.cellinfo then

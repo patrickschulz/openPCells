@@ -16,6 +16,10 @@ return {
         name  = "export_options", short = "-X", long  = "--xopts",
         help  = "pass special options to export. This passes the next argument (separated by white space) literally. This means that several arguments have to be grouped, usually by enclosing it in quotations marks (e.g. -X '--foo --bar')"
     },
+    switch{
+        name = "flatten", long = "--flat",
+        help = "flatten hierarchy before exporting"
+    },
     store{
         name = "cellscript", short = "-c", long = "--cellscript",
         help = "execute cell script. The called file should return an object."

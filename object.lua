@@ -11,12 +11,12 @@ meta.__index = meta
 function M.create(name)
     local self = {
         name = name,
-        subs = {},
+        children = { lookup = {} },
         shapes = {},
         ports = {},
         anchors = {},
         alignmentbox = nil,
-        origin = point.create(0, 0)
+        x0 = 0, y0 = 0
     }
     setmetatable(self, meta)
     return self
@@ -30,6 +30,8 @@ end
 
 function meta.copy(self)
     local new = M.create()
+    new.x0 = self.x0
+    new.y0 = self.y0
     for i, S in ipairs(self.shapes) do
         new.shapes[i] = S:copy()
     end
@@ -48,32 +50,41 @@ function M.make_from_shape(S)
     return self
 end
 
-function meta.add(self, other)
-    table.insert(self.subs, other)
+function meta.add_child(self, other, where)
+    local identifier = tostring(other) -- TODO: find better identifier
+    if not self.children.lookup[identifier] then
+        self.children.lookup[identifier] = other
+    end
+    table.insert(self.children, { origin = where, identifier = identifier })
 end
 
-function meta.merge_into(self, other)
-    for _, S in other:iter() do
-        self:add_shape(S)
+function meta.merge_into(self, other, shift)
+    local x, y = 0, 0
+    if shift then
+        x, y = shift:unwrap()
+    end
+    local x0, y0 = other.x0, other.y0
+    for _, S in other:iterate_shapes() do
+        self:add_shape(S:translate(x + x0, y + y0))
     end
 end
 
 function meta.merge_into_update_alignmentbox(self, other)
     meta.inherit_alignment_box(self, other)
-    for _, S in other:iter() do
-        self:add_shape(S)
-    end
+    self:merge_into(other)
 end
 
-function meta.flatten_shallow(self)
-    for _, sub in ipairs(self.subs) do
-        self:merge_into(sub)
+function meta.flatten(self)
+    -- FIXME: current implementation is shallow
+    for _, child in self:iterate_children_links() do
+        local obj = self.children.lookup[child.identifier]
+        self:merge_into(obj:copy(), child.origin)
     end
-    self.subs = {}
+    self.children = { lookup = {} }
 end
 
 function meta.is_empty(self)
-    return #self.shapes == 0
+    return #self.shapes == 0 and #self.children == 0
 end
 
 function meta.add_shape(self, S)
@@ -95,7 +106,7 @@ function meta.add_port(self, name, layer, where)
     self.anchors[name] = where:copy() -- copy point, otherwise translation acts twice
 end
 
-function meta.find(self, comp)
+function meta.find_shapes(self, comp)
     local shapes = {}
     local indices = {}
     comp = comp or function() return true end
@@ -110,18 +121,35 @@ end
 
 function meta.layers(self)
     local lpps = {}
-    for _, S in self:iter() do
+    for _, S in self:iterate_shapes() do
         local lpp = S:get_lpp()
         lpps[lpp:str()] = lpp
     end
     return pairs(lpps)
 end
 
+function meta.iterate_children(self)
+    return pairs(self.children.lookup)
+end
+
+function meta.iterate_children_links(self)
+    local idx = #self.children + 1 -- start at the end
+    local iter = function()
+        idx = idx - 1
+        if idx > 0 then
+            return idx, self.children[idx]
+        else
+            return nil
+        end
+    end
+    return iter
+end
+
 -- this function returns an iterator over all shapes in a cell (possibly only selecting a subset)
 -- First all shapes are collected in an auxiliary table, which enables modification of the self.shapes table within the iteration
 -- Furthermore, the list is iterated from the end, which allows element removal in the loop
-function meta.iter(self, comp)
-    local indices, shapes = meta.find(self, comp)
+function meta.iterate_shapes(self, comp)
+    local indices, shapes = meta.find_shapes(self, comp)
     local idx = #shapes + 1 -- start at the end
     local iter = function()
         idx = idx - 1
@@ -134,6 +162,9 @@ function meta.translate(self, dx, dy)
     if is_lpoint(dx) then
         dx, dy = dx:unwrap()
     end
+    self.x0 = self.x0 + dx
+    self.y0 = self.y0 + dy
+    --[[
     for _, S in ipairs(self.shapes) do
         S:translate(dx, dy)
     end
@@ -143,56 +174,54 @@ function meta.translate(self, dx, dy)
     for _, port in pairs(self.ports) do
         port.where:translate(dx, dy)
     end
-    self.origin:translate(dx, dy)
     if self.alignmentbox then
         self.alignmentbox.bl:translate(dx, dy)
         self.alignmentbox.tr:translate(dx, dy)
     end
+    --]]
     return self
 end
 
 function meta.flipx(self, xcenter)
     xcenter = xcenter or 0
-    local selfxcenter = self.origin:unwrap()
     for _, S in ipairs(self.shapes) do
-        S:flipx(xcenter + selfxcenter)
+        S:flipx(xcenter)
     end
     for _, anchor in pairs(self.anchors) do
         local x = anchor:getx()
-        anchor:translate(2 * (selfxcenter - x), 0)
+        anchor:translate(-2 * x, 0)
     end
     for _, port in pairs(self.ports) do
         local x = port.where:getx()
-        port.where:translate(2 * (selfxcenter - x), 0)
+        port.where:translate(-2 * x, 0)
     end
     if self.alignmentbox then
         local blx, bly = self.alignmentbox.bl:unwrap()
         local trx, try = self.alignmentbox.tr:unwrap()
-        self.alignmentbox.bl = point.create(2 * (xcenter + selfxcenter) - trx, bly)
-        self.alignmentbox.tr = point.create(2 * (xcenter + selfxcenter) - blx, try)
+        self.alignmentbox.bl = point.create(2 * xcenter - trx, bly)
+        self.alignmentbox.tr = point.create(2 * xcenter - blx, try)
     end
     return self
 end
 
 function meta.flipy(self, ycenter)
     ycenter = ycenter or 0
-    local _, selfycenter = self.origin:unwrap()
     for _, S in ipairs(self.shapes) do
-        S:flipy(ycenter + selfycenter)
+        S:flipy(ycenter + self.y0)
     end
     for _, anchor in pairs(self.anchors) do
         local y = anchor:gety()
-        anchor:translate(0, 2 * (selfycenter - y))
+        anchor:translate(0, 2 * (self.y0 - y))
     end
     for _, port in pairs(self.ports) do
         local y = port.where:gety()
-        port.where:translate(0, 2 * (selfycenter - y))
+        port.where:translate(0, 2 * (self.y0 - y))
     end
     if self.alignmentbox then
         local blx, bly = self.alignmentbox.bl:unwrap()
         local trx, try = self.alignmentbox.tr:unwrap()
-        self.alignmentbox.bl = point.create(blx, 2 * (ycenter + selfycenter) - try)
-        self.alignmentbox.tr = point.create(trx, 2 * (ycenter + selfycenter) - bly)
+        self.alignmentbox.bl = point.create(blx, 2 * (ycenter + self.y0) - try)
+        self.alignmentbox.tr = point.create(trx, 2 * (ycenter + self.y0) - bly)
     end
     return self
 end
@@ -212,7 +241,7 @@ local function _get_minmax_xy(self)
     local maxx = -math.huge
     local miny =  math.huge
     local maxy = -math.huge
-    for _, S in self:iter() do
+    for _, S in self:iterate_shapes() do
         if S.typ == "polygon" then
             for _, pt in ipairs(S:get_points()) do
                 local x, y = pt:unwrap()
@@ -254,9 +283,12 @@ function meta.inherit_alignment_box(self, other)
         local trx, try = tr:unwrap()
         local sblx, sbly = self.alignmentbox.bl:unwrap()
         local strx, stry = self.alignmentbox.tr:unwrap()
-        self.alignmentbox = { bl = point.create(math.min(blx, sblx), math.min(bly, sbly)), tr = point.create(math.max(trx, strx), math.max(try, stry)) }
+        self.alignmentbox = { 
+            bl = point.create(math.min(blx + self.x0, sblx + other.x0), math.min(bly + self.y0, sbly + other.y0)), 
+            tr = point.create(math.max(trx + self.x0, strx + other.x0), math.max(try + self.y0, stry + other.y0))
+        }
     else
-        self.alignmentbox = { bl = other.alignmentbox.bl:copy(), tr = other.alignmentbox.tr:copy() }
+        self.alignmentbox = { bl = other.alignmentbox.bl:copy():translate(other.x0, other.y0), tr = other.alignmentbox.tr:copy():translate(other.x0, other.y0) }
     end
 end
 
@@ -272,46 +304,61 @@ function meta.add_anchor(self, name, where)
     self.anchors[name] = where
 end
 
+local function _get_special_anchor(self, name)
+    if not self.alignmentbox then
+        return nil
+    end
+    local blx, bly = self.alignmentbox.bl:unwrap()
+    local trx, try = self.alignmentbox.tr:unwrap()
+    if name == "left" then
+        return blx, (bly + try) / 2
+    elseif name == "right" then
+        return trx, (bly + try) / 2
+    elseif name == "top" then
+        return (blx + trx) / 2, try
+    elseif name == "bottom" then
+        return (blx + trx) / 2, bly
+    elseif name == "bottomleft" then
+        return blx, bly
+    elseif name == "bottomright" then
+        return trx, bly
+    elseif name == "topleft" then
+        return blx, try
+    elseif name == "topright" then
+        return trx, try
+    end
+end
+
+local function _get_regular_anchor(self, name)
+    local anchor = self.anchors[name]
+    if anchor then
+        return anchor:unwrap()
+    end
+end
+
 local function _get_anchor(self, name)
-    if not self.anchors[name] then
-        if self.alignmentbox then
-            local blx, bly = self.alignmentbox.bl:unwrap()
-            local trx, try = self.alignmentbox.tr:unwrap()
-            if name == "left" then
-                return point.create(blx, (bly + try) / 2)
-            elseif name == "right" then
-                return point.create(trx, (bly + try) / 2)
-            elseif name == "top" then
-                return point.create((blx + trx) / 2, try)
-            elseif name == "bottom" then
-                return point.create((blx + trx) / 2, bly)
-            elseif name == "bottomleft" then
-                return point.create(blx, bly)
-            elseif name == "bottomright" then
-                return point.create(trx, bly)
-            elseif name == "topleft" then
-                return point.create(blx, try)
-            elseif name == "topright" then
-                return point.create(trx, try)
-            end
-        end
+    local x, y = _get_special_anchor(self, name)
+    if not x then
+        x, y = _get_regular_anchor(self, name)
+    end
+    return x, y
+end
+
+function meta.get_anchor(self, name)
+    local x, y = _get_anchor(self, name)
+    if not x then
         if self.name then
             error(string.format("trying to access undefined anchor '%s' in cell '%s'", name, self.name))
         else
             error(string.format("trying to access undefined anchor '%s'", name))
         end
     end
-    return self.anchors[name]
-end
-
-function meta.get_anchor(self, name)
-    local anchor = _get_anchor(self, name)
-    return anchor:copy()
+    return point.create(x + self.x0, y + self.y0)
 end
 
 function meta.move_anchor(self, name, where)
     where = where or point.create(0, 0)
-    local anchor = _get_anchor(self, name)
+    local anchor = self:get_anchor(name)
     local wx, wy = where:unwrap()
     local x, y = anchor:unwrap()
     self:translate(wx - x, wy - y)
