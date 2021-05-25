@@ -366,7 +366,12 @@ function meta.move_anchor(self, name, where)
 end
 
 function meta.get_all_anchors(self)
-    return self.anchors
+    local anchors = {}
+    for name in pairs(self.anchors) do
+        local x, y = _get_regular_anchor(self, name)
+        anchors[name] = point.create(x + self.x0, y + self.y0)
+    end
+    return anchors
 end
 
 return M
