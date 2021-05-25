@@ -258,8 +258,8 @@ function M.write_rectangle(file, layer, x0, y0, bl, tr)
     _write_record(file, recordtypes.ENDEL, datatypes.NONE)
 end
 
-function M.write_polygon(file, layer, pts)
-    local ptstream = _unpack_points(0, 0, pts, baseunit)
+function M.write_polygon(file, layer, x0, y0, pts)
+    local ptstream = _unpack_points(x0, y0, pts, baseunit)
     _write_record(file, recordtypes.BOUNDARY, datatypes.NONE)
     _write_record(file, recordtypes.LAYER, datatypes.TWO_BYTE_INTEGER, { layer.layer })
     _write_record(file, recordtypes.DATATYPE, datatypes.TWO_BYTE_INTEGER, { layer.purpose})
