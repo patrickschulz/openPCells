@@ -284,8 +284,8 @@ function meta.inherit_alignment_box(self, other)
         local sblx, sbly = self.alignmentbox.bl:unwrap()
         local strx, stry = self.alignmentbox.tr:unwrap()
         self.alignmentbox = { 
-            bl = point.create(math.min(blx + self.x0, sblx + other.x0), math.min(bly + self.y0, sbly + other.y0)), 
-            tr = point.create(math.max(trx + self.x0, strx + other.x0), math.max(try + self.y0, stry + other.y0))
+            bl = point.create(math.min(blx + other.x0, sblx + self.x0), math.min(bly + other.y0, sbly + self.y0)), 
+            tr = point.create(math.max(trx + other.x0, strx + self.x0), math.max(try + other.y0, stry + self.y0))
         }
     else
         self.alignmentbox = { bl = other.alignmentbox.bl:copy():translate(other.x0, other.y0), tr = other.alignmentbox.tr:copy():translate(other.x0, other.y0) }
