@@ -58,10 +58,14 @@ function meta.add_child(self, other, where)
     table.insert(self.children, { origin = where, identifier = identifier })
 end
 
-function meta.merge_into(self, other)
+function meta.merge_into(self, other, shift)
+    local x, y = 0, 0
+    if shift then
+        x, y = shift:unwrap()
+    end
     local x0, y0 = other.x0, other.y0
     for _, S in other:iterate_shapes() do
-        self:add_shape(S:translate(x0, y0))
+        self:add_shape(S:translate(x + x0, y + y0))
     end
 end
 
@@ -72,10 +76,11 @@ end
 
 function meta.flatten(self)
     -- FIXME: current implementation is shallow
-    for _, sub in ipairs(self.children) do
-        self:merge_into(sub)
+    for _, child in self:iterate_children_links() do
+        local obj = self.children.lookup[child.identifier]
+        self:merge_into(obj:copy(), child.origin)
     end
-    self.children = {}
+    self.children = { lookup = {} }
 end
 
 function meta.is_empty(self)
