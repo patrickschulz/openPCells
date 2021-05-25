@@ -180,21 +180,21 @@ end
 function meta.flipx(self, xcenter)
     xcenter = xcenter or 0
     for _, S in ipairs(self.shapes) do
-        S:flipx(xcenter + self.x0)
+        S:flipx(xcenter)
     end
     for _, anchor in pairs(self.anchors) do
         local x = anchor:getx()
-        anchor:translate(2 * (self.x0 - x), 0)
+        anchor:translate(-2 * x, 0)
     end
     for _, port in pairs(self.ports) do
         local x = port.where:getx()
-        port.where:translate(2 * (self.x0 - x), 0)
+        port.where:translate(-2 * x, 0)
     end
     if self.alignmentbox then
         local blx, bly = self.alignmentbox.bl:unwrap()
         local trx, try = self.alignmentbox.tr:unwrap()
-        self.alignmentbox.bl = point.create(2 * (xcenter + self.x0) - trx, bly)
-        self.alignmentbox.tr = point.create(2 * (xcenter + self.x0) - blx, try)
+        self.alignmentbox.bl = point.create(2 * xcenter - trx, bly)
+        self.alignmentbox.tr = point.create(2 * xcenter - blx, try)
     end
     return self
 end
