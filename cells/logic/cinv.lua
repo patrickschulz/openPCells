@@ -133,7 +133,7 @@ function layout(gate, _P)
         local dend = _P.swapoutputs and 3 or 1
         gate:merge_into(geometry.path(generics.metal(1), geometry.path_points_xy(
             harness:get_anchor(string.format("pSDi%d", dend)):translate(0,  bp.sdwidth / 2), {
-                harness:get_anchor(string.format("G%d", 2 * _P.fingers)):translate(xpitch / 2, 0),
+                harness:get_anchor(string.format("G%d", 2 * _P.fingers)):translate(_P.shiftoutput + xpitch / 2, 0),
                 0, -- toggle xy
                 harness:get_anchor(string.format("nSDi%d", dend)):translate(0, -bp.sdwidth / 2),
         }), bp.sdwidth))

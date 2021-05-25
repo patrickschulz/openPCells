@@ -44,8 +44,10 @@ function layout(gate, _P)
     local n = _P.fingers + (_P.fingers % 2 == 0 and 1 or 0)
     gate:merge_into(geometry.path(generics.metal(1), geometry.path_points_xy(
         harness:get_anchor(string.format("pSDo%d", n)):translate(0, -bp.sdwidth / 2), {
+            point.combine_12(harness:get_anchor(string.format("pSDo%d", n)), harness:get_anchor(string.format("pSDi%d", n + 1))):translate(0, bp.sdwidth / 2),
             harness:get_anchor("G1upper"):translate(-xpitch / 2 - _P.shiftinput, 0),
             0, -- toggle xy
+            point.combine_12(harness:get_anchor(string.format("nSDo%d", n)), harness:get_anchor(string.format("nSDi%d", n + 1))):translate(0, -bp.sdwidth / 2),
             harness:get_anchor(string.format("nSDo%d", n)):translate(0,  bp.sdwidth / 2),
         }), bp.sdwidth))
 
