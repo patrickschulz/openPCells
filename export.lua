@@ -26,9 +26,9 @@ local function _write_cell(file, cell, name)
     for _, S in cell:iterate_shapes() do
         local layer = export.get_layer(S)
         if S:is_type("polygon") then
-            export.write_polygon(file, layer, S.points)
+            export.write_polygon(file, layer, x0, y0, S.points)
         else
-            export.write_rectangle(file, layer, 0, 0, S.points.bl, S.points.tr)
+            export.write_rectangle(file, layer, x0, y0, S.points.bl, S.points.tr)
         end
     end
     for _, child in cell:iterate_children_links() do
