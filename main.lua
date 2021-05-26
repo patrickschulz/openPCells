@@ -243,7 +243,10 @@ end
 
 -- filter layers
 if args.layerfilter then
+    -- filter toplevel (flat shapes)
     postprocess.filter(cell, args.layerfilter, args.layerfilterlist or "black")
+    -- filter children
+    cell:foreach_children(postprocess.filter, args.layerfilter, args.layerfilterlist or "black")
 end
 
 if not args.export then
@@ -253,19 +256,23 @@ end
 export.load(args.export)
 
 local techintf = export.get_techexport() or args.export
-if not args.notech then
+if not args.notech and techintf ~= "raw" then
     technology.translate(cell, techintf)
-end
-
-if args.mergerectangles then
-    reduce.merge_shapes(cell)
 end
 
 if args.flatten then
     cell:flatten()
 end
 
+if args.mergerectangles then
+    -- merge toplevel (flat shapes)
+    reduce.merge_shapes(cell)
+    -- merge children
+    cell:foreach_children(reduce.merge_shapes)
+end
+
 if not args.noexport then
+    export.check()
     local filename = args.filename or "openPCells"
     export.set_options(args.export_options)
     export.write_toplevel(filename, cell, args.dryrun)

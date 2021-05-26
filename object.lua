@@ -29,7 +29,7 @@ function M.create_omni()
 end
 
 function meta.copy(self)
-    local new = M.create()
+    local new = M.create(self.name)
     new.x0 = self.x0
     new.y0 = self.y0
     for i, S in ipairs(self.shapes) do
@@ -41,6 +41,13 @@ function meta.copy(self)
     if self.alignmentbox then
         new.alignmentbox = { bl = self.alignmentbox.bl:copy(), tr = self.alignmentbox.tr:copy() }
     end
+    -- copy children
+    for identifier, obj in pairs(self.children.lookup) do
+        new.children.lookup[identifier] = obj:copy()
+    end
+    for i, child in ipairs(self.children) do
+        new.children[i] = { origin = child.origin:copy(), identifier = child.identifier }
+    end
     return new
 end
 
@@ -50,12 +57,22 @@ function M.make_from_shape(S)
     return self
 end
 
-function meta.add_child(self, other, where)
-    local identifier = tostring(other) -- TODO: find better identifier
+--function meta.add_child(self, other, where)
+function meta.add_child(self, other, name)
+    --local identifier = tostring(other) -- TODO: find better identifier
+    local identifier = aux.make_unique_name(name)
     if not self.children.lookup[identifier] then
         self.children.lookup[identifier] = other
     end
-    table.insert(self.children, { origin = where, identifier = identifier })
+    --table.insert(self.children, { origin = where or point.create(0, 0), identifier = identifier })
+    table.insert(self.children, { origin = point.create(other.x0, other.y0), identifier = identifier })
+end
+
+function meta.foreach_children(self, func, ...)
+    for _, child in self:iterate_children() do
+        func(child, ...)
+        child:foreach_children(func)
+    end
 end
 
 function meta.merge_into(self, other, shift)
@@ -63,8 +80,11 @@ function meta.merge_into(self, other, shift)
     if shift then
         x, y = shift:unwrap()
     end
-    local x0, y0 = other.x0, other.y0
-    for _, S in other:iterate_shapes() do
+    local copy = other
+    local copy = other:copy()
+    copy:flatten()
+    local x0, y0 = copy.x0, copy.y0
+    for _, S in copy:iterate_shapes() do
         self:add_shape(S:translate(x + x0, y + y0))
     end
 end
@@ -75,12 +95,19 @@ function meta.merge_into_update_alignmentbox(self, other)
 end
 
 function meta.flatten(self)
-    -- FIXME: current implementation is shallow
+    -- add shapes and flatten children (recursive)
     for _, child in self:iterate_children_links() do
-        local obj = self.children.lookup[child.identifier]
-        self:merge_into(obj:copy(), child.origin)
+        local x, y = child.origin:unwrap()
+        local obj = self.children.lookup[child.identifier]:copy()
+        obj:flatten()
+        -- reset origin before merging
+        obj.x0 = 0
+        obj.y0 = 0
+        self:merge_into(obj, child.origin)
     end
+    -- remove children
     self.children = { lookup = {} }
+    return self
 end
 
 function meta.is_empty(self)
@@ -164,7 +191,13 @@ function meta.translate(self, dx, dy)
     end
     self.x0 = self.x0 + dx
     self.y0 = self.y0 + dy
-    --[[
+    return self
+end
+
+function meta.translate_flat(self, dx, dy)
+    if is_lpoint(dx) then
+        dx, dy = dx:unwrap()
+    end
     for _, S in ipairs(self.shapes) do
         S:translate(dx, dy)
     end
@@ -178,7 +211,6 @@ function meta.translate(self, dx, dy)
         self.alignmentbox.bl:translate(dx, dy)
         self.alignmentbox.tr:translate(dx, dy)
     end
-    --]]
     return self
 end
 

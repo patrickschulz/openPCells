@@ -142,4 +142,16 @@ function M.deepcopy(orig, copy)
     return copy
 end
 
+local _usednames = {}
+function M.make_unique_name(name)
+    if not name then
+        name = "__subcell"
+    end
+    if not _usednames[name] then
+        _usednames[name] = 0
+    end
+    _usednames[name] = _usednames[name] + 1
+    return string.format("%s_%d", name, _usednames[name])
+end
+
 return M
