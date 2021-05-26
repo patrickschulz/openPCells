@@ -27,7 +27,7 @@ function layout(gate, _P)
     -- gate 1
     pcell.push_overwrites("logic/base", { rightdummies = 0 })
     local gate1 = pcell.create_layout(string.format("logic/%s", _P.gate1))
-    gate:merge_into_update_alignmentbox(gate1)
+    gate:add_child(gate1, "gate1")
     pcell.pop_overwrites("logic/base")
 
     local isogate = pcell.create_layout("logic/isogate")
@@ -37,7 +37,7 @@ function layout(gate, _P)
     -- gate 3
     pcell.push_overwrites("logic/base", { leftdummies = 0, rightdummies = 0 })
     local gate3 = pcell.create_layout(string.format("logic/%s", _P.gate3)):move_anchor("left", isogate:get_anchor("right"))
-    gate:merge_into_update_alignmentbox(gate3)
+    gate:add_child(gate3, "gate3")
     pcell.pop_overwrites("logic/base")
 
     isogate:move_anchor("left", gate3:get_anchor("right"))
@@ -46,7 +46,7 @@ function layout(gate, _P)
     -- gate 2
     pcell.push_overwrites("logic/base", {leftdummies = 0, rightdummies = 0})
     local gate2 = pcell.create_layout(string.format("logic/%s", _P.gate2)):move_anchor("left", isogate:get_anchor("right"))
-    gate:merge_into_update_alignmentbox(gate2)
+    gate:add_child(gate2, "gate2")
     pcell.pop_overwrites("logic/base")
 
     isogate:move_anchor("left", gate2:get_anchor("right"))
@@ -55,7 +55,7 @@ function layout(gate, _P)
     -- gate 4
     pcell.push_overwrites("logic/base", { leftdummies = 0 })
     local gate4 = pcell.create_layout(string.format("logic/%s", _P.gate4)):move_anchor("left", isogate:get_anchor("right"))
-    gate:merge_into_update_alignmentbox(gate4)
+    gate:add_child(gate4, "gate4")
     pcell.pop_overwrites("logic/base")
 
     -- draw connections
@@ -72,6 +72,9 @@ function layout(gate, _P)
     }), bp.sdwidth))
     gate:merge_into(geometry.rectangle(generics.via(1, 2), bp.sdwidth, bp.sdwidth):translate( gate3:get_anchor("Z")))
     gate:merge_into(geometry.rectangle(generics.via(1, 2), bp.sdwidth, bp.sdwidth):translate( gate4:get_anchor("A")))
+
+    gate:inherit_alignment_box(gate1)
+    gate:inherit_alignment_box(gate4)
 
     -- ports
     gate:add_port("A", generics.metal(1), gate3:get_anchor("A"))

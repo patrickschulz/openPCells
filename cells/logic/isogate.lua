@@ -21,5 +21,5 @@ function layout(gate, _P)
     gate:add_anchor("VSS", harness:get_anchor("bottom"))
 
     -- center gate
-    gate:translate(xpitch / 2, 0)
+    gate:translate_flat(xpitch / 2, 0)
 end

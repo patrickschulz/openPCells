@@ -9,18 +9,17 @@ end
 function layout(gate, _P)
     local bp = pcell.get_parameters("logic/base")
 
-    pcell.push_overwrites("logic/base", {
-        rightdummies = 0
-    })
-    local nor = pcell.create_layout("logic/nor_gate", { fingers = _P.norfingers }):move_anchor("right")
+    pcell.push_overwrites("logic/base", { rightdummies = 0 })
+    local nor = pcell.create_layout("logic/nor_gate", { fingers = _P.norfingers })
     pcell.pop_overwrites("logic/base")
-    pcell.push_overwrites("logic/base", {
-        leftdummies = 0
-    })
-    local inv = pcell.create_layout("logic/not_gate", { fingers = _P.notfingers }):move_anchor("left")
+    nor:move_anchor("right")
+    gate:add_child(nor, "nor_gate")
+
+    pcell.push_overwrites("logic/base", { leftdummies = 0 })
+    local inv = pcell.create_layout("logic/not_gate", { fingers = _P.notfingers })
     pcell.pop_overwrites("logic/base")
-    gate:merge_into(nor)
-    gate:merge_into(inv)
+    inv:move_anchor("left")
+    gate:add_child(inv, "not_gate")
 
     -- draw connection
     gate:merge_into(geometry.path(generics.metal(1), {
@@ -28,8 +27,7 @@ function layout(gate, _P)
         inv:get_anchor("I")
     }, bp.sdwidth))
 
-    gate:inherit_alignment_box(nor)
-    gate:inherit_alignment_box(inv)
+    gate:set_alignment_box(nor:get_anchor("bottomleft") - nor:get_anchor("right"), inv:get_anchor("topright") - inv:get_anchor("left"))
 
     -- ports
     gate:add_port("A", generics.metal(1), nor:get_anchor("A"))
