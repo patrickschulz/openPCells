@@ -20,7 +20,8 @@ We will start this documentation by a series of examples to show the main featur
 demonstrate various features.
 
 Every cell is defined by a function where all shapes making up the shape are described. This function gets called by the cell generation system, which passes the
-main object and a table with all defined parameters.
+main object and a table with all defined parameters. The name for this function is \luainline{layout()}. Additional functions such as \luainline{parameters()}
+are also understood.
 
 \subsection{Simple Rectangle}
 The first example is a simple rectangle of variable width and height. As mentioned, all the code for the rectangle resides in a function \luainline{layout()}.
@@ -50,7 +51,7 @@ Of course it is possible to \enquote{unpack} the parameters, storing them in ind
 \lualisting[widthgobble = 0, firstline = 10, lastline = 10]{code/simple_rectangle.lua}
 
 Now that we have all the layout parameters, we can already create the rectangle:
-\lualisting[widthgobble = 4, firstline = 12, lastline = 12]{code/simple_rectangle.lua}
+\lualisting[widthgobble = 4, firstline = 12, lastline = 13]{code/simple_rectangle.lua}
 There is a lot going on here: We use the \luainline{geometry.rectangle} function to create a rectangle with with and height (second and third argument). Since we are
 creating shapes of IC geometry, we have to specify a layer. But we also want to create technology-independent pcells, so there is a generics system for layers. Right
 now we are just using the \luainline{generics.metal} function, which takes a single number as argument. \luainline{generics.metal(1)} specifies the first metal
@@ -59,14 +60,17 @@ of \luainline{geometry.rectangle} in a local variable \luainline{rect}, which is
 consequences for the use of these functions. We will get into that later.
 
 That is all we have to do for the geometry of the cell, so we merge that into the main cell:
-\lualisting[widthgobble = 4, firstline = 14, lastline = 14]{code/simple_rectangle.lua}
+\lualisting[widthgobble = 4, firstline = 15, lastline = 15]{code/simple_rectangle.lua}
 \luainline{merge_into} is a \emph{method} of objects and needs a little explaining of the object system. As mentioned
 earlier, every geometry function creates what is called an object. An object is a collection of shapes, where each shape is made up of a layer-purpose-pair and
-points (which can currently be interpreted as rectangle or polygon). The cell generation systems expects all created shapes to be merged into the main object
+points (which can currently be interpreted as rectangles or polygons). The cell generation systems expects all created shapes to be merged into the main object
 passed as argument (\luainline{obj} in this case).
 
-This cell can now be created by calling the main program with an appropriate interface and technology. Note that there's another manual about that, so we won't get
-into any details here.
+This cell can now be created by calling the main program with an appropriate export and technology. Note that there's another manual about that, so we won't get
+into any details here. The simplest call would be something like:
+\begin{shellcode}
+    opc --technology generic --export gds --cell simple_rectangle
+\end{shellcode}
 
 \subsection{Array of Rectangles}
 Now that we know how to create a rectangle, we want to create an entire array, that is a rectangular area made up of several individual rectangles. This could be
