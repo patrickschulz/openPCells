@@ -15,14 +15,33 @@ function M.load(name)
 end
 
 function M.get_techexport()
-    if export.techexport then
-        return export.techexport()
+    if export.get_techexport then
+        return export.get_techexport()
     end
 end
 
-local function _write_cell(file, cell, name)
+local function _check_function(func)
+    if not export[func] then
+        error(string.format("export '%s' does not define '%s'", _name, func))
+    end
+    if not type(export[func]) == "function" then
+        error(string.format("export '%s': field '%s' is not a function (table/userdata with __call meta field are not supported)", _name, func))
+    end
+end
+
+function M.check()
+    _check_function("get_extension")
+    _check_function("get_layer")
+    _check_function("write_rectangle")
+    _check_function("write_polygon")
+end
+
+local function _write_cell(file, cell, name, is_child)
     aux.call_if_present(export.at_begin_cell, file, name)
     local x0, y0 = cell.x0, cell.y0
+    if is_child then -- children are always placed at the origin, their real position comes from the reference
+        x0, y0 = 0, 0
+    end
     for _, S in cell:iterate_shapes() do
         local layer = export.get_layer(S)
         if S:is_type("polygon") then
@@ -32,26 +51,33 @@ local function _write_cell(file, cell, name)
         end
     end
     for _, child in cell:iterate_children_links() do
-        export.write_cell_reference(file, child.identifier, child.origin)
+        local x, y = child.origin:unwrap()
+        export.write_cell_reference(file, child.identifier, x + x0, y + y0)
     end
     aux.call_if_present(export.at_end_cell, file)
 end
 
-function M.write_toplevel(filename, cell, fake)
-    if cell:is_empty() then
-        error("export: cell is empty")
+local function _write_children(file, cell)
+    for name, child in cell:iterate_children() do
+        _write_children(file, child)
+        _write_cell(file, child, name, true) -- is_child == true
     end
-    --if not export.write_cell then
-    --    cell:flatten()
-    --end
+end
+
+function M.write_toplevel(filename, toplevel, fake)
+    if toplevel:is_empty() then
+        error("export: toplevel is empty")
+    end
+    if not export.write_cell_reference then
+        modinfo("this export does not know how to write hierarchies, hence the cell is being written flat")
+        toplevel:flatten()
+    end
     local extension = export.get_extension()
     local file = stringfile.open(string.format("%s.%s", filename, extension))
     aux.call_if_present(export.at_begin, file)
 
-    for name, child in cell:iterate_children() do
-        _write_cell(file, child, name)
-    end
-    _write_cell(file, cell, "opctoplevel")
+    _write_children(file, toplevel)
+    _write_cell(file, toplevel, "opctoplevel")
 
     aux.call_if_present(export.at_end, file)
     if not fake then

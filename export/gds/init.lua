@@ -1,15 +1,8 @@
 local M = {}
 
-function M.get_extension()
-    return "gds"
-end
 
 local __libname = "opclib"
 local __cellname = "opctoplevelcell"
-function M.set_options(opt)
-    if opt.libname then __libname = opt.libname end
-    if opt.cellname then __cellname = opt.cellname end
-end
 
 local baseunit = 1
 
@@ -89,18 +82,13 @@ local datatypes = {
 -- helper functions
 --[[ not used right now
 local function _gdsfloat_to_number(data, width)
-    local sign      = data[1] & 0x80
-    local exp       = data[1] & 0x7f - 64
-    local mantissa  = 0
-    for m = 2, width do
-        mantissa = mantissa + data[m] * (256 ^ (1 - m))
+    local sign = (data[1] & 0x80) >> 7
+    local exp = (data[1] & 0x7f)
+    local mantissa = 0
+    for i = 2, width do
+        mantissa = mantissa + data[i] / (256^(i - 1))
     end
-    local num = mantissa * 16^exp
-    if sign > 0 then
-        return -num
-    else
-        return num
-    end
+    return sign * mantissa * (16 ^ (exp - 64))
 end
 --]]
 
@@ -112,7 +100,11 @@ local function _number_to_gdsfloat(num, width)
         end
         return data
     end
-    local sign = num < 0
+    local sign = false
+    if num < 0.0 then
+        sign = true
+        num = -num
+    end
     local exp = 0
     while num >= 1 do
         num = num / 16
@@ -208,12 +200,21 @@ end
 local function _unpack_points(x0, y0, pts, multiplier)
     local stream = {}
     for _, pt in ipairs(pts) do
-        --local x, y = pt:unwrap(multiplier)
         local x, y = pt:unwrap()
-        table.insert(stream, x + x0)
-        table.insert(stream, y + y0)
+        table.insert(stream, multiplier * x + x0)
+        table.insert(stream, multiplier * y + y0)
     end
     return stream
+end
+
+-- public interface
+function M.get_extension()
+    return "gds"
+end
+
+function M.set_options(opt)
+    if opt.libname then __libname = opt.libname end
+    if opt.cellname then __cellname = opt.cellname end
 end
 
 function M.get_layer(S)
@@ -267,10 +268,10 @@ function M.write_polygon(file, layer, x0, y0, pts)
     _write_record(file, recordtypes.ENDEL, datatypes.NONE)
 end
 
-function M.write_cell_reference(file, identifier, origin)
+function M.write_cell_reference(file, identifier, x, y)
     _write_record(file, recordtypes.SREF, datatypes.NONE)
     _write_record(file, recordtypes.SNAME, datatypes.ASCII_STRING, identifier)
-    _write_record(file, recordtypes.XY, datatypes.FOUR_BYTE_INTEGER, _unpack_points(0, 0, { origin }))
+    _write_record(file, recordtypes.XY, datatypes.FOUR_BYTE_INTEGER, _unpack_points(0, 0, { point.create(x, y) }, baseunit))
     _write_record(file, recordtypes.ENDEL, datatypes.NONE)
 end
 
