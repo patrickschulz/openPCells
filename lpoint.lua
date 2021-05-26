@@ -2,6 +2,11 @@
 local meta = point._getmetatable()
 point._getmetatable = nil -- remove metatable access
 
+function meta.__tostring(self)
+    local x, y = self:unwrap()
+    return string.format("lpoint: (%d, %d)", x, y)
+end
+
 function meta.__add(lhs, rhs)
     local x1, y1 = lhs:unwrap()
     local x2, y2 = rhs:unwrap()
@@ -12,6 +17,11 @@ function meta.__sub(lhs, rhs)
     local x1, y1 = lhs:unwrap()
     local x2, y2 = rhs:unwrap()
     return point.create(x1 - x2, y1 - y2)
+end
+
+function meta.__unm(lhs)
+    local x, y = lhs:unwrap()
+    return point.create(-x, -y)
 end
 
 function meta.scale(self, factor)
