@@ -8,7 +8,8 @@ function parameters()
     pcell.add_parameters(
         { "fingers", 1 },
         { "drawgatecontacts", true },
-        { "gatecontactpos", { }, argtype = "strtable" },
+        --{ "gatecontactpos", { }, argtype = "strtable" },
+        { "gatecontactpos", { "center" }, argtype = "strtable" },
         { "shiftgatecontacts", 0 },
         { "pcontactpos", {}, argtype = "strtable" },
         { "ncontactpos", {}, argtype = "strtable" },

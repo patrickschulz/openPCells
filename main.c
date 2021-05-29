@@ -120,6 +120,7 @@ static void load_api(lua_State* L)
         "export",
         "config",
         "object",
+        "transformationmatrix",
         "shape",
         "geometry",
         "graphics",

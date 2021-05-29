@@ -16,7 +16,8 @@ function M.create(name)
         ports = {},
         anchors = {},
         alignmentbox = nil,
-        x0 = 0, y0 = 0,
+        trans = transformationmatrix.identity(),
+        transcorr = transformationmatrix.identity(),
         isproxy = false
     }
     setmetatable(self, meta)
@@ -27,14 +28,13 @@ function M.create_proxy(reference, identifier)
     local self = {
         reference = reference,
         identifier = identifier,
-        x0 = 0, y0 = 0,
-        orientation = "R0",
         isproxy = true
     }
     setmetatable(self, meta)
     return self
 end
 
+-- fake object with returns (0, 0) for all anchors
 function M.create_omni()
     local self = M.create()
     setmetatable(self.anchors, { __index = function() return point.create(0, 0) end })
@@ -77,8 +77,6 @@ function meta.exchange(self, other)
     self.ports = other.ports
     self.anchors = other.anchors
     self.alignmentbox = other.alignmentbox
-    self.x0 = other.x0
-    self.y0 = other.y0
 end
 
 function meta.add_child_reference(self, other, name)
@@ -112,6 +110,7 @@ function meta.foreach_children(self, func, ...)
 end
 
 function meta.merge_into(self, other, shiftx, shifty)
+    --[[
     shiftx = shiftx or 0
     shifty = shifty or 0
     local copy = other:copy()
@@ -119,6 +118,11 @@ function meta.merge_into(self, other, shiftx, shifty)
     local x0, y0 = copy.x0, copy.y0
     for _, S in copy:iterate_shapes() do
         self:add_shape(S:translate(shiftx + x0, shifty + y0))
+    end
+    --]]
+    for _, S in other:iterate_shapes() do
+        local new = self:add_shape(S)
+        new:apply_transformation(other.trans)
     end
 end
 
@@ -149,7 +153,15 @@ function meta.is_empty(self)
 end
 
 function meta.add_shape(self, S)
-    table.insert(self.shapes, S:copy())
+    local new = self:add_raw_shape(S)
+    new:apply_inverse_transformation(self.trans)
+    return new
+end
+
+function meta.add_raw_shape(self, S)
+    local new = S:copy()
+    table.insert(self.shapes, new)
+    return new
 end
 
 function meta.remove_shape(self, idx)
@@ -219,27 +231,15 @@ function meta.iterate_shapes(self, comp)
     return iter
 end
 
-function meta.get_transformation_correction(self)
-    if self.alignmentbox then
-        local blx, bly = self.alignmentbox.bl:unwrap()
-        local trx, try = self.alignmentbox.tr:unwrap()
-        return blx + trx, bly + try
-    else
-        return 0, 0
-        --local minx, maxx, miny, maxy = _get_minmax_xy(self)
-        --return { bl = point.create(minx, miny), tr = point.create(maxx, maxy) }
-    end
-end
-
 function meta.translate(self, dx, dy)
     if is_lpoint(dx) then
         dx, dy = dx:unwrap()
     end
-    self.x0 = self.x0 + dx
-    self.y0 = self.y0 + dy
+    self.trans:translate(dx, dy)
     return self
 end
 
+--[[
 function meta.translate_flat(self, dx, dy)
     if is_lpoint(dx) then
         dx, dy = dx:unwrap()
@@ -259,78 +259,21 @@ function meta.translate_flat(self, dx, dy)
     end
     return self
 end
+--]]
 
 function meta.flipx(self, xcenter)
-    if self.isproxy then
-        if self.orientation == "R0" then
-            self.orientation = "fx"
-        elseif self.orientation == "fx" then
-            self.orientation = "R0"
-        elseif self.orientation == "fy" then
-            self.orientation = "R180"
-        elseif self.orientation == "R180" then
-            self.orientation = "fy"
-        end
-    else
-        local cx, cy = self:get_transformation_correction()
-        for _, child in self:iterate_children_links() do
-            child:flipx()
-        end
-        for _, S in ipairs(self.shapes) do
-            S:flipx()
-            S:translate(cx, 0)
-        end
-        for _, anchor in pairs(self.anchors) do
-            local x = anchor:getx()
-            anchor:translate(cx - 2 * x, 0)
-        end
-        for _, port in pairs(self.ports) do
-            local x = port.where:getx()
-            port.where:translate(cx - 2 * x, 0)
-        end
-    end
+    self.trans:flipx()
+    local cx, cy = self:get_transformation_correction()
+    self.trans:translate(cx, 0)
+    self.transcorr:translate(cx, 0)
     return self
 end
 
 function meta.flipy(self)
-    if self.isproxy then
-        if self.orientation == "R0" then
-            self.orientation = "fy"
-        elseif self.orientation == "fy" then
-            self.orientation = "R0"
-        elseif self.orientation == "fx" then
-            self.orientation = "R180"
-        elseif self.orientation == "R180" then
-            self.orientation = "fx"
-        end
-    else
-        local cx, cy = self:get_transformation_correction()
-        for _, child in self:iterate_children_links() do
-            child:flipy()
-        end
-        for _, S in ipairs(self.shapes) do
-            S:flipy()
-            S:translate(0, cy)
-        end
-        for _, anchor in pairs(self.anchors) do
-            local y = anchor:gety()
-            anchor:translate(0, cy - 2 * y)
-        end
-        for _, port in pairs(self.ports) do
-            local y = port.where:gety()
-            port.where:translate(0, cy - 2 * y)
-        end
-    end
-    return self
-end
-
-function meta.rotate(self, angle)
-    for _, S in ipairs(self.shapes) do
-        S:rotate(angle)
-    end
-    for _, anchor in pairs(self.anchors) do
-        anchor:rotate(angle)
-    end
+    self.trans:flipy()
+    local cx, cy = self:get_transformation_correction()
+    self.trans:translate(0, cy)
+    self.transcorr:translate(0, cy)
     return self
 end
 
@@ -358,6 +301,17 @@ local function _get_minmax_xy(self)
         end
     end
     return minx, maxx, miny, maxy
+end
+
+function meta.get_transformation_correction(self)
+    local blx, bly, trx, try
+    if self.alignmentbox then
+        blx, bly = self.alignmentbox.bl:unwrap()
+        trx, try = self.alignmentbox.tr:unwrap()
+    else
+        blx, trx, bly, try = _get_minmax_xy(self)
+    end
+    return blx + trx, bly + try
 end
 
 function meta.width_height(self)
@@ -409,42 +363,49 @@ local function _get_special_anchor(self, name)
     end
     local blx, bly = self.alignmentbox.bl:unwrap()
     local trx, try = self.alignmentbox.tr:unwrap()
+    local x, y
     if name == "left" then
-        return blx, (bly + try) / 2
+        x, y = blx, (bly + try) / 2
     elseif name == "right" then
-        return trx, (bly + try) / 2
+        x, y = trx, (bly + try) / 2
     elseif name == "top" then
-        return (blx + trx) / 2, try
+        x, y = (blx + trx) / 2, try
     elseif name == "bottom" then
-        return (blx + trx) / 2, bly
+        x, y = (blx + trx) / 2, bly
     elseif name == "bottomleft" then
-        return blx, bly
+        x, y = blx, bly
     elseif name == "bottomright" then
-        return trx, bly
+        x, y = trx, bly
     elseif name == "topleft" then
-        return blx, try
+        x, y = blx, try
     elseif name == "topright" then
-        return trx, try
+        x, y = trx, try
+    else
+        return nil
     end
+    return point.create(x, y)
 end
 
 local function _get_regular_anchor(self, name)
     local anchor = self.anchors[name]
     if anchor then
-        return anchor:unwrap()
+        local pt = anchor:copy()
+        return pt
     end
 end
 
 local function _get_anchor(self, name)
-    local x, y = _get_special_anchor(self, name)
-    if not x then
-        x, y = _get_regular_anchor(self, name)
+    local pt = _get_special_anchor(self, name)
+    if not pt then
+        pt = _get_regular_anchor(self, name)
+        --self.transcorr:apply_transformation(pt)
     end
-    return x, y
+    return pt
 end
 
 function meta.get_anchor(self, name)
     if self.isproxy then
+        --[[
         local anchor = self.reference:get_anchor(name)
         local dx, dy = 0, 0
         if self.orientation ~= "R0" then
@@ -464,16 +425,18 @@ function meta.get_anchor(self, name)
             anchor:translate(self.x0 + dx, self.y0 + dy)
         end
         return anchor
+        --]]
     else
-        local x, y = _get_anchor(self, name)
-        if not x then
+        local pt = _get_anchor(self, name)
+        if not pt then
             if self.name then
                 error(string.format("trying to access undefined anchor '%s' in cell '%s'", name, self.name))
             else
                 error(string.format("trying to access undefined anchor '%s'", name))
             end
         end
-        return point.create(x + self.x0, y + self.y0)
+        self.trans:apply_transformation(pt)
+        return pt
     end
 end
 

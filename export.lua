@@ -39,11 +39,12 @@ end
 local function _write_cell(file, cell, name)
     aux.call_if_present(export.at_begin_cell, file, name)
     for _, S in cell:iterate_shapes() do
+        S:apply_transformation(cell.trans)
         local layer = export.get_layer(S)
         if S:is_type("polygon") then
-            export.write_polygon(file, layer, cell.x0, cell.y0, S.points)
+            export.write_polygon(file, layer, 0, 0, S.points)
         else
-            export.write_rectangle(file, layer, cell.x0, cell.y0, S.points.bl, S.points.tr)
+            export.write_rectangle(file, layer, 0, 0, S.points.bl, S.points.tr)
         end
     end
     for _, child in cell:iterate_children_links() do

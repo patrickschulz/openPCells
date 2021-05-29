@@ -237,18 +237,16 @@ end
 if args.drawanchor then
     for _, da in ipairs(args.drawanchor) do
         local anchor = cell:get_anchor(da)
-        local x, y = anchor:unwrap()
-        print(x, y)
-        cell:merge_into(geometry.rectanglebltr(generics.special(), point.create(x - 5, y - 100), point.create(x + 5, y + 100)))
-        cell:merge_into(geometry.rectanglebltr(generics.special(), point.create(x - 100, y - 5), point.create(x + 100, y + 5)))
+        cell:merge_into(marker.cross(anchor))
     end
 end
 
 -- add drawing of alignment box
 if args.drawalignmentbox then
-    local ab = cell.alignmentbox
-    if ab then
-        local box = geometry.rectanglebltr(generics.special(), ab.bl, ab.tr)
+    if cell.alignmentbox then
+        local bl = cell:get_anchor("bottomleft")
+        local tr = cell:get_anchor("topright")
+        local box = geometry.rectanglebltr(generics.special(), bl, tr)
         cell:merge_into(box)
     end
 end

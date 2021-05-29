@@ -38,13 +38,13 @@ function M.place_via_conductors(cell)
             s1:set_lpp(generics.metal(m1))
             local s2 = S:copy()
             s2:set_lpp(generics.metal(m2))
-            cell:add_shape(s1)
-            cell:add_shape(s2)
+            cell:add_raw_shape(s1)
+            cell:add_raw_shape(s2)
         elseif S:get_lpp():is_type("contact") and not S:get_lpp().bare then
             -- FIXME: can't place active contact surrounding as this needs more data than available here
             local smetal = S:copy()
             smetal:set_lpp(generics.metal(1))
-            cell:add_shape(smetal)
+            cell:add_raw_shape(smetal)
         end
     end
 end
@@ -55,7 +55,7 @@ function M.split_vias(cell)
         for j = from, to - 1 do
             local sc = S:copy()
             sc:set_lpp(generics.via(j, j + 1, S:get_lpp().bare))
-            cell:add_shape(sc)
+            cell:add_raw_shape(sc)
         end
         cell:remove_shape(i)
     end
@@ -83,7 +83,7 @@ local function _do_map(cell, S, entry, export)
         then -- this check ensures that not-resized polygons work
             new:resize_lrtb(entry.left, entry.right, entry.top, entry.bottom)
         end
-        cell:add_shape(new)
+        cell:add_raw_shape(new)
     end
 end
 
@@ -103,7 +103,12 @@ local function _do_array(cell, S, entry, export)
         xrep, yrep, xpitch, ypitch
     )
     cut:translate(entry.xshift or 0, entry.yshift or 0)
-    cell:merge_into(cut:translate(c:unwrap()))
+
+    cut:translate(c:unwrap())
+    for _, S in cut:iterate_shapes() do
+        local new = cell:add_raw_shape(S)
+        new:apply_transformation(cut.trans)
+    end
 end
 
 function M.translate_layers(cell, export)

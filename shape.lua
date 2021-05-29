@@ -42,6 +42,30 @@ function shape.copy(self)
     return new
 end
 
+function shape.apply_transformation(self, matrix)
+    if self.typ == "polygon" then
+        for _, pt in ipairs(self.points) do
+            matrix:apply_transformation(pt)
+        end
+    elseif self.typ == "rectangle" then
+        matrix:apply_transformation(self.points.bl)
+        matrix:apply_transformation(self.points.tr)
+    end
+    return self
+end
+
+function shape.apply_inverse_transformation(self, matrix)
+    if self.typ == "polygon" then
+        for _, pt in ipairs(self.points) do
+            matrix:apply_inverse_transformation(pt)
+        end
+    elseif self.typ == "rectangle" then
+        matrix:apply_inverse_transformation(self.points.bl)
+        matrix:apply_inverse_transformation(self.points.tr)
+    end
+    return self
+end
+
 function shape.resize(self, xsize, ysize)
     shape.resize_lrtb(self, xsize / 2, xsize / 2, ysize / 2, ysize/ 2)
 end
@@ -89,6 +113,7 @@ function shape.height(self)
     end
 end
 
+-- FIXME: this is only needed for via arrayzation. Find a better approach (see technology.lua, _do_array)
 function shape.center(self)
     if self.typ == "polygon" then
         error("no implementation for center() for polygons")
@@ -113,71 +138,6 @@ function shape.concat_points(self, func)
         table.insert(st, func(self.points.tr))
     end
     return st
-end
-
-function shape.translate(self, dx, dy)
-    if self.typ == "polygon" then
-        for _, pt in ipairs(self.points) do
-            pt:translate(dx, dy)
-        end
-    elseif self.typ == "rectangle" then
-        if not dx then
-            print(debug.traceback())
-        end
-        self.points.bl:translate(dx, dy)
-        self.points.tr:translate(dx, dy)
-    end
-    return self
-end
-
-function shape.flipx(self)
-    if self.typ == "polygon" then
-        self.points = util.xmirror(self.points, 0)
-    elseif self.typ == "rectangle" then
-        local blx, bly = self.points.bl:unwrap()
-        local trx, try = self.points.tr:unwrap()
-        self.points.bl = point.create(-trx, bly)
-        self.points.tr = point.create(-blx, try)
-    end
-    self.lpp:flipx()
-    return self
-end
-
-function shape.flipy(self)
-    if self.typ == "polygon" then
-        self.points = util.ymirror(self.points, 0)
-    elseif self.typ == "rectangle" then
-        local blx, bly = self.points.bl:unwrap()
-        local trx, try = self.points.tr:unwrap()
-        self.points.bl = point.create(blx, -try)
-        self.points.tr = point.create(trx, -bly)
-    end
-    self.lpp:flipy()
-    return self
-end
-
-function shape.rotate(self, angle)
-    if self.typ == "polygon" then
-        for _, pt in ipairs(self.points) do
-            pt:rotate(angle)
-        end
-    elseif self.typ == "rectangle" then
-        self.points.bl:rotate(angle)
-        self.points.tr:rotate(angle)
-    end
-    return self
-end
-
-function shape.scale(self, factor)
-    if self.typ == "polygon" then
-        for _, pt in ipairs(self.points) do
-            pt:scale(factor)
-        end
-    elseif self.typ == "rectangle" then
-        self.points.bl:scale(factor)
-        self.points.tr:scale(factor)
-    end
-    return self
 end
 
 function shape.is_type(self, typ)
