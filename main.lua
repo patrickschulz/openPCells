@@ -229,8 +229,7 @@ if args.drawanchor then
     for _, da in ipairs(args.drawanchor) do
         local anchor = cell:get_anchor(da)
         local x, y = anchor:unwrap()
-        cell:merge_into(geometry.rectanglebltr(generics.special(), point.create(x - 5, y - 100), point.create(x + 5, y + 100)))
-        cell:merge_into(geometry.rectanglebltr(generics.special(), point.create(x - 100, y - 5), point.create(x + 100, y + 5)))
+        cell:merge_into(marker.cross(point.create(x, y)))
     end
 end
 
