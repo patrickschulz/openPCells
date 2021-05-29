@@ -240,16 +240,16 @@ function layout(gate, _P)
                     generics.metal(1), bp.sdwidth, bp.powerspace)
                 :translate(x, y - bp.nwidth / 2 - bp.powerspace / 2 + _P.shiftncontactsouter))
             end
-            gate:add_anchor(string.format("nSDc%d", i), point.create(x, y - bp.pwidth / 4 + _P.shiftncontactsouter))
+            gate:add_anchor(string.format("nSDc%d", i), point.create(x, y - bp.nwidth / 4 + _P.shiftncontactsouter))
             gate:add_anchor(string.format("nSDi%d", i), point.create(x, y                 + _P.shiftncontactsouter))
-            gate:add_anchor(string.format("nSDo%d", i), point.create(x, y - bp.pwidth / 2 + _P.shiftncontactsouter))
+            gate:add_anchor(string.format("nSDo%d", i), point.create(x, y - bp.nwidth / 2 + _P.shiftncontactsouter))
         elseif _P.ncontactpos[i] == "inner" then
             gate:merge_into(geometry.rectangle(
-                generics.contact("sourcedrain"), bp.sdwidth, bp.pwidth / 2
-            ):translate(x, y + bp.pwidth / 4 - _P.shiftncontactsinner))
-            gate:add_anchor(string.format("nSDc%d", i), point.create(x, y + bp.pwidth / 4 - _P.shiftpcontactsinner))
-            gate:add_anchor(string.format("nSDi%d", i), point.create(x, y + bp.pwidth / 2 - _P.shiftpcontactsinner))
-            gate:add_anchor(string.format("nSDo%d", i), point.create(x, y                 - _P.shiftpcontactsinner))
+                generics.contact("sourcedrain"), bp.sdwidth, bp.nwidth / 2
+            ):translate(x, y + bp.nwidth / 4 - _P.shiftncontactsinner))
+            gate:add_anchor(string.format("nSDc%d", i), point.create(x, y + bp.nwidth / 4 - _P.shiftncontactsinner))
+            gate:add_anchor(string.format("nSDi%d", i), point.create(x, y + bp.nwidth / 2 - _P.shiftncontactsinner))
+            gate:add_anchor(string.format("nSDo%d", i), point.create(x, y                 - _P.shiftncontactsinner))
         end
     end
 

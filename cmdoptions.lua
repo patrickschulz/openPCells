@@ -14,7 +14,7 @@ return {
     },
     store{ 
         name  = "export_options", short = "-X", long  = "--xopts",
-        help  = "pass special options to export. This passes the next argument (separated by white space) literally. This means that several arguments have to be grouped, usually by enclosing it in quotations marks (e.g. -X '--foo --bar')"
+        help  = "pass special options to export. This passes the next argument (separated by white space) literally. This means that several arguments have to be grouped, usually by enclosing it in quotations marks (e.g. -X '--foo --bar'). On overview of the available options for the respective export can be found by passing -h, e.g. opc --export gds -X -h"
     },
     switch{
         name = "flatten", long = "--flat",
@@ -22,7 +22,7 @@ return {
     },
     store{
         name = "cellscript", short = "-c", long = "--cellscript",
-        help = "execute cell script. The called file should return an object."
+        help = "execute cell script. With this option, --cell is not needed to create a layout. The layout described in the cell script is generated, so the called file must return an object."
     },
     section("Auxiliary generation functions"),
     store_multiple{
@@ -63,11 +63,19 @@ return {
     },
     store_multiple{
         name = "layerfilter", long = "--filter",
-        help = "filter layers to be generated. Any layer (in generic notation) in this list will not be generated."
+        help = "filter layers to be generated. Any layer (in generic notation) in this list will not be generated. This option can be called multiple times. The effect of this options is also controlled by --filter-list.",
     },
     store{
         name = "layerfilterlist", long = "--filter-list",
         help = "set filter list type (white or black, default black)"
+    },
+    store_multiple{
+        name = "exportfilter", long = "--export-filter",
+        help = "filter exported data. Possible values: rectangle, polygon, reference, link. This option can be called multiple times. The effect of this options is also controlled by --export-filter-list.",
+    },
+    store{
+        name = "exportfilterlist", long = "--export-filter-list",
+        help = "set export filter list type (white or black, default black)"
     },
     switch{
         name = "mergerectangles", long = "--merge-rectangles",
@@ -143,7 +151,7 @@ return {
     },
     switch{
         name  = "profile", long  = "--profile",
-        help  = "collect and display profiling data"
+        help  = "collect and display profiling data (this significantly increases run time, be patient while profiling larger cells)"
     },
     switch{ 
         name  = "verbose", short = "-V", long  = "--verbose",

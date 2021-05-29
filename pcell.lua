@@ -354,6 +354,7 @@ function state.create_cellenv(state, cellname, ovrenv)
         enable = function(bool, val) return (bool and 1 or 0) * (val or 1) end,
         string = string,
         table = table,
+        marker = marker,
         dprint = function(...) if state.debug then print(...) end end,
         type = type,
         ipairs = ipairs,

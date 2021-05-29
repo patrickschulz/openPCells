@@ -130,29 +130,27 @@ function shape.translate(self, dx, dy)
     return self
 end
 
-function shape.flipx(self, xcenter)
-    xcenter = xcenter or 0
+function shape.flipx(self)
     if self.typ == "polygon" then
-        self.points = util.xmirror(self.points, xcenter)
+        self.points = util.xmirror(self.points, 0)
     elseif self.typ == "rectangle" then
         local blx, bly = self.points.bl:unwrap()
         local trx, try = self.points.tr:unwrap()
-        self.points.bl = point.create(2 * xcenter - trx, bly)
-        self.points.tr = point.create(2 * xcenter - blx, try)
+        self.points.bl = point.create(-trx, bly)
+        self.points.tr = point.create(-blx, try)
     end
     self.lpp:flipx()
     return self
 end
 
-function shape.flipy(self, ycenter)
-    ycenter = ycenter or 0
+function shape.flipy(self)
     if self.typ == "polygon" then
-        self.points = util.ymirror(self.points, ycenter)
+        self.points = util.ymirror(self.points, 0)
     elseif self.typ == "rectangle" then
         local blx, bly = self.points.bl:unwrap()
         local trx, try = self.points.tr:unwrap()
-        self.points.bl = point.create(blx, 2 * ycenter - try)
-        self.points.tr = point.create(trx, 2 * ycenter - bly)
+        self.points.bl = point.create(blx, -try)
+        self.points.tr = point.create(trx, -bly)
     end
     self.lpp:flipy()
     return self

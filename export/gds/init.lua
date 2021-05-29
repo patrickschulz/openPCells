@@ -3,70 +3,72 @@ local M = {}
 
 local __libname = "opclib"
 local __cellname = "opctoplevelcell"
+local __textmode = false
 
-local baseunit = 1
+local __userunit = 1
+local __databaseunit = 1e-9
 
 local recordtypes = {
-    HEADER       = 0x00,
-    BGNLIB       = 0x01,
-    LIBNAME      = 0x02,
-    UNITS        = 0x03,
-    ENDLIB       = 0x04,
-    BGNSTR       = 0x05,
-    STRNAME      = 0x06,
-    ENDSTR       = 0x07,
-    BOUNDARY     = 0x08,
-    PATH         = 0x09,
-    SREF         = 0x0a,
-    AREF         = 0x0b,
-    TEXT         = 0x0c,
-    LAYER        = 0x0d,
-    DATATYPE     = 0x0e,
-    WIDTH        = 0x0f,
-    XY           = 0x10,
-    ENDEL        = 0x11,
-    SNAME        = 0x12,
-    COLROW       = 0x13,
-    TEXTNODE     = 0x14,
-    NODE         = 0x15,
-    TEXTTYPE     = 0x16,
-    PRESENTATION = 0x17,
-    SPACING      = 0x18,
-    STRING       = 0x19,
-    STRANS       = 0x1a,
-    MAG          = 0x1b,
-    ANGLE        = 0x1c,
-    UINTEGER     = 0x1d,
-    USTRING      = 0x1e,
-    REFLIBS      = 0x1f,
-    FONTS        = 0x20,
-    PATHTYPE     = 0x21,
-    GENERATIONS  = 0x22,
-    ATTRTABLE    = 0x23,
-    STYPTABLE    = 0x24,
-    STRTYPE      = 0x25,
-    ELFLAGS      = 0x26,
-    ELKEY        = 0x27,
-    LINKTYPE     = 0x28,
-    LINKKEYS     = 0x29,
-    NODETYPE     = 0x2a,
-    PROPATTR     = 0x2b,
-    PROPVALUE    = 0x2c,
-    BOX          = 0x2d,
-    BOXTYPE      = 0x2e,
-    PLEX         = 0x2f,
-    BGNEXTN      = 0x30,
-    ENDEXTN      = 0x31,
-    TAPENUM      = 0x32,
-    TAPECODE     = 0x33,
-    STRCLASS     = 0x34,
-    RESERVED     = 0x35,
-    FORMAT       = 0x36,
-    MASK         = 0x37,
-    ENDMASKS     = 0x38,
-    LIBDIRSIZE   = 0x39,
-    SRFNAME      = 0x3a,
-    LIBSECUR     = 0x3b,
+    HEADER          = { name = "HEADER",        code = 0x00 },
+    BGNLIB          = { name = "BGNLIB",        code = 0x01 },
+    LIBNAME         = { name = "LIBNAME",       code = 0x02 },
+    UNITS           = { name = "UNITS",         code = 0x03 },
+    ENDLIB          = { name = "ENDLIB",        code = 0x04 },
+    BGNSTR          = { name = "BGNSTR",        code = 0x05 },
+    STRNAME         = { name = "STRNAME",       code = 0x06 },
+    ENDSTR          = { name = "ENDSTR",        code = 0x07 },
+    BOUNDARY        = { name = "BOUNDARY",      code = 0x08 },
+    PATH            = { name = "PATH",          code = 0x09 },
+    SREF            = { name = "SREF",          code = 0x0a },
+    AREF            = { name = "AREF",          code = 0x0b },
+    TEXT            = { name = "TEXT",          code = 0x0c },
+    LAYER           = { name = "LAYER",         code = 0x0d },
+    DATATYPE        = { name = "DATATYPE",      code = 0x0e },
+    WIDTH           = { name = "WIDTH",         code = 0x0f },
+    XY              = { name = "XY",            code = 0x10 },
+    ENDEL           = { name = "ENDEL",         code = 0x11 },
+    SNAME           = { name = "SNAME",         code = 0x12 },
+    COLROW          = { name = "COLROW",        code = 0x13 },
+    TEXTNODE        = { name = "TEXTNODE",      code = 0x14 },
+    NODE            = { name = "NODE",          code = 0x15 },
+    TEXTTYPE        = { name = "TEXTTYPE",      code = 0x16 },
+    PRESENTATION    = { name = "PRESENTATION",  code = 0x17 },
+    SPACING         = { name = "SPACING",       code = 0x18 },
+    STRING          = { name = "STRING",        code = 0x19 },
+    STRANS          = { name = "STRANS",        code = 0x1a },
+    MAG             = { name = "MAG",           code = 0x1b },
+    ANGLE           = { name = "ANGLE",         code = 0x1c },
+    UINTEGER        = { name = "UINTEGER",      code = 0x1d },
+    USTRING         = { name = "USTRING",       code = 0x1e },
+    REFLIBS         = { name = "REFLIBS",       code = 0x1f },
+    FONTS           = { name = "FONTS",         code = 0x20 },
+    PATHTYPE        = { name = "PATHTYPE",      code = 0x21 },
+    GENERATIONS     = { name = "GENERATIONS",   code = 0x22 },
+    ATTRTABLE       = { name = "ATTRTABLE",     code = 0x23 },
+    STYPTABLE       = { name = "STYPTABLE",     code = 0x24 },
+    STRTYPE         = { name = "STRTYPE",       code = 0x25 },
+    ELFLAGS         = { name = "ELFLAGS",       code = 0x26 },
+    ELKEY           = { name = "ELKEY",         code = 0x27 },
+    LINKTYPE        = { name = "LINKTYPE",      code = 0x28 },
+    LINKKEYS        = { name = "LINKKEYS",      code = 0x29 },
+    NODETYPE        = { name = "NODETYPE",      code = 0x2a },
+    PROPATTR        = { name = "PROPATTR",      code = 0x2b },
+    PROPVALUE       = { name = "PROPVALUE",     code = 0x2c },
+    BOX             = { name = "BOX",           code = 0x2d },
+    BOXTYPE         = { name = "BOXTYPE",       code = 0x2e },
+    PLEX            = { name = "PLEX",          code = 0x2f },
+    BGNEXTN         = { name = "BGNEXTN",       code = 0x30 },
+    ENDEXTN         = { name = "ENDEXTN",       code = 0x31 },
+    TAPENUM         = { name = "TAPENUM",       code = 0x32 },
+    TAPECODE        = { name = "TAPECODE",      code = 0x33 },
+    STRCLASS        = { name = "STRCLASS",      code = 0x34 },
+    RESERVED        = { name = "RESERVED",      code = 0x35 },
+    FORMAT          = { name = "FORMAT",        code = 0x36 },
+    MASK            = { name = "MASK",          code = 0x37 },
+    ENDMASKS        = { name = "ENDMASKS",      code = 0x38 },
+    LIBDIRSIZE      = { name = "LIBDIRSIZE",    code = 0x39 },
+    SRFNAME         = { name = "SRFNAME",       code = 0x3a },
+    LIBSECUR        = { name = "LIBSECUR",      code = 0x3b },
 }
 
 local datatypes = {
@@ -128,8 +130,8 @@ local function _number_to_gdsfloat(num, width)
 end
 
 local datatable = {
-    [0x00] = nil,
-    [0x01] = function(nums)
+    [datatypes.NONE] = nil,
+    [datatypes.BIT_ARRAY] = function(nums)
         local data = {}
         for _, num in ipairs(nums) do
             for _, b in ipairs(binarylib.split_in_bytes(num, 2)) do
@@ -138,7 +140,7 @@ local datatable = {
         end
         return data
     end,
-    [0x02] = function(nums)
+    [datatypes.TWO_BYTE_INTEGER] = function(nums)
         local data = {}
         for _, num in ipairs(nums) do
             for _, b in ipairs(binarylib.split_in_bytes(num, 2)) do
@@ -147,7 +149,7 @@ local datatable = {
         end
         return data
     end,
-    [0x03] = function(nums)
+    [datatypes.FOUR_BYTE_INTEGER] = function(nums)
         local data = {}
         for _, num in ipairs(nums) do
             for _, b in ipairs(binarylib.split_in_bytes(num, 4)) do
@@ -156,7 +158,7 @@ local datatable = {
         end
         return data
     end,
-    [0x04] = function(nums)
+    [datatypes.FOUR_BYTE_REAL] = function(nums)
         local data = {}
         for _, num in ipairs(nums) do
             for _, b in _number_to_gdsfloat(num, 4) do
@@ -165,7 +167,7 @@ local datatable = {
         end
         return data
     end,
-    [0x05] = function(nums)
+    [datatypes.EIGHT_BYTE_REAL] = function(nums)
         local data = {}
         for _, num in ipairs(nums) do
             for _, b in ipairs(_number_to_gdsfloat(num, 8)) do
@@ -174,10 +176,10 @@ local datatable = {
         end
         return data
     end,
-    [0x06] = function(str) return { string.byte(str, 1, #str) } end,
+    [datatypes.ASCII_STRING] = function(str) return { string.byte(str, 1, #str) } end,
 }
 
-local function _write_record(file, recordtype, datatype, content)
+local function _assemble_data(recordtype, datatype, content)
     local data = {
         0x00, 0x00, -- dummy bytes for length, will be filled later
         recordtype, datatype
@@ -194,8 +196,42 @@ local function _write_record(file, recordtype, datatype, content)
     end
     local lenbytes = binarylib.split_in_bytes(#data, 2)
     data[1], data[2] = lenbytes[1], lenbytes[2]
+    return data
+end
+
+local function _write_text_record(file, recordtype, datatype, content)
+    if datatype == datatypes.NONE then
+        file:write(string.format("%12s #(%4d)\n", recordtype.name, 4))
+    else
+        local data = _assemble_data(recordtype.code, datatype, content)
+        --[[
+        local str = {}
+        for _, d in ipairs(data) do
+            table.insert(str, string.format("0x%02x", d))
+        end
+        file:write(string.format("%12s (%4d): { %s }\n", recordtype.name, #data, table.concat(str, " ")))
+        --]]
+        local str
+        if datatype == datatypes.NONE then
+        elseif datatype == datatypes.BIT_ARRAY or
+               datatype == datatypes.TWO_BYTE_INTEGER or
+               datatype == datatypes.FOUR_BYTE_INTEGER or
+               datatype == datatypes.FOUR_BYTE_REAL or
+               datatype == datatypes.EIGHT_BYTE_REAL then
+            str = table.concat(content, " ")
+        elseif datatype == datatypes.ASCII_STRING then
+            str = content
+        end
+        file:write(string.format("%12s #(%4d): { %s }\n", recordtype.name, #data, str))
+    end
+end
+
+local function _write_binary_record(file, recordtype, datatype, content)
+    local data = _assemble_data(recordtype.code, datatype, content)
     file:write_binary(data)
 end
+
+local _write_record = _write_binary_record
 
 local function _unpack_points(x0, y0, pts, multiplier)
     local stream = {}
@@ -209,12 +245,28 @@ end
 
 -- public interface
 function M.get_extension()
-    return "gds"
+    if __textmode then
+        return "gdstext"
+    else
+        return "gds"
+    end
 end
 
 function M.set_options(opt)
     if opt.libname then __libname = opt.libname end
     if opt.cellname then __cellname = opt.cellname end
+
+    if opt.userunit then
+        __userunit = tonumber(opt.userunit)
+    end
+    if opt.databaseunit then
+        __databaseunit = tonumber(opt.databaseunit)
+    end
+
+    if opt.textmode then -- enable textmode
+        __textmode = true
+        _write_record = _write_text_record
+    end
 end
 
 function M.get_layer(S)
@@ -230,7 +282,7 @@ function M.at_begin(file)
         date.year, date.month, date.day, date.hour, date.min, date.sec  -- last access time
     })
     _write_record(file, recordtypes.LIBNAME, datatypes.ASCII_STRING, __libname)
-    _write_record(file, recordtypes.UNITS, datatypes.EIGHT_BYTE_REAL, { 1 / baseunit, 1e-9 })
+    _write_record(file, recordtypes.UNITS, datatypes.EIGHT_BYTE_REAL, { 1 / __userunit, __databaseunit })
 end
 
 function M.at_end(file)
@@ -254,13 +306,13 @@ function M.write_rectangle(file, layer, x0, y0, bl, tr)
     _write_record(file, recordtypes.BOX, datatypes.NONE)
     _write_record(file, recordtypes.LAYER, datatypes.TWO_BYTE_INTEGER, { layer.layer })
     _write_record(file, recordtypes.BOXTYPE, datatypes.TWO_BYTE_INTEGER, { layer.purpose})
-    local ptstream = _unpack_points(x0, y0, { bl, point.combine_21(bl, tr), tr, point.combine_12(bl, tr), bl }, baseunit)
+    local ptstream = _unpack_points(x0, y0, { bl, point.combine_21(bl, tr), tr, point.combine_12(bl, tr), bl }, __userunit)
     _write_record(file, recordtypes.XY, datatypes.FOUR_BYTE_INTEGER, ptstream)
     _write_record(file, recordtypes.ENDEL, datatypes.NONE)
 end
 
 function M.write_polygon(file, layer, x0, y0, pts)
-    local ptstream = _unpack_points(x0, y0, pts, baseunit)
+    local ptstream = _unpack_points(x0, y0, pts, __userunit)
     _write_record(file, recordtypes.BOUNDARY, datatypes.NONE)
     _write_record(file, recordtypes.LAYER, datatypes.TWO_BYTE_INTEGER, { layer.layer })
     _write_record(file, recordtypes.DATATYPE, datatypes.TWO_BYTE_INTEGER, { layer.purpose})
@@ -268,10 +320,22 @@ function M.write_polygon(file, layer, x0, y0, pts)
     _write_record(file, recordtypes.ENDEL, datatypes.NONE)
 end
 
-function M.write_cell_reference(file, identifier, x, y)
+function M.write_cell_reference(file, identifier, x, y, orientation, shiftx, shifty)
     _write_record(file, recordtypes.SREF, datatypes.NONE)
     _write_record(file, recordtypes.SNAME, datatypes.ASCII_STRING, identifier)
-    _write_record(file, recordtypes.XY, datatypes.FOUR_BYTE_INTEGER, _unpack_points(0, 0, { point.create(x, y) }, baseunit))
+    if orientation == "fx" then
+        -- TODO
+        --_write_record(file, recordtypes.STRANS, datatypes.BIT_ARRAY, { 0x8000 })
+        --_write_record(file, recordtypes.ANGLE, datatypes.EIGHT_BYTE_REAL, { 180 })
+        --_write_record(file, recordtypes.XY, datatypes.FOUR_BYTE_INTEGER, _unpack_points(shiftx, 0, { point.create(x, y) }, __userunit))
+    elseif orientation == "fy" then
+        _write_record(file, recordtypes.STRANS, datatypes.BIT_ARRAY, { 0x8000 })
+        _write_record(file, recordtypes.XY, datatypes.FOUR_BYTE_INTEGER, _unpack_points(0, shifty, { point.create(x, y) }, __userunit))
+    elseif orientation == "R180" then
+        -- TODO
+    else -- R0
+        _write_record(file, recordtypes.XY, datatypes.FOUR_BYTE_INTEGER, _unpack_points(0, 0, { point.create(x, y) }, __userunit))
+    end
     _write_record(file, recordtypes.ENDEL, datatypes.NONE)
 end
 
@@ -283,7 +347,7 @@ function M.write_port(file, name, layer, where)
     _write_record(file, recordtypes.PRESENTATION, datatypes.BIT_ARRAY, { 0x0005 })
     --_write_record(file, recordtypes.STRANS, datatypes.BIT_ARRAY, { 0x8006 })
     --_write_record(file, recordtypes.MAG, datatypes.EIGHT_BYTE_REAL, { 10.0 })
-    _write_record(file, recordtypes.XY, datatypes.FOUR_BYTE_INTEGER, _unpack_points(0, 0, { where }, baseunit))
+    _write_record(file, recordtypes.XY, datatypes.FOUR_BYTE_INTEGER, _unpack_points(0, 0, { where }, __userunit))
     _write_record(file, recordtypes.STRING, datatypes.ASCII_STRING, name)
     _write_record(file, recordtypes.ENDEL, datatypes.NONE)
 end

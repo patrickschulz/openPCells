@@ -1,3 +1,14 @@
+-- exit and write a short helpful message if called without any arguments
+if #arg == 0 then
+    errprint("This is the openPCell layout generator.")
+    errprint("To generate a layout, you need to pass the technology, the export type and a cellname.")
+    errprint("You can find out more about the available command line options by running 'opc -h'.")
+    errprint("Example:")
+    errprint("         opc --technology skywater130 --export gds --cell logic/not_gate")
+    errprint()
+    return 1
+end
+
 -- parse command line arguments
 local argparse = cmdparser()
 argparse:load_options_from_file("cmdoptions")
@@ -25,13 +36,6 @@ end
 -- for random shuffle
 math.randomseed(os.time())
 
--- load user configuration
-if not args.nouserconfig then
-    if not config.load_user_config(argparse) then
-        return 1
-    end
-end
-
 -- set default path for pcells
 pcell.append_cellpath(string.format("%s/cells", _get_opc_home()))
 -- add user-defined cellpaths
@@ -43,6 +47,13 @@ end
 if args.prependcellpath then
     for _, path in ipairs(args.prependcellpath) do
         pcell.prepend_cellpath(path)
+    end
+end
+
+-- load user configuration
+if not args.nouserconfig then
+    if not config.load_user_config(argparse) then
+        return 1
     end
 end
 
@@ -227,6 +238,7 @@ if args.drawanchor then
     for _, da in ipairs(args.drawanchor) do
         local anchor = cell:get_anchor(da)
         local x, y = anchor:unwrap()
+        print(x, y)
         cell:merge_into(geometry.rectanglebltr(generics.special(), point.create(x - 5, y - 100), point.create(x + 5, y + 100)))
         cell:merge_into(geometry.rectanglebltr(generics.special(), point.create(x - 100, y - 5), point.create(x + 100, y + 5)))
     end

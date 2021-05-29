@@ -133,6 +133,7 @@ static void load_api(lua_State* L)
         "envlib",
         "globals",
         "union",
+        "marker",
         "pcell", // load as last module (FIXME: no longer needed, I think)
         NULL
     };

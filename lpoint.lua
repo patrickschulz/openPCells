@@ -88,6 +88,14 @@ function point.combine(lhs, rhs)
     return point.create((x1 + x2) / 2, (y1 + y2) / 2)
 end
 
+function point.xdistance(lhs, rhs)
+    return lhs:getx() - rhs:getx()
+end
+
+function point.ydistance(lhs, rhs)
+    return lhs:gety() - rhs:gety()
+end
+
 function is_lpoint(obj)
     if not obj then
         error("is_lpoint expects expects one argument")

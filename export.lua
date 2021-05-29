@@ -36,23 +36,20 @@ function M.check()
     _check_function("write_polygon")
 end
 
-local function _write_cell(file, cell, name, is_child)
+local function _write_cell(file, cell, name)
     aux.call_if_present(export.at_begin_cell, file, name)
-    local x0, y0 = cell.x0, cell.y0
-    if is_child then -- children are always placed at the origin, their real position comes from the reference
-        x0, y0 = 0, 0
-    end
     for _, S in cell:iterate_shapes() do
         local layer = export.get_layer(S)
         if S:is_type("polygon") then
-            export.write_polygon(file, layer, x0, y0, S.points)
+            export.write_polygon(file, layer, cell.x0, cell.y0, S.points)
         else
-            export.write_rectangle(file, layer, x0, y0, S.points.bl, S.points.tr)
+            export.write_rectangle(file, layer, cell.x0, cell.y0, S.points.bl, S.points.tr)
         end
     end
     for _, child in cell:iterate_children_links() do
-        local x, y = child.origin:unwrap()
-        export.write_cell_reference(file, child.identifier, x + x0, y + y0)
+        local other = cell.children.lookup[child.identifier]
+        local shiftx, shifty = other:get_transformation_correction()
+        export.write_cell_reference(file, child.identifier, child.x0 + cell.x0, child.y0 + cell.y0, child.orientation, shiftx, shifty)
     end
     aux.call_if_present(export.at_end_cell, file)
 end
@@ -60,7 +57,7 @@ end
 local function _write_children(file, cell)
     for name, child in cell:iterate_children() do
         _write_children(file, child)
-        _write_cell(file, child, name, true) -- is_child == true
+        _write_cell(file, child, name)
     end
 end
 

@@ -13,7 +13,7 @@ function infoprint(msg)
 end
 
 function errprint(msg)
-    io.stderr:write(msg)
+    io.stderr:write(msg or "")
     io.stderr:write("\n")
 end
 
