@@ -52,19 +52,19 @@ function layout(gate, _P)
     local pmos
     if _P.fingers > 0 then
         pmos = pcell.create_layout("basic/mosfet", { fingers = _P.fingers }):move_anchor("botgate")
-        gate:merge_into(pmos)
+        gate:merge_into_shallow(pmos)
     else
         pmos = object.create_omni()
     end
     -- left dummy
     if bp.leftdummies > 0 then
-        gate:merge_into(
+        gate:merge_into_shallow(
             pcell.create_layout("basic/mosfet", { fingers = bp.leftdummies, drawbotgcut = true }
         ):move_anchor("rightbotgate", pmos:get_anchor("leftbotgate")))
     end
     -- rightdummy
     if bp.rightdummies > 0 then
-        gate:merge_into(
+        gate:merge_into_shallow(
             pcell.create_layout("basic/mosfet", { fingers = bp.rightdummies, drawbotgcut = true }
         ):move_anchor("leftbotgate", pmos:get_anchor("rightbotgate")))
     end
@@ -84,26 +84,26 @@ function layout(gate, _P)
     -- main
     if _P.fingers > 0 then
         nmos = pcell.create_layout("basic/mosfet", { fingers = _P.fingers }):move_anchor("topgate")
-        gate:merge_into(nmos)
+        gate:merge_into_shallow(nmos)
     else
         nmos = object.create_omni()
     end
     -- left dummy
     if bp.leftdummies > 0 then
-        gate:merge_into(
+        gate:merge_into_shallow(
             pcell.create_layout("basic/mosfet", { fingers = bp.leftdummies, drawtopgcut = true }
         ):move_anchor("righttopgate", nmos:get_anchor("lefttopgate")))
     end
     -- rightdummy
     if bp.rightdummies > 0 then
-        gate:merge_into(
+        gate:merge_into_shallow(
             pcell.create_layout("basic/mosfet", { fingers = bp.rightdummies, drawtopgcut = true }
         ):move_anchor("lefttopgate", nmos:get_anchor("righttopgate")))
     end
     pcell.pop_overwrites("basic/mosfet")
 
     -- power rails
-    gate:merge_into(geometry.multiple_y(
+    gate:merge_into_shallow(geometry.multiple_y(
         geometry.rectangle(generics.metal(1), (_P.fingers + bp.leftdummies + bp.rightdummies) * xpitch + bp.sdwidth, bp.powerwidth),
         2, separation + bp.pwidth + bp.nwidth + 2 * bp.powerspace + bp.powerwidth
     ):translate(xshift, (bp.pwidth - bp.nwidth) / 2))
@@ -115,26 +115,26 @@ function layout(gate, _P)
             local routingshift = (bp.gstwidth + bp.gstspace) / (bp.numinnerroutes % 2 == 0 and 2 or 1)
             if _P.gatecontactpos[i] == "center" then
                 local pt = point.create(x, _P.shiftgatecontacts)
-                gate:merge_into(geometry.rectangle(
+                gate:merge_into_shallow(geometry.rectangle(
                     generics.contact("gate"), bp.glength, bp.gstwidth
                 ):translate(pt))
                 gate:add_anchor(string.format("G%d", i), pt)
             elseif _P.gatecontactpos[i] == "upper" then
                 local pt = point.create(x, routingshift + _P.shiftgatecontacts)
-                gate:merge_into(geometry.rectangle(
+                gate:merge_into_shallow(geometry.rectangle(
                     generics.contact("gate"), bp.glength, bp.gstwidth
                 ):translate(pt))
                 gate:add_anchor(string.format("G%d", i), pt)
             elseif _P.gatecontactpos[i] == "lower" then
                 local pt = point.create(x, -routingshift + _P.shiftgatecontacts)
-                gate:merge_into(geometry.rectangle(
+                gate:merge_into_shallow(geometry.rectangle(
                     generics.contact("gate"), bp.glength, bp.gstwidth
                 ):translate(pt))
                 gate:add_anchor(string.format("G%d", i), pt)
             elseif _P.gatecontactpos[i] == "split" then
                 local x = (2 * i - _P.fingers - 1 + bp.leftdummies - bp.rightdummies) * xpitch / 2 + xshift
                 local y = _P.shiftgatecontacts
-                gate:merge_into(geometry.multiple_y(
+                gate:merge_into_shallow(geometry.multiple_y(
                     geometry.rectangle(generics.contact("gate"), bp.glength, bp.gstwidth),
                     2, 2 * routingshift
                 ):translate(x, y))
@@ -150,7 +150,7 @@ function layout(gate, _P)
                     gtopext = bp.powerspace + bp.powerwidth / 2,
                     clipbot = true,
                 })
-                gate:merge_into(pcell.create_layout("basic/mosfet", { fingers = 1, drawbotgcut = true }):move_anchor("botgate", point.create(x, 0)))
+                gate:merge_into_shallow(pcell.create_layout("basic/mosfet", { fingers = 1, drawbotgcut = true }):move_anchor("botgate", point.create(x, 0)))
                 pcell.pop_overwrites("basic/mosfet")
                 pcell.push_overwrites("basic/mosfet", {
                     channeltype = "nmos",
@@ -160,17 +160,17 @@ function layout(gate, _P)
                     gbotext = bp.powerspace + bp.powerwidth / 2,
                     cliptop = true,
                 })
-                gate:merge_into(pcell.create_layout("basic/mosfet", { fingers = 1, drawtopgcut = true }):move_anchor("topgate", point.create(x, 0)))
+                gate:merge_into_shallow(pcell.create_layout("basic/mosfet", { fingers = 1, drawtopgcut = true }):move_anchor("topgate", point.create(x, 0)))
                 pcell.pop_overwrites("basic/mosfet")
             end
         end
     end
     if _P.drawdummygatecontacts then
-        gate:merge_into(geometry.multiple_xy(
+        gate:merge_into_shallow(geometry.multiple_xy(
             geometry.rectangle(generics.contact("gate", nil, true), bp.glength, bp.dummycontheight),
             bp.leftdummies, 2, xpitch, separation + bp.pwidth + bp.nwidth + 2 * bp.powerspace + bp.dummycontheight
         ):translate(-(_P.fingers + bp.rightdummies) * xpitch / 2 + xshift, (bp.pwidth - bp.nwidth) / 2))
-        gate:merge_into(geometry.multiple_xy(
+        gate:merge_into_shallow(geometry.multiple_xy(
             geometry.rectangle(generics.contact("gate", nil, true), bp.glength, bp.dummycontheight),
             bp.rightdummies, 2, xpitch, separation + bp.pwidth + bp.nwidth + 2 * bp.powerspace + bp.dummycontheight
         ):translate( (_P.fingers + bp.leftdummies) * xpitch / 2 + xshift, (bp.pwidth - bp.nwidth) / 2))
@@ -178,27 +178,27 @@ function layout(gate, _P)
 
     -- dummy source/drain contacts
     if _P.drawdummyactivecontacts then
-        gate:merge_into(geometry.multiple_x(
+        gate:merge_into_shallow(geometry.multiple_x(
             geometry.rectangle(generics.contact("sourcedrain"), bp.sdwidth, bp.pwidth / 2),
             bp.leftdummies, xpitch
         ):translate(-(_P.fingers + bp.rightdummies + 1) * xpitch / 2 + xshift, separation / 2 + bp.pwidth * 3 / 4))
-        gate:merge_into(geometry.multiple_x(
+        gate:merge_into_shallow(geometry.multiple_x(
             geometry.rectangle(generics.contact("sourcedrain"), bp.sdwidth, bp.nwidth / 2),
             bp.leftdummies, xpitch
         ):translate(-(_P.fingers + bp.rightdummies + 1) * xpitch / 2 + xshift, -separation / 2 - bp.nwidth * 3 / 4))
-        gate:merge_into(geometry.multiple_xy(
+        gate:merge_into_shallow(geometry.multiple_xy(
             geometry.rectangle(generics.metal(1), bp.sdwidth, bp.powerspace),
             bp.leftdummies, 2, xpitch, separation + bp.pwidth + bp.nwidth + bp.powerspace
         ):translate(-(_P.fingers + bp.rightdummies + 1) * xpitch / 2 + xshift, (bp.pwidth - bp.nwidth) / 2))
-        gate:merge_into(geometry.multiple_x(
+        gate:merge_into_shallow(geometry.multiple_x(
             geometry.rectangle(generics.contact("sourcedrain"), bp.sdwidth, bp.pwidth / 2),
             bp.rightdummies, xpitch
         ):translate( (_P.fingers + bp.leftdummies + 1) * xpitch / 2 + xshift, separation / 2 + bp.pwidth * 3 / 4))
-        gate:merge_into(geometry.multiple_x(
+        gate:merge_into_shallow(geometry.multiple_x(
             geometry.rectangle(generics.contact("sourcedrain"), bp.sdwidth, bp.nwidth / 2),
             bp.rightdummies, xpitch
         ):translate( (_P.fingers + bp.leftdummies + 1) * xpitch / 2 + xshift, -separation / 2 - bp.nwidth * 3 / 4))
-        gate:merge_into(geometry.multiple_xy(
+        gate:merge_into_shallow(geometry.multiple_xy(
             geometry.rectangle(generics.metal(1), bp.sdwidth, bp.powerspace),
             bp.rightdummies, 2, xpitch, separation + bp.pwidth + bp.nwidth + bp.powerspace
         ):translate( (_P.fingers + bp.leftdummies + 1) * xpitch / 2 + xshift, (bp.pwidth - bp.nwidth) / 2))
@@ -211,11 +211,11 @@ function layout(gate, _P)
         local y = separation / 2 + bp.pwidth / 2
         -- p contacts
         if _P.pcontactpos[i] == "power" or _P.pcontactpos[i] == "outer" then
-            gate:merge_into(geometry.rectangle(
+            gate:merge_into_shallow(geometry.rectangle(
                 generics.contact("sourcedrain"), bp.sdwidth, bp.pwidth / 2
             ):translate(x, y + bp.pwidth / 4 - _P.shiftpcontactsouter))
             if _P.pcontactpos[i] == "power" then
-                gate:merge_into(geometry.rectangle(
+                gate:merge_into_shallow(geometry.rectangle(
                     generics.metal(1), bp.sdwidth, bp.powerspace)
                 :translate(x, y + bp.pwidth / 2 + bp.powerspace / 2 - _P.shiftpcontactsouter))
             end
@@ -223,7 +223,7 @@ function layout(gate, _P)
             gate:add_anchor(string.format("pSDi%d", i), point.create(x, y                 - _P.shiftpcontactsouter))
             gate:add_anchor(string.format("pSDo%d", i), point.create(x, y + bp.pwidth / 2 - _P.shiftpcontactsouter))
         elseif _P.pcontactpos[i] == "inner" then
-            gate:merge_into(geometry.rectangle(
+            gate:merge_into_shallow(geometry.rectangle(
                 generics.contact("sourcedrain"), bp.sdwidth, bp.pwidth / 2
             ):translate(x, y - bp.pwidth / 4 + _P.shiftpcontactsinner))
             gate:add_anchor(string.format("pSDc%d", i), point.create(x, y - bp.pwidth / 4 + _P.shiftpcontactsinner))
@@ -233,11 +233,11 @@ function layout(gate, _P)
         y = -separation / 2 - bp.nwidth / 2
         -- n contacts
         if _P.ncontactpos[i] == "power" or _P.ncontactpos[i] == "outer" then
-            gate:merge_into(geometry.rectangle(
+            gate:merge_into_shallow(geometry.rectangle(
                 generics.contact("sourcedrain"), bp.sdwidth, bp.nwidth / 2
             ):translate(x, y - bp.nwidth / 4 + _P.shiftncontactsouter))
             if _P.ncontactpos[i] == "power" then
-                gate:merge_into(geometry.rectangle(
+                gate:merge_into_shallow(geometry.rectangle(
                     generics.metal(1), bp.sdwidth, bp.powerspace)
                 :translate(x, y - bp.nwidth / 2 - bp.powerspace / 2 + _P.shiftncontactsouter))
             end
@@ -245,7 +245,7 @@ function layout(gate, _P)
             gate:add_anchor(string.format("nSDi%d", i), point.create(x, y                 + _P.shiftncontactsouter))
             gate:add_anchor(string.format("nSDo%d", i), point.create(x, y - bp.nwidth / 2 + _P.shiftncontactsouter))
         elseif _P.ncontactpos[i] == "inner" then
-            gate:merge_into(geometry.rectangle(
+            gate:merge_into_shallow(geometry.rectangle(
                 generics.contact("sourcedrain"), bp.sdwidth, bp.nwidth / 2
             ):translate(x, y + bp.nwidth / 4 - _P.shiftncontactsinner))
             gate:add_anchor(string.format("nSDc%d", i), point.create(x, y + bp.nwidth / 4 - _P.shiftncontactsinner))

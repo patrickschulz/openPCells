@@ -42,15 +42,18 @@ local function _write_cell(file, cell, name)
         S:apply_transformation(cell.trans)
         local layer = export.get_layer(S)
         if S:is_type("polygon") then
-            export.write_polygon(file, layer, 0, 0, S.points)
+            export.write_polygon(file, layer, S.points)
         else
-            export.write_rectangle(file, layer, 0, 0, S.points.bl, S.points.tr)
+            export.write_rectangle(file, layer, S.points.bl, S.points.tr)
         end
     end
     for _, child in cell:iterate_children_links() do
-        local other = cell.children.lookup[child.identifier]
-        local shiftx, shifty = other:get_transformation_correction()
-        export.write_cell_reference(file, child.identifier, child.x0 + cell.x0, child.y0 + cell.y0, child.orientation, shiftx, shifty)
+        local origin = point.create(0, 0)
+        child.trans:apply_transformation(origin)
+        cell.trans:apply_transformation(origin)
+        local x, y = origin:unwrap()
+        local orientation = child.trans:orientation_string()
+        export.write_cell_reference(file, child.identifier, x, y, orientation)
     end
     aux.call_if_present(export.at_end_cell, file)
 end

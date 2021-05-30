@@ -4,9 +4,10 @@ function parameters()
 end
 
 function layout(gate, _P)
+    --[[
     local bp = pcell.get_parameters("logic/base")
     local base = pcell.create_layout("logic/nand_nor_layout_base", { fingers = _P.fingers, gatetype = "nand" })
-    gate:merge_into(base)
+    gate:merge_into_shallow(base)
 
     gate:inherit_alignment_box(base)
 
@@ -16,4 +17,7 @@ function layout(gate, _P)
     gate:add_port("Z", generics.metal(1), base:get_anchor("Z"))
     gate:add_port("VDD", generics.metal(1), base:get_anchor("VDD"))
     gate:add_port("VSS", generics.metal(1), base:get_anchor("VSS"))
+    --]]
+    local base = pcell.create_layout("logic/nand_nor_layout_base", { fingers = _P.fingers, gatetype = "nand" })
+    gate:exchange(base)
 end

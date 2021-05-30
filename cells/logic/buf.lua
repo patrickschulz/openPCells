@@ -30,12 +30,12 @@ function layout(gate, _P)
         shiftoutput = bp.glength / 2 + bp.gspace / 2 
     }):move_anchor("left")
     pcell.pop_overwrites("logic/base")
-    gate:merge_into(iinv)
-    gate:merge_into(oinv)
+    gate:merge_into_shallow(iinv)
+    gate:merge_into_shallow(oinv)
 
     -- draw connection
     local ishift = _P.ifingers % 2 == 0 and 0 or 1
-    gate:merge_into(geometry.path_yx(generics.metal(1), {
+    gate:merge_into_shallow(geometry.path_yx(generics.metal(1), {
         iinv:get_anchor("O"),
         oinv:get_anchor("I"),
     }, bp.sdwidth))

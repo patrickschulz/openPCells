@@ -33,11 +33,11 @@ function layout(array, _P)
     for i = 1, #indices do
         local offset = (i - 1) - (2 * #indices - 1) / 2
         local ttype = ttypes[indices[i]]
-        array:merge_into(
+        array:merge_into_shallow(
             pcell.create_layout("basic/transistor", ttype)
             :translate( offset * gatepitch, 0)
         )
-        array:merge_into(
+        array:merge_into_shallow(
             pcell.create_layout("basic/transistor", ttype)
             :translate(-offset * gatepitch, 0)
         )
@@ -46,11 +46,11 @@ function layout(array, _P)
 
     -- gate connections
     for i = 1, #ttypes do
-        array:merge_into(geometry.rectangle(
+        array:merge_into_shallow(geometry.rectangle(
             generics.metal(1), numfingers * gatepitch, bp.topgatestrwidth
             ):translate(0, (bp.fwidth + bp.topgatestrwidth) / 2 + i * gatestrspace + (i - 1) * bp.topgatestrwidth)
         )
-        array:merge_into(geometry.rectangle(
+        array:merge_into_shallow(geometry.rectangle(
             generics.metal(1), numfingers * gatepitch, bp.topgatestrwidth
             ):translate(0, -(bp.fwidth + bp.botgatestrwidth) / 2 - i * gatestrspace - (i - 1) * bp.botgatestrwidth)
         )

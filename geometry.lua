@@ -355,8 +355,8 @@ local function _crossing(layer1, layer2, width, dxy, ext, direction, mode, separ
             end
         end
     end
-    obj:merge_into(geometry.path(layer1, pts, width, true))
-    obj:merge_into(geometry.path(layer2, util.xmirror(pts), width, true))
+    obj:merge_into_shallow(geometry.path(layer1, pts, width, true))
+    obj:merge_into_shallow(geometry.path(layer2, util.xmirror(pts), width, true))
     return obj
 end
 
@@ -467,7 +467,7 @@ function M.multiple_xy(obj, xrep, yrep, xpitch, ypitch)
                 (x - 1) * xpitch - (xrep - 1) * xpitch / 2,
                 (y - 1) * ypitch - (yrep - 1) * ypitch / 2
             )
-            final:merge_into(obj:copy():translate(center:unwrap()))
+            final:merge_into_shallow(obj:copy():translate(center:unwrap()))
         end
     end
     return final

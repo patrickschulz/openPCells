@@ -26,3 +26,6 @@ lua/liblua.a
 
 # development information
 devinfo
+
+# temporary development files
+poly

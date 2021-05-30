@@ -233,12 +233,12 @@ end
 
 local _write_record = _write_binary_record
 
-local function _unpack_points(x0, y0, pts, multiplier)
+local function _unpack_points(pts, multiplier)
     local stream = {}
     for _, pt in ipairs(pts) do
         local x, y = pt:unwrap()
-        table.insert(stream, multiplier * x + x0)
-        table.insert(stream, multiplier * y + y0)
+        table.insert(stream, multiplier * x)
+        table.insert(stream, multiplier * y)
     end
     return stream
 end
@@ -302,17 +302,17 @@ function M.at_end_cell(file)
     _write_record(file, recordtypes.ENDSTR, datatypes.NONE)
 end
 
-function M.write_rectangle(file, layer, x0, y0, bl, tr)
+function M.write_rectangle(file, layer, bl, tr)
     _write_record(file, recordtypes.BOX, datatypes.NONE)
     _write_record(file, recordtypes.LAYER, datatypes.TWO_BYTE_INTEGER, { layer.layer })
     _write_record(file, recordtypes.BOXTYPE, datatypes.TWO_BYTE_INTEGER, { layer.purpose})
-    local ptstream = _unpack_points(x0, y0, { bl, point.combine_21(bl, tr), tr, point.combine_12(bl, tr), bl }, __userunit)
+    local ptstream = _unpack_points({ bl, point.combine_21(bl, tr), tr, point.combine_12(bl, tr), bl }, __userunit)
     _write_record(file, recordtypes.XY, datatypes.FOUR_BYTE_INTEGER, ptstream)
     _write_record(file, recordtypes.ENDEL, datatypes.NONE)
 end
 
-function M.write_polygon(file, layer, x0, y0, pts)
-    local ptstream = _unpack_points(x0, y0, pts, __userunit)
+function M.write_polygon(file, layer, pts)
+    local ptstream = _unpack_points(pts, __userunit)
     _write_record(file, recordtypes.BOUNDARY, datatypes.NONE)
     _write_record(file, recordtypes.LAYER, datatypes.TWO_BYTE_INTEGER, { layer.layer })
     _write_record(file, recordtypes.DATATYPE, datatypes.TWO_BYTE_INTEGER, { layer.purpose})
@@ -320,22 +320,18 @@ function M.write_polygon(file, layer, x0, y0, pts)
     _write_record(file, recordtypes.ENDEL, datatypes.NONE)
 end
 
-function M.write_cell_reference(file, identifier, x, y, orientation, shiftx, shifty)
+function M.write_cell_reference(file, identifier, x, y, orientation)
     _write_record(file, recordtypes.SREF, datatypes.NONE)
     _write_record(file, recordtypes.SNAME, datatypes.ASCII_STRING, identifier)
     if orientation == "fx" then
-        -- TODO
-        --_write_record(file, recordtypes.STRANS, datatypes.BIT_ARRAY, { 0x8000 })
-        --_write_record(file, recordtypes.ANGLE, datatypes.EIGHT_BYTE_REAL, { 180 })
-        --_write_record(file, recordtypes.XY, datatypes.FOUR_BYTE_INTEGER, _unpack_points(shiftx, 0, { point.create(x, y) }, __userunit))
+        _write_record(file, recordtypes.STRANS, datatypes.BIT_ARRAY, { 0x8000 })
+        _write_record(file, recordtypes.ANGLE, datatypes.EIGHT_BYTE_REAL, { 180 })
     elseif orientation == "fy" then
         _write_record(file, recordtypes.STRANS, datatypes.BIT_ARRAY, { 0x8000 })
-        _write_record(file, recordtypes.XY, datatypes.FOUR_BYTE_INTEGER, _unpack_points(0, shifty, { point.create(x, y) }, __userunit))
     elseif orientation == "R180" then
-        -- TODO
-    else -- R0
-        _write_record(file, recordtypes.XY, datatypes.FOUR_BYTE_INTEGER, _unpack_points(0, 0, { point.create(x, y) }, __userunit))
+        _write_record(file, recordtypes.ANGLE, datatypes.EIGHT_BYTE_REAL, { 180 })
     end
+    _write_record(file, recordtypes.XY, datatypes.FOUR_BYTE_INTEGER, _unpack_points({ point.create(x, y) }, __userunit))
     _write_record(file, recordtypes.ENDEL, datatypes.NONE)
 end
 
@@ -347,7 +343,7 @@ function M.write_port(file, name, layer, where)
     _write_record(file, recordtypes.PRESENTATION, datatypes.BIT_ARRAY, { 0x0005 })
     --_write_record(file, recordtypes.STRANS, datatypes.BIT_ARRAY, { 0x8006 })
     --_write_record(file, recordtypes.MAG, datatypes.EIGHT_BYTE_REAL, { 10.0 })
-    _write_record(file, recordtypes.XY, datatypes.FOUR_BYTE_INTEGER, _unpack_points(0, 0, { where }, __userunit))
+    _write_record(file, recordtypes.XY, datatypes.FOUR_BYTE_INTEGER, _unpack_points({ where }, __userunit))
     _write_record(file, recordtypes.STRING, datatypes.ASCII_STRING, name)
     _write_record(file, recordtypes.ENDEL, datatypes.NONE)
 end

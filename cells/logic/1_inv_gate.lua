@@ -13,7 +13,7 @@ function layout(gate, _P)
     pcell.push_overwrites("logic/base", { rightdummies = 0 })
     local subgatemaster = pcell.create_layout(string.format("logic/%s", _P.subgate), { fingers = _P.subgatefingers })
     pcell.pop_overwrites("logic/base")
-    local subgate = gate:add_child(subgatemaster, "subgate")
+    local subgate = gate:add_child(subgatemaster, _P.subgate)
 
     pcell.push_overwrites("logic/base", { leftdummies = 0 })
     local invmaster = pcell.create_layout("logic/not_gate", { fingers = _P.notfingers })
@@ -22,7 +22,7 @@ function layout(gate, _P)
     inv:move_anchor("left", subgate:get_anchor("right"))
 
     -- draw connection
-    gate:merge_into(geometry.path(generics.metal(1), {
+    gate:merge_into_shallow(geometry.path(generics.metal(1), {
         subgate:get_anchor("Z"),
         inv:get_anchor("I")
     }, bp.sdwidth))

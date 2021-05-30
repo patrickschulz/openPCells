@@ -7,7 +7,7 @@ end
 function layout(gate, _P)
     local bp = pcell.get_parameters("logic/base")
     local base = pcell.create_layout("logic/nand_nor_layout_base", { fingers = _P.fingers, gatetype = "nand" })
-    gate:merge_into(base)
+    gate:merge_into_shallow(base)
 
     -- ports
     gate:add_port("A", generics.metal(1), base:get_anchor("A"))

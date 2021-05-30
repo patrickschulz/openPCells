@@ -8,7 +8,7 @@ function layout(register, _P)
     for i = 1, _P.bitwidth do
         local dff = pcell.create_layout("logic/dff")
         dff:move_anchor("VDD", anchor)
-        register:merge_into(dff)
+        register:merge_into_shallow(dff)
         anchor = dff:get_anchor("VSS")
     end
 end

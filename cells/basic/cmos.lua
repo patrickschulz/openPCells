@@ -56,7 +56,7 @@ function layout(obj, _P)
         drawtopactivedummy = _P.drawdummyactive
     })
     pmos = pcell.create_layout("basic/mosfet", { fingers = _P.fingers }):move_anchor("botgate")
-    obj:merge_into(pmos)
+    obj:merge_into_shallow(pmos)
     pcell.pop_overwrites("basic/mosfet")
 
     -- nmos
@@ -70,14 +70,14 @@ function layout(obj, _P)
         drawbotactivedummy = _P.drawdummyactive
     })
     nmos = pcell.create_layout("basic/mosfet", { fingers = _P.fingers }):move_anchor("topgate")
-    obj:merge_into(nmos)
+    obj:merge_into_shallow(nmos)
     pcell.pop_overwrites("basic/mosfet")
 
     -- general transistor settings
     pcell.pop_overwrites("basic/mosfet")
 
     -- power rails
-    obj:merge_into(geometry.multiple_y(
+    obj:merge_into_shallow(geometry.multiple_y(
         geometry.rectangle(generics.metal(1), _P.fingers * xpitch + _P.sdwidth, _P.powerwidth),
         2, _P.separation + _P.pwidth + _P.nwidth + 2 * _P.powerspace + _P.powerwidth
     ):translate(0, (_P.pwidth - _P.nwidth) / 2))
@@ -85,15 +85,15 @@ function layout(obj, _P)
     -- draw gate contacts
     for i = 1, _P.fingers do
         if _P.gatecontactpos[i] == "center" then
-            obj:merge_into(geometry.rectangle(
+            obj:merge_into_shallow(geometry.rectangle(
                 generics.contact("gate"), _P.glength, _P.gstwidth
             ):translate((2 * i - _P.fingers - 1) * xpitch / 2, 0))
             obj:add_anchor(string.format("G%d", i), point.create((2 * i - _P.fingers - 1) * xpitch / 2, 0))
         elseif _P.gatecontactpos[i] == "outer" then
-            obj:merge_into(geometry.rectangle(
+            obj:merge_into_shallow(geometry.rectangle(
                 generics.contact("gate"), _P.glength, _P.gstwidth
             ):translate((2 * i - _P.fingers - 1) * xpitch / 2, _P.separation / 2 + _P.pwidth + _P.outergstspace + _P.gstwidth / 2 + _P.powerwidth + _P.powerspace))
-            obj:merge_into(geometry.rectangle(
+            obj:merge_into_shallow(geometry.rectangle(
                 generics.contact("gate"), _P.glength, _P.gstwidth
             ):translate((2 * i - _P.fingers - 1) * xpitch / 2, -_P.separation / 2 - _P.nwidth - _P.outergstspace - _P.gstwidth / 2 - _P.powerwidth - _P.powerspace))
             obj:add_anchor(string.format("Gp%d", i), point.create(
@@ -103,7 +103,7 @@ function layout(obj, _P)
                 (2 * i - _P.fingers - 1) * xpitch / 2, 
                 -_P.separation / 2 - _P.nwidth - _P.outergstspace - _P.gstwidth / 2 - _P.powerwidth - _P.powerspace))
         elseif _P.gatecontactpos[i] == "split" then
-            obj:merge_into(geometry.multiple_y(
+            obj:merge_into_shallow(geometry.multiple_y(
                 geometry.rectangle(generics.contact("gate"), _P.glength, _P.gstwidth)
                 :translate((2 * i - _P.fingers - 1) * xpitch / 2, 0),
                 2, 4 * _P.gstwidth
@@ -113,7 +113,7 @@ function layout(obj, _P)
         end
         -- draw gate cut
         if _P.gatecontactpos[i] == "outer" or _P.gatecontactpos[i] == "split" then
-            obj:merge_into(geometry.rectanglebltr(
+            obj:merge_into_shallow(geometry.rectanglebltr(
                 generics.other("gatecut"),
                 point.create((2 * i - _P.fingers - 1) * xpitch / 2 - xpitch / 2, -tp.cutheight / 2),
                 point.create((2 * i - _P.fingers - 1) * xpitch / 2 + xpitch / 2,  tp.cutheight / 2)
@@ -129,17 +129,17 @@ function layout(obj, _P)
         -- p contacts
         if _P.pcontactpos[i] == "power" or _P.pcontactpos[i] == "outer" then
             y = y + _P.pwidth / 2 - _P.pcontactheight / 2
-            obj:merge_into(geometry.rectangle(
+            obj:merge_into_shallow(geometry.rectangle(
                 generics.contact("sourcedrain"), _P.sdwidth, _P.pcontactheight
             ):translate(x, y))
             if _P.pcontactpos[i] == "power" then
-                obj:merge_into(geometry.rectangle(
+                obj:merge_into_shallow(geometry.rectangle(
                     generics.metal(1), _P.sdwidth, _P.powerspace)
                 :translate(x, y + _P.pcontactheight / 2 + _P.powerspace / 2))
             end
         elseif _P.pcontactpos[i] == "inner" then
             y = y - _P.pwidth / 2 + _P.ncontactheight / 2
-            obj:merge_into(geometry.rectangle(
+            obj:merge_into_shallow(geometry.rectangle(
                 generics.contact("sourcedrain"), _P.sdwidth, _P.pcontactheight
             ):translate(x, y))
         end
@@ -150,17 +150,17 @@ function layout(obj, _P)
         local y = -_P.separation / 2 - _P.nwidth / 2
         if _P.ncontactpos[i] == "power" or _P.ncontactpos[i] == "outer" then
             y = y - _P.nwidth / 2 + _P.ncontactheight / 2
-            obj:merge_into(geometry.rectangle(
+            obj:merge_into_shallow(geometry.rectangle(
                 generics.contact("sourcedrain"), _P.sdwidth, _P.ncontactheight
             ):translate(x, y))
             if _P.ncontactpos[i] == "power" then
-                obj:merge_into(geometry.rectangle(
+                obj:merge_into_shallow(geometry.rectangle(
                     generics.metal(1), _P.sdwidth, _P.powerspace)
                 :translate(x, y -_P.ncontactheight / 2 - _P.powerspace / 2))
             end
         elseif _P.ncontactpos[i] == "inner" then
             y = y + _P.nwidth / 2 - _P.ncontactheight / 2
-            obj:merge_into(geometry.rectangle(
+            obj:merge_into_shallow(geometry.rectangle(
                 generics.contact("sourcedrain"), _P.sdwidth, _P.ncontactheight
             ):translate(x, y))
         end

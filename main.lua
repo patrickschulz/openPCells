@@ -218,7 +218,7 @@ if args.orientation then
     }
     local f = lut[args.orientation]
     if not f then
-        errprint(string.format("unknown orientation: %s", args.orientation))
+        errprint(string.format("unknown orientation: '%s'", args.orientation))
         return 1
     end
     f()

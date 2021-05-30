@@ -21,22 +21,22 @@ function layout(gate, _P)
     gate:add_child(isogate, "isogate")
 
     pcell.push_overwrites("logic/base", { rightdummies = 0 })
-    local gate1 = pcell.create_layout(string.format("logic/%s", _P.gate1))
+    local gate1master = pcell.create_layout(string.format("logic/%s", _P.gate1))
+    local gate1 = gate:add_child(gate1master, "gate1")
     gate1:move_anchor("right", isogate:get_anchor("left"))
-    gate:add_child(gate1, "gate1")
     pcell.pop_overwrites("logic/base")
 
     pcell.push_overwrites("logic/base", { leftdummies = 0 })
-    local gate2 = pcell.create_layout(string.format("logic/%s", _P.gate2))
+    local gate2master = pcell.create_layout(string.format("logic/%s", _P.gate2))
+    local gate2 = gate:add_child(gate2master, "gate2")
     gate2:move_anchor("left", isogate:get_anchor("right"))
-    gate:add_child(gate2, "gate2")
     pcell.pop_overwrites("logic/base")
 
     gate:inherit_alignment_box(gate1)
     gate:inherit_alignment_box(gate2)
 
     -- draw connections
-    gate:merge_into(geometry.path_yx(generics.metal(1), {
+    gate:merge_into_shallow(geometry.path_yx(generics.metal(1), {
         gate1:get_anchor("Z"), gate2:get_anchor("B")
     }, bp.sdwidth))
 

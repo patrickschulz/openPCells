@@ -47,12 +47,13 @@ function layout(gate, _P)
         pcontactpos = contactpos,
         ncontactpos = contactpos,
     })
-    gate:merge_into_update_alignmentbox(harness)
+    gate:merge_into_shallow(harness)
+    gate:inherit_alignment_box(harness)
 
     -- gate straps
     if _P.fingers > 1 then
         if _P.swapinputs then
-            gate:merge_into(geometry.path(
+            gate:merge_into_shallow(geometry.path(
                 generics.metal(1),
                 {
                     harness:get_anchor("G2"),
@@ -64,7 +65,7 @@ function layout(gate, _P)
                 },
                 bp.sdwidth
             ))
-            gate:merge_into(geometry.path(
+            gate:merge_into_shallow(geometry.path(
                 generics.metal(1),
                 {
                     harness:get_anchor("G1upper"),
@@ -76,7 +77,7 @@ function layout(gate, _P)
                 },
                 bp.sdwidth
             ))
-            gate:merge_into(geometry.path(
+            gate:merge_into_shallow(geometry.path(
                 generics.metal(1),
                 {
                     harness:get_anchor("G1lower"),
@@ -89,7 +90,7 @@ function layout(gate, _P)
                 bp.sdwidth
             ))
         else
-            gate:merge_into(geometry.path(
+            gate:merge_into_shallow(geometry.path(
                 generics.metal(1),
                 {
                     harness:get_anchor("G1"),
@@ -101,7 +102,7 @@ function layout(gate, _P)
                 },
                 bp.sdwidth
             ))
-            gate:merge_into(geometry.path(
+            gate:merge_into_shallow(geometry.path(
                 generics.metal(1),
                 {
                     harness:get_anchor("G2upper"),
@@ -113,7 +114,7 @@ function layout(gate, _P)
                 },
                 bp.sdwidth
             ))
-            gate:merge_into(geometry.path(
+            gate:merge_into_shallow(geometry.path(
                 generics.metal(1),
                 {
                     harness:get_anchor("G2lower"),
@@ -131,7 +132,7 @@ function layout(gate, _P)
     -- drain connection
     if bp.connectoutput then
         local dend = _P.swapoutputs and 3 or 1
-        gate:merge_into(geometry.path(generics.metal(1), geometry.path_points_xy(
+        gate:merge_into_shallow(geometry.path(generics.metal(1), geometry.path_points_xy(
             harness:get_anchor(string.format("pSDi%d", dend)):translate(0,  bp.sdwidth / 2), {
                 harness:get_anchor(string.format("G%d", 2 * _P.fingers)):translate(_P.shiftoutput + xpitch / 2, 0),
                 0, -- toggle xy

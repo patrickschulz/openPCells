@@ -28,11 +28,12 @@ function layout(gate, _P)
         pcontactpos = contactpos,
         ncontactpos = contactpos,
     })
-    gate:merge_into_update_alignmentbox(harness)
+    gate:merge_into_shallow(harness)
+    gate:inherit_alignment_box(harness)
 
     -- gate strap
     if _P.fingers > 1 then
-        gate:merge_into(geometry.rectangle(
+        gate:merge_into_shallow(geometry.rectangle(
             generics.metal(1),
             _P.fingers * bp.glength + (_P.fingers - 1) * bp.gspace, bp.gstwidth
         ):translate(0, _P.shiftinput))
@@ -41,17 +42,17 @@ function layout(gate, _P)
     -- signal transistors drain connections
     local n = _P.fingers + (_P.fingers % 2 == 0 and 0 or 1)
     if _P.fingers > 2 then
-        gate:merge_into(geometry.path(generics.metal(1), {
+        gate:merge_into_shallow(geometry.path(generics.metal(1), {
             harness:get_anchor("pSDi2"):translate(0, bp.sdwidth / 2),
             harness:get_anchor(string.format("pSDi%d", n)):translate(0, bp.sdwidth / 2)
         }, bp.sdwidth))
-        gate:merge_into(geometry.path(generics.metal(1), {
+        gate:merge_into_shallow(geometry.path(generics.metal(1), {
             harness:get_anchor("nSDi2"):translate(0, -bp.sdwidth / 2),
             harness:get_anchor(string.format("nSDi%d", n)):translate(0, -bp.sdwidth / 2)
         }, bp.sdwidth))
     end
     if bp.connectoutput then
-        gate:merge_into(geometry.path(generics.metal(1),
+        gate:merge_into_shallow(geometry.path(generics.metal(1),
             geometry.path_points_xy(harness:get_anchor(string.format("pSDi%d", n)):translate(0, bp.sdwidth / 2),
             {
                 harness:get_anchor(string.format("G%d", _P.fingers)):translate(xpitch / 2 + _P.shiftoutput, 0),
@@ -63,7 +64,9 @@ function layout(gate, _P)
         ))
     end
 
-    -- anchors
+    -- anchors (Out Top/Bottom Left/Right center/inner/outer)
+    --          ^      ^           ^               ^
+    --    e.g.  O      T           L               c    -> OTLc
     gate:add_anchor("OTLc", harness:get_anchor(string.format("pSDc%d", 1)))
     gate:add_anchor("OBLc", harness:get_anchor(string.format("nSDc%d", 1)))
     gate:add_anchor("OTRc", harness:get_anchor(string.format("pSDc%d", _P.fingers + 1)))

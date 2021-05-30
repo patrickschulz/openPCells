@@ -5,7 +5,7 @@ end
 function layout(cell, _P)
     --[[
     -- place flat rectangle
-    cell:merge_into(geometry.rectangle(generics.metal(1), 200, 200))
+    cell:merge_into_shallow(geometry.rectangle(generics.metal(1), 200, 200))
 
     -- place two subcells
     local sub = pcell.create_layout("__test/sub")
@@ -19,5 +19,5 @@ function layout(cell, _P)
     local sub = pcell.create_layout("__test/sub")
     sub:translate(0, 200)
     sub:flipy()
-    cell:merge_into(sub)
+    cell:merge_into_shallow(sub)
 end
