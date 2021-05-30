@@ -234,35 +234,15 @@ function meta.translate(self, dx, dy)
     return self
 end
 
---[[
-function meta.translate_flat(self, dx, dy)
-    if is_lpoint(dx) then
-        dx, dy = dx:unwrap()
-    end
-    for _, S in ipairs(self.shapes) do
-        S:translate(dx, dy)
-    end
-    for _, anchor in pairs(self.anchors) do
-        anchor:translate(dx, dy)
-    end
-    for _, port in pairs(self.ports) do
-        port.where:translate(dx, dy)
-    end
-    if self.alignmentbox then
-        self.alignmentbox.bl:translate(dx, dy)
-        self.alignmentbox.tr:translate(dx, dy)
-    end
-    return self
-end
---]]
-
 local function _flipxy(self, mode, ischild)
-    local cx, cy
+    local cx, cy = self:get_transformation_correction()
+    --[[
     if self.isproxy then
         cx, cy = self.reference:get_transformation_correction()
     else
         cx, cy = self:get_transformation_correction()
     end
+    --]]
     if mode == "x" then
         self.trans:flipx()
         cy = 0
@@ -316,12 +296,16 @@ local function _get_minmax_xy(self)
 end
 
 function meta.get_transformation_correction(self)
+    local obj = self
+    if self.isproxy then
+        obj = self.reference
+    end
     local blx, bly, trx, try
-    if self.alignmentbox then
-        blx, bly = self.alignmentbox.bl:unwrap()
-        trx, try = self.alignmentbox.tr:unwrap()
+    if obj.alignmentbox then
+        blx, bly = obj.alignmentbox.bl:unwrap()
+        trx, try = obj.alignmentbox.tr:unwrap()
     else
-        blx, trx, bly, try = _get_minmax_xy(self)
+        blx, trx, bly, try = _get_minmax_xy(obj)
     end
     return blx + trx, bly + try
 end
