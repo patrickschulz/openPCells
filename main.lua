@@ -230,14 +230,14 @@ if args.drawaxes then
     local minx, miny = bb.bl:unwrap()
     local maxx, maxy = bb.tr:unwrap()
     local factor = 2
-    cell:merge_into(geometry.rectanglebltr(generics.special(), point.create(-5, factor * miny), point.create(5, factor * maxy)))
-    cell:merge_into(geometry.rectanglebltr(generics.special(), point.create(factor * minx, -5), point.create(factor * maxx, 5)))
+    cell:merge_into_shallow(geometry.rectanglebltr(generics.special(), point.create(-5, factor * miny), point.create(5, factor * maxy)))
+    cell:merge_into_shallow(geometry.rectanglebltr(generics.special(), point.create(factor * minx, -5), point.create(factor * maxx, 5)))
 end
 
 if args.drawanchor then
     for _, da in ipairs(args.drawanchor) do
         local anchor = cell:get_anchor(da)
-        cell:merge_into(marker.cross(anchor))
+        cell:merge_into_shallow(marker.cross(anchor))
     end
 end
 
@@ -247,7 +247,7 @@ if args.drawalignmentbox then
         local bl = cell:get_anchor("bottomleft")
         local tr = cell:get_anchor("topright")
         local box = geometry.rectanglebltr(generics.special(), bl, tr)
-        cell:merge_into(box)
+        cell:merge_into_shallow(box)
     end
 end
 
