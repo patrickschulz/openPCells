@@ -39,7 +39,7 @@ end
 local function _write_cell(file, cell, name)
     aux.call_if_present(export.at_begin_cell, file, name)
     for _, S in cell:iterate_shapes() do
-        S:apply_transformation(cell.trans)
+        S:apply_transformation(cell.trans, cell.trans.apply_transformation)
         local layer = export.get_layer(S)
         if S:is_type("polygon") then
             export.write_polygon(file, layer, S.points)

@@ -128,7 +128,7 @@ end
 
 function meta.add_shape(self, S)
     local new = self:add_raw_shape(S)
-    new:apply_inverse_transformation(self.trans)
+    new:apply_transformation(self.trans, self.trans.apply_inverse_transformation)
     return new
 end
 

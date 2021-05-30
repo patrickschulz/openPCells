@@ -107,7 +107,7 @@ local function _do_array(cell, S, entry, export)
     cut:translate(c:unwrap())
     for _, S in cut:iterate_shapes() do
         local new = cell:add_raw_shape(S)
-        new:apply_transformation(cut.trans)
+        new:apply_transformation(cut.trans, cut.trans.apply_transformation)
     end
 end
 

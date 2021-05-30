@@ -42,26 +42,14 @@ function shape.copy(self)
     return new
 end
 
-function shape.apply_transformation(self, matrix)
+function shape.apply_transformation(self, matrix, func)
     if self.typ == "polygon" then
         for _, pt in ipairs(self.points) do
-            matrix:apply_transformation(pt)
+            func(matrix, pt)
         end
     elseif self.typ == "rectangle" then
-        matrix:apply_transformation(self.points.bl)
-        matrix:apply_transformation(self.points.tr)
-    end
-    return self
-end
-
-function shape.apply_inverse_transformation(self, matrix)
-    if self.typ == "polygon" then
-        for _, pt in ipairs(self.points) do
-            matrix:apply_inverse_transformation(pt)
-        end
-    elseif self.typ == "rectangle" then
-        matrix:apply_inverse_transformation(self.points.bl)
-        matrix:apply_inverse_transformation(self.points.tr)
+        func(matrix, self.points.bl)
+        func(matrix, self.points.tr)
     end
     return self
 end
