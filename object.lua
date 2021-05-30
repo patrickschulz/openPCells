@@ -117,6 +117,28 @@ function meta.foreach_children_links(self, func, ...)
     end
 end
 
+function meta.add_raw_shape(self, S)
+    local new = S:copy()
+    table.insert(self.shapes, new)
+    return new
+end
+
+function meta.add_shape(self, S)
+    local new = self:add_raw_shape(S)
+    new:apply_inverse_transformation(self.trans)
+    return new
+end
+
+function meta.remove_shape(self, idx)
+    table.remove(self.shapes, idx)
+end
+
+function meta.add_shapes(self, shapes)
+    for _, s in ipairs(shapes) do
+        self:add_shape(s)
+    end
+end
+
 function meta.merge_into_shallow(self, other, opttrans)
     for _, S in other:iterate_shapes() do
         local new = self:add_shape(S)
@@ -142,7 +164,7 @@ function meta.flatten(self)
         local obj = child.reference
         obj:copy() -- FIXME: is copy necessary?
         obj:flatten()
-        self:merge_into_shallow(obj, child.trans)
+        self:merge_into_shallow(obj, transformationmatrix.chain(self.trans, child.trans))
     end
     -- remove children
     self.children = { lookup = {} }
@@ -151,28 +173,6 @@ end
 
 function meta.is_empty(self)
     return #self.shapes == 0 and #self.children == 0
-end
-
-function meta.add_raw_shape(self, S)
-    local new = S:copy()
-    table.insert(self.shapes, new)
-    return new
-end
-
-function meta.add_shape(self, S)
-    local new = self:add_raw_shape(S)
-    new:apply_inverse_transformation(self.trans)
-    return new
-end
-
-function meta.remove_shape(self, idx)
-    table.remove(self.shapes, idx)
-end
-
-function meta.add_shapes(self, shapes)
-    for _, s in ipairs(shapes) do
-        self:add_shape(s)
-    end
 end
 
 function meta.add_port(self, name, layer, where)

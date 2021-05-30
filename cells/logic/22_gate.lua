@@ -38,8 +38,9 @@ function layout(gate, _P)
 
     -- gate 2
     pcell.push_overwrites("logic/base", { leftdummies = 0, rightdummies = 0 })
-    local gate2 = pcell.create_layout(string.format("logic/%s", _P.gate2)):move_anchor("left", isogate:get_anchor( "right"))
-    gate:add_child(gate2, "gate2")
+    local gate2master = pcell.create_layout(string.format("logic/%s", _P.gate2))
+    local gate2 = gate:add_child(gate2master, "gate2")
+    gate2:move_anchor("left", isogate:get_anchor("right"))
     pcell.pop_overwrites("logic/base")
 
     isogate = gate:add_child_link(isoname)
@@ -47,8 +48,9 @@ function layout(gate, _P)
 
     -- gate 3
     pcell.push_overwrites("logic/base", { leftdummies = 0 })
-    local gate3 = pcell.create_layout(string.format("logic/%s", _P.gate3)):move_anchor("left", isogate:get_anchor( "right"))
-    gate:add_child(gate3, "gate3")
+    local gate3master = pcell.create_layout(string.format("logic/%s", _P.gate3))
+    local gate3 = gate:add_child(gate3master, "gate3")
+    gate3:move_anchor("left", isogate:get_anchor("right"))
     pcell.pop_overwrites("logic/base")
 
     -- draw connections
@@ -58,8 +60,8 @@ function layout(gate, _P)
             0, -- toggle xy
             gate3:get_anchor("B")
     }), bp.sdwidth))
-    gate:merge_into_shallow(geometry.rectangle(generics.via(1, 2), bp.sdwidth, bp.sdwidth):translate( gate1:get_anchor("Z")))
-    gate:merge_into_shallow(geometry.rectangle(generics.via(1, 2), bp.sdwidth, bp.sdwidth):translate( gate3:get_anchor("B")))
+    gate:merge_into_shallow(geometry.rectangle(generics.via(1, 2), bp.sdwidth, bp.sdwidth):translate(gate1:get_anchor("Z")))
+    gate:merge_into_shallow(geometry.rectangle(generics.via(1, 2), bp.sdwidth, bp.sdwidth):translate(gate3:get_anchor("B")))
 
     gate:merge_into_shallow(geometry.path_yx(generics.metal(1), {
         gate2:get_anchor("Z"), gate3:get_anchor("A")

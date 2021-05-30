@@ -4,6 +4,7 @@ end
 
 function layout(cell, _P)
     local subsub = pcell.create_layout("__test/subsub")
+    subsub:translate(500, 0)
     local name = cell:add_child_reference(subsub, "sub")
     cell:add_child_link(name):translate(-100, -100)
     cell:add_child_link(name):translate( 100, -100)

@@ -15,6 +15,18 @@ function M.identity()
     return self
 end
 
+function M.chain(lhs, rhs)
+    local self = M.identity()
+    self[1] = lhs[1] * rhs[1] + lhs[2] * rhs[3]
+    self[2] = lhs[1] * rhs[2] + lhs[2] * rhs[4]
+    self[3] = lhs[3] * rhs[1] + lhs[4] * rhs[3]
+    self[4] = lhs[3] * rhs[2] + lhs[4] * rhs[4]
+    self.dx = lhs.dx + rhs.dx
+    self.dy = lhs.dy + rhs.dy
+    self.scalefactor = lhs.scalefactor * rhs.scalefactor
+    return self
+end
+
 function meta.copy(self)
     local new = M.identity()
     new[1] = self[1]
