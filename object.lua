@@ -236,13 +236,6 @@ end
 
 local function _flipxy(self, mode, ischild)
     local cx, cy = self:get_transformation_correction()
-    --[[
-    if self.isproxy then
-        cx, cy = self.reference:get_transformation_correction()
-    else
-        cx, cy = self:get_transformation_correction()
-    end
-    --]]
     if mode == "x" then
         self.trans:flipx()
         cy = 0
