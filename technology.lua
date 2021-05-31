@@ -9,7 +9,7 @@ local config
 local techpaths = {}
 
 -- make relative metal (negative indices) absolute
-function M.translate_metals(cell)
+local function _translate_metals(cell)
     for _, S in cell:iterate_shapes(function(S) return S:get_lpp():is_type("metal") end) do
         if S:get_lpp().value < 0 then
             S:get_lpp().value = config.metals + S:get_lpp().value + 1
@@ -30,7 +30,7 @@ function M.translate_metals(cell)
     end
 end
 
-function M.place_via_conductors(cell)
+local function _place_via_conductors(cell)
     for _, S in cell:iterate_shapes() do
         if S:get_lpp():is_type("via") and not S:get_lpp().bare then
             local m1, m2 = S:get_lpp():get()
@@ -49,7 +49,7 @@ function M.place_via_conductors(cell)
     end
 end
 
-function M.split_vias(cell)
+local function _split_vias(cell)
     for i, S in cell:iterate_shapes(function(S) return S:is_lpp_type("via") end) do
         local from, to = S:get_lpp():get()
         for j = from, to - 1 do
@@ -111,7 +111,7 @@ local function _do_array(cell, S, entry, export)
     end
 end
 
-function M.translate_layers(cell, export)
+local function _translate_layers(cell, export)
     for i, S in cell:iterate_shapes() do
         local layer = S:get_lpp():str()
         local mappings = layermap[layer]
@@ -127,32 +127,47 @@ function M.translate_layers(cell, export)
         end
         cell:remove_shape(i)
     end
-    --[[
-    for _, port in pairs(cell.ports) do
+end
+
+local function _translate_ports(cell, export)
+    for portname, port in pairs(cell.ports) do
         local layer = port.layer:str()
-    end
-    --]]
-end
-
-function M.translate(cell, export)
-    -- translate cell itself
-    M.translate_metals(cell)
-    M.split_vias(cell)
-    M.place_via_conductors(cell, export)
-    M.translate_layers(cell, export)
-    M.fix_to_grid(cell)
-    -- translate children
-    for _, child in cell:iterate_children() do
-        M.translate(child, export)
+        local name = string.format("%sport", layer)
+        local mappings = layermap[name]
+        if not mappings then
+            error(string.format("no layer information for '%s'\nif the layer is not provided, set it to {}", name))
+        end
+        -- FIXME: current implementation uses the first mapping, this should be improved
+        local entry = mappings[1]
+        entry = entry.func()
+        port.layer = generics.mapped(entry.name, _get_lpp(entry.lpp, export))
     end
 end
 
-function M.fix_to_grid(cell)
+local function _fix_to_grid(cell)
     for _, S in cell:iterate_shapes() do
         for _, pt in pairs(S:get_points()) do
             pt:fix(config.grid)
         end
     end
+end
+
+local function _translate(cell, export)
+    -- translate cell itself
+    _translate_metals(cell)
+    _split_vias(cell)
+    _place_via_conductors(cell, export)
+    _translate_layers(cell, export)
+    _fix_to_grid(cell)
+    -- translate children
+    for _, child in cell:iterate_children() do
+        _translate(child, export)
+    end
+end
+
+function M.translate(cell, export)
+    _translate(cell, export)
+    _translate_ports(cell, export) -- ports are only translated on the toplevel
 end
 
 function M.get_dimension(dimension)

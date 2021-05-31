@@ -170,8 +170,9 @@ function meta.is_empty(self)
 end
 
 function meta.add_port(self, name, layer, where)
+    --layer:set_port()
     self.ports[name] = { layer = layer, where = where }
-    self.anchors[name] = where:copy() -- copy point, otherwise translation acts twice
+    self.anchors[name] = where:copy() -- copy point, otherwise translation acts twice (FIXME: probably not needed any more)
 end
 
 function meta.find_shapes(self, comp)

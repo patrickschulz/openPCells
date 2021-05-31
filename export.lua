@@ -36,8 +36,7 @@ function M.check()
     _check_function("write_polygon")
 end
 
-local function _write_cell(file, cell, name)
-    aux.call_if_present(export.at_begin_cell, file, name)
+local function _write_cell(file, cell)
     for _, S in cell:iterate_shapes() do
         S:apply_transformation(cell.trans, cell.trans.apply_transformation)
         local layer = export.get_layer(S)
@@ -55,13 +54,14 @@ local function _write_cell(file, cell, name)
         local orientation = child.trans:orientation_string()
         export.write_cell_reference(file, child.identifier, x, y, orientation)
     end
-    aux.call_if_present(export.at_end_cell, file)
 end
 
 local function _write_children(file, cell)
     for name, child in cell:iterate_children() do
         _write_children(file, child)
+        aux.call_if_present(export.at_begin_cell, file, name)
         _write_cell(file, child, name)
+        aux.call_if_present(export.at_end_cell, file)
     end
 end
 
@@ -78,7 +78,16 @@ function M.write_toplevel(filename, toplevel, fake)
     aux.call_if_present(export.at_begin, file)
 
     _write_children(file, toplevel)
+
+    aux.call_if_present(export.at_begin_cell, file, "opctoplevel")
     _write_cell(file, toplevel, "opctoplevel")
+    if export.write_port then
+        for portname, port in pairs(toplevel.ports) do
+            toplevel.trans:apply_transformation(port.where)
+            export.write_port(file, portname, port.layer:get(), port.where)
+        end
+    end
+    aux.call_if_present(export.at_end_cell, file)
 
     aux.call_if_present(export.at_end, file)
     if not fake then
