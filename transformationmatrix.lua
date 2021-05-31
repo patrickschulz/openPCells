@@ -24,6 +24,8 @@ function M.chain(lhs, rhs)
     self[4] = lhs[3] * rhs[2] + lhs[4] * rhs[4]
     self.dx = lhs.dx + rhs.dx
     self.dy = lhs.dy + rhs.dy
+    self.auxdx = lhs.auxdx + rhs.auxdx
+    self.auxdy = lhs.auxdy + rhs.auxdy
     self.scalefactor = lhs.scalefactor * rhs.scalefactor
     return self
 end
@@ -36,6 +38,8 @@ function meta.copy(self)
     new[4] = self[4]
     new.dx = self.dx
     new.dy = self.dy
+    new.auxdx = self.auxdx
+    new.auxdy = self.auxdy
     new.scalefactor = self.scalefactor
     return new
 end
@@ -84,16 +88,6 @@ function meta.apply_aux_translation(self, pt)
     point._update(pt, x + self.auxdx, y + self.auxdy)
 end
 
---[[
-function meta.apply_transformation_translation_first(self, pt)
-    local x, y = pt:unwrap()
-    point._update(pt, 
-        self.scalefactor * (self[1] * (x + self.dx) + self[2] * (y + self.dy)),
-        self.scalefactor * (self[3] * (x + self.dx) + self[4] * (y + self.dy))
-    )
-end
---]]
-
 function meta.apply_transformation(self, pt)
     local x, y = pt:unwrap()
     point._update(pt, 
@@ -106,8 +100,8 @@ function meta.apply_inverse_transformation(self, pt)
     local x, y = pt:unwrap()
     local det = self[1] * self[4] - self[2] * self[3]
     point._update(pt, 
-        ((x - self.dx - self.auxdx) / self.scalefactor * self[4] - (y - self.dy) / self.scalefactor * self[2]) / det, 
-        ((y - self.dy - self.auxdy) / self.scalefactor * self[1] - (x - self.dx) / self.scalefactor * self[3]) / det
+        ((x - self.dx - self.auxdx) / self.scalefactor * self[4] - (y - self.dy - self.auxdy) / self.scalefactor * self[2]) / det, 
+        ((y - self.dy - self.auxdy) / self.scalefactor * self[1] - (x - self.dx - self.auxdx) / self.scalefactor * self[3]) / det
     )
 end
 

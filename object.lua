@@ -245,7 +245,6 @@ local function _flipxy(self, mode, ischild)
     end
     if not ischild then
         self.trans:auxtranslate(cx, cy)
-        --self.trans:translate(cx, cy)
     end
     if not self.isproxy then
         for _, child in self:iterate_children_links() do
