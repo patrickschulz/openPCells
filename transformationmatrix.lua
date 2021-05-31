@@ -2,13 +2,14 @@ local M = {}
 
 local meta = {}
 meta.__index = meta
-meta.__tostring = function(self) return string.format("%d %d\n%d %d\ndx: %d, dy: %d", self[1], self[2], self[3], self[4], self.dx, self.dy) end
+meta.__tostring = function(self) return string.format("%d %d\n%d %d\ndx: %d, dy: %d\nauxdx: %d, auxdy: %d", self[1], self[2], self[3], self[4], self.dx, self.dy, self.auxdx, self.auxdy) end
 
 function M.identity()
     local self = {
         1, 0,
         0, 1,
         dx = 0, dy = 0,
+        auxdx = 0, auxdy = 0,
         scalefactor = 1,
     }
     setmetatable(self, meta)
@@ -44,6 +45,11 @@ function meta.translate(self, dx, dy)
     self.dy = self.dy + dy
 end
 
+function meta.auxtranslate(self, dx, dy)
+    self.auxdx = self.auxdx + dx
+    self.auxdy = self.auxdy + dy
+end
+
 function meta.scale(self, factor)
     self.scalefactor = factor
 end
@@ -73,6 +79,12 @@ function meta.apply_translation(self, pt)
     point._update(pt, x + self.dx, y + self.dy)
 end
 
+function meta.apply_aux_translation(self, pt)
+    local x, y = pt:unwrap()
+    point._update(pt, x + self.auxdx, y + self.auxdy)
+end
+
+--[[
 function meta.apply_transformation_translation_first(self, pt)
     local x, y = pt:unwrap()
     point._update(pt, 
@@ -80,12 +92,13 @@ function meta.apply_transformation_translation_first(self, pt)
         self.scalefactor * (self[3] * (x + self.dx) + self[4] * (y + self.dy))
     )
 end
+--]]
 
 function meta.apply_transformation(self, pt)
     local x, y = pt:unwrap()
     point._update(pt, 
-        self.scalefactor * (self[1] * x + self[2] * y) + self.dx, 
-        self.scalefactor * (self[3] * x + self[4] * y) + self.dy
+        self.scalefactor * (self[1] * x + self[2] * y) + self.dx + self.auxdx, 
+        self.scalefactor * (self[3] * x + self[4] * y) + self.dy + self.auxdy
     )
 end
 
@@ -93,9 +106,14 @@ function meta.apply_inverse_transformation(self, pt)
     local x, y = pt:unwrap()
     local det = self[1] * self[4] - self[2] * self[3]
     point._update(pt, 
-        ((x - self.dx) / self.scalefactor * self[4] - (y - self.dy) / self.scalefactor * self[2]) / det, 
-        ((y - self.dy) / self.scalefactor * self[1] - (x - self.dx) / self.scalefactor * self[3]) / det
+        ((x - self.dx - self.auxdx) / self.scalefactor * self[4] - (y - self.dy) / self.scalefactor * self[2]) / det, 
+        ((y - self.dy - self.auxdy) / self.scalefactor * self[1] - (x - self.dx) / self.scalefactor * self[3]) / det
     )
+end
+
+function meta.apply_inverse_aux_translation(self, pt)
+    local x, y = pt:unwrap()
+    point._update(pt, x - self.auxdx, y - self.auxdy)
 end
 
 function meta.orientation_string(self)
