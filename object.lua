@@ -109,14 +109,14 @@ end
 function meta.foreach_children(self, func, ...)
     for _, child in self:iterate_children() do
         func(child, ...)
-        child:foreach_children(func)
+        child:foreach_children(func, ...)
     end
 end
 
 function meta.foreach_children_links(self, func, ...)
     for _, child in self:iterate_children_links() do
         func(child, ...)
-        child:foreach_children(func)
+        child:foreach_children(func, ...)
     end
 end
 
