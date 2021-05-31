@@ -391,10 +391,8 @@ function meta.get_anchor(self, name)
     local pt = _get_special_anchor(obj, name)
     if pt then
         obj.trans:apply_translation(pt)
-        --obj.trans:apply_aux_translation(pt)
         if self.isproxy then
             self.trans:apply_translation(pt)
-            --self.trans:apply_aux_translation(pt)
         end
         return pt
     else
@@ -408,10 +406,8 @@ function meta.get_anchor(self, name)
         end
     end
     obj.trans:apply_transformation(pt)
-    obj.trans:apply_aux_translation(pt)
     if self.isproxy then
         self.trans:apply_transformation(pt)
-        self.trans:apply_aux_translation(pt)
     end
     return pt
 end
