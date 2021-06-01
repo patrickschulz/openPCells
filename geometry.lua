@@ -16,6 +16,23 @@ function M.rectanglebltr(layer, bl, tr)
     return object.make_from_shape(S)
 end
 
+-- like rectanglebltr, but takes any points
+function M.rectanglepoints(layer, pt1, pt2)
+    local x1, y1 = pt1:unwrap()
+    local x2, y2 = pt2:unwrap()
+    local S
+    if     x1 <= x2 and y1 <= y2 then
+        S = shape.create_rectangle_bltr(layer, point.create(x1, y1), point.create(x2, y2))
+    elseif x1 <= x2 and y1  > y2 then
+        S = shape.create_rectangle_bltr(layer, point.create(x1, y2), point.create(x2, y1))
+    elseif x1  > x2 and y1 <= y2 then
+        S = shape.create_rectangle_bltr(layer, point.create(x2, y1), point.create(x1, y2))
+    elseif x1  > x2 and y1  > y2 then
+        S = shape.create_rectangle_bltr(layer, point.create(x2, y2), point.create(x1, y1))
+    end
+    return object.make_from_shape(S)
+end
+
 function M.cross(layer, width, height, crosssize)
     modassert(width % 2 == 0, "geometry.cross: width must be a multiple of 2")
     modassert(height % 2 == 0, "geometry.cross: height must be a multiple of 2")
