@@ -7,7 +7,8 @@ function parameters()
     pcell.add_parameters(
         { "fingers",       1 },
         { "gatetype", "nand" },
-        { "swapinputs", false }
+        { "swapinputs", false },
+        { "shiftoutput", 0 }
     )
 end
 
@@ -91,7 +92,7 @@ function layout(gate, _P)
     local yinvert = _P.gatetype == "nand" and 1 or -1
     local startpt = harness:get_anchor(string.format("%sSDi1", _P.gatetype == "nand" and "n" or "p")):translate(0, -yinvert * bp.sdwidth / 2)
     local connpts = {
-        harness:get_anchor(string.format("G%d", 2 * _P.fingers)):translate(xpitch / 2, 0),
+        harness:get_anchor(string.format("G%d", 2 * _P.fingers)):translate(xpitch / 2 + _P.shiftoutput, 0),
         0, -- toggle xy
         harness:get_anchor(string.format("%sSDi2", _P.gatetype == "nand" and "p" or "n")):translate(0, yinvert * bp.sdwidth / 2),
     }
