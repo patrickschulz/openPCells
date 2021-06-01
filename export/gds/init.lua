@@ -335,6 +335,23 @@ function M.write_cell_reference(file, identifier, x, y, orientation)
     _write_record(file, recordtypes.ENDEL, datatypes.NONE)
 end
 
+function M.write_cell_array(file, identifier, x, y, orientation, xrep, yrep, xpitch, ypitch)
+    _write_record(file, recordtypes.AREF, datatypes.NONE)
+    _write_record(file, recordtypes.SNAME, datatypes.ASCII_STRING, identifier)
+    if orientation == "fx" then
+        _write_record(file, recordtypes.STRANS, datatypes.BIT_ARRAY, { 0x8000 })
+        _write_record(file, recordtypes.ANGLE, datatypes.EIGHT_BYTE_REAL, { 180 })
+    elseif orientation == "fy" then
+        _write_record(file, recordtypes.STRANS, datatypes.BIT_ARRAY, { 0x8000 })
+    elseif orientation == "R180" then
+        _write_record(file, recordtypes.ANGLE, datatypes.EIGHT_BYTE_REAL, { 180 })
+    end
+    _write_record(file, recordtypes.COLROW, datatypes.TWO_BYTE_INTEGER, { xrep, yrep })
+    _write_record(file, recordtypes.XY, datatypes.FOUR_BYTE_INTEGER, 
+        _unpack_points({ point.create(x, y), point.create(x + xrep * xpitch, y), point.create(x, y + yrep * ypitch) }, __userunit))
+    _write_record(file, recordtypes.ENDEL, datatypes.NONE)
+end
+
 function M.write_port(file, name, layer, where)
     -- FIXME: use correct layer
     _write_record(file, recordtypes.TEXT, datatypes.NONE)
