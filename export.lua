@@ -78,7 +78,7 @@ local function _write_children(file, cell)
     end
 end
 
-function M.write_toplevel(filename, toplevel, fake)
+function M.write_toplevel(filename, technology, toplevel, fake)
     if toplevel:is_empty() then
         error("export: toplevel is empty")
     end
@@ -88,7 +88,7 @@ function M.write_toplevel(filename, toplevel, fake)
     end
     local extension = export.get_extension()
     local file = stringfile.open(string.format("%s.%s", filename, extension))
-    aux.call_if_present(export.at_begin, file)
+    aux.call_if_present(export.at_begin, file, technology)
 
     _write_children(file, toplevel)
 

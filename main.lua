@@ -285,7 +285,7 @@ if not args.noexport then
     export.check()
     local filename = args.filename or "openPCells"
     export.set_options(args.export_options)
-    export.write_toplevel(filename, cell, args.dryrun)
+    export.write_toplevel(filename, args.technology, cell, args.dryrun)
 end
 
 if args.cellinfo then
