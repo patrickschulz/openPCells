@@ -137,15 +137,15 @@ function layout(transistor, _P)
     if _P.drawtopgcut then
         transistor:merge_into_shallow(geometry.rectanglebltr(
             generics.other("gatecut"),
-            point.create(-cutwidth / 2, _P.fwidth / 2 + gateaddtop + _P.cutheight / 2),
-            point.create( cutwidth / 2, _P.fwidth / 2 + gateaddtop - _P.cutheight / 2)
+            point.create(-cutwidth / 2, _P.fwidth / 2 + gateaddtop - _P.cutheight / 2),
+            point.create( cutwidth / 2, _P.fwidth / 2 + gateaddtop + _P.cutheight / 2)
         ))
     end
     if _P.drawbotgcut then
         transistor:merge_into_shallow(geometry.rectanglebltr(
             generics.other("gatecut"),
-            point.create(-cutwidth / 2, -_P.fwidth / 2 - gateaddbot + _P.cutheight / 2),
-            point.create( cutwidth / 2, -_P.fwidth / 2 - gateaddbot - _P.cutheight / 2)
+            point.create(-cutwidth / 2, -_P.fwidth / 2 - gateaddbot - _P.cutheight / 2),
+            point.create( cutwidth / 2, -_P.fwidth / 2 - gateaddbot + _P.cutheight / 2)
         ))
     end
 
