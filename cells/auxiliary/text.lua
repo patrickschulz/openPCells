@@ -1008,13 +1008,12 @@ function parameters()
 end
 
 function layout(text, _P)
-    local x = 0
-    local y = 0
+    local trans = transformationmatrix.identity()
     for i = 1, #_P.text do
         local char = string.sub(string.upper(_P.text), i, i)
         if char == "\n" then
-            x = 0
-            y = y - 1 - _P.leading
+            trans.dx = 0
+            trans.dy = trans.dy - 1 - _P.leading
         else
             local outline = letteroutlines[char]
             if outline then
@@ -1022,8 +1021,8 @@ function layout(text, _P)
                 for _, pt in ipairs(outline) do
                     table.insert(S.points, point.create(_P.scale * pt.x, _P.scale * pt.y))
                 end
-                S:translate(x, y)
-                x = x + S:width() + _P.spacing
+                S:apply_transformation(trans, trans.apply_translation)
+                trans.dx = trans.dx + S:width() + _P.spacing
                 text:add_shape(S)
             end
         end
