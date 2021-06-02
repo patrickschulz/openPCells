@@ -62,7 +62,7 @@ local function _write_cell(file, cell)
                     cell.trans:apply_transformation(origin)
                     local x, y = origin:unwrap()
                     local orientation = child.trans:orientation_string()
-                    export.write_cell_reference(file, child.identifier, x + (ix - 1) * child.xpitch or 0, y + (iy - 1) * child.ypitch or 0, orientation)
+                    export.write_cell_reference(file, child.identifier, x + (ix - 1) * (child.xpitch or 0), y + (iy - 1) * (child.ypitch or 0), orientation)
                 end
             end
         end
