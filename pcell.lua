@@ -355,6 +355,7 @@ function state.create_cellenv(state, cellname, ovrenv)
         string = string,
         table = table,
         marker = marker,
+        transformationmatrix = transformationmatrix,
         dprint = function(...) if state.debug then print(...) end end,
         type = type,
         ipairs = ipairs,
