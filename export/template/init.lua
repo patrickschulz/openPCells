@@ -9,6 +9,10 @@ function M.get_extension()
 end
 
 -- optional
+function M.get_techexport()
+end
+
+-- optional
 function M.set_options(opt)
 end
 
