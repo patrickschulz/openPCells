@@ -201,7 +201,12 @@ local function _make_unique_points(pts)
     end
 end
 
-function M.path(layer, pts, width, miterjoin)
+function M.path(layer, pts, width)
+    local S = shape.create_path(layer, pts, width)
+    return object.make_from_shape(S)
+end
+
+function M.path_polygon(layer, pts, width, miterjoin)
     _make_unique_points(pts)
     if #pts == 2 then -- rectangle
         local x1, y1 = pts[1]:unwrap()
@@ -292,16 +297,6 @@ function M.path_points_yx(startpt, movements)
         xnoty = not xnoty
     end
     return pts
-end
-
-function M.path_xy(layer, pts, width, miterjoin)
-    _modify_point_stream(pts, point.combine_21)
-    return M.path(layer, pts, width, miterjoin)
-end
-
-function M.path_yx(layer, pts, width, miterjoin)
-    _modify_point_stream(pts, point.combine_12)
-    return M.path(layer, pts, width, miterjoin)
 end
 
 function M.any_angle_path(layer, pts, width, grid, miterjoin)

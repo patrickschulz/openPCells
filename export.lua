@@ -38,12 +38,19 @@ end
 
 local function _write_cell(file, cell)
     for _, S in cell:iterate_shapes() do
+        if S:is_type("path") and not export.write_path then
+            S:resolve_path()
+        end
         S:apply_transformation(cell.trans, cell.trans.apply_transformation)
         local layer = export.get_layer(S)
         if S:is_type("polygon") then
             export.write_polygon(file, layer, S.points)
-        else
+        elseif S:is_type("rectangle") then
             export.write_rectangle(file, layer, S.points.bl, S.points.tr)
+        elseif S:is_type("path") then
+            export.write_path(file, layer, S.points, S.width)
+        else
+            moderror(string.format("export: unknown shape type '%s'", S.typ))
         end
     end
     for _, child in cell:iterate_children_links() do

@@ -63,9 +63,10 @@ function layout(gate, _P)
     gate:merge_into_shallow(geometry.rectangle(generics.via(1, 2), bp.sdwidth, bp.sdwidth):translate(gate1:get_anchor("Z")))
     gate:merge_into_shallow(geometry.rectangle(generics.via(1, 2), bp.sdwidth, bp.sdwidth):translate(gate3:get_anchor("B")))
 
-    gate:merge_into_shallow(geometry.path_yx(generics.metal(1), {
-        gate2:get_anchor("Z"), gate3:get_anchor("A")
-    }, bp.sdwidth))
+    gate:merge_into_shallow(geometry.path(generics.metal(1), 
+        geometry.path_points_yx(gate2:get_anchor("Z"), {
+        gate3:get_anchor("A")
+    }), bp.sdwidth))
 
     -- alignmentbox
     gate:inherit_alignment_box(gate1)

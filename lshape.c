@@ -98,6 +98,30 @@ int lshape_create_polygon(lua_State* L)
     return 1;
 }
 
+int lshape_create_path(lua_State* L)
+{
+    lua_newtable(L);
+    // set lpp
+    lua_pushstring(L, "lpp");
+    lua_pushvalue(L, 1); 
+    lua_rawset(L, -3);
+    // set type
+    lua_pushstring(L, "typ");
+    lua_pushstring(L, "path"); 
+    lua_rawset(L, -3);
+    // set points
+    lua_pushstring(L, "points");
+    lua_pushvalue(L, 2);
+    lua_rawset(L, -3);
+    // set width
+    lua_pushstring(L, "width");
+    lua_pushvalue(L, 3);
+    lua_rawset(L, -3);
+    // setmetatable
+    luaL_setmetatable(L, LSHAPEMODULE);
+    return 1;
+}
+
 int open_lshape_lib(lua_State* L)
 {
     // create metatable for shapes
@@ -112,6 +136,7 @@ int open_lshape_lib(lua_State* L)
         { "create_rectangle",      lshape_create_rectangle      },
         { "create_rectangle_bltr", lshape_create_rectangle_bltr },
         { "create_polygon",        lshape_create_polygon        },
+        { "create_path",           lshape_create_path           },
         { NULL,                    NULL                         }
     };
     luaL_setfuncs(L, modfuncs, 0);

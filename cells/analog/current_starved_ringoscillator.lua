@@ -401,7 +401,7 @@ function layout(oscillator, _P)
     )
 
     -- center oscillator
-    oscillator:translate_flat((cmfingers - 2 * _P.numinv * _P.invfingers) * xpitch / 2, 0)
+    oscillator:translate((cmfingers - 2 * _P.numinv * _P.invfingers) * xpitch / 2, 0)
 
     -- place guardring
     local ringwidth = 200

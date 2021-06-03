@@ -320,6 +320,16 @@ function M.write_polygon(file, layer, pts)
     _write_record(file, recordtypes.ENDEL, datatypes.NONE)
 end
 
+function M.write_path(file, layer, pts, width)
+    local ptstream = _unpack_points(pts, __userunit)
+    _write_record(file, recordtypes.PATH, datatypes.NONE)
+    _write_record(file, recordtypes.LAYER, datatypes.TWO_BYTE_INTEGER, { layer.layer })
+    _write_record(file, recordtypes.DATATYPE, datatypes.TWO_BYTE_INTEGER, { layer.purpose})
+    _write_record(file, recordtypes.WIDTH, datatypes.FOUR_BYTE_INTEGER, { width })
+    _write_record(file, recordtypes.XY, datatypes.FOUR_BYTE_INTEGER, ptstream)
+    _write_record(file, recordtypes.ENDEL, datatypes.NONE)
+end
+
 function M.write_cell_reference(file, identifier, x, y, orientation)
     _write_record(file, recordtypes.SREF, datatypes.NONE)
     _write_record(file, recordtypes.SNAME, datatypes.ASCII_STRING, identifier)

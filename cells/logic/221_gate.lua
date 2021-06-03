@@ -66,12 +66,16 @@ function layout(gate, _P)
     pcell.pop_overwrites("logic/base")
 
     -- draw connections
-    gate:merge_into_shallow(geometry.path_yx(generics.metal(1), {
-        gate1:get_anchor("Z"), gate3:get_anchor("B")
-    }, bp.sdwidth))
-    gate:merge_into_shallow(geometry.path_yx(generics.metal(1), {
-        gate2:get_anchor("Z"), gate4:get_anchor("B")
-    }, bp.sdwidth))
+    gate:merge_into_shallow(geometry.path(generics.metal(1), 
+        geometry.path_points_yx(gate1:get_anchor("Z"), { 
+            gate3:get_anchor("B"),
+        }), 
+    bp.sdwidth))
+    gate:merge_into_shallow(geometry.path(generics.metal(1), 
+        geometry.path_points_yx(gate2:get_anchor("Z"), { 
+            gate4:get_anchor("B"),
+        }), 
+    bp.sdwidth))
     gate:merge_into_shallow(geometry.path(generics.metal(2), 
         geometry.path_points_yx(gate3:get_anchor("Z"), {
             (_P.flipconnection and -1 or 1) * (separation / 2 + bp.sdwidth / 2),

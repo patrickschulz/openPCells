@@ -25,7 +25,10 @@ function layout(gate, _P)
     gate:merge_into_shallow(cinv)
 
     -- connections
-    gate:merge_into_shallow(geometry.path_yx(generics.metal(1), { inv:get_anchor("O"), cinv:get_anchor("EP") }, bp.gstwidth))
+    gate:merge_into_shallow(geometry.path(generics.metal(1), 
+        geometry.path_points_yx(inv:get_anchor("O"), { 
+        cinv:get_anchor("EP") 
+        }), bp.gstwidth))
     gate:merge_into_shallow(geometry.path(generics.metal(2), { inv:get_anchor("I"), cinv:get_anchor("EN") }, bp.gstwidth))
     gate:merge_into_shallow(geometry.rectangle(generics.via(1, 2), bp.glength, bp.gstwidth):translate(inv:get_anchor("I")))
     gate:merge_into_shallow(geometry.rectangle(generics.via(1, 2), bp.glength, bp.gstwidth):translate(cinv:get_anchor("EN")))
