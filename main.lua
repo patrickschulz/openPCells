@@ -136,7 +136,7 @@ end
 
 -- read parameters from pfile and merge with command line parameters
 local cellargs = {}
-if args.paramfile then
+if args.paramfile and not args.noparamfile then
     local status, t = pcall(_dofile, args.paramfile)
     if not status then
         print(string.format("could not load parameter file '%s', error: %s", args.paramfile, t))
