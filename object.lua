@@ -114,14 +114,12 @@ function meta.add_child(self, reference, name)
 end
 
 function meta.add_child_link_array(self, identifier, xrep, yrep, xpitch, ypitch)
-    local reference = _get_child_reference(self, identifier)
-    local child = M.create_proxy(nil, reference, identifier)
+    local child = self:add_child_link(identifier)
     child.isarray = true
     child.xrep = xrep
     child.yrep = yrep
     child.xpitch = xpitch
     child.ypitch = ypitch
-    table.insert(self.children, child)
     return child
 end
 
