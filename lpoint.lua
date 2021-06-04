@@ -24,6 +24,12 @@ function meta.__unm(lhs)
     return point.create(-x, -y)
 end
 
+function meta.__concat(lhs, rhs)
+    local x1 = lhs:getx()
+    local y2 = rhs:gety()
+    return point.create(x1, y2)
+end
+
 function meta.scale(self, factor)
     local x, y = self:unwrap()
     point._update(self, x * factor, y * factor)
