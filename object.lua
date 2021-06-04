@@ -109,6 +109,12 @@ function meta.add_child_link(self, identifier)
 end
 
 function meta.add_child(self, reference, name)
+    if not reference then
+        moderror("object.add_child: no cell reference provided")
+    end
+    if not name then
+        moderror("object.add_child: no cell name provided")
+    end
     local identifier = self:add_child_reference(reference, name)
     return self:add_child_link(identifier)
 end
