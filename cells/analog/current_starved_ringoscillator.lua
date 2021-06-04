@@ -413,19 +413,19 @@ function layout(oscillator, _P)
 
     -- place guardring
     local ringwidth = 200
-    oscillator:merge_into_shallow(pcell.create_layout("auxiliary/guardring", { 
+    oscillator:add_child(pcell.create_layout("auxiliary/guardring", { 
         contype = "p",
         fillwell = true,
         ringwidth = ringwidth,
         width = (cmfingers + 2 * _P.numinv * _P.invfingers + 4) * xpitch, 
         height = 6 * _P.separation + _P.pfingerwidth + _P.nfingerwidth + ringwidth
-    }))
-    oscillator:merge_into_shallow(pcell.create_layout("auxiliary/guardring", { 
+    }), "pguardring")
+    oscillator:add_child(pcell.create_layout("auxiliary/guardring", { 
         contype = "n",
         fillwell = false,
         drawdeepwell = true,
         ringwidth = ringwidth,
         width = (cmfingers + 2 * _P.numinv * _P.invfingers + 4) * xpitch + 2 * _P.separation + 2 * ringwidth,
         height = 8 * _P.separation + _P.pfingerwidth + _P.nfingerwidth + ringwidth + 2 * ringwidth
-    }))
+    }), "nguardring")
 end
