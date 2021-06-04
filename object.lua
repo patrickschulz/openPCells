@@ -29,6 +29,7 @@ function M.create_proxy(name, reference, identifier)
         name = name,
         reference = reference,
         identifier = identifier,
+        origin = point.create(0, 0),
         trans = transformationmatrix.identity(),
         isproxy = true
     }
@@ -102,6 +103,7 @@ end
 function meta.add_child_link(self, identifier)
     local reference = _get_child_reference(self, identifier)
     local child = M.create_proxy(nil, reference, identifier)
+    self.trans:apply_inverse_transformation(child.origin)
     table.insert(self.children, child)
     return child
 end

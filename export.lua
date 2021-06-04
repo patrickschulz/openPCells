@@ -55,7 +55,7 @@ local function _write_cell(file, cell)
     end
     for _, child in cell:iterate_children_links() do
         if child.isarray and export.write_cell_array then
-            local origin = point.create(0, 0)
+            local origin = child.origin
             child.trans:apply_transformation(origin)
             cell.trans:apply_transformation(origin)
             local x, y = origin:unwrap()
@@ -64,7 +64,7 @@ local function _write_cell(file, cell)
         else
             for ix = 1, child.xrep or 1 do
                 for iy = 1, child.yrep or 1 do
-                    local origin = point.create(0, 0)
+                    local origin = child.origin
                     child.trans:apply_transformation(origin)
                     cell.trans:apply_transformation(origin)
                     local x, y = origin:unwrap()
