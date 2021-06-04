@@ -37,4 +37,7 @@ function layout(momcap, _P)
         ),
         2, 2 * _P.foffset + _P.fheight + _P.rwidth
     ))
+
+    momcap:add_anchor("plus", point.create(0,   _P.foffset + _P.fheight / 2 + _P.rwidth / 2))
+    momcap:add_anchor("minus", point.create(0, -_P.foffset - _P.fheight / 2 - _P.rwidth / 2))
 end
