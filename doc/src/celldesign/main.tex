@@ -61,10 +61,11 @@ consequences for the use of these functions. We will get into that later.
 
 That is all we have to do for the geometry of the cell, so we merge that into the main cell:
 \lualisting[widthgobble = 4, firstline = 15, lastline = 15]{code/simple_rectangle.lua}
-\luainline{merge_into} is a \emph{method} of objects and needs a little explaining of the object system. As mentioned
+\luainline{merge_into_shallow} is a \emph{method} of objects and needs a little explaining of the object system. As mentioned
 earlier, every geometry function creates what is called an object. An object is a collection of shapes, where each shape is made up of a layer-purpose-pair and
 points (which can currently be interpreted as rectangles or polygons). The cell generation systems expects all created shapes to be merged into the main object
-passed as argument (\luainline{obj} in this case).
+passed as argument (\luainline{obj} in this case). The function postfix \emph{shallow} is a hint towards cell hierarchies, where cells contain children, which
+can again have children and so on. Shallow in this case means that we only regard shapes that are in the referenced cell, not in the children.
 
 This cell can now be created by calling the main program with an appropriate export and technology. Note that there's another manual about that, so we won't get
 into any details here. The simplest call would be something like:
@@ -118,8 +119,8 @@ The rails connecting the fingers are created in a similar manner:
 The \luainline{end} delimits the \luainline{for}-loop.
 
 What remains is the drawing of the vias between the metals. For this we introduce a new \luainline{generics} function: \luainline{generics.via}. It takes two
-arguments for the start- and end-metal for the via stack. We don't have to specify the individual vias between each layer in the stack, this is resolved later by the
-technology translation. The vias are placed in the rails:
+arguments -- one for the start- and one for the end-metal for the via stack. We don't have to specify the individual vias between each layer in the stack, this
+is resolved later by the technology translation. The vias are placed in the rails:
 \lualisting[widthgobble = 4, firstline = 34, lastline = 39]{../../../cells/passive/capacitor/mom.lua}
 With this the pcell is finished, the entire listing is in \texttt{cells/passive/capacitor/mom.lua}.
 
@@ -141,7 +142,7 @@ about how to build the code for cells, the actual points will not be discussed.
 
 After the points are assembled, we can create the path. The cell only draws half of the inductor, so we draw the path twice, one time with mirrored points (notice
 \luainline{util.xmirror(pathpts)} in the second line):
-\lualisting[widthgobble = 8, firstline = 89, lastline = 94]{../../../cells/passive/inductor/octagonal.lua}
+\lualisting[widthgobble = 8, firstline = 90, lastline = 95]{../../../cells/passive/inductor/octagonal.lua}
 The \luainline{geometry.path} function takes four arguments: the layer, the points of the path, the width and whether to use a miter- or a bevel-join. Bevel-join is
 default, so \luainline{true} is specified for a miter-join.
 
@@ -150,14 +151,58 @@ In order to be able to build larger layouts, cells must be reused in hierarchies
 a good decision to build everything from scratch. Therefore, openPCells offers some basic support for such things. We will look at logic gates to illustrate the
 different options. All gates are built from transistors, so we will assume for now that there is a cell to place one. Furthermore, digital designs mostly
 (always?) use a few geometry parameters for all cells, such as the gate length. It makes sense to store this in one place so we can redefine it for all cells in
-a hierarchy, if we want to change that. In the supplied logic cell family (\texttt{cells/logic}), this is handled by the \texttt{base} cell. It is a abstract
+a hierarchy, if we want to change that. In the supplied logic cell family (\texttt{cells/logic}), this is handled by the \texttt{logic/base} cell. It is a abstract
 cell, that is, it does not define a layout function, so it can't be called. But it does store the relevant parameters, which get referenced by the top cells (and
-temporarily changed). Other cells then access the parameters, for instance \texttt{not\_gate.lua}:
-\lualisting[firstline = 1, lastline = 7]{../../../cells/logic/not_gate.lua}
-This cell has only one parameter \texttt{fingers}, but uses the supplied parameters of \texttt{base.lua} for the layout function. These parameters reflect the
-current values, that is if a top cell instantiates the inverter, it can overwrite the values of referenced parameters, affecting all sub cells. This is achieved
-by calling \luainline{pcell.push_overwrites}:
-\lualisting[widthgobble = 4, firstline = 12, lastline = 18]{../../../cells/logic/not_gate.lua}
+temporarily changed). Other cells then access the parameters, for instance \texttt{logic/not\_gate.lua}:
+\lualisting[firstline = 1, lastline = 11]{../../../cells/logic/not_gate.lua}
+This cell has only has a small number of parameters but uses the supplied parameters of \texttt{logic/base.lua} for the layout function. The parameters are used
+implicitly by creating other cells that reference these parameters, and explicitly by accessing them with \luainline{pcell.get_parameters}. In order to do this,
+a cell has to reference that cell with \luainline{pcell.reference_cell}. The referenced parameters reflect the current values, that is if a top cell instantiates the
+inverter, it can overwrite the values of referenced parameters, affecting all sub cells. This is achieved by calling \luainline{pcell.push_overwrites}, which can
+be seen in \texttt{logic/1\_inv\_gate.lua} (basic cell for and/or):
+\lualisting[widthgobble = 4, firstline = 13, lastline = 13]{../../../cells/logic/1_inv_gate.lua}
+Cells that need to prevent parameters being changed from the toplevel have to include guards against that, which is exactly what can be seen in the previous
+listing. The overwrites are stack-based, so the last \luainline{push_overwrites} counts. In \texttt{logic/1\_inv\_gate.lua}, rightdummies can not be changed from
+outside anymore.
+\subsection{Translation, Object Placement and the Alignment Box}
+We already saw the \luainline{translate} object method to move objects. For more complex layouts, a better method exists. Cells can have anchors, that is, points
+at certain places in the layout which can be referenced. You can ask for the location of an anchor from an object (\luainline{get_anchor}) and you can move a
+cell so that the specified anchor lies at a certain point (\luainline{move_anchor}). Let's see an example:
+\lualisting[widthgobble = 8, firstline = 62, lastline = 64]{../../../cells/logic/harness.lua}
+The used anchors have to be present in the specific cell, and it is up to the designer of that cell to provide the needed anchors.
+
+Of course do anchors move if an object is moved, but they also move if the cell is flipped/mirror/rotated etc. This ensures that the anchors are always at the
+right place in the layout. However, in certain cases, the opposite behaviour is useful: If you want to, say, place two digital standard cells next to each other,
+you can use appropriate anchors for left and right (for instance at the leftmost and rightmost source/drain) and align them at these points. This works fine
+until a cell is mirrored at the y-axis. Then the anchor left becomes right and the other way around. This means that cells generating such layouts need to handle
+flipped/rotated/mirrored cells differently, which is a nuisance. There is a special set of anchors for exactly this problem: the alignment box. This box is also
+defined by the cell designer and in effect it provides the special anchors left, right, top, bottom and sensible combinations of those (e.g. topleft, NOT
+leftright). The alignment box undergoes translation, but not rotation/flipping/mirroring. This allows the following (from \texttt{logic/dff.lua}):
+\lualisting[widthgobble = 4, firstline = 75, lastline = 78]{../../../cells/logic/dff.lua}
+Notice the calls in the last two lines, where the cell gets flipped in x direction (mirrored at the y axis) but still the left anchor is used for alignment (the
+cell is placed right of the isogate).
+
+The above example shows another important fact about object transformation: Translation is always applied last (after rotation/flipping/mirroring). This is
+contrary to many other graphical programs, where for instance rotation is applied with the origin is center. In opc, the order of the transformation statements
+does not matter. This is intentional, as this is what is usually needed in layouts and simplifies the pcell code. The other behaviour can always be achieved by
+appropriate translation.
+
+\subsection{Cell Hierarchies}
+Layouts of integrated circuits usually make great use of repetition/reuse of cells. For instance, a shift register uses the same flip flop over and over again.
+Creating \emph{flat} layouts (that is, layouts without any hierarchies) for these cells can be quite ressource-intense, as more shapes have to be calculated by
+opc and the resulting layout is very likely to be larger in file size than a hierarchical one. Therefore, opc supports hierachical layouts. For every sub-cell
+(called a child), a reference is needed that defines the shapes of this child. A child link then connects to that reference. We can see a simple example of this
+in \texttt{logic/1\_inv\_gate.lua}:
+\lualisting[widthgobble = 4, firstline = 14, lastline = 16]{../../../cells/logic/1_inv_gate.lua}
+\luainline{add_child} is an object method and a short cut for creating a reference and the link. For exports, that support children (like GDS), the layout will
+now be hierarchical with one toplevel cell with two children. 
+
+The above example showed how instead of \luainline{merge_into_shallow}, \luainline{add_child} is used to add another cell to a layout. For simple layouts, the
+advantage is mostly negligible, but it pays out for larger layouts. In \texttt{analog/current\_starved\_ringoscillator.lua}, multiple children links are placed:
+\lualisting[widthgobble = 4, firstline = 186, lastline = 193]{../../../cells/analog/current_starved_ringoscillator.lua}
+First, the reference has to be established with an object and a name (\luainline{add_child_reference}). This function returns the actual name that is used to
+refer to this cell, as the name has to be unique. With this name, child links can be added with \luainline{add_child_link}, which returns an proxy object. This
+proxy object behaves like a regular object and knows the same methods, but it has no shapes or children of its own.
 
 \section{Available PCells}
 In the following subsections, all available cells will be documented. The current status is rather a poor one, but work is ongoing.

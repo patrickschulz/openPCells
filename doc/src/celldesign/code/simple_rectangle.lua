@@ -12,5 +12,5 @@ function layout(obj, _P)
     local rect = geometry.rectangle(generics.metal(1), 
         _P.width, _P.height)
     -- merge into main cell
-    obj:merge_into(rect)
+    obj:merge_into_shallow(rect)
 end
