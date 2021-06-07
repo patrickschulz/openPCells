@@ -55,7 +55,7 @@ procedure(OPCWalkCellDir(path prepend)
     let(
         (itemlist item)
         foreach(file getDirFiles(path)
-            unless(file == "." || file == ".."
+            unless(pcreMatchp("^\\." file)
                 if(isFile(lsprintf("%s/%s" path file))
                     then
                         unless(substring(file 1 1) == "_"
@@ -114,11 +114,14 @@ procedure(OPCLayoutAddMenu(args)
         ; execute script
         script = hiCreateMenuItem(?name 'OPCScript ?itemText "Execute Script..." ?callback "OPC call script not yet implemented")
 
+		celllist = OPCWalkCellDir(lsprintf("%s/cells" OPCPath) "")
+		celllist = append(celllist OPCWalkCellDir(lsprintf("/home/pschulz/serial_interface/cells") ""))
+
         ; create cell menu
         cellmenu = hiCreatePulldownMenu(
             'OPCCellMenu
             "foobar"
-            OPCWalkCellDir(lsprintf("%s/cells" OPCPath) "")
+            celllist
         )
         cellitem = hiCreateSliderMenuItem(?name 'OPCCellItem ?itemText "Create Cell..." ?subMenu cellmenu)
         settings = hiCreateMenuItem(?name 'OPCSettings ?itemText "Settings" ?callback "println(\"openPCells Settings\")")
