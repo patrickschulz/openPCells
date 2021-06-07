@@ -6,8 +6,16 @@ function M.get_extension()
     return "il"
 end
 
+local __group = true
+function M.set_options(opt)
+    if opt.nogroup then
+        __group = false
+    end
+end
+
 function M.at_begin(file)
-    file:write([[
+    if __group then
+        file:write([[
 letseq(
     (
         (cv geGetEditCellView())
@@ -15,6 +23,15 @@ letseq(
         shape
     )
 ]])
+    else
+        file:write([[
+let(
+    (
+        (cv geGetEditCellView())
+        shape
+    )
+]])
+    end
 end
 
 function M.at_end(file)
@@ -27,7 +44,9 @@ end
 
 function M.write_rectangle(file, layer, bl, tr)
     file:write(string.format('    shape = dbCreateRect(cv list("%s" "%s") list(%s %s))\n', layer.layer, layer.purpose, bl:format(1000, ":"), tr:format(1000, ":")))
-    file:write("    dbAddFigToFigGroup(group shape)\n")
+    if __group then
+        file:write("    dbAddFigToFigGroup(group shape)\n")
+    end
 end
 
 function M.write_polygon(file, layer, pts)
@@ -36,13 +55,17 @@ function M.write_polygon(file, layer, pts)
         table.insert(ptrstr, pt:format(1000, ":"))
     end
     file:write(string.format('    shape = dbCreatePolygon(cv list("%s" "%s") list(%s))\n', layer.layer, layer.purpose, table.concat(ptrstr, " ")))
-    file:write("    dbAddFigToFigGroup(group shape)\n")
+    if __group then
+        file:write("    dbAddFigToFigGroup(group shape)\n")
+    end
 end
 
 function M.write_port(file, name, layer, where)
     file:write(string.format('    shape = dbCreateLabel(cv list("%s" "%s") %s "%s" "centerCenter" "R0" "roman" 0.1)\n', 
         layer.layer, layer.purpose, where:format(baseunit, ":"), name))
-    file:write("    dbAddFigToFigGroup(group shape)\n")
+    if __group then
+        file:write("    dbAddFigToFigGroup(group shape)\n")
+    end
 end
 
 return M
