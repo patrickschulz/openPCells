@@ -174,7 +174,7 @@ function layout(gate, _P)
         ):translate(-(_P.fingers + bp.rightdummies) * xpitch / 2 + xshift, (bp.pwidth - bp.nwidth) / 2))
         gate:merge_into_shallow(geometry.multiple_xy(
             geometry.rectangle(generics.contact("gate", nil, true), bp.glength, bp.dummycontheight),
-            bp.leftdummies, 2, xpitch, separation + bp.pwidth + bp.nwidth + 2 * bp.powerspace + bp.powerwidth
+            bp.rightdummies, 2, xpitch, separation + bp.pwidth + bp.nwidth + 2 * bp.powerspace + bp.powerwidth
         ):translate( (_P.fingers + bp.leftdummies) * xpitch / 2 + xshift, (bp.pwidth - bp.nwidth) / 2))
     end
 
