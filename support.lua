@@ -17,6 +17,7 @@ end
 function M.listcells(path)
     local cells = {}
     _collect_cells(path, cells)
+    table.sort(cells)
     return cells
 end
 
