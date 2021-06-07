@@ -40,6 +40,11 @@ if args.profile then
     profiler.start()
 end
 
+if args.watch then
+    print("sorry, watch mode is currently not implemented")
+    return 1
+end
+
 -- for random shuffle
 math.randomseed(os.time())
 
