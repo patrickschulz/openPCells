@@ -20,6 +20,7 @@ function parameters()
         { "leftdummies(Number of Left Dummies)",          1 },
         { "rightdummies(Number of Right Dummies)",        1 },
         { "dummycontheight(Dummy Gate Contact Height)",   tech.get_dimension("Minimum M1 Width") },
+        { "drawdummygcut(Draw Dummy Gate Cut)",           false },
         { "compact(Compact Layout)",                      true },
         { "connectoutput",                                true }
     )

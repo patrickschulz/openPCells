@@ -59,13 +59,13 @@ function layout(gate, _P)
     -- left dummy
     if bp.leftdummies > 0 then
         gate:merge_into_shallow(
-            pcell.create_layout("basic/mosfet", { fingers = bp.leftdummies, drawbotgcut = true }
+            pcell.create_layout("basic/mosfet", { fingers = bp.leftdummies, drawtopgcut = bp.drawdummygcut, drawbotgcut = true }
         ):move_anchor("rightbotgate", pmos:get_anchor("leftbotgate")))
     end
     -- rightdummy
     if bp.rightdummies > 0 then
         gate:merge_into_shallow(
-            pcell.create_layout("basic/mosfet", { fingers = bp.rightdummies, drawbotgcut = true }
+            pcell.create_layout("basic/mosfet", { fingers = bp.rightdummies, drawtopgcut = bp.drawdummygcut, drawbotgcut = true }
         ):move_anchor("leftbotgate", pmos:get_anchor("rightbotgate")))
     end
     pcell.pop_overwrites("basic/mosfet")
@@ -91,13 +91,13 @@ function layout(gate, _P)
     -- left dummy
     if bp.leftdummies > 0 then
         gate:merge_into_shallow(
-            pcell.create_layout("basic/mosfet", { fingers = bp.leftdummies, drawtopgcut = true }
+            pcell.create_layout("basic/mosfet", { fingers = bp.leftdummies, drawbotgcut = bp.drawdummygcut, drawtopgcut = true }
         ):move_anchor("righttopgate", nmos:get_anchor("lefttopgate")))
     end
     -- rightdummy
     if bp.rightdummies > 0 then
         gate:merge_into_shallow(
-            pcell.create_layout("basic/mosfet", { fingers = bp.rightdummies, drawtopgcut = true }
+            pcell.create_layout("basic/mosfet", { fingers = bp.rightdummies, drawbotgcut = bp.drawdummygcut, drawtopgcut = true }
         ):move_anchor("lefttopgate", nmos:get_anchor("righttopgate")))
     end
     pcell.pop_overwrites("basic/mosfet")
