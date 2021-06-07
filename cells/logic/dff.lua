@@ -266,8 +266,8 @@ function layout(gate, _P)
         bp.sdwidth))
         -- cinv ~clk connection
         gate:merge_into_shallow(
-            geometry.rectangle(generics.via(1, 2), 2 * bp.glength + bp.gspace, bp.sdwidth)
-            :translate(cinv:get_anchor("EN"):translate(-xpitch / 2, 0)))
+            geometry.rectangle(generics.via(1, 2), 4 * xpitch - bp.sdwidth - 2 * bp.gstspace, bp.sdwidth)
+            :translate(cinv:get_anchor("EN")))
 
         -- fbcinv2 connections
         gate:merge_into_shallow(
@@ -282,10 +282,10 @@ function layout(gate, _P)
             :translate(fbcinv2:get_anchor("EN"):translate(xpitch / 2, 0)))
     end
     -- ~clk connections vias
-    gate:merge_into_shallow(geometry.rectangle(generics.via(1, 2), 2 * bp.glength + bp.gspace, bp.sdwidth):translate(fbcinv1:get_anchor("EP"):translate(-xpitch / 2, 0)))
-    gate:merge_into_shallow(geometry.rectangle(generics.via(1, 2), 2 * bp.glength + bp.gspace, bp.sdwidth):translate(fbcinv1:get_anchor("EN"):translate(-xpitch / 2, 0)))
-    gate:merge_into_shallow(geometry.rectangle(generics.via(1, 2), 2 * bp.glength + bp.gspace, bp.sdwidth):translate(tgate:get_anchor("EP"):translate(-xpitch / 2, 0)))
-    gate:merge_into_shallow(geometry.rectangle(generics.via(1, 2), 2 * bp.glength + bp.gspace, bp.sdwidth):translate(tgate:get_anchor("EN"):translate(-xpitch / 2, 0)))
+    gate:merge_into_shallow(geometry.rectangle(generics.via(1, 2), 3 * xpitch - bp.sdwidth - 2 * bp.gstspace, bp.sdwidth):translate(fbcinv1:get_anchor("EP"):translate(-xpitch / 2, 0)))
+    gate:merge_into_shallow(geometry.rectangle(generics.via(1, 2), 3 * xpitch - bp.sdwidth - 2 * bp.gstspace, bp.sdwidth):translate(fbcinv1:get_anchor("EN"):translate(-xpitch / 2, 0)))
+    gate:merge_into_shallow(geometry.rectangle(generics.via(1, 2), 3 * xpitch - bp.sdwidth - 2 * bp.gstspace, bp.sdwidth):translate(tgate:get_anchor("EP"):translate(-xpitch / 2, 0)))
+    gate:merge_into_shallow(geometry.rectangle(generics.via(1, 2), 3 * xpitch - bp.sdwidth - 2 * bp.gstspace, bp.sdwidth):translate(tgate:get_anchor("EN"):translate(-xpitch / 2, 0)))
 
     -- input connection
     gate:merge_into_shallow(geometry.rectangle(generics.via(1, 2), 
