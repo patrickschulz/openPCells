@@ -194,8 +194,10 @@ if args.origin then
         errprint(string.format("could not parse origin (%s)", args.origin))
         return 1
     end
-    local cx, cy = cell.origin:unwrap()
-    cell:translate(dx - cx, dy - cy)
+    --local cx, cy = cell.origin:unwrap()
+    --cell:translate(dx - cx, dy - cy)
+    -- FIXME: get origin from cell
+    cell:translate(dx, dy)
 end
 
 -- translate
