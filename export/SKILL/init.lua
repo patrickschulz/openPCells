@@ -8,7 +8,7 @@ end
 
 function M.at_begin(file)
     file:write([[
-let(
+letseq(
     (
         (cv geGetEditCellView())
         (group dbCreateFigGroup(cv "Group0" t 0:0 "R0"))
