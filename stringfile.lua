@@ -22,6 +22,11 @@ function meta.write(self, str)
     self.content:append(str)
 end
 
+function meta.writenl(self, str)
+    self.content:append(str)
+    self.content:append("\n")
+end
+
 function meta.writebyte(self, byte)
     self.content:append(string.char(byte))
 end
