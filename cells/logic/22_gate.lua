@@ -23,8 +23,8 @@ function layout(gate, _P)
     local separation = bp.numinnerroutes * bp.gstwidth + (bp.numinnerroutes + 1) * bp.gstspace
 
     -- isolation dummy
-    local isogatemaster = pcell.create_layout("logic/isogate")
-    local isoname = gate:add_child_reference(isogatemaster, "isogate")
+    local isogateref = pcell.create_layout("logic/isogate")
+    local isoname = gate:add_child_reference(isogateref, "isogate")
     local isogate
 
     -- gate 1
@@ -38,8 +38,8 @@ function layout(gate, _P)
 
     -- gate 2
     pcell.push_overwrites("logic/base", { leftdummies = 0, rightdummies = 0 })
-    local gate2master = pcell.create_layout(string.format("logic/%s", _P.gate2))
-    local gate2 = gate:add_child(gate2master, "gate2")
+    local gate2ref = pcell.create_layout(string.format("logic/%s", _P.gate2))
+    local gate2 = gate:add_child(gate2ref, "gate2")
     gate2:move_anchor("left", isogate:get_anchor("right"))
     pcell.pop_overwrites("logic/base")
 
@@ -48,8 +48,8 @@ function layout(gate, _P)
 
     -- gate 3
     pcell.push_overwrites("logic/base", { leftdummies = 0 })
-    local gate3master = pcell.create_layout(string.format("logic/%s", _P.gate3))
-    local gate3 = gate:add_child(gate3master, "gate3")
+    local gate3ref = pcell.create_layout(string.format("logic/%s", _P.gate3))
+    local gate3 = gate:add_child(gate3ref, "gate3")
     gate3:move_anchor("left", isogate:get_anchor("right"))
     pcell.pop_overwrites("logic/base")
 

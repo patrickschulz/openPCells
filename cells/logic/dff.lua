@@ -30,41 +30,41 @@ function layout(gate, _P)
     local routingshift = (bp.gstwidth + bp.gstspace) / 2
 
     -- isolation dummy
-    local isogatemaster = pcell.create_layout("logic/isogate")
-    local isoname = gate:add_child_reference(isogatemaster, "isogate")
+    local isogateref = pcell.create_layout("logic/isogate")
+    local isoname = gate:add_child_reference(isogateref, "isogate")
 
     -- first part of clock inverter/buffer
     pcell.push_overwrites("logic/base", { rightdummies = 1 })
-    local clockinv1master = pcell.create_layout("logic/not_gate", { 
+    local clockinv1ref = pcell.create_layout("logic/not_gate", { 
         inputpos = _P.clockpolarity == "positive" and "lower" or "upper",
         shiftoutput = xpitch / 2 
     })
-    local clockinv1 = gate:add_child(clockinv1master, "clockinv1")
+    local clockinv1 = gate:add_child(clockinv1ref, "clockinv1")
 
     -- second part of clock inverter/buffer
     pcell.push_overwrites("logic/base", { leftdummies = 0 })
-    local clockinv2master = pcell.create_layout("logic/not_gate", { 
+    local clockinv2ref = pcell.create_layout("logic/not_gate", { 
         inputpos = _P.clockpolarity == "positive" and "lower" or "upper",
         shiftoutput = xpitch / 2 
     })
-    local clockinv2 = gate:add_child(clockinv2master, "clockinv2")
+    local clockinv2 = gate:add_child(clockinv2ref, "clockinv2")
     clockinv2:move_anchor("left", clockinv1:get_anchor("right"))
 
     -- first clocked inverter
-    local cinvmaster = pcell.create_layout("logic/cinv", { 
+    local cinvref = pcell.create_layout("logic/cinv", { 
         swapoutputs = true, 
         inputpos = _P.clockpolarity == "positive" and "upper" or "lower", 
         shiftoutput = xpitch * 3 / 2 
     })
-    local cinv = gate:add_child(cinvmaster, "cinv")
+    local cinv = gate:add_child(cinvref, "cinv")
     cinv:move_anchor("left", clockinv2:get_anchor("right"))
 
     -- first feedback inverter cell
     pcell.push_overwrites("logic/base", { rightdummies = 0 })
     pcell.push_overwrites("logic/base", { connectoutput = false })
     pcell.push_overwrites("logic/harness", { shiftpcontactsinner = bp.pwidth / 2, shiftncontactsinner = bp.nwidth / 2 })
-    local fbinv1master = pcell.create_layout("logic/not_gate")
-    local fbinv1 = gate:add_child(fbinv1master, "fbinv1")
+    local fbinv1ref = pcell.create_layout("logic/not_gate")
+    local fbinv1 = gate:add_child(fbinv1ref, "fbinv1")
     fbinv1:move_anchor("left", cinv:get_anchor("right"))
     pcell.pop_overwrites("logic/base")
     pcell.pop_overwrites("logic/harness")
@@ -72,8 +72,8 @@ function layout(gate, _P)
     isogate = gate:add_child_link(isoname)
     isogate:move_anchor("left", fbinv1:get_anchor("right"))
 
-    local fbcinv1master = pcell.create_layout("logic/cinv", { swapinputs = false, swapoutputs = true, shiftoutput = xpitch * 3 / 2 })
-    local fbcinv1 = gate:add_child(fbcinv1master, "fbcinv1")
+    local fbcinv1ref = pcell.create_layout("logic/cinv", { swapinputs = false, swapoutputs = true, shiftoutput = xpitch * 3 / 2 })
+    local fbcinv1 = gate:add_child(fbcinv1ref, "fbcinv1")
     fbcinv1:flipx()
     fbcinv1:move_anchor("left", isogate:get_anchor("right"))
     pcell.pop_overwrites("logic/base")
@@ -82,17 +82,17 @@ function layout(gate, _P)
     isogate:move_anchor("left", fbcinv1:get_anchor("right"))
 
     -- transmission gate
-    local tgatemaster = pcell.create_layout("logic/tgate", { shiftinput = xpitch * 3 / 2, shiftoutput = xpitch / 2 })
-    local tgate = gate:add_child(tgatemaster, "tgate")
+    local tgateref = pcell.create_layout("logic/tgate", { shiftinput = xpitch * 3 / 2, shiftoutput = xpitch / 2 })
+    local tgate = gate:add_child(tgateref, "tgate")
     tgate:move_anchor("left", isogate:get_anchor("right"))
 
     -- second feedback inverter cell
     pcell.push_overwrites("logic/base", { connectoutput = false, rightdummies = 0 })
     pcell.push_overwrites("logic/harness", { shiftpcontactsinner = bp.pwidth / 2, shiftncontactsinner = bp.nwidth / 2 })
-    local fbinv2master = pcell.create_layout("logic/not_gate", { 
+    local fbinv2ref = pcell.create_layout("logic/not_gate", { 
         inputpos = _P.clockpolarity == "positive" and "upper" or "lower"
     })
-    local fbinv2 = gate:add_child(fbinv2master, "fbinv2")
+    local fbinv2 = gate:add_child(fbinv2ref, "fbinv2")
     fbinv2:move_anchor("left", tgate:get_anchor("right"))
     pcell.pop_overwrites("logic/harness")
     pcell.pop_overwrites("logic/base")
@@ -101,13 +101,13 @@ function layout(gate, _P)
     isogate:move_anchor("left", fbinv2:get_anchor("right"))
 
     pcell.push_overwrites("logic/base", { connectoutput = true, rightdummies = 0 })
-    local fbcinv2master = pcell.create_layout("logic/cinv", { 
+    local fbcinv2ref = pcell.create_layout("logic/cinv", { 
         inputpos = _P.clockpolarity == "positive" and "upper" or "lower",
         swapinputs = false, 
         swapoutputs = true, 
         shiftoutput = xpitch * 5 / 2 
     })
-    local fbcinv2 = gate:add_child(fbcinv2master, "fbcinv2")
+    local fbcinv2 = gate:add_child(fbcinv2ref, "fbcinv2")
     fbcinv2:move_anchor("left", isogate:get_anchor("right"))
     fbcinv2:flipx()
     pcell.pop_overwrites("logic/base")
@@ -131,18 +131,18 @@ function layout(gate, _P)
             rightdummies = 1,
             leftdummies = 0
         })
-        local outinv1master = pcell.create_layout("logic/not_gate")
+        local outinv1ref = pcell.create_layout("logic/not_gate")
         pcell.pop_overwrites("logic/base")
-        outinv1 = gate:add_child(outinv1master, "outinv1")
+        outinv1 = gate:add_child(outinv1ref, "outinv1")
         outinv1:move_anchor("left", fbcinv2:get_anchor("right"))
-        local outinv2master = pcell.create_layout("logic/not_gate", { inputpos = "center" })
-        outinv2 = gate:add_child(outinv2master, "outinv2")
+        local outinv2ref = pcell.create_layout("logic/not_gate", { inputpos = "center" })
+        outinv2 = gate:add_child(outinv2ref, "outinv2")
         outinv2:move_anchor("left", outinv1:get_anchor("right"))
         gate:merge_into_shallow(geometry.path(generics.metal(1), { outinv1:get_anchor("O"), outinv2:get_anchor("I") }, bp.sdwidth))
     else
-        local outinv1master = pcell.create_layout("logic/not_gate", { 
+        local outinv1ref = pcell.create_layout("logic/not_gate", { 
         })
-        outinv1 = gate:add_child(outinv1master, "outinv1")
+        outinv1 = gate:add_child(outinv1ref, "outinv1")
         outinv1:move_anchor("left", fbcinv2:get_anchor("right"))
         outinv2 = outinv1 -- simple hack for alignmentbox
     end
