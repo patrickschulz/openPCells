@@ -61,12 +61,13 @@ local function _split_vias(cell)
     end
 end
 
-local function _get_lpp(lpp, export)
+local function _get_lpp(entry, export)
+    local lpp = entry.lpp
     if type(lpp) == "function" then
         lpp = lpp()
     end
     if not lpp[export] then
-        error(string.format("no layer information for export type '%s'", export))
+        moderror(string.format("no layer information for layer '%s' for export type '%s'", entry.name, export))
     end
     return lpp[export]
 end
@@ -75,7 +76,8 @@ local function _do_map(cell, S, entry, export)
     entry = entry.func(S:get_lpp():get())
     if entry.lpp then
         local new = S:copy()
-        new:set_lpp(generics.mapped(entry.name, _get_lpp(entry.lpp, export)))
+        local lpp = _get_lpp(entry, export)
+        new:set_lpp(generics.mapped(entry.name, lpp))
         if entry.left   > 0 or
            entry.right  > 0 or
            entry.top    > 0 or
@@ -89,7 +91,6 @@ end
 
 local function _do_array(cell, S, entry, export)
     entry = entry.func(S:get_lpp():get())
-    local lpp = entry.lpp
     local width = S:width()
     local height = S:height()
     local c = S:center()
@@ -98,8 +99,9 @@ local function _do_array(cell, S, entry, export)
     local xpitch = entry.width + entry.xspace
     local ypitch = entry.height + entry.yspace
     local enlarge = 0
+    local lpp = _get_lpp(entry, export)
     local cut = geometry.multiple_xy(
-        geometry.rectangle(generics.mapped(entry.name, _get_lpp(lpp, export)), entry.width + enlarge, entry.height + enlarge),
+        geometry.rectangle(generics.mapped(entry.name, lpp), entry.width + enlarge, entry.height + enlarge),
         xrep, yrep, xpitch, ypitch
     )
     cut:translate(entry.xshift or 0, entry.yshift or 0)
@@ -115,17 +117,20 @@ local function _translate_layers(cell, export)
     for i, S in cell:iterate_shapes() do
         local layer = S:get_lpp():str()
         local mappings = layermap[layer]
-        if not mappings then
-            error(string.format("no layer information for '%s'\nif the layer is not provided, set it to {}", layer))
-        end
-        for _, entry in ipairs(mappings) do
-            if entry.action == "map" then
-                _do_map(cell, S, entry, export)
-            elseif entry.action == "array" then
-                _do_array(cell, S, entry, export)
+        if not mappings then 
+            if not envlib.get("ignoremissinglayers") then
+                moderror(string.format("no layer information for '%s'\nif the layer is not provided, set it to {}", layer))
             end
+        else
+            for _, entry in ipairs(mappings) do
+                if entry.action == "map" then
+                    _do_map(cell, S, entry, export)
+                elseif entry.action == "array" then
+                    _do_array(cell, S, entry, export)
+                end
+            end
+            cell:remove_shape(i)
         end
-        cell:remove_shape(i)
     end
 end
 
@@ -135,12 +140,13 @@ local function _translate_ports(cell, export)
         local name = string.format("%sport", layer)
         local mappings = layermap[name]
         if not mappings then
-            error(string.format("no layer information for '%s'\nif the layer is not provided, set it to {}", name))
+            moderror(string.format("no layer information for '%s'\nif the layer is not provided, set it to {}", name))
         end
         -- FIXME: current implementation uses the first mapping, this should be improved
         local entry = mappings[1]
         entry = entry.func()
-        port.layer = generics.mapped(entry.name, _get_lpp(entry.lpp, export))
+        local lpp = _get_lpp(entry, export)
+        port.layer = generics.mapped(entry.name, lpp)
     end
 end
 
@@ -173,7 +179,7 @@ end
 function M.get_dimension(dimension)
     local value = constraints[dimension]
     if not value then
-        error(string.format("no dimension '%s' found", dimension))
+        moderror(string.format("no dimension '%s' found", dimension))
     end
     return value
 end
@@ -244,13 +250,13 @@ local function _load_layermap(name)
     }
     local filename = _get_tech_filename(name, "layermap")
     if not filename then
-        error(string.format("no techfile for technology '%s' found", name))
+        moderror(string.format("no techfile for technology '%s' found", name))
     end
     local chunkname = "@techfile"
 
     local reader = _get_reader(filename)
     if not reader then
-        error(string.format("no techfile for technology '%s' found", name))
+        moderror(string.format("no techfile for technology '%s' found", name))
     end
     return _generic_load(
         reader, chunkname,
@@ -266,7 +272,7 @@ local function _load_constraints(name)
 
     local reader = _get_reader(filename)
     if not reader then
-        error(string.format("no constraints for technology '%s' found", name))
+        moderror(string.format("no constraints for technology '%s' found", name))
     end
     return _generic_load(
         reader, chunkname,
@@ -281,7 +287,7 @@ local function _load_config(name)
 
     local reader = _get_reader(filename)
     if not reader then
-        error(string.format("no config for technology '%s' found", name))
+        moderror(string.format("no config for technology '%s' found", name))
     end
     return _generic_load(
         reader, chunkname,

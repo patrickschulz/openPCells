@@ -82,6 +82,10 @@ return {
         help = "set export filter list type (white or black, default black)"
     },
     switch{
+        name = "ignoremissinglayers", long = "--ignore-missing-layers",
+        help = "ignore missing layers in the technology translation. Layers that are not present in the layermap file are handled as if their values was '{}'",
+    },
+    switch{
         name = "mergerectangles", long = "--merge-rectangles",
         help = "merge rectangles"
     },
