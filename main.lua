@@ -9,6 +9,13 @@ if #arg == 0 then
     return 1
 end
 
+-- call testsuite when called with 'test' as first argument
+if arg[1] == "test" then
+    table.remove(arg, 1)
+    dofile(string.format("%s/testsuite/main.lua", _get_opc_home()))
+    return 0
+end
+
 -- parse command line arguments
 local argparse = cmdparser()
 argparse:load_options_from_file("cmdoptions")
