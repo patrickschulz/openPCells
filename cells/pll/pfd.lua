@@ -1,5 +1,7 @@
 function parameters()
-
+    pcell.add_parameters(
+        { "deadzone", false }
+    )
 end
 
 function layout(pfd, _P)
