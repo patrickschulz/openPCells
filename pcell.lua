@@ -483,7 +483,11 @@ local function _collect_parameters(cell, ptype, prefix, str)
         end
         local ptype = ptype or v.ptype
         if envlib.get("humannotmachine") then
-            table.insert(str, string.format("%s %s", v.display or name, val))
+            if v.display then
+                table.insert(str, string.format("%s (%s) %s", name, v.display, val))
+            else
+                table.insert(str, string.format("%s %s", name, val))
+            end
         else
             table.insert(str, string.format("%s:%s:%s:%s:%s", ptype, prefix .. name, v.display or "_NONE_", val, tostring(v.argtype)))
         end
