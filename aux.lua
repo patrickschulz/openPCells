@@ -154,4 +154,15 @@ function M.make_unique_name(name)
     return string.format("%s_%d", name, _usednames[name])
 end
 
+function M.print_tabular(t)
+    local width = 0
+    for k in pairs(t) do
+        width = math.max(width, string.len(tostring(k)))
+    end
+    local fmt = string.format("%%%ds: %%s", width)
+    for k, v in pairs(t) do
+        print(string.format(fmt, k, v))
+    end
+end
+
 return M

@@ -89,6 +89,7 @@ if args.listtechpaths then
 end
 
 -- set environment variables
+envlib.set("debug", args.debug)
 envlib.set("humannotmachine", true) -- default is --human
 if args.machine then
     envlib.set("humannotmachine", false)
@@ -167,6 +168,9 @@ if args.paramfile and not args.noparamfile then
 end
 for k, v in pairs(args.cellargs) do
     cellargs[k] = v
+end
+if envlib.get("debug") then
+    aux.print_tabular(cellargs)
 end
 
 -- output cell parameters AFTER parameters have been processed in order to respect value changes in pfiles

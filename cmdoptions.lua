@@ -169,9 +169,10 @@ return {
         name = "verbose", short = "-V", long = "--verbose",
         help = "enable verbose output"
     },
-    store{ 
+    switch{ 
         name = "debug", short = "-D", long = "--debug",
-        help = "enable debugging output (specify modules separated by commas)"
+        --help = "enable debugging output (specify modules separated by commas)"
+        help = "enable debugging output",
     },
     switch{ 
         name = "check", long = "--check",
