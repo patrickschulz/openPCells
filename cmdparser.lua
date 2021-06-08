@@ -222,7 +222,6 @@ function meta.parse(self, args)
         v = string.gsub(v, "\\n", "\n") -- replace escape sequences (FIXME: only new line currently supported)
         idx = s3
         cellargs[k] = v
-        print(k, v)
     end
 
     self.res.cellargs = cellargs
