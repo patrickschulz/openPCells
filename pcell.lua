@@ -56,6 +56,12 @@ local function _load_cell(state, cellname, env)
         string.format("semantic error in cell '%s'", cellname),
         env
     )
+    -- check if only allowed values are defined
+    for funcname in pairs(env) do 
+        if not aux.any_of(function(v) return v == funcname end, { "config", "parameters", "layout" }) then
+            moderror(string.format("pcell: all defined toplevel values must be one of 'parameters', 'layout' or 'config'. Illegal name: '%s'", funcname))
+        end
+    end
     return env
 end
 
@@ -315,7 +321,8 @@ function state.create_cellenv(state, cellname, ovrenv)
             return func(state, ...)
         end
     end
-    local env = {
+    local env = {}
+    local envmeta = {
         -- "global" functions for posvals entries:
         set = function(...) return { type = "set", values = { ... } } end,
         interval = function(lower, upper) return { type= "interval", values = { lower = lower, upper = upper }} end,
@@ -362,11 +369,13 @@ function state.create_cellenv(state, cellname, ovrenv)
         pairs = pairs,
         error = error,
     }
+    envmeta.__index = envmeta
     if ovrenv then
         for k, v in pairs(ovrenv) do
-            env[k] = v
+            envmeta[k] = v
         end
     end
+    setmetatable(env, envmeta)
     return env
 end
 
