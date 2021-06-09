@@ -267,6 +267,10 @@ function M.set_options(opt)
         __textmode = true
         _write_record = _write_text_record
     end
+
+    if opt.disablepath then
+        M.write_path = nil
+    end
 end
 
 function M.get_layer(S)

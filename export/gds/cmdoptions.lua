@@ -27,4 +27,8 @@ return {
         name = "textmode", short = "-t", long = "--text",
         help = "create a text representation"
     },
+    switch{
+        name = "disablepath", short = "-p", long = "--disable-paths",
+        help = "don't export paths as paths but as polygons/rectangles"
+    },
 }
