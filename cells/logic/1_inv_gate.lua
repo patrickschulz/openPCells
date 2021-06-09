@@ -30,7 +30,7 @@ function layout(gate, _P)
     gate:merge_into_shallow(geometry.path(generics.metal(1), {
         subgate:get_anchor("Z"),
         inv:get_anchor("I"):translate(xpitch - bp.sdwidth / 2 - bp.gstspace, 0)
-    }, bp.sdwidth))
+    }, bp.gstwidth))
 
     gate:inherit_alignment_box(subgate)
     gate:inherit_alignment_box(inv)
