@@ -23,6 +23,7 @@ function parameters()
 end
 
 function layout(gate, _P)
+    local tp = pcell.get_parameters("basic/mosfet")
     local bp = pcell.get_parameters("logic/base")
     local xpitch = bp.gspace + bp.glength
     local xshift = (bp.rightdummies - bp.leftdummies) * xpitch / 2
@@ -38,14 +39,16 @@ function layout(gate, _P)
         drawoutersourcedrain = "none"
     })
 
+    local ext = math.max(tp.cutheight / 2 + bp.gateext, bp.dummycontheight / 2)
+
     -- pmos
     pcell.push_overwrites("basic/mosfet", {
         channeltype = "pmos",
         vthtype = bp.pvthtype,
         fwidth = bp.pwidth,
         gbotext = separation / 2,
-        gtopext = bp.powerspace + bp.powerwidth / 2 + bp.dummycontheight / 2,
-        topgcutoffset = bp.dummycontheight / 2,
+        gtopext = bp.powerspace + bp.powerwidth / 2 + ext,
+        topgcutoffset = ext,
         clipbot = true,
         drawtopgcut = true
     })
@@ -77,8 +80,8 @@ function layout(gate, _P)
         vthtype = bp.nvthtype,
         fwidth = bp.nwidth,
         gtopext = separation / 2,
-        gbotext = bp.powerspace + bp.powerwidth / 2 + bp.dummycontheight / 2,
-        botgcutoffset = bp.dummycontheight / 2,
+        gbotext = bp.powerspace + bp.powerwidth / 2 + ext,
+        botgcutoffset = ext,
         cliptop = true,
         drawbotgcut = true,
     })
