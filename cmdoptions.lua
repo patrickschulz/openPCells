@@ -16,15 +16,15 @@ return {
         name = "export_options", short = "-X", long = "--xopts",
         help = "pass special options to export. This passes the next argument (separated by white space) literally. This means that several arguments have to be grouped, usually by enclosing it in quotations marks (e.g. -X '--foo --bar'). On overview of the available options for the respective export can be found by passing -h, e.g. opc --export gds -X -h"
     },
-    switch{
-        name = "flatten", long = "--flat",
-        help = "flatten hierarchy before exporting"
-    },
     store{
         name = "cellscript", short = "-c", long = "--cellscript",
         help = "execute cell script. With this option, --cell is not needed to create a layout. The layout described in the cell script is generated, so the called file must return an object."
     },
     section("Auxiliary generation functions"),
+    switch{
+        name = "flatten", long = "--flat",
+        help = "flatten hierarchy before exporting. This is only necessary if the selected export supports hierarchies. Otherwise this option is applied anyway"
+    },
     store_multiple{
         name = "techpath", long = "--techpath",
         help = "add (append) searchpath for technology files (can be used multiple times: --techpath foo --techpath bar)"
