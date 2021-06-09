@@ -301,9 +301,9 @@ if args.mergerectangles then
 end
 
 if not args.noexport then
+    export.set_options(args.export_options)
     export.check()
     local filename = args.filename or "openPCells"
-    export.set_options(args.export_options)
     export.write_toplevel(filename, args.technology, cell, args.dryrun)
 end
 
