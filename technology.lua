@@ -89,20 +89,53 @@ local function _do_map(cell, S, entry, export)
     end
 end
 
+local function _get_via_arrayzation(width, height, entry)
+    local via = {}
+    local f = function(cutwidth, cutheight, xspace, yspace, xencl, yencl)
+        local xrep = math.max(1, math.floor((width + xspace - 2 * xencl) / (cutwidth + xspace)))
+        local yrep = math.max(1, math.floor((height + yspace - 2 * yencl) / (cutheight + yspace)))
+        return xrep, yrep
+    end
+    local via = {}
+    if type(entry.width) == "table" then
+        via.xrep = 0
+        via.yrep = 0
+        via.conductivity = 0
+        for i = 1, #entry.width do
+            local xrep, yrep = f(entry.width[i], entry.height[i], entry.xspace[i], entry.yspace[i], entry.xencl[i], entry.yencl[i])
+            if xrep * yrep * entry.conductivity[i] > via.xrep * via.yrep * via.conductivity then
+                via.width = entry.width[i]
+                via.height = entry.height[i]
+                via.xpitch = entry.width[i] + entry.xspace[i]
+                via.ypitch = entry.height[i] + entry.yspace[i]
+                via.xrep = xrep
+                via.yrep = yrep
+                via.conductivity = entry.conductivity[i]
+            end
+        end
+    else
+        local xrep, yrep = f(entry.width, entry.height, entry.xspace, entry.yspace, entry.xencl, entry.yencl)
+        via.width = entry.width
+        via.height = entry.height
+        via.xpitch = entry.width + entry.xspace
+        via.ypitch = entry.height + entry.yspace
+        via.xrep = xrep
+        via.yrep = yrep
+    end
+    return via
+end
+
 local function _do_array(cell, S, entry, export)
     entry = entry.func(S:get_lpp():get())
     local width = S:width()
     local height = S:height()
     local c = S:center()
-    local xrep = math.max(1, math.floor((width + entry.xspace - 2 * entry.xencl) / (entry.width + entry.xspace)))
-    local yrep = math.max(1, math.floor((height + entry.yspace - 2 * entry.yencl) / (entry.height + entry.yspace)))
-    local xpitch = entry.width + entry.xspace
-    local ypitch = entry.height + entry.yspace
+    local via = _get_via_arrayzation(width, height, entry)
     local enlarge = 0
     local lpp = _get_lpp(entry, export)
     local cut = geometry.multiple_xy(
-        geometry.rectangle(generics.mapped(entry.name, lpp), entry.width + enlarge, entry.height + enlarge),
-        xrep, yrep, xpitch, ypitch
+        geometry.rectangle(generics.mapped(entry.name, lpp), via.width + enlarge, via.height + enlarge),
+        via.xrep, via.yrep, via.xpitch, via.ypitch
     )
     cut:translate(entry.xshift or 0, entry.yshift or 0)
 
@@ -237,6 +270,7 @@ local function _load_layermap(name)
                             yspace = entry.yspace,
                             xencl = entry.xencl,
                             yencl = entry.yencl,
+                            conductivity = entry.conductivity
                         }
                     end,
                 }
