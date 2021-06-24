@@ -52,8 +52,10 @@ function layout(gate, _P)
 
     -- first clocked inverter
     local cinvref = pcell.create_layout("logic/cinv", { 
+        splitenables = true, -- TODO
         swapoutputs = true, 
-        inputpos = "center",
+        inputpos = "upper",
+        enableppos = "center",
         shiftoutput = xpitch * 3 / 2 
     })
     local cinv = gate:add_child(cinvref, "cinv")
@@ -222,15 +224,17 @@ function layout(gate, _P)
     -- cinv clk connection
     gate:merge_into_shallow(geometry.rectanglebltr(generics.metal(1),
         (clockinv2:get_anchor("O") .. cinv:get_anchor(fbcinvanchor2)):translate(0, -bp.gstwidth / 2),
-        cinv:get_anchor(fbcinvanchor2):translate(2 * xpitch - bp.sdwidth / 2 - bp.gstspace, bp.gstwidth / 2)
+        (fbinv1:get_anchor("I") .. cinv:get_anchor(fbcinvanchor2)):translate(-bp.sdwidth / 2 - bp.gstspace, bp.gstwidth / 2)
     ))
     -- cinv ~clk connection
-    gate:merge_into_shallow(
-        geometry.rectangle(generics.via(1, 2, true), 4 * xpitch - bp.sdwidth - 2 * bp.gstspace, bp.sdwidth)
-        :translate(cinv:get_anchor(fbcinvanchor1)))
-    gate:merge_into_shallow(
-        geometry.rectangle(generics.metal(1), 4 * xpitch - bp.sdwidth - 2 * bp.gstspace, bp.gstwidth)
-        :translate(cinv:get_anchor(fbcinvanchor1)))
+    gate:merge_into_shallow(geometry.rectanglebltr(generics.via(1, 2, true), 
+        (clockinv2:get_anchor("O") .. cinv:get_anchor(fbcinvanchor1)):translate(bp.sdwidth / 2 + bp.gstspace, -bp.gstwidth / 2),
+        (fbinv1:get_anchor("I") .. cinv:get_anchor(fbcinvanchor1)):translate(-bp.sdwidth / 2 - bp.gstspace, bp.gstwidth / 2)
+    ))
+    gate:merge_into_shallow(geometry.rectanglebltr(generics.metal(1), 
+        (clockinv2:get_anchor("O") .. cinv:get_anchor(fbcinvanchor1)):translate(bp.sdwidth / 2 + bp.gstspace, -bp.gstwidth / 2),
+        (fbinv1:get_anchor("I") .. cinv:get_anchor(fbcinvanchor1)):translate(-bp.sdwidth / 2 - bp.gstspace, bp.gstwidth / 2)
+    ))
 
     -- fbcinv2 connections
     gate:merge_into_shallow(
@@ -262,12 +266,14 @@ function layout(gate, _P)
     end
 
     -- input connection
-    gate:merge_into_shallow(geometry.rectangle(generics.via(1, 2, true), 
-        4 * xpitch - bp.sdwidth - 2 * bp.gstspace, bp.gstwidth
-    ):translate(cinv:get_anchor("I"):translate(xpitch, 0)))
-    gate:merge_into_shallow(geometry.rectangle(generics.metal(1), 
-        4 * xpitch - bp.sdwidth - 2 * bp.gstspace, bp.gstwidth
-    ):translate(cinv:get_anchor("I"):translate(xpitch, 0)))
+    gate:merge_into_shallow(geometry.rectanglebltr(generics.via(1, 2, true),
+        (clockinv2:get_anchor("O") .. cinv:get_anchor("I")):translate(bp.sdwidth / 2 + bp.gstspace, -bp.gstwidth / 2),
+        (fbinv1:get_anchor("I") .. cinv:get_anchor("I")):translate(-bp.sdwidth / 2 - bp.gstspace, bp.gstwidth / 2)
+    ))
+    gate:merge_into_shallow(geometry.rectanglebltr(generics.metal(1),
+        (clockinv2:get_anchor("O") .. cinv:get_anchor("I")):translate(bp.sdwidth / 2 + bp.gstspace, -bp.gstwidth / 2),
+        (fbinv1:get_anchor("I") .. cinv:get_anchor("I")):translate(-bp.sdwidth / 2 - bp.gstspace, bp.gstwidth / 2)
+    ))
     gate:merge_into_shallow(geometry.path(generics.metal(2), {
         cinv:get_anchor("I"):translate(3 * xpitch - bp.gstspace - bp.sdwidth / 2, 0),
         point.combine_21(cinv:get_anchor("I"), clockinv1:get_anchor("I"))
