@@ -44,7 +44,8 @@ function layout(gate, _P)
     -- second part of clock inverter/buffer
     pcell.push_overwrites("logic/base", { leftdummies = 0 })
     local clockinv2ref = pcell.create_layout("logic/not_gate", { 
-        inputpos = _P.clockpolarity == "positive" and "lower" or "upper",
+        --inputpos = _P.clockpolarity == "positive" and "lower" or "upper",
+        inputpos = "center",
         shiftoutput = xpitch / 2 
     })
     local clockinv2 = gate:add_child(clockinv2ref, "clockinv2")
@@ -207,7 +208,8 @@ function layout(gate, _P)
     }), bp.sdwidth))
     gate:merge_into_shallow(geometry.path(generics.metal(2), 
         geometry.path_points_xy(
-            clockinv1:get_anchor("O") .. fbcinv2:get_anchor(fbcinvanchor1), {
+            clockinv1:get_anchor("O") .. clockinv2:get_anchor("I"), {
+            (clockinv2:get_anchor("I") .. cinv:get_anchor(fbcinvanchor1)):translate(xpitch, 0),
             fbcinv1:get_anchor(fbcinvanchor2):translate(-2 * xpitch, 0),
             outinv1:get_anchor("I"):translate(-2 * xpitch, 0),
             0,
@@ -217,9 +219,15 @@ function layout(gate, _P)
     gate:merge_into_shallow(
         geometry.rectangle(generics.via(1, 2), 2 * bp.glength + bp.gspace, bp.sdwidth)
         :translate(clockinv2:get_anchor(clockinvanchor1):translate(0, -yinvert * bp.sdwidth / 2)))
-    gate:merge_into_shallow(
-        geometry.rectangle(generics.via(1, 2), bp.sdwidth + xpitch, bp.gstwidth)
-        :translate(point.combine_12(clockinv1:get_anchor("O"), tgate:get_anchor("EN")):translate(xpitch / 2, 0)))
+    --gate:merge_into_shallow(
+    --    geometry.rectangle(generics.via(1, 2), bp.sdwidth + xpitch, bp.gstwidth)
+    --    :translate(point.combine_12(clockinv1:get_anchor("O"), tgate:get_anchor("EN")):translate(xpitch / 2, 0)))
+
+    -- clockinv1 to clockinv2 connection
+    gate:merge_into_shallow(geometry.rectanglebltr(generics.via(1, 2), 
+        (clockinv1:get_anchor("O") .. clockinv2:get_anchor("I")):translate(0, -bp.gstwidth / 2),
+        clockinv2:get_anchor("I"):translate(xpitch - bp.sdwidth / 2 - bp.gstspace, bp.gstwidth / 2)
+    ))
 
     -- cinv clk connection
     gate:merge_into_shallow(geometry.rectanglebltr(generics.metal(1),
