@@ -165,13 +165,10 @@ function meta.add_shapes(self, shapes)
     end
 end
 
-function meta.merge_into_shallow(self, other, opttrans)
+function meta.merge_into_shallow(self, other)
     for _, S in other:iterate_shapes() do
         local new = self:add_shape(S)
         new:apply_transformation(other.trans, other.trans.apply_transformation)
-        if opttrans then
-            new:apply_transformation(opttrans, opttrans.apply_transformation)
-        end
     end
 end
 
@@ -181,7 +178,12 @@ function meta.flatten(self)
         local obj = child.reference
         obj:copy() -- FIXME: is copy necessary?
         obj:flatten()
-        self:merge_into_shallow(obj, transformationmatrix.chain(self.trans, child.trans))
+        for _, S in obj:iterate_shapes() do
+            local new = self:add_shape(S)
+            new:apply_transformation(self.trans, self.trans.apply_transformation)
+            new:apply_transformation(child.trans, child.trans.apply_transformation)
+            new:apply_transformation(obj.trans, obj.trans.apply_transformation)
+        end
     end
     -- remove children
     self.children = { lookup = {} }
