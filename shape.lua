@@ -49,6 +49,17 @@ function shape.apply_transformation(self, matrix, func)
     elseif self.typ == "rectangle" then
         func(matrix, self.points.bl)
         func(matrix, self.points.tr)
+        local blx, bly = self.points.bl:unwrap()
+        local trx, try = self.points.tr:unwrap()
+        if blx > trx then
+            if bly > try then
+                point._update(self.points.bl, trx, try)
+                point._update(self.points.tr, blx, bly)
+            else
+                point._update(self.points.bl, trx, bly)
+                point._update(self.points.tr, blx, try)
+            end
+        end
     else
         moderror(string.format("shape.apply_transformation: unknown type '%s'", self.typ))
     end
