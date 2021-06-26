@@ -179,8 +179,7 @@ function meta.flatten(self)
         obj:copy() -- FIXME: is copy necessary?
         obj:flatten()
         for _, S in obj:iterate_shapes() do
-            local new = self:add_shape(S)
-            new:apply_transformation(self.trans, self.trans.apply_transformation)
+            local new = self:add_raw_shape(S)
             new:apply_transformation(child.trans, child.trans.apply_transformation)
             new:apply_transformation(obj.trans, obj.trans.apply_transformation)
         end
