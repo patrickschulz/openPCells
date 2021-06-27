@@ -270,6 +270,8 @@ if args.drawalignmentbox then
     end
 end
 
+technology.prepare(cell)
+
 -- filter layers
 if args.layerfilter then
     -- filter toplevel (flat shapes)
