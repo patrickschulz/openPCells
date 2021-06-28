@@ -193,14 +193,22 @@ end
 
 local function _translate(cell, export)
     -- translate cell itself
-    _translate_metals(cell)
-    _split_vias(cell)
-    _place_via_conductors(cell, export)
     _translate_layers(cell, export)
     _fix_to_grid(cell)
     -- translate children
     for _, child in cell:iterate_children() do
         _translate(child, export)
+    end
+end
+
+function M.prepare(cell)
+    -- prepare cell itself
+    _translate_metals(cell)
+    _split_vias(cell)
+    _place_via_conductors(cell, export)
+    -- prepare children
+    for _, child in cell:iterate_children() do
+        M.prepare(child)
     end
 end
 

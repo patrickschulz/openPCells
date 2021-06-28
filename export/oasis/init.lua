@@ -137,7 +137,7 @@ end
 
 -- public interface
 function M.get_extension()
-    return "oasis"
+    return "oas"
 end
 
 function M.get_techexport()
