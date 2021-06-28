@@ -32,6 +32,7 @@ function layout(gate, _P)
     -- isolation dummy
     local isogateref = pcell.create_layout("logic/isogate")
     local isoname = gate:add_child_reference(isogateref, "isogate")
+    local isogate
 
     -- first part of clock inverter/buffer
     pcell.push_overwrites("logic/base", { rightdummies = 1 })
