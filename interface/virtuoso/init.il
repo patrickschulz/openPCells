@@ -49,28 +49,6 @@ procedure(OPCCreateCell(w done pts)
                         printf("opc: delete %s.il" OPCFilename)
                         deleteFile(lsprintf("%s.il" OPCFilename)) ; clean up after ourselves
                     )
-                    /*
-	                OPCCommand = lsprintf(
-	                    "%s/%s --technology %s --export SKILL --cell %s --origin '(%d, %d)' -f %s %s" 
-	                    OPCPath OPCExec OPCTech OPCCell 
-	                    fix(1000 * xCoord(OPCOrigin)) fix(1000 * yCoord(OPCOrigin)) 
-	                    OPCFilename OPCArgs
-	                )
-	                printf("calling opc:\n  %s\n" OPCCommand)
-	                pid = ipcBeginProcess(OPCCommand)
-	                ipcWait(pid) ; wait for process to finish
-	                exitstatus = ipcGetExitStatus(pid)
-	                if(exitstatus != 0
-	                    then 
-	                        printf("generator exited with status %d. Message:" exitstatus)
-	                        printf("%s" ipcReadProcess(pid))
-	                    else
-                            printf("opc: load %s.il" OPCFilename)
-	                        load(lsprintf("%s.il" OPCFilename))
-                            printf("opc: delete %s.il" OPCFilename)
-                            deleteFile(lsprintf("%s.il" OPCFilename)) ; clean up after ourselves
-	                ) ; if exitstatus
-                    */
 	        	else 
 	        		println("cellview not in editing mode")
             ) ; if mode == "a"
@@ -149,29 +127,16 @@ procedure(OPCUpdateCallback()
             (libPath cv->lib->readPath)
             (cellName cv->cellName)
             (OPCFilename "openPCells")
-            path
+            path OPCArgs
         )
         path = lsprintf("%s/%s/layout/layout.lua" libPath cellName)
-        OPCCommand = lsprintf(
-            "%s/%s --technology %s --export SKILL --cellscript %s -f %s"
-            OPCPath OPCExec OPCTech path
-            OPCFilename
+        OPCArgs = lsprintf("--cellscript %s -f %s" path OPCFilename)
+        when(OPCCall(OPCArgs)
+            printf("opc: load %s.il" OPCFilename)
+            load(lsprintf("%s.il" OPCFilename))
+            printf("opc: delete %s.il" OPCFilename)
+            deleteFile(lsprintf("%s.il" OPCFilename)) ; clean up after ourselves
         )
-        printf("calling opc:\n  %s\n" OPCCommand)
-        pid = ipcBeginProcess(OPCCommand)
-        ipcWait(pid) ; wait for process to finish
-        exitstatus = ipcGetExitStatus(pid)
-        if(exitstatus != 0
-            then 
-                printf("generator exited with status %d. Message:" exitstatus)
-                printf("%s" ipcReadProcess(pid))
-            else
-                foreach(shape cv->shapes dbDeleteObject(shape))
-                printf("opc: load %s.il" OPCFilename)
-                load(lsprintf("%s.il" OPCFilename))
-                printf("opc: delete %s.il" OPCFilename)
-                deleteFile(lsprintf("%s.il" OPCFilename)) ; clean up after ourselves
-        ) ; if exitstatus
     )
 ) ; procedure
 
