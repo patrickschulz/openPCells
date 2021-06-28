@@ -1,6 +1,6 @@
 return {
     switch{
-        name = "nogroup", short = "-g", long = "--no-group",
-        help = "don't create a figure group where all shapes are collected"
+        name = "group", short = "-g", long = "--group",
+        help = "create a figure group where all shapes are collected"
     },
 }

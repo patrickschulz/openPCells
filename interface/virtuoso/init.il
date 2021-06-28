@@ -1,3 +1,25 @@
+procedure(OPCCall(args)
+    let(
+        ()
+        OPCCommand = lsprintf(
+            "%s/%s --technology %s --export SKILL %s"
+            OPCPath OPCExec OPCTech args
+        )
+        printf("calling opc:\n  %s\n" OPCCommand)
+        pid = ipcBeginProcess(OPCCommand)
+        ipcWait(pid) ; wait for process to finish
+        exitstatus = ipcGetExitStatus(pid)
+        if(exitstatus != 0
+            then 
+                printf("generator exited with status %d. Message:" exitstatus)
+                printf("%s" ipcReadProcess(pid))
+                nil
+            else
+                t
+        ) ; if exitstatus
+    ) ; let
+)
+
 procedure(OPCCreateCell(w done pts)
     let(
         (
@@ -9,15 +31,27 @@ procedure(OPCCreateCell(w done pts)
         when(done
             if(cv->mode == "a" || cv->mode == "w" ; check if cell is open for editing
             	then
-                    OPCArgs = ""
+	                ; 'OPCCell' is defined one level above (in OPCPlaceCell)
+	                OPCArgs = lsprintf(
+	                    "--cell %s --origin '(%d, %d)' -f %s" 
+	                    OPCCell 
+	                    fix(1000 * xCoord(OPCOrigin)) fix(1000 * yCoord(OPCOrigin)) 
+	                    OPCFilename
+	                )
 	                foreach(field OPCParamForm->fieldList
 	                    unless(get(OPCParamForm field)->value == get(OPCParamForm field)->defValue
 	                        OPCArgs = lsprintf("%s %s" OPCArgs lsprintf("%s=%A" field get(OPCParamForm field)->value))
 	                    )
 	                )
-	                ; 'OPCCell' is defined one level above (in OPCPlaceCell)
+                    when(OPCCall(OPCArgs)
+                        printf("opc: load %s.il" OPCFilename)
+                        load(lsprintf("%s.il" OPCFilename))
+                        printf("opc: delete %s.il" OPCFilename)
+                        deleteFile(lsprintf("%s.il" OPCFilename)) ; clean up after ourselves
+                    )
+                    /*
 	                OPCCommand = lsprintf(
-	                    "%s/%s --technology %s --export SKILL -X -g --cell %s --origin '(%d, %d)' -f %s %s" 
+	                    "%s/%s --technology %s --export SKILL --cell %s --origin '(%d, %d)' -f %s %s" 
 	                    OPCPath OPCExec OPCTech OPCCell 
 	                    fix(1000 * xCoord(OPCOrigin)) fix(1000 * yCoord(OPCOrigin)) 
 	                    OPCFilename OPCArgs
@@ -36,6 +70,7 @@ procedure(OPCCreateCell(w done pts)
                             printf("opc: delete %s.il" OPCFilename)
                             deleteFile(lsprintf("%s.il" OPCFilename)) ; clean up after ourselves
 	                ) ; if exitstatus
+                    */
 	        	else 
 	        		println("cellview not in editing mode")
             ) ; if mode == "a"
@@ -118,7 +153,7 @@ procedure(OPCUpdateCallback()
         )
         path = lsprintf("%s/%s/layout/layout.lua" libPath cellName)
         OPCCommand = lsprintf(
-            "%s/%s --technology %s --export SKILL -X -g --cellscript %s -f %s"
+            "%s/%s --technology %s --export SKILL --cellscript %s -f %s"
             OPCPath OPCExec OPCTech path
             OPCFilename
         )

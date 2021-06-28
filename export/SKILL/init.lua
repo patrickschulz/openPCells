@@ -6,10 +6,10 @@ function M.get_extension()
     return "il"
 end
 
-local __group = true
+local __group = false
 function M.set_options(opt)
-    if opt.nogroup then
-        __group = false
+    if opt.group then
+        __group = true
     end
 end
 
