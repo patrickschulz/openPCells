@@ -132,6 +132,7 @@ procedure(OPCUpdateCallback()
         path = lsprintf("%s/%s/layout/layout.lua" libPath cellName)
         OPCArgs = lsprintf("--cellscript %s -f %s" path OPCFilename)
         when(OPCCall(OPCArgs)
+            foreach(shape cv->shapes dbDeleteObject(shape))
             printf("opc: load %s.il" OPCFilename)
             load(lsprintf("%s.il" OPCFilename))
             printf("opc: delete %s.il" OPCFilename)
@@ -148,7 +149,7 @@ procedure(OPCLayoutAddMenu(args)
         separator = hiCreateSeparatorMenuItem(?name 'OPCLayoutMenuSeparator)
 
         ; update design
-        update = hiCreateMenuItem(?name 'OPCCellScript ?itemText "Update Design" ?callback "OPCUpdateCallback()")
+        update = hiCreateMenuItem(?name 'OPCCellScript ?itemText "Update Design (removes all shapes!)" ?callback "OPCUpdateCallback()")
 
         separator = hiCreateSeparatorMenuItem(?name 'OPCLayoutMenuSeparator)
 
