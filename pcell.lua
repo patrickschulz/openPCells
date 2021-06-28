@@ -135,6 +135,7 @@ local function _set_parameter_function(state, cellname, name, value, backup, eva
     backup[name] = p.func:get()
     -- important: use :replace(), don't create a new function object.
     -- Otherwise parameter binding does not work, because bound parameters link to the original function object
+    -- TODO: parameter binding is deprecated/does not exist any more. Is this comment/method still needed?
     p.func:replace(function() return value end)
 end
 
@@ -158,7 +159,9 @@ local function _process_input_parameters(state, cellname, cellargs, evaluate, ov
             if arg.parent then
                 _set_parameter_function(state, arg.parent, arg.name, arg.value, {}, evaluate, overwrite)
             else
-                _set_parameter_function(state, cellname, arg.name, arg.value, backup, evaluate, overwrite)
+                if cellname then -- can be called without a cellname to update only parent parameters
+                    _set_parameter_function(state, cellname, arg.name, arg.value, backup, evaluate, overwrite)
+                end
             end
         end
     end
@@ -408,6 +411,20 @@ local function _find_cell_traceback()
         end
         level = level + 1
     end
+end
+
+function M.update_other_cell_parameters(cellargs, evaluate)
+    local overwrite = false -- ?? TODO
+    for name, arg in pairs(cellargs) do
+        -- call with cellname == nil, only update parent parameters
+        _process_input_parameters(state, nil, cellargs, evaluate, false)
+    end
+end
+
+function M.update_cell_parameters(cellname, cellargs, evaluate)
+    local cell = _get_cell(state, cellname) -- load cell if not loaded
+    local parameters, backup = _get_parameters(state, cellname, cellname, cellargs, evaluate) -- cellname needs to be passed twice
+    _restore_parameters(state, cellname, backup)
 end
 
 function M.create_layout(cellname, cellargs, evaluate)
