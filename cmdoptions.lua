@@ -98,8 +98,12 @@ return {
         help = "format info output (parameters, cell lists etc.) for machines (computer). Use this for parsing the data for interfaces"
     },
     store{ 
-        name = "separator", long  = "--separator",
+        name = "separator", long = "--separator",
         help = "cell parameter separator (default \\n)"
+    },
+    store{
+        name = "seed", long = "--seed",
+        help = "set seed for random functions for reproducible layout generation"
     },
     section("Layout debugging functions"),
     switch{

@@ -46,7 +46,11 @@ if args.watch then
 end
 
 -- for random shuffle
-math.randomseed(os.time())
+if args.seed then
+    math.randomseed(args.seed)
+else
+    math.randomseed(os.time())
+end
 
 -- set default path for pcells
 pcell.append_cellpath(string.format("%s/cells", _get_opc_home()))
