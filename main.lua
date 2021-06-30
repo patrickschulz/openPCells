@@ -2,10 +2,10 @@
 if #arg == 0 then
     errprint("This is the openPCell layout generator.")
     errprint("To generate a layout, you need to pass the technology, the export type and a cellname.")
-    errprint("You can find out more about the available command line options by running 'opc -h'.")
     errprint("Example:")
     errprint("         opc --technology skywater130 --export gds --cell logic/not_gate")
     errprint()
+    errprint("You can find out more about the available command line options by running 'opc -h'.")
     return 1
 end
 
