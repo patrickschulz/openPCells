@@ -26,15 +26,16 @@ function layout(gate, _P)
         pcontactpos = contactpos,
         ncontactpos = contactpos,
     })
-    gate:merge_into_update_alignmentbox(harness)
+    gate:merge_into_shallow(harness)
+    gate:inherit_alignment_box(harness)
 
     -- gate straps
     if _P.fingers > 1 then
-        gate:merge_into(geometry.path(
+        gate:merge_into_shallow(geometry.path(
             generics.metal(1), { harness:get_anchor("G1upper"), harness:get_anchor(string.format("G%dupper", _P.fingers)) },
             bp.gstwidth
         ))
-        gate:merge_into(geometry.path(
+        gate:merge_into_shallow(geometry.path(
             generics.metal(1), { harness:get_anchor("G1lower"), harness:get_anchor(string.format("G%dlower", _P.fingers)) },
             bp.gstwidth
         ))
@@ -42,7 +43,7 @@ function layout(gate, _P)
 
     -- signal transistors source connections
     local n = _P.fingers + (_P.fingers % 2 == 0 and 1 or 0)
-    gate:merge_into(geometry.path(generics.metal(1), geometry.path_points_xy(
+    gate:merge_into_shallow(geometry.path(generics.metal(1), geometry.path_points_xy(
         harness:get_anchor(string.format("pSDo%d", n)):translate(0, -bp.sdwidth / 2), {
             point.combine_12(harness:get_anchor(string.format("pSDo%d", n)), harness:get_anchor(string.format("pSDi%d", n + 1))):translate(0, bp.sdwidth / 2),
             harness:get_anchor("G1upper"):translate(-xpitch / 2 - _P.shiftinput, 0),
@@ -53,7 +54,7 @@ function layout(gate, _P)
 
     -- signal transistors drain connections
     if bp.connectoutput then
-        gate:merge_into(geometry.path(generics.metal(1), geometry.path_points_xy(
+        gate:merge_into_shallow(geometry.path(generics.metal(1), geometry.path_points_xy(
             harness:get_anchor("pSDi2"):translate(0, bp.sdwidth / 2), {
                 harness:get_anchor(string.format("G%dlower", _P.fingers)):translate(xpitch / 2 + _P.shiftoutput, 0),
                 0, -- toggle xy

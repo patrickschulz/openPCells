@@ -9,7 +9,8 @@ end
 -- define layout
 function layout(obj, _P)
     -- create the shape
-    local rect = geometry.rectangle(generics.metal(1), width, height)
+    local rect = geometry.rectangle(generics.metal(1), 
+        _P.width, _P.height)
     -- merge into main cell
-    obj:merge_into(rect)
+    obj:merge_into_shallow(rect)
 end

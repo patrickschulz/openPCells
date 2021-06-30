@@ -1,10 +1,10 @@
 function parameters()
     pcell.add_parameters({ "fingers(Number of Fingers)", { 4, 4 }, argtype = "numtable" })
-    pcell.reference_cell("basic/transistor")
+    pcell.reference_cell("basic/mosfet")
 end
 
 function layout(array, _P)
-    local bp = pcell.get_parameters("basic/transistor")
+    local bp = pcell.get_parameters("basic/mosfet")
 
     local gatepitch = bp.gatelength + bp.gatespace
     local numtransistors = #_P.fingers
@@ -23,7 +23,7 @@ function layout(array, _P)
         end
     end
     aux.shuffle(indices)
-    pcell.push_overwrites("basic/transistor", {
+    pcell.push_overwrites("basic/mosfet", {
         fingers = 1,
         drawtopgate = true,
         drawbotgate = true,
@@ -33,24 +33,24 @@ function layout(array, _P)
     for i = 1, #indices do
         local offset = (i - 1) - (2 * #indices - 1) / 2
         local ttype = ttypes[indices[i]]
-        array:merge_into(
-            pcell.create_layout("basic/transistor", ttype)
+        array:merge_into_shallow(
+            pcell.create_layout("basic/mosfet", ttype)
             :translate( offset * gatepitch, 0)
         )
-        array:merge_into(
-            pcell.create_layout("basic/transistor", ttype)
+        array:merge_into_shallow(
+            pcell.create_layout("basic/mosfet", ttype)
             :translate(-offset * gatepitch, 0)
         )
     end
-    pcell.pop_overwrites("basic/transistor")
+    pcell.pop_overwrites("basic/mosfet")
 
     -- gate connections
     for i = 1, #ttypes do
-        array:merge_into(geometry.rectangle(
+        array:merge_into_shallow(geometry.rectangle(
             generics.metal(1), numfingers * gatepitch, bp.topgatestrwidth
             ):translate(0, (bp.fwidth + bp.topgatestrwidth) / 2 + i * gatestrspace + (i - 1) * bp.topgatestrwidth)
         )
-        array:merge_into(geometry.rectangle(
+        array:merge_into_shallow(geometry.rectangle(
             generics.metal(1), numfingers * gatepitch, bp.topgatestrwidth
             ):translate(0, -(bp.fwidth + bp.botgatestrwidth) / 2 - i * gatestrspace - (i - 1) * bp.botgatestrwidth)
         )

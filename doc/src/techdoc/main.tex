@@ -173,6 +173,36 @@ Cell parameters are defined in the \luainline{parameters()} function via the \lu
 layout is created, the parameters have to be defined first. A different approach to this would be to store all loaded parameters and retrieve the right ones when a
 cell layout is created. Since currently there are no performance issues, no storing is made as code complexity increases (one has to check if loaded parameters exist
 etc.). 
+
+\section{Shape Reduction}
+The generation process generates a lot of shapes that overlap partially or fully. Certain combinations of shapes can be merged, reducing the overall complexity
+(while maintaining the functionality of the layout, of course). Currently, a simple algorithm to merge rectangles is implemented, as rectanges usually make up
+the main part of a layout for integrated circuits. Union of polygons is much more complex, logic- and computation-wise.
+
+The implemented algorithm simply checks if two rectangles can be merged into a rectangle by looking for certain topologies. All possible cases are shown in
+figure~\ref{fig:merge_rectangle_toplogies}. Two independent checks are run for x and y, only x topologies are shown.
+\begin{figure}
+    \begin{tikzpicture}
+        [
+            single/.style = {draw=none, text opacity = 1, fill opacity=0.3, rectangle, inner sep = 0pt, minimum width = 1cm, minimum height = 1cm},
+            double/.style = {draw=none, text opacity = 1, fill opacity=0.3, rectangle, inner sep = 0pt, minimum width = 2cm, minimum height = 1cm}
+        ]
+        \def\xpos{0}
+        \node[single, fill = green] at ({\xpos - 0.3}, 0) {1};
+        \node[single, fill = red] at ({\xpos + 0.3}, 0) {2};
+        \node[below] at (\xpos, -0.5) {REGULAR};
+        \def\xpos{2}
+        \node[single, fill = green] at ({\xpos + 0.3}, 0) {1};
+        \node[single, fill = red] at ({\xpos + -0.3}, 0) {2};
+        \node[below] at (\xpos, -0.5) {INVERSE};
+        \def\xpos{6}
+        \node[single, fill = green] at ({\xpos - 0.3}, 0) {1};
+        \node[double, fill = red] at ({\xpos - 0.0}, 0) {2};
+        \node[below] at (\xpos, -0.5) {REGULAR};
+    \end{tikzpicture}
+    \caption{Possible topologies for rectangle union}
+    \label{fig:merge_rectangle_toplogies}
+\end{figure}
 \end{document}
 
 % vim: ft=tex

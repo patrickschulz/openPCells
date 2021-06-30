@@ -22,6 +22,21 @@ function meta.write(self, str)
     self.content:append(str)
 end
 
+function meta.writenl(self, str)
+    self.content:append(str)
+    self.content:append("\n")
+end
+
+function meta.writebyte(self, byte)
+    self.content:append(string.char(byte))
+end
+
+function meta.write_hexstr(self, data)
+    for _, datum in ipairs(data) do
+        self.content:append(string.format("%02x", datum))
+    end
+end
+
 function meta.write_binary(self, data)
     for _, datum in ipairs(data) do
         self.content:append(string.char(datum))

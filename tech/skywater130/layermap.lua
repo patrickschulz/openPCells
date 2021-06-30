@@ -1,7 +1,7 @@
 return {
     oxthick1  = {},
     vthtype1  = {},
-    contactactive = {
+    contactsourcedrain = {
         array {
             lpp = {
                 gds      = { layer = 66,       purpose = 44 },

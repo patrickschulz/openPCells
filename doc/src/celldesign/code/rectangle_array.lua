@@ -14,12 +14,12 @@ function layout(obj, _P)
             local o = geometry.rectangle(
                 generics.metal(1), P.width, P.height
             )
-            obj:merge_into(o)
+            obj:merge_into_shallow(o)
         end
     end
 
     -- better approach
-    obj:merge_into(geometry.multiple(
+    obj:merge_into_shallow(geometry.multiple(
         geometry.rectangle(generics.metal(1), P.width, P.height),
         P.rep, P.rep, P.pitch, P.pitch
     ))

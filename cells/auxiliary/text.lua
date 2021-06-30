@@ -995,37 +995,64 @@ local letteroutlines = {
         { x = 0.20, y = 0.20 },
         { x = 0.00, y = 0.20 },
     },
+    ["/"] = {
+        { x = 0.00, y = 0.00 },
+        { x = 0.00, y = 0.20 },
+        { x = 0.10, y = 0.20 },
+        { x = 0.10, y = 0.40 },
+        { x = 0.20, y = 0.40 },
+        { x = 0.20, y = 0.60 },
+        { x = 0.30, y = 0.60 },
+        { x = 0.30, y = 0.80 },
+        { x = 0.40, y = 0.80 },
+        { x = 0.40, y = 1.00 },
+        { x = 0.50, y = 1.00 },
+        { x = 0.50, y = 0.60 },
+        { x = 0.40, y = 0.60 },
+        { x = 0.40, y = 0.40 },
+        { x = 0.30, y = 0.40 },
+        { x = 0.30, y = 0.20 },
+        { x = 0.20, y = 0.20 },
+        { x = 0.20, y = 0.00 },
+    },
 }
 
 function parameters()
     pcell.add_parameters(
-        { "text(Text)",                "TEXT" },
-        { "scale(Letter Scaling)",       1000 },
-        { "spacing(Letter Spacing)",      200 },
-        { "leading(Line Leading)",        200 },
-        { "alignment(Text Alignment)", "left" }
+        { "text(Text)",                  "TEXT" },
+        { "scale(Letter Scaling)",         1000 },
+        { "spacing(Spacing)",               600 },
+        { "letterspacing(Letter Spacing)",  200 },
+        { "spacing(Letter Spacing)",        200 },
+        { "leading(Line Leading)",          200 },
+        { "alignment(Text Alignment)",   "left" },
+        { "metalnum(Metal Number)",          -1 }
     )
 end
 
 function layout(text, _P)
-    local x = 0
-    local y = 0
+    local trans = transformationmatrix.identity()
     for i = 1, #_P.text do
         local char = string.sub(string.upper(_P.text), i, i)
         if char == "\n" then
-            x = 0
-            y = y - 1 - _P.leading
+            trans.dx = 0
+            trans.dy = trans.dy - _P.scale - _P.leading
         else
-            local outline = letteroutlines[char]
-            if outline then
-                local S = shape.create_polygon(generics.metal(-1))
-                for _, pt in ipairs(outline) do
-                    table.insert(S.points, point.create(_P.scale * pt.x, _P.scale * pt.y))
+            if char == " " then
+                trans.dx = trans.dx + _P.spacing
+            else
+                local outline = letteroutlines[char]
+                if outline then
+                    local S = shape.create_polygon(generics.metal(_P.metalnum))
+                    for _, pt in ipairs(outline) do
+                        table.insert(S.points, point.create(_P.scale * pt.x, _P.scale * pt.y))
+                    end
+                    S:apply_transformation(trans, trans.apply_translation)
+                    trans.dx = trans.dx + S:width() + _P.letterspacing
+                    text:add_shape(S)
                 end
-                S:translate(x, y)
-                x = x + S:width() + _P.spacing
-                text:add_shape(S)
             end
         end
     end
 end
+

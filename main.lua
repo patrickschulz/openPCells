@@ -1,3 +1,21 @@
+-- exit and write a short helpful message if called without any arguments
+if #arg == 0 then
+    errprint("This is the openPCell layout generator.")
+    errprint("To generate a layout, you need to pass the technology, the export type and a cellname.")
+    errprint("Example:")
+    errprint("         opc --technology skywater130 --export gds --cell logic/not_gate")
+    errprint()
+    errprint("You can find out more about the available command line options by running 'opc -h'.")
+    return 1
+end
+
+-- call testsuite when called with 'test' as first argument
+if arg[1] == "test" then
+    table.remove(arg, 1)
+    dofile(string.format("%s/testsuite/main.lua", _get_opc_home()))
+    return 0
+end
+
 -- parse command line arguments
 local argparse = cmdparser()
 argparse:load_options_from_file("cmdoptions")
@@ -22,14 +40,16 @@ if args.profile then
     profiler.start()
 end
 
--- for random shuffle
-math.randomseed(os.time())
+if args.watch then
+    print("sorry, watch mode is currently not implemented")
+    return 1
+end
 
--- load user configuration
-if not args.nouserconfig then
-    if not config.load_user_config(argparse) then
-        return 1
-    end
+-- for random shuffle
+if args.seed then
+    math.randomseed(args.seed)
+else
+    math.randomseed(os.time())
 end
 
 -- set default path for pcells
@@ -43,6 +63,13 @@ end
 if args.prependcellpath then
     for _, path in ipairs(args.prependcellpath) do
         pcell.prepend_cellpath(path)
+    end
+end
+
+-- load user configuration
+if not args.nouserconfig then
+    if not config.load_user_config(argparse) then
+        return 1
     end
 end
 
@@ -66,11 +93,13 @@ if args.listtechpaths then
 end
 
 -- set environment variables
+envlib.set("debug", args.debug)
 envlib.set("humannotmachine", true) -- default is --human
 if args.machine then
     envlib.set("humannotmachine", false)
 end
 envlib.set("verbose", args.verbose)
+envlib.set("ignoremissinglayers", args.ignoremissinglayers)
 
 -- list available cells
 if args.listcells or args.listallcells then
@@ -125,7 +154,7 @@ end
 
 -- read parameters from pfile and merge with command line parameters
 local cellargs = {}
-if args.paramfile then
+if args.paramfile and not args.noparamfile then
     local status, t = pcall(_dofile, args.paramfile)
     if not status then
         print(string.format("could not load parameter file '%s', error: %s", args.paramfile, t))
@@ -144,6 +173,9 @@ end
 for k, v in pairs(args.cellargs) do
     cellargs[k] = v
 end
+if envlib.get("debug") then
+    aux.print_tabular(cellargs)
+end
 
 -- output cell parameters AFTER parameters have been processed in order to respect value changes in pfiles
 if args.params then
@@ -157,6 +189,7 @@ end
 pcell.enable_debug(args.debugcell)
 local cell
 if args.cellscript then
+    pcell.update_other_cell_parameters(cellargs, true)
     local status, c = pcall(_dofile, args.cellscript)
     if not status then
         errprint(c)
@@ -175,8 +208,6 @@ else
     end
     cell = c
 end
--- FIXME: implement hierarchies
-cell:flatten_shallow()
 
 -- move origin
 if args.origin then
@@ -185,8 +216,10 @@ if args.origin then
         errprint(string.format("could not parse origin (%s)", args.origin))
         return 1
     end
-    local cx, cy = cell.origin:unwrap()
-    cell:translate(dx - cx, dy - cy)
+    --local cx, cy = cell.origin:unwrap()
+    --cell:translate(dx - cx, dy - cy)
+    -- FIXME: get origin from cell
+    cell:translate(dx, dy)
 end
 
 -- translate
@@ -209,7 +242,7 @@ if args.orientation then
     }
     local f = lut[args.orientation]
     if not f then
-        errprint(string.format("unknown orientation: %s", args.orientation))
+        errprint(string.format("unknown orientation: '%s'", args.orientation))
         return 1
     end
     f()
@@ -221,30 +254,35 @@ if args.drawaxes then
     local minx, miny = bb.bl:unwrap()
     local maxx, maxy = bb.tr:unwrap()
     local factor = 2
-    cell:merge_into(geometry.rectanglebltr(generics.special(), point.create(-5, factor * miny), point.create(5, factor * maxy)))
-    cell:merge_into(geometry.rectanglebltr(generics.special(), point.create(factor * minx, -5), point.create(factor * maxx, 5)))
+    cell:merge_into_shallow(geometry.rectanglebltr(generics.special(), point.create(-5, factor * miny), point.create(5, factor * maxy)))
+    cell:merge_into_shallow(geometry.rectanglebltr(generics.special(), point.create(factor * minx, -5), point.create(factor * maxx, 5)))
 end
 
 if args.drawanchor then
     for _, da in ipairs(args.drawanchor) do
         local anchor = cell:get_anchor(da)
-        local x, y = anchor:unwrap()
-        cell:merge_into(marker.cross(point.create(x, y)))
+        cell:merge_into_shallow(marker.cross(anchor))
     end
 end
 
 -- add drawing of alignment box
 if args.drawalignmentbox then
-    local ab = cell.alignmentbox
-    if ab then
-        local box = geometry.rectanglebltr(generics.special(), ab.bl, ab.tr)
-        cell:merge_into(box)
+    if cell.alignmentbox then
+        local bl = cell:get_anchor("bottomleft")
+        local tr = cell:get_anchor("topright")
+        local box = geometry.rectanglebltr(generics.special(), bl, tr)
+        cell:merge_into_shallow(box)
     end
 end
 
+technology.prepare(cell)
+
 -- filter layers
 if args.layerfilter then
+    -- filter toplevel (flat shapes)
     postprocess.filter(cell, args.layerfilter, args.layerfilterlist or "black")
+    -- filter children
+    cell:foreach_children(postprocess.filter, args.layerfilter, args.layerfilterlist or "black")
 end
 
 if not args.export then
@@ -254,22 +292,26 @@ end
 export.load(args.export)
 
 local techintf = export.get_techexport() or args.export
-if not args.notech then
-    technology.translate_metals(cell)
-    technology.split_vias(cell)
-    technology.place_via_conductors(cell, techintf)
+if not args.notech and techintf ~= "raw" then
     technology.translate(cell, techintf)
-    technology.fix_to_grid(cell)
+end
+
+if args.flatten then
+    cell:flatten()
 end
 
 if args.mergerectangles then
+    -- merge toplevel (flat shapes)
     reduce.merge_shapes(cell)
+    -- merge children
+    cell:foreach_children(reduce.merge_shapes)
 end
 
 if not args.noexport then
-    local filename = args.filename or "openPCells"
     export.set_options(args.export_options)
-    export.write_cell(filename, cell, args.dryrun)
+    export.check()
+    local filename = args.filename or "openPCells"
+    export.write_toplevel(filename, args.technology, cell, args.dryrun)
 end
 
 if args.cellinfo then

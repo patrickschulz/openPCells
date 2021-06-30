@@ -56,6 +56,12 @@ local function _load_cell(state, cellname, env)
         string.format("semantic error in cell '%s'", cellname),
         env
     )
+    -- check if only allowed values are defined
+    for funcname in pairs(env) do 
+        if not aux.any_of(function(v) return v == funcname end, { "config", "parameters", "layout" }) then
+            moderror(string.format("pcell: all defined toplevel values must be one of 'parameters', 'layout' or 'config'. Illegal name: '%s'", funcname))
+        end
+    end
     return env
 end
 
@@ -129,6 +135,7 @@ local function _set_parameter_function(state, cellname, name, value, backup, eva
     backup[name] = p.func:get()
     -- important: use :replace(), don't create a new function object.
     -- Otherwise parameter binding does not work, because bound parameters link to the original function object
+    -- TODO: parameter binding is deprecated/does not exist any more. Is this comment/method still needed?
     p.func:replace(function() return value end)
 end
 
@@ -152,7 +159,9 @@ local function _process_input_parameters(state, cellname, cellargs, evaluate, ov
             if arg.parent then
                 _set_parameter_function(state, arg.parent, arg.name, arg.value, {}, evaluate, overwrite)
             else
-                _set_parameter_function(state, cellname, arg.name, arg.value, backup, evaluate, overwrite)
+                if cellname then -- can be called without a cellname to update only parent parameters
+                    _set_parameter_function(state, cellname, arg.name, arg.value, backup, evaluate, overwrite)
+                end
             end
         end
     end
@@ -315,7 +324,8 @@ function state.create_cellenv(state, cellname, ovrenv)
             return func(state, ...)
         end
     end
-    local env = {
+    local env = {}
+    local envmeta = {
         -- "global" functions for posvals entries:
         set = function(...) return { type = "set", values = { ... } } end,
         interval = function(lower, upper) return { type= "interval", values = { lower = lower, upper = upper }} end,
@@ -354,17 +364,21 @@ function state.create_cellenv(state, cellname, ovrenv)
         enable = function(bool, val) return (bool and 1 or 0) * (val or 1) end,
         string = string,
         table = table,
+        marker = marker,
+        transformationmatrix = transformationmatrix,
         dprint = function(...) if state.debug then print(...) end end,
         type = type,
         ipairs = ipairs,
         pairs = pairs,
         error = error,
     }
+    envmeta.__index = envmeta
     if ovrenv then
         for k, v in pairs(ovrenv) do
-            env[k] = v
+            envmeta[k] = v
         end
     end
+    setmetatable(env, envmeta)
     return env
 end
 
@@ -397,6 +411,20 @@ local function _find_cell_traceback()
         end
         level = level + 1
     end
+end
+
+function M.update_other_cell_parameters(cellargs, evaluate)
+    local overwrite = false -- ?? TODO
+    for name, arg in pairs(cellargs) do
+        -- call with cellname == nil, only update parent parameters
+        _process_input_parameters(state, nil, cellargs, evaluate, false)
+    end
+end
+
+function M.update_cell_parameters(cellname, cellargs, evaluate)
+    local cell = _get_cell(state, cellname) -- load cell if not loaded
+    local parameters, backup = _get_parameters(state, cellname, cellname, cellargs, evaluate) -- cellname needs to be passed twice
+    _restore_parameters(state, cellname, backup)
 end
 
 function M.create_layout(cellname, cellargs, evaluate)
@@ -472,7 +500,11 @@ local function _collect_parameters(cell, ptype, prefix, str)
         end
         local ptype = ptype or v.ptype
         if envlib.get("humannotmachine") then
-            table.insert(str, string.format("%s %s", v.display or name, val))
+            if v.display then
+                table.insert(str, string.format("%s (%s) %s", name, v.display, val))
+            else
+                table.insert(str, string.format("%s %s", name, val))
+            end
         else
             table.insert(str, string.format("%s:%s:%s:%s:%s", ptype, prefix .. name, v.display or "_NONE_", val, tostring(v.argtype)))
         end

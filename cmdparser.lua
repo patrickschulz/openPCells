@@ -211,9 +211,19 @@ function meta.parse(self, args)
     end
     -- split key=value pairs
     local cellargs = {}
-    for k, v in string.gmatch(table.concat(self.res.cellargs, " "), "([%w/._]+)%s*=%s*(%S+)") do
+    local text = table.concat(self.res.cellargs, " ")
+    local idx = 1
+    local search = not not string.match(text, "=")
+    while search do
+        local s1, s2, k = string.find(text, "([%w/.]+)%s*=%s*", idx)
+        local s3 = string.find(text, "([%w/.]+)%s*=", s2 + 1)
+        if not s3 then search = false end
+        local v = string.match(string.sub(text, s2 + 1, s3 and (s3 - 1) or nil), "(.-)%s*$")
+        v = string.gsub(v, "\\n", "\n") -- replace escape sequences (FIXME: only new line currently supported)
+        idx = s3
         cellargs[k] = v
     end
+
     self.res.cellargs = cellargs
     return self.res
 end

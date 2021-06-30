@@ -13,7 +13,7 @@ function infoprint(msg)
 end
 
 function errprint(msg)
-    io.stderr:write(msg)
+    io.stderr:write(msg or "")
     io.stderr:write("\n")
 end
 
@@ -140,6 +140,29 @@ function M.deepcopy(orig, copy)
         copy = orig
     end
     return copy
+end
+
+local _usednames = {}
+function M.make_unique_name(name)
+    if not name then
+        name = "__subcell"
+    end
+    if not _usednames[name] then
+        _usednames[name] = 0
+    end
+    _usednames[name] = _usednames[name] + 1
+    return string.format("%s_%d", name, _usednames[name])
+end
+
+function M.print_tabular(t)
+    local width = 0
+    for k in pairs(t) do
+        width = math.max(width, string.len(tostring(k)))
+    end
+    local fmt = string.format("%%%ds: %%s", width)
+    for k, v in pairs(t) do
+        print(string.format(fmt, k, v))
+    end
 end
 
 return M

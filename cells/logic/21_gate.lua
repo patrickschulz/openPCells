@@ -17,22 +17,30 @@ function layout(gate, _P)
     local bp = pcell.get_parameters("logic/base");
 
     local isogate = pcell.create_layout("logic/isogate")
-    gate:merge_into_update_alignmentbox(isogate)
+    dprint(isogate.x0, isogate.y0)
+    gate:add_child(isogate, "isogate")
 
     pcell.push_overwrites("logic/base", { rightdummies = 0 })
-    local gate1 = pcell.create_layout(string.format("logic/%s", _P.gate1)):move_anchor("right", isogate:get_anchor("left"))
-    gate:merge_into_update_alignmentbox(gate1)
+    local gate1ref = pcell.create_layout(string.format("logic/%s", _P.gate1))
+    local gate1 = gate:add_child(gate1ref, "gate1")
+    gate1:move_anchor("right", isogate:get_anchor("left"))
     pcell.pop_overwrites("logic/base")
 
     pcell.push_overwrites("logic/base", { leftdummies = 0 })
-    local gate2 = pcell.create_layout(string.format("logic/%s", _P.gate2)):move_anchor("left", isogate:get_anchor("right"))
-    gate:merge_into_update_alignmentbox(gate2)
+    local gate2ref = pcell.create_layout(string.format("logic/%s", _P.gate2))
+    local gate2 = gate:add_child(gate2ref, "gate2")
+    gate2:move_anchor("left", isogate:get_anchor("right"))
     pcell.pop_overwrites("logic/base")
 
+    gate:inherit_alignment_box(gate1)
+    gate:inherit_alignment_box(gate2)
+
     -- draw connections
-    gate:merge_into(geometry.path_yx(generics.metal(1), {
-        gate1:get_anchor("Z"), gate2:get_anchor("B")
-    }, bp.sdwidth))
+    gate:merge_into_shallow(geometry.path(generics.metal(1), 
+        geometry.path_points_yx(gate1:get_anchor("Z"), {
+        gate2:get_anchor("B")
+        }), 
+    bp.sdwidth))
 
     --draw ports
     gate:add_port("A", generics.metal(1), gate2:get_anchor("A"))

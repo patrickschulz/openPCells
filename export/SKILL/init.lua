@@ -6,46 +6,66 @@ function M.get_extension()
     return "il"
 end
 
+local __group = false
+function M.set_options(opt)
+    if opt.group then
+        __group = true
+    end
+end
+
 function M.at_begin(file)
-    file:write([[
-let(
+    if __group then
+        file:write([[
+letseq(
     (
         (cv geGetEditCellView())
         (group dbCreateFigGroup(cv "Group0" t 0:0 "R0"))
         shape
     )
 ]])
+    else
+        file:write([[
+let(
+    (
+        (cv geGetEditCellView())
+        shape
+    )
+]])
+    end
 end
 
 function M.at_end(file)
     file:write(") ; let\n")
 end
 
-function M.write_layer(file, layer, pcol)
-    file:write(string.format("    foreach(pts\n        list(\n%s\n        )\n", aux.concat(pcol, "", string.rep(" ", 12), nil, true)))
-    file:write(string.format("        shape = %s pts)\n", layer))
-    file:write(              "        dbAddFigToFigGroup(group shape)\n")
-    file:write("    )\n")
+function M.get_layer(S)
+    return { layer = S.lpp:get().layer, purpose = S.lpp:get().purpose }
 end
 
-function M.get_layer(shape)
-    local st
-    if shape.typ == "polygon" then
-        st = "Polygon"
-    elseif shape.typ == "rectangle" then
-        st = "Rect"
+function M.write_rectangle(file, layer, bl, tr)
+    file:write(string.format('    shape = dbCreateRect(cv list("%s" "%s") list(%s %s))\n', layer.layer, layer.purpose, bl:format(1000, ":"), tr:format(1000, ":")))
+    if __group then
+        file:write("    dbAddFigToFigGroup(group shape)\n")
     end
-    return string.format('dbCreate%s(cv list("%s" "%s")', st, shape.lpp:get().layer, shape.lpp:get().purpose)
 end
 
-function M.get_points(shape)
-    local pointlist = shape:concat_points(function(pt) return pt:format(baseunit, ":") end)
-    return string.format("list(%s)", table.concat(pointlist, " "))
+function M.write_polygon(file, layer, pts)
+    local ptrstr = {}
+    for _, pt in ipairs(pts) do
+        table.insert(ptrstr, pt:format(1000, ":"))
+    end
+    file:write(string.format('    shape = dbCreatePolygon(cv list("%s" "%s") list(%s))\n', layer.layer, layer.purpose, table.concat(ptrstr, " ")))
+    if __group then
+        file:write("    dbAddFigToFigGroup(group shape)\n")
+    end
 end
 
 function M.write_port(file, name, layer, where)
-    file:write(string.format('    shape = dbCreateLabel(cv list("%s" "label") %s "%s" "centerCenter" "R0" "roman" 0.1)\n', layer, where:format(baseunit, ":"), name))
-    file:write("    dbAddFigToFigGroup(group shape)\n")
+    file:write(string.format('    shape = dbCreateLabel(cv list("%s" "%s") %s "%s" "centerCenter" "R0" "roman" 0.1)\n', 
+        layer.layer, layer.purpose, where:format(baseunit, ":"), name))
+    if __group then
+        file:write("    dbAddFigToFigGroup(group shape)\n")
+    end
 end
 
 return M

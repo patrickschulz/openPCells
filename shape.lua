@@ -10,20 +10,14 @@ function shape.set_lpp(self, lpp)
     self.lpp = lpp
 end
 
-function shape.convert_to_polygon(self)
-    if self.typ == "rectangle" then
-        local blx, bly = self.points.bl:unwrap()
-        local trx, try = self.points.tr:unwrap()
-        local new = shape.create_polygon(self.lpp)
-        table.insert(new.points, point.create(blx, bly))
-        table.insert(new.points, point.create(trx, bly))
-        table.insert(new.points, point.create(trx, try))
-        table.insert(new.points, point.create(blx, try))
-        table.insert(new.points, point.create(blx, bly)) -- close polygon
-        return new
-    elseif self.typ == "polygon" then
-        return self:copy()
+function shape.resolve_path(self, beveljoin)
+    if self.typ == "path" then
+        local obj = geometry.path_polygon(self.lpp, self.points, self.width, not beveljoin)
+        local _s = obj.shapes[1]
+        self.typ = _s.typ
+        self.points = _s.points
     end
+    return self
 end
 
 function shape.copy(self)
@@ -33,13 +27,43 @@ function shape.copy(self)
         for i, pt in ipairs(self.points) do
             new.points[i] = pt:copy()
         end
-        return new
     elseif self.typ == "rectangle" then
         new = shape.create_rectangle(self.lpp:copy(), 0, 0) -- dummy width and length
         new.points.bl = self.points.bl:copy()
         new.points.tr = self.points.tr:copy()
+    else
+        new = shape.create_path(self.lpp:copy(), {}, self.width)
+        for i, pt in ipairs(self.points) do
+            new.points[i] = pt:copy()
+        end
+        return new
     end
     return new
+end
+
+function shape.apply_transformation(self, matrix, func)
+    if self.typ == "polygon" or self.typ == "path" then
+        for _, pt in ipairs(self.points) do
+            func(matrix, pt)
+        end
+    elseif self.typ == "rectangle" then
+        func(matrix, self.points.bl)
+        func(matrix, self.points.tr)
+        local blx, bly = self.points.bl:unwrap()
+        local trx, try = self.points.tr:unwrap()
+        if blx > trx then
+            if bly > try then
+                point._update(self.points.bl, trx, try)
+                point._update(self.points.tr, blx, bly)
+            else
+                point._update(self.points.bl, trx, bly)
+                point._update(self.points.tr, blx, try)
+            end
+        end
+    else
+        moderror(string.format("shape.apply_transformation: unknown type '%s'", self.typ))
+    end
+    return self
 end
 
 function shape.resize(self, xsize, ysize)
@@ -52,6 +76,8 @@ function shape.resize_lrtb(self, left, right, top, bottom)
     elseif self.typ == "rectangle" then
         self.points.bl:translate(-left, -bottom)
         self.points.tr:translate(right, top)
+    else
+        moderror(string.format("shape.resize_lrtb: unknown type '%s'", self.typ))
     end
 end
 
@@ -69,6 +95,8 @@ function shape.width(self)
         local x1 = self.points.bl:getx()
         local x2 = self.points.tr:getx()
         return x2 - x1
+    else
+        moderror(string.format("shape.width: unknown type '%s'", self.typ))
     end
 end
 
@@ -86,9 +114,12 @@ function shape.height(self)
         local y1 = self.points.bl:gety()
         local y2 = self.points.tr:gety()
         return y2 - y1
+    else
+        moderror(string.format("shape.height: unknown type '%s'", self.typ))
     end
 end
 
+-- FIXME: this is only needed for via arrayzation. Find a better approach (see technology.lua, _do_array)
 function shape.center(self)
     if self.typ == "polygon" then
         error("no implementation for center() for polygons")
@@ -99,87 +130,9 @@ function shape.center(self)
         local x = (x1 + x2) // 2
         local y = (y1 + y2) // 2
         return point.create(x, y)
+    else
+        moderror(string.format("shape.center: unknown type '%s'", self.typ))
     end
-end
-
-function shape.concat_points(self, func)
-    local st = {}
-    if self.typ == "polygon" then
-        for _, pt in ipairs(self.points) do
-            table.insert(st, func(pt))
-        end
-    elseif self.typ == "rectangle" then
-        table.insert(st, func(self.points.bl))
-        table.insert(st, func(self.points.tr))
-    end
-    return st
-end
-
-function shape.translate(self, dx, dy)
-    if self.typ == "polygon" then
-        for _, pt in ipairs(self.points) do
-            pt:translate(dx, dy)
-        end
-    elseif self.typ == "rectangle" then
-        if not dx then
-            print(debug.traceback())
-        end
-        self.points.bl:translate(dx, dy)
-        self.points.tr:translate(dx, dy)
-    end
-    return self
-end
-
-function shape.flipx(self, xcenter)
-    xcenter = xcenter or 0
-    if self.typ == "polygon" then
-        self.points = util.xmirror(self.points, xcenter)
-    elseif self.typ == "rectangle" then
-        local blx, bly = self.points.bl:unwrap()
-        local trx, try = self.points.tr:unwrap()
-        self.points.bl = point.create(2 * xcenter - trx, bly)
-        self.points.tr = point.create(2 * xcenter - blx, try)
-    end
-    self.lpp:flipx()
-    return self
-end
-
-function shape.flipy(self, ycenter)
-    ycenter = ycenter or 0
-    if self.typ == "polygon" then
-        self.points = util.ymirror(self.points, ycenter)
-    elseif self.typ == "rectangle" then
-        local blx, bly = self.points.bl:unwrap()
-        local trx, try = self.points.tr:unwrap()
-        self.points.bl = point.create(blx, 2 * ycenter - try)
-        self.points.tr = point.create(trx, 2 * ycenter - bly)
-    end
-    self.lpp:flipy()
-    return self
-end
-
-function shape.rotate(self, angle)
-    if self.typ == "polygon" then
-        for _, pt in ipairs(self.points) do
-            pt:rotate(angle)
-        end
-    elseif self.typ == "rectangle" then
-        self.points.bl:rotate(angle)
-        self.points.tr:rotate(angle)
-    end
-    return self
-end
-
-function shape.scale(self, factor)
-    if self.typ == "polygon" then
-        for _, pt in ipairs(self.points) do
-            pt:scale(factor)
-        end
-    elseif self.typ == "rectangle" then
-        self.points.bl:scale(factor)
-        self.points.tr:scale(factor)
-    end
-    return self
 end
 
 function shape.is_type(self, typ)

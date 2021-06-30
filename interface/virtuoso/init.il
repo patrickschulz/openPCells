@@ -1,3 +1,25 @@
+procedure(OPCCall(args)
+    let(
+        ()
+        OPCCommand = lsprintf(
+            "%s/%s --technology %s --export SKILL %s"
+            OPCPath OPCExec OPCTech args
+        )
+        printf("calling opc:\n  %s\n" OPCCommand)
+        pid = ipcBeginProcess(OPCCommand)
+        ipcWait(pid) ; wait for process to finish
+        exitstatus = ipcGetExitStatus(pid)
+        if(exitstatus != 0
+            then 
+                printf("generator exited with status %d. Message:" exitstatus)
+                printf("%s" ipcReadProcess(pid))
+                nil
+            else
+                t
+        ) ; if exitstatus
+    ) ; let
+)
+
 procedure(OPCCreateCell(w done pts)
     let(
         (
@@ -9,31 +31,24 @@ procedure(OPCCreateCell(w done pts)
         when(done
             if(cv->mode == "a" || cv->mode == "w" ; check if cell is open for editing
             	then
-                    OPCArgs = ""
+	                ; 'OPCCell' is defined one level above (in OPCPlaceCell)
+	                OPCArgs = lsprintf(
+	                    "--cell %s --origin '(%d, %d)' -f %s" 
+	                    OPCCell 
+	                    fix(1000 * xCoord(OPCOrigin)) fix(1000 * yCoord(OPCOrigin)) 
+	                    OPCFilename
+	                )
 	                foreach(field OPCParamForm->fieldList
 	                    unless(get(OPCParamForm field)->value == get(OPCParamForm field)->defValue
 	                        OPCArgs = lsprintf("%s %s" OPCArgs lsprintf("%s=%A" field get(OPCParamForm field)->value))
 	                    )
 	                )
-	                ; 'OPCCell' is defined one level above (in OPCPlaceCell)
-	                OPCCommand = lsprintf(
-	                    "%s/%s --technology %s --export SKILL --cell %s --origin '(%d, %d)' -f %s %s" 
-	                    OPCPath OPCExec OPCTech OPCCell 
-	                    fix(1000 * xCoord(OPCOrigin)) fix(1000 * yCoord(OPCOrigin)) 
-	                    OPCFilename OPCArgs
-	                )
-	                printf("calling opc:\n  %s\n" OPCCommand)
-	                pid = ipcBeginProcess(OPCCommand)
-	                ipcWait(pid) ; wait for process to finish
-	                exitstatus = ipcGetExitStatus(pid)
-	                if(exitstatus != 0
-	                    then 
-	                        printf("generator exited with status %d. Message:" exitstatus)
-	                        printf("%s" ipcReadProcess(pid))
-	                    else
-	                        load(lsprintf("%s.il" OPCFilename))
-                            deleteFile(lsprintf("%s.il" OPCFilename)) ; clean up after ourselves
-	                ) ; if exitstatus
+                    when(OPCCall(OPCArgs)
+                        printf("opc: load %s.il" OPCFilename)
+                        load(lsprintf("%s.il" OPCFilename))
+                        printf("opc: delete %s.il" OPCFilename)
+                        deleteFile(lsprintf("%s.il" OPCFilename)) ; clean up after ourselves
+                    )
 	        	else 
 	        		println("cellview not in editing mode")
             ) ; if mode == "a"
@@ -55,7 +70,7 @@ procedure(OPCWalkCellDir(path prepend)
     let(
         (itemlist item)
         foreach(file getDirFiles(path)
-            unless(file == "." || file == ".."
+            unless(pcreMatchp("^\\." file)
                 if(isFile(lsprintf("%s/%s" path file))
                     then
                         unless(substring(file 1 1) == "_"
@@ -105,26 +120,56 @@ procedure(OPCAboutCallback()
     )
 ) ; procedure
 
+procedure(OPCUpdateCallback()
+    letseq(
+        (
+            (cv geGetEditCellView())
+            (libPath cv->lib->readPath)
+            (cellName cv->cellName)
+            (OPCFilename "openPCells")
+            path OPCArgs
+        )
+        path = lsprintf("%s/%s/layout/layout.lua" libPath cellName)
+        OPCArgs = lsprintf("--cellscript %s -f %s" path OPCFilename)
+        when(OPCCall(OPCArgs)
+            foreach(shape cv->shapes dbDeleteObject(shape))
+            printf("opc: load %s.il" OPCFilename)
+            load(lsprintf("%s.il" OPCFilename))
+            printf("opc: delete %s.il" OPCFilename)
+            deleteFile(lsprintf("%s.il" OPCFilename)) ; clean up after ourselves
+        )
+    )
+) ; procedure
+
 procedure(OPCLayoutAddMenu(args)
-    let( (menu itemlist about separator script settings cellmenu cellitem (win args->window))
+    let( (menu itemlist about separator update script settings cellmenu cellitem (win args->window))
         ; basic information
         about = hiCreateMenuItem(?name 'OPCAbout ?itemText "About" ?callback "OPCAboutCallback()")
+
+        separator = hiCreateSeparatorMenuItem(?name 'OPCLayoutMenuSeparator)
+
+        ; update design
+        update = hiCreateMenuItem(?name 'OPCCellScript ?itemText "Update Design (removes all shapes!)" ?callback "OPCUpdateCallback()")
+
         separator = hiCreateSeparatorMenuItem(?name 'OPCLayoutMenuSeparator)
 
         ; execute script
         script = hiCreateMenuItem(?name 'OPCScript ?itemText "Execute Script..." ?callback "OPC call script not yet implemented")
 
+		celllist = OPCWalkCellDir(lsprintf("%s/cells" OPCPath) "")
+		celllist = append(celllist OPCWalkCellDir(lsprintf("/home/pschulz/serial_interface/cells") ""))
+
         ; create cell menu
         cellmenu = hiCreatePulldownMenu(
             'OPCCellMenu
             "foobar"
-            OPCWalkCellDir(lsprintf("%s/cells" OPCPath) "")
+            celllist
         )
         cellitem = hiCreateSliderMenuItem(?name 'OPCCellItem ?itemText "Create Cell..." ?subMenu cellmenu)
         settings = hiCreateMenuItem(?name 'OPCSettings ?itemText "Settings" ?callback "println(\"openPCells Settings\")")
 
         ; assemble main menu
-        itemlist = list(about separator script separator cellitem settings)
+        itemlist = list(about separator update separator script separator cellitem settings)
         menu = hiCreatePulldownMenu('OPCLayoutMenu "OpenPCells" itemlist)
         hiInsertBannerMenu(win menu length(hiGetBannerMenus(win)))
     )

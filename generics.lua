@@ -52,22 +52,8 @@ function M.str(self)
     end
 end
 
-function M.flipx(self)
-    if self.typ == "feol" then
-        local oldobj = self.obj
-        self.obj = aux.deepcopy(oldobj)
-        setmetatable(self.obj, M)
-        self.value.expand.left, self.value.expand.right = self.value.expand.right, self.value.expand.left
-    end
-end
-
-function M.flipy(self)
-    if self.typ == "feol" then
-        local oldobj = self.obj
-        self.obj = aux.deepcopy(oldobj)
-        setmetatable(self.obj, M)
-        self.value.expand.top, self.value.expand.bottom = self.value.expand.bottom, self.value.expand.top
-    end
+function M.set_port(self)
+    self.isport = true
 end
 
 function M.metal(num)

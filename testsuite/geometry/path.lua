@@ -7,12 +7,11 @@ do
     }
 
     local obj = geometry.path(generics.metal(1), pathpts, 1000)
-    local pts = obj.shapes[1].points
+    obj.shapes[1]:resolve_path()
+    local pts = { obj.shapes[1].points.bl, obj.shapes[1].points.tr }
     local ref = {
         point.create(    0, -500),
-        point.create(10000, -500),
         point.create(10000,  500),
-        point.create(    0,  500),
     }
 
     local status, msg = check_points(pts, ref)
@@ -27,12 +26,11 @@ do
     }
 
     local obj = geometry.path(generics.metal(1), pathpts, 1000)
-    local pts = obj.shapes[1].points
+    obj.shapes[1]:resolve_path()
+    local pts = { obj.shapes[1].points.bl, obj.shapes[1].points.tr }
     local ref = {
-        point.create(  500, 0),
-        point.create(  500, 10000),
-        point.create( -500, 10000),
         point.create( -500, 0),
+        point.create(  500, 10000),
     }
 
     local status, msg = check_points(pts, ref)
@@ -47,6 +45,7 @@ do
     }
 
     local obj = geometry.path(generics.metal(1), pathpts, 1000)
+    obj.shapes[1]:resolve_path()
     local pts = obj.shapes[1].points
     local ref = {
         point.create(  354, -354),
@@ -68,6 +67,7 @@ do
     }
 
     local obj = geometry.path(generics.metal(1), pathpts, 1000, true)
+    obj.shapes[1]:resolve_path()
     local pts = obj.shapes[1].points
     local ref = {
         point.create(    0,  -500),
@@ -91,6 +91,7 @@ do
     }
 
     local obj = geometry.path(generics.metal(1), pathpts, 1000, true)
+    obj.shapes[1]:resolve_path()
     local pts = obj.shapes[1].points
     local ref = {
         point.create(    0,  -500),
@@ -114,6 +115,7 @@ do
     }
 
     local obj = geometry.path(generics.metal(1), pathpts, 1000)
+    obj.shapes[1]:resolve_path()
     local pts = obj.shapes[1].points
     local ref = {
         point.create(    0,  -500),

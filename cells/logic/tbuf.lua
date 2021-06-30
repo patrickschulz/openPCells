@@ -10,29 +10,32 @@ function layout(gate, _P)
     local bp = pcell.get_parameters("logic/base")
 
     local isogate = pcell.create_layout("logic/isogate")
-    gate:merge_into(isogate)
+    gate:merge_into_shallow(isogate)
 
     -- inverter
     pcell.push_overwrites("logic/base", { rightdummies = 0 })
     local inv = pcell.create_layout("logic/not_gate", { inputpos = "lower", fingers = _P.ifingers }):move_anchor("right", isogate:get_anchor("left"))
     pcell.pop_overwrites("logic/base")
-    gate:merge_into(inv)
+    gate:merge_into_shallow(inv)
 
     -- clocked inverter
     pcell.push_overwrites("logic/base", { leftdummies = 0 })
     local cinv = pcell.create_layout("logic/cinv", { fingers = _P.ofingers }):move_anchor("left", isogate:get_anchor("right"))
     pcell.pop_overwrites("logic/base")
-    gate:merge_into(cinv)
+    gate:merge_into_shallow(cinv)
 
     -- connections
-    gate:merge_into(geometry.path_yx(generics.metal(1), { inv:get_anchor("O"), cinv:get_anchor("EP") }, bp.gstwidth))
-    gate:merge_into(geometry.path(generics.metal(2), { inv:get_anchor("I"), cinv:get_anchor("EN") }, bp.gstwidth))
-    gate:merge_into(geometry.rectangle(generics.via(1, 2), bp.glength, bp.gstwidth):translate(inv:get_anchor("I")))
-    gate:merge_into(geometry.rectangle(generics.via(1, 2), bp.glength, bp.gstwidth):translate(cinv:get_anchor("EN")))
+    gate:merge_into_shallow(geometry.path(generics.metal(1), 
+        geometry.path_points_yx(inv:get_anchor("O"), { 
+        cinv:get_anchor("EP") 
+        }), bp.gstwidth))
+    gate:merge_into_shallow(geometry.path(generics.metal(2), { inv:get_anchor("I"), cinv:get_anchor("EN") }, bp.gstwidth))
+    gate:merge_into_shallow(geometry.rectangle(generics.via(1, 2), bp.glength, bp.gstwidth):translate(inv:get_anchor("I")))
+    gate:merge_into_shallow(geometry.rectangle(generics.via(1, 2), bp.glength, bp.gstwidth):translate(cinv:get_anchor("EN")))
 
-    gate:merge_into(geometry.path(generics.metal(2), { cinv:get_anchor("I"), point.combine_12(inv:get_anchor("I"), cinv:get_anchor("I")) }, bp.gstwidth))
-    gate:merge_into(geometry.rectangle(generics.via(1, 2), bp.glength, bp.gstwidth):translate(point.combine_12(inv:get_anchor("I"), cinv:get_anchor("I"))))
-    gate:merge_into(geometry.rectangle(generics.via(1, 2), bp.glength, bp.gstwidth):translate(cinv:get_anchor("I")))
+    gate:merge_into_shallow(geometry.path(generics.metal(2), { cinv:get_anchor("I"), point.combine_12(inv:get_anchor("I"), cinv:get_anchor("I")) }, bp.gstwidth))
+    gate:merge_into_shallow(geometry.rectangle(generics.via(1, 2), bp.glength, bp.gstwidth):translate(point.combine_12(inv:get_anchor("I"), cinv:get_anchor("I"))))
+    gate:merge_into_shallow(geometry.rectangle(generics.via(1, 2), bp.glength, bp.gstwidth):translate(cinv:get_anchor("I")))
 
     -- ports
     gate:add_port("EN", generics.metal(1), inv:get_anchor("I"))

@@ -32,9 +32,6 @@
 
 #include "config.h"
 
-#define MAINPROGNAME "main.lua"
-#define TESTPROGNAME "testsuite/main.lua"
-
 //static lua_State* globalL = NULL;
 
 /*
@@ -92,7 +89,7 @@ static const luaL_Reg loadedlibs[] = {
     {LUA_OSLIBNAME, luaopen_os}, // replace os.exit and os.time, then this 'dependency' can also be removed
     {LUA_STRLIBNAME, luaopen_string},
     {LUA_MATHLIBNAME, luaopen_math},
-    {LUA_UTF8LIBNAME, luaopen_utf8},
+    //{LUA_UTF8LIBNAME, luaopen_utf8},
     {LUA_DBLIBNAME, luaopen_debug},
     {NULL, NULL}
 };
@@ -120,6 +117,7 @@ static void load_api(lua_State* L)
         "export",
         "config",
         "object",
+        "transformationmatrix",
         "shape",
         "geometry",
         "graphics",
@@ -220,50 +218,9 @@ lua_State* create_and_initialize_lua()
 int main (int argc, char** argv)
 {
     lua_State* L = create_and_initialize_lua();
-
     int status = LUA_OK;
-    if(argc > 1 && (strcmp(argv[1], "test") == 0))
-    {
-        create_argument_table(L, argc - 1, argv + 1); // remove 'test' from arguments
-        status = call_main_program(L, OPC_HOME "/" TESTPROGNAME);
-    }
-    else if(argc > 1 && (strcmp(argv[1], "watch") == 0))
-    { 
-        // remove 'watch' from arguments
-        argc = argc - 1;
-        argv = argv + 1;
-
-        pid_t pid = fork();
-        if(pid == 0) // child
-        {
-            while(1)
-            {
-                create_argument_table(L, argc, argv);
-                status = call_main_program(L, OPC_HOME "/" MAINPROGNAME);
-                if(status != LUA_OK)
-                {
-                    fprintf(stderr, "%s\n", "opc encountered an error, watch mode will be aborted");
-                    break;
-                }
-
-                // now reinitialize the program
-                // this works as if the program had beed started again, which is what we want
-                sleep(1);
-                lua_close(L);
-                L = create_and_initialize_lua();
-            }
-                
-        }
-        else // parent
-        {
-            printf("created child process (pid: %d)\nyou have to kill it manually once you're done\n", pid);
-        }
-    }
-    else
-    {
-        create_argument_table(L, argc, argv);
-        status = call_main_program(L, OPC_HOME "/" MAINPROGNAME);
-    }
+    create_argument_table(L, argc, argv);
+    status = call_main_program(L, OPC_HOME "/main.lua");
     int retval = lua_tointeger(L, -1);
     lua_close(L);
     //return status == LUA_OK ? 0 : 1;

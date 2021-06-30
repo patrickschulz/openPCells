@@ -3,55 +3,9 @@ local M = {}
 local export
 local _name
 
-local function _collect_shapes(cell, get_layer_func, get_index_func, point_func, precomputed)
-    local shapes = {}
-    if get_index_func then
-        shapes.indexed = true
-        shapes.maxindex = 0
-    end
-    get_layer_func = get_layer_func or function(s) return s:get_lpp() end
-    point_func = point_func or function(s) return s:get_points() end
-    for _, shape in cell:iter() do
-        local layer = get_layer_func(shape, precomputed)
-        if shapes.indexed then
-            local index = get_index_func(shape, precomputed)
-            if not shapes[index] then
-                shapes[index] = { layer = layer, points = {} }
-                shapes.maxindex = math.max(shapes.maxindex, index)
-            end
-            table.insert(shapes[index]:get_points(), point_func(shape, precomputed))
-        else
-            if not shapes[layer] then
-                shapes[layer] = {}
-            end
-            table.insert(shapes[layer], point_func(shape, precomputed))
-        end
-    end
-    return shapes
-end
-
-local function _iter_shapes(shapes)
-    if shapes.indexed then
-        local idx = 1
-        local iter = function()
-            while true do
-                idx = idx + 1
-                if idx > shapes.maxindex + 1 then
-                    return nil
-                end
-                if shapes[idx - 1] then break end
-            end
-            return shapes[idx - 1].layer, shapes[idx - 1]:get_points()
-        end
-        return iter
-    else
-        return pairs(shapes)
-    end
-end
-
 function M.load(name)
     local filename = string.format("%s/export/%s/init.lua", _get_opc_home(), name)
-    local chunkname = "@export"
+    local chunkname = string.format("@export/%s", name)
     local reader = _get_reader(filename)
     if not reader then
         error(string.format("export '%s' not found", name))
@@ -61,32 +15,101 @@ function M.load(name)
 end
 
 function M.get_techexport()
-    if export.techexport then
-        return export.techexport()
+    if export.get_techexport then
+        return export.get_techexport()
     end
 end
 
-function M.write_cell(filename, cell, fake)
-    if cell:is_empty() then
-        error("export: cell is empty")
+local function _check_function(func)
+    if not export[func] then
+        error(string.format("export '%s' does not define '%s'", _name, func))
+    end
+    if not type(export[func]) == "function" then
+        error(string.format("export '%s': field '%s' is not a function (table/userdata with __call meta field are not supported)", _name, func))
+    end
+end
+
+function M.check()
+    _check_function("get_extension")
+    _check_function("get_layer")
+    _check_function("write_rectangle")
+    _check_function("write_polygon")
+end
+
+local function _write_cell(file, cell)
+    for _, S in cell:iterate_shapes() do
+        if S:is_type("path") and not export.write_path then
+            S:resolve_path()
+        end
+        S:apply_transformation(cell.trans, cell.trans.apply_transformation)
+        local layer = export.get_layer(S)
+        if S:is_type("polygon") then
+            export.write_polygon(file, layer, S.points)
+        elseif S:is_type("rectangle") then
+            export.write_rectangle(file, layer, S.points.bl, S.points.tr)
+        elseif S:is_type("path") then
+            export.write_path(file, layer, S.points, S.width)
+        else
+            moderror(string.format("export: unknown shape type '%s'", S.typ))
+        end
+    end
+    for _, child in cell:iterate_children_links() do
+        if child.isarray and export.write_cell_array then
+            local origin = child.origin
+            child.trans:apply_transformation(origin)
+            cell.trans:apply_transformation(origin)
+            local x, y = origin:unwrap()
+            local orientation = child.trans:orientation_string()
+            export.write_cell_array(file, child.identifier, x, y, orientation, child.xrep, child.yrep, child.xpitch, child.ypitch)
+        else
+            for ix = 1, child.xrep or 1 do
+                for iy = 1, child.yrep or 1 do
+                    local origin = child.origin
+                    child.trans:apply_transformation(origin)
+                    cell.trans:apply_transformation(origin)
+                    local x, y = origin:unwrap()
+                    local orientation = child.trans:orientation_string()
+                    export.write_cell_reference(file, child.identifier, x + (ix - 1) * (child.xpitch or 0), y + (iy - 1) * (child.ypitch or 0), orientation)
+                end
+            end
+        end
+    end
+end
+
+local function _write_children(file, cell)
+    for name, child in cell:iterate_children() do
+        _write_children(file, child)
+        aux.call_if_present(export.at_begin_cell, file, name)
+        _write_cell(file, child, name)
+        aux.call_if_present(export.at_end_cell, file)
+    end
+end
+
+function M.write_toplevel(filename, technology, toplevel, fake)
+    if toplevel:is_empty() then
+        error("export: toplevel is empty")
+    end
+    if not export.write_cell_reference then
+        modinfo("this export does not know how to write hierarchies, hence the cell is being written flat")
+        toplevel:flatten()
     end
     local extension = export.get_extension()
     local file = stringfile.open(string.format("%s.%s", filename, extension))
-    local precomputed = aux.call_if_present(export.precompute, cell)
-    aux.call_if_present(export.at_begin, file, precomputed)
-    aux.call_if_present(export.at_begin_cell, file, precomputed)
-    for layer, pcol in _iter_shapes(_collect_shapes(cell, export.get_layer, export.get_index, export.get_points, precomputed)) do
-        export.write_layer(file, layer, pcol)
-    end
+    aux.call_if_present(export.at_begin, file, technology)
+
+    _write_children(file, toplevel)
+
+    aux.call_if_present(export.at_begin_cell, file, "opctoplevel")
+    _write_cell(file, toplevel, "opctoplevel")
     if export.write_port then
-        for name, port in pairs(cell.ports) do
-            --export.write_port(file, name, port.layer, port.where)
-            -- FIXME: only for testing purposes
-            export.write_port(file, name, "M1", port.where)
+        for portname, port in pairs(toplevel.ports) do
+            toplevel.trans:apply_transformation(port.where)
+            export.write_port(file, portname, port.layer:get(), port.where)
         end
     end
-    aux.call_if_present(export.at_end_cell, file, precomputed)
-    aux.call_if_present(export.at_end, file, precomputed)
+    aux.call_if_present(export.at_end_cell, file)
+
+    aux.call_if_present(export.at_end, file)
     if not fake then
         file:truewrite()
     end

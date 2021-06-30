@@ -9,13 +9,13 @@ local config
 local techpaths = {}
 
 -- make relative metal (negative indices) absolute
-function M.translate_metals(cell)
-    for _, S in cell:iter(function(S) return S:get_lpp():is_type("metal") end) do
+local function _translate_metals(cell)
+    for _, S in cell:iterate_shapes(function(S) return S:get_lpp():is_type("metal") end) do
         if S:get_lpp().value < 0 then
             S:get_lpp().value = config.metals + S:get_lpp().value + 1
         end
     end
-    for _, S in cell:iter(function(S) return S:get_lpp():is_type("via") end) do
+    for _, S in cell:iterate_shapes(function(S) return S:get_lpp():is_type("via") end) do
         local value = S:get_lpp().value
         if value.from < 0 then
             value.from = config.metals + value.from + 1
@@ -30,43 +30,44 @@ function M.translate_metals(cell)
     end
 end
 
-function M.place_via_conductors(cell)
-    for _, S in cell:iter() do
+local function _place_via_conductors(cell)
+    for _, S in cell:iterate_shapes() do
         if S:get_lpp():is_type("via") and not S:get_lpp().bare then
             local m1, m2 = S:get_lpp():get()
             local s1 = S:copy()
             s1:set_lpp(generics.metal(m1))
             local s2 = S:copy()
             s2:set_lpp(generics.metal(m2))
-            cell:add_shape(s1)
-            cell:add_shape(s2)
+            cell:add_raw_shape(s1)
+            cell:add_raw_shape(s2)
         elseif S:get_lpp():is_type("contact") and not S:get_lpp().bare then
             -- FIXME: can't place active contact surrounding as this needs more data than available here
             local smetal = S:copy()
             smetal:set_lpp(generics.metal(1))
-            cell:add_shape(smetal)
+            cell:add_raw_shape(smetal)
         end
     end
 end
 
-function M.split_vias(cell)
-    for i, S in cell:iter(function(S) return S:is_lpp_type("via") end) do
+local function _split_vias(cell)
+    for i, S in cell:iterate_shapes(function(S) return S:is_lpp_type("via") end) do
         local from, to = S:get_lpp():get()
         for j = from, to - 1 do
             local sc = S:copy()
             sc:set_lpp(generics.via(j, j + 1, S:get_lpp().bare))
-            cell:add_shape(sc)
+            cell:add_raw_shape(sc)
         end
         cell:remove_shape(i)
     end
 end
 
-local function _get_lpp(lpp, export)
+local function _get_lpp(entry, export)
+    local lpp = entry.lpp
     if type(lpp) == "function" then
         lpp = lpp()
     end
     if not lpp[export] then
-        error(string.format("no layer information for export type '%s'", export))
+        moderror(string.format("no layer information for layer '%s' for export type '%s'", entry.name, export))
     end
     return lpp[export]
 end
@@ -75,7 +76,8 @@ local function _do_map(cell, S, entry, export)
     entry = entry.func(S:get_lpp():get())
     if entry.lpp then
         local new = S:copy()
-        new:set_lpp(generics.mapped(entry.name, _get_lpp(entry.lpp, export)))
+        local lpp = _get_lpp(entry, export)
+        new:set_lpp(generics.mapped(entry.name, lpp))
         if entry.left   > 0 or
            entry.right  > 0 or
            entry.top    > 0 or
@@ -83,64 +85,142 @@ local function _do_map(cell, S, entry, export)
         then -- this check ensures that not-resized polygons work
             new:resize_lrtb(entry.left, entry.right, entry.top, entry.bottom)
         end
-        cell:add_shape(new)
+        cell:add_raw_shape(new)
     end
+end
+
+local function _get_via_arrayzation(width, height, entry)
+    local via = {}
+    local f = function(cutwidth, cutheight, xspace, yspace, xencl, yencl)
+        local xrep = math.max(1, math.floor((width + xspace - 2 * xencl) / (cutwidth + xspace)))
+        local yrep = math.max(1, math.floor((height + yspace - 2 * yencl) / (cutheight + yspace)))
+        return xrep, yrep
+    end
+    local via = {}
+    if type(entry.width) == "table" then
+        via.xrep = 0
+        via.yrep = 0
+        via.conductivity = 0
+        for i = 1, #entry.width do
+            local xrep, yrep = f(entry.width[i], entry.height[i], entry.xspace[i], entry.yspace[i], entry.xencl[i], entry.yencl[i])
+            if xrep * yrep * entry.conductivity[i] > via.xrep * via.yrep * via.conductivity then
+                via.width = entry.width[i]
+                via.height = entry.height[i]
+                via.xpitch = entry.width[i] + entry.xspace[i]
+                via.ypitch = entry.height[i] + entry.yspace[i]
+                via.xrep = xrep
+                via.yrep = yrep
+                via.conductivity = entry.conductivity[i]
+            end
+        end
+    else
+        local xrep, yrep = f(entry.width, entry.height, entry.xspace, entry.yspace, entry.xencl, entry.yencl)
+        via.width = entry.width
+        via.height = entry.height
+        via.xpitch = entry.width + entry.xspace
+        via.ypitch = entry.height + entry.yspace
+        via.xrep = xrep
+        via.yrep = yrep
+    end
+    return via
 end
 
 local function _do_array(cell, S, entry, export)
     entry = entry.func(S:get_lpp():get())
-    local lpp = entry.lpp
     local width = S:width()
     local height = S:height()
     local c = S:center()
-    local xrep = math.max(1, math.floor((width + entry.xspace - 2 * entry.xencl) / (entry.width + entry.xspace)))
-    local yrep = math.max(1, math.floor((height + entry.yspace - 2 * entry.yencl) / (entry.height + entry.yspace)))
-    local xpitch = entry.width + entry.xspace
-    local ypitch = entry.height + entry.yspace
+    local via = _get_via_arrayzation(width, height, entry)
     local enlarge = 0
+    local lpp = _get_lpp(entry, export)
     local cut = geometry.multiple_xy(
-        geometry.rectangle(generics.mapped(entry.name, _get_lpp(lpp, export)), entry.width + enlarge, entry.height + enlarge),
-        xrep, yrep, xpitch, ypitch
+        geometry.rectangle(generics.mapped(entry.name, lpp), via.width + enlarge, via.height + enlarge),
+        via.xrep, via.yrep, via.xpitch, via.ypitch
     )
     cut:translate(entry.xshift or 0, entry.yshift or 0)
-    cell:merge_into(cut:translate(c:unwrap()))
+
+    cut:translate(c:unwrap())
+    for _, S in cut:iterate_shapes() do
+        local new = cell:add_raw_shape(S)
+        new:apply_transformation(cut.trans, cut.trans.apply_transformation)
+    end
 end
 
-function M.translate(cell, export)
-    for i, S in cell:iter() do
+local function _translate_layers(cell, export)
+    for i, S in cell:iterate_shapes() do
         local layer = S:get_lpp():str()
         local mappings = layermap[layer]
-        if not mappings then
-            error(string.format("no layer information for '%s'\nif the layer is not provided, set it to {}", layer))
-        end
-        for _, entry in ipairs(mappings) do
-            if entry.action == "map" then
-                _do_map(cell, S, entry, export)
-            elseif entry.action == "array" then
-                _do_array(cell, S, entry, export)
+        if not mappings then 
+            if not envlib.get("ignoremissinglayers") then
+                moderror(string.format("no layer information for '%s'\nif the layer is not provided, set it to {}", layer))
             end
+        else
+            for _, entry in ipairs(mappings) do
+                if entry.action == "map" then
+                    _do_map(cell, S, entry, export)
+                elseif entry.action == "array" then
+                    _do_array(cell, S, entry, export)
+                end
+            end
+            cell:remove_shape(i)
         end
-        cell:remove_shape(i)
     end
-    --[[
-    for _, port in pairs(cell.ports) do
-        local layer = port.layer:str()
-    end
-    --]]
 end
 
-function M.fix_to_grid(cell)
-    for _, S in cell:iter() do
+local function _translate_ports(cell, export)
+    for portname, port in pairs(cell.ports) do
+        local layer = port.layer:str()
+        local name = string.format("%sport", layer)
+        local mappings = layermap[name]
+        if not mappings then
+            moderror(string.format("no layer information for '%s'\nif the layer is not provided, set it to {}", name))
+        end
+        -- FIXME: current implementation uses the first mapping, this should be improved
+        local entry = mappings[1]
+        entry = entry.func()
+        local lpp = _get_lpp(entry, export)
+        port.layer = generics.mapped(entry.name, lpp)
+    end
+end
+
+local function _fix_to_grid(cell)
+    for _, S in cell:iterate_shapes() do
         for _, pt in pairs(S:get_points()) do
             pt:fix(config.grid)
         end
     end
 end
 
+local function _translate(cell, export)
+    -- translate cell itself
+    _translate_layers(cell, export)
+    _fix_to_grid(cell)
+    -- translate children
+    for _, child in cell:iterate_children() do
+        _translate(child, export)
+    end
+end
+
+function M.prepare(cell)
+    -- prepare cell itself
+    _translate_metals(cell)
+    _split_vias(cell)
+    _place_via_conductors(cell, export)
+    -- prepare children
+    for _, child in cell:iterate_children() do
+        M.prepare(child)
+    end
+end
+
+function M.translate(cell, export)
+    _translate(cell, export)
+    _translate_ports(cell, export) -- ports are only translated on the toplevel
+end
+
 function M.get_dimension(dimension)
     local value = constraints[dimension]
     if not value then
-        error(string.format("no dimension '%s' found", dimension))
+        moderror(string.format("no dimension '%s' found", dimension))
     end
     return value
 end
@@ -198,6 +278,7 @@ local function _load_layermap(name)
                             yspace = entry.yspace,
                             xencl = entry.xencl,
                             yencl = entry.yencl,
+                            conductivity = entry.conductivity
                         }
                     end,
                 }
@@ -211,13 +292,13 @@ local function _load_layermap(name)
     }
     local filename = _get_tech_filename(name, "layermap")
     if not filename then
-        error(string.format("no techfile for technology '%s' found", name))
+        moderror(string.format("no techfile for technology '%s' found", name))
     end
     local chunkname = "@techfile"
 
     local reader = _get_reader(filename)
     if not reader then
-        error(string.format("no techfile for technology '%s' found", name))
+        moderror(string.format("no techfile for technology '%s' found", name))
     end
     return _generic_load(
         reader, chunkname,
@@ -233,7 +314,7 @@ local function _load_constraints(name)
 
     local reader = _get_reader(filename)
     if not reader then
-        error(string.format("no constraints for technology '%s' found", name))
+        moderror(string.format("no constraints for technology '%s' found", name))
     end
     return _generic_load(
         reader, chunkname,
@@ -248,7 +329,7 @@ local function _load_config(name)
 
     local reader = _get_reader(filename)
     if not reader then
-        error(string.format("no config for technology '%s' found", name))
+        moderror(string.format("no config for technology '%s' found", name))
     end
     return _generic_load(
         reader, chunkname,
