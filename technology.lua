@@ -147,7 +147,7 @@ local function _do_array(cell, S, entry, export)
 end
 
 local function _translate_layers(cell, export)
-    for i, S in cell:iterate_shapes() do
+    for i, S in cell:iterate_shapes(function(S) return not S:get_lpp():is_type("mapped") end) do
         local layer = S:get_lpp():str()
         local mappings = layermap[layer]
         if not mappings then 
@@ -192,28 +192,32 @@ local function _fix_to_grid(cell)
 end
 
 local function _translate(cell, export)
-    -- translate cell itself
     _translate_layers(cell, export)
     _fix_to_grid(cell)
-    -- translate children
-    for _, child in cell:iterate_children() do
-        _translate(child, export)
+end
+
+local function _prepare(cell)
+    _translate_metals(cell)
+    _split_vias(cell)
+    _place_via_conductors(cell)
+end
+
+local function _foreach_cells(cell, func, ...)
+    -- prepare cell itself
+    func(cell, ...)
+    -- prepare cell references
+    for _, ref in pcell.iterate_cell_references() do
+        func(ref, ...)
     end
 end
 
-function M.prepare(cell)
-    -- prepare cell itself
-    _translate_metals(cell)
-    _split_vias(cell)
-    _place_via_conductors(cell, export)
-    -- prepare children
-    for _, child in cell:iterate_children() do
-        M.prepare(child)
-    end
+function M.prepare(cell, export)
+    _foreach_cells(cell, _prepare)
 end
 
 function M.translate(cell, export)
-    _translate(cell, export)
+    _foreach_cells(cell, _translate, export)
+    -- translate ports
     _translate_ports(cell, export) -- ports are only translated on the toplevel
 end
 

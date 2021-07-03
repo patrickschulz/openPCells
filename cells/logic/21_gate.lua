@@ -16,19 +16,21 @@ end
 function layout(gate, _P)
     local bp = pcell.get_parameters("logic/base");
 
-    local isogate = pcell.create_layout("logic/isogate")
-    dprint(isogate.x0, isogate.y0)
-    gate:add_child(isogate, "isogate")
+    local isogateref = pcell.create_layout("logic/isogate")
+    local isogatename = pcell.add_cell_reference(isogateref, "isogate")
+    local isogate = gate:add_child(isogatename)
 
     pcell.push_overwrites("logic/base", { rightdummies = 0 })
     local gate1ref = pcell.create_layout(string.format("logic/%s", _P.gate1))
-    local gate1 = gate:add_child(gate1ref, "gate1")
+    local gate1name = pcell.add_cell_reference(gate1ref, "gate1")
+    local gate1 = gate:add_child(gate1name)
     gate1:move_anchor("right", isogate:get_anchor("left"))
     pcell.pop_overwrites("logic/base")
 
     pcell.push_overwrites("logic/base", { leftdummies = 0 })
     local gate2ref = pcell.create_layout(string.format("logic/%s", _P.gate2))
-    local gate2 = gate:add_child(gate2ref, "gate2")
+    local gate2name = pcell.add_cell_reference(gate2ref, "gate2")
+    local gate2 = gate:add_child(gate2name)
     gate2:move_anchor("left", isogate:get_anchor("right"))
     pcell.pop_overwrites("logic/base")
 
