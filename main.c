@@ -132,7 +132,8 @@ static void load_api(lua_State* L)
         "globals",
         "union",
         "marker",
-        "pcell", // load as last module (FIXME: no longer needed, I think)
+        "gdsreader",
+        "pcell",
         NULL
     };
     const char* const * ptr = modules;
