@@ -77,32 +77,36 @@ local function _override_cell_environment(what, t)
     end
 end
 
+local function _add_cell(state, cellname, funcs, nocallparams)
+    if not (funcs.parameters or funcs.layout) then
+        error(string.format("cell '%s' must define at least the public function 'parameters' or 'layout'", cellname))
+    end
+    local cell = {
+        funcs       = funcs,
+        parameters  = paramlib.create_directory(),
+        properties  = {},
+        references  = {
+            [cellname] = true -- a cell can always refer to its own parameters
+        },
+    }
+    rawset(state.loadedcells, cellname, cell)
+    if not nocallparams then
+        local status, msg = pcall(funcs.parameters)
+        if not status then
+            error(string.format("could not create parameters of cell '%s': %s", cellname, msg))
+        end
+    end
+    if funcs.config then
+        funcs.config()
+    end
+end
+
 local function _get_cell(state, cellname, nocallparams)
     if not state.loadedcells[cellname] then
         if state.debug then print(string.format("loading cell '%s'", cellname)) end
         local env = state:create_cellenv(cellname, _cellenv)
         local funcs = _load_cell(state, cellname, env)
-        if not (funcs.parameters or funcs.layout) then
-            error(string.format("cell '%s' must define at least the public function 'parameters' or 'layout'", cellname))
-        end
-        local cell = {
-            funcs       = funcs,
-            parameters  = paramlib.create_directory(),
-            properties  = {},
-            references  = {
-                [cellname] = true -- a cell can always refer to its own parameters
-            },
-        }
-        rawset(state.loadedcells, cellname, cell)
-        if not nocallparams then
-            local status, msg = pcall(funcs.parameters)
-            if not status then
-                error(string.format("could not create parameters of cell '%s': %s", cellname, msg))
-            end
-        end
-        if funcs.config then
-            funcs.config()
-        end
+        _add_cell(state, cellname, funcs)
     end
     return rawget(state.loadedcells, cellname)
 end
@@ -385,6 +389,10 @@ function state.create_cellenv(state, cellname, ovrenv)
 end
 
 -- Public functions
+function M.add_cell(cellname, funcs)
+    _add_cell(state, cellname, funcs)
+end
+
 function M.enable_debug(d)
     state.debug = d
 end
