@@ -135,6 +135,10 @@ return {
         name = "watch", short = "-w", long = "--watch",
         help = "start 'watch' mode. This continuously monitors the specified cell and regenerates the layout upon changes in the file."
     },
+    store{
+        name = "readgds", long = "--read-GDS",
+        help = "read a GDS stream file and export all cells as opc-compatible code"
+    },
     section("Info functions"),
     switch{ 
         name = "params", short = "-P", long  = "--parameters",

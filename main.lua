@@ -30,6 +30,12 @@ if args.human and args.machine then
     return 1
 end
 
+if args.readgds then
+    print("reading GDS file and exporting cells. This might take some time, depending on the size of the GDS file.")
+    gdsreader.read_cells_and_write(args.readgds, string.gsub(args.readgds, "%.gds", ""))
+    return 0
+end
+
 -- check for script firsts, nothing gets defined for scripts
 if args.script then
     dofile(args.script)

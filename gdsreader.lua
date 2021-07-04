@@ -178,7 +178,7 @@ local function _read_stream(filename)
     return records
 end
 
-function M.read_cells(filename, dirname)
+function M.read_cells_and_write(filename, dirname)
     local records = _read_stream(filename)
     local instructure = false
     local inshape = "none"
@@ -199,11 +199,13 @@ function M.read_cells(filename, dirname)
             for _, shape in ipairs(shapes) do
                 table.insert(chunkt, string.format("cell:merge_into_shallow(%s)", shape))
             end
-            local funcs = {
-                layout = _generic_load(string.format("return function (cell) %s end", table.concat(chunkt))),
-                parameters = function () end,
-            }
-            pcell.add_cell(string.format("%s/%s", dirname, strname), funcs)
+            local cellfile = io.open(string.format("%s/%s.lua", dirname, strname), "w")
+            if not cellfile then
+                moderror(string.format("gdsreader: could not open file for cell export. Did you create the appropriate directory (%s)?", dirname))
+            end
+            cellfile:write("function parameters() end\n")
+            cellfile:write(string.format("function layout(cell) %s end\n", table.concat(chunkt, "\n")))
+            cellfile:close()
         elseif instructure then
             -- structure name
             if is_record(record, recordtable.STRNAME) then
