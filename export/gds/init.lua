@@ -367,13 +367,10 @@ function M.write_cell_array(file, identifier, x, y, orientation, xrep, yrep, xpi
 end
 
 function M.write_port(file, name, layer, where)
-    -- FIXME: use correct layer
     _write_record(file, recordtypes.TEXT, datatypes.NONE)
     _write_record(file, recordtypes.LAYER, datatypes.TWO_BYTE_INTEGER, { layer.layer })
     _write_record(file, recordtypes.TEXTTYPE, datatypes.TWO_BYTE_INTEGER, { layer.purpose })
     _write_record(file, recordtypes.PRESENTATION, datatypes.BIT_ARRAY, { 0x0005 })
-    --_write_record(file, recordtypes.STRANS, datatypes.BIT_ARRAY, { 0x8006 })
-    --_write_record(file, recordtypes.MAG, datatypes.EIGHT_BYTE_REAL, { 10.0 })
     _write_record(file, recordtypes.XY, datatypes.FOUR_BYTE_INTEGER, _unpack_points({ where }, __userunit))
     _write_record(file, recordtypes.STRING, datatypes.ASCII_STRING, name)
     _write_record(file, recordtypes.ENDEL, datatypes.NONE)
