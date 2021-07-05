@@ -137,7 +137,7 @@ return {
     },
     store{
         name = "readgds", long = "--read-GDS",
-        help = "read a GDS stream file and export all cells as opc-compatible code"
+        help = "read a GDS stream file and export all cells as opc-compatible code. This can take some time, depending on the size of the stream file"
     },
     section("Info functions"),
     switch{ 

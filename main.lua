@@ -31,7 +31,6 @@ if args.human and args.machine then
 end
 
 if args.readgds then
-    print("reading GDS file and exporting cells. This might take some time, depending on the size of the GDS file.")
     gdsreader.read_cells_and_write(args.readgds, string.gsub(args.readgds, "%.gds", ""))
     return 0
 end
