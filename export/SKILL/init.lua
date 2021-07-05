@@ -54,6 +54,7 @@ local function _format(l)
     else
         str = string.format('"%s"', l)
     end
+    return str
 end
 
 local function _format_lpp(layer)
