@@ -66,7 +66,8 @@ local function _get_lpp(entry, export)
     if type(lpp) == "function" then
         lpp = lpp()
     end
-    if not lpp[export] then
+    if not lpp[export] and not envlib.get("ignoremissingexport") then
+        print(envlib.get("ignoremissingexport"))
         moderror(string.format("no layer information for layer '%s' for export type '%s'", entry.name, export))
     end
     return lpp[export]
@@ -194,7 +195,12 @@ end
 local function _select_premapped_layers(cell, export)
     for i, S in cell:iterate_shapes(function(S) return S:get_lpp():is_type("premapped") end) do
         local lpp = S:get_lpp()
-        S:set_lpp(generics.mapped(lpp:str(), _get_lpp({ name = lpp:str(), lpp = lpp:get() }, export)))
+        local newlpp = _get_lpp({ name = lpp:str(), lpp = lpp:get() }, export)
+        if newlpp then
+            S:set_lpp(generics.mapped(lpp:str(), newlpp))
+        else
+            cell:remove_shape(i)
+        end
     end
 end
 

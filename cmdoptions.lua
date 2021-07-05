@@ -86,6 +86,10 @@ return {
         help = "ignore missing layers in the technology translation. Layers that are not present in the layermap file are handled as if their values was '{}'",
     },
     switch{
+        name = "ignoremissingexport", long = "--ignore-missing-export",
+        help = "ignore layers with missing exports in the technology translation"
+    },
+    switch{
         name = "mergerectangles", long = "--merge-rectangles",
         help = "merge rectangles"
     },

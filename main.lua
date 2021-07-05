@@ -108,7 +108,12 @@ if args.machine then
     envlib.set("humannotmachine", false)
 end
 envlib.set("verbose", args.verbose)
-envlib.set("ignoremissinglayers", args.ignoremissinglayers)
+if args.ignoremissinglayers then
+    envlib.set("ignoremissinglayers", true)
+end
+if args.ignoremissingexport then
+    envlib.set("ignoremissingexport", true)
+end
 
 -- list available cells
 if args.listcells or args.listallcells then
