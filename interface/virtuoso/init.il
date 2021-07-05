@@ -120,6 +120,20 @@ procedure(OPCAboutCallback()
     )
 ) ; procedure
 
+procedure(OPCEditCallback()
+    letseq(
+        (
+            (cv geGetEditCellView())
+            (libPath cv->lib->readPath)
+            (cellName cv->cellName)
+            (OPCFilename "openPCells")
+            path OPCArgs
+        )
+        path = lsprintf("%s/%s/layout/layout.lua" libPath cellName)
+        (system (lsprintf "xterm -e vim %s" path))
+    )
+) ; procedure
+
 procedure(OPCUpdateCallback()
     letseq(
         (
@@ -142,13 +156,14 @@ procedure(OPCUpdateCallback()
 ) ; procedure
 
 procedure(OPCLayoutAddMenu(args)
-    let( (menu itemlist about separator update script settings cellmenu cellitem (win args->window))
+    let( (menu itemlist about separator edit update script settings cellmenu cellitem (win args->window))
         ; basic information
         about = hiCreateMenuItem(?name 'OPCAbout ?itemText "About" ?callback "OPCAboutCallback()")
 
         separator = hiCreateSeparatorMenuItem(?name 'OPCLayoutMenuSeparator)
 
         ; update design
+        edit = hiCreateMenuItem(?name 'OPCEditCellScript ?itemText "Edit Design" ?callback "OPCEditCallback()")
         update = hiCreateMenuItem(?name 'OPCCellScript ?itemText "Update Design (removes all shapes!)" ?callback "OPCUpdateCallback()")
 
         separator = hiCreateSeparatorMenuItem(?name 'OPCLayoutMenuSeparator)
@@ -169,7 +184,7 @@ procedure(OPCLayoutAddMenu(args)
         settings = hiCreateMenuItem(?name 'OPCSettings ?itemText "Settings" ?callback "println(\"openPCells Settings\")")
 
         ; assemble main menu
-        itemlist = list(about separator update separator script separator cellitem settings)
+        itemlist = list(about separator edit update separator script separator cellitem settings)
         menu = hiCreatePulldownMenu('OPCLayoutMenu "OpenPCells" itemlist)
         hiInsertBannerMenu(win menu length(hiGetBannerMenus(win)))
     )
