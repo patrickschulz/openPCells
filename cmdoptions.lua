@@ -139,6 +139,10 @@ return {
         name = "readgds", long = "--read-GDS",
         help = "read a GDS stream file and export all cells as opc-compatible code. This can take some time, depending on the size of the stream file"
     },
+    store{
+        name = "gdslayermap", long = "--GDS-layermap",
+        help = "provide a layermap for GDS stream reading to enable different export types for read cells"
+    },
     section("Info functions"),
     switch{ 
         name = "params", short = "-P", long  = "--parameters",

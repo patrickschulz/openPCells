@@ -31,7 +31,11 @@ if args.human and args.machine then
 end
 
 if args.readgds then
-    gdsreader.read_cells_and_write(args.readgds, string.gsub(args.readgds, "%.gds", ""))
+    local layermap = {}
+    if args.gdslayermap then
+        layermap = dofile(args.gdslayermap)
+    end
+    gdsreader.read_cells_and_write(args.readgds, string.gsub(args.readgds, "%.gds", ""), layermap)
     return 0
 end
 

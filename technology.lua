@@ -147,7 +147,7 @@ local function _do_array(cell, S, entry, export)
 end
 
 local function _translate_layers(cell, export)
-    for i, S in cell:iterate_shapes(function(S) return not S:get_lpp():is_type("mapped") end) do
+    for i, S in cell:iterate_shapes(function(S) return not (S:get_lpp():is_type("mapped") or S:get_lpp():is_type("premapped")) end) do
         local layer = S:get_lpp():str()
         local mappings = layermap[layer]
         if not mappings then 
@@ -191,9 +191,17 @@ local function _fix_to_grid(cell)
     end
 end
 
+local function _select_premapped_layers(cell, export)
+    for i, S in cell:iterate_shapes(function(S) return S:get_lpp():is_type("premapped") end) do
+        local lpp = S:get_lpp()
+        S:set_lpp(generics.mapped(lpp:str(), _get_lpp({ name = lpp:str(), lpp = lpp:get() }, export)))
+    end
+end
+
 local function _translate(cell, export)
     _translate_layers(cell, export)
     _fix_to_grid(cell)
+    _select_premapped_layers(cell, export)
 end
 
 local function _prepare(cell)
@@ -211,7 +219,7 @@ local function _foreach_cells(cell, func, ...)
     end
 end
 
-function M.prepare(cell, export)
+function M.prepare(cell)
     _foreach_cells(cell, _prepare)
 end
 

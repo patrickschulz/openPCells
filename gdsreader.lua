@@ -178,7 +178,23 @@ local function _read_stream(filename)
     return records
 end
 
-function M.read_cells_and_write(filename, dirname)
+local function _format_lpp(layer, purpose, layermap)
+    local lppt = {
+        string.format("gds = { layer = %d, purpose = %d }", layer, purpose)
+    }
+    if layermap then
+        for k, v in pairs(layermap) do
+            if v[layer] then
+                if v[layer][purpose] then
+                    table.insert(lppt, string.format("%s = { layer = %q, purpose = %q }", k, v[layer][purpose].layer, v[layer][purpose].purpose))
+                end
+            end
+        end
+    end
+    return string.format("generics.premapped(nil, { %s })", table.concat(lppt, ", "))
+end
+
+function M.read_cells_and_write(filename, dirname, layermap)
     local records = _read_stream(filename)
     local instructure = false
     local inshape = "none"
@@ -203,8 +219,9 @@ function M.read_cells_and_write(filename, dirname)
             if not cellfile then
                 moderror(string.format("gdsreader: could not open file for cell export. Did you create the appropriate directory (%s)?", dirname))
             end
-            cellfile:write("function parameters() end\n")
-            cellfile:write(string.format("function layout(cell) %s end\n", table.concat(chunkt, "\n")))
+            cellfile:write("function parameters()\nend\n")
+            cellfile:write("\n")
+            cellfile:write(string.format("function layout(cell)\n%s\nend\n", table.concat(chunkt, "\n")))
             cellfile:close()
         elseif instructure then
             -- structure name
@@ -219,22 +236,25 @@ function M.read_cells_and_write(filename, dirname)
                 inshape = "PATH"
             elseif is_record(record, recordtable.ENDEL) then
                 if inshape == "BOX" then
+                    local lpp = _format_lpp(layer, purpose, layermap)
                     -- FIXME: use correct points
                     local bl = "point.create(-50, -50)"
                     local tr = "point.create(50, 50)"
-                    table.insert(shapes, string.format("geometry.rectanglebltr(generics.mapped(nil, { layer = %d, purpose = %d }), %s, %s)", layer, purpose, bl, tr))
+                    table.insert(shapes, string.format("geometry.rectanglebltr(%s, %s, %s)", lpp, bl, tr))
                 elseif inshape == "BOUNDARY" then
+                    local lpp = _format_lpp(layer, purpose, layermap)
                     local ptsstrt = {}
                     for i = 1, #pts - 1, 2 do
                         table.insert(ptsstrt, string.format("point.create(%d, %d)", pts[i], pts[i + 1]))
                     end
-                    table.insert(shapes, string.format("geometry.polygon(generics.mapped(nil, { layer = %d, purpose = %d }), { %s })", layer, purpose, table.concat(ptsstrt, ", ")))
+                    table.insert(shapes, string.format("geometry.polygon(%s, { %s })", lpp, table.concat(ptsstrt, ", ")))
                 elseif inshape == "PATH" then
+                    local lpp = _format_lpp(layer, purpose, layermap)
                     local ptsstrt = {}
                     for i = 1, #pts - 1, 2 do
                         table.insert(ptsstrt, string.format("point.create(%d, %d)", pts[i], pts[i + 1]))
                     end
-                    table.insert(shapes, string.format("geometry.path(generics.mapped(nil, { layer = %d, purpose = %d }), { %s }, %d)", layer, purpose, table.concat(ptsstrt, ", "), width))
+                    table.insert(shapes, string.format("geometry.path(%s, { %s }, %d)", lpp, table.concat(ptsstrt, ", "), width))
                 end
                 inshape = "none"
             elseif inshape ~= "none" then
