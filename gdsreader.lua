@@ -114,6 +114,9 @@ end
 local function _parse_integer(data, width, start)
     start = start or 0
     local num = 0
+    if data[start + 1] > 127 then -- negative
+        num = -1 * 2^32
+    end
     for i = 1, width do
         num = num + data[start + i] * (1 << (8 * (width - i)))
     end
