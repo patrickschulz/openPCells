@@ -82,6 +82,9 @@ local function _display_help(self)
             print(string.format(fmt, cmdstr, helpstr))
         end
     end
+    for _, msg in ipairs(self.helpmsg) do
+        print(msg)
+    end
     os.exit(0)
 end
 
@@ -233,13 +236,18 @@ function meta.set_option(self, param, arg)
     action(self, arg)
 end
 
+function meta.append_to_help_message(self, msg)
+    table.insert(self.helpmsg, msg)
+end
+
 return function()
     local self = {
         state = { i = 1 },
         parsers = {},
         actions = {},
         nameresolve = {},
-        res = { cellargs = {} }
+        res = { cellargs = {} },
+        helpmsg = {}
     }
     setmetatable(self, meta)
     return self
