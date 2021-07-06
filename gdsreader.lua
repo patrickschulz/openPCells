@@ -240,9 +240,8 @@ function M.read_cells_and_write(filename, dirname, layermap)
             elseif is_record(record, recordtable.ENDEL) then
                 if inshape == "BOX" then
                     local lpp = _format_lpp(layer, purpose, layermap)
-                    -- FIXME: use correct points
-                    local bl = "point.create(-50, -50)"
-                    local tr = "point.create(50, 50)"
+                    local bl = string.format("point.create(%d, %d)", pts[1], pts[2])
+                    local tr = string.format("point.create(%d, %d)", pts[5], pts[6])
                     table.insert(shapes, string.format("geometry.rectanglebltr(%s, %s, %s)", lpp, bl, tr))
                 elseif inshape == "BOUNDARY" then
                     local lpp = _format_lpp(layer, purpose, layermap)
