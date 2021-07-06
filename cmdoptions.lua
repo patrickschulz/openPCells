@@ -67,19 +67,19 @@ return {
     },
     store_multiple{
         name = "prelayerfilter", long = "--pre-filter",
-        help = "filter layers to be generated. Any layer (in generic notation) in this list will not be generated. This option can be called multiple times. The effect of this options is also controlled by --filter-list.",
+        help = "filter layers to be generated. Any layer (in generic notation) in this list will not be generated. This option can be called multiple times. The effect of this options is also controlled by --pre-filter-list. This filter is installed BEFORE technology translation, so the layers must be specified in generic notation (e.g. M1 or contactsourcedrain).",
     },
     store{
         name = "prelayerfilterlist", long = "--pre-filter-list",
-        help = "set filter list type (white or black, default black)"
+        help = "set pre-technology-translation filter list type (white or black, default black)"
     },
     store_multiple{
         name = "postlayerfilter", long = "--post-filter",
-        help = "filter layers to be generated. Any layer (in generic notation) in this list will not be generated. This option can be called multiple times. The effect of this options is also controlled by --filter-list.",
+        help = "filter layers to be generated. Any layer (in generic notation) in this list will not be generated. This option can be called multiple times. The effect of this options is also controlled by --post-filter-list. This filter is installed AFTER technology translation, so the layers must be specified in technology-specific notation.",
     },
     store{
         name = "postlayerfilterlist", long = "--post-filter-list",
-        help = "set filter list type (white or black, default black)"
+        help = "set post-technology-translation filter list type (white or black, default black)"
     },
     store_multiple{
         name = "exportfilter", long = "--export-filter",
