@@ -37,6 +37,7 @@ function M.check()
 end
 
 local function _write_cell(file, cell)
+    -- shapes
     for _, S in cell:iterate_shapes() do
         if S:is_type("path") and not export.write_path then
             S:resolve_path()
@@ -53,6 +54,7 @@ local function _write_cell(file, cell)
             moderror(string.format("export: unknown shape type '%s'", S.typ))
         end
     end
+    -- children links
     for _, child in cell:iterate_children() do
         if child.isarray and export.write_cell_array then
             local origin = child.origin
@@ -76,11 +78,17 @@ local function _write_cell(file, cell)
     end
 end
 
+local cellrefs = {}
 local function _write_children(file, cell)
-    for name, child in pcell.iterate_cell_references() do
-        aux.call_if_present(export.at_begin_cell, file, name)
-        _write_cell(file, child, name)
-        aux.call_if_present(export.at_end_cell, file)
+    for _, child in cell:iterate_children() do
+        if not cellrefs[child.identifier] then
+            local cellref = pcell.get_cell_reference(child.identifier)
+            print(child.identifier, cellref)
+            aux.call_if_present(export.at_begin_cell, file, child.identifier)
+            _write_cell(file, cellref, child.identifier)
+            aux.call_if_present(export.at_end_cell, file)
+            cellrefs[child.identifier] = true
+        end
     end
 end
 
