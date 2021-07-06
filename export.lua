@@ -83,7 +83,6 @@ local function _write_children(file, cell)
     for _, child in cell:iterate_children() do
         if not cellrefs[child.identifier] then
             local cellref = pcell.get_cell_reference(child.identifier)
-            print(child.identifier, cellref)
             aux.call_if_present(export.at_begin_cell, file, child.identifier)
             _write_cell(file, cellref, child.identifier)
             aux.call_if_present(export.at_end_cell, file)
