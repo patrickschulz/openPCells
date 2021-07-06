@@ -291,12 +291,12 @@ end
 
 technology.prepare(cell)
 
--- filter layers
-if args.layerfilter then
+-- filter layers (pre)
+if args.prelayerfilter then
     -- filter toplevel (flat shapes)
-    postprocess.filter(cell, args.layerfilter, args.layerfilterlist or "black")
+    postprocess.filter(cell, args.prelayerfilter, args.prelayerfilterlist or "black")
     -- filter children
-    pcell.foreach_cell_references(postprocess.filter, args.layerfilter, args.layerfilterlist or "black")
+    pcell.foreach_cell_references(postprocess.filter, args.prelayerfilter, args.prelayerfilterlist or "black")
 end
 
 if not args.export then
@@ -308,6 +308,14 @@ export.load(args.export)
 local techintf = export.get_techexport() or args.export
 if not args.notech and techintf ~= "raw" then
     technology.translate(cell, techintf)
+end
+
+-- filter layers (post)
+if args.postlayerfilter then
+    -- filter toplevel (flat shapes)
+    postprocess.filter(cell, args.postlayerfilter, args.postlayerfilterlist or "black")
+    -- filter children
+    pcell.foreach_cell_references(postprocess.filter, args.postlayerfilter, args.postlayerfilterlist or "black")
 end
 
 if args.flatten then

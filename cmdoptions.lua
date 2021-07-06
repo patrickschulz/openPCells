@@ -66,11 +66,19 @@ return {
         help = "synonym for --append-cellpath"
     },
     store_multiple{
-        name = "layerfilter", long = "--filter",
+        name = "prelayerfilter", long = "--pre-filter",
         help = "filter layers to be generated. Any layer (in generic notation) in this list will not be generated. This option can be called multiple times. The effect of this options is also controlled by --filter-list.",
     },
     store{
-        name = "layerfilterlist", long = "--filter-list",
+        name = "prelayerfilterlist", long = "--pre-filter-list",
+        help = "set filter list type (white or black, default black)"
+    },
+    store_multiple{
+        name = "postlayerfilter", long = "--post-filter",
+        help = "filter layers to be generated. Any layer (in generic notation) in this list will not be generated. This option can be called multiple times. The effect of this options is also controlled by --filter-list.",
+    },
+    store{
+        name = "postlayerfilterlist", long = "--post-filter-list",
         help = "set filter list type (white or black, default black)"
     },
     store_multiple{
