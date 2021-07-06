@@ -307,9 +307,9 @@ function M.at_end_cell(file)
 end
 
 function M.write_rectangle(file, layer, bl, tr)
-    _write_record(file, recordtypes.BOX, datatypes.NONE)
+    _write_record(file, recordtypes.BOUNDARY, datatypes.NONE)
     _write_record(file, recordtypes.LAYER, datatypes.TWO_BYTE_INTEGER, { layer.layer })
-    _write_record(file, recordtypes.BOXTYPE, datatypes.TWO_BYTE_INTEGER, { layer.purpose})
+    _write_record(file, recordtypes.DATATYPE, datatypes.TWO_BYTE_INTEGER, { layer.purpose})
     local ptstream = _unpack_points({ bl, point.combine_21(bl, tr), tr, point.combine_12(bl, tr), bl }, __userunit)
     _write_record(file, recordtypes.XY, datatypes.FOUR_BYTE_INTEGER, ptstream)
     _write_record(file, recordtypes.ENDEL, datatypes.NONE)
