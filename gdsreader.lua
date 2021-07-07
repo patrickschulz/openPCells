@@ -198,23 +198,26 @@ local function _format_lpp(layer, purpose, layermap)
 end
 
 local function _write_cell(dirname, strname, shapes, references)
-    local chunkt = {}
+    local chunkt = {
+        "    local ref",
+        "    local name"
+    }
     for _, shape in ipairs(shapes) do
         table.insert(chunkt, string.format("    cell:merge_into_shallow(%s)", shape))
     end
     for _, ref in ipairs(references) do
-        table.insert(chunkt, string.format('    local %sref = pcell.create_layout("%s/%s")', ref.name, dirname, ref.name))
-        table.insert(chunkt, string.format('    local %sname = pcell.add_cell_reference(%sref, "%s")', ref.name, ref.name, ref.name))
+        table.insert(chunkt, string.format('    ref = pcell.create_layout("%s/%s")', dirname, ref.name))
+        table.insert(chunkt, string.format('    name = pcell.add_cell_reference(ref, "%s")', ref.name))
         if ref.xrep then -- AREF
             local xpitch = (ref.xy[3] - ref.xy[1]) / ref.xrep
             local ypitch = (ref.xy[4] - ref.xy[2]) / ref.yrep
             table.insert(chunkt, string.format('    for i = 1, %d do', ref.xrep))
             table.insert(chunkt, string.format('        for j = 1, %d do', ref.yrep))
-            table.insert(chunkt, string.format('            cell:add_child(%sname):translate(%d + (i - 1) * %d, %d + (j - 1) * %d)', ref.name, ref.xy[1], xpitch, ref.xy[2], ypitch))
+            table.insert(chunkt, string.format('            cell:add_child(name):translate(%d + (i - 1) * %d, %d + (j - 1) * %d)', ref.xy[1], xpitch, ref.xy[2], ypitch))
             table.insert(chunkt, '        end')
             table.insert(chunkt, '    end')
         else
-            table.insert(chunkt, string.format('    cell:add_child(%sname):translate(%d, %d)', ref.name, ref.xy[1], ref.xy[2]))
+            table.insert(chunkt, string.format('    cell:add_child(name):translate(%d, %d)', ref.xy[1], ref.xy[2]))
         end
     end
     local cellfile = io.open(string.format("%s/%s.lua", dirname, strname), "w")
