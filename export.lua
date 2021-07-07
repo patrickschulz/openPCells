@@ -87,6 +87,7 @@ local function _write_children(file, cell)
             _write_cell(file, cellref, child.identifier)
             aux.call_if_present(export.at_end_cell, file)
             cellrefs[child.identifier] = true
+            _write_children(file, cellref)
         end
     end
 end
