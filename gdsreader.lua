@@ -197,78 +197,137 @@ local function _format_lpp(layer, purpose, layermap)
     return string.format("generics.premapped(nil, { %s })", table.concat(lppt, ", "))
 end
 
+local function _write_cell(dirname, strname, shapes, references)
+    local chunkt = {}
+    for _, shape in ipairs(shapes) do
+        table.insert(chunkt, string.format("    cell:merge_into_shallow(%s)", shape))
+    end
+    for _, ref in ipairs(references) do
+        table.insert(chunkt, string.format('    local %sref = pcell.create_layout("%s/%s")', ref.name, dirname, ref.name))
+        table.insert(chunkt, string.format('    local %sname = pcell.add_cell_reference(%sref, "%s")', ref.name, ref.name, ref.name))
+        if ref.xrep then -- AREF
+            local xpitch = (ref.xy[3] - ref.xy[1]) / ref.xrep
+            local ypitch = (ref.xy[4] - ref.xy[2]) / ref.yrep
+            table.insert(chunkt, string.format('    for i = 1, %d do', ref.xrep))
+            table.insert(chunkt, string.format('        for j = 1, %d do', ref.yrep))
+            table.insert(chunkt, string.format('            cell:add_child(%sname):translate(%d + (i - 1) * %d, %d + (j - 1) * %d)', ref.name, ref.xy[1], xpitch, ref.xy[2], ypitch))
+            table.insert(chunkt, '        end')
+            table.insert(chunkt, '    end')
+        else
+            table.insert(chunkt, string.format('    cell:add_child(%sname):translate(%d, %d)', ref.name, ref.xy[1], ref.xy[2]))
+        end
+    end
+    local cellfile = io.open(string.format("%s/%s.lua", dirname, strname), "w")
+    if not cellfile then
+        moderror(string.format("gdsreader: could not open file for cell export. Did you create the appropriate directory (%s)?", dirname))
+    end
+    cellfile:write("function parameters()\nend\n")
+    cellfile:write("\n")
+    cellfile:write(string.format("function layout(cell)\n%s\nend\n", table.concat(chunkt, "\n")))
+    cellfile:close()
+end
+
+local function _format_shape(shapetype, pts, width, layer, purpose, layermap)
+    local lpp = _format_lpp(layer, purpose, layermap)
+    if shapetype == "BOX" then
+        local bl = string.format("point.create(%d, %d)", pts[1], pts[2])
+        local tr = string.format("point.create(%d, %d)", pts[5], pts[6])
+        return string.format("geometry.rectanglebltr(%s, %s, %s)", lpp, bl, tr)
+    elseif shapetype == "BOUNDARY" then
+        local ptsstrt = {}
+        for i = 1, #pts - 1, 2 do
+            table.insert(ptsstrt, string.format("point.create(%d, %d)", pts[i], pts[i + 1]))
+        end
+        return string.format("geometry.polygon(%s, { %s })", lpp, table.concat(ptsstrt, ", "))
+    elseif shapetype == "PATH" then
+        local ptsstrt = {}
+        for i = 1, #pts - 1, 2 do
+            table.insert(ptsstrt, string.format("point.create(%d, %d)", pts[i], pts[i + 1]))
+        end
+        return string.format("geometry.path(%s, { %s }, %d)", lpp, table.concat(ptsstrt, ", "), width)
+    else
+        error(string.format("wrong shape: %s", shapetype))
+    end
+end
+
 function M.read_cells_and_write(filename, dirname, layermap)
     local records = _read_stream(filename)
-    local instructure = false
-    local inshape = "none"
+    local where = "outer"
+    local shapetype = "none"
     local strname
     local shapes
     local layer
     local purpose
     local pts
     local width
+    local references
+    local refname
+    local refxy
+    local xrep
+    local yrep
     local function is_record(record, rtype) return record.header.recordtype == rtype end
     for _, record in ipairs(records) do
         if is_record(record, recordtable.BGNSTR) then
-            instructure = true
+            where = "structure"
             shapes = {}
+            references = {}
         elseif is_record(record, recordtable.ENDSTR) then
-            instructure = false
-            local chunkt = {}
-            for _, shape in ipairs(shapes) do
-                table.insert(chunkt, string.format("cell:merge_into_shallow(%s)", shape))
-            end
-            local cellfile = io.open(string.format("%s/%s.lua", dirname, strname), "w")
-            if not cellfile then
-                moderror(string.format("gdsreader: could not open file for cell export. Did you create the appropriate directory (%s)?", dirname))
-            end
-            cellfile:write("function parameters()\nend\n")
-            cellfile:write("\n")
-            cellfile:write(string.format("function layout(cell)\n%s\nend\n", table.concat(chunkt, "\n")))
-            cellfile:close()
-        elseif instructure then
+            where = "outer"
+            _write_cell(dirname, strname, shapes, references)
+        elseif where == "structure" then
             -- structure name
             if is_record(record, recordtable.STRNAME) then
                 strname = record.data
+            -- structure reference
+            elseif is_record(record, recordtable.SREF) then
+                where = "sref"
+            elseif is_record(record, recordtable.AREF) then
+                where = "aref"
             -- structure shapes
             elseif is_record(record, recordtable.BOX) then
-                inshape = "BOX"
+                where = "shape"
+                shapetype = "BOX"
             elseif is_record(record, recordtable.BOUNDARY) then
-                inshape = "BOUNDARY"
+                where = "shape"
+                shapetype = "BOUNDARY"
             elseif is_record(record, recordtable.PATH) then
-                inshape = "PATH"
-            elseif is_record(record, recordtable.ENDEL) then
-                if inshape == "BOX" then
-                    local lpp = _format_lpp(layer, purpose, layermap)
-                    local bl = string.format("point.create(%d, %d)", pts[1], pts[2])
-                    local tr = string.format("point.create(%d, %d)", pts[5], pts[6])
-                    table.insert(shapes, string.format("geometry.rectanglebltr(%s, %s, %s)", lpp, bl, tr))
-                elseif inshape == "BOUNDARY" then
-                    local lpp = _format_lpp(layer, purpose, layermap)
-                    local ptsstrt = {}
-                    for i = 1, #pts - 1, 2 do
-                        table.insert(ptsstrt, string.format("point.create(%d, %d)", pts[i], pts[i + 1]))
-                    end
-                    table.insert(shapes, string.format("geometry.polygon(%s, { %s })", lpp, table.concat(ptsstrt, ", ")))
-                elseif inshape == "PATH" then
-                    local lpp = _format_lpp(layer, purpose, layermap)
-                    local ptsstrt = {}
-                    for i = 1, #pts - 1, 2 do
-                        table.insert(ptsstrt, string.format("point.create(%d, %d)", pts[i], pts[i + 1]))
-                    end
-                    table.insert(shapes, string.format("geometry.path(%s, { %s }, %d)", lpp, table.concat(ptsstrt, ", "), width))
-                end
-                inshape = "none"
-            elseif inshape ~= "none" then
-                if is_record(record, recordtable.LAYER) then
-                    layer = record.data
-                elseif is_record(record, recordtable.DATATYPE) then
-                    purpose = record.data
-                elseif is_record(record, recordtable.XY) then
-                    pts = record.data
-                elseif is_record(record, recordtable.WIDTH) then
-                    width = record.data
-                end
+                where = "shape"
+                shapetype = "PATH"
+            end
+        elseif where == "shape" then
+            if is_record(record, recordtable.ENDEL) then
+                table.insert(shapes, _format_shape(shapetype, pts, width, layer, purpose, layermap))
+                shapetype = "none"
+                where = "structure"
+            elseif is_record(record, recordtable.LAYER) then
+                layer = record.data
+            elseif is_record(record, recordtable.DATATYPE) then
+                purpose = record.data
+            elseif is_record(record, recordtable.XY) then
+                pts = record.data
+            elseif is_record(record, recordtable.WIDTH) then
+                width = record.data
+            end
+        elseif where == "sref" then
+            if is_record(record, recordtable.ENDEL) then
+                where = "structure"
+                table.insert(references, { name = refname, xy = refxy })
+            elseif is_record(record, recordtable.SNAME) then
+                refname = record.data
+            elseif is_record(record, recordtable.XY) then
+                refxy = record.data
+            end
+        elseif where == "aref" then
+            if is_record(record, recordtable.ENDEL) then
+                where = "structure"
+                table.insert(references, { name = refname, xy = refxy, xrep = xrep, yrep = yrep })
+            elseif is_record(record, recordtable.SNAME) then
+                refname = record.data
+            elseif is_record(record, recordtable.XY) then
+                refxy = record.data
+            elseif is_record(record, recordtable.COLROW) then
+                xrep = record.data[1]
+                yrep = record.data[2]
             end
         end
     end
