@@ -130,7 +130,7 @@ procedure(OPCEditCallback()
             path OPCArgs
         )
         path = lsprintf("%s/%s/layout/layout.lua" libPath cellName)
-        (system (lsprintf "xterm -e vim %s" path))
+        pid = ipcBeginProcess(lsprintf("xterm -e vim %s" path) "")
     )
 ) ; procedure
 
@@ -147,6 +147,7 @@ procedure(OPCUpdateCallback()
         OPCArgs = lsprintf("--cellscript %s -f %s" path OPCFilename)
         when(OPCCall(OPCArgs)
             foreach(shape cv->shapes dbDeleteObject(shape))
+            foreach(inst cv->instances dbDeleteObject(instances))
             printf("opc: load %s.il" OPCFilename)
             load(lsprintf("%s.il" OPCFilename))
             printf("opc: delete %s.il" OPCFilename)
