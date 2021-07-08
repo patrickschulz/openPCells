@@ -254,6 +254,10 @@ local function _format_shape(shapetype, pts, width, layer, purpose, layermap)
 end
 
 function M.read_cells_and_write(filename, dirname, layermap)
+    -- create required directory
+    filesystem.mkdir(dirname)
+
+    -- read gds
     local records = _read_stream(filename)
     local where = "outer"
     local shapetype = "none"

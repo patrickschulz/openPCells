@@ -208,6 +208,7 @@ lua_State* create_and_initialize_lua()
     open_lstringbuffer_lib(L);
     open_lshape_lib(L);
     open_lunion_lib(L);
+    open_lfilesystem_lib(L);
 
     load_api(L); // could fail
 
