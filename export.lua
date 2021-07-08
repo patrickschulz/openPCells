@@ -3,8 +3,27 @@ local M = {}
 local export
 local _name
 
+local exportpaths = {}
+
+function M.add_path(path)
+    table.insert(exportpaths, path)
+end
+
+local function _get_export_filename(name)
+    for _, path in ipairs(exportpaths) do
+        local filename = string.format("%s/%s/init.lua", path, name)
+        if dir.exists(filename) then
+            -- first found matching cell is used
+            return filename
+        end
+    end
+end
+
 function M.load(name)
-    local filename = string.format("%s/export/%s/init.lua", _get_opc_home(), name)
+    local filename = _get_export_filename(name)
+    if not filename then
+        error(string.format("export '%s' not found", name))
+    end
     local chunkname = string.format("@export/%s", name)
     local reader = _get_reader(filename)
     if not reader then

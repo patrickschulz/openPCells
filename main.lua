@@ -82,6 +82,9 @@ if args.prependcellpath then
     end
 end
 
+-- set default path for exports
+export.add_path(string.format("%s/export", _get_opc_home()))
+
 -- load user configuration
 if not args.nouserconfig then
     if not config.load_user_config(argparse) then
