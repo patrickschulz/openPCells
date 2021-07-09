@@ -14,7 +14,7 @@ return {
     },
     store{ 
         name = "export_options", short = "-X", long = "--xopts",
-        help = "pass special options to export. This passes the next argument (separated by white space) literally. This means that several arguments have to be grouped, usually by enclosing it in quotations marks (e.g. -X '--foo --bar'). On overview of the available options for the respective export can be found by passing -h, e.g. opc --export gds -X -h"
+        help = "pass special options to export. This passes the next argument (separated by white space) literally. This means that several arguments have to be grouped, usually by enclosing it in quotations marks (e.g. -X '--foo --bar'). An overview of the available options for the respective export can be found by passing -h, e.g. opc --export gds -X -h"
     },
     store{
         name = "cellscript", short = "-c", long = "--cellscript",
