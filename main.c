@@ -105,58 +105,6 @@ void load_lualibs(lua_State *L)
     }
 }
 
-
-static void load_api(lua_State* L)
-{
-    const char* const modules[] = {
-        "profiler", // load before other modules so register_cfunction is available
-        "cmdparser",
-        "lpoint",
-        "technology",
-        "postprocess",
-        "export",
-        "config",
-        "object",
-        "transformationmatrix",
-        "shape",
-        "geometry",
-        "graphics",
-        "generics",
-        "stringfile",
-        "util",
-        "aux",
-        "reduce",
-        "stack",
-        "support",
-        "envlib",
-        "globals",
-        "union",
-        "marker",
-        "gdsreader",
-        "pcell",
-        NULL
-    };
-    const char* const * ptr = modules;
-    lua_getglobal(L, "_load_module");
-    while(*ptr)
-    {
-        lua_pushvalue(L, -1); // copy _load_module
-        lua_pushstring(L, *ptr);
-        if(lua_pcall(L, 1, 1, 0) == LUA_OK)
-        {
-            lua_setglobal(L, *ptr);
-        }
-        else
-        {
-            fprintf(stderr, "%s\n", lua_tostring(L, -1));
-            lua_close(L);
-            exit(1);
-        }
-        ++ptr;
-    }
-    lua_pop(L, 1); // remove _load_module
-}
-
 static void create_argument_table(lua_State* L, int argc, char** argv)
 {
     lua_newtable(L);
@@ -210,9 +158,7 @@ lua_State* create_and_initialize_lua()
     open_lunion_lib(L);
     open_lfilesystem_lib(L);
 
-    load_api(L); // could fail
-
-    lpoint_register_cfunctions(L);
+    //lpoint_register_cfunctions(L);
 
     return L;
 }

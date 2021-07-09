@@ -1,12 +1,51 @@
 -- exit and write a short helpful message if called without any arguments
 if #arg == 0 then
-    errprint("This is the openPCell layout generator.")
-    errprint("To generate a layout, you need to pass the technology, the export type and a cellname.")
-    errprint("Example:")
-    errprint("         opc --technology skywater130 --export gds --cell logic/not_gate")
-    errprint()
-    errprint("You can find out more about the available command line options by running 'opc -h'.")
+    print("This is the openPCell layout generator.")
+    print("To generate a layout, you need to pass the technology, the export type and a cellname.")
+    print("Example:")
+    print("         opc --technology skywater130 --export gds --cell logic/not_gate")
+    print()
+    print("You can find out more about the available command line options by running 'opc -h'.")
     return 1
+end
+
+-- load API
+local modules = {
+    "profiler",
+    "cmdparser",
+    "lpoint",
+    "technology",
+    "postprocess",
+    "export",
+    "config",
+    "object",
+    "transformationmatrix",
+    "shape",
+    "geometry",
+    "graphics",
+    "generics",
+    "stringfile",
+    "util",
+    "aux",
+    "reduce",
+    "stack",
+    "support",
+    "envlib",
+    "globals",
+    "union",
+    "marker",
+    "support/gdstypetable",
+    "gdsreader",
+    "gdsparser",
+    "pcell",
+}
+for _, module in ipairs(modules) do
+    local path = module
+    local name = module
+    if string.match(module, "/") then
+        name = string.match(module, "/([^/]+)$")
+    end
+    _ENV[name] = _load_module(path)
 end
 
 -- call testsuite when called with 'test' as first argument
