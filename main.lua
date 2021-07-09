@@ -35,8 +35,8 @@ local modules = {
     "union",
     "marker",
     "support/gdstypetable",
-    "gdsreader",
     "gdsparser",
+    "import",
     "pcell",
 }
 for _, module in ipairs(modules) do
@@ -76,12 +76,23 @@ if args.human and args.machine then
     return 1
 end
 
+if args.showgdsdata then
+    local cells = gdsparser.read(args.showgdsdata)
+    local tree = gdsparser.resolve_hierarchy(cells)
+    for _, elem in ipairs(tree) do
+        print(string.format("%s%s", string.rep("  ", elem.level), elem.cell.name))
+    end
+    return 0
+end
+
 if args.readgds then
     local layermap = {}
     if args.gdslayermap then
         layermap = dofile(args.gdslayermap)
     end
-    gdsreader.read_cells_and_write(args.readgds, string.gsub(args.readgds, "%.gds", ""), layermap)
+    --gdsreader.read_cells_and_write(args.readgds, string.gsub(args.readgds, "%.gds", ""), layermap)
+    local cells = gdsparser.read(args.readgds)
+    import.translate_cells(cells, string.gsub(args.readgds, "%.gds", ""), layermap)
     return 0
 end
 

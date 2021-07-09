@@ -180,6 +180,11 @@ return {
         name = "listtechpaths", long = "--listtechpaths",
         help = "list technology search paths"
     },
+    section("Utility functions"),
+    store{
+        name = "showgdsdata", long = "--show-GDS-data",
+        help = "show data in a GDS stream file"
+    },
     section("Diagnostic functions"),
     switch{
         name = "cellinfo", long = "--show-cellinfo",
