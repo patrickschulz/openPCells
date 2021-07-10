@@ -201,7 +201,8 @@ function M.read_cells(filename)
         if is_record(record, "BGNSTR") then
             cell = {
                 shapes = {},
-                references = {}
+                references = {},
+                labels = {}
             }
         elseif is_record(record, "ENDSTR") then
             table.insert(cells, cell)
@@ -230,11 +231,15 @@ function M.read_cells(filename)
                 table.insert(cell.references, obj)
             elseif obj.what == "aref" then
                 table.insert(cell.references, obj)
+            elseif obj.what == "text" then
+                table.insert(cell.labels, obj)
             end
             obj = nil
         elseif is_record(record, "LAYER") then
             obj.layer = record.data
         elseif is_record(record, "DATATYPE") then
+            obj.purpose = record.data
+        elseif is_record(record, "TEXTTYPE") then
             obj.purpose = record.data
         elseif is_record(record, "XY") then
             obj.pts = record.data
@@ -245,6 +250,8 @@ function M.read_cells(filename)
             obj.yrep = record.data[2]
         elseif is_record(record, "SNAME") then
             obj.name = record.data
+        elseif is_record(record, "STRING") then
+            obj.text = record.data
         end
     end
     return cells
