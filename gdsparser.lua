@@ -90,37 +90,32 @@ local function _parse_real(data, width)
     return sign * mantissa * (16 ^ (exp - 64))
 end
 
+local function _array_fun(data, func, width)
+    if #data > width then
+        local nums = {}
+        for i = 1, #data / width do
+            local num = func(data, width, (i - 1) * width)
+            table.insert(nums, num)
+        end
+        return nums
+    else
+        return func(data, width)
+    end
+end
+
 local function _parse_data(header, data)
     if header.datatype == datatable.NONE then
         return nil
     elseif header.datatype == datatable.BIT_ARRAY then
         return _parse_bit_array(data)
     elseif header.datatype == datatable.TWO_BYTE_INTEGER then
-        if #data > 2 then
-            local nums = {}
-            for i = 1, #data / 2 do
-                local num = _parse_integer(data, 2, (i - 1) * 2)
-                table.insert(nums, num)
-            end
-            return nums
-        else
-            return _parse_integer(data, 2)
-        end
+        return _array_fun(data, _parse_integer, 2)
     elseif header.datatype == datatable.FOUR_BYTE_INTEGER then
-        if #data > 4 then
-            local nums = {}
-            for i = 1, #data / 4 do
-                local num = _parse_integer(data, 4, (i - 1) * 4)
-                table.insert(nums, num)
-            end
-            return nums
-        else
-            return _parse_integer(data, 4)
-        end
+        return _array_fun(data, _parse_integer, 4)
     elseif header.datatype == datatable.FOUR_BYTE_REAL then
-        return _parse_real(data, 4)
+        return _array_fun(data, _parse_real, 4)
     elseif header.datatype == datatable.EIGHT_BYTE_REAL then
-        return _parse_real(data, 8)
+        return _array_fun(data, _parse_real, 8)
     elseif header.datatype == datatable.ASCII_STRING then
         local t = {}
         for i = 1, #data do
@@ -135,7 +130,6 @@ local function _parse_data(header, data)
     end
 end
 
--- read raw record
 local function read_record(file)
     local header = read_header(file)
     if not header then return nil end
