@@ -57,6 +57,17 @@ local function read_data(file, header)
     return read_bytes(file, numbytes)
 end
 
+local function _parse_bit_array(data)
+    local res = {}
+    for i = 1, 8 do
+        res[i] = (data[1] & (1 << (8 - i))) >> (8 - i)
+    end
+    for i = 1, 8 do
+        res[8 + i] = (data[2] & (1 << (8 - i))) >> (8 - i)
+    end
+    return res
+end
+
 local function _parse_integer(data, width, start)
     start = start or 0
     local num = 0
@@ -69,16 +80,21 @@ local function _parse_integer(data, width, start)
     return num
 end
 
+local function _parse_real(data, width)
+    local sign = (data[1] & 0x80) >> 7
+    local exp = (data[1] & 0x7f)
+    local mantissa = 0
+    for i = 2, width do
+        mantissa = mantissa + data[i] / (256^(i - 1))
+    end
+    return sign * mantissa * (16 ^ (exp - 64))
+end
+
 local function _parse_data(header, data)
-    if header.datatype == datatable.ASCII_STRING then
-        local t = {}
-        for i = 1, #data do
-            table.insert(t, string.char(data[i]))
-        end
-        if data[#data] == 0 then
-            t[#t] = nil
-        end
-        return table.concat(t)
+    if header.datatype == datatable.NONE then
+        return nil
+    elseif header.datatype == datatable.BIT_ARRAY then
+        return _parse_bit_array(data)
     elseif header.datatype == datatable.TWO_BYTE_INTEGER then
         if #data > 2 then
             local nums = {}
@@ -101,8 +117,21 @@ local function _parse_data(header, data)
         else
             return _parse_integer(data, 4)
         end
+    elseif header.datatype == datatable.FOUR_BYTE_REAL then
+        return _parse_real(data, 4)
+    elseif header.datatype == datatable.EIGHT_BYTE_REAL then
+        return _parse_real(data, 8)
+    elseif header.datatype == datatable.ASCII_STRING then
+        local t = {}
+        for i = 1, #data do
+            table.insert(t, string.char(data[i]))
+        end
+        if data[#data] == 0 then
+            t[#t] = nil
+        end
+        return table.concat(t)
     else
-        return 42
+        error("unknown datatype")
     end
 end
 
@@ -127,7 +156,39 @@ local function _read_stream(filename)
     return records
 end
 
-function M.read(filename)
+function M.show_records(filename)
+    local records = _read_stream(filename)
+    local indent = 0
+    for _, record in ipairs(records) do
+        local header, data = record.header, record.data
+        if header.recordtype == 0x04 or 
+            header.recordtype == 0x07 or 
+            header.recordtype == 0x11 then 
+            indent = indent - 1
+        end
+        io.write(string.format("%s%s (%d)", string.rep(" ", 4 * indent), recordnames[header.recordtype], header.length))
+        if type(data) == "table" then
+            data = "{ " .. table.concat(data, " ") .. " }"
+        end
+        if data then
+            print(string.format(" -> data: %s", data))
+        else
+            print()
+        end
+        if header.recordtype == 0x01 or 
+            header.recordtype == 0x05 or 
+            header.recordtype == 0x08 or 
+            header.recordtype == 0x09 or 
+            header.recordtype == 0x0b or 
+            header.recordtype == 0x0c or 
+            header.recordtype == 0x2d or 
+            header.recordtype == 0x0a then 
+            indent = indent + 1
+        end
+    end
+end
+
+function M.read_cells(filename)
     local cells = {}
     local records = _read_stream(filename)
     local cell

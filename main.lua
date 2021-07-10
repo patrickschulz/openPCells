@@ -76,8 +76,13 @@ if args.human and args.machine then
     return 1
 end
 
+-- gds info functions
 if args.showgdsdata then
-    local cells = gdsparser.read(args.showgdsdata)
+    gdsparser.show_records(args.showgdsdata)
+    return 0
+end
+if args.showgdshierarchy then
+    local cells = gdsparser.read_cells(args.showgdshierarchy)
     local tree = gdsparser.resolve_hierarchy(cells)
     for _, elem in ipairs(tree) do
         print(string.format("%s%s", string.rep("  ", elem.level), elem.cell.name))
@@ -90,8 +95,7 @@ if args.readgds then
     if args.gdslayermap then
         layermap = dofile(args.gdslayermap)
     end
-    --gdsreader.read_cells_and_write(args.readgds, string.gsub(args.readgds, "%.gds", ""), layermap)
-    local cells = gdsparser.read(args.readgds)
+    local cells = gdsparser.read_cells(args.readgds)
     import.translate_cells(cells, string.gsub(args.readgds, "%.gds", ""), layermap)
     return 0
 end

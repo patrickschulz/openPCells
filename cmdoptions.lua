@@ -185,6 +185,10 @@ return {
         name = "showgdsdata", long = "--show-GDS-data",
         help = "show data in a GDS stream file"
     },
+    store{
+        name = "showgdshierachy", long = "--show-GDS-cell-hierarchy",
+        help = "show cell hierarchy in a GDS stream file"
+    },
     section("Diagnostic functions"),
     switch{
         name = "cellinfo", long = "--show-cellinfo",
