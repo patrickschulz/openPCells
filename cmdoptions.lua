@@ -189,6 +189,10 @@ return {
         name = "showgdshierarchy", long = "--show-GDS-cell-hierarchy",
         help = "show cell hierarchy in a GDS stream file"
     },
+    store_multiple{
+        name = "showgdsdataflags", long = "--show-GDS-data-flags",
+        help = "flags to control what data is shown with --show-GDS-data (default: all)"
+    },
     section("Diagnostic functions"),
     switch{
         name = "cellinfo", long = "--show-cellinfo",

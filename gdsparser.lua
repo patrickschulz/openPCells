@@ -150,7 +150,12 @@ local function _read_stream(filename)
     return records
 end
 
-function M.show_records(filename)
+function M.show_records(filename, flags)
+    if flags == "all" then
+        flags = {
+            showrecordlength = true
+        }
+    end
     local records = _read_stream(filename)
     local indent = 0
     for _, record in ipairs(records) do
@@ -160,7 +165,11 @@ function M.show_records(filename)
             header.recordtype == 0x11 then 
             indent = indent - 1
         end
-        io.write(string.format("%s%s (%d)", string.rep(" ", 4 * indent), recordnames[header.recordtype], header.length))
+        if flags.showrecordlength then
+            io.write(string.format("%s%s (%d)", string.rep(" ", 4 * indent), recordnames[header.recordtype], header.length))
+        else
+            io.write(string.format("%s%s", string.rep(" ", 4 * indent), recordnames[header.recordtype]))
+        end
         if type(data) == "table" then
             data = "{ " .. table.concat(data, " ") .. " }"
         end
