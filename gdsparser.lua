@@ -69,7 +69,6 @@ local function _parse_bit_array(data)
 end
 
 local function _parse_integer(data, width, start)
-    start = start or 0
     local num = 0
     if data[start + 1] > 127 then -- negative
         num = -1 * 2^32
@@ -80,12 +79,13 @@ local function _parse_integer(data, width, start)
     return num
 end
 
-local function _parse_real(data, width)
-    local sign = (data[1] & 0x80) >> 7
-    local exp = (data[1] & 0x7f)
+local function _parse_real(data, width, start)
+    local sign
+    if ((data[start + 1] & 0x80) >> 7) == 0 then sign = 1 else sign = -1 end
+    local exp = (data[start + 1] & 0x7f)
     local mantissa = 0
     for i = 2, width do
-        mantissa = mantissa + data[i] / (256^(i - 1))
+        mantissa = mantissa + data[start + i] / (256^(i - 1))
     end
     return sign * mantissa * (16 ^ (exp - 64))
 end
@@ -99,7 +99,7 @@ local function _array_fun(data, func, width)
         end
         return nums
     else
-        return func(data, width)
+        return func(data, width, 0)
     end
 end
 
