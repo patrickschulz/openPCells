@@ -13,41 +13,26 @@ local function read_bytes(file, numbytes)
     return t
 end
 
-local function read_integer(file, numbytes)
-    local data = read_bytes(file, numbytes)
-    local num = 0
-    for i = 1, numbytes do 
-        num = num + data[i] * (1 << (8 * (numbytes - i)))
+local function read_onebyte_integer(file)
+    local chunk = file:read(1)
+    if chunk then
+        return string.byte(chunk)
     end
-    return num
 end
 
---[[
-local function read_double(file, width)
-    local chunk = file:read(width)
-    local data = {}
-    for i = 1, width do
-        data[i] = string.byte(string.sub(chunk, i, i))
+local function read_twobyte_integer(file)
+    local chunk = file:read(2)
+    if chunk then
+        local byte1, byte2 = string.byte(chunk, 1, 2)
+        return byte1 * 256 + byte2
     end
-    local sign = (data[1] & 0x80) >> 7
-    local exp = (data[1] & 0x7f)
-    local mantissa = 0
-    for i = 2, width do
-        mantissa = mantissa + data[i] / (256^(i - 1))
-    end
-    return sign * mantissa * (16 ^ (exp - 64))
 end
-
-local function read_string(file, numchars)
-    return file:read(numchars)
-end
---]]
 
 local function read_header(file)
     local data = {
-        length      = read_integer(file, 2),
-        recordtype  = read_integer(file, 1),
-        datatype    = read_integer(file, 1),
+        length      = read_twobyte_integer(file),
+        recordtype  = read_onebyte_integer(file),
+        datatype    = read_onebyte_integer(file),
     }
     return data
 end
