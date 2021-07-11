@@ -273,10 +273,12 @@ local function inherit_all_parameters(state, cellname, othercell)
 end
 
 local function push_overwrites(state, cellname, othercell, cellargs)
-    assert(type(cellname) == "string", "push_overwrites: cellname must be a string")
-    local cell = _get_cell(state, cellname)
-    if not cell.references[othercell] then
-        error(string.format("trying to access parameters of unreferenced cell (%s from %s)", othercell, cellname))
+    if cellname then -- is nil when called from a cellscript; perform no reference check in this case
+        assert(type(cellname) == "string", "push_overwrites: cellname must be a string")
+        local cell = _get_cell(state, cellname)
+        if not cell.references[othercell] then
+            error(string.format("trying to access parameters of unreferenced cell (%s from %s)", othercell, cellname))
+        end
     end
     local backup = _process_input_parameters(state, othercell, cellargs, false, true)
     if not state.backupstacks[othercell] then
@@ -319,9 +321,14 @@ local state = {
 }
 
 function state.create_cellenv(state, cellname, ovrenv)
-    local bindcell = function(func)
+    local bindstatecell = function(func)
         return function(...)
             return func(state, cellname, ...)
+        end
+    end
+    local bindcell = function(func)
+        return function(...)
+            return func(cellname, ...)
         end
     end
     local bindstate = function(func)
@@ -339,16 +346,16 @@ function state.create_cellenv(state, cellname, ovrenv)
         multiple = function(val) return { type = "multiple", value = val } end,
         inf = math.huge,
         pcell = {
-            set_property                    = bindcell(set_property),
-            add_parameter                   = bindcell(add_parameter),
-            add_parameters                  = bindcell(add_parameters),
-            reference_cell                  = bindcell(reference_cell),
-            inherit_parameter               = bindcell(inherit_parameter),
-            inherit_parameter_as            = bindcell(inherit_parameter_as),
-            inherit_all_parameters          = bindcell(inherit_all_parameters),
-            get_parameters                  = bindcell(_get_parameters),
-            push_overwrites                 = bindcell(push_overwrites),
-            pop_overwrites                  = bindcell(pop_overwrites),
+            set_property                    = bindstatecell(set_property),
+            add_parameter                   = bindstatecell(add_parameter),
+            add_parameters                  = bindstatecell(add_parameters),
+            reference_cell                  = bindstatecell(reference_cell),
+            inherit_parameter               = bindstatecell(inherit_parameter),
+            inherit_parameter_as            = bindstatecell(inherit_parameter_as),
+            inherit_all_parameters          = bindstatecell(inherit_all_parameters),
+            get_parameters                  = bindstatecell(_get_parameters),
+            push_overwrites                 = bindstatecell(push_overwrites),
+            pop_overwrites                  = bindstatecell(pop_overwrites),
             -- the following functions don't not need cell binding as they are called for other cells
             clone_parameters                = bindstate(clone_parameters),
             clone_matching_parameters       = bindstate(clone_matching_parameters),
@@ -435,6 +442,14 @@ function M.update_cell_parameters(cellname, cellargs, evaluate)
     local cell = _get_cell(state, cellname) -- load cell if not loaded
     local parameters, backup = _get_parameters(state, cellname, cellname, cellargs, evaluate) -- cellname needs to be passed twice
     _restore_parameters(state, cellname, backup)
+end
+
+function M.push_overwrites(othercell, cellargs)
+    push_overwrites(state, nil, othercell, cellargs)
+end
+
+function M.pop_overwrites(cellname, othercell)
+    pop_overwrites(state, nil, othercell)
 end
 
 function M.create_layout(cellname, cellargs, evaluate)
