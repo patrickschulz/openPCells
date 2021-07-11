@@ -39,7 +39,7 @@ local function _format_shape(shape, layermap)
     end
 end
 
-local function _write_cell(cell, dirname, layermap)
+local function _write_cell(cell, dirname, layermap, alignmentbox)
     local chunkt = {
         "function parameters() end",
         "function layout(cell)",
@@ -47,6 +47,9 @@ local function _write_cell(cell, dirname, layermap)
         "    local name"
     }
     for _, shape in ipairs(cell.shapes) do
+        if shape.layer == alignmentbox.layer and shape.purpose == alignmentbox.purpose then
+            cell.alignmentbox = shape.pts
+        end
         table.insert(chunkt, string.format("    cell:merge_into_shallow(%s)", _format_shape(shape, layermap)))
     end
     for _, ref in ipairs(cell.references) do
@@ -69,6 +72,15 @@ local function _write_cell(cell, dirname, layermap)
         local lpp = _format_lpp(label.layer, label.purpose, layermap)
         table.insert(chunkt, string.format('    cell:add_port("%s", %s, %s)', label.text, lpp, pointstr))
     end
+    if cell.alignmentbox then
+        local blx = math.min(cell.alignmentbox[1], cell.alignmentbox[3], cell.alignmentbox[5], cell.alignmentbox[7], cell.alignmentbox[9])
+        local bly = math.min(cell.alignmentbox[2], cell.alignmentbox[4], cell.alignmentbox[6], cell.alignmentbox[8], cell.alignmentbox[10])
+        local trx = math.max(cell.alignmentbox[1], cell.alignmentbox[3], cell.alignmentbox[5], cell.alignmentbox[7], cell.alignmentbox[9])
+        local try = math.max(cell.alignmentbox[2], cell.alignmentbox[4], cell.alignmentbox[6], cell.alignmentbox[8], cell.alignmentbox[10])
+        local bl = string.format("point.create(%d, %d)", blx, bly)
+        local tr = string.format("point.create(%d, %d)", trx, try)
+        table.insert(chunkt, string.format('    cell:set_alignment_box(%s, %s)', bl, tr))
+    end
     local cellfile = io.open(string.format("%s/%s.lua", dirname, cell.name), "w")
     if not cellfile then
         moderror(string.format("import: could not open file for cell export. Did you create the appropriate directory (%s)?", dirname))
@@ -78,10 +90,10 @@ local function _write_cell(cell, dirname, layermap)
     cellfile:close()
 end
 
-function M.translate_cells(cells, dirname, layermap)
+function M.translate_cells(cells, dirname, layermap, alignmentbox)
     filesystem.mkdir(dirname)
     for _, cell in ipairs(cells) do
-        _write_cell(cell, dirname, layermap)
+        _write_cell(cell, dirname, layermap, alignmentbox)
     end
 end
 

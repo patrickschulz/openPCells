@@ -155,6 +155,14 @@ return {
         name = "gdslayermap", long = "--GDS-layermap",
         help = "provide a layermap for GDS stream reading to enable different export types for read cells"
     },
+    store{
+        name = "gdsalignmentboxlayer", long = "--GDS-alignmentbox-layer",
+        help = "provide a layer number to write an alignment box to generated cells"
+    },
+    store{
+        name = "gdsalignmentboxpurpose", long = "--GDS-alignmentbox-purpose",
+        help = "provide a layer purpose to write an alignment box to generated cells"
+    },
     section("Info functions"),
     switch{ 
         name = "params", short = "-P", long  = "--parameters",

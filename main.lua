@@ -96,7 +96,11 @@ if args.readgds then
         layermap = dofile(args.gdslayermap)
     end
     local cells = gdsparser.read_cells(args.readgds)
-    import.translate_cells(cells, string.gsub(args.readgds, "%.gds", ""), layermap)
+    local alignmentboxinfo
+    if args.gdsalignmentboxlayer and args.gdsalignmentboxpurpose then
+        alignmentboxinfo = { layer = tonumber(args.gdsalignmentboxlayer), purpose = tonumber(args.gdsalignmentboxpurpose) }
+    end
+    import.translate_cells(cells, string.gsub(args.readgds, "%.gds", ""), layermap, alignmentboxinfo)
     return 0
 end
 
