@@ -57,7 +57,7 @@ end
 
 -- parse command line arguments
 local argparse = cmdparser()
-argparse:load_options_from_file("cmdoptions")
+argparse:load_options_from_file(string.format("%s/%s.lua", _get_opc_home(), "cmdoptions"))
 argparse:append_to_help_message("")
 argparse:append_to_help_message("Most common usage examples:")
 argparse:append_to_help_message("   get cell parameter information:             opc --cell logic/dff --parameters")

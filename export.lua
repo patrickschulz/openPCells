@@ -144,7 +144,7 @@ end
 function M.set_options(opt)
     if opt and export.set_options then
         local argparse = cmdparser()
-        argparse:load_options_from_file(string.format("export/%s/cmdoptions", _name))
+        argparse:load_options_from_file(string.format("%s/export/%s/cmdoptions.lua", _get_opc_home(), _name))
         local arg = {}
         for a in string.gmatch(opt, "(%S+)") do
             table.insert(arg, a)
