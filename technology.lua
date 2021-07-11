@@ -169,19 +169,32 @@ local function _translate_layers(cell, export)
 end
 
 local function _translate_ports(cell, export)
+    local todelete = {}
     for portname, port in pairs(cell.ports) do
-        local layer = port.layer:str()
-        local name = string.format("%sport", layer)
-        local mappings = layermap[name]
-        if not mappings then
-            moderror(string.format("no layer information for '%s'\nif the layer is not provided, set it to {}", name))
+        if port.layer:is_type("premapped") then
+            local lpp = port.layer
+            local newlpp = _get_lpp({ name = lpp:str(), lpp = lpp:get() }, export)
+            if newlpp then
+                port.layer = generics.mapped(lpp:str(), newlpp)
+            else
+                cell:remove_shape(i)
+                todelete[portname] = true
+            end
+        elseif not port.layer:is_type("mapped") then
+            local layer = port.layer:str()
+            local name = string.format("%sport", layer)
+            local mappings = layermap[name]
+            if not mappings then
+                moderror(string.format("no layer information for '%s'\nif the layer is not provided, set it to {}", name))
+            end
+            -- FIXME: current implementation uses the first mapping, this should be improved
+            local entry = mappings[1]
+            entry = entry.func()
+            local lpp = _get_lpp(entry, export)
+            port.layer = generics.mapped(entry.name, lpp)
         end
-        -- FIXME: current implementation uses the first mapping, this should be improved
-        local entry = mappings[1]
-        entry = entry.func()
-        local lpp = _get_lpp(entry, export)
-        port.layer = generics.mapped(entry.name, lpp)
     end
+    for k in pairs(todelete) do cell.ports[k] = nil end
 end
 
 local function _fix_to_grid(cell)
