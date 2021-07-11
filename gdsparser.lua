@@ -124,6 +124,9 @@ end
 
 local function _read_stream(filename)
     local file = io.open(filename, "r")
+    if not file then
+        moderror(string.format("gdsparser: could not open file '%s'", filename))
+    end
     local records = {}
     while true do
         local header, data = read_record(file)
