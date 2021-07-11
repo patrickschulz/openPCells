@@ -148,19 +148,19 @@ return {
         help = "start 'watch' mode. This continuously monitors the specified cell and regenerates the layout upon changes in the file."
     },
     store{
-        name = "readgds", long = "--read-GDS",
+        name = "readgds", long = "--read-gds",
         help = "read a GDS stream file and export all cells as opc-compatible code. This can take some time, depending on the size of the stream file"
     },
     store{
-        name = "gdslayermap", long = "--GDS-layermap",
+        name = "gdslayermap", long = "--gds-layermap",
         help = "provide a layermap for GDS stream reading to enable different export types for read cells"
     },
     store{
-        name = "gdsalignmentboxlayer", long = "--GDS-alignmentbox-layer",
+        name = "gdsalignmentboxlayer", long = "--gds-alignmentbox-layer",
         help = "provide a layer number to write an alignment box to generated cells"
     },
     store{
-        name = "gdsalignmentboxpurpose", long = "--GDS-alignmentbox-purpose",
+        name = "gdsalignmentboxpurpose", long = "--gds-alignmentbox-purpose",
         help = "provide a layer purpose to write an alignment box to generated cells"
     },
     section("Info functions"),
@@ -190,16 +190,16 @@ return {
     },
     section("Utility functions"),
     store{
-        name = "showgdsdata", long = "--show-GDS-data",
+        name = "showgdsdata", long = "--show-gds-data",
         help = "show data in a GDS stream file"
     },
     store{
-        name = "showgdshierarchy", long = "--show-GDS-cell-hierarchy",
+        name = "showgdshierarchy", long = "--show-gds-cell-hierarchy",
         help = "show cell hierarchy in a GDS stream file"
     },
     store_multiple{
-        name = "showgdsdataflags", long = "--show-GDS-data-flags",
-        help = "flags to control what data is shown with --show-GDS-data (default: all)"
+        name = "showgdsdataflags", long = "--show-gds-data-flags",
+        help = "flags to control what data is shown with --show-gds-data (default: all)"
     },
     section("Diagnostic functions"),
     switch{
