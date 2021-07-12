@@ -58,13 +58,21 @@ end
 -- parse command line arguments
 local argparse = cmdparser()
 argparse:load_options_from_file(string.format("%s/%s.lua", _get_opc_home(), "cmdoptions"))
-argparse:append_to_help_message("")
-argparse:append_to_help_message("Most common usage examples:")
-argparse:append_to_help_message("   get cell parameter information:             opc --cell logic/dff --parameters")
-argparse:append_to_help_message("   create a cell:                              opc --technology TECH --export gds --cell logic/dff")
-argparse:append_to_help_message("   create a cell from a foreign collection:    opc --add-cellpath /path/to/collection --technology TECH --export gds --cell other/somecell")
-argparse:append_to_help_message("   create a cell by using a cellscript:        opc --technology TECH --export gds --cellscript celldef.lua")
-argparse:append_to_help_message("   read a GDS stream file and create cells:    opc --read-GDS stream.gds")
+argparse:prepend_to_help_message([[
+openPCells layout generator (opc) - Patrick Kurth 2021
+
+Generate layouts of integrated circuit geometry
+opc supports technology-independent descriptions of parametric layout cells (pcells), 
+which can be translated into a physical technology and exported to a file via a specific export.
+]])
+argparse:append_to_help_message([[
+
+Most common usage examples:
+   get cell parameter information:             opc --cell logic/dff --parameters
+   create a cell:                              opc --technology TECH --export gds --cell logic/dff
+   create a cell from a foreign collection:    opc --add-cellpath /path/to/collection --technology TECH --export gds --cell other/somecell
+   create a cell by using a cellscript:        opc --technology TECH --export gds --cellscript celldef.lua
+   read a GDS stream file and create cells:    opc --read-GDS stream.gds]])
 local args, msg = argparse:parse(arg)
 if not args then
     errprint(msg)

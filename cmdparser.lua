@@ -46,7 +46,10 @@ local function _display_help(self)
         end
     end
     local fmt = string.format("    %%-%ds    %%s", optwidth)
-    print("openPCells generator")
+    for _, msg in ipairs(self.prehelpmsg) do
+        print(msg)
+    end
+    print("list of command line options:\n")
     for _, opt in ipairs(self.optionsdef) do
         if opt.issection then
             print(opt.name)
@@ -82,7 +85,7 @@ local function _display_help(self)
             print(string.format(fmt, cmdstr, helpstr))
         end
     end
-    for _, msg in ipairs(self.helpmsg) do
+    for _, msg in ipairs(self.posthelpmsg) do
         print(msg)
     end
     os.exit(0)
@@ -235,8 +238,12 @@ function meta.set_option(self, param, arg)
     action(self, arg)
 end
 
+function meta.prepend_to_help_message(self, msg)
+    table.insert(self.prehelpmsg, 1, msg)
+end
+
 function meta.append_to_help_message(self, msg)
-    table.insert(self.helpmsg, msg)
+    table.insert(self.posthelpmsg, msg)
 end
 
 return function()
@@ -246,7 +253,8 @@ return function()
         actions = {},
         nameresolve = {},
         res = { cellargs = {} },
-        helpmsg = {}
+        prehelpmsg = {},
+        posthelpmsg = {},
     }
     setmetatable(self, meta)
     return self
