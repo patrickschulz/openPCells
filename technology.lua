@@ -177,7 +177,6 @@ local function _translate_ports(cell, export)
             if newlpp then
                 port.layer = generics.mapped(lpp:str(), newlpp)
             else
-                cell:remove_shape(i)
                 todelete[portname] = true
             end
         elseif not port.layer:is_type("mapped") then
