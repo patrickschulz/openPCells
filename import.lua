@@ -46,11 +46,13 @@ local function _write_cell(cell, dirname, layermap, alignmentbox)
         "    local ref",
         "    local name"
     }
-    for _, shape in ipairs(cell.shapes) do
-        if shape.layer == alignmentbox.layer and shape.purpose == alignmentbox.purpose then
-            cell.alignmentbox = shape.pts
+    if alignmentbox then
+        for _, shape in ipairs(cell.shapes) do
+            if shape.layer == alignmentbox.layer and shape.purpose == alignmentbox.purpose then
+                cell.alignmentbox = shape.pts
+            end
+            table.insert(chunkt, string.format("    cell:merge_into_shallow(%s)", _format_shape(shape, layermap)))
         end
-        table.insert(chunkt, string.format("    cell:merge_into_shallow(%s)", _format_shape(shape, layermap)))
     end
     for _, ref in ipairs(cell.references) do
         table.insert(chunkt, string.format('    ref = pcell.create_layout("%s/%s")', dirname, ref.name))
