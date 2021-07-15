@@ -108,7 +108,7 @@ if args.readgds then
     if args.gdsalignmentboxlayer and args.gdsalignmentboxpurpose then
         alignmentboxinfo = { layer = tonumber(args.gdsalignmentboxlayer), purpose = tonumber(args.gdsalignmentboxpurpose) }
     end
-    import.translate_cells(cells, string.gsub(args.readgds, "%.gds", ""), layermap, alignmentboxinfo)
+    import.translate_cells(cells, args.importprefix, string.gsub(args.readgds, "%.gds", ""), layermap, alignmentboxinfo)
     return 0
 end
 

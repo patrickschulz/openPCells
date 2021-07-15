@@ -92,8 +92,12 @@ local function _write_cell(cell, dirname, layermap, alignmentbox)
     cellfile:close()
 end
 
-function M.translate_cells(cells, dirname, layermap, alignmentbox)
-    filesystem.mkdir(dirname)
+function M.translate_cells(cells, prefix, dirname, layermap, alignmentbox)
+    local path = dirname
+    if prefix and prefix ~= "" then
+        path = string.format("%s/%s", prefix, dirname)
+    end
+    filesystem.mkdir(path)
     for _, cell in ipairs(cells) do
         _write_cell(cell, dirname, layermap, alignmentbox)
     end

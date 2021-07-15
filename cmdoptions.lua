@@ -156,6 +156,10 @@ return {
         help = "provide a layermap for GDS stream reading to enable different export types for read cells"
     },
     store{
+        name = "importprefix", long = "--import-prefix",
+        help = "specifies a directory in which imported cells will be placed. For example, if --read-gds FOO and --import-prefix BAR is given, the imported cells will reside in BAR/FOO/*.lua"
+    },
+    store{
         name = "gdsalignmentboxlayer", long = "--gds-alignmentbox-layer",
         help = "provide a layer number to write an alignment box to generated cells"
     },
