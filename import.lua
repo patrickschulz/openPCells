@@ -97,9 +97,13 @@ function M.translate_cells(cells, prefix, dirname, layermap, alignmentbox)
     if prefix and prefix ~= "" then
         path = string.format("%s/%s", prefix, dirname)
     end
-    filesystem.mkdir(path)
-    for _, cell in ipairs(cells) do
-        _write_cell(cell, path, dirname, layermap, alignmentbox)
+    local created = filesystem.mkdir(path)
+    if created then
+        for _, cell in ipairs(cells) do
+            _write_cell(cell, path, dirname, layermap, alignmentbox)
+        end
+    else
+        moderror("import: could not create import directory")
     end
 end
 

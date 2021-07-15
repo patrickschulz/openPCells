@@ -28,7 +28,8 @@
 #include "lbinary.h"
 #include "lstringbuffer.h"
 #include "lshape.h"
-#include "lunion.h"
+//#include "lunion.h"
+#include "lfilesystem.h"
 
 #include "config.h"
 
@@ -155,7 +156,7 @@ lua_State* create_and_initialize_lua()
     open_lbinary_lib(L);
     open_lstringbuffer_lib(L);
     open_lshape_lib(L);
-    open_lunion_lib(L);
+    //open_lunion_lib(L);
     open_lfilesystem_lib(L);
 
     //lpoint_register_cfunctions(L);
@@ -166,12 +167,10 @@ lua_State* create_and_initialize_lua()
 int main (int argc, char** argv)
 {
     lua_State* L = create_and_initialize_lua();
-    int status = LUA_OK;
     create_argument_table(L, argc, argv);
-    status = call_main_program(L, OPC_HOME "/main.lua");
+    call_main_program(L, OPC_HOME "/main.lua");
     int retval = lua_tointeger(L, -1);
     lua_close(L);
-    //return status == LUA_OK ? 0 : 1;
     return retval;
 }
 
