@@ -6,10 +6,10 @@ local function _format_lpp(layer, purpose, layermap)
     }
     if layermap then
         for k, v in pairs(layermap) do
-            if v[layer] then
-                if v[layer][purpose] then
-                    table.insert(lppt, string.format("%s = { layer = %q, purpose = %q }", k, v[layer][purpose].layer, v[layer][purpose].purpose))
-                end
+            if v[layer] and v[layer][purpose] then
+                table.insert(lppt, string.format("%s = { layer = %q, purpose = %q }", k, v[layer][purpose].layer, v[layer][purpose].purpose))
+            else
+                modwarning(string.format("import: layermap was provided, but not found for layer-purpose-pair (%d, %d). Exports of generated cells to any type other than GDS must set the environment variable 'ignoremissingexport' to true for successful export"))
             end
         end
     end
