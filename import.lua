@@ -39,7 +39,7 @@ local function _format_shape(shape, layermap)
     end
 end
 
-local function _write_cell(cell, dirname, layermap, alignmentbox)
+local function _write_cell(cell, path, dirname, layermap, alignmentbox)
     local chunkt = {
         "function parameters() end",
         "function layout(cell)",
@@ -83,7 +83,7 @@ local function _write_cell(cell, dirname, layermap, alignmentbox)
         local tr = string.format("point.create(%d, %d)", trx, try)
         table.insert(chunkt, string.format('    cell:set_alignment_box(%s, %s)', bl, tr))
     end
-    local cellfile = io.open(string.format("%s/%s.lua", dirname, cell.name), "w")
+    local cellfile = io.open(string.format("%s/%s.lua", path, cell.name), "w")
     if not cellfile then
         moderror(string.format("import: could not open file for cell export. Did you create the appropriate directory (%s)?", dirname))
     end
@@ -99,7 +99,7 @@ function M.translate_cells(cells, prefix, dirname, layermap, alignmentbox)
     end
     filesystem.mkdir(path)
     for _, cell in ipairs(cells) do
-        _write_cell(cell, dirname, layermap, alignmentbox)
+        _write_cell(cell, path, dirname, layermap, alignmentbox)
     end
 end
 
