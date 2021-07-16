@@ -161,7 +161,7 @@ end
 
 function meta.add_port(self, name, layer, where)
     --layer:set_port()
-    self.ports[name] = { layer = layer, where = where }
+    table.insert(self.ports, { name = name, layer = layer, where = where })
     self.anchors[name] = where:copy() -- copy point, otherwise translation acts twice (FIXME: probably not needed any more)
 end
 

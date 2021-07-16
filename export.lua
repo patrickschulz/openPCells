@@ -128,9 +128,9 @@ function M.write_toplevel(filename, technology, toplevel, fake)
     aux.call_if_present(export.at_begin_cell, file, "opctoplevel")
     _write_cell(file, toplevel, "opctoplevel")
     if export.write_port then
-        for portname, port in pairs(toplevel.ports) do
+        for _, port in pairs(toplevel.ports) do
             toplevel.trans:apply_transformation(port.where)
-            export.write_port(file, portname, port.layer:get(), port.where)
+            export.write_port(file, port.name, port.layer:get(), port.where)
         end
     end
     aux.call_if_present(export.at_end_cell, file)

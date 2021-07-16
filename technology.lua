@@ -170,14 +170,14 @@ end
 
 local function _translate_ports(cell, export)
     local todelete = {}
-    for portname, port in pairs(cell.ports) do
+    for i, port in pairs(cell.ports) do
         if port.layer:is_type("premapped") then
             local lpp = port.layer
             local newlpp = _get_lpp({ name = lpp:str(), lpp = lpp:get() }, export)
             if newlpp then
                 port.layer = generics.mapped(lpp:str(), newlpp)
             else
-                todelete[portname] = true
+                table.insert(todelete, i)
             end
         elseif not port.layer:is_type("mapped") then
             local layer = port.layer:str()
@@ -193,7 +193,7 @@ local function _translate_ports(cell, export)
             port.layer = generics.mapped(entry.name, lpp)
         end
     end
-    for k in pairs(todelete) do cell.ports[k] = nil end
+    for _, i in ipairs(todelete) do table.remove(cell.ports, i) end
 end
 
 local function _fix_to_grid(cell)
