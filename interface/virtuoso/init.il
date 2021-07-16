@@ -178,8 +178,8 @@ procedure(OPCSettingsCallback()
     hiDisplayForm(OPCSettingsForm 100:100)
 ) ; procedure
 
-procedure(OPCLayoutAddMenu(args)
-    let( (menu itemlist about separator edit update script settings cellmenu cellitem (win args->window))
+procedure(OPCCreateLayoutMenu()
+    let( (menu itemlist about separator edit update script settings cellmenu cellitem)
         ; basic information
         about = hiCreateMenuItem(?name 'OPCAbout ?itemText "About" ?callback "OPCAboutCallback()")
 
@@ -209,8 +209,7 @@ procedure(OPCLayoutAddMenu(args)
 
         ; assemble main menu
         itemlist = list(about separator edit update separator script separator cellitem settings)
-        menu = hiCreatePulldownMenu('OPCLayoutMenu "OpenPCells" itemlist)
-        hiInsertBannerMenu(win menu length(hiGetBannerMenus(win)))
+        hiCreatePulldownMenu('OPCLayoutMenu "OpenPCells" itemlist)
     )
 ); procedure
 
@@ -339,7 +338,42 @@ procedure(OPCCreateOptionsForm(OPCCell)
     )
 ) ; procedure
 
+procedure(OPCMenuTrigger(args)
+    list(OPCCreateLayoutMenu())
+)
+procedure(OPCModeChangeTrigger(args)
+    when(boundp('OPCLayoutMenu)
+        when(args->action == 'change
+            if(args->accessMode == "a"
+                then
+                    hiEnableMenuItem(OPCLayoutMenu OPCLayoutMenu->OPCCellScript->hiMenuItemSym)
+                    hiEnableMenuItem(OPCLayoutMenu OPCLayoutMenu->OPCScript->hiMenuItemSym)
+                else
+                    hiDisableMenuItem(OPCLayoutMenu OPCLayoutMenu->OPCCellScript->hiMenuItemSym)
+                    hiDisableMenuItem(OPCLayoutMenu OPCLayoutMenu->OPCScript->hiMenuItemSym)
+            )
+        )
+    )
+)
+procedure(OPCStartModeTrigger(args)
+    when(boundp('OPCLayoutMenu)
+        println("Start Mode")
+        if(geGetEditCellView()->mode == "a"
+            then
+                hiEnableMenuItem(OPCLayoutMenu OPCLayoutMenu->OPCCellScript->hiMenuItemSym)
+                hiEnableMenuItem(OPCLayoutMenu OPCLayoutMenu->OPCScript->hiMenuItemSym)
+            else
+                hiDisableMenuItem(OPCLayoutMenu OPCLayoutMenu->OPCCellScript->hiMenuItemSym)
+                hiDisableMenuItem(OPCLayoutMenu OPCLayoutMenu->OPCScript->hiMenuItemSym)
+        )
+    )
+)
+
 ; create a user postinstall trigger that automatically adds the menu
-;deRegUserTriggers("maskLayout" nil nil 'OPCLayoutAddMenu)
-deRegUserTriggers("maskLayoutXL" nil nil 'OPCLayoutAddMenu)
-;deRegUserTriggers("maskLayoutGXL" nil nil 'OPCLayoutAddMenu)
+;foreach(layoutTier list("maskLayoutL" "maskLayoutXL" "maskLayoutEXL" "maskLayoutGXL")
+;    when(member(layoutTier deGetAllViewTypes())
+;        deRegUserTriggers(layoutTier 'OPCModeChangeTrigger 'OPCMenuTrigger)
+;    )
+;)
+deRegUserTriggers("maskLayoutXL" nil 'OPCMenuTrigger 'OPCStartModeTrigger)
+deRegUserTriggers("maskLayout" 'OPCModeChangeTrigger)
