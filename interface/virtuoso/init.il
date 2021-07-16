@@ -1,9 +1,12 @@
 procedure(OPCCall(args)
     let(
-        ()
+        ((additionalargs ""))
+        when(boundp('OPCSettingsForm)
+            additionalargs = OPCSettingsForm->OPCSettingsCmdAdditionalArgs->value
+        )
         OPCCommand = lsprintf(
-            "%s/%s --technology %s --export SKILL %s"
-            OPCPath OPCExec OPCTech args
+            "%s/%s --technology %s --export SKILL %s %s"
+            OPCPath OPCExec OPCTech additionalargs args
         )
         printf("calling opc:\n  %s\n" OPCCommand)
         pid = ipcBeginProcess(OPCCommand)
@@ -18,6 +21,20 @@ procedure(OPCCall(args)
                 t
         ) ; if exitstatus
     ) ; let
+)
+
+procedure(OPCCleanUp()
+    if(boundp('OPCSettingsForm)
+        then
+            println(OPCSettingsForm->OPCSettingsDeleteFile->value)
+            when(OPCSettingsForm->OPCSettingsDeleteFile->value == "true"
+                printf("opc: delete %s.il\n" OPCFilename)
+                deleteFile(lsprintf("%s.il" OPCFilename))
+            )
+        else
+            printf("opc: delete %s.il\n" OPCFilename)
+            deleteFile(lsprintf("%s.il" OPCFilename))
+    )
 )
 
 procedure(OPCCreateCell(w done pts)
@@ -44,10 +61,9 @@ procedure(OPCCreateCell(w done pts)
 	                    )
 	                )
                     when(OPCCall(OPCArgs)
-                        printf("opc: load %s.il" OPCFilename)
+                        printf("opc: load %s.il\n" OPCFilename)
                         load(lsprintf("%s.il" OPCFilename))
-                        printf("opc: delete %s.il" OPCFilename)
-                        deleteFile(lsprintf("%s.il" OPCFilename)) ; clean up after ourselves
+                        OPCCleanUp()
                     )
 	        	else 
 	        		println("cellview not in editing mode")
@@ -150,10 +166,16 @@ procedure(OPCUpdateCallback()
             foreach(inst cv->instances dbDeleteObject(inst))
             printf("opc: load %s.il" OPCFilename)
             load(lsprintf("%s.il" OPCFilename))
-            printf("opc: delete %s.il" OPCFilename)
-            deleteFile(lsprintf("%s.il" OPCFilename)) ; clean up after ourselves
+            OPCCleanUp()
         )
     )
+) ; procedure
+
+procedure(OPCSettingsCallback()
+    unless(boundp('OPCSettingsForm)
+        OPCCreateSettingsForm()
+    )
+    hiDisplayForm(OPCSettingsForm 100:100)
 ) ; procedure
 
 procedure(OPCLayoutAddMenu(args)
@@ -178,11 +200,12 @@ procedure(OPCLayoutAddMenu(args)
         ; create cell menu
         cellmenu = hiCreatePulldownMenu(
             'OPCCellMenu
-            "foobar"
+            "OPC Cell Creation Menu"
             celllist
         )
         cellitem = hiCreateSliderMenuItem(?name 'OPCCellItem ?itemText "Create Cell..." ?subMenu cellmenu)
-        settings = hiCreateMenuItem(?name 'OPCSettings ?itemText "Settings" ?callback "println(\"openPCells Settings\")")
+        ;settings = hiCreateMenuItem(?name 'OPCSettings ?itemText "Settings" ?callback "println(\"openPCells Settings\")")
+        settings = hiCreateMenuItem(?name 'OPCSettings ?itemText "Settings" ?callback "OPCSettingsCallback()")
 
         ; assemble main menu
         itemlist = list(about separator edit update separator script separator cellitem settings)
@@ -190,6 +213,39 @@ procedure(OPCLayoutAddMenu(args)
         hiInsertBannerMenu(win menu length(hiGetBannerMenus(win)))
     )
 ); procedure
+
+procedure(OPCCreateSettingsForm()
+    let(
+        (
+            OPCCommand pid exitstatus result
+            fieldlist field
+        )
+        field = hiCreateStringField(
+            ?name 'OPCSettingsCmdAdditionalArgs
+            ?value ""
+            ?prompt "Additional Command Line Arguments"
+        )
+        fieldlist = cons(list(field 0:30*0 350:30 250) fieldlist)
+        field = hiCreateStringField(
+            ?name 'OPCSettingsCmdAdditionalArgs
+            ?value ""
+            ?prompt "Additional Command Line Arguments"
+        )
+        field = hiCreateRadioField(
+            ?name 'OPCSettingsDeleteFile
+            ?choices list("true" "false")
+            ?value "true"
+            ?prompt "Delete cell file after creation"
+        )
+        fieldlist = cons(list(field 0:30*1 350:30 250) fieldlist)
+        hiCreateAppForm(
+            ?name 'OPCSettingsForm
+            ?formTitle "OPC Settings"
+            ?buttonLayout 'OKCancel
+            ?fields fieldlist
+        )
+    )
+) ; procedure
 
 procedure(OPCCreateOptionsForm(OPCCell)
     let(
