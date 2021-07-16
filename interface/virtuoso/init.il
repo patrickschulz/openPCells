@@ -171,6 +171,26 @@ procedure(OPCUpdateCallback()
     )
 ) ; procedure
 
+procedure(OPCExportCell()
+    let(
+        (
+            (cv geGetEditCellView())
+            (file outfile("openPCells_export.lua" "w"))
+        )
+        fprintf(file "local cell = object.create()\n")
+        foreach(shape cv->shapes
+            OPCWriteShape(file shape 0 0)
+        )
+        foreach(inst cv->instances
+            foreach(shape inst->master->shapes
+                OPCWriteShape(file shape xCoord(inst->xy) yCoord(inst->xy))
+            )
+        )
+        fprintf(file "return cell\n")
+        close(file)
+    )
+)
+
 procedure(OPCSettingsCallback()
     unless(boundp('OPCSettingsForm)
         OPCCreateSettingsForm()
@@ -179,7 +199,7 @@ procedure(OPCSettingsCallback()
 ) ; procedure
 
 procedure(OPCCreateLayoutMenu()
-    let( (menu itemlist about separator edit update script settings cellmenu cellitem)
+    let( (menu itemlist about separator edit update script export settings cellmenu cellitem)
         ; basic information
         about = hiCreateMenuItem(?name 'OPCAbout ?itemText "About" ?callback "OPCAboutCallback()")
 
@@ -189,10 +209,11 @@ procedure(OPCCreateLayoutMenu()
         edit = hiCreateMenuItem(?name 'OPCEditCellScript ?itemText "Edit Design" ?callback "OPCEditCallback()")
         update = hiCreateMenuItem(?name 'OPCCellScript ?itemText "Update Design (removes all shapes!)" ?callback "OPCUpdateCallback()")
 
-        separator = hiCreateSeparatorMenuItem(?name 'OPCLayoutMenuSeparator)
-
         ; execute script
         script = hiCreateMenuItem(?name 'OPCScript ?itemText "Execute Script..." ?callback "OPC call script not yet implemented")
+
+        ; export cell
+        export = hiCreateMenuItem(?name 'OPCExport ?itemText "Export Cell" ?callback "OPCExportCell()")
 
 		celllist = OPCWalkCellDir(lsprintf("%s/cells" OPCPath) "")
 		celllist = append(celllist OPCWalkCellDir(lsprintf("/home/pschulz/serial_interface/cells") ""))
@@ -204,11 +225,10 @@ procedure(OPCCreateLayoutMenu()
             celllist
         )
         cellitem = hiCreateSliderMenuItem(?name 'OPCCellItem ?itemText "Create Cell..." ?subMenu cellmenu)
-        ;settings = hiCreateMenuItem(?name 'OPCSettings ?itemText "Settings" ?callback "println(\"openPCells Settings\")")
         settings = hiCreateMenuItem(?name 'OPCSettings ?itemText "Settings" ?callback "OPCSettingsCallback()")
 
         ; assemble main menu
-        itemlist = list(about separator edit update separator script separator cellitem settings)
+        itemlist = list(about separator edit update separator script separator export separator cellitem settings)
         hiCreatePulldownMenu('OPCLayoutMenu "OpenPCells" itemlist)
     )
 ); procedure
@@ -377,3 +397,48 @@ procedure(OPCStartModeTrigger(args)
 ;)
 deRegUserTriggers("maskLayoutXL" nil 'OPCMenuTrigger 'OPCStartModeTrigger)
 deRegUserTriggers("maskLayout" 'OPCModeChangeTrigger)
+
+/*
+ *
+ *   Export Functions
+ *
+*/
+procedure(OPCAddPtsOffset(pts x y)
+	mapcar(lambda( (pt) xCoord(pt) + x:yCoord(pt) + y) pts)
+)
+
+procedure(OPCConvertPtsToNanometer(pts)
+	mapcar(lambda( (pt) fix(xCoord(pt) * 1000):fix(yCoord(pt) * 1000)) pts)
+)
+
+procedure(OPCWriteRectangle(file layer purpose bBox)
+	let(
+		(
+		)
+        fprintf(file "cell:merge_into_shallow(geometry.rectanglebltr(generics.mapped(nil, { layer = \"%s\", purpose = \"%s\" }), point.create(%d, %d), point.create(%d, %d)))\n", 
+            layer purpose xCoord(car(bBox)) yCoord(car(bBox)) xCoord(cadr(bBox)) yCoord(cadr(bBox))
+        )
+	)
+)
+
+procedure(OPCWritePolygon(file layer purpose pts)
+	let(
+		(
+		)
+        fprintf(file "cell:merge_into_shallow(geometry.polygon(generics.mapped(nil, { layer = \"%s\", purpose = \"%s\" }), { %s }))\n"
+            layer purpose 
+            buildString(mapcar(lambda( (pt) lsprintf("point.create(%d, %d)" xCoord(pt) yCoord(pt))) pts) ", ")
+        )
+	)
+)
+
+procedure(OPCWriteShape(file shape x y)
+    unless(shape->layerName == "instance"
+        if(shape->objType == "rect"
+            then
+                OPCWriteRectangle(file shape->layerName shape->purpose OPCConvertPtsToNanometer(OPCAddPtsOffset(shape->bBox x y)))
+            else
+                OPCWritePolygon(file shape->layerName shape->purpose OPCConvertPtsToNanometer(OPCAddPtsOffset(shape->points x y)))
+        )
+    )
+)
