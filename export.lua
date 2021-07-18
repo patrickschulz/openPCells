@@ -22,12 +22,12 @@ end
 function M.load(name)
     local filename = _get_export_filename(name)
     if not filename then
-        error(string.format("export '%s' not found", name))
+        moderror(string.format("export '%s' not found", name))
     end
     local chunkname = string.format("@export/%s", name)
     local reader = _get_reader(filename)
     if not reader then
-        error(string.format("export '%s' not found", name))
+        moderror(string.format("export '%s' not found", name))
     end
     export = _generic_load(reader, chunkname)
     _name = name
@@ -41,10 +41,10 @@ end
 
 local function _check_function(func)
     if not export[func] then
-        error(string.format("export '%s' does not define '%s'", _name, func))
+        moderror(string.format("export '%s' does not define '%s'", _name, func))
     end
     if not type(export[func]) == "function" then
-        error(string.format("export '%s': field '%s' is not a function (table/userdata with __call meta field are not supported)", _name, func))
+        moderror(string.format("export '%s': field '%s' is not a function (table/userdata with __call meta field are not supported)", _name, func))
     end
 end
 
@@ -113,7 +113,7 @@ end
 
 function M.write_toplevel(filename, technology, toplevel, fake)
     if toplevel:is_empty() then
-        error("export: toplevel is empty")
+        moderror("export: toplevel is empty")
     end
     if not export.write_cell_reference then
         modinfo("this export does not know how to write hierarchies, hence the cell is being written flat")

@@ -168,8 +168,7 @@ int main (int argc, char** argv)
 {
     lua_State* L = create_and_initialize_lua();
     create_argument_table(L, argc, argv);
-    call_main_program(L, OPC_HOME "/main.lua");
-    int retval = lua_tointeger(L, -1);
+    int retval = call_main_program(L, OPC_HOME "/main.lua");
     lua_close(L);
     return retval;
 }
