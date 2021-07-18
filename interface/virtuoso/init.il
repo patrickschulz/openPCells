@@ -363,28 +363,26 @@ procedure(OPCMenuTrigger(args)
 )
 procedure(OPCModeChangeTrigger(args)
     when(boundp('OPCLayoutMenu)
-        when(args->action == 'change
-            if(args->accessMode == "a"
-                then
-                    hiEnableMenuItem(OPCLayoutMenu OPCLayoutMenu->OPCCellScript->hiMenuItemSym)
-                    hiEnableMenuItem(OPCLayoutMenu OPCLayoutMenu->OPCScript->hiMenuItemSym)
-                else
-                    hiDisableMenuItem(OPCLayoutMenu OPCLayoutMenu->OPCCellScript->hiMenuItemSym)
-                    hiDisableMenuItem(OPCLayoutMenu OPCLayoutMenu->OPCScript->hiMenuItemSym)
-            )
-        )
-    )
-)
-procedure(OPCStartModeTrigger(args)
-    when(boundp('OPCLayoutMenu)
-        println("Start Mode")
-        if(geGetEditCellView()->mode == "a"
+        println("Change Trigger")
+        if(args->action == 'change
             then
-                hiEnableMenuItem(OPCLayoutMenu OPCLayoutMenu->OPCCellScript->hiMenuItemSym)
-                hiEnableMenuItem(OPCLayoutMenu OPCLayoutMenu->OPCScript->hiMenuItemSym)
+                if(args->accessMode == "a"
+                    then
+                        hiEnableMenuItem(OPCLayoutMenu OPCLayoutMenu->OPCCellScript->hiMenuItemSym)
+                        hiEnableMenuItem(OPCLayoutMenu OPCLayoutMenu->OPCScript->hiMenuItemSym)
+                    else
+                        hiDisableMenuItem(OPCLayoutMenu OPCLayoutMenu->OPCCellScript->hiMenuItemSym)
+                        hiDisableMenuItem(OPCLayoutMenu OPCLayoutMenu->OPCScript->hiMenuItemSym)
+                )
             else
-                hiDisableMenuItem(OPCLayoutMenu OPCLayoutMenu->OPCCellScript->hiMenuItemSym)
-                hiDisableMenuItem(OPCLayoutMenu OPCLayoutMenu->OPCScript->hiMenuItemSym)
+                if(geGetEditCellView()->mode == "a"
+                    then
+                        hiEnableMenuItem(OPCLayoutMenu OPCLayoutMenu->OPCCellScript->hiMenuItemSym)
+                        hiEnableMenuItem(OPCLayoutMenu OPCLayoutMenu->OPCScript->hiMenuItemSym)
+                    else
+                        hiDisableMenuItem(OPCLayoutMenu OPCLayoutMenu->OPCCellScript->hiMenuItemSym)
+                        hiDisableMenuItem(OPCLayoutMenu OPCLayoutMenu->OPCScript->hiMenuItemSym)
+                )
         )
     )
 )
@@ -395,8 +393,7 @@ procedure(OPCStartModeTrigger(args)
 ;        deRegUserTriggers(layoutTier 'OPCModeChangeTrigger 'OPCMenuTrigger)
 ;    )
 ;)
-deRegUserTriggers("maskLayoutXL" nil 'OPCMenuTrigger 'OPCStartModeTrigger)
-deRegUserTriggers("maskLayout" 'OPCModeChangeTrigger)
+deRegUserTriggers("maskLayoutXL" nil 'OPCMenuTrigger 'OPCModeChangeTrigger)
 
 /*
  *
