@@ -277,8 +277,14 @@ function layout(transistor, _P)
         ):translate(0, 0.5 * (_P.fwidth + _P.sdconnspace)))
     end
 
-    -- anchors
+    -- alignmentbox
+    transistor:set_alignment_box(
+        point.create(-_P.fingers / 2 * (_P.gatelength + _P.gatespace), -_P.fwidth / 2 - math.max(_P.gbotext, enable(_P.drawbotgate, _P.botgatestrspace + _P.botgatestrwidth / 2))),
+        point.create( _P.fingers / 2 * (_P.gatelength + _P.gatespace), _P.fwidth / 2 + math.max(_P.gtopext, enable(_P.drawtopgate, _P.topgatestrspace + _P.topgatestrwidth / 2)))
+    )
 
+    -- anchors
+    transistor:add_anchor("middrainsource",  point.create(0, 0))
     transistor:add_anchor("leftdrainsource",  point.create(-_P.fingers / 2 * (_P.gatelength + _P.gatespace), 0))
     transistor:add_anchor("rightdrainsource", point.create( _P.fingers / 2 * (_P.gatelength + _P.gatespace), 0))
     transistor:add_anchor("topgate", point.create(0,  _P.fwidth / 2 + math.max(_P.gtopext, enable(_P.drawtopgate, _P.topgatestrspace + _P.topgatestrwidth / 2))))
