@@ -3,8 +3,27 @@ local M = {}
 local export
 local _name
 
+local exportpaths = {}
+
+function M.add_path(path)
+    table.insert(exportpaths, path)
+end
+
+local function _get_export_filename(name)
+    for _, path in ipairs(exportpaths) do
+        local filename = string.format("%s/%s/init.lua", path, name)
+        if dir.exists(filename) then
+            -- first found matching cell is used
+            return filename
+        end
+    end
+end
+
 function M.load(name)
-    local filename = string.format("%s/export/%s/init.lua", _get_opc_home(), name)
+    local filename = _get_export_filename(name)
+    if not filename then
+        error(string.format("export '%s' not found", name))
+    end
     local chunkname = string.format("@export/%s", name)
     local reader = _get_reader(filename)
     if not reader then
@@ -37,6 +56,7 @@ function M.check()
 end
 
 local function _write_cell(file, cell)
+    -- shapes
     for _, S in cell:iterate_shapes() do
         if S:is_type("path") and not export.write_path then
             S:resolve_path()
@@ -53,7 +73,8 @@ local function _write_cell(file, cell)
             moderror(string.format("export: unknown shape type '%s'", S.typ))
         end
     end
-    for _, child in cell:iterate_children_links() do
+    -- children links
+    for _, child in cell:iterate_children() do
         if child.isarray and export.write_cell_array then
             local origin = child.origin
             child.trans:apply_transformation(origin)
@@ -76,12 +97,17 @@ local function _write_cell(file, cell)
     end
 end
 
+local cellrefs = {}
 local function _write_children(file, cell)
-    for name, child in cell:iterate_children() do
-        _write_children(file, child)
-        aux.call_if_present(export.at_begin_cell, file, name)
-        _write_cell(file, child, name)
-        aux.call_if_present(export.at_end_cell, file)
+    for _, child in cell:iterate_children() do
+        if not cellrefs[child.identifier] then
+            local cellref = pcell.get_cell_reference(child.identifier)
+            aux.call_if_present(export.at_begin_cell, file, child.identifier)
+            _write_cell(file, cellref, child.identifier)
+            aux.call_if_present(export.at_end_cell, file)
+            cellrefs[child.identifier] = true
+            _write_children(file, cellref)
+        end
     end
 end
 
@@ -102,9 +128,9 @@ function M.write_toplevel(filename, technology, toplevel, fake)
     aux.call_if_present(export.at_begin_cell, file, "opctoplevel")
     _write_cell(file, toplevel, "opctoplevel")
     if export.write_port then
-        for portname, port in pairs(toplevel.ports) do
+        for _, port in pairs(toplevel.ports) do
             toplevel.trans:apply_transformation(port.where)
-            export.write_port(file, portname, port.layer:get(), port.where)
+            export.write_port(file, port.name, port.layer:get(), port.where)
         end
     end
     aux.call_if_present(export.at_end_cell, file)
@@ -118,7 +144,7 @@ end
 function M.set_options(opt)
     if opt and export.set_options then
         local argparse = cmdparser()
-        argparse:load_options_from_file(string.format("export/%s/cmdoptions", _name))
+        argparse:load_options_from_file(string.format("%s/export/%s/cmdoptions.lua", _get_opc_home(), _name))
         local arg = {}
         for a in string.gmatch(opt, "(%S+)") do
             table.insert(arg, a)

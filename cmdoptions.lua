@@ -14,7 +14,7 @@ return {
     },
     store{ 
         name = "export_options", short = "-X", long = "--xopts",
-        help = "pass special options to export. This passes the next argument (separated by white space) literally. This means that several arguments have to be grouped, usually by enclosing it in quotations marks (e.g. -X '--foo --bar'). On overview of the available options for the respective export can be found by passing -h, e.g. opc --export gds -X -h"
+        help = "pass special options to export. This passes the next argument (separated by white space) literally. This means that several arguments have to be grouped, usually by enclosing it in quotations marks (e.g. -X '--foo --bar'). An overview of the available options for the respective export can be found by passing -h, e.g. opc --export gds -X -h"
     },
     store{
         name = "cellscript", short = "-c", long = "--cellscript",
@@ -66,12 +66,20 @@ return {
         help = "synonym for --append-cellpath"
     },
     store_multiple{
-        name = "layerfilter", long = "--filter",
-        help = "filter layers to be generated. Any layer (in generic notation) in this list will not be generated. This option can be called multiple times. The effect of this options is also controlled by --filter-list.",
+        name = "prelayerfilter", long = "--pre-filter",
+        help = "filter layers to be generated. Any layer (in generic notation) in this list will not be generated. This option can be called multiple times. The effect of this options is also controlled by --pre-filter-list. This filter is installed BEFORE technology translation, so the layers must be specified in generic notation (e.g. M1 or contactsourcedrain).",
     },
     store{
-        name = "layerfilterlist", long = "--filter-list",
-        help = "set filter list type (white or black, default black)"
+        name = "prelayerfilterlist", long = "--pre-filter-list",
+        help = "set pre-technology-translation filter list type (white or black, default black)"
+    },
+    store_multiple{
+        name = "postlayerfilter", long = "--post-filter",
+        help = "filter layers to be generated. Any layer (in generic notation) in this list will not be generated. This option can be called multiple times. The effect of this options is also controlled by --post-filter-list. This filter is installed AFTER technology translation, so the layers must be specified in technology-specific notation.",
+    },
+    store{
+        name = "postlayerfilterlist", long = "--post-filter-list",
+        help = "set post-technology-translation filter list type (white or black, default black)"
     },
     store_multiple{
         name = "exportfilter", long = "--export-filter",
@@ -84,6 +92,10 @@ return {
     switch{
         name = "ignoremissinglayers", long = "--ignore-missing-layers",
         help = "ignore missing layers in the technology translation. Layers that are not present in the layermap file are handled as if their values was '{}'",
+    },
+    switch{
+        name = "ignoremissingexport", long = "--ignore-missing-export",
+        help = "ignore layers with missing exports in the technology translation"
     },
     switch{
         name = "mergerectangles", long = "--merge-rectangles",
@@ -135,6 +147,26 @@ return {
         name = "watch", short = "-w", long = "--watch",
         help = "start 'watch' mode. This continuously monitors the specified cell and regenerates the layout upon changes in the file."
     },
+    store{
+        name = "readgds", long = "--read-gds",
+        help = "read a GDS stream file and export all cells as opc-compatible code. This can take some time, depending on the size of the stream file"
+    },
+    store{
+        name = "gdslayermap", long = "--gds-layermap",
+        help = "provide a layermap for GDS stream reading to enable different export types for read cells"
+    },
+    store{
+        name = "importprefix", long = "--import-prefix",
+        help = "specifies a directory in which imported cells will be placed. For example, if --read-gds FOO and --import-prefix BAR is given, the imported cells will reside in BAR/FOO/*.lua"
+    },
+    store{
+        name = "gdsalignmentboxlayer", long = "--gds-alignmentbox-layer",
+        help = "provide a layer number to write an alignment box to generated cells"
+    },
+    store{
+        name = "gdsalignmentboxpurpose", long = "--gds-alignmentbox-purpose",
+        help = "provide a layer purpose to write an alignment box to generated cells"
+    },
     section("Info functions"),
     switch{ 
         name = "params", short = "-P", long  = "--parameters",
@@ -159,6 +191,19 @@ return {
     switch{
         name = "listtechpaths", long = "--listtechpaths",
         help = "list technology search paths"
+    },
+    section("Utility functions"),
+    store{
+        name = "showgdsdata", long = "--show-gds-data",
+        help = "show data in a GDS stream file"
+    },
+    store{
+        name = "showgdshierarchy", long = "--show-gds-cell-hierarchy",
+        help = "show cell hierarchy in a GDS stream file"
+    },
+    store_multiple{
+        name = "showgdsdataflags", long = "--show-gds-data-flags",
+        help = "flags to control what data is shown with --show-gds-data (default: all)"
     },
     section("Diagnostic functions"),
     switch{

@@ -14,16 +14,19 @@ function layout(gate, _P)
     pcell.push_overwrites("logic/base", { rightdummies = 0 })
     local subgateref = pcell.create_layout(string.format("logic/%s", _P.subgate), { fingers = _P.subgatefingers })
     pcell.pop_overwrites("logic/base")
-    local subgate = gate:add_child(subgateref, _P.subgate)
+    local subgatename = pcell.add_cell_reference(subgateref, _P.subgate)
+    local subgate = gate:add_child(subgatename)
 
     local isogateref = pcell.create_layout("logic/isogate")
-    local isogate = gate:add_child(isogateref, "isogate")
+    local isogatename = pcell.add_cell_reference(isogateref, "isogate")
+    local isogate = gate:add_child(isogatename)
     isogate:move_anchor("left", subgate:get_anchor("right"))
 
     pcell.push_overwrites("logic/base", { leftdummies = 0 })
     local invref = pcell.create_layout("logic/not_gate", { fingers = _P.notfingers, shiftoutput = xpitch / 2 })
     pcell.pop_overwrites("logic/base")
-    local inv = gate:add_child(invref, "not_gate")
+    local invname = pcell.add_cell_reference(invref, "not_gate")
+    local inv = gate:add_child(invname)
     inv:move_anchor("left", isogate:get_anchor("right"))
 
     -- draw connection

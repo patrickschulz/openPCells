@@ -1,12 +1,51 @@
 -- exit and write a short helpful message if called without any arguments
 if #arg == 0 then
-    errprint("This is the openPCell layout generator.")
-    errprint("To generate a layout, you need to pass the technology, the export type and a cellname.")
-    errprint("Example:")
-    errprint("         opc --technology skywater130 --export gds --cell logic/not_gate")
-    errprint()
-    errprint("You can find out more about the available command line options by running 'opc -h'.")
+    print("This is the openPCell layout generator.")
+    print("To generate a layout, you need to pass the technology, the export type and a cellname.")
+    print("Example:")
+    print("         opc --technology skywater130 --export gds --cell logic/not_gate")
+    print()
+    print("You can find out more about the available command line options by running 'opc -h'.")
     return 1
+end
+
+-- load API
+local modules = {
+    "profiler",
+    "cmdparser",
+    "lpoint",
+    "technology",
+    "postprocess",
+    "export",
+    "config",
+    "object",
+    "transformationmatrix",
+    "shape",
+    "geometry",
+    "graphics",
+    "generics",
+    "stringfile",
+    "util",
+    "aux",
+    "reduce",
+    "stack",
+    "support",
+    "envlib",
+    "globals",
+    "union",
+    "marker",
+    "support/gdstypetable",
+    "gdsparser",
+    "import",
+    "pcell",
+}
+for _, module in ipairs(modules) do
+    local path = module
+    local name = module
+    if string.match(module, "/") then
+        name = string.match(module, "/([^/]+)$")
+    end
+    _ENV[name] = _load_module(path)
 end
 
 -- call testsuite when called with 'test' as first argument
@@ -18,7 +57,22 @@ end
 
 -- parse command line arguments
 local argparse = cmdparser()
-argparse:load_options_from_file("cmdoptions")
+argparse:load_options_from_file(string.format("%s/%s.lua", _get_opc_home(), "cmdoptions"))
+argparse:prepend_to_help_message([[
+openPCells layout generator (opc) - Patrick Kurth 2021
+
+Generate layouts of integrated circuit geometry
+opc supports technology-independent descriptions of parametric layout cells (pcells), 
+which can be translated into a physical technology and exported to a file via a specific export.
+]])
+argparse:append_to_help_message([[
+
+Most common usage examples:
+   get cell parameter information:             opc --cell logic/dff --parameters
+   create a cell:                              opc --technology TECH --export gds --cell logic/dff
+   create a cell from a foreign collection:    opc --add-cellpath /path/to/collection --technology TECH --export gds --cell other/somecell
+   create a cell by using a cellscript:        opc --technology TECH --export gds --cellscript celldef.lua
+   read a GDS stream file and create cells:    opc --read-GDS stream.gds]])
 local args, msg = argparse:parse(arg)
 if not args then
     errprint(msg)
@@ -28,6 +82,34 @@ end
 if args.human and args.machine then
     errprint("you can't specify --human and --machine at the same time")
     return 1
+end
+
+-- gds info functions
+if args.showgdsdata then
+    gdsparser.show_records(args.showgdsdata, args.showgdsdataflags or "all")
+    return 0
+end
+if args.showgdshierarchy then
+    local cells = gdsparser.read_cells(args.showgdshierarchy)
+    local tree = gdsparser.resolve_hierarchy(cells)
+    for _, elem in ipairs(tree) do
+        print(string.format("%s%s", string.rep("  ", elem.level), elem.cell.name))
+    end
+    return 0
+end
+
+if args.readgds then
+    local layermap = {}
+    if args.gdslayermap then
+        layermap = dofile(args.gdslayermap)
+    end
+    local cells = gdsparser.read_cells(args.readgds)
+    local alignmentboxinfo
+    if args.gdsalignmentboxlayer and args.gdsalignmentboxpurpose then
+        alignmentboxinfo = { layer = tonumber(args.gdsalignmentboxlayer), purpose = tonumber(args.gdsalignmentboxpurpose) }
+    end
+    import.translate_cells(cells, args.importprefix, string.gsub(args.readgds, "%.gds", ""), layermap, alignmentboxinfo)
+    return 0
 end
 
 -- check for script firsts, nothing gets defined for scripts
@@ -66,6 +148,9 @@ if args.prependcellpath then
     end
 end
 
+-- set default path for exports
+export.add_path(string.format("%s/export", _get_opc_home()))
+
 -- load user configuration
 if not args.nouserconfig then
     if not config.load_user_config(argparse) then
@@ -99,7 +184,12 @@ if args.machine then
     envlib.set("humannotmachine", false)
 end
 envlib.set("verbose", args.verbose)
-envlib.set("ignoremissinglayers", args.ignoremissinglayers)
+if args.ignoremissinglayers then
+    envlib.set("ignoremissinglayers", true)
+end
+if args.ignoremissingexport then
+    envlib.set("ignoremissingexport", true)
+end
 
 -- list available cells
 if args.listcells or args.listallcells then
@@ -277,12 +367,12 @@ end
 
 technology.prepare(cell)
 
--- filter layers
-if args.layerfilter then
+-- filter layers (pre)
+if args.prelayerfilter then
     -- filter toplevel (flat shapes)
-    postprocess.filter(cell, args.layerfilter, args.layerfilterlist or "black")
+    postprocess.filter(cell, args.prelayerfilter, args.prelayerfilterlist or "black")
     -- filter children
-    cell:foreach_children(postprocess.filter, args.layerfilter, args.layerfilterlist or "black")
+    pcell.foreach_cell_references(postprocess.filter, args.prelayerfilter, args.prelayerfilterlist or "black")
 end
 
 if not args.export then
@@ -296,6 +386,14 @@ if not args.notech and techintf ~= "raw" then
     technology.translate(cell, techintf)
 end
 
+-- filter layers (post)
+if args.postlayerfilter then
+    -- filter toplevel (flat shapes)
+    postprocess.filter(cell, args.postlayerfilter, args.postlayerfilterlist or "black")
+    -- filter children
+    pcell.foreach_cell_references(postprocess.filter, args.postlayerfilter, args.postlayerfilterlist or "black")
+end
+
 if args.flatten then
     cell:flatten()
 end
@@ -304,7 +402,7 @@ if args.mergerectangles then
     -- merge toplevel (flat shapes)
     reduce.merge_shapes(cell)
     -- merge children
-    cell:foreach_children(reduce.merge_shapes)
+    pcell.foreach_cell_references(reduce.merge_shapes)
 end
 
 if not args.noexport then

@@ -66,7 +66,8 @@ local function _get_lpp(entry, export)
     if type(lpp) == "function" then
         lpp = lpp()
     end
-    if not lpp[export] then
+    if not lpp[export] and not envlib.get("ignoremissingexport") then
+        print(envlib.get("ignoremissingexport"))
         moderror(string.format("no layer information for layer '%s' for export type '%s'", entry.name, export))
     end
     return lpp[export]
@@ -147,7 +148,7 @@ local function _do_array(cell, S, entry, export)
 end
 
 local function _translate_layers(cell, export)
-    for i, S in cell:iterate_shapes() do
+    for i, S in cell:iterate_shapes(function(S) return not (S:get_lpp():is_type("mapped") or S:get_lpp():is_type("premapped")) end) do
         local layer = S:get_lpp():str()
         local mappings = layermap[layer]
         if not mappings then 
@@ -168,19 +169,31 @@ local function _translate_layers(cell, export)
 end
 
 local function _translate_ports(cell, export)
-    for portname, port in pairs(cell.ports) do
-        local layer = port.layer:str()
-        local name = string.format("%sport", layer)
-        local mappings = layermap[name]
-        if not mappings then
-            moderror(string.format("no layer information for '%s'\nif the layer is not provided, set it to {}", name))
+    local todelete = {}
+    for i, port in pairs(cell.ports) do
+        if port.layer:is_type("premapped") then
+            local lpp = port.layer
+            local newlpp = _get_lpp({ name = lpp:str(), lpp = lpp:get() }, export)
+            if newlpp then
+                port.layer = generics.mapped(lpp:str(), newlpp)
+            else
+                table.insert(todelete, i)
+            end
+        elseif not port.layer:is_type("mapped") then
+            local layer = port.layer:str()
+            local name = string.format("%sport", layer)
+            local mappings = layermap[name]
+            if not mappings then
+                moderror(string.format("no layer information for '%s'\nif the layer is not provided, set it to {}", name))
+            end
+            -- FIXME: current implementation uses the first mapping, this should be improved
+            local entry = mappings[1]
+            entry = entry.func()
+            local lpp = _get_lpp(entry, export)
+            port.layer = generics.mapped(entry.name, lpp)
         end
-        -- FIXME: current implementation uses the first mapping, this should be improved
-        local entry = mappings[1]
-        entry = entry.func()
-        local lpp = _get_lpp(entry, export)
-        port.layer = generics.mapped(entry.name, lpp)
     end
+    for _, i in ipairs(todelete) do table.remove(cell.ports, i) end
 end
 
 local function _fix_to_grid(cell)
@@ -191,29 +204,46 @@ local function _fix_to_grid(cell)
     end
 end
 
+local function _select_premapped_layers(cell, export)
+    for i, S in cell:iterate_shapes(function(S) return S:get_lpp():is_type("premapped") end) do
+        local lpp = S:get_lpp()
+        local newlpp = _get_lpp({ name = lpp:str(), lpp = lpp:get() }, export)
+        if newlpp then
+            S:set_lpp(generics.mapped(lpp:str(), newlpp))
+        else
+            cell:remove_shape(i)
+        end
+    end
+end
+
 local function _translate(cell, export)
-    -- translate cell itself
     _translate_layers(cell, export)
     _fix_to_grid(cell)
-    -- translate children
-    for _, child in cell:iterate_children() do
-        _translate(child, export)
+    _select_premapped_layers(cell, export)
+end
+
+local function _prepare(cell)
+    _translate_metals(cell)
+    _split_vias(cell)
+    _place_via_conductors(cell)
+end
+
+local function _foreach_cells(cell, func, ...)
+    -- prepare cell itself
+    func(cell, ...)
+    -- prepare cell references
+    for _, ref in pcell.iterate_cell_references() do
+        func(ref, ...)
     end
 end
 
 function M.prepare(cell)
-    -- prepare cell itself
-    _translate_metals(cell)
-    _split_vias(cell)
-    _place_via_conductors(cell, export)
-    -- prepare children
-    for _, child in cell:iterate_children() do
-        M.prepare(child)
-    end
+    _foreach_cells(cell, _prepare)
 end
 
 function M.translate(cell, export)
-    _translate(cell, export)
+    _foreach_cells(cell, _translate, export)
+    -- translate ports
     _translate_ports(cell, export) -- ports are only translated on the toplevel
 end
 

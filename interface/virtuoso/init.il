@@ -1,9 +1,12 @@
 procedure(OPCCall(args)
     let(
-        ()
+        ((additionalargs ""))
+        when(boundp('OPCSettingsForm)
+            additionalargs = OPCSettingsForm->OPCSettingsCmdAdditionalArgs->value
+        )
         OPCCommand = lsprintf(
-            "%s/%s --technology %s --export SKILL %s"
-            OPCPath OPCExec OPCTech args
+            "%s/%s --technology %s --export SKILL %s %s"
+            OPCPath OPCExec OPCTech additionalargs args
         )
         printf("calling opc:\n  %s\n" OPCCommand)
         pid = ipcBeginProcess(OPCCommand)
@@ -18,6 +21,20 @@ procedure(OPCCall(args)
                 t
         ) ; if exitstatus
     ) ; let
+)
+
+procedure(OPCCleanUp()
+    if(boundp('OPCSettingsForm)
+        then
+            println(OPCSettingsForm->OPCSettingsDeleteFile->value)
+            when(OPCSettingsForm->OPCSettingsDeleteFile->value == "true"
+                printf("opc: delete %s.il\n" OPCFilename)
+                deleteFile(lsprintf("%s.il" OPCFilename))
+            )
+        else
+            printf("opc: delete %s.il\n" OPCFilename)
+            deleteFile(lsprintf("%s.il" OPCFilename))
+    )
 )
 
 procedure(OPCCreateCell(w done pts)
@@ -44,10 +61,9 @@ procedure(OPCCreateCell(w done pts)
 	                    )
 	                )
                     when(OPCCall(OPCArgs)
-                        printf("opc: load %s.il" OPCFilename)
+                        printf("opc: load %s.il\n" OPCFilename)
                         load(lsprintf("%s.il" OPCFilename))
-                        printf("opc: delete %s.il" OPCFilename)
-                        deleteFile(lsprintf("%s.il" OPCFilename)) ; clean up after ourselves
+                        OPCCleanUp()
                     )
 	        	else 
 	        		println("cellview not in editing mode")
@@ -120,6 +136,20 @@ procedure(OPCAboutCallback()
     )
 ) ; procedure
 
+procedure(OPCEditCallback()
+    letseq(
+        (
+            (cv geGetEditCellView())
+            (libPath cv->lib->readPath)
+            (cellName cv->cellName)
+            (OPCFilename "openPCells")
+            path OPCArgs
+        )
+        path = lsprintf("%s/%s/layout/layout.lua" libPath cellName)
+        pid = ipcBeginProcess(lsprintf("xterm -e vim %s" path) "")
+    )
+) ; procedure
+
 procedure(OPCUpdateCallback()
     letseq(
         (
@@ -133,28 +163,57 @@ procedure(OPCUpdateCallback()
         OPCArgs = lsprintf("--cellscript %s -f %s" path OPCFilename)
         when(OPCCall(OPCArgs)
             foreach(shape cv->shapes dbDeleteObject(shape))
+            foreach(inst cv->instances dbDeleteObject(inst))
             printf("opc: load %s.il" OPCFilename)
             load(lsprintf("%s.il" OPCFilename))
-            printf("opc: delete %s.il" OPCFilename)
-            deleteFile(lsprintf("%s.il" OPCFilename)) ; clean up after ourselves
+            OPCCleanUp()
         )
     )
 ) ; procedure
 
-procedure(OPCLayoutAddMenu(args)
-    let( (menu itemlist about separator update script settings cellmenu cellitem (win args->window))
+procedure(OPCExportCell()
+    let(
+        (
+            (cv geGetEditCellView())
+            (file outfile("openPCells_export.lua" "w"))
+        )
+        fprintf(file "local cell = object.create()\n")
+        foreach(shape cv->shapes
+            OPCWriteShape(file shape 0 0)
+        )
+        foreach(inst cv->instances
+            foreach(shape inst->master->shapes
+                OPCWriteShape(file shape xCoord(inst->xy) yCoord(inst->xy))
+            )
+        )
+        fprintf(file "return cell\n")
+        close(file)
+    )
+)
+
+procedure(OPCSettingsCallback()
+    unless(boundp('OPCSettingsForm)
+        OPCCreateSettingsForm()
+    )
+    hiDisplayForm(OPCSettingsForm 100:100)
+) ; procedure
+
+procedure(OPCCreateLayoutMenu()
+    let( (menu itemlist about separator edit update script export settings cellmenu cellitem)
         ; basic information
         about = hiCreateMenuItem(?name 'OPCAbout ?itemText "About" ?callback "OPCAboutCallback()")
 
         separator = hiCreateSeparatorMenuItem(?name 'OPCLayoutMenuSeparator)
 
         ; update design
+        edit = hiCreateMenuItem(?name 'OPCEditCellScript ?itemText "Edit Design" ?callback "OPCEditCallback()")
         update = hiCreateMenuItem(?name 'OPCCellScript ?itemText "Update Design (removes all shapes!)" ?callback "OPCUpdateCallback()")
-
-        separator = hiCreateSeparatorMenuItem(?name 'OPCLayoutMenuSeparator)
 
         ; execute script
         script = hiCreateMenuItem(?name 'OPCScript ?itemText "Execute Script..." ?callback "OPC call script not yet implemented")
+
+        ; export cell
+        export = hiCreateMenuItem(?name 'OPCExport ?itemText "Export Cell" ?callback "OPCExportCell()")
 
 		celllist = OPCWalkCellDir(lsprintf("%s/cells" OPCPath) "")
 		celllist = append(celllist OPCWalkCellDir(lsprintf("/home/pschulz/serial_interface/cells") ""))
@@ -162,18 +221,50 @@ procedure(OPCLayoutAddMenu(args)
         ; create cell menu
         cellmenu = hiCreatePulldownMenu(
             'OPCCellMenu
-            "foobar"
+            "OPC Cell Creation Menu"
             celllist
         )
         cellitem = hiCreateSliderMenuItem(?name 'OPCCellItem ?itemText "Create Cell..." ?subMenu cellmenu)
-        settings = hiCreateMenuItem(?name 'OPCSettings ?itemText "Settings" ?callback "println(\"openPCells Settings\")")
+        settings = hiCreateMenuItem(?name 'OPCSettings ?itemText "Settings" ?callback "OPCSettingsCallback()")
 
         ; assemble main menu
-        itemlist = list(about separator update separator script separator cellitem settings)
-        menu = hiCreatePulldownMenu('OPCLayoutMenu "OpenPCells" itemlist)
-        hiInsertBannerMenu(win menu length(hiGetBannerMenus(win)))
+        itemlist = list(about separator edit update separator script separator export separator cellitem settings)
+        hiCreatePulldownMenu('OPCLayoutMenu "OpenPCells" itemlist)
     )
 ); procedure
+
+procedure(OPCCreateSettingsForm()
+    let(
+        (
+            OPCCommand pid exitstatus result
+            fieldlist field
+        )
+        field = hiCreateStringField(
+            ?name 'OPCSettingsCmdAdditionalArgs
+            ?value ""
+            ?prompt "Additional Command Line Arguments"
+        )
+        fieldlist = cons(list(field 0:30*0 350:30 250) fieldlist)
+        field = hiCreateStringField(
+            ?name 'OPCSettingsCmdAdditionalArgs
+            ?value ""
+            ?prompt "Additional Command Line Arguments"
+        )
+        field = hiCreateRadioField(
+            ?name 'OPCSettingsDeleteFile
+            ?choices list("true" "false")
+            ?value "true"
+            ?prompt "Delete cell file after creation"
+        )
+        fieldlist = cons(list(field 0:30*1 350:30 250) fieldlist)
+        hiCreateAppForm(
+            ?name 'OPCSettingsForm
+            ?formTitle "OPC Settings"
+            ?buttonLayout 'OKCancel
+            ?fields fieldlist
+        )
+    )
+) ; procedure
 
 procedure(OPCCreateOptionsForm(OPCCell)
     let(
@@ -267,7 +358,87 @@ procedure(OPCCreateOptionsForm(OPCCell)
     )
 ) ; procedure
 
+procedure(OPCMenuTrigger(args)
+    list(OPCCreateLayoutMenu())
+)
+procedure(OPCModeChangeTrigger(args)
+    when(boundp('OPCLayoutMenu)
+        when(args->action == 'change
+            if(args->accessMode == "a"
+                then
+                    hiEnableMenuItem(OPCLayoutMenu OPCLayoutMenu->OPCCellScript->hiMenuItemSym)
+                    hiEnableMenuItem(OPCLayoutMenu OPCLayoutMenu->OPCScript->hiMenuItemSym)
+                else
+                    hiDisableMenuItem(OPCLayoutMenu OPCLayoutMenu->OPCCellScript->hiMenuItemSym)
+                    hiDisableMenuItem(OPCLayoutMenu OPCLayoutMenu->OPCScript->hiMenuItemSym)
+            )
+        )
+    )
+)
+procedure(OPCStartModeTrigger(args)
+    when(boundp('OPCLayoutMenu)
+        println("Start Mode")
+        if(geGetEditCellView()->mode == "a"
+            then
+                hiEnableMenuItem(OPCLayoutMenu OPCLayoutMenu->OPCCellScript->hiMenuItemSym)
+                hiEnableMenuItem(OPCLayoutMenu OPCLayoutMenu->OPCScript->hiMenuItemSym)
+            else
+                hiDisableMenuItem(OPCLayoutMenu OPCLayoutMenu->OPCCellScript->hiMenuItemSym)
+                hiDisableMenuItem(OPCLayoutMenu OPCLayoutMenu->OPCScript->hiMenuItemSym)
+        )
+    )
+)
+
 ; create a user postinstall trigger that automatically adds the menu
-;deRegUserTriggers("maskLayout" nil nil 'OPCLayoutAddMenu)
-deRegUserTriggers("maskLayoutXL" nil nil 'OPCLayoutAddMenu)
-;deRegUserTriggers("maskLayoutGXL" nil nil 'OPCLayoutAddMenu)
+;foreach(layoutTier list("maskLayoutL" "maskLayoutXL" "maskLayoutEXL" "maskLayoutGXL")
+;    when(member(layoutTier deGetAllViewTypes())
+;        deRegUserTriggers(layoutTier 'OPCModeChangeTrigger 'OPCMenuTrigger)
+;    )
+;)
+deRegUserTriggers("maskLayoutXL" nil 'OPCMenuTrigger 'OPCStartModeTrigger)
+deRegUserTriggers("maskLayout" 'OPCModeChangeTrigger)
+
+/*
+ *
+ *   Export Functions
+ *
+*/
+procedure(OPCAddPtsOffset(pts x y)
+	mapcar(lambda( (pt) xCoord(pt) + x:yCoord(pt) + y) pts)
+)
+
+procedure(OPCConvertPtsToNanometer(pts)
+	mapcar(lambda( (pt) fix(xCoord(pt) * 1000):fix(yCoord(pt) * 1000)) pts)
+)
+
+procedure(OPCWriteRectangle(file layer purpose bBox)
+	let(
+		(
+		)
+        fprintf(file "cell:merge_into_shallow(geometry.rectanglebltr(generics.mapped(nil, { layer = \"%s\", purpose = \"%s\" }), point.create(%d, %d), point.create(%d, %d)))\n", 
+            layer purpose xCoord(car(bBox)) yCoord(car(bBox)) xCoord(cadr(bBox)) yCoord(cadr(bBox))
+        )
+	)
+)
+
+procedure(OPCWritePolygon(file layer purpose pts)
+	let(
+		(
+		)
+        fprintf(file "cell:merge_into_shallow(geometry.polygon(generics.mapped(nil, { layer = \"%s\", purpose = \"%s\" }), { %s }))\n"
+            layer purpose 
+            buildString(mapcar(lambda( (pt) lsprintf("point.create(%d, %d)" xCoord(pt) yCoord(pt))) pts) ", ")
+        )
+	)
+)
+
+procedure(OPCWriteShape(file shape x y)
+    unless(shape->layerName == "instance"
+        if(shape->objType == "rect"
+            then
+                OPCWriteRectangle(file shape->layerName shape->purpose OPCConvertPtsToNanometer(OPCAddPtsOffset(shape->bBox x y)))
+            else
+                OPCWritePolygon(file shape->layerName shape->purpose OPCConvertPtsToNanometer(OPCAddPtsOffset(shape->points x y)))
+        )
+    )
+)

@@ -46,7 +46,10 @@ local function _display_help(self)
         end
     end
     local fmt = string.format("    %%-%ds    %%s", optwidth)
-    print("openPCells generator")
+    for _, msg in ipairs(self.prehelpmsg) do
+        print(msg)
+    end
+    print("list of command line options:\n")
     for _, opt in ipairs(self.optionsdef) do
         if opt.issection then
             print(opt.name)
@@ -82,6 +85,9 @@ local function _display_help(self)
             print(string.format(fmt, cmdstr, helpstr))
         end
     end
+    for _, msg in ipairs(self.posthelpmsg) do
+        print(msg)
+    end
     os.exit(0)
 end
 
@@ -98,12 +104,11 @@ end
 local meta = {}
 meta.__index = meta
 
-local function _load_options(options)
-    if not options then
+local function _load_options(filename)
+    if not filename then
         error("no commandline options filename name given")
     end
-    local filename = string.format("%s/%s.lua", _get_opc_home(), options)
-    local chunkname = string.format("@%s", options)
+    local chunkname = string.format("@%s", filename)
 
     local reader, msg = _get_reader(filename)
     if not reader then
@@ -154,8 +159,8 @@ local function _load_options(options)
     return _generic_load(reader, chunkname, nil, nil, env)
 end
 
-function meta.load_options_from_file(self, options)
-    meta.load_options(self, _load_options(options))
+function meta.load_options_from_file(self, filename)
+    meta.load_options(self, _load_options(filename))
 end
 
 function meta.load_options(self, options)
@@ -233,13 +238,23 @@ function meta.set_option(self, param, arg)
     action(self, arg)
 end
 
+function meta.prepend_to_help_message(self, msg)
+    table.insert(self.prehelpmsg, 1, msg)
+end
+
+function meta.append_to_help_message(self, msg)
+    table.insert(self.posthelpmsg, msg)
+end
+
 return function()
     local self = {
         state = { i = 1 },
         parsers = {},
         actions = {},
         nameresolve = {},
-        res = { cellargs = {} }
+        res = { cellargs = {} },
+        prehelpmsg = {},
+        posthelpmsg = {},
     }
     setmetatable(self, meta)
     return self

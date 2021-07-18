@@ -77,32 +77,36 @@ local function _override_cell_environment(what, t)
     end
 end
 
+local function _add_cell(state, cellname, funcs, nocallparams)
+    if not (funcs.parameters or funcs.layout) then
+        error(string.format("cell '%s' must define at least the public function 'parameters' or 'layout'", cellname))
+    end
+    local cell = {
+        funcs       = funcs,
+        parameters  = paramlib.create_directory(),
+        properties  = {},
+        references  = {
+            [cellname] = true -- a cell can always refer to its own parameters
+        },
+    }
+    rawset(state.loadedcells, cellname, cell)
+    if not nocallparams then
+        local status, msg = pcall(funcs.parameters)
+        if not status then
+            error(string.format("could not create parameters of cell '%s': %s", cellname, msg))
+        end
+    end
+    if funcs.config then
+        funcs.config()
+    end
+end
+
 local function _get_cell(state, cellname, nocallparams)
     if not state.loadedcells[cellname] then
         if state.debug then print(string.format("loading cell '%s'", cellname)) end
         local env = state:create_cellenv(cellname, _cellenv)
         local funcs = _load_cell(state, cellname, env)
-        if not (funcs.parameters or funcs.layout) then
-            error(string.format("cell '%s' must define at least the public function 'parameters' or 'layout'", cellname))
-        end
-        local cell = {
-            funcs       = funcs,
-            parameters  = paramlib.create_directory(),
-            properties  = {},
-            references  = {
-                [cellname] = true -- a cell can always refer to its own parameters
-            },
-        }
-        rawset(state.loadedcells, cellname, cell)
-        if not nocallparams then
-            local status, msg = pcall(funcs.parameters)
-            if not status then
-                error(string.format("could not create parameters of cell '%s': %s", cellname, msg))
-            end
-        end
-        if funcs.config then
-            funcs.config()
-        end
+        _add_cell(state, cellname, funcs)
     end
     return rawget(state.loadedcells, cellname)
 end
@@ -269,10 +273,12 @@ local function inherit_all_parameters(state, cellname, othercell)
 end
 
 local function push_overwrites(state, cellname, othercell, cellargs)
-    assert(type(cellname) == "string", "push_overwrites: cellname must be a string")
-    local cell = _get_cell(state, cellname)
-    if not cell.references[othercell] then
-        error(string.format("trying to access parameters of unreferenced cell (%s from %s)", othercell, cellname))
+    if cellname then -- is nil when called from a cellscript; perform no reference check in this case
+        assert(type(cellname) == "string", "push_overwrites: cellname must be a string")
+        local cell = _get_cell(state, cellname)
+        if not cell.references[othercell] then
+            error(string.format("trying to access parameters of unreferenced cell (%s from %s)", othercell, cellname))
+        end
     end
     local backup = _process_input_parameters(state, othercell, cellargs, false, true)
     if not state.backupstacks[othercell] then
@@ -310,13 +316,19 @@ local state = {
     cellpaths = {},
     loadedcells = {},
     backupstacks = {},
+    cellrefs = {},
     debug = false,
 }
 
 function state.create_cellenv(state, cellname, ovrenv)
-    local bindcell = function(func)
+    local bindstatecell = function(func)
         return function(...)
             return func(state, cellname, ...)
+        end
+    end
+    local bindcell = function(func)
+        return function(...)
+            return func(cellname, ...)
         end
     end
     local bindstate = function(func)
@@ -334,19 +346,20 @@ function state.create_cellenv(state, cellname, ovrenv)
         multiple = function(val) return { type = "multiple", value = val } end,
         inf = math.huge,
         pcell = {
-            set_property                    = bindcell(set_property),
-            add_parameter                   = bindcell(add_parameter),
-            add_parameters                  = bindcell(add_parameters),
-            reference_cell                  = bindcell(reference_cell),
-            inherit_parameter               = bindcell(inherit_parameter),
-            inherit_parameter_as            = bindcell(inherit_parameter_as),
-            inherit_all_parameters          = bindcell(inherit_all_parameters),
-            get_parameters                  = bindcell(_get_parameters),
-            push_overwrites                 = bindcell(push_overwrites),
-            pop_overwrites                  = bindcell(pop_overwrites),
+            set_property                    = bindstatecell(set_property),
+            add_parameter                   = bindstatecell(add_parameter),
+            add_parameters                  = bindstatecell(add_parameters),
+            reference_cell                  = bindstatecell(reference_cell),
+            inherit_parameter               = bindstatecell(inherit_parameter),
+            inherit_parameter_as            = bindstatecell(inherit_parameter_as),
+            inherit_all_parameters          = bindstatecell(inherit_all_parameters),
+            get_parameters                  = bindstatecell(_get_parameters),
+            push_overwrites                 = bindstatecell(push_overwrites),
+            pop_overwrites                  = bindstatecell(pop_overwrites),
             -- the following functions don't not need cell binding as they are called for other cells
             clone_parameters                = bindstate(clone_parameters),
             clone_matching_parameters       = bindstate(clone_matching_parameters),
+            add_cell_reference              = M.add_cell_reference,
             create_layout                   = M.create_layout
         },
         tech = {
@@ -383,6 +396,10 @@ function state.create_cellenv(state, cellname, ovrenv)
 end
 
 -- Public functions
+function M.add_cell(cellname, funcs)
+    _add_cell(state, cellname, funcs)
+end
+
 function M.enable_debug(d)
     state.debug = d
 end
@@ -427,6 +444,14 @@ function M.update_cell_parameters(cellname, cellargs, evaluate)
     _restore_parameters(state, cellname, backup)
 end
 
+function M.push_overwrites(othercell, cellargs)
+    push_overwrites(state, nil, othercell, cellargs)
+end
+
+function M.pop_overwrites(cellname, othercell)
+    pop_overwrites(state, nil, othercell)
+end
+
 function M.create_layout(cellname, cellargs, evaluate)
     if state.debug then 
         local status = _find_cell_traceback()
@@ -449,6 +474,33 @@ function M.create_layout(cellname, cellargs, evaluate)
     end
     return obj
 end
+
+function M.add_cell_reference(cell, name)
+    local identifier = aux.make_unique_name(name)
+    if not state.cellrefs[identifier] then
+        state.cellrefs[identifier] = cell
+    end
+    return identifier
+end
+
+function M.get_cell_reference(identifier)
+    local reference = state.cellrefs[identifier]
+    if not reference then
+        moderror(string.format("trying to access an unknown child reference (%s). Make sure to use the name generated by add_child_reference()", identifier))
+    end
+    return reference
+end
+
+function M.iterate_cell_references()
+    return pairs(state.cellrefs)
+end
+
+function M.foreach_cell_references(func, ...)
+    for _, reference in pcell.iterate_cell_references() do
+        func(reference, ...)
+    end
+end
+
 
 function M.list(listhidden)
     local cells = {}

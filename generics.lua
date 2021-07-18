@@ -43,6 +43,8 @@ function M.str(self)
         return "feol"
     elseif self.typ == "special" then
         return "special"
+    elseif self.typ == "premapped" then
+        return self.name
     elseif self.typ == "mapped" then
         return self.name
     elseif self.typ == "other" then
@@ -95,6 +97,13 @@ end
 function M.special(layer)
     local self = _create(layer)
     self.typ = "special"
+    return self
+end
+
+function M.premapped(name, layer)
+    local self = _create(layer)
+    self.typ = "premapped"
+    self.name = name
     return self
 end
 

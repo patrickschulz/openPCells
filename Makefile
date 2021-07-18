@@ -14,8 +14,8 @@ SYSCFLAGS=
 SYSLDFLAGS=
 SYSLIBS=
 
-OPCHEADERS:=lpoint.h lbind.h lload.h lbinary.h lstringbuffer.h lshape.h lunion.h
-OPCCSOURCES:=ldir.c lpoint.c lbind.c lload.c lbinary.c lstringbuffer.c lshape.c lunion.c
+OPCHEADERS:=lpoint.h lbind.h lload.h lbinary.h lstringbuffer.h lshape.h lfilesystem.h
+OPCCSOURCES:=ldir.c lpoint.c lbind.c lload.c lbinary.c lstringbuffer.c lshape.c lfilesystem.c
 
 default:
 	@echo Guessing `$(UNAME)`

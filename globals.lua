@@ -6,6 +6,10 @@ function moderror(msg)
     error(msg, 0)
 end
 
+function modwarning(msg)
+    print(msg)
+end
+
 function modassert(predicate, msg)
     if not predicate then
         moderror(msg)

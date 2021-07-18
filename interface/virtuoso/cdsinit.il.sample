@@ -8,7 +8,7 @@ OPCTech = "tech42"
 ; the installation DIRECTORY of openPCells has to be given:
 OPCPath = "/path/to/opc"
 
-; the name of the executable (which will be 'opc' if you don't change this manually)
+; the name of the executable (which will be 'opc' if you don't change this manually during compiling)
 OPCExec = "opc"
 
 ; lastly, we load the opc interface for virtuoso

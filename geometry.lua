@@ -33,6 +33,15 @@ function M.rectanglepoints(layer, pt1, pt2)
     return object.make_from_shape(S)
 end
 
+function M.polygon(layer, pts)
+    local S = shape.create_polygon(layer)
+    local append = util.make_insert_pts(S:get_points())
+    for _, pt in ipairs(pts) do
+        append(pt)
+    end
+    return object.make_from_shape(S)
+end
+
 function M.cross(layer, width, height, crosssize)
     modassert(width % 2 == 0, "geometry.cross: width must be a multiple of 2")
     modassert(height % 2 == 0, "geometry.cross: height must be a multiple of 2")

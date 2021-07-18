@@ -183,10 +183,10 @@ function layout(oscillator, _P)
             inverterref:get_anchor(string.format("nSDi%d", 3)):translate(0, -_P.gstwidth / 2),
         }), _P.gstwidth
     ))
-    local invname = oscillator:add_child_reference(inverterref, "inverter")
+    local invname = pcell.add_cell_reference(inverterref, "inverter")
     local inverters = {}
     for i = 1, _P.numinv do
-        inverters[i] = oscillator:add_child_link(invname)
+        inverters[i] = oscillator:add_child(invname)
         if i > 1 then
             inverters[i]:move_anchor("left", inverters[i - 1]:get_anchor("right"))
         end
@@ -352,8 +352,8 @@ function layout(oscillator, _P)
             cmarray:get_anchor(string.format("nSDi%d", cmfingers + 2 - i)):translate( _P.gstwidth / 2, 0)
         ))
     end
-    local cmname = oscillator:add_child_reference(cmarray, "currentmirror")
-    local currentmirror = oscillator:add_child_link(cmname)
+    local cmname = pcell.add_cell_reference(cmarray, "currentmirror")
+    local currentmirror = oscillator:add_child(cmname)
     currentmirror:move_anchor("right", inverters[1]:get_anchor("left"))
 
     -- draw inverter connections
@@ -413,14 +413,14 @@ function layout(oscillator, _P)
 
     -- place guardring
     local ringwidth = 200
-    oscillator:add_child(pcell.create_layout("auxiliary/guardring", { 
+    local pguardringname = pcell.add_cell_reference(pcell.create_layout("auxiliary/guardring", { 
         contype = "p",
         fillwell = true,
         ringwidth = ringwidth,
         width = (cmfingers + 2 * _P.numinv * _P.invfingers + 4) * xpitch, 
         height = 6 * _P.separation + _P.pfingerwidth + _P.nfingerwidth + ringwidth
     }), "pguardring")
-    oscillator:add_child(pcell.create_layout("auxiliary/guardring", { 
+    local nguardringname = pcell.add_cell_reference(pcell.create_layout("auxiliary/guardring", { 
         contype = "n",
         fillwell = false,
         drawdeepwell = true,
@@ -428,4 +428,6 @@ function layout(oscillator, _P)
         width = (cmfingers + 2 * _P.numinv * _P.invfingers + 4) * xpitch + 2 * _P.separation + 2 * ringwidth,
         height = 8 * _P.separation + _P.pfingerwidth + _P.nfingerwidth + ringwidth + 2 * ringwidth
     }), "nguardring")
+    oscillator:add_child(pguardringname)
+    oscillator:add_child(nguardringname)
 end
