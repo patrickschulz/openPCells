@@ -138,6 +138,14 @@ local function _load_options(filename)
             t.parser = function(self, args) return _next_arg(args, self.state) end
             return t
         end,
+        store_multiple_string = function(t)
+            t.func = function(self, arg)
+                if not self.res[t.name] then self.res[t.name] = "" end
+                self.res[t.name] = string.format("%s %s", self.res[t.name], arg)
+            end
+            t.parser = function(self, args) return _next_arg(args, self.state) end
+            return t
+        end,
         consumer_string = function(t)
             t.func = function(self, arg)
                 self.res[t.name] = arg
