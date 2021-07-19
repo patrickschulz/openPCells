@@ -59,12 +59,8 @@ local function _write_cell(cell, path, dirname, layermap, alignmentbox)
         table.insert(chunkt, string.format('    name = pcell.add_cell_reference(ref, "%s")', ref.name))
         if ref.xrep then -- AREF
             local xpitch = (ref.pts[3] - ref.pts[1]) / ref.xrep
-            local ypitch = (ref.pts[4] - ref.pts[2]) / ref.yrep
-            table.insert(chunkt, string.format('    for i = 1, %d do', ref.xrep))
-            table.insert(chunkt, string.format('        for j = 1, %d do', ref.yrep))
-            table.insert(chunkt, string.format('            cell:add_child(name):translate(%d + (i - 1) * %d, %d + (j - 1) * %d)', ref.pts[1], xpitch, ref.pts[2], ypitch))
-            table.insert(chunkt, '        end')
-            table.insert(chunkt, '    end')
+            local ypitch = (ref.pts[6] - ref.pts[2]) / ref.yrep
+            table.insert(chunkt, string.format('    cell:add_child_array(name, %d, %d, %d, %d):translate(%d, %d)', ref.xrep, ref.yrep, xpitch, ypitch, ref.pts[1], ref.pts[2]))
         else
             table.insert(chunkt, string.format('    cell:add_child(name):translate(%d, %d)', ref.pts[1], ref.pts[2]))
         end
