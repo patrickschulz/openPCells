@@ -111,7 +111,7 @@ local function _write_children(file, cell)
     end
 end
 
-function M.write_toplevel(filename, technology, toplevel, fake)
+function M.write_toplevel(filename, technology, toplevel, toplevelname, fake)
     if toplevel:is_empty() then
         moderror("export: toplevel is empty")
     end
@@ -125,8 +125,8 @@ function M.write_toplevel(filename, technology, toplevel, fake)
 
     _write_children(file, toplevel)
 
-    aux.call_if_present(export.at_begin_cell, file, "opctoplevel")
-    _write_cell(file, toplevel, "opctoplevel")
+    aux.call_if_present(export.at_begin_cell, file, toplevelname)
+    _write_cell(file, toplevel, toplevelname)
     if export.write_port then
         for _, port in pairs(toplevel.ports) do
             toplevel.trans:apply_transformation(port.where)

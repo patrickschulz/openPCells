@@ -12,7 +12,7 @@ return {
         name = "export", short = "-E", long = "--export",
         help = "specify export type"
     },
-    store{ 
+    store_multiple_string{ 
         name = "export_options", short = "-X", long = "--xopts",
         help = "pass special options to export. This passes the next argument (separated by white space) literally. This means that several arguments have to be grouped, usually by enclosing it in quotations marks (e.g. -X '--foo --bar'). An overview of the available options for the respective export can be found by passing -h, e.g. opc --export gds -X -h"
     },
@@ -21,6 +21,10 @@ return {
         help = "execute cell script. With this option, --cell is not needed to create a layout. The layout described in the cell script is generated, so the called file must return an object."
     },
     section("Auxiliary generation functions"),
+    store{
+        name = "toplevelname", short = "-n", long = "--cellname",
+        help = "export toplevel cell name. Not all exports support a cell name."
+    },
     switch{
         name = "flatten", long = "--flat",
         help = "flatten hierarchy before exporting. This is only necessary if the selected export supports hierarchies. Otherwise this option is applied anyway"
