@@ -14,8 +14,14 @@ procedure(OPCCall(args)
         exitstatus = ipcGetExitStatus(pid)
         if(exitstatus != 0
             then 
-                printf("generator exited with status %d. Message:" exitstatus)
-                printf("%s" ipcReadProcess(pid))
+                hiDisplayAppDBox(
+                    ?name        'OPCInfoDialog
+                    ?dboxBanner  "openPCells"
+                    ?dboxText    lsprintf("errors while executing opc: %s" ipcReadProcess(pid))
+                    ?dialogType   hicWarningDialog
+                    ?dialogStyle 'modeless
+                    ?buttonLayout 'Close
+                )
                 nil
             else
                 t
@@ -241,15 +247,10 @@ procedure(OPCCreateSettingsForm()
         )
         field = hiCreateStringField(
             ?name 'OPCSettingsCmdAdditionalArgs
-            ?value ""
+            ?value "-X -l"
             ?prompt "Additional Command Line Arguments"
         )
         fieldlist = cons(list(field 0:30*0 350:30 250) fieldlist)
-        field = hiCreateStringField(
-            ?name 'OPCSettingsCmdAdditionalArgs
-            ?value ""
-            ?prompt "Additional Command Line Arguments"
-        )
         field = hiCreateRadioField(
             ?name 'OPCSettingsDeleteFile
             ?choices list("true" "false")
