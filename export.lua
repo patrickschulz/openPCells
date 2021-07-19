@@ -75,21 +75,16 @@ local function _write_cell(file, cell)
     end
     -- children links
     for _, child in cell:iterate_children() do
+        local origin = child.origin
+        child.trans:apply_transformation(origin)
+        cell.trans:apply_transformation(origin)
+        local x, y = origin:unwrap()
+        local orientation = child.trans:orientation_string()
         if child.isarray and export.write_cell_array then
-            local origin = child.origin
-            child.trans:apply_transformation(origin)
-            cell.trans:apply_transformation(origin)
-            local x, y = origin:unwrap()
-            local orientation = child.trans:orientation_string()
             export.write_cell_array(file, child.identifier, x, y, orientation, child.xrep, child.yrep, child.xpitch, child.ypitch)
         else
             for ix = 1, child.xrep or 1 do
                 for iy = 1, child.yrep or 1 do
-                    local origin = child.origin
-                    child.trans:apply_transformation(origin)
-                    cell.trans:apply_transformation(origin)
-                    local x, y = origin:unwrap()
-                    local orientation = child.trans:orientation_string()
                     export.write_cell_reference(file, child.identifier, x + (ix - 1) * (child.xpitch or 0), y + (iy - 1) * (child.ypitch or 0), orientation)
                 end
             end
