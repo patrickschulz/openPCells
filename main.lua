@@ -75,13 +75,11 @@ Most common usage examples:
    read a GDS stream file and create cells:    opc --read-GDS stream.gds]])
 local args, msg = argparse:parse(arg)
 if not args then
-    errprint(msg)
-    return 1
+    moderror(msg)
 end
 -- check command line options sanity
 if args.human and args.machine then
-    errprint("you can't specify --human and --machine at the same time")
-    return 1
+    moderror("you can't specify --human and --machine at the same time")
 end
 
 -- gds info functions
@@ -205,8 +203,7 @@ if args.listcells or args.listallcells then
 end
 
 if not args.cell and not args.cellscript then
-    errprint("no cell type given")
-    return 1
+    moderror("no cell type given")
 end
 
 if args.check then
@@ -225,8 +222,7 @@ end
 -- check and load technology
 if not args.notech then
     if not args.technology and not args.params then
-        errprint("no technology given")
-        return 1
+        moderror("no technology given")
     elseif not args.technology and args.params then
         -- ok, don't load technology but also don't raise an error
         -- this enables pcell.parameters to display the cell parameters with generic technology expressions
@@ -282,19 +278,16 @@ if args.cellscript then
     pcell.update_other_cell_parameters(cellargs, true)
     local status, c = pcall(_dofile, args.cellscript)
     if not status then
-        errprint(c)
-        return 1
+        moderror(c)
     end
     if not c then
-        errprint("cellscript did not return an object")
-        return 1
+        moderror("cellscript did not return an object")
     end
     cell = c
 else
     local status, c = pcall(pcell.create_layout, args.cell, cellargs, true)
     if not status then
-        errprint(c)
-        return 1
+        moderror(c)
     end
     cell = c
 end
@@ -303,8 +296,7 @@ end
 if args.origin then
     local dx, dy = string.match(args.origin, "%(%s*([-%d]+)%s*,%s*([-%d]+)%s*%)")
     if not dx then
-        errprint(string.format("could not parse origin (%s)", args.origin))
-        return 1
+        moderror(string.format("could not parse origin (%s)", args.origin))
     end
     --local cx, cy = cell.origin:unwrap()
     --cell:translate(dx - cx, dy - cy)
@@ -316,8 +308,7 @@ end
 if args.translate then
     local dx, dy = string.match(args.translate, "%(%s*([-%d]+)%s*,%s*([-%d]+)%s*%)")
     if not dx then
-        errprint(string.format("could not parse translation (%s)", args.translate))
-        return 1
+        moderror(string.format("could not parse translation (%s)", args.translate))
     end
     cell:translate(dx, dy)
 end
@@ -332,8 +323,7 @@ if args.orientation then
     }
     local f = lut[args.orientation]
     if not f then
-        errprint(string.format("unknown orientation: '%s'", args.orientation))
-        return 1
+        moderror(string.format("unknown orientation: '%s'", args.orientation))
     end
     f()
 end
@@ -376,8 +366,7 @@ if args.prelayerfilter then
 end
 
 if not args.export then
-    errprint("no export type given")
-    return 1
+    moderror("no export type given")
 end
 export.load(args.export)
 
