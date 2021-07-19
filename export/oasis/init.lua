@@ -183,11 +183,8 @@ function M.at_end(file)
 end
 
 function M.at_begin_cell(file, cellname)
-    _write_record(file, 14)
+    _write_record(file, recordtypes.CELL_NAME)
     _write_string(file, cellname)
-end
-
-function M.at_end_cell(file)
 end
 
 function M.write_rectangle(file, layer, bl, tr)
@@ -203,10 +200,14 @@ function M.write_rectangle(file, layer, bl, tr)
     _write_int(file, bly)
 end
 
+--[[
 function M.write_polygon(file)
 end
+--]]
 
+--[[
 function M.write_port(file, name, layer, where)
 end
+--]]
 
 return M
