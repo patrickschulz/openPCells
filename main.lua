@@ -278,7 +278,7 @@ if args.cellscript then
     pcell.update_other_cell_parameters(cellargs, true)
     local status, c = pcall(_dofile, args.cellscript)
     if not status then
-        moderror(c)
+        moderror(string.format("cellscript has an error: %s", c))
     end
     if not c then
         moderror("cellscript did not return an object")
