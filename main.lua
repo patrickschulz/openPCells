@@ -193,8 +193,10 @@ end
 if args.listcells or args.listallcells then
     local sep = args.separator or "\n"
     local cells = pcell.list(args.listallcells)
+    local fmt = "%s"
     for _, entry in ipairs(cells) do
         if not args.listnodirectories then
+            fmt = "  %s"
             infoprint(string.format("%s:", entry.path))
         end
         for _, cellname in ipairs(entry.cells) do
