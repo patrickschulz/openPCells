@@ -200,7 +200,7 @@ if args.listcells or args.listallcells then
             infoprint(string.format("%s:", entry.path))
         end
         for _, cellname in ipairs(entry.cells) do
-            infoprint(string.format("  %s", cellname))
+            infoprint(string.format(fmt, cellname))
         end
     end
     return 0
