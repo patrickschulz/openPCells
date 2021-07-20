@@ -189,6 +189,10 @@ return {
         help = "list all available cells (including hidden cells)"
     },
     switch{
+        name = "listnodirectories", long = "--list-no-directories",
+        help = "don't list parent directories when listing available cells"
+    },
+    switch{
         name = "listcellpaths", long = "--listcellpaths",
         help = "list cell search paths"
     },
