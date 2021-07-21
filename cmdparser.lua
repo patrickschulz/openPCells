@@ -34,7 +34,7 @@ local function _parse_key_value_pairs(str)
 end
 
 local function _display_help(self)
-    local displaywidth <const> = 80
+    local displaywidth <const> = 70
     local optwidth = 0
     for _, opt in ipairs(self.optionsdef) do
         if opt.short and not opt.long then

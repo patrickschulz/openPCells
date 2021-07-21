@@ -46,12 +46,12 @@ function M.concat(data, sep, pre, post, newline)
     return tabstr
 end
 
-function M.concatformat(data, fmt)
+function M.concatformat(data, fmt, sep)
     local fun = function(str)
         return string.format(fmt, str)
     end
     local processed = M.map(data, fun)
-    local tabstr = table.concat(processed)
+    local tabstr = table.concat(processed, sep)
     return tabstr
 end
 

@@ -542,16 +542,14 @@ end
 function M.list_tree(listhidden)
     local dir = {}
     for _, path in ipairs(state.cellpaths) do
+        dir[path] = {}
         local tree = support.dirtree(path)
-        for _, info in ipairs(_traverse_tree(tree)) do
-            local base = info[2]
-            table.remove(info, 1) -- remove path and base
-            table.remove(info, 1)
-            local name = string.match(table.concat(info, "/"), "^([%w_/]+)%.lua$")
-            if not dir[base] then
-                dir[base] = {}
+        for _, base in ipairs(tree.children) do
+            dir[path][base.name] = {}
+            for _, info in ipairs(_traverse_tree(base)) do
+                table.remove(info, 1) -- remove base
+                table.insert(dir[path][base.name], table.concat(info, "/"))
             end
-            table.insert(dir[base], name)
         end
     end
     return dir
