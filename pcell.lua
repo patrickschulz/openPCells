@@ -501,7 +501,6 @@ function M.foreach_cell_references(func, ...)
     end
 end
 
-
 function M.list(listhidden)
     local cells = {}
     for i, path in ipairs(state.cellpaths) do
@@ -520,6 +519,42 @@ function M.list(listhidden)
     state.loadedcells = {}
 
     return cells
+end
+
+local function _traverse_tree(tree)
+    if tree.children then
+        local elements = {}
+        for _, child in ipairs(tree.children) do
+            local t = _traverse_tree(child)
+            for _, tt in ipairs(t) do
+                local elem = { tree.name }
+                for _, e in ipairs(tt) do
+                    table.insert(elem, e)
+                end
+                table.insert(elements, elem)
+            end
+        end
+        return elements
+    else
+        return { { tree.name } }
+    end
+end
+function M.list_tree(listhidden)
+    local dir = {}
+    for _, path in ipairs(state.cellpaths) do
+        local tree = support.dirtree(path)
+        for _, info in ipairs(_traverse_tree(tree)) do
+            local base = info[2]
+            table.remove(info, 1) -- remove path and base
+            table.remove(info, 1)
+            local name = string.match(table.concat(info, "/"), "^([%w_/]+)%.lua$")
+            if not dir[base] then
+                dir[base] = {}
+            end
+            table.insert(dir[base], name)
+        end
+    end
+    return dir
 end
 
 function M.constraints(cellname)

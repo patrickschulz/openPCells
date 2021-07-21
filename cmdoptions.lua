@@ -184,6 +184,10 @@ return {
         name = "listcells", short = "-L", long  = "--list",
         help = "list available cells"
     },
+    store{
+        name = "listformat", long = "--list-format",
+        help = "format for listing cells"
+    },
     switch{ 
         name = "listallcells", long  = "--list-all",
         help = "list all available cells (including hidden cells)"

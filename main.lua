@@ -191,17 +191,11 @@ end
 
 -- list available cells
 if args.listcells or args.listallcells then
-    local sep = args.separator or "\n"
-    local cells = pcell.list(args.listallcells)
-    local fmt = "%s"
-    for _, entry in ipairs(cells) do
-        if not args.listnodirectories then
-            fmt = "  %s"
-            infoprint(string.format("%s:", entry.path))
-        end
-        for _, cellname in ipairs(entry.cells) do
-            infoprint(string.format(fmt, cellname))
-        end
+    local cells = pcell.list_tree(args.listallcells)
+    local listformat = args.listformat or '::::::%s\n:  %s\n'
+    local prefmt, postfmt, preelemfmt, postelemfmt, precellsfmt, postcellsfmt, rootfmt, cellfmt = table.unpack(aux.strsplit(listformat, ":"))
+    for base, names in pairs(cells) do
+        print(string.format("%s%s%s%s%s%s%s%s", prefmt, preelemfmt, string.format(rootfmt, base), precellsfmt, aux.concatformat(names, cellfmt), postcellsfmt, postelemfmt, postfmt))
     end
     return 0
 end
