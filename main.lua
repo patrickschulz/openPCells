@@ -192,10 +192,11 @@ end
 -- list available cells
 if args.listcells or args.listallcells then
     local cells = pcell.list_tree(args.listallcells)
-    local listformat = args.listformat or '%p\n::  %b\n::    %c\n'
+    local listformat = args.listformat or '::%p\n::  %b\n::    %c\n'
     -- replace \\n with \n
     listformat = string.gsub(listformat, "\\n", "\n")
-    local prepathfmt, postpathfmt, prebasefmt, postbasefmt, cellfmt = table.unpack(aux.strsplit(listformat, ":"))
+    local prefmt, postfmt, prepathfmt, postpathfmt, prebasefmt, postbasefmt, cellfmt = table.unpack(aux.strsplit(listformat, ":"))
+    io.write(prefmt)
     for path, baseinfo in pairs(cells) do
         local prepathstr = string.gsub(prepathfmt, "%%%a", { ["%p"] = path })
         io.write(prepathstr)
@@ -212,6 +213,7 @@ if args.listcells or args.listallcells then
         local postpathstr = string.gsub(postpathfmt, "%%%a", { ["%p"] = path })
         io.write(postpathstr)
     end
+    io.write(postfmt)
     return 0
 end
 
