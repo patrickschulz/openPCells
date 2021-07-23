@@ -4,7 +4,7 @@ procedure(OPCCall(args)
         when(boundp('OPCSettingsForm)
             additionalargs = OPCSettingsForm->OPCSettingsCmdAdditionalArgs->value
             when(OPCSettingsForm->OPCSettingsMerge->value == "true"
-                additionalargs = lsprintf("%s --merge-rectangles" additionalargs)
+                additionalargs = lsprintf("%s --flat --merge-rectangles" additionalargs)
             )
         )
         OPCCommand = lsprintf(
