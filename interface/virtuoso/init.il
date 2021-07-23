@@ -32,7 +32,6 @@ procedure(OPCCall(args)
 procedure(OPCCleanUp()
     if(boundp('OPCSettingsForm)
         then
-            println(OPCSettingsForm->OPCSettingsDeleteFile->value)
             when(OPCSettingsForm->OPCSettingsDeleteFile->value == "true"
                 printf("opc: delete %s.il\n" OPCFilename)
                 deleteFile(lsprintf("%s.il" OPCFilename))
@@ -52,76 +51,40 @@ procedure(OPCCreateCell(w done pts)
             OPCArgs OPCCommand pid exitstatus 
         )
         when(done
-            if(cv->mode == "a" || cv->mode == "w" ; check if cell is open for editing
-            	then
-	                ; 'OPCCell' is defined one level above (in OPCPlaceCell)
-	                OPCArgs = lsprintf(
-	                    "--cell %s --origin '(%d, %d)' -f %s" 
-	                    OPCCell 
-	                    fix(1000 * xCoord(OPCOrigin)) fix(1000 * yCoord(OPCOrigin)) 
-	                    OPCFilename
-	                )
-	                foreach(field OPCParamForm->fieldList
-	                    unless(get(OPCParamForm field)->value == get(OPCParamForm field)->defValue
-	                        OPCArgs = lsprintf("%s %s" OPCArgs lsprintf("%s=%A" field get(OPCParamForm field)->value))
-	                    )
-	                )
-                    when(OPCCall(OPCArgs)
-                        printf("opc: load %s.il\n" OPCFilename)
-                        load(lsprintf("%s.il" OPCFilename))
-                        OPCCleanUp()
+            OPCArgs = lsprintf(
+                "--cell %s --origin '(%d, %d)' -f %s" 
+                lsprintf("%s/%s" OPCCellForm->OPCLibList->value OPCCellForm->OPCCellList->value)
+                fix(1000 * xCoord(OPCOrigin)) fix(1000 * yCoord(OPCOrigin)) 
+                OPCFilename
+            )
+            foreach(field OPCCellForm->fieldList
+			    unless(equal(field 'OPCLibList) || equal(field 'OPCCellList)
+                    unless(get(OPCCellForm field)->value == get(OPCCellForm field)->defValue
+                        OPCArgs = lsprintf("%s %s" OPCArgs lsprintf("%s=%A" field get(OPCCellForm field)->value))
                     )
-	        	else 
-	        		println("cellview not in editing mode")
-            ) ; if mode == "a"
+                )
+            )
+            when(OPCCall(OPCArgs)
+                printf("opc: load %s.il\n" OPCFilename)
+                load(lsprintf("%s.il" OPCFilename))
+                OPCCleanUp()
+            )
         ) ; when done
     )
+    t
 ) ; OPCCreateCell
 
-procedure(OPCPlaceCell(OPCCell)
-    OPCCreateOptionsForm(OPCCell)
+procedure(OPCPlaceCell()
+    ;unless('boundp('OPCCellForm)
+        OPCCreateParamForm()
+    ;)
 	enterPoint(
 		?prompts list("Enter origin")
 		?doneProc "OPCCreateCell"
-        ?form OPCParamForm
+        ?form OPCCellForm
         ?alwaysMap t
 	)
 ) ; OPCPlaceCell
-
-procedure(OPCWalkCellDir(path prepend)
-    let(
-        (itemlist item)
-        foreach(file getDirFiles(path)
-            unless(pcreMatchp("^\\." file)
-                if(isFile(lsprintf("%s/%s" path file))
-                    then
-                        unless(substring(file 1 1) == "_"
-                            item = hiCreateMenuItem( 
-                                ?name stringToSymbol(substring(file 1 strlen(file) - 4)) 
-                                ?itemText substring(file 1 strlen(file) - 4)
-                                ?callback lsprintf("OPCPlaceCell(\"%s%s\")" prepend substring(file 1 strlen(file) - 4))
-                            )   
-                            itemlist = cons(item itemlist)
-                        )
-                    else
-                        let((submenu)
-                            submenu = hiCreatePulldownMenu(
-                                stringToSymbol(lsprintf("OPCLayout%sSubMenu" lsprintf("%s%s/" prepend file))) "" 
-                                OPCWalkCellDir(lsprintf("%s/%s" path file) lsprintf("%s%s/" prepend file))
-                            )
-                            item = hiCreateSliderMenuItem(
-                                ?name stringToSymbol(file) 
-                                ?itemText file
-                                ?subMenu submenu
-                            )
-                            itemlist = cons(item itemlist)
-                        )
-                )
-            ) ; unless
-        ) ; foreach
-        itemlist
-    ) ; let
-) ; procedure
 
 procedure(OPCAboutCallback()
     let(
@@ -221,20 +184,12 @@ procedure(OPCCreateLayoutMenu()
         ; export cell
         export = hiCreateMenuItem(?name 'OPCExport ?itemText "Export Cell" ?callback "OPCExportCell()")
 
-		celllist = OPCWalkCellDir(lsprintf("%s/cells" OPCPath) "")
-		celllist = append(celllist OPCWalkCellDir(lsprintf("/home/pschulz/serial_interface/cells") ""))
-
-        ; create cell menu
-        cellmenu = hiCreatePulldownMenu(
-            'OPCCellMenu
-            "OPC Cell Creation Menu"
-            celllist
-        )
-        cellitem = hiCreateSliderMenuItem(?name 'OPCCellItem ?itemText "Create Cell..." ?subMenu cellmenu)
+        ; create cell
+        cellitem = hiCreateMenuItem(?name 'OPCCellItem ?itemText "Create Cell" ?callback "OPCPlaceCell()")
         settings = hiCreateMenuItem(?name 'OPCSettings ?itemText "Settings" ?callback "OPCSettingsCallback()")
 
         ; assemble main menu
-        itemlist = list(about separator edit update separator script separator export separator cellitem settings)
+        itemlist = list(about separator edit update separator script separator export separator cellitem separator settings)
         hiCreatePulldownMenu('OPCLayoutMenu "OpenPCells" itemlist)
     )
 ); procedure
@@ -267,15 +222,14 @@ procedure(OPCCreateSettingsForm()
     )
 ) ; procedure
 
-procedure(OPCCreateOptionsForm(OPCCell)
+procedure(OPCGetCellParameters(cellname)
     let(
-        (
+        (   
             OPCCommand pid exitstatus result
             fieldlist field (i 0)
-        )
-        OPCCommand = lsprintf("%s/%s --machine --technology %s --parameters --separator ';' --cell %s" OPCPath OPCExec OPCTech OPCCell)
-        println(OPCCommand)
-        pid = ipcBeginProcess(OPCCommand)
+        )   
+        OPCCommand = lsprintf("/home/pschulz/openPCells/opc --machine --technology GF22FDSOI --parameters --separator ';' --cell %s" cellname)
+		pid = ipcBeginProcess(OPCCommand)
         ipcWait(pid) ; wait for process to finish
         exitstatus = ipcGetExitStatus(pid)
         result = ipcReadProcess(pid)
@@ -296,75 +250,161 @@ procedure(OPCCreateOptionsForm(OPCCell)
                         when(display == "_NONE_"
                             display = name
                         )
-                        case(vtype
-                            ("number"
-                                field = hiCreateFloatField(
-                                    ?name stringToSymbol(name)
-                                    ?value atof(default)
-                                    ?prompt display
-                                )
-                            )
-                            ("integer"
-                                field = hiCreateIntField(
-                                    ?name stringToSymbol(name)
-                                    ?value atoi(default)
-                                    ?prompt display
-                                )
-                            )
-                            ("boolean"
-                                field = hiCreateRadioField(
-                                    ?name stringToSymbol(name)
-                                    ?choices list("true" "false")
-                                    ?value default
-                                    ?prompt display
-                                )
-                            )
-                            ("string"
-                                field = hiCreateStringField(
-                                    ?name stringToSymbol(name)
-                                    ?value default
-                                    ?prompt display
-                                )
-                            )
-                            ("numtable"
-                                field = hiCreateStringField(
-                                    ?name stringToSymbol(name)
-                                    ?value default
-                                    ?prompt display
-                                )
-                            )
-                            ("strtable"
-                                field = hiCreateStringField(
-                                    ?name stringToSymbol(name)
-                                    ?value default
-                                    ?prompt display
-                                )
-                            )
-                        )
-                        fieldlist = cons(list(field 0:30*i 350:30 250) fieldlist)
+                        if(boundp(stringToSymbol(name))
+                            then
+                                field = stringToSymbol(name)
+                            else
+                                case(vtype
+                                    ("number"
+                                        field = hiCreateFloatField(
+                                            ?name stringToSymbol(name)
+                                            ?value atof(default)
+                                            ?prompt display
+                                        )
+                                    )
+                                    ("integer"
+                                        field = hiCreateIntField(
+                                            ?name stringToSymbol(name)
+                                            ?value atoi(default)
+                                            ?prompt display
+                                        )
+                                    )                                 
+                                    ("boolean"
+                                        field = hiCreateRadioField(
+                                            ?name stringToSymbol(name)
+                                            ?choices list("true" "false")
+                                            ?value default
+                                            ?prompt display
+                                        )
+                                    )
+                                    /*                           
+                                    ("boolean"
+                                        field = hiCreateBooleanButton(
+                                            ?name stringToSymbol(name)
+                                            ?value t
+                                            ?buttonText display
+                                        )
+                                    )
+                                    */
+                                    ("string"
+                                        field = hiCreateStringField(
+                                            ?name stringToSymbol(name)
+                                            ?value default
+                                            ?prompt display
+                                        )
+                                    )
+                                    ("numtable"
+                                        field = hiCreateStringField(
+                                            ?name stringToSymbol(name)
+                                            ?value default
+                                            ?prompt display
+                                        )
+                                    )
+                                    ("strtable"
+                                        field = hiCreateStringField(
+                                            ?name stringToSymbol(name)
+                                            ?value default
+                                            ?prompt display
+                                        )
+                                    )
+                                ) ; case
+                        ) ; if
+                        fieldlist = cons(field fieldlist)
                         i = i + 1
                     )
-                    ;if(boundp('OPCParamForm)
-                    ;    hiDeleteForm(OPCParamForm)
-                    ;)
                 ) ; let
-                hiCreateAppForm(
-                    ?name 'OPCParamForm
-                    ?formType 'options
-                    ?formTitle "OPC Cell Parameters"
-                    ?buttonLayout 'HideCancelDef
-                    ?fields fieldlist
-                )
         ) ; if exitstatus
-    )
-) ; procedure
+        fieldlist
+	) ; let
+)
+
+procedure(OPCUpdateLibName(lib)
+	let((liblist celllist)
+		liblist = mapcar(lambda( (lst) car(lst)) OPCData)
+		foreach(l OPCData
+			when(car(l) == if(lib then lib else car(liblist))
+				celllist = cadr(l)
+			)
+		)
+		list(liblist celllist)
+	)
+)
+
+procedure(OPCLibNameCallback(field form)
+	let(
+		(celllist)
+		celllist = cadr(OPCUpdateLibName(field->value))
+		form->OPCCellList->items = celllist
+		form->OPCCellList->value = car(celllist)
+	)
+)
+
+procedure(OPCUpdateCellParameters(cellname)
+	let(
+		(fieldlist)
+		fieldlist = OPCGetCellParameters(cellname)
+		foreach(field OPCCellForm->fieldList 
+			;unless(member(field fieldlist) || member(field list(OPCLibList OPCCellList))
+			unless(equal(field 'OPCLibList) || equal(field 'OPCCellList)
+				hiDeleteField(OPCCellForm field)
+			)
+		)
+		foreach(field fieldlist
+			hiAddField(OPCCellForm field)
+		)
+	)
+)
+
+procedure(OPCUpdateCellParametersCB(field form)
+	OPCUpdateCellParameters(lsprintf("%s/%s" OPCCellForm->OPCLibList->value OPCCellForm->OPCCellList->value))
+)
+
+procedure(OPCCreateParamForm()
+	let(
+		(OPCCommand)
+		OPCCommand = lsprintf("%s" "/home/pschulz/openPCells/opc -L --list-format 'OPCData = list(\\n:)\\n:::list(\\\"%b\\\" list(:))\\n:\\\"%c\\\" ' > opccells")
+		pid = ipcBeginProcess(OPCCommand)
+		ipcWait(pid)
+		load("opccells")	
+	)
+	let((libcelllist)
+		libcelllist = OPCUpdateLibName(nil)
+		OPCLibList = hiCreateComboField(
+			?name 'OPCLibList
+			?prompt "Library"
+			?items car(libcelllist)
+			?value caar(libcelllist)
+			?callback 'OPCLibNameCallback
+		)
+		OPCCellList = hiCreateComboField(
+			?name 'OPCCellList
+			?prompt "Cell"
+			?items cadr(libcelllist)
+			?value car(cadr(libcelllist))
+			?callback 'OPCUpdateCellParametersCB
+		)
+	)
+	let(
+		()
+		hiCreateAppForm(
+			?name 'OPCCellForm
+			?formTitle "OPC Create Cell"
+			?fields list(OPCLibList OPCCellList)
+			?callback 'OPCCellFormCallback
+			?buttonLayout 'OKCancel
+			?unmapAfterCB t
+		)
+		OPCCellForm->extraFields = list(nil 'OPCLibList OPCLibList 'OPCCellList OPCCellList)
+		OPCUpdateCellParameters(lsprintf("%s/%s" OPCCellForm->OPCLibList->value OPCCellForm->OPCCellList->value))
+		OPCCellForm
+	)
+)
 
 procedure(OPCMenuTrigger(args)
     list(OPCCreateLayoutMenu())
 )
 procedure(OPCModeChangeTrigger(args)
     when(boundp('OPCLayoutMenu)
-        println("Change Trigger")
         if(args->action == 'change
             then
                 if(args->accessMode == "a"
