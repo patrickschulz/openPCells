@@ -341,17 +341,16 @@ procedure(OPCLibNameCallback(field form)
 
 procedure(OPCUpdateCellParameters(cellname)
 	let(
-		(fieldlist)
+		(fieldlist todelete)
 		fieldlist = OPCGetCellParameters(cellname)
 		foreach(field OPCCellForm->fieldList 
 			;unless(member(field fieldlist) || member(field list(OPCLibList OPCCellList))
 			unless(equal(field 'OPCLibList) || equal(field 'OPCCellList)
-				hiDeleteField(OPCCellForm field)
+                todelete = cons(field todelete)
 			)
 		)
-		foreach(field fieldlist
-			hiAddField(OPCCellForm field)
-		)
+		hiDeleteFields(OPCCellForm todelete)
+        hiAddField(OPCCellForm fieldlist)
 	)
 )
 
