@@ -193,6 +193,7 @@ local function _translate_ports(cell, export)
             port.layer = generics.mapped(entry.name, lpp)
         end
     end
+    table.sort(todelete, function(l, r) return l > r end)
     for _, i in ipairs(todelete) do table.remove(cell.ports, i) end
 end
 
