@@ -350,7 +350,7 @@ procedure(OPCUpdateCellParameters(cellname)
 			)
 		)
 		hiDeleteFields(OPCCellForm todelete)
-        hiAddField(OPCCellForm fieldlist)
+        hiAddFields(OPCCellForm fieldlist)
 	)
 )
 
