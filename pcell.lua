@@ -542,16 +542,21 @@ end
 function M.list_tree(listhidden)
     local dir = {}
     for _, path in ipairs(state.cellpaths) do
-        dir[path] = {}
+        local baseinfo = {}
         local tree = support.dirtree(path)
         for _, base in ipairs(tree.children) do
-            dir[path][base.name] = {}
+            local cellinfo = {}
             for _, info in ipairs(_traverse_tree(base)) do
                 table.remove(info, 1) -- remove base
-                table.insert(dir[path][base.name], table.concat(info, "/"))
+                table.insert(cellinfo, table.concat(info, "/"))
             end
+            table.sort(cellinfo)
+            table.insert(baseinfo, { name = base.name, cellinfo = cellinfo })
         end
+        table.sort(baseinfo, function(l, r) return l.name < r.name end)
+        table.insert(dir, { name = path, baseinfo = baseinfo })
     end
+    table.sort(dir, function(l, r) return l.name < r.name end)
     return dir
 end
 

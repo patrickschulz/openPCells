@@ -197,20 +197,20 @@ if args.listcells or args.listallcells then
     listformat = string.gsub(listformat, "\\n", "\n")
     local prefmt, postfmt, prepathfmt, postpathfmt, prebasefmt, postbasefmt, cellfmt = table.unpack(aux.strsplit(listformat, ":"))
     io.write(prefmt)
-    for path, baseinfo in pairs(cells) do
-        local prepathstr = string.gsub(prepathfmt, "%%%a", { ["%p"] = path })
+    for _, path in ipairs(cells) do
+        local prepathstr = string.gsub(prepathfmt, "%%%a", { ["%p"] = path.name })
         io.write(prepathstr)
-        for base, cellinfo in pairs(baseinfo) do
-            local prebasestr = string.gsub(prebasefmt, "%%%a", { ["%p"] = path, ["%b"] = base })
+        for _, base in ipairs(path.baseinfo) do
+            local prebasestr = string.gsub(prebasefmt, "%%%a", { ["%p"] = path.name, ["%b"] = base.name })
             io.write(prebasestr)
-            for _, cellname in ipairs(cellinfo) do
-                local cellstr = string.gsub(cellfmt, "%%%a", { ["%p"] = path, ["%b"] = base, ["%c"] = string.match(cellname, "^([%w_/]+)%.lua$") })
+            for _, cellname in ipairs(base.cellinfo) do
+                local cellstr = string.gsub(cellfmt, "%%%a", { ["%p"] = path.name, ["%b"] = base.name, ["%c"] = string.match(cellname, "^([%w_/]+)%.lua$") })
                 io.write(cellstr)
             end
-            local postbasestr = string.gsub(postbasefmt, "%%%a", { ["%p"] = path, ["%b"] = base })
+            local postbasestr = string.gsub(postbasefmt, "%%%a", { ["%p"] = path.name, ["%b"] = base.name })
             io.write(postbasestr)
         end
-        local postpathstr = string.gsub(postpathfmt, "%%%a", { ["%p"] = path })
+        local postpathstr = string.gsub(postpathfmt, "%%%a", { ["%p"] = path.name })
         io.write(postpathstr)
     end
     io.write(postfmt)
