@@ -3,6 +3,9 @@ procedure(OPCCall(args)
         ((additionalargs ""))
         when(boundp('OPCSettingsForm)
             additionalargs = OPCSettingsForm->OPCSettingsCmdAdditionalArgs->value
+            when(OPCSettingsForm->OPCSettingsMerge->value == "true"
+                additionalargs = lsprintf("%s --merge-rectangles" additionalargs)
+            )
         )
         OPCCommand = lsprintf(
             "%s/%s --technology %s --export SKILL %s %s"
@@ -213,6 +216,13 @@ procedure(OPCCreateSettingsForm()
             ?prompt "Delete cell file after creation"
         )
         fieldlist = cons(list(field 0:30*1 350:30 250) fieldlist)
+        field = hiCreateRadioField(
+            ?name 'OPCSettingsMerge
+            ?choices list("true" "false")
+            ?value "true"
+            ?prompt "Merge Rectangles"
+        )
+        fieldlist = cons(list(field 0:30*2 350:30 250) fieldlist)
         hiCreateAppForm(
             ?name 'OPCSettingsForm
             ?formTitle "OPC Settings"
