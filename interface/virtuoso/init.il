@@ -118,7 +118,7 @@ procedure(OPCEditCallback()
             path OPCArgs
         )
         path = lsprintf("%s/%s/layout/layout.lua" libPath cellName)
-        pid = ipcBeginProcess(lsprintf("xterm -e vim %s" path) "")
+        pid = ipcBeginProcess(lsprintf("%s %s" OPCSettingsForm->OPCSettingsEditCmdpath) "")
     )
 ) ; procedure
 
@@ -223,6 +223,12 @@ procedure(OPCCreateSettingsForm()
             ?prompt "Merge Rectangles"
         )
         fieldlist = cons(list(field 0:30*2 350:30 250) fieldlist)
+        field = hiCreateStringField(
+            ?name 'OPCSettingsEditCmd
+            ?value "xterm -e vim"
+            ?prompt "Edit command for update"
+        )
+        fieldlist = cons(list(field 0:30*3 350:30 250) fieldlist)
         hiCreateAppForm(
             ?name 'OPCSettingsForm
             ?formTitle "OPC Settings"
