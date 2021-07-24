@@ -242,7 +242,7 @@ procedure(OPCGetCellParameters(cellname)
     let(
         (   
             OPCCommand pid exitstatus result
-            fieldlist field (i 0)
+            fieldlist field
         )   
         OPCCommand = lsprintf("/home/pschulz/openPCells/opc --machine --technology GF22FDSOI --parameters --separator ';' --cell %s" cellname)
 		pid = ipcBeginProcess(OPCCommand)
@@ -257,7 +257,7 @@ procedure(OPCGetCellParameters(cellname)
                 let(
                     (linelist ptype name display default vtype)
                     foreach(line parseString(result ";")
-                        linelist = parseString(line ":")
+                        linelist = parseString(line ":" t)
                         ptype   =                 car(linelist)
                         name    =             car(cdr(linelist))
                         display =         car(cdr(cdr(linelist)))
@@ -270,66 +270,67 @@ procedure(OPCGetCellParameters(cellname)
                             then
                                 field = get(OPCCellForm->extraFields stringToSymbol(name))
                             else
-                                case(vtype
+                                field = case(vtype
                                     ("number"
-                                        field = hiCreateFloatField(
+                                        hiCreateFloatField(
                                             ?name stringToSymbol(name)
                                             ?value atof(default)
                                             ?prompt display
                                         )
                                     )
                                     ("integer"
-                                        field = hiCreateIntField(
+                                        hiCreateIntField(
                                             ?name stringToSymbol(name)
                                             ?value atoi(default)
                                             ?prompt display
                                         )
                                     )                                 
                                     ("boolean"
-                                        field = hiCreateRadioField(
+                                        hiCreateRadioField(
                                             ?name stringToSymbol(name)
                                             ?choices list("true" "false")
                                             ?value default
                                             ?prompt display
                                         )
                                     )
-                                    /*                           
-                                    ("boolean"
-                                        field = hiCreateBooleanButton(
-                                            ?name stringToSymbol(name)
-                                            ?value t
-                                            ?buttonText display
-                                        )
-                                    )
-                                    */
+                                    ;("boolean"
+                                    ;    hiCreateBooleanButton(
+                                    ;        ?name stringToSymbol(name)
+                                    ;        ?value t
+                                    ;        ?buttonText display
+                                    ;    )
+                                    ;)
                                     ("string"
-                                        field = hiCreateStringField(
+                                        hiCreateStringField(
                                             ?name stringToSymbol(name)
                                             ?value default
                                             ?prompt display
                                         )
                                     )
                                     ("numtable"
-                                        field = hiCreateStringField(
+                                        hiCreateStringField(
                                             ?name stringToSymbol(name)
                                             ?value default
                                             ?prompt display
                                         )
                                     )
                                     ("strtable"
-                                        field = hiCreateStringField(
+                                        hiCreateStringField(
                                             ?name stringToSymbol(name)
                                             ?value default
                                             ?prompt display
                                         )
                                     )
+                                    (t
+                                        printf("error while parsing parameter line '%s'\n" line)
+                                        nil
+                                    )
                                 ) ; case
+                                ; store field
+                                putprop(OPCCellForm->extraFields field stringToSymbol(name))
                         ) ; if
-                        ; store field
-                        ;foreach(field fieldlist putprop(OPCCellForm->extraFields field stringToSymbol(name)))
-                        fieldlist = cons(field fieldlist)
-                        i = i + 1
-                    )
+                        ;fieldlist = cons(field fieldlist)
+                    ) ; foreach
                 ) ; let
         ) ; if exitstatus
         fieldlist
