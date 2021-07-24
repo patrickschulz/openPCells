@@ -78,9 +78,9 @@ procedure(OPCCreateCell(w done pts)
 ) ; OPCCreateCell
 
 procedure(OPCPlaceCell()
-    ;unless('boundp('OPCCellForm)
+    unless('boundp('OPCCellForm)
         OPCCreateParamForm()
-    ;)
+    )
 	enterPoint(
 		?prompts list("Enter origin")
 		?doneProc "OPCCreateCell"
@@ -266,9 +266,9 @@ procedure(OPCGetCellParameters(cellname)
                         when(display == "_NONE_"
                             display = name
                         )
-                        if(boundp(stringToSymbol(name))
+                        if(get(OPCCellForm->extraFields stringToSymbol(name))
                             then
-                                field = stringToSymbol(name)
+                                field = get(OPCCellForm->extraFields stringToSymbol(name))
                             else
                                 case(vtype
                                     ("number"
@@ -325,6 +325,8 @@ procedure(OPCGetCellParameters(cellname)
                                     )
                                 ) ; case
                         ) ; if
+                        ; store field
+                        ;foreach(field fieldlist putprop(OPCCellForm->extraFields field stringToSymbol(name)))
                         fieldlist = cons(field fieldlist)
                         i = i + 1
                     )
@@ -357,16 +359,20 @@ procedure(OPCLibNameCallback(field form)
 
 procedure(OPCUpdateCellParameters(cellname)
 	let(
-		(fieldlist todelete)
+		(fieldlist toinsert todelete)
 		fieldlist = OPCGetCellParameters(cellname)
 		foreach(field OPCCellForm->fieldList 
-			;unless(member(field fieldlist) || member(field list(OPCLibList OPCCellList))
-			unless(equal(field 'OPCLibList) || equal(field 'OPCCellList)
+			unless(member(field fieldlist) || equal(field 'OPCLibList) || equal(field 'OPCCellList)
                 todelete = cons(field todelete)
 			)
 		)
+        foreach(field fieldlist
+            unless(member(field todelete)
+                toinsert = cons(field toinsert)
+            )
+        )
 		hiDeleteFields(OPCCellForm todelete)
-        hiAddFields(OPCCellForm fieldlist)
+        hiAddFields(OPCCellForm toinsert)
 	)
 )
 
@@ -403,11 +409,10 @@ procedure(OPCCreateParamForm()
 		()
 		hiCreateAppForm(
 			?name 'OPCCellForm
+            ?formType 'options
 			?formTitle "OPC Create Cell"
 			?fields list(OPCLibList OPCCellList)
-			?callback 'OPCCellFormCallback
-			?buttonLayout 'OKCancel
-			?unmapAfterCB t
+			?buttonLayout 'HideCancelDef
 		)
 		OPCCellForm->extraFields = list(nil 'OPCLibList OPCLibList 'OPCCellList OPCCellList)
 		OPCUpdateCellParameters(lsprintf("%s/%s" OPCCellForm->OPCLibList->value OPCCellForm->OPCCellList->value))
