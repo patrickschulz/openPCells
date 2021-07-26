@@ -578,7 +578,7 @@ function M.constraints(cellname)
     return str
 end
 
-local function _collect_parameters(cell, ptype, prefix, str)
+local function _collect_parameters(cell, ptype, parent, str)
     for _, name in ipairs(cell.parameters:get_names()) do
         local v = cell.parameters:get(name)
         local val = v.func()
@@ -588,7 +588,7 @@ local function _collect_parameters(cell, ptype, prefix, str)
             val = tostring(val)
         end
         local ptype = ptype or v.ptype
-        table.insert(str, { name = prefix .. name, display = v.display, value = val, ptype = ptype, argtype = tostring(v.argtype) })
+        table.insert(str, { parent = parent, name = name, display = v.display, value = val, ptype = ptype, argtype = tostring(v.argtype) })
     end
 end
 
@@ -604,14 +604,14 @@ function M.parameters(cellname, cellargs, generictech)
 
     local cell = _get_cell(state, cellname)
     local parameters, backup = _get_parameters(state, cellname, cellname, cellargs, true) -- cellname needs to be passed twice
-    --_restore_parameters(state, cellname, backup)
-    _collect_parameters(cell, nil, "", str) -- use ptype of parameter, no prefix
+    --_restore_parameters(state, cellname, backup) -- FIXME?
+    _collect_parameters(cell, "N", cellname, str)
 
     -- display referenced parameters
     for othercellname in pairs(cell.references) do
         if othercellname ~= cellname then
             local othercell = _get_cell(state, othercellname)
-            _collect_parameters(othercell, string.format("R(%s)", othercellname), othercellname .. ".", str) -- 'referenced' parameter
+            _collect_parameters(othercell, "R", othercellname, str) -- 'referenced' parameter
         end
     end
     _override_cell_environment(nil)

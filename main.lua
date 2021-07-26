@@ -284,6 +284,7 @@ if args.params then
     local paramformat = args.parametersformat or "%n (%d) %v"
     for _, P in ipairs(params) do
         local paramstr = string.gsub(paramformat, "%%%a", { 
+            ["%p"] = P.parent, 
             ["%t"] = P.ptype, 
             ["%n"] = P.name, 
             ["%d"] = P.display or "_NONE_", 
