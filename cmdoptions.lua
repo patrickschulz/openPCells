@@ -176,6 +176,10 @@ return {
         name = "params", short = "-P", long  = "--parameters",
         help = "display available cell parameters and exit (requires --cell)"
     },
+    store{
+        name = "parametersformat", long = "--parameters-format",
+        help = "format for listing parameters. The following formats are recognized: %t: parameter type, %n: parameter name, %d: parameter display name, %v: parameter value, %a: parameter argument type. The default is %n (%d) %v"
+    },
     switch{ 
         name = "constraints", long  = "--constraints",
         help = "show required technology parameter (requires --cell and --technology)"
@@ -186,7 +190,7 @@ return {
     },
     store{
         name = "listformat", long = "--list-format",
-        help = "format for listing cells. The following format is recognized: prepathfmt:postpathfmt:prebasefmt:postbasefmt:cellfmt. The default is '%p\\n::  %b\\n::    %c\\n. A possible format for creating a nested list (e.g. for lisp) would be list(\\n:)\\n:::list(\"%b\" list(:))\\n:\"%c\""
+        help = "format for listing cells. The following format is recognized: prefmt:postfmt:prepathfmt:postpathfmt:prebasefmt:postbasefmt:cellfmt. The default is '::%p\\n::  %b\\n::    %c\\n. A possible format for creating a nested list (e.g. for lisp) would be list(\\n:)\\n:::list(\"%b\" list(:))\\n:\"%c\""
     },
     switch{ 
         name = "listallcells", long  = "--list-all",

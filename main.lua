@@ -280,9 +280,18 @@ end
 
 -- output cell parameters AFTER parameters have been processed in order to respect value changes in pfiles
 if args.params then
-    local sep = args.separator or "\n"
     local params = pcell.parameters(args.cell, cellargs, not args.technology)
-    io.write(table.concat(params, sep) .. sep)
+    local paramformat = args.parametersformat or "%n (%d) %v"
+    for _, P in ipairs(params) do
+        local paramstr = string.gsub(paramformat, "%%%a", { 
+            ["%t"] = P.ptype, 
+            ["%n"] = P.name, 
+            ["%d"] = P.display or "_NONE_", 
+            ["%v"] = P.value,
+            ["%a"] = P.argtype,
+        })
+        print(paramstr)
+    end
     return 0
 end
 
