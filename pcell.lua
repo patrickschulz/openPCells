@@ -584,6 +584,7 @@ local function _collect_parameters(cell, ptype, parent, str)
         local val = v.func()
         if type(val) == "table" then
             val = table.concat(val, ",")
+            if val == "" then val = " " end
         else
             val = tostring(val)
         end
