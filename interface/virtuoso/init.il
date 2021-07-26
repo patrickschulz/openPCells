@@ -220,56 +220,44 @@ procedure(OPCCreateLayoutMenu()
 ); procedure
 
 procedure(OPCCreateSettingsForm()
-    let(
-        (
-            OPCCommand pid exitstatus result
-            fieldlist field
-        )
-        field = hiCreateStringField(
-            ?name 'OPCFilename
-            ?value "openPCells"
-            ?prompt "File Name for Generated Layouts"
-        )
-        fieldlist = cons(field fieldlist)
-        field = hiCreateStringField(
-            ?name 'OPCSettingsCmdAdditionalArgs
-            ?value "-X -l"
-            ?prompt "Additional Command Line Arguments"
-        )
-        fieldlist = cons(field fieldlist)
-        field = hiCreateRadioField(
-            ?name 'OPCSettingsDeleteFile
-            ?choices list("true" "false")
-            ?value "true"
-            ?prompt "Delete cell file after creation"
-        )
-        fieldlist = cons(field fieldlist)
-        field = hiCreateRadioField(
-            ?name 'OPCSettingsMerge
-            ?choices list("true" "false")
-            ?value "false"
-            ?prompt "Merge Rectangles"
-        )
-        fieldlist = cons(field fieldlist)
-        field = hiCreateStringField(
-            ?name 'OPCSettingsEditCmd
-            ;?value "xterm -e 'vim %s'"
-            ?value "xterm -fa monaco -fs 13 -e 'vim %s'"
-            ?prompt "Edit command for update"
-        )
-        fieldlist = cons(field fieldlist)
-        field = hiCreateRadioField(
-            ?name 'OPCSettingsLog
-            ?choices list("true" "false")
-            ?value "false"
-            ?prompt "Log opc calls to CIW"
-        )
-        fieldlist = cons(field fieldlist)
-        hiCreateAppForm(
-            ?name 'OPCSettingsForm
-            ?formTitle "OPC Settings"
-            ?buttonLayout 'OKCancel
-            ?fields fieldlist
+    hiCreateAppForm(
+        ?name 'OPCSettingsForm
+        ?formTitle "OPC Settings"
+        ?buttonLayout 'OKCancel
+        ?fields list(
+            hiCreateStringField(
+                ?name 'OPCFilename
+                ?value "openPCells"
+                ?prompt "File Name for Generated Layouts"
+            )
+            hiCreateStringField(
+                ?name 'OPCSettingsCmdAdditionalArgs
+                ?value "-X -l"
+                ?prompt "Additional Command Line Arguments"
+            )
+            hiCreateRadioField(
+                ?name 'OPCSettingsLog
+                ?choices list("true" "false")
+                ?value "false"
+                ?prompt "Log opc calls to CIW"
+            )
+            hiCreateRadioField(
+                ?name 'OPCSettingsMerge
+                ?choices list("true" "false")
+                ?value "false"
+                ?prompt "Merge Rectangles"
+            )
+            hiCreateRadioField(
+                ?name 'OPCSettingsDeleteFile
+                ?choices list("true" "false")
+                ?value "true"
+                ?prompt "Delete cell file after creation"
+            )
+            hiCreateStringField(
+                ?name 'OPCSettingsEditCmd
+                ?value "xterm -fa monaco -fs 13 -e 'vim %s'"
+                ?prompt "Edit command for update"
+            )
         )
     )
 ) ; procedure
