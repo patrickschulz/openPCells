@@ -588,8 +588,8 @@ local function _collect_parameters(cell, ptype, parent, str)
         else
             val = tostring(val)
         end
-        local ptype = ptype or v.ptype
-        table.insert(str, { parent = parent, name = name, display = v.display, value = val, ptype = ptype, argtype = tostring(v.argtype) })
+        local ptype = ptype
+        table.insert(str, { parent = parent, name = name, display = v.display, value = val, ptype = ptype, argtype = tostring(v.argtype), readonly = v.readonly })
     end
 end
 

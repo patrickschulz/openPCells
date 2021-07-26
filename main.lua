@@ -302,6 +302,7 @@ if args.params then
             ["%d"] = P.display or "_NONE_", 
             ["%v"] = P.value,
             ["%a"] = P.argtype,
+            ["%r"] = tostring(P.readonly),
         })
         print(paramstr)
     end
