@@ -72,9 +72,6 @@ procedure(OPCCreateCell(w done pts)
                         parametertable[parent] = makeTable(lsprintf("opc%stable" parent))
                     )
                     parametertable[parent][name] = lsprintf("%A" get(OPCCellForm field)->value)
-                    unless(get(OPCCellForm field)->value == get(OPCCellForm field)->defValue
-                        OPCArgs = lsprintf("%s %s" OPCArgs lsprintf("%s=%A" field get(OPCCellForm field)->value))
-                    )
                 )
             )
             fprintf(pfile "%s\n" "return {")
@@ -267,89 +264,92 @@ procedure(OPCGetCellParameters(cellname)
         (   
             fieldlist field
         )   
-        when(OPCCall(lsprintf("--technology %s --cell %s --parameters --parameters-format '%%t:%%p:%%n:%%d:%%v:%%a'" OPCTech cellname) "opc.params")
+        when(OPCCall(lsprintf("--technology %s --cell %s --parameters --parameters-format '%%t:%%p:%%n:%%d:%%v:%%a:%%r'" OPCTech cellname) "opc.params")
             let(
-                ((file infile("opc.params")) params ptype name display default vtype sym)
+                ((file infile("opc.params")) params ptype name display default vtype readonly sym)
                 while(line = gets(nil file)
                     params = parseString(substring(line 1 strlen(line) - 1) ":")
-                    ptype   =                     car(params)
-                    parent  =                 car(cdr(params))
-                    name    =             car(cdr(cdr(params)))
-                    display =         car(cdr(cdr(cdr(params))))
-                    default =     car(cdr(cdr(cdr(cdr(params)))))
-                    vtype   = car(cdr(cdr(cdr(cdr(cdr(params))))))
-                    when(display == "_NONE_"
-                        display = name
-                    )
-                    ;sym = if(parent == cellname then stringToSymbol(name) else stringToSymbol(lsprintf("%s.%s" parent name)))
-                    sym = stringToSymbol(lsprintf("%s.%s" parent name))
-                    if(get(OPCCellForm->extraFields sym)
-                        then
-                            field = get(OPCCellForm->extraFields sym)
-                        else
-                            field = case(vtype
-                                ("number"
-                                    hiCreateFloatField(
-                                        ?name sym
-                                        ?value atof(default)
-                                        ?prompt display
+                    ptype    =                         car(params)
+                    parent   =                     car(cdr(params))
+                    name     =                 car(cdr(cdr(params)))
+                    display  =             car(cdr(cdr(cdr(params))))
+                    default  =         car(cdr(cdr(cdr(cdr(params)))))
+                    vtype    =     car(cdr(cdr(cdr(cdr(cdr(params))))))
+                    readonly = car(cdr(cdr(cdr(cdr(cdr(cdr(params)))))))
+                    unless(readonly == "true"
+                        when(display == "_NONE_"
+                            display = name
+                        )
+                        ;sym = if(parent == cellname then stringToSymbol(name) else stringToSymbol(lsprintf("%s.%s" parent name)))
+                        sym = stringToSymbol(lsprintf("%s.%s" parent name))
+                        if(get(OPCCellForm->extraFields sym)
+                            then
+                                field = get(OPCCellForm->extraFields sym)
+                            else
+                                field = case(vtype
+                                    ("number"
+                                        hiCreateFloatField(
+                                            ?name sym
+                                            ?value atof(default)
+                                            ?prompt display
+                                        )
                                     )
-                                )
-                                ("integer"
-                                    hiCreateIntField(
-                                        ?name sym
-                                        ?value atoi(default)
-                                        ?prompt display
+                                    ("integer"
+                                        hiCreateIntField(
+                                            ?name sym
+                                            ?value atoi(default)
+                                            ?prompt display
+                                        )
+                                    )                                 
+                                    ("boolean"
+                                        hiCreateRadioField(
+                                            ?name sym
+                                            ?choices list("true" "false")
+                                            ?value default
+                                            ?prompt display
+                                        )
                                     )
-                                )                                 
-                                ("boolean"
-                                    hiCreateRadioField(
-                                        ?name sym
-                                        ?choices list("true" "false")
-                                        ?value default
-                                        ?prompt display
+                                    ;("boolean"
+                                    ;    hiCreateBooleanButton(
+                                    ;        ?name sym
+                                    ;        ?value t
+                                    ;        ?buttonText display
+                                    ;    )
+                                    ;)
+                                    ("string"
+                                        hiCreateStringField(
+                                            ?name sym
+                                            ?value default
+                                            ?prompt display
+                                        )
                                     )
-                                )
-                                ;("boolean"
-                                ;    hiCreateBooleanButton(
-                                ;        ?name sym
-                                ;        ?value t
-                                ;        ?buttonText display
-                                ;    )
-                                ;)
-                                ("string"
-                                    hiCreateStringField(
-                                        ?name sym
-                                        ?value default
-                                        ?prompt display
+                                    ("numtable"
+                                        hiCreateStringField(
+                                            ?name sym
+                                            ?value default
+                                            ?prompt display
+                                        )
                                     )
-                                )
-                                ("numtable"
-                                    hiCreateStringField(
-                                        ?name sym
-                                        ?value default
-                                        ?prompt display
+                                    ("strtable"
+                                        hiCreateStringField(
+                                            ?name sym
+                                            ?value default
+                                            ?prompt display
+                                        )
                                     )
-                                )
-                                ("strtable"
-                                    hiCreateStringField(
-                                        ?name sym
-                                        ?value default
-                                        ?prompt display
+                                    (t
+                                        printf("error while parsing parameter line '%s'\n" line)
+                                        nil
                                     )
-                                )
-                                (t
-                                    printf("error while parsing parameter line '%s'\n" line)
-                                    nil
-                                )
-                            ) ; case
-                            ; store field
-                            putprop(OPCCellForm->extraFields field sym)
-                            putprop(OPCCellForm->fieldParents parent sym)
-                            putprop(OPCCellForm->fieldNames name sym)
-                    ) ; if
-                    fieldlist = cons(field fieldlist)
-                ) ; foreach
+                                ) ; case
+                                ; store field
+                                putprop(OPCCellForm->extraFields field sym)
+                                putprop(OPCCellForm->fieldParents parent sym)
+                                putprop(OPCCellForm->fieldNames name sym)
+                        ) ; if
+                        fieldlist = cons(field fieldlist)
+                    ) ; unless readonly
+                ) ; while
             ) ; let
         ) ; if exitstatus
         fieldlist
