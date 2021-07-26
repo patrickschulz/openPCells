@@ -255,10 +255,10 @@ end
 
 -- read parameters from pfile and merge with command line parameters
 local cellargs = {}
-if args.paramfile and not args.noparamfile then
-    local status, t = pcall(_dofile, args.paramfile)
+local function _readpfile(pfile)
+    local status, t = pcall(_dofile, pfile)
     if not status then
-        print(string.format("could not load parameter file '%s', error: %s", args.paramfile, t))
+        print(string.format("could not load parameter file '%s', error: %s", pfile, t))
         return 1
     end
     for cellname, params in pairs(t) do
@@ -268,6 +268,18 @@ if args.paramfile and not args.noparamfile then
             end
         else -- direct parameter for the cell, cellname == parameter name
             cellargs[cellname] = params
+        end
+    end
+end
+if not args.noparamfile then
+    if args.prependparamfile then
+        for _, pfile in ipairs(args.prependparamfile) do
+            _readpfile(pfile)
+        end
+    end
+    if args.appendparamfile then
+        for _, pfile in ipairs(args.appendparamfile) do
+            _readpfile(pfile)
         end
     end
 end

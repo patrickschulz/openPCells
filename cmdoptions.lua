@@ -33,9 +33,17 @@ return {
         name = "techpath", long = "--techpath",
         help = "add (append) searchpath for technology files (can be used multiple times: --techpath foo --techpath bar)"
     },
-    store{ 
-        name = "paramfile", short = "-p", long = "--pfile",
-        help = "file to read parameters from. This file should be a regular lua file returning a table with the parameters"
+    store_multiple{ 
+        name = "appendparamfile", short = "-p", long = "--pfile",
+        help = "synonym for --append-parameter-file"
+    },
+    store_multiple{ 
+        name = "prependparamfile", long = "--prepend-parameter-file",
+        help = "file to read parameters from (prepended to the list). This file should be a regular lua file returning a table with the parameters. This option can be used multiple times. Parameter files that are specified later overwrite parameters from earlier files."
+    },
+    store_multiple{ 
+        name = "appendparamfile", long = "--append-parameter-file",
+        help = "file to read parameters from (appended to the list). This file should be a regular lua file returning a table with the parameters. This option can be used multiple times. Parameter files that are specified later overwrite parameters from earlier files."
     },
     switch{
         name = "noparamfile", long = "--disable-pfile",
