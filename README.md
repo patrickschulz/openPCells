@@ -38,7 +38,7 @@ You need to include these lines in your `.cdsinit`:
 
 This will install a menu in layout editor called `openPCells` at the last place before the `help` menu in the layout editor. You have to restart
 virtuoso or execute the four lines in that order in your CIW to activate the menu. It is important that the variables `OPCTech`, `OPCPath` and
-`OPCExec` are defined, so think you can skip these and hard-code the path.
+`OPCExec` are defined, so don't think you can skip these and hard-code the path.
 
 <!---
 # Technology translation and mapping
