@@ -18,7 +18,7 @@ function layout(res, _P)
     -- poly marker layer
     res:merge_into_shallow(geometry.rectangle(generics.other("polyres"), (_P.nfingers + _P.dummies) * (_P.width + _P.space), _P.length))
     -- implant
-    res:merge_into_shallow(geometry.other(generics.other("nimpl"), (_P.nfingers + _P.dummies) * (_P.width + _P.space), _P.length + 2 * _P.extension + 2 * _P.contactheight))
+    res:merge_into_shallow(geometry.rectangle(generics.other("nimpl"), (_P.nfingers + _P.dummies) * (_P.width + _P.space), _P.length + 2 * _P.extension + 2 * _P.contactheight))
     -- well
-    res:merge_into_shallow(geometry.other(generics.other("nwell"), (_P.nfingers + _P.dummies) * (_P.width + _P.space), _P.length + 2 * _P.extension + 2 * _P.contactheight))
+    res:merge_into_shallow(geometry.rectangle(generics.other("nwell"), (_P.nfingers + _P.dummies) * (_P.width + _P.space), _P.length + 2 * _P.extension + 2 * _P.contactheight))
 end
