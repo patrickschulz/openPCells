@@ -249,6 +249,14 @@ function meta.flipy(self)
     _flipxy(self, "y")
 end
 
+function meta.mirror_at_xaxis(self)
+
+end
+
+function meta.mirror_at_yaxis(self)
+
+end
+
 local function _get_minmax_xy(self)
     local minx =  math.huge
     local maxx = -math.huge
