@@ -60,6 +60,9 @@ procedure(OPCCreateCell(w done pts)
             when(OPCSettingsForm->OPCSettingsGroup->value == "true"
                 OPCArgs = lsprintf("%s -X -g -X '-n %s'" OPCArgs OPCSettingsForm->OPCSettingsGroupname->value)
             )
+            when(OPCSettingsForm->OPCSettingsDrawAlignmentbox->value == "true"
+                OPCArgs = lsprintf("%s --draw-alignmentbox" OPCArgs)
+            )
             foreach(field OPCCellForm->fieldList
                 name = get(OPCCellForm->fieldNames field)
                 parent = get(OPCCellForm->fieldParents field)
@@ -248,6 +251,12 @@ procedure(OPCCreateSettingsForm()
                 ?name 'OPCSettingsCmdAdditionalArgs
                 ?value "-X -l"
                 ?prompt "Additional Command Line Arguments"
+            )
+            hiCreateRadioField(
+                ?name 'OPCSettingsDrawAlignmentbox
+                ?choices list("true" "false")
+                ?value "false"
+                ?prompt "Draw Alignment Box"
             )
             hiCreateRadioField(
                 ?name 'OPCSettingsLog
