@@ -222,12 +222,12 @@ procedure(OPCCreateSettingsForm()
             )
             hiCreateStringField(
                 ?name 'OPCParamFilename
-                ?value "opc.params"
+                ?value "opc.parameters"
                 ?prompt "File Name for Parameters"
             )
             hiCreateStringField(
                 ?name 'OPCListFilename
-                ?value "opc.params"
+                ?value "opc.cells"
                 ?prompt "File Name for Cell Listings"
             )
             hiCreateStringField(
