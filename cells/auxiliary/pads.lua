@@ -26,7 +26,7 @@ function layout(pads, _P)
             _P.numpads, _P.padpitch
         ))
         pads:merge_into_shallow(geometry.multiple_y(
-            geometry.rectangle(generics.other("padopening"), _P.padopeningwidth, _P.padopeningheight),
+            geometry.rectangle(generics.other("padopening"), _P.padopeningheight, _P.padopeningwidth),
             _P.numpads, _P.padpitch
         ))
     end
