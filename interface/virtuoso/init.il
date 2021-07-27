@@ -138,6 +138,12 @@ procedure(OPCEditCallback()
             path OPCArgs
         )
         path = lsprintf("%s/%s/layout/layout.lua" libPath cellName)
+        unless(isFile(path)
+            let(((file outfile(path)))
+                fprintf(file "%s" "local cell = object.create()\n\nreturn cell")
+                close(file)
+            )
+        )
         pid = ipcBeginProcess(lsprintf(OPCSettingsForm->OPCSettingsEditCmd->value path))
     )
 ) ; procedure
@@ -276,6 +282,11 @@ procedure(OPCCreateSettingsForm()
                 ?name 'OPCSettingsEditCmd
                 ?value "xterm -fa monaco -fs 13 -e 'vim %s'"
                 ?prompt "Edit command for update"
+            )
+            hiCreateButton(
+                ?name 'OPCSettingsUpdateCellList
+                ?callback "OPCUpdateCellList()"
+                ?buttonText "Update List of Cells"
             )
         )
     )
@@ -426,12 +437,16 @@ procedure(OPCUpdateCellParametersCB(field form)
 	OPCUpdateCellParameters(lsprintf("%s/%s" OPCCellForm->OPCLibList->value OPCCellForm->OPCCellList->value))
 )
 
-procedure(OPCCreateParamForm()
+procedure(OPCUpdateCellList()
 	let(
 		()
         OPCCall("-L --list-format 'OPCData = list(\\n:)\\n:::list(\\\"%b\\\" list(:))\\n:\\\"%c\\\" '" OPCSettingsForm->OPCListFilename->value)
 		load(OPCSettingsForm->OPCListFilename->value)	
 	)
+)
+
+procedure(OPCCreateParamForm()
+    OPCUpdateCellList()
 	let((libcelllist)
 		libcelllist = OPCUpdateLibName(nil)
 		OPCLibList = hiCreateComboField(
