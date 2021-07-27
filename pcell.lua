@@ -501,7 +501,6 @@ function M.foreach_cell_references(func, ...)
     end
 end
 
-
 function M.list(listhidden)
     local cells = {}
     for i, path in ipairs(state.cellpaths) do
@@ -522,6 +521,45 @@ function M.list(listhidden)
     return cells
 end
 
+local function _traverse_tree(tree)
+    if tree.children then
+        local elements = {}
+        for _, child in ipairs(tree.children) do
+            local t = _traverse_tree(child)
+            for _, tt in ipairs(t) do
+                local elem = { tree.name }
+                for _, e in ipairs(tt) do
+                    table.insert(elem, e)
+                end
+                table.insert(elements, elem)
+            end
+        end
+        return elements
+    else
+        return { { tree.name } }
+    end
+end
+function M.list_tree(listhidden)
+    local dir = {}
+    for _, path in ipairs(state.cellpaths) do
+        local baseinfo = {}
+        local tree = support.dirtree(path)
+        for _, base in ipairs(tree.children) do
+            local cellinfo = {}
+            for _, info in ipairs(_traverse_tree(base)) do
+                table.remove(info, 1) -- remove base
+                table.insert(cellinfo, table.concat(info, "/"))
+            end
+            table.sort(cellinfo)
+            table.insert(baseinfo, { name = base.name, cellinfo = cellinfo })
+        end
+        table.sort(baseinfo, function(l, r) return l.name < r.name end)
+        table.insert(dir, { name = path, baseinfo = baseinfo })
+    end
+    table.sort(dir, function(l, r) return l.name < r.name end)
+    return dir
+end
+
 function M.constraints(cellname)
     -- replace tech module in environment
     local constraints = {}
@@ -540,26 +578,18 @@ function M.constraints(cellname)
     return str
 end
 
-local function _collect_parameters(cell, ptype, prefix, str)
-    prefix = prefix or ""
+local function _collect_parameters(cell, ptype, parent, str)
     for _, name in ipairs(cell.parameters:get_names()) do
         local v = cell.parameters:get(name)
         local val = v.func()
         if type(val) == "table" then
             val = table.concat(val, ",")
+            if val == "" then val = " " end
         else
             val = tostring(val)
         end
-        local ptype = ptype or v.ptype
-        if envlib.get("humannotmachine") then
-            if v.display then
-                table.insert(str, string.format("%s (%s) %s", name, v.display, val))
-            else
-                table.insert(str, string.format("%s %s", name, val))
-            end
-        else
-            table.insert(str, string.format("%s:%s:%s:%s:%s", ptype, prefix .. name, v.display or "_NONE_", val, tostring(v.argtype)))
-        end
+        local ptype = ptype
+        table.insert(str, { parent = parent, name = name, display = v.display, value = val, ptype = ptype, argtype = tostring(v.argtype), readonly = v.readonly })
     end
 end
 
@@ -575,14 +605,14 @@ function M.parameters(cellname, cellargs, generictech)
 
     local cell = _get_cell(state, cellname)
     local parameters, backup = _get_parameters(state, cellname, cellname, cellargs, true) -- cellname needs to be passed twice
-    --_restore_parameters(state, cellname, backup)
-    _collect_parameters(cell, nil, nil, str) -- use ptype of parameter, no prefix
+    --_restore_parameters(state, cellname, backup) -- FIXME?
+    _collect_parameters(cell, "N", cellname, str)
 
     -- display referenced parameters
     for othercellname in pairs(cell.references) do
         if othercellname ~= cellname then
             local othercell = _get_cell(state, othercellname)
-            _collect_parameters(othercell, string.format("R(%s)", othercellname), othercellname .. ".", str) -- 'referenced' parameter
+            _collect_parameters(othercell, "R", othercellname, str) -- 'referenced' parameter
         end
     end
     _override_cell_environment(nil)

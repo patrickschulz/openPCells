@@ -75,13 +75,11 @@ Most common usage examples:
    read a GDS stream file and create cells:    opc --read-GDS stream.gds]])
 local args, msg = argparse:parse(arg)
 if not args then
-    errprint(msg)
-    return 1
+    moderror(msg)
 end
 -- check command line options sanity
 if args.human and args.machine then
-    errprint("you can't specify --human and --machine at the same time")
-    return 1
+    moderror("you can't specify --human and --machine at the same time")
 end
 
 -- gds info functions
@@ -193,20 +191,34 @@ end
 
 -- list available cells
 if args.listcells or args.listallcells then
-    local sep = args.separator or "\n"
-    local cells = pcell.list(args.listallcells)
-    for _, entry in ipairs(cells) do
-        infoprint(string.format("%s:", entry.path))
-        for _, cellname in ipairs(entry.cells) do
-            infoprint(string.format("  %s", cellname))
+    local cells = pcell.list_tree(args.listallcells)
+    local listformat = args.listformat or '::%p\n::  %b\n::    %c\n'
+    -- replace \\n with \n
+    listformat = string.gsub(listformat, "\\n", "\n")
+    local prefmt, postfmt, prepathfmt, postpathfmt, prebasefmt, postbasefmt, cellfmt = table.unpack(aux.strsplit(listformat, ":"))
+    io.write(prefmt)
+    for _, path in ipairs(cells) do
+        local prepathstr = string.gsub(prepathfmt, "%%%a", { ["%p"] = path.name })
+        io.write(prepathstr)
+        for _, base in ipairs(path.baseinfo) do
+            local prebasestr = string.gsub(prebasefmt, "%%%a", { ["%p"] = path.name, ["%b"] = base.name })
+            io.write(prebasestr)
+            for _, cellname in ipairs(base.cellinfo) do
+                local cellstr = string.gsub(cellfmt, "%%%a", { ["%p"] = path.name, ["%b"] = base.name, ["%c"] = string.match(cellname, "^([%w_/]+)%.lua$") })
+                io.write(cellstr)
+            end
+            local postbasestr = string.gsub(postbasefmt, "%%%a", { ["%p"] = path.name, ["%b"] = base.name })
+            io.write(postbasestr)
         end
+        local postpathstr = string.gsub(postpathfmt, "%%%a", { ["%p"] = path.name })
+        io.write(postpathstr)
     end
+    io.write(postfmt)
     return 0
 end
 
 if not args.cell and not args.cellscript then
-    errprint("no cell type given")
-    return 1
+    moderror("no cell type given")
 end
 
 if args.check then
@@ -225,8 +237,7 @@ end
 -- check and load technology
 if not args.notech then
     if not args.technology and not args.params then
-        errprint("no technology given")
-        return 1
+        moderror("no technology given")
     elseif not args.technology and args.params then
         -- ok, don't load technology but also don't raise an error
         -- this enables pcell.parameters to display the cell parameters with generic technology expressions
@@ -244,10 +255,10 @@ end
 
 -- read parameters from pfile and merge with command line parameters
 local cellargs = {}
-if args.paramfile and not args.noparamfile then
-    local status, t = pcall(_dofile, args.paramfile)
+local function _readpfile(pfile)
+    local status, t = pcall(_dofile, pfile)
     if not status then
-        print(string.format("could not load parameter file '%s', error: %s", args.paramfile, t))
+        print(string.format("could not load parameter file '%s', error: %s", pfile, t))
         return 1
     end
     for cellname, params in pairs(t) do
@@ -260,6 +271,18 @@ if args.paramfile and not args.noparamfile then
         end
     end
 end
+if not args.noparamfile then
+    if args.prependparamfile then
+        for _, pfile in ipairs(args.prependparamfile) do
+            _readpfile(pfile)
+        end
+    end
+    if args.appendparamfile then
+        for _, pfile in ipairs(args.appendparamfile) do
+            _readpfile(pfile)
+        end
+    end
+end
 for k, v in pairs(args.cellargs) do
     cellargs[k] = v
 end
@@ -269,9 +292,20 @@ end
 
 -- output cell parameters AFTER parameters have been processed in order to respect value changes in pfiles
 if args.params then
-    local sep = args.separator or "\n"
     local params = pcell.parameters(args.cell, cellargs, not args.technology)
-    io.write(table.concat(params, sep) .. sep)
+    local paramformat = args.parametersformat or "%n (%d) %v"
+    for _, P in ipairs(params) do
+        local paramstr = string.gsub(paramformat, "%%%a", { 
+            ["%p"] = P.parent, 
+            ["%t"] = P.ptype, 
+            ["%n"] = P.name, 
+            ["%d"] = P.display or "_NONE_", 
+            ["%v"] = P.value,
+            ["%a"] = P.argtype,
+            ["%r"] = tostring(P.readonly),
+        })
+        print(paramstr)
+    end
     return 0
 end
 
@@ -282,19 +316,16 @@ if args.cellscript then
     pcell.update_other_cell_parameters(cellargs, true)
     local status, c = pcall(_dofile, args.cellscript)
     if not status then
-        errprint(c)
-        return 1
+        moderror(string.format("cellscript has an error: %s", c))
     end
     if not c then
-        errprint("cellscript did not return an object")
-        return 1
+        moderror("cellscript did not return an object")
     end
     cell = c
 else
     local status, c = pcall(pcell.create_layout, args.cell, cellargs, true)
     if not status then
-        errprint(c)
-        return 1
+        moderror(c)
     end
     cell = c
 end
@@ -303,8 +334,7 @@ end
 if args.origin then
     local dx, dy = string.match(args.origin, "%(%s*([-%d]+)%s*,%s*([-%d]+)%s*%)")
     if not dx then
-        errprint(string.format("could not parse origin (%s)", args.origin))
-        return 1
+        moderror(string.format("could not parse origin (%s)", args.origin))
     end
     --local cx, cy = cell.origin:unwrap()
     --cell:translate(dx - cx, dy - cy)
@@ -316,8 +346,7 @@ end
 if args.translate then
     local dx, dy = string.match(args.translate, "%(%s*([-%d]+)%s*,%s*([-%d]+)%s*%)")
     if not dx then
-        errprint(string.format("could not parse translation (%s)", args.translate))
-        return 1
+        moderror(string.format("could not parse translation (%s)", args.translate))
     end
     cell:translate(dx, dy)
 end
@@ -332,8 +361,7 @@ if args.orientation then
     }
     local f = lut[args.orientation]
     if not f then
-        errprint(string.format("unknown orientation: '%s'", args.orientation))
-        return 1
+        moderror(string.format("unknown orientation: '%s'", args.orientation))
     end
     f()
 end
@@ -376,8 +404,7 @@ if args.prelayerfilter then
 end
 
 if not args.export then
-    errprint("no export type given")
-    return 1
+    moderror("no export type given")
 end
 export.load(args.export)
 
@@ -409,7 +436,7 @@ if not args.noexport then
     export.set_options(args.export_options)
     export.check()
     local filename = args.filename or "openPCells"
-    export.write_toplevel(filename, args.technology, cell, args.dryrun)
+    export.write_toplevel(filename, args.technology, cell, args.toplevelname or "opctoplevel", args.dryrun)
 end
 
 if args.cellinfo then

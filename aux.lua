@@ -46,6 +46,15 @@ function M.concat(data, sep, pre, post, newline)
     return tabstr
 end
 
+function M.concatformat(data, fmt, sep)
+    local fun = function(str)
+        return string.format(fmt, str)
+    end
+    local processed = M.map(data, fun)
+    local tabstr = table.concat(processed, sep)
+    return tabstr
+end
+
 function M.clone_shallow(t, predicate)
     local new = {}
     predicate = predicate or function() return true end
@@ -163,6 +172,64 @@ function M.print_tabular(t)
     for k, v in pairs(t) do
         print(string.format(fmt, k, v))
     end
+end
+
+-- code credit: https://stackoverflow.com/a/43582076/3197530
+-- gsplit: iterate over substrings in a string separated by a pattern
+-- 
+-- Parameters:
+-- text (string)    - the string to iterate over
+-- pattern (string) - the separator pattern
+-- plain (boolean)  - if true (or truthy), pattern is interpreted as a plain
+--                    string, not a Lua pattern
+-- 
+-- Returns: iterator
+--
+-- Usage:
+-- for substr in gsplit(text, pattern, plain) do
+--   doSomething(substr)
+-- end
+function M.strgsplit(text, pattern, plain)
+  local splitStart, length = 1, #text
+  return function ()
+    if splitStart then
+      local sepStart, sepEnd = string.find(text, pattern, splitStart, plain)
+      local ret
+      if not sepStart then
+        ret = string.sub(text, splitStart)
+        splitStart = nil
+      elseif sepEnd < sepStart then
+        -- Empty separator!
+        ret = string.sub(text, splitStart, sepStart)
+        if sepStart < length then
+          splitStart = sepStart + 1
+        else
+          splitStart = nil
+        end
+      else
+        ret = sepStart > splitStart and string.sub(text, splitStart, sepStart - 1) or ''
+        splitStart = sepEnd + 1
+      end
+      return ret
+    end
+  end
+end
+
+-- split: split a string into substrings separated by a pattern.
+-- 
+-- Parameters:
+-- text (string)    - the string to iterate over
+-- pattern (string) - the separator pattern
+-- plain (boolean)  - if true (or truthy), pattern is interpreted as a plain
+--                    string, not a Lua pattern
+-- 
+-- Returns: table (a sequence table containing the substrings)
+function M.strsplit(text, pattern, plain)
+  local ret = {}
+  for match in M.strgsplit(text, pattern, plain) do
+    table.insert(ret, match)
+  end
+  return ret
 end
 
 return M

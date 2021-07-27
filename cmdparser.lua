@@ -34,7 +34,7 @@ local function _parse_key_value_pairs(str)
 end
 
 local function _display_help(self)
-    local displaywidth <const> = 80
+    local displaywidth <const> = 70
     local optwidth = 0
     for _, opt in ipairs(self.optionsdef) do
         if opt.short and not opt.long then
@@ -134,6 +134,14 @@ local function _load_options(filename)
             t.func = function(self, arg)
                 if not self.res[t.name] then self.res[t.name] = {} end
                 table.insert(self.res[t.name], arg)
+            end
+            t.parser = function(self, args) return _next_arg(args, self.state) end
+            return t
+        end,
+        store_multiple_string = function(t)
+            t.func = function(self, arg)
+                if not self.res[t.name] then self.res[t.name] = "" end
+                self.res[t.name] = string.format("%s %s", self.res[t.name], arg)
             end
             t.parser = function(self, args) return _next_arg(args, self.state) end
             return t

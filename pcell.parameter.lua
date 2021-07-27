@@ -66,7 +66,6 @@ function meta.add(self, name, value, argtype, posvals, readonly)
         posvals   = posvals,
         followers = {},
         readonly  = not not readonly,
-        ptype     = "N" -- 'normal' parameter
     }
     if not self.values[pname] or self.overwrite then
         self.values[pname] = new

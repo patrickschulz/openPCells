@@ -1,7 +1,6 @@
 local M = {}
 
 local __libname = "opclib"
-local __cellname = "opctoplevelcell"
 local __textmode = false
 
 local __userunit = 1
@@ -183,7 +182,6 @@ end
 
 function M.set_options(opt)
     if opt.libname then __libname = opt.libname end
-    if opt.cellname then __cellname = opt.cellname end
 
     if opt.userunit then
         __userunit = tonumber(opt.userunit)

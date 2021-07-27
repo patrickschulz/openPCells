@@ -240,6 +240,8 @@ function M.read_cells(filename)
             obj.name = record.data
         elseif is_record(record, "STRING") then
             obj.text = record.data
+        elseif is_record(record, "STRANS") then
+            obj.transformation = record.data
         end
     end
     return cells

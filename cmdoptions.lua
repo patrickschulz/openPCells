@@ -12,7 +12,7 @@ return {
         name = "export", short = "-E", long = "--export",
         help = "specify export type"
     },
-    store{ 
+    store_multiple_string{ 
         name = "export_options", short = "-X", long = "--xopts",
         help = "pass special options to export. This passes the next argument (separated by white space) literally. This means that several arguments have to be grouped, usually by enclosing it in quotations marks (e.g. -X '--foo --bar'). An overview of the available options for the respective export can be found by passing -h, e.g. opc --export gds -X -h"
     },
@@ -21,6 +21,10 @@ return {
         help = "execute cell script. With this option, --cell is not needed to create a layout. The layout described in the cell script is generated, so the called file must return an object."
     },
     section("Auxiliary generation functions"),
+    store{
+        name = "toplevelname", short = "-n", long = "--cellname",
+        help = "export toplevel cell name. Not all exports support a cell name."
+    },
     switch{
         name = "flatten", long = "--flat",
         help = "flatten hierarchy before exporting. This is only necessary if the selected export supports hierarchies. Otherwise this option is applied anyway"
@@ -29,9 +33,17 @@ return {
         name = "techpath", long = "--techpath",
         help = "add (append) searchpath for technology files (can be used multiple times: --techpath foo --techpath bar)"
     },
-    store{ 
-        name = "paramfile", short = "-p", long = "--pfile",
-        help = "file to read parameters from. This file should be a regular lua file returning a table with the parameters"
+    store_multiple{ 
+        name = "appendparamfile", short = "-p", long = "--pfile",
+        help = "synonym for --append-parameter-file"
+    },
+    store_multiple{ 
+        name = "prependparamfile", long = "--prepend-parameter-file",
+        help = "file to read parameters from (prepended to the list). This file should be a regular lua file returning a table with the parameters. This option can be used multiple times. Parameter files that are specified later overwrite parameters from earlier files."
+    },
+    store_multiple{ 
+        name = "appendparamfile", long = "--append-parameter-file",
+        help = "file to read parameters from (appended to the list). This file should be a regular lua file returning a table with the parameters. This option can be used multiple times. Parameter files that are specified later overwrite parameters from earlier files."
     },
     switch{
         name = "noparamfile", long = "--disable-pfile",
@@ -172,6 +184,10 @@ return {
         name = "params", short = "-P", long  = "--parameters",
         help = "display available cell parameters and exit (requires --cell)"
     },
+    store{
+        name = "parametersformat", long = "--parameters-format",
+        help = "format for listing parameters. The following formats are recognized: %t: parameter type, %n: parameter name, %d: parameter display name, %v: parameter value, %a: parameter argument type, %r: parameter is read-only (true/false). The default is %n (%d) %v"
+    },
     switch{ 
         name = "constraints", long  = "--constraints",
         help = "show required technology parameter (requires --cell and --technology)"
@@ -180,9 +196,17 @@ return {
         name = "listcells", short = "-L", long  = "--list",
         help = "list available cells"
     },
+    store{
+        name = "listformat", long = "--list-format",
+        help = "format for listing cells. The following format is recognized: prefmt:postfmt:prepathfmt:postpathfmt:prebasefmt:postbasefmt:cellfmt. The default is '::%p\\n::  %b\\n::    %c\\n. A possible format for creating a nested list (e.g. for lisp) would be list(\\n:)\\n:::list(\"%b\" list(:))\\n:\"%c\""
+    },
     switch{ 
         name = "listallcells", long  = "--list-all",
         help = "list all available cells (including hidden cells)"
+    },
+    switch{
+        name = "listnodirectories", long = "--list-no-directories",
+        help = "don't list parent directories when listing available cells"
     },
     switch{
         name = "listcellpaths", long = "--listcellpaths",
