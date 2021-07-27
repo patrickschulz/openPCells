@@ -28,10 +28,10 @@ function M.at_begin(file)
 letseq(
     (
         (cv geGetEditCellView())
-        (group dbCreateFigGroup(cv "%s" t 0:0 "R0"))
+        (group if(dbGetFigGroupByName(cv "%s") then dbGetFigGroupByName(cv "%s") else dbCreateFigGroup(cv "%s" t 0:0 "R0")))
         shape
     )
-]], __groupname))
+]], __groupname, __groupname, __groupname))
         else
             file:write([[
 let(
@@ -43,7 +43,7 @@ let(
         end
     else
         if __group then
-            file:write(string.format("dbCreateFigGroup(cv \"%s\" t 0:0 \"R0\")\n", __groupname))
+            file:write(string.format('if(dbGetFigGroupByName(geGetEditCellView() "%s") then dbGetFigGroupByName(geGetEditCellView() "%s") else dbCreateFigGroup(geGetEditCellView() "%s" t 0:0 "R0"))\n', __groupname, __groupname, __groupname))
         end
     end
 end
