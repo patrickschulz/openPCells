@@ -38,6 +38,17 @@ procedure(OPCCleanUp()
     )
 )
 
+procedure(OPCPrepareArgsForCellCreation(args)
+    OPCArgs = lsprintf("--technology %s --export SKILL %s" OPCTech args)
+    when(OPCSettingsForm->OPCSettingsGroup->value == "true"
+        OPCArgs = lsprintf("%s -X -g -X '-n %s'" OPCArgs OPCSettingsForm->OPCSettingsGroupname->value)
+    )
+    when(OPCSettingsForm->OPCSettingsDrawAlignmentbox->value == "true"
+        OPCArgs = lsprintf("%s --draw-alignmentbox" OPCArgs)
+    )
+    OPCArgs
+)
+
 procedure(OPCCreateCell(w done pts)
     let(
         (
@@ -49,20 +60,13 @@ procedure(OPCCreateCell(w done pts)
             OPCArgs
         )
         when(done
-            OPCArgs = lsprintf(
-                "--technology %s --export SKILL --cell %s --origin '(%d, %d)' -f %s --append-parameter-file %s"
-                OPCTech
+            OPCArgs = OPCPrepareArgsForCellCreation(lsprintf(
+                "--cell %s --origin '(%d, %d)' -f %s --append-parameter-file %s"
                 lsprintf("%s/%s" OPCCellForm->OPCLibList->value OPCCellForm->OPCCellList->value)
                 fix(1000 * xCoord(OPCOrigin)) fix(1000 * yCoord(OPCOrigin)) 
                 OPCSettingsForm->OPCCellFilename->value
                 OPCSettingsForm->OPCPfileFilename->value
-            )
-            when(OPCSettingsForm->OPCSettingsGroup->value == "true"
-                OPCArgs = lsprintf("%s -X -g -X '-n %s'" OPCArgs OPCSettingsForm->OPCSettingsGroupname->value)
-            )
-            when(OPCSettingsForm->OPCSettingsDrawAlignmentbox->value == "true"
-                OPCArgs = lsprintf("%s --draw-alignmentbox" OPCArgs)
-            )
+            ))
             foreach(field OPCCellForm->fieldList
                 name = get(OPCCellForm->fieldNames field)
                 parent = get(OPCCellForm->fieldParents field)
@@ -160,10 +164,7 @@ procedure(OPCUpdateCallback()
             path OPCArgs
         )
         path = lsprintf("%s/%s/layout/layout.lua" libPath cellName)
-        OPCArgs = lsprintf("--technology %s --export SKILL --cellscript %s -f %s" OPCTech path OPCSettingsForm->OPCCellFilename->value)
-        when(OPCSettingsForm->OPCSettingsGroup->value == "true"
-            OPCArgs = lsprintf("%s -X -g -X '-n %s'" OPCArgs OPCSettingsForm->OPCSettingsGroupname->value)
-        )
+        OPCArgs = OPCPrepareArgsForCellCreation(lsprintf("--cellscript %s -f %s" OPCTech path OPCSettingsForm->OPCCellFilename->value))
         when(OPCCall(OPCArgs nil)
             foreach(shape cv->shapes dbDeleteObject(shape))
             foreach(inst cv->instances dbDeleteObject(inst))
