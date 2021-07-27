@@ -57,6 +57,9 @@ procedure(OPCCreateCell(w done pts)
                 OPCSettingsForm->OPCCellFilename->value
                 OPCSettingsForm->OPCPfileFilename->value
             )
+            when(OPCSettingsForm->OPCSettingsGroup->value == "true"
+                OPCArgs = lsprintf("%s -X -g -X '-n %s'" OPCArgs OPCSettingsForm->OPCSettingsGroupname->value)
+            )
             foreach(field OPCCellForm->fieldList
                 name = get(OPCCellForm->fieldNames field)
                 parent = get(OPCCellForm->fieldParents field)
