@@ -21,4 +21,9 @@ function layout(res, _P)
     res:merge_into_shallow(geometry.rectangle(generics.other("nimpl"), (_P.nfingers + 2 * _P.dummies) * (_P.width + _P.space), _P.length + 2 * _P.extension + 2 * _P.contactheight))
     -- well
     res:merge_into_shallow(geometry.rectangle(generics.other("nwell"), (_P.nfingers + 2 * _P.dummies) * (_P.width + _P.space), _P.length + 2 * _P.extension + 2 * _P.contactheight))
+
+    res:set_alignment_box(
+        point.create(-(_P.nfingers + 2 * _P.dummies) * (_P.width + _P.space) / 2, -_P.length / 2 - _P.extension - _P.contactheight),
+        point.create( (_P.nfingers + 2 * _P.dummies) * (_P.width + _P.space) / 2,  _P.length / 2 + _P.extension + _P.contactheight)
+    )
 end
