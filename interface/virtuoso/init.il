@@ -253,6 +253,17 @@ procedure(OPCCreateSettingsForm()
                 ?prompt "Merge Rectangles"
             )
             hiCreateRadioField(
+                ?name 'OPCSettingsGroup
+                ?choices list("true" "false")
+                ?value "true"
+                ?prompt "Group Created Shapes"
+            )
+            hiCreateStringField(
+                ?name 'OPCSettingsGroupname
+                ?value "opcgroup"
+                ?prompt "Group Name"
+            )
+            hiCreateRadioField(
                 ?name 'OPCSettingsDeleteFile
                 ?choices list("true" "false")
                 ?value "true"
