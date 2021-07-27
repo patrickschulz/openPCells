@@ -5,17 +5,9 @@ procedure(OPCCall(args redirect)
         when(OPCSettingsForm->OPCSettingsMerge->value == "true"
             additionalargs = lsprintf("%s --flat --merge-rectangles" additionalargs)
         )
-        if(redirect
-            then
-                OPCCommand = lsprintf(
-                    "%s/%s %s %s > %s"
-                    OPCPath OPCExec additionalargs args redirect
-                )
-            else
-                OPCCommand = lsprintf(
-                    "%s/%s %s %s"
-                    OPCPath OPCExec additionalargs args
-                )
+        OPCCommand = lsprintf( "%s/%s %s %s" OPCPath OPCExec additionalargs args)
+        when(redirect
+            OPCCommand = lsprintf( "%s > %s" OPCCommand redirect)
         )
         when(OPCSettingsForm->OPCSettingsLog->value == "true"
             printf("opc call: %s\n" OPCCommand)
@@ -42,7 +34,7 @@ procedure(OPCCall(args redirect)
 
 procedure(OPCCleanUp()
     when(OPCSettingsForm->OPCSettingsDeleteFile->value == "true"
-        deleteFile(lsprintf("%s.il" OPCSettingsForm->OPCFilename->value))
+        deleteFile(lsprintf("%s.il" OPCSettingsForm->OPCCellFilename->value))
     )
 )
 
@@ -50,7 +42,7 @@ procedure(OPCCreateCell(w done pts)
     let(
         (
             (OPCOrigin car(pts))
-            (pfile outfile("opcpfile.lua"))
+            (pfile outfile(OPCSettingsForm->OPCPfileFilename->value))
             (cv geGetEditCellView())
             (parametertable makeTable("opcparamtable"))
             parent name
@@ -58,11 +50,12 @@ procedure(OPCCreateCell(w done pts)
         )
         when(done
             OPCArgs = lsprintf(
-                "--technology %s --export SKILL --cell %s --origin '(%d, %d)' -f %s --append-parameter-file opcpfile.lua" 
+                "--technology %s --export SKILL --cell %s --origin '(%d, %d)' -f %s --append-parameter-file %s"
                 OPCTech
                 lsprintf("%s/%s" OPCCellForm->OPCLibList->value OPCCellForm->OPCCellList->value)
                 fix(1000 * xCoord(OPCOrigin)) fix(1000 * yCoord(OPCOrigin)) 
-                OPCSettingsForm->OPCFilename->value
+                OPCSettingsForm->OPCCellFilename->value
+                OPCSettingsForm->OPCPfileFilename->value
             )
             foreach(field OPCCellForm->fieldList
                 name = get(OPCCellForm->fieldNames field)
@@ -85,15 +78,15 @@ procedure(OPCCreateCell(w done pts)
             fprintf(pfile "%s\n" "}")
             close(pfile)
             when(OPCCall(OPCArgs nil)
-                if(isFile(lsprintf("%s.il" OPCSettingsForm->OPCFilename->value))
+                if(isFile(lsprintf("%s.il" OPCSettingsForm->OPCCellFilename->value))
                     then
-                        load(lsprintf("%s.il" OPCSettingsForm->OPCFilename->value))
+                        load(lsprintf("%s.il" OPCSettingsForm->OPCCellFilename->value))
                         OPCCleanUp()
                     else
                         hiDisplayAppDBox(
                             ?name        'OPCInfoDialog
                             ?dboxBanner  "openPCells"
-                            ?dboxText    lsprintf("opc failed to generate '%s.il'" OPCSettingsForm->OPCFilename->value)
+                            ?dboxText    lsprintf("opc failed to generate '%s.il'" OPCSettingsForm->OPCCellFilename->value)
                             ?dialogType   hicWarningDialog
                             ?dialogStyle 'modeless
                             ?buttonLayout 'Close
@@ -155,11 +148,11 @@ procedure(OPCUpdateCallback()
             path OPCArgs
         )
         path = lsprintf("%s/%s/layout/layout.lua" libPath cellName)
-        OPCArgs = lsprintf("--technology %s --export SKILL --cellscript %s -f %s" OPCTech path OPCSettingsForm->OPCFilename->value)
+        OPCArgs = lsprintf("--technology %s --export SKILL --cellscript %s -f %s" OPCTech path OPCSettingsForm->OPCCellFilename->value)
         when(OPCCall(OPCArgs nil)
             foreach(shape cv->shapes dbDeleteObject(shape))
             foreach(inst cv->instances dbDeleteObject(inst))
-            load(lsprintf("%s.il" OPCSettingsForm->OPCFilename->value))
+            load(lsprintf("%s.il" OPCSettingsForm->OPCCellFilename->value))
             OPCCleanUp()
         )
     )
@@ -223,9 +216,24 @@ procedure(OPCCreateSettingsForm()
         ?buttonLayout 'OKCancel
         ?fields list(
             hiCreateStringField(
-                ?name 'OPCFilename
+                ?name 'OPCCellFilename
                 ?value "openPCells"
                 ?prompt "File Name for Generated Layouts"
+            )
+            hiCreateStringField(
+                ?name 'OPCParamFilename
+                ?value "opc.params"
+                ?prompt "File Name for Parameters"
+            )
+            hiCreateStringField(
+                ?name 'OPCListFilename
+                ?value "opc.params"
+                ?prompt "File Name for Cell Listings"
+            )
+            hiCreateStringField(
+                ?name 'OPCPfileFilename
+                ?value "opc.pfile"
+                ?prompt "File Name for Parameter Bindings (Parameter File)"
             )
             hiCreateStringField(
                 ?name 'OPCSettingsCmdAdditionalArgs
@@ -264,9 +272,9 @@ procedure(OPCGetCellParameters(cellname)
         (   
             fieldlist field
         )   
-        when(OPCCall(lsprintf("--technology %s --cell %s --parameters --parameters-format '%%t:%%p:%%n:%%d:%%v:%%a:%%r'" OPCTech cellname) "opc.params")
+        when(OPCCall(lsprintf("--technology %s --cell %s --parameters --parameters-format '%%t:%%p:%%n:%%d:%%v:%%a:%%r'" OPCTech cellname) OPCSettingsForm->OPCParamFilename->value)
             let(
-                ((file infile("opc.params")) params ptype name display default vtype readonly sym)
+                ((file infile(OPCSettingsForm->OPCParamFilename->value)) params ptype name display default vtype readonly sym)
                 while(line = gets(nil file)
                     params = parseString(substring(line 1 strlen(line) - 1) ":")
                     ptype    =                         car(params)
@@ -407,8 +415,8 @@ procedure(OPCUpdateCellParametersCB(field form)
 procedure(OPCCreateParamForm()
 	let(
 		()
-        OPCCall("-L --list-format 'OPCData = list(\\n:)\\n:::list(\\\"%b\\\" list(:))\\n:\\\"%c\\\" '" "opccells")
-		load("opccells")	
+        OPCCall("-L --list-format 'OPCData = list(\\n:)\\n:::list(\\\"%b\\\" list(:))\\n:\\\"%c\\\" '" OPCSettingsForm->OPCListFilename->value)
+		load(OPCSettingsForm->OPCListFilename->value)	
 	)
 	let((libcelllist)
 		libcelllist = OPCUpdateLibName(nil)
