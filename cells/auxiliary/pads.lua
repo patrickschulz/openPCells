@@ -1,5 +1,8 @@
-function parameters()
+function config()
     pcell.reference_cell("auxiliary/pad")
+end
+
+function parameters()
     pcell.add_parameters(
         { "padconfig(Pad Configuration; G, S or P)",      { "P", "P", "P" }, argtype = "strtable" },
         { "Spadwidth(Width of S-Pad)",                   50000 },
