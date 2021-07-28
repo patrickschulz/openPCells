@@ -39,7 +39,7 @@ function layout(res, _P)
     end
 
     res:set_alignment_box(
-        point.create(-(_P.nxfingers + 2 * _P.dummies) * (_P.width + _P.xspace) / 2, -_P.length / 2 - _P.extension - _P.contactheight),
-        point.create( (_P.nxfingers + 2 * _P.dummies) * (_P.width + _P.xspace) / 2,  _P.length / 2 + _P.extension + _P.contactheight)
+        point.create(-(_P.nxfingers + 2 * _P.dummies + 2 * _P.nonresdummies - 1) * (_P.width + _P.xspace) / 2, -polyheight / 2),
+        point.create( (_P.nxfingers + 2 * _P.dummies + 2 * _P.nonresdummies - 1) * (_P.width + _P.xspace) / 2,  polyheight / 2)
     )
 end
