@@ -385,6 +385,7 @@ procedure(OPCGetCellParameters(cellname)
                                     )
                                     (t
                                         printf("error while parsing parameter line '%s'\n" line)
+                                        printf("parse result:\n ptype = %s\n parent = %s\n name = %s\n display = %s\n default = %s\n vtype = %s\n readonly = %s\n" ptype parent name display default vtype readonly)
                                         nil
                                     )
                                 ) ; case
