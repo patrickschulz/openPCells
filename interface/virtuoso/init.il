@@ -201,7 +201,7 @@ procedure(OPCExportCell()
             ?name        'OPCInfoDialog
             ?dboxBanner  "openPCells"
             ?dboxText    lsprintf("written opc representation of layout to %s" "openPCells_export.lua")
-            ?dialogType   hicInfoDialog
+            ?dialogType   hicWarningDialog
             ?dialogStyle 'modeless
             ?buttonLayout 'Close
         )
