@@ -242,7 +242,7 @@ function M.fill_even_with(num, filler, other)
     return M.fill_predicate_with(num, filler, function(i) return i % 2 == 0 end, other)
 end
 
-function M.fill_even_with(num, filler, other)
+function M.fill_odd_with(num, filler, other)
     return M.fill_predicate_with(num, filler, function(i) return i % 2 == 1 end, other)
 end
 
