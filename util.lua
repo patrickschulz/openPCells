@@ -218,4 +218,32 @@ function M.intersection_ab(P, Q)
     end
 end
 
+function M.fill_all_with(num, filler)
+    local t = {}
+    for i = 1, num do
+        t[i] = filler
+    end
+    return t
+end
+
+function M.fill_predicate_with(num, filler, predicate, other)
+    local t = {}
+    for i = 1, num do
+        if predicate(i) then
+            t[i] = filler
+        else
+            t[i] = other
+        end
+    end
+    return t
+end
+
+function M.fill_even_with(num, filler, other)
+    return M.fill_predicate_with(num, filler, function(i) return i % 2 == 0 end, other)
+end
+
+function M.fill_even_with(num, filler, other)
+    return M.fill_predicate_with(num, filler, function(i) return i % 2 == 1 end, other)
+end
+
 return M
