@@ -232,6 +232,7 @@ procedure(OPCCreateSettingsForm()
         ?name 'OPCSettingsForm
         ?formTitle "OPC Settings"
         ?buttonLayout 'OKCancel
+        ?initialSize t ; size form to fit all fields
         ?fields list(
             hiCreateStringField(
                 ?name 'OPCCellFilename
