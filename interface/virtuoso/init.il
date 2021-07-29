@@ -32,9 +32,11 @@ procedure(OPCCall(args redirect)
     ) ; let
 )
 
-procedure(OPCCleanUp()
+procedure(OPCCleanUp(filename)
     when(OPCSettingsForm->OPCSettingsDeleteFile->value == "true"
-        deleteFile(lsprintf("%s.il" OPCSettingsForm->OPCCellFilename->value))
+        when(isFile(filename)
+            deleteFile(filename)
+        )
     )
 )
 
@@ -89,11 +91,12 @@ procedure(OPCCreateCell(w done pts)
             )
             fprintf(pfile "%s\n" "}")
             close(pfile)
+            OPCCleanUp(OPCSettingsForm->OPCPfileFilename->value)
             when(OPCCall(OPCArgs nil)
                 if(isFile(lsprintf("%s.il" OPCSettingsForm->OPCCellFilename->value))
                     then
                         load(lsprintf("%s.il" OPCSettingsForm->OPCCellFilename->value))
-                        OPCCleanUp()
+                        OPCCleanUp(lsprintf("%s.il" OPCSettingsForm->OPCCellFilename->value))
                     else
                         hiDisplayAppDBox(
                             ?name        'OPCInfoDialog
@@ -151,6 +154,7 @@ procedure(OPCEditCallback()
             let(((file outfile(path)))
                 fprintf(file "%s" "local cell = object.create()\n\nreturn cell")
                 close(file)
+                OPCCleanUp(path)
             )
         )
         pid = ipcBeginProcess(lsprintf(OPCSettingsForm->OPCSettingsEditCmd->value path))
@@ -171,7 +175,7 @@ procedure(OPCUpdateCallback()
             foreach(shape cv->shapes dbDeleteObject(shape))
             foreach(inst cv->instances dbDeleteObject(inst))
             load(lsprintf("%s.il" OPCSettingsForm->OPCCellFilename->value))
-            OPCCleanUp()
+            OPCCleanUp(lsprintf("%s.il" OPCSettingsForm->OPCCellFilename->value))
         )
     )
 ) ; procedure
@@ -193,6 +197,14 @@ procedure(OPCExportCell()
         )
         fprintf(file "return cell\n")
         close(file)
+        hiDisplayAppDBox(
+            ?name        'OPCInfoDialog
+            ?dboxBanner  "openPCells"
+            ?dboxText    lsprintf("written opc representation of layout to %s" "openPCells_export.lua")
+            ?dialogType   hicInfoDialog
+            ?dialogStyle 'modeless
+            ?buttonLayout 'Close
+        )
     )
 )
 
