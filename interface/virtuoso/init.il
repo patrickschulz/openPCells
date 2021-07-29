@@ -70,11 +70,13 @@ procedure(OPCCreateCell(w done pts)
             foreach(field OPCCellForm->fieldList
                 name = get(OPCCellForm->fieldNames field)
                 parent = get(OPCCellForm->fieldParents field)
-			    unless(equal(field 'OPCLibList) || equal(field 'OPCCellList)
-                    unless(tablep(parametertable[parent])
-                        parametertable[parent] = makeTable(lsprintf("opc%stable" parent))
+                when(parent ; protects against nil parents from separator fields
+                    unless(equal(field 'OPCLibList) || equal(field 'OPCCellList)
+                        unless(tablep(parametertable[parent])
+                            parametertable[parent] = makeTable(lsprintf("opc%stable" parent))
+                        )
+                        parametertable[parent][name] = lsprintf("%A" get(OPCCellForm field)->value)
                     )
-                    parametertable[parent][name] = lsprintf("%A" get(OPCCellForm field)->value)
                 )
             )
             fprintf(pfile "%s\n" "return {")
@@ -312,7 +314,7 @@ procedure(OPCGetCellParameters(cellname)
         )   
         when(OPCCall(lsprintf("--technology %s --cell %s --parameters --parameters-format '%%t:%%p:%%n:%%d:%%v:%%a:%%r'" OPCTech cellname) OPCSettingsForm->OPCParamFilename->value)
             let(
-                ((file infile(OPCSettingsForm->OPCParamFilename->value)) params ptype name display default vtype readonly sym)
+                ((file infile(OPCSettingsForm->OPCParamFilename->value)) (isown t) params ptype name display default vtype readonly sym)
                 while(line = gets(nil file)
                     params = parseString(substring(line 1 strlen(line) - 1) ":")
                     ptype    =                         car(params)
@@ -326,7 +328,13 @@ procedure(OPCGetCellParameters(cellname)
                         when(display == "_NONE_"
                             display = name
                         )
-                        ;sym = if(parent == cellname then stringToSymbol(name) else stringToSymbol(lsprintf("%s.%s" parent name)))
+                        ; change from own to referenced parameters
+                        when(isown && parent != cellname
+                            fieldlist = cons(hiCreateSeparatorField(?name gensym()) fieldlist)
+                            fieldlist = cons(hiCreateLabel(?name gensym() ?labelText "Referenced Parameters (some might be overwritten by the cell and thus without effect)" ?justification 'center) fieldlist)
+                            fieldlist = cons(hiCreateSeparatorField(?name gensym()) fieldlist)
+                            isown = nil
+                        )
                         sym = stringToSymbol(lsprintf("%s.%s" parent name))
                         if(get(OPCCellForm->extraFields sym)
                             then
