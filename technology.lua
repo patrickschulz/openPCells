@@ -92,9 +92,9 @@ end
 
 local function _get_via_arrayzation(width, height, entry)
     local via = {}
-    local f = function(cutwidth, cutheight, xspace, yspace, xencl, yencl)
-        local xrep = math.max(1, math.floor((width + xspace - 2 * xencl) / (cutwidth + xspace)))
-        local yrep = math.max(1, math.floor((height + yspace - 2 * yencl) / (cutheight + yspace)))
+    local f = function(cutwidth, cutheight, xspace, yspace, xencl, yencl, mustfit)
+        local xrep = math.max(mustfit and 0 or 1, math.floor((width + xspace - 2 * xencl) / (cutwidth + xspace)))
+        local yrep = math.max(mustfit and 0 or 1, math.floor((height + yspace - 2 * yencl) / (cutheight + yspace)))
         return xrep, yrep
     end
     local via = {}
@@ -103,7 +103,7 @@ local function _get_via_arrayzation(width, height, entry)
         via.yrep = 0
         via.conductivity = 0
         for i = 1, #entry.width do
-            local xrep, yrep = f(entry.width[i], entry.height[i], entry.xspace[i], entry.yspace[i], entry.xencl[i], entry.yencl[i])
+            local xrep, yrep = f(entry.width[i], entry.height[i], entry.xspace[i], entry.yspace[i], entry.xencl[i], entry.yencl[i], not entry.noneedtofit)
             if xrep * yrep * entry.conductivity[i] > via.xrep * via.yrep * via.conductivity then
                 via.width = entry.width[i]
                 via.height = entry.height[i]
@@ -115,7 +115,7 @@ local function _get_via_arrayzation(width, height, entry)
             end
         end
     else
-        local xrep, yrep = f(entry.width, entry.height, entry.xspace, entry.yspace, entry.xencl, entry.yencl)
+        local xrep, yrep = f(entry.width, entry.height, entry.xspace, entry.yspace, entry.xencl, entry.yencl, not entry.noneedtofit)
         via.width = entry.width
         via.height = entry.height
         via.xpitch = entry.width + entry.xspace
