@@ -7,8 +7,9 @@ function parameters()
 end
 
 function layout(padring, _P)
-    padring:merge_into_shallow(pcell.create_layout("auxiliary/pads", { padpitch = _P.padpitch, numpads = _P.padsperside, orientation = "vertical" }):translate( (_P.padsperside - 1) * _P.padpitch / 2 + _P.sidedistance, 0))
-    padring:merge_into_shallow(pcell.create_layout("auxiliary/pads", { padpitch = _P.padpitch, numpads = _P.padsperside, orientation = "vertical" }):translate(-(_P.padsperside - 1) * _P.padpitch / 2 - _P.sidedistance, 0))
-    padring:merge_into_shallow(pcell.create_layout("auxiliary/pads", { padpitch = _P.padpitch, numpads = _P.padsperside, orientation = "horizontal" }):translate(0,  (_P.padsperside - 1) * _P.padpitch / 2 + _P.sidedistance))
-    padring:merge_into_shallow(pcell.create_layout("auxiliary/pads", { padpitch = _P.padpitch, numpads = _P.padsperside, orientation = "horizontal" }):translate(0, -(_P.padsperside - 1) * _P.padpitch / 2 - _P.sidedistance))
+    local padconfig = util.fill_all_with(_P.padsperside, "P")
+    padring:merge_into_shallow(pcell.create_layout("auxiliary/pads", { padpitch = _P.padpitch, padconfig = padconfig, orientation = "vertical" }):translate( (_P.padsperside - 1) * _P.padpitch / 2 + _P.sidedistance, 0))
+    padring:merge_into_shallow(pcell.create_layout("auxiliary/pads", { padpitch = _P.padpitch, padconfig = padconfig, orientation = "vertical" }):translate(-(_P.padsperside - 1) * _P.padpitch / 2 - _P.sidedistance, 0))
+    padring:merge_into_shallow(pcell.create_layout("auxiliary/pads", { padpitch = _P.padpitch, padconfig = padconfig, orientation = "horizontal" }):translate(0,  (_P.padsperside - 1) * _P.padpitch / 2 + _P.sidedistance))
+    padring:merge_into_shallow(pcell.create_layout("auxiliary/pads", { padpitch = _P.padpitch, padconfig = padconfig, orientation = "horizontal" }):translate(0, -(_P.padsperside - 1) * _P.padpitch / 2 - _P.sidedistance))
 end
