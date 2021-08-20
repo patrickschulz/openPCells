@@ -407,12 +407,29 @@ function meta.get_anchor(self, name)
     return pt
 end
 
-function meta.move_anchor(self, name, where)
+local function _get_move_anchor_translation(self, name, where)
     where = where or point.create(0, 0)
     local anchor = self:get_anchor(name)
     local wx, wy = where:unwrap()
     local x, y = anchor:unwrap()
-    self:translate(wx - x, wy - y)
+    return wx - x, wy - y
+end
+
+function meta.move_anchor(self, name, where)
+    local dx, dy = _get_move_anchor_translation(self, name, where)
+    self:translate(dx, dy)
+    return self
+end
+
+function meta.move_anchor_x(self, name, where)
+    local dx, dy = _get_move_anchor_translation(self, name, where)
+    self:translate(dx, 0)
+    return self
+end
+
+function meta.move_anchor_y(self, name, where)
+    local dx, dy = _get_move_anchor_translation(self, name, where)
+    self:translate(0, dy)
     return self
 end
 
