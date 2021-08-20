@@ -40,9 +40,11 @@ function parameters()
         { "drawsourcevia(Draw Source Via)",                          false },
         { "connectsource(Connect Source)",                           false },
         { "connsourcemetal(Source Connection Metal)",                    1 },
+        { "connsourceinline(Connect Source Inline of Transistor)",   false },
         { "connectdrain(Connect Drain)",                             false },
         { "drawdrainvia(Draw Drain Via)",                            false },
         { "conndrainmetal(Drain Connection Metal)",                      1 },
+        { "conndraininline(Connect Drain Inline of Transistor)",     false },
         { "drawtopactivedummy",                                      false },
         { "topactivedummywidth",                                        80 },
         { "topactivedummysep",                                          80 },
@@ -258,23 +260,36 @@ function layout(transistor, _P)
     end
 
     -- source/drain connections
+    local ysign = _P.channeltype == "nmos" and -1 or 1
     if _P.connectsource then
-        transistor:merge_into_shallow(geometry.rectangle(generics.metal(_P.connsourcemetal),
-            _P.fingers * (_P.gatelength + _P.gatespace) + _P.sdwidth, _P.sdconnwidth
-        ):translate(0, -_P.fwidth / 2 - _P.sdconnwidth / 2 - _P.sdconnspace))
-        transistor:merge_into_shallow(geometry.multiple_x(
-            geometry.rectangle(generics.metal(_P.connsourcemetal), _P.sdwidth, _P.sdconnspace),
-            math.floor(0.5 * _P.fingers) + 1, 2 * (_P.gatelength + _P.gatespace)
-        ):translate(0, -0.5 * (_P.fwidth + _P.sdconnspace)))
+        if _P.connsourceinline then
+            transistor:merge_into_shallow(geometry.rectangle(generics.metal(_P.connsourcemetal),
+                _P.fingers * (_P.gatelength + _P.gatespace) + _P.sdwidth, _P.sdconnwidth
+            ))
+        else
+            transistor:merge_into_shallow(geometry.rectangle(generics.metal(_P.connsourcemetal),
+                _P.fingers * (_P.gatelength + _P.gatespace) + _P.sdwidth, _P.sdconnwidth
+            ):translate(0, ysign * (_P.fwidth + _P.sdconnwidth + 2 * _P.sdconnspace) / 2))
+            transistor:merge_into_shallow(geometry.multiple_x(
+                geometry.rectangle(generics.metal(_P.connsourcemetal), _P.sdwidth, _P.sdconnspace),
+                math.floor(0.5 * _P.fingers) + 1, 2 * (_P.gatelength + _P.gatespace)
+            ):translate(0, ysign * (_P.fwidth + _P.sdconnspace) / 2))
+        end
     end
     if _P.connectdrain then
-        transistor:merge_into_shallow(geometry.rectangle(generics.metal(_P.conndrainmetal),
-            (_P.fingers - 2) * (_P.gatelength + _P.gatespace) + _P.sdwidth, _P.sdconnwidth
-        ):translate(0, 0.5 * _P.fwidth + 0.5 * _P.sdconnwidth + _P.sdconnspace))
-        transistor:merge_into_shallow(geometry.multiple_x(
-            geometry.rectangle(generics.metal(_P.conndrainmetal), _P.sdwidth, _P.sdconnspace),
-            math.floor(0.5 * _P.fingers), 2 * (_P.gatelength + _P.gatespace)
-        ):translate(0, 0.5 * (_P.fwidth + _P.sdconnspace)))
+        if _P.conndraininline then
+            transistor:merge_into_shallow(geometry.rectangle(generics.metal(_P.conndrainmetal),
+                (_P.fingers - 2) * (_P.gatelength + _P.gatespace) + _P.sdwidth, _P.sdconnwidth
+            ))
+        else
+            transistor:merge_into_shallow(geometry.rectangle(generics.metal(_P.conndrainmetal),
+                (_P.fingers - 2) * (_P.gatelength + _P.gatespace) + _P.sdwidth, _P.sdconnwidth
+            ):translate(0, -ysign * (_P.fwidth + _P.sdconnwidth + 2 * _P.sdconnspace) / 2))
+            transistor:merge_into_shallow(geometry.multiple_x(
+                geometry.rectangle(generics.metal(_P.conndrainmetal), _P.sdwidth, _P.sdconnspace),
+                math.floor(0.5 * _P.fingers), 2 * (_P.gatelength + _P.gatespace)
+            ):translate(0, -ysign * (_P.fwidth + _P.sdconnspace) / 2))
+        end
     end
 
     -- alignmentbox
@@ -284,6 +299,8 @@ function layout(transistor, _P)
     )
 
     -- anchors
+    transistor:add_anchor("sourcestrap", point.create(0, -_P.fwidth / 2 - _P.sdconnwidth / 2 - _P.sdconnspace))
+    transistor:add_anchor("drainstrap",  point.create(0, 0.5 * _P.fwidth + 0.5 * _P.sdconnwidth + _P.sdconnspace))
     transistor:add_anchor("middrainsource",  point.create(0, 0))
     transistor:add_anchor("leftdrainsource",  point.create(-_P.fingers / 2 * (_P.gatelength + _P.gatespace), 0))
     transistor:add_anchor("rightdrainsource", point.create( _P.fingers / 2 * (_P.gatelength + _P.gatespace), 0))
@@ -293,6 +310,8 @@ function layout(transistor, _P)
     transistor:add_anchor("righttopgate", transistor:get_anchor("topgate") + transistor:get_anchor("rightdrainsource"))
     transistor:add_anchor("leftbotgate", transistor:get_anchor("botgate") + transistor:get_anchor("leftdrainsource"))
     transistor:add_anchor("rightbotgate", transistor:get_anchor("botgate") + transistor:get_anchor("rightdrainsource"))
+    transistor:add_anchor("topgatestrap", point.create(0, _P.fwidth / 2 + _P.topgatestrspace + _P.topgatestrwidth / 2))
+    transistor:add_anchor("botgatestrap", point.create(0, -_P.fwidth / 2 - _P.botgatestrspace - _P.botgatestrwidth / 2))
     transistor:add_anchor("topgatestrapleft", point.create(
         -_P.fingers * _P.gatelength / 2 - (_P.fingers - 1) * _P.gatespace / 2,
         _P.fwidth / 2 + _P.topgatestrspace + _P.topgatestrwidth / 2
