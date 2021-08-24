@@ -99,9 +99,9 @@ local function _get_via_arrayzation(width, height, entry)
     end
     local via = {}
     if type(entry.width) == "table" then
-        via.xrep = 1
-        via.yrep = 1
-        via.conductivity = -1
+        via.xrep = 0
+        via.yrep = 0
+        via.conductivity = 0
         for i = 1, #entry.width do
             local xrep, yrep = f(entry.width[i], entry.height[i], entry.xspace[i], entry.yspace[i], entry.xencl[i], entry.yencl[i], not entry.noneedtofit)
             if xrep * yrep * entry.conductivity[i] > via.xrep * via.yrep * via.conductivity then
