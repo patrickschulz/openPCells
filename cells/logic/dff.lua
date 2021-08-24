@@ -298,6 +298,10 @@ function layout(gate, _P)
         geometry.rectangle(generics.via(1, 2), 
         2 * xpitch - bp.gstwidth - 2 * bp.gstspace,
     bp.sdwidth):translate(point.combine_21(cinv:get_anchor("I"), clockinv1:get_anchor("I"))))
+    gate:merge_into_shallow(
+        geometry.rectangle(generics.metal(1), 
+        2 * xpitch - bp.gstwidth - 2 * bp.gstspace,
+    bp.sdwidth):translate(clockinv1:get_anchor("I")))
 
     -- output connection
     gate:merge_into_shallow(geometry.rectanglebltr(generics.metal(1),
