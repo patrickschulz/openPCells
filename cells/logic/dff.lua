@@ -305,7 +305,8 @@ function layout(gate, _P)
 
     -- output connection
     gate:merge_into_shallow(geometry.rectanglebltr(generics.metal(1),
-        fbcinv2:get_anchor("I"):translate(-bp.glength / 2 - (bp.gspace - bp.gstspace) / 2, -bp.gstwidth / 2),
+        --fbcinv2:get_anchor("I"):translate(-bp.glength / 2 - (bp.gspace - bp.gstspace) / 2, -bp.gstwidth / 2),
+        fbcinv2:get_anchor("I"):translate(-3 * xpitch / 2 + bp.gstwidth / 2 + bp.gstspace, -bp.gstwidth / 2),
         outinv1:get_anchor("I"):translate(xpitch - bp.gstwidth / 2 - bp.gstspace,  bp.gstwidth / 2)
     ))
 
