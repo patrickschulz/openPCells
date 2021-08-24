@@ -62,13 +62,7 @@ procedure(OPCCreateCell(w done pts)
             OPCArgs
         )
         when(done
-            OPCArgs = OPCPrepareArgsForCellCreation(lsprintf(
-                "--cell %s --origin '(%d, %d)' -f %s --append-parameter-file %s"
-                lsprintf("%s/%s" OPCCellForm->OPCLibList->value OPCCellForm->OPCCellList->value)
-                fix(1000 * xCoord(OPCOrigin)) fix(1000 * yCoord(OPCOrigin)) 
-                OPCSettingsForm->OPCCellFilename->value
-                OPCSettingsForm->OPCPfileFilename->value
-            ))
+            ; collect parameters
             foreach(field OPCCellForm->fieldList
                 name = get(OPCCellForm->fieldNames field)
                 parent = get(OPCCellForm->fieldParents field)
@@ -81,6 +75,7 @@ procedure(OPCCreateCell(w done pts)
                     )
                 )
             )
+            ; assemble pfile
             fprintf(pfile "%s\n" "return {")
             foreach(p parametertable
                 fprintf(pfile "    [\"%s\"] = {\n" p)
@@ -91,7 +86,16 @@ procedure(OPCCreateCell(w done pts)
             )
             fprintf(pfile "%s\n" "}")
             close(pfile)
-            OPCCleanUp(OPCSettingsForm->OPCPfileFilename->value)
+
+            ; assemble call arguments
+            OPCArgs = OPCPrepareArgsForCellCreation(lsprintf(
+                "--cell %s --origin '(%d, %d)' -f %s --append-parameter-file %s"
+                lsprintf("%s/%s" OPCCellForm->OPCLibList->value OPCCellForm->OPCCellList->value)
+                fix(1000 * xCoord(OPCOrigin)) fix(1000 * yCoord(OPCOrigin)) 
+                OPCSettingsForm->OPCCellFilename->value
+                OPCSettingsForm->OPCPfileFilename->value
+            ))
+            ; call opc
             when(OPCCall(OPCArgs nil)
                 if(isFile(lsprintf("%s.il" OPCSettingsForm->OPCCellFilename->value))
                     then
@@ -108,6 +112,7 @@ procedure(OPCCreateCell(w done pts)
                         )
                 ) ; if
             )
+            OPCCleanUp(OPCSettingsForm->OPCPfileFilename->value)
         ) ; when done
     )
     t
