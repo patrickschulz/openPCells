@@ -306,7 +306,7 @@ function layout(gate, _P)
     -- output connection
     gate:merge_into_shallow(geometry.rectanglebltr(generics.metal(1),
         fbcinv2:get_anchor("I"):translate(-bp.glength / 2 - (bp.gspace - bp.gstspace) / 2, -bp.gstwidth / 2),
-        outinv1:get_anchor("I"):translate(0,  bp.gstwidth / 2)
+        outinv1:get_anchor("I"):translate(xpitch - bp.gstwidth / 2 - bp.gstspace,  bp.gstwidth / 2)
     ))
 
     -- inherit alignment boxes, only use most-left and most-right block
