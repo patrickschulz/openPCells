@@ -213,15 +213,8 @@ function layout(gate, _P)
         fbcinv1:get_anchor(fbcinvanchor1):translate(-2 * xpitch + bp.gstspace + bp.gstwidth, 0),
         tgate:get_anchor(fbcinvanchor1):translate(xpitch, 0),
         0,
-        --fbcinv2:get_anchor(fbcinvanchor1):translate(-xpitch, bp.gstwidth + bp.gstspace)
         fbcinv2:get_anchor(fbcinvanchor1):translate(-xpitch / 2 + bp.gstwidth / 2, bp.gstwidth + bp.gstspace)
-        --fbcinv2:get_anchor(fbcinvanchor2):translate(xpitch - bp.gstspace - bp.gstwidth / 2, 0)
     }), bp.sdwidth))
-
-            --fbcinv2:get_anchor(fbcinvanchor1):translate(-3 * xpitch + bp.gstwidth / 2 + bp.gstspace, bp.gstwidth + bp.gstspace), {
-                --fbcinv2:get_anchor(fbcinvanchor1):translate(-xpitch / 2, bp.gstwidth + bp.gstspace),
-                --fbcinv2:get_anchor(fbcinvanchor2):translate(xpitch - bp.gstspace - bp.gstwidth / 2, 0)
-
     gate:merge_into_shallow(geometry.path(generics.metal(2), 
         geometry.path_points_xy(
             clockinv1:get_anchor("O") .. clockinv2:get_anchor("I"), {
@@ -303,8 +296,7 @@ function layout(gate, _P)
     }, bp.sdwidth))
     gate:merge_into_shallow(
         geometry.rectangle(generics.via(1, 2), 
-        bp.glength,
-        --2 * bp.glength + bp.gspace, 
+        2 * xpitch - bp.gstwidth - 2 * bp.gstspace,
     bp.sdwidth):translate(point.combine_21(cinv:get_anchor("I"), clockinv1:get_anchor("I"))))
 
     -- output connection
