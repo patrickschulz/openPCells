@@ -1,6 +1,7 @@
 function parameters()
     pcell.reference_cell("logic/base")
     pcell.add_parameter("fingers", 4)
+    pcell.add_parameter("fingers", 4)
 end
 
 function layout(gate, _P)
@@ -10,7 +11,8 @@ function layout(gate, _P)
         fingers = _P.fingers,
         drawactive = false,
         drawgatecontacts = false,
-        drawtopgcut = false
+        drawtopgcut = false,
+        drawbotgcut = false
     })
     pcell.pop_overwrites("logic/base")
     gate:merge_into_shallow(harness)
