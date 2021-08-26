@@ -99,7 +99,7 @@ function layout(gate, _P)
     pcell.push_overwrites("logic/base", { connectoutput = false, rightdummies = 0 })
     pcell.push_overwrites("logic/harness", { shiftpcontactsinner = bp.pwidth / 2, shiftncontactsinner = bp.nwidth / 2 })
     local fbinv2ref = pcell.create_layout("logic/not_gate", { 
-        inputpos = _P.clockpolarity == "positive" and "upper" or "lower"
+        inputpos = "center"
     })
     local fbinv2name = pcell.add_cell_reference(fbinv2ref, "fbinv2")
     local fbinv2 = gate:add_child(fbinv2name)
@@ -197,7 +197,7 @@ function layout(gate, _P)
     -- tgate to fbinv2
     gate:merge_into_shallow(geometry.rectanglebltr(generics.metal(1),
         (tgate:get_anchor("O") .. fbinv2:get_anchor("I")):translate(0, -bp.gstwidth / 2),
-        fbinv2:get_anchor("I"):translate(xpitch * 3 / 2 - bp.gstwidth / 2 - bp.gstspace, bp.gstwidth / 2)
+        fbinv2:get_anchor("I"):translate(3 / 2 * xpitch - bp.gstspace / 2, bp.gstwidth / 2)
     ))
 
     -- clk connections
@@ -212,15 +212,16 @@ function layout(gate, _P)
         fbcinv1:get_anchor(fbcinvanchor1):translate(-2 * xpitch + bp.gstspace + bp.gstwidth, 0),
         tgate:get_anchor(fbcinvanchor1):translate(xpitch, 0),
         0,
-        fbcinv2:get_anchor(fbcinvanchor1):translate(-xpitch / 2 + bp.gstwidth / 2, bp.gstwidth + bp.gstspace)
+        fbcinv2:get_anchor(fbcinvanchor2):translate(xpitch - bp.gstwidth / 2 - bp.gstspace, 0)
     }), bp.sdwidth))
     gate:merge_into_shallow(geometry.path(generics.metal(2), 
         geometry.path_points_xy(
             clockinv1:get_anchor("O") .. clockinv2:get_anchor("I"), {
             (clockinv2:get_anchor("I") .. cinv:get_anchor(fbcinvanchor1)):translate(xpitch, 0),
             fbcinv1:get_anchor(fbcinvanchor2):translate(-2 * xpitch, 0),
-            fbcinv2:get_anchor(fbcinvanchor1):translate(xpitch - bp.gstwidth - bp.gstspace, 0),
+            tgate:get_anchor(fbcinvanchor2):translate(xpitch - bp.gstwidth - bp.gstspace, 0),
             0,
+            fbcinv2:get_anchor(fbcinvanchor2):translate(xpitch, bp.gstspace + bp.gstwidth),
             fbcinv2:get_anchor(fbcinvanchor1):translate(-3 * xpitch + bp.gstwidth / 2 + bp.gstspace, 0),
     }), bp.sdwidth))
     -- vias
@@ -251,23 +252,27 @@ function layout(gate, _P)
 
     -- fbcinv2 connections
     gate:merge_into_shallow(
-        geometry.rectangle(generics.via(1, 2, true), 2 * bp.glength + bp.gspace + bp.gspace - bp.gstspace, bp.sdwidth)
-        :translate(fbcinv2:get_anchor(fbcinvanchor1):translate(-xpitch * 3 / 2, bp.gstwidth + bp.gstspace)))
-    gate:merge_into_shallow(geometry.path(generics.metal(1), 
-        geometry.path_points_yx(
-            fbcinv2:get_anchor(fbcinvanchor1):translate(-3 * xpitch + bp.gstwidth / 2 + bp.gstspace, bp.gstwidth + bp.gstspace), {
-                fbcinv2:get_anchor(fbcinvanchor1):translate(-xpitch / 2, bp.gstwidth + bp.gstspace),
-                fbcinv2:get_anchor(fbcinvanchor2):translate(xpitch - bp.gstspace - bp.gstwidth / 2, 0)
-            }), 
-    bp.sdwidth))
+        geometry.rectanglebltr(generics.via(1, 2, true), 
+            fbcinv2:get_anchor(fbcinvanchor2):translate(-3 * xpitch + bp.gstwidth / 2 + bp.gstspace, -bp.gstwidth / 2),
+            fbcinv2:get_anchor(fbcinvanchor2):translate(xpitch - bp.gstwidth / 2 - bp.gstspace, bp.gstwidth / 2)
+    ))
     gate:merge_into_shallow(
-        geometry.rectangle(generics.via(1, 2, true), 2 * xpitch, bp.sdwidth)
-        :translate(fbcinv2:get_anchor(fbcinvanchor1):translate(-xpitch * 2 / 2, 0)))
+        geometry.path(generics.metal(1), {
+            fbcinv2:get_anchor(fbcinvanchor2):translate(-3 * xpitch + bp.gstwidth / 2 + bp.gstspace, 0),
+            fbcinv2:get_anchor(fbcinvanchor2):translate(xpitch - bp.gstwidth / 2 - bp.gstspace, 0)
+        }, bp.gstwidth
+    ))
+    gate:merge_into_shallow(
+        geometry.rectanglebltr(generics.via(1, 2, true), 
+            fbcinv2:get_anchor(fbcinvanchor1):translate(-3 * xpitch + bp.gstwidth / 2 + bp.gstspace, -bp.gstwidth / 2),
+            fbcinv2:get_anchor(fbcinvanchor1):translate(xpitch - bp.gstwidth / 2 - bp.gstspace, bp.gstwidth / 2)
+    ))
     gate:merge_into_shallow(
         geometry.path(generics.metal(1), {
             fbcinv2:get_anchor(fbcinvanchor1):translate(-3 * xpitch + bp.gstwidth / 2 + bp.gstspace, 0),
             fbcinv2:get_anchor(fbcinvanchor1):translate(xpitch - bp.gstwidth / 2 - bp.gstspace, 0)
-        }, bp.gstwidth))
+        }, bp.gstwidth
+    ))
 
     -- ~clk connections vias
     for _, anchor in ipairs({ fbcinv1:get_anchor("EP"), fbcinv1:get_anchor("EN"), tgate:get_anchor("EP"), tgate:get_anchor("EN") }) do
@@ -304,7 +309,7 @@ function layout(gate, _P)
 
     -- output connection
     gate:merge_into_shallow(geometry.rectanglebltr(generics.metal(1),
-        fbcinv2:get_anchor("I"):translate(-3 * xpitch / 2 + bp.gstwidth / 2 + bp.gstspace, -bp.gstwidth / 2),
+        fbcinv2:get_anchor("I"):translate(-3 / 2 * xpitch + bp.gstspace / 2, -bp.gstwidth / 2),
         outinv1:get_anchor("I"):translate(xpitch - bp.gstwidth / 2 - bp.gstspace,  bp.gstwidth / 2)
     ))
 
