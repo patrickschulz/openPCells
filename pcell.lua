@@ -448,7 +448,7 @@ function M.push_overwrites(othercell, cellargs)
     push_overwrites(state, nil, othercell, cellargs)
 end
 
-function M.pop_overwrites(cellname, othercell)
+function M.pop_overwrites(othercell)
     pop_overwrites(state, nil, othercell)
 end
 
