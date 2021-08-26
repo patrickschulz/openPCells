@@ -209,7 +209,7 @@ function layout(gate, _P)
     -- M2 bars
     gate:merge_into_shallow(geometry.path(generics.metal(2), 
         geometry.path_points_xy(clockinv2:get_anchor(clockinvanchor1):translate(0, -yinvert * bp.sdwidth / 2), {
-        fbcinv1:get_anchor(fbcinvanchor1):translate(-2 * xpitch + bp.gstspace + bp.gstwidth, 0),
+        fbcinv1:get_anchor(fbcinvanchor1):translate(-2 * xpitch, 0),
         tgate:get_anchor(fbcinvanchor1):translate(xpitch, 0),
         0,
         fbcinv2:get_anchor(fbcinvanchor2):translate(xpitch - bp.gstwidth / 2 - bp.gstspace, 0)
@@ -218,6 +218,8 @@ function layout(gate, _P)
         geometry.path_points_xy(
             clockinv1:get_anchor("O") .. clockinv2:get_anchor("I"), {
             (clockinv2:get_anchor("I") .. cinv:get_anchor(fbcinvanchor1)):translate(xpitch, 0),
+            fbinv1:get_anchor("I"):translate(- bp.gstwidth - bp.gstspace, 0),
+            fbinv1:get_anchor("I"),
             fbcinv1:get_anchor(fbcinvanchor2):translate(-2 * xpitch, 0),
             tgate:get_anchor(fbcinvanchor2):translate(xpitch - bp.gstwidth - bp.gstspace, 0),
             0,
