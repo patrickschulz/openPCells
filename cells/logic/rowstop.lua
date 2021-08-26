@@ -47,9 +47,9 @@ function layout(gate, _P)
 
     -- implants
     gate:merge_into_shallow(geometry.rectanglebltr(generics.other("pimpl"), 
-        gate:get_anchor("left"), gate:get_anchor("topright")))
+        gate:get_anchor("left"):translate(-200, 0), gate:get_anchor("topright"):translate(0, 200)))
     gate:merge_into_shallow(geometry.rectanglebltr(generics.other("nimpl"), 
-        gate:get_anchor("bottomleft"), gate:get_anchor("right")))
+        gate:get_anchor("bottomleft"):translate(-200, -200), gate:get_anchor("right")))
 
     -- gate cuts
     if _P.splitgates then
