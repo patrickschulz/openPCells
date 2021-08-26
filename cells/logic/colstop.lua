@@ -1,7 +1,6 @@
 function parameters()
     pcell.reference_cell("logic/base")
     pcell.add_parameter("fingers", 4)
-    pcell.add_parameter("fingers", 4)
 end
 
 function layout(gate, _P)

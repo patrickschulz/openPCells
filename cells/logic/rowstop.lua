@@ -19,8 +19,12 @@ function layout(gate, _P)
     gate:merge_into_shallow(harness)
     gate:inherit_alignment_box(harness)
 
-    for i, gl in ipairs(_P.glengths) do
+    local numgates = #_P.glengths
+    local startx = gate:get_anchor("right"):getx()
+    for i = 1, numgates do
+        local gl = _P.glengths[i]
+        local gs = _P.gspaces[i]
         gate:merge_into_shallow(geometry.rectangle(generics.other("gate"), gl, 1000)
-            :translate((gl + _P.gspaces[i]) * ((i - 1) - (#_P.glengths - 1) / 2), 0))
+            :translate(startx - (bp.glength + bp.gspace) / 2 + (gl + gs) * -(i - 1), 0))
     end
 end
