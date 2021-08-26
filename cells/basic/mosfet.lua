@@ -57,7 +57,8 @@ end
 
 function layout(transistor, _P)
     local gatepitch = _P.gatelength + _P.gatespace
-    local actwidth = _P.fingers * gatepitch + _P.sdwidth + 2 * _P.actext
+    --local actwidth = _P.fingers * gatepitch + _P.sdwidth + 2 * _P.actext
+    local actwidth = (_P.fingers + 1) * gatepitch
 
     local gateaddtop = math.max(_P.gtopext, enable(_P.drawtopgate, _P.topgatestrspace + _P.topgatestrwidth))
     local gateaddbot = math.max(_P.gbotext, enable(_P.drawbotgate, _P.botgatestrspace + _P.botgatestrwidth))
