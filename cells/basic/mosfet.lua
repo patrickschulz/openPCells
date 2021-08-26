@@ -50,7 +50,8 @@ function parameters()
         { "topactivedummysep",                                          80 },
         { "drawbotactivedummy",                                      false },
         { "botactivedummywidth",                                        80 },
-        { "botactivedummysep",                                          80 }
+        { "botactivedummysep",                                          80 },
+        { "drawactive",                                               true }
     )
 end
 
@@ -71,14 +72,16 @@ function layout(transistor, _P)
     ))
 
     -- active
-    transistor:merge_into_shallow(geometry.rectangle(generics.other("active"), actwidth, _P.fwidth))
-    if _P.drawtopactivedummy then
-        transistor:merge_into_shallow(geometry.rectangle(generics.other("active"), actwidth, _P.topactivedummywidth)
-        :translate(0, _P.fwidth / 2 + _P.topactivedummywidth / 2 + _P.topactivedummysep))
-    end
-    if _P.drawbotactivedummy then
-        transistor:merge_into_shallow(geometry.rectangle(generics.other("active"), actwidth, _P.botactivedummywidth)
-        :translate(0, -_P.fwidth / 2 - _P.botactivedummywidth / 2 - _P.botactivedummysep))
+    if _P.drawactive then
+        transistor:merge_into_shallow(geometry.rectangle(generics.other("active"), actwidth, _P.fwidth))
+        if _P.drawtopactivedummy then
+            transistor:merge_into_shallow(geometry.rectangle(generics.other("active"), actwidth, _P.topactivedummywidth)
+            :translate(0, _P.fwidth / 2 + _P.topactivedummywidth / 2 + _P.topactivedummysep))
+        end
+        if _P.drawbotactivedummy then
+            transistor:merge_into_shallow(geometry.rectangle(generics.other("active"), actwidth, _P.botactivedummywidth)
+            :translate(0, -_P.fwidth / 2 - _P.botactivedummywidth / 2 - _P.botactivedummysep))
+        end
     end
 
     -- boundary for feol implant/well etc. layers
