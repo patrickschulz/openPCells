@@ -46,8 +46,7 @@ function layout(gate, _P)
     -- second part of clock inverter/buffer
     pcell.push_overwrites("logic/base", { leftdummies = 0 })
     local clockinv2ref = pcell.create_layout("logic/not_gate", { 
-        --inputpos = _P.clockpolarity == "positive" and "lower" or "upper",
-        inputpos = "center",
+        inputpos = _P.clockpolarity == "positive" and "lower" or "upper",
         shiftoutput = xpitch / 2 
     })
     local clockinv2name = pcell.add_cell_reference(clockinv2ref, "clockinv2")
@@ -305,7 +304,6 @@ function layout(gate, _P)
 
     -- output connection
     gate:merge_into_shallow(geometry.rectanglebltr(generics.metal(1),
-        --fbcinv2:get_anchor("I"):translate(-bp.glength / 2 - (bp.gspace - bp.gstspace) / 2, -bp.gstwidth / 2),
         fbcinv2:get_anchor("I"):translate(-3 * xpitch / 2 + bp.gstwidth / 2 + bp.gstspace, -bp.gstwidth / 2),
         outinv1:get_anchor("I"):translate(xpitch - bp.gstwidth / 2 - bp.gstspace,  bp.gstwidth / 2)
     ))
