@@ -2,8 +2,9 @@ function parameters()
     pcell.reference_cell("basic/mosfet")
     pcell.reference_cell("logic/base")
     pcell.add_parameters(
-        {"glengths", { 40, 40, 40, 40, 40 }, { argtype = "strtable" } },
-        {"gspaces", { 90, 90, 90, 90, 90 }, { argtype = "strtable" } }
+        { "glengths", { 40, 40, 40, 40, 40 }, { argtype = "strtable" } },
+        { "gspaces", { 90, 90, 90, 90, 90 }, { argtype = "strtable" } },
+        { "splitgates", true }
     )
 end
 
@@ -32,10 +33,15 @@ function layout(gate, _P)
             :translate(startx - (bp.glength + bp.gspace) / 2 + (gl + gs) * -(i - 1), 0))
         -- tuck gate marking
         if i == 1 then
-            gate:merge_into_shallow(geometry.rectangle(generics.other("tuckgatemarker"), gl, height / 2 - tp.cutheight / 2)
-                :translate(startx - (bp.glength + bp.gspace) / 2 + (gl + gs) * -(i - 1), (height / 2 + tp.cutheight / 2) / 2))
-            gate:merge_into_shallow(geometry.rectangle(generics.other("tuckgatemarker"), gl, height / 2 - tp.cutheight / 2)
-                :translate(startx - (bp.glength + bp.gspace) / 2 + (gl + gs) * -(i - 1), -(height / 2 + tp.cutheight / 2) / 2))
+            if _P.splitgates then
+                gate:merge_into_shallow(geometry.rectangle(generics.other("tuckgatemarker"), gl, height / 2 - tp.cutheight / 2)
+                    :translate(startx - (bp.glength + bp.gspace) / 2 + (gl + gs) * -(i - 1), (height / 2 + tp.cutheight / 2) / 2))
+                gate:merge_into_shallow(geometry.rectangle(generics.other("tuckgatemarker"), gl, height / 2 - tp.cutheight / 2)
+                    :translate(startx - (bp.glength + bp.gspace) / 2 + (gl + gs) * -(i - 1), -(height / 2 + tp.cutheight / 2) / 2))
+            else
+                gate:merge_into_shallow(geometry.rectangle(generics.other("tuckgatemarker"), gl, height)
+                    :translate(startx - (bp.glength + bp.gspace) / 2 + (gl + gs) * -(i - 1), 0))
+            end
         end
     end
 
@@ -46,6 +52,8 @@ function layout(gate, _P)
         gate:get_anchor("bottomleft"), gate:get_anchor("right")))
 
     -- gate cuts
-    gate:merge_into_shallow(geometry.rectangle(generics.other("gatecut"), bp.glength + bp.gspace, tp.cutheight)
-        :translate(gate:get_anchor("right"):translate(-(bp.glength + bp.gspace) / 2, 0)))
+    if _P.splitgates then
+        gate:merge_into_shallow(geometry.rectangle(generics.other("gatecut"), bp.glength + bp.gspace, tp.cutheight)
+            :translate(gate:get_anchor("right"):translate(-(bp.glength + bp.gspace) / 2, 0)))
+    end
 end
