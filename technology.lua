@@ -103,7 +103,7 @@ local function _get_via_arrayzation(width, height, entry)
         via.yrep = 0
         via.conductivity = 0
         for i = 1, #entry.width do
-            local xrep, yrep = f(entry.width[i], entry.height[i], entry.xspace[i], entry.yspace[i], entry.xencl[i], entry.yencl[i], not entry.noneedtofit)
+            local xrep, yrep = f(entry.width[i], entry.height[i], entry.xspace[i], entry.yspace[i], entry.xencl[i], entry.yencl[i], (not entry.noneedtofit) and true or not entry.noneedtofit[i])
             if xrep * yrep * entry.conductivity[i] > via.xrep * via.yrep * via.conductivity then
                 via.width = entry.width[i]
                 via.height = entry.height[i]
@@ -123,6 +123,7 @@ local function _get_via_arrayzation(width, height, entry)
         via.xrep = xrep
         via.yrep = yrep
     end
+    if not via.width then return nil end
     return via
 end
 
@@ -132,18 +133,22 @@ local function _do_array(cell, S, entry, export)
     local height = S:height()
     local c = S:center()
     local via = _get_via_arrayzation(width, height, entry)
-    local enlarge = 0
-    local lpp = _get_lpp(entry, export)
-    local cut = geometry.multiple_xy(
-        geometry.rectangle(generics.mapped(entry.name, lpp), via.width + enlarge, via.height + enlarge),
-        via.xrep, via.yrep, via.xpitch, via.ypitch
-    )
-    cut:translate(entry.xshift or 0, entry.yshift or 0)
+    if via then
+        local enlarge = 0
+        local lpp = _get_lpp(entry, export)
+        local cut = geometry.multiple_xy(
+            geometry.rectangle(generics.mapped(entry.name, lpp), via.width + enlarge, via.height + enlarge),
+            via.xrep, via.yrep, via.xpitch, via.ypitch
+        )
+        cut:translate(entry.xshift or 0, entry.yshift or 0)
 
-    cut:translate(c:unwrap())
-    for _, S in cut:iterate_shapes() do
-        local new = cell:add_raw_shape(S)
-        new:apply_transformation(cut.trans, cut.trans.apply_transformation)
+        cut:translate(c:unwrap())
+        for _, S in cut:iterate_shapes() do
+            local new = cell:add_raw_shape(S)
+            new:apply_transformation(cut.trans, cut.trans.apply_transformation)
+        end
+    else
+        modwarning("could not fit via, the shape was ignored. The generated layout won't be correct.")
     end
 end
 
@@ -309,7 +314,8 @@ local function _load_layermap(name)
                             yspace = entry.yspace,
                             xencl = entry.xencl,
                             yencl = entry.yencl,
-                            conductivity = entry.conductivity
+                            conductivity = entry.conductivity,
+                            noneedtofit = entry.noneedtofit
                         }
                     end,
                 }
