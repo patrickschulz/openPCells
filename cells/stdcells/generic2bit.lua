@@ -1,12 +1,12 @@
 function parameters()
-    pcell.reference_cell("logic/base")
+    pcell.reference_cell("stdcells/base")
     pcell.add_parameter("fingers", 1)
     pcell.add_parameter("bitpattern", { 0, 1, 1, 0 } )
 end
 
 function layout(gate, _P)
-    local bp = pcell.get_parameters("logic/base")
-    local base = pcell.create_layout("logic/nand_nor_layout_base", { fingers = _P.fingers, gatetype = "nand" })
+    local bp = pcell.get_parameters("stdcells/base")
+    local base = pcell.create_layout("stdcells/nand_nor_layout_base", { fingers = _P.fingers, gatetype = "nand" })
     gate:merge_into_shallow(base)
 
     -- ports

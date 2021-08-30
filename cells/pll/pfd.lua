@@ -5,7 +5,7 @@ function parameters()
 end
 
 function layout(pfd, _P)
-    local norref = pcell.create_layout("logic/nor_gate")
+    local norref = pcell.create_layout("stdcells/nor_gate")
     local norname = pcell.add_cell_reference(norref, "nor")
     local nor1 = pfd:add_child(norname)
     local nor2 = pfd:add_child(norname)

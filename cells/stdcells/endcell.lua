@@ -1,9 +1,9 @@
 function parameters()
-    pcell.reference_cell("logic/base")
+    pcell.reference_cell("stdcells/base")
 end
 
 function layout(cell, _P)
-    local bp = pcell.get_parameters("logic/base")
+    local bp = pcell.get_parameters("stdcells/base")
     local xpitch = bp.gspace + bp.glength
     local separation = bp.numinnerroutes * bp.gstwidth + (bp.numinnerroutes + 1) * bp.gstspace
 

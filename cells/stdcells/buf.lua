@@ -1,5 +1,5 @@
 function parameters()
-    pcell.reference_cell("logic/base")
+    pcell.reference_cell("stdcells/base")
     pcell.add_parameters(
         { "ifingers", 1 },
         { "ofingers", 1 },
@@ -9,27 +9,27 @@ function parameters()
 end
 
 function layout(gate, _P)
-    local bp = pcell.get_parameters("logic/base")
+    local bp = pcell.get_parameters("stdcells/base")
 
-    pcell.push_overwrites("logic/base", {
+    pcell.push_overwrites("stdcells/base", {
         rightdummies = _P.ifingers % 2 == 0 and 0 or 1
     })
-    local iinv = pcell.create_layout("logic/not_gate", { 
+    local iinv = pcell.create_layout("stdcells/not_gate", { 
         fingers = _P.ifingers, 
         shiftinput = _P.shiftinput1, 
         shiftoutput = bp.glength / 2 + bp.gspace / 2 
     }):move_anchor("right")
-    pcell.pop_overwrites("logic/base")
+    pcell.pop_overwrites("stdcells/base")
 
-    pcell.push_overwrites("logic/base", {
+    pcell.push_overwrites("stdcells/base", {
         leftdummies = 0,
     })
-    local oinv = pcell.create_layout("logic/not_gate", { 
+    local oinv = pcell.create_layout("stdcells/not_gate", { 
         fingers = _P.ofingers, 
         shiftinput = _P.shiftinput2, 
         shiftoutput = bp.glength / 2 + bp.gspace / 2 
     }):move_anchor("left")
-    pcell.pop_overwrites("logic/base")
+    pcell.pop_overwrites("stdcells/base")
     gate:merge_into_shallow(iinv)
     gate:merge_into_shallow(oinv)
 
