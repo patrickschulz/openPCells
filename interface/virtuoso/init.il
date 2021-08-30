@@ -292,7 +292,7 @@ procedure(OPCCreateSettingsForm()
                 ?name 'OPCSettingsMerge
                 ?choices list("true" "false")
                 ?value "false"
-                ?prompt "Merge Rectangles"
+                ?prompt "Merge Rectangles (can take a long time)"
             )
             hiCreateRadioField(
                 ?name 'OPCSettingsGroup
