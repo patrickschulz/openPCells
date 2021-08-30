@@ -40,8 +40,8 @@ function layout(gate, _P)
     local harness = pcell.create_layout("logic/harness", { 
         fingers = 6 * _P.fingers, 
         drawgatecontacts = true,
-        gatecontactpos = { "lower", "lower", "center", "upper", "lower", "lower" },
-        pcontactpos = { "power", "outer", "outer", "inner", nil, "power", "power" },
+        gatecontactpos = { "lower", "center", "center", "upper", "center", "lower" },
+        pcontactpos = { "power", "outer", "outer", "outer", nil, "power", "power" },
         ncontactpos = { "power", "power", nil, "inner", "outer", "outer", "power" }
     })
     gate:merge_into_shallow(harness)
@@ -68,14 +68,6 @@ function layout(gate, _P)
         harness:get_anchor("nSDc5"):translate(0, -bp.sdwidth / 2), 
         harness:get_anchor("nSDc6"):translate(0,  bp.sdwidth / 2)
     ))
-
-    -- output connection
-    gate:merge_into_shallow(geometry.path(generics.metal(1), geometry.path_points_xy(
-        harness:get_anchor("pSDi4"):translate(0, bp.sdwidth / 2), { 
-            harness:get_anchor("G6"):translate(xpitch, 0),
-            0, -- toggle xy
-            harness:get_anchor("nSDi4"):translate(0, -bp.sdwidth / 2)
-        }), bp.sdwidth))
 
     -- place block
     for i = 1, _P.fingers do
@@ -105,6 +97,16 @@ function layout(gate, _P)
     gate:inherit_alignment_box(inva)
     pcell.pop_overwrites("logic/base")
 
+    -- output connection
+    gate:merge_into_shallow(geometry.path(generics.metal(1), geometry.path_points_xy(
+        harness:get_anchor("pSDc4"), {
+            point.combine_12(harness:get_anchor("pSDc4"), invb:get_anchor("OTRi")):translate(xpitch, bp.sdwidth / 2),
+            harness:get_anchor("G6"):translate(xpitch, 0),
+            0, -- toggle xy
+            harness:get_anchor("nSDi4"):translate(0, -bp.sdwidth / 2)
+        }), bp.sdwidth))
+
+
     -- B
     gate:merge_into_shallow(geometry.path(generics.metal(2), {
         point.combine_12(inva:get_anchor("I"), invb:get_anchor("I")),
@@ -114,12 +116,13 @@ function layout(gate, _P)
     gate:merge_into_shallow(geometry.path(generics.metal(1), geometry.path_points_xy(
         point.combine_12(inva:get_anchor("O"), harness:get_anchor("G1")), {
             invb:get_anchor("I"):translate(xpitch, 0),
-            harness:get_anchor("G2"),
+            harness:get_anchor("G2"):translate(0, -bp.sdwidth / 2),
         }), bp.sdwidth))
     gate:merge_into_shallow(geometry.path(generics.metal(1), geometry.path_points_xy(
         invb:get_anchor("OTRi"):translate(0, bp.sdwidth / 2), { 
             harness:get_anchor("G3"),
             0, -- toggle xy
+            point.combine_12(harness:get_anchor("G2"), harness:get_anchor("G1")),
             invb:get_anchor("OBRi"):translate(0, -bp.sdwidth / 2)
         }), bp.sdwidth))
     gate:merge_into_shallow(geometry.path(generics.metal(2), {
@@ -136,27 +139,41 @@ function layout(gate, _P)
         harness:get_anchor("G5"),
         }, bp.sdwidth))
 
-    ---- M1 -> M2 vias
-    gate:merge_into_shallow(geometry.rectangle(generics.via(1, 2), xpitch, bp.sdwidth)
-        :translate(point.combine_12(inva:get_anchor("I"), invb:get_anchor("I"))))
-    gate:merge_into_shallow(geometry.rectangle(generics.via(1, 2), xpitch, bp.sdwidth)
-        :translate(inva:get_anchor("I")))
-    gate:merge_into_shallow(geometry.rectangle(generics.via(1, 2), xpitch, bp.sdwidth)
-        :translate(invb:get_anchor("I")))
+    -- M1 -> M2 vias
+    gate:merge_into_shallow(geometry.rectanglebltr(generics.via(1, 2), 
+        point.combine_12(inva:get_anchor("I"), invb:get_anchor("I")):translate(-xpitch + bp.gstwidth / 2 + bp.gstspace, -bp.sdwidth / 2),
+        point.combine_12(inva:get_anchor("I"), invb:get_anchor("I")):translate( xpitch - bp.gstwidth / 2 - bp.gstspace,  bp.sdwidth / 2)
+    ))
+    gate:merge_into_shallow(geometry.rectanglebltr(generics.via(1, 2), 
+        inva:get_anchor("I"):translate(-xpitch + bp.gstwidth / 2 + bp.gstspace, -bp.sdwidth / 2),
+        inva:get_anchor("I"):translate( xpitch - bp.gstwidth / 2 - bp.gstspace,  bp.sdwidth / 2)
+    ))
+    gate:merge_into_shallow(geometry.rectanglebltr(generics.via(1, 2), 
+        invb:get_anchor("I"):translate(-xpitch + bp.gstwidth / 2 + bp.gstspace, -bp.sdwidth / 2),
+        invb:get_anchor("I"):translate( xpitch - bp.gstwidth / 2 - bp.gstspace,  bp.sdwidth / 2)
+    ))
 
-    gate:merge_into_shallow(geometry.rectangle(generics.via(1, 2), xpitch, bp.sdwidth)
-        :translate(harness:get_anchor("G1")))
-    gate:merge_into_shallow(geometry.rectangle(generics.via(1, 2), bp.glength, bp.sdwidth)
-        :translate(harness:get_anchor("G2")))
+    gate:merge_into_shallow(geometry.rectanglebltr(generics.via(1, 2),
+        harness:get_anchor("G1"):translate(-xpitch + bp.gstwidth / 2 + bp.gstspace, -bp.sdwidth / 2),
+        harness:get_anchor("G1"):translate( xpitch - math.max(bp.glength, bp.gstwidth) / 2 - bp.gstspace,  bp.sdwidth / 2)
+    ))
+    gate:merge_into_shallow(geometry.rectanglebltr(generics.via(1, 2),
+        harness:get_anchor("G2"):translate(-math.max(bp.glength, bp.gstwidth) / 2, -bp.sdwidth / 2),
+        harness:get_anchor("G2"):translate( math.max(bp.glength, bp.gstwidth) / 2,  bp.sdwidth / 2)
+    ))
 
     gate:merge_into_shallow(geometry.rectanglebltr(generics.via(1, 2), 
-        point.combine_12(harness:get_anchor("G6"), harness:get_anchor("G5")):translate(-bp.glength / 2, -bp.gstwidth / 2),
-        point.combine_12(harness:get_anchor("G6"), harness:get_anchor("G4")):translate( bp.glength / 2,  bp.gstwidth / 2)
+        harness:get_anchor("G6"):translate(-bp.gstwidth / 2, -bp.gstwidth / 2),
+        point.combine_12(harness:get_anchor("G6"), harness:get_anchor("G4")):translate( bp.gstwidth / 2,  bp.gstwidth / 2)
     ))
-    gate:merge_into_shallow(geometry.rectangle(generics.via(1, 2), 2 * bp.glength + bp.gspace, bp.sdwidth)
-        :translate(harness:get_anchor("G5"):translate(-xpitch / 2, 0)))
-    gate:merge_into_shallow(geometry.rectangle(generics.via(1, 2), 2 * bp.glength + bp.gspace, bp.sdwidth)
-        :translate(harness:get_anchor("G4"):translate(xpitch / 2, 0)))
+    gate:merge_into_shallow(geometry.rectanglebltr(generics.via(1, 2), 
+        harness:get_anchor("G5"):translate(-2 * xpitch + math.max(bp.glength, bp.gstwidth) / 2 + bp.gstspace, -bp.sdwidth / 2),
+        harness:get_anchor("G5"):translate( 1 * xpitch - math.max(bp.glength, bp.gstwidth) / 2 - bp.gstspace,  bp.sdwidth / 2)
+    ))
+    gate:merge_into_shallow(geometry.rectanglebltr(generics.via(1, 2), 
+        harness:get_anchor("G4"):translate(-1 * xpitch + math.max(bp.glength, bp.gstwidth) / 2 + bp.gstspace, -bp.sdwidth / 2),
+        harness:get_anchor("G4"):translate( 2 * xpitch - math.max(bp.glength, bp.gstwidth) / 2 - bp.gstspace,  bp.sdwidth / 2)
+    ))
 
     gate:add_port("A", generics.metal(1), inva:get_anchor("I"))
     gate:add_port("B", generics.metal(1), point.combine_12(inva:get_anchor("I"), invb:get_anchor("I")))
