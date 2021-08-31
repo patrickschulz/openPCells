@@ -31,67 +31,42 @@ procedure(OPCGetCellParameters(cellname)
                             then
                                 field = get(OPCCellForm->extraFields sym)
                             else
-                                field = case(vtype
-                                    ("number"
-                                        hiCreateFloatField(
-                                            ?name sym
-                                            ?value atof(default)
-                                            ?prompt display
-                                        )
+                                field = let(
+                                    (func value)
+                                    func = case(vtype 
+                                        ("number" 'hiCreateFloatField) 
+                                        ("integer" 'hiCreateIntField) 
+                                        ("boolean" 'hiCreateRadioField)
+                                        ("string" 'hiCreateStringField)
+                                        ("numtable" 'hiCreateStringField)
+                                        ("strtable" 'hiCreateStringField)
+                                        (t nil)
                                     )
-                                    ("integer"
-                                        hiCreateIntField(
-                                            ?name sym
-                                            ?value atoi(default)
-                                            ?prompt display
-                                        )
-                                    )                                 
-                                    ("boolean"
-                                        hiCreateRadioField(
-                                            ?name sym
-                                            ?choices list("true" "false")
-                                            ?value default
-                                            ?prompt display
-                                        )
+                                    value = case(vtype 
+                                        ("number" atof(default))
+                                        ("integer" atoi(default))
+                                        (t default)
                                     )
-                                    ;("boolean"
-                                    ;    hiCreateBooleanButton(
-                                    ;        ?name sym
-                                    ;        ?value t
-                                    ;        ?buttonText display
-                                    ;    )
-                                    ;)
-                                    ("string"
-                                        hiCreateStringField(
-                                            ?name sym
-                                            ?value default
-                                            ?prompt display
-                                        )
+                                    if(func
+                                        then
+                                            if(vtype == "boolean"
+                                                then
+                                                    field = apply(func ?name sym ?prompt display ?value value ?choices list("true" "false"))
+                                                else
+                                                    field = apply(func ?name sym ?prompt display ?value value)
+                                            )
+                                        else
+                                            printf("error while parsing parameter line '%s'\n" line)
+                                            printf("parse result:\n ptype = %s\n parent = %s\n name = %s\n display = %s\n default = %s\n vtype = %s\n readonly = %s\n" ptype parent name display default vtype readonly)
+                                            nil
                                     )
-                                    ("numtable"
-                                        hiCreateStringField(
-                                            ?name sym
-                                            ?value default
-                                            ?prompt display
-                                        )
-                                    )
-                                    ("strtable"
-                                        hiCreateStringField(
-                                            ?name sym
-                                            ?value default
-                                            ?prompt display
-                                        )
-                                    )
-                                    (t
-                                        printf("error while parsing parameter line '%s'\n" line)
-                                        printf("parse result:\n ptype = %s\n parent = %s\n name = %s\n display = %s\n default = %s\n vtype = %s\n readonly = %s\n" ptype parent name display default vtype readonly)
-                                        nil
-                                    )
-                                ) ; case
-                                ; store field
-                                putprop(OPCCellForm->extraFields field sym)
-                                putprop(OPCCellForm->fieldParents parent sym)
-                                putprop(OPCCellForm->fieldNames name sym)
+                                )
+                                when(field
+                                    ; store field
+                                    putprop(OPCCellForm->extraFields field sym)
+                                    putprop(OPCCellForm->fieldParents parent sym)
+                                    putprop(OPCCellForm->fieldNames name sym)
+                                )
                         ) ; if
                         fieldlist = cons(field fieldlist)
                     ) ; unless readonly
