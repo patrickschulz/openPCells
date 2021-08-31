@@ -32,7 +32,7 @@ procedure(OPCGetCellParameters(cellname)
                                 field = get(OPCCellForm->extraFields sym)
                             else
                                 field = let(
-                                    (func value)
+                                    (func value arglist)
                                     func = case(vtype 
                                         ("number" 'hiCreateFloatField) 
                                         ("integer" 'hiCreateIntField) 
@@ -49,12 +49,17 @@ procedure(OPCGetCellParameters(cellname)
                                     )
                                     if(func
                                         then
-                                            if(vtype == "boolean"
-                                                then
-                                                    field = apply(func list(?name sym ?prompt display ?value value ?choices list("true" "false")))
-                                                else
-                                                    field = apply(func list(?name sym ?prompt display ?value value))
+                                            arglist = list(
+                                                ?name sym 
+                                                ?prompt display 
+                                                ?value value
+                                                ?callback 'OPCUpdateCellShapeCB
                                             )
+                                            when(vtype == "boolean"
+                                                arglist = cons(arglist list("true" "false"))
+                                                arglist = cons(arglist ?choices)
+                                            )
+                                            field = apply(func arglist)
                                         else
                                             printf("error while parsing parameter line '%s'\n" line)
                                             printf("parse result:\n ptype = %s\n parent = %s\n name = %s\n display = %s\n default = %s\n vtype = %s\n readonly = %s\n" ptype parent name display default vtype readonly)
@@ -89,13 +94,14 @@ procedure(OPCUpdateLibName(lib)
 	)
 )
 
-procedure(OPCLibNameCallback(field form)
+procedure(OPCLibNameCB(field form)
 	let(
 		(celllist)
 		celllist = cadr(OPCUpdateLibName(field->value))
 		form->OPCCellList->items = celllist
 		form->OPCCellList->value = car(celllist)
 	)
+    OPCUpdateCellShapeCB(field form)
 )
 
 procedure(OPCUpdateCellParameters(cellname)
@@ -123,6 +129,15 @@ procedure(OPCUpdateCellParameters(cellname)
 
 procedure(OPCUpdateCellParametersCB(field form)
 	OPCUpdateCellParameters(lsprintf("%s/%s" OPCCellForm->OPCLibList->value OPCCellForm->OPCCellList->value))
+    OPCUpdateCellShapeCB(field form)
+)
+
+procedure(OPCUpdateCellShapeCB(field form)
+    let(
+        (cv)
+        cv = dbOpenCellViewByType("testing" "__opctempcell__" "layout" "maskLayout")
+        OPCCreateCellInternal(cv 0:0)
+    )
 )
 
 procedure(OPCCreateParamForm()
@@ -134,7 +149,7 @@ procedure(OPCCreateParamForm()
 			?prompt "Library"
 			?items car(libcelllist)
 			?value caar(libcelllist)
-			?callback 'OPCLibNameCallback
+			?callback 'OPCLibNameCB
 		)
 		OPCCellList = hiCreateComboField(
 			?name 'OPCCellList
@@ -148,7 +163,7 @@ procedure(OPCCreateParamForm()
 		()
 		hiCreateAppForm(
 			?name 'OPCCellForm
-            ?formType 'options
+            ;?formType 'options
 			?formTitle "OPC Create Cell"
 			?fields list(OPCLibList OPCCellList)
 			?buttonLayout 'HideCancelDef
