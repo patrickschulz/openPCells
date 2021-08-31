@@ -51,9 +51,9 @@ procedure(OPCGetCellParameters(cellname)
                                         then
                                             if(vtype == "boolean"
                                                 then
-                                                    field = apply(func ?name sym ?prompt display ?value value ?choices list("true" "false"))
+                                                    field = apply(func list(?name sym ?prompt display ?value value ?choices list("true" "false")))
                                                 else
-                                                    field = apply(func ?name sym ?prompt display ?value value)
+                                                    field = apply(func list(?name sym ?prompt display ?value value))
                                             )
                                         else
                                             printf("error while parsing parameter line '%s'\n" line)
