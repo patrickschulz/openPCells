@@ -25,9 +25,8 @@ function M.at_begin(file)
     if __let then
         if __group then
             file:write(string.format([[
-letseq(
+let(
     (
-        (cv geGetEditCellView())
         (group if(dbGetFigGroupByName(cv "%s") then dbGetFigGroupByName(cv "%s") else dbCreateFigGroup(cv "%s" t 0:0 "R0")))
         shape
     )
@@ -36,14 +35,13 @@ letseq(
             file:write([[
 let(
     (
-        (cv geGetEditCellView())
         shape
     )
 ]])
         end
     else
         if __group then
-            file:write(string.format('if(dbGetFigGroupByName(geGetEditCellView() "%s") then dbGetFigGroupByName(geGetEditCellView() "%s") else dbCreateFigGroup(geGetEditCellView() "%s" t 0:0 "R0"))\n', __groupname, __groupname, __groupname))
+            file:write(string.format('if(dbGetFigGroupByName(cv "%s") then dbGetFigGroupByName(cv "%s") else dbCreateFigGroup(cv "%s" t 0:0 "R0"))\n', __groupname, __groupname, __groupname))
         end
     end
 end
@@ -85,7 +83,7 @@ local function _get_shape_fmt(shapetype)
             return string.format("    dbCreate%s(cv %%s)", shapetype)
         end
     else
-        return string.format("dbCreate%s(geGetEditCellView() %%s)", shapetype)
+        return string.format("dbCreate%s(cv %%s)", shapetype)
     end
 end
 
@@ -94,7 +92,7 @@ local function _prepare_shape_for_group(file)
         if __let then
             file:write("    dbAddFigToFigGroup(group ")
         else
-            file:write(string.format("dbAddFigToFigGroup(dbGetFigGroupByName(geGetEditCellView() \"%s\") ", __groupname))
+            file:write(string.format("dbAddFigToFigGroup(dbGetFigGroupByName(cv \"%s\") ", __groupname))
         end
     end
 end
