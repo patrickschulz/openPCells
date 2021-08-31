@@ -1,6 +1,6 @@
 function config()
     pcell.reference_cell("basic/mosfet")
-    pcell.reference_cell("logic/base")
+    pcell.reference_cell("stdcells/base")
     pcell.set_property("hidden", true)
 end
 
@@ -29,7 +29,7 @@ end
 
 function layout(gate, _P)
     local tp = pcell.get_parameters("basic/mosfet")
-    local bp = pcell.get_parameters("logic/base")
+    local bp = pcell.get_parameters("stdcells/base")
     local xpitch = bp.gspace + bp.glength
     local xshift = (bp.rightdummies - bp.leftdummies) * xpitch / 2
     local separation = bp.numinnerroutes * bp.gstwidth + (bp.numinnerroutes + 1) * bp.gstspace

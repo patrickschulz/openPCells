@@ -1,5 +1,5 @@
 function config()
-    pcell.reference_cell("logic/base")
+    pcell.reference_cell("stdcells/base")
     pcell.set_property("hidden", true)
 end
 
@@ -13,7 +13,7 @@ function parameters()
 end
 
 function layout(gate, _P)
-    local bp = pcell.get_parameters("logic/base")
+    local bp = pcell.get_parameters("stdcells/base")
     local xpitch = bp.gspace + bp.glength
 
     local gatecontactpos = { }
@@ -48,7 +48,7 @@ function layout(gate, _P)
         end
     end
 
-    local harness = pcell.create_layout("logic/harness", { 
+    local harness = pcell.create_layout("stdcells/harness", { 
         fingers = 2 * _P.fingers,
         gatecontactpos = gatecontactpos,
         pcontactpos = _P.gatetype == "nand" and pcontacts or ncontacts,

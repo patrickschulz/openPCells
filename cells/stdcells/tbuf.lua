@@ -1,5 +1,5 @@
 function parameters()
-    pcell.reference_cell("logic/base")
+    pcell.reference_cell("stdcells/base")
     pcell.add_parameters(
         { "ifingers", 1 },
         { "ofingers", 1 }
@@ -7,21 +7,21 @@ function parameters()
 end
 
 function layout(gate, _P)
-    local bp = pcell.get_parameters("logic/base")
+    local bp = pcell.get_parameters("stdcells/base")
 
-    local isogate = pcell.create_layout("logic/isogate")
+    local isogate = pcell.create_layout("stdcells/isogate")
     gate:merge_into_shallow(isogate)
 
     -- inverter
-    pcell.push_overwrites("logic/base", { rightdummies = 0 })
-    local inv = pcell.create_layout("logic/not_gate", { inputpos = "lower", fingers = _P.ifingers }):move_anchor("right", isogate:get_anchor("left"))
-    pcell.pop_overwrites("logic/base")
+    pcell.push_overwrites("stdcells/base", { rightdummies = 0 })
+    local inv = pcell.create_layout("stdcells/not_gate", { inputpos = "lower", fingers = _P.ifingers }):move_anchor("right", isogate:get_anchor("left"))
+    pcell.pop_overwrites("stdcells/base")
     gate:merge_into_shallow(inv)
 
     -- clocked inverter
-    pcell.push_overwrites("logic/base", { leftdummies = 0 })
-    local cinv = pcell.create_layout("logic/cinv", { fingers = _P.ofingers }):move_anchor("left", isogate:get_anchor("right"))
-    pcell.pop_overwrites("logic/base")
+    pcell.push_overwrites("stdcells/base", { leftdummies = 0 })
+    local cinv = pcell.create_layout("stdcells/cinv", { fingers = _P.ofingers }):move_anchor("left", isogate:get_anchor("right"))
+    pcell.pop_overwrites("stdcells/base")
     gate:merge_into_shallow(cinv)
 
     -- connections

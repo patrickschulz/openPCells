@@ -1,35 +1,35 @@
 function parameters()
-    pcell.reference_cell("logic/base")
+    pcell.reference_cell("stdcells/base")
 end
 
 function layout(gate, _P)
-    local bp = pcell.get_parameters("logic/base")
+    local bp = pcell.get_parameters("stdcells/base")
 
     -- clock inverter/buffer
-    local clockbuf = pcell.create_layout("logic/buf"):move_anchor("right")
+    local clockbuf = pcell.create_layout("stdcells/buf"):move_anchor("right")
     gate:merge_into_shallow(clockbuf)
 
     -- first clocked inverter
-    pcell.push_overwrites("logic/base", {
+    pcell.push_overwrites("stdcells/base", {
         leftdummies = 1
     })
-    local cinv1 = pcell.create_layout("logic/cinv"):move_anchor("left", clockbuf:get_anchor("right"))
-    pcell.pop_overwrites("logic/base")
+    local cinv1 = pcell.create_layout("stdcells/cinv"):move_anchor("left", clockbuf:get_anchor("right"))
+    pcell.pop_overwrites("stdcells/base")
     gate:merge_into_shallow(cinv1)
 
     -- intermediate inverter
-    pcell.push_overwrites("logic/base", {
+    pcell.push_overwrites("stdcells/base", {
     })
-    local inv = pcell.create_layout("logic/not_gate"):move_anchor("left", cinv1:get_anchor("right"))
-    pcell.pop_overwrites("logic/base")
+    local inv = pcell.create_layout("stdcells/not_gate"):move_anchor("left", cinv1:get_anchor("right"))
+    pcell.pop_overwrites("stdcells/base")
     gate:merge_into_shallow(inv)
     
     -- second clocked inverter
-    pcell.push_overwrites("logic/base", {
+    pcell.push_overwrites("stdcells/base", {
         leftdummies = 1
     })
-    local cinv2 = pcell.create_layout("logic/cinv"):move_anchor("left", inv:get_anchor("right"))
-    pcell.pop_overwrites("logic/base")
+    local cinv2 = pcell.create_layout("stdcells/cinv"):move_anchor("left", inv:get_anchor("right"))
+    pcell.pop_overwrites("stdcells/base")
     gate:merge_into_shallow(cinv2)
 
     -- draw connections

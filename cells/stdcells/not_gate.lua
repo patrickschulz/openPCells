@@ -1,5 +1,5 @@
 function parameters()
-    pcell.reference_cell("logic/base")
+    pcell.reference_cell("stdcells/base")
     pcell.add_parameter("fingers", 1)
     pcell.add_parameter("shiftinput", 0)
     pcell.add_parameter("inputpos", "center", { posvals = set("center", "lower", "upper") })
@@ -7,7 +7,7 @@ function parameters()
 end
 
 function layout(gate, _P)
-    local bp = pcell.get_parameters("logic/base")
+    local bp = pcell.get_parameters("stdcells/base")
     local xpitch = bp.gspace + bp.glength
 
     local gatecontactpos = {}
@@ -21,7 +21,7 @@ function layout(gate, _P)
             contactpos[i] = "power"
         end
     end
-    local harness = pcell.create_layout("logic/harness", { 
+    local harness = pcell.create_layout("stdcells/harness", { 
         fingers = _P.fingers,
         shiftgatecontacts = _P.shiftinput,
         gatecontactpos = gatecontactpos,

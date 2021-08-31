@@ -1,6 +1,6 @@
 function parameters()
     pcell.reference_cell("basic/mosfet")
-    pcell.reference_cell("logic/base")
+    pcell.reference_cell("stdcells/base")
     pcell.add_parameters(
         { "fingers", 1 },
         { "splitenables", false },
@@ -14,7 +14,7 @@ function parameters()
 end
 
 function layout(gate, _P)
-    local bp = pcell.get_parameters("logic/base")
+    local bp = pcell.get_parameters("stdcells/base")
     local xpitch = bp.gspace + bp.glength
     local xincr = bp.compact and 0 or 1
 
@@ -88,7 +88,7 @@ function layout(gate, _P)
             end
         end
     end
-    local harness = pcell.create_layout("logic/harness", { 
+    local harness = pcell.create_layout("stdcells/harness", { 
         fingers = fingers,
         gatecontactpos = gatecontactpos,
         pcontactpos = pcontactpos,

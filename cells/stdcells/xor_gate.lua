@@ -25,19 +25,19 @@
 --]]
 
 function parameters()
-    pcell.reference_cell("logic/base")
+    pcell.reference_cell("stdcells/base")
     pcell.add_parameter("fingers", 1, { posvals = set(1) })
     pcell.add_parameter("shiftoutput", 0)
 end
 
 function layout(gate, _P)
-    local bp = pcell.get_parameters("logic/base")
+    local bp = pcell.get_parameters("stdcells/base")
     local xpitch = bp.gspace + bp.glength
 
     local block = object.create()
 
-    pcell.push_overwrites("logic/base", { leftdummies = 0 })
-    local harness = pcell.create_layout("logic/harness", { 
+    pcell.push_overwrites("stdcells/base", { leftdummies = 0 })
+    local harness = pcell.create_layout("stdcells/harness", { 
         fingers = 6 * _P.fingers, 
         drawgatecontacts = true,
         gatecontactpos = { "lower", "center", "center", "upper", "center", "lower" },
@@ -45,7 +45,7 @@ function layout(gate, _P)
         ncontactpos = { "power", "power", nil, "inner", "outer", "outer", "power" }
     })
     gate:merge_into_shallow(harness)
-    pcell.pop_overwrites("logic/base")
+    pcell.pop_overwrites("stdcells/base")
 
     -- gate contact metal blobs (DRC)
     block:merge_into_shallow(geometry.rectanglebltr(generics.metal(1), 
@@ -82,20 +82,20 @@ function layout(gate, _P)
     gate:inherit_alignment_box(harness)
 
     -- inverter A
-    pcell.push_overwrites("logic/base", { leftdummies = 0, rightdummies = 1, connectoutput = false })
-    local invb = pcell.create_layout("logic/not_gate", { inputpos = "upper" })
+    pcell.push_overwrites("stdcells/base", { leftdummies = 0, rightdummies = 1, connectoutput = false })
+    local invb = pcell.create_layout("stdcells/not_gate", { inputpos = "upper" })
     invb:move_anchor("right", gate:get_anchor("left"))
     gate:merge_into_shallow(invb)
     gate:inherit_alignment_box(invb)
-    pcell.pop_overwrites("logic/base")
+    pcell.pop_overwrites("stdcells/base")
 
     -- inverter B
-    pcell.push_overwrites("logic/base", { rightdummies = 1, compact = false })
-    local inva = pcell.create_layout("logic/not_gate", { inputpos = "lower", shiftoutput = xpitch / 2 })
+    pcell.push_overwrites("stdcells/base", { rightdummies = 1, compact = false })
+    local inva = pcell.create_layout("stdcells/not_gate", { inputpos = "lower", shiftoutput = xpitch / 2 })
     inva:move_anchor("right", invb:get_anchor("left"))
     gate:merge_into_shallow(inva)
     gate:inherit_alignment_box(inva)
-    pcell.pop_overwrites("logic/base")
+    pcell.pop_overwrites("stdcells/base")
 
     -- output connection
     gate:merge_into_shallow(geometry.path(generics.metal(1), geometry.path_points_xy(
