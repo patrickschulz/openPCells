@@ -58,6 +58,13 @@ procedure(OPCCreateCell(w done pts)
     t
 ) ; OPCCreateCell
 
+procedure(OPCCreateScratchCell(libname)
+    let(
+        ((cv dbOpenCellViewByType(libname "__opctempcell__" "layout" "maskLayout")))
+        OPCCreateCellInternal(cv)
+    )
+) ; OPCCreateScratchCell
+
 procedure(OPCCreateCellInternal(cv @optional (origin 0:0))
     let(
         (
