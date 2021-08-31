@@ -1,3 +1,22 @@
+--[[
+This cell implements a down-counting counter with numrows * numcolumns bits
+The counter is down-counting, since this can be implemented more regularly 
+than an upcounting counter. (At least that's what I think, if you see this differently, let me know.)
+
+This design is nearly glitch-free, as no positively-clocked flip-flop follows another positively-clocked ff and vice versa.
+This comes at the cost of higher silicon area (2 * N DFFs for N bits) and setup violations at clock frequencies lower than you
+could go with a different approach.
+
+                            |-------XNOR
+       pre[0:N] -----DFFP   |       XNOR---- out[0:N] -------DFFN
+                     DFFP---(---*-- XNOR                     DFFN--- pre[0:N]
+            clk ---->DFFP   |   |                   clk ---->DFFN
+                            |   |
+                            |   |-----OR
+                            |         OR------ carry[0:N]
+         vss,carry[0:N-1] --*---------OR
+
+--]]
 function parameters()
     pcell.reference_cell("stdcells/base")
     pcell.add_parameters(
@@ -11,18 +30,14 @@ function layout(counter, _P)
     pcell.push_overwrites("stdcells/base", { leftdummies = 1, rightdummies = 1 })
     local dffpref = pcell.create_layout("stdcells/dff", { clockpolarity = "positive", enableQ = true, enableQN = false })
     local dffnref = pcell.create_layout("stdcells/dff", { clockpolarity = "negative", enableQ = true, enableQN = false })
-    local invref  = pcell.create_layout("stdcells/not_gate")
     local xorref  = pcell.create_layout("stdcells/xor_gate")
-    local andref  = pcell.create_layout("stdcells/and_gate")
     local orref   = pcell.create_layout("stdcells/or_gate")
     pcell.pop_overwrites("stdcells/base")
 
     -- create references
     local dffpname = pcell.add_cell_reference(dffpref, "dffp")
     local dffnname = pcell.add_cell_reference(dffnref, "dffn")
-    local invname  = pcell.add_cell_reference(invref, "inv")
     local xorname  = pcell.add_cell_reference(xorref, "xor")
-    local andname  = pcell.add_cell_reference(andref, "and")
     local orname   = pcell.add_cell_reference(orref, "or")
 
     -- place cells
@@ -41,21 +56,13 @@ function layout(counter, _P)
                 column.dffp:move_anchor("left", rows[i][j - 1].dffn:get_anchor("right"))
             end
 
-            -- inverter
-            column.inv = counter:add_child(invname)
-            column.inv:move_anchor("left", column.dffp:get_anchor("right"))
-
             -- xor gate
             column.xorgate = counter:add_child(xorname)
-            column.xorgate:move_anchor("left", column.inv:get_anchor("right"))
-
-            -- and gate
-            column.andgate = counter:add_child(andname)
-            column.andgate:move_anchor("left", column.xorgate:get_anchor("right"))
+            column.xorgate:move_anchor("left", column.dffp:get_anchor("right"))
 
             -- or gate
             column.orgate = counter:add_child(orname)
-            column.orgate:move_anchor("left", column.andgate:get_anchor("right"))
+            column.orgate:move_anchor("left", column.xorgate:get_anchor("right"))
 
             -- positive flip flop
             column.dffn = counter:add_child(dffnname)

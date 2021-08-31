@@ -55,16 +55,19 @@ function layout(gate, _P)
 
     -- first clocked inverter
     local cinvref = pcell.create_layout("stdcells/cinv", { 
-        splitenables = true, -- TODO
+        splitenables = true,
         swapoutputs = true, 
-        inputpos = "upper",
-        enableppos = "center",
+        inputpos = _P.clockpolarity == "positive" and "upper" or "lower",
+        enablenpos = _P.clockpolarity == "positive" and "lower" or "center",
+        enableppos = _P.clockpolarity == "positive" and "center" or "upper",
+        --enableppos = "center",
         shiftoutput = xpitch * 3 / 2 
     })
     local cinvname = pcell.add_cell_reference(cinvref, "cinv")
     local cinv = gate:add_child(cinvname)
     cinv:move_anchor("left", clockinv2:get_anchor("right"))
 
+    ---[[
     -- first feedback inverter cell
     pcell.push_overwrites("stdcells/base", { rightdummies = 0 })
     pcell.push_overwrites("stdcells/base", { connectoutput = false })
@@ -223,7 +226,7 @@ function layout(gate, _P)
             fbcinv1:get_anchor(fbcinvanchor2):translate(-2 * xpitch, 0),
             tgate:get_anchor(fbcinvanchor2):translate(xpitch - bp.gstwidth - bp.gstspace, 0),
             0,
-            fbcinv2:get_anchor(fbcinvanchor2):translate(xpitch, bp.gstspace + bp.gstwidth),
+            fbcinv2:get_anchor(fbcinvanchor2):translate(xpitch, (_P.clockpolarity == "positive" and 1 or -1) * (bp.gstspace + bp.gstwidth)),
             fbcinv2:get_anchor(fbcinvanchor1):translate(-3 * xpitch + bp.gstwidth / 2 + bp.gstspace, 0),
     }), bp.sdwidth))
     -- vias
