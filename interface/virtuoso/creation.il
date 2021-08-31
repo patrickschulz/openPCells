@@ -67,19 +67,38 @@ procedure(OPCCreateCell(w done pts)
     t
 ) ; OPCCreateCell
 
-procedure(OPCCreateScratchCell(libname)
-    let(
-        ((cv dbOpenCellViewByType(libname "__opctempcell__" "layout" "maskLayout")))
-        OPCCreateCellInternal(cv)
-    )
-) ; OPCCreateScratchCell
-
 procedure(OPCPlaceCell()
-	enterPoint(
-		?prompts list("Enter origin")
-		?doneProc "OPCCreateCell"
-        ?form OPCCellForm
-        ?alwaysMap t
-	)
+    let(
+        (oldSnapMode oldSegSnapMode)
+        ; display main OPC form, which takes care of creating the ghost shapes for dragging
+        OPCUpdateCellShapeCB(nil nil)
+        hiDisplayForm(OPCCellForm)
+
+        ; store previous snap modes
+        oldSnapMode = hiGetCurrentWindow()->snapMode 	
+        oldSegSnapMode = hiGetCurrentWindow()->segSnapMode 	
+
+        ; set snap modes
+        hiGetCurrentWindow()->snapMode = "anyAngle"
+        hiGetCurrentWindow()->segSnapMode = "anyAngle"
+
+        ; display ghost object and get point
+        res = geHiDragFig(geGetEditCellViewWindow(geGetEditCellView()) nil "" "Enter Destination Point" "Move" cv->shapes t list(0 0))
+        pt = car(cdadr(res))
+
+        ; copy shapes from scratch cell
+        foreach(shape cv->shapes
+            dbCopyShape(shape geGetEditCellView() list(pt "R0" 1))
+        )
+        ; restore previous snap modes
+        hiGetCurrentWindow()->snapMode = oldSnapMode
+        hiGetCurrentWindow()->segSnapMode = oldSegSnapMode
+    )
+    ;enterPoint(
+    ;	?prompts list("Enter origin")
+    ;	?doneProc "OPCCreateCell"
+    ;    ?form OPCCellForm
+    ;    ?alwaysMap t
+    ;)
 ) ; OPCPlaceCell
 

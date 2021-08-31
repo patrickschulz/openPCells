@@ -49,15 +49,22 @@ procedure(OPCGetCellParameters(cellname)
                                     )
                                     if(func
                                         then
-                                            arglist = list(
-                                                ?name sym 
-                                                ?prompt display 
-                                                ?value value
-                                                ?callback 'OPCUpdateCellShapeCB
-                                            )
-                                            when(vtype == "boolean"
-                                                arglist = cons(arglist list("true" "false"))
-                                                arglist = cons(arglist ?choices)
+                                            if(vtype == "boolean"
+                                                then
+                                                    arglist = list(
+                                                        ?name sym 
+                                                        ?prompt display 
+                                                        ?value value
+                                                        ?callback list('OPCUpdateCellShapeCB)
+                                                        ?choices list("true" "false")
+                                                    )
+                                                else
+                                                    arglist = list(
+                                                        ?name sym 
+                                                        ?prompt display 
+                                                        ?value value
+                                                        ?callback 'OPCUpdateCellShapeCB
+                                                    )
                                             )
                                             field = apply(func arglist)
                                         else
@@ -135,7 +142,8 @@ procedure(OPCUpdateCellParametersCB(field form)
 procedure(OPCUpdateCellShapeCB(field form)
     let(
         (cv)
-        cv = dbOpenCellViewByType("testing" "__opctempcell__" "layout" "maskLayout")
+        cv = dbOpenCellViewByType("testing" "__opctempcell__" "layout" "maskLayout" "s")
+        foreach(shape cv->shapes dbDeleteObject(shape)) ; delete old shapes
         OPCCreateCellInternal(cv 0:0)
     )
 )
@@ -164,9 +172,11 @@ procedure(OPCCreateParamForm()
 		hiCreateAppForm(
 			?name 'OPCCellForm
             ;?formType 'options
+            ?dontBlock t
 			?formTitle "OPC Create Cell"
 			?fields list(OPCLibList OPCCellList)
-			?buttonLayout 'HideCancelDef
+			;?buttonLayout 'HideCancelDef
+			?buttonLayout 'Close
 		)
 		OPCCellForm->extraFields = list(nil 'OPCLibList OPCLibList 'OPCCellList OPCCellList)
 		OPCCellForm->fieldParents = list(nil)
