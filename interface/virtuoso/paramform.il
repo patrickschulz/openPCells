@@ -1,0 +1,187 @@
+procedure(OPCGetCellParameters(cellname)
+    let(
+        (   
+            fieldlist field
+        )   
+        when(OPCCall(lsprintf("--technology %s --cell %s --parameters --parameters-format '%%t:%%p:%%n:%%d:%%v:%%a:%%r'" OPCTech cellname) OPCSettingsForm->OPCParamFilename->value)
+            let(
+                ((file infile(OPCSettingsForm->OPCParamFilename->value)) (isown t) params ptype name display default vtype readonly sym)
+                while(line = gets(nil file)
+                    params = parseString(substring(line 1 strlen(line) - 1) ":")
+                    ptype    =                         car(params)
+                    parent   =                     car(cdr(params))
+                    name     =                 car(cdr(cdr(params)))
+                    display  =             car(cdr(cdr(cdr(params))))
+                    default  =         car(cdr(cdr(cdr(cdr(params)))))
+                    vtype    =     car(cdr(cdr(cdr(cdr(cdr(params))))))
+                    readonly = car(cdr(cdr(cdr(cdr(cdr(cdr(params)))))))
+                    unless(readonly == "true"
+                        when(display == "_NONE_"
+                            display = name
+                        )
+                        ; change from own to referenced parameters
+                        when(isown && parent != cellname
+                            fieldlist = cons(hiCreateSeparatorField(?name gensym()) fieldlist)
+                            fieldlist = cons(hiCreateLabel(?name gensym() ?labelText "Referenced Parameters (some might be overwritten by the cell and thus without effect)" ?justification 'center) fieldlist)
+                            fieldlist = cons(hiCreateSeparatorField(?name gensym()) fieldlist)
+                            isown = nil
+                        )
+                        sym = stringToSymbol(lsprintf("%s.%s" parent name))
+                        if(get(OPCCellForm->extraFields sym)
+                            then
+                                field = get(OPCCellForm->extraFields sym)
+                            else
+                                field = case(vtype
+                                    ("number"
+                                        hiCreateFloatField(
+                                            ?name sym
+                                            ?value atof(default)
+                                            ?prompt display
+                                        )
+                                    )
+                                    ("integer"
+                                        hiCreateIntField(
+                                            ?name sym
+                                            ?value atoi(default)
+                                            ?prompt display
+                                        )
+                                    )                                 
+                                    ("boolean"
+                                        hiCreateRadioField(
+                                            ?name sym
+                                            ?choices list("true" "false")
+                                            ?value default
+                                            ?prompt display
+                                        )
+                                    )
+                                    ;("boolean"
+                                    ;    hiCreateBooleanButton(
+                                    ;        ?name sym
+                                    ;        ?value t
+                                    ;        ?buttonText display
+                                    ;    )
+                                    ;)
+                                    ("string"
+                                        hiCreateStringField(
+                                            ?name sym
+                                            ?value default
+                                            ?prompt display
+                                        )
+                                    )
+                                    ("numtable"
+                                        hiCreateStringField(
+                                            ?name sym
+                                            ?value default
+                                            ?prompt display
+                                        )
+                                    )
+                                    ("strtable"
+                                        hiCreateStringField(
+                                            ?name sym
+                                            ?value default
+                                            ?prompt display
+                                        )
+                                    )
+                                    (t
+                                        printf("error while parsing parameter line '%s'\n" line)
+                                        printf("parse result:\n ptype = %s\n parent = %s\n name = %s\n display = %s\n default = %s\n vtype = %s\n readonly = %s\n" ptype parent name display default vtype readonly)
+                                        nil
+                                    )
+                                ) ; case
+                                ; store field
+                                putprop(OPCCellForm->extraFields field sym)
+                                putprop(OPCCellForm->fieldParents parent sym)
+                                putprop(OPCCellForm->fieldNames name sym)
+                        ) ; if
+                        fieldlist = cons(field fieldlist)
+                    ) ; unless readonly
+                ) ; while
+            ) ; let
+        ) ; if exitstatus
+        fieldlist
+	) ; let
+)
+
+procedure(OPCUpdateLibName(lib)
+	let((liblist celllist)
+		liblist = mapcar(lambda( (lst) car(lst)) OPCData)
+		foreach(l OPCData
+			when(car(l) == if(lib then lib else car(liblist))
+				celllist = cadr(l)
+			)
+		)
+		list(liblist celllist)
+	)
+)
+
+procedure(OPCLibNameCallback(field form)
+	let(
+		(celllist)
+		celllist = cadr(OPCUpdateLibName(field->value))
+		form->OPCCellList->items = celllist
+		form->OPCCellList->value = car(celllist)
+	)
+)
+
+procedure(OPCUpdateCellParameters(cellname)
+	let(
+		(fieldlist toinsert todelete)
+		fieldlist = OPCGetCellParameters(cellname)
+		foreach(field OPCCellForm->fieldList 
+			unless(member(field fieldlist) || equal(field 'OPCLibList) || equal(field 'OPCCellList)
+                todelete = cons(field todelete)
+			)
+		)
+        foreach(field fieldlist
+            unless(member(field todelete)
+                toinsert = cons(field toinsert)
+            )
+        )
+        when(todelete
+		    hiDeleteFields(OPCCellForm todelete)
+        )
+        when(toinsert
+            hiAddFields(OPCCellForm toinsert)
+        )
+	)
+)
+
+procedure(OPCUpdateCellParametersCB(field form)
+	OPCUpdateCellParameters(lsprintf("%s/%s" OPCCellForm->OPCLibList->value OPCCellForm->OPCCellList->value))
+)
+
+procedure(OPCCreateParamForm()
+    OPCUpdateCellList()
+	let((libcelllist)
+		libcelllist = OPCUpdateLibName(nil)
+		OPCLibList = hiCreateComboField(
+			?name 'OPCLibList
+			?prompt "Library"
+			?items car(libcelllist)
+			?value caar(libcelllist)
+			?callback 'OPCLibNameCallback
+		)
+		OPCCellList = hiCreateComboField(
+			?name 'OPCCellList
+			?prompt "Cell"
+			?items cadr(libcelllist)
+			?value car(cadr(libcelllist))
+			?callback 'OPCUpdateCellParametersCB
+		)
+	)
+	let(
+		()
+		hiCreateAppForm(
+			?name 'OPCCellForm
+            ?formType 'options
+			?formTitle "OPC Create Cell"
+			?fields list(OPCLibList OPCCellList)
+			?buttonLayout 'HideCancelDef
+		)
+		OPCCellForm->extraFields = list(nil 'OPCLibList OPCLibList 'OPCCellList OPCCellList)
+		OPCCellForm->fieldParents = list(nil)
+		OPCCellForm->fieldNames = list(nil)
+		OPCUpdateCellParameters(lsprintf("%s/%s" OPCCellForm->OPCLibList->value OPCCellForm->OPCCellList->value))
+		OPCCellForm
+	)
+)
