@@ -250,11 +250,15 @@ function meta.flipy(self)
 end
 
 function meta.mirror_at_xaxis(self)
-
+    self:flipy()
+    local cx, cy = self:get_transformation_correction()
+    self:translate(0, -cy)
 end
 
 function meta.mirror_at_yaxis(self)
-
+    self:flipx()
+    local cx, cy = self:get_transformation_correction()
+    self:translate(-cx, 0)
 end
 
 local function _get_minmax_xy(self)

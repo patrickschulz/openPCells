@@ -6,6 +6,7 @@
 #include <errno.h>
 #include <stdio.h>
 #include <sys/stat.h>
+#include <unistd.h>
 
 static int lfilesystem_mkdir(lua_State* L)
 {
@@ -42,12 +43,27 @@ static int lfilesystem_mkdir(lua_State* L)
     return 1;
 }
 
+static int lfilesystem_exists(lua_State* L)
+{
+    const char* path = lua_tostring(L, 1);
+    if(access(path, F_OK) == 0)
+    {
+        lua_pushboolean(L, 1);
+    }
+    else
+    {
+        lua_pushboolean(L, 0);
+    }
+    return 1;
+}
+
 int open_lfilesystem_lib(lua_State* L)
 {
     static const luaL_Reg modfuncs[] =
     {
-        { "mkdir", lfilesystem_mkdir },
-        { NULL,    NULL              }
+        { "mkdir",  lfilesystem_mkdir  },
+        { "exists", lfilesystem_exists },
+        { NULL,     NULL               }
     };
     luaL_newlib(L, modfuncs);
     lua_setglobal(L, LFILESYSTEMMODULE);

@@ -27,4 +27,8 @@ return {
         name = "disablepath", short = "-p", long = "--disable-paths",
         help = "don't export paths as paths but as polygons/rectangles"
     },
+    store{
+        name = "labelsize", short = "-s", long = "--label-size",
+        help = "labelsize in database units (default 1)"
+    },
 }

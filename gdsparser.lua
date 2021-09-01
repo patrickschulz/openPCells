@@ -138,7 +138,7 @@ local function _read_stream(filename)
     return records
 end
 
-function M.show_records(filename, flags)
+function M.show_records(filename, flags, printraw)
     if flags == "all" then
         flags = {
             showrecordlength = true
@@ -162,10 +162,16 @@ function M.show_records(filename, flags)
             data = "{ " .. table.concat(data, " ") .. " }"
         end
         if data then
-            print(string.format(" -> data: %s", data))
-        else
-            print()
+            io.write(string.format(" -> data: %s", data))
+            if printraw then
+                local raw = {}
+                for _, byte in ipairs(record.raw) do
+                    table.insert(raw, string.format("0x%02x", byte))
+                end
+                io.write(string.format(" (raw: %s)", table.concat(raw, ' ')))
+            end
         end
+        print()
         if header.recordtype == 0x01 or 
             header.recordtype == 0x05 or 
             header.recordtype == 0x08 or 
@@ -179,14 +185,17 @@ function M.show_records(filename, flags)
     end
 end
 
-function M.read_cells(filename)
+function M.read_stream(filename)
+    local libname
     local cells = {}
     local records = _read_stream(filename)
     local cell
     local shape
     local function is_record(record, rtype) return record.header.recordtype == recordcodes[rtype] end
     for _, record in ipairs(records) do
-        if is_record(record, "BGNSTR") then
+        if is_record(record, "LIBNAME") then
+            libname = record.data
+        elseif is_record(record, "BGNSTR") then
             cell = {
                 shapes = {},
                 references = {},
@@ -242,9 +251,43 @@ function M.read_cells(filename)
             obj.text = record.data
         elseif is_record(record, "STRANS") then
             obj.transformation = record.data
+        elseif is_record(record, "ANGLE") then
+            obj.angle = record.data
         end
     end
-    return cells
+    -- post-process cells
+    -- -> BOX is not used for rectangles, at least most tool suppliers seem to do it this way
+    --    therefor, we check if some "polygons" are actually rectangles and fix the shape types
+    for _, cell in ipairs(cells) do
+        for _, shape in ipairs(cell.shapes) do
+            if shape.shapetype == "polygon" then
+                if #shape.pts == 10 then -- rectangles in GDS have five points (xy -> * 2)
+                    if (shape.pts[1] == shape.pts[3]   and
+                        shape.pts[4] == shape.pts[6]   and
+                        shape.pts[5] == shape.pts[7]   and
+                        shape.pts[8] == shape.pts[10]  and
+                        shape.pts[9] == shape.pts[1]   and
+                        shape.pts[10] == shape.pts[2]) or
+                       (shape.pts[2] == shape.pts[4]   and
+                        shape.pts[3] == shape.pts[5]   and
+                        shape.pts[6] == shape.pts[8]   and
+                        shape.pts[7] == shape.pts[9]   and
+                        shape.pts[9] == shape.pts[1]   and
+                        shape.pts[10] == shape.pts[2])  then
+
+                        shape.shapetype = "rectangle"
+                        shape.pts = { 
+                            math.min(shape.pts[1], shape.pts[3], shape.pts[5], shape.pts[7], shape.pts[9]),
+                            math.min(shape.pts[2], shape.pts[4], shape.pts[6], shape.pts[8], shape.pts[10]),
+                            math.max(shape.pts[1], shape.pts[3], shape.pts[5], shape.pts[7], shape.pts[9]),
+                            math.max(shape.pts[2], shape.pts[4], shape.pts[6], shape.pts[8], shape.pts[10])
+                        }
+                    end
+                end
+            end
+        end
+    end
+    return { libname = libname, cells = cells }
 end
 
 local function _get_cell_references(cell)

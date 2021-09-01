@@ -20,7 +20,7 @@ local function _format_shape(shape, layermap)
     local lpp = _format_lpp(shape.layer, shape.purpose, layermap)
     if shape.shapetype == "rectangle" then
         local bl = string.format("point.create(%d, %d)", shape.pts[1], shape.pts[2])
-        local tr = string.format("point.create(%d, %d)", shape.pts[5], shape.pts[6])
+        local tr = string.format("point.create(%d, %d)", shape.pts[3], shape.pts[4])
         return string.format("geometry.rectanglebltr(%s, %s, %s)", lpp, bl, tr)
     elseif shape.shapetype == "polygon" then
         local ptsstrt = {}
@@ -53,9 +53,14 @@ local function _write_cell(cell, path, dirname, layermap, alignmentbox)
         end
         table.insert(chunkt, string.format("    cell:merge_into_shallow(%s)", _format_shape(shape, layermap)))
     end
+    local references = {}
     for _, ref in ipairs(cell.references) do
-        table.insert(chunkt, string.format('    ref = pcell.create_layout("%s/%s")', dirname, ref.name))
-        table.insert(chunkt, string.format('    name = pcell.add_cell_reference(ref, "%s")', ref.name))
+        local cellname = string.format("%s/%s", dirname, ref.name)
+        if not references[cellname] then
+            table.insert(chunkt, string.format('    ref = pcell.create_layout("%s")', cellname))
+            table.insert(chunkt, string.format('    name = pcell.add_cell_reference(ref, "%s")', ref.name))
+            references[cellname] = true
+        end
         if ref.xrep then -- AREF
             local xpitch = (ref.pts[3] - ref.pts[1]) / ref.xrep
             local ypitch = (ref.pts[6] - ref.pts[2]) / ref.yrep
@@ -63,8 +68,17 @@ local function _write_cell(cell, path, dirname, layermap, alignmentbox)
         else
             table.insert(chunkt, string.format('    child = cell:add_child(name):translate(%d, %d)', ref.pts[1], ref.pts[2]))
         end
-        if ref.transformation then
-            table.insert(chunkt, string.format('    child:flipx()'))
+        if ref.angle then
+            if ref.transformation and ref.transformation[1] == 1 then
+                table.insert(chunkt, string.format('    child:mirror_at_yaxis()'))
+            else
+                table.insert(chunkt, string.format('    child:mirror_at_yaxis()'))
+                table.insert(chunkt, string.format('    child:mirror_at_xaxis()'))
+            end
+        else
+            if ref.transformation and ref.transformation[1] == 1 then
+                table.insert(chunkt, string.format('    child:mirror_at_xaxis()'))
+            end
         end
     end
     for _, label in ipairs(cell.labels) do
@@ -90,18 +104,24 @@ local function _write_cell(cell, path, dirname, layermap, alignmentbox)
     cellfile:close()
 end
 
-function M.translate_cells(cells, prefix, dirname, layermap, alignmentbox)
-    local path = dirname
+function M.translate_cells(cells, prefix, dirname, layermap, alignmentbox, overwrite)
+    local path
     if prefix and prefix ~= "" then
         path = string.format("%s/%s", prefix, dirname)
+    else
+        path = string.format("%s/%s", dirname, dirname)
     end
-    local created = filesystem.mkdir(path)
-    if created then
-        for _, cell in ipairs(cells) do
-            _write_cell(cell, path, dirname, layermap, alignmentbox)
+    if not filesystem.exists(path) or overwrite then
+        local created = filesystem.mkdir(path)
+        if created then
+            for _, cell in ipairs(cells) do
+                _write_cell(cell, path, dirname, layermap, alignmentbox)
+            end
+        else
+            moderror("import: could not create import directory")
         end
     else
-        moderror("import: could not create import directory")
+        moderror("import: directory exists");
     end
 end
 

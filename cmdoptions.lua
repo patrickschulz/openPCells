@@ -179,6 +179,18 @@ return {
         name = "gdsalignmentboxpurpose", long = "--gds-alignmentbox-purpose",
         help = "provide a layer purpose to write an alignment box to generated cells"
     },
+    switch{
+        name = "gdsusestreamlibname", long = "--gds-use-libname",
+        help = "use the library name of the gds file for the resulting opc library. The default behaviour is to use the name of the stream file."
+    },
+    switch{
+        name = "gdsusefilename", long = "--gds-use-filename",
+        help = "Use the name of the stream file as opc library name. This is the opposite of --gds-use-libname and the default, so this option exists only for explicitness. This option overrules --gds-use-libname"
+    },
+    switch{
+        name = "importoverwrite", long = "--import-overwrite",
+        help = "overwrite files while importing. This does not check whether these overwritten files are from a previous import or something else, so use this option with caution"
+    },
     section("Info functions"),
     switch{ 
         name = "params", short = "-P", long  = "--parameters",
@@ -228,6 +240,10 @@ return {
     store_multiple{
         name = "showgdsdataflags", long = "--show-gds-data-flags",
         help = "flags to control what data is shown with --show-gds-data (default: all)"
+    },
+    store_multiple{
+        name = "showgdsdataraw", long = "--show-gds-data-raw",
+        help = "also print the raw stream data after the parsed data"
     },
     section("Diagnostic functions"),
     switch{
