@@ -36,6 +36,7 @@ for _, entry in ipairs(entries) do
         end
         print(entry.help)
     end
+    print()
 end
 
 print([[
