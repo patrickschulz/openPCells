@@ -44,7 +44,7 @@ procedure(OPCCreateCellInternal(cv @optional (origin 0:0))
             if(isFile(lsprintf("%s.il" OPCSettingsForm->OPCCellFilename->value))
                 then
                     load(lsprintf("%s.il" OPCSettingsForm->OPCCellFilename->value))
-                    opcscratchshapes = cv->shapes
+                    ;opcscratchshapes = cv->shapes
                     OPCCleanUp(lsprintf("%s.il" OPCSettingsForm->OPCCellFilename->value))
                 else
                     hiDisplayAppDBox(
