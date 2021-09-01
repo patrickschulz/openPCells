@@ -179,14 +179,17 @@ function M.show_records(filename, flags)
     end
 end
 
-function M.read_cells(filename)
+function M.read_stream(filename)
+    local libname
     local cells = {}
     local records = _read_stream(filename)
     local cell
     local shape
     local function is_record(record, rtype) return record.header.recordtype == recordcodes[rtype] end
     for _, record in ipairs(records) do
-        if is_record(record, "BGNSTR") then
+        if is_record(record, "LIBNAME") then
+            libname = record.data
+        elseif is_record(record, "BGNSTR") then
             cell = {
                 shapes = {},
                 references = {},
@@ -244,7 +247,7 @@ function M.read_cells(filename)
             obj.transformation = record.data
         end
     end
-    return cells
+    return { libname = libname, cells = cells }
 end
 
 local function _get_cell_references(cell)

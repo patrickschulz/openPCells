@@ -88,7 +88,8 @@ if args.showgdsdata then
     return 0
 end
 if args.showgdshierarchy then
-    local cells = gdsparser.read_cells(args.showgdshierarchy)
+    local gdslib = gdsparser.read_stream(args.showgdshierarchy)
+    local cells = gdslib.cells
     local tree = gdsparser.resolve_hierarchy(cells)
     for _, elem in ipairs(tree) do
         print(string.format("%s%s", string.rep("  ", elem.level), elem.cell.name))
@@ -101,12 +102,19 @@ if args.readgds then
     if args.gdslayermap then
         layermap = dofile(args.gdslayermap)
     end
-    local cells = gdsparser.read_cells(args.readgds)
+    local gdslib = gdsparser.read_stream(args.readgds)
+    local cells = gdslib.cells
     local alignmentboxinfo
     if args.gdsalignmentboxlayer and args.gdsalignmentboxpurpose then
         alignmentboxinfo = { layer = tonumber(args.gdsalignmentboxlayer), purpose = tonumber(args.gdsalignmentboxpurpose) }
     end
-    import.translate_cells(cells, args.importprefix, string.gsub(args.readgds, "%.gds", ""), layermap, alignmentboxinfo)
+    local libname
+    if args.gdsusestreamlibname and not args.gdsusefilename then
+        libname = gdslib.libname
+    else
+        libname = string.gsub(args.readgds, "%.gds", "")
+    end
+    import.translate_cells(cells, args.importprefix, libname, layermap, alignmentboxinfo)
     return 0
 end
 
