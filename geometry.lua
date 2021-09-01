@@ -188,13 +188,14 @@ local function _get_path_pts(edges, miterjoin)
     return poly
 end
 
-local function _get_any_angle_path_pts(pts, width, grid, miterjoin)
+local function _get_any_angle_path_pts(pts, width, grid, miterjoin, allow45)
+    print(allow45)
     local edges = _get_gridded_edge_segments(pts, width, grid)
     local pathpts = _get_path_pts(edges, miterjoin)
     table.insert(pathpts, edges[1]:copy()) -- close path
     local poly = {}
     for i = 1, #pathpts - 1 do
-        local linepts = graphics.line(pathpts[i], pathpts[i + 1], grid)
+        local linepts = graphics.line(pathpts[i], pathpts[i + 1], grid, allow45)
         for _, pt in ipairs(linepts) do
             table.insert(poly, pt)
         end
@@ -308,9 +309,9 @@ function M.path_points_yx(startpt, movements)
     return pts
 end
 
-function M.any_angle_path(layer, pts, width, grid, miterjoin)
+function M.any_angle_path(layer, pts, width, grid, miterjoin, allow45)
     _make_unique_points(pts)
-    local points = _get_any_angle_path_pts(pts, width, grid, miterjoin)
+    local points = _get_any_angle_path_pts(pts, width, grid, miterjoin, allow45)
     local S = shape.create_polygon(layer, points)
     return object.make_from_shape(S)
 end
