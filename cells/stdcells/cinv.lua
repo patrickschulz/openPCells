@@ -24,13 +24,13 @@ function layout(gate, _P)
     if _P.splitenables then
         for i = 1, _P.fingers do
             if i % 2 == 1 then
+                gatecontactpos[(i - 1) * 3 + 1] = _P.enablenpos
+                gatecontactpos[(i - 1) * 3 + 2] = _P.enableppos
+                gatecontactpos[(i - 1) * 3 + 3] = _P.inputpos
+            else
                 gatecontactpos[(i - 1) * 3 + 1] = _P.inputpos
                 gatecontactpos[(i - 1) * 3 + 2] = _P.enableppos
                 gatecontactpos[(i - 1) * 3 + 3] = _P.enablenpos
-            else
-                gatecontactpos[(i - 1) * 3 + 3] = _P.inputpos
-                gatecontactpos[(i - 1) * 3 + 2] = _P.enableppos
-                gatecontactpos[(i - 1) * 3 + 1] = _P.enablenpos
             end
         end
     else
@@ -237,9 +237,9 @@ function layout(gate, _P)
 
     -- ports
     if _P.splitenables then
-        gate:add_port("I", generics.metal(1), harness:get_anchor("G1"))
+        gate:add_port("I", generics.metal(1), harness:get_anchor("G3"))
         gate:add_port("EP", generics.metal(1), harness:get_anchor("G2"))
-        gate:add_port("EN", generics.metal(1), harness:get_anchor("G3"))
+        gate:add_port("EN", generics.metal(1), harness:get_anchor("G1"))
     else
         if _P.swapinputs then
             gate:add_port("I", generics.metal(1), harness:get_anchor("G2"))
@@ -254,5 +254,4 @@ function layout(gate, _P)
     gate:add_port("O", generics.metal(1), point.create(_P.fingers * xpitch + _P.shiftoutput, 0))
     gate:add_port("VDD", generics.metal(1), harness:get_anchor("top"))
     gate:add_port("VSS", generics.metal(1),  harness:get_anchor("bottom"))
-    --]]
 end
