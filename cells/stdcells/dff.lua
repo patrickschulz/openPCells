@@ -300,8 +300,8 @@ function layout(gate, _P)
         (fbinv1:get_anchor("I") .. cinv:get_anchor("I")):translate(-bp.sdwidth / 2 - bp.gstspace, bp.gstwidth / 2)
     ))
     gate:merge_into_shallow(geometry.path(generics.metal(2), {
-        cinv:get_anchor("I"):translate(4 * xpitch - bp.gstspace - bp.sdwidth / 2, 0),
-        point.combine_21(cinv:get_anchor("I"), clockinv1:get_anchor("I"))
+        point.combine_12(clockinv1:get_anchor("I"), cinv:get_anchor("I")),
+        cinv:get_anchor("I"):translate(2 * xpitch - bp.gstspace - bp.sdwidth / 2, 0)
     }, bp.sdwidth))
     gate:merge_into_shallow(
         geometry.rectanglebltr(generics.via(1, 2), 
