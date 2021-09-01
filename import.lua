@@ -53,9 +53,14 @@ local function _write_cell(cell, path, dirname, layermap, alignmentbox)
         end
         table.insert(chunkt, string.format("    cell:merge_into_shallow(%s)", _format_shape(shape, layermap)))
     end
+    local references = {}
     for _, ref in ipairs(cell.references) do
-        table.insert(chunkt, string.format('    ref = pcell.create_layout("%s/%s")', dirname, ref.name))
-        table.insert(chunkt, string.format('    name = pcell.add_cell_reference(ref, "%s")', ref.name))
+        local cellname = string.format("%s/%s", dirname, ref.name)
+        if not references[cellname] then
+            table.insert(chunkt, string.format('    ref = pcell.create_layout("%s")', cellname))
+            table.insert(chunkt, string.format('    name = pcell.add_cell_reference(ref, "%s")', ref.name))
+            references[cellname] = true
+        end
         if ref.xrep then -- AREF
             local xpitch = (ref.pts[3] - ref.pts[1]) / ref.xrep
             local ypitch = (ref.pts[6] - ref.pts[2]) / ref.yrep
