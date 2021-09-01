@@ -68,8 +68,15 @@ local function _write_cell(cell, path, dirname, layermap, alignmentbox)
         else
             table.insert(chunkt, string.format('    child = cell:add_child(name):translate(%d, %d)', ref.pts[1], ref.pts[2]))
         end
-        if ref.transformation then
-            if ref.transformation[1] == 1 then
+        if ref.angle then
+            if ref.transformation and ref.transformation[1] == 1 then
+                table.insert(chunkt, string.format('    child:mirror_at_yaxis()'))
+            else
+                table.insert(chunkt, string.format('    child:mirror_at_yaxis()'))
+                table.insert(chunkt, string.format('    child:mirror_at_xaxis()'))
+            end
+        else
+            if ref.transformation and ref.transformation[1] == 1 then
                 table.insert(chunkt, string.format('    child:mirror_at_xaxis()'))
             end
         end

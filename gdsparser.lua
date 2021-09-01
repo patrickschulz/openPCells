@@ -251,6 +251,8 @@ function M.read_stream(filename)
             obj.text = record.data
         elseif is_record(record, "STRANS") then
             obj.transformation = record.data
+        elseif is_record(record, "ANGLE") then
+            obj.angle = record.data
         end
     end
     -- post-process cells
