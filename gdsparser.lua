@@ -242,6 +242,16 @@ function M.read_stream(filename)
             obj.pts = record.data
         elseif is_record(record, "WIDTH") then
             obj.width = record.data
+        elseif is_record(record, "PATHTYPE") then
+            if record.data == 0 then
+                obj.pathtype = "butt"
+            elseif record.data == 1 then
+                obj.pathtype = "round"
+            elseif record.data == 2 then
+                obj.pathtype = "cap"
+            elseif record.data == 4 then
+                obj.pathtype = { 0, 0 }
+            end
         elseif is_record(record, "COLROW") then
             obj.xrep = record.data[1]
             obj.yrep = record.data[2]
@@ -253,6 +263,10 @@ function M.read_stream(filename)
             obj.transformation = record.data
         elseif is_record(record, "ANGLE") then
             obj.angle = record.data
+        elseif is_record(record, "BGNEXTN") then
+            obj.pathtype[1] = record.data
+        elseif is_record(record, "ENDEXTN") then
+            obj.pathtype[2] = record.data
         end
     end
     -- post-process cells
@@ -284,6 +298,10 @@ function M.read_stream(filename)
                         }
                     end
                 end
+            end
+
+            if shape.shapetype == "path" then
+                shape.pathtype = shape.pathtype or "butt"
             end
         end
     end

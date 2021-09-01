@@ -33,7 +33,11 @@ local function _format_shape(shape, layermap)
         for i = 1, #shape.pts - 1, 2 do
             table.insert(ptsstrt, string.format("point.create(%d, %d)", shape.pts[i], shape.pts[i + 1]))
         end
-        return string.format("geometry.path(%s, { %s }, %d)", lpp, table.concat(ptsstrt, ", "), shape.width)
+        if type(shape.pathtype) == "table" then
+            return string.format("geometry.path(%s, { %s }, %d, { %d, %d })", lpp, table.concat(ptsstrt, ", "), shape.width, shape.pathtype[1], shape.pathtype[2])
+        else
+            return string.format("geometry.path(%s, { %s }, %d, \"%s\")", lpp, table.concat(ptsstrt, ", "), shape.width, shape.pathtype)
+        end
     else
         error(string.format("wrong shape: %s", shapetype))
     end
