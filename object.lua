@@ -261,6 +261,12 @@ function meta.mirror_at_yaxis(self)
     self:translate(-cx, 0)
 end
 
+function meta.rotate_90(self)
+    -- 90 degrees rotation works as in "regular transformation systems", that is, it depends on the location of the shapes and the cell itself
+    -- no correction comparable to flipx() and flipy() is done
+    self.trans:rotate_90_left()
+end
+
 local function _get_minmax_xy(self)
     local minx =  math.huge
     local maxx = -math.huge

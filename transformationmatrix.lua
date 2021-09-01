@@ -112,7 +112,11 @@ end
 
 function meta.orientation_string(self)
     if self[1] >= 0 and self[4] >= 0 then
-        return "R0"
+        if self[2] < 0 then
+            return "R90"
+        else
+            return "R0"
+        end
     elseif self[1] < 0 and self[4] >= 0 then
         return "fx"
     elseif self[1] >= 0 and self[4] < 0 then
