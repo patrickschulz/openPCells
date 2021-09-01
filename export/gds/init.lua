@@ -6,21 +6,10 @@ local __textmode = false
 local __userunit = 1
 local __databaseunit = 1e-9
 
+local __labelsize = 1
+
 local recordtypes = gdstypetable.recordtypes
 local datatypes = gdstypetable.datatypes
-
--- helper functions
---[[ not used right now
-local function _gdsfloat_to_number(data, width)
-    local sign = (data[1] & 0x80) >> 7
-    local exp = (data[1] & 0x7f)
-    local mantissa = 0
-    for i = 2, width do
-        mantissa = mantissa + data[i] / (256^(i - 1))
-    end
-    return sign * mantissa * (16 ^ (exp - 64))
-end
---]]
 
 local function _number_to_gdsfloat(num, width)
     local data = {}
@@ -132,13 +121,6 @@ local function _write_text_record(file, recordtype, datatype, content)
         file:write(string.format("%12s #(%4d)\n", recordtype.name, 4))
     else
         local data = _assemble_data(recordtype.code, datatype, content)
-        --[[
-        local str = {}
-        for _, d in ipairs(data) do
-            table.insert(str, string.format("0x%02x", d))
-        end
-        file:write(string.format("%12s (%4d): { %s }\n", recordtype.name, #data, table.concat(str, " ")))
-        --]]
         local str
         if datatype == datatypes.NONE then
         elseif datatype == datatypes.BIT_ARRAY or
@@ -159,6 +141,7 @@ local function _write_binary_record(file, recordtype, datatype, content)
     file:write_binary(data)
 end
 
+-- function "pointer" which (affected by __textmode option)
 local _write_record = _write_binary_record
 
 local function _unpack_points(pts, multiplier)
@@ -197,6 +180,10 @@ function M.set_options(opt)
 
     if opt.disablepath then
         M.write_path = nil
+    end
+
+    if opt.labelsize then
+        __labelsize = opt.labelsize
     end
 end
 
@@ -297,7 +284,8 @@ function M.write_port(file, name, layer, where)
     _write_record(file, recordtypes.TEXT, datatypes.NONE)
     _write_record(file, recordtypes.LAYER, datatypes.TWO_BYTE_INTEGER, { layer.layer })
     _write_record(file, recordtypes.TEXTTYPE, datatypes.TWO_BYTE_INTEGER, { layer.purpose })
-    _write_record(file, recordtypes.PRESENTATION, datatypes.BIT_ARRAY, { 0x0005 })
+    _write_record(file, recordtypes.PRESENTATION, datatypes.BIT_ARRAY, { 0x0005 }) -- center:center presentation
+    _write_record(file, recordtypes.MAG, datatypes.EIGHT_BYTE_REAL, { __labelsize * __databaseunit })
     _write_record(file, recordtypes.XY, datatypes.FOUR_BYTE_INTEGER, _unpack_points({ where }, __userunit))
     _write_record(file, recordtypes.STRING, datatypes.ASCII_STRING, name)
     _write_record(file, recordtypes.ENDEL, datatypes.NONE)
