@@ -210,8 +210,8 @@ local function _make_unique_points(pts)
     end
 end
 
-function M.path(layer, pts, width)
-    local S = shape.create_path(layer, pts, width)
+function M.path(layer, pts, width, extension)
+    local S = shape.create_path(layer, pts, width, extension)
     return object.make_from_shape(S)
 end
 

@@ -31,8 +31,8 @@ function shape.copy(self)
         new = shape.create_rectangle(self.lpp:copy(), 0, 0) -- dummy width and length
         new.points.bl = self.points.bl:copy()
         new.points.tr = self.points.tr:copy()
-    else
-        new = shape.create_path(self.lpp:copy(), {}, self.width)
+    else -- path
+        new = shape.create_path(self.lpp:copy(), {}, self.width, self.extension)
         for i, pt in ipairs(self.points) do
             new.points[i] = pt:copy()
         end

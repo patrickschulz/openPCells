@@ -68,7 +68,7 @@ local function _write_cell(file, cell)
         elseif S:is_type("rectangle") then
             export.write_rectangle(file, layer, S.points.bl, S.points.tr)
         elseif S:is_type("path") then
-            export.write_path(file, layer, S.points, S.width, {100, 10})
+            export.write_path(file, layer, S.points, S.width, S.extension)
         else
             moderror(string.format("export: unknown shape type '%s'", S.typ))
         end

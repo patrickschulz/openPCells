@@ -118,7 +118,7 @@ int lshape_create_path(lua_State* L)
     lua_pushvalue(L, 3);
     lua_rawset(L, -3);
     // set ending
-    if(lua_gettop(L) > 4) // ending type is present
+    if(lua_gettop(L) > (3 + 1)) // ending type is present (table was pushed on the stack, therefor + 1)
     {
         /*
         if(lua_type(L, 4) == LUA_TSTRING)
