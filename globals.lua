@@ -3,7 +3,7 @@ function modinfo(msg)
 end
 
 function moderror(msg)
-    error(msg, 0)
+    error({ msg = msg, traceback = false }, 0)
 end
 
 function modwarning(msg)
