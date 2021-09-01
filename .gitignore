@@ -1,6 +1,7 @@
 # main programs and generated code files
 opc
 config.h
+opc.1
 
 # generated layouts and helpers
 openPCells.*
