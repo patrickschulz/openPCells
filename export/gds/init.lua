@@ -249,7 +249,7 @@ function M.write_path(file, layer, pts, width, extension)
         --_write_record(file, recordtypes.PATHTYPE, datatypes.TWO_BYTE_INTEGER, { 0 })
     elseif extension == "round" then
         _write_record(file, recordtypes.PATHTYPE, datatypes.TWO_BYTE_INTEGER, { 1 })
-    elseif extension == "square" then
+    elseif extension == "cap" then
         _write_record(file, recordtypes.PATHTYPE, datatypes.TWO_BYTE_INTEGER, { 2 })
     elseif type(extension) == "table" then
         _write_record(file, recordtypes.PATHTYPE, datatypes.TWO_BYTE_INTEGER, { 4 })
