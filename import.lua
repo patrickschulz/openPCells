@@ -69,7 +69,9 @@ local function _write_cell(cell, path, dirname, layermap, alignmentbox)
             table.insert(chunkt, string.format('    child = cell:add_child(name):translate(%d, %d)', ref.pts[1], ref.pts[2]))
         end
         if ref.transformation then
-            table.insert(chunkt, string.format('    child:flipx()'))
+            if ref.transformation[1] == 1 then
+                table.insert(chunkt, string.format('    child:mirror_at_xaxis()'))
+            end
         end
     end
     for _, label in ipairs(cell.labels) do
