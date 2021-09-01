@@ -138,7 +138,7 @@ local function _read_stream(filename)
     return records
 end
 
-function M.show_records(filename, flags)
+function M.show_records(filename, flags, printraw)
     if flags == "all" then
         flags = {
             showrecordlength = true
@@ -162,10 +162,16 @@ function M.show_records(filename, flags)
             data = "{ " .. table.concat(data, " ") .. " }"
         end
         if data then
-            print(string.format(" -> data: %s", data))
-        else
-            print()
+            io.write(string.format(" -> data: %s", data))
+            if printraw then
+                local raw = {}
+                for _, byte in ipairs(record.raw) do
+                    table.insert(raw, string.format("0x%02x", byte))
+                end
+                io.write(string.format(" (raw: %s)", table.concat(raw, ' ')))
+            end
         end
+        print()
         if header.recordtype == 0x01 or 
             header.recordtype == 0x05 or 
             header.recordtype == 0x08 or 

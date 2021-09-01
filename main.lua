@@ -84,7 +84,7 @@ end
 
 -- gds info functions
 if args.showgdsdata then
-    gdsparser.show_records(args.showgdsdata, args.showgdsdataflags or "all")
+    gdsparser.show_records(args.showgdsdata, args.showgdsdataflags or "all", args.showgdsdataraw)
     return 0
 end
 if args.showgdshierarchy then

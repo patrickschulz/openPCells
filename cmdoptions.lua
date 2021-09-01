@@ -241,6 +241,10 @@ return {
         name = "showgdsdataflags", long = "--show-gds-data-flags",
         help = "flags to control what data is shown with --show-gds-data (default: all)"
     },
+    store_multiple{
+        name = "showgdsdataraw", long = "--show-gds-data-raw",
+        help = "also print the raw stream data after the parsed data"
+    },
     section("Diagnostic functions"),
     switch{
         name = "cellinfo", long = "--show-cellinfo",
