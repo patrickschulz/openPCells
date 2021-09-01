@@ -117,6 +117,21 @@ int lshape_create_path(lua_State* L)
     lua_pushstring(L, "width");
     lua_pushvalue(L, 3);
     lua_rawset(L, -3);
+    // set ending
+    if(lua_gettop(L) > 4) // ending type is present
+    {
+        /*
+        if(lua_type(L, 4) == LUA_TSTRING)
+        {
+        }
+        else // LUA_TTABLE, variable start and end extensions
+        {
+        }
+        */
+        lua_pushstring(L, "extension");
+        lua_pushvalue(L, 4);
+        lua_rawset(L, -3);
+    }
     // setmetatable
     luaL_setmetatable(L, LSHAPEMODULE);
     return 1;

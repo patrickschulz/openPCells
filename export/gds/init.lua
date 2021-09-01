@@ -238,12 +238,27 @@ function M.write_polygon(file, layer, pts)
     _write_record(file, recordtypes.ENDEL, datatypes.NONE)
 end
 
-function M.write_path(file, layer, pts, width)
+function M.write_path(file, layer, pts, width, extension)
     local ptstream = _unpack_points(pts, __userunit)
     _write_record(file, recordtypes.PATH, datatypes.NONE)
     _write_record(file, recordtypes.LAYER, datatypes.TWO_BYTE_INTEGER, { layer.layer })
-    _write_record(file, recordtypes.DATATYPE, datatypes.TWO_BYTE_INTEGER, { layer.purpose})
+    _write_record(file, recordtypes.DATATYPE, datatypes.TWO_BYTE_INTEGER, { layer.purpose })
+    if extension == "butt" then
+        -- (implicit)
+        --_write_record(file, recordtypes.PATHTYPE, datatypes.TWO_BYTE_INTEGER, { 0 })
+    elseif extension == "round" then
+        _write_record(file, recordtypes.PATHTYPE, datatypes.TWO_BYTE_INTEGER, { 1 })
+    elseif extension == "square" then
+        _write_record(file, recordtypes.PATHTYPE, datatypes.TWO_BYTE_INTEGER, { 2 })
+    elseif type(extension) == "table" then
+        _write_record(file, recordtypes.PATHTYPE, datatypes.TWO_BYTE_INTEGER, { 4 })
+    end
     _write_record(file, recordtypes.WIDTH, datatypes.FOUR_BYTE_INTEGER, { width })
+    -- these records have to come after WIDTH (at least for klayout, but they also are in this order in the GDS manual)
+    if type(extension) == "table" then
+        _write_record(file, recordtypes.BGNEXTN, datatypes.FOUR_BYTE_INTEGER, { extension[1] })
+        _write_record(file, recordtypes.ENDEXTN, datatypes.FOUR_BYTE_INTEGER, { extension[2] })
+    end
     _write_record(file, recordtypes.XY, datatypes.FOUR_BYTE_INTEGER, ptstream)
     _write_record(file, recordtypes.ENDEL, datatypes.NONE)
 end
