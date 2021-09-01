@@ -187,6 +187,10 @@ return {
         name = "gdsusefilename", long = "--gds-use-filename",
         help = "Use the name of the stream file as opc library name. This is the opposite of --gds-use-libname and the default, so this option exists only for explicitness. This option overrules --gds-use-libname"
     },
+    switch{
+        name = "importoverwrite", long = "--import-overwrite",
+        help = "overwrite files while importing. This does not check whether these overwritten files are from a previous import or something else, so use this option with caution"
+    },
     section("Info functions"),
     switch{ 
         name = "params", short = "-P", long  = "--parameters",

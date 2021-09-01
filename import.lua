@@ -90,20 +90,24 @@ local function _write_cell(cell, path, dirname, layermap, alignmentbox)
     cellfile:close()
 end
 
-function M.translate_cells(cells, prefix, dirname, layermap, alignmentbox)
+function M.translate_cells(cells, prefix, dirname, layermap, alignmentbox, overwrite)
     local path
     if prefix and prefix ~= "" then
         path = string.format("%s/%s", prefix, dirname)
     else
         path = string.format("%s/%s", dirname, dirname)
     end
-    local created = filesystem.mkdir(path)
-    if created then
-        for _, cell in ipairs(cells) do
-            _write_cell(cell, path, dirname, layermap, alignmentbox)
+    if not filesystem.exists(path) or overwrite then
+        local created = filesystem.mkdir(path)
+        if created then
+            for _, cell in ipairs(cells) do
+                _write_cell(cell, path, dirname, layermap, alignmentbox)
+            end
+        else
+            moderror("import: could not create import directory")
         end
     else
-        moderror("import: could not create import directory")
+        moderror("import: directory exists");
     end
 end
 
