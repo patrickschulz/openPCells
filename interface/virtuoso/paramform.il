@@ -171,12 +171,10 @@ procedure(OPCCreateParamForm()
 		()
 		hiCreateAppForm(
 			?name 'OPCCellForm
-            ;?formType 'options
-            ?dontBlock t
+            ?formType 'options
 			?formTitle "OPC Create Cell"
 			?fields list(OPCLibList OPCCellList)
-			;?buttonLayout 'HideCancelDef
-			?buttonLayout 'Close
+			?buttonLayout 'HideCancelDef
 		)
 		OPCCellForm->extraFields = list(nil 'OPCLibList OPCLibList 'OPCCellList OPCCellList)
 		OPCCellForm->fieldParents = list(nil)

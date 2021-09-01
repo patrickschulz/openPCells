@@ -44,6 +44,7 @@ procedure(OPCCreateCellInternal(cv @optional (origin 0:0))
             if(isFile(lsprintf("%s.il" OPCSettingsForm->OPCCellFilename->value))
                 then
                     load(lsprintf("%s.il" OPCSettingsForm->OPCCellFilename->value))
+                    opcscratchshapes = cv->shapes
                     OPCCleanUp(lsprintf("%s.il" OPCSettingsForm->OPCCellFilename->value))
                 else
                     hiDisplayAppDBox(
@@ -68,6 +69,7 @@ procedure(OPCCreateCell(w done pts)
 ) ; OPCCreateCell
 
 procedure(OPCPlaceCell()
+    /*
     let(
         (oldSnapMode oldSegSnapMode)
         ; display main OPC form, which takes care of creating the ghost shapes for dragging
@@ -93,12 +95,15 @@ procedure(OPCPlaceCell()
         ; restore previous snap modes
         hiGetCurrentWindow()->snapMode = oldSnapMode
         hiGetCurrentWindow()->segSnapMode = oldSegSnapMode
+
+        dbPurge(dbOpenCellViewByType("testing" "__opctempcell__" "layout" "maskLayout" "s"))
     )
-    ;enterPoint(
-    ;	?prompts list("Enter origin")
-    ;	?doneProc "OPCCreateCell"
-    ;    ?form OPCCellForm
-    ;    ?alwaysMap t
-    ;)
+    */
+    enterPoint(
+        ?prompts list("Enter origin")
+        ?doneProc "OPCCreateCell"
+        ?form OPCCellForm
+        ?alwaysMap t
+    )
 ) ; OPCPlaceCell
 
