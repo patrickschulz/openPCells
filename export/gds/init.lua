@@ -3,7 +3,7 @@ local M = {}
 local __libname = "opclib"
 local __textmode = false
 
-local __userunit = 1
+local __userunit = 0.001
 local __databaseunit = 1e-9
 
 local __labelsize = 1
@@ -144,7 +144,8 @@ end
 -- function "pointer" which (affected by __textmode option)
 local _write_record = _write_binary_record
 
-local function _unpack_points(pts, multiplier)
+local function _unpack_points(pts)
+    local multiplier = 1e9 * __databaseunit -- opc works in nanometers
     local stream = {}
     for _, pt in ipairs(pts) do
         local x, y = pt:unwrap()
@@ -200,7 +201,7 @@ function M.at_begin(file)
         date.year, date.month, date.day, date.hour, date.min, date.sec  -- last access time
     })
     _write_record(file, recordtypes.LIBNAME, datatypes.ASCII_STRING, __libname)
-    _write_record(file, recordtypes.UNITS, datatypes.EIGHT_BYTE_REAL, { 1 / __userunit, __databaseunit })
+    _write_record(file, recordtypes.UNITS, datatypes.EIGHT_BYTE_REAL, { __userunit, __databaseunit })
 end
 
 function M.at_end(file)
@@ -224,13 +225,13 @@ function M.write_rectangle(file, layer, bl, tr)
     _write_record(file, recordtypes.BOUNDARY, datatypes.NONE)
     _write_record(file, recordtypes.LAYER, datatypes.TWO_BYTE_INTEGER, { layer.layer })
     _write_record(file, recordtypes.DATATYPE, datatypes.TWO_BYTE_INTEGER, { layer.purpose})
-    local ptstream = _unpack_points({ bl, point.combine_21(bl, tr), tr, point.combine_12(bl, tr), bl }, __userunit)
+    local ptstream = _unpack_points({ bl, point.combine_21(bl, tr), tr, point.combine_12(bl, tr), bl })
     _write_record(file, recordtypes.XY, datatypes.FOUR_BYTE_INTEGER, ptstream)
     _write_record(file, recordtypes.ENDEL, datatypes.NONE)
 end
 
 function M.write_polygon(file, layer, pts)
-    local ptstream = _unpack_points(pts, __userunit)
+    local ptstream = _unpack_points(pts)
     _write_record(file, recordtypes.BOUNDARY, datatypes.NONE)
     _write_record(file, recordtypes.LAYER, datatypes.TWO_BYTE_INTEGER, { layer.layer })
     _write_record(file, recordtypes.DATATYPE, datatypes.TWO_BYTE_INTEGER, { layer.purpose})
@@ -239,7 +240,7 @@ function M.write_polygon(file, layer, pts)
 end
 
 function M.write_path(file, layer, pts, width, extension)
-    local ptstream = _unpack_points(pts, __userunit)
+    local ptstream = _unpack_points(pts)
     _write_record(file, recordtypes.PATH, datatypes.NONE)
     _write_record(file, recordtypes.LAYER, datatypes.TWO_BYTE_INTEGER, { layer.layer })
     _write_record(file, recordtypes.DATATYPE, datatypes.TWO_BYTE_INTEGER, { layer.purpose })
@@ -274,7 +275,7 @@ function M.write_cell_reference(file, identifier, x, y, orientation)
     elseif orientation == "R180" then
         _write_record(file, recordtypes.ANGLE, datatypes.EIGHT_BYTE_REAL, { 180 })
     end
-    _write_record(file, recordtypes.XY, datatypes.FOUR_BYTE_INTEGER, _unpack_points({ point.create(x, y) }, __userunit))
+    _write_record(file, recordtypes.XY, datatypes.FOUR_BYTE_INTEGER, _unpack_points({ point.create(x, y) }))
     _write_record(file, recordtypes.ENDEL, datatypes.NONE)
 end
 
@@ -291,7 +292,7 @@ function M.write_cell_array(file, identifier, x, y, orientation, xrep, yrep, xpi
     end
     _write_record(file, recordtypes.COLROW, datatypes.TWO_BYTE_INTEGER, { xrep, yrep })
     _write_record(file, recordtypes.XY, datatypes.FOUR_BYTE_INTEGER, 
-        _unpack_points({ point.create(x, y), point.create(x + xrep * xpitch, y), point.create(x, y + yrep * ypitch) }, __userunit))
+        _unpack_points({ point.create(x, y), point.create(x + xrep * xpitch, y), point.create(x, y + yrep * ypitch) }))
     _write_record(file, recordtypes.ENDEL, datatypes.NONE)
 end
 
@@ -301,7 +302,7 @@ function M.write_port(file, name, layer, where)
     _write_record(file, recordtypes.TEXTTYPE, datatypes.TWO_BYTE_INTEGER, { layer.purpose })
     _write_record(file, recordtypes.PRESENTATION, datatypes.BIT_ARRAY, { 0x0005 }) -- center:center presentation
     _write_record(file, recordtypes.MAG, datatypes.EIGHT_BYTE_REAL, { __labelsize * __databaseunit })
-    _write_record(file, recordtypes.XY, datatypes.FOUR_BYTE_INTEGER, _unpack_points({ where }, __userunit))
+    _write_record(file, recordtypes.XY, datatypes.FOUR_BYTE_INTEGER, _unpack_points({ where }))
     _write_record(file, recordtypes.STRING, datatypes.ASCII_STRING, name)
     _write_record(file, recordtypes.ENDEL, datatypes.NONE)
 end
