@@ -55,7 +55,7 @@ procedure(OPCGetCellParameters(cellname)
                                                         ?name sym 
                                                         ?prompt display 
                                                         ?value value
-                                                        ?callback list('OPCUpdateCellShapeCB)
+                                                        ;?callback list('OPCUpdateCellShapeCB)
                                                         ?choices list("true" "false")
                                                     )
                                                 else
@@ -63,7 +63,7 @@ procedure(OPCGetCellParameters(cellname)
                                                         ?name sym 
                                                         ?prompt display 
                                                         ?value value
-                                                        ?callback 'OPCUpdateCellShapeCB
+                                                        ;?callback 'OPCUpdateCellShapeCB
                                                     )
                                             )
                                             field = apply(func arglist)
@@ -108,7 +108,7 @@ procedure(OPCLibNameCB(field form)
 		form->OPCCellList->items = celllist
 		form->OPCCellList->value = car(celllist)
 	)
-    OPCUpdateCellShapeCB(field form)
+    ;OPCUpdateCellShapeCB(field form)
 )
 
 procedure(OPCUpdateCellParameters(cellname)
@@ -136,7 +136,7 @@ procedure(OPCUpdateCellParameters(cellname)
 
 procedure(OPCUpdateCellParametersCB(field form)
 	OPCUpdateCellParameters(lsprintf("%s/%s" OPCCellForm->OPCLibList->value OPCCellForm->OPCCellList->value))
-    OPCUpdateCellShapeCB(field form)
+    ;OPCUpdateCellShapeCB(field form)
 )
 
 procedure(OPCUpdateCellShapeCB(field form)
