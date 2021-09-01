@@ -247,6 +247,38 @@ function M.read_stream(filename)
             obj.transformation = record.data
         end
     end
+    -- post-process cells
+    -- -> BOX is not used for rectangles, at least most tool suppliers seem to do it this way
+    --    therefor, we check if some "polygons" are actually rectangles and fix the shape types
+    for _, cell in ipairs(cells) do
+        for _, shape in ipairs(cell.shapes) do
+            if shape.shapetype == "polygon" then
+                if #shape.pts == 10 then -- rectangles in GDS have five points (xy -> * 2)
+                    if (shape.pts[1] == shape.pts[3]   and
+                        shape.pts[4] == shape.pts[6]   and
+                        shape.pts[5] == shape.pts[7]   and
+                        shape.pts[8] == shape.pts[10]  and
+                        shape.pts[9] == shape.pts[1]   and
+                        shape.pts[10] == shape.pts[2]) or
+                       (shape.pts[2] == shape.pts[4]   and
+                        shape.pts[3] == shape.pts[5]   and
+                        shape.pts[6] == shape.pts[8]   and
+                        shape.pts[7] == shape.pts[9]   and
+                        shape.pts[9] == shape.pts[1]   and
+                        shape.pts[10] == shape.pts[2])  then
+
+                        shape.shapetype = "rectangle"
+                        shape.pts = { 
+                            math.min(shape.pts[1], shape.pts[3], shape.pts[5], shape.pts[7], shape.pts[9]),
+                            math.min(shape.pts[2], shape.pts[4], shape.pts[6], shape.pts[8], shape.pts[10]),
+                            math.max(shape.pts[1], shape.pts[3], shape.pts[5], shape.pts[7], shape.pts[9]),
+                            math.max(shape.pts[2], shape.pts[4], shape.pts[6], shape.pts[8], shape.pts[10])
+                        }
+                    end
+                end
+            end
+        end
+    end
     return { libname = libname, cells = cells }
 end
 

@@ -20,7 +20,7 @@ local function _format_shape(shape, layermap)
     local lpp = _format_lpp(shape.layer, shape.purpose, layermap)
     if shape.shapetype == "rectangle" then
         local bl = string.format("point.create(%d, %d)", shape.pts[1], shape.pts[2])
-        local tr = string.format("point.create(%d, %d)", shape.pts[5], shape.pts[6])
+        local tr = string.format("point.create(%d, %d)", shape.pts[3], shape.pts[4])
         return string.format("geometry.rectanglebltr(%s, %s, %s)", lpp, bl, tr)
     elseif shape.shapetype == "polygon" then
         local ptsstrt = {}
