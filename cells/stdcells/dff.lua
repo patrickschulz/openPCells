@@ -113,6 +113,11 @@ function layout(gate, _P)
         anchor("G5"):translate( 4 * xpitch - spacing, bp.gstwidth / 2)
     ))
 
+    gate:merge_into_shallow(geometry.rectanglebltr(generics.metal(1), 
+        anchor("nSDc6"):translate(0, -bp.sdwidth / 2),
+        anchor("nSDc7"):translate(0, bp.sdwidth / 2)
+    ))
+
     -- M2 bars
     local suffix1 = _P.clockpolarity == "positive" and "lower" or "upper"
     local suffix2 = _P.clockpolarity == "positive" and "upper" or "lower"
