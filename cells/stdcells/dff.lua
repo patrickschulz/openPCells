@@ -14,6 +14,7 @@
 
           clk                 ~clk          ~clk            clk
 --]]
+
 function parameters()
     pcell.reference_cell("stdcells/base")
     pcell.reference_cell("stdcells/harness")
@@ -21,6 +22,7 @@ function parameters()
     pcell.add_parameter("clockpolarity", "positive", { posvals = set("positive", "negative") })
     pcell.add_parameter("enableQ", true)
     pcell.add_parameter("enableQN", false)
+    pcell.add_parameter("enable_reset", false)
 end
 
 function layout(gate, _P)
@@ -29,310 +31,243 @@ function layout(gate, _P)
     local xpitch = bp.gspace + bp.glength
     local routingshift = (bp.gstwidth + bp.gstspace) / 2
 
-    -- isolation dummy
-    local isogateref = pcell.create_layout("stdcells/isogate")
-    local isoname = pcell.add_cell_reference(isogateref, "isogate")
-    local isogate
-
-    -- first part of clock inverter/buffer
-    pcell.push_overwrites("stdcells/base", { rightdummies = 1 })
-    local clockinv1ref = pcell.create_layout("stdcells/not_gate", { 
-        inputpos = _P.clockpolarity == "positive" and "lower" or "upper",
-        shiftoutput = xpitch / 2 
+    local harness = pcell.create_layout("stdcells/harness", {
+        fingers = _P.enableQN and 22 or 20,
+        gatecontactpos = 
+            _P.clockpolarity == "positive" and {
+                "lower", "dummy", "lower", "dummy", "lower",
+                "center", "upper", "dummy", "center", "dummy",
+                "split", "center", "dummy", "split", "dummy",
+                "center", "dummy", "split", "center", "center",
+                "dummy", "center",
+            }
+            or {
+                "upper", "power", "upper", "power", "lower",
+                "center", "upper", "power", "center", "power",
+                "split", "center", "power", "split", "power",
+                "center", "power", "split", "center", "center",
+                "power", "center",
+            },
+        pcontactpos = {
+            "power", "inner", "power", "inner", "power", "power", nil,
+            "inner", "power", "outer", "inner", nil, "power", "outer",
+            "inner", "power", "outer", "inner", nil, "power", "inner",
+            "power", "inner",
+        },
+        ncontactpos = {
+            "power", "inner", "power", "inner", "power", "outer", "outer",
+            "inner", "power", "outer", "inner", nil, "power", "outer",
+            "inner", "power", "outer", "inner", nil, "power", "inner",
+            "power", "inner",
+        },
     })
-    local clockinv1name = pcell.add_cell_reference(clockinv1ref, "clockinv1")
-    local clockinv1 = gate:add_child(clockinv1name)
+    gate:merge_into_shallow(harness)
 
-    -- second part of clock inverter/buffer
-    pcell.push_overwrites("stdcells/base", { leftdummies = 0 })
-    local clockinv2ref = pcell.create_layout("stdcells/not_gate", { 
-        inputpos = _P.clockpolarity == "positive" and "lower" or "upper",
-        shiftoutput = xpitch / 2 
-    })
-    local clockinv2name = pcell.add_cell_reference(clockinv2ref, "clockinv2")
-    local clockinv2 = gate:add_child(clockinv2name)
-    clockinv2:move_anchor("left", clockinv1:get_anchor("right"))
+    local anchor = function(str, suffix) return harness:get_anchor(string.format("%s%s", str, suffix or "")) end
 
-    -- first clocked inverter
-    local cinvref = pcell.create_layout("stdcells/cinv", { 
-        splitenables = true,
-        swapoutputs = true, 
-        inputpos = _P.clockpolarity == "positive" and "upper" or "lower",
-        enablenpos = _P.clockpolarity == "positive" and "lower" or "center",
-        enableppos = _P.clockpolarity == "positive" and "center" or "upper",
-        --enableppos = "center",
-        shiftoutput = xpitch * 3 / 2 
-    })
-    local cinvname = pcell.add_cell_reference(cinvref, "cinv")
-    local cinv = gate:add_child(cinvname)
-    cinv:move_anchor("left", clockinv2:get_anchor("right"))
+    local spacing = bp.sdwidth / 2 + bp.gstspace
+    local yinvert = _P.clockpolarity == "positive" and 1 or -1
 
-    ---[[
-    -- first feedback inverter cell
-    pcell.push_overwrites("stdcells/base", { rightdummies = 0 })
-    pcell.push_overwrites("stdcells/base", { connectoutput = false })
-    pcell.push_overwrites("stdcells/harness", { shiftpcontactsinner = bp.pwidth / 2, shiftncontactsinner = bp.nwidth / 2 })
-    local fbinv1ref = pcell.create_layout("stdcells/not_gate")
-    local fbinv1name = pcell.add_cell_reference(fbinv1ref, "fbinv1")
-    local fbinv1 = gate:add_child(fbinv1name)
-    fbinv1:move_anchor("left", cinv:get_anchor("right"))
-    pcell.pop_overwrites("stdcells/base")
-    pcell.pop_overwrites("stdcells/harness")
-
-    isogate = gate:add_child(isoname)
-    isogate:move_anchor("left", fbinv1:get_anchor("right"))
-
-    local fbcinv1ref = pcell.create_layout("stdcells/cinv", { swapinputs = false, swapoutputs = true, shiftoutput = xpitch * 3 / 2 })
-    local fbcinv1name = pcell.add_cell_reference(fbcinv1ref, "fbcinv1")
-    local fbcinv1 = gate:add_child(fbcinv1name)
-    fbcinv1:flipx()
-    fbcinv1:move_anchor("left", isogate:get_anchor("right"))
-    pcell.pop_overwrites("stdcells/base")
-
-    isogate = gate:add_child(isoname)
-    isogate:move_anchor("left", fbcinv1:get_anchor("right"))
-
-    -- transmission gate
-    local tgateref = pcell.create_layout("stdcells/tgate", { shiftinput = xpitch * 3 / 2, shiftoutput = xpitch / 2 })
-    local tgatename = pcell.add_cell_reference(tgateref, "tgate")
-    local tgate = gate:add_child(tgatename)
-    tgate:move_anchor("left", isogate:get_anchor("right"))
-
-    -- second feedback inverter cell
-    pcell.push_overwrites("stdcells/base", { connectoutput = false, rightdummies = 0 })
-    pcell.push_overwrites("stdcells/harness", { shiftpcontactsinner = bp.pwidth / 2, shiftncontactsinner = bp.nwidth / 2 })
-    local fbinv2ref = pcell.create_layout("stdcells/not_gate", { 
-        inputpos = "center"
-    })
-    local fbinv2name = pcell.add_cell_reference(fbinv2ref, "fbinv2")
-    local fbinv2 = gate:add_child(fbinv2name)
-    fbinv2:move_anchor("left", tgate:get_anchor("right"))
-    pcell.pop_overwrites("stdcells/harness")
-    pcell.pop_overwrites("stdcells/base")
-
-    isogate = gate:add_child(isoname)
-    isogate:move_anchor("left", fbinv2:get_anchor("right"))
-
-    pcell.push_overwrites("stdcells/base", { connectoutput = true, rightdummies = 0 })
-    local fbcinv2ref = pcell.create_layout("stdcells/cinv", { 
-        inputpos = "center",
-        swapinputs = false, 
-        swapoutputs = true, 
-        shiftoutput = xpitch * 5 / 2 
-    })
-    local fbcinv2name = pcell.add_cell_reference(fbcinv2ref, "fbcinv2")
-    local fbcinv2 = gate:add_child(fbcinv2name)
-    fbcinv2:move_anchor("left", isogate:get_anchor("right"))
-    fbcinv2:flipx()
-    pcell.pop_overwrites("stdcells/base")
-
-    -- pop general settings (restores correct number of right dummies for the entire cell)
-    pcell.pop_overwrites("stdcells/base")
-    pcell.pop_overwrites("stdcells/base")
-
-    -- output buffer
-    pcell.push_overwrites("stdcells/base", {
-        leftdummies = 0
-    })
-    pcell.push_overwrites("stdcells/not_gate", {
-        inputpos = "center",
-        shiftoutput = xpitch / 2 ,
-    })
-    local outinv1
-    local outinv2
-    if _P.enableQN then
-        pcell.push_overwrites("stdcells/base", {
-            rightdummies = 1,
-            leftdummies = 0
-        })
-        local outinv1ref = pcell.create_layout("stdcells/not_gate")
-        pcell.pop_overwrites("stdcells/base")
-        outinv1name = pcell.add_cell_reference(outinv1ref, "outinv1")
-        outinv1 = gate:add_child(outinv1name)
-        outinv1:move_anchor("left", fbcinv2:get_anchor("right"))
-        local outinv2ref = pcell.create_layout("stdcells/not_gate", { inputpos = "center" })
-        outinv2name = pcell.add_cell_reference(outinv2ref, "outinv2")
-        outinv2 = gate:add_child(outinv2name)
-        outinv2:move_anchor("left", outinv1:get_anchor("right"))
-        gate:merge_into_shallow(geometry.path(generics.metal(1), { outinv1:get_anchor("O"), outinv2:get_anchor("I") }, bp.sdwidth))
-    else
-        local outinv1ref = pcell.create_layout("stdcells/not_gate", { 
-        })
-        outinv1name = pcell.add_cell_reference(outinv1ref, "outinv1")
-        outinv1 = gate:add_child(outinv1name)
-        outinv1:move_anchor("left", fbcinv2:get_anchor("right"))
-        outinv2 = outinv1 -- simple hack for alignmentbox
-    end
-    pcell.pop_overwrites("stdcells/not_gate")
-    pcell.pop_overwrites("stdcells/base")
-
-    -- draw connections
-    -- fbinv.O to fbcinv.I
-    gate:merge_into_shallow(geometry.path(generics.metal(1), 
-        geometry.path_points_xy(fbinv1:get_anchor("OTRc"), {
-            2 * xpitch,
-            -bp.pwidth * 3 / 4 + bp.sdwidth / 2,
-            fbcinv1:get_anchor("I")
-        }),
-    bp.sdwidth))
-    gate:merge_into_shallow(geometry.path(generics.metal(1), 
-        geometry.path_points_xy(fbinv1:get_anchor("OBRc"), {
-            2 * xpitch,
-            bp.nwidth * 3 / 4 - bp.sdwidth / 2,
-            fbcinv1:get_anchor("I")
-        }),
-    bp.sdwidth))
-    gate:merge_into_shallow(geometry.path(generics.metal(1), 
-        geometry.path_points_xy(fbinv2:get_anchor("OTRo"):translate(0, -bp.sdwidth / 2), {
-            2 * xpitch,
-            -bp.pwidth + bp.sdwidth,
-            fbcinv2:get_anchor("I")
-        }),
-    bp.sdwidth))
-    gate:merge_into_shallow(geometry.path(generics.metal(1), 
-        geometry.path_points_xy(fbinv2:get_anchor("OBRo"):translate(0, bp.sdwidth / 2), {
-            2 * xpitch,
-            bp.nwidth - bp.sdwidth,
-            fbcinv2:get_anchor("I")
-        }),
-    bp.sdwidth))
-
-    -- tgate to fbinv2
     gate:merge_into_shallow(geometry.rectanglebltr(generics.metal(1),
-        (tgate:get_anchor("O") .. fbinv2:get_anchor("I")):translate(0, -bp.gstwidth / 2),
-        fbinv2:get_anchor("I"):translate(3 / 2 * xpitch - bp.gstspace / 2, bp.gstwidth / 2)
+        anchor("G1"):translate(-xpitch, -bp.gstwidth / 2),
+        anchor("G1"):translate( xpitch - spacing, bp.gstwidth / 2)
+    ))
+    gate:merge_into_shallow(geometry.rectanglebltr(generics.via(1, 2),
+        anchor("G1"):translate(-xpitch,           yinvert * 2 * (bp.gstwidth + bp.gstspace) - bp.gstwidth / 2),
+        anchor("G1"):translate( xpitch - spacing, yinvert * 2 * (bp.gstwidth + bp.gstspace) + bp.gstwidth / 2)
+    ))
+    gate:merge_into_shallow(geometry.rectanglebltr(generics.via(1, 2),
+        anchor("G3"):translate(-xpitch, -bp.gstwidth / 2),
+        anchor("G3"):translate( xpitch - spacing, bp.gstwidth / 2)
+    ))
+    gate:merge_into_shallow(geometry.path(generics.metal(2), 
+        { anchor("G1"):translate( xpitch - spacing, yinvert * 2 * (bp.gstwidth + bp.gstspace)), 
+          anchor("G5"):translate(-xpitch + spacing, yinvert * 2 * (bp.gstwidth + bp.gstspace)) }, 
+        bp.sdwidth
     ))
 
-    -- clk connections
-    local fbcinvanchor1 = _P.clockpolarity == "positive" and "EN" or "EP"
-    local fbcinvanchor2 = _P.clockpolarity == "positive" and "EP" or "EN"
-    local clockinvanchor1 = _P.clockpolarity == "positive" and "OBRi" or "OTRi"
-    local clockinvanchor2 = _P.clockpolarity == "positive" and "OTRi" or "OBRi"
-    local yinvert = _P.clockpolarity == "positive" and 1 or -1
+    gate:merge_into_shallow(geometry.path(generics.metal(1),
+        geometry.path_points_xy(anchor("pSDi2"):translate(0, bp.sdwidth / 2), {
+            xpitch / 2,
+            anchor("nSDi2"):translate(0, -bp.sdwidth / 2)
+    }), bp.sdwidth))
+    gate:merge_into_shallow(geometry.path(generics.metal(1),
+        geometry.path_points_xy(anchor("pSDi4"):translate(0, bp.sdwidth / 2), {
+            xpitch / 2,
+            anchor("nSDi4"):translate(0, -bp.sdwidth / 2)
+    }), bp.sdwidth))
+
+    -- cinv clk connection
+    gate:merge_into_shallow(geometry.rectanglebltr(generics.metal(1),
+        anchor("G6"):translate(-2 * xpitch, -bp.gstwidth / 2),
+        anchor("G6"):translate(3 * xpitch - spacing, bp.gstwidth / 2)
+    ))
+
+    -- cinv ~clk connection
+    gate:merge_into_shallow(geometry.rectanglebltr(generics.via(1, 2), 
+        anchor("G7"):translate(-3 * xpitch + spacing, -bp.gstwidth / 2),
+        anchor("G7"):translate( 2 * xpitch - spacing, bp.gstwidth / 2)
+    ))
+    gate:merge_into_shallow(geometry.rectanglebltr(generics.via(1, 2), 
+        anchor("G5"):translate(-1 * xpitch + spacing, -bp.gstwidth / 2),
+        anchor("G5"):translate( 4 * xpitch - spacing, bp.gstwidth / 2)
+    ))
+
     -- M2 bars
+    local suffix1 = _P.clockpolarity == "positive" and "lower" or "upper"
+    local suffix2 = _P.clockpolarity == "positive" and "upper" or "lower"
+    local clockinvanchor1 = _P.clockpolarity == "positive" and "nSDi4" or "pSDi4"
     gate:merge_into_shallow(geometry.path(generics.metal(2), 
-        geometry.path_points_xy(clockinv2:get_anchor(clockinvanchor1):translate(0, -yinvert * bp.sdwidth / 2), {
-        fbcinv1:get_anchor(fbcinvanchor1):translate(-2 * xpitch, 0),
-        tgate:get_anchor(fbcinvanchor1):translate(xpitch, 0),
+        geometry.path_points_xy(anchor(clockinvanchor1):translate(0, -yinvert * bp.sdwidth / 2), {
+        anchor("G11", suffix1):translate(-2 * xpitch, 0),
+        anchor("G14", suffix1):translate(xpitch, 0),
         0,
-        fbcinv2:get_anchor(fbcinvanchor2):translate(xpitch - bp.gstwidth / 2 - bp.gstspace, 0)
+        anchor("G18", suffix2):translate(xpitch - spacing, 0),
     }), bp.sdwidth))
     gate:merge_into_shallow(geometry.path(generics.metal(2), 
         geometry.path_points_xy(
-            clockinv1:get_anchor("O") .. clockinv2:get_anchor("I"), {
-            (clockinv2:get_anchor("I") .. cinv:get_anchor(fbcinvanchor1)):translate(xpitch, 0),
-            fbinv1:get_anchor("I"):translate(- bp.gstwidth - bp.gstspace, 0),
-            fbinv1:get_anchor("I"),
-            fbcinv1:get_anchor(fbcinvanchor2):translate(-2 * xpitch, 0),
-            tgate:get_anchor(fbcinvanchor2):translate(xpitch - bp.gstwidth - bp.gstspace, 0),
+            anchor("G3"):translate(-xpitch, 0), {
+            anchor("G5"):translate(4 * xpitch - spacing - bp.sdwidth / 2, 0),
             0,
-            fbcinv2:get_anchor(fbcinvanchor2):translate(xpitch, (_P.clockpolarity == "positive" and 1 or -1) * (bp.gstspace + bp.gstwidth)),
-            fbcinv2:get_anchor(fbcinvanchor1):translate(-3 * xpitch + bp.gstwidth / 2 + bp.gstspace, 0),
+            anchor("G9"):translate(0, 0),
+            anchor("G11", suffix2):translate(0, 0),
+            anchor("G14", suffix2):translate(xpitch - spacing - bp.sdwidth, 0),
+            anchor("G18", suffix2):translate(2 * xpitch, yinvert * (bp.gstspace + bp.gstwidth)),
+            anchor("G18", suffix1):translate(-3 * xpitch + bp.gstwidth / 2 + bp.gstspace, 0),
     }), bp.sdwidth))
     -- vias
     gate:merge_into_shallow(
         geometry.rectangle(generics.via(1, 2), 2 * bp.glength + bp.gspace, bp.sdwidth)
-        :translate(clockinv2:get_anchor(clockinvanchor1):translate(0, -yinvert * bp.sdwidth / 2)))
+        :translate(anchor(clockinvanchor1):translate(0, -yinvert * bp.sdwidth / 2)))
 
-    -- clockinv1 to clockinv2 connection
-    gate:merge_into_shallow(geometry.rectanglebltr(generics.via(1, 2), 
-        (clockinv1:get_anchor("O") .. clockinv2:get_anchor("I")):translate(0, -bp.gstwidth / 2),
-        clockinv2:get_anchor("I"):translate(xpitch - bp.sdwidth / 2 - bp.gstspace, bp.gstwidth / 2)
+    -- fbinv.O to fbcinv.I
+    gate:merge_into_shallow(geometry.path(generics.metal(1), 
+        geometry.path_points_xy(anchor("pSDi8"):translate(0, bp.sdwidth / 2), {
+            anchor("G9"),
+            0,
+            anchor("nSDi8"):translate(0, -bp.sdwidth / 2)
+        }),
+    bp.sdwidth))
+    gate:merge_into_shallow(geometry.path(generics.metal(1), 
+        geometry.path_points_xy(anchor("pSDi11"):translate(0, bp.sdwidth / 2), {
+            anchor("G9"),
+            0,
+            anchor("nSDi11"):translate(0, -bp.sdwidth / 2)
+        }),
+    bp.sdwidth))
+    gate:merge_into_shallow(geometry.path(generics.metal(1), 
+        geometry.path_points_xy(anchor("pSDc10"), {
+            2 * xpitch,
+            -bp.pwidth * 3 / 4 + bp.sdwidth / 2,
+            anchor("G12"),
+        }),
+    bp.sdwidth))
+    gate:merge_into_shallow(geometry.path(generics.metal(1), 
+        geometry.path_points_xy(anchor("nSDc10"), {
+            2 * xpitch,
+            bp.nwidth * 3 / 4 - bp.sdwidth / 2,
+            anchor("G12"),
+        }),
+    bp.sdwidth))
+    gate:merge_into_shallow(geometry.path(generics.metal(1), 
+        geometry.path_points_yx(anchor("nSDo14"), {
+            anchor("G12"):translate(0, -2 * (bp.gstwidth + bp.gstspace))
+        }),
+    bp.sdwidth))
+    gate:merge_into_shallow(geometry.path(generics.metal(1), 
+        geometry.path_points_yx(anchor("pSDo14"), {
+            anchor("G12"):translate(0, 2 * (bp.gstwidth + bp.gstspace))
+        }),
+    bp.sdwidth))
+
+    gate:merge_into_shallow(geometry.rectanglebltr(generics.via(1, 2),
+        anchor("G11upper"):translate(-2 * xpitch + spacing, -bp.gstwidth / 2),
+        anchor("G11upper"):translate(xpitch - spacing, bp.gstwidth / 2)
+    ))
+    gate:merge_into_shallow(geometry.rectanglebltr(generics.via(1, 2),
+        anchor("G11lower"):translate(-2 * xpitch + spacing, -bp.gstwidth / 2),
+        anchor("G11lower"):translate(xpitch - spacing, bp.gstwidth / 2)
+    ))
+    gate:merge_into_shallow(geometry.rectanglebltr(generics.via(1, 2),
+        anchor("G14upper"):translate(-2 * xpitch + spacing, -bp.gstwidth / 2),
+        anchor("G14upper"):translate(xpitch - spacing, bp.gstwidth / 2)
+    ))
+    gate:merge_into_shallow(geometry.rectanglebltr(generics.via(1, 2),
+        anchor("G14lower"):translate(-2 * xpitch + spacing, -bp.gstwidth / 2),
+        anchor("G14lower"):translate(xpitch - spacing, bp.gstwidth / 2)
     ))
 
-    -- cinv clk connection
-    gate:merge_into_shallow(geometry.rectanglebltr(generics.metal(1),
-        (clockinv2:get_anchor("O") .. cinv:get_anchor(fbcinvanchor2)):translate(0, -bp.gstwidth / 2),
-        (fbinv1:get_anchor("I") .. cinv:get_anchor(fbcinvanchor2)):translate(-bp.sdwidth / 2 - bp.gstspace, bp.gstwidth / 2)
-    ))
-    -- cinv ~clk connection
-    gate:merge_into_shallow(geometry.rectanglebltr(generics.via(1, 2, true), 
-        (clockinv2:get_anchor("O") .. cinv:get_anchor(fbcinvanchor1)):translate(bp.sdwidth / 2 + bp.gstspace, -bp.gstwidth / 2),
-        (fbinv1:get_anchor("I") .. cinv:get_anchor(fbcinvanchor1)):translate(-bp.sdwidth / 2 - bp.gstspace, bp.gstwidth / 2)
-    ))
-    gate:merge_into_shallow(geometry.rectanglebltr(generics.metal(1), 
-        (clockinv2:get_anchor("O") .. cinv:get_anchor(fbcinvanchor1)):translate(bp.sdwidth / 2 + bp.gstspace, -bp.gstwidth / 2),
-        (fbinv1:get_anchor("I") .. cinv:get_anchor(fbcinvanchor1)):translate(-bp.sdwidth / 2 - bp.gstspace, bp.gstwidth / 2)
-    ))
+    gate:merge_into_shallow(geometry.path(generics.metal(1),
+        geometry.path_points_xy(anchor("pSDi15"):translate(0, bp.sdwidth / 2), {
+            xpitch / 2,
+            anchor("nSDi15"):translate(0, -bp.sdwidth / 2)
+    }), bp.sdwidth))
+    gate:merge_into_shallow(geometry.path(generics.metal(1), { anchor("nSDi15"):translate(0, -bp.sdwidth / 2), anchor("nSDi18"):translate(0, -bp.sdwidth / 2) }, bp.sdwidth))
+    gate:merge_into_shallow(geometry.path(generics.metal(1), { anchor("pSDi15"):translate(0,  bp.sdwidth / 2), anchor("pSDi18"):translate(0,  bp.sdwidth / 2) }, bp.sdwidth))
 
-    -- fbcinv2 connections
-    gate:merge_into_shallow(
-        geometry.rectanglebltr(generics.via(1, 2, true), 
-            fbcinv2:get_anchor(fbcinvanchor2):translate(-3 * xpitch + bp.gstwidth / 2 + bp.gstspace, -bp.gstwidth / 2),
-            fbcinv2:get_anchor(fbcinvanchor2):translate(xpitch - bp.gstwidth / 2 - bp.gstspace, bp.gstwidth / 2)
-    ))
-    gate:merge_into_shallow(
-        geometry.path(generics.metal(1), {
-            fbcinv2:get_anchor(fbcinvanchor2):translate(-3 * xpitch + bp.gstwidth / 2 + bp.gstspace, 0),
-            fbcinv2:get_anchor(fbcinvanchor2):translate(xpitch - bp.gstwidth / 2 - bp.gstspace, 0)
-        }, bp.gstwidth
-    ))
-    gate:merge_into_shallow(
-        geometry.rectanglebltr(generics.via(1, 2, true), 
-            fbcinv2:get_anchor(fbcinvanchor1):translate(-3 * xpitch + bp.gstwidth / 2 + bp.gstspace, -bp.gstwidth / 2),
-            fbcinv2:get_anchor(fbcinvanchor1):translate(xpitch - bp.gstwidth / 2 - bp.gstspace, bp.gstwidth / 2)
-    ))
-    gate:merge_into_shallow(
-        geometry.path(generics.metal(1), {
-            fbcinv2:get_anchor(fbcinvanchor1):translate(-3 * xpitch + bp.gstwidth / 2 + bp.gstspace, 0),
-            fbcinv2:get_anchor(fbcinvanchor1):translate(xpitch - bp.gstwidth / 2 - bp.gstspace, 0)
-        }, bp.gstwidth
-    ))
+    gate:merge_into_shallow(geometry.path(generics.metal(1), 
+        geometry.path_points_xy(anchor("pSDo17"):translate(0, -bp.sdwidth / 2), {
+            2 * xpitch,
+            -bp.pwidth + bp.sdwidth,
+            anchor("G19")
+        }),
+    bp.sdwidth))
+    gate:merge_into_shallow(geometry.path(generics.metal(1), 
+        geometry.path_points_xy(anchor("nSDo17"):translate(0, bp.sdwidth / 2), {
+            2 * xpitch,
+            bp.nwidth - bp.sdwidth,
+            anchor("G19")
+        }),
+    bp.sdwidth))
 
-    -- ~clk connections vias
-    for _, anchor in ipairs({ fbcinv1:get_anchor("EP"), fbcinv1:get_anchor("EN"), tgate:get_anchor("EP"), tgate:get_anchor("EN") }) do
-        anchor:translate(-xpitch / 2, 0)
-        gate:merge_into_shallow(geometry.rectangle(generics.via(1, 2, true), 
-            3 * xpitch - bp.sdwidth - 2 * bp.gstspace, bp.gstwidth
-        ):translate(anchor))
-        gate:merge_into_shallow(geometry.rectangle(generics.metal(1), 
-            3 * xpitch - bp.sdwidth - 2 * bp.gstspace, bp.gstwidth
-        ):translate(anchor))
+    -- output inverter connection
+    gate:merge_into_shallow(geometry.path(generics.metal(1),
+        geometry.path_points_xy(anchor("pSDi21"):translate(0, bp.sdwidth / 2), {
+            xpitch / 2,
+            anchor("nSDi21"):translate(0, -bp.sdwidth / 2)
+    }), bp.sdwidth))
+    if _P.enableQN then
+        gate:merge_into_shallow(geometry.path(generics.metal(1),
+            geometry.path_points_xy(anchor("pSDi23"):translate(0, bp.sdwidth / 2), {
+                xpitch / 2,
+                anchor("nSDi23"):translate(0, -bp.sdwidth / 2)
+        }), bp.sdwidth))
+        gate:merge_into_shallow(geometry.rectanglebltr(generics.metal(1),
+            anchor("G22"):translate(-xpitch, -bp.gstwidth / 2),
+            anchor("G22"):translate(xpitch - spacing,  bp.gstwidth / 2)
+        ))
     end
 
-    -- input connection
-    gate:merge_into_shallow(geometry.rectanglebltr(generics.via(1, 2, true),
-        (clockinv2:get_anchor("O") .. cinv:get_anchor("I")):translate(bp.sdwidth / 2 + bp.gstspace, -bp.gstwidth / 2),
-        (fbinv1:get_anchor("I") .. cinv:get_anchor("I")):translate(-bp.sdwidth / 2 - bp.gstspace, bp.gstwidth / 2)
+    gate:merge_into_shallow(geometry.rectanglebltr(generics.via(1, 2), 
+        anchor("G18", "upper"):translate(-3 * xpitch + spacing, -bp.gstwidth / 2),
+        anchor("G18", "upper"):translate(xpitch - bp.sdwidth / 2 - bp.gstspace, bp.gstwidth / 2)
     ))
-    gate:merge_into_shallow(geometry.rectanglebltr(generics.metal(1),
-        (clockinv2:get_anchor("O") .. cinv:get_anchor("I")):translate(bp.sdwidth / 2 + bp.gstspace, -bp.gstwidth / 2),
-        (fbinv1:get_anchor("I") .. cinv:get_anchor("I")):translate(-bp.sdwidth / 2 - bp.gstspace, bp.gstwidth / 2)
+    gate:merge_into_shallow(geometry.rectanglebltr(generics.via(1, 2), 
+        anchor("G18", "lower"):translate(-3 * xpitch + spacing, -bp.gstwidth / 2),
+        anchor("G18", "lower"):translate(xpitch - bp.sdwidth / 2 - bp.gstspace, bp.gstwidth / 2)
     ))
-    gate:merge_into_shallow(geometry.path(generics.metal(2), {
-        point.combine_12(clockinv1:get_anchor("I"), cinv:get_anchor("I")),
-        cinv:get_anchor("I"):translate(2 * xpitch - bp.gstspace - bp.sdwidth / 2, 0)
-    }, bp.sdwidth))
-    gate:merge_into_shallow(
-        geometry.rectanglebltr(generics.via(1, 2), 
-            point.combine_21(cinv:get_anchor("I"), clockinv1:get_anchor("I")):translate(-xpitch, -bp.sdwidth / 2),
-            point.combine_21(cinv:get_anchor("I"), clockinv1:get_anchor("I")):translate( xpitch - bp.gstwidth / 2 - bp.gstspace,  bp.sdwidth / 2)
-    ))
-    gate:merge_into_shallow(
-        geometry.rectanglebltr(generics.metal(1), 
-            clockinv1:get_anchor("I"):translate(-xpitch, -bp.sdwidth / 2),
-            clockinv1:get_anchor("I"):translate( xpitch - bp.gstwidth / 2 - bp.gstspace,  bp.sdwidth / 2)
+    gate:merge_into_shallow(geometry.rectanglebltr(generics.metal(1), 
+        anchor("G16"):translate(-xpitch, -bp.gstwidth / 2),
+        anchor("G16"):translate(3 / 2 * xpitch - bp.gstspace / 2, bp.gstwidth / 2)
     ))
 
     -- output connection
     gate:merge_into_shallow(geometry.rectanglebltr(generics.metal(1),
-        fbcinv2:get_anchor("I"):translate(-3 / 2 * xpitch + bp.gstspace / 2, -bp.gstwidth / 2),
-        outinv1:get_anchor("I"):translate(xpitch - bp.gstwidth / 2 - bp.gstspace,  bp.gstwidth / 2)
+        anchor("G19"):translate(-3 / 2 * xpitch + bp.gstspace / 2, -bp.gstwidth / 2),
+        anchor("G20"):translate(xpitch - spacing,  bp.gstwidth / 2)
     ))
 
-    -- inherit alignment boxes, only use most-left and most-right block
-    gate:inherit_alignment_box(clockinv1)
-    gate:inherit_alignment_box(outinv2)
+    gate:inherit_alignment_box(harness)
 
     -- ports
-    gate:add_port("D", generics.metal(1), point.combine_21(cinv:get_anchor("I"), clockinv1:get_anchor("I")))
     if _P.enableQ then
-        gate:add_port("Q", generics.metal(1), outinv1:get_anchor("O"))
+        gate:add_port("Q", generics.metal(1), anchor("G20"):translate(xpitch, 0))
     end
     if _P.enableQN then
-        gate:add_port("QN", generics.metal(1), outinv2:get_anchor("O"))
+        gate:add_port("QN", generics.metal(1), anchor("G22"):translate(xpitch, 0))
     end
-    gate:add_port("CLK", generics.metal(1), clockinv1:get_anchor("I"))
-    gate:add_port("VDD", generics.metal(1), clockinv1:get_anchor("VDD"))
-    gate:add_port("VSS", generics.metal(1), clockinv1:get_anchor("VSS"))
+    gate:add_port("D", generics.metal(1), anchor("G1"):translate(0, yinvert * 2 * (bp.gstwidth + bp.gstspace)))
+    gate:add_port("CLK", generics.metal(1), anchor("G1"))
+    gate:add_port("VDD", generics.metal(1), anchor("top"))
+    gate:add_port("VSS", generics.metal(1), anchor("bottom"))
 end

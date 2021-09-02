@@ -57,7 +57,6 @@ function layout(gate, _P)
             gtopext = bp.powerspace + bp.powerwidth / 2 + ext,
             topgcutoffset = ext,
             clipbot = true,
-            drawtopgcut = _P.drawtopgcut
         })
         -- main
         local pmos
@@ -90,7 +89,6 @@ function layout(gate, _P)
             gbotext = bp.powerspace + bp.powerwidth / 2 + ext,
             botgcutoffset = ext,
             cliptop = true,
-            drawbotgcut = _P.drawbotgcut,
         })
         local nmos
         -- main
@@ -156,27 +154,20 @@ function layout(gate, _P)
                 gate:add_anchor(string.format("G%d", i), point.create(x, y))
                 gate:add_anchor(string.format("G%dupper", i), point.create(x, y + routingshift))
                 gate:add_anchor(string.format("G%dlower", i), point.create(x, y - routingshift))
-                -- FIXME: simplify gate cut drawing
-                pcell.push_overwrites("basic/mosfet", {
-                    channeltype = "pmos",
-                    vthtype = bp.pvthtype,
-                    fwidth = bp.pwidth,
-                    gbotext = separation / 2,
-                    gtopext = bp.powerspace + bp.powerwidth / 2,
-                    clipbot = true,
-                })
-                gate:merge_into_shallow(pcell.create_layout("basic/mosfet", { fingers = 1, drawbotgcut = true }):move_anchor("botgate", point.create(x, 0)))
-                pcell.pop_overwrites("basic/mosfet")
-                pcell.push_overwrites("basic/mosfet", {
-                    channeltype = "nmos",
-                    vthtype = bp.nvthtype,
-                    fwidth = bp.nwidth,
-                    gtopext = separation / 2,
-                    gbotext = bp.powerspace + bp.powerwidth / 2,
-                    cliptop = true,
-                })
-                gate:merge_into_shallow(pcell.create_layout("basic/mosfet", { fingers = 1, drawtopgcut = true }):move_anchor("topgate", point.create(x, 0)))
-                pcell.pop_overwrites("basic/mosfet")
+                gate:merge_into_shallow(geometry.rectangle(generics.other("gatecut"), xpitch, tp.cutheight):translate(x, 0))
+            elseif _P.gatecontactpos[i] == "dummy" then
+                local pt = point.create(x, _P.shiftgatecontacts)
+                gate:merge_into_shallow(geometry.multiple_y(
+                    geometry.rectangle(generics.contact("gate", nil, true), bp.glength, bp.dummycontheight),
+                    2, separation + bp.pwidth + bp.nwidth + 2 * bp.powerspace + bp.powerwidth
+                ):translate(x, (bp.pwidth - bp.nwidth) / 2))
+                gate:merge_into_shallow(geometry.rectangle(generics.other("gatecut"), xpitch, tp.cutheight):translate(x, 0))
+            end
+            if _P.gatecontactpos[i] ~= "dummy" then
+                gate:merge_into_shallow(geometry.multiple_y(
+                    geometry.rectangle(generics.other("gatecut"), xpitch, tp.cutheight),
+                    2, separation + bp.pwidth + bp.nwidth + 2 * bp.powerspace + bp.powerwidth
+                ):translate(x, (bp.pwidth - bp.nwidth) / 2))
             end
         end
     end
