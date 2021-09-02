@@ -31,35 +31,41 @@ function layout(gate, _P)
     local xpitch = bp.gspace + bp.glength
     local routingshift = (bp.gstwidth + bp.gstspace) / 2
 
+    local gatecontactpos = {
+        "lower", "dummy", "lower", "dummy", "lower",
+        "center", "upper", "dummy", "center", "dummy",
+        "split", "center", "dummy", "split", "dummy",
+        "center", "dummy", "split", "center", "center",
+        "dummy", "center",
+    }
+    local pcontactpos = {
+        "power", "inner", "power", "inner", "power", "power", nil,
+        "inner", "power", "outer", "inner", nil, "power", "outer",
+        "inner", "power", "outer", "inner", nil, "power", "inner",
+        "power", "inner",
+    }
+    local ncontactpos = {
+        "power", "inner", "power", "inner", "power", "outer", "outer",
+        "inner", "power", "outer", "inner", nil, "power", "outer",
+        "inner", "power", "outer", "inner", nil, "power", "inner",
+        "power", "inner",
+    }
+    if _P.clockpolarity == "negative" then
+        gatecontactpos[1] = "upper"
+        gatecontactpos[3] = "upper"
+        gatecontactpos[5] = "upper"
+        gatecontactpos[7] = "lower"
+        pcontactpos[6] = "outer"
+        ncontactpos[6] = "power"
+        pcontactpos[7] = "outer"
+        ncontactpos[7] = nil
+    end
+
     local harness = pcell.create_layout("stdcells/harness", {
         fingers = _P.enableQN and 22 or 20,
-        gatecontactpos = 
-            _P.clockpolarity == "positive" and {
-                "lower", "dummy", "lower", "dummy", "lower",
-                "center", "upper", "dummy", "center", "dummy",
-                "split", "center", "dummy", "split", "dummy",
-                "center", "dummy", "split", "center", "center",
-                "dummy", "center",
-            }
-            or {
-                "upper", "power", "upper", "power", "lower",
-                "center", "upper", "power", "center", "power",
-                "split", "center", "power", "split", "power",
-                "center", "power", "split", "center", "center",
-                "power", "center",
-            },
-        pcontactpos = {
-            "power", "inner", "power", "inner", "power", "power", nil,
-            "inner", "power", "outer", "inner", nil, "power", "outer",
-            "inner", "power", "outer", "inner", nil, "power", "inner",
-            "power", "inner",
-        },
-        ncontactpos = {
-            "power", "inner", "power", "inner", "power", "outer", "outer",
-            "inner", "power", "outer", "inner", nil, "power", "outer",
-            "inner", "power", "outer", "inner", nil, "power", "inner",
-            "power", "inner",
-        },
+        gatecontactpos = gatecontactpos,
+        pcontactpos = pcontactpos,
+        ncontactpos = ncontactpos,
     })
     gate:merge_into_shallow(harness)
 
@@ -113,10 +119,17 @@ function layout(gate, _P)
         anchor("G5"):translate( 4 * xpitch - spacing, bp.gstwidth / 2)
     ))
 
-    gate:merge_into_shallow(geometry.rectanglebltr(generics.metal(1), 
-        anchor("nSDc6"):translate(0, -bp.sdwidth / 2),
-        anchor("nSDc7"):translate(0, bp.sdwidth / 2)
-    ))
+    if _P.clockpolarity == "positive" then
+        gate:merge_into_shallow(geometry.rectanglebltr(generics.metal(1), 
+            anchor("nSDc6"):translate(0, -bp.sdwidth / 2),
+            anchor("nSDc7"):translate(0, bp.sdwidth / 2)
+        ))
+    else
+        gate:merge_into_shallow(geometry.rectanglebltr(generics.metal(1), 
+            anchor("pSDc6"):translate(0, -bp.sdwidth / 2),
+            anchor("pSDc7"):translate(0, bp.sdwidth / 2)
+        ))
+    end
 
     -- M2 bars
     local suffix1 = _P.clockpolarity == "positive" and "lower" or "upper"
