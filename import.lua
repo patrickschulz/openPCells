@@ -58,6 +58,8 @@ local function _write_cell(cell, path, dirname, layermap, alignmentbox)
         table.insert(chunkt, string.format("    cell:merge_into_shallow(%s)", _format_shape(shape, layermap)))
     end
     local references = {}
+    -- sort references before placing them, otherwise this can cause placement of wrong cells
+    table.sort(cell.references, function(lhs, rhs) return lhs.name < rhs.name end)
     for _, ref in ipairs(cell.references) do
         local cellname = string.format("%s/%s", dirname, ref.name)
         if not references[cellname] then
