@@ -198,7 +198,7 @@ return {
     },
     store{
         name = "parametersformat", long = "--parameters-format",
-        help = "format for listing parameters. The following formats are recognized: %t: parameter type, %n: parameter name, %d: parameter display name, %v: parameter value, %a: parameter argument type, %r: parameter is read-only (true/false). The default is %n (%d) %v"
+        help = "format for listing parameters. The following formats are recognized: %t: parameter type, %n: parameter name, %d: parameter display name, %v: parameter value, %a: parameter argument type, %r: parameter is read-only (true/false), %p: parent cell. The default is %n (%d) %v"
     },
     switch{ 
         name = "constraints", long  = "--constraints",
