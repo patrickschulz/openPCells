@@ -129,26 +129,26 @@ function layout(gate, _P)
             if _P.gatecontactpos[i] == "center" then
                 local pt = point.create(x, _P.shiftgatecontacts)
                 gate:merge_into_shallow(geometry.rectangle(
-                    generics.contact("gate"), bp.glength, bp.gstwidth
+                    generics.contact("gate", nil, true), bp.glength, bp.gstwidth
                 ):translate(pt))
                 gate:add_anchor(string.format("G%d", i), pt)
             elseif _P.gatecontactpos[i] == "upper" then
                 local pt = point.create(x, routingshift + _P.shiftgatecontacts)
                 gate:merge_into_shallow(geometry.rectangle(
-                    generics.contact("gate"), bp.glength, bp.gstwidth
+                    generics.contact("gate", nil, true), bp.glength, bp.gstwidth
                 ):translate(pt))
                 gate:add_anchor(string.format("G%d", i), pt)
             elseif _P.gatecontactpos[i] == "lower" then
                 local pt = point.create(x, -routingshift + _P.shiftgatecontacts)
                 gate:merge_into_shallow(geometry.rectangle(
-                    generics.contact("gate"), bp.glength, bp.gstwidth
+                    generics.contact("gate", nil, true), bp.glength, bp.gstwidth
                 ):translate(pt))
                 gate:add_anchor(string.format("G%d", i), pt)
             elseif _P.gatecontactpos[i] == "split" then
                 local x = (2 * i - _P.fingers - 1 + bp.leftdummies - bp.rightdummies) * xpitch / 2 + xshift
                 local y = _P.shiftgatecontacts
                 gate:merge_into_shallow(geometry.multiple_y(
-                    geometry.rectangle(generics.contact("gate"), bp.glength, bp.gstwidth),
+                    geometry.rectangle(generics.contact("gate", nil, true), bp.glength, bp.gstwidth),
                     2, 2 * routingshift
                 ):translate(x, y))
                 gate:add_anchor(string.format("G%d", i), point.create(x, y))
