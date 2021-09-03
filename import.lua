@@ -52,7 +52,15 @@ local function _write_cell(cell, path, dirname, layermap, alignmentbox)
     for _, shape in ipairs(cell.shapes) do
         if alignmentbox then
             if shape.layer == alignmentbox.layer and shape.purpose == alignmentbox.purpose then
-                cell.alignmentbox = shape.pts
+                if shape.shapetype == "rectangle" then
+                    cell.alignmentbox = { blx = shape.pts[1], bly = shape.pts[2], trx = shape.pts[3], try = shape.pts[4] }
+                else
+                    local blx = math.min(cell.alignmentbox[1], cell.alignmentbox[3], cell.alignmentbox[5], cell.alignmentbox[7], cell.alignmentbox[9])
+                    local bly = math.min(cell.alignmentbox[2], cell.alignmentbox[4], cell.alignmentbox[6], cell.alignmentbox[8], cell.alignmentbox[10])
+                    local trx = math.max(cell.alignmentbox[1], cell.alignmentbox[3], cell.alignmentbox[5], cell.alignmentbox[7], cell.alignmentbox[9])
+                    local try = math.max(cell.alignmentbox[2], cell.alignmentbox[4], cell.alignmentbox[6], cell.alignmentbox[8], cell.alignmentbox[10])
+                    cell.alignmentbox = { blx = blx, bly = bly, trx = trx, try = try }
+                end
             end
         end
         table.insert(chunkt, string.format("    cell:merge_into_shallow(%s)", _format_shape(shape, layermap)))
@@ -95,12 +103,8 @@ local function _write_cell(cell, path, dirname, layermap, alignmentbox)
         table.insert(chunkt, string.format('    cell:add_port("%s", %s, %s)', label.text, lpp, pointstr))
     end
     if cell.alignmentbox then
-        local blx = math.min(cell.alignmentbox[1], cell.alignmentbox[3], cell.alignmentbox[5], cell.alignmentbox[7], cell.alignmentbox[9])
-        local bly = math.min(cell.alignmentbox[2], cell.alignmentbox[4], cell.alignmentbox[6], cell.alignmentbox[8], cell.alignmentbox[10])
-        local trx = math.max(cell.alignmentbox[1], cell.alignmentbox[3], cell.alignmentbox[5], cell.alignmentbox[7], cell.alignmentbox[9])
-        local try = math.max(cell.alignmentbox[2], cell.alignmentbox[4], cell.alignmentbox[6], cell.alignmentbox[8], cell.alignmentbox[10])
-        local bl = string.format("point.create(%d, %d)", blx, bly)
-        local tr = string.format("point.create(%d, %d)", trx, try)
+        local bl = string.format("point.create(%d, %d)", cell.alignmentbox.blx, cell.alignmentbox.bly)
+        local tr = string.format("point.create(%d, %d)", cell.alignmentbox.trx, cell.alignmentbox.try)
         table.insert(chunkt, string.format('    cell:set_alignment_box(%s, %s)', bl, tr))
     end
     local cellfile = io.open(string.format("%s/%s.lua", path, cell.name), "w")
