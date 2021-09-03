@@ -29,7 +29,7 @@ function layout(gate, _P)
     local bp = pcell.get_parameters("stdcells/base")
 
     local xpitch = bp.gspace + bp.glength
-    local routingshift = (bp.gstwidth + bp.gstspace) / 2
+    local yrpitch = bp.gstwidth + bp.gstspace
 
     local gatecontactpos = {
         "lower", "dummy", "lower", "dummy", "lower",
@@ -113,7 +113,7 @@ function layout(gate, _P)
     }), bp.sdwidth))
 
     -- cinv clk connection
-    gate:merge_into_shallow(geometry.rectanglebltr(generics.metal(1),
+    gate:merge_into_shallow(geometry.rectanglebltr(generics.via(1, 2),
         anchor("G6"):translate(-2 * xpitch, -bp.gstwidth / 2),
         anchor("G6"):translate(3 * xpitch - spacing, bp.gstwidth / 2)
     ))
@@ -171,22 +171,20 @@ function layout(gate, _P)
         anchor("G15"):translate(xpitch - bp.gstspace / 2, bp.sdwidth / 2)
     ))
 
-    --[[
     local suffix1 = _P.clockpolarity == "positive" and "lower" or "upper"
     local suffix2 = _P.clockpolarity == "positive" and "upper" or "lower"
     local clockinvanchor1 = _P.clockpolarity == "positive" and "nSDi4" or "pSDi4"
-    gate:merge_into_shallow(geometry.path(generics.metal(3), 
+    gate:merge_into_shallow(geometry.path(generics.metal(2), 
         geometry.path_points_xy(anchor("G6"):translate(-2 * xpitch, 0), {
         anchor("G9"),
         0,
-        anchor("G20"):translate(xpitch - spacing, 0),
+        --anchor("G20"):translate(xpitch - spacing, 0),
+        anchor("G15"):translate(xpitch - spacing, yrpitch),
     }), bp.sdwidth))
     gate:merge_into_shallow(geometry.path(generics.metal(2), 
-        geometry.path_points_xy(
-            anchor("G3"):translate(-xpitch, 0), {
-            anchor("G18")
-    }), bp.sdwidth))
-    --]]
+        --{ anchor("G3"):translate(-xpitch, 0), anchor("G18") }, 
+        { anchor("G3"):translate(-xpitch, 0), anchor("G15"):translate(xpitch - spacing, -yrpitch) }, 
+    bp.sdwidth))
 
     --[[
     -- M2 bars
@@ -335,6 +333,7 @@ function layout(gate, _P)
     --if _P.enableQN then
     --    gate:add_port("QN", generics.metal(1), anchor(string.format("G%d", 22 + gateoffset)):translate(xpitch, 0))
     --end
+    gate:add_port("RST", generics.metal(1), anchor("G15"):translate(-xpitch / 2, 0))
     gate:add_port("D", generics.metal(1), anchor("G1"):translate(0, yinvert * 2 * (bp.gstwidth + bp.gstspace)))
     gate:add_port("CLK", generics.metal(1), anchor("G1"))
     gate:add_port("VDD", generics.metal(1), anchor("top"))
