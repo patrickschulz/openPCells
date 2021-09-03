@@ -103,7 +103,7 @@ procedure(OPCPlaceCell()
         ?prompts list("Enter origin")
         ?doneProc "OPCCreateCell"
         ?form OPCCellForm
-        ?alwaysMap t
+        ?alwaysMap nil
     )
 ) ; OPCPlaceCell
 
