@@ -1,3 +1,15 @@
+function check_arg(arg, argtype, msg)
+    if argtype or not arg then
+        if type(arg) ~= argtype then
+            moderror(msg)
+        end
+    else
+        if not arg then
+            moderror(msg)
+        end
+    end
+end
+
 function modinfo(msg)
     print(msg)
 end

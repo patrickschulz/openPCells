@@ -101,6 +101,8 @@ function M.special(layer)
 end
 
 function M.premapped(name, layer)
+    check_arg(name, "string", "generics.premapped: first argument expects a name")
+    check_arg(layer, "table", "generics.premapped: second argument expects a table")
     local self = _create(layer)
     self.typ = "premapped"
     self.name = name
@@ -108,6 +110,8 @@ function M.premapped(name, layer)
 end
 
 function M.mapped(name, layer)
+    check_arg(name, "string", "generics.mapped: first argument expects a name")
+    check_arg(layer, "table", "generics.mapped: second argument expects a table")
     local self = _create(layer)
     self.typ = "mapped"
     self.name = name
