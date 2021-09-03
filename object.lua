@@ -138,7 +138,7 @@ function meta.merge_into_shallow(self, other)
     end
 end
 
-function meta.flatten(self)
+function meta.flatten(self, flattenports)
     -- add shapes and flatten children (recursive)
     for _, child in self:iterate_children() do
         local obj = child.reference
@@ -148,6 +148,13 @@ function meta.flatten(self)
             local new = self:add_raw_shape(S)
             new:apply_transformation(child.trans, child.trans.apply_transformation)
             new:apply_transformation(obj.trans, obj.trans.apply_transformation)
+        end
+        if flattenports then
+            for _, port in ipairs(self.ports) do
+                local new = { name = port.name, layer = port.layer:copy(), where = port.where.copy() }
+                child.trans:apply_translation(where)
+                obj.trans:apply_translation(where)
+            end
         end
     end
     -- remove children

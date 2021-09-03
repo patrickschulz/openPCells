@@ -29,6 +29,10 @@ return {
         name = "flatten", long = "--flat",
         help = "flatten hierarchy before exporting. This is only necessary if the selected export supports hierarchies. Otherwise this option is applied anyway"
     },
+    switch{
+        name = "flattenports", long = "--flatten-ports",
+        help = "include ports in hierarchy flattening. Can lead to confusing results, especially in large hierarchies. Mostly useful for layout debugging"
+    },
     store_multiple{
         name = "techpath", long = "--techpath",
         help = "add (append) searchpath for technology files (can be used multiple times: --techpath foo --techpath bar)"
