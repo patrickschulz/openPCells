@@ -163,7 +163,7 @@ function meta.flatten(self, flattenports)
 end
 
 function meta.is_empty(self)
-    return #self.shapes == 0 and #self.children == 0
+    return #self.shapes == 0 and #self.children == 0 and #self.ports == 0
 end
 
 function meta.add_port(self, name, layer, where)
