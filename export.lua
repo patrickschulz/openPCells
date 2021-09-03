@@ -92,6 +92,13 @@ local function _write_cell(file, cell)
     end
 end
 
+local function _write_ports(file, cell)
+    for _, port in pairs(cell.ports) do
+        cell.trans:apply_transformation(port.where)
+        export.write_port(file, port.name, port.layer:get(), port.where)
+    end
+end
+
 local cellrefs = {}
 local function _write_children(file, cell, writechildrenports)
     for _, child in cell:iterate_children() do
@@ -101,10 +108,7 @@ local function _write_children(file, cell, writechildrenports)
             _write_cell(file, cellref)
             if writechildrenports then
                 if export.write_port then
-                    for _, port in pairs(cellref.ports) do
-                        cellref.trans:apply_transformation(port.where)
-                        export.write_port(file, port.name, port.layer:get(), port.where)
-                    end
+                    _write_ports(file, cellref)
                 end
             end
             aux.call_if_present(export.at_end_cell, file)
@@ -131,10 +135,7 @@ function M.write_toplevel(filename, technology, toplevel, toplevelname, writechi
     aux.call_if_present(export.at_begin_cell, file, toplevelname)
     _write_cell(file, toplevel)
     if export.write_port then
-        for _, port in pairs(toplevel.ports) do
-            toplevel.trans:apply_transformation(port.where)
-            export.write_port(file, port.name, port.layer:get(), port.where)
-        end
+        _write_ports(file, toplevel)
     end
     aux.call_if_present(export.at_end_cell, file)
 
