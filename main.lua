@@ -432,7 +432,7 @@ if args.postlayerfilter then
 end
 
 if args.flatten then
-    cell:flatten()
+    cell:flatten(args.flattenports)
 end
 
 if args.mergerectangles then
