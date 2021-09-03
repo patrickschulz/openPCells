@@ -144,7 +144,6 @@ end
 pcell.append_cellpath(string.format("%s/cells", _get_opc_home()))
 -- add user-defined cellpaths
 if args.cellpath then
-    print(args.cellpath[1])
     for _, path in ipairs(args.cellpath) do
         pcell.append_cellpath(path)
     end
