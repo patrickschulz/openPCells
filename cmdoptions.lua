@@ -167,6 +167,10 @@ return {
         name = "gdslayermap", long = "--gds-layermap",
         help = "provide a layermap for GDS stream reading to enable different export types for read cells"
     },
+    store_multiple{
+        name = "gdsignorelpp", long = "--gds-ignore-lpp",
+        help = "layer-purpose-pairs to be ignored during gds import. Separate layers and purposes with a colon (:)"
+    },
     store{
         name = "importprefix", long = "--import-prefix",
         help = "specifies a directory in which imported cells will be placed. For example, if --read-gds FOO and --import-prefix BAR is given, the imported cells will reside in BAR/FOO/*.lua"

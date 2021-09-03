@@ -102,7 +102,7 @@ if args.readgds then
     if args.gdslayermap then
         layermap = dofile(args.gdslayermap)
     end
-    local gdslib = gdsparser.read_stream(args.readgds)
+    local gdslib = gdsparser.read_stream(args.readgds, args.gdsignorelpp)
     local cells = gdslib.cells
     local alignmentboxinfo
     if args.gdsalignmentboxlayer and args.gdsalignmentboxpurpose then
@@ -144,6 +144,7 @@ end
 pcell.append_cellpath(string.format("%s/cells", _get_opc_home()))
 -- add user-defined cellpaths
 if args.cellpath then
+    print(args.cellpath[1])
     for _, path in ipairs(args.cellpath) do
         pcell.append_cellpath(path)
     end

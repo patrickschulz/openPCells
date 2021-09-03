@@ -185,7 +185,7 @@ function M.show_records(filename, flags, printraw)
     end
 end
 
-function M.read_stream(filename)
+function M.read_stream(filename, ignorelpp)
     local libname
     local cells = {}
     local records = _read_stream(filename)
@@ -267,6 +267,18 @@ function M.read_stream(filename)
             obj.pathtype[1] = record.data
         elseif is_record(record, "ENDEXTN") then
             obj.pathtype[2] = record.data
+        end
+    end
+    -- check for ignored layer-purpose pairs
+    for _, cell in ipairs(cells) do
+        for i = #cell.shapes, 1, -1 do -- backwards for deletion
+            local shape = cell.shapes[i]
+            for _, lpp in ipairs(ignorelpp) do
+                local layer, purpose = string.match(lpp, "(%w+):(%w+)")
+                if shape.layer == tonumber(layer) and shape.purpose == tonumber(purpose) then
+                    table.remove(cell.shapes, i)
+                end
+            end
         end
     end
     -- post-process cells
