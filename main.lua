@@ -446,7 +446,7 @@ if not args.noexport then
     export.set_options(args.export_options)
     export.check()
     local filename = args.filename or "openPCells"
-    export.write_toplevel(filename, args.technology, cell, args.toplevelname or "opctoplevel", args.dryrun)
+    export.write_toplevel(filename, args.technology, cell, args.toplevelname or "opctoplevel", args.writechildrenports, args.dryrun)
 end
 
 if args.cellinfo then

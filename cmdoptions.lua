@@ -65,6 +65,10 @@ return {
         name = "orientation", long  = "--orientation",
         help = "orientation of cell (possible values: 0 (regular), fx (flip x), fy (flip y), fxy (flip x and y))"
     },
+    switch{
+        name = "writechildrenports", long = "--write-children-ports",
+        help = "export ports of sub cells. Depending on what you do with the generated layouts this could possible break a clean LVS"
+    },
     store_multiple{
         name = "cellpath", long = "--append-cellpath",
         help = "append searchpath for cells (can be used multiple times: --append-cellpath foo --append-cellpath bar)"

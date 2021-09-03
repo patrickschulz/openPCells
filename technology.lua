@@ -226,6 +226,7 @@ local function _translate(cell, export)
     _translate_layers(cell, export)
     _fix_to_grid(cell)
     _select_premapped_layers(cell, export)
+    _translate_ports(cell, export)
 end
 
 local function _prepare(cell)
@@ -249,8 +250,6 @@ end
 
 function M.translate(cell, export)
     _foreach_cells(cell, _translate, export)
-    -- translate ports
-    _translate_ports(cell, export) -- ports are only translated on the toplevel
 end
 
 function M.get_dimension(dimension)

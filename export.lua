@@ -93,20 +93,28 @@ local function _write_cell(file, cell)
 end
 
 local cellrefs = {}
-local function _write_children(file, cell)
+local function _write_children(file, cell, writechildrenports)
     for _, child in cell:iterate_children() do
         if not cellrefs[child.identifier] then
             local cellref = pcell.get_cell_reference(child.identifier)
             aux.call_if_present(export.at_begin_cell, file, child.identifier)
-            _write_cell(file, cellref, child.identifier)
+            _write_cell(file, cellref)
+            if writechildrenports then
+                if export.write_port then
+                    for _, port in pairs(cellref.ports) do
+                        cellref.trans:apply_transformation(port.where)
+                        export.write_port(file, port.name, port.layer:get(), port.where)
+                    end
+                end
+            end
             aux.call_if_present(export.at_end_cell, file)
             cellrefs[child.identifier] = true
-            _write_children(file, cellref)
+            _write_children(file, cellref, writechildrenports)
         end
     end
 end
 
-function M.write_toplevel(filename, technology, toplevel, toplevelname, fake)
+function M.write_toplevel(filename, technology, toplevel, toplevelname, writechildrenports, fake)
     if toplevel:is_empty() then
         moderror("export: toplevel is empty")
     end
@@ -118,10 +126,10 @@ function M.write_toplevel(filename, technology, toplevel, toplevelname, fake)
     local file = stringfile.open(string.format("%s.%s", filename, extension))
     aux.call_if_present(export.at_begin, file, technology)
 
-    _write_children(file, toplevel)
+    _write_children(file, toplevel, writechildrenports)
 
     aux.call_if_present(export.at_begin_cell, file, toplevelname)
-    _write_cell(file, toplevel, toplevelname)
+    _write_cell(file, toplevel)
     if export.write_port then
         for _, port in pairs(toplevel.ports) do
             toplevel.trans:apply_transformation(port.where)
