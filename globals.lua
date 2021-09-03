@@ -11,7 +11,7 @@ function check_arg(arg, argtype, msg)
 end
 
 function check_arg_or_nil(arg, argtype, msg)
-    if argtype or not arg then
+    if arg and argtype then
         if type(arg) ~= argtype then
             moderror(msg)
         end
