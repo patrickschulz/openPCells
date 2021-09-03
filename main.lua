@@ -311,6 +311,8 @@ if args.params then
             ["%v"] = P.value,
             ["%a"] = P.argtype,
             ["%r"] = tostring(P.readonly),
+            ["%o"] = P.posvals and P.posvals.type or "everything",
+            ["%s"] = (P.posvals and P.posvals.values) and table.concat(P.posvals.values, ";") or ""
         })
         print(paramstr)
     end
