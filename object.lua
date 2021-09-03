@@ -81,9 +81,9 @@ function meta.exchange(self, other)
     self.alignmentbox = other.alignmentbox
 end
 
-function meta.add_child(self, identifier)
+function meta.add_child(self, identifier, name)
     local reference = pcell.get_cell_reference(identifier)
-    local child = M.create_proxy(nil, reference, identifier)
+    local child = M.create_proxy(name, reference, identifier)
     self.trans:apply_inverse_transformation(child.origin)
     table.insert(self.children, child)
     return child
@@ -422,6 +422,26 @@ function meta.get_anchor(self, name)
         self.trans:apply_transformation(pt)
     end
     return pt
+end
+
+function meta.get_child_anchor(self, childname, name)
+    local child = self:get_child(childname)
+    if not child then
+        error(string.format("could not find child '%s'", childname))
+    end
+    return child:get_anchor(name)
+end
+
+function meta.get_child(self, childname)
+    local obj = self
+    if self.isproxy then
+        obj = pcell.get_cell_reference(self.identifier)
+    end
+    for _, child in ipairs(obj.children) do
+        if child.name == childname then
+            return child
+        end
+    end
 end
 
 local function _get_move_anchor_translation(self, name, where)
