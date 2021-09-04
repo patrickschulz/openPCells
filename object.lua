@@ -425,23 +425,24 @@ function meta.get_anchor(self, name)
 end
 
 function meta.get_child_anchor(self, childname, name)
-    local child = self:get_child(childname)
-    if not child then
-        error(string.format("could not find child '%s'", childname))
-    end
-    return child:get_anchor(name)
-end
-
-function meta.get_child(self, childname)
     local obj = self
     if self.isproxy then
         obj = pcell.get_cell_reference(self.identifier)
     end
-    for _, child in ipairs(obj.children) do
-        if child.name == childname then
-            return child
+    local child
+    for _, c in ipairs(obj.children) do
+        if c.name == childname then
+            child = c
         end
     end
+    if not child then
+        error(string.format("could not find child '%s'", childname))
+    end
+    local anchor = child:get_anchor(name)
+    if anchor then
+        self.trans:apply_transformation(anchor)
+    end
+    return anchor
 end
 
 local function _get_move_anchor_translation(self, name, where)
