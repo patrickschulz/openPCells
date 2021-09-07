@@ -83,6 +83,7 @@ procedure(OPCGetCellParameters(cellname)
                         fieldlist = cons(field fieldlist)
                     ) ; unless readonly
                 ) ; while
+                OPCCleanUp(OPCSettingsForm->OPCParamFilename->value)
             ) ; let
         ) ; if exitstatus
         fieldlist
