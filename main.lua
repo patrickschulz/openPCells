@@ -109,8 +109,10 @@ if args.readgds then
         alignmentboxinfo = { layer = tonumber(args.gdsalignmentboxlayer), purpose = tonumber(args.gdsalignmentboxpurpose) }
     end
     local libname
-    if args.gdsusestreamlibname and not args.gdsusefilename then
+    if args.gdsusestreamlibname then
         libname = gdslib.libname
+    elseif args.importlibname then
+        libname = args.importlibname
     else
         libname = string.gsub(args.readgds, "%.gds", "")
     end

@@ -133,7 +133,7 @@ function M.translate_cells(cells, prefix, dirname, layermap, alignmentbox, overw
             moderror("import: could not create import directory")
         end
     else
-        moderror("import: directory exists");
+        moderror("import: directory exists. Use --import-overwrite to overwrite this directory");
     end
 end
 
