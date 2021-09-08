@@ -144,16 +144,30 @@ function meta.flatten(self, flattenports)
         local obj = child.reference
         obj:copy() -- FIXME: is copy necessary?
         obj:flatten()
-        for _, S in obj:iterate_shapes() do
-            local new = self:add_raw_shape(S)
-            new:apply_transformation(child.trans, child.trans.apply_transformation)
-            new:apply_transformation(obj.trans, obj.trans.apply_transformation)
+        local xrep, yrep = child.xrep, child.yrep
+        local xpitch, ypitch = child.xpitch, child.ypitch
+        if not child.isarray then
+            xrep, yrep = 1, 1
+            xpitch, ypitch = 0, 0
         end
-        if flattenports then
-            for _, port in ipairs(self.ports) do
-                local new = { name = port.name, layer = port.layer:copy(), where = port.where.copy() }
-                child.trans:apply_translation(where)
-                obj.trans:apply_translation(where)
+        for ix = 1, xrep or 1 do
+            for iy = 1, yrep or 1 do
+                for _, S in obj:iterate_shapes() do
+                    local new = self:add_raw_shape(S)
+                    new:apply_transformation(child.trans, child.trans.apply_transformation)
+                    new:apply_transformation(obj.trans, obj.trans.apply_transformation)
+                    local tm = transformationmatrix.identity()
+                    tm:translate((ix - 1) * xpitch, (iy - 1) * ypitch)
+                    new:apply_transformation(tm, tm.apply_translation)
+                end
+                if flattenports then
+                    for _, port in ipairs(self.ports) do
+                        local new = { name = port.name, layer = port.layer:copy(), where = port.where.copy() }
+                        child.trans:apply_translation(new.where)
+                        obj.trans:apply_translation(new.where)
+                        new.where:translate((ix - 1) * xpitch, (iy - 1) * ypitch)
+                    end
+                end
             end
         end
     end
