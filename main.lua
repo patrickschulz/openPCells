@@ -59,7 +59,7 @@ end
 local argparse = cmdparser()
 argparse:load_options_from_file(string.format("%s/%s.lua", _get_opc_home(), "cmdoptions"))
 argparse:prepend_to_help_message([[
-openPCells layout generator (opc) - Patrick Kurth 2021
+openPCells layout generator (opc) - Patrick Kurth 2020 - 2021
 
 Generate layouts of integrated circuit geometry
 opc supports technology-independent descriptions of parametric layout cells (pcells), 
