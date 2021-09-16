@@ -270,13 +270,15 @@ function M.read_stream(filename, ignorelpp)
         end
     end
     -- check for ignored layer-purpose pairs
-    for _, cell in ipairs(cells) do
-        for i = #cell.shapes, 1, -1 do -- backwards for deletion
-            local shape = cell.shapes[i]
-            for _, lpp in ipairs(ignorelpp) do
-                local layer, purpose = string.match(lpp, "(%w+):(%w+)")
-                if shape.layer == tonumber(layer) and shape.purpose == tonumber(purpose) then
-                    table.remove(cell.shapes, i)
+    if ignorelpp then
+        for _, cell in ipairs(cells) do
+            for i = #cell.shapes, 1, -1 do -- backwards for deletion
+                local shape = cell.shapes[i]
+                for _, lpp in ipairs(ignorelpp) do
+                    local layer, purpose = string.match(lpp, "(%w+):(%w+)")
+                    if shape.layer == tonumber(layer) and shape.purpose == tonumber(purpose) then
+                        table.remove(cell.shapes, i)
+                    end
                 end
             end
         end
