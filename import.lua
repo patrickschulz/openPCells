@@ -16,8 +16,14 @@ local function _format_lpp(layer, purpose, layermap)
     return string.format("generics.premapped(nil, { %s })", table.concat(lppt, ", "))
 end
 
-local function _format_shape(shape, layermap)
+local function _format_shape(shape, layermap, x0, y0)
     local lpp = _format_lpp(shape.layer, shape.purpose, layermap)
+    -- add offset
+    for i = 1, #shape.pts - 1, 2 do
+        shape.pts[i + 0] = shape.pts[i + 0] + x0
+        shape.pts[i + 1] = shape.pts[i + 1] + y0
+    end
+
     if shape.shapetype == "rectangle" then
         local bl = string.format("point.create(%d, %d)", shape.pts[1], shape.pts[2])
         local tr = string.format("point.create(%d, %d)", shape.pts[3], shape.pts[4])
@@ -43,12 +49,7 @@ local function _format_shape(shape, layermap)
     end
 end
 
-local function _write_cell(cell, path, dirname, layermap, alignmentbox)
-    local chunkt = {
-        "function parameters() end",
-        "function layout(cell)",
-        "    local ref, name, child",
-    }
+local function _write_cell(chunk, cell, cells, path, dirname, layermap, alignmentbox, flatpattern, x0, y0)
     for _, shape in ipairs(cell.shapes) do
         if alignmentbox then
             if shape.layer == alignmentbox.layer and shape.purpose == alignmentbox.purpose then
@@ -63,60 +64,63 @@ local function _write_cell(cell, path, dirname, layermap, alignmentbox)
                 end
             end
         end
-        table.insert(chunkt, string.format("    cell:merge_into_shallow(%s)", _format_shape(shape, layermap)))
+        table.insert(chunk, string.format("    cell:merge_into_shallow(%s)", _format_shape(shape, layermap, x0, y0)))
     end
     local references = {}
     -- sort references before placing them, otherwise this can cause placement of wrong cells
     table.sort(cell.references, function(lhs, rhs) return lhs.name < rhs.name end)
     for _, ref in ipairs(cell.references) do
-        local cellname = string.format("%s/%s", dirname, ref.name)
-        if not references[cellname] then
-            table.insert(chunkt, string.format('    ref = pcell.create_layout("%s")', cellname))
-            table.insert(chunkt, string.format('    name = pcell.add_cell_reference(ref, "%s")', ref.name))
-            references[cellname] = true
-        end
-        if ref.xrep then -- AREF
-            local xpitch = (ref.pts[3] - ref.pts[1]) / ref.xrep
-            local ypitch = (ref.pts[6] - ref.pts[2]) / ref.yrep
-            table.insert(chunkt, string.format('    child = cell:add_child_array(name, %d, %d, %d, %d):translate(%d, %d)', ref.xrep, ref.yrep, xpitch, ypitch, ref.pts[1], ref.pts[2]))
-        else
-            table.insert(chunkt, string.format('    child = cell:add_child(name):translate(%d, %d)', ref.pts[1], ref.pts[2]))
-        end
-        if ref.angle == 180 then
-            if ref.transformation and ref.transformation[1] == 1 then
-                table.insert(chunkt, string.format('    child:mirror_at_yaxis()'))
-            else
-                table.insert(chunkt, string.format('    child:mirror_at_yaxis()'))
-                table.insert(chunkt, string.format('    child:mirror_at_xaxis()'))
+        if flatpattern and string.match(ref.name, flatpattern) then
+            local other
+            for _, o in ipairs(cells) do
+                if o.name == ref.name then
+                    other = o
+                end
             end
-        elseif ref.angle == 90 then
-            table.insert(chunkt, string.format('    child:rotate_90()'))
+            _write_cell(chunk, other, cells, path, dirname, layermap, alignmentbox, flatpattern, ref.pts[1], ref.pts[2])
         else
-            if ref.transformation and ref.transformation[1] == 1 then
-                table.insert(chunkt, string.format('    child:mirror_at_xaxis()'))
+            local cellname = string.format("%s/%s", dirname, ref.name)
+            if not references[cellname] then
+                table.insert(chunk, string.format('    ref = pcell.create_layout("%s")', cellname))
+                table.insert(chunk, string.format('    name = pcell.add_cell_reference(ref, "%s")', ref.name))
+                references[cellname] = true
+            end
+            if ref.xrep then -- AREF
+                local xpitch = (ref.pts[3] - ref.pts[1]) / ref.xrep
+                local ypitch = (ref.pts[6] - ref.pts[2]) / ref.yrep
+                table.insert(chunk, string.format('    child = cell:add_child_array(name, %d, %d, %d, %d):translate(%d, %d)', ref.xrep, ref.yrep, xpitch, ypitch, ref.pts[1], ref.pts[2]))
+            else
+                table.insert(chunk, string.format('    child = cell:add_child(name):translate(%d, %d)', ref.pts[1], ref.pts[2]))
+            end
+            if ref.angle == 180 then
+                if ref.transformation and ref.transformation[1] == 1 then
+                    table.insert(chunk, string.format('    child:mirror_at_yaxis()'))
+                else
+                    table.insert(chunk, string.format('    child:mirror_at_yaxis()'))
+                    table.insert(chunk, string.format('    child:mirror_at_xaxis()'))
+                end
+            elseif ref.angle == 90 then
+                table.insert(chunk, string.format('    child:rotate_90()'))
+            else
+                if ref.transformation and ref.transformation[1] == 1 then
+                    table.insert(chunk, string.format('    child:mirror_at_xaxis()'))
+                end
             end
         end
     end
     for _, label in ipairs(cell.labels) do
         local pointstr = string.format('point.create(%d, %d)', label.pts[1], label.pts[2])
         local lpp = _format_lpp(label.layer, label.purpose, layermap)
-        table.insert(chunkt, string.format('    cell:add_port("%s", %s, %s)', label.text, lpp, pointstr))
+        table.insert(chunk, string.format('    cell:add_port("%s", %s, %s)', label.text, lpp, pointstr))
     end
     if cell.alignmentbox then
         local bl = string.format("point.create(%d, %d)", cell.alignmentbox.blx, cell.alignmentbox.bly)
         local tr = string.format("point.create(%d, %d)", cell.alignmentbox.trx, cell.alignmentbox.try)
-        table.insert(chunkt, string.format('    cell:set_alignment_box(%s, %s)', bl, tr))
+        table.insert(chunk, string.format('    cell:set_alignment_box(%s, %s)', bl, tr))
     end
-    local cellfile = io.open(string.format("%s/%s.lua", path, cell.name), "w")
-    if not cellfile then
-        moderror(string.format("import: could not open file for cell export. Did you create the appropriate directory (%s)?", dirname))
-    end
-    table.insert(chunkt, "end") -- close 'layout' function
-    cellfile:write(string.format("%s\n", table.concat(chunkt, "\n")))
-    cellfile:close()
 end
 
-function M.translate_cells(cells, prefix, dirname, layermap, alignmentbox, overwrite)
+function M.translate_cells(cells, prefix, dirname, layermap, alignmentbox, overwrite, flatpattern)
     local path
     if prefix and prefix ~= "" then
         path = string.format("%s/%s", prefix, dirname)
@@ -127,7 +131,22 @@ function M.translate_cells(cells, prefix, dirname, layermap, alignmentbox, overw
         local created = filesystem.mkdir(path)
         if created then
             for _, cell in ipairs(cells) do
-                _write_cell(cell, path, dirname, layermap, alignmentbox)
+                if not flatpattern or not string.match(cell.name, flatpattern) then
+                    local chunk = {
+                        "function parameters() end",
+                        "function layout(cell)",
+                        "    local ref, name, child",
+                    }
+                    _write_cell(chunk, cell, cells, path, dirname, layermap, alignmentbox, flatpattern, 0, 0)
+                    local cellfile = io.open(string.format("%s/%s.lua", path, cell.name), "w")
+                    if not cellfile then
+                        moderror(string.format("import: could not open file for cell export. Did you create the appropriate directory (%s)?", dirname))
+                    end
+                    table.insert(chunk, "end") -- close 'layout' function
+                    cellfile:write(string.format("%s\n", table.concat(chunk, "\n")))
+                    cellfile:close()
+                end
+                -- flattened cells don't need to be created
             end
         else
             moderror("import: could not create import directory")

@@ -116,7 +116,7 @@ if args.readgds then
     else
         libname = string.gsub(args.readgds, "%.gds", "")
     end
-    import.translate_cells(cells, args.importprefix, libname, layermap, alignmentboxinfo, args.importoverwrite)
+    import.translate_cells(cells, args.importprefix, libname, layermap, alignmentboxinfo, args.importoverwrite, args.importflatpattern)
     return 0
 end
 

@@ -188,6 +188,10 @@ return {
         help = "specify the name of the opc library name. If this option is not given, the filename from the import file is taken"
     },
     store{
+        name = "importflatpattern", long = "--import-flatten-cell-pattern",
+        help = "pattern for cells that should be flattened in a hierarchy during import"
+    },
+    store{
         name = "gdsalignmentboxlayer", long = "--gds-alignmentbox-layer",
         help = "provide a layer number to write an alignment box to generated cells"
     },
