@@ -81,7 +81,7 @@ function shape.resize_lrtb(self, left, right, top, bottom)
     end
 end
 
-function shape.width(self)
+function shape.get_width(self)
     if self.typ == "polygon" then
         local minx =  math.huge
         local maxx = -math.huge
@@ -96,11 +96,11 @@ function shape.width(self)
         local x2 = self.points.tr:getx()
         return x2 - x1
     else
-        moderror(string.format("shape.width: unknown type '%s'", self.typ))
+        moderror(string.format("shape.get_width: unknown type '%s'", self.typ))
     end
 end
 
-function shape.height(self)
+function shape.get_height(self)
     if self.typ == "polygon" then
         local miny =  math.huge
         local maxy = -math.huge
@@ -115,7 +115,7 @@ function shape.height(self)
         local y2 = self.points.tr:gety()
         return y2 - y1
     else
-        moderror(string.format("shape.height: unknown type '%s'", self.typ))
+        moderror(string.format("shape.get_height: unknown type '%s'", self.typ))
     end
 end
 

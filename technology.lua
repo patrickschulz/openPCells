@@ -129,8 +129,8 @@ end
 
 local function _do_array(cell, S, entry, export)
     entry = entry.func(S:get_lpp():get())
-    local width = S:width()
-    local height = S:height()
+    local width = S:get_width()
+    local height = S:get_height()
     local c = S:center()
     local via = _get_via_arrayzation(width, height, entry)
     if via then
