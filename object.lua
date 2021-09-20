@@ -89,8 +89,8 @@ function meta.add_child(self, identifier, name)
     return child
 end
 
-function meta.add_child_array(self, identifier, xrep, yrep, xpitch, ypitch)
-    local child = self:add_child(identifier)
+function meta.add_child_array(self, identifier, xrep, yrep, xpitch, ypitch, name)
+    local child = self:add_child(identifier, name)
     child.isarray = true
     child.xrep = xrep
     child.yrep = yrep
