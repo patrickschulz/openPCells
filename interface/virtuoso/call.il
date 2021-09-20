@@ -1,7 +1,18 @@
 procedure(OPCPrepareArgsForCellCreation(args)
     OPCArgs = lsprintf("--technology %s --export SKILL %s" OPCTech args)
     when(OPCSettingsForm->OPCSettingsGroup->value == "true"
-        OPCArgs = lsprintf("%s -X -g -X '-n %s'" OPCArgs OPCSettingsForm->OPCSettingsGroupname->value)
+        if(OPCSettingsForm->OPCSettingsGroupConsecutively->value == "true"
+            then
+                let(
+                    ((i 1))
+                    while(dbGetFigGroupByName(geGetEditCellView() lsprintf("%s_%d" OPCSettingsForm->OPCSettingsGroupname->value i)) != nil
+                        i = i + 1
+                    )
+                    OPCArgs = lsprintf("%s -X -g -X '-n %s_%d'" OPCArgs OPCSettingsForm->OPCSettingsGroupname->value i)
+                )
+            else
+                OPCArgs = lsprintf("%s -X -g -X '-n %s'" OPCArgs OPCSettingsForm->OPCSettingsGroupname->value)
+        )
     )
     when(OPCSettingsForm->OPCSettingsDrawAlignmentbox->value == "true"
         OPCArgs = lsprintf("%s --draw-alignmentbox" OPCArgs)

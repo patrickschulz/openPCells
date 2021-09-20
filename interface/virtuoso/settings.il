@@ -60,6 +60,12 @@ procedure(OPCCreateSettingsForm()
                 ?prompt "Group Name"
             )
             hiCreateRadioField(
+                ?name 'OPCSettingsGroupConsecutively
+                ?choices list("true" "false")
+                ?value "true"
+                ?prompt "Create Groups Consecutively"
+            )
+            hiCreateRadioField(
                 ?name 'OPCSettingsDeleteFile
                 ?choices list("true" "false")
                 ?value "true"
