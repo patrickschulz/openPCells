@@ -365,6 +365,9 @@ local _reserved_anchors = {
 }
 
 function meta.add_anchor(self, name, where)
+    if not is_lpoint(where) then
+        moderror(string.format("object.add_anchor: where must be a point (got: %s)", where))
+    end
     if aux.find(_reserved_anchors, function(n) return n == name end) then
         error(string.format("trying to add reserved anchor '%s'", name))
     end
