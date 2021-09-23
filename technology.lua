@@ -54,7 +54,7 @@ local function _split_vias(cell)
         local from, to = S:get_lpp():get()
         for j = from, to - 1 do
             local sc = S:copy()
-            sc:set_lpp(generics.via(j, j + 1, S:get_lpp().bare))
+            sc:set_lpp(generics.via(j, j + 1, { bare = S:get_lpp().bare }))
             cell:add_raw_shape(sc)
         end
         cell:remove_shape(i)

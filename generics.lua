@@ -64,13 +64,13 @@ function M.metal(num)
     return self
 end
 
-function M.via(from, to, bare)
-    if not from or not to then
-        error("generic.via with nil")
-    end
+function M.via(from, to, opt)
+    check_number(from)
+    check_number(to)
+    check_optional_table(opt)
     local self = _create({ from = from, to = to })
     self.typ = "via"
-    self.bare = bare
+    self.bare = opt and opt.bare
     return self
 end
 
