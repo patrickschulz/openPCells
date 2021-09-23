@@ -18,6 +18,33 @@ function check_arg_or_nil(arg, argtype, msg)
     end
 end
 
+local function _check_argument(arg, argtype, isoptional, extracheck)
+    local info = debug.getinfo(2, "nS")
+    if isoptional then
+        if arg then
+            if type(arg) ~= "table" then
+                moderror(string.format("%s: table expected, got %s", info.name, type(arg)))
+            end
+        end
+    else
+        if not arg or type(arg) ~= argtype or not extracheck(arg) then
+            moderror(string.format("%s: %s expected, got %s", info.name, argtype, type(arg)))
+        end
+    end
+end
+
+function check_number(arg)
+    _check_argument(arg, "number", false, function(n) return n == n end)
+end
+
+function check_table(arg)
+    _check_argument(arg, "table")
+end
+
+function check_optional_table(arg)
+    _check_argument(arg, "table", true)
+end
+
 function modinfo(msg)
     print(msg)
 end
