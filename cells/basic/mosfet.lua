@@ -7,7 +7,8 @@ function parameters()
         { "fwidth(Finger Width)",                                      tech.get_dimension("Minimum Gate Width"), argtype = "integer", posvals = even() },
         { "gatelength(Gate Length)",                                   tech.get_dimension("Minimum Gate Length"), argtype = "integer", posvals = even() },
         { "gatespace(Gate Spacing)",                                   tech.get_dimension("Minimum Gate Space"), argtype = "integer", posvals = even() },
-        { "actext(Active Extension)",                                   30, posvals = even() },
+        { "actext(Active Extension)",                                   30 },
+        { "specifyactext(Specify Active Extension)",                 false },
         { "sdwidth(Source/Drain Metal Width)",                         tech.get_dimension("Minimum M1 Width"), argtype = "integer", posvals = even() },
         { "sdconnwidth(Source/Drain Rails Metal Width)",               tech.get_dimension("Minimum M1 Width"), argtype = "integer" },
         { "sdconnspace(Source/Drain Rails Metal Space)",               tech.get_dimension("Minimum M1 Width"), argtype = "integer" },
@@ -57,8 +58,10 @@ end
 
 function layout(transistor, _P)
     local gatepitch = _P.gatelength + _P.gatespace
-    --local actwidth = _P.fingers * gatepitch + _P.sdwidth + 2 * _P.actext
-    local actwidth = (_P.fingers + 1) * gatepitch
+    local actwidth = _P.specifyactext and 
+        _P.fingers * gatepitch + _P.sdwidth + 2 * _P.actext
+        or
+        (_P.fingers + 1) * gatepitch
 
     local gateaddtop = math.max(_P.gtopext, enable(_P.drawtopgate, _P.topgatestrspace + _P.topgatestrwidth))
     local gateaddbot = math.max(_P.gbotext, enable(_P.drawbotgate, _P.botgatestrspace + _P.botgatestrwidth))
