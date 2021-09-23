@@ -309,6 +309,13 @@ local function clone_matching_parameters(state, cellname, P)
     return clone_parameters(state, P, predicate)
 end
 
+local function check_expression(state, cellname, expression)
+    if not state.expressions[cellname] then
+        state.expressions[cellname] = {}
+    end
+    table.insert(state.expressions[cellname], expression)
+end
+
 -- main state storing various data
 -- only the public functions use this state as upvalue to conceal it from the user
 -- all local implementing functions get state as first parameter
@@ -317,6 +324,7 @@ local state = {
     loadedcells = {},
     backupstacks = {},
     cellrefs = {},
+    expressions = {},
     debug = false,
 }
 
@@ -356,6 +364,7 @@ function state.create_cellenv(state, cellname, ovrenv)
             get_parameters                  = bindstatecell(_get_parameters),
             push_overwrites                 = bindstatecell(push_overwrites),
             pop_overwrites                  = bindstatecell(pop_overwrites),
+            check_expression                = bindstatecell(check_expression),
             -- the following functions don't not need cell binding as they are called for other cells
             clone_parameters                = bindstate(clone_parameters),
             clone_matching_parameters       = bindstate(clone_matching_parameters),
@@ -393,6 +402,24 @@ function state.create_cellenv(state, cellname, ovrenv)
     end
     setmetatable(env, envmeta)
     return env
+end
+
+local function _check_parameter_expressions(state, cellname, parameters)
+    local failures = {}
+    if state.expressions[cellname] then
+        for _, expr in ipairs(state.expressions[cellname]) do
+            local chunk, msg = load("return " .. expr, "parameterexpression", "t", parameters)
+            if not chunk then
+                print(msg)
+                return
+            end
+            local check = chunk()
+            if not check then
+                table.insert(failures, expr)
+            end
+        end
+    end
+    return failures
 end
 
 -- Public functions
@@ -467,6 +494,13 @@ function M.create_layout(cellname, cellargs, evaluate)
     end
     local parameters, backup = _get_parameters(state, cellname, cellname, cellargs, evaluate) -- cellname needs to be passed twice
     _restore_parameters(state, cellname, backup)
+    local failures = _check_parameter_expressions(state, cellname, parameters)
+    if #failures > 0 then
+        for _, failure in ipairs(failures) do
+            print(failure)
+        end
+        error(string.format("could not satisfy parameter expression for cell '%s'", cellname), 0)
+    end
     local obj = object.create(cellname)
     local status, msg = xpcall(cell.funcs.layout, function(err) return { msg = err, where = _find_cell_traceback() } end, obj, parameters)
     if not status then
