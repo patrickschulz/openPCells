@@ -45,11 +45,15 @@ function meta.copy(self)
 end
 
 function meta.translate(self, dx, dy)
+    check_number(dx)
+    check_number(dy)
     self.dx = self.dx + dx
     self.dy = self.dy + dy
 end
 
 function meta.auxtranslate(self, dx, dy)
+    check_number(dx)
+    check_number(dy)
     self.auxdx = self.auxdx + dx
     self.auxdy = self.auxdy + dy
 end
