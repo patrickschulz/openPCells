@@ -348,6 +348,7 @@ if args.origin then
     if not dx then
         moderror(string.format("could not parse origin (%s)", args.origin))
     end
+    dx, dy = tonumber(dx), tonumber(dy)
     --local cx, cy = cell.origin:unwrap()
     --cell:translate(dx - cx, dy - cy)
     -- FIXME: get origin from cell
