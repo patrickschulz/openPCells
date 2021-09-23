@@ -1,7 +1,7 @@
 procedure(OPCPrepareArgsForCellCreation(args @key (newgroup nil))
     OPCArgs = lsprintf("--technology %s --export SKILL %s" OPCTech args)
     when(OPCSettingsForm->OPCSettingsGroup->value == "true"
-        if(newgroup || OPCSettingsForm->OPCSettingsGroupConsecutively->value == "true"
+        if(!newgroup && OPCSettingsForm->OPCSettingsGroupConsecutively->value == "true"
             then
                 let(
                     ((i 1))
