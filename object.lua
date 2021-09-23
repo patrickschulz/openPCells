@@ -237,6 +237,9 @@ end
 function meta.translate(self, dx, dy)
     if is_lpoint(dx) then
         dx, dy = dx:unwrap()
+    else
+        check_number(dx)
+        check_number(dy)
     end
     self.trans:translate(dx, dy)
     return self
@@ -310,6 +313,20 @@ local function _get_minmax_xy(self)
             miny = math.min(miny, bly, try)
             maxy = math.max(maxy, bly, try)
         end
+    end
+    for _, child in self:iterate_children() do
+        local obj = child.reference
+        local minx_, maxx_, miny_, maxy_ = _get_minmax_xy(obj)
+        local pt1 = point.create(minx_, miny_)
+        local pt2 = point.create(maxx_, maxy_)
+        obj.trans:apply_transformation(pt1)
+        obj.trans:apply_transformation(pt2)
+        minx_, miny_ = pt1:unwrap()
+        maxx_, maxy_ = pt2:unwrap()
+        minx = math.min(minx, minx_)
+        maxx = math.max(maxx, maxx_)
+        miny = math.min(miny, miny_)
+        maxy = math.max(maxy, maxy_)
     end
     return minx, maxx, miny, maxy
 end
