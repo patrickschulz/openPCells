@@ -3,12 +3,14 @@ function parameters()
         { "metalh", 1 },
         { "metalv", 2 },
         { "mhwidth", 100 },
-        { "mhspace", 100, posvals = even() },
+        { "mhspace", 100 },
         { "mvwidth", 100 },
-        { "mvspace", 100, posvals = even() },
+        { "mvspace", 100 },
         { "mhlines", 6 },
         { "mvlines", 3 },
-        { "centergrid", true }
+        { "drawvias", true },
+        { "centergrid", true },
+        { "flatvias", true }
     )
     pcell.check_expression("(not centergrid) or ((mhlines % 2 == 1) and (mhwidth % 2 == 0)) or ((mhlines % 2 == 0) and (mhspace % 2 == 0))")
     pcell.check_expression("(not centergrid) or ((mvlines % 2 == 1) and (mvwidth % 2 == 0)) or ((mvlines % 2 == 0) and (mvspace % 2 == 0))")
@@ -36,15 +38,31 @@ function layout(grid, _P)
     end
 
     -- vias
-    for i = 1, _P.mhlines do
-        for j = 1, _P.mvlines do
-            local xoffset = _P.centergrid and (-_P.mvlines * xpitch / 2 + _P.mvspace / 2) or math.floor(_P.mvspace / 2)
-            local yoffset = _P.centergrid and (-_P.mhlines * ypitch / 2 + _P.mhspace / 2) or math.floor(_P.mhspace / 2)
-            if (i % 2 == 0) == (j % 2 == 0) then
-                grid:merge_into_shallow(geometry.rectanglebltr(generics.via(_P.metalh, _P.metalv, { bare = true }),
-                    point.create((j - 1) * xpitch + xoffset,              (i - 1) * ypitch + yoffset),
-                    point.create((j - 1) * xpitch + xoffset + _P.mvwidth, (i - 1) * ypitch + yoffset + _P.mhwidth)
-                ))
+    if _P.drawvias then
+        local viaref = geometry.rectanglebltr(generics.via(_P.metalh, _P.metalv, { bare = true }),
+            point.create(0,          0),
+            point.create(_P.mvwidth, _P.mhwidth)
+        )
+        if not _P.flatvias then
+            local vianame = pcell.add_cell_reference(viaref, "via")
+            for i = 1, _P.mhlines do
+                for j = 1, _P.mvlines do
+                    local xoffset = _P.centergrid and (-_P.mvlines * xpitch / 2 + _P.mvspace / 2) or math.floor(_P.mvspace / 2)
+                    local yoffset = _P.centergrid and (-_P.mhlines * ypitch / 2 + _P.mhspace / 2) or math.floor(_P.mhspace / 2)
+                    if (i % 2 == 0) == (j % 2 == 0) then
+                        grid:add_child(vianame):translate((j - 1) * xpitch + xoffset, (i - 1) * ypitch + yoffset)
+                    end
+                end
+            end
+        else
+            for i = 1, _P.mhlines do
+                for j = 1, _P.mvlines do
+                    local xoffset = _P.centergrid and (-_P.mvlines * xpitch / 2 + _P.mvspace / 2) or math.floor(_P.mvspace / 2)
+                    local yoffset = _P.centergrid and (-_P.mhlines * ypitch / 2 + _P.mhspace / 2) or math.floor(_P.mhspace / 2)
+                    if (i % 2 == 0) == (j % 2 == 0) then
+                        grid:merge_into_shallow(viaref:copy():translate((j - 1) * xpitch + xoffset, (i - 1) * ypitch + yoffset))
+                    end
+                end
             end
         end
     end
