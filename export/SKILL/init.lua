@@ -123,6 +123,26 @@ function M.write_polygon(file, layer, pts)
     file:write("\n")
 end
 
+function M.write_path(file, layer, pts, width, extension)
+    local ptrstr = {}
+    for _, pt in ipairs(pts) do
+        table.insert(ptrstr, pt:format(1000, ":"))
+    end
+    local fmt = _get_shape_fmt("Path")
+    _prepare_shape_for_group(file)
+    local extstr
+    if extension == "butt" then
+        extstr = "squareFlush"
+    elseif extension == "round" then
+        extstr = "roundRound"
+    elseif extension == "cap" then
+        extstr = "extendExtend"
+    end
+    file:write(string.format(fmt, string.format("%s list(%s) %.3f \"%s\"", _format_lpp(layer), table.concat(ptrstr, " "), width / 1000, extstr)))
+    _finish_shape_for_group(file)
+    file:write("\n")
+end
+
 function M.write_port(file, name, layer, where)
     local fmt = _get_shape_fmt("Label")
     _prepare_shape_for_group(file)
