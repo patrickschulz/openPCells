@@ -130,15 +130,15 @@ function M.write_path(file, layer, pts, width, extension)
     end
     local fmt = _get_shape_fmt("Path")
     _prepare_shape_for_group(file)
-    local extstr
+    local extstr = ''
     if extension == "butt" then
-        extstr = "squareFlush"
+        extstr = '"squareFlush"'
     elseif extension == "round" then
-        extstr = "roundRound"
+        extstr = '"roundRound"'
     elseif extension == "cap" then
-        extstr = "extendExtend"
+        extstr = '"extendExtend"'
     end
-    file:write(string.format(fmt, string.format("%s list(%s) %.3f \"%s\"", _format_lpp(layer), table.concat(ptrstr, " "), width / 1000, extstr)))
+    file:write(string.format(fmt, string.format("%s list(%s) %.3f %s", _format_lpp(layer), table.concat(ptrstr, " "), width / 1000, extstr)))
     _finish_shape_for_group(file)
     file:write("\n")
 end
