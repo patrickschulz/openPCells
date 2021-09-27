@@ -1,9 +1,10 @@
 local M = {}
 
-function M.digital(parent, cellnames, startanchor, growdirection)
+function M.digital(parent, cellnames, startanchor, startpt, growdirection)
     local last = object.create_omni()
     local lastleft
     growdirection = growdirection or "upright"
+    startpt = startpt or point.create(0, 0)
     local cells = {}
     for r, row in ipairs(cellnames) do
         cells[r] = {}
@@ -15,7 +16,7 @@ function M.digital(parent, cellnames, startanchor, growdirection)
             if c == 1 then
                 if r == 1 then
                     if startanchor then
-                        cell:move_anchor(startanchor)
+                        cell:move_anchor(startanchor, startpt)
                     end
                 else
                     if string.match(growdirection, "up") then
