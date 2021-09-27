@@ -186,6 +186,14 @@ function meta.add_port(self, name, layer, where)
     self.anchors[name] = where:copy() -- copy point, otherwise translation acts twice (FIXME: probably not needed any more)
 end
 
+function meta.add_bus_port(self, name, layer, startindex, endindex, where, xpitch, ypitch)
+    local shift = 0
+    for i = startindex, endindex, startindex < endindex and 1 or - 1 do
+        table.insert(self.ports, { name = name, layer = layer, where = where:copy():translate(shift * xpitch, shift * ypitch), isbusport = true, busindex = i })
+        shift = shift + 1
+    end
+end
+
 function meta.find_shapes(self, comp)
     local shapes = {}
     local indices = {}

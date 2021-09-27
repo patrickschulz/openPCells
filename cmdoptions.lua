@@ -33,6 +33,10 @@ return {
         name = "flattenports", long = "--flatten-ports",
         help = "include ports in hierarchy flattening. Can lead to confusing results, especially in large hierarchies. Mostly useful for layout debugging"
     },
+    store{
+        name = "busdelimiters", long = "--bus-delimiters",
+        help = "delimiters for bus ports. Useful values: '[]' or '<>', but others are possible. This option expects two characters for the left and right delimiters"
+    },
     store_multiple{
         name = "techpath", long = "--techpath",
         help = "add (append) searchpath for technology files (can be used multiple times: --techpath foo --techpath bar)"

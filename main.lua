@@ -449,6 +449,14 @@ if not args.noexport then
     export.set_options(args.export_options)
     export.check()
     local filename = args.filename or "openPCells"
+    local leftdelim, rightdelim = "", ""
+    if args.busdelimiters then
+        leftdelim, rightdelim = string.match(args.busdelimiters, "^(.)(.)$")
+        if not leftdelim then
+            moderror(string.format("--bus-delimiters: parse error. Expected two characters, got: '%s'", args.busdelimiters))
+        end
+    end
+    export.set_bus_delimiters(leftdelim, rightdelim)
     export.write_toplevel(filename, args.technology, cell, args.toplevelname or "opctoplevel", args.writechildrenports, args.dryrun)
 end
 

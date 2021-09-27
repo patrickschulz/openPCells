@@ -2,6 +2,7 @@ local M = {}
 
 local export
 local _name
+local _leftdelim, _rightdelim = "", ""
 
 local exportpaths = {}
 
@@ -17,6 +18,11 @@ local function _get_export_filename(name)
             return filename
         end
     end
+end
+
+function M.set_bus_delimiters(leftdelim, rightdelim)
+    _leftdelim = leftdelim
+    _rightdelim = rightdelim
 end
 
 function M.load(name)
@@ -94,8 +100,14 @@ end
 
 local function _write_ports(file, cell)
     for _, port in pairs(cell.ports) do
-        cell.trans:apply_transformation(port.where)
-        export.write_port(file, port.name, port.layer:get(), port.where)
+        if port.isbusport then
+            local name = string.format("%s%s%d%s",  port.name, _leftdelim, port.busindex, _rightdelim)
+            cell.trans:apply_transformation(port.where)
+            export.write_port(file, name, port.layer:get(), port.where)
+        else
+            cell.trans:apply_transformation(port.where)
+            export.write_port(file, port.name, port.layer:get(), port.where)
+        end
     end
 end
 
