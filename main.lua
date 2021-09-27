@@ -46,7 +46,10 @@ for _, module in ipairs(modules) do
     if string.match(module, "/") then
         name = string.match(module, "/([^/]+)$")
     end
-    _ENV[name] = _load_module(path)
+    local mod = _load_module(path)
+    if mod then
+        _ENV[name] = mod
+    end
 end
 
 -- call testsuite when called with 'test' as first argument
