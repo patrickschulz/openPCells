@@ -38,6 +38,7 @@ local modules = {
     "gdsparser",
     "import",
     "pcell",
+    "placement",
 }
 for _, module in ipairs(modules) do
     local path = module
