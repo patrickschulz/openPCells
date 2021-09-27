@@ -180,16 +180,24 @@ function meta.is_empty(self)
     return #self.shapes == 0 and #self.children == 0 and #self.ports == 0
 end
 
-function meta.add_port(self, name, layer, where)
+local function _add_port(self, name, anchorname, layer, where)
     --layer:set_port()
-    table.insert(self.ports, { name = name, layer = layer, where = where })
-    self.anchors[name] = where:copy() -- copy point, otherwise translation acts twice (FIXME: probably not needed any more)
+    local new = { name = name, layer = layer, where = where }
+    table.insert(self.ports, new)
+    self.anchors[anchorname] = where:copy() -- copy point, otherwise translation acts twice (FIXME: probably not needed any more)
+    return new
+end
+
+function meta.add_port(self, name, layer, where)
+    _add_port(self, name, name, layer, where)
 end
 
 function meta.add_bus_port(self, name, layer, startindex, endindex, where, xpitch, ypitch)
     local shift = 0
     for i = startindex, endindex, startindex < endindex and 1 or - 1 do
-        table.insert(self.ports, { name = name, layer = layer, where = where:copy():translate(shift * xpitch, shift * ypitch), isbusport = true, busindex = i })
+        local new = _add_port(self, name, string.format("%s%d", name, i), layer, where:copy():translate(shift * xpitch, shift * ypitch))
+        new.isbusport = true
+        new.busindex = i
         shift = shift + 1
     end
 end
@@ -443,16 +451,10 @@ function meta.get_anchor(self, name)
         obj = self.reference
     end
     local pt = _get_special_anchor(obj, name)
-    if pt then
-        obj.trans:apply_translation(pt)
-        if self.isproxy then
-            self.trans:apply_translation(pt)
-        end
-        return pt
-    else
+    if not pt then -- try regular anchor
         pt = _get_regular_anchor(obj, name)
     end
-    if not pt then
+    if not pt then -- no anchor found
         if self.name then
             error(string.format("trying to access undefined anchor '%s' in cell '%s'", name, self.name))
         else
