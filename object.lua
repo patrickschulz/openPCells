@@ -451,7 +451,13 @@ function meta.get_anchor(self, name)
         obj = self.reference
     end
     local pt = _get_special_anchor(obj, name)
-    if not pt then -- try regular anchor
+    if pt then
+        obj.trans:apply_translation(pt)
+        if self.isproxy then
+            self.trans:apply_translation(pt)
+        end
+        return pt
+    else
         pt = _get_regular_anchor(obj, name)
     end
     if not pt then -- no anchor found
