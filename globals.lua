@@ -22,8 +22,8 @@ local function _check_argument(arg, argtype, isoptional, extracheck)
     local info = debug.getinfo(2, "nS")
     if isoptional then
         if arg then
-            if type(arg) ~= "table" then
-                moderror(string.format("%s: table expected, got %s", info.name, type(arg)))
+            if type(arg) ~= argtype then
+                moderror(string.format("%s: %s expected, got %s", info.name, argtype, type(arg)))
             end
         end
     else
@@ -34,7 +34,12 @@ local function _check_argument(arg, argtype, isoptional, extracheck)
 end
 
 function check_number(arg)
+    -- explicitely pass 'isoptional' as false (default) for NaN check (n != n)
     _check_argument(arg, "number", false, function(n) return n == n end)
+end
+
+function check_string(arg)
+    _check_argument(arg, "string")
 end
 
 function check_table(arg)
