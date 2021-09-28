@@ -452,6 +452,25 @@ function meta.get_anchor(self, name)
     end
     local pt = _get_special_anchor(obj, name)
     if pt then
+        if self.isproxy and self.isarray then
+            if name == "left" then
+                pt:translate(0, (self.yrep - 1) * self.ypitch / 2)
+            elseif name == "right" then
+                pt:translate((self.xrep - 1) * self.xpitch, (self.yrep - 1) * self.ypitch / 2)
+            elseif name == "top" then
+                pt:translate((self.xrep - 1) * self.xpitch / 2, (self.yrep - 1) * self.ypitch)
+            elseif name == "bottom" then
+                pt:translate((self.xrep - 1) * self.xpitch / 2, 0)
+            elseif name == "bottomleft" then
+                --pt:translate(0, 0)
+            elseif name == "bottomright" then
+                pt:translate((self.xrep - 1) * self.xpitch, 0)
+            elseif name == "topleft" then
+                pt:translate(0, (self.yrep - 1) * self.ypitch)
+            elseif name == "topright" then
+                pt:translate((self.xrep - 1) * self.xpitch, (self.yrep - 1) * self.ypitch)
+            end
+        end
         obj.trans:apply_translation(pt)
         if self.isproxy then
             self.trans:apply_translation(pt)
@@ -459,19 +478,18 @@ function meta.get_anchor(self, name)
         return pt
     else
         pt = _get_regular_anchor(obj, name)
-    end
-    if not pt then -- no anchor found
-        if self.name then
-            error(string.format("trying to access undefined anchor '%s' in cell '%s'", name, self.name))
-        else
-            error(string.format("trying to access undefined anchor '%s'", name))
+        obj.trans:apply_transformation(pt)
+        if self.isproxy then
+            self.trans:apply_transformation(pt)
         end
+        return pt
     end
-    obj.trans:apply_transformation(pt)
-    if self.isproxy then
-        self.trans:apply_transformation(pt)
+    -- no anchor found
+    if self.name then
+        error(string.format("trying to access undefined anchor '%s' in cell '%s'", name, self.name))
+    else
+        error(string.format("trying to access undefined anchor '%s'", name))
     end
-    return pt
 end
 
 function meta.get_child_anchor(self, childname, name)
