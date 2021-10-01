@@ -138,6 +138,11 @@ function M.write_toplevel(filename, technology, toplevel, toplevelname, writechi
         modinfo("this export does not know how to write hierarchies, hence the cell is being written flat")
         toplevel:flatten()
     end
+
+    if export.initialize then
+        export.initialize(toplevel)
+    end
+
     local extension = export.get_extension()
     local file = stringfile.open(string.format("%s.%s", filename, extension))
     aux.call_if_present(export.at_begin, file, technology)

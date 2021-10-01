@@ -1,18 +1,14 @@
 local M = {}
 
-function M.get_extension()
-    return "svg"
-end
-
--- private variables
-local gridfmt = "%.3f"
-
-local function _get_dimensions(cell)
+local __width, __height, __scale
+local __gridfmt = "%.3f"
+function M.initialize(toplevel)
+    -- get cell dimensions
     local minx =  math.huge
     local maxx = -math.huge
     local miny =  math.huge
     local maxy = -math.huge
-    for _, shape in cell:iter() do
+    for _, shape in toplevel:iterate_shapes() do
         if shape.typ == "polygon" then
             for _, pt in ipairs(shape.points) do
                 local x, y = pt:unwrap()
@@ -30,61 +26,26 @@ local function _get_dimensions(cell)
             maxy = math.max(maxy, bly, try)
         end
     end
-    return maxx - minx, maxy - miny
-end
-
---[[
-local function _write_style(file)
-    local lines = {
-        '<style type = "text/css">',
-        'rect {}',
-        '.poly { fill:#ff0000 }',
-        '</style>',
-    }
-    file:write(table.concat(lines, '\n') .. '\n')
-end
---]]
-
-function M.get_layer(shape)
-    if not shape.lpp:get() then
-        return string.format('fill="%s" opacity="%s"', "black", "0.1")
-    end
-    local color = shape.lpp:get().color or "black"
-    local opacity = shape.lpp:get().opacity or 0.1
-    local fill = shape.lpp:get().fill or false
-    return string.format('stroke="%s" fill="%s" opacity="%s" stroke-width="0.5%%"', color, fill and color or "none", opacity)
-end
-
-function M.get_index(shape)
-    if not shape.lpp:get() then
-        return 1
-    end
-    local order = shape.lpp:get().order or 1
-    return order
-end
-
-function M.write_layer(file, layer, pcol)
-    file:write(string.format('<g %s>\n', layer))
-    for _, pts in ipairs(pcol) do
-        file:write(string.format("  %s\n", pts))
-    end
-    file:write("</g>\n")
-end
-
-
-function M.precompute(cell)
-    local width, height = _get_dimensions(cell)
+    local width = maxx - minx
+    local height = maxy - miny
     local target = 1000
     local scale = math.ceil(target / math.max(width, height))
-    return { width = width, height = height, scale = scale }
+    __width = width
+    __height = height
+    __scale = scale
 end
 
-function M.at_begin(file, precomputed)
-    local scale = precomputed.scale
-    local width = precomputed.width
-    local height = precomputed.height
-    local x = math.ceil(1.1 * scale * width)
-    local y = math.ceil(1.1 * scale * height)
+function M.get_extension()
+    return "svg"
+end
+
+function M.get_layer(S)
+    return S:get_lpp():get()
+end
+
+function M.at_begin(file)
+    local x = math.ceil(1.1 * __scale * __width)
+    local y = math.ceil(1.1 * __scale * __height)
     if x % 2 == 1 then x = x + 1 end
     if y % 2 == 1 then y = y + 1 end
     local lines = {
@@ -95,37 +56,37 @@ function M.at_begin(file, precomputed)
     file:write(table.concat(lines, '\n') .. '\n')
 end
 
-function M.get_points(shape, precomputed)
-    local scale = precomputed.scale
-    local fmt
-    if shape.typ == "polygon" then
-        local pointstr = table.concat(shape:concat_points(
-            function(pt)
-                local x, y = pt:unwrap()
-                return string.format(gridfmt .. "," .. gridfmt, scale * x, scale * y) end
-            ), ' '
-        )
-        fmt = string.format('<polyline points="%s" />', pointstr)
-    elseif shape.typ == "rectangle" then
-        local x, y = shape.points.bl:unwrap()
-        local pointstr = string.format('x="%f" y="%f" width="%f" height="%f"',
-            scale * x,
-            scale * y,
-            scale * shape:width(),
-            scale * shape:height()
-        )
-        fmt = string.format('<rect %s />', pointstr)
-    end
-    return fmt
-end
-
 function M.at_end(file)
-    file:write('</svg>')
+    file:write("</svg>\n")
 end
 
-function M.set_options(opt)
-    opt = opt or {}
-    for k, v in pairs(opt) do print(k, v) end
+function M.write_rectangle(file, layer, bl, tr)
+    local fmtstr = string.format('fill = "%s" fill-opacity = "0.5"', layer.color)
+    local blx, bly = bl:unwrap()
+    local trx, try = tr:unwrap()
+    local pointstr = string.format('x="%f" y="%f" width="%f" height="%f"',
+        __scale * blx,
+        __scale * bly,
+        __scale * (trx - blx),
+        __scale * (try - bly)
+    )
+    file:write(string.format('<rect %s %s />\n', fmtstr, pointstr))
+end
+
+-- * mandatory *
+-- how to write a polygon
+function M.write_polygon(file, layer, pts)
+end
+
+-- * optional *
+-- how to write a path
+-- if not present, the shape will be converted accordingly (to a single rectangle if possible, otherwise to a polygon)
+function M.write_path(file, layer, pts, width)
+end
+
+-- * optional *
+-- how to write a named for layout topology data (e.g. LVS)
+function M.write_port(file, name, layer, where)
 end
 
 return M

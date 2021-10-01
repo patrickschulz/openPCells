@@ -4,6 +4,12 @@ local M = {}
 -- functions are marked 'mandatory' or 'optional'
 -- optional functions (usually) improve layout quality, as - for instance - hierarchies are enabled
 
+-- * optional *
+-- make arbitrary calculations that are needed for this export
+-- the function gets the toplevel cell as argument
+function M.initialize(toplevel)
+end
+
 -- * mandatory *
 -- provides the file ending of the generated layout (e.g. returns "gds" for the gds export)
 function M.get_extension()
