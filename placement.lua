@@ -1,6 +1,6 @@
 local M = {}
 
-function M.digital(parent, cellnames, startanchor, startpt, growdirection)
+function M.digital(parent, cellnames, noflipeven, startanchor, startpt, growdirection)
     local last = object.create_omni()
     local lastleft
     growdirection = growdirection or "upright"
@@ -28,8 +28,8 @@ function M.digital(parent, cellnames, startanchor, startpt, growdirection)
                 end
             end
 
-            -- flip every second row
-            if row % 2 == 0 then
+            -- if necessary, flip every second row
+            if not noflipeven and (row % 2 == 0) then
                 cell:flipy()
             end
 
