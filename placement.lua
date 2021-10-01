@@ -63,4 +63,15 @@ function M.digital(parent, cellnames, noflipeven, startanchor, startpt, growdire
     return cells
 end
 
+function M.digital_regular(parent, cellname, rows, columns, noflipeven, startanchor, startpt, growdirection)
+    local cellnames = {}
+    for row = 1, rows do
+        cellnames[row] = {}
+        for column = 1, columns do
+            cellnames[row][column] = cellname
+        end
+    end
+    return M.digital(parent, cellnames, noflipeven, startanchor, startpt, growdirection)
+end
+
 return M
