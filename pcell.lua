@@ -374,6 +374,7 @@ function state.create_cellenv(state, cellname, ovrenv)
         tech = {
             get_dimension = technology.get_dimension
         },
+        placement = placement,
         geometry = geometry,
         graphics = graphics,
         shape = shape,
