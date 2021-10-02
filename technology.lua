@@ -67,7 +67,6 @@ local function _get_lpp(entry, export)
         lpp = lpp()
     end
     if not lpp[export] and not envlib.get("ignoremissingexport") then
-        print(envlib.get("ignoremissingexport"))
         moderror(string.format("no layer information for layer '%s' for export type '%s'", entry.name, export))
     end
     return lpp[export]
