@@ -1,5 +1,11 @@
 local M = {}
 
+local __content = {}
+
+function M.finalize()
+    return table.concat(__content, "\n")
+end
+
 function M.get_techexport()
     return "raw"
 end
@@ -12,31 +18,31 @@ function M.get_layer(S)
     return S:get_lpp():str()
 end
 
-function M.write_rectangle(file, layer, x0, y0, bl, tr)
+function M.write_rectangle(layer, bl, tr)
     local xbot, ybot = bl:unwrap()
     local xtop, ytop = tr:unwrap()
-    file:write(string.format("rect (%s): (%d, %d) (%d, %d) \n", layer, xbot + x0, ybot + y0, xtop + x0, ytop + y0))
+    table.insert(__content, string.format("rect (%s): (%d, %d) (%d, %d)", layer, xbot, ybot, xtop, ytop))
 end
 
-function M.write_polygon(file, layer, x0, y0, pts)
+function M.write_polygon(layer, pts)
     local t = {}
     for _, pt in ipairs(pts) do
         local x, y = pt:unwrap()
-        table.insert(t, string.format("(%d, %d)", x + x0, y + y0))
+        table.insert(t, string.format("(%d, %d)", x, y))
     end
-    file:write(string.format("poly (%s): %s\n", layer, table.concat(t, " ")))
+    table.insert(__content, string.format("poly (%s): %s", layer, table.concat(t, " ")))
 end
 
-function M.write_cell_reference(file, identifier, x, y)
-    file:write(string.format("ref  (%s): (%d, %d)\n", identifier, x, y))
+function M.write_cell_reference(identifier, x, y)
+    table.insert(__content, string.format("ref  (%s): (%d, %d)", identifier, x, y))
 end
 
-function M.at_begin_cell(file, cellname)
-    file:write(string.format("cell (%s) >\n", cellname))
+function M.at_begin_cell(cellname)
+    table.insert(__content, string.format("cell (%s) >", cellname))
 end
 
-function M.at_end_cell(file)
-    file:write("<\n\n")
+function M.at_end_cell()
+    table.insert(__content, "<\n")
 end
 
 return M

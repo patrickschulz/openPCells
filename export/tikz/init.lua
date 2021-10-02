@@ -18,19 +18,25 @@ function M.set_options(opt)
     end
 end
 
-function M.at_begin(file)
-    if __standalone then
-        file:write('\\documentclass{standalone}\n')
-        file:write('\\usepackage{tikz}\n')
-        file:write('\\begin{document}\n')
-    end
-    file:write('\\begin{tikzpicture}\n')
+local __content = {}
+
+function M.finalize()
+    return table.concat(__content, "\n")
 end
 
-function M.at_end(file)
-    file:write('\\end{tikzpicture}\n')
+function M.at_begin()
     if __standalone then
-        file:write('\\end{document}\n')
+        table.insert(__content, '\\documentclass{standalone}')
+        table.insert(__content, '\\usepackage{tikz}')
+        table.insert(__content, '\\begin{document}')
+    end
+    table.insert(__content, '\\begin{tikzpicture}')
+end
+
+function M.at_end()
+    table.insert(__content, '\\end{tikzpicture}')
+    if __standalone then
+        table.insert(__content, '\\end{document}')
     end
 end
 
@@ -48,17 +54,17 @@ function M.get_points(shape)
 end
 --]]
 
-function M.write_layer(file, layer, pcol)
+function M.write_layer(layer, pcol)
     for _, pts in ipairs(pcol) do
-        file:write(string.format('    \\fill[%s] %s;\n', layer, pts))
+        table.insert(__content, string.format('    \\fill[%s] %s;', layer, pts))
     end
 end
 
-function M.write_rectangle(file, layer, bl, tr)
-    file:writenl(string.format("\\fill[%s] (%s) rectangle (%s);", layer, bl:format(baseunit, ", "), tr:format(baseunit, ", ")))
+function M.write_rectangle(layer, bl, tr)
+    table.insert(__content, string.format("\\fill[%s] (%s) rectangle (%s);", layer, bl:format(baseunit, ", "), tr:format(baseunit, ", ")))
 end
 
-function M.write_polygon(file, layer, pts)
+function M.write_polygon(layer, pts)
 end
 
 return M

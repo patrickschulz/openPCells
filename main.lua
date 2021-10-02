@@ -24,7 +24,6 @@ local modules = {
     "geometry",
     "graphics",
     "generics",
-    "stringfile",
     "util",
     "aux",
     "reduce",

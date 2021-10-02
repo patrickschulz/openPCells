@@ -59,9 +59,10 @@ function M.check()
     _check_function("get_layer")
     _check_function("write_rectangle")
     _check_function("write_polygon")
+    _check_function("finalize")
 end
 
-local function _write_cell(file, cell)
+local function _write_cell(cell)
     -- shapes
     for _, S in cell:iterate_shapes() do
         if S:is_type("path") and not export.write_path then
@@ -70,11 +71,11 @@ local function _write_cell(file, cell)
         S:apply_transformation(cell.trans, cell.trans.apply_transformation)
         local layer = export.get_layer(S)
         if S:is_type("polygon") then
-            export.write_polygon(file, layer, S.points)
+            export.write_polygon(layer, S.points)
         elseif S:is_type("rectangle") then
-            export.write_rectangle(file, layer, S.points.bl, S.points.tr)
+            export.write_rectangle(layer, S.points.bl, S.points.tr)
         elseif S:is_type("path") then
-            export.write_path(file, layer, S.points, S.width, S.extension)
+            export.write_path(layer, S.points, S.width, S.extension)
         else
             moderror(string.format("export: unknown shape type '%s'", S.typ))
         end
@@ -87,45 +88,45 @@ local function _write_cell(file, cell)
         local x, y = origin:unwrap()
         local orientation = child.trans:orientation_string()
         if child.isarray and export.write_cell_array then
-            export.write_cell_array(file, child.identifier, x, y, orientation, child.xrep, child.yrep, child.xpitch, child.ypitch)
+            export.write_cell_array(child.identifier, x, y, orientation, child.xrep, child.yrep, child.xpitch, child.ypitch)
         else
             for ix = 1, child.xrep or 1 do
                 for iy = 1, child.yrep or 1 do
-                    export.write_cell_reference(file, child.identifier, x + (ix - 1) * (child.xpitch or 0), y + (iy - 1) * (child.ypitch or 0), orientation)
+                    export.write_cell_reference(child.identifier, x + (ix - 1) * (child.xpitch or 0), y + (iy - 1) * (child.ypitch or 0), orientation)
                 end
             end
         end
     end
 end
 
-local function _write_ports(file, cell)
+local function _write_ports(cell)
     for _, port in pairs(cell.ports) do
         if port.isbusport then
             local name = string.format("%s%s%d%s",  port.name, _leftdelim, port.busindex, _rightdelim)
             cell.trans:apply_transformation(port.where)
-            export.write_port(file, name, port.layer:get(), port.where)
+            export.write_port(name, port.layer:get(), port.where)
         else
             cell.trans:apply_transformation(port.where)
-            export.write_port(file, port.name, port.layer:get(), port.where)
+            export.write_port(port.name, port.layer:get(), port.where)
         end
     end
 end
 
 local cellrefs = {}
-local function _write_children(file, cell, writechildrenports)
+local function _write_children(cell, writechildrenports)
     for _, child in cell:iterate_children() do
         if not cellrefs[child.identifier] then
             local cellref = pcell.get_cell_reference(child.identifier)
-            aux.call_if_present(export.at_begin_cell, file, child.identifier)
-            _write_cell(file, cellref)
+            aux.call_if_present(export.at_begin_cell, child.identifier)
+            _write_cell(cellref)
             if writechildrenports then
                 if export.write_port then
-                    _write_ports(file, cellref)
+                    _write_ports(cellref)
                 end
             end
-            aux.call_if_present(export.at_end_cell, file)
+            aux.call_if_present(export.at_end_cell)
             cellrefs[child.identifier] = true
-            _write_children(file, cellref, writechildrenports)
+            _write_children(cellref, writechildrenports)
         end
     end
 end
@@ -144,21 +145,26 @@ function M.write_toplevel(filename, technology, toplevel, toplevelname, writechi
     end
 
     local extension = export.get_extension()
-    local file = stringfile.open(string.format("%s.%s", filename, extension))
-    aux.call_if_present(export.at_begin, file, technology)
+    aux.call_if_present(export.at_begin, technology)
 
-    _write_children(file, toplevel, writechildrenports)
+    _write_children(toplevel, writechildrenports)
 
-    aux.call_if_present(export.at_begin_cell, file, toplevelname)
-    _write_cell(file, toplevel)
+    aux.call_if_present(export.at_begin_cell, toplevelname)
+    _write_cell(toplevel)
     if export.write_port then
-        _write_ports(file, toplevel)
+        _write_ports(toplevel)
     end
-    aux.call_if_present(export.at_end_cell, file)
+    aux.call_if_present(export.at_end_cell)
 
-    aux.call_if_present(export.at_end, file)
+    aux.call_if_present(export.at_end)
+
+    local content = export.finalize()
     if not fake then
-        file:truewrite()
+        local file = io.open(string.format("%s.%s", filename, extension), "w")
+        if not file then
+            moderror("could not create file")
+        end
+        file:write(content)
     end
 end
 

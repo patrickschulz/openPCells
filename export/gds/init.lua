@@ -116,9 +116,11 @@ local function _assemble_data(recordtype, datatype, content)
     return data
 end
 
-local function _write_text_record(file, recordtype, datatype, content)
+local __content = {}
+
+local function _write_text_record(recordtype, datatype, content)
     if datatype == datatypes.NONE then
-        file:write(string.format("%12s #(%4d)\n", recordtype.name, 4))
+        table.insert(__content, string.format("%12s #(%4d)\n", recordtype.name, 4))
     else
         local data = _assemble_data(recordtype.code, datatype, content)
         local str
@@ -132,13 +134,15 @@ local function _write_text_record(file, recordtype, datatype, content)
         elseif datatype == datatypes.ASCII_STRING then
             str = content
         end
-        file:write(string.format("%12s #(%4d): { %s }\n", recordtype.name, #data, str))
+        table.insert(__content, string.format("%12s #(%4d): { %s }\n", recordtype.name, #data, str))
     end
 end
 
-local function _write_binary_record(file, recordtype, datatype, content)
+local function _write_binary_record(recordtype, datatype, content)
     local data = _assemble_data(recordtype.code, datatype, content)
-    file:write_binary(data)
+    for _, datum in ipairs(data) do
+        table.insert(__content, string.char(datum))
+    end
 end
 
 -- function "pointer" which (affected by __textmode option)
@@ -156,6 +160,10 @@ local function _unpack_points(pts)
 end
 
 -- public interface
+function M.finalize()
+    return table.concat(__content)
+end
+
 function M.get_extension()
     if __textmode then
         return "gdstext"
@@ -193,120 +201,120 @@ function M.get_layer(S)
     return { layer = lpp.layer, purpose = lpp.purpose }
 end
 
-function M.at_begin(file)
-    _write_record(file, recordtypes.HEADER, datatypes.TWO_BYTE_INTEGER, { 258 }) -- release 6.0
+function M.at_begin()
+    _write_record(recordtypes.HEADER, datatypes.TWO_BYTE_INTEGER, { 258 }) -- release 6.0
     local date = os.date("*t")
-    _write_record(file, recordtypes.BGNLIB, datatypes.TWO_BYTE_INTEGER, { 
+    _write_record(recordtypes.BGNLIB, datatypes.TWO_BYTE_INTEGER, { 
         date.year, date.month, date.day, date.hour, date.min, date.sec, -- last modification time
         date.year, date.month, date.day, date.hour, date.min, date.sec  -- last access time
     })
-    _write_record(file, recordtypes.LIBNAME, datatypes.ASCII_STRING, __libname)
-    _write_record(file, recordtypes.UNITS, datatypes.EIGHT_BYTE_REAL, { __userunit, __databaseunit })
+    _write_record(recordtypes.LIBNAME, datatypes.ASCII_STRING, __libname)
+    _write_record(recordtypes.UNITS, datatypes.EIGHT_BYTE_REAL, { __userunit, __databaseunit })
 end
 
-function M.at_end(file)
-    _write_record(file, recordtypes.ENDLIB, datatypes.NONE)
+function M.at_end()
+    _write_record(recordtypes.ENDLIB, datatypes.NONE)
 end
 
-function M.at_begin_cell(file, cellname)
+function M.at_begin_cell(cellname)
     local date = os.date("*t")
-    _write_record(file, recordtypes.BGNSTR, datatypes.TWO_BYTE_INTEGER, { 
+    _write_record(recordtypes.BGNSTR, datatypes.TWO_BYTE_INTEGER, { 
         date.year, date.month, date.day, date.hour, date.min, date.sec, -- last modification time
         date.year, date.month, date.day, date.hour, date.min, date.sec  -- last access time
     })
-    _write_record(file, recordtypes.STRNAME, datatypes.ASCII_STRING, cellname)
+    _write_record(recordtypes.STRNAME, datatypes.ASCII_STRING, cellname)
 end
 
-function M.at_end_cell(file)
-    _write_record(file, recordtypes.ENDSTR, datatypes.NONE)
+function M.at_end_cell()
+    _write_record(recordtypes.ENDSTR, datatypes.NONE)
 end
 
-function M.write_rectangle(file, layer, bl, tr)
-    _write_record(file, recordtypes.BOUNDARY, datatypes.NONE)
-    _write_record(file, recordtypes.LAYER, datatypes.TWO_BYTE_INTEGER, { layer.layer })
-    _write_record(file, recordtypes.DATATYPE, datatypes.TWO_BYTE_INTEGER, { layer.purpose})
+function M.write_rectangle(layer, bl, tr)
+    _write_record(recordtypes.BOUNDARY, datatypes.NONE)
+    _write_record(recordtypes.LAYER, datatypes.TWO_BYTE_INTEGER, { layer.layer })
+    _write_record(recordtypes.DATATYPE, datatypes.TWO_BYTE_INTEGER, { layer.purpose})
     local ptstream = _unpack_points({ bl, point.combine_21(bl, tr), tr, point.combine_12(bl, tr), bl })
-    _write_record(file, recordtypes.XY, datatypes.FOUR_BYTE_INTEGER, ptstream)
-    _write_record(file, recordtypes.ENDEL, datatypes.NONE)
+    _write_record(recordtypes.XY, datatypes.FOUR_BYTE_INTEGER, ptstream)
+    _write_record(recordtypes.ENDEL, datatypes.NONE)
 end
 
-function M.write_polygon(file, layer, pts)
+function M.write_polygon(layer, pts)
     local ptstream = _unpack_points(pts)
-    _write_record(file, recordtypes.BOUNDARY, datatypes.NONE)
-    _write_record(file, recordtypes.LAYER, datatypes.TWO_BYTE_INTEGER, { layer.layer })
-    _write_record(file, recordtypes.DATATYPE, datatypes.TWO_BYTE_INTEGER, { layer.purpose})
-    _write_record(file, recordtypes.XY, datatypes.FOUR_BYTE_INTEGER, ptstream)
-    _write_record(file, recordtypes.ENDEL, datatypes.NONE)
+    _write_record(recordtypes.BOUNDARY, datatypes.NONE)
+    _write_record(recordtypes.LAYER, datatypes.TWO_BYTE_INTEGER, { layer.layer })
+    _write_record(recordtypes.DATATYPE, datatypes.TWO_BYTE_INTEGER, { layer.purpose})
+    _write_record(recordtypes.XY, datatypes.FOUR_BYTE_INTEGER, ptstream)
+    _write_record(recordtypes.ENDEL, datatypes.NONE)
 end
 
-function M.write_path(file, layer, pts, width, extension)
+function M.write_path(layer, pts, width, extension)
     local ptstream = _unpack_points(pts)
-    _write_record(file, recordtypes.PATH, datatypes.NONE)
-    _write_record(file, recordtypes.LAYER, datatypes.TWO_BYTE_INTEGER, { layer.layer })
-    _write_record(file, recordtypes.DATATYPE, datatypes.TWO_BYTE_INTEGER, { layer.purpose })
+    _write_record(recordtypes.PATH, datatypes.NONE)
+    _write_record(recordtypes.LAYER, datatypes.TWO_BYTE_INTEGER, { layer.layer })
+    _write_record(recordtypes.DATATYPE, datatypes.TWO_BYTE_INTEGER, { layer.purpose })
     if extension == "butt" then
         -- (implicit)
-        --_write_record(file, recordtypes.PATHTYPE, datatypes.TWO_BYTE_INTEGER, { 0 })
+        --_write_record(recordtypes.PATHTYPE, datatypes.TWO_BYTE_INTEGER, { 0 })
     elseif extension == "round" then
-        _write_record(file, recordtypes.PATHTYPE, datatypes.TWO_BYTE_INTEGER, { 1 })
+        _write_record(recordtypes.PATHTYPE, datatypes.TWO_BYTE_INTEGER, { 1 })
     elseif extension == "cap" then
-        _write_record(file, recordtypes.PATHTYPE, datatypes.TWO_BYTE_INTEGER, { 2 })
+        _write_record(recordtypes.PATHTYPE, datatypes.TWO_BYTE_INTEGER, { 2 })
     elseif type(extension) == "table" then
-        _write_record(file, recordtypes.PATHTYPE, datatypes.TWO_BYTE_INTEGER, { 4 })
+        _write_record(recordtypes.PATHTYPE, datatypes.TWO_BYTE_INTEGER, { 4 })
     end
-    _write_record(file, recordtypes.WIDTH, datatypes.FOUR_BYTE_INTEGER, { width })
+    _write_record(recordtypes.WIDTH, datatypes.FOUR_BYTE_INTEGER, { width })
     -- these records have to come after WIDTH (at least for klayout, but they also are in this order in the GDS manual)
     if type(extension) == "table" then
-        _write_record(file, recordtypes.BGNEXTN, datatypes.FOUR_BYTE_INTEGER, { extension[1] })
-        _write_record(file, recordtypes.ENDEXTN, datatypes.FOUR_BYTE_INTEGER, { extension[2] })
+        _write_record(recordtypes.BGNEXTN, datatypes.FOUR_BYTE_INTEGER, { extension[1] })
+        _write_record(recordtypes.ENDEXTN, datatypes.FOUR_BYTE_INTEGER, { extension[2] })
     end
-    _write_record(file, recordtypes.XY, datatypes.FOUR_BYTE_INTEGER, ptstream)
-    _write_record(file, recordtypes.ENDEL, datatypes.NONE)
+    _write_record(recordtypes.XY, datatypes.FOUR_BYTE_INTEGER, ptstream)
+    _write_record(recordtypes.ENDEL, datatypes.NONE)
 end
 
-function M.write_cell_reference(file, identifier, x, y, orientation)
-    _write_record(file, recordtypes.SREF, datatypes.NONE)
-    _write_record(file, recordtypes.SNAME, datatypes.ASCII_STRING, identifier)
+function M.write_cell_reference(identifier, x, y, orientation)
+    _write_record(recordtypes.SREF, datatypes.NONE)
+    _write_record(recordtypes.SNAME, datatypes.ASCII_STRING, identifier)
     if orientation == "fx" then
-        _write_record(file, recordtypes.STRANS, datatypes.BIT_ARRAY, { 0x8000 })
-        _write_record(file, recordtypes.ANGLE, datatypes.EIGHT_BYTE_REAL, { 180 })
+        _write_record(recordtypes.STRANS, datatypes.BIT_ARRAY, { 0x8000 })
+        _write_record(recordtypes.ANGLE, datatypes.EIGHT_BYTE_REAL, { 180 })
     elseif orientation == "fy" then
-        _write_record(file, recordtypes.STRANS, datatypes.BIT_ARRAY, { 0x8000 })
+        _write_record(recordtypes.STRANS, datatypes.BIT_ARRAY, { 0x8000 })
     elseif orientation == "R180" then
-        _write_record(file, recordtypes.ANGLE, datatypes.EIGHT_BYTE_REAL, { 180 })
+        _write_record(recordtypes.ANGLE, datatypes.EIGHT_BYTE_REAL, { 180 })
     elseif orientation == "R90" then
-        _write_record(file, recordtypes.ANGLE, datatypes.EIGHT_BYTE_REAL, { 90 })
+        _write_record(recordtypes.ANGLE, datatypes.EIGHT_BYTE_REAL, { 90 })
     end
-    _write_record(file, recordtypes.XY, datatypes.FOUR_BYTE_INTEGER, _unpack_points({ point.create(x, y) }))
-    _write_record(file, recordtypes.ENDEL, datatypes.NONE)
+    _write_record(recordtypes.XY, datatypes.FOUR_BYTE_INTEGER, _unpack_points({ point.create(x, y) }))
+    _write_record(recordtypes.ENDEL, datatypes.NONE)
 end
 
-function M.write_cell_array(file, identifier, x, y, orientation, xrep, yrep, xpitch, ypitch)
-    _write_record(file, recordtypes.AREF, datatypes.NONE)
-    _write_record(file, recordtypes.SNAME, datatypes.ASCII_STRING, identifier)
+function M.write_cell_array(identifier, x, y, orientation, xrep, yrep, xpitch, ypitch)
+    _write_record(recordtypes.AREF, datatypes.NONE)
+    _write_record(recordtypes.SNAME, datatypes.ASCII_STRING, identifier)
     if orientation == "fx" then
-        _write_record(file, recordtypes.STRANS, datatypes.BIT_ARRAY, { 0x8000 })
-        _write_record(file, recordtypes.ANGLE, datatypes.EIGHT_BYTE_REAL, { 180 })
+        _write_record(recordtypes.STRANS, datatypes.BIT_ARRAY, { 0x8000 })
+        _write_record(recordtypes.ANGLE, datatypes.EIGHT_BYTE_REAL, { 180 })
     elseif orientation == "fy" then
-        _write_record(file, recordtypes.STRANS, datatypes.BIT_ARRAY, { 0x8000 })
+        _write_record(recordtypes.STRANS, datatypes.BIT_ARRAY, { 0x8000 })
     elseif orientation == "R180" then
-        _write_record(file, recordtypes.ANGLE, datatypes.EIGHT_BYTE_REAL, { 180 })
+        _write_record(recordtypes.ANGLE, datatypes.EIGHT_BYTE_REAL, { 180 })
     end
-    _write_record(file, recordtypes.COLROW, datatypes.TWO_BYTE_INTEGER, { xrep, yrep })
-    _write_record(file, recordtypes.XY, datatypes.FOUR_BYTE_INTEGER, 
+    _write_record(recordtypes.COLROW, datatypes.TWO_BYTE_INTEGER, { xrep, yrep })
+    _write_record(recordtypes.XY, datatypes.FOUR_BYTE_INTEGER, 
         _unpack_points({ point.create(x, y), point.create(x + xrep * xpitch, y), point.create(x, y + yrep * ypitch) }))
-    _write_record(file, recordtypes.ENDEL, datatypes.NONE)
+    _write_record(recordtypes.ENDEL, datatypes.NONE)
 end
 
-function M.write_port(file, name, layer, where)
-    _write_record(file, recordtypes.TEXT, datatypes.NONE)
-    _write_record(file, recordtypes.LAYER, datatypes.TWO_BYTE_INTEGER, { layer.layer })
-    _write_record(file, recordtypes.TEXTTYPE, datatypes.TWO_BYTE_INTEGER, { layer.purpose })
-    _write_record(file, recordtypes.PRESENTATION, datatypes.BIT_ARRAY, { 0x0005 }) -- center:center presentation
-    _write_record(file, recordtypes.MAG, datatypes.EIGHT_BYTE_REAL, { __labelsize * __databaseunit })
-    _write_record(file, recordtypes.XY, datatypes.FOUR_BYTE_INTEGER, _unpack_points({ where }))
-    _write_record(file, recordtypes.STRING, datatypes.ASCII_STRING, name)
-    _write_record(file, recordtypes.ENDEL, datatypes.NONE)
+function M.write_port(name, layer, where)
+    _write_record(recordtypes.TEXT, datatypes.NONE)
+    _write_record(recordtypes.LAYER, datatypes.TWO_BYTE_INTEGER, { layer.layer })
+    _write_record(recordtypes.TEXTTYPE, datatypes.TWO_BYTE_INTEGER, { layer.purpose })
+    _write_record(recordtypes.PRESENTATION, datatypes.BIT_ARRAY, { 0x0005 }) -- center:center presentation
+    _write_record(recordtypes.MAG, datatypes.EIGHT_BYTE_REAL, { __labelsize * __databaseunit })
+    _write_record(recordtypes.XY, datatypes.FOUR_BYTE_INTEGER, _unpack_points({ where }))
+    _write_record(recordtypes.STRING, datatypes.ASCII_STRING, name)
+    _write_record(recordtypes.ENDEL, datatypes.NONE)
 end
 
 return M

@@ -2,6 +2,8 @@ local M = {}
 
 local __width, __height, __scale
 local __gridfmt = "%.3f"
+local content = {}
+
 function M.initialize(toplevel)
     -- get cell dimensions
     local minx =  math.huge
@@ -35,6 +37,10 @@ function M.initialize(toplevel)
     __scale = scale
 end
 
+function M.finalize()
+    return table.concat(content, "\n")
+end
+
 function M.get_extension()
     return "svg"
 end
@@ -43,7 +49,7 @@ function M.get_layer(S)
     return S:get_lpp():get()
 end
 
-function M.at_begin(file)
+function M.at_begin()
     local x = math.ceil(1.1 * __scale * __width)
     local y = math.ceil(1.1 * __scale * __height)
     if x % 2 == 1 then x = x + 1 end
@@ -53,14 +59,14 @@ function M.at_begin(file)
         string.format('<svg width="%d" height="%d" viewBox="-%d -%d %d %d">', x, y, x/ 2, y / 2, x, y),
         '<rect fill="#fff" x="-50%" y="-50%" width="100%" height="100%"/>',
     }
-    file:write(table.concat(lines, '\n') .. '\n')
+    table.insert(content, table.concat(lines, '\n'))
 end
 
-function M.at_end(file)
-    file:write("</svg>\n")
+function M.at_end()
+    table.insert(content, "</svg>")
 end
 
-function M.write_rectangle(file, layer, bl, tr)
+function M.write_rectangle(layer, bl, tr)
     local fmtstr = string.format('fill = "%s" fill-opacity = "0.5"', layer.color)
     local blx, bly = bl:unwrap()
     local trx, try = tr:unwrap()
@@ -70,23 +76,23 @@ function M.write_rectangle(file, layer, bl, tr)
         __scale * (trx - blx),
         __scale * (try - bly)
     )
-    file:write(string.format('<rect %s %s />\n', fmtstr, pointstr))
+    table.insert(content, string.format('<rect %s %s />', fmtstr, pointstr))
 end
 
 -- * mandatory *
 -- how to write a polygon
-function M.write_polygon(file, layer, pts)
+function M.write_polygon(layer, pts)
 end
 
 -- * optional *
 -- how to write a path
 -- if not present, the shape will be converted accordingly (to a single rectangle if possible, otherwise to a polygon)
-function M.write_path(file, layer, pts, width)
+function M.write_path(layer, pts, width)
 end
 
 -- * optional *
 -- how to write a named for layout topology data (e.g. LVS)
-function M.write_port(file, name, layer, where)
+function M.write_port(name, layer, where)
 end
 
 return M
