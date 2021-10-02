@@ -2,7 +2,11 @@ local M = {}
 
 local __width, __height, __scale
 local __gridfmt = "%.3f"
-local content = {}
+local __content = {
+    before = {},
+    after = {},
+    maxorder = 0
+}
 
 function M.initialize(toplevel)
     -- get cell dimensions
@@ -38,7 +42,28 @@ function M.initialize(toplevel)
 end
 
 function M.finalize()
-    return table.concat(content, "\n")
+    local t = {}
+
+    -- preamble
+    for _, line in ipairs(__content.before) do
+        table.insert(t, line)
+    end
+
+    -- main content
+    for i = 0, __content.maxorder do
+        if __content[i] then
+            for _, line in ipairs(__content[i]) do
+                table.insert(t, line)
+            end
+        end
+    end
+
+    -- end
+    for _, line in ipairs(__content.after) do
+        table.insert(t, line)
+    end
+
+    return table.concat(t, "\n")
 end
 
 function M.get_extension()
@@ -46,7 +71,14 @@ function M.get_extension()
 end
 
 function M.get_layer(S)
-    return S:get_lpp():get()
+    local layer = S:get_lpp():get()
+    local order = layer.order
+    if not layer.order then layer.order = 0 end
+    if not __content[layer.order] then
+        __content[layer.order] = {}
+    end
+    __content.maxorder = math.max(__content.maxorder, layer.order)
+    return layer
 end
 
 function M.at_begin()
@@ -59,11 +91,11 @@ function M.at_begin()
         string.format('<svg width="%d" height="%d" viewBox="-%d -%d %d %d">', x, y, x/ 2, y / 2, x, y),
         '<rect fill="#fff" x="-50%" y="-50%" width="100%" height="100%"/>',
     }
-    table.insert(content, table.concat(lines, '\n'))
+    table.insert(__content.before, table.concat(lines, '\n'))
 end
 
 function M.at_end()
-    table.insert(content, "</svg>")
+    table.insert(__content.after, "</svg>")
 end
 
 function M.write_rectangle(layer, bl, tr)
@@ -76,7 +108,7 @@ function M.write_rectangle(layer, bl, tr)
         __scale * (trx - blx),
         __scale * (try - bly)
     )
-    table.insert(content, string.format('<rect %s %s />', fmtstr, pointstr))
+    table.insert(__content[layer.order], string.format('<rect %s %s />', fmtstr, pointstr))
 end
 
 -- * mandatory *
