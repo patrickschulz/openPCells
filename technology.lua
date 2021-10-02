@@ -78,15 +78,17 @@ local function _do_map(cell, S, entry, export)
     if entry.lpp then
         local new = S:copy()
         local lpp = _get_lpp(entry, export)
-        new:set_lpp(generics.mapped(entry.name, lpp))
-        if entry.left   > 0 or
-           entry.right  > 0 or
-           entry.top    > 0 or
-           entry.bottom > 0
-        then -- this check ensures that not-resized polygons work
-            new:resize_lrtb(entry.left, entry.right, entry.top, entry.bottom)
+        if lpp then
+            new:set_lpp(generics.mapped(entry.name, lpp))
+            if entry.left   > 0 or
+               entry.right  > 0 or
+               entry.top    > 0 or
+               entry.bottom > 0
+            then -- this check ensures that not-resized polygons work
+                new:resize_lrtb(entry.left, entry.right, entry.top, entry.bottom)
+            end
+            cell:add_raw_shape(new)
         end
-        cell:add_raw_shape(new)
     end
 end
 
