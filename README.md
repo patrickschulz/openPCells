@@ -39,6 +39,10 @@ Paths to additional cells can be given with
 Different exports are supported, such as GDSII (which is the most sophisticated), SVG, SKILL (for virtuoso integration), TikZ (LaTeX), OASIS and magic.
 A framework for developing additional exports is provided and only a few functions are needed to get a basic export running.
 
+opc provides an already quite rich set of command line options, which influence how layouts are generated. Furthermore, it can also import
+GDSII-streams and create an opc-own representation of an entire library. See --read-GDS for this. All command line options are documented with --help
+and a few basic examples for usage are given at the end.
+
 # Building and Installation
 Building this project is fairly simple, as the sole dependency is a C compiler. It was tested with gcc 11.1.0, but should work with other compilers
 too. Currently, the build is set up to create a stand-alone executable, which knows how to load the needed shared libraries (project-owned) by itself.
