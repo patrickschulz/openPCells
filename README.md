@@ -47,7 +47,9 @@ and a few basic examples for usage are given at the end.
 Building this project is fairly simple, as the sole dependency is a C compiler. It was tested with gcc 11.1.0, but should work with other compilers
 too. Currently, the build is set up to create a stand-alone executable, which knows how to load the needed shared libraries (project-owned) by itself.
 This means that it is easy for a user without any root privileges to install opc: Just leave it where you compiled it (this is important) and point
-your PATH to the directory or create an alias or call opc with its absolute path.
+your PATH to the directory or create an alias or call opc with its absolute path. That all said, building is just
+
+    make
 
 # Integration in Cadence Virtuoso
 After you compiled the program and checked if it works (see previous section), you can integrate it in virtuoso.
@@ -61,7 +63,8 @@ You need to include these lines in your `.cdsinit`:
 
 This will install a menu in layout editor called `openPCells` at the last place before the `help` menu in the layout editor. You have to restart
 virtuoso or execute the four lines in that order in your CIW to activate the menu. It is important that the variables `OPCTech`, `OPCPath` and
-`OPCExec` are defined, so don't think you can skip these and hard-code the path.
+`OPCExec` are defined, so don't think you can skip these and hard-code the path. There is an example file that you can modify and load in your
+`.cdsinit` in `interface/virtuoso/cdsinit.il.sample`
 
 <!---
 # Technology translation and mapping
