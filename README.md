@@ -137,9 +137,12 @@ cuts are drawn explicitly. I am working on this to improve that, but it works ri
 
 # Roadmap
 This project started as a way of designing pcells independently of SKILL/virtuoso and technologies, but I have shifted a bit my goals and am thinking
-of building some kind of pcell-text-based layout description/generator. There is still a lot of work to do and right now the best use of this project
-is as a pcell generator. Once I've really figured out how to do technology-independent pcells (which is already working a little bit), I will start
-thinking of connecting several cells and creating entire layouts. 
+of building some kind of pcell-text-based layout description/generator. The ground work has been done and it is already possible to build very complex
+layouts with good performance of the tool. By re-using cells, the generation time can be kept quite low.
+
+The next steps deal with building more complex and sophisticated pcells, adding more functionality to pcell development easier (such as the placement
+module, perhaps also adding automatic routing) and fixing existing bugs. Furthermore, technology file development could be more automated, I was
+thinking of an assistant to do this, but I'm lacking the time.
 
 # Contributions
 Contributions of any kind are welcome and even wished for. I'm trying to add issues to github, but there's of course a lot more that needs to be
