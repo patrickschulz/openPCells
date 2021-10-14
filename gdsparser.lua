@@ -55,6 +55,9 @@ end
 
 local function _parse_integer(data, width, start)
     local num = 0
+    if #data < width then
+        return nil
+    end
     if data[start + 1] > 127 then -- negative
         num = -1 * 2^32
     end
@@ -90,7 +93,7 @@ end
 
 local function _parse_data(header, data)
     if header.datatype == datatable.NONE then
-        return nil
+        return nil, true
     elseif header.datatype == datatable.BIT_ARRAY then
         return _parse_bit_array(data)
     elseif header.datatype == datatable.TWO_BYTE_INTEGER then
@@ -130,7 +133,14 @@ local function _read_stream(filename)
     local records = {}
     while true do
         local header, data = read_record(file)
-        table.insert(records, { header = header, raw = data, data = _parse_data(header, data) })
+        if not header then
+            moderror("gdsparser: stream abort before ENDLIB")
+        end
+        local data, isempty = _parse_data(header, data)
+        if not isempty and not data then
+            data = "EMPTY"
+        end
+        table.insert(records, { header = header, raw = data, data = data })
         if header.recordtype == recordcodes.ENDLIB then
             break
         end
