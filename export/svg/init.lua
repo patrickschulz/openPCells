@@ -74,6 +74,12 @@ function M.get_layer(S)
     local layer = S:get_lpp():get()
     local order = layer.order
     if not layer.order then layer.order = 0 end
+    if not layer.drawopacity then layer.drawopacity = 1 end
+    if not layer.fillopacity then layer.fillopacity = 1 end
+    if layer.opacity then
+        layer.drawopacity = layer.opacity
+        layer.fillopacity = layer.opacity
+    end
     if not __content[layer.order] then
         __content[layer.order] = {}
     end
@@ -99,7 +105,7 @@ function M.at_end()
 end
 
 function M.write_rectangle(layer, bl, tr)
-    local fmtstr = string.format('fill = "%s" fill-opacity = "0.5"', layer.color)
+    local fmtstr = string.format('fill = "%s" opacity = "%s" fill-opacity = "%s"', layer.color, layer.drawopacity, layer.fillopacity)
     local blx, bly = bl:unwrap()
     local trx, try = tr:unwrap()
     local pointstr = string.format('x="%f" y="%f" width="%f" height="%f"',
