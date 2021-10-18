@@ -5,8 +5,9 @@ local function _lexer(content)
         get = function(self)
             return self[self.index]
         end,
-        peek = function(self)
-            return self[self.index + 1]
+        peek = function(self, offset)
+            offset = offset or 0
+            return self[self.index + 1 + offset]
         end,
         advance = function(self) 
             self.index = self.index + 1
@@ -58,6 +59,20 @@ local function _lexer(content)
                     end
                 end
                 table.insert(tokens, { type = "linecomment", value = table.concat(comment) })
+            elseif ch == "/" and characters:peek() == "*" then -- block comment
+                characters:advance()
+                local comment = { }
+                while true do
+                    nch = characters:peek()
+                    nch2 = characters:peek(1)
+                    if not ((nch and nch == "*") and (nch2 and nch2 == "/")) then
+                        table.insert(comment, nch)
+                        characters:advance()
+                    else
+                        break
+                    end
+                end
+                table.insert(tokens, { type = "blockcomment", value = table.concat(comment) })
             elseif string.match(ch, "[][:()+*/-]") then -- operators
                 table.insert(tokens, { type = "operator", value = ch })
             elseif ch == ";" or ch == "," or ch == "." then -- punctuation
