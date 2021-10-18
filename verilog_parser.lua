@@ -107,6 +107,9 @@ local function _convert_to_symbols(tokens)
             if symbol == "ident" then
                 self.identindex = self.identindex + 1
             end
+            if symbol == "number" then
+                self.numberindex = self.numberindex + 1
+            end
             if self[self.index] == symbol then
                 self:advance()
                 return true
@@ -131,7 +134,6 @@ local function _convert_to_symbols(tokens)
             return self.identifiers[self.identindex]
         end,
         next_number = function(self)
-            self.numberindex = self.numberindex + 1
             return self.numbers[self.numberindex]
         end,
     }
@@ -151,12 +153,16 @@ local function _convert_to_symbols(tokens)
                 table.insert(symbols, "inout")
             else
                 table.insert(symbols, "ident")
-                table.insert(symbols.identifiers, token.value)
+                local value = string.gsub(token.value, "([\\!])", {
+                    ["\\"] = "",
+                    ["!"] = "_"
+                })
+                table.insert(symbols.identifiers, value)
             end
         end
         if token.type == "number" then
             table.insert(symbols, "number")
-            table.insert(symbols.identifiers, token.value)
+            table.insert(symbols.numbers, token.value)
         end
         if token.type == "operator" then
             if token.value == "(" then
@@ -197,7 +203,10 @@ local function _instancename(symbols)
     symbols:expect("ident")
     local name = symbols:next_identifier()
     -- FIXME: handle bus names
-    optbusaccess(symbols)
+    local num = optbusaccess(symbols)
+    if num then
+        name = string.format("%s_%d", name, num)
+    end
     return name
 end
 
