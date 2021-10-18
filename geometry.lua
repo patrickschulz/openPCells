@@ -216,8 +216,11 @@ function M.path(layer, pts, width, extension)
     return object.make_from_shape(S)
 end
 
-function M.path_polygon(layer, pts, width, miterjoin)
+function M.path_polygon(layer, pts, width, miterjoin, extension)
     _make_unique_points(pts)
+    if extension then
+        -- FIXME
+    end
     if #pts == 2 then -- rectangle
         local x1, y1 = pts[1]:unwrap()
         local x2, y2 = pts[2]:unwrap()

@@ -12,7 +12,7 @@ end
 
 function shape.resolve_path(self, beveljoin)
     if self.typ == "path" then
-        local obj = geometry.path_polygon(self.lpp, self.points, self.width, not beveljoin)
+        local obj = geometry.path_polygon(self.lpp, self.points, self.width, not beveljoin, self.extension)
         local _s = obj.shapes[1]
         self.typ = _s.typ
         self.points = _s.points
