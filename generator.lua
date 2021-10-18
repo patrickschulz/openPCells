@@ -1,15 +1,19 @@
 local M = {}
 
 local function _write_module(file, module)
+    -- set up lookup tables
+    file:write('    local references = {}\n')
+    file:write('    local names = {}\n')
+    file:write('    local children = {}\n')
     -- place cells and collect connections
     local connections = {}
     for _, statement in ipairs(module.statements) do
         local name = statement.name
         local instname = statement.instname
         if statement.type == "moduleinstantiation" then
-            file:write(string.format('    local %sref = pcell.create_layout("%s")\n', instname, name))
-            file:write(string.format('    local %sname = pcell.add_cell_reference(%sref, "%s")\n', instname, instname, instname))
-            file:write(string.format('    local %s = toplevel:add_child(%sname, "%s")\n', instname, instname, instname))
+            file:write(string.format('    references["%s"] = pcell.create_layout("%s")\n', instname, name))
+            file:write(string.format('    names["%s"] = pcell.add_cell_reference(%sref, "%s")\n', instname, instname, instname))
+            file:write(string.format('    children["%s"] = toplevel:add_child(%sname, "%s")\n', instname, instname, instname))
             for _, connection in ipairs(statement.connections) do
                 if not connections[connection.net] then connections[connection.net] = {} end
                 table.insert(connections[connection.net], { instance = instname, port = connection.port })
@@ -20,7 +24,7 @@ local function _write_module(file, module)
     for net, connection in pairs(connections) do
         if #connection == 2 then
             file:write("    toplevel:merge_into_shallow(geometry.path(generics.metal(1), {\n")
-            file:write(string.format('        %s:get_anchor("%s"),\n        %s:get_anchor("%s")\n    }, cwidth))\n', 
+            file:write(string.format('        children["%s"]:get_anchor("%s"),\n        children["%s"]:get_anchor("%s")\n    }, cwidth))\n', 
                 connection[1].instance, connection[1].port, connection[2].instance, connection[2].port))
         end
     end
