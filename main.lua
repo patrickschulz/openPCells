@@ -35,6 +35,8 @@ local modules = {
     "marker",
     "support/gdstypetable",
     "gdsparser",
+    "verilog_parser",
+    "generator",
     "import",
     "pcell",
     "placement",
@@ -124,6 +126,11 @@ if args.readgds then
         libname = string.gsub(args.readgds, "%.gds", "")
     end
     import.translate_cells(cells, args.importprefix, libname, layermap, alignmentboxinfo, args.importoverwrite, args.importflatpattern)
+    return 0
+end
+
+if args.readverilog then
+    generator.from_verilog(args.readverilog)
     return 0
 end
 
