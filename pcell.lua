@@ -390,10 +390,12 @@ function state.create_cellenv(state, cellname, ovrenv)
         marker = marker,
         transformationmatrix = transformationmatrix,
         dprint = function(...) if state.debug then print(...) end end,
+        tonumber = tonumber,
         type = type,
         ipairs = ipairs,
         pairs = pairs,
-        error = error,
+        cellerror = moderror,
+        io = { open = function(filename) return io.open(filename, "r") end }
     }
     envmeta.__index = envmeta
     if ovrenv then
