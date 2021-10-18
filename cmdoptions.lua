@@ -257,6 +257,10 @@ return {
         name = "showgdshierarchy", long = "--show-gds-cell-hierarchy",
         help = "show cell hierarchy in a GDS stream file"
     },
+    store{
+        name = "showgdsdatadepth", long = "--show-gds-depth",
+        help = "maximum depth for gds traversal (affects --show-gds-data and --show-gds-hierarchy)"
+    },
     store_multiple{
         name = "showgdsdataflags", long = "--show-gds-data-flags",
         help = "flags to control what data is shown with --show-gds-data (default: all)"

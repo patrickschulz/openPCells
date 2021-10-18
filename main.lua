@@ -87,15 +87,19 @@ end
 
 -- gds info functions
 if args.showgdsdata then
-    gdsparser.show_records(args.showgdsdata, args.showgdsdataflags or "all", args.showgdsdataraw)
+    local maxlevel = args.showgdsdatadepth and tonumber(args.showgdsdatadepth) or math.huge
+    gdsparser.show_records(args.showgdsdata, args.showgdsdataflags or "all", args.showgdsdataraw, maxlevel)
     return 0
 end
 if args.showgdshierarchy then
     local gdslib = gdsparser.read_stream(args.showgdshierarchy)
     local cells = gdslib.cells
     local tree = gdsparser.resolve_hierarchy(cells)
+    local maxlevel = args.showgdsdatadepth and tonumber(args.showgdsdatadepth) or math.huge
     for _, elem in ipairs(tree) do
-        print(string.format("%s%s", string.rep("  ", elem.level), elem.cell.name))
+        if elem.level < maxlevel then
+            print(string.format("%s%s", string.rep("  ", elem.level), elem.cell.name))
+        end
     end
     return 0
 end

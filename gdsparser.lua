@@ -148,7 +148,7 @@ local function _read_stream(filename)
     return records
 end
 
-function M.show_records(filename, flags, printraw)
+function M.show_records(filename, flags, printraw, maxlevel)
     if flags == "all" then
         flags = {
             showrecordlength = true
@@ -163,25 +163,27 @@ function M.show_records(filename, flags, printraw)
             header.recordtype == 0x11 then 
             indent = indent - 1
         end
-        if flags.showrecordlength then
-            io.write(string.format("%s%s (%d)", string.rep(" ", 4 * indent), recordnames[header.recordtype], header.length))
-        else
-            io.write(string.format("%s%s", string.rep(" ", 4 * indent), recordnames[header.recordtype]))
-        end
-        if type(data) == "table" then
-            data = "{ " .. table.concat(data, " ") .. " }"
-        end
-        if data then
-            io.write(string.format(" -> data: %s", data))
-            if printraw then
-                local raw = {}
-                for _, byte in ipairs(record.raw) do
-                    table.insert(raw, string.format("0x%02x", byte))
-                end
-                io.write(string.format(" (raw: %s)", table.concat(raw, ' ')))
+        if indent < maxlevel then
+            if flags.showrecordlength then
+                io.write(string.format("%s%s (%d)", string.rep(" ", 4 * indent), recordnames[header.recordtype], header.length))
+            else
+                io.write(string.format("%s%s", string.rep(" ", 4 * indent), recordnames[header.recordtype]))
             end
+            if type(data) == "table" then
+                data = "{ " .. table.concat(data, " ") .. " }"
+            end
+            if data then
+                io.write(string.format(" -> data: %s", data))
+                if printraw then
+                    local raw = {}
+                    for _, byte in ipairs(record.raw) do
+                        table.insert(raw, string.format("0x%02x", byte))
+                    end
+                    io.write(string.format(" (raw: %s)", table.concat(raw, ' ')))
+                end
+            end
+            print()
         end
-        print()
         if header.recordtype == 0x01 or 
             header.recordtype == 0x05 or 
             header.recordtype == 0x08 or 
