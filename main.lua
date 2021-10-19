@@ -137,7 +137,7 @@ if args.readgds then
 end
 
 if args.readverilog then
-    generator.from_verilog(args.readverilog)
+    generator.from_verilog(args.readverilog, args.readverilogdontcreatewires, args.importprefix or "verilogimport", "verilogimport", true)
     return 0
 end
 
