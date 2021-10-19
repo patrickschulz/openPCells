@@ -217,6 +217,10 @@ return {
         help = "read a verilog netlist (the parser only handles a very simple subset of verilog, RTL and such things won't work) and generate a pcell skeleton with all cells and connections (ALPHA STAGE, NOT TESTED EXHAUSTIVELY)"
     },
     switch{
+        name = "readverilogdontcreatewires", long = "--read-verilog-no-connections",
+        help = "while importing a verilog netlist, don't generate any connections"
+    },
+    switch{
         name = "techassistant", long = "--techfile-assistant",
         help = "start the techfile assistant for easy creation of technology files"
     },
