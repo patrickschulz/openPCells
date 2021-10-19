@@ -130,6 +130,9 @@ function M.translate_cells(cells, prefix, dirname, layermap, alignmentbox, overw
     if not filesystem.exists(path) or overwrite then
         local created = filesystem.mkdir(path)
         if created then
+            if not alignmentbox then
+                print("importing cells without any alignmentbox information. The resulting cells won't have an alignmentbox")
+            end
             for _, cell in ipairs(cells) do
                 if not flatpattern or not string.match(cell.name, flatpattern) then
                     local chunk = {
