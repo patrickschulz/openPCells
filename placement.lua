@@ -67,7 +67,7 @@ function M.digital(parent, cellnames, noflipeven, startanchor, startpt, growdire
     return cells
 end
 
-function M.digital_auto(parent, pitch, width, cellnames, noflipeven, startanchor, startpt, growdirection)
+function M.digital_auto(parent, pitch, width, cellnames, fillers, noflipeven, startanchor, startpt, growdirection)
     local last = object.create_omni()
     local lastleft
     startanchor = startanchor or "left"
@@ -102,22 +102,48 @@ function M.digital_auto(parent, pitch, width, cellnames, noflipeven, startanchor
         cells[row][column] = cell
     end
 
-    -- equalize cells
+    -- equalize cells and insert fillers
     for row, cs in ipairs(cells) do
         if #cs > 1 then
             local widthdiff = width
             for _, c in ipairs(cs) do widthdiff = widthdiff - c:width_height_alignmentbox() end
-            local delta = _fix_to_grid(widthdiff // (#cs - 1), pitch)
-            local tocorrect = _fix_to_grid(widthdiff - (#cs - 1) * delta, pitch) / pitch
+            local diff = widthdiff // pitch
+            local delta = diff // (#cs - 1)
+            local tocorrect = diff - (#cs - 1) * delta
             local corrected = 0
             for i = 2, #cs do
+                local num = (i - 1) * delta + corrected
+                local numfill = delta
                 if tocorrect > 0 then
-                    cs[i]:translate((i - 1) * delta + corrected * pitch + pitch, 0)
+                    num = num + 1
+                    numfill = numfill + 1
                     tocorrect = tocorrect - 1
                     corrected = corrected + 1
-                else
-                    cs[i]:translate((i - 1) * delta + corrected * pitch, 0)
                 end
+
+                -- add filler
+                local anchor = cs[i - 1]:get_anchor("right")
+                while numfill > 0 do
+                    local fill = parent:add_child(fillers[1])
+                    fill:move_anchor("left", anchor)
+                    anchor = fill:get_anchor("right")
+                    numfill = numfill - 1
+                end
+
+                cs[i]:translate(num * pitch, 0)
+            end
+        else
+            local widthdiff = width - cs[1]:width_height_alignmentbox()
+            local diff = widthdiff // pitch
+            local numfill = diff
+
+            -- add filler
+            local anchor = cs[1]:get_anchor("right")
+            while numfill > 0 do
+                local fill = parent:add_child(fillers[1])
+                fill:move_anchor("left", anchor)
+                anchor = fill:get_anchor("right")
+                numfill = numfill - 1
             end
         end
     end
