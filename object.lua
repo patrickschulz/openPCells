@@ -363,7 +363,11 @@ function meta.get_transformation_correction(self)
 end
 
 function meta.width_height(self)
-    local minx, maxx, miny, maxy = _get_minmax_xy(self)
+    local obj = self
+    if self.isproxy then
+        obj = self.reference
+    end
+    local minx, maxx, miny, maxy = _get_minmax_xy(obj)
     return maxx - minx, maxy - miny
 end
 
