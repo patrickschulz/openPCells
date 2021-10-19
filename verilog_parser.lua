@@ -153,9 +153,8 @@ local function _convert_to_symbols(tokens)
                 table.insert(symbols, "inout")
             else
                 table.insert(symbols, "ident")
-                local value = string.gsub(token.value, "([\\!])", {
-                    ["\\"] = "",
-                    ["!"] = "_"
+                local value = string.gsub(token.value, "([\\])", {
+                    ["\\"] = "\\\\",
                 })
                 table.insert(symbols.identifiers, value)
             end
