@@ -122,12 +122,14 @@ function M.digital_auto(parent, pitch, width, cellnames, fillers, noflipeven, st
                 end
 
                 -- add filler
-                local anchor = cs[i - 1]:get_anchor("right")
-                while numfill > 0 do
-                    local fill = parent:add_child(fillers[1])
-                    fill:move_anchor("left", anchor)
-                    anchor = fill:get_anchor("right")
-                    numfill = numfill - 1
+                if fillers then
+                    local anchor = cs[i - 1]:get_anchor("right")
+                    while numfill > 0 do
+                        local fill = parent:add_child(fillers[1])
+                        fill:move_anchor("left", anchor)
+                        anchor = fill:get_anchor("right")
+                        numfill = numfill - 1
+                    end
                 end
 
                 cs[i]:translate(num * pitch, 0)
@@ -138,12 +140,14 @@ function M.digital_auto(parent, pitch, width, cellnames, fillers, noflipeven, st
             local numfill = diff
 
             -- add filler
-            local anchor = cs[1]:get_anchor("right")
-            while numfill > 0 do
-                local fill = parent:add_child(fillers[1])
-                fill:move_anchor("left", anchor)
-                anchor = fill:get_anchor("right")
-                numfill = numfill - 1
+            if fillers then
+                local anchor = cs[1]:get_anchor("right")
+                while numfill > 0 do
+                    local fill = parent:add_child(fillers[1])
+                    fill:move_anchor("left", anchor)
+                    anchor = fill:get_anchor("right")
+                    numfill = numfill - 1
+                end
             end
         end
     end
