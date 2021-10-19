@@ -40,6 +40,8 @@ local modules = {
     "import",
     "pcell",
     "placement",
+    "input",
+    "assistant",
 }
 for _, module in ipairs(modules) do
     local path = module
@@ -85,6 +87,11 @@ end
 -- check command line options sanity
 if args.human and args.machine then
     moderror("you can't specify --human and --machine at the same time")
+end
+
+if args.techassistant then
+    assistant.techfile()
+    return 0
 end
 
 -- gds info functions
