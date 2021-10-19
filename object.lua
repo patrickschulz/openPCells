@@ -371,6 +371,21 @@ function meta.width_height(self)
     return maxx - minx, maxy - miny
 end
 
+function meta.width_height_alignmentbox(self)
+    local obj = self
+    if self.isproxy then
+        obj = self.reference
+    end
+    local blx, bly, trx, try
+    if obj.alignmentbox then
+        blx, bly = obj.alignmentbox.bl:unwrap()
+        trx, try = obj.alignmentbox.tr:unwrap()
+        return trx - blx, try - bly
+    else
+        return obj:width_height()
+    end
+end
+
 function meta.bounding_box(self)
     local minx, maxx, miny, maxy = _get_minmax_xy(self)
     return { bl = point.create(minx, miny), tr = point.create(maxx, maxy) }

@@ -1,5 +1,9 @@
 local M = {}
 
+local function _fix_to_grid(num, grid)
+    return grid * math.floor(num / grid)
+end
+
 function M.digital(parent, cellnames, noflipeven, startanchor, startpt, growdirection)
     local last = object.create_omni()
     local lastleft
@@ -63,7 +67,7 @@ function M.digital(parent, cellnames, noflipeven, startanchor, startpt, growdire
     return cells
 end
 
-function M.digital_auto(parent, width, cellnames, noflipeven, startanchor, startpt, growdirection)
+function M.digital_auto(parent, pitch, width, cellnames, noflipeven, startanchor, startpt, growdirection)
     local last = object.create_omni()
     local lastleft
     startanchor = startanchor or "left"
@@ -75,7 +79,7 @@ function M.digital_auto(parent, width, cellnames, noflipeven, startanchor, start
     local column = 0
     for _, cellname in ipairs(cellnames) do
         local cell = parent:add_child(cellname)
-        local w = cell:width_height()
+        local w = cell:width_height_alignmentbox()
         if not lastleft then -- first cell
             cell:move_anchor(startanchor, startpt)
             lastleft = cell
@@ -100,11 +104,21 @@ function M.digital_auto(parent, width, cellnames, noflipeven, startanchor, start
 
     -- equalize cells
     for row, cs in ipairs(cells) do
-        local widthdiff = width
-        for _, c in ipairs(cs) do widthdiff = widthdiff - c:width_height() end
-        local delta = widthdiff // (#cs - 1)
-        for i = 2, #cs do
-            cs[i]:translate((i - 1) * delta, 0)
+        if #cs > 1 then
+            local widthdiff = width
+            for _, c in ipairs(cs) do widthdiff = widthdiff - c:width_height_alignmentbox() end
+            local delta = _fix_to_grid(widthdiff // (#cs - 1), pitch)
+            local tocorrect = _fix_to_grid(widthdiff - (#cs - 1) * delta, pitch) / pitch
+            local corrected = 0
+            for i = 2, #cs do
+                if tocorrect > 0 then
+                    cs[i]:translate((i - 1) * delta + corrected * pitch + pitch, 0)
+                    tocorrect = tocorrect - 1
+                    corrected = corrected + 1
+                else
+                    cs[i]:translate((i - 1) * delta + corrected * pitch, 0)
+                end
+            end
         end
     end
 
