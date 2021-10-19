@@ -63,6 +63,54 @@ function M.digital(parent, cellnames, noflipeven, startanchor, startpt, growdire
     return cells
 end
 
+function M.digital_auto(parent, width, cellnames, noflipeven, startanchor, startpt, growdirection)
+    local last = object.create_omni()
+    local lastleft
+    startanchor = startanchor or "left"
+    growdirection = growdirection or "upright"
+    startpt = startpt or point.create(0, 0)
+    local cells = { {} } -- at least one row
+    local rowwidths = { 0 }
+    local row = 1
+    local column = 0
+    for _, cellname in ipairs(cellnames) do
+        local cell = parent:add_child(cellname)
+        local w = cell:width_height()
+        if not lastleft then -- first cell
+            cell:move_anchor(startanchor, startpt)
+            lastleft = cell
+        else
+            if rowwidths[row] + w > width then -- new row
+                cell:move_anchor("bottomleft", lastleft:get_anchor("topleft"))
+                lastleft = cell
+                row = row + 1
+                column = 0
+                cells[row] = {}
+                rowwidths[row] = 0
+            else -- current row
+                cell:move_anchor("left", last:get_anchor("right"))
+            end
+        end
+        last = cell
+        rowwidths[row] = rowwidths[row] + w
+
+        column = column + 1
+        cells[row][column] = cell
+    end
+
+    -- equalize cells
+    for row, cs in ipairs(cells) do
+        local widthdiff = width
+        for _, c in ipairs(cs) do widthdiff = widthdiff - c:width_height() end
+        local delta = widthdiff // (#cs - 1)
+        for i = 2, #cs do
+            cs[i]:translate((i - 1) * delta, 0)
+        end
+    end
+
+    return cells
+end
+
 function M.digital_regular(parent, cellname, rows, columns, noflipeven, startanchor, startpt, growdirection)
     local cellnames = {}
     for row = 1, rows do
