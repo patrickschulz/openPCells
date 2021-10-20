@@ -151,24 +151,24 @@ In order to be able to build larger layouts, cells must be reused in hierarchies
 a good decision to build everything from scratch. Therefore, openPCells offers some basic support for such things. We will look at logic gates to illustrate the
 different options. All gates are built from transistors, so we will assume for now that there is a cell to place one. Furthermore, digital designs mostly
 (always?) use a few geometry parameters for all cells, such as the gate length. It makes sense to store this in one place so we can redefine it for all cells in
-a hierarchy, if we want to change that. In the supplied logic cell family (\texttt{cells/logic}), this is handled by the \texttt{logic/base} cell. It is a abstract
+a hierarchy, if we want to change that. In the supplied logic cell family (\texttt{cells/stdcells}), this is handled by the \texttt{stdcells/base} cell. It is a abstract
 cell, that is, it does not define a layout function, so it can't be called. But it does store the relevant parameters, which get referenced by the top cells (and
-temporarily changed). Other cells then access the parameters, for instance \texttt{logic/not\_gate.lua}:
-\lualisting[firstline = 1, lastline = 11]{../../../cells/logic/not_gate.lua}
-This cell has only has a small number of parameters but uses the supplied parameters of \texttt{logic/base.lua} for the layout function. The parameters are used
+temporarily changed). Other cells then access the parameters, for instance \texttt{stdcells/not\_gate.lua}:
+\lualisting[firstline = 1, lastline = 11]{../../../cells/stdcells/not_gate.lua}
+This cell has only has a small number of parameters but uses the supplied parameters of \texttt{stdcells/base.lua} for the layout function. The parameters are used
 implicitly by creating other cells that reference these parameters, and explicitly by accessing them with \luainline{pcell.get_parameters}. In order to do this,
 a cell has to reference that cell with \luainline{pcell.reference_cell}. The referenced parameters reflect the current values, that is if a top cell instantiates the
 inverter, it can overwrite the values of referenced parameters, affecting all sub cells. This is achieved by calling \luainline{pcell.push_overwrites}, which can
-be seen in \texttt{logic/1\_inv\_gate.lua} (basic cell for and/or):
-\lualisting[widthgobble = 4, firstline = 13, lastline = 13]{../../../cells/logic/1_inv_gate.lua}
+be seen in \texttt{stdcells/1\_inv\_gate.lua} (basic cell for and/or):
+\lualisting[widthgobble = 4, firstline = 13, lastline = 13]{../../../cells/stdcells/1_inv_gate.lua}
 Cells that need to prevent parameters being changed from the toplevel have to include guards against that, which is exactly what can be seen in the previous
-listing. The overwrites are stack-based, so the last \luainline{push_overwrites} counts. In \texttt{logic/1\_inv\_gate.lua}, rightdummies can not be changed from
+listing. The overwrites are stack-based, so the last \luainline{push_overwrites} counts. In \texttt{stdcells/1\_inv\_gate.lua}, rightdummies can not be changed from
 outside anymore.
 \subsection{Translation, Object Placement and the Alignment Box}
 We already saw the \luainline{translate} object method to move objects. For more complex layouts, a better method exists. Cells can have anchors, that is, points
 at certain places in the layout which can be referenced. You can ask for the location of an anchor from an object (\luainline{get_anchor}) and you can move a
 cell so that the specified anchor lies at a certain point (\luainline{move_anchor}). Let's see an example:
-\lualisting[widthgobble = 8, firstline = 62, lastline = 64]{../../../cells/logic/harness.lua}
+\lualisting[widthgobble = 8, firstline = 62, lastline = 64]{../../../cells/stdcells/harness.lua}
 The used anchors have to be present in the specific cell, and it is up to the designer of that cell to provide the needed anchors.
 
 Of course do anchors move if an object is moved, but they also move if the cell is flipped/mirror/rotated etc. This ensures that the anchors are always at the
@@ -177,8 +177,8 @@ you can use appropriate anchors for left and right (for instance at the leftmost
 until a cell is mirrored at the y-axis. Then the anchor left becomes right and the other way around. This means that cells generating such layouts need to handle
 flipped/rotated/mirrored cells differently, which is a nuisance. There is a special set of anchors for exactly this problem: the alignment box. This box is also
 defined by the cell designer and in effect it provides the special anchors left, right, top, bottom and sensible combinations of those (e.g. topleft, NOT
-leftright). The alignment box undergoes translation, but not rotation/flipping/mirroring. This allows the following (from \texttt{logic/dff.lua}):
-\lualisting[widthgobble = 4, firstline = 75, lastline = 78]{../../../cells/logic/dff.lua}
+leftright). The alignment box undergoes translation, but not rotation/flipping/mirroring. This allows the following (from \texttt{stdcells/dff.lua}):
+\lualisting[widthgobble = 4, firstline = 75, lastline = 78]{../../../cells/stdcells/dff.lua}
 Notice the calls in the last two lines, where the cell gets flipped in x direction (mirrored at the y axis) but still the left anchor is used for alignment (the
 cell is placed right of the isogate).
 
@@ -192,8 +192,8 @@ Layouts of integrated circuits usually make great use of repetition/reuse of cel
 Creating \emph{flat} layouts (that is, layouts without any hierarchies) for these cells can be quite ressource-intense, as more shapes have to be calculated by
 opc and the resulting layout is very likely to be larger in file size than a hierarchical one. Therefore, opc supports hierachical layouts. For every sub-cell
 (called a child), a reference is needed that defines the shapes of this child. A child link then connects to that reference. We can see a simple example of this
-in \texttt{logic/1\_inv\_gate.lua}:
-\lualisting[widthgobble = 4, firstline = 14, lastline = 16]{../../../cells/logic/1_inv_gate.lua}
+in \texttt{stdcells/1\_inv\_gate.lua}:
+\lualisting[widthgobble = 4, firstline = 14, lastline = 16]{../../../cells/stdcells/1_inv_gate.lua}
 \luainline{add_child} is an object method and a short cut for creating a reference and the link. For exports, that support children (like GDS), the layout will
 now be hierarchical with one toplevel cell with two children. 
 
