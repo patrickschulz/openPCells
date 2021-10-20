@@ -21,7 +21,7 @@ function M.digital(parent, cellnames, noflipeven, startanchor, startpt, growdire
             end
 
             -- add child to parent
-            local cell = parent:add_child(cellname)
+            local cell = parent:add_child(cellname, string.format("I_%d_%d", row, column))
 
             -- process extra arguments
             if type(entry) == "table" then
@@ -67,6 +67,26 @@ function M.digital(parent, cellnames, noflipeven, startanchor, startpt, growdire
     return cells
 end
 
+local function _add_fillers(parent, fillers, numfill, anchor)
+    local inserted = {}
+    if fillers then
+        local search = 0
+        while numfill > 0 do
+            if fillers[numfill - search] then
+                local fill = parent:add_child(fillers[numfill - search], "fill")
+                fill:move_anchor("left", anchor)
+                table.insert(inserted, fill)
+                anchor = fill:get_anchor("right")
+                numfill = search
+                search = 0
+            else
+                search = search + 1
+            end
+        end
+    end
+    return inserted
+end
+
 function M.digital_auto(parent, pitch, width, cellnames, fillers, noflipeven, startanchor, startpt, growdirection)
     local last = object.create_omni()
     local lastleft
@@ -78,7 +98,7 @@ function M.digital_auto(parent, pitch, width, cellnames, fillers, noflipeven, st
     local row = 1
     local column = 0
     for _, cellname in ipairs(cellnames) do
-        local cell = parent:add_child(cellname)
+        local cell = parent:add_child(cellname, string.format("I_%d_%d", row, column + 1))
         local w = cell:width_height_alignmentbox()
         if not lastleft then -- first cell
             cell:move_anchor(startanchor, startpt)
@@ -95,6 +115,7 @@ function M.digital_auto(parent, pitch, width, cellnames, fillers, noflipeven, st
                 cell:move_anchor("left", last:get_anchor("right"))
             end
         end
+
         last = cell
         rowwidths[row] = rowwidths[row] + w
 
@@ -105,13 +126,17 @@ function M.digital_auto(parent, pitch, width, cellnames, fillers, noflipeven, st
     -- equalize cells and insert fillers
     for row, cs in ipairs(cells) do
         if #cs > 1 then
+            -- calculate width of holes
             local widthdiff = width
             for _, c in ipairs(cs) do widthdiff = widthdiff - c:width_height_alignmentbox() end
             local diff = widthdiff // pitch
-            local delta = diff // (#cs - 1)
-            local tocorrect = diff - (#cs - 1) * delta
+            local delta = diff // (#cs - 1) -- distributed correction (equal for all holes)
+            local tocorrect = diff - (#cs - 1) * delta -- unequal correction (only applied for the first N holes)
             local corrected = 0
-            for i = 2, #cs do
+            local fillersinserted = 0
+            local inscorrection = 0
+            local numcells = #cs
+            for i = 2, numcells do
                 local num = (i - 1) * delta + corrected
                 local numfill = delta
                 if tocorrect > 0 then
@@ -121,34 +146,37 @@ function M.digital_auto(parent, pitch, width, cellnames, fillers, noflipeven, st
                     corrected = corrected + 1
                 end
 
-                -- add filler
-                if fillers then
-                    local anchor = cs[i - 1]:get_anchor("right")
-                    while numfill > 0 do
-                        local fill = parent:add_child(fillers[1])
-                        fill:move_anchor("left", anchor)
-                        anchor = fill:get_anchor("right")
-                        numfill = numfill - 1
-                    end
+                -- insert fillers into cells table (for later reference such as flipping rows)
+                local inserted = _add_fillers(parent, fillers, numfill, cs[i + inscorrection - 1]:get_anchor("right"))
+                for _, fill in ipairs(inserted) do
+                    table.insert(cs, i + inscorrection, fill)
+                    inscorrection = inscorrection + 1
                 end
 
-                cs[i]:translate(num * pitch, 0)
+                cs[i + inscorrection]:translate(num * pitch, 0)
             end
         else
             local widthdiff = width - cs[1]:width_height_alignmentbox()
             local diff = widthdiff // pitch
             local numfill = diff
 
-            -- add filler
-            if fillers then
-                local anchor = cs[1]:get_anchor("right")
-                while numfill > 0 do
-                    local fill = parent:add_child(fillers[1])
-                    fill:move_anchor("left", anchor)
-                    anchor = fill:get_anchor("right")
-                    numfill = numfill - 1
+            local inserted = _add_fillers(parent, fillers, numfill, cs[1]:get_anchor("right"))
+            for i, fill in ipairs(inserted) do
+                table.insert(cs, i + 1, fill)
+            end
+        end
+    end
+
+    -- flip every second row
+    if not noflipeven then
+        local flip = false
+        for row = 1, #cells do
+            if flip then
+            for column = 1, #cells[row] do
+                    cells[row][column]:flipy()
                 end
             end
+            flip = not flip
         end
     end
 
