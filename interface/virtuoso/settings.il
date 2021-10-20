@@ -28,7 +28,7 @@ procedure(OPCCreateSettingsForm()
             hiCreateFloatField(
                 ?name 'OPCSettingsLabelSize
                 ?value 0.1
-                ?default 0.1
+                ?defValue 0.1
                 ?prompt "Size of Created Labels"
             )
             hiCreateStringField(
