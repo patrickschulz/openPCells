@@ -281,8 +281,10 @@ function M.write_cell_reference(identifier, x, y, orientation)
     elseif orientation == "fy" then
         _write_record(recordtypes.STRANS, datatypes.BIT_ARRAY, { 0x8000 })
     elseif orientation == "R180" then
+        _write_record(recordtypes.STRANS, datatypes.BIT_ARRAY, { 0x0000 })
         _write_record(recordtypes.ANGLE, datatypes.EIGHT_BYTE_REAL, { 180 })
     elseif orientation == "R90" then
+        _write_record(recordtypes.STRANS, datatypes.BIT_ARRAY, { 0x0000 })
         _write_record(recordtypes.ANGLE, datatypes.EIGHT_BYTE_REAL, { 90 })
     end
     _write_record(recordtypes.XY, datatypes.FOUR_BYTE_INTEGER, _unpack_points({ point.create(x, y) }))
