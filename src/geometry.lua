@@ -83,6 +83,25 @@ function M.ring(layer, width, height, ringwidth)
     return object.make_from_shape(S)
 end
 
+function M.unequal_xy_ring(layer, width, height, ringwidth, ringheight)
+    modassert((width + ringwidth) % 2 == 0, "geometry.ring: width +- ringwidth must be a multiple of 2")
+    modassert((height + ringheight) % 2 == 0, "geometry.ring: height +- ringwidth must be a multiple of 2")
+    local S = shape.create_polygon(layer)
+    local append = util.make_insert_xy(S:get_points())
+    append(-(width + ringwidth) / 2, -(height + ringheight) / 2)
+    append( (width + ringwidth) / 2, -(height + ringheight) / 2)
+    append( (width + ringwidth) / 2,  (height + ringheight) / 2)
+    append(-(width + ringwidth) / 2,  (height + ringheight) / 2)
+    append(-(width + ringwidth) / 2, -(height - ringheight) / 2)
+    append(-(width - ringwidth) / 2, -(height - ringheight) / 2)
+    append(-(width - ringwidth) / 2,  (height - ringheight) / 2)
+    append( (width - ringwidth) / 2,  (height - ringheight) / 2)
+    append( (width - ringwidth) / 2, -(height - ringheight) / 2)
+    append(-(width + ringwidth) / 2, -(height - ringheight) / 2)
+    append(-(width + ringwidth) / 2, -(height + ringheight) / 2) -- close polygon
+    return object.make_from_shape(S)
+end
+
 local function _shift_line(pt1, pt2, width)
     local x1, y1 = pt1:unwrap()
     local x2, y2 = pt2:unwrap()
