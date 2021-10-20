@@ -13,10 +13,10 @@ tech/GF22FDSOI
 tech/TSMC28HPCplus
 
 # lua object files
-lua/lua
-lua/luac
-lua/*.o
-lua/liblua.a
+src/lua/lua
+src/lua/luac
+src/lua/*.o
+src/lua/liblua.a
 
 # tex auxiliary files
 *.aux
@@ -29,5 +29,8 @@ lua/liblua.a
 devinfo
 
 # temporary development files
-poly
-triangle
+src/poly
+src/triangle
+
+# test files
+testfiles

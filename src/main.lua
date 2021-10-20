@@ -58,13 +58,13 @@ end
 -- call testsuite when called with 'test' as first argument
 if arg[1] == "test" then
     table.remove(arg, 1)
-    dofile(string.format("%s/testsuite/main.lua", _get_opc_home()))
+    dofile(string.format("%s/src/testsuite/main.lua", _get_opc_home()))
     return 0
 end
 
 -- parse command line arguments
 local argparse = cmdparser()
-argparse:load_options_from_file(string.format("%s/%s.lua", _get_opc_home(), "cmdoptions"))
+argparse:load_options_from_file(string.format("%s/src/%s.lua", _get_opc_home(), "cmdoptions"))
 argparse:prepend_to_help_message([[
 openPCells layout generator (opc) - Patrick Kurth 2020 - 2021
 

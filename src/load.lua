@@ -38,7 +38,7 @@ function _load_module(modname)
     if not modname then
         error("no module name given", 0)
     end
-    local filename = string.format("%s/%s.lua", _get_opc_home(), modname)
+    local filename = string.format("%s/src/%s.lua", _get_opc_home(), modname)
     local chunkname = string.format("@%s", modname)
 
     local reader, msg = _get_reader(filename)

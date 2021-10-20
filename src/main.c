@@ -183,7 +183,7 @@ int main (int argc, char** argv)
 {
     lua_State* L = create_and_initialize_lua();
     create_argument_table(L, argc, argv);
-    int retval = call_main_program(L, OPC_HOME "/main.lua");
+    int retval = call_main_program(L, OPC_HOME "/src/main.lua");
     lua_close(L);
     return retval;
 }

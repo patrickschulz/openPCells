@@ -9,7 +9,7 @@ switch = entryfunc()
 section = function(s) table.insert(entries, s) end
 consumer_string = entryfunc()
 
-local cmdoptions = require "cmdoptions"
+local cmdoptions = _load_module("cmdoptions")
 
 print([[
 .TH opc 1 "26 Aug 2021" "1.0" "opc man page"
