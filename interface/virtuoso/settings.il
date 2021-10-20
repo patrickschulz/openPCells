@@ -25,6 +25,12 @@ procedure(OPCCreateSettingsForm()
                 ?value "opc.pfile"
                 ?prompt "File Name for Parameter Bindings (Parameter File)"
             )
+            hiCreateFloatField(
+                ?name 'OPCSettingsLabelSize
+                ?value 0.1
+                ?default 0.1
+                ?prompt "Size of Created Labels"
+            )
             hiCreateStringField(
                 ?name 'OPCSettingsCmdAdditionalArgs
                 ?value "-X -l"

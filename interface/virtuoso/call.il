@@ -1,5 +1,5 @@
 procedure(OPCPrepareArgsForCellCreation(args @key (newgroup nil))
-    OPCArgs = lsprintf("--technology %s --export SKILL %s" OPCTech args)
+    OPCArgs = lsprintf("--technology %s --export SKILL %s -X -L %f" OPCTech args OPCSettingsForm->OPCSettingsLabelSize)
     when(OPCSettingsForm->OPCSettingsGroup->value == "true"
         if(!newgroup && OPCSettingsForm->OPCSettingsGroupConsecutively->value == "true"
             then

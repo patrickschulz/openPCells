@@ -15,6 +15,7 @@ end
 local __group = false
 local __groupname = "opcgroup"
 local __let = true
+local __labelsize = 0.1
 function M.set_options(opt)
     if opt.group then
         __group = true
@@ -24,6 +25,9 @@ function M.set_options(opt)
     end
     if opt.groupname then
         __groupname = opt.groupname
+    end
+    if opt.labelsize then
+        __labelsize = opt.labelsize
     end
 end
 
@@ -147,7 +151,7 @@ end
 function M.write_port(name, layer, where)
     local fmt = _get_shape_fmt("Label")
     _prepare_shape_for_group()
-    table.insert(__content, string.format(fmt, string.format('%s %s "%s" "centerCenter" "R0" "roman" 0.1', _format_lpp(layer), where:format(baseunit, ":"), name)))
+    table.insert(__content, string.format(fmt, string.format('%s %s "%s" "centerCenter" "R0" "roman" %f', _format_lpp(layer), where:format(baseunit, ":"), name, __labelsize)))
     _finish_shape_for_group()
 end
 
