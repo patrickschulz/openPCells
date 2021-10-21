@@ -87,7 +87,8 @@ local function _add_fillers(parent, fillers, numfill, anchor)
     return inserted
 end
 
-function M.digital_auto(parent, pitch, width, cellnames, fillers, noflipeven, startanchor, startpt, growdirection)
+function M.digital_auto(parent, pitch, width, cellnames, fillers, utilization, noflipeven, startanchor, startpt, growdirection)
+    check_number_range(utilization, { lower = 0, lowerinclusive = false, upper = 1, upperinclusive = true })
     local last = object.create_omni()
     local lastleft
     startanchor = startanchor or "left"
@@ -104,7 +105,7 @@ function M.digital_auto(parent, pitch, width, cellnames, fillers, noflipeven, st
             cell:move_anchor(startanchor, startpt)
             lastleft = cell
         else
-            if rowwidths[row] + w > width then -- new row
+            if rowwidths[row] + w > width * utilization then -- new row
                 cell:move_anchor("bottomleft", lastleft:get_anchor("topleft"))
                 lastleft = cell
                 row = row + 1
@@ -125,19 +126,21 @@ function M.digital_auto(parent, pitch, width, cellnames, fillers, noflipeven, st
 
     -- equalize cells and insert fillers
     for row, cs in ipairs(cells) do
+        local widthdiff = width
+        for _, c in ipairs(cs) do widthdiff = widthdiff - c:width_height_alignmentbox() end
+        local diff = widthdiff // pitch
         if #cs > 1 then
             -- calculate width of holes
-            local widthdiff = width
-            for _, c in ipairs(cs) do widthdiff = widthdiff - c:width_height_alignmentbox() end
-            local diff = widthdiff // pitch
             local delta = diff // (#cs - 1) -- distributed correction (equal for all holes)
             local tocorrect = diff - (#cs - 1) * delta -- unequal correction (only applied for the first N holes)
             local corrected = 0
-            local fillersinserted = 0
             local inscorrection = 0
             local numcells = #cs
             for i = 2, numcells do
                 local num = (i - 1) * delta + corrected
+
+                -- correct for unequally distributed shifts
+                -- this is needed when the required amount is indivisible by the number of holes
                 local numfill = delta
                 if tocorrect > 0 then
                     num = num + 1
@@ -156,8 +159,6 @@ function M.digital_auto(parent, pitch, width, cellnames, fillers, noflipeven, st
                 cs[i + inscorrection]:translate(num * pitch, 0)
             end
         else
-            local widthdiff = width - cs[1]:width_height_alignmentbox()
-            local diff = widthdiff // pitch
             local numfill = diff
 
             local inserted = _add_fillers(parent, fillers, numfill, cs[1]:get_anchor("right"))
