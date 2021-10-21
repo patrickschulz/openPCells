@@ -67,6 +67,7 @@ function M.digital(parent, cellnames, noflipeven, startanchor, startpt, growdire
     return cells
 end
 
+local warningissued = false
 local function _add_fillers(parent, fillers, numfill, anchor)
     local inserted = {}
     if fillers then
@@ -81,6 +82,15 @@ local function _add_fillers(parent, fillers, numfill, anchor)
                 search = 0
             else
                 search = search + 1
+            end
+            if search >= numfill then
+                if not warningissued then
+                    print("Can't find solution to insert fillers.")
+                    print("This happens, when the fill cells can not be combined to form any arbitrary integer")
+                    print("The easiest fix is to add a filler cell with a width of one pitch")
+                    warningissued = true
+                end
+                break
             end
         end
     end
