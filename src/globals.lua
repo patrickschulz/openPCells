@@ -27,8 +27,12 @@ local function _check_argument(arg, argtype, isoptional, extracheck)
             end
         end
     else
-        if not arg or type(arg) ~= argtype or not extracheck(arg) then
+        if not arg or type(arg) ~= argtype then
             moderror(string.format("%s: %s expected, got %s", info.name, argtype, type(arg)))
+        end
+        if not extracheck(arg) then
+            local res, msg = extracheck(arg)
+            moderror(string.format("%s: %s", info.name, msg))
         end
     end
 end
@@ -36,6 +40,36 @@ end
 function check_number(arg)
     -- explicitely pass 'isoptional' as false (default) for NaN check (n != n)
     _check_argument(arg, "number", false, function(n) return n == n end)
+end
+
+function check_number_range(arg, bound)
+    local NaNcheck = function(n) 
+        if n ~= n then
+            return false, string.format("number is NaN")
+        end
+        return true
+    end
+    local boundcheck = function(n)
+        if (bound.lowerinclusive and (n < bound.lower) or (n <= bound.lower)) or
+           (bound.upperinclusive and (n > bound.upper) or (n >= bound.upper)) then
+           return false, string.format("number (%s) must be between %f (%s) and %f (%s)", n, 
+                bound.lower, bound.lowerinclusive and "inclusive" or "exclusive",
+                bound.upper, bound.upperinclusive and "inclusive" or "exclusive")
+        end
+        return true
+    end
+    -- explicitely pass 'isoptional' as false (default) for NaN and boundary checks
+    _check_argument(arg, "number", false, function(n) 
+        local ret, msg = NaNcheck(n)
+        if not ret then
+            return false, msg
+        end
+        ret, msg = boundcheck(n)
+        if not ret then
+            return false, msg
+        end
+        return true
+    end)
 end
 
 function check_string(arg)
