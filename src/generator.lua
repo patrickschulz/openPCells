@@ -32,7 +32,7 @@ local function _write_module(file, module, noconnections)
         end
     end
     file:write('    }\n')
-    file:write('    placement.digital_auto(toplevel, 104, 100 * 104, cellnames)\n')
+    file:write('    placement.digital_auto(toplevel, 104, 400 * 104, cellnames, {}, 0.8)\n')
 
     -- place connections
     if not noconnections then
