@@ -385,6 +385,7 @@ function state.create_cellenv(state, cellname, ovrenv)
         aux = aux,
         math = math,
         enable = function(bool, val) return (bool and 1 or 0) * (val or 1) end,
+        thisorthat = function(val, comp, this, that) return bool and this or that end,
         string = string,
         table = table,
         marker = marker,
