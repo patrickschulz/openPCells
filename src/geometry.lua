@@ -235,6 +235,17 @@ function M.path(layer, pts, width, extension)
     return object.make_from_shape(S)
 end
 
+function M.path_c_shape(layer, ptstart, ptmiddle, ptend, width, extension)
+    return M.path(layer,
+        geometry.path_points_xy(ptstart,
+        {
+            ptmiddle,
+            0,
+            ptend,
+        }), width
+    )
+end
+
 function M.path_polygon(layer, pts, width, miterjoin, extension)
     _make_unique_points(pts)
     if extension then
