@@ -93,6 +93,7 @@ function meta.apply_aux_translation(self, pt)
 end
 
 function meta.apply_transformation(self, pt)
+    modassert(pt, "transformationmatrix.apply_transformation: point is nil")
     local x, y = pt:unwrap()
     point._update(pt,
         self.scalefactor * (self[1] * x + self[2] * y) + self.dx + self.auxdx,

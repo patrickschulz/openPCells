@@ -317,7 +317,7 @@ end
 for k, v in pairs(args.cellargs) do
     cellargs[k] = v
 end
-if envlib.get("debug") then
+if envlib.get("showcellargs") then
     aux.print_tabular(cellargs)
 end
 

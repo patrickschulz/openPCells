@@ -60,39 +60,38 @@
 /*
 ** Message handler used to run all chunks
 */
-static int msghandler (lua_State* L)
+static int msghandler(lua_State* L)
 {
     const char* msg = lua_tostring(L, 1);
-    int traceback = 1;
-    if (msg == NULL) /* is error object not a string? */
+    /*
+    if (msg == NULL) // is error object not a string?
     {
-        if (luaL_callmeta(L, 1, "__tostring") &&  /* does it have a metamethod */
-                lua_type(L, -1) == LUA_TSTRING)  /* that produces a string? */
-        {
-            return 1;  /* that is the message */
-        }
-        else if(lua_type(L, 1) == LUA_TTABLE)
-        {
-            /* get traceback flag */
-            lua_pushstring(L, "traceback");
-            lua_gettable(L, 1);
-            traceback = lua_toboolean(L, -1);
-            lua_pop(L, 1);
-
-            /* get message part and leave on top of the stack */
-            lua_pushstring(L, "msg");
-            lua_gettable(L, 1);
-            msg = lua_tostring(L, -1);
-        }
-        else
-        {
-            msg = lua_pushfstring(L, "(error object is a %s value)",
-                    luaL_typename(L, 1));
-        }
+        msg = lua_pushfstring(L, "(error object is a %s value)", luaL_typename(L, 1));
     }
+    */
+    int traceback = 1;
+    lua_getglobal(L, "envlib");
+    lua_pushstring(L, "get");
+    lua_gettable(L, -2);
+    lua_pushstring(L, "debug");
+    int ret = lua_pcall(L, 1, 1, 0);
+    if(ret != LUA_OK)
+    {
+        printf("%s\n", "error in msghandler (while calling envlib.get('debug'). A traceback will be printed");
+    }
+    else
+    {
+        traceback = lua_toboolean(L, -1);
+    }
+    lua_pop(L, 1); // pop envlib
+
     if(traceback)
     {
         luaL_traceback(L, L, msg, 2);
+    }
+    else
+    {
+        lua_pushstring(L, msg);
     }
     return 1;
 }

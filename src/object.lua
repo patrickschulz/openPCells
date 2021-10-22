@@ -497,11 +497,13 @@ function meta.get_anchor(self, name)
         return pt
     else
         pt = _get_regular_anchor(obj, name)
-        obj.trans:apply_transformation(pt)
-        if self.isproxy then
-            self.trans:apply_transformation(pt)
+        if pt then
+            obj.trans:apply_transformation(pt)
+            if self.isproxy then
+                self.trans:apply_transformation(pt)
+            end
+            return pt
         end
-        return pt
     end
     -- no anchor found
     if self.name then
