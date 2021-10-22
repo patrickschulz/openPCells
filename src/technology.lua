@@ -34,12 +34,16 @@ local function _place_via_conductors(cell)
     for _, S in cell:iterate_shapes() do
         if S:get_lpp():is_type("via") and not S:get_lpp().bare then
             local m1, m2 = S:get_lpp():get()
-            local s1 = S:copy()
-            s1:set_lpp(generics.metal(m1))
-            local s2 = S:copy()
-            s2:set_lpp(generics.metal(m2))
-            cell:add_raw_shape(s1)
-            cell:add_raw_shape(s2)
+            if not S:get_lpp().firstbare then
+                local s1 = S:copy()
+                s1:set_lpp(generics.metal(m1))
+                cell:add_raw_shape(s1)
+            end
+            if not S:get_lpp().lastbare then
+                local s2 = S:copy()
+                s2:set_lpp(generics.metal(m2))
+                cell:add_raw_shape(s2)
+            end
         elseif S:get_lpp():is_type("contact") and not S:get_lpp().bare then
             -- FIXME: can't place active contact surrounding as this needs more data than available here
             local smetal = S:copy()
@@ -54,7 +58,7 @@ local function _split_vias(cell)
         local from, to = S:get_lpp():get()
         for j = from, to - 1 do
             local sc = S:copy()
-            sc:set_lpp(generics.via(j, j + 1, { bare = S:get_lpp().bare }))
+            sc:set_lpp(generics.via(j, j + 1, { bare = S:get_lpp().bare, firstbare = S:get_lpp().firstbare, lastbare = S:get_lpp().lastbare }))
             cell:add_raw_shape(sc)
         end
         cell:remove_shape(i)

@@ -71,6 +71,8 @@ function M.via(from, to, opt)
     local self = _create({ from = from, to = to })
     self.typ = "via"
     self.bare = opt and opt.bare
+    self.firstbare = opt and opt.firstbare
+    self.lastbare = opt and opt.lastbare
     return self
 end
 
