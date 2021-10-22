@@ -240,6 +240,13 @@ function layout(gate, _P)
             gate:add_anchor(string.format("pSDc%d", i), point.create(x, y - bp.pwidth / 2 + pcontactheight / 2 + _P.shiftpcontactsinner))
             gate:add_anchor(string.format("pSDi%d", i), point.create(x, y - bp.pwidth / 2 + _P.shiftpcontactsinner))
             gate:add_anchor(string.format("pSDo%d", i), point.create(x, y - bp.pwidth / 2 + pcontactheight + _P.shiftpcontactsinner))
+        elseif _P.pcontactpos[i] == "full" then
+            gate:merge_into_shallow(geometry.rectangle(
+                generics.contact("sourcedrain"), bp.sdwidth, bp.pwidth
+            ):translate(x, y))
+            gate:add_anchor(string.format("pSDc%d", i), point.create(x, y))
+            gate:add_anchor(string.format("pSDi%d", i), point.create(x, y - bp.pwidth / 2))
+            gate:add_anchor(string.format("pSDo%d", i), point.create(x, y + bp.pwidth / 2))
         end
         y = -separation / 2 - bp.nwidth / 2
         -- n contacts
@@ -263,6 +270,13 @@ function layout(gate, _P)
             gate:add_anchor(string.format("nSDc%d", i), point.create(x, y + bp.nwidth / 2 - ncontactheight / 2- _P.shiftncontactsinner))
             gate:add_anchor(string.format("nSDi%d", i), point.create(x, y + bp.nwidth / 2 - _P.shiftncontactsinner))
             gate:add_anchor(string.format("nSDo%d", i), point.create(x, y + bp.nwidth / 2 - ncontactheight - _P.shiftncontactsinner))
+        elseif _P.ncontactpos[i] == "full" then
+            gate:merge_into_shallow(geometry.rectangle(
+                generics.contact("sourcedrain"), bp.sdwidth, bp.nwidth
+            ):translate(x, y))
+            gate:add_anchor(string.format("nSDc%d", i), point.create(x, y))
+            gate:add_anchor(string.format("nSDi%d", i), point.create(x, y + bp.nwidth / 2))
+            gate:add_anchor(string.format("nSDo%d", i), point.create(x, y - bp.nwidth / 2))
         end
     end
 
