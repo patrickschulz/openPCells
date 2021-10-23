@@ -28,9 +28,8 @@ src/lua/liblua.a
 # development information
 devinfo
 
-# temporary development files
-src/poly
-src/triangle
+# test code
+srctodo
 
 # test files
 testfiles
