@@ -107,20 +107,14 @@ function layout(dff, _P)
     if _P.enable_reset then
         -- first latch
         table.insert(gatecontactpos, 12, "center")
-        table.insert(gatecontactpos, 12, "center")
-        table.insert(pcontactpos, 13, "power")
-        table.insert(ncontactpos, 13, nil)
         table.insert(pcontactpos, 13, "inner")
-        table.insert(ncontactpos, 13, "power")
+        table.insert(ncontactpos, 13, nil)
         -- second latch
         table.insert(gatecontactpos, 21, "center")
-        table.insert(gatecontactpos, 21, "center")
-        table.insert(pcontactpos, 22, "power")
-        table.insert(ncontactpos, 22, nil)
         table.insert(pcontactpos, 22, "inner")
         table.insert(ncontactpos, 22, "power")
         -- change source/drain connections in transmission gate
-        pcontactpos[15] = "power"
+        pcontactpos[14] = "power"
     end
 
     local harness = pcell.create_layout("stdcells/harness", {
@@ -132,7 +126,7 @@ function layout(dff, _P)
     dff:merge_into_shallow(harness)
 
     local setshift = _P.enable_set and 2 or 0
-    local resetshift = _P.enable_reset and 2 or 0
+    local resetshift = _P.enable_reset and 1 or 0
 
     -- easy anchor access functions
     local gate = function(num) return harness:get_anchor(string.format("G%d", num)) end
@@ -267,19 +261,12 @@ function layout(dff, _P)
 
     -- first latch inverter connect drains
     -- (this also connects the drain of the pmos set transistor)
-    local sdcorrection = _P.enable_reset and 2 or 0
+    local sdcorrection = _P.enable_reset and 1 or 0
     dff:merge_into_shallow(geometry.path_c_shape(generics.metal(1),
         sourcedrain("p", "i", 13 + setshift + resetshift - sdcorrection):translate(0, bp.sdwidth / 2),
         gate(14 + setshift + resetshift):translate(xpitch, 0),
         sourcedrain("n", "i", 13 + setshift + resetshift):translate(0, -bp.sdwidth / 2),
         bp.sdwidth
-    ))
-
-    -- short transistors in transmission gate
-    -- pmos does not need to be shorted, this is done while connecting nmos/pmos drains of the latch inverter
-    dff:merge_into_shallow(geometry.rectanglebltr(generics.metal(1), 
-        sourcedrain("n", "c", 14 + setshift + resetshift):translate(0, -bp.sdwidth / 2),
-        sourcedrain("n", "c", 15 + setshift + resetshift):translate(0, bp.sdwidth / 2)
     ))
 
     -- transmission gate clk bar vias
@@ -293,15 +280,17 @@ function layout(dff, _P)
     ))
 
     -- short dummy between cinv and second latch cinv
+    -- this also shorts the unused nmos in the transmission gate
     dff:merge_into_shallow(geometry.rectanglebltr(generics.metal(1), 
         sourcedrain("p", "c", 15 + setshift + resetshift):translate(0, -bp.sdwidth / 2),
         sourcedrain("p", "c", 16 + setshift + resetshift):translate(0, bp.sdwidth / 2)
     ))
     dff:merge_into_shallow(geometry.rectanglebltr(generics.metal(1), 
-        sourcedrain("n", "c", 15 + setshift + resetshift):translate(0, -bp.sdwidth / 2),
+        sourcedrain("n", "c", 14 + setshift + resetshift):translate(0, -bp.sdwidth / 2),
         sourcedrain("n", "c", 16 + setshift + resetshift):translate(0, bp.sdwidth / 2)
     ))
 
+    --[[
     -- short nmos in second latch (set layout)
     if _P.enable_set then
         dff:merge_into_shallow(geometry.rectanglebltr(generics.metal(1), 
@@ -443,4 +432,5 @@ function layout(dff, _P)
     if _P.enable_reset then
         dff:add_port("RST", generics.metal(2), point.combine(gate(13), gate(22)))
     end
+    --]]
 end
