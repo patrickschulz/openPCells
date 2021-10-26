@@ -309,11 +309,11 @@ local function clone_matching_parameters(state, cellname, P)
     return clone_parameters(state, P, predicate)
 end
 
-local function check_expression(state, cellname, expression)
+local function check_expression(state, cellname, expression, message)
     if not state.expressions[cellname] then
         state.expressions[cellname] = {}
     end
-    table.insert(state.expressions[cellname], expression)
+    table.insert(state.expressions[cellname], { expression = expression, message = message })
 end
 
 -- main state storing various data
@@ -412,14 +412,18 @@ local function _check_parameter_expressions(state, cellname, parameters)
     local failures = {}
     if state.expressions[cellname] then
         for _, expr in ipairs(state.expressions[cellname]) do
-            local chunk, msg = load("return " .. expr, "parameterexpression", "t", parameters)
+            local chunk, msg = load("return " .. expr.expression, "parameterexpression", "t", parameters)
             if not chunk then
                 print(msg)
                 return
             end
             local check = chunk()
             if not check then
-                table.insert(failures, expr)
+                if expr.message then
+                    table.insert(failures, expr.message)
+                else
+                    table.insert(failures, expr.expression)
+                end
             end
         end
     end
