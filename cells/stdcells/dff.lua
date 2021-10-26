@@ -238,8 +238,14 @@ function layout(dff, _P)
 
     -- first latch clk bar vias
     dff:merge_into_shallow(geometry.rectanglebltr(generics.via(1, 2), 
-        gate(10):translate(-bp.glength / 2, -bp.sdwidth / 2),
-        gate(10):translate(xpitch + bp.glength / 2, bp.sdwidth / 2)
+        point.combine(
+            gate(10),
+            gate(14 + setshift + 2 * resetshift)
+        ):translate(-xpitch - bp.glength / 2, -bp.sdwidth / 2),
+        point.combine(
+            gate(10),
+            gate(14 + setshift + 2 * resetshift)
+        ):translate( xpitch + bp.glength / 2, bp.sdwidth / 2)
     ))
     dff:merge_into_shallow(geometry.rectanglebltr(generics.via(1, 2), 
         gate(11):translate(-2 * xpitch - bp.glength / 2, -bp.sdwidth / 2),
@@ -293,10 +299,6 @@ function layout(dff, _P)
     dff:merge_into_shallow(geometry.rectanglebltr(generics.via(1, 2), 
         gate(13 + setshift + 2 * resetshift):translate(-xpitch - bp.glength / 2, -bp.sdwidth / 2),
         gate(13 + setshift + 2 * resetshift):translate( xpitch + bp.glength / 2, bp.sdwidth / 2)
-    ))
-    dff:merge_into_shallow(geometry.rectanglebltr(generics.via(1, 2), 
-        gate(14 + setshift + 2 * resetshift):translate(-2 * xpitch - bp.glength / 2, -bp.sdwidth / 2),
-        gate(14 + setshift + 2 * resetshift):translate(-0 * xpitch + bp.glength / 2, bp.sdwidth / 2)
     ))
 
     -- short dummy between cinv and second latch cinv
