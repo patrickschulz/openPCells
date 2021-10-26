@@ -61,20 +61,20 @@ function layout(dff, _P)
         gatecontactpos[18] = gatepos
     end
     local pcontactpos = {
-        "power", "inner", "power", "inner", -- clock buffer
-        "power", "power", nil, "outer", -- cinv 
+        "power", "inner", "power", "inner",      -- clock buffer
+        "power", "power", nil, "outer",          -- cinv 
         "outer", nil, "power", "power", "inner", -- first latch
-        "inner", "outer", -- transmission gate
+        "inner", "outer",                        -- transmission gate
         "outer", nil, "power", "power", "inner", -- first latch
-        "power", "inner", -- output inverter
+        "power", "inner",                        -- output inverter
     }
     local ncontactpos = {
-        "power", "inner", "power", "inner", -- clock buffer
-        "power", "outer", "outer", "outer", -- cinv 
+        "power", "inner", "power", "inner",          -- clock buffer
+        "power", "outer", "outer", "outer",          -- cinv 
         "outer", "outer", "outer", "power", "inner", -- first latch
-        "outer", "outer", -- transmission gate
+        "outer", "outer",                            -- transmission gate
         "outer", "outer", "outer", "power", "inner", -- first latch
-        "power", "inner", -- output inverter
+        "power", "inner",                            -- output inverter
     }
 
     if _P.enable_QN then
