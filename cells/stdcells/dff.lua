@@ -109,19 +109,21 @@ function layout(dff, _P)
         table.insert(gatecontactpos, 12, "center")
         table.insert(gatecontactpos, 12, "center")
         table.insert(pcontactpos, 13, "power")
-        table.insert(ncontactpos, 13, nil)
-        table.insert(pcontactpos, 13, "inner")
         table.insert(ncontactpos, 13, "power")
+        table.insert(pcontactpos, 14, "inner")
+        table.insert(ncontactpos, 14, nil)
         -- second latch
         table.insert(gatecontactpos, 21, "center")
         table.insert(gatecontactpos, 21, "center")
         table.insert(pcontactpos, 22, "power")
-        table.insert(ncontactpos, 22, nil)
-        table.insert(pcontactpos, 22, "inner")
         table.insert(ncontactpos, 22, "power")
+        table.insert(pcontactpos, 23, "inner")
+        table.insert(ncontactpos, 23, nil)
         -- change source/drain connections in transmission gate
         pcontactpos[15] = "power"
         pcontactpos[16] = "power"
+        -- change drain connection of second latch inverter
+        pcontactpos[24] = "power"
     end
 
     local harness = pcell.create_layout("stdcells/harness", {
@@ -268,7 +270,7 @@ function layout(dff, _P)
 
     -- first latch inverter connect drains
     -- (this also connects the drain of the pmos set transistor)
-    local sdcorrection = _P.enable_reset and 2 or 0
+    local sdcorrection = _P.enable_reset and 1 or 0
     dff:merge_into_shallow(geometry.path_c_shape(generics.metal(1),
         sourcedrain("p", "i", 13 + setshift + resetshift - sdcorrection):translate(0, bp.sdwidth / 2),
         gate(14 + setshift + resetshift):translate(xpitch, 0),
@@ -348,20 +350,14 @@ function layout(dff, _P)
     }), bp.sdwidth))
 
     -- second latch inverter connect drains
+    -- (this also connects the drain of the pmos set transistor)
+    local sdcorrection = _P.enable_reset and 1 or 0
     dff:merge_into_shallow(geometry.path_c_shape(generics.metal(1),
-        sourcedrain("p", "i", 20 + 2 * setshift + 2 * resetshift):translate(0, bp.sdwidth / 2),
+        sourcedrain("p", "i", 20 + 2 * setshift + 2 * resetshift - sdcorrection):translate(0, bp.sdwidth / 2),
         gate(19 + 2 * setshift + 2 * resetshift):translate(xpitch, 0),
         sourcedrain("n", "i", 20 + 2 * setshift + 2 * resetshift):translate(0, -bp.sdwidth / 2),
         bp.sdwidth
     ))
-
-    -- second latch inverter connect pmos drain if reset == true
-    if _P.enable_reset then
-        dff:merge_into_shallow(geometry.rectanglebltr(generics.metal(1), 
-            sourcedrain("p", "i", 22 + setshift):translate(0, 0),
-            sourcedrain("p", "i", 24 + setshift):translate(0, bp.sdwidth)
-        ))
-    end
 
     -- output inverter connect gate
     dff:merge_into_shallow(geometry.rectanglebltr(generics.metal(1), 
