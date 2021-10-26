@@ -20,272 +20,431 @@ function parameters()
     pcell.reference_cell("stdcells/harness")
     pcell.reference_cell("stdcells/not_gate")
     pcell.add_parameter("clockpolarity", "positive", { posvals = set("positive", "negative") })
-    pcell.add_parameter("enableQ", true)
-    pcell.add_parameter("enableQN", false)
+    pcell.add_parameter("enable_Q", true)
+    pcell.add_parameter("enable_QN", false)
+    pcell.add_parameter("enable_set", false)
     pcell.add_parameter("enable_reset", false)
 end
 
-function layout(gate, _P)
+function layout(dff, _P)
     local bp = pcell.get_parameters("stdcells/base")
 
     local xpitch = bp.gspace + bp.glength
-    local routingshift = (bp.gstwidth + bp.gstspace) / 2
+    local yrpitch = bp.gstwidth + bp.gstspace
 
+    local gatepos = "center"
+    if _P.enable_set or _P.enable_reset then
+        gatepos = "upper"
+    end
     local gatecontactpos = {
-        "lower", "dummy", "lower", "dummy", "lower",
-        "center", "upper", "dummy", "center", "dummy",
-        "split", "center", "dummy", "split", "dummy",
-        "center", "dummy", "split", "center", "center",
-        "dummy", "center",
+        "lower", "dummy", "lower", "dummy", -- clock buffer
+        "lower", "center", "upper",         -- cinv
+        "dummy",
+        "lower", "lower", gatepos,          -- first latch cinv
+        "upper",                            -- first latch inv
+        gatepos, "lower",                   -- transmission gate
+        "dummy",
+        "lower", gatepos, "lower",          -- second latch cinv
+        "upper",                            -- second latch inv
+        "dummy",
+        "center",                           -- output inverter
     }
+    local clkshift = _P.clockpolarity == "positive" and 0 or 1
+    if _P.clockpolarity == "negative" then
+        gatecontactpos[5] = "center"
+        gatecontactpos[6] = "lower"
+        gatecontactpos[10] = gatepos
+        gatecontactpos[11] = "lower"
+        gatecontactpos[13] = "lower"
+        gatecontactpos[14] = gatepos
+        gatecontactpos[17] = "lower"
+        gatecontactpos[18] = gatepos
+    end
     local pcontactpos = {
-        "power", "inner", "power", "inner", "power", "power", nil,
-        "inner", "power", "outer", "inner", nil, "power", "outer",
-        "inner", "power", "outer", "inner", nil, "power", "inner",
-        "power", "inner",
+        "power", "inner", "power", "inner", -- clock buffer
+        "power", "power", nil, "outer", -- cinv 
+        "outer", nil, "power", "power", "inner", -- first latch
+        "inner", "outer", -- transmission gate
+        "outer", nil, "power", "power", "inner", -- first latch
+        "power", "inner", -- output inverter
     }
     local ncontactpos = {
-        "power", "inner", "power", "inner", "power", "outer", "outer",
-        "inner", "power", "outer", "inner", nil, "power", "outer",
-        "inner", "power", "outer", "inner", nil, "power", "inner",
-        "power", "inner",
+        "power", "inner", "power", "inner", -- clock buffer
+        "power", "outer", "outer", "outer", -- cinv 
+        "outer", "outer", "outer", "power", "inner", -- first latch
+        "outer", "outer", -- transmission gate
+        "outer", "outer", "outer", "power", "inner", -- first latch
+        "power", "inner", -- output inverter
     }
-    if _P.clockpolarity == "negative" then
-        gatecontactpos[1] = "upper"
-        gatecontactpos[3] = "upper"
-        gatecontactpos[5] = "upper"
-        gatecontactpos[7] = "lower"
-        pcontactpos[6] = "outer"
-        ncontactpos[6] = "power"
-        pcontactpos[7] = "outer"
-        ncontactpos[7] = nil
+
+    if _P.enable_QN then
+        table.insert(gatecontactpos, "dummy")
+        table.insert(gatecontactpos, "center")
+        table.insert(pcontactpos, "power")
+        table.insert(pcontactpos, "inner")
+        table.insert(ncontactpos, "power")
+        table.insert(ncontactpos, "inner")
+    end
+
+    if _P.enable_set then
+        -- first latch
+        table.insert(gatecontactpos, 12, "center")
+        table.insert(pcontactpos, 12, "inner")
+        table.insert(ncontactpos, 12, nil)
+        table.insert(gatecontactpos, 12, "dummy")
+        table.insert(pcontactpos, 12, "power")
+        table.insert(ncontactpos, 12, "outer")
+        ncontactpos[13] = "outer"
+        -- second latch
+        table.insert(gatecontactpos, 21, "center")
+        table.insert(pcontactpos, 21, "inner")
+        table.insert(ncontactpos, 21, nil)
+        table.insert(gatecontactpos, 21, "dummy")
+        table.insert(pcontactpos, 21, "power")
+        table.insert(ncontactpos, 21, "outer")
+        ncontactpos[22] = "outer"
+    end
+    if _P.enable_reset then
+        -- first latch
+        table.insert(gatecontactpos, 12, "center")
+        table.insert(gatecontactpos, 12, "center")
+        table.insert(pcontactpos, 13, "power")
+        table.insert(ncontactpos, 13, nil)
+        table.insert(pcontactpos, 13, "inner")
+        table.insert(ncontactpos, 13, "power")
+        -- second latch
+        table.insert(gatecontactpos, 21, "center")
+        table.insert(gatecontactpos, 21, "center")
+        table.insert(pcontactpos, 22, "power")
+        table.insert(ncontactpos, 22, nil)
+        table.insert(pcontactpos, 22, "inner")
+        table.insert(ncontactpos, 22, "power")
     end
 
     local harness = pcell.create_layout("stdcells/harness", {
-        fingers = _P.enableQN and 22 or 20,
+        fingers = #gatecontactpos,
         gatecontactpos = gatecontactpos,
         pcontactpos = pcontactpos,
         ncontactpos = ncontactpos,
     })
-    gate:merge_into_shallow(harness)
+    dff:merge_into_shallow(harness)
 
-    local anchor = function(str, suffix) return harness:get_anchor(string.format("%s%s", str, suffix or "")) end
+    local setshift = _P.enable_set and 2 or 0
+    local resetshift = _P.enable_reset and 2 or 0
+
+    -- easy anchor access functions
+    local gate = function(num) return harness:get_anchor(string.format("G%d", num)) end
+    local sourcedrain = function(fet, pos, num) return harness:get_anchor(string.format("%sSD%s%d", fet, pos, num)) end
 
     local spacing = bp.sdwidth / 2 + bp.gstspace
-    local yinvert = _P.clockpolarity == "positive" and 1 or -1
-
-    gate:merge_into_shallow(geometry.rectanglebltr(generics.metal(1),
-        anchor("G1"):translate(-xpitch, -bp.gstwidth / 2),
-        anchor("G1"):translate( xpitch - spacing, bp.gstwidth / 2)
+    -- clock buffer input port landing
+    dff:merge_into_shallow(geometry.rectanglebltr(generics.metal(1),
+        gate(1):translate(-xpitch, -bp.gstwidth / 2),
+        gate(1):translate( xpitch - spacing, bp.gstwidth / 2)
     ))
-    gate:merge_into_shallow(geometry.rectanglebltr(generics.via(1, 2),
-        anchor("G1"):translate(-xpitch,           yinvert * 2 * (bp.gstwidth + bp.gstspace) - bp.gstwidth / 2),
-        anchor("G1"):translate( xpitch - spacing, yinvert * 2 * (bp.gstwidth + bp.gstspace) + bp.gstwidth / 2)
+    -- clock buffer ~clk via
+    dff:merge_into_shallow(geometry.rectanglebltr(generics.via(1, 2, { lastbare = true }),
+        gate(3):translate(-xpitch, -bp.gstwidth / 2),
+        gate(3):translate( xpitch - spacing, bp.gstwidth / 2)
     ))
-    gate:merge_into_shallow(geometry.rectanglebltr(generics.via(1, 2),
-        anchor("G3"):translate(-xpitch, -bp.gstwidth / 2),
-        anchor("G3"):translate( xpitch - spacing, bp.gstwidth / 2)
-    ))
-    gate:merge_into_shallow(geometry.path(generics.metal(2), 
-        { anchor("G1"):translate( xpitch - spacing, yinvert * 2 * (bp.gstwidth + bp.gstspace)), 
-          anchor("G5"):translate(-xpitch + spacing, yinvert * 2 * (bp.gstwidth + bp.gstspace)) }, 
-        bp.sdwidth
-    ))
-
-    gate:merge_into_shallow(geometry.path(generics.metal(1),
-        geometry.path_points_xy(anchor("pSDi2"):translate(0, bp.sdwidth / 2), {
+    -- clock buffer ~clk drain connections
+    dff:merge_into_shallow(geometry.path(generics.metal(1),
+        geometry.path_points_xy(sourcedrain("p", "i", 2):translate(0, bp.sdwidth / 2), {
             xpitch / 2,
-            anchor("nSDi2"):translate(0, -bp.sdwidth / 2)
+            sourcedrain("n", "i", 2):translate(0, -bp.sdwidth / 2)
     }), bp.sdwidth))
-    gate:merge_into_shallow(geometry.path(generics.metal(1),
-        geometry.path_points_xy(anchor("pSDi4"):translate(0, bp.sdwidth / 2), {
+    -- clock buffer clk drain connections
+    dff:merge_into_shallow(geometry.path(generics.metal(1),
+        geometry.path_points_xy(sourcedrain("p", "i", 4):translate(0, bp.sdwidth / 2), {
             xpitch / 2,
-            anchor("nSDi4"):translate(0, -bp.sdwidth / 2)
+            sourcedrain("n", "i", 4):translate(0, -bp.sdwidth / 2)
     }), bp.sdwidth))
+
+    -- clk M2 bar
+    dff:merge_into_shallow(geometry.rectanglebltr(generics.via(1, 2, { bare = true }),
+        gate(6 - clkshift):translate((-2 + clkshift) * xpitch, -bp.gstwidth / 2),
+        gate(6 - clkshift):translate(( 2 + clkshift) * xpitch - spacing, bp.gstwidth / 2)
+    ))
+    dff:merge_into_shallow(geometry.path(generics.metal(2),
+        geometry.path_points_xy(gate(6 - clkshift):translate((-2 + clkshift) * xpitch, 0), {
+            5 * xpitch,
+            gate(17 + clkshift + setshift + resetshift):translate(xpitch - spacing, 0)
+    }), bp.sdwidth))
+    -- ~clk M2 bar
+    dff:merge_into_shallow(geometry.rectanglebltr(generics.metal(2), 
+        gate(3):translate(-xpitch, -bp.gstwidth / 2),
+        gate(18 - clkshift + setshift + resetshift):translate(xpitch - spacing, bp.gstwidth / 2)
+    ))
 
     -- cinv clk connection
-    gate:merge_into_shallow(geometry.rectanglebltr(generics.metal(1),
-        anchor("G6"):translate(-2 * xpitch, -bp.gstwidth / 2),
-        anchor("G6"):translate(3 * xpitch - spacing, bp.gstwidth / 2)
+    dff:merge_into_shallow(geometry.rectanglebltr(generics.metal(1),
+        gate(6 - clkshift):translate((-2 + clkshift) * xpitch, -bp.gstwidth / 2),
+        gate(6 - clkshift):translate(( 2 + clkshift) * xpitch - spacing, bp.gstwidth / 2)
     ))
 
     -- cinv ~clk connection
-    gate:merge_into_shallow(geometry.rectanglebltr(generics.via(1, 2), 
-        anchor("G7"):translate(-3 * xpitch + spacing, -bp.gstwidth / 2),
-        anchor("G7"):translate( 2 * xpitch - spacing, bp.gstwidth / 2)
-    ))
-    gate:merge_into_shallow(geometry.rectanglebltr(generics.via(1, 2), 
-        anchor("G5"):translate(-1 * xpitch + spacing, -bp.gstwidth / 2),
-        anchor("G5"):translate( 4 * xpitch - spacing, bp.gstwidth / 2)
+    dff:merge_into_shallow(geometry.rectanglebltr(generics.via(1, 2, { lastbare = true }), 
+        gate(5 + clkshift):translate((-1 - clkshift) * xpitch + spacing, -bp.gstwidth / 2),
+        gate(5 + clkshift):translate(( 3 - clkshift) * xpitch - spacing, bp.gstwidth / 2)
     ))
 
-    if _P.clockpolarity == "positive" then
-        gate:merge_into_shallow(geometry.rectanglebltr(generics.metal(1), 
-            anchor("nSDc6"):translate(0, -bp.sdwidth / 2),
-            anchor("nSDc7"):translate(0, bp.sdwidth / 2)
-        ))
-    else
-        gate:merge_into_shallow(geometry.rectanglebltr(generics.metal(1), 
-            anchor("pSDc6"):translate(0, -bp.sdwidth / 2),
-            anchor("pSDc7"):translate(0, bp.sdwidth / 2)
-        ))
-    end
-
-    -- M2 bars
-    local suffix1 = _P.clockpolarity == "positive" and "lower" or "upper"
-    local suffix2 = _P.clockpolarity == "positive" and "upper" or "lower"
-    local clockinvanchor1 = _P.clockpolarity == "positive" and "nSDi4" or "pSDi4"
-    gate:merge_into_shallow(geometry.path(generics.metal(2), 
-        geometry.path_points_xy(anchor(clockinvanchor1):translate(0, -yinvert * bp.sdwidth / 2), {
-        anchor("G11", suffix1):translate(-2 * xpitch, 0),
-        anchor("G14", suffix1):translate(xpitch, 0),
-        0,
-        anchor("G18", suffix2):translate(xpitch - spacing, 0),
-    }), bp.sdwidth))
-    gate:merge_into_shallow(geometry.path(generics.metal(2), 
-        geometry.path_points_xy(
-            anchor("G3"):translate(-xpitch, 0), {
-            anchor("G5"):translate(4 * xpitch - spacing - bp.sdwidth / 2, 0),
-            0,
-            anchor("G9"):translate(0, 0),
-            anchor("G11", suffix2):translate(0, 0),
-            anchor("G14", suffix2):translate(xpitch - spacing - bp.sdwidth, 0),
-            anchor("G18", suffix2):translate(2 * xpitch, yinvert * (bp.gstspace + bp.gstwidth)),
-            anchor("G18", suffix1):translate(-3 * xpitch + bp.gstwidth / 2 + bp.gstspace, 0),
-    }), bp.sdwidth))
-    -- vias
-    gate:merge_into_shallow(
-        geometry.rectangle(generics.via(1, 2), 2 * bp.glength + bp.gspace, bp.sdwidth)
-        :translate(anchor(clockinvanchor1):translate(0, -yinvert * bp.sdwidth / 2)))
-
-    -- fbinv.O to fbcinv.I
-    gate:merge_into_shallow(geometry.path(generics.metal(1), 
-        geometry.path_points_xy(anchor("pSDi8"):translate(0, bp.sdwidth / 2), {
-            anchor("G9"),
-            0,
-            anchor("nSDi8"):translate(0, -bp.sdwidth / 2)
-        }),
-    bp.sdwidth))
-    gate:merge_into_shallow(geometry.path(generics.metal(1), 
-        geometry.path_points_xy(anchor("pSDi11"):translate(0, bp.sdwidth / 2), {
-            anchor("G9"),
-            0,
-            anchor("nSDi11"):translate(0, -bp.sdwidth / 2)
-        }),
-    bp.sdwidth))
-    gate:merge_into_shallow(geometry.path(generics.metal(1), 
-        geometry.path_points_xy(anchor("pSDc10"), {
-            2 * xpitch,
-            -bp.pwidth * 3 / 4 + bp.sdwidth / 2,
-            anchor("G12"),
-        }),
-    bp.sdwidth))
-    gate:merge_into_shallow(geometry.path(generics.metal(1), 
-        geometry.path_points_xy(anchor("nSDc10"), {
-            2 * xpitch,
-            bp.nwidth * 3 / 4 - bp.sdwidth / 2,
-            anchor("G12"),
-        }),
-    bp.sdwidth))
-    gate:merge_into_shallow(geometry.path(generics.metal(1), 
-        geometry.path_points_yx(anchor("nSDo14"), {
-            anchor("G12"):translate(0, -2 * (bp.gstwidth + bp.gstspace))
-        }),
-    bp.sdwidth))
-    gate:merge_into_shallow(geometry.path(generics.metal(1), 
-        geometry.path_points_yx(anchor("pSDo14"), {
-            anchor("G12"):translate(0, 2 * (bp.gstwidth + bp.gstspace))
-        }),
-    bp.sdwidth))
-
-    gate:merge_into_shallow(geometry.rectanglebltr(generics.via(1, 2),
-        anchor("G11upper"):translate(-2 * xpitch + spacing, -bp.gstwidth / 2),
-        anchor("G11upper"):translate(xpitch - spacing, bp.gstwidth / 2)
+    -- D input port landing
+    dff:merge_into_shallow(geometry.rectanglebltr(generics.via(1, 2, { lastbare = true }),
+        gate(1):translate(-xpitch,           2 * (bp.gstwidth + bp.gstspace) - bp.gstwidth / 2),
+        gate(1):translate( xpitch - spacing, 2 * (bp.gstwidth + bp.gstspace) + bp.gstwidth / 2)
     ))
-    gate:merge_into_shallow(geometry.rectanglebltr(generics.via(1, 2),
-        anchor("G11lower"):translate(-2 * xpitch + spacing, -bp.gstwidth / 2),
-        anchor("G11lower"):translate(xpitch - spacing, bp.gstwidth / 2)
+    -- cinv D connection
+    dff:merge_into_shallow(geometry.rectanglebltr(generics.via(1, 2, { lastbare = true }), 
+        gate(7):translate(-3 * xpitch + spacing, -bp.gstwidth / 2),
+        gate(7):translate( 1 * xpitch - spacing, bp.gstwidth / 2)
     ))
-    gate:merge_into_shallow(geometry.rectanglebltr(generics.via(1, 2),
-        anchor("G14upper"):translate(-2 * xpitch + spacing, -bp.gstwidth / 2),
-        anchor("G14upper"):translate(xpitch - spacing, bp.gstwidth / 2)
-    ))
-    gate:merge_into_shallow(geometry.rectanglebltr(generics.via(1, 2),
-        anchor("G14lower"):translate(-2 * xpitch + spacing, -bp.gstwidth / 2),
-        anchor("G14lower"):translate(xpitch - spacing, bp.gstwidth / 2)
+    dff:merge_into_shallow(geometry.rectanglebltr(generics.metal(2), 
+        gate(1):translate(-xpitch, 2 * (bp.gstwidth + bp.gstspace) - bp.gstwidth / 2), 
+        gate(7):translate( 1 * xpitch - spacing, bp.gstwidth / 2)
     ))
 
-    gate:merge_into_shallow(geometry.path(generics.metal(1),
-        geometry.path_points_xy(anchor("pSDi15"):translate(0, bp.sdwidth / 2), {
-            xpitch / 2,
-            anchor("nSDi15"):translate(0, -bp.sdwidth / 2)
-    }), bp.sdwidth))
-    gate:merge_into_shallow(geometry.path(generics.metal(1), { anchor("nSDi15"):translate(0, -bp.sdwidth / 2), anchor("nSDi18"):translate(0, -bp.sdwidth / 2) }, bp.sdwidth))
-    gate:merge_into_shallow(geometry.path(generics.metal(1), { anchor("pSDi15"):translate(0,  bp.sdwidth / 2), anchor("pSDi18"):translate(0,  bp.sdwidth / 2) }, bp.sdwidth))
+    -- cinv short nmos
+    dff:merge_into_shallow(geometry.rectanglebltr(generics.metal(1), 
+        sourcedrain("n", "c", 6):translate(0, -bp.sdwidth / 2),
+        sourcedrain("n", "c", 7):translate(0, bp.sdwidth / 2)
+    ))
 
-    gate:merge_into_shallow(geometry.path(generics.metal(1), 
-        geometry.path_points_xy(anchor("pSDo17"):translate(0, -bp.sdwidth / 2), {
-            2 * xpitch,
-            -bp.pwidth + bp.sdwidth,
-            anchor("G19")
-        }),
-    bp.sdwidth))
-    gate:merge_into_shallow(geometry.path(generics.metal(1), 
-        geometry.path_points_xy(anchor("nSDo17"):translate(0, bp.sdwidth / 2), {
-            2 * xpitch,
-            bp.nwidth - bp.sdwidth,
-            anchor("G19")
-        }),
-    bp.sdwidth))
+    -- short dummy between cinv and first latch cinv
+    dff:merge_into_shallow(geometry.rectanglebltr(generics.metal(1), 
+        sourcedrain("p", "c", 8):translate(0, -bp.sdwidth / 2),
+        sourcedrain("p", "c", 9):translate(0, bp.sdwidth / 2)
+    ))
+    dff:merge_into_shallow(geometry.rectanglebltr(generics.metal(1), 
+        sourcedrain("n", "c", 8):translate(0, -bp.sdwidth / 2),
+        sourcedrain("n", "c", 9):translate(0, bp.sdwidth / 2)
+    ))
 
-    -- output inverter connection
-    gate:merge_into_shallow(geometry.path(generics.metal(1),
-        geometry.path_points_xy(anchor("pSDi21"):translate(0, bp.sdwidth / 2), {
-            xpitch / 2,
-            anchor("nSDi21"):translate(0, -bp.sdwidth / 2)
-    }), bp.sdwidth))
-    if _P.enableQN then
-        gate:merge_into_shallow(geometry.path(generics.metal(1),
-            geometry.path_points_xy(anchor("pSDi23"):translate(0, bp.sdwidth / 2), {
-                xpitch / 2,
-                anchor("nSDi23"):translate(0, -bp.sdwidth / 2)
-        }), bp.sdwidth))
-        gate:merge_into_shallow(geometry.rectanglebltr(generics.metal(1),
-            anchor("G22"):translate(-xpitch, -bp.gstwidth / 2),
-            anchor("G22"):translate(xpitch - spacing,  bp.gstwidth / 2)
+    -- short nmos in first latch (set layout)
+    if _P.enable_set then
+        dff:merge_into_shallow(geometry.rectanglebltr(generics.metal(1), 
+            sourcedrain("n", "c", 12):translate(0, -bp.sdwidth / 2),
+            sourcedrain("n", "c", 13):translate(0, bp.sdwidth / 2)
         ))
     end
 
-    gate:merge_into_shallow(geometry.rectanglebltr(generics.via(1, 2), 
-        anchor("G18", "upper"):translate(-3 * xpitch + spacing, -bp.gstwidth / 2),
-        anchor("G18", "upper"):translate(xpitch - bp.sdwidth / 2 - bp.gstspace, bp.gstwidth / 2)
-    ))
-    gate:merge_into_shallow(geometry.rectanglebltr(generics.via(1, 2), 
-        anchor("G18", "lower"):translate(-3 * xpitch + spacing, -bp.gstwidth / 2),
-        anchor("G18", "lower"):translate(xpitch - bp.sdwidth / 2 - bp.gstspace, bp.gstwidth / 2)
-    ))
-    gate:merge_into_shallow(geometry.rectanglebltr(generics.metal(1), 
-        anchor("G16"):translate(-xpitch, -bp.gstwidth / 2),
-        anchor("G16"):translate(3 / 2 * xpitch - bp.gstspace / 2, bp.gstwidth / 2)
+    -- connect first latch cinv drains
+    dff:merge_into_shallow(geometry.rectanglebltr(generics.metal(1), 
+        sourcedrain("n", "c", 9):translate(-bp.sdwidth / 2, 0),
+        sourcedrain("p", "c", 9):translate( bp.sdwidth / 2, 0)
     ))
 
-    -- output connection
-    gate:merge_into_shallow(geometry.rectanglebltr(generics.metal(1),
-        anchor("G19"):translate(-3 / 2 * xpitch + bp.gstspace / 2, -bp.gstwidth / 2),
-        anchor("G20"):translate(xpitch - spacing,  bp.gstwidth / 2)
+    -- first latch clk bar vias
+    dff:merge_into_shallow(geometry.rectanglebltr(generics.via(1, 2), 
+        gate(10):translate(-30, -bp.sdwidth / 2),
+        gate(10):translate(30, bp.sdwidth / 2)
+    ))
+    dff:merge_into_shallow(geometry.rectanglebltr(generics.via(1, 2), 
+        gate(11):translate(-30, -bp.sdwidth / 2),
+        gate(11):translate(30, bp.sdwidth / 2)
     ))
 
-    gate:inherit_alignment_box(harness)
+    -- first latch short nmos or pmos
+    dff:merge_into_shallow(geometry.rectanglebltr(generics.metal(1), 
+        sourcedrain("n", "c", 10):translate(0, -bp.sdwidth / 2),
+        sourcedrain("n", "c", 11):translate(0, bp.sdwidth / 2)
+    ))
+
+    -- first latch inverter connect drains to gate of first latch cinv
+    dff:merge_into_shallow(geometry.path(generics.metal(1),
+        geometry.path_points_xy(sourcedrain("n", "i", 13 + setshift + resetshift):translate(0, -bp.sdwidth / 2), {
+            gate(9):translate(0, bp.sdwidth / 2)
+    }), bp.sdwidth))
+
+    -- first latch cinv drain to inv gate
+    dff:merge_into_shallow(geometry.path(generics.metal(1),
+        geometry.path_points_xy( gate(12 + setshift + resetshift), {
+            -xpitch - resetshift / 2 * xpitch,
+            (bp.gstwidth + bp.gstspace) / (bp.numinnerroutes % 2 == 0 and 2 or 1),
+            sourcedrain("p", "i", 9)
+    }), bp.sdwidth))
+
+    -- first latch inverter connect drains
+    dff:merge_into_shallow(geometry.path_c_shape(generics.metal(1),
+        sourcedrain("p", "i", 13 + setshift + resetshift):translate(0, bp.sdwidth / 2),
+        gate(14 + setshift + resetshift):translate(xpitch, 0),
+        sourcedrain("n", "i", 13 + setshift + resetshift):translate(0, -bp.sdwidth / 2),
+        bp.sdwidth
+    ))
+
+    -- first latch inverter connect pmos drain if reset == true
+    if _P.enable_reset then
+        dff:merge_into_shallow(geometry.rectanglebltr(generics.metal(1), 
+            sourcedrain("p", "i", 13 + setshift):translate(0, 0),
+            sourcedrain("p", "i", 15 + setshift):translate(0, bp.sdwidth)
+        ))
+    end
+
+    -- short transistors in transmission gate
+    -- pmos does not need to be shorted, this is done while connecting nmos/pmos drains of the latch inverter
+    dff:merge_into_shallow(geometry.rectanglebltr(generics.metal(1), 
+        sourcedrain("n", "c", 14 + setshift + resetshift):translate(0, -bp.sdwidth / 2),
+        sourcedrain("n", "c", 15 + setshift + resetshift):translate(0, bp.sdwidth / 2)
+    ))
+
+    -- transmission gate clk bar vias
+    dff:merge_into_shallow(geometry.rectanglebltr(generics.via(1, 2), 
+        gate(13 + setshift + resetshift):translate(-30, -bp.sdwidth / 2),
+        gate(13 + setshift + resetshift):translate(30, bp.sdwidth / 2)
+    ))
+    dff:merge_into_shallow(geometry.rectanglebltr(generics.via(1, 2), 
+        gate(14 + setshift + resetshift):translate(-30, -bp.sdwidth / 2),
+        gate(14 + setshift + resetshift):translate(30, bp.sdwidth / 2)
+    ))
+
+    -- short dummy between cinv and second latch cinv
+    dff:merge_into_shallow(geometry.rectanglebltr(generics.metal(1), 
+        sourcedrain("p", "c", 15 + setshift + resetshift):translate(0, -bp.sdwidth / 2),
+        sourcedrain("p", "c", 16 + setshift + resetshift):translate(0, bp.sdwidth / 2)
+    ))
+    dff:merge_into_shallow(geometry.rectanglebltr(generics.metal(1), 
+        sourcedrain("n", "c", 15 + setshift + resetshift):translate(0, -bp.sdwidth / 2),
+        sourcedrain("n", "c", 16 + setshift + resetshift):translate(0, bp.sdwidth / 2)
+    ))
+
+    -- short nmos in second latch (set layout)
+    if _P.enable_set then
+        dff:merge_into_shallow(geometry.rectanglebltr(generics.metal(1), 
+            sourcedrain("n", "c", 21 + resetshift):translate(0, -bp.sdwidth / 2),
+            sourcedrain("n", "c", 22 + resetshift):translate(0, bp.sdwidth / 2)
+        ))
+    end
+
+    -- connect second latch cinv / transmission gate drains
+    dff:merge_into_shallow(geometry.rectanglebltr(generics.metal(1), 
+        sourcedrain("n", "c", 16 + setshift + resetshift):translate(-bp.sdwidth / 2, 0),
+        sourcedrain("p", "c", 16 + setshift + resetshift):translate( bp.sdwidth / 2, 0)
+    ))
+
+    -- second latch clk bar vias
+    dff:merge_into_shallow(geometry.rectanglebltr(generics.via(1, 2), 
+        gate(17 + clkshift + setshift + resetshift):translate(-30, -bp.sdwidth / 2),
+        gate(17 + clkshift + setshift + resetshift):translate(30, bp.sdwidth / 2)
+    ))
+    dff:merge_into_shallow(geometry.rectanglebltr(generics.via(1, 2), 
+        gate(18 - clkshift + setshift + resetshift):translate(-30, -bp.sdwidth / 2),
+        gate(18 - clkshift + setshift + resetshift):translate(30, bp.sdwidth / 2)
+    ))
+
+    -- second latch short nmos or pmos
+    dff:merge_into_shallow(geometry.rectanglebltr(generics.metal(1), 
+        sourcedrain("n", "c", 17 + setshift + resetshift):translate(0, -bp.sdwidth / 2),
+        sourcedrain("n", "c", 18 + setshift + resetshift):translate(0, bp.sdwidth / 2)
+    ))
+
+    -- second latch inverter connect drains to gate of second latch cinv
+    dff:merge_into_shallow(geometry.path(generics.metal(1),
+        geometry.path_points_xy(sourcedrain("n", "i", 20 + 2 * setshift + 2 * resetshift):translate(0, -bp.sdwidth / 2), {
+            gate(16 + setshift + resetshift):translate(0, bp.sdwidth / 2)
+    }), bp.sdwidth))
+
+    -- second latch cinv drain to inv gate
+    dff:merge_into_shallow(geometry.path(generics.metal(1),
+        geometry.path_points_xy( gate(19 + 2 * setshift + 2 * resetshift), {
+            -xpitch - resetshift / 2 * xpitch,
+            (bp.gstwidth + bp.gstspace) / (bp.numinnerroutes % 2 == 0 and 2 or 1),
+            sourcedrain("p", "i", 16 + setshift + resetshift)
+    }), bp.sdwidth))
+
+    -- second latch inverter connect drains
+    dff:merge_into_shallow(geometry.path_c_shape(generics.metal(1),
+        sourcedrain("p", "i", 20 + 2 * setshift + 2 * resetshift):translate(0, bp.sdwidth / 2),
+        gate(19 + 2 * setshift + 2 * resetshift):translate(xpitch, 0),
+        sourcedrain("n", "i", 20 + 2 * setshift + 2 * resetshift):translate(0, -bp.sdwidth / 2),
+        bp.sdwidth
+    ))
+
+    -- second latch inverter connect pmos drain if reset == true
+    if _P.enable_reset then
+        dff:merge_into_shallow(geometry.rectanglebltr(generics.metal(1), 
+            sourcedrain("p", "i", 22 + setshift):translate(0, 0),
+            sourcedrain("p", "i", 24 + setshift):translate(0, bp.sdwidth)
+        ))
+    end
+
+    -- output inverter connect gate
+    dff:merge_into_shallow(geometry.rectanglebltr(generics.metal(1), 
+        gate(21 + 2 * setshift + 2 * resetshift):translate(-xpitch, -bp.sdwidth / 2),
+        gate(21 + 2 * setshift + 2 * resetshift):translate(30,  bp.sdwidth / 2)
+    ))
+
+    -- output Q inverter connect drains
+    dff:merge_into_shallow(geometry.path_c_shape(generics.metal(1),
+        sourcedrain("p", "i", 22 + 2 * setshift + 2 * resetshift):translate(0, bp.sdwidth / 2),
+        gate(21 + 2 * setshift + 2 * resetshift):translate(xpitch, 0),
+        sourcedrain("n", "i", 22 + 2 * setshift + 2 * resetshift):translate(0, -bp.sdwidth / 2),
+        bp.sdwidth
+    ))
+
+    -- output QN inverter connect drains
+    if _P.enable_QN then
+        dff:merge_into_shallow(geometry.path_c_shape(generics.metal(1),
+            sourcedrain("p", "i", 24 + 2 * setshift + 2 * resetshift):translate(0, bp.sdwidth / 2),
+            gate(23 + 2 * setshift + 2 * resetshift):translate(xpitch, 0),
+            sourcedrain("n", "i", 24 + 2 * setshift + 2 * resetshift):translate(0, -bp.sdwidth / 2),
+            bp.sdwidth
+        ))
+    end
+
+    -- set bar and M1/M2 vias
+    if _P.enable_set then
+        dff:merge_into_shallow(geometry.rectanglebltr(generics.metal(2),
+            gate(13):translate(0, -bp.gstwidth / 2),
+            gate(22):translate(0, bp.gstwidth / 2)
+        ))
+        dff:merge_into_shallow(geometry.rectanglebltr(generics.via(1, 2), 
+            gate(13):translate(-30, -bp.sdwidth / 2),
+            gate(13):translate(30, bp.sdwidth / 2)
+        ))
+        dff:merge_into_shallow(geometry.rectanglebltr(generics.via(1, 2), 
+            gate(22):translate(-30, -bp.sdwidth / 2),
+            gate(22):translate(30, bp.sdwidth / 2)
+        ))
+    end
+
+    -- reset bar and M1/M2 vias
+    if _P.enable_reset then
+        dff:merge_into_shallow(geometry.rectanglebltr(generics.metal(2),
+            gate(12):translate(0, -bp.gstwidth / 2),
+            gate(22):translate(0, bp.gstwidth / 2)
+        ))
+        dff:merge_into_shallow(geometry.rectanglebltr(generics.via(1, 2), 
+            gate(12):translate(-30, -bp.sdwidth / 2),
+            gate(12):translate(30, bp.sdwidth / 2)
+        ))
+        dff:merge_into_shallow(geometry.rectanglebltr(generics.via(1, 2), 
+            gate(13):translate(-30, -bp.sdwidth / 2),
+            gate(13):translate(30, bp.sdwidth / 2)
+        ))
+        dff:merge_into_shallow(geometry.rectanglebltr(generics.via(1, 2), 
+            gate(21):translate(-30, -bp.sdwidth / 2),
+            gate(21):translate(30, bp.sdwidth / 2)
+        ))
+        dff:merge_into_shallow(geometry.rectanglebltr(generics.via(1, 2), 
+            gate(22):translate(-30, -bp.sdwidth / 2),
+            gate(22):translate(30, bp.sdwidth / 2)
+        ))
+    end
 
     -- ports
-    if _P.enableQ then
-        gate:add_port("Q", generics.metal(1), anchor("G20"):translate(xpitch, 0))
+    dff:add_port("VDD", generics.metal(1), harness:get_anchor("top"))
+    dff:add_port("VSS", generics.metal(1), harness:get_anchor("bottom"))
+    dff:add_port("CLK", generics.metal(1), gate(1))
+    dff:add_port("D", generics.metal(1), gate(1):translate(0, 2 * (bp.gstwidth + bp.gstspace)))
+    if _P.enable_Q then
+        dff:add_port("Q", generics.metal(1), gate(21 + 2 * setshift + 2 * resetshift):translate(xpitch, 0))
     end
-    if _P.enableQN then
-        gate:add_port("QN", generics.metal(1), anchor("G22"):translate(xpitch, 0))
+    if _P.enable_QN then
+        dff:add_port("QN", generics.metal(1), gate(23 + 2 * setshift + 2 * resetshift):translate(xpitch, 0))
     end
-    gate:add_port("D", generics.metal(1), anchor("G1"):translate(0, yinvert * 2 * (bp.gstwidth + bp.gstspace)))
-    gate:add_port("CLK", generics.metal(1), anchor("G1"))
-    gate:add_port("VDD", generics.metal(1), anchor("top"))
-    gate:add_port("VSS", generics.metal(1), anchor("bottom"))
+    if _P.enable_set then
+        dff:add_port("SET", generics.metal(2), point.combine(gate(13), gate(22)))
+    end
+    if _P.enable_reset then
+        dff:add_port("RST", generics.metal(2), point.combine(gate(13), gate(22)))
+    end
 end
