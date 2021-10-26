@@ -107,16 +107,20 @@ function layout(dff, _P)
     if _P.enable_reset then
         -- first latch
         table.insert(gatecontactpos, 12, "center")
+        table.insert(gatecontactpos, 14, "dummy")
         table.insert(pcontactpos, 13, "inner")
         table.insert(ncontactpos, 13, nil)
+        table.insert(pcontactpos, 14, "power")
+        table.insert(ncontactpos, 14, "inner")
         -- second latch
-        table.insert(gatecontactpos, 20, "center")
-        table.insert(pcontactpos, 21, "inner")
-        table.insert(ncontactpos, 21, nil)
+        table.insert(gatecontactpos, 21, "center")
+        table.insert(pcontactpos, 22, "inner")
+        table.insert(ncontactpos, 22, nil)
         -- change source/drain connections in transmission gate
-        pcontactpos[14] = "power"
+        --pcontactpos[14] = "power"
+        --ncontactpos[15] = "outer"
         -- change drain connection of second latch inverter
-        pcontactpos[22] = "power"
+        pcontactpos[23] = "power"
     end
 
     local harness = pcell.create_layout("stdcells/harness", {
@@ -166,12 +170,12 @@ function layout(dff, _P)
     dff:merge_into_shallow(geometry.path(generics.metal(2),
         geometry.path_points_xy(gate(6 - clkshift):translate((-2 + clkshift) * xpitch, 0), {
             5 * xpitch,
-            gate(17 + clkshift + setshift + resetshift):translate(xpitch - spacing, 0)
+            gate(17 + clkshift + setshift + 2 * resetshift):translate(xpitch - spacing, 0)
     }), bp.sdwidth))
     -- ~clk M2 bar
     dff:merge_into_shallow(geometry.rectanglebltr(generics.metal(2), 
         gate(3):translate(-xpitch, -bp.gstwidth / 2),
-        gate(18 - clkshift + setshift + resetshift):translate(xpitch - spacing, bp.gstwidth / 2)
+        gate(18 - clkshift + setshift + 2 * resetshift):translate(xpitch - spacing, bp.gstwidth / 2)
     ))
 
     -- cinv clk connection
@@ -266,7 +270,7 @@ function layout(dff, _P)
     local sdcorrection = _P.enable_reset and 1 or 0
     dff:merge_into_shallow(geometry.path_c_shape(generics.metal(1),
         sourcedrain("p", "i", 13 + setshift + resetshift - sdcorrection):translate(0, bp.sdwidth / 2),
-        gate(14 + setshift + resetshift):translate(xpitch, 0),
+        gate(14 + setshift + 2 * resetshift):translate(xpitch, 0),
         sourcedrain("n", "i", 13 + setshift + resetshift):translate(0, -bp.sdwidth / 2),
         bp.sdwidth
     ))
@@ -274,28 +278,28 @@ function layout(dff, _P)
     -- short transistors in transmission gate
     -- pmos does not need to be shorted, this is done while connecting nmos/pmos drains of the latch inverter
     dff:merge_into_shallow(geometry.rectanglebltr(generics.metal(1), 
-        sourcedrain("n", "c", 14 + setshift + resetshift):translate(0, -bp.sdwidth / 2),
-        sourcedrain("n", "c", 15 + setshift + resetshift):translate(0, bp.sdwidth / 2)
+        sourcedrain("n", "c", 14 + setshift + 2 * resetshift):translate(0, -bp.sdwidth / 2),
+        sourcedrain("n", "c", 15 + setshift + 2 * resetshift):translate(0, bp.sdwidth / 2)
     ))
 
     -- transmission gate clk bar vias
     dff:merge_into_shallow(geometry.rectanglebltr(generics.via(1, 2), 
-        gate(13 + setshift + resetshift):translate(-30, -bp.sdwidth / 2),
-        gate(13 + setshift + resetshift):translate(30, bp.sdwidth / 2)
+        gate(13 + setshift + 2 * resetshift):translate(-30, -bp.sdwidth / 2),
+        gate(13 + setshift + 2 * resetshift):translate(30, bp.sdwidth / 2)
     ))
     dff:merge_into_shallow(geometry.rectanglebltr(generics.via(1, 2), 
-        gate(14 + setshift + resetshift):translate(-30, -bp.sdwidth / 2),
-        gate(14 + setshift + resetshift):translate(30, bp.sdwidth / 2)
+        gate(14 + setshift + 2 * resetshift):translate(-30, -bp.sdwidth / 2),
+        gate(14 + setshift + 2 * resetshift):translate(30, bp.sdwidth / 2)
     ))
 
     -- short dummy between cinv and second latch cinv
     dff:merge_into_shallow(geometry.rectanglebltr(generics.metal(1), 
-        sourcedrain("p", "c", 15 + setshift + resetshift):translate(0, -bp.sdwidth / 2),
-        sourcedrain("p", "c", 16 + setshift + resetshift):translate(0, bp.sdwidth / 2)
+        sourcedrain("p", "c", 15 + setshift + 2 * resetshift):translate(0, -bp.sdwidth / 2),
+        sourcedrain("p", "c", 16 + setshift + 2 * resetshift):translate(0, bp.sdwidth / 2)
     ))
     dff:merge_into_shallow(geometry.rectanglebltr(generics.metal(1), 
-        sourcedrain("n", "c", 15 + setshift + resetshift):translate(0, -bp.sdwidth / 2),
-        sourcedrain("n", "c", 16 + setshift + resetshift):translate(0, bp.sdwidth / 2)
+        sourcedrain("n", "c", 15 + setshift + 2 * resetshift):translate(0, -bp.sdwidth / 2),
+        sourcedrain("n", "c", 16 + setshift + 2 * resetshift):translate(0, bp.sdwidth / 2)
     ))
 
     -- short nmos in second latch (set layout)
@@ -308,70 +312,74 @@ function layout(dff, _P)
 
     -- connect second latch cinv / transmission gate drains
     dff:merge_into_shallow(geometry.rectanglebltr(generics.metal(1), 
-        sourcedrain("n", "c", 16 + setshift + resetshift):translate(-bp.sdwidth / 2, 0),
-        sourcedrain("p", "c", 16 + setshift + resetshift):translate( bp.sdwidth / 2, 0)
+        sourcedrain("n", "c", 16 + setshift + 2 * resetshift):translate(-bp.sdwidth / 2, 0),
+        sourcedrain("p", "c", 16 + setshift + 2 * resetshift):translate( bp.sdwidth / 2, 0)
     ))
 
     -- second latch clk bar vias
     dff:merge_into_shallow(geometry.rectanglebltr(generics.via(1, 2), 
-        gate(17 + clkshift + setshift + resetshift):translate(-30, -bp.sdwidth / 2),
-        gate(17 + clkshift + setshift + resetshift):translate(30, bp.sdwidth / 2)
+        gate(17 + clkshift + setshift + 2 * resetshift):translate(-30, -bp.sdwidth / 2),
+        gate(17 + clkshift + setshift + 2 * resetshift):translate(30, bp.sdwidth / 2)
     ))
     dff:merge_into_shallow(geometry.rectanglebltr(generics.via(1, 2), 
-        gate(18 - clkshift + setshift + resetshift):translate(-30, -bp.sdwidth / 2),
-        gate(18 - clkshift + setshift + resetshift):translate(30, bp.sdwidth / 2)
+        gate(18 - clkshift + setshift + 2 * resetshift):translate(-30, -bp.sdwidth / 2),
+        gate(18 - clkshift + setshift + 2 * resetshift):translate(30, bp.sdwidth / 2)
     ))
 
     -- second latch short nmos or pmos
     dff:merge_into_shallow(geometry.rectanglebltr(generics.metal(1), 
-        sourcedrain("n", "c", 17 + setshift + resetshift):translate(0, -bp.sdwidth / 2),
-        sourcedrain("n", "c", 18 + setshift + resetshift):translate(0, bp.sdwidth / 2)
+        sourcedrain("n", "c", 17 + setshift + 2 * resetshift):translate(0, -bp.sdwidth / 2),
+        sourcedrain("n", "c", 18 + setshift + 2 * resetshift):translate(0, bp.sdwidth / 2)
     ))
 
     -- second latch inverter connect drains to gate of second latch cinv
     dff:merge_into_shallow(geometry.path(generics.metal(1),
-        geometry.path_points_xy(sourcedrain("n", "i", 20 + 2 * setshift + 2 * resetshift):translate(0, -bp.sdwidth / 2), {
-            gate(16 + setshift + resetshift):translate(0, bp.sdwidth / 2)
+        geometry.path_points_xy(sourcedrain("n", "i", 20 + 2 * setshift + 3 * resetshift):translate(0, -bp.sdwidth / 2), {
+            gate(16 + setshift + 2 * resetshift):translate(0, bp.sdwidth / 2)
     }), bp.sdwidth))
 
     -- second latch cinv drain to inv gate
     dff:merge_into_shallow(geometry.path(generics.metal(1),
-        geometry.path_points_xy( gate(19 + 2 * setshift + 2 * resetshift), {
+        geometry.path_points_xy( gate(19 + 2 * setshift + 3 * resetshift), {
             -xpitch - resetshift / 2 * xpitch,
             (bp.gstwidth + bp.gstspace) / (bp.numinnerroutes % 2 == 0 and 2 or 1),
-            sourcedrain("p", "i", 16 + setshift + resetshift)
+            sourcedrain("p", "i", 16 + setshift + 2 * resetshift)
     }), bp.sdwidth))
 
     -- second latch inverter connect drains
     -- (this also connects the drain of the pmos set transistor)
     local sdcorrection = _P.enable_reset and 1 or 0
     dff:merge_into_shallow(geometry.path_c_shape(generics.metal(1),
-        sourcedrain("p", "i", 20 + 2 * setshift + 2 * resetshift - sdcorrection):translate(0, bp.sdwidth / 2),
-        gate(19 + 2 * setshift + 2 * resetshift):translate(xpitch, 0),
-        sourcedrain("n", "i", 20 + 2 * setshift + 2 * resetshift):translate(0, -bp.sdwidth / 2),
+        sourcedrain("p", "i", 20 + 2 * setshift + 3 * resetshift - sdcorrection):translate(0, bp.sdwidth / 2),
+        gate(19 + 2 * setshift + 3 * resetshift):translate(xpitch, 0),
+        sourcedrain("n", "i", 20 + 2 * setshift + 3 * resetshift):translate(0, -bp.sdwidth / 2),
         bp.sdwidth
     ))
 
     -- output inverter connect gate
     dff:merge_into_shallow(geometry.rectanglebltr(generics.metal(1), 
-        gate(21 + 2 * setshift + 2 * resetshift):translate(-xpitch, -bp.sdwidth / 2),
-        gate(21 + 2 * setshift + 2 * resetshift):translate(30,  bp.sdwidth / 2)
+        gate(21 + 2 * setshift + 3 * resetshift):translate(-xpitch, -bp.sdwidth / 2),
+        gate(21 + 2 * setshift + 3 * resetshift):translate(30,  bp.sdwidth / 2)
     ))
 
     -- output Q inverter connect drains
     dff:merge_into_shallow(geometry.path_c_shape(generics.metal(1),
-        sourcedrain("p", "i", 22 + 2 * setshift + 2 * resetshift):translate(0, bp.sdwidth / 2),
-        gate(21 + 2 * setshift + 2 * resetshift):translate(xpitch, 0),
-        sourcedrain("n", "i", 22 + 2 * setshift + 2 * resetshift):translate(0, -bp.sdwidth / 2),
+        sourcedrain("p", "i", 22 + 2 * setshift + 3 * resetshift):translate(0, bp.sdwidth / 2),
+        gate(21 + 2 * setshift + 3 * resetshift):translate(xpitch, 0),
+        sourcedrain("n", "i", 22 + 2 * setshift + 3 * resetshift):translate(0, -bp.sdwidth / 2),
         bp.sdwidth
     ))
 
-    -- output QN inverter connect drains
+    -- output QN inverter connect drains and gate
     if _P.enable_QN then
+        dff:merge_into_shallow(geometry.rectanglebltr(generics.metal(1), 
+            gate(23 + 2 * setshift + 3 * resetshift):translate(-xpitch, -bp.sdwidth / 2),
+            gate(23 + 2 * setshift + 3 * resetshift):translate(30,  bp.sdwidth / 2)
+        ))
         dff:merge_into_shallow(geometry.path_c_shape(generics.metal(1),
-            sourcedrain("p", "i", 24 + 2 * setshift + 2 * resetshift):translate(0, bp.sdwidth / 2),
-            gate(23 + 2 * setshift + 2 * resetshift):translate(xpitch, 0),
-            sourcedrain("n", "i", 24 + 2 * setshift + 2 * resetshift):translate(0, -bp.sdwidth / 2),
+            sourcedrain("p", "i", 24 + 2 * setshift + 3 * resetshift):translate(0, bp.sdwidth / 2),
+            gate(23 + 2 * setshift + 3 * resetshift):translate(xpitch, 0),
+            sourcedrain("n", "i", 24 + 2 * setshift + 3 * resetshift):translate(0, -bp.sdwidth / 2),
             bp.sdwidth
         ))
     end
@@ -396,15 +404,15 @@ function layout(dff, _P)
     if _P.enable_reset then
         dff:merge_into_shallow(geometry.rectanglebltr(generics.metal(2),
             gate(12):translate(0, -bp.gstwidth / 2),
-            gate(20):translate(0, bp.gstwidth / 2)
+            gate(21):translate(0, bp.gstwidth / 2)
         ))
         dff:merge_into_shallow(geometry.rectanglebltr(generics.via(1, 2), 
             gate(12):translate(-30, -bp.sdwidth / 2),
             gate(12):translate(30, bp.sdwidth / 2)
         ))
         dff:merge_into_shallow(geometry.rectanglebltr(generics.via(1, 2), 
-            gate(20):translate(-30, -bp.sdwidth / 2),
-            gate(20):translate(30, bp.sdwidth / 2)
+            gate(21):translate(-30, -bp.sdwidth / 2),
+            gate(21):translate(30, bp.sdwidth / 2)
         ))
     end
 
@@ -414,10 +422,10 @@ function layout(dff, _P)
     dff:add_port("CLK", generics.metal(1), gate(1))
     dff:add_port("D", generics.metal(1), gate(1):translate(0, 2 * (bp.gstwidth + bp.gstspace)))
     if _P.enable_Q then
-        dff:add_port("Q", generics.metal(1), gate(21 + 2 * setshift + 2 * resetshift):translate(xpitch, 0))
+        dff:add_port("Q", generics.metal(1), gate(21 + 2 * setshift + 3 * resetshift):translate(xpitch, 0))
     end
     if _P.enable_QN then
-        dff:add_port("QN", generics.metal(1), gate(23 + 2 * setshift + 2 * resetshift):translate(xpitch, 0))
+        dff:add_port("QN", generics.metal(1), gate(23 + 2 * setshift + 3 * resetshift):translate(xpitch, 0))
     end
     if _P.enable_set then
         dff:add_port("SET", generics.metal(2), point.combine(gate(13), gate(22)))
@@ -425,4 +433,7 @@ function layout(dff, _P)
     if _P.enable_reset then
         dff:add_port("RST", generics.metal(2), point.combine(gate(12), gate(20)))
     end
+
+    -- alignment box
+    dff:inherit_alignment_box(harness)
 end
