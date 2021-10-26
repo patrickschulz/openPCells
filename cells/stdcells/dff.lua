@@ -24,6 +24,7 @@ function parameters()
     pcell.add_parameter("enable_QN", false)
     pcell.add_parameter("enable_set", false)
     pcell.add_parameter("enable_reset", false)
+    pcell.check_expression("(enable_set and not enable_reset) or (enable_reset and not enable_set)", "sorry, this dff implementation currently does not support simultaneous set and reset pins")
 end
 
 function layout(dff, _P)
