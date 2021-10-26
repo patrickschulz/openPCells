@@ -107,23 +107,17 @@ function layout(dff, _P)
     if _P.enable_reset then
         -- first latch
         table.insert(gatecontactpos, 12, "center")
-        table.insert(gatecontactpos, 12, "center")
-        table.insert(pcontactpos, 13, "power")
-        table.insert(ncontactpos, 13, "power")
-        table.insert(pcontactpos, 14, "inner")
-        table.insert(ncontactpos, 14, nil)
+        table.insert(pcontactpos, 13, "inner")
+        table.insert(ncontactpos, 13, nil)
         -- second latch
-        table.insert(gatecontactpos, 21, "center")
-        table.insert(gatecontactpos, 21, "center")
-        table.insert(pcontactpos, 22, "power")
-        table.insert(ncontactpos, 22, "power")
-        table.insert(pcontactpos, 23, "inner")
-        table.insert(ncontactpos, 23, nil)
+        table.insert(gatecontactpos, 20, "center")
+        table.insert(pcontactpos, 21, "inner")
+        table.insert(ncontactpos, 21, nil)
         -- change source/drain connections in transmission gate
+        pcontactpos[14] = "power"
         pcontactpos[15] = "power"
-        pcontactpos[16] = "power"
         -- change drain connection of second latch inverter
-        pcontactpos[24] = "power"
+        pcontactpos[22] = "power"
     end
 
     local harness = pcell.create_layout("stdcells/harness", {
@@ -135,7 +129,7 @@ function layout(dff, _P)
     dff:merge_into_shallow(harness)
 
     local setshift = _P.enable_set and 2 or 0
-    local resetshift = _P.enable_reset and 2 or 0
+    local resetshift = _P.enable_reset and 1 or 0
 
     -- easy anchor access functions
     local gate = function(num) return harness:get_anchor(string.format("G%d", num)) end
@@ -403,23 +397,15 @@ function layout(dff, _P)
     if _P.enable_reset then
         dff:merge_into_shallow(geometry.rectanglebltr(generics.metal(2),
             gate(12):translate(0, -bp.gstwidth / 2),
-            gate(22):translate(0, bp.gstwidth / 2)
+            gate(20):translate(0, bp.gstwidth / 2)
         ))
         dff:merge_into_shallow(geometry.rectanglebltr(generics.via(1, 2), 
             gate(12):translate(-30, -bp.sdwidth / 2),
             gate(12):translate(30, bp.sdwidth / 2)
         ))
         dff:merge_into_shallow(geometry.rectanglebltr(generics.via(1, 2), 
-            gate(13):translate(-30, -bp.sdwidth / 2),
-            gate(13):translate(30, bp.sdwidth / 2)
-        ))
-        dff:merge_into_shallow(geometry.rectanglebltr(generics.via(1, 2), 
-            gate(21):translate(-30, -bp.sdwidth / 2),
-            gate(21):translate(30, bp.sdwidth / 2)
-        ))
-        dff:merge_into_shallow(geometry.rectanglebltr(generics.via(1, 2), 
-            gate(22):translate(-30, -bp.sdwidth / 2),
-            gate(22):translate(30, bp.sdwidth / 2)
+            gate(20):translate(-30, -bp.sdwidth / 2),
+            gate(20):translate(30, bp.sdwidth / 2)
         ))
     end
 
@@ -438,6 +424,6 @@ function layout(dff, _P)
         dff:add_port("SET", generics.metal(2), point.combine(gate(13), gate(22)))
     end
     if _P.enable_reset then
-        dff:add_port("RST", generics.metal(2), point.combine(gate(13), gate(22)))
+        dff:add_port("RST", generics.metal(2), point.combine(gate(12), gate(20)))
     end
 end
