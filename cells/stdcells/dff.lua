@@ -431,7 +431,7 @@ function layout(dff, _P)
         dff:add_port("SET", generics.metal(2), point.combine(gate(13), gate(22)))
     end
     if _P.enable_reset then
-        dff:add_port("RST", generics.metal(2), point.combine(gate(12), gate(20)))
+        dff:add_port("RST", generics.metal(2), point.combine(gate(12), gate(21)))
     end
 
     -- alignment box
