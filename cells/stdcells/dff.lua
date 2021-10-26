@@ -121,6 +121,7 @@ function layout(dff, _P)
         table.insert(ncontactpos, 22, "power")
         -- change source/drain connections in transmission gate
         pcontactpos[15] = "power"
+        pcontactpos[16] = "power"
     end
 
     local harness = pcell.create_layout("stdcells/harness", {
