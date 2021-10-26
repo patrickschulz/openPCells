@@ -115,7 +115,6 @@ function layout(dff, _P)
         table.insert(ncontactpos, 21, nil)
         -- change source/drain connections in transmission gate
         pcontactpos[14] = "power"
-        pcontactpos[15] = "power"
         -- change drain connection of second latch inverter
         pcontactpos[22] = "power"
     end
