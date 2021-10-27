@@ -247,16 +247,27 @@ function layout(dff, _P)
             gate(14 + setshift + 2 * resetshift)
         ):translate( xpitch + bp.glength / 2, bp.sdwidth / 2)
     ))
-    dff:merge_into_shallow(geometry.rectanglebltr(generics.via(1, 2), 
-        point.combine(
-            gate(11),
-            gate(13 + setshift + 2 * resetshift)
-        ):translate(-xpitch - bp.glength / 2, -bp.sdwidth / 2),
-        point.combine(
-            gate(11),
-            gate(13 + setshift + 2 * resetshift)
-        ):translate( xpitch + bp.glength / 2, bp.sdwidth / 2)
-    ))
+    if not _P.enable_set and not _P.enable_reset then
+        dff:merge_into_shallow(geometry.rectanglebltr(generics.via(1, 2), 
+            point.combine(
+                gate(11),
+                gate(13 + setshift + 2 * resetshift)
+            ):translate(-xpitch - bp.glength / 2, -bp.sdwidth / 2),
+            point.combine(
+                gate(11),
+                gate(13 + setshift + 2 * resetshift)
+            ):translate( xpitch + bp.glength / 2, bp.sdwidth / 2)
+        ))
+    else
+        dff:merge_into_shallow(geometry.rectanglebltr(generics.via(1, 2), 
+            gate(11):translate(-bp.glength / 2, -bp.sdwidth / 2),
+            gate(11):translate( bp.glength / 2, bp.sdwidth / 2)
+        ))
+        dff:merge_into_shallow(geometry.rectanglebltr(generics.via(1, 2), 
+            gate(13 + setshift + 2 * resetshift):translate(-bp.glength / 2, -bp.sdwidth / 2),
+            gate(13 + setshift + 2 * resetshift):translate( bp.glength / 2, bp.sdwidth / 2)
+        ))
+    end
 
     -- first latch short nmos or pmos
     dff:merge_into_shallow(geometry.rectanglebltr(generics.metal(1), 
@@ -290,7 +301,7 @@ function layout(dff, _P)
 
     -- first latch connect lower clk gates (improves DRC-compatibility)
     dff:merge_into_shallow(geometry.rectanglebltr(generics.metal(1), 
-        gate(10 + setshift):translate(0, -bp.sdwidth / 2),
+        gate(10):translate(0, -bp.sdwidth / 2),
         gate(14 + setshift + 2 * resetshift):translate(0, bp.sdwidth / 2)
     ))
 
