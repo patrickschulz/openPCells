@@ -236,7 +236,7 @@ function layout(dff, _P)
         sourcedrain("p", "c", 9):translate( bp.sdwidth / 2, 0)
     ))
 
-    -- first latch clk bar vias
+    -- first latch / transmission gate clk bar vias
     dff:merge_into_shallow(geometry.rectanglebltr(generics.via(1, 2), 
         point.combine(
             gate(10),
@@ -248,8 +248,14 @@ function layout(dff, _P)
         ):translate( xpitch + bp.glength / 2, bp.sdwidth / 2)
     ))
     dff:merge_into_shallow(geometry.rectanglebltr(generics.via(1, 2), 
-        gate(11):translate(-2 * xpitch - bp.glength / 2, -bp.sdwidth / 2),
-        gate(11):translate(bp.glength / 2, bp.sdwidth / 2)
+        point.combine(
+            gate(11),
+            gate(13 + setshift + 2 * resetshift)
+        ):translate(-xpitch - bp.glength / 2, -bp.sdwidth / 2),
+        point.combine(
+            gate(11),
+            gate(13 + setshift + 2 * resetshift)
+        ):translate( xpitch + bp.glength / 2, bp.sdwidth / 2)
     ))
 
     -- first latch short nmos or pmos
@@ -295,12 +301,6 @@ function layout(dff, _P)
         sourcedrain("n", "c", 15 + setshift + 2 * resetshift):translate(0, bp.sdwidth / 2)
     ))
 
-    -- transmission gate clk bar vias
-    dff:merge_into_shallow(geometry.rectanglebltr(generics.via(1, 2), 
-        gate(13 + setshift + 2 * resetshift):translate(-xpitch - bp.glength / 2, -bp.sdwidth / 2),
-        gate(13 + setshift + 2 * resetshift):translate( xpitch + bp.glength / 2, bp.sdwidth / 2)
-    ))
-
     -- short dummy between cinv and second latch cinv
     dff:merge_into_shallow(geometry.rectanglebltr(generics.metal(1), 
         sourcedrain("p", "c", 15 + setshift + 2 * resetshift):translate(0, -bp.sdwidth / 2),
@@ -327,12 +327,12 @@ function layout(dff, _P)
 
     -- second latch clk bar vias
     dff:merge_into_shallow(geometry.rectanglebltr(generics.via(1, 2), 
-        gate(17 + clkshift + setshift + 2 * resetshift):translate(-xpitch - bp.glength / 2, -bp.sdwidth / 2),
-        gate(17 + clkshift + setshift + 2 * resetshift):translate( xpitch + bp.glength / 2, bp.sdwidth / 2)
+        gate(17 + setshift + 2 * resetshift):translate((clkshift - 1) * xpitch - bp.glength / 2, -bp.sdwidth / 2),
+        gate(17 + setshift + 2 * resetshift):translate((clkshift + 1) * xpitch + bp.glength / 2, bp.sdwidth / 2)
     ))
     dff:merge_into_shallow(geometry.rectanglebltr(generics.via(1, 2), 
-        gate(18 - clkshift + setshift + 2 * resetshift):translate(-xpitch - bp.glength / 2, -bp.sdwidth / 2),
-        gate(18 - clkshift + setshift + 2 * resetshift):translate( xpitch + bp.glength / 2, bp.sdwidth / 2)
+        gate(18 + setshift + 2 * resetshift):translate(-xpitch - bp.glength / 2, -bp.sdwidth / 2),
+        gate(18 + setshift + 2 * resetshift):translate( xpitch + bp.glength / 2, bp.sdwidth / 2)
     ))
 
     -- second latch short nmos or pmos
