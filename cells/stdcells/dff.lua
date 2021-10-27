@@ -237,35 +237,43 @@ function layout(dff, _P)
     ))
 
     -- first latch / transmission gate clk bar vias
+    dff:merge_into_shallow(geometry.rectanglebltr(generics.metal(1), 
+        gate(10 + clkshift):translate(0, -bp.sdwidth / 2),
+        gate(14 - clkshift + setshift + 2 * resetshift):translate(0, bp.sdwidth / 2)
+    ))
     dff:merge_into_shallow(geometry.rectanglebltr(generics.via(1, 2), 
         point.combine(
-            gate(10),
-            gate(14 + setshift + 2 * resetshift)
+            gate(10 + clkshift),
+            gate(14 - clkshift + setshift + 2 * resetshift)
         ):translate(-xpitch - bp.glength / 2, -bp.sdwidth / 2),
         point.combine(
-            gate(10),
-            gate(14 + setshift + 2 * resetshift)
+            gate(10 + clkshift),
+            gate(14 - clkshift + setshift + 2 * resetshift)
         ):translate( xpitch + bp.glength / 2, bp.sdwidth / 2)
     ))
     if not _P.enable_set and not _P.enable_reset then
+        dff:merge_into_shallow(geometry.rectanglebltr(generics.metal(1), 
+            gate(11 - clkshift):translate(0, -bp.sdwidth / 2),
+            gate(13 + clkshift + setshift + 2 * resetshift):translate(0, bp.sdwidth / 2)
+        ))
         dff:merge_into_shallow(geometry.rectanglebltr(generics.via(1, 2), 
             point.combine(
-                gate(11),
-                gate(13 + setshift + 2 * resetshift)
+                gate(11 - clkshift),
+                gate(13 + clkshift + setshift + 2 * resetshift)
             ):translate(-xpitch - bp.glength / 2, -bp.sdwidth / 2),
             point.combine(
-                gate(11),
-                gate(13 + setshift + 2 * resetshift)
+                gate(11 - clkshift),
+                gate(13 + clkshift + setshift + 2 * resetshift)
             ):translate( xpitch + bp.glength / 2, bp.sdwidth / 2)
         ))
     else
         dff:merge_into_shallow(geometry.rectanglebltr(generics.via(1, 2), 
-            gate(11):translate(-bp.glength / 2, -bp.sdwidth / 2),
-            gate(11):translate( bp.glength / 2, bp.sdwidth / 2)
+            gate(11 - clkshift):translate(-bp.glength / 2, -bp.sdwidth / 2),
+            gate(11 - clkshift):translate( bp.glength / 2, bp.sdwidth / 2)
         ))
         dff:merge_into_shallow(geometry.rectanglebltr(generics.via(1, 2), 
-            gate(13 + setshift + 2 * resetshift):translate(-bp.glength / 2, -bp.sdwidth / 2),
-            gate(13 + setshift + 2 * resetshift):translate( bp.glength / 2, bp.sdwidth / 2)
+            gate(15 + clkshift):translate(-bp.glength / 2, -bp.sdwidth / 2),
+            gate(15 + clkshift):translate( bp.glength / 2, bp.sdwidth / 2)
         ))
     end
 
@@ -297,12 +305,6 @@ function layout(dff, _P)
         gate(14 + setshift + 2 * resetshift):translate(xpitch, 0),
         sourcedrain("n", "i", 13 + setshift + resetshift):translate(0, -bp.sdwidth / 2),
         bp.sdwidth
-    ))
-
-    -- first latch connect lower clk gates (improves DRC-compatibility)
-    dff:merge_into_shallow(geometry.rectanglebltr(generics.metal(3), 
-        gate(10 + clkshift):translate(0, -bp.sdwidth / 2),
-        gate(14 - clkshift + setshift + 2 * resetshift):translate(0, bp.sdwidth / 2)
     ))
 
     -- short transistors in transmission gate
@@ -342,8 +344,8 @@ function layout(dff, _P)
         gate(17 + setshift + 2 * resetshift):translate((clkshift + 1) * xpitch + bp.glength / 2, bp.sdwidth / 2)
     ))
     dff:merge_into_shallow(geometry.rectanglebltr(generics.via(1, 2), 
-        gate(18 + setshift + 2 * resetshift):translate(-xpitch - bp.glength / 2, -bp.sdwidth / 2),
-        gate(18 + setshift + 2 * resetshift):translate( xpitch + bp.glength / 2, bp.sdwidth / 2)
+        gate(18 + setshift + 2 * resetshift):translate((-clkshift - 1) * xpitch - bp.glength / 2, -bp.sdwidth / 2),
+        gate(18 + setshift + 2 * resetshift):translate((-clkshift + 1) * xpitch + bp.glength / 2, bp.sdwidth / 2)
     ))
 
     -- second latch short nmos or pmos
