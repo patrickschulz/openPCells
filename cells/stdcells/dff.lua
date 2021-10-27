@@ -300,9 +300,9 @@ function layout(dff, _P)
     ))
 
     -- first latch connect lower clk gates (improves DRC-compatibility)
-    dff:merge_into_shallow(geometry.rectanglebltr(generics.metal(1), 
-        gate(10):translate(0, -bp.sdwidth / 2),
-        gate(14 + setshift + 2 * resetshift):translate(0, bp.sdwidth / 2)
+    dff:merge_into_shallow(geometry.rectanglebltr(generics.metal(3), 
+        gate(10 + clkshift):translate(0, -bp.sdwidth / 2),
+        gate(14 - clkshift + setshift + 2 * resetshift):translate(0, bp.sdwidth / 2)
     ))
 
     -- short transistors in transmission gate
