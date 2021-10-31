@@ -94,6 +94,20 @@ if args.techassistant then
     return 0
 end
 
+-- set environment variables
+envlib.set("debug", args.debug)
+envlib.set("humannotmachine", true) -- default is --human
+if args.machine then
+    envlib.set("humannotmachine", false)
+end
+envlib.set("verbose", args.verbose)
+if args.ignoremissinglayers then
+    envlib.set("ignoremissinglayers", true)
+end
+if args.ignoremissingexport then
+    envlib.set("ignoremissingexport", true)
+end
+
 -- gds info functions
 if args.showgdsdata then
     local maxlevel = args.showgdsdatadepth and tonumber(args.showgdsdatadepth) or math.huge
@@ -132,7 +146,11 @@ if args.readgds then
     else
         libname = string.gsub(args.readgds, "%.gds", "")
     end
-    import.translate_cells(cells, args.importprefix, libname, layermap, alignmentboxinfo, args.importoverwrite, args.importflatpattern)
+    local namepattern = "(.+)"
+    if args.importnamepattern then
+        namepattern = args.importnamepattern
+    end
+    import.translate_cells(cells, args.importprefix, libname, layermap, alignmentboxinfo, args.importoverwrite, args.importflatpattern, namepattern)
     return 0
 end
 
@@ -204,20 +222,6 @@ end
 if args.listtechpaths then
     technology.list_techpaths()
     return 0
-end
-
--- set environment variables
-envlib.set("debug", args.debug)
-envlib.set("humannotmachine", true) -- default is --human
-if args.machine then
-    envlib.set("humannotmachine", false)
-end
-envlib.set("verbose", args.verbose)
-if args.ignoremissinglayers then
-    envlib.set("ignoremissinglayers", true)
-end
-if args.ignoremissingexport then
-    envlib.set("ignoremissingexport", true)
 end
 
 -- list available cells

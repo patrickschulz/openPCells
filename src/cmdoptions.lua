@@ -197,6 +197,10 @@ return {
         help = "pattern for cells that should be flattened in a hierarchy during import"
     },
     store{
+        name = "importnamepattern", long = "--import-name-pattern",
+        help = "lua pattern to string.match to filter/rename cells. Every cell name is run through this matching and the first capture is used as cell name. The default is (.+), so the entire string is used."
+    },
+    store{
         name = "gdsalignmentboxlayer", long = "--gds-alignmentbox-layer",
         help = "provide a layer number to write an alignment box to generated cells"
     },
