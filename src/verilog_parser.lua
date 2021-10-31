@@ -36,7 +36,7 @@ local function _lexer(content)
                 local ident = { ch }
                 while true do
                     local nch = characters:peek()
-                    if nch and string.match(nch, "[a-zA-Z0-9_\\!]") then
+                    if nch and string.match(nch, "[a-zA-Z0-9_\\!/]") then
                         table.insert(ident, nch)
                         characters:advance()
                     else
@@ -156,6 +156,8 @@ local function _convert_to_symbols(tokens)
                 table.insert(symbols, "endmodule")
             elseif token.value == "wire" then
                 table.insert(symbols, "wire")
+            elseif token.value == "assign" then
+                table.insert(symbols, "assign")
             elseif token.value == "input" then
                 table.insert(symbols, "input")
             elseif token.value == "output" then
@@ -185,6 +187,14 @@ local function _convert_to_symbols(tokens)
                 table.insert(symbols, "rsqbracket")
             elseif token.value == ":" then
                 table.insert(symbols, "colon")
+            elseif token.value == "+" then
+                table.insert(symbols, "plus")
+            elseif token.value == "-" then
+                table.insert(symbols, "minus")
+            elseif token.value == "*" then
+                table.insert(symbols, "star")
+            elseif token.value == "/" then
+                table.insert(symbols, "slash")
             elseif token.value == "=" then
                 table.insert(symbols, "equalsign")
             end
@@ -239,6 +249,15 @@ local function _portconnection(symbols)
     end
 end
 
+local function _wirename(symbols)
+    symbols:expect("ident")
+    local num = optbusaccess(symbols)
+    if num then
+        name = string.format("%s_%d", name, num)
+    end
+    return name
+end
+
 local function _statement(symbols)
     local s = {}
     if symbols:accept("wire") or symbols:accept("input") or symbols:accept("output") or symbols:accept("inout") then
@@ -248,9 +267,17 @@ local function _statement(symbols)
             symbols:expect("number")
             symbols:expect("rsqbracket")
         end
-        symbols:expect("ident")
+        _wirename(symbols)
+        while symbols:accept("comma") do -- other names
+            _wirename(symbols)
+        end
         symbols:expect("semicolon")
         s.type = "wireportdef"
+    elseif symbols:accept("assign") then -- assign statement
+        _wirename(symbols)
+        symbols:expect("equalsign")
+        _wirename(symbols)
+        symbols:expect("semicolon")
     elseif symbols:accept("ident") then -- module instantiation
         s.name = symbols:next_identifier()
         s.instname = _instancename(symbols)
@@ -273,6 +300,7 @@ local function _statements(symbols)
           symbols:check("input") or 
           symbols:check("output") or 
           symbols:check("inout") or
+          symbols:check("assign") or
           symbols:check("ident") do
         table.insert(S, _statement(symbols))
     end
