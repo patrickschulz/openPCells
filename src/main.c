@@ -29,6 +29,7 @@
 #include "lshape.h"
 //#include "lunion.h"
 #include "lfilesystem.h"
+#include "lplacer.h"
 
 #include "config.h"
 
@@ -172,6 +173,7 @@ lua_State* create_and_initialize_lua()
     open_lshape_lib(L);
     //open_lunion_lib(L);
     open_lfilesystem_lib(L);
+    open_lplacer_lib(L);
 
     //lpoint_register_cfunctions(L);
 

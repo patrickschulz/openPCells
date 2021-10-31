@@ -15,7 +15,7 @@ SYSLDFLAGS=
 SYSLIBS=
 
 OPCHEADERS:=lpoint.h lbind.h lload.h lbinary.h lshape.h lfilesystem.h
-OPCCSOURCES:=ldir.c lpoint.c lbind.c lload.c lbinary.c lshape.c lfilesystem.c
+OPCCSOURCES:=ldir.c lpoint.c lbind.c lload.c lbinary.c lshape.c lfilesystem.c lplacer.c
 
 .PHONY: default
 default:

@@ -242,8 +242,12 @@ local function _portconnection(symbols)
         optbusaccess(symbols)
         symbols:expect("lparen")
         symbols:expect("ident")
-        connection.net = symbols:next_identifier()
-        optbusaccess(symbols)
+        local num = optbusaccess(symbols)
+        if num then
+            connection.net = string.format("%s_%d", symbols:next_identifier(), num)
+        else
+            connection.net = symbols:next_identifier()
+        end
         symbols:expect("rparen")
         return connection
     end
