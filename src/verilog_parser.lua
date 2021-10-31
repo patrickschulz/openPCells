@@ -3,24 +3,34 @@ local function _lexer(content)
     local characters = {
         index = 1,
         get = function(self)
-            return self[self.index]
+            if not self[self.index] then
+                return nil
+            end
+            return self[self.index].character, self[self.index].line
         end,
         peek = function(self, offset)
             offset = offset or 0
-            return self[self.index + 1 + offset]
+            if not self[self.index + 1 + offset] then
+                return nil
+            end
+            return self[self.index + 1 + offset].character, self[self.index + 1 + offset].line
         end,
         advance = function(self) 
             self.index = self.index + 1
         end,
     }
+    local line = 1
     for i = 1, string.len(content) do
-        characters[i] = string.sub(content, i, i)
+        characters[i] = { character = string.sub(content, i, i), line = line }
+        if string.sub(content, i, i) == "\n" then
+            line = line + 1
+        end
     end
 
     -- tokenize string
     local tokens = {}
     while true do
-        local ch = characters:get()
+        local ch, line = characters:get()
         if ch then
             if string.match(ch, "[a-zA-Z_\\]") then -- identifier
                 local ident = { ch }
@@ -33,7 +43,7 @@ local function _lexer(content)
                         break
                     end
                 end
-                table.insert(tokens, { type = "ident", value = table.concat(ident) })
+                table.insert(tokens, { type = "ident", value = table.concat(ident), line = line })
             elseif string.match(ch, "[0-9]") then -- number
                 local number = { ch }
                 while true do
@@ -45,7 +55,7 @@ local function _lexer(content)
                         break
                     end
                 end
-                table.insert(tokens, { type = "number", value = table.concat(number) })
+                table.insert(tokens, { type = "number", value = table.concat(number), line = line })
             elseif ch == "/" and characters:peek() == "/" then -- line comment
                 characters:advance()
                 local comment = { }
@@ -58,7 +68,7 @@ local function _lexer(content)
                         break
                     end
                 end
-                table.insert(tokens, { type = "linecomment", value = table.concat(comment) })
+                table.insert(tokens, { type = "linecomment", value = table.concat(comment), line = line })
             elseif ch == "/" and characters:peek() == "*" then -- block comment
                 characters:advance()
                 local comment = { }
@@ -72,15 +82,15 @@ local function _lexer(content)
                         break
                     end
                 end
-                table.insert(tokens, { type = "blockcomment", value = table.concat(comment) })
-            elseif string.match(ch, "[][:()+*/-]") then -- operators
-                table.insert(tokens, { type = "operator", value = ch })
+                table.insert(tokens, { type = "blockcomment", value = table.concat(comment), line = line })
+            elseif string.match(ch, "[][:()+*/=-]") then -- operators
+                table.insert(tokens, { type = "operator", value = ch, line = line })
             elseif ch == ";" or ch == "," or ch == "." then -- punctuation
-                table.insert(tokens, { type = "punct", value = ch })
+                table.insert(tokens, { type = "punct", value = ch, line = line })
             elseif ch == " " or ch == "\t" or ch == "\n" then
                 -- whitespace, do nothing
             else
-                error(string.format("unhandled character: %s", ch))
+                error(string.format("lexer: unhandled character: %s", ch))
             end
         else 
             break
@@ -97,6 +107,7 @@ local function _convert_to_symbols(tokens)
         numberindex = 0,
         identifiers = {},
         numbers = {},
+        lineinfo = {},
         current = function(self)
             return self[self.index]
         end,
@@ -121,7 +132,7 @@ local function _convert_to_symbols(tokens)
             if self:accept(symbol) then
                 return true
             end
-            error(string.format("expected '%s', got '%s'", symbol, self[self.index]))
+            error(string.format("expected '%s', got '%s' (source line %d)", symbol, self[self.index], self.lineinfo[self.index]))
         end,
         check = function(self, symbol)
             if self[self.index] == symbol then
@@ -174,6 +185,8 @@ local function _convert_to_symbols(tokens)
                 table.insert(symbols, "rsqbracket")
             elseif token.value == ":" then
                 table.insert(symbols, "colon")
+            elseif token.value == "=" then
+                table.insert(symbols, "equalsign")
             end
         end
         if token.type == "punct" then
@@ -185,6 +198,7 @@ local function _convert_to_symbols(tokens)
                 table.insert(symbols, "dot")
             end
         end
+        table.insert(symbols.lineinfo, token.line)
     end
     return symbols
 end
