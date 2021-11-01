@@ -97,16 +97,12 @@ function M.from_verilog(filename, noconnections, prefix, libname, overwrite, std
                 if not widths[name] then
                     local cell = pcell.create_layout(string.format("%s/%s", stdlibname, name))
                     widths[name] = cell:width_height_alignmentbox()
-                    print(name, widths[name])
                 end
                 table.insert(instances, { instance_name = instname, ref_name = name, net_conn = ct, width = widths[name] })
             end
         end
     end
-    local positions = placer.place(nets, instances, floorplanwidth, floorplanheight)
-    for name, position in pairs(positions) do
-        print(name, position.x, position.y)
-    end
+    local positions = placer.place(nets, instances, floorplanwidth, floorplanheight, 5)
 
     local path
     if prefix and prefix ~= "" then
