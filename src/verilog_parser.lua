@@ -36,7 +36,7 @@ local function _lexer(content)
                 local ident = { ch }
                 while true do
                     local nch = characters:peek()
-                    if nch and string.match(nch, "[a-zA-Z0-9_\\!/]") then
+                    if nch and string.match(nch, "[a-zA-Z0-9_\\!/$]") then
                         table.insert(ident, nch)
                         characters:advance()
                     else
@@ -83,14 +83,28 @@ local function _lexer(content)
                     end
                 end
                 table.insert(tokens, { type = "blockcomment", value = table.concat(comment), line = line })
-            elseif string.match(ch, "[][:()+*/=-]") then -- operators
+            elseif ch == "(" and characters:peek() == "*" then -- attribute
+                characters:advance()
+                local attribute = { }
+                while true do
+                    nch = characters:peek()
+                    nch2 = characters:peek(1)
+                    if not ((nch and nch == "*") and (nch2 and nch2 == ")")) then
+                        table.insert(attribute, nch)
+                        characters:advance()
+                    else
+                        break
+                    end
+                end
+                table.insert(tokens, { type = "attribute", value = table.concat(attribute), line = line })
+            elseif string.match(ch, "[][{}:()+*/=-]") then -- operators
                 table.insert(tokens, { type = "operator", value = ch, line = line })
-            elseif ch == ";" or ch == "," or ch == "." then -- punctuation
+            elseif ch == ";" or ch == "," or ch == "." or ch == "'" then -- punctuation
                 table.insert(tokens, { type = "punct", value = ch, line = line })
             elseif ch == " " or ch == "\t" or ch == "\n" then
                 -- whitespace, do nothing
             else
-                error(string.format("lexer: unhandled character: %s", ch))
+                error(string.format("lexer: unhandled character on line %d: %s", line, ch))
             end
         else 
             break
