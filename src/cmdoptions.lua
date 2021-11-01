@@ -220,6 +220,10 @@ return {
         name = "readverilog", long = "--read-verilog",
         help = "read a verilog netlist (the parser only handles a very simple subset of verilog, RTL and such things won't work) and generate a pcell skeleton with all cells and connections (ALPHA STAGE, NOT TESTED EXHAUSTIVELY)"
     },
+    store{
+        name = "verilogstdcelllib", long = "--read-verilog-stdcell-library",
+        help = "provide a opc library which includes the required library cells for digital placement (verilog import)"
+    },
     switch{
         name = "readverilogdontcreatewires", long = "--read-verilog-no-connections",
         help = "while importing a verilog netlist, don't generate any connections"

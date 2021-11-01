@@ -154,11 +154,6 @@ if args.readgds then
     return 0
 end
 
-if args.readverilog then
-    generator.from_verilog(args.readverilog, args.readverilogdontcreatewires, args.importprefix or "verilogimport", "verilogimport", true)
-    return 0
-end
-
 -- check for script firsts, nothing gets defined for scripts
 if args.script then
     dofile(args.script)
@@ -249,6 +244,18 @@ if args.listcells or args.listallcells then
         io.write(postpathstr)
     end
     io.write(postfmt)
+    return 0
+end
+
+if args.readverilog then
+    generator.from_verilog(
+        args.readverilog, 
+        args.readverilogdontcreatewires, 
+        args.importprefix or "verilogimport", 
+        "verilogimport", 
+        true,
+        args.verilogstdcelllib or "stdcell"
+    )
     return 0
 end
 
