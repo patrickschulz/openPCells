@@ -13,20 +13,19 @@
 #define MAX_CELLS_PER_ROW (2000)
 #define MAX_UNITS_PER_ROW (1000)
 
-/* Global variables
- * ----------------
- */
+/* Structure definitions  */
+struct floorplan {
+    int floorplan_width;
+    int floorplan_height;
+    int site_height;
+    int site_width;
+    double weight_wirelength;
+    double weight_width_penalty;
+    int cell_count;
+    int cell_total_width;
+    int total_wirelength;
+};
 
-/* For lengths, 1 unit is equal to 1 nm. */
-const int site_height = 640, site_width = 19;
-const double weight_wirelength = 1.0;
-const double weight_width_penalty = 1.0;
-int cell_count, cell_total_width;
-int total_wirelength;
-
-/* Strcture definitions & netlist include
- * --------------------------------------
- */
 struct cell {
     char* instance_name;
     char* ref_name;
@@ -71,11 +70,11 @@ bool random_choice(double prob)
     return r < prob;
 }
 
-static inline void net_update_wirelength(struct net* n)
+static inline void net_update_wirelength(struct net* n, struct floorplan* floorplan)
 {
     int x_upper, x_lower, y_upper, y_lower;
 
-    total_wirelength -= n->halfperi_wirelength;
+    floorplan->total_wirelength -= n->halfperi_wirelength;
 
     if(!n->cell_conn[0])
     {
@@ -107,23 +106,23 @@ static inline void net_update_wirelength(struct net* n)
     }
     n->halfperi_wirelength = (x_upper - x_lower) + (y_upper - y_lower);
 
-    total_wirelength += n->halfperi_wirelength;
+    floorplan->total_wirelength += n->halfperi_wirelength;
 }
 
-void cell_update_wirelengths(struct cell* c)
+void cell_update_wirelengths(struct cell* c, struct floorplan* floorplan)
 {
     struct net** n_p;
 
     for(n_p = c->net_conn; *n_p; n_p++)
     {
-        net_update_wirelength(*n_p);
+        net_update_wirelength(*n_p, floorplan);
     }
 }
 
-static inline void cell_place_random(struct cell* c, int floorplan_width, int floorplan_height)
+static inline void cell_place_random(struct cell* c, struct floorplan* floorplan)
 {
-    c->pos_x = (_randi() % ((floorplan_width - c->width) / site_width)) * site_width;
-    c->pos_y = (_randi() % (floorplan_height / site_height - 1)) * site_height;
+    c->pos_x = (_randi() % ((floorplan->floorplan_width - c->width) / floorplan->site_width)) * floorplan->site_width;
+    c->pos_y = (_randi() % (floorplan->floorplan_height / floorplan->site_height - 1)) * floorplan->site_height;
 }
 
 void update_net_struct_ptrs(struct net* all_nets, size_t num_nets, struct cell* all_cells, size_t num_cells)
@@ -156,62 +155,62 @@ void update_net_struct_ptrs(struct net* all_nets, size_t num_nets, struct cell* 
     }
 }
 
-int get_total_wirelength(bool initial, struct net* all_nets, size_t num_nets)
+int get_total_wirelength(bool initial, struct net* all_nets, size_t num_nets, struct floorplan* floorplan)
 {
     if(initial)
     {
-        total_wirelength = 0;
+        floorplan->total_wirelength = 0;
         for(size_t i = 0; i < num_nets; ++i)
         {
             struct net* n = all_nets + i;
             n->halfperi_wirelength = 0;
-            net_update_wirelength(n);
+            net_update_wirelength(n, floorplan);
             //total_wirelength += n->halfperi_wirelength;
         }
     }
-    return total_wirelength;
+    return floorplan->total_wirelength;
 }
 
-void update_cell_count(struct cell* all_cells, size_t num_cells)
+void update_cell_count(struct cell* all_cells, size_t num_cells, struct floorplan* floorplan)
 {
-    cell_count = 0;
-    cell_total_width = 0;
+    floorplan->cell_count = 0;
+    floorplan->cell_total_width = 0;
     for(size_t i = 0; i < num_cells; ++i)
     {
         struct cell* c = all_cells + i;
-        cell_count++;
-        cell_total_width += c->width;
+        floorplan->cell_count++;
+        floorplan->cell_total_width += c->width;
     }
 }
 
-void undo(struct rollback* r)
+void undo(struct rollback* r, struct floorplan* floorplan)
 {
     if(r->c1)
     {
         r->c1->pos_x = r->x1;
         r->c1->pos_y = r->y1;
-        cell_update_wirelengths(r->c1);
+        cell_update_wirelengths(r->c1, floorplan);
     }
     if(r->c2)
     {
         r->c2->pos_x = r->x2;
         r->c2->pos_y = r->y2;
-        cell_update_wirelengths(r->c2);
+        cell_update_wirelengths(r->c2, floorplan);
     }
 }
 
-struct cell* random_cell(struct cell* all_cells)
+struct cell* random_cell(struct cell* all_cells, struct floorplan* floorplan)
 {
-    return all_cells + _randi() % cell_count;
+    return all_cells + _randi() % floorplan->cell_count;
 }
 
-void get_cells_of_row(struct cell* all_cells, size_t num_cells, struct cell** cells_in_row, int cur_row)
+void get_cells_of_row(struct cell* all_cells, size_t num_cells, struct cell** cells_in_row, int cur_row, struct floorplan* floorplan)
 {
     int cur_cell_idx = 0;
     for(size_t i = 0; i < num_cells; ++i)
     {
         struct cell* c = all_cells + i;
-        if(c->pos_y == cur_row * site_height)
+        if(c->pos_y == cur_row * floorplan->site_height)
         {
             cells_in_row[cur_cell_idx++] = c;
             if(cur_cell_idx >= MAX_CELLS_PER_ROW)
@@ -224,14 +223,14 @@ void get_cells_of_row(struct cell* all_cells, size_t num_cells, struct cell** ce
     cells_in_row[cur_cell_idx] = NULL;
 }
 
-double get_legality_penalty(struct cell* all_cells, size_t num_cells, int floorplan_width, int floorplan_height)
+double get_legality_penalty(struct cell* all_cells, size_t num_cells, struct floorplan* floorplan)
 {
     struct cell* cells_in_row[MAX_CELLS_PER_ROW];
 
-    int units_per_row = floorplan_width / site_width;
+    int units_per_row = floorplan->floorplan_width / floorplan->site_width;
     assert(MAX_UNITS_PER_ROW > units_per_row); // this is not sufficient as the stdcell width is not factored in
 
-    int desired_width_per_row = cell_total_width / ((floorplan_height / site_height) - 1);
+    int desired_width_per_row = floorplan->cell_total_width / ((floorplan->floorplan_height / floorplan->site_height) - 1);
 
     struct cell** c_p;
     int cur_row;
@@ -240,13 +239,13 @@ double get_legality_penalty(struct cell* all_cells, size_t num_cells, int floorp
     double total_overlap = 0.0;
     double total_width_penalty = 0.0;
 
-    for(cur_row = 0; cur_row < floorplan_height/site_height - 1; cur_row++)
+    for(cur_row = 0; cur_row < floorplan->floorplan_height / floorplan->site_height - 1; cur_row++)
     {
         int occupancy[MAX_UNITS_PER_ROW];
         int row_cell_width_sum;
         int row_overlap;
 
-        get_cells_of_row(all_cells, num_cells, cells_in_row, cur_row);
+        get_cells_of_row(all_cells, num_cells, cells_in_row, cur_row, floorplan);
 
         memset(occupancy, 0, sizeof(occupancy));
 
@@ -255,9 +254,9 @@ double get_legality_penalty(struct cell* all_cells, size_t num_cells, int floorp
         for(c_p = cells_in_row;* c_p; c_p++)
         {
             row_cell_width_sum += (*c_p)->width;
-            for(unit_ctr = 0;unit_ctr<(*c_p)->width / site_width;unit_ctr++)
+            for(unit_ctr = 0; unit_ctr < (*c_p)->width / floorplan->site_width; unit_ctr++)
             {
-                occupancy[(*c_p)->pos_x / site_width + unit_ctr]++;
+                occupancy[(*c_p)->pos_x / floorplan->site_width + unit_ctr]++;
             }
         } 
         row_overlap = 0;
@@ -272,53 +271,33 @@ double get_legality_penalty(struct cell* all_cells, size_t num_cells, int floorp
         total_overlap += row_overlap;
         total_width_penalty += abs(desired_width_per_row - row_cell_width_sum);
     }
-    return total_overlap * total_overlap + weight_width_penalty * total_width_penalty;
+    return total_overlap * total_overlap + floorplan->weight_width_penalty * total_width_penalty;
 }
 
-void write_cell_locations(struct cell* all_cells, size_t num_cells, char* fn)
-{
-    FILE* f = fopen(fn, "w");
-
-    if(!f)
-    {
-        perror("Failed to open file to write cell positions.");
-        exit(1);
-    }
-    //fprintf(f, "set cell_location {\n");
-    for(size_t i = 0; i < num_cells; ++i)
-    {
-        struct cell* c = all_cells + i;
-        fprintf(f, "%s:translate(%d, %d)\n", c->instance_name, c->pos_x, c->pos_y);
-    }
-    //fprintf(f, "}\n");
-
-    fclose(f);
-}
-
-void place_initial_random(struct cell* all_cells, size_t num_cells, int floorplan_width, int floorplan_height)
+void place_initial_random(struct cell* all_cells, size_t num_cells, struct floorplan* floorplan)
 {
     for(size_t i = 0; i < num_cells; ++i)
     {
         struct cell* c = all_cells + i;
-        cell_place_random(c, floorplan_width, floorplan_height);
-        cell_update_wirelengths(c);
+        cell_place_random(c, floorplan);
+        cell_update_wirelengths(c, floorplan);
         //printf("%s: pos = (%i, %i)\n", c->instance_name, c->pos_x, c->pos_y);
     }
 }
 
-double get_total_penalty(struct net* all_nets, size_t num_nets, struct cell* all_cells, size_t num_cells, int floorplan_width, int floorplan_height)
+double get_total_penalty(struct net* all_nets, size_t num_nets, struct cell* all_cells, size_t num_cells, struct floorplan* floorplan)
 {
-    int wirelength = get_total_wirelength(false, all_nets, num_nets);
-    double legality_penalty = get_legality_penalty(all_cells, num_cells, floorplan_width, floorplan_height);
-    double total_penalty = weight_wirelength * wirelength + legality_penalty;
+    int wirelength = get_total_wirelength(false, all_nets, num_nets, floorplan);
+    double legality_penalty = get_legality_penalty(all_cells, num_cells, floorplan);
+    double total_penalty = floorplan->weight_wirelength * wirelength + legality_penalty;
     return total_penalty;
 }
 
-void report_status(struct net* all_nets, size_t num_nets, struct cell* all_cells, size_t num_cells, int floorplan_width, int floorplan_height)
+void report_status(struct net* all_nets, size_t num_nets, struct cell* all_cells, size_t num_cells, struct floorplan* floorplan)
 {
-    int wirelength = get_total_wirelength(false, all_nets, num_nets);
-    double legality_penalty = get_legality_penalty(all_cells, num_cells, floorplan_width, floorplan_height);
-    double total_penalty = weight_wirelength * wirelength + legality_penalty;
+    int wirelength = get_total_wirelength(false, all_nets, num_nets, floorplan);
+    double legality_penalty = get_legality_penalty(all_cells, num_cells, floorplan);
+    double total_penalty = floorplan->weight_wirelength * wirelength + legality_penalty;
     printf("total_penalty = %.1f, wirelength = %i.%i, legality_penalty = %.1f\n", total_penalty, wirelength / 100, wirelength % 100, legality_penalty);
 }
 
@@ -326,17 +305,17 @@ void report_status(struct net* all_nets, size_t num_nets, struct cell* all_cells
  * --------------------------------------------
  */
 
-void m1(struct cell* a, struct rollback* r, int floorplan_width, int floorplan_height)
+void m1(struct cell* a, struct rollback* r, struct floorplan* floorplan)
 {
     r->c1 = a;
     r->x1 = a->pos_x;
     r->y1 = a->pos_y;
     r->c2 = NULL;
-    cell_place_random(a, floorplan_width, floorplan_height);
-    cell_update_wirelengths(a);
+    cell_place_random(a, floorplan);
+    cell_update_wirelengths(a, floorplan);
 }
 
-void m2(struct cell* a, struct cell* b, struct rollback* r)
+void m2(struct cell* a, struct cell* b, struct rollback* r, struct floorplan* floorplan)
 {
     r->c1 = a;
     r->x1 = a->pos_x;
@@ -351,8 +330,8 @@ void m2(struct cell* a, struct cell* b, struct rollback* r)
     b->pos_x = r->x1;
     b->pos_y = r->y1;
 
-    cell_update_wirelengths(a);
-    cell_update_wirelengths(b);
+    cell_update_wirelengths(a, floorplan);
+    cell_update_wirelengths(b, floorplan);
 }
 
 int lplacer_place(lua_State* L)
@@ -422,44 +401,53 @@ int lplacer_place(lua_State* L)
     }
 
     // ------ end of lua bridge ------
-    //
-    const int floorplan_width = luaL_checkinteger(L, 3);
-    const int floorplan_height = luaL_checkinteger(L, 4);
+
+    /* For lengths, 1 unit is equal to 1 nm */
+    struct floorplan floorplan = {
+        .site_height = 640, .site_width = 19,
+        .weight_wirelength = 1.0,
+        .weight_width_penalty = 1.0,
+        .cell_count = 0,
+        .cell_total_width = 0,
+        .total_wirelength = 0,
+        .floorplan_width = luaL_checkinteger(L, 3),
+        .floorplan_height = luaL_checkinteger(L, 4)
+    };
 
     // always start with same random seed -> leads to deterministic execution:
     srand(0);
     update_net_struct_ptrs(all_nets, num_nets, all_cells, num_cells);
-    place_initial_random(all_cells, num_cells, floorplan_width, floorplan_height);
-    update_cell_count(all_cells, num_cells);
-    get_total_wirelength(true, all_nets, num_nets);
-    report_status(all_nets, num_nets, all_cells, num_cells, floorplan_width, floorplan_height);
+    place_initial_random(all_cells, num_cells, &floorplan);
+    update_cell_count(all_cells, num_cells, &floorplan);
+    get_total_wirelength(true, all_nets, num_nets, &floorplan);
+    report_status(all_nets, num_nets, all_cells, num_cells, &floorplan);
 
-    const int moves_per_cell_per_temp = 2;
+    const int moves_per_cell_per_temp = luaL_checkinteger(L, 5);
     double temperature = 5000.0;
 
     int move_ctr;
     double last_total_penalty = 100000000000;
     while(temperature > 0.01)
     {
-        for(move_ctr = 0; move_ctr < moves_per_cell_per_temp * cell_count; move_ctr++)
+        for(move_ctr = 0; move_ctr < moves_per_cell_per_temp * floorplan.cell_count; move_ctr++)
         {
             struct rollback r;
 
             if(random_choice(0.25))
             {
-                m2(random_cell(all_cells), random_cell(all_cells), &r);
+                m2(random_cell(all_cells, &floorplan), random_cell(all_cells, &floorplan), &r, &floorplan);
             }
             else
             {
-                m1(random_cell(all_cells), &r, floorplan_width, floorplan_height);
+                m1(random_cell(all_cells, &floorplan), &r, &floorplan);
             }
 
-            double total_penalty = get_total_penalty(all_nets, num_nets, all_cells, num_cells, floorplan_width, floorplan_height);
+            double total_penalty = get_total_penalty(all_nets, num_nets, all_cells, num_cells, &floorplan);
 
             if(move_ctr == 0)
             {
                 printf("temperature = %.3f, ", temperature);
-                report_status(all_nets, num_nets, all_cells, num_cells, floorplan_width, floorplan_height);
+                report_status(all_nets, num_nets, all_cells, num_cells, &floorplan);
             }
 
             if(total_penalty > last_total_penalty)
@@ -471,7 +459,7 @@ int lplacer_place(lua_State* L)
                 }
                 else
                 {
-                    undo(&r);
+                    undo(&r, &floorplan);
                 }
             }
             else // last_total_penalty >= total_penalty
@@ -483,8 +471,7 @@ int lplacer_place(lua_State* L)
         temperature *= 0.95;
     }
 
-    report_status(all_nets, num_nets, all_cells, num_cells, floorplan_width, floorplan_height);
-    //write_cell_locations(all_cells, num_cells, "cellpositions");
+    report_status(all_nets, num_nets, all_cells, num_cells, &floorplan);
 
     // bring back results to lua
     lua_createtable(L, num_cells, 0);
