@@ -16,7 +16,6 @@ local function _write_module(file, module, noconnections)
     end
     file:write('    }\n')
 
-
     -- place cells and collect connections
     file:write('    local cellnames = {\n')
     local connections = {}
@@ -58,7 +57,7 @@ local function _generate_from_ast(basename, tree, noconnections)
     end
 end
 
-function M.from_verilog(filename, noconnections, prefix, libname, overwrite)
+function M.from_verilog(filename, noconnections, prefix, libname, overwrite, stdlibname)
     local file = io.open(filename, "r")
     if not file then
         moderror(string.format("generator.verilog_routing: could not open file '%s'", filename))
@@ -67,6 +66,8 @@ function M.from_verilog(filename, noconnections, prefix, libname, overwrite)
     local tree = verilog_parser.parse(content)
     local nets = { set = {} }
     local instances = {}
+    local widths = {}
+    local excluded_nets = { "clk", "VDD", "VSS" }
     for _, module in ipairs(tree.modules) do
         for _, statement in ipairs(module.statements) do
             local name = statement.name
@@ -74,7 +75,7 @@ function M.from_verilog(filename, noconnections, prefix, libname, overwrite)
             if statement.type == "moduleinstantiation" then
                 local ct = {}
                 for _, c in ipairs(statement.connections) do
-                    if c.net ~= "clk" then
+                    if not aux.any_of(function(v) return v == c.net end, excluded_nets) then
                         if not nets.set[c.net] then
                             table.insert(nets, c.net)
                             nets.set[c.net] = true
@@ -87,7 +88,12 @@ function M.from_verilog(filename, noconnections, prefix, libname, overwrite)
                         end
                     end
                 end
-                table.insert(instances, { instance_name = instname, ref_name = name, net_conn = ct })
+                if not widths[name] then
+                    local cell = pcell.create_layout(string.format("%s/%s", stdlibname, name))
+                    widths[name] = cell:width_height_alignmentbox()
+                    print(name, widths[name])
+                end
+                table.insert(instances, { instance_name = instname, ref_name = name, net_conn = ct, width = widths[name] })
             end
         end
     end
