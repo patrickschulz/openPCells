@@ -368,9 +368,6 @@ void m2(struct cell* a, struct cell* b, struct rollback* r)
 
 int lplacer_place(lua_State* L)
 {
-    // always start with same random seed -> leads to deterministic execution:
-    srand(0);
-
     lua_len(L, 1);
     size_t numnets = lua_tointeger(L, -1);
     lua_pop(L, 1);
@@ -418,16 +415,6 @@ int lplacer_place(lua_State* L)
         all_cells[i - 1].width = lua_tointeger(L, -1);
         lua_pop(L, 1);
 
-        // pos_x
-        lua_getfield(L, -1, "pos_x");
-        all_cells[i - 1].pos_x = lua_tointeger(L, -1);
-        lua_pop(L, 1);
-
-        // pos_y
-        lua_getfield(L, -1, "pos_y");
-        all_cells[i - 1].pos_y = lua_tointeger(L, -1);
-        lua_pop(L, 1);
-
         // net_conn
         lua_getfield(L, -1, "net_conn");
         lua_len(L, -1);
@@ -445,20 +432,10 @@ int lplacer_place(lua_State* L)
         lua_pop(L, 1);
     }
 
-    /*
-    for(size_t i = 0; i < numnets; ++i)
-    {
-        free(all_nets[i].net_name);
-    }
-    free(all_nets);
-    for(size_t i = 1; i <= numcells; ++i)
-    {
-        free(all_cells[i - 1].instance_name);
-        free(all_cells[i - 1].ref_name);
-    }
-    free(all_cells);
-    */
+    // ------ end of lua bridge ------
 
+    // always start with same random seed -> leads to deterministic execution:
+    srand(0);
     update_net_struct_ptrs(all_nets, all_cells);
     place_initial_random(all_cells);
     update_cell_count(all_cells);
@@ -515,6 +492,19 @@ int lplacer_place(lua_State* L)
     }
 
     report_status(all_nets, all_cells);
+
+    for(size_t i = 0; i < numnets; ++i)
+    {
+        free(all_nets[i].net_name);
+    }
+    free(all_nets);
+    for(size_t i = 1; i <= numcells; ++i)
+    {
+        free(all_cells[i - 1].instance_name);
+        free(all_cells[i - 1].ref_name);
+    }
+    free(all_cells);
+
     return 0;
 }
 
