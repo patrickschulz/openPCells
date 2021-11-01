@@ -1,6 +1,6 @@
 local M = {}
 
-local function _write_module(file, module, noconnections)
+local function _write_module(file, module, positions, noconnections)
     -- set up lookup tables
     local references = {}
     file:write('    local references = {\n')
@@ -17,13 +17,17 @@ local function _write_module(file, module, noconnections)
     file:write('    }\n')
 
     -- place cells and collect connections
-    file:write('    local cellnames = {\n')
+    file:write('    local cells = {\n')
     local connections = {}
     for _, statement in ipairs(module.statements) do
         local name = statement.name
         local instname = statement.instname
         if statement.type == "moduleinstantiation" then
-            file:write(string.format('        references["%s"],\n', name))
+            file:write(string.format('        ["%s"] = toplevel:add_child(references["%s"], "%s")', instname, name, instname))
+            if positions[instname] then
+                file:write(string.format(':translate(%d, %d)', positions[instname].x, positions[instname].y))
+            end
+            file:write(",\n")
             for _, connection in ipairs(statement.connections) do
                 if not connections[connection.net] then connections[connection.net] = {} end
                 table.insert(connections[connection.net], { instance = instname, port = connection.port })
@@ -31,8 +35,9 @@ local function _write_module(file, module, noconnections)
         end
     end
     file:write('    }\n')
-    file:write('    placement.digital_auto(toplevel, 104, 400 * 104, cellnames, {}, 0.8)\n')
+    --file:write('    placement.digital_auto(toplevel, 104, 400 * 104, cellnames, {}, 0.8)\n')
 
+    --[[
     -- place connections
     if not noconnections then
         for net, connection in pairs(connections) do
@@ -43,15 +48,16 @@ local function _write_module(file, module, noconnections)
             end
         end
     end
+    --]]
 end
 
-local function _generate_from_ast(basename, tree, noconnections)
+local function _generate_from_ast(basename, tree, positions, noconnections)
     for _, module in ipairs(tree.modules) do
         print(string.format("writing to file '%s/%s.lua'", basename, module.name))
         local file = io.open(string.format("%s/%s.lua", basename, module.name), "w")
         file:write("function parameters()\nend\n\n")
         file:write("function layout(toplevel)\n")
-        _write_module(file, module, noconnections)
+        _write_module(file, module, positions, noconnections)
         file:write("end")
         file:close()
     end
@@ -97,9 +103,11 @@ function M.from_verilog(filename, noconnections, prefix, libname, overwrite, std
             end
         end
     end
-    placer.place(nets, instances)
+    local positions = placer.place(nets, instances)
+    for name, position in pairs(positions) do
+        print(name, position.x, position.y)
+    end
 
-    --[[
     local path
     if prefix and prefix ~= "" then
         path = string.format("%s/%s", prefix, libname)
@@ -115,12 +123,11 @@ function M.from_verilog(filename, noconnections, prefix, libname, overwrite, std
             end
             local content = file:read("a")
             local tree = verilog_parser.parse(content)
-            _generate_from_ast(string.format("%s/%s", prefix, libname), tree, noconnections)
+            _generate_from_ast(string.format("%s/%s", prefix, libname), tree, positions, noconnections)
         else
             moderror(string.format("generator.verilog_routing: could not create directory '%s/%s'", prefix, libname))
         end
     end
-    --]]
 end
 
 return M
