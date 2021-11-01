@@ -63,7 +63,7 @@ local function _generate_from_ast(basename, tree, positions, noconnections)
     end
 end
 
-function M.from_verilog(filename, noconnections, prefix, libname, overwrite, stdlibname)
+function M.from_verilog(filename, noconnections, prefix, libname, overwrite, stdlibname, floorplanwidth, floorplanheight)
     local file = io.open(filename, "r")
     if not file then
         moderror(string.format("generator.verilog_routing: could not open file '%s'", filename))
@@ -103,7 +103,7 @@ function M.from_verilog(filename, noconnections, prefix, libname, overwrite, std
             end
         end
     end
-    local positions = placer.place(nets, instances)
+    local positions = placer.place(nets, instances, floorplanwidth, floorplanheight)
     for name, position in pairs(positions) do
         print(name, position.x, position.y)
     end

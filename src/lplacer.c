@@ -18,7 +18,6 @@
  */
 
 /* For lengths, 1 unit is equal to 1 nm. */
-const int floorplan_width = 10000, floorplan_height = 20000;
 const int site_height = 640, site_width = 19;
 const double weight_wirelength = 1.0;
 const double weight_width_penalty = 1.0;
@@ -121,7 +120,7 @@ void cell_update_wirelengths(struct cell* c)
     }
 }
 
-static inline void cell_place_random(struct cell* c)
+static inline void cell_place_random(struct cell* c, int floorplan_width, int floorplan_height)
 {
     c->pos_x = (_randi() % ((floorplan_width - c->width) / site_width)) * site_width;
     c->pos_y = (_randi() % (floorplan_height / site_height - 1)) * site_height;
@@ -225,7 +224,7 @@ void get_cells_of_row(struct cell* all_cells, size_t num_cells, struct cell** ce
     cells_in_row[cur_cell_idx] = NULL;
 }
 
-double get_legality_penalty(struct cell* all_cells, size_t num_cells)
+double get_legality_penalty(struct cell* all_cells, size_t num_cells, int floorplan_width, int floorplan_height)
 {
     struct cell* cells_in_row[MAX_CELLS_PER_ROW];
 
@@ -296,29 +295,29 @@ void write_cell_locations(struct cell* all_cells, size_t num_cells, char* fn)
     fclose(f);
 }
 
-void place_initial_random(struct cell* all_cells, size_t num_cells)
+void place_initial_random(struct cell* all_cells, size_t num_cells, int floorplan_width, int floorplan_height)
 {
     for(size_t i = 0; i < num_cells; ++i)
     {
         struct cell* c = all_cells + i;
-        cell_place_random(c);
+        cell_place_random(c, floorplan_width, floorplan_height);
         cell_update_wirelengths(c);
         //printf("%s: pos = (%i, %i)\n", c->instance_name, c->pos_x, c->pos_y);
     }
 }
 
-double get_total_penalty(struct net* all_nets, size_t num_nets, struct cell* all_cells, size_t num_cells)
+double get_total_penalty(struct net* all_nets, size_t num_nets, struct cell* all_cells, size_t num_cells, int floorplan_width, int floorplan_height)
 {
     int wirelength = get_total_wirelength(false, all_nets, num_nets);
-    double legality_penalty = get_legality_penalty(all_cells, num_cells);
+    double legality_penalty = get_legality_penalty(all_cells, num_cells, floorplan_width, floorplan_height);
     double total_penalty = weight_wirelength * wirelength + legality_penalty;
     return total_penalty;
 }
 
-void report_status(struct net* all_nets, size_t num_nets, struct cell* all_cells, size_t num_cells)
+void report_status(struct net* all_nets, size_t num_nets, struct cell* all_cells, size_t num_cells, int floorplan_width, int floorplan_height)
 {
     int wirelength = get_total_wirelength(false, all_nets, num_nets);
-    double legality_penalty = get_legality_penalty(all_cells, num_cells);
+    double legality_penalty = get_legality_penalty(all_cells, num_cells, floorplan_width, floorplan_height);
     double total_penalty = weight_wirelength * wirelength + legality_penalty;
     printf("total_penalty = %.1f, wirelength = %i.%i, legality_penalty = %.1f\n", total_penalty, wirelength / 100, wirelength % 100, legality_penalty);
 }
@@ -327,13 +326,13 @@ void report_status(struct net* all_nets, size_t num_nets, struct cell* all_cells
  * --------------------------------------------
  */
 
-void m1(struct cell* a, struct rollback* r)
+void m1(struct cell* a, struct rollback* r, int floorplan_width, int floorplan_height)
 {
     r->c1 = a;
     r->x1 = a->pos_x;
     r->y1 = a->pos_y;
     r->c2 = NULL;
-    cell_place_random(a);
+    cell_place_random(a, floorplan_width, floorplan_height);
     cell_update_wirelengths(a);
 }
 
@@ -423,14 +422,17 @@ int lplacer_place(lua_State* L)
     }
 
     // ------ end of lua bridge ------
+    //
+    const int floorplan_width = luaL_checkinteger(L, 3);
+    const int floorplan_height = luaL_checkinteger(L, 4);
 
     // always start with same random seed -> leads to deterministic execution:
     srand(0);
     update_net_struct_ptrs(all_nets, num_nets, all_cells, num_cells);
-    place_initial_random(all_cells, num_cells);
+    place_initial_random(all_cells, num_cells, floorplan_width, floorplan_height);
     update_cell_count(all_cells, num_cells);
     get_total_wirelength(true, all_nets, num_nets);
-    report_status(all_nets, num_nets, all_cells, num_cells);
+    report_status(all_nets, num_nets, all_cells, num_cells, floorplan_width, floorplan_height);
 
     const int moves_per_cell_per_temp = 2;
     double temperature = 5000.0;
@@ -449,15 +451,15 @@ int lplacer_place(lua_State* L)
             }
             else
             {
-                m1(random_cell(all_cells), &r);
+                m1(random_cell(all_cells), &r, floorplan_width, floorplan_height);
             }
 
-            double total_penalty = get_total_penalty(all_nets, num_nets, all_cells, num_cells);
+            double total_penalty = get_total_penalty(all_nets, num_nets, all_cells, num_cells, floorplan_width, floorplan_height);
 
             if(move_ctr == 0)
             {
                 printf("temperature = %.3f, ", temperature);
-                report_status(all_nets, num_nets, all_cells, num_cells);
+                report_status(all_nets, num_nets, all_cells, num_cells, floorplan_width, floorplan_height);
             }
 
             if(total_penalty > last_total_penalty)
@@ -481,7 +483,7 @@ int lplacer_place(lua_State* L)
         temperature *= 0.95;
     }
 
-    report_status(all_nets, num_nets, all_cells, num_cells);
+    report_status(all_nets, num_nets, all_cells, num_cells, floorplan_width, floorplan_height);
     //write_cell_locations(all_cells, num_cells, "cellpositions");
 
     // bring back results to lua

@@ -224,6 +224,14 @@ return {
         name = "verilogstdcelllib", long = "--read-verilog-stdcell-library",
         help = "provide a opc library which includes the required library cells for digital placement (verilog import)"
     },
+    store{
+        name = "verilogfloorplanwidth", long = "--read-verilog-floorplan-width",
+        help = "floorplan width (in nano meter) for digital placement"
+    },
+    store{
+        name = "verilogfloorplanheight", long = "--read-verilog-floorplan-height",
+        help = "floorplan height (in nano meter) for digital placement"
+    },
     switch{
         name = "readverilogdontcreatewires", long = "--read-verilog-no-connections",
         help = "while importing a verilog netlist, don't generate any connections"

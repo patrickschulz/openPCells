@@ -248,13 +248,23 @@ if args.listcells or args.listallcells then
 end
 
 if args.readverilog then
+    if not args.verilogfloorplanwidth then
+        print("verilog import: no floorplan width provided")
+        return 1
+    end
+    if not args.verilogfloorplanheight then
+        print("verilog import: no floorplan height provided")
+        return 1
+    end
     generator.from_verilog(
         args.readverilog, 
         args.readverilogdontcreatewires, 
         args.importprefix or "verilogimport", 
         "verilogimport", 
         true,
-        args.verilogstdcelllib or "stdcell"
+        args.verilogstdcelllib or "stdcell",
+        tonumber(args.verilogfloorplanwidth),
+        tonumber(args.verilogfloorplanheight)
     )
     return 0
 end
