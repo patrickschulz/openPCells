@@ -225,12 +225,20 @@ return {
         help = "provide a opc library which includes the required library cells for digital placement (verilog import)"
     },
     store{
+        name = "verilogplacercellmovements", long = "--read-verilog-placer-cell-movements",
+        help = "number of moves per cell for each temperature in placement"
+    },
+    store{
         name = "verilogfloorplanwidth", long = "--read-verilog-floorplan-width",
         help = "floorplan width (in nano meter) for digital placement"
     },
     store{
         name = "verilogfloorplanheight", long = "--read-verilog-floorplan-height",
         help = "floorplan height (in nano meter) for digital placement"
+    },
+    store_multiple{
+        name = "verilogexcludednets", long = "--read-verilog-exclude-net",
+        help = "specify nets to be excluded in placement (can be specified multiple times)"
     },
     switch{
         name = "readverilogdontcreatewires", long = "--read-verilog-no-connections",

@@ -256,6 +256,7 @@ if args.readverilog then
         print("verilog import: no floorplan height provided")
         return 1
     end
+    local excluded_nets = args.verilogexcludednets
     generator.from_verilog(
         args.readverilog, 
         args.readverilogdontcreatewires, 
@@ -263,8 +264,10 @@ if args.readverilog then
         "verilogimport", 
         true,
         args.verilogstdcelllib or "stdcell",
+        args.verilogplacercellmovements or 1,
         tonumber(args.verilogfloorplanwidth),
-        tonumber(args.verilogfloorplanheight)
+        tonumber(args.verilogfloorplanheight),
+        args.verilogexcludednets or {}
     )
     return 0
 end

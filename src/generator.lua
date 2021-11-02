@@ -63,7 +63,13 @@ local function _generate_from_ast(basename, tree, positions, noconnections)
     end
 end
 
-function M.from_verilog(filename, noconnections, prefix, libname, overwrite, stdlibname, floorplanwidth, floorplanheight)
+local function _print_ast(tree)
+    for _, module in ipairs(tree.modules) do
+        print(module)
+    end
+end
+
+function M.from_verilog(filename, noconnections, prefix, libname, overwrite, stdlibname, movespercell, floorplanwidth, floorplanheight, excluded_nets)
     local file = io.open(filename, "r")
     if not file then
         moderror(string.format("generator.verilog_routing: could not open file '%s'", filename))
@@ -73,7 +79,6 @@ function M.from_verilog(filename, noconnections, prefix, libname, overwrite, std
     local nets = { set = {} }
     local instances = {}
     local widths = {}
-    local excluded_nets = { "clk", "VDD", "VSS" }
     for _, module in ipairs(tree.modules) do
         for _, statement in ipairs(module.statements) do
             local name = statement.name
@@ -95,14 +100,36 @@ function M.from_verilog(filename, noconnections, prefix, libname, overwrite, std
                     end
                 end
                 if not widths[name] then
-                    local cell = pcell.create_layout(string.format("%s/%s", stdlibname, name))
+                    local p = string.format("%s/%s", stdlibname, name)
+                    local cell = pcell.create_layout(p)
                     widths[name] = cell:width_height_alignmentbox()
+                    if envlib.get("verbose") then
+                        print(string.format("generator: checking width of cell %s -> %d", p, widths[name]))
+                    end
                 end
+
                 table.insert(instances, { instance_name = instname, ref_name = name, net_conn = ct, width = widths[name] })
             end
         end
     end
-    local positions = placer.place(nets, instances, floorplanwidth, floorplanheight, 5)
+
+    -- calculate site width
+    local ws = {}
+    for _, w in pairs(widths) do table.insert(ws, w) end
+    local function gcd(a,b)
+        if b ~= 0 then
+            return gcd(b, a % b)
+        else
+            return math.abs(a)
+        end
+    end
+    local site_width = ws[1]
+    for i = 2, #ws do
+        site_width = gcd(ws[i], site_width)
+    end
+    print(site_width)
+
+    local positions = placer.place(nets, instances, floorplanwidth, floorplanheight, movespercell)
 
     local path
     if prefix and prefix ~= "" then
@@ -113,12 +140,6 @@ function M.from_verilog(filename, noconnections, prefix, libname, overwrite, std
     if not filesystem.exists(path) or overwrite then
         local created = filesystem.mkdir(path)
         if created then
-            local file = io.open(filename, "r")
-            if not file then
-                moderror(string.format("generator.verilog_routing: could not open file '%s'", filename))
-            end
-            local content = file:read("a")
-            local tree = verilog_parser.parse(content)
             _generate_from_ast(string.format("%s/%s", prefix, libname), tree, positions, noconnections)
         else
             moderror(string.format("generator.verilog_routing: could not create directory '%s/%s'", prefix, libname))

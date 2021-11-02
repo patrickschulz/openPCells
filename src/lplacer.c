@@ -404,7 +404,7 @@ int lplacer_place(lua_State* L)
 
     /* For lengths, 1 unit is equal to 1 nm */
     struct floorplan floorplan = {
-        .site_height = 640, .site_width = 19,
+        .site_height = 640, .site_width = 104,
         .weight_wirelength = 1.0,
         .weight_width_penalty = 1.0,
         .cell_count = 0,
@@ -420,7 +420,6 @@ int lplacer_place(lua_State* L)
     place_initial_random(all_cells, num_cells, &floorplan);
     update_cell_count(all_cells, num_cells, &floorplan);
     get_total_wirelength(true, all_nets, num_nets, &floorplan);
-    report_status(all_nets, num_nets, all_cells, num_cells, &floorplan);
 
     const int moves_per_cell_per_temp = luaL_checkinteger(L, 5);
     double temperature = 5000.0;
@@ -470,8 +469,6 @@ int lplacer_place(lua_State* L)
         }
         temperature *= 0.95;
     }
-
-    report_status(all_nets, num_nets, all_cells, num_cells, &floorplan);
 
     // bring back results to lua
     lua_createtable(L, num_cells, 0);
