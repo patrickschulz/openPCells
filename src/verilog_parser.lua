@@ -9,14 +9,15 @@ local function _lexer(content)
             return self[self.index].character, self[self.index].line
         end,
         peek = function(self, offset)
-            offset = offset or 0
-            if not self[self.index + 1 + offset] then
+            offset = offset or 1
+            if not self[self.index + offset] then
                 return nil
             end
-            return self[self.index + 1 + offset].character, self[self.index + 1 + offset].line
+            return self[self.index + offset].character, self[self.index + offset].line
         end,
-        advance = function(self) 
-            self.index = self.index + 1
+        advance = function(self, offset) 
+            offset = offset or 1
+            self.index = self.index + offset
         end,
     }
     local line = 1
@@ -32,11 +33,23 @@ local function _lexer(content)
     while true do
         local ch, line = characters:get()
         if ch then
-            if string.match(ch, "[a-zA-Z_\\]") then -- identifier
+            if string.match(ch, "[a-zA-Z_]") then -- simple identifier
                 local ident = { ch }
                 while true do
                     local nch = characters:peek()
-                    if nch and string.match(nch, "[a-zA-Z0-9_\\!/$]") then
+                    if nch and string.match(nch, "[a-zA-Z0-9_$]") then
+                        table.insert(ident, nch)
+                        characters:advance()
+                    else
+                        break
+                    end
+                end
+                table.insert(tokens, { type = "ident", value = table.concat(ident), line = line })
+            elseif string.match(ch, "\\") then -- escaped identifier
+                local ident = { ch }
+                while true do
+                    local nch = characters:peek()
+                    if nch and string.match(nch, "%g") then
                         table.insert(ident, nch)
                         characters:advance()
                     else
@@ -74,11 +87,12 @@ local function _lexer(content)
                 local comment = { }
                 while true do
                     nch = characters:peek()
-                    nch2 = characters:peek(1)
+                    nch2 = characters:peek(2)
                     if not ((nch and nch == "*") and (nch2 and nch2 == "/")) then
                         table.insert(comment, nch)
                         characters:advance()
                     else
+                        characters:advance(2)
                         break
                     end
                 end
@@ -88,11 +102,12 @@ local function _lexer(content)
                 local attribute = { }
                 while true do
                     nch = characters:peek()
-                    nch2 = characters:peek(1)
+                    nch2 = characters:peek(2)
                     if not ((nch and nch == "*") and (nch2 and nch2 == ")")) then
                         table.insert(attribute, nch)
                         characters:advance()
                     else
+                        characters:advance(2)
                         break
                     end
                 end
@@ -129,13 +144,13 @@ local function _convert_to_symbols(tokens)
             self.index = self.index + 1
         end,
         accept = function(self, symbol)
-            if symbol == "ident" then
-                self.identindex = self.identindex + 1
-            end
-            if symbol == "number" then
-                self.numberindex = self.numberindex + 1
-            end
             if self[self.index] == symbol then
+                if symbol == "ident" then
+                    self.identindex = self.identindex + 1
+                end
+                if symbol == "number" then
+                    self.numberindex = self.numberindex + 1
+                end
                 self:advance()
                 return true
             else
@@ -148,7 +163,7 @@ local function _convert_to_symbols(tokens)
             end
             error(string.format("expected '%s', got '%s' (source line %d)", symbol, self[self.index], self.lineinfo[self.index]))
         end,
-        check = function(self, symbol)
+        check = function(self, symbol) -- like accept, but don't advance state
             if self[self.index] == symbol then
                 return true
             else
@@ -163,88 +178,116 @@ local function _convert_to_symbols(tokens)
         end,
     }
     for _, token in ipairs(tokens) do
+        local value
         if token.type == "ident" then
             if token.value == "module" then
-                table.insert(symbols, "beginmodule")
+                value = "beginmodule"
             elseif token.value == "endmodule" then
-                table.insert(symbols, "endmodule")
+                value = "endmodule"
             elseif token.value == "wire" then
-                table.insert(symbols, "wire")
+                value = "wire"
             elseif token.value == "assign" then
-                table.insert(symbols, "assign")
+                value = "assign"
             elseif token.value == "input" then
-                table.insert(symbols, "input")
+                value = "input"
             elseif token.value == "output" then
-                table.insert(symbols, "output")
+                value = "output"
             elseif token.value == "inout" then
-                table.insert(symbols, "inout")
+                value = "inout"
             else
-                table.insert(symbols, "ident")
-                local value = string.gsub(token.value, "([\\])", {
+                value = "ident"
+                local idt = string.gsub(token.value, "([\\])", {
                     ["\\"] = "_",
                 })
-                table.insert(symbols.identifiers, value)
+                table.insert(symbols.identifiers, idt)
             end
-        end
-        if token.type == "number" then
-            table.insert(symbols, "number")
+        elseif token.type == "number" then
+            value = "number"
             table.insert(symbols.numbers, token.value)
-        end
-        if token.type == "operator" then
+        elseif token.type == "operator" then
             if token.value == "(" then
-                table.insert(symbols, "lparen")
+                value = "lparen"
             elseif token.value == ")" then
-                table.insert(symbols, "rparen")
+                value = "rparen"
             elseif token.value == "[" then
-                table.insert(symbols, "lsqbracket")
+                value = "lsqbracket"
             elseif token.value == "]" then
-                table.insert(symbols, "rsqbracket")
+                value = "rsqbracket"
+            elseif token.value == "{" then
+                value = "lbrace"
+            elseif token.value == "}" then
+                value = "rbrace"
             elseif token.value == ":" then
-                table.insert(symbols, "colon")
+                value = "colon"
             elseif token.value == "+" then
-                table.insert(symbols, "plus")
+                value = "plus"
             elseif token.value == "-" then
-                table.insert(symbols, "minus")
+                value = "minus"
             elseif token.value == "*" then
-                table.insert(symbols, "star")
+                value = "star"
             elseif token.value == "/" then
-                table.insert(symbols, "slash")
+                value = "slash"
             elseif token.value == "=" then
-                table.insert(symbols, "equalsign")
+                value = "equalsign"
             end
-        end
-        if token.type == "punct" then
+        elseif token.type == "punct" then
             if token.value == ";" then
-                table.insert(symbols, "semicolon")
+                value = "semicolon"
             elseif token.value == "," then
-                table.insert(symbols, "comma")
+                value = "comma"
+            elseif token.value == "'" then
+                value = "singlequote"
             else
-                table.insert(symbols, "dot")
+                value = "dot"
             end
+        elseif token.type == "attribute" then
+            --value = "attribute"
+        elseif token.type == "blockcomment" then
+            --value = "blockcomment"
+        elseif token.type == "linecomment" then
+            --value = "linecomment"
+        else
+            moderror(string.format("lexer: _convert_to_symbols: unknown token type '%s'", token.type))
         end
-        table.insert(symbols.lineinfo, token.line)
+        if value then
+            if envlib.get("verbose") then
+                print(string.format("verilog lexer: found symbol: %s", value))
+            end
+            table.insert(symbols, value)
+            table.insert(symbols.lineinfo, token.line)
+        end
     end
     return symbols
 end
 
 local function optbusaccess(symbols)
-    if symbols:accept("lsqbracket") then
+    local num = {}
+    while symbols:accept("lsqbracket") do
         symbols:expect("number")
-        local num = symbols:next_number()
+        local n = symbols:next_number()
+        if symbols:accept("colon") then
+            symbols:expect("number")
+        end
         symbols:expect("rsqbracket")
-        return num
+        table.insert(num, n)
     end
+    return num
 end
 
 local function _instancename(symbols)
     symbols:expect("ident")
     local name = symbols:next_identifier()
-    -- FIXME: handle bus names
     local num = optbusaccess(symbols)
-    if num then
-        name = string.format("%s_%d", name, num)
+    for _, n in ipairs(num) do
+        name = string.format("%s_%d", name, n)
     end
     return name
+end
+
+local function _number(symbols)
+    symbols:expect("number")
+    symbols:expect("singlequote")
+    symbols:expect("ident")
 end
 
 local function _portconnection(symbols)
@@ -255,12 +298,16 @@ local function _portconnection(symbols)
         connection.port = symbols:next_identifier()
         optbusaccess(symbols)
         symbols:expect("lparen")
-        symbols:expect("ident")
-        local num = optbusaccess(symbols)
-        if num then
-            connection.net = string.format("%s_%d", symbols:next_identifier(), num)
+        if symbols:check("number") then
+            _number(symbols)
+            connection.net = "_FIXEDLEVEL_" -- FIXME
         else
+            symbols:expect("ident")
+            local num = optbusaccess(symbols)
             connection.net = symbols:next_identifier()
+            for _, n in ipairs(num) do
+                connection.net = string.format("%s_%d", connection.net, n)
+            end
         end
         symbols:expect("rparen")
         return connection
@@ -270,8 +317,9 @@ end
 local function _wirename(symbols)
     symbols:expect("ident")
     local num = optbusaccess(symbols)
-    if num then
-        name = string.format("%s_%d", name, num)
+    local name = symbols:next_identifier()
+    for _, n in ipairs(num) do
+        name = string.format("%s_%d", name, n)
     end
     return name
 end
@@ -294,7 +342,19 @@ local function _statement(symbols)
     elseif symbols:accept("assign") then -- assign statement
         _wirename(symbols)
         symbols:expect("equalsign")
-        _wirename(symbols)
+        if symbols:accept("lbrace") then
+            _wirename(symbols)
+            while symbols:accept("comma") do
+                _wirename(symbols)
+            end
+            symbols:expect("rbrace")
+        else
+            if symbols:check("number") then
+                _number(symbols)
+            else
+                _wirename(symbols)
+            end
+        end
         symbols:expect("semicolon")
     elseif symbols:accept("ident") then -- module instantiation
         s.name = symbols:next_identifier()
