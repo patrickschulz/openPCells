@@ -32,9 +32,6 @@ end
 
 local function _load_cell(state, cellname, env)
     local filename = _get_cell_filename(state, cellname)
-    if envlib.get("verbose") then
-        print(string.format("pcell: loading cell definition in %s", filename))
-    end
     if not filename then
         local str = {
             string.format("could not find cell '%s' in:", cellname),
@@ -50,6 +47,9 @@ local function _load_cell(state, cellname, env)
         error(string.format("could not open cell file '%s'", filename))
     end
     local chunkname = string.format("@cell '%s'", cellname)
+    if envlib.get("verbose") then
+        print(string.format("pcell: loading cell definition in %s", filename))
+    end
     _generic_load(
         reader, chunkname,
         string.format("syntax error in cell '%s'", cellname),
