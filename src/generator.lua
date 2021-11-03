@@ -63,13 +63,7 @@ local function _generate_from_ast(basename, tree, positions, noconnections)
     end
 end
 
-local function _print_ast(tree)
-    for _, module in ipairs(tree.modules) do
-        print(module)
-    end
-end
-
-function M.from_verilog(filename, noconnections, prefix, libname, overwrite, stdlibname, movespercell, floorplanwidth, floorplanheight, excluded_nets)
+function M.from_verilog(filename, noconnections, prefix, libname, overwrite, stdlibname, utilization, aspectratio, movespercell, coolingfactor, excluded_nets, report)
     local file = io.open(filename, "r")
     if not file then
         moderror(string.format("generator.verilog_routing: could not open file '%s'", filename))
@@ -79,6 +73,8 @@ function M.from_verilog(filename, noconnections, prefix, libname, overwrite, std
     local nets = { set = {} }
     local instances = {}
     local widths = {}
+    local heights = {}
+    local area = 0
     for _, module in ipairs(tree.modules) do
         for _, statement in ipairs(module.statements) do
             local name = statement.name
@@ -102,11 +98,15 @@ function M.from_verilog(filename, noconnections, prefix, libname, overwrite, std
                 if not widths[name] then
                     local p = string.format("%s/%s", stdlibname, name)
                     local cell = pcell.create_layout(p)
-                    widths[name] = cell:width_height_alignmentbox()
+                    local width, height = cell:width_height_alignmentbox()
+                    widths[name] = width
+                    heights[name] = height
                     if envlib.get("verbose") then
                         print(string.format("generator: checking width of cell %s -> %d", p, widths[name]))
                     end
                 end
+
+                area = area + widths[name] * heights[name]
 
                 table.insert(instances, { instance_name = instname, ref_name = name, net_conn = ct, width = widths[name] })
             end
@@ -127,9 +127,30 @@ function M.from_verilog(filename, noconnections, prefix, libname, overwrite, std
     for i = 2, #ws do
         site_width = gcd(ws[i], site_width)
     end
-    print(site_width)
 
-    local positions = placer.place(nets, instances, floorplanwidth, floorplanheight, movespercell)
+    -- calculate site height
+    local site_height = nil
+    for _, h in pairs(heights) do 
+        if not site_height then
+            site_height = h
+        else
+            if site_height ~= h then
+                moderror("site_height must be equal for all cells")
+            end
+        end
+    end
+
+    local options = {
+        floorplan_width = math.ceil(math.sqrt(area / utilization * aspectratio)),
+        floorplan_height = math.ceil(math.sqrt(area / utilization / aspectratio)),
+        movespercell = movespercell,
+        site_width = site_width,
+        site_height = site_height,
+        coolingfactor = coolingfactor,
+        report = report
+    }
+
+    local positions = placer.place(nets, instances, options)
 
     local path
     if prefix and prefix ~= "" then

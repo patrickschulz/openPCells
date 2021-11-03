@@ -229,16 +229,24 @@ return {
         help = "number of moves per cell for each temperature in placement"
     },
     store{
-        name = "verilogfloorplanwidth", long = "--read-verilog-floorplan-width",
-        help = "floorplan width (in nano meter) for digital placement"
+        name = "verilogplacercoolingfactor", long = "--read-verilog-placer-cooling-factor",
+        help = "temperature cooling factor for simulated annealing in placement (default 0.95)"
     },
     store{
-        name = "verilogfloorplanheight", long = "--read-verilog-floorplan-height",
-        help = "floorplan height (in nano meter) for digital placement"
+        name = "verilogplaceraspectratio", long = "--read-verilog-placer-aspect-ratio",
+        help = "aspect ratio in placement (default 1)"
+    },
+    store{
+        name = "verilogplacerutilization", long = "--read-verilog-placer-utilization",
+        help = "utilization in placement (default 0.5)"
     },
     store_multiple{
         name = "verilogexcludednets", long = "--read-verilog-exclude-net",
         help = "specify nets to be excluded in placement (can be specified multiple times)"
+    },
+    switch{
+        name = "verilogreportplacement", long = "--read-verilog-report-placement",
+        help = "report information about cell placement"
     },
     switch{
         name = "readverilogdontcreatewires", long = "--read-verilog-no-connections",

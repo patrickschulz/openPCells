@@ -248,14 +248,6 @@ if args.listcells or args.listallcells then
 end
 
 if args.readverilog then
-    if not args.verilogfloorplanwidth then
-        print("verilog import: no floorplan width provided")
-        return 1
-    end
-    if not args.verilogfloorplanheight then
-        print("verilog import: no floorplan height provided")
-        return 1
-    end
     local excluded_nets = args.verilogexcludednets
     generator.from_verilog(
         args.readverilog, 
@@ -264,10 +256,12 @@ if args.readverilog then
         "verilogimport", 
         true,
         args.verilogstdcelllib or "stdcell",
+        args.verilogplacerutilization or 0.5,
+        args.verilogplaceraspectratio or 1,
         args.verilogplacercellmovements or 1,
-        tonumber(args.verilogfloorplanwidth),
-        tonumber(args.verilogfloorplanheight),
-        args.verilogexcludednets or {}
+        args.verilogplacercoolingfactor or 0.95,
+        args.verilogexcludednets or {},
+        args.verilogreportplacement or false
     )
     return 0
 end

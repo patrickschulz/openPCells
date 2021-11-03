@@ -53,8 +53,109 @@ struct net {
 /* Placement helper functions
  * --------------------------
  */
+#define Rand64		unsigned long
+typedef struct {
+  Rand64 s[4];
+} RanState;
+
+/* avoid using extra bits when needed */
+#define trim64(x)	((x) & 0xffffffffffffffffu)
+
+/* rotate left 'x' by 'n' bits */
+static Rand64 rotl (Rand64 x, int n) {
+  return (x << n) | (trim64(x) >> (64 - n));
+}
+
+static Rand64 nextrand(RanState *state)
+{
+    Rand64 state0 = state->s[0];
+    Rand64 state1 = state->s[1];
+    Rand64 state2 = state->s[2] ^ state0;
+    Rand64 state3 = state->s[3] ^ state1;
+    Rand64 res = rotl(state1 * 5, 7) * 9;
+    state->s[0] = state0 ^ state3;
+    state->s[1] = state1 ^ state2;
+    state->s[2] = state2 ^ (state1 << 17);
+    state->s[3] = rotl(state3, 45);
+    return res;
+}
+
+
+static void randseed (RanState *state, unsigned long n1, unsigned long n2)
+{
+    int i;
+    state->s[0] = (Rand64)(n1);
+    state->s[1] = (Rand64)(0xff);  /* avoid a zero state */
+    state->s[2] = (Rand64)(n2);
+    state->s[3] = (Rand64)(0);
+    for (i = 0; i < 16; i++)
+    {
+        nextrand(state);  /* discard initial values to "spread" seed */
+    }
+}
+
+/* convert a 'Rand64' to a 'lua_Unsigned' */
+#define I2UInt(x)	((lua_Unsigned)trim64(x))
+
+/*
+** Project the random integer 'ran' into the interval [0, n].
+** Because 'ran' has 2^B possible values, the projection can only be
+** uniform when the size of the interval is a power of 2 (exact
+** division). Otherwise, to get a uniform projection into [0, n], we
+** first compute 'lim', the smallest Mersenne number not smaller than
+** 'n'. We then project 'ran' into the interval [0, lim].  If the result
+** is inside [0, n], we are done. Otherwise, we try with another 'ran',
+** until we have a result inside the interval.
+*/
+static lua_Unsigned project (lua_Unsigned ran, lua_Unsigned n,
+                             RanState *state) {
+  if ((n & (n + 1)) == 0)  /* is 'n + 1' a power of 2? */
+    return ran & n;  /* no bias */
+  else {
+    lua_Unsigned lim = n;
+    /* compute the smallest (2^b - 1) not smaller than 'n' */
+    lim |= (lim >> 1);
+    lim |= (lim >> 2);
+    lim |= (lim >> 4);
+    lim |= (lim >> 8);
+    lim |= (lim >> 16);
+#if (LUA_MAXUNSIGNED >> 31) >= 3
+    lim |= (lim >> 32);  /* integer type has more than 32 bits */
+#endif
+    while ((ran &= lim) > n)  /* project 'ran' into [0..lim] */
+      ran = I2UInt(nextrand(state));  /* not inside [0..n]? try again */
+    return ran;
+  }
+}
+
+#define FIGS 64
+/* must throw out the extra (64 - FIGS) bits */
+#define shift64_FIG	(64 - FIGS)
+
+/* to scale to [0, 1), multiply by scaleFIG = 2^(-FIGS) */
+#define scaleFIG	(l_mathop(0.5) / ((Rand64)1 << (FIGS - 1)))
+
+static double I2d (Rand64 x) {
+  return (double)(trim64(x) >> shift64_FIG) * scaleFIG;
+}
+
+static double _lua_rand(RanState* state, long low, long up)
+{
+    (void)low;
+    (void)up;
+    Rand64 rv = nextrand(state);  /* next pseudo-random value */
+    /* project random integer into the interval [0, up - low] */
+    //unsigned long p;
+    //p = project(I2UInt(rv), (lua_Unsigned)up - (lua_Unsigned)low, state);
+    //return p + (lua_Unsigned)low;
+    return I2d(rv);  /* float between 0 and 1 */
+}
+
+RanState rstate;
+
 double _rand(void)
 {
+    //return _lua_rand(&rstate, 0, 1);
     return rand() / (double) RAND_MAX;
 }
 
@@ -400,33 +501,64 @@ int lplacer_place(lua_State* L)
         lua_pop(L, 1);
     }
 
+    lua_getfield(L, 3, "floorplan_width");
+    int floorplan_width = lua_tointeger(L, -1);
+    lua_pop(L, 1);
+    lua_getfield(L, 3, "floorplan_height");
+    int floorplan_height = lua_tointeger(L, -1);
+    lua_pop(L, 1);
+    lua_getfield(L, 3, "site_width");
+    int site_width = lua_tointeger(L, -1);
+    lua_pop(L, 1);
+    lua_getfield(L, 3, "site_height");
+    int site_height = lua_tointeger(L, -1);
+    lua_pop(L, 1);
+
+    lua_getfield(L, 3, "movespercell");
+    const int moves_per_cell_per_temp = lua_tointeger(L, -1);
+    lua_pop(L, 1);
+
+    lua_getfield(L, 3, "coolingfactor");
+    const double coolingfactor = lua_tonumber(L, -1);
+    lua_pop(L, 1);
+
+    lua_getfield(L, 3, "report");
+    const int verbose = lua_toboolean(L, -1);
+    lua_pop(L, 1);
+
     // ------ end of lua bridge ------
 
     /* For lengths, 1 unit is equal to 1 nm */
     struct floorplan floorplan = {
-        .site_height = 640, .site_width = 104,
+        .site_height = site_height, 
+        .site_width = site_width,
+        .floorplan_width = floorplan_width,
+        .floorplan_height = floorplan_height,
         .weight_wirelength = 1.0,
         .weight_width_penalty = 1.0,
         .cell_count = 0,
         .cell_total_width = 0,
         .total_wirelength = 0,
-        .floorplan_width = luaL_checkinteger(L, 3),
-        .floorplan_height = luaL_checkinteger(L, 4)
     };
 
-    // always start with same random seed -> leads to deterministic execution:
-    srand(0);
+    randseed(&rstate, 145, 17);  /* initialize with a "random" seed */
+
     update_net_struct_ptrs(all_nets, num_nets, all_cells, num_cells);
     place_initial_random(all_cells, num_cells, &floorplan);
     update_cell_count(all_cells, num_cells, &floorplan);
     get_total_wirelength(true, all_nets, num_nets, &floorplan);
 
-    const int moves_per_cell_per_temp = luaL_checkinteger(L, 5);
     double temperature = 5000.0;
+    double end_temperature = 0.01;
 
+    int needed_steps = log(end_temperature / temperature) / log(coolingfactor) + 1;
+
+    int steps = 0;
+    int percentage = 0;
+    int percentage_divisor = 10;
     int move_ctr;
     double last_total_penalty = 100000000000;
-    while(temperature > 0.01)
+    while(temperature > end_temperature)
     {
         for(move_ctr = 0; move_ctr < moves_per_cell_per_temp * floorplan.cell_count; move_ctr++)
         {
@@ -443,10 +575,19 @@ int lplacer_place(lua_State* L)
 
             double total_penalty = get_total_penalty(all_nets, num_nets, all_cells, num_cells, &floorplan);
 
-            if(move_ctr == 0)
+            if(move_ctr == 0 && verbose)
             {
                 printf("temperature = %.3f, ", temperature);
                 report_status(all_nets, num_nets, all_cells, num_cells, &floorplan);
+            }
+
+            if(move_ctr == 0)
+            {
+                if(steps == percentage * needed_steps / percentage_divisor)
+                {
+                    printf("placement %2d %% done\n", percentage * 100 / percentage_divisor);
+                    ++percentage;
+                }
             }
 
             if(total_penalty > last_total_penalty)
@@ -467,7 +608,8 @@ int lplacer_place(lua_State* L)
                 last_total_penalty = total_penalty;
             }
         }
-        temperature *= 0.95;
+        ++steps;
+        temperature = temperature * coolingfactor;
     }
 
     // bring back results to lua
