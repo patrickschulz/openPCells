@@ -66,16 +66,21 @@ function layout(pads, _P)
         else
             pad = pads:add_child(Ppad)
         end
+        local x, y
         if _P.orientation == "horizontal" then
             if _P.alignment == "top/left" then
-                pad:translate((i - 1) * _P.padpitch - (numpads - 1) * _P.padpitch / 2, 0)
+                x = (i - 1) * _P.padpitch - (numpads - 1) * _P.padpitch / 2
             elseif _P.alignment == "bottom/right" then
-                pad:translate((i - 1) * _P.padpitch - (numpads - 1) * _P.padpitch / 2, 0)
+                x = (i - 1) * _P.padpitch - (numpads - 1) * _P.padpitch / 2
             else -- center
-                pad:translate((i - 1) * _P.padpitch - (numpads - 1) * _P.padpitch / 2, 0)
+                x = (i - 1) * _P.padpitch - (numpads - 1) * _P.padpitch / 2
             end
+            y = 0
         else -- vertical
-            pad:translate(0, (i - 1) * _P.padpitch - (numpads - 1) * _P.padpitch / 2)
+            x = 0
+            y = (i - 1) * _P.padpitch - (numpads - 1) * _P.padpitch / 2
         end
+        pad:translate(x, y)
+        pads:add_anchor(string.format("pad_%d", i), pad:get_anchor("center"))
     end
 end

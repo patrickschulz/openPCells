@@ -30,4 +30,5 @@ function layout(pad, _P)
     marker:translate(xshift, yshift)
     pad:merge_into_shallow(metal)
     pad:merge_into_shallow(marker)
+    pad:add_anchor("center", point.create(0, 0))
 end
