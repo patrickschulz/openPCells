@@ -41,6 +41,17 @@ function shape.copy(self)
     return new
 end
 
+function shape.translate(self, shift)
+    if self.typ == "polygon" or self.typ == "path" then
+        for _, pt in ipairs(self.points) do
+            pt:translate(shift:unwrap())
+        end
+    elseif self.typ == "rectangle" then
+        self.points.bl:translate(shift:unwrap())
+        self.points.tr:translate(shift:unwrap())
+    end
+end
+
 function shape.apply_transformation(self, matrix, func)
     if self.typ == "polygon" or self.typ == "path" then
         for _, pt in ipairs(self.points) do
