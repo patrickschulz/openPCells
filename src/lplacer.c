@@ -17,8 +17,10 @@
 struct floorplan {
     int floorplan_width;
     int floorplan_height;
+    int limiter_width;
+    int limiter_height;
     int site_height;
-    int site_width;
+    int cellpitch;
     double weight_wirelength;
     double weight_width_penalty;
     int cell_count;
@@ -94,8 +96,8 @@ static void randseed (RanState *state, unsigned long n1, unsigned long n2)
     }
 }
 
-/* convert a 'Rand64' to a 'lua_Unsigned' */
-#define I2UInt(x)	((lua_Unsigned)trim64(x))
+/* convert a 'Rand64' to a 'unsigned long' */
+#define I2UInt(x)	((unsigned long)trim64(x))
 
 /*
 ** Project the random integer 'ran' into the interval [0, n].
@@ -107,12 +109,12 @@ static void randseed (RanState *state, unsigned long n1, unsigned long n2)
 ** is inside [0, n], we are done. Otherwise, we try with another 'ran',
 ** until we have a result inside the interval.
 */
-static lua_Unsigned project (lua_Unsigned ran, lua_Unsigned n,
+static unsigned long project (unsigned long ran, unsigned long n,
                              RanState *state) {
   if ((n & (n + 1)) == 0)  /* is 'n + 1' a power of 2? */
     return ran & n;  /* no bias */
   else {
-    lua_Unsigned lim = n;
+    unsigned long lim = n;
     /* compute the smallest (2^b - 1) not smaller than 'n' */
     lim |= (lim >> 1);
     lim |= (lim >> 2);
@@ -139,35 +141,27 @@ static double I2d (Rand64 x) {
   return (double)(trim64(x) >> shift64_FIG) * scaleFIG;
 }
 
-static double _lua_rand(RanState* state, long low, long up)
+static double _lua_rand(RanState* state)
 {
-    (void)low;
-    (void)up;
+    Rand64 rv = nextrand(state);  /* next pseudo-random value */
+    return I2d(rv);  /* float between 0 and 1 */
+}
+
+static long _lua_randi(RanState* state, long low, long up)
+{
     Rand64 rv = nextrand(state);  /* next pseudo-random value */
     /* project random integer into the interval [0, up - low] */
-    //unsigned long p;
-    //p = project(I2UInt(rv), (lua_Unsigned)up - (lua_Unsigned)low, state);
-    //return p + (lua_Unsigned)low;
-    return I2d(rv);  /* float between 0 and 1 */
+    unsigned long p;
+    p = project(I2UInt(rv), (unsigned long)up - (unsigned long)low, state);
+    return p + (unsigned long)low;
 }
 
 RanState rstate;
 
-double _rand(void)
-{
-    //return _lua_rand(&rstate, 0, 1);
-    return rand() / (double) RAND_MAX;
-}
-
-int _randi(void)
-{
-    return RAND_MAX * _rand();
-}
-
 /* Returns random boolean, which is true by probability prob */
 bool random_choice(double prob)
 {
-    double r = _rand();
+    double r = _lua_rand(&rstate);
     return r < prob;
 }
 
@@ -222,8 +216,8 @@ void cell_update_wirelengths(struct cell* c, struct floorplan* floorplan)
 
 static inline void cell_place_random(struct cell* c, struct floorplan* floorplan)
 {
-    c->pos_x = (_randi() % ((floorplan->floorplan_width - c->width) / floorplan->site_width)) * floorplan->site_width;
-    c->pos_y = (_randi() % (floorplan->floorplan_height / floorplan->site_height - 1)) * floorplan->site_height;
+    c->pos_x = _lua_randi(&rstate, 0, (floorplan->floorplan_width - c->width) / floorplan->cellpitch) * floorplan->cellpitch;
+    c->pos_y = _lua_randi(&rstate, 0, (floorplan->floorplan_height / floorplan->site_height - 1)) * floorplan->site_height;
 }
 
 void update_net_struct_ptrs(struct net* all_nets, size_t num_nets, struct cell* all_cells, size_t num_cells)
@@ -302,7 +296,7 @@ void undo(struct rollback* r, struct floorplan* floorplan)
 
 struct cell* random_cell(struct cell* all_cells, struct floorplan* floorplan)
 {
-    return all_cells + _randi() % floorplan->cell_count;
+    return all_cells + _lua_randi(&rstate, 0, floorplan->cell_count - 1);
 }
 
 void get_cells_of_row(struct cell* all_cells, size_t num_cells, struct cell** cells_in_row, int cur_row, struct floorplan* floorplan)
@@ -328,7 +322,7 @@ double get_legality_penalty(struct cell* all_cells, size_t num_cells, struct flo
 {
     struct cell* cells_in_row[MAX_CELLS_PER_ROW];
 
-    int units_per_row = floorplan->floorplan_width / floorplan->site_width;
+    int units_per_row = floorplan->floorplan_width / floorplan->cellpitch;
     assert(MAX_UNITS_PER_ROW > units_per_row); // this is not sufficient as the stdcell width is not factored in
 
     int desired_width_per_row = floorplan->cell_total_width / ((floorplan->floorplan_height / floorplan->site_height) - 1);
@@ -355,9 +349,9 @@ double get_legality_penalty(struct cell* all_cells, size_t num_cells, struct flo
         for(c_p = cells_in_row;* c_p; c_p++)
         {
             row_cell_width_sum += (*c_p)->width;
-            for(unit_ctr = 0; unit_ctr < (*c_p)->width / floorplan->site_width; unit_ctr++)
+            for(unit_ctr = 0; unit_ctr < (*c_p)->width / floorplan->cellpitch; unit_ctr++)
             {
-                occupancy[(*c_p)->pos_x / floorplan->site_width + unit_ctr]++;
+                occupancy[(*c_p)->pos_x / floorplan->cellpitch + unit_ctr]++;
             }
         } 
         row_overlap = 0;
@@ -507,8 +501,8 @@ int lplacer_place(lua_State* L)
     lua_getfield(L, 3, "floorplan_height");
     int floorplan_height = lua_tointeger(L, -1);
     lua_pop(L, 1);
-    lua_getfield(L, 3, "site_width");
-    int site_width = lua_tointeger(L, -1);
+    lua_getfield(L, 3, "cellpitch");
+    int cellpitch = lua_tointeger(L, -1);
     lua_pop(L, 1);
     lua_getfield(L, 3, "site_height");
     int site_height = lua_tointeger(L, -1);
@@ -531,7 +525,7 @@ int lplacer_place(lua_State* L)
     /* For lengths, 1 unit is equal to 1 nm */
     struct floorplan floorplan = {
         .site_height = site_height, 
-        .site_width = site_width,
+        .cellpitch = cellpitch,
         .floorplan_width = floorplan_width,
         .floorplan_height = floorplan_height,
         .weight_wirelength = 1.0,

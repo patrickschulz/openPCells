@@ -123,9 +123,9 @@ function M.from_verilog(filename, noconnections, prefix, libname, overwrite, std
             return math.abs(a)
         end
     end
-    local site_width = ws[1]
+    local cellpitch = ws[1]
     for i = 2, #ws do
-        site_width = gcd(ws[i], site_width)
+        cellpitch = gcd(ws[i], cellpitch)
     end
 
     -- calculate site height
@@ -144,7 +144,7 @@ function M.from_verilog(filename, noconnections, prefix, libname, overwrite, std
         floorplan_width = math.ceil(math.sqrt(area / utilization * aspectratio)),
         floorplan_height = math.ceil(math.sqrt(area / utilization / aspectratio)),
         movespercell = movespercell,
-        site_width = site_width,
+        cellpitch = cellpitch,
         site_height = site_height,
         coolingfactor = coolingfactor,
         report = report
