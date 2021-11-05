@@ -154,11 +154,11 @@ function meta.flatten(self, flattenports)
             for iy = 1, yrep or 1 do
                 for _, S in obj:iterate_shapes() do
                     local new = self:add_raw_shape(S)
-                    new:translate(child.origin)
                     new:apply_transformation(child.trans, child.trans.apply_transformation)
                     new:apply_transformation(obj.trans, obj.trans.apply_transformation)
                     local tm = transformationmatrix.identity()
                     tm:translate((ix - 1) * xpitch, (iy - 1) * ypitch)
+                    tm:translate(child.origin:unwrap())
                     new:apply_transformation(tm, tm.apply_translation)
                 end
                 if flattenports then
