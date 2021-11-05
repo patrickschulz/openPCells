@@ -30,6 +30,16 @@ local function _translate_metals(cell)
     end
 end
 
+local function _prepare_ports(cell)
+    for i, port in pairs(cell.ports) do
+        if port.layer:is_type("metal") then
+            if port.layer.value < 0 then
+                port.layer.value = config.metals + port.layer.value + 1
+            end
+        end
+    end
+end
+
 local function _place_via_conductors(cell)
     for _, S in cell:iterate_shapes() do
         if S:get_lpp():is_type("via") and not S:get_lpp().bare then
@@ -236,6 +246,7 @@ end
 
 local function _prepare(cell)
     _translate_metals(cell)
+    _prepare_ports(cell)
     _split_vias(cell)
     _place_via_conductors(cell)
 end
