@@ -1111,9 +1111,8 @@ function parameters()
     pcell.add_parameters(
         { "text(Text)",                  "TEXT" },
         { "scale(Letter Scaling)",         1000 },
-        { "spacing(Spacing)",               600 },
+        { "spacing(Width of a Space)",      600 },
         { "letterspacing(Letter Spacing)",  200 },
-        { "spacing(Letter Spacing)",        200 },
         { "leading(Line Leading)",          200 },
         { "alignment(Text Alignment)",   "left" },
         { "metalnum(Metal Number)",          -1 }
