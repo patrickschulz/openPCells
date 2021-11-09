@@ -306,6 +306,11 @@ function layout(transistor, _P)
     )
 
     -- anchors
+    for i = 1, _P.fingers + 1 do
+        transistor:add_anchor(string.format("sourcedrainlower%d", i), point.create((-_P.fingers / 2 + (i - 1)) * (_P.gatelength + _P.gatespace), -_P.fwidth / 2))
+        transistor:add_anchor(string.format("sourcedrainmiddle%d", i), point.create((-_P.fingers / 2 + (i - 1)) * (_P.gatelength + _P.gatespace), 0))
+        transistor:add_anchor(string.format("sourcedrainupper%d", i), point.create((-_P.fingers / 2 + (i - 1)) * (_P.gatelength + _P.gatespace), _P.fwidth / 2))
+    end
     transistor:add_anchor("sourcestrap", point.create(0, -_P.fwidth / 2 - _P.sdconnwidth / 2 - _P.sdconnspace))
     transistor:add_anchor("drainstrap",  point.create(0, 0.5 * _P.fwidth + 0.5 * _P.sdconnwidth + _P.sdconnspace))
     transistor:add_anchor("middrainsource",  point.create(0, 0))
