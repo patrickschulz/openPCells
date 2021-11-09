@@ -328,16 +328,48 @@ function layout(transistor, _P)
         -_P.fingers * _P.gatelength / 2 - (_P.fingers - 1) * _P.gatespace / 2,
         _P.fwidth / 2 + _P.topgatestrspace + _P.topgatestrwidth / 2
     ))
+    transistor:add_anchor("topgatestraplowerleft", point.create(
+        -_P.fingers * _P.gatelength / 2 - (_P.fingers - 1) * _P.gatespace / 2,
+        _P.fwidth / 2 + _P.topgatestrspace
+    ))
+    transistor:add_anchor("topgatestrapupperleft", point.create(
+        -_P.fingers * _P.gatelength / 2 - (_P.fingers - 1) * _P.gatespace / 2,
+        _P.fwidth / 2 + _P.topgatestrspace + _P.topgatestrwidth
+    ))
     transistor:add_anchor("topgatestrapright", point.create(
         _P.fingers * _P.gatelength / 2 + (_P.fingers - 1) * _P.gatespace / 2,
         _P.fwidth / 2 + _P.topgatestrspace + _P.topgatestrwidth / 2
+    ))
+    transistor:add_anchor("topgatestraplowerright", point.create(
+        _P.fingers * _P.gatelength / 2 + (_P.fingers - 1) * _P.gatespace / 2,
+        _P.fwidth / 2 + _P.topgatestrspace
+    ))
+    transistor:add_anchor("topgatestrapupperright", point.create(
+        _P.fingers * _P.gatelength / 2 + (_P.fingers - 1) * _P.gatespace / 2,
+        _P.fwidth / 2 + _P.topgatestrspace + _P.topgatestrwidth
     ))
     transistor:add_anchor("botgatestrapleft", point.create(
         -_P.fingers * _P.gatelength / 2 - (_P.fingers - 1) * _P.gatespace / 2,
         -_P.fwidth / 2 - _P.botgatestrspace - _P.botgatestrwidth / 2
     ))
+    transistor:add_anchor("botgatestraplowerleft", point.create(
+        -_P.fingers * _P.gatelength / 2 - (_P.fingers - 1) * _P.gatespace / 2,
+        -_P.fwidth / 2 - _P.botgatestrspace - _P.botgatestrwidth
+    ))
+    transistor:add_anchor("botgatestrapupperleft", point.create(
+        -_P.fingers * _P.gatelength / 2 - (_P.fingers - 1) * _P.gatespace / 2,
+        -_P.fwidth / 2 - _P.botgatestrspace
+    ))
     transistor:add_anchor("botgatestrapright", point.create(
         _P.fingers * _P.gatelength / 2 + (_P.fingers - 1) * _P.gatespace / 2,
         -_P.fwidth / 2 - _P.botgatestrspace - _P.botgatestrwidth / 2
+    ))
+    transistor:add_anchor("botgatestraplowerright", point.create(
+        _P.fingers * _P.gatelength / 2 + (_P.fingers - 1) * _P.gatespace / 2,
+        -_P.fwidth / 2 - _P.botgatestrspace - _P.botgatestrwidth
+    ))
+    transistor:add_anchor("botgatestrapupperright", point.create(
+        _P.fingers * _P.gatelength / 2 + (_P.fingers - 1) * _P.gatespace / 2,
+        -_P.fwidth / 2 - _P.botgatestrspace
     ))
 end
