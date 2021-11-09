@@ -33,7 +33,7 @@
 function parameters()
     pcell.reference_cell("basic/mosfet")
     pcell.add_parameters(
-        { "nmosclockfingers", 8 },
+        { "clockfingers", 8 },
         { "nmosinputfingers", 2 },
         { "latchfingers", 2 },
         { "resetfingers", 2 },
@@ -64,7 +64,7 @@ function layout(comparator, _P)
     })
     -- clock tail transistor
     local nmosclockref = pcell.create_layout("basic/mosfet", { 
-        fingers = _P.nmosclockfingers,
+        fingers = _P.clockfingers,
     })
     -- input transistors
     local nmosinputref = pcell.create_layout("basic/mosfet", { 
