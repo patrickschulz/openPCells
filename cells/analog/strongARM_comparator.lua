@@ -83,7 +83,8 @@ function layout(comparator, _P)
         connectdrain = true,
         conndrainmetal = 3,
         drawdrainvia = true,
-        conndraininline = true
+        conndraininline = true,
+        cliptop = true
     })
     local pmosinvref = pcell.create_layout("basic/mosfet", { 
         channeltype = "pmos",
@@ -94,7 +95,8 @@ function layout(comparator, _P)
         connectdrain = true,
         conndrainmetal = 2,
         drawdrainvia = true,
-        conndraininline = true
+        conndraininline = true,
+        clipbot = true
     })
     -- reset switches
     local pmosresetref = pcell.create_layout("basic/mosfet", { 
@@ -106,7 +108,8 @@ function layout(comparator, _P)
         connectdrain = true,
         conndrainmetal = 2,
         drawdrainvia = true,
-        conndraininline = true
+        conndraininline = true,
+        clipbot = true
     })
     pcell.pop_overwrites("basic/mosfet")
 
