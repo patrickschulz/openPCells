@@ -10,7 +10,6 @@
 
 #define MAX_PINS_PER_CELL (10)
 #define MAX_PINS_PER_NET (32)
-#define MAX_CELLS_PER_ROW (2000)
 #define MAX_UNITS_PER_ROW (1000)
 
 /* Structure definitions  */
@@ -299,29 +298,31 @@ struct cell* random_cell(struct cell* all_cells, struct floorplan* floorplan)
     return all_cells + _lua_randi(&rstate, 0, floorplan->cell_count - 1);
 }
 
-void get_cells_of_row(struct cell* all_cells, size_t num_cells, struct cell** cells_in_row, int cur_row, struct floorplan* floorplan)
+struct cell** get_cells_of_row(struct cell* all_cells, size_t num_cells, int cur_row, struct floorplan* floorplan)
 {
-    int cur_cell_idx = 0;
+    size_t capacity = 40;
+    size_t cur_cell_idx = 0;
+    struct cell** cells_in_row = calloc(capacity, sizeof(struct cell*));
     for(size_t i = 0; i < num_cells; ++i)
     {
         struct cell* c = all_cells + i;
         if(c->pos_y == cur_row * floorplan->site_height)
         {
-            cells_in_row[cur_cell_idx++] = c;
-            if(cur_cell_idx >= MAX_CELLS_PER_ROW)
+            if(cur_cell_idx == capacity - 1)
             {
-                fprintf(stderr, "Error: Too many cells in row.\n");
-                exit(1);
+                capacity *= 2;
+                cells_in_row = realloc(cells_in_row, capacity * sizeof(struct cell*));
             }
+            cells_in_row[cur_cell_idx] = c;
+            ++cur_cell_idx;
         }
     };
-    cells_in_row[cur_cell_idx] = NULL;
+    cells_in_row[cur_cell_idx] = NULL; // sentinel
+    return cells_in_row;
 }
 
 double get_legality_penalty(struct cell* all_cells, size_t num_cells, struct floorplan* floorplan)
 {
-    struct cell* cells_in_row[MAX_CELLS_PER_ROW];
-
     int units_per_row = floorplan->floorplan_width / floorplan->cellpitch;
     assert(MAX_UNITS_PER_ROW > units_per_row); // this is not sufficient as the stdcell width is not factored in
 
@@ -334,19 +335,19 @@ double get_legality_penalty(struct cell* all_cells, size_t num_cells, struct flo
     double total_overlap = 0.0;
     double total_width_penalty = 0.0;
 
-    for(cur_row = 0; cur_row < floorplan->floorplan_height / floorplan->site_height - 1; cur_row++)
+    for(cur_row = 0; cur_row < floorplan->floorplan_height / floorplan->site_height; cur_row++)
     {
         int occupancy[MAX_UNITS_PER_ROW];
         int row_cell_width_sum;
         int row_overlap;
 
-        get_cells_of_row(all_cells, num_cells, cells_in_row, cur_row, floorplan);
+        struct cell** cells_in_row = get_cells_of_row(all_cells, num_cells, cur_row, floorplan);
 
         memset(occupancy, 0, sizeof(occupancy));
 
         row_cell_width_sum = 0;
 
-        for(c_p = cells_in_row;* c_p; c_p++)
+        for(c_p = cells_in_row; *c_p; c_p++)
         {
             row_cell_width_sum += (*c_p)->width;
             for(unit_ctr = 0; unit_ctr < (*c_p)->width / floorplan->cellpitch; unit_ctr++)
@@ -354,6 +355,7 @@ double get_legality_penalty(struct cell* all_cells, size_t num_cells, struct flo
                 occupancy[(*c_p)->pos_x / floorplan->cellpitch + unit_ctr]++;
             }
         } 
+        free(cells_in_row);
         row_overlap = 0;
         for(unit_ctr = 0; unit_ctr < units_per_row + 30; unit_ctr++) // TODO +30
         {
@@ -427,6 +429,24 @@ void m2(struct cell* a, struct cell* b, struct rollback* r, struct floorplan* fl
 
     cell_update_wirelengths(a, floorplan);
     cell_update_wirelengths(b, floorplan);
+}
+
+static int _cell_cmp(const void* p1, const void* p2)
+{
+    struct cell* const * c1 = p1;
+    struct cell* const * c2 = p2;
+    if((*c1)->pos_x > (*c2)->pos_x)
+    {
+        return 1;
+    }
+    else if((*c1)->pos_x < (*c2)->pos_x)
+    {
+        return -1;
+    }
+    else
+    {
+        return 0;
+    }
 }
 
 int lplacer_place(lua_State* L)
@@ -604,6 +624,24 @@ int lplacer_place(lua_State* L)
         }
         ++steps;
         temperature = temperature * coolingfactor;
+    }
+
+    // legalize placement
+    for(int cur_row = 0; cur_row < floorplan.floorplan_height / floorplan.site_height; cur_row++)
+    {
+        struct cell** cells_in_row = get_cells_of_row(all_cells, num_cells, cur_row, &floorplan);
+        size_t numcellrows = 0;
+        for(struct cell** c = cells_in_row; *c; ++c)
+        {
+            ++numcellrows;
+        }
+        qsort(cells_in_row, numcellrows, sizeof(struct cell*), &_cell_cmp);
+        int curx = 0;
+        for(struct cell** c = cells_in_row; *c; ++c)
+        {
+            (*c)->pos_x = curx;
+            curx += (*c)->width;
+        }
     }
 
     // bring back results to lua
