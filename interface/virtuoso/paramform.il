@@ -106,8 +106,10 @@ procedure(OPCLibNameCB(field form)
 	let(
 		(celllist)
 		celllist = cadr(OPCUpdateLibName(field->value))
-		form->OPCCellList->items = celllist
-		form->OPCCellList->value = car(celllist)
+        when(celllist
+            form->OPCCellList->items = celllist
+            form->OPCCellList->value = car(celllist)
+        )
 	)
     ;OPCUpdateCellShapeCB(field form)
 )
@@ -116,21 +118,25 @@ procedure(OPCUpdateCellParameters(cellname)
 	let(
 		(fieldlist toinsert todelete)
 		fieldlist = OPCGetCellParameters(cellname)
-		foreach(field OPCCellForm->fieldList 
-			unless(member(field fieldlist) || equal(field 'OPCLibList) || equal(field 'OPCCellList)
-                todelete = cons(field todelete)
-			)
-		)
-        foreach(field fieldlist
-            unless(member(field todelete)
-                toinsert = cons(field toinsert)
+        when(fieldlist
+            foreach(field OPCCellForm->fieldList 
+                unless(member(field fieldlist) || equal(field 'OPCLibList) || equal(field 'OPCCellList)
+                    todelete = cons(field todelete)
+                )
             )
-        )
-        when(todelete
-		    hiDeleteFields(OPCCellForm todelete)
-        )
-        when(toinsert
-            hiAddFields(OPCCellForm toinsert)
+            foreach(field fieldlist
+                when(field
+                    unless(member(field todelete)
+                        toinsert = cons(field toinsert)
+                    )
+                )
+            )
+            when(todelete
+                hiDeleteFields(OPCCellForm todelete)
+            )
+            when(toinsert
+                hiAddFields(OPCCellForm toinsert)
+            )
         )
 	)
 )
