@@ -184,14 +184,19 @@ local function _get_parameters(state, cellname, othercell, cellargs, evaluate)
     local backup = _process_input_parameters(state, cellname, cellargs, evaluate)
 
     -- store parameters in user-readable table
+    -- FIXME: this is somewhat confusing, this should be easier
+    -- What the following loop does, is to copy all processed parameter values to a new table
+    -- This also handles follower parameters, which makes stuff ugly, since we need to check that user-provided 
+    -- parameters are not overwritten. Should not be this hard
     local P = {}
     local handled = {}
     for name, entry in pairs(cellparams) do
-        if not handled[name] or rawget(cellargs, name) then
+        if not handled[name] then
             P[name] = entry.func()
-            if rawget(cellargs, name) then
-                handled[name] = true
-            end
+        end
+        if rawget(cellargs, name) ~= nil then
+            P[name] = entry.func()
+            handled[name] = true
         end
         for follower in pairs(entry.followers) do
             if not (handled[follower] or cellparams[follower].overwritten) then
