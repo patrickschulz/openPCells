@@ -444,6 +444,16 @@ if args.drawalignmentbox then
         cell:merge_into_shallow(box)
     end
 end
+if args.drawallalignmentboxes then
+    pcell.foreach_cell_references(function(cell)
+        if cell.alignmentbox then
+            local bl = cell:get_anchor("bottomleft")
+            local tr = cell:get_anchor("topright")
+            local box = geometry.rectanglebltr(generics.special(), bl, tr)
+            cell:merge_into_shallow(box)
+        end
+    end)
+end
 
 technology.prepare(cell)
 
