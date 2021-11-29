@@ -22,7 +22,6 @@ function parameters()
         { "topgateextendhalfspace(Top Gate Strap Extend Half Space)",  false },
         { "drawbotgate(Draw Bottom Gate Contact)",                     false },
         { "drawbotgatestrap(Draw Bot Gate Strap)",                     false, follow = "drawbotgate" },
-        { "drawbotgatestrap(Draw Bot Gate Strap)",                     false },
         { "botgatestrwidth(Bottom Gate Strap Width)",                  tech.get_dimension("Minimum M1 Width"), argtype = "integer", posvals = even() },
         { "botgatestrspace(Bottom Gate Strap Space)",                  tech.get_dimension("Minimum M1 Space"), argtype = "integer" },
         { "botgatemetal(Bottom Gate Strap Metal)",                         1 },
@@ -138,6 +137,7 @@ function layout(transistor, _P)
             _P.fingers, gatepitch
         ):translate(0, -_P.fwidth / 2 - _P.botgatestrspace - _P.botgatestrwidth / 2))
     end
+    dprint(_P.drawbotgatestrap)
     if _P.drawbotgatestrap then
         local extend = _P.botgateextendhalfspace and _P.gatespace or 0
         transistor:merge_into_shallow(geometry.rectangle(
@@ -373,6 +373,26 @@ function layout(transistor, _P)
     transistor:add_anchor("drainstrapouterright",  point.create((-_P.fingers / 2 + (_P.fingers + 1 - 1)) * (_P.gatelength + _P.gatespace), -ysign * (_P.fwidth / 2 + _P.conndrainspace + _P.conndrainwidth)))
 
     -- gates
+    for i = 1, _P.fingers do
+        transistor:add_anchor(string.format("topgatell%d", i), point.create((i - 1) * gatepitch - (_P.fingers - 1) * gatepitch / 2 - _P.gatelength / 2, _P.fwidth / 2 + _P.topgatestrspace))
+        transistor:add_anchor(string.format("topgateml%d", i), point.create((i - 1) * gatepitch - (_P.fingers - 1) * gatepitch / 2 - _P.gatelength / 2, _P.fwidth / 2 + _P.topgatestrspace + _P.topgatestrwidth / 2))
+        transistor:add_anchor(string.format("topgateul%d", i), point.create((i - 1) * gatepitch - (_P.fingers - 1) * gatepitch / 2 - _P.gatelength / 2, _P.fwidth / 2 + _P.topgatestrspace + _P.topgatestrwidth))
+        transistor:add_anchor(string.format("topgatelc%d", i), point.create((i - 1) * gatepitch - (_P.fingers - 1) * gatepitch / 2, _P.fwidth / 2 + _P.topgatestrspace))
+        transistor:add_anchor(string.format("topgatemc%d", i), point.create((i - 1) * gatepitch - (_P.fingers - 1) * gatepitch / 2, _P.fwidth / 2 + _P.topgatestrspace + _P.topgatestrwidth / 2))
+        transistor:add_anchor(string.format("topgateuc%d", i), point.create((i - 1) * gatepitch - (_P.fingers - 1) * gatepitch / 2, _P.fwidth / 2 + _P.topgatestrspace + _P.topgatestrwidth))
+        transistor:add_anchor(string.format("topgatelr%d", i), point.create((i - 1) * gatepitch - (_P.fingers - 1) * gatepitch / 2 + _P.gatelength / 2, _P.fwidth / 2 + _P.topgatestrspace))
+        transistor:add_anchor(string.format("topgatemr%d", i), point.create((i - 1) * gatepitch - (_P.fingers - 1) * gatepitch / 2 + _P.gatelength / 2, _P.fwidth / 2 + _P.topgatestrspace + _P.topgatestrwidth / 2))
+        transistor:add_anchor(string.format("topgateur%d", i), point.create((i - 1) * gatepitch - (_P.fingers - 1) * gatepitch / 2 + _P.gatelength / 2, _P.fwidth / 2 + _P.topgatestrspace + _P.topgatestrwidth))
+        transistor:add_anchor(string.format("botgatell%d", i), point.create((i - 1) * gatepitch - (_P.fingers - 1) * gatepitch / 2 - _P.gatelength / 2, -_P.fwidth / 2 - _P.botgatestrspace - _P.botgatestrwidth))
+        transistor:add_anchor(string.format("botgateml%d", i), point.create((i - 1) * gatepitch - (_P.fingers - 1) * gatepitch / 2 - _P.gatelength / 2, -_P.fwidth / 2 - _P.botgatestrspace - _P.botgatestrwidth / 2))
+        transistor:add_anchor(string.format("botgateul%d", i), point.create((i - 1) * gatepitch - (_P.fingers - 1) * gatepitch / 2 - _P.gatelength / 2, -_P.fwidth / 2 - _P.botgatestrspace))
+        transistor:add_anchor(string.format("botgatelc%d", i), point.create((i - 1) * gatepitch - (_P.fingers - 1) * gatepitch / 2, -_P.fwidth / 2 - _P.botgatestrspace - _P.botgatestrwidth))
+        transistor:add_anchor(string.format("botgatemc%d", i), point.create((i - 1) * gatepitch - (_P.fingers - 1) * gatepitch / 2, -_P.fwidth / 2 - _P.botgatestrspace - _P.botgatestrwidth / 2))
+        transistor:add_anchor(string.format("botgateuc%d", i), point.create((i - 1) * gatepitch - (_P.fingers - 1) * gatepitch / 2, -_P.fwidth / 2 - _P.botgatestrspace))
+        transistor:add_anchor(string.format("botgatelr%d", i), point.create((i - 1) * gatepitch - (_P.fingers - 1) * gatepitch / 2 + _P.gatelength / 2, -_P.fwidth / 2 - _P.botgatestrspace - _P.botgatestrwidth))
+        transistor:add_anchor(string.format("botgatemr%d", i), point.create((i - 1) * gatepitch - (_P.fingers - 1) * gatepitch / 2 + _P.gatelength / 2, -_P.fwidth / 2 - _P.botgatestrspace - _P.botgatestrwidth / 2))
+        transistor:add_anchor(string.format("botgateur%d", i), point.create((i - 1) * gatepitch - (_P.fingers - 1) * gatepitch / 2 + _P.gatelength / 2, -_P.fwidth / 2 - _P.botgatestrspace))
+    end
     transistor:add_anchor("topgate", point.create(0,  _P.fwidth / 2 + math.max(_P.gtopext, enable(_P.drawtopgate, _P.topgatestrspace + _P.topgatestrwidth / 2))))
     transistor:add_anchor("botgate", point.create(0, -_P.fwidth / 2 - math.max(_P.gbotext, enable(_P.drawbotgate, _P.botgatestrspace + _P.botgatestrwidth / 2))))
     transistor:add_anchor("lefttopgate", transistor:get_anchor("topgate") + transistor:get_anchor("sourcedrainmiddleleft"))
