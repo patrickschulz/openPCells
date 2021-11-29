@@ -12,7 +12,7 @@ meta.__tostring = function(self) return string.format("object: %s", self.name or
 function M.create(name)
     local self = {
         name = name,
-        children = { lookup = {} },
+        children = {},
         shapes = {},
         ports = {},
         anchors = {},
@@ -57,11 +57,11 @@ function meta.copy(self)
         new.alignmentbox = { bl = self.alignmentbox.bl:copy(), tr = self.alignmentbox.tr:copy() }
     end
     -- copy children
-    for identifier, obj in pairs(self.children.lookup) do
-        new.children.lookup[identifier] = obj:copy()
-    end
     for i, child in ipairs(self.children) do
-        new.children[i] = { name = child.name, reference = child.reference, identifier = child.identifier, trans = child.trans:copy(), isproxy = true }
+        new.children[i] = M.create_proxy(child.name, child.reference, child.identifier)
+        new.children[i].trans = child.trans:copy()
+        new.children[i].isproxy = true
+        new.children[i].origin = child.origin:copy()
     end
     return new
 end
@@ -90,13 +90,19 @@ function meta.add_child(self, identifier, name)
 end
 
 function meta.add_child_array(self, identifier, xrep, yrep, xpitch, ypitch, name)
-    local child = self:add_child(identifier, name)
-    child.isarray = true
-    child.xrep = xrep
-    child.yrep = yrep
-    child.xpitch = xpitch
-    child.ypitch = ypitch
-    return child
+    if not xpitch then -- alignmentbox mode
+        local obj = pcell.get_cell_reference(identifier)
+        local xpitch, ypitch = obj:width_height_alignmentbox()
+        return self:add_child_array(identifier, xrep, yrep, xpitch, ypitch, name)
+    else
+        local child = self:add_child(identifier, name)
+        child.isarray = true
+        child.xrep = xrep
+        child.yrep = yrep
+        child.xpitch = xpitch
+        child.ypitch = ypitch
+        return child
+    end
 end
 
 function meta.foreach_children(self, func, ...)
@@ -172,8 +178,6 @@ function meta.flatten(self, flattenports)
             end
         end
     end
-    -- remove children
-    self.children = { lookup = {} }
     return self
 end
 
@@ -283,23 +287,25 @@ local function _flipxy(self, mode, ischild)
 end
 
 function meta.flipx(self, xcenter)
-    _flipxy(self, "x")
+    return _flipxy(self, "x")
 end
 
 function meta.flipy(self)
-    _flipxy(self, "y")
+    return _flipxy(self, "y")
 end
 
 function meta.mirror_at_xaxis(self)
     self:flipy()
     local cx, cy = self:get_transformation_correction()
     self:translate(0, -cy)
+    return self
 end
 
 function meta.mirror_at_yaxis(self)
     self:flipx()
     local cx, cy = self:get_transformation_correction()
     self:translate(-cx, 0)
+    return self
 end
 
 function meta.rotate_90(self)
