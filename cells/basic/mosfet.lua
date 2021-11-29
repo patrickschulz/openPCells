@@ -7,30 +7,30 @@ function parameters()
         { "fwidth(Finger Width)",                                      tech.get_dimension("Minimum Gate Width"), argtype = "integer", posvals = even() },
         { "gatelength(Gate Length)",                                   tech.get_dimension("Minimum Gate Length"), argtype = "integer", posvals = even() },
         { "gatespace(Gate Spacing)",                                   tech.get_dimension("Minimum Gate Space"), argtype = "integer", posvals = even() },
-        { "actext(Active Extension)",                                   30 },
-        { "specifyactext(Specify Active Extension)",                 false },
+        { "actext(Active Extension)",                                     30 },
+        { "specifyactext(Specify Active Extension)",                   false },
         { "sdwidth(Source/Drain Metal Width)",                         tech.get_dimension("Minimum M1 Width"), argtype = "integer", posvals = even() },
-        { "sdconnwidth(Source/Drain Rails Metal Width)",               tech.get_dimension("Minimum M1 Width"), argtype = "integer" },
-        { "sdconnspace(Source/Drain Rails Metal Space)",               tech.get_dimension("Minimum M1 Width"), argtype = "integer" },
         { "gtopext(Gate Top Extension)",                               tech.get_dimension("Minimum Gate Extension") },
         { "gbotext(Gate Bottom Extension)",                            tech.get_dimension("Minimum Gate Extension") },
-        { "cliptop(Clip Top Marker Layers)",                         false },
-        { "clipbot(Clip Bottom Marker Layers)",                      false },
-        { "drawtopgate(Draw Top Gate Contact)",                      false },
-        { "drawtopgatestrap(Draw Top Gate Strap)",                   false, follow = "drawtopgate" },
+        { "cliptop(Clip Top Marker Layers)",                           false },
+        { "clipbot(Clip Bottom Marker Layers)",                        false },
+        { "drawtopgate(Draw Top Gate Contact)",                        false },
+        { "drawtopgatestrap(Draw Top Gate Strap)",                     false, follow = "drawtopgate" },
         { "topgatestrwidth(Top Gate Strap Width)",                     tech.get_dimension("Minimum M1 Width"), argtype = "integer", posvals = even() },
         { "topgatestrspace(Top Gate Strap Space)",                     tech.get_dimension("Minimum M1 Space"), argtype = "integer" },
-        { "topgatemetal(Top Gate Strap Metal)",                          1 },
-        { "drawbotgate(Draw Bottom Gate Contact)",                   false },
-        { "drawbotgatestrap(Draw Bot Gate Strap)",                   false, follow = "drawbotgate" },
-        { "drawbotgatestrap(Draw Bot Gate Strap)",                   false },
+        { "topgatemetal(Top Gate Strap Metal)",                            1 },
+        { "topgateextendhalfspace(Top Gate Strap Extend Half Space)",  false },
+        { "drawbotgate(Draw Bottom Gate Contact)",                     false },
+        { "drawbotgatestrap(Draw Bot Gate Strap)",                     false, follow = "drawbotgate" },
+        { "drawbotgatestrap(Draw Bot Gate Strap)",                     false },
         { "botgatestrwidth(Bottom Gate Strap Width)",                  tech.get_dimension("Minimum M1 Width"), argtype = "integer", posvals = even() },
         { "botgatestrspace(Bottom Gate Strap Space)",                  tech.get_dimension("Minimum M1 Space"), argtype = "integer" },
-        { "botgatemetal(Bottom Gate Strap Metal)",                       1 },
-        { "drawtopgcut(Draw Top Gate Cut)",                          false },
-        { "drawbotgcut(Draw Bottom Gate Cut)",                       false },
-        { "topgcutoffset(Top Gate Cut Y Offset)",                        0 },
-        { "botgcutoffset(Bottom Gate Cut Y Offset)",                     0 },
+        { "botgatemetal(Bottom Gate Strap Metal)",                         1 },
+        { "botgateextendhalfspace(Bottom Gate Strap Extend Half Space)",  false },
+        { "drawtopgcut(Draw Top Gate Cut)",                            false },
+        { "drawbotgcut(Draw Bottom Gate Cut)",                         false },
+        { "topgcutoffset(Top Gate Cut Y Offset)",                          0 },
+        { "botgcutoffset(Bottom Gate Cut Y Offset)",                       0 },
         { "cutheight",                                                  60, posvals = even() },
         { "drawinnersourcedrain(Draw Inner Source/Drain Contacts)", "both", posvals = set("both", "source", "drain", "none") },
         { "drawoutersourcedrain(Draw Outer Source/Drain Contacts)", "both", posvals = set("both", "source", "drain", "none") },
@@ -38,21 +38,27 @@ function parameters()
         { "drainsize(Drain Size)",                                    tech.get_dimension("Minimum Gate Width"), argtype = "integer", follow = "fwidth" },
         { "sourcealign(Source Alignement)",                          "bottom", posvals = set("top", "bottom") },
         { "drainalign(Drain Alignement)",                            "top", posvals = set("top", "bottom") },
-        { "drawsourcevia(Draw Source Via)",                          false },
-        { "connectsource(Connect Source)",                           false },
-        { "connsourcemetal(Source Connection Metal)",                    1 },
-        { "connsourceinline(Connect Source Inline of Transistor)",   false },
-        { "connectdrain(Connect Drain)",                             false },
-        { "drawdrainvia(Draw Drain Via)",                            false },
-        { "conndrainmetal(Drain Connection Metal)",                      1 },
-        { "conndraininline(Connect Drain Inline of Transistor)",     false },
-        { "drawtopactivedummy",                                      false },
-        { "topactivedummywidth",                                        80 },
-        { "topactivedummysep",                                          80 },
-        { "drawbotactivedummy",                                      false },
-        { "botactivedummywidth",                                        80 },
-        { "botactivedummysep",                                          80 },
-        { "drawactive",                                               true }
+        { "drawsourcevia(Draw Source Via)",                            false },
+        { "connectsource(Connect Source)",                             false },
+        { "connsourcewidth(Source Rails Metal Width)",               tech.get_dimension("Minimum M1 Width"), argtype = "integer" },
+        { "connsourcespace(Source Rails Metal Space)",               tech.get_dimension("Minimum M1 Width"), argtype = "integer" },
+        { "connsourcemetal(Source Connection Metal)",                      1 },
+        { "connsourceinline(Connect Source Inline of Transistor)",     false },
+        { "connectdrain(Connect Drain)",                               false },
+        { "conndrainwidth(Drain Rails Metal Width)",               tech.get_dimension("Minimum M1 Width"), argtype = "integer" },
+        { "conndrainspace(Drain Rails Metal Space)",               tech.get_dimension("Minimum M1 Width"), argtype = "integer" },
+        { "extenddrainconnection(Extend Drain Connection)",            false },
+        { "connectinverse(Invert Source/Drain Strap Locations)",       false },
+        { "drawdrainvia(Draw Drain Via)",                              false },
+        { "conndrainmetal(Drain Connection Metal)",                        1 },
+        { "conndraininline(Connect Drain Inline of Transistor)",       false },
+        { "drawtopactivedummy",                                        false },
+        { "topactivedummywidth",                                          80 },
+        { "topactivedummysep",                                            80 },
+        { "drawbotactivedummy",                                        false },
+        { "botactivedummywidth",                                          80 },
+        { "botactivedummysep",                                            80 },
+        { "drawactive",                                                 true }
     )
 end
 
@@ -115,13 +121,14 @@ function layout(transistor, _P)
         ):translate(0, _P.fwidth / 2 + _P.topgatestrspace + _P.topgatestrwidth / 2))
     end
     if _P.drawtopgatestrap then
+        local extend = _P.topgateextendhalfspace and _P.gatespace or 0
         transistor:merge_into_shallow(
             geometry.rectangle(
-            generics.metal(1), _P.fingers * _P.gatelength + (_P.fingers - 1) * _P.gatespace, _P.topgatestrwidth
+            generics.metal(1), _P.fingers * _P.gatelength + (_P.fingers - 1) * _P.gatespace + extend, _P.topgatestrwidth
         ):translate(0, _P.fwidth / 2 + _P.topgatestrspace + _P.topgatestrwidth / 2))
         if _P.topgatemetal > 1 then
             transistor:merge_into_shallow(geometry.rectangle(
-                generics.via(1, _P.topgatemetal), _P.fingers * _P.gatelength + (_P.fingers - 1) * _P.gatespace, _P.topgatestrwidth
+                generics.via(1, _P.topgatemetal), _P.fingers * _P.gatelength + (_P.fingers - 1) * _P.gatespace + extend, _P.topgatestrwidth
             ):translate(0, _P.fwidth / 2 + _P.topgatestrspace + _P.topgatestrwidth / 2))
         end
     end
@@ -132,12 +139,13 @@ function layout(transistor, _P)
         ):translate(0, -_P.fwidth / 2 - _P.botgatestrspace - _P.botgatestrwidth / 2))
     end
     if _P.drawbotgatestrap then
+        local extend = _P.botgateextendhalfspace and _P.gatespace or 0
         transistor:merge_into_shallow(geometry.rectangle(
-            generics.metal(1), _P.fingers * _P.gatelength + (_P.fingers - 1) * _P.gatespace, _P.botgatestrwidth
+            generics.metal(1), _P.fingers * _P.gatelength + (_P.fingers - 1) * _P.gatespace + extend, _P.botgatestrwidth
         ):translate(0, -_P.fwidth / 2 - _P.botgatestrspace - _P.botgatestrwidth / 2))
         if _P.botgatemetal > 1 then
             transistor:merge_into_shallow(geometry.rectangle(
-                generics.via(1, _P.botgatemetal), _P.fingers * _P.gatelength + (_P.fingers - 1) * _P.gatespace, _P.botgatestrwidth
+                generics.via(1, _P.botgatemetal), _P.fingers * _P.gatelength + (_P.fingers - 1) * _P.gatespace + extend, _P.botgatestrwidth
             ):translate(0, -_P.fwidth / 2 - _P.botgatestrspace - _P.botgatestrwidth / 2))
         end
     end
@@ -267,63 +275,124 @@ function layout(transistor, _P)
     end
 
     -- source/drain connections
-    local ysign = _P.channeltype == "nmos" and -1 or 1
+    local ysign = (_P.channeltype == "nmos" and -1 or 1) * (_P.connectinverse and -1 or 1)
     if _P.connectsource then
         if _P.connsourceinline then
             transistor:merge_into_shallow(geometry.rectangle(generics.metal(_P.connsourcemetal),
-                _P.fingers * (_P.gatelength + _P.gatespace) + _P.sdwidth, _P.sdconnwidth
+                _P.fingers * (_P.gatelength + _P.gatespace) + _P.sdwidth, _P.connsourcewidth
             ))
         else
             transistor:merge_into_shallow(geometry.rectangle(generics.metal(_P.connsourcemetal),
-                _P.fingers * (_P.gatelength + _P.gatespace) + _P.sdwidth, _P.sdconnwidth
-            ):translate(0, ysign * (_P.fwidth + _P.sdconnwidth + 2 * _P.sdconnspace) / 2))
+                _P.fingers * (_P.gatelength + _P.gatespace) + _P.sdwidth, _P.connsourcewidth
+            ):translate(0, ysign * (_P.fwidth + _P.connsourcewidth + 2 * _P.connsourcespace) / 2))
+            --transistor:merge_into_shallow(geometry.multiple_x(
+            --    geometry.rectangle(generics.metal(_P.connsourcemetal), _P.sdwidth, _P.connsourcespace),
+            --    math.floor(0.5 * _P.fingers) + 1, 2 * (_P.gatelength + _P.gatespace)
+            --):translate(0, ysign * (_P.fwidth + _P.connsourcespace) / 2))
             transistor:merge_into_shallow(geometry.multiple_x(
-                geometry.rectangle(generics.metal(_P.connsourcemetal), _P.sdwidth, _P.sdconnspace),
+                geometry.rectanglepoints(generics.metal(_P.connsourcemetal), 
+                    point.create(-_P.sdwidth / 2, 0),
+                    point.create( _P.sdwidth / 2, ysign * _P.connsourcespace)
+                ),
                 math.floor(0.5 * _P.fingers) + 1, 2 * (_P.gatelength + _P.gatespace)
-            ):translate(0, ysign * (_P.fwidth + _P.sdconnspace) / 2))
+            ):translate(0, ysign * _P.fwidth / 2))
         end
     end
     if _P.connectdrain then
         if _P.conndraininline then
             transistor:merge_into_shallow(geometry.rectangle(generics.metal(_P.conndrainmetal),
-                (_P.fingers - 2) * (_P.gatelength + _P.gatespace) + _P.sdwidth, _P.sdconnwidth
+                (_P.fingers - 2) * (_P.gatelength + _P.gatespace) + _P.sdwidth, _P.conndrainwidth
             ))
         else
+            local diff = _P.extenddrainconnection and 0 or 2
             transistor:merge_into_shallow(geometry.rectangle(generics.metal(_P.conndrainmetal),
-                (_P.fingers - 2) * (_P.gatelength + _P.gatespace) + _P.sdwidth, _P.sdconnwidth
-            ):translate(0, -ysign * (_P.fwidth + _P.sdconnwidth + 2 * _P.sdconnspace) / 2))
+                (_P.fingers - diff) * (_P.gatelength + _P.gatespace) + _P.sdwidth, _P.conndrainwidth
+            ):translate(0, -ysign * (_P.fwidth + _P.conndrainwidth + 2 * _P.conndrainspace) / 2))
             transistor:merge_into_shallow(geometry.multiple_x(
-                geometry.rectangle(generics.metal(_P.conndrainmetal), _P.sdwidth, _P.sdconnspace),
+                geometry.rectanglepoints(generics.metal(_P.conndrainmetal), 
+                    point.create(-_P.sdwidth / 2, 0),
+                    point.create( _P.sdwidth / 2, -ysign * _P.conndrainspace)
+                ),
                 math.floor(0.5 * _P.fingers), 2 * (_P.gatelength + _P.gatespace)
-            ):translate(0, -ysign * (_P.fwidth + _P.sdconnspace) / 2))
+            ):translate(0, -ysign * _P.fwidth / 2))
         end
     end
 
     -- alignmentbox
+    local y1 = _P.fwidth / 2 + math.max(_P.gtopext, enable(_P.drawtopgate, _P.topgatestrspace + _P.topgatestrwidth / 2))
+    local y2 = -_P.fwidth / 2 - math.max(_P.gbotext, enable(_P.drawbotgate, _P.botgatestrspace + _P.botgatestrwidth / 2))
+    if _P.connectsource and not _P.connsourceinline then
+        y1 = ysign * (_P.fwidth + _P.connsourcewidth + 2 * _P.connsourcespace) / 2
+    end
+    if _P.connectdrain and not _P.conndraininline then
+        y2 = -ysign * (_P.fwidth + _P.conndrainwidth + 2 * _P.conndrainspace) / 2
+    end
     transistor:set_alignment_box(
-        point.create(-_P.fingers / 2 * (_P.gatelength + _P.gatespace), -_P.fwidth / 2 - math.max(_P.gbotext, enable(_P.drawbotgate, _P.botgatestrspace + _P.botgatestrwidth / 2))),
-        point.create( _P.fingers / 2 * (_P.gatelength + _P.gatespace), _P.fwidth / 2 + math.max(_P.gtopext, enable(_P.drawtopgate, _P.topgatestrspace + _P.topgatestrwidth / 2)))
+        point.create(
+            -_P.fingers / 2 * (_P.gatelength + _P.gatespace), 
+            math.min(y1, y2)
+        ),
+        point.create( 
+            _P.fingers / 2 * (_P.gatelength + _P.gatespace), 
+            math.max(y1, y2)
+        )
     )
 
     -- anchors
+    -- source/drain regions
     for i = 1, _P.fingers + 1 do
         transistor:add_anchor(string.format("sourcedrainlower%d", i), point.create((-_P.fingers / 2 + (i - 1)) * (_P.gatelength + _P.gatespace), -_P.fwidth / 2))
         transistor:add_anchor(string.format("sourcedrainmiddle%d", i), point.create((-_P.fingers / 2 + (i - 1)) * (_P.gatelength + _P.gatespace), 0))
         transistor:add_anchor(string.format("sourcedrainupper%d", i), point.create((-_P.fingers / 2 + (i - 1)) * (_P.gatelength + _P.gatespace), _P.fwidth / 2))
     end
-    transistor:add_anchor("sourcestrap", point.create(0, -_P.fwidth / 2 - _P.sdconnwidth / 2 - _P.sdconnspace))
-    transistor:add_anchor("drainstrap",  point.create(0, 0.5 * _P.fwidth + 0.5 * _P.sdconnwidth + _P.sdconnspace))
-    transistor:add_anchor("middrainsource",  point.create(0, 0))
-    transistor:add_anchor("leftdrainsource",  point.create(-_P.fingers / 2 * (_P.gatelength + _P.gatespace), 0))
-    transistor:add_anchor("rightdrainsource", point.create( _P.fingers / 2 * (_P.gatelength + _P.gatespace), 0))
+    transistor:add_anchor("sourcedrainlowerleft", point.create((-_P.fingers / 2 + (1 - 1)) * (_P.gatelength + _P.gatespace), -_P.fwidth / 2))
+    transistor:add_anchor("sourcedrainmiddleleft", point.create((-_P.fingers / 2 + (1 - 1)) * (_P.gatelength + _P.gatespace), 0))
+    transistor:add_anchor("sourcedrainupperleft", point.create((-_P.fingers / 2 + (1 - 1)) * (_P.gatelength + _P.gatespace), _P.fwidth / 2))
+    transistor:add_anchor("sourcedrainlowerright", point.create((-_P.fingers / 2 + (_P.fingers + 1 - 1)) * (_P.gatelength + _P.gatespace), -_P.fwidth / 2))
+    transistor:add_anchor("sourcedrainmiddleright", point.create((-_P.fingers / 2 + (_P.fingers + 1 - 1)) * (_P.gatelength + _P.gatespace), 0))
+    transistor:add_anchor("sourcedrainupperright", point.create((-_P.fingers / 2 + (_P.fingers + 1 - 1)) * (_P.gatelength + _P.gatespace), _P.fwidth / 2))
+
+    -- source/drain straps
+    transistor:add_anchor("sourcestrapinnerleft",  point.create((-_P.fingers / 2 + (1 - 1)) * (_P.gatelength + _P.gatespace), ysign * (_P.fwidth / 2 + _P.connsourcespace)))
+    transistor:add_anchor("sourcestrapmiddleleft", point.create((-_P.fingers / 2 + (1 - 1)) * (_P.gatelength + _P.gatespace), ysign * (_P.fwidth / 2 + _P.connsourcespace + _P.connsourcewidth / 2)))
+    transistor:add_anchor("sourcestrapouterleft",  point.create((-_P.fingers / 2 + (1 - 1)) * (_P.gatelength + _P.gatespace), ysign * (_P.fwidth / 2 + _P.connsourcespace + _P.connsourcewidth)))
+    transistor:add_anchor("drainstrapinnerleft",  point.create((-_P.fingers / 2 + (1 - 1)) * (_P.gatelength + _P.gatespace), -ysign * (_P.fwidth / 2 + _P.conndrainspace)))
+    transistor:add_anchor("drainstrapmiddleleft", point.create((-_P.fingers / 2 + (1 - 1)) * (_P.gatelength + _P.gatespace), -ysign * (_P.fwidth / 2 + _P.conndrainspace + _P.conndrainwidth / 2)))
+    transistor:add_anchor("drainstrapouterleft",  point.create((-_P.fingers / 2 + (1 - 1)) * (_P.gatelength + _P.gatespace), -ysign * (_P.fwidth / 2 + _P.conndrainspace + _P.conndrainwidth)))
+    transistor:add_anchor("sourcestrapinner",  point.create(0, ysign * (_P.fwidth / 2 + _P.connsourcespace)))
+    transistor:add_anchor("sourcestrapmiddle", point.create(0, ysign * (_P.fwidth / 2 + _P.connsourcespace + _P.connsourcewidth / 2)))
+    transistor:add_anchor("sourcestrapouter",  point.create(0, ysign * (_P.fwidth / 2 + _P.connsourcespace + _P.connsourcewidth)))
+    transistor:add_anchor("drainstrapinner",  point.create(0, -ysign * (_P.fwidth / 2 + _P.conndrainspace)))
+    transistor:add_anchor("drainstrapmiddle", point.create(0, -ysign * (_P.fwidth / 2 + _P.conndrainspace + _P.conndrainwidth / 2)))
+    transistor:add_anchor("drainstrapouter",  point.create(0, -ysign * (_P.fwidth / 2 + _P.conndrainspace + _P.conndrainwidth)))
+    transistor:add_anchor("sourcestrapinnerright",  point.create((-_P.fingers / 2 + (_P.fingers + 1 - 1)) * (_P.gatelength + _P.gatespace), ysign * (_P.fwidth / 2 + _P.connsourcespace)))
+    transistor:add_anchor("sourcestrapmiddleright", point.create((-_P.fingers / 2 + (_P.fingers + 1 - 1)) * (_P.gatelength + _P.gatespace), ysign * (_P.fwidth / 2 + _P.connsourcespace + _P.connsourcewidth / 2)))
+    transistor:add_anchor("sourcestrapouterright",  point.create((-_P.fingers / 2 + (_P.fingers + 1 - 1)) * (_P.gatelength + _P.gatespace), ysign * (_P.fwidth / 2 + _P.connsourcespace + _P.connsourcewidth)))
+    transistor:add_anchor("drainstrapinnerright",  point.create((-_P.fingers / 2 + (_P.fingers + 1 - 1)) * (_P.gatelength + _P.gatespace), -ysign * (_P.fwidth / 2 + _P.conndrainspace)))
+    transistor:add_anchor("drainstrapmiddleright", point.create((-_P.fingers / 2 + (_P.fingers + 1 - 1)) * (_P.gatelength + _P.gatespace), -ysign * (_P.fwidth / 2 + _P.conndrainspace + _P.conndrainwidth / 2)))
+    transistor:add_anchor("drainstrapouterright",  point.create((-_P.fingers / 2 + (_P.fingers + 1 - 1)) * (_P.gatelength + _P.gatespace), -ysign * (_P.fwidth / 2 + _P.conndrainspace + _P.conndrainwidth)))
+
+    -- gates
     transistor:add_anchor("topgate", point.create(0,  _P.fwidth / 2 + math.max(_P.gtopext, enable(_P.drawtopgate, _P.topgatestrspace + _P.topgatestrwidth / 2))))
     transistor:add_anchor("botgate", point.create(0, -_P.fwidth / 2 - math.max(_P.gbotext, enable(_P.drawbotgate, _P.botgatestrspace + _P.botgatestrwidth / 2))))
-    transistor:add_anchor("lefttopgate", transistor:get_anchor("topgate") + transistor:get_anchor("leftdrainsource"))
-    transistor:add_anchor("righttopgate", transistor:get_anchor("topgate") + transistor:get_anchor("rightdrainsource"))
-    transistor:add_anchor("leftbotgate", transistor:get_anchor("botgate") + transistor:get_anchor("leftdrainsource"))
-    transistor:add_anchor("rightbotgate", transistor:get_anchor("botgate") + transistor:get_anchor("rightdrainsource"))
+    transistor:add_anchor("lefttopgate", transistor:get_anchor("topgate") + transistor:get_anchor("sourcedrainmiddleleft"))
+    transistor:add_anchor("righttopgate", transistor:get_anchor("topgate") + transistor:get_anchor("sourcedrainmiddleright"))
+    transistor:add_anchor("leftbotgate", transistor:get_anchor("botgate") + transistor:get_anchor("sourcedrainmiddleleft"))
+    transistor:add_anchor("rightbotgate", transistor:get_anchor("botgate") + transistor:get_anchor("sourcedrainmiddleright"))
     transistor:add_anchor("topgatestrap", point.create(0, _P.fwidth / 2 + _P.topgatestrspace + _P.topgatestrwidth / 2))
     transistor:add_anchor("botgatestrap", point.create(0, -_P.fwidth / 2 - _P.botgatestrspace - _P.botgatestrwidth / 2))
+    transistor:add_anchor("topgatestrapmiddle", point.create(
+        0,
+        _P.fwidth / 2 + _P.topgatestrspace + _P.topgatestrwidth / 2
+    ))
+    transistor:add_anchor("topgatestraplowermiddle", point.create(
+        0,
+        _P.fwidth / 2 + _P.topgatestrspace
+    ))
+    transistor:add_anchor("topgatestrapuppermiddle", point.create(
+        0,
+        _P.fwidth / 2 + _P.topgatestrspace + _P.topgatestrwidth
+    ))
     transistor:add_anchor("topgatestrapleft", point.create(
         -_P.fingers * _P.gatelength / 2 - (_P.fingers - 1) * _P.gatespace / 2,
         _P.fwidth / 2 + _P.topgatestrspace + _P.topgatestrwidth / 2
@@ -347,6 +416,18 @@ function layout(transistor, _P)
     transistor:add_anchor("topgatestrapupperright", point.create(
         _P.fingers * _P.gatelength / 2 + (_P.fingers - 1) * _P.gatespace / 2,
         _P.fwidth / 2 + _P.topgatestrspace + _P.topgatestrwidth
+    ))
+    transistor:add_anchor("botgatestrapmiddle", point.create(
+        0,
+        -_P.fwidth / 2 - _P.botgatestrspace + _P.botgatestrwidth / 2
+    ))
+    transistor:add_anchor("botgatestraplowermiddle", point.create(
+        0,
+        -_P.fwidth / 2 - _P.botgatestrspace
+    ))
+    transistor:add_anchor("botgatestrapuppermiddle", point.create(
+        0,
+        -_P.fwidth / 2 - _P.botgatestrspace - _P.botgatestrwidth
     ))
     transistor:add_anchor("botgatestrapleft", point.create(
         -_P.fingers * _P.gatelength / 2 - (_P.fingers - 1) * _P.gatespace / 2,
