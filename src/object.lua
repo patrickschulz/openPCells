@@ -178,6 +178,7 @@ function meta.flatten(self, flattenports)
             end
         end
     end
+    self.children = {}
     return self
 end
 
