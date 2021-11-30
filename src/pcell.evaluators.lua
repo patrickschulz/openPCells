@@ -28,11 +28,17 @@ local function tostrtable(arg)
     return t
 end
 
-return {
-    number   = tonumber,
-    integer  = tointeger,
-    string   = identity,
-    boolean  = toboolean,
-    numtable = tonumtable,
-    strtable = tostrtable,
-}
+local function evaluate(arg, argtype)
+    local evaluators = {
+        number   = tonumber,
+        integer  = tointeger,
+        string   = identity,
+        boolean  = toboolean,
+        numtable = tonumtable,
+        strtable = tostrtable,
+    }
+    local eval = evaluators[argtype]
+    return eval(arg)
+end
+
+return evaluate

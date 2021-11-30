@@ -17,7 +17,7 @@ Implementation note:
 local M = {}
 
 -- submodules
-local evaluators = _load_module("pcell.evaluators")
+local evaluator = _load_module("pcell.evaluators")
 local paramlib = _load_module("pcell.parameter")
 
 local function _get_cell_filename(state, cellname)
@@ -130,8 +130,7 @@ local function _set_parameter_function(state, cellname, name, value, backup, eva
     end
     local value = value
     if evaluate then
-        local eval = evaluators[p.argtype]
-        value = eval(value)
+        value = evaluator(value, p.argtype)
     end
     paramlib.check_constraints(p, value)
     paramlib.check_readonly(p)
@@ -471,17 +470,10 @@ local function _find_cell_traceback()
 end
 
 function M.update_other_cell_parameters(cellargs, evaluate)
-    local overwrite = false -- ?? TODO
     for name, arg in pairs(cellargs) do
         -- call with cellname == nil, only update parent parameters
         _process_input_parameters(state, nil, cellargs, evaluate, false)
     end
-end
-
-function M.update_cell_parameters(cellname, cellargs, evaluate)
-    local cell = _get_cell(state, cellname) -- load cell if not loaded
-    local parameters, backup = _get_parameters(state, cellname, cellname, cellargs, evaluate) -- cellname needs to be passed twice
-    _restore_parameters(state, cellname, backup)
 end
 
 function M.push_overwrites(othercell, cellargs)
