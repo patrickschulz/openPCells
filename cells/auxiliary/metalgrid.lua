@@ -8,6 +8,10 @@ function parameters()
         { "mvspace", 100 },
         { "mhlines", 6 },
         { "mvlines", 3 },
+        { "mvextb", 0 },
+        { "mvextt", 0 },
+        { "mhextl", 0 },
+        { "mhextr", 0 },
         { "drawvias", true },
         { "centergrid", true },
         { "flatvias", true },
@@ -25,16 +29,16 @@ function layout(grid, _P)
         local xoffset = _P.centergrid and (-_P.mvlines * xpitch / 2) or 0
         local yoffset = _P.centergrid and (-_P.mhlines * ypitch / 2 + _P.mhspace / 2) or math.floor(_P.mhspace / 2)
         grid:merge_into_shallow(geometry.rectanglebltr(generics.metal(_P.metalh),
-            point.create(xoffset,                                          (i - 1) * ypitch + yoffset),
-            point.create(xoffset + _P.mvlines * (_P.mvwidth + _P.mvspace), (i - 1) * ypitch + yoffset + _P.mhwidth)
+            point.create(xoffset - _P.mhextl,                                          (i - 1) * ypitch + yoffset),
+            point.create(xoffset + _P.mhextr + _P.mvlines * (_P.mvwidth + _P.mvspace), (i - 1) * ypitch + yoffset + _P.mhwidth)
         ))
     end
     for i = 1, _P.mvlines do
         local xoffset = _P.centergrid and (-_P.mvlines * xpitch / 2 + _P.mvspace / 2) or math.floor(_P.mvspace / 2)
         local yoffset = _P.centergrid and (-_P.mhlines * ypitch / 2) or 0
         grid:merge_into_shallow(geometry.rectanglebltr(generics.metal(_P.metalv),
-            point.create((i - 1) * xpitch + xoffset,              yoffset),
-            point.create((i - 1) * xpitch + xoffset + _P.mvwidth, yoffset + _P.mhlines * (_P.mhwidth + _P.mhspace))
+            point.create((i - 1) * xpitch + xoffset,              yoffset - _P.mvextb),
+            point.create((i - 1) * xpitch + xoffset + _P.mvwidth, yoffset + _P.mvextt + _P.mhlines * (_P.mhwidth + _P.mhspace))
         ))
     end
 
