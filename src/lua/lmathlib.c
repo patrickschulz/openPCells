@@ -114,6 +114,21 @@ static int math_ceil (lua_State *L) {
 }
 
 
+static int math_roundeven (lua_State *L) {
+  if (lua_isinteger(L, 1))
+    lua_settop(L, 1);  /* integer is its own ceil */
+  else {
+    lua_Number d = l_mathop(round)(luaL_checknumber(L, 1));
+    pushnumint(L, d);
+  }
+  if(lua_tointeger(L, -1) % 2 == 1)
+  {
+    pushnumint(L, lua_tointeger(L, -1) + 1);
+  }
+  return 1;
+}
+
+
 static int math_fmod (lua_State *L) {
   if (lua_isinteger(L, 1) && lua_isinteger(L, 2)) {
     lua_Integer d = lua_tointeger(L, 2);
@@ -719,6 +734,7 @@ static const luaL_Reg mathlib[] = {
   {"min",   math_min},
   {"modf",   math_modf},
   {"rad",   math_rad},
+  {"roundeven",   math_roundeven},
   {"sin",   math_sin},
   {"sqrt",  math_sqrt},
   {"tan",   math_tan},
