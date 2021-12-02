@@ -137,7 +137,6 @@ function layout(transistor, _P)
             _P.fingers, gatepitch
         ):translate(0, -_P.fwidth / 2 - _P.botgatestrspace - _P.botgatestrwidth / 2))
     end
-    dprint(_P.drawbotgatestrap)
     if _P.drawbotgatestrap then
         local extend = _P.botgateextendhalfspace and _P.gatespace or 0
         transistor:merge_into_shallow(geometry.rectangle(
