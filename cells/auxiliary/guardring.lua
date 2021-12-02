@@ -34,4 +34,10 @@ function layout(guardring, _P)
     if _P.drawdeepwell then
         guardring:merge_into_shallow(geometry.rectangle(generics.other(string.format("deep%swell", _P.contype)), _P.width + _P.ringwidth + 2 * _P.extension - 2 * _P.deepwelloffset, _P.height + _P.ringwidth + 2 * _P.extension - 2 * _P.deepwelloffset))
     end
+
+    -- alignment box
+    guardring:set_alignment_box(
+        point.create(-_P.width / 2, -_P.height / 2),
+        point.create( _P.width / 2,  _P.height / 2)
+    )
 end
