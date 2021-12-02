@@ -159,8 +159,12 @@ return {
         help = "draw all present alignment box (also those of subcells). The box is drawn in the 'special' layer, so your layermap needs to have an entry for that."
     },
     switch{
-        name = "debugcell", long = "--debug-cell",
+        name = "enabledprint", long = "--enable-dprint",
         help = "enables debugging print statements in cell layout definitions"
+    },
+    switch{
+        name = "debugcell", long = "--debug-cell",
+        help = "show detailed cell debugging call stack"
     },
     section("Miscellaneous functions"),
     switch{

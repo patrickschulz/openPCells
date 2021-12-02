@@ -394,7 +394,7 @@ function state.create_cellenv(state, cellname, ovrenv)
         table = table,
         marker = marker,
         transformationmatrix = transformationmatrix,
-        dprint = function(...) if state.debug then print(...) end end,
+        dprint = function(...) if state.enabledprint then print(...) end end,
         tonumber = tonumber,
         type = type,
         ipairs = ipairs,
@@ -441,6 +441,10 @@ end
 
 function M.enable_debug(d)
     state.debug = d
+end
+
+function M.enable_dprint(d)
+    state.enabledprint = d
 end
 
 function M.append_cellpath(path)

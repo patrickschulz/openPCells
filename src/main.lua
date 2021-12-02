@@ -362,6 +362,7 @@ end
 
 -- create cell
 pcell.enable_debug(args.debugcell)
+pcell.enable_dprint(args.enabledprint)
 local cell
 if args.cellscript then
     pcell.update_other_cell_parameters(cellargs, true)
@@ -374,7 +375,7 @@ if args.cellscript then
     end
     cell = c
 else
-    local status, c = pcall(pcell.create_layout, args.cell, cellargs, true)
+    local status, c = pcall(pcell.create_layout, args.cell, cellargs, nil, true) -- nil: no environment, true: evaluate parameters
     if not status then
         moderror(c)
     end
