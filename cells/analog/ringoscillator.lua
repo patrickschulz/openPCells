@@ -43,8 +43,9 @@ function parameters()
         { "nfingerwidth",        500 },
         { "separation",          400 },
         { "gstwidth",             60 },
-        { "powerwidth",          120 },
-        { "powerspace",           60 }
+        { "sdwidth",              60 },
+        { "powerwidth",          200 },
+        { "powerspace",          120 }
     )
 end
 
@@ -57,12 +58,15 @@ function layout(oscillator, _P)
         gatespace = _P.gspace,
     })
     pcell.push_overwrites("basic/cmos", {
+        nvthtype = 3,
+        pvthtype = 3,
         separation = _P.separation,
         pwidth = _P.pfingerwidth,
         nwidth = _P.nfingerwidth,
         powerwidth = _P.powerwidth,
         powerspace = _P.powerspace,
-        gstwidth = _P.gstwidth
+        gstwidth = _P.gstwidth,
+        sdwidth = _P.sdwidth,
     })
 
     -- place inverter cells
@@ -123,8 +127,23 @@ function layout(oscillator, _P)
         inverters[1]:get_anchor(string.format("Gur%d", _P.invfingers))
     ))
 
-    -- center oscillator
-    oscillator:translate(-(_P.numinv - 1) * _P.invfingers * xpitch / 2, 0)
+    local width = point.xdistance(inverters[_P.numinv]:get_anchor("PRpur"), inverters[1]:get_anchor("PRpul"))
+    local welltapp = pcell.create_layout("auxiliary/welltap", {
+        contype = "n",
+        width = width,
+        height = _P.powerwidth,
+        extension = 50,
+    })
+    welltapp:move_anchor("bottomleft", inverters[1]:get_anchor("PRpll"))
+    oscillator:merge_into_shallow(welltapp)
+    local welltapn = pcell.create_layout("auxiliary/welltap", {
+        contype = "p",
+        width = width,
+        height = _P.powerwidth,
+        extension = 50,
+    })
+    welltapn:move_anchor("topleft", inverters[1]:get_anchor("PRnul"))
+    oscillator:merge_into_shallow(welltapn)
 
     --[[
     -- place guardring
@@ -147,4 +166,12 @@ function layout(oscillator, _P)
     oscillator:add_child(pguardringname)
     oscillator:add_child(nguardringname)
     --]]
+
+    -- ports
+    oscillator:add_port("vdd", generics.metal(1), inverters[1]:get_anchor("top"))
+    oscillator:add_port("vss", generics.metal(1), inverters[1]:get_anchor("bottom"))
+    oscillator:add_port("vout", generics.metal(1), inverters[_P.numinv]:get_anchor(string.format("Gcc%d", _P.invfingers)):translate(xpitch, 0))
+
+    -- center oscillator
+    oscillator:translate(-(_P.numinv - 1) * _P.invfingers * xpitch / 2, 0)
 end
