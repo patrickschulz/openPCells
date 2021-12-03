@@ -18,7 +18,7 @@ function layout(welltap, _P)
     welltap:merge_into_shallow(geometry.rectangle(generics.contact("active"), _P.width, _P.height))
 
     -- well
-    --welltap:merge_into_shallow(geometry.ring(generics.other(string.format("%swell", _P.contype)), _P.width, _P.height, _P.tapwidth + 2 * _P.extension))
+    welltap:merge_into_shallow(geometry.rectangle(generics.other(string.format("%swell", _P.contype)), _P.width + 2 * _P.extension, _P.height + 2 * _P.extension))
 
     -- alignment box
     welltap:set_alignment_box(
