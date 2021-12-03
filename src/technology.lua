@@ -81,7 +81,11 @@ local function _get_lpp(entry, export)
         lpp = lpp()
     end
     if not lpp[export] and not envlib.get("ignoremissingexport") then
-        moderror(string.format("no layer information for layer '%s' for export type '%s'", entry.name, export))
+        if entry.name then
+            moderror(string.format("no layer information for layer '%s' for export type '%s'", entry.name, export))
+        else
+            moderror(string.format("no layer information for a requested layer was found (export type '%s'). This usually happens when an imported cell (e.g. from gds) gets exported to a different export type (e.g. SKILL). Check your cell definitions for 'premapped' layers", export))
+        end
     end
     return lpp[export]
 end
