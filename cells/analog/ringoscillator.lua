@@ -45,7 +45,7 @@ function parameters()
         { "gstwidth",             60 },
         { "sdwidth",              60 },
         { "powerwidth",          200 },
-        { "powerspace",          120 }
+        { "powerspace",          200 }
     )
 end
 

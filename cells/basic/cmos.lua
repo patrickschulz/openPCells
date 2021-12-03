@@ -69,7 +69,8 @@ function layout(gate, _P)
             vthtype = _P.pvthtype,
             fwidth = _P.pwidth,
             gbotext = _P.separation / 2,
-            gtopext = _P.powerspace + _P.powerwidth / 2 + ext,
+            --gtopext = _P.powerspace + _P.powerwidth / 2 + ext,
+            gtopext = ext,
             topgcutoffset = ext,
             clipbot = true,
         })
@@ -89,7 +90,8 @@ function layout(gate, _P)
             vthtype = _P.nvthtype,
             fwidth = _P.nwidth,
             gtopext = _P.separation / 2,
-            gbotext = _P.powerspace + _P.powerwidth / 2 + ext,
+            --gbotext = _P.powerspace + _P.powerwidth / 2 + ext,
+            gbotext = ext,
             botgcutoffset = ext,
             cliptop = true,
         })
