@@ -40,8 +40,7 @@ function parameters()
         { "shiftncontactsouter", 0 },
         { "drawdummygatecontacts", true },
         { "drawdummyactivecontacts", true },
-        { "drawtopgcut", true },
-        { "drawbotgcut", true },
+        { "drawgcut", false },
         { "dummycontheight(Dummy Gate Contact Height)",        tech.get_dimension("Minimum M1 Width") }
     )
 end
@@ -112,24 +111,24 @@ function layout(gate, _P)
             2, _P.separation + _P.pwidth + _P.nwidth + 2 * _P.powerspace + _P.powerwidth
         ):translate(0, (_P.pwidth - _P.nwidth) / 2))
     end
-    gate:add_anchor("PRpll", point.create(-fingers * xpitch / 2,  _P.separation / 2 + _P.pwidth + _P.powerspace))
-    gate:add_anchor("PRpcl", point.create(-fingers * xpitch / 2,  _P.separation / 2 + _P.pwidth + _P.powerspace + _P.powerwidth / 2))
-    gate:add_anchor("PRpul", point.create(-fingers * xpitch / 2,  _P.separation / 2 + _P.pwidth + _P.powerspace + _P.powerwidth))
+    gate:add_anchor("PRpll", point.create(-fingers * xpitch / 2 - _P.sdwidth / 2,  _P.separation / 2 + _P.pwidth + _P.powerspace))
+    gate:add_anchor("PRpcl", point.create(-fingers * xpitch / 2 - _P.sdwidth / 2,  _P.separation / 2 + _P.pwidth + _P.powerspace + _P.powerwidth / 2))
+    gate:add_anchor("PRpul", point.create(-fingers * xpitch / 2 - _P.sdwidth / 2,  _P.separation / 2 + _P.pwidth + _P.powerspace + _P.powerwidth))
     gate:add_anchor("PRplc", point.create(0,                      _P.separation / 2 + _P.pwidth + _P.powerspace))
     gate:add_anchor("PRpcc", point.create(0,                      _P.separation / 2 + _P.pwidth + _P.powerspace + _P.powerwidth / 2))
     gate:add_anchor("PRpuc", point.create(0,                      _P.separation / 2 + _P.pwidth + _P.powerspace + _P.powerwidth))
-    gate:add_anchor("PRplr", point.create( fingers * xpitch / 2,  _P.separation / 2 + _P.pwidth + _P.powerspace))
-    gate:add_anchor("PRpcr", point.create( fingers * xpitch / 2,  _P.separation / 2 + _P.pwidth + _P.powerspace + _P.powerwidth / 2))
-    gate:add_anchor("PRpur", point.create( fingers * xpitch / 2,  _P.separation / 2 + _P.pwidth + _P.powerspace + _P.powerwidth))
-    gate:add_anchor("PRnll", point.create(-fingers * xpitch / 2, -_P.separation / 2 - _P.nwidth - _P.powerspace - _P.powerwidth))
-    gate:add_anchor("PRncl", point.create(-fingers * xpitch / 2, -_P.separation / 2 - _P.nwidth - _P.powerspace - _P.powerwidth / 2))
-    gate:add_anchor("PRnul", point.create(-fingers * xpitch / 2, -_P.separation / 2 - _P.nwidth - _P.powerspace))
+    gate:add_anchor("PRplr", point.create( fingers * xpitch / 2 + _P.sdwidth / 2,  _P.separation / 2 + _P.pwidth + _P.powerspace))
+    gate:add_anchor("PRpcr", point.create( fingers * xpitch / 2 + _P.sdwidth / 2,  _P.separation / 2 + _P.pwidth + _P.powerspace + _P.powerwidth / 2))
+    gate:add_anchor("PRpur", point.create( fingers * xpitch / 2 + _P.sdwidth / 2,  _P.separation / 2 + _P.pwidth + _P.powerspace + _P.powerwidth))
+    gate:add_anchor("PRnll", point.create(-fingers * xpitch / 2 - _P.sdwidth / 2, -_P.separation / 2 - _P.nwidth - _P.powerspace - _P.powerwidth))
+    gate:add_anchor("PRncl", point.create(-fingers * xpitch / 2 - _P.sdwidth / 2, -_P.separation / 2 - _P.nwidth - _P.powerspace - _P.powerwidth / 2))
+    gate:add_anchor("PRnul", point.create(-fingers * xpitch / 2 - _P.sdwidth / 2, -_P.separation / 2 - _P.nwidth - _P.powerspace))
     gate:add_anchor("PRnlc", point.create(0,                     -_P.separation / 2 - _P.nwidth - _P.powerspace - _P.powerwidth))
     gate:add_anchor("PRncc", point.create(0,                     -_P.separation / 2 - _P.nwidth - _P.powerspace - _P.powerwidth / 2))
     gate:add_anchor("PRnuc", point.create(0,                     -_P.separation / 2 - _P.nwidth - _P.powerspace))
-    gate:add_anchor("PRnlr", point.create( fingers * xpitch / 2, -_P.separation / 2 - _P.nwidth - _P.powerspace - _P.powerwidth))
-    gate:add_anchor("PRncr", point.create( fingers * xpitch / 2, -_P.separation / 2 - _P.nwidth - _P.powerspace - _P.powerwidth / 2))
-    gate:add_anchor("PRnur", point.create( fingers * xpitch / 2, -_P.separation / 2 - _P.nwidth - _P.powerspace))
+    gate:add_anchor("PRnlr", point.create( fingers * xpitch / 2 + _P.sdwidth / 2, -_P.separation / 2 - _P.nwidth - _P.powerspace - _P.powerwidth))
+    gate:add_anchor("PRncr", point.create( fingers * xpitch / 2 + _P.sdwidth / 2, -_P.separation / 2 - _P.nwidth - _P.powerspace - _P.powerwidth / 2))
+    gate:add_anchor("PRnur", point.create( fingers * xpitch / 2 + _P.sdwidth / 2, -_P.separation / 2 - _P.nwidth - _P.powerspace))
 
     -- draw gate contacts
     if _P.drawgatecontacts then
@@ -198,10 +197,12 @@ function layout(gate, _P)
                 gate:merge_into_shallow(geometry.rectangle(generics.other("gatecut"), xpitch, tp.cutheight):translate(x, 0))
             end
             if _P.gatecontactpos[i] ~= "dummy" then
-                gate:merge_into_shallow(geometry.multiple_y(
-                    geometry.rectangle(generics.other("gatecut"), xpitch, tp.cutheight),
-                    2, _P.separation + _P.pwidth + _P.nwidth + 2 * _P.powerspace + _P.powerwidth
-                ):translate(x, (_P.pwidth - _P.nwidth) / 2))
+                if _P.drawgcut then
+                    gate:merge_into_shallow(geometry.multiple_y(
+                        geometry.rectangle(generics.other("gatecut"), xpitch, tp.cutheight),
+                        2, _P.separation + _P.pwidth + _P.nwidth + 2 * _P.powerspace + _P.powerwidth
+                    ):translate(x, (_P.pwidth - _P.nwidth) / 2))
+                end
             end
         end
     end
