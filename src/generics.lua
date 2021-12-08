@@ -86,6 +86,8 @@ function M.via(from, to, opt)
     self.bare = opt and opt.bare
     self.firstbare = opt and opt.firstbare
     self.lastbare = opt and opt.lastbare
+    self.xcontinuous = opt and opt.xcontinuous
+    self.ycontinuous = opt and opt.ycontinuous
     return self
 end
 
