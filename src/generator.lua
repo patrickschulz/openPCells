@@ -1,156 +1,124 @@
 local M = {}
 
-local function _write_module(file, module, positions, noconnections)
-    -- set up lookup tables
-    local references = {}
-    file:write('    local references = {\n')
-    for _, statement in ipairs(module.statements) do
-        local name = statement.name
-        local instname = statement.instname
-        if statement.type == "moduleinstantiation" then
-            if not references[name] then
-                references[name] = true
-                file:write(string.format('        ["%s"] = pcell.add_cell_reference(pcell.create_layout("GF22FDX_SC8T_104CPP_BASE_CSC20SL/%s"), "%s"),\n', name, name, name))
-            end
-        end
-    end
-    file:write('    }\n')
-
-    -- place cells and collect connections
-    file:write('    local cells = {\n')
-    local connections = {}
-    for _, statement in ipairs(module.statements) do
-        local name = statement.name
-        local instname = statement.instname
-        if statement.type == "moduleinstantiation" then
-            file:write(string.format('        ["%s"] = toplevel:add_child(references["%s"], "%s")', instname, name, instname))
-            if positions[instname] then
-                file:write(string.format(':translate(%d, %d)', positions[instname].x, positions[instname].y))
-            end
-            file:write(",\n")
-            for _, connection in ipairs(statement.connections) do
-                if not connections[connection.net] then connections[connection.net] = {} end
-                table.insert(connections[connection.net], { instance = instname, port = connection.port })
-            end
-        end
-    end
-    file:write('    }\n')
-    --file:write('    placement.digital_auto(toplevel, 104, 400 * 104, cellnames, {}, 0.8)\n')
-
-    --[[
-    -- place connections
-    if not noconnections then
-        for net, connection in pairs(connections) do
-            if #connection == 2 then
-                file:write("    toplevel:merge_into_shallow(geometry.path(generics.metal(1), {\n")
-                file:write(string.format('        children["%s"]:get_anchor("%s"),\n        children["%s"]:get_anchor("%s")\n    }, cwidth))\n', 
-                    connection[1].instance, connection[1].port, connection[2].instance, connection[2].port))
-            end
-        end
-    end
-    --]]
-end
-
-local function _generate_from_ast(basename, tree, positions, noconnections)
-    for _, module in ipairs(tree.modules) do
-        print(string.format("writing to file '%s/%s.lua'", basename, module.name))
-        local file = io.open(string.format("%s/%s.lua", basename, module.name), "w")
-        file:write("function parameters()\nend\n\n")
-        file:write("function layout(toplevel)\n")
-        _write_module(file, module, positions, noconnections)
-        file:write("end")
-        file:close()
-    end
-end
-
 function M.from_verilog(filename, noconnections, prefix, libname, overwrite, stdlibname, utilization, aspectratio, movespercell, coolingfactor, excluded_nets, report)
     local file = io.open(filename, "r")
     if not file then
         moderror(string.format("generator.verilog_routing: could not open file '%s'", filename))
     end
-    local content = file:read("a")
-    local tree = verilog_parser.parse(content)
+    local str = file:read("a")
+    local content = verilog_parser.parse(str)
+
+    -- calculate cell pitch and height
+    local references = {}
+    local cellpitch, cellheight
+    for module in content.modules() do
+        for cellname in module:references() do
+            if not references[cellname] then
+                local p = string.format("%s/%s", stdlibname, cellname)
+                local cell = pcell.create_layout(p)
+                local width, height = cell:width_height_alignmentbox()
+                references[cellname] = { width = width, height = height }
+            end
+            local width, height = references[cellname].width, references[cellname].height
+            -- width (GCD of all widths)
+            if not cellpitch then
+                cellpitch = width
+            else
+                while width > 0 do
+                    cellpitch, width = width, (cellpitch % width)
+                end
+            end
+            -- height (height of any cell, but they all must be equal)
+            if not cellheight then
+                cellheight = height
+            else
+                if cellheight ~= height then
+                    moderror("cellheight must be equal for all cells")
+                end
+            end
+        end
+    end
+
+    -- calculate total width and core area
+    local total_width = 0
+    local required_width = 0
+    local area = 0
+    for module in content:modules() do
+        for instance in module:instances() do
+            local width, height = references[instance.reference].width, references[instance.reference].height
+            area = area + width * height
+            --area = area + width / cellpitch -- normalized height of all cells is 1
+            total_width = total_width + width / cellpitch
+            required_width = math.max(required_width, width)
+        end
+    end
+
     local nets = { set = {} }
     local instances = {}
-    local widths = {}
-    local heights = {}
-    local area = 0
-    for _, module in ipairs(tree.modules) do
-        for _, statement in ipairs(module.statements) do
-            local name = statement.name
-            local instname = statement.instname
-            if statement.type == "moduleinstantiation" then
-                local ct = {}
-                for _, c in ipairs(statement.connections) do
-                    if not aux.any_of(function(v) return v == c.net end, excluded_nets) then
-                        if not nets.set[c.net] then
-                            table.insert(nets, c.net)
-                            nets.set[c.net] = true
-                        end
-                        for i, net in ipairs(nets) do
-                            if c.net == net then
-                                table.insert(ct, i)
-                                break
-                            end
+    for module in content:modules() do
+        for instance in module:instances() do
+            local ct = {}
+            for _, c in ipairs(instance.connections) do
+                if not aux.any_of(function(v) return v == c.net end, excluded_nets) then
+                    if not nets.set[c.net] then
+                        table.insert(nets, c.net)
+                        nets.set[c.net] = true
+                    end
+                    for i, net in ipairs(nets) do
+                        if c.net == net then
+                            table.insert(ct, i)
+                            break
                         end
                     end
                 end
-                if not widths[name] then
-                    local p = string.format("%s/%s", stdlibname, name)
-                    local cell = pcell.create_layout(p)
-                    local width, height = cell:width_height_alignmentbox()
-                    widths[name] = width
-                    heights[name] = height
-                    if envlib.get("verbose") then
-                        print(string.format("generator: checking width of cell %s -> %d", p, widths[name]))
-                    end
-                end
-
-                area = area + widths[name] * heights[name]
-
-                table.insert(instances, { instance_name = instname, ref_name = name, net_conn = ct, width = widths[name] })
             end
+            table.insert(instances, { 
+                instance_name = instance.name, 
+                ref_name = instance.reference, 
+                net_conn = ct, 
+                width = references[instance.reference].width / cellpitch
+            })
         end
+    end
+    local floorplan_width = math.sqrt(area / utilization * aspectratio)
+    local floorplan_height = math.sqrt(area / utilization / aspectratio)
+
+    -- check for too narrow floorplan
+    if floorplan_width < required_width then
+        floorplan_width = required_width / math.sqrt(utilization)
+        floorplan_height = area / utilization / floorplan_width
+        print("floorplan width is smaller than required with, this will be fixed. The aspect ratio won't be es specified")
+        print(string.format("new aspect ratio is %.2f", floorplan_width / floorplan_height))
     end
 
-    -- calculate site width
-    local ws = {}
-    for _, w in pairs(widths) do table.insert(ws, w) end
-    local function gcd(a,b)
-        if b ~= 0 then
-            return gcd(b, a % b)
-        else
-            return math.abs(a)
-        end
-    end
-    local cellpitch = ws[1]
-    for i = 2, #ws do
-        cellpitch = gcd(ws[i], cellpitch)
-    end
-
-    -- calculate site height
-    local site_height = nil
-    for _, h in pairs(heights) do 
-        if not site_height then
-            site_height = h
-        else
-            if site_height ~= h then
-                moderror("site_height must be equal for all cells")
-            end
-        end
-    end
+    -- normalize
+    floorplan_width = math.ceil(floorplan_width / cellpitch)
+    floorplan_height = math.ceil(floorplan_height / cellheight)
 
     local options = {
-        floorplan_width = math.ceil(math.sqrt(area / utilization * aspectratio)),
-        floorplan_height = math.ceil(math.sqrt(area / utilization / aspectratio)),
+        floorplan_width = floorplan_width,
+        floorplan_height = floorplan_height,
+        desired_row_width = math.ceil(total_width / floorplan_height * utilization),
         movespercell = movespercell,
-        cellpitch = cellpitch,
-        site_height = site_height,
         coolingfactor = coolingfactor,
         report = report
     }
 
-    local positions = placer.place(nets, instances, options)
+    -- check floorplan options
+    if options.floorplan_width == 0 then
+        moderror("floorplan width is zero")
+    end
+    if options.floorplan_height == 0 then
+        moderror("floorplan height is zero")
+    end
+    if options.desired_row_width == 0 then
+        moderror("desired row width is zero")
+    end
+    if options.desired_row_width >= options.floorplan_width then
+        moderror("desired row width must be smaller than floorplan width")
+    end
+
+    local rows = placer.place(nets, instances, options)
 
     local path
     if prefix and prefix ~= "" then
@@ -161,7 +129,48 @@ function M.from_verilog(filename, noconnections, prefix, libname, overwrite, std
     if not filesystem.exists(path) or overwrite then
         local created = filesystem.mkdir(path)
         if created then
-            _generate_from_ast(string.format("%s/%s", prefix, libname), tree, positions, noconnections)
+            local basename = string.format("%s/%s", prefix, libname)
+            for module in content:modules() do
+                local references = {}
+                print(string.format("writing to file '%s/%s.lua'", basename, module.name))
+                local file = io.open(string.format("%s/%s.lua", basename, module.name), "w")
+                file:write("function parameters()\nend\n\n")
+                file:write("function layout(toplevel)\n")
+                file:write('    local references = {\n')
+                for cellname in module:references() do
+                    if not references[cellname] then
+                        references[cellname] = true
+                        file:write(string.format('        ["%s"] = pcell.add_cell_reference(pcell.create_layout("GF22FDX_SC8T_104CPP_BASE_CSC20SL/%s"), "%s"),\n', cellname, cellname, cellname))
+                    end
+                end
+                file:write('    }\n')
+                file:write('    local rows = {\n')
+                for _, row in ipairs(rows) do
+                    file:write('        {\n')
+                    for _, column in ipairs(row) do
+                        file:write(string.format('            references["%s"],\n', column))
+                    end
+                    file:write('        },\n')
+                end
+                file:write('    }\n')
+                file:write('    local fillers = {\n')
+                file:write('        pcell.add_cell_reference(pcell.create_layout("GF22FDX_SC8T_104CPP_BASE_CSC20SL/FILLX1"), "FILLX1"),\n')
+                file:write('        pcell.add_cell_reference(pcell.create_layout("GF22FDX_SC8T_104CPP_BASE_CSC20SL/FILLX2"), "FILLX2"),\n')
+                file:write('        pcell.add_cell_reference(pcell.create_layout("GF22FDX_SC8T_104CPP_BASE_CSC20SL/FILLX3"), "FILLX3"),\n')
+                file:write('        pcell.add_cell_reference(pcell.create_layout("GF22FDX_SC8T_104CPP_BASE_CSC20SL/FILLX4"), "FILLX4"),\n')
+                file:write('        pcell.add_cell_reference(pcell.create_layout("GF22FDX_SC8T_104CPP_BASE_CSC20SL/FILLX5"), "FILLX5"),\n')
+                file:write('        nil,\n')
+                file:write('        nil,\n')
+                file:write('        pcell.add_cell_reference(pcell.create_layout("GF22FDX_SC8T_104CPP_BASE_CSC20SL/FILLX8"), "FILLX8"),\n')
+                file:write('    }\n')
+                file:write(string.format('    placement.digital(toplevel, %d, %d, rows, fillers, %f)\n',
+                    cellpitch,
+                    (floorplan_width + 1) * cellpitch,
+                    utilization
+                ))
+                file:write("end")
+                file:close()
+            end
         else
             moderror(string.format("generator.verilog_routing: could not create directory '%s/%s'", prefix, libname))
         end
