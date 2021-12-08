@@ -1,5 +1,7 @@
 local M = {}
 
+local viastrategies = _load_module("technology.vias")
+
 local layermap
 local constraintsmeta = {}
 constraintsmeta.__index = function() return 1 end -- fake get_dimension
@@ -68,7 +70,14 @@ local function _split_vias(cell)
         local from, to = S:get_lpp():get()
         for j = from, to - 1 do
             local sc = S:copy()
-            sc:set_lpp(generics.via(j, j + 1, { bare = S:get_lpp().bare, firstbare = S:get_lpp().firstbare, lastbare = S:get_lpp().lastbare }))
+            -- FIXME: implement a proper copy() for generics
+            sc:set_lpp(generics.via(j, j + 1, { 
+                bare = S:get_lpp().bare,
+                firstbare = S:get_lpp().firstbare,
+                lastbare = S:get_lpp().lastbare,
+                xcontinuous = S:get_lpp().xcontinuous,
+                ycontinuous = S:get_lpp().ycontinuous,
+            }))
             cell:add_raw_shape(sc)
         end
         cell:remove_shape(i)
@@ -109,49 +118,65 @@ local function _do_map(cell, S, entry, export)
     end
 end
 
-local function _get_via_arrayzation(width, height, entry)
-    local via = {}
-    local f = function(cutwidth, cutheight, xspace, yspace, xencl, yencl, mustfit)
-        local xrep = math.max(mustfit and 0 or 1, math.floor((width + xspace - 2 * xencl) / (cutwidth + xspace)))
-        local yrep = math.max(mustfit and 0 or 1, math.floor((height + yspace - 2 * yencl) / (cutheight + yspace)))
-        return xrep, yrep
-    end
-    local via = {}
-    if type(entry.width) == "table" then
-        via.xrep = 0
-        via.yrep = 0
-        via.conductivity = 0
-        for i = 1, #entry.width do
-            local xrep, yrep = f(entry.width[i], entry.height[i], entry.xspace[i], entry.yspace[i], entry.xencl[i], entry.yencl[i], (not entry.noneedtofit) and true or not entry.noneedtofit[i])
-            if xrep * yrep * entry.conductivity[i] > via.xrep * via.yrep * via.conductivity then
-                via.width = entry.width[i]
-                via.height = entry.height[i]
-                via.xpitch = entry.width[i] + entry.xspace[i]
-                via.ypitch = entry.height[i] + entry.yspace[i]
-                via.xrep = xrep
-                via.yrep = yrep
-                via.conductivity = entry.conductivity[i]
-            end
+local function _get_via_arrayzation(width, height, entry, xcont, ycont)
+    -- via strategy
+    local xstrat = viastrategies[xcont and "continuous" or "fit"]
+    local ystrat = viastrategies[ycont and "continuous" or "fit"]
+
+    local _make_table = function(arg) if(type(arg) == "table") then return arg else return { arg } end end
+    entry.width = _make_table(entry.width)
+    entry.height = _make_table(entry.height)
+    entry.xspace = _make_table(entry.xspace)
+    entry.yspace = _make_table(entry.yspace)
+    entry.xencl = _make_table(entry.xencl)
+    entry.yencl = _make_table(entry.yencl)
+    entry.conductivity = _make_table(entry.conductivity)
+    entry.noneedtofit = _make_table(entry.noneedtofit)
+    local via = {
+        xrep = 0,
+        yrep = 0,
+        conductivity = 0
+    }
+    for i = 1, #entry.width do
+        local xrep, xspace = xstrat(width, entry.width[i], entry.xspace[i], entry.xencl[i])
+        local yrep, yspace = ystrat(height, entry.height[i], entry.yspace[i], entry.yencl[i])
+        if entry.noneedtofit[i] then
+            xrep = math.max(1, xrep)
+            yrep = math.max(1, yrep)
         end
-    else
-        local xrep, yrep = f(entry.width, entry.height, entry.xspace, entry.yspace, entry.xencl, entry.yencl, not entry.noneedtofit)
-        via.width = entry.width
-        via.height = entry.height
-        via.xpitch = entry.width + entry.xspace
-        via.ypitch = entry.height + entry.yspace
-        via.xrep = xrep
-        via.yrep = yrep
+        local conductivity = entry.conductivity[i] or 1
+        if xrep * yrep * conductivity > via.xrep * via.yrep * via.conductivity then
+            via.width = entry.width[i]
+            via.height = entry.height[i]
+            via.xpitch = entry.width[i] + xspace
+            via.ypitch = entry.height[i] + yspace
+            via.xrep = xrep
+            via.yrep = yrep
+            via.conductivity = conductivity
+        end
     end
     if not via.width then return nil end
     return via
 end
 
 local function _do_array(cell, S, entry, export)
+    local xcont = S:get_lpp().xcontinuous
+    local ycont = S:get_lpp().ycontinuous
     entry = entry.func(S:get_lpp():get())
     local width = S:get_width()
     local height = S:get_height()
     local c = S:center()
-    local via = _get_via_arrayzation(width, height, entry)
+    local via = _get_via_arrayzation(width, height, entry, xcont, ycont)
+    if not via and entry.fallback and envlib.get("usefallbackvias") then
+        via = { 
+            width = entry.fallback.width, 
+            height = entry.fallback.height,
+            xrep = 1,
+            yrep = 1,
+            xpitch = 0,
+            ypitch = 0
+        }
+    end
     if via then
         local enlarge = 0
         local lpp = _get_lpp(entry, export)
@@ -167,7 +192,7 @@ local function _do_array(cell, S, entry, export)
             new:apply_transformation(cut.trans, cut.trans.apply_transformation)
         end
     else
-        modwarning("could not fit via, the shape was ignored. The generated layout won't be correct.")
+        modwarning("could not fit via, the shape was ignored. The generated layout won't be electrically correct.")
     end
 end
 
@@ -324,7 +349,7 @@ local function _load_layermap(name)
                 return {
                     action = "array",
                     func = function()
-                        return {
+                        local t = {
                             name = entry.name,
                             lpp = entry.lpp,
                             width = entry.width,
@@ -333,9 +358,11 @@ local function _load_layermap(name)
                             yspace = entry.yspace,
                             xencl = entry.xencl,
                             yencl = entry.yencl,
-                            conductivity = entry.conductivity,
-                            noneedtofit = entry.noneedtofit
+                            conductivity = entry.conductivity or 1,
+                            noneedtofit = entry.noneedtofit,
+                            fallback = entry.fallback
                         }
+                        return t
                     end,
                 }
             end

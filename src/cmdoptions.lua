@@ -126,6 +126,10 @@ return {
         help = "merge rectangles"
     },
     switch{
+        name = "usefallbackvias", long = "--use-fallback-vias",
+        help = "enable the use of fallback vias"
+    },
+    switch{
         name = "human", short = "-H", long = "--human",
         help = "format info output (parameters, cell lists etc.) for humans"
     },
