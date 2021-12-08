@@ -10,21 +10,19 @@
 
 #define MAX_PINS_PER_CELL (10)
 #define MAX_PINS_PER_NET (32)
-#define MAX_UNITS_PER_ROW (1000)
 
 /* Structure definitions  */
 struct floorplan {
     int floorplan_width;
     int floorplan_height;
-    int limiter_width;
-    int limiter_height;
-    int site_height;
-    int cellpitch;
+    int desired_row_width;
     double weight_wirelength;
     double weight_width_penalty;
     int cell_count;
-    int cell_total_width;
     int total_wirelength;
+    // limiter window
+    int limiter_width;
+    int limiter_height;
 };
 
 struct cell {
@@ -215,8 +213,8 @@ void cell_update_wirelengths(struct cell* c, struct floorplan* floorplan)
 
 static inline void cell_place_random(struct cell* c, struct floorplan* floorplan)
 {
-    c->pos_x = _lua_randi(&rstate, 0, (floorplan->floorplan_width - c->width) / floorplan->cellpitch) * floorplan->cellpitch;
-    c->pos_y = _lua_randi(&rstate, 0, (floorplan->floorplan_height / floorplan->site_height - 1)) * floorplan->site_height;
+    c->pos_x = _lua_randi(&rstate, 0, floorplan->floorplan_width - 1);
+    c->pos_y = _lua_randi(&rstate, 0, floorplan->floorplan_height - 1);
 }
 
 void update_net_struct_ptrs(struct net* all_nets, size_t num_nets, struct cell* all_cells, size_t num_cells)
@@ -265,18 +263,6 @@ int get_total_wirelength(bool initial, struct net* all_nets, size_t num_nets, st
     return floorplan->total_wirelength;
 }
 
-void update_cell_count(struct cell* all_cells, size_t num_cells, struct floorplan* floorplan)
-{
-    floorplan->cell_count = 0;
-    floorplan->cell_total_width = 0;
-    for(size_t i = 0; i < num_cells; ++i)
-    {
-        struct cell* c = all_cells + i;
-        floorplan->cell_count++;
-        floorplan->cell_total_width += c->width;
-    }
-}
-
 void undo(struct rollback* r, struct floorplan* floorplan)
 {
     if(r->c1)
@@ -293,12 +279,12 @@ void undo(struct rollback* r, struct floorplan* floorplan)
     }
 }
 
-struct cell* random_cell(struct cell* all_cells, struct floorplan* floorplan)
+struct cell* random_cell(struct cell* all_cells, size_t num_cells)
 {
-    return all_cells + _lua_randi(&rstate, 0, floorplan->cell_count - 1);
+    return all_cells + _lua_randi(&rstate, 0, num_cells - 1);
 }
 
-struct cell** get_cells_of_row(struct cell* all_cells, size_t num_cells, int cur_row, struct floorplan* floorplan)
+struct cell** get_cells_of_row(struct cell* all_cells, size_t num_cells, int cur_row)
 {
     size_t capacity = 40;
     size_t cur_cell_idx = 0;
@@ -306,7 +292,7 @@ struct cell** get_cells_of_row(struct cell* all_cells, size_t num_cells, int cur
     for(size_t i = 0; i < num_cells; ++i)
     {
         struct cell* c = all_cells + i;
-        if(c->pos_y == cur_row * floorplan->site_height)
+        if(c->pos_y == cur_row)
         {
             if(cur_cell_idx == capacity - 1)
             {
@@ -323,52 +309,66 @@ struct cell** get_cells_of_row(struct cell* all_cells, size_t num_cells, int cur
 
 double get_legality_penalty(struct cell* all_cells, size_t num_cells, struct floorplan* floorplan)
 {
-    int units_per_row = floorplan->floorplan_width / floorplan->cellpitch;
-    assert(MAX_UNITS_PER_ROW > units_per_row); // this is not sufficient as the stdcell width is not factored in
+    int total_overlap = 0;
+    int total_width_penalty = 0;
+    int too_wide_penalty = 0;
 
-    int desired_width_per_row = floorplan->cell_total_width / ((floorplan->floorplan_height / floorplan->site_height) - 1);
-
-    struct cell** c_p;
-    int cur_row;
-    int unit_ctr;
-
-    double total_overlap = 0.0;
-    double total_width_penalty = 0.0;
-
-    for(cur_row = 0; cur_row < floorplan->floorplan_height / floorplan->site_height; cur_row++)
+    for(int cur_row = 0; cur_row < floorplan->floorplan_height; cur_row++)
     {
-        int occupancy[MAX_UNITS_PER_ROW];
-        int row_cell_width_sum;
-        int row_overlap;
+        struct cell** cells_in_row = get_cells_of_row(all_cells, num_cells, cur_row);
 
-        struct cell** cells_in_row = get_cells_of_row(all_cells, num_cells, cur_row, floorplan);
+        size_t capacity = 2;
+        int* occupancy = malloc(capacity * sizeof(int));
+        memset(occupancy, 0, capacity * sizeof(int));
 
-        memset(occupancy, 0, sizeof(occupancy));
+        int row_cell_width_sum = 0;
 
-        row_cell_width_sum = 0;
-
-        for(c_p = cells_in_row; *c_p; c_p++)
+        for(struct cell** c_p = cells_in_row; *c_p; c_p++)
         {
             row_cell_width_sum += (*c_p)->width;
-            for(unit_ctr = 0; unit_ctr < (*c_p)->width / floorplan->cellpitch; unit_ctr++)
+            for(int i = 0; i <= (*c_p)->width; i++)
             {
-                occupancy[(*c_p)->pos_x / floorplan->cellpitch + unit_ctr]++;
+                int index = (*c_p)->pos_x + i;
+                if(index >= capacity)
+                {
+                    size_t old_capacity = capacity;
+                    while(index >= capacity)
+                    {
+                        capacity *= 2;
+                    }
+                    int* tmp = realloc(occupancy, capacity * sizeof(int));
+                    if(tmp)
+                    {
+                        occupancy = tmp;
+                        memset(occupancy + old_capacity, 0, (capacity - old_capacity) * sizeof(int));
+                    }
+                    else
+                    {
+                        assert(0);
+                    }
+                }
+                occupancy[index]++;
             }
         } 
-        free(cells_in_row);
-        row_overlap = 0;
-        for(unit_ctr = 0; unit_ctr < units_per_row + 30; unit_ctr++) // TODO +30
+        for(int i = 0; i < capacity; i++)
         {
-            if(occupancy[unit_ctr] > 1)
+            if(occupancy[i] > 1)
             {
-                row_overlap += occupancy[unit_ctr];
+                total_overlap += occupancy[i] - 1;
             }
         }
-        //printf("row %i, cell_width_penalty = %i, overlap = %i\n", cur_row, desired_width_per_row-row_cell_width_sum, row_overlap);
-        total_overlap += row_overlap;
-        total_width_penalty += abs(desired_width_per_row - row_cell_width_sum);
+        //printf("row %i, cell_width_penalty = %i, overlap = %i\n", cur_row, desired_row_width - row_cell_width_sum, row_overlap);
+        total_width_penalty += abs(floorplan->desired_row_width - row_cell_width_sum);
+        if(row_cell_width_sum > floorplan->floorplan_width)
+        {
+            too_wide_penalty = 10000;
+        }
+        // clean up
+        free(occupancy);
+        free(cells_in_row);
     }
-    return total_overlap * total_overlap + floorplan->weight_width_penalty * total_width_penalty;
+    //return total_overlap * total_overlap + floorplan->weight_width_penalty * total_width_penalty;
+    return total_overlap + too_wide_penalty;
 }
 
 void place_initial_random(struct cell* all_cells, size_t num_cells, struct floorplan* floorplan)
@@ -378,7 +378,6 @@ void place_initial_random(struct cell* all_cells, size_t num_cells, struct floor
         struct cell* c = all_cells + i;
         cell_place_random(c, floorplan);
         cell_update_wirelengths(c, floorplan);
-        //printf("%s: pos = (%i, %i)\n", c->instance_name, c->pos_x, c->pos_y);
     }
 }
 
@@ -390,12 +389,22 @@ double get_total_penalty(struct net* all_nets, size_t num_nets, struct cell* all
     return total_penalty;
 }
 
-void report_status(struct net* all_nets, size_t num_nets, struct cell* all_cells, size_t num_cells, struct floorplan* floorplan)
+void report_status(double temperature, struct net* all_nets, size_t num_nets, struct cell* all_cells, size_t num_cells, struct floorplan* floorplan)
 {
     int wirelength = get_total_wirelength(false, all_nets, num_nets, floorplan);
     double legality_penalty = get_legality_penalty(all_cells, num_cells, floorplan);
     double total_penalty = floorplan->weight_wirelength * wirelength + legality_penalty;
-    printf("total_penalty = %.1f, wirelength = %i.%i, legality_penalty = %.1f\n", total_penalty, wirelength / 100, wirelength % 100, legality_penalty);
+    /*
+    puts("--------------------");
+    for(size_t i = 0; i < num_cells; ++i)
+    {
+        struct cell* c = all_cells + i;
+        printf("%s: pos = (%i, %i)\n", c->instance_name, c->pos_x, c->pos_y);
+    }
+    puts("--------------------");
+    */
+    printf("temperature = %.3f, ", temperature);
+    printf("total_penalty = %.1f, wirelength = %d, legality_penalty = %.1f\n", total_penalty, wirelength, legality_penalty);
 }
 
 /* Operations M1 and M2 for simulated annealing
@@ -521,15 +530,13 @@ int lplacer_place(lua_State* L)
     lua_getfield(L, 3, "floorplan_height");
     int floorplan_height = lua_tointeger(L, -1);
     lua_pop(L, 1);
-    lua_getfield(L, 3, "cellpitch");
-    int cellpitch = lua_tointeger(L, -1);
-    lua_pop(L, 1);
-    lua_getfield(L, 3, "site_height");
-    int site_height = lua_tointeger(L, -1);
+
+    lua_getfield(L, 3, "desired_row_width");
+    int desired_row_width = lua_tointeger(L, -1);
     lua_pop(L, 1);
 
     lua_getfield(L, 3, "movespercell");
-    const int moves_per_cell_per_temp = lua_tointeger(L, -1);
+    const size_t moves_per_cell_per_temp = lua_tointeger(L, -1);
     lua_pop(L, 1);
 
     lua_getfield(L, 3, "coolingfactor");
@@ -544,22 +551,18 @@ int lplacer_place(lua_State* L)
 
     /* For lengths, 1 unit is equal to 1 nm */
     struct floorplan floorplan = {
-        .site_height = site_height, 
-        .cellpitch = cellpitch,
         .floorplan_width = floorplan_width,
         .floorplan_height = floorplan_height,
         .weight_wirelength = 1.0,
         .weight_width_penalty = 1.0,
-        .cell_count = 0,
-        .cell_total_width = 0,
         .total_wirelength = 0,
+        .desired_row_width = desired_row_width
     };
 
     randseed(&rstate, 145, 17);  /* initialize with a "random" seed */
 
     update_net_struct_ptrs(all_nets, num_nets, all_cells, num_cells);
     place_initial_random(all_cells, num_cells, &floorplan);
-    update_cell_count(all_cells, num_cells, &floorplan);
     get_total_wirelength(true, all_nets, num_nets, &floorplan);
 
     double temperature = 5000.0;
@@ -567,41 +570,46 @@ int lplacer_place(lua_State* L)
 
     int needed_steps = log(end_temperature / temperature) / log(coolingfactor) + 1;
 
-    int steps = 0;
-    int percentage = 0;
+    int steps = 1;
     int percentage_divisor = 10;
-    int move_ctr;
+    int percentage = 0;
     double last_total_penalty = 100000000000;
     while(temperature > end_temperature)
     {
-        for(move_ctr = 0; move_ctr < moves_per_cell_per_temp * floorplan.cell_count; move_ctr++)
+        for(size_t move_ctr = 0; move_ctr < moves_per_cell_per_temp * num_cells; move_ctr++)
         {
-            struct rollback r;
+            struct rollback rollback;
 
             if(random_choice(0.25))
             {
-                m2(random_cell(all_cells, &floorplan), random_cell(all_cells, &floorplan), &r, &floorplan);
+                m2(random_cell(all_cells, num_cells), random_cell(all_cells, num_cells), &rollback, &floorplan);
             }
             else
             {
-                m1(random_cell(all_cells, &floorplan), &r, &floorplan);
+                m1(random_cell(all_cells, num_cells), &rollback, &floorplan);
             }
 
             double total_penalty = get_total_penalty(all_nets, num_nets, all_cells, num_cells, &floorplan);
 
             if(move_ctr == 0 && verbose)
             {
-                printf("temperature = %.3f, ", temperature);
-                report_status(all_nets, num_nets, all_cells, num_cells, &floorplan);
+                report_status(temperature, all_nets, num_nets, all_cells, num_cells, &floorplan);
             }
 
             if(move_ctr == 0)
             {
-                if(steps == percentage * needed_steps / percentage_divisor)
+                if(steps * 100 / needed_steps >= percentage)
                 {
-                    printf("placement %2d %% done\n", percentage * 100 / percentage_divisor);
-                    ++percentage;
+                    printf("placement %2d %% done\n", percentage);
+                    percentage += percentage_divisor;
                 }
+                /*
+                if(steps * 100 / needed_steps == percentage)
+                {
+                    printf("placement %2d %% done\n", percentage);
+                    percentage = round(((double)steps * 100 / needed_steps) / percentage_divisor) * percentage_divisor;
+                }
+                */
             }
 
             if(total_penalty > last_total_penalty)
@@ -613,7 +621,7 @@ int lplacer_place(lua_State* L)
                 }
                 else
                 {
-                    undo(&r, &floorplan);
+                    undo(&rollback, &floorplan);
                 }
             }
             else // last_total_penalty >= total_penalty
@@ -626,25 +634,57 @@ int lplacer_place(lua_State* L)
         temperature = temperature * coolingfactor;
     }
 
+    //puts("before legalization");
+    //for(size_t i = 0; i < num_cells; ++i)
+    //{
+    //    struct cell* c = all_cells + i;
+    //    printf("%s: pos = (%i, %i)\n", c->ref_name, c->pos_x, c->pos_y);
+    //}
+
     // legalize placement
-    for(int cur_row = 0; cur_row < floorplan.floorplan_height / floorplan.site_height; cur_row++)
-    {
-        struct cell** cells_in_row = get_cells_of_row(all_cells, num_cells, cur_row, &floorplan);
-        size_t numcellrows = 0;
-        for(struct cell** c = cells_in_row; *c; ++c)
-        {
-            ++numcellrows;
-        }
-        qsort(cells_in_row, numcellrows, sizeof(struct cell*), &_cell_cmp);
-        int curx = 0;
-        for(struct cell** c = cells_in_row; *c; ++c)
-        {
-            (*c)->pos_x = curx;
-            curx += (*c)->width;
-        }
-    }
+    //for(int cur_row = 0; cur_row < floorplan.floorplan_height; cur_row++)
+    //{
+    //    struct cell** cells_in_row = get_cells_of_row(all_cells, num_cells, cur_row);
+    //    size_t numcellrows = 0;
+    //    for(struct cell** c = cells_in_row; *c; ++c)
+    //    {
+    //        ++numcellrows;
+    //    }
+    //    qsort(cells_in_row, numcellrows, sizeof(struct cell*), &_cell_cmp);
+    //    int curx = 0;
+    //    for(struct cell** c = cells_in_row; *c; ++c)
+    //    {
+    //        (*c)->pos_x = curx;
+    //        curx += (*c)->width;
+    //    }
+    //    free(cells_in_row);
+    //}
+
+    //puts("after legalization");
+    //for(size_t i = 0; i < num_cells; ++i)
+    //{
+    //    struct cell* c = all_cells + i;
+    //    printf("%s: pos = (%i, %i)\n", c->instance_name, c->pos_x, c->pos_y);
+    //}
 
     // bring back results to lua
+    lua_newtable(L);
+    for(int cur_row = 0; cur_row < floorplan.floorplan_height; cur_row++)
+    {
+        struct cell** cells_in_row = get_cells_of_row(all_cells, num_cells, cur_row);
+        lua_newtable(L);
+        int i = 1;
+        for(struct cell** c = cells_in_row; *c; ++c)
+        {
+            lua_pushstring(L, (*c)->ref_name);
+            lua_seti(L, -2, i);
+            ++i;
+        }
+        lua_seti(L, -2, cur_row + 1);
+        free(cells_in_row);
+    }
+
+    /*
     lua_createtable(L, num_cells, 0);
     for(size_t i = 1; i <= num_cells; ++i)
     {
@@ -656,6 +696,7 @@ int lplacer_place(lua_State* L)
         lua_setfield(L, -2, "y");
         lua_setfield(L, -2, c->instance_name);
     }
+    */
 
     for(size_t i = 0; i < num_nets; ++i)
     {
