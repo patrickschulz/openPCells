@@ -49,7 +49,7 @@ local function _lexer(content)
                 local ident = { ch }
                 while true do
                     local nch = characters:peek()
-                    if nch and string.match(nch, "%g") then
+                    if nch and string.match(nch, "%g") then -- %g: all printable characters except space
                         table.insert(ident, nch)
                         characters:advance()
                     else
@@ -356,6 +356,7 @@ local function _statement(symbols)
             end
         end
         symbols:expect("semicolon")
+        s.type = "wireassignment"
     elseif symbols:accept("ident") then -- module instantiation
         s.name = symbols:next_identifier()
         s.instname = _instancename(symbols)
@@ -368,6 +369,8 @@ local function _statement(symbols)
         symbols:expect("rparen")
         symbols:expect("semicolon")
         s.type = "moduleinstantiation"
+    else
+        moderror("unknown statement")
     end
     return s
 end
@@ -419,10 +422,80 @@ end
 
 local M = {}
 
-function M.parse(content)
+function M.parse_raw(content)
     local tokens = _lexer(content)
     local symbols = _convert_to_symbols(tokens)
     return _parser(symbols)
+end
+
+local function _collect_module(module)
+    local instances = {}
+    local connections = {}
+    for _, statement in ipairs(module.statements) do
+        local refname = statement.name
+        local instname = statement.instname
+        if statement.type == "moduleinstantiation" then
+            local iconn = {}
+            for _, connection in ipairs(statement.connections) do
+                local c = { port = connection.port, net = connection.net }
+                table.insert(iconn, c)
+            end
+            local instance = { name = instname, reference = refname, connections = iconn }
+            table.insert(instances, instance)
+        end
+    end
+    return instances
+end
+
+local meta = {}
+meta.__index = meta
+
+function meta.instances(self)
+    local i = 0
+    return function()
+        i = i + 1
+        return self._instances[i]
+    end
+end
+
+function meta.references(self)
+    local i = 0
+    local t = {}
+    local set = {}
+    for instance in self:instances() do
+        if not set[instance.reference] then
+            set[instance.reference] = true
+            table.insert(t, instance.reference)
+        end
+    end
+    return function()
+        i = i + 1
+        return t[i]
+    end
+end
+
+local function _collect_modules(tree)
+    local modules = {}
+    for _, module in ipairs(tree.modules) do
+        local instances = _collect_module(module)
+        local m = { name = module.name, _instances = instances }
+        setmetatable(m, meta)
+        table.insert(modules, m)
+    end
+    return modules
+end
+
+function M.parse(content)
+    local tree = M.parse_raw(content)
+    local content = _collect_modules(tree)
+    content.modules = function()
+        local i = 0
+        return function()
+            i = i + 1
+            return content[i]
+        end
+    end
+    return content
 end
 
 return M
