@@ -16,6 +16,19 @@ local function _create(value)
     return self
 end
 
+--[[
+local function _create(value)
+    local obj = {
+        value = value,
+    }
+    setmetatable(obj, M)
+    local d = debug.getinfo(2, "Slnt")
+    local self = { obj = obj, debug = { source = d.source, line = d.linenumber } }
+    setmetatable(self, proxymeta)
+    return self
+end
+--]]
+
 function M.copy(self)
     local new = { obj = self.obj }
     setmetatable(new, proxymeta)
