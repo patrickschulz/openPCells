@@ -411,13 +411,10 @@ function meta.inherit_alignment_box(self, other)
         local trx, try = tr:unwrap()
         local sblx, sbly = self.alignmentbox.bl:unwrap()
         local strx, stry = self.alignmentbox.tr:unwrap()
-        self.alignmentbox = { 
-            bl = point.create(math.min(blx, sblx), math.min(bly, sbly)), 
-            tr = point.create(math.max(trx, strx), math.max(try, stry))
-        }
-    else
-        self.alignmentbox = { bl = bl:copy(), tr = tr:copy() }
+        bl = point.create(math.min(blx, sblx), math.min(bly, sbly))
+        tr = point.create(math.max(trx, strx), math.max(try, stry))
     end
+    self:set_alignment_box(bl, tr)
 end
 
 local _reserved_anchors = {
