@@ -395,6 +395,7 @@ function state.create_cellenv(state, cellname, ovrenv)
         marker = marker,
         transformationmatrix = transformationmatrix,
         dprint = function(...) if state.enabledprint then print(...) end end,
+        moderror = moderror,
         tonumber = tonumber,
         type = type,
         ipairs = ipairs,
