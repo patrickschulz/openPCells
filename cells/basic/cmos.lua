@@ -29,6 +29,7 @@ function parameters()
         { "drawactive", true },
         { "drawrails", true },
         { "drawgatecontacts", true },
+        { "outergstspace(Outer Gate Strap Metal Space)",  60 },
         --{ "gatecontactpos", { }, argtype = "strtable" },
         { "gatecontactpos", { "center" }, argtype = "strtable" },
         { "shiftgatecontacts", 0 },
@@ -133,6 +134,17 @@ function layout(gate, _P)
     gate:add_anchor("PRnur", point.create( fingers * xpitch / 2 + _P.sdwidth / 2, -_P.separation / 2 - _P.nwidth - _P.powerspace))
 
     -- draw gate contacts
+    local _make_anchors = function(parent, x, y, xshift, yshift, pre, post)
+        parent:add_anchor(string.format("%sll%s", pre, post), point.create(x - xshift / 2, y - yshift / 2))
+        parent:add_anchor(string.format("%scl%s", pre, post), point.create(x - xshift / 2, y             ))
+        parent:add_anchor(string.format("%sul%s", pre, post), point.create(x - xshift / 2, y + yshift / 2))
+        parent:add_anchor(string.format("%slc%s", pre, post), point.create(x,              y - yshift / 2))
+        parent:add_anchor(string.format("%scc%s", pre, post), point.create(x,              y             ))
+        parent:add_anchor(string.format("%suc%s", pre, post), point.create(x,              y + yshift / 2))
+        parent:add_anchor(string.format("%slr%s", pre, post), point.create(x + xshift / 2, y - yshift / 2))
+        parent:add_anchor(string.format("%scr%s", pre, post), point.create(x + xshift / 2, y             ))
+        parent:add_anchor(string.format("%sur%s", pre, post), point.create(x + xshift / 2, y + yshift / 2))
+    end
     if _P.drawgatecontacts then
         for i = 1, fingers do
             local x = (2 * i - fingers - 1) * xpitch / 2
@@ -142,43 +154,46 @@ function layout(gate, _P)
                 gate:merge_into_shallow(geometry.rectangle(
                     generics.contact("gate", nil, true), tp.gatelength, _P.gstwidth
                 ):translate(pt))
-                gate:add_anchor(string.format("Gll%d", i), pt + point.create(-tp.gatelength / 2, -_P.gstwidth / 2))
-                gate:add_anchor(string.format("Gcl%d", i), pt + point.create(-tp.gatelength / 2, 0))
-                gate:add_anchor(string.format("Gul%d", i), pt + point.create(-tp.gatelength / 2, _P.gstwidth / 2))
-                gate:add_anchor(string.format("Glc%d", i), pt + point.create(0, -_P.gstwidth / 2))
-                gate:add_anchor(string.format("Gcc%d", i), pt + point.create(0, 0))
-                gate:add_anchor(string.format("Guc%d", i), pt + point.create(0, _P.gstwidth / 2))
-                gate:add_anchor(string.format("Glr%d", i), pt + point.create(tp.gatelength / 2, -_P.gstwidth / 2))
-                gate:add_anchor(string.format("Gcr%d", i), pt + point.create(tp.gatelength / 2, 0))
-                gate:add_anchor(string.format("Gur%d", i), pt + point.create(tp.gatelength / 2, _P.gstwidth / 2))
+                _make_anchors(gate, x, _P.shiftgatecontacts, tp.gatelength, _P.gstwidth, "G", string.format("%d", i))
+                --gate:add_anchor(string.format("Gll%d", i), pt + point.create(-tp.gatelength / 2, -_P.gstwidth / 2))
+                --gate:add_anchor(string.format("Gcl%d", i), pt + point.create(-tp.gatelength / 2, 0))
+                --gate:add_anchor(string.format("Gul%d", i), pt + point.create(-tp.gatelength / 2, _P.gstwidth / 2))
+                --gate:add_anchor(string.format("Glc%d", i), pt + point.create(0, -_P.gstwidth / 2))
+                --gate:add_anchor(string.format("Gcc%d", i), pt + point.create(0, 0))
+                --gate:add_anchor(string.format("Guc%d", i), pt + point.create(0, _P.gstwidth / 2))
+                --gate:add_anchor(string.format("Glr%d", i), pt + point.create(tp.gatelength / 2, -_P.gstwidth / 2))
+                --gate:add_anchor(string.format("Gcr%d", i), pt + point.create(tp.gatelength / 2, 0))
+                --gate:add_anchor(string.format("Gur%d", i), pt + point.create(tp.gatelength / 2, _P.gstwidth / 2))
             elseif _P.gatecontactpos[i] == "upper" then
                 local pt = point.create(x, routingshift + _P.shiftgatecontacts)
                 gate:merge_into_shallow(geometry.rectangle(
                     generics.contact("gate", nil, true), tp.gatelength, _P.gstwidth
                 ):translate(pt))
-                gate:add_anchor(string.format("Gll%d", i), pt + point.create(-tp.gatelength / 2, -_P.gstwidth / 2))
-                gate:add_anchor(string.format("Gcl%d", i), pt + point.create(-tp.gatelength / 2, 0))
-                gate:add_anchor(string.format("Gul%d", i), pt + point.create(-tp.gatelength / 2, _P.gstwidth / 2))
-                gate:add_anchor(string.format("Glc%d", i), pt + point.create(0, -_P.gstwidth / 2))
-                gate:add_anchor(string.format("Gcc%d", i), pt + point.create(0, 0))
-                gate:add_anchor(string.format("Guc%d", i), pt + point.create(0, _P.gstwidth / 2))
-                gate:add_anchor(string.format("Glr%d", i), pt + point.create(tp.gatelength / 2, -_P.gstwidth / 2))
-                gate:add_anchor(string.format("Gcr%d", i), pt + point.create(tp.gatelength / 2, 0))
-                gate:add_anchor(string.format("Gur%d", i), pt + point.create(tp.gatelength / 2, _P.gstwidth / 2))
+                _make_anchors(gate, x, _P.shiftgatecontacts, tp.gatelength, _P.gstwidth, "G", string.format("%d", i))
+                --gate:add_anchor(string.format("Gll%d", i), pt + point.create(-tp.gatelength / 2, -_P.gstwidth / 2))
+                --gate:add_anchor(string.format("Gcl%d", i), pt + point.create(-tp.gatelength / 2, 0))
+                --gate:add_anchor(string.format("Gul%d", i), pt + point.create(-tp.gatelength / 2, _P.gstwidth / 2))
+                --gate:add_anchor(string.format("Glc%d", i), pt + point.create(0, -_P.gstwidth / 2))
+                --gate:add_anchor(string.format("Gcc%d", i), pt + point.create(0, 0))
+                --gate:add_anchor(string.format("Guc%d", i), pt + point.create(0, _P.gstwidth / 2))
+                --gate:add_anchor(string.format("Glr%d", i), pt + point.create(tp.gatelength / 2, -_P.gstwidth / 2))
+                --gate:add_anchor(string.format("Gcr%d", i), pt + point.create(tp.gatelength / 2, 0))
+                --gate:add_anchor(string.format("Gur%d", i), pt + point.create(tp.gatelength / 2, _P.gstwidth / 2))
             elseif _P.gatecontactpos[i] == "lower" then
                 local pt = point.create(x, -routingshift + _P.shiftgatecontacts)
                 gate:merge_into_shallow(geometry.rectangle(
                     generics.contact("gate", nil, true), tp.gatelength, _P.gstwidth
                 ):translate(pt))
-                gate:add_anchor(string.format("Gll%d", i), pt + point.create(-tp.gatelength / 2, -_P.gstwidth / 2))
-                gate:add_anchor(string.format("Gcl%d", i), pt + point.create(-tp.gatelength / 2, 0))
-                gate:add_anchor(string.format("Gul%d", i), pt + point.create(-tp.gatelength / 2, _P.gstwidth / 2))
-                gate:add_anchor(string.format("Glc%d", i), pt + point.create(0, -_P.gstwidth / 2))
-                gate:add_anchor(string.format("Gcc%d", i), pt + point.create(0, 0))
-                gate:add_anchor(string.format("Guc%d", i), pt + point.create(0, _P.gstwidth / 2))
-                gate:add_anchor(string.format("Glr%d", i), pt + point.create(tp.gatelength / 2, -_P.gstwidth / 2))
-                gate:add_anchor(string.format("Gcr%d", i), pt + point.create(tp.gatelength / 2, 0))
-                gate:add_anchor(string.format("Gur%d", i), pt + point.create(tp.gatelength / 2, _P.gstwidth / 2))
+                _make_anchors(gate, x, _P.shiftgatecontacts, tp.gatelength, _P.gstwidth, "G", string.format("%d", i))
+                --gate:add_anchor(string.format("Gll%d", i), pt + point.create(-tp.gatelength / 2, -_P.gstwidth / 2))
+                --gate:add_anchor(string.format("Gcl%d", i), pt + point.create(-tp.gatelength / 2, 0))
+                --gate:add_anchor(string.format("Gul%d", i), pt + point.create(-tp.gatelength / 2, _P.gstwidth / 2))
+                --gate:add_anchor(string.format("Glc%d", i), pt + point.create(0, -_P.gstwidth / 2))
+                --gate:add_anchor(string.format("Gcc%d", i), pt + point.create(0, 0))
+                --gate:add_anchor(string.format("Guc%d", i), pt + point.create(0, _P.gstwidth / 2))
+                --gate:add_anchor(string.format("Glr%d", i), pt + point.create(tp.gatelength / 2, -_P.gstwidth / 2))
+                --gate:add_anchor(string.format("Gcr%d", i), pt + point.create(tp.gatelength / 2, 0))
+                --gate:add_anchor(string.format("Gur%d", i), pt + point.create(tp.gatelength / 2, _P.gstwidth / 2))
             elseif _P.gatecontactpos[i] == "split" then
                 local x = (2 * i - fingers - 1) * xpitch / 2
                 local y = _P.shiftgatecontacts
@@ -186,9 +201,12 @@ function layout(gate, _P)
                     geometry.rectangle(generics.contact("gate", nil, true), tp.gatelength, _P.gstwidth),
                     2, 2 * routingshift
                 ):translate(x, y))
-                gate:add_anchor(string.format("G%d", i), point.create(x, y))
-                gate:add_anchor(string.format("G%dupper", i), point.create(x, y + routingshift))
-                gate:add_anchor(string.format("G%dlower", i), point.create(x, y - routingshift))
+                _make_anchors(gate, x, y,                tp.gatelength, _P.gstwidth, "G", string.format("%d", i))
+                _make_anchors(gate, x, y + routingshift, tp.gatelength, _P.gstwidth, "Gupper", string.format("%d", i))
+                _make_anchors(gate, x, y - routingshift, tp.gatelength, _P.gstwidth, "Glower", string.format("%d", i))
+                --gate:add_anchor(string.format("G%d", i), point.create(x, y))
+                --gate:add_anchor(string.format("G%dupper", i), point.create(x, y + routingshift))
+                --gate:add_anchor(string.format("G%dlower", i), point.create(x, y - routingshift))
                 gate:merge_into_shallow(geometry.rectangle(generics.other("gatecut"), xpitch, tp.cutheight):translate(x, 0))
             elseif _P.gatecontactpos[i] == "dummy" then
                 local pt = point.create(x, _P.shiftgatecontacts)
@@ -197,6 +215,21 @@ function layout(gate, _P)
                     2, _P.separation + _P.pwidth + _P.nwidth + 2 * _P.powerspace + _P.powerwidth
                 ):translate(x, (_P.pwidth - _P.nwidth) / 2))
                 gate:merge_into_shallow(geometry.rectangle(generics.other("gatecut"), xpitch, tp.cutheight):translate(x, 0))
+            elseif _P.gatecontactpos[i] == "outer" then
+                gate:merge_into_shallow(geometry.rectangle(
+                    generics.contact("gate"), tp.gatelength, _P.gstwidth
+                ):translate(x, _P.separation / 2 + _P.pwidth + _P.outergstspace + _P.gstwidth / 2 + _P.powerwidth + _P.powerspace))
+                gate:merge_into_shallow(geometry.rectangle(
+                    generics.contact("gate"), tp.gatelength, _P.gstwidth
+                ):translate(x, -_P.separation / 2 - _P.nwidth - _P.outergstspace - _P.gstwidth / 2 - _P.powerwidth - _P.powerspace))
+                gate:add_anchor(string.format("Gp%d", i), point.create(
+                    x,
+                    _P.separation / 2 + _P.pwidth + _P.outergstspace + _P.gstwidth / 2 + _P.powerwidth + _P.powerspace))
+                gate:add_anchor(string.format("Gn%d", i), point.create(
+                    x,
+                    -_P.separation / 2 - _P.nwidth - _P.outergstspace - _P.gstwidth / 2 - _P.powerwidth - _P.powerspace))
+            else
+                moderror(string.format("unknown gate contact position: %s", _P.gatecontactpos[i]))
             end
             if _P.gatecontactpos[i] ~= "dummy" then
                 if _P.drawgcut then

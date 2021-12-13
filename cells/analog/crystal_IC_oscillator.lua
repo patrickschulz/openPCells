@@ -1,4 +1,5 @@
 function parameters()
+    pcell.reference_cell("basic/mosfet")
     pcell.add_parameters(
         { "invfingers", 4 },
         { "resfingers", 50 }
@@ -8,13 +9,14 @@ end
 function layout(oscillator, _P)
     local gatecontacts = util.fill_all_with(_P.invfingers, "center")
     local npcontacts = util.fill_even_with(_P.invfingers + 1, "inner", "power")
+    pcell.push_overwrites("basic/mosfet", { 
+        gatelength = 40, 
+        gatespace = 90, 
+    })
     local cmosref = pcell.create_layout("basic/cmos", { 
         gatecontactpos = gatecontacts, 
         pcontactpos = npcontacts, 
         ncontactpos = npcontacts, 
-        fingers = _P.invfingers, 
-        glength = 40, 
-        gspace = 90, 
         separation = 400, 
         pvthtype = 3, 
         nvthtype = 2,

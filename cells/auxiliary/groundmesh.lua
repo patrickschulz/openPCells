@@ -72,7 +72,7 @@ function layout(mesh, _P)
     mesh:merge_into_shallow(geometry.ring(generics.metal(_P.gridstartmetal - 1), 
         _P.cellsize - _P.metalwidth[_P.gridstartmetal - 1], _P.cellsize - _P.metalwidth[_P.gridstartmetal - 1], _P.metalwidth[_P.gridstartmetal - 1]))
     mesh:merge_into_shallow(geometry.rectangle(generics.metal(_P.gridstartmetal - 1), _P.cellsize / 2, _P.cellsize / 2))
-    mesh:merge_into_shallow(geometry.rectangle(generics.via(_P.gridstartmetal - 1, _P.gridtopmetal, true), _P.cellsize / 2, _P.cellsize / 2))
+    mesh:merge_into_shallow(geometry.rectangle(generics.via(_P.gridstartmetal - 1, _P.gridtopmetal, { bare = true }), _P.cellsize / 2, _P.cellsize / 2))
     local rotate = false
     for i = _P.gridstartmetal, _P.gridtopmetal do
         if rotate then

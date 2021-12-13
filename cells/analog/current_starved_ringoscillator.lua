@@ -73,6 +73,7 @@
                                
 --]]
 function parameters()
+    pcell.reference_cell("basic/mosfet")
     pcell.reference_cell("basic/cmos")
     pcell.add_parameters(
         { "invfingers", 2, posvals = even() },
@@ -97,10 +98,12 @@ function layout(oscillator, _P)
     local cbp = pcell.get_parameters("basic/cmos")
     local xpitch = _P.glength + _P.gspace
 
+    pcell.push_overwrites("basic/mosfet", {
+        gatelength = _P.glength,
+        gatespace = _P.gspace,
+    })
     pcell.push_overwrites("basic/cmos", {
         separation = _P.separation,
-        glength = _P.glength,
-        gspace = _P.gspace,
         pwidth = _P.pfingerwidth,
         nwidth = _P.nfingerwidth,
         powerwidth = _P.powerwidth,
@@ -127,12 +130,12 @@ function layout(oscillator, _P)
         end
     end
     local inverterref = pcell.create_layout("basic/cmos", { 
-        fingers = 2 * _P.invfingers,
+        gstwidth = _P.gstwidth,
         gatecontactpos = invgatecontacts, 
         pcontactpos = invactivecontacts, 
         ncontactpos = invactivecontacts,
-        pcontactheight = _P.pfingerwidth - 120,
-        ncontactheight = _P.nfingerwidth - 120,
+        psdheight = _P.pfingerwidth - 120,
+        nsdheight = _P.nfingerwidth - 120,
     })
     inverterref:merge_into_shallow(geometry.rectanglebltr(generics.metal(1), 
         inverterref:get_anchor("Gn1"):translate(-xpitch / 2, -_P.gstwidth / 2),
@@ -143,8 +146,8 @@ function layout(oscillator, _P)
         inverterref:get_anchor(string.format("Gp%d", 2 * _P.invfingers)):translate(xpitch / 2, _P.gstwidth / 2)
     ))
     inverterref:merge_into_shallow(geometry.rectanglebltr(generics.metal(1), 
-        inverterref:get_anchor(string.format("G%d", 2 + 0)):translate(0, -_P.gstwidth / 2),
-        inverterref:get_anchor(string.format("G%d", 2 + 4 * (_P.invfingers / 2 - 1) + 1)):translate(0,  _P.gstwidth / 2)
+        inverterref:get_anchor(string.format("Gll%d", 2 + 0)),
+        inverterref:get_anchor(string.format("Gur%d", 2 + 4 * (_P.invfingers / 2 - 1) + 1))
     ))
     for i = 3, 2 * _P.invfingers, 4 do
         inverterref:merge_into_shallow(geometry.rectanglebltr(generics.metal(1), 
@@ -225,45 +228,46 @@ function layout(oscillator, _P)
     end
     -- create current mirror layout
     local cmarray = pcell.create_layout("basic/cmos", { 
-        fingers = cmfingers,
+        gstwidth = _P.gstwidth,
+        sdwidth = _P.gstwidth,
         gatecontactpos = cmgatecontacts, 
         pcontactpos = cmpactivecontacts, 
         ncontactpos = cmnactivecontacts,
-        pcontactheight = _P.pfingerwidth - 120,
-        ncontactheight = _P.nfingerwidth - 120,
+        psdheight = _P.pfingerwidth - 120,
+        nsdheight = _P.nfingerwidth - 120,
     })
     -- pmos diode
     cmarray:merge_into_shallow(geometry.rectanglebltr(generics.metal(1), 
-        cmarray:get_anchor(string.format("Gu%d", cmfingers - _P.pmosdiodefingers + 1)):translate(0, -_P.gstwidth / 2),
-        cmarray:get_anchor(string.format("Gu%d", cmfingers)):translate(0,  _P.gstwidth / 2)
+        cmarray:get_anchor(string.format("Gupperll%d", cmfingers - _P.pmosdiodefingers + 1)),
+        cmarray:get_anchor(string.format("Gupperur%d", cmfingers))
     ))
     -- pmos zero current
     cmarray:merge_into_shallow(geometry.rectanglebltr(generics.metal(1), 
-        cmarray:get_anchor(string.format("Gu%d", cmfingers - _P.pmosdiodefingers - _P.pmoszerofingers + 1)):translate(0,  _P.gstwidth / 2),
-        cmarray:get_anchor(string.format("Gu%d", cmfingers - _P.pmosdiodefingers)):translate(0, -_P.gstwidth / 2)
+        cmarray:get_anchor(string.format("Gupperll%d", cmfingers - _P.pmosdiodefingers - _P.pmoszerofingers + 1)),
+        cmarray:get_anchor(string.format("Gupperur%d", cmfingers - _P.pmosdiodefingers))
     ))
     -- pmos tuning
     cmarray:merge_into_shallow(geometry.rectanglebltr(generics.metal(1), 
-        cmarray:get_anchor(string.format("Gu%d", cmfingers - _P.pmosdiodefingers - _P.pmoszerofingers - _P.pmostunefingers)):translate(0,  _P.gstwidth / 2),
-        cmarray:get_anchor(string.format("Gu%d", cmfingers - _P.pmosdiodefingers - _P.pmoszerofingers - 1)):translate(0, -_P.gstwidth / 2)
+        cmarray:get_anchor(string.format("Gupperll%d", cmfingers - _P.pmosdiodefingers - _P.pmoszerofingers - _P.pmostunefingers)),
+        cmarray:get_anchor(string.format("Gupperur%d", cmfingers - _P.pmosdiodefingers - _P.pmoszerofingers - 1))
     ))
     -- nmos current mirror
     cmarray:merge_into_shallow(geometry.rectanglebltr(generics.metal(1), 
-        cmarray:get_anchor(string.format("Gl%d", cmfingers - _P.nmoscurrentfingers - _P.nmosdiodefingers + 1)):translate(0, -_P.gstwidth / 2),
-        cmarray:get_anchor(string.format("Gl%d", cmfingers)):translate(0,  _P.gstwidth / 2)
+        cmarray:get_anchor(string.format("Glowerll%d", cmfingers - _P.nmoscurrentfingers - _P.nmosdiodefingers + 1)),
+        cmarray:get_anchor(string.format("Glowerur%d", cmfingers))
     ))
     -- pmos dummies
     if _P.pmosdiodefingers + _P.pmoszerofingers + _P.pmostunefingers + 1 < _P.nmoscurrentfingers + _P.nmosdiodefingers then
         cmarray:merge_into_shallow(geometry.rectanglebltr(generics.metal(1), 
-            cmarray:get_anchor(string.format("Gu%d", 1)):translate(0, -_P.gstwidth / 2),
-            cmarray:get_anchor(string.format("Gu%d", cmfingers - _P.pmosdiodefingers - _P.pmoszerofingers - _P.pmostunefingers - 1)):translate(0, _P.gstwidth / 2)
+            cmarray:get_anchor(string.format("Gupperll%d", 1)),
+            cmarray:get_anchor(string.format("Gupperur%d", cmfingers - _P.pmosdiodefingers - _P.pmoszerofingers - _P.pmostunefingers - 1))
         ))
     end
     -- nmos dummies
     if _P.pmosdiodefingers + _P.pmoszerofingers + _P.pmostunefingers + 1 > _P.nmoscurrentfingers + _P.nmosdiodefingers then
         cmarray:merge_into_shallow(geometry.rectanglebltr(generics.metal(1), 
-            cmarray:get_anchor(string.format("Gl%d", 1)):translate(0, -_P.gstwidth / 2),
-            cmarray:get_anchor(string.format("Gl%d", cmfingers - _P.nmosdiodefingers - _P.nmoscurrentfingers)):translate(0, _P.gstwidth / 2)
+            cmarray:get_anchor(string.format("Glowerll%d", 1)),
+            cmarray:get_anchor(string.format("Glowerur%d", cmfingers - _P.nmosdiodefingers - _P.nmoscurrentfingers))
         ))
     end
     -- draw bias source/drain connections
@@ -273,7 +277,7 @@ function layout(oscillator, _P)
             cmarray:get_anchor(string.format("pSDi%d", index)):translate(-_P.gstwidth / 2, 0),
             point.combine_12(
                 cmarray:get_anchor(string.format("pSDi%d", index)),
-                cmarray:get_anchor(string.format("Gu%d", index))
+                cmarray:get_anchor(string.format("Gupperuc%d", index))
             ):translate(_P.gstwidth / 2, 0)
         ))
     end
@@ -283,7 +287,7 @@ function layout(oscillator, _P)
             cmarray:get_anchor(string.format("nSDi%d", index)):translate(-_P.gstwidth / 2, 0),
             point.combine_12(
                 cmarray:get_anchor(string.format("nSDi%d", index)),
-                cmarray:get_anchor(string.format("Gl%d", index))
+                cmarray:get_anchor(string.format("Glowerlc%d", index))
             ):translate(_P.gstwidth / 2, 0)
         ))
     end
@@ -292,7 +296,7 @@ function layout(oscillator, _P)
             cmarray:get_anchor(string.format("pSDi%d", i)):translate(-_P.gstwidth / 2, 0),
             point.combine_12(
                 cmarray:get_anchor(string.format("pSDi%d", i)),
-                cmarray:get_anchor(string.format("Gu%d", i))
+                cmarray:get_anchor(string.format("Gupperuc%d", i))
             ):translate(_P.gstwidth / 2, 0)
         ))
     end
@@ -301,14 +305,14 @@ function layout(oscillator, _P)
             cmarray:get_anchor(string.format("nSDi%d", i)):translate(-_P.gstwidth / 2, 0),
             point.combine_12(
                 cmarray:get_anchor(string.format("nSDi%d", i)),
-                cmarray:get_anchor(string.format("Gl%d", i))
+                cmarray:get_anchor(string.format("Glowerlc%d", i))
             ):translate(_P.gstwidth / 2, 0)
         ))
     end
     cmarray:merge_into_shallow(geometry.rectanglebltr(generics.metal(1), 
-        cmarray:get_anchor(string.format("Gu%d", cmfingers - _P.pmosdiodefingers - _P.pmoszerofingers)):translate(-_P.gstwidth / 2, 0),
+        cmarray:get_anchor(string.format("Gupperuc%d", cmfingers - _P.pmosdiodefingers - _P.pmoszerofingers)):translate(-_P.gstwidth / 2, 0),
         point.combine_12(
-            cmarray:get_anchor(string.format("Gu%d", cmfingers - _P.pmosdiodefingers - _P.pmoszerofingers)),
+            cmarray:get_anchor(string.format("Gupperuc%d", cmfingers - _P.pmosdiodefingers - _P.pmoszerofingers)),
             cmarray:get_anchor("top")
         ):translate(_P.gstwidth / 2, 0)
     ))
@@ -321,7 +325,7 @@ function layout(oscillator, _P)
         ))
     end
     cmarray:merge_into_shallow(geometry.rectangle(generics.via(1, 2), xpitch, _P.gstwidth)
-        :translate(cmarray:get_anchor(string.format("Gl%d", cmfingers - _P.nmoscurrentfingers)))
+        :translate(cmarray:get_anchor(string.format("Glowercc%d", cmfingers - _P.nmoscurrentfingers)))
     )
     -- connect right pmos/nmos
     cmarray:merge_into_shallow(geometry.rectanglebltr(generics.metal(2), 
@@ -363,7 +367,7 @@ function layout(oscillator, _P)
             geometry.path_points_xy(
             point.combine_12(
                 inverters[i]:get_anchor(string.format("pSDi%d", 2 * _P.invfingers + 1)),
-                inverters[i]:get_anchor(string.format("G%d", 2))
+                inverters[i]:get_anchor(string.format("Gcc%d", 2))
             ), { 2 * xpitch }), _P.gstwidth))
     end
 
@@ -380,11 +384,11 @@ function layout(oscillator, _P)
         currentmirror:get_anchor(string.format("pSDc%d", cmfingers - _P.pmosdiodefingers - _P.pmoszerofingers - _P.pmostunefingers + 1)), {
         currentmirror:get_anchor(string.format("pSDc%d", cmfingers - _P.pmosdiodefingers - _P.pmoszerofingers + 1)),
         0, -- toggle xy
-        currentmirror:get_anchor(string.format("Gl%d", cmfingers - _P.nmoscurrentfingers)),
+        currentmirror:get_anchor(string.format("Glowercc%d", cmfingers - _P.nmoscurrentfingers)),
         inverters[1]:get_anchor("Gn1")
     }), _P.gstwidth))
     oscillator:merge_into_shallow(geometry.rectangle(generics.via(1, 2), xpitch, _P.gstwidth)
-        :translate(currentmirror:get_anchor(string.format("Gl%d", cmfingers - _P.nmoscurrentfingers)))
+        :translate(currentmirror:get_anchor(string.format("Glowercc%d", cmfingers - _P.nmoscurrentfingers)))
     )
     oscillator:merge_into_shallow(geometry.rectangle(generics.via(1, 2), xpitch, _P.gstwidth)
         :translate(inverters[1]:get_anchor("Gn1"))
@@ -392,20 +396,20 @@ function layout(oscillator, _P)
 
     -- feedback connection
     oscillator:merge_into_shallow(geometry.path(generics.metal(2), {
-            inverters[_P.numinv]:get_anchor(string.format("pSDc%d", 2 * _P.invfingers + 1)) .. inverters[_P.numinv]:get_anchor(string.format("G%d", 2)),
-            inverters[1]:get_anchor("G2"):translate(-_P.glength / 2, 0)
+            inverters[_P.numinv]:get_anchor(string.format("pSDc%d", 2 * _P.invfingers + 1)) .. inverters[_P.numinv]:get_anchor(string.format("Gcc%d", 2)),
+            inverters[1]:get_anchor("Gcc2"):translate(-_P.glength / 2, 0)
         }, _P.gstwidth)
     )
     oscillator:merge_into_shallow(
         geometry.rectangle(generics.via(1, 2), _P.gstwidth, _P.separation + 2 * _P.gstwidth)
         :translate(
             inverters[_P.numinv]:get_anchor(string.format("pSDc%d", 2 * _P.invfingers + 1)) .. 
-            inverters[_P.numinv]:get_anchor("G2")
+            inverters[_P.numinv]:get_anchor("Gcc2")
         )
     )
     oscillator:merge_into_shallow(
         geometry.rectangle(generics.via(1, 2), 2 * _P.glength + _P.gspace, _P.gstwidth)
-        :translate(inverters[1]:get_anchor("G2"):translate(xpitch / 2, 0))
+        :translate(inverters[1]:get_anchor("Gcc2"):translate(xpitch / 2, 0))
     )
 
     -- center oscillator
@@ -430,4 +434,7 @@ function layout(oscillator, _P)
     }), "nguardring")
     oscillator:add_child(pguardringname)
     oscillator:add_child(nguardringname)
+
+    pcell.pop_overwrites("basic/mosfet")
+    pcell.pop_overwrites("basic/cmos")
 end

@@ -26,9 +26,9 @@ function layout(ccp, _P)
     ccp:merge_into_shallow(dummy)
 
     local left = pcell.create_layout("basic/mosfet")
-    left:move_anchor("rightdrainsource", dummy:get_anchor("leftdrainsource"))
+    left:move_anchor("sourcedrainmiddlecenterright", dummy:get_anchor("sourcedrainmiddlecenterleft"))
     local right = pcell.create_layout("basic/mosfet")
-    right:move_anchor("leftdrainsource", dummy:get_anchor("rightdrainsource"))
+    right:move_anchor("sourcedrainmiddlecenterleft", dummy:get_anchor("sourcedrainmiddlecenterright"))
     ccp:merge_into_shallow(left)
     ccp:merge_into_shallow(right)
 

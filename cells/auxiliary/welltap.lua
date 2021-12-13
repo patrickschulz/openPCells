@@ -1,9 +1,10 @@
 function parameters()
     pcell.add_parameters(
-        { "contype",        "p" },
-        { "width",         5000 },
-        { "height",        5000 },
-        { "extension",       50 }
+        { "contype",          "p" },
+        { "width",           5000 },
+        { "height",          5000 },
+        { "extension",         50 },
+        { "continuousvias", false }
     )
 end
 

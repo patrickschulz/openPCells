@@ -17,6 +17,7 @@
   VSS -----------------*--------------------------------
 --]]
 function parameters()
+    pcell.reference_cell("basic/mosfet")
     pcell.reference_cell("basic/cmos")
     pcell.add_parameters(
         { "inputpolarity", "n", posvals = set("n", "p") },
@@ -37,11 +38,13 @@ end
 function layout(cell, _P)
     local cbp = pcell.get_parameters("basic/cmos")
     local xpitch = _P.glength + _P.gspace
+    pcell.push_overwrites("basic/mosfet", {
+        gatelength = _P.glength,
+        gatespace = _P.gspace,
+    })
 
     pcell.push_overwrites("basic/cmos", {
         separation = _P.separation,
-        glength = _P.glength,
-        gspace = _P.gspace,
         pwidth = _P.pfingerwidth,
         nwidth = _P.nfingerwidth,
         powerwidth = _P.powerwidth,
@@ -77,19 +80,18 @@ function layout(cell, _P)
     end
     -- create current mirror layout
     local array = pcell.create_layout("basic/cmos", { 
-        fingers = fingers,
         gatecontactpos = gatecontacts, 
         pcontactpos = _P.inputpolarity == "n" and pactivecontacts or nactivecontacts,
         ncontactpos = _P.inputpolarity == "n" and nactivecontacts or pactivecontacts,
-        pcontactheight = _P.pfingerwidth - 120,
-        ncontactheight = _P.nfingerwidth - 120,
+        psdheight = _P.pfingerwidth - 120,
+        nsdheight = _P.nfingerwidth - 120,
     })
     cell:merge_into_shallow(array)
 
     -- ** draw gate straps **
     -- output diode
-    local goutsel = _P.inputpolarity == "n" and "u" or "l"
-    local ginsel = _P.inputpolarity == "n" and "l" or "u"
+    local goutsel = _P.inputpolarity == "n" and "uc" or "lc"
+    local ginsel = _P.inputpolarity == "n" and "lc" or "uc"
     local sdoutsel = _P.inputpolarity == "n" and "p" or "n"
     local sdinsel = _P.inputpolarity == "n" and "n" or "p"
     cell:merge_into_shallow(geometry.rectanglebltr(generics.metal(1), 
@@ -184,4 +186,7 @@ function layout(cell, _P)
             array:get_anchor(string.format("%sSDc%d", sdinsel, fingers)),
         }, _P.gstwidth))
     end
+
+    pcell.pop_overwrites("basic/mosfet")
+    pcell.pop_overwrites("basic/cmos")
 end

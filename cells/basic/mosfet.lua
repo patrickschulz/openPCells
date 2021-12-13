@@ -317,8 +317,8 @@ function layout(transistor, _P)
         end
     end
 
-    -- alignmentbox
-    local y1 = _P.fwidth / 2 + math.max(_P.gtopext, enable(_P.drawtopgate, _P.topgatestrspace + _P.topgatestrwidth / 2))
+    -- alignmentbox (FIXME, perhaps a simpler one is better)
+    local y1 =  _P.fwidth / 2 + math.max(_P.gtopext, enable(_P.drawtopgate, _P.topgatestrspace + _P.topgatestrwidth / 2))
     local y2 = -_P.fwidth / 2 - math.max(_P.gbotext, enable(_P.drawbotgate, _P.botgatestrspace + _P.botgatestrwidth / 2))
     if _P.connectsource and not _P.connsourceinline then
         y1 = ysign * (_P.fwidth + _P.connsourcewidth + 2 * _P.connsourcespace) / 2
@@ -340,16 +340,44 @@ function layout(transistor, _P)
     -- anchors
     -- source/drain regions
     for i = 1, _P.fingers + 1 do
-        transistor:add_anchor(string.format("sourcedrainlower%d", i), point.create((-_P.fingers / 2 + (i - 1)) * (_P.gatelength + _P.gatespace), -_P.fwidth / 2))
-        transistor:add_anchor(string.format("sourcedrainmiddle%d", i), point.create((-_P.fingers / 2 + (i - 1)) * (_P.gatelength + _P.gatespace), 0))
-        transistor:add_anchor(string.format("sourcedrainupper%d", i), point.create((-_P.fingers / 2 + (i - 1)) * (_P.gatelength + _P.gatespace), _P.fwidth / 2))
+        transistor:add_anchor(string.format("sourcedrainlowerleft%d", i), 
+            point.create((-_P.fingers / 2 + (i - 1)) * (_P.gatelength + _P.gatespace) - _P.sdwidth / 2, -_P.fwidth / 2))
+        transistor:add_anchor(string.format("sourcedrainmiddleleft%d", i), 
+            point.create((-_P.fingers / 2 + (i - 1)) * (_P.gatelength + _P.gatespace) - _P.sdwidth / 2, 0))
+        transistor:add_anchor(string.format("sourcedrainupperleft%d", i), 
+            point.create((-_P.fingers / 2 + (i - 1)) * (_P.gatelength + _P.gatespace) - _P.sdwidth / 2, _P.fwidth / 2))
+        transistor:add_anchor(string.format("sourcedrainlowercenter%d", i), 
+            point.create((-_P.fingers / 2 + (i - 1)) * (_P.gatelength + _P.gatespace), -_P.fwidth / 2))
+        transistor:add_anchor(string.format("sourcedrainmiddlecenter%d", i), 
+            point.create((-_P.fingers / 2 + (i - 1)) * (_P.gatelength + _P.gatespace), 0))
+        transistor:add_anchor(string.format("sourcedrainuppercenter%d", i), 
+            point.create((-_P.fingers / 2 + (i - 1)) * (_P.gatelength + _P.gatespace), _P.fwidth / 2))
+        transistor:add_anchor(string.format("sourcedrainlowerright%d", i), 
+            point.create((-_P.fingers / 2 + (i - 1)) * (_P.gatelength + _P.gatespace) + _P.sdwidth / 2, -_P.fwidth / 2))
+        transistor:add_anchor(string.format("sourcedrainmiddleright%d", i), 
+            point.create((-_P.fingers / 2 + (i - 1)) * (_P.gatelength + _P.gatespace) + _P.sdwidth / 2, 0))
+        transistor:add_anchor(string.format("sourcedrainupperright%d", i), 
+            point.create((-_P.fingers / 2 + (i - 1)) * (_P.gatelength + _P.gatespace) + _P.sdwidth / 2, _P.fwidth / 2))
     end
-    transistor:add_anchor("sourcedrainlowerleft", point.create((-_P.fingers / 2 + (1 - 1)) * (_P.gatelength + _P.gatespace), -_P.fwidth / 2))
-    transistor:add_anchor("sourcedrainmiddleleft", point.create((-_P.fingers / 2 + (1 - 1)) * (_P.gatelength + _P.gatespace), 0))
-    transistor:add_anchor("sourcedrainupperleft", point.create((-_P.fingers / 2 + (1 - 1)) * (_P.gatelength + _P.gatespace), _P.fwidth / 2))
-    transistor:add_anchor("sourcedrainlowerright", point.create((-_P.fingers / 2 + (_P.fingers + 1 - 1)) * (_P.gatelength + _P.gatespace), -_P.fwidth / 2))
-    transistor:add_anchor("sourcedrainmiddleright", point.create((-_P.fingers / 2 + (_P.fingers + 1 - 1)) * (_P.gatelength + _P.gatespace), 0))
-    transistor:add_anchor("sourcedrainupperright", point.create((-_P.fingers / 2 + (_P.fingers + 1 - 1)) * (_P.gatelength + _P.gatespace), _P.fwidth / 2))
+    transistor:add_anchor("sourcedrainlowerleftleft", transistor:get_anchor("sourcedrainlowerleft1"))
+    transistor:add_anchor("sourcedrainmiddleleftleft", transistor:get_anchor("sourcedrainmiddleleft1"))
+    transistor:add_anchor("sourcedrainupperleftleft", transistor:get_anchor("sourcedrainupperleft1"))
+    transistor:add_anchor("sourcedrainlowercenterleft", transistor:get_anchor("sourcedrainlowercenter1"))
+    transistor:add_anchor("sourcedrainmiddlecenterleft", transistor:get_anchor("sourcedrainmiddlecenter1"))
+    transistor:add_anchor("sourcedrainuppercenterleft", transistor:get_anchor("sourcedrainuppercenter1"))
+    transistor:add_anchor("sourcedrainlowerrightleft", transistor:get_anchor("sourcedrainlowerright1"))
+    transistor:add_anchor("sourcedrainmiddlerightleft", transistor:get_anchor("sourcedrainmiddleright1"))
+    transistor:add_anchor("sourcedrainupperrightleft", transistor:get_anchor("sourcedrainupperright1"))
+
+    transistor:add_anchor("sourcedrainlowerleftright", transistor:get_anchor(string.format("sourcedrainlowerleft%d", _P.fingers + 1)))
+    transistor:add_anchor("sourcedrainmiddleleftright", transistor:get_anchor(string.format("sourcedrainmiddleleft%d", _P.fingers + 1)))
+    transistor:add_anchor("sourcedrainupperleftright", transistor:get_anchor(string.format("sourcedrainupperleft%d", _P.fingers + 1)))
+    transistor:add_anchor("sourcedrainlowercenterright", transistor:get_anchor(string.format("sourcedrainlowercenter%d", _P.fingers + 1)))
+    transistor:add_anchor("sourcedrainmiddlecenterright", transistor:get_anchor(string.format("sourcedrainmiddlecenter%d", _P.fingers + 1)))
+    transistor:add_anchor("sourcedrainuppercenterright", transistor:get_anchor(string.format("sourcedrainuppercenter%d", _P.fingers + 1)))
+    transistor:add_anchor("sourcedrainlowerrightright", transistor:get_anchor(string.format("sourcedrainlowerright%d", _P.fingers + 1)))
+    transistor:add_anchor("sourcedrainmiddlerightright", transistor:get_anchor(string.format("sourcedrainmiddleright%d", _P.fingers + 1)))
+    transistor:add_anchor("sourcedrainupperrightright", transistor:get_anchor(string.format("sourcedrainupperright%d", _P.fingers + 1)))
 
     -- source/drain straps
     transistor:add_anchor("sourcestrapinnerleft",  point.create((-_P.fingers / 2 + (1 - 1)) * (_P.gatelength + _P.gatespace), ysign * (_P.fwidth / 2 + _P.connsourcespace)))
@@ -358,12 +386,12 @@ function layout(transistor, _P)
     transistor:add_anchor("drainstrapinnerleft",  point.create((-_P.fingers / 2 + (1 - 1)) * (_P.gatelength + _P.gatespace), -ysign * (_P.fwidth / 2 + _P.conndrainspace)))
     transistor:add_anchor("drainstrapmiddleleft", point.create((-_P.fingers / 2 + (1 - 1)) * (_P.gatelength + _P.gatespace), -ysign * (_P.fwidth / 2 + _P.conndrainspace + _P.conndrainwidth / 2)))
     transistor:add_anchor("drainstrapouterleft",  point.create((-_P.fingers / 2 + (1 - 1)) * (_P.gatelength + _P.gatespace), -ysign * (_P.fwidth / 2 + _P.conndrainspace + _P.conndrainwidth)))
-    transistor:add_anchor("sourcestrapinner",  point.create(0, ysign * (_P.fwidth / 2 + _P.connsourcespace)))
-    transistor:add_anchor("sourcestrapmiddle", point.create(0, ysign * (_P.fwidth / 2 + _P.connsourcespace + _P.connsourcewidth / 2)))
-    transistor:add_anchor("sourcestrapouter",  point.create(0, ysign * (_P.fwidth / 2 + _P.connsourcespace + _P.connsourcewidth)))
-    transistor:add_anchor("drainstrapinner",  point.create(0, -ysign * (_P.fwidth / 2 + _P.conndrainspace)))
-    transistor:add_anchor("drainstrapmiddle", point.create(0, -ysign * (_P.fwidth / 2 + _P.conndrainspace + _P.conndrainwidth / 2)))
-    transistor:add_anchor("drainstrapouter",  point.create(0, -ysign * (_P.fwidth / 2 + _P.conndrainspace + _P.conndrainwidth)))
+    transistor:add_anchor("sourcestrapinnercenter",  point.create(0, ysign * (_P.fwidth / 2 + _P.connsourcespace)))
+    transistor:add_anchor("sourcestrapmiddlecenter", point.create(0, ysign * (_P.fwidth / 2 + _P.connsourcespace + _P.connsourcewidth / 2)))
+    transistor:add_anchor("sourcestrapoutercenter",  point.create(0, ysign * (_P.fwidth / 2 + _P.connsourcespace + _P.connsourcewidth)))
+    transistor:add_anchor("drainstrapinnercenter",  point.create(0, -ysign * (_P.fwidth / 2 + _P.conndrainspace)))
+    transistor:add_anchor("drainstrapmiddlecenter", point.create(0, -ysign * (_P.fwidth / 2 + _P.conndrainspace + _P.conndrainwidth / 2)))
+    transistor:add_anchor("drainstrapoutercenter",  point.create(0, -ysign * (_P.fwidth / 2 + _P.conndrainspace + _P.conndrainwidth)))
     transistor:add_anchor("sourcestrapinnerright",  point.create((-_P.fingers / 2 + (_P.fingers + 1 - 1)) * (_P.gatelength + _P.gatespace), ysign * (_P.fwidth / 2 + _P.connsourcespace)))
     transistor:add_anchor("sourcestrapmiddleright", point.create((-_P.fingers / 2 + (_P.fingers + 1 - 1)) * (_P.gatelength + _P.gatespace), ysign * (_P.fwidth / 2 + _P.connsourcespace + _P.connsourcewidth / 2)))
     transistor:add_anchor("sourcestrapouterright",  point.create((-_P.fingers / 2 + (_P.fingers + 1 - 1)) * (_P.gatelength + _P.gatespace), ysign * (_P.fwidth / 2 + _P.connsourcespace + _P.connsourcewidth)))
@@ -394,10 +422,10 @@ function layout(transistor, _P)
     end
     transistor:add_anchor("topgate", point.create(0,  _P.fwidth / 2 + math.max(_P.gtopext, enable(_P.drawtopgate, _P.topgatestrspace + _P.topgatestrwidth / 2))))
     transistor:add_anchor("botgate", point.create(0, -_P.fwidth / 2 - math.max(_P.gbotext, enable(_P.drawbotgate, _P.botgatestrspace + _P.botgatestrwidth / 2))))
-    transistor:add_anchor("lefttopgate", transistor:get_anchor("topgate") + transistor:get_anchor("sourcedrainmiddleleft"))
-    transistor:add_anchor("righttopgate", transistor:get_anchor("topgate") + transistor:get_anchor("sourcedrainmiddleright"))
-    transistor:add_anchor("leftbotgate", transistor:get_anchor("botgate") + transistor:get_anchor("sourcedrainmiddleleft"))
-    transistor:add_anchor("rightbotgate", transistor:get_anchor("botgate") + transistor:get_anchor("sourcedrainmiddleright"))
+    transistor:add_anchor("lefttopgate", transistor:get_anchor("topgate") + transistor:get_anchor("sourcedrainmiddlecenterleft"))
+    transistor:add_anchor("righttopgate", transistor:get_anchor("topgate") + transistor:get_anchor("sourcedrainmiddlecenterright"))
+    transistor:add_anchor("leftbotgate", transistor:get_anchor("botgate") + transistor:get_anchor("sourcedrainmiddlecenterleft"))
+    transistor:add_anchor("rightbotgate", transistor:get_anchor("botgate") + transistor:get_anchor("sourcedrainmiddlecenterright"))
     transistor:add_anchor("topgatestrap", point.create(0, _P.fwidth / 2 + _P.topgatestrspace + _P.topgatestrwidth / 2))
     transistor:add_anchor("botgatestrap", point.create(0, -_P.fwidth / 2 - _P.botgatestrspace - _P.botgatestrwidth / 2))
     transistor:add_anchor("topgatestrapmiddle", point.create(

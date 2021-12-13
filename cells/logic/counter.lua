@@ -28,8 +28,8 @@ end
 function layout(counter, _P)
     -- generate cell layouts
     pcell.push_overwrites("stdcells/base", { leftdummies = 1, rightdummies = 1 })
-    local dffpref = pcell.create_layout("stdcells/dff", { clockpolarity = "positive", enableQ = true, enableQN = false })
-    local dffnref = pcell.create_layout("stdcells/dff", { clockpolarity = "negative", enableQ = true, enableQN = false })
+    local dffpref = pcell.create_layout("stdcells/dff", { clockpolarity = "positive", enable_Q = true, enable_QN = false })
+    local dffnref = pcell.create_layout("stdcells/dff", { clockpolarity = "negative", enable_Q = true, enable_QN = false })
     local xorref  = pcell.create_layout("stdcells/xor_gate")
     local orref   = pcell.create_layout("stdcells/or_gate")
     pcell.pop_overwrites("stdcells/base")
