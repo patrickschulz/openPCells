@@ -316,11 +316,13 @@ return {
     },
     store{
         name = "showgdsdatadepth", long = "--show-gds-depth",
-        help = "maximum depth for gds traversal (affects --show-gds-data and --show-gds-hierarchy)"
+        help = "maximum depth for gds traversal (affects --show-gds-data and --show-gds-hierarchy)",
+        default = 1000,
     },
     store_multiple{
         name = "showgdsdataflags", long = "--show-gds-data-flags",
-        help = "flags to control what data is shown with --show-gds-data (default: all)"
+        help = "flags to control what data is shown with --show-gds-data (default: all)",
+        default = "all",
     },
     store_multiple{
         name = "showgdsdataraw", long = "--show-gds-data-raw",

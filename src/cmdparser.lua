@@ -185,6 +185,7 @@ function meta.load_options(self, options)
             end
             self.parsers[opt.name] = opt.parser
             self.actions[opt.name] = opt.func
+            self.defaults[opt.name] = opt.default
         end
     end
 end
@@ -222,7 +223,8 @@ function meta.parse(self, args)
         action(self, arg)
         _advance(self.state)
     end
-    -- split key=value pairs
+    -- split key=value pairs (positional parameters, which are k-v-pairs in opc)
+    -- TODO: put this in a separate function?
     local cellargs = {}
     local text = table.concat(self.res.cellargs, " ")
     local idx = 1
@@ -236,9 +238,20 @@ function meta.parse(self, args)
         idx = s3
         cellargs[k] = v
     end
-
     self.res.cellargs = cellargs
     return self.res
+end
+
+function meta.set_defaults(self, args)
+    local visited = {}
+    for name in pairs(args) do
+        visited[name] = true
+    end
+    for name in pairs(self.defaults) do
+        if not visited[name] then
+            args[name] = self.defaults[name]
+        end
+    end
 end
 
 function meta.set_option(self, param, arg)
@@ -259,6 +272,7 @@ return function()
         state = { i = 1 },
         parsers = {},
         actions = {},
+        defaults = {},
         nameresolve = {},
         res = { cellargs = {} },
         prehelpmsg = {},
