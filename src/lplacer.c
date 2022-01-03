@@ -1,6 +1,5 @@
 #include <stdlib.h>
 #include <stdio.h>
-#include <stdbool.h>
 #include <unistd.h>
 #include <string.h>
 #include <assert.h>
@@ -8,6 +7,8 @@
 #include <limits.h>
 
 #include "lua/lauxlib.h"
+
+#include "lplacer_rand.h"
 
 #define MAX_PINS_PER_CELL (10)
 #define MAX_PINS_PER_NET (32)
@@ -20,19 +21,25 @@ struct floorplan {
     double weight_wirelength;
     double weight_width_penalty;
     int cell_count;
-    int total_wirelength;
     // limiter window
     int limiter_width;
     int limiter_height;
 };
 
 struct cell {
-    char* instance_name;
-    char* reference_name;
+    char* name;
+    unsigned int reference;
     unsigned int width;
-    unsigned int pos_x;
-    unsigned int pos_y;
+    unsigned int column;
+    unsigned int row;
     struct net* net_conn[MAX_PINS_PER_CELL];
+};
+
+struct net {
+    //char* name;
+    unsigned int pin_conn[MAX_PINS_PER_NET];
+    struct cell* cell_conn[MAX_PINS_PER_NET];
+    unsigned int size;
 };
 
 struct rollback {
@@ -44,175 +51,56 @@ struct rollback {
     unsigned int y2;
 };
 
-struct net {
-    char* net_name;
-    struct cell* cell_conn[MAX_PINS_PER_NET];
-    int halfperi_wirelength;
-};
-
-/* Placement helper functions
- * --------------------------
- */
-#define Rand64		unsigned long
-typedef struct {
-  Rand64 s[4];
-} RanState;
-
-/* avoid using extra bits when needed */
-#define trim64(x)	((x) & 0xffffffffffffffffu)
-
-/* rotate left 'x' by 'n' bits */
-static Rand64 rotl (Rand64 x, int n) {
-  return (x << n) | (trim64(x) >> (64 - n));
-}
-
-static Rand64 nextrand(RanState *state)
+static unsigned int net_update_wirelength(struct net* n, unsigned int** pinoffsets)
 {
-    Rand64 state0 = state->s[0];
-    Rand64 state1 = state->s[1];
-    Rand64 state2 = state->s[2] ^ state0;
-    Rand64 state3 = state->s[3] ^ state1;
-    Rand64 res = rotl(state1 * 5, 7) * 9;
-    state->s[0] = state0 ^ state3;
-    state->s[1] = state1 ^ state2;
-    state->s[2] = state2 ^ (state1 << 17);
-    state->s[3] = rotl(state3, 45);
-    return res;
-}
-
-
-static void randseed (RanState *state, unsigned long n1, unsigned long n2)
-{
-    int i;
-    state->s[0] = (Rand64)(n1);
-    state->s[1] = (Rand64)(0xff);  /* avoid a zero state */
-    state->s[2] = (Rand64)(n2);
-    state->s[3] = (Rand64)(0);
-    for (i = 0; i < 16; i++)
-    {
-        nextrand(state);  /* discard initial values to "spread" seed */
-    }
-}
-
-/* convert a 'Rand64' to a 'unsigned long' */
-#define I2UInt(x)	((unsigned long)trim64(x))
-
-/*
-** Project the random integer 'ran' into the interval [0, n].
-** Because 'ran' has 2^B possible values, the projection can only be
-** uniform when the size of the interval is a power of 2 (exact
-** division). Otherwise, to get a uniform projection into [0, n], we
-** first compute 'lim', the smallest Mersenne number not smaller than
-** 'n'. We then project 'ran' into the interval [0, lim].  If the result
-** is inside [0, n], we are done. Otherwise, we try with another 'ran',
-** until we have a result inside the interval.
-*/
-static unsigned long project (unsigned long ran, unsigned long n,
-                             RanState *state) {
-  if ((n & (n + 1)) == 0)  /* is 'n + 1' a power of 2? */
-    return ran & n;  /* no bias */
-  else {
-    unsigned long lim = n;
-    /* compute the smallest (2^b - 1) not smaller than 'n' */
-    lim |= (lim >> 1);
-    lim |= (lim >> 2);
-    lim |= (lim >> 4);
-    lim |= (lim >> 8);
-    lim |= (lim >> 16);
-#if (LUA_MAXUNSIGNED >> 31) >= 3
-    lim |= (lim >> 32);  /* integer type has more than 32 bits */
-#endif
-    while ((ran &= lim) > n)  /* project 'ran' into [0..lim] */
-      ran = I2UInt(nextrand(state));  /* not inside [0..n]? try again */
-    return ran;
-  }
-}
-
-#define FIGS 64
-/* must throw out the extra (64 - FIGS) bits */
-#define shift64_FIG	(64 - FIGS)
-
-/* to scale to [0, 1), multiply by scaleFIG = 2^(-FIGS) */
-#define scaleFIG	(l_mathop(0.5) / ((Rand64)1 << (FIGS - 1)))
-
-static double I2d (Rand64 x) {
-  return (double)(trim64(x) >> shift64_FIG) * scaleFIG;
-}
-
-static double _lua_rand(RanState* state)
-{
-    Rand64 rv = nextrand(state);  /* next pseudo-random value */
-    return I2d(rv);  /* float between 0 and 1 */
-}
-
-static long _lua_randi(RanState* state, long low, long up)
-{
-    Rand64 rv = nextrand(state);  /* next pseudo-random value */
-    /* project random integer into the interval [0, up - low] */
-    unsigned long p;
-    p = project(I2UInt(rv), (unsigned long)up - (unsigned long)low, state);
-    return p + (unsigned long)low;
-}
-
-/* Returns random boolean, which is true by probability prob */
-bool random_choice(RanState* rstate, double prob)
-{
-    double r = _lua_rand(rstate);
-    return r < prob;
-}
-
-static inline void net_update_wirelength(struct net* n, int* total_wirelength)
-{
-    unsigned int x_upper, x_lower, y_upper, y_lower;
-
-    *total_wirelength -= n->halfperi_wirelength;
+    unsigned int x_upper = 0;
+    unsigned int x_lower = UINT_MAX;
+    unsigned int y_upper = 0;
+    unsigned int y_lower = UINT_MAX;
 
     if(!n->cell_conn[0])
     {
         // Net has no connections.
-        n->halfperi_wirelength = 0;
-        return;
+        return 0;
     }
-    x_upper = x_lower = n->cell_conn[0]->pos_x;
-    y_upper = y_lower = n->cell_conn[0]->pos_y;
-    struct cell** c_p;
-    for(c_p = n->cell_conn + 1; *c_p; c_p++)
+    for(unsigned int i = 0; i < n->size; ++i)
     {
-        if((*c_p)->pos_x > x_upper)
+        struct cell* c_p = n->cell_conn[i];
+        //unsigned int pinoffset = pinoffsets[c_p->reference][n->pin_conn[i]];
+        unsigned int pinoffset = 0;
+        if((c_p->column + pinoffset) > x_upper)
         {
-            x_upper = (*c_p)->pos_x;
+            x_upper = c_p->column + pinoffset;
         }
-        if((*c_p)->pos_x < x_lower)
+        if((c_p->column + pinoffset) < x_lower)
         {
-            x_lower = (*c_p)->pos_x;
+            x_lower = c_p->column + pinoffset;
         }
-        if((*c_p)->pos_y > y_upper)
+        if(c_p->row > y_upper)
         {
-            y_upper = (*c_p)->pos_y;
+            y_upper = c_p->row;
         }
-        if((*c_p)->pos_y < y_lower)
+        if(c_p->row < y_lower)
         {
-            y_lower = (*c_p)->pos_y;              
+            y_lower = c_p->row;              
         }
     }
-    n->halfperi_wirelength = (x_upper - x_lower) + (y_upper - y_lower);
-
-    *total_wirelength += n->halfperi_wirelength;
+    return x_upper - x_lower + y_upper - y_lower;
 }
 
-void cell_update_wirelengths(struct cell* c, struct floorplan* floorplan)
+void cell_update_wirelengths(struct cell* c, unsigned int** pinoffsets, unsigned int* total_wirelength)
 {
     struct net** n_p;
     for(n_p = c->net_conn; *n_p; n_p++)
     {
-        net_update_wirelength(*n_p, &floorplan->total_wirelength);
+        *total_wirelength += net_update_wirelength(*n_p, pinoffsets);
     }
 }
 
-static inline void cell_place_random(RanState* rstate, struct cell* c, struct floorplan* floorplan)
+static inline void cell_place_random(struct cell* c, struct UPRNG* col_rng, struct UPRNG* row_rng)
 {
-    c->pos_x = _lua_randi(rstate, 0, floorplan->floorplan_width - 1);
-    c->pos_y = _lua_randi(rstate, 0, floorplan->floorplan_height - 1);
+    c->column = UPRNG_next(col_rng);
+    c->row = UPRNG_next(row_rng);
 }
 
 void update_net_struct_ptrs(struct net* all_nets, size_t num_nets, struct cell* all_cells, size_t num_cells)
@@ -224,7 +112,6 @@ void update_net_struct_ptrs(struct net* all_nets, size_t num_nets, struct cell* 
     {
         struct net* n = all_nets + i;
         pin_idx = 0;
-        n->halfperi_wirelength = 0;
         for(size_t i = 0; i < num_cells; ++i)
         {
             struct cell* c = all_cells + i;
@@ -235,50 +122,46 @@ void update_net_struct_ptrs(struct net* all_nets, size_t num_nets, struct cell* 
                     n->cell_conn[pin_idx++] = c;
                     if(pin_idx >= MAX_PINS_PER_NET)
                     {
-                        fprintf(stderr, "Error: More than MAX_PINS_PER_NET connections to net %s.\n", n->net_name);
+                        fprintf(stderr, "%s\n", "Error: More than MAX_PINS_PER_NET connections to net");
                         exit(1);
                     }
                 }
             }
+            n->size = pin_idx;
             n->cell_conn[pin_idx] = NULL;
         }    
     }
 }
 
-void calculate_total_wirelength(struct net* all_nets, size_t num_nets, int* total_wirelength)
+unsigned int calculate_total_wirelength(struct net* all_nets, size_t num_nets, unsigned int** pinoffsets)
 {
-    *total_wirelength = 0;
+    unsigned int total_wirelength = 0;
     for(size_t i = 0; i < num_nets; ++i)
     {
         struct net* n = all_nets + i;
-        n->halfperi_wirelength = 0;
-        net_update_wirelength(n, total_wirelength);
-        //total_wirelength += n->halfperi_wirelength;
+        unsigned int length = net_update_wirelength(n, pinoffsets);
+        total_wirelength += length;
     }
+    return total_wirelength;
 }
 
-void undo(struct rollback* r, struct floorplan* floorplan)
+void undo(struct rollback* rollback, unsigned int** pinoffsets, unsigned int* total_wirelength)
 {
-    if(r->c1)
+    if(rollback->c1)
     {
-        r->c1->pos_x = r->x1;
-        r->c1->pos_y = r->y1;
-        cell_update_wirelengths(r->c1, floorplan);
+        rollback->c1->column = rollback->x1;
+        rollback->c1->row = rollback->y1;
+        cell_update_wirelengths(rollback->c1, pinoffsets, total_wirelength);
     }
-    if(r->c2)
+    if(rollback->c2)
     {
-        r->c2->pos_x = r->x2;
-        r->c2->pos_y = r->y2;
-        cell_update_wirelengths(r->c2, floorplan);
+        rollback->c2->column = rollback->x2;
+        rollback->c2->row = rollback->y2;
+        cell_update_wirelengths(rollback->c2, pinoffsets, total_wirelength);
     }
 }
 
-struct cell* random_cell(RanState* rstate, struct cell* all_cells, size_t num_cells)
-{
-    return all_cells + _lua_randi(rstate, 0, num_cells - 1);
-}
-
-struct cell** get_cells_of_row(struct cell* all_cells, size_t num_cells, unsigned int cur_row, size_t* num_in_row)
+struct cell** get_cells_of_row(struct cell* all_cells, size_t num_cells, unsigned int row, size_t* num_in_row)
 {
     size_t capacity = 40;
     size_t cur_cell_idx = 0;
@@ -286,7 +169,7 @@ struct cell** get_cells_of_row(struct cell* all_cells, size_t num_cells, unsigne
     for(size_t i = 0; i < num_cells; ++i)
     {
         struct cell* c = all_cells + i;
-        if(c->pos_y == cur_row)
+        if(c->row == row)
         {
             if(cur_cell_idx == capacity - 1) // -1 for sentinel
             {
@@ -305,42 +188,15 @@ struct cell** get_cells_of_row(struct cell* all_cells, size_t num_cells, unsigne
     return cells_in_row;
 }
 
-void _ensure_capacity(int** occupancy, size_t* capacity, unsigned int index)
+void get_legality_penalty(struct cell* all_cells, size_t num_cells, struct floorplan* floorplan, unsigned int* too_wide_penalty, unsigned int* total_width_penalty, unsigned int* out_of_bounds_penalty)
 {
-    if(index >= *capacity)
-    {
-        size_t old_capacity = *capacity;
-        while(index >= *capacity)
-        {
-            *capacity *= 2;
-        }
-        int* tmp = realloc(*occupancy, *capacity * sizeof(int));
-        if(tmp)
-        {
-            *occupancy = tmp;
-            memset(*occupancy + old_capacity, 0, (*capacity - old_capacity) * sizeof(int));
-        }
-        else
-        {
-            assert(0);
-        }
-    }
-}
-
-void get_legality_penalty(struct cell* all_cells, size_t num_cells, struct floorplan* floorplan, unsigned int* overlap_penalty, unsigned int* too_wide_penalty, unsigned int* total_width_penalty, unsigned int* out_of_bounds_penalty)
-{
-    unsigned int total_overlap = 0;
     unsigned int total_width_value = 0;
     unsigned int too_wide_value = 0;
     unsigned int out_of_bounds = 0;
 
-    for(unsigned int cur_row = 0; cur_row < floorplan->floorplan_height; cur_row++)
+    for(unsigned int row = 0; row < floorplan->floorplan_height; row++)
     {
-        struct cell** cells_in_row = get_cells_of_row(all_cells, num_cells, cur_row, NULL);
-
-        size_t capacity = 2;
-        int* occupancy = malloc(capacity * sizeof(int));
-        memset(occupancy, 0, capacity * sizeof(int));
+        struct cell** cells_in_row = get_cells_of_row(all_cells, num_cells, row, NULL);
 
         unsigned int row_cell_width_sum = 0;
 
@@ -348,131 +204,132 @@ void get_legality_penalty(struct cell* all_cells, size_t num_cells, struct floor
         for(struct cell** c_p = cells_in_row; *c_p; c_p++)
         {
             row_cell_width_sum += (*c_p)->width;
-            for(unsigned int i = 0; i < (*c_p)->width; i++)
+            if((*c_p)->column + (*c_p)->width - 1 > maxx)
             {
-                unsigned int index = (*c_p)->pos_x + i;
-                _ensure_capacity(&occupancy, &capacity, index);
-                occupancy[index]++;
-            }
-            if((*c_p)->pos_x + (*c_p)->width - 1 > maxx)
-            {
-                maxx = (*c_p)->pos_x + (*c_p)->width - 1;
+                maxx = (*c_p)->column + (*c_p)->width - 1;
             }
         } 
         if(maxx > floorplan->floorplan_width)
         {
             out_of_bounds += maxx - floorplan->floorplan_width;
         }
-        unsigned int row_overlap = 0;
-        for(size_t i = 0; i < capacity; i++)
-        {
-            if(occupancy[i] > 1)
-            {
-                row_overlap += occupancy[i] - 1;
-            }
-        }
-        total_overlap += row_overlap;
         total_width_value += floorplan->desired_row_width > row_cell_width_sum ? floorplan->desired_row_width - row_cell_width_sum : row_cell_width_sum - floorplan->desired_row_width ;
         if(row_cell_width_sum > floorplan->floorplan_width)
         {
             too_wide_value = row_cell_width_sum - floorplan->floorplan_width;
         }
         // clean up
-        free(occupancy);
         free(cells_in_row);
     }
-    //return total_overlap * total_overlap + floorplan->weight_width_penalty * total_width_penalty;
-    //return total_overlap + too_wide_penalty;
-    *overlap_penalty = total_overlap;
     *too_wide_penalty= too_wide_value;
     *total_width_penalty = total_width_value;
     *out_of_bounds_penalty = out_of_bounds;
 }
 
-void place_initial_random(RanState* rstate, struct cell* all_cells, size_t num_cells, struct floorplan* floorplan)
+void place_initial_random(unsigned int num_rows, unsigned int* row_indices, struct UPRNG* cell_rng, struct cell* all_cells, unsigned int num_cells)
 {
-    for(size_t i = 0; i < num_cells; ++i)
+    unsigned int row = 0;
+    for(unsigned int i = 0; i < num_cells; ++i)
     {
-        struct cell* c = all_cells + i;
-        cell_place_random(rstate, c, floorplan);
-        cell_update_wirelengths(c, floorplan);
+        struct cell* c = all_cells + UPRNG_next(cell_rng);
+        c->row = row;
+        c->column = row_indices[row];
+        ++row_indices[row];
+        row = (row + 1) % num_rows;
     }
 }
 
-unsigned int get_total_penalty(struct cell* all_cells, size_t num_cells, struct floorplan* floorplan)
+unsigned int get_total_penalty(struct cell* all_cells, size_t num_cells, int total_wirelength, struct floorplan* floorplan)
 {
-    int wirelength = floorplan->total_wirelength;
-    unsigned int overlap_penalty;
+    int wirelength = total_wirelength;
     unsigned int too_wide_penalty;
     unsigned int total_width_penalty;
     unsigned int out_of_bounds_penalty;
-    get_legality_penalty(all_cells, num_cells, floorplan, &overlap_penalty, &too_wide_penalty, &total_width_penalty, &out_of_bounds_penalty);
-    unsigned int total_penalty = floorplan->weight_wirelength * wirelength + overlap_penalty + too_wide_penalty;
+    get_legality_penalty(all_cells, num_cells, floorplan, &too_wide_penalty, &total_width_penalty, &out_of_bounds_penalty);
+    unsigned int total_penalty = floorplan->weight_wirelength * wirelength + too_wide_penalty;
     return total_penalty;
 }
 
-void report_status(double temperature, struct cell* all_cells, size_t num_cells, struct floorplan* floorplan)
+void report_status(double temperature, struct cell* all_cells, size_t num_cells, int total_wirelength, struct floorplan* floorplan)
 {
-    int wirelength = floorplan->total_wirelength;
-    unsigned int overlap_penalty;
+    int wirelength = total_wirelength;
     unsigned int too_wide_penalty;
     unsigned int total_width_penalty;
     unsigned int out_of_bounds_penalty;
-    get_legality_penalty(all_cells, num_cells, floorplan, &overlap_penalty, &too_wide_penalty, &total_width_penalty, &out_of_bounds_penalty);
-    unsigned int total_penalty = floorplan->weight_wirelength * wirelength + overlap_penalty + too_wide_penalty;
+    get_legality_penalty(all_cells, num_cells, floorplan, &too_wide_penalty, &total_width_penalty, &out_of_bounds_penalty);
+    unsigned int total_penalty = floorplan->weight_wirelength * wirelength + too_wide_penalty;
     puts("--------------------");
     for(size_t i = 0; i < num_cells; ++i)
     {
         struct cell* c = all_cells + i;
-        printf("%s: pos = (%i, %i)\n", c->instance_name, c->pos_x, c->pos_y);
+        printf("%s: pos = (%i, %i)\n", c->name, c->column, c->row);
     }
     puts("--------------------");
     printf("temperature = %.3f, ", temperature);
-    printf("total_penalty = %d, wirelength = %d, overlap_penalty = %d, too_wide_penalty = %d, total_width_penalty = %d, out_of_bounds_penalty = %d\n", total_penalty, wirelength, overlap_penalty, too_wide_penalty, total_width_penalty, out_of_bounds_penalty);
+    printf("total_penalty = %d, wirelength = %d, too_wide_penalty = %d, total_width_penalty = %d, out_of_bounds_penalty = %d\n", total_penalty, wirelength, too_wide_penalty, total_width_penalty, out_of_bounds_penalty);
 }
 
 /* Operations M1 and M2 for simulated annealing
  * --------------------------------------------
  */
 
-void m1(RanState* rstate, struct cell* a, struct rollback* r, struct floorplan* floorplan)
+/*
+void m1(struct cell* c, struct UPRNG* col_rng, struct UPRNG* row_rng, struct rollback* rollback, int* total_wirelength)
 {
-    r->c1 = a;
-    r->x1 = a->pos_x;
-    r->y1 = a->pos_y;
-    r->c2 = NULL;
-    cell_place_random(rstate, a, floorplan);
-    cell_update_wirelengths(a, floorplan);
+    rollback->c1 = c;
+    rollback->x1 = c->column;
+    rollback->y1 = c->row;
+    rollback->c2 = NULL;
+    cell_place_random(c, col_rng, row_rng);
+    cell_update_wirelengths(c, total_wirelength);
 }
 
-void m2(struct cell* a, struct cell* b, struct rollback* r, struct floorplan* floorplan)
+void m2(struct cell* c1, struct cell* c2, struct rollback* rollback, int* total_wirelength)
 {
-    r->c1 = a;
-    r->x1 = a->pos_x;
-    r->y1 = a->pos_y;
-    r->c2 = b;
-    r->x2 = b->pos_x;
-    r->y2 = b->pos_y;
+    rollback->c1 = c1;
+    rollback->x1 = c1->column;
+    rollback->y1 = c1->row;
+    rollback->c2 = c2;
+    rollback->x2 = c2->column;
+    rollback->y2 = c2->row;
 
     // swap cell positions
-    a->pos_x = b->pos_x;
-    a->pos_y = b->pos_y;
-    b->pos_x = r->x1;
-    b->pos_y = r->y1;
+    c1->column = c2->column;
+    c1->row = c2->row;
+    c2->column = rollback->x1;
+    c2->row = rollback->y1;
 
-    cell_update_wirelengths(a, floorplan);
-    cell_update_wirelengths(b, floorplan);
+    cell_update_wirelengths(c1, total_wirelength);
+    cell_update_wirelengths(c2, total_wirelength);
+}
+*/
+static void _swap_cells(struct cell* all_cells, struct UPRNG* cell_rng, struct rollback* rollback)
+{
+    struct cell* c1 = all_cells + UPRNG_next(cell_rng);
+    struct cell* c2 = all_cells + UPRNG_next(cell_rng);
+    rollback->c1 = c1;
+    rollback->x1 = c1->column;
+    rollback->y1 = c1->row;
+    rollback->c2 = c2;
+    rollback->x2 = c2->column;
+    rollback->y2 = c2->row;
+
+    // swap cell positions
+    c1->column = c2->column;
+    c1->row = c2->row;
+    c2->column = rollback->x1;
+    c2->row = rollback->y1;
 }
 
 static int _cell_cmp(const void* p1, const void* p2)
 {
     struct cell* const * c1 = p1;
     struct cell* const * c2 = p2;
-    if((*c1)->pos_x > (*c2)->pos_x)
+    if((*c1)->column > (*c2)->column)
     {
         return 1;
     }
-    else if((*c1)->pos_x < (*c2)->pos_x)
+    else if((*c1)->column < (*c2)->column)
     {
         return -1;
     }
@@ -495,7 +352,22 @@ uint64_t factorial(uint64_t num)
     return num * factorial(num - 1);
 }
 
-void _initialize(lua_State* L, size_t* num_nets, size_t* num_cells, struct net** all_nets, struct cell** all_cells)
+unsigned int uintpow(unsigned int base, unsigned int exp)
+{
+    unsigned int result = 1;
+    while(exp)
+    {
+        if(exp % 2)
+        {
+           result *= base;
+        }
+        exp /= 2;
+        base *= base;
+    }
+    return result;
+}
+
+void _initialize(lua_State* L, size_t* num_nets, size_t* num_cells, struct net** all_nets, struct cell** all_cells, unsigned int*** pinoffsets)
 {
     lua_len(L, 1);
     *num_nets = lua_tointeger(L, -1);
@@ -507,16 +379,15 @@ void _initialize(lua_State* L, size_t* num_nets, size_t* num_cells, struct net**
 
     // initialize all_nets
     struct net* all_nets_tmp = calloc(*num_nets, sizeof(struct net));
-    for(size_t i = 1; i <= *num_nets; ++i)
-    {
-        lua_geti(L, 1, i);
-        size_t len = 0;
-        const char* net_name = lua_tolstring(L, -1, &len);
-        all_nets_tmp[i - 1].net_name = malloc(len + 1);
-        strncpy(all_nets_tmp[i - 1].net_name, net_name, len + 1);
-        all_nets_tmp[i - 1].halfperi_wirelength = 0;
-        lua_pop(L, 1);
-    }
+    //for(size_t i = 1; i <= *num_nets; ++i)
+    //{
+    //    lua_geti(L, 1, i);
+    //    size_t len = 0;
+    //    const char* name = lua_tolstring(L, -1, &len);
+    //    all_nets_tmp[i - 1].name = malloc(len + 1);
+    //    strncpy(all_nets_tmp[i - 1].name, name, len + 1);
+    //    lua_pop(L, 1);
+    //}
     *all_nets = all_nets_tmp;
 
     // initialize all_cells
@@ -526,18 +397,16 @@ void _initialize(lua_State* L, size_t* num_nets, size_t* num_cells, struct net**
         lua_geti(L, 2, i);
         size_t len = 0;
 
-        // instance_name
-        lua_getfield(L, -1, "instance_name");
-        const char* instance_name = lua_tolstring(L, -1, &len);
-        all_cells_tmp[i - 1].instance_name = malloc(len + 1);
-        strncpy(all_cells_tmp[i - 1].instance_name, instance_name, len + 1);
+        // name
+        lua_getfield(L, -1, "instance");
+        const char* name = lua_tolstring(L, -1, &len);
+        all_cells_tmp[i - 1].name = malloc(len + 1);
+        strncpy(all_cells_tmp[i - 1].name, name, len + 1);
         lua_pop(L, 1);
 
-        // reference_name
-        lua_getfield(L, -1, "reference_name");
-        const char* reference_name = lua_tolstring(L, -1, &len);
-        all_cells_tmp[i - 1].reference_name = malloc(len + 1);
-        strncpy(all_cells_tmp[i - 1].reference_name, reference_name, len + 1);
+        // reference
+        lua_getfield(L, -1, "reference");
+        all_cells_tmp[i - 1].reference = lua_tointeger(L, -1);
         lua_pop(L, 1);
 
         // width
@@ -582,7 +451,6 @@ static struct floorplan* _create_floorplan(lua_State* L)
     floorplan->floorplan_height = floorplan_height;
     floorplan->weight_wirelength = 1.0;
     floorplan->weight_width_penalty = 1.0;
-    floorplan->total_wirelength = 0;
     floorplan->desired_row_width = desired_row_width;
 
     return floorplan;
@@ -591,15 +459,14 @@ static struct floorplan* _create_floorplan(lua_State* L)
 static void _clean_up(struct net* all_nets, size_t num_nets, struct cell* all_cells, size_t num_cells, struct floorplan* floorplan)
 {
     // free memory (after pushing results to lua)
-    for(size_t i = 0; i < num_nets; ++i)
-    {
-        free(all_nets[i].net_name);
-    }
+    //for(size_t i = 0; i < num_nets; ++i)
+    //{
+    //    free(all_nets[i].name);
+    //}
     free(all_nets);
     for(size_t i = 1; i <= num_cells; ++i)
     {
-        free(all_cells[i - 1].instance_name);
-        free(all_cells[i - 1].reference_name);
+        free(all_cells[i - 1].name);
     }
     free(all_cells);
 
@@ -621,10 +488,10 @@ static void _create_lua_result(lua_State* L, struct cell* all_cells, size_t num_
         {
             lua_newtable(L);
             lua_pushstring(L, "reference");
-            lua_pushstring(L, (*c)->reference_name);
+            lua_pushinteger(L, (*c)->reference);
             lua_settable(L, -3);
             lua_pushstring(L, "instance");
-            lua_pushstring(L, (*c)->instance_name);
+            lua_pushstring(L, (*c)->name);
             lua_settable(L, -3);
             lua_seti(L, -2, i);
             ++i;
@@ -634,72 +501,150 @@ static void _create_lua_result(lua_State* L, struct cell* all_cells, size_t num_
     }
 }
 
-static void _simulated_annealing(RanState* rstate, struct net* all_nets, size_t num_nets, struct cell* all_cells, size_t num_cells, struct floorplan* floorplan, double coolingfactor, size_t moves_per_cell_per_temp, int verbose)
+int next_permutation(unsigned int* array, size_t len)
+{
+    //find largest j such that array[j] < array[j+1]; if no such j then done
+    int j = -1;
+    for (unsigned int i = 0; i < len - 1; i++)
+    {
+        if (array[i + 1] > array[i])
+        {
+            j = i;
+        }
+    }
+    if (j == -1)
+    {
+        return 0;
+    }
+    else
+    {
+        int l;
+        for (unsigned int i = j + 1; i < len; i++)
+        {
+            if (array[i] > array[j])
+            {
+                l = i;
+            }
+        }
+        unsigned int tmp = array[j];
+        array[j] = array[l];
+        array[l] = tmp;
+        // reverse j + 1 to end
+        int k = (len - 1 - j) / 2; // number of pairs to swap
+        for (int i = 0; i < k; i++)
+        {
+            tmp = array[j + 1 + i];
+            array[j + 1 + i] = array[len - 1 - i];
+            array[len - 1 - i] = tmp;
+        }
+    }
+    return 1;
+}
+
+static void _simulated_annealing(struct RanState* rstate, struct net* all_nets, size_t num_nets, struct cell* all_cells, size_t num_cells, unsigned int** pinoffsets, struct floorplan* floorplan, double coolingfactor, size_t moves_per_cell_per_temp, int verbose)
 {
     double temperature = 5000.0;
     double end_temperature = 0.01;
 
     unsigned int needed_steps = (unsigned int) log(temperature / end_temperature) / log(1.0 / coolingfactor) + 1;
 
+    struct UPRNG* cell_rng = UPRNG_init(num_cells, rstate);
+
     unsigned int steps = 1;
     unsigned int percentage_divisor = 10;
     unsigned int percentage = 0;
     unsigned int last_total_penalty = UINT_MAX;
 
-    place_initial_random(rstate, all_cells, num_cells, floorplan);
-    calculate_total_wirelength(all_nets, num_nets, &floorplan->total_wirelength);
+    unsigned int* row_indices = malloc(floorplan->floorplan_height * sizeof(unsigned int));
+    for(unsigned int i = 0; i < floorplan->floorplan_height; ++i)
+    {
+        row_indices[i] = 0;
+    }
+
+    place_initial_random(floorplan->floorplan_height, row_indices, cell_rng, all_cells, num_cells);
+    /* optimize:
+     *  - wirelength
+     *  - row width distribution (roughly equal row widths)
+     *  - rows must not be too wide (this could be allowed at the beginning of annealing)
+     */
+
+    unsigned int total_wirelength = calculate_total_wirelength(all_nets, num_nets, pinoffsets);
+    //printf("wirelength: %d\n", total_wirelength);
+    for(unsigned int i = 0; i < 50; ++i)
+    {
+        struct rollback rollback;
+
+        _swap_cells(all_cells, cell_rng, &rollback);
+        unsigned int total_wirelength = calculate_total_wirelength(all_nets, num_nets, pinoffsets);
+        //printf("wirelength: %d\n", total_wirelength);
+
+        //unsigned int total_penalty = get_total_penalty(all_cells, num_cells, total_wirelength, floorplan);
+        unsigned int total_penalty = total_wirelength;
+
+        if(total_penalty > last_total_penalty)
+        {
+            undo(&rollback, pinoffsets, &total_wirelength);
+        }
+        else // last_total_penalty >= total_penalty
+        {
+            // accept
+            last_total_penalty = total_penalty;
+        }
+    }
+    /*
     while(temperature > end_temperature)
     {
-        for(size_t move_ctr = 0; move_ctr < moves_per_cell_per_temp * num_cells; move_ctr++)
+        for(unsigned int i = 0; i < num_cells; ++i)
         {
-            struct rollback rollback;
-
-            if(random_choice(rstate, 0.25))
+            for(unsigned int j = 0; j < moves_per_cell_per_temp; ++j)
             {
-                m2(random_cell(rstate, all_cells, num_cells), random_cell(rstate, all_cells, num_cells), &rollback, floorplan);
-            }
-            else
-            {
-                m1(rstate, random_cell(rstate, all_cells, num_cells), &rollback, floorplan);
-            }
+                struct rollback rollback;
 
-            unsigned int total_penalty = get_total_penalty(all_cells, num_cells, floorplan);
+                _swap_cells(all_cells, cell_rng, &rollback);
+                unsigned int total_wirelength = calculate_total_wirelength(all_nets, num_nets);
+                printf("wirelength: %d\n", total_wirelength);
 
-            if(move_ctr == 0 && verbose)
-            {
-                report_status(temperature, all_cells, num_cells, floorplan);
-            }
+                //unsigned int total_penalty = get_total_penalty(all_cells, num_cells, total_wirelength, floorplan);
+                unsigned int total_penalty = total_wirelength;
 
-            if(move_ctr == 0)
-            {
-                if(steps * 100 / needed_steps >= percentage)
+                if(total_penalty > last_total_penalty)
                 {
-                    printf("placement %2d %% done\n", percentage);
-                    percentage += percentage_divisor;
+                    if(random_choice(rstate, exp(-(total_penalty - last_total_penalty) / temperature)))
+                    {
+                        // accept
+                        last_total_penalty = total_penalty;    
+                    }
+                    else
+                    {
+                        undo(&rollback, &total_wirelength);
+                    }
                 }
-            }
-
-            if(total_penalty > last_total_penalty)
-            {
-                if(random_choice(rstate, exp(-(total_penalty - last_total_penalty) / temperature)))
+                else // last_total_penalty >= total_penalty
                 {
                     // accept
-                    last_total_penalty = total_penalty;    
+                    last_total_penalty = total_penalty;
                 }
-                else
+
+                if(i * j == 0 && verbose)
                 {
-                    undo(&rollback, floorplan);
+                    report_status(temperature, all_cells, num_cells, total_wirelength, floorplan);
                 }
-            }
-            else // last_total_penalty >= total_penalty
-            {
-                // accept
-                last_total_penalty = total_penalty;
+
+                if(i * j == 0)
+                {
+                    if(steps * 100 / needed_steps >= percentage)
+                    {
+                        printf("placement %2d %% done\n", percentage);
+                        percentage += percentage_divisor;
+                    }
+                }
+
             }
         }
         ++steps;
         temperature = temperature * coolingfactor;
     }
+    */
 }
 
 int lplacer_place_simulated_annealing(lua_State* L)
@@ -707,7 +652,8 @@ int lplacer_place_simulated_annealing(lua_State* L)
     size_t num_nets, num_cells;
     struct net* all_nets;
     struct cell* all_cells;
-    _initialize(L, &num_nets, &num_cells, &all_nets, &all_cells);
+    unsigned int** pinoffsets;
+    _initialize(L, &num_nets, &num_cells, &all_nets, &all_cells, &pinoffsets);
 
     struct floorplan* floorplan = _create_floorplan(L);
 
@@ -723,10 +669,85 @@ int lplacer_place_simulated_annealing(lua_State* L)
     const int verbose = lua_toboolean(L, -1);
     lua_pop(L, 1);
 
-    RanState rstate;
+    struct RanState rstate;
     randseed(&rstate, 145, 17);  /* initialize with a "random" seed */
 
-    _simulated_annealing(&rstate, all_nets, num_nets, all_cells, num_cells, floorplan, coolingfactor, moves_per_cell_per_temp, verbose);
+    _simulated_annealing(&rstate, all_nets, num_nets, all_cells, num_cells, pinoffsets, floorplan, coolingfactor, moves_per_cell_per_temp, verbose);
+
+    _create_lua_result(L, all_cells, num_cells, floorplan);
+
+    _clean_up(all_nets, num_nets, all_cells, num_cells, floorplan); // AFTER _create_lua_result!
+
+    return 1; // cells table is returned to lua
+}
+
+static void _all_combinations(struct net* all_nets, size_t num_nets, struct cell* all_cells, size_t num_cells, unsigned int** pinoffsets, struct floorplan* floorplan, int verbose)
+{
+    unsigned int total_wirelength = 0;
+
+    unsigned int row = 0;
+    unsigned int* columns = malloc(sizeof(*columns) * num_cells);
+    for(unsigned int i = 0; i < num_cells; ++i)
+    {
+        columns[i] = i;
+    }
+
+    total_wirelength = UINT_MAX;
+    unsigned int solution = 0;
+    unsigned int iteration = 0;
+    do {
+        for(unsigned int i = 0; i < num_cells; ++i)
+        {
+            struct cell* c = all_cells + i;
+            c->row = row;
+            c->column = columns[i];
+        }
+        unsigned int twl = calculate_total_wirelength(all_nets, num_nets, pinoffsets);
+        if(twl < total_wirelength)
+        {
+            total_wirelength = twl;
+            solution = iteration;
+        }
+        ++iteration;
+    } while(next_permutation(columns, num_cells));
+
+    // apply solution:
+    // * reset columns (need to have a sorted array for permutation algorithm)
+    // * re-permute (permute N times)
+    // * apply to cells
+    for(unsigned int i = 0; i < num_cells; ++i) // reset
+    {
+        columns[i] = i;
+    }
+    for(unsigned int i = 0; i < solution; ++i) // re-permute
+    {
+        next_permutation(columns, num_cells);
+    }
+    for(unsigned int i = 0; i < num_cells; ++i) // apply
+    {
+        struct cell* c = all_cells + i;
+        c->column = columns[i];
+    }
+}
+
+int lplacer_place_all_combinations(lua_State* L)
+{
+    size_t num_nets, num_cells;
+    struct net* all_nets;
+    struct cell* all_cells;
+    unsigned int** pinoffsets;
+    _initialize(L, &num_nets, &num_cells, &all_nets, &all_cells, &pinoffsets);
+
+    struct floorplan* floorplan = _create_floorplan(L);
+
+    lua_getfield(L, 3, "report");
+    const int verbose = lua_toboolean(L, -1);
+    lua_pop(L, 1);
+
+    struct RanState rstate;
+    randseed(&rstate, 145, 17);  /* initialize with a "random" seed */
+
+    _all_combinations(all_nets, num_nets, all_cells, num_cells, pinoffsets, floorplan, verbose);
 
     _create_lua_result(L, all_cells, num_cells, floorplan);
 
@@ -740,6 +761,7 @@ int open_lplacer_lib(lua_State* L)
     static const luaL_Reg modfuncs[] =
     {
         { "place_simulated_annealing", lplacer_place_simulated_annealing },
+        { "place_all_combinations", lplacer_place_all_combinations },
         { NULL,    NULL          }
     };
     lua_newtable(L);
