@@ -1,118 +1,41 @@
 local M = {}
 
-local warningissued = false
-local fillers
-local function _add_fillers(parent, numfill, anchor)
-    local inserted = {}
-    local search = 0
-    if not fillers then
-        fillers = {
-            pcell.add_cell_reference(pcell.create_layout("stdcells/isogate"), "FILLX1"),
-        }
-    end
-    while numfill > 0 do
-        if fillers[numfill - search] then
-            local fill = parent:add_child(fillers[numfill - search], "fill")
-            fill:move_anchor("left", anchor)
-            table.insert(inserted, fill)
-            anchor = fill:get_anchor("right")
-            numfill = search
-            search = 0
-        elseif search < numfill then
-            search = search + 1
-        else
-            if not warningissued then
-                print("Can't find solution to insert fillers.")
-                print("This happens, when the fill cells can not be combined to form any arbitrary integer")
-                print("The easiest fix is to add a filler cell with a width of one pitch")
-                warningissued = true
-            end
-            break
-        end
-    end
-    return inserted
-end
-
 local cellwidths = {
     not_gate = 1,
     nor_gate = 2,
     nand_gate = 2,
+    or_gate = 4,
     xor_gate = 10,
     dff = 21,
 }
 
-function M.digital(parent, width, cellnames, utilization, noflipeven, startanchor, startpt, growdirection)
-    check_number_range(utilization, { lower = 0, lowerinclusive = false, upper = 1, upperinclusive = true })
-    local last
-    local lastleft
-    startanchor = startanchor or "left"
-    growdirection = growdirection or "upright"
-    startpt = startpt or point.create(0, 0)
-    local cells = {}
-    local fcells = {} -- functional cells (no fillers)
+function M.digital(parent, width, cellnames, startpt, startanchor, noflipeven, growdirection)
+    -- calculate row widths
     local rowwidths = {}
-    local references = {}
-
     for row, entries in ipairs(cellnames) do
-        cells[row] = {}
-        fcells[row] = {}
         rowwidths[row] = 0
         for column, cellname in ipairs(entries) do
-            local storebyname = false
             if type(cellname) == "table" then
-                instname, cellname = cellname.instance, cellname.reference
-                storebyname = true
+                cellname = cellname.reference
             end
-            -- create reference
-            if not references[cellname] then
-                references[cellname] = pcell.add_cell_reference(pcell.create_layout(string.format("stdcells/%s", cellname)), cellname)
-            end
-
-            -- add cell
-            local cell = parent:add_child(references[cellname], string.format("I_%d_%d", row, column + 1))
-
-            -- position cell
-            if column == 1 then
-                if row == 1 then -- first cell
-                    cell:move_anchor(startanchor, startpt)
-                else
-                    cell:move_anchor("bottomleft", lastleft:get_anchor("topleft"))
-                end
-                lastleft = cell
-            else
-                cell:move_anchor("left", last:get_anchor("right"))
-            end
-
-            -- update rowwidth
             rowwidths[row] = rowwidths[row] + cellwidths[cellname]
-
-            -- store cell link
-            last = cell
-            cells[row][column] = cell
-            if storebyname then
-                fcells[instname] = cell
-            else
-                fcells[row][column] = cell
-            end
         end
-    end
-
-    for _, rw in ipairs(rowwidths) do
-        if rw > width then
+        -- check for too wide rows
+        if rowwidths[row] > width then
             moderror("row width is to small to fit all cells in a row")
         end
     end
 
-    -- equalize cells and insert fillers
-    for row, cs in ipairs(cells) do
+    -- equalize rows and insert fillers
+    for row, rowcells in ipairs(cellnames) do
         local diff = width - rowwidths[row]
-        if #cs > 1 then
+        if #rowcells > 1 then
             -- calculate width of holes
-            local delta = diff // (#cs - 1) -- distributed correction (equal for all holes)
-            local tocorrect = diff - (#cs - 1) * delta -- unequal correction (only applied for the first N holes)
+            local delta = diff // (#rowcells - 1) -- distributed correction (equal for all holes)
+            local tocorrect = diff - (#rowcells - 1) * delta -- unequal correction (only applied for the first N holes)
             local corrected = 0
             local inscorrection = 0
-            for i = 2, #cs do
+            for i = 2, #rowcells do
                 local num = (i - 1) * delta + corrected
 
                 -- correct for unequally distributed shifts
@@ -125,21 +48,76 @@ function M.digital(parent, width, cellnames, utilization, noflipeven, startancho
                     corrected = corrected + 1
                 end
 
-                -- insert fillers into cells table (for later reference such as flipping rows)
-                local inserted = _add_fillers(parent, numfill, cs[i + inscorrection - 1]:get_anchor("right"))
-                for _, fill in ipairs(inserted) do
-                    table.insert(cs, i + inscorrection, fill)
-                    inscorrection = inscorrection + 1
+                for j = 1, numfill do
+                    table.insert(rowcells, i + inscorrection, "isogate")
                 end
-
-                -- shift functional cells to make room for fillers
-                cs[i + inscorrection]:move_anchor("left", cs[i + inscorrection - 1]:get_anchor("right"))
+                inscorrection = inscorrection + numfill
             end
         else
-            local inserted = _add_fillers(parent, diff, cs[1]:get_anchor("right"))
-            for i, fill in ipairs(inserted) do
-                table.insert(cs, i + 1, fill)
+            for i = 1, diff do
+                table.insert(rowcells, "isogate")
             end
+        end
+    end
+
+    return M.rowwise(parent, cellnames, startpt, startanchor, noflipeven, growdirection)
+end
+
+function M.rowwise(parent, cellnames, startpt, startanchor, noflipeven, growdirection)
+    growdirection = growdirection or "upright"
+    local cells = {}
+    local references = {}
+
+    local last
+    local lastleft
+    for row, entries in ipairs(cellnames) do
+        cells[row] = {}
+        for column, cellname in ipairs(entries) do
+            local storebyname = false
+            if type(cellname) == "table" then
+                instname, cellname = cellname.instance, cellname.reference
+                storebyname = true
+            else
+                instname = string.format("I_%d_%d", row, column + 1)
+            end
+
+            -- create reference
+            if not references[cellname] then
+                references[cellname] = pcell.add_cell_reference(pcell.create_layout(string.format("stdcells/%s", cellname)), cellname)
+            end
+
+            -- add cell
+            local cell = parent:add_child(references[cellname], instname)
+
+            -- position cell
+            if column == 1 then
+                if row == 1 then -- first cell
+                    if startanchor and startpt then
+                        cell:move_anchor(startanchor, startpt)
+                    end
+                else
+                    if string.match(growdirection, "up") then
+                        cell:move_anchor("bottom", lastleft:get_anchor("top"))
+                    else
+                        cell:move_anchor("top", lastleft:get_anchor("bottom"))
+                    end
+                end
+                lastleft = cell
+            else
+                if string.match(growdirection, "left") then
+                    cell:move_anchor("right", last:get_anchor("left"))
+                else
+                    cell:move_anchor("left", last:get_anchor("right"))
+                end
+            end
+
+            -- store cell link
+            cells[row][column] = cell
+            if storebyname then
+                cells[instname] = cell
+            end
+
+            last = cell
         end
     end
 
@@ -156,7 +134,7 @@ function M.digital(parent, width, cellnames, utilization, noflipeven, startancho
         end
     end
 
-    return fcells
+    return cells
 end
 
 return M
