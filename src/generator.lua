@@ -31,8 +31,13 @@ end
 
 local function _get_pin_offset(name, port)
     local lut = {
-        opcinv = { A = 0, Z = 1 },
+        opcinv = { I = 0, O = 1 },
+        opcnand = { A = 0, B = 1, O = 2 },
+        opcnor = { A = 0, B = 1, O = 2 },
+        opcxor = { A = 0, B = 1, O = 10 },
+        opcxnor = { A = 0, B = 1, O = 10 },
         opcdffq = { CLK = 0, D = 0, Q = 20, },
+        opcdffnq = { CLK = 0, D = 0, Q = 20, },
     }
     if not lut[name] then
         moderror(string.format("unknown stdcell '%s'", name))
@@ -90,7 +95,7 @@ function M.from_verilog(filename, noconnections, prefix, libname, overwrite, std
                         maxnet = maxnet + 1
                     end
                     table.insert(nets[c.net].connections, { instance = instance.name, port = c.port })
-                    table.insert(ct, nets[c.net].index + 1)
+                    table.insert(ct, { index = nets[c.net].index + 1, pinoffset = _get_pin_offset(instance.reference, c.port) })
                 end
             end
             -- store regular and inverse pair
@@ -101,19 +106,19 @@ function M.from_verilog(filename, noconnections, prefix, libname, overwrite, std
             table.insert(instances, { 
                 instance = instlookup[instance.name], 
                 reference = reflookup[instance.reference],
-                net_conn = ct, 
+                nets = ct, 
                 pin_offsets = po,
                 width = _get_cell_width(instance.reference)
             })
         end
     end
 
-    local fixedrows = 8
+    local fixedrows = 1
     local floorplan_width, floorplan_height
     if fixedrows then
         floorplan_height = fixedrows
         floorplan_width = total_width / utilization / fixedrows
-        floorplan_width = 100
+        floorplan_width = 40
     else
         floorplan_width = math.sqrt(area / utilization * aspectratio)
         floorplan_height = math.sqrt(area / utilization / aspectratio)
