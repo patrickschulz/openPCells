@@ -103,7 +103,7 @@ function M.digital(parent, cellnames, width, startpt, startanchor, flipfirst, gr
         else
             for i = 1, diff do
                 table.insert(rowcells, {
-                    instance = string.format("fill_%d_%d", row, j),
+                    instance = string.format("fill_%d_%d", row, i),
                     reference = fillref,
                     width = 1,
                 })
