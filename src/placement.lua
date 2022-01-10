@@ -25,7 +25,15 @@ function M.create_reference_rows(cellnames)
     }
     for row, entries in ipairs(cellnames) do
         names[row] = {}
-        for column, cellname in ipairs(entries) do
+        for column, entry in ipairs(entries) do
+            local instance, cellname
+            if type(entry) == "table" then
+                instance = entry.instance
+                cellname = entry.reference
+            else
+                instance = string.format("I_%d_%d", row, column)
+                cellname = entry
+            end
             if not references[cellname] then
                 local mapped = cell_map[cellname]
                 if mapped then
@@ -35,7 +43,7 @@ function M.create_reference_rows(cellnames)
                 end
             end
             names[row][column] = { 
-                instance = string.format("I_%d_%d", row, column),
+                instance = instance,
                 reference = references[cellname],
                 width = cellwidths[cellname]
             }
@@ -107,12 +115,14 @@ function M.digital(parent, cellnames, width, startpt, startanchor, flipfirst, gr
 end
 
 function M.rowwise(parent, cellnames, startpt, startanchor, flipfirst, growdirection, noflip)
+    startpt = startpt or point.create(0, 0)
+    startanchor = startanchor or "left"
     growdirection = growdirection or "upright"
     local cells = {}
     local references = {}
 
     local last
-    local lastleft
+    local lastborder
     for row, entries in ipairs(cellnames) do
         cells[row] = {}
         for column, cellname in ipairs(entries) do
@@ -122,17 +132,23 @@ function M.rowwise(parent, cellnames, startpt, startanchor, flipfirst, growdirec
             -- position cell
             if column == 1 then
                 if row == 1 then -- first cell
-                    if startanchor and startpt then
-                        cell:move_anchor(startanchor, startpt)
-                    end
+                    cell:move_anchor(startanchor, startpt)
                 else
                     if string.match(growdirection, "up") then
-                        cell:move_anchor("bottom", lastleft:get_anchor("top"))
+                        if string.match(growdirection, "right") then
+                            cell:move_anchor("bottomleft", lastborder:get_anchor("topleft"))
+                        else
+                            cell:move_anchor("bottomright", lastborder:get_anchor("topright"))
+                        end
                     else
-                        cell:move_anchor("top", lastleft:get_anchor("bottom"))
+                        if string.match(growdirection, "right") then
+                            cell:move_anchor("topleft", lastborder:get_anchor("bottomleft"))
+                        else
+                            cell:move_anchor("topright", lastborder:get_anchor("bottomright"))
+                        end
                     end
                 end
-                lastleft = cell
+                lastborder = cell
             else
                 if string.match(growdirection, "left") then
                     cell:move_anchor("right", last:get_anchor("left"))
@@ -141,7 +157,7 @@ function M.rowwise(parent, cellnames, startpt, startanchor, flipfirst, growdirec
                 end
             end
 
-            -- store cell link
+            -- store cell link (numeric and by name)
             cells[row][column] = cell
             cells[cellname.instance] = cell
 
