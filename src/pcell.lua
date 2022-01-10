@@ -90,7 +90,7 @@ local function _add_cell(state, cellname, funcs, nocallparams)
         },
     }
     rawset(state.loadedcells, cellname, cell)
-    if not nocallparams then
+    if funcs.parameters and not nocallparams then
         local status, msg = pcall(funcs.parameters)
         if not status then
             error(string.format("could not create parameters of cell '%s': %s", cellname, msg))
