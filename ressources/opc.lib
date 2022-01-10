@@ -1,0 +1,258 @@
+/*
+ * This library is intended for a logic synthesis that targets opc cell generation
+ * The opc verilog parser recognizes a set of standard cells (by name), therefore the gate netlist needs to use exactly these names.
+ * (The area of the cells is not really interesting, but added for completeness. It is normalized, so a gate with one transistor has an area of 1. -> not finished)
+ * All cellnames are prefixed with 'opc'
+ * List of cells:
+ *    inv
+ *    buf
+ *    tinv
+ *    tbuf
+ *    nand
+ *    nor
+ *    xor
+ *    xnor
+ *    dffq
+ *    dffnq
+ *    dffrsq
+ *    dffnrsq
+ *    latchq
+ *    latchrq
+ */
+
+library (opc) {
+  cell (opcbuf) {
+    area : "0.266240";
+    pin (O) {
+      direction : "output";
+      function : "I";
+    }
+    pin (I) {
+      direction : "input";
+    }
+  }
+  cell (opcdffq) {
+    area : "1.530880";
+    pin (Q) {
+      direction : "output";
+      function : "IQ";
+    }
+    pin (CLK) {
+      clock : true;
+      direction : "input";
+    }
+    pin (D) {
+      direction : "input";
+      nextstate_type : "data";
+    }
+    ff (IQ,IQN) {
+      clocked_on : "CLK";
+      next_state : "D";
+    }
+  }
+  cell (opcdffnq) {
+    area : "1.530880";
+    pin (Q) {
+      direction : "output";
+      function : "IQ";
+    }
+    pin (CLK) {
+      clock : true;
+      direction : "input";
+    }
+    pin (D) {
+      direction : "input";
+      nextstate_type : "data";
+    }
+    ff (IQ,IQN) {
+      clocked_on : "(!CLK)";
+      next_state : "D";
+    }
+  }
+  cell (opcdffrsq) {
+    area : "2.063360";
+    pin (Q) {
+      direction : "output";
+      function : "IQ";
+    }
+    pin (CLK) {
+      clock : true;
+      direction : "input";
+    }
+    pin (D) {
+      direction : "input";
+      nextstate_type : "data";
+    }
+    pin (RESET) {
+      direction : "input";
+    }
+    pin (SET) {
+      direction : "input";
+    }
+    ff (IQ,IQN) {
+      clocked_on : "CLK";
+      next_state : "D";
+      clear : "!RESET";
+      preset : "(!SET)";
+    }
+  }
+  cell (opcdffnrsq) {
+    area : "1.996800";
+    pin (Q) {
+      direction : "output";
+      function : "IQ";
+    }
+    pin (CLK) {
+      clock : true;
+      direction : "input";
+    }
+    pin (D) {
+      direction : "input";
+      nextstate_type : "data";
+    }
+    pin (RESET) {
+      direction : "input";
+    }
+    pin (SET) {
+      direction : "input";
+    }
+    ff (IQ,IQN) {
+      clocked_on : "!CLK";
+      next_state : "D";
+      clear : "!RESET";
+      preset : "(!SET)";
+    }
+  }
+  cell (opcinv) {
+    area : "0.133120";
+    pin (O) {
+      direction : "output";
+      function : "!I";
+    }
+    pin (I) {
+      direction : "input";
+    }
+  }
+  cell (opclatchq) {
+    area : "0.998400";
+    pin (Q) {
+      direction : "output";
+      function : "IQ";
+    }
+    pin (CLK) {
+      clock : true;
+      direction : "input";
+    }
+    pin (D) {
+      direction : "input";
+    }
+    latch (IQ,IQN) {
+      data_in : "D";
+      enable : "CLK";
+    }
+  }
+  cell (opclatchrq) {
+    area : "1.131520";
+    pin (Q) {
+      direction : "output";
+      function : "IQ";
+    }
+    pin (CLK) {
+      clock : true;
+      direction : "input";
+    }
+    pin (D) {
+      direction : "input";
+    }
+    pin (RESET) {
+      direction : "input";
+    }
+    latch (IQ,IQN) {
+      clear : "!RESET";
+      data_in : "D";
+      enable : "CLK";
+    }
+  }
+  cell (opcnand) {
+    area : "0.199680";
+    pin (O) {
+      direction : "output";
+      function : "!A+!B";
+    }
+    pin (A) {
+      direction : "input";
+    }
+    pin (B) {
+      direction : "input";
+    }
+  }
+  cell (opcnor) {
+    area : "0.199680";
+    pin (O) {
+      direction : "output";
+      function : "!A&!B";
+    }
+    pin (A) {
+      direction : "input";
+    }
+    pin (B) {
+      direction : "input";
+    }
+  }
+  cell (opcxor) {
+    area : "0.199680";
+    pin (O) {
+      direction : "output";
+      function : "A&!B+!A&B";
+    }
+    pin (A) {
+      direction : "input";
+    }
+    pin (B) {
+      direction : "input";
+    }
+  }
+  cell (opcxnor) {
+    area : "0.199680";
+    pin (O) {
+      direction : "output";
+      function : "A&B+!A&!B";
+    }
+    pin (A) {
+      direction : "input";
+    }
+    pin (B) {
+      direction : "input";
+    }
+  }
+  cell (opctbuf) {
+    area : "0.532480";
+    pin (O) {
+      direction : "output";
+      function : "I";
+      three_state : "!EN";
+    }
+    pin (I) {
+      direction : "input";
+    }
+    pin (EN) {
+      direction : "input";
+    }
+  }
+  cell (opctinv) {
+    area : "0.399360";
+    pin (O) {
+      direction : "output";
+      function : "!I";
+      three_state : "!EN";
+    }
+    pin (I) {
+      direction : "input";
+    }
+    pin (EN) {
+      direction : "input";
+    }
+  }
+}
+
+// vim: ft=
