@@ -38,6 +38,6 @@ function layout(gate, _P)
 
     gate:add_port("A", generics.metal(1), andgate:get_anchor("A"))
     gate:add_port("B", generics.metal(1), andgate:get_anchor("B"))
-    gate:add_port("COUT", generics.metal(1), andgate:get_anchor("Z"))
-    gate:add_port("S", generics.metal(1), xorgate:get_anchor("Z"))
+    gate:add_port("COUT", generics.metal(1), andgate:get_anchor("O"))
+    gate:add_port("S", generics.metal(1), xorgate:get_anchor("O"))
 end

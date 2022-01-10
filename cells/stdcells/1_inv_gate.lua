@@ -31,7 +31,7 @@ function layout(gate, _P)
 
     -- draw connection
     gate:merge_into_shallow(geometry.path(generics.metal(1), {
-        subgate:get_anchor("Z"),
+        subgate:get_anchor("O"),
         inv:get_anchor("I"):translate(xpitch - bp.sdwidth / 2 - bp.gstspace, 0)
     }, bp.gstwidth))
 
@@ -41,7 +41,7 @@ function layout(gate, _P)
     -- ports
     gate:add_port("A", generics.metal(1), subgate:get_anchor("A"))
     gate:add_port("B", generics.metal(1), subgate:get_anchor("B"))
-    gate:add_port("Z", generics.metal(1), inv:get_anchor("O"))
+    gate:add_port("O", generics.metal(1), inv:get_anchor("O"))
     gate:add_port("VDD", generics.metal(1), subgate:get_anchor("VDD"))
     gate:add_port("VSS", generics.metal(1), subgate:get_anchor("VSS"))
 end

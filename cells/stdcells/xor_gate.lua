@@ -177,7 +177,7 @@ function layout(gate, _P)
 
     gate:add_port("A", generics.metal(1), inva:get_anchor("I"))
     gate:add_port("B", generics.metal(1), point.combine_12(inva:get_anchor("I"), invb:get_anchor("I")))
-    gate:add_port("Z", generics.metal(1), point.create(3 * xpitch + _P.shiftoutput, 0))
+    gate:add_port("O", generics.metal(1), point.create(3 * xpitch + _P.shiftoutput, 0))
     gate:add_port("VDD", generics.metal(1), harness:get_anchor("top"))
     gate:add_port("VSS", generics.metal(1), harness:get_anchor("bottom"))
     

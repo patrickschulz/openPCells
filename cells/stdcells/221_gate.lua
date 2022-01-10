@@ -4,7 +4,7 @@
         C2 ---- GATE1 ---- GATE3
                            GATE3 ---- GATE4
         A  --------------- GATE3      GATE4
-                                      GATE4 ---- Z
+                                      GATE4 ---- O
         B1 ---- GATE2                 GATE4
                 GATE2 --------------- GATE4
         B2 ---- GATE2
@@ -71,21 +71,21 @@ function layout(gate, _P)
 
     -- draw connections
     gate:merge_into_shallow(geometry.path(generics.metal(1), 
-        geometry.path_points_yx(gate1:get_anchor("Z"), { 
+        geometry.path_points_yx(gate1:get_anchor("O"), { 
             gate3:get_anchor("B"),
         }), 
     bp.sdwidth))
     gate:merge_into_shallow(geometry.path(generics.metal(1), 
-        geometry.path_points_yx(gate2:get_anchor("Z"), { 
+        geometry.path_points_yx(gate2:get_anchor("O"), { 
             gate4:get_anchor("B"),
         }), 
     bp.sdwidth))
     gate:merge_into_shallow(geometry.path(generics.metal(2), 
-        geometry.path_points_yx(gate3:get_anchor("Z"), {
+        geometry.path_points_yx(gate3:get_anchor("O"), {
             (_P.flipconnection and -1 or 1) * (separation / 2 + bp.sdwidth / 2),
             gate4:get_anchor("A")
     }), bp.sdwidth))
-    gate:merge_into_shallow(geometry.rectangle(generics.via(1, 2), bp.sdwidth, bp.sdwidth):translate( gate3:get_anchor("Z")))
+    gate:merge_into_shallow(geometry.rectangle(generics.via(1, 2), bp.sdwidth, bp.sdwidth):translate( gate3:get_anchor("O")))
     gate:merge_into_shallow(geometry.rectangle(generics.via(1, 2), bp.sdwidth, bp.sdwidth):translate( gate4:get_anchor("A")))
 
     gate:inherit_alignment_box(gate1)
@@ -97,7 +97,7 @@ function layout(gate, _P)
     gate:add_port("B2", generics.metal(1), gate2:get_anchor("B"))
     gate:add_port("C1", generics.metal(1), gate1:get_anchor("A"))
     gate:add_port("C2", generics.metal(1), gate1:get_anchor("B"))
-    gate:add_port("Z", generics.metal(1), gate4:get_anchor("Z"))
+    gate:add_port("O", generics.metal(1), gate4:get_anchor("O"))
     gate:add_port("VDD", generics.metal(1), isogate:get_anchor("VDD"))
     gate:add_port("VSS", generics.metal(1), isogate:get_anchor("VSS"))
 end
