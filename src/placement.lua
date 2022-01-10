@@ -1,30 +1,65 @@
 local M = {}
 
-local cellwidths = {
-    not_gate = 1,
-    nor_gate = 2,
-    nand_gate = 2,
-    or_gate = 4,
-    xor_gate = 10,
-    dff = 21,
-}
+function M.create_reference_rows(cellnames)
+    local names = {}
+    local references = {}
+    local cellwidths = {
+        not_gate = 1,
+        nor_gate = 2,
+        nand_gate = 2,
+        or_gate = 4,
+        xor_gate = 10,
+        dff = 21,
+        dffp = 21,
+        dffn = 21,
+    }
+    local cell_map = {
+        dffp = {
+            name = "dff",
+            parameters = { clockpolarity = "positive" }
+        },
+        dffn = {
+            name = "dff",
+            parameters = { clockpolarity = "negative" }
+        },
+    }
+    for row, entries in ipairs(cellnames) do
+        names[row] = {}
+        for column, cellname in ipairs(entries) do
+            if not references[cellname] then
+                local mapped = cell_map[cellname]
+                if mapped then
+                    references[cellname] = pcell.add_cell_reference(pcell.create_layout(string.format("stdcells/%s", mapped.name), mapped.parameters), cellname)
+                else
+                    references[cellname] = pcell.add_cell_reference(pcell.create_layout(string.format("stdcells/%s", cellname)), cellname)
+                end
+            end
+            names[row][column] = { 
+                instance = string.format("I_%d_%d", row, column),
+                reference = references[cellname],
+                width = cellwidths[cellname]
+            }
+        end
+    end
+    return names
+end
 
-function M.digital(parent, width, cellnames, startpt, startanchor, noflipeven, growdirection)
+function M.digital(parent, cellnames, width, startpt, startanchor, flipfirst, growdirection, noflip)
     -- calculate row widths
     local rowwidths = {}
     for row, entries in ipairs(cellnames) do
         rowwidths[row] = 0
         for column, cellname in ipairs(entries) do
-            if type(cellname) == "table" then
-                cellname = cellname.reference
-            end
-            rowwidths[row] = rowwidths[row] + cellwidths[cellname]
+            local cellwidth = cellname.width
+            rowwidths[row] = rowwidths[row] + cellwidth
         end
         -- check for too wide rows
         if rowwidths[row] > width then
             moderror("row width is to small to fit all cells in a row")
         end
     end
+
+    local fillref = pcell.add_cell_reference(pcell.create_layout("stdcells/isogate"), "fill")
 
     -- equalize rows and insert fillers
     for row, rowcells in ipairs(cellnames) do
@@ -49,21 +84,29 @@ function M.digital(parent, width, cellnames, startpt, startanchor, noflipeven, g
                 end
 
                 for j = 1, numfill do
-                    table.insert(rowcells, i + inscorrection, "isogate")
+                    table.insert(rowcells, i + inscorrection, {
+                        instance = string.format("fill_%d_%d", row, j),
+                        reference = fillref,
+                        width = 1,
+                    })
                 end
                 inscorrection = inscorrection + numfill
             end
         else
             for i = 1, diff do
-                table.insert(rowcells, "isogate")
+                table.insert(rowcells, {
+                    instance = string.format("fill_%d_%d", row, j),
+                    reference = fillref,
+                    width = 1,
+                })
             end
         end
     end
 
-    return M.rowwise(parent, cellnames, startpt, startanchor, noflipeven, growdirection)
+    return M.rowwise(parent, cellnames, startpt, startanchor, flipfirst, growdirection, noflip)
 end
 
-function M.rowwise(parent, cellnames, startpt, startanchor, noflipeven, growdirection)
+function M.rowwise(parent, cellnames, startpt, startanchor, flipfirst, growdirection, noflip)
     growdirection = growdirection or "upright"
     local cells = {}
     local references = {}
@@ -73,21 +116,8 @@ function M.rowwise(parent, cellnames, startpt, startanchor, noflipeven, growdire
     for row, entries in ipairs(cellnames) do
         cells[row] = {}
         for column, cellname in ipairs(entries) do
-            local storebyname = false
-            if type(cellname) == "table" then
-                instname, cellname = cellname.instance, cellname.reference
-                storebyname = true
-            else
-                instname = string.format("I_%d_%d", row, column + 1)
-            end
-
-            -- create reference
-            if not references[cellname] then
-                references[cellname] = pcell.add_cell_reference(pcell.create_layout(string.format("stdcells/%s", cellname)), cellname)
-            end
-
             -- add cell
-            local cell = parent:add_child(references[cellname], instname)
+            local cell = parent:add_child(cellname.reference, cellname.instance)
 
             -- position cell
             if column == 1 then
@@ -113,20 +143,18 @@ function M.rowwise(parent, cellnames, startpt, startanchor, noflipeven, growdire
 
             -- store cell link
             cells[row][column] = cell
-            if storebyname then
-                cells[instname] = cell
-            end
+            cells[cellname.instance] = cell
 
             last = cell
         end
     end
 
     -- flip every second row
-    if not noflipeven then
-        local flip = false
+    if not noflip then
+        local flip = flipfirst
         for row = 1, #cells do
             if flip then
-            for column = 1, #cells[row] do
+                for column = 1, #cells[row] do
                     cells[row][column]:flipy()
                 end
             end
