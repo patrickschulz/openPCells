@@ -97,7 +97,7 @@ local function _lexer(content)
                     end
                 end
                 table.insert(tokens, { type = "blockcomment", value = table.concat(comment), line = line })
-            elseif ch == "(" and characters:peek() == "*" then -- attribute
+            elseif ch == "(" and characters:peek() == "*" then -- attribute (FIXME: this should not be handled at the lexer level)
                 characters:advance()
                 local attribute = { }
                 while true do
@@ -474,11 +474,15 @@ function meta.references(self)
     end
 end
 
+function meta.get_ports(self)
+    return self.ports
+end
+
 local function _collect_modules(tree)
     local modules = {}
     for _, module in ipairs(tree.modules) do
         local instances = _collect_module(module)
-        local m = { name = module.name, _instances = instances }
+        local m = { name = module.name, ports = module.ports, _instances = instances }
         setmetatable(m, meta)
         table.insert(modules, m)
     end
