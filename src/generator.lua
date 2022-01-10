@@ -7,8 +7,8 @@ local function _map_cellname(cellname)
         opcnor = "nor_gate",
         opcxor = "xor_gate",
         opcxnor = "xor_gate", -- FIXME
-        opcdffq = "dff",
-        opcdffnq = "dff", -- FIXME (needs layout options)
+        opcdffq = "dffp",
+        opcdffnq = "dffn",
     }
     return lut[cellname]
 end
@@ -155,13 +155,6 @@ function M.from_verilog(filename, noconnections, prefix, libname, overwrite, std
 
     local rows = placer.place_simulated_annealing(maxnet, instances, options)
 
-    -- clean up (FIXME: this should not be necessary, if the placement did not leave empty rows)
-    for i = #rows, 1, -1 do
-        if #(rows[i]) == 0 then
-            table.remove(rows, i)
-        end
-    end
-
     local path
     if prefix and prefix ~= "" then
         path = string.format("%s/%s", prefix, libname)
@@ -175,33 +168,30 @@ function M.from_verilog(filename, noconnections, prefix, libname, overwrite, std
             for module in content:modules() do
                 print(string.format("writing to file '%s/%s.lua'", basename, module.name))
                 local file = io.open(string.format("%s/%s.lua", basename, module.name), "w")
-                file:write("function parameters()\nend\n\n")
+
                 file:write("function layout(toplevel)\n")
-                -- references
-                file:write('    local references = {\n')
-                for reference in module:references() do
-                    file:write(string.format('        ["%s"] = pcell.add_cell_reference(pcell.create_layout("stdcells/%s"), "%s"),\n', 
-                        reference, _map_cellname(reference), reference))
-                end
-                file:write('    }\n')
-                -- rows
-                file:write('    local rows = {\n')
+
+                -- cellnames
+                file:write('    local cellnames = {\n')
                 for _, row in ipairs(rows) do
                     file:write('        {\n')
                     for _, column in ipairs(row) do
-                        file:write(string.format('            { instance = "%s", reference = references["%s"] },\n', 
+                        file:write(string.format('            { instance = "%s", reference = "%s" },\n', 
                             instlookup[column.instance], 
-                            --_map_cellname(reflookup[column.reference])))
-                            reflookup[column.reference]
+                            _map_cellname(reflookup[column.reference])
                         ))
                     end
                     file:write('        },\n')
                 end
                 file:write('    }\n')
-                local cellpitch = 130
-                file:write(string.format('    local cells = placement.digital(toplevel, %d, rows)\n',
+
+                -- placement
+                file:write('    local rows = placement.create_reference_rows(cellnames)\n')
+                file:write(string.format('    local cells = placement.digital(toplevel, rows, %d)\n',
                     options.floorplan_width
                 ))
+
+                -- nets
                 for name, net in pairs(nets) do
                     if #net.connections > 1 then
                         file:write("    toplevel:merge_into_shallow(geometry.path(generics.metal(3), {\n")
@@ -211,7 +201,8 @@ function M.from_verilog(filename, noconnections, prefix, libname, overwrite, std
                         file:write("    }, 100))\n")
                     end
                 end
-                file:write("end")
+
+                file:write("end") -- close 'layout' function
                 file:close()
             end
         else
