@@ -30,6 +30,7 @@ local modules = {
     "placement",
     "input",
     "assistant",
+    "public"
 }
 for _, module in ipairs(modules) do
     local path = module

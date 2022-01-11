@@ -160,7 +160,6 @@ if args.readverilog then
         args.importprefix or "verilogimport", 
         "verilogimport", 
         true,
-        args.verilogstdcelllib or "stdcells",
         args.verilogplacerutilization or 0.5,
         args.verilogplaceraspectratio or 1,
         args.verilogplacercellmovements or 1,
@@ -209,31 +208,15 @@ end
 
 -- read parameters from pfile and merge with command line parameters
 local cellargs = {}
-local function _readpfile(pfile)
-    local status, t = pcall(_dofile, pfile)
-    if not status then
-        print(string.format("could not load parameter file '%s', error: %s", pfile, t))
-        return 1
-    end
-    for cellname, params in pairs(t) do
-        if type(params) == "table" then
-            for n, p in pairs(params) do
-                cellargs[string.format("%s.%s", cellname, n)] = p
-            end
-        else -- direct parameter for the cell, cellname == parameter name
-            cellargs[cellname] = params
-        end
-    end
-end
 if not args.noparamfile then
     if args.prependparamfile then
         for _, pfile in ipairs(args.prependparamfile) do
-            _readpfile(pfile)
+            public.readpfile(pfile, cellargs)
         end
     end
     if args.appendparamfile then
         for _, pfile in ipairs(args.appendparamfile) do
-            _readpfile(pfile)
+            public.readpfile(pfile, cellargs)
         end
     end
 end
