@@ -48,25 +48,11 @@ local function _get_pin_offset(name, port)
     return lut[name][port]
 end
 
-function M.from_verilog(filename, noconnections, prefix, libname, overwrite, stdlibname, utilization, aspectratio, movespercell, coolingfactor, excluded_nets, report)
-    local file = io.open(filename, "r")
-    if not file then
-        moderror(string.format("generator.verilog_routing: could not open file '%s'", filename))
-    end
-    local str = file:read("a")
-    local content = verilog_parser.parse(str)
-
+function _get_width(content)
     local total_width = 0
     local required_width = 0
     local area = 0
     local height = 7
-    local nets = {}
-    local maxnet = 0
-    local instances = {}
-    local reflookup = {}
-    local instlookup = {}
-    local maxrefnum = 0
-    local maxinstnum = 0
     for module in content:modules() do
         for instance in module:instances() do
             -- calculate total width and core area
@@ -74,7 +60,21 @@ function M.from_verilog(filename, noconnections, prefix, libname, overwrite, std
             area = area + width * height
             total_width = total_width + width
             required_width = math.max(required_width, width)
+        end
+    end
+    return total_width
+end
 
+function _collect_nets_cells(content, excluded_nets)
+    local maxnet = 0
+    local nets = {}
+    local instances = {}
+    local reflookup = {}
+    local instlookup = {}
+    local maxrefnum = 0
+    local maxinstnum = 0
+    for module in content:modules() do
+        for instance in module:instances() do
             -- create reference index
             if not reflookup[instance.reference] then 
                 -- store regular and inverse pair
@@ -112,13 +112,55 @@ function M.from_verilog(filename, noconnections, prefix, libname, overwrite, std
             })
         end
     end
+    return maxnet, instances, nets, instlookup, reflookup
+end
 
-    local fixedrows = 1
+function _write_module(file, rows, nets, rowwidth, instlookup, reflookup)
+    local lines = {}
+    table.insert(lines, "function layout(toplevel)")
+
+    -- cellnames
+    table.insert(lines, '    local cellnames = {')
+    for _, row in ipairs(rows) do
+        table.insert(lines, '        {')
+        for _, column in ipairs(row) do
+            table.insert(lines, string.format('            { instance = "%s", reference = "%s" },', 
+                instlookup[column.instance], 
+                _map_cellname(reflookup[column.reference])
+            ))
+        end
+        table.insert(lines, '        },')
+    end
+    table.insert(lines, '    }')
+
+    -- placement
+    table.insert(lines, '    local rows = placement.create_reference_rows(cellnames)')
+    table.insert(lines, string.format('    local cells = placement.digital(toplevel, rows, %d)',
+        rowwidth
+    ))
+
+    -- nets
+    for name, net in pairs(nets) do
+        if #net.connections > 1 then
+            table.insert(lines, "    toplevel:merge_into_shallow(geometry.path(generics.metal(3), {")
+            for _, n in pairs(net.connections) do
+                table.insert(lines, string.format('        cells["%s"]:get_anchor("%s"),', n.instance, n.port))
+            end
+            table.insert(lines, "    }, 100))")
+        end
+    end
+
+    table.insert(lines, "end") -- close 'layout' function
+    return lines
+end
+
+function _create_options(total_width, utilization)
+    local fixedrows = 2
     local floorplan_width, floorplan_height
     if fixedrows then
         floorplan_height = fixedrows
         floorplan_width = total_width / utilization / fixedrows
-        floorplan_width = 40
+        floorplan_width = 30
     else
         floorplan_width = math.sqrt(area / utilization * aspectratio)
         floorplan_height = math.sqrt(area / utilization / aspectratio)
@@ -157,6 +199,21 @@ function M.from_verilog(filename, noconnections, prefix, libname, overwrite, std
     if options.desired_row_width >= options.floorplan_width then
         --moderror("desired row width must be smaller than floorplan width")
     end
+    return options
+end
+
+function M.from_verilog(filename, noconnections, prefix, libname, overwrite, utilization, aspectratio, movespercell, coolingfactor, excluded_nets, report)
+    local file = io.open(filename, "r")
+    if not file then
+        moderror(string.format("generator.verilog_routing: could not open file '%s'", filename))
+    end
+    local str = file:read("a")
+    local content = verilog_parser.parse(str)
+
+    local total_width = _get_width(content)
+    local maxnet, instances, nets, instlookup, reflookup = _collect_nets_cells(content, excluded_nets)
+
+    local options = _create_options(total_width, utilization)
 
     local rows = placer.place_simulated_annealing(maxnet, instances, options)
 
@@ -171,43 +228,10 @@ function M.from_verilog(filename, noconnections, prefix, libname, overwrite, std
         if created then
             local basename = string.format("%s/%s", prefix, libname)
             for module in content:modules() do
+                local lines = _write_module(file, rows, nets, options.floorplan_width, instlookup, reflookup)
                 print(string.format("writing to file '%s/%s.lua'", basename, module.name))
                 local file = io.open(string.format("%s/%s.lua", basename, module.name), "w")
-
-                file:write("function layout(toplevel)\n")
-
-                -- cellnames
-                file:write('    local cellnames = {\n')
-                for _, row in ipairs(rows) do
-                    file:write('        {\n')
-                    for _, column in ipairs(row) do
-                        file:write(string.format('            { instance = "%s", reference = "%s" },\n', 
-                            instlookup[column.instance], 
-                            _map_cellname(reflookup[column.reference])
-                        ))
-                    end
-                    file:write('        },\n')
-                end
-                file:write('    }\n')
-
-                -- placement
-                file:write('    local rows = placement.create_reference_rows(cellnames)\n')
-                file:write(string.format('    local cells = placement.digital(toplevel, rows, %d)\n',
-                    options.floorplan_width
-                ))
-
-                -- nets
-                for name, net in pairs(nets) do
-                    if #net.connections > 1 then
-                        file:write("    toplevel:merge_into_shallow(geometry.path(generics.metal(3), {\n")
-                        for _, n in pairs(net.connections) do
-                            file:write(string.format('        cells["%s"]:get_anchor("%s"),\n', n.instance, n.port))
-                        end
-                        file:write("    }, 100))\n")
-                    end
-                end
-
-                file:write("end") -- close 'layout' function
+                file:write(table.concat(lines, '\n'))
                 file:close()
             end
         else
