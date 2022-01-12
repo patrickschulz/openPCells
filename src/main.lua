@@ -156,14 +156,11 @@ if args.readverilog then
     local excluded_nets = args.verilogexcludednets
     generator.from_verilog(
         args.readverilog, 
-        args.readverilogdontcreatewires, 
         args.importprefix or "verilogimport", 
         "verilogimport", 
         true,
         args.verilogplacerutilization or 0.5,
         args.verilogplaceraspectratio or 1,
-        args.verilogplacercellmovements or 1,
-        args.verilogplacercoolingfactor or 0.95,
         args.verilogexcludednets or {},
         args.verilogreportplacement or false
     )

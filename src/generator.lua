@@ -48,21 +48,18 @@ local function _get_pin_offset(name, port)
     return lut[name][port]
 end
 
-function _get_width(content)
+function _get_geometry(content)
     local total_width = 0
     local required_width = 0
-    local area = 0
-    local height = 7
     for module in content:modules() do
         for instance in module:instances() do
-            -- calculate total width and core area
+            -- calculate total width
             local width = _get_cell_width(instance.reference)
-            area = area + width * height
             total_width = total_width + width
             required_width = math.max(required_width, width)
         end
     end
-    return total_width
+    return required_width, total_width
 end
 
 function _collect_nets_cells(content, excluded_nets)
@@ -154,13 +151,13 @@ function _write_module(file, rows, nets, rowwidth, instlookup, reflookup)
     return lines
 end
 
-function _create_options(total_width, utilization)
-    local fixedrows = 2
+function _create_options(fixedrows, required_width, total_width, utilization, aspectratio)
+    local height = 7
+    local area = total_width * height
     local floorplan_width, floorplan_height
     if fixedrows then
         floorplan_height = fixedrows
         floorplan_width = total_width / utilization / fixedrows
-        floorplan_width = 30
     else
         floorplan_width = math.sqrt(area / utilization * aspectratio)
         floorplan_height = math.sqrt(area / utilization / aspectratio)
@@ -182,7 +179,6 @@ function _create_options(total_width, utilization)
         floorplan_height = math.ceil(floorplan_height),
         desired_row_width = math.ceil(total_width / floorplan_height * utilization),
         movespercell = movespercell,
-        coolingfactor = coolingfactor,
         report = report
     }
 
@@ -197,12 +193,12 @@ function _create_options(total_width, utilization)
         moderror("desired row width is zero")
     end
     if options.desired_row_width >= options.floorplan_width then
-        --moderror("desired row width must be smaller than floorplan width")
+        moderror("desired row width must be smaller than floorplan width")
     end
     return options
 end
 
-function M.from_verilog(filename, noconnections, prefix, libname, overwrite, utilization, aspectratio, movespercell, coolingfactor, excluded_nets, report)
+function M.from_verilog(filename, prefix, libname, overwrite, utilization, aspectratio, excluded_nets, report)
     local file = io.open(filename, "r")
     if not file then
         moderror(string.format("generator.verilog_routing: could not open file '%s'", filename))
@@ -210,12 +206,14 @@ function M.from_verilog(filename, noconnections, prefix, libname, overwrite, uti
     local str = file:read("a")
     local content = verilog_parser.parse(str)
 
-    local total_width = _get_width(content)
+    local required_width, total_width = _get_geometry(content)
     local maxnet, instances, nets, instlookup, reflookup = _collect_nets_cells(content, excluded_nets)
+    local options = _create_options(fixedrows, required_width, total_width, utilization, aspectratio)
 
-    local options = _create_options(total_width, utilization)
-
+    -- run placement
     local rows = placer.place_simulated_annealing(maxnet, instances, options)
+
+    -- TODO: run routing
 
     local path
     if prefix and prefix ~= "" then

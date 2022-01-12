@@ -237,16 +237,12 @@ return {
         help = "provide a opc library which includes the required library cells for digital placement (verilog import)"
     },
     store{
-        name = "verilogplacercellmovements", long = "--read-verilog-placer-cell-movements",
-        help = "number of moves per cell for each temperature in placement"
-    },
-    store{
-        name = "verilogplacercoolingfactor", long = "--read-verilog-placer-cooling-factor",
-        help = "temperature cooling factor for simulated annealing in placement (default 0.95)"
-    },
-    store{
         name = "verilogplaceraspectratio", long = "--read-verilog-placer-aspect-ratio",
         help = "aspect ratio in placement (default 1)"
+    },
+    store{
+        name = "verilogplacerforcerows", long = "--read-verilog-placer-force-rows",
+        help = "force number of rows for digital placement. This option overrides the placement aspect ratio",
     },
     store{
         name = "verilogplacerutilization", long = "--read-verilog-placer-utilization",
@@ -259,10 +255,6 @@ return {
     switch{
         name = "verilogreportplacement", long = "--read-verilog-report-placement",
         help = "report information about cell placement"
-    },
-    switch{
-        name = "readverilogdontcreatewires", long = "--read-verilog-no-connections",
-        help = "while importing a verilog netlist, don't generate any connections"
     },
     switch{
         name = "techassistant", long = "--techfile-assistant",
