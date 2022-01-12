@@ -10,8 +10,8 @@ which can be translated into a physical technology and exported to a file via a 
 argparse:append_to_help_message([[
 
 Most common usage examples:
-   get cell parameter information:             opc --cell logic/dff --parameters
-   create a cell:                              opc --technology TECH --export gds --cell logic/dff
+   get cell parameter information:             opc --cell stdcells/dff --parameters
+   create a cell:                              opc --technology TECH --export gds --cell stdcells/dff
    create a cell from a foreign collection:    opc --add-cellpath /path/to/collection --technology TECH --export gds --cell other/somecell
    create a cell by using a cellscript:        opc --technology TECH --export gds --cellscript celldef.lua
    read a GDS stream file and create cells:    opc --read-GDS stream.gds]])
