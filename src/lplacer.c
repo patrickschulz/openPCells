@@ -11,8 +11,6 @@ struct floorplan {
     unsigned int floorplan_width;
     unsigned int floorplan_height;
     unsigned int desired_row_width;
-    double weight_wirelength;
-    double weight_width_penalty;
     int cell_count;
     // limiter window
     int limiter_width;
@@ -59,47 +57,136 @@ static struct cell* _get_cell(struct block* block, unsigned int row, unsigned in
 struct rollback {
     unsigned int idx1;
     unsigned int idx2;
+    unsigned int idx3;
     enum {
-        RB_MOVE,
+        RB_MOVE_CELL,
+        RB_MOVE_ROW,
         RB_SWAP
     } what;
 };
 
-unsigned int calculate_total_wirelength(struct net* all_nets, size_t num_nets)
+unsigned int calculate_total_wirelength(struct block* block)
 {
     unsigned int total_wirelength = 0;
     unsigned int xweight = 1;
     unsigned int yweight = 1;
-    for(size_t i = 0; i < num_nets; ++i)
+    for(size_t i = 0; i < block->num_nets; ++i)
     {
-        struct net* net = all_nets + i;
+        struct net* net = block->nets + i;
         unsigned int length = xweight * (net->xmax - net->xmin) + yweight * (net->ymax - net->ymin);
         total_wirelength += length;
     }
     return total_wirelength;
 }
 
-static void _move_cell(struct block* block, unsigned int from, unsigned int to)
+unsigned int calculate_row_width_penalty(struct block* block, unsigned int max_width)
 {
-    if(from != to)
+    unsigned int penalty = 0;
+    for(unsigned int row = 0; row < block->num_rows; ++row)
     {
-        struct cell tmp = block->cells[from];
-        if(from < to)
+        unsigned int row_width = 0;
+        for(unsigned int col = 0; col < block->row_sizes[row]; ++col)
         {
-            for(unsigned int i = from; i < to; ++i)
-            {
-                block->cells[i] = block->cells[i + 1];
-            }
+            struct cell* cell = _get_cell(block, row, col);
+            row_width += cell->width;
         }
-        else
+        if(row_width > max_width)
         {
-            for(unsigned int i = from; i >= to + 1; --i)
-            {
-                block->cells[i] = block->cells[i - 1];
-            }
+            penalty += row_width - max_width;
+        }
+    }
+    return penalty;
+}
+
+static unsigned int _get_row_from_index(struct block* block, unsigned int index)
+{
+    unsigned int width = 0;
+    for(unsigned int row = 0; row < block->num_rows; ++row)
+    {
+        if((index >= width) && (index < (block->row_sizes[row] + width)))
+        {
+            return row;
+        }
+        width += block->row_sizes[row];
+    }
+    return UINT_MAX;
+}
+
+static void _insert(struct block* block, unsigned int from, unsigned int to)
+{
+    struct cell tmp = block->cells[from];
+    if(from < to)
+    {
+        for(unsigned int i = from; i < to - 1; ++i)
+        {
+            block->cells[i] = block->cells[i + 1];
+        }
+        block->cells[to - 1] = tmp;
+    }
+    else
+    {
+        for(unsigned int i = from; i >= to + 1; --i)
+        {
+            block->cells[i] = block->cells[i - 1];
         }
         block->cells[to] = tmp;
     }
+}
+
+static void _move_cell(struct block* block, unsigned int from, unsigned int to)
+{
+    if((to < from) || (to > from + 1))
+    {
+        _insert(block, from, to);
+        // update row sizes
+        unsigned int width = 0;
+        unsigned int fromrow;
+        unsigned int torow;
+        for(unsigned int row = 0; row < block->num_rows; ++row)
+        {
+            if((from >= width) && (from < (block->row_sizes[row] + width)))
+            {
+                fromrow = row;
+            }
+            if((to >= width) && (to < (block->row_sizes[row] + width)))
+            {
+                torow = row;
+            }
+            width += block->row_sizes[row];
+        }
+        if(to == block->num_cells)
+        {
+            torow = block->num_rows - 1;
+        }
+        block->row_sizes[fromrow] -= 1;
+        block->row_sizes[torow] += 1;
+    }
+}
+
+static unsigned int _move_to_row(struct block* block, unsigned int idx, unsigned int torow, struct RanState* rstate)
+{
+    // update row sizes
+    unsigned int width = 0;
+    unsigned int offset = 0;
+    unsigned int fromrow;
+    for(unsigned int row = 0; row < block->num_rows; ++row)
+    {
+        if((idx >= width) && (idx < (block->row_sizes[row] + width)))
+        {
+            fromrow = row;
+        }
+        width += block->row_sizes[row];
+        if(row < torow)
+        {
+            offset += block->row_sizes[row];
+        }
+    }
+    block->row_sizes[fromrow] -= 1;
+    block->row_sizes[torow] += 1;
+    //unsigned int newidx = offset + _lua_randi(rstate, 0, block->row_sizes[torow]);
+    unsigned int newidx = offset + block->row_sizes[torow] - 1;
+    _insert(block, idx, newidx);
+    return newidx;
 }
 
 static void _swap_cells(struct block* block, unsigned int i1, unsigned int i2)
@@ -113,8 +200,17 @@ static void undo(struct block* block, struct rollback* rollback)
 {
     switch(rollback->what)
     {
-        case RB_MOVE:
-            _move_cell(block, rollback->idx2, rollback->idx1);
+        case RB_MOVE_CELL:
+            if(rollback->idx1 > rollback->idx2)
+            {
+                _move_cell(block, rollback->idx2, rollback->idx1 + 1);
+            }
+            else if(rollback->idx1 < rollback->idx2) // exclude idx1 == idx2
+            {
+                _move_cell(block, rollback->idx2 - 1, rollback->idx1);
+            }
+            break;
+        case RB_MOVE_ROW:
             break;
         case RB_SWAP:
             _swap_cells(block, rollback->idx1, rollback->idx2);
@@ -150,7 +246,7 @@ unsigned int uintpow(unsigned int base, unsigned int exp)
     return result;
 }
 
-struct block* _initialize(lua_State* L, unsigned int num_rows, struct RanState* rstate)
+static struct block* _initialize(lua_State* L, unsigned int num_rows, struct RanState* rstate)
 {
     struct block* block = malloc(sizeof(struct block));
 
@@ -160,7 +256,7 @@ struct block* _initialize(lua_State* L, unsigned int num_rows, struct RanState* 
     unsigned int num_cells = lua_tointeger(L, -1);
     lua_pop(L, 1);
 
-    // initialize all_nets
+    // initialize nets
     block->nets = calloc(block->num_nets, sizeof(struct net));
 
     // initialize all_cells
@@ -254,8 +350,6 @@ static struct floorplan* _create_floorplan(lua_State* L)
     struct floorplan* floorplan = malloc(sizeof(struct floorplan));
     floorplan->floorplan_width = floorplan_width;
     floorplan->floorplan_height = floorplan_height;
-    floorplan->weight_wirelength = 1.0;
-    floorplan->weight_width_penalty = 1.0;
     floorplan->desired_row_width = desired_row_width;
 
     return floorplan;
@@ -266,6 +360,7 @@ static void _clean_up(struct block* block, struct floorplan* floorplan)
     for(unsigned int i = 0; i < block->num_cells; ++i)
     {
         free((block->cells + i)->nets);
+        free((block->cells + i)->pinoffset);
     }
     free(block->cells);
     free(block->row_sizes);
@@ -375,55 +470,54 @@ static void _update_net_positions(struct block* block)
 
 static void _simulated_annealing(struct RanState* rstate, struct block* block, struct floorplan* floorplan, double coolingfactor, size_t moves_per_cell_per_temp, int verbose)
 {
+    /*
+        some random ideas:
+            * have _move_to_row and _move_within_row and check if the wirelength is dominated
+              by x or y. Use this information to determine which operation to call
+     */
     // FIXME: remove
     (void) verbose;
     (void) moves_per_cell_per_temp;
     (void) coolingfactor;
     (void) floorplan;
 
-    //double temperature = 5000.0;
-    //double end_temperature = 0.01;
-
-    //unsigned int needed_steps = (unsigned int) log(temperature / end_temperature) / log(1.0 / coolingfactor) + 1;
-
     struct UPRNG* cell_rng = UPRNG_init(block->num_cells, rstate);
+    struct UPRNG* row_rng = UPRNG_init(block->num_rows, rstate);
 
-    //unsigned int steps = 1;
-    //unsigned int percentage_divisor = 10;
-    //unsigned int percentage = 0;
     unsigned int last_total_penalty = UINT_MAX;
 
-    /* optimize:
-     *  - wirelength
-     *  - row width distribution (roughly equal row widths)
-     *  - rows must not be too wide (this could be allowed at the beginning of annealing)
-     */
-
-    for(unsigned int i = 0; i < 500; ++i)
+    /*
+    for(unsigned int i = 0; i < 50000; ++i)
     {
         struct rollback rollback;
 
-        unsigned int idx1 = UPRNG_next(cell_rng);
-        unsigned int idx2 = UPRNG_next(cell_rng);
-        rollback.idx1 = idx1;
-        rollback.idx2 = idx2;
-        if(random_choice(rstate, 0.25))
+        //if(random_choice(rstate, 0.25))
+        if(1)
         {
-            _move_cell(block, idx1, idx2);
-            rollback.what = RB_MOVE;
+            //_move_cell(block, idx1, idx2);
+            unsigned int idx = UPRNG_next(cell_rng);
+            unsigned int row = UPRNG_next(row_rng);
+            _move_to_row(block, idx, row, rstate);
+            rollback.idx1 = idx;
+            rollback.idx2 = row;
+            rollback.what = RB_MOVE_ROW;
         }
         else
         {
+            unsigned int idx1 = UPRNG_next(cell_rng);
+            unsigned int idx2 = UPRNG_next(cell_rng);
             _swap_cells(block, idx1, idx2);
+            rollback.idx1 = idx1;
+            rollback.idx2 = idx2;
             rollback.what = RB_SWAP;
         }
         _update_net_positions(block);
-        unsigned int total_wirelength = calculate_total_wirelength(block->nets, block->num_nets);
+        unsigned int total_wirelength = calculate_total_wirelength(block);
+        unsigned int too_wide_penalty = calculate_row_width_penalty(block, floorplan->floorplan_width);
 
-        //unsigned int total_penalty = get_total_penalty(all_cells, num_cells, total_wirelength, floorplan);
-        unsigned int total_penalty = total_wirelength;
+        unsigned int total_penalty = total_wirelength + 100 * too_wide_penalty;
 
-        printf("penalty (current / last): %u / %u\n", total_penalty, last_total_penalty);
+        //printf("penalty (current / last): %u / %u\n", total_penalty, last_total_penalty);
 
         if(total_penalty > last_total_penalty)
         {
@@ -435,60 +529,22 @@ static void _simulated_annealing(struct RanState* rstate, struct block* block, s
             last_total_penalty = total_penalty;
         }
     }
+    */
     /*
-    while(temperature > end_temperature)
+    double temperature = 5000.0;
+    double end_temperature = 0.01;
+    unsigned int needed_steps = (unsigned int) log(temperature / end_temperature) / log(1.0 / coolingfactor) + 1;
+    unsigned int steps = 1;
+    unsigned int percentage_divisor = 10;
+    unsigned int percentage = 0;
+    if(steps * 100 / needed_steps >= percentage)
     {
-        for(unsigned int i = 0; i < num_cells; ++i)
-        {
-            for(unsigned int j = 0; j < moves_per_cell_per_temp; ++j)
-            {
-                struct rollback rollback;
-
-                _swap_cells(all_cells, cell_rng, &rollback);
-                unsigned int total_wirelength = calculate_total_wirelength(all_nets, num_nets);
-                printf("wirelength: %d\n", total_wirelength);
-
-                //unsigned int total_penalty = get_total_penalty(all_cells, num_cells, total_wirelength, floorplan);
-                unsigned int total_penalty = total_wirelength;
-
-                if(total_penalty > last_total_penalty)
-                {
-                    if(random_choice(rstate, exp(-(total_penalty - last_total_penalty) / temperature)))
-                    {
-                        // accept
-                        last_total_penalty = total_penalty;    
-                    }
-                    else
-                    {
-                        undo(&rollback, &total_wirelength);
-                    }
-                }
-                else // last_total_penalty >= total_penalty
-                {
-                    // accept
-                    last_total_penalty = total_penalty;
-                }
-
-                if(i * j == 0 && verbose)
-                {
-                    report_status(temperature, all_cells, num_cells, total_wirelength, floorplan);
-                }
-
-                if(i * j == 0)
-                {
-                    if(steps * 100 / needed_steps >= percentage)
-                    {
-                        printf("placement %2d %% done\n", percentage);
-                        percentage += percentage_divisor;
-                    }
-                }
-
-            }
-        }
-        ++steps;
-        temperature = temperature * coolingfactor;
+        printf("placement %2d %% done\n", percentage);
+        percentage += percentage_divisor;
     }
     */
+    UPRNG_destroy(cell_rng);
+    UPRNG_destroy(row_rng);
 }
 
 int lplacer_place_simulated_annealing(lua_State* L)

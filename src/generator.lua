@@ -214,6 +214,34 @@ function M.from_verilog(filename, prefix, libname, overwrite, utilization, aspec
     local rows = placer.place_simulated_annealing(maxnet, instances, options)
 
     -- TODO: run routing
+    local netpositions = {}
+    local numnets = 0
+    for name, net in pairs(nets) do
+        for _, n in pairs(net.connections) do
+            for r, row in ipairs(rows) do
+                for c, column in ipairs(row) do
+                    if instlookup[column.instance] == n.instance then
+                        if not netpositions[name] then
+                            netpositions[name] = {}
+                            numnets = numnets + 1
+                        end
+                        table.insert(netpositions[name], { x = c, y = r })
+                    end
+                end
+            end
+        end
+    end
+
+    --[[
+    for name, net in pairs(netpositions) do
+        print(name)
+        for _, pt in ipairs(net) do
+            print(pt.x, pt.y)
+        end
+        print()
+    end
+    --]]
+    router.route(netpositions, numnets)
 
     local path
     if prefix and prefix ~= "" then

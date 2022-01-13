@@ -1,7 +1,7 @@
 PROGNAME=opc
 
 CC= gcc -std=gnu99
-CFLAGS= -O2 -Wall -Wextra $(SYSCFLAGS) $(MYCFLAGS)
+CFLAGS= -O0 -g -Wall -Wextra $(SYSCFLAGS) $(MYCFLAGS)
 LDFLAGS= $(SYSLDFLAGS) $(MYLDFLAGS)
 LIBS= -lm $(SYSLIBS) $(MYLIBS)
 
@@ -15,7 +15,7 @@ SYSLDFLAGS=
 SYSLIBS=
 
 OPCHEADERS:=lpoint.h lbind.h lload.h lbinary.h lshape.h lfilesystem.h
-OPCCSOURCES:=ldir.c lpoint.c lbind.c lload.c lbinary.c lshape.c lfilesystem.c lplacer.c lplacer_rand.c
+OPCCSOURCES:=ldir.c lpoint.c lbind.c lload.c lbinary.c lshape.c lfilesystem.c lplacer.c lplacer_rand.c lrouter.c lrouter_net.c lrouter_queue.c lrouter_field.c lrouter_route.c
 
 .PHONY: default
 default:

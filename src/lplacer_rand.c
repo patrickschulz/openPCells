@@ -136,6 +136,7 @@ struct UPRNG* UPRNG_init(unsigned int size, struct RanState* rstate)
 
 void UPRNG_destroy(struct UPRNG* rng)
 {
+    free(rng->numbers);
     free(rng);
 }
 
