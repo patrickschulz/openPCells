@@ -225,14 +225,14 @@ function M.from_verilog(filename, prefix, libname, overwrite, utilization, aspec
                             netpositions[name] = {}
                             numnets = numnets + 1
                         end
-                        table.insert(netpositions[name], { x = c, y = r })
+                        local offset = _get_pin_offset(reflookup[column.reference], n.port)
+                        table.insert(netpositions[name], { x = c + offset, y = r })
                     end
                 end
             end
         end
     end
 
-    --[[
     for name, net in pairs(netpositions) do
         print(name)
         for _, pt in ipairs(net) do
@@ -240,8 +240,7 @@ function M.from_verilog(filename, prefix, libname, overwrite, utilization, aspec
         end
         print()
     end
-    --]]
-    router.route(netpositions, numnets)
+    --router.route(netpositions, numnets)
 
     local path
     if prefix and prefix ~= "" then
