@@ -106,13 +106,13 @@ meta.__index = meta
 
 local function _load_options(filename)
     if not filename then
-        error("no commandline options filename name given")
+        moderror("no commandline options filename name given")
     end
     local chunkname = string.format("@%s", filename)
 
     local reader, msg = _get_reader(filename)
     if not reader then
-        error(msg)
+        moderror(msg)
     end
 
     local env = {
@@ -256,6 +256,9 @@ end
 
 function meta.set_option(self, param, arg)
     local action = self.actions[param]
+    if not action then
+        moderror(string.format("set_option: no valid option '%s' found", param))
+    end
     action(self, arg)
 end
 
