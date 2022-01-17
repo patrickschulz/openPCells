@@ -31,6 +31,7 @@
 #include "lfilesystem.h"
 #include "lplacer.h"
 #include "lrouter.h"
+#include "lutil.h"
 
 #include "config.h"
 
@@ -172,6 +173,7 @@ lua_State* create_and_initialize_lua()
     open_lbind_lib(L);
     open_lbinary_lib(L);
     open_lshape_lib(L);
+    open_lutil_lib(L);
     //open_lunion_lib(L);
     open_lfilesystem_lib(L);
     open_lplacer_lib(L);

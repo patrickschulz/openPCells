@@ -34,7 +34,10 @@ local function _parse_key_value_pairs(str)
 end
 
 local function _display_help(self)
-    local displaywidth <const> = 70
+    local displaywidth = 80 -- fallback
+    if termutil.get_terminal_width then
+        displaywidth = termutil.get_terminal_width()
+    end
     local optwidth = 0
     for _, opt in ipairs(self.optionsdef) do
         if opt.short and not opt.long then
@@ -45,7 +48,21 @@ local function _display_help(self)
             optwidth = math.max(optwidth, string.len(string.format("%s,%s", opt.short, opt.long)))
         end
     end
-    local fmt = string.format("    %%-%ds    %%s", optwidth)
+
+    local startskip = 4
+    local numsep = 4
+    local leftmargin = 0
+    local narrow = displaywidth < 100 -- FIXME: make dynamic (dependent on maximum word width or something)
+    local fmt, textwidth, offset
+    if narrow then
+        fmt = string.format("%s%%-%ds\n%s%%s", string.rep(" ", startskip), optwidth, string.rep(" ", 2 * startskip))
+        offset = 2 * startskip
+    else
+        fmt = string.format("%s%%-%ds%s%%s", string.rep(" ", startskip), optwidth, string.rep(" ", numsep))
+        offset = optwidth + startskip + numsep
+    end
+    local textwidth = displaywidth - offset - leftmargin
+
     for _, msg in ipairs(self.prehelpmsg) do
         print(msg)
     end
@@ -67,20 +84,35 @@ local function _display_help(self)
             local helpstrtab = {}
             local line = {}
             local linewidth = 0
-            for word in string.gmatch(opt.help, "(%S+)") do
-                local width = string.len(word)
-                linewidth = linewidth + width
-                if linewidth > displaywidth then
-                    table.insert(helpstrtab, table.concat(line, " "))
-                    line = {}
-                    linewidth = 0
+            local buffer = {}
+            for i = 1, #opt.help do
+                local ch = string.sub(opt.help, i, i)
+                if ch == " " then
+                    local word = table.concat(buffer)
+                    local width = string.len(word) + 1 -- +1: space between words
+                    if linewidth + width > textwidth then -- flush line
+                        table.insert(helpstrtab, table.concat(line, " "))
+                        line = {}
+                        linewidth = 0
+                    end
+                    table.insert(line, word)
+                    linewidth = linewidth + width
+                    buffer = {}
+                else
+                    table.insert(buffer, ch)
                 end
-                table.insert(line, word)
             end
             -- insert remaining part of the line
+            local word = table.concat(buffer)
+            local width = string.len(word) + 1 -- +1: space between words
+            if linewidth + width > textwidth then -- flush line
+                table.insert(helpstrtab, table.concat(line, " "))
+                line = {}
+            end
+            table.insert(line, word)
             table.insert(helpstrtab, table.concat(line, " "))
 
-            local helpstr = table.concat(helpstrtab, string.format("\n%s", string.rep(" ", optwidth + 8))) -- +8 to compensate for spaces in format string
+            local helpstr = table.concat(helpstrtab, string.format("\n%s", string.rep(" ", offset)))
 
             print(string.format(fmt, cmdstr, helpstr))
         end
@@ -88,7 +120,7 @@ local function _display_help(self)
     for _, msg in ipairs(self.posthelpmsg) do
         print(msg)
     end
-    os.exit(0)
+    os.exit(0, true) -- close lua state
 end
 
 local function _display_version(self)

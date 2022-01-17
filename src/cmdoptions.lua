@@ -279,7 +279,7 @@ return {
     },
     store{
         name = "listformat", long = "--list-format",
-        help = "format for listing cells. The following format is recognized: prefmt:postfmt:prepathfmt:postpathfmt:prebasefmt:postbasefmt:cellfmt. The default is '::%p\\n::  %b\\n::    %c\\n. A possible format for creating a nested list (e.g. for lisp) would be list(\\n:)\\n:::list(\"%b\" list(:))\\n:\"%c\""
+        help = "format for listing cells. The following format is recognized: prefmt:postfmt:prepathfmt:postpathfmt:prebasefmt:postbasefmt:cellfmt. The default is '::%p\\n::  %b\\n::    %c\\n'. A possible format for creating a nested list (e.g. for lisp) would be 'list(\\n:)\\n:::list(\"%b\" list(:))\\n:\"%c\"'"
     },
     switch{ 
         name = "listallcells", long  = "--list-all",

@@ -14,8 +14,8 @@ SYSCFLAGS=
 SYSLDFLAGS=
 SYSLIBS=
 
-OPCHEADERS:=lpoint.h lbind.h lload.h lbinary.h lshape.h lfilesystem.h
-OPCCSOURCES:=ldir.c lpoint.c lbind.c lload.c lbinary.c lshape.c lfilesystem.c lplacer.c lplacer_rand.c lrouter.c lrouter_net.c lrouter_queue.c lrouter_field.c lrouter_route.c
+OPCHEADERS:=lpoint.h lbind.h lload.h lbinary.h lshape.h lfilesystem.h lutil.h lrouter.h lrouter_net.h lrouter_queue.h lrouter_field.h lrouter_route.h
+OPCCSOURCES:=ldir.c lpoint.c lbind.c lload.c lbinary.c lshape.c lfilesystem.c lplacer.c lplacer_rand.c lrouter.c lrouter_net.c lrouter_queue.c lrouter_field.c lrouter_route.c lutil.c
 
 .PHONY: default
 default:
