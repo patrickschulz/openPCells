@@ -126,29 +126,7 @@ end
 
 -- list available cells
 if args.listcells or args.listallcells then
-    local cells = pcell.list_tree(args.listallcells)
-    local listformat = args.listformat or '::%p\n::  %b\n::    %c\n'
-    -- replace \\n with \n
-    listformat = string.gsub(listformat, "\\n", "\n")
-    local prefmt, postfmt, prepathfmt, postpathfmt, prebasefmt, postbasefmt, cellfmt = table.unpack(aux.strsplit(listformat, ":"))
-    io.write(prefmt)
-    for _, path in ipairs(cells) do
-        local prepathstr = string.gsub(prepathfmt, "%%%a", { ["%p"] = path.name })
-        io.write(prepathstr)
-        for _, base in ipairs(path.baseinfo) do
-            local prebasestr = string.gsub(prebasefmt, "%%%a", { ["%p"] = path.name, ["%b"] = base.name })
-            io.write(prebasestr)
-            for _, cellname in ipairs(base.cellinfo) do
-                local cellstr = string.gsub(cellfmt, "%%%a", { ["%p"] = path.name, ["%b"] = base.name, ["%c"] = string.match(cellname, "^([%w_/]+)%.lua$") })
-                io.write(cellstr)
-            end
-            local postbasestr = string.gsub(postbasefmt, "%%%a", { ["%p"] = path.name, ["%b"] = base.name })
-            io.write(postbasestr)
-        end
-        local postpathstr = string.gsub(postpathfmt, "%%%a", { ["%p"] = path.name })
-        io.write(postpathstr)
-    end
-    io.write(postfmt)
+    functions.list_cells(args.listformat, args.listallcells)
     return 0
 end
 
