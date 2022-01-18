@@ -390,6 +390,8 @@ function state.create_cellenv(state, cellname, ovrenv)
         math = math,
         enable = function(bool, val) return (bool and 1 or 0) * (val or 1) end,
         thisorthat = function(val, comp, this, that) return bool and this or that end,
+        evenodddiv = function(num, div) if num % 2 == 0 then return num / div, num / div else return num // div, num // div + 1 end end,
+        evenodddiv2 = function(num) if num % 2 == 0 then return num / 2, num / 2 else return num // 2, num // 2 + 1 end end,
         string = string,
         table = table,
         marker = marker,
