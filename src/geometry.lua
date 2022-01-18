@@ -2,13 +2,14 @@ local M = {}
 
 function M.rectangle(layer, width, height)
     if width % 2 ~= 0 then 
-        moderror("geometry.rectangle: width must be a multiple of 2. Use rectanglebltr if you need odd coordinates")
+        moderror(string.format("geometry.rectangle: width (%d) must be a multiple of 2. Use rectanglebltr if you need odd coordinates", width))
     end
     if height % 2 ~= 0 then 
-        moderror("geometry.rectangle: height must be a multiple of 2. Use rectanglebltr if you need odd coordinates")
+        moderror(string.format("geometry.rectangle: height (%d) must be a multiple of 2. Use rectanglebltr if you need odd coordinates", height))
     end
-    local S = shape.create_rectangle(layer, width, height)
-    return object.make_from_shape(S)
+    local bl = point.create(-width / 2, -height / 2)
+    local tr = point.create( width / 2,  height / 2)
+    return M.rectanglebltr(layer, bl, tr)
 end
 
 function M.rectanglebltr(layer, bl, tr)
