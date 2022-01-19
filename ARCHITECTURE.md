@@ -5,8 +5,8 @@ interact and so on. This is NOT a technical description of HOW things work, this
 ## Overview
 OpenPCells is based on lua with additions written in C. It reads cell definitions and creates layouts corresponding to these definitions and user-supplied
 parameters. The main tasks are therefore to provide a user interface for cell definitions (geometrical functions), a translation from technology-independent
-cells to technology-dependent layouts (the so-called 'technology translation') and an appropriate export matching the requested interface (GDS, OASIS, virtuoso,
-magic, etc.). These three main tasks should also provide easy mechanisms for the user to add her own cell/technology/interface definitions.
+cells to technology-dependent layouts (the so-called 'technology translation') and an appropriate export matching the requested format (GDS, OASIS, virtuoso,
+magic, etc.). These three main tasks should also provide easy mechanisms for the user to add her own cell/technology/export definitions.
 
 ## Modules
 ### `main.lua` and `main.c`
@@ -34,22 +34,27 @@ Modules for handling of layout objects. Objects are collections of shapes, which
 ### `technology.lua`
 Module for technology translation. Here all generic layers are mapped to technology-specific layers. Read technology definitions in `tech/`.
 
-### `interface.lua`
+### `export.lua` and `export/*.lua`
+Module for generating output. In `export.lua` the generic logic is implemented, the actual generator depending on the file format is in `export`.
 
 ### Utility Modules
 `aux.lua`, `stack.lua`, `stringfile.lua`/`stringbuffer.c`, `support.lua`, `util.lua`, `
+Various stuff needed by other modules. `util.lua` provides geometry-related helper functions, `aux.lua` general ones. `stack.lua` implements a stack,
+`stringfile.lua` together with `stringbuffer.c` provides an object that behaves like a file but does not write to the filesystem until explicitly called for. 
+`support.lua` is like `aux.lua` and should probably be merged.
 
-lbinary.c
-lbinary.h
+### `lbinary.c`
+Provides helper functions for writing binary files and computing the required data. Written in C for performance reasons.
 
-lbind.c
-lbind.h
+### `lbind.c`
+Provides `bind` to bind function arguments. Written in C because this is more easily done in C (stack manipulations, registry).
 
-ldir.c
-ldir.h
+### `ldir.c`
+Module for simple filesystem queries (like lua-filesystem, but without the dependency).
 
 ### Configuration Modules
 `config.lua`, `envlib.lua`
+Provides configuration for the user and other modules.
 
 ### `profiler.lua`
 Rudimentary profiler, which is off by default (option `--profile`). Cell generation can take a while for big (-ish unfortunately) cells. The profiler helps

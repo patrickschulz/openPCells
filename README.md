@@ -1,32 +1,57 @@
 # openPCells -- A framework for tool-independent layout cell generators 
-This project intends to develop a set of parametric cells (PCells) for use in analog/digital integrated circuit design. Currently this is aimed at
-providing a base set of cells for baseband and RF design (momcaps, inductors, transformers, transistors etc.), but ideally there would be also more
-complex cells such as entire circuits (inverters, opamps etc.). For digital designs, a set of simple standard cells exists (nand, nor, not).
+This project provides a layout generator for parametric cells (PCells) for use in analog/digital integrated circuit design. 
+It offers a framework for developing these pcells in a technology-independent way, so that cell re-use is greatly enhanced. 
+Currently, a base set of cells for baseband and RF design (momcaps, inductors, transformers, transistors etc.) as well as more complex cells such as
+entire circuits (inverters, opamps etc.) are available (though there still is a lot of work to do). For digital designs, a set of simple standard
+cells exists (nand, nor, not).
 
-The key point of this framework is independency of any layout tool such as cadence virtuoso. In order to achieve this, the core generators are written
+Another key point of this framework is independency of any layout tool such as cadence virtuoso. In order to achieve this, the core generators are written
 in lua and generate platform-independent files describing the cell. In the layout tool the files are read and the actual shapes are drawn. For this,
-interfacing/exporting code is provided (currently for virtuoso, magic, gds, tikz (LaTeX) and svg; other interfaces are easy to add). A second
+interfacing/exporting code is provided (currently for virtuoso, magic, gds, tikz (LaTeX) and svg; other export types are easy to add). A second
 important point for this project is technology independece. This is achieved by working in generic layers ('gate', 'metal1') and mapping that with
 (simple-to-write) layermaps.
 
 # How to use
-The project supplies some technology files for skywater130, so you can directly test the setup. For the first run, you have to generate the main
-program by running 
+After building opc (see Building and Installation), layouts can be generated either from pcell definition (--cell option) (there are already some in the cell
+subdirectory) or from so-called cellscripts (--cellscript). For this, a technology layer map file to export layouts. The project supplies some
+technology files for the open source technology skywater130, so you can directly test the setup.
 
-    make
-
-Now a file `opc` should have been generated. Run it as follows:
-
-    ./opc --technology skywater130 --interface svg --cell basic/transistor
+    ./opc --technology skywater130 --export svg --cell basic/transistor
 
 This produces the following image: 
 
-![Example Transistor](./doc/info/example_transistor.png). 
+![Example Transistor](./doc/info/mosfet_1.png). 
 
-The only dependencies are a C compiler, as the lua interpreter is included in the repository. 
-Most of the project is written in lua, only the main entry points and a few modules are written in C.
+Positional command line arguments (that is, arguments without - or --) are taken as key-value pairs for cell parameters:
 
-# Installation for Cadence Virtuoso
+    ./opc --technology skywater130 --export svg --cell basic/transistor fingers = 4
+
+![Example Transistor](./doc/info/mosfet_2.png). 
+
+Available cells can be listed with
+
+    ./opc -L
+
+Paths to additional cells can be given with
+
+    ./opc --cellpath path/to/cells
+
+Different exports are supported, such as GDSII (which is the most sophisticated), SVG, SKILL (for virtuoso integration), TikZ (LaTeX), OASIS and magic.
+A framework for developing additional exports is provided and only a few functions are needed to get a basic export running.
+
+opc provides an already quite rich set of command line options, which influence how layouts are generated. Furthermore, it can also import
+GDSII-streams and create an opc-own representation of an entire library. See --read-GDS for this. All command line options are documented with --help
+and a few basic examples for usage are given at the end.
+
+# Building and Installation
+Building this project is fairly simple, as the sole dependency is a C compiler. It was tested with gcc 11.1.0, but should work with other compilers
+too. Currently, the build is set up to create a stand-alone executable, which knows how to load the needed shared libraries (project-owned) by itself.
+This means that it is easy for a user without any root privileges to install opc: Just leave it where you compiled it (this is important) and point
+your PATH to the directory or create an alias or call opc with its absolute path. That all said, building is just
+
+    make
+
+# Integration in Cadence Virtuoso
 After you compiled the program and checked if it works (see previous section), you can integrate it in virtuoso.
 You need to include these lines in your `.cdsinit`:
 
@@ -34,10 +59,12 @@ You need to include these lines in your `.cdsinit`:
     OPCTech = "skywater130"     ; edit to match your PDK
     OPCPath = "/path/to/pcells" ; edit to match the path to opc
     OPCExec = "opc"             ; edit to match the name of the executable (usually 'opc')
-    load(lsprintf("%s/%s" OPCPath "interface/virtuoso/init.il")
+    load(lsprintf("%s/%s" OPCPath "export/virtuoso/init.il")
 
 This will install a menu in layout editor called `openPCells` at the last place before the `help` menu in the layout editor. You have to restart
-virtuoso or execute the three lines in that order in your CIW to activate the menu.
+virtuoso or execute the four lines in that order in your CIW to activate the menu. It is important that the variables `OPCTech`, `OPCPath` and
+`OPCExec` are defined, so don't think you can skip these and hard-code the path. There is an example file that you can modify and load in your
+`.cdsinit` in `interface/virtuoso/cdsinit.il.sample`
 
 <!---
 # Technology translation and mapping
@@ -110,9 +137,12 @@ cuts are drawn explicitly. I am working on this to improve that, but it works ri
 
 # Roadmap
 This project started as a way of designing pcells independently of SKILL/virtuoso and technologies, but I have shifted a bit my goals and am thinking
-of building some kind of pcell-text-based layout description/generator. There is still a lot of work to do and right now the best use of this project
-is as a pcell generator. Once I've really figured out how to do technology-independent pcells (which is already working a little bit), I will start
-thinking of connecting several cells and creating entire layouts. 
+of building some kind of pcell-text-based layout description/generator. The ground work has been done and it is already possible to build very complex
+layouts with good performance of the tool. By re-using cells, the generation time can be kept quite low.
+
+The next steps deal with building more complex and sophisticated pcells, adding more functionality to pcell development easier (such as the placement
+module, perhaps also adding automatic routing) and fixing existing bugs. Furthermore, technology file development could be more automated, I was
+thinking of an assistant to do this, but I'm lacking the time.
 
 # Contributions
 Contributions of any kind are welcome and even wished for. I'm trying to add issues to github, but there's of course a lot more that needs to be

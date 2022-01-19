@@ -22,6 +22,8 @@
 
 \usepackage{listings}
 \lstset{
+    breaklines = true,
+    %breakatwhitespace = true,
     language=[5.3]Lua,
     backgroundcolor = \color{blue!10!white},
     basicstyle = \small\ttfamily,
@@ -47,9 +49,16 @@
         pcell.push_overwrites,
         pcell.pop_overwrites,
         object.translate,
-        object.merge_into,
+        object.merge_into_shallow,
+        get_anchor,
+        move_anchor,
         translate,
-        merge_into,
+        merge_into_shallow,
+        flipx,
+        flipy,
+        add_child,
+        add_child_reference,
+        add_child_link,
         generics,
         generics.metal,
         generics.via,
@@ -84,7 +93,8 @@
 \makeatother
 % -------------------------------------------------------------------------------------------------------------
 \newcommand{\shellinline}[1]{\lstinline!#1!}
-\lstnewenvironment{shellcode}{\lstset{language=bash, keywordstyle = \relax, commentstyle = \relax}}{}
+%\lstnewenvironment{shellcode}{\lstset{language=bash, keywordstyle = \relax, commentstyle = \relax, stringstyle = \relax, identifierstyle = \relax, breakautoindent = false}}{}
+\lstnewenvironment{shellcode}{\lstset{keywordstyle = \relax, commentstyle = \relax, stringstyle = \relax, identifierstyle = \relax, breakautoindent = false}}{}
 \newcommand{\luainline}[1]{\lstinline!#1!}
 \newcommand{\lualisting}[2][]{\lstinputlisting[#1]{#2}}
 %\newmintedfile[lualisting]{lua}{autogobble, fontsize = \small}

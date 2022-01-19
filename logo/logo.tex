@@ -1,0 +1,20 @@
+\documentclass{standalone}
+
+\usepackage{tikz}
+\usepackage{fontspec}
+\setmainfont{Linux Libertine}
+
+\begin{document}
+    \begin{tikzpicture}
+        \def\radius{1}
+        \def\angle{60}
+        %\path[use as bounding box] ({-1 * \radius}, {sin(180 + \angle) * \radius}) rectangle ({1 * \radius}, {1 * \radius});
+        \begin{scope}
+            \draw[clip] ({\radius * cos(180 + \angle)}, {\radius * sin(180 + \angle)}) arc[start angle = 180 + \angle, end angle = -\angle, radius = \radius] -- cycle;
+            \draw[black!60] ({-2 * \radius}, {-2 * \radius}) grid[step = 1mm] ({2 * \radius}, {2 * \radius});
+            \draw ({\radius * cos(180 + \angle)}, {\radius * sin(180 + \angle)}) arc[start angle = 180 + \angle, end angle = -\angle, radius = \radius] -- cycle;
+        \end{scope}
+        \node[font = \Huge\bfseries] {OPC};
+        \node[anchor = north] at (0, {sin(180 + \angle) * \radius}) {openPCells};
+    \end{tikzpicture}
+\end{document}

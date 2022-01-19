@@ -34,7 +34,12 @@ Now run the program:
 \end{shellcode}
 You should see the following message:
 \begin{shellcode}
-    no cell type given
+    This is the openPCell layout generator.
+    To generate a layout, you need to pass the technology, the export type and a cellname.
+    Example:
+             opc --technology skywater130 --export gds --cell logic/not_gate
+
+    You can find out more about the available command line options by running 'opc -h'.
 \end{shellcode}
 This indicates that everything is working fine. Due to the non-standard interpreter, the paths for the toolchain are already set. You should be able to call
 \shellinline{opc} from any path (of course by using the full name including path or modifying your shell PATH variable accordingly).
@@ -44,10 +49,12 @@ draft of technology files for it, which is at least enough to test the setup. Ho
 Most likely you will have to write them yourself, which is not too hard. See the guide about writing technology files. Let's call the program:
 \begin{shellcode}
     opc --technology skywater130 --interface gds --cell basic/transistor
-    # or
-    opc --technology skywater130 --interface virtuoso --cell basic/transistor
 \end{shellcode}
-The gds interface creates a \shellinline{openPCells.gds} file, the virtuoso interface a \shellinline{openPCells.il}, which can be read with a text editor. Further
+or
+\begin{shellcode}
+    opc --technology skywater130 --interface SKILL --cell basic/transistor
+\end{shellcode}
+The gds interface creates a \shellinline{openPCells.gds} file, the SKILL interface a \shellinline{openPCells.il}, which can be read with a text editor. Further
 current available interfaces are SVG, magic, tikz and a debugging export.
 
 This already concludes the quick start. For next steps, have a look in \shellinline{cells/} to see how the pcells are implemented. Furthermore, \shellinline{tech/}

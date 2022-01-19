@@ -1,9 +1,12 @@
 # main programs and generated code files
 opc
 config.h
+opc.1
 
-# generated layouts
+# generated layouts and helpers
 openPCells.*
+openPCells_extracted.cir
+pfile.lua
 
 # NDA-related
 tech/GF22FDSOI
@@ -11,10 +14,10 @@ tech/cmos22fdsoi
 tech/TSMC28HPCplus
 
 # lua object files
-lua/lua
-lua/luac
-lua/*.o
-lua/liblua.a
+src/lua/lua
+src/lua/luac
+src/lua/*.o
+src/lua/liblua.a
 
 # tex auxiliary files
 *.aux
@@ -25,3 +28,9 @@ lua/liblua.a
 
 # development information
 devinfo
+
+# test code
+srctodo
+
+# test files
+testfiles
