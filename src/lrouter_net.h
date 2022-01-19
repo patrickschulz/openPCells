@@ -7,8 +7,8 @@
 
 /* net struct */
 typedef struct {
-    int x1, x2;
-    int y1, y2;
+    unsigned int x1, x2;
+    unsigned int y1, y2;
 	/* queue to save the path in the end */
 	queue_t *path;
 } net_t;

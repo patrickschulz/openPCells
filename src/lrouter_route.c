@@ -16,10 +16,10 @@ const int yincr[8] = {  0, 1, 0, -1 };
 
 void route(net_t net, int** field, size_t fieldsize)
 {
-	int startx = net.x1;
-	int starty = net.y1;
-	int endx = net.x2;
-	int endy = net.y2;
+	unsigned int startx = net.x1;
+	unsigned int starty = net.y1;
+	unsigned int endx = net.x2;
+	unsigned int endy = net.y2;
 
 	/* prepare starting point */
 	point_t start;
@@ -31,7 +31,7 @@ void route(net_t net, int** field, size_t fieldsize)
 	queue_enqueue(queue, &start);
 
 	int counter = 0;
-	int x, y, nextx, nexty;
+	unsigned int x, y, nextx, nexty;
 	point_t *point_ptr;
 	field[startx][starty] = 0;
 
@@ -46,23 +46,35 @@ void route(net_t net, int** field, size_t fieldsize)
 
 		x = point_ptr->x;
 		y = point_ptr->y;
-		printf("got queued: %i, %i\n", x, y);
 		counter = field[x][y];
 
 		/* circle around every point */
 		for(int i = 0; i < 4; i++)
-        {
+		{
 			nextx = x + xincr[i];
 			nexty = y + yincr[i];
 
+			if(nextx >= fieldsize || nexty >= fieldsize)
+				break;
+
 			/* check if point is visitable */
-			if(!(field[nextx][nexty] != UNVISITED ||
-			   nextx < 0 ||
-			   nexty < 0 ||
-			   nextx > fieldsize ||
-			   nexty > fieldsize) ||
-			   (nextx == endx && nexty == endy))
-            {
+			int nextfield = field[nextx][nexty];
+			if((nextfield == PORT && nextx == endx && nexty == endy) ||
+			   nextfield == UNVISITED)
+			{
+				if(nextx == endx && nexty == endy)
+				{
+					/*
+					 * if next point is endpoint
+					 * put it into front of queue
+					 * so empty the queue (not nice way)
+					 */
+					while(!queue_empty(queue))
+					{
+						queue_dequeue(queue);
+					}
+				}
+
 				field[nextx][nexty] = counter + 1;
 
 				/* put the point in the to be visited queue */
@@ -78,47 +90,51 @@ void route(net_t net, int** field, size_t fieldsize)
 	} while(!(queue_empty(queue) == TRUE || (x == endx && y == endy)));
 
 	/* backtrace */
-
 	/* go to end point */
 	x = endx;
 	y = endy;
-
 	do {
 		counter = field[x][y];
 		field[x][y] = PATH;
 
 		/* circle around every point */
 		for(int i = 0; i < 4; i++)
-        {
+		{
 			nextx = x + xincr[i];
 			nexty = y + yincr[i];
 
-			if(!(nextx < 0 ||
-                 nexty < 0 ||
-                 nextx > fieldsize ||
-                 nexty > fieldsize ||
-                 field[nextx][nexty] != UNVISITED))
-            {
-                /* go to the one with val = currval - 1 */
-                if(field[nextx][nexty] == (counter - 1))
-                {
-                    x = nextx;
-                    y = nexty;
+			if(nextx >= fieldsize || nexty >= fieldsize)
+				continue;
 
-                    /* put the point in the nets path queue */
-                    point_t *path_point = malloc(sizeof(point_t));
-                    path_point->x = x;
-                    path_point->y = y;
-                    queue_enqueue(net.path, path_point);
+			if(nextx == startx && nexty == starty)
+			{
+				x = nextx;
+				y = nexty;
+				break;
+			}
 
-                    break;
-                }
-            }
+			/* check if point is visitable */
+			int nextfield = field[nextx][nexty];
+
+			/* go to the one with val = currval - 1 */
+			if(nextfield == (counter - 1))
+			{
+			    x = nextx;
+			    y = nexty;
+
+			    /* put the point in the nets path queue */
+			    point_t *path_point = malloc(sizeof(point_t));
+			    path_point->x = x;
+			    path_point->y = y;
+			    queue_enqueue(net.path, path_point);
+
+			    break;
+			}
 		}
 	} while (!(x == startx && y == starty));
 
 	/* mark start and end of net as ports */
 	field[startx][starty] = PORT;
 	field[endx][endy] = PORT;
-	reset_field();
+	reset_field(field, fieldsize);
 }

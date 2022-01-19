@@ -68,6 +68,7 @@ static struct netcollection* _initialize(lua_State* L)
 
 int lrouter_route(lua_State* L)
 {
+    printf("calling route\n");
     struct netcollection* nc = _initialize(L);
 
     size_t fieldsize = 30;
