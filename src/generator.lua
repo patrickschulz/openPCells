@@ -240,7 +240,7 @@ function M.from_verilog(filename, prefix, libname, overwrite, utilization, aspec
         end
         print()
     end
-    --router.route(netpositions, numnets)
+    router.route(netpositions, numnets)
 
     local path
     if prefix and prefix ~= "" then

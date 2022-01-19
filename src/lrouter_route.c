@@ -21,6 +21,7 @@ void route(net_t net, int** field, size_t fieldsize)
 	unsigned int endx = net.x2;
 	unsigned int endy = net.y2;
 
+
 	/* prepare starting point */
 	point_t start;
 	start.x = startx;
@@ -41,6 +42,7 @@ void route(net_t net, int** field, size_t fieldsize)
 	 * endpoint is reached
 	 */
 	do {
+		printf("route %u %u to %u %u\n", startx, starty, endx, endy);
 		/* get next point from queue */
 		point_ptr = (point_t*)queue_dequeue(queue);
 
@@ -55,7 +57,7 @@ void route(net_t net, int** field, size_t fieldsize)
 			nexty = y + yincr[i];
 
 			if(nextx >= fieldsize || nexty >= fieldsize)
-				break;
+				continue;
 
 			/* check if point is visitable */
 			int nextfield = field[nextx][nexty];
@@ -87,6 +89,8 @@ void route(net_t net, int** field, size_t fieldsize)
 
 		}
 		counter++;
+		usleep(5*1000);
+		print_field(field, fieldsize);
 	} while(!(queue_empty(queue) == TRUE || (x == endx && y == endy)));
 
 	/* backtrace */
@@ -94,6 +98,7 @@ void route(net_t net, int** field, size_t fieldsize)
 	x = endx;
 	y = endy;
 	do {
+		printf("route %u %u to %u %u\n", startx, starty, endx, endy);
 		counter = field[x][y];
 		field[x][y] = PATH;
 
@@ -131,10 +136,14 @@ void route(net_t net, int** field, size_t fieldsize)
 			    break;
 			}
 		}
+		usleep(5*1000);
+		print_field(field, fieldsize);
 	} while (!(x == startx && y == starty));
 
 	/* mark start and end of net as ports */
 	field[startx][starty] = PORT;
 	field[endx][endy] = PORT;
+		usleep(50*1000);
+		print_field(field, fieldsize);
 	reset_field(field, fieldsize);
 }
