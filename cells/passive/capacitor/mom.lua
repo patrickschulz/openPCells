@@ -17,21 +17,17 @@ function layout(momcap, _P)
 
     if _P.flat then
         for i = _P.firstmetal, _P.lastmetal do
-            if _P.fingers % 2 == 0 then
-                momcap:merge_into_shallow(geometry.multiple_x(
-                    geometry.rectangle(generics.metal(i), _P.fwidth, _P.fheight),
-                    _P.fingers // 2, 2 * pitch
-                ):translate(-pitch, _P.foffset / 2))
-            else
-                momcap:merge_into_shallow(geometry.multiple_x(
-                    geometry.rectangle(generics.metal(i), _P.fwidth, _P.fheight),
-                    _P.fingers // 2 + 1, 2 * pitch
-                ):translate(0, _P.foffset / 2))
-            end
+            local finger = geometry.rectangle(generics.metal(i), _P.fwidth, _P.fheight)
+            local xreptop, xrepbottom = evenodddiv2(_P.fingers)
+            local xshift = (_P.fingers % 2 == 0) and pitch / 2 or 0
             momcap:merge_into_shallow(geometry.multiple_x(
-                geometry.rectangle(generics.metal(i), _P.fwidth, _P.fheight),
-                _P.fingers // 2, 2 * pitch
-            ):translate(0, -_P.foffset / 2))
+                finger,
+                xreptop, 2 * pitch
+            ):translate(-xshift, _P.foffset / 2))
+            momcap:merge_into_shallow(geometry.multiple_x(
+                finger,
+                xrepbottom, 2 * pitch
+            ):translate(xshift, -_P.foffset / 2))
         end
         -- rails
         for i = _P.firstmetal, _P.lastmetal do
