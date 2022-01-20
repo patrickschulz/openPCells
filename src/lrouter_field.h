@@ -14,6 +14,8 @@ typedef struct {
 
 int** init_field(size_t size);
 void destroy_field(int** field, size_t size);
+void print_field(int** field, size_t size);
+void unprint_field(size_t size);
 
 /*
  * resets the values in the field for a next iteration

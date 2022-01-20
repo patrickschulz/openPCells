@@ -9,9 +9,17 @@
 typedef struct {
     unsigned int x1, x2;
     unsigned int y1, y2;
+    unsigned int ranking;
 	/* queue to save the path in the end */
 	queue_t *path;
+
 } net_t;
+
+/*
+ * sorts the nets in ascending order of number of
+ * pins within their bounding boxes
+ */
+void sort_nets(net_t *nets, size_t num_nets);
 
 void print_nets(net_t* nets, size_t num_nets);
 /* fill ports of nets into field */

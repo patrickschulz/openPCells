@@ -4,6 +4,46 @@
 #include <string.h>
 #include <stdlib.h>
 
+void black()
+{
+	printf("\033[0;30m");
+}
+
+void red()
+{
+	printf("\033[0;31m");
+}
+
+void green()
+{
+	printf("\033[0;32m");
+}
+
+void yellow()
+{
+	printf("\033[0;33m");
+}
+
+void blue()
+{
+	printf("\033[0;34m");
+}
+
+void purple()
+{
+	printf("\033[0;35m");
+}
+
+void cyan()
+{
+	printf("\033[0;36m");
+}
+
+void white()
+{
+	printf("\033[0;37m");
+}
+
 void reset_field(int** field, size_t size)
 {
 	for(size_t i = 0; i < size; i++) {
@@ -52,7 +92,7 @@ void print_field(int** field, size_t size)
 
 void unprint_field(size_t size)
 {
-	for(int i = 0; i <= size; i++) {
+	for(size_t i = 0; i <= size; i++) {
 		/* VT100 excape code to move cursor to start of prev line */
 		printf("\33[F");
 		/* VT100 excape code to clear a line */
@@ -60,42 +100,3 @@ void unprint_field(size_t size)
 	}
 }
 
-void black()
-{
-	printf("\033[0;30m");
-}
-
-void red()
-{
-	printf("\033[0;31m");
-}
-
-void green()
-{
-	printf("\033[0;32m");
-}
-
-void yellow()
-{
-	printf("\033[0;33m");
-}
-
-void blue()
-{
-	printf("\033[0;34m");
-}
-
-void purple()
-{
-	printf("\033[0;35m");
-}
-
-void cyan()
-{
-	printf("\033[0;36m");
-}
-
-void white()
-{
-	printf("\033[0;37m");
-}
