@@ -11,10 +11,10 @@
 queue_t *queue;
 
 /* helps to traverse the field */
-const int xincr[8] = { -1, 0, 1,  0 };
-const int yincr[8] = {  0, 1, 0, -1 };
+const int xincr[4] = { -1, 0, 1,  0 };
+const int yincr[4] = {  0, 1, 0, -1 };
 
-void route(net_t net, int** field, size_t fieldsize)
+int route(net_t net, int** field, size_t fieldsize)
 {
 	unsigned int startx = net.x1;
 	unsigned int starty = net.y1;
@@ -42,12 +42,13 @@ void route(net_t net, int** field, size_t fieldsize)
 	 * endpoint is reached
 	 */
 	do {
-		//printf("route %u %u to %u %u\n", startx, starty, endx, endy);
+		printf("route %u %u to %u %u\n", startx, starty, endx, endy);
 		/* get next point from queue */
 		point_ptr = (point_t*)queue_dequeue(queue);
 
 		x = point_ptr->x;
 		y = point_ptr->y;
+
 		counter = field[x][y];
 
 		/* circle around every point */
@@ -88,17 +89,29 @@ void route(net_t net, int** field, size_t fieldsize)
 
 
 		}
+
 		counter++;
-		//usleep(5*1000);
-		//print_field(field, fieldsize);
-	} while(!(queue_empty(queue) == TRUE || (x == endx && y == endy)));
+		usleep(2*1000);
+		print_field(field, fieldsize);
+
+	/* router is stuck */
+	if(queue_empty(queue))
+	{
+		/* clean up */
+		field[startx][starty] = PORT;
+		field[endx][endy] = PORT;
+		reset_field(field, fieldsize);
+		return STUCK;
+	}
+
+	} while(!(x == endx && y == endy));
 
 	/* backtrace */
 	/* go to end point */
 	x = endx;
 	y = endy;
 	do {
-		//printf("route %u %u to %u %u\n", startx, starty, endx, endy);
+		printf("backtrace route %u %u to %u %u\n", startx, starty, endx, endy);
 		counter = field[x][y];
 		field[x][y] = PATH;
 
@@ -136,14 +149,15 @@ void route(net_t net, int** field, size_t fieldsize)
 			    break;
 			}
 		}
-		//usleep(5*1000);
-		//print_field(field, fieldsize);
+		usleep(2*1000);
+		print_field(field, fieldsize);
 	} while (!(x == startx && y == starty));
 
 	/* mark start and end of net as ports */
 	field[startx][starty] = PORT;
 	field[endx][endy] = PORT;
-		//usleep(50*1000);
-		//print_field(field, fieldsize);
+		usleep(50*1000);
+		print_field(field, fieldsize);
 	reset_field(field, fieldsize);
+	return ROUTED;
 }

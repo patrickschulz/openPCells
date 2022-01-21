@@ -10,6 +10,8 @@ typedef struct {
     unsigned int x1, x2;
     unsigned int y1, y2;
     unsigned int ranking;
+    unsigned int layer;
+    int routed;
 	/* queue to save the path in the end */
 	queue_t *path;
 

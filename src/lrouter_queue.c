@@ -86,3 +86,24 @@ int queue_enqueue(queue_t *queue, void *data)
 	  }
 	  return SUCCESS;
 }
+
+int queue_len(queue_t *queue)
+{
+	if(queue == NULL)
+		return -1;
+	if(queue->front == NULL)
+		return 0;
+
+	int count = 0;
+	struct queue_node_s *node = queue->front;
+
+	while(node->next != NULL)
+	{
+		node = node->next;
+		count++;
+	}
+
+	return count;
+}
+
+

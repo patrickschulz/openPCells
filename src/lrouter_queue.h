@@ -21,5 +21,6 @@ int queue_empty(queue_t *queue);
 queue_t *queue_new(void);
 void *queue_dequeue(queue_t *queue);
 int queue_enqueue(queue_t *queue, void *data);
+int queue_len(queue_t *queue);
 
 #endif

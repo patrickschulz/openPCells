@@ -71,11 +71,7 @@ int lrouter_route(lua_State* L)
     printf("calling route\n");
     struct netcollection* nc = _initialize(L);
 
-    printf("pre sort\n");
-    print_nets(nc->nets, nc->num_nets);
     sort_nets(nc->nets, nc->num_nets);
-    printf("post sort\n");
-    print_nets(nc->nets, nc->num_nets);
 
     size_t fieldsize = 30;
     int** field = init_field(fieldsize);
@@ -84,7 +80,7 @@ int lrouter_route(lua_State* L)
 
     for(unsigned int i = 0; i < nc->num_nets; ++i)
     {
-        route(nc->nets[i], field, fieldsize);
+	nc->nets[i].routed = route(nc->nets[i], field, fieldsize);
     }
 
     print_nets(nc->nets, nc->num_nets);
