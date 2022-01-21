@@ -579,88 +579,11 @@ int lplacer_place_simulated_annealing(lua_State* L)
     return 1; // cells table is returned to lua
 }
 
-/*
-static void _all_combinations(struct net* all_nets, size_t num_nets, struct cell* all_cells, size_t num_cells, struct floorplan* floorplan, int verbose)
-{
-    unsigned int total_wirelength = 0;
-
-    unsigned int row = 0;
-    unsigned int* columns = malloc(sizeof(*columns) * num_cells);
-    for(unsigned int i = 0; i < num_cells; ++i)
-    {
-        columns[i] = i;
-    }
-
-    total_wirelength = UINT_MAX;
-    unsigned int solution = 0;
-    unsigned int iteration = 0;
-    do {
-        for(unsigned int i = 0; i < num_cells; ++i)
-        {
-            struct cell* c = all_cells + i;
-            c->row = row;
-            c->column = columns[i];
-        }
-        unsigned int twl = calculate_total_wirelength(all_nets, num_nets);
-        if(twl < total_wirelength)
-        {
-            total_wirelength = twl;
-            solution = iteration;
-        }
-        ++iteration;
-    } while(next_permutation(columns, num_cells));
-
-    // apply solution:
-    // * reset columns (need to have a sorted array for permutation algorithm)
-    // * re-permute (permute N times)
-    // * apply to cells
-    for(unsigned int i = 0; i < num_cells; ++i) // reset
-    {
-        columns[i] = i;
-    }
-    for(unsigned int i = 0; i < solution; ++i) // re-permute
-    {
-        next_permutation(columns, num_cells);
-    }
-    for(unsigned int i = 0; i < num_cells; ++i) // apply
-    {
-        struct cell* c = all_cells + i;
-        c->column = columns[i];
-    }
-}
-
-int lplacer_place_all_combinations(lua_State* L)
-{
-    size_t num_nets, num_cells;
-    struct net* all_nets;
-    struct cell* all_cells;
-    _initialize(L, &num_nets, &num_cells, &all_nets, &all_cells);
-
-    struct floorplan* floorplan = _create_floorplan(L);
-
-    lua_getfield(L, 3, "report");
-    const int verbose = lua_toboolean(L, -1);
-    lua_pop(L, 1);
-
-    struct RanState rstate;
-    randseed(&rstate, 145, 17);  // initialize with a "random" seed
-
-    _all_combinations(all_nets, num_nets, all_cells, num_cells, floorplan, verbose);
-
-    //_create_lua_result(L, rows, floorplan->floorplan_height);
-
-    _clean_up(all_nets, num_nets, all_cells, num_cells, floorplan); // AFTER _create_lua_result!
-
-    return 1; // cells table is returned to lua
-}
-*/
-
 int open_lplacer_lib(lua_State* L)
 {
     static const luaL_Reg modfuncs[] =
     {
         { "place_simulated_annealing", lplacer_place_simulated_annealing },
-        //{ "place_all_combinations", lplacer_place_all_combinations },
         { NULL,    NULL          }
     };
     lua_newtable(L);
