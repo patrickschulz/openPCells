@@ -48,7 +48,7 @@ local function _get_pin_offset(name, port)
     return lut[name][port]
 end
 
-function _get_geometry(content)
+local function _get_geometry(content)
     local total_width = 0
     local required_width = 0
     for module in content:modules() do
@@ -62,7 +62,7 @@ function _get_geometry(content)
     return required_width, total_width
 end
 
-function _collect_nets_cells(content, excluded_nets)
+local function _collect_nets_cells(content, excluded_nets)
     local maxnet = 0
     local nets = {}
     local instances = {}
@@ -112,7 +112,29 @@ function _collect_nets_cells(content, excluded_nets)
     return maxnet, instances, nets, instlookup, reflookup
 end
 
-function _write_module(file, rows, nets, rowwidth, instlookup, reflookup)
+local function _prepare_routing_nets(nets, rows, instlookup, reflookup)
+    local netpositions = {}
+    local numnets = 0
+    for name, net in pairs(nets) do
+        for _, n in pairs(net.connections) do
+            for r, row in ipairs(rows) do
+                for c, column in ipairs(row) do
+                    if instlookup[column.instance] == n.instance then
+                        if not netpositions[name] then
+                            netpositions[name] = {}
+                            numnets = numnets + 1
+                        end
+                        local offset = _get_pin_offset(reflookup[column.reference], n.port)
+                        table.insert(netpositions[name], { x = c + offset, y = r })
+                    end
+                end
+            end
+        end
+    end
+    return netpositions, numnets
+end
+
+local function _write_module(rows, nets, rowwidth, instlookup, reflookup)
     local lines = {}
     table.insert(lines, "function layout(toplevel)")
 
@@ -151,7 +173,7 @@ function _write_module(file, rows, nets, rowwidth, instlookup, reflookup)
     return lines
 end
 
-function _create_options(fixedrows, required_width, total_width, utilization, aspectratio)
+local function _create_options(fixedrows, required_width, total_width, utilization, aspectratio)
     local height = 7
     local area = total_width * height
     local floorplan_width, floorplan_height
@@ -198,62 +220,57 @@ function _create_options(fixedrows, required_width, total_width, utilization, as
     return options
 end
 
-function M.from_verilog(filename, prefix, libname, overwrite, utilization, aspectratio, excluded_nets, report)
+local function _read_parse_verilog(filename)
     local file = io.open(filename, "r")
     if not file then
-        moderror(string.format("generator.verilog_routing: could not open file '%s'", filename))
+        moderror(string.format("generator.from_verilog: could not open file '%s'", filename))
     end
     local str = file:read("a")
     local content = verilog_parser.parse(str)
+    file:close()
+    return content
+end
 
-    local required_width, total_width = _get_geometry(content)
+function M.from_verilog(filename, utilization, aspectratio, excluded_nets, report)
+    local content = _read_parse_verilog(filename)
+
+    -- collect nets and cells
     local maxnet, instances, nets, instlookup, reflookup = _collect_nets_cells(content, excluded_nets)
+
+    -- placer options
+    local required_width, total_width = _get_geometry(content)
     local options = _create_options(fixedrows, required_width, total_width, utilization, aspectratio)
 
     -- run placement
-    local rows = placer.place_simulated_annealing(maxnet, instances, options)
+    local rows = placer.place_classic(maxnet, instances, options)
 
-    -- TODO: run routing
-    local netpositions = {}
-    local numnets = 0
-    for name, net in pairs(nets) do
-        for _, n in pairs(net.connections) do
-            for r, row in ipairs(rows) do
-                for c, column in ipairs(row) do
-                    if instlookup[column.instance] == n.instance then
-                        if not netpositions[name] then
-                            netpositions[name] = {}
-                            numnets = numnets + 1
-                        end
-                        local offset = _get_pin_offset(reflookup[column.reference], n.port)
-                        table.insert(netpositions[name], { x = c + offset, y = r })
-                    end
-                end
-            end
-        end
-    end
+    -- run routing
+    local netpositions, numnets = _prepare_routing_nets(nets, rows, instlookup, reflookup)
+    router.route(netpositions, numnets)
 
-    for name, net in pairs(netpositions) do
-        print(name)
-        for _, pt in ipairs(net) do
-            print(pt.x, pt.y)
-        end
-        print()
-    end
-    --router.route(netpositions, numnets)
+    return {
+        content = content,
+        width = options.floorplan_width,
+        instlookup = instlookup,
+        reflookup = reflookup,
+        rows = rows,
+        nets = nets,
+    }
+end
 
+function M.write_from_verilog(content, prefix, libname)
     local path
     if prefix and prefix ~= "" then
         path = string.format("%s/%s", prefix, libname)
     else
         path = string.format("%s/%s", dirname, libname)
     end
-    if not filesystem.exists(path) or overwrite then
+    if not filesystem.exists(path) then
         local created = filesystem.mkdir(path)
         if created then
             local basename = string.format("%s/%s", prefix, libname)
-            for module in content:modules() do
-                local lines = _write_module(file, rows, nets, options.floorplan_width, instlookup, reflookup)
+            for module in content.content:modules() do
+                local lines = _write_module(content.rows, content.nets, width, content.instlookup, content.reflookup)
                 print(string.format("writing to file '%s/%s.lua'", basename, module.name))
                 local file = io.open(string.format("%s/%s.lua", basename, module.name), "w")
                 file:write(table.concat(lines, '\n'))
