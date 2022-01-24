@@ -52,6 +52,17 @@ function M.create_reference_rows(cellnames)
     return names
 end
 
+function M.regular_rows(cellname, numrows, numcolumns)
+    local rows = {}
+    for row = 1, numrows do
+        rows[row] = {}
+        for col = 1, numcolumns do
+            rows[row][col] = { reference = cellname, instance = string.format("cell_%d_%d", row, col) }
+        end
+    end
+    return rows
+end
+
 function M.digital(parent, cellnames, width, startpt, startanchor, flipfirst, growdirection, noflip)
     -- calculate row widths
     local rowwidths = {}
