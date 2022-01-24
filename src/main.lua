@@ -132,16 +132,20 @@ end
 
 if args.readverilog then
     local excluded_nets = args.verilogexcludednets
-    generator.from_verilog(
+
+    local content = generator.from_verilog(
         args.readverilog, 
-        args.importprefix or "verilogimport", 
-        "verilogimport", 
-        true,
         args.verilogplacerutilization or 0.5,
         args.verilogplaceraspectratio or 1,
         args.verilogexcludednets or {},
         args.verilogreportplacement or false
     )
+    local prefix = args.importprefix or "verilogimport"
+    local libname = "verilogimport"
+    local path = string.format("%s/%s", prefix, libname)
+    if not filesystem.exists(path) or args.importoverwrite then
+        generator.write_from_verilog(content, path)
+    end
     return 0
 end
 

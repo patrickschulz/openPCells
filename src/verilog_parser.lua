@@ -260,7 +260,12 @@ local function _convert_to_symbols(tokens)
     return symbols
 end
 
-local function optbusaccess(symbols)
+local function _identifier(symbols)
+    symbols:expect("ident")
+    return symbols:next_identifier()
+end
+
+local function _optbusaccess(symbols)
     local num = {}
     while symbols:accept("lsqbracket") do
         symbols:expect("number")
@@ -277,12 +282,18 @@ end
 local function _instancename(symbols)
     symbols:expect("ident")
     local name = symbols:next_identifier()
-    local num = optbusaccess(symbols)
-    for _, n in ipairs(num) do
-        name = string.format("%s_%d", name, n)
-    end
     return name
 end
+
+--[[
+local function _decimal_number(symbols)
+    local sign = 1
+    symbols:accept("plus")
+    if symbols:accept("minus") then
+        sign = -1
+    end
+end
+--]]
 
 local function _number(symbols)
     symbols:expect("number")
@@ -296,14 +307,14 @@ local function _portconnection(symbols)
         local connection = {}
         symbols:expect("ident")
         connection.port = symbols:next_identifier()
-        optbusaccess(symbols)
+        _optbusaccess(symbols)
         symbols:expect("lparen")
         if symbols:check("number") then
             _number(symbols)
             connection.net = "_FIXEDLEVEL_" -- FIXME
         else
             symbols:expect("ident")
-            local num = optbusaccess(symbols)
+            local num = _optbusaccess(symbols)
             connection.net = symbols:next_identifier()
             for _, n in ipairs(num) do
                 connection.net = string.format("%s_%d", connection.net, n)
@@ -316,7 +327,7 @@ end
 
 local function _wirename(symbols)
     symbols:expect("ident")
-    local num = optbusaccess(symbols)
+    local num = _optbusaccess(symbols)
     local name = symbols:next_identifier()
     for _, n in ipairs(num) do
         name = string.format("%s_%d", name, n)
@@ -324,23 +335,41 @@ local function _wirename(symbols)
     return name
 end
 
+local function _range(symbols)
+    symbols:expect("lsqbracket")
+    symbols:expect("number")
+    local msb = symbols:next_number()
+    symbols:expect("colon")
+    symbols:expect("number")
+    local lsb = symbols:next_number()
+    symbols:expect("rsqbracket")
+    return msb, lsb
+end
+
+local function _list_of_net_identifiers(symbols)
+    local names = {}
+    _identifier(symbols)
+    table.insert(names, symbols:next_identifier())
+    while symbols:accept("comma") do -- other names
+        _identifier(symbols)
+        table.insert(names, symbols:next_identifier())
+    end
+    return names
+end
+
 local function _statement(symbols)
     local s = {}
     if symbols:accept("wire") or symbols:accept("input") or symbols:accept("output") or symbols:accept("inout") then
-        if symbols:accept("lsqbracket") then
-            symbols:expect("number")
-            symbols:expect("colon")
-            symbols:expect("number")
-            symbols:expect("rsqbracket")
+        s.width = 1
+        if symbols:check("lsqbracket") then
+            local msb, lsb = _range(symbols)
+            s.width = msb - lsb + 1
         end
-        _wirename(symbols)
-        while symbols:accept("comma") do -- other names
-            _wirename(symbols)
-        end
+        s.names = _list_of_net_identifiers(symbols)
         symbols:expect("semicolon")
         s.type = "wireportdef"
     elseif symbols:accept("assign") then -- assign statement
-        _wirename(symbols)
+        s.lhs = _wirename(symbols)
         symbols:expect("equalsign")
         if symbols:accept("lbrace") then
             _wirename(symbols)
@@ -472,6 +501,10 @@ function meta.references(self)
         i = i + 1
         return t[i]
     end
+end
+
+function meta.nets(self)
+
 end
 
 function meta.get_ports(self)

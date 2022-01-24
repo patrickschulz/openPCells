@@ -1,0 +1,4 @@
+#ifndef LPLACER_COMMON_H
+#define LPLACER_COMMON_H
+
+#endif /* LPLACER_COMMON_H */

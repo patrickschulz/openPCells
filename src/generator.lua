@@ -201,6 +201,7 @@ local function _create_options(fixedrows, required_width, total_width, utilizati
         floorplan_height = math.ceil(floorplan_height),
         desired_row_width = math.ceil(total_width / floorplan_height * utilization),
         movespercell = movespercell,
+        coolingfactor = 0.95,
         report = report
     }
 
@@ -242,12 +243,13 @@ function M.from_verilog(filename, utilization, aspectratio, excluded_nets, repor
     local options = _create_options(fixedrows, required_width, total_width, utilization, aspectratio)
 
     -- run placement
-    local rows = placer.place_classic(maxnet, instances, options)
+    --local rows = placer.place_classic(maxnet, instances, options)
 
     -- run routing
-    local netpositions, numnets = _prepare_routing_nets(nets, rows, instlookup, reflookup)
-    router.route(netpositions, numnets)
+    --local netpositions, numnets = _prepare_routing_nets(nets, rows, instlookup, reflookup)
+    --router.route(netpositions, numnets)
 
+    -- TODO: these entries should exist per module, not across all modules (instlookup, reflookup)
     return {
         content = content,
         width = options.floorplan_width,
@@ -258,28 +260,21 @@ function M.from_verilog(filename, utilization, aspectratio, excluded_nets, repor
     }
 end
 
-function M.write_from_verilog(content, prefix, libname)
-    local path
-    if prefix and prefix ~= "" then
-        path = string.format("%s/%s", prefix, libname)
-    else
-        path = string.format("%s/%s", dirname, libname)
-    end
-    if not filesystem.exists(path) then
-        local created = filesystem.mkdir(path)
-        if created then
-            local basename = string.format("%s/%s", prefix, libname)
-            for module in content.content:modules() do
-                local lines = _write_module(content.rows, content.nets, width, content.instlookup, content.reflookup)
-                print(string.format("writing to file '%s/%s.lua'", basename, module.name))
-                local file = io.open(string.format("%s/%s.lua", basename, module.name), "w")
-                file:write(table.concat(lines, '\n'))
-                file:close()
-            end
-        else
-            moderror(string.format("generator.verilog_routing: could not create directory '%s/%s'", prefix, libname))
+function M.write_from_verilog(content, basename)
+    --[[
+    local created = filesystem.mkdir(basename)
+    if created then
+        for module in content.content:modules() do
+            local lines = _write_module(content.rows, content.nets, content.width, content.instlookup, content.reflookup)
+            print(string.format("writing to file '%s/%s.lua'", basename, module.name))
+            local file = io.open(string.format("%s/%s.lua", basename, module.name), "w")
+            file:write(table.concat(lines, '\n'))
+            file:close()
         end
+    else
+        moderror(string.format("generator.verilog_routing: could not create directory '%s'", basename))
     end
+    --]]
 end
 
 return M

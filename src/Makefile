@@ -14,16 +14,35 @@ SYSCFLAGS=
 SYSLDFLAGS=
 SYSLIBS=
 
-OPCHEADERS:=lpoint.h lbind.h lload.h lbinary.h lshape.h lfilesystem.h lutil.h lrouter.h lrouter_net.h lrouter_queue.h lrouter_field.h lrouter_route.h
-OPCCSOURCES:=ldir.c lpoint.c lbind.c lload.c lbinary.c lshape.c lfilesystem.c lplacer.c lplacer_rand.c lrouter.c lrouter_net.c lrouter_queue.c lrouter_field.c lrouter_route.c lutil.c
+OPCOBJ:=ldir.o lpoint.o lbind.o lload.o lbinary.o lshape.o lfilesystem.o lplacer.o lplacer_rand.o lplacer_nonoverlapping.o lplacer_classic.o lrouter.o lrouter_net.o lrouter_queue.o lrouter_field.o lrouter_route.o lutil.o
 
 .PHONY: default
 default:
 	@echo Guessing `$(UNAME)`
 	@$(MAKE) `$(UNAME)`
 
-$(PROGNAME): main.c lua/liblua.a $(OPCHEADERS) $(OPCCSOURCES)
-	$(CC) $(CFLAGS) -DLUA_COMPAT_5_3 -DLUA_USE_LINUX -o $(PROGNAME) main.c $(OPCCSOURCES) lua/liblua.a -lm -ldl
+$(PROGNAME): main.c lua/liblua.a $(OPCOBJ)
+	$(CC) $(CFLAGS) -DLUA_COMPAT_5_3 -DLUA_USE_LINUX -o $(PROGNAME) main.c $(OPCOBJ) lua/liblua.a -lm -ldl
+
+lpoint.o: lpoint.h lpoint.c
+ldir.o: ldir.c ldir.h
+lbind.o: lbind.h lbind.c
+lload.o: lload.h lload.c
+lbinary.o: lbinary.h lbinary.c
+lshape.o: lshape.h lshape.c
+lfilesystem.o: lfilesystem.h lfilesystem.c
+lutil.o: lutil.c lutil.h
+
+lplacer.o: lplacer.h lplacer.c
+lplacer_rand.o: lplacer_rand.h lplacer_rand.c
+lplacer_nonoverlapping.o: lplacer_nonoverlapping.h lplacer_nonoverlapping.c lplacer_rand.h lplacer_rand.c
+lplacer_classic.o: lplacer_classic.h lplacer_classic.c lplacer_rand.h lplacer_rand.c
+
+lrouter.o: lrouter.c lrouter.h
+lrouter_net.o: lrouter_net.h lrouter_net.c
+lrouter_queue.o: lrouter_queue.h lrouter_queue.c
+lrouter_field.o: lrouter_field.h lrouter_field.c
+lrouter_route.o: lrouter_route.h lrouter_route.c
 
 lua/liblua.a: lua/*.c lua/*.h
 	@$(MAKE) -C lua liblua.a
@@ -31,6 +50,7 @@ lua/liblua.a: lua/*.c lua/*.h
 .PHONY: clean
 clean:
 	rm -f $(PROGNAME) config.h
+	rm -f $(OPCOBJ)
 	rm -f lua/*.o lua/liblua.a
 
 AIX aix:

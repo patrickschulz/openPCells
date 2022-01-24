@@ -1,0 +1,10 @@
+file opc
+
+cd testfiles
+set args -S script.lua
+
+tui enable
+
+break _create_lua_result
+
+run
