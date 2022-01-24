@@ -12,6 +12,9 @@ pfile.lua
 tech/GF22FDSOI
 tech/TSMC28HPCplus
 
+# build object files
+src/*.o
+
 # lua object files
 src/lua/lua
 src/lua/luac
