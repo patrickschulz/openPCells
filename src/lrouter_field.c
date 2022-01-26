@@ -44,23 +44,34 @@ void white()
 	printf("\033[0;37m");
 }
 
-void reset_field(int** field, size_t size)
+static void reset_layer(int** layer, size_t size)
 {
 	for(size_t i = 0; i < size; i++) {
 		for(size_t j = 0; j < size; j++) {
-			if(field[j][i] != PATH && field[j][i] != PORT)
-				field[j][i] = UNVISITED;
+			if(layer[j][i] != PATH && layer[j][i] != PORT)
+				layer[j][i] = UNVISITED;
 		}
 	}
 }
 
-int** init_field(size_t size)
+void reset_field(int*** field, size_t size, size_t num_routing_layers)
 {
-    int** field = calloc(size, sizeof(*field));
-    for(size_t i = 0; i < size; i++)
+	for(size_t l = 0; l < num_routing_layers; l++) {
+		reset_layer(*field, size);
+	}
+}
+
+int*** init_field(size_t size, size_t num_layers)
+{
+    int*** field = calloc(num_layers, sizeof(**field));
+    for(size_t i = 0; i < num_layers; i++)
     {
-        field[i] = calloc(size, sizeof(**field));
-	memset(field[i], UNVISITED, size * sizeof(**field));
+	int** layer = calloc(size, sizeof(*field));
+	for(size_t j = 0; j < size; j++)
+	{
+		field[j] = calloc(size, sizeof(**field));
+		memset(field[j], UNVISITED, size * sizeof(**field));
+	}
     }
     return field;
 }

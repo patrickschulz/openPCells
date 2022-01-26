@@ -232,22 +232,66 @@ local function _read_parse_verilog(filename)
 end
 
 function M.from_verilog(filename, utilization, aspectratio, excluded_nets, report)
-    local content = _read_parse_verilog(filename)
+    --local content = _read_parse_verilog(filename)
 
-    -- collect nets and cells
-    local maxnet, instances, nets, instlookup, reflookup = _collect_nets_cells(content, excluded_nets)
+    ---- collect nets and cells
+    --local maxnet, instances, nets, instlookup, reflookup = _collect_nets_cells(content, excluded_nets)
 
-    -- placer options
-    local required_width, total_width = _get_geometry(content)
-    local options = _create_options(fixedrows, required_width, total_width, utilization, aspectratio)
+    ---- placer options
+    --local required_width, total_width = _get_geometry(content)
+    --local options = _create_options(fixedrows, required_width, total_width, utilization, aspectratio)
 
-    -- run placement
-    local rows = placer.place_classic(maxnet, instances, options)
+    ---- run placement
+    --local rows = placer.place_classic(maxnet, instances, options)
 
-    -- run routing
-    local netpositions, numnets = _prepare_routing_nets(nets, rows, instlookup, reflookup)
+    ---- run routing
+    --local netpositions, numnets = _prepare_routing_nets(nets, rows, instlookup, reflookup)
+    --router.route(netpositions, numnets)
+
+    -- TODO: run routing
+    local netpositions = {
+    ["net0"]={{x = 4, y = 16}, {x = 23, y = 15}},
+    ["net1"]={{x = 18, y = 7}, {x = 2, y = 7}},
+    ["net2"]={{x = 13, y = 17}, {x = 9, y = 9}},
+    ["net3"]={{x = 5, y = 8}, {x = 1, y = 7}},
+    ["net4"]={{x = 21, y = 2}, {x = 29, y = 21}},
+    ["net5"]={{x = 16, y = 27}, {x = 3, y = 10}},
+    ["net6"]={{x = 22, y = 22}, {x = 12, y = 3}},
+    ["net7"]={{x = 19, y = 10}, {x = 7, y = 4}},
+    ["net8"]={{x = 16, y = 12}, {x = 3, y = 12}},
+    ["net9"]={{x = 1, y = 2}, {x = 23, y = 11}},
+    ["net10"]={{x = 2, y = 13}, {x = 14, y = 6}},
+    ["net11"]={{x = 20, y = 10}, {x = 7, y = 7}},
+    ["net12"]={{x = 19, y = 12}, {x = 1, y = 15}},
+    ["net13"]={{x = 3, y = 6}, {x = 23, y = 11}},
+    }
+
+    local numnets = 14
+   -- for name, net in pairs(nets) do
+   --     for _, n in pairs(net.connections) do
+   --         for r, row in ipairs(rows) do
+   --             for c, column in ipairs(row) do
+   --                 if instlookup[column.instance] == n.instance then
+   --                     if not netpositions[name] then
+   --                         netpositions[name] = {}
+   --                         numnets = numnets + 1
+   --                     end
+   --                     local offset = _get_pin_offset(reflookup[column.reference], n.port)
+   --                     table.insert(netpositions[name], { x = c + offset, y = r })
+   --                 end
+   --             end
+   --         end
+   --     end
+   -- end
+
+    for name, net in pairs(netpositions) do
+        print(name)
+        for _, pt in ipairs(net) do
+            print(pt.x, pt.y)
+        end
+        print()
+    end
     router.route(netpositions, numnets)
-
     return {
         content = content,
         width = options.floorplan_width,
