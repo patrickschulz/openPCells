@@ -52,6 +52,21 @@ function M.create_reference_rows(cellnames)
     return names
 end
 
+function M.format_rows(cellnames)
+    local rows = {}
+    for row, entries in ipairs(cellnames) do
+        rows[row] = {}
+        for column, entry in ipairs(entries) do
+            local cellname = entry
+            rows[row][column] = { 
+                instance = string.format("I_%d_%d", row, column),
+                reference = entry,
+            }
+        end
+    end
+    return rows
+end
+
 function M.regular_rows(cellname, numrows, numcolumns)
     local rows = {}
     for row = 1, numrows do
@@ -127,7 +142,6 @@ end
 
 function M.rowwise(parent, cellnames, startpt, startanchor, flipfirst, growdirection, noflip)
     startpt = startpt or point.create(0, 0)
-    startanchor = startanchor or "left"
     growdirection = growdirection or "upright"
     local cells = {}
     local references = {}
@@ -143,7 +157,11 @@ function M.rowwise(parent, cellnames, startpt, startanchor, flipfirst, growdirec
             -- position cell
             if column == 1 then
                 if row == 1 then -- first cell
-                    cell:move_anchor(startanchor, startpt)
+                    if startanchor then
+                        cell:move_anchor(startanchor, startpt)
+                    else
+                        cell:translate(startpt)
+                    end
                 else
                     if string.match(growdirection, "up") then
                         if string.match(growdirection, "right") then
