@@ -10,4 +10,4 @@ opc.1: opc src/cmdoptions.lua src/generate_manpage.lua
 .PHONY: clean
 clean:
 	@$(MAKE) -C src clean
-	rm opc
+	rm -f opc

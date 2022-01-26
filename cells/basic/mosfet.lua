@@ -470,11 +470,11 @@ function layout(transistor, _P)
     ))
     transistor:add_anchor("botgatestraplowermiddle", point.create(
         0,
-        -_P.fwidth / 2 - _P.botgatestrspace
+        -_P.fwidth / 2 - _P.botgatestrspace - _P.botgatestrwidth
     ))
     transistor:add_anchor("botgatestrapuppermiddle", point.create(
         0,
-        -_P.fwidth / 2 - _P.botgatestrspace - _P.botgatestrwidth
+        -_P.fwidth / 2 - _P.botgatestrspace
     ))
     transistor:add_anchor("botgatestrapleft", point.create(
         -_P.fingers * _P.gatelength / 2 - (_P.fingers - 1) * _P.gatespace / 2,

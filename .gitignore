@@ -13,6 +13,9 @@ tech/GF22FDSOI
 tech/cmos22fdsoi
 tech/TSMC28HPCplus
 
+# build object files
+src/*.o
+
 # lua object files
 src/lua/lua
 src/lua/luac
