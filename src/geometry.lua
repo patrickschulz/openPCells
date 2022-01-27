@@ -236,6 +236,14 @@ function M.path(layer, pts, width, extension)
     return object.make_from_shape(S)
 end
 
+function M.path3x(layer, startpt, endpt, width, extension)
+    return M.path(layer, M.path_points_xy(startpt, { endpt }), width, extension)
+end
+
+function M.path3y(layer, startpt, endpt, width, extension)
+    return M.path(layer, M.path_points_yx(startpt, { endpt }), width, extension)
+end
+
 function M.path_c_shape(layer, ptstart, ptmiddle, ptend, width, extension)
     return M.path(layer,
         geometry.path_points_xy(ptstart,

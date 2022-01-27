@@ -45,6 +45,5 @@ end
 if args.ignoremissingexport then
     envlib.set("ignoremissingexport", true)
 end
-envlib.set("usefallbackvias", args.usefallbackvias)
 
 return args

@@ -167,7 +167,8 @@ local function _do_array(cell, S, entry, export)
     local height = S:get_height()
     local c = S:center()
     local via = _get_via_arrayzation(width, height, entry, xcont, ycont)
-    if not via and entry.fallback and envlib.get("usefallbackvias") then
+    local isbare = S:get_lpp().bare
+    if not via and entry.fallback and S:get_lpp().bare then
         via = { 
             width = entry.fallback.width, 
             height = entry.fallback.height,
