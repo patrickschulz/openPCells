@@ -25,7 +25,7 @@ void sort_nets(net_t *nets, size_t num_nets);
 
 void print_nets(net_t* nets, size_t num_nets);
 /* fill ports of nets into field */
-void fill_ports(net_t* nets, size_t num_nets, int** field);
+void fill_ports(net_t* nets, size_t num_nets, int*** field);
 
 /* prints the path of a given net */
 void print_path(net_t net);

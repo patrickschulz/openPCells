@@ -16,8 +16,8 @@ typedef struct {
 } point_t;
 
 int*** init_field(size_t size, size_t num_layers);
-void destroy_field(int** field, size_t size);
-void print_field(int** field, size_t size);
+void destroy_field(int*** field, size_t size, size_t num_layers);
+void print_field(int*** field, size_t size, unsigned int layer);
 void unprint_field(size_t size);
 
 /*

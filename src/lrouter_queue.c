@@ -105,5 +105,3 @@ int queue_len(queue_t *queue)
 
 	return count;
 }
-
-

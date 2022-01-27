@@ -11,23 +11,25 @@ void print_nets(net_t* nets, size_t num_nets)
 {
     for (unsigned int i = 0; i < num_nets; i++)
     {
-        printf("Net %u: (%u, %u) -> (%u, %u), rank: %u, routed?: %i\n", i, 
-	       nets[i].x1, nets[i].y1, nets[i].x2, nets[i].y2, nets[i].ranking, 
-	       nets[i].routed);
+        printf("Net %u: (%u, %u, %u) -> (%u, %u, %u), rank: %u, routed?: %i\n", 
+	       i, nets[i].x1, nets[i].y1, nets[i].z1, nets[i].x2, nets[i].y2,
+	       nets[i].z2, nets[i].ranking, nets[i].routed);
     }
 }
 
-void fill_ports(net_t* nets, size_t num_nets, int** field)
+void fill_ports(net_t* nets, size_t num_nets, int*** field)
 {
-	int x1, y1, x2, y2;
+	unsigned int x1, y1, x2, y2, z1, z2;
 	for (unsigned int i = 0; i < num_nets; i++)
 	{
 		x1 = nets[i].x1;
 		y1 = nets[i].y1;
+		z1 = nets[i].z1;
 		x2 = nets[i].x2;
 		y2 = nets[i].y2;
-		field[x1][y1] = PORT;
-		field[x2][y2] = PORT;
+		z2 = nets[i].z2;
+		field[z1][x1][y1] = PORT;
+		field[z2][x2][y2] = PORT;
 	}
 }
 

@@ -1,5 +1,6 @@
 #include "lrouter_net.h"
 #include "lrouter_queue.h"
+#include "lrouter_min_heap.h"
 #include "lrouter_field.h"
 #include "lrouter_route.h"
 
@@ -8,11 +9,7 @@
 #include <stdio.h>
 
 #define EVEN(val) ((val % 2 ) == 0)
-
 #define NUM_DIRECTIONS 6
-
-/* pointer to queue to save the to be visited points */
-queue_t *queue;
 
 /* helps to traverse the field */
 const int xincr[NUM_DIRECTIONS] = {-1, 0, 1, 0, 0, 0};
@@ -33,11 +30,12 @@ int route(net_t net, int*** field, size_t fieldsize, size_t num_layers,
 	point_t start;
 	start.x = startx;
 	start.y = starty;
+	start.z = startz;
 	start.score = 0;
 
-	/* put starting point in queue */
-	queue = queue_new();
-	queue_enqueue(queue, &start);
+	/* put starting point in min_heap */
+	min_heap_t *min_heap = heap_init();
+	heap_insert_point(min_heap, &start);
 
 	int score = 0;
 	unsigned int x, y, z, nextx, nexty, nextz;
@@ -51,8 +49,8 @@ int route(net_t net, int*** field, size_t fieldsize, size_t num_layers,
 	 */
 	do {
 		printf("route %u %u to %u %u\n", startx, starty, endx, endy);
-		/* get next point from queue */
-		point_ptr = (point_t*)queue_dequeue(queue);
+		/* get next point from heap */
+		point_ptr = heap_get_point(min_heap);
 
 		x = point_ptr->x;
 		y = point_ptr->y;
@@ -66,6 +64,7 @@ int route(net_t net, int*** field, size_t fieldsize, size_t num_layers,
 			nextx = x + xincr[i];
 			nexty = y + yincr[i];
 			nextz = z + zincr[i];
+			printf("next coords %u, %u, %u\n", nextx, nexty, nextz);
 
 			if(nextx >= fieldsize || nexty >= fieldsize ||
 			   nextz >= num_layers)
@@ -85,13 +84,10 @@ int route(net_t net, int*** field, size_t fieldsize, size_t num_layers,
 				{
 					/*
 					 * if next point is endpoint
-					 * put it into front of queue
-					 * so empty the queue (not nice way)
+					 * put it into front of heap
+					 * so empty the heap (not nice way)
 					 */
-					while(!queue_empty(queue))
-					{
-						queue_dequeue(queue);
-					}
+					while(heap_get_point(min_heap));
 				}
 
 				/* decide the val of the score incrementer */
@@ -121,15 +117,15 @@ int route(net_t net, int*** field, size_t fieldsize, size_t num_layers,
 				next->x = nextx;
 				next->y = nexty;
 				next->z = nextz;
-				next->score = score;
-				queue_enqueue(queue, next);
+				next->score = score + score_incr;
+				heap_insert_point(min_heap, next);
 			}
 
 
 		}
 
 	/* router is stuck */
-	if(queue_empty(queue))
+	if(!min_heap->size)
 	{
 		/* clean up */
 		field[startz][startx][starty] = PORT;
@@ -138,22 +134,23 @@ int route(net_t net, int*** field, size_t fieldsize, size_t num_layers,
 		return STUCK;
 	}
 
-	} while(!(x == endx && y == endy));
-
+	} while(!(x == endx && y == endy && z == endz));
 	/* backtrace */
 	/* go to end point */
 	x = endx;
 	y = endy;
+	printf("backtrace route %u %u to %u %u\n", startx, starty, endx, endy);
 	do {
-		printf("backtrace route %u %u to %u %u\n", startx, starty, endx, endy);
 		score = field[z][x][y];
 		field[z][x][y] = PATH;
+	printf("backtrace %u %u %u, score: %i\n", x, y, z, score);
 
 		/* circle around every point + check layer above and below */
 		for(int i = 0; i < NUM_DIRECTIONS; i++)
 		{
 			nextx = x + xincr[i];
 			nexty = y + yincr[i];
+			nextz = z + zincr[i];
 
 			if(nextx >= fieldsize ||
 			   nexty >= fieldsize ||
@@ -172,12 +169,13 @@ int route(net_t net, int*** field, size_t fieldsize, size_t num_layers,
 
 			/* check if point is visitable */
 			int nextfield = field[nextz][nextx][nexty];
+			printf("nextfield: %i\n", nextfield);
 			if(nextfield == (PORT || PATH || VIA))
 			{
 				continue;
 			}
 
-			/* go to the one with val = lower than currentval */
+			/* go to the one with val = lowest currentval */
 			if(nextfield < score)
 			{
 			    x = nextx;
@@ -190,11 +188,10 @@ int route(net_t net, int*** field, size_t fieldsize, size_t num_layers,
 			    path_point->y = y;
 			    path_point->z = z;
 			    queue_enqueue(net.path, path_point);
-
 			    break;
 			}
 		}
-	} while (!(x == startx && y == starty));
+	} while (!(x == startx && y == starty && z == startz));
 
 	/* mark start and end of net as ports */
 	field[startz][startx][starty] = PORT;

@@ -41,15 +41,21 @@ static struct netcollection* _initialize(lua_State* L)
             int y = lua_tointeger(L, -1);
             lua_pop(L, 1);
 
+            lua_getfield(L, -1, "z");
+            int z = lua_tointeger(L, -1);
+            lua_pop(L, 1);
+
             if(j == 1)
             {
                 nets[i].x1 = x;
                 nets[i].y1 = y;
+                nets[i].z1 = z;
             }
             if(j == 2)
             {
                 nets[i].x2 = x;
                 nets[i].y2 = y;
+                nets[i].z2 = z;
             }
 
             printf("(%d, %d)\n", x, y);
@@ -74,18 +80,22 @@ int lrouter_route(lua_State* L)
     sort_nets(nc->nets, nc->num_nets);
 
     size_t fieldsize = 30;
-    int** field = init_field(fieldsize);
+    size_t num_layers = 4;
+    unsigned int via_cost = 10;
+    unsigned int wrong_dir_cost = 10;
+    int*** field = init_field(fieldsize, num_layers);
 
     fill_ports(nc->nets, nc->num_nets, field);
 
     for(unsigned int i = 0; i < nc->num_nets; ++i)
     {
-	nc->nets[i].routed = route(nc->nets[i], field, fieldsize);
+	nc->nets[i].routed = route(nc->nets[i], field, fieldsize,
+				   num_layers, via_cost, wrong_dir_cost);
     }
 
     print_nets(nc->nets, nc->num_nets);
 
-    destroy_field(field, fieldsize);
+    destroy_field(field, fieldsize, num_layers);
     free(nc->nets);
     free(nc);
     return 0;

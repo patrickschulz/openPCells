@@ -66,36 +66,40 @@ int*** init_field(size_t size, size_t num_layers)
     int*** field = calloc(num_layers, sizeof(**field));
     for(size_t i = 0; i < num_layers; i++)
     {
-	int** layer = calloc(size, sizeof(*field));
+	field[i] = calloc(size, sizeof(*field));
 	for(size_t j = 0; j < size; j++)
 	{
-		field[j] = calloc(size, sizeof(**field));
-		memset(field[j], UNVISITED, size * sizeof(**field));
+		field[i][j] = calloc(size, sizeof(**field));
+		memset(field[i][j], UNVISITED, size * sizeof(**field));
 	}
     }
     return field;
 }
 
-void destroy_field(int** field, size_t size)
+void destroy_field(int*** field, size_t size, size_t num_layers)
 {
-    for(size_t i = 0; i < size; ++i)
-    {
-        free(field[i]);
-    }
+	for(size_t i = 0; i < num_layers; i++)
+	{
+	    for(size_t j = 0; j < size; j++)
+	    {
+		free(field[i][j]);
+	    }
+		free(field[i]);
+	}
     free(field);
 }
 
-void print_field(int** field, size_t size)
+void print_field(int*** field, size_t size, unsigned int layer)
 {
 	for(size_t i = 0; i < size; i++) {
 		for(size_t j = 0; j < size; j++) {
-			if(field[j][i] == PATH)
+			if(field[layer][j][i] == PATH)
 				green();
-			else if(field[j][i] == PORT)
+			else if(field[layer][j][i] == PORT)
 				red();
 			else
 				white();
-			printf("%2i  ", field[j][i]);
+			printf("%2i  ", field[layer][j][i]);
 		}
 		printf("\n");
 	}

@@ -14,7 +14,7 @@ SYSCFLAGS=
 SYSLDFLAGS=
 SYSLIBS=
 
-OPCOBJ:=ldir.o lpoint.o lbind.o lload.o lbinary.o lshape.o lfilesystem.o lplacer.o lplacer_rand.o lrouter.o lrouter_net.o lrouter_queue.o lrouter_field.o lrouter_route.o lutil.o
+OPCOBJ:=ldir.o lpoint.o lbind.o lload.o lbinary.o lshape.o lfilesystem.o lplacer.o lplacer_rand.o lrouter.o lrouter_net.o lrouter_queue.o lrouter_min_heap.o lrouter_field.o lrouter_route.o lutil.o
 
 .PHONY: default
 default:
@@ -39,6 +39,7 @@ lplacer_rand.o: lplacer_rand.h lplacer_rand.c
 lrouter.o: lrouter.c lrouter.h
 lrouter_net.o: lrouter_net.h lrouter_net.c
 lrouter_queue.o: lrouter_queue.h lrouter_queue.c
+lrouter_min_heap.o: lrouter_min_heap.h lrouter_min_heap.c
 lrouter_field.o: lrouter_field.h lrouter_field.c
 lrouter_route.o: lrouter_route.h lrouter_route.c
 
