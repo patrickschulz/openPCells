@@ -75,7 +75,7 @@ return {
     },
     switch{
         name = "writechildrenports", long = "--write-children-ports",
-        help = "export ports of sub cells. Depending on what you do with the generated layouts this could possible break a clean LVS"
+        help = "export ports of sub cells. Depending on what you do with the generated layouts this could possible break a clean LVS (possible szenario: importing a SKILL representation of a layout hierarchy. Since the SKILL export creates a flat layout, sub-level ports now become top-level ports, which is almost certainly wrong.)"
     },
     store_multiple{
         name = "cellpath", long = "--append-cellpath",
