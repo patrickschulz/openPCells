@@ -175,6 +175,10 @@ return {
         name = "script", short = "-S", long = "--script",
         help = "execute arbitrary script. This can be used to run lua code with the opc API loaded. If a cell is generated in this file, --cellscript is recommended, as then no manual technology/export/etc. loading is necessary."
     },
+    store_multiple{
+        name = "scriptargs", long = "--script-args",
+        help = "pass arguments to scripts (use with --script). Can be called multiple times"
+    },
     switch{
         name = "watch", short = "-w", long = "--watch",
         help = "start 'watch' mode. This continuously monitors the specified cell and regenerates the layout upon changes in the file."
