@@ -138,20 +138,23 @@ local function _write_text_record(recordtype, datatype, content)
     end
 end
 
-local function _write_raw(datum)
-    __content:append(datum)
+local function _write_raw_byte(datum)
+    __content:append_byte(datum)
+end
+local function _write_raw_four_bytes(datum)
+    __content:append_four_bytes(datum)
 end
 local function _write_binary_record(recordtype, datatype, content)
     local data = _assemble_data(recordtype.code, datatype, content)
     for _, datum in ipairs(data) do
-        _write_raw(datum)
+        _write_raw_byte(datum)
     end
 end
 local function _write_nondata_four_bytes_record(recordtype)
-    __content:append(0x00)
-    __content:append(0x04)
-    __content:append(recordtype)
-    __content:append(datatypes.NONE)
+    __content:append_byte(0x00)
+    __content:append_byte(0x04)
+    __content:append_byte(recordtype)
+    __content:append_byte(datatypes.NONE)
 end
 
 -- function "pointer" which (affected by __textmode option)
@@ -245,20 +248,20 @@ end
 
 function M.write_rectangle(layer, bl, tr)
     _write_nondata_four_bytes_record(0x08) -- BOUNDARY
-    _write_raw(0x00)
-    _write_raw(0x06)
-    _write_raw(0x0d) -- LAYER
-    _write_raw(0x02) -- TWO_BYTE_INTEGER
+    _write_raw_byte(0x00)
+    _write_raw_byte(0x06)
+    _write_raw_byte(0x0d) -- LAYER
+    _write_raw_byte(0x02) -- TWO_BYTE_INTEGER
     local layerdata = binarylib.split_in_bytes(layer.layer, 2)
-    _write_raw(layerdata[1])
-    _write_raw(layerdata[2])
-    _write_raw(0x00)
-    _write_raw(0x06)
-    _write_raw(0x0e) -- DATATYPE
-    _write_raw(0x02) -- TWO_BYTE_INTEGER
+    _write_raw_byte(layerdata[1])
+    _write_raw_byte(layerdata[2])
+    _write_raw_byte(0x00)
+    _write_raw_byte(0x06)
+    _write_raw_byte(0x0e) -- DATATYPE
+    _write_raw_byte(0x02) -- TWO_BYTE_INTEGER
     local purposedata = binarylib.split_in_bytes(layer.purpose, 2)
-    _write_raw(purposedata[1])
-    _write_raw(purposedata[2])
+    _write_raw_byte(purposedata[1])
+    _write_raw_byte(purposedata[2])
 
     -- point data
     local multiplier = 1e9 * __databaseunit -- opc works in nanometers
@@ -268,54 +271,20 @@ function M.write_rectangle(layer, bl, tr)
     bly = bly * multiplier
     trx = trx * multiplier
     try = try * multiplier
-    local blxdata = binarylib.split_in_bytes(blx, 4)
-    local blydata = binarylib.split_in_bytes(bly, 4)
-    local trxdata = binarylib.split_in_bytes(trx, 4)
-    local trydata = binarylib.split_in_bytes(try, 4)
-    _write_raw(0x00)
-    _write_raw(0x2c)
-    _write_raw(0x10) -- XY
-    _write_raw(0x03) -- FOUR_BYTE_INTEGER
-    _write_raw(blxdata[1])
-    _write_raw(blxdata[2])
-    _write_raw(blxdata[3])
-    _write_raw(blxdata[4])
-    _write_raw(blydata[1])
-    _write_raw(blydata[2])
-    _write_raw(blydata[3])
-    _write_raw(blydata[4])
-    _write_raw(trxdata[1])
-    _write_raw(trxdata[2])
-    _write_raw(trxdata[3])
-    _write_raw(trxdata[4])
-    _write_raw(blydata[1])
-    _write_raw(blydata[2])
-    _write_raw(blydata[3])
-    _write_raw(blydata[4])
-    _write_raw(trxdata[1])
-    _write_raw(trxdata[2])
-    _write_raw(trxdata[3])
-    _write_raw(trxdata[4])
-    _write_raw(trydata[1])
-    _write_raw(trydata[2])
-    _write_raw(trydata[3])
-    _write_raw(trydata[4])
-    _write_raw(blxdata[1])
-    _write_raw(blxdata[2])
-    _write_raw(blxdata[3])
-    _write_raw(blxdata[4])
-    _write_raw(trydata[1])
-    _write_raw(trydata[2])
-    _write_raw(trydata[3])
-    _write_raw(trydata[4])
-    _write_raw(blxdata[1])
-    _write_raw(blxdata[2])
-    _write_raw(blxdata[3])
-    _write_raw(blxdata[4])
-    _write_raw(blydata[1])
-    _write_raw(blydata[2])
-    _write_raw(blydata[3])
-    _write_raw(blydata[4])
+    _write_raw_byte(0x00)
+    _write_raw_byte(0x2c)
+    _write_raw_byte(0x10) -- XY
+    _write_raw_byte(0x03) -- FOUR_BYTE_INTEGER
+    _write_raw_four_bytes(blx)
+    _write_raw_four_bytes(bly)
+    _write_raw_four_bytes(trx)
+    _write_raw_four_bytes(bly)
+    _write_raw_four_bytes(trx)
+    _write_raw_four_bytes(try)
+    _write_raw_four_bytes(blx)
+    _write_raw_four_bytes(try)
+    _write_raw_four_bytes(blx)
+    _write_raw_four_bytes(bly)
     _write_nondata_four_bytes_record(0x11) -- ENDEL
 end
 

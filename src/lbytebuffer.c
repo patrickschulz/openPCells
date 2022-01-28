@@ -35,16 +35,44 @@ static int lbytebuffer_destroy(lua_State* L)
     return 0;
 }
 
-static int lbytebuffer_append(lua_State* L)
+static int lbytebuffer_append_byte(lua_State* L)
 {
     struct bytebuffer* buffer = lua_touserdata(L, 1);
     char datum = lua_tointeger(L, 2);
-    if(buffer->size == buffer->capacity)
+    if(buffer->size + 1 > buffer->capacity)
     {
         _resize_data(buffer, buffer->capacity * 2);
     }
     buffer->data[buffer->size] = datum;
     buffer->size += 1;
+    return 0;
+}
+
+static int lbytebuffer_append_four_bytes(lua_State* L)
+{
+    struct bytebuffer* buffer = lua_touserdata(L, 1);
+    int datum = lua_tointeger(L, 2);
+    if(buffer->size + 4 > buffer->capacity)
+    {
+        _resize_data(buffer, buffer->capacity * 2);
+    }
+    int byte1 = datum >> (8 * (4 - 1));
+    if(datum < 0)
+    {
+        byte1 += 256;
+    }
+    datum = datum - (byte1 << (8 * (4 - 1)));
+    int byte2 = datum >> (8 * (3 - 1));
+    datum = datum - (byte2 << (8 * (3 - 1)));
+    int byte3 = datum >> (8 * (2 - 1));
+    datum = datum - (byte3 << (8 * (2 - 1)));
+    int byte4 = datum >> (8 * (1 - 1));
+    datum = datum - (byte4 << (8 * (1 - 1)));
+    buffer->data[buffer->size + 0] = byte1;
+    buffer->data[buffer->size + 1] = byte2;
+    buffer->data[buffer->size + 2] = byte3;
+    buffer->data[buffer->size + 3] = byte4;
+    buffer->size += 4;
     return 0;
 }
 
@@ -59,9 +87,10 @@ int open_lbytebuffer_lib(lua_State* L)
 {
     static const luaL_Reg metafuncs[] =
     {
-        { "append", lbytebuffer_append   },
-        { "str",    lbytebuffer_tostring },
-        { NULL,     NULL                 }
+        { "append_byte",       lbytebuffer_append_byte       },
+        { "append_four_bytes", lbytebuffer_append_four_bytes },
+        { "str",               lbytebuffer_tostring          },
+        { NULL,                NULL                          }
     };
     // create metatable for points
     luaL_newmetatable(L, LBYTEBUFFERMETA);
