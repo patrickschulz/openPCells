@@ -141,6 +141,9 @@ end
 local function _write_raw_byte(datum)
     __content:append_byte(datum)
 end
+local function _write_raw_two_bytes(datum)
+    __content:append_two_bytes(datum)
+end
 local function _write_raw_four_bytes(datum)
     __content:append_four_bytes(datum)
 end
@@ -252,16 +255,12 @@ function M.write_rectangle(layer, bl, tr)
     _write_raw_byte(0x06)
     _write_raw_byte(0x0d) -- LAYER
     _write_raw_byte(0x02) -- TWO_BYTE_INTEGER
-    local layerdata = binarylib.split_in_bytes(layer.layer, 2)
-    _write_raw_byte(layerdata[1])
-    _write_raw_byte(layerdata[2])
+    _write_raw_two_bytes(layer.layer)
     _write_raw_byte(0x00)
     _write_raw_byte(0x06)
     _write_raw_byte(0x0e) -- DATATYPE
     _write_raw_byte(0x02) -- TWO_BYTE_INTEGER
-    local purposedata = binarylib.split_in_bytes(layer.purpose, 2)
-    _write_raw_byte(purposedata[1])
-    _write_raw_byte(purposedata[2])
+    _write_raw_two_bytes(layer.purpose)
 
     -- point data
     local multiplier = 1e9 * __databaseunit -- opc works in nanometers
@@ -289,41 +288,68 @@ function M.write_rectangle(layer, bl, tr)
 end
 
 function M.write_polygon(layer, pts)
+    _write_nondata_four_bytes_record(0x08) -- BOUNDARY
+    _write_raw_byte(0x00)
+    _write_raw_byte(0x06)
+    _write_raw_byte(0x0d) -- LAYER
+    _write_raw_byte(0x02) -- TWO_BYTE_INTEGER
+    _write_raw_two_bytes(layer.layer)
+    _write_raw_byte(0x00)
+    _write_raw_byte(0x06)
+    _write_raw_byte(0x0e) -- DATATYPE
+    _write_raw_byte(0x02) -- TWO_BYTE_INTEGER
+    _write_raw_two_bytes(layer.purpose)
+
     local ptstream = _unpack_points(pts)
-    _write_record(recordtypes.BOUNDARY, datatypes.NONE)
-    _write_record(recordtypes.LAYER, datatypes.TWO_BYTE_INTEGER, { layer.layer })
-    _write_record(recordtypes.DATATYPE, datatypes.TWO_BYTE_INTEGER, { layer.purpose})
     _write_record(recordtypes.XY, datatypes.FOUR_BYTE_INTEGER, ptstream)
-    _write_record(recordtypes.ENDEL, datatypes.NONE)
+    _write_nondata_four_bytes_record(0x11) -- ENDEL
 end
 
 function M.write_path(layer, pts, width, extension)
-    local ptstream = _unpack_points(pts)
-    _write_record(recordtypes.PATH, datatypes.NONE)
-    _write_record(recordtypes.LAYER, datatypes.TWO_BYTE_INTEGER, { layer.layer })
-    _write_record(recordtypes.DATATYPE, datatypes.TWO_BYTE_INTEGER, { layer.purpose })
-    if extension == "butt" then
-        -- (implicit)
-        --_write_record(recordtypes.PATHTYPE, datatypes.TWO_BYTE_INTEGER, { 0 })
-    elseif extension == "round" then
-        _write_record(recordtypes.PATHTYPE, datatypes.TWO_BYTE_INTEGER, { 1 })
+    _write_nondata_four_bytes_record(0x09) -- PATH
+    _write_raw_byte(0x00)
+    _write_raw_byte(0x06)
+    _write_raw_byte(0x0d) -- LAYER
+    _write_raw_byte(0x02) -- TWO_BYTE_INTEGER
+    _write_raw_two_bytes(layer.layer)
+    _write_raw_byte(0x00)
+    _write_raw_byte(0x06)
+    _write_raw_byte(0x0e) -- DATATYPE
+    _write_raw_byte(0x02) -- TWO_BYTE_INTEGER
+    _write_raw_two_bytes(layer.purpose)
+
+    _write_raw_byte(0x00)
+    _write_raw_byte(0x06)
+    _write_raw_byte(0x21) -- PATHTYPE
+    _write_raw_byte(0x02) -- TWO_BYTE_INTEGER
+    _write_raw_byte(0x00)
+    if extension == "round" then
+        _write_raw_byte(0x01)
     elseif extension == "cap" then
-        _write_record(recordtypes.PATHTYPE, datatypes.TWO_BYTE_INTEGER, { 2 })
+        _write_raw_byte(0x02)
     elseif type(extension) == "table" then
-        _write_record(recordtypes.PATHTYPE, datatypes.TWO_BYTE_INTEGER, { 4 })
+        _write_raw_byte(0x04)
+    else
+        _write_raw_byte(0x00)
     end
-    _write_record(recordtypes.WIDTH, datatypes.FOUR_BYTE_INTEGER, { width })
+
+    _write_raw_byte(0x00)
+    _write_raw_byte(0x08)
+    _write_raw_byte(0x0f) -- WIDTH
+    _write_raw_byte(0x03) -- FOUR_BYTE_INTEGER
+    _write_raw_four_bytes(width)
     -- these records have to come after WIDTH (at least for klayout, but they also are in this order in the GDS manual)
     if type(extension) == "table" then
         _write_record(recordtypes.BGNEXTN, datatypes.FOUR_BYTE_INTEGER, { extension[1] })
         _write_record(recordtypes.ENDEXTN, datatypes.FOUR_BYTE_INTEGER, { extension[2] })
     end
+    local ptstream = _unpack_points(pts)
     _write_record(recordtypes.XY, datatypes.FOUR_BYTE_INTEGER, ptstream)
-    _write_record(recordtypes.ENDEL, datatypes.NONE)
+    _write_nondata_four_bytes_record(0x11) -- ENDEL
 end
 
 function M.write_cell_reference(identifier, x, y, orientation)
-    _write_record(recordtypes.SREF, datatypes.NONE)
+    _write_nondata_four_bytes_record(0x0a) -- ENDEL
     _write_record(recordtypes.SNAME, datatypes.ASCII_STRING, identifier)
     if orientation == "fx" then
         _write_record(recordtypes.STRANS, datatypes.BIT_ARRAY, { 0x8000 })
@@ -337,8 +363,15 @@ function M.write_cell_reference(identifier, x, y, orientation)
         _write_record(recordtypes.STRANS, datatypes.BIT_ARRAY, { 0x0000 })
         _write_record(recordtypes.ANGLE, datatypes.EIGHT_BYTE_REAL, { 90 })
     end
-    _write_record(recordtypes.XY, datatypes.FOUR_BYTE_INTEGER, _unpack_points({ point.create(x, y) }))
-    _write_record(recordtypes.ENDEL, datatypes.NONE)
+    local multiplier = 1e9 * __databaseunit -- opc works in nanometers
+    _write_raw_byte(0x00)
+    _write_raw_byte(0x0c)
+    _write_raw_byte(0x10) -- XY
+    _write_raw_byte(0x03) -- FOUR_BYTE_INTEGER
+    _write_raw_four_bytes(x * multiplier)
+    _write_raw_four_bytes(y * multiplier)
+
+    _write_nondata_four_bytes_record(0x11) -- ENDEL
 end
 
 function M.write_cell_array(identifier, x, y, orientation, xrep, yrep, xpitch, ypitch)

@@ -48,6 +48,27 @@ static int lbytebuffer_append_byte(lua_State* L)
     return 0;
 }
 
+static int lbytebuffer_append_two_bytes(lua_State* L)
+{
+    struct bytebuffer* buffer = lua_touserdata(L, 1);
+    int datum = lua_tointeger(L, 2);
+    if(buffer->size + 2 > buffer->capacity)
+    {
+        _resize_data(buffer, buffer->capacity * 2);
+    }
+    int byte1 = datum >> 8;
+    if(datum < 0)
+    {
+        byte1 += 256;
+    }
+    datum = datum - (byte1 << 8);
+    int byte2 = datum;
+    buffer->data[buffer->size + 0] = byte1;
+    buffer->data[buffer->size + 1] = byte2;
+    buffer->size += 2;
+    return 0;
+}
+
 static int lbytebuffer_append_four_bytes(lua_State* L)
 {
     struct bytebuffer* buffer = lua_touserdata(L, 1);
@@ -56,18 +77,17 @@ static int lbytebuffer_append_four_bytes(lua_State* L)
     {
         _resize_data(buffer, buffer->capacity * 2);
     }
-    int byte1 = datum >> (8 * (4 - 1));
+    int byte1 = datum >> 24;
     if(datum < 0)
     {
         byte1 += 256;
     }
-    datum = datum - (byte1 << (8 * (4 - 1)));
-    int byte2 = datum >> (8 * (3 - 1));
-    datum = datum - (byte2 << (8 * (3 - 1)));
-    int byte3 = datum >> (8 * (2 - 1));
-    datum = datum - (byte3 << (8 * (2 - 1)));
-    int byte4 = datum >> (8 * (1 - 1));
-    datum = datum - (byte4 << (8 * (1 - 1)));
+    datum = datum - (byte1 << 24);
+    int byte2 = datum >> 16;
+    datum = datum - (byte2 << 16);
+    int byte3 = datum >> 8;
+    datum = datum - (byte3 << 8);
+    int byte4 = datum;
     buffer->data[buffer->size + 0] = byte1;
     buffer->data[buffer->size + 1] = byte2;
     buffer->data[buffer->size + 2] = byte3;
@@ -88,6 +108,7 @@ int open_lbytebuffer_lib(lua_State* L)
     static const luaL_Reg metafuncs[] =
     {
         { "append_byte",       lbytebuffer_append_byte       },
+        { "append_two_bytes",  lbytebuffer_append_two_bytes  },
         { "append_four_bytes", lbytebuffer_append_four_bytes },
         { "str",               lbytebuffer_tostring          },
         { NULL,                NULL                          }
