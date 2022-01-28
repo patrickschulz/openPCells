@@ -116,7 +116,7 @@ local function _assemble_data(recordtype, datatype, content)
     return data
 end
 
-local __content = {}
+local __content = bytebuffer.create()
 
 local function _write_text_record(recordtype, datatype, content)
     if datatype == datatypes.NONE then
@@ -138,11 +138,20 @@ local function _write_text_record(recordtype, datatype, content)
     end
 end
 
+local function _write_raw(datum)
+    __content:append(datum)
+end
 local function _write_binary_record(recordtype, datatype, content)
     local data = _assemble_data(recordtype.code, datatype, content)
     for _, datum in ipairs(data) do
-        table.insert(__content, string.char(datum))
+        _write_raw(datum)
     end
+end
+local function _write_nondata_four_bytes_record(recordtype)
+    __content:append(0x00)
+    __content:append(0x04)
+    __content:append(recordtype)
+    __content:append(datatypes.NONE)
 end
 
 -- function "pointer" which (affected by __textmode option)
@@ -161,7 +170,11 @@ end
 
 -- public interface
 function M.finalize()
-    return table.concat(__content)
+    if __textmode then
+        return table.concat(__content)
+    else
+        return __content:str()
+    end
 end
 
 function M.get_extension()
@@ -185,6 +198,7 @@ function M.set_options(opt)
     if opt.textmode then -- enable textmode
         __textmode = true
         _write_record = _write_text_record
+        __content = {}
     end
 
     if opt.disablepath then
@@ -230,12 +244,79 @@ function M.at_end_cell()
 end
 
 function M.write_rectangle(layer, bl, tr)
-    _write_record(recordtypes.BOUNDARY, datatypes.NONE)
-    _write_record(recordtypes.LAYER, datatypes.TWO_BYTE_INTEGER, { layer.layer })
-    _write_record(recordtypes.DATATYPE, datatypes.TWO_BYTE_INTEGER, { layer.purpose})
-    local ptstream = _unpack_points({ bl, point.combine_21(bl, tr), tr, point.combine_12(bl, tr), bl })
-    _write_record(recordtypes.XY, datatypes.FOUR_BYTE_INTEGER, ptstream)
-    _write_record(recordtypes.ENDEL, datatypes.NONE)
+    _write_nondata_four_bytes_record(0x08) -- BOUNDARY
+    _write_raw(0x00)
+    _write_raw(0x06)
+    _write_raw(0x0d) -- LAYER
+    _write_raw(0x02) -- TWO_BYTE_INTEGER
+    local layerdata = binarylib.split_in_bytes(layer.layer, 2)
+    _write_raw(layerdata[1])
+    _write_raw(layerdata[2])
+    _write_raw(0x00)
+    _write_raw(0x06)
+    _write_raw(0x0e) -- DATATYPE
+    _write_raw(0x02) -- TWO_BYTE_INTEGER
+    local purposedata = binarylib.split_in_bytes(layer.purpose, 2)
+    _write_raw(purposedata[1])
+    _write_raw(purposedata[2])
+
+    -- point data
+    local multiplier = 1e9 * __databaseunit -- opc works in nanometers
+    local blx, bly = bl:unwrap()
+    local trx, try = tr:unwrap()
+    blx = blx * multiplier
+    bly = bly * multiplier
+    trx = trx * multiplier
+    try = try * multiplier
+    local blxdata = binarylib.split_in_bytes(blx, 4)
+    local blydata = binarylib.split_in_bytes(bly, 4)
+    local trxdata = binarylib.split_in_bytes(trx, 4)
+    local trydata = binarylib.split_in_bytes(try, 4)
+    _write_raw(0x00)
+    _write_raw(0x2c)
+    _write_raw(0x10) -- XY
+    _write_raw(0x03) -- FOUR_BYTE_INTEGER
+    _write_raw(blxdata[1])
+    _write_raw(blxdata[2])
+    _write_raw(blxdata[3])
+    _write_raw(blxdata[4])
+    _write_raw(blydata[1])
+    _write_raw(blydata[2])
+    _write_raw(blydata[3])
+    _write_raw(blydata[4])
+    _write_raw(trxdata[1])
+    _write_raw(trxdata[2])
+    _write_raw(trxdata[3])
+    _write_raw(trxdata[4])
+    _write_raw(blydata[1])
+    _write_raw(blydata[2])
+    _write_raw(blydata[3])
+    _write_raw(blydata[4])
+    _write_raw(trxdata[1])
+    _write_raw(trxdata[2])
+    _write_raw(trxdata[3])
+    _write_raw(trxdata[4])
+    _write_raw(trydata[1])
+    _write_raw(trydata[2])
+    _write_raw(trydata[3])
+    _write_raw(trydata[4])
+    _write_raw(blxdata[1])
+    _write_raw(blxdata[2])
+    _write_raw(blxdata[3])
+    _write_raw(blxdata[4])
+    _write_raw(trydata[1])
+    _write_raw(trydata[2])
+    _write_raw(trydata[3])
+    _write_raw(trydata[4])
+    _write_raw(blxdata[1])
+    _write_raw(blxdata[2])
+    _write_raw(blxdata[3])
+    _write_raw(blxdata[4])
+    _write_raw(blydata[1])
+    _write_raw(blydata[2])
+    _write_raw(blydata[3])
+    _write_raw(blydata[4])
+    _write_nondata_four_bytes_record(0x11) -- ENDEL
 end
 
 function M.write_polygon(layer, pts)
