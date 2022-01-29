@@ -250,19 +250,27 @@ function M.at_end_cell()
 end
 
 function M.write_rectangle(layer, bl, tr)
-    _write_nondata_four_bytes_record(0x08) -- BOUNDARY
-    _write_raw_byte(0x00)
-    _write_raw_byte(0x06)
-    _write_raw_byte(0x0d) -- LAYER
-    _write_raw_byte(0x02) -- TWO_BYTE_INTEGER
-    _write_raw_two_bytes(layer.layer)
-    _write_raw_byte(0x00)
-    _write_raw_byte(0x06)
-    _write_raw_byte(0x0e) -- DATATYPE
-    _write_raw_byte(0x02) -- TWO_BYTE_INTEGER
-    _write_raw_two_bytes(layer.purpose)
+    -- BOUNDARY
+    __content:append_byte(0x00)
+    __content:append_byte(0x04)
+    __content:append_byte(0x08)
+    __content:append_byte(0x00)
 
-    -- point data
+    -- LAYER
+    __content:append_byte(0x00)
+    __content:append_byte(0x06)
+    __content:append_byte(0x0d)
+    __content:append_byte(0x02)
+    __content:append_two_bytes(layer.layer)
+
+    -- DATATYPE
+    __content:append_byte(0x00)
+    __content:append_byte(0x06)
+    __content:append_byte(0x0e)
+    __content:append_byte(0x02)
+    __content:append_two_bytes(layer.purpose)
+
+    -- XY
     local multiplier = 1e9 * __databaseunit -- opc works in nanometers
     local blx, bly = bl:unwrap()
     local trx, try = tr:unwrap()
@@ -270,34 +278,47 @@ function M.write_rectangle(layer, bl, tr)
     bly = bly * multiplier
     trx = trx * multiplier
     try = try * multiplier
-    _write_raw_byte(0x00)
-    _write_raw_byte(0x2c)
-    _write_raw_byte(0x10) -- XY
-    _write_raw_byte(0x03) -- FOUR_BYTE_INTEGER
-    _write_raw_four_bytes(blx)
-    _write_raw_four_bytes(bly)
-    _write_raw_four_bytes(trx)
-    _write_raw_four_bytes(bly)
-    _write_raw_four_bytes(trx)
-    _write_raw_four_bytes(try)
-    _write_raw_four_bytes(blx)
-    _write_raw_four_bytes(try)
-    _write_raw_four_bytes(blx)
-    _write_raw_four_bytes(bly)
-    _write_nondata_four_bytes_record(0x11) -- ENDEL
+    __content:append_byte(0x00)
+    __content:append_byte(0x2c)
+    __content:append_byte(0x10) -- XY
+    __content:append_byte(0x03) -- FOUR_BYTE_INTEGER
+    __content:append_four_bytes(blx)
+    __content:append_four_bytes(bly)
+    __content:append_four_bytes(trx)
+    __content:append_four_bytes(bly)
+    __content:append_four_bytes(trx)
+    __content:append_four_bytes(try)
+    __content:append_four_bytes(blx)
+    __content:append_four_bytes(try)
+    __content:append_four_bytes(blx)
+    __content:append_four_bytes(bly)
+
+    -- ENDEL
+    __content:append_byte(0x00)
+    __content:append_byte(0x04)
+    __content:append_byte(0x11)
+    __content:append_byte(0x00)
 end
 
 function M.write_polygon(layer, pts)
-    _write_nondata_four_bytes_record(0x08) -- BOUNDARY
+    -- BOUNDARY
+    _write_raw_byte(0x00)
+    _write_raw_byte(0x04)
+    _write_raw_byte(0x08)
+    _write_raw_byte(0x00)
+
+    -- LAYER
     _write_raw_byte(0x00)
     _write_raw_byte(0x06)
-    _write_raw_byte(0x0d) -- LAYER
-    _write_raw_byte(0x02) -- TWO_BYTE_INTEGER
+    _write_raw_byte(0x0d)
+    _write_raw_byte(0x02)
     _write_raw_two_bytes(layer.layer)
+
+    -- DATATYPE
     _write_raw_byte(0x00)
     _write_raw_byte(0x06)
-    _write_raw_byte(0x0e) -- DATATYPE
-    _write_raw_byte(0x02) -- TWO_BYTE_INTEGER
+    _write_raw_byte(0x0e)
+    _write_raw_byte(0x02)
     _write_raw_two_bytes(layer.purpose)
 
     local ptstream = _unpack_points(pts)
