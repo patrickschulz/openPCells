@@ -126,10 +126,10 @@ local function _write_text_record(recordtype, datatype, content)
         local str
         if datatype == datatypes.NONE then
         elseif datatype == datatypes.BIT_ARRAY or
-               datatype == datatypes.TWO_BYTE_INTEGER or
-               datatype == datatypes.FOUR_BYTE_INTEGER or
-               datatype == datatypes.FOUR_BYTE_REAL or
-               datatype == datatypes.EIGHT_BYTE_REAL then
+            datatype == datatypes.TWO_BYTE_INTEGER or
+            datatype == datatypes.FOUR_BYTE_INTEGER or
+            datatype == datatypes.FOUR_BYTE_REAL or
+            datatype == datatypes.EIGHT_BYTE_REAL then
             str = table.concat(content, " ")
         elseif datatype == datatypes.ASCII_STRING then
             str = content
@@ -138,26 +138,11 @@ local function _write_text_record(recordtype, datatype, content)
     end
 end
 
-local function _write_raw_byte(datum)
-    __content:append_byte(datum)
-end
-local function _write_raw_two_bytes(datum)
-    __content:append_two_bytes(datum)
-end
-local function _write_raw_four_bytes(datum)
-    __content:append_four_bytes(datum)
-end
 local function _write_binary_record(recordtype, datatype, content)
     local data = _assemble_data(recordtype.code, datatype, content)
     for _, datum in ipairs(data) do
-        _write_raw_byte(datum)
+        __content:append_byte(datum)
     end
-end
-local function _write_nondata_four_bytes_record(recordtype)
-    __content:append_byte(0x00)
-    __content:append_byte(0x04)
-    __content:append_byte(recordtype)
-    __content:append_byte(datatypes.NONE)
 end
 
 -- function "pointer" which (affected by __textmode option)
@@ -302,102 +287,247 @@ end
 
 function M.write_polygon(layer, pts)
     -- BOUNDARY
-    _write_raw_byte(0x00)
-    _write_raw_byte(0x04)
-    _write_raw_byte(0x08)
-    _write_raw_byte(0x00)
+    __content:append_byte(0x00)
+    __content:append_byte(0x04)
+    __content:append_byte(0x08)
+    __content:append_byte(0x00)
 
     -- LAYER
-    _write_raw_byte(0x00)
-    _write_raw_byte(0x06)
-    _write_raw_byte(0x0d)
-    _write_raw_byte(0x02)
-    _write_raw_two_bytes(layer.layer)
+    __content:append_byte(0x00)
+    __content:append_byte(0x06)
+    __content:append_byte(0x0d)
+    __content:append_byte(0x02)
+    __content:append_two_bytes(layer.layer)
 
     -- DATATYPE
-    _write_raw_byte(0x00)
-    _write_raw_byte(0x06)
-    _write_raw_byte(0x0e)
-    _write_raw_byte(0x02)
-    _write_raw_two_bytes(layer.purpose)
+    __content:append_byte(0x00)
+    __content:append_byte(0x06)
+    __content:append_byte(0x0e)
+    __content:append_byte(0x02)
+    __content:append_two_bytes(layer.purpose)
 
     local ptstream = _unpack_points(pts)
-    _write_record(recordtypes.XY, datatypes.FOUR_BYTE_INTEGER, ptstream)
-    _write_nondata_four_bytes_record(0x11) -- ENDEL
+    local len = #ptstream
+    __content:append_two_bytes(4 + 4 * len)
+    __content:append_byte(0x10) -- XY
+    __content:append_byte(0x03) -- FOUR_BYTE_INTEGER
+    for i = 1, len do
+        __content:append_four_bytes(ptstream[i])
+    end
+
+    -- ENDEL
+    __content:append_byte(0x00)
+    __content:append_byte(0x04)
+    __content:append_byte(0x11)
+    __content:append_byte(0x00)
 end
 
 function M.write_path(layer, pts, width, extension)
-    _write_nondata_four_bytes_record(0x09) -- PATH
-    _write_raw_byte(0x00)
-    _write_raw_byte(0x06)
-    _write_raw_byte(0x0d) -- LAYER
-    _write_raw_byte(0x02) -- TWO_BYTE_INTEGER
-    _write_raw_two_bytes(layer.layer)
-    _write_raw_byte(0x00)
-    _write_raw_byte(0x06)
-    _write_raw_byte(0x0e) -- DATATYPE
-    _write_raw_byte(0x02) -- TWO_BYTE_INTEGER
-    _write_raw_two_bytes(layer.purpose)
+    -- PATH
+    __content:append_byte(0x00)
+    __content:append_byte(0x04)
+    __content:append_byte(0x09)
+    __content:append_byte(0x00)
 
-    _write_raw_byte(0x00)
-    _write_raw_byte(0x06)
-    _write_raw_byte(0x21) -- PATHTYPE
-    _write_raw_byte(0x02) -- TWO_BYTE_INTEGER
-    _write_raw_byte(0x00)
+    -- LAYER
+    __content:append_byte(0x00)
+    __content:append_byte(0x06)
+    __content:append_byte(0x0d)
+    __content:append_byte(0x02)
+    __content:append_two_bytes(layer.layer)
+
+    -- DATATYPE
+    __content:append_byte(0x00)
+    __content:append_byte(0x06)
+    __content:append_byte(0x0e)
+    __content:append_byte(0x02)
+    __content:append_two_bytes(layer.purpose)
+
+    -- PATHTYPE
+    __content:append_byte(0x00)
+    __content:append_byte(0x06)
+    __content:append_byte(0x21)
+    __content:append_byte(0x02)
+    __content:append_byte(0x00)
     if extension == "round" then
-        _write_raw_byte(0x01)
+        __content:append_byte(0x01)
     elseif extension == "cap" then
-        _write_raw_byte(0x02)
+        __content:append_byte(0x02)
     elseif type(extension) == "table" then
-        _write_raw_byte(0x04)
+        __content:append_byte(0x04)
     else
-        _write_raw_byte(0x00)
+        __content:append_byte(0x00)
     end
 
-    _write_raw_byte(0x00)
-    _write_raw_byte(0x08)
-    _write_raw_byte(0x0f) -- WIDTH
-    _write_raw_byte(0x03) -- FOUR_BYTE_INTEGER
-    _write_raw_four_bytes(width)
+    -- WIDTH
+    __content:append_byte(0x00)
+    __content:append_byte(0x08)
+    __content:append_byte(0x0f)
+    __content:append_byte(0x03)
+    __content:append_four_bytes(width)
+
     -- these records have to come after WIDTH (at least for klayout, but they also are in this order in the GDS manual)
     if type(extension) == "table" then
-        _write_record(recordtypes.BGNEXTN, datatypes.FOUR_BYTE_INTEGER, { extension[1] })
-        _write_record(recordtypes.ENDEXTN, datatypes.FOUR_BYTE_INTEGER, { extension[2] })
+        -- BGNEXTN
+        __content:append_byte(0x00)
+        __content:append_byte(0x08)
+        __content:append_byte(0x30)
+        __content:append_byte(0x03)
+        __content:append_four_bytes(extension[1])
+        -- ENDEXTN
+        __content:append_byte(0x00)
+        __content:append_byte(0x08)
+        __content:append_byte(0x31)
+        __content:append_byte(0x03)
+        __content:append_four_bytes(extension[2])
     end
     local ptstream = _unpack_points(pts)
-    _write_record(recordtypes.XY, datatypes.FOUR_BYTE_INTEGER, ptstream)
-    _write_nondata_four_bytes_record(0x11) -- ENDEL
+    local len = #ptstream
+    __content:append_two_bytes(4 + 4 * len)
+    __content:append_byte(0x10) -- XY
+    __content:append_byte(0x03) -- FOUR_BYTE_INTEGER
+    for i = 1, len do
+        __content:append_four_bytes(ptstream[i])
+    end
+
+    -- ENDEL
+    __content:append_byte(0x00)
+    __content:append_byte(0x04)
+    __content:append_byte(0x11)
+    __content:append_byte(0x00)
 end
 
 function M.write_cell_reference(identifier, x, y, orientation)
-    _write_nondata_four_bytes_record(0x0a) -- ENDEL
-    _write_record(recordtypes.SNAME, datatypes.ASCII_STRING, identifier)
+    -- SREF
+    __content:append_byte(0x00)
+    __content:append_byte(0x04)
+    __content:append_byte(0x0a)
+    __content:append_byte(0x00)
+
+    -- SNAME
+    local len = 4 + string.len(identifier)
+    if len % 2 == 0 then
+        __content:append_two_bytes(len)
+    else
+        __content:append_two_bytes(len + 1)
+    end
+    __content:append_byte(0x12)
+    __content:append_byte(0x06)
+    __content:append_string(identifier)
+    if len % 2 == 1 then
+        __content:append_byte(0x00)
+    end
+
+    -- STRANS/ANGLE
     if orientation == "fx" then
-        _write_record(recordtypes.STRANS, datatypes.BIT_ARRAY, { 0x8000 })
-        _write_record(recordtypes.ANGLE, datatypes.EIGHT_BYTE_REAL, { 180 })
+        -- STRANS
+        __content:append_byte(0x00)
+        __content:append_byte(0x06)
+        __content:append_byte(0x1a)
+        __content:append_byte(0x01)
+        __content:append_byte(0x80)
+        __content:append_byte(0x00)
+        -- ANGLE (180 degrees)
+        __content:append_byte(0x00)
+        __content:append_byte(0x0c)
+        __content:append_byte(0x1c)
+        __content:append_byte(0x05)
+        __content:append_byte(0x42)
+        __content:append_byte(0xb4)
+        __content:append_byte(0x00)
+        __content:append_byte(0x00)
+        __content:append_byte(0x00)
+        __content:append_byte(0x00)
+        __content:append_byte(0x00)
+        __content:append_byte(0x00)
     elseif orientation == "fy" then
-        _write_record(recordtypes.STRANS, datatypes.BIT_ARRAY, { 0x8000 })
+        -- STRANS
+        __content:append_byte(0x00)
+        __content:append_byte(0x06)
+        __content:append_byte(0x1a)
+        __content:append_byte(0x01)
+        __content:append_byte(0x80)
+        __content:append_byte(0x00)
     elseif orientation == "R180" then
-        _write_record(recordtypes.STRANS, datatypes.BIT_ARRAY, { 0x0000 })
-        _write_record(recordtypes.ANGLE, datatypes.EIGHT_BYTE_REAL, { 180 })
+        -- STRANS
+        __content:append_byte(0x00)
+        __content:append_byte(0x06)
+        __content:append_byte(0x1a)
+        __content:append_byte(0x01)
+        __content:append_byte(0x00)
+        __content:append_byte(0x00)
+        -- ANGLE (180 degrees)
+        __content:append_byte(0x00)
+        __content:append_byte(0x0c)
+        __content:append_byte(0x1c)
+        __content:append_byte(0x05)
+        __content:append_byte(0x42)
+        __content:append_byte(0xb4)
+        __content:append_byte(0x00)
+        __content:append_byte(0x00)
+        __content:append_byte(0x00)
+        __content:append_byte(0x00)
+        __content:append_byte(0x00)
+        __content:append_byte(0x00)
     elseif orientation == "R90" then
-        _write_record(recordtypes.STRANS, datatypes.BIT_ARRAY, { 0x0000 })
-        _write_record(recordtypes.ANGLE, datatypes.EIGHT_BYTE_REAL, { 90 })
+        -- STRANS
+        __content:append_byte(0x00)
+        __content:append_byte(0x06)
+        __content:append_byte(0x1a)
+        __content:append_byte(0x01)
+        __content:append_byte(0x00)
+        __content:append_byte(0x00)
+        -- ANGLE (90 degrees)
+        __content:append_byte(0x00)
+        __content:append_byte(0x0c)
+        __content:append_byte(0x1c)
+        __content:append_byte(0x05)
+        __content:append_byte(0x42)
+        __content:append_byte(0x5a)
+        __content:append_byte(0x00)
+        __content:append_byte(0x00)
+        __content:append_byte(0x00)
+        __content:append_byte(0x00)
+        __content:append_byte(0x00)
+        __content:append_byte(0x00)
     end
     local multiplier = 1e9 * __databaseunit -- opc works in nanometers
-    _write_raw_byte(0x00)
-    _write_raw_byte(0x0c)
-    _write_raw_byte(0x10) -- XY
-    _write_raw_byte(0x03) -- FOUR_BYTE_INTEGER
-    _write_raw_four_bytes(x * multiplier)
-    _write_raw_four_bytes(y * multiplier)
+    __content:append_byte(0x00)
+    __content:append_byte(0x0c)
+    __content:append_byte(0x10) -- XY
+    __content:append_byte(0x03) -- FOUR_BYTE_INTEGER
+    __content:append_four_bytes(x * multiplier)
+    __content:append_four_bytes(y * multiplier)
 
-    _write_nondata_four_bytes_record(0x11) -- ENDEL
+    -- ENDEL
+    __content:append_byte(0x00)
+    __content:append_byte(0x04)
+    __content:append_byte(0x11)
+    __content:append_byte(0x00)
 end
 
 function M.write_cell_array(identifier, x, y, orientation, xrep, yrep, xpitch, ypitch)
-    _write_record(recordtypes.AREF, datatypes.NONE)
-    _write_record(recordtypes.SNAME, datatypes.ASCII_STRING, identifier)
+    -- SREF
+    __content:append_byte(0x00)
+    __content:append_byte(0x04)
+    __content:append_byte(0x0b)
+    __content:append_byte(0x00)
+
+    -- SNAME
+    __content:append_byte(0x00)
+    local len = 4 + string.len(identifier)
+    if len % 2 == 0 then
+        __content:append_byte(len)
+    else
+        __content:append_byte(len + 1)
+    end
+    __content:append_byte(0x12)
+    __content:append_byte(0x06)
+    __content:append_string(identifier)
+    if len % 2 == 1 then
+        __content:append_byte(0x00)
+    end
+
     if orientation == "fx" then
         _write_record(recordtypes.STRANS, datatypes.BIT_ARRAY, { 0x8000 })
         _write_record(recordtypes.ANGLE, datatypes.EIGHT_BYTE_REAL, { 180 })
@@ -407,20 +537,82 @@ function M.write_cell_array(identifier, x, y, orientation, xrep, yrep, xpitch, y
         _write_record(recordtypes.ANGLE, datatypes.EIGHT_BYTE_REAL, { 180 })
     end
     _write_record(recordtypes.COLROW, datatypes.TWO_BYTE_INTEGER, { xrep, yrep })
+
     _write_record(recordtypes.XY, datatypes.FOUR_BYTE_INTEGER, 
-        _unpack_points({ point.create(x, y), point.create(x + xrep * xpitch, y), point.create(x, y + yrep * ypitch) }))
-    _write_record(recordtypes.ENDEL, datatypes.NONE)
+    _unpack_points({ point.create(x, y), point.create(x + xrep * xpitch, y), point.create(x, y + yrep * ypitch) }))
+
+    -- ENDEL
+    __content:append_byte(0x00)
+    __content:append_byte(0x04)
+    __content:append_byte(0x11)
+    __content:append_byte(0x00)
 end
 
 function M.write_port(name, layer, where)
-    _write_record(recordtypes.TEXT, datatypes.NONE)
-    _write_record(recordtypes.LAYER, datatypes.TWO_BYTE_INTEGER, { layer.layer })
-    _write_record(recordtypes.TEXTTYPE, datatypes.TWO_BYTE_INTEGER, { layer.purpose })
-    _write_record(recordtypes.PRESENTATION, datatypes.BIT_ARRAY, { 0x0005 }) -- center:center presentation
-    _write_record(recordtypes.MAG, datatypes.EIGHT_BYTE_REAL, { __labelsize * __databaseunit })
-    _write_record(recordtypes.XY, datatypes.FOUR_BYTE_INTEGER, _unpack_points({ where }))
-    _write_record(recordtypes.STRING, datatypes.ASCII_STRING, name)
-    _write_record(recordtypes.ENDEL, datatypes.NONE)
+    -- TEXT
+    __content:append_byte(0x00)
+    __content:append_byte(0x04)
+    __content:append_byte(0x0c)
+    __content:append_byte(0x00)
+
+    -- LAYER
+    __content:append_byte(0x00)
+    __content:append_byte(0x06)
+    __content:append_byte(0x0d)
+    __content:append_byte(0x02)
+    __content:append_two_bytes(layer.layer)
+
+    -- TEXTTYPE
+    __content:append_byte(0x00)
+    __content:append_byte(0x06)
+    __content:append_byte(0x16)
+    __content:append_byte(0x02)
+    __content:append_two_bytes(layer.purpose)
+
+    -- PRESENTATION
+    __content:append_byte(0x00)
+    __content:append_byte(0x06)
+    __content:append_byte(0x17)
+    __content:append_byte(0x01)
+    __content:append_byte(0x00)
+    __content:append_byte(0x05)
+
+    __content:append_byte(0x00)
+    __content:append_byte(0x0c)
+    __content:append_byte(0x1b)
+    __content:append_byte(0x05)
+    for _, b in ipairs(_number_to_gdsfloat(__labelsize * __databaseunit, 8)) do
+        __content:append_byte(0x00)
+    end
+
+    -- XY
+    local multiplier = 1e9 * __databaseunit -- opc works in nanometers
+    local x, y = where:unwrap()
+    __content:append_byte(0x00)
+    __content:append_byte(0x0c)
+    __content:append_byte(0x10) -- XY
+    __content:append_byte(0x03) -- FOUR_BYTE_INTEGER
+    __content:append_four_bytes(x * multiplier)
+    __content:append_four_bytes(y * multiplier)
+
+    local len = 4 + string.len(name)
+    if len % 2 == 0 then
+        __content:append_two_bytes(len)
+    else
+        __content:append_two_bytes(len + 1)
+    end
+    __content:append_byte(0x19)
+    __content:append_byte(0x06)
+    __content:append_string(name)
+    if len % 2 == 1 then
+        __content:append_byte(0x00)
+    end
+
+    -- ENDEL
+    __content:append_byte(0x00)
+    __content:append_byte(0x04)
+    __content:append_byte(0x11)
+    __content:append_byte(0x00)
 end
 
 return M

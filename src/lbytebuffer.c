@@ -39,7 +39,7 @@ static int lbytebuffer_append_byte(lua_State* L)
 {
     struct bytebuffer* buffer = lua_touserdata(L, 1);
     char datum = lua_tointeger(L, 2);
-    if(buffer->size + 1 > buffer->capacity)
+    while(buffer->size + 1 > buffer->capacity)
     {
         _resize_data(buffer, buffer->capacity * 2);
     }
@@ -52,7 +52,7 @@ static int lbytebuffer_append_two_bytes(lua_State* L)
 {
     struct bytebuffer* buffer = lua_touserdata(L, 1);
     int datum = lua_tointeger(L, 2);
-    if(buffer->size + 2 > buffer->capacity)
+    while(buffer->size + 2 > buffer->capacity)
     {
         _resize_data(buffer, buffer->capacity * 2);
     }
@@ -73,7 +73,7 @@ static int lbytebuffer_append_four_bytes(lua_State* L)
 {
     struct bytebuffer* buffer = lua_touserdata(L, 1);
     int datum = lua_tointeger(L, 2);
-    if(buffer->size + 4 > buffer->capacity)
+    while(buffer->size + 4 > buffer->capacity)
     {
         _resize_data(buffer, buffer->capacity * 2);
     }
@@ -96,6 +96,23 @@ static int lbytebuffer_append_four_bytes(lua_State* L)
     return 0;
 }
 
+static int lbytebuffer_string(lua_State* L)
+{
+    struct bytebuffer* buffer = lua_touserdata(L, 1);
+    size_t len;
+    const char* data = lua_tolstring(L, 2, &len);
+    while(buffer->size + len > buffer->capacity)
+    {
+        _resize_data(buffer, buffer->capacity * 2);
+    }
+    for(unsigned int i = 0; i < len; ++i)
+    {
+        buffer->data[buffer->size + i] = data[i];
+    }
+    buffer->size += len;
+    return 0;
+}
+
 static int lbytebuffer_tostring(lua_State* L)
 {
     struct bytebuffer* buffer = lua_touserdata(L, 1);
@@ -110,6 +127,7 @@ int open_lbytebuffer_lib(lua_State* L)
         { "append_byte",       lbytebuffer_append_byte       },
         { "append_two_bytes",  lbytebuffer_append_two_bytes  },
         { "append_four_bytes", lbytebuffer_append_four_bytes },
+        { "append_string",     lbytebuffer_string            },
         { "str",               lbytebuffer_tostring          },
         { NULL,                NULL                          }
     };
