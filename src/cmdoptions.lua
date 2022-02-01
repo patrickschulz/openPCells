@@ -172,7 +172,7 @@ return {
         help = "don't load the user config"
     },
     store{
-        name = "script", short = "-S", long = "--script",
+        name = "script", short = "-s", long = "--script",
         help = "execute arbitrary script. This can be used to run lua code with the opc API loaded. If a cell is generated in this file, --cellscript is recommended, as then no manual technology/export/etc. loading is necessary."
     },
     store_multiple{
