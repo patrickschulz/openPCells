@@ -209,7 +209,6 @@ local function _get_path_pts(edges, miterjoin)
 end
 
 local function _get_any_angle_path_pts(pts, width, grid, miterjoin, allow45)
-    print(allow45)
     local edges = _get_gridded_edge_segments(pts, width, grid)
     local pathpts = _get_path_pts(edges, miterjoin)
     table.insert(pathpts, edges[1]:copy()) -- close path
