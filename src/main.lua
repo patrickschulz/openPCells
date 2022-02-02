@@ -68,7 +68,25 @@ end
 
 -- check for script firsts, nothing gets defined for scripts
 if args.script then
-    dofile(args.script)
+    local filename = args.script
+    local chunkname = string.format("@%s", filename)
+
+    local reader = _get_reader(filename)
+    if reader then
+        local env = {
+            arg = args.scriptargs or {}
+        }
+        _G.__index = _G
+        setmetatable(env, _G)
+        local status, msg = pcall(_generic_load, reader, chunkname, nil, nil, env)
+        if not status then
+            print(msg)
+            return 1
+        end
+    else
+        moderror(string.format("opc --script: could not open script file '%s'", filename))
+        return 1
+    end
     return 0
 end
 

@@ -209,7 +209,6 @@ local function _get_path_pts(edges, miterjoin)
 end
 
 local function _get_any_angle_path_pts(pts, width, grid, miterjoin, allow45)
-    print(allow45)
     local edges = _get_gridded_edge_segments(pts, width, grid)
     local pathpts = _get_path_pts(edges, miterjoin)
     table.insert(pathpts, edges[1]:copy()) -- close path
@@ -234,6 +233,14 @@ end
 function M.path(layer, pts, width, extension)
     local S = shape.create_path(layer, pts, width, extension)
     return object.make_from_shape(S)
+end
+
+function M.path3x(layer, startpt, endpt, width, extension)
+    return M.path(layer, M.path_points_xy(startpt, { endpt }), width, extension)
+end
+
+function M.path3y(layer, startpt, endpt, width, extension)
+    return M.path(layer, M.path_points_yx(startpt, { endpt }), width, extension)
 end
 
 function M.path_c_shape(layer, ptstart, ptmiddle, ptend, width, extension)

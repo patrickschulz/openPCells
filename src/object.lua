@@ -256,6 +256,17 @@ function meta.iterate_shapes(self, comp)
     return iter
 end
 
+function meta.move_to(self, x, y)
+    if is_lpoint(x) then
+        x, y = x:unwrap()
+    else
+        check_number(x)
+        check_number(y)
+    end
+    self.trans:move_to(x, y)
+    return self
+end
+
 function meta.translate(self, dx, dy)
     if is_lpoint(dx) then
         dx, dy = dx:unwrap()

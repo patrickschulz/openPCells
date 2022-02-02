@@ -44,6 +44,13 @@ function meta.copy(self)
     return new
 end
 
+function meta.move_to(self, x, y)
+    check_number(x)
+    check_number(y)
+    self.dx = x
+    self.dy = y
+end
+
 function meta.translate(self, dx, dy)
     check_number(dx)
     check_number(dy)

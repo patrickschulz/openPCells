@@ -75,7 +75,7 @@ return {
     },
     switch{
         name = "writechildrenports", long = "--write-children-ports",
-        help = "export ports of sub cells. Depending on what you do with the generated layouts this could possible break a clean LVS"
+        help = "export ports of sub cells. Depending on what you do with the generated layouts this could possible break a clean LVS (possible szenario: importing a SKILL representation of a layout hierarchy. Since the SKILL export creates a flat layout, sub-level ports now become top-level ports, which is almost certainly wrong.)"
     },
     store_multiple{
         name = "cellpath", long = "--append-cellpath",
@@ -126,10 +126,6 @@ return {
         help = "merge rectangles"
     },
     switch{
-        name = "usefallbackvias", long = "--use-fallback-vias",
-        help = "enable the use of fallback vias"
-    },
-    switch{
         name = "human", short = "-H", long = "--human",
         help = "format info output (parameters, cell lists etc.) for humans"
     },
@@ -176,8 +172,12 @@ return {
         help = "don't load the user config"
     },
     store{
-        name = "script", short = "-S", long = "--script",
+        name = "script", short = "-s", long = "--script",
         help = "execute arbitrary script. This can be used to run lua code with the opc API loaded. If a cell is generated in this file, --cellscript is recommended, as then no manual technology/export/etc. loading is necessary."
+    },
+    store_multiple{
+        name = "scriptargs", long = "--script-args",
+        help = "pass arguments to scripts (use with --script). Can be called multiple times"
     },
     switch{
         name = "watch", short = "-w", long = "--watch",

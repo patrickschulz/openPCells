@@ -32,6 +32,7 @@ lbinary.o: lbinary.h lbinary.c
 lshape.o: lshape.h lshape.c
 lfilesystem.o: lfilesystem.h lfilesystem.c
 lutil.o: lutil.c lutil.h
+lbytebuffer.o: lbytebuffer.h lbytebuffer.c
 
 lplacer.o: lplacer.h lplacer.c
 lplacer_rand.o: lplacer_rand.h lplacer_rand.c
