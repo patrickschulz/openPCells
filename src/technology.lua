@@ -181,8 +181,18 @@ local function _do_array(cell, S, entry, export)
     if via then
         local enlarge = 0
         local lpp = _get_lpp(entry, export)
+        local blx = -(via.width + enlarge) // 2
+        local trx =  (via.width + enlarge) // 2
+        local bly = -(via.height + enlarge) // 2
+        local try =  (via.height + enlarge) // 2
+        if (via.width + enlarge) % 2 ~= 0 then -- FIXME: make more flexible
+            trx = trx + 1
+            try = try + 1
+        end
         local cut = geometry.multiple_xy(
-            geometry.rectangle(generics.mapped(entry.name, lpp), via.width + enlarge, via.height + enlarge),
+            geometry.rectanglebltr(generics.mapped(entry.name, lpp), 
+                point.create(blx, bly), point.create(trx, try)
+            ),
             via.xrep, via.yrep, via.xpitch, via.ypitch
         )
         cut:translate(entry.xshift or 0, entry.yshift or 0)
@@ -248,9 +258,11 @@ local function _translate_ports(cell, export)
 end
 
 local function _fix_to_grid(cell)
-    for _, S in cell:iterate_shapes() do
-        for _, pt in pairs(S:get_points()) do
-            pt:fix(config.grid)
+    if config.grid then
+        for _, S in cell:iterate_shapes() do
+            for _, pt in pairs(S:get_points()) do
+                pt:fix(config.grid)
+            end
         end
     end
 end
