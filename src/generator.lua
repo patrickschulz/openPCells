@@ -250,23 +250,25 @@ function M.from_verilog(filename, utilization, aspectratio, excluded_nets, repor
 
     -- TODO: run routing
     local netpositions = {
-    ["net0"]={{x = 4, y = 16, z = 0}, {x = 23, y = 15, z = 1}},
-    ["net1"]={{x = 18, y = 7, z = 1}, {x = 2, y = 7, z = 1}},
-    ["net2"]={{x = 13, y = 17, z = 1}, {x = 9, y = 9, z = 1}},
-    ["net3"]={{x = 5, y = 8, z = 1}, {x = 1, y = 7, z = 1}},
-    ["net4"]={{x = 21, y = 2, z = 1}, {x = 29, y = 21, z = 1}},
-    ["net5"]={{x = 16, y = 27, z = 1}, {x = 3, y = 10, z = 1}},
-    ["net6"]={{x = 22, y = 22, z = 1}, {x = 12, y = 3, z = 1}},
-    ["net7"]={{x = 19, y = 10, z = 1}, {x = 7, y = 4, z = 1}},
-    ["net8"]={{x = 16, y = 12, z = 1}, {x = 3, y = 12, z = 1}},
-    ["net9"]={{x = 1, y = 2, z = 1}, {x = 23, y = 11, z = 1}},
-    ["net10"]={{x = 2, y = 13, z = 1}, {x = 14, y = 6, z = 1}},
-    ["net11"]={{x = 20, y = 10, z = 1}, {x = 7, y = 7, z = 1}},
-    ["net12"]={{x = 19, y = 12, z = 1}, {x = 1, y = 15, z = 1}},
-    ["net13"]={{x = 3, y = 6, z = 1}, {x = 23, y = 11, z = 1}},
+    ["net0"]={{x = 4, y = 3, z = 0}, {x = 3, y = 0, z = 2}},
+    ["net1"]={{x = 4, y = 1, z = 1}, {x = 4, y = 3, z = 1}},
+    ["net2"]={{x = 0, y = 4, z = 2}, {x = 1, y = 2, z = 0}},
+    --["net1"]={{x = 18, y = 7, z = 1}, {x = 2, y = 7, z = 1}},
+    --["net2"]={{x = 13, y = 17, z = 1}, {x = 9, y = 9, z = 1}},
+    --["net3"]={{x = 5, y = 8, z = 1}, {x = 1, y = 7, z = 1}},
+    --["net4"]={{x = 21, y = 2, z = 1}, {x = 29, y = 21, z = 1}},
+    --["net5"]={{x = 16, y = 27, z = 1}, {x = 3, y = 10, z = 1}},
+    --["net6"]={{x = 22, y = 22, z = 1}, {x = 12, y = 3, z = 1}},
+    --["net7"]={{x = 19, y = 10, z = 1}, {x = 7, y = 4, z = 1}},
+    --["net8"]={{x = 16, y = 12, z = 1}, {x = 3, y = 12, z = 1}},
+    --["net9"]={{x = 1, y = 2, z = 1}, {x = 23, y = 11, z = 1}},
+    --["net10"]={{x = 2, y = 13, z = 1}, {x = 14, y = 6, z = 1}},
+    --["net11"]={{x = 20, y = 10, z = 1}, {x = 7, y = 7, z = 1}},
+    --["net12"]={{x = 19, y = 12, z = 1}, {x = 1, y = 15, z = 1}},
+    --["net13"]={{x = 3, y = 6, z = 1}, {x = 23, y = 11, z = 1}},
     }
 
-    local numnets = 14
+    local numnets = 3
    -- for name, net in pairs(nets) do
    --     for _, n in pairs(net.connections) do
    --         for r, row in ipairs(rows) do

@@ -7,14 +7,29 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
+#include <limits.h>
 
 #define EVEN(val) ((val % 2 ) == 0)
+#define POSITIVE(val) (val > 0)
 #define NUM_DIRECTIONS 6
 
 /* helps to traverse the field */
 const int xincr[NUM_DIRECTIONS] = {-1, 0, 1, 0, 0, 0};
 const int yincr[NUM_DIRECTIONS] = {0, 1, 0, -1, 0, 0};
 const int zincr[NUM_DIRECTIONS] = {0, 0, 0, 0, -1, 1};
+
+/* returns the minimum score point from a NUM_DIRECTIONS large point_t array */
+static point_t *get_min_point(point_t *arr)
+{
+	point_t *point = arr;
+	for(int i = 0; i < NUM_DIRECTIONS; i++)
+	{
+		printf("array stored %u\n", arr[i].score);
+		point = (arr[i].score < point->score) ? &arr[i] : point;
+	}
+	return point;
+}
 
 int route(net_t net, int*** field, size_t fieldsize, size_t num_layers,
 	  size_t wrong_dir_cost, size_t via_cost)
@@ -72,11 +87,34 @@ int route(net_t net, int*** field, size_t fieldsize, size_t num_layers,
 
 			/* check if point is visitable */
 			int nextfield = field[nextz][nextx][nexty];
+
+			/* decide the val of the score incrementer */
+			unsigned int score_incr = 1;
+			if(nextz != z)
+			{
+				/* got a via */
+				score_incr = via_cost;
+			}
+			else if (nexty != y && EVEN(z))
+			{
+				/*
+				 * route in y direction preferred on
+				 * uneven layers
+				 */
+				score_incr = wrong_dir_cost;
+			}
+			else if (nextx != x && !EVEN(z))
+			{
+				score_incr = wrong_dir_cost;
+			}
+
 			if((nextfield == PORT &&
 			    nextx == endx &&
 			    nexty == endy &&
 			    nextz == endz) ||
-			   nextfield == UNVISITED)
+			   nextfield == UNVISITED ||
+			   (nextfield + (int)score_incr < score &&
+			    POSITIVE(nextfield)))
 			{
 				if(nextx == endx &&
 				   nexty == endy &&
@@ -90,25 +128,6 @@ int route(net_t net, int*** field, size_t fieldsize, size_t num_layers,
 					while(heap_get_point(min_heap));
 				}
 
-				/* decide the val of the score incrementer */
-				unsigned int score_incr = 1;
-				if(nextz != z)
-				{
-					/* got a via */
-					score_incr = via_cost;
-				}
-				else if (nexty != y && EVEN(z))
-				{
-					/*
-					 * route in y direction preferred on
-					 * uneven layers
-					 */
-					score_incr = wrong_dir_cost;
-				}
-				else if (nextx != x && !EVEN(z))
-				{
-					score_incr = wrong_dir_cost;
-				}
 
 				field[nextz][nextx][nexty] = score + score_incr;
 
@@ -133,19 +152,28 @@ int route(net_t net, int*** field, size_t fieldsize, size_t num_layers,
 		reset_field(field, fieldsize, num_layers);
 		return STUCK;
 	}
-
 	} while(!(x == endx && y == endy && z == endz));
+
 	/* backtrace */
 	/* go to end point */
 	x = endx;
 	y = endy;
+
 	printf("backtrace route %u %u to %u %u\n", startx, starty, endx, endy);
+
 	do {
 		score = field[z][x][y];
-		field[z][x][y] = PATH;
-	printf("backtrace %u %u %u, score: %i\n", x, y, z, score);
 
-		/* circle around every point + check layer above and below */
+		printf("backtrace %u %u %u, score: %i\n", x, y, z, score);
+
+		/* array to look for the least costing neighboring point */
+		point_t nextpoints[NUM_DIRECTIONS];
+		memset(nextpoints, UINT_MAX, sizeof(point_t)*NUM_DIRECTIONS);
+
+		/*
+		 * circle around every point + check layer above and below
+		 * store possible points in array
+		 */
 		for(int i = 0; i < NUM_DIRECTIONS; i++)
 		{
 			nextx = x + xincr[i];
@@ -159,43 +187,81 @@ int route(net_t net, int*** field, size_t fieldsize, size_t num_layers,
 				continue;
 			}
 
-			if(nextx == startx && nexty == starty && nextz == startz)
+			/* break out of loop if endpoint was found */
+			if(nextx == startx &&
+			   nexty == starty &&
+			   nextz == startz)
 			{
 				x = nextx;
 				y = nexty;
 				z = nextz;
-				break;
+				goto end;
 			}
 
-			/* check if point is visitable */
+			/* check if point is visitable if yes store it in array */
 			int nextfield = field[nextz][nextx][nexty];
 			printf("nextfield: %i\n", nextfield);
-			if(nextfield == (PORT || PATH || VIA))
+
+			switch(nextfield)
 			{
-				continue;
+				case UNVISITED:
+				case PORT:
+				case PATH:
+				case VIA:
+					continue;
 			}
 
-			/* go to the one with val = lowest currentval */
 			if(nextfield < score)
 			{
-			    x = nextx;
-			    y = nexty;
-			    y = nextz;
-
-			    /* put the point in the nets path queue */
-			    point_t *path_point = malloc(sizeof(point_t));
-			    path_point->x = x;
-			    path_point->y = y;
-			    path_point->z = z;
-			    queue_enqueue(net.path, path_point);
-			    break;
+			    point_t point;
+			    point.x = nextx;
+			    point.y = nexty;
+			    point.z = nextz;
+			    point.score = nextfield;
+			    nextpoints[i] = point;
+			    printf("stored point with %u\n", point.score);
 			}
 		}
+		point_t *npoint = get_min_point(nextpoints);
+
+		if(npoint->z != z)
+		{
+			field[z][x][y] = VIA;
+		}
+		else
+		{
+			field[z][x][y] = PATH;
+		}
+
+
+	    x = npoint->x;
+	    y = npoint->y;
+	    z = npoint->z;
+
+	    printf("got %u %u %u\n", x, y, z);
+
+	    /* put the point in the nets path queue */
+	    point_t *path_point = malloc(sizeof(point_t));
+	    path_point->x = x;
+	    path_point->y = y;
+	    path_point->z = z;
+	    queue_enqueue(net.path, path_point);
+
+		print_field(field, fieldsize, 0);
+		print_field(field, fieldsize, 1);
+		print_field(field, fieldsize, 2);
+		usleep(500000);
+
 	} while (!(x == startx && y == starty && z == startz));
+end:
 
 	/* mark start and end of net as ports */
 	field[startz][startx][starty] = PORT;
 	field[startz][endx][endy] = PORT;
+		print_field(field, fieldsize, 0);
+		print_field(field, fieldsize, 1);
+		print_field(field, fieldsize, 2);
+		usleep(500000);
 	reset_field(field, fieldsize, num_layers);
 	return ROUTED;
 }

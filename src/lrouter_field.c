@@ -48,7 +48,8 @@ static void reset_layer(int** layer, size_t size)
 {
 	for(size_t i = 0; i < size; i++) {
 		for(size_t j = 0; j < size; j++) {
-			if(layer[j][i] != PATH && layer[j][i] != PORT)
+			if(layer[j][i] != PATH && layer[j][i] != PORT
+			   && layer[j][i] != VIA)
 				layer[j][i] = UNVISITED;
 		}
 	}
@@ -91,12 +92,25 @@ void destroy_field(int*** field, size_t size, size_t num_layers)
 
 void print_field(int*** field, size_t size, unsigned int layer)
 {
+	for(size_t i = 0; i < size - 1; i++) {
+		if(i == 0)
+		{
+			printf("%u", layer);
+		}
+		else
+		{
+			printf("=");
+		}
+	}
+	printf("=\n");
 	for(size_t i = 0; i < size; i++) {
 		for(size_t j = 0; j < size; j++) {
 			if(field[layer][j][i] == PATH)
 				green();
 			else if(field[layer][j][i] == PORT)
 				red();
+			else if(field[layer][j][i] == VIA)
+				blue();
 			else
 				white();
 			printf("%2i  ", field[layer][j][i]);
