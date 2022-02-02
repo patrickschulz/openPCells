@@ -406,11 +406,14 @@ end
 
 local function _load_constraints(name)
     local filename = _get_tech_filename(name, "constraints")
+    if not filename then
+        moderror(string.format("no constraints for technology '%s' found", name))
+    end
     local chunkname = "@techconstraints"
 
-    local reader = _get_reader(filename)
+    local reader, msg = _get_reader(filename)
     if not reader then
-        moderror(string.format("no constraints for technology '%s' found", name))
+        moderror(string.format("could not open constraints file for technology '%s' (reason: %d)", name, msg))
     end
     return _generic_load(
         reader, chunkname,
@@ -421,11 +424,14 @@ end
 
 local function _load_config(name)
     local filename = _get_tech_filename(name, "config")
+    if not filename then
+        moderror(string.format("no constraints for technology '%s' found", name))
+    end
     local chunkname = "@techconfig"
 
-    local reader = _get_reader(filename)
+    local reader, msg = _get_reader(filename)
     if not reader then
-        moderror(string.format("no config for technology '%s' found", name))
+        moderror(string.format("could not open config file for technology '%s' (reason: %d)", name, msg))
     end
     return _generic_load(
         reader, chunkname,
