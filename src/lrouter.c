@@ -79,10 +79,10 @@ int lrouter_route(lua_State* L)
 
     sort_nets(nc->nets, nc->num_nets);
 
-    const size_t fieldsize = 6;
+    const size_t fieldsize = 30;
     const size_t num_layers = 3;
     const unsigned int via_cost = 10;
-    const unsigned int wrong_dir_cost = 10;
+    const unsigned int wrong_dir_cost = 30;
     int*** field = init_field(fieldsize, num_layers);
 
     fill_ports(nc->nets, nc->num_nets, field);

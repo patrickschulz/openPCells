@@ -55,10 +55,10 @@ static void reset_layer(int** layer, size_t size)
 	}
 }
 
-void reset_field(int*** field, size_t size, size_t num_routing_layers)
+void reset_field(int*** field, size_t size, size_t num_layers)
 {
-	for(size_t l = 0; l < num_routing_layers; l++) {
-		reset_layer(*field, size);
+	for(size_t l = 0; l < num_layers; l++) {
+		reset_layer(field[l], size);
 	}
 }
 
@@ -93,12 +93,9 @@ void destroy_field(int*** field, size_t size, size_t num_layers)
 void print_field(int*** field, size_t size, unsigned int layer)
 {
 	for(size_t i = 0; i < size - 1; i++) {
-		if(i == 0)
-		{
+		if(i == 0) {
 			printf("%u", layer);
-		}
-		else
-		{
+		} else {
 			printf("=");
 		}
 	}

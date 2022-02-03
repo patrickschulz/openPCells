@@ -113,8 +113,7 @@ int route(net_t net, int*** field, size_t fieldsize, size_t num_layers,
 			    nexty == endy &&
 			    nextz == endz) ||
 			   nextfield == UNVISITED ||
-			   (nextfield + (int)score_incr < score &&
-			    POSITIVE(nextfield)))
+			   (score + (int)score_incr < nextfield))
 			{
 				if(nextx == endx &&
 				   nexty == endy &&
@@ -187,17 +186,6 @@ int route(net_t net, int*** field, size_t fieldsize, size_t num_layers,
 				continue;
 			}
 
-			/* break out of loop if endpoint was found */
-			if(nextx == startx &&
-			   nexty == starty &&
-			   nextz == startz)
-			{
-				x = nextx;
-				y = nexty;
-				z = nextz;
-				goto end;
-			}
-
 			/* check if point is visitable if yes store it in array */
 			int nextfield = field[nextz][nextx][nexty];
 			printf("nextfield: %i\n", nextfield);
@@ -211,19 +199,19 @@ int route(net_t net, int*** field, size_t fieldsize, size_t num_layers,
 					continue;
 			}
 
-			if(nextfield < score)
-			{
-			    point_t point;
-			    point.x = nextx;
-			    point.y = nexty;
-			    point.z = nextz;
-			    point.score = nextfield;
-			    nextpoints[i] = point;
-			    printf("stored point with %u\n", point.score);
-			}
+				if(nextfield < score)
+				{
+				    point_t point;
+				    point.x = nextx;
+				    point.y = nexty;
+				    point.z = nextz;
+				    point.score = nextfield;
+				    nextpoints[i] = point;
+				    printf("stored point with %u\n", point.score);
+				}
 		}
-		point_t *npoint = get_min_point(nextpoints);
 
+		point_t *npoint = get_min_point(nextpoints);
 		if(npoint->z != z)
 		{
 			field[z][x][y] = VIA;
@@ -234,34 +222,33 @@ int route(net_t net, int*** field, size_t fieldsize, size_t num_layers,
 		}
 
 
-	    x = npoint->x;
-	    y = npoint->y;
-	    z = npoint->z;
+		x = npoint->x;
+		y = npoint->y;
+		z = npoint->z;
 
-	    printf("got %u %u %u\n", x, y, z);
+		printf("got %u %u %u\n", x, y, z);
 
-	    /* put the point in the nets path queue */
-	    point_t *path_point = malloc(sizeof(point_t));
-	    path_point->x = x;
-	    path_point->y = y;
-	    path_point->z = z;
-	    queue_enqueue(net.path, path_point);
+		/* put the point in the nets path queue */
+		point_t *path_point = malloc(sizeof(point_t));
+		path_point->x = x;
+		path_point->y = y;
+		path_point->z = z;
+		queue_enqueue(net.path, path_point);
 
 		print_field(field, fieldsize, 0);
 		print_field(field, fieldsize, 1);
 		print_field(field, fieldsize, 2);
-		usleep(500000);
+		usleep(100000);
 
 	} while (!(x == startx && y == starty && z == startz));
-end:
 
 	/* mark start and end of net as ports */
 	field[startz][startx][starty] = PORT;
-	field[startz][endx][endy] = PORT;
-		print_field(field, fieldsize, 0);
-		print_field(field, fieldsize, 1);
-		print_field(field, fieldsize, 2);
-		usleep(500000);
+	field[endz][endx][endy] = PORT;
 	reset_field(field, fieldsize, num_layers);
+	print_field(field, fieldsize, 0);
+	print_field(field, fieldsize, 1);
+	print_field(field, fieldsize, 2);
+	usleep(1000000);
 	return ROUTED;
 }
