@@ -6,15 +6,11 @@
 
 #include "lua/lauxlib.h"
 
-struct point
-{
-    int x;
-    int y;
-};
+#include "point.h"
 
 struct curve
 {
-    struct point* points;
+    point_t* points;
     size_t size;
     size_t capacity;
 };
@@ -45,7 +41,7 @@ static void _append_point(struct curve* c, int x, int y)
     if(c->size + 1 > c->capacity)
     {
         c->capacity = ((2 * c->capacity) > (c->size + 1)) ? (2 * c->capacity) : (c->size + 1);
-        struct point* ptr = realloc(c->points, c->capacity * sizeof(*ptr));
+        point_t* ptr = realloc(c->points, c->capacity * sizeof(*ptr));
         c->points = ptr;
     }
     c->points[c->size].x = x;
@@ -53,20 +49,20 @@ static void _append_point(struct curve* c, int x, int y)
     c->size += 1;
 }
 
-static struct point _midpoint(struct point p1, struct point p2)
+static point_t _midpoint(point_t p1, point_t p2)
 {
-    struct point p = { .x = (p1.x + p2.x) / 2, .y = (p1.y + p2.y) / 2 };
+    point_t p = { .x = (p1.x + p2.x) / 2, .y = (p1.y + p2.y) / 2 };
     return p;
 }
 
 static void _subdivide(struct curve* c, struct curve* l, struct curve* r)
 {
-    struct point l1 = _midpoint(c->points[0], c->points[1]);
-    struct point m = _midpoint(c->points[1], c->points[2]);
-    struct point r2 = _midpoint(c->points[2], c->points[3]);
-    struct point l2 = _midpoint(l1, m);
-    struct point r1 = _midpoint(m, r2);
-    struct point l3r0 = _midpoint(l2, r1);
+    point_t l1 = _midpoint(c->points[0], c->points[1]);
+    point_t m = _midpoint(c->points[1], c->points[2]);
+    point_t r2 = _midpoint(c->points[2], c->points[3]);
+    point_t l2 = _midpoint(l1, m);
+    point_t r1 = _midpoint(m, r2);
+    point_t l3r0 = _midpoint(l2, r1);
     l->points[0] = c->points[0];
     l->points[1] = l1;
     l->points[2] = l2;
@@ -184,37 +180,3 @@ int open_lgraphics_lib(lua_State* L)
     return 0;
 }
 
-/*
-int main()
-{
-    struct curve* c = _create(4);
-    _append_point(c, 0, 0);
-    _append_point(c, 2000, 1000);
-    _append_point(c, -1000, 1000);
-    _append_point(c, 1000, 0);
-
-    struct curve* result = _create(100);
-    _flatten_curve(c, result);
-
-    struct curve* rasterized = _create(1000);
-    for(unsigned int i = 0; i < result->size; i = i + 2)
-    {
-        _raster_line(result->points[i].x, result->points[i].y, result->points[i + 1].x, result->points[i + 1].y, rasterized);
-    }
-    for(unsigned int i = 0; i < result->size; ++i)
-    {
-        fprintf(stdout, "%d %d\n", result->points[i].x, result->points[i].y);
-    }
-
-    FILE* file = fopen("points", "w");
-    for(unsigned int i = 0; i < rasterized->size; ++i)
-    {
-        fprintf(file, "%d %d\n", rasterized->points[i].x, rasterized->points[i].y);
-    }
-    fclose(file);
-
-    _destroy(c);
-    _destroy(result);
-    _destroy(rasterized);
-}
-*/
