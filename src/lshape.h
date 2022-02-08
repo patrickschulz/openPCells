@@ -5,6 +5,7 @@
 
 #include "lpoint.h"
 
+/*
 typedef enum
 {
     RECTANGLE,
@@ -30,6 +31,7 @@ typedef struct
 
 lshape_t* create_rectangle();
 lshape_t* create_polygon();
+*/
 
 int open_lshape_lib(lua_State* L);
 
