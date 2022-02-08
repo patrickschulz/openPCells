@@ -22,6 +22,7 @@
 #include <string.h>
 
 #include "lpoint.h"
+#include "graphics.h"
 #include "lload.h"
 #include "lbind.h"
 #include "ldir.h"
@@ -170,6 +171,7 @@ lua_State* create_and_initialize_lua()
     // opc libraries
     open_ldir_lib(L);
     open_lpoint_lib(L); // must be called before 'load_api'
+    open_lgraphics_lib(L);
     open_lload_lib(L);
     open_lbind_lib(L);
     open_lbinary_lib(L);

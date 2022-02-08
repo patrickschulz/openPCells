@@ -1,5 +1,3 @@
-local M = {}
-
 local function _rasterize(x1, y1, x2, y2, grid, calc_error, allow45)
     local x, y = x1, y1
     local sx = (x1 < x2) and grid or -grid
@@ -31,7 +29,7 @@ local function _rasterize(x1, y1, x2, y2, grid, calc_error, allow45)
     return pts
 end
 
-function M.line(pt1, pt2, grid, allow45)
+function graphics.line(pt1, pt2, grid, allow45)
     local x1, y1 = pt1:unwrap()
     local x2, y2 = pt2:unwrap()
 
@@ -52,7 +50,7 @@ function M.line(pt1, pt2, grid, allow45)
     return _rasterize(x1, y1, x2, y2, grid, calc_error, allow45)
 end
 
-function M.ellipse(origin, xradius, yradius, grid, allow45)
+function graphics.ellipse(origin, xradius, yradius, grid, allow45)
     local xc, yc = origin:unwrap()
     local x1, y1 = xc + xradius, yc
     local x2, y2 = xc, yc + yradius
@@ -85,7 +83,7 @@ function M.ellipse(origin, xradius, yradius, grid, allow45)
     return pts
 end
 
-function M.quarterellipse(quadrant, origin, xradius, yradius, grid, allow45)
+function graphics.quarterellipse(quadrant, origin, xradius, yradius, grid, allow45)
     local xc, yc = origin:unwrap()
     local x1, y1 = xc + xradius, yc
     local x2, y2 = xc, yc + yradius
@@ -112,12 +110,10 @@ function M.quarterellipse(quadrant, origin, xradius, yradius, grid, allow45)
     assert(nil, string.format("wrong quadrant: %d", quadrant))
 end
 
-function M.quartercircle(quadrant, origin, radius, grid, allow45)
-    return M.quarterellipse(quadrant, origin, radius, radius, grid, allow45)
+function graphics.quartercircle(quadrant, origin, radius, grid, allow45)
+    return graphics.quarterellipse(quadrant, origin, radius, radius, grid, allow45)
 end
 
-function M.circle(origin, radius, grid, allow45)
-    return M.ellipse(origin, radius, radius, grid, allow45)
+function graphics.circle(origin, radius, grid, allow45)
+    return graphics.ellipse(origin, radius, radius, grid, allow45)
 end
-
-return M
