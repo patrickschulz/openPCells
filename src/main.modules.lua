@@ -1,7 +1,7 @@
 local modules = {
     "profiler",
     "cmdparser",
-    "lpoint",
+    "point",
     "technology",
     "postprocess",
     "export",
