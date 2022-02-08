@@ -257,7 +257,7 @@ function meta.iterate_shapes(self, comp)
 end
 
 function meta.move_to(self, x, y)
-    if is_lpoint(x) then
+    if is_point(x) then
         x, y = x:unwrap()
     else
         check_number(x)
@@ -268,7 +268,7 @@ function meta.move_to(self, x, y)
 end
 
 function meta.translate(self, dx, dy)
-    if is_lpoint(dx) then
+    if is_point(dx) then
         dx, dy = dx:unwrap()
     else
         check_number(dx)
@@ -433,7 +433,7 @@ local _reserved_anchors = {
 }
 
 function meta.add_anchor(self, name, where)
-    if not is_lpoint(where) then
+    if not is_point(where) then
         moderror(string.format("object.add_anchor: where must be a point (got: %s)", where))
     end
     if aux.find(_reserved_anchors, function(n) return n == name end) then

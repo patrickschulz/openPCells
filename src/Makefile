@@ -14,7 +14,7 @@ SYSCFLAGS=
 SYSLDFLAGS=
 SYSLIBS=
 
-OPCOBJ:=point.o ldir.o lpoint.o graphics.o lbind.o lload.o lbinary.o lshape.o lfilesystem.o lbytebuffer.o lplacer.o lplacer_rand.o lrouter.o lrouter_net.o lrouter_queue.o lrouter_field.o lrouter_route.o lutil.o
+OPCOBJ:=point.o shape.o ldir.o lpoint.o graphics.o lbind.o lload.o lbinary.o lshape.o lfilesystem.o lbytebuffer.o lplacer.o lplacer_rand.o lrouter.o lrouter_net.o lrouter_queue.o lrouter_field.o lrouter_route.o lutil.o
 
 .PHONY: default
 default:
@@ -25,6 +25,7 @@ $(PROGNAME): main.c lua/liblua.a $(OPCOBJ)
 	$(CC) $(CFLAGS) -DLUA_COMPAT_5_3 -DLUA_USE_LINUX -o $(PROGNAME) main.c $(OPCOBJ) lua/liblua.a -lm -ldl
 
 point.o: point.h point.c
+shape.o: point.h shape.h shape.c
 lpoint.o: lpoint.h lpoint.c
 graphics.o: graphics.h graphics.c
 ldir.o: ldir.c ldir.h

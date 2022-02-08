@@ -113,7 +113,7 @@ function is_point(obj)
     if not meta then
         return false
     end
-    if meta.__name and meta.__name == "point" then
+    if meta.__name and meta.__name == "lpoint" then
         return true
     end
     return false -- explicitly return false because we always want one result

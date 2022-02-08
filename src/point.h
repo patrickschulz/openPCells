@@ -4,6 +4,7 @@
 #include <stdint.h>
 
 typedef long long int coordinate_t;
+typedef unsigned long long int ucoordinate_t;
 
 typedef struct
 {

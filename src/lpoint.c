@@ -8,11 +8,6 @@
 
 #include "point.h"
 
-typedef struct
-{
-    point_t* point;
-} lpoint_t;
-
 static coordinate_t checkcoordinate(lua_State* L, int idx)
 {
     int isnum;
