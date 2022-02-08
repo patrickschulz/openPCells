@@ -4,7 +4,7 @@ point._getmetatable = nil -- remove metatable access
 
 function meta.__tostring(self)
     local x, y = self:unwrap()
-    return string.format("lpoint: (%d, %d)", x, y)
+    return string.format("point: (%d, %d)", x, y)
 end
 
 function meta.__add(lhs, rhs)
@@ -102,9 +102,9 @@ function point.ydistance(lhs, rhs)
     return lhs:gety() - rhs:gety()
 end
 
-function is_lpoint(obj)
+function is_point(obj)
     if not obj then
-        error("is_lpoint expects expects one argument")
+        error("is_point expects expects one argument")
     end
     if type(obj) ~= "userdata" then
         return false
@@ -113,7 +113,7 @@ function is_lpoint(obj)
     if not meta then
         return false
     end
-    if meta.__name and meta.__name == "lpoint" then
+    if meta.__name and meta.__name == "point" then
         return true
     end
     return false -- explicitly return false because we always want one result
