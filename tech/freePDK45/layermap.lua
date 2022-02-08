@@ -9,18 +9,7 @@ return {
             },
         },
     },
-    --[[
-    soiopen = {
-        map {
-            name = "HYBRID",
-            lpp = {
-                gds   = { layer = 800,      purpose = 11 },
-                SKILL = { layer = "HYBRID", purpose = "drawing" },
-                magic = { layer = "HYBRID", purpose = "drawing" },
-            }
-        }
-    },
-    --]]
+    soiopen = {},
     pimpl = {
         map {
             name = "pimplant",
@@ -64,88 +53,6 @@ return {
     deeppwell = {},
     deepnwell = {},
     feol = {
-        --[[
-        map(function(settings) -- threshold voltage
-            local lut = {
-                nmos = {
-                    [1] = { -- slvtn
-                        name = "SLVTN",
-                        lpp = {
-                            gds   = { layer = 212,     purpose = 52        },
-                            SKILL = { layer = "SLVTN", purpose = "drawing" },
-                            magic = { layer = "SLVTN", purpose = "drawing" },
-                        }
-                    },
-                    [2] = { -- lvtn
-                        name = "LVTN",
-                        lpp = {
-                            gds   = { layer = 780,    purpose = 11        },
-                            SKILL = { layer = "LVTN", purpose = "drawing" },
-                            magic = { layer = "LVTN", purpose = "drawing" },
-                        }
-                    },
-                    [3] = { -- rvtn
-                        name = "RVTN",
-                        lpp = {
-                            gds   = { layer = 780,    purpose = 177       },
-                            SKILL = { layer = "RVTN", purpose = "drawing" },
-                            magic = { layer = "RVTN", purpose = "drawing" },
-                        }
-                    },
-                    [4] = { -- hvtn
-                        name = "HVTN",
-                        lpp = {
-                            gds   = { layer = 12,    purpose = 106        },
-                            SKILL = { layer = "HVTN", purpose = "drawing" },
-                            magic = { layer = "HVTN", purpose = "drawing" },
-                        }
-                    },
-                },
-                pmos = {
-                    [1] = { -- slvtp
-                        name = "SLVTP",
-                        lpp = {
-                            gds   = { layer = 212,     purpose = 53        },
-                            SKILL = { layer = "SLVTP", purpose = "drawing" },
-                            magic = { layer = "SLVTP", purpose = "drawing" },
-                        }
-                    },
-                    [2] = { -- lvtp
-                        name = "LVTP",
-                        lpp = {
-                            gds   = { layer = 200,    purpose = 14        },
-                            SKILL = { layer = "LVTP", purpose = "drawing" },
-                            magic = { layer = "LVTP", purpose = "drawing" },
-                        }
-                    },
-                    [3] = { -- rvtp
-                        name = "RVTP",
-                        lpp = {
-                            gds   = { layer = 780,    purpose = 178       },
-                            SKILL = { layer = "RVTP", purpose = "drawing" },
-                            magic = { layer = "RVTP", purpose = "drawing" },
-                        }
-                    },
-                    [4] = { -- hvtp
-                        name = "HVTP",
-                        lpp = {
-                            gds   = { layer = 200,    purpose = 17        },
-                            SKILL = { layer = "HVTP", purpose = "drawing" },
-                            magic = { layer = "HVTP", purpose = "drawing" },
-                        }
-                    },
-                }
-            }
-            return {
-                name = lut[settings.channeltype][settings.vthtype].name,
-                lpp = lut[settings.channeltype][settings.vthtype].lpp,
-                left   = 100,
-                right  = 100,
-                top    = settings.expand.top and 100 or 0,
-                bottom = settings.expand.bottom and 100 or 0,
-            }
-        end),
-        --]]
         map(function(settings) -- well
             local lut = {
                 nmos = {
@@ -174,38 +81,6 @@ return {
                 bottom = settings.expand.bottom and 55 or 0,
             }
         end),
-        --[[
-        map(function(settings) -- implant
-            local lut = {
-                nmos = {
-                    name = "NPLUS",
-                    lpp = {
-                        gds   = { layer = 1008,    purpose = 0 },
-                        SKILL = { layer = "NPLUS", purpose = "drawing" },
-                        magic = { layer = "NPLUS", purpose = "drawing" },
-                        svg   = { color = "black", opacity = 1.0, fill = false, order = 13 },
-                    }
-                },
-                pmos = {
-                    name = "PPLUS",
-                    lpp = {
-                        gds   = { layer = 780,     purpose = 47 },
-                        SKILL = { layer = "PPLUS", purpose = "drawing" },
-                        magic = { layer = "PPLUS", purpose = "drawing" },
-                        svg   = { color = "black", opacity = 1.0, fill = false, order = 13 },
-                    }
-                }
-            }
-            return {
-                name = lut[settings.channeltype].name,
-                lpp = lut[settings.channeltype].lpp,
-                left   = 100,
-                right  = 100,
-                top    = settings.expand.top and 100 or 0,
-                bottom = settings.expand.bottom and 100 or 0,
-            }
-        end),
-        --]]
     },
     active = {
         map { -- active
@@ -231,63 +106,6 @@ return {
     },
     gatecut = {},
     tuckgatemarker = {},
-    --[==[
-    polyres = {
-        map {
-            name = "OP",
-            lpp = {
-                gds   = { layer = 37,  purpose = 0 },
-                SKILL = { layer = "OP", purpose = "drawing" },
-                magic = { layer = "OP", purpose = "drawing" },
-            }
-        },
-    },
-    nres = {
-        map {
-            name = "NPLUS",
-            lpp = {
-                gds   = { layer = 1008,    purpose = 0 },
-                SKILL = { layer = "NPLUS", purpose = "drawing" },
-                magic = { layer = "NPLUS", purpose = "drawing" },
-            }
-        },
-        map {
-            name = "NRES",
-            lpp = {
-                gds   = { layer = 800,    purpose = 13 },
-                SKILL = { layer = "NRES", purpose = "drawing" },
-                magic = { layer = "NRES", purpose = "drawing" },
-            }
-        },
-    },
-    padopening = {
-        map {
-            name = "RS",
-            lpp = {
-                gds   = { layer = 4328, purpose = 0 },
-                SKILL = { layer = "RS", purpose = "drawing" },
-                magic = { layer = "RS", purpose = "drawing" },
-            }
-        },
-    },
-    contactnwell = {
-        array {
-            name = "CA",
-            lpp = {
-                gds      = { layer =   14,  purpose = 0 },
-                SKILL = { layer = "CA" , purpose = "drawing" },
-                magic    = { layer = "CA" , purpose = "drawing" },
-                svg      = { color = "yellow", opacity = 1.0, fill = true, order = 6 },
-            },
-            width = 40,
-            height = 40,
-            xspace = 160,
-            yspace = 160,
-            xencl = 30,
-            yencl = 30
-        },
-    },
-    --]==]
     contactactive = {
         array {
             name = "contact",
