@@ -45,33 +45,6 @@ function shape.copy(self)
     return new
 end
 
----[[
-function shape.apply_transformation(self, matrix, func)
-    if self.typ == "polygon" or self.typ == "path" then
-        for _, pt in ipairs(self.points) do
-            func(matrix, pt)
-        end
-    elseif self.typ == "rectangle" then
-        func(matrix, self.points.bl)
-        func(matrix, self.points.tr)
-        local blx, bly = self.points.bl:unwrap()
-        local trx, try = self.points.tr:unwrap()
-        if blx > trx then
-            if bly > try then
-                point._update(self.points.bl, trx, try)
-                point._update(self.points.tr, blx, bly)
-            else
-                point._update(self.points.bl, trx, bly)
-                point._update(self.points.tr, blx, try)
-            end
-        end
-    else
-        moderror(string.format("shape.apply_transformation: unknown type '%s'", self.typ))
-    end
-    return self
-end
---]]
-
 function shape.resize(self, xsize, ysize)
     shape.resize_lrtb(self, xsize / 2, xsize / 2, ysize / 2, ysize/ 2)
 end

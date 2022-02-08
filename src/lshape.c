@@ -140,20 +140,20 @@ static int apply_transformation(lua_State* L)
         lua_pushvalue(L, 3);
         lua_pushvalue(L, 2);
         lua_pushstring(L, "bl");
-        lua_rawget(L, 1);
+        lua_rawget(L, -4);
         lua_call(L, 2, 0);
 
         lua_pushvalue(L, 3);
         lua_pushvalue(L, 2);
         lua_pushstring(L, "tr");
-        lua_rawget(L, 1);
+        lua_rawget(L, -4);
         lua_call(L, 2, 0);
 
         lua_pushstring(L, "bl");
-        lua_rawget(L, 1);
+        lua_rawget(L, -2);
         lpoint_t* bl = lua_touserdata(L, -1);
         lua_pushstring(L, "tr");
-        lua_rawget(L, 1);
+        lua_rawget(L, -3);
         lpoint_t* tr = lua_touserdata(L, -1);
         if(bl->point->x > tr->point->x)
         {
@@ -167,7 +167,7 @@ static int apply_transformation(lua_State* L)
             bl->point->y = tr->point->y;
             tr->point->y = tmp;
         }
-        lua_pop(L, 1); /* pop points */
+        lua_pop(L, 3); /* pop bl, tr and points */
     }
     lua_pop(L, 1); /* pop type */
     lua_pop(L, 2);
