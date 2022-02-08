@@ -242,11 +242,11 @@ function M.from_verilog(filename, utilization, aspectratio, excluded_nets, repor
     local options = _create_options(fixedrows, required_width, total_width, utilization, aspectratio)
 
     -- run placement
-    local rows = placer.place_classic(maxnet, instances, options)
+    local rows = placer.place_simulated_annealing(maxnet, instances, options)
 
     -- run routing
-    local netpositions, numnets = _prepare_routing_nets(nets, rows, instlookup, reflookup)
-    router.route(netpositions, numnets)
+    --local netpositions, numnets = _prepare_routing_nets(nets, rows, instlookup, reflookup)
+    --router.route(netpositions, numnets)
 
     return {
         content = content,
@@ -267,18 +267,17 @@ function M.write_from_verilog(content, prefix, libname)
     end
     if not filesystem.exists(path) then
         local created = filesystem.mkdir(path)
-        if created then
-            local basename = string.format("%s/%s", prefix, libname)
-            for module in content.content:modules() do
-                local lines = _write_module(content.rows, content.nets, width, content.instlookup, content.reflookup)
-                print(string.format("writing to file '%s/%s.lua'", basename, module.name))
-                local file = io.open(string.format("%s/%s.lua", basename, module.name), "w")
-                file:write(table.concat(lines, '\n'))
-                file:close()
-            end
-        else
+        if not created then
             moderror(string.format("generator.verilog_routing: could not create directory '%s/%s'", prefix, libname))
         end
+    end
+    local basename = string.format("%s/%s", prefix, libname)
+    for module in content.content:modules() do
+        local lines = _write_module(content.rows, content.nets, content.width, content.instlookup, content.reflookup)
+        print(string.format("writing to file '%s/%s.lua'", basename, module.name))
+        local file = io.open(string.format("%s/%s.lua", basename, module.name), "w")
+        file:write(table.concat(lines, '\n'))
+        file:close()
     end
 end
 
