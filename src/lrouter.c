@@ -79,27 +79,39 @@ int lrouter_route(lua_State* L)
 
     sort_nets(nc->nets, nc->num_nets);
 
-    const size_t fieldsize = 30;
+    const size_t field_height = lua_tointeger(L, 4) + 1;
+    const size_t field_width = lua_tointeger(L, 3) + 1;
+    printf("w: %zu, h: %zu\n", field_width, field_height);
     const size_t num_layers = 3;
     const unsigned int via_cost = 10;
     const unsigned int wrong_dir_cost = 30;
-    int*** field = init_field(fieldsize, num_layers);
+    int*** field = init_field(field_width, field_height, num_layers);
 
     fill_ports(nc->nets, nc->num_nets, field);
 
     for(unsigned int i = 0; i < nc->num_nets; ++i)
     {
-	nc->nets[i].routed = route(nc->nets[i], field, fieldsize,
-				   num_layers, via_cost, wrong_dir_cost);
+
+	    /* dont route nets without at least 2 points */
+	    if(nc->nets[i].x2 == 0 &&
+		nc->nets[i].y2 == 0 &&
+		nc->nets[i].z2 == 0)
+		    continue;
+
+	nc->nets[i].routed = route(nc->nets[i], field, field_width,
+				   field_height, num_layers, via_cost,
+				   wrong_dir_cost);
     }
 
     print_nets(nc->nets, nc->num_nets);
-	print_field(field, fieldsize, 0);
-	print_field(field, fieldsize, 1);
-	print_field(field, fieldsize, 2);
+	print_field(field, field_width, field_height, 0);
+	print_field(field, field_width, field_height, 1);
+	print_field(field, field_width, field_height, 2);
 	usleep(1000000);
 
-    destroy_field(field, fieldsize, num_layers);
+	/* TODO: create route deltas */
+
+    destroy_field(field, field_width, field_height, num_layers);
     free(nc->nets);
     free(nc);
     return 0;

@@ -32,9 +32,13 @@ static point_t *get_min_point(point_t *arr)
 	return point;
 }
 
-int route(net_t net, int*** field, size_t fieldsize, size_t num_layers,
-	  size_t wrong_dir_cost, size_t via_cost)
+int route(net_t net, int*** field, size_t width, size_t height,
+	  size_t num_layers, size_t wrong_dir_cost, size_t via_cost)
 {
+	print_field(field, width, height, 0);
+		print_field(field, width, height, 1);
+		print_field(field, width, height, 2);
+
 	unsigned int startx = net.x1;
 	unsigned int starty = net.y1;
 	unsigned int startz = net.z1;
@@ -82,7 +86,7 @@ int route(net_t net, int*** field, size_t fieldsize, size_t num_layers,
 			nextz = z + zincr[i];
 			//printf("next coords %u, %u, %u\n", nextx, nexty, nextz);
 
-			if(nextx >= fieldsize || nexty >= fieldsize ||
+			if(nextx >= width || nexty >= height ||
 			   nextz >= num_layers)
 				continue;
 
@@ -149,7 +153,7 @@ int route(net_t net, int*** field, size_t fieldsize, size_t num_layers,
 		/* clean up */
 		field[startz][startx][starty] = PORT;
 		field[endz][endx][endy] = PORT;
-		reset_field(field, fieldsize, num_layers);
+		reset_field(field, width, height, num_layers);
 		return STUCK;
 	}
 	} while(!(x == endx && y == endy && z == endz));
@@ -181,8 +185,8 @@ int route(net_t net, int*** field, size_t fieldsize, size_t num_layers,
 			nexty = y + yincr[i];
 			nextz = z + zincr[i];
 
-			if(nextx >= fieldsize ||
-			   nexty >= fieldsize ||
+			if(nextx >= width ||
+			   nexty >= height ||
 			   nextz >= num_layers)
 			{
 				continue;
@@ -241,16 +245,16 @@ int route(net_t net, int*** field, size_t fieldsize, size_t num_layers,
 		path_point->z = z;
 		queue_enqueue(net.path, path_point);
 
-		print_field(field, fieldsize, 0);
-		print_field(field, fieldsize, 1);
-		print_field(field, fieldsize, 2);
-		usleep(100000);
+//		print_field(field, fieldsize, 0);
+//		print_field(field, fieldsize, 1);
+//		print_field(field, fieldsize, 2);
+//		usleep(100000);
 
 	} while (!(x == startx && y == starty && z == startz));
 
 	/* mark start and end of net as ports */
 	field[startz][startx][starty] = PORT;
 	field[endz][endx][endy] = PORT;
-	reset_field(field, fieldsize, num_layers);
+	reset_field(field, width, height, num_layers);
 	return ROUTED;
 }

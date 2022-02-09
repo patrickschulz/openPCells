@@ -125,7 +125,7 @@ local function _prepare_routing_nets(nets, rows, instlookup, reflookup)
                             numnets = numnets + 1
                         end
                         local offset = _get_pin_offset(reflookup[column.reference], n.port)
-                        table.insert(netpositions[name], { x = c + offset, y = r })
+                        table.insert(netpositions[name], { x = c + offset, y = r, z = 0})
                     end
                 end
             end
@@ -232,69 +232,32 @@ local function _read_parse_verilog(filename)
 end
 
 function M.from_verilog(filename, utilization, aspectratio, excluded_nets, report)
-    --local content = _read_parse_verilog(filename)
+    local content = _read_parse_verilog(filename)
 
-    ---- collect nets and cells
-    --local maxnet, instances, nets, instlookup, reflookup = _collect_nets_cells(content, excluded_nets)
+    -- collect nets and cells
+    local maxnet, instances, nets, instlookup, reflookup = _collect_nets_cells(content, excluded_nets)
 
-    ---- placer options
-    --local required_width, total_width = _get_geometry(content)
-    --local options = _create_options(fixedrows, required_width, total_width, utilization, aspectratio)
+    -- placer options
+    local required_width, total_width = _get_geometry(content)
+    local options = _create_options(fixedrows, required_width, total_width, utilization, aspectratio)
 
-
-    -- TODO: run routing
-    local netpositions = {
-    ["net0"]={{x = 7, y = 2, z = 0}, {x = 3, y = 5, z = 2}},
-    ["net1"]={{x = 4, y = 1, z = 1}, {x = 9, y = 3, z = 1}},
-    ["net2"]={{x = 0, y = 4, z = 2}, {x = 5, y = 3, z = 0}},
-    ["net1"]={{x = 18, y = 7, z = 2}, {x = 2, y = 7, z = 1}},
-    ["net2"]={{x = 13, y = 17, z = 0}, {x = 9, y = 9, z = 0}},
-    ["net3"]={{x = 5, y = 8, z = 1}, {x = 1, y = 7, z = 2}},
-    ["net4"]={{x = 21, y = 2, z = 0}, {x = 29, y = 21, z = 0}},
-    ["net5"]={{x = 16, y = 27, z = 2}, {x = 3, y = 10, z = 1}},
-    ["net6"]={{x = 22, y = 22, z = 0}, {x = 12, y = 3, z = 2}},
-    ["net7"]={{x = 19, y = 10, z = 2}, {x = 7, y = 4, z = 0}},
-    ["net8"]={{x = 16, y = 12, z = 1}, {x = 3, y = 12, z = 2}},
-    ["net9"]={{x = 1, y = 2, z = 0}, {x = 23, y = 11, z = 1}},
-    ["net10"]={{x = 2, y = 13, z = 1}, {x = 14, y = 6, z = 0}},
-    ["net11"]={{x = 20, y = 10, z = 2}, {x = 7, y = 7, z = 2}},
-    ["net12"]={{x = 19, y = 12, z = 2}, {x = 1, y = 15, z = 0}},
-    ["net13"]={{x = 3, y = 6, z = 0}, {x = 23, y = 11, z = 1}},
-    }
-
-    local numnets = 14 
-   -- for name, net in pairs(nets) do
-   --     for _, n in pairs(net.connections) do
-   --         for r, row in ipairs(rows) do
-   --             for c, column in ipairs(row) do
-   --                 if instlookup[column.instance] == n.instance then
-   --                     if not netpositions[name] then
-   --                         netpositions[name] = {}
-   --                         numnets = numnets + 1
-   --                     end
-   --                     local offset = _get_pin_offset(reflookup[column.reference], n.port)
-   --                     table.insert(netpositions[name], { x = c + offset, y = r })
-   --                 end
-   --             end
-   --         end
-   --     end
-   -- end
-   --
     -- run placement
-  --  local rows = placer.place_simulated_annealing(maxnet, instances, options)
+    local rows = placer.place_simulated_annealing(maxnet, instances, options)
 
     -- run routing
-    --local netpositions, numnets = _prepare_routing_nets(nets, rows, instlookup, reflookup)
-    --router.route(netpositions, numnets)
+    local netpositions, numnets = _prepare_routing_nets(nets, rows, instlookup, reflookup)
 
     for name, net in pairs(netpositions) do
         print(name)
-        for _, pt in ipairs(net) do
-            print(pt.x, pt.y, pt.z)
+        for i, pt in ipairs(net) do
+            print(string.format("coord %i: %i %i %i", i, pt.x, pt.y, pt.z))
         end
-        print()
     end
-    router.route(netpositions, numnets)
+    print(string.format("width: %u, height: %u", options.floorplan_width,
+        options.floorplan_height))
+
+    router.route(netpositions, numnets, options.floorplan_width,
+        options.floorplan_height)
     return {
         content = content,
         width = options.floorplan_width,

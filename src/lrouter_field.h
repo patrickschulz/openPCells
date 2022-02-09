@@ -15,15 +15,15 @@ typedef struct {
 	unsigned int score;
 } point_t;
 
-int*** init_field(size_t size, size_t num_layers);
-void destroy_field(int*** field, size_t size, size_t num_layers);
-void print_field(int*** field, size_t size, unsigned int layer);
+int*** init_field(size_t width, size_t height, size_t num_layers);
+void destroy_field(int*** field, size_t width, size_t height, size_t num_layers);
+void print_field(int*** field, size_t width, size_t height, unsigned int layer);
 void unprint_field(size_t size);
 
 /*
  * resets the values in the field for a next iteration
  * (keeps ports and paths)
  */
-void reset_field(int*** field, size_t size, size_t num_layers);
+void reset_field(int*** field, size_t width, size_t height, size_t num_layers);
 
 #endif

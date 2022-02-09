@@ -44,10 +44,10 @@ void white()
 	printf("\033[0;37m");
 }
 
-static void reset_layer(int** layer, size_t size)
+static void reset_layer(int** layer, size_t width, size_t height)
 {
-	for(size_t i = 0; i < size; i++) {
-		for(size_t j = 0; j < size; j++) {
+	for(size_t i = 0; i < height; i++) {
+		for(size_t j = 0; j < width; j++) {
 			if(layer[j][i] != PATH && layer[j][i] != PORT
 			   && layer[j][i] != VIA)
 				layer[j][i] = UNVISITED;
@@ -55,33 +55,33 @@ static void reset_layer(int** layer, size_t size)
 	}
 }
 
-void reset_field(int*** field, size_t size, size_t num_layers)
+void reset_field(int*** field, size_t width, size_t height, size_t num_layers)
 {
 	for(size_t l = 0; l < num_layers; l++) {
-		reset_layer(field[l], size);
+		reset_layer(field[l], width, height);
 	}
 }
 
-int*** init_field(size_t size, size_t num_layers)
+int*** init_field(size_t width, size_t height, size_t num_layers)
 {
     int*** field = calloc(num_layers, sizeof(**field));
     for(size_t i = 0; i < num_layers; i++)
     {
-	field[i] = calloc(size, sizeof(*field));
-	for(size_t j = 0; j < size; j++)
+	field[i] = calloc(width, sizeof(*field));
+	for(size_t j = 0; j < width; j++)
 	{
-		field[i][j] = calloc(size, sizeof(**field));
-		memset(field[i][j], UNVISITED, size * sizeof(**field));
+		field[i][j] = calloc(height, sizeof(field));
+		memset(field[i][j], UNVISITED, height * sizeof(field));
 	}
     }
     return field;
 }
 
-void destroy_field(int*** field, size_t size, size_t num_layers)
+void destroy_field(int*** field, size_t width, size_t height, size_t num_layers)
 {
 	for(size_t i = 0; i < num_layers; i++)
 	{
-	    for(size_t j = 0; j < size; j++)
+	    for(size_t j = 0; j < height; j++)
 	    {
 		free(field[i][j]);
 	    }
@@ -90,9 +90,9 @@ void destroy_field(int*** field, size_t size, size_t num_layers)
     free(field);
 }
 
-void print_field(int*** field, size_t size, unsigned int layer)
+void print_field(int*** field, size_t width, size_t height, unsigned int layer)
 {
-	for(size_t i = 0; i < size - 1; i++) {
+	for(size_t i = 0; i < width - 1; i++) {
 		if(i == 0) {
 			printf("%u", layer);
 		} else {
@@ -100,8 +100,8 @@ void print_field(int*** field, size_t size, unsigned int layer)
 		}
 	}
 	printf("=\n");
-	for(size_t i = 0; i < size; i++) {
-		for(size_t j = 0; j < size; j++) {
+	for(size_t i = 0; i < height; i++) {
+		for(size_t j = 0; j < width; j++) {
 			if(field[layer][j][i] == PATH)
 				green();
 			else if(field[layer][j][i] == PORT)
