@@ -18,7 +18,6 @@
 #define PARENT(x) (x - 1) / 2
 
 min_heap_t *heap_init() {
-	printf("called heap init\n");
     min_heap_t *heap = malloc(sizeof(min_heap_t));
     heap->size = 0;
     return heap;
@@ -54,7 +53,6 @@ static void heapify(min_heap_t *hp, size_t i) {
 }
 
 void heap_insert_point(min_heap_t *hp, point_t *point) {
-	printf("called insert point with: %u\n", point->score);
     if(hp->size) {
         hp->elem = realloc(hp->elem, (hp->size + 1) * sizeof(heap_node_t));
     } else {
@@ -79,11 +77,9 @@ void heap_insert_point(min_heap_t *hp, point_t *point) {
 *  is never violated
 */
 point_t *heap_get_point(min_heap_t *hp) {
-	printf("called get point\n");
     if(hp->size) {
 	point_t *point = malloc(sizeof(point_t));
 	point = hp->elem[0].point;
-        printf("Deleting point with score %d\n\n", hp->elem[0].point->score);
         hp->elem[0] = hp->elem[--(hp->size)];
         hp->elem = realloc(hp->elem, hp->size * sizeof(heap_node_t));
         heapify(hp, 0);

@@ -6,6 +6,7 @@
 
 #include <unistd.h>
 #include <stdlib.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <string.h>
 #include <limits.h>
@@ -25,7 +26,7 @@ static point_t *get_min_point(point_t *arr)
 	point_t *point = arr;
 	for(int i = 0; i < NUM_DIRECTIONS; i++)
 	{
-		printf("array stored %u\n", arr[i].score);
+		//printf("array stored %u\n", arr[i].score);
 		point = (arr[i].score < point->score) ? &arr[i] : point;
 	}
 	return point;
@@ -63,7 +64,7 @@ int route(net_t net, int*** field, size_t fieldsize, size_t num_layers,
 	 * endpoint is reached
 	 */
 	do {
-		printf("route %u %u to %u %u\n", startx, starty, endx, endy);
+		//printf("route %u %u to %u %u\n", startx, starty, endx, endy);
 		/* get next point from heap */
 		point_ptr = heap_get_point(min_heap);
 
@@ -79,7 +80,7 @@ int route(net_t net, int*** field, size_t fieldsize, size_t num_layers,
 			nextx = x + xincr[i];
 			nexty = y + yincr[i];
 			nextz = z + zincr[i];
-			printf("next coords %u, %u, %u\n", nextx, nexty, nextz);
+			//printf("next coords %u, %u, %u\n", nextx, nexty, nextz);
 
 			if(nextx >= fieldsize || nexty >= fieldsize ||
 			   nextz >= num_layers)
@@ -158,16 +159,17 @@ int route(net_t net, int*** field, size_t fieldsize, size_t num_layers,
 	x = endx;
 	y = endy;
 
-	printf("backtrace route %u %u to %u %u\n", startx, starty, endx, endy);
+	//printf("backtrace route %u %u to %u %u\n", startx, starty, endx, endy);
 
 	do {
 		score = field[z][x][y];
 
-		printf("backtrace %u %u %u, score: %i\n", x, y, z, score);
+		//printf("backtrace %u %u %u, score: %i\n", x, y, z, score);
 
 		/* array to look for the least costing neighboring point */
 		point_t nextpoints[NUM_DIRECTIONS];
-		memset(nextpoints, UINT_MAX, sizeof(point_t)*NUM_DIRECTIONS);
+		memset(nextpoints, UINT_MAX, sizeof(point_t) * NUM_DIRECTIONS);
+		bool next_is_via;
 
 		/*
 		 * circle around every point + check layer above and below
@@ -188,7 +190,6 @@ int route(net_t net, int*** field, size_t fieldsize, size_t num_layers,
 
 			/* check if point is visitable if yes store it in array */
 			int nextfield = field[nextz][nextx][nexty];
-			printf("nextfield: %i\n", nextfield);
 
 			switch(nextfield)
 			{
@@ -207,26 +208,31 @@ int route(net_t net, int*** field, size_t fieldsize, size_t num_layers,
 				    point.z = nextz;
 				    point.score = nextfield;
 				    nextpoints[i] = point;
-				    printf("stored point with %u\n", point.score);
+				    //printf("stored point with %u\n", point.score);
 				}
 		}
 
 		point_t *npoint = get_min_point(nextpoints);
-		if(npoint->z != z)
+		if(next_is_via)
 		{
 			field[z][x][y] = VIA;
+			next_is_via = FALSE;
+		}
+		else if(npoint->z != z)
+		{
+			field[z][x][y] = VIA;
+			next_is_via = TRUE;
 		}
 		else
 		{
 			field[z][x][y] = PATH;
 		}
 
-
 		x = npoint->x;
 		y = npoint->y;
 		z = npoint->z;
 
-		printf("got %u %u %u\n", x, y, z);
+		//printf("got %u %u %u\n", x, y, z);
 
 		/* put the point in the nets path queue */
 		point_t *path_point = malloc(sizeof(point_t));
@@ -246,9 +252,5 @@ int route(net_t net, int*** field, size_t fieldsize, size_t num_layers,
 	field[startz][startx][starty] = PORT;
 	field[endz][endx][endy] = PORT;
 	reset_field(field, fieldsize, num_layers);
-	print_field(field, fieldsize, 0);
-	print_field(field, fieldsize, 1);
-	print_field(field, fieldsize, 2);
-	usleep(1000000);
 	return ROUTED;
 }

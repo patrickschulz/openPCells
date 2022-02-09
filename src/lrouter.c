@@ -94,6 +94,10 @@ int lrouter_route(lua_State* L)
     }
 
     print_nets(nc->nets, nc->num_nets);
+	print_field(field, fieldsize, 0);
+	print_field(field, fieldsize, 1);
+	print_field(field, fieldsize, 2);
+	usleep(1000000);
 
     destroy_field(field, fieldsize, num_layers);
     free(nc->nets);
