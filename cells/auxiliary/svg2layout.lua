@@ -113,15 +113,15 @@ function layout(cell, _P)
             for i = 1, #entry - (incr - 1), incr do
                 if incr == 1 then
                     local delta = math.floor(_P.scale * tonumber(entry[i]))
-                    table.insert(pts, point.create(a * lastx + b * delta, c * lasty + d * delta))
+                    table.insert(pts, point.create(a * lastx + b * delta, c * lasty - d * delta))
                     lastx = a * lastx + b * delta
-                    lasty = c * lasty + d * delta
+                    lasty = c * lasty - d * delta
                 else
                     local x = math.floor(_P.scale * tonumber(entry[i]))
                     local y = math.floor(_P.scale * tonumber(entry[i + 1]))
-                    table.insert(pts, point.create(a * lastx + b * x, c * lasty + d * y))
+                    table.insert(pts, point.create(a * lastx + b * x, c * lasty - d * y))
                     lastx = a * lastx + b * x
-                    lasty = c * lasty + d * y
+                    lasty = c * lasty - d * y
                 end
             end
         end
@@ -138,13 +138,36 @@ function layout(cell, _P)
             elseif entry.command == "v" then
                 _update(entry, 1, 1, 0, 1, 1)
             elseif entry.command == "c" then
-                -- FIXME linear approximation of curve
                 for i = 1, #entry - 5, 6 do
                     local x = _get_coord(entry, i + 4)
                     local y = _get_coord(entry, i + 5)
-                    table.insert(pts, point.create(lastx + x, lasty + y))
+                    local coords = graphics.flatten_cubic_bezier(
+                        lastx, lasty,
+                        lastx + _get_coord(entry, i - 1 + 1), lasty - _get_coord(entry, i - 1 + 2),
+                        lastx + _get_coord(entry, i - 1 + 3), lasty - _get_coord(entry, i - 1 + 4),
+                        lastx + _get_coord(entry, i - 1 + 5), lasty - _get_coord(entry, i - 1 + 6)
+                    )
+                    for j = 1, #coords, 2 do
+                        table.insert(pts, point.create(coords[j], coords[j + 1]))
+                    end
                     lastx = lastx + x
-                    lasty = lasty + y
+                    lasty = lasty - y
+                end
+            elseif entry.command == "C" then
+                for i = 1, #entry - 5, 6 do
+                    local x = _get_coord(entry, i + 4)
+                    local y = _get_coord(entry, i + 5)
+                    local coords = graphics.flatten_cubic_bezier(
+                        lastx, lasty,
+                        _get_coord(entry, i - 1 + 1), -_get_coord(entry, i - 1 + 2),
+                        _get_coord(entry, i - 1 + 3), -_get_coord(entry, i - 1 + 4),
+                        _get_coord(entry, i - 1 + 5), -_get_coord(entry, i - 1 + 6)
+                    )
+                    for j = 1, #coords, 2 do
+                        table.insert(pts, point.create(coords[j], coords[j + 1]))
+                    end
+                    lastx = lastx + x
+                    lasty = lasty - y
                 end
             elseif entry.command == "z" then
                 -- finished, do nothing
