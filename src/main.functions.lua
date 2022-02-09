@@ -1,7 +1,10 @@
 local M = {}
 
 function M.show_gds_data(filename, flags, depth, raw)
-    gdsparser.show_records(filename, flags, raw, depth)
+    local status, msg = gdsparser.show_records(filename, flags, raw, depth)
+    if not status then
+        moderror(msg)
+    end
 end
 
 function M.show_gds_hierarchy(filename, depth)

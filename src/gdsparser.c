@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <math.h>
+#include <string.h>
 
 #include "lua/lauxlib.h"
 
@@ -38,7 +39,7 @@ struct record
     uint16_t length;
     uint8_t recordtype;
     uint8_t datatype;
-    uint8_t* data;
+    void* data;
 };
 
 struct record* _read_record(FILE* file)
@@ -54,15 +55,109 @@ struct record* _read_record(FILE* file)
     record->length = (buf[0] << 8) + buf[1];
     record->recordtype = buf[2];
     record->datatype = buf[3];
+    record->data = NULL;
 
     size_t numbytes = record->length - 4;
-    record->data = malloc(numbytes);
-    read = fread(record->data, 1, numbytes, file);
+    uint8_t* data = malloc(numbytes);
+    read = fread(data, 1, numbytes, file);
     if(read != numbytes)
     {
         free(record);
         return NULL;
     }
+
+    if(record->length > 4)
+    {
+        // parsed data
+        switch(record->datatype)
+        {
+            case TWO_BYTE_INTEGER:
+            {
+                int16_t* rdata = calloc((record->length - 4) / 2, 2);
+                for(int i = 0; i < (record->length - 4) / 2; ++i)
+                {
+                    rdata[i] = (data[i * 2] << 8) + data[i * 2 + 1];
+                }
+                record->data = rdata;
+                break;
+            }
+            case FOUR_BYTE_INTEGER:
+            {
+                int32_t* rdata = calloc((record->length - 4) / 4, 4);
+                for(int i = 0; i < (record->length - 4) / 4; ++i)
+                {
+                    rdata[i] = (data[i * 4] << 24) + (data[i * 4 + 1] << 16) + (data[i * 4 + 2] << 8) + data[i * 4 + 3];
+                }
+                record->data = rdata;
+                break;
+            }
+            case FOUR_BYTE_REAL:
+            {
+                double* rdata = calloc((record->length - 4) / 4, sizeof(double));
+                for(int i = 0; i < (record->length - 4) / 4; ++i)
+                {
+                    int sign = data[i * 4] & 0x80;
+                    int8_t exp = data[i * 4] & 0x7f;
+                    double mantissa = data[i * 4 + 1] / 256.0
+                                    + data[i * 4 + 2] / 256.0 / 256.0
+                                    + data[i * 4 + 3] / 256.0 / 256.0 / 256.0;
+                    if(sign)
+                    {
+                        rdata[i] = -mantissa * pow(16.0, exp - 64);
+                    }
+                    else
+                    {
+                        rdata[i] = mantissa * pow(16.0, exp - 64);
+                    }
+                }
+                record->data = rdata;
+                break;
+            }
+            case EIGHT_BYTE_REAL:
+            {
+                double* rdata = calloc((record->length - 4) / 8, sizeof(double));
+                for(int i = 0; i < (record->length - 4) / 8; ++i)
+                {
+                    int sign = data[i * 8] & 0x80;
+                    int8_t exp = data[i * 8] & 0x7f;
+                    double mantissa = data[i * 8 + 1] / 256.0
+                                    + data[i * 8 + 2] / 256.0 / 256.0
+                                    + data[i * 8 + 3] / 256.0 / 256.0 / 256.0
+                                    + data[i * 8 + 4] / 256.0 / 256.0 / 256.0 / 256.0
+                                    + data[i * 8 + 5] / 256.0 / 256.0 / 256.0 / 256.0 / 256.0
+                                    + data[i * 8 + 6] / 256.0 / 256.0 / 256.0 / 256.0 / 256.0 / 256.0
+                                    + data[i * 8 + 7] / 256.0 / 256.0 / 256.0 / 256.0 / 256.0 / 256.0 / 256.0;
+                    if(sign)
+                    {
+                        rdata[i] = -mantissa * pow(16.0, exp - 64);
+                    }
+                    else
+                    {
+                        rdata[i] = mantissa * pow(16.0, exp - 64);
+                    }
+                }
+                record->data = rdata;
+                break;
+            }
+            case ASCII_STRING:
+            {
+                char* rdata = calloc(record->length - 4, 1);
+                memcpy(rdata, data, record->length - 4);
+                record->data = rdata;
+                break;
+            }
+            default:
+            {
+                uint8_t* rdata = calloc(record->length - 4, 1);
+                memcpy(rdata, data, record->length - 4);
+                record->data = rdata;
+                break;
+            }
+        }
+    }
+
+    free(data);
+
     return record;
 }
 
@@ -110,9 +205,152 @@ struct stream* _read_stream(const char* filename)
     return stream;
 }
 
-void show_records(const char* filename, int raw)
+int lgdsparser_read_raw_stream(lua_State* L)
 {
+    const char* filename = lua_tostring(L, 1);
     struct stream* stream = _read_stream(filename);
+    if(!stream)
+    {
+        lua_pushnil(L);
+        lua_pushstring(L, "could not read stream");
+        return 2;
+    }
+    lua_newtable(L);
+    for(size_t i = 0; i < stream->numrecords; ++i)
+    {
+        struct record* record = stream->records[i];
+        lua_newtable(L);
+
+        // header
+        lua_pushstring(L, "header");
+        lua_newtable(L);
+
+        lua_pushstring(L, "length");
+        lua_pushinteger(L, record->length);
+        lua_rawset(L, -3);
+
+        lua_pushstring(L, "recordtype");
+        lua_pushinteger(L, record->recordtype);
+        lua_rawset(L, -3);
+
+        lua_pushstring(L, "datatype");
+        lua_pushinteger(L, record->datatype);
+        lua_rawset(L, -3);
+
+        lua_rawset(L, -3);
+
+        // data
+        switch(record->datatype)
+        {
+            case TWO_BYTE_INTEGER:
+                if((record->length - 4) / 2 > 1)
+                {
+                    lua_pushstring(L, "data");
+                    lua_newtable(L);
+                    for(int j = 0; j < (record->length - 4) / 2; ++j)
+                    {
+                        lua_pushinteger(L, ((int16_t*)record->data)[j]);
+                        lua_rawseti(L, -2, j + 1);
+                    }
+                    lua_rawset(L, -3);
+                }
+                else
+                {
+                    lua_pushstring(L, "data");
+                    lua_pushinteger(L, ((int16_t*)record->data)[0]);
+                    lua_rawset(L, -3);
+                }
+                break;
+            case FOUR_BYTE_INTEGER:
+                if((record->length - 4) / 4 > 1)
+                {
+                    lua_pushstring(L, "data");
+                    lua_newtable(L);
+                    for(int j = 0; j < (record->length - 4) / 4; ++j)
+                    {
+                        lua_pushinteger(L, ((int32_t*)record->data)[j]);
+                        lua_rawseti(L, -2, j + 1);
+                    }
+                    lua_rawset(L, -3);
+                }
+                else
+                {
+                    lua_pushstring(L, "data");
+                    lua_pushinteger(L, ((int32_t*)record->data)[0]);
+                    lua_rawset(L, -3);
+                }
+                break;
+            case FOUR_BYTE_REAL:
+                if((record->length - 4) / 4 > 1)
+                {
+                    lua_pushstring(L, "data");
+                    lua_newtable(L);
+                    for(int j = 0; j < (record->length - 4) / 4; ++j)
+                    {
+                        lua_pushnumber(L, ((double*)record->data)[j]);
+                        lua_rawseti(L, -2, j + 1);
+                    }
+                    lua_rawset(L, -3);
+                }
+                else
+                {
+                    lua_pushstring(L, "data");
+                    lua_pushnumber(L, ((double*)record->data)[0]);
+                    lua_rawset(L, -3);
+                }
+                break;
+            case EIGHT_BYTE_REAL:
+                if((record->length - 4) / 8 > 1)
+                {
+                    lua_pushstring(L, "data");
+                    lua_newtable(L);
+                    for(int j = 0; j < (record->length - 4) / 8; ++j)
+                    {
+                        lua_pushnumber(L, ((double*)record->data)[j]);
+                        lua_rawseti(L, -2, j + 1);
+                    }
+                    lua_rawset(L, -3);
+                }
+                else
+                {
+                    lua_pushstring(L, "data");
+                    lua_pushnumber(L, ((double*)record->data)[0]);
+                    lua_rawset(L, -3);
+                }
+                break;
+            case ASCII_STRING:
+                if(((char*)record->data)[record->length - 4 - 1] == 0)
+                {
+                    lua_pushstring(L, "data");
+                    lua_pushlstring(L, (char*)record->data, record->length - 4 - 1);
+                    lua_rawset(L, -3);
+                }
+                else
+                {
+                    lua_pushstring(L, "data");
+                    lua_pushlstring(L, (char*)record->data, record->length - 4);
+                    lua_rawset(L, -3);
+                }
+                break;
+            default:
+                break;
+        }
+
+        lua_rawseti(L, -2, i + 1);
+    }
+    return 1;
+}
+
+int lgdsparser_show_records(lua_State* L)
+{
+    const char* filename = lua_tostring(L, 1);
+    struct stream* stream = _read_stream(filename);
+    if(!stream)
+    {
+        lua_pushnil(L);
+        lua_pushstring(L, "could not read stream");
+        return 2;
+    }
     unsigned int indent = 0;
     for(size_t i = 0; i < stream->numrecords; ++i)
     {
@@ -137,80 +375,39 @@ void show_records(const char* filename, int raw)
                 case TWO_BYTE_INTEGER:
                     for(int i = 0; i < (record->length - 4) / 2; ++i)
                     {
-                        int16_t num = (record->data[i * 2] << 8) + record->data[i * 2 + 1];
+                        int16_t num = ((int16_t*)record->data)[i];
                         printf("%d ", num);
                     }
                     break;
                 case FOUR_BYTE_INTEGER:
                     for(int i = 0; i < (record->length - 4) / 4; ++i)
                     {
-                        int32_t num = (record->data[i * 4] << 24) + (record->data[i * 4 + 1] << 16) + (record->data[i * 4 + 2] << 8) + record->data[i * 4 + 3];
+                        int32_t num = ((int32_t*)record->data)[i];
                         printf("%d ", num);
                     }
                     break;
                 case FOUR_BYTE_REAL:
                     for(int i = 0; i < (record->length - 4) / 4; ++i)
                     {
-                        int start = i * 4;
-                        int sign = record->data[start] & 0x80;
-                        int8_t exp = record->data[start] & 0x7f;
-                        double mantissa = 0.0;
-                        mantissa += record->data[start + 1] / 256.0;
-                        mantissa += record->data[start + 2] / 256.0 / 256.0;
-                        mantissa += record->data[start + 3] / 256.0 / 256.0 / 256.0;
-                        if(sign)
-                        {
-                            printf("%g ", -mantissa * pow(16.0, exp - 64));
-                        }
-                        else
-                        {
-                            printf("%g ", mantissa * pow(16.0, exp - 64));
-                        }
+                        double num = ((double*)record->data)[i];
+                        printf("%g ", num);
                     }
                     break;
                 case EIGHT_BYTE_REAL:
                     for(int i = 0; i < (record->length - 4) / 8; ++i)
                     {
-                        int start = i * 8;
-                        int sign = record->data[start] & 0x80;
-                        int8_t exp = record->data[start] & 0x7f;
-                        double mantissa = 0.0;
-                        mantissa += record->data[start + 1] / 256.0;
-                        mantissa += record->data[start + 2] / 256.0 / 256.0;
-                        mantissa += record->data[start + 3] / 256.0 / 256.0 / 256.0;
-                        mantissa += record->data[start + 4] / 256.0 / 256.0 / 256.0 / 256.0;
-                        mantissa += record->data[start + 5] / 256.0 / 256.0 / 256.0 / 256.0 / 256.0;
-                        mantissa += record->data[start + 6] / 256.0 / 256.0 / 256.0 / 256.0 / 256.0 / 256.0;
-                        mantissa += record->data[start + 7] / 256.0 / 256.0 / 256.0 / 256.0 / 256.0 / 256.0 / 256.0;
-                        if(sign)
-                        {
-                            printf("%g ", -mantissa * pow(16.0, exp - 64));
-                        }
-                        else
-                        {
-                            printf("%g ", mantissa * pow(16.0, exp - 64));
-                        }
+                        double num = ((double*)record->data)[i];
+                        printf("%g ", num);
                     }
                     break;
                 case ASCII_STRING:
-                    for(unsigned int i = 0; i < record->length - 4; ++i)
+                    for(int i = 0; i < record->length - 4; ++i)
                     {
-                        putchar(record->data[i]);
+                        putchar(((char*)record->data)[i]);
                     }
                     break;
                 default:
-            }
-
-            // raw data
-            if(raw)
-            {
-                putchar('{');
-                putchar(' ');
-                for(int i = 0; i < record->length - 4; ++i)
-                {
-                    printf("0x%02x ", record->data[i]);
-                }
-                putchar('}');
+                    break;
             }
         }
         putchar('\n');
@@ -233,13 +430,6 @@ void show_records(const char* filename, int raw)
     }
     free(stream->records);
     free(stream);
-}
-
-int lgdsparser_show_records(lua_State* L)
-{
-    const char* filename = lua_tostring(L, 1);
-    int printraw = lua_toboolean(L, 3);
-    show_records(filename, printraw);
     return 0;
 }
 
@@ -247,8 +437,9 @@ int open_gdsparser_lib(lua_State* L)
 {
     static const luaL_Reg modfuncs[] =
     {
-        { "show_records", lgdsparser_show_records },
-        { NULL,            NULL                }
+        { "read_raw_stream", lgdsparser_read_raw_stream },
+        { "show_records",    lgdsparser_show_records    },
+        { NULL,              NULL                       }
     };
     lua_newtable(L);
     luaL_setfuncs(L, modfuncs, 0);
