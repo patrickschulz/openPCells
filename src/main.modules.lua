@@ -1,7 +1,7 @@
 local modules = {
     "profiler",
     "cmdparser",
-    "lpoint",
+    "point",
     "technology",
     "postprocess",
     "export",
@@ -39,7 +39,7 @@ for _, module in ipairs(modules) do
         name = string.match(module, "/([^/]+)$")
     end
     local mod = _load_module(path)
-    if mod then
+    if mod then -- some modules directly manipulate global variables and hence don't return anything
         _ENV[name] = mod
     end
 end

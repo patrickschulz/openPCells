@@ -298,7 +298,7 @@ function M.path_points_xy(startpt, movements)
     local xnoty = true
     local lastx, lasty = startpt:unwrap()
     for _, mov in ipairs(movements) do
-        if is_lpoint(mov) then
+        if is_point(mov) then
             local x, y = mov:unwrap()
             if xnoty then
                 table.insert(pts, point.create(x, lasty))
@@ -327,7 +327,7 @@ function M.path_points_yx(startpt, movements)
     local xnoty = false
     local lastx, lasty = startpt:unwrap()
     for _, mov in ipairs(movements) do
-        if is_lpoint(mov) then
+        if is_point(mov) then
             local x, y = mov:unwrap()
             if xnoty then
                 table.insert(pts, point.create(x, lasty))

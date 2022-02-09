@@ -2,6 +2,10 @@ function shape.get_points(self)
     return self.points
 end
 
+function shape.set_points(self, points)
+    self.points = points
+end
+
 function shape.get_lpp(self)
     return self.lpp
 end
@@ -15,7 +19,7 @@ function shape.resolve_path(self, beveljoin)
         local obj = geometry.path_polygon(self.lpp, self.points, self.width, not beveljoin, self.extension)
         local _s = obj.shapes[1]
         self.typ = _s.typ
-        self.points = _s.points
+        self:set_points(_s.points)
     end
     return self
 end
@@ -39,31 +43,6 @@ function shape.copy(self)
         return new
     end
     return new
-end
-
-function shape.apply_transformation(self, matrix, func)
-    if self.typ == "polygon" or self.typ == "path" then
-        for _, pt in ipairs(self.points) do
-            func(matrix, pt)
-        end
-    elseif self.typ == "rectangle" then
-        func(matrix, self.points.bl)
-        func(matrix, self.points.tr)
-        local blx, bly = self.points.bl:unwrap()
-        local trx, try = self.points.tr:unwrap()
-        if blx > trx then
-            if bly > try then
-                point._update(self.points.bl, trx, try)
-                point._update(self.points.tr, blx, bly)
-            else
-                point._update(self.points.bl, trx, bly)
-                point._update(self.points.tr, blx, try)
-            end
-        end
-    else
-        moderror(string.format("shape.apply_transformation: unknown type '%s'", self.typ))
-    end
-    return self
 end
 
 function shape.resize(self, xsize, ysize)
