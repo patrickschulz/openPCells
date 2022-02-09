@@ -71,6 +71,29 @@ struct record* _read_record(FILE* file)
         // parsed data
         switch(record->datatype)
         {
+            case BIT_ARRAY:
+            {
+                //printf("0x%02x 0x%02x\n", data[0], data[1]);
+                int* rdata = calloc(16, sizeof(*rdata));
+                rdata[ 0] = (data[0] & 0x80) >> 7;
+                rdata[ 1] = (data[0] & 0x40) >> 6;
+                rdata[ 2] = (data[0] & 0x20) >> 5;
+                rdata[ 3] = (data[0] & 0x10) >> 4;
+                rdata[ 4] = (data[0] & 0x08) >> 3;
+                rdata[ 5] = (data[0] & 0x04) >> 2;
+                rdata[ 6] = (data[0] & 0x02) >> 1;
+                rdata[ 7] = (data[0] & 0x01) >> 0;
+                rdata[ 8] = (data[1] & 0x80) >> 7;
+                rdata[ 9] = (data[1] & 0x40) >> 6;
+                rdata[10] = (data[1] & 0x20) >> 5;
+                rdata[11] = (data[1] & 0x10) >> 4;
+                rdata[12] = (data[1] & 0x08) >> 3;
+                rdata[13] = (data[1] & 0x04) >> 2;
+                rdata[14] = (data[1] & 0x02) >> 1;
+                rdata[15] = (data[1] & 0x01) >> 0;
+                record->data = rdata;
+                break;
+            }
             case TWO_BYTE_INTEGER:
             {
                 int16_t* rdata = calloc((record->length - 4) / 2, 2);
@@ -142,13 +165,6 @@ struct record* _read_record(FILE* file)
             case ASCII_STRING:
             {
                 char* rdata = calloc(record->length - 4, 1);
-                memcpy(rdata, data, record->length - 4);
-                record->data = rdata;
-                break;
-            }
-            default:
-            {
-                uint8_t* rdata = calloc(record->length - 4, 1);
                 memcpy(rdata, data, record->length - 4);
                 record->data = rdata;
                 break;
@@ -242,6 +258,16 @@ int lgdsparser_read_raw_stream(lua_State* L)
         // data
         switch(record->datatype)
         {
+            case BIT_ARRAY:
+                lua_pushstring(L, "data");
+                lua_newtable(L);
+                for(int j = 0; j < 16; ++j)
+                {
+                    lua_pushinteger(L, ((int*)record->data)[j]);
+                    lua_rawseti(L, -2, j + 1);
+                }
+                lua_rawset(L, -3);
+                break;
             case TWO_BYTE_INTEGER:
                 if((record->length - 4) / 2 > 1)
                 {
@@ -331,8 +357,6 @@ int lgdsparser_read_raw_stream(lua_State* L)
                     lua_pushlstring(L, (char*)record->data, record->length - 4);
                     lua_rawset(L, -3);
                 }
-                break;
-            default:
                 break;
         }
 
