@@ -76,6 +76,7 @@ end
 function parameters()
     pcell.add_parameters(
         { "filename", "layout.svg" },
+        { "metal", -1 },
         { "scale", 1 }
     )
 end
@@ -175,6 +176,6 @@ function layout(cell, _P)
                 dprint(string.format("unhandled command: %s", entry.command))
             end
         end
-        cell:merge_into_shallow(geometry.polygon(generics.metal(-1), pts))
+        cell:merge_into_shallow(geometry.polygon(generics.metal(_P.metal), pts))
     end
 end
