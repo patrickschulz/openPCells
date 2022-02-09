@@ -14,6 +14,7 @@ typedef struct
 } lpoint_t;
 
 
+int lpoint_create(lua_State* L);
 int open_lpoint_lib(lua_State* L);
 int lpoint_register_cfunctions(lua_State* L);
 

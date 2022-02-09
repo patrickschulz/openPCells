@@ -36,7 +36,7 @@ static coordinate_t checkcoordinate(lua_State* L, int idx)
     return d;
 }
 
-static int lpoint_create(lua_State* L)
+int lpoint_create(lua_State* L)
 {
     coordinate_t x = checkcoordinate(L, -2);
     coordinate_t y = checkcoordinate(L, -1);
