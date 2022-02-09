@@ -110,8 +110,6 @@ static void _flatten_curve(struct curve* c, struct curve* result)
 
 static struct curve* _raster_line(int x1, int y1, int x2, int y2, unsigned int grid, int allow45)
 {
-    int dx = (x2 > x1) ? (x2 - x1) : (x1 - x2);
-    int dy = (y2 < y1) ? (y2 - y1) : (y1 - y2);
     int sx = (x2 > x1) ? grid : -grid;
     int sy = (y2 > y1) ? grid : -grid;
 
