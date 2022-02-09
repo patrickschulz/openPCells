@@ -34,6 +34,7 @@
 #include "lplacer.h"
 #include "lrouter.h"
 #include "lutil.h"
+#include "gdsparser.h"
 
 #include "config.h"
 
@@ -182,6 +183,8 @@ lua_State* create_and_initialize_lua()
     open_lfilesystem_lib(L);
     open_lplacer_lib(L);
     open_lrouter_lib(L);
+
+    open_gdsparser_lib(L);
 
     //lpoint_register_cfunctions(L);
 

@@ -14,7 +14,7 @@ SYSCFLAGS=
 SYSLDFLAGS=
 SYSLIBS=
 
-OPCOBJ:=point.o shape.o ldir.o lpoint.o graphics.o lbind.o lload.o lbinary.o lshape.o lfilesystem.o lbytebuffer.o lplacer.o lplacer_rand.o lrouter.o lrouter_net.o lrouter_queue.o lrouter_field.o lrouter_route.o lutil.o
+OPCOBJ:=point.o shape.o ldir.o lpoint.o graphics.o lbind.o lload.o lbinary.o lshape.o lfilesystem.o lbytebuffer.o lplacer.o lplacer_rand.o lrouter.o lrouter_net.o lrouter_queue.o lrouter_field.o lrouter_route.o lutil.o gdsparser.o
 
 .PHONY: default
 default:
@@ -45,6 +45,8 @@ lrouter_net.o: lrouter_net.h lrouter_net.c
 lrouter_queue.o: lrouter_queue.h lrouter_queue.c
 lrouter_field.o: lrouter_field.h lrouter_field.c
 lrouter_route.o: lrouter_route.h lrouter_route.c
+
+gdsparser.o: gdsparser.h gdsparser.c
 
 lua/liblua.a: lua/*.c lua/*.h
 	@$(MAKE) -C lua liblua.a
