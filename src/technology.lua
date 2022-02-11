@@ -165,7 +165,7 @@ local function _do_array(cell, S, entry, export)
     entry = entry.func(S:get_lpp():get())
     local width = S:get_width()
     local height = S:get_height()
-    local c = S:center()
+    local c = S:get_center()
     local via = _get_via_arrayzation(width, height, entry, xcont, ycont)
     local isbare = S:get_lpp().bare
     if not via and entry.fallback and S:get_lpp().bare then

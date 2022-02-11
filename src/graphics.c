@@ -118,6 +118,7 @@ static struct curve* _raster_line(int x1, int y1, int x2, int y2, unsigned int g
 
     struct curve* result = _create(100);
 
+    /*
     while(1)
     {
         _append_point(result, x, y);
@@ -150,6 +151,7 @@ static struct curve* _raster_line(int x1, int y1, int x2, int y2, unsigned int g
             }
         }
     }
+    */
     return result;
 }
 

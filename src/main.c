@@ -22,7 +22,8 @@
 #include <string.h>
 
 #include "lpoint.h"
-#include "transformationmatrix.h"
+#include "lgeometry.h"
+#include "ltransformationmatrix.h"
 #include "graphics.h"
 #include "lload.h"
 #include "lbind.h"
@@ -158,7 +159,7 @@ static int call_main_program(lua_State* L, const char* filename)
     return LUA_OK;
 }
 
-lua_State* create_and_initialize_lua()
+static lua_State* create_and_initialize_lua(void)
 {
     lua_State* L = luaL_newstate();
     if (L == NULL) 
@@ -173,6 +174,7 @@ lua_State* create_and_initialize_lua()
     // opc libraries
     open_ldir_lib(L);
     open_lpoint_lib(L); // must be called before 'load_api'
+    open_lgeometry_lib(L);
     open_ltransformationmatrix_lib(L); // must be called before 'load_api'
     open_lgraphics_lib(L);
     open_lload_lib(L);

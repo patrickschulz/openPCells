@@ -7,7 +7,6 @@ local modules = {
     "export",
     "config",
     "object",
-    "shape",
     "geometry",
     "graphics",
     "generics",

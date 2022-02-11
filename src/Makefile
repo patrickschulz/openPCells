@@ -1,7 +1,7 @@
 PROGNAME=opc
 
 CC= gcc -std=gnu99
-CFLAGS= -O0 -g -Wall -Wextra $(SYSCFLAGS) $(MYCFLAGS)
+CFLAGS= -O0 -g -Wall -Wextra -Wstrict-prototypes $(SYSCFLAGS) $(MYCFLAGS)
 LDFLAGS= $(SYSLDFLAGS) $(MYLDFLAGS)
 LIBS= -lm $(SYSLIBS) $(MYLIBS)
 
@@ -14,7 +14,7 @@ SYSCFLAGS=
 SYSLDFLAGS=
 SYSLIBS=
 
-OPCOBJ:=point.o transformationmatrix.o shape.o ldir.o lpoint.o graphics.o lbind.o lload.o lbinary.o lshape.o lfilesystem.o lbytebuffer.o lplacer.o lplacer_rand.o lrouter.o lrouter_net.o lrouter_queue.o lrouter_field.o lrouter_route.o lutil.o gdsparser.o ldebug.o
+OPCOBJ:=point.o transformationmatrix.o ltransformationmatrix.o shape.o geometry.o lgeometry.o ldir.o lpoint.o graphics.o lbind.o lload.o lbinary.o lshape.o lfilesystem.o lbytebuffer.o lplacer.o lplacer_rand.o lrouter.o lrouter_net.o lrouter_queue.o lrouter_field.o lrouter_route.o lutil.o gdsparser.o ldebug.o
 
 .PHONY: default
 default:
@@ -26,14 +26,17 @@ $(PROGNAME): main.c lua/liblua.a $(OPCOBJ)
 
 point.o: point.h point.c
 transformationmatrix.o: transformationmatrix.h transformationmatrix.c
+ltransformationmatrix.o: ltransformationmatrix.h ltransformationmatrix.c
 shape.o: point.h shape.h shape.c
+geometry.o: geometry.h geometry.c point.h point.c shape.h shape.c
+lgeometry.o: lgeometry.h lgeometry.c geometry.h geometry.c point.h point.c shape.h shape.c
 lpoint.o: lpoint.h lpoint.c
 graphics.o: graphics.h graphics.c
 ldir.o: ldir.c ldir.h
 lbind.o: lbind.h lbind.c
 lload.o: lload.h lload.c
 lbinary.o: lbinary.h lbinary.c
-lshape.o: lshape.h lshape.c
+lshape.o: lshape.h lshape.c shape.h shape.c
 lfilesystem.o: lfilesystem.h lfilesystem.c
 lutil.o: lutil.c lutil.h
 lbytebuffer.o: lbytebuffer.h lbytebuffer.c

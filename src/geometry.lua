@@ -1,6 +1,4 @@
-local M = {}
-
-function M.rectangle(layer, width, height)
+function geometry.rectangle(layer, width, height)
     if width % 2 ~= 0 then 
         moderror(string.format("geometry.rectangle: width (%d) must be a multiple of 2. Use rectanglebltr if you need odd coordinates", width))
     end
@@ -9,16 +7,16 @@ function M.rectangle(layer, width, height)
     end
     local bl = point.create(-width / 2, -height / 2)
     local tr = point.create( width / 2,  height / 2)
-    return M.rectanglebltr(layer, bl, tr)
+    return geometry.rectanglebltr(layer, bl, tr)
 end
 
-function M.rectanglebltr(layer, bl, tr)
+function geometry.rectanglebltr(layer, bl, tr)
     local S = shape.create_rectangle_bltr(layer, bl, tr)
     return object.make_from_shape(S)
 end
 
 -- like rectanglebltr, but takes any points
-function M.rectanglepoints(layer, pt1, pt2)
+function geometry.rectanglepoints(layer, pt1, pt2)
     local x1, y1 = pt1:unwrap()
     local x2, y2 = pt2:unwrap()
     local S
@@ -34,7 +32,7 @@ function M.rectanglepoints(layer, pt1, pt2)
     return object.make_from_shape(S)
 end
 
-function M.polygon(layer, pts)
+function geometry.polygon(layer, pts)
     local S = shape.create_polygon(layer)
     local append = util.make_insert_pts(S:get_points())
     for _, pt in ipairs(pts) do
@@ -43,66 +41,64 @@ function M.polygon(layer, pts)
     return object.make_from_shape(S)
 end
 
-function M.cross(layer, width, height, crosssize)
+function geometry.cross(layer, width, height, crosssize)
     modassert(width % 2 == 0, "geometry.cross: width must be a multiple of 2")
     modassert(height % 2 == 0, "geometry.cross: height must be a multiple of 2")
     modassert(crosssize % 2 == 0, "geometry.cross: crosssize must be a multiple of 2")
     local S = shape.create_polygon(layer)
-    local append = util.make_insert_xy(S:get_points())
-    append(    -width / 2, -crosssize / 2)
-    append(    -width / 2,  crosssize / 2)
-    append(-crosssize / 2,  crosssize / 2)
-    append(-crosssize / 2,     height / 2)
-    append( crosssize / 2,     height / 2)
-    append( crosssize / 2,  crosssize / 2)
-    append(     width / 2,  crosssize / 2)
-    append(     width / 2, -crosssize / 2)
-    append( crosssize / 2, -crosssize / 2)
-    append( crosssize / 2,    -height / 2)
-    append(-crosssize / 2,    -height / 2)
-    append(-crosssize / 2, -crosssize / 2)
-    append(    -width / 2, -crosssize / 2) -- close polygon
+    S:append_xy(    -width / 2, -crosssize / 2)
+    S:append_xy(    -width / 2,  crosssize / 2)
+    S:append_xy(-crosssize / 2,  crosssize / 2)
+    S:append_xy(-crosssize / 2,     height / 2)
+    S:append_xy( crosssize / 2,     height / 2)
+    S:append_xy( crosssize / 2,  crosssize / 2)
+    S:append_xy(     width / 2,  crosssize / 2)
+    S:append_xy(     width / 2, -crosssize / 2)
+    S:append_xy( crosssize / 2, -crosssize / 2)
+    S:append_xy( crosssize / 2,    -height / 2)
+    S:append_xy(-crosssize / 2,    -height / 2)
+    S:append_xy(-crosssize / 2, -crosssize / 2)
+    S:append_xy(    -width / 2, -crosssize / 2) -- close polygon
     return object.make_from_shape(S)
 end
 
-function M.ring(layer, width, height, ringwidth)
+function geometry.ring(layer, width, height, ringwidth)
     modassert((width + ringwidth) % 2 == 0, "geometry.ring: width +- ringwidth must be a multiple of 2")
     modassert((height + ringwidth) % 2 == 0, "geometry.ring: height +- ringwidth must be a multiple of 2")
     local S = shape.create_polygon(layer)
-    local append = util.make_insert_xy(S:get_points())
-    append(-(width + ringwidth) / 2, -(height + ringwidth) / 2)
-    append( (width + ringwidth) / 2, -(height + ringwidth) / 2)
-    append( (width + ringwidth) / 2,  (height + ringwidth) / 2)
-    append(-(width + ringwidth) / 2,  (height + ringwidth) / 2)
-    append(-(width + ringwidth) / 2, -(height - ringwidth) / 2)
-    append(-(width - ringwidth) / 2, -(height - ringwidth) / 2)
-    append(-(width - ringwidth) / 2,  (height - ringwidth) / 2)
-    append( (width - ringwidth) / 2,  (height - ringwidth) / 2)
-    append( (width - ringwidth) / 2, -(height - ringwidth) / 2)
-    append(-(width + ringwidth) / 2, -(height - ringwidth) / 2)
-    append(-(width + ringwidth) / 2, -(height + ringwidth) / 2) -- close polygon
+    S:append_xy(-(width + ringwidth) / 2, -(height + ringwidth) / 2)
+    S:append_xy( (width + ringwidth) / 2, -(height + ringwidth) / 2)
+    S:append_xy( (width + ringwidth) / 2,  (height + ringwidth) / 2)
+    S:append_xy(-(width + ringwidth) / 2,  (height + ringwidth) / 2)
+    S:append_xy(-(width + ringwidth) / 2, -(height - ringwidth) / 2)
+    S:append_xy(-(width - ringwidth) / 2, -(height - ringwidth) / 2)
+    S:append_xy(-(width - ringwidth) / 2,  (height - ringwidth) / 2)
+    S:append_xy( (width - ringwidth) / 2,  (height - ringwidth) / 2)
+    S:append_xy( (width - ringwidth) / 2, -(height - ringwidth) / 2)
+    S:append_xy(-(width + ringwidth) / 2, -(height - ringwidth) / 2)
+    S:append_xy(-(width + ringwidth) / 2, -(height + ringwidth) / 2) -- close polygon
     return object.make_from_shape(S)
 end
 
-function M.unequal_xy_ring(layer, width, height, ringwidth, ringheight)
+function geometry.unequal_xy_ring(layer, width, height, ringwidth, ringheight)
     modassert((width + ringwidth) % 2 == 0, "geometry.ring: width +- ringwidth must be a multiple of 2")
     modassert((height + ringheight) % 2 == 0, "geometry.ring: height +- ringwidth must be a multiple of 2")
     local S = shape.create_polygon(layer)
-    local append = util.make_insert_xy(S:get_points())
-    append(-(width + ringwidth) / 2, -(height + ringheight) / 2)
-    append( (width + ringwidth) / 2, -(height + ringheight) / 2)
-    append( (width + ringwidth) / 2,  (height + ringheight) / 2)
-    append(-(width + ringwidth) / 2,  (height + ringheight) / 2)
-    append(-(width + ringwidth) / 2, -(height - ringheight) / 2)
-    append(-(width - ringwidth) / 2, -(height - ringheight) / 2)
-    append(-(width - ringwidth) / 2,  (height - ringheight) / 2)
-    append( (width - ringwidth) / 2,  (height - ringheight) / 2)
-    append( (width - ringwidth) / 2, -(height - ringheight) / 2)
-    append(-(width + ringwidth) / 2, -(height - ringheight) / 2)
-    append(-(width + ringwidth) / 2, -(height + ringheight) / 2) -- close polygon
+    S:append_xy(-(width + ringwidth) / 2, -(height + ringheight) / 2)
+    S:append_xy( (width + ringwidth) / 2, -(height + ringheight) / 2)
+    S:append_xy( (width + ringwidth) / 2,  (height + ringheight) / 2)
+    S:append_xy(-(width + ringwidth) / 2,  (height + ringheight) / 2)
+    S:append_xy(-(width + ringwidth) / 2, -(height - ringheight) / 2)
+    S:append_xy(-(width - ringwidth) / 2, -(height - ringheight) / 2)
+    S:append_xy(-(width - ringwidth) / 2,  (height - ringheight) / 2)
+    S:append_xy( (width - ringwidth) / 2,  (height - ringheight) / 2)
+    S:append_xy( (width - ringwidth) / 2, -(height - ringheight) / 2)
+    S:append_xy(-(width + ringwidth) / 2, -(height - ringheight) / 2)
+    S:append_xy(-(width + ringwidth) / 2, -(height + ringheight) / 2) -- close polygon
     return object.make_from_shape(S)
 end
 
+--[[
 local function _shift_line(pt1, pt2, width)
     local x1, y1 = pt1:unwrap()
     local x2, y2 = pt2:unwrap()
@@ -115,6 +111,7 @@ local function _shift_line(pt1, pt2, width)
     local spt2 = point.create(x2 + xshift, y2 + yshift)
     return spt1, spt2
 end
+--]]
 
 local function _shift_gridded_line(pt1, pt2, width, grid)
     local x1, y1 = pt1:unwrap()
@@ -127,6 +124,7 @@ local function _shift_gridded_line(pt1, pt2, width, grid)
     return spt1, spt2
 end
 
+--[[
 local function _get_edge_segments(pts, width)
     local edges = {}
     -- start to end
@@ -143,6 +141,7 @@ local function _get_edge_segments(pts, width)
     end
     return edges
 end
+--]]
 
 local function _get_gridded_edge_segments(pts, width, grid)
     local edges = {}
@@ -161,6 +160,7 @@ local function _get_gridded_edge_segments(pts, width, grid)
     return edges
 end
 
+--[[
 -- calculate the outline points of a path with a width
 -- this works as follows:
 -- shift the middle path to the left and to the right
@@ -207,6 +207,7 @@ local function _get_path_pts(edges, miterjoin)
     table.insert(poly, edges[#edges])
     return poly
 end
+--]]
 
 local function _get_any_angle_path_pts(pts, width, grid, miterjoin, allow45)
     local edges = _get_gridded_edge_segments(pts, width, grid)
@@ -230,21 +231,21 @@ local function _make_unique_points(pts)
     end
 end
 
-function M.path(layer, pts, width, extension)
+function geometry.path(layer, pts, width, extension)
     local S = shape.create_path(layer, pts, width, extension)
     return object.make_from_shape(S)
 end
 
-function M.path3x(layer, startpt, endpt, width, extension)
-    return M.path(layer, M.path_points_xy(startpt, { endpt }), width, extension)
+function geometry.path3x(layer, startpt, endpt, width, extension)
+    return geometry.path(layer, geometry.path_points_xy(startpt, { endpt }), width, extension)
 end
 
-function M.path3y(layer, startpt, endpt, width, extension)
-    return M.path(layer, M.path_points_yx(startpt, { endpt }), width, extension)
+function geometry.path3y(layer, startpt, endpt, width, extension)
+    return geometry.path(layer, geometry.path_points_yx(startpt, { endpt }), width, extension)
 end
 
-function M.path_c_shape(layer, ptstart, ptmiddle, ptend, width, extension)
-    return M.path(layer,
+function geometry.path_c_shape(layer, ptstart, ptmiddle, ptend, width, extension)
+    return geometry.path(layer,
         geometry.path_points_xy(ptstart,
         {
             ptmiddle,
@@ -254,7 +255,8 @@ function M.path_c_shape(layer, ptstart, ptmiddle, ptend, width, extension)
     )
 end
 
-function M.path_polygon(layer, pts, width, miterjoin, extension)
+--[[
+function geometry.path_polygon(layer, pts, width, miterjoin, extension)
     _make_unique_points(pts)
     if extension then
         -- FIXME
@@ -263,13 +265,13 @@ function M.path_polygon(layer, pts, width, miterjoin, extension)
         local x1, y1 = pts[1]:unwrap()
         local x2, y2 = pts[2]:unwrap()
         if     x1  < x2 and y1 == y2 then
-            return M.rectanglebltr(layer, point.create(x1, y1 - width / 2), point.create(x2, y1 + width / 2))
+            return geometry.rectanglebltr(layer, point.create(x1, y1 - width / 2), point.create(x2, y1 + width / 2))
         elseif x1  > x2 and y1 == y2 then
-            return M.rectanglebltr(layer, point.create(x2, y1 - width / 2), point.create(x1, y1 + width / 2))
+            return geometry.rectanglebltr(layer, point.create(x2, y1 - width / 2), point.create(x1, y1 + width / 2))
         elseif x1 == x2 and y1  > y2 then
-            return M.rectanglebltr(layer, point.create(x1 - width / 2, y2), point.create(x1 + width / 2, y1))
+            return geometry.rectanglebltr(layer, point.create(x1 - width / 2, y2), point.create(x1 + width / 2, y1))
         elseif x1 == x2 and y1  < y2 then
-            return M.rectanglebltr(layer, point.create(x1 - width / 2, y1), point.create(x1 + width / 2, y2))
+            return geometry.rectanglebltr(layer, point.create(x1 - width / 2, y1), point.create(x1 + width / 2, y2))
         end
     end
     -- polygon
@@ -278,6 +280,7 @@ function M.path_polygon(layer, pts, width, miterjoin, extension)
     local S = shape.create_polygon(layer, points)
     return object.make_from_shape(S)
 end
+--]]
 
 local function _modify_point_stream(pts, func)
     local idx = 1
@@ -292,7 +295,7 @@ local function _modify_point_stream(pts, func)
     end
 end
 
-function M.path_points_xy(startpt, movements)
+function geometry.path_points_xy(startpt, movements)
     local pts = {}
     table.insert(pts, startpt)
     local xnoty = true
@@ -321,7 +324,7 @@ function M.path_points_xy(startpt, movements)
     return pts
 end
 
-function M.path_points_yx(startpt, movements)
+function geometry.path_points_yx(startpt, movements)
     local pts = {}
     table.insert(pts, startpt)
     local xnoty = false
@@ -350,7 +353,7 @@ function M.path_points_yx(startpt, movements)
     return pts
 end
 
-function M.any_angle_path(layer, pts, width, grid, miterjoin, allow45)
+function geometry.any_angle_path(layer, pts, width, grid, miterjoin, allow45)
     _make_unique_points(pts)
     local points = _get_any_angle_path_pts(pts, width, grid, miterjoin, allow45)
     local S = shape.create_polygon(layer, points)
@@ -423,7 +426,7 @@ local function _crossing(layer1, layer2, width, dxy, ext, direction, mode, separ
     return obj
 end
 
-function M.crossing(layer1, layer2, width, tl, br, mode)
+function geometry.crossing(layer1, layer2, width, tl, br, mode)
     aux.assert_one_of("geometry.crossing: mode", mode, "diagonal", "rectangular", "rectangular-separated")
     local tlx, tly = tl:unwrap()
     local brx, bry = br:unwrap()
@@ -443,7 +446,7 @@ function M.crossing(layer1, layer2, width, tl, br, mode)
     return obj
 end
 
-function M.path_midpoint(layer, pts, width, method, miterjoin)
+function geometry.path_midpoint(layer, pts, width, method, miterjoin)
     local newpts = {}
     local append = util.make_insert_xy(newpts)
     if method == "halfangle" then
@@ -481,11 +484,11 @@ function M.path_midpoint(layer, pts, width, method, miterjoin)
     else
         moderror(string.format("unknown midpoint path method: %s", method))
     end
-    return M.path(layer, newpts, width, miterjoin)
+    return geometry.path(layer, newpts, width, miterjoin)
 end
 
 --[[
-function M.corner(layer, startpt, endpt, width, radius, grid)
+function geometry.corner(layer, startpt, endpt, width, radius, grid)
     local S = shape.create(layer)
     local dy = endpt.y - startpt.y - radius
     local pathpts = _get_path_pts({ point.create(startpt.x, startpt.y), point.create(startpt.x, endpt.y - radius) }, width)
@@ -510,17 +513,17 @@ function M.corner(layer, startpt, endpt, width, radius, grid)
 end
 --]]
 
-function M.multiple_x(obj, xrep, xpitch)
+function geometry.multiple_x(obj, xrep, xpitch)
     modassert(xpitch % 2 == 0, "geometry.multiple_x: xpitch must be even")
-    return M.multiple_xy(obj, xrep, 1, xpitch, 0)
+    return geometry.multiple_xy(obj, xrep, 1, xpitch, 0)
 end
 
-function M.multiple_y(obj, yrep, ypitch)
+function geometry.multiple_y(obj, yrep, ypitch)
     modassert(ypitch % 2 == 0, "geometry.multiple_y: ypitch must be even")
-    return M.multiple_xy(obj, 1, yrep, 0, ypitch)
+    return geometry.multiple_xy(obj, 1, yrep, 0, ypitch)
 end
 
-function M.multiple_xy(obj, xrep, yrep, xpitch, ypitch)
+function geometry.multiple_xy(obj, xrep, yrep, xpitch, ypitch)
     modassert(xpitch % 2 == 0, "geometry.multiple: xpitch must be even")
     modassert(ypitch % 2 == 0, "geometry.multiple: ypitch must be even")
     local final = object.create()
@@ -535,5 +538,3 @@ function M.multiple_xy(obj, xrep, yrep, xpitch, ypitch)
     end
     return final
 end
-
-return M

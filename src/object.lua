@@ -332,7 +332,7 @@ local function _get_minmax_xy(self)
     local miny =  math.huge
     local maxy = -math.huge
     for _, S in self:iterate_shapes() do
-        if S.typ == "polygon" then
+        if S:is_type("polygon") then
             for _, pt in ipairs(S:get_points()) do
                 local x, y = pt:unwrap()
                 minx = math.min(minx, x)
@@ -340,7 +340,7 @@ local function _get_minmax_xy(self)
                 miny = math.min(miny, y)
                 maxy = math.max(maxy, y)
             end
-        elseif S.typ == "rectangle" then
+        elseif S:is_type("rectangle") then
             local blx, bly = S:get_points().bl:unwrap()
             local trx, try = S:get_points().tr:unwrap()
             minx = math.min(minx, blx, trx)
