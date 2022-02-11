@@ -98,21 +98,6 @@ function geometry.unequal_xy_ring(layer, width, height, ringwidth, ringheight)
     return object.make_from_shape(S)
 end
 
---[[
-local function _shift_line(pt1, pt2, width)
-    local x1, y1 = pt1:unwrap()
-    local x2, y2 = pt2:unwrap()
-    -- cos(atan(x)) == 1 / sqrt(1 + x^2)
-    -- sin(atan(x)) == x / sqrt(1 + x^2)
-    local angle = math.atan(y2 - y1, x2 - x1) - math.pi / 2
-    local xshift = math.floor(width * math.cos(angle) + 0.5)
-    local yshift = math.floor(width * math.sin(angle) + 0.5)
-    local spt1 = point.create(x1 + xshift, y1 + yshift)
-    local spt2 = point.create(x2 + xshift, y2 + yshift)
-    return spt1, spt2
-end
---]]
-
 local function _shift_gridded_line(pt1, pt2, width, grid)
     local x1, y1 = pt1:unwrap()
     local x2, y2 = pt2:unwrap()
@@ -123,25 +108,6 @@ local function _shift_gridded_line(pt1, pt2, width, grid)
     local spt2 = point.create(x2 + xshift, y2 + yshift)
     return spt1, spt2
 end
-
---[[
-local function _get_edge_segments(pts, width)
-    local edges = {}
-    -- start to end
-    for i = 1, #pts - 1 do
-        local spt1, spt2 = _shift_line(pts[i], pts[i + 1], width / 2)
-        table.insert(edges, spt1)
-        table.insert(edges, spt2)
-    end
-    -- end to start (shift in other direction)
-    for i = #pts, 2, -1 do
-        local spt1, spt2 = _shift_line(pts[i], pts[i - 1], width / 2)
-        table.insert(edges, spt1)
-        table.insert(edges, spt2)
-    end
-    return edges
-end
---]]
 
 local function _get_gridded_edge_segments(pts, width, grid)
     local edges = {}
@@ -159,55 +125,6 @@ local function _get_gridded_edge_segments(pts, width, grid)
     end
     return edges
 end
-
---[[
--- calculate the outline points of a path with a width
--- this works as follows:
--- shift the middle path to the left and to the right
--- if adjacent lines intersect, that point is part of the outline
--- if adjacent lines don't intersect, either:
---      * insert both endpoints (well, the endpoint of the first segment and the startpoint of the second segment).
---        This is a bevel join
---      * insert the point where the extended line segments meet
---        This is a miter join
--- the endpoints of the path need extra care
-local function _get_path_pts(edges, miterjoin)
-    local midpointfunc = function(i)
-        local inner, outer = util.intersection(edges[i - 1], edges[i], edges[i + 1], edges[i + 2])
-        if inner then
-            return inner
-        else
-            if miterjoin then
-                return outer
-            else
-                return edges[i], edges[i + 1]
-            end
-        end
-    end
-    local poly = {}
-    -- first start point
-    table.insert(poly, edges[1])
-    -- first middle points
-    local segs = #edges / 4
-    for seg = 1, segs - 1 do
-        local i = 2 * seg
-        local new = { midpointfunc(i) }
-        for _, pt in ipairs(new) do table.insert(poly, pt) end
-    end
-    -- end points
-    table.insert(poly, edges[2 * segs])
-    table.insert(poly, edges[2 * segs + 1])
-    -- second middle points
-    for seg = 1, segs - 1 do
-        local i = 2 * (segs + seg)
-        local new = { midpointfunc(i) }
-        for _, pt in ipairs(new) do table.insert(poly, pt) end
-    end
-    -- second start point
-    table.insert(poly, edges[#edges])
-    return poly
-end
---]]
 
 local function _get_any_angle_path_pts(pts, width, grid, miterjoin, allow45)
     local edges = _get_gridded_edge_segments(pts, width, grid)
@@ -253,46 +170,6 @@ function geometry.path_c_shape(layer, ptstart, ptmiddle, ptend, width, extension
             ptend,
         }), width
     )
-end
-
---[[
-function geometry.path_polygon(layer, pts, width, miterjoin, extension)
-    _make_unique_points(pts)
-    if extension then
-        -- FIXME
-    end
-    if #pts == 2 then -- rectangle
-        local x1, y1 = pts[1]:unwrap()
-        local x2, y2 = pts[2]:unwrap()
-        if     x1  < x2 and y1 == y2 then
-            return geometry.rectanglebltr(layer, point.create(x1, y1 - width / 2), point.create(x2, y1 + width / 2))
-        elseif x1  > x2 and y1 == y2 then
-            return geometry.rectanglebltr(layer, point.create(x2, y1 - width / 2), point.create(x1, y1 + width / 2))
-        elseif x1 == x2 and y1  > y2 then
-            return geometry.rectanglebltr(layer, point.create(x1 - width / 2, y2), point.create(x1 + width / 2, y1))
-        elseif x1 == x2 and y1  < y2 then
-            return geometry.rectanglebltr(layer, point.create(x1 - width / 2, y1), point.create(x1 + width / 2, y2))
-        end
-    end
-    -- polygon
-    local edges = _get_edge_segments(pts, width)
-    local points = _get_path_pts(edges, width, miterjoin)
-    local S = shape.create_polygon(layer, points)
-    return object.make_from_shape(S)
-end
---]]
-
-local function _modify_point_stream(pts, func)
-    local idx = 1
-    while true do
-        local pt1, pt2 = pts[idx], pts[idx + 1]
-        local newpt = func(pt1, pt2)
-        table.insert(pts, idx + 1, newpt)
-        idx = idx + 2
-        if idx > #pts - 1 then
-            break
-        end
-    end
 end
 
 function geometry.path_points_xy(startpt, movements)
