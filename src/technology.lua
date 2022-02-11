@@ -12,12 +12,12 @@ local techpaths = {}
 
 -- make relative metal (negative indices) absolute
 local function _translate_metals(cell)
-    for _, S in cell:iterate_shapes(function(S) return S:get_lpp():is_type("metal") end) do
+    for _, S in cell:iterate_shapes(function(S) return S:is_lpp_type("metal") end) do
         if S:get_lpp().value < 0 then
             S:get_lpp().value = config.metals + S:get_lpp().value + 1
         end
     end
-    for _, S in cell:iterate_shapes(function(S) return S:get_lpp():is_type("via") end) do
+    for _, S in cell:iterate_shapes(function(S) return S:is_lpp_type("via") end) do
         local value = S:get_lpp().value
         if value.from < 0 then
             value.from = config.metals + value.from + 1
@@ -44,7 +44,7 @@ end
 
 local function _place_via_conductors(cell)
     for _, S in cell:iterate_shapes() do
-        if S:get_lpp():is_type("via") and not S:get_lpp().bare then
+        if S:is_lpp_type("via") and not S:get_lpp().bare then
             local m1, m2 = S:get_lpp():get()
             if not S:get_lpp().firstbare then
                 local s1 = S:copy()
@@ -56,7 +56,7 @@ local function _place_via_conductors(cell)
                 s2:set_lpp(generics.metal(m2))
                 cell:add_raw_shape(s2)
             end
-        elseif S:get_lpp():is_type("contact") and not S:get_lpp().bare then
+        elseif S:is_lpp_type("contact") and not S:get_lpp().bare then
             -- FIXME: can't place active contact surrounding as this needs more data than available here
             local smetal = S:copy()
             smetal:set_lpp(generics.metal(1))
@@ -208,7 +208,7 @@ local function _do_array(cell, S, entry, export)
 end
 
 local function _translate_layers(cell, export)
-    for i, S in cell:iterate_shapes(function(S) return not (S:get_lpp():is_type("mapped") or S:get_lpp():is_type("premapped")) end) do
+    for i, S in cell:iterate_shapes(function(S) return not (S:is_lpp_type("mapped") or S:is_lpp_type("premapped")) end) do
         local layer = S:get_lpp():str()
         local mappings = layermap[layer]
         if not mappings then 
@@ -268,7 +268,7 @@ local function _fix_to_grid(cell)
 end
 
 local function _select_premapped_layers(cell, export)
-    for i, S in cell:iterate_shapes(function(S) return S:get_lpp():is_type("premapped") end) do
+    for i, S in cell:iterate_shapes(function(S) return S:is_lpp_type("premapped") end) do
         local lpp = S:get_lpp()
         local newlpp = _get_lpp({ name = lpp:str(), lpp = lpp:get() }, export)
         if newlpp then
