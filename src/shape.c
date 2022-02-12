@@ -159,6 +159,30 @@ void shape_apply_translation(shape_t* shape, transformationmatrix_t* matrix)
     // no checks for rectangles are needed as translations can not reorder points
 }
 
+void shape_apply_inverse_transformation(shape_t* shape, transformationmatrix_t* matrix)
+{
+    for(unsigned int i = 0; i < shape->size; ++i)
+    {
+        transformationmatrix_apply_inverse_transformation(matrix, shape->points[i]);
+    }
+    if(shape->type == RECTANGLE)
+    {
+        // order of points matter, check if bottom left is still bottom left
+        if(shape->points[0]->x > shape->points[1]->x)
+        {
+            coordinate_t tmp = shape->points[0]->x;
+            shape->points[0]->x = shape->points[1]->x;
+            shape->points[1]->x = tmp;
+        }
+        if(shape->points[0]->y > shape->points[1]->y)
+        {
+            coordinate_t tmp = shape->points[0]->y;
+            shape->points[0]->y = shape->points[1]->y;
+            shape->points[1]->y = tmp;
+        }
+    }
+}
+
 coordinate_t shape_get_width(shape_t* shape)
 {
     coordinate_t minx = COORDINATE_MAX;

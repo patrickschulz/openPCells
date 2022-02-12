@@ -297,6 +297,15 @@ static int lshape_apply_translation(lua_State* L)
     return 1;
 }
 
+static int lshape_apply_inverse_transformation(lua_State* L)
+{
+    lshape_t* lshape = luaL_checkudata(L, 1, LSHAPEMODULE);
+    ltransformationmatrix_t* lmatrix = lua_touserdata(L, 2);
+    shape_apply_inverse_transformation(lshape->shape, lmatrix->matrix);
+    lua_pop(L, 1);
+    return 1;
+}
+
 static int lshape_get_width(lua_State* L)
 {
     lshape_t* lshape = luaL_checkudata(L, 1, LSHAPEMODULE);
@@ -376,27 +385,28 @@ int open_lshape_lib(lua_State* L)
     // set methods
     static const luaL_Reg metafuncs[] =
     {
-        { "copy",                 lshape_copy                 },
-        { "append_xy",            lshape_append_xy            },
-        { "append_pt",            lshape_append_pt            },
-        { "get_points",           lshape_get_points           },
-        { "get_path_width",       lshape_get_path_width       },
-        { "get_path_extension",   lshape_get_path_extension   },
-        { "set_lpp",              lshape_set_lpp              },
-        { "get_lpp",              lshape_get_lpp              },
-        { "is_type",              lshape_is_type              },
-        { "is_lpp_type",          lshape_is_lpp_type          },
-        { "apply_translation",    lshape_apply_translation    },
-        { "apply_transformation", lshape_apply_transformation },
-        { "get_width",            lshape_get_width            },
-        { "get_height",           lshape_get_height           },
-        { "get_center",           lshape_get_center           },
-        { "resize_lrtb",          lshape_resize_lrtb          },
-        { "resize",               lshape_resize               },
-        { "resolve_path",         lshape_resolve_path         },
-        { "__tostring",           lshape_tostring             },
-        { "__gc",                 lshape_destroy              },
-        { NULL,                   NULL                        }
+        { "copy",                         lshape_copy                         },
+        { "append_xy",                    lshape_append_xy                    },
+        { "append_pt",                    lshape_append_pt                    },
+        { "get_points",                   lshape_get_points                   },
+        { "get_path_width",               lshape_get_path_width               },
+        { "get_path_extension",           lshape_get_path_extension           },
+        { "set_lpp",                      lshape_set_lpp                      },
+        { "get_lpp",                      lshape_get_lpp                      },
+        { "is_type",                      lshape_is_type                      },
+        { "is_lpp_type",                  lshape_is_lpp_type                  },
+        { "apply_translation",            lshape_apply_translation            },
+        { "apply_transformation",         lshape_apply_transformation         },
+        { "apply_inverse_transformation", lshape_apply_inverse_transformation },
+        { "get_width",                    lshape_get_width                    },
+        { "get_height",                   lshape_get_height                   },
+        { "get_center",                   lshape_get_center                   },
+        { "resize_lrtb",                  lshape_resize_lrtb                  },
+        { "resize",                       lshape_resize                       },
+        { "resolve_path",                 lshape_resolve_path                 },
+        { "__tostring",                   lshape_tostring                     },
+        { "__gc",                         lshape_destroy                      },
+        { NULL,                           NULL                                }
     };
     luaL_setfuncs(L, metafuncs, 0);
 

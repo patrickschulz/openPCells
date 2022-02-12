@@ -34,9 +34,8 @@ end
 
 function geometry.polygon(layer, pts)
     local S = shape.create_polygon(layer)
-    local append = util.make_insert_pts(S:get_points())
     for _, pt in ipairs(pts) do
-        append(pt)
+        S:append_pt(pt)
     end
     return object.make_from_shape(S)
 end
