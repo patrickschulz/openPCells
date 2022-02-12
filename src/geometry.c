@@ -144,9 +144,8 @@ void _make_unique_points(point_t** points, size_t* numpoints)
 shape_t* geometry_path_to_polygon(point_t** points, size_t numpoints, ucoordinate_t width, int miterjoin)
 {
     _make_unique_points(points, &numpoints);
-    //if extension then
-    //    -- FIXME
-    //end
+    
+    // FIXME: handle path extensions
 
     // rectangle
     if((numpoints == 2) && ((points[0]->x == points[1]->x) || (points[0]->y == points[1]->y)))
