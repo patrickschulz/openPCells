@@ -514,10 +514,11 @@ function M.create_layout(cellname, cellargs, env, evaluate)
         error(string.format("could not satisfy parameter expression for cell '%s'", cellname), 0)
     end
     local obj = object.create(cellname)
-    local status, msg = xpcall(cell.funcs.layout, function(err) return { msg = err, where = _find_cell_traceback() } end, obj, parameters, env)
-    if not status then
-        error(string.format("could not create cell '%s'. Error in line %d\n  -> %s", cellname, msg.where.line, msg.msg), 0)
-    end
+    cell.funcs.layout(obj, parameters, env)
+    --local status, msg = xpcall(cell.funcs.layout, function(err) return { msg = err, where = _find_cell_traceback() } end, obj, parameters, env)
+    --if not status then
+    --    error(string.format("could not create cell '%s'. Error in line %d\n  -> %s", cellname, msg.where.line, msg.msg), 0)
+    --end
     return obj
 end
 

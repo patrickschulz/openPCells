@@ -34,6 +34,21 @@ function _generic_load(reader, chunkname, synerrmsg, semerrmsg, env)
     return chunk
 end
 
+function _dofile2(reader, chunkname, synerrmsg, env)
+    env = env or _ENV
+    local func, msg = load(reader, chunkname, "t", env)
+
+    if not func then
+        if synerrmsg then
+            error(string.format("%s: %s", synerrmsg, msg), 0)
+        else
+            error(msg, 0)
+        end
+    end
+
+    return func()
+end
+
 function _load_module(modname)
     if not modname then
         error("no module name given", 0)
@@ -62,3 +77,4 @@ function _dofile(filename)
 
     return _generic_load(reader, chunkname)
 end
+

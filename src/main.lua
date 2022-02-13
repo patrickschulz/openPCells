@@ -78,14 +78,9 @@ if args.script then
         }
         _G.__index = _G
         setmetatable(env, _G)
-        local status, msg = pcall(_generic_load, reader, chunkname, nil, nil, env)
-        if not status then
-            print(msg)
-            return 1
-        end
+        _dofile2(reader, chunkname, nil, env)
     else
         moderror(string.format("opc --script: could not open script file '%s'", filename))
-        return 1
     end
     return 0
 end
@@ -256,10 +251,13 @@ if args.cellscript then
     end
     cell = c
 else
+    --[[
     local status, c = pcall(pcell.create_layout, args.cell, cellargs, nil, true) -- nil: no environment, true: evaluate parameters
     if not status then
         moderror(c)
     end
+    --]]
+    local c = pcell.create_layout(args.cell, cellargs, nil, true) -- nil: no environment, true: evaluate parameters
     cell = c
 end
 
