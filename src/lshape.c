@@ -61,9 +61,14 @@ static int lshape_create_rectangle_bltr(lua_State* L)
         lua_pushstring(L, "shape.create_rectangle_bltr() expects three arguments");
         lua_error(L);
     }
+    if(!lua_istable(L, 1))
+    {
+        lua_pushstring(L, "shape.create_rectangle_bltr(): first argument must be a table");
+        lua_error(L);
+    }
     lshape_t* lshape = _create_lshape(L);
-    lpoint_t* bl = lua_touserdata(L, 2);
-    lpoint_t* tr = lua_touserdata(L, 3);
+    lpoint_t* bl = luaL_checkudata(L, 2, LPOINTMETA);
+    lpoint_t* tr = luaL_checkudata(L, 3, LPOINTMETA);
     lshape->shape = shape_create_rectangle(bl->point->x, bl->point->y, tr->point->x, tr->point->y);
     return 1;
 }
@@ -73,6 +78,11 @@ static int lshape_create_polygon(lua_State* L)
     if(lua_gettop(L) < 1)
     {
         lua_pushstring(L, "shape.create_polygon() expects at least one argument");
+        lua_error(L);
+    }
+    if(!lua_istable(L, 1))
+    {
+        lua_pushstring(L, "shape.create_rectangle_bltr(): first argument must be a table");
         lua_error(L);
     }
     lshape_t* lshape = _create_lshape(L);
@@ -87,7 +97,7 @@ static int lshape_create_polygon(lua_State* L)
     for(int i = 1; i <= len; ++i)
     {
         lua_rawgeti(L, 2, i);
-        lpoint_t* pt = lua_touserdata(L, -1);
+        lpoint_t* pt = luaL_checkudata(L, -1, LPOINTMETA);
         shape_append(lshape->shape, pt->point->x, pt->point->y);
         lua_pop(L, 1);
     }
@@ -115,12 +125,12 @@ static int lshape_create_path(lua_State* L)
     lua_len(L, 2);
     int len = lua_tointeger(L, -1);
     lua_pop(L, 1);
-    ucoordinate_t width = lua_tointeger(L, 3);
+    ucoordinate_t width = luaL_checkinteger(L, 3);
     lshape->shape = shape_create_path(len, width, extstart, extend);
     for(int i = 1; i <= len; ++i)
     {
         lua_rawgeti(L, 2, i);
-        lpoint_t* pt = lua_touserdata(L, -1);
+        lpoint_t* pt = luaL_checkudata(L, -1, LPOINTMETA);
         shape_append(lshape->shape, pt->point->x, pt->point->y);
         lua_pop(L, 1);
     }
@@ -156,7 +166,7 @@ static int lshape_get_points(lua_State* L)
 static int lshape_is_type(lua_State* L)
 {
     lshape_t* lshape = luaL_checkudata(L, 1, LSHAPEMODULE);
-    const char* type = lua_tostring(L, 2);
+    const char* type = luaL_checkstring(L, 2);
     switch(lshape->shape->type)
     {
         case RECTANGLE:
@@ -214,8 +224,8 @@ static int lshape_is_lpp_type(lua_State* L)
     lua_getiuservalue(L, 1, 1);
     lua_pushstring(L, "typ");
     lua_gettable(L, -2);
-    const char* type1 = lua_tostring(L, 2);
-    const char* type2 = lua_tostring(L, -1);
+    const char* type1 = luaL_checkstring(L, 2);
+    const char* type2 = luaL_checkstring(L, -1);
     lua_pushboolean(L, !strcmp(type1, type2));
     return 1;
 }
@@ -260,8 +270,8 @@ static int lshape_append_xy(lua_State* L)
         lua_pushstring(L, "lshape: can't append to a rectangle");
         lua_error(L);
     }
-    coordinate_t x = lua_tointeger(L, 2);
-    coordinate_t y = lua_tointeger(L, 3);
+    coordinate_t x = luaL_checkinteger(L, 2);
+    coordinate_t y = luaL_checkinteger(L, 3);
     shape_append(lshape->shape, x, y);
     return 1;
 }
@@ -274,7 +284,7 @@ static int lshape_append_pt(lua_State* L)
         lua_pushstring(L, "lshape: can't append to a rectangle");
         lua_error(L);
     }
-    lpoint_t* pt = lua_touserdata(L, 2);
+    lpoint_t* pt = luaL_checkudata(L, 2, LPOINTMETA);
     shape_append(lshape->shape, pt->point->x, pt->point->y);
     return 1;
 }
@@ -282,7 +292,7 @@ static int lshape_append_pt(lua_State* L)
 static int lshape_apply_transformation(lua_State* L)
 {
     lshape_t* lshape = luaL_checkudata(L, 1, LSHAPEMODULE);
-    ltransformationmatrix_t* lmatrix = lua_touserdata(L, 2);
+    ltransformationmatrix_t* lmatrix = luaL_checkudata(L, 2, LTRANSFORMATIONMATRIXMODULE);
     shape_apply_transformation(lshape->shape, lmatrix->matrix);
     lua_pop(L, 1);
     return 1;
@@ -291,7 +301,7 @@ static int lshape_apply_transformation(lua_State* L)
 static int lshape_apply_translation(lua_State* L)
 {
     lshape_t* lshape = luaL_checkudata(L, 1, LSHAPEMODULE);
-    ltransformationmatrix_t* lmatrix = lua_touserdata(L, 2);
+    ltransformationmatrix_t* lmatrix = luaL_checkudata(L, 2, LTRANSFORMATIONMATRIXMODULE);
     shape_apply_translation(lshape->shape, lmatrix->matrix);
     lua_pop(L, 1);
     return 1;
@@ -300,7 +310,7 @@ static int lshape_apply_translation(lua_State* L)
 static int lshape_apply_inverse_transformation(lua_State* L)
 {
     lshape_t* lshape = luaL_checkudata(L, 1, LSHAPEMODULE);
-    ltransformationmatrix_t* lmatrix = lua_touserdata(L, 2);
+    ltransformationmatrix_t* lmatrix = luaL_checkudata(L, 2, LTRANSFORMATIONMATRIXMODULE);
     shape_apply_inverse_transformation(lshape->shape, lmatrix->matrix);
     lua_pop(L, 1);
     return 1;
@@ -343,10 +353,10 @@ static int lshape_get_center(lua_State* L)
 static int lshape_resize_lrtb(lua_State* L)
 {
     lshape_t* lshape = luaL_checkudata(L, 1, LSHAPEMODULE);
-    coordinate_t left = lua_tointeger(L, 2);
-    coordinate_t right = lua_tointeger(L, 3);
-    coordinate_t top = lua_tointeger(L, 4);
-    coordinate_t bottom = lua_tointeger(L, 5);
+    coordinate_t left = luaL_checkinteger(L, 2);
+    coordinate_t right = luaL_checkinteger(L, 3);
+    coordinate_t top = luaL_checkinteger(L, 4);
+    coordinate_t bottom = luaL_checkinteger(L, 5);
     shape_resize_lrtb(lshape->shape, left, right, top, bottom);
     return 0;
 }
@@ -354,8 +364,8 @@ static int lshape_resize_lrtb(lua_State* L)
 static int lshape_resize(lua_State* L)
 {
     lshape_t* lshape = luaL_checkudata(L, 1, LSHAPEMODULE);
-    coordinate_t xsize = lua_tointeger(L, 2);
-    coordinate_t ysize = lua_tointeger(L, 3);
+    coordinate_t xsize = luaL_checkinteger(L, 2);
+    coordinate_t ysize = luaL_checkinteger(L, 3);
     shape_resize_lrtb(lshape->shape, xsize / 2, xsize / 2, ysize / 2, ysize / 2);
     return 0;
 }
