@@ -30,7 +30,7 @@ void transformationmatrix_flipx(transformationmatrix_t* matrix);
 void transformationmatrix_flipy(transformationmatrix_t* matrix);
 void transformationmatrix_rotate_90_right(transformationmatrix_t* matrix);
 void transformationmatrix_rotate_90_left(transformationmatrix_t* matrix);
-void transformationmatrix_apply_translation(transformationmatrix_t* matrix, point_t* pt);;
+void transformationmatrix_apply_translation(transformationmatrix_t* matrix, point_t* pt);
 void transformationmatrix_apply_aux_translation(transformationmatrix_t* matrix, point_t* pt);
 void transformationmatrix_apply_transformation(transformationmatrix_t* matrix, point_t* pt);
 void transformationmatrix_apply_inverse_transformation(transformationmatrix_t* matrix, point_t* pt);
