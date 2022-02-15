@@ -425,10 +425,16 @@ int lgdsparser_show_records(lua_State* L)
                     }
                     break;
                 case ASCII_STRING:
+                    putchar('"');
                     for(int i = 0; i < record->length - 4; ++i)
                     {
-                        putchar(((char*)record->data)[i]);
+                        char ch = ((char*)record->data)[i];
+                        if(ch) // odd-length strings are zero padded, don't print that character
+                        {
+                            putchar(ch);
+                        }
                     }
+                    putchar('"');
                     break;
                 default:
                     break;
