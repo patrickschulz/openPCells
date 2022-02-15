@@ -1,6 +1,6 @@
 PROGNAME=opc
 
-CC= gcc -std=gnu99
+CC= gcc -std=c99 -pedantic -D_DEFAULT_SOURCE
 CFLAGS= -O0 -g -Wall -Wextra -Wstrict-prototypes $(SYSCFLAGS) $(MYCFLAGS)
 LDFLAGS= $(SYSLDFLAGS) $(MYLDFLAGS)
 LIBS= -lm $(SYSLIBS) $(MYLIBS)
