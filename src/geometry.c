@@ -6,6 +6,8 @@
 
 #include "shape.h"
 
+#define M_PI 3.14159265358979323846264338327
+
 static void _shift_line(point_t* pt1, point_t* pt2, ucoordinate_t width, point_t** spt1, point_t** spt2)
 {
     double angle = atan2(pt2->y - pt1->y, pt2->x - pt1->x) - M_PI / 2;
