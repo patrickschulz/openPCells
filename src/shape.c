@@ -98,7 +98,7 @@ void shape_append(shape_t* shape, coordinate_t x, coordinate_t y)
     if(shape->size == shape->capacity)
     {
         shape->capacity = (shape->capacity * 2) > (shape->size + 1) ? (shape->capacity * 2) : (shape->size + 1);
-        point_t** points = reallocarray(shape->points, shape->capacity, sizeof(*shape->points));
+        point_t** points = realloc(shape->points, shape->capacity * sizeof(*shape->points));
         shape->points = points;
     }
     shape->points[shape->size] = point_create(x, y);
