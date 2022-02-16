@@ -256,8 +256,9 @@ function M.from_verilog(filename, utilization, aspectratio, excluded_nets, repor
     print(string.format("width: %u, height: %u", options.floorplan_width,
         options.floorplan_height))
 
-    router.route(netpositions, numnets, options.floorplan_width,
+    local netnames = router.route(netpositions, numnets, options.floorplan_width,
         options.floorplan_height)
+        tprint(netnames, 2)
     return {
         content = content,
         width = options.floorplan_width,
@@ -267,6 +268,24 @@ function M.from_verilog(filename, utilization, aspectratio, excluded_nets, repor
         nets = nets,
     }
 end
+
+-- Print contents of `tbl`, with indentation.
+-- `indent` sets the initial level of indentation.
+function tprint (tbl, indent)
+  if not indent then indent = 0 end
+  for k, v in pairs(tbl) do
+    formatting = string.rep("  ", indent) .. k .. ": "
+    if type(v) == "table" then
+      print(formatting)
+      tprint(v, indent+1)
+    elseif type(v) == 'boolean' then
+      print(formatting .. tostring(v))
+    else
+      print(formatting .. v)
+    end
+  end
+end
+
 
 function M.write_from_verilog(content, prefix, libname)
     local path

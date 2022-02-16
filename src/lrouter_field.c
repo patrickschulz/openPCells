@@ -4,42 +4,42 @@
 #include <string.h>
 #include <stdlib.h>
 
-void black()
+void black(void)
 {
 	printf("\033[0;30m");
 }
 
-void red()
+void red(void)
 {
 	printf("\033[0;31m");
 }
 
-void green()
+void green(void)
 {
 	printf("\033[0;32m");
 }
 
-void yellow()
+void yellow(void)
 {
 	printf("\033[0;33m");
 }
 
-void blue()
+void blue(void)
 {
 	printf("\033[0;34m");
 }
 
-void purple()
+void purple(void)
 {
 	printf("\033[0;35m");
 }
 
-void cyan()
+void cyan(void)
 {
 	printf("\033[0;36m");
 }
 
-void white()
+void white(void)
 {
 	printf("\033[0;37m");
 }
@@ -110,7 +110,7 @@ void print_field(int*** field, size_t width, size_t height, unsigned int layer)
 				blue();
 			else
 				white();
-			printf("%2i  ", field[layer][j][i]);
+			printf("%2i", field[layer][j][i]);
 		}
 		printf("\n");
 	}

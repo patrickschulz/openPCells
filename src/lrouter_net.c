@@ -11,9 +11,9 @@ void print_nets(net_t* nets, size_t num_nets)
 {
     for (unsigned int i = 0; i < num_nets; i++)
     {
-        printf("Net %u: (%u, %u, %u) -> (%u, %u, %u), rank: %u, routed?: %i\n", 
-	       i, nets[i].x1, nets[i].y1, nets[i].z1, nets[i].x2, nets[i].y2,
-	       nets[i].z2, nets[i].ranking, nets[i].routed);
+        printf("Net %s: (%u, %u, %u) -> (%u, %u, %u), rank: %u, routed?: %i\n", 
+	       nets[i].name, nets[i].x1, nets[i].y1, nets[i].z1, nets[i].x2,
+	       nets[i].y2, nets[i].z2, nets[i].ranking, nets[i].routed);
     }
 }
 

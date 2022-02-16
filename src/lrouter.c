@@ -2,10 +2,12 @@
 #include "lua/lauxlib.h"
 
 #include <stdlib.h>
+#include <string.h>
 
 #include "lrouter_net.h"
 #include "lrouter_route.h"
 #include "lrouter_field.h"
+#include "ldebug.h"
 
 struct netcollection
 {
@@ -21,7 +23,8 @@ static struct netcollection* _initialize(lua_State* L)
     size_t i = 0;
     while (lua_next(L, 1) != 0)
     {
-        printf("%s\n", lua_tostring(L, -2));
+	    char *name = lua_tostring(L, -2);
+        //printf("%s\n", lua_tostring(L, -2));
         lua_len(L, -1);
         size_t size = lua_tointeger(L, -1);
         lua_pop(L, 1);
@@ -57,7 +60,8 @@ static struct netcollection* _initialize(lua_State* L)
                 nets[i].y2 = y;
                 nets[i].z2 = z;
             }
-
+	    nets[i].name = malloc(sizeof(char) * strlen(name));
+	    strcpy(nets[i].name, name);
             printf("(%d, %d)\n", x, y);
 
             lua_pop(L, 1);
@@ -89,6 +93,10 @@ int lrouter_route(lua_State* L)
 
     fill_ports(nc->nets, nc->num_nets, field);
 
+    ldebug_dump_stack(L);
+    lua_newtable(L);
+    ldebug_dump_stack(L);
+    int count = 0;
     for(unsigned int i = 0; i < nc->num_nets; ++i)
     {
 
@@ -98,23 +106,45 @@ int lrouter_route(lua_State* L)
 		nc->nets[i].z2 == 0)
 		    continue;
 
-	nc->nets[i].routed = route(nc->nets[i], field, field_width,
+	nc->nets[i].routed = route(&nc->nets[i], field, field_width,
 				   field_height, num_layers, via_cost,
 				   wrong_dir_cost);
+
+	if(nc->nets[i].routed)
+	{
+		lua_newtable(L);
+		lua_newtable(L);
+		lua_pushstring(L, nc->nets[i].name);
+		lua_rawseti(L, -2, 1);
+
+		point_t *curr_point;
+		while((curr_point = (point_t *)queue_dequeue(nc->nets[i].path)) 
+		      != NULL)
+		{
+			lua_newtable(L);
+			lua_pushinteger(L, curr_point->x);
+			lua_rawseti(L, -2, 1);
+			lua_pushinteger(L, curr_point->y);
+			lua_rawseti(L, -2, 2);
+			lua_rawseti(L, -3, 2);
+		}
+		lua_rawseti(L, -2, 2);
+		lua_rawseti(L, -2, count + 1);
+		count++;
+	}
     }
+    ldebug_dump_stack(L);
 
     print_nets(nc->nets, nc->num_nets);
-	print_field(field, field_width, field_height, 0);
-	print_field(field, field_width, field_height, 1);
-	print_field(field, field_width, field_height, 2);
-	usleep(1000000);
-
-	/* TODO: create route deltas */
+    print_field(field, field_width, field_height, 0);
+    print_field(field, field_width, field_height, 1);
+    print_field(field, field_width, field_height, 2);
+    usleep(1000000);
 
     destroy_field(field, field_width, field_height, num_layers);
     free(nc->nets);
     free(nc);
-    return 0;
+    return 1;
 }
 
 int open_lrouter_lib(lua_State* L)

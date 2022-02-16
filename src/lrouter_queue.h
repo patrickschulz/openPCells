@@ -23,5 +23,6 @@ void *queue_dequeue(queue_t *queue);
 int queue_enqueue(queue_t *queue, void *data);
 int queue_len(queue_t *queue);
 void queue_sort(queue_t *queue);
+void queue_print(queue_t *queue);
 
 #endif

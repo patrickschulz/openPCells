@@ -17,7 +17,7 @@
 #define RCHILD(x) 2 * x + 2
 #define PARENT(x) (x - 1) / 2
 
-min_heap_t *heap_init() {
+min_heap_t *heap_init(void) {
     min_heap_t *heap = malloc(sizeof(min_heap_t));
     heap->size = 0;
     return heap;

@@ -21,7 +21,7 @@ typedef struct minheap {
 } min_heap_t;
 
 /* Function to initialize the min heap with size = 0 */
-min_heap_t *heap_init();
+min_heap_t *heap_init(void);
 
 /*
 *  Function to insert a node into the min heap, by allocating space for

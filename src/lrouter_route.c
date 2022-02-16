@@ -32,19 +32,16 @@ static point_t *get_min_point(point_t *arr)
 	return point;
 }
 
-int route(net_t net, int*** field, size_t width, size_t height,
+int route(net_t *net, int*** field, size_t width, size_t height,
 	  size_t num_layers, size_t wrong_dir_cost, size_t via_cost)
 {
-	print_field(field, width, height, 0);
-		print_field(field, width, height, 1);
-		print_field(field, width, height, 2);
 
-	unsigned int startx = net.x1;
-	unsigned int starty = net.y1;
-	unsigned int startz = net.z1;
-	unsigned int endx = net.x2;
-	unsigned int endy = net.y2;
-	unsigned int endz = net.z2;
+	unsigned int startx = net->x1;
+	unsigned int starty = net->y1;
+	unsigned int startz = net->z1;
+	unsigned int endx = net->x2;
+	unsigned int endy = net->y2;
+	unsigned int endz = net->z2;
 
 	/* prepare starting point */
 	point_t start;
@@ -56,6 +53,8 @@ int route(net_t net, int*** field, size_t width, size_t height,
 	/* put starting point in min_heap */
 	min_heap_t *min_heap = heap_init();
 	heap_insert_point(min_heap, &start);
+
+	net->path = queue_new();
 
 	int score = 0;
 	unsigned int x, y, z, nextx, nexty, nextz;
@@ -236,19 +235,13 @@ int route(net_t net, int*** field, size_t width, size_t height,
 		y = npoint->y;
 		z = npoint->z;
 
-		//printf("got %u %u %u\n", x, y, z);
-
 		/* put the point in the nets path queue */
 		point_t *path_point = malloc(sizeof(point_t));
 		path_point->x = x;
 		path_point->y = y;
 		path_point->z = z;
-		queue_enqueue(net.path, path_point);
+		queue_enqueue(net->path, path_point);
 
-//		print_field(field, fieldsize, 0);
-//		print_field(field, fieldsize, 1);
-//		print_field(field, fieldsize, 2);
-//		usleep(100000);
 
 	} while (!(x == startx && y == starty && z == startz));
 

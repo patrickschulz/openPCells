@@ -7,14 +7,14 @@
 
 /* net struct */
 typedef struct {
+    char *name;
     unsigned int x1, x2;
     unsigned int y1, y2;
     unsigned int z1, z2;
     unsigned int ranking;
     int routed;
-	/* queue to save the path in the end */
-	queue_t *path;
-
+    /* queue to save the path in the end */
+    queue_t *path;
 } net_t;
 
 /*

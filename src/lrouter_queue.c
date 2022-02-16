@@ -5,8 +5,10 @@
  */
 
 #include "lrouter_queue.h"
+#include "lrouter_field.h"
 
 #include <stddef.h>
+#include <stdio.h>
 #include <stdlib.h>
 
 struct queue_node_s {
@@ -104,4 +106,19 @@ int queue_len(queue_t *queue)
 	}
 
 	return count;
+}
+
+void queue_print(queue_t *queue)
+{
+	if(queue == NULL)
+		return;
+	struct queue_node_s *node = queue->front;
+	while(node != NULL)
+	{
+		point_t point = *(point_t*)node->data;
+		printf("p: x %i, y %i, z %i\n", (int)point.x,
+		       (int)point.y, (int)point.z);
+		node = node->next;
+	}
+
 }
