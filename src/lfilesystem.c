@@ -6,6 +6,7 @@
 #include <errno.h>
 #include <stdio.h>
 #include <sys/stat.h>
+#include <sys/types.h>
 #include <unistd.h>
 
 static int lfilesystem_mkdir(lua_State* L)

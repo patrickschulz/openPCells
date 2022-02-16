@@ -6,7 +6,7 @@
 
 #include "lua/lauxlib.h"
 
-#include "point.h"
+#include "lpoint.h"
 
 struct curve
 {
@@ -106,33 +106,79 @@ static void _flatten_curve(struct curve* c, struct curve* result)
     }
 }
 
-static void _raster_line(int x0, int y0, int x1, int y1, struct curve* result)
-{
-    int dx = (x1 > x0) ? (x1 - x0) : (x0 - x1);
-    int dy = (y1 < y0) ? (y1 - y0) : (y0 - y1);
-    int sx = (x1 > x0) ? 1 : -1;
-    int sy = (y1 > y0) ? 1 : -1;
-    int err = dx + dy;
+#define iabs(x) ((x) < 0 ? -(x) : (x))
 
+static struct curve* _raster_line(int x1, int y1, int x2, int y2, unsigned int grid, int allow45)
+{
+    int sx = (x2 > x1) ? grid : -grid;
+    int sy = (y2 > y1) ? grid : -grid;
+
+    int x = x1;
+    int y = y1;
+
+    struct curve* result = _create(100);
+
+    /*
     while(1)
     {
-        _append_point(result, x0, y0);
-        if((2 * err) >= dy)
+        _append_point(result, x, y);
+        if(x == x2 && y == y2)
         {
-            if(x0 == x1) break;
-            err += dy;
-            x0 += sx;
+            break;
         }
-        if((2 * err) <= dx)
+        int exy = (y + sy - y1) * (x2 - x1) - (x + sx - x1) * (y2 - y1);
+        int ex  = (y + sy - y1) * (x2 - x1) - (x +  0 - x1) * (y2 - y1);
+        int ey  = (y +  0 - y1) * (x2 - x1) - (x + sx - x1) * (y2 - y1);
+        if(allow45)
         {
-            if(y0 == y1) break;
-            err += dx;
-            y0 += sy;
+            if(iabs(exy) < iabs(ex))
+            {
+                x = x + sx;
+            }
+            if(iabs(exy) < iabs(ey))
+            {
+                y = y + sy;
+            }
+        }
+        else
+        {
+            if(iabs(ex) < iabs(ey))
+            {
+                y = y + sy;
+            }
+            {
+                x = x + sx;
+            }
         }
     }
+    */
+    return result;
 }
 
-int flatten_cubic_bezier(lua_State* L)
+static int line(lua_State* L)
+{
+    lpoint_t* pt1 = lua_touserdata(L, 1);
+    lpoint_t* pt2 = lua_touserdata(L, 2);
+    int grid = lua_tointeger(L, 3);
+    int allow45 = lua_toboolean(L, 4);
+
+    struct curve* result = _raster_line(pt1->point->x, pt1->point->y, pt2->point->x, pt2->point->y, grid, allow45);
+
+    lua_newtable(L);
+    for(unsigned int i = 0; i < result->size; ++i)
+    {
+        lua_pushinteger(L, result->points[i].x);
+        lua_pushinteger(L, result->points[i].y);
+        lpoint_create(L);
+        lua_rawseti(L, -2, i + 1);
+    }
+
+    _destroy(result);
+
+    return 1;
+}
+
+static int flatten_cubic_bezier(lua_State* L)
 {
     int x1 = lua_tonumber(L, 1);
     int y1 = lua_tonumber(L, 2);
@@ -171,6 +217,7 @@ int open_lgraphics_lib(lua_State* L)
 {
     static const luaL_Reg modfuncs[] =
     {
+        { "line",                 line                 },
         { "flatten_cubic_bezier", flatten_cubic_bezier },
         { NULL, NULL }
     };

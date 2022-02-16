@@ -1124,11 +1124,11 @@ function layout(text, _P)
     for i = 1, #_P.text do
         local char = string.sub(string.upper(_P.text), i, i)
         if char == "\n" then
-            trans.dx = 0
-            trans.dy = trans.dy - _P.scale - _P.leading
+            trans:move_x_to(0)
+            trans:translate_y(- _P.scale - _P.leading)
         else
             if char == " " then
-                trans.dx = trans.dx + _P.spacing
+                trans:translate_x(_P.spacing)
             else
                 local outlines = letteroutlines[char]
                 if outlines then
@@ -1136,13 +1136,13 @@ function layout(text, _P)
                     for _, outline in ipairs(outlines) do
                         local S = shape.create_polygon(generics.metal(_P.metalnum))
                         for _, pt in ipairs(outline) do
-                            table.insert(S.points, point.create(_P.scale * pt.x, _P.scale * pt.y))
+                            S:append_xy(_P.scale * pt.x, _P.scale * pt.y)
                         end
                         S:apply_transformation(trans, trans.apply_translation)
                         text:add_shape(S)
                         width = math.max(width, S:get_width())
                     end
-                    trans.dx = trans.dx + width + _P.letterspacing
+                    trans:translate_x(width + _P.letterspacing)
                 end
             end
         end

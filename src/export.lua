@@ -71,11 +71,11 @@ local function _write_cell(cell)
         S:apply_transformation(cell.trans, cell.trans.apply_transformation)
         local layer = export.get_layer(S)
         if S:is_type("polygon") then
-            export.write_polygon(layer, S.points)
+            export.write_polygon(layer, S:get_points())
         elseif S:is_type("rectangle") then
-            export.write_rectangle(layer, S.points.bl, S.points.tr)
+            export.write_rectangle(layer, S:get_points().bl, S:get_points().tr)
         elseif S:is_type("path") then
-            export.write_path(layer, S.points, S.width, S.extension)
+            export.write_path(layer, S:get_points(), S:get_path_width(), S:get_path_extension())
         else
             moderror(string.format("export: unknown shape type '%s'", S.typ))
         end

@@ -34,8 +34,8 @@ function layout(inductor, _P)
     -- calculate meeting point
     xm = xc * (_P.radius + _P.width) / (_P.cornerradius + _P.radius)
 
-    main  = graphics.quartercircle(3, point.create(0, 0), _P.radius + _P.width, _P.grid, _P.allow45)
-    aux   = graphics.quartercircle(1, point.create(xc, yc), _P.cornerradius - _P.width, _P.grid, _P.allow45)
+    main = graphics.quartercircle(3, point.create(0, 0), _P.radius + _P.width, _P.grid, _P.allow45)
+    aux  = graphics.quartercircle(1, point.create(xc, yc), _P.cornerradius - _P.width, _P.grid, _P.allow45)
 
     local outer = graphics.quartercircle(2, point.create(0, 0), _P.radius + _P.width, _P.grid, _P.allow45) -- start with topleft quarter circle
     util.merge(outer, util.filter_forward(main, function(pt) return pt:getx() < xm end))
@@ -46,8 +46,12 @@ function layout(inductor, _P)
 
     -- ** assemble final path **
     local s = shape.create_polygon(generics.metal(_P.metalnum))
-    s.points = util.reverse(inner)
-    util.merge(s.points, outer)
+    for _, pt in ipairs(util.reverse(inner)) do
+        s:append_pt(pt)
+    end
+    for _, pt in ipairs(outer) do
+        s:append_pt(pt)
+    end
 
     inductor:add_shape(s)
 end

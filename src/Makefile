@@ -1,7 +1,7 @@
 PROGNAME=opc
 
 CC= gcc -std=gnu99
-CFLAGS= -O0 -g -Wall -Wextra $(SYSCFLAGS) $(MYCFLAGS)
+CFLAGS= -O0 -g -Wall -Wextra -Wstrict-prototypes $(SYSCFLAGS) $(MYCFLAGS)
 LDFLAGS= $(SYSLDFLAGS) $(MYLDFLAGS)
 LIBS= -lm $(SYSLIBS) $(MYLIBS)
 
@@ -14,7 +14,7 @@ SYSCFLAGS=
 SYSLDFLAGS=
 SYSLIBS=
 
-OPCOBJ:=point.o shape.o ldir.o lpoint.o graphics.o lbind.o lload.o lbinary.o lshape.o lfilesystem.o lbytebuffer.o lplacer.o lplacer_rand.o lrouter.o lrouter_net.o lrouter_queue.o lrouter_min_heap.o lrouter_field.o lrouter_route.o lutil.o
+OPCOBJ:=point.o transformationmatrix.o ltransformationmatrix.o shape.o geometry.o generics.o lgeometry.o ldir.o lpoint.o graphics.o lbind.o lload.o lbinary.o lshape.o lfilesystem.o lbytebuffer.o lplacer.o lplacer_rand.o lrouter.o lrouter_net.o lrouter_queue.o lrouter_min_heap.o lrouter_field.o lrouter_route.o lutil.o gdsparser.o ldebug.o
 
 .PHONY: default
 default:
@@ -25,14 +25,19 @@ $(PROGNAME): main.c lua/liblua.a $(OPCOBJ)
 	$(CC) $(CFLAGS) -DLUA_COMPAT_5_3 -DLUA_USE_LINUX -o $(PROGNAME) main.c $(OPCOBJ) lua/liblua.a -lm -ldl
 
 point.o: point.h point.c
+transformationmatrix.o: transformationmatrix.h transformationmatrix.c
+ltransformationmatrix.o: ltransformationmatrix.h ltransformationmatrix.c
 shape.o: point.h shape.h shape.c
+geometry.o: geometry.h geometry.c point.h point.c shape.h shape.c
+generics.o: generics.h generics.c
+lgeometry.o: lgeometry.h lgeometry.c geometry.h geometry.c point.h point.c shape.h shape.c
 lpoint.o: lpoint.h lpoint.c
 graphics.o: graphics.h graphics.c
 ldir.o: ldir.c ldir.h
 lbind.o: lbind.h lbind.c
 lload.o: lload.h lload.c
 lbinary.o: lbinary.h lbinary.c
-lshape.o: lshape.h lshape.c
+lshape.o: lshape.h lshape.c shape.h shape.c
 lfilesystem.o: lfilesystem.h lfilesystem.c
 lutil.o: lutil.c lutil.h
 lbytebuffer.o: lbytebuffer.h lbytebuffer.c
@@ -47,12 +52,17 @@ lrouter_min_heap.o: lrouter_min_heap.h lrouter_min_heap.c
 lrouter_field.o: lrouter_field.h lrouter_field.c
 lrouter_route.o: lrouter_route.h lrouter_route.c
 
+gdsparser.o: gdsparser.h gdsparser.c
+
+ldebug.o: ldebug.h ldebug.c
+
 lua/liblua.a: lua/*.c lua/*.h
 	@$(MAKE) -C lua liblua.a
 
 .PHONY: clean
 clean:
 	rm -f $(PROGNAME) config.h
+	rm -f $(OPCOBJ)
 	rm -f lua/*.o lua/liblua.a
 
 AIX aix:

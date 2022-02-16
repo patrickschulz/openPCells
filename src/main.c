@@ -22,6 +22,8 @@
 #include <string.h>
 
 #include "lpoint.h"
+#include "lgeometry.h"
+#include "ltransformationmatrix.h"
 #include "graphics.h"
 #include "lload.h"
 #include "lbind.h"
@@ -34,6 +36,7 @@
 #include "lplacer.h"
 #include "lrouter.h"
 #include "lutil.h"
+#include "gdsparser.h"
 
 #include "config.h"
 
@@ -65,40 +68,53 @@
 /*
 ** Message handler used to run all chunks
 */
-static int msghandler(lua_State* L)
-{
-    const char* msg = lua_tostring(L, 1);
-    /*
-    if (msg == NULL) // is error object not a string?
-    {
-        msg = lua_pushfstring(L, "(error object is a %s value)", luaL_typename(L, 1));
-    }
-    */
-    int traceback = 1;
-    lua_getglobal(L, "envlib");
-    lua_pushstring(L, "get");
-    lua_gettable(L, -2);
-    lua_pushstring(L, "debug");
-    int ret = lua_pcall(L, 1, 1, 0);
-    if(ret != LUA_OK)
-    {
-        printf("%s\n", "error in msghandler (while calling envlib.get('debug'). A traceback will be printed");
-    }
+//static int msghandler(lua_State* L)
+//{
+//    const char* msg = lua_tostring(L, 1);
+//    /*
+//    if (msg == NULL) // is error object not a string?
+//    {
+//        msg = lua_pushfstring(L, "(error object is a %s value)", luaL_typename(L, 1));
+//    }
+//    */
+//    int traceback = 1;
+//    lua_getglobal(L, "envlib");
+//    lua_pushstring(L, "get");
+//    lua_gettable(L, -2);
+//    lua_pushstring(L, "debug");
+//    int ret = lua_pcall(L, 1, 1, 0);
+//    if(ret != LUA_OK)
+//    {
+//        printf("%s\n", "error in msghandler (while calling envlib.get('debug'). A traceback will be printed");
+//    }
+//    else
+//    {
+//        traceback = lua_toboolean(L, -1);
+//    }
+//    lua_pop(L, 1); // pop envlib
+//
+//    if(traceback)
+//    {
+//        luaL_traceback(L, L, msg, 2);
+//    }
+//    else
+//    {
+//        lua_pushstring(L, msg);
+//    }
+//    return 1;
+//}
+static int msghandler (lua_State *L) {
+  const char *msg = lua_tostring(L, 1);
+  if (msg == NULL) {  /* is error object not a string? */
+    if (luaL_callmeta(L, 1, "__tostring") &&  /* does it have a metamethod */
+        lua_type(L, -1) == LUA_TSTRING)  /* that produces a string? */
+      return 1;  /* that is the message */
     else
-    {
-        traceback = lua_toboolean(L, -1);
-    }
-    lua_pop(L, 1); // pop envlib
-
-    if(traceback)
-    {
-        luaL_traceback(L, L, msg, 2);
-    }
-    else
-    {
-        lua_pushstring(L, msg);
-    }
-    return 1;
+      msg = lua_pushfstring(L, "(error object is a %s value)",
+                               luaL_typename(L, 1));
+  }
+  luaL_traceback(L, L, msg, 1);  /* append a standard traceback */
+  return 1;  /* return the traceback */
 }
 
 static const luaL_Reg loadedlibs[] = {
@@ -156,7 +172,7 @@ static int call_main_program(lua_State* L, const char* filename)
     return LUA_OK;
 }
 
-lua_State* create_and_initialize_lua()
+static lua_State* create_and_initialize_lua(void)
 {
     lua_State* L = luaL_newstate();
     if (L == NULL) 
@@ -171,6 +187,8 @@ lua_State* create_and_initialize_lua()
     // opc libraries
     open_ldir_lib(L);
     open_lpoint_lib(L); // must be called before 'load_api'
+    open_lgeometry_lib(L);
+    open_ltransformationmatrix_lib(L); // must be called before 'load_api'
     open_lgraphics_lib(L);
     open_lload_lib(L);
     open_lbind_lib(L);
@@ -182,6 +200,8 @@ lua_State* create_and_initialize_lua()
     open_lfilesystem_lib(L);
     open_lplacer_lib(L);
     open_lrouter_lib(L);
+
+    open_gdsparser_lib(L);
 
     //lpoint_register_cfunctions(L);
 

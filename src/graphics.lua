@@ -29,27 +29,6 @@ local function _rasterize(x1, y1, x2, y2, grid, calc_error, allow45)
     return pts
 end
 
-function graphics.line(pt1, pt2, grid, allow45)
-    local x1, y1 = pt1:unwrap()
-    local x2, y2 = pt2:unwrap()
-
-    -- handle vertical, horizontal or 45-degrees diagonal lines specially
-    if x1 == x2 or y1 == y2 or math.abs(x2 - x1) == math.abs(y2 - y1) then
-        return {
-            pt1:copy(),
-            pt2:copy()
-        }
-    end
-
-    util.check_grid(grid, x1 - x2, y1 - y2)
-
-    local function calc_error(x, y)
-        return (y - y1) * (x2 - x1) - (x - x1) * (y2 - y1)
-    end
-
-    return _rasterize(x1, y1, x2, y2, grid, calc_error, allow45)
-end
-
 function graphics.ellipse(origin, xradius, yradius, grid, allow45)
     local xc, yc = origin:unwrap()
     local x1, y1 = xc + xradius, yc

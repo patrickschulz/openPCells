@@ -39,6 +39,6 @@ function layout(counter, _P)
         table.insert(cellnames, row)
     end
     local rows = placement.create_reference_rows(cellnames)
-    local cells = placement.digital(counter, rows, 80)
+    local cells = placement.digital(counter, rows, 200)
 end
 

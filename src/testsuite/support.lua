@@ -60,6 +60,8 @@ function M.run_test(module, test)
     reporttab = {}
     print(string.format("  * %s: ", test))
     local env = {
+        print = print,
+        _load_module = _load_module,
         _get_opc_home = _get_opc_home,
         ipairs = ipairs,
         pcall = pcall,

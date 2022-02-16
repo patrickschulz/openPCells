@@ -120,7 +120,7 @@ end
 
 function meta.add_shape(self, S)
     local new = self:add_raw_shape(S)
-    new:apply_transformation(self.trans, self.trans.apply_inverse_transformation)
+    new:apply_inverse_transformation(self.trans)
     return new
 end
 
@@ -140,7 +140,7 @@ end
 function meta.merge_into_shallow(self, other)
     for _, S in other:iterate_shapes() do
         local new = self:add_shape(S)
-        new:apply_transformation(other.trans, other.trans.apply_transformation)
+        new:apply_transformation(other.trans)
     end
 end
 
@@ -160,12 +160,12 @@ function meta.flatten(self, flattenports)
             for iy = 1, yrep or 1 do
                 for _, S in obj:iterate_shapes() do
                     local new = self:add_raw_shape(S)
-                    new:apply_transformation(child.trans, child.trans.apply_transformation)
-                    new:apply_transformation(obj.trans, obj.trans.apply_transformation)
+                    new:apply_transformation(child.trans)
+                    new:apply_transformation(obj.trans)
                     local tm = transformationmatrix.identity()
                     tm:translate((ix - 1) * xpitch, (iy - 1) * ypitch)
                     tm:translate(child.origin:unwrap())
-                    new:apply_transformation(tm, tm.apply_translation)
+                    new:apply_translation(tm)
                 end
                 if flattenports then
                     for _, port in ipairs(self.ports) do
@@ -332,7 +332,7 @@ local function _get_minmax_xy(self)
     local miny =  math.huge
     local maxy = -math.huge
     for _, S in self:iterate_shapes() do
-        if S.typ == "polygon" then
+        if S:is_type("polygon") then
             for _, pt in ipairs(S:get_points()) do
                 local x, y = pt:unwrap()
                 minx = math.min(minx, x)
@@ -340,7 +340,7 @@ local function _get_minmax_xy(self)
                 miny = math.min(miny, y)
                 maxy = math.max(maxy, y)
             end
-        elseif S.typ == "rectangle" then
+        elseif S:is_type("rectangle") then
             local blx, bly = S:get_points().bl:unwrap()
             local trx, try = S:get_points().tr:unwrap()
             minx = math.min(minx, blx, trx)
