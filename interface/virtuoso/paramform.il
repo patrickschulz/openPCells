@@ -1,9 +1,10 @@
 procedure(OPCGetCellParameters(cellname)
     let(
         (   
-            fieldlist field
+            fieldlist field OPCCmd
         )   
-        when(OPCCall(lsprintf("--technology %s --cell %s --parameters --parameters-format '%%t:%%p:%%n:%%d:%%v:%%a:%%r'" OPCTech cellname) OPCSettingsForm->OPCParamFilename->value)
+        OPCCmd = OPCBuildCallCommand(lsprintf("--technology %s --cell %s --parameters --parameters-format '%%t:%%p:%%n:%%d:%%v:%%a:%%r'" OPCTech cellname))
+        when(OPCCall(OPCCmd OPCSettingsForm->OPCParamFilename->value)
             let(
                 ((file infile(OPCSettingsForm->OPCParamFilename->value)) (isown t) params ptype name display default vtype readonly sym)
                 while(line = gets(nil file)
