@@ -61,7 +61,7 @@ function M.at_end()
 end
 
 function M.get_layer(S)
-    return { layer = S.lpp:get().layer, purpose = S.lpp:get().purpose }
+    return { layer = S:get_lpp():get().layer, purpose = S:get_lpp():get().purpose }
 end
 
 local function _format(l)
