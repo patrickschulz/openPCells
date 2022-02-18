@@ -1,5 +1,3 @@
-local M = {}
-
 local viastrategies = _load_module("technology.vias")
 
 local layermap
@@ -302,15 +300,17 @@ local function _foreach_cells(cell, func, ...)
     end
 end
 
-function M.prepare(cell)
-    _foreach_cells(cell, _prepare)
+function technology.prepare(cell)
+    --_foreach_cells(cell, _prepare)
 end
 
-function M.translate(cell, export)
+--[[
+function technology.translate(cell, export)
     _foreach_cells(cell, _translate, export)
 end
+--]]
 
-function M.get_dimension(dimension)
+function technology.get_dimension(dimension)
     local value = constraints[dimension]
     if not value then
         moderror(string.format("no dimension '%s' found", dimension))
@@ -440,20 +440,18 @@ local function _load_config(name)
     )
 end
 
-function M.load(name)
+function technology.load(name)
     layermap    = _load_layermap(name)
     constraints = _load_constraints(name)
     config      = _load_config(name)
 end
 
-function M.add_techpath(path)
+function technology.add_techpath(path)
     table.insert(techpaths, path)
 end
 
-function M.list_techpaths()
+function technology.list_techpaths()
     for _, path in ipairs(techpaths) do
         print(path)
     end
 end
-
-return M

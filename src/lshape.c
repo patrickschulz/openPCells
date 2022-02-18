@@ -24,44 +24,34 @@ static lshape_t* _create_lshape(lua_State* L)
 
 static void _set_lpp(lua_State* L, lshape_t* lshape)
 {
-    lgenerics_t* llayer = lua_touserdata(L, 1);
-    shape_set_lpp(lshape->shape, generics_copy(llayer->layer));
+    generics_t* layer = lua_touserdata(L, 1);
+    lshape->shape->layer = layer;
 }
 
 static int lshape_tostring(lua_State* L)
 {
     lshape_t* lshape = luaL_checkudata(L, 1, LSHAPEMODULE);
-    generics_t* layer = lshape->shape->layer;
-    char buf[32];
-    if(layer->type == METAL)
-    {
-        snprintf(buf, 32, "layer: metal (%d)", ((struct generic_metal_t*)layer->layer)->metal);
-    }
-    else
-    {
-        snprintf(buf, 32, "layer: UNKNOWN");
-    }
     switch(lshape->shape->type)
     {
         case RECTANGLE:
         {
-            lua_pushfstring(L, "shape: rectangle [%s] { (%d, %d) (%d, %d) }", 
-                buf,
+            lua_pushfstring(L, "shape: rectangle [%p] { (%d, %d) (%d, %d) }", 
+                lshape->shape->layer,
                 lshape->shape->points[0]->x, lshape->shape->points[0]->y, 
                 lshape->shape->points[1]->x, lshape->shape->points[1]->y);
             break;
         }
         case POLYGON:
         {
-            lua_pushfstring(L, "shape: polygon [%s] { %p }", 
-                buf,
+            lua_pushfstring(L, "shape: polygon [%p] { %p }", 
+                lshape->shape->layer,
                 lshape);
             break;
         }
         case PATH:
         {
-            lua_pushfstring(L, "shape: path [%s] { %p }", 
-                buf,
+            lua_pushfstring(L, "shape: path [%p] { %p }", 
+                lshape->shape->layer,
                 lshape);
             break;
         }
@@ -238,13 +228,16 @@ static int lshape_get_path_extension(lua_State* L)
 
 static int lshape_is_lpp_type(lua_State* L)
 {
-    lshape_t* lshape = luaL_checkudata(L, 1, LSHAPEMODULE);
-    const char* type = luaL_checkstring(L, 2);
+    (void) L;
+    //lshape_t* lshape = luaL_checkudata(L, 1, LSHAPEMODULE);
+    //const char* type = luaL_checkstring(L, 2);
+    /*
     switch(lshape->shape->layer->type)
     {
         case METAL:
             lua_pushboolean(L, !strcmp("metal", type));
     }
+    */
     return 1;
 }
 

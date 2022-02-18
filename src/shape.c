@@ -64,7 +64,7 @@ shape_t* shape_copy(shape_t* self)
         }
         new->size = self->size;
     }
-    new->layer = generics_copy(self->layer);
+    new->layer = self->layer; // copy only pointer, this is intended
     return new;
 }
 
@@ -263,10 +263,5 @@ void shape_resolve_path(shape_t* shape)
     shape->capacity = new->capacity;
     shape->type = new->type;
     free(new);
-}
-
-void shape_set_lpp(shape_t* shape, generics_t* layer)
-{
-    shape->layer = layer;
 }
 

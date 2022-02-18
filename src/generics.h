@@ -2,6 +2,7 @@
 #define OPC_GENERICS_H
 
 #include <stddef.h>
+#include <stdint.h>
 
 #include "keyvaluepairs.h"
 
@@ -71,6 +72,20 @@ typedef struct
     void* layer;
     enum generic_type type;
 } generics_t;
+
+struct hashmapentry
+{
+    uint32_t key;
+    generics_t* layer;
+};
+
+struct hashmap // FIXME: pseudo hashmap, but it will probably be good enough as there are not many elements
+{
+    struct hashmapentry* entries;
+    size_t size;
+    size_t capacity;
+};
+extern struct hashmap generics_layer_map;
 
 generics_t* generics_create_metal(int num);
 void generics_destroy(generics_t* layer);

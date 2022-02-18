@@ -113,9 +113,7 @@ function meta.foreach_children(self, func, ...)
 end
 
 function meta.add_raw_shape(self, S)
-    print(S)
     local new = S:copy()
-    print(new)
     table.insert(self.shapes, new)
     return new
 end

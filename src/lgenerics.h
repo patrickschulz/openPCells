@@ -7,11 +7,6 @@
 
 #define LGENERICSMODULE "generics"
 
-typedef struct
-{
-    generics_t* layer;
-} lgenerics_t;
-
 int open_lgenerics_lib(lua_State* L);
 
 #endif /* OPC_LGENERICS_H */
