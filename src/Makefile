@@ -14,7 +14,7 @@ SYSCFLAGS=
 SYSLDFLAGS=
 SYSLIBS=
 
-OPCOBJ:=point.o transformationmatrix.o ltransformationmatrix.o shape.o geometry.o lgeometry.o ldir.o lpoint.o graphics.o lbind.o lload.o lbinary.o lshape.o lfilesystem.o lbytebuffer.o lplacer.o lplacer_rand.o lrouter.o lrouter_net.o lrouter_queue.o lrouter_field.o lrouter_route.o lutil.o gdsparser.o ldebug.o
+OPCOBJ:=point.o transformationmatrix.o ltransformationmatrix.o shape.o geometry.o generics.o lgenerics.o lgeometry.o ldir.o lpoint.o graphics.o lbind.o lload.o lbinary.o lshape.o lfilesystem.o lbytebuffer.o lplacer.o lplacer_rand.o lrouter.o lrouter_net.o lrouter_queue.o lrouter_field.o lrouter_route.o lutil.o gdsparser.o ldebug.o
 
 .PHONY: default
 default:
@@ -27,8 +27,10 @@ $(PROGNAME): main.c lua/liblua.a $(OPCOBJ)
 point.o: point.h point.c
 transformationmatrix.o: transformationmatrix.h transformationmatrix.c
 ltransformationmatrix.o: ltransformationmatrix.h ltransformationmatrix.c
-shape.o: point.h shape.h shape.c
+shape.o: point.h shape.h shape.c generics.h generics.c
 geometry.o: geometry.h geometry.c point.h point.c shape.h shape.c
+generics.o: generics.h generics.c keyvaluepairs.h
+lgenerics.o: lgenerics.h lgenerics.c generics.h generics.c keyvaluepairs.h
 lgeometry.o: lgeometry.h lgeometry.c geometry.h geometry.c point.h point.c shape.h shape.c
 lpoint.o: lpoint.h lpoint.c
 graphics.o: graphics.h graphics.c
