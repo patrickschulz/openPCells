@@ -34,7 +34,7 @@ function _generic_load(reader, chunkname, synerrmsg, semerrmsg, env)
     return chunk
 end
 
-function _dofile2(reader, chunkname, synerrmsg, env)
+function _dofile(reader, chunkname, synerrmsg, env)
     env = env or _ENV
     local func, msg = load(reader, chunkname, "t", env)
 
@@ -55,20 +55,6 @@ function _load_module(modname)
     end
     local filename = string.format("%s/src/%s.lua", _get_opc_home(), modname)
     local chunkname = string.format("@%s", modname)
-
-    local reader, msg = _get_reader(filename)
-    if not reader then
-        error(msg, 0)
-    end
-
-    return _generic_load(reader, chunkname)
-end
-
-function _dofile(filename)
-    if not filename then
-        error("no module name given", 0)
-    end
-    local chunkname = string.format("@%s", filename)
 
     local reader, msg = _get_reader(filename)
     if not reader then

@@ -23,6 +23,7 @@
 
 #include "lpoint.h"
 #include "lgeometry.h"
+#include "lgenerics.h"
 #include "ltransformationmatrix.h"
 #include "graphics.h"
 #include "lload.h"
@@ -188,6 +189,7 @@ static lua_State* create_and_initialize_lua(void)
     open_ldir_lib(L);
     open_lpoint_lib(L); // must be called before 'load_api'
     open_lgeometry_lib(L);
+    open_lgenerics_lib(L);
     open_ltransformationmatrix_lib(L); // must be called before 'load_api'
     open_lgraphics_lib(L);
     open_lload_lib(L);

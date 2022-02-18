@@ -42,13 +42,13 @@ shape_t* shape_create_path(size_t capacity, ucoordinate_t width, coordinate_t ex
 
 shape_t* shape_copy(shape_t* self)
 {
+    shape_t* new;
     if(self->type == RECTANGLE)
     {
-        return shape_create_rectangle(self->points[0]->x, self->points[0]->y, self->points[1]->x, self->points[1]->y);
+        new = shape_create_rectangle(self->points[0]->x, self->points[0]->y, self->points[1]->x, self->points[1]->y);
     }
     else
     {
-        shape_t* new;
         if(self->type == POLYGON)
         {
             new = shape_create_polygon(self->capacity);
@@ -63,8 +63,9 @@ shape_t* shape_copy(shape_t* self)
             new->points[i] = point_copy(self->points[i]);
         }
         new->size = self->size;
-        return new;
     }
+    new->layer = generics_copy(self->layer);
+    return new;
 }
 
 void shape_destroy(shape_t* shape)
@@ -262,5 +263,10 @@ void shape_resolve_path(shape_t* shape)
     shape->capacity = new->capacity;
     shape->type = new->type;
     free(new);
+}
+
+void shape_set_lpp(shape_t* shape, generics_t* layer)
+{
+    shape->layer = layer;
 }
 

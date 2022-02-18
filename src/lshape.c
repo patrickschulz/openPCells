@@ -7,8 +7,7 @@
 #include "shape.h"
 #include "lpoint.h"
 #include "ltransformationmatrix.h"
-
-#include "ldebug.h"
+#include "lgenerics.h"
 
 typedef struct
 {
@@ -20,34 +19,50 @@ static lshape_t* _create_lshape(lua_State* L)
     lshape_t* lshape = lua_newuserdatauv(L, sizeof(lshape_t), 1);
     lshape->shape = NULL;
     luaL_setmetatable(L, LSHAPEMODULE);
-
-    // set lpp
-    lua_pushvalue(L, 1); 
-    lua_setiuservalue(L, -2, 1);
-
     return lshape;
+}
+
+static void _set_lpp(lua_State* L, lshape_t* lshape)
+{
+    lgenerics_t* llayer = lua_touserdata(L, 1);
+    shape_set_lpp(lshape->shape, generics_copy(llayer->layer));
 }
 
 static int lshape_tostring(lua_State* L)
 {
     lshape_t* lshape = luaL_checkudata(L, 1, LSHAPEMODULE);
+    generics_t* layer = lshape->shape->layer;
+    char buf[32];
+    if(layer->type == METAL)
+    {
+        snprintf(buf, 32, "layer: metal (%d)", ((struct generic_metal_t*)layer->layer)->metal);
+    }
+    else
+    {
+        snprintf(buf, 32, "layer: UNKNOWN");
+    }
     switch(lshape->shape->type)
     {
         case RECTANGLE:
         {
-            lua_pushfstring(L, "rectangle: (%d, %d) (%d, %d)", 
+            lua_pushfstring(L, "shape: rectangle [%s] { (%d, %d) (%d, %d) }", 
+                buf,
                 lshape->shape->points[0]->x, lshape->shape->points[0]->y, 
                 lshape->shape->points[1]->x, lshape->shape->points[1]->y);
             break;
         }
         case POLYGON:
         {
-            lua_pushfstring(L, "polygon: %p", lshape);
+            lua_pushfstring(L, "shape: polygon [%s] { %p }", 
+                buf,
+                lshape);
             break;
         }
         case PATH:
         {
-            lua_pushfstring(L, "path: %p", lshape);
+            lua_pushfstring(L, "shape: path [%s] { %p }", 
+                buf,
+                lshape);
             break;
         }
     }
@@ -61,15 +76,16 @@ static int lshape_create_rectangle_bltr(lua_State* L)
         lua_pushstring(L, "shape.create_rectangle_bltr() expects three arguments");
         lua_error(L);
     }
-    if(!lua_istable(L, 1))
+    if(!lua_isuserdata(L, 1))
     {
-        lua_pushstring(L, "shape.create_rectangle_bltr(): first argument must be a table");
+        lua_pushstring(L, "shape.create_rectangle_bltr(): first argument must be a generic layer entry");
         lua_error(L);
     }
     lshape_t* lshape = _create_lshape(L);
     lpoint_t* bl = luaL_checkudata(L, 2, LPOINTMETA);
     lpoint_t* tr = luaL_checkudata(L, 3, LPOINTMETA);
     lshape->shape = shape_create_rectangle(bl->point->x, bl->point->y, tr->point->x, tr->point->y);
+    _set_lpp(L, lshape);
     return 1;
 }
 
@@ -101,6 +117,7 @@ static int lshape_create_polygon(lua_State* L)
         shape_append(lshape->shape, pt->point->x, pt->point->y);
         lua_pop(L, 1);
     }
+    _set_lpp(L, lshape);
     return 1;
 }
 
@@ -134,7 +151,7 @@ static int lshape_create_path(lua_State* L)
         shape_append(lshape->shape, pt->point->x, pt->point->y);
         lua_pop(L, 1);
     }
-
+    _set_lpp(L, lshape);
     return 1;
 }
 
@@ -221,12 +238,13 @@ static int lshape_get_path_extension(lua_State* L)
 
 static int lshape_is_lpp_type(lua_State* L)
 {
-    lua_getiuservalue(L, 1, 1);
-    lua_pushstring(L, "typ");
-    lua_gettable(L, -2);
-    const char* type1 = luaL_checkstring(L, 2);
-    const char* type2 = luaL_checkstring(L, -1);
-    lua_pushboolean(L, !strcmp(type1, type2));
+    lshape_t* lshape = luaL_checkudata(L, 1, LSHAPEMODULE);
+    const char* type = luaL_checkstring(L, 2);
+    switch(lshape->shape->layer->type)
+    {
+        case METAL:
+            lua_pushboolean(L, !strcmp("metal", type));
+    }
     return 1;
 }
 
@@ -249,15 +267,6 @@ static int lshape_copy(lua_State* L)
     lshape_t* new = lua_newuserdatauv(L, sizeof(lshape_t), 1);
     luaL_setmetatable(L, LSHAPEMODULE);
     new->shape = shape_copy(lshape->shape);
-
-    // copy lpp
-    lua_getglobal(L, "generics");
-    lua_pushstring(L, "copy");
-    lua_rawget(L, -2);
-    lua_getiuservalue(L, 1, 1); 
-    lua_call(L, 1, 1);
-    lua_setiuservalue(L, 2, 1);
-    lua_pop(L, 1); // pop 'generics' table
 
     return 1;
 }
@@ -433,7 +442,6 @@ int open_lshape_lib(lua_State* L)
         { NULL,                    NULL                         }
     };
     luaL_setfuncs(L, modfuncs, 0);
-
     lua_setglobal(L, LSHAPEMODULE);
 
     return 0;

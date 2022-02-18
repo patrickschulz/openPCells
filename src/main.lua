@@ -78,7 +78,7 @@ if args.script then
         }
         _G.__index = _G
         setmetatable(env, _G)
-        _dofile2(reader, chunkname, nil, env)
+        _dofile(reader, chunkname, nil, env)
     else
         moderror(string.format("opc --script: could not open script file '%s'", filename))
     end
@@ -242,26 +242,19 @@ pcell.enable_dprint(args.enabledprint)
 local cell
 if args.cellscript then
     pcell.update_other_cell_parameters(cellargs, true)
-    --[[
-    local status, c = pcall(_dofile, args.cellscript)
-    if not status then
-        moderror(string.format("cellscript has an error: %s", c))
+    local reader = _get_reader(args.cellscript)
+    if reader then
+        cell = _dofile(reader, string.format("@%s", args.cellscript), nil, env)
+        if not cell then
+            print("cellscript did not return an object")
+            return 1
+        end
+    else
+        print(string.format("cellscript '%s' could not be opened", args.cellscript))
+        return 1
     end
-    --]]
-    local c = _dofile(args.cellscript)
-    if not c then
-        moderror("cellscript did not return an object")
-    end
-    cell = c
 else
-    --[[
-    local status, c = pcall(pcell.create_layout, args.cell, cellargs, nil, true) -- nil: no environment, true: evaluate parameters
-    if not status then
-        moderror(c)
-    end
-    --]]
-    local c = pcell.create_layout(args.cell, cellargs, nil, true) -- nil: no environment, true: evaluate parameters
-    cell = c
+    cell = pcell.create_layout(args.cell, cellargs, nil, true) -- nil: no environment, true: evaluate parameters
 end
 
 -- move origin

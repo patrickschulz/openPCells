@@ -1,11 +1,14 @@
 local M = {}
 
 function M.readpfile(pfile, cellargs)
-    local status, t = pcall(_dofile, pfile)
-    if not status then
-        print(string.format("could not load parameter file '%s', error: %s", pfile, t))
-        return 1
+    local reader = _get_reader(pfile)
+    local t
+    if reader then
+        t = _dofile2(reader, chunkname, nil, env)
+    else
+        moderror(string.format("could not open parameter file '%s'", pfile))
     end
+
     for cellname, params in pairs(t) do
         if type(params) == "table" then
             for n, p in pairs(params) do

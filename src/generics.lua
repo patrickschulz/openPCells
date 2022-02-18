@@ -1,6 +1,4 @@
-local M = {}
-
-M.__index = M
+generics.__index = generics
 
 local proxymeta = {}
 proxymeta.__index = function(self, key) return self.obj[key] end
@@ -10,7 +8,7 @@ local function _create(value)
     local obj = {
         value = value
     }
-    setmetatable(obj, M)
+    setmetatable(obj, generics)
     local self = { obj = obj }
     setmetatable(self, proxymeta)
     return self
@@ -21,7 +19,7 @@ local function _create(value)
     local obj = {
         value = value,
     }
-    setmetatable(obj, M)
+    setmetatable(obj, generics)
     local d = debug.getinfo(2, "Slnt")
     local self = { obj = obj, debug = { source = d.source, line = d.linenumber } }
     setmetatable(self, proxymeta)
@@ -29,13 +27,15 @@ local function _create(value)
 end
 --]]
 
-function M.copy(self)
+--[[
+function generics.copy(self)
     local new = { obj = self.obj }
     setmetatable(new, proxymeta)
     return new
 end
+--]]
 
-function M.get(self)
+function generics.get(self)
     if self.typ == "via" then
         return self.value.from, self.value.to
     elseif self.typ == "contact" then
@@ -45,7 +45,7 @@ function M.get(self)
     end
 end
 
-function M.str(self)
+function generics.str(self)
     if self.typ == "metal" then
         return string.format("M%d", self:get())
     elseif self.typ == "via" then
@@ -67,17 +67,19 @@ function M.str(self)
     end
 end
 
-function M.set_port(self)
+function generics.set_port(self)
     self.isport = true
 end
 
-function M.metal(num)
+--[[
+function generics.metal(num)
     local self = _create(num)
     self.typ = "metal"
     return self
 end
+--]]
 
-function M.via(from, to, opt)
+function generics.via(from, to, opt)
     check_number(from)
     check_number(to)
     check_optional_table(opt)
@@ -91,7 +93,7 @@ function M.via(from, to, opt)
     return self
 end
 
-function M.contact(region, special, bare)
+function generics.contact(region, special, bare)
     local self = _create(region)
     self.typ = "contact"
     self.special = special
@@ -99,25 +101,25 @@ function M.contact(region, special, bare)
     return self
 end
 
-function M.feol(settings)
+function generics.feol(settings)
     local self = _create(settings)
     self.typ = "feol"
     return self
 end
 
-function M.other(layer)
+function generics.other(layer)
     local self = _create(layer)
     self.typ = "other"
     return self
 end
 
-function M.special(layer)
+function generics.special(layer)
     local self = _create(layer)
     self.typ = "special"
     return self
 end
 
-function M.premapped(name, layer)
+function generics.premapped(name, layer)
     check_arg_or_nil(name, "string", "generics.premapped: first argument expects a name")
     check_arg(layer, "table", "generics.premapped: second argument expects a table")
     local self = _create(layer)
@@ -126,7 +128,7 @@ function M.premapped(name, layer)
     return self
 end
 
-function M.mapped(name, layer)
+function generics.mapped(name, layer)
     check_arg_or_nil(name, "string", "generics.mapped: first argument expects a name")
     check_arg(layer, "table", "generics.mapped: second argument expects a table")
     local self = _create(layer)
@@ -135,9 +137,7 @@ function M.mapped(name, layer)
     return self
 end
 
-function M.is_type(self, ...)
+function generics.is_type(self, ...)
     local comp = function(v) return self.typ == v end
     return aux.any_of(comp, { ... })
 end
-
-return M
