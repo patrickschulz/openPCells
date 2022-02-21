@@ -455,3 +455,12 @@ function technology.list_techpaths()
         print(path)
     end
 end
+
+----------------------
+function technology.__map(identifier, data)
+    local mappings = layermap[identifier]
+    local entry = mappings[1]
+    local layer = entry.func(data)
+    -- FIXME: handle multiple entries, arrayzation, resizing, ...
+    return layer.lpp
+end

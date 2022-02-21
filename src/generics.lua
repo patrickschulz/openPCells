@@ -1,3 +1,4 @@
+generics = {}
 generics.__index = generics
 
 local proxymeta = {}
@@ -71,13 +72,9 @@ function generics.set_port(self)
     self.isport = true
 end
 
---[[
 function generics.metal(num)
-    local self = _create(num)
-    self.typ = "metal"
-    return self
+    return { type = "metal", metal = num }
 end
---]]
 
 function generics.via(from, to, opt)
     check_number(from)

@@ -69,7 +69,7 @@ local function _write_cell(cell)
             S:resolve_path()
         end
         S:apply_transformation(cell.trans, cell.trans.apply_transformation)
-        local layer = export.get_layer(S)
+        local layer = export.get_layer(S) -- FIXME: why should exports define how to get the layer? Perhaps this used to be required, but I don't think it still is
         if S:is_type("polygon") then
             export.write_polygon(layer, S:get_points())
         elseif S:is_type("rectangle") then

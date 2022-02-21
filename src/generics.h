@@ -4,51 +4,9 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#include "lua/lua.h"
+
 #include "keyvaluepairs.h"
-
-enum generic_type
-{
-    METAL,
-    VIA,
-    CONTACT,
-    FEOL,
-    OTHER,
-    SPECIAL,
-    PREMAPPED,
-    MAPPED
-};
-
-struct generic_metal_t
-{
-    int metal;
-};
-
-struct generic_via_t
-{
-    int from;
-    int to;
-};
-
-struct generic_contact_t
-{
-    enum {
-        GATE,
-        SOURCEDRAIN,
-        WELL
-    } region;
-};
-
-struct generic_feol_t
-{
-    int channeltype;
-    int vthtype;
-    int oxidetype;
-};
-
-struct generic_other_t
-{
-    char* layer;
-};
 
 struct generic_premapped_t
 {
@@ -62,15 +20,10 @@ struct generic_mapped_t
     struct keyvaluearray* data;
 };
 
-struct generic_special_t
-{
-    char* layer;
-};
-
 typedef struct
 {
     void* layer;
-    enum generic_type type;
+    int is_pre;
 } generics_t;
 
 struct hashmapentry
@@ -87,8 +40,11 @@ struct hashmap // FIXME: pseudo hashmap, but it will probably be good enough as 
 };
 extern struct hashmap generics_layer_map;
 
-generics_t* generics_create_metal(int num);
+generics_t* generics_create_metal(int metalnum, lua_State* L);
+
 void generics_destroy(generics_t* layer);
 generics_t* generics_copy(generics_t* layer);
+
+void generics_resolve_premapped_layers(const char* exportname);
 
 #endif /* OPC_GENERICS_H */

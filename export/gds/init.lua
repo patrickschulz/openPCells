@@ -202,7 +202,7 @@ function M.set_options(opt)
 end
 
 function M.get_layer(S)
-    local lpp = S:get_lpp():get()
+    local lpp = S:get_layer()
     return { layer = lpp.layer, purpose = lpp.purpose }
 end
 

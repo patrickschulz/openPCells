@@ -373,6 +373,7 @@ end
 if not args.noexport then
     export.set_options(args.export_options)
     export.check()
+    generics.resolve_premapped_layers(args.export)
     local filename = args.filename or "openPCells"
     local leftdelim, rightdelim = "", ""
     if args.busdelimiters then

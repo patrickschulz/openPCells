@@ -1,13 +1,13 @@
 #include "lshape.h"
 
 #include <string.h>
+#include <stdlib.h>
 
 #include "lua/lauxlib.h"
 
 #include "shape.h"
 #include "lpoint.h"
 #include "ltransformationmatrix.h"
-#include "lgenerics.h"
 
 typedef struct
 {
@@ -20,12 +20,6 @@ static lshape_t* _create_lshape(lua_State* L)
     lshape->shape = NULL;
     luaL_setmetatable(L, LSHAPEMODULE);
     return lshape;
-}
-
-static void _set_lpp(lua_State* L, lshape_t* lshape)
-{
-    generics_t* layer = lua_touserdata(L, 1);
-    lshape->shape->layer = layer;
 }
 
 static int lshape_tostring(lua_State* L)
@@ -66,7 +60,7 @@ static int lshape_create_rectangle_bltr(lua_State* L)
         lua_pushstring(L, "shape.create_rectangle_bltr() expects three arguments");
         lua_error(L);
     }
-    if(!lua_isuserdata(L, 1))
+    if(!lua_islightuserdata(L, 1))
     {
         lua_pushstring(L, "shape.create_rectangle_bltr(): first argument must be a generic layer entry");
         lua_error(L);
@@ -75,7 +69,7 @@ static int lshape_create_rectangle_bltr(lua_State* L)
     lpoint_t* bl = luaL_checkudata(L, 2, LPOINTMETA);
     lpoint_t* tr = luaL_checkudata(L, 3, LPOINTMETA);
     lshape->shape = shape_create_rectangle(bl->point->x, bl->point->y, tr->point->x, tr->point->y);
-    _set_lpp(L, lshape);
+    lshape->shape->layer = lua_touserdata(L, 1);
     return 1;
 }
 
@@ -107,7 +101,7 @@ static int lshape_create_polygon(lua_State* L)
         shape_append(lshape->shape, pt->point->x, pt->point->y);
         lua_pop(L, 1);
     }
-    _set_lpp(L, lshape);
+    lshape->shape->layer = lua_touserdata(L, 1);
     return 1;
 }
 
@@ -141,7 +135,7 @@ static int lshape_create_path(lua_State* L)
         shape_append(lshape->shape, pt->point->x, pt->point->y);
         lua_pop(L, 1);
     }
-    _set_lpp(L, lshape);
+    lshape->shape->layer = lua_touserdata(L, 1);
     return 1;
 }
 
@@ -226,30 +220,36 @@ static int lshape_get_path_extension(lua_State* L)
     return 1;
 }
 
-static int lshape_is_lpp_type(lua_State* L)
+static int lshape_get_layer(lua_State* L)
 {
-    (void) L;
-    //lshape_t* lshape = luaL_checkudata(L, 1, LSHAPEMODULE);
-    //const char* type = luaL_checkstring(L, 2);
-    /*
-    switch(lshape->shape->layer->type)
+    lshape_t* lshape = luaL_checkudata(L, 1, LSHAPEMODULE);
+    generics_t* layer = lshape->shape->layer;
+    if(layer->is_pre) // only return mapped layers to lua (FIXME: only temporarily, until this works properly)
     {
-        case METAL:
-            lua_pushboolean(L, !strcmp("metal", type));
+        lua_pushnil(L);
     }
-    */
-    return 1;
-}
-
-static int lshape_set_lpp(lua_State* L)
-{
-    lua_setiuservalue(L, 1, 1);
-    return 0;
-}
-
-static int lshape_get_lpp(lua_State* L)
-{
-    lua_getiuservalue(L, 1, 1);
+    else
+    {
+        struct keyvaluearray* data = ((struct generic_mapped_t*)layer->layer)->data;
+        lua_newtable(L);
+        for(unsigned int i = 0; i < data->size; ++i)
+        {
+            lua_pushstring(L, data->pairs[i]->key);
+            switch(data->pairs[i]->tag)
+            {
+                case INT:
+                    lua_pushinteger(L, *(int*)data->pairs[i]->value);
+                    break;
+                case STRING:
+                    lua_pushstring(L, (const char*)data->pairs[i]->value);
+                    break;
+                case BOOLEAN:
+                    lua_pushboolean(L, *(int*)data->pairs[i]->value);
+                    break;
+            }
+            lua_rawset(L, -3);
+        }
+    }
     return 1;
 }
 
@@ -403,10 +403,8 @@ int open_lshape_lib(lua_State* L)
         { "get_points",                   lshape_get_points                   },
         { "get_path_width",               lshape_get_path_width               },
         { "get_path_extension",           lshape_get_path_extension           },
-        { "set_lpp",                      lshape_set_lpp                      },
-        { "get_lpp",                      lshape_get_lpp                      },
+        { "get_layer",                    lshape_get_layer                    },
         { "is_type",                      lshape_is_type                      },
-        { "is_lpp_type",                  lshape_is_lpp_type                  },
         { "apply_translation",            lshape_apply_translation            },
         { "apply_transformation",         lshape_apply_transformation         },
         { "apply_inverse_transformation", lshape_apply_inverse_transformation },
