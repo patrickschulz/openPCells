@@ -1,3 +1,5 @@
+technology = {}
+
 local viastrategies = _load_module("technology.vias")
 
 local layermap
@@ -459,8 +461,15 @@ end
 ----------------------
 function technology.__map(identifier, data)
     local mappings = layermap[identifier]
-    local entry = mappings[1]
-    local layer = entry.func(data)
-    -- FIXME: handle multiple entries, arrayzation, resizing, ...
-    return layer.lpp
+    local layers = {}
+    for _, entry in ipairs(mappings) do
+        -- FIXME: handle multiple entries, arrayzation, resizing, ...
+        local layer = entry.func(data)
+        table.insert(layers, layer.lpp)
+    end
+    return layers
+end
+
+function technology.get_config_value(key)
+    return config[key]
 end

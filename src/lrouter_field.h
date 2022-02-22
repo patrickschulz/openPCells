@@ -19,6 +19,6 @@ void destroy_field(int** field, size_t size);
  * resets the values in the field for a next iteration
  * (keeps ports and paths)
  */
-void reset_field();
+void reset_field(int** field, size_t size);
 
 #endif

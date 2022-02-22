@@ -26,25 +26,22 @@ typedef struct
     int is_pre;
 } generics_t;
 
-struct hashmapentry
+struct layer_collection
 {
-    uint32_t key;
-    generics_t* layer;
-};
-
-struct hashmap // FIXME: pseudo hashmap, but it will probably be good enough as there are not many elements
-{
-    struct hashmapentry* entries;
+    generics_t** layers;
     size_t size;
-    size_t capacity;
 };
-extern struct hashmap generics_layer_map;
 
-generics_t* generics_create_metal(int metalnum, lua_State* L);
+struct layer_collection* generics_create_metal(int metalnum, lua_State* L);
+struct layer_collection* generics_create_other(const char* str, size_t len, lua_State* L);
+
+void generics_destroy_layer_collection(struct layer_collection* layers);
 
 void generics_destroy(generics_t* layer);
-generics_t* generics_copy(generics_t* layer);
 
 void generics_resolve_premapped_layers(const char* exportname);
+
+void generics_initialize_layer_map(void);
+void generics_destroy_layer_map(void);
 
 #endif /* OPC_GENERICS_H */

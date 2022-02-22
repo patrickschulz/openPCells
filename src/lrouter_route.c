@@ -120,5 +120,5 @@ void route(net_t net, int** field, size_t fieldsize)
 	/* mark start and end of net as ports */
 	field[startx][starty] = PORT;
 	field[endx][endy] = PORT;
-	reset_field();
+	reset_field(field, fieldsize);
 }

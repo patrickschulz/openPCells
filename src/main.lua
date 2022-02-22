@@ -348,7 +348,7 @@ export.load(args.export)
 
 local techintf = export.get_techexport() or args.export
 if not args.notech and techintf ~= "raw" then
-    technology.translate(cell, techintf)
+    --technology.translate(cell, techintf)
 end
 
 -- filter layers (post)
