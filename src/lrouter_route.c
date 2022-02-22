@@ -231,15 +231,20 @@ int route(net_t *net, int*** field, size_t width, size_t height,
 			field[z][x][y] = PATH;
 		}
 
+		int xdiff, ydiff, zdiff;
+		xdiff = npoint->x - x;
+		ydiff = npoint->y - y;
+		zdiff = npoint->z - z;
+
 		x = npoint->x;
 		y = npoint->y;
 		z = npoint->z;
 
-		/* put the point in the nets path queue */
+		/* put the point diffs in the nets path queue */
 		point_t *path_point = malloc(sizeof(point_t));
-		path_point->x = x;
-		path_point->y = y;
-		path_point->z = z;
+		path_point->x = xdiff;
+		path_point->y = ydiff;
+		path_point->z = zdiff;
 		queue_enqueue(net->path, path_point);
 
 

@@ -93,9 +93,8 @@ int lrouter_route(lua_State* L)
 
     fill_ports(nc->nets, nc->num_nets, field);
 
-    ldebug_dump_stack(L);
     lua_newtable(L);
-    ldebug_dump_stack(L);
+
     int count = 0;
     for(unsigned int i = 0; i < nc->num_nets; ++i)
     {
@@ -113,11 +112,11 @@ int lrouter_route(lua_State* L)
 	if(nc->nets[i].routed)
 	{
 		lua_newtable(L);
-		lua_newtable(L);
 		lua_pushstring(L, nc->nets[i].name);
 		lua_rawseti(L, -2, 1);
 
 		point_t *curr_point;
+		int point_count = 0;
 		while((curr_point = (point_t *)queue_dequeue(nc->nets[i].path)) 
 		      != NULL)
 		{
@@ -126,13 +125,18 @@ int lrouter_route(lua_State* L)
 			lua_rawseti(L, -2, 1);
 			lua_pushinteger(L, curr_point->y);
 			lua_rawseti(L, -2, 2);
-			lua_rawseti(L, -3, 2);
+			lua_pushinteger(L, curr_point->z);
+			lua_rawseti(L, -2, 3);
+			lua_rawseti(L, -2, point_count + 2);
+			point_count++;
 		}
-		lua_rawseti(L, -2, 2);
 		lua_rawseti(L, -2, count + 1);
 		count++;
 	}
     }
+
+    /* num_routed_nets on stack */
+    lua_pushinteger(L, count);
     ldebug_dump_stack(L);
 
     print_nets(nc->nets, nc->num_nets);
@@ -144,7 +148,7 @@ int lrouter_route(lua_State* L)
     destroy_field(field, field_width, field_height, num_layers);
     free(nc->nets);
     free(nc);
-    return 1;
+    return 2;
 }
 
 int open_lrouter_lib(lua_State* L)

@@ -44,6 +44,11 @@ void white(void)
 	printf("\033[0;37m");
 }
 
+void normal(void)
+{
+	printf("\033[0m");
+}
+
 static void reset_layer(int** layer, size_t width, size_t height)
 {
 	for(size_t i = 0; i < height; i++) {
@@ -109,7 +114,7 @@ void print_field(int*** field, size_t width, size_t height, unsigned int layer)
 			else if(field[layer][j][i] == VIA)
 				blue();
 			else
-				white();
+				normal();
 			printf("%2i", field[layer][j][i]);
 		}
 		printf("\n");

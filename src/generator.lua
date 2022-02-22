@@ -134,7 +134,8 @@ local function _prepare_routing_nets(nets, rows, instlookup, reflookup)
     return netpositions, numnets
 end
 
-local function _write_module(rows, nets, rowwidth, instlookup, reflookup)
+local function _write_module(rows, nets, rowwidth, instlookup, reflookup,
+        routednets, numroutednets)
     local lines = {}
     table.insert(lines, "function layout(toplevel)")
 
@@ -158,16 +159,55 @@ local function _write_module(rows, nets, rowwidth, instlookup, reflookup)
         rowwidth
     ))
 
-    -- nets
-    for name, net in pairs(nets) do
-        if #net.connections > 1 then
-            table.insert(lines, "    toplevel:merge_into_shallow(geometry.path(generics.metal(3), {")
-            for _, n in pairs(net.connections) do
-                table.insert(lines, string.format('        cells["%s"]:get_anchor("%s"),', n.instance, n.port))
-            end
-            table.insert(lines, "    }, 100))")
+--    gate:merge_into(geometry.path_xy(generics.metal(2), {
+--        rows[3]:get_anchor("inv.O") + point.create(0, -bp.separation / 2 - bp.nwidth + bp.sdwidth / 2),
+--        rows[2]:get_anchor("front.B1"),
+--    }, bp.sdwidth))
+--    gate:merge_into(geometry.rectangle(generics.via(1, 3), bp.sdwidth, bp.sdwidth):translate(rows[2]:get_anchor("front.B2")))
+
+    -- routed nets
+    local netname
+    local startinstance
+    local startport
+    for i, net in ipairs(routednets) do
+            local xdist = 0
+            local ydist = 0
+        for j, entry in ipairs(net) do
+                if j == 1 then
+                        -- put name of net into file as a comment
+                        table.insert(lines, string.format("    -- %s", entry))
+                        netname = entry
+                        startinstance = nets[netname].connections[1].instance
+                        startport = nets[netname].connections[1].port
+                        table.insert(lines, "    toplevel:merge_into_shallow(geometry.path(generics.metal(3), {")
+                        table.insert(lines, string.format('        cells["%s"]:get_anchor("%s"),', startinstance, startport))
+                else
+                        local x = entry[1]
+                        local y = entry[2]
+                        local z = entry[3]
+
+                        if x ~= 0 or y ~= 0 then
+                                ypitch = 560
+                                gatepitch = 100
+                                xdist = xdist + x * gatepitch
+                                ydist = ydist + y * ypitch
+                                table.insert(lines, string.format('        cells["%s"]:get_anchor("%s") + point.create(%i, %i), ', startinstance, startport, xdist, ydist))
+                        end
+                end
         end
+        table.insert(lines, "    }, 100))")
     end
+
+    -- unrouted nets
+   -- for name, net in pairs(nets) do
+   --     if #net.connections > 1 then
+   --         table.insert(lines, "    toplevel:merge_into_shallow(geometry.path(generics.metal(3), {")
+   --         for _, n in pairs(net.connections) do
+   --             table.insert(lines, string.format('        cells["%s"]:get_anchor("%s"),', n.instance, n.port))
+   --         end
+   --         table.insert(lines, "    }, 100))")
+   --     end
+   -- end
 
     table.insert(lines, "end") -- close 'layout' function
     return lines
@@ -256,9 +296,9 @@ function M.from_verilog(filename, utilization, aspectratio, excluded_nets, repor
     print(string.format("width: %u, height: %u", options.floorplan_width,
         options.floorplan_height))
 
-    local netnames = router.route(netpositions, numnets, options.floorplan_width,
+    local routednets, numroutednets = router.route(netpositions, numnets, options.floorplan_width,
         options.floorplan_height)
-        tprint(netnames, 2)
+
     return {
         content = content,
         width = options.floorplan_width,
@@ -266,6 +306,8 @@ function M.from_verilog(filename, utilization, aspectratio, excluded_nets, repor
         reflookup = reflookup,
         rows = rows,
         nets = nets,
+        routednets = routednets,
+        numroutednets = numroutednets,
     }
 end
 
@@ -302,7 +344,8 @@ function M.write_from_verilog(content, prefix, libname)
     end
     local basename = string.format("%s/%s", prefix, libname)
     for module in content.content:modules() do
-        local lines = _write_module(content.rows, content.nets, content.width, content.instlookup, content.reflookup)
+        local lines = _write_module(content.rows, content.nets, content.width, content.instlookup, content.reflookup,
+        content.routednets, content.numroutednets)
         print(string.format("writing to file '%s/%s.lua'", basename, module.name))
         local file = io.open(string.format("%s/%s.lua", basename, module.name), "w")
         file:write(table.concat(lines, '\n'))
