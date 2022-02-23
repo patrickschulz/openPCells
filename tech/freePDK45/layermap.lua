@@ -279,6 +279,158 @@ return {
             fallback = { width = 40, height = 40 },
         }
     },
+    viaM2M3 = {
+        array {
+            name = "via2",
+            lpp = {
+                gds   = { layer =   14,    purpose = 0 },
+                SKILL = { layer = "via2" , purpose = "drawing" },
+                magic = { layer = "via2" , purpose = "drawing" },
+            },
+            width        = {    40,    40,    80,    40 },
+            height       = {    40,    40,    40,    80 },
+            xspace       = {    94,    94,   114,   114 },
+            yspace       = {    94,    94,   114,   114 },
+            xencl        = {     0,    30,    40,    40 },
+            yencl        = {    30,     0,    40,    40 },
+            conductivity = {     1,     1,     2,     2 },
+            noneedtofit  = { false, false, false, false },
+            fallback = { width = 40, height = 40 },
+        }
+    },
+    viaM3M4 = {
+        array {
+            name = "via3",
+            lpp = {
+                gds   = { layer =   16,    purpose = 0 },
+                SKILL = { layer = "via3" , purpose = "drawing" },
+                magic = { layer = "via3" , purpose = "drawing" },
+            },
+            width        = {    40,    40,    80,    40 },
+            height       = {    40,    40,    40,    80 },
+            xspace       = {    94,    94,   114,   114 },
+            yspace       = {    94,    94,   114,   114 },
+            xencl        = {     0,    30,    40,    40 },
+            yencl        = {    30,     0,    40,    40 },
+            conductivity = {     1,     1,     2,     2 },
+            noneedtofit  = { false, false, false, false },
+            fallback = { width = 40, height = 40 },
+        }
+    },
+    viaM4M5 = {
+        array {
+            name = "via4",
+            lpp = {
+                gds   = { layer =   18,    purpose = 0 },
+                SKILL = { layer = "via4" , purpose = "drawing" },
+                magic = { layer = "via4" , purpose = "drawing" },
+            },
+            width        = {    40,    40,    80,    40 },
+            height       = {    40,    40,    40,    80 },
+            xspace       = {    94,    94,   114,   114 },
+            yspace       = {    94,    94,   114,   114 },
+            xencl        = {     0,    30,    40,    40 },
+            yencl        = {    30,     0,    40,    40 },
+            conductivity = {     1,     1,     2,     2 },
+            noneedtofit  = { false, false, false, false },
+            fallback = { width = 40, height = 40 },
+        }
+    },
+    viaM5M6 = {
+        array {
+            name = "via5",
+            lpp = {
+                gds   = { layer =   20,    purpose = 0 },
+                SKILL = { layer = "via5" , purpose = "drawing" },
+                magic = { layer = "via5" , purpose = "drawing" },
+            },
+            width        = {    40,    40,    80,    40 },
+            height       = {    40,    40,    40,    80 },
+            xspace       = {    94,    94,   114,   114 },
+            yspace       = {    94,    94,   114,   114 },
+            xencl        = {     0,    30,    40,    40 },
+            yencl        = {    30,     0,    40,    40 },
+            conductivity = {     1,     1,     2,     2 },
+            noneedtofit  = { false, false, false, false },
+            fallback = { width = 40, height = 40 },
+        }
+    },
+    viaM6M7 = {
+        array {
+            name = "via6",
+            lpp = {
+                gds   = { layer =   22,    purpose = 0 },
+                SKILL = { layer = "via6" , purpose = "drawing" },
+                magic = { layer = "via6" , purpose = "drawing" },
+            },
+            width        = {    40,    40,    80,    40 },
+            height       = {    40,    40,    40,    80 },
+            xspace       = {    94,    94,   114,   114 },
+            yspace       = {    94,    94,   114,   114 },
+            xencl        = {     0,    30,    40,    40 },
+            yencl        = {    30,     0,    40,    40 },
+            conductivity = {     1,     1,     2,     2 },
+            noneedtofit  = { false, false, false, false },
+            fallback = { width = 40, height = 40 },
+        }
+    },
+    viaM7M8 = {
+        array {
+            name = "via7",
+            lpp = {
+                gds   = { layer =   24,    purpose = 0 },
+                SKILL = { layer = "via7" , purpose = "drawing" },
+                magic = { layer = "via7" , purpose = "drawing" },
+            },
+            width        = {    40,    40,    80,    40 },
+            height       = {    40,    40,    40,    80 },
+            xspace       = {    94,    94,   114,   114 },
+            yspace       = {    94,    94,   114,   114 },
+            xencl        = {     0,    30,    40,    40 },
+            yencl        = {    30,     0,    40,    40 },
+            conductivity = {     1,     1,     2,     2 },
+            noneedtofit  = { false, false, false, false },
+            fallback = { width = 40, height = 40 },
+        }
+    },
+    viaM8M9 = {
+        array {
+            name = "via8",
+            lpp = {
+                gds   = { layer =   26,    purpose = 0 },
+                SKILL = { layer = "via8" , purpose = "drawing" },
+                magic = { layer = "via8" , purpose = "drawing" },
+            },
+            width        = {    40,    40,    80,    40 },
+            height       = {    40,    40,    40,    80 },
+            xspace       = {    94,    94,   114,   114 },
+            yspace       = {    94,    94,   114,   114 },
+            xencl        = {     0,    30,    40,    40 },
+            yencl        = {    30,     0,    40,    40 },
+            conductivity = {     1,     1,     2,     2 },
+            noneedtofit  = { false, false, false, false },
+            fallback = { width = 40, height = 40 },
+        }
+    },
+    viaM9M10 = {
+        array {
+            name = "via9",
+            lpp = {
+                gds   = { layer =   28,    purpose = 0 },
+                SKILL = { layer = "via9" , purpose = "drawing" },
+                magic = { layer = "via9" , purpose = "drawing" },
+            },
+            width        = {    40,    40,    80,    40 },
+            height       = {    40,    40,    40,    80 },
+            xspace       = {    94,    94,   114,   114 },
+            yspace       = {    94,    94,   114,   114 },
+            xencl        = {     0,    30,    40,    40 },
+            yencl        = {    30,     0,    40,    40 },
+            conductivity = {     1,     1,     2,     2 },
+            noneedtofit  = { false, false, false, false },
+            fallback = { width = 40, height = 40 },
+        }
+    },
     M1port = {
         map {
             name = "M1port",

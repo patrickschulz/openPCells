@@ -20,14 +20,20 @@ procedure(OPCPrepareArgsForCellCreation(args @key (newgroup nil))
     OPCArgs
 )
 
-procedure(OPCCall(args redirect)
+procedure(OPCBuildCallCommand(args)
     let(
         ((additionalargs ""))
         additionalargs = OPCSettingsForm->OPCSettingsCmdAdditionalArgs->value
         when(OPCSettingsForm->OPCSettingsMerge->value == "true"
             additionalargs = lsprintf("%s --flat --merge-rectangles" additionalargs)
         )
-        OPCCommand = lsprintf( "%s/%s %s %s" OPCPath OPCExec additionalargs args)
+        lsprintf( "%s/%s %s %s" OPCPath OPCExec args additionalargs)
+    )
+)
+
+procedure(OPCCall(OPCCommand redirect)
+    let(
+        ()
         when(redirect
             OPCCommand = lsprintf( "%s > %s" OPCCommand redirect)
         )

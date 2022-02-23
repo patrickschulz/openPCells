@@ -4,7 +4,7 @@ procedure(OPCCreateCellInternal(cv @optional (origin 0:0))
             (pfile outfile(OPCSettingsForm->OPCPfileFilename->value))
             (parametertable makeTable("opcparamtable"))
             parent name
-            OPCArgs
+            OPCArgs OPCCmd
         )
         ; collect parameters
         foreach(field OPCCellForm->fieldList
@@ -40,7 +40,8 @@ procedure(OPCCreateCellInternal(cv @optional (origin 0:0))
             OPCSettingsForm->OPCPfileFilename->value
         ))
         ; call opc
-        when(OPCCall(OPCArgs nil)
+        OPCCmd = OPCBuildCallCommand(OPCArgs)
+        when(OPCCall(OPCCmd nil)
             if(isFile(lsprintf("%s.il" OPCSettingsForm->OPCCellFilename->value))
                 then
                     load(lsprintf("%s.il" OPCSettingsForm->OPCCellFilename->value))
