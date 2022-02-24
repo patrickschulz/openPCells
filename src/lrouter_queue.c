@@ -122,3 +122,27 @@ void queue_print(queue_t *queue)
 	}
 
 }
+
+void queue_reverse(queue_t *queue)
+{
+	if(queue == NULL || queue->front == NULL)
+		return;
+	printf("pre reverse\n");
+	queue_print(queue);
+
+	struct queue_node_s *prev = NULL;
+	struct queue_node_s *current = queue->front;
+	struct queue_node_s *next = NULL;
+
+	while(current != NULL)
+	{
+		next = current->next;
+		current->next = prev;
+		prev = current;
+		current = next;
+	}
+	queue->front = prev;
+
+	printf("post reverse\n");
+	queue_print(queue);
+}

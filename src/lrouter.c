@@ -23,7 +23,7 @@ static struct netcollection* _initialize(lua_State* L)
     size_t i = 0;
     while (lua_next(L, 1) != 0)
     {
-	    char *name = lua_tostring(L, -2);
+	const char *name = lua_tostring(L, -2);
         //printf("%s\n", lua_tostring(L, -2));
         lua_len(L, -1);
         size_t size = lua_tointeger(L, -1);
@@ -48,6 +48,20 @@ static struct netcollection* _initialize(lua_State* L)
             int z = lua_tointeger(L, -1);
             lua_pop(L, 1);
 
+	    if(j == 1)
+	    {
+		    lua_getfield(L, -1, "port");
+		    const char* port = lua_tostring(L, -1);
+		    nets[i].firstport = malloc(strlen(port) + 1);
+		    strcpy(nets[i].firstport, port);
+		    lua_pop(L, 1);
+		    lua_getfield(L, -1, "instance");
+		    const char* instance = lua_tostring(L, -1);
+		    nets[i].firstinstance = malloc(strlen(instance) + 1);
+		    strcpy(nets[i].firstinstance, instance);
+		    lua_pop(L, 1);
+	    }
+
             if(j == 1)
             {
                 nets[i].x1 = x;
@@ -60,7 +74,7 @@ static struct netcollection* _initialize(lua_State* L)
                 nets[i].y2 = y;
                 nets[i].z2 = z;
             }
-	    nets[i].name = malloc(sizeof(char) * strlen(name));
+	    nets[i].name = malloc(strlen(name) + 1);
 	    strcpy(nets[i].name, name);
             printf("(%d, %d)\n", x, y);
 
@@ -115,6 +129,14 @@ int lrouter_route(lua_State* L)
 		lua_pushstring(L, nc->nets[i].name);
 		lua_rawseti(L, -2, 1);
 
+		lua_pushstring(L, "firstport");
+		lua_pushstring(L, nc->nets[i].firstport);
+		lua_rawset(L, -3);
+
+		lua_pushstring(L, "firstinstance");
+		lua_pushstring(L, nc->nets[i].firstinstance);
+		lua_rawset(L, -3);
+
 		point_t *curr_point;
 		int point_count = 0;
 		while((curr_point = (point_t *)queue_dequeue(nc->nets[i].path)) 
@@ -127,6 +149,7 @@ int lrouter_route(lua_State* L)
 			lua_rawseti(L, -2, 2);
 			lua_pushinteger(L, curr_point->z);
 			lua_rawseti(L, -2, 3);
+
 			lua_rawseti(L, -2, point_count + 2);
 			point_count++;
 		}

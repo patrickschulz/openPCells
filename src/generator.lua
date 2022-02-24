@@ -125,7 +125,8 @@ local function _prepare_routing_nets(nets, rows, instlookup, reflookup)
                             numnets = numnets + 1
                         end
                         local offset = _get_pin_offset(reflookup[column.reference], n.port)
-                        table.insert(netpositions[name], { x = c + offset, y = r, z = 0})
+                        print("instance", instlookup[column.instance])
+                        table.insert(netpositions[name], { x = c + offset, y = r, z = 0, port = n.port, instance = instlookup[column.instance] })
                     end
                 end
             end
@@ -172,26 +173,47 @@ local function _write_module(rows, nets, rowwidth, instlookup, reflookup,
     for i, net in ipairs(routednets) do
             local xdist = 0
             local ydist = 0
+            -- start at metal 3
+            local currmetal = 3
         for j, entry in ipairs(net) do
                 if j == 1 then
                         -- put name of net into file as a comment
-                        table.insert(lines, string.format("    -- %s", entry))
                         netname = entry
-                        startinstance = nets[netname].connections[1].instance
-                        startport = nets[netname].connections[1].port
+                        tprint(net)
+                        startinstance = net["firstinstance"]
+                        startport = net["firstport"]
                         table.insert(lines, "    toplevel:merge_into_shallow(geometry.path(generics.metal(3), {")
                         table.insert(lines, string.format('        cells["%s"]:get_anchor("%s"),', startinstance, startport))
                 else
                         local x = entry[1]
-                        local y = entry[2]
+                        local y = entry[2] * -1
                         local z = entry[3]
 
                         if x ~= 0 or y ~= 0 then
                                 ypitch = 560
-                                gatepitch = 100
+                                gatepitch = 104
                                 xdist = xdist + x * gatepitch
                                 ydist = ydist + y * ypitch
-                                table.insert(lines, string.format('        cells["%s"]:get_anchor("%s") + point.create(%i, %i), ', startinstance, startport, xdist, ydist))
+                                table.insert(lines, string.format('        cells["%s"]:get_anchor("%s") + point.create(%i, %i), ', 
+                                    startinstance, startport, xdist, ydist))
+                        end
+
+                        if z ~= 0 then
+                                table.insert(lines, "    }, 100))")
+
+                                -- add via
+                                if z == -1 then
+                                    table.insert(lines, string.format('    toplevel:merge_into_shallow(geometry.rectanglebltr(generics.via(%i, %i), ', currmetal + z, currmetal))
+                                else
+                                    table.insert(lines, string.format('    toplevel:merge_into_shallow(geometry.rectanglebltr(generics.via(%i, %i), ', currmetal, currmetal + z))
+                                end
+                                table.insert(lines, string.format('        cells["%s"]:get_anchor("%s") + point.create(%i - 20, %i - 20),', startinstance, startport, xdist, ydist))
+                                table.insert(lines, string.format('        cells["%s"]:get_anchor("%s") + point.create(%i + 20, %i + 20)))', startinstance, startport, xdist, ydist))
+
+                                currmetal = currmetal + z
+                                table.insert(lines, string.format('    toplevel:merge_into_shallow(geometry.path(generics.metal(%i), {', currmetal))
+                                table.insert(lines, string.format('        cells["%s"]:get_anchor("%s") + point.create(%i, %i), ', 
+                                    startinstance, startport, xdist, ydist))
                         end
                 end
         end
@@ -287,6 +309,7 @@ function M.from_verilog(filename, utilization, aspectratio, excluded_nets, repor
     -- run routing
     local netpositions, numnets = _prepare_routing_nets(nets, rows, instlookup, reflookup)
 
+
     for name, net in pairs(netpositions) do
         print(name)
         for i, pt in ipairs(net) do
@@ -298,6 +321,10 @@ function M.from_verilog(filename, utilization, aspectratio, excluded_nets, repor
 
     local routednets, numroutednets = router.route(netpositions, numnets, options.floorplan_width,
         options.floorplan_height)
+
+    print('pretprint')
+    tprint(routednets)
+    print('posttprint')
 
     return {
         content = content,

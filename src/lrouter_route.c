@@ -221,7 +221,7 @@ int route(net_t *net, int*** field, size_t width, size_t height,
 			field[z][x][y] = VIA;
 			next_is_via = FALSE;
 		}
-		else if(npoint->z != z)
+		else if(npoint->z != (int)z)
 		{
 			field[z][x][y] = VIA;
 			next_is_via = TRUE;
@@ -249,7 +249,6 @@ int route(net_t *net, int*** field, size_t width, size_t height,
 
 
 	} while (!(x == startx && y == starty && z == startz));
-
 	/* mark start and end of net as ports */
 	field[startz][startx][starty] = PORT;
 	field[endz][endx][endy] = PORT;
