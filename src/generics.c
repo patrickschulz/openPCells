@@ -12,7 +12,7 @@ struct hashmapentry
 
 struct hashmap // FIXME: pseudo hashmap, but it will probably be good enough as there are not many elements
 {
-    struct hashmapentry* entries;
+    struct hashmapentry** entries;
     size_t size;
     size_t capacity;
 };
@@ -39,9 +39,9 @@ struct layer_collection* generics_get_layers(const uint8_t* data, size_t size)
     uint32_t key = _hash(data, size);
     for(unsigned int i = 0; i < generics_layer_map->size; ++i)
     {
-        if(generics_layer_map->entries[i].key == key)
+        if(generics_layer_map->entries[i]->key == key)
         {
-            return generics_layer_map->entries[i].layers;
+            return generics_layer_map->entries[i]->layers;
         }
     }
     return NULL;
@@ -53,11 +53,12 @@ void generics_insert_layers(const uint8_t* data, size_t size, struct layer_colle
     if(generics_layer_map->capacity == generics_layer_map->size)
     {
         generics_layer_map->capacity += 1;
-        struct hashmapentry* entries = realloc(generics_layer_map->entries, sizeof(*entries) * generics_layer_map->capacity);
+        struct hashmapentry** entries = realloc(generics_layer_map->entries, sizeof(*entries) * generics_layer_map->capacity);
         generics_layer_map->entries = entries;
     }
-    generics_layer_map->entries[generics_layer_map->size].key = key;
-    generics_layer_map->entries[generics_layer_map->size].layers = layers;
+    generics_layer_map->entries[generics_layer_map->size] = malloc(sizeof(struct hashmapentry));
+    generics_layer_map->entries[generics_layer_map->size]->key = key;
+    generics_layer_map->entries[generics_layer_map->size]->layers = layers;
     generics_layer_map->size += 1;
 }
 
@@ -102,7 +103,8 @@ void generics_destroy_layer_map(void)
 {
     for(unsigned int i = 0; i < generics_layer_map->size; ++i)
     {
-        _destroy_layer_collection(generics_layer_map->entries[i].layers);
+        _destroy_layer_collection(generics_layer_map->entries[i]->layers);
+        free(generics_layer_map->entries[i]);
     }
     free(generics_layer_map->entries);
     free(generics_layer_map);
@@ -112,9 +114,9 @@ void generics_resolve_premapped_layers(const char* name)
 {
     for(unsigned int i = 0; i < generics_layer_map->size; ++i)
     {
-        for(unsigned int j = 0; j < generics_layer_map->entries[i].layers->size; ++j)
+        for(unsigned int j = 0; j < generics_layer_map->entries[i]->layers->size; ++j)
         {
-            generics_t* layer = generics_layer_map->entries[i].layers->layers[j];
+            generics_t* layer = generics_layer_map->entries[i]->layers->layers[j];
             if(layer->is_pre)
             {
                 unsigned int idx = 0;
