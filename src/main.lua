@@ -331,7 +331,7 @@ if args.drawallalignmentboxes then
     end)
 end
 
-technology.prepare(cell)
+--technology.prepare(cell)
 
 -- filter layers (pre)
 if args.prelayerfilter then

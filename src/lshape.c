@@ -226,11 +226,12 @@ static int lshape_get_layer(lua_State* L)
     generics_t* layer = lshape->shape->layer;
     if(layer->is_pre) // only return mapped layers to lua (FIXME: only temporarily, until this works properly)
     {
-        lua_pushnil(L);
+        lua_pushstring(L, "shape.get_layer: can't get premapped layer");
+        lua_error(L);
     }
     else
     {
-        struct keyvaluearray* data = ((struct generic_mapped_t*)layer->layer)->data;
+        struct keyvaluearray* data = layer->data[0];
         lua_newtable(L);
         for(unsigned int i = 0; i < data->size; ++i)
         {

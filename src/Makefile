@@ -39,7 +39,7 @@ ldir.o: ldir.c ldir.h
 lbind.o: lbind.h lbind.c
 lload.o: lload.h lload.c
 lbinary.o: lbinary.h lbinary.c
-lshape.o: lshape.h lshape.c shape.h shape.c
+lshape.o: lshape.h lshape.c shape.h shape.c lpoint.h ltransformationmatrix.h
 lfilesystem.o: lfilesystem.h lfilesystem.c
 lutil.o: lutil.c lutil.h
 lbytebuffer.o: lbytebuffer.h lbytebuffer.c
