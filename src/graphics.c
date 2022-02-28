@@ -116,13 +116,21 @@ static struct curve* _raster_line(int x1, int y1, int x2, int y2, unsigned int g
     int x = x1;
     int y = y1;
 
+    if((x1 == x2) || (y1 == y2))
+    {
+        struct curve* result = _create(2);
+        _append_point(result, x1, y1);
+        _append_point(result, x2, y2);
+        return result;
+    }
+
     struct curve* result = _create(100);
 
-    /*
     while(1)
     {
         _append_point(result, x, y);
-        if(x == x2 && y == y2)
+        //if(x == x2 && y == y2)
+        if(x == x2)
         {
             break;
         }
@@ -131,18 +139,18 @@ static struct curve* _raster_line(int x1, int y1, int x2, int y2, unsigned int g
         int ey  = (y +  0 - y1) * (x2 - x1) - (x + sx - x1) * (y2 - y1);
         if(allow45)
         {
-            if(iabs(exy) < iabs(ex))
+            if(iabs(exy) <= iabs(ex))
             {
                 x = x + sx;
             }
-            if(iabs(exy) < iabs(ey))
+            if(iabs(exy) <= iabs(ey))
             {
                 y = y + sy;
             }
         }
         else
         {
-            if(iabs(ex) < iabs(ey))
+            if(iabs(ex) <= iabs(ey))
             {
                 y = y + sy;
             }
@@ -151,7 +159,6 @@ static struct curve* _raster_line(int x1, int y1, int x2, int y2, unsigned int g
             }
         }
     }
-    */
     return result;
 }
 
