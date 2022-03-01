@@ -7,7 +7,7 @@
 struct hashmapentry
 {
     uint32_t key;
-    struct layer_collection* layers;
+    generics_t* layer;
 };
 
 struct hashmap // FIXME: pseudo hashmap, but it will probably be good enough as there are not many elements
@@ -34,20 +34,20 @@ uint32_t _hash(const uint8_t* data, size_t size)
     return (b << 16) | a;
 }
 
-struct layer_collection* generics_get_layers(const uint8_t* data, size_t size)
+generics_t* generics_get_layer(const uint8_t* data, size_t size)
 {
     uint32_t key = _hash(data, size);
     for(unsigned int i = 0; i < generics_layer_map->size; ++i)
     {
         if(generics_layer_map->entries[i]->key == key)
         {
-            return generics_layer_map->entries[i]->layers;
+            return generics_layer_map->entries[i]->layer;
         }
     }
     return NULL;
 }
 
-void generics_insert_layers(const uint8_t* data, size_t size, struct layer_collection* layers)
+void generics_insert_layer(const uint8_t* data, size_t size, generics_t* layer)
 {
     uint32_t key = _hash(data, size);
     if(generics_layer_map->capacity == generics_layer_map->size)
@@ -58,15 +58,8 @@ void generics_insert_layers(const uint8_t* data, size_t size, struct layer_colle
     }
     generics_layer_map->entries[generics_layer_map->size] = malloc(sizeof(struct hashmapentry));
     generics_layer_map->entries[generics_layer_map->size]->key = key;
-    generics_layer_map->entries[generics_layer_map->size]->layers = layers;
+    generics_layer_map->entries[generics_layer_map->size]->layer = layer;
     generics_layer_map->size += 1;
-}
-
-struct layer_collection* generics_create_layer_collection(void)
-{
-    struct layer_collection* collection = malloc(sizeof(*collection));
-    collection->size = 0;
-    return collection;
 }
 
 void _destroy_generics(generics_t* layer)
@@ -89,21 +82,11 @@ void generics_initialize_layer_map(void)
     generics_layer_map->size = 0;
 }
 
-void _destroy_layer_collection(struct layer_collection* layers)
-{
-    for(unsigned int i = 0; i < layers->size; ++i)
-    {
-        _destroy_generics(layers->layers[i]);
-    }
-    free(layers->layers);
-    free(layers);
-}
-
 void generics_destroy_layer_map(void)
 {
     for(unsigned int i = 0; i < generics_layer_map->size; ++i)
     {
-        _destroy_layer_collection(generics_layer_map->entries[i]->layers);
+        _destroy_generics(generics_layer_map->entries[i]->layer);
         free(generics_layer_map->entries[i]);
     }
     free(generics_layer_map->entries);
@@ -114,35 +97,32 @@ void generics_resolve_premapped_layers(const char* name)
 {
     for(unsigned int i = 0; i < generics_layer_map->size; ++i)
     {
-        for(unsigned int j = 0; j < generics_layer_map->entries[i]->layers->size; ++j)
+        generics_t* layer = generics_layer_map->entries[i]->layer;
+        if(layer->is_pre)
         {
-            generics_t* layer = generics_layer_map->entries[i]->layers->layers[j];
-            if(layer->is_pre)
+            unsigned int idx = 0;
+            for(unsigned int k = 0; k < layer->size; ++k)
             {
-                unsigned int idx = 0;
-                for(unsigned int k = 0; k < layer->size; ++k)
+                if(strcmp(name, layer->exportnames[k]) == 0)
                 {
-                    if(strcmp(name, layer->exportnames[k]) == 0)
-                    {
-                        idx = k;
-                    }
+                    idx = k;
                 }
-
-                // swap entries and mark as mapped
-                // for mapped entries, only data[0] is used, but it is easier to keep the data here
-                // and let _destroy_generics free all data, regardless if a layer is premapped or mapped
-
-                // swap data
-                struct keyvaluearray* tmp = layer->data[0];
-                layer->data[0] = layer->data[idx];
-                layer->data[idx] = tmp;
-
-                // swap export names
-                char* str = layer->exportnames[0];
-                layer->exportnames[0] = layer->exportnames[idx];
-                layer->exportnames[idx] = str;
-                layer->is_pre = 0;
             }
+
+            // swap entries and mark as mapped
+            // for mapped entries, only data[0] is used, but it is easier to keep the data here
+            // and let _destroy_generics free all data, regardless if a layer is premapped or mapped
+
+            // swap data
+            struct keyvaluearray* tmp = layer->data[0];
+            layer->data[0] = layer->data[idx];
+            layer->data[idx] = tmp;
+
+            // swap export names
+            char* str = layer->exportnames[0];
+            layer->exportnames[0] = layer->exportnames[idx];
+            layer->exportnames[idx] = str;
+            layer->is_pre = 0;
         }
     }
 }

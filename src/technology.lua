@@ -5,6 +5,7 @@ local constraintsmeta = {}
 constraintsmeta.__index = function() return 1 end -- fake get_dimension
 local constraints = setmetatable({}, constraintsmeta)
 local config
+local viadefs
 
 local techpaths = {}
 
@@ -27,63 +28,6 @@ local function _get_tech_filename(name, what)
 end
 
 local function _load_layermap(name)
-    local env = {
-        map = function(entry)
-            if type(entry) == "function" then
-                return {
-                    action = "map",
-                    func = entry,
-                }
-            else -- table
-                return {
-                    action = "map",
-                    func = function()
-                        return {
-                            name = entry.name,
-                            layer = entry.layer,
-                            left = entry.left or 0,
-                            right = entry.right or 0,
-                            top = entry.top or 0,
-                            bottom = entry.bottom or 0,
-                        }
-                    end,
-                }
-            end
-        end,
-        array = function(entry)
-            if type(entry) == "function" then
-                return {
-                    action = "array",
-                    func = entry
-                }
-            else
-                return {
-                    action = "array",
-                    func = function()
-                        local t = {
-                            name = entry.name,
-                            layer = entry.layer,
-                            width = entry.width,
-                            height = entry.height,
-                            xspace = entry.xspace,
-                            yspace = entry.yspace,
-                            xencl = entry.xencl,
-                            yencl = entry.yencl,
-                            conductivity = entry.conductivity or 1,
-                            noneedtofit = entry.noneedtofit,
-                            fallback = entry.fallback
-                        }
-                        return t
-                    end,
-                }
-            end
-        end,
-        refer = function(reference)
-            return function()
-                return layermap[reference]
-            end
-        end,
-    }
     local filename = _get_tech_filename(name, "layermap")
     if not filename then
         moderror(string.format("no techfile for technology '%s' found", name))
@@ -98,7 +42,7 @@ local function _load_layermap(name)
         reader, chunkname,
         string.format("syntax error while loading layermap for technology '%s'", name),
         string.format("semantic error while loading layermap for technology '%s'", name),
-        env
+        {} -- empty environment
     )
 end
 
@@ -123,7 +67,7 @@ end
 local function _load_config(name)
     local filename = _get_tech_filename(name, "config")
     if not filename then
-        moderror(string.format("no constraints for technology '%s' found", name))
+        moderror(string.format("no config file for technology '%s' found", name))
     end
     local chunkname = "@techconfig"
 
@@ -138,10 +82,29 @@ local function _load_config(name)
     )
 end
 
+local function _load_viadefs(name)
+    local filename = _get_tech_filename(name, "vias")
+    if not filename then
+        moderror(string.format("no vias for technology '%s' found", name))
+    end
+    local chunkname = "@techvias"
+
+    local reader, msg = _get_reader(filename)
+    if not reader then
+        moderror(string.format("could not open via definitions for technology '%s' (reason: %d)", name, msg))
+    end
+    return _generic_load(
+        reader, chunkname,
+        string.format("syntax error while loading via definitions for technology '%s'", name),
+        string.format("semantic error while loading via definitions for technology '%s'", name)
+    )
+end
+
 function technology.load(name)
     layermap    = _load_layermap(name)
     constraints = _load_constraints(name)
     config      = _load_config(name)
+    viadefs     = _load_viadefs(name)
 end
 
 function technology.add_techpath(path)
@@ -156,14 +119,16 @@ end
 
 ----------------------
 function technology.__map(identifier, data)
-    local mappings = layermap[identifier]
-    local layers = {}
-    for _, pre in ipairs(mappings) do
-        -- FIXME: handle multiple entries, arrayzation, resizing, ...
-        local entry = pre.func(data)
-        table.insert(layers, entry.layer)
-    end
-    return layers
+    local entry = layermap[identifier]
+    return entry.layer
+end
+
+function technology.get_via_definitions(metal1, metal2)
+    return viadefs.viaM1M2.entries
+end
+
+function technology.get_fallback_via(metal1, metal2)
+    return { width = viadefs.viaM1M2.fallback.width, height = viadefs.viaM1M2.fallback.height, fallback = true }
 end
 
 function technology.get_config_value(key)

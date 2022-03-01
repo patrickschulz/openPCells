@@ -331,8 +331,6 @@ if args.drawallalignmentboxes then
     end)
 end
 
---technology.prepare(cell)
-
 -- filter layers (pre)
 if args.prelayerfilter then
     -- filter toplevel (flat shapes)
@@ -345,11 +343,6 @@ if not args.export then
     moderror("no export type given")
 end
 export.load(args.export)
-
-local techintf = export.get_techexport() or args.export
-if not args.notech and techintf ~= "raw" then
-    --technology.translate(cell, techintf)
-end
 
 -- filter layers (post)
 if args.postlayerfilter then
