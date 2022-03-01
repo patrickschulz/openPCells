@@ -26,10 +26,10 @@ local arrayzation_strategies = {
         return xrep, space
     end,
     continuous = function(size, cutsize, minspace, enclosure)
-        local Nres = 0
-        for N = 1, math.huge do                   
+        local Nres
+        for N = 1, math.huge do
             if size % N == 0 then
-                local S = size / N - cutsize                                                                                                                              
+                local S = size / N - cutsize
                 if S < minspace then
                     break
                 end
@@ -38,13 +38,15 @@ local arrayzation_strategies = {
                 end
             end
         end
-        return Nres, size / Nres - cutsize
+        if Nres then
+            return Nres, size / Nres - cutsize
+        end
     end,
     continuous_half = function(size, cutsize, minspace)
-        local Nres                             
-        for N = 1, math.huge do                   
+        local Nres
+        for N = 1, math.huge do
             if size % (N + 1) == 0 then
-                local S = size / (N + 1) - cutsize                                                                                                                              
+                local S = size / (N + 1) - cutsize
                 if S < minspace then
                     break
                 end
@@ -59,31 +61,48 @@ local arrayzation_strategies = {
     end
 }
 
-function M.get_rectangular_arrayzation(regionwidth, regionheight, entry, options)
-    if entry.fallback then
+function M.get_rectangular_arrayzation(regionwidth, regionheight, entries, options)
+    local xstrat = arrayzation_strategies[options.xcontinuous and "continuous" or "fit"]
+    local ystrat = arrayzation_strategies[options.ycontinuous and "continuous" or "fit"]
+
+    local idx
+    local lastarea
+    local xrep, yrep
+    local xspace, yspace
+    for i, entry in ipairs(entries) do
+        local _xrep, _xspace = xstrat(regionwidth, entry.width, entry.xspace, entry.xenclosure)
+        local _yrep, _yspace = ystrat(regionheight, entry.height, entry.yspace, entry.yenclosure)
+        local area = (_xrep + _yrep) * entry.width * entry.height
+        if _xrep > 0 and _yrep > 0 then
+            if not idx or area > lastarea then
+                idx = i
+                lastarea = area
+                xrep = _xrep
+                yrep = _yrep
+                xspace = _xspace
+                yspace = _yspace
+            end
+        end
+        --if entry.noneedtofit then
+        --    xrep = math.max(1, xrep)
+        --    yrep = math.max(1, yrep)
+        --end
+    end
+    if not idx and entries.fallback then
         return {
-            width = entry.width,
-            height = entry.height,
+            width = entries.fallback.width,
+            height = entries.fallback.height,
             xpitch = 0,
             ypitch = 0,
             xrep = 1,
             yrep = 1,
         }
     end
-    local xstrat = arrayzation_strategies[options.xcontinuous and "continuous" or "fit"]
-    local ystrat = arrayzation_strategies[options.ycontinuous and "continuous" or "fit"]
-
-    local xrep, xspace = xstrat(regionwidth, entry.width, entry.xspace, entry.xenclosure)
-    local yrep, yspace = ystrat(regionheight, entry.height, entry.yspace, entry.yenclosure)
-    if entry.noneedtofit then
-        xrep = math.max(1, xrep)
-        yrep = math.max(1, yrep)
-    end
     return {
-        width = entry.width,
-        height = entry.height,
-        xpitch = entry.width + xspace,
-        ypitch = entry.height + yspace,
+        width = entries[idx].width,
+        height = entries[idx].height,
+        xpitch = entries[idx].width + xspace,
+        ypitch = entries[idx].height + yspace,
         xrep = xrep,
         yrep = yrep,
     }
