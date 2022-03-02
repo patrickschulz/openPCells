@@ -26,6 +26,7 @@ local modules = {
     "import",
     "pcell",
     "placement",
+    "routing",
     "input",
     "assistant",
     "public"

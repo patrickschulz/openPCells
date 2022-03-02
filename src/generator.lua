@@ -138,7 +138,13 @@ end
 local function _write_module(rows, nets, rowwidth, instlookup, reflookup,
         routednets, numroutednets)
     local lines = {}
-    table.insert(lines, "function layout(toplevel)")
+
+    table.insert(lines, 'function parameters()')
+    table.insert(lines, '    pcell.reference_cell("stdcells/base")')
+    table.insert(lines, 'end')
+    table.insert(lines, '')
+
+    table.insert(lines, 'function layout(toplevel)')
 
     -- cellnames
     table.insert(lines, '    local cellnames = {')
@@ -159,22 +165,31 @@ local function _write_module(rows, nets, rowwidth, instlookup, reflookup,
     table.insert(lines, string.format('    local cells = placement.digital(toplevel, rows, %d)',
         rowwidth
     ))
+    table.insert(lines, '')
 
---    gate:merge_into(geometry.path_xy(generics.metal(2), {
---        rows[3]:get_anchor("inv.O") + point.create(0, -bp.separation / 2 - bp.nwidth + bp.sdwidth / 2),
---        rows[2]:get_anchor("front.B1"),
---    }, bp.sdwidth))
---    gate:merge_into(geometry.rectangle(generics.via(1, 3), bp.sdwidth, bp.sdwidth):translate(rows[2]:get_anchor("front.B2")))
+    -- get base gatepitch and ypitch
+    table.insert(lines, '    local bp = pcell.get_parameters("stdcells/base")')
+    table.insert(lines, '    local xpitch = bp.glength + bp.gspace')
+    table.insert(lines, '    local ypitch = bp.pwidth + bp.nwidth + bp.powerwidth + 2 * bp.powerspace + bp.numinnerroutes * bp.gstwidth + (bp.numinnerroutes + 1) * bp.gstspace -- ypitch')
+    table.insert(lines, '')
 
     -- routed nets
     local netname
     local startinstance
     local startport
     for i, net in ipairs(routednets) do
-            local xdist = 0
-            local ydist = 0
-            -- start at metal 3
-            local currmetal = 3
+
+        local xdist = 0
+        local ydist = 0
+        -- start at metal 3
+        local currmetal = 3
+        local x = 0
+        local y = 0
+        local z = 0
+        local xpre = 0
+        local ypre = 0
+        local zpre = 0
+
         for j, entry in ipairs(net) do
                 if j == 1 then
                         -- put name of net into file as a comment
@@ -182,42 +197,49 @@ local function _write_module(rows, nets, rowwidth, instlookup, reflookup,
                         tprint(net)
                         startinstance = net["firstinstance"]
                         startport = net["firstport"]
-                        table.insert(lines, "    toplevel:merge_into_shallow(geometry.path(generics.metal(3), {")
-                        table.insert(lines, string.format('        cells["%s"]:get_anchor("%s"),', startinstance, startport))
+                        table.insert(lines, "    local routes = {")
+                        table.insert(lines, "        {")
+                        table.insert(lines, "            endpoints = {")
+                        table.insert(lines, string.format('                { cellname = "%s", anchor = "%s" },', startinstance, startport))
+                        table.insert(lines, "            },")
+                        table.insert(lines, "        {")
+                        table.insert(lines, "            deltas = {")
                 else
-                        local x = entry[1]
-                        local y = entry[2] * -1
-                        local z = entry[3]
+                        xpre = x
+                        ypre = y
+                        zpre = z
+                        x = entry[1] * -1
+                        y = entry[2] * -1
+                        z = entry[3] * -1
 
-                        if x ~= 0 or y ~= 0 then
-                                ypitch = 560
-                                gatepitch = 104
-                                xdist = xdist + x * gatepitch
-                                ydist = ydist + y * ypitch
-                                table.insert(lines, string.format('        cells["%s"]:get_anchor("%s") + point.create(%i, %i), ', 
-                                    startinstance, startport, xdist, ydist))
+                        xdist = xdist + x
+                        ydist = ydist + y
+
+                        -- generate deltas
+                        if xpre ~= x and ypre ~= y then
+                              table.insert(lines, string.format('                { x = "%i", y = "%i" },', xdist - x, ydist - y))
                         end
 
-                        if z ~= 0 then
-                                table.insert(lines, "    }, 100))")
-
-                                -- add via
-                                if z == -1 then
-                                    table.insert(lines, string.format('    toplevel:merge_into_shallow(geometry.rectanglebltr(generics.via(%i, %i), ', currmetal + z, currmetal))
-                                else
-                                    table.insert(lines, string.format('    toplevel:merge_into_shallow(geometry.rectanglebltr(generics.via(%i, %i), ', currmetal, currmetal + z))
-                                end
-                                table.insert(lines, string.format('        cells["%s"]:get_anchor("%s") + point.create(%i - 20, %i - 20),', startinstance, startport, xdist, ydist))
-                                table.insert(lines, string.format('        cells["%s"]:get_anchor("%s") + point.create(%i + 20, %i + 20)))', startinstance, startport, xdist, ydist))
-
-                                currmetal = currmetal + z
-                                table.insert(lines, string.format('    toplevel:merge_into_shallow(geometry.path(generics.metal(%i), {', currmetal))
-                                table.insert(lines, string.format('        cells["%s"]:get_anchor("%s") + point.create(%i, %i), ', 
-                                    startinstance, startport, xdist, ydist))
-                        end
+--                        if z ~= 0 then
+--                                table.insert(lines, "    }, 100))")
+--
+--                                -- add via
+--                                if z == -1 then
+--                                    table.insert(lines, string.format('    toplevel:merge_into_shallow(geometry.rectanglebltr(generics.via(%i, %i), ', currmetal + z, currmetal))
+--                                else
+--                                    table.insert(lines, string.format('    toplevel:merge_into_shallow(geometry.rectanglebltr(generics.via(%i, %i), ', currmetal, currmetal + z))
+--                                end
+--                                table.insert(lines, string.format('        cells["%s"]:get_anchor("%s") + point.create(%i - 20, %i - 20),', startinstance, startport, xdist, ydist))
+--                                table.insert(lines, string.format('        cells["%s"]:get_anchor("%s") + point.create(%i + 20, %i + 20)))', startinstance, startport, xdist, ydist))
+--
+--                                currmetal = currmetal + z
+--                                table.insert(lines, string.format('    toplevel:merge_into_shallow(geometry.path(generics.metal(%i), {', currmetal))
+--                                table.insert(lines, string.format('        cells["%s"]:get_anchor("%s") + point.create(%i, %i), ',
+--                                    startinstance, startport, xdist, ydist))
+--                        end
                 end
         end
-        table.insert(lines, "    }, 100))")
+        table.insert(lines, "            },")
     end
 
     -- unrouted nets

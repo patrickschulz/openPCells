@@ -249,6 +249,7 @@ int route(net_t *net, int*** field, size_t width, size_t height,
 
 
 	} while (!(x == startx && y == starty && z == startz));
+	queue_reverse(net->path);
 	/* mark start and end of net as ports */
 	field[startz][startx][starty] = PORT;
 	field[endz][endx][endy] = PORT;
