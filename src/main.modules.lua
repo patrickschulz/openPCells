@@ -10,7 +10,6 @@ local modules = {
     "geometry",
     "layout",
     "graphics",
-    --"generics",
     "util",
     "aux",
     "reduce",

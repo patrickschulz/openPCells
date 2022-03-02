@@ -63,13 +63,23 @@ static generics_t* _store_mapped(lua_State* L)
 static generics_t* _map_and_store_layer(lua_State* L)
 {
     lua_getglobal(L, "technology");
-    lua_pushstring(L, "__map");
+    lua_pushstring(L, "map");
     lua_rawget(L, -2);
     lua_rotate(L, -3, 2);
     lua_call(L, 1, 1);
-    generics_t* layer = _store_mapped(L);
-    lua_pop(L, 2); // pop mapped result and technology table
-    return layer;
+    if(lua_isnil(L, -1)) // layer is empty
+    {
+        generics_t* layer = malloc(sizeof(*layer));
+        layer->size = 0;
+        lua_pop(L, 1); // pop and technology table
+        return layer;
+    }
+    else
+    {
+        generics_t* layer = _store_mapped(L);
+        lua_pop(L, 2); // pop mapped result and technology table
+        return layer;
+    }
 }
 
 static int lgenerics_create_metal(lua_State* L)

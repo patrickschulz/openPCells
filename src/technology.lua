@@ -118,7 +118,7 @@ function technology.list_techpaths()
 end
 
 ----------------------
-function technology.__map(identifier, data)
+function technology.map(identifier)
     local entry = layermap[identifier]
     if not entry then
         moderror(string.format("no layer '%s' found in layermap", identifier))

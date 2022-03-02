@@ -170,11 +170,11 @@ function layout(oscillator, _P)
             inverterref:get_anchor(string.format("nSDo%d", 2 * _P.invfingers))
         ))
         for i = 3, 2 * _P.invfingers, 4 do
-            inverterref:merge_into_shallow(geometry.rectanglebltr(generics.via(1, 2), 
+            inverterref:merge_into_shallow(geometry.viabltr(1, 2, 
                 inverterref:get_anchor(string.format("pSDo%d", i - 1)):translate(0, -_P.gstwidth),
                 inverterref:get_anchor(string.format("pSDo%d", i + 1))
             ))
-            inverterref:merge_into_shallow(geometry.rectanglebltr(generics.via(1, 2), 
+            inverterref:merge_into_shallow(geometry.viabltr(1, 2, 
                 inverterref:get_anchor(string.format("nSDo%d", i - 1)):translate(0,  _P.gstwidth),
                 inverterref:get_anchor(string.format("nSDo%d", i + 1))
             ))
@@ -319,12 +319,12 @@ function layout(oscillator, _P)
     -- connect left pmos/nmos
     for i = 0, _P.pmostunefingers, 2 do
         local index = cmfingers - _P.pmosdiodefingers - _P.pmoszerofingers + 1 - i
-        cmarray:merge_into_shallow(geometry.rectanglebltr(generics.via(1, 2), 
+        cmarray:merge_into_shallow(geometry.viabltr(1, 2, 
             cmarray:get_anchor(string.format("pSDi%d", index)):translate(-_P.gstwidth / 2, 0),
             cmarray:get_anchor(string.format("pSDo%d", index)):translate( _P.gstwidth / 2, 0)
         ))
     end
-    cmarray:merge_into_shallow(geometry.rectangle(generics.via(1, 2), xpitch, _P.gstwidth)
+    cmarray:merge_into_shallow(geometry.via(1, 2, xpitch, _P.gstwidth)
         :translate(cmarray:get_anchor(string.format("Glowercc%d", cmfingers - _P.nmoscurrentfingers)))
     )
     -- connect right pmos/nmos
@@ -345,13 +345,13 @@ function layout(oscillator, _P)
         }, _P.gstwidth))
     end
     for i = 2, _P.pmosdiodefingers, 2 do
-        cmarray:merge_into_shallow(geometry.rectanglebltr(generics.via(1, 2), 
+        cmarray:merge_into_shallow(geometry.viabltr(1, 2,
             cmarray:get_anchor(string.format("pSDi%d", cmfingers + 2 - i)):translate(-_P.gstwidth / 2, 0),
             cmarray:get_anchor(string.format("pSDo%d", cmfingers + 2 - i)):translate( _P.gstwidth / 2, 0)
         ))
     end
     for i = 2, _P.nmoscurrentfingers, 2 do
-        cmarray:merge_into_shallow(geometry.rectanglebltr(generics.via(1, 2), 
+        cmarray:merge_into_shallow(geometry.viabltr(1, 2,
             cmarray:get_anchor(string.format("nSDo%d", cmfingers + 2 - i)):translate(-_P.gstwidth / 2, 0),
             cmarray:get_anchor(string.format("nSDi%d", cmfingers + 2 - i)):translate( _P.gstwidth / 2, 0)
         ))
@@ -376,7 +376,7 @@ function layout(oscillator, _P)
             inverters[1]:get_anchor("Gp1")
         }), _P.gstwidth
     ))
-    oscillator:merge_into_shallow(geometry.rectangle(generics.via(1, 2), xpitch, _P.gstwidth)
+    oscillator:merge_into_shallow(geometry.via(1, 2, xpitch, _P.gstwidth)
         :translate(inverters[1]:get_anchor("Gp1"))
     )
 
@@ -387,10 +387,10 @@ function layout(oscillator, _P)
         currentmirror:get_anchor(string.format("Glowercc%d", cmfingers - _P.nmoscurrentfingers)),
         inverters[1]:get_anchor("Gn1")
     }), _P.gstwidth))
-    oscillator:merge_into_shallow(geometry.rectangle(generics.via(1, 2), xpitch, _P.gstwidth)
+    oscillator:merge_into_shallow(geometry.via(1, 2, xpitch, _P.gstwidth)
         :translate(currentmirror:get_anchor(string.format("Glowercc%d", cmfingers - _P.nmoscurrentfingers)))
     )
-    oscillator:merge_into_shallow(geometry.rectangle(generics.via(1, 2), xpitch, _P.gstwidth)
+    oscillator:merge_into_shallow(geometry.via(1, 2, xpitch, _P.gstwidth)
         :translate(inverters[1]:get_anchor("Gn1"))
     )
 
@@ -401,14 +401,14 @@ function layout(oscillator, _P)
         }, _P.gstwidth)
     )
     oscillator:merge_into_shallow(
-        geometry.rectangle(generics.via(1, 2), _P.gstwidth, _P.separation + 2 * _P.gstwidth)
+        geometry.via(1, 2, _P.gstwidth, _P.separation + 2 * _P.gstwidth)
         :translate(
             inverters[_P.numinv]:get_anchor(string.format("pSDc%d", 2 * _P.invfingers + 1)) .. 
             inverters[_P.numinv]:get_anchor("Gcc2")
         )
     )
     oscillator:merge_into_shallow(
-        geometry.rectangle(generics.via(1, 2), 2 * _P.glength + _P.gspace, _P.gstwidth)
+        geometry.via(1, 2, 2 * _P.glength + _P.gspace, _P.gstwidth)
         :translate(inverters[1]:get_anchor("Gcc2"):translate(xpitch / 2, 0))
     )
 

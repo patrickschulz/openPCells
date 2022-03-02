@@ -80,9 +80,9 @@ static int lshape_create_polygon(lua_State* L)
         lua_pushstring(L, "shape.create_polygon() expects at least one argument");
         lua_error(L);
     }
-    if(!lua_istable(L, 1))
+    if(!lua_islightuserdata(L, 1))
     {
-        lua_pushstring(L, "shape.create_rectangle_bltr(): first argument must be a table");
+        lua_pushstring(L, "shape.polygon(): first argument must be a generic layer entry");
         lua_error(L);
     }
     lshape_t* lshape = _create_lshape(L);
@@ -180,6 +180,13 @@ static int lshape_is_type(lua_State* L)
             lua_pushboolean(L, !strcmp(type, "path"));
             break;
     }
+    return 1;
+}
+
+static int lshape_is_empty(lua_State* L)
+{
+    lshape_t* lshape = luaL_checkudata(L, 1, LSHAPEMODULE);
+    lua_pushboolean(L, lshape->shape->layer->size == 0);
     return 1;
 }
 
@@ -406,6 +413,7 @@ int open_lshape_lib(lua_State* L)
         { "get_path_extension",           lshape_get_path_extension           },
         { "get_layer",                    lshape_get_layer                    },
         { "is_type",                      lshape_is_type                      },
+        { "is_empty",                     lshape_is_empty                     },
         { "apply_translation",            lshape_apply_translation            },
         { "apply_transformation",         lshape_apply_transformation         },
         { "apply_inverse_transformation", lshape_apply_inverse_transformation },

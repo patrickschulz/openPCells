@@ -98,7 +98,7 @@ void generics_resolve_premapped_layers(const char* name)
     for(unsigned int i = 0; i < generics_layer_map->size; ++i)
     {
         generics_t* layer = generics_layer_map->entries[i]->layer;
-        if(layer->is_pre)
+        if(layer->is_pre) // layer size can be 0 (empty shapes)
         {
             unsigned int idx = 0;
             for(unsigned int k = 0; k < layer->size; ++k)

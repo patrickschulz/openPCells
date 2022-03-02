@@ -143,6 +143,20 @@ function geometry.via(metal1, metal2, width, height, options)
     return geometry.rectangle_array(generics.viacut(1, 2), entry)
 end
 
+function geometry.viabltr(metal1, metal2, bl, tr, options)
+    local blx, bly = bl:unwrap()
+    local trx, try = tr:unwrap()
+    local width = trx - blx
+    local height = try - bly
+    local cx = (blx + trx) / 2
+    local cy = (bly + try) / 2
+    local obj = geometry.via(metal1, metal2, width, height, options)
+    obj:merge_into_shallow(geometry.rectangle(generics.metal(metal1), width, height))
+    obj:merge_into_shallow(geometry.rectangle(generics.metal(metal2), width, height))
+    obj:translate(cx, cy)
+    return obj
+end
+
 function geometry.contact(region, width, height, options)
     local contactdefs = technology.get_contact_definitions(region)
     local entry = geometry.get_rectangular_arrayzation(width, height, contactdefs, options or {})
