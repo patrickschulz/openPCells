@@ -1,24 +1,21 @@
-function geometry.rectangle(layercoll, width, height)
-    if width % 2 ~= 0 then 
-        moderror(string.format("geometry.rectangle: width (%d) must be a multiple of 2. Use rectanglebltr if you need odd coordinates", width))
-    end
-    if height % 2 ~= 0 then 
-        moderror(string.format("geometry.rectangle: height (%d) must be a multiple of 2. Use rectanglebltr if you need odd coordinates", height))
-    end
+function geometry.rectanglebltr(layer, bl, tr)
     local obj = object.create()
-    for _, premapped in ipairs(layercoll) do
-        obj:add_raw_shape(shape.create_rectangle_bltr(
-            premapped, 
-            point.create(-width / 2, -height / 2),
-            point.create( width / 2,  height / 2)
-        ))
-    end
+    obj:add_raw_shape(shape.create_rectangle_bltr(layer, bl, tr))
     return obj
 end
 
-function geometry.rectanglebltr(layer, bl, tr)
-    local S = shape.create_rectangle_bltr(layer, bl, tr)
-    return object.make_from_shape(S)
+function geometry.rectangle(layer, width, height)
+    if width % 2 ~= 0 then 
+        moderror(string.format("layout.rectangle: width (%d) must be a multiple of 2. Use rectanglebltr if you need odd coordinates", width))
+    end
+    if height % 2 ~= 0 then 
+        moderror(string.format("layout.rectangle: height (%d) must be a multiple of 2. Use rectanglebltr if you need odd coordinates", height))
+    end
+    return geometry.rectanglebltr(
+        layer,
+        point.create(-width / 2, -height / 2),
+        point.create( width / 2,  height / 2)
+    )
 end
 
 -- like rectanglebltr, but takes any points
@@ -36,6 +33,134 @@ function geometry.rectanglepoints(layer, pt1, pt2)
         S = shape.create_rectangle_bltr(layer, point.create(x2, y2), point.create(x1, y1))
     end
     return object.make_from_shape(S)
+end
+
+local arrayzation_strategies = {
+    fit = function(size, cutsize, space, encl)
+        local xrep = math.floor((size + space - 2 * encl) / (cutsize + space))
+        return xrep, space
+    end,
+    continuous = function(size, cutsize, minspace, enclosure)
+        local Nres
+        for N = 1, math.huge do
+            if size % N == 0 then
+                local S = size / N - cutsize
+                if S < minspace then
+                    break
+                end
+                if S % 2 == 0 then
+                    Nres = N
+                end
+            end
+        end
+        if Nres then
+            return Nres, size / Nres - cutsize
+        end
+    end,
+    continuous_half = function(size, cutsize, minspace)
+        local Nres
+        for N = 1, math.huge do
+            if size % (N + 1) == 0 then
+                local S = size / (N + 1) - cutsize
+                if S < minspace then
+                    break
+                end
+                if S % 2 == 0 then
+                    Nres = N
+                end
+            end
+        end
+        if Nres then
+            return Nres, size / (Nres + 1) - cutsize
+        end
+    end
+}
+
+function geometry.get_rectangular_arrayzation(regionwidth, regionheight, entries, options)
+    local xstrat = arrayzation_strategies[options.xcontinuous and "continuous" or "fit"]
+    local ystrat = arrayzation_strategies[options.ycontinuous and "continuous" or "fit"]
+
+    local idx
+    local lastarea
+    local xrep, yrep
+    local xspace, yspace
+    for i, entry in ipairs(entries) do
+        local _xrep, _xspace = xstrat(regionwidth, entry.width, entry.xspace, entry.xenclosure)
+        local _yrep, _yspace = ystrat(regionheight, entry.height, entry.yspace, entry.yenclosure)
+        local area = (_xrep + _yrep) * entry.width * entry.height
+        if _xrep > 0 and _yrep > 0 then
+            if not idx or area > lastarea then
+                idx = i
+                lastarea = area
+                xrep = _xrep
+                yrep = _yrep
+                xspace = _xspace
+                yspace = _yspace
+            end
+        end
+        --if entry.noneedtofit then
+        --    xrep = math.max(1, xrep)
+        --    yrep = math.max(1, yrep)
+        --end
+    end
+    if not idx and entries.fallback then
+        return {
+            width = entries.fallback.width,
+            height = entries.fallback.height,
+            xpitch = 0,
+            ypitch = 0,
+            xrep = 1,
+            yrep = 1,
+        }
+    end
+    return {
+        width = entries[idx].width,
+        height = entries[idx].height,
+        xpitch = entries[idx].width + xspace,
+        ypitch = entries[idx].height + yspace,
+        xrep = xrep,
+        yrep = yrep,
+    }
+end
+
+function geometry.rectangle_array(layer, entry, where)
+    local blx = -entry.width // 2
+    local trx =  entry.width // 2
+    local bly = -entry.height // 2
+    local try =  entry.height // 2
+    local cut = geometry.multiple_xy(
+        geometry.rectanglebltr(layer, 
+            point.create(blx, bly), point.create(trx, try)
+        ),
+        entry.xrep, entry.yrep, entry.xpitch, entry.ypitch
+    )
+    return cut
+end
+
+function geometry.via(metal1, metal2, width, height, options)
+    local viadefs = technology.get_via_definitions(metal1, metal2)
+    local entry = geometry.get_rectangular_arrayzation(width, height, viadefs, options or {})
+    return geometry.rectangle_array(generics.viacut(1, 2), entry)
+end
+
+function geometry.contact(region, width, height, options)
+    local contactdefs = technology.get_contact_definitions(region)
+    local entry = geometry.get_rectangular_arrayzation(width, height, contactdefs, options or {})
+    return geometry.rectangle_array(generics.contact(region), entry)
+end
+
+function geometry.contactbltr(region, bl, tr, options)
+    local blx, bly = bl:unwrap()
+    local trx, try = tr:unwrap()
+    local width = trx - blx
+    local height = try - bly
+    local cx = (blx + trx) / 2
+    local cy = (bly + try) / 2
+    local obj = geometry.contact(region, width, height, options)
+    obj:merge_into_shallow(geometry.rectangle(generics.metal(1), width, height))
+    obj:merge_into_shallow(geometry.rectangle(generics.other("active"), width, height))
+    obj:translate(cx, cy)
+    return obj
 end
 
 function geometry.polygon(layer, pts)

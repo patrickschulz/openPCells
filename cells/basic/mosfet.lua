@@ -93,6 +93,7 @@ function layout(transistor, _P)
         end
     end
 
+    --[[
     -- boundary for feol implant/well etc. layers
     transistor:merge_into_shallow(geometry.rectanglebltr(
         generics.feol(
@@ -111,6 +112,7 @@ function layout(transistor, _P)
         point.create(-actwidth / 2, -_P.fwidth / 2 - gateaddbot),
         point.create( actwidth / 2,  _P.fwidth / 2 + gateaddtop)
     ))
+    --]]
 
     -- gate contacts
     if _P.drawtopgate then
@@ -187,7 +189,7 @@ function layout(transistor, _P)
         -- source
         if _P.drawinnersourcedrain == "both" or _P.drawinnersourcedrain == "source" then
             transistor:merge_into_shallow(geometry.multiple_x(
-                geometry.rectanglebltr(generics.contact("sourcedrain"), 
+                geometry.contactbltr("sourcedrain", 
                     point.create(-_P.sdwidth / 2, -_P.fwidth / 2 + sourcesubbot),
                     point.create( _P.sdwidth / 2,  _P.fwidth / 2 - sourcesubtop)
                 ),
@@ -206,7 +208,7 @@ function layout(transistor, _P)
         -- drain
         if _P.drawinnersourcedrain == "both" or _P.drawinnersourcedrain == "drain" then
             transistor:merge_into_shallow(geometry.multiple_x(
-                geometry.rectanglebltr(generics.contact("sourcedrain"), 
+                geometry.contactbltr("sourcedrain", 
                     point.create(-_P.sdwidth / 2, -_P.fwidth / 2 + drainsubbot),
                     point.create( _P.sdwidth / 2,  _P.fwidth / 2 - drainsubtop)
                 ),
@@ -226,8 +228,8 @@ function layout(transistor, _P)
     if _P.drawoutersourcedrain ~= "none" then
         -- left (source)
         if _P.drawoutersourcedrain == "both" or _P.drawoutersourcedrain == "source" then
-            transistor:merge_into_shallow(geometry.rectanglebltr(
-                    generics.contact("sourcedrain"), 
+            transistor:merge_into_shallow(geometry.contactbltr(
+                    "sourcedrain",
                     point.create(-_P.sdwidth / 2, -_P.fwidth / 2 + sourcesubbot),
                     point.create( _P.sdwidth / 2,  _P.fwidth / 2 - sourcesubtop)
             ):translate(-math.floor(_P.fingers / 2) * gatepitch - shift, 0))
@@ -242,8 +244,8 @@ function layout(transistor, _P)
         -- right (source or drain)
         if _P.fingers % 2 == 0 then -- source
             if _P.drawoutersourcedrain == "both" or _P.drawoutersourcedrain == "source" then
-                transistor:merge_into_shallow(geometry.rectanglebltr(
-                        generics.contact("sourcedrain"), 
+                transistor:merge_into_shallow(geometry.contactbltr(
+                        "sourcedrain",
                         point.create(-_P.sdwidth / 2, -_P.fwidth / 2 + sourcesubbot),
                         point.create( _P.sdwidth / 2,  _P.fwidth / 2 - sourcesubtop)
                 ):translate(math.floor(_P.fingers / 2) * gatepitch + shift, 0))
@@ -257,8 +259,8 @@ function layout(transistor, _P)
             end
         else -- drain
             if _P.drawoutersourcedrain == "both" or _P.drawoutersourcedrain == "drain" then
-                transistor:merge_into_shallow(geometry.rectanglebltr(
-                        generics.contact("sourcedrain"), 
+                transistor:merge_into_shallow(geometry.contactbltr(
+                        "sourcedrain",
                         point.create(-_P.sdwidth / 2, -_P.fwidth / 2 + drainsubbot),
                         point.create( _P.sdwidth / 2,  _P.fwidth / 2 - drainsubtop)
                 ):translate(math.floor(_P.fingers / 2) * gatepitch + shift, 0))

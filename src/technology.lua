@@ -120,15 +120,24 @@ end
 ----------------------
 function technology.__map(identifier, data)
     local entry = layermap[identifier]
+    if not entry then
+        moderror(string.format("no layer '%s' found in layermap", identifier))
+    end
     return entry.layer
 end
 
 function technology.get_via_definitions(metal1, metal2)
-    return viadefs.viaM1M2.entries
+    return viadefs[string.format("viaM%dM%d", metal1, metal2)].entries
 end
 
+--[[
 function technology.get_fallback_via(metal1, metal2)
     return { width = viadefs.viaM1M2.fallback.width, height = viadefs.viaM1M2.fallback.height, fallback = true }
+end
+--]]
+
+function technology.get_contact_definitions(region)
+    return viadefs[string.format("contact%s", region)].entries
 end
 
 function technology.get_config_value(key)

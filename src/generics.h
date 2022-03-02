@@ -6,9 +6,11 @@
 
 #include "keyvaluepairs.h"
 
+// FIXME: does this really make sense?
 #define METAL_MAGIC_IDENTIFIER 0
 #define VIA_MAGIC_IDENTIFIER 1
-#define OTHER_MAGIC_IDENTIFIER 2
+#define CONTACT_MAGIC_IDENTIFIER 2
+#define OTHER_MAGIC_IDENTIFIER 3
 
 typedef struct
 {

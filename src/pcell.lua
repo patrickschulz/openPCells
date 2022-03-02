@@ -380,6 +380,7 @@ function state.create_cellenv(state, cellname, ovrenv)
         },
         placement = placement,
         geometry = geometry,
+        layout = layout,
         graphics = graphics,
         shape = shape,
         object = object,

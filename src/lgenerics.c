@@ -140,6 +140,25 @@ static int lgenerics_create_viacut(lua_State* L)
     return 1;
 }
 
+static int lgenerics_create_contact(lua_State* L)
+{
+    size_t len;
+    const char* region = luaL_checklstring(L, 1, &len);
+    uint8_t data[len + 1];
+    data[0] = CONTACT_MAGIC_IDENTIFIER;
+    memcpy(data + 1, region, len);
+
+    generics_t* layer = generics_get_layer(data, len + 1);
+    if(!layer)
+    {
+        lua_pushfstring(L, "contact%s", region);
+        layer = _map_and_store_layer(L);
+        generics_insert_layer(data, len + 1, layer);
+    }
+    lua_pushlightuserdata(L, layer);
+    return 1;
+}
+
 static int lgenerics_create_other(lua_State* L)
 {
     size_t len;
@@ -174,6 +193,7 @@ int open_lgenerics_lib(lua_State* L)
     {
         { "metal",                    lgenerics_create_metal             },
         { "viacut",                   lgenerics_create_viacut            },
+        { "contact",                  lgenerics_create_contact           },
         { "other",                    lgenerics_create_other             },
         { "resolve_premapped_layers", lgenerics_resolve_premapped_layers },
         { NULL,                       NULL                               }
