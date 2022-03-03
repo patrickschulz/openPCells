@@ -14,11 +14,17 @@ static int ltransformationmatrix_tostring(lua_State* L)
     return 1;
 }
 
-ltransformationmatrix_t* ltransformationmatrix_create(lua_State* L)
+ltransformationmatrix_t* _create(lua_State* L)
 {
     ltransformationmatrix_t* lmatrix = lua_newuserdata(L, sizeof(*lmatrix));
-    lmatrix->matrix = transformationmatrix_create();
     luaL_setmetatable(L, LTRANSFORMATIONMATRIXMODULE);
+    return lmatrix;
+}
+
+ltransformationmatrix_t* ltransformationmatrix_create(lua_State* L)
+{
+    ltransformationmatrix_t* lmatrix = _create(L);
+    lmatrix->matrix = transformationmatrix_create();
     return lmatrix;
 }
 
@@ -48,7 +54,7 @@ static int ltransformationmatrix_chain(lua_State* L)
 static int ltransformationmatrix_copy(lua_State* L)
 {
     ltransformationmatrix_t* old = lua_touserdata(L, 1);
-    ltransformationmatrix_t* lmatrix = ltransformationmatrix_create(L);
+    ltransformationmatrix_t* lmatrix = _create(L);
     lmatrix->matrix = transformationmatrix_copy(old->matrix);
     return 1;
 }
