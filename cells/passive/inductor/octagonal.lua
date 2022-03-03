@@ -19,7 +19,6 @@ function layout(inductor, _P)
 
     local mainmetal = generics.metal(_P.metalnum)
     local auxmetal = generics.metal(_P.metalnum - 1)
-    local via = generics.via(_P.metalnum, _P.metalnum - 1)
 
     -- draw left and right segments
     local sign = (_P.turns % 2 == 0) and 1 or -1
@@ -57,11 +56,11 @@ function layout(inductor, _P)
             inductor:merge_into_shallow(geometry.path(mainmetal, uppts, _P.width, true))
             inductor:merge_into_shallow(geometry.path(auxmetal, util.xmirror(uppts), _P.width, true))
             -- place vias
-            inductor:merge_into_shallow(geometry.rectangle(via, _P.width, _P.width):translate(
+            inductor:merge_into_shallow(geometry.via(_P.metalnum, _P.metalnum - 1, _P.width, _P.width):translate(
                 -(_scale_tanpi8(_P.radius) + pitch / 2) / 2,
                 -sign * (radius + pitch)
             ))
-            inductor:merge_into_shallow(geometry.rectangle(via, _P.width, _P.width):translate(
+            inductor:merge_into_shallow(geometry.via(_P.metalnum, _P.metalnum - 1, _P.width, _P.width):translate(
                 (_scale_tanpi8(_P.radius) + pitch / 2) / 2,
                 -sign * radius
             ))

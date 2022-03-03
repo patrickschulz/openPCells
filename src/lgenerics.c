@@ -7,6 +7,11 @@
 
 #include "generics.h"
 
+#define METAL_MAGIC_IDENTIFIER 1
+#define VIA_MAGIC_IDENTIFIER 2
+#define CONTACT_MAGIC_IDENTIFIER 3
+#define OTHER_MAGIC_IDENTIFIER 4
+
 static void _insert_lpp_pairs(lua_State* L, struct keyvaluearray* map)
 {
     lua_pushnil(L);
@@ -82,6 +87,21 @@ static generics_t* _map_and_store_layer(lua_State* L)
     }
 }
 
+uint32_t _hash(const uint8_t* data, size_t size)
+{
+    uint32_t a = 1;
+    uint32_t b = 0;
+    const uint32_t MODADLER = 65521;
+ 
+    for(unsigned int i = 0; i < size; ++i)
+    {
+        a = (a + data[i]) % MODADLER;
+        b = (b + a) % MODADLER;
+        i++;
+    }
+    return (b << 16) | a;
+}
+
 static int lgenerics_create_metal(lua_State* L)
 {
     int num = luaL_checkinteger(L, 1);
@@ -97,16 +117,13 @@ static int lgenerics_create_metal(lua_State* L)
         num = nummetals + num + 1;
     }
 
-    uint8_t data[sizeof(num) + 1];
-    data[0] = METAL_MAGIC_IDENTIFIER;
-    memcpy(data + 1, &num, sizeof(num));
-
-    generics_t* layer = generics_get_layer(data, sizeof(num) + 1);
+    uint32_t key = (METAL_MAGIC_IDENTIFIER << 24) | (num & 0x00ffffff);
+    generics_t* layer = generics_get_layer(key);
     if(!layer)
     {
         lua_pushfstring(L, "M%d", num);
         layer = _map_and_store_layer(L);
-        generics_insert_layer(data, sizeof(num) + 1, layer);
+        generics_insert_layer(key, layer);
     }
     lua_pushlightuserdata(L, layer);
     return 1;
@@ -134,17 +151,19 @@ static int lgenerics_create_viacut(lua_State* L)
             metal2 = nummetals + metal2 + 1;
         }
     }
-    uint8_t data[sizeof(metal1) + sizeof(metal2) + 1];
-    data[0] = VIA_MAGIC_IDENTIFIER;
-    memcpy(data + 1, &metal1, sizeof(metal1));
-    memcpy(data + 1 + sizeof(metal1), &metal2, sizeof(metal2));
-
-    generics_t* layer = generics_get_layer(data, sizeof(metal1) + sizeof(metal2) + 1);
+    if(metal1 > metal2)
+    {
+        int tmp = metal2;
+        metal2 = metal1;
+        metal1 = tmp;
+    }
+    uint32_t key = (VIA_MAGIC_IDENTIFIER << 24) | ((metal1 & 0x00000fff) << 12) | (metal2 & 0x00000fff);
+    generics_t* layer = generics_get_layer(key);
     if(!layer)
     {
         lua_pushfstring(L, "viacutM%dM%d", metal1, metal2);
         layer = _map_and_store_layer(L);
-        generics_insert_layer(data, sizeof(metal1) + sizeof(metal2) + 1, layer);
+        generics_insert_layer(key, layer);
     }
     lua_pushlightuserdata(L, layer);
     return 1;
@@ -158,12 +177,13 @@ static int lgenerics_create_contact(lua_State* L)
     data[0] = CONTACT_MAGIC_IDENTIFIER;
     memcpy(data + 1, region, len);
 
-    generics_t* layer = generics_get_layer(data, len + 1);
+    uint32_t key = _hash(data, len + 1);
+    generics_t* layer = generics_get_layer(key);
     if(!layer)
     {
         lua_pushfstring(L, "contact%s", region);
         layer = _map_and_store_layer(L);
-        generics_insert_layer(data, len + 1, layer);
+        generics_insert_layer(key, layer);
     }
     lua_pushlightuserdata(L, layer);
     return 1;
@@ -177,12 +197,13 @@ static int lgenerics_create_other(lua_State* L)
     data[0] = OTHER_MAGIC_IDENTIFIER;
     memcpy(data + 1, str, len);
 
-    generics_t* layer = generics_get_layer(data, len + 1);
+    uint32_t key = _hash(data, len + 1);
+    generics_t* layer = generics_get_layer(key);
     if(!layer)
     {
         lua_pushstring(L, str);
         layer = _map_and_store_layer(L);
-        generics_insert_layer(data, len + 1, layer);
+        generics_insert_layer(key, layer);
     }
     lua_pushlightuserdata(L, layer);
     return 1;

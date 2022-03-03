@@ -140,7 +140,10 @@ end
 function geometry.via(metal1, metal2, width, height, options)
     local viadefs = technology.get_via_definitions(metal1, metal2)
     local entry = geometry.get_rectangular_arrayzation(width, height, viadefs, options or {})
-    return geometry.rectangle_array(generics.viacut(1, 2), entry)
+    local obj =  geometry.rectangle_array(generics.viacut(metal1, metal2), entry)
+    obj:merge_into_shallow(geometry.rectangle(generics.metal(metal1), width, height))
+    obj:merge_into_shallow(geometry.rectangle(generics.metal(metal2), width, height))
+    return obj
 end
 
 function geometry.viabltr(metal1, metal2, bl, tr, options)
@@ -151,8 +154,6 @@ function geometry.viabltr(metal1, metal2, bl, tr, options)
     local cx = (blx + trx) / 2
     local cy = (bly + try) / 2
     local obj = geometry.via(metal1, metal2, width, height, options)
-    obj:merge_into_shallow(geometry.rectangle(generics.metal(metal1), width, height))
-    obj:merge_into_shallow(geometry.rectangle(generics.metal(metal2), width, height))
     obj:translate(cx, cy)
     return obj
 end

@@ -19,24 +19,8 @@ struct hashmap // FIXME: pseudo hashmap, but it will probably be good enough as 
 
 struct hashmap* generics_layer_map;
 
-uint32_t _hash(const uint8_t* data, size_t size)
+generics_t* generics_get_layer(uint32_t key)
 {
-    uint32_t a = 1;
-    uint32_t b = 0;
-    const uint32_t MODADLER = 65521;
- 
-    for(unsigned int i = 0; i < size; ++i)
-    {
-        a = (a + data[i]) % MODADLER;
-        b = (b + a) % MODADLER;
-        i++;
-    }
-    return (b << 16) | a;
-}
-
-generics_t* generics_get_layer(const uint8_t* data, size_t size)
-{
-    uint32_t key = _hash(data, size);
     for(unsigned int i = 0; i < generics_layer_map->size; ++i)
     {
         if(generics_layer_map->entries[i]->key == key)
@@ -47,9 +31,8 @@ generics_t* generics_get_layer(const uint8_t* data, size_t size)
     return NULL;
 }
 
-void generics_insert_layer(const uint8_t* data, size_t size, generics_t* layer)
+void generics_insert_layer(uint32_t key, generics_t* layer)
 {
-    uint32_t key = _hash(data, size);
     if(generics_layer_map->capacity == generics_layer_map->size)
     {
         generics_layer_map->capacity += 1;
