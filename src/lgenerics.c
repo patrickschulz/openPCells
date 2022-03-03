@@ -74,8 +74,7 @@ static generics_t* _map_and_store_layer(lua_State* L)
     lua_call(L, 1, 1);
     if(lua_isnil(L, -1)) // layer is empty
     {
-        generics_t* layer = malloc(sizeof(*layer));
-        layer->size = 0;
+        generics_t* layer = generics_create_empty_layer();
         lua_pop(L, 1); // pop and technology table
         return layer;
     }

@@ -14,6 +14,8 @@ typedef struct
     int is_pre;
 } generics_t;
 
+generics_t* generics_create_empty_layer(void);
+
 void generics_insert_layer(uint32_t key, generics_t* layer);
 
 generics_t* generics_get_layer(uint32_t key);

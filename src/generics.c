@@ -17,7 +17,15 @@ struct hashmap // FIXME: pseudo hashmap, but it will probably be good enough as 
     size_t capacity;
 };
 
+// FIXME: don't use a global variable, put this in the registry for usage in lua
 struct hashmap* generics_layer_map;
+
+generics_t* generics_create_empty_layer(void)
+{
+    generics_t* layer = malloc(sizeof(*layer));
+    memset(layer, 0, sizeof(*layer));
+    return layer;
+}
 
 generics_t* generics_get_layer(uint32_t key)
 {
@@ -76,12 +84,23 @@ void generics_destroy_layer_map(void)
     free(generics_layer_map);
 }
 
+void generics_remove_empty_layers(void)
+{
+    for(unsigned int i = 0; i < generics_layer_map->size; ++i)
+    {
+        generics_t* layer = generics_layer_map->entries[i]->layer;
+        if(!layer->size)
+        {
+        }
+    }
+}
+
 void generics_resolve_premapped_layers(const char* name)
 {
     for(unsigned int i = 0; i < generics_layer_map->size; ++i)
     {
         generics_t* layer = generics_layer_map->entries[i]->layer;
-        if(layer->is_pre) // layer size can be 0 (empty shapes)
+        if(layer->is_pre)
         {
             unsigned int idx = 0;
             for(unsigned int k = 0; k < layer->size; ++k)
