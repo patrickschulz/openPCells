@@ -258,6 +258,15 @@ static int lgenerics_create_other(lua_State* L)
     return 1;
 }
 
+static int lgenerics_create_premapped(lua_State* L)
+{
+    uint32_t key = 0xffffffff;
+    generics_t* layer = _store_mapped(L);
+    generics_insert_layer(key, layer);
+    lua_pushlightuserdata(L, layer);
+    return 1;
+}
+
 static int lgenerics_resolve_premapped_layers(lua_State* L)
 {
     const char* exportname = luaL_checkstring(L, 1);
@@ -277,6 +286,8 @@ int open_lgenerics_lib(lua_State* L)
         { "implant",                  lgenerics_create_implant           },
         { "vthtype",                  lgenerics_create_vthtype           },
         { "other",                    lgenerics_create_other             },
+        { "premapped",                lgenerics_create_premapped         },
+        //{ "mapped",                   lgenerics_create_mapped            },
         { "resolve_premapped_layers", lgenerics_resolve_premapped_layers },
         { NULL,                       NULL                               }
     };
