@@ -14,7 +14,7 @@ end
 function layout(guardring, _P)
     -- active, implant and SOI opening
     guardring:merge_into_shallow(geometry.ring(generics.other("active"), _P.width, _P.height, _P.ringwidth))
-    guardring:merge_into_shallow(geometry.ring(generics.other(string.format("%simpl", _P.contype)), _P.width, _P.height, _P.ringwidth + 2 * _P.extension))
+    guardring:merge_into_shallow(geometry.ring(generics.implant(_P.contype), _P.width, _P.height, _P.ringwidth + 2 * _P.extension))
     guardring:merge_into_shallow(geometry.ring(generics.other("soiopen"), _P.width, _P.height, _P.ringwidth + 2 * _P.extension))
 
     -- M1 and contacts

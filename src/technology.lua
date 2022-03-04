@@ -142,17 +142,11 @@ function technology.get_via_definitions(metal1, metal2)
     if not entry then
         moderror(string.format("no via definition '%s' found", identifier))
     end
-    return entry.entries
+    return entry
 end
-
---[[
-function technology.get_fallback_via(metal1, metal2)
-    return { width = viadefs.viaM1M2.fallback.width, height = viadefs.viaM1M2.fallback.height, fallback = true }
-end
---]]
 
 function technology.get_contact_definitions(region)
-    return viadefs[string.format("contact%s", region)].entries
+    return viadefs[string.format("contact%s", region)]
 end
 
 function technology.get_config_value(key)

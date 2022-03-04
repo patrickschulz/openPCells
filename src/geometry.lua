@@ -76,7 +76,7 @@ local arrayzation_strategies = {
     end
 }
 
-function geometry.get_rectangular_arrayzation(regionwidth, regionheight, entries, options)
+function geometry.get_rectangular_arrayzation(regionwidth, regionheight, definitions, options)
     local xstrat = arrayzation_strategies[options.xcontinuous and "continuous" or "fit"]
     local ystrat = arrayzation_strategies[options.ycontinuous and "continuous" or "fit"]
 
@@ -84,7 +84,7 @@ function geometry.get_rectangular_arrayzation(regionwidth, regionheight, entries
     local lastarea
     local xrep, yrep
     local xspace, yspace
-    for i, entry in ipairs(entries) do
+    for i, entry in ipairs(definitions.entries) do
         local _xrep, _xspace = xstrat(regionwidth, entry.width, entry.xspace, entry.xenclosure)
         local _yrep, _yspace = ystrat(regionheight, entry.height, entry.yspace, entry.yenclosure)
         local area = (_xrep + _yrep) * entry.width * entry.height
@@ -103,21 +103,26 @@ function geometry.get_rectangular_arrayzation(regionwidth, regionheight, entries
         --    yrep = math.max(1, yrep)
         --end
     end
-    if not idx and entries.fallback then
-        return {
-            width = entries.fallback.width,
-            height = entries.fallback.height,
-            xpitch = 0,
-            ypitch = 0,
-            xrep = 1,
-            yrep = 1,
-        }
+    if not idx then
+        if definitions.fallback then
+            return {
+                width = definitions.fallback.width,
+                height = definitions.fallback.height,
+                xpitch = 0,
+                ypitch = 0,
+                xrep = 1,
+                yrep = 1,
+            }
+        else
+            print("could not fit via, the shape will be ignored. The layout will most likely not be correct.")
+            return nil
+        end
     end
     return {
-        width = entries[idx].width,
-        height = entries[idx].height,
-        xpitch = entries[idx].width + xspace,
-        ypitch = entries[idx].height + yspace,
+        width = definitions.entries[idx].width,
+        height = definitions.entries[idx].height,
+        xpitch = definitions.entries[idx].width + xspace,
+        ypitch = definitions.entries[idx].height + yspace,
         xrep = xrep,
         yrep = yrep,
     }
@@ -140,6 +145,9 @@ end
 function geometry.via(metal1, metal2, width, height, options)
     local viadefs = technology.get_via_definitions(metal1, metal2)
     local entry = geometry.get_rectangular_arrayzation(width, height, viadefs, options or {})
+    if not entry then
+        return object.create()
+    end
     local obj =  geometry.rectangle_array(generics.viacut(metal1, metal2), entry)
     obj:merge_into_shallow(geometry.rectangle(generics.metal(metal1), width, height))
     obj:merge_into_shallow(geometry.rectangle(generics.metal(metal2), width, height))
@@ -161,7 +169,12 @@ end
 function geometry.contact(region, width, height, options)
     local contactdefs = technology.get_contact_definitions(region)
     local entry = geometry.get_rectangular_arrayzation(width, height, contactdefs, options or {})
-    return geometry.rectangle_array(generics.contact(region), entry)
+    if not entry then
+        return object.create()
+    end
+    local obj = geometry.rectangle_array(generics.contact(region), entry)
+    obj:merge_into_shallow(geometry.rectangle(generics.metal(1), width, height))
+    return obj
 end
 
 function geometry.contactbltr(region, bl, tr, options)
@@ -172,8 +185,6 @@ function geometry.contactbltr(region, bl, tr, options)
     local cx = (blx + trx) / 2
     local cy = (bly + try) / 2
     local obj = geometry.contact(region, width, height, options)
-    obj:merge_into_shallow(geometry.rectangle(generics.metal(1), width, height))
-    obj:merge_into_shallow(geometry.rectangle(generics.other("active"), width, height))
     obj:translate(cx, cy)
     return obj
 end

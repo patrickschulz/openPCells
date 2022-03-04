@@ -3,6 +3,7 @@ function parameters()
         { "channeltype(Channel Type)",                              "nmos", posvals = set("nmos", "pmos") },
         { "oxidetype(Oxide Thickness Type)",                             1, argtype = "integer", posvals = interval(1, inf) },
         { "vthtype(Threshold Voltage Type)",                             1, argtype = "integer", posvals = interval(1, inf) },
+        { "flippedwell(Flipped Well)",                                 false },
         { "fingers(Number of Fingers)",                                  1, argtype = "integer", posvals = interval(1, inf) },
         { "fwidth(Finger Width)",                                      tech.get_dimension("Minimum Gate Width"), argtype = "integer", posvals = even() },
         { "gatelength(Gate Length)",                                   tech.get_dimension("Minimum Gate Length"), argtype = "integer", posvals = even() },
@@ -93,31 +94,38 @@ function layout(transistor, _P)
         end
     end
 
-    --[[
-    -- boundary for feol implant/well etc. layers
+    -- threshold voltage
     transistor:merge_into_shallow(geometry.rectanglebltr(
-        generics.feol(
-            {
-                channeltype = _P.channeltype,
-                vthtype = _P.vthtype,
-                oxidetype = _P.oxidetype,
-                expand = {
-                    left = true,
-                    right = true,
-                    top = not _P.cliptop,
-                    bottom = not _P.clipbot,
-                },
-            }
-        ), 
+        generics.vthtype(_P.channeltype, _P.vthtype),
         point.create(-actwidth / 2, -_P.fwidth / 2 - gateaddbot),
         point.create( actwidth / 2,  _P.fwidth / 2 + gateaddtop)
     ))
-    --]]
+
+    -- implant
+    transistor:merge_into_shallow(geometry.rectanglebltr(
+        generics.implant(_P.channeltype),
+        point.create(-actwidth / 2, -_P.fwidth / 2 - gateaddbot),
+        point.create( actwidth / 2,  _P.fwidth / 2 + gateaddtop)
+    ))
+
+    -- well
+    transistor:merge_into_shallow(geometry.rectanglebltr(
+        generics.other(_P.flippedwell and (_P.channeltype == "nmos" and "nwell" or "pwell") or (_P.channeltype == "nmos" and "pwell" or "nwell")),
+        point.create(-actwidth / 2, -_P.fwidth / 2 - gateaddbot),
+        point.create( actwidth / 2,  _P.fwidth / 2 + gateaddtop)
+    ))
+
+    -- oxide thickness
+    transistor:merge_into_shallow(geometry.rectanglebltr(
+        generics.oxide(_P.oxidetype),
+        point.create(-actwidth / 2, -_P.fwidth / 2 - gateaddbot),
+        point.create( actwidth / 2,  _P.fwidth / 2 + gateaddtop)
+    ))
 
     -- gate contacts
     if _P.drawtopgate then
         transistor:merge_into_shallow(geometry.multiple_x(
-            geometry.rectangle(generics.contact("gate"), _P.gatelength, _P.topgatestrwidth),
+            geometry.contact("gate", _P.gatelength, _P.topgatestrwidth),
             _P.fingers, gatepitch
         ):translate(0, _P.fwidth / 2 + _P.topgatestrspace + _P.topgatestrwidth / 2))
     end
@@ -135,7 +143,7 @@ function layout(transistor, _P)
     end
     if _P.drawbotgate then
         transistor:merge_into_shallow(geometry.multiple_x(
-            geometry.rectangle(generics.contact("gate"), _P.gatelength, _P.botgatestrwidth),
+            geometry.contact("gate", _P.gatelength, _P.botgatestrwidth),
             _P.fingers, gatepitch
         ):translate(0, -_P.fwidth / 2 - _P.botgatestrspace - _P.botgatestrwidth / 2))
     end

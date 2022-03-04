@@ -7,10 +7,13 @@
 
 #include "generics.h"
 
-#define METAL_MAGIC_IDENTIFIER 1
-#define VIA_MAGIC_IDENTIFIER 2
-#define CONTACT_MAGIC_IDENTIFIER 3
-#define OTHER_MAGIC_IDENTIFIER 4
+#define METAL_MAGIC_IDENTIFIER      1
+#define VIA_MAGIC_IDENTIFIER        2
+#define CONTACT_MAGIC_IDENTIFIER    3
+#define OXIDE_MAGIC_IDENTIFIER      4
+#define IMPLANT_MAGIC_IDENTIFIER    5
+#define VTHTYPE_MAGIC_IDENTIFIER    6
+#define OTHER_MAGIC_IDENTIFIER      7
 
 static void _insert_lpp_pairs(lua_State* L, struct keyvaluearray* map)
 {
@@ -188,6 +191,53 @@ static int lgenerics_create_contact(lua_State* L)
     return 1;
 }
 
+static int lgenerics_create_oxide(lua_State* L)
+{
+    int num = luaL_checkinteger(L, 1);
+
+    uint32_t key = (OXIDE_MAGIC_IDENTIFIER << 24) | (num & 0x00ffffff);
+    generics_t* layer = generics_get_layer(key);
+    if(!layer)
+    {
+        lua_pushfstring(L, "oxide%d", num);
+        layer = _map_and_store_layer(L);
+        generics_insert_layer(key, layer);
+    }
+    lua_pushlightuserdata(L, layer);
+    return 1;
+}
+
+static int lgenerics_create_implant(lua_State* L)
+{
+    const char* str = luaL_checkstring(L, 1);
+    uint32_t key = (IMPLANT_MAGIC_IDENTIFIER << 24) | (str[0] & 0x00ffffff); // the '& 0x00ffffff' is unnecessary here, but kept for completeness
+    generics_t* layer = generics_get_layer(key);
+    if(!layer)
+    {
+        lua_pushfstring(L, "%cimplant", str[0]);
+        layer = _map_and_store_layer(L);
+        generics_insert_layer(key, layer);
+    }
+    lua_pushlightuserdata(L, layer);
+    return 1;
+}
+
+static int lgenerics_create_vthtype(lua_State* L)
+{
+    const char* channeltype = luaL_checkstring(L, 1);
+    int vthtype = luaL_checkinteger(L, 2);
+    uint32_t key = (VTHTYPE_MAGIC_IDENTIFIER << 24) | ((channeltype[0] & 0x000000ff) << 16) | (vthtype & 0x0000ffff);
+    generics_t* layer = generics_get_layer(key);
+    if(!layer)
+    {
+        lua_pushfstring(L, "vthtype%c%d", channeltype[0], vthtype);
+        layer = _map_and_store_layer(L);
+        generics_insert_layer(key, layer);
+    }
+    lua_pushlightuserdata(L, layer);
+    return 1;
+}
+
 static int lgenerics_create_other(lua_State* L)
 {
     size_t len;
@@ -208,7 +258,6 @@ static int lgenerics_create_other(lua_State* L)
     return 1;
 }
 
-
 static int lgenerics_resolve_premapped_layers(lua_State* L)
 {
     const char* exportname = luaL_checkstring(L, 1);
@@ -224,6 +273,9 @@ int open_lgenerics_lib(lua_State* L)
         { "metal",                    lgenerics_create_metal             },
         { "viacut",                   lgenerics_create_viacut            },
         { "contact",                  lgenerics_create_contact           },
+        { "oxide",                    lgenerics_create_oxide             },
+        { "implant",                  lgenerics_create_implant           },
+        { "vthtype",                  lgenerics_create_vthtype           },
         { "other",                    lgenerics_create_other             },
         { "resolve_premapped_layers", lgenerics_resolve_premapped_layers },
         { NULL,                       NULL                               }
