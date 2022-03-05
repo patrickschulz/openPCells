@@ -169,7 +169,7 @@ function meta.flatten(self, flattenports)
                 end
                 if flattenports then
                     for _, port in ipairs(self.ports) do
-                        local new = { name = port.name, layer = port.layer:copy(), where = port.where.copy() }
+                        local new = { name = port.name, layer = port.layer:copy(), where = port.where:copy() }
                         child.trans:apply_translation(new.where)
                         obj.trans:apply_translation(new.where)
                         new.where:translate((ix - 1) * xpitch, (iy - 1) * ypitch)
