@@ -97,15 +97,15 @@ void destroy_field(int*** field, size_t width, size_t height, size_t num_layers)
 
 void print_field(int*** field, size_t width, size_t height, unsigned int layer)
 {
-	for(size_t i = 0; i < width - 1; i++) {
+	for(int i = (int)width; i >= 0; i--) {
 		if(i == 0) {
 			printf("%u", layer);
 		} else {
-			printf("=");
+			printf("==");
 		}
 	}
 	printf("=\n");
-	for(size_t i = 0; i < height; i++) {
+	for(int i = (int)height - 1; i >= 0; i--) {
 		for(size_t j = 0; j < width; j++) {
 			if(field[layer][j][i] == PATH)
 				green();

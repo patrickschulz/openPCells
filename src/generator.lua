@@ -172,6 +172,7 @@ local function _write_module(rows, nets, rowwidth, instlookup, reflookup,
     table.insert(lines, '    local xpitch = bp.glength + bp.gspace')
     table.insert(lines, '    local ypitch = bp.pwidth + bp.nwidth + bp.powerwidth + 2 * bp.powerspace + bp.numinnerroutes * bp.gstwidth + (bp.numinnerroutes + 1) * bp.gstspace -- ypitch')
     table.insert(lines, '')
+    table.insert(lines, "    local routes = {")
 
     -- routed nets
     local netname
@@ -188,26 +189,21 @@ local function _write_module(rows, nets, rowwidth, instlookup, reflookup,
         local z = 0
         local xpre = 0
         local ypre = 0
-        local zpre = 0
 
         for j, entry in ipairs(net) do
                 if j == 1 then
                         -- put name of net into file as a comment
                         netname = entry
-                        tprint(net)
                         startinstance = net["firstinstance"]
                         startport = net["firstport"]
-                        table.insert(lines, "    local routes = {")
                         table.insert(lines, "        {")
                         table.insert(lines, "            endpoints = {")
                         table.insert(lines, string.format('                { cellname = "%s", anchor = "%s" },', startinstance, startport))
                         table.insert(lines, "            },")
-                        table.insert(lines, "        {")
                         table.insert(lines, "            deltas = {")
                 else
                         xpre = x
                         ypre = y
-                        zpre = z
                         x = entry[1] * -1
                         y = entry[2] * -1
                         z = entry[3] * -1
@@ -217,41 +213,27 @@ local function _write_module(rows, nets, rowwidth, instlookup, reflookup,
 
                         -- generate deltas
                         if xpre ~= x and ypre ~= y then
-                              table.insert(lines, string.format('                { x = "%i", y = "%i" },', xdist - x, ydist - y))
+                              table.insert(lines, string.format('                { x = %i * xpitch, y = %i * ypitch, layer = %i },',
+                                xdist - x, ydist - y, currmetal))
                         end
 
---                        if z ~= 0 then
---                                table.insert(lines, "    }, 100))")
---
---                                -- add via
---                                if z == -1 then
---                                    table.insert(lines, string.format('    toplevel:merge_into_shallow(geometry.rectanglebltr(generics.via(%i, %i), ', currmetal + z, currmetal))
---                                else
---                                    table.insert(lines, string.format('    toplevel:merge_into_shallow(geometry.rectanglebltr(generics.via(%i, %i), ', currmetal, currmetal + z))
---                                end
---                                table.insert(lines, string.format('        cells["%s"]:get_anchor("%s") + point.create(%i - 20, %i - 20),', startinstance, startport, xdist, ydist))
---                                table.insert(lines, string.format('        cells["%s"]:get_anchor("%s") + point.create(%i + 20, %i + 20)))', startinstance, startport, xdist, ydist))
---
---                                currmetal = currmetal + z
---                                table.insert(lines, string.format('    toplevel:merge_into_shallow(geometry.path(generics.metal(%i), {', currmetal))
---                                table.insert(lines, string.format('        cells["%s"]:get_anchor("%s") + point.create(%i, %i), ',
---                                    startinstance, startport, xdist, ydist))
---                        end
+                        -- generate vias
+                        if z == -1 then
+                              table.insert(lines, string.format('                { x = %i * xpitch, y = %i * ypitch, isvia = true, from = %i, to = %i },',
+                                xdist - x, ydist - y, currmetal + z, currmetal))
+                        elseif z == 1 then
+                              table.insert(lines, string.format('                { x = %i * xpitch, y = %i * ypitch, isvia = true, from = %i, to = %i },',
+                                xdist - x, ydist - y, currmetal, currmetal + z))
+                        end
                 end
         end
-        table.insert(lines, "            },")
+        table.insert(lines, '            },')
+        table.insert(lines, '        },')
     end
+    table.insert(lines, '    }')
 
-    -- unrouted nets
-   -- for name, net in pairs(nets) do
-   --     if #net.connections > 1 then
-   --         table.insert(lines, "    toplevel:merge_into_shallow(geometry.path(generics.metal(3), {")
-   --         for _, n in pairs(net.connections) do
-   --             table.insert(lines, string.format('        cells["%s"]:get_anchor("%s"),', n.instance, n.port))
-   --         end
-   --         table.insert(lines, "    }, 100))")
-   --     end
-   -- end
+    table.insert(lines, '    routingwidth = 100')
+    table.insert(lines, '    routing.route(toplevel, routes, cells, routingwidth)')
 
     table.insert(lines, "end") -- close 'layout' function
     return lines
@@ -343,10 +325,6 @@ function M.from_verilog(filename, utilization, aspectratio, excluded_nets, repor
 
     local routednets, numroutednets = router.route(netpositions, numnets, options.floorplan_width,
         options.floorplan_height)
-
-    print('pretprint')
-    tprint(routednets)
-    print('posttprint')
 
     return {
         content = content,

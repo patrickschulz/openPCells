@@ -9,6 +9,8 @@
 #include "lrouter_field.h"
 #include "ldebug.h"
 
+#define MANHATTAN_DIST(x1, y1, x2, y2) (abs(x1 - x2) + abs(y1 - y2))
+
 struct netcollection
 {
     net_t* nets;
@@ -64,14 +66,14 @@ static struct netcollection* _initialize(lua_State* L)
 
             if(j == 1)
             {
-                nets[i].x1 = x;
-                nets[i].y1 = y;
+                nets[i].x1 = x - 1;
+                nets[i].y1 = y - 1;
                 nets[i].z1 = z;
             }
             if(j == 2)
             {
-                nets[i].x2 = x;
-                nets[i].y2 = y;
+                nets[i].x2 = x - 1;
+                nets[i].y2 = y - 1;
                 nets[i].z2 = z;
             }
 	    nets[i].name = malloc(strlen(name) + 1);
@@ -97,8 +99,8 @@ int lrouter_route(lua_State* L)
 
     sort_nets(nc->nets, nc->num_nets);
 
-    const size_t field_height = lua_tointeger(L, 4) + 1;
-    const size_t field_width = lua_tointeger(L, 3) + 1;
+    const size_t field_height = lua_tointeger(L, 4);
+    const size_t field_width = lua_tointeger(L, 3);
     printf("w: %zu, h: %zu\n", field_width, field_height);
     const size_t num_layers = 3;
     const unsigned int via_cost = 10;
