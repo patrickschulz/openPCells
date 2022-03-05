@@ -201,11 +201,6 @@ function M.set_options(opt)
     end
 end
 
-function M.get_layer(S)
-    local lpp = S:get_layer()
-    return { layer = lpp.layer, purpose = lpp.purpose }
-end
-
 function M.at_begin()
     _write_record(recordtypes.HEADER, datatypes.TWO_BYTE_INTEGER, { 258 }) -- release 6.0
     local date = os.date("*t")

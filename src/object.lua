@@ -188,7 +188,7 @@ end
 
 local function _add_port(self, name, anchorname, layer, where)
     --layer:set_port()
-    local new = { name = name, layer = layer, where = where }
+    local new = port.create(name, layer, where)
     table.insert(self.ports, new)
     self.anchors[anchorname] = where:copy() -- copy point, otherwise translation acts twice (FIXME: probably not needed any more)
     return new

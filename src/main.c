@@ -31,6 +31,7 @@
 #include "ldir.h"
 #include "lbinary.h"
 #include "lshape.h"
+#include "lport.h"
 //#include "lunion.h"
 #include "lfilesystem.h"
 #include "lbytebuffer.h"
@@ -196,6 +197,7 @@ static lua_State* create_and_initialize_lua(void)
     open_lbind_lib(L);
     open_lbinary_lib(L);
     open_lshape_lib(L);
+    open_lport_lib(L);
     open_lutil_lib(L);
     open_lbytebuffer_lib(L);
     //open_lunion_lib(L);

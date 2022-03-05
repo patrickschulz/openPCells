@@ -56,7 +56,6 @@ end
 
 function M.check()
     _check_function("get_extension")
-    _check_function("get_layer")
     _check_function("write_rectangle")
     _check_function("write_polygon")
     _check_function("finalize")
@@ -69,7 +68,7 @@ local function _write_cell(cell)
             S:resolve_path()
         end
         S:apply_transformation(cell.trans, cell.trans.apply_transformation)
-        local layer = export.get_layer(S) -- FIXME: why should exports define how to get the layer? Perhaps this used to be required, but I don't think it still is
+        local layer = S:get_layer()
         if S:is_type("polygon") then
             export.write_polygon(layer, S:get_points())
         elseif S:is_type("rectangle") then
@@ -107,7 +106,7 @@ local function _write_ports(cell)
             export.write_port(name, port.layer:get(), port.where)
         else
             cell.trans:apply_transformation(port.where)
-            export.write_port(port.name, port.layer:get(), port.where)
+            export.write_port(port.name, port:get_layer(), port.where)
         end
     end
 end
