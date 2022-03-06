@@ -9,7 +9,7 @@ static int ltransformationmatrix_tostring(lua_State* L)
     ltransformationmatrix_t* lmatrix = lua_touserdata(L, 1);
     transformationmatrix_t* matrix = lmatrix->matrix;
     lua_pushfstring(L, "%d %d\n%d %d\ndx: %d, dy: %d\nauxdx: %d, auxdy: %d", 
-            matrix->coefficients[1], matrix->coefficients[2], matrix->coefficients[3], matrix->coefficients[4], 
+            matrix->coefficients[0], matrix->coefficients[1], matrix->coefficients[2], matrix->coefficients[3], 
             matrix->dx, matrix->dy, matrix->auxdx, matrix->auxdy);
     return 1;
 }

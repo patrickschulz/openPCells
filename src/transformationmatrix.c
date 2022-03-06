@@ -147,8 +147,10 @@ void transformationmatrix_apply_aux_translation(transformationmatrix_t* matrix, 
 
 void transformationmatrix_apply_transformation(transformationmatrix_t* matrix, point_t* pt)
 {
-    pt->x = matrix->scalefactor * (matrix->coefficients[0] * pt->x + matrix->coefficients[1] * pt->y) + matrix->dx + matrix->auxdx;
-    pt->y = matrix->scalefactor * (matrix->coefficients[2] * pt->x + matrix->coefficients[3] * pt->y) + matrix->dy + matrix->auxdy;
+    coordinate_t x = pt->x;
+    coordinate_t y = pt->y;
+    pt->x = matrix->scalefactor * (matrix->coefficients[0] * x + matrix->coefficients[1] * y) + matrix->dx + matrix->auxdx;
+    pt->y = matrix->scalefactor * (matrix->coefficients[2] * x + matrix->coefficients[3] * y) + matrix->dy + matrix->auxdy;
 }
 
 void transformationmatrix_apply_inverse_transformation(transformationmatrix_t* matrix, point_t* pt)
