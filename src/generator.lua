@@ -189,6 +189,7 @@ local function _write_module(rows, nets, rowwidth, instlookup, reflookup,
         local z = 0
         local xpre = 0
         local ypre = 0
+        tprint(nets)
 
         for j, entry in ipairs(net) do
                 if j == 1 then
@@ -204,26 +205,29 @@ local function _write_module(rows, nets, rowwidth, instlookup, reflookup,
                 else
                         xpre = x
                         ypre = y
+
+                        -- reverse coordinates because of backtrace
                         x = entry[1] * -1
                         y = entry[2] * -1
                         z = entry[3] * -1
 
                         xdist = xdist + x
                         ydist = ydist + y
+                        currmetal = currmetal + z
 
                         -- generate deltas
                         if xpre ~= x and ypre ~= y then
-                              table.insert(lines, string.format('                { x = %i * xpitch, y = %i * ypitch, layer = %i },',
+                              table.insert(lines, string.format('                { x = %i * xpitch, y = %i * ypitch, metal = %i },',
                                 xdist - x, ydist - y, currmetal))
                         end
 
                         -- generate vias
                         if z == -1 then
-                              table.insert(lines, string.format('                { x = %i * xpitch, y = %i * ypitch, isvia = true, from = %i, to = %i },',
-                                xdist - x, ydist - y, currmetal + z, currmetal))
+                              table.insert(lines, string.format('                { x = %i * xpitch, y = %i * ypitch, isvia = true, from = %i, to = %i, metal = %i},',
+                                xdist - x, ydist - y, currmetal + z, currmetal, currmetal))
                         elseif z == 1 then
-                              table.insert(lines, string.format('                { x = %i * xpitch, y = %i * ypitch, isvia = true, from = %i, to = %i },',
-                                xdist - x, ydist - y, currmetal, currmetal + z))
+                              table.insert(lines, string.format('                { x = %i * xpitch, y = %i * ypitch, isvia = true, from = %i, to = %i, metal = %i},',
+                                xdist - x, ydist - y, currmetal, currmetal + z, currmetal))
                         end
                 end
         end

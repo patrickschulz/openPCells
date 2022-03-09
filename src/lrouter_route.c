@@ -26,7 +26,6 @@ static point_t *get_min_point(point_t *arr)
 	point_t *point = arr;
 	for(int i = 0; i < NUM_DIRECTIONS; i++)
 	{
-		//printf("array stored %u\n", arr[i].score);
 		point = (arr[i].score < point->score) ? &arr[i] : point;
 	}
 	return point;
@@ -67,7 +66,6 @@ int route(net_t *net, int*** field, size_t width, size_t height,
 	 * endpoint is reached
 	 */
 	do {
-		//printf("route %u %u to %u %u\n", startx, starty, endx, endy);
 		/* get next point from heap */
 		point_ptr = heap_get_point(min_heap);
 
@@ -83,7 +81,6 @@ int route(net_t *net, int*** field, size_t width, size_t height,
 			nextx = x + xincr[i];
 			nexty = y + yincr[i];
 			nextz = z + zincr[i];
-			//printf("next coords %u, %u, %u\n", nextx, nexty, nextz);
 
 			if(nextx >= width || nexty >= height ||
 			   nextz >= num_layers)
@@ -162,12 +159,8 @@ int route(net_t *net, int*** field, size_t width, size_t height,
 	x = endx;
 	y = endy;
 
-	//printf("backtrace route %u %u to %u %u\n", startx, starty, endx, endy);
-
 	do {
 		score = field[z][x][y];
-
-		//printf("backtrace %u %u %u, score: %i\n", x, y, z, score);
 
 		/* array to look for the least costing neighboring point */
 		point_t nextpoints[NUM_DIRECTIONS];
@@ -197,7 +190,6 @@ int route(net_t *net, int*** field, size_t width, size_t height,
 			switch(nextfield)
 			{
 				case UNVISITED:
-				case PORT:
 				case PATH:
 				case VIA:
 					continue;
@@ -211,7 +203,6 @@ int route(net_t *net, int*** field, size_t width, size_t height,
 				    point.z = nextz;
 				    point.score = nextfield;
 				    nextpoints[i] = point;
-				    //printf("stored point with %u\n", point.score);
 				}
 		}
 

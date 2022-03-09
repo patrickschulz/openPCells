@@ -57,6 +57,7 @@ static struct netcollection* _initialize(lua_State* L)
 		    nets[i].firstport = malloc(strlen(port) + 1);
 		    strcpy(nets[i].firstport, port);
 		    lua_pop(L, 1);
+
 		    lua_getfield(L, -1, "instance");
 		    const char* instance = lua_tostring(L, -1);
 		    nets[i].firstinstance = malloc(strlen(instance) + 1);
@@ -106,8 +107,6 @@ int lrouter_route(lua_State* L)
     const unsigned int via_cost = 10;
     const unsigned int wrong_dir_cost = 30;
     int*** field = init_field(field_width, field_height, num_layers);
-
-    fill_ports(nc->nets, nc->num_nets, field);
 
     lua_newtable(L);
 
