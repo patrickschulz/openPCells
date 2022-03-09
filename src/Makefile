@@ -26,7 +26,7 @@ $(PROGNAME): main.c lua/liblua.a $(OPCOBJ)
 
 point.o: point.h point.c
 transformationmatrix.o: transformationmatrix.h transformationmatrix.c
-ltransformationmatrix.o: ltransformationmatrix.h ltransformationmatrix.c
+ltransformationmatrix.o: ltransformationmatrix.h ltransformationmatrix.c transformationmatrix.h transformationmatrix.c
 shape.o: point.h shape.h shape.c generics.h generics.c
 geometry.o: geometry.h geometry.c point.h point.c shape.h shape.c
 keyvaluepairs.o: keyvaluepairs.h keyvaluepairs.c

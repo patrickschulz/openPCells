@@ -288,7 +288,7 @@ local function _flipxy(self, mode, ischild)
         cx = 0
     end
     if not ischild then
-        self.trans:auxtranslate(cx, cy)
+        self.trans:translate(cx, cy)
     end
     if not self.isproxy then
         for _, child in self:iterate_children() do
@@ -307,16 +307,17 @@ function meta.flipy(self)
 end
 
 function meta.mirror_at_xaxis(self)
-    self:flipy()
-    local cx, cy = self:get_transformation_correction()
-    self:translate(0, -cy)
+    self.trans:mirror_x()
     return self
 end
 
 function meta.mirror_at_yaxis(self)
-    self:flipx()
-    local cx, cy = self:get_transformation_correction()
-    self:translate(-cx, 0)
+    self.trans:mirror_y()
+    return self
+end
+
+function meta.mirror_origin(self)
+    self.trans:mirror_origin()
     return self
 end
 

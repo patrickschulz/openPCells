@@ -8,9 +8,9 @@ static int ltransformationmatrix_tostring(lua_State* L)
 {
     ltransformationmatrix_t* lmatrix = lua_touserdata(L, 1);
     transformationmatrix_t* matrix = lmatrix->matrix;
-    lua_pushfstring(L, "%d %d\n%d %d\ndx: %d, dy: %d\nauxdx: %d, auxdy: %d", 
-            matrix->coefficients[0], matrix->coefficients[1], matrix->coefficients[2], matrix->coefficients[3], 
-            matrix->dx, matrix->dy, matrix->auxdx, matrix->auxdy);
+    lua_pushfstring(L, "%d %d %d\n%d %d %d", 
+            matrix->coefficients[0], matrix->coefficients[1], matrix->coefficients[2], 
+            matrix->coefficients[3], matrix->coefficients[4], matrix->coefficients[5]);
     return 1;
 }
 
@@ -109,15 +109,6 @@ static int ltransformationmatrix_translate_y(lua_State* L)
     return 1;
 }
 
-static int ltransformationmatrix_auxtranslate(lua_State* L)
-{
-    ltransformationmatrix_t* lmatrix = lua_touserdata(L, 1);
-    coordinate_t dx = lua_tointeger(L, 2);
-    coordinate_t dy = lua_tointeger(L, 3);
-    transformationmatrix_auxtranslate(lmatrix->matrix, dx, dy);
-    return 1;
-}
-
 static int ltransformationmatrix_scale(lua_State* L)
 {
     ltransformationmatrix_t* lmatrix = lua_touserdata(L, 1);
@@ -126,17 +117,24 @@ static int ltransformationmatrix_scale(lua_State* L)
     return 1;
 }
 
-static int ltransformationmatrix_flipx(lua_State* L)
+static int ltransformationmatrix_mirror_x(lua_State* L)
 {
     ltransformationmatrix_t* lmatrix = lua_touserdata(L, 1);
-    transformationmatrix_flipx(lmatrix->matrix);
+    transformationmatrix_mirror_x(lmatrix->matrix);
     return 1;
 }
 
-static int ltransformationmatrix_flipy(lua_State* L)
+static int ltransformationmatrix_mirror_y(lua_State* L)
 {
     ltransformationmatrix_t* lmatrix = lua_touserdata(L, 1);
-    transformationmatrix_flipy(lmatrix->matrix);
+    transformationmatrix_mirror_y(lmatrix->matrix);
+    return 1;
+}
+
+static int ltransformationmatrix_mirror_origin(lua_State* L)
+{
+    ltransformationmatrix_t* lmatrix = lua_touserdata(L, 1);
+    transformationmatrix_mirror_origin(lmatrix->matrix);
     return 1;
 }
 
@@ -154,22 +152,6 @@ static int ltransformationmatrix_rotate_90_left(lua_State* L)
     return 1;
 }
 
-static int ltransformationmatrix_apply_translation(lua_State* L)
-{
-    ltransformationmatrix_t* lmatrix = lua_touserdata(L, 1);
-    lpoint_t* pt = lua_touserdata(L, 2);
-    transformationmatrix_apply_translation(lmatrix->matrix, pt->point);
-    return 1;
-}
-
-static int ltransformationmatrix_apply_aux_translation(lua_State* l)
-{
-    ltransformationmatrix_t* lmatrix = lua_touserdata(l, 1);
-    lpoint_t* pt = lua_touserdata(l, 2);
-    transformationmatrix_apply_aux_translation(lmatrix->matrix, pt->point);
-    return 1;
-}
-
 static int ltransformationmatrix_apply_transformation(lua_State* l)
 {
     ltransformationmatrix_t* lmatrix = lua_touserdata(l, 1);
@@ -183,14 +165,6 @@ static int ltransformationmatrix_apply_inverse_transformation(lua_State* l)
     ltransformationmatrix_t* lmatrix = lua_touserdata(l, 1);
     lpoint_t* pt = lua_touserdata(l, 2);
     transformationmatrix_apply_inverse_transformation(lmatrix->matrix, pt->point);
-    return 1;
-}
-
-static int ltransformationmatrix_apply_inverse_aux_translation(lua_State* l)
-{
-    ltransformationmatrix_t* lmatrix = lua_touserdata(l, 1);
-    lpoint_t* pt = lua_touserdata(l, 2);
-    transformationmatrix_apply_inverse_aux_translation(lmatrix->matrix, pt->point);
     return 1;
 }
 
@@ -254,17 +228,14 @@ int open_ltransformationmatrix_lib(lua_State* L)
         { "translate", ltransformationmatrix_translate },
         { "translate_x", ltransformationmatrix_translate_x },
         { "translate_y", ltransformationmatrix_translate_y },
-        { "auxtranslate", ltransformationmatrix_auxtranslate },
         { "scale", ltransformationmatrix_scale },
-        { "flipx", ltransformationmatrix_flipx },
-        { "flipy", ltransformationmatrix_flipy },
+        { "mirror_x", ltransformationmatrix_mirror_x },
+        { "mirror_y", ltransformationmatrix_mirror_y },
+        { "mirror_origin", ltransformationmatrix_mirror_origin },
         { "rotate_90_right", ltransformationmatrix_rotate_90_right },
         { "rotate_90_left", ltransformationmatrix_rotate_90_left },
-        { "apply_translation", ltransformationmatrix_apply_translation },
-        { "apply_aux_translation", ltransformationmatrix_apply_aux_translation },
         { "apply_transformation", ltransformationmatrix_apply_transformation },
         { "apply_inverse_transformation", ltransformationmatrix_apply_inverse_transformation },
-        { "apply_inverse_aux_translation", ltransformationmatrix_apply_inverse_aux_translation },
         { "orientation_string", ltransformationmatrix_orientation_string },
         { NULL,       NULL                           }
     };

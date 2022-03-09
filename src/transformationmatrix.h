@@ -3,14 +3,16 @@
 
 #include "point.h"
 
+/*
+ *  /   0   1   2   \
+ *  |   3   4   5   |
+ *  \   6   7   8   /
+ *  6 & 7 are always 0, 8 is always 1
+ *      -> these values are not explicitly stored
+ */
 typedef struct 
 {
-    coordinate_t coefficients[4];
-    coordinate_t dx;
-    coordinate_t dy;
-    coordinate_t auxdx;
-    coordinate_t auxdy;
-    double scalefactor;
+    coordinate_t coefficients[6];
 } transformationmatrix_t;
 
 transformationmatrix_t* transformationmatrix_create(void);
@@ -24,16 +26,14 @@ void transformationmatrix_move_y_to(transformationmatrix_t* matrix, coordinate_t
 void transformationmatrix_translate(transformationmatrix_t* matrix, coordinate_t dx, coordinate_t dy);
 void transformationmatrix_translate_x(transformationmatrix_t* matrix, coordinate_t dx);
 void transformationmatrix_translate_y(transformationmatrix_t* matrix, coordinate_t dy);
-void transformationmatrix_auxtranslate(transformationmatrix_t* matrix, coordinate_t dx, coordinate_t dy);
 void transformationmatrix_scale(transformationmatrix_t* matrix, double factor);
-void transformationmatrix_flipx(transformationmatrix_t* matrix);
-void transformationmatrix_flipy(transformationmatrix_t* matrix);
+void transformationmatrix_mirror_x(transformationmatrix_t* matrix);
+void transformationmatrix_mirror_y(transformationmatrix_t* matrix);
+void transformationmatrix_mirror_origin(transformationmatrix_t* matrix);
 void transformationmatrix_rotate_90_right(transformationmatrix_t* matrix);
 void transformationmatrix_rotate_90_left(transformationmatrix_t* matrix);
 void transformationmatrix_apply_translation(transformationmatrix_t* matrix, point_t* pt);
-void transformationmatrix_apply_aux_translation(transformationmatrix_t* matrix, point_t* pt);
 void transformationmatrix_apply_transformation(transformationmatrix_t* matrix, point_t* pt);
 void transformationmatrix_apply_inverse_transformation(transformationmatrix_t* matrix, point_t* pt);
-void transformationmatrix_apply_inverse_aux_translation(transformationmatrix_t* matrix, point_t* pt);
 
 #endif /* OPC_TRANSFORMATIONMATRIX_H */
