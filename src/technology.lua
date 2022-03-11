@@ -1,9 +1,7 @@
 technology = {}
 
 local layermap
-local constraintsmeta = {}
-constraintsmeta.__index = function() return 1 end -- fake get_dimension
-local constraints = setmetatable({}, constraintsmeta)
+local constraints
 local config
 local viadefs
 
@@ -12,7 +10,7 @@ local techpaths = {}
 function technology.get_dimension(dimension)
     local value = constraints[dimension]
     if not value then
-        moderror(string.format("no dimension '%s' found", dimension))
+        moderror(string.format("technology: no dimension '%s' found", dimension))
     end
     return value
 end
@@ -30,13 +28,13 @@ end
 local function _load_layermap(name)
     local filename = _get_tech_filename(name, "layermap")
     if not filename then
-        moderror(string.format("no techfile for technology '%s' found", name))
+        moderror(string.format("technology: no techfile for technology '%s' found", name))
     end
     local chunkname = "@techfile"
 
     local reader = _get_reader(filename)
     if not reader then
-        moderror(string.format("no techfile for technology '%s' found", name))
+        moderror(string.format("technology: no techfile for technology '%s' found", name))
     end
     return _generic_load(
         reader, chunkname,
@@ -49,13 +47,13 @@ end
 local function _load_constraints(name)
     local filename = _get_tech_filename(name, "constraints")
     if not filename then
-        moderror(string.format("no constraints for technology '%s' found", name))
+        moderror(string.format("technology: no constraints for technology '%s' found", name))
     end
     local chunkname = "@techconstraints"
 
     local reader, msg = _get_reader(filename)
     if not reader then
-        moderror(string.format("could not open constraints file for technology '%s' (reason: %d)", name, msg))
+        moderror(string.format("technology: could not open constraints file for technology '%s' (reason: %d)", name, msg))
     end
     return _generic_load(
         reader, chunkname,
@@ -67,13 +65,13 @@ end
 local function _load_config(name)
     local filename = _get_tech_filename(name, "config")
     if not filename then
-        moderror(string.format("no config file for technology '%s' found", name))
+        moderror(string.format("technology: no config file for technology '%s' found", name))
     end
     local chunkname = "@techconfig"
 
     local reader, msg = _get_reader(filename)
     if not reader then
-        moderror(string.format("could not open config file for technology '%s' (reason: %d)", name, msg))
+        moderror(string.format("technology: could not open config file for technology '%s' (reason: %d)", name, msg))
     end
     return _generic_load(
         reader, chunkname,
@@ -85,13 +83,13 @@ end
 local function _load_viadefs(name)
     local filename = _get_tech_filename(name, "vias")
     if not filename then
-        moderror(string.format("no vias for technology '%s' found", name))
+        moderror(string.format("technology: no vias for technology '%s' found", name))
     end
     local chunkname = "@techvias"
 
     local reader, msg = _get_reader(filename)
     if not reader then
-        moderror(string.format("could not open via definitions for technology '%s' (reason: %d)", name, msg))
+        moderror(string.format("technology: could not open via definitions for technology '%s' (reason: %d)", name, msg))
     end
     return _generic_load(
         reader, chunkname,
@@ -119,9 +117,12 @@ end
 
 ----------------------
 function technology.map(identifier)
+    if not layermap then
+        moderror("technology: tried to access technology mappings without having loaded a technology")
+    end
     local entry = layermap[identifier]
     if not entry then
-        moderror(string.format("no layer '%s' found in layermap", identifier))
+        moderror(string.format("technology: no layer '%s' found in layermap", identifier))
     end
     return entry.layer
 end
@@ -140,7 +141,7 @@ function technology.get_via_definitions(metal1, metal2)
     local identifier = string.format("viaM%dM%d", metal1 < metal2 and metal1 or metal2, metal1 < metal2 and metal2 or metal1)
     local entry = viadefs[identifier]
     if not entry then
-        moderror(string.format("no via definition '%s' found", identifier))
+        moderror(string.format("technology: no via definition '%s' found", identifier))
     end
     return entry
 end

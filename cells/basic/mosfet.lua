@@ -136,8 +136,8 @@ function layout(transistor, _P)
             generics.metal(1), _P.fingers * _P.gatelength + (_P.fingers - 1) * _P.gatespace + extend, _P.topgatestrwidth
         ):translate(0, _P.fwidth / 2 + _P.topgatestrspace + _P.topgatestrwidth / 2))
         if _P.topgatemetal > 1 then
-            transistor:merge_into_shallow(geometry.rectangle(
-                generics.via(1, _P.topgatemetal), _P.fingers * _P.gatelength + (_P.fingers - 1) * _P.gatespace + extend, _P.topgatestrwidth
+            transistor:merge_into_shallow(geometry.via(
+                1, _P.topgatemetal, _P.fingers * _P.gatelength + (_P.fingers - 1) * _P.gatespace + extend, _P.topgatestrwidth
             ):translate(0, _P.fwidth / 2 + _P.topgatestrspace + _P.topgatestrwidth / 2))
         end
     end

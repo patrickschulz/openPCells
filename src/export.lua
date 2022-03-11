@@ -85,13 +85,12 @@ local function _write_cell(cell)
         child.trans:apply_transformation(origin)
         cell.trans:apply_transformation(origin)
         local x, y = origin:unwrap()
-        local orientation = child.trans:orientation_string()
         if child.isarray and export.write_cell_array then
-            export.write_cell_array(child.identifier, x, y, orientation, child.xrep, child.yrep, child.xpitch, child.ypitch)
+            export.write_cell_array(child.identifier, x, y, child.trans, child.xrep, child.yrep, child.xpitch, child.ypitch)
         else
             for ix = 1, child.xrep or 1 do
                 for iy = 1, child.yrep or 1 do
-                    export.write_cell_reference(child.identifier, x + (ix - 1) * (child.xpitch or 0), y + (iy - 1) * (child.ypitch or 0), orientation)
+                    export.write_cell_reference(child.identifier, x + (ix - 1) * (child.xpitch or 0), y + (iy - 1) * (child.ypitch or 0), child.trans)
                 end
             end
         end

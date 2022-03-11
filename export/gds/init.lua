@@ -392,7 +392,7 @@ function M.write_path(layer, pts, width, extension)
     __content:append_byte(0x00)
 end
 
-function M.write_cell_reference(identifier, x, y, orientation)
+function M.write_cell_reference(identifier, x, y, trans)
     -- SREF
     __content:append_byte(0x00)
     __content:append_byte(0x04)
@@ -414,13 +414,22 @@ function M.write_cell_reference(identifier, x, y, orientation)
     end
 
     -- STRANS/ANGLE
-    if orientation == "fx" then
+    local orientation = trans:orientation_string()
+    if orientation == "MX" then
         -- STRANS
         __content:append_byte(0x00)
         __content:append_byte(0x06)
         __content:append_byte(0x1a)
         __content:append_byte(0x01)
         __content:append_byte(0x80)
+        __content:append_byte(0x00)
+    elseif orientation == "MY" then
+        -- STRANS
+        __content:append_byte(0x00)
+        __content:append_byte(0x06)
+        __content:append_byte(0x1a)
+        __content:append_byte(0x01)
+        __content:append_byte(0x00)
         __content:append_byte(0x00)
         -- ANGLE (180 degrees)
         __content:append_byte(0x00)
@@ -434,14 +443,6 @@ function M.write_cell_reference(identifier, x, y, orientation)
         __content:append_byte(0x00)
         __content:append_byte(0x00)
         __content:append_byte(0x00)
-        __content:append_byte(0x00)
-    elseif orientation == "fy" then
-        -- STRANS
-        __content:append_byte(0x00)
-        __content:append_byte(0x06)
-        __content:append_byte(0x1a)
-        __content:append_byte(0x01)
-        __content:append_byte(0x80)
         __content:append_byte(0x00)
     elseif orientation == "R180" then
         -- STRANS
@@ -501,7 +502,7 @@ function M.write_cell_reference(identifier, x, y, orientation)
     __content:append_byte(0x00)
 end
 
-function M.write_cell_array(identifier, x, y, orientation, xrep, yrep, xpitch, ypitch)
+function M.write_cell_array(identifier, x, y, trans, xrep, yrep, xpitch, ypitch)
     -- SREF
     __content:append_byte(0x00)
     __content:append_byte(0x04)
@@ -523,18 +524,86 @@ function M.write_cell_array(identifier, x, y, orientation, xrep, yrep, xpitch, y
         __content:append_byte(0x00)
     end
 
-    if orientation == "fx" then
-        _write_record(recordtypes.STRANS, datatypes.BIT_ARRAY, { 0x8000 })
-        _write_record(recordtypes.ANGLE, datatypes.EIGHT_BYTE_REAL, { 180 })
-    elseif orientation == "fy" then
-        _write_record(recordtypes.STRANS, datatypes.BIT_ARRAY, { 0x8000 })
+    -- STRANS/ANGLE
+    local orientation = trans:orientation_string()
+    if orientation == "MX" then
+        -- STRANS
+        __content:append_byte(0x00)
+        __content:append_byte(0x06)
+        __content:append_byte(0x1a)
+        __content:append_byte(0x01)
+        __content:append_byte(0x80)
+        __content:append_byte(0x00)
+    elseif orientation == "MY" then
+        -- STRANS
+        __content:append_byte(0x00)
+        __content:append_byte(0x06)
+        __content:append_byte(0x1a)
+        __content:append_byte(0x01)
+        __content:append_byte(0x80)
+        __content:append_byte(0x00)
+        -- ANGLE (180 degrees)
+        __content:append_byte(0x00)
+        __content:append_byte(0x0c)
+        __content:append_byte(0x1c)
+        __content:append_byte(0x05)
+        __content:append_byte(0x42)
+        __content:append_byte(0xb4)
+        __content:append_byte(0x00)
+        __content:append_byte(0x00)
+        __content:append_byte(0x00)
+        __content:append_byte(0x00)
+        __content:append_byte(0x00)
+        __content:append_byte(0x00)
     elseif orientation == "R180" then
-        _write_record(recordtypes.ANGLE, datatypes.EIGHT_BYTE_REAL, { 180 })
+        -- STRANS
+        __content:append_byte(0x00)
+        __content:append_byte(0x06)
+        __content:append_byte(0x1a)
+        __content:append_byte(0x01)
+        __content:append_byte(0x00)
+        __content:append_byte(0x00)
+        -- ANGLE (180 degrees)
+        __content:append_byte(0x00)
+        __content:append_byte(0x0c)
+        __content:append_byte(0x1c)
+        __content:append_byte(0x05)
+        __content:append_byte(0x42)
+        __content:append_byte(0xb4)
+        __content:append_byte(0x00)
+        __content:append_byte(0x00)
+        __content:append_byte(0x00)
+        __content:append_byte(0x00)
+        __content:append_byte(0x00)
+        __content:append_byte(0x00)
+    elseif orientation == "R90" then
+        -- STRANS
+        __content:append_byte(0x00)
+        __content:append_byte(0x06)
+        __content:append_byte(0x1a)
+        __content:append_byte(0x01)
+        __content:append_byte(0x00)
+        __content:append_byte(0x00)
+        -- ANGLE (90 degrees)
+        __content:append_byte(0x00)
+        __content:append_byte(0x0c)
+        __content:append_byte(0x1c)
+        __content:append_byte(0x05)
+        __content:append_byte(0x42)
+        __content:append_byte(0x5a)
+        __content:append_byte(0x00)
+        __content:append_byte(0x00)
+        __content:append_byte(0x00)
+        __content:append_byte(0x00)
+        __content:append_byte(0x00)
+        __content:append_byte(0x00)
     end
+
+    -- COLROW
     _write_record(recordtypes.COLROW, datatypes.TWO_BYTE_INTEGER, { xrep, yrep })
 
     _write_record(recordtypes.XY, datatypes.FOUR_BYTE_INTEGER, 
-    _unpack_points({ point.create(x, y), point.create(x + xrep * xpitch, y), point.create(x, y + yrep * ypitch) }))
+        _unpack_points({ point.create(x, y), point.create(x + xrep * xpitch, y), point.create(x, y + yrep * ypitch) }))
 
     -- ENDEL
     __content:append_byte(0x00)

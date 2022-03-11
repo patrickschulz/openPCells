@@ -29,7 +29,6 @@ static int lbytebuffer_create(lua_State* L)
 
 static int lbytebuffer_destroy(lua_State* L)
 {
-
     struct bytebuffer* buffer = lua_touserdata(L, 1);
     _destroy_data(buffer);
     return 0;

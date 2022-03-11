@@ -172,7 +172,7 @@ static int ltransformationmatrix_orientation_string(lua_State* L)
 {
     ltransformationmatrix_t* lmatrix = lua_touserdata(L, 1);
     transformationmatrix_t* matrix = lmatrix->matrix;
-    if(matrix->coefficients[0] >= 0 && matrix->coefficients[3] >= 0)
+    if(matrix->coefficients[0] >= 0 && matrix->coefficients[4] >= 0)
     {
         if(matrix->coefficients[1] < 0)
         {
@@ -183,15 +183,15 @@ static int ltransformationmatrix_orientation_string(lua_State* L)
             lua_pushstring(L, "R0");
         }
     }
-    else if(matrix->coefficients[0] <  0 && matrix->coefficients[3] >= 0)
+    else if(matrix->coefficients[0] <  0 && matrix->coefficients[4] >= 0)
     {
-        lua_pushstring(L, "fx");
+        lua_pushstring(L, "MX");
     }
-    else if(matrix->coefficients[0] >= 0 && matrix->coefficients[3] <  0)
+    else if(matrix->coefficients[0] >= 0 && matrix->coefficients[4] <  0)
     {
-        lua_pushstring(L, "fy");
+        lua_pushstring(L, "MY");
     }
-    else if(matrix->coefficients[0] <  0 && matrix->coefficients[3] <  0)
+    else if(matrix->coefficients[0] <  0 && matrix->coefficients[4] <  0)
     {
         lua_pushstring(L, "R180");
     }

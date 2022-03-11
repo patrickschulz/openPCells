@@ -147,7 +147,7 @@ function layout(dff, _P)
         gate(1):translate( xpitch - spacing, bp.gstwidth / 2)
     ))
     -- clock buffer ~clk via
-    dff:merge_into_shallow(geometry.rectanglebltr(generics.via(1, 2, { lastbare = true }),
+    dff:merge_into_shallow(geometry.viabltr(1, 2,
         gate(3):translate(-xpitch, -bp.gstwidth / 2),
         gate(3):translate( xpitch - spacing, bp.gstwidth / 2)
     ))
@@ -165,7 +165,7 @@ function layout(dff, _P)
     }), bp.sdwidth))
 
     -- clk M2 bar
-    dff:merge_into_shallow(geometry.rectanglebltr(generics.via(1, 2, { bare = true }),
+    dff:merge_into_shallow(geometry.viabltr(1, 2,
         gate(6 - clkshift):translate((-2 + clkshift) * xpitch, -bp.gstwidth / 2),
         gate(6 - clkshift):translate(( 2 + clkshift) * xpitch - spacing, bp.gstwidth / 2)
     ))
@@ -187,18 +187,18 @@ function layout(dff, _P)
     ))
 
     -- cinv ~clk connection
-    dff:merge_into_shallow(geometry.rectanglebltr(generics.via(1, 2, { lastbare = true }), 
+    dff:merge_into_shallow(geometry.viabltr(1, 2,
         gate(5 + clkshift):translate((-1 - clkshift) * xpitch + spacing, -bp.gstwidth / 2),
         gate(5 + clkshift):translate(( 3 - clkshift) * xpitch - spacing, bp.gstwidth / 2)
     ))
 
     -- D input port landing
-    dff:merge_into_shallow(geometry.rectanglebltr(generics.via(1, 2, { lastbare = true }),
+    dff:merge_into_shallow(geometry.viabltr(1, 2,
         gate(1):translate(-xpitch,           2 * (bp.gstwidth + bp.gstspace) - bp.gstwidth / 2),
         gate(1):translate( xpitch - spacing, 2 * (bp.gstwidth + bp.gstspace) + bp.gstwidth / 2)
     ))
     -- cinv D connection
-    dff:merge_into_shallow(geometry.rectanglebltr(generics.via(1, 2, { lastbare = true }), 
+    dff:merge_into_shallow(geometry.viabltr(1, 2,
         gate(7):translate(-3 * xpitch + spacing, -bp.gstwidth / 2),
         gate(7):translate( 1 * xpitch - spacing, bp.gstwidth / 2)
     ))
@@ -242,7 +242,7 @@ function layout(dff, _P)
         gate(10 + clkshift):translate(0, -bp.sdwidth / 2),
         gate(14 - clkshift + setshift + 2 * resetshift):translate(0, bp.sdwidth / 2)
     ))
-    dff:merge_into_shallow(geometry.rectanglebltr(generics.via(1, 2), 
+    dff:merge_into_shallow(geometry.viabltr(1, 2,
         point.combine(
             gate(10 + clkshift),
             gate(14 - clkshift + setshift + 2 * resetshift)
@@ -257,7 +257,7 @@ function layout(dff, _P)
             gate(11 - clkshift):translate(0, -bp.sdwidth / 2),
             gate(13 + clkshift + setshift + 2 * resetshift):translate(0, bp.sdwidth / 2)
         ))
-        dff:merge_into_shallow(geometry.rectanglebltr(generics.via(1, 2), 
+        dff:merge_into_shallow(geometry.viabltr(1, 2,
             point.combine(
                 gate(11 - clkshift),
                 gate(13 + clkshift + setshift + 2 * resetshift)
@@ -268,11 +268,11 @@ function layout(dff, _P)
             ):translate( xpitch + bp.glength / 2, bp.sdwidth / 2)
         ))
     else
-        dff:merge_into_shallow(geometry.rectanglebltr(generics.via(1, 2), 
+        dff:merge_into_shallow(geometry.viabltr(1, 2,
             gate(11 - clkshift):translate(-bp.glength / 2, -bp.sdwidth / 2),
             gate(11 - clkshift):translate( bp.glength / 2, bp.sdwidth / 2)
         ))
-        dff:merge_into_shallow(geometry.rectanglebltr(generics.via(1, 2), 
+        dff:merge_into_shallow(geometry.viabltr(1, 2,
             gate(15 + clkshift):translate(-bp.glength / 2, -bp.sdwidth / 2),
             gate(15 + clkshift):translate( bp.glength / 2, bp.sdwidth / 2)
         ))
@@ -340,11 +340,11 @@ function layout(dff, _P)
     ))
 
     -- second latch clk bar vias
-    dff:merge_into_shallow(geometry.rectanglebltr(generics.via(1, 2), 
+    dff:merge_into_shallow(geometry.viabltr(1, 2,
         gate(17 + setshift + 2 * resetshift):translate((clkshift - 1) * xpitch - bp.glength / 2, -bp.sdwidth / 2),
         gate(17 + setshift + 2 * resetshift):translate((clkshift + 1) * xpitch + bp.glength / 2, bp.sdwidth / 2)
     ))
-    dff:merge_into_shallow(geometry.rectanglebltr(generics.via(1, 2), 
+    dff:merge_into_shallow(geometry.viabltr(1, 2,
         gate(18 + setshift + 2 * resetshift):translate((-clkshift - 1) * xpitch - bp.glength / 2, -bp.sdwidth / 2),
         gate(18 + setshift + 2 * resetshift):translate((-clkshift + 1) * xpitch + bp.glength / 2, bp.sdwidth / 2)
     ))
@@ -413,11 +413,11 @@ function layout(dff, _P)
             gate(13):translate(0, -bp.gstwidth / 2),
             gate(22):translate(0, bp.gstwidth / 2)
         ))
-        dff:merge_into_shallow(geometry.rectanglebltr(generics.via(1, 2), 
+        dff:merge_into_shallow(geometry.viabltr(1, 2,
             gate(13):translate(-xpitch - bp.glength / 2, -bp.sdwidth / 2),
             gate(13):translate( xpitch + bp.glength / 2, bp.sdwidth / 2)
         ))
-        dff:merge_into_shallow(geometry.rectanglebltr(generics.via(1, 2), 
+        dff:merge_into_shallow(geometry.viabltr(1, 2,
             gate(22):translate(-xpitch - bp.glength / 2, -bp.sdwidth / 2),
             gate(22):translate( xpitch + bp.glength / 2, bp.sdwidth / 2)
         ))
@@ -429,11 +429,11 @@ function layout(dff, _P)
             gate(12):translate(0, -bp.gstwidth / 2),
             gate(21):translate(0, bp.gstwidth / 2)
         ))
-        dff:merge_into_shallow(geometry.rectanglebltr(generics.via(1, 2), 
+        dff:merge_into_shallow(geometry.viabltr(1, 2,
             gate(12):translate(-xpitch - bp.glength / 2, -bp.sdwidth / 2),
             gate(12):translate( xpitch + bp.glength / 2, bp.sdwidth / 2)
         ))
-        dff:merge_into_shallow(geometry.rectanglebltr(generics.via(1, 2), 
+        dff:merge_into_shallow(geometry.viabltr(1, 2,
             gate(21):translate(-xpitch - bp.glength / 2, -bp.sdwidth / 2),
             gate(21):translate( xpitch + bp.glength / 2, bp.sdwidth / 2)
         ))

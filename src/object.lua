@@ -113,15 +113,19 @@ function meta.foreach_children(self, func, ...)
 end
 
 function meta.add_raw_shape(self, S)
-    local new = S:copy()
-    table.insert(self.shapes, new)
-    return new
+    if not S:is_empty() then
+        local new = S:copy()
+        table.insert(self.shapes, new)
+        return new
+    end
 end
 
 function meta.add_shape(self, S)
     local new = self:add_raw_shape(S)
-    new:apply_inverse_transformation(self.trans)
-    return new
+    if new then -- empty shapes are not added
+        new:apply_inverse_transformation(self.trans)
+        return new
+    end
 end
 
 function meta.remove_shape(self, idx)
@@ -140,7 +144,9 @@ end
 function meta.merge_into_shallow(self, other)
     for _, S in other:iterate_shapes() do
         local new = self:add_shape(S)
-        new:apply_transformation(other.trans)
+        if new then -- empty shapes are not added
+            new:apply_transformation(other.trans)
+        end
     end
 end
 
@@ -281,10 +287,10 @@ end
 local function _flipxy(self, mode, ischild)
     local cx, cy = self:get_transformation_correction()
     if mode == "x" then
-        self.trans:flipx()
+        self.trans:mirror_y()
         cy = 0
     else -- mode == "y"
-        self.trans:flipy()
+        self.trans:mirror_x()
         cx = 0
     end
     if not ischild then
@@ -379,7 +385,10 @@ function meta.get_transformation_correction(self)
     else
         blx, trx, bly, try = _get_minmax_xy(obj)
     end
-    return blx + trx, bly + try
+    local pt = self.origin:copy()
+    self.trans:apply_transformation(pt)
+    local x, y = pt:unwrap()
+    return blx + trx + 2 * x, bly + try + 2 * y
 end
 
 function meta.width_height(self)
@@ -507,9 +516,9 @@ function meta.get_anchor(self, name)
                 pt:translate((self.xrep - 1) * self.xpitch, (self.yrep - 1) * self.ypitch)
             end
         end
-        obj.trans:apply_translation(pt)
+        obj.trans:apply_transformation(pt)
         if self.isproxy then
-            self.trans:apply_translation(pt)
+            self.trans:apply_transformation(pt)
         end
         return pt
     else

@@ -88,9 +88,9 @@ local function _write_cell(chunk, cell, cells, path, dirname, layermap, alignmen
             if ref.xrep then -- AREF
                 local xpitch = (ref.pts[3] - ref.pts[1]) / ref.xrep
                 local ypitch = (ref.pts[6] - ref.pts[2]) / ref.yrep
-                table.insert(chunk, string.format('    child = cell:add_child_array(name, %d, %d, %d, %d):translate(%d, %d)', ref.xrep, ref.yrep, xpitch, ypitch, ref.pts[1], ref.pts[2]))
+                table.insert(chunk, string.format('    child = cell:add_child_array(name, %d, %d, %d, %d)', ref.xrep, ref.yrep, xpitch, ypitch))
             else
-                table.insert(chunk, string.format('    child = cell:add_child(name):translate(%d, %d)', ref.pts[1], ref.pts[2]))
+                table.insert(chunk, string.format('    child = cell:add_child(name)'))
             end
             if ref.angle == 180 then
                 if ref.transformation and ref.transformation[1] == 1 then
@@ -106,6 +106,7 @@ local function _write_cell(chunk, cell, cells, path, dirname, layermap, alignmen
                     table.insert(chunk, string.format('    child:mirror_at_xaxis()'))
                 end
             end
+            table.insert(chunk, string.format('    child:translate(%d, %d)', ref.pts[1], ref.pts[2]))
         end
     end
     for _, label in ipairs(cell.labels) do

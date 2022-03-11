@@ -367,6 +367,7 @@ if not args.noexport then
     export.set_options(args.export_options)
     export.check()
 
+    --[[
     -- remove empty shapes
     pcell.foreach_cell_references(function(cell)
         for i, S in cell:iterate_shapes() do
@@ -377,9 +378,11 @@ if not args.noexport then
     end)
     for i, S in cell:iterate_shapes() do
         if S:is_empty() then
+                print(S)
             cell:remove_shape(i)
         end
     end
+    --]]
 
     generics.resolve_premapped_layers(args.export)
     local filename = args.filename or "openPCells"

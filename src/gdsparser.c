@@ -436,6 +436,24 @@ int lgdsparser_show_records(lua_State* L)
                     }
                     putchar('"');
                     break;
+                case BIT_ARRAY:
+                    for(int i = 0; i < (record->length - 4) / 2; ++i)
+                    {
+                        int16_t num = ((int16_t*)record->data)[i];
+                        for(unsigned int j = 0; j < 16; ++j)
+                        {
+                            int val = num & (1 << (15 - j));
+                            if(val)
+                            {
+                                putchar('1');
+                            }
+                            else
+                            {
+                                putchar('0');
+                            }
+                        }
+                    }
+                    break;
                 default:
                     break;
             }

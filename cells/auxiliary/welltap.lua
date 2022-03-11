@@ -11,7 +11,7 @@ end
 function layout(welltap, _P)
     -- active, implant and SOI opening
     welltap:merge_into_shallow(geometry.rectangle(generics.other("active"), _P.width, _P.height))
-    welltap:merge_into_shallow(geometry.rectangle(generics.other(string.format("%simpl", _P.contype)), _P.width + 2 * _P.extension, _P.height + 2 * _P.extension))
+    welltap:merge_into_shallow(geometry.rectangle(generics.other(string.format("%simplant", _P.contype)), _P.width + 2 * _P.extension, _P.height + 2 * _P.extension))
     welltap:merge_into_shallow(geometry.rectangle(generics.other("soiopen"), _P.width + 2 * _P.extension, _P.height + 2 * _P.extension))
 
     -- M1 and contacts
