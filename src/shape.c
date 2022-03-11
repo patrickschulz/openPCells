@@ -151,15 +151,6 @@ void shape_apply_transformation(shape_t* shape, transformationmatrix_t* matrix)
     }
 }
 
-void shape_apply_translation(shape_t* shape, transformationmatrix_t* matrix)
-{
-    for(unsigned int i = 0; i < shape->size; ++i)
-    {
-        transformationmatrix_apply_transformation(matrix, shape->points[i]);
-    }
-    // no checks for rectangles are needed as translations can not reorder points
-}
-
 void shape_apply_inverse_transformation(shape_t* shape, transformationmatrix_t* matrix)
 {
     for(unsigned int i = 0; i < shape->size; ++i)

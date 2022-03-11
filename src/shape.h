@@ -46,7 +46,6 @@ int shape_get_path_extension(shape_t* shape, coordinate_t* start, coordinate_t* 
 
 // transformations
 void shape_apply_transformation(shape_t* shape, transformationmatrix_t* matrix);
-void shape_apply_translation(shape_t* shape, transformationmatrix_t* matrix);
 void shape_apply_inverse_transformation(shape_t* shape, transformationmatrix_t* matrix);
 
 coordinate_t shape_get_width(shape_t* shape);

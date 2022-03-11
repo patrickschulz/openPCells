@@ -308,15 +308,6 @@ static int lshape_apply_transformation(lua_State* L)
     return 1;
 }
 
-static int lshape_apply_translation(lua_State* L)
-{
-    lshape_t* lshape = luaL_checkudata(L, 1, LSHAPEMODULE);
-    ltransformationmatrix_t* lmatrix = luaL_checkudata(L, 2, LTRANSFORMATIONMATRIXMODULE);
-    shape_apply_translation(lshape->shape, lmatrix->matrix);
-    lua_pop(L, 1);
-    return 1;
-}
-
 static int lshape_apply_inverse_transformation(lua_State* L)
 {
     lshape_t* lshape = luaL_checkudata(L, 1, LSHAPEMODULE);
@@ -414,7 +405,6 @@ int open_lshape_lib(lua_State* L)
         { "get_layer",                    lshape_get_layer                    },
         { "is_type",                      lshape_is_type                      },
         { "is_empty",                     lshape_is_empty                     },
-        { "apply_translation",            lshape_apply_translation            },
         { "apply_transformation",         lshape_apply_transformation         },
         { "apply_inverse_transformation", lshape_apply_inverse_transformation },
         { "get_width",                    lshape_get_width                    },
