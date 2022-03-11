@@ -182,6 +182,70 @@ return {
             magic = { layer = "via1" , purpose = "drawing" },
         },
     },
+    viacutM2M3 = {
+        name = "via2",
+        layer = {
+            gds   = { layer =   14,    purpose = 0 },
+            SKILL = { layer = "via2" , purpose = "drawing" },
+            magic = { layer = "via2" , purpose = "drawing" },
+        },
+    },
+    viacutM3M4 = {
+        name = "via3",
+        layer = {
+            gds   = { layer =   16,    purpose = 0 },
+            SKILL = { layer = "via3" , purpose = "drawing" },
+            magic = { layer = "via3" , purpose = "drawing" },
+        },
+    },
+    viacutM4M5 = {
+        name = "via4",
+        layer = {
+            gds   = { layer =   18,    purpose = 0 },
+            SKILL = { layer = "via4" , purpose = "drawing" },
+            magic = { layer = "via4" , purpose = "drawing" },
+        },
+    },
+    viacutM5M6 = {
+        name = "via5",
+        layer = {
+            gds   = { layer =   20,    purpose = 0 },
+            SKILL = { layer = "via5" , purpose = "drawing" },
+            magic = { layer = "via5" , purpose = "drawing" },
+        },
+    },
+    viacutM6M7 = {
+        name = "via6",
+        layer = {
+            gds   = { layer =   22,    purpose = 0 },
+            SKILL = { layer = "via6" , purpose = "drawing" },
+            magic = { layer = "via6" , purpose = "drawing" },
+        },
+    },
+    viacutM7M8 = {
+        name = "via7",
+        layer = {
+            gds   = { layer =   24,    purpose = 0 },
+            SKILL = { layer = "via7" , purpose = "drawing" },
+            magic = { layer = "via7" , purpose = "drawing" },
+        },
+    },
+    viacutM8M9 = {
+        name = "via8",
+        layer = {
+            gds   = { layer =   26,    purpose = 0 },
+            SKILL = { layer = "via8" , purpose = "drawing" },
+            magic = { layer = "via8" , purpose = "drawing" },
+        },
+    },
+    viacutM9M10 = {
+        name = "via9",
+        layer = {
+            gds   = { layer =   28,    purpose = 0 },
+            SKILL = { layer = "via9" , purpose = "drawing" },
+            magic = { layer = "via9" , purpose = "drawing" },
+        },
+    },
     --[[
     M1port = {
         name = "M1port",

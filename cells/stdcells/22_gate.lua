@@ -63,8 +63,8 @@ function layout(gate, _P)
             0, -- toggle xy
             gate3:get_anchor("B")
     }), bp.sdwidth))
-    gate:merge_into_shallow(geometry.rectangle(generics.via(1, 2), bp.sdwidth, bp.sdwidth):translate(gate1:get_anchor("O")))
-    gate:merge_into_shallow(geometry.rectangle(generics.via(1, 2), bp.sdwidth, bp.sdwidth):translate(gate3:get_anchor("B")))
+    gate:merge_into_shallow(geometry.via(1, 2, bp.sdwidth, bp.sdwidth):translate(gate1:get_anchor("O")))
+    gate:merge_into_shallow(geometry.via(1, 2, bp.sdwidth, bp.sdwidth):translate(gate3:get_anchor("B")))
 
     gate:merge_into_shallow(geometry.path(generics.metal(1), 
         geometry.path_points_yx(gate2:get_anchor("O"), {

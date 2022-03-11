@@ -115,7 +115,7 @@ function layout(comparator, _P)
     })
     local pmosinvref = pcell.create_layout("basic/mosfet", { 
         channeltype = "pmos",
-        vthtype = 3,
+        vthtype = 1,
         drawbotgate = true,
         fingers = _P.latchfingers,
         connectsource = true,
@@ -133,7 +133,7 @@ function layout(comparator, _P)
     -- reset switches
     local pmosresetref = pcell.create_layout("basic/mosfet", { 
         channeltype = "pmos",
-        vthtype = 3,
+        vthtype = 1,
         drawbotgate = true,
         fingers = _P.resetfingers,
         connectsource = true,
@@ -209,11 +209,11 @@ function layout(comparator, _P)
             -3 * xpitch,
             nmosinvleft:get_anchor("topgatestrap"),
     }), _P.sdwidth))
-    comparator:merge_into_shallow(geometry.rectanglebltr(generics.via(1, 3),
+    comparator:merge_into_shallow(geometry.viabltr(1, 3,
         nmosinvleft:get_anchor("topgatestraplowerleft"),
         nmosinvleft:get_anchor("topgatestrapupperright")
     ))
-    comparator:merge_into_shallow(geometry.rectanglebltr(generics.via(1, 3),
+    comparator:merge_into_shallow(geometry.viabltr(1, 3,
         nmosinvright:get_anchor("topgatestraplowerleft"),
         nmosinvright:get_anchor("topgatestrapupperright")
     ))

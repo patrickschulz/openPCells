@@ -163,13 +163,13 @@ function layout(cell, _P)
         array:get_anchor(string.format("pSDo%d", fingers)):translate( _P.gstwidth / 2, 0)
     ))
     for i = 2, _P.outputdiodefingers, 2 do
-        cell:merge_into_shallow(geometry.rectanglebltr(generics.via(1, 2), 
+        cell:merge_into_shallow(geometry.viabltr(1, 2, 
             array:get_anchor(string.format("pSDi%d", fingers + 2 - i)):translate(-_P.gstwidth / 2, 0),
             array:get_anchor(string.format("pSDo%d", fingers + 2 - i)):translate( _P.gstwidth / 2, 0)
         ))
     end
     for i = 2, _P.currentfingers, 2 do
-        cell:merge_into_shallow(geometry.rectanglebltr(generics.via(1, 2), 
+        cell:merge_into_shallow(geometry.viabltr(1, 2, 
             array:get_anchor(string.format("nSDo%d", fingers + 2 - i)):translate(-_P.gstwidth / 2, 0),
             array:get_anchor(string.format("nSDi%d", fingers + 2 - i)):translate( _P.gstwidth / 2, 0)
         ))

@@ -385,7 +385,12 @@ function meta.get_transformation_correction(self)
     else
         blx, trx, bly, try = _get_minmax_xy(obj)
     end
-    local pt = self.origin:copy()
+    local pt
+    if self.origin then
+        pt = self.origin:copy()
+    else
+        pt = point.create(0, 0)
+    end
     self.trans:apply_transformation(pt)
     local x, y = pt:unwrap()
     return blx + trx + 2 * x, bly + try + 2 * y

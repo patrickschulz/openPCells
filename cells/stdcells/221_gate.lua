@@ -85,8 +85,8 @@ function layout(gate, _P)
             (_P.flipconnection and -1 or 1) * (separation / 2 + bp.sdwidth / 2),
             gate4:get_anchor("A")
     }), bp.sdwidth))
-    gate:merge_into_shallow(geometry.rectangle(generics.via(1, 2), bp.sdwidth, bp.sdwidth):translate( gate3:get_anchor("O")))
-    gate:merge_into_shallow(geometry.rectangle(generics.via(1, 2), bp.sdwidth, bp.sdwidth):translate( gate4:get_anchor("A")))
+    gate:merge_into_shallow(geometry.via(1, 2, bp.sdwidth, bp.sdwidth):translate( gate3:get_anchor("O")))
+    gate:merge_into_shallow(geometry.via(1, 2, bp.sdwidth, bp.sdwidth):translate( gate4:get_anchor("A")))
 
     gate:inherit_alignment_box(gate1)
     gate:inherit_alignment_box(gate4)

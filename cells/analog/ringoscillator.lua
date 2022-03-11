@@ -58,8 +58,8 @@ function layout(oscillator, _P)
         gatespace = _P.gspace,
     })
     pcell.push_overwrites("basic/cmos", {
-        nvthtype = 3,
-        pvthtype = 3,
+        nvthtype = 1,
+        pvthtype = 1,
         separation = _P.separation,
         pwidth = _P.pfingerwidth,
         nwidth = _P.nfingerwidth,
@@ -119,10 +119,10 @@ function layout(oscillator, _P)
         }, _P.gstwidth)
     )
     oscillator:merge_into_shallow(
-        geometry.rectangle(generics.via(1, 2), _P.gstwidth, _P.separation + 2 * _P.gstwidth)
+        geometry.via(1, 2, _P.gstwidth, _P.separation + 2 * _P.gstwidth)
         :translate(inverters[_P.numinv]:get_anchor(string.format("Gcc%d", _P.invfingers)):translate(xpitch, 0))
     )
-    oscillator:merge_into_shallow(geometry.rectanglebltr(generics.via(1, 2), 
+    oscillator:merge_into_shallow(geometry.viabltr(1, 2,
         inverters[1]:get_anchor("Gll1"),
         inverters[1]:get_anchor(string.format("Gur%d", _P.invfingers))
     ))

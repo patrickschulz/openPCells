@@ -87,8 +87,8 @@ function geometry.get_rectangular_arrayzation(regionwidth, regionheight, definit
     for i, entry in ipairs(definitions.entries) do
         local _xrep, _xspace = xstrat(regionwidth, entry.width, entry.xspace, entry.xenclosure)
         local _yrep, _yspace = ystrat(regionheight, entry.height, entry.yspace, entry.yenclosure)
-        local area = (_xrep + _yrep) * entry.width * entry.height
-        if _xrep > 0 and _yrep > 0 then
+        if (_xrep and _xrep > 0) and (_yrep and _yrep > 0) then
+            local area = (_xrep + _yrep) * entry.width * entry.height
             if not idx or area > lastarea then
                 idx = i
                 lastarea = area
@@ -143,14 +143,23 @@ function geometry.rectangle_array(layer, entry, where)
 end
 
 function geometry.via(metal1, metal2, width, height, options)
-    local viadefs = technology.get_via_definitions(metal1, metal2)
-    local entry = geometry.get_rectangular_arrayzation(width, height, viadefs, options or {})
-    if not entry then
-        return object.create()
+    metal1 = technology.resolve_metal(metal1)
+    metal2 = technology.resolve_metal(metal2)
+    if metal1 > metal2 then
+        metal1, metal2 = metal2, metal1
     end
-    local obj =  geometry.rectangle_array(generics.viacut(metal1, metal2), entry)
-    obj:merge_into_shallow(geometry.rectangle(generics.metal(metal1), width, height))
-    obj:merge_into_shallow(geometry.rectangle(generics.metal(metal2), width, height))
+
+    local obj = object.create()
+    for i = metal1, metal2 - 1 do
+        local viadefs = technology.get_via_definitions(i, i + 1)
+        local entry = geometry.get_rectangular_arrayzation(width, height, viadefs, options or {})
+        if not entry then
+            return object.create()
+        end
+        obj:merge_into_shallow(geometry.rectangle_array(generics.viacut(i, i + 1), entry))
+        obj:merge_into_shallow(geometry.rectangle(generics.metal(i), width, height))
+        obj:merge_into_shallow(geometry.rectangle(generics.metal(i + 1), width, height))
+    end
     return obj
 end
 

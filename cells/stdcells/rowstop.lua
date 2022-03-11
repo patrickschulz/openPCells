@@ -51,9 +51,9 @@ function layout(gate, _P)
     end
 
     -- implants
-    gate:merge_into_shallow(geometry.rectanglebltr(generics.other("pimpl"), 
+    gate:merge_into_shallow(geometry.rectanglebltr(generics.implant("p"), 
         gate:get_anchor("left"):translate(-200, 0), gate:get_anchor("topright"):translate(0, 200)))
-    gate:merge_into_shallow(geometry.rectanglebltr(generics.other("nimpl"), 
+    gate:merge_into_shallow(geometry.rectanglebltr(generics.implant("n"), 
         gate:get_anchor("bottomleft"):translate(-200, -200), gate:get_anchor("right")))
 
     -- gate cuts

@@ -37,8 +37,8 @@ function layout(gate, _P)
         geometry.path_points_yx(clockbuf:get_anchor("bout"), {
         cinv1:get_anchor("EP")
     }), bp.sdwidth))
-    gate:merge_into_shallow(geometry.rectangle(generics.via(1, 2), bp.sdwidth, bp.sdwidth):translate(clockbuf:get_anchor("bout")))
-    gate:merge_into_shallow(geometry.rectangle(generics.via(1, 2), bp.glength, bp.sdwidth):translate(cinv1:get_anchor("EP")))
+    gate:merge_into_shallow(geometry.via(1, 2, bp.sdwidth, bp.sdwidth):translate(clockbuf:get_anchor("bout")))
+    gate:merge_into_shallow(geometry.via(1, 2, bp.glength, bp.sdwidth):translate(cinv1:get_anchor("EP")))
     gate:merge_into_shallow(geometry.path(generics.metal(3), {
         clockbuf:get_anchor("iout"),
         cinv1:get_anchor("EP")

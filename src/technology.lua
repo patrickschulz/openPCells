@@ -127,7 +127,7 @@ function technology.map(identifier)
     return entry.layer
 end
 
-local function _resolve_metal(metalnum)
+function technology.resolve_metal(metalnum)
     if metalnum < 0 then
         return config.metals + metalnum + 1
     else
@@ -136,9 +136,7 @@ local function _resolve_metal(metalnum)
 end
 
 function technology.get_via_definitions(metal1, metal2)
-    metal1 = _resolve_metal(metal1)
-    metal2 = _resolve_metal(metal2)
-    local identifier = string.format("viaM%dM%d", metal1 < metal2 and metal1 or metal2, metal1 < metal2 and metal2 or metal1)
+    local identifier = string.format("viaM%dM%d", metal1, metal2)
     local entry = viadefs[identifier]
     if not entry then
         moderror(string.format("technology: no via definition '%s' found", identifier))

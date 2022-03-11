@@ -29,12 +29,12 @@ function layout(gate, _P)
         geometry.path_points_xy(andgate:get_anchor("A"), {
         xorgate:get_anchor("A")
     }), bp.sdwidth))
-    gate:merge_into_shallow(geometry.rectangle(generics.via(1, 2), bp.sdwidth, bp.sdwidth):translate(andgate:get_anchor("A")))
+    gate:merge_into_shallow(geometry.via(1, 2, bp.sdwidth, bp.sdwidth):translate(andgate:get_anchor("A")))
 
     gate:merge_into_shallow(geometry.path(generics.metal(2), {
         andgate:get_anchor("B"), xorgate:get_anchor("B")
     }, bp.sdwidth))
-    gate:merge_into_shallow(geometry.rectangle(generics.via(1, 2), bp.sdwidth, bp.sdwidth):translate(andgate:get_anchor("B")))
+    gate:merge_into_shallow(geometry.via(1, 2, bp.sdwidth, bp.sdwidth):translate(andgate:get_anchor("B")))
 
     gate:add_port("A", generics.metal(1), andgate:get_anchor("A"))
     gate:add_port("B", generics.metal(1), andgate:get_anchor("B"))

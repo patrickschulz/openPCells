@@ -34,45 +34,45 @@ function layout(mesh, _P)
         mesh:merge_into_shallow(botcap)
         -- inner rail via
         if i > 1 then
-            mesh:merge_into_shallow(geometry.rectangle(generics.via(i - 1, i), (2 * nfingers + 1) * (fwidth + fspace), rwidth))
+            mesh:merge_into_shallow(geometry.via(i - 1, i, (2 * nfingers + 1) * (fwidth + fspace), rwidth))
         end
         -- outer rail via
         if i > 1 then
             local mwidth = math.min(_P.metalwidth[i - 1], _P.metalwidth[i])
-            mesh:merge_into_shallow(geometry.rectangle(generics.via(i - 1, i), mwidth, _P.cellsize - 2 * mwidth)
+            mesh:merge_into_shallow(geometry.via(i - 1, i, mwidth, _P.cellsize - 2 * mwidth)
                 :translate(-_P.cellsize / 2 + mwidth / 2, 0)
             )
-            mesh:merge_into_shallow(geometry.rectangle(generics.via(i - 1, i), mwidth, _P.cellsize - 2 * mwidth)
+            mesh:merge_into_shallow(geometry.via(i - 1, i, mwidth, _P.cellsize - 2 * mwidth)
                 :translate(_P.cellsize / 2 - mwidth / 2, 0)
             )
-            mesh:merge_into_shallow(geometry.rectangle(generics.via(i - 1, i), _P.cellsize - 2 * mwidth, mwidth)
+            mesh:merge_into_shallow(geometry.via(i - 1, i, _P.cellsize - 2 * mwidth, mwidth)
                 :translate(0, -_P.cellsize / 2 + mwidth / 2, 0)
             )
-            mesh:merge_into_shallow(geometry.rectangle(generics.via(i - 1, i), _P.cellsize - 2 * mwidth, mwidth)
+            mesh:merge_into_shallow(geometry.via(i - 1, i, _P.cellsize - 2 * mwidth, mwidth)
                 :translate(0, _P.cellsize / 2 - mwidth / 2, 0)
             )
         end
     end
     -- connection between top lower metal and intermediate metal
     local mwidth = math.min(_P.metalwidth[_P.gridstartmetal - 2], _P.metalwidth[_P.gridstartmetal - 1])
-    mesh:merge_into_shallow(geometry.rectangle(generics.via(_P.gridstartmetal - 2, _P.gridstartmetal - 1), mwidth, _P.cellsize - 2 * mwidth)
+    mesh:merge_into_shallow(geometry.via(_P.gridstartmetal - 2, _P.gridstartmetal - 1, mwidth, _P.cellsize - 2 * mwidth)
         :translate(-_P.cellsize / 2 + mwidth / 2, 0)
     )
-    mesh:merge_into_shallow(geometry.rectangle(generics.via(_P.gridstartmetal - 2, _P.gridstartmetal - 1), mwidth, _P.cellsize - 2 * mwidth)
+    mesh:merge_into_shallow(geometry.via(_P.gridstartmetal - 2, _P.gridstartmetal - 1, mwidth, _P.cellsize - 2 * mwidth)
         :translate(_P.cellsize / 2 - mwidth / 2, 0)
     )
-    mesh:merge_into_shallow(geometry.rectangle(generics.via(_P.gridstartmetal - 2, _P.gridstartmetal - 1), _P.cellsize - 2 * mwidth, mwidth)
+    mesh:merge_into_shallow(geometry.via(_P.gridstartmetal - 2, _P.gridstartmetal - 1, _P.cellsize - 2 * mwidth, mwidth)
         :translate(0, -_P.cellsize / 2 + mwidth / 2, 0)
     )
-    mesh:merge_into_shallow(geometry.rectangle(generics.via(_P.gridstartmetal - 2, _P.gridstartmetal - 1), _P.cellsize - 2 * mwidth, mwidth)
+    mesh:merge_into_shallow(geometry.via(_P.gridstartmetal - 2, _P.gridstartmetal - 1, _P.cellsize - 2 * mwidth, mwidth)
         :translate(0, _P.cellsize / 2 - mwidth / 2, 0)
     )
-    mesh:merge_into_shallow(geometry.rectangle(generics.via(_P.gridstartmetal - 2, _P.gridstartmetal - 1), _P.cellsize / 2, rwidth))
+    mesh:merge_into_shallow(geometry.via(_P.gridstartmetal - 2, _P.gridstartmetal - 1, _P.cellsize / 2, rwidth))
     -- top metal grid
     mesh:merge_into_shallow(geometry.ring(generics.metal(_P.gridstartmetal - 1), 
         _P.cellsize - _P.metalwidth[_P.gridstartmetal - 1], _P.cellsize - _P.metalwidth[_P.gridstartmetal - 1], _P.metalwidth[_P.gridstartmetal - 1]))
     mesh:merge_into_shallow(geometry.rectangle(generics.metal(_P.gridstartmetal - 1), _P.cellsize / 2, _P.cellsize / 2))
-    mesh:merge_into_shallow(geometry.rectangle(generics.via(_P.gridstartmetal - 1, _P.gridtopmetal, { bare = true }), _P.cellsize / 2, _P.cellsize / 2))
+    mesh:merge_into_shallow(geometry.via(_P.gridstartmetal - 1, _P.gridtopmetal, _P.cellsize / 2, _P.cellsize / 2, { bare = true }))
     local rotate = false
     for i = _P.gridstartmetal, _P.gridtopmetal do
         if rotate then
