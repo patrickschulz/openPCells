@@ -300,8 +300,8 @@ if args.drawaxes then
     local minx, miny = bb.bl:unwrap()
     local maxx, maxy = bb.tr:unwrap()
     local factor = 2
-    cell:merge_into_shallow(geometry.rectanglebltr(generics.special(), point.create(-5, factor * miny), point.create(5, factor * maxy)))
-    cell:merge_into_shallow(geometry.rectanglebltr(generics.special(), point.create(factor * minx, -5), point.create(factor * maxx, 5)))
+    geometry.rectanglebltr(cell, generics.special(), point.create(-5, factor * miny), point.create(5, factor * maxy))
+    geometry.rectanglebltr(cell, generics.special(), point.create(factor * minx, -5), point.create(factor * maxx, 5))
 end
 
 if args.drawanchor then
@@ -316,8 +316,7 @@ if args.drawalignmentbox then
     if cell.alignmentbox then
         local bl = cell:get_anchor("bottomleft")
         local tr = cell:get_anchor("topright")
-        local box = geometry.rectanglebltr(generics.special(), bl, tr)
-        cell:merge_into_shallow(box)
+        geometry.rectanglebltr(cell, generics.special(), bl, tr)
     end
 end
 if args.drawallalignmentboxes then
@@ -325,8 +324,7 @@ if args.drawallalignmentboxes then
         if cell.alignmentbox then
             local bl = cell:get_anchor("bottomleft")
             local tr = cell:get_anchor("topright")
-            local box = geometry.rectanglebltr(generics.special(), bl, tr)
-            cell:merge_into_shallow(box)
+            geometry.rectanglebltr(cell, generics.special(), bl, tr)
         end
     end)
 end

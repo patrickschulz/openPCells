@@ -14,6 +14,7 @@
 #define IMPLANT_MAGIC_IDENTIFIER    5
 #define VTHTYPE_MAGIC_IDENTIFIER    6
 #define OTHER_MAGIC_IDENTIFIER      7
+#define SPECIAL_MAGIC_IDENTIFIER    8
 
 static void _insert_lpp_pairs(lua_State* L, struct keyvaluearray* map)
 {
@@ -258,9 +259,23 @@ static int lgenerics_create_other(lua_State* L)
     return 1;
 }
 
+static int lgenerics_create_special(lua_State* L)
+{
+    uint32_t key = (SPECIAL_MAGIC_IDENTIFIER << 24);
+    generics_t* layer = generics_get_layer(key);
+    if(!layer)
+    {
+        lua_pushstring(L, "special");
+        layer = _map_and_store_layer(L);
+        generics_insert_layer(key, layer);
+    }
+    lua_pushlightuserdata(L, layer);
+    return 1;
+}
+
 static int lgenerics_create_premapped(lua_State* L)
 {
-    uint32_t key = 0xffffffff;
+    uint32_t key = 0xffffffff; // this key is arbitrary, but it must not collide with any other possible key
     generics_t* layer = _store_mapped(L);
     generics_insert_layer(key, layer);
     lua_pushlightuserdata(L, layer);
@@ -286,6 +301,7 @@ int open_lgenerics_lib(lua_State* L)
         { "implant",                  lgenerics_create_implant           },
         { "vthtype",                  lgenerics_create_vthtype           },
         { "other",                    lgenerics_create_other             },
+        { "special",                  lgenerics_create_special           },
         { "premapped",                lgenerics_create_premapped         },
         //{ "mapped",                   lgenerics_create_mapped            },
         { "resolve_premapped_layers", lgenerics_resolve_premapped_layers },

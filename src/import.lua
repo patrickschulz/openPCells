@@ -27,22 +27,22 @@ local function _format_shape(shape, layermap, x0, y0)
     if shape.shapetype == "rectangle" then
         local bl = string.format("point.create(%d, %d)", shape.pts[1], shape.pts[2])
         local tr = string.format("point.create(%d, %d)", shape.pts[3], shape.pts[4])
-        return string.format("geometry.rectanglebltr(%s, %s, %s)", lpp, bl, tr)
+        return string.format("geometry.rectanglebltr(cell, %s, %s, %s)", lpp, bl, tr)
     elseif shape.shapetype == "polygon" then
         local ptsstrt = {}
         for i = 1, #shape.pts - 1, 2 do
             table.insert(ptsstrt, string.format("point.create(%d, %d)", shape.pts[i], shape.pts[i + 1]))
         end
-        return string.format("geometry.polygon(%s, { %s })", lpp, table.concat(ptsstrt, ", "))
+        return string.format("geometry.polygon(cell, %s, { %s })", lpp, table.concat(ptsstrt, ", "))
     elseif shape.shapetype == "path" then
         local ptsstrt = {}
         for i = 1, #shape.pts - 1, 2 do
             table.insert(ptsstrt, string.format("point.create(%d, %d)", shape.pts[i], shape.pts[i + 1]))
         end
         if type(shape.pathtype) == "table" then
-            return string.format("geometry.path(%s, { %s }, %d, { %d, %d })", lpp, table.concat(ptsstrt, ", "), shape.width, shape.pathtype[1], shape.pathtype[2])
+            return string.format("geometry.path(cell, %s, { %s }, %d, { %d, %d })", lpp, table.concat(ptsstrt, ", "), shape.width, shape.pathtype[1], shape.pathtype[2])
         else
-            return string.format("geometry.path(%s, { %s }, %d, \"%s\")", lpp, table.concat(ptsstrt, ", "), shape.width, shape.pathtype)
+            return string.format("geometry.path(cell, %s, { %s }, %d, \"%s\")", lpp, table.concat(ptsstrt, ", "), shape.width, shape.pathtype)
         end
     else
         error(string.format("wrong shape: %s", shapetype))
@@ -64,7 +64,7 @@ local function _write_cell(chunk, cell, cells, path, dirname, layermap, alignmen
                 end
             end
         end
-        table.insert(chunk, string.format("    cell:merge_into_shallow(%s)", _format_shape(shape, layermap, x0, y0)))
+        table.insert(chunk, string.format("    %s", _format_shape(shape, layermap, x0, y0)))
     end
     local references = {}
     -- sort references before placing them, otherwise this can cause placement of wrong cells

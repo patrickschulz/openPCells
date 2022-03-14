@@ -46,7 +46,7 @@ static int ltransformationmatrix_chain(lua_State* L)
 {
     ltransformationmatrix_t* lhs = lua_touserdata(L, 1);
     ltransformationmatrix_t* rhs = lua_touserdata(L, 2);
-    ltransformationmatrix_t* lmatrix = ltransformationmatrix_create(L);
+    ltransformationmatrix_t* lmatrix = _create(L);
     lmatrix->matrix = transformationmatrix_chain(lhs->matrix, rhs->matrix);
     return 1;
 }
@@ -185,11 +185,11 @@ static int ltransformationmatrix_orientation_string(lua_State* L)
     }
     else if(matrix->coefficients[0] <  0 && matrix->coefficients[4] >= 0)
     {
-        lua_pushstring(L, "MX");
+        lua_pushstring(L, "MY");
     }
     else if(matrix->coefficients[0] >= 0 && matrix->coefficients[4] <  0)
     {
-        lua_pushstring(L, "MY");
+        lua_pushstring(L, "MX");
     }
     else if(matrix->coefficients[0] <  0 && matrix->coefficients[4] <  0)
     {

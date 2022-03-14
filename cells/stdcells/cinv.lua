@@ -89,7 +89,6 @@ function layout(gate, _P)
         end
     end
     local harness = pcell.create_layout("stdcells/harness", { 
-        fingers = fingers,
         gatecontactpos = gatecontactpos,
         pcontactpos = pcontactpos,
         ncontactpos = ncontactpos,
@@ -101,8 +100,8 @@ function layout(gate, _P)
     -- gate straps
     if _P.fingers > 1 then
         if _P.splitenables then
-                gate:merge_into_shallow(geometry.path(
-                    generics.metal(1),
+                geometry.path(
+                    gate, generics.metal(1),
                     {
                         harness:get_anchor("G1"),
                         harness:get_anchor(string.format("G%d", 
@@ -112,9 +111,9 @@ function layout(gate, _P)
                         )),
                     },
                     bp.sdwidth
-                ))
-                gate:merge_into_shallow(geometry.path(
-                    generics.metal(1),
+                )
+                geometry.path(
+                    gate, generics.metal(1),
                     {
                         harness:get_anchor("G2"),
                         harness:get_anchor(string.format("G%d", 
@@ -122,9 +121,9 @@ function layout(gate, _P)
                         )),
                     },
                     bp.sdwidth
-                ))
-                gate:merge_into_shallow(geometry.path(
-                    generics.metal(1),
+                )
+                geometry.path(
+                    gate, generics.metal(1),
                     {
                         harness:get_anchor("G3"),
                         harness:get_anchor(string.format("G%d", 
@@ -134,11 +133,11 @@ function layout(gate, _P)
                         )),
                     },
                     bp.sdwidth
-                ))
+                )
         else
             if _P.swapinputs then
-                gate:merge_into_shallow(geometry.path(
-                    generics.metal(1),
+                geometry.path(
+                    gate, generics.metal(1),
                     {
                         harness:get_anchor("G2"),
                         harness:get_anchor(string.format("G%d", 
@@ -148,9 +147,9 @@ function layout(gate, _P)
                         )),
                     },
                     bp.sdwidth
-                ))
-                gate:merge_into_shallow(geometry.path(
-                    generics.metal(1),
+                )
+                geometry.path(
+                    gate, generics.metal(1),
                     {
                         harness:get_anchor("G1upper"),
                         harness:get_anchor(string.format("G%dupper", 
@@ -160,9 +159,9 @@ function layout(gate, _P)
                         )),
                     },
                     bp.sdwidth
-                ))
-                gate:merge_into_shallow(geometry.path(
-                    generics.metal(1),
+                )
+                geometry.path(
+                    gate, generics.metal(1),
                     {
                         harness:get_anchor("G1lower"),
                         harness:get_anchor(string.format("G%dlower", 
@@ -172,10 +171,10 @@ function layout(gate, _P)
                         )),
                     },
                     bp.sdwidth
-                ))
+                )
             else
-                gate:merge_into_shallow(geometry.path(
-                    generics.metal(1),
+                geometry.path(
+                    gate, generics.metal(1),
                     {
                         harness:get_anchor("G1"),
                         harness:get_anchor(string.format("G%d", 
@@ -185,9 +184,9 @@ function layout(gate, _P)
                         )),
                     },
                     bp.sdwidth
-                ))
-                gate:merge_into_shallow(geometry.path(
-                    generics.metal(1),
+                )
+                geometry.path(
+                    gate, generics.metal(1),
                     {
                         harness:get_anchor("G2upper"),
                         harness:get_anchor(string.format("G%dupper", 
@@ -197,9 +196,9 @@ function layout(gate, _P)
                         )),
                     },
                     bp.sdwidth
-                ))
-                gate:merge_into_shallow(geometry.path(
-                    generics.metal(1),
+                )
+                geometry.path(
+                    gate, generics.metal(1),
                     {
                         harness:get_anchor("G2lower"),
                         harness:get_anchor(string.format("G%dlower", 
@@ -209,7 +208,7 @@ function layout(gate, _P)
                         )),
                     },
                     bp.sdwidth
-                ))
+                )
             end
         end
     end
@@ -217,21 +216,21 @@ function layout(gate, _P)
     -- drain connection
     if bp.connectoutput then
         local dend = _P.splitenables and (_P.swapoutputs and 4 or 1) or (_P.swapoutputs and 3 or 1)
-        gate:merge_into_shallow(geometry.path(generics.metal(1), geometry.path_points_xy(
+        geometry.path(gate, generics.metal(1), geometry.path_points_xy(
             harness:get_anchor(string.format("pSDi%d", dend)):translate(0,  bp.sdwidth / 2), {
                 harness:get_anchor(string.format("G%d", fingers)):translate(_P.shiftoutput + xpitch / 2, 0),
                 0, -- toggle xy
                 harness:get_anchor(string.format("nSDi%d", dend)):translate(0, -bp.sdwidth / 2),
-        }), bp.sdwidth))
+        }), bp.sdwidth)
     end
 
     -- short transistors
     if _P.splitenables then
         for i = 1, _P.fingers do
-            gate:merge_into_shallow(geometry.path(generics.metal(1), {
+            geometry.path(gate, generics.metal(1), {
                 harness:get_anchor(string.format("nSDc%d", (i - 1) * 3 + 2)),
                 harness:get_anchor(string.format("nSDc%d", (i - 1) * 3 + 3)),
-            }, bp.sdwidth))
+            }, bp.sdwidth)
         end
     end
 

@@ -14,7 +14,7 @@ SYSCFLAGS=
 SYSLDFLAGS=
 SYSLIBS=
 
-OPCOBJ:=point.o transformationmatrix.o ltransformationmatrix.o shape.o geometry.o keyvaluepairs.o generics.o lgenerics.o lgeometry.o ldir.o lpoint.o graphics.o lbind.o lload.o lbinary.o lshape.o lport.o lfilesystem.o lbytebuffer.o lplacer.o lplacer_rand.o lrouter.o lrouter_net.o lrouter_queue.o lrouter_field.o lrouter_route.o lutil.o gdsparser.o ldebug.o
+OPCOBJ:=point.o transformationmatrix.o ltransformationmatrix.o shape.o geometry.o keyvaluepairs.o generics.o lgenerics.o lgeometry.o ldir.o lpoint.o graphics.o lbind.o lload.o lbinary.o lshape.o lobject.o lport.o lfilesystem.o lbytebuffer.o lplacer.o lplacer_rand.o lrouter.o lrouter_net.o lrouter_queue.o lrouter_field.o lrouter_route.o lutil.o gdsparser.o ldebug.o
 
 .PHONY: default
 default:
@@ -40,6 +40,7 @@ lbind.o: lbind.h lbind.c
 lload.o: lload.h lload.c
 lbinary.o: lbinary.h lbinary.c
 lshape.o: lshape.h lshape.c shape.h shape.c lpoint.h ltransformationmatrix.h
+lobject.o: lobject.h lobject.c
 lport.o: lport.h lport.c
 lfilesystem.o: lfilesystem.h lfilesystem.c
 lutil.o: lutil.c lutil.h

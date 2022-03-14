@@ -70,23 +70,29 @@ function layout(gate, _P)
     pcell.pop_overwrites("stdcells/base")
 
     -- draw connections
-    gate:merge_into_shallow(geometry.path(generics.metal(1), 
+    geometry.path(gate, generics.metal(1), 
         geometry.path_points_yx(gate1:get_anchor("O"), { 
             gate3:get_anchor("B"),
         }), 
-    bp.sdwidth))
-    gate:merge_into_shallow(geometry.path(generics.metal(1), 
+    bp.sdwidth)
+    geometry.path(gate, generics.metal(1), 
         geometry.path_points_yx(gate2:get_anchor("O"), { 
             gate4:get_anchor("B"),
         }), 
-    bp.sdwidth))
-    gate:merge_into_shallow(geometry.path(generics.metal(2), 
+    bp.sdwidth)
+    geometry.path(gate, generics.metal(2), 
         geometry.path_points_yx(gate3:get_anchor("O"), {
             (_P.flipconnection and -1 or 1) * (separation / 2 + bp.sdwidth / 2),
             gate4:get_anchor("A")
-    }), bp.sdwidth))
-    gate:merge_into_shallow(geometry.via(1, 2, bp.sdwidth, bp.sdwidth):translate( gate3:get_anchor("O")))
-    gate:merge_into_shallow(geometry.via(1, 2, bp.sdwidth, bp.sdwidth):translate( gate4:get_anchor("A")))
+    }), bp.sdwidth)
+    geometry.viabltr(gate, 1, 2, 
+        gate3:get_anchor("O"):translate(-bp.sdwidth / 2, -bp.sdwidth / 2),
+        gate3:get_anchor("O"):translate( bp.sdwidth / 2,  bp.sdwidth / 2)
+    )
+    geometry.viabltr(gate, 1, 2, 
+        gate4:get_anchor("A"):translate(-bp.sdwidth / 2, -bp.sdwidth / 2),
+        gate4:get_anchor("A"):translate( bp.sdwidth / 2,  bp.sdwidth / 2)
+    )
 
     gate:inherit_alignment_box(gate1)
     gate:inherit_alignment_box(gate4)

@@ -20,38 +20,70 @@ end
 function layout(res, _P)
     local polyheight = _P.nyfingers * _P.length + (_P.nyfingers - 1) * _P.yspace + 2 * _P.extension
     -- poly strips
-    res:merge_into_shallow(geometry.multiple_x(geometry.rectangle(generics.other("gate"), _P.width, polyheight), 
-        _P.nxfingers + 2 * _P.dummies + 2 * _P.nonresdummies, _P.width + _P.xspace))
+    geometry.multiple_x(
+        function(x, y)
+            geometry.rectangle(res, generics.other("gate"), _P.width, polyheight, x, y)
+        end,
+        _P.nxfingers + 2 * _P.dummies + 2 * _P.nonresdummies, _P.width + _P.xspace
+    )
     -- contacts
-    res:merge_into_shallow(geometry.multiple_xy(geometry.rectangle(generics.contact("gate", nil, true), 
-        _P.width, _P.contactheight), _P.nxfingers, _P.nyfingers + 1, _P.width + _P.xspace, _P.length + _P.yspace))
+    geometry.multiple_xy(
+        function(x, y)
+            geometry.contactbltr(res, "gate", 
+                point.create(x - _P.width / 2, y - _P.contactheight / 2),
+                point.create(x + _P.width / 2, y + _P.contactheight / 2)
+            )
+        end,
+        _P.nxfingers, _P.nyfingers + 1, _P.width + _P.xspace, _P.length + _P.yspace
+    )
     -- poly marker layer
-    res:merge_into_shallow(geometry.multiple_y(geometry.rectangle(generics.other("polyres"), 
-        (_P.nxfingers + 2 * _P.dummies) * (_P.width + _P.xspace) - _P.xspace + 2 * _P.markextension, _P.length), _P.nyfingers, _P.length + _P.yspace))
+    geometry.multiple_y(
+        function(y)
+            geometry.rectangle(res, generics.other("polyres"),
+                (_P.nxfingers + 2 * _P.dummies) * (_P.width + _P.xspace) - _P.xspace + 2 * _P.markextension,
+                _P.length,
+                0, y
+            )
+        end, _P.nyfingers, _P.length + _P.yspace
+    )
     -- implant and LVS marker layer
-    res:merge_into_shallow(geometry.rectangle(generics.other("nres"), 
-        (_P.nxfingers + 2 * _P.dummies + 2 * _P.nonresdummies) * (_P.width + _P.xspace) + 2 * _P.extraextension, polyheight + 2 * _P.extraextension))
+    geometry.rectangle(res, generics.other("nres"),
+        (_P.nxfingers + 2 * _P.dummies + 2 * _P.nonresdummies) * (_P.width + _P.xspace) + 2 * _P.extraextension,
+        polyheight + 2 * _P.extraextension
+    )
     -- well
     if _P.drawwell then
-        res:merge_into_shallow(geometry.rectangle(generics.other("nwell"), 
-            (_P.nxfingers + 2 * _P.dummies + 2 * _P.nonresdummies) * (_P.width + _P.xspace) + 2 * _P.extraextension, polyheight + 2 * _P.extraextension))
+        geometry.rectanglebltr(res, generics.other("nwell"), 
+            (_P.nxfingers + 2 * _P.dummies + 2 * _P.nonresdummies) * (_P.width + _P.xspace) + 2 * _P.extraextension,
+            polyheight + 2 * _P.extraextension
+        )
     end
 
     -- connections
     local xpitch = _P.width + _P.xspace
     if _P.conntype == "parallel" then
-        res:merge_into_shallow(geometry.multiple_y(geometry.rectanglebltr(generics.metal(1), 
-            point.create(-(_P.nxfingers - 1) * xpitch / 2 - _P.width / 2, -_P.contactheight / 2),
-            point.create( (_P.nxfingers - 1) * xpitch / 2 + _P.width / 2,  _P.contactheight / 2)
-        ), 2, _P.length + _P.extension))
+        geometry.multiple_y(
+            function(y)
+                geometry.rectanglebltr(res, generics.metal(1), 
+                    point.create(-(_P.nxfingers - 1) * xpitch / 2 - _P.width / 2, y - _P.contactheight / 2),
+                    point.create( (_P.nxfingers - 1) * xpitch / 2 + _P.width / 2, y + _P.contactheight / 2)
+                )
+            end,
+            2, _P.length + _P.extension
+        )
     else
         for i = 1, _P.nxfingers - 1 do
             if i % 2 == 1 then
-                res:merge_into_shallow(geometry.rectangle(generics.metal(1), _P.xspace, _P.contactheight)
-                :translate(-(_P.nxfingers - 2 * i) * (_P.width + _P.xspace) / 2, _P.nyfingers * (_P.length + _P.yspace) / 2))
+                geometry.rectangle(res, generics.metal(1), _P.xspace, _P.contactheight,
+                    -(_P.nxfingers - 2 * i) * (_P.width + _P.xspace) / 2,
+                    _P.nyfingers * (_P.length + _P.yspace) / 2
+                )
             else
-                res:merge_into_shallow(geometry.rectangle(generics.metal(1), _P.xspace, _P.contactheight)
-                :translate(-(_P.nxfingers - 2 * i) * (_P.width + _P.xspace) / 2, -_P.nyfingers * (_P.length + _P.yspace) / 2))
+                geometry.rectangle(res, generics.metal(1), 
+                    _P.xspace, _P.contactheight
+                    -(_P.nxfingers - 2 * i) * (_P.width + _P.xspace) / 2, 
+                    -_P.nyfingers * (_P.length + _P.yspace) / 2
+                )
             end
         end
     end

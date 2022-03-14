@@ -49,7 +49,6 @@ function layout(gate, _P)
 
     local harness = pcell.create_layout("stdcells/harness", {
         --fingers = 20 + (_P.enableQN and 2 or 0) + (_P.enable_reset and 1 or 0),
-        fingers = #gatecontactpos,
         gatecontactpos = gatecontactpos,
         pcontactpos = pcontactpos,
         ncontactpos = ncontactpos,
@@ -63,27 +62,23 @@ function layout(gate, _P)
 
     local gateoffset = _P.enable_reset and 1 or 0
 
-    gate:merge_into_shallow(geometry.path(generics.metal(1), 
+    geometry.path(gate, generics.metal(1), 
         geometry.path_points_xy(anchor("pSDc1"), {
             -xpitch / 2,
             anchor("nSDc1")
-        }),
-    bp.sdwidth))
-    gate:merge_into_shallow(geometry.rectanglebltr(generics.metal(2), 
-        anchor("G2"):translate(-bp.sdwidth / 2 - 2 * xpitch, -bp.sdwidth / 2),
-        anchor("G2"):translate( bp.sdwidth / 2, bp.sdwidth / 2)
-    ))
-    gate:merge_into_shallow(geometry.rectanglebltr(generics.metal(1), 
+        }), bp.sdwidth
+    )
+    geometry.rectanglebltr(gate, generics.metal(1), 
         anchor("pSDc3"):translate(0, -bp.sdwidth / 2),
         anchor("pSDc4"):translate(0, bp.sdwidth / 2)
-    ))
-    gate:merge_into_shallow(geometry.path(generics.metal(1), 
+    )
+    geometry.path(gate, generics.metal(1), 
         geometry.path_points_xy(anchor("pSDc2"), {
             anchor("G1"),
             0,
             anchor("nSDc2")
-        }),
-    bp.sdwidth))
+        }), bp.sdwidth
+    )
 
     --[[
     gate:merge_into_shallow(geometry.path(generics.metal(1), 

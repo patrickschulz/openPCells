@@ -165,14 +165,3 @@ int open_lpoint_lib(lua_State* L)
     return 0;
 }
 
-int lpoint_register_cfunctions(lua_State* L)
-{
-    lua_getglobal(L, "profiler");
-    lua_getfield(L, -1, "register_cfunction");
-    lua_pushstring(L, "point");
-    lua_pushstring(L, "copy");
-    lua_pushcfunction(L, lpoint_copy);
-    lua_call(L, 3, 0);
-    lua_pop(L, 1);
-    return 0;
-}

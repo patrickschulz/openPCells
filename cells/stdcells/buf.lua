@@ -35,10 +35,10 @@ function layout(gate, _P)
 
     -- draw connection
     local ishift = _P.ifingers % 2 == 0 and 0 or 1
-    gate:merge_into_shallow(geometry.path(generics.metal(1), 
+    geometry.path(gate, generics.metal(1), 
         geometry.path_points_yx(iinv:get_anchor("O"), {
         oinv:get_anchor("I"),
-    }), bp.sdwidth))
+    }), bp.sdwidth)
 
     gate:set_alignment_box(
         iinv:get_anchor("bottomleft"),

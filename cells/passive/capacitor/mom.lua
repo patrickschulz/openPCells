@@ -8,7 +8,7 @@ function parameters()
         { "rwidth(Rail Width)",       100 },
         { "firstmetal(Start Metal)",    1 },
         { "lastmetal(End Metal)",       2 },
-        { "flat",                   false }
+        { "flat",                    true }
     )
 end
 
@@ -17,51 +17,74 @@ function layout(momcap, _P)
 
     if _P.flat then
         for i = _P.firstmetal, _P.lastmetal do
-            local finger = geometry.rectangle(generics.metal(i), _P.fwidth, _P.fheight)
-            local xreptop, xrepbottom = evenodddiv2(_P.fingers)
+            local xreptop, xrepbot = evenodddiv2(_P.fingers)
             local xshift = (_P.fingers % 2 == 0) and pitch / 2 or 0
-            momcap:merge_into_shallow(geometry.multiple_x(
-                finger,
+            geometry.multiple_x(
+                function(x, y)
+                    geometry.rectanglebltr(
+                        momcap, generics.metal(i),
+                        point.create(x - xshift - _P.fwidth / 2, y + _P.foffset / 2 - _P.fheight / 2),
+                        point.create(x - xshift + _P.fwidth / 2, y + _P.foffset / 2 + _P.fheight / 2)
+                    )
+                end,
                 xreptop, 2 * pitch
-            ):translate(-xshift, _P.foffset / 2))
-            momcap:merge_into_shallow(geometry.multiple_x(
-                finger,
-                xrepbottom, 2 * pitch
-            ):translate(xshift, -_P.foffset / 2))
+            )
+            geometry.multiple_x(
+                function(x, y)
+                    geometry.rectanglebltr(
+                        momcap, generics.metal(i),
+                        point.create(x + xshift - _P.fwidth / 2, y - _P.foffset / 2 - _P.fheight / 2),
+                        point.create(x + xshift + _P.fwidth / 2, y - _P.foffset / 2 + _P.fheight / 2)
+                    )
+                end,
+                xrepbot, 2 * pitch
+            )
         end
         -- rails
         for i = _P.firstmetal, _P.lastmetal do
-            momcap:merge_into_shallow(geometry.multiple_y(
-                geometry.rectangle(generics.metal(i),
-                    (_P.fingers + 1) * (_P.fwidth + _P.fspace), _P.rwidth
-                ),
+            geometry.multiple_y(
+                function(y)
+                    geometry.rectanglebltr(
+                        momcap, generics.metal(i),
+                        point.create(-(_P.fingers + 1) * (_P.fwidth + _P.fspace) / 2, y - _P.rwidth / 2),
+                        point.create( (_P.fingers + 1) * (_P.fwidth + _P.fspace) / 2, y + _P.rwidth / 2)
+                    )
+                end,
                 2, _P.foffset + _P.fheight + _P.rwidth
-            ))
+            )
         end
         -- vias
         if _P.firstmetal ~= _P.lastmetal then
-            momcap:merge_into_shallow(geometry.multiple_y(
-                geometry.via(_P.firstmetal, _P.lastmetal,
-                    (_P.fingers + 1) * (_P.fwidth + _P.fspace), _P.rwidth,
-                    { xcontinuous = true }
-                ),
+            geometry.multiple_y(
+                function(y)
+                    geometry.viabltr(
+                        momcap, _P.firstmetal, _P.lastmetal,
+                        point.create(-(_P.fingers + 1) * (_P.fwidth + _P.fspace) / 2, y - _P.rwidth / 2),
+                        point.create( (_P.fingers + 1) * (_P.fwidth + _P.fspace) / 2, y + _P.rwidth / 2),
+                        { xcontinuous = true }
+                    )
+                end,
                 2, _P.foffset + _P.fheight + _P.rwidth
-            ))
+            )
         end
     else
         local fingerref = object.create()
         for i = _P.firstmetal, _P.lastmetal do
-            fingerref:merge_into_shallow(geometry.rectangle(generics.metal(i), _P.fwidth, _P.fheight))
+            geometry.rectangle(fingerref, generics.metal(i), _P.fwidth, _P.fheight)
         end
         if _P.firstmetal ~= _P.lastmetal then
             local viaref = object.create()
-            fingerref:merge_into_shallow(geometry.multiple_y(
-                geometry.via(_P.firstmetal, _P.lastmetal,
-                    (_P.fwidth + _P.fspace), _P.rwidth,
-                    { xcontinuous = true }
-                ),
+            geometry.multiple_y(
+                function(y)
+                    geometry.viabltr(
+                        viaref, _P.firstmetal, _P.lastmetal,
+                        point.create(-(_P.fwidth + _P.fspace) / 2, y + _P.foffset / 2 - _P.rwidth / 2),
+                        point.create( (_P.fwidth + _P.fspace) / 2, y + _P.foffset / 2 + _P.rwidth / 2),
+                        { xcontinuous = true }
+                    )
+                end,
                 2, _P.foffset + _P.fheight + _P.rwidth
-            ):translate(0, _P.foffset / 2))
+            )
         end
         local fingername = pcell.add_cell_reference(fingerref, "momcapfinger")
         momcap:add_child_array(fingername, _P.fingers + 1, 1, 2 * pitch, 0):flipy():translate(-_P.fingers * pitch, -_P.foffset / 2)

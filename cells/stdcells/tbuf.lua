@@ -25,17 +25,29 @@ function layout(gate, _P)
     gate:merge_into_shallow(cinv)
 
     -- connections
-    gate:merge_into_shallow(geometry.path(generics.metal(1), 
+    geometry.path(gate, generics.metal(1), 
         geometry.path_points_yx(inv:get_anchor("O"), { 
         cinv:get_anchor("EP") 
-        }), bp.gstwidth))
-    gate:merge_into_shallow(geometry.path(generics.metal(2), { inv:get_anchor("I"), cinv:get_anchor("EN") }, bp.gstwidth))
-    gate:merge_into_shallow(geometry.via(1, 2, bp.glength, bp.gstwidth):translate(inv:get_anchor("I")))
-    gate:merge_into_shallow(geometry.via(1, 2, bp.glength, bp.gstwidth):translate(cinv:get_anchor("EN")))
+        }), bp.gstwidth)
+    geometry.path(gate, generics.metal(2), { inv:get_anchor("I"), cinv:get_anchor("EN") }, bp.gstwidth)
+    geometry.viabltr(gate, 1, 2, 
+        inv:get_anchor("I"):translate(-bp.glength / 2, -bp.gstwidth / 2),
+        inv:get_anchor("I"):translate( bp.glength / 2,  bp.gstwidth / 2)
+    )
+    geometry.viabltr(gate, 1, 2, 
+        cinv:get_anchor("EN"):translate(-bp.glength / 2, -bp.gstwidth / 2),
+        cinv:get_anchor("EN"):translate( bp.glength / 2,  bp.gstwidth / 2)
+    )
 
-    gate:merge_into_shallow(geometry.path(generics.metal(2), { cinv:get_anchor("I"), point.combine_12(inv:get_anchor("I"), cinv:get_anchor("I")) }, bp.gstwidth))
-    gate:merge_into_shallow(geometry.via(1, 2, bp.glength, bp.gstwidth):translate(point.combine_12(inv:get_anchor("I"), cinv:get_anchor("I"))))
-    gate:merge_into_shallow(geometry.via(1, 2, bp.glength, bp.gstwidth):translate(cinv:get_anchor("I")))
+    geometry.path(gate, generics.metal(2), { cinv:get_anchor("I"), point.combine_12(inv:get_anchor("I"), cinv:get_anchor("I")) }, bp.gstwidth)
+    geometry.viabltr(gate, 1, 2, 
+        point.combine_12(inv:get_anchor("I"), cinv:get_anchor("I")):translate(-bp.glength / 2, -bp.gstwidth / 2),
+        point.combine_12(inv:get_anchor("I"), cinv:get_anchor("I")):translate( bp.glength / 2,  bp.gstwidth / 2)
+    )
+    geometry.viabltr(gate, 1, 2, 
+        cinv:get_anchor("I"):translate(-bp.glength / 2, -bp.gstwidth / 2),
+        cinv:get_anchor("I"):translate( bp.glength / 2,  bp.gstwidth / 2)
+    )
 
     -- ports
     gate:add_port("EN", generics.metal(1), inv:get_anchor("I"))

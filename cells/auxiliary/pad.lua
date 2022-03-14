@@ -20,15 +20,11 @@ function layout(pad, _P)
         yshift = (_P.orientation == "horizontal") and _P.padheight / 2 or 0
     end
     if _P.orientation == "horizontal" then
-        metal = geometry.rectangle(generics.metal(-1), _P.padwidth, _P.padheight)
-        marker = geometry.rectangle(generics.other("padopening"), _P.padopeningwidth, _P.padopeningheight)
+        geometry.rectangle(pad, generics.metal(-1), _P.padwidth, _P.padheight, xshift, yshift)
+        geometry.rectangle(pad, generics.other("padopening"), _P.padopeningwidth, _P.padopeningheight, xshift, yshift)
     else -- vertical
-        metal = geometry.rectangle(generics.metal(-1), _P.padheight, _P.padwidth)
-        marker = geometry.rectangle(generics.other("padopening"), _P.padopeningheight, _P.padopeningwidth)
+        geometry.rectangle(pad, generics.metal(-1), _P.padheight, _P.padwidth, xshift, yshift)
+        geometry.rectangle(pad, generics.other("padopening"), _P.padopeningheight, _P.padopeningwidth, xshift, yshift)
     end
-    metal:translate(xshift, yshift)
-    marker:translate(xshift, yshift)
-    pad:merge_into_shallow(metal)
-    pad:merge_into_shallow(marker)
     pad:add_anchor("center", point.create(0, 0))
 end

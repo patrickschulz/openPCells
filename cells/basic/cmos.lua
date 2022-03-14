@@ -109,10 +109,16 @@ function layout(gate, _P)
 
     -- power rails
     if _P.drawrails then
-        gate:merge_into_shallow(geometry.multiple_y(
-            geometry.rectangle(generics.metal(1), (fingers) * xpitch + _P.sdwidth, _P.powerwidth),
+        geometry.multiple_y(
+            function(y)
+                geometry.rectangle(gate, 
+                    generics.metal(1), 
+                    (fingers) * xpitch + _P.sdwidth, _P.powerwidth,
+                    0, y + (_P.pwidth - _P.nwidth) / 2
+                )
+            end,
             2, _P.separation + _P.pwidth + _P.nwidth + 2 * _P.powerspace + _P.powerwidth
-        ):translate(0, (_P.pwidth - _P.nwidth) / 2))
+        )
     end
     gate:add_anchor("PRpll", point.create(-fingers * xpitch / 2 - _P.sdwidth / 2,  _P.separation / 2 + _P.pwidth + _P.powerspace))
     gate:add_anchor("PRpcl", point.create(-fingers * xpitch / 2 - _P.sdwidth / 2,  _P.separation / 2 + _P.pwidth + _P.powerspace + _P.powerwidth / 2))
@@ -150,8 +156,11 @@ function layout(gate, _P)
             local x = (2 * i - fingers - 1) * xpitch / 2
             local routingshift = (_P.gstwidth + _P.gstspace) / (_P.numinnerroutes % 2 == 0 and 2 or 1)
             if _P.gatecontactpos[i] == "center" then
-                local pt = point.create(x, _P.shiftgatecontacts)
-                gate:merge_into_shallow(geometry.contact("gate", tp.gatelength, _P.gstwidth):translate(pt))
+                geometry.contactbltr(
+                    gate, "gate", 
+                    point.create(x - tp.gatelength / 2, _P.shiftgatecontacts - _P.gstwidth / 2),
+                    point.create(x + tp.gatelength / 2, _P.shiftgatecontacts + _P.gstwidth / 2)
+                )
                 _make_anchors(gate, x, _P.shiftgatecontacts, tp.gatelength, _P.gstwidth, "G", string.format("%d", i))
                 --gate:add_anchor(string.format("Gll%d", i), pt + point.create(-tp.gatelength / 2, -_P.gstwidth / 2))
                 --gate:add_anchor(string.format("Gcl%d", i), pt + point.create(-tp.gatelength / 2, 0))
@@ -163,8 +172,11 @@ function layout(gate, _P)
                 --gate:add_anchor(string.format("Gcr%d", i), pt + point.create(tp.gatelength / 2, 0))
                 --gate:add_anchor(string.format("Gur%d", i), pt + point.create(tp.gatelength / 2, _P.gstwidth / 2))
             elseif _P.gatecontactpos[i] == "upper" then
-                local pt = point.create(x, routingshift + _P.shiftgatecontacts)
-                gate:merge_into_shallow(geometry.contact("gate", tp.gatelength, _P.gstwidth):translate(pt))
+                geometry.contactbltr(
+                    gate, "gate", 
+                    point.create(x - tp.gatelength / 2, routingshift + _P.shiftgatecontacts - _P.gstwidth / 2),
+                    point.create(x + tp.gatelength / 2, routingshift + _P.shiftgatecontacts + _P.gstwidth / 2)
+                )
                 _make_anchors(gate, x, _P.shiftgatecontacts, tp.gatelength, _P.gstwidth, "G", string.format("%d", i))
                 --gate:add_anchor(string.format("Gll%d", i), pt + point.create(-tp.gatelength / 2, -_P.gstwidth / 2))
                 --gate:add_anchor(string.format("Gcl%d", i), pt + point.create(-tp.gatelength / 2, 0))
@@ -176,8 +188,11 @@ function layout(gate, _P)
                 --gate:add_anchor(string.format("Gcr%d", i), pt + point.create(tp.gatelength / 2, 0))
                 --gate:add_anchor(string.format("Gur%d", i), pt + point.create(tp.gatelength / 2, _P.gstwidth / 2))
             elseif _P.gatecontactpos[i] == "lower" then
-                local pt = point.create(x, -routingshift + _P.shiftgatecontacts)
-                gate:merge_into_shallow(geometry.contact("gate", tp.gatelength, _P.gstwidth):translate(pt))
+                geometry.contactbltr(
+                    gate, "gate", 
+                    point.create(x - tp.gatelength / 2, -routingshift + _P.shiftgatecontacts - _P.gstwidth / 2),
+                    point.create(x + tp.gatelength / 2, -routingshift + _P.shiftgatecontacts + _P.gstwidth / 2)
+                )
                 _make_anchors(gate, x, _P.shiftgatecontacts, tp.gatelength, _P.gstwidth, "G", string.format("%d", i))
                 --gate:add_anchor(string.format("Gll%d", i), pt + point.create(-tp.gatelength / 2, -_P.gstwidth / 2))
                 --gate:add_anchor(string.format("Gcl%d", i), pt + point.create(-tp.gatelength / 2, 0))
@@ -189,31 +204,47 @@ function layout(gate, _P)
                 --gate:add_anchor(string.format("Gcr%d", i), pt + point.create(tp.gatelength / 2, 0))
                 --gate:add_anchor(string.format("Gur%d", i), pt + point.create(tp.gatelength / 2, _P.gstwidth / 2))
             elseif _P.gatecontactpos[i] == "split" then
-                local x = (2 * i - fingers - 1) * xpitch / 2
                 local y = _P.shiftgatecontacts
-                gate:merge_into_shallow(geometry.multiple_y(
-                    geometry.contact("gate", tp.gatelength, _P.gstwidth),
+                geometry.multiple_y(
+                    function(yi)
+                        geometry.contactbltr(
+                            gate, "gate", 
+                            point.create(x - tp.gatelength / 2, y + yi - _P.gstwidth / 2),
+                            point.create(x + tp.gatelength / 2, y + yi + _P.gstwidth / 2)
+                        )
+                    end,
                     2, 2 * routingshift
-                ):translate(x, y))
+                )
                 _make_anchors(gate, x, y,                tp.gatelength, _P.gstwidth, "G", string.format("%d", i))
                 _make_anchors(gate, x, y + routingshift, tp.gatelength, _P.gstwidth, "Gupper", string.format("%d", i))
                 _make_anchors(gate, x, y - routingshift, tp.gatelength, _P.gstwidth, "Glower", string.format("%d", i))
                 --gate:add_anchor(string.format("G%d", i), point.create(x, y))
                 --gate:add_anchor(string.format("G%dupper", i), point.create(x, y + routingshift))
                 --gate:add_anchor(string.format("G%dlower", i), point.create(x, y - routingshift))
-                gate:merge_into_shallow(geometry.rectangle(generics.other("gatecut"), xpitch, tp.cutheight):translate(x, 0))
+                geometry.rectangle(gate, generics.other("gatecut"), xpitch, tp.cutheight, x, 0)
             elseif _P.gatecontactpos[i] == "dummy" then
-                local pt = point.create(x, _P.shiftgatecontacts)
-                gate:merge_into_shallow(geometry.multiple_y(
-                    geometry.contact("gate", tp.gatelength, _P.dummycontheight),
+                geometry.multiple_y(
+                    function(yi)
+                        geometry.contactbltr(
+                            gate, "gate", 
+                            point.create(x - tp.gatelength / 2, (_P.pwidth - _P.nwidth) / 2 + yi - _P.dummycontheight / 2),
+                            point.create(x + tp.gatelength / 2, (_P.pwidth - _P.nwidth) / 2 + yi + _P.dummycontheight / 2)
+                        )
+                    end,
                     2, _P.separation + _P.pwidth + _P.nwidth + 2 * _P.powerspace + _P.powerwidth
-                ):translate(x, (_P.pwidth - _P.nwidth) / 2))
-                gate:merge_into_shallow(geometry.rectangle(generics.other("gatecut"), xpitch, tp.cutheight):translate(x, 0))
+                )
+                geometry.rectangle(gate, generics.other("gatecut"), xpitch, tp.cutheight, x, 0)
             elseif _P.gatecontactpos[i] == "outer" then
-                gate:merge_into_shallow(geometry.contact("gate", tp.gatelength, _P.gstwidth)
-                    :translate(x, _P.separation / 2 + _P.pwidth + _P.outergstspace + _P.gstwidth / 2 + _P.powerwidth + _P.powerspace))
-                gate:merge_into_shallow(geometry.contact("gate", tp.gatelength, _P.gstwidth)
-                    :translate(x, -_P.separation / 2 - _P.nwidth - _P.outergstspace - _P.gstwidth / 2 - _P.powerwidth - _P.powerspace))
+                geometry.contactbltr(
+                    gate, "gate",
+                    point.create(x - tp.gatelength / 2, _P.separation / 2 + _P.pwidth + _P.outergstspace + _P.gstwidth / 2 + _P.powerwidth + _P.powerspace - _P.gstwidth / 2),
+                    point.create(x + tp.gatelength / 2, _P.separation / 2 + _P.pwidth + _P.outergstspace + _P.gstwidth / 2 + _P.powerwidth + _P.powerspace + _P.gstwidth / 2)
+                )
+                geometry.contactbltr(
+                    gate, "gate",
+                    point.create(x - tp.gatelength / 2, -_P.separation / 2 - _P.nwidth - _P.outergstspace - _P.gstwidth / 2 - _P.powerwidth - _P.powerspace - _P.gstwidth / 2),
+                    point.create(x + tp.gatelength / 2, -_P.separation / 2 - _P.nwidth - _P.outergstspace - _P.gstwidth / 2 - _P.powerwidth - _P.powerspace - _P.gstwidth / 2)
+                )
                 gate:add_anchor(string.format("Gp%d", i), point.create(
                     x,
                     _P.separation / 2 + _P.pwidth + _P.outergstspace + _P.gstwidth / 2 + _P.powerwidth + _P.powerspace))
@@ -225,10 +256,16 @@ function layout(gate, _P)
             end
             if _P.gatecontactpos[i] ~= "dummy" then
                 if _P.drawgcut then
-                    gate:merge_into_shallow(geometry.multiple_y(
-                        geometry.rectangle(generics.other("gatecut"), xpitch, tp.cutheight),
+                    geometry.multiple_y(
+                        function(yi)
+                        geometry.rectanglebltr(
+                            gate, generics.other("gatecut"),
+                            point.create(-xpitch / 2, (_P.pwidth - _P.nwidth) / 2 - tp.cutheight / 2),
+                            point.create( xpitch / 2, (_P.pwidth - _P.nwidth) / 2 + tp.cutheight / 2)
+                        )
+                    end,
                         2, _P.separation + _P.pwidth + _P.nwidth + 2 * _P.powerspace + _P.powerwidth
-                    ):translate(x, (_P.pwidth - _P.nwidth) / 2))
+                    )
                 end
             end
         end
@@ -246,53 +283,77 @@ function layout(gate, _P)
         -- p contacts
         if _P.pcontactpos[i] == "power" or _P.pcontactpos[i] == "outer" then
             local cheight = _P.pcontactpos[i] == "power" and pcontactpowerheight or pcontactheight
-            gate:merge_into_shallow(geometry.contact("sourcedrain", _P.sdwidth, cheight)
-                :translate(x, y + _P.pwidth / 2 - cheight / 2 - _P.shiftpcontactsouter))
+            geometry.contactbltr(
+                gate, "sourcedrain", 
+                point.create(x - _P.sdwidth / 2, y + _P.pwidth / 2 - cheight / 2 - _P.shiftpcontactsouter - cheight / 2),
+                point.create(x + _P.sdwidth / 2, y + _P.pwidth / 2 - cheight / 2 - _P.shiftpcontactsouter + cheight / 2)
+            )
             gate:add_anchor(string.format("pSDc%d", i), point.create(x, y + _P.pwidth / 2 - cheight / 2 - _P.shiftpcontactsouter))
             gate:add_anchor(string.format("pSDi%d", i), point.create(x, y + _P.pwidth / 2 - cheight - _P.shiftpcontactsouter))
             gate:add_anchor(string.format("pSDo%d", i), point.create(x, y + _P.pwidth / 2 - _P.shiftpcontactsouter))
         elseif _P.pcontactpos[i] == "inner" then
-            gate:merge_into_shallow(geometry.contact("sourcedrain", _P.sdwidth, pcontactheight)
-                :translate(x, y - _P.pwidth / 2 + pcontactheight / 2 + _P.shiftpcontactsinner))
+            geometry.contactbltr(
+                gate, "sourcedrain",
+                point.create(x - _P.sdwidth / 2, y - _P.pwidth / 2 + pcontactheight / 2 + _P.shiftpcontactsinner - pcontactheight / 2),
+                point.create(x + _P.sdwidth / 2, y - _P.pwidth / 2 + pcontactheight / 2 + _P.shiftpcontactsinner + pcontactheight / 2)
+            )
             gate:add_anchor(string.format("pSDc%d", i), point.create(x, y - _P.pwidth / 2 + pcontactheight / 2 + _P.shiftpcontactsinner))
             gate:add_anchor(string.format("pSDi%d", i), point.create(x, y - _P.pwidth / 2 + _P.shiftpcontactsinner))
             gate:add_anchor(string.format("pSDo%d", i), point.create(x, y - _P.pwidth / 2 + pcontactheight + _P.shiftpcontactsinner))
         elseif _P.pcontactpos[i] == "full" or _P.pcontactpos[i] == "powerfull" then
-            gate:merge_into_shallow(geometry.contact("sourcedrain", _P.sdwidth, _P.pwidth):translate(x, y))
+            geometry.contactbltr(
+                gate, "sourcedrain", 
+                point.create(x - _P.sdwidth / 2, y - _P.pwidth / 2),
+                point.create(x + _P.sdwidth / 2, y + _P.pwidth / 2)
+            )
             gate:add_anchor(string.format("pSDc%d", i), point.create(x, y))
             gate:add_anchor(string.format("pSDi%d", i), point.create(x, y - _P.pwidth / 2))
             gate:add_anchor(string.format("pSDo%d", i), point.create(x, y + _P.pwidth / 2))
         end
         if _P.pcontactpos[i] == "power" or _P.pcontactpos[i] == "powerfull" then
-            gate:merge_into_shallow(geometry.rectangle(
-                generics.metal(1), _P.sdwidth, _P.powerspace)
-            :translate(x, y + _P.pwidth / 2 + _P.powerspace / 2 - _P.shiftpcontactsouter))
+            geometry.rectanglebltr(
+                gate, generics.metal(1), 
+                point.create(x - _P.sdwidth / 2, y + _P.pwidth / 2 + _P.powerspace / 2 - _P.shiftpcontactsouter - _P.powerspace / 2),
+                point.create(x + _P.sdwidth / 2, y + _P.pwidth / 2 + _P.powerspace / 2 - _P.shiftpcontactsouter + _P.powerspace / 2)
+            )
         end
         y = -_P.separation / 2 - _P.nwidth / 2
         -- n contacts
         if _P.ncontactpos[i] == "power" or _P.ncontactpos[i] == "outer" then
             local cheight = _P.ncontactpos[i] == "power" and ncontactpowerheight or ncontactheight
-            gate:merge_into_shallow(geometry.contact("sourcedrain", _P.sdwidth, cheight)
-                :translate(x, y - _P.nwidth / 2 + cheight / 2 + _P.shiftncontactsouter))
+            geometry.contactbltr(
+                gate, "sourcedrain",
+                point.create(x - _P.sdwidth / 2, y - _P.nwidth / 2 + cheight / 2 + _P.shiftncontactsouter - cheight / 2),
+                point.create(x + _P.sdwidth / 2, y - _P.nwidth / 2 + cheight / 2 + _P.shiftncontactsouter + cheight / 2)
+            )
             gate:add_anchor(string.format("nSDc%d", i), point.create(x, y - _P.nwidth / 2 + cheight / 2 + _P.shiftncontactsouter))
             gate:add_anchor(string.format("nSDi%d", i), point.create(x, y - _P.nwidth / 2 + cheight + _P.shiftncontactsouter))
             gate:add_anchor(string.format("nSDo%d", i), point.create(x, y - _P.nwidth / 2 + _P.shiftncontactsouter))
         elseif _P.ncontactpos[i] == "inner" then
-            gate:merge_into_shallow(geometry.contact("sourcedrain", _P.sdwidth, ncontactheight)
-                :translate(x, y + _P.nwidth / 2 - ncontactheight / 2 - _P.shiftncontactsinner))
+            geometry.contactbltr(
+                gate, "sourcedrain",
+                point.create(x - _P.sdwidth / 2, y + _P.nwidth / 2 - ncontactheight / 2 - _P.shiftncontactsinner - ncontactheight / 2),
+                point.create(x + _P.sdwidth / 2, y + _P.nwidth / 2 - ncontactheight / 2 - _P.shiftncontactsinner + ncontactheight / 2)
+            )
             gate:add_anchor(string.format("nSDc%d", i), point.create(x, y + _P.nwidth / 2 - ncontactheight / 2- _P.shiftncontactsinner))
             gate:add_anchor(string.format("nSDi%d", i), point.create(x, y + _P.nwidth / 2 - _P.shiftncontactsinner))
             gate:add_anchor(string.format("nSDo%d", i), point.create(x, y + _P.nwidth / 2 - ncontactheight - _P.shiftncontactsinner))
         elseif _P.ncontactpos[i] == "full" or _P.ncontactpos[i] == "powerfull" then
-            gate:merge_into_shallow(geometry.contact("sourcedrain", _P.sdwidth, _P.nwidth):translate(x, y))
+            geometry.contactbltr(
+                gate, "sourcedrain", 
+                point.create(x - _P.sdwidth / 2, y - _P.nwidth / 2),
+                point.create(x + _P.sdwidth / 2, y + _P.nwidth / 2)
+            )
             gate:add_anchor(string.format("nSDc%d", i), point.create(x, y))
             gate:add_anchor(string.format("nSDi%d", i), point.create(x, y + _P.nwidth / 2))
             gate:add_anchor(string.format("nSDo%d", i), point.create(x, y - _P.nwidth / 2))
         end
         if _P.ncontactpos[i] == "power" or _P.ncontactpos[i] == "powerfull" then
-            gate:merge_into_shallow(geometry.rectangle(
-                generics.metal(1), _P.sdwidth, _P.powerspace)
-            :translate(x, y - _P.nwidth / 2 - _P.powerspace / 2 + _P.shiftncontactsouter))
+            geometry.rectanglebltr(
+                gate, generics.metal(1), 
+                point.create(x - _P.sdwidth / 2, y - _P.nwidth / 2 - _P.powerspace / 2 + _P.shiftncontactsouter - _P.powerspace / 2),
+                point.create(x + _P.sdwidth / 2, y - _P.nwidth / 2 - _P.powerspace / 2 + _P.shiftncontactsouter + _P.powerspace / 2)
+            )
         end
     end
 

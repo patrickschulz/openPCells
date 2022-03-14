@@ -21,8 +21,8 @@ function layout(currentmirror, _P)
     pcell.pop_overwrites("basic/mosfet")
 
     -- gate connection
-    currentmirror:merge_into_shallow(geometry.path(generics.metal(2), {
+    geometry.path(currentmirror, generics.metal(2), {
         diode:get_anchor("lefttopgate"),
         mirror:get_anchor("righttopgate"),
-    }, tp.topgatestrwidth))
+    }, tp.topgatestrwidth)
 end

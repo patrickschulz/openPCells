@@ -1,8 +1,8 @@
 function parameters()
     pcell.add_parameters(
         { "numlanes", 64 },
-        { "bitsperlane", 24 },
-        { "bitresolution", 12 }
+        { "bitsperlane", 32 },
+        { "bitresolution", 8 }
     )
 end
 
@@ -27,17 +27,17 @@ function layout(memory, _P)
             dffs[(j - 1) * _P.bitsperlane + k] = dff
             -- connection to next dff
             if k > 1 then
-                lane:merge_into_shallow(geometry.path(generics.metal(1), 
+                geometry.path(lane, generics.metal(1), 
                     geometry.path_points_yx(dffs[(j - 1) * _P.bitsperlane + k - 1]:get_anchor("Q"), {
                         dffs[(j - 1) * _P.bitsperlane + k]:get_anchor("D")
-                    }), 40)
+                    }), 40
                 )
             end
         end
-        lane:merge_into_shallow(geometry.path(generics.metal(3), {
-                dffs[(j - 1) * _P.bitsperlane + 1]:get_anchor("CLK"),
-                dffs[(j - 1) * _P.bitsperlane + _P.bitsperlane]:get_anchor("CLK")
-        }, 40))
+        geometry.path(lane, generics.metal(3), {
+            dffs[(j - 1) * _P.bitsperlane + 1]:get_anchor("CLK"),
+            dffs[(j - 1) * _P.bitsperlane + _P.bitsperlane]:get_anchor("CLK")
+        }, 40)
         lane:add_anchor("D", dffs[(j - 1) * _P.bitsperlane + 1]:get_anchor("D"))
     end
     lane:set_alignment_box(

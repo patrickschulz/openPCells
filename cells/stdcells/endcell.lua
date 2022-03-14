@@ -7,8 +7,10 @@ function layout(cell, _P)
     local xpitch = bp.gspace + bp.glength
     local separation = bp.numinnerroutes * bp.gstwidth + (bp.numinnerroutes + 1) * bp.gstspace
 
-    cell:merge_into_shallow(geometry.multiple_x(
-        geometry.rectangle(generics.other("gate"), bp.glength, separation + bp.pwidth + bp.nwidth),
+    geometry.multiple_x(
+        function(x)
+            geometry.rectangle(cell, generics.other("gate"), bp.glength, separation + bp.pwidth + bp.nwidth, x, 0)
+        end,
         5, xpitch
-    ))
+    )
 end

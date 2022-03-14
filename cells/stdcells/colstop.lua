@@ -6,8 +6,12 @@ end
 function layout(gate, _P)
     local bp = pcell.get_parameters("stdcells/base")
     pcell.push_overwrites("stdcells/base", { leftdummies = 0, rightdummies = 0 })
+    local gatecontactpos = {}
+    for i = 1, _P.fingers do
+        gatecontactpos[i] = "unused"
+    end
     local harness = pcell.create_layout("stdcells/harness", { 
-        fingers = _P.fingers,
+        gatecontactpos = gatecontactpos,
         drawactive = false,
         drawgatecontacts = false,
         drawtopgcut = false,

@@ -1,38 +1,35 @@
-function geometry.rectanglebltr(layer, bl, tr)
-    local obj = object.create()
-    obj:add_raw_shape(shape.create_rectangle_bltr(layer, bl, tr))
-    return obj
+function geometry.rectanglebltr(cell, layer, bl, tr)
+    cell:add_shape(shape.create_rectangle_bltr(layer, bl, tr))
 end
 
-function geometry.rectangle(layer, width, height)
+function geometry.rectangle(cell, layer, width, height, xoffset, yoffset)
     if width % 2 ~= 0 then 
         moderror(string.format("layout.rectangle: width (%d) must be a multiple of 2. Use rectanglebltr if you need odd coordinates", width))
     end
     if height % 2 ~= 0 then 
         moderror(string.format("layout.rectangle: height (%d) must be a multiple of 2. Use rectanglebltr if you need odd coordinates", height))
     end
-    return geometry.rectanglebltr(
+    geometry.rectanglebltr(
+        cell,
         layer,
-        point.create(-width / 2, -height / 2),
-        point.create( width / 2,  height / 2)
+        point.create(-width / 2 + (xoffset or 0), -height / 2 + (yoffset or 0)),
+        point.create( width / 2 + (xoffset or 0),  height / 2 + (yoffset or 0))
     )
 end
 
 -- like rectanglebltr, but takes any points
-function geometry.rectanglepoints(layer, pt1, pt2)
+function geometry.rectanglepoints(cell, layer, pt1, pt2)
     local x1, y1 = pt1:unwrap()
     local x2, y2 = pt2:unwrap()
-    local S
     if     x1 <= x2 and y1 <= y2 then
-        S = shape.create_rectangle_bltr(layer, point.create(x1, y1), point.create(x2, y2))
+        geometry.rectanglebltr(cell, layer, point.create(x1, y1), point.create(x2, y2))
     elseif x1 <= x2 and y1  > y2 then
-        S = shape.create_rectangle_bltr(layer, point.create(x1, y2), point.create(x2, y1))
+        geometry.rectanglebltr(cell, layer, point.create(x1, y2), point.create(x2, y1))
     elseif x1  > x2 and y1 <= y2 then
-        S = shape.create_rectangle_bltr(layer, point.create(x2, y1), point.create(x1, y2))
+        geometry.rectanglebltr(cell, layer, point.create(x2, y1), point.create(x1, y2))
     elseif x1  > x2 and y1  > y2 then
-        S = shape.create_rectangle_bltr(layer, point.create(x2, y2), point.create(x1, y1))
+        geometry.rectanglebltr(cell, layer, point.create(x2, y2), point.create(x1, y1))
     end
-    return object.make_from_shape(S)
 end
 
 local arrayzation_strategies = {
@@ -128,85 +125,75 @@ function geometry.get_rectangular_arrayzation(regionwidth, regionheight, definit
     }
 end
 
-function geometry.rectangle_array(layer, entry, where)
-    local blx = -entry.width // 2
-    local trx =  entry.width // 2
-    local bly = -entry.height // 2
-    local try =  entry.height // 2
-    local cut = geometry.multiple_xy(
-        geometry.rectanglebltr(layer, 
-            point.create(blx, bly), point.create(trx, try)
-        ),
-        entry.xrep, entry.yrep, entry.xpitch, entry.ypitch
-    )
-    return cut
+function geometry.via(cell, metal1, metal2, width, height, options)
+    geometry.viabltr(cell, metal1, metal2, point.create(-width / 2, -height / 2), point.create(width / 2, height / 2), options)
 end
 
-function geometry.via(metal1, metal2, width, height, options)
+function geometry.viabltr(cell, metal1, metal2, bl, tr, options)
     metal1 = technology.resolve_metal(metal1)
     metal2 = technology.resolve_metal(metal2)
     if metal1 > metal2 then
         metal1, metal2 = metal2, metal1
     end
-
-    local obj = object.create()
+    local blx, bly = bl:unwrap()
+    local trx, try = tr:unwrap()
+    local width = trx - blx
+    local height = try - bly
     for i = metal1, metal2 - 1 do
         local viadefs = technology.get_via_definitions(i, i + 1)
         local entry = geometry.get_rectangular_arrayzation(width, height, viadefs, options or {})
         if not entry then
-            return object.create()
+            return
         end
-        obj:merge_into_shallow(geometry.rectangle_array(generics.viacut(i, i + 1), entry))
-        obj:merge_into_shallow(geometry.rectangle(generics.metal(i), width, height))
-        obj:merge_into_shallow(geometry.rectangle(generics.metal(i + 1), width, height))
+        geometry.multiple_xy(
+            function(x, y)
+                geometry.rectanglebltr(cell, generics.viacut(i, i + 1), 
+                    point.create((blx + trx) / 2 - entry.width / 2 + x, (bly + try) / 2 - entry.height / 2 + y), 
+                    point.create((blx + trx) / 2 + entry.width / 2 + x, (bly + try) / 2 + entry.height / 2 + y)
+                )
+            end,
+            entry.xrep, entry.yrep, entry.xpitch, entry.ypitch
+        )
+        geometry.rectanglebltr(cell, generics.metal(i), bl, tr)
+        geometry.rectanglebltr(cell, generics.metal(i + 1), bl, tr)
     end
-    return obj
 end
 
-function geometry.viabltr(metal1, metal2, bl, tr, options)
+function geometry.contact(cell, region, width, height, options)
+    geometry.contactbltr(cell, region, point.create(-width / 2, -height / 2), point.create(width / 2, height / 2), options)
+end
+
+function geometry.contactbltr(cell, region, bl, tr, options)
     local blx, bly = bl:unwrap()
     local trx, try = tr:unwrap()
     local width = trx - blx
     local height = try - bly
-    local cx = (blx + trx) / 2
-    local cy = (bly + try) / 2
-    local obj = geometry.via(metal1, metal2, width, height, options)
-    obj:translate(cx, cy)
-    return obj
-end
-
-function geometry.contact(region, width, height, options)
     local contactdefs = technology.get_contact_definitions(region)
     local entry = geometry.get_rectangular_arrayzation(width, height, contactdefs, options or {})
     if not entry then
-        return object.create()
+        return
     end
-    local obj = geometry.rectangle_array(generics.contact(region), entry)
-    obj:merge_into_shallow(geometry.rectangle(generics.metal(1), width, height))
-    return obj
+    geometry.multiple_xy(
+        function(x, y)
+            geometry.rectanglebltr(cell, generics.contact(region), 
+                point.create((blx + trx) / 2 - entry.width / 2 + x, (bly + try) / 2 - entry.height / 2 + y), 
+                point.create((blx + trx) / 2 + entry.width / 2 + x, (bly + try) / 2 + entry.height / 2 + y)
+            )
+        end,
+        entry.xrep, entry.yrep, entry.xpitch, entry.ypitch
+    )
+    geometry.rectanglebltr(cell, generics.metal(1), bl, tr)
 end
 
-function geometry.contactbltr(region, bl, tr, options)
-    local blx, bly = bl:unwrap()
-    local trx, try = tr:unwrap()
-    local width = trx - blx
-    local height = try - bly
-    local cx = (blx + trx) / 2
-    local cy = (bly + try) / 2
-    local obj = geometry.contact(region, width, height, options)
-    obj:translate(cx, cy)
-    return obj
-end
-
-function geometry.polygon(layer, pts)
+function geometry.polygon(cell, layer, pts)
     local S = shape.create_polygon(layer)
     for _, pt in ipairs(pts) do
         S:append_pt(pt)
     end
-    return object.make_from_shape(S)
+    cell:add_shape(S)
 end
 
-function geometry.cross(layer, width, height, crosssize)
+function geometry.cross(cell, layer, width, height, crosssize)
     modassert(width % 2 == 0, "geometry.cross: width must be a multiple of 2")
     modassert(height % 2 == 0, "geometry.cross: height must be a multiple of 2")
     modassert(crosssize % 2 == 0, "geometry.cross: crosssize must be a multiple of 2")
@@ -224,10 +211,10 @@ function geometry.cross(layer, width, height, crosssize)
     S:append_xy(-crosssize / 2,    -height / 2)
     S:append_xy(-crosssize / 2, -crosssize / 2)
     S:append_xy(    -width / 2, -crosssize / 2) -- close polygon
-    return object.make_from_shape(S)
+    cell:add_shape(S)
 end
 
-function geometry.ring(layer, width, height, ringwidth)
+function geometry.ring(cell, layer, width, height, ringwidth)
     modassert((width + ringwidth) % 2 == 0, "geometry.ring: width +- ringwidth must be a multiple of 2")
     modassert((height + ringwidth) % 2 == 0, "geometry.ring: height +- ringwidth must be a multiple of 2")
     local S = shape.create_polygon(layer)
@@ -242,10 +229,10 @@ function geometry.ring(layer, width, height, ringwidth)
     S:append_xy( (width - ringwidth) / 2, -(height - ringwidth) / 2)
     S:append_xy(-(width + ringwidth) / 2, -(height - ringwidth) / 2)
     S:append_xy(-(width + ringwidth) / 2, -(height + ringwidth) / 2) -- close polygon
-    return object.make_from_shape(S)
+    cell:add_shape(S)
 end
 
-function geometry.unequal_xy_ring(layer, width, height, ringwidth, ringheight)
+function geometry.unequal_xy_ring(cell, layer, width, height, ringwidth, ringheight)
     modassert((width + ringwidth) % 2 == 0, "geometry.ring: width +- ringwidth must be a multiple of 2")
     modassert((height + ringheight) % 2 == 0, "geometry.ring: height +- ringwidth must be a multiple of 2")
     local S = shape.create_polygon(layer)
@@ -260,7 +247,7 @@ function geometry.unequal_xy_ring(layer, width, height, ringwidth, ringheight)
     S:append_xy( (width - ringwidth) / 2, -(height - ringheight) / 2)
     S:append_xy(-(width + ringwidth) / 2, -(height - ringheight) / 2)
     S:append_xy(-(width + ringwidth) / 2, -(height + ringheight) / 2) -- close polygon
-    return object.make_from_shape(S)
+    cell:add_shape(S)
 end
 
 local function _shift_gridded_line(pt1, pt2, width, grid)
@@ -313,9 +300,8 @@ local function _make_unique_points(pts)
     end
 end
 
-function geometry.path(layer, pts, width, extension)
-    local S = shape.create_path(layer, pts, width, extension)
-    return object.make_from_shape(S)
+function geometry.path(cell, layer, pts, width, extension)
+    cell:add_shape(shape.create_path(layer, pts, width, extension))
 end
 
 function geometry.path3x(layer, startpt, endpt, width, extension)
@@ -326,8 +312,8 @@ function geometry.path3y(layer, startpt, endpt, width, extension)
     return geometry.path(layer, geometry.path_points_yx(startpt, { endpt }), width, extension)
 end
 
-function geometry.path_c_shape(layer, ptstart, ptmiddle, ptend, width, extension)
-    return geometry.path(layer,
+function geometry.path_c_shape(cell, layer, ptstart, ptmiddle, ptend, width, extension)
+    geometry.path(cell, layer,
         geometry.path_points_xy(ptstart,
         {
             ptmiddle,
@@ -404,8 +390,7 @@ end
 
 -- FIXME: rectangular-separated does not work in y direction
 -- This could be fixed by using a more general (and cleaner) approach by tweaking the mirroring, not the points
-local function _crossing(layer1, layer2, width, dxy, ext, direction, mode, separation)
-    local obj = object.create()
+local function _crossing(obj, layer1, layer2, width, dxy, ext, direction, mode, separation)
     local pts = {}
     local append = util.make_insert_xy(pts)
     separation = separation or 0
@@ -463,12 +448,12 @@ local function _crossing(layer1, layer2, width, dxy, ext, direction, mode, separ
             end
         end
     end
-    obj:merge_into_shallow(geometry.path(layer1, pts, width, true))
-    obj:merge_into_shallow(geometry.path(layer2, util.xmirror(pts), width, true))
+    geometry.path(obj, layer1, pts, width, true)
+    geometry.path(obj, layer2, util.xmirror(pts), width, true)
     return obj
 end
 
-function geometry.crossing(layer1, layer2, width, tl, br, mode)
+function geometry.crossing(cell, layer1, layer2, width, tl, br, mode)
     aux.assert_one_of("geometry.crossing: mode", mode, "diagonal", "rectangular", "rectangular-separated")
     local tlx, tly = tl:unwrap()
     local brx, bry = br:unwrap()
@@ -483,12 +468,13 @@ function geometry.crossing(layer1, layer2, width, tl, br, mode)
         ext = -ext
         dxy = math.abs(brx - tlx)
     end
-    local obj = _crossing(layer1, layer2, width, dxy, ext, direction, mode)
+    local obj = object.create()
+    _crossing(obj, layer1, layer2, width, dxy, ext, direction, mode)
     obj:translate(0, tly - dxy / 2)
-    return obj
+    cell:merge_into_shallow(obj)
 end
 
-function geometry.path_midpoint(layer, pts, width, method, miterjoin)
+function geometry.path_midpoint(cell, layer, pts, width, method, miterjoin)
     local newpts = {}
     local append = util.make_insert_xy(newpts)
     if method == "halfangle" then
@@ -526,7 +512,7 @@ function geometry.path_midpoint(layer, pts, width, method, miterjoin)
     else
         moderror(string.format("unknown midpoint path method: %s", method))
     end
-    return geometry.path(layer, newpts, width, miterjoin)
+    return geometry.path(cell, layer, newpts, width, miterjoin)
 end
 
 --[[
@@ -555,28 +541,24 @@ function geometry.corner(layer, startpt, endpt, width, radius, grid)
 end
 --]]
 
-function geometry.multiple_x(obj, xrep, xpitch)
-    modassert(xpitch % 2 == 0, "geometry.multiple_x: xpitch must be even")
-    return geometry.multiple_xy(obj, xrep, 1, xpitch, 0)
+function geometry.multiple_x(func, xrep, xpitch)
+    geometry.multiple_xy(func, xrep, 1, xpitch, 0)
 end
 
-function geometry.multiple_y(obj, yrep, ypitch)
-    modassert(ypitch % 2 == 0, "geometry.multiple_y: ypitch must be even")
-    return geometry.multiple_xy(obj, 1, yrep, 0, ypitch)
+function geometry.multiple_y(func, yrep, ypitch)
+    geometry.multiple_xy(function(x, y) func(y) end, 1, yrep, 0, ypitch)
 end
 
-function geometry.multiple_xy(obj, xrep, yrep, xpitch, ypitch)
+function geometry.multiple_xy(func, xrep, yrep, xpitch, ypitch)
     modassert(xpitch % 2 == 0, "geometry.multiple: xpitch must be even")
     modassert(ypitch % 2 == 0, "geometry.multiple: ypitch must be even")
-    local final = object.create()
     for x = 1, xrep do
         for y = 1, yrep do
-            local center = point.create(
+            func(
                 (x - 1) * xpitch - (xrep - 1) * xpitch / 2,
                 (y - 1) * ypitch - (yrep - 1) * ypitch / 2
             )
-            final:merge_into_shallow(obj:copy():translate(center:unwrap()))
         end
     end
-    return final
 end
+

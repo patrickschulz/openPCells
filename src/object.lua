@@ -3,13 +3,7 @@ This file is part of the openPCells project.
 
 An 'object' is a collection of 'shapes', that is an object composed of several polygons on several layers.
 --]]
-local M = {}
-
-local meta = {}
-meta.__index = meta
-meta.__tostring = function(self) return string.format("object: %s", self.name or "_NONAME_")  end
-
-function M.create(name)
+function object.create(name)
     local self = {
         name = name,
         children = {},
@@ -20,11 +14,11 @@ function M.create(name)
         trans = transformationmatrix.identity(),
         isproxy = false
     }
-    setmetatable(self, meta)
+    setmetatable(self, object)
     return self
 end
 
-function M.create_proxy(name, reference, identifier)
+function object.create_proxy(name, reference, identifier)
     local self = {
         name = name,
         reference = reference,
@@ -33,19 +27,19 @@ function M.create_proxy(name, reference, identifier)
         trans = transformationmatrix.identity(),
         isproxy = true
     }
-    setmetatable(self, meta)
+    setmetatable(self, object)
     return self
 end
 
 -- fake object with returns (0, 0) for all anchors
-function M.create_omni()
-    local self = M.create()
+function object.create_omni()
+    local self = object.create()
     setmetatable(self.anchors, { __index = function() return point.create(0, 0) end })
     return self
 end
 
-function meta.copy(self)
-    local new = M.create(self.name)
+function object.copy(self)
+    local new = object.create(self.name)
     new.trans = self.trans:copy()
     for i, S in ipairs(self.shapes) do
         new.shapes[i] = S:copy()
@@ -58,7 +52,7 @@ function meta.copy(self)
     end
     -- copy children
     for i, child in ipairs(self.children) do
-        new.children[i] = M.create_proxy(child.name, child.reference, child.identifier)
+        new.children[i] = object.create_proxy(child.name, child.reference, child.identifier)
         new.children[i].trans = child.trans:copy()
         new.children[i].isproxy = true
         new.children[i].origin = child.origin:copy()
@@ -66,13 +60,13 @@ function meta.copy(self)
     return new
 end
 
-function M.make_from_shape(S)
-    local self = M.create()
+function object.make_from_shape(S)
+    local self = object.create()
     self:add_shape(S)
     return self
 end
 
-function meta.exchange(self, other)
+function object.exchange(self, other)
     self.name = other.name
     self.children = other.children
     self.shapes = other.shapes
@@ -81,15 +75,15 @@ function meta.exchange(self, other)
     self.alignmentbox = other.alignmentbox
 end
 
-function meta.add_child(self, identifier, name)
+function object.add_child(self, identifier, name)
     local reference = pcell.get_cell_reference(identifier)
-    local child = M.create_proxy(name, reference, identifier)
+    local child = object.create_proxy(name, reference, identifier)
     self.trans:apply_inverse_transformation(child.origin)
     table.insert(self.children, child)
     return child
 end
 
-function meta.add_child_array(self, identifier, xrep, yrep, xpitch, ypitch, name)
+function object.add_child_array(self, identifier, xrep, yrep, xpitch, ypitch, name)
     if not xpitch then -- alignmentbox mode
         local obj = pcell.get_cell_reference(identifier)
         local xpitch, ypitch = obj:width_height_alignmentbox()
@@ -105,14 +99,14 @@ function meta.add_child_array(self, identifier, xrep, yrep, xpitch, ypitch, name
     end
 end
 
-function meta.foreach_children(self, func, ...)
+function object.foreach_children(self, func, ...)
     for _, child in self:iterate_children() do
         func(child, ...)
         child:foreach_children(func, ...)
     end
 end
 
-function meta.add_raw_shape(self, S)
+function object.add_raw_shape(self, S)
     if not S:is_empty() then
         local new = S:copy()
         table.insert(self.shapes, new)
@@ -120,7 +114,7 @@ function meta.add_raw_shape(self, S)
     end
 end
 
-function meta.add_shape(self, S)
+function object.add_shape(self, S)
     local new = self:add_raw_shape(S)
     if new then -- empty shapes are not added
         new:apply_inverse_transformation(self.trans)
@@ -128,20 +122,20 @@ function meta.add_shape(self, S)
     end
 end
 
-function meta.remove_shape(self, idx)
+function object.remove_shape(self, idx)
     if not idx then
         moderror("object: removing shape with nil index")
     end
     table.remove(self.shapes, idx)
 end
 
-function meta.add_shapes(self, shapes)
+function object.add_shapes(self, shapes)
     for _, s in ipairs(shapes) do
         self:add_shape(s)
     end
 end
 
-function meta.merge_into_shallow(self, other)
+function object.merge_into_shallow(self, other)
     for _, S in other:iterate_shapes() do
         local new = self:add_shape(S)
         if new then -- empty shapes are not added
@@ -150,7 +144,7 @@ function meta.merge_into_shallow(self, other)
     end
 end
 
-function meta.flatten(self, flattenports)
+function object.flatten(self, flattenports)
     -- add shapes and flatten children (recursive)
     for _, child in self:iterate_children() do
         local obj = child.reference
@@ -171,7 +165,7 @@ function meta.flatten(self, flattenports)
                     local tm = transformationmatrix.identity()
                     tm:translate((ix - 1) * xpitch, (iy - 1) * ypitch)
                     tm:translate(child.origin:unwrap())
-                    new:apply_translation(tm)
+                    new:apply_transformation(tm)
                 end
                 if flattenports then
                     for _, port in ipairs(self.ports) do
@@ -188,7 +182,7 @@ function meta.flatten(self, flattenports)
     return self
 end
 
-function meta.is_empty(self)
+function object.is_empty(self)
     return #self.shapes == 0 and #self.children == 0 and #self.ports == 0
 end
 
@@ -200,11 +194,11 @@ local function _add_port(self, name, anchorname, layer, where)
     return new
 end
 
-function meta.add_port(self, name, layer, where)
+function object.add_port(self, name, layer, where)
     _add_port(self, name, name, layer, where)
 end
 
-function meta.add_bus_port(self, name, layer, startindex, endindex, where, xpitch, ypitch)
+function object.add_bus_port(self, name, layer, startindex, endindex, where, xpitch, ypitch)
     local shift = 0
     for i = startindex, endindex, startindex < endindex and 1 or - 1 do
         local new = _add_port(self, name, string.format("%s%d", name, i), layer, where:copy():translate(shift * xpitch, shift * ypitch))
@@ -214,29 +208,7 @@ function meta.add_bus_port(self, name, layer, startindex, endindex, where, xpitc
     end
 end
 
-function meta.find_shapes(self, comp)
-    local shapes = {}
-    local indices = {}
-    comp = comp or function() return true end
-    for i, s in ipairs(self.shapes) do
-        if comp(s) then
-            table.insert(shapes, s)
-            table.insert(indices, i)
-        end
-    end
-    return indices, shapes
-end
-
-function meta.layers(self)
-    local lpps = {}
-    for _, S in self:iterate_shapes() do
-        local lpp = S:get_lpp()
-        lpps[lpp:str()] = lpp
-    end
-    return pairs(lpps)
-end
-
-function meta.iterate_children(self)
+function object.iterate_children(self)
     local idx = #self.children + 1 -- start at the end
     local iter = function()
         idx = idx - 1
@@ -249,20 +221,20 @@ function meta.iterate_children(self)
     return iter
 end
 
--- this function returns an iterator over all shapes in a cell (possibly only selecting a subset)
--- First all shapes are collected in an auxiliary table, which enables modification of the self.shapes table within the iteration
--- Furthermore, the list is iterated from the end, which allows element removal in the loop
-function meta.iterate_shapes(self, comp)
-    local indices, shapes = meta.find_shapes(self, comp)
-    local idx = #shapes + 1 -- start at the end
+function object.iterate_shapes(self)
+    local idx = #self.shapes + 1 -- start at the end
     local iter = function()
         idx = idx - 1
-        return indices[idx], shapes[idx]
+        if idx > 0 then
+            return idx, self.shapes[idx]
+        else
+            return nil
+        end
     end
     return iter
 end
 
-function meta.move_to(self, x, y)
+function object.move_to(self, x, y)
     if is_point(x) then
         x, y = x:unwrap()
     else
@@ -273,7 +245,7 @@ function meta.move_to(self, x, y)
     return self
 end
 
-function meta.translate(self, dx, dy)
+function object.translate(self, dx, dy)
     if is_point(dx) then
         dx, dy = dx:unwrap()
     else
@@ -304,33 +276,34 @@ local function _flipxy(self, mode, ischild)
     return self
 end
 
-function meta.flipx(self, xcenter)
+function object.flipx(self, xcenter)
     return _flipxy(self, "x")
 end
 
-function meta.flipy(self)
+function object.flipy(self)
     return _flipxy(self, "y")
 end
 
-function meta.mirror_at_xaxis(self)
+function object.mirror_at_xaxis(self)
     self.trans:mirror_x()
     return self
 end
 
-function meta.mirror_at_yaxis(self)
+function object.mirror_at_yaxis(self)
     self.trans:mirror_y()
     return self
 end
 
-function meta.mirror_origin(self)
+function object.mirror_origin(self)
     self.trans:mirror_origin()
     return self
 end
 
-function meta.rotate_90(self)
+function object.rotate_90(self)
     -- 90 degrees rotation works as in "regular transformation systems", that is, it depends on the location of the shapes and the cell itself
     -- no correction comparable to flipx() and flipy() is done
     self.trans:rotate_90_left()
+    return self
 end
 
 local function _get_minmax_xy(self)
@@ -373,7 +346,7 @@ local function _get_minmax_xy(self)
     return minx, maxx, miny, maxy
 end
 
-function meta.get_transformation_correction(self)
+function object.get_transformation_correction(self)
     local obj = self
     if self.isproxy then
         obj = self.reference
@@ -396,7 +369,7 @@ function meta.get_transformation_correction(self)
     return blx + trx + 2 * x, bly + try + 2 * y
 end
 
-function meta.width_height(self)
+function object.width_height(self)
     local obj = self
     if self.isproxy then
         obj = self.reference
@@ -405,7 +378,7 @@ function meta.width_height(self)
     return maxx - minx, maxy - miny
 end
 
-function meta.width_height_alignmentbox(self)
+function object.width_height_alignmentbox(self)
     local obj = self
     if self.isproxy then
         obj = self.reference
@@ -420,16 +393,16 @@ function meta.width_height_alignmentbox(self)
     end
 end
 
-function meta.bounding_box(self)
+function object.bounding_box(self)
     local minx, maxx, miny, maxy = _get_minmax_xy(self)
     return { bl = point.create(minx, miny), tr = point.create(maxx, maxy) }
 end
 
-function meta.set_alignment_box(self, bl, tr)
+function object.set_alignment_box(self, bl, tr)
     self.alignmentbox = { bl = bl:copy(), tr = tr:copy() }
 end
 
-function meta.inherit_alignment_box(self, other)
+function object.inherit_alignment_box(self, other)
     local bl = other:get_anchor("bottomleft")
     local tr = other:get_anchor("topright")
     if self.alignmentbox then
@@ -447,7 +420,7 @@ local _reserved_anchors = {
     "left", "right", "bottom", "top", "bottomleft", "bottomright", "topleft", "topright"
 }
 
-function meta.add_anchor(self, name, where)
+function object.add_anchor(self, name, where)
     if not is_point(where) then
         moderror(string.format("object.add_anchor: where must be a point (got: %s)", where))
     end
@@ -458,12 +431,18 @@ function meta.add_anchor(self, name, where)
     self.anchors[name] = where
 end
 
-local function _get_special_anchor(self, name)
+local function _get_special_anchor(self, name, trans)
     if not self.alignmentbox then
         return nil
     end
-    local blx, bly = self.alignmentbox.bl:unwrap()
-    local trx, try = self.alignmentbox.tr:unwrap()
+    local bl = self.alignmentbox.bl:copy()
+    local tr = self.alignmentbox.tr:copy()
+    trans:apply_transformation(bl)
+    trans:apply_transformation(tr)
+    local blx, bly = bl:unwrap()
+    local trx, try = tr:unwrap()
+    if blx > trx then blx, trx = trx, blx end
+    if bly > try then bly, try = try, bly end
     local x, y
     if name == "left" then
         x, y = blx, (bly + try) / 2
@@ -495,12 +474,14 @@ local function _get_regular_anchor(self, name)
     end
 end
 
-function meta.get_anchor(self, name)
+function object.get_anchor(self, name)
+    local trans = self.trans
     local obj = self
     if self.isproxy then
         obj = self.reference
+        trans = trans:chain(obj.trans)
     end
-    local pt = _get_special_anchor(obj, name)
+    local pt = _get_special_anchor(obj, name, trans)
     if pt then
         if self.isproxy and self.isarray then
             if name == "left" then
@@ -521,10 +502,6 @@ function meta.get_anchor(self, name)
                 pt:translate((self.xrep - 1) * self.xpitch, (self.yrep - 1) * self.ypitch)
             end
         end
-        obj.trans:apply_transformation(pt)
-        if self.isproxy then
-            self.trans:apply_transformation(pt)
-        end
         return pt
     else
         pt = _get_regular_anchor(obj, name)
@@ -544,7 +521,7 @@ function meta.get_anchor(self, name)
     end
 end
 
-function meta.get_child_anchor(self, childname, name)
+function object.get_child_anchor(self, childname, name)
     local obj = self
     if self.isproxy then
         obj = pcell.get_cell_reference(self.identifier)
@@ -573,30 +550,28 @@ local function _get_move_anchor_translation(self, name, where)
     return wx - x, wy - y
 end
 
-function meta.move_anchor(self, name, where)
+function object.move_anchor(self, name, where)
     local dx, dy = _get_move_anchor_translation(self, name, where)
     self:translate(dx, dy)
     return self
 end
 
-function meta.move_anchor_x(self, name, where)
+function object.move_anchor_x(self, name, where)
     local dx, dy = _get_move_anchor_translation(self, name, where)
     self:translate(dx, 0)
     return self
 end
 
-function meta.move_anchor_y(self, name, where)
+function object.move_anchor_y(self, name, where)
     local dx, dy = _get_move_anchor_translation(self, name, where)
     self:translate(0, dy)
     return self
 end
 
-function meta.get_all_anchors(self)
+function object.get_all_anchors(self)
     local anchors = {}
     for name in pairs(self.anchors) do
         anchors[name] = self:get_anchor(name)
     end
     return anchors
 end
-
-return M

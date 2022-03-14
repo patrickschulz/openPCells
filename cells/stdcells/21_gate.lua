@@ -38,11 +38,11 @@ function layout(gate, _P)
     gate:inherit_alignment_box(gate2)
 
     -- draw connections
-    gate:merge_into_shallow(geometry.path(generics.metal(1), 
+    geometry.path(gate, generics.metal(1), 
         geometry.path_points_yx(gate1:get_anchor("O"), {
         gate2:get_anchor("B")
         }), 
-    bp.sdwidth))
+    bp.sdwidth)
 
     --draw ports
     gate:add_port("A", generics.metal(1), gate2:get_anchor("A"))

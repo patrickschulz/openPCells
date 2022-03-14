@@ -9,5 +9,5 @@ function layout(cell, _P)
     cell:add_child(name):translate( 100, -100)
     cell:add_child(name):translate(   0,  100)
 
-    cell:merge_into_shallow(geometry.rectangle(generics.metal(1), 20, 20))
+    geometry.rectangle(cell, generics.metal(1), 20, 20)
 end
