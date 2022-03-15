@@ -110,22 +110,16 @@ local function _write_ports(cell)
     end
 end
 
-local cellrefs = {}
-local function _write_cell_references(cell, writechildrenports)
-    for _, child in cell:iterate_children() do
-        if not cellrefs[child.identifier] then
-            local cellref = pcell.get_cell_reference(child.identifier)
-            aux.call_if_present(export.at_begin_cell, child.identifier)
-            _write_cell(cellref)
-            if writechildrenports then
-                if export.write_port then
-                    _write_ports(cellref)
-                end
+local function _write_cell_references(writechildrenports)
+    for identifier, cellref in pcell.iterate_cell_references() do
+        aux.call_if_present(export.at_begin_cell, identifier)
+        _write_cell(cellref)
+        if writechildrenports then
+            if export.write_port then
+                _write_ports(cellref)
             end
-            aux.call_if_present(export.at_end_cell)
-            cellrefs[child.identifier] = true
-            _write_cell_references(cellref, writechildrenports)
         end
+        aux.call_if_present(export.at_end_cell)
     end
 end
 
@@ -145,7 +139,7 @@ function M.write_toplevel(filename, technology, toplevel, toplevelname, writechi
     local extension = export.get_extension()
     aux.call_if_present(export.at_begin, technology)
 
-    _write_cell_references(toplevel, writechildrenports)
+    _write_cell_references(writechildrenports)
 
     aux.call_if_present(export.at_begin_cell, toplevelname)
     _write_cell(toplevel)
