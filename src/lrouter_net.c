@@ -11,26 +11,14 @@ void print_nets(net_t* nets, size_t num_nets)
 {
     for (unsigned int i = 0; i < num_nets; i++)
     {
-        printf("Net %s: (%u, %u, %u) -> (%u, %u, %u), rank: %u, routed?: %i\n", 
-	       nets[i].name, nets[i].x1, nets[i].y1, nets[i].z1, nets[i].x2,
-	       nets[i].y2, nets[i].z2, nets[i].ranking, nets[i].routed);
-    }
-}
-
-void fill_ports(net_t* nets, size_t num_nets, int*** field)
-{
-	unsigned int x1, y1, x2, y2, z1, z2;
-	for (unsigned int i = 0; i < num_nets; i++)
+        printf("Net %s:", nets[i].name);
+	for (size_t j = 0; j < nets[i].size; j++)
 	{
-		x1 = nets[i].x1;
-		y1 = nets[i].y1;
-		z1 = nets[i].z1;
-		x2 = nets[i].x2;
-		y2 = nets[i].y2;
-		z2 = nets[i].z2;
-		field[z1][x1][y1] = PORT;
-		field[z2][x2][y2] = PORT;
+		printf(" (%u, %u, %u) -> ",
+		       nets[i].xs[j], nets[i].ys[j], nets[i].zs[j]);
 	}
+	printf("rank: %u, routed?: %i\n", nets[i].ranking, nets[i].routed);
+    }
 }
 
 void print_path(net_t net)
@@ -58,21 +46,25 @@ void sort_nets(net_t* nets, size_t num_nets)
 		unsigned int ranking = 0;
 
 		/* create rectangle */
-		xlo = (nets[i].x1 <= nets[i].x2) ? nets[i].x1 : nets[i].x2;
-		xhi = (nets[i].x1 > nets[i].x2) ? nets[i].x1 : nets[i].x2;
-		ylo = (nets[i].y1 <= nets[i].y2) ? nets[i].y1 : nets[i].y2;
-		yhi = (nets[i].y1 > nets[i].y2) ? nets[i].y1 : nets[i].y2;
+		xlo = (nets[i].xs[0] <= nets[i].xs[1]) ? nets[i].xs[0] :
+			nets[i].xs[1];
+		xhi = (nets[i].xs[0] > nets[i].xs[1]) ? nets[i].xs[0] :
+			nets[i].xs[1];
+		ylo = (nets[i].ys[0] <= nets[i].ys[1]) ? nets[i].ys[0] :
+			nets[i].ys[1];
+		yhi = (nets[i].ys[0] > nets[i].ys[1]) ? nets[i].ys[0] :
+			nets[i].ys[1];
 
 		for(size_t j = 0; j < num_nets; j++)
 		{
 			/* how many ports of other nets are inside rect */
 			if(j != i)
 			{
-				if(BETWEEN(nets[j].x1, xlo, xhi) &&
-				   BETWEEN(nets[j].y1, ylo, yhi))
+				if(BETWEEN(nets[j].xs[0], xlo, xhi) &&
+				   BETWEEN(nets[j].ys[0], ylo, yhi))
 					ranking++;
-				if(BETWEEN(nets[j].x2, xlo, xhi) &&
-				   BETWEEN(nets[j].y2, ylo, yhi))
+				if(BETWEEN(nets[j].xs[1], xlo, xhi) &&
+				   BETWEEN(nets[j].ys[1], ylo, yhi))
 					ranking++;
 			}
 

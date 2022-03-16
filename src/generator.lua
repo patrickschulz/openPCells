@@ -73,7 +73,7 @@ local function _collect_nets_cells(content, excluded_nets)
     for module in content:modules() do
         for instance in module:instances() do
             -- create reference index
-            if not reflookup[instance.reference] then 
+            if not reflookup[instance.reference] then
                 -- store regular and inverse pair
                 -- since instance.reference is a string and maxrefnum an integer, these should never collide
                 reflookup[instance.reference] = maxrefnum
@@ -100,10 +100,10 @@ local function _collect_nets_cells(content, excluded_nets)
             instlookup[instance.name] = maxinstnum
             instlookup[maxinstnum] = instance.name
             maxinstnum = maxinstnum + 1
-            table.insert(instances, { 
-                instance = instlookup[instance.name], 
+            table.insert(instances, {
+                instance = instlookup[instance.name],
                 reference = reflookup[instance.reference],
-                nets = ct, 
+                nets = ct,
                 pin_offsets = po,
                 width = _get_cell_width(instance.reference)
             })
@@ -189,7 +189,6 @@ local function _write_module(rows, nets, rowwidth, instlookup, reflookup,
         local z = 0
         local xpre = 0
         local ypre = 0
-        tprint(nets)
 
         for j, entry in ipairs(net) do
                 if j == 1 then
@@ -213,7 +212,6 @@ local function _write_module(rows, nets, rowwidth, instlookup, reflookup,
 
                         xdist = xdist + x
                         ydist = ydist + y
-                        currmetal = currmetal + z
 
                         -- generate deltas
                         if xpre ~= x and ypre ~= y then
@@ -225,12 +223,16 @@ local function _write_module(rows, nets, rowwidth, instlookup, reflookup,
                         if z == -1 then
                               table.insert(lines, string.format('                { x = %i * xpitch, y = %i * ypitch, isvia = true, from = %i, to = %i, metal = %i},',
                                 xdist - x, ydist - y, currmetal + z, currmetal, currmetal))
+                            currmetal = currmetal + z
                         elseif z == 1 then
                               table.insert(lines, string.format('                { x = %i * xpitch, y = %i * ypitch, isvia = true, from = %i, to = %i, metal = %i},',
                                 xdist - x, ydist - y, currmetal, currmetal + z, currmetal))
+                            currmetal = currmetal + z
                         end
                 end
         end
+          table.insert(lines, string.format('                { x = %i * xpitch, y = %i * ypitch, metal = %i },',
+            xdist, ydist, currmetal))
         table.insert(lines, '            },')
         table.insert(lines, '        },')
     end

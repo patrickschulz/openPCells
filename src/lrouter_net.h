@@ -10,9 +10,10 @@ typedef struct {
     char *name;
     char *firstport;
     char *firstinstance;
-    unsigned int x1, x2;
-    unsigned int y1, y2;
-    unsigned int z1, z2;
+    unsigned int size;
+    unsigned int *xs;
+    unsigned int *ys;
+    unsigned int *zs;
     unsigned int ranking;
     int routed;
     /* queue to save the path in the end */

@@ -26,16 +26,18 @@ static struct netcollection* _initialize(lua_State* L)
     while (lua_next(L, 1) != 0)
     {
 	const char *name = lua_tostring(L, -2);
-        //printf("%s\n", lua_tostring(L, -2));
         lua_len(L, -1);
         size_t size = lua_tointeger(L, -1);
         lua_pop(L, 1);
+
+	nets[i].size = size;
+	nets[i].xs = calloc(size, sizeof(unsigned int));
+	nets[i].ys = calloc(size, sizeof(unsigned int));
+	nets[i].zs = calloc(size, sizeof(unsigned int));
+
+	/* fill in net struct from lua */
         for(size_t j = 1; j <= size; ++j)
         {
-            if(j > 2)
-            {
-                break; // only 2 nets supported currently
-            }
             lua_geti(L, -1, j);
 
             lua_getfield(L, -1, "x");
@@ -65,21 +67,12 @@ static struct netcollection* _initialize(lua_State* L)
 		    lua_pop(L, 1);
 	    }
 
-            if(j == 1)
-            {
-                nets[i].x1 = x - 1;
-                nets[i].y1 = y - 1;
-                nets[i].z1 = z;
-            }
-            if(j == 2)
-            {
-                nets[i].x2 = x - 1;
-                nets[i].y2 = y - 1;
-                nets[i].z2 = z;
-            }
+	    nets[i].xs[j - 1] = x - 1;
+	    nets[i].ys[j - 1] = y - 1;
+	    nets[i].zs[j - 1] = z;
+
 	    nets[i].name = malloc(strlen(name) + 1);
 	    strcpy(nets[i].name, name);
-            printf("(%d, %d)\n", x, y);
 
             lua_pop(L, 1);
         }
@@ -91,6 +84,23 @@ static struct netcollection* _initialize(lua_State* L)
     nc->nets = nets;
     nc->num_nets = num_nets;
     return nc;
+}
+
+/*
+ * split nets with more than 2 points into more nets with 2 points
+*/
+static void lrouter_split_nets(struct netcollection* nc)
+{
+    for(size_t i = 0; i < nc->num_nets; i++)
+    {
+        if(nc->nets[i].size > 2)
+	{
+	    for(size_t j = 0; j < nets[i].size; j++)
+	    {
+	        printf("%i manhattan dist %i\n", j,); 
+	    }
+	}
+    }
 }
 
 int lrouter_route(lua_State* L)
@@ -115,10 +125,10 @@ int lrouter_route(lua_State* L)
     {
 
 	    /* dont route nets without at least 2 points */
-	    if(nc->nets[i].x2 == 0 &&
-		nc->nets[i].y2 == 0 &&
-		nc->nets[i].z2 == 0)
+	    if(nc->nets[i].size <= 1)
+	    {
 		    continue;
+	    }
 
 	nc->nets[i].routed = route(&nc->nets[i], field, field_width,
 				   field_height, num_layers, via_cost,

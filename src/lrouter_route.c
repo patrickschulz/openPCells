@@ -35,12 +35,12 @@ int route(net_t *net, int*** field, size_t width, size_t height,
 	  size_t num_layers, size_t wrong_dir_cost, size_t via_cost)
 {
 
-	unsigned int startx = net->x1;
-	unsigned int starty = net->y1;
-	unsigned int startz = net->z1;
-	unsigned int endx = net->x2;
-	unsigned int endy = net->y2;
-	unsigned int endz = net->z2;
+	unsigned int startx = net->xs[0];
+	unsigned int starty = net->ys[0];
+	unsigned int startz = net->zs[0];
+	unsigned int endx = net->xs[1];
+	unsigned int endy = net->ys[1];
+	unsigned int endz = net->zs[1];
 
 	/* prepare starting point */
 	point_t start;
