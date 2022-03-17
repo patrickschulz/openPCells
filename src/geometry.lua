@@ -258,12 +258,6 @@ local function _make_unique_points(pts)
     end
 end
 
---[[
-function geometry.path(cell, layer, pts, width, extension)
-    cell:add_shape(shape.create_path(layer, pts, width, extension))
-end
---]]
-
 function geometry.path3x(layer, startpt, endpt, width, extension)
     return geometry.path(layer, geometry.path_points_xy(startpt, { endpt }), width, extension)
 end

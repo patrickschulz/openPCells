@@ -474,6 +474,11 @@ static void _write_cell_reference(struct export_data* data, const char* identifi
     export_data_append_byte(data, 0x00);
 }
 
+static const char* _get_extension(void)
+{
+    return "gds";
+}
+
 struct export_functions* gdsexport_get_export_functions(void)
 {
     struct export_functions* funcs = export_create_functions();
@@ -485,5 +490,6 @@ struct export_functions* gdsexport_get_export_functions(void)
     funcs->write_polygon = _write_polygon;
     funcs->write_path = _write_path;
     funcs->write_cell_reference = _write_cell_reference;
+    funcs->get_extension = _get_extension;
     return funcs;
 }

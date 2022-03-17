@@ -8,8 +8,86 @@ local __databaseunit = 1e-9
 
 local __labelsize = 1
 
-local recordtypes = gdstypetable.recordtypes
-local datatypes = gdstypetable.datatypes
+local recordtypes = {
+    HEADER          = { name = "HEADER",        code = 0x00 },
+    BGNLIB          = { name = "BGNLIB",        code = 0x01 },
+    LIBNAME         = { name = "LIBNAME",       code = 0x02 },
+    UNITS           = { name = "UNITS",         code = 0x03 },
+    ENDLIB          = { name = "ENDLIB",        code = 0x04 },
+    BGNSTR          = { name = "BGNSTR",        code = 0x05 },
+    STRNAME         = { name = "STRNAME",       code = 0x06 },
+    ENDSTR          = { name = "ENDSTR",        code = 0x07 },
+    BOUNDARY        = { name = "BOUNDARY",      code = 0x08 },
+    PATH            = { name = "PATH",          code = 0x09 },
+    SREF            = { name = "SREF",          code = 0x0a },
+    AREF            = { name = "AREF",          code = 0x0b },
+    TEXT            = { name = "TEXT",          code = 0x0c },
+    LAYER           = { name = "LAYER",         code = 0x0d },
+    DATATYPE        = { name = "DATATYPE",      code = 0x0e },
+    WIDTH           = { name = "WIDTH",         code = 0x0f },
+    XY              = { name = "XY",            code = 0x10 },
+    ENDEL           = { name = "ENDEL",         code = 0x11 },
+    SNAME           = { name = "SNAME",         code = 0x12 },
+    COLROW          = { name = "COLROW",        code = 0x13 },
+    TEXTNODE        = { name = "TEXTNODE",      code = 0x14 },
+    NODE            = { name = "NODE",          code = 0x15 },
+    TEXTTYPE        = { name = "TEXTTYPE",      code = 0x16 },
+    PRESENTATION    = { name = "PRESENTATION",  code = 0x17 },
+    SPACING         = { name = "SPACING",       code = 0x18 },
+    STRING          = { name = "STRING",        code = 0x19 },
+    STRANS          = { name = "STRANS",        code = 0x1a },
+    MAG             = { name = "MAG",           code = 0x1b },
+    ANGLE           = { name = "ANGLE",         code = 0x1c },
+    UINTEGER        = { name = "UINTEGER",      code = 0x1d },
+    USTRING         = { name = "USTRING",       code = 0x1e },
+    REFLIBS         = { name = "REFLIBS",       code = 0x1f },
+    FONTS           = { name = "FONTS",         code = 0x20 },
+    PATHTYPE        = { name = "PATHTYPE",      code = 0x21 },
+    GENERATIONS     = { name = "GENERATIONS",   code = 0x22 },
+    ATTRTABLE       = { name = "ATTRTABLE",     code = 0x23 },
+    STYPTABLE       = { name = "STYPTABLE",     code = 0x24 },
+    STRTYPE         = { name = "STRTYPE",       code = 0x25 },
+    ELFLAGS         = { name = "ELFLAGS",       code = 0x26 },
+    ELKEY           = { name = "ELKEY",         code = 0x27 },
+    LINKTYPE        = { name = "LINKTYPE",      code = 0x28 },
+    LINKKEYS        = { name = "LINKKEYS",      code = 0x29 },
+    NODETYPE        = { name = "NODETYPE",      code = 0x2a },
+    PROPATTR        = { name = "PROPATTR",      code = 0x2b },
+    PROPVALUE       = { name = "PROPVALUE",     code = 0x2c },
+    BOX             = { name = "BOX",           code = 0x2d },
+    BOXTYPE         = { name = "BOXTYPE",       code = 0x2e },
+    PLEX            = { name = "PLEX",          code = 0x2f },
+    BGNEXTN         = { name = "BGNEXTN",       code = 0x30 },
+    ENDEXTN         = { name = "ENDEXTN",       code = 0x31 },
+    TAPENUM         = { name = "TAPENUM",       code = 0x32 },
+    TAPECODE        = { name = "TAPECODE",      code = 0x33 },
+    STRCLASS        = { name = "STRCLASS",      code = 0x34 },
+    RESERVED        = { name = "RESERVED",      code = 0x35 },
+    FORMAT          = { name = "FORMAT",        code = 0x36 },
+    MASK            = { name = "MASK",          code = 0x37 },
+    ENDMASKS        = { name = "ENDMASKS",      code = 0x38 },
+    LIBDIRSIZE      = { name = "LIBDIRSIZE",    code = 0x39 },
+    SRFNAME         = { name = "SRFNAME",       code = 0x3a },
+    LIBSECUR        = { name = "LIBSECUR",      code = 0x3b },
+}
+local recordtypesnames = {}
+for k, v in pairs(recordtypes) do
+    recordtypesnames[v.code] = v.name
+end
+recordtypescodes = {}
+for k, v in pairs(recordtypes) do
+    recordtypescodes[v.name] = v.code
+end
+
+local datatypes = {
+    NONE                = 0x00,
+    BIT_ARRAY           = 0x01,
+    TWO_BYTE_INTEGER    = 0x02,
+    FOUR_BYTE_INTEGER   = 0x03,
+    FOUR_BYTE_REAL      = 0x04,
+    EIGHT_BYTE_REAL     = 0x05,
+    ASCII_STRING        = 0x06,
+}
 
 local function _number_to_gdsfloat(num, width)
     local data = {}
@@ -152,9 +230,8 @@ local function _unpack_points(pts)
     local multiplier = 1e9 * __databaseunit -- opc works in nanometers
     local stream = {}
     for _, pt in ipairs(pts) do
-        local x, y = pt:unwrap()
-        table.insert(stream, multiplier * x)
-        table.insert(stream, multiplier * y)
+        table.insert(stream, multiplier * pt.x)
+        table.insert(stream, multiplier * pt.y)
     end
     return stream
 end
@@ -252,26 +329,24 @@ function M.write_rectangle(layer, bl, tr)
 
     -- XY
     local multiplier = 1e9 * __databaseunit -- opc works in nanometers
-    local blx, bly = bl:unwrap()
-    local trx, try = tr:unwrap()
-    blx = blx * multiplier
-    bly = bly * multiplier
-    trx = trx * multiplier
-    try = try * multiplier
+    bl.x = bl.x * multiplier
+    bl.y = bl.y * multiplier
+    tr.x = tr.x * multiplier
+    tr.y = tr.y * multiplier
     __content:append_byte(0x00)
     __content:append_byte(0x2c)
     __content:append_byte(0x10) -- XY
     __content:append_byte(0x03) -- FOUR_BYTE_INTEGER
-    __content:append_four_bytes(blx)
-    __content:append_four_bytes(bly)
-    __content:append_four_bytes(trx)
-    __content:append_four_bytes(bly)
-    __content:append_four_bytes(trx)
-    __content:append_four_bytes(try)
-    __content:append_four_bytes(blx)
-    __content:append_four_bytes(try)
-    __content:append_four_bytes(blx)
-    __content:append_four_bytes(bly)
+    __content:append_four_bytes(bl.x)
+    __content:append_four_bytes(bl.y)
+    __content:append_four_bytes(tr.x)
+    __content:append_four_bytes(bl.y)
+    __content:append_four_bytes(tr.x)
+    __content:append_four_bytes(tr.y)
+    __content:append_four_bytes(bl.x)
+    __content:append_four_bytes(tr.y)
+    __content:append_four_bytes(bl.x)
+    __content:append_four_bytes(bl.y)
 
     -- ENDEL
     __content:append_byte(0x00)
@@ -392,6 +467,23 @@ function M.write_path(layer, pts, width, extension)
     __content:append_byte(0x00)
 end
 
+local function _get_matrix_orientation(matrix)
+    if matrix[1] >= 0 and matrix[5] >= 0 then
+        if matrix[2] < 0 then
+            return R90;
+        else
+            return R0;
+        end
+    elseif matrix[1] <  0 and matrix[5] >= 0 then
+        return MY;
+    elseif matrix[1] >= 0 and matrix[5] <  0 then
+        return MX;
+    elseif matrix[1] <  0 and matrix[5] <  0 then
+        return R180;
+    end
+    -- FIXME: R270?
+end
+
 function M.write_cell_reference(identifier, x, y, trans)
     -- SREF
     __content:append_byte(0x00)
@@ -414,7 +506,7 @@ function M.write_cell_reference(identifier, x, y, trans)
     end
 
     -- STRANS/ANGLE
-    local orientation = trans:orientation_string()
+    local orientation = _get_matrix_orientation(trans)
     if orientation == "MX" then
         -- STRANS
         __content:append_byte(0x00)
@@ -525,7 +617,7 @@ function M.write_cell_array(identifier, x, y, trans, xrep, yrep, xpitch, ypitch)
     end
 
     -- STRANS/ANGLE
-    local orientation = trans:orientation_string()
+    local orientation = _get_matrix_orientation(trans)
     if orientation == "MX" then
         -- STRANS
         __content:append_byte(0x00)
@@ -603,7 +695,7 @@ function M.write_cell_array(identifier, x, y, trans, xrep, yrep, xpitch, ypitch)
     _write_record(recordtypes.COLROW, datatypes.TWO_BYTE_INTEGER, { xrep, yrep })
 
     _write_record(recordtypes.XY, datatypes.FOUR_BYTE_INTEGER, 
-        _unpack_points({ point.create(x, y), point.create(x + xrep * xpitch, y), point.create(x, y + yrep * ypitch) }))
+        _unpack_points({ { x = x, y = y }, { x = x + xrep * xpitch, y = y }, { x = x, y = y + yrep * ypitch } }))
 
     -- ENDEL
     __content:append_byte(0x00)

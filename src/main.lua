@@ -116,7 +116,7 @@ if args.prependcellpath then
 end
 
 -- set default path for exports
-export.add_path(string.format("%s/export", _get_opc_home()))
+--export.add_path(string.format("%s/export", _get_opc_home()))
 
 if args.listcellpaths then
     pcell.list_cellpaths()
@@ -330,7 +330,7 @@ end
 if not args.export then
     moderror("no export type given")
 end
-export.load(args.export)
+--export.load(args.export)
 
 -- filter layers (post)
 if args.postlayerfilter then
@@ -352,8 +352,8 @@ if args.mergerectangles then
 end
 
 if not args.noexport then
-    export.set_options(args.export_options)
-    export.check()
+    --export.set_options(args.export_options)
+    --export.check()
     generics.resolve_premapped_layers(args.export)
     local filename = args.filename or "openPCells"
     local leftdelim, rightdelim = "", ""
@@ -363,8 +363,8 @@ if not args.noexport then
             moderror(string.format("--bus-delimiters: parse error. Expected two characters, got: '%s'", args.busdelimiters))
         end
     end
-    export.set_bus_delimiters(leftdelim, rightdelim)
-    export.write_toplevel(filename, cell, args.toplevelname or "opctoplevel", args.writechildrenports, args.dryrun)
+    --export.set_bus_delimiters(leftdelim, rightdelim)
+    export.write_toplevel(args.export, cell, filename, args.toplevelname or "opctoplevel", args.writechildrenports, args.dryrun)
 end
 
 if args.cellinfo then

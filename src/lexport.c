@@ -11,6 +11,8 @@
 
 #include "gdsexport.h"
 
+#include "lpoint.h"
+
 static int lexport_add_path(lua_State* L)
     //string.format("%s/export", _get_opc_home()))
 {
@@ -61,13 +63,18 @@ static void _write_cell(object_t* cell, struct export_data* data, struct export_
                 funcs->write_polygon(data, layerdata, shape->points, shape->size);
                 break;
             case PATH:
-                path_properties_t* properties = shape->properties;
-                funcs->write_path(data, layerdata, shape->points, shape->size, properties->width, properties->extension);
+                if(funcs->write_path)
+                {
+                    path_properties_t* properties = shape->properties;
+                    funcs->write_path(data, layerdata, shape->points, shape->size, properties->width, properties->extension);
+                }
+                else
+                {
+                    shape_resolve_path(shape);
+                    funcs->write_polygon(data, layerdata, shape->points, shape->size);
+                }
                 break;
         }
-        //if S:is_type("path") and not export.write_path then
-        //    S:resolve_path()
-        //end
     }
     for(unsigned int i = 0; i < cell->children_size; ++i)
     {
@@ -92,6 +99,164 @@ static void _write_cell(object_t* cell, struct export_data* data, struct export_
     }
 }
 
+static void _push_layer(lua_State* L, struct keyvaluearray* data)
+{
+    lua_newtable(L);
+    for(unsigned int i = 0; i < data->size; ++i)
+    {
+        lua_pushstring(L, data->pairs[i]->key);
+        switch(data->pairs[i]->tag)
+        {
+            case INT:
+                lua_pushinteger(L, *(int*)data->pairs[i]->value);
+                break;
+            case STRING:
+                lua_pushstring(L, (const char*)data->pairs[i]->value);
+                break;
+            case BOOLEAN:
+                lua_pushboolean(L, *(int*)data->pairs[i]->value);
+                break;
+        }
+        lua_rawset(L, -3);
+    }
+}
+
+static void _push_point(lua_State* L, point_t* pt)
+{
+    lua_newtable(L);
+    lua_pushinteger(L, pt->x);
+    lua_setfield(L, -2, "x");
+    lua_pushinteger(L, pt->y);
+    lua_setfield(L, -2, "y");
+}
+
+static void _push_points(lua_State* L, point_t** pts, size_t len)
+{
+    lua_newtable(L);
+    for(unsigned int i = 0; i < len; ++i)
+    {
+        _push_point(L, pts[i]);
+        lua_rawseti(L, -2, i + 1);
+    }
+}
+
+static void _push_trans(lua_State* L, transformationmatrix_t* trans)
+{
+    lua_newtable(L);
+    for(unsigned int i = 0; i < 6; ++i)
+    {
+        lua_pushinteger(L, trans->coefficients[i]);
+        lua_rawseti(L, -2, i + 1);
+    }
+}
+
+static void _write_cell_lua(lua_State* L, object_t* cell)
+{
+    for(unsigned int i = 0; i < cell->shapes_size; ++i)
+    {
+        shape_t* shape = cell->shapes[i];
+        shape_apply_transformation(shape, cell->trans);
+        struct keyvaluearray* layerdata = shape->layer->data[0];
+        switch(shape->type)
+        {
+            case RECTANGLE:
+                lua_getfield(L, -1, "write_rectangle");
+                _push_layer(L, layerdata);
+                _push_point(L, shape->points[0]);
+                _push_point(L, shape->points[1]);
+                lua_call(L, 3, 0);
+                break;
+            case POLYGON:
+                lua_getfield(L, -1, "write_polygon");
+                _push_layer(L, layerdata);
+                _push_points(L, shape->points, shape->size);
+                lua_call(L, 2, 0);
+                break;
+            case PATH:
+                lua_getfield(L, -1, "write_path");
+                if(!lua_isnil(L, -1))
+                {
+                    lua_pop(L, 1);
+                    path_properties_t* properties = shape->properties;
+                    lua_getfield(L, -1, "write_path");
+                    _push_layer(L, layerdata);
+                    _push_points(L, shape->points, shape->size);
+                    lua_pushinteger(L, properties->width);
+                    lua_newtable(L);
+                    lua_pushinteger(L, properties->extension[0]);
+                    lua_rawseti(L, -2, 1);
+                    lua_pushinteger(L, properties->extension[0]);
+                    lua_rawseti(L, -2, 2);
+                    lua_call(L, 4, 0);
+                }
+                else
+                {
+                    shape_resolve_path(shape);
+                    lua_getfield(L, -1, "write_polygon");
+                    _push_layer(L, layerdata);
+                    _push_points(L, shape->points, shape->size);
+                    lua_call(L, 2, 0);
+                }
+                break;
+        }
+    }
+    for(unsigned int i = 0; i < cell->children_size; ++i)
+    {
+        point_t origin = { .x = 0, .y = 0 };
+        object_t* child = cell->children[i];
+        transformationmatrix_apply_transformation(child->trans, &origin);
+        transformationmatrix_apply_transformation(cell->trans, &origin);
+        if(child->isarray)
+        {
+            lua_getfield(L, -1, "write_cell_array");
+            if(lua_isnil(L, -1))
+            {
+                lua_pop(L, 1);
+            }
+            else
+            {
+                lua_pushstring(L, child->identifier);
+                lua_pushinteger(L, origin.x);
+                lua_pushinteger(L, origin.y);
+                _push_trans(L, child->trans);
+                lua_pushinteger(L, child->xrep);
+                lua_pushinteger(L, child->yrep);
+                lua_pushinteger(L, child->xpitch);
+                lua_pushinteger(L, child->ypitch);
+                lua_call(L, 8, 0);
+            }
+        }
+        else
+        {
+            for(unsigned int ix = 1; ix <= child->xrep; ++ix)
+            {
+                for(unsigned int iy = 1; iy <= child->yrep; ++iy)
+                {
+                    lua_getfield(L, -1, "write_cell_reference");
+                    lua_pushstring(L, child->identifier);
+                    lua_pushinteger(L, origin.x + (ix - 1) * child->xpitch);
+                    lua_pushinteger(L, origin.y + (iy - 1) * child->ypitch);
+                    _push_trans(L, child->trans);
+                    lua_call(L, 4, 0);
+                    //funcs->write_cell_reference(data, child->identifier, origin.x + (ix - 1) * child->xpitch, origin.y + (iy - 1) * child->ypitch, child->trans);
+                }
+            }
+        }
+    }
+}
+
+void _call_or_pop_nil(lua_State* L, int numargs)
+{
+    if(!lua_isnil(L, -1))
+    {
+        lua_call(L, numargs, 0);
+    }
+    else
+    {
+        lua_pop(L, 1);
+    }
+}
+
 static struct export_functions* get_export_functions(const char* exportname)
 {
     struct export_functions* funcs = NULL;
@@ -107,18 +272,26 @@ static struct export_functions* get_export_functions(const char* exportname)
 }
 
 static int lexport_write_toplevel(lua_State* L)
-    //filename, args.technology, cell, args.toplevelname or "opctoplevel", args.writechildrenports, args.dryrun
 {
-    const char* filename = lua_tostring(L, 1);
-    lobject_t* lobject = lua_touserdata(L, 2);
-    struct export_functions* funcs = get_export_functions("gds");
+    const char* exportname = lua_tostring(L, 1);
+    lobject_t* toplevel = lua_touserdata(L, 2);
+
+    if(object_is_empty(toplevel->object))
+    {
+        puts("export: toplevel is empty");
+        return 0;
+    }
+
+    // try C-defined exports first
+    struct export_functions* funcs = get_export_functions(exportname);
+
     if(funcs)
     {
         struct export_data* data = export_create_data();
         funcs->at_begin(data);
 
         funcs->at_begin_cell(data, "opctoplevel");
-        _write_cell(lobject->object, data, funcs);
+        _write_cell(toplevel->object, data, funcs);
         funcs->at_end_cell(data);
 
         for(unsigned int i = 0; i < pcell_get_reference_count(); ++i)
@@ -133,12 +306,81 @@ static int lexport_write_toplevel(lua_State* L)
         }
 
         funcs->at_end(data);
-        FILE* file = fopen("openPCells.gds", "wb");
+        const char* basename = lua_tostring(L, 3);
+        const char* extension = funcs->get_extension();
+        size_t len = strlen(basename) + strlen(extension) + 2; // + 2: '.' and the terminating zero
+        char* filename = malloc(len);
+        snprintf(filename, len + 2, "%s.%s", basename, extension);
+        FILE* file = fopen(filename, "w");
         fwrite(data->data, 1, data->length, file);
         fclose(file);
         export_destroy_data(data);
         export_destroy_functions(funcs);
     }
+    else // lua-defined exports
+    {
+        const char* searchpath = "/home/pkurth/Workspace/openPCells/export";
+        size_t len = strlen(searchpath) + strlen(exportname) + 11; // + 11: "init.lua" + 2 * '/' + terminating zero
+        char* exportfilename = malloc(len); // + 9: "init.lua" + terminating zero
+        snprintf(exportfilename, len, "%s/%s/init.lua", searchpath, exportname);
+        luaL_dofile(L, exportfilename);
+        if(lua_type(L, -1) == LUA_TTABLE)
+        {
+            // check if export supports hierarchies
+            lua_getfield(L, -1, "write_cell_reference");
+            if(lua_isnil(L, -1))
+            {
+                puts("this export does not know how to write hierarchies, hence the cell is being written flat");
+                object_flatten(toplevel->object, 0);
+            }
+            lua_pop(L, 1);
+
+            lua_getfield(L, -1, "at_begin");
+            _call_or_pop_nil(L, 0);
+
+            lua_getfield(L, -1, "at_begin_cell");
+            lua_pushstring(L, "opctoplevel");
+            _call_or_pop_nil(L, 1);
+            _write_cell_lua(L, toplevel->object);
+            lua_getfield(L, -1, "at_end_cell");
+            _call_or_pop_nil(L, 0);
+
+            for(unsigned int i = 0; i < pcell_get_reference_count(); ++i)
+            {
+                struct cellreference* reference = pcell_get_indexed_cell_reference(i);
+                if(reference->numused > 0)
+                {
+                    lua_getfield(L, -1, "at_begin_cell");
+                    lua_pushstring(L, reference->identifier);
+                    _call_or_pop_nil(L, 1);
+                    _write_cell_lua(L, reference->cell);
+                    lua_getfield(L, -1, "at_end_cell");
+                    _call_or_pop_nil(L, 0);
+                }
+            }
+
+            lua_getfield(L, -1, "at_end");
+            _call_or_pop_nil(L, 0);
+
+            const char* basename = lua_tostring(L, 3);
+            lua_getfield(L, -1, "get_extension");
+            lua_call(L, 0, 1);
+            const char* extension = lua_tostring(L, -1);
+            size_t len = strlen(basename) + strlen(extension) + 2; // + 2: '.' and the terminating zero
+            char* filename = malloc(len);
+            snprintf(filename, len + 2, "%s.%s", basename, extension);
+            FILE* file = fopen(filename, "w");
+            lua_pop(L, 1); // pop extension
+            lua_getfield(L, -1, "finalize");
+            lua_call(L, 0, 1);
+            size_t datalen;
+            const char* data = lua_tolstring(L, -1, &datalen);
+            fwrite(data, 1, datalen, file);
+            fclose(file);
+            lua_pop(L, 1); // pop data
+        }
+    }
+
     return 0;
 }
 
