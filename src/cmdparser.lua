@@ -125,7 +125,7 @@ end
 
 local function _display_version(self)
     print("openPCells (opc) 0.1.0")
-    print("Copyright 2020-2021 Patrick Kurth")
+    print("Copyright 2020-2022 Patrick Kurth")
     os.exit(0)
 end
 
