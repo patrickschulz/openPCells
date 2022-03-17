@@ -100,20 +100,38 @@ const char* pcell_add_cell_reference(object_t* cell, const char* identifier)
     references->references[references->size] = malloc(sizeof(*references->references[references->size]));
     references->references[references->size]->cell = cell;
     references->references[references->size]->identifier = _unique_name(identifier);
+    references->references[references->size]->numused = 0;
     references->size += 1;
     return references->references[references->size - 1]->identifier;
 }
 
-object_t* pcell_get_cell_reference(const char* identifier)
+object_t* pcell_use_cell_reference(const char* identifier)
 {
     for(unsigned int i = 0; i < references->size; ++i)
     {
         if(strcmp(references->references[i]->identifier, identifier) == 0)
         {
+            references->references[i]->numused += 1;
             return references->references[i]->cell;
         }
     }
     return NULL;
+}
+
+void pcell_unlink_cell_reference(const char* identifier)
+{
+    for(unsigned int i = 0; i < references->size; ++i)
+    {
+        if(strcmp(references->references[i]->identifier, identifier) == 0)
+        {
+            if(references->references[i]->numused > 0)
+            {
+                references->references[i]->numused -= 1;
+            }
+            // FIXME: error otherwise?
+        }
+    }
+    // FIXME: error if not found?
 }
 
 size_t pcell_get_reference_count(void)

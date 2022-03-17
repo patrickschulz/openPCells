@@ -142,10 +142,6 @@ return {
         help = "set seed for random functions for reproducible layout generation"
     },
     section("Layout debugging functions"),
-    switch{
-        name = "drawaxes", long = "--draw-axes",
-        help = "draw axes. They are drawn in the 'special' layer, so your layermap needs to have an entry for that."
-    },
     store_multiple{
         name = "drawanchor", long = "--draw-anchor",
         help = "draw a cell anchor. It is drawn in the 'special' layer, so your layermap needs to have an entry for that."

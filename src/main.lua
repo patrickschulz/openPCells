@@ -294,16 +294,6 @@ if args.orientation then
     f()
 end
 
--- add axes
-if args.drawaxes then
-    local bb = cell:bounding_box()
-    local minx, miny = bb.bl:unwrap()
-    local maxx, maxy = bb.tr:unwrap()
-    local factor = 2
-    geometry.rectanglebltr(cell, generics.special(), point.create(-5, factor * miny), point.create(5, factor * maxy))
-    geometry.rectanglebltr(cell, generics.special(), point.create(factor * minx, -5), point.create(factor * maxx, 5))
-end
-
 if args.drawanchor then
     for _, da in ipairs(args.drawanchor) do
         local anchor = cell:get_anchor(da)

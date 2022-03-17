@@ -124,9 +124,12 @@ static int lexport_write_toplevel(lua_State* L)
         for(unsigned int i = 0; i < pcell_get_reference_count(); ++i)
         {
             struct cellreference* reference = pcell_get_indexed_cell_reference(i);
-            funcs->at_begin_cell(data, reference->identifier);
-            _write_cell(reference->cell, data, funcs);
-            funcs->at_end_cell(data);
+            if(reference->numused > 0)
+            {
+                funcs->at_begin_cell(data, reference->identifier);
+                _write_cell(reference->cell, data, funcs);
+                funcs->at_end_cell(data);
+            }
         }
 
         funcs->at_end(data);

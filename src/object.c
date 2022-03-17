@@ -182,7 +182,7 @@ int object_add_shape(object_t* cell, shape_t* S)
 
 object_t* object_add_child(object_t* cell, const char* identifier, const char* name)
 {
-    object_t* reference = pcell_get_cell_reference(identifier);
+    object_t* reference = pcell_use_cell_reference(identifier);
     object_t* child = object_create_proxy(name, reference, identifier);
     child->isarray = 0;
     child->xrep = 1;
@@ -655,12 +655,23 @@ void object_flatten(object_t* cell, int flattenports)
         object_t* child = cell->children[i];
         object_t* reference = child->reference; // FIXME: do we need to copy? If this cell is used somewhere else (partial flatten) than that will most likely cause headaches
         object_flatten(reference, flattenports);
-        for(unsigned int i = 0; i < reference->shapes_size; ++i)
+        for(unsigned int ix = 1; ix <= child->xrep; ++ix)
         {
-            shape_t* S = shape_copy(reference->shapes[i]);
-            shape_apply_transformation(S, child->trans);
-            shape_apply_transformation(S, reference->trans);
-            object_add_raw_shape(cell, S);
+            for(unsigned int iy = 1; iy <= child->yrep; ++iy)
+            {
+                for(unsigned int i = 0; i < reference->shapes_size; ++i)
+                {
+                    shape_t* S = shape_copy(reference->shapes[i]);
+                    shape_apply_transformation(S, child->trans);
+                    shape_apply_transformation(S, reference->trans);
+                    for(unsigned int i = 0; i < S->size; ++i)
+                    {
+                        S->points[i]->x += (ix - 1) * child->xpitch;
+                        S->points[i]->y += (iy - 1) * child->ypitch;
+                    }
+                    object_add_raw_shape(cell, S);
+                }
+            }
         }
         //local xrep, yrep = child.xrep, child.yrep
         //local xpitch, ypitch = child.xpitch, child.ypitch
@@ -692,6 +703,7 @@ void object_flatten(object_t* cell, int flattenports)
     // destroy children
     for(unsigned int i = 0; i < cell->children_size; ++i)
     {
+        pcell_unlink_cell_reference(cell->children[i]->identifier);
         object_destroy(cell->children[i]);
     }
     free(cell->children);
@@ -700,7 +712,6 @@ void object_flatten(object_t* cell, int flattenports)
 }
 
 /*
-
 local function _add_port(self, name, anchorname, layer, where)
     --layer:set_port()
     local new = port.create(name, layer, where)
@@ -722,10 +733,4 @@ function object.add_bus_port(self, name, layer, startindex, endindex, where, xpi
         shift = shift + 1
     end
 end
-
-function object.bounding_box(self)
-    local minx, maxx, miny, maxy = _get_minmax_xy(self)
-    return { bl = point.create(minx, miny), tr = point.create(maxx, maxy) }
-end
-
 */
