@@ -14,6 +14,7 @@ typedef struct
 } lpoint_t;
 
 lpoint_t* lpoint_create_internal(lua_State* L, coordinate_t x, coordinate_t y);
+lpoint_t* lpoint_adapt_point(lua_State* L, point_t* pt);
 int lpoint_create(lua_State* L);
 int lpoint_copy(lua_State* L);
 int open_lpoint_lib(lua_State* L);

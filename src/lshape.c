@@ -5,19 +5,14 @@
 
 #include "lua/lauxlib.h"
 
-#include "shape.h"
 #include "lpoint.h"
 #include "ltransformationmatrix.h"
 
-typedef struct
-{
-    shape_t* shape;
-} lshape_t;
-
 static lshape_t* _create_lshape(lua_State* L)
 {
-    lshape_t* lshape = lua_newuserdatauv(L, sizeof(lshape_t), 1);
+    lshape_t* lshape = lua_newuserdata(L, sizeof(lshape_t));
     lshape->shape = NULL;
+    lshape->destroy = 1;
     luaL_setmetatable(L, LSHAPEMODULE);
     return lshape;
 }
@@ -137,6 +132,14 @@ static int lshape_create_path(lua_State* L)
     }
     lshape->shape->layer = lua_touserdata(L, 1);
     return 1;
+}
+
+lshape_t* lshape_create_proxy(lua_State* L, shape_t* shape)
+{
+    lshape_t* lshape = _create_lshape(L);
+    lshape->shape = shape;
+    lshape->destroy = 0;
+    return lshape;
 }
 
 static int lshape_get_points(lua_State* L)
@@ -381,7 +384,7 @@ static int lshape_resolve_path(lua_State* L)
 static int lshape_destroy(lua_State* L)
 {
     lshape_t* lshape = luaL_checkudata(L, -1, LSHAPEMODULE);
-    if(lshape->shape)
+    if(lshape->shape && lshape->destroy)
     {
         shape_destroy(lshape->shape);
     }

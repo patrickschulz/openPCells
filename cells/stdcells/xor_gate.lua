@@ -72,9 +72,11 @@ function layout(gate, _P)
     for i = 1, _P.fingers do
         local shift = 4 * (i - 1) - (_P.fingers - 1)
         if i % 2 == 0 then
-            gate:merge_into_shallow(block:copy():flipx():translate(-shift * xpitch, 0))
+            --gate:merge_into_shallow(block:copy():flipx():translate(-shift * xpitch, 0))
+            gate:merge_into_shallow(block:copy())
         else
-            gate:merge_into_shallow(block:copy():translate(-shift * xpitch, 0))
+            --gate:merge_into_shallow(block:copy():translate(-shift * xpitch, 0))
+            gate:merge_into_shallow(block:copy())
         end
     end
 

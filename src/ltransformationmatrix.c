@@ -14,7 +14,7 @@ static int ltransformationmatrix_tostring(lua_State* L)
     return 1;
 }
 
-ltransformationmatrix_t* _create(lua_State* L)
+static ltransformationmatrix_t* _create(lua_State* L)
 {
     ltransformationmatrix_t* lmatrix = lua_newuserdata(L, sizeof(*lmatrix));
     luaL_setmetatable(L, LTRANSFORMATIONMATRIXMODULE);
@@ -56,6 +56,14 @@ static int ltransformationmatrix_copy(lua_State* L)
     ltransformationmatrix_t* old = lua_touserdata(L, 1);
     ltransformationmatrix_t* lmatrix = _create(L);
     lmatrix->matrix = transformationmatrix_copy(old->matrix);
+    return 1;
+}
+
+static int ltransformationmatrix_invert(lua_State* L)
+{
+    ltransformationmatrix_t* old = lua_touserdata(L, 1);
+    ltransformationmatrix_t* lmatrix = _create(L);
+    lmatrix->matrix = transformationmatrix_invert(old->matrix);
     return 1;
 }
 
@@ -219,25 +227,26 @@ int open_ltransformationmatrix_lib(lua_State* L)
 
     static const luaL_Reg modfuncs[] =
     {
-        { "identity", ltransformationmatrix_identity },
-        { "chain",    ltransformationmatrix_chain    },
-        { "copy", ltransformationmatrix_copy },
-        { "move_to", ltransformationmatrix_move_to },
-        { "move_x_to", ltransformationmatrix_move_x_to },
-        { "move_y_to", ltransformationmatrix_move_y_to },
-        { "translate", ltransformationmatrix_translate },
-        { "translate_x", ltransformationmatrix_translate_x },
-        { "translate_y", ltransformationmatrix_translate_y },
-        { "scale", ltransformationmatrix_scale },
-        { "mirror_x", ltransformationmatrix_mirror_x },
-        { "mirror_y", ltransformationmatrix_mirror_y },
-        { "mirror_origin", ltransformationmatrix_mirror_origin },
-        { "rotate_90_right", ltransformationmatrix_rotate_90_right },
-        { "rotate_90_left", ltransformationmatrix_rotate_90_left },
-        { "apply_transformation", ltransformationmatrix_apply_transformation },
+        { "identity",                     ltransformationmatrix_identity                     },
+        { "chain",                        ltransformationmatrix_chain                        },
+        { "copy",                         ltransformationmatrix_copy                         },
+        { "invert",                       ltransformationmatrix_invert                       },
+        { "move_to",                      ltransformationmatrix_move_to                      },
+        { "move_x_to",                    ltransformationmatrix_move_x_to                    },
+        { "move_y_to",                    ltransformationmatrix_move_y_to                    },
+        { "translate",                    ltransformationmatrix_translate                    },
+        { "translate_x",                  ltransformationmatrix_translate_x                  },
+        { "translate_y",                  ltransformationmatrix_translate_y                  },
+        { "scale",                        ltransformationmatrix_scale                        },
+        { "mirror_x",                     ltransformationmatrix_mirror_x                     },
+        { "mirror_y",                     ltransformationmatrix_mirror_y                     },
+        { "mirror_origin",                ltransformationmatrix_mirror_origin                },
+        { "rotate_90_right",              ltransformationmatrix_rotate_90_right              },
+        { "rotate_90_left",               ltransformationmatrix_rotate_90_left               },
+        { "apply_transformation",         ltransformationmatrix_apply_transformation         },
         { "apply_inverse_transformation", ltransformationmatrix_apply_inverse_transformation },
-        { "orientation_string", ltransformationmatrix_orientation_string },
-        { NULL,       NULL                           }
+        { "orientation_string",           ltransformationmatrix_orientation_string           },
+        { NULL,                           NULL                                               }
     };
     luaL_setfuncs(L, modfuncs, 0);
 

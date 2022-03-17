@@ -60,3 +60,19 @@ void keyvaluearray_add_string(struct keyvaluearray* array, const char* key, cons
     strcpy(array->pairs[array->size - 1]->value, value);
 }
 
+int keyvaluearray_get_int(const struct keyvaluearray* array, const char* key, int* value)
+{
+    for(unsigned int i = 0; i < array->size; ++i)
+    {
+        if(strcmp(key, array->pairs[i]->key) == 0)
+        {
+            if(array->pairs[i]->tag == INT)
+            {
+                *value = *((int*)array->pairs[i]->value);
+                return 1;
+            }
+        }
+    }
+    return 0;
+}
+

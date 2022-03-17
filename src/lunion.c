@@ -3,9 +3,9 @@
 
 #include "lua/lauxlib.h"
 
-#include "lpoint.h"
+#include "point.h"
 
-typedef lpoint_coordinate_t lpc;
+typedef coordinate_t lpc;
 
 typedef enum
 {
@@ -21,7 +21,7 @@ typedef enum
     INNER
 } order_t;
 
-static order_t rect_order(lpoint_coordinate_t bl1, lpoint_coordinate_t tr1, lpoint_coordinate_t bl2, lpoint_coordinate_t tr2)
+static order_t rect_order(coordinate_t bl1, coordinate_t tr1, coordinate_t bl2, coordinate_t tr2)
 {
     if(bl1  > tr2 || bl2  > tr1) return NOINTERSECTION;
     if(bl1  < bl2 && tr1  > tr2) return OUTER;
@@ -213,4 +213,3 @@ int open_lunion_lib(lua_State* L)
     lua_setglobal(L, "union");
     return 0;
 }
-

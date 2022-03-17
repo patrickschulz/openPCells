@@ -4,7 +4,73 @@
 #include <stddef.h>
 #include <math.h>
 
-#include "shape.h"
+static void _rectanglebltr(object_t* cell, generics_t* layer, coordinate_t blx, coordinate_t bly, coordinate_t trx, coordinate_t try)
+{
+    shape_t* S = shape_create_rectangle(blx, bly, trx, try);
+    S->layer = layer;
+    if(!object_add_shape(cell, S))
+    {
+        shape_destroy(S);
+    }
+}
+
+void geometry_rectanglebltr(object_t* cell, generics_t* layer, point_t* bl, point_t* tr)
+{
+    _rectanglebltr(cell, layer, bl->x, bl->y, tr->x, tr->y);
+}
+
+void geometry_rectangle(object_t* cell, generics_t* layer, coordinate_t width, coordinate_t height, coordinate_t xshift, coordinate_t yshift)
+{
+    _rectanglebltr(cell, layer, -width / 2 + xshift, -height / 2 + yshift, width / 2 + xshift, height / 2 + yshift);
+}
+
+void geometry_rectanglepoints(object_t* cell, generics_t* layer, point_t* pt1, point_t* pt2)
+{
+    if(pt1->x <= pt2->x && pt1->y <= pt2->y)
+    {
+        _rectanglebltr(cell, layer, pt1->x, pt1->y, pt2->x, pt2->y);
+    }
+    else if(pt1->x <= pt2->x && pt1->y  > pt2->y)
+    {
+        _rectanglebltr(cell, layer, pt1->x, pt2->y, pt2->x, pt1->y);
+    }
+    else if(pt1->x  > pt2->x && pt1->y <= pt2->y)
+    {
+        _rectanglebltr(cell, layer, pt2->x, pt1->y, pt1->x, pt2->y);
+    }
+    else if(pt1->x  > pt2->x && pt1->y  > pt2->y)
+    {
+        _rectanglebltr(cell, layer, pt2->x, pt2->y, pt1->x, pt1->y);
+    }
+}
+
+void geometry_polygon(object_t* cell, generics_t* layer, point_t** points, size_t len)
+{
+    shape_t* S = shape_create_polygon(len);
+    S->layer = layer;
+    for(unsigned int i = 0; i < len; ++i)
+    {
+        shape_append(S, points[i]->x, points[i]->y);
+    }
+    if(!object_add_shape(cell, S))
+    {
+        shape_destroy(S);
+    }
+}
+
+void geometry_path(object_t* cell, generics_t* layer, point_t** points, size_t len, ucoordinate_t width, ucoordinate_t bgnext, ucoordinate_t endext)
+{
+    shape_t* S = shape_create_path(len, width, bgnext, endext);
+    S->layer = layer;
+    for(unsigned int i = 0; i < len; ++i)
+    {
+        shape_append(S, points[i]->x, points[i]->y);
+    }
+    if(!object_add_shape(cell, S))
+    {
+        shape_destroy(S);
+    }
+}
 
 static void _shift_line(point_t* pt1, point_t* pt2, ucoordinate_t width, point_t** spt1, point_t** spt2)
 {

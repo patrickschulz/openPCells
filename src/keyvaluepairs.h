@@ -27,4 +27,6 @@ void keyvaluearray_add_int(struct keyvaluearray*, const char* key, int value);
 void keyvaluearray_add_boolean(struct keyvaluearray*, const char* key, int value);
 void keyvaluearray_add_string(struct keyvaluearray*, const char* key, const char* value);
 
+int keyvaluearray_get_int(const struct keyvaluearray*, const char* key, int* value);
+
 #endif /* OPC_KEYVALUEPAIRS_H */

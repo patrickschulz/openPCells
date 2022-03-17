@@ -14,21 +14,6 @@ static coordinate_t checkcoordinate(lua_State* L, int idx)
     lua_Integer d = lua_tointegerx(L, idx, &isnum);
     if(!isnum) 
     {
-        /*
-        lua_Debug debug;
-        int level = 1;
-        while(1)
-        {
-            lua_getstack(L, level, &debug);
-            lua_getinfo(L, "Snlt", &debug);
-            if(strncmp("cell", debug.short_src, 4) == 0)
-            {
-                break;
-            }
-            ++level;
-        }
-        lua_pushfstring(L, "non-integer number (%f) generated in %s: line %d", num, debug.short_src, debug.currentline);
-        */
         lua_Number num = lua_tonumber(L, idx);
         lua_pushfstring(L, "non-integer number (%f) generated", num);
         lua_error(L);
@@ -41,6 +26,14 @@ lpoint_t* lpoint_create_internal(lua_State* L, coordinate_t x, coordinate_t y)
     lpoint_t* p = lua_newuserdata(L, sizeof(lpoint_t));
     luaL_setmetatable(L, LPOINTMETA);
     p->point = point_create(x, y);
+    return p;
+}
+
+lpoint_t* lpoint_adapt_point(lua_State* L, point_t* pt)
+{
+    lpoint_t* p = lua_newuserdata(L, sizeof(lpoint_t));
+    luaL_setmetatable(L, LPOINTMETA);
+    p->point = pt;
     return p;
 }
 

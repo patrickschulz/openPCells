@@ -313,17 +313,17 @@ end
 
 -- add drawing of alignment box
 if args.drawalignmentbox then
-    if cell.alignmentbox then
-        local bl = cell:get_anchor("bottomleft")
-        local tr = cell:get_anchor("topright")
+    local bl = cell:get_anchor("bottomleft")
+    local tr = cell:get_anchor("topright")
+    if bl and tr then
         geometry.rectanglebltr(cell, generics.special(), bl, tr)
     end
 end
 if args.drawallalignmentboxes then
     pcell.foreach_cell_references(function(cell)
-        if cell.alignmentbox then
-            local bl = cell:get_anchor("bottomleft")
-            local tr = cell:get_anchor("topright")
+        local bl = cell:get_anchor("bottomleft")
+        local tr = cell:get_anchor("topright")
+        if bl and tr then
             geometry.rectanglebltr(cell, generics.special(), bl, tr)
         end
     end)
@@ -374,7 +374,7 @@ if not args.noexport then
         end
     end
     export.set_bus_delimiters(leftdelim, rightdelim)
-    export.write_toplevel(filename, args.technology, cell, args.toplevelname or "opctoplevel", args.writechildrenports, args.dryrun)
+    export.write_toplevel(filename, cell, args.toplevelname or "opctoplevel", args.writechildrenports, args.dryrun)
 end
 
 if args.cellinfo then

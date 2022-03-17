@@ -100,7 +100,7 @@ local function _write_cell(chunk, cell, cells, path, dirname, layermap, alignmen
                     table.insert(chunk, string.format('    child:mirror_at_xaxis()'))
                 end
             elseif ref.angle == 90 then
-                table.insert(chunk, string.format('    child:rotate_90()'))
+                table.insert(chunk, string.format('    child:rotate_90_left()'))
             else
                 if ref.transformation and ref.transformation[1] == 1 then
                     table.insert(chunk, string.format('    child:mirror_at_xaxis()'))

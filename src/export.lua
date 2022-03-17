@@ -62,12 +62,12 @@ function M.check()
 end
 
 local function _write_cell(cell)
+    cell:apply_transformation()
     -- shapes
-    for _, S in cell:iterate_shapes() do
+    cell:foreach_shape(function(S)
         if S:is_type("path") and not export.write_path then
             S:resolve_path()
         end
-        S:apply_transformation(cell.trans, cell.trans.apply_transformation)
         local layer = S:get_layer()
         if S:is_type("polygon") then
             export.write_polygon(layer, S:get_points())
@@ -78,10 +78,10 @@ local function _write_cell(cell)
         else
             moderror(string.format("export: unknown shape type '%s'", S.typ))
         end
-    end
+    end)
     -- children links
     for _, child in cell:iterate_children() do
-        local origin = child.origin
+        local origin = point.create(0, 0)
         child.trans:apply_transformation(origin)
         cell.trans:apply_transformation(origin)
         local x, y = origin:unwrap()
@@ -98,6 +98,7 @@ local function _write_cell(cell)
 end
 
 local function _write_ports(cell)
+    --[[
     for _, port in pairs(cell.ports) do
         if port.isbusport then
             local name = string.format("%s%s%d%s",  port.name, _leftdelim, port.busindex, _rightdelim)
@@ -108,6 +109,7 @@ local function _write_ports(cell)
             export.write_port(port.name, port:get_layer(), port.where)
         end
     end
+    --]]
 end
 
 local function _write_cell_references(writechildrenports)

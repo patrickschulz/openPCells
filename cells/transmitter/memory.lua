@@ -34,10 +34,12 @@ function layout(memory, _P)
                 )
             end
         end
-        geometry.path(lane, generics.metal(3), {
-            dffs[(j - 1) * _P.bitsperlane + 1]:get_anchor("CLK"),
-            dffs[(j - 1) * _P.bitsperlane + _P.bitsperlane]:get_anchor("CLK")
-        }, 40)
+        if _P.bitsperlane > 1 then
+            geometry.path(lane, generics.metal(3), {
+                dffs[(j - 1) * _P.bitsperlane + 1]:get_anchor("CLK"),
+                dffs[(j - 1) * _P.bitsperlane + _P.bitsperlane]:get_anchor("CLK")
+            }, 40)
+        end
         lane:add_anchor("D", dffs[(j - 1) * _P.bitsperlane + 1]:get_anchor("D"))
     end
     lane:set_alignment_box(
@@ -50,6 +52,7 @@ function layout(memory, _P)
     for i = 1, _P.numlanes do
         lanes[i] = memory:add_child(lanename)
         if i % 2 == 0 then 
+            dprint("flipy")
             lanes[i]:flipy()
         end
         if i > 1 then

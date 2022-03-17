@@ -32,6 +32,8 @@
 #include "lbinary.h"
 #include "lshape.h"
 #include "lobject.h"
+#include "pcell.h"
+#include "lexport.h"
 #include "lport.h"
 //#include "lunion.h"
 #include "lfilesystem.h"
@@ -199,6 +201,8 @@ static lua_State* create_and_initialize_lua(void)
     open_lbinary_lib(L);
     open_lshape_lib(L);
     open_lobject_lib(L);
+    open_lpcell_lib(L);
+    open_lexport_lib(L);
     open_lport_lib(L);
     open_lutil_lib(L);
     open_lbytebuffer_lib(L);
@@ -219,8 +223,10 @@ int main (int argc, char** argv)
     lua_State* L = create_and_initialize_lua();
     create_argument_table(L, argc, argv);
     generics_initialize_layer_map();
+    pcell_initialize_references();
     int retval = call_main_program(L, OPC_HOME "/src/main.lua");
     generics_destroy_layer_map();
+    pcell_destroy_references();
     lua_close(L);
     return retval;
 }

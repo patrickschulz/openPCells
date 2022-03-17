@@ -27,7 +27,7 @@ void transformationmatrix_identity(transformationmatrix_t* matrix)
     M(5) = 0;
 }
 
-transformationmatrix_t* transformationmatrix_chain(transformationmatrix_t* lhs, transformationmatrix_t* rhs)
+transformationmatrix_t* transformationmatrix_chain(const transformationmatrix_t* lhs, const transformationmatrix_t* rhs)
 {
     transformationmatrix_t* matrix = transformationmatrix_create();
     M(0) = lhs->coefficients[0] * rhs->coefficients[0] + lhs->coefficients[1] * rhs->coefficients[3];
@@ -39,7 +39,7 @@ transformationmatrix_t* transformationmatrix_chain(transformationmatrix_t* lhs, 
     return matrix;
 }
 
-transformationmatrix_t* transformationmatrix_copy(transformationmatrix_t* old)
+transformationmatrix_t* transformationmatrix_copy(const transformationmatrix_t* old)
 {
     transformationmatrix_t* matrix = transformationmatrix_create();
     M(0) = old->coefficients[0];
@@ -48,6 +48,25 @@ transformationmatrix_t* transformationmatrix_copy(transformationmatrix_t* old)
     M(3) = old->coefficients[3];
     M(4) = old->coefficients[4];
     M(5) = old->coefficients[5];
+    return matrix;
+}
+
+transformationmatrix_t* transformationmatrix_invert(const transformationmatrix_t* old)
+{
+    transformationmatrix_t* matrix = transformationmatrix_create();
+    coordinate_t c0 = old->coefficients[0];
+    coordinate_t c1 = old->coefficients[1];
+    coordinate_t c2 = old->coefficients[2];
+    coordinate_t c3 = old->coefficients[3];
+    coordinate_t c4 = old->coefficients[4];
+    coordinate_t c5 = old->coefficients[5];
+    coordinate_t det = old->coefficients[0] * old->coefficients[4] - old->coefficients[1] * old->coefficients[3];
+    M(0) = c4 / det;
+    M(1) = -c1 / det;
+    M(2) = (c1 * c5 - c2 * c4) / det;
+    M(3) = -c3 / det;
+    M(4) = c0 / det;
+    M(5) = (-c0 * c5 - c2 * c3) / det;
     return matrix;
 }
 
@@ -143,7 +162,7 @@ void transformationmatrix_rotate_90_left(transformationmatrix_t* matrix)
     M(5) = tmp;
 }
 
-void transformationmatrix_apply_transformation(transformationmatrix_t* matrix, point_t* pt)
+void transformationmatrix_apply_transformation(const transformationmatrix_t* matrix, point_t* pt)
 {
     coordinate_t x = pt->x;
     coordinate_t y = pt->y;
@@ -151,7 +170,15 @@ void transformationmatrix_apply_transformation(transformationmatrix_t* matrix, p
     pt->y = M(3) * x + M(4) * y + M(5);
 }
 
-void transformationmatrix_apply_inverse_transformation(transformationmatrix_t* matrix, point_t* pt)
+void transformationmatrix_apply_transformation_xy(const transformationmatrix_t* matrix, coordinate_t* x, coordinate_t* y)
+{
+    coordinate_t xx = *x;
+    coordinate_t yy = *y;
+    *x = M(0) * xx + M(1) * yy + M(2);
+    *y = M(3) * xx + M(4) * yy + M(5);
+}
+
+void transformationmatrix_apply_inverse_transformation(const transformationmatrix_t* matrix, point_t* pt)
 {
     coordinate_t x = pt->x;
     coordinate_t y = pt->y;

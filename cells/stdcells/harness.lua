@@ -61,20 +61,18 @@ function layout(gate, _P)
         if fingers > 0 then
             pmos = pcell.create_layout("basic/mosfet", { fingers = fingers }):move_anchor("botgate")
             gate:merge_into_shallow(pmos)
-        else
-            pmos = object.create_omni()
         end
         -- left dummy
         if bp.leftdummies > 0 then
             gate:merge_into_shallow(
                 pcell.create_layout("basic/mosfet", { fingers = bp.leftdummies, drawtopgcut = bp.drawdummygcut, drawbotgcut = true }
-            ):move_anchor("rightbotgate", pmos:get_anchor("leftbotgate")))
+            ):move_anchor("rightbotgate", pmos and pmos:get_anchor("leftbotgate") or nil))
         end
         -- rightdummy
         if bp.rightdummies > 0 then
             gate:merge_into_shallow(
                 pcell.create_layout("basic/mosfet", { fingers = bp.rightdummies, drawtopgcut = bp.drawdummygcut, drawbotgcut = true }
-            ):move_anchor("leftbotgate", pmos:get_anchor("rightbotgate")))
+            ):move_anchor("leftbotgate", pmos and pmos:get_anchor("rightbotgate") or nil))
         end
         pcell.pop_overwrites("basic/mosfet")
 
@@ -93,20 +91,18 @@ function layout(gate, _P)
         if fingers > 0 then
             nmos = pcell.create_layout("basic/mosfet", { fingers = fingers }):move_anchor("topgate")
             gate:merge_into_shallow(nmos)
-        else
-            nmos = object.create_omni()
         end
         -- left dummy
         if bp.leftdummies > 0 then
             gate:merge_into_shallow(
                 pcell.create_layout("basic/mosfet", { fingers = bp.leftdummies, drawbotgcut = bp.drawdummygcut, drawtopgcut = true }
-            ):move_anchor("righttopgate", nmos:get_anchor("lefttopgate")))
+            ):move_anchor("righttopgate", nmos and nmos:get_anchor("lefttopgate") or nil))
         end
         -- rightdummy
         if bp.rightdummies > 0 then
             gate:merge_into_shallow(
                 pcell.create_layout("basic/mosfet", { fingers = bp.rightdummies, drawbotgcut = bp.drawdummygcut, drawtopgcut = true }
-            ):move_anchor("lefttopgate", nmos:get_anchor("righttopgate")))
+            ):move_anchor("lefttopgate", nmos and nmos:get_anchor("righttopgate") or nil))
         end
         pcell.pop_overwrites("basic/mosfet")
     end

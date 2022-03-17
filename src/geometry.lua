@@ -1,37 +1,3 @@
-function geometry.rectanglebltr(cell, layer, bl, tr)
-    cell:add_shape(shape.create_rectangle_bltr(layer, bl, tr))
-end
-
-function geometry.rectangle(cell, layer, width, height, xoffset, yoffset)
-    if width % 2 ~= 0 then 
-        moderror(string.format("layout.rectangle: width (%d) must be a multiple of 2. Use rectanglebltr if you need odd coordinates", width))
-    end
-    if height % 2 ~= 0 then 
-        moderror(string.format("layout.rectangle: height (%d) must be a multiple of 2. Use rectanglebltr if you need odd coordinates", height))
-    end
-    geometry.rectanglebltr(
-        cell,
-        layer,
-        point.create(-width / 2 + (xoffset or 0), -height / 2 + (yoffset or 0)),
-        point.create( width / 2 + (xoffset or 0),  height / 2 + (yoffset or 0))
-    )
-end
-
--- like rectanglebltr, but takes any points
-function geometry.rectanglepoints(cell, layer, pt1, pt2)
-    local x1, y1 = pt1:unwrap()
-    local x2, y2 = pt2:unwrap()
-    if     x1 <= x2 and y1 <= y2 then
-        geometry.rectanglebltr(cell, layer, point.create(x1, y1), point.create(x2, y2))
-    elseif x1 <= x2 and y1  > y2 then
-        geometry.rectanglebltr(cell, layer, point.create(x1, y2), point.create(x2, y1))
-    elseif x1  > x2 and y1 <= y2 then
-        geometry.rectanglebltr(cell, layer, point.create(x2, y1), point.create(x1, y2))
-    elseif x1  > x2 and y1  > y2 then
-        geometry.rectanglebltr(cell, layer, point.create(x2, y2), point.create(x1, y1))
-    end
-end
-
 local arrayzation_strategies = {
     fit = function(size, cutsize, space, encl)
         local xrep = math.floor((size + space - 2 * encl) / (cutsize + space))
@@ -185,14 +151,6 @@ function geometry.contactbltr(cell, region, bl, tr, options)
     geometry.rectanglebltr(cell, generics.metal(1), bl, tr)
 end
 
-function geometry.polygon(cell, layer, pts)
-    local S = shape.create_polygon(layer)
-    for _, pt in ipairs(pts) do
-        S:append_pt(pt)
-    end
-    cell:add_shape(S)
-end
-
 function geometry.cross(cell, layer, width, height, crosssize)
     modassert(width % 2 == 0, "geometry.cross: width must be a multiple of 2")
     modassert(height % 2 == 0, "geometry.cross: height must be a multiple of 2")
@@ -300,9 +258,11 @@ local function _make_unique_points(pts)
     end
 end
 
+--[[
 function geometry.path(cell, layer, pts, width, extension)
     cell:add_shape(shape.create_path(layer, pts, width, extension))
 end
+--]]
 
 function geometry.path3x(layer, startpt, endpt, width, extension)
     return geometry.path(layer, geometry.path_points_xy(startpt, { endpt }), width, extension)
@@ -381,11 +341,11 @@ function geometry.path_points_yx(startpt, movements)
     return pts
 end
 
-function geometry.any_angle_path(layer, pts, width, grid, miterjoin, allow45)
+function geometry.any_angle_path(cell, layer, pts, width, grid, miterjoin, allow45)
     _make_unique_points(pts)
     local points = _get_any_angle_path_pts(pts, width, grid, miterjoin, allow45)
     local S = shape.create_polygon(layer, points)
-    return object.make_from_shape(S)
+    cell:add_shape(S)
 end
 
 -- FIXME: rectangular-separated does not work in y direction
