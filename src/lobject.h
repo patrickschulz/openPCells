@@ -13,6 +13,7 @@ typedef struct
 } lobject_t;
 
 int lobject_create(lua_State* L);
+lobject_t* lobject_check(lua_State* L, int idx);
 lobject_t* lobject_adapt(lua_State* L, object_t* cell);
 
 int open_lobject_lib(lua_State* L);

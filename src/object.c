@@ -28,8 +28,7 @@ object_t* object_create(void)
 
 object_t* object_create_proxy(const char* name, object_t* reference, const char* identifier)
 {
-    object_t* obj = malloc(sizeof(*obj));
-    memset(obj, 0, sizeof(*obj));
+    object_t* obj = _create();
     if(name)
     {
         obj->name = malloc(strlen(name) + 1);
@@ -137,6 +136,15 @@ void object_destroy(object_t* cell)
             free(cell->anchors[i]);
         }
         free(cell->anchors);
+
+        // ports
+        for(unsigned int i = 0; i < cell->ports_size; ++i)
+        {
+            point_destroy(cell->ports[i]->where);
+            free(cell->ports[i]->name);
+            free(cell->ports[i]);
+        }
+        free(cell->ports);
     }
 
     // name
@@ -180,6 +188,15 @@ int object_add_shape(object_t* cell, shape_t* S)
         shape_apply_inverse_transformation(S, cell->trans);
     }
     return ret;
+}
+
+void object_remove_shape(object_t* cell, size_t idx)
+{
+    for(size_t i = idx + 1; i < cell->shapes_size; ++i)
+    {
+        cell->shapes[i - 1] = cell->shapes[i];
+    }
+    --cell->shapes_size;
 }
 
 object_t* object_add_child(object_t* cell, const char* identifier, const char* name)
@@ -413,7 +430,6 @@ static void _add_port(object_t* cell, const char* name, const char* anchorname, 
     cell->ports[cell->ports_size - 1] = malloc(sizeof(*cell->ports[cell->ports_size]));
     cell->ports[cell->ports_size - 1]->where = point_create(x, y);
     cell->ports[cell->ports_size - 1]->layer = layer;
-    cell->ports[cell->ports_size - 1]->name = malloc(strlen(name) + 1);
     cell->ports[cell->ports_size - 1]->isbusport = isbusport;
     cell->ports[cell->ports_size - 1]->busindex = busindex;
     cell->ports[cell->ports_size - 1]->name = malloc(strlen(name) + 1);
@@ -491,6 +507,8 @@ void object_inherit_alignment_box(object_t* cell, object_t* other)
             try = max(try, stry);
         }
         object_set_alignment_box(cell, blx, bly, trx, try);
+        point_destroy(bl);
+        point_destroy(tr);
     }
 }
 

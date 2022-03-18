@@ -1,11 +1,10 @@
+#include "union.h"
+
 #include <stddef.h>
 #include <stdbool.h>
 
-#include "lua/lauxlib.h"
-
 #include "point.h"
-
-typedef coordinate_t lpc;
+#include "shape.h"
 
 typedef enum
 {
@@ -37,9 +36,9 @@ static order_t rect_order(coordinate_t bl1, coordinate_t tr1, coordinate_t bl2, 
 }
 
 bool rectangle_union(
-    lpc bl1x, lpc bl1y, lpc tr1x, lpc tr1y, 
-    lpc bl2x, lpc bl2y, lpc tr2x, lpc tr2y, 
-    lpc* blx, lpc* bly, lpc* trx, lpc* try
+    coordinate_t bl1x, coordinate_t bl1y, coordinate_t tr1x, coordinate_t tr1y, 
+    coordinate_t bl2x, coordinate_t bl2y, coordinate_t tr2x, coordinate_t tr2y, 
+    coordinate_t* blx, coordinate_t* bly, coordinate_t* trx, coordinate_t* try
 )
 {
     order_t xorder = rect_order(bl1x, tr1x, bl2x, tr2x);
@@ -139,50 +138,34 @@ bool rectangle_union(
     return true;
 }
 
-int lrectangle_union(lua_State* L)
+size_t union_rectangle_all(struct vector* rectangles)
 {
-    lpc blx, bly, trx, try;
-    lpc bl1x, bl1y, tr1x, tr1y;
-    lpc bl2x, bl2y, tr2x, tr2y;
-    bool res = rectangle_union(bl1x, bl1y, tr1x, tr1y, bl2x, bl2y, tr2x, tr2y, &blx, &bly, &trx, &try);
-    if(res)
-    {
-        return 1;
-    }
-    else
-    {
-        return 0;
-    }
-}
-
-/*
-static void remove_array_element(rectangle_t** array, size_t* num, size_t index)
-{
-    rectangle_destroy(array[index]);
-    for(size_t i = index + 1; i < *num; ++i)
-    {
-        array[i - 1] = array[i];
-    }
-    --(*num);
-}
-*/
-
-/*
-size_t rectangle_union_all(rectangle_t** rectangles, size_t num)
-{
-    size_t i = 0;
-    size_t j = 1;
+    int i = 0;
+    int j = 1;
     while(1)
     {
-        if(i == num - 1 && j == num) break;
-        rectangle_t* rect1 = rectangles[i];
-        rectangle_t* rect2 = rectangles[j];
-        rectangle_t* result = rectangle_union(rect1, rect2);
+        if(i == vector_size(rectangles) - 1 && j == vector_size(rectangles)) break;
+        shape_t* rect1 = vector_get(rectangles, i);
+        shape_t* rect2 = vector_get(rectangles, j);
+        coordinate_t blx, bly, trx, try;
+        int result = rectangle_union(
+            rect1->points[0]->x,
+            rect1->points[0]->y,
+            rect1->points[1]->x,
+            rect1->points[1]->y,
+            rect2->points[0]->x,
+            rect2->points[0]->y,
+            rect2->points[1]->x,
+            rect2->points[1]->y,
+            &blx, &bly, &trx, &try
+        );
         if(result)
         {
-            rectangles[i] = result;
-            rectangle_destroy(rect1);
-            remove_array_element(rectangles, &num, j);
+            shape_t* new = shape_create_rectangle(blx, bly, trx, try);
+            new->layer = rect1->layer;
+            vector_set(rectangles, i, new);
+            shape_destroy(rect1);
+            vector_remove(rectangles, j, shape_destroy);
             // restart iteration
             i = 0;
             j = 1;
@@ -191,25 +174,12 @@ size_t rectangle_union_all(rectangle_t** rectangles, size_t num)
         {
             ++j;
         }
-        if(j > num)
+        if(j > vector_size(rectangles))
         {
             ++i;
             j = i + 1;
         }
     }
-    return num;
+    return vector_size(rectangles);
 }
-*/
 
-int open_lunion_lib(lua_State* L)
-{
-    static const luaL_Reg modfuncs[] =
-    {
-        { "rectangle", lrectangle_union },
-        { NULL,        NULL             }
-    };
-    lua_newtable(L);
-    luaL_setfuncs(L, modfuncs, 0);
-    lua_setglobal(L, "union");
-    return 0;
-}

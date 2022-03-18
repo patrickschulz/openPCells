@@ -413,6 +413,7 @@ static int lexport_write_toplevel(lua_State* L)
     FILE* file = fopen(filename, "w");
     fwrite(data->data, 1, data->length, file);
     fclose(file);
+    free(filename);
     export_destroy_data(data);
     export_destroy_functions(funcs);
 

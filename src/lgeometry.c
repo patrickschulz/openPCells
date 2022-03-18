@@ -10,17 +10,17 @@
 
 int lgeometry_rectanglebltr(lua_State* L)
 {
-    lobject_t* cell = lua_touserdata(L, 1);
+    lobject_t* cell = lobject_check(L, 1);
     generics_t* layer = lua_touserdata(L, 2);
-    lpoint_t* bl = lua_touserdata(L, 3);
-    lpoint_t* tr = lua_touserdata(L, 4);
+    lpoint_t* bl = lpoint_checkpoint(L, 3);
+    lpoint_t* tr = lpoint_checkpoint(L, 4);
     geometry_rectanglebltr(cell->object, layer, bl->point, tr->point);
     return 0;
 }
 
 int lgeometry_rectangle(lua_State* L)
 {
-    lobject_t* cell = lua_touserdata(L, 1);
+    lobject_t* cell = lobject_check(L, 1);
     generics_t* layer = lua_touserdata(L, 2);
     coordinate_t width = lua_tointeger(L, 3);
     coordinate_t height = lua_tointeger(L, 4);
@@ -32,17 +32,17 @@ int lgeometry_rectangle(lua_State* L)
 
 int lgeometry_rectanglepoints(lua_State* L)
 {
-    lobject_t* cell = lua_touserdata(L, 1);
+    lobject_t* cell = lobject_check(L, 1);
     generics_t* layer = lua_touserdata(L, 2);
-    lpoint_t* pt1 = lua_touserdata(L, 3);
-    lpoint_t* pt2 = lua_touserdata(L, 4);
+    lpoint_t* pt1 = lpoint_checkpoint(L, 3);
+    lpoint_t* pt2 = lpoint_checkpoint(L, 4);
     geometry_rectanglepoints(cell->object, layer, pt1->point, pt2->point);
     return 0;
 }
 
 int lgeometry_polygon(lua_State* L)
 {
-    lobject_t* cell = lua_touserdata(L, 1);
+    lobject_t* cell = lobject_check(L, 1);
     generics_t* layer = lua_touserdata(L, 2);
     lua_len(L, 3);
     size_t len = lua_tointeger(L, -1);
@@ -52,17 +52,18 @@ int lgeometry_polygon(lua_State* L)
     for(unsigned int i = 1; i <= len; ++i)
     {
         lua_rawgeti(L, 3, i);
-        lpoint_t* pt = lua_touserdata(L, -1);
+        lpoint_t* pt = lpoint_checkpoint(L, -1);
         points[i - 1] = pt->point;
         lua_pop(L, 1);
     }
     geometry_polygon(cell->object, layer, points, len);
+    free(points);
     return 0;
 }
 
 int lgeometry_path(lua_State* L)
 {
-    lobject_t* cell = lua_touserdata(L, 1);
+    lobject_t* cell = lobject_check(L, 1);
     generics_t* layer = lua_touserdata(L, 2);
     lua_len(L, 3);
     size_t len = lua_tointeger(L, -1);
@@ -101,11 +102,12 @@ int lgeometry_path(lua_State* L)
     for(unsigned int i = 1; i <= len; ++i)
     {
         lua_rawgeti(L, 3, i);
-        lpoint_t* pt = lua_touserdata(L, -1);
+        lpoint_t* pt = lpoint_checkpoint(L, -1);
         points[i - 1] = pt->point;
         lua_pop(L, 1);
     }
     geometry_path(cell->object, layer, points, len, width, bgnext, endext);
+    free(points);
     return 0;
 }
 

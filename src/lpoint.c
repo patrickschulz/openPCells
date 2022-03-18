@@ -37,6 +37,14 @@ lpoint_t* lpoint_adapt_point(lua_State* L, point_t* pt)
     return p;
 }
 
+lpoint_t* lpoint_takeover_point(lua_State* L, point_t* pt)
+{
+    lpoint_t* p = lua_newuserdata(L, sizeof(lpoint_t));
+    luaL_setmetatable(L, LPOINTMETA);
+    p->point = pt;
+    return p;
+}
+
 int lpoint_create(lua_State* L)
 {
     coordinate_t x = checkcoordinate(L, -2);

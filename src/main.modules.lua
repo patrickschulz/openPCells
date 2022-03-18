@@ -10,7 +10,7 @@ local modules = {
     "graphics",
     "util",
     "aux",
-    "reduce",
+    --"reduce",
     "stack",
     "support",
     "envlib",

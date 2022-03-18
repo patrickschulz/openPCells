@@ -34,6 +34,12 @@ void pcell_initialize_references(void)
 
 void pcell_destroy_references(void)
 {
+    for(unsigned int i = 0; i < references->names_size; ++i)
+    {
+        free(references->used_names[i]->name);
+        free(references->used_names[i]);
+    }
+    free(references->used_names);
     for(unsigned int i = 0; i < references->size; ++i)
     {
         object_destroy(references->references[i]->cell);

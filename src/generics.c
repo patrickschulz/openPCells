@@ -84,15 +84,14 @@ void generics_destroy_layer_map(void)
     free(generics_layer_map);
 }
 
-void generics_remove_empty_layers(void)
+size_t generics_get_layer_map_size(void)
 {
-    for(unsigned int i = 0; i < generics_layer_map->size; ++i)
-    {
-        generics_t* layer = generics_layer_map->entries[i]->layer;
-        if(!layer->size)
-        {
-        }
-    }
+    return generics_layer_map->size;
+}
+
+generics_t* generics_get_indexed_layer(size_t idx)
+{
+    return generics_layer_map->entries[idx]->layer;
 }
 
 int generics_resolve_premapped_layers(const char* name)

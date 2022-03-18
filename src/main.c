@@ -34,6 +34,7 @@
 #include "lobject.h"
 #include "pcell.h"
 #include "lexport.h"
+#include "lreduce.h"
 #include "lport.h"
 //#include "lunion.h"
 #include "lfilesystem.h"
@@ -203,6 +204,7 @@ static lua_State* create_and_initialize_lua(void)
     open_lobject_lib(L);
     open_lpcell_lib(L);
     open_lexport_lib(L);
+    open_lreduce_lib(L);
     open_lport_lib(L);
     open_lutil_lib(L);
     open_lbytebuffer_lib(L);

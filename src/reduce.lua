@@ -18,8 +18,8 @@ function M.remove_superfluous_points(pts)
     return new
 end
 
+--[[ FIXME: this approach does not work anymore with the new generics
 function M.merge_shapes(cell)
-    --[[ FIXME: this approach does not work anymore with the new generics
     -- merge rectangles
     for _, lpp in cell:layers() do
         local rectangles = {}
@@ -36,7 +36,7 @@ function M.merge_shapes(cell)
             cell:add_raw_shape(S) -- shape:get_points() returns untransformed points, therefore they must not be translated within the object
         end
     end
-    --]]
 end
+--]]
 
 return M

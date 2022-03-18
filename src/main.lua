@@ -348,7 +348,7 @@ if args.mergerectangles then
     -- merge toplevel (flat shapes)
     reduce.merge_shapes(cell)
     -- merge children
-    pcell.foreach_cell_references(reduce.merge_shapes)
+    --pcell.foreach_cell_references(reduce.merge_shapes)
 end
 
 if not args.noexport then
