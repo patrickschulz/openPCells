@@ -694,6 +694,7 @@ function M.write_cell_array(identifier, x, y, trans, xrep, yrep, xpitch, ypitch)
     -- COLROW
     _write_record(recordtypes.COLROW, datatypes.TWO_BYTE_INTEGER, { xrep, yrep })
 
+    -- XY
     _write_record(recordtypes.XY, datatypes.FOUR_BYTE_INTEGER, 
         _unpack_points({ { x = x, y = y }, { x = x + xrep * xpitch, y = y }, { x = x, y = y + yrep * ypitch } }))
 

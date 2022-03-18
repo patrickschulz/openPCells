@@ -474,6 +474,145 @@ static void _write_cell_reference(struct export_data* data, const char* identifi
     export_data_append_byte(data, 0x00);
 }
 
+static void _write_cell_array(struct export_data* data, const char* identifier, coordinate_t x, coordinate_t y, transformationmatrix_t* trans, unsigned int xrep, unsigned int yrep, unsigned int xpitch, unsigned int ypitch)
+{
+    // AREF
+    export_data_append_byte(data, 0x00);
+    export_data_append_byte(data, 0x04);
+    export_data_append_byte(data, 0x0b);
+    export_data_append_byte(data, 0x00);
+
+    // SNAME
+    size_t len = 4 + strlen(identifier);
+    if(len % 2 == 0)
+    {
+        export_data_append_two_bytes(data, len);
+    }
+    else
+    {
+        export_data_append_two_bytes(data, len + 1);
+    }
+    export_data_append_byte(data, 0x12);
+    export_data_append_byte(data, 0x06);
+    export_data_append_string(data, identifier, strlen(identifier));
+    if(len % 2 == 1)
+    {
+        export_data_append_byte(data, 0x00);
+    }
+
+    // STRANS/ANGLE
+    enum orientation orientation = _get_matrix_orientation(trans);
+    switch(orientation)
+    {
+        case R0:
+            break;
+        case MX:
+            // STRANS
+            export_data_append_byte(data, 0x00);
+            export_data_append_byte(data, 0x06);
+            export_data_append_byte(data, 0x1a);
+            export_data_append_byte(data, 0x01);
+            export_data_append_byte(data, 0x80);
+            export_data_append_byte(data, 0x00);
+            break;
+        case MY:
+            // STRANS
+            export_data_append_byte(data, 0x00);
+            export_data_append_byte(data, 0x06);
+            export_data_append_byte(data, 0x1a);
+            export_data_append_byte(data, 0x01);
+            export_data_append_byte(data, 0x80);
+            export_data_append_byte(data, 0x00);
+            // ANGLE (180 degrees)
+            export_data_append_byte(data, 0x00);
+            export_data_append_byte(data, 0x0c);
+            export_data_append_byte(data, 0x1c);
+            export_data_append_byte(data, 0x05);
+            export_data_append_byte(data, 0x42);
+            export_data_append_byte(data, 0xb4);
+            export_data_append_byte(data, 0x00);
+            export_data_append_byte(data, 0x00);
+            export_data_append_byte(data, 0x00);
+            export_data_append_byte(data, 0x00);
+            export_data_append_byte(data, 0x00);
+            export_data_append_byte(data, 0x00);
+            break;
+        case R90:
+            // STRANS
+            export_data_append_byte(data, 0x00);
+            export_data_append_byte(data, 0x06);
+            export_data_append_byte(data, 0x1a);
+            export_data_append_byte(data, 0x01);
+            export_data_append_byte(data, 0x00);
+            export_data_append_byte(data, 0x00);
+            // ANGLE (90 degrees)
+            export_data_append_byte(data, 0x00);
+            export_data_append_byte(data, 0x0c);
+            export_data_append_byte(data, 0x1c);
+            export_data_append_byte(data, 0x05);
+            export_data_append_byte(data, 0x42);
+            export_data_append_byte(data, 0x5a);
+            export_data_append_byte(data, 0x00);
+            export_data_append_byte(data, 0x00);
+            export_data_append_byte(data, 0x00);
+            export_data_append_byte(data, 0x00);
+            export_data_append_byte(data, 0x00);
+            export_data_append_byte(data, 0x00);
+            break;
+        case R180:
+            // STRANS
+            export_data_append_byte(data, 0x00);
+            export_data_append_byte(data, 0x06);
+            export_data_append_byte(data, 0x1a);
+            export_data_append_byte(data, 0x01);
+            export_data_append_byte(data, 0x00);
+            export_data_append_byte(data, 0x00);
+            // ANGLE (180 degrees)
+            export_data_append_byte(data, 0x00);
+            export_data_append_byte(data, 0x0c);
+            export_data_append_byte(data, 0x1c);
+            export_data_append_byte(data, 0x05);
+            export_data_append_byte(data, 0x42);
+            export_data_append_byte(data, 0xb4);
+            export_data_append_byte(data, 0x00);
+            export_data_append_byte(data, 0x00);
+            export_data_append_byte(data, 0x00);
+            export_data_append_byte(data, 0x00);
+            export_data_append_byte(data, 0x00);
+            export_data_append_byte(data, 0x00);
+            break;
+        case R270: //FIXME
+            break;
+    }
+
+    // COLROW
+    export_data_append_byte(data, 0x00);
+    export_data_append_byte(data, 0x08);
+    export_data_append_byte(data, 0x13);
+    export_data_append_byte(data, 0x02);
+    export_data_append_two_bytes(data, xrep);
+    export_data_append_two_bytes(data, yrep);
+
+    // XY
+    unsigned int multiplier = 1; // FIXME: make proper use of units
+    export_data_append_byte(data, 0x00);
+    export_data_append_byte(data, 0x1c);
+    export_data_append_byte(data, 0x10); // XY
+    export_data_append_byte(data, 0x03); // FOUR_BYTE_INTEGER
+    export_data_append_four_bytes(data, x * multiplier);
+    export_data_append_four_bytes(data, y * multiplier);
+    export_data_append_four_bytes(data, (x + xrep * xpitch) * multiplier);
+    export_data_append_four_bytes(data, y * multiplier);
+    export_data_append_four_bytes(data, x * multiplier);
+    export_data_append_four_bytes(data, (y + yrep * ypitch) * multiplier);
+
+    // ENDEL
+    export_data_append_byte(data, 0x00);
+    export_data_append_byte(data, 0x04);
+    export_data_append_byte(data, 0x11);
+    export_data_append_byte(data, 0x00);
+}
+
 static const char* _get_extension(void)
 {
     return "gds";
@@ -490,6 +629,7 @@ struct export_functions* gdsexport_get_export_functions(void)
     funcs->write_polygon = _write_polygon;
     funcs->write_path = _write_path;
     funcs->write_cell_reference = _write_cell_reference;
+    funcs->write_cell_array = _write_cell_array;
     funcs->get_extension = _get_extension;
     return funcs;
 }

@@ -84,7 +84,7 @@ static void _write_cell(object_t* cell, struct export_data* data, struct export_
         transformationmatrix_apply_transformation(cell->trans, &origin);
         if(child->isarray && funcs->write_cell_array)
         {
-
+            funcs->write_cell_array(data, child->identifier, origin.x, origin.y, child->trans, child->xrep, child->yrep, child->xpitch, child->ypitch);
         }
         else
         {
