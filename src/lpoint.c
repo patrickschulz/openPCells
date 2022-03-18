@@ -119,6 +119,11 @@ static int lpoint_getmetatable(lua_State* L)
     return 1;
 }
 
+lpoint_t* lpoint_checkpoint(lua_State* L, int idx)
+{
+    return luaL_checkudata(L, idx, LPOINTMETA);
+}
+
 int open_lpoint_lib(lua_State* L)
 {
     static const luaL_Reg metafuncs[] =

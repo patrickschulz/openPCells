@@ -1,6 +1,48 @@
 #include "gdsexport.h"
 
-#include <string.h>
+static char* _number_to_gdsfloat(double num, unsigned int width)
+{
+    char* data = malloc(width);
+    if(num == 0)
+    {
+        memset(data, 0, width);
+        return data;
+    }
+    int sign = 0;
+    if(num < 0.0)
+    {
+        sign = 1;
+        num = -num;
+    }
+    int exp = 0;
+    while(num >= 1)
+    {
+        num = num / 16;
+        exp = exp + 1;
+    }
+    while(num < 0.0625)
+    {
+        num = num * 16;
+        exp = exp - 1;
+    }
+    if(sign)
+    {
+        data[0] = 0x80 + ((exp + 64) & 0x7f);
+    }
+    else
+    {
+        data[0] = 0x00 + ((exp + 64) & 0x7f);
+    }
+    for(unsigned int i = 1; i < width; ++i)
+    {
+        double integer;
+        double frac = modf(num * 256, &integer);
+        num = frac;
+        data[i] = integer;
+    }
+    return data;
+}
+
 
 static void _at_begin(struct export_data* data)
 {
@@ -141,7 +183,6 @@ static void _write_rectangle(struct export_data* data, const struct keyvaluearra
     export_data_append_byte(data, 0x04);
     export_data_append_byte(data, 0x08);
     export_data_append_byte(data, 0x00);
-
 
     // LAYER
     export_data_append_byte(data, 0x00);
@@ -613,6 +654,78 @@ static void _write_cell_array(struct export_data* data, const char* identifier, 
     export_data_append_byte(data, 0x00);
 }
 
+static void _write_port(struct export_data* data, const char* name, const struct keyvaluearray* layer, point_t* where)
+{
+    // TEXT
+    export_data_append_byte(data, 0x00);
+    export_data_append_byte(data, 0x04);
+    export_data_append_byte(data, 0x0c);
+    export_data_append_byte(data, 0x00);
+
+    // LAYER
+    export_data_append_byte(data, 0x00);
+    export_data_append_byte(data, 0x06);
+    export_data_append_byte(data, 0x0d);
+    export_data_append_byte(data, 0x02);
+    int layernum;
+    keyvaluearray_get_int(layer, "layer", &layernum);
+    export_data_append_two_bytes(data, layernum);
+
+    // TEXTTYPE
+    export_data_append_byte(data, 0x00);
+    export_data_append_byte(data, 0x06);
+    export_data_append_byte(data, 0x16);
+    export_data_append_byte(data, 0x02);
+    int layerpurpose;
+    keyvaluearray_get_int(layer, "purpose", &layerpurpose);
+    export_data_append_two_bytes(data, layerpurpose);
+
+    // PRESENTATION
+    export_data_append_byte(data, 0x00);
+    export_data_append_byte(data, 0x06);
+    export_data_append_byte(data, 0x17);
+    export_data_append_byte(data, 0x01);
+    export_data_append_byte(data, 0x00);
+    export_data_append_byte(data, 0x05);
+
+    export_data_append_byte(data, 0x00);
+    export_data_append_byte(data, 0x0c);
+    export_data_append_byte(data, 0x1b);
+    export_data_append_byte(data, 0x05);
+    char* sizedata = _number_to_gdsfloat(0.1, 8);
+    for(unsigned int i = 0; i < 8; ++i)
+    {
+        export_data_append_byte(data, sizedata[i]);
+    }
+    free(sizedata);
+
+    // XY
+    unsigned int multiplier = 1; // FIXME: make proper use of units
+    export_data_append_byte(data, 0x00);
+    export_data_append_byte(data, 0x0c);
+    export_data_append_byte(data, 0x10); // XY
+    export_data_append_byte(data, 0x03); // FOUR_BYTE_INTEGER
+    export_data_append_four_bytes(data, where->x * multiplier);
+    export_data_append_four_bytes(data, where->y * multiplier);
+
+    // NAME
+    size_t len = strlen(name);
+    export_data_append_two_bytes(data, len % 2 ? len + 5 : len + 4);
+    export_data_append_byte(data, 0x19);
+    export_data_append_byte(data, 0x06);
+    export_data_append_string(data, name, len);
+    if(len % 2)
+    {
+        export_data_append_byte(data, 0x00);
+    }
+
+    // ENDEL
+    export_data_append_byte(data, 0x00);
+    export_data_append_byte(data, 0x04);
+    export_data_append_byte(data, 0x11);
+    export_data_append_byte(data, 0x00);
+}
+
 static const char* _get_extension(void)
 {
     return "gds";
@@ -630,6 +743,8 @@ struct export_functions* gdsexport_get_export_functions(void)
     funcs->write_path = _write_path;
     funcs->write_cell_reference = _write_cell_reference;
     funcs->write_cell_array = _write_cell_array;
+    funcs->write_port = _write_port;
     funcs->get_extension = _get_extension;
     return funcs;
 }
+

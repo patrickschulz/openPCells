@@ -132,7 +132,7 @@ int lobject_move_anchor(lua_State* L)
     coordinate_t y = 0;
     if(lua_gettop(L) > 2 && !lua_isnil(L, 3))
     {
-        lpoint_t* lpoint = lua_touserdata(L, 3);
+        lpoint_t* lpoint = lpoint_checkpoint(L, 3);
         x = lpoint->point->x;
         y = lpoint->point->y;
     }
@@ -150,7 +150,7 @@ int lobject_move_anchor_x(lua_State* L)
     coordinate_t y = 0;
     if(lua_gettop(L) > 2)
     {
-        lpoint_t* lpoint = lua_touserdata(L, 3);
+        lpoint_t* lpoint = lpoint_checkpoint(L, 3);
         x = lpoint->point->x;
         y = lpoint->point->y;
     }
@@ -168,7 +168,7 @@ int lobject_move_anchor_y(lua_State* L)
     coordinate_t y = 0;
     if(lua_gettop(L) > 2)
     {
-        lpoint_t* lpoint = lua_touserdata(L, 3);
+        lpoint_t* lpoint = lpoint_checkpoint(L, 3);
         x = lpoint->point->x;
         y = lpoint->point->y;
     }
@@ -220,7 +220,7 @@ int lobject_add_anchor(lua_State* L)
 {
     lobject_t* cell = lua_touserdata(L, 1);
     const char* name = lua_tostring(L, 2);
-    lpoint_t* lpoint = lua_touserdata(L, 3);
+    lpoint_t* lpoint = lpoint_checkpoint(L, 3);
     object_add_anchor(cell->object, name, lpoint->point->x, lpoint->point->y);
     return 0;
 }
@@ -245,9 +245,9 @@ int lobject_get_anchor(lua_State* L)
 int lobject_add_port(lua_State* L)
 {
     lobject_t* cell = lua_touserdata(L, 1);
-    const char* name = lua_tostring(L, 2);
+    const char* name = luaL_checkstring(L, 2);
     generics_t* layer = lua_touserdata(L, 3);
-    lpoint_t* lpoint = lua_touserdata(L, 4);
+    lpoint_t* lpoint = lpoint_checkpoint(L, 4);
     object_add_port(cell->object, name, layer, lpoint->point);
     return 0;
 }
@@ -255,8 +255,8 @@ int lobject_add_port(lua_State* L)
 int lobject_set_alignment_box(lua_State* L)
 {
     lobject_t* cell = lua_touserdata(L, 1);
-    lpoint_t* bl = lua_touserdata(L, 2);
-    lpoint_t* tr = lua_touserdata(L, 3);
+    lpoint_t* bl = lpoint_checkpoint(L, 2);
+    lpoint_t* tr = lpoint_checkpoint(L, 3);
     object_set_alignment_box(cell->object, bl->point->x, bl->point->y, tr->point->x, tr->point->y);
     return 0;
 }

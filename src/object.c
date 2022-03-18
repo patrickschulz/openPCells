@@ -394,9 +394,14 @@ point_t* object_get_anchor(const object_t* cell, const char* name)
 
 static void _add_port(object_t* cell, const char* name, const char* anchorname, generics_t* layer, point_t* where)
 {
-    //local new = port.create(name, layer, where)
-    //table.insert(self.ports, new)
-    //self.anchors[anchorname] = where:copy() -- copy point, otherwise translation acts twice (FIXME: probably not needed any more)
+    cell->ports_size += 1;
+    struct port** ports = realloc(cell->ports, sizeof(*ports) * cell->ports_size);
+    cell->ports = ports; // TODO: error checking
+    cell->ports[cell->ports_size - 1] = malloc(sizeof(*cell->ports[cell->ports_size]));
+    cell->ports[cell->ports_size - 1]->where = point_copy(where);
+    cell->ports[cell->ports_size - 1]->layer = layer;
+    cell->ports[cell->ports_size - 1]->name = malloc(strlen(name) + 1);
+    strcpy(cell->ports[cell->ports_size - 1]->name, name);
     object_add_anchor(cell, anchorname, where->x, where->y);
 }
 

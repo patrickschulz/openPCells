@@ -99,6 +99,22 @@ static void _write_cell(object_t* cell, struct export_data* data, struct export_
     }
 }
 
+static void _write_ports(object_t* cell, struct export_data* data, struct export_functions* funcs)
+{
+    for(unsigned int i = 0; i < cell->ports_size; ++i)
+    {
+        //if port.isbusport then
+        //    local name = string.format("%s%s%d%s",  port.name, _leftdelim, port.busindex, _rightdelim)
+        //    cell.trans:apply_transformation(port.where)
+        //    export.write_port(name, port.layer:get(), port.where)
+        //else
+        transformationmatrix_apply_transformation(cell->trans, cell->ports[i]->where);
+        struct keyvaluearray* layerdata = cell->ports[i]->layer->data[0];
+        funcs->write_port(data, cell->ports[i]->name, layerdata, cell->ports[i]->where);
+        //end
+    }
+}
+
 static void _push_layer(lua_State* L, struct keyvaluearray* data)
 {
     lua_newtable(L);
@@ -292,6 +308,7 @@ static int lexport_write_toplevel(lua_State* L)
 
         funcs->at_begin_cell(data, "opctoplevel");
         _write_cell(toplevel->object, data, funcs);
+        _write_ports(toplevel->object, data, funcs);
         funcs->at_end_cell(data);
 
         for(unsigned int i = 0; i < pcell_get_reference_count(); ++i)

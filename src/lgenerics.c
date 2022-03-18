@@ -7,14 +7,15 @@
 
 #include "generics.h"
 
-#define METAL_MAGIC_IDENTIFIER      1
-#define VIA_MAGIC_IDENTIFIER        2
-#define CONTACT_MAGIC_IDENTIFIER    3
-#define OXIDE_MAGIC_IDENTIFIER      4
-#define IMPLANT_MAGIC_IDENTIFIER    5
-#define VTHTYPE_MAGIC_IDENTIFIER    6
-#define OTHER_MAGIC_IDENTIFIER      7
-#define SPECIAL_MAGIC_IDENTIFIER    8
+#define METAL_MAGIC_IDENTIFIER          1
+#define METALPORT_MAGIC_IDENTIFIER      2
+#define VIA_MAGIC_IDENTIFIER            3
+#define CONTACT_MAGIC_IDENTIFIER        4
+#define OXIDE_MAGIC_IDENTIFIER          5
+#define IMPLANT_MAGIC_IDENTIFIER        6
+#define VTHTYPE_MAGIC_IDENTIFIER        7
+#define OTHER_MAGIC_IDENTIFIER          8
+#define SPECIAL_MAGIC_IDENTIFIER        9
 
 static void _insert_lpp_pairs(lua_State* L, struct keyvaluearray* map)
 {
@@ -125,6 +126,33 @@ static int lgenerics_create_metal(lua_State* L)
     if(!layer)
     {
         lua_pushfstring(L, "M%d", num);
+        layer = _map_and_store_layer(L);
+        generics_insert_layer(key, layer);
+    }
+    lua_pushlightuserdata(L, layer);
+    return 1;
+}
+
+static int lgenerics_create_metalport(lua_State* L)
+{
+    int num = luaL_checkinteger(L, 1);
+    if(num < 0)
+    {
+        lua_getglobal(L, "technology");
+        lua_pushstring(L, "get_config_value");
+        lua_rawget(L, -2);
+        lua_pushstring(L, "metals");
+        lua_call(L, 1, 1);
+        unsigned int nummetals = lua_tointeger(L, -1);
+        lua_pop(L, 1);
+        num = nummetals + num + 1;
+    }
+
+    uint32_t key = (METALPORT_MAGIC_IDENTIFIER << 24) | (num & 0x00ffffff);
+    generics_t* layer = generics_get_layer(key);
+    if(!layer)
+    {
+        lua_pushfstring(L, "M%dport", num);
         layer = _map_and_store_layer(L);
         generics_insert_layer(key, layer);
     }
@@ -295,6 +323,7 @@ int open_lgenerics_lib(lua_State* L)
     static const luaL_Reg modfuncs[] =
     {
         { "metal",                    lgenerics_create_metal             },
+        { "metalport",                lgenerics_create_metalport         },
         { "viacut",                   lgenerics_create_viacut            },
         { "contact",                  lgenerics_create_contact           },
         { "oxide",                    lgenerics_create_oxide             },

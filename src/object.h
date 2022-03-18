@@ -22,7 +22,7 @@ struct object_t
     size_t shapes_size;
     size_t shapes_capacity;
 
-    struct
+    struct port
     {
         char* name;
         point_t* where;
