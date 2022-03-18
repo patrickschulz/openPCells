@@ -12,6 +12,10 @@ return {
         name = "export", short = "-E", long = "--export",
         help = "specify export type"
     },
+    store{ 
+        name = "exportlayers", long = "--export-layers",
+        help = "specify which layer data from the technology layer map is given to the export. If this matches the name of the export (e.g. gds and gds) then this option is not needed. It is only useful if an export uses layer definition intended for another export (e.g. magic and SKILL)"
+    },
     store_multiple_string{ 
         name = "export_options", short = "-X", long = "--xopts",
         help = "pass special options to export. This passes the next argument (separated by white space) literally. This means that several arguments have to be grouped, usually by enclosing it in quotations marks (e.g. -X '--foo --bar'). An overview of the available options for the respective export can be found by passing -h, e.g. opc --export gds -X -h"

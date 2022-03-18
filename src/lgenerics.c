@@ -313,8 +313,9 @@ static int lgenerics_create_premapped(lua_State* L)
 static int lgenerics_resolve_premapped_layers(lua_State* L)
 {
     const char* exportname = luaL_checkstring(L, 1);
-    generics_resolve_premapped_layers(exportname);
-    return 0;
+    int ret = generics_resolve_premapped_layers(exportname);
+    lua_pushboolean(L, ret);
+    return 1;
 }
 
 int open_lgenerics_lib(lua_State* L)

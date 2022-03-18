@@ -263,7 +263,6 @@ static void _write_cell_lua(lua_State* L, object_t* cell)
                     lua_pushinteger(L, origin.y + (iy - 1) * child->ypitch);
                     _push_trans(L, child->trans);
                     lua_call(L, 4, 0);
-                    //funcs->write_cell_reference(data, child->identifier, origin.x + (ix - 1) * child->xpitch, origin.y + (iy - 1) * child->ypitch, child->trans);
                 }
             }
         }
@@ -296,6 +295,75 @@ static struct export_functions* get_export_functions(const char* exportname)
     return funcs;
 }
 
+static void _write_toplevel_C(object_t* object, struct export_data* data, struct export_functions* funcs)
+{
+    funcs->at_begin(data);
+
+    funcs->at_begin_cell(data, "opctoplevel");
+    _write_cell(object, data, funcs);
+    _write_ports(object, data, funcs);
+    funcs->at_end_cell(data);
+
+    for(unsigned int i = 0; i < pcell_get_reference_count(); ++i)
+    {
+        struct cellreference* reference = pcell_get_indexed_cell_reference(i);
+        if(reference->numused > 0)
+        {
+            funcs->at_begin_cell(data, reference->identifier);
+            _write_cell(reference->cell, data, funcs);
+            funcs->at_end_cell(data);
+        }
+    }
+
+    funcs->at_end(data);
+}
+
+static void _write_toplevel_lua(lua_State* L, object_t* object, struct export_data* data)
+{
+    // check if export supports hierarchies
+    lua_getfield(L, -1, "write_cell_reference");
+    if(lua_isnil(L, -1))
+    {
+        puts("this export does not know how to write hierarchies, hence the cell is being written flat");
+        object_flatten(object, 0);
+    }
+    lua_pop(L, 1);
+
+    lua_getfield(L, -1, "at_begin");
+    _call_or_pop_nil(L, 0);
+
+    lua_getfield(L, -1, "at_begin_cell");
+    lua_pushstring(L, "opctoplevel");
+    _call_or_pop_nil(L, 1);
+    _write_cell_lua(L, object);
+    lua_getfield(L, -1, "at_end_cell");
+    _call_or_pop_nil(L, 0);
+
+    for(unsigned int i = 0; i < pcell_get_reference_count(); ++i)
+    {
+        struct cellreference* reference = pcell_get_indexed_cell_reference(i);
+        if(reference->numused > 0)
+        {
+            lua_getfield(L, -1, "at_begin_cell");
+            lua_pushstring(L, reference->identifier);
+            _call_or_pop_nil(L, 1);
+            _write_cell_lua(L, reference->cell);
+            lua_getfield(L, -1, "at_end_cell");
+            _call_or_pop_nil(L, 0);
+        }
+    }
+
+    lua_getfield(L, -1, "at_end");
+    _call_or_pop_nil(L, 0);
+
+    lua_getfield(L, -1, "finalize");
+    lua_call(L, 0, 1);
+    size_t datalen;
+    const char* strdata = lua_tolstring(L, -1, &datalen);
+    export_data_append_string(data, strdata, datalen);
+    lua_pop(L, 1); // pop data
+}
+
 static int lexport_write_toplevel(lua_State* L)
 {
     const char* exportname = lua_tostring(L, 1);
@@ -310,102 +378,43 @@ static int lexport_write_toplevel(lua_State* L)
     // try C-defined exports first
     struct export_functions* funcs = get_export_functions(exportname);
 
+    struct export_data* data = export_create_data();
+    const char* extension;
     if(funcs)
     {
-        struct export_data* data = export_create_data();
-        funcs->at_begin(data);
-
-        funcs->at_begin_cell(data, "opctoplevel");
-        _write_cell(toplevel->object, data, funcs);
-        _write_ports(toplevel->object, data, funcs);
-        funcs->at_end_cell(data);
-
-        for(unsigned int i = 0; i < pcell_get_reference_count(); ++i)
-        {
-            struct cellreference* reference = pcell_get_indexed_cell_reference(i);
-            if(reference->numused > 0)
-            {
-                funcs->at_begin_cell(data, reference->identifier);
-                _write_cell(reference->cell, data, funcs);
-                funcs->at_end_cell(data);
-            }
-        }
-
-        funcs->at_end(data);
-        const char* basename = lua_tostring(L, 3);
-        const char* extension = funcs->get_extension();
-        size_t len = strlen(basename) + strlen(extension) + 2; // + 2: '.' and the terminating zero
-        char* filename = malloc(len);
-        snprintf(filename, len + 2, "%s.%s", basename, extension);
-        FILE* file = fopen(filename, "w");
-        fwrite(data->data, 1, data->length, file);
-        fclose(file);
-        export_destroy_data(data);
-        export_destroy_functions(funcs);
+        _write_toplevel_C(toplevel->object, data, funcs);
+        extension = funcs->get_extension();
     }
     else // lua-defined exports
     {
-        const char* searchpath = "/home/pkurth/Workspace/openPCells/export";
+        const char* searchpaths[] = {
+            "/home/pkurth/Workspace/openPCells/export"
+        };
+        const char* searchpath = searchpaths[0];
         size_t len = strlen(searchpath) + strlen(exportname) + 11; // + 11: "init.lua" + 2 * '/' + terminating zero
-        char* exportfilename = malloc(len); // + 9: "init.lua" + terminating zero
+        char* exportfilename = malloc(len);
         snprintf(exportfilename, len, "%s/%s/init.lua", searchpath, exportname);
         luaL_dofile(L, exportfilename);
         if(lua_type(L, -1) == LUA_TTABLE)
         {
-            // check if export supports hierarchies
-            lua_getfield(L, -1, "write_cell_reference");
-            if(lua_isnil(L, -1))
-            {
-                puts("this export does not know how to write hierarchies, hence the cell is being written flat");
-                object_flatten(toplevel->object, 0);
-            }
-            lua_pop(L, 1);
+            _write_toplevel_lua(L, toplevel->object, data);
 
-            lua_getfield(L, -1, "at_begin");
-            _call_or_pop_nil(L, 0);
-
-            lua_getfield(L, -1, "at_begin_cell");
-            lua_pushstring(L, "opctoplevel");
-            _call_or_pop_nil(L, 1);
-            _write_cell_lua(L, toplevel->object);
-            lua_getfield(L, -1, "at_end_cell");
-            _call_or_pop_nil(L, 0);
-
-            for(unsigned int i = 0; i < pcell_get_reference_count(); ++i)
-            {
-                struct cellreference* reference = pcell_get_indexed_cell_reference(i);
-                if(reference->numused > 0)
-                {
-                    lua_getfield(L, -1, "at_begin_cell");
-                    lua_pushstring(L, reference->identifier);
-                    _call_or_pop_nil(L, 1);
-                    _write_cell_lua(L, reference->cell);
-                    lua_getfield(L, -1, "at_end_cell");
-                    _call_or_pop_nil(L, 0);
-                }
-            }
-
-            lua_getfield(L, -1, "at_end");
-            _call_or_pop_nil(L, 0);
-
-            const char* basename = lua_tostring(L, 3);
             lua_getfield(L, -1, "get_extension");
             lua_call(L, 0, 1);
-            const char* extension = lua_tostring(L, -1);
-            size_t len = strlen(basename) + strlen(extension) + 2; // + 2: '.' and the terminating zero
-            char* filename = malloc(len);
-            snprintf(filename, len + 2, "%s.%s", basename, extension);
-            FILE* file = fopen(filename, "w");
+            extension = lua_tostring(L, -1);
             lua_pop(L, 1); // pop extension
-            lua_getfield(L, -1, "finalize");
-            lua_call(L, 0, 1);
-            size_t datalen;
-            const char* data = lua_tolstring(L, -1, &datalen);
-            fwrite(data, 1, datalen, file);
-            fclose(file);
-            lua_pop(L, 1); // pop data
         }
     }
+
+    const char* basename = lua_tostring(L, 3);
+    size_t len = strlen(basename) + strlen(extension) + 2; // + 2: '.' and the terminating zero
+    char* filename = malloc(len);
+    snprintf(filename, len + 2, "%s.%s", basename, extension);
+    FILE* file = fopen(filename, "w");
+    fwrite(data->data, 1, data->length, file);
+    fclose(file);
+    export_destroy_data(data);
+    export_destroy_functions(funcs);
 
     return 0;
 }

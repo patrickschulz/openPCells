@@ -20,7 +20,7 @@ void generics_insert_layer(uint32_t key, generics_t* layer);
 
 generics_t* generics_get_layer(uint32_t key);
 
-void generics_resolve_premapped_layers(const char* exportname);
+int generics_resolve_premapped_layers(const char* exportname);
 
 void generics_initialize_layer_map(void);
 void generics_destroy_layer_map(void);

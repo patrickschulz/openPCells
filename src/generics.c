@@ -95,8 +95,9 @@ void generics_remove_empty_layers(void)
     }
 }
 
-void generics_resolve_premapped_layers(const char* name)
+int generics_resolve_premapped_layers(const char* name)
 {
+    int found = 0;
     for(unsigned int i = 0; i < generics_layer_map->size; ++i)
     {
         generics_t* layer = generics_layer_map->entries[i]->layer;
@@ -107,8 +108,13 @@ void generics_resolve_premapped_layers(const char* name)
             {
                 if(strcmp(name, layer->exportnames[k]) == 0)
                 {
+                    found = 1;
                     idx = k;
                 }
+            }
+            if(!found)
+            {
+                return 0;
             }
 
             // swap entries and mark as mapped
@@ -127,4 +133,5 @@ void generics_resolve_premapped_layers(const char* name)
             layer->is_pre = 0;
         }
     }
+    return 1;
 }

@@ -354,7 +354,9 @@ end
 if not args.noexport then
     --export.set_options(args.export_options)
     --export.check()
-    generics.resolve_premapped_layers(args.export)
+    if not generics.resolve_premapped_layers(args.exportlayers or args.export) then
+        moderror(string.format("no layer data for export type '%s' found", args.exportlayers or args.export))
+    end
     local filename = args.filename or "openPCells"
     local leftdelim, rightdelim = "", ""
     if args.busdelimiters then
