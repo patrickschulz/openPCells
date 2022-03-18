@@ -14,7 +14,7 @@ SYSCFLAGS=
 SYSLDFLAGS=
 SYSLIBS=
 
-OPCOBJ:=point.o transformationmatrix.o ltransformationmatrix.o shape.o object.o geometry.o keyvaluepairs.o generics.o lgenerics.o lgeometry.o ldir.o lpoint.o graphics.o lbind.o lload.o lbinary.o lshape.o lobject.o pcell.o lport.o lfilesystem.o lbytebuffer.o lplacer.o lplacer_rand.o lrouter.o lrouter_net.o lrouter_queue.o lrouter_field.o lrouter_route.o lutil.o gdsparser.o ldebug.o lexport.o lexport_common.o gdsexport.o
+OPCOBJ:=util.o point.o transformationmatrix.o ltransformationmatrix.o shape.o object.o geometry.o keyvaluepairs.o generics.o lgenerics.o lgeometry.o ldir.o lpoint.o graphics.o lbind.o lload.o lbinary.o lshape.o lobject.o pcell.o lport.o lfilesystem.o lbytebuffer.o lplacer.o lplacer_rand.o lrouter.o lrouter_net.o lrouter_queue.o lrouter_field.o lrouter_route.o lutil.o gdsparser.o ldebug.o lexport.o lexport_common.o gdsexport.o
 
 .PHONY: default
 default:
@@ -24,6 +24,7 @@ default:
 $(PROGNAME): main.c lua/liblua.a $(OPCOBJ)
 	$(CC) $(CFLAGS) -DLUA_COMPAT_5_3 -DLUA_USE_LINUX -o $(PROGNAME) main.c $(OPCOBJ) lua/liblua.a -lm -ldl
 
+util.o: util.h util.c
 point.o: point.h point.c
 transformationmatrix.o: transformationmatrix.h transformationmatrix.c
 ltransformationmatrix.o: ltransformationmatrix.h ltransformationmatrix.c transformationmatrix.h transformationmatrix.c

@@ -27,6 +27,8 @@ struct object_t
         char* name;
         point_t* where;
         generics_t* layer;
+        int isbusport;
+        int busindex;
     } **ports;
     size_t ports_size;
 
@@ -60,6 +62,7 @@ void object_merge_into_shallow(object_t* cell, object_t* other);
 void object_add_anchor(object_t* cell, const char* name, coordinate_t x, coordinate_t y);
 point_t* object_get_anchor(const object_t* cell, const char* name);
 void object_add_port(object_t* cell, const char* name, generics_t* layer, point_t* where);
+void object_add_bus_port(object_t* cell, const char* name, generics_t* layer, point_t* where, int startindex, int endindex, unsigned int xpitch, unsigned int ypitch);
 void object_set_alignment_box(object_t* cell, coordinate_t blx, coordinate_t bly, coordinate_t trx, coordinate_t try);
 void object_inherit_alignment_box(object_t* cell, object_t* other);
 

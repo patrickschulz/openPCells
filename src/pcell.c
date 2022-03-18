@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "util.h"
 #include "lobject.h"
 
 struct used_name
@@ -43,18 +44,6 @@ void pcell_destroy_references(void)
     free(references);
 }
 
-unsigned int _num_digits(unsigned int n)
-{
-    if(n == 0) return 1;
-    unsigned int count = 0;
-    while (n > 0)
-    {
-        ++count;
-        n /= 10;
-    }
-    return count;
-}
-
 char* _unique_name(const char* identifier)
 {
     unsigned int* ptr = NULL;
@@ -82,7 +71,7 @@ char* _unique_name(const char* identifier)
         references->names_size += 1;
     }
     *ptr += 1;
-    unsigned int digits = _num_digits(*ptr);
+    unsigned int digits = util_num_digits(*ptr);
     unsigned int len = strlen(identifier) + 1 + digits; // + 1 for underscore
     char* str = malloc(len + 1);
     snprintf(str, len + 1, "%s_%*d", identifier, digits, *ptr);

@@ -2,7 +2,9 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 
+#include "util.h"
 #include "pcell.h"
 
 #define min(a, b) ((a) < (b) ? (a) : (b))
@@ -392,22 +394,56 @@ point_t* object_get_anchor(const object_t* cell, const char* name)
     return NULL;
 }
 
-static void _add_port(object_t* cell, const char* name, const char* anchorname, generics_t* layer, point_t* where)
+static void _add_port(object_t* cell, const char* name, const char* anchorname, generics_t* layer, coordinate_t x, coordinate_t y, int isbusport, int busindex)
 {
     cell->ports_size += 1;
     struct port** ports = realloc(cell->ports, sizeof(*ports) * cell->ports_size);
     cell->ports = ports; // TODO: error checking
     cell->ports[cell->ports_size - 1] = malloc(sizeof(*cell->ports[cell->ports_size]));
-    cell->ports[cell->ports_size - 1]->where = point_copy(where);
+    cell->ports[cell->ports_size - 1]->where = point_create(x, y);
     cell->ports[cell->ports_size - 1]->layer = layer;
     cell->ports[cell->ports_size - 1]->name = malloc(strlen(name) + 1);
+    cell->ports[cell->ports_size - 1]->isbusport = isbusport;
+    cell->ports[cell->ports_size - 1]->busindex = busindex;
+    cell->ports[cell->ports_size - 1]->name = malloc(strlen(name) + 1);
     strcpy(cell->ports[cell->ports_size - 1]->name, name);
-    object_add_anchor(cell, anchorname, where->x, where->y);
+    object_add_anchor(cell, anchorname, x, y);
 }
 
 void object_add_port(object_t* cell, const char* name, generics_t* layer, point_t* where)
 {
-    _add_port(cell, name, name, layer, where);
+    _add_port(cell, name, name, layer, where->x, where->y, 0, 0);
+}
+
+void object_add_bus_port(object_t* cell, const char* name, generics_t* layer, point_t* where, int startindex, int endindex, unsigned int xpitch, unsigned int ypitch)
+{
+    int shift = 0;
+    if(startindex < endindex)
+    {
+        for(int i = startindex; i <= endindex; ++i)
+        {
+            unsigned int digits = util_num_digits(i);
+            unsigned int len = strlen(name) + digits; // + 1 for underscore
+            char* anchorname = malloc(len + 1);
+            snprintf(anchorname, len + 1, "%s%*d", name, digits, i);
+            _add_port(cell, name, anchorname, layer, where->x + shift * xpitch, where->y + shift * ypitch, 1, i);
+            free(anchorname);
+            ++shift;
+        }
+    }
+    else
+    {
+        for(int i = startindex; i >= endindex; --i)
+        {
+            unsigned int digits = util_num_digits(i);
+            unsigned int len = strlen(name) + digits; // + 1 for underscore
+            char* anchorname = malloc(len + 1);
+            snprintf(anchorname, len + 1, "%s%*d", name, digits, i);
+            _add_port(cell, name, anchorname, layer, where->x + shift * xpitch, where->y + shift * ypitch, 1, i);
+            free(anchorname);
+            ++shift;
+        }
+    }
 }
 
 void object_set_alignment_box(object_t* cell, coordinate_t blx, coordinate_t bly, coordinate_t trx, coordinate_t try)
@@ -716,26 +752,3 @@ void object_flatten(object_t* cell, int flattenports)
     cell->children_size = 0;
 }
 
-/*
-local function _add_port(self, name, anchorname, layer, where)
-    --layer:set_port()
-    local new = port.create(name, layer, where)
-    table.insert(self.ports, new)
-    self.anchors[anchorname] = where:copy() -- copy point, otherwise translation acts twice (FIXME: probably not needed any more)
-    return new
-end
-
-function object.add_port(self, name, layer, where)
-    _add_port(self, name, name, layer, where)
-end
-
-function object.add_bus_port(self, name, layer, startindex, endindex, where, xpitch, ypitch)
-    local shift = 0
-    for i = startindex, endindex, startindex < endindex and 1 or - 1 do
-        local new = _add_port(self, name, string.format("%s%d", name, i), layer, where:copy():translate(shift * xpitch, shift * ypitch))
-        new.isbusport = true
-        new.busindex = i
-        shift = shift + 1
-    end
-end
-*/

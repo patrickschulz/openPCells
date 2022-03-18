@@ -252,6 +252,20 @@ int lobject_add_port(lua_State* L)
     return 0;
 }
 
+int lobject_add_bus_port(lua_State* L)
+{
+    lobject_t* cell = lua_touserdata(L, 1);
+    const char* name = luaL_checkstring(L, 2);
+    generics_t* layer = lua_touserdata(L, 3);
+    lpoint_t* lpoint = lpoint_checkpoint(L, 4);
+    int startindex = lua_tointeger(L, 5);
+    int endindex = lua_tointeger(L, 6);
+    unsigned int xpitch = lua_tointeger(L, 7);
+    unsigned int ypitch = lua_tointeger(L, 8);
+    object_add_bus_port(cell->object, name, layer, lpoint->point, startindex, endindex, xpitch, ypitch);
+    return 0;
+}
+
 int lobject_set_alignment_box(lua_State* L)
 {
     lobject_t* cell = lua_touserdata(L, 1);
@@ -297,6 +311,7 @@ int open_lobject_lib(lua_State* L)
         { "add_anchor",            lobject_add_anchor            },
         { "get_anchor",            lobject_get_anchor            },
         { "add_port",              lobject_add_port              },
+        { "add_bus_port",          lobject_add_bus_port          },
         { "set_alignment_box",     lobject_set_alignment_box     },
         { "inherit_alignment_box", lobject_inherit_alignment_box },
         { "move_to",               lobject_move_to               },

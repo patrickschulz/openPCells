@@ -4,13 +4,11 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "util.h"
 #include "lobject.h"
-
 #include "lexport_common.h"
 #include "pcell.h"
-
 #include "gdsexport.h"
-
 #include "lpoint.h"
 
 static int lexport_add_path(lua_State* L)
@@ -103,15 +101,26 @@ static void _write_ports(object_t* cell, struct export_data* data, struct export
 {
     for(unsigned int i = 0; i < cell->ports_size; ++i)
     {
-        //if port.isbusport then
-        //    local name = string.format("%s%s%d%s",  port.name, _leftdelim, port.busindex, _rightdelim)
-        //    cell.trans:apply_transformation(port.where)
-        //    export.write_port(name, port.layer:get(), port.where)
-        //else
+        char* name;
+        if(cell->ports[i]->isbusport)
+        {
+            char _leftdelim = '<';
+            char _rightdelim = '>';
+            size_t len = strlen(cell->ports[i]->name) + 2 + util_num_digits(cell->ports[i]->busindex);
+            name = malloc(len + 1);
+            snprintf(name, len + 1, "%s%c%d%c", cell->ports[i]->name, _leftdelim, cell->ports[i]->busindex, _rightdelim);
+        }
+        else
+        {
+            name = cell->ports[i]->name;
+        }
         transformationmatrix_apply_transformation(cell->trans, cell->ports[i]->where);
         struct keyvaluearray* layerdata = cell->ports[i]->layer->data[0];
-        funcs->write_port(data, cell->ports[i]->name, layerdata, cell->ports[i]->where);
-        //end
+        funcs->write_port(data, name, layerdata, cell->ports[i]->where);
+        if(cell->ports[i]->isbusport)
+        {
+            free(name);
+        }
     }
 }
 
