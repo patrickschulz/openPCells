@@ -279,21 +279,39 @@ static point_t* _get_special_anchor(const object_t* cell, const char* name, cons
     {
         x = blx;
         y = (bly + try) / 2;
+        if(cell->isproxy && cell->isarray)
+        {
+            y += (cell->yrep - 1) * cell->ypitch / 2;
+        }
     }
     else if(strcmp(name, "right") == 0)
     {
         x = trx;
         y = (bly + try) / 2;
+        if(cell->isproxy && cell->isarray)
+        {
+            x += (cell->xrep - 1) * cell->xpitch;
+            y += (cell->yrep - 1) * cell->ypitch / 2;
+        }
     }
     else if(strcmp(name, "top") == 0)
     {
         x = (blx + trx) / 2;
         y = try;
+        if(cell->isproxy && cell->isarray)
+        {
+            x += (cell->xrep - 1) * cell->xpitch / 2;
+            y += (cell->yrep - 1) * cell->ypitch;
+        }
     }
     else if(strcmp(name, "bottom") == 0)
     {
         x = (blx + trx) / 2;
         y = bly;
+        if(cell->isproxy && cell->isarray)
+        {
+            x += (cell->xrep - 1) * cell->xpitch / 2;
+        }
     }
     else if(strcmp(name, "bottomleft") == 0)
     {
@@ -304,16 +322,29 @@ static point_t* _get_special_anchor(const object_t* cell, const char* name, cons
     {
         x = trx;
         y = bly;
+        if(cell->isproxy && cell->isarray)
+        {
+            x += (cell->xrep - 1) * cell->xpitch;
+        }
     }
     else if(strcmp(name, "topleft") == 0)
     {
         x = blx;
         y = try;
+        if(cell->isproxy && cell->isarray)
+        {
+            y += (cell->yrep - 1) * cell->ypitch;
+        }
     }
     else if(strcmp(name, "topright") == 0)
     {
         x = trx;
         y = try;
+        if(cell->isproxy && cell->isarray)
+        {
+            x += (cell->xrep - 1) * cell->xpitch;
+            y += (cell->yrep - 1) * cell->ypitch;
+        }
     }
     else
     {
@@ -356,26 +387,6 @@ point_t* object_get_anchor(const object_t* cell, const char* name)
     if(pt)
     {
         return pt;
-    //    if self.isproxy and self.isarray then
-    //        if name == "left" then
-    //            pt:translate(0, (self.yrep - 1) * self.ypitch / 2)
-    //        elseif name == "right" then
-    //            pt:translate((self.xrep - 1) * self.xpitch, (self.yrep - 1) * self.ypitch / 2)
-    //        elseif name == "top" then
-    //            pt:translate((self.xrep - 1) * self.xpitch / 2, (self.yrep - 1) * self.ypitch)
-    //        elseif name == "bottom" then
-    //            pt:translate((self.xrep - 1) * self.xpitch / 2, 0)
-    //        elseif name == "bottomleft" then
-    //            --pt:translate(0, 0)
-    //        elseif name == "bottomright" then
-    //            pt:translate((self.xrep - 1) * self.xpitch, 0)
-    //        elseif name == "topleft" then
-    //            pt:translate(0, (self.yrep - 1) * self.ypitch)
-    //        elseif name == "topright" then
-    //            pt:translate((self.xrep - 1) * self.xpitch, (self.yrep - 1) * self.ypitch)
-    //        end
-    //    end
-    //    return pt
     }
     else
     {
@@ -712,34 +723,16 @@ void object_flatten(object_t* cell, int flattenports)
                     }
                     object_add_raw_shape(cell, S);
                 }
+                //if flattenports then
+                //    for _, port in ipairs(cell.ports) do
+                //        local new = { name = port.name, layer = port.layer:copy(), where = port.where:copy() }
+                //        child.trans:apply_translation(new.where)
+                //        obj.trans:apply_translation(new.where)
+                //        new.where:translate((ix - 1) * xpitch, (iy - 1) * ypitch)
+                //    end
+                //end
             }
         }
-        //local xrep, yrep = child.xrep, child.yrep
-        //local xpitch, ypitch = child.xpitch, child.ypitch
-        //if not child.isarray then
-        //    xrep, yrep = 1, 1
-        //    xpitch, ypitch = 0, 0
-        //end
-        //for ix = 1, xrep or 1 do
-        //    for iy = 1, yrep or 1 do
-        //        for _, S in obj:iterate_shapes() do
-        //            local new = _add_raw_shape(cell, S)
-        //            new:apply_transformation(child.trans)
-        //            new:apply_transformation(obj.trans)
-        //            local tm = transformationmatrix.identity()
-        //            tm:translate((ix - 1) * xpitch, (iy - 1) * ypitch)
-        //            new:apply_transformation(tm)
-        //        end
-        //        if flattenports then
-        //            for _, port in ipairs(cell.ports) do
-        //                local new = { name = port.name, layer = port.layer:copy(), where = port.where:copy() }
-        //                child.trans:apply_translation(new.where)
-        //                obj.trans:apply_translation(new.where)
-        //                new.where:translate((ix - 1) * xpitch, (iy - 1) * ypitch)
-        //            end
-        //        end
-        //    end
-        //end
     }
     // destroy children
     for(unsigned int i = 0; i < cell->children_size; ++i)
