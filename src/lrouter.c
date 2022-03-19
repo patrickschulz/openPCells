@@ -13,7 +13,7 @@
 
 struct netcollection
 {
-    net_t* nets;
+    net_t *nets;
     size_t num_nets;
 };
 
@@ -55,13 +55,13 @@ static struct netcollection* _initialize(lua_State* L)
 	    if(j == 1)
 	    {
 		    lua_getfield(L, -1, "port");
-		    const char* port = lua_tostring(L, -1);
+		    const char *port = lua_tostring(L, -1);
 		    nets[i].firstport = malloc(strlen(port) + 1);
 		    strcpy(nets[i].firstport, port);
 		    lua_pop(L, 1);
 
 		    lua_getfield(L, -1, "instance");
-		    const char* instance = lua_tostring(L, -1);
+		    const char *instance = lua_tostring(L, -1);
 		    nets[i].firstinstance = malloc(strlen(instance) + 1);
 		    strcpy(nets[i].firstinstance, instance);
 		    lua_pop(L, 1);
@@ -86,19 +86,82 @@ static struct netcollection* _initialize(lua_State* L)
     return nc;
 }
 
+/* deletes the nth element of an array and resizes it */
+static void del_nth_el_arr(unsigned int *arr, size_t n, size_t arr_size)
+{
+    if(arr == NULL || n >= arr_size)
+        return;
+
+    for(size_t i = n; i < arr_size - 1; i++)
+    {
+        arr[i] = arr[i+1];
+    }
+
+    arr = (unsigned int *)realloc(arr, arr_size - 1);
+}
+
 /*
  * split nets with more than 2 points into more nets with 2 points
+ * with minimum manhattan distance in between
+ * e. g. net0: p1 has manhattan distance (m.d.) 4 to p2 and p1 has 3 m.d. to
+ * p3 then: make new nets with p1 and p3, and p2 and p3
 */
 static void lrouter_split_nets(struct netcollection* nc)
 {
     for(size_t i = 0; i < nc->num_nets; i++)
     {
-        if(nc->nets[i].size > 2)
+	if(nc->nets[i].size < 3)
+	    continue;
+
+	for(size_t j = 0; j < nc->nets[i].size; j++)
 	{
-	    for(size_t j = 0; j < nets[i].size; j++)
-	    {
-	        printf("%i manhattan dist %i\n", j,); 
-	    }
+		int tempx, tempy, nextx, nexty, mindist, nextdist;
+		size_t mink = 0;
+		tempx = (int)nc->nets[i].xs[j];
+		tempy = (int)nc->nets[i].ys[j];
+		mindist = INT_MAX;
+		for(size_t k = 0; k < nc->nets[i].size; k++)
+		{
+			/* dont check m.d. for itself again */
+		        if(k == j)
+			    continue;
+
+			nextx = (int)nc->nets[i].xs[k];
+			nexty = (int)nc->nets[i].ys[k];
+			if((nextdist = MANHATTAN_DIST(tempx, tempy, nextx, nexty)) <
+			   mindist)
+			{
+				mindist = nextdist;
+				mink = k;
+			}
+		}
+
+		if (mindist == 0)
+		    continue;
+
+		/*
+		 * now point nr. j in net has minimum m.d. to point nr. mink
+		 * so create new split net with only 2 now
+		*/
+		net_t newnet;
+		newnet.name = malloc(strlen(nc->nets[i].name) + 10);
+		newnet.xs = malloc(sizeof(unsigned int) * 2);
+		newnet.ys = malloc(sizeof(unsigned int) * 2);
+		newnet.zs = malloc(sizeof(unsigned int) * 2);
+		sprintf(newnet.name, "%s_(%zu)", nc->nets[i].name, j);
+		newnet.xs[0] = nc->nets[i].xs[j];
+		newnet.ys[0] = nc->nets[i].ys[j];
+		newnet.xs[1] = nc->nets[i].xs[mink];
+		newnet.ys[1] = nc->nets[i].ys[mink];
+		newnet.size = 2;
+		printf("%s, mindist: %u\n", newnet.name, mindist);
+		del_nth_el_arr(nc->nets[i].xs, j, nc->nets[i].size);
+		del_nth_el_arr(nc->nets[i].ys, j, nc->nets[i].size);
+
+		/* add new net to end of net list */
+		nc->nets = (net_t *)realloc(nc->nets, nc->num_nets + 1);
+		nc->nets[nc->num_nets] = newnet;
+		nc->num_nets++;
 	}
     }
 }
@@ -119,6 +182,9 @@ int lrouter_route(lua_State* L)
     int*** field = init_field(field_width, field_height, num_layers);
 
     lua_newtable(L);
+
+    lrouter_split_nets(nc);
+    print_nets(nc->nets, nc->num_nets);
 
     int count = 0;
     for(unsigned int i = 0; i < nc->num_nets; ++i)

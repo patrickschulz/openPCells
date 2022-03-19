@@ -165,7 +165,7 @@ int route(net_t *net, int*** field, size_t width, size_t height,
 		/* array to look for the least costing neighboring point */
 		point_t nextpoints[NUM_DIRECTIONS];
 		memset(nextpoints, UINT_MAX, sizeof(point_t) * NUM_DIRECTIONS);
-		bool next_is_via;
+		bool next_is_via = false;
 
 		/*
 		 * circle around every point + check layer above and below
