@@ -5,7 +5,7 @@
 static void _resize_data(struct vector* vector, size_t capacity)
 {
     vector->capacity = capacity;
-    void* e = realloc(vector->elements, sizeof(char) * vector->capacity);
+    void* e = realloc(vector->elements, sizeof(void*) * vector->capacity);
     vector->elements = e;
 }
 
@@ -20,6 +20,7 @@ struct vector* vector_create(void)
 
 void vector_destroy(struct vector* vector)
 {
+    // non-owned data, only detroy vector structure
     free(vector->elements);
     free(vector);
 }
