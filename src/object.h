@@ -55,8 +55,8 @@ object_t* object_create(void);
 object_t* object_copy(object_t*);
 void object_destroy(object_t* cell);
 
-int object_add_raw_shape(object_t* cell, shape_t* S);
-int object_add_shape(object_t* cell, shape_t* S);
+void object_add_raw_shape(object_t* cell, shape_t* S);
+void object_add_shape(object_t* cell, shape_t* S);
 void object_remove_shape(object_t* cell, size_t i);
 object_t* object_add_child(object_t* cell, const char* identifier, const char* name);
 object_t* object_add_child_array(object_t* cell, const char* identifier, unsigned int xrep, unsigned int yrep, unsigned int xpitch, unsigned int ypitch, const char* name);

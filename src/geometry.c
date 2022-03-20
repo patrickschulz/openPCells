@@ -4,43 +4,60 @@
 #include <stddef.h>
 #include <math.h>
 
-static void _rectanglebltr(object_t* cell, generics_t* layer, coordinate_t blx, coordinate_t bly, coordinate_t trx, coordinate_t try)
+static void _multiple_xy(object_t* cell, shape_t* base, ucoordinate_t xrep, ucoordinate_t yrep, ucoordinate_t xpitch, ucoordinate_t ypitch)
+{
+    if(!shape_is_empty(base))
+    {
+        for(unsigned int x = 1; x <= xrep; ++x)
+        {
+            for(unsigned int y = 1; y <= yrep; ++y)
+            {
+                shape_t* S = shape_copy(base);
+                shape_translate(
+                    S, 
+                    (x - 1) * xpitch - (xrep - 1) * xpitch / 2,
+                    (y - 1) * ypitch - (yrep - 1) * ypitch / 2
+                );
+                object_add_shape(cell, S);
+            }
+        }
+    }
+}
+
+static void _rectanglebltr (object_t* cell, generics_t* layer, coordinate_t blx, coordinate_t bly, coordinate_t trx, coordinate_t try, ucoordinate_t xrep, ucoordinate_t yrep, ucoordinate_t xpitch, ucoordinate_t ypitch)
 {
     shape_t* S = shape_create_rectangle(blx, bly, trx, try);
     S->layer = layer;
-    if(!object_add_shape(cell, S))
-    {
-        shape_destroy(S);
-    }
+    _multiple_xy(cell, S, xrep, yrep, xpitch, ypitch);
 }
 
-void geometry_rectanglebltr(object_t* cell, generics_t* layer, point_t* bl, point_t* tr)
+void geometry_rectanglebltr(object_t* cell, generics_t* layer, point_t* bl, point_t* tr, ucoordinate_t xrep, ucoordinate_t yrep, ucoordinate_t xpitch, ucoordinate_t ypitch)
 {
-    _rectanglebltr(cell, layer, bl->x, bl->y, tr->x, tr->y);
+    _rectanglebltr(cell, layer, bl->x, bl->y, tr->x, tr->y, xrep, yrep, xpitch, ypitch);
 }
 
-void geometry_rectangle(object_t* cell, generics_t* layer, coordinate_t width, coordinate_t height, coordinate_t xshift, coordinate_t yshift)
+void geometry_rectangle(object_t* cell, generics_t* layer, coordinate_t width, coordinate_t height, coordinate_t xshift, coordinate_t yshift, ucoordinate_t xrep, ucoordinate_t yrep, ucoordinate_t xpitch, ucoordinate_t ypitch)
 {
-    _rectanglebltr(cell, layer, -width / 2 + xshift, -height / 2 + yshift, width / 2 + xshift, height / 2 + yshift);
+    _rectanglebltr(cell, layer, -width / 2 + xshift, -height / 2 + yshift, width / 2 + xshift, height / 2 + yshift, xrep, yrep, xpitch, ypitch);
 }
 
-void geometry_rectanglepoints(object_t* cell, generics_t* layer, point_t* pt1, point_t* pt2)
+void geometry_rectanglepoints(object_t* cell, generics_t* layer, point_t* pt1, point_t* pt2, ucoordinate_t xrep, ucoordinate_t yrep, ucoordinate_t xpitch, ucoordinate_t ypitch)
 {
     if(pt1->x <= pt2->x && pt1->y <= pt2->y)
     {
-        _rectanglebltr(cell, layer, pt1->x, pt1->y, pt2->x, pt2->y);
+        _rectanglebltr(cell, layer, pt1->x, pt1->y, pt2->x, pt2->y, xrep, yrep, xpitch, ypitch);
     }
     else if(pt1->x <= pt2->x && pt1->y  > pt2->y)
     {
-        _rectanglebltr(cell, layer, pt1->x, pt2->y, pt2->x, pt1->y);
+        _rectanglebltr(cell, layer, pt1->x, pt2->y, pt2->x, pt1->y, xrep, yrep, xpitch, ypitch);
     }
     else if(pt1->x  > pt2->x && pt1->y <= pt2->y)
     {
-        _rectanglebltr(cell, layer, pt2->x, pt1->y, pt1->x, pt2->y);
+        _rectanglebltr(cell, layer, pt2->x, pt1->y, pt1->x, pt2->y, xrep, yrep, xpitch, ypitch);
     }
     else if(pt1->x  > pt2->x && pt1->y  > pt2->y)
     {
-        _rectanglebltr(cell, layer, pt2->x, pt2->y, pt1->x, pt1->y);
+        _rectanglebltr(cell, layer, pt2->x, pt2->y, pt1->x, pt1->y, xrep, yrep, xpitch, ypitch);
     }
 }
 
@@ -52,7 +69,11 @@ void geometry_polygon(object_t* cell, generics_t* layer, point_t** points, size_
     {
         shape_append(S, points[i]->x, points[i]->y);
     }
-    if(!object_add_shape(cell, S))
+    if(!shape_is_empty(S))
+    {
+        object_add_shape(cell, S);
+    }
+    else
     {
         shape_destroy(S);
     }
@@ -66,7 +87,11 @@ void geometry_path(object_t* cell, generics_t* layer, point_t** points, size_t l
     {
         shape_append(S, points[i]->x, points[i]->y);
     }
-    if(!object_add_shape(cell, S))
+    if(!shape_is_empty(S))
+    {
+        object_add_shape(cell, S);
+    }
+    else
     {
         shape_destroy(S);
     }

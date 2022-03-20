@@ -166,9 +166,8 @@ void object_destroy(object_t* cell)
     free(cell);
 }
 
-int object_add_raw_shape(object_t* cell, shape_t* S)
+void object_add_raw_shape(object_t* cell, shape_t* S)
 {
-    if(S->layer->size == 0) return 0; // don't add empty shapes
     if(cell->shapes_capacity == cell->shapes_size)
     {
         cell->shapes_capacity = cell->shapes_capacity == 0 ? 1 : cell->shapes_capacity * 2;
@@ -177,17 +176,12 @@ int object_add_raw_shape(object_t* cell, shape_t* S)
     }
     cell->shapes[cell->shapes_size] = S;
     cell->shapes_size += 1;
-    return 1;
 }
 
-int object_add_shape(object_t* cell, shape_t* S)
+void object_add_shape(object_t* cell, shape_t* S)
 {
-    int ret = object_add_raw_shape(cell, S);
-    if(ret)
-    {
-        shape_apply_inverse_transformation(S, cell->trans);
-    }
-    return ret;
+    object_add_raw_shape(cell, S);
+    shape_apply_inverse_transformation(S, cell->trans);
 }
 
 void object_remove_shape(object_t* cell, size_t idx)

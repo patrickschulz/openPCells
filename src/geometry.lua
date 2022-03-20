@@ -129,7 +129,7 @@ function geometry.contact(cell, region, width, height, options)
     geometry.contactbltr(cell, region, point.create(-width / 2, -height / 2), point.create(width / 2, height / 2), options)
 end
 
-function geometry.contactbltr(cell, region, bl, tr, options)
+function geometry.contactbltr(cell, region, bl, tr, xrep, yrep, xpitch, ypitch, options)
     local blx, bly = bl:unwrap()
     local trx, try = tr:unwrap()
     local width = trx - blx

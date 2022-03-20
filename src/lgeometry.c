@@ -14,7 +14,11 @@ int lgeometry_rectanglebltr(lua_State* L)
     generics_t* layer = lua_touserdata(L, 2);
     lpoint_t* bl = lpoint_checkpoint(L, 3);
     lpoint_t* tr = lpoint_checkpoint(L, 4);
-    geometry_rectanglebltr(cell->object, layer, bl->point, tr->point);
+    ucoordinate_t xrep = luaL_optinteger(L, 5, 1);
+    ucoordinate_t yrep = luaL_optinteger(L, 6, 1);
+    ucoordinate_t xpitch = luaL_optinteger(L, 7, 0);
+    ucoordinate_t ypitch = luaL_optinteger(L, 8, 0);
+    geometry_rectanglebltr(cell->object, layer, bl->point, tr->point, xrep, yrep, xpitch, ypitch);
     return 0;
 }
 
@@ -26,7 +30,11 @@ int lgeometry_rectangle(lua_State* L)
     coordinate_t height = lua_tointeger(L, 4);
     coordinate_t xshift = luaL_optinteger(L, 5, 0);
     coordinate_t yshift = luaL_optinteger(L, 6, 0);
-    geometry_rectangle(cell->object, layer, width, height, xshift, yshift);
+    ucoordinate_t xrep = luaL_optinteger(L, 7, 1);
+    ucoordinate_t yrep = luaL_optinteger(L, 8, 1);
+    ucoordinate_t xpitch = luaL_optinteger(L, 9, 0);
+    ucoordinate_t ypitch = luaL_optinteger(L, 10, 0);
+    geometry_rectangle(cell->object, layer, width, height, xshift, yshift, xrep, yrep, xpitch, ypitch);
     return 0;
 }
 
@@ -36,7 +44,11 @@ int lgeometry_rectanglepoints(lua_State* L)
     generics_t* layer = lua_touserdata(L, 2);
     lpoint_t* pt1 = lpoint_checkpoint(L, 3);
     lpoint_t* pt2 = lpoint_checkpoint(L, 4);
-    geometry_rectanglepoints(cell->object, layer, pt1->point, pt2->point);
+    ucoordinate_t xrep = luaL_optinteger(L, 5, 1);
+    ucoordinate_t yrep = luaL_optinteger(L, 6, 1);
+    ucoordinate_t xpitch = luaL_optinteger(L, 7, 0);
+    ucoordinate_t ypitch = luaL_optinteger(L, 8, 0);
+    geometry_rectanglepoints(cell->object, layer, pt1->point, pt2->point, xrep, yrep, xpitch, ypitch);
     return 0;
 }
 

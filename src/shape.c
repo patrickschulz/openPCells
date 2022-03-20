@@ -127,6 +127,19 @@ int shape_get_path_extension(shape_t* shape, coordinate_t* start, coordinate_t* 
     return 1;
 }
 
+int shape_is_empty(shape_t* shape)
+{
+    return shape->layer->size == 0;
+}
+
+void shape_translate(shape_t* shape, coordinate_t dx, coordinate_t dy)
+{
+    for(unsigned int i = 0; i < shape->size; ++i)
+    {
+        point_translate(shape->points[i], dx, dy);
+    }
+}
+
 void shape_apply_transformation(shape_t* shape, transformationmatrix_t* matrix)
 {
     for(unsigned int i = 0; i < shape->size; ++i)

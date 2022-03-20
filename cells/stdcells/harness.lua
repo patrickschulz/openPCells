@@ -109,15 +109,11 @@ function layout(gate, _P)
 
     -- power rails
     if _P.drawrails then
-        geometry.multiple_y(
-            function(y)
-                geometry.rectangle(
-                    gate, generics.metal(1), 
-                    (fingers + bp.leftdummies + bp.rightdummies) * xpitch + bp.sdwidth, bp.powerwidth,
-                    xshift, y + (bp.pwidth - bp.nwidth) / 2
-                )
-            end,
-            2, separation + bp.pwidth + bp.nwidth + 2 * bp.powerspace + bp.powerwidth
+        geometry.rectangle(
+            gate, generics.metal(1), 
+            (fingers + bp.leftdummies + bp.rightdummies) * xpitch + bp.sdwidth, bp.powerwidth,
+            xshift, (bp.pwidth - bp.nwidth) / 2,
+            1, 2, 0, separation + bp.pwidth + bp.nwidth + 2 * bp.powerspace + bp.powerwidth
         )
     end
 
