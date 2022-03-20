@@ -134,7 +134,7 @@ static void _write_ports(object_t* cell, struct export_data* data, struct export
         }
         transformationmatrix_apply_transformation(cell->trans, cell->ports[i]->where);
         struct keyvaluearray* layerdata = cell->ports[i]->layer->data[0];
-        funcs->write_port(data, name, layerdata, cell->ports[i]->where);
+        funcs->write_port(data, name, layerdata, cell->ports[i]->where->x, cell->ports[i]->where->y);
         if(cell->ports[i]->isbusport)
         {
             free(name);

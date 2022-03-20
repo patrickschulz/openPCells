@@ -654,7 +654,7 @@ static void _write_cell_array(struct export_data* data, const char* identifier, 
     export_data_append_byte(data, 0x00);
 }
 
-static void _write_port(struct export_data* data, const char* name, const struct keyvaluearray* layer, point_t* where)
+static void _write_port(struct export_data* data, const char* name, const struct keyvaluearray* layer, coordinate_t x, coordinate_t y)
 {
     // TEXT
     export_data_append_byte(data, 0x00);
@@ -705,8 +705,8 @@ static void _write_port(struct export_data* data, const char* name, const struct
     export_data_append_byte(data, 0x0c);
     export_data_append_byte(data, 0x10); // XY
     export_data_append_byte(data, 0x03); // FOUR_BYTE_INTEGER
-    export_data_append_four_bytes(data, where->x * multiplier);
-    export_data_append_four_bytes(data, where->y * multiplier);
+    export_data_append_four_bytes(data, x * multiplier);
+    export_data_append_four_bytes(data, y * multiplier);
 
     // NAME
     size_t len = strlen(name);

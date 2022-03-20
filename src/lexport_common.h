@@ -34,7 +34,7 @@ struct export_functions
     void (*write_path)(struct export_data*, const struct keyvaluearray*, point_t**, size_t, ucoordinate_t, coordinate_t*);
     void (*write_cell_reference)(struct export_data*, const char*, coordinate_t, coordinate_t, transformationmatrix_t*);
     void (*write_cell_array)(struct export_data*, const char*, coordinate_t, coordinate_t, transformationmatrix_t*, unsigned int, unsigned int, unsigned int, unsigned int);
-    void (*write_port)(struct export_data*, const char* name, const struct keyvaluearray*, point_t*);
+    void (*write_port)(struct export_data*, const char* name, const struct keyvaluearray*, coordinate_t x, coordinate_t y);
     const char* (*get_extension)(void);
 };
 
