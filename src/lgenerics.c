@@ -7,15 +7,15 @@
 
 #include "generics.h"
 
-#define METAL_MAGIC_IDENTIFIER          1
-#define METALPORT_MAGIC_IDENTIFIER      2
-#define VIA_MAGIC_IDENTIFIER            3
-#define CONTACT_MAGIC_IDENTIFIER        4
-#define OXIDE_MAGIC_IDENTIFIER          5
-#define IMPLANT_MAGIC_IDENTIFIER        6
-#define VTHTYPE_MAGIC_IDENTIFIER        7
-#define OTHER_MAGIC_IDENTIFIER          8
-#define SPECIAL_MAGIC_IDENTIFIER        9
+#define METAL_IDENTIFIER          1
+#define METALPORT_IDENTIFIER      2
+#define VIA_IDENTIFIER            3
+#define CONTACT_IDENTIFIER        4
+#define OXIDE_IDENTIFIER          5
+#define IMPLANT_IDENTIFIER        6
+#define VTHTYPE_IDENTIFIER        7
+#define OTHER_IDENTIFIER          8
+#define SPECIAL_IDENTIFIER        9
 
 static void _insert_lpp_pairs(lua_State* L, struct keyvaluearray* map)
 {
@@ -121,7 +121,7 @@ static int lgenerics_create_metal(lua_State* L)
         num = nummetals + num + 1;
     }
 
-    uint32_t key = (METAL_MAGIC_IDENTIFIER << 24) | (num & 0x00ffffff);
+    uint32_t key = (METAL_IDENTIFIER << 24) | (num & 0x00ffffff);
     generics_t* layer = generics_get_layer(key);
     if(!layer)
     {
@@ -148,7 +148,7 @@ static int lgenerics_create_metalport(lua_State* L)
         num = nummetals + num + 1;
     }
 
-    uint32_t key = (METALPORT_MAGIC_IDENTIFIER << 24) | (num & 0x00ffffff);
+    uint32_t key = (METALPORT_IDENTIFIER << 24) | (num & 0x00ffffff);
     generics_t* layer = generics_get_layer(key);
     if(!layer)
     {
@@ -188,7 +188,7 @@ static int lgenerics_create_viacut(lua_State* L)
         metal2 = metal1;
         metal1 = tmp;
     }
-    uint32_t key = (VIA_MAGIC_IDENTIFIER << 24) | ((metal1 & 0x00000fff) << 12) | (metal2 & 0x00000fff);
+    uint32_t key = (VIA_IDENTIFIER << 24) | ((metal1 & 0x00000fff) << 12) | (metal2 & 0x00000fff);
     generics_t* layer = generics_get_layer(key);
     if(!layer)
     {
@@ -205,7 +205,7 @@ static int lgenerics_create_contact(lua_State* L)
     size_t len;
     const char* region = luaL_checklstring(L, 1, &len);
     uint8_t data[len + 1];
-    data[0] = CONTACT_MAGIC_IDENTIFIER;
+    data[0] = CONTACT_IDENTIFIER;
     memcpy(data + 1, region, len);
 
     uint32_t key = _hash(data, len + 1);
@@ -224,7 +224,7 @@ static int lgenerics_create_oxide(lua_State* L)
 {
     int num = luaL_checkinteger(L, 1);
 
-    uint32_t key = (OXIDE_MAGIC_IDENTIFIER << 24) | (num & 0x00ffffff);
+    uint32_t key = (OXIDE_IDENTIFIER << 24) | (num & 0x00ffffff);
     generics_t* layer = generics_get_layer(key);
     if(!layer)
     {
@@ -239,7 +239,7 @@ static int lgenerics_create_oxide(lua_State* L)
 static int lgenerics_create_implant(lua_State* L)
 {
     const char* str = luaL_checkstring(L, 1);
-    uint32_t key = (IMPLANT_MAGIC_IDENTIFIER << 24) | (str[0] & 0x00ffffff); // the '& 0x00ffffff' is unnecessary here, but kept for completeness
+    uint32_t key = (IMPLANT_IDENTIFIER << 24) | (str[0] & 0x00ffffff); // the '& 0x00ffffff' is unnecessary here, but kept for completeness
     generics_t* layer = generics_get_layer(key);
     if(!layer)
     {
@@ -255,7 +255,7 @@ static int lgenerics_create_vthtype(lua_State* L)
 {
     const char* channeltype = luaL_checkstring(L, 1);
     int vthtype = luaL_checkinteger(L, 2);
-    uint32_t key = (VTHTYPE_MAGIC_IDENTIFIER << 24) | ((channeltype[0] & 0x000000ff) << 16) | (vthtype & 0x0000ffff);
+    uint32_t key = (VTHTYPE_IDENTIFIER << 24) | ((channeltype[0] & 0x000000ff) << 16) | (vthtype & 0x0000ffff);
     generics_t* layer = generics_get_layer(key);
     if(!layer)
     {
@@ -272,7 +272,7 @@ static int lgenerics_create_other(lua_State* L)
     size_t len;
     const char* str = luaL_checklstring(L, 1, &len);
     uint8_t data[len + 1];
-    data[0] = OTHER_MAGIC_IDENTIFIER;
+    data[0] = OTHER_IDENTIFIER;
     memcpy(data + 1, str, len);
 
     uint32_t key = _hash(data, len + 1);
@@ -289,7 +289,7 @@ static int lgenerics_create_other(lua_State* L)
 
 static int lgenerics_create_special(lua_State* L)
 {
-    uint32_t key = (SPECIAL_MAGIC_IDENTIFIER << 24);
+    uint32_t key = (SPECIAL_IDENTIFIER << 24);
     generics_t* layer = generics_get_layer(key);
     if(!layer)
     {
