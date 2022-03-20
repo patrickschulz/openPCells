@@ -122,7 +122,7 @@ function technology.map(identifier)
     end
     local entry = layermap[identifier]
     if not entry then
-        moderror(string.format("technology: no layer '%s' found in layermap", identifier))
+        moderror(string.format("technology: no layer '%s' found in layermap. If no mapping of this layer is required, explicitly set it to {} in the layermap", identifier))
     end
     return entry.layer
 end
