@@ -116,7 +116,7 @@ if args.prependcellpath then
 end
 
 -- set default path for exports
---export.add_path(string.format("%s/export", _get_opc_home()))
+export.add_path(string.format("%s/export", _get_opc_home()))
 
 if args.listcellpaths then
     pcell.list_cellpaths()
@@ -302,7 +302,7 @@ if args.drawanchor then
 end
 
 -- add drawing of alignment box
-if args.drawalignmentbox then
+if args.drawalignmentbox or args.drawallalignmentboxes then
     local bl = cell:get_anchor("bottomleft")
     local tr = cell:get_anchor("topright")
     if bl and tr then
@@ -319,25 +319,12 @@ if args.drawallalignmentboxes then
     end)
 end
 
--- filter layers (pre)
-if args.prelayerfilter then
+-- filter layers
+if args.layerfilter then
     -- filter toplevel (flat shapes)
-    postprocess.filter(cell, args.prelayerfilter, args.prelayerfilterlist or "black")
+    postprocess.filter(cell, args.layerfilter, args.layerfilterlist or "black")
     -- filter children
-    pcell.foreach_cell_references(postprocess.filter, args.prelayerfilter, args.prelayerfilterlist or "black")
-end
-
-if not args.export then
-    moderror("no export type given")
-end
---export.load(args.export)
-
--- filter layers (post)
-if args.postlayerfilter then
-    -- filter toplevel (flat shapes)
-    postprocess.filter(cell, args.postlayerfilter, args.postlayerfilterlist or "black")
-    -- filter children
-    pcell.foreach_cell_references(postprocess.filter, args.postlayerfilter, args.postlayerfilterlist or "black")
+    pcell.foreach_cell_references(postprocess.filter, args.layerfilter, args.layerfilterlist or "black")
 end
 
 if args.flatten then
@@ -348,9 +335,12 @@ if args.mergerectangles then
     -- merge toplevel (flat shapes)
     reduce.merge_shapes(cell)
     -- merge children
-    --pcell.foreach_cell_references(reduce.merge_shapes)
+    pcell.foreach_cell_references(reduce.merge_shapes)
 end
 
+if not args.export then
+    moderror("no export type given")
+end
 if not args.noexport then
     --export.set_options(args.export_options)
     --export.check()
@@ -365,7 +355,7 @@ if not args.noexport then
             moderror(string.format("--bus-delimiters: parse error. Expected two characters, got: '%s'", args.busdelimiters))
         end
     end
-    --export.set_bus_delimiters(leftdelim, rightdelim)
+    export.set_bus_delimiters(leftdelim, rightdelim)
     export.write_toplevel(args.export, cell, filename, args.toplevelname or "opctoplevel", args.writechildrenports, args.dryrun)
 end
 

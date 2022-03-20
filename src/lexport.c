@@ -10,19 +10,36 @@
 #include "pcell.h"
 #include "gdsexport.h"
 #include "lpoint.h"
+#include "vector.h"
+
+static struct vector* searchpaths = NULL;
+static char _leftdelim = '<';
+static char _rightdelim = '>';
 
 static int lexport_add_path(lua_State* L)
-    //string.format("%s/export", _get_opc_home()))
 {
-    (void) L;
+    if(!searchpaths)
+    {
+        searchpaths = vector_create();
+    }
+    const char* path = luaL_checkstring(L, 1);
+    size_t len = strlen(path);
+    char* p = malloc(len + 1);
+    strcpy(p, path);
+    vector_append(searchpaths, p);
     return 0;
 }
 
-static int lexport_load(lua_State* L)
-    //args.export
+static void _destroy_searchpaths(void)
 {
-    (void) L;
-    return 0;
+    if(searchpaths)
+    {
+        for(unsigned int i = 0; i < vector_size(searchpaths); ++i)
+        {
+            free(vector_get(searchpaths, i));
+        }
+        vector_destroy(searchpaths);
+    }
 }
 
 static int lexport_set_options(lua_State* L)
@@ -41,7 +58,10 @@ static int lexport_check(lua_State* L)
 static int lexport_set_bus_delimiters(lua_State* L)
     //leftdelim, rightdelim
 {
-    (void) L;
+    const char* left = luaL_checkstring(L, 1);
+    const char* right = luaL_checkstring(L, 1);
+    _leftdelim = left[0];
+    _rightdelim = right[0];
     return 0;
 }
 
@@ -104,8 +124,6 @@ static void _write_ports(object_t* cell, struct export_data* data, struct export
         char* name;
         if(cell->ports[i]->isbusport)
         {
-            char _leftdelim = '<';
-            char _rightdelim = '>';
             size_t len = strlen(cell->ports[i]->name) + 2 + util_num_digits(cell->ports[i]->busindex);
             name = malloc(len + 1);
             snprintf(name, len + 1, "%s%c%d%c", cell->ports[i]->name, _leftdelim, cell->ports[i]->busindex, _rightdelim);
@@ -380,42 +398,61 @@ static int lexport_write_toplevel(lua_State* L)
 
     struct export_data* data = export_create_data();
     const char* extension;
+    int success = 0;
     if(funcs)
     {
         _write_toplevel_C(toplevel->object, data, funcs);
         extension = funcs->get_extension();
+        success = 1;
     }
     else // lua-defined exports
     {
-        const char* searchpaths[] = {
-            "/home/pkurth/Workspace/openPCells/export"
-        };
-        const char* searchpath = searchpaths[0];
-        size_t len = strlen(searchpath) + strlen(exportname) + 11; // + 11: "init.lua" + 2 * '/' + terminating zero
-        char* exportfilename = malloc(len);
-        snprintf(exportfilename, len, "%s/%s/init.lua", searchpath, exportname);
-        luaL_dofile(L, exportfilename);
-        if(lua_type(L, -1) == LUA_TTABLE)
+        //const char* searchpaths[] = {
+        //    "/home/pkurth/Workspace/openPCells/export"
+        //};
+        if(searchpaths)
         {
-            _write_toplevel_lua(L, toplevel->object, data);
+            for(unsigned int i = 0; i < vector_size(searchpaths); ++i)
+            {
+                const char* searchpath = vector_get(searchpaths, i);
+                size_t len = strlen(searchpath) + strlen(exportname) + 11; // + 11: "init.lua" + 2 * '/' + terminating zero
+                char* exportfilename = malloc(len);
+                snprintf(exportfilename, len, "%s/%s/init.lua", searchpath, exportname);
+                luaL_dofile(L, exportfilename);
+                if(lua_type(L, -1) == LUA_TTABLE)
+                {
+                    _write_toplevel_lua(L, toplevel->object, data);
 
-            lua_getfield(L, -1, "get_extension");
-            lua_call(L, 0, 1);
-            extension = lua_tostring(L, -1);
-            lua_pop(L, 1); // pop extension
+                    lua_getfield(L, -1, "get_extension");
+                    lua_call(L, 0, 1);
+                    extension = lua_tostring(L, -1);
+                    lua_pop(L, 1); // pop extension
+                    success = 1;
+                    break;
+                }
+            }
         }
     }
 
-    const char* basename = lua_tostring(L, 3);
-    size_t len = strlen(basename) + strlen(extension) + 2; // + 2: '.' and the terminating zero
-    char* filename = malloc(len);
-    snprintf(filename, len + 2, "%s.%s", basename, extension);
-    FILE* file = fopen(filename, "w");
-    fwrite(data->data, 1, data->length, file);
-    fclose(file);
-    free(filename);
-    export_destroy_data(data);
-    export_destroy_functions(funcs);
+    if(success)
+    {
+        const char* basename = lua_tostring(L, 3);
+        size_t len = strlen(basename) + strlen(extension) + 2; // + 2: '.' and the terminating zero
+        char* filename = malloc(len);
+        snprintf(filename, len + 2, "%s.%s", basename, extension);
+        FILE* file = fopen(filename, "w");
+        fwrite(data->data, 1, data->length, file);
+        fclose(file);
+        free(filename);
+        export_destroy_data(data);
+        export_destroy_functions(funcs);
+    }
+    else
+    {
+        printf("could not find export '%s'\n", exportname);
+    }
+
+    _destroy_searchpaths();
 
     return 0;
 }
@@ -426,7 +463,6 @@ int open_lexport_lib(lua_State* L)
     static const luaL_Reg modfuncs[] =
     {
         { "add_path",           lexport_add_path            },
-        { "load",               lexport_load                },
         { "set_options",        lexport_set_options         },
         { "check",              lexport_check               },
         { "set_bus_delimiters", lexport_set_bus_delimiters  },
