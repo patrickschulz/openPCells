@@ -390,6 +390,7 @@ static int lexport_write_toplevel(lua_State* L)
     if(object_is_empty(toplevel->object))
     {
         puts("export: toplevel is empty");
+        _destroy_searchpaths();
         return 0;
     }
 
