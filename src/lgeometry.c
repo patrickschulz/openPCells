@@ -8,10 +8,22 @@
 #include "lobject.h"
 #include "lpoint.h"
 
+
+void* luaL_checklightudata(lua_State* L, int idx)
+{
+    void *p = lua_touserdata(L, idx);
+    if(!p)
+    {
+        lua_pushfstring(L, "expected light userdata at argument #%d\n", idx);
+        lua_error(L);
+    }
+    return p;
+}
+
 int lgeometry_rectanglebltr(lua_State* L)
 {
     lobject_t* cell = lobject_check(L, 1);
-    generics_t* layer = lua_touserdata(L, 2);
+    generics_t* layer = luaL_checklightudata(L, 2);
     lpoint_t* bl = lpoint_checkpoint(L, 3);
     lpoint_t* tr = lpoint_checkpoint(L, 4);
     ucoordinate_t xrep = luaL_optinteger(L, 5, 1);
@@ -25,7 +37,7 @@ int lgeometry_rectanglebltr(lua_State* L)
 int lgeometry_rectangle(lua_State* L)
 {
     lobject_t* cell = lobject_check(L, 1);
-    generics_t* layer = lua_touserdata(L, 2);
+    generics_t* layer = luaL_checklightudata(L, 2);
     coordinate_t width = lua_tointeger(L, 3);
     coordinate_t height = lua_tointeger(L, 4);
     coordinate_t xshift = luaL_optinteger(L, 5, 0);
@@ -41,7 +53,7 @@ int lgeometry_rectangle(lua_State* L)
 int lgeometry_rectanglepoints(lua_State* L)
 {
     lobject_t* cell = lobject_check(L, 1);
-    generics_t* layer = lua_touserdata(L, 2);
+    generics_t* layer = luaL_checklightudata(L, 2);
     lpoint_t* pt1 = lpoint_checkpoint(L, 3);
     lpoint_t* pt2 = lpoint_checkpoint(L, 4);
     ucoordinate_t xrep = luaL_optinteger(L, 5, 1);
@@ -55,7 +67,7 @@ int lgeometry_rectanglepoints(lua_State* L)
 int lgeometry_polygon(lua_State* L)
 {
     lobject_t* cell = lobject_check(L, 1);
-    generics_t* layer = lua_touserdata(L, 2);
+    generics_t* layer = luaL_checklightudata(L, 2);
     lua_len(L, 3);
     size_t len = lua_tointeger(L, -1);
     lua_pop(L, 1);
@@ -76,7 +88,7 @@ int lgeometry_polygon(lua_State* L)
 int lgeometry_path(lua_State* L)
 {
     lobject_t* cell = lobject_check(L, 1);
-    generics_t* layer = lua_touserdata(L, 2);
+    generics_t* layer = luaL_checklightudata(L, 2);
     lua_len(L, 3);
     size_t len = lua_tointeger(L, -1);
     lua_pop(L, 1);
@@ -188,7 +200,7 @@ int lgeometry_contact(lua_State* L)
 int lgeometry_cross(lua_State* L)
 {
     lobject_t* cell = lobject_check(L, 1);
-    generics_t* layer = lua_touserdata(L, 2);
+    generics_t* layer = luaL_checklightudata(L, 2);
     ucoordinate_t width = luaL_checkinteger(L, 3);
     ucoordinate_t height = luaL_checkinteger(L, 4);
     ucoordinate_t crosssize = luaL_checkinteger(L, 5);
@@ -199,7 +211,7 @@ int lgeometry_cross(lua_State* L)
 int lgeometry_ring(lua_State* L)
 {
     lobject_t* cell = lobject_check(L, 1);
-    generics_t* layer = lua_touserdata(L, 2);
+    generics_t* layer = luaL_checklightudata(L, 2);
     ucoordinate_t width = luaL_checkinteger(L, 3);
     ucoordinate_t height = luaL_checkinteger(L, 4);
     ucoordinate_t ringwidth = luaL_checkinteger(L, 5);
@@ -210,7 +222,7 @@ int lgeometry_ring(lua_State* L)
 int lgeometry_unequal_ring(lua_State* L)
 {
     lobject_t* cell = lobject_check(L, 1);
-    generics_t* layer = lua_touserdata(L, 2);
+    generics_t* layer = luaL_checklightudata(L, 2);
     ucoordinate_t width = luaL_checkinteger(L, 3);
     ucoordinate_t height = luaL_checkinteger(L, 4);
     ucoordinate_t ringwidth = luaL_checkinteger(L, 5);
