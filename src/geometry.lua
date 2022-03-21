@@ -1,11 +1,3 @@
-local function _make_unique_points(pts)
-    for i = #pts, 2, -1 do -- iterate from the end for in-situ deletion
-        if pts[i] == pts[i - 1] then
-            table.remove(pts, i)
-        end
-    end
-end
-
 function geometry.path3x(layer, startpt, endpt, width, extension)
     return geometry.path(layer, geometry.path_points_xy(startpt, { endpt }), width, extension)
 end
@@ -81,27 +73,6 @@ function geometry.path_points_yx(startpt, movements)
         xnoty = not xnoty
     end
     return pts
-end
-
-local function _get_any_angle_path_pts(pts, width, grid, miterjoin, allow45)
-    local edges = _get_gridded_edge_segments(pts, width, grid)
-    local pathpts = _get_path_pts(edges, miterjoin)
-    table.insert(pathpts, edges[1]:copy()) -- close path
-    local poly = {}
-    for i = 1, #pathpts - 1 do
-        local linepts = graphics.line(pathpts[i], pathpts[i + 1], grid, allow45)
-        for _, pt in ipairs(linepts) do
-            table.insert(poly, pt)
-        end
-    end
-    return poly
-end
-
-function geometry.any_angle_path(cell, layer, pts, width, grid, miterjoin, allow45)
-    _make_unique_points(pts)
-    local points = _get_any_angle_path_pts(pts, width, grid, miterjoin, allow45)
-    local S = shape.create_polygon(layer, points)
-    cell:add_shape(S)
 end
 
 -- FIXME: rectangular-separated does not work in y direction

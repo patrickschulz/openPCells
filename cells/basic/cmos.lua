@@ -203,8 +203,8 @@ function layout(gate, _P)
                 local y = _P.shiftgatecontacts
                 geometry.contactbltr(
                     gate, "gate", 
-                    point.create(-tp.gatelength / 2, yi - _P.gstwidth / 2),
-                    point.create( tp.gatelength / 2, yi + _P.gstwidth / 2),
+                    point.create(-tp.gatelength / 2, -_P.gstwidth / 2),
+                    point.create( tp.gatelength / 2, _P.gstwidth / 2),
                     1, 2, 0, 2 * routingshift
                 )
                 _make_anchors(gate, x, y,                tp.gatelength, _P.gstwidth, "G", string.format("%d", i))
@@ -217,8 +217,8 @@ function layout(gate, _P)
             elseif _P.gatecontactpos[i] == "dummy" then
                 geometry.contactbltr(
                     gate, "gate", 
-                    point.create(x - tp.gatelength / 2, (_P.pwidth - _P.nwidth) / 2 + yi - _P.dummycontheight / 2),
-                    point.create(x + tp.gatelength / 2, (_P.pwidth - _P.nwidth) / 2 + yi + _P.dummycontheight / 2),
+                    point.create(x - tp.gatelength / 2, (_P.pwidth - _P.nwidth) / 2 + -_P.dummycontheight / 2),
+                    point.create(x + tp.gatelength / 2, (_P.pwidth - _P.nwidth) / 2 +  _P.dummycontheight / 2),
                     1, 2, 0, _P.separation + _P.pwidth + _P.nwidth + 2 * _P.powerspace + _P.powerwidth
                 )
                 geometry.rectangle(gate, generics.other("gatecut"), xpitch, tp.cutheight, x, 0)
