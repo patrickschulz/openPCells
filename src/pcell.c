@@ -150,11 +150,6 @@ int lpcell_add_cell_reference(lua_State* L)
     return 1;
 }
 
-int lpcell_get_cell_reference(lua_State* L)
-{
-    return 0;
-}
-
 int lpcell_foreach_cell_references(lua_State* L)
 {
     for(unsigned int i = 0; i < references->size; ++i)
@@ -173,7 +168,6 @@ int open_lpcell_lib(lua_State* L)
     static const luaL_Reg modfuncs[] =
     {
         { "add_cell_reference",      lpcell_add_cell_reference      },
-        { "get_cell_reference",      lpcell_get_cell_reference      },
         { "foreach_cell_references", lpcell_foreach_cell_references },
         { NULL,                      NULL                           }
     };

@@ -8,6 +8,7 @@ struct hashmapentry
 {
     uint32_t key;
     generics_t* layer;
+    int destroy;
 };
 
 struct hashmap // FIXME: pseudo hashmap, but it will probably be good enough as there are not many elements
@@ -24,6 +25,16 @@ generics_t* generics_create_empty_layer(void)
 {
     generics_t* layer = malloc(sizeof(*layer));
     memset(layer, 0, sizeof(*layer));
+    return layer;
+}
+
+generics_t* generics_create_premapped_layer(size_t size)
+{
+    generics_t* layer = malloc(sizeof(*layer));
+    layer->data = calloc(size, sizeof(*layer->data));
+    layer->exportnames = calloc(size, sizeof(*layer->exportnames));
+    layer->size = size;
+    layer->is_pre = 1;
     return layer;
 }
 
@@ -50,10 +61,17 @@ void generics_insert_layer(uint32_t key, generics_t* layer)
     generics_layer_map->entries[generics_layer_map->size] = malloc(sizeof(struct hashmapentry));
     generics_layer_map->entries[generics_layer_map->size]->key = key;
     generics_layer_map->entries[generics_layer_map->size]->layer = layer;
+    generics_layer_map->entries[generics_layer_map->size]->destroy = 0;
     generics_layer_map->size += 1;
 }
 
-void _destroy_generics(generics_t* layer)
+void generics_insert_extra_layer(uint32_t key, generics_t* layer)
+{
+    generics_insert_layer(key, layer);
+    generics_layer_map->entries[generics_layer_map->size - 1]->destroy = 1;
+}
+
+void generics_destroy_layer(generics_t* layer)
 {
     for(unsigned int i = 0; i < layer->size; ++i)
     {
@@ -77,7 +95,12 @@ void generics_destroy_layer_map(void)
 {
     for(unsigned int i = 0; i < generics_layer_map->size; ++i)
     {
-        _destroy_generics(generics_layer_map->entries[i]->layer);
+        // only explicitely premapped layers in cells need to be destroyed, 
+        // all other layers are built and destroyed by the technology module
+        if(generics_layer_map->entries[i]->destroy)
+        {
+            generics_destroy_layer(generics_layer_map->entries[i]->layer);
+        }
         free(generics_layer_map->entries[i]);
     }
     free(generics_layer_map->entries);

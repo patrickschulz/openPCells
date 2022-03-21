@@ -22,6 +22,7 @@ static void _multiple_xy(object_t* cell, shape_t* base, ucoordinate_t xrep, ucoo
             }
         }
     }
+    shape_destroy(base);
 }
 
 static void _rectanglebltr (object_t* cell, generics_t* layer, coordinate_t blx, coordinate_t bly, coordinate_t trx, coordinate_t try, ucoordinate_t xrep, ucoordinate_t yrep, ucoordinate_t xpitch, ucoordinate_t ypitch)

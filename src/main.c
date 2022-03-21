@@ -24,6 +24,7 @@
 #include "lpoint.h"
 #include "lgeometry.h"
 #include "lgenerics.h"
+#include "technology.h"
 #include "ltransformationmatrix.h"
 #include "graphics.h"
 #include "lload.h"
@@ -195,6 +196,7 @@ static lua_State* create_and_initialize_lua(void)
     open_lpoint_lib(L); // must be called before 'load_api'
     open_lgeometry_lib(L);
     open_lgenerics_lib(L);
+    open_ltechnology_lib(L);
     open_ltransformationmatrix_lib(L); // must be called before 'load_api'
     open_lgraphics_lib(L);
     open_lload_lib(L);
@@ -225,9 +227,11 @@ int main (int argc, char** argv)
     lua_State* L = create_and_initialize_lua();
     create_argument_table(L, argc, argv);
     generics_initialize_layer_map();
+    technology_initialize_layertable();
     pcell_initialize_references();
     int retval = call_main_program(L, OPC_HOME "/src/main.lua");
     generics_destroy_layer_map();
+    technology_destroy_layertable();
     pcell_destroy_references();
     lua_close(L);
     return retval;

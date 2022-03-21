@@ -6,6 +6,8 @@
 #include <string.h>
 
 #include "generics.h"
+#include "util.h"
+#include "technology.h"
 
 #define METAL_IDENTIFIER          1
 #define METALPORT_IDENTIFIER      2
@@ -16,80 +18,6 @@
 #define VTHTYPE_IDENTIFIER        7
 #define OTHER_IDENTIFIER          8
 #define SPECIAL_IDENTIFIER        9
-
-static void _insert_lpp_pairs(lua_State* L, struct keyvaluearray* map)
-{
-    lua_pushnil(L);
-    while (lua_next(L, -2) != 0)
-    {
-        switch(lua_type(L, -1))
-        {
-            case LUA_TNUMBER:
-                keyvaluearray_add_int(map, lua_tostring(L, -2), lua_tointeger(L, -1));
-                break;
-            case LUA_TSTRING:
-                keyvaluearray_add_string(map, lua_tostring(L, -2), lua_tostring(L, -1));
-                break;
-            case LUA_TBOOLEAN:
-                keyvaluearray_add_boolean(map, lua_tostring(L, -2), lua_toboolean(L, -1));
-                break;
-        }
-        lua_pop(L, 1); // pop value, keep key for next iteration
-    }
-}
-
-static generics_t* _store_mapped(lua_State* L)
-{
-    // count entries
-    size_t num = 0;
-    lua_pushnil(L);
-    while(lua_next(L, -2) != 0)
-    {
-        lua_pop(L, 1); // pop value, keep key for next iteration
-        num += 1;
-    }
-
-    generics_t* layer = malloc(sizeof(*layer));
-    layer->data = calloc(num, sizeof(*layer->data));
-    layer->exportnames = calloc(num, sizeof(*layer->exportnames));
-    layer->size = num;
-    layer->is_pre = 1;
-
-    unsigned int i = 0;
-    lua_pushnil(L);
-    while (lua_next(L, -2) != 0)
-    {
-        const char* name = lua_tostring(L, -2);
-        layer->exportnames[i] = malloc(strlen(name) + 1);
-        strcpy(layer->exportnames[i], name);
-        layer->data[i] = keyvaluearray_create();
-        _insert_lpp_pairs(L, layer->data[i]);
-        lua_pop(L, 1); // pop value, keep key for next iteration
-        ++i;
-    }
-    return layer;
-}
-
-static generics_t* _map_and_store_layer(lua_State* L)
-{
-    lua_getglobal(L, "technology");
-    lua_pushstring(L, "map");
-    lua_rawget(L, -2);
-    lua_rotate(L, -3, 2);
-    lua_call(L, 1, 1);
-    if(lua_isnil(L, -1)) // layer is empty
-    {
-        generics_t* layer = generics_create_empty_layer();
-        lua_pop(L, 1); // pop and technology table
-        return layer;
-    }
-    else
-    {
-        generics_t* layer = _store_mapped(L);
-        lua_pop(L, 2); // pop mapped result and technology table
-        return layer;
-    }
-}
 
 uint32_t _hash(const uint8_t* data, size_t size)
 {
@@ -125,8 +53,11 @@ static int lgenerics_create_metal(lua_State* L)
     generics_t* layer = generics_get_layer(key);
     if(!layer)
     {
-        lua_pushfstring(L, "M%d", num);
-        layer = _map_and_store_layer(L);
+        size_t len = 1 + util_num_digits(num);
+        char* layername = malloc(len + 1);
+        snprintf(layername, len + 1, "M%d", num);
+        layer = technology_get_layer(layername);
+        free(layername);
         generics_insert_layer(key, layer);
     }
     lua_pushlightuserdata(L, layer);
@@ -152,8 +83,11 @@ static int lgenerics_create_metalport(lua_State* L)
     generics_t* layer = generics_get_layer(key);
     if(!layer)
     {
-        lua_pushfstring(L, "M%dport", num);
-        layer = _map_and_store_layer(L);
+        size_t len = 1 + util_num_digits(num) + 4; // M + %d + port
+        char* layername = malloc(len + 1);
+        snprintf(layername, len + 1, "M%dport", num);
+        layer = technology_get_layer(layername);
+        free(layername);
         generics_insert_layer(key, layer);
     }
     lua_pushlightuserdata(L, layer);
@@ -192,8 +126,11 @@ static int lgenerics_create_viacut(lua_State* L)
     generics_t* layer = generics_get_layer(key);
     if(!layer)
     {
-        lua_pushfstring(L, "viacutM%dM%d", metal1, metal2);
-        layer = _map_and_store_layer(L);
+        size_t len = 6 + 1 + util_num_digits(metal1) + 1 + util_num_digits(metal2); // viacut + M + %d + M + %d
+        char* layername = malloc(len + 1);
+        snprintf(layername, len + 1, "viacutM%dM%d", metal1, metal2);
+        layer = technology_get_layer(layername);
+        free(layername);
         generics_insert_layer(key, layer);
     }
     lua_pushlightuserdata(L, layer);
@@ -212,8 +149,11 @@ static int lgenerics_create_contact(lua_State* L)
     generics_t* layer = generics_get_layer(key);
     if(!layer)
     {
-        lua_pushfstring(L, "contact%s", region);
-        layer = _map_and_store_layer(L);
+        size_t len = 7 + strlen(region); // contact + %s
+        char* layername = malloc(len + 1);
+        snprintf(layername, len + 1, "contact%s", region);
+        layer = technology_get_layer(layername);
+        free(layername);
         generics_insert_layer(key, layer);
     }
     lua_pushlightuserdata(L, layer);
@@ -228,8 +168,11 @@ static int lgenerics_create_oxide(lua_State* L)
     generics_t* layer = generics_get_layer(key);
     if(!layer)
     {
-        lua_pushfstring(L, "oxide%d", num);
-        layer = _map_and_store_layer(L);
+        size_t len = 5 + util_num_digits(num); // oxide + %d
+        char* layername = malloc(len + 1);
+        snprintf(layername, len + 1, "oxide%d", num);
+        layer = technology_get_layer(layername);
+        free(layername);
         generics_insert_layer(key, layer);
     }
     lua_pushlightuserdata(L, layer);
@@ -243,8 +186,11 @@ static int lgenerics_create_implant(lua_State* L)
     generics_t* layer = generics_get_layer(key);
     if(!layer)
     {
-        lua_pushfstring(L, "%cimplant", str[0]);
-        layer = _map_and_store_layer(L);
+        size_t len = 8; // [np]implant
+        char* layername = malloc(len + 1);
+        snprintf(layername, len + 1, "%cimplant", str[0]);
+        layer = technology_get_layer(layername);
+        free(layername);
         generics_insert_layer(key, layer);
     }
     lua_pushlightuserdata(L, layer);
@@ -259,8 +205,11 @@ static int lgenerics_create_vthtype(lua_State* L)
     generics_t* layer = generics_get_layer(key);
     if(!layer)
     {
-        lua_pushfstring(L, "vthtype%c%d", channeltype[0], vthtype);
-        layer = _map_and_store_layer(L);
+        size_t len = 7 + 1 + util_num_digits(vthtype); // vthtype + %c + %d
+        char* layername = malloc(len + 1);
+        snprintf(layername, len + 1, "vthtype%c%d", channeltype[0], vthtype);
+        layer = technology_get_layer(layername);
+        free(layername);
         generics_insert_layer(key, layer);
     }
     lua_pushlightuserdata(L, layer);
@@ -279,8 +228,7 @@ static int lgenerics_create_other(lua_State* L)
     generics_t* layer = generics_get_layer(key);
     if(!layer)
     {
-        lua_pushstring(L, str);
-        layer = _map_and_store_layer(L);
+        layer = technology_get_layer(str);
         generics_insert_layer(key, layer);
     }
     lua_pushlightuserdata(L, layer);
@@ -293,8 +241,7 @@ static int lgenerics_create_special(lua_State* L)
     generics_t* layer = generics_get_layer(key);
     if(!layer)
     {
-        lua_pushstring(L, "special");
-        layer = _map_and_store_layer(L);
+        layer = technology_get_layer("special");
         generics_insert_layer(key, layer);
     }
     lua_pushlightuserdata(L, layer);
@@ -303,9 +250,9 @@ static int lgenerics_create_special(lua_State* L)
 
 static int lgenerics_create_premapped(lua_State* L)
 {
-    uint32_t key = 0xffffffff; // this key is arbitrary, but it must not collide with any other possible key
-    generics_t* layer = _store_mapped(L);
-    generics_insert_layer(key, layer);
+    uint32_t key = 0xffffffff; // this key is arbitrary (it is not used), but it must not collide with any other possible key
+    generics_t* layer = technology_make_layer(L);
+    generics_insert_extra_layer(key, layer);
     lua_pushlightuserdata(L, layer);
     return 1;
 }

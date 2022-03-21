@@ -15,8 +15,11 @@ typedef struct
 } generics_t;
 
 generics_t* generics_create_empty_layer(void);
+generics_t* generics_create_premapped_layer(size_t size);
+void generics_destroy_layer(generics_t* layer);
 
 void generics_insert_layer(uint32_t key, generics_t* layer);
+void generics_insert_extra_layer(uint32_t key, generics_t* layer);
 
 generics_t* generics_get_layer(uint32_t key);
 

@@ -1,6 +1,3 @@
-technology = {}
-
-local layermap
 local constraints
 local config
 local viadefs
@@ -23,25 +20,6 @@ local function _get_tech_filename(name, what)
             return filename
         end
     end
-end
-
-local function _load_layermap(name)
-    local filename = _get_tech_filename(name, "layermap")
-    if not filename then
-        moderror(string.format("technology: no techfile for technology '%s' found", name))
-    end
-    local chunkname = "@techfile"
-
-    local reader = _get_reader(filename)
-    if not reader then
-        moderror(string.format("technology: no techfile for technology '%s' found", name))
-    end
-    return _generic_load(
-        reader, chunkname,
-        string.format("syntax error while loading layermap for technology '%s'", name),
-        string.format("semantic error while loading layermap for technology '%s'", name),
-        {} -- empty environment
-    )
 end
 
 local function _load_constraints(name)
@@ -99,7 +77,11 @@ local function _load_viadefs(name)
 end
 
 function technology.load(name)
-    layermap    = _load_layermap(name)
+    local layermapname = _get_tech_filename(name, "layermap")
+    if not layermapname then
+        moderror(string.format("technology: no techfile for technology '%s' found", name))
+    end
+    technology.load_layermap(layermapname)
     constraints = _load_constraints(name)
     config      = _load_config(name)
     viadefs     = _load_viadefs(name)
@@ -116,17 +98,6 @@ function technology.list_techpaths()
 end
 
 ----------------------
-function technology.map(identifier)
-    if not layermap then
-        moderror("technology: tried to access technology mappings without having loaded a technology")
-    end
-    local entry = layermap[identifier]
-    if not entry then
-        moderror(string.format("technology: no layer '%s' found in layermap. If no mapping of this layer is required, explicitly set it to {} in the layermap", identifier))
-    end
-    return entry.layer
-end
-
 function technology.resolve_metal(metalnum)
     if metalnum < 0 then
         return config.metals + metalnum + 1
