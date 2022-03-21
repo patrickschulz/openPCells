@@ -3,6 +3,9 @@
 #include <stdlib.h>
 #include <stddef.h>
 #include <math.h>
+#include <stdio.h>
+
+#include "technology.h"
 
 static void _multiple_xy(object_t* cell, shape_t* base, ucoordinate_t xrep, ucoordinate_t yrep, ucoordinate_t xpitch, ucoordinate_t ypitch)
 {
@@ -270,3 +273,185 @@ shape_t* geometry_path_to_polygon(point_t** points, size_t numpoints, ucoordinat
     return poly;
 }
 
+static void _fit_via(ucoordinate_t size, unsigned int cutsize, unsigned int space, int encl, unsigned int* rep_result, unsigned int* space_result)
+{
+    *rep_result = (size + space - 2 * encl) / (cutsize + space);
+    *space_result = space;
+}
+
+/*
+static void _continuous_via(ucoordinate_t size, unsigned int cutsize, unsigned int space, int encl, unsigned int* rep_result, unsigned int* space_result)
+{
+    (void)encl; // FIXME
+    int Nres = 0;
+    for(unsigned int N = 1; N < UINT_MAX; ++N)
+    {
+        if(size % N == 0)
+        {
+            int S = size / N - cutsize;
+            if(S < (int)space)
+            {
+                break;
+            }
+            if(S % 2 == 0)
+            {
+                Nres = N;
+            }
+        }
+    }
+    *rep_result = Nres;
+    *space_result = size / Nres - cutsize;
+}
+*/
+
+static struct via_definition* _get_rectangular_arrayzation(ucoordinate_t regionwidth, ucoordinate_t regionheight, struct via_definition** definitions, unsigned int* xrep_ptr, unsigned int* yrep_ptr, unsigned int* xpitch_ptr, unsigned int* ypitch_ptr)
+{
+    //local xstrat = arrayzation_strategies[options.xcontinuous and "continuous" or "fit"]
+    //local ystrat = arrayzation_strategies[options.ycontinuous and "continuous" or "fit"]
+
+    //local idx
+    unsigned int lastarea = 0;
+    unsigned int xrep = 0;
+    unsigned int xspace = 0;
+    unsigned int yrep = 0;
+    unsigned int yspace = 0;
+    struct via_definition* result = NULL;
+    struct via_definition** viadef = definitions;
+    while(*viadef)
+    {
+        struct via_definition* entry = *viadef;
+        unsigned int _xrep = 0;
+        unsigned int _xspace = 0;
+        unsigned int _yrep = 0;
+        unsigned int _yspace = 0;
+        _fit_via(regionwidth, entry->width, entry->xspace, entry->xenclosure, &_xrep, &_xspace);
+        _fit_via(regionheight, entry->width, entry->yspace, entry->yenclosure, &_yrep, &_yspace);
+        if(_xrep > 0 && _yrep > 0)
+        {
+            unsigned int area = (_xrep + _yrep) * entry->width * entry->height;
+            if(!result || area > lastarea)
+            {
+                result = entry;
+                lastarea = area;
+                xrep = _xrep;
+                yrep = _yrep;
+                xspace = _xspace;
+                yspace = _yspace;
+            }
+        }
+        ++viadef;
+    }
+    if(!result)
+    {
+        puts("could not fit via, a fallback via could be used, but this is not implemented yet");
+        return NULL;
+    //if not idx then
+    //    if definitions.fallback then
+    //        return {
+    //            width = definitions.fallback.width,
+    //            height = definitions.fallback.height,
+    //            xpitch = 0,
+    //            ypitch = 0,
+    //            xrep = 1,
+    //            yrep = 1,
+    //        }
+    //    else
+    //        print("could not fit via, the shape will be ignored. The layout will most likely not be correct.")
+    //        return nil
+    //    end
+    //end
+    }
+    *xpitch_ptr = result->width + xspace;
+    *ypitch_ptr = result->height + yspace;
+    *xrep_ptr = xrep;
+    *yrep_ptr = yrep;
+    return result;
+}
+
+static void _viabltr(object_t* cell, int metal1, int metal2, coordinate_t blx, coordinate_t bly, coordinate_t trx, coordinate_t try, ucoordinate_t xrep, ucoordinate_t yrep, ucoordinate_t xpitch, ucoordinate_t ypitch)
+{
+    metal1 = technology_resolve_metal(metal1);
+    metal2 = technology_resolve_metal(metal2);
+    if(metal1 > metal2)
+    {
+        int tmp = metal1;
+        metal1 = metal2;
+        metal2 = tmp;
+    }
+    ucoordinate_t width = trx - blx;
+    ucoordinate_t height = try - bly;
+    for(int i = metal1; i < metal2; ++i)
+    {
+        struct via_definition** viadefs = technology_get_via_definitions(i, i + 1);
+        unsigned int viaxrep, viayrep, viaxpitch, viaypitch;
+        struct via_definition* entry = _get_rectangular_arrayzation(width, height, viadefs, &viaxrep, &viayrep, &viaxpitch, &viaypitch);
+        if(!entry)
+        {
+            return;
+        }
+        for(unsigned int x = 1; x <= xrep; ++x)
+        {
+            for(unsigned int y = 1; y <= yrep; ++y)
+            {
+                _rectanglebltr(cell, 
+                    generics_create_viacut(i, i + 1), 
+                    (x - 1) * xpitch - (xrep - 1) * xpitch / 2 + (blx + trx) / 2 - entry->width / 2,
+                    (y - 1) * ypitch - (yrep - 1) * ypitch / 2 + (bly + try) / 2 - entry->height / 2,
+                    (x - 1) * xpitch - (xrep - 1) * xpitch / 2 + (blx + trx) / 2 + entry->width / 2,
+                    (y - 1) * ypitch - (yrep - 1) * ypitch / 2 + (bly + try) / 2 + entry->height / 2,
+                    viaxrep, viayrep, viaxpitch, viaypitch
+                );
+            }
+        }
+        _rectanglebltr(cell, generics_create_metal(i), blx, bly, trx, try, xrep, yrep, xpitch, ypitch);
+        _rectanglebltr(cell, generics_create_metal(i + 1), blx, bly, trx, try, xrep, yrep, xpitch, ypitch);
+    }
+}
+
+void geometry_viabltr(object_t* cell, int metal1, int metal2, point_t* bl, point_t* tr, ucoordinate_t xrep, ucoordinate_t yrep, ucoordinate_t xpitch, ucoordinate_t ypitch)
+{
+    _viabltr(cell, metal1, metal2, bl->x, bl->y, tr->x, tr->y, xrep, yrep, xpitch, ypitch);
+}
+
+void geometry_via(object_t* cell, int metal1, int metal2, ucoordinate_t width, ucoordinate_t height, coordinate_t xshift, coordinate_t yshift, ucoordinate_t xrep, ucoordinate_t yrep, ucoordinate_t xpitch, ucoordinate_t ypitch)
+{
+    _viabltr(cell, metal1, metal2, -(coordinate_t)width / 2 + xshift, -(coordinate_t)height / 2 + yshift, width / 2 + xshift, height / 2 + yshift, xrep, yrep, xpitch, ypitch);
+}
+
+static void _contactbltr(object_t* cell, const char* region, coordinate_t blx, coordinate_t bly, coordinate_t trx, coordinate_t try, ucoordinate_t xrep, ucoordinate_t yrep, ucoordinate_t xpitch, ucoordinate_t ypitch)
+{
+    ucoordinate_t width = trx - blx;
+    ucoordinate_t height = try - bly;
+    struct via_definition** viadefs = technology_get_contact_definitions(region);
+    unsigned int viaxrep, viayrep, viaxpitch, viaypitch;
+    struct via_definition* entry = _get_rectangular_arrayzation(width, height, viadefs, &viaxrep, &viayrep, &viaxpitch, &viaypitch);
+    if(!entry)
+    {
+        return;
+    }
+    for(unsigned int x = 1; x <= xrep; ++x)
+    {
+        for(unsigned int y = 1; y <= yrep; ++y)
+        {
+            _rectanglebltr(cell, 
+                generics_create_contact(region),
+                (x - 1) * xpitch - (xrep - 1) * xpitch / 2 + (blx + trx) / 2 - entry->width / 2,
+                (y - 1) * ypitch - (yrep - 1) * ypitch / 2 + (bly + try) / 2 - entry->height / 2,
+                (x - 1) * xpitch - (xrep - 1) * xpitch / 2 + (blx + trx) / 2 + entry->width / 2,
+                (y - 1) * ypitch - (yrep - 1) * ypitch / 2 + (bly + try) / 2 + entry->height / 2,
+                viaxrep, viayrep, viaxpitch, viaypitch
+            );
+        }
+    }
+    _rectanglebltr(cell, generics_create_metal(1), blx, bly, trx, try, xrep, yrep, xpitch, ypitch);
+}
+
+void geometry_contactbltr(object_t* cell, const char* region, point_t* bl, point_t* tr, ucoordinate_t xrep, ucoordinate_t yrep, ucoordinate_t xpitch, ucoordinate_t ypitch)
+{
+    _contactbltr(cell, region, bl->x, bl->y, tr->x, tr->y, xrep, yrep, xpitch, ypitch);
+}
+
+void geometry_contact(object_t* cell, const char* region, ucoordinate_t width, ucoordinate_t height, coordinate_t xshift, coordinate_t yshift, ucoordinate_t xrep, ucoordinate_t yrep, ucoordinate_t xpitch, ucoordinate_t ypitch)
+{
+    _contactbltr(cell, region, -(coordinate_t)width / 2 + xshift, -(coordinate_t)height / 2 + yshift, width / 2 + xshift, height / 2 + yshift, xrep, yrep, xpitch, ypitch);
+}

@@ -123,6 +123,68 @@ int lgeometry_path(lua_State* L)
     return 0;
 }
 
+int lgeometry_viabltr(lua_State* L)
+{
+    lobject_t* cell = lobject_check(L, 1);
+    int metal1 = luaL_checkinteger(L, 2);
+    int metal2 = luaL_checkinteger(L, 3);
+    lpoint_t* bl = lpoint_checkpoint(L, 4);
+    lpoint_t* tr = lpoint_checkpoint(L, 5);
+    ucoordinate_t xrep = luaL_optinteger(L, 6, 1);
+    ucoordinate_t yrep = luaL_optinteger(L, 7, 1);
+    ucoordinate_t xpitch = luaL_optinteger(L, 8, 0);
+    ucoordinate_t ypitch = luaL_optinteger(L, 9, 0);
+    geometry_viabltr(cell->object, metal1, metal2, bl->point, tr->point, xrep, yrep, xpitch, ypitch);
+    return 0;
+}
+
+int lgeometry_via(lua_State* L)
+{
+    lobject_t* cell = lobject_check(L, 1);
+    int metal1 = luaL_checkinteger(L, 2);
+    int metal2 = luaL_checkinteger(L, 3);
+    ucoordinate_t width = luaL_checkinteger(L, 4);
+    ucoordinate_t height = luaL_checkinteger(L, 5);
+    coordinate_t xshift = luaL_optinteger(L, 6, 0);
+    coordinate_t yshift = luaL_optinteger(L, 7, 0);
+    ucoordinate_t xrep = luaL_optinteger(L, 8, 1);
+    ucoordinate_t yrep = luaL_optinteger(L, 9, 1);
+    ucoordinate_t xpitch = luaL_optinteger(L, 10, 0);
+    ucoordinate_t ypitch = luaL_optinteger(L, 11, 0);
+    geometry_via(cell->object, metal1, metal2, width, height, xshift, yshift, xrep, yrep, xpitch, ypitch);
+    return 0;
+}
+
+int lgeometry_contactbltr(lua_State* L)
+{
+    lobject_t* cell = lobject_check(L, 1);
+    const char* region = luaL_checkstring(L, 2);
+    lpoint_t* bl = lpoint_checkpoint(L, 3);
+    lpoint_t* tr = lpoint_checkpoint(L, 4);
+    ucoordinate_t xrep = luaL_optinteger(L, 5, 1);
+    ucoordinate_t yrep = luaL_optinteger(L, 6, 1);
+    ucoordinate_t xpitch = luaL_optinteger(L, 7, 0);
+    ucoordinate_t ypitch = luaL_optinteger(L, 8, 0);
+    geometry_contactbltr(cell->object, region, bl->point, tr->point, xrep, yrep, xpitch, ypitch);
+    return 0;
+}
+
+int lgeometry_contact(lua_State* L)
+{
+    lobject_t* cell = lobject_check(L, 1);
+    const char* region = luaL_checkstring(L, 2);
+    ucoordinate_t width = luaL_checkinteger(L, 3);
+    ucoordinate_t height = luaL_checkinteger(L, 4);
+    coordinate_t xshift = luaL_optinteger(L, 5, 0);
+    coordinate_t yshift = luaL_optinteger(L, 6, 0);
+    ucoordinate_t xrep = luaL_optinteger(L, 7, 1);
+    ucoordinate_t yrep = luaL_optinteger(L, 8, 1);
+    ucoordinate_t xpitch = luaL_optinteger(L, 9, 0);
+    ucoordinate_t ypitch = luaL_optinteger(L, 10, 0);
+    geometry_contact(cell->object, region, width, height, xshift, yshift, xrep, yrep, xpitch, ypitch);
+    return 0;
+}
+
 int open_lgeometry_lib(lua_State* L)
 {
     lua_newtable(L);
@@ -133,6 +195,10 @@ int open_lgeometry_lib(lua_State* L)
         { "rectanglepoints", lgeometry_rectanglepoints },
         { "polygon",         lgeometry_polygon         },
         { "path",            lgeometry_path            },
+        { "viabltr",         lgeometry_viabltr         },
+        { "via",             lgeometry_via             },
+        { "contactbltr",     lgeometry_contactbltr     },
+        { "contact",         lgeometry_contact         },
         { NULL,              NULL                      }
     };
     luaL_setfuncs(L, modfuncs, 0);

@@ -204,14 +204,11 @@ static lua_State* create_and_initialize_lua(void)
     open_lexport_lib(L);
     open_lreduce_lib(L);
     open_lutil_lib(L);
-    //open_lunion_lib(L);
     open_lfilesystem_lib(L);
     open_lplacer_lib(L);
     open_lrouter_lib(L);
 
     open_gdsparser_lib(L);
-
-    //lpoint_register_cfunctions(L);
 
     return L;
 }
@@ -221,11 +218,11 @@ int main (int argc, char** argv)
     lua_State* L = create_and_initialize_lua();
     create_argument_table(L, argc, argv);
     generics_initialize_layer_map();
-    technology_initialize_layertable();
+    technology_initialize();
     pcell_initialize_references();
     int retval = call_main_program(L, OPC_HOME "/src/main.lua");
     generics_destroy_layer_map();
-    technology_destroy_layertable();
+    technology_destroy();
     pcell_destroy_references();
     lua_close(L);
     return retval;

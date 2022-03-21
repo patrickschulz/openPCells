@@ -109,15 +109,11 @@ function layout(gate, _P)
 
     -- power rails
     if _P.drawrails then
-        geometry.multiple_y(
-            function(y)
-                geometry.rectangle(gate, 
-                    generics.metal(1), 
-                    (fingers) * xpitch + _P.sdwidth, _P.powerwidth,
-                    0, y + (_P.pwidth - _P.nwidth) / 2
-                )
-            end,
-            2, _P.separation + _P.pwidth + _P.nwidth + 2 * _P.powerspace + _P.powerwidth
+        geometry.rectangle(gate, 
+            generics.metal(1), 
+            (fingers) * xpitch + _P.sdwidth, _P.powerwidth,
+            0, (_P.pwidth - _P.nwidth) / 2,
+            1, 2, 0, _P.separation + _P.pwidth + _P.nwidth + 2 * _P.powerspace + _P.powerwidth
         )
     end
     gate:add_anchor("PRpll", point.create(-fingers * xpitch / 2 - _P.sdwidth / 2,  _P.separation / 2 + _P.pwidth + _P.powerspace))
@@ -205,15 +201,11 @@ function layout(gate, _P)
                 --gate:add_anchor(string.format("Gur%d", i), pt + point.create(tp.gatelength / 2, _P.gstwidth / 2))
             elseif _P.gatecontactpos[i] == "split" then
                 local y = _P.shiftgatecontacts
-                geometry.multiple_y(
-                    function(yi)
-                        geometry.contactbltr(
-                            gate, "gate", 
-                            point.create(x - tp.gatelength / 2, y + yi - _P.gstwidth / 2),
-                            point.create(x + tp.gatelength / 2, y + yi + _P.gstwidth / 2)
-                        )
-                    end,
-                    2, 2 * routingshift
+                geometry.contactbltr(
+                    gate, "gate", 
+                    point.create(-tp.gatelength / 2, yi - _P.gstwidth / 2),
+                    point.create( tp.gatelength / 2, yi + _P.gstwidth / 2),
+                    1, 2, 0, 2 * routingshift
                 )
                 _make_anchors(gate, x, y,                tp.gatelength, _P.gstwidth, "G", string.format("%d", i))
                 _make_anchors(gate, x, y + routingshift, tp.gatelength, _P.gstwidth, "Gupper", string.format("%d", i))
@@ -223,15 +215,11 @@ function layout(gate, _P)
                 --gate:add_anchor(string.format("G%dlower", i), point.create(x, y - routingshift))
                 geometry.rectangle(gate, generics.other("gatecut"), xpitch, tp.cutheight, x, 0)
             elseif _P.gatecontactpos[i] == "dummy" then
-                geometry.multiple_y(
-                    function(yi)
-                        geometry.contactbltr(
-                            gate, "gate", 
-                            point.create(x - tp.gatelength / 2, (_P.pwidth - _P.nwidth) / 2 + yi - _P.dummycontheight / 2),
-                            point.create(x + tp.gatelength / 2, (_P.pwidth - _P.nwidth) / 2 + yi + _P.dummycontheight / 2)
-                        )
-                    end,
-                    2, _P.separation + _P.pwidth + _P.nwidth + 2 * _P.powerspace + _P.powerwidth
+                geometry.contactbltr(
+                    gate, "gate", 
+                    point.create(x - tp.gatelength / 2, (_P.pwidth - _P.nwidth) / 2 + yi - _P.dummycontheight / 2),
+                    point.create(x + tp.gatelength / 2, (_P.pwidth - _P.nwidth) / 2 + yi + _P.dummycontheight / 2),
+                    1, 2, 0, _P.separation + _P.pwidth + _P.nwidth + 2 * _P.powerspace + _P.powerwidth
                 )
                 geometry.rectangle(gate, generics.other("gatecut"), xpitch, tp.cutheight, x, 0)
             elseif _P.gatecontactpos[i] == "outer" then
@@ -256,16 +244,12 @@ function layout(gate, _P)
             end
             if _P.gatecontactpos[i] ~= "dummy" then
                 if _P.drawgcut then
-                    geometry.multiple_y(
-                        function(yi)
-                        geometry.rectanglebltr(
-                            gate, generics.other("gatecut"),
-                            point.create(-xpitch / 2, (_P.pwidth - _P.nwidth) / 2 - tp.cutheight / 2),
-                            point.create( xpitch / 2, (_P.pwidth - _P.nwidth) / 2 + tp.cutheight / 2)
-                        )
-                    end,
-                        2, _P.separation + _P.pwidth + _P.nwidth + 2 * _P.powerspace + _P.powerwidth
-                    )
+                geometry.rectanglebltr(
+                    gate, generics.other("gatecut"),
+                    point.create(-xpitch / 2, (_P.pwidth - _P.nwidth) / 2 - tp.cutheight / 2),
+                    point.create( xpitch / 2, (_P.pwidth - _P.nwidth) / 2 + tp.cutheight / 2),
+                    1, 2, 0, _P.separation + _P.pwidth + _P.nwidth + 2 * _P.powerspace + _P.powerwidth
+                )
                 end
             end
         end

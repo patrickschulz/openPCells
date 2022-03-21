@@ -19,53 +19,36 @@ function layout(momcap, _P)
         for i = _P.firstmetal, _P.lastmetal do
             local xreptop, xrepbot = evenodddiv2(_P.fingers)
             local xshift = (_P.fingers % 2 == 0) and pitch / 2 or 0
-            geometry.multiple_x(
-                function(x, y)
-                    geometry.rectanglebltr(
-                        momcap, generics.metal(i),
-                        point.create(x - xshift - _P.fwidth / 2, y + _P.foffset / 2 - _P.fheight / 2),
-                        point.create(x - xshift + _P.fwidth / 2, y + _P.foffset / 2 + _P.fheight / 2)
-                    )
-                end,
-                xreptop, 2 * pitch
+            geometry.rectanglebltr(
+                momcap, generics.metal(i),
+                point.create(-xshift - _P.fwidth / 2, _P.foffset / 2 - _P.fheight / 2),
+                point.create(-xshift + _P.fwidth / 2, _P.foffset / 2 + _P.fheight / 2),
+                xreptop, 1, 2 * pitch, 0
             )
-            geometry.multiple_x(
-                function(x, y)
-                    geometry.rectanglebltr(
-                        momcap, generics.metal(i),
-                        point.create(x + xshift - _P.fwidth / 2, y - _P.foffset / 2 - _P.fheight / 2),
-                        point.create(x + xshift + _P.fwidth / 2, y - _P.foffset / 2 + _P.fheight / 2)
-                    )
-                end,
-                xrepbot, 2 * pitch
+            geometry.rectanglebltr(
+                momcap, generics.metal(i),
+                point.create(xshift - _P.fwidth / 2, -_P.foffset / 2 - _P.fheight / 2),
+                point.create(xshift + _P.fwidth / 2, -_P.foffset / 2 + _P.fheight / 2),
+                xrepbot, 1, 2 * pitch, 0
             )
         end
         -- rails
         for i = _P.firstmetal, _P.lastmetal do
-            geometry.multiple_y(
-                function(y)
-                    geometry.rectanglebltr(
-                        momcap, generics.metal(i),
-                        point.create(-(_P.fingers + 1) * (_P.fwidth + _P.fspace) / 2, y - _P.rwidth / 2),
-                        point.create( (_P.fingers + 1) * (_P.fwidth + _P.fspace) / 2, y + _P.rwidth / 2)
-                    )
-                end,
-                2, _P.foffset + _P.fheight + _P.rwidth
+            geometry.rectanglebltr(
+                momcap, generics.metal(i),
+                point.create(-(_P.fingers + 1) * (_P.fwidth + _P.fspace) / 2, -_P.rwidth / 2),
+                point.create( (_P.fingers + 1) * (_P.fwidth + _P.fspace) / 2,  _P.rwidth / 2),
+                1, 2, 0, _P.foffset + _P.fheight + _P.rwidth
             )
         end
         -- vias
         if _P.firstmetal ~= _P.lastmetal then
-            geometry.multiple_y(
-                function(y)
-                    geometry.viabltr(
-                        momcap, _P.firstmetal, _P.lastmetal,
-                        point.create(-(_P.fingers + 1) * (_P.fwidth + _P.fspace) / 2, y - _P.rwidth / 2),
-                        point.create( (_P.fingers + 1) * (_P.fwidth + _P.fspace) / 2, y + _P.rwidth / 2),
-                        { xcontinuous = true }
-                    )
-                end,
-                2, _P.foffset + _P.fheight + _P.rwidth
-            )
+            geometry.viabltr(
+                momcap, _P.firstmetal, _P.lastmetal,
+                point.create(-(_P.fingers + 1) * (_P.fwidth + _P.fspace) / 2, -_P.rwidth / 2),
+                point.create( (_P.fingers + 1) * (_P.fwidth + _P.fspace) / 2,  _P.rwidth / 2),
+                1, 2, 0, _P.foffset + _P.fheight + _P.rwidth
+            ) -- FIXME: make via continuous
         end
     else
         local fingerref = object.create()
@@ -74,17 +57,12 @@ function layout(momcap, _P)
         end
         if _P.firstmetal ~= _P.lastmetal then
             local viaref = object.create()
-            geometry.multiple_y(
-                function(y)
-                    geometry.viabltr(
-                        viaref, _P.firstmetal, _P.lastmetal,
-                        point.create(-(_P.fwidth + _P.fspace) / 2, y + _P.foffset / 2 - _P.rwidth / 2),
-                        point.create( (_P.fwidth + _P.fspace) / 2, y + _P.foffset / 2 + _P.rwidth / 2),
-                        { xcontinuous = true }
-                    )
-                end,
-                2, _P.foffset + _P.fheight + _P.rwidth
-            )
+            geometry.viabltr(
+                viaref, _P.firstmetal, _P.lastmetal,
+                point.create(-(_P.fwidth + _P.fspace) / 2, _P.foffset / 2 - _P.rwidth / 2),
+                point.create( (_P.fwidth + _P.fspace) / 2, _P.foffset / 2 + _P.rwidth / 2),
+                1, 2, 0, _P.foffset + _P.fheight + _P.rwidth
+            ) -- FIXME: make via continuous
         end
         local fingername = pcell.add_cell_reference(fingerref, "momcapfinger")
         momcap:add_child_array(fingername, _P.fingers + 1, 1, 2 * pitch, 0):flipy():translate(-_P.fingers * pitch, -_P.foffset / 2)

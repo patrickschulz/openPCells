@@ -147,15 +147,11 @@ function layout(gate, _P)
                 gate:add_anchor(string.format("G%d", i), pt)
             elseif _P.gatecontactpos[i] == "split" then
                 local y = _P.shiftgatecontacts
-                geometry.multiple_y(
-                    function(yi)
-                        geometry.contactbltr(
-                            gate, "gate", 
-                            point.create(x - bp.glength / 2, y + yi - bp.gstwidth / 2),
-                            point.create(x + bp.glength / 2, y + yi + bp.gstwidth / 2)
-                        )
-                    end,
-                    2, 2 * routingshift
+                geometry.contactbltr(
+                    gate, "gate", 
+                    point.create(x - bp.glength / 2, y - bp.gstwidth / 2),
+                    point.create(x + bp.glength / 2, y + bp.gstwidth / 2),
+                    1, 2, 0, 2 * routingshift
                 )
                 gate:add_anchor(string.format("G%d", i), point.create(x, y))
                 gate:add_anchor(string.format("G%dupper", i), point.create(x, y + routingshift))
@@ -163,51 +159,35 @@ function layout(gate, _P)
                 geometry.rectangle(gate, generics.other("gatecut"), xpitch, tp.cutheight, x, 0)
             elseif _P.gatecontactpos[i] == "dummy" then
                 local pt = point.create(x, _P.shiftgatecontacts)
-                geometry.multiple_y(
-                    function(yi)
-                        geometry.contactbltr(
-                            gate, "gate", 
-                            point.create(x - bp.glength / 2, (bp.pwidth - bp.nwidth) / 2 + yi - bp.dummycontheight / 2),
-                            point.create(x + bp.glength / 2, (bp.pwidth - bp.nwidth) / 2 + yi + bp.dummycontheight / 2)
-                        )
-                    end,
-                    2, separation + bp.pwidth + bp.nwidth + 2 * bp.powerspace + bp.powerwidth
+                geometry.contactbltr(
+                    gate, "gate", 
+                    point.create(x - bp.glength / 2, (bp.pwidth - bp.nwidth) / 2 + -bp.dummycontheight / 2),
+                    point.create(x + bp.glength / 2, (bp.pwidth - bp.nwidth) / 2 +  bp.dummycontheight / 2),
+                    1, 2, 0, separation + bp.pwidth + bp.nwidth + 2 * bp.powerspace + bp.powerwidth
                 )
                 geometry.rectangle(gate, generics.other("gatecut"), xpitch, tp.cutheight, x, 0)
             end
             if _P.gatecontactpos[i] ~= "dummy" then
-                geometry.multiple_y(
-                    function(yi)
-                        geometry.rectanglebltr(
-                            gate, generics.other("gatecut"),
-                            point.create(x - xpitch / 2, (bp.pwidth - bp.nwidth) / 2 + yi - tp.cutheight / 2),
-                            point.create(x + xpitch / 2, (bp.pwidth - bp.nwidth) / 2 + yi + tp.cutheight / 2)
-                        )
-                    end,
-                    2, separation + bp.pwidth + bp.nwidth + 2 * bp.powerspace + bp.powerwidth
+                geometry.rectanglebltr(
+                    gate, generics.other("gatecut"),
+                    point.create(x - xpitch / 2, (bp.pwidth - bp.nwidth) / 2 - tp.cutheight / 2),
+                    point.create(x + xpitch / 2, (bp.pwidth - bp.nwidth) / 2 + tp.cutheight / 2),
+                    1, 2, 0, separation + bp.pwidth + bp.nwidth + 2 * bp.powerspace + bp.powerwidth
                 )
             end
         end
     end
     if _P.drawdummygatecontacts then
-        geometry.multiple_xy(
-            function(xi, yi)
-                geometry.contactbltr(
-                    gate, "gate", 
-                    point.create(xi - (fingers + bp.rightdummies) * xpitch / 2 + xshift - (bp.glength) / 2, yi + (bp.pwidth - bp.nwidth) / 2 - (bp.dummycontheight) / 2),
-                    point.create(xi - (fingers + bp.rightdummies) * xpitch / 2 + xshift + (bp.glength) / 2, yi + (bp.pwidth - bp.nwidth) / 2 + (bp.dummycontheight) / 2)
-                )
-            end,
+        geometry.contactbltr(
+            gate, "gate", 
+            point.create(-(fingers + bp.rightdummies) * xpitch / 2 + xshift - (bp.glength) / 2, (bp.pwidth - bp.nwidth) / 2 - (bp.dummycontheight) / 2),
+            point.create(-(fingers + bp.rightdummies) * xpitch / 2 + xshift + (bp.glength) / 2, (bp.pwidth - bp.nwidth) / 2 + (bp.dummycontheight) / 2),
             bp.leftdummies, 2, xpitch, separation + bp.pwidth + bp.nwidth + 2 * bp.powerspace + bp.powerwidth
         )
-        geometry.multiple_xy(
-            function(xi, yi)
-                geometry.contactbltr(
-                    gate, "gate", 
-                    point.create(xi + (fingers + bp.leftdummies) * xpitch / 2 + xshift - (bp.glength) / 2, yi + (bp.pwidth - bp.nwidth) / 2 - (bp.dummycontheight) / 2),
-                    point.create(xi + (fingers + bp.leftdummies) * xpitch / 2 + xshift + (bp.glength) / 2, yi + (bp.pwidth - bp.nwidth) / 2 + (bp.dummycontheight) / 2)
-                )
-            end,
+        geometry.contactbltr(
+            gate, "gate", 
+            point.create((fingers + bp.leftdummies) * xpitch / 2 + xshift - (bp.glength) / 2, (bp.pwidth - bp.nwidth) / 2 - (bp.dummycontheight) / 2),
+            point.create((fingers + bp.leftdummies) * xpitch / 2 + xshift + (bp.glength) / 2, (bp.pwidth - bp.nwidth) / 2 + (bp.dummycontheight) / 2),
             bp.rightdummies, 2, xpitch, separation + bp.pwidth + bp.nwidth + 2 * bp.powerspace + bp.powerwidth
         )
     end
@@ -218,64 +198,40 @@ function layout(gate, _P)
     local pcontactpowerheight = (bp.psdpowerheight > 0) and bp.psdpowerheight or bp.pwidth / 2
     local ncontactpowerheight = (bp.nsdpowerheight > 0) and bp.nsdpowerheight or bp.nwidth / 2
     if _P.drawdummyactivecontacts then
-        geometry.multiple_x(
-            function(xi, yi)
-                geometry.contactbltr(
-                    gate, "sourcedrain", 
-                    point.create(xi - (fingers + bp.rightdummies + 1) * xpitch / 2 + xshift - (bp.sdwidth) / 2, yi + separation / 2 + bp.pwidth - pcontactpowerheight / 2 - (pcontactpowerheight) / 2),
-                    point.create(xi - (fingers + bp.rightdummies + 1) * xpitch / 2 + xshift + (bp.sdwidth) / 2, yi + separation / 2 + bp.pwidth - pcontactpowerheight /2 + (pcontactpowerheight) / 2)
-                )
-            end,
-            bp.leftdummies, xpitch
+        geometry.contactbltr(
+            gate, "sourcedrain", 
+            point.create(-(fingers + bp.rightdummies + 1) * xpitch / 2 + xshift - (bp.sdwidth) / 2, separation / 2 + bp.pwidth - pcontactpowerheight / 2 - (pcontactpowerheight) / 2),
+            point.create(-(fingers + bp.rightdummies + 1) * xpitch / 2 + xshift + (bp.sdwidth) / 2, separation / 2 + bp.pwidth - pcontactpowerheight / 2 + (pcontactpowerheight) / 2),
+            bp.leftdummies, 1, xpitch, 0
         )
-        geometry.multiple_x(
-            function(xi, yi)
-                geometry.contactbltr(
-                    gate, "sourcedrain", 
-                    point.create(xi - (fingers + bp.rightdummies + 1) * xpitch / 2 + xshift - (bp.sdwidth) / 2, yi - separation / 2 - bp.nwidth + ncontactpowerheight / 2 - (ncontactpowerheight) / 2),
-                    point.create(xi - (fingers + bp.rightdummies + 1) * xpitch / 2 + xshift + (bp.sdwidth) / 2, yi - separation / 2 - bp.nwidth + ncontactpowerheight /2 + (ncontactpowerheight) / 2)
-                )
-            end,
-            bp.leftdummies, xpitch
+        geometry.contactbltr(
+            gate, "sourcedrain", 
+            point.create(-(fingers + bp.rightdummies + 1) * xpitch / 2 + xshift - (bp.sdwidth) / 2, -separation / 2 - bp.nwidth + ncontactpowerheight / 2 - (ncontactpowerheight) / 2),
+            point.create(-(fingers + bp.rightdummies + 1) * xpitch / 2 + xshift + (bp.sdwidth) / 2, -separation / 2 - bp.nwidth + ncontactpowerheight /2 + (ncontactpowerheight) / 2),
+            bp.leftdummies, 1, xpitch, 0
         )
-        geometry.multiple_xy(
-            function(xi, yi)
-                geometry.rectanglebltr(
-                    gate, generics.metal(1), 
-                    point.create(xi - (fingers + bp.rightdummies + 1) * xpitch / 2 + xshift - (bp.sdwidth) / 2, yi + (bp.pwidth - bp.nwidth) / 2 - (bp.powerspace) / 2),
-                    point.create(xi - (fingers + bp.rightdummies + 1) * xpitch / 2 + xshift + (bp.sdwidth) / 2, yi + (bp.pwidth - bp.nwidth) / 2 + (bp.powerspace) / 2)
-                )
-            end,
-            bp.leftdummies, 2, xpitch, separation + bp.pwidth + bp.nwidth + bp.powerspace
+        geometry.rectanglebltr(
+            gate, generics.metal(1), 
+            point.create(-(fingers + bp.rightdummies + 1) * xpitch / 2 + xshift - (bp.sdwidth) / 2, (bp.pwidth - bp.nwidth) / 2 - (bp.powerspace) / 2),
+            point.create(-(fingers + bp.rightdummies + 1) * xpitch / 2 + xshift + (bp.sdwidth) / 2, (bp.pwidth - bp.nwidth) / 2 + (bp.powerspace) / 2),
+    bp.leftdummies, 2, xpitch, separation + bp.pwidth + bp.nwidth + bp.powerspace
         )
-        geometry.multiple_x(
-            function(xi, yi)
-                geometry.contactbltr(
-                    gate, "sourcedrain", 
-                    point.create(xi + (fingers + bp.leftdummies + 1) * xpitch / 2 + xshift - (bp.sdwidth) / 2, yi + separation / 2 + bp.pwidth - pcontactpowerheight / 2 - (pcontactpowerheight) / 2),
-                    point.create(xi + (fingers + bp.leftdummies + 1) * xpitch / 2 + xshift + (bp.sdwidth) / 2, yi + separation / 2 + bp.pwidth - pcontactpowerheight /2 + (pcontactpowerheight) / 2)
-                )
-            end,
+        geometry.contactbltr(
+            gate, "sourcedrain", 
+            point.create((fingers + bp.leftdummies + 1) * xpitch / 2 + xshift - (bp.sdwidth) / 2, separation / 2 + bp.pwidth - pcontactpowerheight / 2 - (pcontactpowerheight) / 2),
+            point.create((fingers + bp.leftdummies + 1) * xpitch / 2 + xshift + (bp.sdwidth) / 2, separation / 2 + bp.pwidth - pcontactpowerheight /2 + (pcontactpowerheight) / 2),
+            bp.rightdummies, 1, xpitch, 0
+        )
+        geometry.contactbltr(
+            gate, "sourcedrain", 
+            point.create((fingers + bp.leftdummies + 1) * xpitch / 2 + xshift - (bp.sdwidth) / 2, -separation / 2 - bp.nwidth + ncontactpowerheight / 2 - (ncontactpowerheight) / 2),
+            point.create((fingers + bp.leftdummies + 1) * xpitch / 2 + xshift + (bp.sdwidth) / 2, -separation / 2 - bp.nwidth + ncontactpowerheight /2 + (ncontactpowerheight) / 2),
             bp.rightdummies, xpitch
         )
-        geometry.multiple_x(
-            function(xi, yi)
-                geometry.contactbltr(
-                    gate, "sourcedrain", 
-                    point.create(xi + (fingers + bp.leftdummies + 1) * xpitch / 2 + xshift - (bp.sdwidth) / 2, yi - separation / 2 - bp.nwidth + ncontactpowerheight / 2 - (ncontactpowerheight) / 2),
-                    point.create(xi + (fingers + bp.leftdummies + 1) * xpitch / 2 + xshift + (bp.sdwidth) / 2, yi - separation / 2 - bp.nwidth + ncontactpowerheight /2 + (ncontactpowerheight) / 2)
-                )
-            end,
-            bp.rightdummies, xpitch
-        )
-        geometry.multiple_xy(
-            function(xi, yi)
-                geometry.rectanglebltr(
-                    gate, generics.metal(1), 
-                    point.create(xi + (fingers + bp.leftdummies + 1) * xpitch / 2 + xshift - (bp.sdwidth) / 2, yi + (bp.pwidth - bp.nwidth) / 2 - (bp.powerspace) / 2),
-                    point.create(xi + (fingers + bp.leftdummies + 1) * xpitch / 2 + xshift + (bp.sdwidth) / 2, yi + (bp.pwidth - bp.nwidth) / 2 + (bp.powerspace) / 2)
-                )
-            end,
+        geometry.rectanglebltr(
+            gate, generics.metal(1), 
+            point.create((fingers + bp.leftdummies + 1) * xpitch / 2 + xshift - (bp.sdwidth) / 2, (bp.pwidth - bp.nwidth) / 2 - (bp.powerspace) / 2),
+            point.create((fingers + bp.leftdummies + 1) * xpitch / 2 + xshift + (bp.sdwidth) / 2, (bp.pwidth - bp.nwidth) / 2 + (bp.powerspace) / 2),
             bp.rightdummies, 2, xpitch, separation + bp.pwidth + bp.nwidth + bp.powerspace
         )
     end

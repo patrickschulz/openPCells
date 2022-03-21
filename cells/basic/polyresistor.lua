@@ -20,31 +20,23 @@ end
 function layout(res, _P)
     local polyheight = _P.nyfingers * _P.length + (_P.nyfingers - 1) * _P.yspace + 2 * _P.extension
     -- poly strips
-    geometry.multiple_x(
-        function(x, y)
-            geometry.rectangle(res, generics.other("gate"), _P.width, polyheight, x, y)
-        end,
-        _P.nxfingers + 2 * _P.dummies + 2 * _P.nonresdummies, _P.width + _P.xspace
+    geometry.rectangle(
+        res, generics.other("gate"),
+        _P.width, polyheight, 0, 0,
+        _P.nxfingers + 2 * _P.dummies + 2 * _P.nonresdummies, 1, _P.width + _P.xspace, 0
     )
     -- contacts
-    geometry.multiple_xy(
-        function(x, y)
-            geometry.contactbltr(res, "gate", 
-                point.create(x - _P.width / 2, y - _P.contactheight / 2),
-                point.create(x + _P.width / 2, y + _P.contactheight / 2)
-            )
-        end,
+    geometry.contactbltr(res, "gate", 
+        point.create(-_P.width / 2, -_P.contactheight / 2),
+        point.create( _P.width / 2,  _P.contactheight / 2),
         _P.nxfingers, _P.nyfingers + 1, _P.width + _P.xspace, _P.length + _P.yspace
     )
     -- poly marker layer
-    geometry.multiple_y(
-        function(y)
-            geometry.rectangle(res, generics.other("polyres"),
-                (_P.nxfingers + 2 * _P.dummies) * (_P.width + _P.xspace) - _P.xspace + 2 * _P.markextension,
-                _P.length,
-                0, y
-            )
-        end, _P.nyfingers, _P.length + _P.yspace
+    geometry.rectangle(res, generics.other("polyres"),
+        (_P.nxfingers + 2 * _P.dummies) * (_P.width + _P.xspace) - _P.xspace + 2 * _P.markextension,
+        _P.length,
+        0, 0
+        1, _P.nyfingers, 0, _P.length + _P.yspace
     )
     -- implant and LVS marker layer
     geometry.rectangle(res, generics.other("nres"),
@@ -62,14 +54,10 @@ function layout(res, _P)
     -- connections
     local xpitch = _P.width + _P.xspace
     if _P.conntype == "parallel" then
-        geometry.multiple_y(
-            function(y)
-                geometry.rectanglebltr(res, generics.metal(1), 
-                    point.create(-(_P.nxfingers - 1) * xpitch / 2 - _P.width / 2, y - _P.contactheight / 2),
-                    point.create( (_P.nxfingers - 1) * xpitch / 2 + _P.width / 2, y + _P.contactheight / 2)
-                )
-            end,
-            2, _P.length + _P.extension
+        geometry.rectanglebltr(res, generics.metal(1), 
+            point.create(-(_P.nxfingers - 1) * xpitch / 2 - _P.width / 2, -_P.contactheight / 2),
+            point.create( (_P.nxfingers - 1) * xpitch / 2 + _P.width / 2,  _P.contactheight / 2)
+            1, 2, 0, _P.length + _P.extension
         )
     else
         for i = 1, _P.nxfingers - 1 do

@@ -40,51 +40,26 @@ local function _load_constraints(name)
     )
 end
 
-local function _load_config(name)
-    local filename = _get_tech_filename(name, "config")
-    if not filename then
-        moderror(string.format("technology: no config file for technology '%s' found", name))
-    end
-    local chunkname = "@techconfig"
-
-    local reader, msg = _get_reader(filename)
-    if not reader then
-        moderror(string.format("technology: could not open config file for technology '%s' (reason: %d)", name, msg))
-    end
-    return _generic_load(
-        reader, chunkname,
-        string.format("syntax error while loading config for technology '%s'", name),
-        string.format("semantic error while loading config for technology '%s'", name)
-    )
-end
-
-local function _load_viadefs(name)
-    local filename = _get_tech_filename(name, "vias")
-    if not filename then
-        moderror(string.format("technology: no vias for technology '%s' found", name))
-    end
-    local chunkname = "@techvias"
-
-    local reader, msg = _get_reader(filename)
-    if not reader then
-        moderror(string.format("technology: could not open via definitions for technology '%s' (reason: %d)", name, msg))
-    end
-    return _generic_load(
-        reader, chunkname,
-        string.format("syntax error while loading via definitions for technology '%s'", name),
-        string.format("semantic error while loading via definitions for technology '%s'", name)
-    )
-end
-
 function technology.load(name)
     local layermapname = _get_tech_filename(name, "layermap")
     if not layermapname then
         moderror(string.format("technology: no techfile for technology '%s' found", name))
     end
     technology.load_layermap(layermapname)
+
+    local vianame = _get_tech_filename(name, "vias")
+    if not vianame then
+        moderror(string.format("technology: no config file for technology '%s' found", name))
+    end
+    technology.load_viadefinitions(vianame)
+
+    local configname = _get_tech_filename(name, "config")
+    if not configname then
+        moderror(string.format("technology: no config file for technology '%s' found", name))
+    end
+    technology.load_config(configname)
+
     constraints = _load_constraints(name)
-    config      = _load_config(name)
-    viadefs     = _load_viadefs(name)
 end
 
 function technology.add_techpath(path)
@@ -98,6 +73,7 @@ function technology.list_techpaths()
 end
 
 ----------------------
+--[[
 function technology.resolve_metal(metalnum)
     if metalnum < 0 then
         return config.metals + metalnum + 1
@@ -122,3 +98,4 @@ end
 function technology.get_config_value(key)
     return config[key]
 end
+--]]
