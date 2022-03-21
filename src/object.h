@@ -10,6 +10,7 @@ struct object_t
 
     char* identifier; // for children
     struct object_t* reference; // for children
+    int isproxy;
     int isarray;
     unsigned int xrep;
     unsigned int yrep;
@@ -45,8 +46,6 @@ struct object_t
     struct object_t** children;
     size_t children_size;
     size_t children_capacity;
-
-    int isproxy;
 };
 
 typedef struct object_t object_t;
