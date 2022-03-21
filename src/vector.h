@@ -11,7 +11,7 @@ struct vector
 };
 
 struct vector* vector_create(void);
-void vector_destroy(struct vector* vector);
+void vector_destroy(struct vector* vector, void (*desctructor)(void*));
 size_t vector_size(struct vector* vector);
 void* vector_get(struct vector* vector, size_t i);
 void vector_set(struct vector* vector, size_t i, void* element);

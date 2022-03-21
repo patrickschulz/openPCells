@@ -269,7 +269,7 @@ void technology_destroy(void)
         generics_destroy_layer(entry->layer);
         free(entry);
     }
-    vector_destroy(layertable);
+    vector_destroy(layertable, NULL);
 
     for(unsigned int i = 0; i < vector_size(viatable); ++i)
     {
@@ -284,7 +284,7 @@ void technology_destroy(void)
         free(entry->viadefs);
         free(entry);
     }
-    vector_destroy(viatable);
+    vector_destroy(viatable, NULL);
 
     free(config);
 }

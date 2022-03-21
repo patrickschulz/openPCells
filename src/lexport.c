@@ -34,11 +34,7 @@ static void _destroy_searchpaths(void)
 {
     if(searchpaths)
     {
-        for(unsigned int i = 0; i < vector_size(searchpaths); ++i)
-        {
-            free(vector_get(searchpaths, i));
-        }
-        vector_destroy(searchpaths);
+        vector_destroy(searchpaths, &free);
     }
 }
 

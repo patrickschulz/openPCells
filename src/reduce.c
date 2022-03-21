@@ -28,7 +28,7 @@ static void _merge_shapes(object_t* object)
         {
             object_add_raw_shape(object, vector_get(rectangles, i));
         }
-        vector_destroy(rectangles);
+        vector_destroy(rectangles, NULL);
     }
 }
 

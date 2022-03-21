@@ -18,9 +18,16 @@ struct vector* vector_create(void)
     return vector;
 }
 
-void vector_destroy(struct vector* vector)
+void vector_destroy(struct vector* vector, void (*destructor)(void*))
 {
-    // non-owned data, only detroy vector structure
+    if(destructor)
+    {
+        for(size_t i = 0; i < vector->length; ++i)
+        {
+            destructor(vector->elements[i]);
+        }
+    }
+    // non-owned data, only destroy vector structure
     free(vector->elements);
     free(vector);
 }
