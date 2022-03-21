@@ -150,7 +150,7 @@ size_t union_rectangle_all(struct vector* rectangles)
     while(1)
     {
         //if(i == vector_size(rectangles) - 1 && j == vector_size(rectangles)) break;
-        if(i >= vector_size(rectangles) - 1) break;
+        if(i >= (int)vector_size(rectangles) - 1) break;
         shape_t* rect1 = vector_get(rectangles, i);
         shape_t* rect2 = vector_get(rectangles, j);
         shape_t* result = rectangle_union(rect1, rect2);
@@ -167,7 +167,7 @@ size_t union_rectangle_all(struct vector* rectangles)
         {
             ++j;
         }
-        if(j > vector_size(rectangles) - 1)
+        if(j > (int)vector_size(rectangles) - 1)
         {
             ++i;
             j = i + 1;
