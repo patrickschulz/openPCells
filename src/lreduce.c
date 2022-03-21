@@ -3,6 +3,7 @@
 #include "lua/lauxlib.h"
 
 #include "lobject.h"
+#include "reduce.h"
 
 int lreduce_merge_shapes(lua_State* L)
 {

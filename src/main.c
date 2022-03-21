@@ -31,15 +31,12 @@
 #include "lbind.h"
 #include "ldir.h"
 #include "lbinary.h"
-#include "lshape.h"
 #include "lobject.h"
 #include "pcell.h"
 #include "lexport.h"
 #include "lreduce.h"
-#include "lport.h"
 //#include "lunion.h"
 #include "lfilesystem.h"
-#include "lbytebuffer.h"
 #include "lplacer.h"
 #include "lrouter.h"
 #include "lutil.h"
@@ -202,14 +199,11 @@ static lua_State* create_and_initialize_lua(void)
     open_lload_lib(L);
     open_lbind_lib(L);
     open_lbinary_lib(L);
-    open_lshape_lib(L);
     open_lobject_lib(L);
     open_lpcell_lib(L);
     open_lexport_lib(L);
     open_lreduce_lib(L);
-    open_lport_lib(L);
     open_lutil_lib(L);
-    open_lbytebuffer_lib(L);
     //open_lunion_lib(L);
     open_lfilesystem_lib(L);
     open_lplacer_lib(L);

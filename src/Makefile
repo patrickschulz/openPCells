@@ -14,7 +14,7 @@ SYSCFLAGS=
 SYSLDFLAGS=
 SYSLIBS=
 
-OPCOBJ:=util.o vector.o union.o reduce.o lreduce.o point.o technology.o transformationmatrix.o ltransformationmatrix.o shape.o object.o geometry.o keyvaluepairs.o generics.o lgenerics.o lgeometry.o ldir.o lpoint.o graphics.o lbind.o lload.o lbinary.o lshape.o lobject.o pcell.o lport.o lfilesystem.o lbytebuffer.o lplacer.o lplacer_rand.o lrouter.o lrouter_net.o lrouter_queue.o lrouter_field.o lrouter_route.o lutil.o gdsparser.o ldebug.o lexport.o lexport_common.o gdsexport.o
+OPCOBJ:=util.o vector.o union.o reduce.o lreduce.o point.o technology.o transformationmatrix.o ltransformationmatrix.o shape.o object.o geometry.o keyvaluepairs.o generics.o lgenerics.o lgeometry.o ldir.o lpoint.o graphics.o lbind.o lload.o lbinary.o lobject.o pcell.o lfilesystem.o lplacer.o lplacer_rand.o lrouter.o lrouter_net.o lrouter_queue.o lrouter_field.o lrouter_route.o lutil.o gdsparser.o ldebug.o lexport.o lexport_common.o gdsexport.o
 
 .PHONY: default
 default:
@@ -46,14 +46,11 @@ ldir.o: ldir.c ldir.h
 lbind.o: lbind.h lbind.c
 lload.o: lload.h lload.c
 lbinary.o: lbinary.h lbinary.c
-lshape.o: lshape.h lshape.c shape.h shape.c lpoint.h ltransformationmatrix.h
 lobject.o: lobject.h lobject.c
 pcell.o: pcell.c pcell.h
 lexport.o: lexport.h lexport.c lexport_common.h lobject.h object.h pcell.h gdsexport.h
-lport.o: lport.h lport.c
 lfilesystem.o: lfilesystem.h lfilesystem.c
 lutil.o: lutil.c lutil.h
-lbytebuffer.o: lbytebuffer.h lbytebuffer.c
 
 lplacer.o: lplacer.h lplacer.c
 lplacer_rand.o: lplacer_rand.h lplacer_rand.c

@@ -2,7 +2,6 @@
 
 #include "lua/lauxlib.h"
 
-#include "lshape.h"
 #include "lpoint.h"
 
 static lobject_t* _create(lua_State* L)
