@@ -130,7 +130,7 @@ static int _intersection(point_t* s1, point_t* s2, point_t* c1, point_t* c2, poi
     coordinate_t snum = (c2->x - c1->x) * (s1->y - c1->y) - (s1->x - c1->x) * (c2->y - c1->y);
     coordinate_t cnum = (s2->x - s1->x) * (s1->y - c1->y) - (s1->x - c1->x) * (s2->y - s1->y);
     coordinate_t den = (s2->x - s1->x) * (c2->y - c1->y) - (c2->x - c1->x) * (s2->y - s1->y);
-    if(den == 0)
+    if(den == 0) // lines are parallel
     {
         return 0;
     }
@@ -144,7 +144,7 @@ static int _intersection(point_t* s1, point_t* s2, point_t* c1, point_t* c2, poi
     {
         return 1;
     }
-    else // if the edges don't truly overlap, we return the imaginary intersection
+    else // the line segments don't overlap, but the imaginary extended lines do (important for bevel join)
     {
         return 0;
     }
