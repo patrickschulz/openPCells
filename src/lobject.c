@@ -77,6 +77,7 @@ static int lobject_translate(lua_State* L)
     coordinate_t x = lua_tointeger(L, 2);
     coordinate_t y = lua_tointeger(L, 3);
     object_translate(cell->object, x, y);
+    lua_rotate(L, 1, 2);
     return 1;
 }
 
@@ -300,7 +301,7 @@ int lobject_flatten(lua_State* L)
 {
     lobject_t* cell = lobject_check(L, 1);
     object_flatten(cell->object, 0);
-    return 0;
+    return 1;
 }
 
 int open_lobject_lib(lua_State* L)

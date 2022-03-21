@@ -1,102 +1,3 @@
-function geometry.cross(cell, layer, width, height, crosssize)
-    modassert(width % 2 == 0, "geometry.cross: width must be a multiple of 2")
-    modassert(height % 2 == 0, "geometry.cross: height must be a multiple of 2")
-    modassert(crosssize % 2 == 0, "geometry.cross: crosssize must be a multiple of 2")
-    local S = shape.create_polygon(layer)
-    S:append_xy(    -width / 2, -crosssize / 2)
-    S:append_xy(    -width / 2,  crosssize / 2)
-    S:append_xy(-crosssize / 2,  crosssize / 2)
-    S:append_xy(-crosssize / 2,     height / 2)
-    S:append_xy( crosssize / 2,     height / 2)
-    S:append_xy( crosssize / 2,  crosssize / 2)
-    S:append_xy(     width / 2,  crosssize / 2)
-    S:append_xy(     width / 2, -crosssize / 2)
-    S:append_xy( crosssize / 2, -crosssize / 2)
-    S:append_xy( crosssize / 2,    -height / 2)
-    S:append_xy(-crosssize / 2,    -height / 2)
-    S:append_xy(-crosssize / 2, -crosssize / 2)
-    S:append_xy(    -width / 2, -crosssize / 2) -- close polygon
-    cell:add_shape(S)
-end
-
-function geometry.ring(cell, layer, width, height, ringwidth)
-    modassert((width + ringwidth) % 2 == 0, "geometry.ring: width +- ringwidth must be a multiple of 2")
-    modassert((height + ringwidth) % 2 == 0, "geometry.ring: height +- ringwidth must be a multiple of 2")
-    local S = shape.create_polygon(layer)
-    S:append_xy(-(width + ringwidth) / 2, -(height + ringwidth) / 2)
-    S:append_xy( (width + ringwidth) / 2, -(height + ringwidth) / 2)
-    S:append_xy( (width + ringwidth) / 2,  (height + ringwidth) / 2)
-    S:append_xy(-(width + ringwidth) / 2,  (height + ringwidth) / 2)
-    S:append_xy(-(width + ringwidth) / 2, -(height - ringwidth) / 2)
-    S:append_xy(-(width - ringwidth) / 2, -(height - ringwidth) / 2)
-    S:append_xy(-(width - ringwidth) / 2,  (height - ringwidth) / 2)
-    S:append_xy( (width - ringwidth) / 2,  (height - ringwidth) / 2)
-    S:append_xy( (width - ringwidth) / 2, -(height - ringwidth) / 2)
-    S:append_xy(-(width + ringwidth) / 2, -(height - ringwidth) / 2)
-    S:append_xy(-(width + ringwidth) / 2, -(height + ringwidth) / 2) -- close polygon
-    cell:add_shape(S)
-end
-
-function geometry.unequal_xy_ring(cell, layer, width, height, ringwidth, ringheight)
-    modassert((width + ringwidth) % 2 == 0, "geometry.ring: width +- ringwidth must be a multiple of 2")
-    modassert((height + ringheight) % 2 == 0, "geometry.ring: height +- ringwidth must be a multiple of 2")
-    local S = shape.create_polygon(layer)
-    S:append_xy(-(width + ringwidth) / 2, -(height + ringheight) / 2)
-    S:append_xy( (width + ringwidth) / 2, -(height + ringheight) / 2)
-    S:append_xy( (width + ringwidth) / 2,  (height + ringheight) / 2)
-    S:append_xy(-(width + ringwidth) / 2,  (height + ringheight) / 2)
-    S:append_xy(-(width + ringwidth) / 2, -(height - ringheight) / 2)
-    S:append_xy(-(width - ringwidth) / 2, -(height - ringheight) / 2)
-    S:append_xy(-(width - ringwidth) / 2,  (height - ringheight) / 2)
-    S:append_xy( (width - ringwidth) / 2,  (height - ringheight) / 2)
-    S:append_xy( (width - ringwidth) / 2, -(height - ringheight) / 2)
-    S:append_xy(-(width + ringwidth) / 2, -(height - ringheight) / 2)
-    S:append_xy(-(width + ringwidth) / 2, -(height + ringheight) / 2) -- close polygon
-    cell:add_shape(S)
-end
-
-local function _shift_gridded_line(pt1, pt2, width, grid)
-    local x1, y1 = pt1:unwrap()
-    local x2, y2 = pt2:unwrap()
-    local angle = math.atan(y2 - y1, x2 - x1) - math.pi / 2
-    local xshift = grid * math.floor(math.floor(width * math.cos(angle) + 0.5) / grid)
-    local yshift = grid * math.floor(math.floor(width * math.sin(angle) + 0.5) / grid)
-    local spt1 = point.create(x1 + xshift, y1 + yshift)
-    local spt2 = point.create(x2 + xshift, y2 + yshift)
-    return spt1, spt2
-end
-
-local function _get_gridded_edge_segments(pts, width, grid)
-    local edges = {}
-    -- start to end
-    for i = 1, #pts - 1 do
-        local spt1, spt2 = _shift_gridded_line(pts[i], pts[i + 1], width / 2, grid)
-        table.insert(edges, spt1)
-        table.insert(edges, spt2)
-    end
-    -- end to start (shift in other direction)
-    for i = #pts, 2, -1 do
-        local spt1, spt2 = _shift_gridded_line(pts[i], pts[i - 1], width / 2, grid)
-        table.insert(edges, spt1)
-        table.insert(edges, spt2)
-    end
-    return edges
-end
-
-local function _get_any_angle_path_pts(pts, width, grid, miterjoin, allow45)
-    local edges = _get_gridded_edge_segments(pts, width, grid)
-    local pathpts = _get_path_pts(edges, miterjoin)
-    table.insert(pathpts, edges[1]:copy()) -- close path
-    local poly = {}
-    for i = 1, #pathpts - 1 do
-        local linepts = graphics.line(pathpts[i], pathpts[i + 1], grid, allow45)
-        for _, pt in ipairs(linepts) do
-            table.insert(poly, pt)
-        end
-    end
-    return poly
-end
-
 local function _make_unique_points(pts)
     for i = #pts, 2, -1 do -- iterate from the end for in-situ deletion
         if pts[i] == pts[i - 1] then
@@ -180,6 +81,20 @@ function geometry.path_points_yx(startpt, movements)
         xnoty = not xnoty
     end
     return pts
+end
+
+local function _get_any_angle_path_pts(pts, width, grid, miterjoin, allow45)
+    local edges = _get_gridded_edge_segments(pts, width, grid)
+    local pathpts = _get_path_pts(edges, miterjoin)
+    table.insert(pathpts, edges[1]:copy()) -- close path
+    local poly = {}
+    for i = 1, #pathpts - 1 do
+        local linepts = graphics.line(pathpts[i], pathpts[i + 1], grid, allow45)
+        for _, pt in ipairs(linepts) do
+            table.insert(poly, pt)
+        end
+    end
+    return poly
 end
 
 function geometry.any_angle_path(cell, layer, pts, width, grid, miterjoin, allow45)

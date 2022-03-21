@@ -49,8 +49,7 @@ function layout(grid, _P)
         local viaref = object.create()
         geometry.viabltr(viaref, _P.metalh, _P.metalv,
             point.create(0,          0),
-            point.create(_P.mvwidth, _P.mhwidth),
-            { bare = true }
+            point.create(_P.mvwidth, _P.mhwidth)
         )
         if not _P.flatvias then
             local vianame = pcell.add_cell_reference(viaref, "via")

@@ -185,6 +185,40 @@ int lgeometry_contact(lua_State* L)
     return 0;
 }
 
+int lgeometry_cross(lua_State* L)
+{
+    lobject_t* cell = lobject_check(L, 1);
+    generics_t* layer = lua_touserdata(L, 2);
+    ucoordinate_t width = luaL_checkinteger(L, 3);
+    ucoordinate_t height = luaL_checkinteger(L, 4);
+    ucoordinate_t crosssize = luaL_checkinteger(L, 5);
+    geometry_cross(cell->object, layer, width, height, crosssize);
+    return 0;
+}
+
+int lgeometry_ring(lua_State* L)
+{
+    lobject_t* cell = lobject_check(L, 1);
+    generics_t* layer = lua_touserdata(L, 2);
+    ucoordinate_t width = luaL_checkinteger(L, 3);
+    ucoordinate_t height = luaL_checkinteger(L, 4);
+    ucoordinate_t ringwidth = luaL_checkinteger(L, 5);
+    geometry_ring(cell->object, layer, width, height, ringwidth);
+    return 0;
+}
+
+int lgeometry_unequal_ring(lua_State* L)
+{
+    lobject_t* cell = lobject_check(L, 1);
+    generics_t* layer = lua_touserdata(L, 2);
+    ucoordinate_t width = luaL_checkinteger(L, 3);
+    ucoordinate_t height = luaL_checkinteger(L, 4);
+    ucoordinate_t ringwidth = luaL_checkinteger(L, 5);
+    ucoordinate_t ringheight = luaL_checkinteger(L, 6);
+    geometry_unequal_ring(cell->object, layer, width, height, ringwidth, ringheight);
+    return 0;
+}
+
 int open_lgeometry_lib(lua_State* L)
 {
     lua_newtable(L);
@@ -199,6 +233,9 @@ int open_lgeometry_lib(lua_State* L)
         { "via",             lgeometry_via             },
         { "contactbltr",     lgeometry_contactbltr     },
         { "contact",         lgeometry_contact         },
+        { "cross",           lgeometry_cross           },
+        { "ring",            lgeometry_ring            },
+        { "unequal_ring",    lgeometry_unequal_ring    },
         { NULL,              NULL                      }
     };
     luaL_setfuncs(L, modfuncs, 0);

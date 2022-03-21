@@ -101,30 +101,32 @@ void geometry_path(object_t* cell, generics_t* layer, point_t** points, size_t l
     }
 }
 
-static void _shift_line(point_t* pt1, point_t* pt2, ucoordinate_t width, point_t** spt1, point_t** spt2)
+static void _shift_line(point_t* pt1, point_t* pt2, ucoordinate_t width, point_t** spt1, point_t** spt2, unsigned int grid)
 {
     double angle = atan2(pt2->y - pt1->y, pt2->x - pt1->x) - M_PI / 2;
-    coordinate_t xshift = floor(width * cos(angle) + 0.5);
-    coordinate_t yshift = floor(width * sin(angle) + 0.5);
+    coordinate_t xshift = grid * floor(floor(width * cos(angle) + 0.5) / grid);
+    coordinate_t yshift = grid * floor(floor(width * sin(angle) + 0.5) / grid);
     *spt1 = point_create(pt1->x + xshift, pt1->y + yshift);
     *spt2 = point_create(pt2->x + xshift, pt2->y + yshift);
 }
 
-static point_t** _get_edge_segments(point_t** points, size_t numpoints, ucoordinate_t width)
+static point_t** _get_edge_segments(point_t** points, size_t numpoints, ucoordinate_t width, unsigned int grid)
 {
     point_t** edges = calloc(4 * (numpoints - 1), sizeof(*edges));
     // start to end
     for(unsigned int i = 0; i < numpoints - 1; ++i)
     {
-        _shift_line(points[i], points[i + 1], width / 2, &edges[2 * i], &edges[2 * i + 1]);
+        _shift_line(points[i], points[i + 1], width / 2, &edges[2 * i], &edges[2 * i + 1], grid);
     }
     // end to start (shift in other direction)
     for(unsigned int i = numpoints - 1; i > 0; --i)
     {
         // the indexing looks funny, but it works out, trust me
         _shift_line(points[i], points[i - 1], width / 2, 
-                &edges[2 * (2 * numpoints - 2 - i)], 
-                &edges[2 * (2 * numpoints - 2 - i) + 1]);
+            &edges[2 * (2 * numpoints - 2 - i)], 
+            &edges[2 * (2 * numpoints - 2 - i) + 1],
+            grid
+        );
     }
     return edges;
 }
@@ -263,7 +265,7 @@ shape_t* geometry_path_to_polygon(point_t** points, size_t numpoints, ucoordinat
         }
     }
     // polygon
-    point_t** edges = _get_edge_segments(points, numpoints, width);
+    point_t** edges = _get_edge_segments(points, numpoints, width, 1);
     shape_t* poly = _get_path_pts(edges, 4 * (numpoints - 1), miterjoin);
     for(unsigned int i = 0; i < 4 * (numpoints - 1); ++i)
     {
@@ -271,6 +273,35 @@ shape_t* geometry_path_to_polygon(point_t** points, size_t numpoints, ucoordinat
     }
     free(edges);
     return poly;
+}
+
+point_t** _get_any_angle_path_pts(point_t** pts, size_t len, ucoordinate_t width, ucoordinate_t grid, int miterjoin, int allow45, size_t* numpoints)
+{
+    point_t** edges = _get_edge_segments(pts, len, width, grid);
+    shape_t* poly = _get_path_pts(edges, 4 * (len - 1), miterjoin);
+    for(unsigned int i = 0; i < 4 * (len - 1); ++i)
+    {
+        point_destroy(edges[i]);
+    }
+    free(edges);
+//    table.insert(pathpts, edges[1]:copy()) -- close path
+//    local poly = {}
+//    for i = 1, #pathpts - 1 do
+//        local linepts = graphics.line(pathpts[i], pathpts[i + 1], grid, allow45)
+//        for _, pt in ipairs(linepts) do
+//            table.insert(poly, pt)
+//        end
+//    end
+//    return poly
+    return poly;
+}
+
+void geometry_any_angle_path(object_t* cell, generics_t* layer, point_t** pts, size_t len, ucoordinate_t width, ucoordinate_t grid, int miterjoin, int allow45)
+{
+    _make_unique_points(pts, &len);
+    size_t numpoints;
+    point_t** points = _get_any_angle_path_pts(pts, len, width, grid, miterjoin, allow45, &numpoints);
+    geometry_polygon(cell, layer, points, numpoints);
 }
 
 static void _fit_via(ucoordinate_t size, unsigned int cutsize, unsigned int space, int encl, unsigned int* rep_result, unsigned int* space_result)
@@ -454,4 +485,81 @@ void geometry_contactbltr(object_t* cell, const char* region, point_t* bl, point
 void geometry_contact(object_t* cell, const char* region, ucoordinate_t width, ucoordinate_t height, coordinate_t xshift, coordinate_t yshift, ucoordinate_t xrep, ucoordinate_t yrep, ucoordinate_t xpitch, ucoordinate_t ypitch)
 {
     _contactbltr(cell, region, -(coordinate_t)width / 2 + xshift, -(coordinate_t)height / 2 + yshift, width / 2 + xshift, height / 2 + yshift, xrep, yrep, xpitch, ypitch);
+}
+
+void geometry_cross(object_t* cell, generics_t* layer, ucoordinate_t width, ucoordinate_t height, ucoordinate_t crosssize)
+{
+    shape_t* S = shape_create_polygon(13);
+    S->layer = layer;
+    shape_append(S,     -width / 2, -crosssize / 2);
+    shape_append(S,     -width / 2,  crosssize / 2);
+    shape_append(S, -crosssize / 2,  crosssize / 2);
+    shape_append(S, -crosssize / 2,     height / 2);
+    shape_append(S,  crosssize / 2,     height / 2);
+    shape_append(S,  crosssize / 2,  crosssize / 2);
+    shape_append(S,      width / 2,  crosssize / 2);
+    shape_append(S,      width / 2, -crosssize / 2);
+    shape_append(S,  crosssize / 2, -crosssize / 2);
+    shape_append(S,  crosssize / 2,    -height / 2);
+    shape_append(S, -crosssize / 2,    -height / 2);
+    shape_append(S, -crosssize / 2, -crosssize / 2);
+    shape_append(S,     -width / 2, -crosssize / 2); // close polygon
+    if(!shape_is_empty(S))
+    {
+        object_add_shape(cell, S);
+    }
+    else
+    {
+        shape_destroy(S);
+    }
+}
+
+void geometry_ring(object_t* cell, generics_t* layer, ucoordinate_t width, ucoordinate_t height, ucoordinate_t ringwidth)
+{
+    shape_t* S = shape_create_polygon(13);
+    S->layer = layer;
+    shape_append(S, -(width + ringwidth) / 2, -(height + ringwidth) / 2);
+    shape_append(S,  (width + ringwidth) / 2, -(height + ringwidth) / 2);
+    shape_append(S,  (width + ringwidth) / 2,  (height + ringwidth) / 2);
+    shape_append(S, -(width + ringwidth) / 2,  (height + ringwidth) / 2);
+    shape_append(S, -(width + ringwidth) / 2, -(height - ringwidth) / 2);
+    shape_append(S, -(width - ringwidth) / 2, -(height - ringwidth) / 2);
+    shape_append(S, -(width - ringwidth) / 2,  (height - ringwidth) / 2);
+    shape_append(S,  (width - ringwidth) / 2,  (height - ringwidth) / 2);
+    shape_append(S,  (width - ringwidth) / 2, -(height - ringwidth) / 2);
+    shape_append(S, -(width + ringwidth) / 2, -(height - ringwidth) / 2);
+    shape_append(S, -(width + ringwidth) / 2, -(height + ringwidth) / 2); // close polygon
+    if(!shape_is_empty(S))
+    {
+        object_add_shape(cell, S);
+    }
+    else
+    {
+        shape_destroy(S);
+    }
+}
+
+void geometry_unequal_ring(object_t* cell, generics_t* layer, ucoordinate_t width, ucoordinate_t height, ucoordinate_t ringwidth, ucoordinate_t ringheight)
+{
+    shape_t* S = shape_create_polygon(13);
+    S->layer = layer;
+    shape_append(S, -(width + ringwidth) / 2, -(height + ringheight) / 2);
+    shape_append(S,  (width + ringwidth) / 2, -(height + ringheight) / 2);
+    shape_append(S,  (width + ringwidth) / 2,  (height + ringheight) / 2);
+    shape_append(S, -(width + ringwidth) / 2,  (height + ringheight) / 2);
+    shape_append(S, -(width + ringwidth) / 2, -(height - ringheight) / 2);
+    shape_append(S, -(width - ringwidth) / 2, -(height - ringheight) / 2);
+    shape_append(S, -(width - ringwidth) / 2,  (height - ringheight) / 2);
+    shape_append(S,  (width - ringwidth) / 2,  (height - ringheight) / 2);
+    shape_append(S,  (width - ringwidth) / 2, -(height - ringheight) / 2);
+    shape_append(S, -(width + ringwidth) / 2, -(height - ringheight) / 2);
+    shape_append(S, -(width + ringwidth) / 2, -(height + ringheight) / 2); // close polygon
+    if(!shape_is_empty(S))
+    {
+        object_add_shape(cell, S);
+    }
+    else
+    {
+        shape_destroy(S);
+    }
 }

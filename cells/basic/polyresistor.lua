@@ -35,7 +35,7 @@ function layout(res, _P)
     geometry.rectangle(res, generics.other("polyres"),
         (_P.nxfingers + 2 * _P.dummies) * (_P.width + _P.xspace) - _P.xspace + 2 * _P.markextension,
         _P.length,
-        0, 0
+        0, 0,
         1, _P.nyfingers, 0, _P.length + _P.yspace
     )
     -- implant and LVS marker layer
@@ -56,7 +56,7 @@ function layout(res, _P)
     if _P.conntype == "parallel" then
         geometry.rectanglebltr(res, generics.metal(1), 
             point.create(-(_P.nxfingers - 1) * xpitch / 2 - _P.width / 2, -_P.contactheight / 2),
-            point.create( (_P.nxfingers - 1) * xpitch / 2 + _P.width / 2,  _P.contactheight / 2)
+            point.create( (_P.nxfingers - 1) * xpitch / 2 + _P.width / 2,  _P.contactheight / 2),
             1, 2, 0, _P.length + _P.extension
         )
     else
