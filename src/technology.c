@@ -208,7 +208,7 @@ struct via_definition** technology_get_via_definitions(int metal1, int metal2)
     size_t len = 3 + 1 + util_num_digits(metal1) + 1 + util_num_digits(metal2); // via + M + %d + M + %d
     char* vianame = malloc(len + 1);
     snprintf(vianame, len + 1, "viaM%dM%d", metal1, metal2);
-    struct via_definition** viadefs;
+    struct via_definition** viadefs = NULL;
     for(unsigned int i = 0; i < vector_size(viatable); ++i)
     {
         struct viaentry* entry = vector_get(viatable, i);
@@ -217,6 +217,10 @@ struct via_definition** technology_get_via_definitions(int metal1, int metal2)
             viadefs = entry->viadefs;
             break;
         }
+    }
+    if(!viadefs)
+    {
+        printf("could not find via definitions for '%s'\n", vianame);
     }
     free(vianame);
     return viadefs;
@@ -227,7 +231,7 @@ struct via_definition** technology_get_contact_definitions(const char* region)
     size_t len = 7 + strlen(region);
     char* contactname = malloc(len + 1);
     snprintf(contactname, len + 1, "contact%s", region);
-    struct via_definition** viadefs;
+    struct via_definition** viadefs = NULL;
     for(unsigned int i = 0; i < vector_size(viatable); ++i)
     {
         struct viaentry* entry = vector_get(viatable, i);
@@ -236,6 +240,10 @@ struct via_definition** technology_get_contact_definitions(const char* region)
             viadefs = entry->viadefs;
             break;
         }
+    }
+    if(!viadefs)
+    {
+        printf("could not find contact definitions for '%s'\n", contactname);
     }
     free(contactname);
     return viadefs;

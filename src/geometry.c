@@ -414,6 +414,10 @@ static void _viabltr(object_t* cell, int metal1, int metal2, coordinate_t blx, c
     for(int i = metal1; i < metal2; ++i)
     {
         struct via_definition** viadefs = technology_get_via_definitions(i, i + 1);
+        if(!viadefs)
+        {
+            return;
+        }
         unsigned int viaxrep, viayrep, viaxpitch, viaypitch;
         struct via_definition* entry = _get_rectangular_arrayzation(width, height, viadefs, &viaxrep, &viayrep, &viaxpitch, &viaypitch);
         if(!entry)
