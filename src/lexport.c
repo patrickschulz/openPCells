@@ -285,13 +285,13 @@ static void _write_cell_lua(lua_State* L, object_t* cell)
 
 void _call_or_pop_nil(lua_State* L, int numargs)
 {
-    if(!lua_isnil(L, -1))
+    if(!lua_isnil(L, -1 - numargs))
     {
         lua_call(L, numargs, 0);
     }
     else
     {
-        lua_pop(L, 1);
+        lua_pop(L, 1 + numargs);
     }
 }
 
