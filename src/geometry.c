@@ -335,7 +335,7 @@ static void _continuous_via(ucoordinate_t size, unsigned int cutsize, unsigned i
 }
 */
 
-static struct via_definition* _get_rectangular_arrayzation(ucoordinate_t regionwidth, ucoordinate_t regionheight, struct via_definition** definitions, unsigned int* xrep_ptr, unsigned int* yrep_ptr, unsigned int* xpitch_ptr, unsigned int* ypitch_ptr)
+static struct via_definition* _get_rectangular_arrayzation(ucoordinate_t regionwidth, ucoordinate_t regionheight, struct via_definition** definitions, struct via_definition* fallback, unsigned int* xrep_ptr, unsigned int* yrep_ptr, unsigned int* xpitch_ptr, unsigned int* ypitch_ptr)
 {
     //local xstrat = arrayzation_strategies[options.xcontinuous and "continuous" or "fit"]
     //local ystrat = arrayzation_strategies[options.ycontinuous and "continuous" or "fit"]
@@ -374,23 +374,19 @@ static struct via_definition* _get_rectangular_arrayzation(ucoordinate_t regionw
     }
     if(!result)
     {
-        puts("could not fit via, a fallback via could be used, but this is not implemented yet");
-        return NULL;
-    //if not idx then
-    //    if definitions.fallback then
-    //        return {
-    //            width = definitions.fallback.width,
-    //            height = definitions.fallback.height,
-    //            xpitch = 0,
-    //            ypitch = 0,
-    //            xrep = 1,
-    //            yrep = 1,
-    //        }
-    //    else
-    //        print("could not fit via, the shape will be ignored. The layout will most likely not be correct.")
-    //        return nil
-    //    end
-    //end
+        if(fallback)
+        {
+            *xpitch_ptr = 0;
+            *ypitch_ptr = 0;
+            *xrep_ptr = 1;
+            *yrep_ptr = 1;
+            return fallback;
+        }
+        else
+        {
+            puts("could not fit via, the shape will be ignored. The layout will most likely not be correct.");
+            return NULL;
+        }
     }
     *xpitch_ptr = result->width + xspace;
     *ypitch_ptr = result->height + yspace;
@@ -414,12 +410,13 @@ static void _viabltr(object_t* cell, int metal1, int metal2, coordinate_t blx, c
     for(int i = metal1; i < metal2; ++i)
     {
         struct via_definition** viadefs = technology_get_via_definitions(i, i + 1);
+        struct via_definition* fallback = technology_get_via_fallback(i, i + 1);
         if(!viadefs)
         {
             return;
         }
         unsigned int viaxrep, viayrep, viaxpitch, viaypitch;
-        struct via_definition* entry = _get_rectangular_arrayzation(width, height, viadefs, &viaxrep, &viayrep, &viaxpitch, &viaypitch);
+        struct via_definition* entry = _get_rectangular_arrayzation(width, height, viadefs, fallback, &viaxrep, &viayrep, &viaxpitch, &viaypitch);
         if(!entry)
         {
             return;
@@ -458,8 +455,9 @@ static void _contactbltr(object_t* cell, const char* region, coordinate_t blx, c
     ucoordinate_t width = trx - blx;
     ucoordinate_t height = try - bly;
     struct via_definition** viadefs = technology_get_contact_definitions(region);
+    struct via_definition* fallback = technology_get_contact_fallback(region);
     unsigned int viaxrep, viayrep, viaxpitch, viaypitch;
-    struct via_definition* entry = _get_rectangular_arrayzation(width, height, viadefs, &viaxrep, &viayrep, &viaxpitch, &viaypitch);
+    struct via_definition* entry = _get_rectangular_arrayzation(width, height, viadefs, fallback, &viaxrep, &viayrep, &viaxpitch, &viaypitch);
     if(!entry)
     {
         return;

@@ -38,6 +38,7 @@ struct viaentry
 {
     char* name;
     struct via_definition** viadefs;
+    struct via_definition* fallback;
 };
 
 static struct vector* layertable;
@@ -110,6 +111,7 @@ int technology_load_layermap(lua_State* L)
 
 struct via_definition** _read_via(lua_State* L)
 {
+    lua_getfield(L, -1, "entries");
     lua_len(L, -1);
     size_t len = lua_tointeger(L, -1);
     lua_pop(L, 1);
@@ -142,14 +144,43 @@ struct via_definition** _read_via(lua_State* L)
         viadefs[i - 1] = viadef;
     }
     viadefs[len] = NULL;
+    lua_pop(L, 1);
     return viadefs;
 }
 
-static void _insert_via(char* vianame, struct via_definition** viadefs)
+struct via_definition* _read_via_fallback(lua_State* L)
+{
+    struct via_definition* viadef = malloc(sizeof(*viadef));
+    viadef->xspace = 0;
+    viadef->yspace = 0;
+    viadef->xenclosure = 0;
+    viadef->yenclosure = 0;
+
+    lua_getfield(L, -1, "fallback");
+    if(lua_isnil(L, -1))
+    {
+        lua_pop(L, 1);
+        free(viadef);
+        return NULL;
+    }
+
+    lua_getfield(L, -1, "width");
+    viadef->width = lua_tointeger(L, -1);
+    lua_pop(L, 1);
+    lua_getfield(L, -1, "height");
+    viadef->height = lua_tointeger(L, -1);
+    lua_pop(L, 1);
+
+    lua_pop(L, 1);
+    return viadef;
+}
+
+static void _insert_via(char* vianame, struct via_definition** viadefs, struct via_definition* fallback)
 {
     struct viaentry* entry = malloc(sizeof(*entry));
     entry->name = vianame;
     entry->viadefs = viadefs;
+    entry->fallback = fallback;
     vector_append(viatable, entry);
 }
 
@@ -166,10 +197,9 @@ int technology_load_viadefinitions(lua_State* L)
     while(lua_next(L, -2) != 0)
     {
         char* vianame = util_copy_string(lua_tostring(L, -2));
-        lua_getfield(L, -1, "entries");
         struct via_definition** viadefs = _read_via(L);
-        _insert_via(vianame, viadefs);
-        lua_pop(L, 1); // pop layer table
+        struct via_definition* fallback = _read_via_fallback(L);
+        _insert_via(vianame, viadefs, fallback);
         lua_pop(L, 1); // pop value, keep key for next iteration
     }
     return 0;
@@ -226,6 +256,29 @@ struct via_definition** technology_get_via_definitions(int metal1, int metal2)
     return viadefs;
 }
 
+struct via_definition* technology_get_via_fallback(int metal1, int metal2)
+{
+    size_t len = 3 + 1 + util_num_digits(metal1) + 1 + util_num_digits(metal2); // via + M + %d + M + %d
+    char* vianame = malloc(len + 1);
+    snprintf(vianame, len + 1, "viaM%dM%d", metal1, metal2);
+    struct via_definition* viadef = NULL;
+    for(unsigned int i = 0; i < vector_size(viatable); ++i)
+    {
+        struct viaentry* entry = vector_get(viatable, i);
+        if(strcmp(entry->name, vianame) == 0)
+        {
+            viadef = entry->fallback;
+            break;
+        }
+    }
+    if(!viadef)
+    {
+        //printf("could not find fallback via definitions for '%s'\n", vianame);
+    }
+    free(vianame);
+    return viadef;
+}
+
 struct via_definition** technology_get_contact_definitions(const char* region)
 {
     size_t len = 7 + strlen(region);
@@ -247,6 +300,29 @@ struct via_definition** technology_get_contact_definitions(const char* region)
     }
     free(contactname);
     return viadefs;
+}
+
+struct via_definition* technology_get_contact_fallback(const char* region)
+{
+    size_t len = 7 + strlen(region);
+    char* contactname = malloc(len + 1);
+    snprintf(contactname, len + 1, "contact%s", region);
+    struct via_definition* fallback = NULL;
+    for(unsigned int i = 0; i < vector_size(viatable); ++i)
+    {
+        struct viaentry* entry = vector_get(viatable, i);
+        if(strcmp(entry->name, contactname) == 0)
+        {
+            fallback = entry->fallback;
+            break;
+        }
+    }
+    if(!fallback)
+    {
+        //printf("could not find fallback contact definitions for '%s'\n", contactname);
+    }
+    free(contactname);
+    return fallback;
 }
 
 int technology_resolve_metal(int metalnum)

@@ -24,7 +24,9 @@ struct via_definition
 generics_t* technology_get_layer(const char* layername);
 int technology_resolve_metal(int metalnum);
 struct via_definition** technology_get_via_definitions(int metal1, int metal2);
+struct via_definition* technology_get_via_fallback(int metal1, int metal2);
 struct via_definition** technology_get_contact_definitions(const char* region);
+struct via_definition* technology_get_contact_fallback(const char* region);
 
 void technology_initialize(void);
 void technology_destroy(void);
