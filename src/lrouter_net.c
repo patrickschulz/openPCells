@@ -11,7 +11,7 @@ void print_nets(net_t* nets, size_t num_nets)
 {
     for (unsigned int i = 0; i < num_nets; i++)
     {
-        printf("Net %s:", nets[i].name);
+        printf("Net %s, size: %u", nets[i].name, nets[i].size);
 	for (size_t j = 0; j < nets[i].size; j++)
 	{
 		printf(" (%u, %u, %u) -> ",

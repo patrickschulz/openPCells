@@ -96,8 +96,19 @@ static void del_nth_el_arr(unsigned int *arr, size_t n, size_t arr_size)
     {
         arr[i] = arr[i+1];
     }
+    unsigned int *new_arr = (unsigned int *)
+	realloc(arr, sizeof(unsigned int) * (arr_size - 1));
 
-    arr = (unsigned int *)realloc(arr, arr_size - 1);
+    if (!new_arr)
+    {
+	printf("couldnt realloc in del_nth_el_arr\n");
+	return;
+    }
+    else
+    {
+	arr = new_arr;
+    }
+
 }
 
 /*
@@ -108,28 +119,31 @@ static void del_nth_el_arr(unsigned int *arr, size_t n, size_t arr_size)
 */
 static void lrouter_split_nets(struct netcollection* nc)
 {
+    /* iterate over all nets */
     for(size_t i = 0; i < nc->num_nets; i++)
     {
 	if(nc->nets[i].size < 3)
 	    continue;
 
-	for(size_t j = 0; j < nc->nets[i].size; j++)
+	unsigned int splitcount = 0;
+	/* iterate over all points in net */
+	for(int j = 0; j < (int)nc->nets[i].size; j++)
 	{
 		int tempx, tempy, nextx, nexty, mindist, nextdist;
 		size_t mink = 0;
-		tempx = (int)nc->nets[i].xs[j];
-		tempy = (int)nc->nets[i].ys[j];
+		tempx = (int)nc->nets[i].xs[0];
+		tempy = (int)nc->nets[i].ys[0];
 		mindist = INT_MAX;
 		for(size_t k = 0; k < nc->nets[i].size; k++)
 		{
 			/* dont check m.d. for itself again */
-		        if(k == j)
+		        if((int)k == j)
 			    continue;
 
 			nextx = (int)nc->nets[i].xs[k];
 			nexty = (int)nc->nets[i].ys[k];
-			if((nextdist = MANHATTAN_DIST(tempx, tempy, nextx, nexty)) <
-			   mindist)
+			if((nextdist = MANHATTAN_DIST
+			    (tempx, tempy, nextx, nexty)) < mindist)
 			{
 				mindist = nextdist;
 				mink = k;
@@ -143,25 +157,34 @@ static void lrouter_split_nets(struct netcollection* nc)
 		 * now point nr. j in net has minimum m.d. to point nr. mink
 		 * so create new split net with only 2 now
 		*/
-		net_t newnet;
-		newnet.name = malloc(strlen(nc->nets[i].name) + 10);
-		newnet.xs = malloc(sizeof(unsigned int) * 2);
-		newnet.ys = malloc(sizeof(unsigned int) * 2);
-		newnet.zs = malloc(sizeof(unsigned int) * 2);
-		sprintf(newnet.name, "%s_(%zu)", nc->nets[i].name, j);
-		newnet.xs[0] = nc->nets[i].xs[j];
-		newnet.ys[0] = nc->nets[i].ys[j];
-		newnet.xs[1] = nc->nets[i].xs[mink];
-		newnet.ys[1] = nc->nets[i].ys[mink];
-		newnet.size = 2;
-		printf("%s, mindist: %u\n", newnet.name, mindist);
-		del_nth_el_arr(nc->nets[i].xs, j, nc->nets[i].size);
-		del_nth_el_arr(nc->nets[i].ys, j, nc->nets[i].size);
+		net_t *newnet = calloc(1, sizeof(net_t));
+		newnet->name = calloc(strlen(nc->nets[i].name) + 10, 1);
+		newnet->xs = calloc(2, sizeof(unsigned int));
+		newnet->ys = calloc(2, sizeof(unsigned int));
+		newnet->zs = calloc(2, sizeof(unsigned int));
+
+		sprintf(newnet->name, "%s_(%zu)", nc->nets[i].name, splitcount);
+		newnet->xs[0] = nc->nets[i].xs[0];
+		newnet->ys[0] = nc->nets[i].ys[0];
+		newnet->xs[1] = nc->nets[i].xs[mink];
+		newnet->ys[1] = nc->nets[i].ys[mink];
+		newnet->size = 2;
+
+		del_nth_el_arr(nc->nets[i].xs, 0, nc->nets[i].size);
+		del_nth_el_arr(nc->nets[i].ys, 0, nc->nets[i].size);
+		del_nth_el_arr(nc->nets[i].zs, 0, nc->nets[i].size);
+		nc->nets[i].size--;
+
+		/* continute splitting net */	
+		if(nc->nets[i].size > 2)
+		    j = -1;
 
 		/* add new net to end of net list */
-		nc->nets = (net_t *)realloc(nc->nets, nc->num_nets + 1);
-		nc->nets[nc->num_nets] = newnet;
-		nc->num_nets++;
+		nc->nets = (net_t *)realloc(nc->nets, sizeof(net_t) *
+					    (nc->num_nets + 1));
+	        nc->nets[nc->num_nets] = *newnet;
+	        nc->num_nets++;
+		splitcount++;
 	}
     }
 }
@@ -183,7 +206,10 @@ int lrouter_route(lua_State* L)
 
     lua_newtable(L);
 
+    printf("pre split\n");
+    print_nets(nc->nets, nc->num_nets);
     lrouter_split_nets(nc);
+    printf("post split\n");
     print_nets(nc->nets, nc->num_nets);
 
     int count = 0;
