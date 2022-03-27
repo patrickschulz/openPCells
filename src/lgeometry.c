@@ -90,6 +90,36 @@ int lgeometry_polygon(lua_State* L)
     return 0;
 }
 
+void _get_path_extension(lua_State* L, int idx, int* bgnext, int* endext)
+{
+    if(lua_gettop(L) == idx)
+    {
+        if(lua_type(L, idx) == LUA_TSTRING)
+        {
+            const char* exttype = lua_tostring(L, idx);
+            if(strcmp(exttype, "butt") == 0)
+            {
+                *bgnext = 0;
+                *endext = 0;
+            }
+        }
+        else if(lua_type(L, idx) == LUA_TNUMBER)
+        {
+            *bgnext = *endext = lua_tointeger(L, idx);
+        }
+        else if(lua_type(L, idx) == LUA_TTABLE)
+        {
+            lua_rawgeti(L, idx, 1);
+            *bgnext = lua_tointeger(L, -1);
+            lua_pop(L, 1);
+            lua_rawgeti(L, idx, 2);
+            *endext = lua_tointeger(L, -1);
+            lua_pop(L, 1);
+        }
+    }
+
+}
+
 int lgeometry_path(lua_State* L)
 {
     lobject_t* cell = lobject_check(L, 1);
@@ -99,33 +129,9 @@ int lgeometry_path(lua_State* L)
     lua_pop(L, 1);
     coordinate_t width = lua_tointeger(L, 4);
 
-    unsigned int bgnext = 0;
-    unsigned int endext = 0;
-    if(lua_gettop(L) == 5)
-    {
-        if(lua_type(L, 5) == LUA_TSTRING)
-        {
-            const char* exttype = lua_tostring(L, 5);
-            if(strcmp(exttype, "butt") == 0)
-            {
-                bgnext = 0;
-                endext = 0;
-            }
-        }
-        else if(lua_type(L, 5) == LUA_TNUMBER)
-        {
-            bgnext = endext = lua_tointeger(L, 5);
-        }
-        else if(lua_type(L, 5) == LUA_TTABLE)
-        {
-            lua_rawgeti(L, 5, 1);
-            bgnext = lua_tointeger(L, -1);
-            lua_pop(L, 1);
-            lua_rawgeti(L, 5, 2);
-            endext = lua_tointeger(L, -1);
-            lua_pop(L, 1);
-        }
-    }
+    int bgnext = 0;
+    int endext = 0;
+    _get_path_extension(L, 5, &bgnext, &endext);
 
     point_t** points = calloc(len, sizeof(*points));
     for(unsigned int i = 1; i <= len; ++i)
@@ -137,6 +143,142 @@ int lgeometry_path(lua_State* L)
     }
     geometry_path(cell->object, layer, points, len, width, bgnext, endext);
     free(points);
+    return 0;
+}
+
+int lgeometry_path_manhatten(lua_State* L)
+{
+    lobject_t* cell = lobject_check(L, 1);
+    generics_t* layer = _check_generics(L, 2);
+    lua_len(L, 3);
+    size_t len = lua_tointeger(L, -1);
+    lua_pop(L, 1);
+    coordinate_t width = lua_tointeger(L, 4);
+
+    int bgnext = 0;
+    int endext = 0;
+    _get_path_extension(L, 5, &bgnext, &endext);
+
+    size_t numpoints = 2 * (len - 2) + 3;
+    point_t** points = calloc(numpoints, sizeof(*points));
+
+    lua_rawgeti(L, 3, 1);
+    lpoint_t* pt = lpoint_checkpoint(L, -1);
+    points[0] = point_create(pt->point->x, pt->point->y);
+    //coordinate_t lastx = pt->point->x;
+    coordinate_t lasty = pt->point->y;
+    lua_pop(L, 1);
+
+    for(unsigned int i = 2; i <= len; ++i)
+    {
+        lua_rawgeti(L, 3, i);
+        lpoint_t* pt = lpoint_checkpoint(L, -1);
+        points[2 * (i - 2) + 1] = point_create(pt->point->x, lasty);
+        points[2 * (i - 2) + 2] = point_create(pt->point->x, pt->point->y);
+        //lastx = pt->point->x;
+        lasty = pt->point->y;
+        lua_pop(L, 1);
+    }
+
+    geometry_path(cell->object, layer, points, numpoints, width, bgnext, endext);
+    for(unsigned int i = 0; i < numpoints; ++i)
+    {
+        point_destroy(points[i]);
+    }
+    free(points);
+    return 0;
+}
+
+int lgeometry_path_3x(lua_State* L)
+{
+    lobject_t* cell = lobject_check(L, 1);
+    generics_t* layer = _check_generics(L, 2);
+    lua_len(L, 3);
+    size_t len = lua_tointeger(L, -1);
+    lua_pop(L, 1);
+    coordinate_t width = lua_tointeger(L, 4);
+
+    int bgnext = 0;
+    int endext = 0;
+    _get_path_extension(L, 5, &bgnext, &endext);
+
+    size_t numpoints = 2 * (len - 2) + 3;
+    point_t** points = calloc(numpoints, sizeof(*points));
+
+    lua_rawgeti(L, 3, 1);
+    lpoint_t* pt = lpoint_checkpoint(L, -1);
+    points[0] = point_create(pt->point->x, pt->point->y);
+    //coordinate_t lastx = pt->point->x;
+    coordinate_t lasty = pt->point->y;
+    lua_pop(L, 1);
+
+    for(unsigned int i = 2; i <= len; ++i)
+    {
+        lua_rawgeti(L, 3, i);
+        lpoint_t* pt = lpoint_checkpoint(L, -1);
+        points[2 * (i - 2) + 1] = point_create(pt->point->x, lasty);
+        points[2 * (i - 2) + 2] = point_create(pt->point->x, pt->point->y);
+        //lastx = pt->point->x;
+        lasty = pt->point->y;
+        lua_pop(L, 1);
+    }
+
+    geometry_path(cell->object, layer, points, numpoints, width, bgnext, endext);
+    for(unsigned int i = 0; i < numpoints; ++i)
+    {
+        point_destroy(points[i]);
+    }
+    free(points);
+    return 0;
+}
+
+int lgeometry_path_cshape(lua_State* L)
+{
+    lobject_t* cell = lobject_check(L, 1);
+    generics_t* layer = _check_generics(L, 2);
+    lpoint_t* ptstart = lpoint_checkpoint(L, 3);
+    lpoint_t* ptend = lpoint_checkpoint(L, 4);
+    lpoint_t* ptoffset = lpoint_checkpoint(L, 5);
+    coordinate_t offset = ptoffset->point->x;
+    coordinate_t width = lua_tointeger(L, 6);
+
+    int bgnext = 0;
+    int endext = 0;
+    _get_path_extension(L, 7, &bgnext, &endext);
+
+    point_t* points[4];
+    points[0] = ptstart->point;
+    points[1] = point_create(ptstart->point->x + offset, ptstart->point->y);
+    points[2] = point_create(ptstart->point->x + offset, ptend->point->y);
+    points[3] = ptend->point;
+    geometry_path(cell->object, layer, points, 4, width, bgnext, endext);
+    point_destroy(points[1]);
+    point_destroy(points[2]);
+    return 0;
+}
+
+int lgeometry_path_ushape(lua_State* L)
+{
+    lobject_t* cell = lobject_check(L, 1);
+    generics_t* layer = _check_generics(L, 2);
+    lpoint_t* ptstart = lpoint_checkpoint(L, 3);
+    lpoint_t* ptend = lpoint_checkpoint(L, 4);
+    lpoint_t* ptoffset = lpoint_checkpoint(L, 5);
+    coordinate_t offset = ptoffset->point->y;
+    coordinate_t width = lua_tointeger(L, 6);
+
+    int bgnext = 0;
+    int endext = 0;
+    _get_path_extension(L, 7, &bgnext, &endext);
+
+    point_t* points[4];
+    points[0] = ptstart->point;
+    points[1] = point_create(ptstart->point->x, ptstart->point->y + offset);
+    points[2] = point_create(ptend->point->x, ptstart->point->y + offset);
+    points[3] = ptend->point;
+    geometry_path(cell->object, layer, points, 4, width, bgnext, endext);
+    point_destroy(points[1]);
+    point_destroy(points[2]);
     return 0;
 }
 
@@ -246,6 +388,9 @@ int open_lgeometry_lib(lua_State* L)
         { "rectanglepoints", lgeometry_rectanglepoints },
         { "polygon",         lgeometry_polygon         },
         { "path",            lgeometry_path            },
+        { "path_manhatten",  lgeometry_path_manhatten  },
+        { "path_cshape",     lgeometry_path_cshape     },
+        { "path_ushape",     lgeometry_path_ushape     },
         { "viabltr",         lgeometry_viabltr         },
         { "via",             lgeometry_via             },
         { "contactbltr",     lgeometry_contactbltr     },

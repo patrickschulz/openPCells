@@ -6,17 +6,6 @@ function geometry.path3y(layer, startpt, endpt, width, extension)
     return geometry.path(layer, geometry.path_points_yx(startpt, { endpt }), width, extension)
 end
 
-function geometry.path_c_shape(cell, layer, ptstart, ptmiddle, ptend, width, extension)
-    geometry.path(cell, layer,
-        geometry.path_points_xy(ptstart,
-        {
-            ptmiddle,
-            0,
-            ptend,
-        }), width
-    )
-end
-
 function geometry.path_points_xy(startpt, movements)
     local pts = {}
     table.insert(pts, startpt)
