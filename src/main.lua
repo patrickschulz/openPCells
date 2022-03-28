@@ -259,15 +259,12 @@ end
 
 -- move origin
 if args.origin then
-    local dx, dy = string.match(args.origin, "%(%s*([-%d]+)%s*,%s*([-%d]+)%s*%)")
-    if not dx then
+    local x, y = string.match(args.origin, "%(%s*([-%d]+)%s*,%s*([-%d]+)%s*%)")
+    if not x then
         moderror(string.format("could not parse origin (%s)", args.origin))
     end
-    dx, dy = tonumber(dx), tonumber(dy)
-    --local cx, cy = cell.origin:unwrap()
-    --cell:translate(dx - cx, dy - cy)
-    -- FIXME: get origin from cell
-    cell:translate(dx, dy)
+    x, y = tonumber(x), tonumber(y)
+    cell:move_to(x, y)
 end
 
 -- translate
