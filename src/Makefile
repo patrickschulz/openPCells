@@ -14,7 +14,7 @@ SYSCFLAGS=
 SYSLDFLAGS=
 SYSLIBS=
 
-OPCOBJ:=util.o vector.o union.o reduce.o lreduce.o point.o technology.o transformationmatrix.o ltransformationmatrix.o shape.o object.o geometry.o keyvaluepairs.o generics.o lgenerics.o lgeometry.o ldir.o lpoint.o graphics.o lbind.o lload.o lbinary.o lobject.o pcell.o lfilesystem.o lplacer.o lplacer_rand.o lrouter.o lrouter_net.o lrouter_queue.o lrouter_field.o lrouter_route.o lutil.o gdsparser.o ldebug.o lexport.o lexport_common.o gdsexport.o
+OPCOBJ:=util.o vector.o union.o postprocess.o lpostprocess.o point.o technology.o transformationmatrix.o ltransformationmatrix.o shape.o object.o geometry.o keyvaluepairs.o generics.o lgenerics.o lgeometry.o ldir.o lpoint.o graphics.o lbind.o lload.o lbinary.o lobject.o pcell.o lfilesystem.o lplacer.o lplacer_rand.o lrouter.o lrouter_net.o lrouter_queue.o lrouter_field.o lrouter_route.o lutil.o gdsparser.o ldebug.o lexport.o lexport_common.o gdsexport.o
 
 .PHONY: default
 default:
@@ -26,8 +26,8 @@ $(PROGNAME): main.c lua/liblua.a $(OPCOBJ)
 
 vector.o: vector.h vector.c
 union.o: union.h union.c
-reduce.o: reduce.h reduce.c
-lreduce.o: lreduce.h lreduce.c
+postprocess.o: postprocess.h postprocess.c
+lpostprocess.o: lpostprocess.h lpostprocess.c
 util.o: util.h util.c
 point.o: point.h point.c
 technology.o: technology.h technology.c

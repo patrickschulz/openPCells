@@ -8,14 +8,15 @@
 
 typedef struct
 {
+    char* name;
     char** exportnames;
     struct keyvaluearray** data;
     size_t size;
     int is_pre;
 } generics_t;
 
-generics_t* generics_create_empty_layer(void);
-generics_t* generics_create_premapped_layer(size_t size);
+generics_t* generics_create_empty_layer(const char* name);
+generics_t* generics_create_premapped_layer(const char* name, size_t size);
 generics_t* generics_create_special(void);
 
 generics_t* generics_create_metal(int num);

@@ -91,7 +91,7 @@ static int lgenerics_create_special(lua_State* L)
 static int lgenerics_create_premapped(lua_State* L)
 {
     uint32_t key = 0xffffffff; // this key is arbitrary (it is not used), but it must not collide with any other possible key
-    generics_t* layer = technology_make_layer(L);
+    generics_t* layer = technology_make_layer("_EXPLICIT_PREMAPPED", L); // FIXME: get layername
     generics_insert_extra_layer(key, layer);
     _push_layer(L, layer);
     return 1;

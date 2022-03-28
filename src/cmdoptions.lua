@@ -99,7 +99,8 @@ return {
     },
     store{
         name = "layerfilterlist", long = "--filter-list",
-        help = "set filter list type (white or black, default black)"
+        help = "set filter list type (include or exclude, default exclude)",
+        default = "exclude"
     },
     store_multiple{
         name = "exportfilter", long = "--export-filter",
@@ -107,7 +108,8 @@ return {
     },
     store{
         name = "exportfilterlist", long = "--export-filter-list",
-        help = "set export filter list type (white or black, default black)"
+        help = "set export filter list type (include or exclude, default exclude)",
+        default = "exclude"
     },
     switch{
         name = "ignoremissinglayers", long = "--ignore-missing-layers",

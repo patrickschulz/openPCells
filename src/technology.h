@@ -31,7 +31,7 @@ struct via_definition* technology_get_contact_fallback(const char* region);
 void technology_initialize(void);
 void technology_destroy(void);
 
-generics_t* technology_make_layer(lua_State* L);
+generics_t* technology_make_layer(const char* layername, lua_State* L);
 
 int open_ltechnology_lib(lua_State* L);
 

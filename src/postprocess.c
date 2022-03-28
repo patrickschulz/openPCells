@@ -1,4 +1,6 @@
-#include "reduce.h"
+#include "postprocess.h"
+
+#include <string.h>
 
 #include "vector.h"
 #include "union.h"
@@ -32,13 +34,48 @@ static void _merge_shapes(object_t* object)
     }
 }
 
-void reduce_merge_shapes(object_t* object)
+void postprocess_merge_shapes(object_t* object)
 {
     _merge_shapes(object);
     for(unsigned int i = 0; i < pcell_get_reference_count(); ++i)
     {
         struct cellreference* reference = pcell_get_indexed_cell_reference(i);
         _merge_shapes(reference->cell);
+    }
+}
+
+void postprocess_filter_exclude(object_t* object, const char** layernames, size_t len)
+{
+    for(int i = object->shapes_size - 1; i >= 0; --i)
+    {
+        shape_t* S = object->shapes[i];
+        for(unsigned int j = 0; j < len; ++j)
+        {
+            if(strcmp(S->layer->name, layernames[j]) == 0)
+            {
+                object_remove_shape(object, i);
+            }
+        }
+    }
+}
+
+void postprocess_filter_include(object_t* object, const char** layernames, size_t len)
+{
+    for(int i = object->shapes_size - 1; i >= 0; --i)
+    {
+        shape_t* S = object->shapes[i];
+        int keep = 0;
+        for(unsigned int j = 0; j < len; ++j)
+        {
+            if(strcmp(S->layer->name, layernames[j]) == 0)
+            {
+                keep = 1;
+            }
+        }
+        if(!keep)
+        {
+            object_remove_shape(object, i);
+        }
     }
 }
 

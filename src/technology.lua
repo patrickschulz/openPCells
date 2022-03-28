@@ -1,6 +1,4 @@
 local constraints
-local config
-local viadefs
 
 local techpaths = {}
 
@@ -72,30 +70,3 @@ function technology.list_techpaths()
     end
 end
 
-----------------------
---[[
-function technology.resolve_metal(metalnum)
-    if metalnum < 0 then
-        return config.metals + metalnum + 1
-    else
-        return metalnum
-    end
-end
-
-function technology.get_via_definitions(metal1, metal2)
-    local identifier = string.format("viaM%dM%d", metal1, metal2)
-    local entry = viadefs[identifier]
-    if not entry then
-        moderror(string.format("technology: no via definition '%s' found", identifier))
-    end
-    return entry
-end
-
-function technology.get_contact_definitions(region)
-    return viadefs[string.format("contact%s", region)]
-end
-
-function technology.get_config_value(key)
-    return config[key]
-end
---]]

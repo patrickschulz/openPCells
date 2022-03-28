@@ -321,10 +321,7 @@ end
 
 -- filter layers
 if args.layerfilter then
-    -- filter toplevel (flat shapes)
-    postprocess.filter(cell, args.layerfilter, args.layerfilterlist or "black")
-    -- filter children
-    pcell.foreach_cell_references(postprocess.filter, args.layerfilter, args.layerfilterlist or "black")
+    postprocess.filter(cell, args.layerfilter, args.layerfilterlist)
 end
 
 if args.flatten then
@@ -332,10 +329,7 @@ if args.flatten then
 end
 
 if args.mergerectangles then
-    -- merge toplevel (flat shapes)
-    reduce.merge_shapes(cell)
-    -- merge children
-    pcell.foreach_cell_references(reduce.merge_shapes)
+    postprocess.merge_shapes(cell)
 end
 
 if not args.export then

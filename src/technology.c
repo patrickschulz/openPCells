@@ -28,12 +28,6 @@ static void _insert_lpp_pairs(lua_State* L, struct keyvaluearray* map)
     }
 }
 
-struct layerentry
-{
-    char* name;
-    generics_t* layer;
-};
-
 struct viaentry
 {
     char* name;
@@ -41,24 +35,21 @@ struct viaentry
     struct via_definition* fallback;
 };
 
-static struct vector* layertable;
-static struct vector* viatable;
+static struct vector* layertable; // stores generics_t*
+static struct vector* viatable; // stores struct viaentry*
 static struct technology_config* config;
 
-static void _insert_layer(char* layername, generics_t* layer)
+static void _insert_layer(generics_t* layer)
 {
-    struct layerentry* entry = malloc(sizeof(*entry));
-    entry->name = layername;
-    entry->layer = layer;
-    vector_append(layertable, entry);
+    vector_append(layertable, layer);
 }
 
-generics_t* technology_make_layer(lua_State* L)
+generics_t* technology_make_layer(const char* layername, lua_State* L)
 {
     generics_t* layer;
     if(lua_isnil(L, -1))
     {
-        layer = generics_create_empty_layer();
+        layer = generics_create_empty_layer(layername);
     }
     else
     {
@@ -71,7 +62,7 @@ generics_t* technology_make_layer(lua_State* L)
             num += 1;
         }
 
-        layer = generics_create_premapped_layer(num);
+        layer = generics_create_premapped_layer(layername, num);
         unsigned int i = 0;
         lua_pushnil(L);
         while (lua_next(L, -2) != 0)
@@ -99,10 +90,10 @@ int technology_load_layermap(lua_State* L)
     lua_pushnil(L);
     while(lua_next(L, -2) != 0)
     {
-        char* layername = util_copy_string(lua_tostring(L, -2));
+        const char* layername = lua_tostring(L, -2);
         lua_getfield(L, -1, "layer");
-        generics_t* layer = technology_make_layer(L);
-        _insert_layer(layername, layer);
+        generics_t* layer = technology_make_layer(layername, L);
+        _insert_layer(layer);
         lua_pop(L, 1); // pop layer table
         lua_pop(L, 1); // pop value, keep key for next iteration
     }
@@ -224,10 +215,10 @@ generics_t* technology_get_layer(const char* layername)
 {
     for(unsigned int i = 0; i < vector_size(layertable); ++i)
     {
-        struct layerentry* entry = vector_get(layertable, i);
-        if(strcmp(entry->name, layername) == 0)
+        generics_t* layer = vector_get(layertable, i);
+        if(strcmp(layer->name, layername) == 0)
         {
-            return entry->layer;
+            return layer;
         }
     }
     return NULL;
@@ -348,10 +339,8 @@ void technology_destroy(void)
 {
     for(unsigned int i = 0; i < vector_size(layertable); ++i)
     {
-        struct layerentry* entry = vector_get(layertable, i);
-        free(entry->name);
-        generics_destroy_layer(entry->layer);
-        free(entry);
+        generics_t* layer = vector_get(layertable, i);
+        generics_destroy_layer(layer);
     }
     vector_destroy(layertable, NULL);
 
@@ -366,6 +355,7 @@ void technology_destroy(void)
             ++viadef;
         }
         free(entry->viadefs);
+        free(entry->fallback);
         free(entry);
     }
     vector_destroy(viatable, NULL);

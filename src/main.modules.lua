@@ -3,7 +3,6 @@ local modules = {
     "cmdparser",
     "point",
     "technology",
-    "postprocess",
     "config",
     "geometry",
     "graphics",

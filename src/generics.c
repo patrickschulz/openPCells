@@ -50,16 +50,17 @@ static uint32_t _hash(const uint8_t* data, size_t size)
 }
 
 
-generics_t* generics_create_empty_layer(void)
+generics_t* generics_create_empty_layer(const char* name)
 {
     generics_t* layer = malloc(sizeof(*layer));
     memset(layer, 0, sizeof(*layer));
+    layer->name = util_copy_string(name);
     return layer;
 }
 
-generics_t* generics_create_premapped_layer(size_t size)
+generics_t* generics_create_premapped_layer(const char* name, size_t size)
 {
-    generics_t* layer = malloc(sizeof(*layer));
+    generics_t* layer = generics_create_empty_layer(name);
     layer->data = calloc(size, sizeof(*layer->data));
     layer->exportnames = calloc(size, sizeof(*layer->exportnames));
     layer->size = size;
@@ -265,6 +266,7 @@ void generics_destroy_layer(generics_t* layer)
         free(layer->exportnames[i]);
         keyvaluearray_destroy(layer->data[i]);
     }
+    free(layer->name);
     free(layer->exportnames);
     free(layer->data);
     free(layer);
