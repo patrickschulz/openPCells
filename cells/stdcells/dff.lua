@@ -300,10 +300,10 @@ function layout(dff, _P)
     -- first latch inverter connect drains
     -- (this also connects the drain of the pmos set transistor)
     local sdcorrection = _P.enable_reset and 1 or 0
-    geometry.path_c_shape(dff, generics.metal(1),
+    geometry.path_cshape(dff, generics.metal(1),
         sourcedrain("p", "i", 13 + setshift + resetshift - sdcorrection):translate(0, bp.sdwidth / 2),
-        gate(14 + setshift + 2 * resetshift):translate(xpitch, 0),
         sourcedrain("n", "i", 13 + setshift + resetshift):translate(0, -bp.sdwidth / 2),
+        gate(14 + setshift + 2 * resetshift):translate(xpitch, 0),
         bp.sdwidth
     )
 
@@ -371,10 +371,10 @@ function layout(dff, _P)
     -- second latch inverter connect drains
     -- (this also connects the drain of the pmos set transistor)
     local sdcorrection = _P.enable_reset and 1 or 0
-    geometry.path_c_shape(dff, generics.metal(1),
+    geometry.path_cshape(dff, generics.metal(1),
         sourcedrain("p", "i", 20 + 2 * setshift + 3 * resetshift - sdcorrection):translate(0, bp.sdwidth / 2),
-        gate(19 + 2 * setshift + 3 * resetshift):translate(xpitch, 0),
         sourcedrain("n", "i", 20 + 2 * setshift + 3 * resetshift):translate(0, -bp.sdwidth / 2),
+        gate(19 + 2 * setshift + 3 * resetshift):translate(xpitch, 0),
         bp.sdwidth
     )
 
@@ -385,10 +385,10 @@ function layout(dff, _P)
     )
 
     -- output Q inverter connect drains
-    geometry.path_c_shape(dff, generics.metal(1),
+    geometry.path_cshape(dff, generics.metal(1),
         sourcedrain("p", "i", 22 + 2 * setshift + 3 * resetshift):translate(0, bp.sdwidth / 2),
-        gate(21 + 2 * setshift + 3 * resetshift):translate(xpitch, 0),
         sourcedrain("n", "i", 22 + 2 * setshift + 3 * resetshift):translate(0, -bp.sdwidth / 2),
+        gate(21 + 2 * setshift + 3 * resetshift):translate(xpitch, 0),
         bp.sdwidth
     )
 
@@ -398,10 +398,10 @@ function layout(dff, _P)
             gate(23 + 2 * setshift + 3 * resetshift):translate(-xpitch, -bp.sdwidth / 2),
             gate(23 + 2 * setshift + 3 * resetshift):translate(bp.glength / 2,  bp.sdwidth / 2)
         )
-        geometry.path_c_shape(dff, generics.metal(1),
+        geometry.path_cshape(dff, generics.metal(1),
             sourcedrain("p", "i", 24 + 2 * setshift + 3 * resetshift):translate(0, bp.sdwidth / 2),
-            gate(23 + 2 * setshift + 3 * resetshift):translate(xpitch, 0),
             sourcedrain("n", "i", 24 + 2 * setshift + 3 * resetshift):translate(0, -bp.sdwidth / 2),
+            gate(23 + 2 * setshift + 3 * resetshift):translate(xpitch, 0),
             bp.sdwidth
         )
     end

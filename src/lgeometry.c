@@ -248,8 +248,8 @@ int lgeometry_path_cshape(lua_State* L)
 
     point_t* points[4];
     points[0] = ptstart->point;
-    points[1] = point_create(ptstart->point->x + offset, ptstart->point->y);
-    points[2] = point_create(ptstart->point->x + offset, ptend->point->y);
+    points[1] = point_create(offset, ptstart->point->y);
+    points[2] = point_create(offset, ptend->point->y);
     points[3] = ptend->point;
     geometry_path(cell->object, layer, points, 4, width, bgnext, endext);
     point_destroy(points[1]);
@@ -273,8 +273,8 @@ int lgeometry_path_ushape(lua_State* L)
 
     point_t* points[4];
     points[0] = ptstart->point;
-    points[1] = point_create(ptstart->point->x, ptstart->point->y + offset);
-    points[2] = point_create(ptend->point->x, ptstart->point->y + offset);
+    points[1] = point_create(ptstart->point->x, offset);
+    points[2] = point_create(ptend->point->x, offset);
     points[3] = ptend->point;
     geometry_path(cell->object, layer, points, 4, width, bgnext, endext);
     point_destroy(points[1]);
