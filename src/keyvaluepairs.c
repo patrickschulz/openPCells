@@ -6,69 +6,77 @@
 struct keyvaluearray* keyvaluearray_create(void)
 {
     struct keyvaluearray* array = malloc(sizeof(*array));
-    array->size = 0;
-    array->capacity = 1;
-    array->pairs = calloc(array->capacity, sizeof(*array->pairs));
+    array->pairs = vector_create();
     return array;
+}
+
+void _destroy_pair(void* ptr)
+{
+    struct keyvaluepair* pair = ptr;
+    free(pair->key);
+    free(pair->value);
+    free(pair);
 }
 
 void keyvaluearray_destroy(struct keyvaluearray* array)
 {
-    for(unsigned int i = 0; i < array->size; ++i)
-    {
-        free(array->pairs[i]->key);
-        free(array->pairs[i]->value);
-        free(array->pairs[i]);
-    }
-    free(array->pairs);
+    vector_destroy(array->pairs, _destroy_pair);
     free(array);
 }
 
-static void _prepare_add(struct keyvaluearray* array, const char* key, enum tag_t tag)
+static struct keyvaluepair* _create_pair(const char* key, enum tag_t tag)
 {
-    if(array->size == array->capacity)
-    {
-        array->capacity = (array->capacity * 2) > (array->size + 1) ? (array->capacity * 2) : (array->size + 1);
-        struct keyvaluepair** pairs = realloc(array->pairs, array->capacity * sizeof(*array->pairs));
-        array->pairs = pairs;
-    }
-    array->size += 1;
-    array->pairs[array->size - 1] = malloc(sizeof(**array->pairs));
-    array->pairs[array->size - 1]->key = malloc(strlen(key) + 1);
-    strcpy(array->pairs[array->size - 1]->key, key);
-    array->pairs[array->size - 1]->tag = tag;
+    struct keyvaluepair* pair = malloc(sizeof(*pair));
+    pair->key = malloc(strlen(key) + 1);
+    strcpy(pair->key, key);
+    pair->tag = tag;
+    return pair;
 }
 
 void keyvaluearray_add_int(struct keyvaluearray* array, const char* key, int value)
 {
-    _prepare_add(array, key, INT);
-    array->pairs[array->size - 1]->value = malloc(sizeof(int));
-    *((int*)array->pairs[array->size - 1]->value) = value;
+    struct keyvaluepair* pair = _create_pair(key, INT);
+    pair->value = malloc(sizeof(int));
+    *((int*)pair->value) = value;
+    vector_append(array->pairs, pair);
 }
 
 void keyvaluearray_add_boolean(struct keyvaluearray* array, const char* key, int value)
 {
-    _prepare_add(array, key, BOOLEAN);
-    array->pairs[array->size - 1]->value = malloc(sizeof(int));
-    *((int*)array->pairs[array->size - 1]->value) = value ? 1 : 0;
+    struct keyvaluepair* pair = _create_pair(key, BOOLEAN);
+    pair->value = malloc(sizeof(int));
+    *((int*)pair->value) = value ? 1 : 0;
+    vector_append(array->pairs, pair);
 }
 
 void keyvaluearray_add_string(struct keyvaluearray* array, const char* key, const char* value)
 {
-    _prepare_add(array, key, STRING);
-    array->pairs[array->size - 1]->value = malloc(strlen(value) + 1);
-    strcpy(array->pairs[array->size - 1]->value, value);
+    struct keyvaluepair* pair = _create_pair(key, STRING);
+    pair->value = malloc(strlen(value) + 1);
+    strcpy(pair->value, value);
+    vector_append(array->pairs, pair);
+}
+
+size_t keyvaluearray_size(const struct keyvaluearray* array)
+{
+    return vector_size(array->pairs);
+}
+
+struct keyvaluepair* keyvaluearray_get_indexed_pair(const struct keyvaluearray* array, size_t idx)
+{
+    return vector_get(array->pairs, idx);
 }
 
 int keyvaluearray_get_int(const struct keyvaluearray* array, const char* key, int* value)
 {
-    for(unsigned int i = 0; i < array->size; ++i)
+    for(unsigned int i = 0; i < vector_size(array->pairs); ++i)
     {
-        if(strcmp(key, array->pairs[i]->key) == 0)
+        struct keyvaluepair* pair = vector_get(array->pairs, i);
+        if(strcmp(key, pair->key) == 0)
         {
-            if(array->pairs[i]->tag == INT)
+            if(pair->tag == INT)
             {
-                *value = *((int*)array->pairs[i]->value);
+                *value = *((int*)pair->value);
                 return 1;
             }
         }

@@ -3,6 +3,8 @@
 
 #include <stddef.h>
 
+#include "vector.h"
+
 struct keyvaluepair
 {
     char* key;
@@ -15,9 +17,7 @@ struct keyvaluepair
 
 struct keyvaluearray
 {
-    struct keyvaluepair** pairs;
-    size_t size;
-    size_t capacity;
+    struct vector* pairs;
 };
 
 struct keyvaluearray* keyvaluearray_create(void);
@@ -27,6 +27,9 @@ void keyvaluearray_add_int(struct keyvaluearray*, const char* key, int value);
 void keyvaluearray_add_boolean(struct keyvaluearray*, const char* key, int value);
 void keyvaluearray_add_string(struct keyvaluearray*, const char* key, const char* value);
 
+size_t keyvaluearray_size(const struct keyvaluearray* array);
+
+struct keyvaluepair* keyvaluearray_get_indexed_pair(const struct keyvaluearray*, size_t idx);
 int keyvaluearray_get_int(const struct keyvaluearray*, const char* key, int* value);
 
 #endif /* OPC_KEYVALUEPAIRS_H */

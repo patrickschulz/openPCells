@@ -141,19 +141,20 @@ static void _write_ports(object_t* cell, struct export_data* data, struct export
 static void _push_layer(lua_State* L, struct keyvaluearray* data)
 {
     lua_newtable(L);
-    for(unsigned int i = 0; i < data->size; ++i)
+    for(unsigned int i = 0; i < keyvaluearray_size(data); ++i)
     {
-        lua_pushstring(L, data->pairs[i]->key);
-        switch(data->pairs[i]->tag)
+        struct keyvaluepair* pair = keyvaluearray_get_indexed_pair(data, i);
+        lua_pushstring(L, pair->key);
+        switch(pair->tag)
         {
             case INT:
-                lua_pushinteger(L, *(int*)data->pairs[i]->value);
+                lua_pushinteger(L, *(int*)pair->value);
                 break;
             case STRING:
-                lua_pushstring(L, (const char*)data->pairs[i]->value);
+                lua_pushstring(L, (const char*)pair->value);
                 break;
             case BOOLEAN:
-                lua_pushboolean(L, *(int*)data->pairs[i]->value);
+                lua_pushboolean(L, *(int*)pair->value);
                 break;
         }
         lua_rawset(L, -3);
