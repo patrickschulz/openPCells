@@ -6,6 +6,8 @@
 #include "lua/lauxlib.h"
 
 #include "lplacer_rand.h"
+#include "keyvaluepairs.h"
+#include "util.h"
 
 struct floorplan {
     unsigned int floorplan_width;
@@ -19,7 +21,6 @@ struct floorplan {
 
 struct cell {
     unsigned int instance;
-    unsigned int reference;
     unsigned int width;
     struct net** nets;
     unsigned int* pinoffset;
@@ -27,7 +28,6 @@ struct cell {
 };
 
 struct net {
-    unsigned int size;
     unsigned int xmin, xmax;
     unsigned int ymin, ymax;
 };
@@ -250,14 +250,24 @@ static struct block* _initialize(lua_State* L, unsigned int num_rows, struct Ran
 {
     struct block* block = malloc(sizeof(struct block));
 
-    block->num_nets = lua_tointeger(L, 1);
-
-    lua_len(L, 2);
+    lua_len(L, 1);
     unsigned int num_cells = lua_tointeger(L, -1);
     lua_pop(L, 1);
 
     // initialize nets
+    lua_len(L, 2);
+    size_t num_nets = lua_tointeger(L, -1);
+    lua_pop(L, 1);
+    block->num_nets = num_nets;
     block->nets = calloc(block->num_nets, sizeof(struct net));
+    struct keyvaluearray* netmap = keyvaluearray_create();
+    for(size_t i = 1; i <= num_nets; ++i)
+    {
+        lua_geti(L, 2, i);
+        const char* name = lua_tostring(L, -1);
+        keyvaluearray_add_untagged(netmap, name, block->nets + i - 1);
+        lua_pop(L, 1);
+    }
 
     // initialize all_cells
     block->num_cells = num_cells;
@@ -279,19 +289,12 @@ static struct block* _initialize(lua_State* L, unsigned int num_rows, struct Ran
 
     for(size_t i = 1; i <= num_cells; ++i)
     {
-        lua_geti(L, 2, i);
+        lua_geti(L, 1, i); // get instance
 
         struct cell* c = block->cells + i - 1;
 
         // instance
-        lua_getfield(L, -1, "instance");
-        c->instance = lua_tointeger(L, -1);
-        lua_pop(L, 1);
-
-        // reference
-        lua_getfield(L, -1, "reference");
-        c->reference = lua_tointeger(L, -1);
-        lua_pop(L, 1);
+        c->instance = i;
 
         // width
         lua_getfield(L, -1, "width");
@@ -308,19 +311,23 @@ static struct block* _initialize(lua_State* L, unsigned int num_rows, struct Ran
         c->num_conns = num_conns;
         for(size_t j = 1; j <= num_conns; ++j)
         {
-            lua_geti(L, -1, j);
+            lua_geti(L, -1, j); // get net
 
-            lua_getfield(L, -1, "index");
-            int index = lua_tointeger(L, -1);
-            c->nets[j - 1] = &block->nets[index - 1];
+            lua_getfield(L, -1, "name");
+            const char* name = lua_tostring(L, -1);
+            c->nets[j - 1] = keyvaluearray_get(netmap, name);
+            lua_pop(L, 1); // pop name
 
-            lua_getfield(L, -2, "pinoffset");
-            unsigned int pinoffset = lua_tointeger(L, -1);
+            lua_getfield(L, -3, "pinoffsets");
+            lua_getfield(L, -2, "port");
+            lua_gettable(L, -2);
+            int pinoffset = lua_tointeger(L, -1);
             c->pinoffset[j - 1] = pinoffset;
+            lua_pop(L, 2); // pop pinoffset + pinoffsets table
 
-            lua_pop(L, 3); // index, pinoffset and net table
+            lua_pop(L, 1); // pop net
         }
-        lua_pop(L, 1);
+        lua_pop(L, 1); // pop instance
     }
 
     // shuffle cells
@@ -331,6 +338,8 @@ static struct block* _initialize(lua_State* L, unsigned int num_rows, struct Ran
         block->cells[j] = block->cells[i];
         block->cells[i] = tmp;
     }
+
+    keyvaluearray_destroy(netmap);
 
     return block;
 }
@@ -379,13 +388,17 @@ static void _create_lua_result(lua_State* L, struct block* block)
         for(unsigned int col = 0; col < block->row_sizes[row]; col++)
         {
             struct cell* c = _get_cell(block, row, col);
+            int index = c->instance;
+            lua_rawgeti(L, 1, index);
+
             lua_newtable(L);
             lua_pushstring(L, "reference");
-            lua_pushinteger(L, c->reference);
+            lua_getfield(L, -3, "reference");
             lua_settable(L, -3);
             lua_pushstring(L, "instance");
-            lua_pushinteger(L, c->instance);
+            lua_getfield(L, 1, "instance");
             lua_settable(L, -3);
+            lua_pop(L, 1);
             lua_seti(L, -2, i);
             ++i;
         }
@@ -558,15 +571,15 @@ int lplacer_place_simulated_annealing(lua_State* L)
 
     struct block* block = _initialize(L, floorplan->floorplan_height, &rstate);
 
-    lua_getfield(L, 3, "movespercell");
+    lua_getfield(L, 2, "movespercell");
     const size_t moves_per_cell_per_temp = lua_tointeger(L, -1);
     lua_pop(L, 1);
 
-    lua_getfield(L, 3, "coolingfactor");
+    lua_getfield(L, 2, "coolingfactor");
     const double coolingfactor = lua_tonumber(L, -1);
     lua_pop(L, 1);
 
-    lua_getfield(L, 3, "report");
+    lua_getfield(L, 2, "report");
     const int verbose = lua_toboolean(L, -1);
     lua_pop(L, 1);
 

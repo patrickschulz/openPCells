@@ -502,4 +502,31 @@ function M.parse(content)
     return content
 end
 
+function M.read_parse_file(filename)
+    local file = io.open(filename, "r")
+    if not file then
+        moderror(string.format("generator.from_verilog: could not open file '%s'", filename))
+    end
+    local str = file:read("a")
+    local content = M.parse(str)
+    file:close()
+    return content
+end
+
+function M.filter_excluded_nets(netlist, excluded_nets)
+    for module in netlist:modules() do
+        for instance in module:instances() do
+            local ct = {}
+            local po = {}
+            for i = #instance.connections, 1, -1 do
+                local c = instance.connections[i]
+                if aux.any_of(function(v) return v == c.net end, excluded_nets) then
+                    table.remove(instance.connections, i)
+                end
+            end
+        end
+    end
+end
+
+
 return M

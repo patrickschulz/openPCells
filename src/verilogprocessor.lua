@@ -1,0 +1,70 @@
+local function _get_cell_width(name)
+    local lut = {
+        not_gate = 1,
+        nand_gate = 2,
+        nor_gate = 2,
+        xor_gate = 10,
+        xnor_gate = 11,
+        dffq = 21,
+        dffnq = 24,
+    }
+    if not lut[name] then
+        moderror(string.format("unknown stdcell '%s'", name))
+    end
+    return lut[name]
+end
+
+local function _get_pin_offset(name, port)
+    local lut = {
+        not_gate = { I = 0, O = 1 },
+        nand_gate = { A = 0, B = 1, O = 2 },
+        nor_gate = { A = 0, B = 1, O = 2 },
+        xor_gate = { A = 0, B = 1, O = 10 },
+        xnor_gate = { A = 0, B = 1, O = 10 },
+        dffq = { CLK = 0, D = 0, Q = 20, },
+        dffnq = { CLK = 0, D = 0, Q = 20, },
+    }
+    if not lut[name] then
+        moderror(string.format("unknown stdcell '%s'", name))
+    end
+    --[[
+    if not lut[name][port] then
+        moderror(string.format("unknown port '%s' for stdcell '%s'", port, name))
+    end
+    return lut[name][port]
+    --]]
+    return lut[name]
+end
+
+local M = {}
+
+function M.collect_nets_cells(netlist)
+    local netset = {}
+    local nets = {}
+    local instances = {}
+    for module in netlist:modules() do
+        for instance in module:instances() do
+            -- create nets
+            local ct = {}
+            for _, c in ipairs(instance.connections) do
+                if not aux.any_of(function(v) return v == c.net end, module:get_ports()) then
+                    if not netset[c.net] then
+                        netset[c.net] = true
+                        table.insert(nets, c.net)
+                    end
+                    table.insert(ct, { name = c.net, port = c.port })
+                end
+            end
+            table.insert(instances, { 
+                instance = instance.name, 
+                reference = instance.reference,
+                nets = ct,
+                pinoffsets = _get_pin_offset(instance.reference),
+                width = _get_cell_width(instance.reference),
+            })
+        end
+    end
+    return instances, nets
+end
+
+return M

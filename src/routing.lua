@@ -1,5 +1,34 @@
 local M = {}
 
+local function _prepare_routing_nets(nets, rows)
+    local netpositions = {}
+    local numnets = 0
+    for name, net in pairs(nets) do
+        for _, n in pairs(net.connections) do
+            for r, row in ipairs(rows) do
+                for c, column in ipairs(row) do
+                    if column.instance == n.instance then
+                        if not netpositions[name] then
+                            netpositions[name] = {}
+                            numnets = numnets + 1
+                        end
+                        --local offset = _get_pin_offset(column.reference, n.port)
+                        local offset = 0
+                        table.insert(netpositions[name], { x = c + offset, y = r })
+                    end
+                end
+            end
+        end
+    end
+    return netpositions, numnets
+end
+
+function M.legalize(nets, rows)
+    local routes = {}
+    local netpositions, numnets = _prepare_routing_nets(nets, rows)
+    return routes
+end
+
 function M.route(cell, routes, cells, width)
     for r, route in ipairs(routes) do
         if route[1].type ~= "anchor" then
