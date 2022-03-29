@@ -347,7 +347,7 @@ if not args.noexport then
         end
     end
     export.set_bus_delimiters(leftdelim, rightdelim)
-    export.write_toplevel(args.export, cell, filename, args.toplevelname or "opctoplevel", args.writechildrenports, args.dryrun)
+    export.write_toplevel(args.export, cell, filename, args.toplevelname or "opctoplevel", args.export_options, args.writechildrenports, args.dryrun)
 end
 
 if args.cellinfo then

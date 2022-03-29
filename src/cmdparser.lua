@@ -244,6 +244,14 @@ local function _get_action(self, args)
     end
 end
 
+function meta.parse_from_string(self, str)
+    local args = {}
+    for a in string.gmatch(str, "(%S+)") do
+        table.insert(args, a)
+    end
+    return self:parse(args)
+end
+
 function meta.parse(self, args)
     while self.state.i <= #args do
         local parser = _get_parser(self, args)

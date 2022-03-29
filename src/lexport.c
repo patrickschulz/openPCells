@@ -311,6 +311,39 @@ static struct export_functions* get_export_functions(const char* exportname)
     return funcs;
 }
 
+static void _parse_export_options(lua_State* L, const char* filename)
+{
+    // create argument parser
+    lua_getglobal(L, "cmdparser");
+    lua_call(L, 0, 1);
+
+    // load options
+    lua_getfield(L, -1, "load_options_from_file");
+    lua_pushvalue(L, -2);
+    lua_pushstring(L, filename);
+    lua_call(L, 2, 0);
+
+    // parse options
+    lua_getfield(L, -1, "parse_from_string");
+    lua_pushvalue(L, -2);
+    lua_pushvalue(L, 5);
+    lua_call(L, 2, 2);
+    if(lua_isnil(L, -2))
+    {
+        lua_getglobal(L, "errprint");
+        lua_pushvalue(L, -2);
+        lua_call(L, 1, 0);
+    }
+    else
+    {
+        lua_pop(L, 1); // pop (nil) error message
+    }
+
+    // pop argparse
+    lua_insert(L, -2);
+    lua_pop(L, 1);
+}
+
 static void _write_toplevel_C(object_t* object, struct export_data* data, struct export_functions* funcs)
 {
     funcs->at_begin(data);
@@ -382,6 +415,15 @@ static void _write_toplevel_lua(lua_State* L, object_t* object, struct export_da
 
 static int lexport_write_toplevel(lua_State* L)
 {
+    // arguments passed in main.lua are:
+    // 1: exportname
+    // 2: cell
+    // 3: filename
+    // 4: toplevelname
+    // 5: export_options
+    // 6: writechildrenports
+    // 7: dryrun
+
     const char* exportname = lua_tostring(L, 1);
     lobject_t* toplevel = lua_touserdata(L, 2);
 
@@ -392,13 +434,12 @@ static int lexport_write_toplevel(lua_State* L)
         return 0;
     }
 
-    // try C-defined exports first
-    struct export_functions* funcs = get_export_functions(exportname);
-
     struct export_data* data = export_create_data();
     const char* extension;
     int success = 0;
-    if(funcs)
+
+    struct export_functions* funcs = get_export_functions(exportname);
+    if(funcs) // C-defined exports
     {
         _write_toplevel_C(toplevel->object, data, funcs);
         extension = funcs->get_extension();
@@ -406,9 +447,6 @@ static int lexport_write_toplevel(lua_State* L)
     }
     else // lua-defined exports
     {
-        //const char* searchpaths[] = {
-        //    "/home/pkurth/Workspace/openPCells/export"
-        //};
         if(searchpaths)
         {
             for(unsigned int i = 0; i < vector_size(searchpaths); ++i)
@@ -418,8 +456,20 @@ static int lexport_write_toplevel(lua_State* L)
                 char* exportfilename = malloc(len);
                 snprintf(exportfilename, len, "%s/%s/init.lua", searchpath, exportname);
                 luaL_dofile(L, exportfilename);
+                free(exportfilename);
                 if(lua_type(L, -1) == LUA_TTABLE)
                 {
+                    if(!lua_isnil(L, 5))
+                    {
+                        lua_getfield(L, -1, "set_options");
+                        size_t optionslen = strlen(searchpath) + strlen(exportname) + 17; // + 17: "cmdoptions.lua" + 2 * '/' + terminating zero
+                        char* optionsfilename = malloc(optionslen);
+                        snprintf(optionsfilename, optionslen, "%s/%s/cmdoptions.lua", searchpath, exportname);
+                        _parse_export_options(L, optionsfilename);
+                        free(optionsfilename);
+                        _call_or_pop_nil(L, 1);
+                    }
+
                     _write_toplevel_lua(L, toplevel->object, data);
 
                     lua_getfield(L, -1, "get_extension");
