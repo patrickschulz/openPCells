@@ -156,6 +156,8 @@ static void _push_layer(lua_State* L, struct keyvaluearray* data)
             case BOOLEAN:
                 lua_pushboolean(L, *(int*)pair->value);
                 break;
+            default: // silence warning about unhandled UNTAGGED
+                break;
         }
         lua_rawset(L, -3);
     }
@@ -216,9 +218,7 @@ static void _write_cell_lua(lua_State* L, object_t* cell)
                 lua_getfield(L, -1, "write_path");
                 if(!lua_isnil(L, -1))
                 {
-                    lua_pop(L, 1);
                     path_properties_t* properties = shape->properties;
-                    lua_getfield(L, -1, "write_path");
                     _push_layer(L, layerdata);
                     _push_points(L, shape->points, shape->size);
                     lua_pushinteger(L, properties->width);
@@ -231,6 +231,7 @@ static void _write_cell_lua(lua_State* L, object_t* cell)
                 }
                 else
                 {
+                    lua_pop(L, 1); // pop nil (lua_getfield(L, "write_path"))
                     shape_resolve_path(shape);
                     lua_getfield(L, -1, "write_polygon");
                     _push_layer(L, layerdata);
