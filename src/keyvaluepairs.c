@@ -14,7 +14,10 @@ void _destroy_pair(void* ptr)
 {
     struct keyvaluepair* pair = ptr;
     free(pair->key);
-    free(pair->value);
+    if(pair->tag != UNTAGGED) // untagged values are not memory-managed by the array
+    {
+        free(pair->value);
+    }
     free(pair);
 }
 
@@ -57,6 +60,13 @@ void keyvaluearray_add_string(struct keyvaluearray* array, const char* key, cons
     vector_append(array->pairs, pair);
 }
 
+void keyvaluearray_add_untagged(struct keyvaluearray* array, const char* key, void* value)
+{
+    struct keyvaluepair* pair = _create_pair(key, UNTAGGED);
+    pair->value = value;
+    vector_append(array->pairs, pair);
+}
+
 size_t keyvaluearray_size(const struct keyvaluearray* array)
 {
     return vector_size(array->pairs);
@@ -65,6 +75,19 @@ size_t keyvaluearray_size(const struct keyvaluearray* array)
 struct keyvaluepair* keyvaluearray_get_indexed_pair(const struct keyvaluearray* array, size_t idx)
 {
     return vector_get(array->pairs, idx);
+}
+
+void* keyvaluearray_get(const struct keyvaluearray* array, const char* key)
+{
+    for(unsigned int i = 0; i < vector_size(array->pairs); ++i)
+    {
+        struct keyvaluepair* pair = vector_get(array->pairs, i);
+        if(strcmp(key, pair->key) == 0)
+        {
+            return pair->value;
+        }
+    }
+    return NULL;
 }
 
 int keyvaluearray_get_int(const struct keyvaluearray* array, const char* key, int* value)
