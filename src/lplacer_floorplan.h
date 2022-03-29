@@ -1,0 +1,4 @@
+#ifndef LPLACER_FLOORPLAN_H
+#define LPLACER_FLOORPLAN_H
+
+#endif /* LPLACER_FLOORPLAN_H */

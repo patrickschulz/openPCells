@@ -14,7 +14,7 @@ SYSCFLAGS=
 SYSLDFLAGS=
 SYSLIBS=
 
-OPCOBJ:=util.o vector.o union.o postprocess.o lpostprocess.o point.o technology.o transformationmatrix.o ltransformationmatrix.o shape.o object.o geometry.o keyvaluepairs.o generics.o lgenerics.o lgeometry.o ldir.o lpoint.o graphics.o lbind.o lload.o lbinary.o lobject.o pcell.o lfilesystem.o lplacer.o lplacer_rand.o lrouter.o lrouter_net.o lrouter_queue.o lrouter_field.o lrouter_route.o lutil.o gdsparser.o ldebug.o lexport.o lexport_common.o gdsexport.o
+OPCOBJ:=util.o vector.o union.o postprocess.o lpostprocess.o point.o technology.o transformationmatrix.o ltransformationmatrix.o shape.o object.o geometry.o keyvaluepairs.o generics.o lgenerics.o lgeometry.o ldir.o lpoint.o graphics.o lbind.o lload.o lbinary.o lobject.o pcell.o lfilesystem.o lplacer.o lplacer_rand.o lplacer_nonoverlapping.o lplacer_classic.o lrouter.o lrouter_net.o lrouter_queue.o lrouter_field.o lrouter_route.o lutil.o gdsparser.o ldebug.o lexport.o lexport_common.o gdsexport.o
 
 .PHONY: default
 default:
@@ -54,6 +54,8 @@ lutil.o: lutil.c lutil.h
 
 lplacer.o: lplacer.h lplacer.c
 lplacer_rand.o: lplacer_rand.h lplacer_rand.c
+lplacer_nonoverlapping.o: lplacer_nonoverlapping.h lplacer_nonoverlapping.c lplacer_rand.h lplacer_rand.c
+lplacer_classic.o: lplacer_classic.h lplacer_classic.c lplacer_rand.h lplacer_rand.c
 
 lrouter.o: lrouter.c lrouter.h
 lrouter_net.o: lrouter_net.h lrouter_net.c
