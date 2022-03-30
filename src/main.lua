@@ -295,6 +295,7 @@ if args.orientation then
     f()
 end
 
+-- draw anchors
 if args.drawanchor then
     for _, da in ipairs(args.drawanchor) do
         local anchor = cell:get_anchor(da)
@@ -325,20 +326,21 @@ if args.layerfilter then
     postprocess.filter(cell, args.layerfilter, args.layerfilterlist)
 end
 
+-- flatten
 if args.flatten then
     cell:flatten(args.flattenports)
 end
 
+-- merge rectangles
 if args.mergerectangles then
     postprocess.merge_shapes(cell)
 end
 
+-- export cell
 if not args.export then
     moderror("no export type given")
 end
 if not args.noexport then
-    --export.set_options(args.export_options)
-    --export.check()
     if not generics.resolve_premapped_layers(args.exportlayers or args.export) then
         moderror(string.format("no layer data for export type '%s' found", args.exportlayers or args.export))
     end
