@@ -232,4 +232,21 @@ function M.strsplit(text, pattern, plain)
   return ret
 end
 
+function M.tprint(tbl, indent)                                                   
+    -- Print contents of tbl, with indentation.                                   
+    -- indent sets the initial level of indentation.                                 
+    indent = indent or 0
+    for k, v in pairs(tbl) do                                                     
+        local formatting = string.rep("  ", indent) .. k .. ": "                             
+        if type(v) == "table" then                                                  
+            print(formatting)                                                         
+            tprint(v, indent+1)                                                       
+        elseif type(v) == 'boolean' then                                            
+            print(formatting .. tostring(v))                                          
+        else                                                                        
+            print(formatting .. v)                                                    
+        end                                                                         
+    end                                                                           
+end
+
 return M
