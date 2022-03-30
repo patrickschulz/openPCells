@@ -16,13 +16,40 @@ end
 
 local function _get_pin_offset(name, port)
     local lut = {
-        not_gate = { I = 0, O = 1 },
-        nand_gate = { A = 0, B = 1, O = 2 },
-        nor_gate = { A = 0, B = 1, O = 2 },
-        xor_gate = { A = 0, B = 1, O = 10 },
-        xnor_gate = { A = 0, B = 1, O = 10 },
-        dffp = { CLK = 0, D = 0, Q = 20, },
-        dffn = { CLK = 0, D = 0, Q = 20, },
+        not_gate = {
+            I = { x = 0, y = 0 },
+            O = { x = 1, y = 0 }
+        },
+        nand_gate = {
+            A = { x = 0, y = 0 },
+            B = { x = 1, y = 0 },
+            O = { x = 2, y = 0 }
+        },
+        nor_gate = { 
+            A = { x = 0, y = 0 },
+            B = { x = 1, y = 0 },
+            O = { x = 2, y = 0 }
+        },
+        xor_gate = {
+            A = { x = 0, y = 0 },
+            B = { x = 1, y = 0 },
+            O = { x = 10, y = 0 }
+        },
+        xnor_gate = {
+            A = { x = 0, y = 0 },
+            B = { x = 1, y = 0 },
+            O = { x = 10, y = 0 }
+        },
+        dffp = {
+            CLK = { x = 0, y = 0 },
+            D = { x = 0, y = 0 },
+            Q = { x = 20, y = 0 },
+        },
+        dffn = {
+            CLK = { x = 0, y = 0 },
+            D = { x = 0, y = 0 },
+            Q = { x = 20, y = 0 }
+        },
     }
     if not lut[name] then
         moderror(string.format("unknown stdcell '%s'", name))

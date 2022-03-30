@@ -7,27 +7,9 @@ verilog.filter_excluded_nets(netlist, { "clk", "_mem.clk", "vdd", "vss", "in", "
 
 local instances, nets = verilogprocessor.collect_nets_cells(netlist)
 
---[[
-for _, instance in ipairs(instances) do
-    print(string.format("instance:   %s", instance.instance))
-    print(string.format("reference:  %s", instance.reference))
-    print(string.format("width:      %d", instance.width))
-    print("nets:")
-    for _, net in ipairs(instance.nets) do
-        print(string.format("    { name = %s, port = %s }", net.name, net.port))
-    end
-    io.write(string.format("pinoffsets: { "))
-    for k, v in pairs(instance.pinoffsets) do
-        io.write(string.format("%s = %d, ", k, v))
-    end
-    print("}")
-    print()
-end
---]]
-
 local rows = placement.optimize(instances, nets, 0.5, 1)
 
---local routes = routing.legalize(nets, rows)
+local routes = routing.legalize(nets, rows)
 
 local filename = generator.get_cell_filename("verilogimport", "verilogimport", module)
 print(string.format("writing to file '%s'", filename))
