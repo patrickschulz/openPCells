@@ -11,7 +11,7 @@ local function _prepare_routing_nets(nets, rows)
                             netpositions[i] = { name = net, positions = {} }
                         end
                         local offset = column.pinoffsets[n.port]
-                        table.insert(netpositions[i].positions, { x = c + offset.x, y = r + offset.y })
+                        table.insert(netpositions[i].positions, { instance = column.instance, port = n.port, x = c + offset.x, y = r + offset.y })
                     end
                 end
             end
@@ -23,6 +23,14 @@ end
 function M.legalize(nets, rows)
     local routes = {}
     local netpositions = _prepare_routing_nets(nets, rows)
+    for _, pos in ipairs(netpositions) do
+        print(pos.name)
+        for _, p in ipairs(pos.positions) do
+            print(string.format("x = %d, y = %d (instance: '%s', port: '%s')", p.x, p.y, p.instance, p.port))
+        end
+        print()
+    end
+    -- call router here
     return routes
 end
 
