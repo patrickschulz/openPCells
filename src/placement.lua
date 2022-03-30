@@ -58,12 +58,21 @@ local function _create_options(fixedrows, required_width, total_width, utilizati
     return options
 end
 
+function _sanitize_rows(rows)
+    for row = #rows, 1, -1 do
+        if #rows[row] == 0 then
+            table.remove(rows, row)
+        end
+    end
+end
+
 function M.optimize(instances, nets, utilization, aspectratio)
     -- placer options
     local required_width, total_width = _get_geometry(instances)
     local options = _create_options(fixedrows, required_width, total_width, utilization, aspectratio)
 
     local rows = placer.place_simulated_annealing(instances, nets, options)
+    _sanitize_rows(rows) -- removes empty rows
     return rows
 end
 

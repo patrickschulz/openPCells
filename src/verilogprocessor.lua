@@ -5,8 +5,8 @@ local function _get_cell_width(name)
         nor_gate = 2,
         xor_gate = 10,
         xnor_gate = 11,
-        dffq = 21,
-        dffnq = 24,
+        dffp = 21,
+        dffn = 24,
     }
     if not lut[name] then
         moderror(string.format("unknown stdcell '%s'", name))
@@ -21,8 +21,8 @@ local function _get_pin_offset(name, port)
         nor_gate = { A = 0, B = 1, O = 2 },
         xor_gate = { A = 0, B = 1, O = 10 },
         xnor_gate = { A = 0, B = 1, O = 10 },
-        dffq = { CLK = 0, D = 0, Q = 20, },
-        dffnq = { CLK = 0, D = 0, Q = 20, },
+        dffp = { CLK = 0, D = 0, Q = 20, },
+        dffn = { CLK = 0, D = 0, Q = 20, },
     }
     if not lut[name] then
         moderror(string.format("unknown stdcell '%s'", name))

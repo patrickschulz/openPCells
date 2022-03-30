@@ -7,7 +7,11 @@
 #include <stdint.h>
 #include <math.h>
 
+#include "lplacer_common.h"
 #include "lplacer_rand.h"
+
+#include "keyvaluepairs.h"
+#include "util.h"
 
 struct floorplan {
     unsigned int floorplan_width;
@@ -19,13 +23,7 @@ struct floorplan {
 };
 
 struct cell {
-    unsigned int instance;
-    unsigned int reference;
-    unsigned int width;
-    struct net** nets;
-    unsigned int* pinoffset;
-    unsigned int num_conns;
-
+    struct basic_cell base;
     unsigned int pos_x;
     unsigned int pos_y;
 };
@@ -104,7 +102,7 @@ static unsigned int calculate_row_width_penalty(struct block* block, struct floo
         struct cell** cells_in_row = get_cells_of_row(block, row, NULL);
         for(struct cell** c_p = cells_in_row; *c_p; c_p++)
         {
-            row_width += (*c_p)->width;
+            row_width += (*c_p)->base.width;
         }
         if(row_width > floorplan->floorplan_width)
         {
@@ -132,14 +130,24 @@ static struct block* _initialize(lua_State* L, struct floorplan* floorplan, stru
 {
     struct block* block = malloc(sizeof(struct block));
 
-    block->num_nets = lua_tointeger(L, 1);
-
-    lua_len(L, 2);
+    lua_len(L, 1);
     unsigned int num_cells = lua_tointeger(L, -1);
     lua_pop(L, 1);
 
     // initialize nets
+    lua_len(L, 2);
+    size_t num_nets = lua_tointeger(L, -1);
+    lua_pop(L, 1);
+    block->num_nets = num_nets;
     block->nets = calloc(block->num_nets, sizeof(struct net));
+    struct keyvaluearray* netmap = keyvaluearray_create();
+    for(size_t i = 1; i <= num_nets; ++i)
+    {
+        lua_geti(L, 2, i);
+        const char* name = lua_tostring(L, -1);
+        keyvaluearray_add_untagged(netmap, name, block->nets + i - 1);
+        lua_pop(L, 1);
+    }
 
     // initialize all_cells
     block->num_cells = num_cells;
@@ -147,23 +155,16 @@ static struct block* _initialize(lua_State* L, struct floorplan* floorplan, stru
 
     for(size_t i = 1; i <= num_cells; ++i)
     {
-        lua_geti(L, 2, i);
+        lua_geti(L, 1, i); // get instance
 
         struct cell* c = block->cells + i - 1;
 
         // instance
-        lua_getfield(L, -1, "instance");
-        c->instance = lua_tointeger(L, -1);
-        lua_pop(L, 1);
-
-        // reference
-        lua_getfield(L, -1, "reference");
-        c->reference = lua_tointeger(L, -1);
-        lua_pop(L, 1);
+        c->base.instance = i;
 
         // width
         lua_getfield(L, -1, "width");
-        c->width = lua_tointeger(L, -1);
+        c->base.width = lua_tointeger(L, -1);
         lua_pop(L, 1);
 
         // nets
@@ -171,25 +172,40 @@ static struct block* _initialize(lua_State* L, struct floorplan* floorplan, stru
         lua_len(L, -1);
         size_t num_conns = lua_tointeger(L, -1);
         lua_pop(L, 1);
-        c->nets = calloc(num_conns, sizeof(*c->nets));
-        c->pinoffset = calloc(num_conns, sizeof(*c->pinoffset));
-        c->num_conns = num_conns;
+        c->base.nets = calloc(num_conns, sizeof(*c->base.nets));
+        c->base.pinoffset = calloc(num_conns, sizeof(*c->base.pinoffset));
+        c->base.num_conns = num_conns;
         for(size_t j = 1; j <= num_conns; ++j)
         {
-            lua_geti(L, -1, j);
+            lua_geti(L, -1, j); // get net
 
-            lua_getfield(L, -1, "index");
-            int index = lua_tointeger(L, -1);
-            c->nets[j - 1] = &block->nets[index - 1];
+            lua_getfield(L, -1, "name");
+            const char* name = lua_tostring(L, -1);
+            c->base.nets[j - 1] = keyvaluearray_get(netmap, name);
+            lua_pop(L, 1); // pop name
 
-            lua_getfield(L, -2, "pinoffset");
-            unsigned int pinoffset = lua_tointeger(L, -1);
-            c->pinoffset[j - 1] = pinoffset;
+            lua_getfield(L, -3, "pinoffsets");
+            lua_getfield(L, -2, "port");
+            lua_gettable(L, -2);
+            int pinoffset = lua_tointeger(L, -1);
+            c->base.pinoffset[j - 1] = pinoffset;
+            lua_pop(L, 2); // pop pinoffset + pinoffsets table
 
-            lua_pop(L, 3); // index, pinoffset and net table
+            lua_pop(L, 1); // pop net
         }
-        lua_pop(L, 1);
+        lua_pop(L, 1); // pop instance
     }
+
+    // shuffle cells
+    for (unsigned int i = num_cells - 1; i > 0; i--)
+    {
+        unsigned int j = _lua_randi(rstate, 0, i);
+        struct cell tmp = block->cells[j];
+        block->cells[j] = block->cells[i];
+        block->cells[i] = tmp;
+    }
+
+    keyvaluearray_destroy(netmap);
 
     // place all cells randomly
     for (unsigned int i = 0; i < block->num_cells; ++i)
@@ -226,8 +242,8 @@ static void _clean_up(struct block* block, struct floorplan* floorplan)
 {
     for(unsigned int i = 0; i < block->num_cells; ++i)
     {
-        free((block->cells + i)->nets);
-        free((block->cells + i)->pinoffset);
+        free((block->cells + i)->base.nets);
+        free((block->cells + i)->base.pinoffset);
     }
     free(block->cells);
     free(block->nets);
@@ -266,13 +282,17 @@ static void _create_lua_result(lua_State* L, struct block* block, struct floorpl
         int i = 1;
         for(struct cell** c = cells_in_row; *c; ++c)
         {
+            int index = (*c)->base.instance;
+            lua_rawgeti(L, 1, index);
+
             lua_newtable(L);
             lua_pushstring(L, "reference");
-            lua_pushinteger(L, (*c)->reference);
+            lua_getfield(L, -3, "reference");
             lua_settable(L, -3);
             lua_pushstring(L, "instance");
-            lua_pushinteger(L, (*c)->instance);
+            lua_getfield(L, 1, "instance");
             lua_settable(L, -3);
+            lua_pop(L, 1);
             lua_seti(L, -2, i);
             ++i;
         }
@@ -299,10 +319,10 @@ static void _update_net_positions(struct block* block)
     for(unsigned int i = 0; i < block->num_cells; ++i)
     {
         struct cell* c = block->cells + i;
-        for(unsigned int i = 0; i < c->num_conns; ++i)
+        for(unsigned int i = 0; i < c->base.num_conns; ++i)
         {
-            struct net* net = c->nets[i];
-            unsigned int pinoffset = c->pinoffset[i];
+            struct net* net = c->base.nets[i];
+            unsigned int pinoffset = c->base.pinoffset[i];
             net->xmin = min(net->xmin, c->pos_x + pinoffset);
             net->xmax = max(net->xmax, c->pos_x+ pinoffset);
             net->ymin = min(net->ymin, c->pos_y);
@@ -447,7 +467,7 @@ int lplacer_place_classic(lua_State* L)
     const int verbose = lua_toboolean(L, -1);
     lua_pop(L, 1);
 
-    _simulated_annealing(&rstate, block, floorplan, coolingfactor, moves_per_cell_per_temp, verbose);
+    //_simulated_annealing(&rstate, block, floorplan, coolingfactor, moves_per_cell_per_temp, verbose);
 
     _create_lua_result(L, block, floorplan);
 

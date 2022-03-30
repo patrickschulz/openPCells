@@ -38,22 +38,22 @@ module counter(clk, count);
     .B(count_pre[0]),
     .O(_01_)
   );
-  dffnq _08_ (
+  dffn _08_ (
     .CLK(clk),
     .D(_00_),
     .Q(count_pre[0])
   );
-  dffnq _09_ (
+  dffn _09_ (
     .CLK(clk),
     .D(_01_),
     .Q(count_pre[1])
   );
-  dffq _10_ (
+  dffp _10_ (
     .CLK(clk),
     .D(count_pre[0]),
     .Q(count[0])
   );
-  dffq _11_ (
+  dffp _11_ (
     .CLK(clk),
     .D(count_pre[1]),
     .Q(count[1])
