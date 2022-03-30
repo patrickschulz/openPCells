@@ -311,6 +311,32 @@ static struct export_functions* get_export_functions(const char* exportname)
     return funcs;
 }
 
+static void _check_function(lua_State* L, const char* exportname, const char* funcname)
+{
+    lua_getfield(L, -1, funcname);
+    if(lua_isnil(L, -1))
+    {
+        lua_pop(L, 1);
+        lua_pushfstring(L, "export '%s' does not define '%s'", exportname, funcname);
+        lua_error(L);
+    }
+    if(lua_type(L, -1) != LUA_TFUNCTION)
+    {
+        lua_pop(L, 1);
+        lua_pushfstring(L, "export '%s': field '%s' is not a function (table/userdata with __call meta field are not supported)", exportname, funcname);
+        lua_error(L);
+    }
+    lua_pop(L, 1);
+}
+
+static void _check_lua_export(lua_State* L, const char* exportname)
+{
+    _check_function(L, exportname, "get_extension");
+    _check_function(L, exportname, "write_rectangle");
+    _check_function(L, exportname, "write_polygon");
+    _check_function(L, exportname, "finalize");
+}
+
 static void _parse_export_options(lua_State* L, const char* filename)
 {
     // create argument parser
@@ -366,6 +392,21 @@ static void _write_toplevel_C(object_t* object, struct export_data* data, struct
 
     funcs->at_end(data);
 }
+
+/* FIXME
+local function _write_ports(cell)
+    for _, port in pairs(cell.ports) do
+        if port.isbusport then
+            local name = string.format("%s%s%d%s",  port.name, _leftdelim, port.busindex, _rightdelim)
+            cell.trans:apply_transformation(port.where)
+            export.write_port(name, port.layer:get(), port.where)
+        else
+            cell.trans:apply_transformation(port.where)
+            export.write_port(port.name, port:get_layer(), port.where)
+        end
+    end
+end
+*/
 
 static void _write_toplevel_lua(lua_State* L, object_t* object, struct export_data* data)
 {
@@ -459,6 +500,7 @@ static int lexport_write_toplevel(lua_State* L)
                 free(exportfilename);
                 if(lua_type(L, -1) == LUA_TTABLE)
                 {
+                    _check_lua_export(L, exportname);
                     if(!lua_isnil(L, 5))
                     {
                         lua_getfield(L, -1, "set_options");
