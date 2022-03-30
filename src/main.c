@@ -33,6 +33,7 @@
 #include "lbinary.h"
 #include "lobject.h"
 #include "pcell.h"
+#include "info.h"
 #include "lexport.h"
 #include "lpostprocess.h"
 //#include "lunion.h"
@@ -207,6 +208,7 @@ static lua_State* create_and_initialize_lua(void)
     open_lfilesystem_lib(L);
     open_lplacer_lib(L);
     open_lrouter_lib(L);
+    open_info_lib(L);
 
     open_gdsparser_lib(L);
 

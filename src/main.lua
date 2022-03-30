@@ -355,11 +355,7 @@ if not args.noexport then
 end
 
 if args.cellinfo then
-    print(string.format("number of shapes: %d", #cell.shapes))
-    print("used layers:")
-    for _, lpp in cell:layers() do
-        print(string.format("  %s", lpp:str()))
-    end
+    info.cellinfo(cell)
 end
 
 if args.profile then

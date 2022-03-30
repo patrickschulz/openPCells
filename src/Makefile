@@ -14,7 +14,7 @@ SYSCFLAGS=
 SYSLDFLAGS=
 SYSLIBS=
 
-OPCOBJ:=util.o vector.o union.o postprocess.o lpostprocess.o point.o technology.o transformationmatrix.o ltransformationmatrix.o shape.o object.o geometry.o keyvaluepairs.o generics.o lgenerics.o lgeometry.o ldir.o lpoint.o graphics.o lbind.o lload.o lbinary.o lobject.o pcell.o lfilesystem.o lplacer.o lplacer_rand.o lplacer_nonoverlapping.o lplacer_classic.o lrouter.o lrouter_net.o lrouter_queue.o lrouter_field.o lrouter_route.o lutil.o gdsparser.o ldebug.o lexport.o lexport_common.o gdsexport.o
+OPCOBJ:=util.o vector.o union.o postprocess.o lpostprocess.o point.o technology.o transformationmatrix.o ltransformationmatrix.o shape.o object.o geometry.o keyvaluepairs.o generics.o lgenerics.o lgeometry.o ldir.o lpoint.o graphics.o lbind.o lload.o lbinary.o lobject.o pcell.o lfilesystem.o lplacer.o lplacer_rand.o lplacer_nonoverlapping.o lplacer_classic.o lrouter.o lrouter_net.o lrouter_queue.o lrouter_field.o lrouter_route.o lutil.o gdsparser.o ldebug.o lexport.o lexport_common.o gdsexport.o info.o
 
 .PHONY: default
 default:
@@ -86,6 +86,10 @@ geometry.o: geometry.c geometry.h technology.h lua/lua.h lua/luaconf.h \
  point.h shape.h
 graphics.o: graphics.c graphics.h lua/lua.h lua/luaconf.h lua/lauxlib.h \
  lua/lua.h lpoint.h point.h
+info.o: info.c info.h lua/lua.h lua/luaconf.h \
+ lua/lauxlib.h lua/lua.h lobject.h object.h \
+ transformationmatrix.h point.h shape.h generics.h \
+ keyvaluepairs.h vector.h
 keyvaluepairs.o: keyvaluepairs.c keyvaluepairs.h vector.h
 lbinary.o: lbinary.c lbinary.h lua/lua.h lua/luaconf.h lua/lauxlib.h \
  lua/lua.h
