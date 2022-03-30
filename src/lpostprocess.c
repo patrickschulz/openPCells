@@ -11,11 +11,14 @@
 int lpostprocess_merge_shapes(lua_State* L)
 {
     lobject_t* lobject = lua_touserdata(L, 1);
-    postprocess_merge_shapes(lobject->object);
+    lua_getfield(L, LUA_REGISTRYINDEX, "genericslayermap");
+    struct layermap* layermap = lua_touserdata(L, -1);
+    lua_pop(L, 1); // pop layermap
+    postprocess_merge_shapes(lobject->object, layermap);
     for(unsigned int i = 0; i < pcell_get_reference_count(); ++i)
     {
         object_t* cell = pcell_get_indexed_cell_reference(i)->cell;
-        postprocess_merge_shapes(cell);
+        postprocess_merge_shapes(cell, layermap);
     }
     return 0;
 }

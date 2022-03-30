@@ -393,7 +393,7 @@ static struct via_definition* _get_rectangular_arrayzation(ucoordinate_t regionw
     return result;
 }
 
-static void _viabltr(object_t* cell, struct technology_state* techstate, int metal1, int metal2, coordinate_t blx, coordinate_t bly, coordinate_t trx, coordinate_t try, ucoordinate_t xrep, ucoordinate_t yrep, ucoordinate_t xpitch, ucoordinate_t ypitch)
+static void _viabltr(object_t* cell, struct layermap* layermap, struct technology_state* techstate, int metal1, int metal2, coordinate_t blx, coordinate_t bly, coordinate_t trx, coordinate_t try, ucoordinate_t xrep, ucoordinate_t yrep, ucoordinate_t xpitch, ucoordinate_t ypitch)
 {
     metal1 = technology_resolve_metal(techstate, metal1);
     metal2 = technology_resolve_metal(techstate, metal2);
@@ -424,7 +424,7 @@ static void _viabltr(object_t* cell, struct technology_state* techstate, int met
             for(unsigned int y = 1; y <= yrep; ++y)
             {
                 _rectanglebltr(cell, 
-                    generics_create_viacut(techstate, i, i + 1), 
+                    generics_create_viacut(layermap, techstate, i, i + 1), 
                     (x - 1) * xpitch - (xrep - 1) * xpitch / 2 + (blx + trx) / 2 - entry->width / 2,
                     (y - 1) * ypitch - (yrep - 1) * ypitch / 2 + (bly + try) / 2 - entry->height / 2,
                     (x - 1) * xpitch - (xrep - 1) * xpitch / 2 + (blx + trx) / 2 + entry->width / 2,
@@ -433,22 +433,22 @@ static void _viabltr(object_t* cell, struct technology_state* techstate, int met
                 );
             }
         }
-        _rectanglebltr(cell, generics_create_metal(techstate, i), blx, bly, trx, try, xrep, yrep, xpitch, ypitch);
-        _rectanglebltr(cell, generics_create_metal(techstate, i + 1), blx, bly, trx, try, xrep, yrep, xpitch, ypitch);
+        _rectanglebltr(cell, generics_create_metal(layermap, techstate, i), blx, bly, trx, try, xrep, yrep, xpitch, ypitch);
+        _rectanglebltr(cell, generics_create_metal(layermap, techstate, i + 1), blx, bly, trx, try, xrep, yrep, xpitch, ypitch);
     }
 }
 
-void geometry_viabltr(object_t* cell, struct technology_state* techstate, int metal1, int metal2, point_t* bl, point_t* tr, ucoordinate_t xrep, ucoordinate_t yrep, ucoordinate_t xpitch, ucoordinate_t ypitch)
+void geometry_viabltr(object_t* cell, struct layermap* layermap, struct technology_state* techstate, int metal1, int metal2, point_t* bl, point_t* tr, ucoordinate_t xrep, ucoordinate_t yrep, ucoordinate_t xpitch, ucoordinate_t ypitch)
 {
-    _viabltr(cell, techstate, metal1, metal2, bl->x, bl->y, tr->x, tr->y, xrep, yrep, xpitch, ypitch);
+    _viabltr(cell, layermap, techstate, metal1, metal2, bl->x, bl->y, tr->x, tr->y, xrep, yrep, xpitch, ypitch);
 }
 
-void geometry_via(object_t* cell, struct technology_state* techstate, int metal1, int metal2, ucoordinate_t width, ucoordinate_t height, coordinate_t xshift, coordinate_t yshift, ucoordinate_t xrep, ucoordinate_t yrep, ucoordinate_t xpitch, ucoordinate_t ypitch)
+void geometry_via(object_t* cell, struct layermap* layermap, struct technology_state* techstate, int metal1, int metal2, ucoordinate_t width, ucoordinate_t height, coordinate_t xshift, coordinate_t yshift, ucoordinate_t xrep, ucoordinate_t yrep, ucoordinate_t xpitch, ucoordinate_t ypitch)
 {
-    _viabltr(cell, techstate, metal1, metal2, -(coordinate_t)width / 2 + xshift, -(coordinate_t)height / 2 + yshift, width / 2 + xshift, height / 2 + yshift, xrep, yrep, xpitch, ypitch);
+    _viabltr(cell, layermap, techstate, metal1, metal2, -(coordinate_t)width / 2 + xshift, -(coordinate_t)height / 2 + yshift, width / 2 + xshift, height / 2 + yshift, xrep, yrep, xpitch, ypitch);
 }
 
-static void _contactbltr(object_t* cell, struct technology_state* techstate, const char* region, coordinate_t blx, coordinate_t bly, coordinate_t trx, coordinate_t try, ucoordinate_t xrep, ucoordinate_t yrep, ucoordinate_t xpitch, ucoordinate_t ypitch)
+static void _contactbltr(object_t* cell, struct layermap* layermap, struct technology_state* techstate, const char* region, coordinate_t blx, coordinate_t bly, coordinate_t trx, coordinate_t try, ucoordinate_t xrep, ucoordinate_t yrep, ucoordinate_t xpitch, ucoordinate_t ypitch)
 {
     ucoordinate_t width = trx - blx;
     ucoordinate_t height = try - bly;
@@ -465,7 +465,7 @@ static void _contactbltr(object_t* cell, struct technology_state* techstate, con
         for(unsigned int y = 1; y <= yrep; ++y)
         {
             _rectanglebltr(cell, 
-                generics_create_contact(techstate, region),
+                generics_create_contact(layermap, techstate, region),
                 (x - 1) * xpitch - (xrep - 1) * xpitch / 2 + (blx + trx) / 2 - entry->width / 2,
                 (y - 1) * ypitch - (yrep - 1) * ypitch / 2 + (bly + try) / 2 - entry->height / 2,
                 (x - 1) * xpitch - (xrep - 1) * xpitch / 2 + (blx + trx) / 2 + entry->width / 2,
@@ -474,17 +474,17 @@ static void _contactbltr(object_t* cell, struct technology_state* techstate, con
             );
         }
     }
-    _rectanglebltr(cell, generics_create_metal(techstate, 1), blx, bly, trx, try, xrep, yrep, xpitch, ypitch);
+    _rectanglebltr(cell, generics_create_metal(layermap, techstate, 1), blx, bly, trx, try, xrep, yrep, xpitch, ypitch);
 }
 
-void geometry_contactbltr(object_t* cell, struct technology_state* techstate, const char* region, point_t* bl, point_t* tr, ucoordinate_t xrep, ucoordinate_t yrep, ucoordinate_t xpitch, ucoordinate_t ypitch)
+void geometry_contactbltr(object_t* cell, struct layermap* layermap, struct technology_state* techstate, const char* region, point_t* bl, point_t* tr, ucoordinate_t xrep, ucoordinate_t yrep, ucoordinate_t xpitch, ucoordinate_t ypitch)
 {
-    _contactbltr(cell, techstate, region, bl->x, bl->y, tr->x, tr->y, xrep, yrep, xpitch, ypitch);
+    _contactbltr(cell, layermap, techstate, region, bl->x, bl->y, tr->x, tr->y, xrep, yrep, xpitch, ypitch);
 }
 
-void geometry_contact(object_t* cell, struct technology_state* techstate, const char* region, ucoordinate_t width, ucoordinate_t height, coordinate_t xshift, coordinate_t yshift, ucoordinate_t xrep, ucoordinate_t yrep, ucoordinate_t xpitch, ucoordinate_t ypitch)
+void geometry_contact(object_t* cell, struct layermap* layermap, struct technology_state* techstate, const char* region, ucoordinate_t width, ucoordinate_t height, coordinate_t xshift, coordinate_t yshift, ucoordinate_t xrep, ucoordinate_t yrep, ucoordinate_t xpitch, ucoordinate_t ypitch)
 {
-    _contactbltr(cell, techstate, region, -(coordinate_t)width / 2 + xshift, -(coordinate_t)height / 2 + yshift, width / 2 + xshift, height / 2 + yshift, xrep, yrep, xpitch, ypitch);
+    _contactbltr(cell, layermap, techstate, region, -(coordinate_t)width / 2 + xshift, -(coordinate_t)height / 2 + yshift, width / 2 + xshift, height / 2 + yshift, xrep, yrep, xpitch, ypitch);
 }
 
 void geometry_cross(object_t* cell, generics_t* layer, ucoordinate_t width, ucoordinate_t height, ucoordinate_t crosssize)

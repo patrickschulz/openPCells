@@ -217,15 +217,27 @@ int main (int argc, char** argv)
 {
     lua_State* L = create_and_initialize_lua();
     create_argument_table(L, argc, argv);
-    generics_initialize_layer_map();
+
+    // create layermap
+    struct layermap* layermap = generics_initialize_layer_map();
+    lua_pushlightuserdata(L, layermap);
+    lua_setfield(L, LUA_REGISTRYINDEX, "genericslayermap");
+
+    // create technology state
     struct technology_state* techstate = technology_initialize();
     lua_pushlightuserdata(L, techstate);
     lua_setfield(L, LUA_REGISTRYINDEX, "techstate");
+
     pcell_initialize_references();
+
     int retval = call_main_program(L, OPC_HOME "/src/main.lua");
-    generics_destroy_layer_map();
+
+    generics_destroy_layer_map(layermap);
+
     technology_destroy(techstate);
+
     pcell_destroy_references();
+
     lua_close(L);
     return retval;
 }
