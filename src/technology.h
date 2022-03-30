@@ -3,6 +3,7 @@
 
 #include "lua/lua.h"
 
+#include "vector.h"
 #include "generics.h"
 
 struct technology_config
@@ -21,15 +22,22 @@ struct via_definition
     int yenclosure;
 };
 
-generics_t* technology_get_layer(const char* layername);
-int technology_resolve_metal(int metalnum);
-struct via_definition** technology_get_via_definitions(int metal1, int metal2);
-struct via_definition* technology_get_via_fallback(int metal1, int metal2);
-struct via_definition** technology_get_contact_definitions(const char* region);
-struct via_definition* technology_get_contact_fallback(const char* region);
+struct technology_state
+{
+    struct vector* layertable; // stores generics_t*
+    struct vector* viatable; // stores struct viaentry*
+    struct technology_config* config;
+};
 
-void technology_initialize(void);
-void technology_destroy(void);
+struct technology_state* technology_initialize(void);
+void technology_destroy(struct technology_state* state);
+
+generics_t* technology_get_layer(struct technology_state* state, const char* layername);
+int technology_resolve_metal(struct technology_state* state, int metalnum);
+struct via_definition** technology_get_via_definitions(struct technology_state* state, int metal1, int metal2);
+struct via_definition* technology_get_via_fallback(struct technology_state* state, int metal1, int metal2);
+struct via_definition** technology_get_contact_definitions(struct technology_state* state, const char* region);
+struct via_definition* technology_get_contact_fallback(struct technology_state* state, const char* region);
 
 generics_t* technology_make_layer(const char* layername, lua_State* L);
 

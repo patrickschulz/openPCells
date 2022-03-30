@@ -293,7 +293,10 @@ int lgeometry_viabltr(lua_State* L)
     ucoordinate_t yrep = luaL_optinteger(L, 7, 1);
     ucoordinate_t xpitch = luaL_optinteger(L, 8, 0);
     ucoordinate_t ypitch = luaL_optinteger(L, 9, 0);
-    geometry_viabltr(cell->object, metal1, metal2, bl->point, tr->point, xrep, yrep, xpitch, ypitch);
+    lua_getfield(L, LUA_REGISTRYINDEX, "techstate");
+    struct technology_state* techstate = lua_touserdata(L, -1);
+    lua_pop(L, 1); // pop techstate
+    geometry_viabltr(cell->object, techstate, metal1, metal2, bl->point, tr->point, xrep, yrep, xpitch, ypitch);
     return 0;
 }
 
@@ -310,7 +313,10 @@ int lgeometry_via(lua_State* L)
     ucoordinate_t yrep = luaL_optinteger(L, 9, 1);
     ucoordinate_t xpitch = luaL_optinteger(L, 10, 0);
     ucoordinate_t ypitch = luaL_optinteger(L, 11, 0);
-    geometry_via(cell->object, metal1, metal2, width, height, xshift, yshift, xrep, yrep, xpitch, ypitch);
+    lua_getfield(L, LUA_REGISTRYINDEX, "techstate");
+    struct technology_state* techstate = lua_touserdata(L, -1);
+    lua_pop(L, 1); // pop techstate
+    geometry_via(cell->object, techstate, metal1, metal2, width, height, xshift, yshift, xrep, yrep, xpitch, ypitch);
     return 0;
 }
 
@@ -324,7 +330,10 @@ int lgeometry_contactbltr(lua_State* L)
     ucoordinate_t yrep = luaL_optinteger(L, 6, 1);
     ucoordinate_t xpitch = luaL_optinteger(L, 7, 0);
     ucoordinate_t ypitch = luaL_optinteger(L, 8, 0);
-    geometry_contactbltr(cell->object, region, bl->point, tr->point, xrep, yrep, xpitch, ypitch);
+    lua_getfield(L, LUA_REGISTRYINDEX, "techstate");
+    struct technology_state* techstate = lua_touserdata(L, -1);
+    lua_pop(L, 1); // pop techstate
+    geometry_contactbltr(cell->object, techstate, region, bl->point, tr->point, xrep, yrep, xpitch, ypitch);
     return 0;
 }
 
@@ -340,7 +349,10 @@ int lgeometry_contact(lua_State* L)
     ucoordinate_t yrep = luaL_optinteger(L, 8, 1);
     ucoordinate_t xpitch = luaL_optinteger(L, 9, 0);
     ucoordinate_t ypitch = luaL_optinteger(L, 10, 0);
-    geometry_contact(cell->object, region, width, height, xshift, yshift, xrep, yrep, xpitch, ypitch);
+    lua_getfield(L, LUA_REGISTRYINDEX, "techstate");
+    struct technology_state* techstate = lua_touserdata(L, -1);
+    lua_pop(L, 1); // pop techstate
+    geometry_contact(cell->object, techstate, region, width, height, xshift, yshift, xrep, yrep, xpitch, ypitch);
     return 0;
 }
 

@@ -18,7 +18,10 @@ static void _push_layer(lua_State* L, generics_t* layer)
 static int lgenerics_create_metal(lua_State* L)
 {
     int num = luaL_checkinteger(L, 1);
-    generics_t* layer = generics_create_metal(num);
+    lua_getfield(L, LUA_REGISTRYINDEX, "techstate");
+    struct technology_state* techstate = lua_touserdata(L, -1);
+    lua_pop(L, 1); // pop techstate
+    generics_t* layer = generics_create_metal(techstate, num);
     _push_layer(L, layer);
     return 1;
 }
@@ -26,7 +29,10 @@ static int lgenerics_create_metal(lua_State* L)
 static int lgenerics_create_metalport(lua_State* L)
 {
     int num = luaL_checkinteger(L, 1);
-    generics_t* layer = generics_create_metalport(num);
+    lua_getfield(L, LUA_REGISTRYINDEX, "techstate");
+    struct technology_state* techstate = lua_touserdata(L, -1);
+    lua_pop(L, 1); // pop techstate
+    generics_t* layer = generics_create_metalport(techstate, num);
     _push_layer(L, layer);
     return 1;
 }
@@ -35,7 +41,10 @@ static int lgenerics_create_viacut(lua_State* L)
 {
     int metal1 = luaL_checkinteger(L, 1);
     int metal2 = luaL_checkinteger(L, 2);
-    generics_t* layer = generics_create_viacut(metal1, metal2);
+    lua_getfield(L, LUA_REGISTRYINDEX, "techstate");
+    struct technology_state* techstate = lua_touserdata(L, -1);
+    lua_pop(L, 1); // pop techstate
+    generics_t* layer = generics_create_viacut(techstate, metal1, metal2);
     _push_layer(L, layer);
     return 1;
 }
@@ -43,7 +52,10 @@ static int lgenerics_create_viacut(lua_State* L)
 static int lgenerics_create_contact(lua_State* L)
 {
     const char* region = luaL_checkstring(L, 1);
-    generics_t* layer = generics_create_contact(region);
+    lua_getfield(L, LUA_REGISTRYINDEX, "techstate");
+    struct technology_state* techstate = lua_touserdata(L, -1);
+    lua_pop(L, 1); // pop techstate
+    generics_t* layer = generics_create_contact(techstate, region);
     _push_layer(L, layer);
     return 1;
 }
@@ -51,7 +63,10 @@ static int lgenerics_create_contact(lua_State* L)
 static int lgenerics_create_oxide(lua_State* L)
 {
     int num = luaL_checkinteger(L, 1);
-    generics_t* layer = generics_create_oxide(num);
+    lua_getfield(L, LUA_REGISTRYINDEX, "techstate");
+    struct technology_state* techstate = lua_touserdata(L, -1);
+    lua_pop(L, 1); // pop techstate
+    generics_t* layer = generics_create_oxide(techstate, num);
     _push_layer(L, layer);
     return 1;
 }
@@ -59,7 +74,10 @@ static int lgenerics_create_oxide(lua_State* L)
 static int lgenerics_create_implant(lua_State* L)
 {
     const char* str = luaL_checkstring(L, 1);
-    generics_t* layer = generics_create_implant(str[0]);
+    lua_getfield(L, LUA_REGISTRYINDEX, "techstate");
+    struct technology_state* techstate = lua_touserdata(L, -1);
+    lua_pop(L, 1); // pop techstate
+    generics_t* layer = generics_create_implant(techstate, str[0]);
     _push_layer(L, layer);
     return 1;
 }
@@ -68,7 +86,10 @@ static int lgenerics_create_vthtype(lua_State* L)
 {
     const char* channeltype = luaL_checkstring(L, 1);
     int vthtype = luaL_checkinteger(L, 2);
-    generics_t* layer = generics_create_vthtype(channeltype[0], vthtype);
+    lua_getfield(L, LUA_REGISTRYINDEX, "techstate");
+    struct technology_state* techstate = lua_touserdata(L, -1);
+    lua_pop(L, 1); // pop techstate
+    generics_t* layer = generics_create_vthtype(techstate, channeltype[0], vthtype);
     _push_layer(L, layer);
     return 1;
 }
@@ -76,14 +97,20 @@ static int lgenerics_create_vthtype(lua_State* L)
 static int lgenerics_create_other(lua_State* L)
 {
     const char* str = luaL_checkstring(L, 1);
-    generics_t* layer = generics_create_other(str);
+    lua_getfield(L, LUA_REGISTRYINDEX, "techstate");
+    struct technology_state* techstate = lua_touserdata(L, -1);
+    lua_pop(L, 1); // pop techstate
+    generics_t* layer = generics_create_other(techstate, str);
     _push_layer(L, layer);
     return 1;
 }
 
 static int lgenerics_create_special(lua_State* L)
 {
-    generics_t* layer = generics_create_special();
+    lua_getfield(L, LUA_REGISTRYINDEX, "techstate");
+    struct technology_state* techstate = lua_touserdata(L, -1);
+    lua_pop(L, 1); // pop techstate
+    generics_t* layer = generics_create_special(techstate);
     _push_layer(L, layer);
     return 1;
 }

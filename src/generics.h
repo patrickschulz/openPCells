@@ -5,6 +5,8 @@
 #include <stdint.h>
 
 #include "keyvaluepairs.h"
+//#include "technology.h"
+struct technology_state;
 
 typedef struct
 {
@@ -17,16 +19,16 @@ typedef struct
 
 generics_t* generics_create_empty_layer(const char* name);
 generics_t* generics_create_premapped_layer(const char* name, size_t size);
-generics_t* generics_create_special(void);
+generics_t* generics_create_special(struct technology_state* techstate);
 
-generics_t* generics_create_metal(int num);
-generics_t* generics_create_metalport(int num);
-generics_t* generics_create_viacut(int metal1, int metal2);
-generics_t* generics_create_contact(const char* region);
-generics_t* generics_create_oxide(int num);
-generics_t* generics_create_implant(char polarity);
-generics_t* generics_create_vthtype(char channeltype, int vthtype);
-generics_t* generics_create_other(const char* str);
+generics_t* generics_create_metal(struct technology_state* techstate, int num);
+generics_t* generics_create_metalport(struct technology_state* techstate, int num);
+generics_t* generics_create_viacut(struct technology_state* techstate, int metal1, int metal2);
+generics_t* generics_create_contact(struct technology_state* techstate, const char* region);
+generics_t* generics_create_oxide(struct technology_state* techstate, int num);
+generics_t* generics_create_implant(struct technology_state* techstate, char polarity);
+generics_t* generics_create_vthtype(struct technology_state* techstate, char channeltype, int vthtype);
+generics_t* generics_create_other(struct technology_state* techstate, const char* str);
 
 void generics_destroy_layer(generics_t* layer);
 
