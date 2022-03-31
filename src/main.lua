@@ -1,14 +1,3 @@
--- exit and write a short helpful message if called without any arguments
-if #arg == 0 then
-    print("This is the openPCell layout generator.")
-    print("To generate a layout, you need to pass the technology, the export type and a cellname.")
-    print("Example:")
-    print("         opc --technology skywater130 --export gds --cell logic/not_gate")
-    print()
-    print("You can find out more about the available command line options by running 'opc -h'.")
-    return 1
-end
-
 -- load API
 _load_module("main.modules")
 local functions = _load_module("main.functions")

@@ -217,6 +217,17 @@ static lua_State* create_and_initialize_lua(void)
 
 int main (int argc, char** argv)
 {
+    if(argc == 1) // no arguments: exit and write a short helpful message if called without any arguments
+    {
+        puts("This is the openPCell layout generator.");
+        puts("To generate a layout, you need to pass the technology, the export type and a cellname.");
+        puts("Example:");
+        puts("         opc --technology skywater130 --export gds --cell logic/not_gate");
+        puts("");
+        puts("You can find out more about the available command line options by running 'opc -h'.");
+        return 0;
+    }
+
     lua_State* L = create_and_initialize_lua();
     create_argument_table(L, argc, argv);
 
