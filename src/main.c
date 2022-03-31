@@ -10,6 +10,7 @@
 #include <stdlib.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <getopt.h>
 
 #include <signal.h>
 
@@ -241,14 +242,14 @@ int main (int argc, char** argv)
     lua_pushlightuserdata(L, techstate);
     lua_setfield(L, LUA_REGISTRYINDEX, "techstate");
 
+    // create pcell references FIXME: remove global variable
     pcell_initialize_references();
 
     int retval = call_main_program(L, OPC_HOME "/src/main.lua");
 
+    // clean up states
     generics_destroy_layer_map(layermap);
-
     technology_destroy(techstate);
-
     pcell_destroy_references();
 
     lua_close(L);

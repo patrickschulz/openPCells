@@ -365,15 +365,12 @@ int lgdsparser_read_raw_stream(lua_State* L)
     return 1;
 }
 
-int lgdsparser_show_records(lua_State* L)
+int gdsparser_show_records(const char* filename)
 {
-    const char* filename = lua_tostring(L, 1);
     struct stream* stream = _read_stream(filename);
     if(!stream)
     {
-        lua_pushnil(L);
-        lua_pushstring(L, "could not read stream");
-        return 2;
+        return 0;
     }
     unsigned int indent = 0;
     for(size_t i = 0; i < stream->numrecords; ++i)
@@ -478,7 +475,20 @@ int lgdsparser_show_records(lua_State* L)
     }
     free(stream->records);
     free(stream);
-    return 0;
+    return 1;
+}
+
+int lgdsparser_show_records(lua_State* L)
+{
+    const char* filename = lua_tostring(L, 1);
+    if(!gdsparser_show_records(filename))
+    {
+        lua_pushnil(L);
+        lua_pushstring(L, "could not read stream");
+        return 2;
+    }
+    lua_pushboolean(L, 1);
+    return 1;
 }
 
 int open_gdsparser_lib(lua_State* L)
