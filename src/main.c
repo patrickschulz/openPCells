@@ -10,7 +10,6 @@
 #include <stdlib.h>
 #include <sys/types.h>
 #include <unistd.h>
-#include <getopt.h>
 
 #include <signal.h>
 
@@ -21,6 +20,8 @@
 #include <math.h>
 #include <ctype.h>
 #include <string.h>
+
+#include "cmdoptions.h"
 
 #include "lpoint.h"
 #include "lgeometry.h"
@@ -148,7 +149,7 @@ void load_lualibs(lua_State *L)
     }
 }
 
-static void create_argument_table(lua_State* L, int argc, char** argv)
+static void create_argument_table(lua_State* L, int argc, const char* const * argv)
 {
     lua_newtable(L);
     int i;
@@ -178,7 +179,7 @@ static int call_main_program(lua_State* L, const char* filename)
     return LUA_OK;
 }
 
-static lua_State* create_and_initialize_lua(void)
+static lua_State* _create_minimal_lua_state(void)
 {
     lua_State* L = luaL_newstate();
     if (L == NULL) 
@@ -186,6 +187,12 @@ static lua_State* create_and_initialize_lua(void)
         fprintf(stderr, "%s\n", "cannot create state: not enough memory");
         exit(EXIT_FAILURE);
     }
+    return L;
+}
+
+static lua_State* create_and_initialize_lua(void)
+{
+    lua_State* L = _create_minimal_lua_state();
 
     // lua libraries
     load_lualibs(L);
@@ -216,9 +223,10 @@ static lua_State* create_and_initialize_lua(void)
     return L;
 }
 
-int main (int argc, char** argv)
+int main(int argc, const char* const * argv)
 {
-    if(argc == 1) // no arguments: exit and write a short helpful message if called without any arguments
+    // no arguments: exit and write a short helpful message if called without any arguments
+    if(argc == 1)
     {
         puts("This is the openPCell layout generator.");
         puts("To generate a layout, you need to pass the technology, the export type and a cellname.");
@@ -228,6 +236,38 @@ int main (int argc, char** argv)
         puts("You can find out more about the available command line options by running 'opc -h'.");
         return 0;
     }
+
+    // create and parse command line options
+    struct cmdoptions* cmdoptions = cmdoptions_create();
+    cmdoptions_add_long_option(cmdoptions, 0, "show-gds-data", 1);
+    cmdoptions_add_long_option(cmdoptions, 0, "techfile-assistant", 0);
+    if(!cmdoptions_parse(cmdoptions, argc, argv))
+    {
+        return 1;
+    }
+
+    // show gds data
+    if(cmdoptions_was_provided_long(cmdoptions, "show-gds-data"))
+    {
+        const char* arg = cmdoptions_get_argument_long(cmdoptions, "show-gds-data");
+        int ret = gdsparser_show_records(arg);
+        if(!ret)
+        {
+            cmdoptions_exit(cmdoptions, 1);
+        }
+        cmdoptions_exit(cmdoptions, 0);
+    }
+
+    // technology file generation assistant
+    if(cmdoptions_was_provided_long(cmdoptions, "techfile-assistant"))
+    {
+        lua_State* L = _create_minimal_lua_state();
+        load_lualibs(L);
+        int retval = call_main_program(L, OPC_HOME "/src/assistant.lua");
+        cmdoptions_exit(cmdoptions, 0);
+    }
+
+    cmdoptions_destroy(cmdoptions);
 
     lua_State* L = create_and_initialize_lua();
     create_argument_table(L, argc, argv);

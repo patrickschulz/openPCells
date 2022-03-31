@@ -22,8 +22,6 @@ local modules = {
     "pcell",
     "placement",
     "routing",
-    "input",
-    "assistant",
     "public"
 }
 for _, module in ipairs(modules) do

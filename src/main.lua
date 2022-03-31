@@ -12,17 +12,7 @@ end
 -- parse command line arguments
 local args = _load_module("main.arguments")
 
--- technology file assistant
-if args.techassistant then
-    assistant.techfile()
-    return 0
-end
-
 -- gds info functions
-if args.showgdsdata then
-    functions.show_gds_data(args.showgdsdata, args.showgdsdataflags, args.showgdsdatadepth, args.showgdsdataraw)
-    return 0
-end
 if args.showgdshierarchy then
     functions.show_gds_hierarchy(args.showgdshierarchy, args.showgdsdatadepth)
     return 0
