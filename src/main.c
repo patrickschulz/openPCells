@@ -248,7 +248,6 @@ int main(int argc, const char* const * argv)
         //return 1;
     }
 
-
     // show gds data
     if(cmdoptions_was_provided_long(cmdoptions, "show-gds-data"))
     {

@@ -56,6 +56,19 @@ void cmdoptions_add_long_option(struct cmdoptions* options, char short_identifie
     vector_append(options->options, option);
 }
 
+struct option* cmdoptions_get_option_short(struct cmdoptions* options, char short_identifier)
+{
+    for(unsigned int i = 0; i < vector_size(options->options); ++i)
+    {
+        struct option* option = vector_get(options->options, i);
+        if(option->short_identifier == short_identifier)
+        {
+            return option;
+        }
+    }
+    return NULL;
+}
+
 struct option* cmdoptions_get_option_long(struct cmdoptions* options, const char* long_identifier)
 {
     for(unsigned int i = 0; i < vector_size(options->options); ++i)
@@ -80,6 +93,49 @@ int cmdoptions_was_provided_long(struct cmdoptions* options, const char* opt)
         }
     }
     return 0;
+}
+
+void _store_argument(struct option* option, int* iptr, int argc, const char* const * argv)
+{
+    if(option->argument_required)
+    {
+        if(*iptr < argc - 1)
+        {
+            if(option->flags & MULTIPLE)
+            {
+                if(!option->argument)
+                {
+                    char** argument = calloc(2, sizeof(char*));
+                    argument[0] = util_copy_string(argv[*iptr + 1]);
+                    option->argument = argument;
+                }
+                else
+                {
+                    char** ptr = option->argument;
+                    while(*ptr) { ++ptr; }
+                    int len = ptr - (char**)option->argument;
+                    char** argument = calloc(len + 2, sizeof(char*));
+                    for(int j = 0; j < len; ++j)
+                    {
+                        argument[j] = ((char**)option->argument)[j];
+                    }
+                    argument[len] = util_copy_string(argv[*iptr + 1]);
+                    free(option->argument);
+                    option->argument = argument;
+                }
+            }
+            else // non-MULTIPLE option
+            {
+                option->argument = util_copy_string(argv[*iptr + 1]);
+            }
+        }
+        else // argument required, but not entries in argv left
+        {
+            //printf("expected argument for option '%s'\n", longopt);
+            //return 0;
+        }
+        *iptr += 1;
+    }
 }
 
 int cmdoptions_parse(struct cmdoptions* options, int argc, const char* const * argv)
@@ -111,45 +167,7 @@ int cmdoptions_parse(struct cmdoptions* options, int argc, const char* const * a
                         printf("option '%s' is only allowed once\n", longopt);
                     }
                     option->was_provided = 1;
-                    if(option->argument_required)
-                    {
-                        if(i < argc - 1)
-                        {
-                            if(option->flags & MULTIPLE)
-                            {
-                                if(!option->argument)
-                                {
-                                    char** argument = calloc(2, sizeof(char*));
-                                    argument[0] = util_copy_string(argv[i + 1]);
-                                    option->argument = argument;
-                                }
-                                else
-                                {
-                                    char** ptr = option->argument;
-                                    while(*ptr) { ++ptr; }
-                                    int len = ptr - (char**)option->argument;
-                                    char** argument = calloc(len + 2, sizeof(char*));
-                                    for(int i = 0; i < len; ++i)
-                                    {
-                                        argument[i] = ((char**)option->argument)[i];
-                                    }
-                                    argument[len] = util_copy_string(argv[i + 1]);
-                                    free(option->argument);
-                                    option->argument = argument;
-                                }
-                            }
-                            else
-                            {
-                                option->argument = util_copy_string(argv[i + 1]);
-                            }
-                        }
-                        else
-                        {
-                            //printf("expected argument for option '%s'\n", longopt);
-                            //return 0;
-                        }
-                        ++i;
-                    }
+                    _store_argument(option, &i, argc, argv);
                 }
             }
             else // short option
@@ -158,6 +176,21 @@ int cmdoptions_parse(struct cmdoptions* options, int argc, const char* const * a
                 while(*ch)
                 {
                     char shortopt = *ch;
+                    struct option* option = cmdoptions_get_option_short(options, shortopt);
+                    if(!option)
+                    {
+                        //printf("unknown command line option: '--%s'\n", longopt);
+                        //return 0;
+                    }
+                    else
+                    {
+                        if(option->was_provided && !(option->flags & MULTIPLE))
+                        {
+                            printf("option '%c' is only allowed once\n", shortopt);
+                        }
+                        option->was_provided = 1;
+                        _store_argument(option, &i, argc, argv);
+                    }
                     ++ch;
                 }
             }
@@ -170,7 +203,7 @@ int cmdoptions_parse(struct cmdoptions* options, int argc, const char* const * a
     return 1;
 }
 
-const char* cmdoptions_get_argument_long(struct cmdoptions* options, const char* long_identifier)
+void* cmdoptions_get_argument_long(struct cmdoptions* options, const char* long_identifier)
 {
     for(unsigned int i = 0; i < vector_size(options->options); ++i)
     {

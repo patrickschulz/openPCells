@@ -28,10 +28,11 @@ int cmdoptions_parse(struct cmdoptions* options, int argc, const char* const * a
 #define MULTIPLE 1
 void cmdoptions_add_long_option(struct cmdoptions* options, char short_identifier, const char* long_identifier, int argument_required, int flags);
 
+struct option* cmdoptions_get_option_short(struct cmdoptions* options, char short_identifier);
 struct option* cmdoptions_get_option_long(struct cmdoptions* options, const char* long_identifier);
 
 int cmdoptions_was_provided_long(struct cmdoptions* options, const char* opt);
 
-const char* cmdoptions_get_argument_long(struct cmdoptions* options, const char* long_identifier);
+void* cmdoptions_get_argument_long(struct cmdoptions* options, const char* long_identifier);
 
 #endif // OPC_CMDOPTS_H
