@@ -167,7 +167,7 @@ if not args.notech then
         -- this enables pcell.parameters to display the cell parameters with generic technology expressions
         -- this empty elseif clause is left to express intent
     else 
-        technology.load(args.technology)
+        --technology.load(args.technology)
     end
 end
 

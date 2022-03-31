@@ -87,9 +87,8 @@ geometry.o: geometry.c geometry.h technology.h lua/lua.h lua/luaconf.h \
  point.h shape.h
 graphics.o: graphics.c graphics.h lua/lua.h lua/luaconf.h lua/lauxlib.h \
  lua/lua.h lpoint.h point.h
-info.o: info.c info.h lua/lua.h lua/luaconf.h \
- lua/lauxlib.h lua/lua.h lobject.h object.h \
- transformationmatrix.h point.h shape.h generics.h \
+info.o: info.c info.h lua/lua.h lua/luaconf.h lua/lauxlib.h lua/lua.h \
+ lobject.h object.h transformationmatrix.h point.h shape.h generics.h \
  keyvaluepairs.h vector.h
 keyvaluepairs.o: keyvaluepairs.c keyvaluepairs.h vector.h
 lbinary.o: lbinary.c lbinary.h lua/lua.h lua/luaconf.h lua/lauxlib.h \
@@ -144,14 +143,15 @@ ltransformationmatrix.o: ltransformationmatrix.c ltransformationmatrix.h \
  lua/lauxlib.h lua/lua.h
 lutil.o: lutil.c lutil.h lua/lua.h lua/luaconf.h lua/lauxlib.h lua/lua.h
 main.o: main.c lua/lprefix.h lua/lua.h lua/luaconf.h lua/lauxlib.h \
- lua/lua.h lua/lualib.h lpoint.h point.h lgeometry.h lgenerics.h \
- generics.h keyvaluepairs.h vector.h technology.h ltransformationmatrix.h \
- transformationmatrix.h graphics.h lload.h lbind.h ldir.h lbinary.h \
- lobject.h object.h shape.h pcell.h lexport.h lpostprocess.h \
- lfilesystem.h lplacer.h lrouter.h lutil.h gdsparser.h config.h
+ lua/lua.h lua/lualib.h cmdoptions.h vector.h lpoint.h point.h \
+ lgeometry.h lgenerics.h generics.h keyvaluepairs.h technology.h \
+ ltransformationmatrix.h transformationmatrix.h graphics.h lload.h \
+ lbind.h ldir.h lbinary.h lobject.h object.h shape.h pcell.h info.h \
+ lexport.h lpostprocess.h lfilesystem.h lplacer.h lrouter.h lutil.h \
+ gdsparser.h config.h
 object.o: object.c object.h transformationmatrix.h point.h shape.h \
- generics.h keyvaluepairs.h vector.h util.h pcell.h lua/lua.h \
- lua/luaconf.h
+ generics.h keyvaluepairs.h vector.h util.h lua/lua.h lua/luaconf.h \
+ pcell.h
 pcell.o: pcell.c pcell.h lua/lua.h lua/luaconf.h object.h \
  transformationmatrix.h point.h shape.h generics.h keyvaluepairs.h \
  vector.h lua/lauxlib.h lua/lua.h util.h lobject.h
@@ -168,5 +168,5 @@ transformationmatrix.o: transformationmatrix.c transformationmatrix.h \
  point.h
 union.o: union.c union.h vector.h point.h shape.h transformationmatrix.h \
  generics.h keyvaluepairs.h
-util.o: util.c util.h
+util.o: util.c util.h lua/lua.h lua/luaconf.h lua/lauxlib.h lua/lua.h
 vector.o: vector.c vector.h

@@ -5,6 +5,7 @@
 
 #include "vector.h"
 #include "generics.h"
+#include "keyvaluepairs.h"
 
 struct technology_config
 {
@@ -27,10 +28,15 @@ struct technology_state
     struct vector* layertable; // stores generics_t*
     struct vector* viatable; // stores struct viaentry*
     struct technology_config* config;
+    struct keyvaluearray* constraints;
+    struct vector* techpaths; // stores strings
 };
 
 struct technology_state* technology_initialize(void);
 void technology_destroy(struct technology_state* state);
+
+void technology_add_techpath(struct technology_state* techstate, const char* path);
+int technology_load(struct technology_state* techstate, const char* name);
 
 generics_t* technology_get_layer(struct technology_state* state, const char* layername);
 int technology_resolve_metal(struct technology_state* state, int metalnum);

@@ -2,6 +2,20 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <sys/stat.h>
+
+#include "lua/lauxlib.h"
+
+lua_State* util_create_minimal_lua_state(void)
+{
+    lua_State* L = luaL_newstate();
+    if (L == NULL) 
+    {
+        fprintf(stderr, "%s\n", "cannot create state: not enough memory");
+        exit(EXIT_FAILURE);
+    }
+    return L;
+}
 
 unsigned int util_num_digits(unsigned int n)
 {
@@ -23,3 +37,27 @@ char* util_copy_string(const char* str)
     return copy;
 }
 
+void util_append_string(char* target, const char* str)
+{
+    size_t len = strlen(target) + strlen(str);
+    char* tmp = realloc(target, len + 1);
+    target = tmp;
+    strcat(target, str);
+}
+
+int util_file_exists(const char* path)
+{
+    if(!path)
+    {
+        return 0;
+    }
+    struct stat buf;
+    if(stat(path, &buf))
+    {
+        return 0;
+    }
+    else
+    {
+        return 1;
+    }
+}

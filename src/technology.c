@@ -6,6 +6,34 @@
 
 #include "util.h"
 
+void technology_add_techpath(struct technology_state* techstate, const char* path)
+{
+    vector_append(techstate->techpaths, util_copy_string(path));
+}
+
+static int ltechnology_add_techpath(lua_State* L)
+{
+    lua_getfield(L, LUA_REGISTRYINDEX, "techstate");
+    struct technology_state* techstate = lua_touserdata(L, -1);
+    lua_pop(L, 1); // pop techstate
+    const char* path = lua_tostring(L, 1);
+    technology_add_techpath(techstate, path);
+    return 0;
+}
+
+static int ltechnology_list_techpaths(lua_State* L)
+{
+    lua_getfield(L, LUA_REGISTRYINDEX, "techstate");
+    struct technology_state* techstate = lua_touserdata(L, -1);
+    lua_pop(L, 1); // pop techstate
+    for(unsigned int i = 0; i < vector_size(techstate->techpaths); ++i)
+    {
+        const char* path = vector_get(techstate->techpaths, i);
+        puts(path);
+    }
+    return 0;
+}
+
 static void _insert_lpp_pairs(lua_State* L, struct keyvaluearray* map)
 {
     lua_pushnil(L);
@@ -74,18 +102,32 @@ generics_t* technology_make_layer(const char* layername, lua_State* L)
     return layer;
 }
 
-int technology_load_layermap(lua_State* L)
+static char* _get_tech_filename(struct technology_state* techstate, const char* name, const char* what)
 {
-    const char* name = lua_tostring(L, 1);
+    for(unsigned int i = 0; i < vector_size(techstate->techpaths); ++i)
+    {
+        const char* path = vector_get(techstate->techpaths, i);
+        size_t len = strlen(path) + strlen(name) + strlen(what) + 6; // + 6: '/' + '/' + ".lua"
+        char* filename = malloc(len + 1);
+        snprintf(filename, len + 1, "%s/%s/%s.lua", path, name, what);
+        if(util_file_exists(filename))
+        {
+            return filename;
+        }
+        free(filename);
+    }
+    return NULL;
+}
+
+int technology_load_layermap(struct technology_state* techstate, const char* name)
+{
+    lua_State* L = util_create_minimal_lua_state();
     int ret = luaL_dofile(L, name);
     if(ret != LUA_OK)
     {
         puts("error while loading layermap");
         return 0;
     }
-    lua_getfield(L, LUA_REGISTRYINDEX, "techstate");
-    struct technology_state* techstate = lua_touserdata(L, -1);
-    lua_pop(L, 1); // pop techstate
     lua_pushnil(L);
     while(lua_next(L, -2) != 0)
     {
@@ -96,6 +138,17 @@ int technology_load_layermap(lua_State* L)
         lua_pop(L, 1); // pop layer table
         lua_pop(L, 1); // pop value, keep key for next iteration
     }
+    lua_close(L);
+    return 0;
+}
+
+int ltechnology_load_layermap(lua_State* L)
+{
+    const char* name = lua_tostring(L, 1);
+    lua_getfield(L, LUA_REGISTRYINDEX, "techstate");
+    struct technology_state* techstate = lua_touserdata(L, -1);
+    lua_pop(L, 1); // pop techstate
+    technology_load_layermap(techstate, name);
     return 0;
 }
 
@@ -174,18 +227,15 @@ static void _insert_via(struct technology_state* techstate, char* vianame, struc
     vector_append(techstate->viatable, entry);
 }
 
-int technology_load_viadefinitions(lua_State* L)
+int technology_load_viadefinitions(struct technology_state* techstate, const char* name)
 {
-    const char* name = lua_tostring(L, 1);
+    lua_State* L = util_create_minimal_lua_state();
     int ret = luaL_dofile(L, name);
     if(ret != LUA_OK)
     {
-        puts("error while loading layermap");
+        puts("error while loading via definitions");
         return 0;
     }
-    lua_getfield(L, LUA_REGISTRYINDEX, "techstate");
-    struct technology_state* techstate = lua_touserdata(L, -1);
-    lua_pop(L, 1); // pop techstate
     lua_pushnil(L);
     while(lua_next(L, -2) != 0)
     {
@@ -195,24 +245,128 @@ int technology_load_viadefinitions(lua_State* L)
         _insert_via(techstate, vianame, viadefs, fallback);
         lua_pop(L, 1); // pop value, keep key for next iteration
     }
+    lua_close(L);
     return 0;
 }
 
-int technology_load_config(lua_State* L)
+int ltechnology_load_viadefinitions(lua_State* L)
 {
     const char* name = lua_tostring(L, 1);
-    int ret = luaL_dofile(L, name);
-    if(ret != LUA_OK)
-    {
-        puts("error while loading layermap");
-        return 0;
-    }
-    lua_getfield(L, -1, "metals");
     lua_getfield(L, LUA_REGISTRYINDEX, "techstate");
     struct technology_state* techstate = lua_touserdata(L, -1);
     lua_pop(L, 1); // pop techstate
+    technology_load_viadefinitions(techstate, name);
+    return 0;
+}
+
+int technology_load_config(struct technology_state* techstate, const char* name)
+{
+    lua_State* L = util_create_minimal_lua_state();
+    int ret = luaL_dofile(L, name);
+    if(ret != LUA_OK)
+    {
+        puts("error while loading config");
+        return 0;
+    }
+    lua_getfield(L, -1, "metals");
     techstate->config->metals = lua_tointeger(L, -1);
     lua_pop(L, 1); // pop config table
+    lua_close(L);
+    return 0;
+}
+
+int ltechnology_load_config(lua_State* L)
+{
+    const char* name = lua_tostring(L, 1);
+    lua_getfield(L, LUA_REGISTRYINDEX, "techstate");
+    struct technology_state* techstate = lua_touserdata(L, -1);
+    lua_pop(L, 1); // pop techstate
+    technology_load_config(techstate, name);
+    return 0;
+}
+
+int technology_load_constraints(struct technology_state* techstate, const char* name)
+{
+    lua_State* L = util_create_minimal_lua_state();
+    int ret = luaL_dofile(L, name);
+    if(ret != LUA_OK)
+    {
+        puts("error while loading constraints");
+        return 0;
+    }
+    lua_pushnil(L);
+    while (lua_next(L, -2) != 0)
+    {
+        keyvaluearray_add_int(techstate->constraints, lua_tostring(L, -2), lua_tointeger(L, -1));
+        lua_pop(L, 1); // pop value, keep key for next iteration
+    }
+    lua_pop(L, 1); // pop constraints table
+    lua_close(L);
+    return 0;
+}
+
+int ltechnology_load_constraint(lua_State* L)
+{
+    const char* name = lua_tostring(L, 1);
+    lua_getfield(L, LUA_REGISTRYINDEX, "techstate");
+    struct technology_state* techstate = lua_touserdata(L, -1);
+    lua_pop(L, 1); // pop techstate
+    technology_load_constraints(techstate, name);
+    return 0;
+}
+
+int technology_load(struct technology_state* techstate, const char* techname)
+{
+    char* layermapname = _get_tech_filename(techstate, techname, "layermap");
+    if(!layermapname)
+    {
+        printf("technology: no techfile for technology '%s' found", techname);
+        free(layermapname);
+        return 0;
+    }
+    technology_load_layermap(techstate, layermapname);
+    free(layermapname);
+
+    char* vianame = _get_tech_filename(techstate, techname, "vias");
+    if(!vianame)
+    {
+        printf("technology: no via definitions for technology '%s' found", techname);
+        free(vianame);
+        return 0;
+    }
+    technology_load_viadefinitions(techstate, vianame);
+    free(vianame);
+
+    char* configname = _get_tech_filename(techstate, techname, "config");
+    if(!configname)
+    {
+        printf("technology: no config file for technology '%s' found", techname);
+        free(configname);
+        return 0;
+    }
+    technology_load_config(techstate, configname);
+    free(configname);
+
+    char* constraintsname = _get_tech_filename(techstate, techname, "constraints");
+    if(!constraintsname)
+    {
+        printf("technology: no constraints file for technology '%s' found", techname);
+        free(constraintsname);
+        return 0;
+    }
+    technology_load_constraints(techstate, constraintsname);
+    free(constraintsname);
+
+    return 1;
+}
+
+int ltechnology_load(lua_State* L)
+{
+    const char* techname = lua_tostring(L, 1);
+    lua_getfield(L, LUA_REGISTRYINDEX, "techstate");
+    struct technology_state* techstate = lua_touserdata(L, -1);
+    lua_pop(L, 1); // pop techstate
+    technology_load(techstate, techname);
     return 0;
 }
 
@@ -339,6 +493,8 @@ struct technology_state* technology_initialize(void)
     techstate->layertable = vector_create();
     techstate->viatable = vector_create();
     techstate->config = malloc(sizeof(*techstate->config));
+    techstate->constraints = keyvaluearray_create();
+    techstate->techpaths = vector_create();
     return techstate;
 }
 
@@ -369,7 +525,30 @@ void technology_destroy(struct technology_state* techstate)
 
     free(techstate->config);
 
+    keyvaluearray_destroy(techstate->constraints);
+
+    vector_destroy(techstate->techpaths, free);
+
     free(techstate);
+}
+
+int ltechnology_get_dimension(lua_State* L)
+{
+    const char* dimension = lua_tostring(L, 1);
+    lua_getfield(L, LUA_REGISTRYINDEX, "techstate");
+    struct technology_state* techstate = lua_touserdata(L, -1);
+    lua_pop(L, 1); // pop techstate
+    int value;
+    if(keyvaluearray_get_int(techstate->constraints, dimension, &value))
+    {
+        lua_pushinteger(L, value);
+    }
+    else
+    {
+        lua_pushfstring(L, "technology: no dimension '%s' found", dimension);
+        lua_error(L);
+    }
+    return 1;
 }
 
 int open_ltechnology_lib(lua_State* L)
@@ -377,10 +556,11 @@ int open_ltechnology_lib(lua_State* L)
     lua_newtable(L);
     static const luaL_Reg modfuncs[] =
     {
-        { "load_layermap",       technology_load_layermap       },
-        { "load_viadefinitions", technology_load_viadefinitions },
-        { "load_config",         technology_load_config         },
-        { NULL,                  NULL                           }
+        { "add_techpath",   ltechnology_add_techpath   },
+        { "list_techpaths", ltechnology_list_techpaths },
+        { "get_dimension",  ltechnology_get_dimension  },
+        { "load",           ltechnology_load           },
+        { NULL,             NULL                       }
     };
     luaL_setfuncs(L, modfuncs, 0);
     lua_setglobal(L, "technology");

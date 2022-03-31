@@ -239,12 +239,15 @@ int main(int argc, const char* const * argv)
 
     // create and parse command line options
     struct cmdoptions* cmdoptions = cmdoptions_create();
-    cmdoptions_add_long_option(cmdoptions, 0, "show-gds-data", 1);
-    cmdoptions_add_long_option(cmdoptions, 0, "techfile-assistant", 0);
+    cmdoptions_add_long_option(cmdoptions, 'T', "technology", 1, NO_FLAGS);
+    cmdoptions_add_long_option(cmdoptions, 0, "techpath", 1, MULTIPLE);
+    cmdoptions_add_long_option(cmdoptions, 0, "show-gds-data", 1, NO_FLAGS);
+    cmdoptions_add_long_option(cmdoptions, 0, "techfile-assistant", 0, NO_FLAGS);
     if(!cmdoptions_parse(cmdoptions, argc, argv))
     {
-        return 1;
+        //return 1;
     }
+
 
     // show gds data
     if(cmdoptions_was_provided_long(cmdoptions, "show-gds-data"))
@@ -267,8 +270,6 @@ int main(int argc, const char* const * argv)
         cmdoptions_exit(cmdoptions, 0);
     }
 
-    cmdoptions_destroy(cmdoptions);
-
     lua_State* L = create_and_initialize_lua();
     create_argument_table(L, argc, argv);
 
@@ -278,7 +279,27 @@ int main(int argc, const char* const * argv)
     lua_setfield(L, LUA_REGISTRYINDEX, "genericslayermap");
 
     // create technology state
+    if(!cmdoptions_was_provided_long(cmdoptions, "technology"))
+    {
+        puts("no technology given");
+        cmdoptions_exit(cmdoptions, 0);
+    }
     struct technology_state* techstate = technology_initialize();
+
+    // add technology search paths
+    if(cmdoptions_was_provided_long(cmdoptions, "techpath"))
+    {
+        const char** arg = cmdoptions_get_argument_long(cmdoptions, "techpath");
+        while(*arg)
+        {
+            technology_add_techpath(techstate, *arg);
+            ++arg;
+        }
+    }
+
+    // load technology and store in lua registry
+    const char* techname = cmdoptions_get_argument_long(cmdoptions, "technology");
+    technology_load(techstate, techname);
     lua_pushlightuserdata(L, techstate);
     lua_setfield(L, LUA_REGISTRYINDEX, "techstate");
 
@@ -291,6 +312,8 @@ int main(int argc, const char* const * argv)
     generics_destroy_layer_map(layermap);
     technology_destroy(techstate);
     pcell_destroy_references();
+
+    cmdoptions_destroy(cmdoptions);
 
     lua_close(L);
     return retval;
