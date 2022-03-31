@@ -3,6 +3,11 @@
 
 #include "vector.h"
 
+#define NO_SHORT 0
+#define NO_LONG NULL
+#define NO_FLAGS 0
+#define MULTIPLE 1
+
 struct option
 {
     char short_identifier;
@@ -16,6 +21,7 @@ struct option
 struct cmdoptions
 {
     struct vector* options;
+    struct vector* positional_parameters;
 };
 
 struct cmdoptions* cmdoptions_create(void);
@@ -24,8 +30,6 @@ void cmdoptions_exit(struct cmdoptions* options, int exitcode);
 
 int cmdoptions_parse(struct cmdoptions* options, int argc, const char* const * argv);
 
-#define NO_FLAGS 0
-#define MULTIPLE 1
 void cmdoptions_add_long_option(struct cmdoptions* options, char short_identifier, const char* long_identifier, int argument_required, int flags);
 
 struct option* cmdoptions_get_option_short(struct cmdoptions* options, char short_identifier);

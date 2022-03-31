@@ -10,6 +10,7 @@ struct cmdoptions* cmdoptions_create(void)
 {
     struct cmdoptions* options = malloc(sizeof(options));
     options->options = vector_create();
+    options->positional_parameters = vector_create();
     return options;
 }
 
@@ -35,6 +36,7 @@ void _destroy_option(void* ptr)
 void cmdoptions_destroy(struct cmdoptions* options)
 {
     vector_destroy(options->options, _destroy_option);
+    vector_destroy(options->positional_parameters, NULL);
     free(options);
 }
 
@@ -197,7 +199,7 @@ int cmdoptions_parse(struct cmdoptions* options, int argc, const char* const * a
         }
         else // positional parameter
         {
-            const char* pospar = arg;
+            vector_append(options->positional_parameters, util_copy_string(arg));
         }
     }
     return 1;

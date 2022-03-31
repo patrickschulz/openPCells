@@ -239,10 +239,7 @@ int main(int argc, const char* const * argv)
 
     // create and parse command line options
     struct cmdoptions* cmdoptions = cmdoptions_create();
-    cmdoptions_add_long_option(cmdoptions, 'T', "technology", 1, NO_FLAGS);
-    cmdoptions_add_long_option(cmdoptions, 0, "techpath", 1, MULTIPLE);
-    cmdoptions_add_long_option(cmdoptions, 0, "show-gds-data", 1, NO_FLAGS);
-    cmdoptions_add_long_option(cmdoptions, 0, "techfile-assistant", 0, NO_FLAGS);
+    #include "cmdoptions_def.c" // yes, I did that
     if(!cmdoptions_parse(cmdoptions, argc, argv))
     {
         //return 1;
