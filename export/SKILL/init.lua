@@ -182,7 +182,7 @@ end
 function M.write_port(name, layer, where)
     local fmt = _get_shape_fmt("Label")
     _prepare_shape_for_group()
-    table.insert(__content, string.format(fmt, string.format('%s %s "%s" "centerCenter" "R0" "roman" %f', _format_lpp(layer), where:format(baseunit, ":"), name, __labelsize)))
+    table.insert(__content, string.format(fmt, string.format('%s %s "%s" "centerCenter" "R0" "roman" %f', _format_lpp(layer), _format_point(where, baseunit, ":"), name, __labelsize)))
     _finish_shape_for_group()
 end
 

@@ -61,7 +61,32 @@ static int lexport_set_bus_delimiters(lua_State* L)
     return 0;
 }
 
-static void _write_cell(object_t* cell, struct export_data* data, struct export_functions* funcs)
+static void _write_ports(object_t* cell, struct export_data* data, struct export_functions* funcs)
+{
+    for(unsigned int i = 0; i < cell->ports_size; ++i)
+    {
+        char* name;
+        if(cell->ports[i]->isbusport)
+        {
+            size_t len = strlen(cell->ports[i]->name) + 2 + util_num_digits(cell->ports[i]->busindex);
+            name = malloc(len + 1);
+            snprintf(name, len + 1, "%s%c%d%c", cell->ports[i]->name, _leftdelim, cell->ports[i]->busindex, _rightdelim);
+        }
+        else
+        {
+            name = cell->ports[i]->name;
+        }
+        transformationmatrix_apply_transformation(cell->trans, cell->ports[i]->where);
+        struct keyvaluearray* layerdata = cell->ports[i]->layer->data[0];
+        funcs->write_port(data, name, layerdata, cell->ports[i]->where->x, cell->ports[i]->where->y);
+        if(cell->ports[i]->isbusport)
+        {
+            free(name);
+        }
+    }
+}
+
+static void _write_cell(object_t* cell, struct export_data* data, struct export_functions* funcs, int write_ports)
 {
     for(unsigned int i = 0; i < cell->shapes_size; ++i)
     {
@@ -111,30 +136,9 @@ static void _write_cell(object_t* cell, struct export_data* data, struct export_
             }
         }
     }
-}
-
-static void _write_ports(object_t* cell, struct export_data* data, struct export_functions* funcs)
-{
-    for(unsigned int i = 0; i < cell->ports_size; ++i)
+    if(write_ports)
     {
-        char* name;
-        if(cell->ports[i]->isbusport)
-        {
-            size_t len = strlen(cell->ports[i]->name) + 2 + util_num_digits(cell->ports[i]->busindex);
-            name = malloc(len + 1);
-            snprintf(name, len + 1, "%s%c%d%c", cell->ports[i]->name, _leftdelim, cell->ports[i]->busindex, _rightdelim);
-        }
-        else
-        {
-            name = cell->ports[i]->name;
-        }
-        transformationmatrix_apply_transformation(cell->trans, cell->ports[i]->where);
-        struct keyvaluearray* layerdata = cell->ports[i]->layer->data[0];
-        funcs->write_port(data, name, layerdata, cell->ports[i]->where->x, cell->ports[i]->where->y);
-        if(cell->ports[i]->isbusport)
-        {
-            free(name);
-        }
+        _write_ports(cell, data, funcs);
     }
 }
 
@@ -192,7 +196,36 @@ static void _push_trans(lua_State* L, transformationmatrix_t* trans)
     }
 }
 
-static void _write_cell_lua(lua_State* L, object_t* cell)
+static void _write_ports_lua(lua_State* L, object_t* cell)
+{
+    for(unsigned int i = 0; i < cell->ports_size; ++i)
+    {
+        char* name;
+        if(cell->ports[i]->isbusport)
+        {
+            size_t len = strlen(cell->ports[i]->name) + 2 + util_num_digits(cell->ports[i]->busindex);
+            name = malloc(len + 1);
+            snprintf(name, len + 1, "%s%c%d%c", cell->ports[i]->name, _leftdelim, cell->ports[i]->busindex, _rightdelim);
+        }
+        else
+        {
+            name = cell->ports[i]->name;
+        }
+        transformationmatrix_apply_transformation(cell->trans, cell->ports[i]->where);
+        struct keyvaluearray* layerdata = cell->ports[i]->layer->data[0];
+        lua_pushvalue(L, -1); // write_port is already on the stack (from the check if the function exists)
+        lua_pushstring(L, name);
+        _push_layer(L, layerdata);
+        _push_point(L, cell->ports[i]->where);
+        lua_call(L, 3, 0);
+        if(cell->ports[i]->isbusport)
+        {
+            free(name);
+        }
+    }
+}
+
+static void _write_cell_lua(lua_State* L, object_t* cell, int write_ports)
 {
     for(unsigned int i = 0; i < cell->shapes_size; ++i)
     {
@@ -283,6 +316,15 @@ static void _write_cell_lua(lua_State* L, object_t* cell)
             }
         }
     }
+    if(write_ports)
+    {
+        lua_getfield(L, -1, "write_port");
+        if(!lua_isnil(L, -1))
+        {
+            _write_ports_lua(L, cell);
+        }
+        lua_pop(L, 1); // pop write_port (or nil)
+    }
 }
 
 void _call_or_pop_nil(lua_State* L, int numargs)
@@ -370,13 +412,12 @@ static void _parse_export_options(lua_State* L, const char* filename)
     lua_pop(L, 1);
 }
 
-static void _write_toplevel_C(object_t* object, struct export_data* data, struct export_functions* funcs)
+static void _write_toplevel_C(object_t* object, struct export_data* data, struct export_functions* funcs, int writechildrenports)
 {
     funcs->at_begin(data);
 
     funcs->at_begin_cell(data, "opctoplevel");
-    _write_cell(object, data, funcs);
-    _write_ports(object, data, funcs);
+    _write_cell(object, data, funcs, 1); // 1: write ports
     funcs->at_end_cell(data);
 
     for(unsigned int i = 0; i < pcell_get_reference_count(); ++i)
@@ -385,7 +426,7 @@ static void _write_toplevel_C(object_t* object, struct export_data* data, struct
         if(reference->numused > 0)
         {
             funcs->at_begin_cell(data, reference->identifier);
-            _write_cell(reference->cell, data, funcs);
+            _write_cell(reference->cell, data, funcs, writechildrenports);
             funcs->at_end_cell(data);
         }
     }
@@ -393,22 +434,7 @@ static void _write_toplevel_C(object_t* object, struct export_data* data, struct
     funcs->at_end(data);
 }
 
-/* FIXME
-local function _write_ports(cell)
-    for _, port in pairs(cell.ports) do
-        if port.isbusport then
-            local name = string.format("%s%s%d%s",  port.name, _leftdelim, port.busindex, _rightdelim)
-            cell.trans:apply_transformation(port.where)
-            export.write_port(name, port.layer:get(), port.where)
-        else
-            cell.trans:apply_transformation(port.where)
-            export.write_port(port.name, port:get_layer(), port.where)
-        end
-    end
-end
-*/
-
-static void _write_toplevel_lua(lua_State* L, object_t* object, struct export_data* data)
+static void _write_toplevel_lua(lua_State* L, object_t* object, struct export_data* data, int writechildrenports)
 {
     // check if export supports hierarchies
     lua_getfield(L, -1, "write_cell_reference");
@@ -425,7 +451,7 @@ static void _write_toplevel_lua(lua_State* L, object_t* object, struct export_da
     lua_getfield(L, -1, "at_begin_cell");
     lua_pushstring(L, "opctoplevel");
     _call_or_pop_nil(L, 1);
-    _write_cell_lua(L, object);
+    _write_cell_lua(L, object, 1); // 1: write ports
     lua_getfield(L, -1, "at_end_cell");
     _call_or_pop_nil(L, 0);
 
@@ -437,7 +463,7 @@ static void _write_toplevel_lua(lua_State* L, object_t* object, struct export_da
             lua_getfield(L, -1, "at_begin_cell");
             lua_pushstring(L, reference->identifier);
             _call_or_pop_nil(L, 1);
-            _write_cell_lua(L, reference->cell);
+            _write_cell_lua(L, reference->cell, writechildrenports);
             lua_getfield(L, -1, "at_end_cell");
             _call_or_pop_nil(L, 0);
         }
@@ -467,6 +493,7 @@ static int lexport_write_toplevel(lua_State* L)
 
     const char* exportname = lua_tostring(L, 1);
     lobject_t* toplevel = lua_touserdata(L, 2);
+    int writechildrenports = lua_toboolean(L, 6);
 
     if(object_is_empty(toplevel->object))
     {
@@ -482,7 +509,7 @@ static int lexport_write_toplevel(lua_State* L)
     struct export_functions* funcs = get_export_functions(exportname);
     if(funcs) // C-defined exports
     {
-        _write_toplevel_C(toplevel->object, data, funcs);
+        _write_toplevel_C(toplevel->object, data, funcs, writechildrenports);
         extension = funcs->get_extension();
         success = 1;
     }
@@ -512,7 +539,7 @@ static int lexport_write_toplevel(lua_State* L)
                         _call_or_pop_nil(L, 1);
                     }
 
-                    _write_toplevel_lua(L, toplevel->object, data);
+                    _write_toplevel_lua(L, toplevel->object, data, writechildrenports);
 
                     lua_getfield(L, -1, "get_extension");
                     lua_call(L, 0, 1);
