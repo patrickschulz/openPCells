@@ -1,13 +1,11 @@
-local M = {}
+envlib = {}
 
 local variables = {}
 
-function M.set(name, value)
+function envlib.set(name, value)
     variables[name] = value
 end
 
-function M.get(name)
+function envlib.get(name)
     return variables[name]
 end
-
-return M

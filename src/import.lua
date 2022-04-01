@@ -1,5 +1,3 @@
-local M = {}
-
 local function _format_lpp(layer, purpose, layermap)
     local lppt = {
         string.format("gds = { layer = %d, purpose = %d }", layer, purpose)
@@ -121,7 +119,8 @@ local function _write_cell(chunk, cell, cells, path, dirname, layermap, alignmen
     end
 end
 
-function M.translate_cells(cells, prefix, dirname, layermap, alignmentbox, overwrite, flatpattern, namepattern)
+import = {}
+function import.translate_cells(cells, prefix, dirname, layermap, alignmentbox, overwrite, flatpattern, namepattern)
     local path
     if prefix and prefix ~= "" then
         path = string.format("%s/%s", prefix, dirname)
@@ -146,7 +145,7 @@ function M.translate_cells(cells, prefix, dirname, layermap, alignmentbox, overw
                     local filename = string.format("%s/%s.lua", path, cellbasename)
                     local cellfile = io.open(filename, "w")
                     if not cellfile then
-                        moderror(string.format("import: could not open file for cell export. Did you create the appropriate directory (%s)?", dirname))
+                        error(string.format("import: could not open file for cell export. Did you create the appropriate directory (%s)?", dirname))
                     end
                     table.insert(chunk, "end") -- close 'layout' function
                     cellfile:write(string.format("%s\n", table.concat(chunk, "\n")))
@@ -158,11 +157,9 @@ function M.translate_cells(cells, prefix, dirname, layermap, alignmentbox, overw
                 -- flattened cells don't need to be created
             end
         else
-            moderror("import: could not create import directory")
+            error("import: could not create import directory")
         end
     else
-        moderror("import: directory exists. Use --import-overwrite to overwrite this directory");
+        error("import: directory exists. Use --import-overwrite to overwrite this directory");
     end
 end
-
-return M

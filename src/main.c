@@ -142,7 +142,8 @@ static void create_argument_table(lua_State* L, int argc, const char* const * ar
 static int call_main_program(lua_State* L, const char* filename)
 {
     int status = luaL_loadfile(L, filename);
-    if (status == LUA_OK) {
+    if(status == LUA_OK)
+    {
         lua_pushcfunction(L, msghandler);
         lua_insert(L, 1);
         status = lua_pcall(L, 0, 1, 1);
@@ -163,11 +164,11 @@ static lua_State* create_and_initialize_lua(void)
 
     // opc libraries
     open_ldir_lib(L);
-    open_lpoint_lib(L); // must be called before 'load_api'
+    open_lpoint_lib(L);
     open_lgeometry_lib(L);
     open_lgenerics_lib(L);
     open_ltechnology_lib(L);
-    open_ltransformationmatrix_lib(L); // must be called before 'load_api'
+    open_ltransformationmatrix_lib(L);
     open_lgraphics_lib(L);
     open_lload_lib(L);
     open_lbind_lib(L);
@@ -182,6 +183,15 @@ static lua_State* create_and_initialize_lua(void)
     open_gdsparser_lib(L);
 
     return L;
+}
+
+static void _load_module(lua_State* L, const char* modname)
+{
+    size_t len = strlen(OPC_HOME) + strlen(modname) + 9; // +9: "/src/" + ".lua"
+    char* path = malloc(len + 1);
+    snprintf(path, len + 1, "%s/src/%s.lua", OPC_HOME, modname);
+    call_main_program(L, path);
+    free(path);
 }
 
 static int _parse_point(const char* arg, int* xptr, int* yptr)
@@ -274,11 +284,31 @@ int main(int argc, const char* const * argv)
         cmdoptions_exit(cmdoptions, 0);
     }
 
+    // read gds
+    if(cmdoptions_was_provided_long(cmdoptions, "read-gds"))
+    {
+        const char* arg = cmdoptions_get_argument_long(cmdoptions, "read-gds");
+        lua_State* L = util_create_basic_lua_state();
+        open_gdsparser_lib(L);
+        open_lfilesystem_lib(L);
+        _load_module(L, "gdsparser");
+        _load_module(L, "envlib");
+        _load_module(L, "import");
+        lua_newtable(L);
+        lua_pushstring(L, arg);
+        lua_setfield(L, -2, "readgds");
+        lua_setglobal(L, "args");
+        call_main_program(L, OPC_HOME "/src/scripts/read_gds.lua");
+        lua_close(L);
+        cmdoptions_exit(cmdoptions, 0);
+    }
+
     // technology file generation assistant
     if(cmdoptions_was_provided_long(cmdoptions, "techfile-assistant"))
     {
         lua_State* L = util_create_basic_lua_state();
-        call_main_program(L, OPC_HOME "/src/assistant.lua");
+        call_main_program(L, OPC_HOME "/src/scripts/assistant.lua");
+        lua_close(L);
         cmdoptions_exit(cmdoptions, 0);
     }
 

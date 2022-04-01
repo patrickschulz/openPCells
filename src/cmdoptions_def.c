@@ -15,6 +15,7 @@ cmdoptions_add_option(cmdoptions, NO_SHORT, "draw-alignmentbox", NO_ARG);
 cmdoptions_add_option(cmdoptions, NO_SHORT, "draw-all-alignmentboxes", NO_ARG);
 cmdoptions_add_option(cmdoptions, NO_SHORT, "techpath", MULTI_ARGS);
 cmdoptions_add_option(cmdoptions, NO_SHORT, "show-gds-data", SINGLE_ARG);
+cmdoptions_add_option(cmdoptions, NO_SHORT, "read-gds", SINGLE_ARG);
 cmdoptions_add_option(cmdoptions, NO_SHORT, "techfile-assistant", NO_ARG);
 cmdoptions_add_option(cmdoptions, NO_SHORT, "no-user-config", NO_ARG);
 cmdoptions_add_option(cmdoptions, NO_SHORT, "show-cellinfo", NO_ARG);
