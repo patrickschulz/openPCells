@@ -8,7 +8,7 @@
 
 struct cmdoptions* cmdoptions_create(void)
 {
-    struct cmdoptions* options = malloc(sizeof(options));
+    struct cmdoptions* options = malloc(sizeof(*options));
     options->options = vector_create();
     options->positional_parameters = vector_create();
     return options;

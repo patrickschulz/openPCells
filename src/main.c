@@ -203,6 +203,7 @@ static int _load_config(struct keyvaluearray* config)
         }
         keyvaluearray_add_untagged(config, "techpaths", techpaths);
     }
+    lua_close(L);
     return ret == LUA_OK;
 }
 
@@ -315,6 +316,7 @@ int main(int argc, const char* const * argv)
     }
     object_t* toplevel = lobject_check(L, -1)->object;
 
+    // draw alignmentbox(es)
     if(cmdoptions_was_provided_long(cmdoptions, "draw-alignmentbox") || cmdoptions_was_provided_long(cmdoptions, "draw-all-alignmentboxes"))
     {
         point_t* bl = object_get_anchor(toplevel, "bottomleft");
@@ -322,6 +324,8 @@ int main(int argc, const char* const * argv)
         if(bl && tr)
         {
             geometry_rectanglebltr(toplevel, generics_create_special(layermap, techstate), bl, tr, 1, 1, 0, 0);
+            point_destroy(bl);
+            point_destroy(tr);
         }
     }
     if(cmdoptions_was_provided_long(cmdoptions, "draw-all-alignmentboxes"))
@@ -334,6 +338,8 @@ int main(int argc, const char* const * argv)
             if(bl && tr)
             {
                 geometry_rectanglebltr(cell, generics_create_special(layermap, techstate), bl, tr, 1, 1, 0, 0);
+                point_destroy(bl);
+                point_destroy(tr);
             }
         }
     }
@@ -395,6 +401,8 @@ int main(int argc, const char* const * argv)
     technology_destroy(techstate);
     pcell_destroy_references();
     cmdoptions_destroy(cmdoptions);
+    vector_destroy(techpaths, free); // every techpath is a copied string
+    keyvaluearray_destroy(config);
     lua_close(L);
 
     return 0;
