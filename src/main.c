@@ -45,6 +45,7 @@
 #include "lutil.h"
 #include "util.h"
 #include "gdsparser.h"
+#include "geometry.h"
 
 #include "config.h"
 
@@ -313,6 +314,29 @@ int main(int argc, const char* const * argv)
         return 1;
     }
     object_t* toplevel = lobject_check(L, -1)->object;
+
+    if(cmdoptions_was_provided_long(cmdoptions, "draw-alignmentbox") || cmdoptions_was_provided_long(cmdoptions, "draw-all-alignmentboxes"))
+    {
+        point_t* bl = object_get_anchor(toplevel, "bottomleft");
+        point_t* tr = object_get_anchor(toplevel, "topright");
+        if(bl && tr)
+        {
+            geometry_rectanglebltr(toplevel, generics_create_special(layermap, techstate), bl, tr, 1, 1, 0, 0);
+        }
+    }
+    if(cmdoptions_was_provided_long(cmdoptions, "draw-all-alignmentboxes"))
+    {
+        for(unsigned int i = 0; i < pcell_get_reference_count(); ++i)
+        {
+            object_t* cell = pcell_get_indexed_cell_reference(i)->cell;
+            point_t* bl = object_get_anchor(cell, "bottomleft");
+            point_t* tr = object_get_anchor(cell, "topright");
+            if(bl && tr)
+            {
+                geometry_rectanglebltr(cell, generics_create_special(layermap, techstate), bl, tr, 1, 1, 0, 0);
+            }
+        }
+    }
 
     // flatten cell
     if(cmdoptions_was_provided_long(cmdoptions, "flat"))

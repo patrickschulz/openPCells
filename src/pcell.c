@@ -150,25 +150,12 @@ int lpcell_add_cell_reference(lua_State* L)
     return 1;
 }
 
-int lpcell_foreach_cell_references(lua_State* L)
-{
-    for(unsigned int i = 0; i < references->size; ++i)
-    {
-        lua_pushvalue(L, 1);
-        object_t* cell = references->references[i]->cell;
-        lobject_adapt(L, cell);
-        lua_call(L, 1, 0);
-    }
-    return 0;
-}
-
 int open_lpcell_lib(lua_State* L)
 {
     lua_newtable(L);
     static const luaL_Reg modfuncs[] =
     {
         { "add_cell_reference",      lpcell_add_cell_reference      },
-        { "foreach_cell_references", lpcell_foreach_cell_references },
         { NULL,                      NULL                           }
     };
     luaL_setfuncs(L, modfuncs, 0);

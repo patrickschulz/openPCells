@@ -253,24 +253,6 @@ if args.drawanchor then
     end
 end
 
--- add drawing of alignment box
-if args.drawalignmentbox or args.drawallalignmentboxes then
-    local bl = cell:get_anchor("bottomleft")
-    local tr = cell:get_anchor("topright")
-    if bl and tr then
-        geometry.rectanglebltr(cell, generics.special(), bl, tr)
-    end
-end
-if args.drawallalignmentboxes then
-    pcell.foreach_cell_references(function(cell)
-        local bl = cell:get_anchor("bottomleft")
-        local tr = cell:get_anchor("topright")
-        if bl and tr then
-            geometry.rectanglebltr(cell, generics.special(), bl, tr)
-        end
-    end)
-end
-
 -- filter layers
 if args.layerfilter then
     postprocess.filter(cell, args.layerfilter, args.layerfilterlist)

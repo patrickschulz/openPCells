@@ -8,6 +8,8 @@ cmdoptions_add_option(cmdoptions, NO_SHORT, "write-children-ports", NO_ARG);
 cmdoptions_add_option(cmdoptions, NO_SHORT, "bus-delimiters", SINGLE_ARG);
 cmdoptions_add_option(cmdoptions, NO_SHORT, "flat", NO_ARG);
 cmdoptions_add_option(cmdoptions, NO_SHORT, "merge-rectangles", NO_ARG);
+cmdoptions_add_option(cmdoptions, NO_SHORT, "draw-alignmentbox", NO_ARG);
+cmdoptions_add_option(cmdoptions, NO_SHORT, "draw-all-alignmentboxes", NO_ARG);
 cmdoptions_add_option(cmdoptions, NO_SHORT, "techpath", MULTI_ARGS);
 cmdoptions_add_option(cmdoptions, NO_SHORT, "show-gds-data", SINGLE_ARG);
 cmdoptions_add_option(cmdoptions, NO_SHORT, "techfile-assistant", NO_ARG);
