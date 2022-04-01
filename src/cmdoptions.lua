@@ -94,7 +94,7 @@ return {
         help = "synonym for --append-cellpath"
     },
     store_multiple{
-        name = "layerfilter", long = "--filter",
+        name = "layerfilter", long = "--filter-layers",
         help = "filter layers to be generated. Any layer (in generic notation) in this list will not be generated. This option can be called multiple times. The effect of this options is also controlled by --filter-list. This filter is installed BEFORE technology translation, so the layers must be specified in generic notation (e.g. M1 or contactsourcedrain).",
     },
     store{

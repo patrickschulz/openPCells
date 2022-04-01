@@ -6,7 +6,10 @@ cmdoptions_add_option_default(cmdoptions, 'f', "filename", SINGLE_ARG, "openPCel
 cmdoptions_add_option_default(cmdoptions, 'n', "cellname", SINGLE_ARG, "opctoplevel");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "write-children-ports", NO_ARG);
 cmdoptions_add_option(cmdoptions, NO_SHORT, "bus-delimiters", SINGLE_ARG);
+cmdoptions_add_option(cmdoptions, NO_SHORT, "translate", SINGLE_ARG);
 cmdoptions_add_option(cmdoptions, NO_SHORT, "flat", NO_ARG);
+cmdoptions_add_option(cmdoptions, NO_SHORT, "filter-layers", MULTI_ARGS);
+cmdoptions_add_option(cmdoptions, NO_SHORT, "filter-list", SINGLE_ARG);
 cmdoptions_add_option(cmdoptions, NO_SHORT, "merge-rectangles", NO_ARG);
 cmdoptions_add_option(cmdoptions, NO_SHORT, "draw-alignmentbox", NO_ARG);
 cmdoptions_add_option(cmdoptions, NO_SHORT, "draw-all-alignmentboxes", NO_ARG);

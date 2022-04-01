@@ -39,33 +39,37 @@ void postprocess_merge_shapes(object_t* object, struct layermap* layermap)
     _merge_shapes(object, layermap);
 }
 
-void postprocess_filter_exclude(object_t* object, const char** layernames, size_t len)
+void postprocess_filter_exclude(object_t* object, const char** layernames)
 {
     for(int i = object->shapes_size - 1; i >= 0; --i)
     {
         shape_t* S = object->shapes[i];
-        for(unsigned int j = 0; j < len; ++j)
+        const char** layername = layernames;
+        while(*layername)
         {
-            if(strcmp(S->layer->name, layernames[j]) == 0)
+            if(strcmp(S->layer->name, *layername) == 0)
             {
                 object_remove_shape(object, i);
             }
+            ++layername;
         }
     }
 }
 
-void postprocess_filter_include(object_t* object, const char** layernames, size_t len)
+void postprocess_filter_include(object_t* object, const char** layernames)
 {
     for(int i = object->shapes_size - 1; i >= 0; --i)
     {
         shape_t* S = object->shapes[i];
         int keep = 0;
-        for(unsigned int j = 0; j < len; ++j)
+        const char** layername = layernames;
+        while(*layername)
         {
-            if(strcmp(S->layer->name, layernames[j]) == 0)
+            if(strcmp(S->layer->name, *layername) == 0)
             {
                 keep = 1;
             }
+            ++layername;
         }
         if(!keep)
         {

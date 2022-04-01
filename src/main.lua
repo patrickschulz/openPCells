@@ -211,25 +211,6 @@ else
     cell = pcell.create_layout(args.cell, cellargs, nil, true) -- nil: no environment, true: evaluate parameters
 end
 
--- move origin
-if args.origin then
-    local x, y = string.match(args.origin, "%(%s*([-%d]+)%s*,%s*([-%d]+)%s*%)")
-    if not x then
-        moderror(string.format("could not parse origin (%s)", args.origin))
-    end
-    x, y = tonumber(x), tonumber(y)
-    cell:move_to(x, y)
-end
-
--- translate
-if args.translate then
-    local dx, dy = string.match(args.translate, "%(%s*([-%d]+)%s*,%s*([-%d]+)%s*%)")
-    if not dx then
-        moderror(string.format("could not parse translation (%s)", args.translate))
-    end
-    cell:translate(dx, dy)
-end
-
 -- orientation
 if args.orientation then
     local lut = {
@@ -251,11 +232,6 @@ if args.drawanchor then
         local anchor = cell:get_anchor(da)
         cell:merge_into_shallow(marker.cross(anchor))
     end
-end
-
--- filter layers
-if args.layerfilter then
-    postprocess.filter(cell, args.layerfilter, args.layerfilterlist)
 end
 
 return cell

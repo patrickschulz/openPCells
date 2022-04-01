@@ -120,9 +120,6 @@ options.askGDS = yesno("Do you want to specify GDS layer information for the lay
 options.askSKILL = yesno("Do you want to specify SKILL layer information for the layers")
 options.askname = yesno("For debugging purposes, it can be useful to assign a name for every layer. Do you want to be asked for layer names")
 
-filesystem.mkdir(string.format("tech/%s", libname))
-print(string.format("writing to tech/%s/layermap.lua", libname))
-local file = io.open(string.format("tech/%s/layermap.lua", libname), "w")
 local tech = { entries = {} }
 
 print()
@@ -163,5 +160,8 @@ for i = 1, tech.nummetals do
     )
 end
 
+filesystem.mkdir(string.format("tech/%s", libname))
+print(string.format("writing to tech/%s/layermap.lua", libname))
+local file = io.open(string.format("tech/%s/layermap.lua", libname), "w")
 _write_techfile(file, tech)
 file:close()

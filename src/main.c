@@ -10,6 +10,7 @@
 #include <stdlib.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <errno.h>
 
 #include <signal.h>
 
@@ -183,6 +184,38 @@ static lua_State* create_and_initialize_lua(void)
     return L;
 }
 
+static int _parse_point(const char* arg, int* xptr, int* yptr)
+{
+    unsigned int idx1, idx2;
+    const char* ptr = arg;
+    while(*ptr)
+    {
+        if(*ptr == '(')
+        {
+            idx1 = ptr - arg;
+        }
+        if(*ptr == ',')
+        {
+            idx2 = ptr - arg;
+        }
+        ++ptr;
+    }
+    char* endptr;
+    int x = strtol(arg + idx1 + 1, &endptr, 10);
+    if(endptr == arg + idx1 + 1)
+    {
+        return 0;
+    }
+    int y = strtol(arg + idx2 + 1, &endptr, 10);
+    if(endptr == arg + idx2 + 1)
+    {
+        return 0;
+    }
+    *xptr = x;
+    *yptr = y;
+    return 1;
+}
+
 static int _load_config(struct keyvaluearray* config)
 {
     const char* home = getenv("HOME");
@@ -245,7 +278,7 @@ int main(int argc, const char* const * argv)
     if(cmdoptions_was_provided_long(cmdoptions, "techfile-assistant"))
     {
         lua_State* L = util_create_basic_lua_state();
-        int retval = call_main_program(L, OPC_HOME "/src/assistant.lua");
+        call_main_program(L, OPC_HOME "/src/assistant.lua");
         cmdoptions_exit(cmdoptions, 0);
     }
 
@@ -316,6 +349,59 @@ int main(int argc, const char* const * argv)
     }
     object_t* toplevel = lobject_check(L, -1)->object;
 
+    // move origin
+    if(cmdoptions_was_provided_long(cmdoptions, "origin"))
+    {
+        const char* arg = cmdoptions_get_argument_long(cmdoptions, "origin");
+        int x, y;
+        if(!_parse_point(arg, &x, &y))
+        {
+            printf("could not parse translation '%s'\n", arg);
+        }
+        else
+        {
+            object_move_to(toplevel, x, y);
+        }
+    }
+
+    // translate
+    if(cmdoptions_was_provided_long(cmdoptions, "translate"))
+    {
+        const char* arg = cmdoptions_get_argument_long(cmdoptions, "translate");
+        int dx, dy;
+        if(!_parse_point(arg, &dx, &dy))
+        {
+            printf("could not parse translation '%s'\n", arg);
+        }
+        else
+        {
+            object_translate(toplevel, dx, dy);
+        }
+    }
+
+    // orientation
+    //if args.orientation then
+    //    local lut = {
+    //        ["0"] = function() end, -- do nothing, but allow this as command line option
+    //        ["fx"] = function() cell:flipx() end,
+    //        ["fy"] = function() cell:flipy() end,
+    //        ["fxy"] = function() cell:flipx(); cell:flipy() end,
+    //    }
+    //    local f = lut[args.orientation]
+    //    if not f then
+    //        moderror(string.format("unknown orientation: '%s'", args.orientation))
+    //    end
+    //    f()
+    //end
+
+    // draw anchors
+    //if args.drawanchor then
+    //    for _, da in ipairs(args.drawanchor) do
+    //        local anchor = cell:get_anchor(da)
+    //        cell:merge_into_shallow(marker.cross(anchor))
+    //    end
+    //end
+
     // draw alignmentbox(es)
     if(cmdoptions_was_provided_long(cmdoptions, "draw-alignmentbox") || cmdoptions_was_provided_long(cmdoptions, "draw-all-alignmentboxes"))
     {
@@ -352,6 +438,29 @@ int main(int argc, const char* const * argv)
     }
 
     // post-processing
+    if(cmdoptions_was_provided_long(cmdoptions, "filter-layers"))
+    {
+        const char** layernames = cmdoptions_get_argument_long(cmdoptions, "filter-layers");
+        if(cmdoptions_was_provided_long(cmdoptions, "filter-list") &&
+           strcmp(cmdoptions_get_argument_long(cmdoptions, "filter-list"), "include") == 0)
+        {
+            postprocess_filter_include(toplevel, layernames);
+            for(unsigned int i = 0; i < pcell_get_reference_count(); ++i)
+            {
+                object_t* cell = pcell_get_indexed_cell_reference(i)->cell;
+                postprocess_filter_include(cell, layernames);
+            }
+        }
+        else
+        {
+            postprocess_filter_exclude(toplevel, layernames);
+            for(unsigned int i = 0; i < pcell_get_reference_count(); ++i)
+            {
+                object_t* cell = pcell_get_indexed_cell_reference(i)->cell;
+                postprocess_filter_exclude(cell, layernames);
+            }
+        }
+    }
     if(cmdoptions_was_provided_long(cmdoptions, "merge-rectangles"))
     {
         postprocess_merge_shapes(toplevel, layermap);
