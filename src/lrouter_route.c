@@ -147,8 +147,8 @@ int route(net_t *net, int*** field, size_t width, size_t height,
 	if(!min_heap->size)
 	{
 		/* clean up */
-		field[startz][startx][starty] = PORT;
-		field[endz][endx][endy] = PORT;
+		//field[startz][startx][starty] = PORT;
+		//field[endz][endx][endy] = PORT;
 		reset_field(field, width, height, num_layers);
 		return STUCK;
 	}
@@ -240,6 +240,7 @@ int route(net_t *net, int*** field, size_t width, size_t height,
 
 
 	} while (!(x == startx && y == starty && z == startz));
+
 	queue_reverse(net->path);
 	/* mark start and end of net as ports */
 
