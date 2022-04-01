@@ -1,5 +1,4 @@
 local modules = {
-    "profiler",
     "cmdparser",
     "point",
     "geometry",

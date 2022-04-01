@@ -1,8 +1,8 @@
 #ifndef OPC_INFO_H
 #define OPC_INFO_H
 
-#include "lua/lua.h"
+#include "object.h"
 
-int open_info_lib(lua_State* L);
+void info_cellinfo(object_t* cell);
 
 #endif // OPC_INFO_H

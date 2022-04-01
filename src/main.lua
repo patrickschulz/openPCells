@@ -64,10 +64,6 @@ if args.script then
     return 0
 end
 
-if args.profile then
-    profiler.start()
-end
-
 if args.watch then
     print("sorry, watch mode is currently not implemented")
     return 1
@@ -278,15 +274,6 @@ end
 -- filter layers
 if args.layerfilter then
     postprocess.filter(cell, args.layerfilter, args.layerfilterlist)
-end
-
-if args.cellinfo then
-    info.cellinfo(cell)
-end
-
-if args.profile then
-    profiler.stop()
-    profiler.display()
 end
 
 return cell

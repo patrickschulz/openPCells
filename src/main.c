@@ -176,7 +176,6 @@ static lua_State* create_and_initialize_lua(void)
     open_lfilesystem_lib(L);
     open_lplacer_lib(L);
     open_lrouter_lib(L);
-    open_info_lib(L);
 
     open_gdsparser_lib(L);
 
@@ -359,6 +358,12 @@ int main(int argc, const char* const * argv)
     else
     {
         puts("no export type given");
+    }
+
+    // cell info
+    if(cmdoptions_was_provided_long(cmdoptions, "show-cellinfo"))
+    {
+       info_cellinfo(toplevel);
     }
 
     // clean up states
