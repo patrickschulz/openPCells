@@ -11,16 +11,6 @@ void technology_add_techpath(struct technology_state* techstate, const char* pat
     vector_append(techstate->techpaths, util_copy_string(path));
 }
 
-static int ltechnology_add_techpath(lua_State* L)
-{
-    lua_getfield(L, LUA_REGISTRYINDEX, "techstate");
-    struct technology_state* techstate = lua_touserdata(L, -1);
-    lua_pop(L, 1); // pop techstate
-    const char* path = lua_tostring(L, 1);
-    technology_add_techpath(techstate, path);
-    return 0;
-}
-
 static int ltechnology_list_techpaths(lua_State* L)
 {
     lua_getfield(L, LUA_REGISTRYINDEX, "techstate");
@@ -360,16 +350,6 @@ int technology_load(struct technology_state* techstate, const char* techname)
     return 1;
 }
 
-int ltechnology_load(lua_State* L)
-{
-    const char* techname = lua_tostring(L, 1);
-    lua_getfield(L, LUA_REGISTRYINDEX, "techstate");
-    struct technology_state* techstate = lua_touserdata(L, -1);
-    lua_pop(L, 1); // pop techstate
-    technology_load(techstate, techname);
-    return 0;
-}
-
 generics_t* technology_get_layer(struct technology_state* techstate, const char* layername)
 {
     for(unsigned int i = 0; i < vector_size(techstate->layertable); ++i)
@@ -556,10 +536,8 @@ int open_ltechnology_lib(lua_State* L)
     lua_newtable(L);
     static const luaL_Reg modfuncs[] =
     {
-        { "add_techpath",   ltechnology_add_techpath   },
         { "list_techpaths", ltechnology_list_techpaths },
         { "get_dimension",  ltechnology_get_dimension  },
-        { "load",           ltechnology_load           },
         { NULL,             NULL                       }
     };
     luaL_setfuncs(L, modfuncs, 0);

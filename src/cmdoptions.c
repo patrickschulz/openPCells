@@ -19,7 +19,7 @@ void _destroy_option(void* ptr)
     struct option* option = ptr;
     if(option->argument)
     {
-        if(option->flags & MULTIPLE)
+        if(option->numargs & MULTI_ARGS)
         {
             char** p = option->argument;
             while(*p)
@@ -46,14 +46,24 @@ void cmdoptions_exit(struct cmdoptions* options, int exitcode)
     exit(exitcode);
 }
 
-void cmdoptions_add_long_option(struct cmdoptions* options, char short_identifier, const char* long_identifier, int argument_required, int flags)
+void cmdoptions_add_option(struct cmdoptions* options, char short_identifier, const char* long_identifier, int numargs)
 {
     struct option* option = malloc(sizeof(*option));
     option->short_identifier = short_identifier;
     option->long_identifier = long_identifier;
-    option->flags = flags;
-    option->argument_required = argument_required;
+    option->numargs = numargs;
     option->argument = NULL;
+    option->was_provided = 0;
+    vector_append(options->options, option);
+}
+
+void cmdoptions_add_option_default(struct cmdoptions* options, char short_identifier, const char* long_identifier, int numargs, const char* default_arg)
+{
+    struct option* option = malloc(sizeof(*option));
+    option->short_identifier = short_identifier;
+    option->long_identifier = long_identifier;
+    option->numargs = numargs;
+    option->argument = util_copy_string(default_arg);
     option->was_provided = 0;
     vector_append(options->options, option);
 }
@@ -97,13 +107,13 @@ int cmdoptions_was_provided_long(struct cmdoptions* options, const char* opt)
     return 0;
 }
 
-void _store_argument(struct option* option, int* iptr, int argc, const char* const * argv)
+int _store_argument(struct option* option, int* iptr, int argc, const char* const * argv)
 {
-    if(option->argument_required)
+    if(option->numargs)
     {
         if(*iptr < argc - 1)
         {
-            if(option->flags & MULTIPLE)
+            if(option->numargs & MULTI_ARGS)
             {
                 if(!option->argument)
                 {
@@ -126,18 +136,26 @@ void _store_argument(struct option* option, int* iptr, int argc, const char* con
                     option->argument = argument;
                 }
             }
-            else // non-MULTIPLE option
+            else // SINGLE_ARG option
             {
                 option->argument = util_copy_string(argv[*iptr + 1]);
             }
         }
         else // argument required, but not entries in argv left
         {
-            //printf("expected argument for option '%s'\n", longopt);
-            //return 0;
+            if(option->long_identifier)
+            {
+                printf("expected argument for option '%s'\n", option->long_identifier);
+            }
+            else
+            {
+                printf("expected argument for option '%c'\n", option->short_identifier);
+            }
+            return 0;
         }
         *iptr += 1;
     }
+    return 1;
 }
 
 int cmdoptions_parse(struct cmdoptions* options, int argc, const char* const * argv)
@@ -159,17 +177,20 @@ int cmdoptions_parse(struct cmdoptions* options, int argc, const char* const * a
                 struct option* option = cmdoptions_get_option_long(options, longopt);
                 if(!option)
                 {
-                    //printf("unknown command line option: '--%s'\n", longopt);
-                    //return 0;
+                    printf("unknown command line option: '--%s'\n", longopt);
+                    return 0;
                 }
                 else
                 {
-                    if(option->was_provided && !(option->flags & MULTIPLE))
+                    if(option->was_provided && !(option->numargs & MULTI_ARGS))
                     {
                         printf("option '%s' is only allowed once\n", longopt);
                     }
                     option->was_provided = 1;
-                    _store_argument(option, &i, argc, argv);
+                    if(!_store_argument(option, &i, argc, argv))
+                    {
+                        return 0;
+                    }
                 }
             }
             else // short option
@@ -186,12 +207,15 @@ int cmdoptions_parse(struct cmdoptions* options, int argc, const char* const * a
                     }
                     else
                     {
-                        if(option->was_provided && !(option->flags & MULTIPLE))
+                        if(option->was_provided && !(option->numargs & MULTI_ARGS))
                         {
                             printf("option '%c' is only allowed once\n", shortopt);
                         }
                         option->was_provided = 1;
-                        _store_argument(option, &i, argc, argv);
+                        if(!_store_argument(option, &i, argc, argv))
+                        {
+                            return 0;
+                        }
                     }
                     ++ch;
                 }

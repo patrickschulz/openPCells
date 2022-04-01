@@ -17,17 +17,30 @@ local __groupname = "opcgroup"
 local __let = true
 local __labelsize = 0.1
 function M.set_options(opt)
-    if opt.group then
-        __group = true
-    end
-    if opt.nolet then
-        __let = false
-    end
-    if opt.groupname then
-        __groupname = opt.groupname
-    end
-    if opt.labelsize then
-        __labelsize = opt.labelsize
+    for i = 1, #opt do
+        local arg = opt[i]
+        if arg == "-L" or arg == "--label-size" then
+            if i < #opt then
+                __labelsize = opt[i + 1]
+            else
+                error("SKILL export: --label-size: argument expected")
+            end
+            i = i + 1
+        end
+        if arg == "-g" or arg == "--group" then
+            __group = true
+        end
+        if arg == "-n" or arg == "--group-name" then
+            if i < #opt then
+                __groupname = opt[i + 1]
+            else
+                error("SKILL export: --group-name: argument expected")
+            end
+            i = i + 1
+        end
+        if arg == "-l" or arg == "--no-let" then
+            __let = false
+        end
     end
 end
 

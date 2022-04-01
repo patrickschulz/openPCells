@@ -36,13 +36,14 @@
 #include "lobject.h"
 #include "pcell.h"
 #include "info.h"
-#include "lexport.h"
-#include "lpostprocess.h"
+#include "export.h"
+#include "postprocess.h"
 //#include "lunion.h"
 #include "lfilesystem.h"
 #include "lplacer.h"
 #include "lrouter.h"
 #include "lutil.h"
+#include "util.h"
 #include "gdsparser.h"
 
 #include "config.h"
@@ -124,31 +125,6 @@ static int msghandler (lua_State *L) {
   return 1;  /* return the traceback */
 }
 
-static const luaL_Reg loadedlibs[] = {
-    {LUA_GNAME, luaopen_base},
-    //{LUA_LOADLIBNAME, luaopen_package},
-    //{LUA_COLIBNAME, luaopen_coroutine},
-    {LUA_TABLIBNAME, luaopen_table},
-    {LUA_IOLIBNAME, luaopen_io},
-    {LUA_OSLIBNAME, luaopen_os}, // replace os.exit and os.time, then this 'dependency' can also be removed
-    {LUA_STRLIBNAME, luaopen_string},
-    {LUA_MATHLIBNAME, luaopen_math},
-    //{LUA_UTF8LIBNAME, luaopen_utf8},
-    {LUA_DBLIBNAME, luaopen_debug},
-    {NULL, NULL}
-};
-
-/* this is taken from lua/init.c, but the list of modules is modified, we don't need package for instance */
-void load_lualibs(lua_State *L)
-{
-    const luaL_Reg *lib;
-    /* "require" functions from 'loadedlibs' and set results to global table */
-    for (lib = loadedlibs; lib->func; lib++) {
-        luaL_requiref(L, lib->name, lib->func, 1);
-        lua_pop(L, 1);  /* remove lib */
-    }
-}
-
 static void create_argument_table(lua_State* L, int argc, const char* const * argv)
 {
     lua_newtable(L);
@@ -179,23 +155,9 @@ static int call_main_program(lua_State* L, const char* filename)
     return LUA_OK;
 }
 
-static lua_State* _create_minimal_lua_state(void)
-{
-    lua_State* L = luaL_newstate();
-    if (L == NULL) 
-    {
-        fprintf(stderr, "%s\n", "cannot create state: not enough memory");
-        exit(EXIT_FAILURE);
-    }
-    return L;
-}
-
 static lua_State* create_and_initialize_lua(void)
 {
-    lua_State* L = _create_minimal_lua_state();
-
-    // lua libraries
-    load_lualibs(L);
+    lua_State* L = util_create_basic_lua_state();
 
     // opc libraries
     open_ldir_lib(L);
@@ -210,8 +172,6 @@ static lua_State* create_and_initialize_lua(void)
     open_lbinary_lib(L);
     open_lobject_lib(L);
     open_lpcell_lib(L);
-    open_lexport_lib(L);
-    open_lpostprocess_lib(L);
     open_lutil_lib(L);
     open_lfilesystem_lib(L);
     open_lplacer_lib(L);
@@ -221,6 +181,29 @@ static lua_State* create_and_initialize_lua(void)
     open_gdsparser_lib(L);
 
     return L;
+}
+
+static int _load_config(struct keyvaluearray* config)
+{
+    const char* home = getenv("HOME");
+    lua_State* L = util_create_basic_lua_state();
+    lua_pushfstring(L, "%s/.opcconfig.lua", home);
+    lua_setglobal(L, "filename");
+    int ret = luaL_dofile(L, OPC_HOME "/src/config.lua");
+    if(ret == LUA_OK)
+    {
+        struct vector* techpaths = vector_create();
+        lua_getfield(L, -1, "techpaths");
+        lua_pushnil(L);
+        while(lua_next(L, -2) != 0)
+        {
+            const char* path = lua_tostring(L, -1);
+            vector_append(techpaths, util_copy_string(path));
+            lua_pop(L, 1);
+        }
+        keyvaluearray_add_untagged(config, "techpaths", techpaths);
+    }
+    return ret == LUA_OK;
 }
 
 int main(int argc, const char* const * argv)
@@ -242,7 +225,7 @@ int main(int argc, const char* const * argv)
     #include "cmdoptions_def.c" // yes, I did that
     if(!cmdoptions_parse(cmdoptions, argc, argv))
     {
-        //return 1;
+        return 1;
     }
 
     // show gds data
@@ -260,8 +243,7 @@ int main(int argc, const char* const * argv)
     // technology file generation assistant
     if(cmdoptions_was_provided_long(cmdoptions, "techfile-assistant"))
     {
-        lua_State* L = _create_minimal_lua_state();
-        load_lualibs(L);
+        lua_State* L = util_create_basic_lua_state();
         int retval = call_main_program(L, OPC_HOME "/src/assistant.lua");
         cmdoptions_exit(cmdoptions, 0);
     }
@@ -282,7 +264,18 @@ int main(int argc, const char* const * argv)
     }
     struct technology_state* techstate = technology_initialize();
 
+    struct keyvaluearray* config = keyvaluearray_create();
+    if(!cmdoptions_was_provided_long(cmdoptions, "no-user-config"))
+    {
+        if(!_load_config(config))
+        {
+            puts("error while loading user config");
+            return 1;
+        }
+    }
+
     // add technology search paths
+    technology_add_techpath(techstate, OPC_HOME "/tech");
     if(cmdoptions_was_provided_long(cmdoptions, "techpath"))
     {
         const char** arg = cmdoptions_get_argument_long(cmdoptions, "techpath");
@@ -291,6 +284,12 @@ int main(int argc, const char* const * argv)
             technology_add_techpath(techstate, *arg);
             ++arg;
         }
+    }
+    // add techpaths from config file
+    struct vector* techpaths = keyvaluearray_get(config, "techpaths");
+    for(unsigned int i = 0; i < vector_size(techpaths); ++i)
+    {
+        technology_add_techpath(techstate, vector_get(techpaths, i));
     }
 
     // load technology and store in lua registry
@@ -302,16 +301,73 @@ int main(int argc, const char* const * argv)
     // create pcell references FIXME: remove global variable
     pcell_initialize_references();
 
+    // create cell
     int retval = call_main_program(L, OPC_HOME "/src/main.lua");
+    if(retval != LUA_OK)
+    {
+        // clean up states
+        generics_destroy_layer_map(layermap);
+        technology_destroy(techstate);
+        pcell_destroy_references();
+        cmdoptions_destroy(cmdoptions);
+        lua_close(L);
+        return 1;
+    }
+    object_t* toplevel = lobject_check(L, -1)->object;
+
+    // flatten cell
+    if(cmdoptions_was_provided_long(cmdoptions, "flat"))
+    {
+        int flattenports = cmdoptions_was_provided_long(cmdoptions, "flattenports");
+        object_flatten(toplevel, flattenports);
+    }
+
+    // post-processing
+    if(cmdoptions_was_provided_long(cmdoptions, "merge-rectangles"))
+    {
+        postprocess_merge_shapes(toplevel, layermap);
+    }
+
+    // export cell
+    if(cmdoptions_was_provided_long(cmdoptions, "export") || cmdoptions_was_provided_long(cmdoptions, "exportlayers"))
+    {
+        const char* exportname = cmdoptions_get_argument_long(cmdoptions, "exportlayers");
+        if(!exportname)
+        {
+            exportname = cmdoptions_get_argument_long(cmdoptions, "export");
+        }
+        // add export search paths. FIXME: add --exportpath cmd option
+        if(!generics_resolve_premapped_layers(layermap, exportname))
+        {
+            printf("no layer data for export type '%s' found", exportname);
+        }
+        export_add_path(OPC_HOME "/export");
+        const char* basename = cmdoptions_get_argument_long(cmdoptions, "filename");
+        const char* toplevelname = cmdoptions_get_argument_long(cmdoptions, "cellname");
+        const char** exportoptions = cmdoptions_get_argument_long(cmdoptions, "export-options");
+        int writechildrenports = cmdoptions_was_provided_long(cmdoptions, "write-children-ports");
+        const char* delimiters = cmdoptions_get_argument_long(cmdoptions, "bus-delimiters");
+        char leftdelim = '<';
+        char rightdelim = '>';
+        if(delimiters && delimiters[0] && delimiters[1])
+        {
+            leftdelim = delimiters[0];
+            rightdelim = delimiters[1];
+        }
+        export_write_toplevel(toplevel, exportname, basename, toplevelname, leftdelim, rightdelim, exportoptions, writechildrenports);
+    }
+    else
+    {
+        puts("no export type given");
+    }
 
     // clean up states
     generics_destroy_layer_map(layermap);
     technology_destroy(techstate);
     pcell_destroy_references();
-
     cmdoptions_destroy(cmdoptions);
-
     lua_close(L);
-    return retval;
+
+    return 0;
 }
 

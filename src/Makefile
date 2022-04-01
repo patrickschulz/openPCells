@@ -14,7 +14,7 @@ SYSCFLAGS=
 SYSLDFLAGS=
 SYSLIBS=
 
-OPCOBJ:=cmdoptions.o util.o vector.o union.o postprocess.o lpostprocess.o point.o technology.o transformationmatrix.o ltransformationmatrix.o shape.o object.o geometry.o keyvaluepairs.o generics.o lgenerics.o lgeometry.o ldir.o lpoint.o graphics.o lbind.o lload.o lbinary.o lobject.o pcell.o lfilesystem.o lplacer.o lplacer_rand.o lplacer_nonoverlapping.o lplacer_classic.o lrouter.o lrouter_net.o lrouter_queue.o lrouter_field.o lrouter_route.o lutil.o gdsparser.o ldebug.o lexport.o lexport_common.o gdsexport.o info.o
+OPCOBJ:=cmdoptions.o util.o vector.o union.o postprocess.o point.o technology.o transformationmatrix.o ltransformationmatrix.o shape.o object.o geometry.o keyvaluepairs.o generics.o lgenerics.o lgeometry.o ldir.o lpoint.o graphics.o lbind.o lload.o lbinary.o lobject.o pcell.o lfilesystem.o lplacer.o lplacer_rand.o lplacer_nonoverlapping.o lplacer_classic.o lrouter.o lrouter_net.o lrouter_queue.o lrouter_field.o lrouter_route.o lutil.o gdsparser.o ldebug.o export.o export_common.o gdsexport.o info.o
 
 .PHONY: default
 default:
@@ -78,7 +78,7 @@ endif
 cmdoptions.o: cmdoptions.c cmdoptions.h vector.h util.h lua/lua.h \
  lua/luaconf.h
 cmdoptions_def.o: cmdoptions_def.c
-gdsexport.o: gdsexport.c gdsexport.h lexport_common.h generics.h \
+gdsexport.o: gdsexport.c gdsexport.h export_common.h generics.h \
  keyvaluepairs.h vector.h point.h transformationmatrix.h
 gdsparser.o: gdsparser.c gdsparser.h lua/lua.h lua/luaconf.h \
  lua/lauxlib.h lua/lua.h
@@ -98,11 +98,11 @@ lbinary.o: lbinary.c lbinary.h lua/lua.h lua/luaconf.h lua/lauxlib.h \
 lbind.o: lbind.c lua/lua.h lua/luaconf.h lua/lauxlib.h lua/lua.h
 ldebug.o: ldebug.c ldebug.h lua/lua.h lua/luaconf.h
 ldir.o: ldir.c ldir.h lua/lua.h lua/luaconf.h lua/lauxlib.h lua/lua.h
-lexport.o: lexport.c lexport.h lua/lua.h lua/luaconf.h lua/lauxlib.h \
+export.o: export.c export.h lua/lua.h lua/luaconf.h lua/lauxlib.h \
  lua/lua.h util.h lobject.h object.h transformationmatrix.h point.h \
- shape.h generics.h keyvaluepairs.h vector.h lexport_common.h pcell.h \
+ shape.h generics.h keyvaluepairs.h vector.h export_common.h pcell.h \
  gdsexport.h lpoint.h
-lexport_common.o: lexport_common.c lexport_common.h generics.h \
+export_common.o: export_common.c export_common.h generics.h \
  keyvaluepairs.h vector.h point.h transformationmatrix.h
 lfilesystem.o: lfilesystem.c lfilesystem.h lua/lua.h lua/luaconf.h \
  lua/lauxlib.h lua/lua.h
@@ -128,10 +128,6 @@ lplacer_nonoverlapping.o: lplacer_nonoverlapping.c \
 lplacer_rand.o: lplacer_rand.c lplacer_rand.h lua/lua.h lua/luaconf.h
 lpoint.o: lpoint.c lpoint.h lua/lua.h lua/luaconf.h point.h lua/lauxlib.h \
  lua/lua.h
-lpostprocess.o: lpostprocess.c lpostprocess.h lua/lua.h lua/luaconf.h \
- lua/lauxlib.h lua/lua.h lobject.h object.h transformationmatrix.h \
- point.h shape.h generics.h keyvaluepairs.h vector.h postprocess.h \
- pcell.h
 lrouter.o: lrouter.c lua/lua.h lua/luaconf.h lua/lauxlib.h lua/lua.h \
  lrouter_net.h lrouter_queue.h lrouter_route.h lrouter_field.h
 lrouter_field.o: lrouter_field.c lrouter_field.h
@@ -149,7 +145,7 @@ main.o: main.c lua/lprefix.h lua/lua.h lua/luaconf.h lua/lauxlib.h \
  lgeometry.h lgenerics.h generics.h keyvaluepairs.h technology.h \
  ltransformationmatrix.h transformationmatrix.h graphics.h lload.h \
  lbind.h ldir.h lbinary.h lobject.h object.h shape.h pcell.h info.h \
- lexport.h lpostprocess.h lfilesystem.h lplacer.h lrouter.h lutil.h \
+ export.h lfilesystem.h lplacer.h lrouter.h lutil.h \
  gdsparser.h config.h cmdoptions_def.c
 object.o: object.c object.h transformationmatrix.h point.h shape.h \
  generics.h keyvaluepairs.h vector.h util.h lua/lua.h lua/luaconf.h \

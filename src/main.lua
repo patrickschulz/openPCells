@@ -94,21 +94,9 @@ if args.prependcellpath then
     end
 end
 
--- set default path for exports
-export.add_path(string.format("%s/export", _get_opc_home()))
-
 if args.listcellpaths then
     pcell.list_cellpaths()
     return 0
-end
-
--- set default path for technology files
-technology.add_techpath(string.format("%s/tech", _get_opc_home()))
--- add user-defined cellpaths
-if args.techpath then
-    for _, path in ipairs(args.techpath) do
-        technology.add_techpath(path)
-    end
 end
 
 if args.listtechpaths then
@@ -156,19 +144,6 @@ if args.constraints then
     local params = pcell.constraints(args.cell)
     io.write(table.concat(params, sep) .. sep)
     return 0
-end
-
--- check and load technology
-if not args.notech then
-    if not args.technology and not args.params then
-        moderror("no technology given")
-    elseif not args.technology and args.params then
-        -- ok, don't load technology but also don't raise an error
-        -- this enables pcell.parameters to display the cell parameters with generic technology expressions
-        -- this empty elseif clause is left to express intent
-    else 
-        --technology.load(args.technology)
-    end
 end
 
 --[[
@@ -305,36 +280,6 @@ if args.layerfilter then
     postprocess.filter(cell, args.layerfilter, args.layerfilterlist)
 end
 
--- flatten
-if args.flatten then
-    cell:flatten(args.flattenports)
-end
-
--- merge rectangles
-if args.mergerectangles then
-    postprocess.merge_shapes(cell)
-end
-
--- export cell
-if not args.export then
-    moderror("no export type given")
-end
-if not args.noexport then
-    if not generics.resolve_premapped_layers(args.exportlayers or args.export) then
-        moderror(string.format("no layer data for export type '%s' found", args.exportlayers or args.export))
-    end
-    local filename = args.filename or "openPCells"
-    local leftdelim, rightdelim = "", ""
-    if args.busdelimiters then
-        leftdelim, rightdelim = string.match(args.busdelimiters, "^(.)(.)$")
-        if not leftdelim then
-            moderror(string.format("--bus-delimiters: parse error. Expected two characters, got: '%s'", args.busdelimiters))
-        end
-    end
-    export.set_bus_delimiters(leftdelim, rightdelim)
-    export.write_toplevel(args.export, cell, filename, args.toplevelname or "opctoplevel", args.export_options, args.writechildrenports, args.dryrun)
-end
-
 if args.cellinfo then
     info.cellinfo(cell)
 end
@@ -344,4 +289,4 @@ if args.profile then
     profiler.display()
 end
 
--- vim: ft=lua
+return cell

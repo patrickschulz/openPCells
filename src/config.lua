@@ -1,3 +1,4 @@
+--[[
 local M = {}
 
 function M.load_user_config(argparse)
@@ -27,3 +28,10 @@ function M.load_user_config(argparse)
 end
 
 return M
+--]]
+
+return {
+    techpaths = {
+        "/home/pkurth/Workspace/GF22FDSOI_opc_tech"
+    }
+}

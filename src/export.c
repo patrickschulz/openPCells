@@ -1,4 +1,4 @@
-#include "lexport.h"
+#include "export.h"
 
 #include "lua/lauxlib.h"
 #include <stdio.h>
@@ -6,28 +6,21 @@
 
 #include "util.h"
 #include "lobject.h"
-#include "lexport_common.h"
+#include "export_common.h"
 #include "pcell.h"
 #include "gdsexport.h"
 #include "lpoint.h"
 #include "vector.h"
 
 static struct vector* searchpaths = NULL;
-static char _leftdelim = '<';
-static char _rightdelim = '>';
 
-static int lexport_add_path(lua_State* L)
+void export_add_path(const char* path)
 {
     if(!searchpaths)
     {
         searchpaths = vector_create();
     }
-    const char* path = luaL_checkstring(L, 1);
-    size_t len = strlen(path);
-    char* p = malloc(len + 1);
-    strcpy(p, path);
-    vector_append(searchpaths, p);
-    return 0;
+    vector_append(searchpaths, util_copy_string(path));
 }
 
 static void _destroy_searchpaths(void)
@@ -38,30 +31,7 @@ static void _destroy_searchpaths(void)
     }
 }
 
-static int lexport_set_options(lua_State* L)
-    //args.export_options
-{
-    (void) L;
-    return 0;
-}
-
-static int lexport_check(lua_State* L)
-{
-    (void) L;
-    return 0;
-}
-
-static int lexport_set_bus_delimiters(lua_State* L)
-    //leftdelim, rightdelim
-{
-    const char* left = luaL_checkstring(L, 1);
-    const char* right = luaL_checkstring(L, 1);
-    _leftdelim = left[0];
-    _rightdelim = right[0];
-    return 0;
-}
-
-static void _write_ports(object_t* cell, struct export_data* data, struct export_functions* funcs)
+static void _write_ports(object_t* cell, struct export_data* data, struct export_functions* funcs, char leftdelim, char rightdelim)
 {
     for(unsigned int i = 0; i < cell->ports_size; ++i)
     {
@@ -70,7 +40,7 @@ static void _write_ports(object_t* cell, struct export_data* data, struct export
         {
             size_t len = strlen(cell->ports[i]->name) + 2 + util_num_digits(cell->ports[i]->busindex);
             name = malloc(len + 1);
-            snprintf(name, len + 1, "%s%c%d%c", cell->ports[i]->name, _leftdelim, cell->ports[i]->busindex, _rightdelim);
+            snprintf(name, len + 1, "%s%c%d%c", cell->ports[i]->name, leftdelim, cell->ports[i]->busindex, rightdelim);
         }
         else
         {
@@ -86,7 +56,7 @@ static void _write_ports(object_t* cell, struct export_data* data, struct export
     }
 }
 
-static void _write_cell(object_t* cell, struct export_data* data, struct export_functions* funcs, int write_ports)
+static void _write_cell(object_t* cell, struct export_data* data, struct export_functions* funcs, int write_ports, char leftdelim, char rightdelim)
 {
     for(unsigned int i = 0; i < cell->shapes_size; ++i)
     {
@@ -138,7 +108,7 @@ static void _write_cell(object_t* cell, struct export_data* data, struct export_
     }
     if(write_ports)
     {
-        _write_ports(cell, data, funcs);
+        _write_ports(cell, data, funcs, leftdelim, rightdelim);
     }
 }
 
@@ -196,7 +166,7 @@ static void _push_trans(lua_State* L, transformationmatrix_t* trans)
     }
 }
 
-static void _write_ports_lua(lua_State* L, object_t* cell)
+static void _write_ports_lua(lua_State* L, object_t* cell, char leftdelim, char rightdelim)
 {
     for(unsigned int i = 0; i < cell->ports_size; ++i)
     {
@@ -205,7 +175,7 @@ static void _write_ports_lua(lua_State* L, object_t* cell)
         {
             size_t len = strlen(cell->ports[i]->name) + 2 + util_num_digits(cell->ports[i]->busindex);
             name = malloc(len + 1);
-            snprintf(name, len + 1, "%s%c%d%c", cell->ports[i]->name, _leftdelim, cell->ports[i]->busindex, _rightdelim);
+            snprintf(name, len + 1, "%s%c%d%c", cell->ports[i]->name, leftdelim, cell->ports[i]->busindex, rightdelim);
         }
         else
         {
@@ -225,7 +195,7 @@ static void _write_ports_lua(lua_State* L, object_t* cell)
     }
 }
 
-static void _write_cell_lua(lua_State* L, object_t* cell, int write_ports)
+static void _write_cell_lua(lua_State* L, object_t* cell, int write_ports, char leftdelim, char rightdelim)
 {
     for(unsigned int i = 0; i < cell->shapes_size; ++i)
     {
@@ -321,7 +291,7 @@ static void _write_cell_lua(lua_State* L, object_t* cell, int write_ports)
         lua_getfield(L, -1, "write_port");
         if(!lua_isnil(L, -1))
         {
-            _write_ports_lua(L, cell);
+            _write_ports_lua(L, cell, leftdelim, rightdelim);
         }
         lua_pop(L, 1); // pop write_port (or nil)
     }
@@ -379,45 +349,12 @@ static void _check_lua_export(lua_State* L, const char* exportname)
     _check_function(L, exportname, "finalize");
 }
 
-static void _parse_export_options(lua_State* L, const char* filename)
-{
-    // create argument parser
-    lua_getglobal(L, "cmdparser");
-    lua_call(L, 0, 1);
-
-    // load options
-    lua_getfield(L, -1, "load_options_from_file");
-    lua_pushvalue(L, -2);
-    lua_pushstring(L, filename);
-    lua_call(L, 2, 0);
-
-    // parse options
-    lua_getfield(L, -1, "parse_from_string");
-    lua_pushvalue(L, -2);
-    lua_pushvalue(L, 5);
-    lua_call(L, 2, 2);
-    if(lua_isnil(L, -2))
-    {
-        lua_getglobal(L, "errprint");
-        lua_pushvalue(L, -2);
-        lua_call(L, 1, 0);
-    }
-    else
-    {
-        lua_pop(L, 1); // pop (nil) error message
-    }
-
-    // pop argparse
-    lua_insert(L, -2);
-    lua_pop(L, 1);
-}
-
-static void _write_toplevel_C(object_t* object, struct export_data* data, struct export_functions* funcs, int writechildrenports)
+static void _write_toplevel_C(object_t* object, const char* toplevelname, struct export_data* data, struct export_functions* funcs, int writechildrenports, char leftdelim, char rightdelim)
 {
     funcs->at_begin(data);
 
-    funcs->at_begin_cell(data, "opctoplevel");
-    _write_cell(object, data, funcs, 1); // 1: write ports
+    funcs->at_begin_cell(data, toplevelname);
+    _write_cell(object, data, funcs, 1, leftdelim, rightdelim); // 1: write ports
     funcs->at_end_cell(data);
 
     for(unsigned int i = 0; i < pcell_get_reference_count(); ++i)
@@ -426,7 +363,7 @@ static void _write_toplevel_C(object_t* object, struct export_data* data, struct
         if(reference->numused > 0)
         {
             funcs->at_begin_cell(data, reference->identifier);
-            _write_cell(reference->cell, data, funcs, writechildrenports);
+            _write_cell(reference->cell, data, funcs, writechildrenports, leftdelim, rightdelim);
             funcs->at_end_cell(data);
         }
     }
@@ -434,7 +371,7 @@ static void _write_toplevel_C(object_t* object, struct export_data* data, struct
     funcs->at_end(data);
 }
 
-static void _write_toplevel_lua(lua_State* L, object_t* object, struct export_data* data, int writechildrenports)
+static void _write_toplevel_lua(lua_State* L, object_t* object, const char* toplevelname, struct export_data* data, int writechildrenports, char leftdelim, char rightdelim)
 {
     // check if export supports hierarchies
     lua_getfield(L, -1, "write_cell_reference");
@@ -449,9 +386,9 @@ static void _write_toplevel_lua(lua_State* L, object_t* object, struct export_da
     _call_or_pop_nil(L, 0);
 
     lua_getfield(L, -1, "at_begin_cell");
-    lua_pushstring(L, "opctoplevel");
+    lua_pushstring(L, toplevelname);
     _call_or_pop_nil(L, 1);
-    _write_cell_lua(L, object, 1); // 1: write ports
+    _write_cell_lua(L, object, 1, leftdelim, rightdelim); // 1: write ports
     lua_getfield(L, -1, "at_end_cell");
     _call_or_pop_nil(L, 0);
 
@@ -463,7 +400,7 @@ static void _write_toplevel_lua(lua_State* L, object_t* object, struct export_da
             lua_getfield(L, -1, "at_begin_cell");
             lua_pushstring(L, reference->identifier);
             _call_or_pop_nil(L, 1);
-            _write_cell_lua(L, reference->cell, writechildrenports);
+            _write_cell_lua(L, reference->cell, writechildrenports, leftdelim, rightdelim);
             lua_getfield(L, -1, "at_end_cell");
             _call_or_pop_nil(L, 0);
         }
@@ -480,26 +417,13 @@ static void _write_toplevel_lua(lua_State* L, object_t* object, struct export_da
     lua_pop(L, 1); // pop data
 }
 
-static int lexport_write_toplevel(lua_State* L)
+void export_write_toplevel(object_t* toplevel, const char* exportname, const char* basename, const char* toplevelname, char leftdelim, char rightdelim, const char* const * exportoptions, int writechildrenports)
 {
-    // arguments passed in main.lua are:
-    // 1: exportname
-    // 2: cell
-    // 3: filename
-    // 4: toplevelname
-    // 5: export_options
-    // 6: writechildrenports
-    // 7: dryrun
-
-    const char* exportname = lua_tostring(L, 1);
-    lobject_t* toplevel = lua_touserdata(L, 2);
-    int writechildrenports = lua_toboolean(L, 6);
-
-    if(object_is_empty(toplevel->object))
+    if(object_is_empty(toplevel))
     {
         puts("export: toplevel is empty");
         _destroy_searchpaths();
-        return 0;
+        return;
     }
 
     struct export_data* data = export_create_data();
@@ -509,7 +433,7 @@ static int lexport_write_toplevel(lua_State* L)
     struct export_functions* funcs = get_export_functions(exportname);
     if(funcs) // C-defined exports
     {
-        _write_toplevel_C(toplevel->object, data, funcs, writechildrenports);
+        _write_toplevel_C(toplevel, toplevelname, data, funcs, writechildrenports, leftdelim, rightdelim);
         extension = funcs->get_extension();
         success = 1;
     }
@@ -523,30 +447,37 @@ static int lexport_write_toplevel(lua_State* L)
                 size_t len = strlen(searchpath) + strlen(exportname) + 11; // + 11: "init.lua" + 2 * '/' + terminating zero
                 char* exportfilename = malloc(len);
                 snprintf(exportfilename, len, "%s/%s/init.lua", searchpath, exportname);
+                lua_State* L = util_create_basic_lua_state();
                 luaL_dofile(L, exportfilename);
                 free(exportfilename);
                 if(lua_type(L, -1) == LUA_TTABLE)
                 {
+                    // check minimal function support
                     _check_lua_export(L, exportname);
-                    if(!lua_isnil(L, 5))
+
+                    // parse and set export cmd options
+                    if(exportoptions)
                     {
                         lua_getfield(L, -1, "set_options");
-                        size_t optionslen = strlen(searchpath) + strlen(exportname) + 17; // + 17: "cmdoptions.lua" + 2 * '/' + terminating zero
-                        char* optionsfilename = malloc(optionslen);
-                        snprintf(optionsfilename, optionslen, "%s/%s/cmdoptions.lua", searchpath, exportname);
-                        _parse_export_options(L, optionsfilename);
-                        free(optionsfilename);
+                        lua_newtable(L);
+                        const char* const * opt = exportoptions;
+                        while(*opt)
+                        {
+                            lua_pushstring(L, *opt);
+                            lua_rawseti(L, -2, opt - exportoptions + 1);
+                            ++opt;
+                        }
                         _call_or_pop_nil(L, 1);
                     }
 
-                    _write_toplevel_lua(L, toplevel->object, data, writechildrenports);
+                    _write_toplevel_lua(L, toplevel, toplevelname, data, writechildrenports, leftdelim, rightdelim);
 
                     lua_getfield(L, -1, "get_extension");
                     lua_call(L, 0, 1);
                     extension = lua_tostring(L, -1);
                     lua_pop(L, 1); // pop extension
                     success = 1;
-                    break;
+                    break; // found export, don't continue search
                 }
             }
         }
@@ -554,7 +485,6 @@ static int lexport_write_toplevel(lua_State* L)
 
     if(success)
     {
-        const char* basename = lua_tostring(L, 3);
         size_t len = strlen(basename) + strlen(extension) + 2; // + 2: '.' and the terminating zero
         char* filename = malloc(len);
         snprintf(filename, len + 2, "%s.%s", basename, extension);
@@ -571,24 +501,5 @@ static int lexport_write_toplevel(lua_State* L)
     }
 
     _destroy_searchpaths();
-
-    return 0;
 }
 
-int open_lexport_lib(lua_State* L)
-{
-    lua_newtable(L);
-    static const luaL_Reg modfuncs[] =
-    {
-        { "add_path",           lexport_add_path            },
-        { "set_options",        lexport_set_options         },
-        { "check",              lexport_check               },
-        { "set_bus_delimiters", lexport_set_bus_delimiters  },
-        { "write_toplevel",     lexport_write_toplevel      },
-        { NULL,                 NULL                        }
-    };
-    luaL_setfuncs(L, modfuncs, 0);
-    lua_setglobal(L, LEXPORTMODULE);
-
-    return 0;
-}

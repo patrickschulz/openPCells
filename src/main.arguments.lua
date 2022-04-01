@@ -25,13 +25,6 @@ if args.human and args.machine then
     moderror("you can't specify --human and --machine at the same time")
 end
 
--- load user configuration
-if not args.nouserconfig then
-    if not config.load_user_config(argparse) then
-        return 1
-    end
-end
-
 -- set environment variables
 envlib.set("debug", args.debug)
 envlib.set("humannotmachine", true) -- default is --human

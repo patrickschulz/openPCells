@@ -162,7 +162,7 @@ return {
     },
     section("Miscellaneous functions"),
     switch{
-        name = "nouserconfig", long = "--nouserconfig",
+        name = "nouserconfig", long = "--no-user-config",
         help = "don't load the user config"
     },
     store{

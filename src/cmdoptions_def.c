@@ -1,4 +1,14 @@
-cmdoptions_add_long_option(cmdoptions, 'T', "technology", 1, NO_FLAGS);
-cmdoptions_add_long_option(cmdoptions, NO_SHORT, "techpath", 1, MULTIPLE);
-cmdoptions_add_long_option(cmdoptions, NO_SHORT, "show-gds-data", 1, NO_FLAGS);
-cmdoptions_add_long_option(cmdoptions, NO_SHORT, "techfile-assistant", 0, NO_FLAGS);
+cmdoptions_add_option(cmdoptions, 'T', "technology", SINGLE_ARG);
+cmdoptions_add_option(cmdoptions, 'E', "export", SINGLE_ARG);
+cmdoptions_add_option(cmdoptions, 'X', "export-options", MULTI_ARGS);
+cmdoptions_add_option(cmdoptions, 'C', "cell", SINGLE_ARG);
+cmdoptions_add_option_default(cmdoptions, 'f', "filename", SINGLE_ARG, "openPCells");
+cmdoptions_add_option_default(cmdoptions, 'n', "cellname", SINGLE_ARG, "opctoplevel");
+cmdoptions_add_option(cmdoptions, NO_SHORT, "write-children-ports", NO_ARG);
+cmdoptions_add_option(cmdoptions, NO_SHORT, "bus-delimiters", SINGLE_ARG);
+cmdoptions_add_option(cmdoptions, NO_SHORT, "flat", NO_ARG);
+cmdoptions_add_option(cmdoptions, NO_SHORT, "merge-rectangles", NO_ARG);
+cmdoptions_add_option(cmdoptions, NO_SHORT, "techpath", MULTI_ARGS);
+cmdoptions_add_option(cmdoptions, NO_SHORT, "show-gds-data", SINGLE_ARG);
+cmdoptions_add_option(cmdoptions, NO_SHORT, "techfile-assistant", NO_ARG);
+cmdoptions_add_option(cmdoptions, NO_SHORT, "no-user-config", NO_ARG);
