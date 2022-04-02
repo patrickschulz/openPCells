@@ -33,7 +33,6 @@
 #include "lload.h"
 #include "lbind.h"
 #include "ldir.h"
-#include "lbinary.h"
 #include "lobject.h"
 #include "pcell.h"
 #include "info.h"
@@ -172,7 +171,6 @@ static lua_State* create_and_initialize_lua(void)
     open_lgraphics_lib(L);
     open_lload_lib(L);
     open_lbind_lib(L);
-    open_lbinary_lib(L);
     open_lobject_lib(L);
     open_lpcell_lib(L);
     open_lutil_lib(L);
