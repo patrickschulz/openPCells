@@ -27,6 +27,9 @@ $(PROGNAME): main.c lua/liblua.a $(OPCOBJ)
 lua/liblua.a: lua/*.c lua/*.h
 	@$(MAKE) -C lua liblua.a
 
+lua/luac:
+	@$(MAKE) -C lua luac
+
 .PHONY: clean
 clean:
 	rm -f $(PROGNAME) config.h
