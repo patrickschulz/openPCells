@@ -1,5 +1,4 @@
 local modules = {
-    "cmdparser",
     "point",
     "geometry",
     "graphics",
