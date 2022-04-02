@@ -1,5 +1,74 @@
 #include "gdsexport.h"
 
+#define RECORDTYPE_HEADER       0x00
+#define RECORDTYPE_BGNLIB       0x01
+#define RECORDTYPE_LIBNAME      0x02
+#define RECORDTYPE_UNITS        0x03
+#define RECORDTYPE_ENDLIB       0x04
+#define RECORDTYPE_BGNSTR       0x05
+#define RECORDTYPE_STRNAME      0x06
+#define RECORDTYPE_ENDSTR       0x07
+#define RECORDTYPE_BOUNDARY     0x08
+#define RECORDTYPE_PATH         0x09
+#define RECORDTYPE_SREF         0x0a
+#define RECORDTYPE_AREF         0x0b
+#define RECORDTYPE_TEXT         0x0c
+#define RECORDTYPE_LAYER        0x0d
+#define RECORDTYPE_DATATYPE     0x0e
+#define RECORDTYPE_WIDTH        0x0f
+#define RECORDTYPE_XY           0x10
+#define RECORDTYPE_ENDEL        0x11
+#define RECORDTYPE_SNAME        0x12
+#define RECORDTYPE_COLROW       0x13
+#define RECORDTYPE_TEXTNODE     0x14
+#define RECORDTYPE_NODE         0x15
+#define RECORDTYPE_TEXTTYPE     0x16
+#define RECORDTYPE_PRESENTATION 0x17
+#define RECORDTYPE_SPACING      0x18
+#define RECORDTYPE_STRING       0x19
+#define RECORDTYPE_STRANS       0x1a
+#define RECORDTYPE_MAG          0x1b
+#define RECORDTYPE_ANGLE        0x1c
+#define RECORDTYPE_UINTEGER     0x1d
+#define RECORDTYPE_USTRING      0x1e
+#define RECORDTYPE_REFLIBS      0x1f
+#define RECORDTYPE_FONTS        0x20
+#define RECORDTYPE_PATHTYPE     0x21
+#define RECORDTYPE_GENERATIONS  0x22
+#define RECORDTYPE_ATTRTABLE    0x23
+#define RECORDTYPE_STYPTABLE    0x24
+#define RECORDTYPE_STRTYPE      0x25
+#define RECORDTYPE_ELFLAGS      0x26
+#define RECORDTYPE_ELKEY        0x27
+#define RECORDTYPE_LINKTYPE     0x28
+#define RECORDTYPE_LINKKEYS     0x29
+#define RECORDTYPE_NODETYPE     0x2a
+#define RECORDTYPE_PROPATTR     0x2b
+#define RECORDTYPE_PROPVALUE    0x2c
+#define RECORDTYPE_BOX          0x2d
+#define RECORDTYPE_BOXTYPE      0x2e
+#define RECORDTYPE_PLEX         0x2f
+#define RECORDTYPE_BGNEXTN      0x30
+#define RECORDTYPE_ENDEXTN      0x31
+#define RECORDTYPE_TAPENUM      0x32
+#define RECORDTYPE_TAPECODE     0x33
+#define RECORDTYPE_STRCLASS     0x34
+#define RECORDTYPE_RESERVED     0x35
+#define RECORDTYPE_FORMAT       0x36
+#define RECORDTYPE_MASK         0x37
+#define RECORDTYPE_ENDMASKS     0x38
+#define RECORDTYPE_LIBDIRSIZE   0x39
+#define RECORDTYPE_SRFNAME      0x3a
+#define RECORDTYPE_LIBSECUR     0x3b
+
+#define DATATYPE_NONE                0x00
+#define DATATYPE_BIT_ARRAY           0x01
+#define DATATYPE_TWO_BYTE_INTEGER    0x02
+#define DATATYPE_FOUR_BYTE_INTEGER   0x03
+#define DATATYPE_FOUR_BYTE_REAL      0x04
+#define DATATYPE_EIGHT_BYTE_REAL     0x05
+#define DATATYPE_ASCII_STRING        0x06
+
 static char* _number_to_gdsfloat(double num, unsigned int width)
 {
     char* data = malloc(width);
@@ -181,14 +250,14 @@ static void _write_rectangle(struct export_data* data, const struct keyvaluearra
     // BOUNDARY
     export_data_append_byte(data, 0x00);
     export_data_append_byte(data, 0x04);
-    export_data_append_byte(data, 0x08);
-    export_data_append_byte(data, 0x00);
+    export_data_append_byte(data, RECORDTYPE_BOUNDARY);
+    export_data_append_byte(data, DATATYPE_NONE);
 
     // LAYER
     export_data_append_byte(data, 0x00);
     export_data_append_byte(data, 0x06);
     export_data_append_byte(data, 0x0d);
-    export_data_append_byte(data, 0x02);
+    export_data_append_byte(data, DATATYPE_TWO_BYTE_INTEGER);
     int layernum;
     keyvaluearray_get_int(layer, "layer", &layernum);
     export_data_append_two_bytes(data, layernum);
@@ -197,7 +266,7 @@ static void _write_rectangle(struct export_data* data, const struct keyvaluearra
     export_data_append_byte(data, 0x00);
     export_data_append_byte(data, 0x06);
     export_data_append_byte(data, 0x0e);
-    export_data_append_byte(data, 0x02);
+    export_data_append_byte(data, DATATYPE_TWO_BYTE_INTEGER);
     int layerpurpose;
     keyvaluearray_get_int(layer, "purpose", &layerpurpose);
     export_data_append_two_bytes(data, layerpurpose);
@@ -222,8 +291,8 @@ static void _write_rectangle(struct export_data* data, const struct keyvaluearra
     // ENDEL
     export_data_append_byte(data, 0x00);
     export_data_append_byte(data, 0x04);
-    export_data_append_byte(data, 0x11);
-    export_data_append_byte(data, 0x00);
+    export_data_append_byte(data, RECORDTYPE_ENDEL);
+    export_data_append_byte(data, DATATYPE_NONE);
 }
 
 static void _write_polygon(struct export_data* data, const struct keyvaluearray* layer, point_t** points, size_t len)
@@ -231,14 +300,14 @@ static void _write_polygon(struct export_data* data, const struct keyvaluearray*
     // BOUNDARY
     export_data_append_byte(data, 0x00);
     export_data_append_byte(data, 0x04);
-    export_data_append_byte(data, 0x08);
-    export_data_append_byte(data, 0x00);
+    export_data_append_byte(data, RECORDTYPE_BOUNDARY);
+    export_data_append_byte(data, DATATYPE_NONE);
 
     // LAYER
     export_data_append_byte(data, 0x00);
     export_data_append_byte(data, 0x06);
     export_data_append_byte(data, 0x0d);
-    export_data_append_byte(data, 0x02);
+    export_data_append_byte(data, DATATYPE_TWO_BYTE_INTEGER);
     int layernum;
     keyvaluearray_get_int(layer, "layer", &layernum);
     export_data_append_two_bytes(data, layernum);
@@ -247,7 +316,7 @@ static void _write_polygon(struct export_data* data, const struct keyvaluearray*
     export_data_append_byte(data, 0x00);
     export_data_append_byte(data, 0x06);
     export_data_append_byte(data, 0x0e);
-    export_data_append_byte(data, 0x02);
+    export_data_append_byte(data, DATATYPE_TWO_BYTE_INTEGER);
     int layerpurpose;
     keyvaluearray_get_int(layer, "purpose", &layerpurpose);
     export_data_append_two_bytes(data, layerpurpose);
@@ -266,8 +335,8 @@ static void _write_polygon(struct export_data* data, const struct keyvaluearray*
     // ENDEL
     export_data_append_byte(data, 0x00);
     export_data_append_byte(data, 0x04);
-    export_data_append_byte(data, 0x11);
-    export_data_append_byte(data, 0x00);
+    export_data_append_byte(data, RECORDTYPE_ENDEL);
+    export_data_append_byte(data, DATATYPE_NONE);
 }
 
 static void _write_path(struct export_data* data, const struct keyvaluearray* layer, point_t** points, size_t len, ucoordinate_t width, coordinate_t* extension)
@@ -282,7 +351,7 @@ static void _write_path(struct export_data* data, const struct keyvaluearray* la
     export_data_append_byte(data, 0x00);
     export_data_append_byte(data, 0x06);
     export_data_append_byte(data, 0x0d);
-    export_data_append_byte(data, 0x02);
+    export_data_append_byte(data, DATATYPE_TWO_BYTE_INTEGER);
     int layernum;
     keyvaluearray_get_int(layer, "layer", &layernum);
     export_data_append_two_bytes(data, layernum);
@@ -291,7 +360,7 @@ static void _write_path(struct export_data* data, const struct keyvaluearray* la
     export_data_append_byte(data, 0x00);
     export_data_append_byte(data, 0x06);
     export_data_append_byte(data, 0x0e);
-    export_data_append_byte(data, 0x02);
+    export_data_append_byte(data, DATATYPE_TWO_BYTE_INTEGER);
     int layerpurpose;
     keyvaluearray_get_int(layer, "purpose", &layerpurpose);
     export_data_append_two_bytes(data, layerpurpose);
@@ -300,7 +369,7 @@ static void _write_path(struct export_data* data, const struct keyvaluearray* la
     export_data_append_byte(data, 0x00);
     export_data_append_byte(data, 0x06);
     export_data_append_byte(data, 0x21);
-    export_data_append_byte(data, 0x02);
+    export_data_append_byte(data, DATATYPE_TWO_BYTE_INTEGER);
     export_data_append_byte(data, 0x00);
     //if extension == "round" then
     //    export_data_append_byte(data, 0x01);
@@ -347,8 +416,8 @@ static void _write_path(struct export_data* data, const struct keyvaluearray* la
     // ENDEL
     export_data_append_byte(data, 0x00);
     export_data_append_byte(data, 0x04);
-    export_data_append_byte(data, 0x11);
-    export_data_append_byte(data, 0x00);
+    export_data_append_byte(data, RECORDTYPE_ENDEL);
+    export_data_append_byte(data, DATATYPE_NONE);
 }
 
 enum orientation
@@ -511,8 +580,8 @@ static void _write_cell_reference(struct export_data* data, const char* identifi
     // ENDEL
     export_data_append_byte(data, 0x00);
     export_data_append_byte(data, 0x04);
-    export_data_append_byte(data, 0x11);
-    export_data_append_byte(data, 0x00);
+    export_data_append_byte(data, RECORDTYPE_ENDEL);
+    export_data_append_byte(data, DATATYPE_NONE);
 }
 
 static void _write_cell_array(struct export_data* data, const char* identifier, coordinate_t x, coordinate_t y, transformationmatrix_t* trans, unsigned int xrep, unsigned int yrep, unsigned int xpitch, unsigned int ypitch)
@@ -630,7 +699,7 @@ static void _write_cell_array(struct export_data* data, const char* identifier, 
     export_data_append_byte(data, 0x00);
     export_data_append_byte(data, 0x08);
     export_data_append_byte(data, 0x13);
-    export_data_append_byte(data, 0x02);
+    export_data_append_byte(data, DATATYPE_TWO_BYTE_INTEGER);
     export_data_append_two_bytes(data, xrep);
     export_data_append_two_bytes(data, yrep);
 
@@ -650,8 +719,8 @@ static void _write_cell_array(struct export_data* data, const char* identifier, 
     // ENDEL
     export_data_append_byte(data, 0x00);
     export_data_append_byte(data, 0x04);
-    export_data_append_byte(data, 0x11);
-    export_data_append_byte(data, 0x00);
+    export_data_append_byte(data, RECORDTYPE_ENDEL);
+    export_data_append_byte(data, DATATYPE_NONE);
 }
 
 static void _write_port(struct export_data* data, const char* name, const struct keyvaluearray* layer, coordinate_t x, coordinate_t y)
@@ -666,7 +735,7 @@ static void _write_port(struct export_data* data, const char* name, const struct
     export_data_append_byte(data, 0x00);
     export_data_append_byte(data, 0x06);
     export_data_append_byte(data, 0x0d);
-    export_data_append_byte(data, 0x02);
+    export_data_append_byte(data, DATATYPE_TWO_BYTE_INTEGER);
     int layernum;
     keyvaluearray_get_int(layer, "layer", &layernum);
     export_data_append_two_bytes(data, layernum);
@@ -675,7 +744,7 @@ static void _write_port(struct export_data* data, const char* name, const struct
     export_data_append_byte(data, 0x00);
     export_data_append_byte(data, 0x06);
     export_data_append_byte(data, 0x16);
-    export_data_append_byte(data, 0x02);
+    export_data_append_byte(data, DATATYPE_TWO_BYTE_INTEGER);
     int layerpurpose;
     keyvaluearray_get_int(layer, "purpose", &layerpurpose);
     export_data_append_two_bytes(data, layerpurpose);
@@ -722,8 +791,8 @@ static void _write_port(struct export_data* data, const char* name, const struct
     // ENDEL
     export_data_append_byte(data, 0x00);
     export_data_append_byte(data, 0x04);
-    export_data_append_byte(data, 0x11);
-    export_data_append_byte(data, 0x00);
+    export_data_append_byte(data, RECORDTYPE_ENDEL);
+    export_data_append_byte(data, DATATYPE_NONE);
 }
 
 static const char* _get_extension(void)
