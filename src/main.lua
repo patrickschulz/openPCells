@@ -46,20 +46,6 @@ else
     math.randomseed(os.time())
 end
 
--- set default path for pcells
-pcell.append_cellpath(string.format("%s/cells", _get_opc_home()))
--- add user-defined cellpaths
-if args.cellpath then
-    for _, path in ipairs(args.cellpath) do
-        pcell.append_cellpath(path)
-    end
-end
-if args.prependcellpath then
-    for _, path in ipairs(args.prependcellpath) do
-        pcell.prepend_cellpath(path)
-    end
-end
-
 if args.listcellpaths then
     pcell.list_cellpaths()
     return 0
@@ -118,27 +104,6 @@ if args.checktech then
 end
 --]]
 
--- read parameters from pfile and merge with command line parameters
-local cellargs = {}
-if not args.noparamfile then
-    if args.prependparamfile then
-        for _, pfile in ipairs(args.prependparamfile) do
-            public.readpfile(pfile, cellargs)
-        end
-    end
-    if args.appendparamfile then
-        for _, pfile in ipairs(args.appendparamfile) do
-            public.readpfile(pfile, cellargs)
-        end
-    end
-end
-for k, v in pairs(args.cellargs) do
-    cellargs[k] = v
-end
-if envlib.get("showcellargs") then
-    aux.print_tabular(cellargs)
-end
-
 -- output cell parameters AFTER parameters have been processed in order to respect value changes in pfiles
 if args.params then
     local params = pcell.parameters(args.cell, cellargs, not args.technology)
@@ -158,27 +123,6 @@ if args.params then
         print(paramstr)
     end
     return 0
-end
-
--- create cell
-pcell.enable_debug(args.debugcell)
-pcell.enable_dprint(args.enabledprint)
-local cell
-if args.cellscript then
-    pcell.update_other_cell_parameters(cellargs, true)
-    local reader = _get_reader(args.cellscript)
-    if reader then
-        cell = _dofile(reader, string.format("@%s", args.cellscript), nil, env)
-        if not cell then
-            print("cellscript did not return an object")
-            return 1
-        end
-    else
-        print(string.format("cellscript '%s' could not be opened", args.cellscript))
-        return 1
-    end
-else
-    cell = pcell.create_layout(args.cell, cellargs, nil, true) -- nil: no environment, true: evaluate parameters
 end
 
 -- orientation

@@ -395,7 +395,6 @@ int main(int argc, const char* const * argv)
     }
 
     lua_State* L = create_and_initialize_lua();
-    create_argument_table(L, argc, argv);
 
     // create layermap
     struct layermap* layermap = generics_initialize_layer_map();
@@ -451,10 +450,30 @@ int main(int argc, const char* const * argv)
     pcell_initialize_references();
 
     // create cell
-    int retval = call_main_program(L, OPC_HOME "/src/main.lua");
-    if(retval != LUA_OK)
+    if(cmdoptions_was_provided_long(cmdoptions, "cell"))
     {
-        // clean up states
+        const char* cellname = cmdoptions_get_argument_long(cmdoptions, "cell");
+        lua_newtable(L);
+        lua_pushstring(L, cellname);
+        lua_setfield(L, -2, "cell");
+        lua_newtable(L);
+        lua_setfield(L, -2, "cellargs");
+        lua_setglobal(L, "args");
+        int retval = call_main_program(L, OPC_HOME "/src/scripts/create_cell.lua");
+        if(retval != LUA_OK)
+        {
+            // clean up states
+            generics_destroy_layer_map(layermap);
+            technology_destroy(techstate);
+            pcell_destroy_references();
+            cmdoptions_destroy(cmdoptions);
+            lua_close(L);
+            return 1;
+        }
+    }
+    else
+    {
+        puts("no cell given");
         generics_destroy_layer_map(layermap);
         technology_destroy(techstate);
         pcell_destroy_references();
