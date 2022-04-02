@@ -14,7 +14,7 @@ SYSCFLAGS=
 SYSLDFLAGS=
 SYSLIBS=
 
-OPCOBJ:=cmdoptions.o util.o vector.o union.o postprocess.o point.o technology.o transformationmatrix.o ltransformationmatrix.o shape.o object.o geometry.o keyvaluepairs.o generics.o lgenerics.o lgeometry.o ldir.o lpoint.o graphics.o lbind.o lload.o lobject.o pcell.o lfilesystem.o lplacer.o lplacer_rand.o lplacer_nonoverlapping.o lplacer_classic.o lrouter.o lrouter_net.o lrouter_queue.o lrouter_field.o lrouter_route.o lutil.o gdsparser.o ldebug.o export.o export_common.o gdsexport.o info.o
+OPCOBJ:=cmdoptions.o util.o vector.o union.o postprocess.o point.o technology.o transformationmatrix.o ltransformationmatrix.o shape.o object.o geometry.o keyvaluepairs.o generics.o lgenerics.o lgeometry.o ldir.o lpoint.o graphics.o lbind.o lload.o lobject.o pcell.o lfilesystem.o lplacer.o lplacer_rand.o lplacer_nonoverlapping.o lplacer_classic.o lrouter.o lrouter_net.o lrouter_queue.o lrouter_field.o lrouter_route.o gdsparser.o ldebug.o export.o export_common.o gdsexport.o info.o
 
 .PHONY: default
 default:
@@ -131,13 +131,12 @@ lrouter_route.o: lrouter_route.c lrouter_net.h lrouter_queue.h \
 ltransformationmatrix.o: ltransformationmatrix.c ltransformationmatrix.h \
  lua/lua.h lua/luaconf.h transformationmatrix.h point.h lpoint.h \
  lua/lauxlib.h lua/lua.h
-lutil.o: lutil.c lutil.h lua/lua.h lua/luaconf.h lua/lauxlib.h lua/lua.h
 main.o: main.c lua/lprefix.h lua/lua.h lua/luaconf.h lua/lauxlib.h \
  lua/lua.h lua/lualib.h cmdoptions.h vector.h lpoint.h point.h \
  lgeometry.h lgenerics.h generics.h keyvaluepairs.h technology.h \
  ltransformationmatrix.h transformationmatrix.h graphics.h lload.h \
  lbind.h ldir.h lobject.h object.h shape.h pcell.h info.h export.h \
- postprocess.h lfilesystem.h lplacer.h lrouter.h lutil.h util.h \
+ postprocess.h lfilesystem.h lplacer.h lrouter.h util.h \
  gdsparser.h geometry.h config.h cmdoptions_def.c
 object.o: object.c object.h transformationmatrix.h point.h shape.h \
  generics.h keyvaluepairs.h vector.h util.h lua/lua.h lua/luaconf.h \

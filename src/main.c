@@ -28,7 +28,6 @@
 #include "lgeometry.h"
 #include "lgenerics.h"
 #include "technology.h"
-#include "ltransformationmatrix.h"
 #include "graphics.h"
 #include "lload.h"
 #include "lbind.h"
@@ -42,7 +41,6 @@
 #include "lfilesystem.h"
 #include "lplacer.h"
 #include "lrouter.h"
-#include "lutil.h"
 #include "util.h"
 #include "gdsparser.h"
 #include "geometry.h"
@@ -167,13 +165,11 @@ static lua_State* create_and_initialize_lua(void)
     open_lgeometry_lib(L);
     open_lgenerics_lib(L);
     open_ltechnology_lib(L);
-    open_ltransformationmatrix_lib(L);
     open_lgraphics_lib(L);
     open_lload_lib(L);
     open_lbind_lib(L);
     open_lobject_lib(L);
     open_lpcell_lib(L);
-    open_lutil_lib(L);
     open_lfilesystem_lib(L);
     open_lplacer_lib(L);
     open_lrouter_lib(L);
