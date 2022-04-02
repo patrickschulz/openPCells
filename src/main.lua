@@ -9,9 +9,6 @@ if arg[1] == "test" then
     return 0
 end
 
--- parse command line arguments
-local args = _load_module("main.arguments")
-
 -- gds info functions
 if args.showgdshierarchy then
     functions.show_gds_hierarchy(args.showgdshierarchy, args.showgdsdatadepth)

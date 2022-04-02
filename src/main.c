@@ -266,10 +266,25 @@ int main(int argc, const char* const * argv)
 
     // create and parse command line options
     struct cmdoptions* cmdoptions = cmdoptions_create();
+    //cmdoptions_enable_narrow_mode(cmdoptions);
     #include "cmdoptions_def.c" // yes, I did that
     if(!cmdoptions_parse(cmdoptions, argc, argv))
     {
+        cmdoptions_destroy(cmdoptions);
         return 1;
+    }
+    if(cmdoptions_was_provided_long(cmdoptions, "help"))
+    {
+        cmdoptions_help(cmdoptions);
+        cmdoptions_destroy(cmdoptions);
+        return 0;
+    }
+    if(cmdoptions_was_provided_long(cmdoptions, "version"))
+    {
+        puts("openPCells (opc) 0.2.0");
+        puts("Copyright 2020-2022 Patrick Kurth");
+        cmdoptions_destroy(cmdoptions);
+        return 0;
     }
 
     // show gds data
@@ -397,7 +412,10 @@ int main(int argc, const char* const * argv)
     if(!cmdoptions_was_provided_long(cmdoptions, "technology"))
     {
         puts("no technology given");
-        cmdoptions_exit(cmdoptions, 0);
+        generics_destroy_layer_map(layermap);
+        cmdoptions_destroy(cmdoptions);
+        lua_close(L);
+        return 0;
     }
     struct technology_state* techstate = technology_initialize();
 

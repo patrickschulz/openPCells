@@ -10,4 +10,7 @@ char* util_copy_string(const char* str);
 void util_append_string(char* target, const char* str);
 int util_file_exists(const char* path);
 
+#define util_min(a, b) ((a) < (b) ? (a) : (b))
+#define util_max(a, b) ((a) > (b) ? (a) : (b))
+
 #endif // OPC_UTIL_H
