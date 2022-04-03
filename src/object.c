@@ -193,9 +193,9 @@ void object_remove_shape(object_t* cell, size_t idx)
     --cell->shapes_size;
 }
 
-object_t* object_add_child(object_t* cell, const char* identifier, const char* name)
+object_t* object_add_child(object_t* cell, struct pcell_state* pcell_state, const char* identifier, const char* name)
 {
-    object_t* reference = pcell_use_cell_reference(identifier);
+    object_t* reference = pcell_use_cell_reference(pcell_state, identifier);
     object_t* child = object_create_proxy(name, reference, identifier);
     child->isarray = 0;
     child->xrep = 1;
@@ -215,14 +215,14 @@ object_t* object_add_child(object_t* cell, const char* identifier, const char* n
     return child;
 }
 
-object_t* object_add_child_array(object_t* cell, const char* identifier, unsigned int xrep, unsigned int yrep, unsigned int xpitch, unsigned int ypitch, const char* name)
+object_t* object_add_child_array(object_t* cell, struct pcell_state* pcell_state, const char* identifier, unsigned int xrep, unsigned int yrep, unsigned int xpitch, unsigned int ypitch, const char* name)
 {
     //if not xpitch then -- alignmentbox mode
     //    local obj = pcell.get_cell_reference(identifier)
     //    local xpitch, ypitch = obj:width_height_alignmentbox()
     //    return cell:add_child_array(identifier, xrep, yrep, xpitch, ypitch, name)
 
-    object_t* child = object_add_child(cell, identifier, name);
+    object_t* child = object_add_child(cell, pcell_state, identifier, name);
     child->isarray = 1;
     child->xrep = xrep;
     child->yrep = yrep;
@@ -711,14 +711,14 @@ int object_is_empty(object_t* cell)
     return (cell->shapes_size == 0) && (cell->children_size == 0) && (cell->ports_size == 0);
 }
 
-void object_flatten(object_t* cell, int flattenports)
+void object_flatten(object_t* cell, struct pcell_state* pcell_state, int flattenports)
 {
     // add shapes and flatten children (recursive)
     for(unsigned int i = 0; i < cell->children_size; ++i)
     {
         object_t* child = cell->children[i];
         object_t* reference = child->reference; // FIXME: do we need to copy? If this cell is used somewhere else (partial flatten) than that will most likely cause headaches
-        object_flatten(reference, flattenports);
+        object_flatten(reference, pcell_state, flattenports);
         for(unsigned int ix = 1; ix <= child->xrep; ++ix)
         {
             for(unsigned int iy = 1; iy <= child->yrep; ++iy)
@@ -749,7 +749,7 @@ void object_flatten(object_t* cell, int flattenports)
     // destroy children
     for(unsigned int i = 0; i < cell->children_size; ++i)
     {
-        pcell_unlink_cell_reference(cell->children[i]->identifier);
+        pcell_unlink_cell_reference(pcell_state, cell->children[i]->identifier);
         object_destroy(cell->children[i]);
     }
     free(cell->children);

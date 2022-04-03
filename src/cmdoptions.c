@@ -65,7 +65,7 @@ void _destroy_option(void* ptr)
 void cmdoptions_destroy(struct cmdoptions* options)
 {
     vector_destroy(options->entries, _destroy_option);
-    vector_destroy(options->positional_parameters, NULL);
+    vector_destroy(options->positional_parameters, free);
     const_vector_destroy(options->prehelpmsg);
     const_vector_destroy(options->posthelpmsg);
     free(options);

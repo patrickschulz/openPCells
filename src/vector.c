@@ -1,6 +1,7 @@
 #include "vector.h"
 
 #include <stdlib.h>
+#include <string.h>
 
 static void _resize_data(struct vector* vector, size_t capacity)
 {
@@ -57,6 +58,17 @@ void vector_append(struct vector* vector, void* element)
     vector->length += 1;
 }
 
+void vector_prepend(struct vector* vector, void* element)
+{
+    while(vector->length + 1 > vector->capacity)
+    {
+        _resize_data(vector, vector->capacity * 2);
+    }
+    memmove(vector->elements + 1, vector->elements, vector->length);
+    vector->elements[0] = element;
+    vector->length += 1;
+}
+
 void vector_remove(struct vector* vector, size_t index, void (*destructor)(void*))
 {
     if(destructor)
@@ -70,12 +82,19 @@ void vector_remove(struct vector* vector, size_t index, void (*destructor)(void*
     --vector->length;
 }
 
+static void _const_resize_data(struct const_vector* const_vector, size_t capacity)
+{
+    const_vector->capacity = capacity;
+    void* e = realloc(const_vector->elements, sizeof(void*) * const_vector->capacity);
+    const_vector->elements = e;
+}
+
 struct const_vector* const_vector_create(void)
 {
     struct const_vector* const_vector = malloc(sizeof(*const_vector));
     const_vector->elements = NULL;
     const_vector->length = 0;
-    _resize_data(const_vector, 1024);
+    _const_resize_data(const_vector, 1024);
     return const_vector;
 }
 
@@ -104,9 +123,20 @@ void const_vector_append(struct const_vector* const_vector, const void* element)
 {
     while(const_vector->length + 1 > const_vector->capacity)
     {
-        _resize_data(const_vector, const_vector->capacity * 2);
+        _const_resize_data(const_vector, const_vector->capacity * 2);
     }
     const_vector->elements[const_vector->length] = element;
+    const_vector->length += 1;
+}
+
+void const_vector_prepend(struct const_vector* const_vector, const void* element)
+{
+    while(const_vector->length + 1 > const_vector->capacity)
+    {
+        _const_resize_data(const_vector, const_vector->capacity * 2);
+    }
+    memmove(const_vector->elements + 1, const_vector->elements, const_vector->length);
+    const_vector->elements[0] = element;
     const_vector->length += 1;
 }
 

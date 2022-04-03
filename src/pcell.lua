@@ -18,28 +18,8 @@ Implementation note:
 local evaluator = _load_module("pcell.evaluators")
 local paramlib = _load_module("pcell.parameter")
 
-local function _get_cell_filename(state, cellname)
-    for _, path in ipairs(state.cellpaths) do
-        local filename = string.format("%s/%s.lua", path, cellname)
-        if dir.exists(filename) then
-            -- first found matching cell is used
-            return filename
-        end
-    end
-end
-
 local function _load_cell(state, cellname, env)
-    local filename = _get_cell_filename(state, cellname)
-    if not filename then
-        local str = {
-            string.format("could not find cell '%s' in:", cellname),
-        }
-        for _, path in ipairs(state.cellpaths) do
-            table.insert(str, string.format("  %s", path))
-        end
-        error(table.concat(str, "\n"))
-    end
-
+    local filename = pcell.get_cell_filename(cellname)
     local reader = _get_reader(filename)
     if not reader then
         error(string.format("could not open cell file '%s'", filename))
@@ -322,7 +302,6 @@ end
 -- only the public functions use this state as upvalue to conceal it from the user
 -- all local implementing functions get state as first parameter
 local state = {
-    cellpaths = {},
     loadedcells = {},
     backupstacks = {},
     cellrefs = {},
@@ -448,20 +427,6 @@ end
 
 function pcell.enable_dprint(d)
     state.enabledprint = d
-end
-
-function pcell.append_cellpath(path)
-    table.insert(state.cellpaths, path)
-end
-
-function pcell.prepend_cellpath(path)
-    table.insert(state.cellpaths, 1, path)
-end
-
-function pcell.list_cellpaths()
-    for _, path in ipairs(state.cellpaths) do
-        print(path)
-    end
 end
 
 local function _find_cell_traceback()

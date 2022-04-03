@@ -349,7 +349,7 @@ static void _check_lua_export(lua_State* L, const char* exportname)
     _check_function(L, exportname, "finalize");
 }
 
-static void _write_toplevel_C(object_t* object, const char* toplevelname, struct export_data* data, struct export_functions* funcs, int writechildrenports, char leftdelim, char rightdelim)
+static void _write_toplevel_C(object_t* object, struct pcell_state* pcell_state, const char* toplevelname, struct export_data* data, struct export_functions* funcs, int writechildrenports, char leftdelim, char rightdelim)
 {
     funcs->at_begin(data);
 
@@ -357,9 +357,9 @@ static void _write_toplevel_C(object_t* object, const char* toplevelname, struct
     _write_cell(object, data, funcs, 1, leftdelim, rightdelim); // 1: write ports
     funcs->at_end_cell(data);
 
-    for(unsigned int i = 0; i < pcell_get_reference_count(); ++i)
+    for(unsigned int i = 0; i < pcell_get_reference_count(pcell_state); ++i)
     {
-        struct cellreference* reference = pcell_get_indexed_cell_reference(i);
+        struct cellreference* reference = pcell_get_indexed_cell_reference(pcell_state, i);
         if(reference->numused > 0)
         {
             funcs->at_begin_cell(data, reference->identifier);
@@ -371,14 +371,14 @@ static void _write_toplevel_C(object_t* object, const char* toplevelname, struct
     funcs->at_end(data);
 }
 
-static void _write_toplevel_lua(lua_State* L, object_t* object, const char* toplevelname, struct export_data* data, int writechildrenports, char leftdelim, char rightdelim)
+static void _write_toplevel_lua(lua_State* L, object_t* object, struct pcell_state* pcell_state, const char* toplevelname, struct export_data* data, int writechildrenports, char leftdelim, char rightdelim)
 {
     // check if export supports hierarchies
     lua_getfield(L, -1, "write_cell_reference");
     if(lua_isnil(L, -1))
     {
         puts("this export does not know how to write hierarchies, hence the cell is being written flat");
-        object_flatten(object, 0);
+        object_flatten(object, pcell_state, 0);
     }
     lua_pop(L, 1);
 
@@ -392,9 +392,9 @@ static void _write_toplevel_lua(lua_State* L, object_t* object, const char* topl
     lua_getfield(L, -1, "at_end_cell");
     _call_or_pop_nil(L, 0);
 
-    for(unsigned int i = 0; i < pcell_get_reference_count(); ++i)
+    for(unsigned int i = 0; i < pcell_get_reference_count(pcell_state); ++i)
     {
-        struct cellreference* reference = pcell_get_indexed_cell_reference(i);
+        struct cellreference* reference = pcell_get_indexed_cell_reference(pcell_state, i);
         if(reference->numused > 0)
         {
             lua_getfield(L, -1, "at_begin_cell");
@@ -417,7 +417,7 @@ static void _write_toplevel_lua(lua_State* L, object_t* object, const char* topl
     lua_pop(L, 1); // pop data
 }
 
-void export_write_toplevel(object_t* toplevel, const char* exportname, const char* basename, const char* toplevelname, char leftdelim, char rightdelim, const char* const * exportoptions, int writechildrenports)
+void export_write_toplevel(object_t* toplevel, struct pcell_state* pcell_state, const char* exportname, const char* basename, const char* toplevelname, char leftdelim, char rightdelim, const char* const * exportoptions, int writechildrenports)
 {
     if(object_is_empty(toplevel))
     {
@@ -433,7 +433,7 @@ void export_write_toplevel(object_t* toplevel, const char* exportname, const cha
     struct export_functions* funcs = get_export_functions(exportname);
     if(funcs) // C-defined exports
     {
-        _write_toplevel_C(toplevel, toplevelname, data, funcs, writechildrenports, leftdelim, rightdelim);
+        _write_toplevel_C(toplevel, pcell_state, toplevelname, data, funcs, writechildrenports, leftdelim, rightdelim);
         extension = funcs->get_extension();
         success = 1;
     }
@@ -470,7 +470,7 @@ void export_write_toplevel(object_t* toplevel, const char* exportname, const cha
                         _call_or_pop_nil(L, 1);
                     }
 
-                    _write_toplevel_lua(L, toplevel, toplevelname, data, writechildrenports, leftdelim, rightdelim);
+                    _write_toplevel_lua(L, toplevel, pcell_state, toplevelname, data, writechildrenports, leftdelim, rightdelim);
 
                     lua_getfield(L, -1, "get_extension");
                     lua_call(L, 0, 1);

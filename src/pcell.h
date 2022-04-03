@@ -3,22 +3,37 @@
 
 #include "lua/lua.h"
 
-#include "object.h"
+#include "vector.h"
+
+struct object_t;
 
 struct cellreference
 {
     char* identifier;
-    object_t* cell;
+    struct object_t* cell;
     unsigned int numused;
 };
 
-void pcell_initialize_references(void);
-void pcell_destroy_references(void);
+struct used_name
+{
+    char* identifier;
+    unsigned int numused;
+};
 
-size_t pcell_get_reference_count(void);
-struct cellreference* pcell_get_indexed_cell_reference(unsigned int i);
-object_t* pcell_use_cell_reference(const char* identifier);
-void pcell_unlink_cell_reference(const char* identifier);
+struct pcell_state
+{
+    struct vector* used_names;
+    struct vector* references;
+    struct vector* cellpaths;
+};
+
+struct pcell_state* pcell_initialize_state(void);
+void pcell_destroy_state(struct pcell_state* state);
+
+size_t pcell_get_reference_count(struct pcell_state* state);
+struct cellreference* pcell_get_indexed_cell_reference(struct pcell_state*, unsigned int i);
+struct object_t* pcell_use_cell_reference(struct pcell_state*, const char* identifier);
+void pcell_unlink_cell_reference(struct pcell_state*, const char* identifier);
 
 int open_lpcell_lib(lua_State* L);
 

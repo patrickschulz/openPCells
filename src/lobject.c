@@ -196,7 +196,10 @@ int lobject_add_child(lua_State* L)
     lobject_t* cell = lobject_check(L, 1);
     const char* identifier = lua_tostring(L, 2);
     const char* name = lua_tostring(L, 3);
-    object_t* child = object_add_child(cell->object, identifier, name);
+    lua_getfield(L, LUA_REGISTRYINDEX, "pcellstate");
+    struct pcell_state* pcell_state = lua_touserdata(L, -1);
+    lua_pop(L, 1); // pop pcell state
+    object_t* child = object_add_child(cell->object, pcell_state, identifier, name);
     lobject_adapt(L, child);
     return 1;
 }
@@ -210,7 +213,10 @@ int lobject_add_child_array(lua_State* L)
     unsigned int xpitch = lua_tointeger(L, 5);
     unsigned int ypitch = lua_tointeger(L, 6);
     const char* name = lua_tostring(L, 7);
-    object_t* child = object_add_child_array(cell->object, identifier, xrep, yrep, xpitch, ypitch, name);
+    lua_getfield(L, LUA_REGISTRYINDEX, "pcellstate");
+    struct pcell_state* pcell_state = lua_touserdata(L, -1);
+    lua_pop(L, 1); // pop pcell state
+    object_t* child = object_add_child_array(cell->object, pcell_state, identifier, xrep, yrep, xpitch, ypitch, name);
     lobject_adapt(L, child);
     return 1;
 }
@@ -300,7 +306,10 @@ int lobject_is_empty(lua_State* L)
 int lobject_flatten(lua_State* L)
 {
     lobject_t* cell = lobject_check(L, 1);
-    object_flatten(cell->object, 0);
+    lua_getfield(L, LUA_REGISTRYINDEX, "pcellstate");
+    struct pcell_state* pcell_state = lua_touserdata(L, -1);
+    lua_pop(L, 1); // pop pcell state
+    object_flatten(cell->object, pcell_state, 0);
     return 1;
 }
 

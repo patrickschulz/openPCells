@@ -480,8 +480,10 @@ int main(int argc, const char* const * argv)
     lua_pushlightuserdata(L, techstate);
     lua_setfield(L, LUA_REGISTRYINDEX, "techstate");
 
-    // create pcell references FIXME: remove global variable
-    pcell_initialize_references();
+    // create pcell references
+    struct pcell_state* pcell_state = pcell_initialize_state();
+    lua_pushlightuserdata(L, pcell_state);
+    lua_setfield(L, LUA_REGISTRYINDEX, "pcellstate");
 
     // create cell
     if(cmdoptions_was_provided_long(cmdoptions, "cell"))
@@ -504,7 +506,7 @@ int main(int argc, const char* const * argv)
             // clean up states
             generics_destroy_layer_map(layermap);
             technology_destroy(techstate);
-            pcell_destroy_references();
+            pcell_destroy_state(pcell_state);
             cmdoptions_destroy(cmdoptions);
             lua_close(L);
             return 1;
@@ -515,7 +517,7 @@ int main(int argc, const char* const * argv)
         puts("no cell given");
         generics_destroy_layer_map(layermap);
         technology_destroy(techstate);
-        pcell_destroy_references();
+        pcell_destroy_state(pcell_state);
         cmdoptions_destroy(cmdoptions);
         lua_close(L);
         return 1;
@@ -589,9 +591,9 @@ int main(int argc, const char* const * argv)
     }
     if(cmdoptions_was_provided_long(cmdoptions, "draw-all-alignmentboxes"))
     {
-        for(unsigned int i = 0; i < pcell_get_reference_count(); ++i)
+        for(unsigned int i = 0; i < pcell_get_reference_count(pcell_state); ++i)
         {
-            object_t* cell = pcell_get_indexed_cell_reference(i)->cell;
+            object_t* cell = pcell_get_indexed_cell_reference(pcell_state, i)->cell;
             point_t* bl = object_get_anchor(cell, "bottomleft");
             point_t* tr = object_get_anchor(cell, "topright");
             if(bl && tr)
@@ -607,7 +609,7 @@ int main(int argc, const char* const * argv)
     if(cmdoptions_was_provided_long(cmdoptions, "flat"))
     {
         int flattenports = cmdoptions_was_provided_long(cmdoptions, "flattenports");
-        object_flatten(toplevel, flattenports);
+        object_flatten(toplevel, pcell_state, flattenports);
     }
 
     // post-processing
@@ -618,18 +620,18 @@ int main(int argc, const char* const * argv)
            strcmp(cmdoptions_get_argument_long(cmdoptions, "filter-list"), "include") == 0)
         {
             postprocess_filter_include(toplevel, layernames);
-            for(unsigned int i = 0; i < pcell_get_reference_count(); ++i)
+            for(unsigned int i = 0; i < pcell_get_reference_count(pcell_state); ++i)
             {
-                object_t* cell = pcell_get_indexed_cell_reference(i)->cell;
+                object_t* cell = pcell_get_indexed_cell_reference(pcell_state, i)->cell;
                 postprocess_filter_include(cell, layernames);
             }
         }
         else
         {
             postprocess_filter_exclude(toplevel, layernames);
-            for(unsigned int i = 0; i < pcell_get_reference_count(); ++i)
+            for(unsigned int i = 0; i < pcell_get_reference_count(pcell_state); ++i)
             {
-                object_t* cell = pcell_get_indexed_cell_reference(i)->cell;
+                object_t* cell = pcell_get_indexed_cell_reference(pcell_state, i)->cell;
                 postprocess_filter_exclude(cell, layernames);
             }
         }
@@ -665,7 +667,7 @@ int main(int argc, const char* const * argv)
             leftdelim = delimiters[0];
             rightdelim = delimiters[1];
         }
-        export_write_toplevel(toplevel, exportname, basename, toplevelname, leftdelim, rightdelim, exportoptions, writechildrenports);
+        export_write_toplevel(toplevel, pcell_state, exportname, basename, toplevelname, leftdelim, rightdelim, exportoptions, writechildrenports);
     }
     else
     {
@@ -681,7 +683,7 @@ int main(int argc, const char* const * argv)
     // clean up states
     generics_destroy_layer_map(layermap);
     technology_destroy(techstate);
-    pcell_destroy_references();
+    pcell_destroy_state(pcell_state);
     cmdoptions_destroy(cmdoptions);
     vector_destroy(techpaths, free); // every techpath is a copied string
     keyvaluearray_destroy(config);

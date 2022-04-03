@@ -3,6 +3,7 @@
 
 #include "transformationmatrix.h"
 #include "shape.h"
+#include "pcell.h"
 
 struct object_t
 {
@@ -57,8 +58,8 @@ void object_destroy(object_t* cell);
 void object_add_raw_shape(object_t* cell, shape_t* S);
 void object_add_shape(object_t* cell, shape_t* S);
 void object_remove_shape(object_t* cell, size_t i);
-object_t* object_add_child(object_t* cell, const char* identifier, const char* name);
-object_t* object_add_child_array(object_t* cell, const char* identifier, unsigned int xrep, unsigned int yrep, unsigned int xpitch, unsigned int ypitch, const char* name);
+object_t* object_add_child(object_t* cell, struct pcell_state* pcell_state, const char* identifier, const char* name);
+object_t* object_add_child_array(object_t* cell, struct pcell_state* pcell_state, const char* identifier, unsigned int xrep, unsigned int yrep, unsigned int xpitch, unsigned int ypitch, const char* name);
 void object_merge_into_shallow(object_t* cell, object_t* other);
 void object_add_anchor(object_t* cell, const char* name, coordinate_t x, coordinate_t y);
 point_t* object_get_anchor(const object_t* cell, const char* name);
@@ -83,6 +84,6 @@ void object_move_anchor_y(object_t* cell, const char* name, coordinate_t x, coor
 
 void object_apply_transformation(object_t* cell);
 int object_is_empty(object_t* cell);
-void object_flatten(object_t* cell, int flattenports);
+void object_flatten(object_t* cell, struct pcell_state* pcell_state, int flattenports);
 
 #endif // OPC_OBJECT_H
