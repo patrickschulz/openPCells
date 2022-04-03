@@ -9,12 +9,6 @@ if arg[1] == "test" then
     return 0
 end
 
--- gds info functions
-if args.showgdshierarchy then
-    functions.show_gds_hierarchy(args.showgdshierarchy, args.showgdsdatadepth)
-    return 0
-end
-
 -- check for script firsts, nothing gets defined for scripts
 if args.script then
     local filename = args.script
@@ -34,11 +28,6 @@ if args.script then
     return 0
 end
 
-if args.watch then
-    print("sorry, watch mode is currently not implemented")
-    return 1
-end
-
 -- for random shuffle
 if args.seed then
     math.randomseed(args.seed)
@@ -48,11 +37,6 @@ end
 
 if args.listcellpaths then
     pcell.list_cellpaths()
-    return 0
-end
-
-if args.listtechpaths then
-    technology.list_techpaths()
     return 0
 end
 

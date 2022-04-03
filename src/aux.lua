@@ -4,7 +4,7 @@ This file is part of the openPCells project.
 This module provides a collection of helper functions (not geometry-related)
 --]]
 
-local M = {}
+aux = {}
 
 function infoprint(msg)
     -- wrap print because I use it for simple debugging
@@ -17,13 +17,13 @@ function errprint(msg)
     io.stderr:write("\n")
 end
 
-function M.call_if_present(func, ...)
+function aux.call_if_present(func, ...)
     if func then
         return func(...)
     end
 end
 
-function M.map(t, func)
+function aux.map(t, func)
     local res = {}
     for k, v in pairs(t) do
         res[k] = func(v)
@@ -31,7 +31,7 @@ function M.map(t, func)
     return res
 end
 
-function M.concat(data, sep, pre, post, newline)
+function aux.concat(data, sep, pre, post, newline)
     pre = pre or ""
     post = post or ""
     sep = sep or ", "
@@ -41,21 +41,21 @@ function M.concat(data, sep, pre, post, newline)
     local fun = function(str)
         return string.format("%s%s%s", pre, str, post)
     end
-    local processed = M.map(data, fun)
+    local processed = aux.map(data, fun)
     local tabstr = table.concat(processed, sep)
     return tabstr
 end
 
-function M.concatformat(data, fmt, sep)
+function aux.concatformat(data, fmt, sep)
     local fun = function(str)
         return string.format(fmt, str)
     end
-    local processed = M.map(data, fun)
+    local processed = aux.map(data, fun)
     local tabstr = table.concat(processed, sep)
     return tabstr
 end
 
-function M.clone_shallow(t, predicate)
+function aux.clone_shallow(t, predicate)
     local new = {}
     predicate = predicate or function() return true end
     for k, v in pairs(new) do
@@ -66,7 +66,7 @@ function M.clone_shallow(t, predicate)
     return new
 end
 
-function M.find(t, crit)
+function aux.find(t, crit)
     for i, v in ipairs(t) do
         if crit(v) then
             return i, v
@@ -74,7 +74,7 @@ function M.find(t, crit)
     end
 end
 
-function M.shuffle(t)
+function aux.shuffle(t)
   for i = #t, 2, -1 do
     local j = math.random(i)
     t[i], t[j] = t[j], t[i]
@@ -82,27 +82,27 @@ function M.shuffle(t)
   return t
 end
 
-function M.gcd(a, b)
+function aux.gcd(a, b)
 	if b ~= 0 then
-		return M.gcd(b, a % b)
+		return aux.gcd(b, a % b)
 	else
 		return a
 	end
 end
 
-function M.tabgcd(t)
+function aux.tabgcd(t)
     local gcd = t[1]
     for i = 1, #t do
         for j = 1, #t do
             if i ~= j then
-                gcd = math.min(gcd, M.gcd(t[i], t[j]))
+                gcd = math.min(gcd, aux.gcd(t[i], t[j]))
             end
         end
     end
     return gcd
 end
 
-function M.sum(t)
+function aux.sum(t)
     local res = 0
     for _, e in ipairs(t) do
         res = res + e
@@ -110,11 +110,11 @@ function M.sum(t)
     return res
 end
 
-function M.round(num)
+function aux.round(num)
     return num >= 0 and math.floor(num + 0.5) or math.ceil(num - 0.5)
 end
 
-function M.any_of(comp, t, ...)
+function aux.any_of(comp, t, ...)
     for _, v in ipairs(t) do
         if comp(v, ...) then
             return true
@@ -123,7 +123,7 @@ function M.any_of(comp, t, ...)
     return false
 end
 
-function M.all_of(comp, t, ...)
+function aux.all_of(comp, t, ...)
     for _, v in ipairs(t) do
         if not comp(v, ...) then
             return false
@@ -132,18 +132,18 @@ function M.all_of(comp, t, ...)
     return true
 end
 
-function M.assert_one_of(msg, key, ...)
-    assert(M.any_of(function(v) return v == key end, { ... }),
+function aux.assert_one_of(msg, key, ...)
+    assert(aux.any_of(function(v) return v == key end, { ... }),
         string.format("%s must be one of { %s }", msg, table.concat({ ... }, ", "))
     )
 end
 
-function M.deepcopy(orig, copy)
+function aux.deepcopy(orig, copy)
     local copy = copy
     if type(orig) == "table" then
         copy = {}
         for orig_key, orig_value in next, orig, nil do
-            copy[M.deepcopy(orig_key)] = M.deepcopy(orig_value)
+            copy[aux.deepcopy(orig_key)] = aux.deepcopy(orig_value)
         end
     else -- number, string, boolean, etc
         copy = orig
@@ -152,7 +152,7 @@ function M.deepcopy(orig, copy)
 end
 
 local _usednames = {}
-function M.make_unique_name(name)
+function aux.make_unique_name(name)
     if not name then
         name = "__subcell"
     end
@@ -163,7 +163,7 @@ function M.make_unique_name(name)
     return string.format("%s_%d", name, _usednames[name])
 end
 
-function M.print_tabular(t)
+function aux.print_tabular(t)
     local width = 0
     for k in pairs(t) do
         width = math.max(width, string.len(tostring(k)))
@@ -189,7 +189,7 @@ end
 -- for substr in gsplit(text, pattern, plain) do
 --   doSomething(substr)
 -- end
-function M.strgsplit(text, pattern, plain)
+function aux.strgsplit(text, pattern, plain)
   local splitStart, length = 1, #text
   return function ()
     if splitStart then
@@ -224,15 +224,15 @@ end
 --                    string, not a Lua pattern
 -- 
 -- Returns: table (a sequence table containing the substrings)
-function M.strsplit(text, pattern, plain)
+function aux.strsplit(text, pattern, plain)
   local ret = {}
-  for match in M.strgsplit(text, pattern, plain) do
+  for match in aux.strgsplit(text, pattern, plain) do
     table.insert(ret, match)
   end
   return ret
 end
 
-function M.tprint(tbl, indent)                                                   
+function aux.tprint(tbl, indent)                                                   
     -- Print contents of tbl, with indentation.                                   
     -- indent sets the initial level of indentation.                                 
     indent = indent or 0
@@ -248,5 +248,3 @@ function M.tprint(tbl, indent)
         end                                                                         
     end                                                                           
 end
-
-return M

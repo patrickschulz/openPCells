@@ -124,18 +124,6 @@ static int msghandler (lua_State *L) {
   return 1;  /* return the traceback */
 }
 
-static void create_argument_table(lua_State* L, int argc, const char* const * argv)
-{
-    lua_newtable(L);
-    int i;
-    for(i = 1; i < argc; ++i)
-    {
-        lua_pushstring(L, argv[i]);
-        lua_rawseti(L, -2, i);
-    }
-    lua_setglobal(L, "arg");
-}
-
 static int call_main_program(lua_State* L, const char* filename)
 {
     int status = luaL_loadfile(L, filename);
@@ -281,6 +269,25 @@ int main(int argc, const char* const * argv)
         return 0;
     }
 
+    // load config
+    struct keyvaluearray* config = keyvaluearray_create();
+    if(!cmdoptions_was_provided_long(cmdoptions, "no-user-config"))
+    {
+        if(!_load_config(config))
+        {
+            puts("error while loading user config");
+            return 1;
+        }
+    }
+
+    // FIXME
+    if(cmdoptions_was_provided_long(cmdoptions, "watch"))
+    {
+        puts("sorry, watch mode is currently not implemented");
+        cmdoptions_destroy(cmdoptions);
+        return 1;
+    }
+
     // show gds data
     if(cmdoptions_was_provided_long(cmdoptions, "show-gds-data"))
     {
@@ -290,6 +297,25 @@ int main(int argc, const char* const * argv)
         {
             cmdoptions_exit(cmdoptions, 1);
         }
+        cmdoptions_exit(cmdoptions, 0);
+    }
+
+    // show gds hierarchy
+    if(cmdoptions_was_provided_long(cmdoptions, "show-gds-cell-hierarchy"))
+    {
+        lua_State* L = util_create_basic_lua_state();
+        open_gdsparser_lib(L);
+        _load_module(L, "gdsparser");
+        _load_module(L, "aux");
+        const char* filename = cmdoptions_get_argument_long(cmdoptions, "show-gds-cell-hierarchy");
+        lua_pushstring(L, filename);
+        lua_setglobal(L, "filename");
+        lua_pushinteger(L, 1000);
+        int depth = atoi(cmdoptions_get_argument_long(cmdoptions, "show-gds-depth"));
+        lua_pushinteger(L, depth);
+        lua_setglobal(L, "depth");
+        call_main_program(L, OPC_HOME "/src/scripts/show_gds_hierarchy.lua");
+        lua_close(L);
         cmdoptions_exit(cmdoptions, 0);
     }
 
@@ -394,6 +420,24 @@ int main(int argc, const char* const * argv)
         cmdoptions_exit(cmdoptions, 0);
     }
 
+    if(cmdoptions_was_provided_long(cmdoptions, "listtechpaths"))
+    {
+        printf("%s\n", OPC_HOME "/tech");
+        const char** arg = cmdoptions_get_argument_long(cmdoptions, "techpath");
+        while(arg && *arg)
+        {
+            printf("%s\n", *arg);
+            ++arg;
+        }
+        struct vector* techpaths = keyvaluearray_get(config, "techpaths");
+        for(unsigned int i = 0; i < vector_size(techpaths); ++i)
+        {
+            printf("%s\n", (const char*)vector_get(techpaths, i));
+        }
+        cmdoptions_destroy(cmdoptions);
+        return 0;
+    }
+
     lua_State* L = create_and_initialize_lua();
 
     // create layermap
@@ -411,16 +455,6 @@ int main(int argc, const char* const * argv)
         return 0;
     }
     struct technology_state* techstate = technology_initialize();
-
-    struct keyvaluearray* config = keyvaluearray_create();
-    if(!cmdoptions_was_provided_long(cmdoptions, "no-user-config"))
-    {
-        if(!_load_config(config))
-        {
-            puts("error while loading user config");
-            return 1;
-        }
-    }
 
     // add technology search paths
     technology_add_techpath(techstate, OPC_HOME "/tech");
