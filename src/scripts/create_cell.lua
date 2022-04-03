@@ -29,7 +29,7 @@ if not args.noparamfile then
         end
     end
 end
-for k, v in pairs(args.cellargs) do
+for k, v in string.gmatch(table.concat(args.cellargs, " "), "(%w+)%s*=%s*(%S+)") do
     cellargs[k] = v
 end
 

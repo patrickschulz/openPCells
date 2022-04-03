@@ -491,6 +491,11 @@ int main(int argc, const char* const * argv)
         lua_pushstring(L, cellname);
         lua_setfield(L, -2, "cell");
         lua_newtable(L);
+        for(unsigned int i = 0; i < cmdoptions_get_positional_parameters_size(cmdoptions); ++i)
+        {
+            lua_pushstring(L, cmdoptions_get_positional_parameter(cmdoptions, i));
+            lua_rawseti(L, -2, i + 1);
+        }
         lua_setfield(L, -2, "cellargs");
         lua_setglobal(L, "args");
         int retval = call_main_program(L, OPC_HOME "/src/scripts/create_cell.lua");
