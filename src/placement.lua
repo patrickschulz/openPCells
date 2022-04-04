@@ -1,5 +1,81 @@
 local M = {}
 
+local function _get_geometry(instances)
+    local total_width = 0
+    local required_width = 0
+    for _, instance in ipairs(instances) do
+        local width = instance.width
+        total_width = total_width + width
+        required_width = math.max(required_width, width)
+    end
+    return required_width, total_width
+end
+
+local function _create_options(fixedrows, required_width, total_width, utilization, aspectratio)
+    local height = 7
+    local area = total_width * height
+    local floorplan_width, floorplan_height
+    if fixedrows then
+        floorplan_height = fixedrows
+        floorplan_width = total_width / utilization / fixedrows
+    else
+        floorplan_width = math.sqrt(area / utilization * aspectratio)
+        floorplan_height = math.sqrt(area / utilization / aspectratio)
+
+        -- check for too narrow floorplan
+        if floorplan_width < required_width then
+            floorplan_width = required_width / math.sqrt(utilization)
+            floorplan_height = area / utilization / floorplan_width
+            print("Floorplan width is smaller than required width, this will be fixed.")
+            print(string.format("The actual aspect ratio (%.2f) will differ from the specified aspect ratio (%.2f)", floorplan_width / floorplan_height, aspectratio))
+        end
+
+        -- normalize
+        floorplan_height = math.ceil(floorplan_height / height)
+    end
+
+    local options = {
+        floorplan_width = math.ceil(floorplan_width),
+        floorplan_height = math.ceil(floorplan_height),
+        desired_row_width = math.ceil(total_width / floorplan_height * utilization),
+        movespercell = movespercell,
+        report = report
+    }
+
+    -- check floorplan options
+    if options.floorplan_width == 0 then
+        moderror("floorplan width is zero")
+    end
+    if options.floorplan_height == 0 then
+        moderror("floorplan height is zero")
+    end
+    if options.desired_row_width == 0 then
+        moderror("desired row width is zero")
+    end
+    if options.desired_row_width >= options.floorplan_width then
+        moderror("desired row width must be smaller than floorplan width")
+    end
+    return options
+end
+
+function _sanitize_rows(rows)
+    for row = #rows, 1, -1 do
+        if #rows[row] == 0 then
+            table.remove(rows, row)
+        end
+    end
+end
+
+function M.optimize(instances, nets, utilization, aspectratio)
+    -- placer options
+    local required_width, total_width = _get_geometry(instances)
+    local options = _create_options(fixedrows, required_width, total_width, utilization, aspectratio)
+
+    local rows = placer.place_simulated_annealing(instances, nets, options)
+    _sanitize_rows(rows) -- removes empty rows
+    return rows
+end
+
 function M.create_reference_rows(cellnames)
     local names = {}
     local references = {}
@@ -13,6 +89,8 @@ function M.create_reference_rows(cellnames)
         dffp = 21,
         dffn = 21,
     }
+    -- the cell map allows different cells in the gate netlist to actually use the same pcell (e.g. dffp vs. dffn)
+    -- Also, mapping allows the use of cell parameters
     local cell_map = {
         dffp = {
             name = "dff",
@@ -211,3 +289,4 @@ function M.rowwise(parent, cellnames, startpt, startanchor, flipfirst, growdirec
 end
 
 return M
+

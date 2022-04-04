@@ -298,7 +298,7 @@ local function _read_parse_verilog(filename)
         moderror(string.format("generator.from_verilog: could not open file '%s'", filename))
     end
     local str = file:read("a")
-    local content = verilog_parser.parse(str)
+    local content = verilog.parse(str)
     file:close()
     return content
 end
