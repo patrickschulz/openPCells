@@ -512,6 +512,21 @@ int main(int argc, const char* const * argv)
             return 1;
         }
     }
+    else if(cmdoptions_was_provided_long(cmdoptions, "cellscript"))
+    {
+        const char* cellscriptname = cmdoptions_get_argument_long(cmdoptions, "cellscript");
+        int retval = call_main_program(L, cellscriptname);
+        if(retval != LUA_OK)
+        {
+            // clean up states
+            generics_destroy_layer_map(layermap);
+            technology_destroy(techstate);
+            pcell_destroy_state(pcell_state);
+            cmdoptions_destroy(cmdoptions);
+            lua_close(L);
+            return 1;
+        }
+    }
     else
     {
         puts("no cell given");

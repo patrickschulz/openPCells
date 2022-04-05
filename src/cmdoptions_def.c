@@ -5,6 +5,7 @@ cmdoptions_add_option(cmdoptions, 'E', "export", SINGLE_ARG, "specify export typ
 cmdoptions_add_option(cmdoptions, NO_SHORT, "export-layers", SINGLE_ARG, "specify which layer data from the technology layer map is given to the export. If this matches the name of the export (e.g. gds and gds) then this option is not needed. It is only useful if an export uses layer definition intended for another export (e.g. magic and SKILL)");
 cmdoptions_add_option(cmdoptions, 'X', "export-options", MULTI_ARGS, "pass special options to export. This passes the next argument (separated by white space) literally. This means that several arguments have to be grouped, usually by enclosing it in quotations marks (e.g. -X '--foo --bar'). An overview of the available options for the respective export can be found by passing -h, e.g. opc --export gds -X -h");
 cmdoptions_add_option(cmdoptions, 'c', "cellscript", SINGLE_ARG, "execute cell script. With this option, --cell is not needed to create a layout. The layout described in the cell script is generated, so the called file must return an object.");
+cmdoptions_add_option(cmdoptions, NO_SHORT, "cellscript-args", MULTI_ARGS, "pass arguments to cellscripts (use with --cellscript). Can be called multiple times");
 cmdoptions_add_section(cmdoptions, "Auxiliary generation functions");
 cmdoptions_add_option_default(cmdoptions, 'n', "cellname", SINGLE_ARG, "opctoplevel", "export toplevel cell name. Not all exports support a cell name.");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "flat", NO_ARG, "flatten hierarchy before exporting. This is only necessary if the selected export supports hierarchies. Otherwise this option is applied anyway");
@@ -42,8 +43,6 @@ cmdoptions_add_option(cmdoptions, NO_SHORT, "enable-dprint", NO_ARG, "enables de
 cmdoptions_add_option(cmdoptions, NO_SHORT, "debug-cell", NO_ARG, "show detailed cell debugging call stack");
 cmdoptions_add_section(cmdoptions, "Miscellaneous functions");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "no-user-config", NO_ARG, "don't load the user config");
-cmdoptions_add_option(cmdoptions, 's', "script", SINGLE_ARG, "execute arbitrary script. This can be used to run lua code with the opc API loaded. If a cell is generated in this file, --cellscript is recommended, as then no manual technology/export/etc. loading is necessary.");
-cmdoptions_add_option(cmdoptions, NO_SHORT, "script-args", MULTI_ARGS, "pass arguments to scripts (use with --script). Can be called multiple times");
 cmdoptions_add_option(cmdoptions, 'w', "watch", NO_ARG, "start 'watch' mode. This continuously monitors the specified cell and regenerates the layout upon changes in the file.");
 cmdoptions_add_section(cmdoptions, "Generator functions");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "read-gds", SINGLE_ARG, "read a GDS stream file and export all cells as opc-compatible code. This can take some time, depending on the size of the stream file");

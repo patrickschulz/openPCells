@@ -9,25 +9,6 @@ if arg[1] == "test" then
     return 0
 end
 
--- check for script firsts, nothing gets defined for scripts
-if args.script then
-    local filename = args.script
-    local chunkname = string.format("@%s", filename)
-
-    local reader = _get_reader(filename)
-    if reader then
-        local env = {
-            arg = args.scriptargs or {}
-        }
-        _G.__index = _G
-        setmetatable(env, _G)
-        _dofile(reader, chunkname, nil, env)
-    else
-        moderror(string.format("opc --script: could not open script file '%s'", filename))
-    end
-    return 0
-end
-
 -- for random shuffle
 if args.seed then
     math.randomseed(args.seed)
