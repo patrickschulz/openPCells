@@ -14,7 +14,7 @@ SYSCFLAGS=
 SYSLDFLAGS=
 SYSLIBS=
 
-OPCOBJ:=point.o transformationmatrix.o ltransformationmatrix.o shape.o geometry.o lgeometry.o ldir.o lpoint.o graphics.o lbind.o lload.o lbinary.o lshape.o lfilesystem.o lbytebuffer.o lplacer.o lplacer_rand.o lrouter.o lrouter_net.o lrouter_queue.o lrouter_min_heap.o lrouter_field.o lrouter_route.o lutil.o gdsparser.o ldebug.o
+OPCOBJ:=point.o transformationmatrix.o ltransformationmatrix.o shape.o geometry.o lgeometry.o ldir.o lpoint.o graphics.o lbind.o lload.o lbinary.o lshape.o lfilesystem.o lbytebuffer.o lplacer.o lplacer_classic.o lplacer_nonoverlapping.o lplacer_rand.o keyvaluepairs.o vector.o lrouter.o lrouter_net.o lrouter_queue.o lrouter_min_heap.o lrouter_field.o lrouter_route.o lutil.o gdsparser.o ldebug.o
 
 .PHONY: default
 default:
@@ -40,8 +40,12 @@ lshape.o: lshape.h lshape.c shape.h shape.c
 lfilesystem.o: lfilesystem.h lfilesystem.c
 lutil.o: lutil.c lutil.h
 lbytebuffer.o: lbytebuffer.h lbytebuffer.c
+keyvaluepairs.o: keyvaluepairs.h keyvaluepairs.c
+vector.o: vector.h vector.c
 
 lplacer.o: lplacer.h lplacer.c
+lplacer_classic.o: lplacer_classic.h lplacer_classic.c
+lplacer_nonverlapping.o: lplacer_nonverlapping.h lplacer_nonverlapping.c
 lplacer_rand.o: lplacer_rand.h lplacer_rand.c
 
 lrouter.o: lrouter.c lrouter.h

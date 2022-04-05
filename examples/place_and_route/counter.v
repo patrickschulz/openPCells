@@ -29,34 +29,33 @@ module counter(clk, count);
   input clk;
   output [1:0] count;
   wire [1:0] count_pre;
-  opcinv _06_ (
+  not_gate _06_ (
     .I(count_pre[0]),
     .O(_00_)
   );
-  opcxor _07_ (
+  xor_gate _07_ (
     .A(count_pre[1]),
     .B(count_pre[0]),
     .O(_01_)
   );
-  opcdffnq _08_ (
+  dffn _08_ (
     .CLK(clk),
     .D(_00_),
     .Q(count_pre[0])
   );
-  opcdffnq _09_ (
+  dffn _09_ (
     .CLK(clk),
     .D(_01_),
     .Q(count_pre[1])
   );
-  opcdffq _10_ (
+  dffp _10_ (
     .CLK(clk),
     .D(count_pre[0]),
     .Q(count[0])
   );
-  opcdffq _11_ (
+  dffp _11_ (
     .CLK(clk),
     .D(count_pre[1]),
     .Q(count[1])
   );
 endmodule
-

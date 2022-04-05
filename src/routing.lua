@@ -81,4 +81,3 @@ function M.route(cell, routes, cells, width)
 end
 
 return M
-
