@@ -19,21 +19,25 @@ struct netcollection
 
 static struct netcollection* _initialize(lua_State* L)
 {
-    size_t num_nets = lua_tointeger(L, 2);
+    size_t num_nets = lua_rawlen(L, 1);
     net_t* nets = calloc(num_nets, sizeof(*nets));
-    lua_pushnil(L); // first key
-    size_t i = 0;
-    while (lua_next(L, 1) != 0)
-    {
-	const char *name = lua_tostring(L, -2);
-        lua_len(L, -1);
-        size_t size = lua_tointeger(L, -1);
-        lua_pop(L, 1);
 
-	nets[i].size = size;
-	nets[i].xs = calloc(size, sizeof(unsigned int));
-	nets[i].ys = calloc(size, sizeof(unsigned int));
-	nets[i].zs = calloc(size, sizeof(unsigned int));
+    for(size_t i = 1; i < num_nets + 1; i++)
+    {
+	lua_geti(L, 1, i);
+
+	lua_getfield(L, -1, "name");
+	const char *name = lua_tostring(L, -1);
+	lua_pop(L, 1);
+
+	lua_getfield(L, -1, "positions");
+	size_t size = lua_rawlen(L, -1);
+
+
+	nets[i - 1].size = num_positions;
+	nets[i - 1].xs = calloc(size, sizeof(unsigned int));
+	nets[i - 1].ys = calloc(size, sizeof(unsigned int));
+	nets[i - 1].zs = calloc(size, sizeof(unsigned int));
 
 	/* fill in net struct from lua */
         for(size_t j = 1; j <= size; ++j)
@@ -43,7 +47,7 @@ static struct netcollection* _initialize(lua_State* L)
             lua_getfield(L, -1, "x");
             int x = lua_tointeger(L, -1);
             lua_pop(L, 1);
-
+//////////////////
             lua_getfield(L, -1, "y");
             int y = lua_tointeger(L, -1);
             lua_pop(L, 1);

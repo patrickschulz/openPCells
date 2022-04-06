@@ -73,7 +73,7 @@ function M.optimize(instances, nets, utilization, aspectratio)
 
     local rows = placer.place_simulated_annealing(instances, nets, options)
     _sanitize_rows(rows) -- removes empty rows
-    return rows
+    return rows, options
 end
 
 function M.create_reference_rows(cellnames)

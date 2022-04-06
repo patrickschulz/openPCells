@@ -7,9 +7,9 @@ verilog.filter_excluded_nets(netlist, { "clk", "_mem.clk", "vdd", "vss", "in", "
 
 local instances, nets = verilogprocessor.collect_nets_cells(netlist)
 
-local rows = placement.optimize(instances, nets, 0.5, 1)
+local rows, options = placement.optimize(instances, nets, 0.5, 1)
 
-local routes = routing.legalize(nets, rows)
+local routes = routing.legalize(nets, rows, options)
 
 local filename = generator.get_cell_filename("verilogimport", "verilogimport", module)
 print(string.format("writing to file '%s'", filename))

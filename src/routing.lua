@@ -20,7 +20,7 @@ local function _prepare_routing_nets(nets, rows)
     return netpositions
 end
 
-function M.legalize(nets, rows)
+function M.legalize(nets, rows, options)
     local routes = {}
     local netpositions = _prepare_routing_nets(nets, rows)
     for _, pos in ipairs(netpositions) do
@@ -31,11 +31,13 @@ function M.legalize(nets, rows)
         print()
     end
     -- call router here
+
+    local routednets, numroutednets = router.route(netpositions,
+        options.floorplan_width, options.floorplan_height)
     return routes
 end
 
 function M.route(cell, routes, cells, width)
-        aux.tprint(routes)
     for r, route in ipairs(routes) do
         if route[1].type ~= "anchor" then
             moderror(string.format("routing.route: route #%d: first movement needs to be of type 'anchor'", r))

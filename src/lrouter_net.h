@@ -5,16 +5,20 @@
 
 #include "lrouter_queue.h"
 
+typedef struct {
+    char *instance;
+    char *port;
+    unsigned int x;
+    unsigned int y;
+    unsigned int z;
+} position_t;
+
 /* net struct */
 typedef struct {
     char *name;
-    char *firstport;
-    char *firstinstance;
     unsigned int size;
-    unsigned int *xs;
-    unsigned int *ys;
-    unsigned int *zs;
     unsigned int ranking;
+    position_t *positions;
     int routed;
     /* queue to save the path in the end */
     queue_t *path;
