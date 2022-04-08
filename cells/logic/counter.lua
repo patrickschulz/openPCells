@@ -27,53 +27,78 @@ function parameters()
 end
 
 function layout(counter, _P)
-    local cellnames = {}
-    local routes = {}
+    -- single bit instance
+    local bitref = object.create()
+    local bitcellnames = {
+        {
+            { instance = "dffp", reference = "dffp" },
+            { instance = "xnor", reference = "xor_gate" },
+            { instance = "or",   reference = "or_gate" },
+            { instance = "dffn", reference = "dffn" },
+        }
+    }
+    local bitrow = placement.create_reference_rows(bitcellnames)
+    local bitcells = placement.rowwise(bitref, bitrow)
+    bitref:add_anchor("I", bitcells["dffp"]:get_anchor("D"))
+    bitref:add_anchor("O", bitcells["dffn"]:get_anchor("Q"))
+    local bitroutes = {}
+    table.insert(bitroutes, {
+        { type = "anchor", name = "dffn", anchor = "Q" },
+        { type = "via", metal = 3 },
+        { type = "delta", y = 200 },
+        { type = "anchor", name = "dffp", anchor = "D" },
+        { type = "via", metal = 2 },
+    })
+    table.insert(bitroutes, {
+        { type = "anchor", name = "dffp", anchor = "Q" },
+        { type = "via", metal = 3 },
+        { type = "anchor", name = "xnor", anchor = "A" },
+        { type = "anchor", name = "or", anchor = "A" },
+        { type = "via", metal = 1 },
+    })
+    table.insert(bitroutes, {
+        { type = "anchor", name = "xnor", anchor = "B" },
+        { type = "via", metal = 4 },
+        { type = "anchor", name = "or", anchor = "B" },
+    })
+    --table.insert(bitroutes, {
+    --    { type = "anchor", name = "xnor", anchor = "O" },
+    --    { type = "via", metal = 2 },
+    --    { type = "delta", x = 100 },
+    --    { type = "anchor", name = "dffn", anchor = "D" },
+    --})
+    routing.route(bitref, bitroutes, bitcells, 40)
+
+    -- row placement
+    local bitname = pcell.add_cell_reference(bitref, "bit")
+    local bitnames = {}
     for i = 1, _P.numrows do
         local row = {}
         for j = 1, _P.numcolumns do
-            -- cells
-            table.insert(row, { instance = string.format("dffp_%d_%d", i, j), reference = "dffp" })
-            table.insert(row, { instance = string.format("xnor_%d_%d", i, j), reference = "xor_gate" })
-            table.insert(row, { instance = string.format("or_%d_%d", i, j), reference = "or_gate" })
-            table.insert(row, { instance = string.format("dffn_%d_%d", i, j), reference = "dffn" })
-            -- routes
-            table.insert(routes, {
-                { type = "anchor", name = string.format("dffn_%d_%d", i, j), anchor = "Q" },
-                { type = "via", metal = 3 },
-                { type = "delta", y = 200 },
-                { type = "anchor", name = string.format("dffp_%d_%d", i, j), anchor = "D" },
-            })
-            table.insert(routes, {
-                { type = "anchor", name = string.format("dffp_%d_%d", i, j), anchor = "Q" },
-                { type = "via", metal = 3 },
-                { type = "anchor", name = string.format("xnor_%d_%d", i, j), anchor = "A" },
-                { type = "anchor", name = string.format("or_%d_%d", i, j), anchor = "A" },
-            })
-            table.insert(routes, {
-                { type = "anchor", name = string.format("xnor_%d_%d", i, j), anchor = "B" },
-                { type = "via", metal = 4 },
-                { type = "anchor", name = string.format("or_%d_%d", i, j), anchor = "B" },
-            })
-            table.insert(routes, {
-                { type = "anchor", name = string.format("xnor_%d_%d", i, j), anchor = "O" },
-                { type = "via", metal = 2 },
-                { type = "delta", x = 100 },
-                { type = "anchor", name = string.format("dffn_%d_%d", i, j), anchor = "D" },
-            })
-            --if j < _P.numcolumns then
-            --    table.insert(routes, {
-            --        { type = "anchor", name = string.format("or_%d_%d", i, j), anchor = "O" },
-            --        { type = "via", metal = 4 },
-            --        { type = "delta", y = -200 },
-            --        { type = "anchor", name = string.format("or_%d_%d", i, j + 1), anchor = "B" },
-            --    })
-            --end
+            row[j] = bitname
         end
-        table.insert(cellnames, row)
+        table.insert(bitnames, row)
     end
-    local rows = placement.create_reference_rows(cellnames)
+    local rows = placement.format_rows(bitnames)
     local cells = placement.rowwise(counter, rows)
+
+    -- routes
+    local routes = {}
+    for i = 1, _P.numrows do
+        for j = 1, _P.numcolumns do
+            -- routes
+            if j < _P.numcolumns then
+                table.insert(routes, {
+                    --{ type = "anchor", name = string.format("or_%d_%d", i, j), anchor = "O" },
+                    { type = "point", where = cells[i][j]:get_anchor("O") },
+                    { type = "via", metal = 4 },
+                    { type = "delta", y = -200 },
+                    --{ type = "anchor", name = string.format("or_%d_%d", i, j + 1), anchor = "B" },
+                    { type = "point", where = cells[i][j + 1]:get_anchor("I") },
+                })
+            end
+        end
+    end
     routing.route(counter, routes, cells, 40)
 end
 
