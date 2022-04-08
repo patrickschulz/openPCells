@@ -202,8 +202,8 @@ void main_create_and_export_cell(struct cmdoptions* cmdoptions, struct keyvaluea
     }
     vector_append(cellpaths_to_append, util_copy_string(OPC_HOME "/cells"));
     struct pcell_state* pcell_state = _create_pcell_state(cellpaths_to_prepend, cellpaths_to_append);
-    vector_destroy(cellpaths_to_prepend, NULL);
-    vector_destroy(cellpaths_to_append, NULL);
+    vector_destroy(cellpaths_to_prepend, free);
+    vector_destroy(cellpaths_to_append, free);
     if(!pcell_state)
     {
         goto DESTROY_TECHNOLOGY;
