@@ -14,7 +14,7 @@ SYSCFLAGS=
 SYSLDFLAGS=
 SYSLIBS=
 
-OPCOBJ:=main.functions.o cmdoptions.o util.o vector.o union.o postprocess.o point.o technology.o transformationmatrix.o ltransformationmatrix.o shape.o object.o geometry.o keyvaluepairs.o generics.o lgenerics.o lgeometry.o ldir.o lpoint.o graphics.o lbind.o lload.o lobject.o pcell.o lfilesystem.o lplacer.o lplacer_rand.o lplacer_nonoverlapping.o lplacer_classic.o lrouter.o lrouter_net.o lrouter_queue.o lrouter_field.o lrouter_route.o gdsparser.o ldebug.o export.o export_common.o gdsexport.o info.o
+OPCOBJ:=main.functions.o main.cell.o cmdoptions.o util.o vector.o union.o postprocess.o point.o technology.o transformationmatrix.o ltransformationmatrix.o shape.o object.o geometry.o keyvaluepairs.o generics.o lgenerics.o lgeometry.o ldir.o lpoint.o graphics.o lbind.o lload.o lobject.o pcell.o lfilesystem.o lplacer.o lplacer_rand.o lplacer_nonoverlapping.o lplacer_classic.o lrouter.o lrouter_net.o lrouter_queue.o lrouter_field.o lrouter_route.o gdsparser.o ldebug.o export.o export_common.o gdsexport.o info.o
 
 .PHONY: default
 default:
@@ -140,13 +140,21 @@ ltransformationmatrix.o: ltransformationmatrix.c ltransformationmatrix.h \
  lua/lua.h lua/luaconf.h transformationmatrix.h point.h lpoint.h \
  lua/lauxlib.h lua/lua.h
 main.o: main.c lua/lprefix.h lua/lua.h lua/luaconf.h lua/lauxlib.h \
- lua/lua.h lua/lualib.h cmdoptions.h vector.h lpoint.h point.h \
- lgeometry.h lgenerics.h generics.h keyvaluepairs.h technology.h \
- graphics.h lload.h lbind.h ldir.h lobject.h object.h \
- transformationmatrix.h shape.h pcell.h info.h export.h postprocess.h \
- lfilesystem.h lplacer.h lrouter.h util.h gdsparser.h geometry.h config.h \
- main.functions.h cmdoptions_def.c
-main.functions.o: main.functions.c
+ lua/lua.h lua/lualib.h cmdoptions.h vector.h lfilesystem.h gdsparser.h \
+ util.h config.h main.functions.h object.h transformationmatrix.h point.h \
+ shape.h generics.h keyvaluepairs.h pcell.h technology.h main.cell.h \
+ cmdoptions_def.c
+main.cell.o: main.cell.c main.cell.h object.h transformationmatrix.h \
+ point.h shape.h generics.h keyvaluepairs.h vector.h pcell.h lua/lua.h \
+ lua/luaconf.h technology.h cmdoptions.h lua/lauxlib.h lua/lua.h lpoint.h \
+ lgeometry.h lgenerics.h lload.h lbind.h ldir.h lobject.h lfilesystem.h \
+ lplacer.h lrouter.h gdsparser.h graphics.h util.h export.h config.h
+main.functions.o: main.functions.c main.functions.h lua/lua.h \
+ lua/luaconf.h object.h transformationmatrix.h point.h shape.h generics.h \
+ keyvaluepairs.h vector.h pcell.h technology.h cmdoptions.h lua/lauxlib.h \
+ lua/lua.h lpoint.h lgeometry.h lgenerics.h lload.h lbind.h ldir.h \
+ lobject.h lfilesystem.h lplacer.h lrouter.h gdsparser.h graphics.h \
+ util.h export.h config.h
 object.o: object.c object.h transformationmatrix.h point.h shape.h \
  generics.h keyvaluepairs.h vector.h pcell.h lua/lua.h lua/luaconf.h \
  util.h

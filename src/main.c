@@ -24,94 +24,14 @@
 
 #include "cmdoptions.h"
 
-#include "lpoint.h"
-#include "lgeometry.h"
-#include "lgenerics.h"
-#include "technology.h"
-#include "graphics.h"
-#include "lload.h"
-#include "lbind.h"
-#include "ldir.h"
-#include "lobject.h"
-#include "pcell.h"
-#include "info.h"
-#include "export.h"
-#include "postprocess.h"
-//#include "lunion.h"
 #include "lfilesystem.h"
-#include "lplacer.h"
-#include "lrouter.h"
-#include "util.h"
 #include "gdsparser.h"
-#include "geometry.h"
+#include "util.h"
 
 #include "config.h"
 
 #include "main.functions.h"
-
-//static lua_State* globalL = NULL;
-
-/*
-** Hook set by signal function to stop the interpreter.
-*/
-//static void lstop (lua_State* L, lua_Debug* ar) {
-//  (void)ar;  /* unused arg. */
-//  lua_sethook(L, NULL, 0, 0);  /* reset hook */
-//  luaL_error(L, "interrupted!");
-//}
-
-
-/*
-** Function to be called at a C signal. Because a C signal cannot
-** just change a Lua state (as there is no proper synchronization),
-** this function only sets a hook that, when called, will stop the
-** interpreter.
-*/
-//static void laction (int i) {
-//  int flag = LUA_MASKCALL | LUA_MASKRET | LUA_MASKLINE | LUA_MASKCOUNT;
-//  signal(i, SIG_DFL); /* if another SIGINT happens, terminate process */
-//  lua_sethook(globalL, lstop, flag, 1);
-//}
-
-
-/*
-** Message handler used to run all chunks
-*/
-//static int msghandler(lua_State* L)
-//{
-//    const char* msg = lua_tostring(L, 1);
-//    /*
-//    if (msg == NULL) // is error object not a string?
-//    {
-//        msg = lua_pushfstring(L, "(error object is a %s value)", luaL_typename(L, 1));
-//    }
-//    */
-//    int traceback = 1;
-//    lua_getglobal(L, "envlib");
-//    lua_pushstring(L, "get");
-//    lua_gettable(L, -2);
-//    lua_pushstring(L, "debug");
-//    int ret = lua_pcall(L, 1, 1, 0);
-//    if(ret != LUA_OK)
-//    {
-//        printf("%s\n", "error in msghandler (while calling envlib.get('debug'). A traceback will be printed");
-//    }
-//    else
-//    {
-//        traceback = lua_toboolean(L, -1);
-//    }
-//    lua_pop(L, 1); // pop envlib
-//
-//    if(traceback)
-//    {
-//        luaL_traceback(L, L, msg, 2);
-//    }
-//    else
-//    {
-//        lua_pushstring(L, msg);
-//    }
-//    return 1;
-//}
+#include "main.cell.h"
 
 static void _load_module(lua_State* L, const char* modname)
 {
@@ -120,38 +40,6 @@ static void _load_module(lua_State* L, const char* modname)
     snprintf(path, len + 1, "%s/src/%s.lua", OPC_HOME, modname);
     main_call_lua_program(L, path);
     free(path);
-}
-
-static int _parse_point(const char* arg, int* xptr, int* yptr)
-{
-    unsigned int idx1, idx2;
-    const char* ptr = arg;
-    while(*ptr)
-    {
-        if(*ptr == '(')
-        {
-            idx1 = ptr - arg;
-        }
-        if(*ptr == ',')
-        {
-            idx2 = ptr - arg;
-        }
-        ++ptr;
-    }
-    char* endptr;
-    int x = strtol(arg + idx1 + 1, &endptr, 10);
-    if(endptr == arg + idx1 + 1)
-    {
-        return 0;
-    }
-    int y = strtol(arg + idx2 + 1, &endptr, 10);
-    if(endptr == arg + idx2 + 1)
-    {
-        return 0;
-    }
-    *xptr = x;
-    *yptr = y;
-    return 1;
 }
 
 static int _load_config(struct keyvaluearray* config)
@@ -385,71 +273,9 @@ int main(int argc, const char* const * argv)
     }
 
     // create cell
-    object_t* toplevel = NULL;
     if(cmdoptions_was_provided_long(cmdoptions, "cell"))
     {
-        struct vector* techpaths = keyvaluearray_get(config, "techpaths");
-        vector_append(techpaths, util_copy_string(OPC_HOME "/tech"));
-        if(cmdoptions_was_provided_long(cmdoptions, "techpath"))
-        {
-            const char** arg = cmdoptions_get_argument_long(cmdoptions, "techpath");
-            while(*arg)
-            {
-                vector_append(techpaths, util_copy_string(*arg));
-                ++arg;
-            }
-        }
-        const char* techname = cmdoptions_get_argument_long(cmdoptions, "technology");
-        struct technology_state* techstate = main_create_techstate(techpaths, techname);
-        struct pcell_state* pcell_state = main_create_pcell_state();
-        struct layermap* layermap = main_create_layermap();
-        const char* cellname = cmdoptions_get_argument_long(cmdoptions, "cell");
-        struct vector* cellargs = cmdoptions_get_positional_parameters(cmdoptions);
-        toplevel = main_create_cell(cellname, cellargs, techstate, pcell_state, layermap);
-        if(!toplevel)
-        {
-            returnvalue = 1;
-            goto DESTROY_CONFIG;
-        }
-        // export cell
-        if(cmdoptions_was_provided_long(cmdoptions, "export") || cmdoptions_was_provided_long(cmdoptions, "exportlayers"))
-        {
-            const char* exportname = cmdoptions_get_argument_long(cmdoptions, "exportlayers");
-            if(!exportname)
-            {
-                exportname = cmdoptions_get_argument_long(cmdoptions, "export");
-            }
-            // add export search paths. FIXME: add --exportpath cmd option
-            if(!generics_resolve_premapped_layers(layermap, exportname))
-            {
-                printf("no layer data for export type '%s' found", exportname);
-            }
-            export_add_path(OPC_HOME "/export");
-            const char* basename = cmdoptions_get_argument_long(cmdoptions, "filename");
-            const char* toplevelname = cmdoptions_get_argument_long(cmdoptions, "cellname");
-            const char** exportoptions = cmdoptions_get_argument_long(cmdoptions, "export-options");
-            int writechildrenports = cmdoptions_was_provided_long(cmdoptions, "write-children-ports");
-            const char* delimiters = cmdoptions_get_argument_long(cmdoptions, "bus-delimiters");
-            char leftdelim = '<';
-            char rightdelim = '>';
-            if(delimiters && delimiters[0] && delimiters[1])
-            {
-                leftdelim = delimiters[0];
-                rightdelim = delimiters[1];
-            }
-            export_write_toplevel(toplevel, pcell_state, exportname, basename, toplevelname, leftdelim, rightdelim, exportoptions, writechildrenports);
-            object_destroy(toplevel);
-        }
-        else
-        {
-            puts("no export type given");
-        }
-DESTROY_LAYER_MAP:
-        generics_destroy_layer_map(layermap);
-DESTROY_TECHNOLOGY:
-        technology_destroy(techstate);
-DESTROY_PCELL_STATE:
-        pcell_destroy_state(pcell_state);
+        main_create_and_export_cell(cmdoptions, config);
     }
     else if(cmdoptions_was_provided_long(cmdoptions, "cellscript"))
     {
@@ -469,19 +295,12 @@ DESTROY_PCELL_STATE:
         */
     }
 
-    // cell info
-    if(cmdoptions_was_provided_long(cmdoptions, "show-cellinfo"))
-    {
-       info_cellinfo(toplevel);
-    }
-
     // clean up states
 DESTROY_CONFIG:
     vector_destroy(keyvaluearray_get(config, "techpaths"), free); // every techpath is a copied string
     keyvaluearray_destroy(config);
 DESTROY_CMDOPTIONS:
     cmdoptions_destroy(cmdoptions);
-
     return returnvalue;
 }
 
