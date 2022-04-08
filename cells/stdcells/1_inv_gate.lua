@@ -21,7 +21,7 @@ function layout(gate, _P)
     isogateref:move_anchor("left", subgateref:get_anchor("right"))
     gate:merge_into_shallow(isogateref)
 
-    pcell.push_overwrites("stdcells/harness", { leftdummies = 0 })
+    pcell.push_overwrites("stdcells/harness", { leftdummies = 0, rightdummies = 1 })
     local invref = pcell.create_layout("stdcells/not_gate", { fingers = _P.notfingers, shiftoutput = xpitch / 2 })
     pcell.pop_overwrites("stdcells/harness")
     invref:move_anchor("left", isogateref:get_anchor("right"))
