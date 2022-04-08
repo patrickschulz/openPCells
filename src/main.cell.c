@@ -116,7 +116,7 @@ static int _parse_point(const char* arg, int* xptr, int* yptr)
     return 1;
 }
 
-object_t* main_create_cell(const char* cellname, struct vector* cellargs, struct technology_state* techstate, struct pcell_state* pcell_state, struct layermap* layermap)
+object_t* _create_cell(const char* cellname, int iscellscript, struct vector* cellargs, struct technology_state* techstate, struct pcell_state* pcell_state, struct layermap* layermap)
 {
     lua_State* L = _create_and_initialize_lua();
 
@@ -134,6 +134,8 @@ object_t* main_create_cell(const char* cellname, struct vector* cellargs, struct
 
     // assemble cell arguments
     lua_newtable(L);
+    lua_pushboolean(L, iscellscript);
+    lua_setfield(L, -2, "isscript");
     lua_pushstring(L, cellname);
     lua_setfield(L, -2, "cell");
     lua_newtable(L);
@@ -159,7 +161,7 @@ object_t* main_create_cell(const char* cellname, struct vector* cellargs, struct
     return toplevel;
 }
 
-void main_create_and_export_cell(struct cmdoptions* cmdoptions, struct keyvaluearray* config)
+void main_create_and_export_cell(struct cmdoptions* cmdoptions, struct keyvaluearray* config, int iscellscript)
 {
     struct vector* techpaths = keyvaluearray_get(config, "techpaths");
     vector_append(techpaths, util_copy_string(OPC_HOME "/tech"));
@@ -212,8 +214,16 @@ void main_create_and_export_cell(struct cmdoptions* cmdoptions, struct keyvaluea
         goto DESTROY_PCELL_STATE;
     }
     struct vector* cellargs = cmdoptions_get_positional_parameters(cmdoptions);
-    const char* cellname = cmdoptions_get_argument_long(cmdoptions, "cell");
-    object_t* toplevel = main_create_cell(cellname, cellargs, techstate, pcell_state, layermap);
+    const char* cellname;
+    if(iscellscript)
+    {
+        cellname = cmdoptions_get_argument_long(cmdoptions, "cellscript");
+    }
+    else
+    {
+        cellname = cmdoptions_get_argument_long(cmdoptions, "cell");
+    }
+    object_t* toplevel = _create_cell(cellname, iscellscript, cellargs, techstate, pcell_state, layermap);
     if(toplevel)
     {
         // export cell

@@ -457,6 +457,9 @@ function pcell.pop_overwrites(othercell)
 end
 
 function pcell.create_layout(cellname, cellargs, env, evaluate)
+    if not cellname then
+        error("pcell.create_layout: no cellname given")
+    end
     if state.debug then 
         local status = _find_cell_traceback()
         if not status then -- main call to create_layout 

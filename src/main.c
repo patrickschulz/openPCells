@@ -66,17 +66,22 @@ static int _load_config(struct keyvaluearray* config)
     return ret == LUA_OK;
 }
 
+void _print_general_info(void)
+{
+    puts("This is the openPCell layout generator.");
+    puts("To generate a layout, you need to pass the technology, the export type and a cellname.");
+    puts("Example:");
+    puts("         opc --technology skywater130 --export gds --cell logic/not_gate");
+    puts("");
+    puts("You can find out more about the available command line options by running 'opc -h'.");
+}
+
 int main(int argc, const char* const * argv)
 {
     // no arguments: exit and write a short helpful message if called without any arguments
     if(argc == 1)
     {
-        puts("This is the openPCell layout generator.");
-        puts("To generate a layout, you need to pass the technology, the export type and a cellname.");
-        puts("Example:");
-        puts("         opc --technology skywater130 --export gds --cell logic/not_gate");
-        puts("");
-        puts("You can find out more about the available command line options by running 'opc -h'.");
+        _print_general_info();
         return 0;
     }
 
@@ -84,7 +89,6 @@ int main(int argc, const char* const * argv)
 
     // create and parse command line options
     struct cmdoptions* cmdoptions = cmdoptions_create();
-    //cmdoptions_enable_narrow_mode(cmdoptions);
     #include "cmdoptions_def.c" // yes, I did that
     if(!cmdoptions_parse(cmdoptions, argc, argv))
     {
@@ -275,24 +279,11 @@ int main(int argc, const char* const * argv)
     // create cell
     if(cmdoptions_was_provided_long(cmdoptions, "cell"))
     {
-        main_create_and_export_cell(cmdoptions, config);
+        main_create_and_export_cell(cmdoptions, config, 0); // 0: regular cell
     }
     else if(cmdoptions_was_provided_long(cmdoptions, "cellscript"))
     {
-        /*
-        const char* cellscriptname = cmdoptions_get_argument_long(cmdoptions, "cellscript");
-        int retval = main_call_lua_program(L, cellscriptname);
-        if(retval != LUA_OK)
-        {
-            // clean up states
-            generics_destroy_layer_map(layermap);
-            technology_destroy(techstate);
-            pcell_destroy_state(pcell_state);
-            cmdoptions_destroy(cmdoptions);
-            lua_close(L);
-            return 1;
-        }
-        */
+        main_create_and_export_cell(cmdoptions, config, 1); // 1: is cell script
     }
 
     // clean up states
