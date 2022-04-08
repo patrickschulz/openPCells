@@ -129,6 +129,8 @@ function layout(dff, _P)
         gatecontactpos = gatecontactpos,
         pcontactpos = pcontactpos,
         ncontactpos = ncontactpos,
+        leftdummies = 0,
+        rightdummies = 1
     })
     dff:merge_into_shallow(harness)
 

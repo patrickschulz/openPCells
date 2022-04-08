@@ -7,6 +7,7 @@ B1 ----- GATE1
 ]]
 function parameters() 
     pcell.reference_cell("stdcells/base") 
+    pcell.reference_cell("stdcells/harness") 
     pcell.add_parameters(
         { "gate1", "nand_gate" },
         { "gate2", "nor_gate" }
@@ -20,19 +21,19 @@ function layout(gate, _P)
     local isogatename = pcell.add_cell_reference(isogateref, "isogate")
     local isogate = gate:add_child(isogatename)
 
-    pcell.push_overwrites("stdcells/base", { rightdummies = 0 })
+    pcell.push_overwrites("stdcells/harness", { rightdummies = 0 })
     local gate1ref = pcell.create_layout(string.format("stdcells/%s", _P.gate1))
     local gate1name = pcell.add_cell_reference(gate1ref, "gate1")
     local gate1 = gate:add_child(gate1name)
     gate1:move_anchor("right", isogate:get_anchor("left"))
-    pcell.pop_overwrites("stdcells/base")
+    pcell.pop_overwrites("stdcells/harness")
 
-    pcell.push_overwrites("stdcells/base", { leftdummies = 0 })
+    pcell.push_overwrites("stdcells/harness", { leftdummies = 0 })
     local gate2ref = pcell.create_layout(string.format("stdcells/%s", _P.gate2))
     local gate2name = pcell.add_cell_reference(gate2ref, "gate2")
     local gate2 = gate:add_child(gate2name)
     gate2:move_anchor("left", isogate:get_anchor("right"))
-    pcell.pop_overwrites("stdcells/base")
+    pcell.pop_overwrites("stdcells/harness")
 
     gate:inherit_alignment_box(gate1)
     gate:inherit_alignment_box(gate2)

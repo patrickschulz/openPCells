@@ -26,6 +26,7 @@
 
 function parameters()
     pcell.reference_cell("stdcells/base")
+    pcell.reference_cell("stdcells/harness")
     pcell.add_parameter("fingers", 1, { posvals = set(1) })
     pcell.add_parameter("shiftoutput", 0)
 end
@@ -36,15 +37,15 @@ function layout(gate, _P)
 
     local block = object.create()
 
-    pcell.push_overwrites("stdcells/base", { leftdummies = 0 })
     local harness = pcell.create_layout("stdcells/harness", { 
         drawgatecontacts = true,
         gatecontactpos = { "lower", "center", "center", "upper", "center", "lower" },
         pcontactpos = { "power", "outer", "outer", "outer", nil, "power", "power" },
-        ncontactpos = { "power", "power", nil, "inner", "outer", "outer", "power" }
+        ncontactpos = { "power", "power", nil, "inner", "outer", "outer", "power" },
+        leftdummies = 0,
+        rightdummies = 0
     })
     gate:merge_into_shallow(harness)
-    pcell.pop_overwrites("stdcells/base")
 
     -- gate contact metal blobs (DRC)
     geometry.rectanglebltr(block,generics.metal(1), 
@@ -83,19 +84,23 @@ function layout(gate, _P)
     gate:inherit_alignment_box(harness)
 
     -- inverter B
-    pcell.push_overwrites("stdcells/base", { leftdummies = 0, rightdummies = 1, connectoutput = false })
+    pcell.push_overwrites("stdcells/harness", { leftdummies = 0, rightdummies = 1 })
+    pcell.push_overwrites("stdcells/base", { connectoutput = false })
     local invb = pcell.create_layout("stdcells/not_gate", { inputpos = "upper" })
     invb:move_anchor("right", gate:get_anchor("left"))
     gate:merge_into_shallow(invb)
     gate:inherit_alignment_box(invb)
+    pcell.pop_overwrites("stdcells/harness")
     pcell.pop_overwrites("stdcells/base")
 
     -- inverter A
-    pcell.push_overwrites("stdcells/base", { rightdummies = 1, compact = false })
+    pcell.push_overwrites("stdcells/harness", { rightdummies = 1 })
+    pcell.push_overwrites("stdcells/base", { compact = false })
     local inva = pcell.create_layout("stdcells/not_gate", { inputpos = "lower", shiftoutput = xpitch / 2 })
     inva:move_anchor("right", invb:get_anchor("left"))
     gate:merge_into_shallow(inva)
     gate:inherit_alignment_box(inva)
+    pcell.pop_overwrites("stdcells/harness")
     pcell.pop_overwrites("stdcells/base")
 
     -- output connection

@@ -10,6 +10,7 @@
 
 function 
     parameters() pcell.reference_cell("stdcells/base")
+    parameters() pcell.reference_cell("stdcells/harness")
     pcell.add_parameters(
         { "flipconnection", false },
         { "gate1", "and_gate" },
@@ -28,33 +29,33 @@ function layout(gate, _P)
     local isogate
 
     -- gate 1
-    pcell.push_overwrites("stdcells/base", { rightdummies = 0 })
+    pcell.push_overwrites("stdcells/harness", { rightdummies = 0 })
     local gate1ref = pcell.create_layout(string.format("stdcells/%s", _P.gate1))
     local gate1name = pcell.add_cell_reference(gate1ref, "gate1")
     local gate1 = gate:add_child(gate1name)
-    pcell.pop_overwrites("stdcells/base")
+    pcell.pop_overwrites("stdcells/harness")
 
     isogate = gate:add_child(isoname)
     isogate:move_anchor("left", gate1:get_anchor("right"))
 
     -- gate 2
-    pcell.push_overwrites("stdcells/base", { leftdummies = 0, rightdummies = 0 })
+    pcell.push_overwrites("stdcells/harness", { leftdummies = 0, rightdummies = 0 })
     local gate2ref = pcell.create_layout(string.format("stdcells/%s", _P.gate2))
     local gate2name = pcell.add_cell_reference(gate2ref, "gate2")
     local gate2 = gate:add_child(gate2name)
     gate2:move_anchor("left", isogate:get_anchor("right"))
-    pcell.pop_overwrites("stdcells/base")
+    pcell.pop_overwrites("stdcells/harness")
 
     isogate = gate:add_child(isoname)
     isogate:move_anchor("left", gate2:get_anchor("right"))
 
     -- gate 3
-    pcell.push_overwrites("stdcells/base", { leftdummies = 0 })
+    pcell.push_overwrites("stdcells/harness", { leftdummies = 0 })
     local gate3ref = pcell.create_layout(string.format("stdcells/%s", _P.gate3))
     local gate3name = pcell.add_cell_reference(gate3ref, "gate3")
     local gate3 = gate:add_child(gate3name)
     gate3:move_anchor("left", isogate:get_anchor("right"))
-    pcell.pop_overwrites("stdcells/base")
+    pcell.pop_overwrites("stdcells/harness")
 
     -- draw connections
     geometry.path(gate, generics.metal(2), 

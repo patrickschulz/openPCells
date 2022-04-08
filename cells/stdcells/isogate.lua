@@ -12,10 +12,13 @@ function layout(gate, _P)
     local bp = pcell.get_parameters("stdcells/base")
     local xpitch = bp.gspace + bp.glength
 
-    pcell.push_overwrites("stdcells/base", { leftdummies = 1, rightdummies = 0 })
-    local harness = pcell.create_layout("stdcells/harness", { gatecontactpos = {}, drawdummyactivecontacts = false })
+    local harness = pcell.create_layout("stdcells/harness", {
+        gatecontactpos = {}, 
+        drawdummyactivecontacts = false,
+        leftdummies = 1,
+        rightdummies = 0
+    })
     gate:merge_into_shallow(harness)
-    pcell.pop_overwrites("stdcells/base")
 
     gate:inherit_alignment_box(harness)
 

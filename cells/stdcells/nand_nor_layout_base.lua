@@ -42,9 +42,9 @@ function layout(gate, _P)
             pcontacts[i] = "power"
         end
         if i % 4 == 1 then
-            ncontacts[i] = "inner"
-        elseif i % 4 == 3 then
             ncontacts[i] = "power"
+        elseif i % 4 == 3 then
+            ncontacts[i] = "inner"
         end
     end
 
@@ -52,6 +52,7 @@ function layout(gate, _P)
         gatecontactpos = gatecontactpos,
         pcontactpos = _P.gatetype == "nand" and pcontacts or ncontacts,
         ncontactpos = _P.gatetype == "nand" and ncontacts or pcontacts,
+        rightdummies = 0
     })
     gate:merge_into_shallow(harness)
     gate:inherit_alignment_box(harness)
@@ -102,7 +103,7 @@ function layout(gate, _P)
 
     -- drain connection
     local yinvert = _P.gatetype == "nand" and 1 or -1
-    local startpt = harness:get_anchor(string.format("%sSDi1", _P.gatetype == "nand" and "n" or "p")):translate(0, -yinvert * bp.sdwidth / 2)
+    local startpt = harness:get_anchor(string.format("%sSDi3", _P.gatetype == "nand" and "n" or "p")):translate(0, -yinvert * bp.sdwidth / 2)
     local connpts = {
         harness:get_anchor(string.format("G%d", 2 * _P.fingers)):translate(xpitch + _P.shiftoutput, 0),
         0, -- toggle xy

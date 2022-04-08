@@ -1,5 +1,6 @@
 function parameters()
     pcell.reference_cell("stdcells/base")
+    pcell.reference_cell("stdcells/harness")
 end
 
 function layout(gate, _P)
@@ -10,26 +11,26 @@ function layout(gate, _P)
     gate:merge_into_shallow(clockbuf)
 
     -- first clocked inverter
-    pcell.push_overwrites("stdcells/base", {
+    pcell.push_overwrites("stdcells/harness", {
         leftdummies = 1
     })
     local cinv1 = pcell.create_layout("stdcells/cinv"):move_anchor("left", clockbuf:get_anchor("right"))
-    pcell.pop_overwrites("stdcells/base")
+    pcell.pop_overwrites("stdcells/harness")
     gate:merge_into_shallow(cinv1)
 
     -- intermediate inverter
-    pcell.push_overwrites("stdcells/base", {
+    pcell.push_overwrites("stdcells/harness", {
     })
     local inv = pcell.create_layout("stdcells/not_gate"):move_anchor("left", cinv1:get_anchor("right"))
-    pcell.pop_overwrites("stdcells/base")
+    pcell.pop_overwrites("stdcells/harness")
     gate:merge_into_shallow(inv)
     
     -- second clocked inverter
-    pcell.push_overwrites("stdcells/base", {
+    pcell.push_overwrites("stdcells/harness", {
         leftdummies = 1
     })
     local cinv2 = pcell.create_layout("stdcells/cinv"):move_anchor("left", inv:get_anchor("right"))
-    pcell.pop_overwrites("stdcells/base")
+    pcell.pop_overwrites("stdcells/harness")
     gate:merge_into_shallow(cinv2)
 
     -- draw connections

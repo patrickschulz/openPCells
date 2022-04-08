@@ -14,6 +14,8 @@ function parameters()
         { "shiftgatecontacts", 0 },
         { "pcontactpos", {}, argtype = "strtable" },
         { "ncontactpos", {}, argtype = "strtable" },
+        { "leftdummies", 0 },
+        { "rightdummies", 0 },
         { "shiftpcontactsinner", 0 },
         { "shiftpcontactsouter", 0 },
         { "shiftncontactsinner", 0 },
@@ -29,7 +31,7 @@ function layout(gate, _P)
     local tp = pcell.get_parameters("basic/mosfet")
     local bp = pcell.get_parameters("stdcells/base")
     local xpitch = bp.gspace + bp.glength
-    local xshift = (bp.rightdummies - bp.leftdummies) * xpitch / 2
+    local xshift = (_P.rightdummies - _P.leftdummies) * xpitch / 2
     local separation = bp.numinnerroutes * bp.gstwidth + (bp.numinnerroutes + 1) * bp.gstspace
     local fingers = #_P.gatecontactpos
 
@@ -63,15 +65,15 @@ function layout(gate, _P)
             gate:merge_into_shallow(pmos)
         end
         -- left dummy
-        if bp.leftdummies > 0 then
+        if _P.leftdummies > 0 then
             gate:merge_into_shallow(
-                pcell.create_layout("basic/mosfet", { fingers = bp.leftdummies, drawtopgcut = bp.drawdummygcut, drawbotgcut = true }
+                pcell.create_layout("basic/mosfet", { fingers = _P.leftdummies, drawtopgcut = bp.drawdummygcut, drawbotgcut = true }
             ):move_anchor("rightbotgate", pmos and pmos:get_anchor("leftbotgate") or nil))
         end
         -- rightdummy
-        if bp.rightdummies > 0 then
+        if _P.rightdummies > 0 then
             gate:merge_into_shallow(
-                pcell.create_layout("basic/mosfet", { fingers = bp.rightdummies, drawtopgcut = bp.drawdummygcut, drawbotgcut = true }
+                pcell.create_layout("basic/mosfet", { fingers = _P.rightdummies, drawtopgcut = bp.drawdummygcut, drawbotgcut = true }
             ):move_anchor("leftbotgate", pmos and pmos:get_anchor("rightbotgate") or nil))
         end
         pcell.pop_overwrites("basic/mosfet")
@@ -93,15 +95,15 @@ function layout(gate, _P)
             gate:merge_into_shallow(nmos)
         end
         -- left dummy
-        if bp.leftdummies > 0 then
+        if _P.leftdummies > 0 then
             gate:merge_into_shallow(
-                pcell.create_layout("basic/mosfet", { fingers = bp.leftdummies, drawbotgcut = bp.drawdummygcut, drawtopgcut = true }
+                pcell.create_layout("basic/mosfet", { fingers = _P.leftdummies, drawbotgcut = bp.drawdummygcut, drawtopgcut = true }
             ):move_anchor("righttopgate", nmos and nmos:get_anchor("lefttopgate") or nil))
         end
         -- rightdummy
-        if bp.rightdummies > 0 then
+        if _P.rightdummies > 0 then
             gate:merge_into_shallow(
-                pcell.create_layout("basic/mosfet", { fingers = bp.rightdummies, drawbotgcut = bp.drawdummygcut, drawtopgcut = true }
+                pcell.create_layout("basic/mosfet", { fingers = _P.rightdummies, drawbotgcut = bp.drawdummygcut, drawtopgcut = true }
             ):move_anchor("lefttopgate", nmos and nmos:get_anchor("righttopgate") or nil))
         end
         pcell.pop_overwrites("basic/mosfet")
@@ -111,7 +113,7 @@ function layout(gate, _P)
     if _P.drawrails then
         geometry.rectangle(
             gate, generics.metal(1), 
-            (fingers + bp.leftdummies + bp.rightdummies) * xpitch + bp.sdwidth, bp.powerwidth,
+            (fingers + _P.leftdummies + _P.rightdummies) * xpitch + bp.sdwidth, bp.powerwidth,
             xshift, (bp.pwidth - bp.nwidth) / 2,
             1, 2, 0, separation + bp.pwidth + bp.nwidth + 2 * bp.powerspace + bp.powerwidth
         )
@@ -120,7 +122,7 @@ function layout(gate, _P)
     -- draw gate contacts
     if _P.drawgatecontacts then
         for i = 1, fingers do
-            local x = (2 * i - fingers - 1 + bp.leftdummies - bp.rightdummies) * xpitch / 2 + xshift
+            local x = (2 * i - fingers - 1 + _P.leftdummies - _P.rightdummies) * xpitch / 2 + xshift
             local routingshift = (bp.gstwidth + bp.gstspace) / (bp.numinnerroutes % 2 == 0 and 2 or 1)
             if _P.gatecontactpos[i] == "center" then
                 local pt = point.create(x, _P.shiftgatecontacts)
@@ -180,15 +182,15 @@ function layout(gate, _P)
     if _P.drawdummygatecontacts then
         geometry.contactbltr(
             gate, "gate", 
-            point.create(-(fingers + bp.rightdummies) * xpitch / 2 + xshift - (bp.glength) / 2, (bp.pwidth - bp.nwidth) / 2 - (bp.dummycontheight) / 2),
-            point.create(-(fingers + bp.rightdummies) * xpitch / 2 + xshift + (bp.glength) / 2, (bp.pwidth - bp.nwidth) / 2 + (bp.dummycontheight) / 2),
-            bp.leftdummies, 2, xpitch, separation + bp.pwidth + bp.nwidth + 2 * bp.powerspace + bp.powerwidth
+            point.create(-(fingers + _P.rightdummies) * xpitch / 2 + xshift - (bp.glength) / 2, (bp.pwidth - bp.nwidth) / 2 - (bp.dummycontheight) / 2),
+            point.create(-(fingers + _P.rightdummies) * xpitch / 2 + xshift + (bp.glength) / 2, (bp.pwidth - bp.nwidth) / 2 + (bp.dummycontheight) / 2),
+            _P.leftdummies, 2, xpitch, separation + bp.pwidth + bp.nwidth + 2 * bp.powerspace + bp.powerwidth
         )
         geometry.contactbltr(
             gate, "gate", 
-            point.create((fingers + bp.leftdummies) * xpitch / 2 + xshift - (bp.glength) / 2, (bp.pwidth - bp.nwidth) / 2 - (bp.dummycontheight) / 2),
-            point.create((fingers + bp.leftdummies) * xpitch / 2 + xshift + (bp.glength) / 2, (bp.pwidth - bp.nwidth) / 2 + (bp.dummycontheight) / 2),
-            bp.rightdummies, 2, xpitch, separation + bp.pwidth + bp.nwidth + 2 * bp.powerspace + bp.powerwidth
+            point.create((fingers + _P.leftdummies) * xpitch / 2 + xshift - (bp.glength) / 2, (bp.pwidth - bp.nwidth) / 2 - (bp.dummycontheight) / 2),
+            point.create((fingers + _P.leftdummies) * xpitch / 2 + xshift + (bp.glength) / 2, (bp.pwidth - bp.nwidth) / 2 + (bp.dummycontheight) / 2),
+            _P.rightdummies, 2, xpitch, separation + bp.pwidth + bp.nwidth + 2 * bp.powerspace + bp.powerwidth
         )
     end
 
@@ -200,44 +202,44 @@ function layout(gate, _P)
     if _P.drawdummyactivecontacts then
         geometry.contactbltr(
             gate, "sourcedrain", 
-            point.create(-(fingers + bp.rightdummies + 1) * xpitch / 2 + xshift - (bp.sdwidth) / 2, separation / 2 + bp.pwidth - pcontactpowerheight / 2 - (pcontactpowerheight) / 2),
-            point.create(-(fingers + bp.rightdummies + 1) * xpitch / 2 + xshift + (bp.sdwidth) / 2, separation / 2 + bp.pwidth - pcontactpowerheight / 2 + (pcontactpowerheight) / 2),
-            bp.leftdummies, 1, xpitch, 0
+            point.create(-(fingers + _P.rightdummies + 1) * xpitch / 2 + xshift - (bp.sdwidth) / 2, separation / 2 + bp.pwidth - pcontactpowerheight / 2 - (pcontactpowerheight) / 2),
+            point.create(-(fingers + _P.rightdummies + 1) * xpitch / 2 + xshift + (bp.sdwidth) / 2, separation / 2 + bp.pwidth - pcontactpowerheight / 2 + (pcontactpowerheight) / 2),
+            _P.leftdummies, 1, xpitch, 0
         )
         geometry.contactbltr(
             gate, "sourcedrain", 
-            point.create(-(fingers + bp.rightdummies + 1) * xpitch / 2 + xshift - (bp.sdwidth) / 2, -separation / 2 - bp.nwidth + ncontactpowerheight / 2 - (ncontactpowerheight) / 2),
-            point.create(-(fingers + bp.rightdummies + 1) * xpitch / 2 + xshift + (bp.sdwidth) / 2, -separation / 2 - bp.nwidth + ncontactpowerheight /2 + (ncontactpowerheight) / 2),
-            bp.leftdummies, 1, xpitch, 0
+            point.create(-(fingers + _P.rightdummies + 1) * xpitch / 2 + xshift - (bp.sdwidth) / 2, -separation / 2 - bp.nwidth + ncontactpowerheight / 2 - (ncontactpowerheight) / 2),
+            point.create(-(fingers + _P.rightdummies + 1) * xpitch / 2 + xshift + (bp.sdwidth) / 2, -separation / 2 - bp.nwidth + ncontactpowerheight /2 + (ncontactpowerheight) / 2),
+            _P.leftdummies, 1, xpitch, 0
         )
         geometry.rectanglebltr(
             gate, generics.metal(1), 
-            point.create(-(fingers + bp.rightdummies + 1) * xpitch / 2 + xshift - (bp.sdwidth) / 2, (bp.pwidth - bp.nwidth) / 2 - (bp.powerspace) / 2),
-            point.create(-(fingers + bp.rightdummies + 1) * xpitch / 2 + xshift + (bp.sdwidth) / 2, (bp.pwidth - bp.nwidth) / 2 + (bp.powerspace) / 2),
-    bp.leftdummies, 2, xpitch, separation + bp.pwidth + bp.nwidth + bp.powerspace
+            point.create(-(fingers + _P.rightdummies + 1) * xpitch / 2 + xshift - (bp.sdwidth) / 2, (bp.pwidth - bp.nwidth) / 2 - (bp.powerspace) / 2),
+            point.create(-(fingers + _P.rightdummies + 1) * xpitch / 2 + xshift + (bp.sdwidth) / 2, (bp.pwidth - bp.nwidth) / 2 + (bp.powerspace) / 2),
+    _P.leftdummies, 2, xpitch, separation + bp.pwidth + bp.nwidth + bp.powerspace
         )
         geometry.contactbltr(
             gate, "sourcedrain", 
-            point.create((fingers + bp.leftdummies + 1) * xpitch / 2 + xshift - (bp.sdwidth) / 2, separation / 2 + bp.pwidth - pcontactpowerheight / 2 - (pcontactpowerheight) / 2),
-            point.create((fingers + bp.leftdummies + 1) * xpitch / 2 + xshift + (bp.sdwidth) / 2, separation / 2 + bp.pwidth - pcontactpowerheight /2 + (pcontactpowerheight) / 2),
-            bp.rightdummies, 1, xpitch, 0
+            point.create((fingers + _P.leftdummies + 1) * xpitch / 2 + xshift - (bp.sdwidth) / 2, separation / 2 + bp.pwidth - pcontactpowerheight / 2 - (pcontactpowerheight) / 2),
+            point.create((fingers + _P.leftdummies + 1) * xpitch / 2 + xshift + (bp.sdwidth) / 2, separation / 2 + bp.pwidth - pcontactpowerheight /2 + (pcontactpowerheight) / 2),
+            _P.rightdummies, 1, xpitch, 0
         )
         geometry.contactbltr(
             gate, "sourcedrain", 
-            point.create((fingers + bp.leftdummies + 1) * xpitch / 2 + xshift - (bp.sdwidth) / 2, -separation / 2 - bp.nwidth + ncontactpowerheight / 2 - (ncontactpowerheight) / 2),
-            point.create((fingers + bp.leftdummies + 1) * xpitch / 2 + xshift + (bp.sdwidth) / 2, -separation / 2 - bp.nwidth + ncontactpowerheight /2 + (ncontactpowerheight) / 2),
-            bp.rightdummies, xpitch
+            point.create((fingers + _P.leftdummies + 1) * xpitch / 2 + xshift - (bp.sdwidth) / 2, -separation / 2 - bp.nwidth + ncontactpowerheight / 2 - (ncontactpowerheight) / 2),
+            point.create((fingers + _P.leftdummies + 1) * xpitch / 2 + xshift + (bp.sdwidth) / 2, -separation / 2 - bp.nwidth + ncontactpowerheight /2 + (ncontactpowerheight) / 2),
+            _P.rightdummies, xpitch
         )
         geometry.rectanglebltr(
             gate, generics.metal(1), 
-            point.create((fingers + bp.leftdummies + 1) * xpitch / 2 + xshift - (bp.sdwidth) / 2, (bp.pwidth - bp.nwidth) / 2 - (bp.powerspace) / 2),
-            point.create((fingers + bp.leftdummies + 1) * xpitch / 2 + xshift + (bp.sdwidth) / 2, (bp.pwidth - bp.nwidth) / 2 + (bp.powerspace) / 2),
-            bp.rightdummies, 2, xpitch, separation + bp.pwidth + bp.nwidth + bp.powerspace
+            point.create((fingers + _P.leftdummies + 1) * xpitch / 2 + xshift - (bp.sdwidth) / 2, (bp.pwidth - bp.nwidth) / 2 - (bp.powerspace) / 2),
+            point.create((fingers + _P.leftdummies + 1) * xpitch / 2 + xshift + (bp.sdwidth) / 2, (bp.pwidth - bp.nwidth) / 2 + (bp.powerspace) / 2),
+            _P.rightdummies, 2, xpitch, separation + bp.pwidth + bp.nwidth + bp.powerspace
         )
     end
 
     -- draw source/drain contacts
-    local indexshift = fingers + 2 + bp.rightdummies - bp.leftdummies
+    local indexshift = fingers + 2 + _P.rightdummies - _P.leftdummies
     for i = 1, fingers + 1 do
         local x = (2 * i - indexshift) * xpitch / 2 + xshift
         local y = separation / 2 + bp.pwidth / 2
@@ -322,7 +324,7 @@ function layout(gate, _P)
     pcell.pop_overwrites("basic/mosfet")
 
     gate:set_alignment_box(
-        point.create(-(fingers + bp.leftdummies + bp.rightdummies) * (bp.glength + bp.gspace) / 2 + xshift, -separation / 2 - bp.nwidth - bp.powerspace - bp.powerwidth / 2),
-        point.create( (fingers + bp.leftdummies + bp.rightdummies) * (bp.glength + bp.gspace) / 2 + xshift, separation / 2 + bp.pwidth + bp.powerspace + bp.powerwidth / 2)
+        point.create(-(fingers + _P.leftdummies + _P.rightdummies) * (bp.glength + bp.gspace) / 2 + xshift, -separation / 2 - bp.nwidth - bp.powerspace - bp.powerwidth / 2),
+        point.create( (fingers + _P.leftdummies + _P.rightdummies) * (bp.glength + bp.gspace) / 2 + xshift, separation / 2 + bp.pwidth + bp.powerspace + bp.powerwidth / 2)
     )
 end

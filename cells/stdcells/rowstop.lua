@@ -1,6 +1,7 @@
 function parameters()
     pcell.reference_cell("basic/mosfet")
     pcell.reference_cell("stdcells/base")
+    pcell.reference_cell("stdcells/harness")
     pcell.add_parameters(
         { "glengths", { 40, 40, 40, 40, 40 }, { argtype = "strtable" } },
         { "gspaces", { 90, 90, 90, 90, 90 }, { argtype = "strtable" } },
@@ -11,7 +12,7 @@ end
 function layout(gate, _P)
     local tp = pcell.get_parameters("basic/mosfet")
     local bp = pcell.get_parameters("stdcells/base")
-    pcell.push_overwrites("stdcells/base", { leftdummies = 0, rightdummies = 0 })
+    pcell.push_overwrites("stdcells/harness", { leftdummies = 0, rightdummies = 0 })
     local gatecontactpos = {}
     for i = 1, #_P.glengths do
         gatecontactpos[i] = "unused"
@@ -21,7 +22,7 @@ function layout(gate, _P)
         drawtransistors = false,
         drawgatecontacts = false,
     })
-    pcell.pop_overwrites("stdcells/base")
+    pcell.pop_overwrites("stdcells/harness")
     gate:merge_into_shallow(harness)
     gate:inherit_alignment_box(harness)
 
