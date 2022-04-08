@@ -39,6 +39,16 @@ void pcell_destroy_state(struct pcell_state* pcell_state)
     free(pcell_state);
 }
 
+void pcell_prepend_cellpath(struct pcell_state* pcell_state, const char* path)
+{
+    vector_prepend(pcell_state->cellpaths, util_copy_string(path));
+}
+
+void pcell_append_cellpath(struct pcell_state* pcell_state, const char* path)
+{
+    vector_append(pcell_state->cellpaths, util_copy_string(path));
+}
+
 static char* _unique_name(struct pcell_state* pcell_state, const char* identifier)
 {
     unsigned int* ptr = NULL;
@@ -132,26 +142,6 @@ static int lpcell_add_cell_reference(lua_State* L)
     return 1;
 }
 
-static int lpcell_append_cellpath(lua_State* L)
-{
-    lua_getfield(L, LUA_REGISTRYINDEX, "pcellstate");
-    struct pcell_state* pcell_state = lua_touserdata(L, -1);
-    lua_pop(L, 1); // pop pcell state
-    const char* path = lua_tostring(L, 1);
-    vector_append(pcell_state->cellpaths, util_copy_string(path));
-    return 0;
-}
-
-static int lpcell_prepend_cellpath(lua_State* L)
-{
-    lua_getfield(L, LUA_REGISTRYINDEX, "pcellstate");
-    struct pcell_state* pcell_state = lua_touserdata(L, -1);
-    lua_pop(L, 1); // pop pcell state
-    const char* path = lua_tostring(L, 1);
-    vector_prepend(pcell_state->cellpaths, util_copy_string(path));
-    return 0;
-}
-
 static int lpcell_list_cellpaths(lua_State* L)
 {
     lua_getfield(L, LUA_REGISTRYINDEX, "pcellstate");
@@ -204,8 +194,6 @@ int open_lpcell_lib(lua_State* L)
     static const luaL_Reg modfuncs[] =
     {
         { "add_cell_reference",      lpcell_add_cell_reference      },
-        { "append_cellpath",         lpcell_append_cellpath         },
-        { "prepend_cellpath",        lpcell_prepend_cellpath        },
         { "list_cellpaths",          lpcell_list_cellpaths          },
         { "get_cell_filename",       lpcell_get_cell_filename       },
         { NULL,                      NULL                           }

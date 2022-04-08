@@ -29,7 +29,7 @@
 
 #include "main.functions.h"
 
-static lua_State* create_and_initialize_lua(void)
+static lua_State* _create_and_initialize_lua(void)
 {
     lua_State* L = util_create_basic_lua_state();
 
@@ -53,7 +53,7 @@ static lua_State* create_and_initialize_lua(void)
     return L;
 }
 
-struct technology_state* main_create_techstate(struct vector* techpaths, const char* techname)
+static struct technology_state* _create_techstate(struct vector* techpaths, const char* techname)
 {
     struct technology_state* techstate = technology_initialize();
     for(unsigned int i = 0; i < vector_size(techpaths); ++i)
@@ -64,13 +64,21 @@ struct technology_state* main_create_techstate(struct vector* techpaths, const c
     return techstate;
 }
 
-struct pcell_state* main_create_pcell_state(void)
+static struct pcell_state* _create_pcell_state(struct vector* cellpaths_to_prepend, struct vector* cellpaths_to_append)
 {
     struct pcell_state* pcell_state = pcell_initialize_state();
+    for(unsigned int i = 0; i < vector_size(cellpaths_to_prepend); ++i)
+    {
+        pcell_prepend_cellpath(pcell_state, vector_get(cellpaths_to_prepend, i));
+    }
+    for(unsigned int i = 0; i < vector_size(cellpaths_to_append); ++i)
+    {
+        pcell_append_cellpath(pcell_state, vector_get(cellpaths_to_append, i));
+    }
     return pcell_state;
 }
 
-struct layermap* main_create_layermap(void)
+static struct layermap* _create_layermap(void)
 {
     struct layermap* layermap = generics_initialize_layer_map();
     return layermap;
@@ -110,7 +118,7 @@ static int _parse_point(const char* arg, int* xptr, int* yptr)
 
 object_t* main_create_cell(const char* cellname, struct vector* cellargs, struct technology_state* techstate, struct pcell_state* pcell_state, struct layermap* layermap)
 {
-    lua_State* L = create_and_initialize_lua();
+    lua_State* L = _create_and_initialize_lua();
 
     // register techstate
     lua_pushlightuserdata(L, techstate);
@@ -165,17 +173,40 @@ void main_create_and_export_cell(struct cmdoptions* cmdoptions, struct keyvaluea
         }
     }
     const char* techname = cmdoptions_get_argument_long(cmdoptions, "technology");
-    struct technology_state* techstate = main_create_techstate(techpaths, techname);
+    struct technology_state* techstate = _create_techstate(techpaths, techname);
     if(!techstate)
     {
         goto EXIT;
     }
-    struct pcell_state* pcell_state = main_create_pcell_state();
+    struct vector* cellpaths_to_prepend = vector_create();
+    if(cmdoptions_was_provided_long(cmdoptions, "prepend-cellpath"))
+    {
+        const char** arg = cmdoptions_get_argument_long(cmdoptions, "prepend-cellpath");
+        while(*arg)
+        {
+            vector_append(cellpaths_to_prepend, util_copy_string(*arg));
+            ++arg;
+        }
+    }
+    struct vector* cellpaths_to_append = vector_create();
+    if(cmdoptions_was_provided_long(cmdoptions, "append-cellpath"))
+    {
+        const char** arg = cmdoptions_get_argument_long(cmdoptions, "append-cellpath");
+        while(*arg)
+        {
+            vector_append(cellpaths_to_append, util_copy_string(*arg));
+            ++arg;
+        }
+    }
+    vector_append(cellpaths_to_append, util_copy_string(OPC_HOME "/cells"));
+    struct pcell_state* pcell_state = _create_pcell_state(cellpaths_to_prepend, cellpaths_to_append);
+    vector_destroy(cellpaths_to_prepend, NULL);
+    vector_destroy(cellpaths_to_append, NULL);
     if(!pcell_state)
     {
         goto DESTROY_TECHNOLOGY;
     }
-    struct layermap* layermap = main_create_layermap();
+    struct layermap* layermap = _create_layermap();
     if(!layermap)
     {
         goto DESTROY_PCELL_STATE;

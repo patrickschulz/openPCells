@@ -1,20 +1,6 @@
 -- load API
 _load_module("main.modules")
 
--- set default path for pcells
-pcell.append_cellpath(string.format("%s/cells", _get_opc_home()))
--- add user-defined cellpaths
-if args.cellpath then
-    for _, path in ipairs(args.cellpath) do
-        pcell.append_cellpath(path)
-    end
-end
-if args.prependcellpath then
-    for _, path in ipairs(args.prependcellpath) do
-        pcell.prepend_cellpath(path)
-    end
-end
-
 -- read parameters from pfile and merge with command line parameters
 local cellargs = {}
 if not args.noparamfile then

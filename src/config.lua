@@ -30,8 +30,5 @@ end
 return M
 --]]
 
-return {
-    techpaths = {
-        "/home/pkurth/Workspace/GF22FDSOI_opc_tech"
-    }
-}
+-- FIXME: do some checks
+return dofile(filename)

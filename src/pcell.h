@@ -35,6 +35,9 @@ struct cellreference* pcell_get_indexed_cell_reference(struct pcell_state*, unsi
 struct object_t* pcell_use_cell_reference(struct pcell_state*, const char* identifier);
 void pcell_unlink_cell_reference(struct pcell_state*, const char* identifier);
 
+void pcell_prepend_cellpath(struct pcell_state*, const char* path);
+void pcell_append_cellpath(struct pcell_state*, const char* path);
+
 int open_lpcell_lib(lua_State* L);
 
 #endif // OPC_PCELL_H

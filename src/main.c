@@ -297,7 +297,11 @@ int main(int argc, const char* const * argv)
 
     // clean up states
 DESTROY_CONFIG:
-    vector_destroy(keyvaluearray_get(config, "techpaths"), free); // every techpath is a copied string
+    struct vector* techpaths = keyvaluearray_get(config, "techpaths");
+    if(techpaths)
+    {
+        vector_destroy(techpaths, free); // every techpath is a copied string
+    }
     keyvaluearray_destroy(config);
 DESTROY_CMDOPTIONS:
     cmdoptions_destroy(cmdoptions);
