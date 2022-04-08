@@ -134,7 +134,7 @@ static int lpcell_add_cell_reference(lua_State* L)
     lua_getfield(L, LUA_REGISTRYINDEX, "pcellstate");
     struct pcell_state* pcell_state = lua_touserdata(L, -1);
     lua_pop(L, 1); // pop pcell state
-    lobject_t* lobject = lua_touserdata(L, 1);
+    lobject_t* lobject = lobject_check(L, 1);
     const char* identifier = lua_tostring(L, 2);
     const char* new_identifier = pcell_add_cell_reference(pcell_state, lobject->object, identifier);
     lua_pushstring(L, new_identifier);
