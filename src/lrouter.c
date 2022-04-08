@@ -28,60 +28,47 @@ static struct netcollection* _initialize(lua_State* L)
 
 	lua_getfield(L, -1, "name");
 	const char *name = lua_tostring(L, -1);
+	if(name != NULL)
+		printf("got init name: %s\n", name);
+	else
+		printf("got null name \n");
+
 	lua_pop(L, 1);
 
 	lua_getfield(L, -1, "positions");
 	size_t size = lua_rawlen(L, -1);
 
-
-	nets[i - 1].size = num_positions;
-	nets[i - 1].xs = calloc(size, sizeof(unsigned int));
-	nets[i - 1].ys = calloc(size, sizeof(unsigned int));
-	nets[i - 1].zs = calloc(size, sizeof(unsigned int));
+	nets[i - 1].size = size;
+	nets[i - 1].name = calloc(strlen(name) + 1, 1);
+	strcpy(nets[i - 1].name, name);
+	nets[i - 1].positions = calloc(size, sizeof(position_t));
 
 	/* fill in net struct from lua */
         for(size_t j = 1; j <= size; ++j)
         {
             lua_geti(L, -1, j);
 
+            lua_getfield(L, -1, "instance");
+            const char *instance = lua_tostring(L, -1);
+            lua_pop(L, 1);
+
+            lua_getfield(L, -1, "port");
+            const char *port = lua_tostring(L, -1);
+            lua_pop(L, 1);
+
             lua_getfield(L, -1, "x");
             int x = lua_tointeger(L, -1);
             lua_pop(L, 1);
-//////////////////
+
             lua_getfield(L, -1, "y");
             int y = lua_tointeger(L, -1);
             lua_pop(L, 1);
 
-            lua_getfield(L, -1, "z");
-            int z = lua_tointeger(L, -1);
-            lua_pop(L, 1);
-
-	    if(j == 1)
-	    {
-		    lua_getfield(L, -1, "port");
-		    const char *port = lua_tostring(L, -1);
-		    nets[i].firstport = malloc(strlen(port) + 1);
-		    strcpy(nets[i].firstport, port);
-		    lua_pop(L, 1);
-
-		    lua_getfield(L, -1, "instance");
-		    const char *instance = lua_tostring(L, -1);
-		    nets[i].firstinstance = malloc(strlen(instance) + 1);
-		    strcpy(nets[i].firstinstance, instance);
-		    lua_pop(L, 1);
-	    }
-
-	    nets[i].xs[j - 1] = x - 1;
-	    nets[i].ys[j - 1] = y - 1;
-	    nets[i].zs[j - 1] = z;
-
-	    nets[i].name = malloc(strlen(name) + 1);
-	    strcpy(nets[i].name, name);
+	    position_t pos = *net_create_position(instance, port, x - 1, y - 1);
+	    nets[i - 1].positions[j - 1] = pos;
 
             lua_pop(L, 1);
         }
-        ++i;
-
         lua_pop(L, 1);
     }
     struct netcollection* nc = malloc(sizeof(struct netcollection));
@@ -90,8 +77,8 @@ static struct netcollection* _initialize(lua_State* L)
     return nc;
 }
 
-/* deletes the nth element of an array and resizes it */
-static void del_nth_el_arr(unsigned int *arr, size_t n, size_t arr_size)
+/* deletes the nth element of an position_t array and resizes it */
+static void del_nth_el_arr(position_t *arr, size_t n, size_t arr_size)
 {
     if(arr == NULL || n >= arr_size)
         return;
@@ -100,8 +87,7 @@ static void del_nth_el_arr(unsigned int *arr, size_t n, size_t arr_size)
     {
         arr[i] = arr[i+1];
     }
-    unsigned int *new_arr = (unsigned int *)
-	realloc(arr, sizeof(unsigned int) * (arr_size - 1));
+    position_t *new_arr = realloc(arr, sizeof(position_t) * (arr_size - 1));
 
     if (!new_arr)
     {
@@ -126,6 +112,7 @@ static void lrouter_split_nets(struct netcollection* nc)
     /* iterate over all nets */
     for(size_t i = 0; i < nc->num_nets; i++)
     {
+	/* split "more" if still less than 3 positions */
 	if(nc->nets[i].size < 3)
 	    continue;
 
@@ -135,8 +122,8 @@ static void lrouter_split_nets(struct netcollection* nc)
 	{
 		int tempx, tempy, nextx, nexty, mindist, nextdist;
 		size_t mink = 0;
-		tempx = (int)nc->nets[i].xs[0];
-		tempy = (int)nc->nets[i].ys[0];
+		tempx = (int)nc->nets[i].positions[0].x;
+		tempy = (int)nc->nets[i].positions[0].y;
 		mindist = INT_MAX;
 		for(size_t k = 0; k < nc->nets[i].size; k++)
 		{
@@ -144,8 +131,8 @@ static void lrouter_split_nets(struct netcollection* nc)
 		        if((int)k == j)
 			    continue;
 
-			nextx = (int)nc->nets[i].xs[k];
-			nexty = (int)nc->nets[i].ys[k];
+			nextx = (int)nc->nets[i].positions[k].x;
+			nexty = (int)nc->nets[i].positions[k].y;
 			if((nextdist = MANHATTAN_DIST
 			    (tempx, tempy, nextx, nexty)) < mindist)
 			{
@@ -163,23 +150,27 @@ static void lrouter_split_nets(struct netcollection* nc)
 		*/
 		net_t *newnet = calloc(1, sizeof(net_t));
 		newnet->name = calloc(strlen(nc->nets[i].name) + 10, 1);
-		newnet->xs = calloc(2, sizeof(unsigned int));
-		newnet->ys = calloc(2, sizeof(unsigned int));
-		newnet->zs = calloc(2, sizeof(unsigned int));
+		newnet->positions = calloc(2, sizeof(position_t));
 
 		sprintf(newnet->name, "%s_(%zu)", nc->nets[i].name, splitcount);
-		newnet->xs[0] = nc->nets[i].xs[0];
-		newnet->ys[0] = nc->nets[i].ys[0];
-		newnet->xs[1] = nc->nets[i].xs[mink];
-		newnet->ys[1] = nc->nets[i].ys[mink];
+
+		newnet->positions[0] = *net_create_position(
+			nc->nets[i].positions[0].instance,
+			nc->nets[i].positions[0].port,
+			nc->nets[i].positions[0].x,
+			nc->nets[i].positions[0].y);
+		newnet->positions[1] = *net_create_position(
+			nc->nets[i].positions[mink].instance,
+			nc->nets[i].positions[mink].port,
+			nc->nets[i].positions[mink].x,
+			nc->nets[i].positions[mink].y);
+
 		newnet->size = 2;
 
-		del_nth_el_arr(nc->nets[i].xs, 0, nc->nets[i].size);
-		del_nth_el_arr(nc->nets[i].ys, 0, nc->nets[i].size);
-		del_nth_el_arr(nc->nets[i].zs, 0, nc->nets[i].size);
+		del_nth_el_arr(nc->nets[i].positions, 0, nc->nets[i].size);
 		nc->nets[i].size--;
 
-		/* continute splitting net */	
+		/* continute splitting net */
 		if(nc->nets[i].size > 2)
 		    j = -1;
 
@@ -197,8 +188,8 @@ int lrouter_route(lua_State* L)
 {
     printf("calling route\n");
     struct netcollection* nc = _initialize(L);
+    print_nets(nc->nets, nc->num_nets);
 
-    sort_nets(nc->nets, nc->num_nets);
 
     const size_t field_height = lua_tointeger(L, 4);
     const size_t field_width = lua_tointeger(L, 3);
@@ -216,6 +207,8 @@ int lrouter_route(lua_State* L)
     printf("post split\n");
     print_nets(nc->nets, nc->num_nets);
 
+    sort_nets(nc->nets, nc->num_nets);
+
     int count = 0;
     for(unsigned int i = 0; i < nc->num_nets; ++i)
     {
@@ -230,6 +223,7 @@ int lrouter_route(lua_State* L)
 				   field_height, num_layers, via_cost,
 				   wrong_dir_cost);
 
+	/*
 	if(nc->nets[i].routed)
 	{
 		lua_newtable(L);
@@ -263,6 +257,7 @@ int lrouter_route(lua_State* L)
 		lua_rawseti(L, -2, count + 1);
 		count++;
 	}
+	*/
     }
 
     /* num_routed_nets on stack */

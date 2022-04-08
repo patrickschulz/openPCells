@@ -31,7 +31,7 @@ function M.legalize(nets, rows, options)
         print()
     end
     -- call router here
-
+    aux.tprint(netpositions)
     local routednets, numroutednets = router.route(netpositions,
         options.floorplan_width, options.floorplan_height)
     return routes

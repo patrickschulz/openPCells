@@ -37,4 +37,8 @@ void fill_ports(net_t* nets, size_t num_nets, int*** field);
 /* prints the path of a given net */
 void print_path(net_t net);
 
+/* constructor for position_t */
+position_t *net_create_position(const char *instance, const char *port,
+			       unsigned int x, unsigned int y);
+
 #endif
