@@ -83,8 +83,10 @@ function M.route(cell, routes, cells, width)
                 currmetal = movement.metal
             end
         end
-        geometry.path(cell, generics.metal(currmetal), 
-            geometry.path_points_xy(startpt, pts), width)
+        if #pts > 1 then
+            geometry.path(cell, generics.metal(currmetal), 
+                geometry.path_points_xy(startpt, pts), width)
+        end
     end
 end
 
