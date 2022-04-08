@@ -55,8 +55,7 @@ void cmdoptions_help(struct cmdoptions* options);
 
 struct option* cmdoptions_get_option_short(struct cmdoptions* options, char short_identifier);
 struct option* cmdoptions_get_option_long(struct cmdoptions* options, const char* long_identifier);
-size_t cmdoptions_get_positional_parameters_size(struct cmdoptions* options);
-const char* cmdoptions_get_positional_parameter(struct cmdoptions* options, unsigned int i);
+struct vector* cmdoptions_get_positional_parameters(struct cmdoptions* options);
 
 int cmdoptions_was_provided_long(struct cmdoptions* options, const char* opt);
 

@@ -326,14 +326,9 @@ struct option* cmdoptions_get_option_long(struct cmdoptions* options, const char
     return NULL;
 }
 
-size_t cmdoptions_get_positional_parameters_size(struct cmdoptions* options)
+struct vector* cmdoptions_get_positional_parameters(struct cmdoptions* options)
 {
-    return vector_size(options->positional_parameters);
-}
-
-const char* cmdoptions_get_positional_parameter(struct cmdoptions* options, unsigned int i)
-{
-    return vector_get(options->positional_parameters, i);
+    return options->positional_parameters;
 }
 
 int cmdoptions_was_provided_long(struct cmdoptions* options, const char* opt)

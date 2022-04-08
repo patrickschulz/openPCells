@@ -47,6 +47,8 @@
 
 #include "config.h"
 
+#include "main.functions.h"
+
 //static lua_State* globalL = NULL;
 
 /*
@@ -110,69 +112,13 @@
 //    }
 //    return 1;
 //}
-static int msghandler (lua_State *L) {
-  const char *msg = lua_tostring(L, 1);
-  if (msg == NULL) {  /* is error object not a string? */
-    if (luaL_callmeta(L, 1, "__tostring") &&  /* does it have a metamethod */
-        lua_type(L, -1) == LUA_TSTRING)  /* that produces a string? */
-      return 1;  /* that is the message */
-    else
-      msg = lua_pushfstring(L, "(error object is a %s value)",
-                               luaL_typename(L, 1));
-  }
-  luaL_traceback(L, L, msg, 1);  /* append a standard traceback */
-  return 1;  /* return the traceback */
-}
-
-static int call_main_program(lua_State* L, const char* filename)
-{
-    int status = luaL_loadfile(L, filename);
-    if(status == LUA_OK)
-    {
-        lua_pushcfunction(L, msghandler);
-        lua_insert(L, 1);
-        status = lua_pcall(L, 0, 1, 1);
-    }
-    if(status != LUA_OK) 
-    {
-        const char* msg = lua_tostring(L, -1);
-        fprintf(stderr, "%s\n", msg);
-        lua_pop(L, 1);
-        return LUA_ERRRUN;
-    }
-    return LUA_OK;
-}
-
-static lua_State* create_and_initialize_lua(void)
-{
-    lua_State* L = util_create_basic_lua_state();
-
-    // opc libraries
-    open_ldir_lib(L);
-    open_lpoint_lib(L);
-    open_lgeometry_lib(L);
-    open_lgenerics_lib(L);
-    open_ltechnology_lib(L);
-    open_lgraphics_lib(L);
-    open_lload_lib(L);
-    open_lbind_lib(L);
-    open_lobject_lib(L);
-    open_lpcell_lib(L);
-    open_lfilesystem_lib(L);
-    open_lplacer_lib(L);
-    open_lrouter_lib(L);
-
-    open_gdsparser_lib(L);
-
-    return L;
-}
 
 static void _load_module(lua_State* L, const char* modname)
 {
     size_t len = strlen(OPC_HOME) + strlen(modname) + 9; // +9: "/src/" + ".lua"
     char* path = malloc(len + 1);
     snprintf(path, len + 1, "%s/src/%s.lua", OPC_HOME, modname);
-    call_main_program(L, path);
+    main_call_lua_program(L, path);
     free(path);
 }
 
@@ -246,27 +192,27 @@ int main(int argc, const char* const * argv)
         return 0;
     }
 
+    int returnvalue = 0;
+
     // create and parse command line options
     struct cmdoptions* cmdoptions = cmdoptions_create();
     //cmdoptions_enable_narrow_mode(cmdoptions);
     #include "cmdoptions_def.c" // yes, I did that
     if(!cmdoptions_parse(cmdoptions, argc, argv))
     {
-        cmdoptions_destroy(cmdoptions);
-        return 1;
+        returnvalue = 1;
+        goto DESTROY_CMDOPTIONS;
     }
     if(cmdoptions_was_provided_long(cmdoptions, "help"))
     {
         cmdoptions_help(cmdoptions);
-        cmdoptions_destroy(cmdoptions);
-        return 0;
+        goto DESTROY_CMDOPTIONS;
     }
     if(cmdoptions_was_provided_long(cmdoptions, "version"))
     {
         puts("openPCells (opc) 0.2.0");
         puts("Copyright 2020-2022 Patrick Kurth");
-        cmdoptions_destroy(cmdoptions);
-        return 0;
+        goto DESTROY_CMDOPTIONS;
     }
 
     // load config
@@ -276,7 +222,8 @@ int main(int argc, const char* const * argv)
         if(!_load_config(config))
         {
             puts("error while loading user config");
-            return 1;
+            returnvalue = 1;
+            goto DESTROY_CONFIG;
         }
     }
 
@@ -284,8 +231,8 @@ int main(int argc, const char* const * argv)
     if(cmdoptions_was_provided_long(cmdoptions, "watch"))
     {
         puts("sorry, watch mode is currently not implemented");
-        cmdoptions_destroy(cmdoptions);
-        return 1;
+        returnvalue = 1;
+        goto DESTROY_CONFIG;
     }
 
     // show gds data
@@ -295,9 +242,9 @@ int main(int argc, const char* const * argv)
         int ret = gdsparser_show_records(arg);
         if(!ret)
         {
-            cmdoptions_exit(cmdoptions, 1);
+            returnvalue = 1;
         }
-        cmdoptions_exit(cmdoptions, 0);
+        goto DESTROY_CONFIG;
     }
 
     // show gds hierarchy
@@ -314,9 +261,9 @@ int main(int argc, const char* const * argv)
         int depth = atoi(cmdoptions_get_argument_long(cmdoptions, "show-gds-depth"));
         lua_pushinteger(L, depth);
         lua_setglobal(L, "depth");
-        call_main_program(L, OPC_HOME "/src/scripts/show_gds_hierarchy.lua");
+        main_call_lua_program(L, OPC_HOME "/src/scripts/show_gds_hierarchy.lua");
         lua_close(L);
-        cmdoptions_exit(cmdoptions, 0);
+        goto DESTROY_CONFIG;
     }
 
     // read gds
@@ -406,18 +353,18 @@ int main(int argc, const char* const * argv)
         }
 
         lua_setglobal(L, "args");
-        call_main_program(L, OPC_HOME "/src/scripts/read_gds.lua");
+        main_call_lua_program(L, OPC_HOME "/src/scripts/read_gds.lua");
         lua_close(L);
-        cmdoptions_exit(cmdoptions, 0);
+        goto DESTROY_CONFIG;
     }
 
     // technology file generation assistant
     if(cmdoptions_was_provided_long(cmdoptions, "techfile-assistant"))
     {
         lua_State* L = util_create_basic_lua_state();
-        call_main_program(L, OPC_HOME "/src/scripts/assistant.lua");
+        main_call_lua_program(L, OPC_HOME "/src/scripts/assistant.lua");
         lua_close(L);
-        cmdoptions_exit(cmdoptions, 0);
+        goto DESTROY_CONFIG;
     }
 
     if(cmdoptions_was_provided_long(cmdoptions, "listtechpaths"))
@@ -434,88 +381,81 @@ int main(int argc, const char* const * argv)
         {
             printf("%s\n", (const char*)vector_get(techpaths, i));
         }
-        cmdoptions_destroy(cmdoptions);
-        return 0;
+        goto DESTROY_CONFIG;
     }
-
-    lua_State* L = create_and_initialize_lua();
-
-    // create layermap
-    struct layermap* layermap = generics_initialize_layer_map();
-    lua_pushlightuserdata(L, layermap);
-    lua_setfield(L, LUA_REGISTRYINDEX, "genericslayermap");
-
-    // create technology state
-    if(!cmdoptions_was_provided_long(cmdoptions, "technology"))
-    {
-        puts("no technology given");
-        generics_destroy_layer_map(layermap);
-        cmdoptions_destroy(cmdoptions);
-        lua_close(L);
-        return 0;
-    }
-    struct technology_state* techstate = technology_initialize();
-
-    // add technology search paths
-    technology_add_techpath(techstate, OPC_HOME "/tech");
-    if(cmdoptions_was_provided_long(cmdoptions, "techpath"))
-    {
-        const char** arg = cmdoptions_get_argument_long(cmdoptions, "techpath");
-        while(*arg)
-        {
-            technology_add_techpath(techstate, *arg);
-            ++arg;
-        }
-    }
-    // add techpaths from config file
-    struct vector* techpaths = keyvaluearray_get(config, "techpaths");
-    for(unsigned int i = 0; i < vector_size(techpaths); ++i)
-    {
-        technology_add_techpath(techstate, vector_get(techpaths, i));
-    }
-
-    // load technology and store in lua registry
-    const char* techname = cmdoptions_get_argument_long(cmdoptions, "technology");
-    technology_load(techstate, techname);
-    lua_pushlightuserdata(L, techstate);
-    lua_setfield(L, LUA_REGISTRYINDEX, "techstate");
-
-    // create pcell references
-    struct pcell_state* pcell_state = pcell_initialize_state();
-    lua_pushlightuserdata(L, pcell_state);
-    lua_setfield(L, LUA_REGISTRYINDEX, "pcellstate");
 
     // create cell
+    object_t* toplevel = NULL;
     if(cmdoptions_was_provided_long(cmdoptions, "cell"))
     {
+        struct vector* techpaths = keyvaluearray_get(config, "techpaths");
+        vector_append(techpaths, util_copy_string(OPC_HOME "/tech"));
+        if(cmdoptions_was_provided_long(cmdoptions, "techpath"))
+        {
+            const char** arg = cmdoptions_get_argument_long(cmdoptions, "techpath");
+            while(*arg)
+            {
+                vector_append(techpaths, util_copy_string(*arg));
+                ++arg;
+            }
+        }
+        const char* techname = cmdoptions_get_argument_long(cmdoptions, "technology");
+        struct technology_state* techstate = main_create_techstate(techpaths, techname);
+        struct pcell_state* pcell_state = main_create_pcell_state();
+        struct layermap* layermap = main_create_layermap();
         const char* cellname = cmdoptions_get_argument_long(cmdoptions, "cell");
-        lua_newtable(L);
-        lua_pushstring(L, cellname);
-        lua_setfield(L, -2, "cell");
-        lua_newtable(L);
-        for(unsigned int i = 0; i < cmdoptions_get_positional_parameters_size(cmdoptions); ++i)
+        struct vector* cellargs = cmdoptions_get_positional_parameters(cmdoptions);
+        toplevel = main_create_cell(cellname, cellargs, techstate, pcell_state, layermap);
+        if(!toplevel)
         {
-            lua_pushstring(L, cmdoptions_get_positional_parameter(cmdoptions, i));
-            lua_rawseti(L, -2, i + 1);
+            returnvalue = 1;
+            goto DESTROY_CONFIG;
         }
-        lua_setfield(L, -2, "cellargs");
-        lua_setglobal(L, "args");
-        int retval = call_main_program(L, OPC_HOME "/src/scripts/create_cell.lua");
-        if(retval != LUA_OK)
+        // export cell
+        if(cmdoptions_was_provided_long(cmdoptions, "export") || cmdoptions_was_provided_long(cmdoptions, "exportlayers"))
         {
-            // clean up states
-            generics_destroy_layer_map(layermap);
-            technology_destroy(techstate);
-            pcell_destroy_state(pcell_state);
-            cmdoptions_destroy(cmdoptions);
-            lua_close(L);
-            return 1;
+            const char* exportname = cmdoptions_get_argument_long(cmdoptions, "exportlayers");
+            if(!exportname)
+            {
+                exportname = cmdoptions_get_argument_long(cmdoptions, "export");
+            }
+            // add export search paths. FIXME: add --exportpath cmd option
+            if(!generics_resolve_premapped_layers(layermap, exportname))
+            {
+                printf("no layer data for export type '%s' found", exportname);
+            }
+            export_add_path(OPC_HOME "/export");
+            const char* basename = cmdoptions_get_argument_long(cmdoptions, "filename");
+            const char* toplevelname = cmdoptions_get_argument_long(cmdoptions, "cellname");
+            const char** exportoptions = cmdoptions_get_argument_long(cmdoptions, "export-options");
+            int writechildrenports = cmdoptions_was_provided_long(cmdoptions, "write-children-ports");
+            const char* delimiters = cmdoptions_get_argument_long(cmdoptions, "bus-delimiters");
+            char leftdelim = '<';
+            char rightdelim = '>';
+            if(delimiters && delimiters[0] && delimiters[1])
+            {
+                leftdelim = delimiters[0];
+                rightdelim = delimiters[1];
+            }
+            export_write_toplevel(toplevel, pcell_state, exportname, basename, toplevelname, leftdelim, rightdelim, exportoptions, writechildrenports);
+            object_destroy(toplevel);
         }
+        else
+        {
+            puts("no export type given");
+        }
+DESTROY_LAYER_MAP:
+        generics_destroy_layer_map(layermap);
+DESTROY_TECHNOLOGY:
+        technology_destroy(techstate);
+DESTROY_PCELL_STATE:
+        pcell_destroy_state(pcell_state);
     }
     else if(cmdoptions_was_provided_long(cmdoptions, "cellscript"))
     {
+        /*
         const char* cellscriptname = cmdoptions_get_argument_long(cmdoptions, "cellscript");
-        int retval = call_main_program(L, cellscriptname);
+        int retval = main_call_lua_program(L, cellscriptname);
         if(retval != LUA_OK)
         {
             // clean up states
@@ -526,167 +466,7 @@ int main(int argc, const char* const * argv)
             lua_close(L);
             return 1;
         }
-    }
-    else
-    {
-        puts("no cell given");
-        generics_destroy_layer_map(layermap);
-        technology_destroy(techstate);
-        pcell_destroy_state(pcell_state);
-        cmdoptions_destroy(cmdoptions);
-        lua_close(L);
-        return 1;
-    }
-    object_t* toplevel = lobject_check(L, -1)->object;
-
-    // move origin
-    if(cmdoptions_was_provided_long(cmdoptions, "origin"))
-    {
-        const char* arg = cmdoptions_get_argument_long(cmdoptions, "origin");
-        int x, y;
-        if(!_parse_point(arg, &x, &y))
-        {
-            printf("could not parse translation '%s'\n", arg);
-        }
-        else
-        {
-            object_move_to(toplevel, x, y);
-        }
-    }
-
-    // translate
-    if(cmdoptions_was_provided_long(cmdoptions, "translate"))
-    {
-        const char* arg = cmdoptions_get_argument_long(cmdoptions, "translate");
-        int dx, dy;
-        if(!_parse_point(arg, &dx, &dy))
-        {
-            printf("could not parse translation '%s'\n", arg);
-        }
-        else
-        {
-            object_translate(toplevel, dx, dy);
-        }
-    }
-
-    // orientation
-    //if args.orientation then
-    //    local lut = {
-    //        ["0"] = function() end, -- do nothing, but allow this as command line option
-    //        ["fx"] = function() cell:flipx() end,
-    //        ["fy"] = function() cell:flipy() end,
-    //        ["fxy"] = function() cell:flipx(); cell:flipy() end,
-    //    }
-    //    local f = lut[args.orientation]
-    //    if not f then
-    //        moderror(string.format("unknown orientation: '%s'", args.orientation))
-    //    end
-    //    f()
-    //end
-
-    // draw anchors
-    //if args.drawanchor then
-    //    for _, da in ipairs(args.drawanchor) do
-    //        local anchor = cell:get_anchor(da)
-    //        cell:merge_into_shallow(marker.cross(anchor))
-    //    end
-    //end
-
-    // draw alignmentbox(es)
-    if(cmdoptions_was_provided_long(cmdoptions, "draw-alignmentbox") || cmdoptions_was_provided_long(cmdoptions, "draw-all-alignmentboxes"))
-    {
-        point_t* bl = object_get_anchor(toplevel, "bottomleft");
-        point_t* tr = object_get_anchor(toplevel, "topright");
-        if(bl && tr)
-        {
-            geometry_rectanglebltr(toplevel, generics_create_special(layermap, techstate), bl, tr, 1, 1, 0, 0);
-            point_destroy(bl);
-            point_destroy(tr);
-        }
-    }
-    if(cmdoptions_was_provided_long(cmdoptions, "draw-all-alignmentboxes"))
-    {
-        for(unsigned int i = 0; i < pcell_get_reference_count(pcell_state); ++i)
-        {
-            object_t* cell = pcell_get_indexed_cell_reference(pcell_state, i)->cell;
-            point_t* bl = object_get_anchor(cell, "bottomleft");
-            point_t* tr = object_get_anchor(cell, "topright");
-            if(bl && tr)
-            {
-                geometry_rectanglebltr(cell, generics_create_special(layermap, techstate), bl, tr, 1, 1, 0, 0);
-                point_destroy(bl);
-                point_destroy(tr);
-            }
-        }
-    }
-
-    // flatten cell
-    if(cmdoptions_was_provided_long(cmdoptions, "flat"))
-    {
-        int flattenports = cmdoptions_was_provided_long(cmdoptions, "flattenports");
-        object_flatten(toplevel, pcell_state, flattenports);
-    }
-
-    // post-processing
-    if(cmdoptions_was_provided_long(cmdoptions, "filter-layers"))
-    {
-        const char** layernames = cmdoptions_get_argument_long(cmdoptions, "filter-layers");
-        if(cmdoptions_was_provided_long(cmdoptions, "filter-list") &&
-           strcmp(cmdoptions_get_argument_long(cmdoptions, "filter-list"), "include") == 0)
-        {
-            postprocess_filter_include(toplevel, layernames);
-            for(unsigned int i = 0; i < pcell_get_reference_count(pcell_state); ++i)
-            {
-                object_t* cell = pcell_get_indexed_cell_reference(pcell_state, i)->cell;
-                postprocess_filter_include(cell, layernames);
-            }
-        }
-        else
-        {
-            postprocess_filter_exclude(toplevel, layernames);
-            for(unsigned int i = 0; i < pcell_get_reference_count(pcell_state); ++i)
-            {
-                object_t* cell = pcell_get_indexed_cell_reference(pcell_state, i)->cell;
-                postprocess_filter_exclude(cell, layernames);
-            }
-        }
-    }
-    if(cmdoptions_was_provided_long(cmdoptions, "merge-rectangles"))
-    {
-        postprocess_merge_shapes(toplevel, layermap);
-    }
-
-    // export cell
-    if(cmdoptions_was_provided_long(cmdoptions, "export") || cmdoptions_was_provided_long(cmdoptions, "exportlayers"))
-    {
-        const char* exportname = cmdoptions_get_argument_long(cmdoptions, "exportlayers");
-        if(!exportname)
-        {
-            exportname = cmdoptions_get_argument_long(cmdoptions, "export");
-        }
-        // add export search paths. FIXME: add --exportpath cmd option
-        if(!generics_resolve_premapped_layers(layermap, exportname))
-        {
-            printf("no layer data for export type '%s' found", exportname);
-        }
-        export_add_path(OPC_HOME "/export");
-        const char* basename = cmdoptions_get_argument_long(cmdoptions, "filename");
-        const char* toplevelname = cmdoptions_get_argument_long(cmdoptions, "cellname");
-        const char** exportoptions = cmdoptions_get_argument_long(cmdoptions, "export-options");
-        int writechildrenports = cmdoptions_was_provided_long(cmdoptions, "write-children-ports");
-        const char* delimiters = cmdoptions_get_argument_long(cmdoptions, "bus-delimiters");
-        char leftdelim = '<';
-        char rightdelim = '>';
-        if(delimiters && delimiters[0] && delimiters[1])
-        {
-            leftdelim = delimiters[0];
-            rightdelim = delimiters[1];
-        }
-        export_write_toplevel(toplevel, pcell_state, exportname, basename, toplevelname, leftdelim, rightdelim, exportoptions, writechildrenports);
-    }
-    else
-    {
-        puts("no export type given");
+        */
     }
 
     // cell info
@@ -696,14 +476,12 @@ int main(int argc, const char* const * argv)
     }
 
     // clean up states
-    generics_destroy_layer_map(layermap);
-    technology_destroy(techstate);
-    pcell_destroy_state(pcell_state);
-    cmdoptions_destroy(cmdoptions);
-    vector_destroy(techpaths, free); // every techpath is a copied string
+DESTROY_CONFIG:
+    vector_destroy(keyvaluearray_get(config, "techpaths"), free); // every techpath is a copied string
     keyvaluearray_destroy(config);
-    lua_close(L);
+DESTROY_CMDOPTIONS:
+    cmdoptions_destroy(cmdoptions);
 
-    return 0;
+    return returnvalue;
 }
 
