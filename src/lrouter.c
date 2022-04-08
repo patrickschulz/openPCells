@@ -191,9 +191,9 @@ int lrouter_route(lua_State* L)
     print_nets(nc->nets, nc->num_nets);
 
 
-    const size_t field_height = lua_tointeger(L, 4);
-    const size_t field_width = lua_tointeger(L, 3);
-    printf("w: %zu, h: %zu\n", field_width, field_height);
+    const size_t field_height = lua_tointeger(L, 3);
+    const size_t field_width = lua_tointeger(L, 2);
+    printf("!!!!!!!!!\n\nw: %zu, h: %zu\n", field_width, field_height);
     const size_t num_layers = 3;
     const unsigned int via_cost = 10;
     const unsigned int wrong_dir_cost = 30;

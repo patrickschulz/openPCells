@@ -2,6 +2,7 @@
 #define LROUTER_NET_H
 
 #include <stddef.h>
+#include <string.h>
 
 #include "lrouter_queue.h"
 
