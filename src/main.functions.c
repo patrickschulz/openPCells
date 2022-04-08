@@ -1,6 +1,11 @@
 #include "main.functions.h"
 
+#include <stdlib.h>
+#include <string.h>
+
 #include "lua/lauxlib.h"
+
+#include "config.h"
 
 static int msghandler (lua_State *L)
 {
@@ -40,3 +45,13 @@ int main_call_lua_program(lua_State* L, const char* filename)
     }
     return LUA_OK;
 }
+
+void main_load_lua_module(lua_State* L, const char* modname)
+{
+    size_t len = strlen(OPC_HOME) + strlen(modname) + 9; // +9: "/src/" + ".lua"
+    char* path = malloc(len + 1);
+    snprintf(path, len + 1, "%s/src/%s.lua", OPC_HOME, modname);
+    main_call_lua_program(L, path);
+    free(path);
+}
+

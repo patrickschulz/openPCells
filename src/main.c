@@ -11,36 +11,23 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <errno.h>
-
-#include <signal.h>
+#include <math.h>
+#include <ctype.h>
+#include <string.h>
 
 #include "lua/lua.h"
 #include "lua/lauxlib.h"
 #include "lua/lualib.h"
 
-#include <math.h>
-#include <ctype.h>
-#include <string.h>
-
 #include "cmdoptions.h"
 
-#include "lfilesystem.h"
-#include "gdsparser.h"
 #include "util.h"
 
 #include "config.h"
 
 #include "main.functions.h"
 #include "main.cell.h"
-
-static void _load_module(lua_State* L, const char* modname)
-{
-    size_t len = strlen(OPC_HOME) + strlen(modname) + 9; // +9: "/src/" + ".lua"
-    char* path = malloc(len + 1);
-    snprintf(path, len + 1, "%s/src/%s.lua", OPC_HOME, modname);
-    main_call_lua_program(L, path);
-    free(path);
-}
+#include "main.gds.h"
 
 static int _load_config(struct keyvaluearray* config)
 {
@@ -130,123 +117,21 @@ int main(int argc, const char* const * argv)
     // show gds data
     if(cmdoptions_was_provided_long(cmdoptions, "show-gds-data"))
     {
-        const char* arg = cmdoptions_get_argument_long(cmdoptions, "show-gds-data");
-        int ret = gdsparser_show_records(arg);
-        if(!ret)
-        {
-            returnvalue = 1;
-        }
+        main_gds_show_data(cmdoptions);
         goto DESTROY_CONFIG;
     }
 
     // show gds hierarchy
     if(cmdoptions_was_provided_long(cmdoptions, "show-gds-cell-hierarchy"))
     {
-        lua_State* L = util_create_basic_lua_state();
-        open_gdsparser_lib(L);
-        _load_module(L, "gdsparser");
-        _load_module(L, "aux");
-        const char* filename = cmdoptions_get_argument_long(cmdoptions, "show-gds-cell-hierarchy");
-        lua_pushstring(L, filename);
-        lua_setglobal(L, "filename");
-        lua_pushinteger(L, 1000);
-        int depth = atoi(cmdoptions_get_argument_long(cmdoptions, "show-gds-depth"));
-        lua_pushinteger(L, depth);
-        lua_setglobal(L, "depth");
-        main_call_lua_program(L, OPC_HOME "/src/scripts/show_gds_hierarchy.lua");
-        lua_close(L);
+        main_gds_show_cell_hierarchy(cmdoptions);
         goto DESTROY_CONFIG;
     }
 
     // read gds
     if(cmdoptions_was_provided_long(cmdoptions, "read-gds"))
     {
-        lua_State* L = util_create_basic_lua_state();
-        open_gdsparser_lib(L);
-        open_lfilesystem_lib(L);
-        _load_module(L, "gdsparser");
-        _load_module(L, "envlib");
-        _load_module(L, "import");
-        lua_newtable(L);
-
-        const char* readgds = cmdoptions_get_argument_long(cmdoptions, "read-gds");
-        lua_pushstring(L, readgds);
-        lua_setfield(L, -2, "readgds");
-
-        const char* gdslayermap = cmdoptions_get_argument_long(cmdoptions, "gds-layermap");
-        if(gdslayermap)
-        {
-            lua_pushstring(L, gdslayermap);
-            lua_setfield(L, -2, "gdslayermap");
-        }
-
-        const char* gdsalignmentboxlayer = cmdoptions_get_argument_long(cmdoptions, "gds-alignmentbox-layer");
-        if(gdsalignmentboxlayer)
-        {
-            lua_pushstring(L, gdsalignmentboxlayer);
-            lua_setfield(L, -2, "gdsalignmentboxlayer");
-        }
-
-        const char* gdsalignmentboxpurpose = cmdoptions_get_argument_long(cmdoptions, "gds-alignmentbox-purpose");
-        if(gdsalignmentboxpurpose)
-        {
-            lua_pushstring(L, gdsalignmentboxpurpose);
-            lua_setfield(L, -2, "gdsalignmentboxpurpose");
-        }
-
-        int gdsusestreamlibname = cmdoptions_was_provided_long(cmdoptions, "gds-use-libname");
-        lua_pushboolean(L, gdsusestreamlibname);
-        lua_setfield(L, -2, "gdsusestreamlibname");
-
-        int importoverwrite = cmdoptions_was_provided_long(cmdoptions, "import-overwrite");
-        lua_pushboolean(L, importoverwrite);
-        lua_setfield(L, -2, "importoverwrite");
-
-        const char* importlibname = cmdoptions_get_argument_long(cmdoptions, "gds-alignmentbox-purpose");
-        if(importlibname)
-        {
-            lua_pushstring(L, importlibname);
-            lua_setfield(L, -2, "importlibname");
-        }
-
-        const char* importnamepattern = cmdoptions_get_argument_long(cmdoptions, "import-name-pattern");
-        if(importnamepattern)
-        {
-            lua_pushstring(L, importnamepattern);
-            lua_setfield(L, -2, "importnamepattern");
-        }
-
-        const char* importprefix = cmdoptions_get_argument_long(cmdoptions, "import-prefix");
-        if(importprefix)
-        {
-            lua_pushstring(L, importprefix);
-            lua_setfield(L, -2, "importprefix");
-        }
-
-        const char* importflatpattern = cmdoptions_get_argument_long(cmdoptions, "import-flatten-cell-pattern");
-        if(importflatpattern)
-        {
-            lua_pushstring(L, importflatpattern);
-            lua_setfield(L, -2, "importflatpattern");
-        }
-
-        const char* const * gdsignorelpp = cmdoptions_get_argument_long(cmdoptions, "gds-ignore-lpp");
-        if(gdsignorelpp)
-        {
-            lua_newtable(L);
-            const char* const * ptr = gdsignorelpp;
-            while(*ptr)
-            {
-                lua_pushstring(L, *ptr);
-                lua_rawseti(L, -2, ptr - gdsignorelpp + 1);
-                ++ptr;
-            }
-            lua_setfield(L, -2, "gdsignorelpp");
-        }
-
-        lua_setglobal(L, "args");
-        main_call_lua_program(L, OPC_HOME "/src/scripts/read_gds.lua");
-        lua_close(L);
+        main_gds_read(cmdoptions);
         goto DESTROY_CONFIG;
     }
 
