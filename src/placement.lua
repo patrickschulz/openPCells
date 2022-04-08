@@ -135,7 +135,6 @@ function M.format_rows(cellnames)
     for row, entries in ipairs(cellnames) do
         rows[row] = {}
         for column, entry in ipairs(entries) do
-            local cellname = entry
             rows[row][column] = { 
                 instance = string.format("I_%d_%d", row, column),
                 reference = entry,
@@ -283,6 +282,29 @@ function M.rowwise(parent, cellnames, startpt, startanchor, flipfirst, growdirec
             end
             flip = not flip
         end
+    end
+
+    -- update parent alignment box
+    if growdirection == "upright" then
+        parent:set_alignment_box(
+            cells[1][1]:get_anchor("bottomleft"),
+            cells[#cells][#cells[#cells]]:get_anchor("topright")
+        )
+    elseif growdirection == "upleft" then
+        parent:set_alignment_box(
+            cells[1][1]:get_anchor("bottomright"),
+            cells[#cells][#cells[#cells]]:get_anchor("topleft")
+        )
+    elseif growdirection == "downright" then
+        parent:set_alignment_box(
+            cells[1][1]:get_anchor("topleft"),
+            cells[#cells][#cells[#cells]]:get_anchor("bottomright")
+        )
+    elseif growdirection == "downleft" then
+        parent:set_alignment_box(
+            cells[1][1]:get_anchor("topright"),
+            cells[#cells][#cells[#cells]]:get_anchor("bottomleft")
+        )
     end
 
     return cells
