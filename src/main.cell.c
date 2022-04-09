@@ -148,6 +148,35 @@ object_t* _create_cell(const char* cellname, int iscellscript, struct vector* ce
     }
     lua_setfield(L, -2, "cellargs");
     lua_setglobal(L, "args");
+
+    // load main modules
+    const char* modules[] = {
+        "point",
+        "geometry",
+        "graphics",
+        "util",
+        "aux",
+        "stack",
+        "support",
+        "envlib",
+        "globals",
+        "pcell",
+        "placement",
+        "routing",
+        "public",
+        NULL
+    };
+    const char* const * moduleptr = modules;
+    while(*moduleptr)
+    {
+        main_load_lua_module(L, *moduleptr);
+        if(!lua_isnil(L, -1))
+        {
+            lua_setglobal(L, *moduleptr);
+        }
+        ++moduleptr;
+    }
+
     int retval = script_call_create_cell(L);
     if(retval != LUA_OK)
     {
@@ -309,6 +338,15 @@ void main_create_and_export_cell(struct cmdoptions* cmdoptions, struct keyvaluea
     //    f()
     //end
 
+
+    //function marker.cross(where, size)
+    //    local x, y = where:unwrap()
+    //    local obj = object.create()
+    //    size = size or 100
+    //    obj:merge_into_shallow(geometry.rectanglebltr(generics.special(), point.create(x - 5, y - size), point.create(x + 5, y + size)))
+    //    obj:merge_into_shallow(geometry.rectanglebltr(generics.special(), point.create(x - size, y - 5), point.create(x + size, y + 5)))
+    //    return obj
+    //end
     // draw anchors
     //if args.drawanchor then
     //    for _, da in ipairs(args.drawanchor) do

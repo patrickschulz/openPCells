@@ -1,5 +1,3 @@
--- load API
-_load_module("main.modules")
 
 -- read parameters from pfile and merge with command line parameters
 local cellargs = {}
