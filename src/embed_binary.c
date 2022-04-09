@@ -83,6 +83,10 @@ int main(int argc, char** argv)
     }
     fputs("\n};\n", cfile);
     fprintf(cfile, "size_t %s_data_len = %ld;\n", base, buffer->length);
+	fprintf(cfile, "int script_call_%s(lua_State* L)", base);
+	fputs("\n{\n", cfile);
+	fprintf(cfile, "    return main_call_lua_program_from_buffer(L, %s_data, %s_data_len, \"@%s\");", base, base, base);
+	fputs("\n}\n", cfile);
     fclose(cfile);
 
     return 0;

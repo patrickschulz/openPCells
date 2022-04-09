@@ -32,6 +32,11 @@ lobject_t* lobject_adapt(lua_State* L, object_t* object)
     return cell;
 }
 
+void lobject_disown(lobject_t* lobject)
+{
+    lobject->destroy = 0;
+}
+
 static int lobject_copy(lua_State* L)
 {
     lobject_t* cell = lobject_check(L, 1);

@@ -35,10 +35,6 @@ scriptmanager.c: embed_binary scripts/create_cell.lua
 	@echo '#include <stddef.h>' >> scriptmanager.c
 	@echo '#include "main.functions.h"' >> scriptmanager.c
 	./embed_binary scripts/create_cell.lua create_cell scriptmanager.c
-	@echo 'int script_call_create_cell(lua_State* L)' >> scriptmanager.c
-	@echo '{' >> scriptmanager.c
-	@echo '    return main_call_lua_program_from_buffer(L, create_cell_data, create_cell_data_len, "@create_cell");' >> scriptmanager.c
-	@echo '}' >> scriptmanager.c
 
 scriptmanager.h:
 	@echo '#ifndef OPC_SCRIPTMANAGER_H' > scriptmanager.h

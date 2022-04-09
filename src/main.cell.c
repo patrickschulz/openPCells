@@ -149,14 +149,13 @@ object_t* _create_cell(const char* cellname, int iscellscript, struct vector* ce
     lua_setfield(L, -2, "cellargs");
     lua_setglobal(L, "args");
     int retval = script_call_create_cell(L);
-    //int retval = main_call_lua_program(L, OPC_HOME "/src/scripts/create_cell.lua");
     if(retval != LUA_OK)
     {
         lua_close(L);
         return NULL;
     }
     lobject_t* lobject = lobject_check(L, -1);
-    lobject->destroy = 0; // disown object from lua
+    lobject_disown(lobject);
     object_t* toplevel = lobject->object;
 
     lua_close(L);
