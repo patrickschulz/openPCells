@@ -1,6 +1,9 @@
 # main programs and generated code files
 opc
-config.h
+src/embed_binary
+src/config.h
+src/scriptmanager.c
+src/scriptmanager.h
 opc.1
 
 # generated layouts and helpers
@@ -37,3 +40,4 @@ srctodo
 
 # test files
 testfiles
+debug

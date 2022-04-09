@@ -29,6 +29,8 @@
 
 #include "main.functions.h"
 
+#include "scriptmanager.h"
+
 static lua_State* _create_and_initialize_lua(void)
 {
     lua_State* L = util_create_basic_lua_state();
@@ -146,7 +148,8 @@ object_t* _create_cell(const char* cellname, int iscellscript, struct vector* ce
     }
     lua_setfield(L, -2, "cellargs");
     lua_setglobal(L, "args");
-    int retval = main_call_lua_program(L, OPC_HOME "/src/scripts/create_cell.lua");
+    int retval = script_call_create_cell(L);
+    //int retval = main_call_lua_program(L, OPC_HOME "/src/scripts/create_cell.lua");
     if(retval != LUA_OK)
     {
         lua_close(L);

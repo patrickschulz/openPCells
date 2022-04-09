@@ -21,8 +21,8 @@ default:
 	@echo Guessing `$(UNAME)`
 	@$(MAKE) `$(UNAME)`
 
-$(PROGNAME): main.c lua/liblua.a $(OPCOBJ)
-	$(CC) $(CFLAGS) -DLUA_COMPAT_5_3 -DLUA_USE_LINUX -o $(PROGNAME) main.c $(OPCOBJ) lua/liblua.a -lm -ldl
+$(PROGNAME): main.c lua/liblua.a scriptmanager.h scriptmanager.c $(OPCOBJ)
+	$(CC) $(CFLAGS) -DLUA_COMPAT_5_3 -DLUA_USE_LINUX -o $(PROGNAME) main.c $(OPCOBJ) scriptmanager.c lua/liblua.a -lm -ldl
 
 lua/liblua.a: lua/*.c lua/*.h
 	@$(MAKE) -C lua liblua.a
@@ -30,9 +30,31 @@ lua/liblua.a: lua/*.c lua/*.h
 lua/luac:
 	@$(MAKE) -C lua luac
 
+scriptmanager.c: embed_binary scripts/create_cell.lua
+	@echo '#include "scriptmanager.h"' > scriptmanager.c
+	@echo '#include <stddef.h>' >> scriptmanager.c
+	@echo '#include "main.functions.h"' >> scriptmanager.c
+	./embed_binary scripts/create_cell.lua create_cell scriptmanager.c
+	@echo 'int script_call_create_cell(lua_State* L)' >> scriptmanager.c
+	@echo '{' >> scriptmanager.c
+	@echo '    return main_call_lua_program_from_buffer(L, create_cell_data, create_cell_data_len, "@create_cell");' >> scriptmanager.c
+	@echo '}' >> scriptmanager.c
+
+scriptmanager.h:
+	@echo '#ifndef OPC_SCRIPTMANAGER_H' > scriptmanager.h
+	@echo '#define OPC_SCRIPTMANAGER_H' >> scriptmanager.h
+	@echo '#include "lua/lua.h"' >> scriptmanager.h
+	@echo 'int script_call_create_cell(lua_State* L);' >> scriptmanager.h
+	@echo '#endif // OPC_SCRIPTMANAGER_H' >> scriptmanager.h
+
+embed_binary: embed_binary.c lua/liblua.a
+	$(CC) $(CFLAGS) embed_binary.c lua/liblua.a -o embed_binary -lm
+
 .PHONY: clean
 clean:
-	rm -f $(PROGNAME) config.h
+	rm -f $(PROGNAME)
+	rm -f config.h
+	rm -f scriptmanager.h scriptmanager.c
 	rm -f $(OPCOBJ)
 	rm -f lua/*.o lua/liblua.a
 
@@ -81,6 +103,8 @@ endif
 cmdoptions.o: cmdoptions.c cmdoptions.h vector.h util.h lua/lua.h \
  lua/luaconf.h
 cmdoptions_def.o: cmdoptions_def.c
+embed_binary.o: embed_binary.c lua/lua.h lua/luaconf.h lua/lauxlib.h \
+ lua/lua.h
 export.o: export.c export.h lua/lua.h lua/luaconf.h object.h \
  transformationmatrix.h point.h shape.h generics.h keyvaluepairs.h \
  vector.h pcell.h lua/lauxlib.h lua/lua.h util.h lobject.h \
@@ -140,19 +164,19 @@ ltransformationmatrix.o: ltransformationmatrix.c ltransformationmatrix.h \
  lua/lua.h lua/luaconf.h transformationmatrix.h point.h lpoint.h \
  lua/lauxlib.h lua/lua.h
 main.o: main.c lua/lprefix.h lua/lua.h lua/luaconf.h lua/lauxlib.h \
- lua/lua.h lua/lualib.h cmdoptions.h vector.h lfilesystem.h gdsparser.h \
- util.h config.h main.functions.h main.cell.h keyvaluepairs.h main.gds.h \
- cmdoptions_def.c
+ lua/lua.h lua/lualib.h cmdoptions.h vector.h util.h config.h \
+ main.functions.h main.cell.h keyvaluepairs.h main.gds.h cmdoptions_def.c
 main.cell.o: main.cell.c main.cell.h keyvaluepairs.h vector.h \
  cmdoptions.h lua/lauxlib.h lua/luaconf.h lua/lua.h lpoint.h lua/lua.h \
  point.h lgeometry.h lgenerics.h generics.h lload.h lbind.h ldir.h \
  lobject.h object.h transformationmatrix.h shape.h pcell.h lfilesystem.h \
  lplacer.h lrouter.h gdsparser.h technology.h graphics.h util.h export.h \
- info.h postprocess.h geometry.h config.h main.functions.h
+ info.h postprocess.h geometry.h config.h main.functions.h \
+ scriptmanager.h
 main.functions.o: main.functions.c main.functions.h lua/lua.h \
  lua/luaconf.h lua/lauxlib.h lua/lua.h config.h
 main.gds.o: main.gds.c main.gds.h cmdoptions.h vector.h main.functions.h \
- lua/lua.h lua/luaconf.h
+ lua/lua.h lua/luaconf.h util.h gdsparser.h lfilesystem.h config.h
 object.o: object.c object.h transformationmatrix.h point.h shape.h \
  generics.h keyvaluepairs.h vector.h pcell.h lua/lua.h lua/luaconf.h \
  util.h
