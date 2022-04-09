@@ -17,44 +17,6 @@ function errprint(msg)
     io.stderr:write("\n")
 end
 
-function aux.call_if_present(func, ...)
-    if func then
-        return func(...)
-    end
-end
-
-function aux.map(t, func)
-    local res = {}
-    for k, v in pairs(t) do
-        res[k] = func(v)
-    end
-    return res
-end
-
-function aux.concat(data, sep, pre, post, newline)
-    pre = pre or ""
-    post = post or ""
-    sep = sep or ", "
-    if newline then
-        sep = sep .. "\n"
-    end
-    local fun = function(str)
-        return string.format("%s%s%s", pre, str, post)
-    end
-    local processed = aux.map(data, fun)
-    local tabstr = table.concat(processed, sep)
-    return tabstr
-end
-
-function aux.concatformat(data, fmt, sep)
-    local fun = function(str)
-        return string.format(fmt, str)
-    end
-    local processed = aux.map(data, fun)
-    local tabstr = table.concat(processed, sep)
-    return tabstr
-end
-
 function aux.clone_shallow(t, predicate)
     local new = {}
     predicate = predicate or function() return true end
@@ -136,42 +98,6 @@ function aux.assert_one_of(msg, key, ...)
     assert(aux.any_of(function(v) return v == key end, { ... }),
         string.format("%s must be one of { %s }", msg, table.concat({ ... }, ", "))
     )
-end
-
-function aux.deepcopy(orig, copy)
-    local copy = copy
-    if type(orig) == "table" then
-        copy = {}
-        for orig_key, orig_value in next, orig, nil do
-            copy[aux.deepcopy(orig_key)] = aux.deepcopy(orig_value)
-        end
-    else -- number, string, boolean, etc
-        copy = orig
-    end
-    return copy
-end
-
-local _usednames = {}
-function aux.make_unique_name(name)
-    if not name then
-        name = "__subcell"
-    end
-    if not _usednames[name] then
-        _usednames[name] = 0
-    end
-    _usednames[name] = _usednames[name] + 1
-    return string.format("%s_%d", name, _usednames[name])
-end
-
-function aux.print_tabular(t)
-    local width = 0
-    for k in pairs(t) do
-        width = math.max(width, string.len(tostring(k)))
-    end
-    local fmt = string.format("%%%ds: %%s", width)
-    for k, v in pairs(t) do
-        print(string.format(fmt, k, v))
-    end
 end
 
 -- code credit: https://stackoverflow.com/a/43582076/3197530
