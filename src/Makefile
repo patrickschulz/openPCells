@@ -21,8 +21,8 @@ default:
 	@echo Guessing `$(UNAME)`
 	@$(MAKE) `$(UNAME)`
 
-$(PROGNAME): main.c lua/liblua.a scriptmanager.h scriptmanager.c $(OPCOBJ)
-	$(CC) $(CFLAGS) -DLUA_COMPAT_5_3 -DLUA_USE_LINUX -o $(PROGNAME) main.c $(OPCOBJ) scriptmanager.c lua/liblua.a -lm -ldl
+$(PROGNAME): main.c lua/liblua.a modulemanager.h modulemanager.c scriptmanager.h scriptmanager.c $(OPCOBJ)
+	$(CC) $(CFLAGS) -DLUA_COMPAT_5_3 -DLUA_USE_LINUX -o $(PROGNAME) main.c $(OPCOBJ) modulemanager.c scriptmanager.c lua/liblua.a -lm -ldl
 
 lua/liblua.a: lua/*.c lua/*.h
 	@$(MAKE) -C lua liblua.a
@@ -30,11 +30,11 @@ lua/liblua.a: lua/*.c lua/*.h
 lua/luac:
 	@$(MAKE) -C lua luac
 
-scriptmanager.c: embed_binary scripts/create_cell.lua
+scriptmanager.c: embed_compiled_lua_file scripts/create_cell.lua
 	@echo '#include "scriptmanager.h"' > scriptmanager.c
 	@echo '#include <stddef.h>' >> scriptmanager.c
 	@echo '#include "main.functions.h"' >> scriptmanager.c
-	./embed_binary scripts/create_cell.lua create_cell scriptmanager.c
+	./embed_compiled_lua_file scripts/create_cell.lua script_call create_cell scriptmanager.c
 
 scriptmanager.h:
 	@echo '#ifndef OPC_SCRIPTMANAGER_H' > scriptmanager.h
@@ -43,13 +43,51 @@ scriptmanager.h:
 	@echo 'int script_call_create_cell(lua_State* L);' >> scriptmanager.h
 	@echo '#endif // OPC_SCRIPTMANAGER_H' >> scriptmanager.h
 
-embed_binary: embed_binary.c lua/liblua.a
-	$(CC) $(CFLAGS) embed_binary.c lua/liblua.a -o embed_binary -lm
+modulemanager.c: embed_compiled_lua_file modules/*.lua
+	@echo '#include "modulemanager.h"' > modulemanager.c
+	@echo '#include <stddef.h>' >> modulemanager.c
+	@echo '#include "main.functions.h"' >> modulemanager.c
+	./embed_compiled_lua_file modules/aux.lua module_load aux modulemanager.c
+	./embed_compiled_lua_file modules/envlib.lua module_load envlib modulemanager.c
+	./embed_compiled_lua_file modules/geometry.lua module_load geometry modulemanager.c
+	./embed_compiled_lua_file modules/globals.lua module_load globals modulemanager.c
+	./embed_compiled_lua_file modules/graphics.lua module_load graphics modulemanager.c
+	./embed_compiled_lua_file modules/pcell.lua module_load pcell modulemanager.c
+	./embed_compiled_lua_file modules/placement.lua module_load placement modulemanager.c
+	./embed_compiled_lua_file modules/point.lua module_load point modulemanager.c
+	./embed_compiled_lua_file modules/public.lua module_load public modulemanager.c
+	./embed_compiled_lua_file modules/routing.lua module_load routing modulemanager.c
+	./embed_compiled_lua_file modules/stack.lua module_load stack modulemanager.c
+	./embed_compiled_lua_file modules/support.lua module_load support modulemanager.c
+	./embed_compiled_lua_file modules/util.lua module_load util modulemanager.c
+
+modulemanager.h:
+	@echo '#ifndef OPC_MODULEMANAGER_H' > modulemanager.h
+	@echo '#define OPC_MODULEMANAGER_H' >> modulemanager.h
+	@echo '#include "lua/lua.h"' >> modulemanager.h
+	@echo 'int module_load_aux(lua_State* L);' >> modulemanager.h
+	@echo 'int module_load_envlib(lua_State* L);' >> modulemanager.h
+	@echo 'int module_load_geometry(lua_State* L);' >> modulemanager.h
+	@echo 'int module_load_globals(lua_State* L);' >> modulemanager.h
+	@echo 'int module_load_graphics(lua_State* L);' >> modulemanager.h
+	@echo 'int module_load_pcell(lua_State* L);' >> modulemanager.h
+	@echo 'int module_load_placement(lua_State* L);' >> modulemanager.h
+	@echo 'int module_load_point(lua_State* L);' >> modulemanager.h
+	@echo 'int module_load_public(lua_State* L);' >> modulemanager.h
+	@echo 'int module_load_routing(lua_State* L);' >> modulemanager.h
+	@echo 'int module_load_stack(lua_State* L);' >> modulemanager.h
+	@echo 'int module_load_support(lua_State* L);' >> modulemanager.h
+	@echo 'int module_load_util(lua_State* L);' >> modulemanager.h
+	@echo '#endif // OPC_MODULEMANAGER_H' >> modulemanager.h
+
+embed_compiled_lua_file: embed_compiled_lua_file.c lua/liblua.a
+	$(CC) $(CFLAGS) embed_compiled_lua_file.c lua/liblua.a -o embed_compiled_lua_file -lm
 
 .PHONY: clean
 clean:
 	rm -f $(PROGNAME)
 	rm -f config.h
+	rm -f modulemanager.h modulemanager.c
 	rm -f scriptmanager.h scriptmanager.c
 	rm -f $(OPCOBJ)
 	rm -f lua/*.o lua/liblua.a
@@ -99,7 +137,7 @@ endif
 cmdoptions.o: cmdoptions.c cmdoptions.h vector.h util.h lua/lua.h \
  lua/luaconf.h
 cmdoptions_def.o: cmdoptions_def.c
-embed_binary.o: embed_binary.c lua/lua.h lua/luaconf.h lua/lauxlib.h \
+embed_compiled_lua_file.o: embed_compiled_lua_file.c lua/lua.h lua/luaconf.h lua/lauxlib.h \
  lua/lua.h
 export.o: export.c export.h lua/lua.h lua/luaconf.h object.h \
  transformationmatrix.h point.h shape.h generics.h keyvaluepairs.h \

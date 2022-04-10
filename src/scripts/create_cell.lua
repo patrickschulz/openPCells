@@ -13,7 +13,7 @@ if not args.noparamfile then
         end
     end
 end
-for k, v in string.gmatch(table.concat(args.cellargs, " "), "(%w+)%s*=%s*(%S+)") do
+for k, v in string.gmatch(table.concat(args.cellargs, " "), "([%w_]+)%s*=%s*(%S+)") do
     cellargs[k] = v
 end
 

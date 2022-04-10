@@ -50,13 +50,15 @@ int _writer(lua_State* L, const void* p, size_t sz, void* ud)
 
 int main(int argc, char** argv)
 {
-    if(argc != 4)
+    if(argc != 5)
     {
+        puts("embed_compiled_lua_file: 4 arguments expected: lua filename, prefix, base and target filename");
         return 1;
     }
     const char* filename = argv[1];
-    const char* base = argv[2];
-    const char* target = argv[3];
+    const char* prefix = argv[2];
+    const char* base = argv[3];
+    const char* target = argv[4];
 
     // compile lua script and load into buffer
     lua_State* L = luaL_newstate();
@@ -83,7 +85,7 @@ int main(int argc, char** argv)
     }
     fputs("\n};\n", cfile);
     fprintf(cfile, "size_t %s_data_len = %ld;\n", base, buffer->length);
-	fprintf(cfile, "int script_call_%s(lua_State* L)", base);
+	fprintf(cfile, "int %s_%s(lua_State* L)", prefix, base);
 	fputs("\n{\n", cfile);
 	fprintf(cfile, "    return main_call_lua_program_from_buffer(L, %s_data, %s_data_len, \"@%s\");", base, base, base);
 	fputs("\n}\n", cfile);
