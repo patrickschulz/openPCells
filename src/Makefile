@@ -14,7 +14,7 @@ SYSCFLAGS=
 SYSLDFLAGS=
 SYSLIBS=
 
-OPCOBJ:=main.functions.o main.cell.o main.gds.o cmdoptions.o util.o vector.o union.o postprocess.o point.o technology.o transformationmatrix.o ltransformationmatrix.o shape.o object.o geometry.o keyvaluepairs.o generics.o lgenerics.o lgeometry.o ldir.o lpoint.o graphics.o lbind.o lload.o lobject.o pcell.o lfilesystem.o lplacer.o lplacer_rand.o lplacer_nonoverlapping.o lplacer_classic.o lrouter.o lrouter_net.o lrouter_queue.o lrouter_field.o lrouter_route.o gdsparser.o ldebug.o export.o export_common.o gdsexport.o info.o
+OPCOBJ:=main.functions.o main.cell.o main.gds.o cmdoptions.o util.o vector.o union.o postprocess.o point.o technology.o transformationmatrix.o ltransformationmatrix.o shape.o object.o geometry.o hashmap.o keyvaluepairs.o generics.o lgenerics.o lgeometry.o ldir.o lpoint.o graphics.o lbind.o lload.o lobject.o pcell.o lfilesystem.o lplacer.o lplacer_rand.o lplacer_nonoverlapping.o lplacer_classic.o lrouter.o lrouter_net.o lrouter_queue.o lrouter_field.o lrouter_route.o gdsparser.o ldebug.o export.o export_common.o gdsexport.o info.o
 
 .PHONY: default
 default:
@@ -30,17 +30,19 @@ lua/liblua.a: lua/*.c lua/*.h
 lua/luac:
 	@$(MAKE) -C lua luac
 
-scriptmanager.c: embed_compiled_lua_file scripts/create_cell.lua
+scriptmanager.c: embed_compiled_lua_file scripts/create_cell.lua scripts/assistant.lua
 	@echo '#include "scriptmanager.h"' > scriptmanager.c
 	@echo '#include <stddef.h>' >> scriptmanager.c
 	@echo '#include "main.functions.h"' >> scriptmanager.c
 	./embed_compiled_lua_file scripts/create_cell.lua script_call create_cell scriptmanager.c
+	./embed_compiled_lua_file scripts/assistant.lua script_call assistant scriptmanager.c
 
 scriptmanager.h:
 	@echo '#ifndef OPC_SCRIPTMANAGER_H' > scriptmanager.h
 	@echo '#define OPC_SCRIPTMANAGER_H' >> scriptmanager.h
 	@echo '#include "lua/lua.h"' >> scriptmanager.h
 	@echo 'int script_call_create_cell(lua_State* L);' >> scriptmanager.h
+	@echo 'int script_call_assistant(lua_State* L);' >> scriptmanager.h
 	@echo '#endif // OPC_SCRIPTMANAGER_H' >> scriptmanager.h
 
 modulemanager.c: embed_compiled_lua_file modules/*.lua
@@ -137,8 +139,8 @@ endif
 cmdoptions.o: cmdoptions.c cmdoptions.h vector.h util.h lua/lua.h \
  lua/luaconf.h
 cmdoptions_def.o: cmdoptions_def.c
-embed_compiled_lua_file.o: embed_compiled_lua_file.c lua/lua.h lua/luaconf.h lua/lauxlib.h \
- lua/lua.h
+embed_compiled_lua_file.o: embed_compiled_lua_file.c lua/lua.h \
+ lua/luaconf.h lua/lauxlib.h lua/lua.h
 export.o: export.c export.h lua/lua.h lua/luaconf.h object.h \
  transformationmatrix.h point.h shape.h generics.h keyvaluepairs.h \
  vector.h pcell.h lua/lauxlib.h lua/lua.h util.h lobject.h \
@@ -156,6 +158,7 @@ geometry.o: geometry.c geometry.h technology.h lua/lua.h lua/luaconf.h \
  point.h shape.h pcell.h
 graphics.o: graphics.c graphics.h lua/lua.h lua/luaconf.h lua/lauxlib.h \
  lua/lua.h lpoint.h point.h
+hashmap.o: hashmap.c hashmap.h
 info.o: info.c info.h object.h transformationmatrix.h point.h shape.h \
  generics.h keyvaluepairs.h vector.h pcell.h lua/lua.h lua/luaconf.h
 keyvaluepairs.o: keyvaluepairs.c keyvaluepairs.h vector.h
@@ -199,14 +202,15 @@ ltransformationmatrix.o: ltransformationmatrix.c ltransformationmatrix.h \
  lua/lauxlib.h lua/lua.h
 main.o: main.c lua/lprefix.h lua/lua.h lua/luaconf.h lua/lauxlib.h \
  lua/lua.h lua/lualib.h cmdoptions.h vector.h util.h config.h \
- main.functions.h main.cell.h keyvaluepairs.h main.gds.h cmdoptions_def.c
+ scriptmanager.h main.functions.h main.cell.h keyvaluepairs.h main.gds.h \
+ hashmap.h cmdoptions_def.c
 main.cell.o: main.cell.c main.cell.h keyvaluepairs.h vector.h \
  cmdoptions.h lua/lauxlib.h lua/luaconf.h lua/lua.h lpoint.h lua/lua.h \
  point.h lgeometry.h lgenerics.h generics.h lload.h lbind.h ldir.h \
  lobject.h object.h transformationmatrix.h shape.h pcell.h lfilesystem.h \
  lplacer.h lrouter.h gdsparser.h technology.h graphics.h util.h export.h \
  info.h postprocess.h geometry.h config.h main.functions.h \
- scriptmanager.h
+ modulemanager.h scriptmanager.h
 main.functions.o: main.functions.c main.functions.h lua/lua.h \
  lua/luaconf.h lua/lauxlib.h lua/lua.h config.h
 main.gds.o: main.gds.c main.gds.h cmdoptions.h vector.h main.functions.h \

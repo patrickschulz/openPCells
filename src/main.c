@@ -25,6 +25,8 @@
 
 #include "config.h"
 
+#include "scriptmanager.h"
+
 #include "main.functions.h"
 #include "main.cell.h"
 #include "main.gds.h"
@@ -139,7 +141,7 @@ int main(int argc, const char* const * argv)
     if(cmdoptions_was_provided_long(cmdoptions, "techfile-assistant"))
     {
         lua_State* L = util_create_basic_lua_state();
-        main_call_lua_program(L, OPC_HOME "/src/scripts/assistant.lua");
+        script_call_assistant(L);
         lua_close(L);
         goto DESTROY_CONFIG;
     }
