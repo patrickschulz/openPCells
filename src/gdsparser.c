@@ -183,7 +183,7 @@ struct stream
     size_t numrecords;
 };
 
-struct stream* _read_stream(const char* filename)
+struct stream* _read_raw_stream(const char* filename)
 {
     FILE* file = fopen(filename, "r");
     if(!file)
@@ -221,10 +221,10 @@ struct stream* _read_stream(const char* filename)
     return stream;
 }
 
-int lgdsparser_read_raw_stream(lua_State* L)
+static int lgdsparser_read_raw_stream(lua_State* L)
 {
     const char* filename = lua_tostring(L, 1);
-    struct stream* stream = _read_stream(filename);
+    struct stream* stream = _read_raw_stream(filename);
     if(!stream)
     {
         lua_pushnil(L);
@@ -367,7 +367,7 @@ int lgdsparser_read_raw_stream(lua_State* L)
 
 int gdsparser_show_records(const char* filename)
 {
-    struct stream* stream = _read_stream(filename);
+    struct stream* stream = _read_raw_stream(filename);
     if(!stream)
     {
         return 0;
@@ -478,7 +478,189 @@ int gdsparser_show_records(const char* filename)
     return 1;
 }
 
-int lgdsparser_show_records(lua_State* L)
+void gdsparser_read_stream(const char* filename)
+{
+    const char* libname;
+    //local cells = {}
+    struct stream* stream = _read_raw_stream(filename);
+    //local cell
+    //local shape
+    for(size_t i = 0; i < stream->numrecords; ++i)
+    {
+        struct record* record = stream->records[i];
+        if(record->recordtype == LIBNAME)
+        {
+            libname = (const char*)record->data;
+        }
+        else if(record->recordtype == BGNSTR)
+        {
+    //        cell = {
+    //            shapes = {},
+    //            references = {},
+    //            labels = {}
+    //        }
+        }
+        else if(record->recordtype == ENDSTR)
+        {
+    //        table.insert(cells, cell)
+    //        cell = nil
+        }
+        else if(record->recordtype == STRNAME)
+        {
+    //        cell.name = record.data
+        }
+        else if(record->recordtype == BOUNDARY)
+        {
+    //           is_record(record, "BOX") or
+    //           is_record(record, "PATH") then
+    //        obj = { 
+    //            what = "shape",
+    //            shapetype = (is_record(record, "BOUNDARY") and "polygon") or
+    //                   (is_record(record, "BOX") and "rectangle") or
+    //                   (is_record(record, "PATH") and "path")
+    //        }
+        }
+        else if(record->recordtype == SREF)
+        {
+    //        obj = { what = "sref" }
+        }
+        else if(record->recordtype == AREF)
+        {
+    //        obj = { what = "aref" }
+        }
+        else if(record->recordtype == TEXT)
+        {
+    //        obj = { what = "text" }
+        }
+        else if(record->recordtype == ENDEL)
+        {
+    //        if obj.what == "shape" then
+    //            table.insert(cell.shapes, obj)
+            }
+    //        elseif obj.what == "sref" then
+    //            table.insert(cell.references, obj)
+    //        elseif obj.what == "aref" then
+    //            table.insert(cell.references, obj)
+    //        elseif obj.what == "text" then
+    //            table.insert(cell.labels, obj)
+    //        end
+    //        obj = nil
+        else if(record->recordtype == LAYER)
+        {
+    //        obj.layer = record.data
+        }
+        else if(record->recordtype == DATATYPE)
+        {
+    //        obj.purpose = record.data
+        }
+        else if(record->recordtype == TEXTTYPE)
+        {
+    //        obj.purpose = record.data
+        }
+        else if(record->recordtype == XY)
+        {
+    //        obj.pts = record.data
+        }
+        else if(record->recordtype == WIDTH)
+        {
+    //        obj.width = record.data
+        }
+        else if(record->recordtype == PATHTYPE)
+        {
+    //        if record.data == 0 then
+    //            obj.pathtype = "butt"
+            }
+    //        elseif record.data == 1 then
+    //            obj.pathtype = "round"
+    //        elseif record.data == 2 then
+    //            obj.pathtype = "cap"
+    //        elseif record.data == 4 then
+    //            obj.pathtype = { 0, 0 }
+    //        end
+        else if(record->recordtype == COLROW)
+        {
+    //        obj.xrep = record.data[1]
+    //        obj.yrep = record.data[2]
+        }
+        else if(record->recordtype == SNAME)
+        {
+    //        obj.name = record.data
+        }
+        else if(record->recordtype == STRING)
+        {
+    //        obj.text = record.data
+        }
+        else if(record->recordtype == STRANS)
+        {
+    //        obj.transformation = record.data
+        }
+        else if(record->recordtype == ANGLE)
+        {
+    //        obj.angle = record.data
+        }
+        else if(record->recordtype == BGNEXTN)
+        {
+    //        obj.pathtype[1] = record.data
+        }
+        else if(record->recordtype == ENDEXTN)
+        {
+    //        obj.pathtype[2] = record.data
+        }
+    }
+    //-- check for ignored layer-purpose pairs
+    //if ignorelpp then
+    //    for _, cell in ipairs(cells) do
+    //        for i = #cell.shapes, 1, -1 do -- backwards for deletion
+    //            local shape = cell.shapes[i]
+    //            for _, lpp in ipairs(ignorelpp) do
+    //                local layer, purpose = string.match(lpp, "(%w+):(%w+)")
+    //                if shape.layer == tonumber(layer) and shape.purpose == tonumber(purpose) then
+    //                    table.remove(cell.shapes, i)
+    //                end
+    //            end
+    //        end
+    //    end
+    //end
+    //-- post-process cells
+    //-- -> BOX is not used for rectangles, at least most tool suppliers seem to do it this way
+    //--    therefor, we check if some "polygons" are actually rectangles and fix the shape types
+    //for _, cell in ipairs(cells) do
+    //    for _, shape in ipairs(cell.shapes) do
+    //        if shape.shapetype == "polygon" then
+    //            if #shape.pts == 10 then -- rectangles in GDS have five points (xy -> * 2)
+    //                if (shape.pts[1] == shape.pts[3]   and
+    //                    shape.pts[4] == shape.pts[6]   and
+    //                    shape.pts[5] == shape.pts[7]   and
+    //                    shape.pts[8] == shape.pts[10]  and
+    //                    shape.pts[9] == shape.pts[1]   and
+    //                    shape.pts[10] == shape.pts[2]) or
+    //                   (shape.pts[2] == shape.pts[4]   and
+    //                    shape.pts[3] == shape.pts[5]   and
+    //                    shape.pts[6] == shape.pts[8]   and
+    //                    shape.pts[7] == shape.pts[9]   and
+    //                    shape.pts[9] == shape.pts[1]   and
+    //                    shape.pts[10] == shape.pts[2])  then
+
+    //                    shape.shapetype = "rectangle"
+    //                    shape.pts = { 
+    //                        math.min(shape.pts[1], shape.pts[3], shape.pts[5], shape.pts[7], shape.pts[9]),
+    //                        math.min(shape.pts[2], shape.pts[4], shape.pts[6], shape.pts[8], shape.pts[10]),
+    //                        math.max(shape.pts[1], shape.pts[3], shape.pts[5], shape.pts[7], shape.pts[9]),
+    //                        math.max(shape.pts[2], shape.pts[4], shape.pts[6], shape.pts[8], shape.pts[10])
+    //                    }
+    //                end
+    //            end
+    //        end
+
+    //        if shape.shapetype == "path" then
+    //            shape.pathtype = shape.pathtype or "butt"
+    //        end
+    //    end
+    //end
+    //return { libname = libname, cells = cells }
+}
+
+static int lgdsparser_show_records(lua_State* L)
 {
     const char* filename = lua_tostring(L, 1);
     if(!gdsparser_show_records(filename))
