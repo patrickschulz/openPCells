@@ -198,7 +198,7 @@ void pcell_list_cells(struct pcell_state* pcell_state, const char* listformat)
     if(listformat)
     {
         lua_pushstring(L, listformat);
-        lua_setfield(L, -2, "cellpaths");
+        lua_setfield(L, -2, "listformat");
     }
     lua_setglobal(L, "args");
     script_call_list_cells(L);
