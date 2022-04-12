@@ -43,7 +43,7 @@ struct record
     uint16_t length;
     uint8_t recordtype;
     uint8_t datatype;
-    void* data;
+    uint8_t* rawdata;
 };
 
 struct record* _read_record(FILE* file)
@@ -59,7 +59,6 @@ struct record* _read_record(FILE* file)
     record->length = (buf[0] << 8) + buf[1];
     record->recordtype = buf[2];
     record->datatype = buf[3];
-    record->data = NULL;
 
     size_t numbytes = record->length - 4;
     uint8_t* data = malloc(numbytes);
@@ -69,115 +68,7 @@ struct record* _read_record(FILE* file)
         free(record);
         return NULL;
     }
-
-    if(record->length > 4)
-    {
-        // parsed data
-        switch(record->datatype)
-        {
-            case BIT_ARRAY:
-            {
-                //printf("0x%02x 0x%02x\n", data[0], data[1]);
-                int* rdata = calloc(16, sizeof(*rdata));
-                rdata[ 0] = (data[0] & 0x80) >> 7;
-                rdata[ 1] = (data[0] & 0x40) >> 6;
-                rdata[ 2] = (data[0] & 0x20) >> 5;
-                rdata[ 3] = (data[0] & 0x10) >> 4;
-                rdata[ 4] = (data[0] & 0x08) >> 3;
-                rdata[ 5] = (data[0] & 0x04) >> 2;
-                rdata[ 6] = (data[0] & 0x02) >> 1;
-                rdata[ 7] = (data[0] & 0x01) >> 0;
-                rdata[ 8] = (data[1] & 0x80) >> 7;
-                rdata[ 9] = (data[1] & 0x40) >> 6;
-                rdata[10] = (data[1] & 0x20) >> 5;
-                rdata[11] = (data[1] & 0x10) >> 4;
-                rdata[12] = (data[1] & 0x08) >> 3;
-                rdata[13] = (data[1] & 0x04) >> 2;
-                rdata[14] = (data[1] & 0x02) >> 1;
-                rdata[15] = (data[1] & 0x01) >> 0;
-                record->data = rdata;
-                break;
-            }
-            case TWO_BYTE_INTEGER:
-            {
-                int16_t* rdata = calloc((record->length - 4) / 2, 2);
-                for(int i = 0; i < (record->length - 4) / 2; ++i)
-                {
-                    rdata[i] = (data[i * 2] << 8) + data[i * 2 + 1];
-                }
-                record->data = rdata;
-                break;
-            }
-            case FOUR_BYTE_INTEGER:
-            {
-                int32_t* rdata = calloc((record->length - 4) / 4, 4);
-                for(int i = 0; i < (record->length - 4) / 4; ++i)
-                {
-                    rdata[i] = (data[i * 4] << 24) + (data[i * 4 + 1] << 16) + (data[i * 4 + 2] << 8) + data[i * 4 + 3];
-                }
-                record->data = rdata;
-                break;
-            }
-            case FOUR_BYTE_REAL:
-            {
-                double* rdata = calloc((record->length - 4) / 4, sizeof(double));
-                for(int i = 0; i < (record->length - 4) / 4; ++i)
-                {
-                    int sign = data[i * 4] & 0x80;
-                    int8_t exp = data[i * 4] & 0x7f;
-                    double mantissa = data[i * 4 + 1] / 256.0
-                                    + data[i * 4 + 2] / 256.0 / 256.0
-                                    + data[i * 4 + 3] / 256.0 / 256.0 / 256.0;
-                    if(sign)
-                    {
-                        rdata[i] = -mantissa * pow(16.0, exp - 64);
-                    }
-                    else
-                    {
-                        rdata[i] = mantissa * pow(16.0, exp - 64);
-                    }
-                }
-                record->data = rdata;
-                break;
-            }
-            case EIGHT_BYTE_REAL:
-            {
-                double* rdata = calloc((record->length - 4) / 8, sizeof(double));
-                for(int i = 0; i < (record->length - 4) / 8; ++i)
-                {
-                    int sign = data[i * 8] & 0x80;
-                    int8_t exp = data[i * 8] & 0x7f;
-                    double mantissa = data[i * 8 + 1] / 256.0
-                                    + data[i * 8 + 2] / 256.0 / 256.0
-                                    + data[i * 8 + 3] / 256.0 / 256.0 / 256.0
-                                    + data[i * 8 + 4] / 256.0 / 256.0 / 256.0 / 256.0
-                                    + data[i * 8 + 5] / 256.0 / 256.0 / 256.0 / 256.0 / 256.0
-                                    + data[i * 8 + 6] / 256.0 / 256.0 / 256.0 / 256.0 / 256.0 / 256.0
-                                    + data[i * 8 + 7] / 256.0 / 256.0 / 256.0 / 256.0 / 256.0 / 256.0 / 256.0;
-                    if(sign)
-                    {
-                        rdata[i] = -mantissa * pow(16.0, exp - 64);
-                    }
-                    else
-                    {
-                        rdata[i] = mantissa * pow(16.0, exp - 64);
-                    }
-                }
-                record->data = rdata;
-                break;
-            }
-            case ASCII_STRING:
-            {
-                char* rdata = calloc(record->length - 4, 1);
-                memcpy(rdata, data, record->length - 4);
-                record->data = rdata;
-                break;
-            }
-        }
-    }
-
-    free(data);
-
+    record->rawdata = data;
     return record;
 }
 
@@ -225,6 +116,88 @@ struct stream* _read_raw_stream(const char* filename)
     return stream;
 }
 
+static int* _parse_bit_array(uint8_t* data)
+{
+    int* pdata = calloc(16, sizeof(*pdata));
+    for(int j = 0; j < 8; ++j)
+    {
+        pdata[j] = (data[0] & (1 << j)) >> j;
+    }
+    for(int j = 0; j < 8; ++j)
+    {
+        pdata[j + 8] = (data[1] & (1 << j)) >> j;
+    }
+    return pdata;
+}
+
+static int16_t* _parse_two_byte_integer(uint8_t* data, size_t length)
+{
+    int16_t* pdata = calloc(length / 2, sizeof(*pdata));
+    for(size_t i = 0; i < length / 2; ++i)
+    {
+        pdata[i] = (data[i * 2] << 8) + data[i * 2 + 1];
+    }
+    return pdata;
+}
+
+static int32_t* _parse_four_byte_integer(uint8_t* data, size_t length)
+{
+    int32_t* pdata = calloc(length / 4, sizeof(*pdata));
+    for(size_t i = 0; i < length / 4; ++i)
+    {
+        pdata[i] = (data[i * 4] << 24) + (data[i * 4 + 1] << 16) + (data[i * 4 + 2] << 8) + data[i * 4 + 3];
+    }
+    return pdata;
+}
+
+static double* _parse_four_byte_real(uint8_t* data, size_t length)
+{
+    double* pdata = calloc(length / 4, sizeof(*pdata));
+    for(size_t i = 0; i < length / 4; ++i)
+    {
+        int sign = data[i * 4] & 0x80;
+        int8_t exp = data[i * 4] & 0x7f;
+        double mantissa = data[i * 4 + 1] / 256.0
+            + data[i * 4 + 2] / 256.0 / 256.0
+            + data[i * 4 + 3] / 256.0 / 256.0 / 256.0;
+        if(sign)
+        {
+            pdata[i] = -mantissa * pow(16.0, exp - 64);
+        }
+        else
+        {
+            pdata[i] = mantissa * pow(16.0, exp - 64);
+        }
+    }
+    return pdata;
+}
+
+static double* _parse_eight_byte_real(uint8_t* data, size_t length)
+{
+    double* pdata = calloc(length / 8, sizeof(*pdata));
+    for(size_t i = 0; i < length / 8; ++i)
+    {
+        int sign = data[i * 8] & 0x80;
+        int8_t exp = data[i * 8] & 0x7f;
+        double mantissa = data[i * 8 + 1] / 256.0
+                        + data[i * 8 + 2] / 256.0 / 256.0
+                        + data[i * 8 + 3] / 256.0 / 256.0 / 256.0
+                        + data[i * 8 + 4] / 256.0 / 256.0 / 256.0 / 256.0
+                        + data[i * 8 + 5] / 256.0 / 256.0 / 256.0 / 256.0 / 256.0
+                        + data[i * 8 + 6] / 256.0 / 256.0 / 256.0 / 256.0 / 256.0 / 256.0
+                        + data[i * 8 + 7] / 256.0 / 256.0 / 256.0 / 256.0 / 256.0 / 256.0 / 256.0;
+        if(sign)
+        {
+            pdata[i] = -mantissa * pow(16.0, exp - 64);
+        }
+        else
+        {
+            pdata[i] = mantissa * pow(16.0, exp - 64);
+        }
+    }
+    return pdata;
+}
+
 static int lgdsparser_read_raw_stream(lua_State* L)
 {
     const char* filename = lua_tostring(L, 1);
@@ -265,10 +238,15 @@ static int lgdsparser_read_raw_stream(lua_State* L)
             case BIT_ARRAY:
                 lua_pushstring(L, "data");
                 lua_newtable(L);
-                for(int j = 0; j < 16; ++j)
+                for(int j = 0; j < 8; ++j)
                 {
-                    lua_pushinteger(L, ((int*)record->data)[j]);
+                    lua_pushinteger(L, (record->rawdata[0] & (1 << j)) >> j);
                     lua_rawseti(L, -2, j + 1);
+                }
+                for(int j = 0; j < 8; ++j)
+                {
+                    lua_pushinteger(L, (record->rawdata[1] & (1 << j)) >> j);
+                    lua_rawseti(L, -2, j + 8 + 1);
                 }
                 lua_rawset(L, -3);
                 break;
@@ -279,7 +257,9 @@ static int lgdsparser_read_raw_stream(lua_State* L)
                     lua_newtable(L);
                     for(int j = 0; j < (record->length - 4) / 2; ++j)
                     {
-                        lua_pushinteger(L, ((int16_t*)record->data)[j]);
+                        int16_t num = (record->rawdata[j * 2]     << 8) 
+                                    + (record->rawdata[j * 2 + 1] << 0);
+                        lua_pushinteger(L, num);
                         lua_rawseti(L, -2, j + 1);
                     }
                     lua_rawset(L, -3);
@@ -287,7 +267,9 @@ static int lgdsparser_read_raw_stream(lua_State* L)
                 else
                 {
                     lua_pushstring(L, "data");
-                    lua_pushinteger(L, ((int16_t*)record->data)[0]);
+                    int16_t num = (record->rawdata[0] << 8) 
+                                + (record->rawdata[1] << 0);
+                    lua_pushinteger(L, num);
                     lua_rawset(L, -3);
                 }
                 break;
@@ -298,7 +280,11 @@ static int lgdsparser_read_raw_stream(lua_State* L)
                     lua_newtable(L);
                     for(int j = 0; j < (record->length - 4) / 4; ++j)
                     {
-                        lua_pushinteger(L, ((int32_t*)record->data)[j]);
+                        int32_t num = (record->rawdata[j * 4]     << 24) 
+                                    + (record->rawdata[j * 4 + 1] << 16) 
+                                    + (record->rawdata[j * 4 + 2] <<  8) 
+                                    + (record->rawdata[j * 4 + 3] <<  0);
+                        lua_pushinteger(L, num);
                         lua_rawseti(L, -2, j + 1);
                     }
                     lua_rawset(L, -3);
@@ -306,59 +292,85 @@ static int lgdsparser_read_raw_stream(lua_State* L)
                 else
                 {
                     lua_pushstring(L, "data");
-                    lua_pushinteger(L, ((int32_t*)record->data)[0]);
+                    int32_t num = (record->rawdata[0] << 24) 
+                                + (record->rawdata[1] << 16) 
+                                + (record->rawdata[2] <<  8) 
+                                + (record->rawdata[3] <<  0);
+                    lua_pushinteger(L, num);
                     lua_rawset(L, -3);
                 }
                 break;
             case FOUR_BYTE_REAL:
+                lua_pushstring(L, "data");
                 if((record->length - 4) / 4 > 1)
                 {
-                    lua_pushstring(L, "data");
                     lua_newtable(L);
-                    for(int j = 0; j < (record->length - 4) / 4; ++j)
+                }
+                for(int j = 0; j < (record->length - 4) / 4; ++j)
+                {
+                    int sign = record->rawdata[j * 4] & 0x80;
+                    int8_t exp = record->rawdata[j * 4] & 0x7f;
+                    double mantissa = record->rawdata[j * 4 + 1] / 256.0
+                                    + record->rawdata[j * 4 + 2] / 256.0 / 256.0
+                                    + record->rawdata[j * 4 + 3] / 256.0 / 256.0 / 256.0;
+                    if(sign)
                     {
-                        lua_pushnumber(L, ((double*)record->data)[j]);
+                        lua_pushnumber(L, -mantissa * pow(16.0, exp - 64));
+                    }
+                    else
+                    {
+                        lua_pushnumber(L, mantissa * pow(16.0, exp - 64));
+                    }
+                    if((record->length - 4) / 4 > 1)
+                    {
                         lua_rawseti(L, -2, j + 1);
                     }
-                    lua_rawset(L, -3);
                 }
-                else
-                {
-                    lua_pushstring(L, "data");
-                    lua_pushnumber(L, ((double*)record->data)[0]);
-                    lua_rawset(L, -3);
-                }
+                lua_rawset(L, -3);
                 break;
             case EIGHT_BYTE_REAL:
+                lua_pushstring(L, "data");
                 if((record->length - 4) / 8 > 1)
                 {
-                    lua_pushstring(L, "data");
                     lua_newtable(L);
-                    for(int j = 0; j < (record->length - 4) / 8; ++j)
+                }
+                for(int j = 0; j < (record->length - 4) / 8; ++j)
+                {
+                    int sign = record->rawdata[j * 8] & 0x80;
+                    int8_t exp = record->rawdata[j * 8] & 0x7f;
+                    double mantissa = record->rawdata[j * 8 + 1] / 256.0
+                                    + record->rawdata[j * 8 + 2] / 256.0 / 256.0
+                                    + record->rawdata[j * 8 + 3] / 256.0 / 256.0 / 256.0
+                                    + record->rawdata[j * 8 + 4] / 256.0 / 256.0 / 256.0 / 256.0
+                                    + record->rawdata[j * 8 + 5] / 256.0 / 256.0 / 256.0 / 256.0 / 256.0
+                                    + record->rawdata[j * 8 + 6] / 256.0 / 256.0 / 256.0 / 256.0 / 256.0 / 256.0
+                                    + record->rawdata[j * 8 + 7] / 256.0 / 256.0 / 256.0 / 256.0 / 256.0 / 256.0 / 256.0;
+                    if(sign)
                     {
-                        lua_pushnumber(L, ((double*)record->data)[j]);
+                        lua_pushnumber(L, -mantissa * pow(16.0, exp - 64));
+                    }
+                    else
+                    {
+                        lua_pushnumber(L, mantissa * pow(16.0, exp - 64));
+                    }
+                    if((record->length - 4) / 8 > 1)
+                    {
                         lua_rawseti(L, -2, j + 1);
                     }
-                    lua_rawset(L, -3);
                 }
-                else
-                {
-                    lua_pushstring(L, "data");
-                    lua_pushnumber(L, ((double*)record->data)[0]);
-                    lua_rawset(L, -3);
-                }
+                lua_rawset(L, -3);
                 break;
             case ASCII_STRING:
-                if(((char*)record->data)[record->length - 4 - 1] == 0)
+                if(((char*)record->rawdata)[record->length - 4 - 1] == 0)
                 {
                     lua_pushstring(L, "data");
-                    lua_pushlstring(L, (char*)record->data, record->length - 4 - 1);
+                    lua_pushlstring(L, (char*)record->rawdata, record->length - 4 - 1);
                     lua_rawset(L, -3);
                 }
                 else
                 {
                     lua_pushstring(L, "data");
-                    lua_pushlstring(L, (char*)record->data, record->length - 4);
+                    lua_pushlstring(L, (char*)record->rawdata, record->length - 4);
                     lua_rawset(L, -3);
                 }
                 break;
@@ -398,38 +410,54 @@ int gdsparser_show_records(const char* filename)
             switch(record->datatype)
             {
                 case TWO_BYTE_INTEGER:
+                {
+                    int16_t* pdata = _parse_two_byte_integer(record->rawdata, record->length - 4);
                     for(int i = 0; i < (record->length - 4) / 2; ++i)
                     {
-                        int16_t num = ((int16_t*)record->data)[i];
+                        int16_t num = pdata[i];
                         printf("%d ", num);
                     }
+                    free(pdata);
                     break;
+                }
                 case FOUR_BYTE_INTEGER:
+                {
+                    int32_t* pdata = _parse_four_byte_integer(record->rawdata, record->length - 4);
                     for(int i = 0; i < (record->length - 4) / 4; ++i)
                     {
-                        int32_t num = ((int32_t*)record->data)[i];
+                        int32_t num = pdata[i];
                         printf("%d ", num);
                     }
+                    free(pdata);
                     break;
+                }
                 case FOUR_BYTE_REAL:
+                {
+                    double* pdata = _parse_four_byte_real(record->rawdata, record->length - 4);
                     for(int i = 0; i < (record->length - 4) / 4; ++i)
                     {
-                        double num = ((double*)record->data)[i];
+                        double num = pdata[i];
                         printf("%g ", num);
                     }
+                    free(pdata);
                     break;
+                }
                 case EIGHT_BYTE_REAL:
+                {
+                    double* pdata = _parse_eight_byte_real(record->rawdata, record->length - 4);
                     for(int i = 0; i < (record->length - 4) / 8; ++i)
                     {
-                        double num = ((double*)record->data)[i];
+                        double num = pdata[i];
                         printf("%g ", num);
                     }
+                    free(pdata);
                     break;
+                }
                 case ASCII_STRING:
                     putchar('"');
                     for(int i = 0; i < record->length - 4; ++i)
                     {
-                        char ch = ((char*)record->data)[i];
+                        char ch = ((char*)record->rawdata)[i];
                         if(ch) // odd-length strings are zero padded, don't print that character
                         {
                             putchar(ch);
@@ -438,9 +466,11 @@ int gdsparser_show_records(const char* filename)
                     putchar('"');
                     break;
                 case BIT_ARRAY:
+                {
+                    int* pdata = _parse_bit_array(record->rawdata);
                     for(int i = 0; i < (record->length - 4) / 2; ++i)
                     {
-                        int16_t num = ((int16_t*)record->data)[i];
+                        int16_t num = pdata[i];
                         for(unsigned int j = 0; j < 16; ++j)
                         {
                             int val = num & (1 << (15 - j));
@@ -454,7 +484,9 @@ int gdsparser_show_records(const char* filename)
                             }
                         }
                     }
+                    free(pdata);
                     break;
+                }
                 default:
                     break;
             }
@@ -474,7 +506,7 @@ int gdsparser_show_records(const char* filename)
     }
     for(unsigned int i = 0; i < stream->numrecords; ++i)
     {
-        free(stream->records[i]->data);
+        free(stream->records[i]->rawdata);
         free(stream->records[i]);
     }
     free(stream->records);
@@ -510,10 +542,14 @@ void _print_int32(FILE* file, int32_t num)
     }
 }
 
-void gdsparser_read_stream(const char* filename)
+void gdsparser_read_stream(const char* filename, const char* importname)
 {
     const char* libname;
     struct stream* stream = _read_raw_stream(filename);
+    if(!stream)
+    {
+        return;
+    }
     FILE* cellfile = NULL;
     int16_t layer;
     int16_t purpose;
@@ -522,15 +558,16 @@ void gdsparser_read_stream(const char* filename)
     uint8_t what;
     const char* str;
     int16_t xrep, yrep;
+    double angle;
     for(size_t i = 0; i < stream->numrecords; ++i)
     {
         struct record* record = stream->records[i];
         if(record->recordtype == LIBNAME)
         {
-            libname = (const char*)record->data;
-            size_t len = 2 * strlen(libname) + 1; // +1: '/'
+            libname = (const char*)record->rawdata;
+            size_t len = strlen(importname) + strlen(importname) + 1; // +1: '/'
             char* path = malloc(len + 1);
-            snprintf(path, len + 1, "%s/%s", libname, libname);
+            snprintf(path, len + 1, "%s/%s", importname, importname);
             filesystem_mkdir(path);
             free(path);
         }
@@ -549,12 +586,12 @@ void gdsparser_read_stream(const char* filename)
         }
         else if(record->recordtype == STRNAME)
         {
-            const char* cellname = (const char*) record->data;
-            size_t len = 2 * strlen(libname) + strlen(cellname) + 6; // +2: 2 * '/' + ".lua"
+            const char* cellname = (const char*) record->rawdata;
+            size_t len = strlen(importname) + strlen(importname) + strlen(cellname) + 6; // +2: 2 * '/' + ".lua"
             char* path = malloc(len + 1);
-            snprintf(path, len + 1, "%s/%s/%s.lua", libname, libname, cellname);
+            snprintf(path, len + 1, "%s/%s/%s.lua", importname, importname, cellname);
             cellfile = fopen(path, "w");
-            fputs("function parameter() end\n", cellfile);
+            fputs("function parameters() end\n", cellfile);
             fputs("function layout(cell)\n", cellfile);
             free(path);
         }
@@ -651,28 +688,38 @@ void gdsparser_read_stream(const char* filename)
         }
         else if(record->recordtype == LAYER)
         {
-            layer = *(int16_t*)record->data;
+            int16_t* pdata = _parse_two_byte_integer(record->rawdata, 2);
+            layer = *pdata;
+            free(pdata);
         }
         else if(record->recordtype == DATATYPE)
         {
-            purpose = *(int16_t*)record->data;
+            int16_t* pdata = _parse_two_byte_integer(record->rawdata, 2);
+            purpose = *pdata;
+            free(pdata);
         }
         else if(record->recordtype == TEXTTYPE)
         {
-            purpose = *(int16_t*)record->data;
+            int16_t* pdata = _parse_two_byte_integer(record->rawdata, 2);
+            purpose = *pdata;
+            free(pdata);
         }
         else if(record->recordtype == XY)
         {
+            int32_t* pdata = _parse_four_byte_integer(record->rawdata, record->length - 4);
             for(int i = 0; i < (record->length - 4) / 4; i += 2)
             {
-                int32_t x = ((int32_t*)record->data)[i];
-                int32_t y = ((int32_t*)record->data)[i + 1];
+                int32_t x = pdata[i];
+                int32_t y = pdata[i + 1];
                 vector_append(points, point_create(x, y));
             }
+            free(pdata);
         }
         else if(record->recordtype == WIDTH)
         {
-            width = *(int32_t*)record->data;
+            int32_t* pdata = _parse_four_byte_integer(record->rawdata, 4);
+            width = *pdata;
+            free(pdata);
         }
         else if(record->recordtype == PATHTYPE)
         {
@@ -688,16 +735,18 @@ void gdsparser_read_stream(const char* filename)
         }
         else if(record->recordtype == COLROW)
         {
-            xrep = ((int16_t*)record->data)[0];
-            yrep = ((int16_t*)record->data)[1];
+            int16_t* pdata = _parse_two_byte_integer(record->rawdata, 4);
+            xrep = pdata[0];
+            yrep = pdata[1];
+            free(pdata);
         }
         else if(record->recordtype == SNAME)
         {
-            str = (const char*)record->data;
+            str = (const char*)record->rawdata;
         }
         else if(record->recordtype == STRING)
         {
-            str = (const char*)record->data;
+            str = (const char*)record->rawdata;
         }
         else if(record->recordtype == STRANS)
         {
@@ -705,7 +754,7 @@ void gdsparser_read_stream(const char* filename)
         }
         else if(record->recordtype == ANGLE)
         {
-    //        obj.angle = record.data
+            //obj.angle = record.data
         }
         else if(record->recordtype == BGNEXTN)
         {

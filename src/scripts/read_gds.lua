@@ -4,6 +4,9 @@ if args.gdslayermap then
 end
 
 local gdslib = gdsparser.read_stream(args.readgds, args.gdsignorelpp)
+if not gdslib then
+    return
+end
 local cells = gdslib.cells
 local alignmentboxinfo
 if args.gdsalignmentboxlayer and args.gdsalignmentboxpurpose then

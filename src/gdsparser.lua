@@ -73,7 +73,11 @@ local recordcodes = recordtypescodes
 function gdsparser.read_stream(filename, ignorelpp)
     local libname
     local cells = {}
-    local records = gdsparser.read_raw_stream(filename)
+    local records, msg = gdsparser.read_raw_stream(filename)
+    if not records then
+        print(msg)
+        return nil
+    end
     local cell
     local shape
     local function is_record(record, rtype) return record.header.recordtype == recordcodes[rtype] end

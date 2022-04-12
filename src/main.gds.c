@@ -1,6 +1,7 @@
 #include "main.gds.h"
 
 #include <stdlib.h>
+#include <string.h>
 
 #include "main.functions.h"
 #include "util.h"
@@ -39,7 +40,30 @@ void main_gds_show_cell_hierarchy(struct cmdoptions* cmdoptions)
 void main_gds_read(struct cmdoptions* cmdoptions)
 {
     const char* readgds = cmdoptions_get_argument_long(cmdoptions, "read-gds");
-    gdsparser_read_stream(readgds);
+    int gdsusestreamlibname = cmdoptions_was_provided_long(cmdoptions, "gds-use-libname");
+    char* importlibname = cmdoptions_get_argument_long(cmdoptions, "import-libname");
+    int must_free = 0;
+    if(!importlibname)
+    {
+        if(gdsusestreamlibname)
+        {
+            importlibname = NULL;
+        }
+        else
+        {
+            size_t len = strlen(readgds) - 4;
+            importlibname = malloc(len + 1);
+            strncpy(importlibname, readgds, len);
+            importlibname[len] = 0;
+            must_free = 1;
+        }
+    }
+    gdsparser_read_stream(readgds, importlibname);
+    if(must_free)
+    {
+        free(importlibname);
+    }
+
     /*
     lua_State* L = util_create_basic_lua_state();
     open_gdsparser_lib(L);
