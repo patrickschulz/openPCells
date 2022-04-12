@@ -42,13 +42,17 @@ static int _load_config(struct keyvaluearray* config)
     {
         struct vector* techpaths = vector_create();
         lua_getfield(L, -1, "techpaths");
-        lua_pushnil(L);
-        while(lua_next(L, -2) != 0)
+        if(!lua_isnil(L, -1))
         {
-            const char* path = lua_tostring(L, -1);
-            vector_append(techpaths, util_copy_string(path));
-            lua_pop(L, 1);
+            lua_pushnil(L);
+            while(lua_next(L, -2) != 0)
+            {
+                const char* path = lua_tostring(L, -1);
+                vector_append(techpaths, util_copy_string(path));
+                lua_pop(L, 1);
+            }
         }
+        lua_pop(L, 1); // pop techpaths table (or nil)
         keyvaluearray_add_untagged(config, "techpaths", techpaths);
     }
     lua_close(L);
@@ -174,7 +178,7 @@ int main(int argc, const char* const * argv)
     }
 
     // clean up states
-DESTROY_CONFIG:
+DESTROY_CONFIG: ;
     struct vector* techpaths = keyvaluearray_get(config, "techpaths");
     if(techpaths)
     {
