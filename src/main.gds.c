@@ -83,7 +83,7 @@ void main_gds_read(struct cmdoptions* cmdoptions)
     lua_pushboolean(L, importoverwrite);
     lua_setfield(L, -2, "importoverwrite");
 
-    const char* importlibname = cmdoptions_get_argument_long(cmdoptions, "gds-alignmentbox-purpose");
+    const char* importlibname = cmdoptions_get_argument_long(cmdoptions, "import-libname");
     if(importlibname)
     {
         lua_pushstring(L, importlibname);
