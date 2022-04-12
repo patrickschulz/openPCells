@@ -262,6 +262,15 @@ void main_create_and_export_cell(struct cmdoptions* cmdoptions, struct keyvaluea
         }
     }
     struct vector* cellpaths_to_append = vector_create();
+    if(cmdoptions_was_provided_long(cmdoptions, "cellpath"))
+    {
+        const char** arg = cmdoptions_get_argument_long(cmdoptions, "append-cellpath");
+        while(*arg)
+        {
+            vector_append(cellpaths_to_append, util_copy_string(*arg));
+            ++arg;
+        }
+    }
     if(cmdoptions_was_provided_long(cmdoptions, "append-cellpath"))
     {
         const char** arg = cmdoptions_get_argument_long(cmdoptions, "append-cellpath");
