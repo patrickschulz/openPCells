@@ -200,7 +200,8 @@ int main(int argc, const char* const * argv)
         struct pcell_state* pcell_state = pcell_initialize_state(cellpaths_to_prepend, cellpaths_to_append);
         vector_destroy(cellpaths_to_prepend, free);
         vector_destroy(cellpaths_to_append, free);
-        pcell_list_cells(pcell_state);
+        const char* listformat = cmdoptions_get_argument_long(cmdoptions, "list-format");
+        pcell_list_cells(pcell_state, listformat);
     }
 
     // create cell

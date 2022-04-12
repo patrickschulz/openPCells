@@ -1,6 +1,3 @@
-local listformat -- parameter
-local listallcells -- parameter
-
 local function _traverse_tree(tree)
     if tree.children then
         local elements = {}
@@ -37,7 +34,7 @@ for _, path in ipairs(args.cellpaths) do
 end
 table.sort(cells, function(l, r) return l.name < r.name end)
 
-local listformat = listformat or '::%p\n::  %b\n::    %c\n'
+local listformat = args.listformat or '::%p\n::  %b\n::    %c\n'
 -- replace \\n with \n
 listformat = string.gsub(listformat, "\\n", "\n")
 local prefmt, postfmt, prepathfmt, postpathfmt, prebasefmt, postbasefmt, cellfmt = table.unpack(aux.strsplit(listformat, ":"))

@@ -172,7 +172,7 @@ static int lpcell_list_cellpaths(lua_State* L)
     return 0;
 }
 
-void pcell_list_cells(struct pcell_state* pcell_state)
+void pcell_list_cells(struct pcell_state* pcell_state, const char* listformat)
 {
     lua_State* L = util_create_basic_lua_state();
     module_load_support(L);
@@ -195,6 +195,11 @@ void pcell_list_cells(struct pcell_state* pcell_state)
         lua_rawseti(L, -2, i + 1);
     }
     lua_setfield(L, -2, "cellpaths");
+    if(listformat)
+    {
+        lua_pushstring(L, listformat);
+        lua_setfield(L, -2, "cellpaths");
+    }
     lua_setglobal(L, "args");
     script_call_list_cells(L);
 }
