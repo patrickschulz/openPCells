@@ -6,13 +6,31 @@
 
 #include "util.h"
 #include "lobject.h"
+#include "ldir.h"
 
-struct pcell_state* pcell_initialize_state(void)
+#include "scriptmanager.h"
+#include "modulemanager.h"
+
+struct pcell_state* pcell_initialize_state(struct vector* cellpaths_to_prepend, struct vector* cellpaths_to_append)
 {
     struct pcell_state* pcell_state = malloc(sizeof(*pcell_state));
     pcell_state->used_names = vector_create();
     pcell_state->references = vector_create();
     pcell_state->cellpaths = vector_create();
+    if(cellpaths_to_prepend)
+    {
+        for(unsigned int i = 0; i < vector_size(cellpaths_to_prepend); ++i)
+        {
+            pcell_prepend_cellpath(pcell_state, vector_get(cellpaths_to_prepend, i));
+        }
+    }
+    if(cellpaths_to_append)
+    {
+        for(unsigned int i = 0; i < vector_size(cellpaths_to_append); ++i)
+        {
+            pcell_append_cellpath(pcell_state, vector_get(cellpaths_to_append, i));
+        }
+    }
     return pcell_state;
 }
 
@@ -154,6 +172,33 @@ static int lpcell_list_cellpaths(lua_State* L)
     return 0;
 }
 
+void pcell_list_cells(struct pcell_state* pcell_state)
+{
+    lua_State* L = util_create_basic_lua_state();
+    module_load_support(L);
+    if(!lua_isnil(L, -1))
+    {
+        lua_setglobal(L, "support");
+    }
+    module_load_aux(L);
+    if(!lua_isnil(L, -1))
+    {
+        lua_setglobal(L, "aux");
+    }
+    open_ldir_lib(L);
+
+    lua_newtable(L);
+    lua_newtable(L);
+    for(unsigned int i = 0; i < vector_size(pcell_state->cellpaths); ++i)
+    {
+        lua_pushstring(L, vector_get(pcell_state->cellpaths, i));
+        lua_rawseti(L, -2, i + 1);
+    }
+    lua_setfield(L, -2, "cellpaths");
+    lua_setglobal(L, "args");
+    script_call_list_cells(L);
+}
+
 static int lpcell_get_cell_filename(lua_State* L)
 {
     lua_getfield(L, LUA_REGISTRYINDEX, "pcellstate");
@@ -195,6 +240,7 @@ int open_lpcell_lib(lua_State* L)
     {
         { "add_cell_reference",      lpcell_add_cell_reference      },
         { "list_cellpaths",          lpcell_list_cellpaths          },
+        //{ "list",                    lpcell_list_cells              },
         { "get_cell_filename",       lpcell_get_cell_filename       },
         { NULL,                      NULL                           }
     };

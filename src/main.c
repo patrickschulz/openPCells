@@ -20,12 +20,10 @@
 #include "lua/lualib.h"
 
 #include "cmdoptions.h"
-
 #include "util.h"
-
 #include "config.h"
-
 #include "scriptmanager.h"
+#include "pcell.h"
 
 #include "main.functions.h"
 #include "main.cell.h"
@@ -165,6 +163,44 @@ int main(int argc, const char* const * argv)
             printf("%s\n", (const char*)vector_get(techpaths, i));
         }
         goto DESTROY_CONFIG;
+    }
+
+    if(cmdoptions_was_provided_long(cmdoptions, "list"))
+    {
+        struct vector* cellpaths_to_prepend = vector_create();
+        if(cmdoptions_was_provided_long(cmdoptions, "prepend-cellpath"))
+        {
+            const char** arg = cmdoptions_get_argument_long(cmdoptions, "prepend-cellpath");
+            while(*arg)
+            {
+                vector_append(cellpaths_to_prepend, util_copy_string(*arg));
+                ++arg;
+            }
+        }
+        struct vector* cellpaths_to_append = vector_create();
+        if(cmdoptions_was_provided_long(cmdoptions, "cellpath"))
+        {
+            const char** arg = cmdoptions_get_argument_long(cmdoptions, "cellpath");
+            while(*arg)
+            {
+                vector_append(cellpaths_to_append, util_copy_string(*arg));
+                ++arg;
+            }
+        }
+        if(cmdoptions_was_provided_long(cmdoptions, "append-cellpath"))
+        {
+            const char** arg = cmdoptions_get_argument_long(cmdoptions, "append-cellpath");
+            while(*arg)
+            {
+                vector_append(cellpaths_to_append, util_copy_string(*arg));
+                ++arg;
+            }
+        }
+        vector_append(cellpaths_to_append, util_copy_string(OPC_HOME "/cells"));
+        struct pcell_state* pcell_state = pcell_initialize_state(cellpaths_to_prepend, cellpaths_to_append);
+        vector_destroy(cellpaths_to_prepend, free);
+        vector_destroy(cellpaths_to_append, free);
+        pcell_list_cells(pcell_state);
     }
 
     // create cell
