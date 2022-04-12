@@ -8,6 +8,10 @@
 
 #include "lua/lauxlib.h"
 
+#include "filesystem.h"
+#include "vector.h"
+#include "point.h"
+
 enum datatypes
 {
     NONE                = 0x00,
@@ -478,19 +482,57 @@ int gdsparser_show_records(const char* filename)
     return 1;
 }
 
+void _print_int16(FILE* file, int16_t num)
+{
+    if(num < 0)
+    {
+        fputc('-', file);
+        num *= -1;
+    }
+    while(num > 0)
+    {
+        fputc((num % 10) + '0', file);
+        num /= 10;
+    }
+}
+
+void _print_int32(FILE* file, int32_t num)
+{
+    if(num < 0)
+    {
+        fputc('-', file);
+        num *= -1;
+    }
+    while(num > 0)
+    {
+        fputc((num % 10) + '0', file);
+        num /= 10;
+    }
+}
+
 void gdsparser_read_stream(const char* filename)
 {
     const char* libname;
-    //local cells = {}
     struct stream* stream = _read_raw_stream(filename);
-    //local cell
-    //local shape
+    FILE* cellfile = NULL;
+    int16_t layer;
+    int16_t purpose;
+    int32_t width;
+    struct vector* points = NULL;
+    uint8_t what;
+    const char* str;
+    int16_t xrep, yrep;
     for(size_t i = 0; i < stream->numrecords; ++i)
     {
         struct record* record = stream->records[i];
         if(record->recordtype == LIBNAME)
         {
             libname = (const char*)record->data;
+            size_t len = 2 * strlen(libname) + 1; // +1: '/'
+            char* path = malloc(len + 1);
+            snprintf(path, len + 1, "%s/%s", libname, libname);
+            filesystem_mkdir(path);
+            free(path);
         }
         else if(record->recordtype == BGNSTR)
         {
@@ -502,15 +544,24 @@ void gdsparser_read_stream(const char* filename)
         }
         else if(record->recordtype == ENDSTR)
         {
-    //        table.insert(cells, cell)
-    //        cell = nil
+            fputs("end", cellfile); // close layout function
+            fclose(cellfile);
         }
         else if(record->recordtype == STRNAME)
         {
-    //        cell.name = record.data
+            const char* cellname = (const char*) record->data;
+            size_t len = 2 * strlen(libname) + strlen(cellname) + 6; // +2: 2 * '/' + ".lua"
+            char* path = malloc(len + 1);
+            snprintf(path, len + 1, "%s/%s/%s.lua", libname, libname, cellname);
+            cellfile = fopen(path, "w");
+            fputs("function parameter() end\n", cellfile);
+            fputs("function layout(cell)\n", cellfile);
+            free(path);
         }
         else if(record->recordtype == BOUNDARY)
         {
+            what = BOUNDARY;
+            points = vector_create();
     //           is_record(record, "BOX") or
     //           is_record(record, "PATH") then
     //        obj = { 
@@ -520,23 +571,75 @@ void gdsparser_read_stream(const char* filename)
     //                   (is_record(record, "PATH") and "path")
     //        }
         }
+        else if(record->recordtype == PATH)
+        {
+            what = PATH;
+            points = vector_create();
+        }
         else if(record->recordtype == SREF)
         {
-    //        obj = { what = "sref" }
+            what = SREF;
         }
         else if(record->recordtype == AREF)
         {
-    //        obj = { what = "aref" }
+            what = AREF;
         }
         else if(record->recordtype == TEXT)
         {
-    //        obj = { what = "text" }
+            what = TEXT;
         }
         else if(record->recordtype == ENDEL)
         {
+            fputs("    ", cellfile);
+            if(what == BOUNDARY)
+            {
+                /*
+                fputs("geometry.polygon(cell, generics.premapped(nil, { gds = {", cellfile);
+                fputs("layer = ", cellfile);
+                _print_int16(cellfile, layer);
+                fputs(", purpose = ", cellfile);
+                _print_int16(cellfile, purpose);
+                fputs("} }), { ", cellfile);
+                for(unsigned int i = 0; i < vector_size(points); ++i)
+                {
+                    point_t* pt = vector_get(points, i);
+                    fputs("point.create(", cellfile);
+                    _print_int32(cellfile, pt->x);
+                    fputs(", ", cellfile);
+                    _print_int32(cellfile, pt->y);
+                    fputs("), ", cellfile);
+                }
+                fputs("})\n", cellfile);
+                */
+                fprintf(cellfile, "geometry.polygon(cell, generics.premapped(nil, { gds = { layer = %d, purpose = %d } }), { ", layer, purpose);
+                for(unsigned int i = 0; i < vector_size(points); ++i)
+                {
+                    point_t* pt = vector_get(points, i);
+                    fprintf(cellfile, "point.create(%lld, %lld), ", pt->x, pt->y);
+                }
+                fputs("})\n", cellfile);
+            }
+            if(what == PATH)
+            {
+                fprintf(cellfile, "geometry.path(cell, generics.premapped(nil, { gds = { layer = %d, purpose = %d } }), { ", layer, purpose);
+                for(unsigned int i = 0; i < vector_size(points); ++i)
+                {
+                    point_t* pt = vector_get(points, i);
+                    fprintf(cellfile, "point.create(%lld, %lld), ", pt->x, pt->y);
+                }
+                fprintf(cellfile, "}, %d)\n", width);
+            }
+            if(what == TEXT)
+            {
+                point_t* pt = vector_get(points, 0);
+                fprintf(cellfile, "cell:add_port(\"%s\", generics.premapped(nil, { gds = { layer = %d, purpose = %d } }), point.create(%lld, %lld))\n", str, layer, purpose, pt->x, pt->y);
+            }
+            if(what == SREF)
+            {
+                fprintf(cellfile, "cell:add_child(\"%s\")\n", str);
+            }
     //        if obj.what == "shape" then
     //            table.insert(cell.shapes, obj)
-            }
     //        elseif obj.what == "sref" then
     //            table.insert(cell.references, obj)
     //        elseif obj.what == "aref" then
@@ -545,31 +648,36 @@ void gdsparser_read_stream(const char* filename)
     //            table.insert(cell.labels, obj)
     //        end
     //        obj = nil
+        }
         else if(record->recordtype == LAYER)
         {
-    //        obj.layer = record.data
+            layer = *(int16_t*)record->data;
         }
         else if(record->recordtype == DATATYPE)
         {
-    //        obj.purpose = record.data
+            purpose = *(int16_t*)record->data;
         }
         else if(record->recordtype == TEXTTYPE)
         {
-    //        obj.purpose = record.data
+            purpose = *(int16_t*)record->data;
         }
         else if(record->recordtype == XY)
         {
-    //        obj.pts = record.data
+            for(int i = 0; i < (record->length - 4) / 4; i += 2)
+            {
+                int32_t x = ((int32_t*)record->data)[i];
+                int32_t y = ((int32_t*)record->data)[i + 1];
+                vector_append(points, point_create(x, y));
+            }
         }
         else if(record->recordtype == WIDTH)
         {
-    //        obj.width = record.data
+            width = *(int32_t*)record->data;
         }
         else if(record->recordtype == PATHTYPE)
         {
     //        if record.data == 0 then
     //            obj.pathtype = "butt"
-            }
     //        elseif record.data == 1 then
     //            obj.pathtype = "round"
     //        elseif record.data == 2 then
@@ -577,18 +685,19 @@ void gdsparser_read_stream(const char* filename)
     //        elseif record.data == 4 then
     //            obj.pathtype = { 0, 0 }
     //        end
+        }
         else if(record->recordtype == COLROW)
         {
-    //        obj.xrep = record.data[1]
-    //        obj.yrep = record.data[2]
+            xrep = ((int16_t*)record->data)[0];
+            yrep = ((int16_t*)record->data)[1];
         }
         else if(record->recordtype == SNAME)
         {
-    //        obj.name = record.data
+            str = (const char*)record->data;
         }
         else if(record->recordtype == STRING)
         {
-    //        obj.text = record.data
+            str = (const char*)record->data;
         }
         else if(record->recordtype == STRANS)
         {

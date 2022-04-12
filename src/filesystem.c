@@ -1,4 +1,4 @@
-#include "lfilesystem.h"
+#include "filesystem.h"
 
 #include "lua/lauxlib.h"
 
@@ -9,9 +9,8 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-static int lfilesystem_mkdir(lua_State* L)
+int filesystem_mkdir(const char* path)
 {
-    const char* path = lua_tostring(L, 1);
     mode_t mode = 0777;
 
     /* 
@@ -25,8 +24,7 @@ static int lfilesystem_mkdir(lua_State* L)
         if (mkdir(path, mode) == -1) {
             if (errno != EEXIST) {
                 *p = '/';
-                lua_pushboolean(L, 0);
-                return 1;
+                return 0;
             }
         }
         *p = '/';
@@ -35,12 +33,18 @@ static int lfilesystem_mkdir(lua_State* L)
     /* create last part of path */
     if (mkdir(path, mode) == -1) {
         if (errno != EEXIST) {
-            lua_pushboolean(L, 0);
-            return 1;
+            return 0;
         }
     }
 
-    lua_pushboolean(L, 1);
+    return 1;
+}
+
+static int lfilesystem_mkdir(lua_State* L)
+{
+    const char* path = lua_tostring(L, 1);
+    int ret = filesystem_mkdir(path);
+    lua_pushboolean(L, ret);
     return 1;
 }
 
@@ -57,6 +61,7 @@ static int lfilesystem_exists(lua_State* L)
     }
     return 1;
 }
+
 
 int open_lfilesystem_lib(lua_State* L)
 {

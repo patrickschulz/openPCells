@@ -5,7 +5,7 @@
 #include "main.functions.h"
 #include "util.h"
 #include "gdsparser.h"
-#include "lfilesystem.h"
+#include "filesystem.h"
 #include "config.h"
 
 void main_gds_show_data(struct cmdoptions* cmdoptions)
@@ -36,6 +36,9 @@ void main_gds_show_cell_hierarchy(struct cmdoptions* cmdoptions)
 
 void main_gds_read(struct cmdoptions* cmdoptions)
 {
+    const char* readgds = cmdoptions_get_argument_long(cmdoptions, "read-gds");
+    gdsparser_read_stream(readgds);
+    /*
     lua_State* L = util_create_basic_lua_state();
     open_gdsparser_lib(L);
     open_lfilesystem_lib(L);
@@ -122,4 +125,5 @@ void main_gds_read(struct cmdoptions* cmdoptions)
     lua_setglobal(L, "args");
     main_call_lua_program(L, OPC_HOME "/src/scripts/read_gds.lua");
     lua_close(L);
+    */
 }
