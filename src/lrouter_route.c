@@ -163,7 +163,6 @@ int route(net_t *net, int*** field, size_t width, size_t height,
 		/* array to look for the least costing neighboring point */
 		point_t nextpoints[NUM_DIRECTIONS];
 		memset(nextpoints, UINT_MAX, sizeof(point_t) * NUM_DIRECTIONS);
-		bool next_is_via = false;
 
 		/*
 		 * circle around every point + check layer above and below
@@ -204,16 +203,21 @@ int route(net_t *net, int*** field, size_t width, size_t height,
 				}
 		}
 
+		bool next_is_via = false;
+
+		int xdiff_old, ydiff_old;
+		int xsteps, ysteps, zsteps;
+
 		point_t *npoint = get_min_point(nextpoints);
 		if(next_is_via)
 		{
 			field[z][x][y] = VIA;
-			next_is_via = FALSE;
+			next_is_via = true;
 		}
 		else if(npoint->z != (int)z)
 		{
 			field[z][x][y] = VIA;
-			next_is_via = TRUE;
+			next_is_via = true;
 		}
 		else
 		{
@@ -221,22 +225,32 @@ int route(net_t *net, int*** field, size_t width, size_t height,
 		}
 
 		int xdiff, ydiff, zdiff;
-		xdiff = npoint->x - x;
-		ydiff = npoint->y - y;
-		zdiff = npoint->z - z;
+		xdiff_old = xdiff;
+		ydiff_old = ydiff;
+
+		xdiff = npoint->x - (int)x;
+		ydiff = npoint->y - (int)y;
+		zdiff = npoint->z - (int)z;
+
+		xsteps += xdiff;
+		ysteps += ydiff;
+		zsteps += zdiff;
+
+		printf("!_!_!_ %i, %i, %i\n", xsteps, ysteps, zsteps);
+
+		if(xdiff != xdiff_old && ydiff != ydiff_old)
+		{
+			/* put the point diffs in the nets path queue */
+			point_t *path_point = calloc(1, sizeof(point_t));
+			path_point->x = xsteps;
+			path_point->y = ysteps;
+			path_point->z = zsteps;
+			queue_enqueue(net->path, path_point);
+		}
 
 		x = npoint->x;
 		y = npoint->y;
 		z = npoint->z;
-
-		/* put the point diffs in the nets path queue */
-		point_t *path_point = malloc(sizeof(point_t));
-		path_point->x = xdiff;
-		path_point->y = ydiff;
-		path_point->z = zdiff;
-		queue_enqueue(net->path, path_point);
-
-
 	} while (!(x == startx && y == starty && z == startz));
 
 	queue_reverse(net->path);
