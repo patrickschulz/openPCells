@@ -160,6 +160,6 @@ function import.translate_cells(cells, prefix, dirname, layermap, alignmentbox, 
             error("import: could not create import directory")
         end
     else
-        error("import: directory exists. Use --import-overwrite to overwrite this directory");
+        error(string.format("import: directory '%s' exists. Use --import-overwrite to overwrite this directory", path));
     end
 end
