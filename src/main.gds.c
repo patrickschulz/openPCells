@@ -8,6 +8,8 @@
 #include "filesystem.h"
 #include "config.h"
 
+#include "modulemanager.h"
+
 void main_gds_show_data(struct cmdoptions* cmdoptions)
 {
     const char* arg = cmdoptions_get_argument_long(cmdoptions, "show-gds-data");
@@ -43,7 +45,11 @@ void main_gds_read(struct cmdoptions* cmdoptions)
     open_gdsparser_lib(L);
     open_lfilesystem_lib(L);
     main_load_lua_module(L, "gdsparser");
-    main_load_lua_module(L, "envlib");
+    module_load_envlib(L);
+    if(!lua_isnil(L, -1))
+    {
+        lua_setglobal(L, "envlib");
+    }
     main_load_lua_module(L, "import");
     lua_newtable(L);
 
@@ -80,7 +86,7 @@ void main_gds_read(struct cmdoptions* cmdoptions)
     lua_pushboolean(L, importoverwrite);
     lua_setfield(L, -2, "importoverwrite");
 
-    const char* importlibname = cmdoptions_get_argument_long(cmdoptions, "gds-alignmentbox-purpose");
+    const char* importlibname = cmdoptions_get_argument_long(cmdoptions, "import-libname");
     if(importlibname)
     {
         lua_pushstring(L, importlibname);

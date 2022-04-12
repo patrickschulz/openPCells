@@ -1,6 +1,6 @@
 # main programs and generated code files
 opc
-src/embed_binary
+src/embed_compiled_lua_file
 src/config.h
 src/scriptmanager.c
 src/scriptmanager.h

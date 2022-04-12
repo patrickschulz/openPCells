@@ -1,2 +1,0 @@
-- eliminate any hard-coded placement
-- parameterize transistor geometries and other stuff (number of fingers, multiplication factor, etc.)

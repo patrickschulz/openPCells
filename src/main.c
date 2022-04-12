@@ -20,12 +20,10 @@
 #include "lua/lualib.h"
 
 #include "cmdoptions.h"
-
 #include "util.h"
-
 #include "config.h"
-
 #include "scriptmanager.h"
+#include "pcell.h"
 
 #include "main.functions.h"
 #include "main.cell.h"
@@ -42,13 +40,17 @@ static int _load_config(struct keyvaluearray* config)
     {
         struct vector* techpaths = vector_create();
         lua_getfield(L, -1, "techpaths");
-        lua_pushnil(L);
-        while(lua_next(L, -2) != 0)
+        if(!lua_isnil(L, -1))
         {
-            const char* path = lua_tostring(L, -1);
-            vector_append(techpaths, util_copy_string(path));
-            lua_pop(L, 1);
+            lua_pushnil(L);
+            while(lua_next(L, -2) != 0)
+            {
+                const char* path = lua_tostring(L, -1);
+                vector_append(techpaths, util_copy_string(path));
+                lua_pop(L, 1);
+            }
         }
+        lua_pop(L, 1); // pop techpaths table (or nil)
         keyvaluearray_add_untagged(config, "techpaths", techpaths);
     }
     lua_close(L);
@@ -163,6 +165,45 @@ int main(int argc, const char* const * argv)
         goto DESTROY_CONFIG;
     }
 
+    if(cmdoptions_was_provided_long(cmdoptions, "list"))
+    {
+        struct vector* cellpaths_to_prepend = vector_create();
+        if(cmdoptions_was_provided_long(cmdoptions, "prepend-cellpath"))
+        {
+            const char** arg = cmdoptions_get_argument_long(cmdoptions, "prepend-cellpath");
+            while(*arg)
+            {
+                vector_append(cellpaths_to_prepend, util_copy_string(*arg));
+                ++arg;
+            }
+        }
+        struct vector* cellpaths_to_append = vector_create();
+        if(cmdoptions_was_provided_long(cmdoptions, "cellpath"))
+        {
+            const char** arg = cmdoptions_get_argument_long(cmdoptions, "cellpath");
+            while(*arg)
+            {
+                vector_append(cellpaths_to_append, util_copy_string(*arg));
+                ++arg;
+            }
+        }
+        if(cmdoptions_was_provided_long(cmdoptions, "append-cellpath"))
+        {
+            const char** arg = cmdoptions_get_argument_long(cmdoptions, "append-cellpath");
+            while(*arg)
+            {
+                vector_append(cellpaths_to_append, util_copy_string(*arg));
+                ++arg;
+            }
+        }
+        vector_append(cellpaths_to_append, util_copy_string(OPC_HOME "/cells"));
+        struct pcell_state* pcell_state = pcell_initialize_state(cellpaths_to_prepend, cellpaths_to_append);
+        vector_destroy(cellpaths_to_prepend, free);
+        vector_destroy(cellpaths_to_append, free);
+        const char* listformat = cmdoptions_get_argument_long(cmdoptions, "list-format");
+        pcell_list_cells(pcell_state, listformat);
+    }
+
     // create cell
     if(cmdoptions_was_provided_long(cmdoptions, "cell"))
     {
@@ -174,7 +215,7 @@ int main(int argc, const char* const * argv)
     }
 
     // clean up states
-DESTROY_CONFIG:
+DESTROY_CONFIG: ;
     struct vector* techpaths = keyvaluearray_get(config, "techpaths");
     if(techpaths)
     {

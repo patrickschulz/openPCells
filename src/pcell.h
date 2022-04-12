@@ -27,7 +27,7 @@ struct pcell_state
     struct vector* cellpaths;
 };
 
-struct pcell_state* pcell_initialize_state(void);
+struct pcell_state* pcell_initialize_state(struct vector* to_prepend, struct vector* to_append);
 void pcell_destroy_state(struct pcell_state* state);
 
 size_t pcell_get_reference_count(struct pcell_state* state);
@@ -37,6 +37,8 @@ void pcell_unlink_cell_reference(struct pcell_state*, const char* identifier);
 
 void pcell_prepend_cellpath(struct pcell_state*, const char* path);
 void pcell_append_cellpath(struct pcell_state*, const char* path);
+
+void pcell_list_cells(struct pcell_state* pcell_state, const char* listformat);
 
 int open_lpcell_lib(lua_State* L);
 

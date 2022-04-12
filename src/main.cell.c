@@ -67,20 +67,6 @@ static struct technology_state* _create_techstate(struct vector* techpaths, cons
     return techstate;
 }
 
-static struct pcell_state* _create_pcell_state(struct vector* cellpaths_to_prepend, struct vector* cellpaths_to_append)
-{
-    struct pcell_state* pcell_state = pcell_initialize_state();
-    for(unsigned int i = 0; i < vector_size(cellpaths_to_prepend); ++i)
-    {
-        pcell_prepend_cellpath(pcell_state, vector_get(cellpaths_to_prepend, i));
-    }
-    for(unsigned int i = 0; i < vector_size(cellpaths_to_append); ++i)
-    {
-        pcell_append_cellpath(pcell_state, vector_get(cellpaths_to_append, i));
-    }
-    return pcell_state;
-}
-
 static struct layermap* _create_layermap(void)
 {
     struct layermap* layermap = generics_initialize_layer_map();
@@ -262,6 +248,15 @@ void main_create_and_export_cell(struct cmdoptions* cmdoptions, struct keyvaluea
         }
     }
     struct vector* cellpaths_to_append = vector_create();
+    if(cmdoptions_was_provided_long(cmdoptions, "cellpath"))
+    {
+        const char** arg = cmdoptions_get_argument_long(cmdoptions, "cellpath");
+        while(*arg)
+        {
+            vector_append(cellpaths_to_append, util_copy_string(*arg));
+            ++arg;
+        }
+    }
     if(cmdoptions_was_provided_long(cmdoptions, "append-cellpath"))
     {
         const char** arg = cmdoptions_get_argument_long(cmdoptions, "append-cellpath");
@@ -272,7 +267,7 @@ void main_create_and_export_cell(struct cmdoptions* cmdoptions, struct keyvaluea
         }
     }
     vector_append(cellpaths_to_append, util_copy_string(OPC_HOME "/cells"));
-    struct pcell_state* pcell_state = _create_pcell_state(cellpaths_to_prepend, cellpaths_to_append);
+    struct pcell_state* pcell_state = pcell_initialize_state(cellpaths_to_prepend, cellpaths_to_append);
     vector_destroy(cellpaths_to_prepend, free);
     vector_destroy(cellpaths_to_append, free);
     if(!pcell_state)
