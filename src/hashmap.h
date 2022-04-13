@@ -19,6 +19,7 @@ struct hashmap
 struct hashmap* hashmap_create(void);
 void hashmap_destroy(struct hashmap* map);
 void hashmap_insert(struct hashmap* map, const char* key, void* value);
+int hashmap_exists(struct hashmap* map, const char* key);
 void* hashmap_get(struct hashmap* map, const char* key);
 
 // iterator

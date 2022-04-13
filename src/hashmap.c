@@ -88,6 +88,12 @@ void hashmap_insert(struct hashmap* map, const char* key, void* value)
     map->size += 1;
 }
 
+int hashmap_exists(struct hashmap* map, const char* key)
+{
+    struct hashmap_entry* entry = _find(map, key);
+    return entry->key != NULL;
+}
+
 void* hashmap_get(struct hashmap* map, const char* key)
 {
     struct hashmap_entry* entry = _find(map, key);
