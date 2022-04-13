@@ -43,7 +43,7 @@ struct record
     uint16_t length;
     uint8_t recordtype;
     uint8_t datatype;
-    uint8_t* rawdata;
+    uint8_t* data;
 };
 
 struct record* _read_record(FILE* file)
@@ -68,7 +68,7 @@ struct record* _read_record(FILE* file)
         free(record);
         return NULL;
     }
-    record->rawdata = data;
+    record->data = data;
     return record;
 }
 
@@ -78,7 +78,7 @@ struct stream
     size_t numrecords;
 };
 
-struct stream* _read_raw_stream(const char* filename)
+static struct stream* _read_raw_stream(const char* filename)
 {
     FILE* file = fopen(filename, "r");
     if(!file)
@@ -116,16 +116,27 @@ struct stream* _read_raw_stream(const char* filename)
     return stream;
 }
 
+static void _destroy_stream(struct stream* stream)
+{
+    for(unsigned int i = 0; i < stream->numrecords; ++i)
+    {
+        free(stream->records[i]->data);
+        free(stream->records[i]);
+    }
+    free(stream->records);
+    free(stream);
+}
+
 static int* _parse_bit_array(uint8_t* data)
 {
     int* pdata = calloc(16, sizeof(*pdata));
     for(int j = 0; j < 8; ++j)
     {
-        pdata[j] = (data[0] & (1 << j)) >> j;
+        pdata[j] = (data[0] & (1 << (8 - j - 1))) >> (8 - j - 1);
     }
     for(int j = 0; j < 8; ++j)
     {
-        pdata[j + 8] = (data[1] & (1 << j)) >> j;
+        pdata[j + 8] = (data[1] & (1 << (8 - j - 1))) >> (8 - j - 1);
     }
     return pdata;
 }
@@ -198,6 +209,14 @@ static double* _parse_eight_byte_real(uint8_t* data, size_t length)
     return pdata;
 }
 
+static char* _parse_string(uint8_t* data, size_t length)
+{
+    char* string = malloc(length + 1);
+    strncpy(string, (const char*) data, length);
+    string[length] = 0;
+    return string;
+}
+
 static int lgdsparser_read_raw_stream(lua_State* L)
 {
     const char* filename = lua_tostring(L, 1);
@@ -240,12 +259,12 @@ static int lgdsparser_read_raw_stream(lua_State* L)
                 lua_newtable(L);
                 for(int j = 0; j < 8; ++j)
                 {
-                    lua_pushinteger(L, (record->rawdata[0] & (1 << j)) >> j);
+                    lua_pushinteger(L, (record->data[0] & (1 << j)) >> j);
                     lua_rawseti(L, -2, j + 1);
                 }
                 for(int j = 0; j < 8; ++j)
                 {
-                    lua_pushinteger(L, (record->rawdata[1] & (1 << j)) >> j);
+                    lua_pushinteger(L, (record->data[1] & (1 << j)) >> j);
                     lua_rawseti(L, -2, j + 8 + 1);
                 }
                 lua_rawset(L, -3);
@@ -257,8 +276,8 @@ static int lgdsparser_read_raw_stream(lua_State* L)
                     lua_newtable(L);
                     for(int j = 0; j < (record->length - 4) / 2; ++j)
                     {
-                        int16_t num = (record->rawdata[j * 2]     << 8) 
-                                    + (record->rawdata[j * 2 + 1] << 0);
+                        int16_t num = (record->data[j * 2]     << 8) 
+                                    + (record->data[j * 2 + 1] << 0);
                         lua_pushinteger(L, num);
                         lua_rawseti(L, -2, j + 1);
                     }
@@ -267,8 +286,8 @@ static int lgdsparser_read_raw_stream(lua_State* L)
                 else
                 {
                     lua_pushstring(L, "data");
-                    int16_t num = (record->rawdata[0] << 8) 
-                                + (record->rawdata[1] << 0);
+                    int16_t num = (record->data[0] << 8) 
+                                + (record->data[1] << 0);
                     lua_pushinteger(L, num);
                     lua_rawset(L, -3);
                 }
@@ -280,10 +299,10 @@ static int lgdsparser_read_raw_stream(lua_State* L)
                     lua_newtable(L);
                     for(int j = 0; j < (record->length - 4) / 4; ++j)
                     {
-                        int32_t num = (record->rawdata[j * 4]     << 24) 
-                                    + (record->rawdata[j * 4 + 1] << 16) 
-                                    + (record->rawdata[j * 4 + 2] <<  8) 
-                                    + (record->rawdata[j * 4 + 3] <<  0);
+                        int32_t num = (record->data[j * 4]     << 24) 
+                                    + (record->data[j * 4 + 1] << 16) 
+                                    + (record->data[j * 4 + 2] <<  8) 
+                                    + (record->data[j * 4 + 3] <<  0);
                         lua_pushinteger(L, num);
                         lua_rawseti(L, -2, j + 1);
                     }
@@ -292,10 +311,10 @@ static int lgdsparser_read_raw_stream(lua_State* L)
                 else
                 {
                     lua_pushstring(L, "data");
-                    int32_t num = (record->rawdata[0] << 24) 
-                                + (record->rawdata[1] << 16) 
-                                + (record->rawdata[2] <<  8) 
-                                + (record->rawdata[3] <<  0);
+                    int32_t num = (record->data[0] << 24) 
+                                + (record->data[1] << 16) 
+                                + (record->data[2] <<  8) 
+                                + (record->data[3] <<  0);
                     lua_pushinteger(L, num);
                     lua_rawset(L, -3);
                 }
@@ -308,11 +327,11 @@ static int lgdsparser_read_raw_stream(lua_State* L)
                 }
                 for(int j = 0; j < (record->length - 4) / 4; ++j)
                 {
-                    int sign = record->rawdata[j * 4] & 0x80;
-                    int8_t exp = record->rawdata[j * 4] & 0x7f;
-                    double mantissa = record->rawdata[j * 4 + 1] / 256.0
-                                    + record->rawdata[j * 4 + 2] / 256.0 / 256.0
-                                    + record->rawdata[j * 4 + 3] / 256.0 / 256.0 / 256.0;
+                    int sign = record->data[j * 4] & 0x80;
+                    int8_t exp = record->data[j * 4] & 0x7f;
+                    double mantissa = record->data[j * 4 + 1] / 256.0
+                                    + record->data[j * 4 + 2] / 256.0 / 256.0
+                                    + record->data[j * 4 + 3] / 256.0 / 256.0 / 256.0;
                     if(sign)
                     {
                         lua_pushnumber(L, -mantissa * pow(16.0, exp - 64));
@@ -336,15 +355,15 @@ static int lgdsparser_read_raw_stream(lua_State* L)
                 }
                 for(int j = 0; j < (record->length - 4) / 8; ++j)
                 {
-                    int sign = record->rawdata[j * 8] & 0x80;
-                    int8_t exp = record->rawdata[j * 8] & 0x7f;
-                    double mantissa = record->rawdata[j * 8 + 1] / 256.0
-                                    + record->rawdata[j * 8 + 2] / 256.0 / 256.0
-                                    + record->rawdata[j * 8 + 3] / 256.0 / 256.0 / 256.0
-                                    + record->rawdata[j * 8 + 4] / 256.0 / 256.0 / 256.0 / 256.0
-                                    + record->rawdata[j * 8 + 5] / 256.0 / 256.0 / 256.0 / 256.0 / 256.0
-                                    + record->rawdata[j * 8 + 6] / 256.0 / 256.0 / 256.0 / 256.0 / 256.0 / 256.0
-                                    + record->rawdata[j * 8 + 7] / 256.0 / 256.0 / 256.0 / 256.0 / 256.0 / 256.0 / 256.0;
+                    int sign = record->data[j * 8] & 0x80;
+                    int8_t exp = record->data[j * 8] & 0x7f;
+                    double mantissa = record->data[j * 8 + 1] / 256.0
+                                    + record->data[j * 8 + 2] / 256.0 / 256.0
+                                    + record->data[j * 8 + 3] / 256.0 / 256.0 / 256.0
+                                    + record->data[j * 8 + 4] / 256.0 / 256.0 / 256.0 / 256.0
+                                    + record->data[j * 8 + 5] / 256.0 / 256.0 / 256.0 / 256.0 / 256.0
+                                    + record->data[j * 8 + 6] / 256.0 / 256.0 / 256.0 / 256.0 / 256.0 / 256.0
+                                    + record->data[j * 8 + 7] / 256.0 / 256.0 / 256.0 / 256.0 / 256.0 / 256.0 / 256.0;
                     if(sign)
                     {
                         lua_pushnumber(L, -mantissa * pow(16.0, exp - 64));
@@ -361,16 +380,16 @@ static int lgdsparser_read_raw_stream(lua_State* L)
                 lua_rawset(L, -3);
                 break;
             case ASCII_STRING:
-                if(((char*)record->rawdata)[record->length - 4 - 1] == 0)
+                if(((char*)record->data)[record->length - 4 - 1] == 0)
                 {
                     lua_pushstring(L, "data");
-                    lua_pushlstring(L, (char*)record->rawdata, record->length - 4 - 1);
+                    lua_pushlstring(L, (char*)record->data, record->length - 4 - 1);
                     lua_rawset(L, -3);
                 }
                 else
                 {
                     lua_pushstring(L, "data");
-                    lua_pushlstring(L, (char*)record->rawdata, record->length - 4);
+                    lua_pushlstring(L, (char*)record->data, record->length - 4);
                     lua_rawset(L, -3);
                 }
                 break;
@@ -411,7 +430,7 @@ int gdsparser_show_records(const char* filename)
             {
                 case TWO_BYTE_INTEGER:
                 {
-                    int16_t* pdata = _parse_two_byte_integer(record->rawdata, record->length - 4);
+                    int16_t* pdata = _parse_two_byte_integer(record->data, record->length - 4);
                     for(int i = 0; i < (record->length - 4) / 2; ++i)
                     {
                         int16_t num = pdata[i];
@@ -422,7 +441,7 @@ int gdsparser_show_records(const char* filename)
                 }
                 case FOUR_BYTE_INTEGER:
                 {
-                    int32_t* pdata = _parse_four_byte_integer(record->rawdata, record->length - 4);
+                    int32_t* pdata = _parse_four_byte_integer(record->data, record->length - 4);
                     for(int i = 0; i < (record->length - 4) / 4; ++i)
                     {
                         int32_t num = pdata[i];
@@ -433,7 +452,7 @@ int gdsparser_show_records(const char* filename)
                 }
                 case FOUR_BYTE_REAL:
                 {
-                    double* pdata = _parse_four_byte_real(record->rawdata, record->length - 4);
+                    double* pdata = _parse_four_byte_real(record->data, record->length - 4);
                     for(int i = 0; i < (record->length - 4) / 4; ++i)
                     {
                         double num = pdata[i];
@@ -444,7 +463,7 @@ int gdsparser_show_records(const char* filename)
                 }
                 case EIGHT_BYTE_REAL:
                 {
-                    double* pdata = _parse_eight_byte_real(record->rawdata, record->length - 4);
+                    double* pdata = _parse_eight_byte_real(record->data, record->length - 4);
                     for(int i = 0; i < (record->length - 4) / 8; ++i)
                     {
                         double num = pdata[i];
@@ -457,7 +476,7 @@ int gdsparser_show_records(const char* filename)
                     putchar('"');
                     for(int i = 0; i < record->length - 4; ++i)
                     {
-                        char ch = ((char*)record->rawdata)[i];
+                        char ch = ((char*)record->data)[i];
                         if(ch) // odd-length strings are zero padded, don't print that character
                         {
                             putchar(ch);
@@ -467,21 +486,16 @@ int gdsparser_show_records(const char* filename)
                     break;
                 case BIT_ARRAY:
                 {
-                    int* pdata = _parse_bit_array(record->rawdata);
-                    for(int i = 0; i < (record->length - 4) / 2; ++i)
+                    int* pdata = _parse_bit_array(record->data);
+                    for(int i = 0; i < 16; ++i)
                     {
-                        int16_t num = pdata[i];
-                        for(unsigned int j = 0; j < 16; ++j)
+                        if(pdata[i])
                         {
-                            int val = num & (1 << (15 - j));
-                            if(val)
-                            {
-                                putchar('1');
-                            }
-                            else
-                            {
-                                putchar('0');
-                            }
+                            putchar('1');
+                        }
+                        else
+                        {
+                            putchar('0');
                         }
                     }
                     free(pdata);
@@ -504,13 +518,7 @@ int gdsparser_show_records(const char* filename)
             ++indent;
         }
     }
-    for(unsigned int i = 0; i < stream->numrecords; ++i)
-    {
-        free(stream->records[i]->rawdata);
-        free(stream->records[i]);
-    }
-    free(stream->records);
-    free(stream);
+    _destroy_stream(stream);
     return 1;
 }
 
@@ -542,6 +550,11 @@ void _print_int32(FILE* file, int32_t num)
     }
 }
 
+#define MAX2(a, b) ((a) > (b) ? (a) : (b))
+#define MIN2(a, b) ((a) > (b) ? (b) : (a))
+#define MAX4(a, b, c, d) MAX2(MAX2(a, b), MAX2(c, d))
+#define MIN4(a, b, c, d) MIN2(MIN2(a, b), MIN2(c, d))
+
 void gdsparser_read_stream(const char* filename, const char* importname)
 {
     const char* libname;
@@ -556,15 +569,18 @@ void gdsparser_read_stream(const char* filename, const char* importname)
     int32_t width;
     struct vector* points = NULL;
     uint8_t what;
-    const char* str;
+    char* str;
     int16_t xrep, yrep;
     double angle;
+    struct vector* childnames = NULL;
+    struct vector* childorigins = NULL;
+
     for(size_t i = 0; i < stream->numrecords; ++i)
     {
         struct record* record = stream->records[i];
         if(record->recordtype == LIBNAME)
         {
-            libname = (const char*)record->rawdata;
+            libname = (const char*)record->data;
             size_t len = strlen(importname) + strlen(importname) + 1; // +1: '/'
             char* path = malloc(len + 1);
             snprintf(path, len + 1, "%s/%s", importname, importname);
@@ -573,40 +589,43 @@ void gdsparser_read_stream(const char* filename, const char* importname)
         }
         else if(record->recordtype == BGNSTR)
         {
-    //        cell = {
-    //            shapes = {},
-    //            references = {},
-    //            labels = {}
-    //        }
+            childnames = vector_create();
+            childorigins = vector_create();
         }
         else if(record->recordtype == ENDSTR)
         {
+            for(unsigned int i = 0; i < vector_size(childnames); ++i)
+            {
+                const char* childname = vector_get(childnames, i);
+                point_t* origin = vector_get(childorigins, i);
+                fprintf(cellfile, "    cell:add_child(\"%s\"):translate(%lld, %lld)\n", childname, origin->x, origin->y);
+            }
+            vector_destroy(childnames, free);
+            vector_destroy(childorigins, point_destroy);
+            childnames = NULL;
             fputs("end", cellfile); // close layout function
             fclose(cellfile);
         }
         else if(record->recordtype == STRNAME)
         {
-            const char* cellname = (const char*) record->rawdata;
+            char* cellname = _parse_string(record->data, record->length - 4);
             size_t len = strlen(importname) + strlen(importname) + strlen(cellname) + 6; // +2: 2 * '/' + ".lua"
             char* path = malloc(len + 1);
             snprintf(path, len + 1, "%s/%s/%s.lua", importname, importname, cellname);
             cellfile = fopen(path, "w");
             fputs("function parameters() end\n", cellfile);
             fputs("function layout(cell)\n", cellfile);
+            free(cellname);
             free(path);
         }
         else if(record->recordtype == BOUNDARY)
         {
             what = BOUNDARY;
             points = vector_create();
-    //           is_record(record, "BOX") or
-    //           is_record(record, "PATH") then
-    //        obj = { 
-    //            what = "shape",
-    //            shapetype = (is_record(record, "BOUNDARY") and "polygon") or
-    //                   (is_record(record, "BOX") and "rectangle") or
-    //                   (is_record(record, "PATH") and "path")
-    //        }
+        }
+        else if(record->recordtype == BOX)
+        {
+            // FIXME
         }
         else if(record->recordtype == PATH)
         {
@@ -616,6 +635,7 @@ void gdsparser_read_stream(const char* filename, const char* importname)
         else if(record->recordtype == SREF)
         {
             what = SREF;
+            points = vector_create();
         }
         else if(record->recordtype == AREF)
         {
@@ -624,89 +644,120 @@ void gdsparser_read_stream(const char* filename, const char* importname)
         else if(record->recordtype == TEXT)
         {
             what = TEXT;
+            points = vector_create();
         }
         else if(record->recordtype == ENDEL)
         {
-            fputs("    ", cellfile);
             if(what == BOUNDARY)
             {
-                /*
-                fputs("geometry.polygon(cell, generics.premapped(nil, { gds = {", cellfile);
-                fputs("layer = ", cellfile);
-                _print_int16(cellfile, layer);
-                fputs(", purpose = ", cellfile);
-                _print_int16(cellfile, purpose);
-                fputs("} }), { ", cellfile);
-                for(unsigned int i = 0; i < vector_size(points); ++i)
+                // check for rectangles
+                // BOX is not used for rectangles, at least most tool suppliers seem to do it this way
+                // therefor, we check if some "polygons" are actually rectangles and fix the shape types
+                if(vector_size(points) == 5)
                 {
-                    point_t* pt = vector_get(points, i);
-                    fputs("point.create(", cellfile);
-                    _print_int32(cellfile, pt->x);
-                    fputs(", ", cellfile);
-                    _print_int32(cellfile, pt->y);
-                    fputs("), ", cellfile);
+                    if(((((point_t*)vector_get(points, 0))->y == ((point_t*)vector_get(points, 1))->y)  &&
+                        (((point_t*)vector_get(points, 1))->x == ((point_t*)vector_get(points, 2))->x)  &&
+                        (((point_t*)vector_get(points, 2))->y == ((point_t*)vector_get(points, 3))->y)  &&
+                        (((point_t*)vector_get(points, 3))->x == ((point_t*)vector_get(points, 4))->x)  &&
+                        (((point_t*)vector_get(points, 0))->x == ((point_t*)vector_get(points, 4))->x)  &&
+                        (((point_t*)vector_get(points, 0))->y == ((point_t*)vector_get(points, 4))->y)) ||
+                       ((((point_t*)vector_get(points, 0))->x == ((point_t*)vector_get(points, 1))->x)  &&
+                        (((point_t*)vector_get(points, 1))->y == ((point_t*)vector_get(points, 2))->y)  &&
+                        (((point_t*)vector_get(points, 2))->x == ((point_t*)vector_get(points, 3))->x)  &&
+                        (((point_t*)vector_get(points, 3))->y == ((point_t*)vector_get(points, 4))->y)  &&
+                        (((point_t*)vector_get(points, 0))->x == ((point_t*)vector_get(points, 4))->x)  &&
+                        (((point_t*)vector_get(points, 0))->y == ((point_t*)vector_get(points, 4))->y)))
+                    {
+                        // FIXME: this is terrible
+                        fprintf(cellfile, "    geometry.rectanglebltr(cell, generics.premapped(nil, { gds = { layer = %d, purpose = %d } }), point.create(%lld, %lld), point.create(%lld, %lld))\n", layer, purpose, 
+                            MIN4(((point_t*)vector_get(points, 0))->x, ((point_t*)vector_get(points, 1))->x, ((point_t*)vector_get(points, 2))->x, ((point_t*)vector_get(points, 3))->x),
+                            MIN4(((point_t*)vector_get(points, 0))->y, ((point_t*)vector_get(points, 1))->y, ((point_t*)vector_get(points, 2))->y, ((point_t*)vector_get(points, 3))->y),
+                            MAX4(((point_t*)vector_get(points, 0))->x, ((point_t*)vector_get(points, 1))->x, ((point_t*)vector_get(points, 2))->x, ((point_t*)vector_get(points, 3))->x),
+                            MAX4(((point_t*)vector_get(points, 0))->y, ((point_t*)vector_get(points, 1))->y, ((point_t*)vector_get(points, 2))->y, ((point_t*)vector_get(points, 3))->y)
+                        );
+                    }
                 }
-                fputs("})\n", cellfile);
-                */
-                fprintf(cellfile, "geometry.polygon(cell, generics.premapped(nil, { gds = { layer = %d, purpose = %d } }), { ", layer, purpose);
-                for(unsigned int i = 0; i < vector_size(points); ++i)
+                else
                 {
-                    point_t* pt = vector_get(points, i);
-                    fprintf(cellfile, "point.create(%lld, %lld), ", pt->x, pt->y);
+                    ///////////////////////////////////////////////////////////////////////
+                    /*
+                       fputs("geometry.polygon(cell, generics.premapped(nil, { gds = {", cellfile);
+                       fputs("layer = ", cellfile);
+                       _print_int16(cellfile, layer);
+                       fputs(", purpose = ", cellfile);
+                       _print_int16(cellfile, purpose);
+                       fputs("} }), { ", cellfile);
+                       for(unsigned int i = 0; i < vector_size(points); ++i)
+                       {
+                       point_t* pt = vector_get(points, i);
+                       fputs("point.create(", cellfile);
+                       _print_int32(cellfile, pt->x);
+                       fputs(", ", cellfile);
+                       _print_int32(cellfile, pt->y);
+                       fputs("), ", cellfile);
+                       }
+                       fputs("})\n", cellfile);
+                       */
+                    fprintf(cellfile, "    geometry.polygon(cell, generics.premapped(nil, { gds = { layer = %d, purpose = %d } }), { ", layer, purpose);
+                    for(unsigned int i = 0; i < vector_size(points); ++i)
+                    {
+                        point_t* pt = vector_get(points, i);
+                        fprintf(cellfile, "point.create(%lld, %lld), ", pt->x, pt->y);
+                    }
+                    fputs("})\n", cellfile);
                 }
-                fputs("})\n", cellfile);
+                vector_destroy(points, point_destroy);
             }
             if(what == PATH)
             {
-                fprintf(cellfile, "geometry.path(cell, generics.premapped(nil, { gds = { layer = %d, purpose = %d } }), { ", layer, purpose);
+                fprintf(cellfile, "    geometry.path(cell, generics.premapped(nil, { gds = { layer = %d, purpose = %d } }), { ", layer, purpose);
                 for(unsigned int i = 0; i < vector_size(points); ++i)
                 {
                     point_t* pt = vector_get(points, i);
                     fprintf(cellfile, "point.create(%lld, %lld), ", pt->x, pt->y);
                 }
                 fprintf(cellfile, "}, %d)\n", width);
+                vector_destroy(points, point_destroy);
             }
             if(what == TEXT)
             {
                 point_t* pt = vector_get(points, 0);
-                fprintf(cellfile, "cell:add_port(\"%s\", generics.premapped(nil, { gds = { layer = %d, purpose = %d } }), point.create(%lld, %lld))\n", str, layer, purpose, pt->x, pt->y);
+                fprintf(cellfile, "    cell:add_port(\"%s\", generics.premapped(nil, { gds = { layer = %d, purpose = %d } }), point.create(%lld, %lld))\n", str, layer, purpose, pt->x, pt->y);
+                vector_destroy(points, point_destroy);
+                free(str);
             }
             if(what == SREF)
             {
-                fprintf(cellfile, "cell:add_child(\"%s\")\n", str);
+                vector_append(childnames, str); // childnames takes ownership of str
+                vector_append(childorigins, vector_get(points, 0));
+                vector_destroy(points, NULL); // don't destroy point, it is now owned by childorigins
             }
-    //        if obj.what == "shape" then
-    //            table.insert(cell.shapes, obj)
-    //        elseif obj.what == "sref" then
-    //            table.insert(cell.references, obj)
-    //        elseif obj.what == "aref" then
-    //            table.insert(cell.references, obj)
-    //        elseif obj.what == "text" then
-    //            table.insert(cell.labels, obj)
-    //        end
-    //        obj = nil
+            if(what == AREF)
+            {
+                // FIXME
+            }
         }
         else if(record->recordtype == LAYER)
         {
-            int16_t* pdata = _parse_two_byte_integer(record->rawdata, 2);
+            int16_t* pdata = _parse_two_byte_integer(record->data, 2);
             layer = *pdata;
             free(pdata);
         }
         else if(record->recordtype == DATATYPE)
         {
-            int16_t* pdata = _parse_two_byte_integer(record->rawdata, 2);
+            int16_t* pdata = _parse_two_byte_integer(record->data, 2);
             purpose = *pdata;
             free(pdata);
         }
         else if(record->recordtype == TEXTTYPE)
         {
-            int16_t* pdata = _parse_two_byte_integer(record->rawdata, 2);
+            int16_t* pdata = _parse_two_byte_integer(record->data, 2);
             purpose = *pdata;
             free(pdata);
         }
         else if(record->recordtype == XY)
         {
-            int32_t* pdata = _parse_four_byte_integer(record->rawdata, record->length - 4);
+            int32_t* pdata = _parse_four_byte_integer(record->data, record->length - 4);
             for(int i = 0; i < (record->length - 4) / 4; i += 2)
             {
                 int32_t x = pdata[i];
@@ -717,7 +768,7 @@ void gdsparser_read_stream(const char* filename, const char* importname)
         }
         else if(record->recordtype == WIDTH)
         {
-            int32_t* pdata = _parse_four_byte_integer(record->rawdata, 4);
+            int32_t* pdata = _parse_four_byte_integer(record->data, 4);
             width = *pdata;
             free(pdata);
         }
@@ -735,18 +786,18 @@ void gdsparser_read_stream(const char* filename, const char* importname)
         }
         else if(record->recordtype == COLROW)
         {
-            int16_t* pdata = _parse_two_byte_integer(record->rawdata, 4);
+            int16_t* pdata = _parse_two_byte_integer(record->data, 4);
             xrep = pdata[0];
             yrep = pdata[1];
             free(pdata);
         }
         else if(record->recordtype == SNAME)
         {
-            str = (const char*)record->rawdata;
+            str = _parse_string(record->data, record->length - 4);
         }
         else if(record->recordtype == STRING)
         {
-            str = (const char*)record->rawdata;
+            str = _parse_string(record->data, record->length - 4);
         }
         else if(record->recordtype == STRANS)
         {
@@ -765,6 +816,9 @@ void gdsparser_read_stream(const char* filename, const char* importname)
     //        obj.pathtype[2] = record.data
         }
     }
+
+    _destroy_stream(stream);
+
     //-- check for ignored layer-purpose pairs
     //if ignorelpp then
     //    for _, cell in ipairs(cells) do
@@ -779,36 +833,6 @@ void gdsparser_read_stream(const char* filename, const char* importname)
     //        end
     //    end
     //end
-    //-- post-process cells
-    //-- -> BOX is not used for rectangles, at least most tool suppliers seem to do it this way
-    //--    therefor, we check if some "polygons" are actually rectangles and fix the shape types
-    //for _, cell in ipairs(cells) do
-    //    for _, shape in ipairs(cell.shapes) do
-    //        if shape.shapetype == "polygon" then
-    //            if #shape.pts == 10 then -- rectangles in GDS have five points (xy -> * 2)
-    //                if (shape.pts[1] == shape.pts[3]   and
-    //                    shape.pts[4] == shape.pts[6]   and
-    //                    shape.pts[5] == shape.pts[7]   and
-    //                    shape.pts[8] == shape.pts[10]  and
-    //                    shape.pts[9] == shape.pts[1]   and
-    //                    shape.pts[10] == shape.pts[2]) or
-    //                   (shape.pts[2] == shape.pts[4]   and
-    //                    shape.pts[3] == shape.pts[5]   and
-    //                    shape.pts[6] == shape.pts[8]   and
-    //                    shape.pts[7] == shape.pts[9]   and
-    //                    shape.pts[9] == shape.pts[1]   and
-    //                    shape.pts[10] == shape.pts[2])  then
-
-    //                    shape.shapetype = "rectangle"
-    //                    shape.pts = { 
-    //                        math.min(shape.pts[1], shape.pts[3], shape.pts[5], shape.pts[7], shape.pts[9]),
-    //                        math.min(shape.pts[2], shape.pts[4], shape.pts[6], shape.pts[8], shape.pts[10]),
-    //                        math.max(shape.pts[1], shape.pts[3], shape.pts[5], shape.pts[7], shape.pts[9]),
-    //                        math.max(shape.pts[2], shape.pts[4], shape.pts[6], shape.pts[8], shape.pts[10])
-    //                    }
-    //                end
-    //            end
-    //        end
 
     //        if shape.shapetype == "path" then
     //            shape.pathtype = shape.pathtype or "butt"
