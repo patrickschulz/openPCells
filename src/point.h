@@ -18,7 +18,7 @@ typedef struct
 } point_t;
 
 point_t* point_create(coordinate_t x, coordinate_t y);
-void point_destroy(point_t* pt);
+void point_destroy(void* pt); // void*, otherwise we get a warning while destroying vectors
 point_t* point_copy(point_t* pt);
 
 void point_translate(point_t* pt, coordinate_t x, coordinate_t y);

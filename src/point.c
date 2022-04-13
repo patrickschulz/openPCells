@@ -10,7 +10,7 @@ point_t* point_create(coordinate_t x, coordinate_t y)
     return pt;
 }
 
-void point_destroy(point_t* pt)
+void point_destroy(void* pt)
 {
     free(pt);
 }
