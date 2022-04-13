@@ -11,6 +11,7 @@
 #include "filesystem.h"
 #include "vector.h"
 #include "point.h"
+#include "hashmap.h"
 
 enum datatypes
 {
@@ -555,6 +556,18 @@ void _print_int32(FILE* file, int32_t num)
 #define MAX4(a, b, c, d) MAX2(MAX2(a, b), MAX2(c, d))
 #define MIN4(a, b, c, d) MIN2(MIN2(a, b), MIN2(c, d))
 
+struct _cellref
+{
+    char* name;
+    point_t* origin;
+    int16_t xrep;
+    int16_t yrep;
+    int xpitch;
+    int ypitch;
+    int* transformation;
+    double angle;
+};
+
 void gdsparser_read_stream(const char* filename, const char* importname)
 {
     const char* libname;
@@ -571,9 +584,9 @@ void gdsparser_read_stream(const char* filename, const char* importname)
     uint8_t what;
     char* str;
     int16_t xrep, yrep;
-    double angle;
-    struct vector* childnames = NULL;
-    struct vector* childorigins = NULL;
+    double angle = 0.0;
+    struct vector* children = NULL;
+    int* transformation = NULL;
 
     for(size_t i = 0; i < stream->numrecords; ++i)
     {
@@ -589,20 +602,64 @@ void gdsparser_read_stream(const char* filename, const char* importname)
         }
         else if(record->recordtype == BGNSTR)
         {
-            childnames = vector_create();
-            childorigins = vector_create();
+            children = vector_create();
         }
         else if(record->recordtype == ENDSTR)
         {
-            for(unsigned int i = 0; i < vector_size(childnames); ++i)
+            struct hashmap* references = hashmap_create();
+            int* dummy; // used to insert into the hashmap, value is never used
+            fputs("    local ref, name, child\n", cellfile);
+            for(unsigned int i = 0; i < vector_size(children); ++i)
             {
-                const char* childname = vector_get(childnames, i);
-                point_t* origin = vector_get(childorigins, i);
-                fprintf(cellfile, "    cell:add_child(\"%s\"):translate(%lld, %lld)\n", childname, origin->x, origin->y);
+                struct _cellref* cellref = vector_get(children, i);
+                if(!hashmap_exists(references, cellref->name))
+                {
+                    fprintf(cellfile, "    ref = pcell.create_layout(\"%s/%s\")\n", importname, cellref->name);
+                    fprintf(cellfile, "    name = pcell.add_cell_reference(ref, \"%s\")\n", cellref->name);
+                    hashmap_insert(references, cellref->name, dummy);
+                }
+                if(cellref->xrep > 1 || cellref->yrep > 1)
+                {
+                    fprintf(cellfile, "    child = cell:add_child_array(name, %d, %d, %d, %d)\n", cellref->xrep, cellref->yrep, cellref->xpitch, cellref->ypitch);
+                }
+                else
+                {
+                    fputs("    child = cell:add_child(name)\n", cellfile);
+                }
+                if(cellref->angle == 180)
+                {
+                    if(cellref->transformation && cellref->transformation[0] == 1)
+                    {
+                        fputs("    child:mirror_at_yaxis()\n", cellfile);
+                    }
+                    else
+                    {
+                        fputs("    child:mirror_at_yaxis()\n", cellfile);
+                        fputs("    child:mirror_at_xaxis()\n", cellfile);
+                    }
+                }
+                else if(cellref->angle == 90)
+                {
+                    fputs("    child:rotate_90_left()\n", cellfile);
+                }
+                else
+                {
+                    if(cellref->transformation && cellref->transformation[0] == 1)
+                    {
+                        fputs("    child:mirror_at_xaxis()\n", cellfile);
+                    }
+                }
+                fprintf(cellfile, "    child:translate(%lld, %lld)\n", cellref->origin->x, cellref->origin->y);
+                free(cellref->name);
+                point_destroy(cellref->origin);
+                if(cellref->transformation)
+                {
+                    free(cellref->transformation);
+                }
             }
-            vector_destroy(childnames, free);
-            vector_destroy(childorigins, point_destroy);
-            childnames = NULL;
+            hashmap_destroy(references);
+            vector_destroy(children, NULL);
+            children = NULL;
             fputs("end", cellfile); // close layout function
             fclose(cellfile);
         }
@@ -640,6 +697,7 @@ void gdsparser_read_stream(const char* filename, const char* importname)
         else if(record->recordtype == AREF)
         {
             what = AREF;
+            points = vector_create();
         }
         else if(record->recordtype == TEXT)
         {
@@ -728,13 +786,37 @@ void gdsparser_read_stream(const char* filename, const char* importname)
             }
             if(what == SREF)
             {
-                vector_append(childnames, str); // childnames takes ownership of str
-                vector_append(childorigins, vector_get(points, 0));
-                vector_destroy(points, NULL); // don't destroy point, it is now owned by childorigins
+                struct _cellref* cellref = malloc(sizeof(*cellref));
+                // cellref takes ownership of str, point and transformation
+                cellref->name = str;
+                cellref->origin = vector_get(points, 0);
+                cellref->xrep = 1;
+                cellref->yrep = 1;
+                cellref->angle = angle;
+                cellref->transformation = transformation;
+                vector_append(children, cellref);
+                vector_destroy(points, NULL); // don't destroy point, it is now owned by cellref->origin
+                transformation = NULL;
+                angle = 0;
             }
             if(what == AREF)
             {
-                // FIXME
+                struct _cellref* cellref = malloc(sizeof(*cellref));
+                // cellref takes ownership of str, point and transformation
+                cellref->name = str;
+                cellref->origin = vector_get(points, 0);
+                cellref->xrep = xrep;
+                cellref->yrep = yrep;
+                point_t* pt1 = vector_get(points, 1);
+                point_t* pt2 = vector_get(points, 2);
+                cellref->xpitch = llabs(pt1->x - cellref->origin->x) / cellref->xrep;
+                cellref->ypitch = llabs(pt2->y - cellref->origin->y) / cellref->yrep;
+                cellref->angle = angle;
+                cellref->transformation = transformation;
+                vector_append(children, cellref);
+                vector_destroy(points, NULL); // don't destroy point, it is now owned by cellref->origin
+                transformation = NULL;
+                angle = 0;
             }
         }
         else if(record->recordtype == LAYER)
@@ -801,11 +883,13 @@ void gdsparser_read_stream(const char* filename, const char* importname)
         }
         else if(record->recordtype == STRANS)
         {
-    //        obj.transformation = record.data
+            transformation = _parse_bit_array(record->data);
         }
         else if(record->recordtype == ANGLE)
         {
-            //obj.angle = record.data
+            double* pdata = _parse_eight_byte_real(record->data, record->length - 4);
+            angle = *pdata;
+            free(pdata);
         }
         else if(record->recordtype == BGNEXTN)
         {
