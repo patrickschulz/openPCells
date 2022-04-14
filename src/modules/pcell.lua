@@ -15,8 +15,173 @@ Implementation note:
 --]]
 
 -- submodules
-local evaluator = _load_module("pcell.evaluators")
-local paramlib = _load_module("pcell.parameter")
+
+-- start of evaluator module
+local function _eval_identity(arg) return arg end
+
+local function _eval_toboolean(arg)
+    assert(
+        string.match(arg, "true") or string.match(arg, "false"), 
+        string.format("_eval_toboolean: argument must be 'true' or 'false' (is '%s')", arg)
+    )
+    return arg == "true" and true or false
+end
+
+local function _eval_tointeger(arg)
+    return math.floor(tonumber(arg))
+end
+
+local function _eval_tonumtable(arg)
+    local t = {}
+    for e in string.gmatch(arg, "[^;,]+") do
+        table.insert(t, tonumber(e))
+    end
+    return t
+end
+
+local function _eval_tostrtable(arg)
+    local t = {}
+    for e in string.gmatch(arg, "[^;,]+") do
+        table.insert(t, tostring(e))
+    end
+    return t
+end
+
+local function evaluator(arg, argtype)
+    local evaluators = {
+        number   = tonumber,
+        integer  = _eval_tointeger,
+        string   = _eval_identity,
+        boolean  = _eval_toboolean,
+        numtable = _eval_tonumtable,
+        strtable = _eval_tostrtable,
+    }
+    local eval = evaluators[argtype]
+    return eval(arg)
+end
+-- end of evaluator module
+
+-- start of parameter module
+local paramlib = {}
+
+local parammeta = {}
+parammeta.__index = parammeta
+
+-- start of funcobject module
+local funcobject = {}
+
+local funcobjectmeta = {}
+funcobjectmeta.__call = function(self, ...) return self.func(...) end
+funcobjectmeta.__index = funcobjectmeta
+
+function funcobject.create(func)
+    local self = { func = func }
+    setmetatable(self, funcobjectmeta)
+    return self
+end
+
+function funcobject.identity(value)
+    return funcobject.create(function()
+        return value
+    end)
+end
+
+function funcobjectmeta.replace(self, func)
+    self.func = func
+end
+
+function funcobjectmeta.get(self)
+    return self.func
+end
+-- end of funcobject module
+
+function paramlib.create_directory()
+    local self = {
+        names = {},
+        values = {},
+        overwrite = false
+    }
+    setmetatable(self, parammeta)
+    return self
+end
+
+function paramlib.check_constraints(parameter, value)
+    local posvals = parameter.posvals
+    local name = parameter.name
+    if posvals then
+        if posvals.type == "set" then
+            local found = aux.find(posvals.values, function(v) return v == value end)
+            if not found then
+                moderror(string.format("parameter '%s' (%s) can only be %s", name, value, table.concat(posvals.values, " or ")))
+            end
+        elseif posvals.type == "interval" then
+            if value < posvals.values.lower or value > posvals.values.upper then
+                moderror(string.format("parameter '%s' (%s) out of range from %s to %s", name, value, posvals.values.lower, posvals.values.upper))
+            end
+        elseif posvals.type == "even" then
+            if value % 2 ~= 0 then
+                moderror(string.format("parameter '%s' (%s) must be even", name, value))
+            end
+        elseif posvals.type == "odd" then
+            if value % 2 ~= 1 then
+                moderror(string.format("parameter '%s' (%s) must be odd", name, value))
+            end
+        else
+        end
+    end
+end
+
+function paramlib.check_readonly(parameter)
+    if parameter.readonly then
+        moderror(string.format("parameter '%s' is read-only", parameter.name))
+    end
+end
+
+function parammeta.set_overwrite(self, overwrite)
+    self.overwrite = overwrite
+end
+
+function parammeta.set_follow(self, follow)
+    self.follow = follow
+end
+
+function parammeta.add(self, name, value, argtype, posvals, readonly)
+    local pname, dname = string.match(name, "^([^(]+)%(([^)]+)%)")
+    if not pname then pname = name end -- no display name
+    local new = {
+        name      = pname,
+        display   = dname,
+        func      = funcobject.identity(value),
+        argtype   = argtype,
+        posvals   = posvals,
+        followers = {},
+        readonly  = not not readonly,
+    }
+    if not self.values[pname] or self.overwrite then
+        self.values[pname] = new
+        table.insert(self.names, pname)
+        if self.follow then
+            self.values[self.follow].followers[pname] = true
+        end
+        return true
+    else
+        return false
+    end
+end
+
+function parammeta.get(self, name)
+    return self.values[name]
+end
+
+function parammeta.get_values(self)
+    return self.values
+end
+
+function parammeta.get_names(self)
+    return self.names
+end
+--]]
+-- end of parameter module
 
 local function _load_cell(state, cellname, env)
     local filename = pcell.get_cell_filename(cellname)
