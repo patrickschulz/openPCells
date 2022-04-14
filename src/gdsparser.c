@@ -564,12 +564,13 @@ struct _cellref
 };
 
 void gdsparser_read_stream(const char* filename, const char* importname)
+int gdsparser_read_stream(const char* filename, const char* importname)
 {
     const char* libname;
     struct stream* stream = _read_raw_stream(filename);
     if(!stream)
     {
-        return;
+        return 0;
     }
     FILE* cellfile = NULL;
     int16_t layer;
