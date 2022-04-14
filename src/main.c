@@ -66,7 +66,7 @@ void _print_general_info(void)
     puts("This is the openPCell layout generator.");
     puts("To generate a layout, you need to pass the technology, the export type and a cellname.");
     puts("Example:");
-    puts("         opc --technology skywater130 --export gds --cell logic/not_gate");
+    puts("         opc --technology opc --export gds --cell stdcells/not_gate");
     puts("");
     puts("You can find out more about the available command line options by running 'opc -h'.");
 }
