@@ -12,6 +12,10 @@
 #include "lpoint.h"
 #include "vector.h"
 
+#define EXPORT_STATUS_SUCCESS 0
+#define EXPORT_STATUS_NOTFOUND 1
+#define EXPORT_STATUS_LOADERROR 2
+
 static struct vector* searchpaths = NULL;
 
 void export_add_path(const char* path)
@@ -428,14 +432,14 @@ void export_write_toplevel(object_t* toplevel, struct pcell_state* pcell_state, 
 
     struct export_data* data = export_create_data();
     const char* extension;
-    int success = 0;
+    int status = 0;
 
     struct export_functions* funcs = get_export_functions(exportname);
     if(funcs) // C-defined exports
     {
         _write_toplevel_C(toplevel, pcell_state, toplevelname, data, funcs, writechildrenports, leftdelim, rightdelim);
         extension = funcs->get_extension();
-        success = 1;
+        status = EXPORT_STATUS_SUCCESS;
     }
     else // lua-defined exports
     {
@@ -448,8 +452,13 @@ void export_write_toplevel(object_t* toplevel, struct pcell_state* pcell_state, 
                 char* exportfilename = malloc(len);
                 snprintf(exportfilename, len, "%s/%s/init.lua", searchpath, exportname);
                 lua_State* L = util_create_basic_lua_state();
-                luaL_dofile(L, exportfilename);
+                int ret = luaL_dofile(L, exportfilename);
                 free(exportfilename);
+                if(ret != LUA_OK)
+                {
+                    status = EXPORT_STATUS_LOADERROR;
+                    break;
+                }
                 if(lua_type(L, -1) == LUA_TTABLE)
                 {
                     // check minimal function support
@@ -476,14 +485,14 @@ void export_write_toplevel(object_t* toplevel, struct pcell_state* pcell_state, 
                     lua_call(L, 0, 1);
                     extension = lua_tostring(L, -1);
                     lua_pop(L, 1); // pop extension
-                    success = 1;
+                    status = EXPORT_STATUS_SUCCESS;
                     break; // found export, don't continue search
                 }
             }
         }
     }
 
-    if(success)
+    if(status == EXPORT_STATUS_SUCCESS)
     {
         size_t len = strlen(basename) + strlen(extension) + 2; // + 2: '.' and the terminating zero
         char* filename = malloc(len);
@@ -495,9 +504,13 @@ void export_write_toplevel(object_t* toplevel, struct pcell_state* pcell_state, 
         export_destroy_data(data);
         export_destroy_functions(funcs);
     }
-    else
+    else if(status == EXPORT_STATUS_NOTFOUND)
     {
         printf("could not find export '%s'\n", exportname);
+    }
+    else // EXPORT_STATUS_LOADERROR
+    {
+        puts("error while loading export");
     }
 
     _destroy_searchpaths();
