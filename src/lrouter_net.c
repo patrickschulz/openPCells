@@ -28,12 +28,12 @@ void print_nets(net_t* nets, size_t num_nets)
 
 void print_path(net_t net)
 {
-	printf("Found path:\n");
+	printf("Printing path:\n");
 	point_t *point;
 	int i = 0;
 	while((point = (point_t *)queue_dequeue(net.path)) != NULL)
 	{
-		printf("P %i, x:%i, y:%i\n", i, point->x, point->y);
+		printf("P %i, x:%i, y:%i, z:%i\n", i, point->x, point->y, point->z);
 		i++;
 	}
 }

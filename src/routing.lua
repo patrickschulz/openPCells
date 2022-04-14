@@ -21,7 +21,6 @@ local function _prepare_routing_nets(nets, rows)
 end
 
 function M.legalize(nets, rows, options)
-    local routes = {}
     local netpositions = _prepare_routing_nets(nets, rows)
     for _, pos in ipairs(netpositions) do
         print(pos.name)
@@ -33,8 +32,7 @@ function M.legalize(nets, rows, options)
     -- call router here
     local routednets, numroutednets = router.route(netpositions,
         options.floorplan_width, options.floorplan_height)
-    aux.tprint(routednets)
-    return routes
+    return routednets
 end
 
 function M.route(cell, routes, cells, width)
@@ -77,7 +75,7 @@ function M.route(cell, routes, cells, width)
                 currmetal = movement.metal
             end
         end
-        geometry.path(cell, generics.metal(currmetal), 
+        geometry.path(generics.metal(currmetal), 
             geometry.path_points_xy(startpt, pts), width)
     end
 end

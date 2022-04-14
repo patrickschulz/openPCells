@@ -34,6 +34,7 @@ static point_t *get_min_point(point_t *arr)
 int route(net_t *net, int*** field, size_t width, size_t height,
 	  size_t num_layers, size_t wrong_dir_cost, size_t via_cost)
 {
+    printf("routing net %s\n", net->name);
 
 	unsigned int startx = net->positions[0].x;
 	unsigned int starty = net->positions[0].y;
@@ -56,7 +57,7 @@ int route(net_t *net, int*** field, size_t width, size_t height,
 	net->path = queue_new();
 
 	int score = 0;
-	unsigned int x, y, z, nextx, nexty, nextz;
+	unsigned int x, y, z, nextx, nexty, nextz = 0;
 	point_t *point_ptr;
 	field[startz][startx][starty] = 0;
 
@@ -152,10 +153,25 @@ int route(net_t *net, int*** field, size_t width, size_t height,
 	}
 	} while(!(x == endx && y == endy && z == endz));
 
-	/* backtrace */
-	/* go to end point */
+	/* 
+    * backtrace
+    * go to end point 
+    */
 	x = endx;
 	y = endy;
+
+    int xdiff_old, ydiff_old;
+    xdiff_old = 0;
+    ydiff_old = 0;
+    
+    int xsteps, ysteps, zsteps;
+    xsteps = 0;
+    ysteps = 0;
+    zsteps = 0;
+
+    int xdiff = 0;
+    int ydiff = 0;
+    int zdiff = 0;
 
 	do {
 		score = field[z][x][y];
@@ -205,9 +221,6 @@ int route(net_t *net, int*** field, size_t width, size_t height,
 
 		bool next_is_via = false;
 
-		int xdiff_old, ydiff_old;
-		int xsteps, ysteps, zsteps;
-
 		point_t *npoint = get_min_point(nextpoints);
 		if(next_is_via)
 		{
@@ -224,7 +237,7 @@ int route(net_t *net, int*** field, size_t width, size_t height,
 			field[z][x][y] = PATH;
 		}
 
-		int xdiff, ydiff, zdiff;
+
 		xdiff_old = xdiff;
 		ydiff_old = ydiff;
 
@@ -236,21 +249,16 @@ int route(net_t *net, int*** field, size_t width, size_t height,
 		ysteps += ydiff;
 		zsteps += zdiff;
 
-		printf("!_!_!_ %i, %i, %i\n", xsteps, ysteps, zsteps);
-
-		if(xdiff != xdiff_old && ydiff != ydiff_old)
-		{
-			/* put the point diffs in the nets path queue */
-			point_t *path_point = calloc(1, sizeof(point_t));
-			path_point->x = xsteps;
-			path_point->y = ysteps;
-			path_point->z = zsteps;
-			queue_enqueue(net->path, path_point);
-		}
+    	point_t *path_point = calloc(1, sizeof(point_t));
+    	path_point->x = xsteps;
+    	path_point->y = ysteps;
+    	path_point->z = zsteps;
+    	queue_enqueue(net->path, path_point);
 
 		x = npoint->x;
 		y = npoint->y;
 		z = npoint->z;
+
 	} while (!(x == startx && y == starty && z == startz));
 
 	queue_reverse(net->path);
