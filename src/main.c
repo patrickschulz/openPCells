@@ -1,9 +1,3 @@
-/*
-** $Id: lua.c $
-** Lua stand-alone interpreter
-** See Copyright Notice in lua.h
-*/
-
 #include "lua/lprefix.h"
 
 #include <stdio.h>
@@ -32,14 +26,17 @@
 #include "main.functions.h"
 #include "main.cell.h"
 #include "main.gds.h"
+#include "main.verilog.h"
 
 static int _load_config(struct keyvaluearray* config)
 {
     const char* home = getenv("HOME");
     lua_State* L = util_create_basic_lua_state();
-    lua_pushfstring(L, "%s/.opcconfig.lua", home);
-    lua_setglobal(L, "filename");
-    int ret = luaL_dofile(L, OPC_HOME "/src/config.lua");
+    size_t len = strlen(home) + strlen("/.opcconfig.lua");
+    char* filename = malloc(len + 1);
+    snprintf(filename, len + 1, "%s/.opcconfig.lua", home);
+    int ret = luaL_dofile(L, filename);
+    free(filename);
     if(ret == LUA_OK)
     {
         struct vector* techpaths = vector_create();
@@ -105,52 +102,7 @@ int main(int argc, const char* const * argv)
     if(cmdoptions_was_provided_long(cmdoptions, "import-verilog"))
     {
         const char* scriptname = cmdoptions_get_argument_long(cmdoptions, "import-verilog");
-        lua_State* L = util_create_basic_lua_state();
-        module_load_globals(L);
-        if(!lua_isnil(L, -1))
-        {
-            lua_setglobal(L, "globals");
-        }
-        module_load_aux(L);
-        if(!lua_isnil(L, -1))
-        {
-            lua_setglobal(L, "aux");
-        }
-        module_load_verilog(L);
-        if(!lua_isnil(L, -1))
-        {
-            lua_setglobal(L, "verilog");
-        }
-        module_load_verilogprocessor(L);
-        if(!lua_isnil(L, -1))
-        {
-            lua_setglobal(L, "verilogprocessor");
-        }
-        open_lplacer_lib(L);
-        module_load_placement(L);
-        if(!lua_isnil(L, -1))
-        {
-            lua_setglobal(L, "placement");
-        }
-        open_lrouter_lib(L);
-        module_load_routing(L);
-        if(!lua_isnil(L, -1))
-        {
-            lua_setglobal(L, "routing");
-        }
-        open_lfilesystem_lib(L);
-        module_load_generator(L);
-        if(!lua_isnil(L, -1))
-        {
-            lua_setglobal(L, "generator");
-        }
-        int ret = luaL_dofile(L, scriptname);
-        if(ret != LUA_OK)
-        {
-            const char* msg = lua_tostring(L, -1);
-            printf("errors while loading verilog import script:\n    %s\n", msg);
-        }
-        lua_close(L);
+        main_verilog_import(scriptname);
         goto DESTROY_CMDOPTIONS;
     }
 
