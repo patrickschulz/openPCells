@@ -53,6 +53,7 @@ modulemanager.c: embed_compiled_lua_file modules/*.lua
 	@echo '#include "main.functions.h"' >> modulemanager.c
 	./embed_compiled_lua_file modules/aux.lua module_load aux modulemanager.c
 	./embed_compiled_lua_file modules/envlib.lua module_load envlib modulemanager.c
+	./embed_compiled_lua_file modules/generator.lua module_load generator modulemanager.c
 	./embed_compiled_lua_file modules/geometry.lua module_load geometry modulemanager.c
 	./embed_compiled_lua_file modules/globals.lua module_load globals modulemanager.c
 	./embed_compiled_lua_file modules/graphics.lua module_load graphics modulemanager.c
@@ -64,6 +65,8 @@ modulemanager.c: embed_compiled_lua_file modules/*.lua
 	./embed_compiled_lua_file modules/stack.lua module_load stack modulemanager.c
 	./embed_compiled_lua_file modules/support.lua module_load support modulemanager.c
 	./embed_compiled_lua_file modules/util.lua module_load util modulemanager.c
+	./embed_compiled_lua_file modules/verilog.lua module_load verilog modulemanager.c
+	./embed_compiled_lua_file modules/verilogprocessor.lua module_load verilogprocessor modulemanager.c
 
 modulemanager.h:
 	@echo '#ifndef OPC_MODULEMANAGER_H' > modulemanager.h
@@ -71,6 +74,7 @@ modulemanager.h:
 	@echo '#include "lua/lua.h"' >> modulemanager.h
 	@echo 'int module_load_aux(lua_State* L);' >> modulemanager.h
 	@echo 'int module_load_envlib(lua_State* L);' >> modulemanager.h
+	@echo 'int module_load_generator(lua_State* L);' >> modulemanager.h
 	@echo 'int module_load_geometry(lua_State* L);' >> modulemanager.h
 	@echo 'int module_load_globals(lua_State* L);' >> modulemanager.h
 	@echo 'int module_load_graphics(lua_State* L);' >> modulemanager.h
@@ -82,6 +86,8 @@ modulemanager.h:
 	@echo 'int module_load_stack(lua_State* L);' >> modulemanager.h
 	@echo 'int module_load_support(lua_State* L);' >> modulemanager.h
 	@echo 'int module_load_util(lua_State* L);' >> modulemanager.h
+	@echo 'int module_load_verilog(lua_State* L);' >> modulemanager.h
+	@echo 'int module_load_verilogprocessor(lua_State* L);' >> modulemanager.h
 	@echo '#endif // OPC_MODULEMANAGER_H' >> modulemanager.h
 
 embed_compiled_lua_file: embed_compiled_lua_file.c lua/liblua.a

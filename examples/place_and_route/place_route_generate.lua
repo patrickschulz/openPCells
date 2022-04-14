@@ -16,14 +16,3 @@ print(string.format("writing to file '%s'", filename))
 local file = io.open(filename, "w")
 generator.digital(file, rows, routes)
 file:close()
-
--- generate layout
-technology.add_techpath(string.format("%s/tech", _get_opc_home()))
-technology.load("freePDK45")
-pcell.append_cellpath(string.format("%s/%s", _get_opc_home(), "cells"))
-pcell.append_cellpath("verilogimport")
-local cellargs = {}
-local cell = pcell.create_layout(string.format("verilogimport/%s", module), cellargs, nil, true) -- nil: no environment, true: evaluate parameters
-
-export.add_path(string.format("%s/export", _get_opc_home()))
-export.write_toplevel(exporttype, cell, "openPCells", "opctoplevel")

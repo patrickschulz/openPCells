@@ -250,9 +250,6 @@ local function _convert_to_symbols(tokens)
             moderror(string.format("lexer: _convert_to_symbols: unknown token type '%s'", token.type))
         end
         if value then
-            if envlib.get("verbose") then
-                print(string.format("verilog lexer: found symbol: %s", value))
-            end
             table.insert(symbols, value)
             table.insert(symbols.lineinfo, token.line)
         end
@@ -560,6 +557,5 @@ function M.filter_excluded_nets(netlist, excluded_nets)
         end
     end
 end
-
 
 return M
