@@ -160,17 +160,14 @@ static int lpcell_add_cell_reference(lua_State* L)
     return 1;
 }
 
-static int lpcell_list_cellpaths(lua_State* L)
+void pcell_list_cellpaths(struct pcell_state* pcell_state)
 {
-    lua_getfield(L, LUA_REGISTRYINDEX, "pcellstate");
-    struct pcell_state* pcell_state = lua_touserdata(L, -1);
-    lua_pop(L, 1); // pop pcell state
     for(unsigned int i = 0; i < vector_size(pcell_state->cellpaths); ++i)
     {
         puts(vector_get(pcell_state->cellpaths, i));
     }
-    return 0;
 }
+
 
 void pcell_list_cells(struct pcell_state* pcell_state, const char* listformat)
 {
@@ -244,8 +241,6 @@ int open_lpcell_lib(lua_State* L)
     static const luaL_Reg modfuncs[] =
     {
         { "add_cell_reference",      lpcell_add_cell_reference      },
-        { "list_cellpaths",          lpcell_list_cellpaths          },
-        //{ "list",                    lpcell_list_cells              },
         { "get_cell_filename",       lpcell_get_cell_filename       },
         { NULL,                      NULL                           }
     };

@@ -165,7 +165,9 @@ int main(int argc, const char* const * argv)
         goto DESTROY_CONFIG;
     }
 
-    if(cmdoptions_was_provided_long(cmdoptions, "list"))
+    // list + listcellpaths
+    if(cmdoptions_was_provided_long(cmdoptions, "listcellpaths") ||
+       cmdoptions_was_provided_long(cmdoptions, "list"))
     {
         struct vector* cellpaths_to_prepend = vector_create();
         if(cmdoptions_was_provided_long(cmdoptions, "prepend-cellpath"))
@@ -200,8 +202,15 @@ int main(int argc, const char* const * argv)
         struct pcell_state* pcell_state = pcell_initialize_state(cellpaths_to_prepend, cellpaths_to_append);
         vector_destroy(cellpaths_to_prepend, free);
         vector_destroy(cellpaths_to_append, free);
-        const char* listformat = cmdoptions_get_argument_long(cmdoptions, "list-format");
-        pcell_list_cells(pcell_state, listformat);
+        if(cmdoptions_was_provided_long(cmdoptions, "list"))
+        {
+            const char* listformat = cmdoptions_get_argument_long(cmdoptions, "list-format");
+            pcell_list_cells(pcell_state, listformat);
+        }
+        if(cmdoptions_was_provided_long(cmdoptions, "listcellpaths"))
+        {
+            pcell_list_cellpaths(pcell_state);
+        }
     }
 
     // create cell

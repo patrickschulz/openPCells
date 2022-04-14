@@ -16,11 +16,6 @@ else
     math.randomseed(os.time())
 end
 
-if args.listcellpaths then
-    pcell.list_cellpaths()
-    return 0
-end
-
 -- list available cells
 if args.listcells or args.listallcells then
     functions.list_cells(args.listformat, args.listallcells)
@@ -89,28 +84,3 @@ if args.params then
     end
     return 0
 end
-
--- orientation
-if args.orientation then
-    local lut = {
-        ["0"] = function() end, -- do nothing, but allow this as command line option
-        ["fx"] = function() cell:flipx() end,
-        ["fy"] = function() cell:flipy() end,
-        ["fxy"] = function() cell:flipx(); cell:flipy() end,
-    }
-    local f = lut[args.orientation]
-    if not f then
-        moderror(string.format("unknown orientation: '%s'", args.orientation))
-    end
-    f()
-end
-
--- draw anchors
-if args.drawanchor then
-    for _, da in ipairs(args.drawanchor) do
-        local anchor = cell:get_anchor(da)
-        cell:merge_into_shallow(marker.cross(anchor))
-    end
-end
-
-return cell
