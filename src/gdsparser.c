@@ -47,16 +47,15 @@ struct record
     uint8_t* data;
 };
 
-struct record* _read_record(FILE* file)
+int _read_record(FILE* file, struct record* record)
 {
     uint8_t buf[4];
     size_t read;
     read = fread(buf, 1, 4, file);
     if(read != 4)
     {
-        return NULL;
+        return 0;
     }
-    struct record* record = malloc(sizeof(*record));
     record->length = (buf[0] << 8) + buf[1];
     record->recordtype = buf[2];
     record->datatype = buf[3];
@@ -66,16 +65,15 @@ struct record* _read_record(FILE* file)
     read = fread(data, 1, numbytes, file);
     if(read != numbytes)
     {
-        free(record);
-        return NULL;
+        return 0;
     }
     record->data = data;
-    return record;
+    return 1;
 }
 
 struct stream
 {
-    struct record** records;
+    struct record* records;
     size_t numrecords;
 };
 
@@ -88,24 +86,22 @@ static struct stream* _read_raw_stream(const char* filename)
     }
     size_t numrecords = 0;
     size_t capacity = 10;
-    struct record** records = calloc(capacity, sizeof(struct record));
+    struct record* records = calloc(capacity, sizeof(*records));
     while(1)
     {
-        struct record* record = _read_record(file);
-        if(!record)
+        if(numrecords + 1 > capacity)
+        {
+            capacity *= 2;
+            struct record* tmp = realloc(records, capacity * sizeof(*tmp));
+            records = tmp;
+        }
+        if(!_read_record(file, &records[numrecords]))
         {
             fprintf(stderr, "%s\n", "gdsparser: stream abort before ENDLIB");
             break;
         }
-        if(numrecords > capacity)
-        {
-            capacity *= 2;
-            struct record** tmp = realloc(records, capacity * sizeof(struct record));
-            records = tmp;
-        }
-        records[numrecords] = record;
         ++numrecords;
-        if(record->recordtype == ENDLIB)
+        if(records[numrecords - 1].recordtype == ENDLIB)
         {
             break;
         }
@@ -121,8 +117,7 @@ static void _destroy_stream(struct stream* stream)
 {
     for(unsigned int i = 0; i < stream->numrecords; ++i)
     {
-        free(stream->records[i]->data);
-        free(stream->records[i]);
+        free(stream->records[i].data);
     }
     free(stream->records);
     free(stream);
@@ -231,7 +226,7 @@ static int lgdsparser_read_raw_stream(lua_State* L)
     lua_newtable(L);
     for(size_t i = 0; i < stream->numrecords; ++i)
     {
-        struct record* record = stream->records[i];
+        struct record* record = &stream->records[i];
         lua_newtable(L);
 
         // header
@@ -411,7 +406,7 @@ int gdsparser_show_records(const char* filename)
     unsigned int indent = 0;
     for(size_t i = 0; i < stream->numrecords; ++i)
     {
-        struct record* record = stream->records[i];
+        struct record* record = &stream->records[i];
         if(record->recordtype == ENDLIB || record->recordtype == ENDSTR || record->recordtype == ENDEL)
         {
             --indent;
@@ -590,7 +585,7 @@ void gdsparser_read_stream(const char* filename, const char* importname)
 
     for(size_t i = 0; i < stream->numrecords; ++i)
     {
-        struct record* record = stream->records[i];
+        struct record* record = &stream->records[i];
         if(record->recordtype == LIBNAME)
         {
             libname = (const char*)record->data;
@@ -782,6 +777,11 @@ void gdsparser_read_stream(const char* filename, const char* importname)
                 fprintf(cellfile, "    cell:add_port(\"%s\", generics.premapped(nil, { gds = { layer = %d, purpose = %d } }), point.create(%lld, %lld))\n", str, layer, purpose, pt->x, pt->y);
                 vector_destroy(points, point_destroy);
                 free(str);
+                if(transformation)
+                {
+                    free(transformation);
+                }
+                transformation = NULL;
             }
             if(what == SREF)
             {
@@ -916,13 +916,7 @@ void gdsparser_read_stream(const char* filename, const char* importname)
     //        end
     //    end
     //end
-
-    //        if shape.shapetype == "path" then
-    //            shape.pathtype = shape.pathtype or "butt"
-    //        end
-    //    end
-    //end
-    //return { libname = libname, cells = cells }
+    return 1;
 }
 
 static int lgdsparser_show_records(lua_State* L)
