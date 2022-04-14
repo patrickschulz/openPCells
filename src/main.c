@@ -106,6 +106,11 @@ int main(int argc, const char* const * argv)
     {
         const char* scriptname = cmdoptions_get_argument_long(cmdoptions, "import-verilog");
         lua_State* L = util_create_basic_lua_state();
+        module_load_globals(L);
+        if(!lua_isnil(L, -1))
+        {
+            lua_setglobal(L, "globals");
+        }
         module_load_aux(L);
         if(!lua_isnil(L, -1))
         {
