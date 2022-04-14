@@ -3,7 +3,7 @@
 
 #include "lua/lua.h"
 
-void gdsparser_read_stream(const char* filename, const char* importname);
+int gdsparser_read_stream(const char* filename, const char* importname);
 int gdsparser_show_records(const char* filename);
 
 int open_gdsparser_lib(lua_State* L);

@@ -607,7 +607,6 @@ void gdsparser_read_stream(const char* filename, const char* importname)
         else if(record->recordtype == ENDSTR)
         {
             struct hashmap* references = hashmap_create();
-            int* dummy; // used to insert into the hashmap, value is never used
             fputs("    local ref, name, child\n", cellfile);
             for(unsigned int i = 0; i < vector_size(children); ++i)
             {
@@ -616,7 +615,7 @@ void gdsparser_read_stream(const char* filename, const char* importname)
                 {
                     fprintf(cellfile, "    ref = pcell.create_layout(\"%s/%s\")\n", importname, cellref->name);
                     fprintf(cellfile, "    name = pcell.add_cell_reference(ref, \"%s\")\n", cellref->name);
-                    hashmap_insert(references, cellref->name, dummy);
+                    hashmap_insert(references, cellref->name, NULL);
                 }
                 if(cellref->xrep > 1 || cellref->yrep > 1)
                 {

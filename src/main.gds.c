@@ -2,6 +2,7 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 
 #include "main.functions.h"
 #include "util.h"
@@ -58,10 +59,14 @@ void main_gds_read(struct cmdoptions* cmdoptions)
             must_free = 1;
         }
     }
-    gdsparser_read_stream(readgds, importlibname);
+    int ret = gdsparser_read_stream(readgds, importlibname);
     if(must_free)
     {
         free(importlibname);
+    }
+    if(!ret)
+    {
+        printf("could not read stream file '%s'\n", readgds);
     }
 
     /*
