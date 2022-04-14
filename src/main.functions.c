@@ -65,3 +65,35 @@ int main_call_lua_program_from_buffer(lua_State* L, const char* data, size_t len
     return LUA_OK;
 }
 
+int main_load_module(lua_State* L, const char* data, size_t len, const char* name, const char* chunkname)
+{
+    int status = luaL_loadbuffer(L, data, len, chunkname);
+    if(status == LUA_OK)
+    {
+        lua_pushcfunction(L, msghandler);
+        lua_insert(L, 1);
+        status = lua_pcall(L, 0, 1, 1);
+    }
+    if(status != LUA_OK)
+    {
+        const char* msg = lua_tostring(L, -1);
+        fprintf(stderr, "%s\n", msg);
+        lua_pop(L, 1);
+        return LUA_ERRRUN;
+    }
+    else
+    {
+        if(!lua_isnil(L, -1))
+        {
+            lua_setglobal(L, name);
+        }
+        else
+        {
+            lua_pop(L, 1);
+        }
+    }
+    // pop msghandler
+    lua_pop(L, 1);
+    return LUA_OK;
+}
+

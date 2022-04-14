@@ -219,16 +219,30 @@ int main(int argc, const char* const * argv)
         {
             pcell_list_cellpaths(pcell_state);
         }
+        goto DESTROY_CONFIG;
+    }
+
+    if(cmdoptions_was_provided_long(cmdoptions, "parameters"))
+    {
+        main_list_cell_parameters(cmdoptions, config);
+        goto DESTROY_CONFIG;
     }
 
     // create cell
-    if(cmdoptions_was_provided_long(cmdoptions, "cell"))
+    int create_cell_script = cmdoptions_was_provided_long(cmdoptions, "cellscript");
+    if(cmdoptions_was_provided_long(cmdoptions, "cell") || create_cell_script)
     {
-        main_create_and_export_cell(cmdoptions, config, 0); // 0: regular cell
-    }
-    else if(cmdoptions_was_provided_long(cmdoptions, "cellscript"))
-    {
-        main_create_and_export_cell(cmdoptions, config, 1); // 1: is cell script
+        if(!cmdoptions_was_provided_long(cmdoptions, "technology"))
+        {
+            fputs("no technology given\n", stderr);
+            goto DESTROY_CONFIG;
+        }
+        if(!cmdoptions_was_provided_long(cmdoptions, "export"))
+        {
+            fputs("no export given\n", stderr);
+            goto DESTROY_CONFIG;
+        }
+        main_create_and_export_cell(cmdoptions, config, create_cell_script); // 0: regular cell, 1: cellscript
     }
 
     // clean up states

@@ -34,10 +34,11 @@ scriptmanager.c: embed_compiled_lua_file scripts/*.lua
 	@echo '#include "scriptmanager.h"' > scriptmanager.c
 	@echo '#include <stddef.h>' >> scriptmanager.c
 	@echo '#include "main.functions.h"' >> scriptmanager.c
-	./embed_compiled_lua_file scripts/create_cell.lua script_call create_cell scriptmanager.c
-	./embed_compiled_lua_file scripts/list_cells.lua script_call list_cells scriptmanager.c
-	./embed_compiled_lua_file scripts/assistant.lua script_call assistant scriptmanager.c
-	./embed_compiled_lua_file scripts/show_gds_hierarchy.lua script_call show_gds_hierarchy scriptmanager.c
+	./embed_compiled_lua_file --script scripts/create_cell.lua script_call create_cell scriptmanager.c
+	./embed_compiled_lua_file --script scripts/list_cells.lua script_call list_cells scriptmanager.c
+	./embed_compiled_lua_file --script scripts/assistant.lua script_call assistant scriptmanager.c
+	./embed_compiled_lua_file --script scripts/show_gds_hierarchy.lua script_call show_gds_hierarchy scriptmanager.c
+	./embed_compiled_lua_file --script scripts/list_parameters.lua script_call list_parameters scriptmanager.c
 
 scriptmanager.h:
 	@echo '#ifndef OPC_SCRIPTMANAGER_H' > scriptmanager.h
@@ -47,30 +48,31 @@ scriptmanager.h:
 	@echo 'int script_call_list_cells(lua_State* L);' >> scriptmanager.h
 	@echo 'int script_call_assistant(lua_State* L);' >> scriptmanager.h
 	@echo 'int script_call_show_gds_hierarchy(lua_State* L);' >> scriptmanager.h
+	@echo 'int script_call_list_parameters(lua_State* L);' >> scriptmanager.h
 	@echo '#endif // OPC_SCRIPTMANAGER_H' >> scriptmanager.h
 
 modulemanager.c: embed_compiled_lua_file modules/*.lua
 	@echo '#include "modulemanager.h"' > modulemanager.c
 	@echo '#include <stddef.h>' >> modulemanager.c
 	@echo '#include "main.functions.h"' >> modulemanager.c
-	./embed_compiled_lua_file modules/aux.lua module_load aux modulemanager.c
-	./embed_compiled_lua_file modules/envlib.lua module_load envlib modulemanager.c
-	./embed_compiled_lua_file modules/gdsparser.lua module_load gdsparser modulemanager.c
-	./embed_compiled_lua_file modules/generator.lua module_load generator modulemanager.c
-	./embed_compiled_lua_file modules/geometry.lua module_load geometry modulemanager.c
-	./embed_compiled_lua_file modules/globals.lua module_load globals modulemanager.c
-	./embed_compiled_lua_file modules/graphics.lua module_load graphics modulemanager.c
-	./embed_compiled_lua_file modules/load.lua module_load load modulemanager.c
-	./embed_compiled_lua_file modules/pcell.lua module_load pcell modulemanager.c
-	./embed_compiled_lua_file modules/placement.lua module_load placement modulemanager.c
-	./embed_compiled_lua_file modules/point.lua module_load point modulemanager.c
-	./embed_compiled_lua_file modules/public.lua module_load public modulemanager.c
-	./embed_compiled_lua_file modules/routing.lua module_load routing modulemanager.c
-	./embed_compiled_lua_file modules/stack.lua module_load stack modulemanager.c
-	./embed_compiled_lua_file modules/support.lua module_load support modulemanager.c
-	./embed_compiled_lua_file modules/util.lua module_load util modulemanager.c
-	./embed_compiled_lua_file modules/verilog.lua module_load verilog modulemanager.c
-	./embed_compiled_lua_file modules/verilogprocessor.lua module_load verilogprocessor modulemanager.c
+	./embed_compiled_lua_file --module modules/aux.lua module_load aux modulemanager.c
+	./embed_compiled_lua_file --module modules/envlib.lua module_load envlib modulemanager.c
+	./embed_compiled_lua_file --module modules/gdsparser.lua module_load gdsparser modulemanager.c
+	./embed_compiled_lua_file --module modules/generator.lua module_load generator modulemanager.c
+	./embed_compiled_lua_file --module modules/geometry.lua module_load geometry modulemanager.c
+	./embed_compiled_lua_file --module modules/globals.lua module_load globals modulemanager.c
+	./embed_compiled_lua_file --module modules/graphics.lua module_load graphics modulemanager.c
+	./embed_compiled_lua_file --module modules/load.lua module_load load modulemanager.c
+	./embed_compiled_lua_file --module modules/pcell.lua module_load pcell modulemanager.c
+	./embed_compiled_lua_file --module modules/placement.lua module_load placement modulemanager.c
+	./embed_compiled_lua_file --module modules/point.lua module_load point modulemanager.c
+	./embed_compiled_lua_file --module modules/public.lua module_load public modulemanager.c
+	./embed_compiled_lua_file --module modules/routing.lua module_load routing modulemanager.c
+	./embed_compiled_lua_file --module modules/stack.lua module_load stack modulemanager.c
+	./embed_compiled_lua_file --module modules/support.lua module_load support modulemanager.c
+	./embed_compiled_lua_file --module modules/util.lua module_load util modulemanager.c
+	./embed_compiled_lua_file --module modules/verilog.lua module_load verilog modulemanager.c
+	./embed_compiled_lua_file --module modules/verilogprocessor.lua module_load verilogprocessor modulemanager.c
 
 modulemanager.h:
 	@echo '#ifndef OPC_MODULEMANAGER_H' > modulemanager.h

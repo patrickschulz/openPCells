@@ -1,3 +1,4 @@
+---[===[
 --[[
 This file is part of the openPCells project.
 
@@ -184,15 +185,18 @@ end
 -- end of parameter module
 
 local function _load_cell(state, cellname, env)
+    if not cellname then
+        error("pcell: load_cell expects a cellname")
+    end
     local filename = pcell.get_cell_filename(cellname)
     local reader = _get_reader(filename)
     if not reader then
         error(string.format("could not open cell file '%s'", filename))
     end
     local chunkname = string.format("@cell '%s'", cellname)
-    if envlib.get("verbose") then
-        print(string.format("pcell: loading cell definition in %s", filename))
-    end
+    --if verbose then
+    --    print(string.format("pcell: loading cell definition in %s", filename))
+    --end
     _generic_load(
         reader, chunkname,
         string.format("syntax error in cell '%s'", cellname),
@@ -781,3 +785,4 @@ function pcell.check(cellname)
         end
     end
 end
+--]===]

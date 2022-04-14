@@ -103,6 +103,76 @@ static int _parse_point(const char* arg, int* xptr, int* yptr)
     return 1;
 }
 
+void main_list_cell_parameters(struct cmdoptions* cmdoptions, struct keyvaluearray* config)
+{
+    lua_State* L = _create_and_initialize_lua();
+
+    open_lpcell_lib(L);
+    module_load_aux(L);
+    module_load_pcell(L);
+    module_load_load(L);
+
+    // register pcell state
+    struct vector* cellpaths_to_prepend = vector_create();
+    if(cmdoptions_was_provided_long(cmdoptions, "prepend-cellpath"))
+    {
+        const char** arg = cmdoptions_get_argument_long(cmdoptions, "prepend-cellpath");
+        while(*arg)
+        {
+            vector_append(cellpaths_to_prepend, util_copy_string(*arg));
+            ++arg;
+        }
+    }
+    struct vector* cellpaths_to_append = vector_create();
+    if(cmdoptions_was_provided_long(cmdoptions, "cellpath"))
+    {
+        const char** arg = cmdoptions_get_argument_long(cmdoptions, "cellpath");
+        while(*arg)
+        {
+            vector_append(cellpaths_to_append, util_copy_string(*arg));
+            ++arg;
+        }
+    }
+    if(cmdoptions_was_provided_long(cmdoptions, "append-cellpath"))
+    {
+        const char** arg = cmdoptions_get_argument_long(cmdoptions, "append-cellpath");
+        while(*arg)
+        {
+            vector_append(cellpaths_to_append, util_copy_string(*arg));
+            ++arg;
+        }
+    }
+    vector_append(cellpaths_to_append, util_copy_string(OPC_HOME "/cells"));
+    struct pcell_state* pcell_state = pcell_initialize_state(cellpaths_to_prepend, cellpaths_to_append);
+    vector_destroy(cellpaths_to_prepend, free);
+    vector_destroy(cellpaths_to_append, free);
+    lua_pushlightuserdata(L, pcell_state);
+    lua_setfield(L, LUA_REGISTRYINDEX, "pcellstate");
+
+    // assemble cell arguments
+    lua_newtable(L);
+    //lua_pushboolean(L, iscellscript);
+    //lua_setfield(L, -2, "isscript");
+    const char* cellname = cmdoptions_get_argument_long(cmdoptions, "cell");
+    lua_pushstring(L, cellname);
+    lua_setfield(L, -2, "cell");
+    //lua_newtable(L);
+    //for(unsigned int i = 0; i < vector_size(cellargs); ++i)
+    //{
+    //    lua_pushstring(L, vector_get(cellargs, i));
+    //    lua_rawseti(L, -2, i + 1);
+    //}
+    //lua_setfield(L, -2, "cellargs");
+    lua_setglobal(L, "args");
+
+    int retval = script_call_list_parameters(L);
+    if(retval != LUA_OK)
+    {
+        puts("error while running list_parameters.lua");
+    }
+    lua_close(L);
+}
+
 object_t* _create_cell(const char* cellname, int iscellscript, struct vector* cellargs, struct technology_state* techstate, struct pcell_state* pcell_state, struct layermap* layermap)
 {
     lua_State* L = _create_and_initialize_lua();
@@ -136,71 +206,19 @@ object_t* _create_cell(const char* cellname, int iscellscript, struct vector* ce
 
     // load main modules
     module_load_aux(L);
-    if(!lua_isnil(L, -1))
-    {
-        lua_setglobal(L, "aux");
-    }
     module_load_envlib(L);
-    if(!lua_isnil(L, -1))
-    {
-        lua_setglobal(L, "envlib");
-    }
     module_load_geometry(L);
-    if(!lua_isnil(L, -1))
-    {
-        lua_setglobal(L, "geometry");
-    }
     module_load_globals(L);
-    if(!lua_isnil(L, -1))
-    {
-        lua_setglobal(L, "globals");
-    }
     module_load_graphics(L);
-    if(!lua_isnil(L, -1))
-    {
-        lua_setglobal(L, "graphics");
-    }
     module_load_load(L);
     module_load_pcell(L);
-    if(!lua_isnil(L, -1))
-    {
-        lua_setglobal(L, "pcell");
-    }
     module_load_placement(L);
-    if(!lua_isnil(L, -1))
-    {
-        lua_setglobal(L, "placement");
-    }
     module_load_point(L);
-    if(!lua_isnil(L, -1))
-    {
-        lua_setglobal(L, "point");
-    }
     module_load_public(L);
-    if(!lua_isnil(L, -1))
-    {
-        lua_setglobal(L, "public");
-    }
     module_load_routing(L);
-    if(!lua_isnil(L, -1))
-    {
-        lua_setglobal(L, "routing");
-    }
     module_load_stack(L);
-    if(!lua_isnil(L, -1))
-    {
-        lua_setglobal(L, "stack");
-    }
     module_load_support(L);
-    if(!lua_isnil(L, -1))
-    {
-        lua_setglobal(L, "support");
-    }
     module_load_util(L);
-    if(!lua_isnil(L, -1))
-    {
-        lua_setglobal(L, "util");
-    }
 
     int retval = script_call_create_cell(L);
     if(retval != LUA_OK)
