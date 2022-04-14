@@ -518,32 +518,32 @@ int gdsparser_show_records(const char* filename)
     return 1;
 }
 
-void _print_int16(FILE* file, int16_t num)
+static void _print_int16(FILE* file, int16_t num)
 {
     if(num < 0)
     {
         fputc('-', file);
         num *= -1;
     }
-    while(num > 0)
+    if(num > 9)
     {
-        fputc((num % 10) + '0', file);
-        num /= 10;
+        _print_int16(file, num / 10);
     }
+    fputc((num % 10) + '0', file);
 }
 
-void _print_int32(FILE* file, int32_t num)
+static void _print_int32(FILE* file, int32_t num)
 {
     if(num < 0)
     {
         fputc('-', file);
         num *= -1;
     }
-    while(num > 0)
+    if(num > 9)
     {
-        fputc((num % 10) + '0', file);
-        num /= 10;
+        _print_int32(file, num / 10);
     }
+    fputc((num % 10) + '0', file);
 }
 
 #define MAX2(a, b) ((a) > (b) ? (a) : (b))
@@ -563,7 +563,22 @@ struct _cellref
     double angle;
 };
 
-void gdsparser_read_stream(const char* filename, const char* importname)
+int _check_rectangle(struct vector* points)
+{
+    return ((((point_t*)vector_get(points, 0))->y == ((point_t*)vector_get(points, 1))->y)  &&
+            (((point_t*)vector_get(points, 1))->x == ((point_t*)vector_get(points, 2))->x)  &&
+            (((point_t*)vector_get(points, 2))->y == ((point_t*)vector_get(points, 3))->y)  &&
+            (((point_t*)vector_get(points, 3))->x == ((point_t*)vector_get(points, 4))->x)  &&
+            (((point_t*)vector_get(points, 0))->x == ((point_t*)vector_get(points, 4))->x)  &&
+            (((point_t*)vector_get(points, 0))->y == ((point_t*)vector_get(points, 4))->y)) ||
+           ((((point_t*)vector_get(points, 0))->x == ((point_t*)vector_get(points, 1))->x)  &&
+            (((point_t*)vector_get(points, 1))->y == ((point_t*)vector_get(points, 2))->y)  &&
+            (((point_t*)vector_get(points, 2))->x == ((point_t*)vector_get(points, 3))->x)  &&
+            (((point_t*)vector_get(points, 3))->y == ((point_t*)vector_get(points, 4))->y)  &&
+            (((point_t*)vector_get(points, 0))->x == ((point_t*)vector_get(points, 4))->x)  &&
+            (((point_t*)vector_get(points, 0))->y == ((point_t*)vector_get(points, 4))->y));
+}
+
 int gdsparser_read_stream(const char* filename, const char* importname)
 {
     const char* libname;
@@ -706,56 +721,39 @@ int gdsparser_read_stream(const char* filename, const char* importname)
                 // check for rectangles
                 // BOX is not used for rectangles, at least most tool suppliers seem to do it this way
                 // therefor, we check if some "polygons" are actually rectangles and fix the shape types
-                if(vector_size(points) == 5)
+                if(vector_size(points) == 5 && _check_rectangle(points))
                 {
-                    if(((((point_t*)vector_get(points, 0))->y == ((point_t*)vector_get(points, 1))->y)  &&
-                        (((point_t*)vector_get(points, 1))->x == ((point_t*)vector_get(points, 2))->x)  &&
-                        (((point_t*)vector_get(points, 2))->y == ((point_t*)vector_get(points, 3))->y)  &&
-                        (((point_t*)vector_get(points, 3))->x == ((point_t*)vector_get(points, 4))->x)  &&
-                        (((point_t*)vector_get(points, 0))->x == ((point_t*)vector_get(points, 4))->x)  &&
-                        (((point_t*)vector_get(points, 0))->y == ((point_t*)vector_get(points, 4))->y)) ||
-                       ((((point_t*)vector_get(points, 0))->x == ((point_t*)vector_get(points, 1))->x)  &&
-                        (((point_t*)vector_get(points, 1))->y == ((point_t*)vector_get(points, 2))->y)  &&
-                        (((point_t*)vector_get(points, 2))->x == ((point_t*)vector_get(points, 3))->x)  &&
-                        (((point_t*)vector_get(points, 3))->y == ((point_t*)vector_get(points, 4))->y)  &&
-                        (((point_t*)vector_get(points, 0))->x == ((point_t*)vector_get(points, 4))->x)  &&
-                        (((point_t*)vector_get(points, 0))->y == ((point_t*)vector_get(points, 4))->y)))
-                    {
-                        // FIXME: this is terrible
-                        fprintf(cellfile, "    geometry.rectanglebltr(cell, generics.premapped(nil, { gds = { layer = %d, purpose = %d } }), point.create(%lld, %lld), point.create(%lld, %lld))\n", layer, purpose, 
-                            MIN4(((point_t*)vector_get(points, 0))->x, ((point_t*)vector_get(points, 1))->x, ((point_t*)vector_get(points, 2))->x, ((point_t*)vector_get(points, 3))->x),
-                            MIN4(((point_t*)vector_get(points, 0))->y, ((point_t*)vector_get(points, 1))->y, ((point_t*)vector_get(points, 2))->y, ((point_t*)vector_get(points, 3))->y),
-                            MAX4(((point_t*)vector_get(points, 0))->x, ((point_t*)vector_get(points, 1))->x, ((point_t*)vector_get(points, 2))->x, ((point_t*)vector_get(points, 3))->x),
-                            MAX4(((point_t*)vector_get(points, 0))->y, ((point_t*)vector_get(points, 1))->y, ((point_t*)vector_get(points, 2))->y, ((point_t*)vector_get(points, 3))->y)
-                        );
-                    }
+                    // FIXME: the calls to MAX4 and MIN4 are terrible
+                    fputs("    geometry.rectanglebltr(cell, generics.premapped(nil, { gds = { layer = ", cellfile);
+                    _print_int16(cellfile, layer);
+                    fputs(", purpose = ", cellfile);
+                    _print_int16(cellfile, purpose);
+                    fputs(" } }), point.create(", cellfile);
+                    _print_int32(cellfile, MIN4(((point_t*)vector_get(points, 0))->x, ((point_t*)vector_get(points, 1))->x, ((point_t*)vector_get(points, 2))->x, ((point_t*)vector_get(points, 3))->x));
+                    fputs(", ", cellfile);
+                    _print_int32(cellfile, MIN4(((point_t*)vector_get(points, 0))->y, ((point_t*)vector_get(points, 1))->y, ((point_t*)vector_get(points, 2))->y, ((point_t*)vector_get(points, 3))->y));
+                    fputs("), point.create(", cellfile);
+                    _print_int32(cellfile, MAX4(((point_t*)vector_get(points, 0))->x, ((point_t*)vector_get(points, 1))->x, ((point_t*)vector_get(points, 2))->x, ((point_t*)vector_get(points, 3))->x));
+                    fputs(", ", cellfile);
+                    _print_int32(cellfile, MAX4(((point_t*)vector_get(points, 0))->y, ((point_t*)vector_get(points, 1))->y, ((point_t*)vector_get(points, 2))->y, ((point_t*)vector_get(points, 3))->y));
+                    fputs("))\n", cellfile);
                 }
                 else
                 {
-                    ///////////////////////////////////////////////////////////////////////
-                    /*
-                       fputs("geometry.polygon(cell, generics.premapped(nil, { gds = {", cellfile);
-                       fputs("layer = ", cellfile);
-                       _print_int16(cellfile, layer);
-                       fputs(", purpose = ", cellfile);
-                       _print_int16(cellfile, purpose);
-                       fputs("} }), { ", cellfile);
-                       for(unsigned int i = 0; i < vector_size(points); ++i)
-                       {
-                       point_t* pt = vector_get(points, i);
-                       fputs("point.create(", cellfile);
-                       _print_int32(cellfile, pt->x);
-                       fputs(", ", cellfile);
-                       _print_int32(cellfile, pt->y);
-                       fputs("), ", cellfile);
-                       }
-                       fputs("})\n", cellfile);
-                       */
-                    fprintf(cellfile, "    geometry.polygon(cell, generics.premapped(nil, { gds = { layer = %d, purpose = %d } }), { ", layer, purpose);
+                    fputs("geometry.polygon(cell, generics.premapped(nil, { gds = {", cellfile);
+                    fputs("layer = ", cellfile);
+                    _print_int16(cellfile, layer);
+                    fputs(", purpose = ", cellfile);
+                    _print_int16(cellfile, purpose);
+                    fputs("} }), { ", cellfile);
                     for(unsigned int i = 0; i < vector_size(points); ++i)
                     {
                         point_t* pt = vector_get(points, i);
-                        fprintf(cellfile, "point.create(%lld, %lld), ", pt->x, pt->y);
+                        fputs("point.create(", cellfile);
+                        _print_int32(cellfile, pt->x);
+                        fputs(", ", cellfile);
+                        _print_int32(cellfile, pt->y);
+                        fputs("), ", cellfile);
                     }
                     fputs("})\n", cellfile);
                 }
