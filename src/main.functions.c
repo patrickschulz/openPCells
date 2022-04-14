@@ -65,12 +65,3 @@ int main_call_lua_program_from_buffer(lua_State* L, const char* data, size_t len
     return LUA_OK;
 }
 
-void main_load_lua_module(lua_State* L, const char* modname)
-{
-    size_t len = strlen(OPC_HOME) + strlen(modname) + 9; // +9: "/src/" + ".lua"
-    char* path = malloc(len + 1);
-    snprintf(path, len + 1, "%s/src/%s.lua", OPC_HOME, modname);
-    main_call_lua_program(L, path);
-    free(path);
-}
-

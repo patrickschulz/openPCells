@@ -10,6 +10,7 @@
 #include "filesystem.h"
 #include "config.h"
 
+#include "scriptmanager.h"
 #include "modulemanager.h"
 
 void main_gds_show_data(struct cmdoptions* cmdoptions)
@@ -26,15 +27,23 @@ void main_gds_show_cell_hierarchy(struct cmdoptions* cmdoptions)
 {
     lua_State* L = util_create_basic_lua_state();
     open_gdsparser_lib(L);
-    main_load_lua_module(L, "gdsparser");
-    main_load_lua_module(L, "aux");
+    module_load_gdsparser(L);
+    if(!lua_isnil(L, -1))
+    {
+        lua_setglobal(L, "gdsparser");
+    }
+    module_load_aux(L);
+    if(!lua_isnil(L, -1))
+    {
+        lua_setglobal(L, "aux");
+    }
     const char* filename = cmdoptions_get_argument_long(cmdoptions, "show-gds-cell-hierarchy");
     lua_pushstring(L, filename);
     lua_setglobal(L, "filename");
     int depth = atoi(cmdoptions_get_argument_long(cmdoptions, "show-gds-depth"));
     lua_pushinteger(L, depth);
     lua_setglobal(L, "depth");
-    main_call_lua_program(L, OPC_HOME "/src/scripts/show_gds_hierarchy.lua");
+    script_call_show_gds_hierarchy(L);
     lua_close(L);
 }
 

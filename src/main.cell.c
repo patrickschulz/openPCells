@@ -9,7 +9,6 @@
 #include "lpoint.h"
 #include "lgeometry.h"
 #include "lgenerics.h"
-#include "lload.h"
 #include "lbind.h"
 #include "ldir.h"
 #include "lobject.h"
@@ -43,7 +42,6 @@ static lua_State* _create_and_initialize_lua(void)
     open_lgenerics_lib(L);
     open_ltechnology_lib(L);
     open_lgraphics_lib(L);
-    open_lload_lib(L);
     open_lbind_lib(L);
     open_lobject_lib(L);
     open_lpcell_lib(L);
@@ -162,6 +160,7 @@ object_t* _create_cell(const char* cellname, int iscellscript, struct vector* ce
     {
         lua_setglobal(L, "graphics");
     }
+    module_load_load(L);
     module_load_pcell(L);
     if(!lua_isnil(L, -1))
     {

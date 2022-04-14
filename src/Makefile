@@ -14,7 +14,7 @@ SYSCFLAGS=
 SYSLDFLAGS=
 SYSLIBS=
 
-OPCOBJ:=main.functions.o main.cell.o main.gds.o main.verilog.o cmdoptions.o util.o vector.o union.o postprocess.o point.o technology.o transformationmatrix.o ltransformationmatrix.o shape.o object.o geometry.o hashmap.o keyvaluepairs.o generics.o lgenerics.o lgeometry.o ldir.o lpoint.o graphics.o lbind.o lload.o lobject.o pcell.o filesystem.o lplacer.o lplacer_rand.o lplacer_nonoverlapping.o lplacer_classic.o lrouter.o lrouter_net.o lrouter_queue.o lrouter_field.o lrouter_route.o gdsparser.o ldebug.o export.o export_common.o gdsexport.o info.o
+OPCOBJ:=main.functions.o main.cell.o main.gds.o main.verilog.o cmdoptions.o util.o vector.o union.o postprocess.o point.o technology.o transformationmatrix.o ltransformationmatrix.o shape.o object.o geometry.o hashmap.o keyvaluepairs.o generics.o lgenerics.o lgeometry.o ldir.o lpoint.o graphics.o lbind.o lobject.o pcell.o filesystem.o lplacer.o lplacer_rand.o lplacer_nonoverlapping.o lplacer_classic.o lrouter.o lrouter_net.o lrouter_queue.o lrouter_field.o lrouter_route.o gdsparser.o ldebug.o export.o export_common.o gdsexport.o info.o
 
 .PHONY: default
 default:
@@ -30,13 +30,14 @@ lua/liblua.a: lua/*.c lua/*.h
 lua/luac:
 	@$(MAKE) -C lua luac
 
-scriptmanager.c: embed_compiled_lua_file scripts/create_cell.lua scripts/list_cells.lua scripts/assistant.lua
+scriptmanager.c: embed_compiled_lua_file scripts/*.lua
 	@echo '#include "scriptmanager.h"' > scriptmanager.c
 	@echo '#include <stddef.h>' >> scriptmanager.c
 	@echo '#include "main.functions.h"' >> scriptmanager.c
 	./embed_compiled_lua_file scripts/create_cell.lua script_call create_cell scriptmanager.c
 	./embed_compiled_lua_file scripts/list_cells.lua script_call list_cells scriptmanager.c
 	./embed_compiled_lua_file scripts/assistant.lua script_call assistant scriptmanager.c
+	./embed_compiled_lua_file scripts/show_gds_hierarchy.lua script_call show_gds_hierarchy scriptmanager.c
 
 scriptmanager.h:
 	@echo '#ifndef OPC_SCRIPTMANAGER_H' > scriptmanager.h
@@ -45,6 +46,7 @@ scriptmanager.h:
 	@echo 'int script_call_create_cell(lua_State* L);' >> scriptmanager.h
 	@echo 'int script_call_list_cells(lua_State* L);' >> scriptmanager.h
 	@echo 'int script_call_assistant(lua_State* L);' >> scriptmanager.h
+	@echo 'int script_call_show_gds_hierarchy(lua_State* L);' >> scriptmanager.h
 	@echo '#endif // OPC_SCRIPTMANAGER_H' >> scriptmanager.h
 
 modulemanager.c: embed_compiled_lua_file modules/*.lua
@@ -53,10 +55,12 @@ modulemanager.c: embed_compiled_lua_file modules/*.lua
 	@echo '#include "main.functions.h"' >> modulemanager.c
 	./embed_compiled_lua_file modules/aux.lua module_load aux modulemanager.c
 	./embed_compiled_lua_file modules/envlib.lua module_load envlib modulemanager.c
+	./embed_compiled_lua_file modules/gdsparser.lua module_load gdsparser modulemanager.c
 	./embed_compiled_lua_file modules/generator.lua module_load generator modulemanager.c
 	./embed_compiled_lua_file modules/geometry.lua module_load geometry modulemanager.c
 	./embed_compiled_lua_file modules/globals.lua module_load globals modulemanager.c
 	./embed_compiled_lua_file modules/graphics.lua module_load graphics modulemanager.c
+	./embed_compiled_lua_file modules/load.lua module_load load modulemanager.c
 	./embed_compiled_lua_file modules/pcell.lua module_load pcell modulemanager.c
 	./embed_compiled_lua_file modules/placement.lua module_load placement modulemanager.c
 	./embed_compiled_lua_file modules/point.lua module_load point modulemanager.c
@@ -74,10 +78,12 @@ modulemanager.h:
 	@echo '#include "lua/lua.h"' >> modulemanager.h
 	@echo 'int module_load_aux(lua_State* L);' >> modulemanager.h
 	@echo 'int module_load_envlib(lua_State* L);' >> modulemanager.h
+	@echo 'int module_load_gdsparser(lua_State* L);' >> modulemanager.h
 	@echo 'int module_load_generator(lua_State* L);' >> modulemanager.h
 	@echo 'int module_load_geometry(lua_State* L);' >> modulemanager.h
 	@echo 'int module_load_globals(lua_State* L);' >> modulemanager.h
 	@echo 'int module_load_graphics(lua_State* L);' >> modulemanager.h
+	@echo 'int module_load_load(lua_State* L);' >> modulemanager.h
 	@echo 'int module_load_pcell(lua_State* L);' >> modulemanager.h
 	@echo 'int module_load_placement(lua_State* L);' >> modulemanager.h
 	@echo 'int module_load_point(lua_State* L);' >> modulemanager.h
@@ -174,8 +180,6 @@ lgeometry.o: lgeometry.c lgeometry.h lua/lua.h lua/luaconf.h \
  lua/lauxlib.h lua/lua.h geometry.h technology.h vector.h generics.h \
  keyvaluepairs.h object.h transformationmatrix.h point.h shape.h pcell.h \
  lobject.h lpoint.h
-lload.o: lload.c lload.h lua/lua.h lua/luaconf.h config.h lua/lauxlib.h \
- lua/lua.h
 lobject.o: lobject.c lobject.h lua/lua.h lua/luaconf.h object.h \
  transformationmatrix.h point.h shape.h generics.h keyvaluepairs.h \
  vector.h pcell.h lua/lauxlib.h lua/lua.h lpoint.h
@@ -208,7 +212,7 @@ main.o: main.c lua/lprefix.h lua/lua.h lua/luaconf.h lua/lauxlib.h \
  cmdoptions_def.c
 main.cell.o: main.cell.c main.cell.h keyvaluepairs.h vector.h \
  cmdoptions.h lua/lauxlib.h lua/luaconf.h lua/lua.h lpoint.h lua/lua.h \
- point.h lgeometry.h lgenerics.h generics.h lload.h lbind.h ldir.h \
+ point.h lgeometry.h lgenerics.h generics.h lbind.h ldir.h \
  lobject.h object.h transformationmatrix.h shape.h pcell.h filesystem.h \
  lplacer.h lrouter.h gdsparser.h technology.h graphics.h util.h export.h \
  info.h postprocess.h geometry.h config.h main.functions.h \
@@ -217,7 +221,7 @@ main.functions.o: main.functions.c main.functions.h lua/lua.h \
  lua/luaconf.h lua/lauxlib.h lua/lua.h config.h
 main.gds.o: main.gds.c main.gds.h cmdoptions.h vector.h main.functions.h \
  lua/lua.h lua/luaconf.h util.h gdsparser.h filesystem.h config.h \
- modulemanager.h
+ scriptmanager.h modulemanager.h
 main.verilog.o: main.verilog.c lua/lua.h lua/luaconf.h util.h \
  modulemanager.h
 modulemanager.o: modulemanager.c modulemanager.h lua/lua.h lua/luaconf.h \
