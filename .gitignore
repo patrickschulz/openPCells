@@ -6,6 +6,7 @@ src/modulemanager.c
 src/modulemanager.h
 src/scriptmanager.c
 src/scriptmanager.h
+src/generate_manpage
 opc.1
 
 # generated layouts and helpers

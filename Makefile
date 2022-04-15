@@ -4,10 +4,12 @@ opc: src/*.c src/*.h src/scripts/*.lua src/modules/*.lua src/lua/*.c src/lua/*.h
 	@$(MAKE) -C src default
 	@cp src/opc .
 
-opc.1: opc src/cmdoptions.lua src/generate_manpage.lua
-	./opc --script src/generate_manpage.lua > opc.1
+opc.1: src/cmdoptions_def.c
+	@$(MAKE) -C src opc.1
+	mv src/opc.1 .
 
 .PHONY: clean
 clean:
 	@$(MAKE) -C src clean
 	rm -f opc
+	rm -f opc.1

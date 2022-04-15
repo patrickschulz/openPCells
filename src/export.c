@@ -5,6 +5,7 @@
 #include <string.h>
 
 #include "util.h"
+#include "lua_util.h"
 #include "lobject.h"
 #include "export_common.h"
 #include "pcell.h"

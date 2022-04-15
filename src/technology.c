@@ -5,6 +5,7 @@
 #include <string.h>
 
 #include "util.h"
+#include "lua_util.h"
 
 void technology_add_techpath(struct technology_state* techstate, const char* path)
 {

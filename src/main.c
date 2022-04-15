@@ -15,6 +15,7 @@
 
 #include "cmdoptions.h"
 #include "util.h"
+#include "lua_util.h"
 #include "config.h"
 #include "scriptmanager.h"
 #include "modulemanager.h"

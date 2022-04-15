@@ -5,7 +5,7 @@
 #include <stdio.h>
 
 #include "main.functions.h"
-#include "util.h"
+#include "lua_util.h"
 #include "gdsparser.h"
 #include "filesystem.h"
 #include "config.h"

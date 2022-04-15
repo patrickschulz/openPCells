@@ -19,6 +19,7 @@
 #include "technology.h"
 #include "graphics.h"
 #include "util.h"
+#include "lua_util.h"
 #include "export.h"
 #include "info.h"
 #include "postprocess.h"

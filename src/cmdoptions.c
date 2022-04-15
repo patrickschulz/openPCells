@@ -292,6 +292,46 @@ void cmdoptions_help(struct cmdoptions* options)
     }
 }
 
+void cmdoptions_export_manpage(struct cmdoptions* options)
+{
+    for(unsigned int i = 0; i < vector_size(options->entries); ++i)
+    {
+        struct entry* entry = vector_get(options->entries, i);
+        if(entry->what == OPTION)
+        {
+            struct option* option = entry->value;
+            fputs(".IP \"\\fB\\", stdout);
+            if(option->short_identifier && option->long_identifier)
+            {
+                fputc('-', stdout);
+                fputc(option->short_identifier, stdout);
+                fputc(',', stdout);
+                fputc('-', stdout);
+                fputc('-', stdout);
+                fputs(option->long_identifier, stdout);
+            }
+            else if(option->short_identifier)
+            {
+                fputc('-', stdout);
+                fputc(option->short_identifier, stdout);
+            }
+            else if(option->long_identifier)
+            {
+                fputc('-', stdout);
+                fputc('-', stdout);
+                fputs(option->long_identifier, stdout);
+            }
+            printf("\\fR %s\" 4\n", "");
+            puts(option->help);
+        }
+        else
+        {
+            struct section* section = entry->value;
+            printf(".SS %s\n", section->name);
+        }
+    }
+}
+
 struct option* cmdoptions_get_option_short(struct cmdoptions* options, char short_identifier)
 {
     for(unsigned int i = 0; i < vector_size(options->entries); ++i)
