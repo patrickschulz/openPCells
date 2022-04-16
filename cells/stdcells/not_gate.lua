@@ -22,6 +22,7 @@ function layout(gate, _P)
         end
     end
     local harness = pcell.create_layout("stdcells/harness", { 
+        rightdummies = _P.fingers % 2,
         shiftgatecontacts = _P.shiftinput,
         gatecontactpos = gatecontactpos,
         pcontactpos = contactpos,
