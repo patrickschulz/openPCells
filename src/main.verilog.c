@@ -11,6 +11,8 @@
 #include "lplacer.h"
 #include "lrouter.h"
 
+#include "main.functions.h"
+
 void main_verilog_import(const char* scriptname)
 {
     lua_State* L = util_create_basic_lua_state();
@@ -52,11 +54,6 @@ void main_verilog_import(const char* scriptname)
     {
         lua_setglobal(L, "generator");
     }
-    int ret = luaL_dofile(L, scriptname);
-    if(ret != LUA_OK)
-    {
-        const char* msg = lua_tostring(L, -1);
-        printf("errors while loading verilog import script:\n    %s\n", msg);
-    }
+    main_call_lua_program(L, scriptname);
     lua_close(L);
 }

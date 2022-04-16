@@ -5,6 +5,26 @@
 #include "lua/lauxlib.h"
 #include "lua/lualib.h"
 
+int util_msghandler(lua_State *L)
+{
+    const char *msg = lua_tostring(L, 1);
+    if (msg == NULL) /* is error object not a string? */
+    {
+        if (luaL_callmeta(L, 1, "__tostring") &&  /* does it have a metamethod */
+                lua_type(L, -1) == LUA_TSTRING)  /* that produces a string? */
+        {
+            return 1;  /* that is the message */
+        }
+        else
+        {
+            msg = lua_pushfstring(L, "(error object is a %s value)",
+                    luaL_typename(L, 1));
+        }
+    }
+    luaL_traceback(L, L, msg, 1);  /* append a standard traceback */
+    return 1;  /* return the traceback */
+}
+
 lua_State* util_create_minimal_lua_state(void)
 {
     lua_State* L = luaL_newstate();
