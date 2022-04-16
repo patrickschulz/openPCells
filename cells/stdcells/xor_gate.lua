@@ -159,8 +159,8 @@ function layout(gate, _P)
     )
 
     geometry.viabltr(gate, 1, 2,
-        harness:get_anchor("G1"):translate( xpitch - math.max(bp.glength, bp.gstwidth) / 2 - bp.gstspace, -bp.sdwidth / 2),
-        harness:get_anchor("G1"):translate(-xpitch + bp.gstwidth / 2 + bp.gstspace, bp.sdwidth / 2)
+        harness:get_anchor("G1"):translate(-xpitch - math.max(bp.glength, bp.gstwidth) / 2 - bp.gstspace, -bp.sdwidth / 2),
+        harness:get_anchor("G1"):translate( xpitch + bp.gstwidth / 2 + bp.gstspace, bp.sdwidth / 2)
     )
     geometry.viabltr(gate, 1, 2,
         harness:get_anchor("G2"):translate(-math.max(bp.glength, bp.gstwidth) / 2, -bp.sdwidth / 2),
