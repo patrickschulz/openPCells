@@ -220,6 +220,7 @@ int main(int argc, const char* const * argv)
         {
             pcell_list_cellpaths(pcell_state);
         }
+        pcell_destroy_state(pcell_state);
         goto DESTROY_CONFIG;
     }
 

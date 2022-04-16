@@ -200,6 +200,7 @@ void pcell_list_cells(struct pcell_state* pcell_state, const char* listformat)
     }
     lua_setglobal(L, "args");
     script_call_list_cells(L);
+    lua_close(L);
 }
 
 static int lpcell_get_cell_filename(lua_State* L)
