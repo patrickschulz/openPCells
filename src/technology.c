@@ -133,16 +133,6 @@ int technology_load_layermap(struct technology_state* techstate, const char* nam
     return 0;
 }
 
-int ltechnology_load_layermap(lua_State* L)
-{
-    const char* name = lua_tostring(L, 1);
-    lua_getfield(L, LUA_REGISTRYINDEX, "techstate");
-    struct technology_state* techstate = lua_touserdata(L, -1);
-    lua_pop(L, 1); // pop techstate
-    technology_load_layermap(techstate, name);
-    return 0;
-}
-
 struct via_definition** _read_via(lua_State* L)
 {
     lua_getfield(L, -1, "entries");
@@ -240,16 +230,6 @@ int technology_load_viadefinitions(struct technology_state* techstate, const cha
     return 0;
 }
 
-int ltechnology_load_viadefinitions(lua_State* L)
-{
-    const char* name = lua_tostring(L, 1);
-    lua_getfield(L, LUA_REGISTRYINDEX, "techstate");
-    struct technology_state* techstate = lua_touserdata(L, -1);
-    lua_pop(L, 1); // pop techstate
-    technology_load_viadefinitions(techstate, name);
-    return 0;
-}
-
 int technology_load_config(struct technology_state* techstate, const char* name)
 {
     lua_State* L = util_create_minimal_lua_state();
@@ -263,16 +243,6 @@ int technology_load_config(struct technology_state* techstate, const char* name)
     techstate->config->metals = lua_tointeger(L, -1);
     lua_pop(L, 1); // pop config table
     lua_close(L);
-    return 0;
-}
-
-int ltechnology_load_config(lua_State* L)
-{
-    const char* name = lua_tostring(L, 1);
-    lua_getfield(L, LUA_REGISTRYINDEX, "techstate");
-    struct technology_state* techstate = lua_touserdata(L, -1);
-    lua_pop(L, 1); // pop techstate
-    technology_load_config(techstate, name);
     return 0;
 }
 
@@ -293,16 +263,6 @@ int technology_load_constraints(struct technology_state* techstate, const char* 
     }
     lua_pop(L, 1); // pop constraints table
     lua_close(L);
-    return 0;
-}
-
-int ltechnology_load_constraint(lua_State* L)
-{
-    const char* name = lua_tostring(L, 1);
-    lua_getfield(L, LUA_REGISTRYINDEX, "techstate");
-    struct technology_state* techstate = lua_touserdata(L, -1);
-    lua_pop(L, 1); // pop techstate
-    technology_load_constraints(techstate, name);
     return 0;
 }
 
@@ -513,7 +473,7 @@ void technology_destroy(struct technology_state* techstate)
     free(techstate);
 }
 
-int ltechnology_get_dimension(lua_State* L)
+static int ltechnology_get_dimension(lua_State* L)
 {
     const char* dimension = lua_tostring(L, 1);
     lua_getfield(L, LUA_REGISTRYINDEX, "techstate");
