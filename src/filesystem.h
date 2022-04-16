@@ -1,5 +1,5 @@
-#ifndef LFILESYSTEM_H
-#define LFILESYSTEM_H
+#ifndef OPC_FILESYSTEM_H
+#define OPC_FILESYSTEM_H
 
 #include "lua/lua.h"
 
@@ -9,4 +9,4 @@ int filesystem_mkdir(const char* path);
 
 int open_lfilesystem_lib(lua_State* L);
 
-#endif /* LFILESYSTEM_H */
+#endif /* OPC_FILESYSTEM_H */

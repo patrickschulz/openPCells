@@ -1,6 +1,6 @@
-#ifndef LROUTER_H
-#define LROUTER_H
+#ifndef OPC_LROUTER_H
+#define OPC_LROUTER_H
 
 int open_lrouter_lib(lua_State* L);
 
-#endif // LROUTER_H
+#endif // OPC_LROUTER_H

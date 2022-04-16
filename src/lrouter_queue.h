@@ -1,5 +1,5 @@
-#ifndef LROUTER_QUEUE_H
-#define LROUTER_QUEUE_H
+#ifndef OPC_LROUTER_QUEUE_H
+#define OPC_LROUTER_QUEUE_H
 
 /*
  * taken from
@@ -22,4 +22,4 @@ queue_t *queue_new(void);
 void *queue_dequeue(queue_t *queue);
 int queue_enqueue(queue_t *queue, void *data);
 
-#endif
+#endif // OPC_LROUTER_QUEUE_H

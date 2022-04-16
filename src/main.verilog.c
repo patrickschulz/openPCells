@@ -5,6 +5,7 @@
 #include "lua/lauxlib.h"
 
 #include "util.h"
+#include "lua_util.h"
 #include "modulemanager.h"
 #include "filesystem.h"
 #include "lplacer.h"

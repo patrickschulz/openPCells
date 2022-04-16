@@ -1,5 +1,5 @@
-#ifndef LROUTER_NET_H
-#define LROUTER_NET_H
+#ifndef OPC_LROUTER_NET_H
+#define OPC_LROUTER_NET_H
 
 #include <stddef.h>
 
@@ -20,4 +20,4 @@ void fill_ports(net_t* nets, size_t num_nets, int** field);
 /* prints the path of a given net */
 void print_path(net_t net);
 
-#endif
+#endif // OPC_LROUTER_NET_H

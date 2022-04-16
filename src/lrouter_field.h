@@ -1,5 +1,5 @@
-#ifndef LROUTER_FIELD_H
-#define LROUTER_FIELD_H
+#ifndef OPC_LROUTER_FIELD_H
+#define OPC_LROUTER_FIELD_H
 
 #define UNVISITED -1
 #define PATH -2
@@ -21,4 +21,4 @@ void destroy_field(int** field, size_t size);
  */
 void reset_field(int** field, size_t size);
 
-#endif
+#endif // OPC_LROUTER_FIELD_H

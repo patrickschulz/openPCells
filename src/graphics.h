@@ -1,5 +1,5 @@
-#ifndef LGRAPHICS_H
-#define LGRAPHICS_H
+#ifndef OPC_GRAPHICS_H
+#define OPC_GRAPHICS_H
 
 #include "lua/lua.h"
 
@@ -8,4 +8,4 @@
 
 int open_lgraphics_lib(lua_State* L);
 
-#endif // LGRAPHICS_H
+#endif // OPC_GRAPHICS_H

@@ -1,5 +1,5 @@
-#ifndef POINT_H
-#define POINT_H
+#ifndef OPC_POINT_H
+#define OPC_POINT_H
 
 #include <stdint.h>
 #include <limits.h>
@@ -23,4 +23,4 @@ point_t* point_copy(point_t* pt);
 
 void point_translate(point_t* pt, coordinate_t x, coordinate_t y);
 
-#endif // POINT_H
+#endif // OPC_POINT_H

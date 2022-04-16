@@ -1,5 +1,5 @@
-#ifndef LPOINT_H
-#define LPOINT_H
+#ifndef OPC_LPOINT_H
+#define OPC_LPOINT_H
 
 #include "lua/lua.h"
 
@@ -21,4 +21,4 @@ lpoint_t* lpoint_checkpoint(lua_State* L, int idx);
 
 int open_lpoint_lib(lua_State* L);
 
-#endif // LPOINT_H
+#endif // OPC_LPOINT_H

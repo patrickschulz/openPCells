@@ -1,5 +1,5 @@
-#ifndef LPLACER_COMMON_H
-#define LPLACER_COMMON_H
+#ifndef OPC_LPLACER_COMMON_H
+#define OPC_LPLACER_COMMON_H
 
 struct basic_cell
 {
@@ -11,4 +11,4 @@ struct basic_cell
     unsigned int num_conns;
 };
 
-#endif /* LPLACER_COMMON_H */
+#endif /* OPC_LPLACER_COMMON_H */
