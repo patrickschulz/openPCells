@@ -25,12 +25,29 @@ static void* _check_generics(lua_State* L, int idx)
     return p;
 }
 
-int lgeometry_rectanglebltr(lua_State* L)
+static void _check_rectangle_points(lua_State* L, lpoint_t* bl, lpoint_t* tr, const char* context)
+{
+    if(bl->point->x > tr->point->x || bl->point->y > tr->point->y)
+    {
+        if(context)
+        {
+            lua_pushfstring(L, "%s: rectangle points are not in order: (%d, %d) and (%d, %d)", context, bl->point->x, bl->point->y, tr->point->x, tr->point->y);
+        }
+        else
+        {
+            lua_pushfstring(L, "rectangle points are not in order: (%d, %d) and (%d, %d)", bl->point->x, bl->point->y, tr->point->x, tr->point->y);
+        }
+        lua_error(L);
+    }
+}
+
+static int lgeometry_rectanglebltr(lua_State* L)
 {
     lobject_t* cell = lobject_check(L, 1);
     generics_t* layer = _check_generics(L, 2);
     lpoint_t* bl = lpoint_checkpoint(L, 3);
     lpoint_t* tr = lpoint_checkpoint(L, 4);
+    _check_rectangle_points(L, bl, tr, "geometry.rectanglebltr");
     ucoordinate_t xrep = luaL_optinteger(L, 5, 1);
     ucoordinate_t yrep = luaL_optinteger(L, 6, 1);
     ucoordinate_t xpitch = luaL_optinteger(L, 7, 0);
@@ -39,7 +56,7 @@ int lgeometry_rectanglebltr(lua_State* L)
     return 0;
 }
 
-int lgeometry_rectangle(lua_State* L)
+static int lgeometry_rectangle(lua_State* L)
 {
     lobject_t* cell = lobject_check(L, 1);
     generics_t* layer = _check_generics(L, 2);
@@ -55,7 +72,7 @@ int lgeometry_rectangle(lua_State* L)
     return 0;
 }
 
-int lgeometry_rectanglepoints(lua_State* L)
+static int lgeometry_rectanglepoints(lua_State* L)
 {
     lobject_t* cell = lobject_check(L, 1);
     generics_t* layer = _check_generics(L, 2);
@@ -69,7 +86,7 @@ int lgeometry_rectanglepoints(lua_State* L)
     return 0;
 }
 
-int lgeometry_polygon(lua_State* L)
+static int lgeometry_polygon(lua_State* L)
 {
     lobject_t* cell = lobject_check(L, 1);
     generics_t* layer = _check_generics(L, 2);
@@ -120,7 +137,7 @@ void _get_path_extension(lua_State* L, int idx, int* bgnext, int* endext)
 
 }
 
-int lgeometry_path(lua_State* L)
+static int lgeometry_path(lua_State* L)
 {
     lobject_t* cell = lobject_check(L, 1);
     generics_t* layer = _check_generics(L, 2);
@@ -146,7 +163,7 @@ int lgeometry_path(lua_State* L)
     return 0;
 }
 
-int lgeometry_path_manhatten(lua_State* L)
+static int lgeometry_path_manhatten(lua_State* L)
 {
     lobject_t* cell = lobject_check(L, 1);
     generics_t* layer = _check_generics(L, 2);
@@ -189,7 +206,7 @@ int lgeometry_path_manhatten(lua_State* L)
     return 0;
 }
 
-int lgeometry_path_3x(lua_State* L)
+static int lgeometry_path_3x(lua_State* L)
 {
     lobject_t* cell = lobject_check(L, 1);
     generics_t* layer = _check_generics(L, 2);
@@ -232,7 +249,7 @@ int lgeometry_path_3x(lua_State* L)
     return 0;
 }
 
-int lgeometry_path_cshape(lua_State* L)
+static int lgeometry_path_cshape(lua_State* L)
 {
     lobject_t* cell = lobject_check(L, 1);
     generics_t* layer = _check_generics(L, 2);
@@ -257,7 +274,7 @@ int lgeometry_path_cshape(lua_State* L)
     return 0;
 }
 
-int lgeometry_path_ushape(lua_State* L)
+static int lgeometry_path_ushape(lua_State* L)
 {
     lobject_t* cell = lobject_check(L, 1);
     generics_t* layer = _check_generics(L, 2);
@@ -282,13 +299,14 @@ int lgeometry_path_ushape(lua_State* L)
     return 0;
 }
 
-int lgeometry_viabltr(lua_State* L)
+static int lgeometry_viabltr(lua_State* L)
 {
     lobject_t* cell = lobject_check(L, 1);
     int metal1 = luaL_checkinteger(L, 2);
     int metal2 = luaL_checkinteger(L, 3);
     lpoint_t* bl = lpoint_checkpoint(L, 4);
     lpoint_t* tr = lpoint_checkpoint(L, 5);
+    _check_rectangle_points(L, bl, tr, "geometry.viabltr");
     ucoordinate_t xrep = luaL_optinteger(L, 6, 1);
     ucoordinate_t yrep = luaL_optinteger(L, 7, 1);
     ucoordinate_t xpitch = luaL_optinteger(L, 8, 0);
@@ -303,7 +321,7 @@ int lgeometry_viabltr(lua_State* L)
     return 0;
 }
 
-int lgeometry_via(lua_State* L)
+static int lgeometry_via(lua_State* L)
 {
     lobject_t* cell = lobject_check(L, 1);
     int metal1 = luaL_checkinteger(L, 2);
@@ -326,12 +344,13 @@ int lgeometry_via(lua_State* L)
     return 0;
 }
 
-int lgeometry_contactbltr(lua_State* L)
+static int lgeometry_contactbltr(lua_State* L)
 {
     lobject_t* cell = lobject_check(L, 1);
     const char* region = luaL_checkstring(L, 2);
     lpoint_t* bl = lpoint_checkpoint(L, 3);
     lpoint_t* tr = lpoint_checkpoint(L, 4);
+    _check_rectangle_points(L, bl, tr, "geometry.contactbltr");
     ucoordinate_t xrep = luaL_optinteger(L, 5, 1);
     ucoordinate_t yrep = luaL_optinteger(L, 6, 1);
     ucoordinate_t xpitch = luaL_optinteger(L, 7, 0);
@@ -346,7 +365,7 @@ int lgeometry_contactbltr(lua_State* L)
     return 0;
 }
 
-int lgeometry_contact(lua_State* L)
+static int lgeometry_contact(lua_State* L)
 {
     lobject_t* cell = lobject_check(L, 1);
     const char* region = luaL_checkstring(L, 2);
@@ -368,7 +387,7 @@ int lgeometry_contact(lua_State* L)
     return 0;
 }
 
-int lgeometry_cross(lua_State* L)
+static int lgeometry_cross(lua_State* L)
 {
     lobject_t* cell = lobject_check(L, 1);
     generics_t* layer = _check_generics(L, 2);
@@ -379,7 +398,7 @@ int lgeometry_cross(lua_State* L)
     return 0;
 }
 
-int lgeometry_ring(lua_State* L)
+static int lgeometry_ring(lua_State* L)
 {
     lobject_t* cell = lobject_check(L, 1);
     generics_t* layer = _check_generics(L, 2);
@@ -390,7 +409,7 @@ int lgeometry_ring(lua_State* L)
     return 0;
 }
 
-int lgeometry_unequal_ring(lua_State* L)
+static int lgeometry_unequal_ring(lua_State* L)
 {
     lobject_t* cell = lobject_check(L, 1);
     generics_t* layer = _check_generics(L, 2);
