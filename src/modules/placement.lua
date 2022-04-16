@@ -1,4 +1,13 @@
+--[[
+This module provides two methodologies:
+ * functions around importing verilog netlists and creating a cell placement (top part)
+ * functions around creating actual layouts, to be used within cell definitions (lower part)
+--]]
 local M = {}
+
+---------------------------------------------------------------------------------
+--                             Placement functions                             --
+---------------------------------------------------------------------------------
 
 local function _get_geometry(instances)
     local total_width = 0
@@ -58,6 +67,20 @@ local function _create_options(fixedrows, required_width, total_width, utilizati
     return options
 end
 
+function M.create_floorplan_aspectratio(instances, utilization, aspectratio)
+    -- placer options
+    local required_width, total_width = _get_geometry(instances)
+    local options = _create_options(nil, required_width, total_width, utilization, aspectratio)
+    return options
+end
+
+function M.create_floorplan_fixed_rows(instances, utilization, numrows)
+    -- placer options
+    local required_width, total_width = _get_geometry(instances)
+    local options = _create_options(numrows, required_width, total_width, utilization) -- aspectratio not used
+    return options
+end
+
 function _sanitize_rows(rows)
     for row = #rows, 1, -1 do
         if #rows[row] == 0 then
@@ -66,16 +89,75 @@ function _sanitize_rows(rows)
     end
 end
 
-function M.optimize(instances, nets, utilization, aspectratio)
-    -- placer options
-    local required_width, total_width = _get_geometry(instances)
-    local options = _create_options(fixedrows, required_width, total_width, utilization, aspectratio)
-
-    local rows = placer.place_simulated_annealing(instances, nets, options)
+function M.optimize(instances, nets, floorplan)
+    local rows = placer.place_simulated_annealing(instances, nets, floorplan)
     _sanitize_rows(rows) -- removes empty rows
     return rows
 end
 
+function M.insert_filler_names(rows, width)
+    -- calculate row widths
+    local rowwidths = {}
+    for row, entries in ipairs(rows) do
+        rowwidths[row] = 0
+        for column, cellname in ipairs(entries) do
+            local cellwidth = cellname.width
+            rowwidths[row] = rowwidths[row] + cellwidth
+        end
+        -- check for too wide rows
+        if rowwidths[row] > width then
+            moderror("row width is to small to fit all cells in a row")
+        end
+    end
+
+    -- equalize rows and insert fillers
+    for row, rowcells in ipairs(rows) do
+        local diff = width - rowwidths[row]
+        if #rowcells > 1 then
+            -- calculate width of holes
+            local delta = diff // (#rowcells - 1) -- distributed correction (equal for all holes)
+            local tocorrect = diff - (#rowcells - 1) * delta -- unequal correction (only applied for the first N holes)
+            local corrected = 0
+            local inscorrection = 0
+            for i = 2, #rowcells do
+                local num = (i - 1) * delta + corrected
+
+                -- correct for unequally distributed shifts
+                -- this is needed when the required amount is indivisible by the number of holes
+                local numfill = delta
+                if tocorrect > 0 then
+                    num = num + 1
+                    numfill = numfill + 1
+                    tocorrect = tocorrect - 1
+                    corrected = corrected + 1
+                end
+
+                for j = 1, numfill do
+                    table.insert(rowcells, i + inscorrection, {
+                        instance = string.format("fill_%d_%d", row, j),
+                        reference = "isogate",
+                        width = 1,
+                    })
+                end
+                inscorrection = inscorrection + numfill
+            end
+        else
+            for i = 1, diff do
+                table.insert(rowcells, {
+                    instance = string.format("fill_%d_%d", row, i),
+                    reference = fillref,
+                    width = 1,
+                })
+            end
+        end
+    end
+end
+
+---------------------------------------------------------------------------------
+--                         In-cell layout functions                            --
+---------------------------------------------------------------------------------
+
+-- in-cell placement functions
 function M.create_reference_rows(cellnames)
     local names = {}
     local references = {}
@@ -155,10 +237,10 @@ function M.regular_rows(cellname, numrows, numcolumns)
     return rows
 end
 
-function M.digital(parent, cellnames, width, startpt, startanchor, flipfirst, growdirection, noflip)
+function M.digital(parent, rows, width, startpt, startanchor, flipfirst, growdirection, noflip)
     -- calculate row widths
     local rowwidths = {}
-    for row, entries in ipairs(cellnames) do
+    for row, entries in ipairs(rows) do
         rowwidths[row] = 0
         for column, cellname in ipairs(entries) do
             local cellwidth = cellname.width
@@ -173,7 +255,7 @@ function M.digital(parent, cellnames, width, startpt, startanchor, flipfirst, gr
     local fillref = pcell.add_cell_reference(pcell.create_layout("stdcells/isogate"), "fill")
 
     -- equalize rows and insert fillers
-    for row, rowcells in ipairs(cellnames) do
+    for row, rowcells in ipairs(rows) do
         local diff = width - rowwidths[row]
         if #rowcells > 1 then
             -- calculate width of holes
@@ -214,7 +296,7 @@ function M.digital(parent, cellnames, width, startpt, startanchor, flipfirst, gr
         end
     end
 
-    return M.rowwise(parent, cellnames, startpt, startanchor, flipfirst, growdirection, noflip)
+    return M.rowwise(parent, rows, startpt, startanchor, flipfirst, growdirection, noflip)
 end
 
 function M.rowwise(parent, cellnames, startpt, startanchor, flipfirst, growdirection, noflip)
