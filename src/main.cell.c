@@ -174,7 +174,7 @@ void main_list_cell_parameters(struct cmdoptions* cmdoptions, struct keyvaluearr
     lua_close(L);
 }
 
-object_t* _create_cell(const char* cellname, int iscellscript, struct vector* cellargs, struct technology_state* techstate, struct pcell_state* pcell_state, struct layermap* layermap)
+object_t* _create_cell(const char* cellname, int iscellscript, struct vector* cellargs, struct technology_state* techstate, struct pcell_state* pcell_state, struct layermap* layermap, int enabledprint)
 {
     lua_State* L = _create_and_initialize_lua();
 
@@ -189,21 +189,6 @@ object_t* _create_cell(const char* cellname, int iscellscript, struct vector* ce
     // register layermap
     lua_pushlightuserdata(L, layermap);
     lua_setfield(L, LUA_REGISTRYINDEX, "genericslayermap");
-
-    // assemble cell arguments
-    lua_newtable(L);
-    lua_pushboolean(L, iscellscript);
-    lua_setfield(L, -2, "isscript");
-    lua_pushstring(L, cellname);
-    lua_setfield(L, -2, "cell");
-    lua_newtable(L);
-    for(unsigned int i = 0; i < vector_size(cellargs); ++i)
-    {
-        lua_pushstring(L, vector_get(cellargs, i));
-        lua_rawseti(L, -2, i + 1);
-    }
-    lua_setfield(L, -2, "cellargs");
-    lua_setglobal(L, "args");
 
     // load main modules
     module_load_aux(L);
@@ -220,6 +205,23 @@ object_t* _create_cell(const char* cellname, int iscellscript, struct vector* ce
     module_load_stack(L);
     module_load_support(L);
     module_load_util(L);
+
+    // assemble cell arguments
+    lua_newtable(L);
+    lua_pushboolean(L, iscellscript);
+    lua_setfield(L, -2, "isscript");
+    lua_pushstring(L, cellname);
+    lua_setfield(L, -2, "cell");
+    lua_pushboolean(L, enabledprint);
+    lua_setfield(L, -2, "enabledprint");
+    lua_newtable(L);
+    for(unsigned int i = 0; i < vector_size(cellargs); ++i)
+    {
+        lua_pushstring(L, vector_get(cellargs, i));
+        lua_rawseti(L, -2, i + 1);
+    }
+    lua_setfield(L, -2, "cellargs");
+    lua_setglobal(L, "args");
 
     int retval = script_call_create_cell(L);
     if(retval != LUA_OK)
@@ -307,7 +309,8 @@ void main_create_and_export_cell(struct cmdoptions* cmdoptions, struct keyvaluea
     {
         cellname = cmdoptions_get_argument_long(cmdoptions, "cell");
     }
-    object_t* toplevel = _create_cell(cellname, iscellscript, cellargs, techstate, pcell_state, layermap);
+    int enabledprint = cmdoptions_was_provided_long(cmdoptions, "enable-dprint");
+    object_t* toplevel = _create_cell(cellname, iscellscript, cellargs, techstate, pcell_state, layermap, enabledprint);
     if(toplevel)
     {
         // export cell
