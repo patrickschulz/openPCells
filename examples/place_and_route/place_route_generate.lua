@@ -1,13 +1,15 @@
 local module = "counter"
 local exporttype = "gds"
 
-local netlist = verilog.read_parse_file(string.format("examples/place_and_route/%s.v", module))
+local netlist = verilog.read_parse_file(string.format("%s.v", module))
 
 verilog.filter_excluded_nets(netlist, { "clk", "_mem.clk", "vdd", "vss", "in", "out", })
 
 local instances, nets = verilogprocessor.collect_nets_cells(netlist)
 
-local rows = placement.optimize(instances, nets, 0.5, 1)
+local floorplan = placement.create_floorplan_fixed_rows(instances, 0.5, 2)
+local rows = placement.optimize(instances, nets, floorplan)
+placement.insert_filler_names(rows, 40)
 
 local routes = routing.legalize(nets, rows)
 
