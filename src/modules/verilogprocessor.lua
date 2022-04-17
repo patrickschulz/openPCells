@@ -1,11 +1,11 @@
 local function _get_cell_width(name)
     local lut = {
-        not_gate = 1,
+        not_gate = 2,
         nand_gate = 2,
         nor_gate = 2,
         xor_gate = 10,
         xnor_gate = 11,
-        dffp = 21,
+        dffp = 22,
         dffn = 24,
     }
     if not lut[name] then
