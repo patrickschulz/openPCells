@@ -23,7 +23,6 @@ static void _multiple_xy(object_t* cell, shape_t* base, ucoordinate_t xrep, ucoo
             }
         }
     }
-    shape_destroy(base);
 }
 
 static void _rectanglebltr(object_t* cell, generics_t* layer, coordinate_t blx, coordinate_t bly, coordinate_t trx, coordinate_t try, ucoordinate_t xrep, ucoordinate_t yrep, ucoordinate_t xpitch, ucoordinate_t ypitch)
@@ -31,6 +30,7 @@ static void _rectanglebltr(object_t* cell, generics_t* layer, coordinate_t blx, 
     shape_t* S = shape_create_rectangle(blx, bly, trx, try);
     S->layer = layer;
     _multiple_xy(cell, S, xrep, yrep, xpitch, ypitch);
+    shape_destroy(S);
 }
 
 void geometry_rectanglebltr(object_t* cell, generics_t* layer, point_t* bl, point_t* tr, ucoordinate_t xrep, ucoordinate_t yrep, ucoordinate_t xpitch, ucoordinate_t ypitch)
