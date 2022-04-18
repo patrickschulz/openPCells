@@ -309,6 +309,7 @@ int generics_resolve_premapped_layers(struct layermap* generics_layer_map, const
             }
             if(!found)
             {
+                printf("no layer data for export type '%s' found (layer: %s)\n", name, layer->name);
                 return 0;
             }
 

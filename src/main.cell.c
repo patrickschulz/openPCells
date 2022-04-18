@@ -324,7 +324,7 @@ void main_create_and_export_cell(struct cmdoptions* cmdoptions, struct keyvaluea
             // add export search paths. FIXME: add --exportpath cmd option
             if(!generics_resolve_premapped_layers(layermap, exportname))
             {
-                printf("no layer data for export type '%s' found", exportname);
+                // FIXME: do something?
             }
             export_add_path(OPC_HOME "/export");
             const char* basename = cmdoptions_get_argument_long(cmdoptions, "filename");
