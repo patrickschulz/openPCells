@@ -24,6 +24,16 @@ void export_destroy_data(struct export_data* data)
     free(data);
 }
 
+void export_data_append_nullbyte(struct export_data* data)
+{
+    while(data->length + 1 > data->capacity)
+    {
+        _resize_data(data, data->capacity * 2);
+    }
+    data->data[data->length] = 0;
+    data->length += 1;
+}
+
 void export_data_append_byte(struct export_data* data, unsigned char byte)
 {
     while(data->length + 1 > data->capacity)

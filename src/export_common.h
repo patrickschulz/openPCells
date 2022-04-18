@@ -18,6 +18,7 @@ struct export_data
 
 struct export_data* export_create_data(void);
 void export_destroy_data(struct export_data* data);
+void export_data_append_nullbyte(struct export_data* data);
 void export_data_append_byte(struct export_data* data, unsigned char byte);
 void export_data_append_two_bytes(struct export_data* data, int16_t datum);
 void export_data_append_four_bytes(struct export_data* data, int32_t datum);

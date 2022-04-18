@@ -1,5 +1,7 @@
 #include "gdsexport.h"
 
+#include <stdint.h>
+
 #define RECORDTYPE_HEADER       0x00
 #define RECORDTYPE_BGNLIB       0x01
 #define RECORDTYPE_LIBNAME      0x02
@@ -112,21 +114,32 @@ static char* _number_to_gdsfloat(double num, unsigned int width)
     return data;
 }
 
+static inline void _write_length_short(struct export_data* data, uint8_t length)
+{
+    export_data_append_byte(data, 0);
+    export_data_append_byte(data, length);
+}
+
+static inline void _write_ENDEL(struct export_data* data)
+{
+    export_data_append_two_bytes(data, 4);
+    export_data_append_byte(data, RECORDTYPE_ENDEL);
+    export_data_append_byte(data, DATATYPE_NONE);
+}
 
 static void _at_begin(struct export_data* data)
 {
+    // FIXME: put in real data, not fixed
     // HEADER
-    export_data_append_byte(data, 0x00);
-    export_data_append_byte(data, 0x06);
-    export_data_append_byte(data, 0x00);
-    export_data_append_byte(data, 0x02);
+    _write_length_short(data, 6);
+    export_data_append_byte(data, RECORDTYPE_HEADER);
+    export_data_append_byte(data, DATATYPE_TWO_BYTE_INTEGER);
     export_data_append_byte(data, 0x02);
     export_data_append_byte(data, 0x58);
     // BGNLIB
-    export_data_append_byte(data, 0x00);
-    export_data_append_byte(data, 0x1c);
-    export_data_append_byte(data, 0x01);
-    export_data_append_byte(data, 0x02);
+    _write_length_short(data, 0x1c);
+    export_data_append_byte(data, RECORDTYPE_BGNLIB);
+    export_data_append_byte(data, DATATYPE_TWO_BYTE_INTEGER);
     export_data_append_byte(data, 0x07);
     export_data_append_byte(data, 0xe6);
     export_data_append_byte(data, 0x00);
@@ -152,10 +165,9 @@ static void _at_begin(struct export_data* data)
     export_data_append_byte(data, 0x00);
     export_data_append_byte(data, 0x35);
     // LIBNAME
-    export_data_append_byte(data, 0x00);
-    export_data_append_byte(data, 0x0a);
-    export_data_append_byte(data, 0x02);
-    export_data_append_byte(data, 0x06);
+    _write_length_short(data, 10);
+    export_data_append_byte(data, RECORDTYPE_LIBNAME);
+    export_data_append_byte(data, DATATYPE_ASCII_STRING);
     export_data_append_byte(data, 0x6f);
     export_data_append_byte(data, 0x70);
     export_data_append_byte(data, 0x63);
@@ -163,10 +175,9 @@ static void _at_begin(struct export_data* data)
     export_data_append_byte(data, 0x69);
     export_data_append_byte(data, 0x62);
     // UNITS
-    export_data_append_byte(data, 0x00);
-    export_data_append_byte(data, 0x14);
-    export_data_append_byte(data, 0x03);
-    export_data_append_byte(data, 0x05);
+    _write_length_short(data, 0x14);
+    export_data_append_byte(data, RECORDTYPE_UNITS);
+    export_data_append_byte(data, DATATYPE_EIGHT_BYTE_REAL);
     export_data_append_byte(data, 0x3e);
     export_data_append_byte(data, 0x41);
     export_data_append_byte(data, 0x89);
@@ -187,19 +198,17 @@ static void _at_begin(struct export_data* data)
 
 static void _at_end(struct export_data* data)
 {
-    export_data_append_byte(data, 0x00);
-    export_data_append_byte(data, 0x04);
-    export_data_append_byte(data, 0x04);
-    export_data_append_byte(data, 0x00);
+    _write_length_short(data, 4);
+    export_data_append_byte(data, RECORDTYPE_ENDLIB);
+    export_data_append_byte(data, DATATYPE_NONE);
 }
 
 static void _at_begin_cell(struct export_data* data, const char* name)
 {
     // BGNSTR
-    export_data_append_byte(data, 0x00);
-    export_data_append_byte(data, 0x1c);
-    export_data_append_byte(data, 0x05);
-    export_data_append_byte(data, 0x02);
+    _write_length_short(data, 28);
+    export_data_append_byte(data, RECORDTYPE_BGNSTR);
+    export_data_append_byte(data, DATATYPE_TWO_BYTE_INTEGER);
     export_data_append_byte(data, 0x07);
     export_data_append_byte(data, 0xe6);
     export_data_append_byte(data, 0x00);
@@ -228,44 +237,40 @@ static void _at_begin_cell(struct export_data* data, const char* name)
     // STRNAME
     size_t len = strlen(name);
     export_data_append_two_bytes(data, len % 2 ? len + 5 : len + 4);
-    export_data_append_byte(data, 0x06);
-    export_data_append_byte(data, 0x06);
+    export_data_append_byte(data, RECORDTYPE_STRNAME);
+    export_data_append_byte(data, DATATYPE_ASCII_STRING);
     export_data_append_string(data, name, len);
     if(len % 2)
     {
-        export_data_append_byte(data, 0x00);
+        export_data_append_nullbyte(data);
     }
 }
 
 static void _at_end_cell(struct export_data* data)
 {
-    export_data_append_byte(data, 0x00);
-    export_data_append_byte(data, 0x04);
-    export_data_append_byte(data, 0x07);
-    export_data_append_byte(data, 0x00);
+    _write_length_short(data, 4);
+    export_data_append_byte(data, RECORDTYPE_ENDSTR);
+    export_data_append_byte(data, DATATYPE_NONE);
 }
 
 static void _write_rectangle(struct export_data* data, const struct keyvaluearray* layer, point_t* bl, point_t* tr)
 {
     // BOUNDARY
-    export_data_append_byte(data, 0x00);
-    export_data_append_byte(data, 0x04);
+    _write_length_short(data, 4);
     export_data_append_byte(data, RECORDTYPE_BOUNDARY);
     export_data_append_byte(data, DATATYPE_NONE);
 
     // LAYER
-    export_data_append_byte(data, 0x00);
-    export_data_append_byte(data, 0x06);
-    export_data_append_byte(data, 0x0d);
+    _write_length_short(data, 6);
+    export_data_append_byte(data, RECORDTYPE_LAYER);
     export_data_append_byte(data, DATATYPE_TWO_BYTE_INTEGER);
     int layernum;
     keyvaluearray_get_int(layer, "layer", &layernum);
     export_data_append_two_bytes(data, layernum);
 
     // DATATYPE
-    export_data_append_byte(data, 0x00);
-    export_data_append_byte(data, 0x06);
-    export_data_append_byte(data, 0x0e);
+    _write_length_short(data, 6);
+    export_data_append_byte(data, RECORDTYPE_DATATYPE);
     export_data_append_byte(data, DATATYPE_TWO_BYTE_INTEGER);
     int layerpurpose;
     keyvaluearray_get_int(layer, "purpose", &layerpurpose);
@@ -273,10 +278,9 @@ static void _write_rectangle(struct export_data* data, const struct keyvaluearra
 
     // XY
     unsigned int multiplier = 1; // FIXME: make proper use of units
-    export_data_append_byte(data, 0x00);
-    export_data_append_byte(data, 0x2c); // 44 bytes
-    export_data_append_byte(data, 0x10); // XY
-    export_data_append_byte(data, 0x03); // FOUR_BYTE_INTEGER
+    _write_length_short(data, 0x2c); // 44 bytes
+    export_data_append_byte(data, RECORDTYPE_XY); // XY
+    export_data_append_byte(data, DATATYPE_FOUR_BYTE_INTEGER); // FOUR_BYTE_INTEGER
     export_data_append_four_bytes(data, multiplier * bl->x);
     export_data_append_four_bytes(data, multiplier * bl->y);
     export_data_append_four_bytes(data, multiplier * tr->x);
@@ -288,34 +292,27 @@ static void _write_rectangle(struct export_data* data, const struct keyvaluearra
     export_data_append_four_bytes(data, multiplier * bl->x);
     export_data_append_four_bytes(data, multiplier * bl->y);
 
-    // ENDEL
-    export_data_append_byte(data, 0x00);
-    export_data_append_byte(data, 0x04);
-    export_data_append_byte(data, RECORDTYPE_ENDEL);
-    export_data_append_byte(data, DATATYPE_NONE);
+    _write_ENDEL(data);
 }
 
 static void _write_polygon(struct export_data* data, const struct keyvaluearray* layer, point_t** points, size_t len)
 {
     // BOUNDARY
-    export_data_append_byte(data, 0x00);
-    export_data_append_byte(data, 0x04);
+    _write_length_short(data, 4);
     export_data_append_byte(data, RECORDTYPE_BOUNDARY);
     export_data_append_byte(data, DATATYPE_NONE);
 
     // LAYER
-    export_data_append_byte(data, 0x00);
-    export_data_append_byte(data, 0x06);
-    export_data_append_byte(data, 0x0d);
+    _write_length_short(data, 6);
+    export_data_append_byte(data, RECORDTYPE_LAYER);
     export_data_append_byte(data, DATATYPE_TWO_BYTE_INTEGER);
     int layernum;
     keyvaluearray_get_int(layer, "layer", &layernum);
     export_data_append_two_bytes(data, layernum);
 
     // DATATYPE
-    export_data_append_byte(data, 0x00);
-    export_data_append_byte(data, 0x06);
-    export_data_append_byte(data, 0x0e);
+    _write_length_short(data, 6);
+    export_data_append_byte(data, RECORDTYPE_DATATYPE);
     export_data_append_byte(data, DATATYPE_TWO_BYTE_INTEGER);
     int layerpurpose;
     keyvaluearray_get_int(layer, "purpose", &layerpurpose);
@@ -324,51 +321,43 @@ static void _write_polygon(struct export_data* data, const struct keyvaluearray*
     // XY
     unsigned int multiplier = 1; // FIXME: make proper use of units
     export_data_append_two_bytes(data, 4 + 4 * 2 * len);
-    export_data_append_byte(data, 0x10); // XY
-    export_data_append_byte(data, 0x03); // FOUR_BYTE_INTEGER
+    export_data_append_byte(data, RECORDTYPE_XY);
+    export_data_append_byte(data, DATATYPE_FOUR_BYTE_INTEGER); // FOUR_BYTE_INTEGER
     for(unsigned int i = 0; i < len; ++i)
     {
         export_data_append_four_bytes(data, multiplier * points[i]->x);
         export_data_append_four_bytes(data, multiplier * points[i]->y);
     }
 
-    // ENDEL
-    export_data_append_byte(data, 0x00);
-    export_data_append_byte(data, 0x04);
-    export_data_append_byte(data, RECORDTYPE_ENDEL);
-    export_data_append_byte(data, DATATYPE_NONE);
+    _write_ENDEL(data);
 }
 
 static void _write_path(struct export_data* data, const struct keyvaluearray* layer, point_t** points, size_t len, ucoordinate_t width, coordinate_t* extension)
 {
     // PATH
-    export_data_append_byte(data, 0x00);
-    export_data_append_byte(data, 0x04);
-    export_data_append_byte(data, 0x09);
-    export_data_append_byte(data, 0x00);
+    _write_length_short(data, 4);
+    export_data_append_byte(data, RECORDTYPE_PATH);
+    export_data_append_byte(data, DATATYPE_NONE);
 
     // LAYER
-    export_data_append_byte(data, 0x00);
-    export_data_append_byte(data, 0x06);
-    export_data_append_byte(data, 0x0d);
+    _write_length_short(data, 6);
+    export_data_append_byte(data, RECORDTYPE_LAYER);
     export_data_append_byte(data, DATATYPE_TWO_BYTE_INTEGER);
     int layernum;
     keyvaluearray_get_int(layer, "layer", &layernum);
     export_data_append_two_bytes(data, layernum);
 
     // DATATYPE
-    export_data_append_byte(data, 0x00);
-    export_data_append_byte(data, 0x06);
-    export_data_append_byte(data, 0x0e);
+    _write_length_short(data, 6);
+    export_data_append_byte(data, RECORDTYPE_DATATYPE);
     export_data_append_byte(data, DATATYPE_TWO_BYTE_INTEGER);
     int layerpurpose;
     keyvaluearray_get_int(layer, "purpose", &layerpurpose);
     export_data_append_two_bytes(data, layerpurpose);
 
     // PATHTYPE
-    export_data_append_byte(data, 0x00);
-    export_data_append_byte(data, 0x06);
-    export_data_append_byte(data, 0x21);
+    _write_length_short(data, 6);
+    export_data_append_byte(data, RECORDTYPE_PATHTYPE);
     export_data_append_byte(data, DATATYPE_TWO_BYTE_INTEGER);
     export_data_append_byte(data, 0x00);
     //if extension == "round" then
@@ -382,42 +371,35 @@ static void _write_path(struct export_data* data, const struct keyvaluearray* la
     //end
 
     // WIDTH
-    export_data_append_byte(data, 0x00);
-    export_data_append_byte(data, 0x08);
-    export_data_append_byte(data, 0x0f);
-    export_data_append_byte(data, 0x03);
+    _write_length_short(data, 8);
+    export_data_append_byte(data, RECORDTYPE_WIDTH);
+    export_data_append_byte(data, DATATYPE_FOUR_BYTE_INTEGER);
     export_data_append_four_bytes(data, width);
 
     // these records have to come after WIDTH (at least for klayout, but they also are in this order in the GDS manual)
     // BGNEXTN
-    export_data_append_byte(data, 0x00);
-    export_data_append_byte(data, 0x08);
-    export_data_append_byte(data, 0x30);
-    export_data_append_byte(data, 0x03);
+    _write_length_short(data, 8);
+    export_data_append_byte(data, RECORDTYPE_BGNEXTN);
+    export_data_append_byte(data, DATATYPE_FOUR_BYTE_INTEGER);
     export_data_append_four_bytes(data, extension[0]);
     // ENDEXTN
-    export_data_append_byte(data, 0x00);
-    export_data_append_byte(data, 0x08);
-    export_data_append_byte(data, 0x31);
-    export_data_append_byte(data, 0x03);
+    _write_length_short(data, 8);
+    export_data_append_byte(data, RECORDTYPE_ENDEXTN);
+    export_data_append_byte(data, DATATYPE_FOUR_BYTE_INTEGER);
     export_data_append_four_bytes(data, extension[1]);
 
     // XY
     unsigned int multiplier = 1; // FIXME: make proper use of units
     export_data_append_two_bytes(data, 4 + 4 * 2 * len);
-    export_data_append_byte(data, 0x10); // XY
-    export_data_append_byte(data, 0x03); // FOUR_BYTE_INTEGER
+    export_data_append_byte(data, RECORDTYPE_XY);
+    export_data_append_byte(data, DATATYPE_FOUR_BYTE_INTEGER); // FOUR_BYTE_INTEGER
     for(unsigned int i = 0; i < len; ++i)
     {
         export_data_append_four_bytes(data, multiplier * points[i]->x);
         export_data_append_four_bytes(data, multiplier * points[i]->y);
     }
 
-    // ENDEL
-    export_data_append_byte(data, 0x00);
-    export_data_append_byte(data, 0x04);
-    export_data_append_byte(data, RECORDTYPE_ENDEL);
-    export_data_append_byte(data, DATATYPE_NONE);
+    _write_ENDEL(data);
 }
 
 enum orientation
@@ -461,10 +443,9 @@ static enum orientation _get_matrix_orientation(transformationmatrix_t* matrix)
 static void _write_cell_reference(struct export_data* data, const char* identifier, coordinate_t x, coordinate_t y, transformationmatrix_t* trans)
 {
     // SREF
-    export_data_append_byte(data, 0x00);
-    export_data_append_byte(data, 0x04);
-    export_data_append_byte(data, 0x0a);
-    export_data_append_byte(data, 0x00);
+    _write_length_short(data, 4);
+    export_data_append_byte(data, RECORDTYPE_SREF);
+    export_data_append_byte(data, DATATYPE_NONE);
 
     // SNAME
     size_t len = 4 + strlen(identifier);
@@ -476,8 +457,8 @@ static void _write_cell_reference(struct export_data* data, const char* identifi
     {
         export_data_append_two_bytes(data, len + 1);
     }
-    export_data_append_byte(data, 0x12);
-    export_data_append_byte(data, 0x06);
+    export_data_append_byte(data, RECORDTYPE_SNAME);
+    export_data_append_byte(data, DATATYPE_ASCII_STRING);
     export_data_append_string(data, identifier, strlen(identifier));
     if(len % 2 == 1)
     {
@@ -492,26 +473,23 @@ static void _write_cell_reference(struct export_data* data, const char* identifi
             break;
         case MX:
             // STRANS
-            export_data_append_byte(data, 0x00);
-            export_data_append_byte(data, 0x06);
-            export_data_append_byte(data, 0x1a);
-            export_data_append_byte(data, 0x01);
+            _write_length_short(data, 6);
+            export_data_append_byte(data, RECORDTYPE_STRANS);
+            export_data_append_byte(data, DATATYPE_BIT_ARRAY);
             export_data_append_byte(data, 0x80);
             export_data_append_byte(data, 0x00);
             break;
         case MY:
             // STRANS
-            export_data_append_byte(data, 0x00);
-            export_data_append_byte(data, 0x06);
-            export_data_append_byte(data, 0x1a);
-            export_data_append_byte(data, 0x01);
+            _write_length_short(data, 6);
+            export_data_append_byte(data, RECORDTYPE_STRANS);
+            export_data_append_byte(data, DATATYPE_BIT_ARRAY);
             export_data_append_byte(data, 0x80);
             export_data_append_byte(data, 0x00);
             // ANGLE (180 degrees)
-            export_data_append_byte(data, 0x00);
-            export_data_append_byte(data, 0x0c);
-            export_data_append_byte(data, 0x1c);
-            export_data_append_byte(data, 0x05);
+            _write_length_short(data, 12);
+            export_data_append_byte(data, RECORDTYPE_ANGLE);
+            export_data_append_byte(data, DATATYPE_EIGHT_BYTE_REAL);
             export_data_append_byte(data, 0x42);
             export_data_append_byte(data, 0xb4);
             export_data_append_byte(data, 0x00);
@@ -523,17 +501,15 @@ static void _write_cell_reference(struct export_data* data, const char* identifi
             break;
         case R90:
             // STRANS
-            export_data_append_byte(data, 0x00);
-            export_data_append_byte(data, 0x06);
-            export_data_append_byte(data, 0x1a);
-            export_data_append_byte(data, 0x01);
+            _write_length_short(data, 6);
+            export_data_append_byte(data, RECORDTYPE_STRANS);
+            export_data_append_byte(data, DATATYPE_BIT_ARRAY);
             export_data_append_byte(data, 0x00);
             export_data_append_byte(data, 0x00);
             // ANGLE (90 degrees)
-            export_data_append_byte(data, 0x00);
-            export_data_append_byte(data, 0x0c);
-            export_data_append_byte(data, 0x1c);
-            export_data_append_byte(data, 0x05);
+            _write_length_short(data, 12);
+            export_data_append_byte(data, RECORDTYPE_ANGLE);
+            export_data_append_byte(data, DATATYPE_EIGHT_BYTE_REAL);
             export_data_append_byte(data, 0x42);
             export_data_append_byte(data, 0x5a);
             export_data_append_byte(data, 0x00);
@@ -545,17 +521,15 @@ static void _write_cell_reference(struct export_data* data, const char* identifi
             break;
         case R180:
             // STRANS
-            export_data_append_byte(data, 0x00);
-            export_data_append_byte(data, 0x06);
-            export_data_append_byte(data, 0x1a);
-            export_data_append_byte(data, 0x01);
+            _write_length_short(data, 6);
+            export_data_append_byte(data, RECORDTYPE_STRANS);
+            export_data_append_byte(data, DATATYPE_BIT_ARRAY);
             export_data_append_byte(data, 0x00);
             export_data_append_byte(data, 0x00);
             // ANGLE (180 degrees)
-            export_data_append_byte(data, 0x00);
-            export_data_append_byte(data, 0x0c);
-            export_data_append_byte(data, 0x1c);
-            export_data_append_byte(data, 0x05);
+            _write_length_short(data, 12);
+            export_data_append_byte(data, RECORDTYPE_ANGLE);
+            export_data_append_byte(data, DATATYPE_EIGHT_BYTE_REAL);
             export_data_append_byte(data, 0x42);
             export_data_append_byte(data, 0xb4);
             export_data_append_byte(data, 0x00);
@@ -570,27 +544,21 @@ static void _write_cell_reference(struct export_data* data, const char* identifi
     }
 
     unsigned int multiplier = 1; // FIXME: make proper use of units
-    export_data_append_byte(data, 0x00);
-    export_data_append_byte(data, 0x0c);
-    export_data_append_byte(data, 0x10); // XY
-    export_data_append_byte(data, 0x03); // FOUR_BYTE_INTEGER
+    _write_length_short(data, 12);
+    export_data_append_byte(data, RECORDTYPE_XY); // XY
+    export_data_append_byte(data, DATATYPE_FOUR_BYTE_INTEGER); // FOUR_BYTE_INTEGER
     export_data_append_four_bytes(data, x * multiplier);
     export_data_append_four_bytes(data, y * multiplier);
 
-    // ENDEL
-    export_data_append_byte(data, 0x00);
-    export_data_append_byte(data, 0x04);
-    export_data_append_byte(data, RECORDTYPE_ENDEL);
-    export_data_append_byte(data, DATATYPE_NONE);
+    _write_ENDEL(data);
 }
 
 static void _write_cell_array(struct export_data* data, const char* identifier, coordinate_t x, coordinate_t y, transformationmatrix_t* trans, unsigned int xrep, unsigned int yrep, unsigned int xpitch, unsigned int ypitch)
 {
     // AREF
-    export_data_append_byte(data, 0x00);
-    export_data_append_byte(data, 0x04);
-    export_data_append_byte(data, 0x0b);
-    export_data_append_byte(data, 0x00);
+    _write_length_short(data, 4);
+    export_data_append_byte(data, RECORDTYPE_AREF);
+    export_data_append_nullbyte(data);
 
     // SNAME
     size_t len = 4 + strlen(identifier);
@@ -602,12 +570,12 @@ static void _write_cell_array(struct export_data* data, const char* identifier, 
     {
         export_data_append_two_bytes(data, len + 1);
     }
-    export_data_append_byte(data, 0x12);
-    export_data_append_byte(data, 0x06);
+    export_data_append_byte(data, RECORDTYPE_SNAME);
+    export_data_append_byte(data, DATATYPE_ASCII_STRING);
     export_data_append_string(data, identifier, strlen(identifier));
     if(len % 2 == 1)
     {
-        export_data_append_byte(data, 0x00);
+        export_data_append_nullbyte(data);
     }
 
     // STRANS/ANGLE
@@ -696,19 +664,17 @@ static void _write_cell_array(struct export_data* data, const char* identifier, 
     }
 
     // COLROW
-    export_data_append_byte(data, 0x00);
-    export_data_append_byte(data, 0x08);
-    export_data_append_byte(data, 0x13);
+    _write_length_short(data, 8);
+    export_data_append_byte(data, RECORDTYPE_COLROW);
     export_data_append_byte(data, DATATYPE_TWO_BYTE_INTEGER);
     export_data_append_two_bytes(data, xrep);
     export_data_append_two_bytes(data, yrep);
 
     // XY
     unsigned int multiplier = 1; // FIXME: make proper use of units
-    export_data_append_byte(data, 0x00);
-    export_data_append_byte(data, 0x1c);
-    export_data_append_byte(data, 0x10); // XY
-    export_data_append_byte(data, 0x03); // FOUR_BYTE_INTEGER
+    _write_length_short(data, 28);
+    export_data_append_byte(data, RECORDTYPE_XY); // XY
+    export_data_append_byte(data, DATATYPE_FOUR_BYTE_INTEGER); // FOUR_BYTE_INTEGER
     export_data_append_four_bytes(data, x * multiplier);
     export_data_append_four_bytes(data, y * multiplier);
     export_data_append_four_bytes(data, (x + xrep * xpitch) * multiplier);
@@ -716,51 +682,42 @@ static void _write_cell_array(struct export_data* data, const char* identifier, 
     export_data_append_four_bytes(data, x * multiplier);
     export_data_append_four_bytes(data, (y + yrep * ypitch) * multiplier);
 
-    // ENDEL
-    export_data_append_byte(data, 0x00);
-    export_data_append_byte(data, 0x04);
-    export_data_append_byte(data, RECORDTYPE_ENDEL);
-    export_data_append_byte(data, DATATYPE_NONE);
+    _write_ENDEL(data);
 }
 
 static void _write_port(struct export_data* data, const char* name, const struct keyvaluearray* layer, coordinate_t x, coordinate_t y)
 {
     // TEXT
-    export_data_append_byte(data, 0x00);
-    export_data_append_byte(data, 0x04);
-    export_data_append_byte(data, 0x0c);
-    export_data_append_byte(data, 0x00);
+    _write_length_short(data, 4);
+    export_data_append_byte(data, RECORDTYPE_TEXT);
+    export_data_append_byte(data, DATATYPE_NONE);
 
     // LAYER
-    export_data_append_byte(data, 0x00);
-    export_data_append_byte(data, 0x06);
-    export_data_append_byte(data, 0x0d);
+    _write_length_short(data, 6);
+    export_data_append_byte(data, RECORDTYPE_LAYER);
     export_data_append_byte(data, DATATYPE_TWO_BYTE_INTEGER);
     int layernum;
     keyvaluearray_get_int(layer, "layer", &layernum);
     export_data_append_two_bytes(data, layernum);
 
     // TEXTTYPE
-    export_data_append_byte(data, 0x00);
-    export_data_append_byte(data, 0x06);
-    export_data_append_byte(data, 0x16);
+    _write_length_short(data, 6);
+    export_data_append_byte(data, RECORDTYPE_TEXTTYPE);
     export_data_append_byte(data, DATATYPE_TWO_BYTE_INTEGER);
     int layerpurpose;
     keyvaluearray_get_int(layer, "purpose", &layerpurpose);
     export_data_append_two_bytes(data, layerpurpose);
 
     // PRESENTATION
-    export_data_append_byte(data, 0x00);
-    export_data_append_byte(data, 0x06);
-    export_data_append_byte(data, 0x17);
-    export_data_append_byte(data, 0x01);
+    _write_length_short(data, 6);
+    export_data_append_byte(data, RECORDTYPE_PRESENTATION);
+    export_data_append_byte(data, DATATYPE_BIT_ARRAY);
     export_data_append_byte(data, 0x00);
     export_data_append_byte(data, 0x05);
 
-    export_data_append_byte(data, 0x00);
-    export_data_append_byte(data, 0x0c);
-    export_data_append_byte(data, 0x1b);
-    export_data_append_byte(data, 0x05);
+    _write_length_short(data, 12);
+    export_data_append_byte(data, RECORDTYPE_MAG);
+    export_data_append_byte(data, DATATYPE_EIGHT_BYTE_REAL);
     char* sizedata = _number_to_gdsfloat(0.1, 8);
     for(unsigned int i = 0; i < 8; ++i)
     {
@@ -770,29 +727,24 @@ static void _write_port(struct export_data* data, const char* name, const struct
 
     // XY
     unsigned int multiplier = 1; // FIXME: make proper use of units
-    export_data_append_byte(data, 0x00);
-    export_data_append_byte(data, 0x0c);
-    export_data_append_byte(data, 0x10); // XY
-    export_data_append_byte(data, 0x03); // FOUR_BYTE_INTEGER
+    _write_length_short(data, 12);
+    export_data_append_byte(data, RECORDTYPE_XY); // XY
+    export_data_append_byte(data, DATATYPE_FOUR_BYTE_INTEGER); // FOUR_BYTE_INTEGER
     export_data_append_four_bytes(data, x * multiplier);
     export_data_append_four_bytes(data, y * multiplier);
 
     // NAME
     size_t len = strlen(name);
     export_data_append_two_bytes(data, len % 2 ? len + 5 : len + 4);
-    export_data_append_byte(data, 0x19);
-    export_data_append_byte(data, 0x06);
+    export_data_append_byte(data, RECORDTYPE_STRING);
+    export_data_append_byte(data, DATATYPE_ASCII_STRING);
     export_data_append_string(data, name, len);
     if(len % 2)
     {
-        export_data_append_byte(data, 0x00);
+        export_data_append_nullbyte(data);
     }
 
-    // ENDEL
-    export_data_append_byte(data, 0x00);
-    export_data_append_byte(data, 0x04);
-    export_data_append_byte(data, RECORDTYPE_ENDEL);
-    export_data_append_byte(data, DATATYPE_NONE);
+    _write_ENDEL(data);
 }
 
 static const char* _get_extension(void)
