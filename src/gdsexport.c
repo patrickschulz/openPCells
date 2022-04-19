@@ -120,11 +120,24 @@ static inline void _write_length_short(struct export_data* data, uint8_t length)
     export_data_append_byte(data, length);
 }
 
+static inline void _write_length_short_unchecked(struct export_data* data, uint8_t length)
+{
+    export_data_append_byte_unchecked(data, 0);
+    export_data_append_byte_unchecked(data, length);
+}
+
 static inline void _write_ENDEL(struct export_data* data)
 {
     export_data_append_two_bytes(data, 4);
     export_data_append_byte(data, RECORDTYPE_ENDEL);
     export_data_append_byte(data, DATATYPE_NONE);
+}
+
+static inline void _write_ENDEL_unchecked(struct export_data* data)
+{
+    export_data_append_two_bytes_unchecked(data, 4);
+    export_data_append_byte_unchecked(data, RECORDTYPE_ENDEL);
+    export_data_append_byte_unchecked(data, DATATYPE_NONE);
 }
 
 static void _at_begin(struct export_data* data)
@@ -255,44 +268,45 @@ static void _at_end_cell(struct export_data* data)
 
 static void _write_rectangle(struct export_data* data, const struct keyvaluearray* layer, point_t* bl, point_t* tr)
 {
+    export_data_ensure_additional_capacity(data, 64); // a rectangle has exactly 64 bytes
     // BOUNDARY
     _write_length_short(data, 4);
-    export_data_append_byte(data, RECORDTYPE_BOUNDARY);
-    export_data_append_byte(data, DATATYPE_NONE);
+    export_data_append_byte_unchecked(data, RECORDTYPE_BOUNDARY);
+    export_data_append_byte_unchecked(data, DATATYPE_NONE);
 
     // LAYER
-    _write_length_short(data, 6);
-    export_data_append_byte(data, RECORDTYPE_LAYER);
-    export_data_append_byte(data, DATATYPE_TWO_BYTE_INTEGER);
+    _write_length_short_unchecked(data, 6);
+    export_data_append_byte_unchecked(data, RECORDTYPE_LAYER);
+    export_data_append_byte_unchecked(data, DATATYPE_TWO_BYTE_INTEGER);
     int layernum;
     keyvaluearray_get_int(layer, "layer", &layernum);
-    export_data_append_two_bytes(data, layernum);
+    export_data_append_two_bytes_unchecked(data, layernum);
 
     // DATATYPE
-    _write_length_short(data, 6);
-    export_data_append_byte(data, RECORDTYPE_DATATYPE);
-    export_data_append_byte(data, DATATYPE_TWO_BYTE_INTEGER);
+    _write_length_short_unchecked(data, 6);
+    export_data_append_byte_unchecked(data, RECORDTYPE_DATATYPE);
+    export_data_append_byte_unchecked(data, DATATYPE_TWO_BYTE_INTEGER);
     int layerpurpose;
     keyvaluearray_get_int(layer, "purpose", &layerpurpose);
-    export_data_append_two_bytes(data, layerpurpose);
+    export_data_append_two_bytes_unchecked(data, layerpurpose);
 
     // XY
     unsigned int multiplier = 1; // FIXME: make proper use of units
-    _write_length_short(data, 0x2c); // 44 bytes
-    export_data_append_byte(data, RECORDTYPE_XY); // XY
-    export_data_append_byte(data, DATATYPE_FOUR_BYTE_INTEGER); // FOUR_BYTE_INTEGER
-    export_data_append_four_bytes(data, multiplier * bl->x);
-    export_data_append_four_bytes(data, multiplier * bl->y);
-    export_data_append_four_bytes(data, multiplier * tr->x);
-    export_data_append_four_bytes(data, multiplier * bl->y);
-    export_data_append_four_bytes(data, multiplier * tr->x);
-    export_data_append_four_bytes(data, multiplier * tr->y);
-    export_data_append_four_bytes(data, multiplier * bl->x);
-    export_data_append_four_bytes(data, multiplier * tr->y);
-    export_data_append_four_bytes(data, multiplier * bl->x);
-    export_data_append_four_bytes(data, multiplier * bl->y);
+    _write_length_short_unchecked(data, 44); // 44 bytes
+    export_data_append_byte_unchecked(data, RECORDTYPE_XY); // XY
+    export_data_append_byte_unchecked(data, DATATYPE_FOUR_BYTE_INTEGER); // FOUR_BYTE_INTEGER
+    export_data_append_four_bytes_unchecked(data, multiplier * bl->x);
+    export_data_append_four_bytes_unchecked(data, multiplier * bl->y);
+    export_data_append_four_bytes_unchecked(data, multiplier * tr->x);
+    export_data_append_four_bytes_unchecked(data, multiplier * bl->y);
+    export_data_append_four_bytes_unchecked(data, multiplier * tr->x);
+    export_data_append_four_bytes_unchecked(data, multiplier * tr->y);
+    export_data_append_four_bytes_unchecked(data, multiplier * bl->x);
+    export_data_append_four_bytes_unchecked(data, multiplier * tr->y);
+    export_data_append_four_bytes_unchecked(data, multiplier * bl->x);
+    export_data_append_four_bytes_unchecked(data, multiplier * bl->y);
 
-    _write_ENDEL(data);
+    _write_ENDEL_unchecked(data);
 }
 
 static void _write_polygon(struct export_data* data, const struct keyvaluearray* layer, point_t** points, size_t len)
