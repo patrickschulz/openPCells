@@ -18,11 +18,21 @@ struct export_data
 
 struct export_data* export_create_data(void);
 void export_destroy_data(struct export_data* data);
+
+// checked functions
 void export_data_append_nullbyte(struct export_data* data);
 void export_data_append_byte(struct export_data* data, unsigned char byte);
 void export_data_append_two_bytes(struct export_data* data, int16_t datum);
 void export_data_append_four_bytes(struct export_data* data, int32_t datum);
 void export_data_append_string(struct export_data* data, const char* str, size_t length);
+
+// unchecked functions
+void export_data_ensure_additional_capacity(struct export_data* data, size_t num);
+void export_data_append_nullbyte_unchecked(struct export_data* data);
+void export_data_append_byte_unchecked(struct export_data* data, unsigned char byte);
+void export_data_append_two_bytes_unchecked(struct export_data* data, int16_t datum);
+void export_data_append_four_bytes_unchecked(struct export_data* data, int32_t datum);
+void export_data_append_string_unchecked(struct export_data* data, const char* str, size_t length);
 
 struct export_functions
 {

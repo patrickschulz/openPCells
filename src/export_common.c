@@ -6,6 +6,7 @@ static void _resize_data(struct export_data* data, size_t capacity)
 {
     data->capacity = capacity;
     unsigned char* d = realloc(data->data, sizeof(char) * data->capacity);
+    // FIXME: check return value
     data->data = d;
 }
 
@@ -26,30 +27,21 @@ void export_destroy_data(struct export_data* data)
 
 void export_data_append_nullbyte(struct export_data* data)
 {
-    while(data->length + 1 > data->capacity)
-    {
-        _resize_data(data, data->capacity * 2);
-    }
+    export_data_ensure_additional_capacity(data, 1);
     data->data[data->length] = 0;
     data->length += 1;
 }
 
 void export_data_append_byte(struct export_data* data, unsigned char byte)
 {
-    while(data->length + 1 > data->capacity)
-    {
-        _resize_data(data, data->capacity * 2);
-    }
+    export_data_ensure_additional_capacity(data, 1);
     data->data[data->length] = byte;
     data->length += 1;
 }
 
 void export_data_append_two_bytes(struct export_data* data, int16_t datum)
 {
-    while(data->length + 2 > data->capacity)
-    {
-        _resize_data(data, data->capacity * 2);
-    }
+    export_data_ensure_additional_capacity(data, 2);
     int8_t byte1 = datum >> 8;
     if(datum < 0)
     {
@@ -64,10 +56,7 @@ void export_data_append_two_bytes(struct export_data* data, int16_t datum)
 
 void export_data_append_four_bytes(struct export_data* data, int32_t datum)
 {
-    while(data->length + 4 > data->capacity)
-    {
-        _resize_data(data, data->capacity * 2);
-    }
+    export_data_ensure_additional_capacity(data, 4);
     int8_t byte1 = datum >> 24;
     if(datum < 0)
     {
@@ -88,10 +77,72 @@ void export_data_append_four_bytes(struct export_data* data, int32_t datum)
 
 void export_data_append_string(struct export_data* data, const char* str, size_t length)
 {
-    while(data->length + length > data->capacity)
+    export_data_ensure_additional_capacity(data, length);
+    memcpy(data->data + data->length, str, length);
+    data->length += length;
+}
+
+void export_data_ensure_additional_capacity(struct export_data* data, size_t num)
+{
+    unsigned int factor = 1;
+    while((data->length + num) > (factor * data->capacity))
     {
-        _resize_data(data, data->capacity * 2);
+        factor *= 2;
     }
+    if(factor > 1)
+    {
+        _resize_data(data, data->capacity * factor);
+    }
+}
+
+void export_data_append_nullbyte_unchecked(struct export_data* data)
+{
+    data->data[data->length] = 0;
+    data->length += 1;
+}
+
+void export_data_append_byte_unchecked(struct export_data* data, unsigned char byte)
+{
+    data->data[data->length] = byte;
+    data->length += 1;
+}
+
+void export_data_append_two_bytes_unchecked(struct export_data* data, int16_t datum)
+{
+    int8_t byte1 = datum >> 8;
+    if(datum < 0)
+    {
+        byte1 += 256;
+    }
+    datum = datum - (byte1 << 8);
+    int8_t byte2 = datum;
+    data->data[data->length + 0] = byte1;
+    data->data[data->length + 1] = byte2;
+    data->length += 2;
+}
+
+void export_data_append_four_bytes_unchecked(struct export_data* data, int32_t datum)
+{
+    int8_t byte1 = datum >> 24;
+    if(datum < 0)
+    {
+        byte1 += 256;
+    }
+    datum = datum - (byte1 << 24);
+    int8_t byte2 = datum >> 16;
+    datum = datum - (byte2 << 16);
+    int8_t byte3 = datum >> 8;
+    datum = datum - (byte3 << 8);
+    int8_t byte4 = datum;
+    data->data[data->length + 0] = byte1;
+    data->data[data->length + 1] = byte2;
+    data->data[data->length + 2] = byte3;
+    data->data[data->length + 3] = byte4;
+    data->length += 4;
+}
+
+void export_data_append_string_unchecked(struct export_data* data, const char* str, size_t length)
+{
     memcpy(data->data + data->length, str, length);
     data->length += length;
 }
