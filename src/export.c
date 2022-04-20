@@ -171,7 +171,7 @@ static void _push_trans(lua_State* L, transformationmatrix_t* trans)
     }
 }
 
-static void _write_ports_lua(lua_State* L, object_t* cell, char leftdelim, char rightdelim)
+static int _write_ports_lua(lua_State* L, object_t* cell, char leftdelim, char rightdelim)
 {
     for(unsigned int i = 0; i < cell->ports_size; ++i)
     {
@@ -192,15 +192,20 @@ static void _write_ports_lua(lua_State* L, object_t* cell, char leftdelim, char 
         lua_pushstring(L, name);
         _push_layer(L, layerdata);
         _push_point(L, cell->ports[i]->where);
-        lua_call(L, 3, 0);
+        int ret = lua_pcall(L, 3, 0, 0);
+        if(ret != LUA_OK)
+        {
+            return ret;
+        }
         if(cell->ports[i]->isbusport)
         {
             free(name);
         }
     }
+    return LUA_OK;
 }
 
-static void _write_cell_lua(lua_State* L, object_t* cell, int write_ports, char leftdelim, char rightdelim)
+static int _write_cell_lua(lua_State* L, object_t* cell, int write_ports, char leftdelim, char rightdelim)
 {
     for(unsigned int i = 0; i < cell->shapes_size; ++i)
     {
@@ -210,17 +215,27 @@ static void _write_cell_lua(lua_State* L, object_t* cell, int write_ports, char 
         switch(shape->type)
         {
             case RECTANGLE:
+            {
                 lua_getfield(L, -1, "write_rectangle");
                 _push_layer(L, layerdata);
                 _push_point(L, shape->points[0]);
                 _push_point(L, shape->points[1]);
-                lua_call(L, 3, 0);
+                int ret = lua_pcall(L, 3, 0, 0);
+                if(ret != LUA_OK)
+                {
+                    return ret;
+                }
                 break;
+            }
             case POLYGON:
                 lua_getfield(L, -1, "write_polygon");
                 _push_layer(L, layerdata);
                 _push_points(L, shape->points, shape->size);
-                lua_call(L, 2, 0);
+                int ret = lua_pcall(L, 2, 0, 0);
+                if(ret != LUA_OK)
+                {
+                    return ret;
+                }
                 break;
             case PATH:
                 lua_getfield(L, -1, "write_path");
@@ -235,7 +250,11 @@ static void _write_cell_lua(lua_State* L, object_t* cell, int write_ports, char 
                     lua_rawseti(L, -2, 1);
                     lua_pushinteger(L, properties->extension[0]);
                     lua_rawseti(L, -2, 2);
-                    lua_call(L, 4, 0);
+                    int ret = lua_pcall(L, 4, 0, 0);
+                    if(ret != LUA_OK)
+                    {
+                        return ret;
+                    }
                 }
                 else
                 {
@@ -244,7 +263,11 @@ static void _write_cell_lua(lua_State* L, object_t* cell, int write_ports, char 
                     lua_getfield(L, -1, "write_polygon");
                     _push_layer(L, layerdata);
                     _push_points(L, shape->points, shape->size);
-                    lua_call(L, 2, 0);
+                    int ret = lua_pcall(L, 2, 0, 0);
+                    if(ret != LUA_OK)
+                    {
+                        return ret;
+                    }
                 }
                 break;
         }
@@ -272,7 +295,11 @@ static void _write_cell_lua(lua_State* L, object_t* cell, int write_ports, char 
                 lua_pushinteger(L, child->yrep);
                 lua_pushinteger(L, child->xpitch);
                 lua_pushinteger(L, child->ypitch);
-                lua_call(L, 8, 0);
+                int ret = lua_pcall(L, 8, 0, 0);
+                if(ret != LUA_OK)
+                {
+                    return ret;
+                }
             }
         }
         else
@@ -286,7 +313,11 @@ static void _write_cell_lua(lua_State* L, object_t* cell, int write_ports, char 
                     lua_pushinteger(L, origin.x + (ix - 1) * child->xpitch);
                     lua_pushinteger(L, origin.y + (iy - 1) * child->ypitch);
                     _push_trans(L, child->trans);
-                    lua_call(L, 4, 0);
+                    int ret = lua_pcall(L, 4, 0, 0);
+                    if(ret != LUA_OK)
+                    {
+                        return ret;
+                    }
                 }
             }
         }
@@ -296,22 +327,32 @@ static void _write_cell_lua(lua_State* L, object_t* cell, int write_ports, char 
         lua_getfield(L, -1, "write_port");
         if(!lua_isnil(L, -1))
         {
-            _write_ports_lua(L, cell, leftdelim, rightdelim);
+            int ret = _write_ports_lua(L, cell, leftdelim, rightdelim);
+            if(ret != LUA_OK)
+            {
+                return ret;
+            }
         }
         lua_pop(L, 1); // pop write_port (or nil)
     }
+    return LUA_OK;
 }
 
-void _call_or_pop_nil(lua_State* L, int numargs)
+static int _call_or_pop_nil(lua_State* L, int numargs)
 {
     if(!lua_isnil(L, -1 - numargs))
     {
-        lua_call(L, numargs, 0);
+        int ret = lua_pcall(L, numargs, 0, 0);
+        if(ret != LUA_OK)
+        {
+            return ret;
+        }
     }
     else
     {
         lua_pop(L, 1 + numargs);
     }
+    return LUA_OK;
 }
 
 static struct export_functions* get_export_functions(const char* exportname)
@@ -328,30 +369,42 @@ static struct export_functions* get_export_functions(const char* exportname)
     return funcs;
 }
 
-static void _check_function(lua_State* L, const char* exportname, const char* funcname)
+static int _check_function(lua_State* L, const char* funcname)
 {
     lua_getfield(L, -1, funcname);
     if(lua_isnil(L, -1))
     {
         lua_pop(L, 1);
-        lua_pushfstring(L, "export '%s' does not define '%s'", exportname, funcname);
-        lua_error(L);
+        return 0;
     }
     if(lua_type(L, -1) != LUA_TFUNCTION)
     {
         lua_pop(L, 1);
-        lua_pushfstring(L, "export '%s': field '%s' is not a function (table/userdata with __call meta field are not supported)", exportname, funcname);
-        lua_error(L);
+        return 0;
     }
     lua_pop(L, 1);
+    return 1;
 }
 
-static void _check_lua_export(lua_State* L, const char* exportname)
+static int _check_lua_export(lua_State* L)
 {
-    _check_function(L, exportname, "get_extension");
-    _check_function(L, exportname, "write_rectangle");
-    _check_function(L, exportname, "write_polygon");
-    _check_function(L, exportname, "finalize");
+    if(!_check_function(L, "get_extension"))
+    {
+        return 0;
+    }
+    if(!_check_function(L, "write_rectangle"))
+    {
+        return 0;
+    }
+    if(!_check_function(L, "write_polygon"))
+    {
+        return 0;
+    }
+    if(!_check_function(L, "finalize"))
+    {
+        return 0;
+    }
+    return 1;
 }
 
 static void _write_toplevel_C(object_t* object, struct pcell_state* pcell_state, const char* toplevelname, struct export_data* data, struct export_functions* funcs, int writechildrenports, char leftdelim, char rightdelim)
@@ -376,8 +429,9 @@ static void _write_toplevel_C(object_t* object, struct pcell_state* pcell_state,
     funcs->at_end(data);
 }
 
-static void _write_toplevel_lua(lua_State* L, object_t* object, struct pcell_state* pcell_state, const char* toplevelname, struct export_data* data, int writechildrenports, char leftdelim, char rightdelim)
+static int _write_toplevel_lua(lua_State* L, object_t* object, struct pcell_state* pcell_state, const char* toplevelname, struct export_data* data, int writechildrenports, char leftdelim, char rightdelim)
 {
+    int ret;
     // check if export supports hierarchies
     lua_getfield(L, -1, "write_cell_reference");
     if(lua_isnil(L, -1))
@@ -388,12 +442,24 @@ static void _write_toplevel_lua(lua_State* L, object_t* object, struct pcell_sta
     lua_pop(L, 1);
 
     lua_getfield(L, -1, "at_begin");
-    _call_or_pop_nil(L, 0);
+    ret = _call_or_pop_nil(L, 0);
+    if(ret != LUA_OK)
+    {
+        return ret;
+    }
 
     lua_getfield(L, -1, "at_begin_cell");
     lua_pushstring(L, toplevelname);
-    _call_or_pop_nil(L, 1);
-    _write_cell_lua(L, object, 1, leftdelim, rightdelim); // 1: write ports
+    ret = _call_or_pop_nil(L, 1);
+    if(ret != LUA_OK)
+    {
+        return ret;
+    }
+    ret = _write_cell_lua(L, object, 1, leftdelim, rightdelim); // 1: write ports
+    if(ret != LUA_OK)
+    {
+        return ret;
+    }
     lua_getfield(L, -1, "at_end_cell");
     _call_or_pop_nil(L, 0);
 
@@ -405,7 +471,11 @@ static void _write_toplevel_lua(lua_State* L, object_t* object, struct pcell_sta
             lua_getfield(L, -1, "at_begin_cell");
             lua_pushstring(L, reference->identifier);
             _call_or_pop_nil(L, 1);
-            _write_cell_lua(L, reference->cell, writechildrenports, leftdelim, rightdelim);
+            ret = _write_cell_lua(L, reference->cell, writechildrenports, leftdelim, rightdelim);
+            if(ret != LUA_OK)
+            {
+                return ret;
+            }
             lua_getfield(L, -1, "at_end_cell");
             _call_or_pop_nil(L, 0);
         }
@@ -415,11 +485,16 @@ static void _write_toplevel_lua(lua_State* L, object_t* object, struct pcell_sta
     _call_or_pop_nil(L, 0);
 
     lua_getfield(L, -1, "finalize");
-    lua_call(L, 0, 1);
+    ret = lua_pcall(L, 0, 1, 0);
+    if(ret != LUA_OK)
+    {
+        return ret;
+    }
     size_t datalen;
     const char* strdata = lua_tolstring(L, -1, &datalen);
     export_data_append_string(data, strdata, datalen);
     lua_pop(L, 1); // pop data
+    return LUA_OK;
 }
 
 void export_write_toplevel(object_t* toplevel, struct pcell_state* pcell_state, const char* exportname, const char* basename, const char* toplevelname, char leftdelim, char rightdelim, const char* const * exportoptions, int writechildrenports)
@@ -458,12 +533,19 @@ void export_write_toplevel(object_t* toplevel, struct pcell_state* pcell_state, 
                 if(ret != LUA_OK)
                 {
                     status = EXPORT_STATUS_LOADERROR;
+                    lua_close(L);
                     break;
                 }
                 if(lua_type(L, -1) == LUA_TTABLE)
                 {
                     // check minimal function support
-                    _check_lua_export(L, exportname);
+                    if(!_check_lua_export(L))
+                    {
+                        fprintf(stderr, "export '%s' must define at least the functions 'get_extension', 'write_rectangle', 'write_polygon' and 'finalize'\n", exportname);
+                        status = EXPORT_STATUS_LOADERROR;
+                        lua_close(L);
+                        break;
+                    }
 
                     // parse and set export cmd options
                     if(exportoptions)
@@ -480,15 +562,28 @@ void export_write_toplevel(object_t* toplevel, struct pcell_state* pcell_state, 
                         _call_or_pop_nil(L, 1);
                     }
 
-                    _write_toplevel_lua(L, toplevel, pcell_state, toplevelname, data, writechildrenports, leftdelim, rightdelim);
+                    int ret = _write_toplevel_lua(L, toplevel, pcell_state, toplevelname, data, writechildrenports, leftdelim, rightdelim);
+                    if(ret != LUA_OK)
+                    {
+                        const char* msg = lua_tostring(L, -1);
+                        fprintf(stderr, "error while calling lua export: %s\n", msg);
+                        return;
+                    }
 
                     lua_getfield(L, -1, "get_extension");
-                    lua_call(L, 0, 1);
+                    ret = lua_pcall(L, 0, 1, 0);
+                    if(ret != LUA_OK)
+                    {
+                        const char* msg = lua_tostring(L, -1);
+                        fprintf(stderr, "error while calling lua export: %s\n", msg);
+                        return;
+                    }
                     extension = lua_tostring(L, -1);
                     lua_pop(L, 1); // pop extension
                     status = EXPORT_STATUS_SUCCESS;
                     break; // found export, don't continue search
                 }
+                lua_close(L);
             }
         }
     }

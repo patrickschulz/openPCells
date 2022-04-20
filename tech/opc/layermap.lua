@@ -73,21 +73,24 @@ return {
         name = "metal1",
         layer = {
             gds = { layer = 8, purpose = 0 }, 
-            SKILL = { layer = "metal1", purpose = "drawing" }
+            SKILL = { layer = "metal1", purpose = "drawing" },
+            svg = { color = "blue" }
         }
     },
     viacutM1M2 = { 
         name = "via1",
         layer = {
             gds = { layer = 9, purpose = 0 }, 
-            SKILL = { layer = "via1", purpose = "drawing" }
+            SKILL = { layer = "via1", purpose = "drawing" },
+            svg = { color = "yellow" }
         }
     },
     M2 = { 
         name = "metal2",
         layer = {
             gds = { layer = 10, purpose = 0 }, 
-            SKILL = { layer = "metal2", purpose = "drawing" }
+            SKILL = { layer = "metal2", purpose = "drawing" },
+            svg = { color = "pink" }
         }
     },
     viacutM2M3 = { 
