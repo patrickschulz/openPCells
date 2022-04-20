@@ -62,7 +62,10 @@ static struct technology_state* _create_techstate(struct vector* techpaths, cons
     {
         technology_add_techpath(techstate, vector_get(techpaths, i));
     }
-    technology_load(techstate, techname);
+    if(!technology_load(techstate, techname))
+    {
+        return NULL;
+    }
     return techstate;
 }
 
@@ -314,17 +317,18 @@ void main_create_and_export_cell(struct cmdoptions* cmdoptions, struct keyvaluea
     if(toplevel)
     {
         // export cell
-        if(cmdoptions_was_provided_long(cmdoptions, "export") || cmdoptions_was_provided_long(cmdoptions, "exportlayers"))
+        if(cmdoptions_was_provided_long(cmdoptions, "export"))
         {
-            const char* exportname = cmdoptions_get_argument_long(cmdoptions, "exportlayers");
-            if(!exportname)
+            const char* exportname = cmdoptions_get_argument_long(cmdoptions, "export");
+            const char* exportlayername = cmdoptions_get_argument_long(cmdoptions, "export-layers");
+            if(!exportlayername)
             {
-                exportname = cmdoptions_get_argument_long(cmdoptions, "export");
+                exportlayername = exportname;
             }
             // add export search paths. FIXME: add --exportpath cmd option
-            if(!generics_resolve_premapped_layers(layermap, exportname))
+            if(!generics_resolve_premapped_layers(layermap, exportlayername))
             {
-                // FIXME: do something?
+                goto DESTROY_OBJECT;
             }
             export_add_path(OPC_HOME "/export");
             const char* basename = cmdoptions_get_argument_long(cmdoptions, "filename");
@@ -340,12 +344,16 @@ void main_create_and_export_cell(struct cmdoptions* cmdoptions, struct keyvaluea
                 rightdelim = delimiters[1];
             }
             export_write_toplevel(toplevel, pcell_state, exportname, basename, toplevelname, leftdelim, rightdelim, exportoptions, writechildrenports);
-            object_destroy(toplevel);
         }
         else
         {
             puts("no export type given");
         }
+    }
+    else
+    {
+        fputs("errors while creating cell\n", stderr);
+        goto DESTROY_OBJECT;
     }
 
     // move origin
@@ -476,6 +484,12 @@ void main_create_and_export_cell(struct cmdoptions* cmdoptions, struct keyvaluea
         postprocess_merge_shapes(toplevel, layermap);
     }
 
+DESTROY_OBJECT:
+    if(toplevel)
+    {
+        object_destroy(toplevel);
+    }
+//DESTROY_LAYERMAP:
     generics_destroy_layer_map(layermap);
 DESTROY_PCELL_STATE:
     pcell_destroy_state(pcell_state);

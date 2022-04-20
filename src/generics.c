@@ -292,9 +292,9 @@ generics_t* generics_get_indexed_layer(struct layermap* generics_layer_map, size
 
 int generics_resolve_premapped_layers(struct layermap* generics_layer_map, const char* name)
 {
-    int found = 0;
     for(unsigned int i = 0; i < generics_layer_map->size; ++i)
     {
+        int found = 0;
         generics_t* layer = generics_layer_map->entries[i]->layer;
         if(layer->is_pre)
         {

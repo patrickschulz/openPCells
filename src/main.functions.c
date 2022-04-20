@@ -7,6 +7,26 @@
 
 #include "lua_util.h"
 
+int main_lua_pcall(lua_State* L, int nargs, int nresults)
+{
+    lua_pushcfunction(L, util_msghandler);
+    lua_insert(L, -2 - nargs);
+    int status = lua_pcall(L, nargs, nresults, 1);
+
+    // pop msghandler (first it has to be put on top)
+    if(status == LUA_OK)
+    {
+        lua_rotate(L, -1 - nresults, nresults);
+        lua_pop(L, 1);
+    }
+    else
+    {
+        lua_rotate(L, -2, 1);
+    }
+    lua_pop(L, 1);
+    return status;
+}
+
 int main_call_lua_program(lua_State* L, const char* filename)
 {
     int status = luaL_loadfile(L, filename);

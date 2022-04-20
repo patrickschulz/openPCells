@@ -130,7 +130,7 @@ int technology_load_layermap(struct technology_state* techstate, const char* nam
         lua_pop(L, 1); // pop value, keep key for next iteration
     }
     lua_close(L);
-    return 0;
+    return 1;
 }
 
 struct via_definition** _read_via(lua_State* L)
@@ -275,8 +275,13 @@ int technology_load(struct technology_state* techstate, const char* techname)
         free(layermapname);
         return 0;
     }
-    technology_load_layermap(techstate, layermapname);
+    int ret;
+    ret = technology_load_layermap(techstate, layermapname);
     free(layermapname);
+    if(!ret)
+    {
+        return 0;
+    }
 
     char* vianame = _get_tech_filename(techstate, techname, "vias");
     if(!vianame)
