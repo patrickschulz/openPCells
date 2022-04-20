@@ -554,21 +554,24 @@ static void _get_move_anchor_translation(object_t* cell, const char* name, coord
 
 void object_move_anchor(object_t* cell, const char* name, coordinate_t x, coordinate_t y)
 {
-    coordinate_t dx, dy;
+    coordinate_t dx = 0;
+    coordinate_t dy = 0;
     _get_move_anchor_translation(cell, name, x, y, &dx, &dy);
     object_translate(cell, dx, dy);
 }
 
 void object_move_anchor_x(object_t* cell, const char* name, coordinate_t x, coordinate_t y)
 {
-    coordinate_t dx, dy;
+    coordinate_t dx = 0;
+    coordinate_t dy = 0;
     _get_move_anchor_translation(cell, name, x, y, &dx, &dy);
     object_translate(cell, dx, 0);
 }
 
 void object_move_anchor_y(object_t* cell, const char* name, coordinate_t x, coordinate_t y)
 {
-    coordinate_t dx, dy;
+    coordinate_t dx = 0;
+    coordinate_t dy = 0;
     _get_move_anchor_translation(cell, name, x, y, &dx, &dy);
     object_translate(cell, 0, dy);
 }
