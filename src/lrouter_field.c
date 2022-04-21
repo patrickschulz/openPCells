@@ -60,14 +60,14 @@ static void reset_layer(int** layer, size_t width, size_t height)
 	}
 }
 
-void reset_field(int*** field, size_t width, size_t height, size_t num_layers)
+void field_reset(int*** field, size_t width, size_t height, size_t num_layers)
 {
 	for(size_t l = 0; l < num_layers; l++) {
 		reset_layer(field[l], width, height);
 	}
 }
 
-int*** init_field(size_t width, size_t height, size_t num_layers)
+int*** field_init(size_t width, size_t height, size_t num_layers)
 {
     int*** field = calloc(num_layers, sizeof(**field));
     for(size_t i = 0; i < num_layers; i++)
@@ -82,20 +82,20 @@ int*** init_field(size_t width, size_t height, size_t num_layers)
     return field;
 }
 
-void destroy_field(int*** field, size_t width, size_t height, size_t num_layers)
+void field_destroy(int*** field, size_t width, size_t height, size_t num_layers)
 {
 	for(size_t i = 0; i < num_layers; i++)
 	{
 	    for(size_t j = 0; j < height; j++)
 	    {
-		free(field[i][j]);
+		    free(field[i][j]);
 	    }
 		free(field[i]);
 	}
     free(field);
 }
 
-void print_field(int*** field, size_t width, size_t height, unsigned int layer)
+void field_print(int*** field, size_t width, size_t height, unsigned int layer)
 {
 	for(int i = (int)width; i >= 0; i--) {
 		if(i == 0) {
@@ -121,7 +121,21 @@ void print_field(int*** field, size_t width, size_t height, unsigned int layer)
 	}
 }
 
-void unprint_field(size_t size)
+point_t *point_new(int x, int y, int z, unsigned int score)
+{
+    point_t *new_point = calloc(1, sizeof(point_t));
+    if(new_point == NULL)
+        return NULL;
+
+    new_point->x = x;
+    new_point->y = y;
+    new_point->z = z;
+    new_point->score = score;
+
+    return new_point;
+}
+
+void field_unprint(size_t size)
 {
 	for(size_t i = 0; i <= size; i++) {
 		/* VT100 excape code to move cursor to start of prev line */

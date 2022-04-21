@@ -3,6 +3,7 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
 #include "lrouter_net.h"
 #include "lrouter_route.h"
@@ -73,30 +74,6 @@ static struct netcollection* _initialize(lua_State* L)
     return nc;
 }
 
-/* deletes the nth element of an position_t array and resizes it */
-static void del_nth_el_arr(position_t *arr, size_t n, size_t arr_size)
-{
-    if(arr == NULL || n >= arr_size)
-        return;
-
-    for(size_t i = n; i < arr_size - 1; i++)
-    {
-        arr[i] = arr[i+1];
-    }
-    position_t *new_arr = realloc(arr, sizeof(position_t) * (arr_size - 1));
-
-    if (!new_arr)
-    {
-	printf("couldnt realloc in del_nth_el_arr\n");
-	return;
-    }
-    else
-    {
-	arr = new_arr;
-    }
-
-}
-
 /*
  * split nets with more than 2 points into more nets with 2 points
  * with minimum manhattan distance in between
@@ -164,7 +141,7 @@ static void lrouter_split_nets(struct netcollection* nc)
 
                 newnet->size = 2;
 
-                del_nth_el_arr(nc->nets[i].positions, 0, nc->nets[i].size);
+                net_del_nth_el_arr(nc->nets[i].positions, 0, nc->nets[i].size);
                 nc->nets[i].size--;
 
                 /* continute splitting net */
@@ -191,10 +168,10 @@ int lrouter_route(lua_State* L)
     const unsigned int via_cost = 10;
     const unsigned int wrong_dir_cost = 30;
 
-    int*** field = init_field(field_width, field_height, num_layers);
+    int*** field = field_init(field_width, field_height, num_layers);
 
     lrouter_split_nets(nc);
-    sort_nets(nc->nets, nc->num_nets);
+    net_sort_nets(nc->nets, nc->num_nets);
 
     int count = 0;
 
@@ -229,7 +206,12 @@ int lrouter_route(lua_State* L)
     
         if(nc->nets[i].routed)
         {
-            print_path(nc->nets[i]); 
+            printf("pre create deltas\n");
+            net_print_path(&nc->nets[i]);
+            net_create_deltas(&nc->nets[i]);
+            printf("post create deltas\n");
+            net_print_path(&nc->nets[i]);
+            
             point_t *curr_point;
             int point_count = 1;
             while((curr_point = (point_t *)queue_dequeue(nc->nets[i].path))
@@ -266,7 +248,7 @@ int lrouter_route(lua_State* L)
                     point_count++;
                 }
                 count++;
-            }
+        }
         /* put moves table into bigger table */
         lua_rawseti(L, -2, i + 1);
     }
@@ -274,13 +256,13 @@ int lrouter_route(lua_State* L)
     /* num_routed_nets on stack */
     lua_pushinteger(L, count);
 
-    print_nets(nc->nets, nc->num_nets);
-    print_field(field, field_width, field_height, 0);
-    print_field(field, field_width, field_height, 1);
-    print_field(field, field_width, field_height, 2);
+    net_print_nets(nc->nets, nc->num_nets);
+    field_print(field, field_width, field_height, 0);
+    field_print(field, field_width, field_height, 1);
+    field_print(field, field_width, field_height, 2);
     usleep(1000000);
 
-    destroy_field(field, field_width, field_height, num_layers);
+    field_destroy(field, field_width, field_height, num_layers);
     free(nc->nets);
     free(nc);
     return 2;

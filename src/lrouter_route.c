@@ -129,7 +129,6 @@ int route(net_t *net, int*** field, size_t width, size_t height,
 					while(heap_get_point(min_heap));
 				}
 
-
 				field[nextz][nextx][nexty] = score + score_incr;
 
 				/* put the point in the to be visited queue */
@@ -148,7 +147,7 @@ int route(net_t *net, int*** field, size_t width, size_t height,
 	if(!min_heap->size)
 	{
 		/* clean up */
-		reset_field(field, width, height, num_layers);
+		field_reset(field, width, height, num_layers);
 		return STUCK;
 	}
 	} while(!(x == endx && y == endy && z == endz));
@@ -159,16 +158,7 @@ int route(net_t *net, int*** field, size_t width, size_t height,
     */
 	x = endx;
 	y = endy;
-
-    int xdiff_old, ydiff_old;
-    xdiff_old = 0;
-    ydiff_old = 0;
     
-    int xsteps, ysteps, zsteps;
-    xsteps = 0;
-    ysteps = 0;
-    zsteps = 0;
-
     int xdiff = 0;
     int ydiff = 0;
     int zdiff = 0;
@@ -237,22 +227,14 @@ int route(net_t *net, int*** field, size_t width, size_t height,
 			field[z][x][y] = PATH;
 		}
 
-
-		xdiff_old = xdiff;
-		ydiff_old = ydiff;
-
 		xdiff = npoint->x - (int)x;
 		ydiff = npoint->y - (int)y;
 		zdiff = npoint->z - (int)z;
 
-		xsteps += xdiff;
-		ysteps += ydiff;
-		zsteps += zdiff;
-
     	point_t *path_point = calloc(1, sizeof(point_t));
-    	path_point->x = xsteps;
-    	path_point->y = ysteps;
-    	path_point->z = zsteps;
+    	path_point->x = xdiff;
+    	path_point->y = ydiff;
+    	path_point->z = zdiff;
     	queue_enqueue(net->path, path_point);
 
 		x = npoint->x;
@@ -262,10 +244,11 @@ int route(net_t *net, int*** field, size_t width, size_t height,
 	} while (!(x == startx && y == starty && z == startz));
 
 	queue_reverse(net->path);
-	/* mark start and end of net as ports */
 
+	/* mark start and end of net as ports */
 	field[startz][startx][starty] = PORT;
 	field[endz][endx][endy] = PORT;
-	reset_field(field, width, height, num_layers);
+	field_reset(field, width, height, num_layers);
+
 	return ROUTED;
 }

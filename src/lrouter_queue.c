@@ -6,20 +6,11 @@
 
 #include "lrouter_queue.h"
 #include "lrouter_field.h"
+#include "lrouter_net.h"
 
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
-
-struct queue_node_s {
-	struct queue_node_s *next;
-	void *data;
-};
-
-struct queue_s {
-	struct queue_node_s *front;
-	struct queue_node_s *back;
-};
 
 int queue_destroy(queue_t *queue)
 {
@@ -140,4 +131,27 @@ void queue_reverse(queue_t *queue)
 		current = next;
 	}
 	queue->front = prev;
+}
+
+position_t *queue_as_array(queue_t *queue)
+{
+    if(queue_len(queue) < 1)
+    {
+        printf("queue_as_array got a 0 len array\n");
+        return NULL;
+    }
+
+    position_t *arr = calloc(queue_len(queue), sizeof(position_t));
+    int i = 0;
+    struct queue_node_s *node = queue->front;
+
+	while(node->next != NULL)
+	{
+        arr[i] = *(position_t *)node->data;
+        printf("\n\nas array %i: %i, %i, %i\n", i, arr[i].x, arr[i].y, arr[i].z);
+		node = node->next;
+		i++;
+	}
+
+    return arr;
 }

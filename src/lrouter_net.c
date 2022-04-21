@@ -4,11 +4,14 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <stdbool.h>
 #include <time.h>
+
+#define DEFAULT_POINT_SCORE 0
 
 #define BETWEEN(value, min, max) (value < max && value > min)
 
-void print_nets(net_t* nets, size_t num_nets)
+void net_print_nets(net_t* nets, size_t num_nets)
 {
     for (unsigned int i = 0; i < num_nets; i++)
     {
@@ -26,12 +29,12 @@ void print_nets(net_t* nets, size_t num_nets)
     }
 }
 
-void print_path(net_t net)
+void net_print_path(net_t *net)
 {
-	printf("Printing path:\n");
+	printf("Printing path of %s:\n", net->name);
 	point_t *point;
 	int i = 0;
-	while((point = (point_t *)queue_dequeue(net.path)) != NULL)
+	while((point = (point_t *)queue_dequeue(net->path)) != NULL)
 	{
 		printf("P %i, x:%i, y:%i, z:%i\n", i, point->x, point->y, point->z);
 		i++;
@@ -61,7 +64,83 @@ position_t *net_create_position(const char *instance, const char *port,
 	return pos;
 }
 
-void sort_nets(net_t* nets, size_t num_nets)
+void net_del_nth_el_arr(position_t *arr, size_t n, size_t arr_size)
+{
+    if(arr == NULL || n >= arr_size)
+        return;
+
+    for(size_t i = n; i < arr_size - 1; i++)
+    {
+        arr[i] = arr[i+1];
+    }
+    position_t *new_arr = realloc(arr, sizeof(position_t) * (arr_size - 1));
+
+    if (!new_arr)
+    {
+        printf("couldnt realloc in del_nth_el_arr\n");
+        return;
+    }
+    else
+    {
+        arr = new_arr;
+    }
+
+}
+
+/* creates deltas out of a nets routed path */
+void net_create_deltas(net_t *net)
+{
+    /* dont need to create deltas if the net has too few points */
+    int net_len;
+    if((net_len = queue_len(net->path)) < 3)
+        return;
+
+    position_t *positions;
+    if((positions = queue_as_array(net->path)) == NULL)
+        return;
+
+    queue_t *queue = queue_new();
+
+    int xsteps = 0;
+    int ysteps = 0;
+    int zsteps = 0;
+
+    for(int i = 0; i < net_len - 1; i++)
+    {    
+        /* 
+         * a delta is there when it was running in some direction:
+         * e.g. x != 0 and the next x == 0, valid for x, y or z
+         * so in c booleans: current x: true and next x false
+         */
+        if(positions[i].x && !positions[i+1].x)
+        {
+            xsteps += i * positions[i].x;
+            printf("created delta at xsteps %i\n", xsteps);
+            point_t *point = point_new(xsteps, ysteps, zsteps, DEFAULT_POINT_SCORE);
+            queue_enqueue(queue, point);
+        } 
+        else if(positions[i].y && !positions[i+1].y)
+        {
+            ysteps += i * positions[i].y;
+            printf("created delta at ysteps %i\n", ysteps);
+            point_t *point = point_new(xsteps, ysteps, zsteps, DEFAULT_POINT_SCORE);
+            queue_enqueue(queue, point);
+        }
+        else if(positions[i].z && !positions[i+1].z)
+        {
+            zsteps += i * positions[i].z;
+            printf("created delta at zsteps %i\n", zsteps);
+            point_t *point = point_new(xsteps, ysteps, zsteps, DEFAULT_POINT_SCORE);
+            queue_enqueue(queue, point);
+        }
+    }
+
+    /* delete the old path */
+    free(net->path);
+    net->path = queue;
+}
+
+void net_sort_nets(net_t* nets, size_t num_nets)
 {
 	unsigned int xlo, xhi, ylo, yhi;
 	for(size_t i = 0; i < num_nets; i++)
