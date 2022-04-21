@@ -166,7 +166,7 @@ function aux.tprint(tbl, indent)
         local formatting = string.rep("  ", indent) .. k .. ": "                             
         if type(v) == "table" then                                                  
             print(formatting)                                                         
-            tprint(v, indent+1)                                                       
+            aux.tprint(v, indent+1)                                                       
         elseif type(v) == 'boolean' then                                            
             print(formatting .. tostring(v))                                          
         else                                                                        

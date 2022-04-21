@@ -467,7 +467,7 @@ int lplacer_place_classic(lua_State* L)
     const int verbose = lua_toboolean(L, -1);
     lua_pop(L, 1);
 
-    _simulated_annealing(&rstate, block, floorplan, coolingfactor, moves_per_cell_per_temp, verbose);
+    //_simulated_annealing(&rstate, block, floorplan, coolingfactor, moves_per_cell_per_temp, verbose);
 
     _create_lua_result(L, block, floorplan);
 

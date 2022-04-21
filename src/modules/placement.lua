@@ -106,7 +106,7 @@ function M.insert_filler_names(rows, width)
         end
         -- check for too wide rows
         if rowwidths[row] > width then
-            moderror("row width is to small to fit all cells in a row")
+            moderror("row width is too small to fit all cells in a row")
         end
     end
 
@@ -145,7 +145,7 @@ function M.insert_filler_names(rows, width)
             for i = 1, diff do
                 table.insert(rowcells, {
                     instance = string.format("fill_%d_%d", row, i),
-                    reference = fillref,
+                    reference = "isogate",
                     width = 1,
                 })
             end
@@ -248,7 +248,7 @@ function M.digital(parent, rows, width, startpt, startanchor, flipfirst, growdir
         end
         -- check for too wide rows
         if rowwidths[row] > width then
-            moderror("row width is to small to fit all cells in a row")
+            moderror("row width is too small to fit all cells in a row")
         end
     end
 

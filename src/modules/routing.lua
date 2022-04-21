@@ -5,13 +5,15 @@ local function _prepare_routing_nets(nets, rows)
     for i, net in ipairs(nets) do
         for r, row in ipairs(rows) do
             for c, column in ipairs(row) do
-                for _, n in ipairs(column.nets) do
-                    if net == n.name then
-                        if not netpositions[i] then
-                            netpositions[i] = { name = net, positions = {} }
+                if column.nets then
+                    for _, n in ipairs(column.nets) do
+                        if net == n.name then
+                            if not netpositions[i] then
+                                netpositions[i] = { name = net, positions = {} }
+                            end
+                            local offset = column.pinoffsets[n.port]
+                            table.insert(netpositions[i].positions, { instance = column.instance, port = n.port, x = c + offset.x, y = r + offset.y })
                         end
-                        local offset = column.pinoffsets[n.port]
-                        table.insert(netpositions[i].positions, { instance = column.instance, port = n.port, x = c + offset.x, y = r + offset.y })
                     end
                 end
             end
@@ -20,8 +22,7 @@ local function _prepare_routing_nets(nets, rows)
     return netpositions
 end
 
-function M.legalize(nets, rows)
-    local routes = {}
+function M.legalize(nets, rows, options)
     local netpositions = _prepare_routing_nets(nets, rows)
     for _, pos in ipairs(netpositions) do
         print(pos.name)
@@ -30,8 +31,10 @@ function M.legalize(nets, rows)
         end
         print()
     end
-    -- FIXME: call router here
-    return routes
+    -- call router here
+    local routednets, numroutednets = router.route(netpositions,
+        options.floorplan_width, options.floorplan_height)
+    return routednets
 end
 
 function M.route(cell, routes, cells, width)
@@ -73,14 +76,25 @@ function M.route(cell, routes, cells, width)
                 x = x + (movement.x or 0)
                 y = y + (movement.y or 0)
             elseif movement.type == "via" then
-                geometry.via(cell, currmetal, movement.metal, width, width, x, y)
-                if #pts > 1 then
-                    geometry.path(cell, generics.metal(currmetal), 
-                        geometry.path_points_xy(startpt, pts), width)
+                if movement.z then
+                    geometry.via(cell, currmetal, currmetal + movement.z, width, width, x, y)
+                    if #pts > 1 then
+                        geometry.path(cell, generics.metal(currmetal), 
+                            geometry.path_points_xy(startpt, pts), width)
+                    end
+                    startpt = point.create(x, y)
+                    pts = {}
+                    currmetal = currmetal + movement.z
+                else
+                    geometry.via(cell, currmetal, movement.metal, width, width, x, y)
+                    if #pts > 1 then
+                        geometry.path(cell, generics.metal(currmetal), 
+                            geometry.path_points_xy(startpt, pts), width)
+                    end
+                    startpt = point.create(x, y)
+                    pts = {}
+                    currmetal = movement.metal
                 end
-                startpt = point.create(x, y)
-                pts = {}
-                currmetal = movement.metal
             end
         end
         if #pts > 1 then
