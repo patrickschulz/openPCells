@@ -107,17 +107,9 @@ static int _parse_point(const char* arg, int* xptr, int* yptr)
     return 1;
 }
 
-void main_list_cell_parameters(struct cmdoptions* cmdoptions, struct keyvaluearray* config)
+static void _prepare_cellpaths(struct vector* cellpaths_to_prepend, struct vector* cellpaths_to_append, struct cmdoptions* cmdoptions, struct keyvaluearray* config)
 {
-    lua_State* L = _create_and_initialize_lua();
 
-    open_lpcell_lib(L);
-    module_load_aux(L);
-    module_load_pcell(L);
-    module_load_load(L);
-
-    // register pcell state
-    struct vector* cellpaths_to_prepend = vector_create();
     if(cmdoptions_was_provided_long(cmdoptions, "prepend-cellpath"))
     {
         const char** arg = cmdoptions_get_argument_long(cmdoptions, "prepend-cellpath");
@@ -127,7 +119,6 @@ void main_list_cell_parameters(struct cmdoptions* cmdoptions, struct keyvaluearr
             ++arg;
         }
     }
-    struct vector* cellpaths_to_append = vector_create();
     if(cmdoptions_was_provided_long(cmdoptions, "cellpath"))
     {
         const char** arg = cmdoptions_get_argument_long(cmdoptions, "cellpath");
@@ -146,27 +137,56 @@ void main_list_cell_parameters(struct cmdoptions* cmdoptions, struct keyvaluearr
             ++arg;
         }
     }
+    struct vector* config_prepend_cellpaths = keyvaluearray_get(config, "prepend_cellpaths");
+    if(config_prepend_cellpaths)
+    {
+        for(unsigned int i = 0; i < vector_size(config_prepend_cellpaths); ++i)
+        {
+            vector_append(cellpaths_to_prepend, vector_get(config_prepend_cellpaths, i));
+        }
+    }
+    struct vector* config_append_cellpaths = keyvaluearray_get(config, "append_cellpaths");
+    if(config_append_cellpaths)
+    {
+        for(unsigned int i = 0; i < vector_size(config_append_cellpaths); ++i)
+        {
+            vector_append(cellpaths_to_append, vector_get(config_append_cellpaths, i));
+        }
+    }
     vector_append(cellpaths_to_append, util_copy_string(OPC_HOME "/cells"));
+}
+
+void main_list_cell_parameters(struct cmdoptions* cmdoptions, struct keyvaluearray* config)
+{
+    lua_State* L = _create_and_initialize_lua();
+
+    open_lpcell_lib(L);
+    module_load_aux(L);
+    module_load_pcell(L);
+    module_load_load(L);
+
+    // pcell state
+    struct vector* cellpaths_to_prepend = vector_create();
+    struct vector* cellpaths_to_append = vector_create();
+    _prepare_cellpaths(cellpaths_to_prepend, cellpaths_to_append, cmdoptions, config);
     struct pcell_state* pcell_state = pcell_initialize_state(cellpaths_to_prepend, cellpaths_to_append);
     vector_destroy(cellpaths_to_prepend, free);
     vector_destroy(cellpaths_to_append, free);
+    // and register
     lua_pushlightuserdata(L, pcell_state);
     lua_setfield(L, LUA_REGISTRYINDEX, "pcellstate");
 
     // assemble cell arguments
     lua_newtable(L);
-    //lua_pushboolean(L, iscellscript);
-    //lua_setfield(L, -2, "isscript");
     const char* cellname = cmdoptions_get_argument_long(cmdoptions, "cell");
     lua_pushstring(L, cellname);
     lua_setfield(L, -2, "cell");
-    //lua_newtable(L);
-    //for(unsigned int i = 0; i < vector_size(cellargs); ++i)
-    //{
-    //    lua_pushstring(L, vector_get(cellargs, i));
-    //    lua_rawseti(L, -2, i + 1);
-    //}
-    //lua_setfield(L, -2, "cellargs");
+    const char* parametersformat = cmdoptions_get_argument_long(cmdoptions, "parameters-format");
+    if(parametersformat)
+    {
+        lua_pushstring(L, parametersformat);
+        lua_setfield(L, -2, "parametersformat");
+    }
     lua_setglobal(L, "args");
 
     int retval = script_call_list_parameters(L);
@@ -260,39 +280,15 @@ void main_create_and_export_cell(struct cmdoptions* cmdoptions, struct keyvaluea
     {
         goto EXIT;
     }
+
+    // pcell state
     struct vector* cellpaths_to_prepend = vector_create();
-    if(cmdoptions_was_provided_long(cmdoptions, "prepend-cellpath"))
-    {
-        const char** arg = cmdoptions_get_argument_long(cmdoptions, "prepend-cellpath");
-        while(*arg)
-        {
-            vector_append(cellpaths_to_prepend, util_copy_string(*arg));
-            ++arg;
-        }
-    }
     struct vector* cellpaths_to_append = vector_create();
-    if(cmdoptions_was_provided_long(cmdoptions, "cellpath"))
-    {
-        const char** arg = cmdoptions_get_argument_long(cmdoptions, "cellpath");
-        while(*arg)
-        {
-            vector_append(cellpaths_to_append, util_copy_string(*arg));
-            ++arg;
-        }
-    }
-    if(cmdoptions_was_provided_long(cmdoptions, "append-cellpath"))
-    {
-        const char** arg = cmdoptions_get_argument_long(cmdoptions, "append-cellpath");
-        while(*arg)
-        {
-            vector_append(cellpaths_to_append, util_copy_string(*arg));
-            ++arg;
-        }
-    }
-    vector_append(cellpaths_to_append, util_copy_string(OPC_HOME "/cells"));
+    _prepare_cellpaths(cellpaths_to_prepend, cellpaths_to_append, cmdoptions, config);
     struct pcell_state* pcell_state = pcell_initialize_state(cellpaths_to_prepend, cellpaths_to_append);
     vector_destroy(cellpaths_to_prepend, free);
     vector_destroy(cellpaths_to_append, free);
+
     if(!pcell_state)
     {
         goto DESTROY_TECHNOLOGY;

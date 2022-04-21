@@ -681,7 +681,7 @@ local function _collect_parameters(cell, ptype, parent, str)
     for _, name in ipairs(cell.parameters:get_names()) do
         local v = cell.parameters:get(name)
         local val = v.func()
-        if type(val) == "table" then
+        if type(val) == "table" and not val.isgenerictechparameter then
             val = table.concat(val, ",")
             if val == "" then val = " " end
         else
@@ -705,8 +705,39 @@ function pcell.parameters(cellname, cellargs, generictech)
     local str = {}
 
     if generictech then
+        local meta = {}
+        meta.__add = function(lhs, rhs)
+            return setmetatable({ 
+                str = string.format("%s + %s", tostring(lhs), tostring(rhs)),
+                isgenerictechparameter = true, 
+            }, meta)
+        end
+        meta.__sub = function(lhs, rhs)
+            return setmetatable({ 
+                str = string.format("%s - %s", tostring(lhs), tostring(rhs)),
+                isgenerictechparameter = true, 
+            }, meta)
+        end
+        meta.__mul = function(lhs, rhs)
+            return setmetatable({ 
+                str = string.format("%s * %s", tostring(lhs), tostring(rhs)),
+                isgenerictechparameter = true, 
+            }, meta)
+        end
+        meta.__div = function(lhs, rhs)
+            return setmetatable({ 
+                str = string.format("%s / %s", tostring(lhs), tostring(rhs)),
+                isgenerictechparameter = true, 
+            }, meta)
+        end
+        meta.__tostring = function(self)
+            return self.str
+        end
         local t = {
-            get_dimension = function(name) return string.format('tech.get_dimension("%s")', name) end,
+            get_dimension = function(name) return setmetatable({ 
+                str = string.format('tech.get_dimension("%s")', name),
+                isgenerictechparameter = true, 
+            }, meta) end,
         }
         _override_cell_environment("tech", t)
     end
