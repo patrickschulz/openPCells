@@ -2,8 +2,9 @@
 
 local testsupport = _load_module("testsuite/support")
 
--- set default path for technology files
+-- load technology
 technology.add_techpath(string.format("%s/tech", _get_opc_home()))
+technology.load("opc")
 
 local enabled = {}
 local all = true

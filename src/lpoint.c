@@ -14,21 +14,6 @@ static coordinate_t checkcoordinate(lua_State* L, int idx)
     lua_Integer d = lua_tointegerx(L, idx, &isnum);
     if(!isnum) 
     {
-        /*
-        lua_Debug debug;
-        int level = 1;
-        while(1)
-        {
-            lua_getstack(L, level, &debug);
-            lua_getinfo(L, "Snlt", &debug);
-            if(strncmp("cell", debug.short_src, 4) == 0)
-            {
-                break;
-            }
-            ++level;
-        }
-        lua_pushfstring(L, "non-integer number (%f) generated in %s: line %d", num, debug.short_src, debug.currentline);
-        */
         lua_Number num = lua_tonumber(L, idx);
         lua_pushfstring(L, "non-integer number (%f) generated", num);
         lua_error(L);
@@ -41,6 +26,22 @@ lpoint_t* lpoint_create_internal(lua_State* L, coordinate_t x, coordinate_t y)
     lpoint_t* p = lua_newuserdata(L, sizeof(lpoint_t));
     luaL_setmetatable(L, LPOINTMETA);
     p->point = point_create(x, y);
+    return p;
+}
+
+lpoint_t* lpoint_adapt_point(lua_State* L, point_t* pt)
+{
+    lpoint_t* p = lua_newuserdata(L, sizeof(lpoint_t));
+    luaL_setmetatable(L, LPOINTMETA);
+    p->point = pt;
+    return p;
+}
+
+lpoint_t* lpoint_takeover_point(lua_State* L, point_t* pt)
+{
+    lpoint_t* p = lua_newuserdata(L, sizeof(lpoint_t));
+    luaL_setmetatable(L, LPOINTMETA);
+    p->point = pt;
     return p;
 }
 
@@ -126,6 +127,11 @@ static int lpoint_getmetatable(lua_State* L)
     return 1;
 }
 
+lpoint_t* lpoint_checkpoint(lua_State* L, int idx)
+{
+    return luaL_checkudata(L, idx, LPOINTMETA);
+}
+
 int open_lpoint_lib(lua_State* L)
 {
     static const luaL_Reg metafuncs[] =
@@ -165,14 +171,3 @@ int open_lpoint_lib(lua_State* L)
     return 0;
 }
 
-int lpoint_register_cfunctions(lua_State* L)
-{
-    lua_getglobal(L, "profiler");
-    lua_getfield(L, -1, "register_cfunction");
-    lua_pushstring(L, "point");
-    lua_pushstring(L, "copy");
-    lua_pushcfunction(L, lpoint_copy);
-    lua_call(L, 3, 0);
-    lua_pop(L, 1);
-    return 0;
-}

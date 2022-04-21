@@ -2,7 +2,6 @@
  * This library is intended for a logic synthesis that targets opc cell generation
  * The opc verilog parser recognizes a set of standard cells (by name), therefore the gate netlist needs to use exactly these names.
  * (The area of the cells is not really interesting, but added for completeness. It is normalized, so a gate with one transistor has an area of 1. -> not finished)
- * All cellnames are prefixed with 'opc'
  * List of cells:
  *    inv
  *    buf
@@ -21,7 +20,7 @@
  */
 
 library (opc) {
-  cell (opcbuf) {
+  cell (buf) {
     area : "0.266240";
     pin (O) {
       direction : "output";
@@ -31,7 +30,7 @@ library (opc) {
       direction : "input";
     }
   }
-  cell (opcdffq) {
+  cell (dffq) {
     area : "1.530880";
     pin (Q) {
       direction : "output";
@@ -50,7 +49,7 @@ library (opc) {
       next_state : "D";
     }
   }
-  cell (opcdffnq) {
+  cell (dffnq) {
     area : "1.530880";
     pin (Q) {
       direction : "output";
@@ -69,7 +68,7 @@ library (opc) {
       next_state : "D";
     }
   }
-  cell (opcdffrsq) {
+  cell (dffrsq) {
     area : "2.063360";
     pin (Q) {
       direction : "output";
@@ -96,7 +95,7 @@ library (opc) {
       preset : "(!SET)";
     }
   }
-  cell (opcdffnrsq) {
+  cell (dffnrsq) {
     area : "1.996800";
     pin (Q) {
       direction : "output";
@@ -123,7 +122,7 @@ library (opc) {
       preset : "(!SET)";
     }
   }
-  cell (opcinv) {
+  cell (inv) {
     area : "0.133120";
     pin (O) {
       direction : "output";
@@ -133,7 +132,7 @@ library (opc) {
       direction : "input";
     }
   }
-  cell (opclatchq) {
+  cell (latchq) {
     area : "0.998400";
     pin (Q) {
       direction : "output";
@@ -151,7 +150,7 @@ library (opc) {
       enable : "CLK";
     }
   }
-  cell (opclatchrq) {
+  cell (latchrq) {
     area : "1.131520";
     pin (Q) {
       direction : "output";
@@ -173,7 +172,7 @@ library (opc) {
       enable : "CLK";
     }
   }
-  cell (opcnand) {
+  cell (nand) {
     area : "0.199680";
     pin (O) {
       direction : "output";
@@ -186,7 +185,7 @@ library (opc) {
       direction : "input";
     }
   }
-  cell (opcnor) {
+  cell (nor) {
     area : "0.199680";
     pin (O) {
       direction : "output";
@@ -199,7 +198,7 @@ library (opc) {
       direction : "input";
     }
   }
-  cell (opcxor) {
+  cell (xor) {
     area : "0.199680";
     pin (O) {
       direction : "output";
@@ -212,7 +211,7 @@ library (opc) {
       direction : "input";
     }
   }
-  cell (opcxnor) {
+  cell (xnor) {
     area : "0.199680";
     pin (O) {
       direction : "output";
@@ -225,7 +224,7 @@ library (opc) {
       direction : "input";
     }
   }
-  cell (opctbuf) {
+  cell (tbuf) {
     area : "0.532480";
     pin (O) {
       direction : "output";
@@ -239,7 +238,7 @@ library (opc) {
       direction : "input";
     }
   }
-  cell (opctinv) {
+  cell (tinv) {
     area : "0.399360";
     pin (O) {
       direction : "output";

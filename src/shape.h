@@ -5,6 +5,7 @@
 
 #include "point.h"
 #include "transformationmatrix.h"
+#include "generics.h"
 
 typedef enum
 {
@@ -27,6 +28,8 @@ typedef struct
     size_t size;
     size_t capacity;
 
+    generics_t* layer;
+
     void* properties; // optional
 } shape_t;
 
@@ -41,9 +44,11 @@ void shape_append(shape_t* shape, coordinate_t x, coordinate_t y);
 int shape_get_path_width(shape_t* shape, ucoordinate_t* width);
 int shape_get_path_extension(shape_t* shape, coordinate_t* start, coordinate_t* end);
 
+int shape_is_empty(shape_t* shape);
+
 // transformations
+void shape_translate(shape_t* shape, coordinate_t dx, coordinate_t dy);
 void shape_apply_transformation(shape_t* shape, transformationmatrix_t* matrix);
-void shape_apply_translation(shape_t* shape, transformationmatrix_t* matrix);
 void shape_apply_inverse_transformation(shape_t* shape, transformationmatrix_t* matrix);
 
 coordinate_t shape_get_width(shape_t* shape);

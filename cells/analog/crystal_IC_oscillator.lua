@@ -18,8 +18,6 @@ function layout(oscillator, _P)
         pcontactpos = npcontacts, 
         ncontactpos = npcontacts, 
         separation = 400, 
-        pvthtype = 3, 
-        nvthtype = 2,
     })
     local cmosname = pcell.add_cell_reference(cmosref, "moscore")
 

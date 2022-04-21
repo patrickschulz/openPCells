@@ -8,13 +8,12 @@ function M.get_extension()
     return "tikz"
 end
 
-function M.get_techexport()
-    return "svg"
-end
-
 function M.set_options(opt)
-    if opt.standalone then
-        __standalone = true
+    for i = 1, #opt do
+        local arg = opt[i]
+        if arg == "-s" or arg == "--standalone" then
+            __standalone = true
+        end
     end
 end
 
@@ -40,28 +39,37 @@ function M.at_end()
     end
 end
 
-function M.get_layer(S)
-    return S.lpp:get().color
+local function intlog10(num)
+    if num == 0 then return 0 end
+    if num == 1 then return 0 end
+    local ret = 0
+    while num > 1 do
+        num = num / 10
+        ret = ret + 1
+    end
+    return ret
 end
 
---[[
-function M.get_points(shape)
-    if shape.typ == "polygon" then
-        local pointlist = shape:concat_points(function(pt) return string.format("(%s)", pt:format(baseunit, ", ")) end)
-        return table.concat(pointlist, " -- ")
-    else
+local function _format_number(num, baseunit)
+    local fmt = string.format("%%s%%u.%%0%uu", intlog10(baseunit))
+    local sign = "";
+    if num < 0 then
+        sign = "-"
+        num = -num
     end
+    local ipart = num // baseunit;
+    local fpart = num - baseunit * ipart;
+    return string.format(fmt, sign, ipart, fpart)
 end
---]]
 
-function M.write_layer(layer, pcol)
-    for _, pts in ipairs(pcol) do
-        table.insert(__content, string.format('    \\fill[%s] %s;', layer, pts))
-    end
+local function _format_point(pt, baseunit, sep)
+    local sx = _format_number(pt.x, baseunit)
+    local sy = _format_number(pt.y, baseunit)
+    return string.format("%s%s%s", sx, sep, sy)
 end
 
 function M.write_rectangle(layer, bl, tr)
-    table.insert(__content, string.format("\\fill[%s] (%s) rectangle (%s);", layer, bl:format(baseunit, ", "), tr:format(baseunit, ", ")))
+    table.insert(__content, string.format("\\fill[%s, opacity = 0.3] (%s) rectangle (%s);", layer.color, _format_point(bl, baseunit, ", "), _format_point(tr, baseunit, ", ")))
 end
 
 function M.write_polygon(layer, pts)

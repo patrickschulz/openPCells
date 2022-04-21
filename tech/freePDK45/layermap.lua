@@ -1,446 +1,261 @@
 return {
     special = {
-        map {
-            name = "_special",
-            lpp = {
-                gds   = { layer = 235,        purpose = 235 },
-                SKILL = { layer = "OUTLINE",  purpose = "drawing" },
-                magic = { layer = "_special", purpose = "drawing" },
-            },
+        name = "_special",
+        layer = {
+            gds   = { layer = 235,        purpose = 235 },
+            SKILL = { layer = "OUTLINE",  purpose = "drawing" },
+            magic = { layer = "_special", purpose = "drawing" },
         },
     },
     soiopen = {},
-    pimpl = {
-        map {
-            name = "pimplant",
-            lpp = {
-                gds   = { layer = 5,          purpose = 0 },
-                SKILL = { layer = "pimplant", purpose = "drawing" },
-                magic = { layer = "pimplant", purpose = "drawing" },
-            }
+    pimplant = {
+        name = "pimplant",
+        layer = {
+            gds   = { layer = 5,          purpose = 0 },
+            SKILL = { layer = "pimplant", purpose = "drawing" },
+            magic = { layer = "pimplant", purpose = "drawing" },
         }
     },
-    nimpl = {
-        map {
-            name = "nimplant",
-            lpp = {
-                gds   = { layer = 4,       purpose = 0 },
-                SKILL = { layer = "NPLUS", purpose = "drawing" },
-                magic = { layer = "NPLUS", purpose = "drawing" },
-            }
+    nimplant = {
+        name = "nimplant",
+        layer = {
+            gds   = { layer = 4,       purpose = 0 },
+            SKILL = { layer = "NPLUS", purpose = "drawing" },
+            magic = { layer = "NPLUS", purpose = "drawing" },
         }
     },
     pwell = {
-        map {
-            name = "pwell",
-            lpp = {
-                gds   = { layer = 2,       purpose = 0 },
-                SKILL = { layer = "pwell", purpose = "drawing" },
-                magic = { layer = "pwell", purpose = "drawing" },
-            }
+        name = "pwell",
+        layer = {
+            gds   = { layer = 2,       purpose = 0 },
+            SKILL = { layer = "pwell", purpose = "drawing" },
+            magic = { layer = "pwell", purpose = "drawing" },
         }
     },
     nwell = {
-        map {
-            name = "nwell",
-            lpp = {
-                gds   = { layer = 3,       purpose = 0 },
-                SKILL = { layer = "nwell", purpose = "drawing" },
-                magic = { layer = "nwell", purpose = "drawing" },
-            }
+        name = "nwell",
+        layer = {
+            gds   = { layer = 3,       purpose = 0 },
+            SKILL = { layer = "nwell", purpose = "drawing" },
+            magic = { layer = "nwell", purpose = "drawing" },
         }
     },
+    oxide1 = {},
+    vthtypen1 = {},
+    vthtypep1 = {},
     deeppwell = {},
     deepnwell = {},
-    feol = {
-        map(function(settings) -- well
-            local lut = {
-                nmos = {
-                    name = "pwell",
-                    lpp = {
-                        gds   = { layer = 2,       purpose = 0 },
-                        SKILL = { layer = "pwell", purpose = "drawing" },
-                        magic = { layer = "pwell", purpose = "drawing" },
-                    }
-                },
-                pmos = {
-                    name = "nwell",
-                    lpp = {
-                        gds   = { layer = 3,       purpose = 0 },
-                        SKILL = { layer = "nwell", purpose = "drawing" },
-                        magic = { layer = "nwell", purpose = "drawing" },
-                    }
-                },
-            }
-            return {
-                name = lut[settings.channeltype].name,
-                lpp = lut[settings.channeltype].lpp,
-                left   = 55,
-                right  = 55,
-                top    = settings.expand.top and 55 or 0,
-                bottom = settings.expand.bottom and 55 or 0,
-            }
-        end),
-    },
     active = {
-        map { -- active
-            name = "active",
-            lpp = {
-                gds   = { layer = 1,        purpose = 0 },
-                SKILL = { layer = "active", purpose = "drawing" },
-                magic = { layer = "active", purpose = "drawing" },
-                svg   = { color = "rgb(0, 204, 102)", opacity = 1.0, fill = true, order = 3 },
-            },
+        name = "active",
+        layer = {
+            gds   = { layer = 1,        purpose = 0 },
+            SKILL = { layer = "active", purpose = "drawing" },
+            magic = { layer = "active", purpose = "drawing" },
+            svg   = { color = "rgb(0, 204, 102)", opacity = 1.0, fill = true, order = 3 },
         },
     },
     gate = {
-        map { -- poly silicon
-            name = "poly",
-            lpp = {
-                gds   = { layer =    9,   purpose =         0 },
-                SKILL = { layer = "poly", purpose = "drawing" },
-                magic = { layer = "poly", purpose = "drawing" },
-                svg   = { color = "rgb(255, 0, 0)", opacity = 1.0, fill = true, order = 3 },
-            },
+        name = "poly",
+        layer = {
+            gds   = { layer =    9,   purpose =         0 },
+            SKILL = { layer = "poly", purpose = "drawing" },
+            magic = { layer = "poly", purpose = "drawing" },
+            svg   = { color = "rgb(255, 0, 0)", opacity = 1.0, fill = true, order = 3 },
         },
     },
     gatecut = {},
     tuckgatemarker = {},
     contactactive = {
-        array {
-            name = "contact",
-            lpp = {
-                gds   = { layer = 10,    purpose = 0 },
-                SKILL = { layer = "contact" , purpose = "drawing" },
-                magic = { layer = "contact" , purpose = "drawing" },
-                svg   = { color = "yellow", opacity = 1.0, fill = true, order = 6 },
-            },
-            width = 65,
-            height = 65,
-            xspace = 75,
-            yspace = 75,
-            xencl = 35,
-            yencl = 35
+        name = "contact",
+        layer = {
+            gds   = { layer = 10,    purpose = 0 },
+            SKILL = { layer = "contact" , purpose = "drawing" },
+            magic = { layer = "contact" , purpose = "drawing" },
+            svg   = { color = "yellow", opacity = 1.0, fill = true, order = 6 },
         },
     },
     contactsourcedrain = {
-        array {
-            name = "contact",
-            lpp = {
-                gds   = { layer = 10,    purpose = 0 },
-                SKILL = { layer = "contact" , purpose = "drawing" },
-                magic = { layer = "contact" , purpose = "drawing" },
-                svg   = { color = "yellow", opacity = 1.0, fill = true, order = 6 },
-            },
-            width = 65,
-            height = 65,
-            xspace = 75,
-            yspace = 75,
-            xencl = 0,
-            yencl = 0
+        name = "contact",
+        layer = {
+            gds   = { layer = 10,    purpose = 0 },
+            SKILL = { layer = "contact" , purpose = "drawing" },
+            magic = { layer = "contact" , purpose = "drawing" },
+            svg   = { color = "yellow", opacity = 1.0, fill = true, order = 6 },
         },
     },
     contactgate = {
-        array {
-            name = "contact",
-            lpp = {
-                gds   = { layer = 10,    purpose = 0 },
-                SKILL = { layer = "contact" , purpose = "drawing" },
-                magic = { layer = "contact" , purpose = "drawing" },
-                svg   = { color = "yellow", opacity = 1.0, fill = true, order = 6 },
-            },
-            width = 65,
-            height = 65,
-            xspace = 75,
-            yspace = 75,
-            xencl = 35,
-            yencl = 35,
-            fallback = { width = 65, height = 65 }
+        name = "contact",
+        layer = {
+            gds   = { layer = 10,    purpose = 0 },
+            SKILL = { layer = "contact" , purpose = "drawing" },
+            magic = { layer = "contact" , purpose = "drawing" },
+            svg   = { color = "yellow", opacity = 1.0, fill = true, order = 6 },
         },
     },
     M1 = {
-        map {
-            name = "metal1",
-            lpp = {
-                gds   = { layer = 11,       purpose = 0 },
-                SKILL = { layer = "metal1", purpose = "drawing" },
-                magic = { layer = "metal1", purpose = "drawing" },
-                svg   = { color = "blue", opacity = 1.0, fill = true, order = 5 },
-            }
+        name = "metal1",
+        layer = {
+            gds   = { layer = 11,       purpose = 0 },
+            SKILL = { layer = "metal1", purpose = "drawing" },
+            magic = { layer = "metal1", purpose = "drawing" },
+            svg   = { color = "blue", opacity = 1.0, fill = true, order = 5 },
         }
     },
     M2 = {
-        map {
-            name = "metal2",
-            lpp = {
-                gds   = { layer = 13,   purpose = 0 },
-                SKILL = { layer = "metal2", purpose = "drawing" },
-                magic = { layer = "metal2", purpose = "drawing" },
-                svg   = { color = "rgb(255, 0, 255)", opacity = 0.5, fill = true, order = 6 },
-            }
+        name = "metal2",
+        layer = {
+            gds   = { layer = 13,   purpose = 0 },
+            SKILL = { layer = "metal2", purpose = "drawing" },
+            magic = { layer = "metal2", purpose = "drawing" },
+            svg   = { color = "rgb(255, 0, 255)", opacity = 0.5, fill = true, order = 6 },
         }
     },
     M3 = {
-        map {
-            name = "metal3",
-            lpp = {
-                gds   = { layer = 15,       purpose = 0 },
-                SKILL = { layer = "metal3", purpose = "drawing" },
-                magic = { layer = "metal3", purpose = "drawing" },
-            }
+        name = "metal3",
+        layer = {
+            gds   = { layer = 15,       purpose = 0 },
+            SKILL = { layer = "metal3", purpose = "drawing" },
+            magic = { layer = "metal3", purpose = "drawing" },
         }
     },
     M4 = {
-        map {
-            name = "metal4",
-            lpp = {
-                gds   = { layer = 17,       purpose = 0 },
-                SKILL = { layer = "metal4", purpose = "drawing" },
-                magic = { layer = "metal4", purpose = "drawing" },
-            }
+        name = "metal4",
+        layer = {
+            gds   = { layer = 17,       purpose = 0 },
+            SKILL = { layer = "metal4", purpose = "drawing" },
+            magic = { layer = "metal4", purpose = "drawing" },
         }
     },
     M5 = {
-        map {
-            name = "metal5",
-            lpp = {
-                gds   = { layer = 19,       purpose = 0 },
-                SKILL = { layer = "metal5", purpose = "drawing" },
-                magic = { layer = "metal5", purpose = "drawing" },
-            }
+        name = "metal5",
+        layer = {
+            gds   = { layer = 19,       purpose = 0 },
+            SKILL = { layer = "metal5", purpose = "drawing" },
+            magic = { layer = "metal5", purpose = "drawing" },
         }
     },
     M6 = {
-        map {
-            name = "metal6",
-            lpp = {
-                gds   = { layer = 21,       purpose = 0 },
-                SKILL = { layer = "metal6", purpose = "drawing" },
-                magic = { layer = "metal6", purpose = "drawing" },
-            }
+        name = "metal6",
+        layer = {
+            gds   = { layer = 21,       purpose = 0 },
+            SKILL = { layer = "metal6", purpose = "drawing" },
+            magic = { layer = "metal6", purpose = "drawing" },
         }
     },
     M7 = {
-        map {
-            name = "metal7",
-            lpp = {
-                gds   = { layer = 23,       purpose = 0 },
-                SKILL = { layer = "metal7", purpose = "drawing" },
-                magic = { layer = "metal7", purpose = "drawing" },
-            }
+        name = "metal7",
+        layer = {
+            gds   = { layer = 23,       purpose = 0 },
+            SKILL = { layer = "metal7", purpose = "drawing" },
+            magic = { layer = "metal7", purpose = "drawing" },
         }
     },
     M8 = {
-        map {
-            name = "metal8",
-            lpp = {
-                gds   = { layer = 25,       purpose = 0 },
-                SKILL = { layer = "metal8", purpose = "drawing" },
-                magic = { layer = "metal8", purpose = "drawing" },
-            }
+        name = "metal8",
+        layer = {
+            gds   = { layer = 25,       purpose = 0 },
+            SKILL = { layer = "metal8", purpose = "drawing" },
+            magic = { layer = "metal8", purpose = "drawing" },
         }
     },
     M9 = {
-        map {
-            name = "metal9",
-            lpp = {
-                gds   = { layer = 27,       purpose = 0 },
-                SKILL = { layer = "metal9", purpose = "drawing" },
-                magic = { layer = "metal9", purpose = "drawing" },
-            }
+        name = "metal9",
+        layer = {
+            gds   = { layer = 27,       purpose = 0 },
+            SKILL = { layer = "metal9", purpose = "drawing" },
+            magic = { layer = "metal9", purpose = "drawing" },
         }
     },
     M10 = {
-        map {
-            name = "metal10",
-            lpp = {
-                gds   = { layer = 29,       purpose = 0 },
-                SKILL = { layer = "metal10", purpose = "drawing" },
-                magic = { layer = "metal10", purpose = "drawing" },
-            }
+        name = "metal10",
+        layer = {
+            gds   = { layer = 29,       purpose = 0 },
+            SKILL = { layer = "metal10", purpose = "drawing" },
+            magic = { layer = "metal10", purpose = "drawing" },
         }
     },
-    viaM1M2 = {
-        array {
-            name = "via1",
-            lpp = {
-                gds   = { layer =   12,    purpose = 0 },
-                SKILL = { layer = "via1" , purpose = "drawing" },
-                magic = { layer = "via1" , purpose = "drawing" },
-            },
-            width        = {    40,    40,    80,    40 },
-            height       = {    40,    40,    40,    80 },
-            xspace       = {    94,    94,   114,   114 },
-            yspace       = {    94,    94,   114,   114 },
-            xencl        = {     0,    30,    40,    40 },
-            yencl        = {    30,     0,    40,    40 },
-            conductivity = {     1,     1,     2,     2 },
-            noneedtofit  = { false, false, false, false },
-            fallback = { width = 40, height = 40 },
-        }
+    viacutM1M2 = {
+        name = "via1",
+        layer = {
+            gds   = { layer =   12,    purpose = 0 },
+            SKILL = { layer = "via1" , purpose = "drawing" },
+            magic = { layer = "via1" , purpose = "drawing" },
+        },
     },
-    viaM2M3 = {
-        array {
-            name = "via2",
-            lpp = {
-                gds   = { layer =   14,    purpose = 0 },
-                SKILL = { layer = "via2" , purpose = "drawing" },
-                magic = { layer = "via2" , purpose = "drawing" },
-            },
-            width        = {    40,    40,    80,    40 },
-            height       = {    40,    40,    40,    80 },
-            xspace       = {    94,    94,   114,   114 },
-            yspace       = {    94,    94,   114,   114 },
-            xencl        = {     0,    30,    40,    40 },
-            yencl        = {    30,     0,    40,    40 },
-            conductivity = {     1,     1,     2,     2 },
-            noneedtofit  = { false, false, false, false },
-            fallback = { width = 40, height = 40 },
-        }
+    viacutM2M3 = {
+        name = "via2",
+        layer = {
+            gds   = { layer =   14,    purpose = 0 },
+            SKILL = { layer = "via2" , purpose = "drawing" },
+            magic = { layer = "via2" , purpose = "drawing" },
+        },
     },
-    viaM3M4 = {
-        array {
-            name = "via3",
-            lpp = {
-                gds   = { layer =   16,    purpose = 0 },
-                SKILL = { layer = "via3" , purpose = "drawing" },
-                magic = { layer = "via3" , purpose = "drawing" },
-            },
-            width        = {    40,    40,    80,    40 },
-            height       = {    40,    40,    40,    80 },
-            xspace       = {    94,    94,   114,   114 },
-            yspace       = {    94,    94,   114,   114 },
-            xencl        = {     0,    30,    40,    40 },
-            yencl        = {    30,     0,    40,    40 },
-            conductivity = {     1,     1,     2,     2 },
-            noneedtofit  = { false, false, false, false },
-            fallback = { width = 40, height = 40 },
-        }
+    viacutM3M4 = {
+        name = "via3",
+        layer = {
+            gds   = { layer =   16,    purpose = 0 },
+            SKILL = { layer = "via3" , purpose = "drawing" },
+            magic = { layer = "via3" , purpose = "drawing" },
+        },
     },
-    viaM4M5 = {
-        array {
-            name = "via4",
-            lpp = {
-                gds   = { layer =   18,    purpose = 0 },
-                SKILL = { layer = "via4" , purpose = "drawing" },
-                magic = { layer = "via4" , purpose = "drawing" },
-            },
-            width        = {    40,    40,    80,    40 },
-            height       = {    40,    40,    40,    80 },
-            xspace       = {    94,    94,   114,   114 },
-            yspace       = {    94,    94,   114,   114 },
-            xencl        = {     0,    30,    40,    40 },
-            yencl        = {    30,     0,    40,    40 },
-            conductivity = {     1,     1,     2,     2 },
-            noneedtofit  = { false, false, false, false },
-            fallback = { width = 40, height = 40 },
-        }
+    viacutM4M5 = {
+        name = "via4",
+        layer = {
+            gds   = { layer =   18,    purpose = 0 },
+            SKILL = { layer = "via4" , purpose = "drawing" },
+            magic = { layer = "via4" , purpose = "drawing" },
+        },
     },
-    viaM5M6 = {
-        array {
-            name = "via5",
-            lpp = {
-                gds   = { layer =   20,    purpose = 0 },
-                SKILL = { layer = "via5" , purpose = "drawing" },
-                magic = { layer = "via5" , purpose = "drawing" },
-            },
-            width        = {    40,    40,    80,    40 },
-            height       = {    40,    40,    40,    80 },
-            xspace       = {    94,    94,   114,   114 },
-            yspace       = {    94,    94,   114,   114 },
-            xencl        = {     0,    30,    40,    40 },
-            yencl        = {    30,     0,    40,    40 },
-            conductivity = {     1,     1,     2,     2 },
-            noneedtofit  = { false, false, false, false },
-            fallback = { width = 40, height = 40 },
-        }
+    viacutM5M6 = {
+        name = "via5",
+        layer = {
+            gds   = { layer =   20,    purpose = 0 },
+            SKILL = { layer = "via5" , purpose = "drawing" },
+            magic = { layer = "via5" , purpose = "drawing" },
+        },
     },
-    viaM6M7 = {
-        array {
-            name = "via6",
-            lpp = {
-                gds   = { layer =   22,    purpose = 0 },
-                SKILL = { layer = "via6" , purpose = "drawing" },
-                magic = { layer = "via6" , purpose = "drawing" },
-            },
-            width        = {    40,    40,    80,    40 },
-            height       = {    40,    40,    40,    80 },
-            xspace       = {    94,    94,   114,   114 },
-            yspace       = {    94,    94,   114,   114 },
-            xencl        = {     0,    30,    40,    40 },
-            yencl        = {    30,     0,    40,    40 },
-            conductivity = {     1,     1,     2,     2 },
-            noneedtofit  = { false, false, false, false },
-            fallback = { width = 40, height = 40 },
-        }
+    viacutM6M7 = {
+        name = "via6",
+        layer = {
+            gds   = { layer =   22,    purpose = 0 },
+            SKILL = { layer = "via6" , purpose = "drawing" },
+            magic = { layer = "via6" , purpose = "drawing" },
+        },
     },
-    viaM7M8 = {
-        array {
-            name = "via7",
-            lpp = {
-                gds   = { layer =   24,    purpose = 0 },
-                SKILL = { layer = "via7" , purpose = "drawing" },
-                magic = { layer = "via7" , purpose = "drawing" },
-            },
-            width        = {    40,    40,    80,    40 },
-            height       = {    40,    40,    40,    80 },
-            xspace       = {    94,    94,   114,   114 },
-            yspace       = {    94,    94,   114,   114 },
-            xencl        = {     0,    30,    40,    40 },
-            yencl        = {    30,     0,    40,    40 },
-            conductivity = {     1,     1,     2,     2 },
-            noneedtofit  = { false, false, false, false },
-            fallback = { width = 40, height = 40 },
-        }
+    viacutM7M8 = {
+        name = "via7",
+        layer = {
+            gds   = { layer =   24,    purpose = 0 },
+            SKILL = { layer = "via7" , purpose = "drawing" },
+            magic = { layer = "via7" , purpose = "drawing" },
+        },
     },
-    viaM8M9 = {
-        array {
-            name = "via8",
-            lpp = {
-                gds   = { layer =   26,    purpose = 0 },
-                SKILL = { layer = "via8" , purpose = "drawing" },
-                magic = { layer = "via8" , purpose = "drawing" },
-            },
-            width        = {    40,    40,    80,    40 },
-            height       = {    40,    40,    40,    80 },
-            xspace       = {    94,    94,   114,   114 },
-            yspace       = {    94,    94,   114,   114 },
-            xencl        = {     0,    30,    40,    40 },
-            yencl        = {    30,     0,    40,    40 },
-            conductivity = {     1,     1,     2,     2 },
-            noneedtofit  = { false, false, false, false },
-            fallback = { width = 40, height = 40 },
-        }
+    viacutM8M9 = {
+        name = "via8",
+        layer = {
+            gds   = { layer =   26,    purpose = 0 },
+            SKILL = { layer = "via8" , purpose = "drawing" },
+            magic = { layer = "via8" , purpose = "drawing" },
+        },
     },
-    viaM9M10 = {
-        array {
-            name = "via9",
-            lpp = {
-                gds   = { layer =   28,    purpose = 0 },
-                SKILL = { layer = "via9" , purpose = "drawing" },
-                magic = { layer = "via9" , purpose = "drawing" },
-            },
-            width        = {    40,    40,    80,    40 },
-            height       = {    40,    40,    40,    80 },
-            xspace       = {    94,    94,   114,   114 },
-            yspace       = {    94,    94,   114,   114 },
-            xencl        = {     0,    30,    40,    40 },
-            yencl        = {    30,     0,    40,    40 },
-            conductivity = {     1,     1,     2,     2 },
-            noneedtofit  = { false, false, false, false },
-            fallback = { width = 40, height = 40 },
-        }
+    viacutM9M10 = {
+        name = "via9",
+        layer = {
+            gds   = { layer =   28,    purpose = 0 },
+            SKILL = { layer = "via9" , purpose = "drawing" },
+            magic = { layer = "via9" , purpose = "drawing" },
+        },
     },
+    --[[
     M1port = {
-        map {
-            name = "M1port",
-            lpp = {
-                gds   = { layer = 11,   purpose = 2 },
-                SKILL = { layer = "M1", purpose = "label" },
-                magic = { layer = "M1", purpose = "label" },
-                svg   = { color = "blue", opacity = 1.0, fill = true, order = 5 },
-            }
+        name = "M1port",
+        layer = {
+            gds   = { layer = 11,   purpose = 2 },
+            SKILL = { layer = "M1", purpose = "label" },
+            magic = { layer = "M1", purpose = "label" },
+            svg   = { color = "blue", opacity = 1.0, fill = true, order = 5 },
         }
     },
+    --]]
     padopening = {}
 }

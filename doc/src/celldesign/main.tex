@@ -39,8 +39,9 @@ the name of the parameter, the second entry is the default value. This is the si
 examples of this later on.
 
 The default value for both parameters is 100, which is a \emph{size}, meaning it has a unit. Physical/geometrical parameters like width or height are specified
-in nanometers.\footnote{Of course you can do what you want in a cell, but the modules that process the cells after creation work in nanometers. It is best
-practice to do the same.}
+in nanometers.\footnote{Well, this is not entirely sure. Only integers are allowed and the base unit is assumed to be nanometer. This is also
+currently reflected for example in the GDSII export, where the scaling is done approriately. However, it is planned that this will change in the
+future, making the base unit in opc arbitrary.}
 
 This is all for the \luainline{parameters()} function, so let's move on to \luainline{layout()}. This functions takes two arguments: the main object that will be
 placed in the layout and the table with parameters for the cell (which already includes any parsed arguments given before the cell creation). 
@@ -51,26 +52,25 @@ Of course it is possible to \enquote{unpack} the parameters, storing them in ind
 \lualisting[widthgobble = 0, firstline = 10, lastline = 10]{code/simple_rectangle.lua}
 
 Now that we have all the layout parameters, we can already create the rectangle:
-\lualisting[widthgobble = 4, firstline = 12, lastline = 13]{code/simple_rectangle.lua}
-There is a lot going on here: We use the \luainline{geometry.rectangle} function to create a rectangle with with and height (second and third argument). Since we are
-creating shapes of IC geometry, we have to specify a layer. But we also want to create technology-independent pcells, so there is a generics system for layers. Right
-now we are just using the \luainline{generics.metal} function, which takes a single number as argument. \luainline{generics.metal(1)} specifies the first metal
-(counted from silicon), you can also say something like \luainline{generics.metal(-2)}, where \luainline{-1} is the index of the highest metal. Lastly we save the return value
-of \luainline{geometry.rectangle} in a local variable \luainline{rect}, which is a hint to the type: All geometry functions return \luainline{objects}, which has some
-consequences for the use of these functions. We will get into that later.
+\lualisting[widthgobble = 4, firstline = 12, lastline = 12]{code/simple_rectangle.lua}
+There is a lot going on here: We use the \luainline{geometry.rectangle} function to create a rectangle with with and height (third and fourth argument).
+Since we are creating shapes of IC geometry, we have to specify a layer.
+But we also want to create technology-independent pcells, so there is a generics system for layers.
+Right now we are just using the \luainline{generics.metal} function, which takes a single number as argument.
+\luainline{generics.metal(1)} specifies the first metal (counted from silicon), you can also say something like \luainline{generics.metal(-2)}, where \luainline{-1} is the index of the highest metal.
+Lastly we pass the main object as first argument to the function, which places the rectangle within this object.
 
-That is all we have to do for the geometry of the cell, so we merge that into the main cell:
-\lualisting[widthgobble = 4, firstline = 15, lastline = 15]{code/simple_rectangle.lua}
-\luainline{merge_into_shallow} is a \emph{method} of objects and needs a little explaining of the object system. As mentioned
-earlier, every geometry function creates what is called an object. An object is a collection of shapes, where each shape is made up of a layer-purpose-pair and
-points (which can currently be interpreted as rectangles or polygons). The cell generation systems expects all created shapes to be merged into the main object
-passed as argument (\luainline{obj} in this case). The function postfix \emph{shallow} is a hint towards cell hierarchies, where cells contain children, which
-can again have children and so on. Shallow in this case means that we only regard shapes that are in the referenced cell, not in the children.
+%\luainline{merge_into_shallow} is a \emph{method} of objects and needs a little explaining of the object system.
+%As mentioned earlier, every geometry function creates what is called an object.
+%An object is a collection of shapes, where each shape is made up of a layer-purpose-pair and points (which can currently be interpreted as rectangles or polygons).
+%The cell generation systems expects all created shapes to be merged into the main object passed as argument (\luainline{obj} in this case).
+%The function postfix \emph{shallow} is a hint towards cell hierarchies, where cells contain children, which can again have children and so on.
+%Shallow in this case means that we only regard shapes that are in the referenced cell, not in the children.
 
 This cell can now be created by calling the main program with an appropriate export and technology. Note that there's another manual about that, so we won't get
 into any details here. The simplest call would be something like:
 \begin{shellcode}
-    opc --technology generic --export gds --cell simple_rectangle
+    opc --technology opc --export gds --cell simple_rectangle
 \end{shellcode}
 
 \subsection{Array of Rectangles}
@@ -81,48 +81,52 @@ quadratic arrays with equal pitch in both directions):
 The default arguments are \num{200} for the pitch and \num{10} for the number of repetitions, which creates a ten-by-ten array of rectangles with a spacing of
 \num{100} and a width and height of \num{100}. Again, remember that we work in nanometers here.
 
-For the repetition we could use a loop to create the objects:
-\lualisting[widthgobble = 4, firstline = 12, lastline = 19]{code/rectangle_array.lua}
-In order for this to work, we also have to move the rectangles to the correct position, something that we didn't learn yet. This comes later, as this also involves
-some math we don't want to talk about right now. Just keep in mind that the above loop is wrong and cumbersome. In any ways, there is a function that does
-exactly what we want to achieve:
-\luainline{geometry.multiple}. It takes an object as first argument and then the repetition in x and y and the pitch in x and y and returns an array of repeated
-objects with the center in the origin. With it, we can replace the whole loop construct with:
-\lualisting[widthgobble = 4, firstline = 22, lastline = 25]{code/rectangle_array.lua}
-\luainline{geometry.multiple} also already merges all objects so we don't have to take care of that. Therefor, we receive a single object which we simply can
-merge directly into the main cell. The whole cell looks like this:
+For the repetition we could use a loop to create the individual rectangles, but we also have to move them to their correct position.
+The \luainline{geometry.rectangle} function takes a shift in x and y direction as fifth and sixth argument.
+We have to calculate the correct offset, which results in:
+\lualisting[widthgobble = 4, firstline = 12, lastline = 21]{code/rectangle_array.lua}
+This loop is cumbersome as it has to be set up and furthermore the calculation of the offset for the rectangles is done by hand.
+The function \luainline{geometry.rectangle} already can do what we need, as it can take the repetition and pitch in x and y as additional arguments.
+This places repeated copies of a template rectangle (with width and height) with their center in the origin.
+With it, we can replace the whole loop construct with:
+\lualisting[widthgobble = 4, firstline = 24, lastline = 28]{code/rectangle_array.lua}
+With this, the whole cell looks like this:
 \lualisting{code/rectangle_array.lua}
-Now you already now how to create rectangles, with generic layers, \luainline{geometry.multiple} and object merging. With this, one can already built a
-surprising amount of pcells. However, we have to discuss how we can create layers other than metals, vias and shapes with more complex outlines than rectangles. We
-will talk about that in the remaining cell tutorials.
+Now you already now how to create simple rectangles and rectangle arrays with generic layers.
+As integrated circuits are mostly made up of rectangles, one can already built a surprising amount of pcells.
+However, we have to discuss how we can create layers other than metals, vias and shapes with more complex outlines than rectangles.
+We will talk about that in the remaining cell tutorials.
 
 \subsection{Metal-Oxide-Metal Capacitors}
 Many technologies don't have so-called metal-insulator-metal capacitors (mimcaps), so the standard way to implement capacitors is be using interdigitated metals.
 Let's do that. As before, we set up the pcell. Useful parameters are the number of fingers, the width and height of the fingers and the spacing in between.
-Furthermore, we shift one collection of fingers (one plate) up and the other down to separate them and connect them together. Lastly, we also specify the used
-metals and the width of the connecting rails:
-\lualisting[firstline = 1, lastline = 12]{../../../cells/passive/capacitor/mom.lua}
+Furthermore, we shift one collection of fingers (one plate) up and the other down to separate them and connect them together.
+Lastly, we also specify the width of the connecting rails and the used metals:
+\lualisting[firstline = 1, lastline = 12]{code/momcap.lua}
 The parameter definition also shows how you can use better names for displaying: Simply write them in parantheses. When querying the defined parameters of a
 cell, the display names are used, but within the cell the regular names are significant. This enables easier syntax: \luainline{_P.fingers} as opposed to
 \luainline{_P["Number of Fingers"]}.
 
-In \luainline{layout()} we  loop over all metals to draw the fingers. We don't have to create every finger separately, with \luainline{geometry.multiple} this
-becomes very simple. Since the upper and lower fingers are one-off and \luainline{geometry.multiple} centeres all objects, we only have to move them a little bit
-up/down. This is done with \luainline{object.translate} (a method of an object), taking x- and y-offset as arguments: 
-\lualisting[widthgobble = 4, firstline = 15, lastline = 25]{../../../cells/passive/capacitor/mom.lua} 
+In \luainline{layout()} we  loop over all metals to draw the fingers.
+We don't have to create every finger separately, with \luainline{geometry.rectangle} and the multiple capabilities this becomes very simple.
+Since the upper and lower fingers are one-off and \luainline{geometry.rectangle} centeres all objects, we only have to move them a little bit up/down.
+This is done with the corresponding arguments to \luainline{geometry.rectangle} (note that \luainline{//} denotes floor division in lua):
+\lualisting[widthgobble = 4, firstline = 18, lastline = 31]{code/momcap.lua} 
 We create two arrays of fingers, one for the \enquote{upper plate}, one for the \enquote{lower plate}. All fingers have the same width, height and pitch. For the
-upper plate, we use one more finger, the placement in \luainline{geometry.multiple} automatically arranges them centered, so that this \enquote{just works}.  The
-\param{ypitch} for \luainline{geometry.multiple} is \num{0}, which is ok since we only have a \param{yrep} of \num{1}. 
+upper plate, we use one more finger, the placement in \luainline{geometry.rectangle} automatically arranges them centered, so that this \enquote{just works}.  The
+\param{ypitch} for \luainline{geometry.rectangle} is \num{0}, which is ok since we only have a \param{yrep} of \num{1}. 
 
 The rails connecting the fingers are created in a similar manner:
-\lualisting[widthgobble = 4, firstline = 27, lastline = 33]{../../../cells/passive/capacitor/mom.lua}
-The \luainline{end} delimits the \luainline{for}-loop.
+\lualisting[widthgobble = 4, firstline = 33, lastline = 40]{code/momcap.lua}
 
-What remains is the drawing of the vias between the metals. For this we introduce a new \luainline{generics} function: \luainline{generics.via}. It takes two
-arguments -- one for the start- and one for the end-metal for the via stack. We don't have to specify the individual vias between each layer in the stack, this
+What remains is the drawing of the vias between the metals.
+For this we introduce a new \luainline{geometry} function: \luainline{geomtry.via}.
+It takes two arguments -- one for the start- and one for the end-metal for the via stack. We don't have to specify the individual vias between each layer in the stack, this
 is resolved later by the technology translation. The vias are placed in the rails:
-\lualisting[widthgobble = 4, firstline = 34, lastline = 39]{../../../cells/passive/capacitor/mom.lua}
-With this the pcell is finished, the entire listing is in \texttt{cells/passive/capacitor/mom.lua}.
+\lualisting[widthgobble = 4, firstline = 42, lastline = 49]{code/momcap.lua}
+With this the pcell is finished, the entire listing is in \texttt{code/momcap.lua}.
+A cell similar to this is bundled in this release of openPCells (\texttt{cells/passive/capacitor/mom.lua}).
+A few optimizations and additional parameters are added, but the here shown implementation is the basic structure of this capacitor.
 
 \subsection{Octagonal Inductor}
 RF designs often require on-chip inductors, which usually are built in an octagonal shape due to angle restrictions in most technologies (no true circles or

@@ -28,23 +28,26 @@ function layout(grid, _P)
     for i = 1, _P.mhlines do
         local xoffset = _P.centergrid and (-_P.mvlines * xpitch / 2) or 0
         local yoffset = _P.centergrid and (-_P.mhlines * ypitch / 2 + _P.mhspace / 2) or math.floor(_P.mhspace / 2)
-        grid:merge_into_shallow(geometry.rectanglebltr(generics.metal(_P.metalh),
+        geometry.rectanglebltr(
+            grid, generics.metal(_P.metalh),
             point.create(xoffset - _P.mhextl,                                          (i - 1) * ypitch + yoffset),
             point.create(xoffset + _P.mhextr + _P.mvlines * (_P.mvwidth + _P.mvspace), (i - 1) * ypitch + yoffset + _P.mhwidth)
-        ))
+        )
     end
     for i = 1, _P.mvlines do
         local xoffset = _P.centergrid and (-_P.mvlines * xpitch / 2 + _P.mvspace / 2) or math.floor(_P.mvspace / 2)
         local yoffset = _P.centergrid and (-_P.mhlines * ypitch / 2) or 0
-        grid:merge_into_shallow(geometry.rectanglebltr(generics.metal(_P.metalv),
+        geometry.rectanglebltr(
+            grid, generics.metal(_P.metalv),
             point.create((i - 1) * xpitch + xoffset,              yoffset - _P.mvextb),
             point.create((i - 1) * xpitch + xoffset + _P.mvwidth, yoffset + _P.mvextt + _P.mhlines * (_P.mhwidth + _P.mhspace))
-        ))
+        )
     end
 
     -- vias
     if _P.drawvias then
-        local viaref = geometry.rectanglebltr(generics.via(_P.metalh, _P.metalv, { bare = true }),
+        local viaref = object.create()
+        geometry.viabltr(viaref, _P.metalh, _P.metalv,
             point.create(0,          0),
             point.create(_P.mvwidth, _P.mhwidth)
         )

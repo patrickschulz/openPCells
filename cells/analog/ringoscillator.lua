@@ -58,8 +58,8 @@ function layout(oscillator, _P)
         gatespace = _P.gspace,
     })
     pcell.push_overwrites("basic/cmos", {
-        nvthtype = 3,
-        pvthtype = 3,
+        nvthtype = 1,
+        pvthtype = 1,
         separation = _P.separation,
         pwidth = _P.pfingerwidth,
         nwidth = _P.nfingerwidth,
@@ -87,22 +87,22 @@ function layout(oscillator, _P)
         pcontactpos = invactivecontacts, 
         ncontactpos = invactivecontacts,
     })
-    inverterref:merge_into_shallow(geometry.rectanglebltr(generics.metal(1), 
+    geometry.rectanglebltr(inverterref, generics.metal(1), 
         inverterref:get_anchor("Gll1"),
         inverterref:get_anchor(string.format("Gur%d", _P.invfingers))
-    ))
-    inverterref:merge_into_shallow(geometry.rectanglebltr(generics.metal(1), 
+    )
+    geometry.rectanglebltr(inverterref, generics.metal(1), 
         inverterref:get_anchor(string.format("pSDi%d", 2)),
         inverterref:get_anchor(string.format("pSDi%d", _P.invfingers)):translate(3 * xpitch / 2, _P.gstwidth)
-    ))
-    inverterref:merge_into_shallow(geometry.rectanglebltr(generics.metal(1), 
+    )
+    geometry.rectanglebltr(inverterref, generics.metal(1), 
         inverterref:get_anchor(string.format("nSDi%d", 2)):translate(0, -_P.gstwidth),
         inverterref:get_anchor(string.format("nSDi%d", _P.invfingers)):translate(3 * xpitch / 2, 0)
-    ))
-    inverterref:merge_into_shallow(geometry.rectanglebltr(generics.metal(1), 
+    )
+    geometry.rectanglebltr(inverterref, generics.metal(1), 
         inverterref:get_anchor(string.format("nSDi%d", _P.invfingers)):translate(3 * xpitch / 2 - _P.gstwidth / 2, -_P.gstwidth),
         inverterref:get_anchor(string.format("pSDi%d", _P.invfingers)):translate(3 * xpitch / 2 + _P.gstwidth / 2,  _P.gstwidth)
-    ))
+    )
     local invname = pcell.add_cell_reference(inverterref, "inverter")
     local inverters = {}
     for i = 1, _P.numinv do
@@ -113,19 +113,21 @@ function layout(oscillator, _P)
     end
 
     -- feedback connection
-    oscillator:merge_into_shallow(geometry.path(generics.metal(2), {
+    geometry.path(oscillator, generics.metal(2), {
             inverters[_P.numinv]:get_anchor(string.format("Gcc%d", _P.invfingers)):translate(xpitch, 0),
             inverters[1]:get_anchor("Gcc1"):translate(-_P.glength / 2, 0)
-        }, _P.gstwidth)
+        }, _P.gstwidth
     )
-    oscillator:merge_into_shallow(
-        geometry.rectangle(generics.via(1, 2), _P.gstwidth, _P.separation + 2 * _P.gstwidth)
-        :translate(inverters[_P.numinv]:get_anchor(string.format("Gcc%d", _P.invfingers)):translate(xpitch, 0))
+    geometry.viabltr(
+        oscillator, 1, 2, 
+        inverters[_P.numinv]:get_anchor(string.format("Gcc%d", _P.invfingers)):translate(xpitch - _P.gstwidth / 2, -_P.separation / 2 - _P.gstwidth),
+        inverters[_P.numinv]:get_anchor(string.format("Gcc%d", _P.invfingers)):translate(xpitch + _P.gstwidth / 2,  _P.separation / 2 + _P.gstwidth)
     )
-    oscillator:merge_into_shallow(geometry.rectanglebltr(generics.via(1, 2), 
+    geometry.viabltr(
+        oscillator, 1, 2,
         inverters[1]:get_anchor("Gll1"),
         inverters[1]:get_anchor(string.format("Gur%d", _P.invfingers))
-    ))
+    )
 
     local width = point.xdistance(inverters[_P.numinv]:get_anchor("PRpur"), inverters[1]:get_anchor("PRpul"))
     local welltapp = pcell.create_layout("auxiliary/welltap", {

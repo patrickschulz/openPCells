@@ -1,6 +1,13 @@
 # main programs and generated code files
 opc
-config.h
+!tech/opc
+src/embed_compiled_lua_file
+src/config.h
+src/modulemanager.c
+src/modulemanager.h
+src/scriptmanager.c
+src/scriptmanager.h
+src/generate_manpage
 opc.1
 
 # generated layouts and helpers
@@ -38,3 +45,4 @@ srctodo
 
 # test files
 testfiles
+debug

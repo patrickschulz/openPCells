@@ -41,13 +41,13 @@ function layout(inductor, _P)
         dir = dir + 2 * math.pi / _P.pointsperturn
     end
     --inductor:merge_into_shallow(geometry.any_angle_path(generics.metal(_P.metalnum), pathpts, _P.width, _P.grid))
-    inductor:merge_into_shallow(geometry.path(generics.metal(_P.metalnum), pathpts, _P.width))
-    inductor:merge_into_shallow(geometry.rectangle(generics.metal(-2), 
-        fix_to_grid(math.sqrt(2) * (_P.innerradius + 0 * pitch), _P.grid),
-        fix_to_grid(math.sqrt(2) * (_P.innerradius + 0 * pitch), _P.grid)
-    ))
-    inductor:merge_into_shallow(geometry.rectangle(generics.metal(-3), 
-        fix_to_grid(math.sqrt(2) * _P.innerradius + 2 * pitch, _P.grid),
-        fix_to_grid(math.sqrt(2) * _P.innerradius + 2 * pitch, _P.grid)
-    ))
+    geometry.path(inductor, generics.metal(_P.metalnum), pathpts, _P.width)
+    --inductor:merge_into_shallow(geometry.rectangle(generics.metal(-2), 
+    --    fix_to_grid(math.sqrt(2) * (_P.innerradius + 0 * pitch), _P.grid),
+    --    fix_to_grid(math.sqrt(2) * (_P.innerradius + 0 * pitch), _P.grid)
+    --))
+    --inductor:merge_into_shallow(geometry.rectangle(generics.metal(-3), 
+    --    fix_to_grid(math.sqrt(2) * _P.innerradius + 2 * pitch, _P.grid),
+    --    fix_to_grid(math.sqrt(2) * _P.innerradius + 2 * pitch, _P.grid)
+    --))
 end

@@ -146,14 +146,6 @@ function M.get_extension()
     return "oas"
 end
 
-function M.get_techexport()
-    return "gds"
-end
-
-function M.get_layer(shape)
-    return { layer = shape.lpp:get().layer, purpose = shape.lpp:get().purpose }
-end
-
 function M.at_begin()
     -- write magic bytes
     table.insert(__content, "%SEMI-OASIS")
@@ -198,15 +190,13 @@ function M.write_rectangle(layer, bl, tr)
     _write_infobyte({ 0, 1, 1, 1, 1, 0, 1, 1 }) -- SWHXYRDL
     _write_uint(layer.layer)
     _write_uint(layer.purpose)
-    local blx, bly = bl:unwrap()
-    local trx, try = tr:unwrap()
-    _write_uint(trx - blx)
-    _write_uint(try - bly)
-    _write_int(blx)
-    _write_int(bly)
+    _write_uint(tr.x - bl.x)
+    _write_uint(tr.y - bl.y)
+    _write_int(bl.x)
+    _write_int(bl.y)
 end
 
---[[
+---[[
 function M.write_polygon()
 end
 --]]

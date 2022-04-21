@@ -1120,29 +1120,32 @@ function parameters()
 end
 
 function layout(text, _P)
-    local trans = transformationmatrix.identity()
+    local x = 0
+    local y = 0
     for i = 1, #_P.text do
         local char = string.sub(string.upper(_P.text), i, i)
         if char == "\n" then
-            trans:move_x_to(0)
-            trans:translate_y(- _P.scale - _P.leading)
+            x = 0
+            y = y - _P.scale - _P.leading
         else
             if char == " " then
-                trans:translate_x(_P.spacing)
+                x = x + _P.spacing
             else
                 local outlines = letteroutlines[char]
                 if outlines then
                     local width = 0
                     for _, outline in ipairs(outlines) do
-                        local S = shape.create_polygon(generics.metal(_P.metalnum))
+                        local pts = {}
+                        local minx, maxx = math.huge, -math.huge
                         for _, pt in ipairs(outline) do
-                            S:append_xy(_P.scale * pt.x, _P.scale * pt.y)
+                            minx = math.min(_P.scale * pt.x, minx)
+                            maxx = math.max(_P.scale * pt.x, maxx)
+                            table.insert(pts, point.create(_P.scale * pt.x + x, _P.scale * pt.y + y))
                         end
-                        S:apply_transformation(trans, trans.apply_translation)
-                        text:add_shape(S)
-                        width = math.max(width, S:get_width())
+                        geometry.polygon(text, generics.metal(_P.metalnum), pts)
+                        width = math.max(width, maxx - minx)
                     end
-                    trans:translate_x(width + _P.letterspacing)
+                    x = x + width + _P.letterspacing
                 end
             end
         end

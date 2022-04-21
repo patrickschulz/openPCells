@@ -203,7 +203,15 @@ int lrouter_route(lua_State* L)
         lua_pushstring(L, nc->nets[i].positions[0].instance);
         lua_setfield(L, -2, "name");
         lua_rawseti(L, -2, 1);
-    
+
+        /* FIXME: via after first anchor */
+        lua_newtable(L);
+        lua_pushstring(L, "via");
+        lua_setfield(L, -2, "type");
+        lua_pushinteger(L, 2);
+        lua_setfield(L, -2, "z");
+        lua_rawseti(L, -2, 2);
+
         if(nc->nets[i].routed)
         {
             printf("pre create deltas\n");
@@ -213,7 +221,7 @@ int lrouter_route(lua_State* L)
             net_print_path(&nc->nets[i]);
 
             point_t *curr_point;
-            int point_count = 1;
+            int point_count = 2;
             while((curr_point = (point_t *)queue_dequeue(nc->nets[i].path))
                       != NULL)
                 {
@@ -254,8 +262,8 @@ int lrouter_route(lua_State* L)
 
 		lua_pushstring(L, nc->nets[i].positions[1].instance);
 		lua_setfield(L, -2, "name");
-                lua_rawseti(L, -2, point_count + 1);
-                count++;
+        lua_rawseti(L, -2, point_count + 1);
+        count++;
         }
         /* put moves table into bigger table */
         lua_rawseti(L, -2, i + 1);

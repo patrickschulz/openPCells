@@ -1,219 +1,262 @@
-/*
-** $Id: lua.c $
-** Lua stand-alone interpreter
-** See Copyright Notice in lua.h
-*/
-
 #include "lua/lprefix.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/types.h>
 #include <unistd.h>
-
-#include <signal.h>
+#include <errno.h>
+#include <math.h>
+#include <ctype.h>
+#include <string.h>
 
 #include "lua/lua.h"
 #include "lua/lauxlib.h"
 #include "lua/lualib.h"
 
-#include <math.h>
-#include <ctype.h>
-#include <string.h>
-
-#include "lpoint.h"
-#include "lgeometry.h"
-#include "ltransformationmatrix.h"
-#include "graphics.h"
-#include "lload.h"
-#include "lbind.h"
-#include "ldir.h"
-#include "lbinary.h"
-#include "lshape.h"
-//#include "lunion.h"
-#include "lfilesystem.h"
-#include "lbytebuffer.h"
+#include "cmdoptions.h"
+#include "util.h"
+#include "lua_util.h"
+#include "config.h"
+#include "scriptmanager.h"
+#include "modulemanager.h"
+#include "pcell.h"
 #include "lplacer.h"
 #include "lrouter.h"
-#include "lutil.h"
-#include "gdsparser.h"
+#include "filesystem.h"
 
-#include "config.h"
+#include "main.functions.h"
+#include "main.cell.h"
+#include "main.gds.h"
+#include "main.verilog.h"
 
-//static lua_State* globalL = NULL;
-
-/*
-** Hook set by signal function to stop the interpreter.
-*/
-//static void lstop (lua_State* L, lua_Debug* ar) {
-//  (void)ar;  /* unused arg. */
-//  lua_sethook(L, NULL, 0, 0);  /* reset hook */
-//  luaL_error(L, "interrupted!");
-//}
-
-
-/*
-** Function to be called at a C signal. Because a C signal cannot
-** just change a Lua state (as there is no proper synchronization),
-** this function only sets a hook that, when called, will stop the
-** interpreter.
-*/
-//static void laction (int i) {
-//  int flag = LUA_MASKCALL | LUA_MASKRET | LUA_MASKLINE | LUA_MASKCOUNT;
-//  signal(i, SIG_DFL); /* if another SIGINT happens, terminate process */
-//  lua_sethook(globalL, lstop, flag, 1);
-//}
-
-
-/*
-** Message handler used to run all chunks
-*/
-//static int msghandler(lua_State* L)
-//{
-//    const char* msg = lua_tostring(L, 1);
-//    /*
-//    if (msg == NULL) // is error object not a string?
-//    {
-//        msg = lua_pushfstring(L, "(error object is a %s value)", luaL_typename(L, 1));
-//    }
-//    */
-//    int traceback = 1;
-//    lua_getglobal(L, "envlib");
-//    lua_pushstring(L, "get");
-//    lua_gettable(L, -2);
-//    lua_pushstring(L, "debug");
-//    int ret = lua_pcall(L, 1, 1, 0);
-//    if(ret != LUA_OK)
-//    {
-//        printf("%s\n", "error in msghandler (while calling envlib.get('debug'). A traceback will be printed");
-//    }
-//    else
-//    {
-//        traceback = lua_toboolean(L, -1);
-//    }
-//    lua_pop(L, 1); // pop envlib
-//
-//    if(traceback)
-//    {
-//        luaL_traceback(L, L, msg, 2);
-//    }
-//    else
-//    {
-//        lua_pushstring(L, msg);
-//    }
-//    return 1;
-//}
-static int msghandler (lua_State *L) {
-  const char *msg = lua_tostring(L, 1);
-  if (msg == NULL) {  /* is error object not a string? */
-    if (luaL_callmeta(L, 1, "__tostring") &&  /* does it have a metamethod */
-        lua_type(L, -1) == LUA_TSTRING)  /* that produces a string? */
-      return 1;  /* that is the message */
-    else
-      msg = lua_pushfstring(L, "(error object is a %s value)",
-                               luaL_typename(L, 1));
-  }
-  luaL_traceback(L, L, msg, 1);  /* append a standard traceback */
-  return 1;  /* return the traceback */
-}
-
-static const luaL_Reg loadedlibs[] = {
-    {LUA_GNAME, luaopen_base},
-    //{LUA_LOADLIBNAME, luaopen_package},
-    //{LUA_COLIBNAME, luaopen_coroutine},
-    {LUA_TABLIBNAME, luaopen_table},
-    {LUA_IOLIBNAME, luaopen_io},
-    {LUA_OSLIBNAME, luaopen_os}, // replace os.exit and os.time, then this 'dependency' can also be removed
-    {LUA_STRLIBNAME, luaopen_string},
-    {LUA_MATHLIBNAME, luaopen_math},
-    //{LUA_UTF8LIBNAME, luaopen_utf8},
-    {LUA_DBLIBNAME, luaopen_debug},
-    {NULL, NULL}
-};
-
-/* this is taken from lua/init.c, but the list of modules is modified, we don't need package for instance */
-void load_lualibs(lua_State *L)
+static int _load_config(struct keyvaluearray* config)
 {
-    const luaL_Reg *lib;
-    /* "require" functions from 'loadedlibs' and set results to global table */
-    for (lib = loadedlibs; lib->func; lib++) {
-        luaL_requiref(L, lib->name, lib->func, 1);
-        lua_pop(L, 1);  /* remove lib */
-    }
-}
-
-static void create_argument_table(lua_State* L, int argc, char** argv)
-{
-    lua_newtable(L);
-    int i;
-    for(i = 1; i < argc; ++i)
+    const char* home = getenv("HOME");
+    lua_State* L = util_create_basic_lua_state();
+    size_t len = strlen(home) + strlen("/.opcconfig.lua");
+    char* filename = malloc(len + 1);
+    snprintf(filename, len + 1, "%s/.opcconfig.lua", home);
+    int ret = luaL_dofile(L, filename);
+    free(filename);
+    if(ret == LUA_OK)
     {
-        lua_pushstring(L, argv[i]);
-        lua_rawseti(L, -2, i);
+        struct vector* techpaths = vector_create();
+        lua_getfield(L, -1, "techpaths");
+        if(!lua_isnil(L, -1))
+        {
+            lua_pushnil(L);
+            while(lua_next(L, -2) != 0)
+            {
+                const char* path = lua_tostring(L, -1);
+                vector_append(techpaths, util_copy_string(path));
+                lua_pop(L, 1);
+            }
+        }
+        lua_pop(L, 1); // pop techpaths table (or nil)
+        keyvaluearray_add_untagged(config, "techpaths", techpaths);
     }
-    lua_setglobal(L, "arg");
-}
-
-static int call_main_program(lua_State* L, const char* filename)
-{
-    int status = luaL_loadfile(L, filename);
-    if (status == LUA_OK) {
-        lua_pushcfunction(L, msghandler);
-        lua_insert(L, 1);
-        status = lua_pcall(L, 0, 1, 1);
-    }
-    if(status != LUA_OK) 
-    {
-        const char* msg = lua_tostring(L, -1);
-        fprintf(stderr, "%s\n", msg);
-        lua_pop(L, 1);
-        return LUA_ERRRUN;
-    }
-    return LUA_OK;
-}
-
-static lua_State* create_and_initialize_lua(void)
-{
-    lua_State* L = luaL_newstate();
-    if (L == NULL) 
-    {
-        fprintf(stderr, "%s\n", "cannot create state: not enough memory");
-        exit(EXIT_FAILURE);
-    }
-
-    // lua libraries
-    load_lualibs(L);
-
-    // opc libraries
-    open_ldir_lib(L);
-    open_lpoint_lib(L); // must be called before 'load_api'
-    open_lgeometry_lib(L);
-    open_ltransformationmatrix_lib(L); // must be called before 'load_api'
-    open_lgraphics_lib(L);
-    open_lload_lib(L);
-    open_lbind_lib(L);
-    open_lbinary_lib(L);
-    open_lshape_lib(L);
-    open_lutil_lib(L);
-    open_lbytebuffer_lib(L);
-    //open_lunion_lib(L);
-    open_lfilesystem_lib(L);
-    open_lplacer_lib(L);
-    open_lrouter_lib(L);
-
-    open_gdsparser_lib(L);
-
-    //lpoint_register_cfunctions(L);
-
-    return L;
-}
-
-int main (int argc, char** argv)
-{
-    lua_State* L = create_and_initialize_lua();
-    create_argument_table(L, argc, argv);
-    int retval = call_main_program(L, OPC_HOME "/src/main.lua");
     lua_close(L);
-    return retval;
+    return ret == LUA_OK;
+}
+
+void _print_general_info(void)
+{
+    puts("This is the openPCell layout generator.");
+    puts("To generate a layout, you need to pass the technology, the export type and a cellname.");
+    puts("Example:");
+    puts("         opc --technology opc --export gds --cell stdcells/not_gate");
+    puts("");
+    puts("You can find out more about the available command line options by running 'opc -h'.");
+}
+
+int main(int argc, const char* const * argv)
+{
+    // no arguments: exit and write a short helpful message if called without any arguments
+    if(argc == 1)
+    {
+        _print_general_info();
+        return 0;
+    }
+
+    int returnvalue = 0;
+
+    // create and parse command line options
+    struct cmdoptions* cmdoptions = cmdoptions_create();
+    #include "cmdoptions_def.c" // yes, I did that
+    if(!cmdoptions_parse(cmdoptions, argc, argv))
+    {
+        returnvalue = 1;
+        goto DESTROY_CMDOPTIONS;
+    }
+    if(cmdoptions_was_provided_long(cmdoptions, "help"))
+    {
+        cmdoptions_help(cmdoptions);
+        goto DESTROY_CMDOPTIONS;
+    }
+    if(cmdoptions_was_provided_long(cmdoptions, "version"))
+    {
+        puts("openPCells (opc) 0.2.0");
+        puts("Copyright 2020-2022 Patrick Kurth");
+        goto DESTROY_CMDOPTIONS;
+    }
+
+    if(cmdoptions_was_provided_long(cmdoptions, "import-verilog"))
+    {
+        const char* scriptname = cmdoptions_get_argument_long(cmdoptions, "import-verilog");
+        main_verilog_import(scriptname);
+        goto DESTROY_CMDOPTIONS;
+    }
+
+    // load config
+    struct keyvaluearray* config = keyvaluearray_create();
+    if(!cmdoptions_was_provided_long(cmdoptions, "no-user-config"))
+    {
+        if(!_load_config(config))
+        {
+            puts("error while loading user config");
+            returnvalue = 1;
+            goto DESTROY_CONFIG;
+        }
+    }
+
+    // FIXME
+    if(cmdoptions_was_provided_long(cmdoptions, "watch"))
+    {
+        puts("sorry, watch mode is currently not implemented");
+        returnvalue = 1;
+        goto DESTROY_CONFIG;
+    }
+
+    // show gds data
+    if(cmdoptions_was_provided_long(cmdoptions, "show-gds-data"))
+    {
+        main_gds_show_data(cmdoptions);
+        goto DESTROY_CONFIG;
+    }
+
+    // show gds hierarchy
+    if(cmdoptions_was_provided_long(cmdoptions, "show-gds-cell-hierarchy"))
+    {
+        main_gds_show_cell_hierarchy(cmdoptions);
+        goto DESTROY_CONFIG;
+    }
+
+    // read gds
+    if(cmdoptions_was_provided_long(cmdoptions, "read-gds"))
+    {
+        main_gds_read(cmdoptions);
+        goto DESTROY_CONFIG;
+    }
+
+    // technology file generation assistant
+    if(cmdoptions_was_provided_long(cmdoptions, "techfile-assistant"))
+    {
+        lua_State* L = util_create_basic_lua_state();
+        script_call_assistant(L);
+        lua_close(L);
+        goto DESTROY_CONFIG;
+    }
+
+    if(cmdoptions_was_provided_long(cmdoptions, "listtechpaths"))
+    {
+        printf("%s\n", OPC_HOME "/tech");
+        const char** arg = cmdoptions_get_argument_long(cmdoptions, "techpath");
+        while(arg && *arg)
+        {
+            printf("%s\n", *arg);
+            ++arg;
+        }
+        struct vector* techpaths = keyvaluearray_get(config, "techpaths");
+        for(unsigned int i = 0; i < vector_size(techpaths); ++i)
+        {
+            printf("%s\n", (const char*)vector_get(techpaths, i));
+        }
+        goto DESTROY_CONFIG;
+    }
+
+    // list + listcellpaths
+    if(cmdoptions_was_provided_long(cmdoptions, "listcellpaths") ||
+       cmdoptions_was_provided_long(cmdoptions, "list"))
+    {
+        struct vector* cellpaths_to_prepend = vector_create();
+        if(cmdoptions_was_provided_long(cmdoptions, "prepend-cellpath"))
+        {
+            const char** arg = cmdoptions_get_argument_long(cmdoptions, "prepend-cellpath");
+            while(*arg)
+            {
+                vector_append(cellpaths_to_prepend, util_copy_string(*arg));
+                ++arg;
+            }
+        }
+        struct vector* cellpaths_to_append = vector_create();
+        if(cmdoptions_was_provided_long(cmdoptions, "cellpath"))
+        {
+            const char** arg = cmdoptions_get_argument_long(cmdoptions, "cellpath");
+            while(*arg)
+            {
+                vector_append(cellpaths_to_append, util_copy_string(*arg));
+                ++arg;
+            }
+        }
+        if(cmdoptions_was_provided_long(cmdoptions, "append-cellpath"))
+        {
+            const char** arg = cmdoptions_get_argument_long(cmdoptions, "append-cellpath");
+            while(*arg)
+            {
+                vector_append(cellpaths_to_append, util_copy_string(*arg));
+                ++arg;
+            }
+        }
+        vector_append(cellpaths_to_append, util_copy_string(OPC_HOME "/cells"));
+        struct pcell_state* pcell_state = pcell_initialize_state(cellpaths_to_prepend, cellpaths_to_append);
+        vector_destroy(cellpaths_to_prepend, free);
+        vector_destroy(cellpaths_to_append, free);
+        if(cmdoptions_was_provided_long(cmdoptions, "list"))
+        {
+            const char* listformat = cmdoptions_get_argument_long(cmdoptions, "list-format");
+            pcell_list_cells(pcell_state, listformat);
+        }
+        if(cmdoptions_was_provided_long(cmdoptions, "listcellpaths"))
+        {
+            pcell_list_cellpaths(pcell_state);
+        }
+        pcell_destroy_state(pcell_state);
+        goto DESTROY_CONFIG;
+    }
+
+    if(cmdoptions_was_provided_long(cmdoptions, "parameters"))
+    {
+        main_list_cell_parameters(cmdoptions, config);
+        goto DESTROY_CONFIG;
+    }
+
+    // create cell
+    int create_cell_script = cmdoptions_was_provided_long(cmdoptions, "cellscript");
+    if(cmdoptions_was_provided_long(cmdoptions, "cell") || create_cell_script)
+    {
+        if(!cmdoptions_was_provided_long(cmdoptions, "technology"))
+        {
+            fputs("no technology given\n", stderr);
+            goto DESTROY_CONFIG;
+        }
+        if(!cmdoptions_was_provided_long(cmdoptions, "export"))
+        {
+            fputs("no export given\n", stderr);
+            goto DESTROY_CONFIG;
+        }
+        main_create_and_export_cell(cmdoptions, config, create_cell_script); // 0: regular cell, 1: cellscript
+    }
+
+    // clean up states
+DESTROY_CONFIG: ;
+    struct vector* techpaths = keyvaluearray_get(config, "techpaths");
+    if(techpaths)
+    {
+        vector_destroy(techpaths, free); // every techpath is a copied string
+    }
+    keyvaluearray_destroy(config);
+DESTROY_CMDOPTIONS:
+    cmdoptions_destroy(cmdoptions);
+    return returnvalue;
 }
 

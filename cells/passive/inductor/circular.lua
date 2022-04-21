@@ -45,13 +45,12 @@ function layout(inductor, _P)
     util.merge(outer, util.reverse(util.xmirror(outer)))
 
     -- ** assemble final path **
-    local s = shape.create_polygon(generics.metal(_P.metalnum))
+    local pts = {}
     for _, pt in ipairs(util.reverse(inner)) do
-        s:append_pt(pt)
+        table.insert(pts, pt)
     end
     for _, pt in ipairs(outer) do
-        s:append_pt(pt)
+        table.insert(pts, pt)
     end
-
-    inductor:add_shape(s)
+    geometry.polygon(inductor, generics.metal(_P.metalnum), pts)
 end
