@@ -211,35 +211,31 @@ int lrouter_route(lua_State* L)
             net_create_deltas(&nc->nets[i]);
             printf("post create deltas\n");
             net_print_path(&nc->nets[i]);
-            
+
             point_t *curr_point;
             int point_count = 1;
             while((curr_point = (point_t *)queue_dequeue(nc->nets[i].path))
                       != NULL)
                 {
-                    printf("getting points from %s\n", nc->nets[i].name);
                     lua_newtable(L);
                     if(curr_point->x)
                     {
                         lua_pushstring(L, "delta");
                         lua_setfield(L, -2, "type");
-    
                         lua_pushinteger(L, curr_point->x);
                         lua_setfield(L, -2, "x");
                     }
-                    if(curr_point->y)
+		    else if(curr_point->y)
                     {
                         lua_pushstring(L, "delta");
                         lua_setfield(L, -2, "type");
-    
                         lua_pushinteger(L, curr_point->y);
                         lua_setfield(L, -2, "y");
                     }
-                    if(curr_point->z)
+		    else if(curr_point->z)
                     {
                         lua_pushstring(L, "via");
                         lua_setfield(L, -2, "type");
-    
                         lua_pushinteger(L, curr_point->z);
                         lua_setfield(L, -2, "z");
                     }
@@ -247,6 +243,18 @@ int lrouter_route(lua_State* L)
                     lua_rawseti(L, -2, point_count + 1);
                     point_count++;
                 }
+
+		/* second anchor */
+		lua_newtable(L);
+		lua_pushstring(L, "anchor");
+		lua_setfield(L, -2, "type");
+
+		lua_pushstring(L, nc->nets[i].positions[1].port);
+		lua_setfield(L, -2, "anchor");
+
+		lua_pushstring(L, nc->nets[i].positions[1].instance);
+		lua_setfield(L, -2, "name");
+                lua_rawseti(L, -2, point_count + 1);
                 count++;
         }
         /* put moves table into bigger table */

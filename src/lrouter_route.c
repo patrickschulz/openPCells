@@ -34,8 +34,6 @@ static point_t *get_min_point(point_t *arr)
 int route(net_t *net, int*** field, size_t width, size_t height,
 	  size_t num_layers, size_t wrong_dir_cost, size_t via_cost)
 {
-    printf("routing net %s\n", net->name);
-
 	unsigned int startx = net->positions[0].x;
 	unsigned int starty = net->positions[0].y;
 	unsigned int startz = net->positions[0].z;
@@ -231,11 +229,11 @@ int route(net_t *net, int*** field, size_t width, size_t height,
 		ydiff = npoint->y - (int)y;
 		zdiff = npoint->z - (int)z;
 
-    	point_t *path_point = calloc(1, sizeof(point_t));
-    	path_point->x = xdiff;
-    	path_point->y = ydiff;
-    	path_point->z = zdiff;
-    	queue_enqueue(net->path, path_point);
+		point_t *path_point = calloc(1, sizeof(point_t));
+		path_point->x = xdiff;
+		path_point->y = ydiff;
+		path_point->z = zdiff;
+		queue_enqueue(net->path, path_point);
 
 		x = npoint->x;
 		y = npoint->y;

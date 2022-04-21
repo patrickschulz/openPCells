@@ -33,11 +33,11 @@ void net_print_path(net_t *net)
 {
 	printf("Printing path of %s:\n", net->name);
 	point_t *point;
-	int i = 0;
-	while((point = (point_t *)queue_dequeue(net->path)) != NULL)
+	for(int i = 0; i < queue_len(net->path); i++)
 	{
-		printf("P %i, x:%i, y:%i, z:%i\n", i, point->x, point->y, point->z);
-		i++;
+		point = (point_t *)queue_peek_nth_elem(net->path, i);
+		printf("P %i, x:%i, y:%i, z:%i\n", i, point->x, point->y,
+		       point->z);
 	}
 }
 
@@ -93,10 +93,13 @@ void net_create_deltas(net_t *net)
     /* dont need to create deltas if the net has too few points */
     int net_len;
     if((net_len = queue_len(net->path)) < 3)
+    {
+	printf("ERROR: net_len smaller than 3: %i\n", net_len);
         return;
+    }
 
-    position_t *positions;
-    if((positions = queue_as_array(net->path)) == NULL)
+    point_t *points;
+    if((points = queue_as_array(net->path)) == NULL)
         return;
 
     queue_t *queue = queue_new();
@@ -106,37 +109,39 @@ void net_create_deltas(net_t *net)
     int zsteps = 0;
 
     for(int i = 0; i < net_len - 1; i++)
-    {    
-        /* 
+    {
+        /*
          * a delta is there when it was running in some direction:
          * e.g. x != 0 and the next x == 0, valid for x, y or z
          * so in c booleans: current x: true and next x false
          */
-        if(positions[i].x && !positions[i+1].x)
+	xsteps += points[i].x;
+	ysteps += points[i].y;
+	zsteps += points[i].z;
+
+        if(points[i].x && !points[i+1].x)
         {
-            xsteps += i * positions[i].x;
             printf("created delta at xsteps %i\n", xsteps);
-            point_t *point = point_new(xsteps, ysteps, zsteps, DEFAULT_POINT_SCORE);
-            queue_enqueue(queue, point);
-        } 
-        else if(positions[i].y && !positions[i+1].y)
-        {
-            ysteps += i * positions[i].y;
-            printf("created delta at ysteps %i\n", ysteps);
-            point_t *point = point_new(xsteps, ysteps, zsteps, DEFAULT_POINT_SCORE);
+            point_t *point = point_new(xsteps, 0, 0, DEFAULT_POINT_SCORE);
             queue_enqueue(queue, point);
         }
-        else if(positions[i].z && !positions[i+1].z)
+        else if(points[i].y && !points[i+1].y)
         {
-            zsteps += i * positions[i].z;
+            printf("created delta at ysteps %i\n", ysteps);
+            point_t *point = point_new(0, ysteps, 0, DEFAULT_POINT_SCORE);
+            queue_enqueue(queue, point);
+        }
+        else if(points[i].z && !points[i+1].z)
+        {
             printf("created delta at zsteps %i\n", zsteps);
-            point_t *point = point_new(xsteps, ysteps, zsteps, DEFAULT_POINT_SCORE);
+            point_t *point = point_new(0, 0, zsteps, DEFAULT_POINT_SCORE);
             queue_enqueue(queue, point);
         }
     }
 
     /* delete the old path */
     free(net->path);
+    printf("post free\n");
     net->path = queue;
 }
 

@@ -35,6 +35,25 @@ int queue_empty(queue_t *queue)
 	  }
 }
 
+void *queue_peek_nth_elem(queue_t *queue, unsigned int n)
+{
+	if (queue == NULL || queue->front == NULL ||
+	    (unsigned int)queue_len(queue) < n) {
+		return NULL;
+	}
+	struct queue_node_s *node = queue->front;
+	unsigned int count = 0;
+
+	while(node != NULL) {
+		if (count == n)
+			return node->data;
+		node = node->next;
+		count++;
+	}
+
+	return NULL;
+}
+
 queue_t *queue_new(void)
 {
 	  queue_t *queue = malloc(sizeof(*queue));
@@ -90,7 +109,7 @@ int queue_len(queue_t *queue)
 	int count = 0;
 	struct queue_node_s *node = queue->front;
 
-	while(node->next != NULL)
+	while(node != NULL)
 	{
 		node = node->next;
 		count++;
@@ -133,25 +152,26 @@ void queue_reverse(queue_t *queue)
 	queue->front = prev;
 }
 
-position_t *queue_as_array(queue_t *queue)
+point_t *queue_as_array(queue_t *queue)
 {
-    if(queue_len(queue) < 1)
-    {
-        printf("queue_as_array got a 0 len array\n");
-        return NULL;
-    }
-
-    position_t *arr = calloc(queue_len(queue), sizeof(position_t));
-    int i = 0;
-    struct queue_node_s *node = queue->front;
-
-	while(node->next != NULL)
+	if(queue_len(queue) < 1)
 	{
-        arr[i] = *(position_t *)node->data;
-        printf("\n\nas array %i: %i, %i, %i\n", i, arr[i].x, arr[i].y, arr[i].z);
+		printf("ERROR: queue_as_array got a 0 len array\n");
+		return NULL;
+	}
+
+	point_t *arr = calloc(queue_len(queue), sizeof(point_t));
+	int i = 0;
+	struct queue_node_s *node = queue->front;
+
+	while(node != NULL)
+	{
+		arr[i] = *(point_t *)node->data;
+		printf("\n\nas array %i: %i, %i, %i\n", i, arr[i].x, arr[i].y,
+		       arr[i].z);
 		node = node->next;
 		i++;
 	}
 
-    return arr;
+	return arr;
 }
