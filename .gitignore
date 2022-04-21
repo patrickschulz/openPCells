@@ -1,5 +1,6 @@
 # main programs and generated code files
-./opc
+opc
+!tech/opc
 src/embed_compiled_lua_file
 src/config.h
 src/modulemanager.c
