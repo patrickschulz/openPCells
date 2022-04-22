@@ -11,17 +11,17 @@ local M = {}
 
 local function _get_geometry(instances)
     local total_width = 0
-    local required_width = 0
+    local required_min_width = 0
     for _, instance in ipairs(instances) do
         local width = instance.width
         total_width = total_width + width
-        required_width = math.max(required_width, width)
+        required_min_width = math.max(required_min_width, width)
     end
-    return required_width, total_width
+    return required_min_width, total_width
 end
 
-local function _create_options(fixedrows, required_width, total_width, utilization, aspectratio)
-    local height = 7
+local function _create_options(fixedrows, required_min_width, total_width, utilization, aspectratio)
+    local height = 7 -- FIXME
     local area = total_width * height
     local floorplan_width, floorplan_height
     if fixedrows then
@@ -32,8 +32,8 @@ local function _create_options(fixedrows, required_width, total_width, utilizati
         floorplan_height = math.sqrt(area / utilization / aspectratio)
 
         -- check for too narrow floorplan
-        if floorplan_width < required_width then
-            floorplan_width = required_width / math.sqrt(utilization)
+        if floorplan_width < required_min_width then
+            floorplan_width = required_min_width / math.sqrt(utilization)
             floorplan_height = area / utilization / floorplan_width
             print("Floorplan width is smaller than required width, this will be fixed.")
             print(string.format("The actual aspect ratio (%.2f) will differ from the specified aspect ratio (%.2f)", floorplan_width / floorplan_height, aspectratio))
@@ -69,15 +69,15 @@ end
 
 function M.create_floorplan_aspectratio(instances, utilization, aspectratio)
     -- placer options
-    local required_width, total_width = _get_geometry(instances)
-    local options = _create_options(nil, required_width, total_width, utilization, aspectratio)
+    local required_min_width, total_width = _get_geometry(instances)
+    local options = _create_options(nil, required_min_width, total_width, utilization, aspectratio)
     return options
 end
 
 function M.create_floorplan_fixed_rows(instances, utilization, numrows)
     -- placer options
-    local required_width, total_width = _get_geometry(instances)
-    local options = _create_options(numrows, required_width, total_width, utilization) -- aspectratio not used
+    local required_min_width, total_width = _get_geometry(instances)
+    local options = _create_options(numrows, required_min_width, total_width, utilization) -- aspectratio not used
     return options
 end
 
@@ -134,7 +134,7 @@ function M.insert_filler_names(rows, width)
 
                 for j = 1, numfill do
                     table.insert(rowcells, i + inscorrection, {
-                        instance = string.format("fill_%d_%d", row, j),
+                        instance = string.format("fill_%d_%d", row, j + inscorrection),
                         reference = "isogate",
                         width = 1,
                     })
