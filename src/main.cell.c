@@ -197,7 +197,16 @@ void main_list_cell_parameters(struct cmdoptions* cmdoptions, struct keyvaluearr
     lua_close(L);
 }
 
-object_t* _create_cell(const char* cellname, int iscellscript, struct vector* cellargs, struct technology_state* techstate, struct pcell_state* pcell_state, struct layermap* layermap, int enabledprint)
+object_t* _create_cell(
+    const char* cellname,
+    int iscellscript,
+    struct vector* cellargs,
+    struct technology_state* techstate,
+    struct pcell_state* pcell_state,
+    struct layermap* layermap,
+    int enabledprint,
+    struct const_vector* pfilenames
+)
 {
     lua_State* L = _create_and_initialize_lua();
 
@@ -223,7 +232,6 @@ object_t* _create_cell(const char* cellname, int iscellscript, struct vector* ce
     module_load_pcell(L);
     module_load_placement(L);
     module_load_point(L);
-    module_load_public(L);
     module_load_routing(L);
     module_load_stack(L);
     module_load_support(L);
@@ -244,6 +252,13 @@ object_t* _create_cell(const char* cellname, int iscellscript, struct vector* ce
         lua_rawseti(L, -2, i + 1);
     }
     lua_setfield(L, -2, "cellargs");
+    lua_newtable(L);
+    for(unsigned int i = 0; i < const_vector_size(pfilenames); ++i)
+    {
+        lua_pushstring(L, const_vector_get(pfilenames, i));
+        lua_rawseti(L, -2, i + 1);
+    }
+    lua_setfield(L, -2, "pfilenames");
     lua_setglobal(L, "args");
 
     int retval = script_call_create_cell(L);
@@ -309,7 +324,27 @@ void main_create_and_export_cell(struct cmdoptions* cmdoptions, struct keyvaluea
         cellname = cmdoptions_get_argument_long(cmdoptions, "cell");
     }
     int enabledprint = cmdoptions_was_provided_long(cmdoptions, "enable-dprint");
-    object_t* toplevel = _create_cell(cellname, iscellscript, cellargs, techstate, pcell_state, layermap, enabledprint);
+    struct const_vector* pfilenames = const_vector_create();
+    const char* const * prependpfilenames = cmdoptions_get_argument_long(cmdoptions, "prepend-parameter-file");
+    if(prependpfilenames)
+    {
+        while(*prependpfilenames)
+        {
+            const_vector_append(pfilenames, *prependpfilenames);
+            ++prependpfilenames;
+        }
+    }
+    const char* const * appendpfilenames = cmdoptions_get_argument_long(cmdoptions, "append-parameter-file");
+    if(appendpfilenames)
+    {
+        while(*appendpfilenames)
+        {
+            const_vector_append(pfilenames, *appendpfilenames);
+            ++appendpfilenames;
+        }
+    }
+    object_t* toplevel = _create_cell(cellname, iscellscript, cellargs, techstate, pcell_state, layermap, enabledprint, pfilenames);
+    const_vector_destroy(pfilenames);
     if(toplevel)
     {
         // move origin
