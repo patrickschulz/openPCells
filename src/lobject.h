@@ -14,6 +14,7 @@ typedef struct
 
 int lobject_create(lua_State* L);
 lobject_t* lobject_check(lua_State* L, int idx);
+lobject_t* lobject_check_soft(lua_State* L, int idx);
 lobject_t* lobject_adapt(lua_State* L, object_t* cell);
 void lobject_disown(lobject_t* lobject);
 

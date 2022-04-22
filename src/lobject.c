@@ -25,6 +25,11 @@ lobject_t* lobject_check(lua_State* L, int idx)
     return luaL_checkudata(L, idx, LOBJECTMODULE);
 }
 
+lobject_t* lobject_check_soft(lua_State* L, int idx)
+{
+  return luaL_testudata(L, idx, LOBJECTMODULE);
+}
+
 lobject_t* lobject_adapt(lua_State* L, object_t* object)
 {
     lobject_t* cell = _create(L);

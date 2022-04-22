@@ -252,7 +252,13 @@ object_t* _create_cell(const char* cellname, int iscellscript, struct vector* ce
         lua_close(L);
         return NULL;
     }
-    lobject_t* lobject = lobject_check(L, -1);
+    lobject_t* lobject = lobject_check_soft(L, -1);
+    if(!lobject)
+    {
+        fputs("cell/cellscript did not return an object\n", stderr);
+        lua_close(L);
+        return NULL;
+    }
     lobject_disown(lobject);
     object_t* toplevel = lobject->object;
 
