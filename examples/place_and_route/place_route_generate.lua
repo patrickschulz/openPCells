@@ -9,9 +9,9 @@ local instances, nets = verilogprocessor.collect_nets_cells(netlist)
 
 local floorplan = placement.create_floorplan_fixed_rows(instances, 0.5, 2)
 local rows = placement.optimize(instances, nets, floorplan)
-placement.insert_filler_names(rows, 40)
+placement.insert_filler_names(rows, floorplan.floorplan_width)
 
-local routes = routing.legalize(nets, rows)
+local routes = routing.legalize(nets, rows, floorplan)
 
 local filename = generator.get_cell_filename("verilogimport", "verilogimport", module)
 print(string.format("writing to file '%s'", filename))
