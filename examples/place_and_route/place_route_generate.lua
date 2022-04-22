@@ -7,7 +7,7 @@ verilog.filter_excluded_nets(netlist, { "clk", "_mem.clk", "vdd", "vss", "in", "
 
 local instances, nets = verilogprocessor.collect_nets_cells(netlist)
 
-local floorplan = placement.create_floorplan_fixed_rows(instances, 0.5, 2)
+local floorplan = placement.create_floorplan_fixed_rows(instances, 0.8, 2)
 local rows = placement.optimize(instances, nets, floorplan)
 placement.insert_filler_names(rows, floorplan.floorplan_width)
 
