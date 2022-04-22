@@ -312,6 +312,139 @@ void main_create_and_export_cell(struct cmdoptions* cmdoptions, struct keyvaluea
     object_t* toplevel = _create_cell(cellname, iscellscript, cellargs, techstate, pcell_state, layermap, enabledprint);
     if(toplevel)
     {
+        // move origin
+        if(cmdoptions_was_provided_long(cmdoptions, "origin"))
+        {
+            const char* arg = cmdoptions_get_argument_long(cmdoptions, "origin");
+            int x, y;
+            if(!_parse_point(arg, &x, &y))
+            {
+                printf("could not parse translation '%s'\n", arg);
+            }
+            else
+            {
+                object_move_to(toplevel, x, y);
+            }
+        }
+
+        // translate
+        if(cmdoptions_was_provided_long(cmdoptions, "translate"))
+        {
+            const char* arg = cmdoptions_get_argument_long(cmdoptions, "translate");
+            int dx, dy;
+            if(!_parse_point(arg, &dx, &dy))
+            {
+                printf("could not parse translation '%s'\n", arg);
+            }
+            else
+            {
+                object_translate(toplevel, dx, dy);
+            }
+        }
+
+        /*
+        // orientation
+        //if args.orientation then
+        //    local lut = {
+        //        ["0"] = function() end, -- do nothing, but allow this as command line option
+        //        ["fx"] = function() cell:flipx() end,
+        //        ["fy"] = function() cell:flipy() end,
+        //        ["fxy"] = function() cell:flipx(); cell:flipy() end,
+        //    }
+        //    local f = lut[args.orientation]
+        //    if not f then
+        //        moderror(string.format("unknown orientation: '%s'", args.orientation))
+        //    end
+        //    f()
+        //end
+
+
+        //function marker.cross(where, size)
+        //    local x, y = where:unwrap()
+        //    local obj = object.create()
+        //    size = size or 100
+        //    obj:merge_into_shallow(geometry.rectanglebltr(generics.special(), point.create(x - 5, y - size), point.create(x + 5, y + size)))
+        //    obj:merge_into_shallow(geometry.rectanglebltr(generics.special(), point.create(x - size, y - 5), point.create(x + size, y + 5)))
+        //    return obj
+        //end
+        // draw anchors
+        //if args.drawanchor then
+        //    for _, da in ipairs(args.drawanchor) do
+        //        local anchor = cell:get_anchor(da)
+        //        cell:merge_into_shallow(marker.cross(anchor))
+        //    end
+        //end
+        */
+
+        // draw alignmentbox(es)
+        if(cmdoptions_was_provided_long(cmdoptions, "draw-alignmentbox") || cmdoptions_was_provided_long(cmdoptions, "draw-all-alignmentboxes"))
+        {
+            point_t* bl = object_get_anchor(toplevel, "bottomleft");
+            point_t* tr = object_get_anchor(toplevel, "topright");
+            if(bl && tr)
+            {
+                geometry_rectanglebltr(toplevel, generics_create_special(layermap, techstate), bl, tr, 1, 1, 0, 0);
+                point_destroy(bl);
+                point_destroy(tr);
+            }
+        }
+        if(cmdoptions_was_provided_long(cmdoptions, "draw-all-alignmentboxes"))
+        {
+            for(unsigned int i = 0; i < pcell_get_reference_count(pcell_state); ++i)
+            {
+                object_t* cell = pcell_get_indexed_cell_reference(pcell_state, i)->cell;
+                point_t* bl = object_get_anchor(cell, "bottomleft");
+                point_t* tr = object_get_anchor(cell, "topright");
+                if(bl && tr)
+                {
+                    geometry_rectanglebltr(cell, generics_create_special(layermap, techstate), bl, tr, 1, 1, 0, 0);
+                    point_destroy(bl);
+                    point_destroy(tr);
+                }
+            }
+        }
+
+        // flatten cell
+        if(cmdoptions_was_provided_long(cmdoptions, "flat"))
+        {
+            int flattenports = cmdoptions_was_provided_long(cmdoptions, "flattenports");
+            object_flatten(toplevel, pcell_state, flattenports);
+        }
+
+        // post-processing
+        if(cmdoptions_was_provided_long(cmdoptions, "filter-layers"))
+        {
+            const char** layernames = cmdoptions_get_argument_long(cmdoptions, "filter-layers");
+            if(cmdoptions_was_provided_long(cmdoptions, "filter-list") &&
+               strcmp(cmdoptions_get_argument_long(cmdoptions, "filter-list"), "include") == 0)
+            {
+                postprocess_filter_include(toplevel, layernames);
+                for(unsigned int i = 0; i < pcell_get_reference_count(pcell_state); ++i)
+                {
+                    object_t* cell = pcell_get_indexed_cell_reference(pcell_state, i)->cell;
+                    postprocess_filter_include(cell, layernames);
+                }
+            }
+            else
+            {
+                postprocess_filter_exclude(toplevel, layernames);
+                for(unsigned int i = 0; i < pcell_get_reference_count(pcell_state); ++i)
+                {
+                    object_t* cell = pcell_get_indexed_cell_reference(pcell_state, i)->cell;
+                    postprocess_filter_exclude(cell, layernames);
+                }
+            }
+        }
+        if(cmdoptions_was_provided_long(cmdoptions, "merge-rectangles"))
+        {
+            postprocess_merge_shapes(toplevel, layermap);
+            for(unsigned int i = 0; i < pcell_get_reference_count(pcell_state); ++i)
+            {
+                object_t* cell = pcell_get_indexed_cell_reference(pcell_state, i)->cell;
+                postprocess_merge_shapes(cell, layermap);
+            }
+        }
+
         // export cell
         if(cmdoptions_was_provided_long(cmdoptions, "export"))
         {
@@ -350,134 +483,6 @@ void main_create_and_export_cell(struct cmdoptions* cmdoptions, struct keyvaluea
     {
         fputs("errors while creating cell\n", stderr);
         goto DESTROY_OBJECT;
-    }
-
-    // move origin
-    if(cmdoptions_was_provided_long(cmdoptions, "origin"))
-    {
-        const char* arg = cmdoptions_get_argument_long(cmdoptions, "origin");
-        int x, y;
-        if(!_parse_point(arg, &x, &y))
-        {
-            printf("could not parse translation '%s'\n", arg);
-        }
-        else
-        {
-            object_move_to(toplevel, x, y);
-        }
-    }
-
-    // translate
-    if(cmdoptions_was_provided_long(cmdoptions, "translate"))
-    {
-        const char* arg = cmdoptions_get_argument_long(cmdoptions, "translate");
-        int dx, dy;
-        if(!_parse_point(arg, &dx, &dy))
-        {
-            printf("could not parse translation '%s'\n", arg);
-        }
-        else
-        {
-            object_translate(toplevel, dx, dy);
-        }
-    }
-
-    /*
-    // orientation
-    //if args.orientation then
-    //    local lut = {
-    //        ["0"] = function() end, -- do nothing, but allow this as command line option
-    //        ["fx"] = function() cell:flipx() end,
-    //        ["fy"] = function() cell:flipy() end,
-    //        ["fxy"] = function() cell:flipx(); cell:flipy() end,
-    //    }
-    //    local f = lut[args.orientation]
-    //    if not f then
-    //        moderror(string.format("unknown orientation: '%s'", args.orientation))
-    //    end
-    //    f()
-    //end
-
-
-    //function marker.cross(where, size)
-    //    local x, y = where:unwrap()
-    //    local obj = object.create()
-    //    size = size or 100
-    //    obj:merge_into_shallow(geometry.rectanglebltr(generics.special(), point.create(x - 5, y - size), point.create(x + 5, y + size)))
-    //    obj:merge_into_shallow(geometry.rectanglebltr(generics.special(), point.create(x - size, y - 5), point.create(x + size, y + 5)))
-    //    return obj
-    //end
-    // draw anchors
-    //if args.drawanchor then
-    //    for _, da in ipairs(args.drawanchor) do
-    //        local anchor = cell:get_anchor(da)
-    //        cell:merge_into_shallow(marker.cross(anchor))
-    //    end
-    //end
-    */
-
-    // draw alignmentbox(es)
-    if(cmdoptions_was_provided_long(cmdoptions, "draw-alignmentbox") || cmdoptions_was_provided_long(cmdoptions, "draw-all-alignmentboxes"))
-    {
-        point_t* bl = object_get_anchor(toplevel, "bottomleft");
-        point_t* tr = object_get_anchor(toplevel, "topright");
-        if(bl && tr)
-        {
-            geometry_rectanglebltr(toplevel, generics_create_special(layermap, techstate), bl, tr, 1, 1, 0, 0);
-            point_destroy(bl);
-            point_destroy(tr);
-        }
-    }
-    if(cmdoptions_was_provided_long(cmdoptions, "draw-all-alignmentboxes"))
-    {
-        for(unsigned int i = 0; i < pcell_get_reference_count(pcell_state); ++i)
-        {
-            object_t* cell = pcell_get_indexed_cell_reference(pcell_state, i)->cell;
-            point_t* bl = object_get_anchor(cell, "bottomleft");
-            point_t* tr = object_get_anchor(cell, "topright");
-            if(bl && tr)
-            {
-                geometry_rectanglebltr(cell, generics_create_special(layermap, techstate), bl, tr, 1, 1, 0, 0);
-                point_destroy(bl);
-                point_destroy(tr);
-            }
-        }
-    }
-
-    // flatten cell
-    if(cmdoptions_was_provided_long(cmdoptions, "flat"))
-    {
-        int flattenports = cmdoptions_was_provided_long(cmdoptions, "flattenports");
-        object_flatten(toplevel, pcell_state, flattenports);
-    }
-
-    // post-processing
-    if(cmdoptions_was_provided_long(cmdoptions, "filter-layers"))
-    {
-        const char** layernames = cmdoptions_get_argument_long(cmdoptions, "filter-layers");
-        if(cmdoptions_was_provided_long(cmdoptions, "filter-list") &&
-           strcmp(cmdoptions_get_argument_long(cmdoptions, "filter-list"), "include") == 0)
-        {
-            postprocess_filter_include(toplevel, layernames);
-            for(unsigned int i = 0; i < pcell_get_reference_count(pcell_state); ++i)
-            {
-                object_t* cell = pcell_get_indexed_cell_reference(pcell_state, i)->cell;
-                postprocess_filter_include(cell, layernames);
-            }
-        }
-        else
-        {
-            postprocess_filter_exclude(toplevel, layernames);
-            for(unsigned int i = 0; i < pcell_get_reference_count(pcell_state); ++i)
-            {
-                object_t* cell = pcell_get_indexed_cell_reference(pcell_state, i)->cell;
-                postprocess_filter_exclude(cell, layernames);
-            }
-        }
-    }
-    if(cmdoptions_was_provided_long(cmdoptions, "merge-rectangles"))
-    {
-        postprocess_merge_shapes(toplevel, layermap);
     }
 
 DESTROY_OBJECT:
