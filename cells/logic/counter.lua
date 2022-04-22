@@ -27,6 +27,11 @@ function parameters()
 end
 
 function layout(counter, _P)
+    local bp = pcell.get_parameters("stdcells/base")
+    local width = bp.gstwidth
+    local xgrid = bp.gspace + bp.glength
+    local ygrid = bp.gstwidth + bp.gstspace
+
     -- single bit instance
     local bitref = object.create()
     local bitcellnames = {
@@ -45,7 +50,7 @@ function layout(counter, _P)
     table.insert(bitroutes, {
         { type = "anchor", name = "dffn", anchor = "Q" },
         { type = "via", metal = 3 },
-        { type = "delta", y = 200 },
+        { type = "delta", y = 2 },
         { type = "anchor", name = "dffp", anchor = "D" },
         { type = "via", metal = 2 },
     })
@@ -58,7 +63,7 @@ function layout(counter, _P)
     })
     table.insert(bitroutes, {
         { type = "anchor", name = "xnor", anchor = "B" },
-        { type = "via", metal = 4 },
+        { type = "via", metal = 3 },
         { type = "anchor", name = "or", anchor = "B" },
     })
     --table.insert(bitroutes, {
@@ -67,7 +72,7 @@ function layout(counter, _P)
     --    { type = "delta", x = 100 },
     --    { type = "anchor", name = "dffn", anchor = "D" },
     --})
-    routing.route(bitref, bitroutes, bitcells, 40)
+    routing.route(bitref, bitroutes, bitcells, width, xgrid, ygrid)
 
     -- row placement
     local bitname = pcell.add_cell_reference(bitref, "bit")
@@ -92,13 +97,13 @@ function layout(counter, _P)
                     --{ type = "anchor", name = string.format("or_%d_%d", i, j), anchor = "O" },
                     { type = "point", where = cells[i][j]:get_anchor("O") },
                     { type = "via", metal = 4 },
-                    { type = "delta", y = -200 },
+                    { type = "delta", y = -2 },
                     --{ type = "anchor", name = string.format("or_%d_%d", i, j + 1), anchor = "B" },
                     { type = "point", where = cells[i][j + 1]:get_anchor("I") },
                 })
             end
         end
     end
-    routing.route(counter, routes, cells, 40)
+    routing.route(counter, routes, cells, width, xgrid, ygrid)
 end
 
