@@ -318,16 +318,19 @@ local function _process_input_parameters(state, cellname, cellargs, evaluate, ov
     return backup
 end
 
-local function _get_parameters(state, cellname, othercell, cellargs, evaluate)
-    local cell = _get_cell(state, cellname)
-    if not cell.references[othercell] then
-        error(string.format("trying to access parameters of unreferenced cell (%s from %s)", othercell, cellname))
-    end
-    local othercell = _get_cell(state, othercell)
+local function _get_parameters(state, cellname, othercellname, cellargs, evaluate)
+    local othercell = _get_cell(state, othercellname)
     local cellparams = othercell.parameters:get_values()
     cellargs = cellargs or {}
 
-    local backup = _process_input_parameters(state, cellname, cellargs, evaluate)
+    local backup
+    if cellname then -- is nil when called from a cellscript; perform no reference check in this case
+        local cell = _get_cell(state, cellname)
+        if not cell.references[othercellname] then
+            error(string.format("trying to access parameters of unreferenced cell (%s from %s)", othercellname, cellname))
+        end
+        backup = _process_input_parameters(state, cellname, cellargs, evaluate)
+    end
 
     -- store parameters in user-readable table
     -- FIXME: this is somewhat confusing, this should be easier
@@ -586,6 +589,10 @@ local function _check_parameter_expressions(state, cellname, parameters)
 end
 
 -- Public functions
+function pcell.get_parameters(othercell, cellargs, evaluate)
+    return _get_parameters(state, nil, othercell, cellargs, evaluate)
+end
+
 function pcell.add_cell(cellname, funcs)
     _add_cell(state, cellname, funcs)
 end
