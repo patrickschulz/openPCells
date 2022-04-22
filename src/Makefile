@@ -72,7 +72,6 @@ modulemanager.c: embed_compiled_lua_file modules/*.lua
 	./embed_compiled_lua_file --module modules/pcell.lua module_load pcell modulemanager.c
 	./embed_compiled_lua_file --module modules/placement.lua module_load placement modulemanager.c
 	./embed_compiled_lua_file --module modules/point.lua module_load point modulemanager.c
-	./embed_compiled_lua_file --module modules/public.lua module_load public modulemanager.c
 	./embed_compiled_lua_file --module modules/routing.lua module_load routing modulemanager.c
 	./embed_compiled_lua_file --module modules/stack.lua module_load stack modulemanager.c
 	./embed_compiled_lua_file --module modules/support.lua module_load support modulemanager.c
@@ -95,7 +94,6 @@ modulemanager.h:
 	@echo 'int module_load_pcell(lua_State* L);' >> modulemanager.h
 	@echo 'int module_load_placement(lua_State* L);' >> modulemanager.h
 	@echo 'int module_load_point(lua_State* L);' >> modulemanager.h
-	@echo 'int module_load_public(lua_State* L);' >> modulemanager.h
 	@echo 'int module_load_routing(lua_State* L);' >> modulemanager.h
 	@echo 'int module_load_stack(lua_State* L);' >> modulemanager.h
 	@echo 'int module_load_support(lua_State* L);' >> modulemanager.h

@@ -37,7 +37,9 @@ function M.legalize(nets, rows, options)
     return routednets
 end
 
-function M.route(cell, routes, cells, width)
+function M.route(cell, routes, cells, width, xgrid, ygrid)
+    local xgrid = xgrid or 1
+    local ygrid = ygrid or 1
     for r, route in ipairs(routes) do
         if not (route[1].type == "anchor" or route[1].type == "point") then
             moderror(string.format("routing.route: route #%d: first movement needs to be of type 'anchor' or 'point'", r))
@@ -65,16 +67,16 @@ function M.route(cell, routes, cells, width)
                 table.insert(pts, 0)
             elseif movement.type == "delta" then
                 if movement.x and movement.y then
-                    table.insert(pts, movement.x)
-                    table.insert(pts, movement.y)
+                    table.insert(pts, xgrid * movement.x)
+                    table.insert(pts, ygrid * movement.y)
                 elseif movement.x then
-                    table.insert(pts, movement.x)
+                    table.insert(pts, xgrid * movement.x)
                 elseif movement.y then
                     table.insert(pts, 0)
-                    table.insert(pts, movement.y)
+                    table.insert(pts, ygrid * movement.y)
                 end
-                x = x + (movement.x or 0)
-                y = y + (movement.y or 0)
+                x = x + xgrid * (movement.x or 0)
+                y = y + ygrid * (movement.y or 0)
             elseif movement.type == "via" then
                 if movement.z then
                     geometry.via(cell, currmetal, currmetal + movement.z, width, width, x, y)
@@ -97,7 +99,7 @@ function M.route(cell, routes, cells, width)
                 end
             end
         end
-        if #pts > 1 then
+        if #pts > 0 then
             geometry.path(cell, generics.metal(currmetal), 
                 geometry.path_points_xy(startpt, pts), width)
         end

@@ -96,10 +96,33 @@ static struct entry* _create_option(char short_identifier, const char* long_iden
     option->argument = NULL;
     option->was_provided = 0;
     option->help = help;
+    option->aliased = NULL;
     struct entry* entry = malloc(sizeof(*entry));
     entry->value = option;
     entry->what = OPTION;
     return entry;
+}
+
+void cmdoptions_add_alias(struct cmdoptions* options, const char* long_aliased_identifier, char short_identifier, const char* long_identifier, const char* help)
+{
+    struct option* alias = NULL;
+    for(unsigned int i = 0; i < vector_size(options->entries); ++i)
+    {
+        struct entry* entry = vector_get(options->entries, i);
+        if(entry->what == OPTION)
+        {
+            struct option* option = entry->value;
+            if(strcmp(option->long_identifier, long_aliased_identifier) == 0)
+            {
+                alias = option;
+                break;
+            }
+        }
+    }
+
+    struct entry* entry = _create_option(short_identifier, long_identifier, 0, help); // num_args will never be used
+    ((struct option*)entry->value)->aliased = alias;
+    vector_append(options->entries, entry);
 }
 
 void cmdoptions_add_option(struct cmdoptions* options, char short_identifier, const char* long_identifier, int numargs, const char* help)
@@ -359,7 +382,14 @@ struct option* cmdoptions_get_option_long(struct cmdoptions* options, const char
             struct option* option = entry->value;
             if(strcmp(option->long_identifier, long_identifier) == 0)
             {
-                return option;
+                if(option->aliased)
+                {
+                    return option->aliased;
+                }
+                else
+                {
+                    return option;
+                }
             }
         }
     }

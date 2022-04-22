@@ -12,9 +12,9 @@ cmdoptions_add_option(cmdoptions, NO_SHORT, "flat", NO_ARG, "flatten hierarchy b
 cmdoptions_add_option(cmdoptions, NO_SHORT, "flatten-ports", NO_ARG, "include ports in hierarchy flattening. Can lead to confusing results, especially in large hierarchies. Mostly useful for layout debugging");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "bus-delimiters", SINGLE_ARG, "delimiters for bus ports. Useful values: '[]' or '<>', but others are possible. This option expects two characters for the left and right delimiters");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "techpath", MULTI_ARGS, "add (append) searchpath for technology files (can be used multiple times: --techpath foo --techpath bar)");
-cmdoptions_add_option(cmdoptions, 'p', "pfile", MULTI_ARGS, "synonym for --append-parameter-file");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "prepend-parameter-file", MULTI_ARGS, "file to read parameters from (prepended to the list). This file should be a regular lua file returning a table with the parameters. This option can be used multiple times. Parameter files that are specified later overwrite parameters from earlier files.");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "append-parameter-file", MULTI_ARGS, "file to read parameters from (appended to the list). This file should be a regular lua file returning a table with the parameters. This option can be used multiple times. Parameter files that are specified later overwrite parameters from earlier files.");
+cmdoptions_add_alias(cmdoptions, "append-parameter-file", 'p', "pfile", "synonym for --append-parameter-file");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "disable-pfile", NO_ARG, "disable reading of any parameter files");
 cmdoptions_add_option_default(cmdoptions, 'f', "filename", SINGLE_ARG, "openPCells", "specify output filename for export");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "origin", SINGLE_ARG, "origin of cell (move (0, 0)). This option expects a point input, e.g. '(10, 10)' (with parantheses)");
@@ -23,7 +23,7 @@ cmdoptions_add_option(cmdoptions, NO_SHORT, "orientation", SINGLE_ARG, "orientat
 cmdoptions_add_option(cmdoptions, NO_SHORT, "write-children-ports", NO_ARG, "export ports of sub cells. Depending on what you do with the generated layouts this could possible break a clean LVS (possible szenario: importing a SKILL representation of a layout hierarchy. Since the SKILL export creates a flat layout, sub-level ports now become top-level ports, which is almost certainly wrong.)");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "append-cellpath", MULTI_ARGS, "append searchpath for cells (can be used multiple times: --append-cellpath foo --append-cellpath bar)");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "prepend-cellpath", MULTI_ARGS, "prepend searchpath for cells (can be used multiple times: --prepend-cellpath foo --prepend-cellpath bar)");
-cmdoptions_add_option(cmdoptions, NO_SHORT, "cellpath", MULTI_ARGS, "synonym for --append-cellpath");
+cmdoptions_add_alias(cmdoptions, "append-cellpath", NO_SHORT, "cellpath", "synonym for --append-cellpath");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "filter-layers", MULTI_ARGS, "filter layers to be generated. Any layer (in generic notation) in this list will not be generated. This option can be called multiple times. The effect of this options is also controlled by --filter-list. This filter is installed BEFORE technology translation, so the layers must be specified in generic notation (e.g. M1 or contactsourcedrain).");
 cmdoptions_add_option_default(cmdoptions, NO_SHORT, "filter-list", SINGLE_ARG, "exclude", "set filter list type (include or exclude, default exclude)");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "export-filter", MULTI_ARGS, "filter exported data. Possible values: rectangle, polygon, reference, link. This option can be called multiple times. The effect of this options is also controlled by --export-filter-list.");

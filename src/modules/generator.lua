@@ -2,7 +2,10 @@ local M = {}
 
 local function _write_module(rows, routes)
     local lines = {}
-    table.insert(lines, "function layout(toplevel)")
+    table.insert(lines, 'function parameters()')
+    table.insert(lines, '    pcell.reference_cell("stdcells/base")')
+    table.insert(lines, 'end')
+    table.insert(lines, 'function layout(toplevel)')
 
     -- placement
     if rows then
@@ -39,8 +42,11 @@ local function _write_module(rows, routes)
           table.insert(lines, '        },')
         end
         table.insert(lines, '    }')
-        table.insert(lines, string.format('    local width = %d', 100))
-        table.insert(lines, string.format('    routing.route(toplevel, routes, cells, width)'))
+        table.insert(lines, '    local bp = pcell.get_parameters("stdcells/base")')
+        table.insert(lines, '    local width = bp.gstwidth')
+        table.insert(lines, '    local xgrid = bp.gspace + bp.glength')
+        table.insert(lines, '    local ygrid = bp.gstwidth + bp.gstspace')
+        table.insert(lines, string.format('    routing.route(toplevel, routes, cells, width, xgrid, ygrid)'))
     else
         print("no routing information found")
     end
