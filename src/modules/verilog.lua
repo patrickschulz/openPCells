@@ -558,9 +558,5 @@ function M.filter_excluded_nets(netlist, excluded_nets)
     end
 end
 
-<<<<<<<< HEAD:src/verilog.lua
-
-========
->>>>>>>> 65425ded0ba86dce748e5881d37c42b5df547d7c:src/modules/verilog.lua
 return M
 

@@ -59,7 +59,7 @@ position_t *net_create_position(const char *instance, const char *port,
 	pos->x = x;
 	pos->y = y;
 	/* all ports are on metal 1 */
-	pos->z = 1;
+	pos->z = 0;
 
 	return pos;
 }
@@ -93,10 +93,7 @@ void net_create_deltas(net_t *net)
     /* dont need to create deltas if the net has too few points */
     int net_len;
     if((net_len = queue_len(net->path)) < 3)
-    {
-	printf("ERROR: net_len smaller than 3: %i\n", net_len);
         return;
-    }
 
     point_t *points;
     if((points = queue_as_array(net->path)) == NULL)
@@ -111,8 +108,8 @@ void net_create_deltas(net_t *net)
     for(int i = 0; i < net_len - 1; i++)
     {
         /*
-         * a delta is there when it was running in some direction:
-         * e.g. x != 0 and the next x == 0, valid for x, y or z
+         * a delta is there when it was running in some direction and gets
+	 * to a corner e.g. x != 0 and the next x == 0, valid for x, y or z
          * so in c booleans: current x: true and next x false
          */
 	xsteps += points[i].x;
@@ -121,27 +118,43 @@ void net_create_deltas(net_t *net)
 
         if(points[i].x && !points[i+1].x)
         {
-            printf("created delta at xsteps %i\n", xsteps);
             point_t *point = point_new(xsteps, 0, 0, DEFAULT_POINT_SCORE);
             queue_enqueue(queue, point);
         }
         else if(points[i].y && !points[i+1].y)
         {
-            printf("created delta at ysteps %i\n", ysteps);
             point_t *point = point_new(0, ysteps, 0, DEFAULT_POINT_SCORE);
             queue_enqueue(queue, point);
         }
         else if(points[i].z && !points[i+1].z)
         {
-            printf("created delta at zsteps %i\n", zsteps);
             point_t *point = point_new(0, 0, zsteps, DEFAULT_POINT_SCORE);
             queue_enqueue(queue, point);
         }
     }
 
+    /* put last connection to end port into queue (no corner here) */
+    point_t *point;
+    xsteps += points[net_len - 1].x;
+    ysteps += points[net_len - 1].y;
+    zsteps += points[net_len - 1].z;
+
+    if(points[net_len - 1].x)
+    {
+	    point = point_new(xsteps, 0, 0, DEFAULT_POINT_SCORE);
+    }
+    else if(points[net_len - 1].y)
+    {
+	    point = point_new(0, ysteps, 0, DEFAULT_POINT_SCORE);
+    }
+    else
+    {
+	    point = point_new(0, 0, zsteps, DEFAULT_POINT_SCORE);
+    }
+    queue_enqueue(queue, point);
+
     /* delete the old path */
     free(net->path);
-    printf("post free\n");
     net->path = queue;
 }
 
