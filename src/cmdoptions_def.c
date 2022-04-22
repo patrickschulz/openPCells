@@ -12,9 +12,9 @@ cmdoptions_add_option(cmdoptions, NO_SHORT, "flat", NO_ARG, "flatten hierarchy b
 cmdoptions_add_option(cmdoptions, NO_SHORT, "flatten-ports", NO_ARG, "include ports in hierarchy flattening. Can lead to confusing results, especially in large hierarchies. Mostly useful for layout debugging");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "bus-delimiters", SINGLE_ARG, "delimiters for bus ports. Useful values: '[]' or '<>', but others are possible. This option expects two characters for the left and right delimiters");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "techpath", MULTI_ARGS, "add (append) searchpath for technology files (can be used multiple times: --techpath foo --techpath bar)");
-cmdoptions_add_option(cmdoptions, 'p', "pfile", MULTI_ARGS, "synonym for --append-parameter-file");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "prepend-parameter-file", MULTI_ARGS, "file to read parameters from (prepended to the list). This file should be a regular lua file returning a table with the parameters. This option can be used multiple times. Parameter files that are specified later overwrite parameters from earlier files.");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "append-parameter-file", MULTI_ARGS, "file to read parameters from (appended to the list). This file should be a regular lua file returning a table with the parameters. This option can be used multiple times. Parameter files that are specified later overwrite parameters from earlier files.");
+cmdoptions_add_alias(cmdoptions, "append-parameter-file", 'p', "pfile", "synonym for --append-parameter-file");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "disable-pfile", NO_ARG, "disable reading of any parameter files");
 cmdoptions_add_option_default(cmdoptions, 'f', "filename", SINGLE_ARG, "openPCells", "specify output filename for export");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "origin", SINGLE_ARG, "origin of cell (move (0, 0)). This option expects a point input, e.g. '(10, 10)' (with parantheses)");
