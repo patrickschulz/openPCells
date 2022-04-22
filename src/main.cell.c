@@ -119,15 +119,6 @@ static void _prepare_cellpaths(struct vector* cellpaths_to_prepend, struct vecto
             ++arg;
         }
     }
-    if(cmdoptions_was_provided_long(cmdoptions, "cellpath"))
-    {
-        const char** arg = cmdoptions_get_argument_long(cmdoptions, "cellpath");
-        while(*arg)
-        {
-            vector_append(cellpaths_to_append, util_copy_string(*arg));
-            ++arg;
-        }
-    }
     if(cmdoptions_was_provided_long(cmdoptions, "append-cellpath"))
     {
         const char** arg = cmdoptions_get_argument_long(cmdoptions, "append-cellpath");
