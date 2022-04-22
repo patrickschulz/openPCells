@@ -1,5 +1,6 @@
 -- FIXME: output cell parameters AFTER parameters have been processed in order to respect value changes in pfiles
-local params = pcell.parameters(args.cell, cellargs, not args.technology)
+print(args.generictech)
+local params = pcell.parameters(args.cell, cellargs, args.generictech)
 local paramformat = args.parametersformat or "%n (%d) %v"
 for _, P in ipairs(params) do
     local paramstr = string.gsub(paramformat, "%%%a", { 
