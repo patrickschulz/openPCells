@@ -90,23 +90,26 @@ static void _write_cell(object_t* cell, struct export_data* data, struct export_
                 break;
         }
     }
-    for(unsigned int i = 0; i < cell->children_size; ++i)
+    if(cell->children)
     {
-        point_t origin = { .x = 0, .y = 0 };
-        object_t* child = cell->children[i];
-        transformationmatrix_apply_transformation(child->trans, &origin);
-        transformationmatrix_apply_transformation(cell->trans, &origin);
-        if(child->isarray && funcs->write_cell_array)
+        for(unsigned int i = 0; i < vector_size(cell->children); ++i)
         {
-            funcs->write_cell_array(data, child->identifier, origin.x, origin.y, child->trans, child->xrep, child->yrep, child->xpitch, child->ypitch);
-        }
-        else
-        {
-            for(unsigned int ix = 1; ix <= child->xrep; ++ix)
+            point_t origin = { .x = 0, .y = 0 };
+            object_t* child = vector_get(cell->children, i);
+            transformationmatrix_apply_transformation(child->trans, &origin);
+            transformationmatrix_apply_transformation(cell->trans, &origin);
+            if(child->isarray && funcs->write_cell_array)
             {
-                for(unsigned int iy = 1; iy <= child->yrep; ++iy)
+                funcs->write_cell_array(data, child->identifier, origin.x, origin.y, child->trans, child->xrep, child->yrep, child->xpitch, child->ypitch);
+            }
+            else
+            {
+                for(unsigned int ix = 1; ix <= child->xrep; ++ix)
                 {
-                    funcs->write_cell_reference(data, child->identifier, origin.x + (ix - 1) * child->xpitch, origin.y + (iy - 1) * child->ypitch, child->trans);
+                    for(unsigned int iy = 1; iy <= child->yrep; ++iy)
+                    {
+                        funcs->write_cell_reference(data, child->identifier, origin.x + (ix - 1) * child->xpitch, origin.y + (iy - 1) * child->ypitch, child->trans);
+                    }
                 }
             }
         }
@@ -272,51 +275,54 @@ static int _write_cell_lua(lua_State* L, object_t* cell, int write_ports, char l
                 break;
         }
     }
-    for(unsigned int i = 0; i < cell->children_size; ++i)
+    if(cell->children)
     {
-        point_t origin = { .x = 0, .y = 0 };
-        object_t* child = cell->children[i];
-        transformationmatrix_apply_transformation(child->trans, &origin);
-        transformationmatrix_apply_transformation(cell->trans, &origin);
-        if(child->isarray)
+        for(unsigned int i = 0; i < vector_size(cell->children); ++i)
         {
-            lua_getfield(L, -1, "write_cell_array");
-            if(lua_isnil(L, -1))
+            point_t origin = { .x = 0, .y = 0 };
+            object_t* child = vector_get(cell->children, i);
+            transformationmatrix_apply_transformation(child->trans, &origin);
+            transformationmatrix_apply_transformation(cell->trans, &origin);
+            if(child->isarray)
             {
-                lua_pop(L, 1);
-            }
-            else
-            {
-                lua_pushstring(L, child->identifier);
-                lua_pushinteger(L, origin.x);
-                lua_pushinteger(L, origin.y);
-                _push_trans(L, child->trans);
-                lua_pushinteger(L, child->xrep);
-                lua_pushinteger(L, child->yrep);
-                lua_pushinteger(L, child->xpitch);
-                lua_pushinteger(L, child->ypitch);
-                int ret = lua_pcall(L, 8, 0, 0);
-                if(ret != LUA_OK)
+                lua_getfield(L, -1, "write_cell_array");
+                if(lua_isnil(L, -1))
                 {
-                    return ret;
+                    lua_pop(L, 1);
                 }
-            }
-        }
-        else
-        {
-            for(unsigned int ix = 1; ix <= child->xrep; ++ix)
-            {
-                for(unsigned int iy = 1; iy <= child->yrep; ++iy)
+                else
                 {
-                    lua_getfield(L, -1, "write_cell_reference");
                     lua_pushstring(L, child->identifier);
-                    lua_pushinteger(L, origin.x + (ix - 1) * child->xpitch);
-                    lua_pushinteger(L, origin.y + (iy - 1) * child->ypitch);
+                    lua_pushinteger(L, origin.x);
+                    lua_pushinteger(L, origin.y);
                     _push_trans(L, child->trans);
-                    int ret = lua_pcall(L, 4, 0, 0);
+                    lua_pushinteger(L, child->xrep);
+                    lua_pushinteger(L, child->yrep);
+                    lua_pushinteger(L, child->xpitch);
+                    lua_pushinteger(L, child->ypitch);
+                    int ret = lua_pcall(L, 8, 0, 0);
                     if(ret != LUA_OK)
                     {
                         return ret;
+                    }
+                }
+            }
+            else
+            {
+                for(unsigned int ix = 1; ix <= child->xrep; ++ix)
+                {
+                    for(unsigned int iy = 1; iy <= child->yrep; ++iy)
+                    {
+                        lua_getfield(L, -1, "write_cell_reference");
+                        lua_pushstring(L, child->identifier);
+                        lua_pushinteger(L, origin.x + (ix - 1) * child->xpitch);
+                        lua_pushinteger(L, origin.y + (iy - 1) * child->ypitch);
+                        _push_trans(L, child->trans);
+                        int ret = lua_pcall(L, 4, 0, 0);
+                        if(ret != LUA_OK)
+                        {
+                            return ret;
+                        }
                     }
                 }
             }

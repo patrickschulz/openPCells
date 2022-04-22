@@ -4,6 +4,8 @@
 #include "transformationmatrix.h"
 #include "shape.h"
 #include "pcell.h"
+#include "vector.h"
+#include "hashmap.h"
 
 struct object_t
 {
@@ -34,26 +36,18 @@ struct object_t
     } **ports;
     size_t ports_size;
 
-    struct anchor
-    {
-        char* name;
-        point_t* where;
-    } **anchors;
-    size_t anchors_size;
-    size_t anchors_capacity;
+    struct hashmap* anchors;
 
     coordinate_t* alignmentbox; // NULL or contains four coordinates
 
-    struct object_t** children;
-    size_t children_size;
-    size_t children_capacity;
+    struct vector* children;
 };
 
 typedef struct object_t object_t;
 
 object_t* object_create(void);
 object_t* object_copy(object_t*);
-void object_destroy(object_t* cell);
+void object_destroy(void* cell);
 
 void object_add_raw_shape(object_t* cell, shape_t* S);
 void object_add_shape(object_t* cell, shape_t* S);

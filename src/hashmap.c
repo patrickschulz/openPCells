@@ -44,8 +44,18 @@ static void _resize(struct hashmap* map)
             if((old + i)->key)
             {
                 size_t index = _hash((old + i)->key) % map->capacity;
+                while(1)
+                {
+                    struct hashmap_entry* entry = map->entries + index;
+                    if(!entry->key)
+                    {
+                        break;
+                    }
+                    index = (index + 1) % map->capacity;
+                }
                 (map->entries + index)->key = (old + i)->key;
                 (map->entries + index)->value = (old + i)->value;
+
             }
         }
         free(old);
@@ -62,12 +72,15 @@ struct hashmap* hashmap_create(void)
     return map;
 }
 
-void hashmap_destroy(struct hashmap* map)
+void hashmap_destroy(struct hashmap* map, void (*destructor)(void*))
 {
     for(size_t i = 0; i < map->capacity; ++i)
     {
         free((map->entries + i)->key);
-        // FIXME: delete values?
+        if(destructor)
+        {
+            destructor((map->entries + i)->value);
+        }
     }
     free(map->entries);
     free(map);
@@ -115,6 +128,11 @@ struct hashmap_iterator* hashmap_iterator_create(struct hashmap* map)
 int hashmap_iterator_is_valid(struct hashmap_iterator* iterator)
 {
     return iterator->index < iterator->hashmap->capacity;
+}
+
+void* hashmap_iterator_key(struct hashmap_iterator* iterator)
+{
+    return (iterator->hashmap->entries + iterator->index)->key;
 }
 
 void* hashmap_iterator_value(struct hashmap_iterator* iterator)
