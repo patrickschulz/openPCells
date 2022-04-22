@@ -64,7 +64,14 @@ int main(int argc, char** argv)
 
     // compile lua script and load into buffer
     lua_State* L = luaL_newstate();
-    luaL_loadfile(L, filename);
+    int ret = luaL_loadfile(L, filename);
+    if(ret != LUA_OK)
+    {
+        const char* msg = lua_tostring(L, -1);
+        fprintf(stderr, "could not compile lua module '%s':\n    %s\n", filename, msg);
+        lua_close(L);
+        return 1;
+    }
     struct buffer* buffer = _create_buffer();
     lua_dump(L, _writer, buffer, 0);
     lua_close(L);
