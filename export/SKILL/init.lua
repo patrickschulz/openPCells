@@ -129,7 +129,11 @@ local function _get_shape_fmt(shapetype)
             return string.format("    dbCreate%s(cv %%s)", shapetype)
         end
     else
-        return string.format("dbCreate%s(cv %%s)", shapetype)
+        if __group then
+            return string.format("    dbCreate%s(cv %%s)", shapetype)
+        else
+            return string.format("dbCreate%s(cv %%s)", shapetype)
+        end
     end
 end
 
@@ -145,7 +149,11 @@ end
 
 local function _finish_shape_for_group()
     if __group then
-        table.insert(__content, "    )")
+        if __let then
+            table.insert(__content, "    )")
+        else
+            table.insert(__content, ")")
+        end
     end
 end
 
