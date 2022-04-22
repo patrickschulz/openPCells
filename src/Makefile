@@ -14,7 +14,7 @@ SYSCFLAGS=
 SYSLDFLAGS=
 SYSLIBS=
 
-OPCOBJ:=main.functions.o main.cell.o main.gds.o main.verilog.o cmdoptions.o util.o lua_util.o vector.o union.o postprocess.o point.o technology.o transformationmatrix.o ltransformationmatrix.o shape.o object.o geometry.o hashmap.o keyvaluepairs.o generics.o lgenerics.o lgeometry.o ldir.o lpoint.o graphics.o lbind.o lobject.o pcell.o filesystem.o lplacer.o lplacer_rand.o lplacer_nonoverlapping.o lplacer_classic.o lrouter.o lrouter_net.o lrouter_queue.o lrouter_min_heap.o lrouter_field.o lrouter_route.o gdsparser.o ldebug.o export.o export_common.o gdsexport.o info.o
+OPCOBJ:=main.functions.o main.cell.o main.gds.o main.verilog.o cmdoptions.o util.o lua_util.o vector.o union.o postprocess.o point.o technology.o transformationmatrix.o ltransformationmatrix.o shape.o object.o geometry.o hashmap.o keyvaluepairs.o generics.o lgenerics.o lgeometry.o ldir.o lpoint.o graphics.o lbind.o lobject.o pcell.o filesystem.o lplacer.o lplacer_common.o lplacer_rand.o lplacer_nonoverlapping.o lplacer_classic.o lrouter.o lrouter_net.o lrouter_queue.o lrouter_min_heap.o lrouter_field.o lrouter_route.o gdsparser.o ldebug.o export.o export_common.o gdsexport.o info.o
 
 .PHONY: default
 default:
@@ -72,7 +72,6 @@ modulemanager.c: embed_compiled_lua_file modules/*.lua
 	./embed_compiled_lua_file --module modules/pcell.lua module_load pcell modulemanager.c
 	./embed_compiled_lua_file --module modules/placement.lua module_load placement modulemanager.c
 	./embed_compiled_lua_file --module modules/point.lua module_load point modulemanager.c
-	./embed_compiled_lua_file --module modules/public.lua module_load public modulemanager.c
 	./embed_compiled_lua_file --module modules/routing.lua module_load routing modulemanager.c
 	./embed_compiled_lua_file --module modules/stack.lua module_load stack modulemanager.c
 	./embed_compiled_lua_file --module modules/support.lua module_load support modulemanager.c
@@ -95,7 +94,6 @@ modulemanager.h:
 	@echo 'int module_load_pcell(lua_State* L);' >> modulemanager.h
 	@echo 'int module_load_placement(lua_State* L);' >> modulemanager.h
 	@echo 'int module_load_point(lua_State* L);' >> modulemanager.h
-	@echo 'int module_load_public(lua_State* L);' >> modulemanager.h
 	@echo 'int module_load_routing(lua_State* L);' >> modulemanager.h
 	@echo 'int module_load_stack(lua_State* L);' >> modulemanager.h
 	@echo 'int module_load_support(lua_State* L);' >> modulemanager.h
@@ -201,7 +199,8 @@ lplacer.o: lplacer.c lua/lua.h lua/luaconf.h lua/lauxlib.h lua/lua.h \
 lplacer_classic.o: lplacer_classic.c lplacer_classic.h lua/lua.h \
  lua/luaconf.h lplacer_common.h lplacer_rand.h keyvaluepairs.h vector.h \
  util.h
-lplacer_common.o: lplacer_common.c
+lplacer_common.o: lplacer_common.c lplacer_common.h lua/lua.h \
+ lua/luaconf.h keyvaluepairs.h vector.h
 lplacer_nonoverlapping.o: lplacer_nonoverlapping.c \
  lplacer_nonoverlapping.h lua/lua.h lua/luaconf.h lplacer_rand.h
 lplacer_rand.o: lplacer_rand.c lplacer_rand.h lua/lua.h lua/luaconf.h

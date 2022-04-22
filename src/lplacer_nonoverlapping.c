@@ -6,16 +6,8 @@
 #include <limits.h>
 #include <stdint.h>
 
+#include "lplacer_common.h"
 #include "lplacer_rand.h"
-
-struct floorplan {
-    unsigned int floorplan_width;
-    unsigned int floorplan_height;
-    unsigned int desired_row_width;
-    // limiter window
-    int limiter_width;
-    int limiter_height;
-};
 
 struct cell {
     unsigned int instance;
@@ -310,26 +302,6 @@ static struct block* _initialize(lua_State* L, unsigned int num_rows, struct Ran
     return block;
 }
 
-static struct floorplan* _create_floorplan(lua_State* L)
-{
-    lua_getfield(L, 3, "floorplan_width");
-    unsigned int floorplan_width = lua_tointeger(L, -1);
-    lua_pop(L, 1);
-    lua_getfield(L, 3, "floorplan_height");
-    unsigned int floorplan_height = lua_tointeger(L, -1);
-    lua_pop(L, 1);
-    lua_getfield(L, 3, "desired_row_width");
-    unsigned int desired_row_width = lua_tointeger(L, -1);
-    lua_pop(L, 1);
-
-    struct floorplan* floorplan = malloc(sizeof(struct floorplan));
-    floorplan->floorplan_width = floorplan_width;
-    floorplan->floorplan_height = floorplan_height;
-    floorplan->desired_row_width = desired_row_width;
-
-    return floorplan;
-}
-
 static void _clean_up(struct block* block, struct floorplan* floorplan)
 {
     for(unsigned int i = 0; i < block->num_cells; ++i)
@@ -341,7 +313,7 @@ static void _clean_up(struct block* block, struct floorplan* floorplan)
     free(block->row_sizes);
     free(block->nets);
     free(block);
-    free(floorplan);
+    placer_destroy_floorplan(floorplan);
 }
 
 static void _create_lua_result(lua_State* L, struct block* block)
@@ -487,7 +459,7 @@ int lplacer_place_nonoverlapping(lua_State* L)
     //randseed(&rstate, rand(), rand());
     randseed(&rstate, 127, 42);
 
-    struct floorplan* floorplan = _create_floorplan(L);
+    struct floorplan* floorplan = placer_create_floorplan(L);
 
     struct block* block = _initialize(L, floorplan->floorplan_height, &rstate);
 
