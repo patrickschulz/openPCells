@@ -13,15 +13,6 @@
 #include "keyvaluepairs.h"
 #include "util.h"
 
-struct floorplan {
-    unsigned int floorplan_width;
-    unsigned int floorplan_height;
-    unsigned int desired_row_width;
-    // limiter window
-    int limiter_width;
-    int limiter_height;
-};
-
 struct cell {
     struct basic_cell base;
     unsigned int pos_x;
@@ -66,7 +57,7 @@ static unsigned int calculate_total_wirelength(struct block* block)
     return total_wirelength;
 }
 
-static struct cell** get_cells_of_row(struct block* block, unsigned int cur_row, size_t* num_in_row)
+static struct cell** get_cells_of_row(const struct block* block, unsigned int cur_row, size_t* num_in_row)
 {
     size_t capacity = 40;
     size_t cur_cell_idx = 0;
@@ -152,49 +143,14 @@ static struct block* _initialize(lua_State* L, struct floorplan* floorplan, stru
     // initialize all_cells
     block->num_cells = num_cells;
     block->cells = calloc(block->num_cells, sizeof(*block->cells));
-
     for(size_t i = 1; i <= num_cells; ++i)
     {
         lua_geti(L, 1, i); // get instance
-
-        struct cell* c = block->cells + i - 1;
-
-        // instance
-        c->base.instance = i;
-
-        // width
-        lua_getfield(L, -1, "width");
-        c->base.width = lua_tointeger(L, -1);
-        lua_pop(L, 1);
-
-        // nets
-        lua_getfield(L, -1, "nets");
-        lua_len(L, -1);
-        size_t num_conns = lua_tointeger(L, -1);
-        lua_pop(L, 1);
-        c->base.nets = calloc(num_conns, sizeof(*c->base.nets));
-        c->base.pinoffset = calloc(num_conns, sizeof(*c->base.pinoffset));
-        c->base.num_conns = num_conns;
-        for(size_t j = 1; j <= num_conns; ++j)
-        {
-            lua_geti(L, -1, j); // get net
-
-            lua_getfield(L, -1, "name");
-            const char* name = lua_tostring(L, -1);
-            c->base.nets[j - 1] = keyvaluearray_get(netmap, name);
-            lua_pop(L, 1); // pop name
-
-            lua_getfield(L, -3, "pinoffsets");
-            lua_getfield(L, -2, "port");
-            lua_gettable(L, -2);
-            int pinoffset = lua_tointeger(L, -1);
-            c->base.pinoffset[j - 1] = pinoffset;
-            lua_pop(L, 2); // pop pinoffset + pinoffsets table
-
-            lua_pop(L, 1); // pop net
-        }
+        struct basic_cell* base = &(block->cells + i - 1)->base;
+        placer_initialize_base_cell(L, base, i, netmap);
         lua_pop(L, 1); // pop instance
     }
+    keyvaluearray_destroy(netmap);
 
     // shuffle cells
     for (unsigned int i = num_cells - 1; i > 0; i--)
@@ -204,8 +160,6 @@ static struct block* _initialize(lua_State* L, struct floorplan* floorplan, stru
         block->cells[j] = block->cells[i];
         block->cells[i] = tmp;
     }
-
-    keyvaluearray_destroy(netmap);
 
     // place all cells randomly
     for (unsigned int i = 0; i < block->num_cells; ++i)
@@ -218,87 +172,16 @@ static struct block* _initialize(lua_State* L, struct floorplan* floorplan, stru
     return block;
 }
 
-static struct floorplan* _create_floorplan(lua_State* L)
-{
-    lua_getfield(L, 3, "floorplan_width");
-    unsigned int floorplan_width = lua_tointeger(L, -1);
-    lua_pop(L, 1);
-    lua_getfield(L, 3, "floorplan_height");
-    unsigned int floorplan_height = lua_tointeger(L, -1);
-    lua_pop(L, 1);
-    lua_getfield(L, 3, "desired_row_width");
-    unsigned int desired_row_width = lua_tointeger(L, -1);
-    lua_pop(L, 1);
-
-    struct floorplan* floorplan = malloc(sizeof(struct floorplan));
-    floorplan->floorplan_width = floorplan_width;
-    floorplan->floorplan_height = floorplan_height;
-    floorplan->desired_row_width = desired_row_width;
-
-    return floorplan;
-}
-
 static void _clean_up(struct block* block, struct floorplan* floorplan)
 {
     for(unsigned int i = 0; i < block->num_cells; ++i)
     {
-        free((block->cells + i)->base.nets);
-        free((block->cells + i)->base.pinoffset);
+        placer_destroy_base_cell_contents(&(block->cells + i)->base);
     }
     free(block->cells);
     free(block->nets);
     free(block);
-    free(floorplan);
-}
-
-static int _cell_cmp(const void* p1, const void* p2)
-{
-    struct cell* const * c1 = p1;
-    struct cell* const * c2 = p2;
-    if((*c1)->pos_x > (*c2)->pos_x)
-    {
-        return 1;
-    }
-    else if((*c1)->pos_x < (*c2)->pos_x)
-    {
-        return -1;
-    }
-    else
-    {
-        return 0;
-    }
-}
-
-static void _create_lua_result(lua_State* L, struct block* block, struct floorplan* floorplan)
-{
-    // bring back results to lua
-    lua_newtable(L);
-    for(unsigned int cur_row = 0; cur_row < floorplan->floorplan_height; cur_row++)
-    {
-        size_t numcellrows;
-        struct cell** cells_in_row = get_cells_of_row(block, cur_row, &numcellrows);
-        qsort(cells_in_row, numcellrows, sizeof(struct cell*), &_cell_cmp);
-        lua_newtable(L);
-        int i = 1;
-        for(struct cell** c = cells_in_row; *c; ++c)
-        {
-            int index = (*c)->base.instance;
-            lua_rawgeti(L, 1, index);
-
-            lua_newtable(L);
-            lua_pushstring(L, "reference");
-            lua_getfield(L, -3, "reference");
-            lua_settable(L, -3);
-            lua_pushstring(L, "instance");
-            lua_getfield(L, 1, "instance");
-            lua_settable(L, -3);
-            lua_pop(L, 1);
-            lua_seti(L, -2, i);
-            ++i;
-        }
-        lua_seti(L, -2, cur_row + 1);
-        free(cells_in_row);
-    }
+    placer_destroy_floorplan(floorplan);
 }
 
 #define min(a, b) ((a) < (b) ? (a) : (b))
@@ -341,7 +224,6 @@ static inline void cell_place_random(struct cell* c, struct floorplan* floorplan
     c->pos_x = _lua_randi(rstate, 0, floorplan->floorplan_width - 1);
     c->pos_y = _lua_randi(rstate, 0, floorplan->floorplan_height - 1);
 }
-
 
 void m1(struct cell* a, struct rollback* r, struct floorplan* floorplan, struct RanState* rstate)
 {
@@ -442,6 +324,41 @@ static void _simulated_annealing(struct RanState* rstate, struct block* block, s
     }
 }
 
+static int _cell_cmp(const void* p1, const void* p2)
+{
+    struct cell* const * c1 = p1;
+    struct cell* const * c2 = p2;
+    if((*c1)->pos_x > (*c2)->pos_x)
+    {
+        return 1;
+    }
+    else if((*c1)->pos_x < (*c2)->pos_x)
+    {
+        return -1;
+    }
+    else
+    {
+        return 0;
+    }
+}
+
+int* get_cell_in_row_index(const void* blockv, unsigned int cur_row)
+{
+    const struct block* block = blockv;
+    size_t numcellrows;
+    struct cell** cells_in_row = get_cells_of_row(block, cur_row, &numcellrows);
+    qsort(cells_in_row, numcellrows, sizeof(struct cell*), &_cell_cmp);
+    int* indices = calloc(numcellrows + 1, sizeof(*indices));
+    int i = 0;
+    for(struct cell** c = cells_in_row; *c; ++c)
+    {
+        indices[i] = (*c)->base.instance;
+        ++i;
+    }
+    free(cells_in_row);
+    return indices;
+}
+
 int lplacer_place_classic(lua_State* L)
 {
     struct RanState rstate;
@@ -449,7 +366,7 @@ int lplacer_place_classic(lua_State* L)
     //randseed(&rstate, rand(), rand());
     randseed(&rstate, 127, 42);
 
-    struct floorplan* floorplan = _create_floorplan(L);
+    struct floorplan* floorplan = placer_create_floorplan(L);
 
     struct block* block = _initialize(L, floorplan, &rstate);
 
@@ -469,7 +386,7 @@ int lplacer_place_classic(lua_State* L)
 
     //_simulated_annealing(&rstate, block, floorplan, coolingfactor, moves_per_cell_per_temp, verbose);
 
-    _create_lua_result(L, block, floorplan);
+    placer_create_lua_result(L, block, get_cell_in_row_index, floorplan);
 
     _clean_up(block, floorplan); // AFTER _create_lua_result!
 
