@@ -51,7 +51,7 @@ function M.route(cell, routes, cells, width, xgrid, ygrid)
             startpt = route[1].where
         end
         local pts = {}
-        local currmetal = 1
+        local currmetal = route.startmetal or 1
         local x, y = startpt:unwrap()
         for i = 2, #route do
             local movement = route[i]
@@ -80,7 +80,7 @@ function M.route(cell, routes, cells, width, xgrid, ygrid)
             elseif movement.type == "via" then
                 if movement.z then
                     geometry.via(cell, currmetal, currmetal + movement.z, width, width, x, y)
-                    if #pts > 1 then
+                    if #pts > 0 then
                         geometry.path(cell, generics.metal(currmetal), 
                             geometry.path_points_xy(startpt, pts), width)
                     end
@@ -89,7 +89,7 @@ function M.route(cell, routes, cells, width, xgrid, ygrid)
                     currmetal = currmetal + movement.z
                 else
                     geometry.via(cell, currmetal, movement.metal, width, width, x, y)
-                    if #pts > 1 then
+                    if #pts > 0 then
                         geometry.path(cell, generics.metal(currmetal), 
                             geometry.path_points_xy(startpt, pts), width)
                     end
@@ -97,6 +97,8 @@ function M.route(cell, routes, cells, width, xgrid, ygrid)
                     pts = {}
                     currmetal = movement.metal
                 end
+            else
+                error(string.format("routing.route: unknown movement type '%s'", movement.type))
             end
         end
         if #pts > 0 then
