@@ -242,11 +242,11 @@ object_t* _create_cell(
     module_load_globals(L);
     module_load_graphics(L);
     module_load_load(L);
+    module_load_stack(L); // must be loaded before pcell (FIXME: explicitly create the lua pcell state)
     module_load_pcell(L);
     module_load_placement(L);
     module_load_point(L);
     module_load_routing(L);
-    module_load_stack(L);
     module_load_support(L);
     module_load_util(L);
 
