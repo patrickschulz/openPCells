@@ -470,10 +470,19 @@ local function check_expression(state, cellname, expression, message)
     table.insert(state.expressions[cellname], { expression = expression, message = message })
 end
 
+local function _resolve_cellname(state, cellname)
+    local libpart, cellpart = string.match(cellname, "([^/]+)/(.+)")
+    if libpart == "." then -- implicit library
+        libpart = state.libnamestacks:top()
+    end
+    return string.format("%s/%s", libpart, cellpart)
+end
+
 -- main state storing various data
 -- only the public functions use this state as upvalue to conceal it from the user
 -- all local implementing functions get state as first parameter
 local state = {
+    libnamestacks = stack.create(),
     loadedcells = {},
     backupstacks = {},
     cellrefs = {},
@@ -644,6 +653,13 @@ function pcell.create_layout(cellname, cellargs, env, evaluate)
             print(string.format("creating layout of cell '%s' in %s:%d", cellname, status.source, status.line))
         end
     end
+    local libpart, cellpart = string.match(cellname, "([^/]+)/(.+)")
+    local explicitlib = false
+    if libpart ~= "." then -- explicit library
+        explicitlib = true
+        state.libnamestacks:push(libpart)
+    end
+    cellname = _resolve_cellname(state, cellname)
     local cell = _get_cell(state, cellname)
     if not cell.funcs.layout then
         error(string.format("cell '%s' has no layout definition", cellname))
@@ -659,10 +675,9 @@ function pcell.create_layout(cellname, cellargs, env, evaluate)
     end
     local obj = object.create(cellname)
     cell.funcs.layout(obj, parameters, env)
-    --local status, msg = xpcall(cell.funcs.layout, function(err) return { msg = err, where = _find_cell_traceback() } end, obj, parameters, env)
-    --if not status then
-    --    error(string.format("could not create cell '%s'. Error in line %d\n  -> %s", cellname, msg.where.line, msg.msg), 0)
-    --end
+    if explicitlib then
+        state.libnamestacks:pop()
+    end
     return obj
 end
 
