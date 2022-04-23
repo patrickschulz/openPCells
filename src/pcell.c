@@ -223,16 +223,19 @@ static int lpcell_get_cell_filename(lua_State* L)
             return 1;
         }
     }
-    /*
-    local str = {
-        string.format("could not find cell '%s' in:", cellname),
+    lua_newtable(L);
+    lua_pushfstring(L, "could not find cell '%s' in:\n", cellname);
+    for(unsigned int i = 0; i < vector_size(pcell_state->cellpaths); ++i)
+    {
+        lua_pushstring(L, "  ");
+        const char* path = vector_get(pcell_state->cellpaths, i);
+        lua_pushstring(L, path);
+        if(i < vector_size(pcell_state->cellpaths) - 1)
+        {
+            lua_pushstring(L, "\n");
+        }
     }
-    for _, path in ipairs(state.cellpaths) do
-        table.insert(str, string.format("  %s", path))
-    end
-    error(table.concat(str, "\n"))
-    */
-    lua_pushfstring(L, "could not find cell '%s'", cellname);
+    lua_concat(L, 3 * vector_size(pcell_state->cellpaths));
     lua_error(L);
     return 0;
 }
