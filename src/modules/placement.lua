@@ -156,56 +156,48 @@ end
 ---------------------------------------------------------------------------------
 --                         In-cell layout functions                            --
 ---------------------------------------------------------------------------------
+local function _get_cell_width(name)
+    local lut = {
+        isogate = 1,
+        not_gate = 2,
+        nand_gate = 2,
+        nor_gate = 2,
+        xor_gate = 10,
+        xnor_gate = 11,
+        dffp = 22,
+        dffpq = 22,
+        dffprq = 26,
+        dffn = 24,
+        dffnq = 24,
+    }
+    if not lut[name] then
+        moderror(string.format("unknown stdcell '%s'", name))
+    end
+    return lut[name]
+end
 
--- in-cell placement functions
 function M.create_reference_rows(cellnames)
     local names = {}
     local references = {}
-    local cellwidths = {
-        not_gate = 1,
-        nor_gate = 2,
-        nand_gate = 2,
-        or_gate = 4,
-        xor_gate = 10,
-        dff = 21,
-        dffp = 21,
-        dffn = 21,
-    }
-    -- the cell map allows different cells in the gate netlist to actually use the same pcell (e.g. dffp vs. dffn)
-    -- Also, mapping allows the use of cell parameters
-    local cell_map = {
-        dffp = {
-            name = "dff",
-            parameters = { clockpolarity = "positive" }
-        },
-        dffn = {
-            name = "dff",
-            parameters = { clockpolarity = "negative" }
-        },
-    }
     for row, entries in ipairs(cellnames) do
         names[row] = {}
         for column, entry in ipairs(entries) do
-            local instance, cellname
+            local instance, cellname, args
             if type(entry) == "table" then
                 instance = entry.instance
                 cellname = entry.reference
+                args = entry.args
             else
                 instance = string.format("I_%d_%d", row, column)
                 cellname = entry
             end
             if not references[cellname] then
-                local mapped = cell_map[cellname]
-                if mapped then
-                    references[cellname] = pcell.add_cell_reference(pcell.create_layout(string.format("stdcells/%s", mapped.name), mapped.parameters), cellname)
-                else
-                    references[cellname] = pcell.add_cell_reference(pcell.create_layout(string.format("stdcells/%s", cellname)), cellname)
-                end
+                references[cellname] = pcell.add_cell_reference(pcell.create_layout(string.format("stdcells/%s", cellname), args), cellname)
             end
             names[row][column] = { 
                 instance = instance,
                 reference = references[cellname],
-                width = cellwidths[cellname]
+                width = _get_cell_width(cellname)
             }
         end
     end

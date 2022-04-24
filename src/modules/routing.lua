@@ -12,6 +12,9 @@ local function _prepare_routing_nets(nets, rows)
                                 netpositions[i] = { name = net, positions = {} }
                             end
                             local offset = column.pinoffsets[n.port]
+                            if not offset then
+                                error(string.format("cell '%s' has no pin offset data on port '%s'", column.reference, n.port))
+                            end
                             table.insert(netpositions[i].positions, { instance = column.instance, port = n.port, x = c + offset.x, y = r + offset.y })
                         end
                     end
