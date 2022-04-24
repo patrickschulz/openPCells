@@ -3,17 +3,21 @@
  * The opc verilog parser recognizes a set of standard cells (by name), therefore the gate netlist needs to use exactly these names.
  * (The area of the cells is not really interesting, but added for completeness. It is normalized, so a gate with one transistor has an area of 1. -> not finished)
  * List of cells:
- *    inv
+ *    not_gate
  *    buf
  *    tinv
  *    tbuf
- *    nand
- *    nor
- *    xor
- *    xnor
- *    dffq
+ *    nand_gate
+ *    nor_gate
+ *    xor_gate
+ *    x_gatenor
+ *    dffpq
  *    dffnq
- *    dffrsq
+ *    dffprq
+ *    dffnrq
+ *    dffpsq
+ *    dffnsq
+ *    dffprsq
  *    dffnrsq
  *    latchq
  *    latchrq
@@ -30,7 +34,7 @@ library (opc) {
       direction : "input";
     }
   }
-  cell (dffq) {
+  cell (dffpq) {
     area : "1.530880";
     pin (Q) {
       direction : "output";
@@ -68,7 +72,53 @@ library (opc) {
       next_state : "D";
     }
   }
-  cell (dffrsq) {
+  cell (dffprq) {
+    area : "2.063360";
+    pin (Q) {
+      direction : "output";
+      function : "IQ";
+    }
+    pin (CLK) {
+      clock : true;
+      direction : "input";
+    }
+    pin (D) {
+      direction : "input";
+      nextstate_type : "data";
+    }
+    pin (RESET) {
+      direction : "input";
+    }
+    ff (IQ,IQN) {
+      clocked_on : "CLK";
+      next_state : "D";
+      clear : "!RESET";
+    }
+  }
+  cell (dffpsq) {
+    area : "2.063360";
+    pin (Q) {
+      direction : "output";
+      function : "IQ";
+    }
+    pin (CLK) {
+      clock : true;
+      direction : "input";
+    }
+    pin (D) {
+      direction : "input";
+      nextstate_type : "data";
+    }
+    pin (SET) {
+      direction : "input";
+    }
+    ff (IQ,IQN) {
+      clocked_on : "CLK";
+      next_state : "D";
+      preset : "(!SET)";
+    }
+  }
+  cell (dffprsq) {
     area : "2.063360";
     pin (Q) {
       direction : "output";
@@ -122,7 +172,7 @@ library (opc) {
       preset : "(!SET)";
     }
   }
-  cell (inv) {
+  cell (not_gate) {
     area : "0.133120";
     pin (O) {
       direction : "output";
@@ -172,7 +222,7 @@ library (opc) {
       enable : "CLK";
     }
   }
-  cell (nand) {
+  cell (nand_gate) {
     area : "0.199680";
     pin (O) {
       direction : "output";
@@ -185,7 +235,7 @@ library (opc) {
       direction : "input";
     }
   }
-  cell (nor) {
+  cell (nor_gate) {
     area : "0.199680";
     pin (O) {
       direction : "output";
@@ -198,7 +248,7 @@ library (opc) {
       direction : "input";
     }
   }
-  cell (xor) {
+  cell (xor_gate) {
     area : "0.199680";
     pin (O) {
       direction : "output";
@@ -211,7 +261,7 @@ library (opc) {
       direction : "input";
     }
   }
-  cell (xnor) {
+  cell (xnor_gate) {
     area : "0.199680";
     pin (O) {
       direction : "output";
