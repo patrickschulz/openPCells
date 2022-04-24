@@ -153,6 +153,7 @@ void main_list_cell_parameters(struct cmdoptions* cmdoptions, struct keyvaluearr
 
     open_lpcell_lib(L);
     module_load_aux(L);
+    module_load_stack(L);
     module_load_pcell(L);
     module_load_load(L);
 
