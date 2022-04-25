@@ -514,21 +514,25 @@ void geometry_cross(object_t* cell, generics_t* layer, ucoordinate_t width, ucoo
     }
 }
 
-void geometry_ring(object_t* cell, generics_t* layer, ucoordinate_t width, ucoordinate_t height, ucoordinate_t ringwidth)
+void geometry_unequal_ring(object_t* cell, generics_t* layer, ucoordinate_t width, ucoordinate_t height, ucoordinate_t ringwidth, ucoordinate_t ringheight)
 {
+    coordinate_t w = width;
+    coordinate_t h = height;
+    coordinate_t rw = ringwidth;
+    coordinate_t rh = ringheight;
     shape_t* S = shape_create_polygon(13);
     S->layer = layer;
-    shape_append(S, -(width + ringwidth) / 2, -(height + ringwidth) / 2);
-    shape_append(S,  (width + ringwidth) / 2, -(height + ringwidth) / 2);
-    shape_append(S,  (width + ringwidth) / 2,  (height + ringwidth) / 2);
-    shape_append(S, -(width + ringwidth) / 2,  (height + ringwidth) / 2);
-    shape_append(S, -(width + ringwidth) / 2, -(height - ringwidth) / 2);
-    shape_append(S, -(width - ringwidth) / 2, -(height - ringwidth) / 2);
-    shape_append(S, -(width - ringwidth) / 2,  (height - ringwidth) / 2);
-    shape_append(S,  (width - ringwidth) / 2,  (height - ringwidth) / 2);
-    shape_append(S,  (width - ringwidth) / 2, -(height - ringwidth) / 2);
-    shape_append(S, -(width + ringwidth) / 2, -(height - ringwidth) / 2);
-    shape_append(S, -(width + ringwidth) / 2, -(height + ringwidth) / 2); // close polygon
+    shape_append(S, -(w + rw) / 2, -(h + rh) / 2);
+    shape_append(S,  (w + rw) / 2, -(h + rh) / 2);
+    shape_append(S,  (w + rw) / 2,  (h + rh) / 2);
+    shape_append(S, -(w + rw) / 2,  (h + rh) / 2);
+    shape_append(S, -(w + rw) / 2, -(h - rh) / 2);
+    shape_append(S, -(w - rw) / 2, -(h - rh) / 2);
+    shape_append(S, -(w - rw) / 2,  (h - rh) / 2);
+    shape_append(S,  (w - rw) / 2,  (h - rh) / 2);
+    shape_append(S,  (w - rw) / 2, -(h - rh) / 2);
+    shape_append(S, -(w + rw) / 2, -(h - rh) / 2);
+    shape_append(S, -(w + rw) / 2, -(h + rh) / 2); // close polygon
     if(!shape_is_empty(S))
     {
         object_add_shape(cell, S);
@@ -539,27 +543,7 @@ void geometry_ring(object_t* cell, generics_t* layer, ucoordinate_t width, ucoor
     }
 }
 
-void geometry_unequal_ring(object_t* cell, generics_t* layer, ucoordinate_t width, ucoordinate_t height, ucoordinate_t ringwidth, ucoordinate_t ringheight)
+void geometry_ring(object_t* cell, generics_t* layer, ucoordinate_t width, ucoordinate_t height, ucoordinate_t ringwidth)
 {
-    shape_t* S = shape_create_polygon(13);
-    S->layer = layer;
-    shape_append(S, -(width + ringwidth) / 2, -(height + ringheight) / 2);
-    shape_append(S,  (width + ringwidth) / 2, -(height + ringheight) / 2);
-    shape_append(S,  (width + ringwidth) / 2,  (height + ringheight) / 2);
-    shape_append(S, -(width + ringwidth) / 2,  (height + ringheight) / 2);
-    shape_append(S, -(width + ringwidth) / 2, -(height - ringheight) / 2);
-    shape_append(S, -(width - ringwidth) / 2, -(height - ringheight) / 2);
-    shape_append(S, -(width - ringwidth) / 2,  (height - ringheight) / 2);
-    shape_append(S,  (width - ringwidth) / 2,  (height - ringheight) / 2);
-    shape_append(S,  (width - ringwidth) / 2, -(height - ringheight) / 2);
-    shape_append(S, -(width + ringwidth) / 2, -(height - ringheight) / 2);
-    shape_append(S, -(width + ringwidth) / 2, -(height + ringheight) / 2); // close polygon
-    if(!shape_is_empty(S))
-    {
-        object_add_shape(cell, S);
-    }
-    else
-    {
-        shape_destroy(S);
-    }
+    geometry_unequal_ring(cell, layer, width, height, ringwidth, ringwidth);
 }
