@@ -1,7 +1,7 @@
 local module = "register_cell"
 local exporttype = "gds"
 
-local netlist = verilog.read_parse_file(string.format("examples/place_and_route/%s.v", module))
+local netlist = verilog.read_parse_file(string.format("%s.v", module))
 
 verilog.filter_excluded_nets(netlist, { "clk", "_mem.clk", "vdd", "vss", "in", "out", })
 
