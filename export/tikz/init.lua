@@ -27,9 +27,10 @@ function M.at_begin()
     if __standalone then
         table.insert(__content, '\\documentclass{standalone}')
         table.insert(__content, '\\usepackage{tikz}')
+        table.insert(__content, '\\usetikzlibrary{patterns}')
         table.insert(__content, '\\begin{document}')
     end
-    table.insert(__content, '\\begin{tikzpicture}')
+    table.insert(__content, '\\begin{tikzpicture}[x = 5, y = 5]')
 end
 
 function M.at_end()
@@ -68,19 +69,33 @@ local function _format_point(pt, baseunit, sep)
     return string.format("%s%s%s", sx, sep, sy)
 end
 
-local function _format_fill(layer)
-    if layer.nofill then
-        return string.format("\\draw[%s]", layer.color)
+local function _insert_appearance(layer)
+    if layer.order then
     else
-        return string.format("\\fill[%s]", layer.color)
+        if layer.nofill then
+            table.insert(__content, string.format("\\path[draw = %s]", layer.color))
+        else
+            if not layer.pattern then
+                table.insert(__content, string.format("\\path[draw = %s, pattern = crosshatch, pattern color = %s]", layer.color, layer.color))
+            else
+                table.insert(__content, string.format("\\path[fill = %s]", layer.color, layer.color))
+            end
+        end
     end
 end
 
 function M.write_rectangle(layer, bl, tr)
-    table.insert(__content, string.format("%s (%s) rectangle (%s);", _format_fill(layer), _format_point(bl, baseunit, ", "), _format_point(tr, baseunit, ", ")))
+    _insert_appearance(layer)
+    table.insert(__content, string.format("(%s) rectangle (%s);", _format_point(bl, baseunit, ", "), _format_point(tr, baseunit, ", ")))
 end
 
 function M.write_polygon(layer, pts)
+    _insert_appearance(layer)
+    local ptstream = {}
+    for _, pt in ipairs(pts) do
+        table.insert(ptstream, string.format("(%s)", _format_point(pt, baseunit, ", ")))
+    end
+    table.insert(__content, table.concat(ptstream, " -- ") .. ";")
 end
 
 return M
