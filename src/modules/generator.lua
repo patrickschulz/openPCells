@@ -31,15 +31,15 @@ local function _write_module(rows, routes)
     if routes then
         table.insert(lines, '    local routes = {')
         for _, route in ipairs(routes) do
-          table.insert(lines, '        {')
-          for _, moves in ipairs(route) do
-            local entry = {}
+            table.insert(lines, '        {')
+            for _, moves in ipairs(route) do
+                local entry = {}
                 for k, v in pairs(moves) do
                     table.insert(entry, string.format("%s = %q", k, v))
                 end
-            table.insert(lines, string.format('            { %s },', table.concat(entry, ", ")))
-          end
-          table.insert(lines, '        },')
+                table.insert(lines, string.format('            { %s },', table.concat(entry, ", ")))
+            end
+            table.insert(lines, '        },')
         end
         table.insert(lines, '    }')
         table.insert(lines, '    local bp = pcell.get_parameters("stdcells/base")')

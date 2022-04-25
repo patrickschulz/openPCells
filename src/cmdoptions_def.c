@@ -1,8 +1,8 @@
 cmdoptions_add_section(cmdoptions, "Main generation functions");
 cmdoptions_add_option(cmdoptions, 'T', "technology", SINGLE_ARG, "specify technology");
 cmdoptions_add_option(cmdoptions, 'C', "cell", SINGLE_ARG, "specify cell");
-cmdoptions_add_option(cmdoptions, 'E', "export", SINGLE_ARG, "specify export type");
-cmdoptions_add_option(cmdoptions, NO_SHORT, "export-layers", SINGLE_ARG, "specify which layer data from the technology layer map is given to the export. If this matches the name of the export (e.g. gds and gds) then this option is not needed. It is only useful if an export uses layer definition intended for another export (e.g. magic and SKILL)");
+cmdoptions_add_option(cmdoptions, 'E', "export", MULTI_ARGS, "specify export type (multiple arguments possible). Some export types re-use layer data defined for other export types (for example, GDSII and OASIS layer/purpose pairs often use the same data). It is possible to specify the used data by prefixing it separated with a colon (':') -> 'gds:oasis' uses the GDSII layers for the oasis export type. While it is possible to use something like 'gds:gds', this is not needed.");
+//cmdoptions_add_option(cmdoptions, NO_SHORT, "export-layers", SINGLE_ARG, "specify which layer data from the technology layer map is given to the export. If this matches the name of the export (e.g. gds and gds) then this option is not needed. It is only useful if an export uses layer definition intended for another export (e.g. magic and SKILL)");
 cmdoptions_add_option(cmdoptions, 'X', "export-options", MULTI_ARGS, "pass special options to export. This passes the next argument (separated by white space) literally. This means that several arguments have to be grouped, usually by enclosing it in quotations marks (e.g. -X '--foo --bar'). An overview of the available options for the respective export can be found by passing -h, e.g. opc --export gds -X -h");
 cmdoptions_add_option(cmdoptions, 'c', "cellscript", SINGLE_ARG, "execute cell script. With this option, --cell is not needed to create a layout. The layout described in the cell script is generated, so the called file must return an object.");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "cellscript-args", MULTI_ARGS, "pass arguments to cellscripts (use with --cellscript). Can be called multiple times");
@@ -16,7 +16,7 @@ cmdoptions_add_option(cmdoptions, NO_SHORT, "prepend-parameter-file", MULTI_ARGS
 cmdoptions_add_option(cmdoptions, NO_SHORT, "append-parameter-file", MULTI_ARGS, "file to read parameters from (appended to the list). This file should be a regular lua file returning a table with the parameters. This option can be used multiple times. Parameter files that are specified later overwrite parameters from earlier files.");
 cmdoptions_add_alias(cmdoptions, "append-parameter-file", 'p', "pfile", "synonym for --append-parameter-file");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "disable-pfile", NO_ARG, "disable reading of any parameter files");
-cmdoptions_add_option_default(cmdoptions, 'f', "filename", SINGLE_ARG, "openPCells", "specify output filename for export");
+cmdoptions_add_option_default(cmdoptions, 'f', "filename", SINGLE_ARG, "openPCells", "specify output filename for export. The name should be specified without an extension (such as '.gds'), as the export types add their specific extension to the filename, this is especially useful when using more than one export type");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "origin", SINGLE_ARG, "origin of cell (move (0, 0)). This option expects a point input, e.g. '(10, 10)' (with parantheses)");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "translate", SINGLE_ARG, "move cell by (x, y). This option expects a point input, e.g. '(10, 10)' (with parantheses)");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "orientation", SINGLE_ARG, "orientation of cell (possible values: 0 (regular), fx (flip x), fy (flip y), fxy (flip x and y))");

@@ -1,15 +1,16 @@
-local module = "counter"
+local module = "register_cell"
 local exporttype = "gds"
 
 local netlist = verilog.read_parse_file(string.format("examples/place_and_route/%s.v", module))
 
 verilog.filter_excluded_nets(netlist, { "clk", "_mem.clk", "vdd", "vss", "in", "out", })
 
-local instances, nets = verilogprocessor.collect_nets_cells(netlist)
+local cellinfo = verilogprocessor.read_cellinfo_from_file("cellinfo.lua")
+local instances, nets = verilogprocessor.collect_nets_cells(netlist, cellinfo)
 
-local floorplan = placement.create_floorplan_fixed_rows(instances, 0.5, 2)
+local floorplan = placement.create_floorplan_fixed_rows(instances, 0.8, 2)
 local rows = placement.optimize(instances, nets, floorplan)
-placement.insert_filler_names(rows, 100)
+placement.insert_filler_names(rows, floorplan.floorplan_width)
 
 local routes = routing.legalize(nets, rows, floorplan)
 

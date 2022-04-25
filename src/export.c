@@ -8,33 +8,12 @@
 #include "lua_util.h"
 #include "lobject.h"
 #include "export_common.h"
-#include "pcell.h"
 #include "gdsexport.h"
 #include "lpoint.h"
-#include "vector.h"
 
 #define EXPORT_STATUS_SUCCESS 0
 #define EXPORT_STATUS_NOTFOUND 1
 #define EXPORT_STATUS_LOADERROR 2
-
-static struct vector* searchpaths = NULL;
-
-void export_add_path(const char* path)
-{
-    if(!searchpaths)
-    {
-        searchpaths = vector_create();
-    }
-    vector_append(searchpaths, util_copy_string(path));
-}
-
-static void _destroy_searchpaths(void)
-{
-    if(searchpaths)
-    {
-        vector_destroy(searchpaths, &free);
-    }
-}
 
 static void _write_ports(object_t* cell, struct export_data* data, struct export_functions* funcs, char leftdelim, char rightdelim)
 {
@@ -90,23 +69,26 @@ static void _write_cell(object_t* cell, struct export_data* data, struct export_
                 break;
         }
     }
-    for(unsigned int i = 0; i < cell->children_size; ++i)
+    if(cell->children)
     {
-        point_t origin = { .x = 0, .y = 0 };
-        object_t* child = cell->children[i];
-        transformationmatrix_apply_transformation(child->trans, &origin);
-        transformationmatrix_apply_transformation(cell->trans, &origin);
-        if(child->isarray && funcs->write_cell_array)
+        for(unsigned int i = 0; i < vector_size(cell->children); ++i)
         {
-            funcs->write_cell_array(data, child->identifier, origin.x, origin.y, child->trans, child->xrep, child->yrep, child->xpitch, child->ypitch);
-        }
-        else
-        {
-            for(unsigned int ix = 1; ix <= child->xrep; ++ix)
+            point_t origin = { .x = 0, .y = 0 };
+            object_t* child = vector_get(cell->children, i);
+            transformationmatrix_apply_transformation(child->trans, &origin);
+            transformationmatrix_apply_transformation(cell->trans, &origin);
+            if(child->isarray && funcs->write_cell_array)
             {
-                for(unsigned int iy = 1; iy <= child->yrep; ++iy)
+                funcs->write_cell_array(data, child->identifier, origin.x, origin.y, child->trans, child->xrep, child->yrep, child->xpitch, child->ypitch);
+            }
+            else
+            {
+                for(unsigned int ix = 1; ix <= child->xrep; ++ix)
                 {
-                    funcs->write_cell_reference(data, child->identifier, origin.x + (ix - 1) * child->xpitch, origin.y + (iy - 1) * child->ypitch, child->trans);
+                    for(unsigned int iy = 1; iy <= child->yrep; ++iy)
+                    {
+                        funcs->write_cell_reference(data, child->identifier, origin.x + (ix - 1) * child->xpitch, origin.y + (iy - 1) * child->ypitch, child->trans);
+                    }
                 }
             }
         }
@@ -272,51 +254,54 @@ static int _write_cell_lua(lua_State* L, object_t* cell, int write_ports, char l
                 break;
         }
     }
-    for(unsigned int i = 0; i < cell->children_size; ++i)
+    if(cell->children)
     {
-        point_t origin = { .x = 0, .y = 0 };
-        object_t* child = cell->children[i];
-        transformationmatrix_apply_transformation(child->trans, &origin);
-        transformationmatrix_apply_transformation(cell->trans, &origin);
-        if(child->isarray)
+        for(unsigned int i = 0; i < vector_size(cell->children); ++i)
         {
-            lua_getfield(L, -1, "write_cell_array");
-            if(lua_isnil(L, -1))
+            point_t origin = { .x = 0, .y = 0 };
+            object_t* child = vector_get(cell->children, i);
+            transformationmatrix_apply_transformation(child->trans, &origin);
+            transformationmatrix_apply_transformation(cell->trans, &origin);
+            if(child->isarray)
             {
-                lua_pop(L, 1);
-            }
-            else
-            {
-                lua_pushstring(L, child->identifier);
-                lua_pushinteger(L, origin.x);
-                lua_pushinteger(L, origin.y);
-                _push_trans(L, child->trans);
-                lua_pushinteger(L, child->xrep);
-                lua_pushinteger(L, child->yrep);
-                lua_pushinteger(L, child->xpitch);
-                lua_pushinteger(L, child->ypitch);
-                int ret = lua_pcall(L, 8, 0, 0);
-                if(ret != LUA_OK)
+                lua_getfield(L, -1, "write_cell_array");
+                if(lua_isnil(L, -1))
                 {
-                    return ret;
+                    lua_pop(L, 1);
                 }
-            }
-        }
-        else
-        {
-            for(unsigned int ix = 1; ix <= child->xrep; ++ix)
-            {
-                for(unsigned int iy = 1; iy <= child->yrep; ++iy)
+                else
                 {
-                    lua_getfield(L, -1, "write_cell_reference");
                     lua_pushstring(L, child->identifier);
-                    lua_pushinteger(L, origin.x + (ix - 1) * child->xpitch);
-                    lua_pushinteger(L, origin.y + (iy - 1) * child->ypitch);
+                    lua_pushinteger(L, origin.x);
+                    lua_pushinteger(L, origin.y);
                     _push_trans(L, child->trans);
-                    int ret = lua_pcall(L, 4, 0, 0);
+                    lua_pushinteger(L, child->xrep);
+                    lua_pushinteger(L, child->yrep);
+                    lua_pushinteger(L, child->xpitch);
+                    lua_pushinteger(L, child->ypitch);
+                    int ret = lua_pcall(L, 8, 0, 0);
                     if(ret != LUA_OK)
                     {
                         return ret;
+                    }
+                }
+            }
+            else
+            {
+                for(unsigned int ix = 1; ix <= child->xrep; ++ix)
+                {
+                    for(unsigned int iy = 1; iy <= child->yrep; ++iy)
+                    {
+                        lua_getfield(L, -1, "write_cell_reference");
+                        lua_pushstring(L, child->identifier);
+                        lua_pushinteger(L, origin.x + (ix - 1) * child->xpitch);
+                        lua_pushinteger(L, origin.y + (iy - 1) * child->ypitch);
+                        _push_trans(L, child->trans);
+                        int ret = lua_pcall(L, 4, 0, 0);
+                        if(ret != LUA_OK)
+                        {
+                            return ret;
+                        }
                     }
                 }
             }
@@ -497,33 +482,32 @@ static int _write_toplevel_lua(lua_State* L, object_t* object, struct pcell_stat
     return LUA_OK;
 }
 
-void export_write_toplevel(object_t* toplevel, struct pcell_state* pcell_state, const char* exportname, const char* basename, const char* toplevelname, char leftdelim, char rightdelim, const char* const * exportoptions, int writechildrenports)
+void export_write_toplevel(object_t* toplevel, struct pcell_state* pcell_state, struct const_vector* searchpaths, const char* exportname, const char* basename, const char* toplevelname, char leftdelim, char rightdelim, const char* const * exportoptions, int writechildrenports)
 {
     if(object_is_empty(toplevel))
     {
         puts("export: toplevel is empty");
-        _destroy_searchpaths();
         return;
     }
 
     struct export_data* data = export_create_data();
-    const char* extension;
-    int status = 0;
+    char* extension;
+    int status = EXPORT_STATUS_NOTFOUND;
 
     struct export_functions* funcs = get_export_functions(exportname);
     if(funcs) // C-defined exports
     {
         _write_toplevel_C(toplevel, pcell_state, toplevelname, data, funcs, writechildrenports, leftdelim, rightdelim);
-        extension = funcs->get_extension();
+        extension = util_copy_string(funcs->get_extension());
         status = EXPORT_STATUS_SUCCESS;
     }
     else // lua-defined exports
     {
         if(searchpaths)
         {
-            for(unsigned int i = 0; i < vector_size(searchpaths); ++i)
+            for(unsigned int i = 0; i < const_vector_size(searchpaths); ++i)
             {
-                const char* searchpath = vector_get(searchpaths, i);
+                const char* searchpath = const_vector_get(searchpaths, i);
                 size_t len = strlen(searchpath) + strlen(exportname) + 11; // + 11: "init.lua" + 2 * '/' + terminating zero
                 char* exportfilename = malloc(len);
                 snprintf(exportfilename, len, "%s/%s/init.lua", searchpath, exportname);
@@ -567,6 +551,7 @@ void export_write_toplevel(object_t* toplevel, struct pcell_state* pcell_state, 
                     {
                         const char* msg = lua_tostring(L, -1);
                         fprintf(stderr, "error while calling lua export: %s\n", msg);
+                        lua_close(L);
                         return;
                     }
 
@@ -576,11 +561,13 @@ void export_write_toplevel(object_t* toplevel, struct pcell_state* pcell_state, 
                     {
                         const char* msg = lua_tostring(L, -1);
                         fprintf(stderr, "error while calling lua export: %s\n", msg);
+                        lua_close(L);
                         return;
                     }
-                    extension = lua_tostring(L, -1);
+                    extension = util_copy_string(lua_tostring(L, -1));
                     lua_pop(L, 1); // pop extension
                     status = EXPORT_STATUS_SUCCESS;
+                    lua_close(L);
                     break; // found export, don't continue search
                 }
                 lua_close(L);
@@ -596,6 +583,7 @@ void export_write_toplevel(object_t* toplevel, struct pcell_state* pcell_state, 
         FILE* file = fopen(filename, "w");
         fwrite(data->data, 1, data->length, file);
         fclose(file);
+        free(extension);
         free(filename);
         export_destroy_data(data);
         export_destroy_functions(funcs);
@@ -608,7 +596,5 @@ void export_write_toplevel(object_t* toplevel, struct pcell_state* pcell_state, 
     {
         puts("error while loading export");
     }
-
-    _destroy_searchpaths();
 }
 

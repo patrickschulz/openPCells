@@ -82,32 +82,37 @@ object_t* object_copy(object_t* cell)
         }
 
         // anchors
-        new->anchors_size = cell->anchors_size;
-        new->anchors_capacity = cell->anchors_capacity;
-        new->anchors = malloc(sizeof(*new->anchors) * new->anchors_capacity);
-        for(unsigned int i = 0; i < cell->anchors_size; ++i)
+        if(cell->anchors)
         {
-            new->anchors[i] = malloc(sizeof(*new->anchors[i]));
-            new->anchors[i]->where = point_copy(cell->anchors[i]->where);
-            new->anchors[i]->name = malloc(strlen(cell->anchors[i]->name) + 1);
-            strcpy(new->anchors[i]->name, cell->anchors[i]->name);
+            new->anchors = hashmap_create();
+            struct hashmap_iterator* it = hashmap_iterator_create(cell->anchors);
+            while(hashmap_iterator_is_valid(it))
+            {
+                const char* key = hashmap_iterator_key(it);
+                point_t* pt = hashmap_iterator_value(it);
+                hashmap_insert(new->anchors, key, point_copy(pt));
+                hashmap_iterator_next(it);
+            }
+            hashmap_iterator_destroy(it);
         }
 
         // children
-        new->children_size = cell->children_size;
-        new->children_capacity = cell->children_capacity;
-        new->children = malloc(sizeof(*new->children) * cell->children_capacity);
-        for(unsigned int i = 0; i < cell->children_size; ++i)
+        if(cell->children)
         {
-            new->children[i] = object_copy(cell->children[i]);
+            new->children = vector_create();
+            for(unsigned int i = 0; i < vector_size(cell->children); ++i)
+            {
+                vector_append(new->children, object_copy(vector_get(cell->children, i)));
+            }
         }
     }
     return new;
 }
 
 
-void object_destroy(object_t* cell)
+void object_destroy(void* cellv)
 {
+    object_t* cell = cellv;
     if(cell->isproxy)
     {
         free(cell->identifier);
@@ -122,20 +127,16 @@ void object_destroy(object_t* cell)
         free(cell->shapes);
 
         // children
-        for(unsigned int i = 0; i < cell->children_size; ++i)
+        if(cell->children)
         {
-            object_destroy(cell->children[i]);
+            vector_destroy(cell->children, object_destroy);
         }
-        free(cell->children);
 
         // anchors
-        for(unsigned int i = 0; i < cell->anchors_size; ++i)
+        if(cell->anchors)
         {
-            point_destroy(cell->anchors[i]->where);
-            free(cell->anchors[i]->name);
-            free(cell->anchors[i]);
+            hashmap_destroy(cell->anchors, point_destroy);
         }
-        free(cell->anchors);
 
         // ports
         for(unsigned int i = 0; i < cell->ports_size; ++i)
@@ -203,15 +204,11 @@ object_t* object_add_child(object_t* cell, struct pcell_state* pcell_state, cons
     child->xpitch = 0;
     child->ypitch = 0;
     child->trans = transformationmatrix_invert(cell->trans);
-
-    if(cell->children_capacity == cell->children_size)
+    if(!cell->children)
     {
-        cell->children_capacity = cell->children_capacity == 0 ? 1 : cell->children_capacity * 2;
-        object_t** children = realloc(cell->children, sizeof(*children) * cell->children_capacity);
-        cell->children = children;
+        cell->children = vector_create();
     }
-    cell->children[cell->children_size] = child;
-    cell->children_size += 1;
+    vector_append(cell->children, child);
     return child;
 }
 
@@ -243,17 +240,11 @@ void object_merge_into_shallow(object_t* cell, object_t* other)
 
 void object_add_anchor(object_t* cell, const char* name, coordinate_t x, coordinate_t y)
 {
-    if(cell->anchors_capacity == cell->anchors_size)
+    if(!cell->anchors)
     {
-        cell->anchors_capacity = cell->anchors_capacity == 0 ? 1 : cell->anchors_capacity * 2;
-        struct anchor** anchors = realloc(cell->anchors, sizeof(*anchors) * cell->anchors_capacity);
-        cell->anchors = anchors;
+        cell->anchors = hashmap_create();
     }
-    cell->anchors[cell->anchors_size] = malloc(sizeof(*cell->anchors[cell->anchors_size]));
-    cell->anchors[cell->anchors_size]->where = point_create(x, y);
-    cell->anchors[cell->anchors_size]->name = malloc(strlen(name) + 1);
-    strcpy(cell->anchors[cell->anchors_size]->name, name);
-    cell->anchors_size += 1;
+    hashmap_insert(cell->anchors, name, point_create(x, y));
 }
 
 static point_t* _get_special_anchor(const object_t* cell, const char* name, const transformationmatrix_t* trans1, const transformationmatrix_t* trans2)
@@ -371,16 +362,14 @@ static point_t* _get_regular_anchor(const object_t* cell, const char* name)
     {
         obj = cell->reference;
     }
-    point_t* pt = NULL;
-    for(unsigned int i = 0; i < obj->anchors_size; ++i)
+    if(obj->anchors)
     {
-        if(strcmp(obj->anchors[i]->name, name) == 0)
+        if(hashmap_exists(obj->anchors, name))
         {
-            pt = point_copy(obj->anchors[i]->where);
-            break;
+            return point_copy((point_t*) hashmap_get(obj->anchors, name));
         }
     }
-    return pt;
+    return NULL;
 }
 
 point_t* object_get_anchor(const object_t* cell, const char* name)
@@ -415,6 +404,22 @@ point_t* object_get_anchor(const object_t* cell, const char* name)
     // no anchor found
     return NULL;
 }
+
+/*
+struct keyvaluearray* object_get_all_regular_anchors(const object_t* cell)
+{
+    pt = _get_regular_anchor(obj, name);
+    if(pt)
+    {
+        transformationmatrix_apply_transformation(obj->trans, pt);
+        if(cell->isproxy)
+        {
+            transformationmatrix_apply_transformation(cell->trans, pt);
+        }
+        return pt;
+    }
+}
+*/
 
 static void _add_port(object_t* cell, const char* name, const char* anchorname, generics_t* layer, coordinate_t x, coordinate_t y, int isbusport, int busindex)
 {
@@ -605,22 +610,26 @@ static void _get_minmax_xy(object_t* cell, coordinate_t* minxp, coordinate_t* mi
                 break;
         }
     }
-    for(unsigned int i = 0; i < cell->children_size; ++i)
+    if(cell->children)
     {
-        object_t* obj = cell->children[i]->reference;
-        coordinate_t minx_, maxx_, miny_, maxy_;
-        _get_minmax_xy(obj, &minx_, &miny_, &maxx_, &maxy_);
-        // FIXME: is the transformation really needed? If yes, then the shapes points also need to be transformed
-        //local pt1 = point.create(minx_, miny_)
-        //local pt2 = point.create(maxx_, maxy_)
-        //obj.trans:apply_transformation(pt1)
-        //obj.trans:apply_transformation(pt2)
-        //minx_, miny_ = pt1:unwrap()
-        //maxx_, maxy_ = pt2:unwrap()
-        minx = min(minx, minx_);
-        maxx = max(maxx, maxx_);
-        miny = min(miny, miny_);
-        maxy = max(maxy, maxy_);
+        for(unsigned int i = 0; i < vector_size(cell->children); ++i)
+        {
+            object_t* child = vector_get(cell->children, i);
+            object_t* obj = child->reference;
+            coordinate_t minx_, maxx_, miny_, maxy_;
+            _get_minmax_xy(obj, &minx_, &miny_, &maxx_, &maxy_);
+            // FIXME: is the transformation really needed? If yes, then the shapes points also need to be transformed
+            //local pt1 = point.create(minx_, miny_)
+            //local pt2 = point.create(maxx_, maxy_)
+            //obj.trans:apply_transformation(pt1)
+            //obj.trans:apply_transformation(pt2)
+            //minx_, miny_ = pt1:unwrap()
+            //maxx_, maxy_ = pt2:unwrap()
+            minx = min(minx, minx_);
+            maxx = max(maxx, maxx_);
+            miny = min(miny, miny_);
+            maxy = max(maxy, maxy_);
+        }
     }
     *minxp = minx;
     *maxxp = maxx;
@@ -665,9 +674,12 @@ static void _flipx(object_t* cell, int ischild)
     }
     if(!cell->isproxy)
     {
-        for(unsigned int i = 0; i < cell->children_size; ++i)
+        if(cell->children)
         {
-            _flipx(cell->children[i], 1);
+            for(unsigned int i = 0; i < vector_size(cell->children); ++i)
+            {
+                _flipx(vector_get(cell->children, i), 1);
+            }
         }
     }
 }
@@ -688,9 +700,12 @@ static void _flipy(object_t* cell, int ischild)
     }
     if(!cell->isproxy)
     {
-        for(unsigned int i = 0; i < cell->children_size; ++i)
+        if(cell->children)
         {
-            _flipy(cell->children[i], 1);
+            for(unsigned int i = 0; i < vector_size(cell->children); ++i)
+            {
+                _flipy(vector_get(cell->children, i), 1);
+            }
         }
     }
 }
@@ -711,52 +726,54 @@ void object_apply_transformation(object_t* cell)
 
 int object_is_empty(object_t* cell)
 {
-    return (cell->shapes_size == 0) && (cell->children_size == 0) && (cell->ports_size == 0);
+    return (cell->shapes_size == 0) && (!cell->children) && (cell->ports_size == 0);
 }
 
 void object_flatten(object_t* cell, struct pcell_state* pcell_state, int flattenports)
 {
     // add shapes and flatten children (recursive)
-    for(unsigned int i = 0; i < cell->children_size; ++i)
+    if(cell->children)
     {
-        object_t* child = cell->children[i];
-        object_t* reference = child->reference; // FIXME: do we need to copy? If this cell is used somewhere else (partial flatten) than that will most likely cause headaches
-        object_flatten(reference, pcell_state, flattenports);
-        for(unsigned int ix = 1; ix <= child->xrep; ++ix)
+        for(unsigned int i = 0; i < vector_size(cell->children); ++i)
         {
-            for(unsigned int iy = 1; iy <= child->yrep; ++iy)
+            object_t* child = vector_get(cell->children, i);
+            object_t* reference = child->reference; // FIXME: do we need to copy? If this cell is used somewhere else (partial flatten) than that will most likely cause headaches
+            object_flatten(reference, pcell_state, flattenports);
+            for(unsigned int ix = 1; ix <= child->xrep; ++ix)
             {
-                for(unsigned int i = 0; i < reference->shapes_size; ++i)
+                for(unsigned int iy = 1; iy <= child->yrep; ++iy)
                 {
-                    shape_t* S = shape_copy(reference->shapes[i]);
-                    shape_apply_transformation(S, child->trans);
-                    shape_apply_transformation(S, reference->trans);
-                    for(unsigned int i = 0; i < S->size; ++i)
+                    for(unsigned int i = 0; i < reference->shapes_size; ++i)
                     {
-                        S->points[i]->x += (ix - 1) * child->xpitch;
-                        S->points[i]->y += (iy - 1) * child->ypitch;
+                        shape_t* S = shape_copy(reference->shapes[i]);
+                        shape_apply_transformation(S, child->trans);
+                        shape_apply_transformation(S, reference->trans);
+                        for(unsigned int i = 0; i < S->size; ++i)
+                        {
+                            S->points[i]->x += (ix - 1) * child->xpitch;
+                            S->points[i]->y += (iy - 1) * child->ypitch;
+                        }
+                        object_add_raw_shape(cell, S);
                     }
-                    object_add_raw_shape(cell, S);
+                    //if flattenports then
+                    //    for _, port in ipairs(cell.ports) do
+                    //        local new = { name = port.name, layer = port.layer:copy(), where = port.where:copy() }
+                    //        child.trans:apply_translation(new.where)
+                    //        obj.trans:apply_translation(new.where)
+                    //        new.where:translate((ix - 1) * xpitch, (iy - 1) * ypitch)
+                    //    end
+                    //end
                 }
-                //if flattenports then
-                //    for _, port in ipairs(cell.ports) do
-                //        local new = { name = port.name, layer = port.layer:copy(), where = port.where:copy() }
-                //        child.trans:apply_translation(new.where)
-                //        obj.trans:apply_translation(new.where)
-                //        new.where:translate((ix - 1) * xpitch, (iy - 1) * ypitch)
-                //    end
-                //end
             }
         }
+        // destroy children
+        for(unsigned int i = 0; i < vector_size(cell->children); ++i)
+        {
+            object_t* child = vector_get(cell->children, i);
+            pcell_unlink_cell_reference(pcell_state, child->identifier);
+        }
+        vector_destroy(cell->children, object_destroy);
     }
-    // destroy children
-    for(unsigned int i = 0; i < cell->children_size; ++i)
-    {
-        pcell_unlink_cell_reference(pcell_state, cell->children[i]->identifier);
-        object_destroy(cell->children[i]);
-    }
-    free(cell->children);
     cell->children = NULL;
-    cell->children_size = 0;
 }
 

@@ -47,7 +47,6 @@ generics_t* generics_create_premapped_layer(const char* name, size_t size)
     layer->data = calloc(size, sizeof(*layer->data));
     layer->exportnames = calloc(size, sizeof(*layer->exportnames));
     layer->size = size;
-    layer->is_pre = 1;
     return layer;
 }
 
@@ -296,7 +295,7 @@ int generics_resolve_premapped_layers(struct layermap* generics_layer_map, const
     {
         int found = 0;
         generics_t* layer = generics_layer_map->entries[i]->layer;
-        if(layer->is_pre)
+        if(layer->size > 0) // empty layers are ignored
         {
             unsigned int idx = 0;
             for(unsigned int k = 0; k < layer->size; ++k)
@@ -326,7 +325,6 @@ int generics_resolve_premapped_layers(struct layermap* generics_layer_map, const
             char* str = layer->exportnames[0];
             layer->exportnames[0] = layer->exportnames[idx];
             layer->exportnames[idx] = str;
-            layer->is_pre = 0;
         }
     }
     return 1;

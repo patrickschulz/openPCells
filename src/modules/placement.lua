@@ -11,17 +11,17 @@ local M = {}
 
 local function _get_geometry(instances)
     local total_width = 0
-    local required_width = 0
+    local required_min_width = 0
     for _, instance in ipairs(instances) do
         local width = instance.width
         total_width = total_width + width
-        required_width = math.max(required_width, width)
+        required_min_width = math.max(required_min_width, width)
     end
-    return required_width, total_width
+    return required_min_width, total_width
 end
 
-local function _create_options(fixedrows, required_width, total_width, utilization, aspectratio)
-    local height = 7
+local function _create_options(fixedrows, required_min_width, total_width, utilization, aspectratio)
+    local height = 7 -- FIXME
     local area = total_width * height
     local floorplan_width, floorplan_height
     if fixedrows then
@@ -32,8 +32,8 @@ local function _create_options(fixedrows, required_width, total_width, utilizati
         floorplan_height = math.sqrt(area / utilization / aspectratio)
 
         -- check for too narrow floorplan
-        if floorplan_width < required_width then
-            floorplan_width = required_width / math.sqrt(utilization)
+        if floorplan_width < required_min_width then
+            floorplan_width = required_min_width / math.sqrt(utilization)
             floorplan_height = area / utilization / floorplan_width
             print("Floorplan width is smaller than required width, this will be fixed.")
             print(string.format("The actual aspect ratio (%.2f) will differ from the specified aspect ratio (%.2f)", floorplan_width / floorplan_height, aspectratio))
@@ -69,15 +69,15 @@ end
 
 function M.create_floorplan_aspectratio(instances, utilization, aspectratio)
     -- placer options
-    local required_width, total_width = _get_geometry(instances)
-    local options = _create_options(nil, required_width, total_width, utilization, aspectratio)
+    local required_min_width, total_width = _get_geometry(instances)
+    local options = _create_options(nil, required_min_width, total_width, utilization, aspectratio)
     return options
 end
 
 function M.create_floorplan_fixed_rows(instances, utilization, numrows)
     -- placer options
-    local required_width, total_width = _get_geometry(instances)
-    local options = _create_options(numrows, required_width, total_width, utilization) -- aspectratio not used
+    local required_min_width, total_width = _get_geometry(instances)
+    local options = _create_options(numrows, required_min_width, total_width, utilization) -- aspectratio not used
     return options
 end
 
@@ -134,7 +134,7 @@ function M.insert_filler_names(rows, width)
 
                 for j = 1, numfill do
                     table.insert(rowcells, i + inscorrection, {
-                        instance = string.format("fill_%d_%d", row, j),
+                        instance = string.format("fill_%d_%d", row, j + inscorrection),
                         reference = "isogate",
                         width = 1,
                     })
@@ -156,56 +156,48 @@ end
 ---------------------------------------------------------------------------------
 --                         In-cell layout functions                            --
 ---------------------------------------------------------------------------------
+local function _get_cell_width(name)
+    local lut = {
+        isogate = 1,
+        not_gate = 2,
+        nand_gate = 2,
+        nor_gate = 2,
+        xor_gate = 10,
+        xnor_gate = 11,
+        dffp = 22,
+        dffpq = 22,
+        dffprq = 26,
+        dffn = 24,
+        dffnq = 24,
+    }
+    if not lut[name] then
+        moderror(string.format("unknown stdcell '%s'", name))
+    end
+    return lut[name]
+end
 
--- in-cell placement functions
 function M.create_reference_rows(cellnames)
     local names = {}
     local references = {}
-    local cellwidths = {
-        not_gate = 1,
-        nor_gate = 2,
-        nand_gate = 2,
-        or_gate = 4,
-        xor_gate = 10,
-        dff = 21,
-        dffp = 21,
-        dffn = 21,
-    }
-    -- the cell map allows different cells in the gate netlist to actually use the same pcell (e.g. dffp vs. dffn)
-    -- Also, mapping allows the use of cell parameters
-    local cell_map = {
-        dffp = {
-            name = "dff",
-            parameters = { clockpolarity = "positive" }
-        },
-        dffn = {
-            name = "dff",
-            parameters = { clockpolarity = "negative" }
-        },
-    }
     for row, entries in ipairs(cellnames) do
         names[row] = {}
         for column, entry in ipairs(entries) do
-            local instance, cellname
+            local instance, cellname, args
             if type(entry) == "table" then
                 instance = entry.instance
                 cellname = entry.reference
+                args = entry.args
             else
                 instance = string.format("I_%d_%d", row, column)
                 cellname = entry
             end
             if not references[cellname] then
-                local mapped = cell_map[cellname]
-                if mapped then
-                    references[cellname] = pcell.add_cell_reference(pcell.create_layout(string.format("stdcells/%s", mapped.name), mapped.parameters), cellname)
-                else
-                    references[cellname] = pcell.add_cell_reference(pcell.create_layout(string.format("stdcells/%s", cellname)), cellname)
-                end
+                references[cellname] = pcell.add_cell_reference(pcell.create_layout(string.format("stdcells/%s", cellname), args), cellname)
             end
             names[row][column] = { 
                 instance = instance,
                 reference = references[cellname],
-                width = cellwidths[cellname]
+                width = _get_cell_width(cellname)
             }
         end
     end
