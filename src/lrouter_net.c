@@ -147,7 +147,7 @@ void net_create_deltas(net_t *net)
     {
 	    point = point_new(0, ysteps, 0, DEFAULT_POINT_SCORE);
     }
-    else
+    else if(points[net_len - 1].z)
     {
 	    point = point_new(0, 0, zsteps, DEFAULT_POINT_SCORE);
     }
