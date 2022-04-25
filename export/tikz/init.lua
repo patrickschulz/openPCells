@@ -68,8 +68,16 @@ local function _format_point(pt, baseunit, sep)
     return string.format("%s%s%s", sx, sep, sy)
 end
 
+local function _format_fill(layer)
+    if layer.nofill then
+        return string.format("\\draw[%s]", layer.color)
+    else
+        return string.format("\\fill[%s]", layer.color)
+    end
+end
+
 function M.write_rectangle(layer, bl, tr)
-    table.insert(__content, string.format("\\fill[%s, opacity = 0.3] (%s) rectangle (%s);", layer.color, _format_point(bl, baseunit, ", "), _format_point(tr, baseunit, ", ")))
+    table.insert(__content, string.format("%s (%s) rectangle (%s);", _format_fill(layer), _format_point(bl, baseunit, ", "), _format_point(tr, baseunit, ", ")))
 end
 
 function M.write_polygon(layer, pts)
