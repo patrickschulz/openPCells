@@ -581,7 +581,6 @@ void export_write_toplevel(object_t* toplevel, struct pcell_state* pcell_state, 
         char* filename = malloc(len);
         snprintf(filename, len + 2, "%s.%s", basename, extension);
         FILE* file = fopen(filename, "w");
-        printf("writing %ld bytes of data\n", data->length);
         fwrite(data->data, 1, data->length, file);
         fclose(file);
         free(extension);
