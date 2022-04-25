@@ -17,26 +17,39 @@ function M.set_options(opt)
     end
 end
 
+local __before = {}
+local __after = {}
 local __content = {}
 
 function M.finalize()
-    return table.concat(__content, "\n")
+    local t = {}
+    for _, entry in ipairs(__before) do
+        table.insert(t, entry)
+    end
+    table.sort(__content, function(lhs, rhs) return lhs.order < rhs.order end)
+    for _, entry in ipairs(__content) do
+        table.insert(t, entry.content)
+    end
+    for _, entry in ipairs(__after) do
+        table.insert(t, entry)
+    end
+    return table.concat(t, "\n")
 end
 
 function M.at_begin()
     if __standalone then
-        table.insert(__content, '\\documentclass{standalone}')
-        table.insert(__content, '\\usepackage{tikz}')
-        table.insert(__content, '\\usetikzlibrary{patterns}')
-        table.insert(__content, '\\begin{document}')
+        table.insert(__before, '\\documentclass{standalone}')
+        table.insert(__before, '\\usepackage{tikz}')
+        table.insert(__before, '\\usetikzlibrary{patterns}')
+        table.insert(__before, '\\begin{document}')
     end
-    table.insert(__content, '\\begin{tikzpicture}[x = 5, y = 5]')
+    table.insert(__before, '\\begin{tikzpicture}[x = 5, y = 5]')
 end
 
 function M.at_end()
-    table.insert(__content, '\\end{tikzpicture}')
+    table.insert(__after, '\\end{tikzpicture}')
     if __standalone then
-        table.insert(__content, '\\end{document}')
+        table.insert(__after, '\\end{document}')
     end
 end
 
@@ -69,33 +82,33 @@ local function _format_point(pt, baseunit, sep)
     return string.format("%s%s%s", sx, sep, sy)
 end
 
-local function _insert_appearance(layer)
-    if layer.order then
+local function _format_layer(layer)
+    if false and layer.order then
     else
         if layer.nofill then
-            table.insert(__content, string.format("\\path[draw = %s]", layer.color))
+            return string.format("\\path[draw = %s]", layer.color)
         else
-            if not layer.pattern then
-                table.insert(__content, string.format("\\path[draw = %s, pattern = crosshatch, pattern color = %s]", layer.color, layer.color))
+            if layer.pattern then
+                return string.format("\\path[draw = %s, pattern = crosshatch, pattern color = %s]", layer.color, layer.color)
             else
-                table.insert(__content, string.format("\\path[fill = %s]", layer.color, layer.color))
+                return string.format("\\path[fill = %s]", layer.color, layer.color)
             end
         end
     end
 end
 
 function M.write_rectangle(layer, bl, tr)
-    _insert_appearance(layer)
-    table.insert(__content, string.format("(%s) rectangle (%s);", _format_point(bl, baseunit, ", "), _format_point(tr, baseunit, ", ")))
+    --_insert_appearance(layer)
+    table.insert(__content, { order = layer.order or 0, content = string.format("%s (%s) rectangle (%s);", _format_layer(layer), _format_point(bl, baseunit, ", "), _format_point(tr, baseunit, ", ")) })
 end
 
 function M.write_polygon(layer, pts)
-    _insert_appearance(layer)
-    local ptstream = {}
-    for _, pt in ipairs(pts) do
-        table.insert(ptstream, string.format("(%s)", _format_point(pt, baseunit, ", ")))
-    end
-    table.insert(__content, table.concat(ptstream, " -- ") .. ";")
+    --_insert_appearance(layer)
+    --local ptstream = {}
+    --for _, pt in ipairs(pts) do
+    --    table.insert(ptstream, string.format("(%s)", _format_point(pt, baseunit, ", ")))
+    --end
+    --table.insert(__content, table.concat(ptstream, " -- ") .. ";")
 end
 
 return M
