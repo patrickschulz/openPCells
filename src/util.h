@@ -3,6 +3,7 @@
 
 unsigned int util_num_digits(unsigned int n);
 char* util_copy_string(const char* str);
+int util_split_string(const char* src, char delim, char** first, char** second);
 void util_append_string(char* target, const char* str);
 int util_file_exists(const char* path);
 

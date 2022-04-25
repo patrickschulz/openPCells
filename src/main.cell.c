@@ -503,18 +503,10 @@ void main_create_and_export_cell(struct cmdoptions* cmdoptions, struct keyvaluea
         // export cell
         if(cmdoptions_was_provided_long(cmdoptions, "export"))
         {
-            const char* exportname = cmdoptions_get_argument_long(cmdoptions, "export");
-            const char* exportlayername = cmdoptions_get_argument_long(cmdoptions, "export-layers");
-            if(!exportlayername)
-            {
-                exportlayername = exportname;
-            }
             // add export search paths. FIXME: add --exportpath cmd option
-            if(!generics_resolve_premapped_layers(layermap, exportlayername))
-            {
-                goto DESTROY_OBJECT;
-            }
-            export_add_path(OPC_HOME "/export");
+            struct const_vector* searchpaths = const_vector_create();
+            const_vector_append(searchpaths, OPC_HOME "/export");
+
             const char* basename = cmdoptions_get_argument_long(cmdoptions, "filename");
             const char* toplevelname = cmdoptions_get_argument_long(cmdoptions, "cellname");
             const char** exportoptions = cmdoptions_get_argument_long(cmdoptions, "export-options");
@@ -527,7 +519,27 @@ void main_create_and_export_cell(struct cmdoptions* cmdoptions, struct keyvaluea
                 leftdelim = delimiters[0];
                 rightdelim = delimiters[1];
             }
-            export_write_toplevel(toplevel, pcell_state, exportname, basename, toplevelname, leftdelim, rightdelim, exportoptions, writechildrenports);
+
+            const char* const * exportnames = cmdoptions_get_argument_long(cmdoptions, "export");
+            while(*exportnames)
+            {
+                char* exportname = NULL;
+                char* exportlayername = NULL;
+                if(!util_split_string(*exportnames, ':', &exportlayername, &exportname)) // export layers were not specified
+                {
+                    exportname = util_copy_string(*exportnames);
+                    exportlayername = util_copy_string(*exportnames);
+                }
+                if(!generics_resolve_premapped_layers(layermap, exportlayername))
+                {
+                    goto DESTROY_OBJECT;
+                }
+                export_write_toplevel(toplevel, pcell_state, searchpaths, exportname, basename, toplevelname, leftdelim, rightdelim, exportoptions, writechildrenports);
+                free(exportname);
+                free(exportlayername);
+                ++exportnames;
+            }
+            const_vector_destroy(searchpaths);
         }
         else
         {

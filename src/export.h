@@ -7,8 +7,8 @@
 
 #include "object.h"
 #include "pcell.h"
+#include "vector.h"
 
-void export_add_path(const char* path);
-void export_write_toplevel(object_t* toplevel, struct pcell_state* pcell_state, const char* exportname, const char* basename, const char* toplevelname, char leftdelim, char rightdelim, const char* const * exportoptions, int writechildrenports);
+void export_write_toplevel(object_t* toplevel, struct pcell_state* pcell_state, struct const_vector* searchpaths, const char* exportname, const char* basename, const char* toplevelname, char leftdelim, char rightdelim, const char* const * exportoptions, int writechildrenports);
 
 #endif // OPC_LEXPORT_H

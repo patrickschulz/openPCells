@@ -14,7 +14,6 @@ typedef struct
     char** exportnames;
     struct keyvaluearray** data;
     size_t size;
-    int is_pre;
 } generics_t;
 
 struct hashmapentry
