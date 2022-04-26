@@ -65,10 +65,12 @@ function M.at_begin()
         table.insert(__header, '\\documentclass{standalone}')
         table.insert(__header, '\\usepackage{tikz}')
         table.insert(__header, '\\usetikzlibrary{patterns}')
+        if __resizebox then
+            table.insert(__header, '\\usepackage{adjustbox}')
+        end
         table.insert(__before, '\\begin{document}')
     end
     if __resizebox then
-        table.insert(__header, '\\usepackage{adjustbox}')
         table.insert(__before, '\\begin{adjustbox}{width=\\linewidth}')
     end
     table.insert(__before, '\\begin{tikzpicture}')
