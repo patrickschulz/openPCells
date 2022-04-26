@@ -420,7 +420,7 @@ static int _write_toplevel_lua(lua_State* L, object_t* object, struct pcell_stat
     lua_getfield(L, -1, "write_cell_reference");
     if(lua_isnil(L, -1))
     {
-        puts("this export does not know how to write hierarchies, hence the cell is being written flat");
+        fputs("this export does not know how to write hierarchies, hence the cell is being written flat\n", stderr);
         object_flatten(object, pcell_state, 0);
     }
     lua_pop(L, 1);
