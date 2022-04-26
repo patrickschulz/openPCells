@@ -393,6 +393,10 @@ static int _check_lua_export(lua_State* L)
 
 static void _write_toplevel_C(object_t* object, struct pcell_state* pcell_state, const char* toplevelname, struct export_data* data, struct export_functions* funcs, int writechildrenports, char leftdelim, char rightdelim)
 {
+    if(funcs->initialize)
+    {
+        funcs->initialize(object);
+    }
     funcs->at_begin(data);
 
     funcs->at_begin_cell(data, toplevelname);
