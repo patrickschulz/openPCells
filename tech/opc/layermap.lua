@@ -11,7 +11,7 @@ return {
         layer = {
             gds = { layer = 1, purpose = 0 },
             SKILL = { layer = "active", purpose = "drawing" },
-            tikz = { style = "active", order = 1, color = "green!80!black" },
+            tikz = { style = "active", order = 1, color = "00ff00" },
         }
     },
     pwell = {
@@ -19,7 +19,7 @@ return {
         layer = {
             gds = { layer = 2, purpose = 0 },
             SKILL = { layer = "pwell", purpose = "drawing" },
-            tikz = { color = "black", nofill = true },
+            tikz = { color = "000000", nofill = true },
         }
     },
     nwell = {
@@ -27,7 +27,7 @@ return {
         layer = {
             gds = { layer = 3, purpose = 0 },
             SKILL = { layer = "nwell", purpose = "drawing" },
-            tikz = { color = "black", nofill = true },
+            tikz = { color = "000000", nofill = true },
         }
     },
     pimplant = {
@@ -35,7 +35,7 @@ return {
         layer = {
             gds = { layer = 4, purpose = 0 },
             SKILL = { layer = "pimplant", purpose = "drawing" },
-            tikz = { color = "black", nofill = true },
+            tikz = { color = "000000", nofill = true },
         }
     },
     nimplant = {
@@ -43,7 +43,7 @@ return {
         layer = {
             gds = { layer = 5, purpose = 0 },
             SKILL = { layer = "nimplant", purpose = "drawing" },
-            tikz = { color = "black", nofill = true },
+            tikz = { color = "000000", nofill = true },
         }
     },
     gate = {
@@ -51,7 +51,7 @@ return {
         layer = {
             gds = { layer = 6, purpose = 0 },
             SKILL = { layer = "poly", purpose = "drawing" },
-            tikz = { style = "gate", order = 2, color = "red" },
+            tikz = { style = "gate", order = 2, color = "ff0000" },
         }
     },
     contactactive = {
@@ -59,7 +59,7 @@ return {
         layer = {
             gds = { layer = 7, purpose = 0 },
             SKILL = { layer = "contactactive", purpose = "drawing" },
-            tikz = { style = "contactactive", order = 4, color = "white" },
+            tikz = { style = "contactactive", order = 4, color = "ffffff" },
         }
     },
     contactsourcedrain = {
@@ -67,7 +67,7 @@ return {
         layer = {
             gds = { layer = 7, purpose = 0 },
             SKILL = { layer = "contactsourcedrain", purpose = "drawing" },
-            tikz = { style = "contactsourcedrain", order = 4, color = "white" },
+            tikz = { style = "contactsourcedrain", order = 4, color = "ffffff" },
         }
     },
     contactgate = {
@@ -75,7 +75,7 @@ return {
         layer = {
             gds = { layer = 7, purpose = 0 },
             SKILL = { layer = "contactgate", purpose = "drawing" },
-            tikz = { style = "contactgate", order = 4, color = "white" },
+            tikz = { style = "contactgate", order = 4, color = "ffffff" },
         }
     },
     M1 = {
@@ -83,7 +83,7 @@ return {
         layer = {
             gds = { layer = 8, purpose = 0 },
             SKILL = { layer = "metal1", purpose = "drawing" },
-            tikz = { style = "metal1", order = 3, color = "blue" },
+            tikz = { style = "metal1", order = 3, color = "0000ff" },
         }
     },
     viacutM1M2 = {
@@ -91,7 +91,7 @@ return {
         layer = {
             gds = { layer = 9, purpose = 0 },
             SKILL = { layer = "via1", purpose = "drawing" },
-            tikz = { style = "via1", order = 6, color = "yellow" },
+            tikz = { style = "via1", order = 6, color = "fff000" },
         }
     },
     M2 = {
@@ -99,7 +99,7 @@ return {
         layer = {
             gds = { layer = 10, purpose = 0 },
             SKILL = { layer = "metal2", purpose = "drawing" },
-            tikz = { style = "metal2", order = 5, color = "red!60!blue" },
+            tikz = { style = "metal2", order = 5, color = "ff00ff" },
         }
     },
     viacutM2M3 = {
@@ -107,7 +107,7 @@ return {
         layer = {
             gds = { layer = 11, purpose = 0 },
             SKILL = { layer = "via2", purpose = "drawing" },
-            tikz = { color = "yellow" },
+            tikz = { color = "ff1212" },
         }
     },
     M3 = {
@@ -115,7 +115,7 @@ return {
         layer = {
             gds = { layer = 12, purpose = 0 },
             SKILL = { layer = "metal3", purpose = "drawing" },
-            tikz = { color = "orange" },
+            tikz = { color = "ff1212" },
         }
     },
     viacutM3M4 = {
@@ -123,14 +123,15 @@ return {
         layer = {
             gds = { layer = 13, purpose = 0 },
             SKILL = { layer = "via3", purpose = "drawing" },
-            tikz = { color = "white" },
+            tikz = { color = "ffffff" },
         }
     },
     M4 = {
         name = "metal4",
         layer = {
             gds = { layer = 14, purpose = 0 },
-            SKILL = { layer = "metal4", purpose = "drawing" }
+            SKILL = { layer = "metal4", purpose = "drawing" },
+            tikz = { color = "808080" },
         }
     },
     viacutM4M5 = {
