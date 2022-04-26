@@ -91,7 +91,7 @@ return {
         layer = {
             gds = { layer = 9, purpose = 0 },
             SKILL = { layer = "via1", purpose = "drawing" },
-            tikz = { style = "via1", order = 5, color = "yellow" },
+            tikz = { style = "via1", order = 6, color = "yellow" },
         }
     },
     M2 = {
@@ -99,7 +99,7 @@ return {
         layer = {
             gds = { layer = 10, purpose = 0 },
             SKILL = { layer = "metal2", purpose = "drawing" },
-            tikz = { style = "metal2", order = 4, color = "red!50!blue" },
+            tikz = { style = "metal2", order = 5, color = "red!60!blue" },
         }
     },
     viacutM2M3 = {
