@@ -189,11 +189,22 @@ static int _write_ports_lua(lua_State* L, object_t* cell, char leftdelim, char r
 
 static int _write_cell_lua(lua_State* L, object_t* cell, int write_ports, char leftdelim, char rightdelim)
 {
+    int has_write_path = 0;
+    lua_getfield(L, -1, "write_path");
+    if(!lua_isnil(L, -1))
+    {
+        has_write_path = 1;
+    }
+    lua_pop(L, 1);
     for(unsigned int i = 0; i < cell->shapes_size; ++i)
     {
         shape_t* shape = cell->shapes[i];
         shape_apply_transformation(shape, cell->trans);
         struct keyvaluearray* layerdata = shape->layer->data[0];
+        if(!has_write_path && shape->type == PATH)
+        {
+            shape_resolve_path(shape);
+        }
         switch(shape->type)
         {
             case RECTANGLE:
@@ -210,6 +221,7 @@ static int _write_cell_lua(lua_State* L, object_t* cell, int write_ports, char l
                 break;
             }
             case POLYGON:
+            {
                 lua_getfield(L, -1, "write_polygon");
                 _push_layer(L, layerdata);
                 _push_points(L, shape->points, shape->size);
@@ -219,39 +231,26 @@ static int _write_cell_lua(lua_State* L, object_t* cell, int write_ports, char l
                     return ret;
                 }
                 break;
+            }
             case PATH:
+            {
                 lua_getfield(L, -1, "write_path");
-                if(!lua_isnil(L, -1))
+                path_properties_t* properties = shape->properties;
+                _push_layer(L, layerdata);
+                _push_points(L, shape->points, shape->size);
+                lua_pushinteger(L, properties->width);
+                lua_newtable(L);
+                lua_pushinteger(L, properties->extension[0]);
+                lua_rawseti(L, -2, 1);
+                lua_pushinteger(L, properties->extension[0]);
+                lua_rawseti(L, -2, 2);
+                int ret = lua_pcall(L, 4, 0, 0);
+                if(ret != LUA_OK)
                 {
-                    path_properties_t* properties = shape->properties;
-                    _push_layer(L, layerdata);
-                    _push_points(L, shape->points, shape->size);
-                    lua_pushinteger(L, properties->width);
-                    lua_newtable(L);
-                    lua_pushinteger(L, properties->extension[0]);
-                    lua_rawseti(L, -2, 1);
-                    lua_pushinteger(L, properties->extension[0]);
-                    lua_rawseti(L, -2, 2);
-                    int ret = lua_pcall(L, 4, 0, 0);
-                    if(ret != LUA_OK)
-                    {
-                        return ret;
-                    }
-                }
-                else
-                {
-                    lua_pop(L, 1); // pop nil (lua_getfield(L, "write_path"))
-                    shape_resolve_path(shape);
-                    lua_getfield(L, -1, "write_polygon");
-                    _push_layer(L, layerdata);
-                    _push_points(L, shape->points, shape->size);
-                    int ret = lua_pcall(L, 2, 0, 0);
-                    if(ret != LUA_OK)
-                    {
-                        return ret;
-                    }
+                    return ret;
                 }
                 break;
+            }
         }
     }
     if(cell->children)
@@ -577,14 +576,21 @@ void export_write_toplevel(object_t* toplevel, struct pcell_state* pcell_state, 
 
     if(status == EXPORT_STATUS_SUCCESS)
     {
-        size_t len = strlen(basename) + strlen(extension) + 2; // + 2: '.' and the terminating zero
-        char* filename = malloc(len);
-        snprintf(filename, len + 2, "%s.%s", basename, extension);
-        FILE* file = fopen(filename, "w");
-        fwrite(data->data, 1, data->length, file);
-        fclose(file);
-        free(extension);
-        free(filename);
+        if(*basename == '-' && !*(basename + 1)) // send to standard output
+        {
+            fwrite(data->data, 1, data->length, stdout);
+        }
+        else
+        {
+            size_t len = strlen(basename) + strlen(extension) + 2; // + 2: '.' and the terminating zero
+            char* filename = malloc(len);
+            snprintf(filename, len + 2, "%s.%s", basename, extension);
+            FILE* file = fopen(filename, "w");
+            fwrite(data->data, 1, data->length, file);
+            fclose(file);
+            free(extension);
+            free(filename);
+        }
         export_destroy_data(data);
         export_destroy_functions(funcs);
     }
