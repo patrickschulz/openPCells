@@ -99,7 +99,7 @@ return {
         layer = {
             gds = { layer = 10, purpose = 0 },
             SKILL = { layer = "metal2", purpose = "drawing" },
-            tikz = { style = "metal2", order = 5, color = "ff00ff" },
+            tikz = { style = "metal2", order = 5, color = "bb0077" },
         }
     },
     viacutM2M3 = {
