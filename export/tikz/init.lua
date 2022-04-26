@@ -21,6 +21,7 @@ function M.set_options(opt)
     end
 end
 
+local __header = {}
 local __before = {}
 local __options = {}
 local __after = {}
@@ -28,6 +29,9 @@ local __content = {}
 
 function M.finalize()
     local t = {}
+    for _, entry in ipairs(__header) do
+        table.insert(t, entry)
+    end
     for _, entry in ipairs(__before) do
         table.insert(t, entry)
     end
@@ -54,10 +58,10 @@ end
 
 function M.at_begin()
     if __standalone then
-        table.insert(__before, '\\documentclass{standalone}')
-        table.insert(__before, '\\usepackage{tikz}')
-        table.insert(__before, '\\usetikzlibrary{patterns}')
-        table.insert(__before, '\\begin{document}')
+        table.insert(__header, '\\documentclass{standalone}')
+        table.insert(__header, '\\usepackage{tikz}')
+        table.insert(__header, '\\usetikzlibrary{patterns}')
+        table.insert(__header, '\\begin{document}')
     end
     table.insert(__before, '\\begin{tikzpicture}')
     table.insert(__options, "x = 5, y = 5")
@@ -99,14 +103,22 @@ local function _format_point(pt, baseunit, sep)
     return string.format("%s%s%s", sx, sep, sy)
 end
 
+local colors = {}
+local numcolors = 0
 local function _get_layer_style(layer)
+    if not colors[layer.color] then
+        local colorname = string.format("opccolor%d", numcolors + 1)
+        table.insert(__header, string.format("\\definecolor{%s}{HTML}{%s}", colorname, layer.color))
+        colors[layer.color] = colorname
+        numcolors = numcolors + 1
+    end
     if layer.nofill then
-        return string.format("draw = %s", layer.color)
+        return string.format("draw = %s", colors[layer.color])
     else
         if layer.pattern then
-            return string.format("draw = %s, pattern = crosshatch, pattern color = %s", layer.color, layer.color)
+            return string.format("draw = %s, pattern = crosshatch, pattern color = %s", colors[layer.color], colors[layer.color])
         else
-            return string.format("fill = %s, draw = %s", layer.color, layer.color)
+            return string.format("fill = %s, draw = %s", colors[layer.color], colors[layer.color])
         end
     end
 end
