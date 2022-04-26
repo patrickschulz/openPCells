@@ -106,7 +106,7 @@ local function _get_layer_style(layer)
         if layer.pattern then
             return string.format("draw = %s, pattern = crosshatch, pattern color = %s", layer.color, layer.color)
         else
-            return string.format("fill = %s", layer.color, layer.color)
+            return string.format("fill = %s, draw = %s", layer.color, layer.color)
         end
     end
 end
