@@ -296,8 +296,9 @@ object_t* _create_cell(
     return toplevel;
 }
 
-void main_create_and_export_cell(struct cmdoptions* cmdoptions, struct keyvaluearray* config, int iscellscript)
+int main_create_and_export_cell(struct cmdoptions* cmdoptions, struct keyvaluearray* config, int iscellscript)
 {
+    int retval = 1;
     struct vector* techpaths = keyvaluearray_get(config, "techpaths");
     vector_append(techpaths, util_copy_string(OPC_HOME "/tech"));
     if(cmdoptions_was_provided_long(cmdoptions, "techpath"))
@@ -313,6 +314,7 @@ void main_create_and_export_cell(struct cmdoptions* cmdoptions, struct keyvaluea
     struct technology_state* techstate = _create_techstate(techpaths, techname);
     if(!techstate)
     {
+        retval = 0;
         goto EXIT;
     }
 
@@ -326,11 +328,13 @@ void main_create_and_export_cell(struct cmdoptions* cmdoptions, struct keyvaluea
 
     if(!pcell_state)
     {
+        retval = 0;
         goto DESTROY_TECHNOLOGY;
     }
     struct layermap* layermap = _create_layermap();
     if(!layermap)
     {
+        retval = 0;
         goto DESTROY_PCELL_STATE;
     }
     struct vector* cellargs = cmdoptions_get_positional_parameters(cmdoptions);
@@ -543,12 +547,14 @@ void main_create_and_export_cell(struct cmdoptions* cmdoptions, struct keyvaluea
         }
         else
         {
+            retval = 0;
             puts("no export type given");
         }
     }
     else
     {
         fputs("errors while creating cell\n", stderr);
+        retval = 0;
         goto DESTROY_OBJECT;
     }
 
@@ -563,11 +569,13 @@ DESTROY_PCELL_STATE:
     pcell_destroy_state(pcell_state);
 DESTROY_TECHNOLOGY:
     technology_destroy(techstate);
-EXIT:
 
     // cell info
     if(cmdoptions_was_provided_long(cmdoptions, "show-cellinfo"))
     {
        info_cellinfo(toplevel);
     }
+EXIT:
+
+    return retval;
 }

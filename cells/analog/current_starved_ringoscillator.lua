@@ -83,14 +83,16 @@ function parameters()
         { "pmostunefingers",     2, posvals = even() },
         { "nmoscurrentfingers",  2, posvals = even() },
         { "nmosdiodefingers",    4, posvals = even() },
-        { "glength",             200 },
-        { "gspace",              140 },
-        { "pfingerwidth",        500 },
-        { "nfingerwidth",        500 },
+        { "glength",             tech.get_dimension("Minimum Gate Length") },
+        { "gspace",              tech.get_dimension("Minimum Gate Space") },
+        { "pfingerwidth",       1000 },
+        { "nfingerwidth",       1000 },
         { "separation",          400 },
-        { "gstwidth",             60 },
-        { "powerwidth",          120 },
-        { "powerspace",           60 }
+        { "gstwidth",             tech.get_dimension("Minimum M1 Width") },
+        { "powerwidth",          tech.get_dimension("Minimum M1 Width") },
+        { "powerspace",           tech.get_dimension("Minimum M1 Space") },
+        { "drawguardrings",     true },
+        { "guardringwidth",     200 }
     )
 end
 
@@ -103,7 +105,6 @@ function layout(oscillator, _P)
         gatespace = _P.gspace,
     })
     pcell.push_overwrites("basic/cmos", {
-        separation = _P.separation,
         pwidth = _P.pfingerwidth,
         nwidth = _P.nfingerwidth,
         powerwidth = _P.powerwidth,
@@ -134,9 +135,12 @@ function layout(oscillator, _P)
         gatecontactpos = invgatecontacts, 
         pcontactpos = invactivecontacts, 
         ncontactpos = invactivecontacts,
-        psdheight = _P.pfingerwidth - 120,
-        nsdheight = _P.nfingerwidth - 120,
+        psdheight = _P.pfingerwidth / 2,
+        nsdheight = _P.nfingerwidth / 2,
+        outergstspace = _P.powerspace,
+        gateext = 2 * _P.powerwidth + 2 * _P.powerspace,
     })
+    -- current sources gate straps
     geometry.rectanglebltr(inverterref, generics.metal(1), 
         inverterref:get_anchor("Gn1"):translate(-xpitch / 2, -_P.gstwidth / 2),
         inverterref:get_anchor(string.format("Gn%d", 2 * _P.invfingers)):translate(xpitch / 2, _P.gstwidth / 2)
@@ -145,6 +149,7 @@ function layout(oscillator, _P)
         inverterref:get_anchor("Gp1"):translate(-xpitch / 2, -_P.gstwidth / 2),
         inverterref:get_anchor(string.format("Gp%d", 2 * _P.invfingers)):translate(xpitch / 2, _P.gstwidth / 2)
     )
+    -- connect inverter gates
     geometry.rectanglebltr(inverterref, generics.metal(1), 
         inverterref:get_anchor(string.format("Gll%d", 2 + 0)),
         inverterref:get_anchor(string.format("Gur%d", 2 + 4 * (_P.invfingers / 2 - 1) + 1))
@@ -155,8 +160,8 @@ function layout(oscillator, _P)
             inverterref:get_anchor(string.format("pSDo%d", i + 1))
         )
         geometry.rectanglebltr(inverterref, generics.metal(1), 
-            inverterref:get_anchor(string.format("nSDo%d", i - 1)):translate(0,  _P.gstwidth),
-            inverterref:get_anchor(string.format("nSDo%d", i + 1))
+            inverterref:get_anchor(string.format("nSDo%d", i - 1)),
+            inverterref:get_anchor(string.format("nSDo%d", i + 1)):translate(0,  _P.gstwidth)
         )
     end
     -- connect current sources drains on M2
@@ -233,8 +238,9 @@ function layout(oscillator, _P)
         gatecontactpos = cmgatecontacts, 
         pcontactpos = cmpactivecontacts, 
         ncontactpos = cmnactivecontacts,
-        psdheight = _P.pfingerwidth - 120,
-        nsdheight = _P.nfingerwidth - 120,
+        psdheight = _P.pfingerwidth / 2,
+        nsdheight = _P.nfingerwidth / 2,
+        gateext = 2 * _P.powerwidth + 2 * _P.powerspace,
     })
     -- pmos diode
     geometry.rectanglebltr(cmarray, generics.metal(1), 
@@ -274,11 +280,11 @@ function layout(oscillator, _P)
     for i = 2, _P.pmosdiodefingers, 2 do
         local index = cmfingers + 2 - i
         geometry.rectanglebltr(cmarray, generics.metal(1), 
-            cmarray:get_anchor(string.format("pSDi%d", index)):translate(-_P.gstwidth / 2, 0),
             point.combine_12(
                 cmarray:get_anchor(string.format("pSDi%d", index)),
                 cmarray:get_anchor(string.format("Gupperuc%d", index))
-            ):translate(_P.gstwidth / 2, 0)
+            ):translate(-_P.gstwidth / 2, 0),
+            cmarray:get_anchor(string.format("pSDi%d", index)):translate(_P.gstwidth / 2, 0)
         )
     end
     for i = 2, _P.nmosdiodefingers, 2 do
@@ -293,11 +299,11 @@ function layout(oscillator, _P)
     end
     for i = 2, cmfingers - _P.pmostunefingers - _P.pmoszerofingers - _P.pmosdiodefingers - 1 do
         geometry.rectanglebltr(cmarray, generics.metal(1), 
-            cmarray:get_anchor(string.format("pSDi%d", i)):translate(-_P.gstwidth / 2, 0),
             point.combine_12(
                 cmarray:get_anchor(string.format("pSDi%d", i)),
                 cmarray:get_anchor(string.format("Gupperuc%d", i))
-            ):translate(_P.gstwidth / 2, 0)
+            ):translate(-_P.gstwidth / 2, 0),
+            cmarray:get_anchor(string.format("pSDi%d", i)):translate(_P.gstwidth / 2, 0)
         )
     end
     for i = 2, cmfingers - _P.nmosdiodefingers - _P.nmoscurrentfingers do
@@ -325,7 +331,7 @@ function layout(oscillator, _P)
         )
     end
     geometry.viabltr(
-        oscillator, 1, 2,
+        cmarray, 1, 2,
         cmarray:get_anchor(string.format("Glowercc%d", cmfingers - _P.nmoscurrentfingers)):translate(-xpitch / 2, -_P.gstwidth / 2),
         cmarray:get_anchor(string.format("Glowercc%d", cmfingers - _P.nmoscurrentfingers)):translate( xpitch / 2,  _P.gstwidth / 2)
     )
@@ -392,11 +398,6 @@ function layout(oscillator, _P)
         inverters[1]:get_anchor("Gn1")
     }), _P.gstwidth)
     geometry.viabltr(
-        oscillator, 1, 2, 
-        currentmirror:get_anchor(string.format("Glowercc%d", cmfingers - _P.nmoscurrentfingers)):translate(-xpitch / 2, -_P.gstwidth / 2),
-        currentmirror:get_anchor(string.format("Glowercc%d", cmfingers - _P.nmoscurrentfingers)):translate(-xpitch / 2, -_P.gstwidth / 2)
-    )
-    geometry.viabltr(
         oscillator, 1, 2,
         inverters[1]:get_anchor("Gn1"):translate(-xpitch / 2, -_P.gstwidth / 2),
         inverters[1]:get_anchor("Gn1"):translate( xpitch / 2,  _P.gstwidth / 2)
@@ -423,24 +424,25 @@ function layout(oscillator, _P)
     oscillator:translate((cmfingers + _P.invfingers - (_P.numinv * 2 * _P.invfingers - _P.invfingers)) * xpitch / 2, 0)
 
     -- place guardring
-    local ringwidth = 200
-    local pguardringname = pcell.add_cell_reference(pcell.create_layout("auxiliary/guardring", { 
-        contype = "p",
-        fillwell = true,
-        ringwidth = ringwidth,
-        width = (cmfingers + 2 * _P.numinv * _P.invfingers + 4) * xpitch, 
-        height = 6 * _P.separation + _P.pfingerwidth + _P.nfingerwidth + ringwidth
-    }), "pguardring")
-    local nguardringname = pcell.add_cell_reference(pcell.create_layout("auxiliary/guardring", { 
-        contype = "n",
-        fillwell = false,
-        drawdeepwell = true,
-        ringwidth = ringwidth,
-        width = (cmfingers + 2 * _P.numinv * _P.invfingers + 4) * xpitch + 2 * _P.separation + 2 * ringwidth,
-        height = 8 * _P.separation + _P.pfingerwidth + _P.nfingerwidth + ringwidth + 2 * ringwidth
-    }), "nguardring")
-    oscillator:add_child(pguardringname)
-    oscillator:add_child(nguardringname)
+    if _P.drawguardrings then
+        local pguardringname = pcell.add_cell_reference(pcell.create_layout("auxiliary/guardring", { 
+            contype = "p",
+            fillwell = true,
+            ringwidth = _P.guardringwidth,
+            width = (cmfingers + 2 * _P.numinv * _P.invfingers + 4) * xpitch, 
+            height = 9 * _P.separation + _P.pfingerwidth + _P.nfingerwidth + _P.guardringwidth
+        }), "pguardring")
+        local nguardringname = pcell.add_cell_reference(pcell.create_layout("auxiliary/guardring", { 
+            contype = "n",
+            fillwell = false,
+            drawdeepwell = true,
+            ringwidth = _P.guardringwidth,
+            width = (cmfingers + 2 * _P.numinv * _P.invfingers + 4) * xpitch + 2 * _P.separation + 2 * _P.guardringwidth,
+            height = 11 * _P.separation + _P.pfingerwidth + _P.nfingerwidth + _P.guardringwidth + 2 * _P.guardringwidth
+        }), "nguardring")
+        oscillator:add_child(pguardringname)
+        oscillator:add_child(nguardringname)
+    end
 
     pcell.pop_overwrites("basic/mosfet")
     pcell.pop_overwrites("basic/cmos")
