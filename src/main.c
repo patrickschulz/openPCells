@@ -244,7 +244,11 @@ int main(int argc, const char* const * argv)
             fputs("no export given\n", stderr);
             goto DESTROY_CONFIG;
         }
-        main_create_and_export_cell(cmdoptions, config, create_cell_script); // 0: regular cell, 1: cellscript
+        int ret = main_create_and_export_cell(cmdoptions, config, create_cell_script); // 0: regular cell, 1: cellscript
+        if(!ret)
+        {
+            returnvalue = 1;
+        }
     }
 
     // clean up states
