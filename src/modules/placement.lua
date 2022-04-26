@@ -162,6 +162,8 @@ local function _get_cell_width(name)
         not_gate = 2,
         nand_gate = 2,
         nor_gate = 2,
+        or_gate = 3,
+        and_gate = 3,
         xor_gate = 10,
         xnor_gate = 11,
         dffp = 22,
