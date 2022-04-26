@@ -6,8 +6,9 @@ function M.get_extension()
     return "tikz"
 end
 
-local __standalone
+local __standalone = false
 local __drawpatterns = true
+local __resizebox = false
 
 function M.set_options(opt)
     for i = 1, #opt do
@@ -17,6 +18,9 @@ function M.set_options(opt)
         end
         if arg == "-s" or arg == "--solid" then
             __drawpatterns = false
+        end
+        if arg == "-r" or arg == "--resize-box" then
+            __resizebox = true
         end
     end
 end
@@ -61,7 +65,11 @@ function M.at_begin()
         table.insert(__header, '\\documentclass{standalone}')
         table.insert(__header, '\\usepackage{tikz}')
         table.insert(__header, '\\usetikzlibrary{patterns}')
-        table.insert(__header, '\\begin{document}')
+        table.insert(__before, '\\begin{document}')
+    end
+    if __resizebox then
+        table.insert(__header, '\\usepackage{adjustbox}')
+        table.insert(__before, '\\begin{adjustbox}{width=\\linewidth}')
     end
     table.insert(__before, '\\begin{tikzpicture}')
     table.insert(__options, "x = 5, y = 5")
@@ -69,6 +77,9 @@ end
 
 function M.at_end()
     table.insert(__after, '\\end{tikzpicture}')
+    if __resizebox then
+        table.insert(__after, '\\end{adjustbox}')
+    end
     if __standalone then
         table.insert(__after, '\\end{document}')
     end
