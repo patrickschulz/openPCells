@@ -536,6 +536,7 @@ int main_create_and_export_cell(struct cmdoptions* cmdoptions, struct keyvaluear
                 }
                 if(!generics_resolve_premapped_layers(layermap, exportlayername))
                 {
+                    retval = 0;
                     goto DESTROY_OBJECT;
                 }
                 export_write_toplevel(toplevel, pcell_state, searchpaths, exportname, basename, toplevelname, leftdelim, rightdelim, exportoptions, writechildrenports);
