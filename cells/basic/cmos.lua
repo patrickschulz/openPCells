@@ -62,7 +62,7 @@ function layout(gate, _P)
     })
 
     if _P.drawtransistors then
-        local ext = math.max(tp.cutheight / 2, _P.dummycontheight / 2)
+        local ext = math.max(_P.gateext, tp.cutheight / 2, _P.dummycontheight / 2)
 
         -- pmos
         pcell.push_overwrites("basic/mosfet", {
@@ -231,7 +231,7 @@ function layout(gate, _P)
                 geometry.contactbltr(
                     gate, "gate",
                     point.create(x - tp.gatelength / 2, -_P.separation / 2 - _P.nwidth - _P.outergstspace - _P.gstwidth / 2 - _P.powerwidth - _P.powerspace - _P.gstwidth / 2),
-                    point.create(x + tp.gatelength / 2, -_P.separation / 2 - _P.nwidth - _P.outergstspace - _P.gstwidth / 2 - _P.powerwidth - _P.powerspace - _P.gstwidth / 2)
+                    point.create(x + tp.gatelength / 2, -_P.separation / 2 - _P.nwidth - _P.outergstspace - _P.gstwidth / 2 - _P.powerwidth - _P.powerspace + _P.gstwidth / 2)
                 )
                 gate:add_anchor(string.format("Gp%d", i), point.create(
                     x,

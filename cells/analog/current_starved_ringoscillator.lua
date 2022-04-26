@@ -83,14 +83,14 @@ function parameters()
         { "pmostunefingers",     2, posvals = even() },
         { "nmoscurrentfingers",  2, posvals = even() },
         { "nmosdiodefingers",    4, posvals = even() },
-        { "glength",             200 },
-        { "gspace",              140 },
-        { "pfingerwidth",        500 },
-        { "nfingerwidth",        500 },
+        { "glength",             tech.get_dimension("Minimum Gate Length") },
+        { "gspace",              tech.get_dimension("Minimum Gate Space") },
+        { "pfingerwidth",       1000 },
+        { "nfingerwidth",       1000 },
         { "separation",          400 },
-        { "gstwidth",             60 },
-        { "powerwidth",          120 },
-        { "powerspace",           60 }
+        { "gstwidth",             tech.get_dimension("Minimum M1 Width") },
+        { "powerwidth",          tech.get_dimension("Minimum M1 Width") },
+        { "powerspace",           tech.get_dimension("Minimum M1 Space") }
     )
 end
 
@@ -134,9 +134,12 @@ function layout(oscillator, _P)
         gatecontactpos = invgatecontacts, 
         pcontactpos = invactivecontacts, 
         ncontactpos = invactivecontacts,
-        psdheight = _P.pfingerwidth - 120,
-        nsdheight = _P.nfingerwidth - 120,
+        psdheight = _P.pfingerwidth / 2,
+        nsdheight = _P.nfingerwidth / 2,
+        outergstspace = _P.powerspace,
+        gateext = 2 * _P.powerwidth + 2 * _P.powerspace,
     })
+    -- current sources gate straps
     geometry.rectanglebltr(inverterref, generics.metal(1), 
         inverterref:get_anchor("Gn1"):translate(-xpitch / 2, -_P.gstwidth / 2),
         inverterref:get_anchor(string.format("Gn%d", 2 * _P.invfingers)):translate(xpitch / 2, _P.gstwidth / 2)
@@ -145,6 +148,7 @@ function layout(oscillator, _P)
         inverterref:get_anchor("Gp1"):translate(-xpitch / 2, -_P.gstwidth / 2),
         inverterref:get_anchor(string.format("Gp%d", 2 * _P.invfingers)):translate(xpitch / 2, _P.gstwidth / 2)
     )
+    -- connect inverter gates
     geometry.rectanglebltr(inverterref, generics.metal(1), 
         inverterref:get_anchor(string.format("Gll%d", 2 + 0)),
         inverterref:get_anchor(string.format("Gur%d", 2 + 4 * (_P.invfingers / 2 - 1) + 1))
@@ -155,8 +159,8 @@ function layout(oscillator, _P)
             inverterref:get_anchor(string.format("pSDo%d", i + 1))
         )
         geometry.rectanglebltr(inverterref, generics.metal(1), 
-            inverterref:get_anchor(string.format("nSDo%d", i - 1)):translate(0,  _P.gstwidth),
-            inverterref:get_anchor(string.format("nSDo%d", i + 1))
+            inverterref:get_anchor(string.format("nSDo%d", i - 1)),
+            inverterref:get_anchor(string.format("nSDo%d", i + 1)):translate(0,  _P.gstwidth)
         )
     end
     -- connect current sources drains on M2
@@ -235,6 +239,7 @@ function layout(oscillator, _P)
         ncontactpos = cmnactivecontacts,
         psdheight = _P.pfingerwidth - 120,
         nsdheight = _P.nfingerwidth - 120,
+        gateext = 2 * _P.powerwidth + 2 * _P.powerspace,
     })
     -- pmos diode
     geometry.rectanglebltr(cmarray, generics.metal(1), 
@@ -284,11 +289,11 @@ function layout(oscillator, _P)
     for i = 2, _P.nmosdiodefingers, 2 do
         local index = cmfingers - _P.nmoscurrentfingers + 2 - i
         geometry.rectanglebltr(cmarray, generics.metal(1), 
-            cmarray:get_anchor(string.format("nSDi%d", index)):translate(-_P.gstwidth / 2, 0),
             point.combine_12(
                 cmarray:get_anchor(string.format("nSDi%d", index)),
                 cmarray:get_anchor(string.format("Glowerlc%d", index))
-            ):translate(_P.gstwidth / 2, 0)
+            ):translate(-_P.gstwidth / 2, 0),
+            cmarray:get_anchor(string.format("nSDi%d", index)):translate(_P.gstwidth / 2, 0)
         )
     end
     for i = 2, cmfingers - _P.pmostunefingers - _P.pmoszerofingers - _P.pmosdiodefingers - 1 do
