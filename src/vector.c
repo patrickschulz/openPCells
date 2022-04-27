@@ -82,6 +82,40 @@ void vector_remove(struct vector* vector, size_t index, void (*destructor)(void*
     --vector->length;
 }
 
+struct vector_iterator
+{
+    struct vector* vector;
+    size_t index;
+};
+
+struct vector_iterator* vector_iterator_create(struct vector* vector)
+{
+    struct vector_iterator* it = malloc(sizeof(*it));
+    it->vector = vector;
+    it->index = 0;
+    return it;
+}
+
+int vector_iterator_is_valid(struct vector_iterator* iterator)
+{
+    return iterator->index < iterator->vector->length;
+}
+
+void* vector_iterator_get(struct vector_iterator* iterator)
+{
+    return vector_get(iterator->vector, iterator->index);
+}
+
+void vector_iterator_next(struct vector_iterator* iterator)
+{
+    iterator->index += 1;
+}
+
+void vector_iterator_destroy(struct vector_iterator* iterator)
+{
+    free(iterator);
+}
+
 static void _const_resize_data(struct const_vector* const_vector, size_t capacity)
 {
     const_vector->capacity = capacity;

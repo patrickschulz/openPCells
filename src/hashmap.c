@@ -76,10 +76,13 @@ void hashmap_destroy(struct hashmap* map, void (*destructor)(void*))
 {
     for(size_t i = 0; i < map->capacity; ++i)
     {
-        free((map->entries + i)->key);
-        if(destructor)
+        if((map->entries + i)->key)
         {
-            destructor((map->entries + i)->value);
+            free((map->entries + i)->key);
+            if(destructor)
+            {
+                destructor((map->entries + i)->value);
+            }
         }
     }
     free(map->entries);
@@ -118,7 +121,8 @@ struct hashmap_iterator* hashmap_iterator_create(struct hashmap* map)
     struct hashmap_iterator* iterator = malloc(sizeof(*iterator));
     iterator->hashmap = map;
     iterator->index = 0;
-    while(!(map->entries + iterator->index)->key)
+    hashmap_iterator_next(iterator);
+    while((iterator->index < iterator->hashmap->capacity) && (!(iterator->hashmap->entries + iterator->index)->key))
     {
         ++iterator->index;
     }

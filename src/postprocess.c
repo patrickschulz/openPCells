@@ -8,10 +8,10 @@
 
 static void _merge_shapes(object_t* object, struct layermap* layermap)
 {
-    // merge rectangles
-    for(unsigned int i = 0; i < generics_get_layer_map_size(layermap); ++i)
+    struct layer_iterator* it = layer_iterator_create(layermap);
+    while(layer_iterator_is_valid(it))
     {
-        generics_t* layer = generics_get_indexed_layer(layermap, i);
+        generics_t* layer = layer_iterator_get(it);
         struct vector* rectangles = vector_create();
         for(int j = object->shapes_size - 1; j >= 0; --j)
         {
@@ -31,7 +31,9 @@ static void _merge_shapes(object_t* object, struct layermap* layermap)
             object_add_raw_shape(object, vector_get(rectangles, i));
         }
         vector_destroy(rectangles, NULL);
+        layer_iterator_next(it);
     }
+    layer_iterator_destroy(it);
 }
 
 void postprocess_merge_shapes(object_t* object, struct layermap* layermap)
