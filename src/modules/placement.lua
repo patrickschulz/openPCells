@@ -18,7 +18,7 @@ local function _get_geometry(instances)
         required_min_width = math.max(required_min_width, width)
     end
     return required_min_width, total_width
-end
+nd
 
 local function _create_options(fixedrows, required_min_width, total_width, utilization, aspectratio)
     local height = 7 -- FIXME
@@ -170,7 +170,7 @@ local function _get_cell_width(name)
         dffp = 22,
         dffpq = 22,
         dffprq = 25,
-        dffn = 24,
+        dffn = 22,
         dffnq = 22,
     }
     if not lut[name] then
