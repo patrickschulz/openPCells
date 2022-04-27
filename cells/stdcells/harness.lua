@@ -45,7 +45,7 @@ function layout(gate, _P)
         pwidth = bp.pwidth,
         nwidth = bp.nwidth,
         separation = separation,
-        gatecontactshift = routingshift,
+        gatecontactsplitshift = routingshift,
     })
     gate:exchange(cmos)
 end
