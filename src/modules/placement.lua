@@ -168,9 +168,9 @@ local function _get_cell_width(name)
         xnor_gate = 11,
         dffp = 22,
         dffpq = 22,
-        dffprq = 26,
-        dffn = 24,
-        dffnq = 24,
+        dffprq = 25,
+        dffn = 22,
+        dffnq = 22,
     }
     if not lut[name] then
         moderror(string.format("unknown stdcell '%s'", name))
