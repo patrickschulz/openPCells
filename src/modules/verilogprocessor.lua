@@ -29,13 +29,14 @@ function M.collect_nets_cells(netlist, cellinfo)
             if not width then
                 error(string.format("no width data for cell '%s'", instance.reference))
             end
-            table.insert(instances, { 
-                instance = instance.name, 
+            table.insert(instances, {
+                instance = instance.name,
                 reference = instance.reference,
                 nets = ct,
                 pinoffsets = pinoffsets,
                 width = width
             })
+            print(instance.reference, width)
         end
     end
     return instances, nets

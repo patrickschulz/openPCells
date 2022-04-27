@@ -102,6 +102,7 @@ function M.insert_filler_names(rows, width)
         rowwidths[row] = 0
         for column, cellname in ipairs(entries) do
             local cellwidth = cellname.width
+            print(cellname.reference, cellwidth)
             rowwidths[row] = rowwidths[row] + cellwidth
         end
         -- check for too wide rows
@@ -168,9 +169,9 @@ local function _get_cell_width(name)
         xnor_gate = 11,
         dffp = 22,
         dffpq = 22,
-        dffprq = 26,
+        dffprq = 25,
         dffn = 24,
-        dffnq = 24,
+        dffnq = 22,
     }
     if not lut[name] then
         moderror(string.format("unknown stdcell '%s'", name))

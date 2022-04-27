@@ -4,6 +4,7 @@ local function _prepare_routing_nets(nets, rows)
     local netpositions = {}
     for i, net in ipairs(nets) do
         for r, row in ipairs(rows) do
+            local curwidth = 0
             for c, column in ipairs(row) do
                 if column.nets then
                     for _, n in ipairs(column.nets) do
@@ -15,10 +16,11 @@ local function _prepare_routing_nets(nets, rows)
                             if not offset then
                                 error(string.format("cell '%s' has no pin offset data on port '%s'", column.reference, n.port))
                             end
-                            table.insert(netpositions[i].positions, { instance = column.instance, port = n.port, x = c + offset.x, y = r + offset.y })
+                            table.insert(netpositions[i].positions, { instance = column.instance, port = n.port, x = c + offset.x + curwidth, y = r + offset.y })
                         end
                     end
                 end
+                curwidth = curwidth + column.width - 1
             end
         end
     end
