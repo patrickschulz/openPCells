@@ -89,6 +89,7 @@ function parameters()
         { "nfingerwidth",       1000 },
         { "separation",          400 },
         { "gstwidth",             tech.get_dimension("Minimum M1 Width") },
+        { "gstspace",             tech.get_dimension("Minimum M1 Space") },
         { "powerwidth",          tech.get_dimension("Minimum M1 Width") },
         { "powerspace",           tech.get_dimension("Minimum M1 Space") },
         { "drawguardrings",     true },
@@ -104,11 +105,14 @@ function layout(oscillator, _P)
         gatelength = _P.glength,
         gatespace = _P.gspace,
     })
+    local separation = 3 * _P.gstwidth + 4 * _P.gstspace
     pcell.push_overwrites("basic/cmos", {
         pwidth = _P.pfingerwidth,
         nwidth = _P.nfingerwidth,
         powerwidth = _P.powerwidth,
         powerspace = _P.powerspace,
+        separation = separation,
+        gatecontactsplitshift = _P.gstwidth + _P.gstspace
     })
 
     -- place inverter cells

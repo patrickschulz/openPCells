@@ -15,7 +15,7 @@ function parameters()
         { "sdwidth(Source/Drain Metal Width)",                 tech.get_dimension("Minimum M1 Width"), even() },
         { "gstwidth(Gate Strap Metal Width)",                  tech.get_dimension("Minimum M1 Width") },
         { "gstspace(Gate Strap Metal Space)",                  tech.get_dimension("Minimum M1 Space") },
-        { "gatecontactshift(Gate Contact Shift)",              tech.get_dimension("Minimum M1 Width") + tech.get_dimension("Minimum M1 Space") },
+        { "gatecontactsplitshift(Gate Contact Split Shift)",   tech.get_dimension("Minimum M1 Width") + tech.get_dimension("Minimum M1 Space") },
         { "powerwidth(Power Rail Metal Width)",                tech.get_dimension("Minimum M1 Width") },
         { "powerspace(Power Rail Space)",                      tech.get_dimension("Minimum M1 Space") },
         { "gateext(Gate Extension)",                           0 },
@@ -181,28 +181,28 @@ function layout(gate, _P)
             elseif _P.gatecontactpos[i] == "upper" then
                 geometry.contactbltr(
                     gate, "gate", 
-                    point.create(x - _P.gatelength / 2, _P.gatecontactshift + _P.shiftgatecontacts - _P.gstwidth / 2),
-                    point.create(x + _P.gatelength / 2, _P.gatecontactshift + _P.shiftgatecontacts + _P.gstwidth / 2)
+                    point.create(x - _P.gatelength / 2, _P.gatecontactsplitshift + _P.shiftgatecontacts - _P.gstwidth / 2),
+                    point.create(x + _P.gatelength / 2, _P.gatecontactsplitshift + _P.shiftgatecontacts + _P.gstwidth / 2)
                 )
-                _make_anchors(gate, x, _P.gatecontactshift + _P.shiftgatecontacts, _P.gatelength, _P.gstwidth, "G", string.format("%d", i))
+                _make_anchors(gate, x, _P.gatecontactsplitshift + _P.shiftgatecontacts, _P.gatelength, _P.gstwidth, "G", string.format("%d", i))
             elseif _P.gatecontactpos[i] == "lower" then
                 geometry.contactbltr(
                     gate, "gate", 
-                    point.create(x - _P.gatelength / 2, -_P.gatecontactshift + _P.shiftgatecontacts - _P.gstwidth / 2),
-                    point.create(x + _P.gatelength / 2, -_P.gatecontactshift + _P.shiftgatecontacts + _P.gstwidth / 2)
+                    point.create(x - _P.gatelength / 2, -_P.gatecontactsplitshift + _P.shiftgatecontacts - _P.gstwidth / 2),
+                    point.create(x + _P.gatelength / 2, -_P.gatecontactsplitshift + _P.shiftgatecontacts + _P.gstwidth / 2)
                 )
-                _make_anchors(gate, x, -_P.gatecontactshift + _P.shiftgatecontacts, _P.gatelength, _P.gstwidth, "G", string.format("%d", i))
+                _make_anchors(gate, x, -_P.gatecontactsplitshift + _P.shiftgatecontacts, _P.gatelength, _P.gstwidth, "G", string.format("%d", i))
             elseif _P.gatecontactpos[i] == "split" then
                 local y = _P.shiftgatecontacts
                 geometry.contactbltr(
                     gate, "gate", 
                     point.create(x - _P.gatelength / 2, y - _P.gstwidth / 2),
                     point.create(x + _P.gatelength / 2, y + _P.gstwidth / 2),
-                    1, 2, 0, 2 * _P.gatecontactshift
+                    1, 2, 0, 2 * _P.gatecontactsplitshift
                 )
                 _make_anchors(gate, x, y,                _P.gatelength, _P.gstwidth, "G", string.format("%d", i))
-                _make_anchors(gate, x, y + _P.gatecontactshift, _P.gatelength, _P.gstwidth, "Gupper", string.format("%d", i))
-                _make_anchors(gate, x, y - _P.gatecontactshift, _P.gatelength, _P.gstwidth, "Glower", string.format("%d", i))
+                _make_anchors(gate, x, y + _P.gatecontactsplitshift, _P.gatelength, _P.gstwidth, "Gupper", string.format("%d", i))
+                _make_anchors(gate, x, y - _P.gatecontactsplitshift, _P.gatelength, _P.gstwidth, "Glower", string.format("%d", i))
                 geometry.rectangle(gate, generics.other("gatecut"), xpitch, _P.cutheight, x, 0)
             elseif _P.gatecontactpos[i] == "dummy" then
                 geometry.contactbltr(
