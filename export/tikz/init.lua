@@ -120,10 +120,15 @@ local colors = {}
 local numcolors = 0
 local function _get_layer_style(layer)
     if not colors[layer.color] then
-        local colorname = string.format("opccolor%d", numcolors + 1)
+        local colorname
+        if layer.style then
+            colorname = string.format("%scolor", layer.style)
+        else
+            colorname = string.format("layoutcolor%d", numcolors + 1)
+            numcolors = numcolors + 1
+        end
         table.insert(__header, string.format("\\definecolor{%s}{HTML}{%s}", colorname, layer.color))
         colors[layer.color] = colorname
-        numcolors = numcolors + 1
     end
     if layer.nofill then
         return string.format("draw = %s", colors[layer.color])
