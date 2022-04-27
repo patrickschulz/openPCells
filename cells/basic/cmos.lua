@@ -66,7 +66,6 @@ function layout(gate, _P)
 
         -- pmos
         pcell.push_overwrites("basic/mosfet", {
-            channeltype = "pmos",
             vthtype = _P.pvthtype,
             fwidth = _P.pwidth,
             gbotext = separation / 2,
@@ -78,7 +77,7 @@ function layout(gate, _P)
         -- main
         local pmos
         if fingers > 0 then
-            pmos = pcell.create_layout("basic/mosfet", { fingers = fingers }):move_anchor("botgate")
+            pmos = pcell.create_layout("basic/mosfet", { vthtype = 1, fingers = fingers, channeltype = "pmos" } ):move_anchor("botgate")
             gate:merge_into_shallow(pmos)
         else
             pmos = object.create_omni()
@@ -87,7 +86,6 @@ function layout(gate, _P)
 
         -- nmos
         pcell.push_overwrites("basic/mosfet", {
-            channeltype = "nmos",
             vthtype = _P.nvthtype,
             fwidth = _P.nwidth,
             gtopext = separation / 2,
@@ -99,14 +97,13 @@ function layout(gate, _P)
         local nmos
         -- main
         if fingers > 0 then
-            nmos = pcell.create_layout("basic/mosfet", { fingers = fingers }):move_anchor("topgate")
+            nmos = pcell.create_layout("basic/mosfet", { fingers = fingers, channeltype = "nmos" }):move_anchor("topgate")
             gate:merge_into_shallow(nmos)
         else
             nmos = object.create_omni()
         end
         pcell.pop_overwrites("basic/mosfet")
     end
-
     -- power rails
     if _P.drawrails then
         geometry.rectangle(gate, 

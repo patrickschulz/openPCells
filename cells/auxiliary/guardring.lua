@@ -28,11 +28,11 @@ function layout(guardring, _P)
         point.create( _P.width / 2 - _P.ringwidth / 2, -_P.height / 2 + _P.ringwidth / 2)
     )
     geometry.contactbltr(guardring, "active", 
-        point.create(-_P.width / 2 - _P.ringwidth / 2, -_P.height / 2 - _P.ringwidth / 2),
+        point.create(-_P.width / 2 - _P.ringwidth / 2, -_P.height / 2 + _P.ringwidth / 2),
         point.create(-_P.width / 2 + _P.ringwidth / 2,  _P.height / 2 - _P.ringwidth / 2)
     )
     geometry.contactbltr(guardring, "active", 
-        point.create( _P.width / 2 - _P.ringwidth / 2, -_P.height / 2 - _P.ringwidth / 2),
+        point.create( _P.width / 2 - _P.ringwidth / 2, -_P.height / 2 + _P.ringwidth / 2),
         point.create( _P.width / 2 + _P.ringwidth / 2,  _P.height / 2 - _P.ringwidth / 2)
     )
 

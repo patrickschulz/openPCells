@@ -19,6 +19,13 @@ void vector_append(struct vector* vector, void* element);
 void vector_prepend(struct vector* vector, void* element);
 void vector_remove(struct vector* vector, size_t index, void (*destructor)(void*));
 
+struct vector_iterator;
+struct vector_iterator* vector_iterator_create(struct vector* vector);
+int vector_iterator_is_valid(struct vector_iterator* iterator);
+void* vector_iterator_get(struct vector_iterator* iterator);
+void vector_iterator_next(struct vector_iterator* iterator);
+void vector_iterator_destroy(struct vector_iterator* iterator);
+
 struct const_vector
 {
     const void** elements;

@@ -6,8 +6,9 @@ function M.get_extension()
     return "tikz"
 end
 
-local __standalone
+local __standalone = false
 local __drawpatterns = true
+local __resizebox = false
 
 function M.set_options(opt)
     for i = 1, #opt do
@@ -18,9 +19,13 @@ function M.set_options(opt)
         if arg == "-s" or arg == "--solid" then
             __drawpatterns = false
         end
+        if arg == "-r" or arg == "--resize-box" then
+            __resizebox = true
+        end
     end
 end
 
+local __header = {}
 local __before = {}
 local __options = {}
 local __after = {}
@@ -28,6 +33,9 @@ local __content = {}
 
 function M.finalize()
     local t = {}
+    for _, entry in ipairs(__header) do
+        table.insert(t, entry)
+    end
     for _, entry in ipairs(__before) do
         table.insert(t, entry)
     end
@@ -54,10 +62,16 @@ end
 
 function M.at_begin()
     if __standalone then
-        table.insert(__before, '\\documentclass{standalone}')
-        table.insert(__before, '\\usepackage{tikz}')
-        table.insert(__before, '\\usetikzlibrary{patterns}')
+        table.insert(__header, '\\documentclass{standalone}')
+        table.insert(__header, '\\usepackage{tikz}')
+        table.insert(__header, '\\usetikzlibrary{patterns}')
+        if __resizebox then
+            table.insert(__header, '\\usepackage{adjustbox}')
+        end
         table.insert(__before, '\\begin{document}')
+    end
+    if __resizebox then
+        table.insert(__before, '\\begin{adjustbox}{width=\\linewidth}')
     end
     table.insert(__before, '\\begin{tikzpicture}')
     table.insert(__options, "x = 5, y = 5")
@@ -65,6 +79,9 @@ end
 
 function M.at_end()
     table.insert(__after, '\\end{tikzpicture}')
+    if __resizebox then
+        table.insert(__after, '\\end{adjustbox}')
+    end
     if __standalone then
         table.insert(__after, '\\end{document}')
     end
@@ -99,14 +116,27 @@ local function _format_point(pt, baseunit, sep)
     return string.format("%s%s%s", sx, sep, sy)
 end
 
+local colors = {}
+local numcolors = 0
 local function _get_layer_style(layer)
+    if not colors[layer.color] then
+        local colorname
+        if layer.style then
+            colorname = string.format("%scolor", layer.style)
+        else
+            colorname = string.format("layoutcolor%d", numcolors + 1)
+            numcolors = numcolors + 1
+        end
+        table.insert(__header, string.format("\\definecolor{%s}{HTML}{%s}", colorname, layer.color))
+        colors[layer.color] = colorname
+    end
     if layer.nofill then
-        return string.format("draw = %s", layer.color)
+        return string.format("draw = %s", colors[layer.color])
     else
         if layer.pattern then
-            return string.format("draw = %s, pattern = crosshatch, pattern color = %s", layer.color, layer.color)
+            return string.format("draw = %s, pattern = crosshatch, pattern color = %s", colors[layer.color], colors[layer.color])
         else
-            return string.format("fill = %s", layer.color, layer.color)
+            return string.format("fill = %s, draw = %s", colors[layer.color], colors[layer.color])
         end
     end
 end
