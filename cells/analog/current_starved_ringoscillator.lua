@@ -105,14 +105,26 @@ function layout(oscillator, _P)
         gatelength = _P.glength,
         gatespace = _P.gspace,
     })
-    local separation = 3 * _P.gstwidth + 4 * _P.gstspace
+    local numinnerroutes = 3
+    local separation = numinnerroutes * _P.gstwidth + (numinnerroutes + 1) * _P.gstspace
     pcell.push_overwrites("basic/cmos", {
+        gstwidth = _P.gstwidth,
+        sdwidth = _P.gstwidth,
         pwidth = _P.pfingerwidth,
         nwidth = _P.nfingerwidth,
+        psdheight = _P.pfingerwidth / 2,
+        nsdheight = _P.nfingerwidth / 2,
         powerwidth = _P.powerwidth,
         powerspace = _P.powerspace,
         separation = separation,
-        gatecontactsplitshift = _P.gstwidth + _P.gstspace
+        gatecontactsplitshift = _P.gstwidth + _P.gstspace,
+        gateext = 2 * _P.powerwidth + 2 * _P.powerspace,
+        outergstwidth = _P.gstwidth,
+        outergstspace = _P.powerspace,
+        drawpmoswelltap = true,
+        pmoswelltapspace = 2 * _P.powerspace + _P.gstwidth,
+        drawnmoswelltap = true,
+        nmoswelltapspace = 2 * _P.powerspace + _P.gstwidth,
     })
 
     -- place inverter cells
@@ -135,14 +147,9 @@ function layout(oscillator, _P)
         end
     end
     local inverterref = pcell.create_layout("basic/cmos", { 
-        gstwidth = _P.gstwidth,
         gatecontactpos = invgatecontacts, 
         pcontactpos = invactivecontacts, 
         ncontactpos = invactivecontacts,
-        psdheight = _P.pfingerwidth / 2,
-        nsdheight = _P.nfingerwidth / 2,
-        outergstspace = _P.powerspace,
-        gateext = 2 * _P.powerwidth + 2 * _P.powerspace,
     })
     -- current sources gate straps
     geometry.rectanglebltr(inverterref, generics.metal(1), 
@@ -237,14 +244,9 @@ function layout(oscillator, _P)
     end
     -- create current mirror layout
     local cmarray = pcell.create_layout("basic/cmos", { 
-        gstwidth = _P.gstwidth,
-        sdwidth = _P.gstwidth,
         gatecontactpos = cmgatecontacts, 
         pcontactpos = cmpactivecontacts, 
         ncontactpos = cmnactivecontacts,
-        psdheight = _P.pfingerwidth / 2,
-        nsdheight = _P.nfingerwidth / 2,
-        gateext = 2 * _P.powerwidth + 2 * _P.powerspace,
     })
     -- pmos diode
     geometry.rectanglebltr(cmarray, generics.metal(1), 

@@ -302,13 +302,14 @@ void geometry_any_angle_path(object_t* cell, generics_t* layer, point_t** pts, s
     geometry_polygon(cell, layer, points, numpoints);
 }
 
+typedef void (*via_strategy) (ucoordinate_t size, unsigned int cutsize, unsigned int space, int encl, unsigned int* rep_result, unsigned int* space_result);
+
 static void _fit_via(ucoordinate_t size, unsigned int cutsize, unsigned int space, int encl, unsigned int* rep_result, unsigned int* space_result)
 {
     *rep_result = (size + space - 2 * encl) / (cutsize + space);
     *space_result = space;
 }
 
-/*
 static void _continuous_via(ucoordinate_t size, unsigned int cutsize, unsigned int space, int encl, unsigned int* rep_result, unsigned int* space_result)
 {
     (void)encl; // FIXME
@@ -329,14 +330,24 @@ static void _continuous_via(ucoordinate_t size, unsigned int cutsize, unsigned i
         }
     }
     *rep_result = Nres;
-    *space_result = size / Nres - cutsize;
+    if(Nres)
+    {
+        *space_result = size / Nres - cutsize;
+    }
 }
-*/
 
-static struct via_definition* _get_rectangular_arrayzation(ucoordinate_t regionwidth, ucoordinate_t regionheight, struct via_definition** definitions, struct via_definition* fallback, unsigned int* xrep_ptr, unsigned int* yrep_ptr, unsigned int* xpitch_ptr, unsigned int* ypitch_ptr)
+static struct via_definition* _get_rectangular_arrayzation(ucoordinate_t regionwidth, ucoordinate_t regionheight, struct via_definition** definitions, struct via_definition* fallback, unsigned int* xrep_ptr, unsigned int* yrep_ptr, unsigned int* xpitch_ptr, unsigned int* ypitch_ptr, int xcont, int ycont)
 {
-    //local xstrat = arrayzation_strategies[options.xcontinuous and "continuous" or "fit"]
-    //local ystrat = arrayzation_strategies[options.ycontinuous and "continuous" or "fit"]
+    via_strategy xstrat = _fit_via;
+    via_strategy ystrat = _fit_via;
+    if(xcont)
+    {
+        xstrat = _continuous_via;
+    }
+    if(ycont)
+    {
+        ystrat = _continuous_via;
+    }
 
     //local idx
     unsigned int lastarea = 0;
@@ -353,8 +364,8 @@ static struct via_definition* _get_rectangular_arrayzation(ucoordinate_t regionw
         unsigned int _xspace = 0;
         unsigned int _yrep = 0;
         unsigned int _yspace = 0;
-        _fit_via(regionwidth, entry->width, entry->xspace, entry->xenclosure, &_xrep, &_xspace);
-        _fit_via(regionheight, entry->width, entry->yspace, entry->yenclosure, &_yrep, &_yspace);
+        xstrat(regionwidth, entry->width, entry->xspace, entry->xenclosure, &_xrep, &_xspace);
+        ystrat(regionheight, entry->width, entry->yspace, entry->yenclosure, &_yrep, &_yspace);
         if(_xrep > 0 && _yrep > 0)
         {
             unsigned int area = (_xrep + _yrep) * entry->width * entry->height;
@@ -414,7 +425,7 @@ static void _viabltr(object_t* cell, struct layermap* layermap, struct technolog
             return;
         }
         unsigned int viaxrep, viayrep, viaxpitch, viaypitch;
-        struct via_definition* entry = _get_rectangular_arrayzation(width, height, viadefs, fallback, &viaxrep, &viayrep, &viaxpitch, &viaypitch);
+        struct via_definition* entry = _get_rectangular_arrayzation(width, height, viadefs, fallback, &viaxrep, &viayrep, &viaxpitch, &viaypitch, 0, 0);
         if(!entry)
         {
             return;
@@ -448,14 +459,28 @@ void geometry_via(object_t* cell, struct layermap* layermap, struct technology_s
     _viabltr(cell, layermap, techstate, metal1, metal2, -(coordinate_t)width / 2 + xshift, -(coordinate_t)height / 2 + yshift, width / 2 + xshift, height / 2 + yshift, xrep, yrep, xpitch, ypitch);
 }
 
-static void _contactbltr(object_t* cell, struct layermap* layermap, struct technology_state* techstate, const char* region, coordinate_t blx, coordinate_t bly, coordinate_t trx, coordinate_t try, ucoordinate_t xrep, ucoordinate_t yrep, ucoordinate_t xpitch, ucoordinate_t ypitch)
+static void _contactbltr(
+    object_t* cell,
+    struct layermap* layermap, struct technology_state* techstate,
+    const char* region,
+    coordinate_t blx, coordinate_t bly, coordinate_t trx, coordinate_t try,
+    ucoordinate_t xrep, ucoordinate_t yrep,
+    ucoordinate_t xpitch, ucoordinate_t ypitch,
+    int xcont, int ycont
+)
 {
     ucoordinate_t width = trx - blx;
     ucoordinate_t height = try - bly;
     struct via_definition** viadefs = technology_get_contact_definitions(techstate, region);
     struct via_definition* fallback = technology_get_contact_fallback(techstate, region);
     unsigned int viaxrep, viayrep, viaxpitch, viaypitch;
-    struct via_definition* entry = _get_rectangular_arrayzation(width, height, viadefs, fallback, &viaxrep, &viayrep, &viaxpitch, &viaypitch);
+    struct via_definition* entry = _get_rectangular_arrayzation(
+        width, height,
+        viadefs, fallback,
+        &viaxrep, &viayrep,
+        &viaxpitch, &viaypitch,
+        xcont, ycont
+    );
     if(!entry)
     {
         return;
@@ -478,14 +503,48 @@ static void _contactbltr(object_t* cell, struct layermap* layermap, struct techn
     _rectanglebltr(cell, generics_create_other(layermap, techstate, "active"), blx, bly, trx, try, xrep, yrep, xpitch, ypitch);
 }
 
-void geometry_contactbltr(object_t* cell, struct layermap* layermap, struct technology_state* techstate, const char* region, point_t* bl, point_t* tr, ucoordinate_t xrep, ucoordinate_t yrep, ucoordinate_t xpitch, ucoordinate_t ypitch)
+void geometry_contactbltr(
+    object_t* cell,
+    struct layermap* layermap, struct technology_state* techstate,
+    const char* region,
+    point_t* bl, point_t* tr,
+    ucoordinate_t xrep, ucoordinate_t yrep,
+    ucoordinate_t xpitch, ucoordinate_t ypitch,
+    int xcont, int ycont
+)
 {
-    _contactbltr(cell, layermap, techstate, region, bl->x, bl->y, tr->x, tr->y, xrep, yrep, xpitch, ypitch);
+    _contactbltr(
+        cell,
+        layermap, techstate,
+        region,
+        bl->x, bl->y, tr->x, tr->y,
+        xrep, yrep,
+        xpitch, ypitch,
+        xcont, ycont
+    );
 }
 
-void geometry_contact(object_t* cell, struct layermap* layermap, struct technology_state* techstate, const char* region, ucoordinate_t width, ucoordinate_t height, coordinate_t xshift, coordinate_t yshift, ucoordinate_t xrep, ucoordinate_t yrep, ucoordinate_t xpitch, ucoordinate_t ypitch)
+void geometry_contact(
+    object_t* cell,
+    struct layermap* layermap, struct technology_state* techstate,
+    const char* region,
+    ucoordinate_t width, ucoordinate_t height,
+    coordinate_t xshift, coordinate_t yshift,
+    ucoordinate_t xrep, ucoordinate_t yrep,
+    ucoordinate_t xpitch, ucoordinate_t ypitch,
+    int xcont, int ycont
+)
 {
-    _contactbltr(cell, layermap, techstate, region, -(coordinate_t)width / 2 + xshift, -(coordinate_t)height / 2 + yshift, width / 2 + xshift, height / 2 + yshift, xrep, yrep, xpitch, ypitch);
+    _contactbltr(
+        cell,
+        layermap, techstate,
+        region,
+        -(coordinate_t)width / 2 + xshift, -(coordinate_t)height / 2 + yshift,
+        width / 2 + xshift, height / 2 + yshift,
+        xrep, yrep,
+        xpitch, ypitch,
+        xcont, ycont
+    );
 }
 
 void geometry_cross(object_t* cell, generics_t* layer, ucoordinate_t width, ucoordinate_t height, ucoordinate_t crosssize)
