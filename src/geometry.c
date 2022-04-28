@@ -475,6 +475,7 @@ static void _contactbltr(object_t* cell, struct layermap* layermap, struct techn
         }
     }
     _rectanglebltr(cell, generics_create_metal(layermap, techstate, 1), blx, bly, trx, try, xrep, yrep, xpitch, ypitch);
+    _rectanglebltr(cell, generics_create_other(layermap, techstate, "active"), blx, bly, trx, try, xrep, yrep, xpitch, ypitch);
 }
 
 void geometry_contactbltr(object_t* cell, struct layermap* layermap, struct technology_state* techstate, const char* region, point_t* bl, point_t* tr, ucoordinate_t xrep, ucoordinate_t yrep, ucoordinate_t xpitch, ucoordinate_t ypitch)
