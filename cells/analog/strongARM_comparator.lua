@@ -33,25 +33,24 @@
 function parameters()
     pcell.reference_cell("basic/mosfet")
     pcell.add_parameters(
+        { "gatelength", tech.get_dimension("Minimum Gate Length") },
+        { "gatespace", tech.get_dimension("Minimum Gate Space") },
+        { "fingerwidth", tech.get_dimension("Minimum Gate Width") },
         { "clockfingers", 8 },
         { "nmosinputfingers", 2 },
         { "latchfingers", 2 },
         { "resetfingers", 2 },
-        { "sdwidth", 40 }
+        { "sdwidth", tech.get_dimension("Minimum M1 Width") }
     )
 end
 
 function layout(comparator, _P)
-    local glength = 40
-    local gspace = 90
-    local xpitch = glength + gspace
-    local fingerwidth = 500
-    local fingerpitch = glength + gspace
+    local xpitch = _P.gatelength + _P.gatespace
 
     pcell.push_overwrites("basic/mosfet", {
-        gatelength = glength, 
-        gatespace = gspace, 
-        fwidth = fingerwidth, 
+        gatelength = _P.gatelength, 
+        gatespace = _P.gatespace, 
+        fwidth = _P.fingerwidth, 
         sdwidth = _P.sdwidth,
     })
     pcell.push_overwrites("basic/mosfet", {
