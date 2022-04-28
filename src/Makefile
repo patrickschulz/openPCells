@@ -159,8 +159,8 @@ endif
 cmdoptions.o: cmdoptions.c cmdoptions.h vector.h util.h
 export.o: export.c export.h lua/lua.h lua/luaconf.h object.h \
  transformationmatrix.h point.h shape.h generics.h keyvaluepairs.h \
- vector.h pcell.h lua/lauxlib.h lua/lua.h util.h lobject.h \
- export_common.h gdsexport.h lpoint.h
+ vector.h hashmap.h pcell.h lua/lauxlib.h lua/lua.h util.h lua_util.h \
+ lobject.h export_common.h gdsexport.h lpoint.h filesystem.h
 export_common.o: export_common.c export_common.h generics.h \
  keyvaluepairs.h vector.h point.h transformationmatrix.h
 filesystem.o: filesystem.c filesystem.h lua/lua.h lua/luaconf.h \
