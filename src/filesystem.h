@@ -4,6 +4,7 @@
 #include "lua/lua.h"
 
 int filesystem_mkdir(const char* path);
+int filesystem_exists(const char* path);
 
 #define LFILESYSTEMMODULE "filesystem"
 

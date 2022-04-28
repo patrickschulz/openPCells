@@ -10,10 +10,89 @@
 #include "export_common.h"
 #include "gdsexport.h"
 #include "lpoint.h"
+#include "filesystem.h"
 
 #define EXPORT_STATUS_SUCCESS 0
 #define EXPORT_STATUS_NOTFOUND 1
 #define EXPORT_STATUS_LOADERROR 2
+
+static struct export_functions* _get_export_functions(const char* exportname)
+{
+    struct export_functions* funcs = NULL;
+    if(strcmp(exportname, "gds") == 0)
+    {
+        funcs = gdsexport_get_export_functions();
+    }
+    else
+    {
+
+    }
+    return funcs;
+}
+
+char* export_get_export_layername(struct const_vector* searchpaths, const char* exportname)
+{
+    struct export_functions* funcs = _get_export_functions(exportname);
+    if(funcs) // C-defined exports
+    {
+        if(funcs->get_techexport)
+        {
+            return util_copy_string(funcs->get_techexport());
+        }
+    }
+    else // lua-defined exports
+    {
+        if(searchpaths)
+        {
+            for(unsigned int i = 0; i < const_vector_size(searchpaths); ++i)
+            {
+                const char* searchpath = const_vector_get(searchpaths, i);
+                size_t len = strlen(searchpath) + strlen(exportname) + 11; // + 11: "init.lua" + 2 * '/' + terminating zero
+                char* exportfilename = malloc(len);
+                snprintf(exportfilename, len, "%s/%s/init.lua", searchpath, exportname);
+                if(!filesystem_exists(exportfilename))
+                {
+                    continue;
+                }
+                lua_State* L = util_create_basic_lua_state();
+                int ret = luaL_dofile(L, exportfilename);
+                free(exportfilename);
+                if(ret != LUA_OK)
+                {
+                    lua_close(L);
+                    break;
+                }
+                if(lua_type(L, -1) == LUA_TTABLE)
+                {
+                    lua_getfield(L, -1, "get_techexport");
+                    if(!lua_isnil(L, -1))
+                    {
+                        int ret = lua_pcall(L, 0, 1, 0);
+                        if(ret != LUA_OK)
+                        {
+                            fprintf(stderr, "error while calling get_techexport: %s\n", lua_tostring(L, -1));
+                            lua_close(L);
+                            return NULL;
+                        }
+                        else
+                        {
+                            char* s = util_copy_string(lua_tostring(L, -1));
+                            lua_close(L);
+                            return s;
+                        }
+                    }
+                    else
+                    {
+                        lua_close(L);
+                        return NULL;
+                    }
+                }
+                lua_close(L);
+            }
+        }
+    }
+    return NULL;
+}
 
 static void _write_ports(object_t* cell, struct export_data* data, struct export_functions* funcs, char leftdelim, char rightdelim)
 {
@@ -339,20 +418,6 @@ static int _call_or_pop_nil(lua_State* L, int numargs)
     return LUA_OK;
 }
 
-static struct export_functions* get_export_functions(const char* exportname)
-{
-    struct export_functions* funcs = NULL;
-    if(strcmp(exportname, "gds") == 0)
-    {
-        funcs = gdsexport_get_export_functions();
-    }
-    else
-    {
-
-    }
-    return funcs;
-}
-
 static int _check_function(lua_State* L, const char* funcname)
 {
     lua_getfield(L, -1, funcname);
@@ -497,7 +562,7 @@ void export_write_toplevel(object_t* toplevel, struct pcell_state* pcell_state, 
     char* extension;
     int status = EXPORT_STATUS_NOTFOUND;
 
-    struct export_functions* funcs = get_export_functions(exportname);
+    struct export_functions* funcs = _get_export_functions(exportname);
     if(funcs) // C-defined exports
     {
         _write_toplevel_C(toplevel, pcell_state, toplevelname, data, funcs, writechildrenports, leftdelim, rightdelim);
@@ -514,6 +579,10 @@ void export_write_toplevel(object_t* toplevel, struct pcell_state* pcell_state, 
                 size_t len = strlen(searchpath) + strlen(exportname) + 11; // + 11: "init.lua" + 2 * '/' + terminating zero
                 char* exportfilename = malloc(len);
                 snprintf(exportfilename, len, "%s/%s/init.lua", searchpath, exportname);
+                if(!filesystem_exists(exportfilename))
+                {
+                    continue;
+                }
                 lua_State* L = util_create_basic_lua_state();
                 int ret = luaL_dofile(L, exportfilename);
                 free(exportfilename);

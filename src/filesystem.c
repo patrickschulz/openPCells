@@ -40,6 +40,11 @@ int filesystem_mkdir(const char* path)
     return 1;
 }
 
+int filesystem_exists(const char* path)
+{
+    return access(path, F_OK) == 0;
+}
+
 static int lfilesystem_mkdir(lua_State* L)
 {
     const char* path = lua_tostring(L, 1);
@@ -61,7 +66,6 @@ static int lfilesystem_exists(lua_State* L)
     }
     return 1;
 }
-
 
 int open_lfilesystem_lib(lua_State* L)
 {
