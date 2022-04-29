@@ -12,7 +12,9 @@ local floorplan = placement.create_floorplan_fixed_rows(instances, 0.8, 2)
 local rows = placement.optimize(instances, nets, floorplan)
 placement.insert_filler_names(rows, floorplan.floorplan_width)
 
-local routes = routing.legalize(nets, rows, floorplan)
+--FIXME: hardoded number of routing tracks per cell
+local numtracks = 12
+local routes = routing.legalize(nets, rows, numtracks, floorplan)
 
 local filename = generator.get_cell_filename("verilogimport", "verilogimport", module)
 print(string.format("writing to file '%s'", filename))

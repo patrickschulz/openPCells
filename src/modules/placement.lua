@@ -18,7 +18,7 @@ local function _get_geometry(instances)
         required_min_width = math.max(required_min_width, width)
     end
     return required_min_width, total_width
-nd
+end
 
 local function _create_options(fixedrows, required_min_width, total_width, utilization, aspectratio)
     local height = 7 -- FIXME

@@ -47,7 +47,7 @@ return {
         },
     },
     dffnq = {
-        width = 24,
+        width = 22,
         pinoffsets = {
             CLK = { x = 0, y = 0 },
             D = { x = 0, y = 0 },
@@ -55,7 +55,7 @@ return {
         },
     },
     dffprq = {
-        width = 27,
+        width = 25,
         pinoffsets = {
             CLK = { x = 0, y = 0 },
             D = { x = 0, y = 0 },
@@ -63,7 +63,7 @@ return {
         },
     },
     dffprsq = {
-        width = 27,
+        width = 25,
         pinoffsets = {
             CLK = { x = 0, y = 0 },
             D = { x = 0, y = 0 },

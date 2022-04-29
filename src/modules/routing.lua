@@ -1,6 +1,6 @@
 local M = {}
 
-local function _prepare_routing_nets(nets, rows)
+local function _prepare_routing_nets(nets, rows, numtracks)
     local netpositions = {}
     for i, net in ipairs(nets) do
         for r, row in ipairs(rows) do
@@ -16,7 +16,7 @@ local function _prepare_routing_nets(nets, rows)
                             if not offset then
                                 error(string.format("cell '%s' has no pin offset data on port '%s'", column.reference, n.port))
                             end
-                            table.insert(netpositions[i].positions, { instance = column.instance, port = n.port, x = c + offset.x + curwidth, y = r + offset.y })
+                            table.insert(netpositions[i].positions, { instance = column.instance, port = n.port, x = c + offset.x + curwidth, y = (r + offset.y) * numtracks })
                         end
                     end
                 end
@@ -27,8 +27,8 @@ local function _prepare_routing_nets(nets, rows)
     return netpositions
 end
 
-function M.legalize(nets, rows, options)
-    local netpositions = _prepare_routing_nets(nets, rows)
+function M.legalize(nets, rows, numtracks, floorplan)
+    local netpositions = _prepare_routing_nets(nets, rows, numtracks)
     for _, pos in ipairs(netpositions) do
         print(pos.name)
         for _, p in ipairs(pos.positions) do
@@ -38,7 +38,7 @@ function M.legalize(nets, rows, options)
     end
     -- call router here
     local routednets, numroutednets = router.route(netpositions,
-        options.floorplan_width, options.floorplan_height)
+        floorplan.floorplan_width, floorplan.floorplan_height * numtracks)
     return routednets
 end
 
@@ -86,7 +86,7 @@ function M.route(cell, routes, cells, width, xgrid, ygrid)
                 if movement.z then
                     geometry.via(cell, currmetal, currmetal + movement.z, width, width, x, y)
                     if #pts > 0 then
-                        geometry.path(cell, generics.metal(currmetal), 
+                        geometry.path(cell, generics.metal(currmetal),
                             geometry.path_points_xy(startpt, pts), width)
                     end
                     startpt = point.create(x, y)
@@ -95,7 +95,7 @@ function M.route(cell, routes, cells, width, xgrid, ygrid)
                 else
                     geometry.via(cell, currmetal, movement.metal, width, width, x, y)
                     if #pts > 0 then
-                        geometry.path(cell, generics.metal(currmetal), 
+                        geometry.path(cell, generics.metal(currmetal),
                             geometry.path_points_xy(startpt, pts), width)
                     end
                     startpt = point.create(x, y)
