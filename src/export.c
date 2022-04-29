@@ -494,6 +494,19 @@ static int _write_toplevel_lua(lua_State* L, object_t* object, struct pcell_stat
     }
     lua_pop(L, 1);
 
+    lua_getfield(L, -1, "initialize");
+    coordinate_t minx, maxx, miny, maxy;
+    object_get_minmax_xy(object, &minx, &miny, &maxx, &maxy);
+    lua_pushinteger(L, minx);
+    lua_pushinteger(L, maxx);
+    lua_pushinteger(L, miny);
+    lua_pushinteger(L, maxy);
+    ret = _call_or_pop_nil(L, 4);
+    if(ret != LUA_OK)
+    {
+        return ret;
+    }
+
     lua_getfield(L, -1, "at_begin");
     ret = _call_or_pop_nil(L, 0);
     if(ret != LUA_OK)

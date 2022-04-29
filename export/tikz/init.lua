@@ -6,6 +6,10 @@ function M.get_extension()
     return "tikz"
 end
 
+function M.get_techexport()
+    return "svg"
+end
+
 local __standalone = false
 local __drawpatterns = true
 local __resizebox = false
