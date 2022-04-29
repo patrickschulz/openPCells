@@ -11,7 +11,7 @@ return {
         layer = {
             gds = { layer = 1, purpose = 0 },
             SKILL = { layer = "active", purpose = "drawing" },
-            tikz = { style = "active", order = 2, color = "00ff00" },
+            tikz = { style = "active", order = 2, color = "38c316" },
         }
     },
     pwell = {

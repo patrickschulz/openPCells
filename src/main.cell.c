@@ -296,6 +296,127 @@ object_t* _create_cell(
     return toplevel;
 }
 
+void _get_exportname(const char* exportname, struct const_vector* searchpaths, char** exportname_ptr, char** exportlayername_ptr)
+{
+    if(!util_split_string(exportname, ':', exportlayername_ptr, exportname_ptr)) // export layers were not specified
+    {
+        *exportname_ptr = util_copy_string(exportname);
+        char* exportlayername_from_function = export_get_export_layername(searchpaths, *exportname_ptr);
+        if(exportlayername_from_function)
+        {
+            *exportlayername_ptr = exportlayername_from_function;
+        }
+        else
+        {
+            *exportlayername_ptr = util_copy_string(exportname);
+        }
+    }
+}
+
+void _move_origin(object_t* toplevel, struct cmdoptions* cmdoptions)
+{
+    if(cmdoptions_was_provided_long(cmdoptions, "origin"))
+    {
+        const char* arg = cmdoptions_get_argument_long(cmdoptions, "origin");
+        int x, y;
+        if(!_parse_point(arg, &x, &y))
+        {
+            printf("could not parse translation '%s'\n", arg);
+        }
+        else
+        {
+            object_move_to(toplevel, x, y);
+        }
+    }
+}
+
+void _translate(object_t* toplevel, struct cmdoptions* cmdoptions)
+{
+    if(cmdoptions_was_provided_long(cmdoptions, "translate"))
+    {
+        const char* arg = cmdoptions_get_argument_long(cmdoptions, "translate");
+        int dx, dy;
+        if(!_parse_point(arg, &dx, &dy))
+        {
+            printf("could not parse translation '%s'\n", arg);
+        }
+        else
+        {
+            object_translate(toplevel, dx, dy);
+        }
+    }
+}
+
+void _draw_alignmentboxes(object_t* toplevel, struct cmdoptions* cmdoptions, struct technology_state* techstate, struct layermap* layermap, struct pcell_state* pcell_state)
+{
+    if(cmdoptions_was_provided_long(cmdoptions, "draw-alignmentbox") || cmdoptions_was_provided_long(cmdoptions, "draw-all-alignmentboxes"))
+    {
+        point_t* bl = object_get_anchor(toplevel, "bottomleft");
+        point_t* tr = object_get_anchor(toplevel, "topright");
+        if(bl && tr)
+        {
+            geometry_rectanglebltr(toplevel, generics_create_special(layermap, techstate), bl, tr, 1, 1, 0, 0);
+            point_destroy(bl);
+            point_destroy(tr);
+        }
+    }
+    if(cmdoptions_was_provided_long(cmdoptions, "draw-all-alignmentboxes"))
+    {
+        for(unsigned int i = 0; i < pcell_get_reference_count(pcell_state); ++i)
+        {
+            object_t* cell = pcell_get_indexed_cell_reference(pcell_state, i)->cell;
+            point_t* bl = object_get_anchor(cell, "bottomleft");
+            point_t* tr = object_get_anchor(cell, "topright");
+            if(bl && tr)
+            {
+                geometry_rectanglebltr(cell, generics_create_special(layermap, techstate), bl, tr, 1, 1, 0, 0);
+                point_destroy(bl);
+                point_destroy(tr);
+            }
+        }
+    }
+}
+
+void _filter_layers(object_t* toplevel, struct cmdoptions* cmdoptions, struct pcell_state* pcell_state)
+{
+    if(cmdoptions_was_provided_long(cmdoptions, "filter-layers"))
+    {
+        const char** layernames = cmdoptions_get_argument_long(cmdoptions, "filter-layers");
+        if(cmdoptions_was_provided_long(cmdoptions, "filter-list") &&
+                strcmp(cmdoptions_get_argument_long(cmdoptions, "filter-list"), "include") == 0)
+        {
+            postprocess_filter_include(toplevel, layernames);
+            for(unsigned int i = 0; i < pcell_get_reference_count(pcell_state); ++i)
+            {
+                object_t* cell = pcell_get_indexed_cell_reference(pcell_state, i)->cell;
+                postprocess_filter_include(cell, layernames);
+            }
+        }
+        else
+        {
+            postprocess_filter_exclude(toplevel, layernames);
+            for(unsigned int i = 0; i < pcell_get_reference_count(pcell_state); ++i)
+            {
+                object_t* cell = pcell_get_indexed_cell_reference(pcell_state, i)->cell;
+                postprocess_filter_exclude(cell, layernames);
+            }
+        }
+    }
+}
+
+void _merge_rectangles(object_t* toplevel, struct cmdoptions* cmdoptions, struct layermap* layermap, struct pcell_state* pcell_state)
+{
+    if(cmdoptions_was_provided_long(cmdoptions, "merge-rectangles"))
+    {
+        postprocess_merge_shapes(toplevel, layermap);
+        for(unsigned int i = 0; i < pcell_get_reference_count(pcell_state); ++i)
+        {
+            object_t* cell = pcell_get_indexed_cell_reference(pcell_state, i)->cell;
+            postprocess_merge_shapes(cell, layermap);
+        }
+    }
+}
+
 int main_create_and_export_cell(struct cmdoptions* cmdoptions, struct keyvaluearray* config, int iscellscript)
 {
     int retval = 1;
@@ -371,35 +492,8 @@ int main_create_and_export_cell(struct cmdoptions* cmdoptions, struct keyvaluear
     const_vector_destroy(pfilenames);
     if(toplevel)
     {
-        // move origin
-        if(cmdoptions_was_provided_long(cmdoptions, "origin"))
-        {
-            const char* arg = cmdoptions_get_argument_long(cmdoptions, "origin");
-            int x, y;
-            if(!_parse_point(arg, &x, &y))
-            {
-                printf("could not parse translation '%s'\n", arg);
-            }
-            else
-            {
-                object_move_to(toplevel, x, y);
-            }
-        }
-
-        // translate
-        if(cmdoptions_was_provided_long(cmdoptions, "translate"))
-        {
-            const char* arg = cmdoptions_get_argument_long(cmdoptions, "translate");
-            int dx, dy;
-            if(!_parse_point(arg, &dx, &dy))
-            {
-                printf("could not parse translation '%s'\n", arg);
-            }
-            else
-            {
-                object_translate(toplevel, dx, dy);
-            }
-        }
+        _move_origin(toplevel, cmdoptions);
+        _translate(toplevel, cmdoptions);
 
         /*
         // orientation
@@ -436,32 +530,7 @@ int main_create_and_export_cell(struct cmdoptions* cmdoptions, struct keyvaluear
         */
 
         // draw alignmentbox(es)
-        if(cmdoptions_was_provided_long(cmdoptions, "draw-alignmentbox") || cmdoptions_was_provided_long(cmdoptions, "draw-all-alignmentboxes"))
-        {
-            point_t* bl = object_get_anchor(toplevel, "bottomleft");
-            point_t* tr = object_get_anchor(toplevel, "topright");
-            if(bl && tr)
-            {
-                geometry_rectanglebltr(toplevel, generics_create_special(layermap, techstate), bl, tr, 1, 1, 0, 0);
-                point_destroy(bl);
-                point_destroy(tr);
-            }
-        }
-        if(cmdoptions_was_provided_long(cmdoptions, "draw-all-alignmentboxes"))
-        {
-            for(unsigned int i = 0; i < pcell_get_reference_count(pcell_state); ++i)
-            {
-                object_t* cell = pcell_get_indexed_cell_reference(pcell_state, i)->cell;
-                point_t* bl = object_get_anchor(cell, "bottomleft");
-                point_t* tr = object_get_anchor(cell, "topright");
-                if(bl && tr)
-                {
-                    geometry_rectanglebltr(cell, generics_create_special(layermap, techstate), bl, tr, 1, 1, 0, 0);
-                    point_destroy(bl);
-                    point_destroy(tr);
-                }
-            }
-        }
+        _draw_alignmentboxes(toplevel, cmdoptions, techstate, layermap, pcell_state);
 
         // flatten cell
         if(cmdoptions_was_provided_long(cmdoptions, "flat"))
@@ -471,38 +540,8 @@ int main_create_and_export_cell(struct cmdoptions* cmdoptions, struct keyvaluear
         }
 
         // post-processing
-        if(cmdoptions_was_provided_long(cmdoptions, "filter-layers"))
-        {
-            const char** layernames = cmdoptions_get_argument_long(cmdoptions, "filter-layers");
-            if(cmdoptions_was_provided_long(cmdoptions, "filter-list") &&
-               strcmp(cmdoptions_get_argument_long(cmdoptions, "filter-list"), "include") == 0)
-            {
-                postprocess_filter_include(toplevel, layernames);
-                for(unsigned int i = 0; i < pcell_get_reference_count(pcell_state); ++i)
-                {
-                    object_t* cell = pcell_get_indexed_cell_reference(pcell_state, i)->cell;
-                    postprocess_filter_include(cell, layernames);
-                }
-            }
-            else
-            {
-                postprocess_filter_exclude(toplevel, layernames);
-                for(unsigned int i = 0; i < pcell_get_reference_count(pcell_state); ++i)
-                {
-                    object_t* cell = pcell_get_indexed_cell_reference(pcell_state, i)->cell;
-                    postprocess_filter_exclude(cell, layernames);
-                }
-            }
-        }
-        if(cmdoptions_was_provided_long(cmdoptions, "merge-rectangles"))
-        {
-            postprocess_merge_shapes(toplevel, layermap);
-            for(unsigned int i = 0; i < pcell_get_reference_count(pcell_state); ++i)
-            {
-                object_t* cell = pcell_get_indexed_cell_reference(pcell_state, i)->cell;
-                postprocess_merge_shapes(cell, layermap);
-            }
-        }
+        _filter_layers(toplevel, cmdoptions, pcell_state);
+        _merge_rectangles(toplevel, cmdoptions, layermap, pcell_state);
 
         // export cell
         if(cmdoptions_was_provided_long(cmdoptions, "export"))
@@ -527,19 +566,20 @@ int main_create_and_export_cell(struct cmdoptions* cmdoptions, struct keyvaluear
             const char* const * exportnames = cmdoptions_get_argument_long(cmdoptions, "export");
             while(*exportnames)
             {
-                char* exportname = NULL;
-                char* exportlayername = NULL;
-                if(!util_split_string(*exportnames, ':', &exportlayername, &exportname)) // export layers were not specified
-                {
-                    exportname = util_copy_string(*exportnames);
-                    exportlayername = util_copy_string(*exportnames);
-                }
+                char *exportname, *exportlayername;
+                _get_exportname(*exportnames, searchpaths, &exportname, &exportlayername);
                 if(!generics_resolve_premapped_layers(layermap, exportlayername))
                 {
                     retval = 0;
                     goto DESTROY_OBJECT;
                 }
-                export_write_toplevel(toplevel, pcell_state, searchpaths, exportname, basename, toplevelname, leftdelim, rightdelim, exportoptions, writechildrenports);
+                export_write_toplevel(
+                    toplevel, 
+                    pcell_state, 
+                    searchpaths, exportname, basename, toplevelname, 
+                    leftdelim, rightdelim, 
+                    exportoptions, writechildrenports
+                );
                 free(exportname);
                 free(exportlayername);
                 ++exportnames;

@@ -9,6 +9,7 @@ end
 local __standalone = false
 local __drawpatterns = true
 local __resizebox = false
+local __externaldisable
 
 function M.set_options(opt)
     for i = 1, #opt do
@@ -21,6 +22,9 @@ function M.set_options(opt)
         end
         if arg == "-r" or arg == "--resize-box" then
             __resizebox = true
+        end
+        if arg == "-x" or arg == "--disable-externalize" then
+            __externaldisable = true
         end
     end
 end
@@ -69,6 +73,9 @@ function M.at_begin()
             table.insert(__header, '\\usepackage{adjustbox}')
         end
         table.insert(__before, '\\begin{document}')
+    end
+    if __externaldisable then
+        table.insert(__before, '\\tikzexternaldisable')
     end
     if __resizebox then
         table.insert(__before, '\\begin{adjustbox}{width=\\linewidth}')
