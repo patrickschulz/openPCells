@@ -31,7 +31,7 @@ static struct netcollection* _initialize(lua_State* L)
 	lua_getfield(L, -1, "name");
 	const char *name = lua_tostring(L, -1);
 
-	lua_pop(L, 1); 
+	lua_pop(L, 1);
 
 	lua_getfield(L, -1, "positions");
 	size_t size = lua_rawlen(L, -1);
@@ -62,6 +62,8 @@ static struct netcollection* _initialize(lua_State* L)
             int y = lua_tointeger(L, -1);
             lua_pop(L, 1);
 
+	    printf("filled in from lua net position with x:%i, y:%i\n", x - 1,
+		   y - 1);
 	    position_t pos = *net_create_position(instance, port, x - 1, y - 1);
 	    nets[i - 1].positions[j - 1] = pos;
 
@@ -179,8 +181,8 @@ int lrouter_route(lua_State* L)
     /* table for all nets */
     lua_newtable(L);
 
-    //for(unsigned int i = 0; i < nc->num_nets; ++i)
-    for(unsigned int i = 0; i < 4; ++i)
+    for(unsigned int i = 0; i < nc->num_nets; ++i)
+    //for(unsigned int i = 0; i < 4; ++i)
     {
 
         /* dont route nets without at least 2 points */
@@ -214,6 +216,8 @@ int lrouter_route(lua_State* L)
             printf("post create deltas\n");
             net_print_path(&nc->nets[i]);
 
+	    bool need_switchdirection = false;
+
             point_t *curr_point;
             int point_count = 2;
             while((curr_point = (point_t *)queue_dequeue(nc->nets[i].path))
@@ -221,16 +225,16 @@ int lrouter_route(lua_State* L)
                 {
                     lua_newtable(L);
                     if(curr_point->x)
-			moves_create_delta(L, X_DIR, -1 * curr_point->x);
+			moves_create_delta(L, X_DIR, curr_point->x);
 		    else if(curr_point->y)
                     {
-
 			moves_create_switchdirection(L);
+			need_switchdirection = true;
 		        lua_rawseti(L, -2, point_count + 1);
 		        point_count++;
 
 			lua_newtable(L);
-			moves_create_delta(L, Y_DIR, -1 * curr_point->y);
+			moves_create_delta(L, Y_DIR, curr_point->y);
                     }
 		    else if(curr_point->z)
 			moves_create_via(L, -1 * curr_point->z);

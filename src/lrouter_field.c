@@ -69,6 +69,7 @@ void field_reset(int*** field, size_t width, size_t height, size_t num_layers)
 
 int*** field_init(size_t width, size_t height, size_t num_layers)
 {
+    width++;
     int*** field = calloc(num_layers, sizeof(**field));
     for(size_t i = 0; i < num_layers; i++)
     {
