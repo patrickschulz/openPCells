@@ -59,6 +59,7 @@ char* export_get_export_layername(struct const_vector* searchpaths, const char* 
                 free(exportfilename);
                 if(ret != LUA_OK)
                 {
+                    fprintf(stderr, "error while loading export '%s': %s\n", exportname, lua_tostring(L, -1));
                     lua_close(L);
                     break;
                 }
