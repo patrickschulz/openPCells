@@ -415,7 +415,7 @@ function layout(cmos, _P)
     end
 
     cmos:set_alignment_box(
-        point.create(-fingers * (_P.gatelength + _P.gatespace) / 2, -_P.separation / 2 - _P.nwidth - _P.powerspace - _P.powerwidth / 2),
-        point.create( fingers * (_P.gatelength + _P.gatespace) / 2, _P.separation / 2 + _P.pwidth + _P.powerspace + _P.powerwidth / 2)
+        point.create(-(fingers + 2 * _P.leftdummies) * (_P.gatelength + _P.gatespace) / 2, -_P.separation / 2 - _P.nwidth - _P.powerspace - _P.powerwidth / 2),
+        point.create( (fingers + 2 * _P.rightdummies) * (_P.gatelength + _P.gatespace) / 2, _P.separation / 2 + _P.pwidth + _P.powerspace + _P.powerwidth / 2)
     )
 end
