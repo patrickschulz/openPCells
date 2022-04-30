@@ -29,7 +29,6 @@ function M.set_options(opt)
 end
 
 local __width, __height
-local __gridfmt = "%.3f"
 function M.initialize(minx, maxx, miny, maxy)
     local width = maxx - minx
     local height = maxy - miny
