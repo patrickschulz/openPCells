@@ -595,6 +595,7 @@ void object_get_minmax_xy(const object_t* cell, coordinate_t* minxp, coordinate_
         {
             case RECTANGLE:
             case POLYGON:
+            case TRIANGULATED_POLYGON:
                 for(unsigned int j = 0; j < S->size; ++j)
                 {
                     coordinate_t x = S->points[j]->x;

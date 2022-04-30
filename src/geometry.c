@@ -607,3 +607,144 @@ void geometry_ring(object_t* cell, generics_t* layer, ucoordinate_t width, ucoor
 {
     geometry_unequal_ring(cell, layer, width, height, ringwidth, ringwidth);
 }
+
+struct trivertex
+{
+    point_t* pt;
+    int is_ear;
+    size_t index;
+};
+
+struct trivertex* _vertex_create(point_t* pt)
+{
+    struct trivertex* v = malloc(sizeof(*v));
+    v->pt = pt;
+    v->is_ear = 0;
+    v->index = 0;
+    return v;
+}
+
+// bayer coordinates used here to check if a point is in the given triangle, a different approach can also be used
+static int _is_in_triangle(const struct trivertex* p, const struct trivertex* v1, const struct trivertex* v2, const struct trivertex* v3)
+{
+    int alpha = 
+        (
+            (v2->pt->y - v3->pt->y) * (p->pt->x - v3->pt->x) + 
+            (v3->pt->x - v2->pt->x) * (p->pt->y - v3->pt->y)
+        ) / 
+        (
+            (v2->pt->y - v3->pt->y) * (v1->pt->x - v3->pt->x) + 
+            (v3->pt->x - v2->pt->x) * (v1->pt->y - v3->pt->y)
+        );
+
+    int beta = 
+        (
+            (v3->pt->y - v1->pt->y) * (p->pt->x - v3->pt->x) + 
+            (v1->pt->x - v3->pt->x) * (p->pt->y - v3->pt->y)
+        ) / 
+        (
+            (v2->pt->y - v3->pt->y) * (v1->pt->x - v3->pt->x) + 
+            (v3->pt->x - v2->pt->x) * (v1->pt->y - v3->pt->y)
+        );
+
+    return (alpha > 0) && (beta > 0) && ((1 - alpha) > beta);
+}
+
+// function to check if any point lies within the given triangle
+static int _has_points_in_tri(struct vector* vertices, size_t i, size_t idx1, size_t idx2)
+{
+    for(size_t j = 0; j < vector_size(vertices); j++)
+    {
+        if(j == idx1 || j == idx2 || j == i)
+        {
+            continue;
+        }
+        if(_is_in_triangle(vector_get(vertices, j), vector_get(vertices, i), vector_get(vertices, idx1), vector_get(vertices, idx2)))
+        {
+            return 1;
+        }
+    }
+    return 0;
+}
+
+// ear evaluation is done here
+static void _evaluate(struct vector* vertices, size_t i, size_t idx1, size_t idx2)
+{
+    struct trivertex* vi = vector_get(vertices, i);
+    struct trivertex* vidx1 = vector_get(vertices, idx1);
+    struct trivertex* vidx2 = vector_get(vertices, idx2);
+    // calculate the determinant
+    int det = (
+        (vi->pt->x - vidx1->pt->x) * (vidx1->pt->y - vidx2->pt->y) -
+        (vi->pt->y - vidx1->pt->y) * (vidx1->pt->x - vidx2->pt->x)
+    );
+
+    // if positive, we have an ear and set the trivertex ear property to true
+    if (det < 0)
+    {
+        return;
+    }
+
+    // check if there is any point in the triangle
+    if (!_has_points_in_tri(vertices, i, idx1, idx2))
+    {
+        vidx1->is_ear = 1;
+    }
+}
+
+point_t** geometry_triangulate_polygon(point_t** polypoints, size_t numpoints)
+{
+    // build data structure
+    struct vector* vertices = vector_create();
+    for(size_t i = 0; i < numpoints; ++i)
+    {
+        vector_append(vertices, _vertex_create(polypoints[i]));
+    }
+
+    // loop through all vertices and check them for ear/non-ear property
+    size_t sz = vector_size(vertices);
+    for(size_t i = 0; i < sz; i++)
+    {
+        _evaluate(vertices, i, (i + 1) % sz, (i + 2) % sz);
+        struct trivertex* v = vector_get(vertices, i);
+        v->index = i;
+    }
+
+    point_t** result = calloc((vector_size(vertices) - 2) * 3, sizeof(*result));
+
+    // loop until the polygon has only 3 vertices remaining
+    size_t numresultpoints = 0;
+    while(sz >= 3)
+    {
+        for(size_t i = 0; i < sz; i++)
+        {
+            // calculate adjacent trivertex indices
+            size_t idx1 = (i + 1) % sz; 
+            size_t idx2 = (i + 2) % sz;
+
+            // check if trivertex is an ear
+            if(((struct trivertex*)vector_get(vertices, idx1))->is_ear)
+            {
+                // store the triangle points
+                result[numresultpoints + 0] = ((struct trivertex*)vector_get(vertices, i))->pt;
+                result[numresultpoints + 1] = ((struct trivertex*)vector_get(vertices, idx1))->pt;
+                result[numresultpoints + 2] = ((struct trivertex*)vector_get(vertices, idx2))->pt;
+                numresultpoints += 3;
+
+                // remove the trivertex from the polygon
+                vector_remove(vertices, idx1, NULL); // vertices is non-owning
+                sz--;
+
+                // check if adjacent vertices changed their ear/non-ear configuration and update
+                idx1 = (i + 1) % sz;
+                _evaluate(vertices, i == 0 ? sz - 1 : i - 1, i, idx1);
+                idx2 = (i + 2) % sz;
+                _evaluate(vertices, idx1, idx2, (idx2 + 1) % sz);
+
+                break;
+            }
+        }
+    }
+    return result;
+}
+
