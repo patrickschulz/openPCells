@@ -17,7 +17,6 @@
 #include "lrouter.h"
 #include "gdsparser.h"
 #include "technology.h"
-#include "graphics.h"
 #include "util.h"
 #include "lua_util.h"
 #include "export.h"
@@ -42,7 +41,6 @@ static lua_State* _create_and_initialize_lua(void)
     open_lgeometry_lib(L);
     open_lgenerics_lib(L);
     open_ltechnology_lib(L);
-    open_lgraphics_lib(L);
     open_lbind_lib(L);
     open_lobject_lib(L);
     open_lpcell_lib(L);

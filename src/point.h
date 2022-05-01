@@ -23,4 +23,7 @@ point_t* point_copy(point_t* pt);
 
 void point_translate(point_t* pt, coordinate_t x, coordinate_t y);
 
+#define pointarray vector
+#define pointarray_get(p, i) ((point_t*)vector_get(p, i))
+
 #endif // OPC_POINT_H

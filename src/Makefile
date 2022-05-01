@@ -189,8 +189,8 @@ lgenerics.o: lgenerics.c lgenerics.h lua/lua.h lua/luaconf.h generics.h \
  keyvaluepairs.h vector.h lua/lauxlib.h lua/lua.h technology.h
 lgeometry.o: lgeometry.c lgeometry.h lua/lua.h lua/luaconf.h \
  lua/lauxlib.h lua/lua.h geometry.h technology.h vector.h generics.h \
- keyvaluepairs.h object.h transformationmatrix.h point.h shape.h pcell.h \
- lobject.h lpoint.h
+ keyvaluepairs.h hashmap.h object.h transformationmatrix.h point.h \
+ shape.h pcell.h lobject.h lpoint.h
 lobject.o: lobject.c lobject.h lua/lua.h lua/luaconf.h object.h \
  transformationmatrix.h point.h shape.h generics.h keyvaluepairs.h \
  vector.h pcell.h lua/lauxlib.h lua/lua.h lpoint.h
