@@ -116,7 +116,8 @@ int technology_load_layermap(struct technology_state* techstate, const char* nam
     int ret = luaL_dofile(L, name);
     if(ret != LUA_OK)
     {
-        puts("error while loading layermap");
+        const char* msg = lua_tostring(L, -1);
+        fprintf(stderr, "error while loading layermap:\n  %s\n", msg);
         return 0;
     }
     lua_pushnil(L);

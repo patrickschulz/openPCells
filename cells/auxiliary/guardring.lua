@@ -20,20 +20,20 @@ function layout(guardring, _P)
     -- M1 and contacts
     geometry.ring(guardring, generics.metal(1), _P.width, _P.height, _P.ringwidth)
     geometry.contactbltr(guardring, "active", 
-        point.create(-(_P.width - _P.ringwidth) / 2, _P.height / 2 - _P.ringwidth / 2),
-        point.create( (_P.width - _P.ringwidth) / 2, _P.height / 2 + _P.ringwidth / 2)
+        point.create(-_P.width / 2 + _P.ringwidth / 2, _P.height / 2 - _P.ringwidth / 2),
+        point.create( _P.width / 2 - _P.ringwidth / 2, _P.height / 2 + _P.ringwidth / 2)
     )
     geometry.contactbltr(guardring, "active", 
-        point.create(-(_P.width - _P.ringwidth) / 2, -_P.height / 2 - _P.ringwidth / 2),
-        point.create( (_P.width - _P.ringwidth) / 2, -_P.height / 2 + _P.ringwidth / 2)
+        point.create(-_P.width / 2 + _P.ringwidth / 2, -_P.height / 2 - _P.ringwidth / 2),
+        point.create( _P.width / 2 - _P.ringwidth / 2, -_P.height / 2 + _P.ringwidth / 2)
     )
     geometry.contactbltr(guardring, "active", 
-        point.create(-_P.width - _P.ringwidth / 2, -_P.height - _P.ringwidth / 2),
-        point.create(-_P.width + _P.ringwidth / 2,  _P.height - _P.ringwidth / 2)
+        point.create(-_P.width / 2 - _P.ringwidth / 2, -_P.height / 2 + _P.ringwidth / 2),
+        point.create(-_P.width / 2 + _P.ringwidth / 2,  _P.height / 2 - _P.ringwidth / 2)
     )
     geometry.contactbltr(guardring, "active", 
-        point.create( _P.width - _P.ringwidth / 2, -_P.height - _P.ringwidth / 2),
-        point.create( _P.width + _P.ringwidth / 2,  _P.height - _P.ringwidth / 2)
+        point.create( _P.width / 2 - _P.ringwidth / 2, -_P.height / 2 + _P.ringwidth / 2),
+        point.create( _P.width / 2 + _P.ringwidth / 2,  _P.height / 2 - _P.ringwidth / 2)
     )
 
     -- well

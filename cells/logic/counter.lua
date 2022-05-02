@@ -36,10 +36,10 @@ function layout(counter, _P)
     local bitref = object.create()
     local bitcellnames = {
         {
-            { instance = "dffp", reference = "dffp" },
+            { instance = "dffp", reference = "dffpq" },
             { instance = "xnor", reference = "xor_gate" },
             { instance = "or",   reference = "or_gate" },
-            { instance = "dffn", reference = "dffn" },
+            { instance = "dffn", reference = "dffnq" },
         }
     }
     local bitrow = placement.create_reference_rows(bitcellnames)

@@ -140,6 +140,54 @@ static inline void _write_ENDEL_unchecked(struct export_data* data)
     export_data_append_byte_unchecked(data, DATATYPE_NONE);
 }
 
+static inline void _write_layer(struct export_data* data, uint8_t type, const struct keyvaluearray* layer)
+{
+    // BOUNDARY (4 bytes)
+    _write_length_short(data, 4);
+    export_data_append_byte(data, type);
+    export_data_append_byte(data, DATATYPE_NONE);
+
+    // LAYER (6 bytes)
+    _write_length_short_unchecked(data, 6);
+    export_data_append_byte(data, RECORDTYPE_LAYER);
+    export_data_append_byte(data, DATATYPE_TWO_BYTE_INTEGER);
+    int layernum;
+    keyvaluearray_get_int(layer, "layer", &layernum);
+    export_data_append_two_bytes(data, layernum);
+
+    // DATATYPE (6 bytes)
+    _write_length_short_unchecked(data, 6);
+    export_data_append_byte(data, RECORDTYPE_DATATYPE);
+    export_data_append_byte(data, DATATYPE_TWO_BYTE_INTEGER);
+    int layerpurpose;
+    keyvaluearray_get_int(layer, "purpose", &layerpurpose);
+    export_data_append_two_bytes(data, layerpurpose);
+}
+
+static inline void _write_layer_unchecked(struct export_data* data, uint8_t type, const struct keyvaluearray* layer)
+{
+    // BOUNDARY (4 bytes)
+    _write_length_short(data, 4);
+    export_data_append_byte_unchecked(data, type);
+    export_data_append_byte_unchecked(data, DATATYPE_NONE);
+
+    // LAYER (6 bytes)
+    _write_length_short_unchecked(data, 6);
+    export_data_append_byte_unchecked(data, RECORDTYPE_LAYER);
+    export_data_append_byte_unchecked(data, DATATYPE_TWO_BYTE_INTEGER);
+    int layernum = 0;
+    keyvaluearray_get_int(layer, "layer", &layernum);
+    export_data_append_two_bytes_unchecked(data, (int16_t)layernum);
+
+    // DATATYPE (6 bytes)
+    _write_length_short_unchecked(data, 6);
+    export_data_append_byte_unchecked(data, RECORDTYPE_DATATYPE);
+    export_data_append_byte_unchecked(data, DATATYPE_TWO_BYTE_INTEGER);
+    int layerpurpose = 0;
+    keyvaluearray_get_int(layer, "purpose", &layerpurpose);
+    export_data_append_two_bytes_unchecked(data, (int16_t)layerpurpose);
+}
+
 static void _at_begin(struct export_data* data)
 {
     // FIXME: put in real data, not fixed
@@ -269,32 +317,13 @@ static void _at_end_cell(struct export_data* data)
 static void _write_rectangle(struct export_data* data, const struct keyvaluearray* layer, point_t* bl, point_t* tr)
 {
     export_data_ensure_additional_capacity(data, 64); // a rectangle has exactly 64 bytes
-    // BOUNDARY
-    _write_length_short(data, 4);
-    export_data_append_byte_unchecked(data, RECORDTYPE_BOUNDARY);
-    export_data_append_byte_unchecked(data, DATATYPE_NONE);
+    _write_layer_unchecked(data, RECORDTYPE_BOUNDARY, layer);
 
-    // LAYER
-    _write_length_short_unchecked(data, 6);
-    export_data_append_byte_unchecked(data, RECORDTYPE_LAYER);
-    export_data_append_byte_unchecked(data, DATATYPE_TWO_BYTE_INTEGER);
-    int layernum;
-    keyvaluearray_get_int(layer, "layer", &layernum);
-    export_data_append_two_bytes_unchecked(data, layernum);
-
-    // DATATYPE
-    _write_length_short_unchecked(data, 6);
-    export_data_append_byte_unchecked(data, RECORDTYPE_DATATYPE);
-    export_data_append_byte_unchecked(data, DATATYPE_TWO_BYTE_INTEGER);
-    int layerpurpose;
-    keyvaluearray_get_int(layer, "purpose", &layerpurpose);
-    export_data_append_two_bytes_unchecked(data, layerpurpose);
-
-    // XY
+    // XY (44 bytes)
     unsigned int multiplier = 1; // FIXME: make proper use of units
-    _write_length_short_unchecked(data, 44); // 44 bytes
-    export_data_append_byte_unchecked(data, RECORDTYPE_XY); // XY
-    export_data_append_byte_unchecked(data, DATATYPE_FOUR_BYTE_INTEGER); // FOUR_BYTE_INTEGER
+    _write_length_short_unchecked(data, 44);
+    export_data_append_byte_unchecked(data, RECORDTYPE_XY);
+    export_data_append_byte_unchecked(data, DATATYPE_FOUR_BYTE_INTEGER);
     export_data_append_four_bytes_unchecked(data, multiplier * bl->x);
     export_data_append_four_bytes_unchecked(data, multiplier * bl->y);
     export_data_append_four_bytes_unchecked(data, multiplier * tr->x);
@@ -306,31 +335,12 @@ static void _write_rectangle(struct export_data* data, const struct keyvaluearra
     export_data_append_four_bytes_unchecked(data, multiplier * bl->x);
     export_data_append_four_bytes_unchecked(data, multiplier * bl->y);
 
-    _write_ENDEL_unchecked(data);
+    _write_ENDEL_unchecked(data); // 4 bytes
 }
 
 static void _write_polygon(struct export_data* data, const struct keyvaluearray* layer, point_t** points, size_t len)
 {
-    // BOUNDARY
-    _write_length_short(data, 4);
-    export_data_append_byte(data, RECORDTYPE_BOUNDARY);
-    export_data_append_byte(data, DATATYPE_NONE);
-
-    // LAYER
-    _write_length_short(data, 6);
-    export_data_append_byte(data, RECORDTYPE_LAYER);
-    export_data_append_byte(data, DATATYPE_TWO_BYTE_INTEGER);
-    int layernum;
-    keyvaluearray_get_int(layer, "layer", &layernum);
-    export_data_append_two_bytes(data, layernum);
-
-    // DATATYPE
-    _write_length_short(data, 6);
-    export_data_append_byte(data, RECORDTYPE_DATATYPE);
-    export_data_append_byte(data, DATATYPE_TWO_BYTE_INTEGER);
-    int layerpurpose;
-    keyvaluearray_get_int(layer, "purpose", &layerpurpose);
-    export_data_append_two_bytes(data, layerpurpose);
+    _write_layer(data, RECORDTYPE_BOUNDARY, layer);
 
     // XY
     unsigned int multiplier = 1; // FIXME: make proper use of units
@@ -348,26 +358,7 @@ static void _write_polygon(struct export_data* data, const struct keyvaluearray*
 
 static void _write_path(struct export_data* data, const struct keyvaluearray* layer, point_t** points, size_t len, ucoordinate_t width, coordinate_t* extension)
 {
-    // PATH
-    _write_length_short(data, 4);
-    export_data_append_byte(data, RECORDTYPE_PATH);
-    export_data_append_byte(data, DATATYPE_NONE);
-
-    // LAYER
-    _write_length_short(data, 6);
-    export_data_append_byte(data, RECORDTYPE_LAYER);
-    export_data_append_byte(data, DATATYPE_TWO_BYTE_INTEGER);
-    int layernum;
-    keyvaluearray_get_int(layer, "layer", &layernum);
-    export_data_append_two_bytes(data, layernum);
-
-    // DATATYPE
-    _write_length_short(data, 6);
-    export_data_append_byte(data, RECORDTYPE_DATATYPE);
-    export_data_append_byte(data, DATATYPE_TWO_BYTE_INTEGER);
-    int layerpurpose;
-    keyvaluearray_get_int(layer, "purpose", &layerpurpose);
-    export_data_append_two_bytes(data, layerpurpose);
+    _write_layer(data, RECORDTYPE_PATH, layer);
 
     // PATHTYPE
     _write_length_short(data, 6);

@@ -32,12 +32,12 @@ function layout(gate, _P)
     if _P.fingers > 1 then
         geometry.path(
             gate,
-            generics.metal(1), { harness:get_anchor("G1upper"), harness:get_anchor(string.format("G%dupper", _P.fingers)) },
+            generics.metal(1), { harness:get_anchor("Guppercc1"), harness:get_anchor(string.format("Guppercc%d", _P.fingers)) },
             bp.gstwidth
         )
         geometry.path(
             gate,
-            generics.metal(1), { harness:get_anchor("G1lower"), harness:get_anchor(string.format("G%dlower", _P.fingers)) },
+            generics.metal(1), { harness:get_anchor("Glowercc1"), harness:get_anchor(string.format("Glowercc%d", _P.fingers)) },
             bp.gstwidth
         )
     end
@@ -47,7 +47,7 @@ function layout(gate, _P)
     geometry.path(gate, generics.metal(1), geometry.path_points_xy(
         harness:get_anchor(string.format("pSDo%d", n)):translate(0, -bp.sdwidth / 2), {
             point.combine_12(harness:get_anchor(string.format("pSDo%d", n)), harness:get_anchor(string.format("pSDi%d", n + 1))):translate(0, bp.sdwidth / 2),
-            harness:get_anchor("G1upper"):translate(-xpitch / 2 - _P.shiftinput, 0),
+            harness:get_anchor("Guppercc1"):translate(-xpitch / 2 - _P.shiftinput, 0),
             0, -- toggle xy
             point.combine_12(harness:get_anchor(string.format("nSDo%d", n)), harness:get_anchor(string.format("nSDi%d", n + 1))):translate(0, -bp.sdwidth / 2),
             harness:get_anchor(string.format("nSDo%d", n)):translate(0,  bp.sdwidth / 2),
@@ -57,7 +57,7 @@ function layout(gate, _P)
     if bp.connectoutput then
         geometry.path(gate, generics.metal(1), geometry.path_points_xy(
             harness:get_anchor("pSDi2"):translate(0, bp.sdwidth / 2), {
-                harness:get_anchor(string.format("G%dlower", _P.fingers)):translate(xpitch / 2 + _P.shiftoutput, 0),
+                harness:get_anchor(string.format("Glowercc%d", _P.fingers)):translate(xpitch / 2 + _P.shiftoutput, 0),
                 0, -- toggle xy
                 harness:get_anchor("nSDi2"):translate(0, -bp.sdwidth / 2),
         }), bp.sdwidth)
@@ -66,8 +66,8 @@ function layout(gate, _P)
     -- ports
     gate:add_port("I", generics.metal(1), point.create(-_P.fingers * xpitch / 2 - _P.shiftinput, 0))
     gate:add_port("O", generics.metal(1), point.create(_P.fingers * xpitch / 2 + _P.shiftoutput, 0))
-    gate:add_port("EP", generics.metal(1), harness:get_anchor("G1upper"))
-    gate:add_port("EN", generics.metal(1), harness:get_anchor("G1lower"))
+    gate:add_port("EP", generics.metal(1), harness:get_anchor("Guppercc1"))
+    gate:add_port("EN", generics.metal(1), harness:get_anchor("Glowercc1"))
     gate:add_port("VDD", generics.metal(1), harness:get_anchor("top"))
     gate:add_port("VSS", generics.metal(1), harness:get_anchor("bottom"))
 end

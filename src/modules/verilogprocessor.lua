@@ -1,71 +1,10 @@
-local function _get_cell_width(name)
-    local lut = {
-        not_gate = 2,
-        nand_gate = 2,
-        nor_gate = 2,
-        xor_gate = 10,
-        xnor_gate = 11,
-        dffp = 22,
-        dffn = 24,
-    }
-    if not lut[name] then
-        moderror(string.format("unknown stdcell '%s'", name))
-    end
-    return lut[name]
-end
-
-local function _get_pin_offset(name, port)
-    local lut = {
-        not_gate = {
-            I = { x = 0, y = 0 },
-            O = { x = 1, y = 0 }
-        },
-        nand_gate = {
-            A = { x = 0, y = 0 },
-            B = { x = 1, y = 0 },
-            O = { x = 2, y = 0 }
-        },
-        nor_gate = { 
-            A = { x = 0, y = 0 },
-            B = { x = 1, y = 0 },
-            O = { x = 2, y = 0 }
-        },
-        xor_gate = {
-            A = { x = 0, y = 0 },
-            B = { x = 1, y = 0 },
-            O = { x = 10, y = 0 }
-        },
-        xnor_gate = {
-            A = { x = 0, y = 0 },
-            B = { x = 1, y = 0 },
-            O = { x = 10, y = 0 }
-        },
-        dffp = {
-            CLK = { x = 0, y = 0 },
-            D = { x = 0, y = 0 },
-            Q = { x = 20, y = 0 },
-        },
-        dffn = {
-            CLK = { x = 0, y = 0 },
-            D = { x = 0, y = 0 },
-            Q = { x = 20, y = 0 }
-        },
-    }
-    if not lut[name] then
-        moderror(string.format("unknown stdcell '%s'", name))
-    end
-    --[[
-    if not lut[name][port] then
-        moderror(string.format("unknown port '%s' for stdcell '%s'", port, name))
-    end
-    return lut[name][port]
-    --]]
-    return lut[name]
-end
-
 local M = {}
 
-function M.collect_nets_cells(netlist)
+function M.read_cellinfo_from_file(filename)
+    return dofile(filename)
+end
+
+function M.collect_nets_cells(netlist, cellinfo)
     local netset = {}
     local nets = {}
     local instances = {}
@@ -82,13 +21,22 @@ function M.collect_nets_cells(netlist)
                     table.insert(ct, { name = c.net, port = c.port })
                 end
             end
-            table.insert(instances, { 
-                instance = instance.name, 
+            local pinoffsets = cellinfo[instance.reference] and cellinfo[instance.reference].pinoffsets
+            if not pinoffsets then
+                error(string.format("no pinoffsets data for cell '%s'", instance.reference))
+            end
+            local width = cellinfo[instance.reference] and cellinfo[instance.reference].width
+            if not width then
+                error(string.format("no width data for cell '%s'", instance.reference))
+            end
+            table.insert(instances, {
+                instance = instance.name,
                 reference = instance.reference,
                 nets = ct,
-                pinoffsets = _get_pin_offset(instance.reference),
-                width = _get_cell_width(instance.reference),
+                pinoffsets = pinoffsets,
+                width = width
             })
+            print(instance.reference, width)
         end
     end
     return instances, nets

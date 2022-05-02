@@ -31,21 +31,22 @@ local function _write_module(rows, routes)
     if routes then
         table.insert(lines, '    local routes = {')
         for _, route in ipairs(routes) do
-          table.insert(lines, '        {')
-          for _, moves in ipairs(route) do
-            local entry = {}
+            table.insert(lines, '        {')
+            for _, moves in ipairs(route) do
+                local entry = {}
                 for k, v in pairs(moves) do
                     table.insert(entry, string.format("%s = %q", k, v))
                 end
-            table.insert(lines, string.format('            { %s },', table.concat(entry, ", ")))
-          end
-          table.insert(lines, '        },')
+                table.insert(lines, string.format('            { %s },', table.concat(entry, ", ")))
+            end
+            table.insert(lines, '        },')
         end
         table.insert(lines, '    }')
         table.insert(lines, '    local bp = pcell.get_parameters("stdcells/base")')
         table.insert(lines, '    local width = bp.gstwidth')
         table.insert(lines, '    local xgrid = bp.gspace + bp.glength')
         table.insert(lines, '    local ygrid = bp.gstwidth + bp.gstspace')
+        --table.insert(lines, '    local ygrid = bp.pwidth + bp.nwidth + bp.powerwidth + 2 * bp.powerspace + bp.numinnerroutes * bp.gstwidth + (bp.numinnerroutes + 1) * bp.gstspace')
         table.insert(lines, string.format('    routing.route(toplevel, routes, cells, width, xgrid, ygrid)'))
     else
         print("no routing information found")

@@ -626,7 +626,7 @@ int gdsparser_read_stream(const char* filename, const char* importname)
                 {
                     fprintf(cellfile, "    ref = pcell.create_layout(\"%s/%s\")\n", importname, cellref->name);
                     fprintf(cellfile, "    name = pcell.add_cell_reference(ref, \"%s\")\n", cellref->name);
-                    hashmap_insert(references, cellref->name, NULL);
+                    hashmap_insert(references, cellref->name, NULL); // use hashmap as set (value == NULL)
                 }
                 if(cellref->xrep > 1 || cellref->yrep > 1)
                 {
@@ -667,7 +667,7 @@ int gdsparser_read_stream(const char* filename, const char* importname)
                     free(cellref->transformation);
                 }
             }
-            hashmap_destroy(references);
+            hashmap_destroy(references, NULL);
             vector_destroy(children, NULL);
             children = NULL;
             fputs("end", cellfile); // close layout function

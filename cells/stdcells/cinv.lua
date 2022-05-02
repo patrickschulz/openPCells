@@ -88,7 +88,7 @@ function layout(gate, _P)
             end
         end
     end
-    local harness = pcell.create_layout("stdcells/harness", { 
+    local harness = pcell.create_layout("stdcells/harness", {
         gatecontactpos = gatecontactpos,
         pcontactpos = pcontactpos,
         ncontactpos = ncontactpos,
@@ -96,16 +96,15 @@ function layout(gate, _P)
     gate:merge_into_shallow(harness)
     gate:inherit_alignment_box(harness)
 
-    ---[[
     -- gate straps
     if _P.fingers > 1 then
         if _P.splitenables then
                 geometry.path(
                     gate, generics.metal(1),
                     {
-                        harness:get_anchor("G1"),
-                        harness:get_anchor(string.format("G%d", 
-                            _P.fingers % 2 == 0 and 
+                        harness:get_anchor("Gcc1"),
+                        harness:get_anchor(string.format("Gcc%d",
+                            _P.fingers % 2 == 0 and
                                 (3 * _P.fingers) or
                                 (3 * _P.fingers - 2)
                         )),
@@ -115,8 +114,8 @@ function layout(gate, _P)
                 geometry.path(
                     gate, generics.metal(1),
                     {
-                        harness:get_anchor("G2"),
-                        harness:get_anchor(string.format("G%d", 
+                        harness:get_anchor("Gcc2"),
+                        harness:get_anchor(string.format("Gcc%d",
                             3 * _P.fingers - 1
                         )),
                     },
@@ -125,9 +124,9 @@ function layout(gate, _P)
                 geometry.path(
                     gate, generics.metal(1),
                     {
-                        harness:get_anchor("G3"),
-                        harness:get_anchor(string.format("G%d", 
-                            _P.fingers % 2 == 0 and 
+                        harness:get_anchor("Gcc3"),
+                        harness:get_anchor(string.format("Gcc%d",
+                            _P.fingers % 2 == 0 and
                                 (3 * _P.fingers - 3) or
                                 (3 * _P.fingers)
                         )),
@@ -139,9 +138,9 @@ function layout(gate, _P)
                 geometry.path(
                     gate, generics.metal(1),
                     {
-                        harness:get_anchor("G2"),
-                        harness:get_anchor(string.format("G%d", 
-                            _P.fingers % 2 == 0 and 
+                        harness:get_anchor("Gcc2"),
+                        harness:get_anchor(string.format("Gcc%d",
+                            _P.fingers % 2 == 0 and
                                 (2 * _P.fingers - 1) or
                                 (2 * _P.fingers)
                         )),
@@ -151,9 +150,9 @@ function layout(gate, _P)
                 geometry.path(
                     gate, generics.metal(1),
                     {
-                        harness:get_anchor("G1upper"),
-                        harness:get_anchor(string.format("G%dupper", 
-                            _P.fingers % 2 == 0 and 
+                        harness:get_anchor("Guppercc1"),
+                        harness:get_anchor(string.format("Guppercc%d",
+                            _P.fingers % 2 == 0 and
                                 (2 * _P.fingers) or
                                 (2 * _P.fingers - 1)
                         )),
@@ -163,9 +162,9 @@ function layout(gate, _P)
                 geometry.path(
                     gate, generics.metal(1),
                     {
-                        harness:get_anchor("G1lower"),
-                        harness:get_anchor(string.format("G%dlower", 
-                            _P.fingers % 2 == 0 and 
+                        harness:get_anchor("Glowercc1"),
+                        harness:get_anchor(string.format("Glowercc%d",
+                            _P.fingers % 2 == 0 and
                                 (2 * _P.fingers) or
                                 (2 * _P.fingers - 1)
                         )),
@@ -176,9 +175,9 @@ function layout(gate, _P)
                 geometry.path(
                     gate, generics.metal(1),
                     {
-                        harness:get_anchor("G1"),
-                        harness:get_anchor(string.format("G%d", 
-                            _P.fingers % 2 == 0 and 
+                        harness:get_anchor("Gcc1"),
+                        harness:get_anchor(string.format("Gcc%d",
+                            _P.fingers % 2 == 0 and
                                 (2 * _P.fingers) or
                                 (2 * _P.fingers - 1)
                         )),
@@ -188,9 +187,9 @@ function layout(gate, _P)
                 geometry.path(
                     gate, generics.metal(1),
                     {
-                        harness:get_anchor("G2upper"),
-                        harness:get_anchor(string.format("G%dupper", 
-                            _P.fingers % 2 == 0 and 
+                        harness:get_anchor("Guppercc2"),
+                        harness:get_anchor(string.format("Guppercc%d",
+                            _P.fingers % 2 == 0 and
                                 (2 * _P.fingers - 1) or
                                 (2 * _P.fingers)
                         )),
@@ -200,9 +199,9 @@ function layout(gate, _P)
                 geometry.path(
                     gate, generics.metal(1),
                     {
-                        harness:get_anchor("G2lower"),
-                        harness:get_anchor(string.format("G%dlower", 
-                            _P.fingers % 2 == 0 and 
+                        harness:get_anchor("Glowercc2"),
+                        harness:get_anchor(string.format("Glowercc%d",
+                            _P.fingers % 2 == 0 and
                                 (2 * _P.fingers - 1) or
                                 (2 * _P.fingers)
                         )),
@@ -218,7 +217,7 @@ function layout(gate, _P)
         local dend = _P.splitenables and (_P.swapoutputs and 4 or 1) or (_P.swapoutputs and 3 or 1)
         geometry.path(gate, generics.metal(1), geometry.path_points_xy(
             harness:get_anchor(string.format("pSDi%d", dend)):translate(0,  bp.sdwidth / 2), {
-                harness:get_anchor(string.format("G%d", fingers)):translate(_P.shiftoutput + xpitch / 2, 0),
+                harness:get_anchor(string.format("Gcc%d", fingers)):translate(_P.shiftoutput + xpitch / 2, 0),
                 0, -- toggle xy
                 harness:get_anchor(string.format("nSDi%d", dend)):translate(0, -bp.sdwidth / 2),
         }), bp.sdwidth)
@@ -236,18 +235,18 @@ function layout(gate, _P)
 
     -- ports
     if _P.splitenables then
-        gate:add_port("I", generics.metal(1), harness:get_anchor("G3"))
-        gate:add_port("EP", generics.metal(1), harness:get_anchor("G2"))
-        gate:add_port("EN", generics.metal(1), harness:get_anchor("G1"))
+        gate:add_port("I", generics.metal(1), harness:get_anchor("Gcc3"))
+        gate:add_port("EP", generics.metal(1), harness:get_anchor("Gcc2"))
+        gate:add_port("EN", generics.metal(1), harness:get_anchor("Gcc1"))
     else
         if _P.swapinputs then
-            gate:add_port("I", generics.metal(1), harness:get_anchor("G2"))
-            gate:add_port("EP", generics.metal(1), harness:get_anchor("G1upper"))
-            gate:add_port("EN", generics.metal(1), harness:get_anchor("G1lower"))
+            gate:add_port("I", generics.metal(1), harness:get_anchor("Gcc2"))
+            gate:add_port("EP", generics.metal(1), harness:get_anchor("Guppercc1"))
+            gate:add_port("EN", generics.metal(1), harness:get_anchor("Glowercc1"))
         else
-            gate:add_port("I", generics.metal(1), harness:get_anchor("G1"))
-            gate:add_port("EP", generics.metal(1), harness:get_anchor("G2upper"))
-            gate:add_port("EN", generics.metal(1), harness:get_anchor("G2lower"))
+            gate:add_port("I", generics.metal(1), harness:get_anchor("Gcc1"))
+            gate:add_port("EP", generics.metal(1), harness:get_anchor("Guppercc2"))
+            gate:add_port("EN", generics.metal(1), harness:get_anchor("Glowercc2"))
         end
     end
     gate:add_port("O", generics.metal(1), point.create(_P.fingers * xpitch + _P.shiftoutput, 0))

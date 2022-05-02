@@ -17,7 +17,7 @@ struct hashmap
 };
 
 struct hashmap* hashmap_create(void);
-void hashmap_destroy(struct hashmap* map);
+void hashmap_destroy(struct hashmap* map, void (*destructor)(void*));
 void hashmap_insert(struct hashmap* map, const char* key, void* value);
 int hashmap_exists(struct hashmap* map, const char* key);
 void* hashmap_get(struct hashmap* map, const char* key);
@@ -31,6 +31,7 @@ struct hashmap_iterator
 
 struct hashmap_iterator* hashmap_iterator_create(struct hashmap* map);
 int hashmap_iterator_is_valid(struct hashmap_iterator* iterator);
+void* hashmap_iterator_key(struct hashmap_iterator* iterator);
 void* hashmap_iterator_value(struct hashmap_iterator* iterator);
 void hashmap_iterator_next(struct hashmap_iterator* iterator);
 void hashmap_iterator_destroy(struct hashmap_iterator* iterator);

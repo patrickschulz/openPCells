@@ -5,6 +5,7 @@
 #include <string.h>
 #include <math.h>
 
+#include "object.h"
 #include "generics.h"
 #include "point.h"
 #include "transformationmatrix.h"
@@ -36,6 +37,8 @@ void export_data_append_string_unchecked(struct export_data* data, const char* s
 
 struct export_functions
 {
+    const char* (*get_techexport)(void);
+    void (*initialize)(object_t*);
     void (*at_begin)(struct export_data*);
     void (*at_end)(struct export_data*);
     void (*at_begin_cell)(struct export_data*, const char*);

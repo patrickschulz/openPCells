@@ -58,7 +58,21 @@ function parameters()
         { "drawbotactivedummy",                                        false },
         { "botactivedummywidth",                                          80 },
         { "botactivedummysep",                                            80 },
-        { "drawactive",                                                 true }
+        { "drawactive",                                                 true },
+        { "extendwelltop",                                                 0 },
+        { "extendwellbot",                                                 0 },
+        { "extendwellleft",                                                0 },
+        { "extendwellright",                                               0 },
+        { "drawtopwelltap",                                            false },
+        { "topwelltapwidth",                                           tech.get_dimension("Minimum M1 Width") },
+        { "topwelltapspace",                                           tech.get_dimension("Minimum M1 Space") },
+        { "topwelltapextendleft",                                          0 },
+        { "topwelltapextendright",                                         0 },
+        { "drawbotwelltap",                                            false },
+        { "botwelltapwidth",                                           tech.get_dimension("Minimum M1 Width") },
+        { "botwelltapspace",                                           tech.get_dimension("Minimum M1 Space") },
+        { "botwelltapextendleft",                                          0 },
+        { "botwelltapextendright",                                         0 }
     )
 end
 
@@ -69,14 +83,22 @@ function layout(transistor, _P)
         or
         (_P.fingers + 1) * gatepitch
 
-    local gateaddtop = math.max(_P.gtopext, enable(_P.drawtopgate, _P.topgatestrspace + _P.topgatestrwidth))
-    local gateaddbot = math.max(_P.gbotext, enable(_P.drawbotgate, _P.botgatestrspace + _P.botgatestrwidth))
+    local topgateshift = enable(_P.drawtopgate, _P.topgatestrspace + _P.topgatestrwidth)
+    local botgateshift = enable(_P.drawbotgate, _P.botgatestrspace + _P.botgatestrwidth)
+    local gateaddtop = math.max(_P.gtopext, topgateshift)
+    local gateaddbot = math.max(_P.gbotext, botgateshift)
+
+    local drainshift = enable(_P.connectdrain, _P.conndrainwidth + _P.conndrainspace)
+    local sourceshift = enable(_P.connectsource, _P.connsourcewidth + _P.connsourcespace)
+    if _P.channeltype == "pmos" then
+        drainshift, sourceshift = sourceshift, drainshift
+    end
 
     -- gates
     geometry.rectanglebltr(transistor, 
         generics.other("gate"),
-        point.create(-_P.gatelength / 2, -_P.fwidth / 2 - gateaddbot),
-        point.create( _P.gatelength / 2,  _P.fwidth / 2 + gateaddtop),
+        point.create(-_P.gatelength / 2, -_P.fwidth / 2 - gateaddbot - enable(_P.drawbotgate, sourceshift)),
+        point.create( _P.gatelength / 2,  _P.fwidth / 2 + gateaddtop + enable(_P.drawtopgate, drainshift)),
         _P.fingers, 1, gatepitch, 0
     )
 
@@ -113,10 +135,45 @@ function layout(transistor, _P)
 
     -- well
     geometry.rectanglebltr(transistor,
-        generics.other(_P.flippedwell and (_P.channeltype == "nmos" and "nwell" or "pwell") or (_P.channeltype == "nmos" and "pwell" or "nwell")),
-        point.create(-actwidth / 2, -_P.fwidth / 2 - gateaddbot),
-        point.create( actwidth / 2,  _P.fwidth / 2 + gateaddtop)
+        generics.other(_P.flippedwell and
+            (_P.channeltype == "nmos" and "nwell" or "pwell") or
+            (_P.channeltype == "nmos" and "pwell" or "nwell")
+        ),
+        point.create(
+            -actwidth / 2 - _P.extendwellleft,
+            -_P.fwidth / 2 - math.max(gateaddbot, enable(_P.drawbotwelltap, _P.botwelltapspace + _P.botwelltapwidth))- sourceshift - _P.extendwellbot
+        ),
+        point.create(
+            actwidth / 2 + _P.extendwellright,
+            _P.fwidth / 2 + math.max(gateaddtop, enable(_P.drawtopwelltap, _P.topwelltapspace + _P.topwelltapwidth)) + drainshift + _P.extendwelltop
+        )
     )
+    -- well taps
+    if _P.drawtopwelltap then
+        geometry.contact(transistor,
+            "active",
+            actwidth + _P.topwelltapextendleft + _P.topwelltapextendright,
+            _P.topwelltapwidth,
+            -- shifts
+            (_P.topwelltapextendright - _P.topwelltapextendleft) / 2,
+            _P.fwidth / 2 + drainshift + topgateshift + _P.topwelltapspace + _P.topwelltapwidth / 2,
+            1, 1, 0, 0,
+            { xcontinuous = true }
+        )
+    end
+    if _P.drawbotwelltap then
+        geometry.contact(transistor,
+            "active",
+            actwidth + _P.botwelltapextendleft + _P.botwelltapextendright,
+            _P.botwelltapwidth,
+            -- shifts
+            (_P.botwelltapextendright - _P.botwelltapextendleft) / 2,
+            -_P.fwidth / 2 - sourceshift - botgateshift - _P.botwelltapspace - _P.botwelltapwidth / 2,
+            1, 1, 0, 0,
+            { xcontinuous = true }
+        )
+    end
+
 
     -- oxide thickness
     geometry.rectanglebltr(transistor,
@@ -128,8 +185,8 @@ function layout(transistor, _P)
     -- gate contacts
     if _P.drawtopgate then
         geometry.contactbltr(transistor, "gate", 
-            point.create(-_P.gatelength / 2,                      _P.fwidth / 2 + _P.topgatestrspace),
-            point.create( _P.gatelength / 2, _P.topgatestrwidth + _P.fwidth / 2 + _P.topgatestrspace),
+            point.create(-_P.gatelength / 2,                      _P.fwidth / 2 + _P.topgatestrspace + drainshift),
+            point.create( _P.gatelength / 2, _P.topgatestrwidth + _P.fwidth / 2 + _P.topgatestrspace + drainshift),
             _P.fingers, 1, gatepitch, 0
         )
     end
@@ -138,15 +195,15 @@ function layout(transistor, _P)
         geometry.rectanglebltr(
             transistor,
             generics.metal(1), 
-            point.create(-(_P.fingers * _P.gatelength + (_P.fingers - 1) * _P.gatespace + extend) / 2, _P.fwidth / 2 + _P.topgatestrspace),
-            point.create( (_P.fingers * _P.gatelength + (_P.fingers - 1) * _P.gatespace + extend) / 2, _P.fwidth / 2 + _P.topgatestrspace + _P.topgatestrwidth)
+            point.create(-(_P.fingers * _P.gatelength + (_P.fingers - 1) * _P.gatespace + extend) / 2, drainshift + _P.fwidth / 2 + _P.topgatestrspace),
+            point.create( (_P.fingers * _P.gatelength + (_P.fingers - 1) * _P.gatespace + extend) / 2, drainshift + _P.fwidth / 2 + _P.topgatestrspace + _P.topgatestrwidth)
         )
         if _P.topgatemetal > 1 then
             geometry.viabltr(
                 transistor,
                 1, _P.topgatemetal, 
-                point.create(-(_P.fingers * _P.gatelength + (_P.fingers - 1) * _P.gatespace + extend) / 2, _P.fwidth / 2 + _P.topgatestrspace),
-                point.create( (_P.fingers * _P.gatelength + (_P.fingers - 1) * _P.gatespace + extend) / 2, _P.fwidth / 2 + _P.topgatestrspace + _P.topgatestrwidth)
+                point.create(-(_P.fingers * _P.gatelength + (_P.fingers - 1) * _P.gatespace + extend) / 2, drainshift + _P.fwidth / 2 + _P.topgatestrspace),
+                point.create( (_P.fingers * _P.gatelength + (_P.fingers - 1) * _P.gatespace + extend) / 2, drainshift + _P.fwidth / 2 + _P.topgatestrspace + _P.topgatestrwidth)
             )
         end
     end

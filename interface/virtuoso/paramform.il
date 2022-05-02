@@ -41,6 +41,7 @@ procedure(OPCGetCellParameters(cellname)
                                         ("string" 'hiCreateStringField)
                                         ("numtable" 'hiCreateStringField)
                                         ("strtable" 'hiCreateStringField)
+                                        ("table" 'hiCreateStringField)
                                         (t nil)
                                     )
                                     value = case(vtype 

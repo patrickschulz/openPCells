@@ -14,7 +14,7 @@ SYSCFLAGS=
 SYSLDFLAGS=
 SYSLIBS=
 
-OPCOBJ:=main.functions.o main.cell.o main.gds.o main.verilog.o cmdoptions.o util.o lua_util.o vector.o union.o postprocess.o point.o technology.o transformationmatrix.o ltransformationmatrix.o shape.o object.o geometry.o hashmap.o keyvaluepairs.o generics.o lgenerics.o lgeometry.o ldir.o lpoint.o graphics.o lbind.o lobject.o pcell.o filesystem.o lplacer.o lplacer_common.o lplacer_rand.o lplacer_nonoverlapping.o lplacer_classic.o lrouter.o lrouter_net.o lrouter_queue.o lrouter_min_heap.o lrouter_field.o lrouter_route.o gdsparser.o ldebug.o export.o export_common.o gdsexport.o info.o
+OPCOBJ:=main.functions.o main.cell.o main.gds.o main.verilog.o cmdoptions.o util.o lua_util.o vector.o union.o postprocess.o point.o technology.o transformationmatrix.o ltransformationmatrix.o shape.o object.o geometry.o hashmap.o keyvaluepairs.o generics.o lgenerics.o lgeometry.o ldir.o lpoint.o graphics.o lbind.o lobject.o pcell.o filesystem.o lplacer.o lplacer_common.o lplacer_rand.o lplacer_nonoverlapping.o lplacer_classic.o lrouter.o lrouter_net.o lrouter_queue.o lrouter_moves.o lrouter_min_heap.o lrouter_field.o lrouter_route.o gdsparser.o ldebug.o export.o export_common.o gdsexport.o info.o
 
 .PHONY: default
 default:
@@ -159,8 +159,8 @@ endif
 cmdoptions.o: cmdoptions.c cmdoptions.h vector.h util.h
 export.o: export.c export.h lua/lua.h lua/luaconf.h object.h \
  transformationmatrix.h point.h shape.h generics.h keyvaluepairs.h \
- vector.h pcell.h lua/lauxlib.h lua/lua.h util.h lobject.h \
- export_common.h gdsexport.h lpoint.h
+ vector.h hashmap.h pcell.h lua/lauxlib.h lua/lua.h util.h lua_util.h \
+ lobject.h export_common.h gdsexport.h lpoint.h filesystem.h
 export_common.o: export_common.c export_common.h generics.h \
  keyvaluepairs.h vector.h point.h transformationmatrix.h
 filesystem.o: filesystem.c filesystem.h lua/lua.h lua/luaconf.h \
@@ -210,6 +210,7 @@ lrouter.o: lrouter.c lua/lua.h lua/luaconf.h lua/lauxlib.h lua/lua.h \
  lrouter_net.h lrouter_queue.h lrouter_field.h lrouter_route.h ldebug.h
 lrouter_field.o: lrouter_field.c lrouter_field.h
 lrouter_min_heap.o: lrouter_min_heap.c lrouter_field.h lrouter_min_heap.h
+lrouter_moves.o: lrouter_moves.c lrouter_moves.h
 lrouter_net.o: lrouter_net.c lrouter_net.h lrouter_queue.h \
  lrouter_field.h
 lrouter_queue.o: lrouter_queue.c lrouter_queue.h lrouter_field.h \

@@ -24,6 +24,32 @@ char* util_copy_string(const char* str)
     return copy;
 }
 
+int util_split_string(const char* src, char delim, char** first, char** second)
+{
+    const char* ptr = src;
+    while(*ptr)
+    {
+        if(*ptr == delim)
+        {
+            break;
+        }
+        ++ptr;
+    }
+    if(*ptr)
+    {
+        *first = malloc(ptr - src + 1);
+        strncpy(*first, src, ptr - src);
+        (*first)[ptr - src] = 0;
+        *second = malloc(strlen(src) - (ptr - src + 1) + 1);
+        strncpy(*second, ptr + 1, strlen(src) - (ptr - src + 1) + 1);
+        return 1;
+    }
+    else
+    {
+        return 0;
+    }
+}
+
 void util_append_string(char* target, const char* str)
 {
     size_t len = strlen(target) + strlen(str);

@@ -1,9 +1,10 @@
 local M = {}
 
-local function _prepare_routing_nets(nets, rows)
+local function _prepare_routing_nets(nets, rows, numtracks)
     local netpositions = {}
     for i, net in ipairs(nets) do
         for r, row in ipairs(rows) do
+            local curwidth = 0
             for c, column in ipairs(row) do
                 if column.nets then
                     for _, n in ipairs(column.nets) do
@@ -12,18 +13,22 @@ local function _prepare_routing_nets(nets, rows)
                                 netpositions[i] = { name = net, positions = {} }
                             end
                             local offset = column.pinoffsets[n.port]
-                            table.insert(netpositions[i].positions, { instance = column.instance, port = n.port, x = c + offset.x, y = r + offset.y })
+                            if not offset then
+                                error(string.format("cell '%s' has no pin offset data on port '%s'", column.reference, n.port))
+                            end
+                            table.insert(netpositions[i].positions, { instance = column.instance, port = n.port, x = c + offset.x + curwidth, y = (r + offset.y) * numtracks })
                         end
                     end
                 end
+                curwidth = curwidth + column.width - 1
             end
         end
     end
     return netpositions
 end
 
-function M.legalize(nets, rows, options)
-    local netpositions = _prepare_routing_nets(nets, rows)
+function M.legalize(nets, rows, numtracks, floorplan)
+    local netpositions = _prepare_routing_nets(nets, rows, numtracks)
     for _, pos in ipairs(netpositions) do
         print(pos.name)
         for _, p in ipairs(pos.positions) do
@@ -33,7 +38,7 @@ function M.legalize(nets, rows, options)
     end
     -- call router here
     local routednets, numroutednets = router.route(netpositions,
-        options.floorplan_width, options.floorplan_height)
+        floorplan.floorplan_width, floorplan.floorplan_height * numtracks)
     return routednets
 end
 
@@ -51,7 +56,7 @@ function M.route(cell, routes, cells, width, xgrid, ygrid)
             startpt = route[1].where
         end
         local pts = {}
-        local currmetal = 1
+        local currmetal = route.startmetal or 1
         local x, y = startpt:unwrap()
         for i = 2, #route do
             local movement = route[i]
@@ -80,8 +85,8 @@ function M.route(cell, routes, cells, width, xgrid, ygrid)
             elseif movement.type == "via" then
                 if movement.z then
                     geometry.via(cell, currmetal, currmetal + movement.z, width, width, x, y)
-                    if #pts > 1 then
-                        geometry.path(cell, generics.metal(currmetal), 
+                    if #pts > 0 then
+                        geometry.path(cell, generics.metal(currmetal),
                             geometry.path_points_xy(startpt, pts), width)
                     end
                     startpt = point.create(x, y)
@@ -89,14 +94,16 @@ function M.route(cell, routes, cells, width, xgrid, ygrid)
                     currmetal = currmetal + movement.z
                 else
                     geometry.via(cell, currmetal, movement.metal, width, width, x, y)
-                    if #pts > 1 then
-                        geometry.path(cell, generics.metal(currmetal), 
+                    if #pts > 0 then
+                        geometry.path(cell, generics.metal(currmetal),
                             geometry.path_points_xy(startpt, pts), width)
                     end
                     startpt = point.create(x, y)
                     pts = {}
                     currmetal = movement.metal
                 end
+            else
+                error(string.format("routing.route: unknown movement type '%s'", movement.type))
             end
         end
         if #pts > 0 then

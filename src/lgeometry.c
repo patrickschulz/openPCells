@@ -355,13 +355,33 @@ static int lgeometry_contactbltr(lua_State* L)
     ucoordinate_t yrep = luaL_optinteger(L, 6, 1);
     ucoordinate_t xpitch = luaL_optinteger(L, 7, 0);
     ucoordinate_t ypitch = luaL_optinteger(L, 8, 0);
+    int xcont = 0;
+    int ycont = 0;
+    if(lua_type(L, 9) == LUA_TTABLE) // properties table
+    {
+        lua_getfield(L, 9, "xcontinuous");
+        xcont = lua_toboolean(L, -1);
+        lua_pop(L, 1);
+        lua_getfield(L, 9, "ycontinuous");
+        ycont = lua_toboolean(L, -1);
+        lua_pop(L, 1);
+    }
+
     lua_getfield(L, LUA_REGISTRYINDEX, "genericslayermap");
     struct layermap* layermap = lua_touserdata(L, -1);
     lua_pop(L, 1); // pop layermap
     lua_getfield(L, LUA_REGISTRYINDEX, "techstate");
     struct technology_state* techstate = lua_touserdata(L, -1);
     lua_pop(L, 1); // pop techstate
-    geometry_contactbltr(cell->object, layermap, techstate, region, bl->point, tr->point, xrep, yrep, xpitch, ypitch);
+    geometry_contactbltr(
+        cell->object,
+        layermap, techstate,
+        region,
+        bl->point, tr->point,
+        xrep, yrep,
+        xpitch, ypitch,
+        xcont, ycont
+    );
     return 0;
 }
 
@@ -377,13 +397,33 @@ static int lgeometry_contact(lua_State* L)
     ucoordinate_t yrep = luaL_optinteger(L, 8, 1);
     ucoordinate_t xpitch = luaL_optinteger(L, 9, 0);
     ucoordinate_t ypitch = luaL_optinteger(L, 10, 0);
+    int xcont = 0;
+    int ycont = 0;
+    if(lua_type(L, 11) == LUA_TTABLE) // properties table
+    {
+        lua_getfield(L, 11, "xcontinuous");
+        xcont = lua_toboolean(L, -1);
+        lua_pop(L, 1);
+        lua_getfield(L, 11, "ycontinuous");
+        ycont = lua_toboolean(L, -1);
+        lua_pop(L, 1);
+    }
     lua_getfield(L, LUA_REGISTRYINDEX, "genericslayermap");
     struct layermap* layermap = lua_touserdata(L, -1);
     lua_pop(L, 1); // pop layermap
     lua_getfield(L, LUA_REGISTRYINDEX, "techstate");
     struct technology_state* techstate = lua_touserdata(L, -1);
     lua_pop(L, 1); // pop techstate
-    geometry_contact(cell->object, layermap, techstate, region, width, height, xshift, yshift, xrep, yrep, xpitch, ypitch);
+    geometry_contact(
+        cell->object,
+        layermap, techstate,
+        region,
+        width, height,
+        xshift, yshift,
+        xrep, yrep,
+        xpitch, ypitch,
+        xcont, ycont
+    );
     return 0;
 }
 

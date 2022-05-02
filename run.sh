@@ -1,4 +1,5 @@
 #! /bin/sh
 
-./opc --import-verilog examples/place_and_route/place_route_generate.lua
-./opc --technology opc --export gds --cell verilogimport/counter --cellpath verilogimport
+cd examples/place_and_route/
+../../opc --import-verilog place_route_generate.lua
+../../opc --technology opc --export gds --cell verilogimport/register_cell --cellpath verilogimport

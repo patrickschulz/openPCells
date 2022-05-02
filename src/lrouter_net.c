@@ -120,16 +120,19 @@ void net_create_deltas(net_t *net)
         {
             point_t *point = point_new(xsteps, 0, 0, DEFAULT_POINT_SCORE);
             queue_enqueue(queue, point);
+	    xsteps = 0;
         }
         else if(points[i].y && !points[i+1].y)
         {
             point_t *point = point_new(0, ysteps, 0, DEFAULT_POINT_SCORE);
             queue_enqueue(queue, point);
+	    ysteps = 0;
         }
         else if(points[i].z && !points[i+1].z)
         {
             point_t *point = point_new(0, 0, zsteps, DEFAULT_POINT_SCORE);
             queue_enqueue(queue, point);
+	    zsteps = 0;
         }
     }
 
@@ -147,7 +150,7 @@ void net_create_deltas(net_t *net)
     {
 	    point = point_new(0, ysteps, 0, DEFAULT_POINT_SCORE);
     }
-    else
+    else if(points[net_len - 1].z)
     {
 	    point = point_new(0, 0, zsteps, DEFAULT_POINT_SCORE);
     }
