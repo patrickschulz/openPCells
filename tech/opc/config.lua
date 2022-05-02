@@ -1,3 +1,3 @@
 return {
-    metals = 5
+    metals = 10
 }
