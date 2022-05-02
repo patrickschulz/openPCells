@@ -109,7 +109,10 @@ embed_compiled_lua_file: embed_compiled_lua_file.c lua/liblua.a
 clean:
 	rm -f $(PROGNAME)
 	rm -f config.h
+	rm -f embed_compiled_lua_file
+	rm -f generate_manpage
 	rm -f modulemanager.h modulemanager.c
+	rm -f scriptmanager.h scriptmanager.c
 	rm -f scriptmanager.h scriptmanager.c
 	rm -f $(OPCOBJ)
 	rm -f lua/*.o lua/liblua.a
@@ -169,8 +172,6 @@ gdsexport.o: gdsexport.c gdsexport.h export_common.h generics.h \
  keyvaluepairs.h vector.h point.h transformationmatrix.h
 gdsparser.o: gdsparser.c gdsparser.h lua/lua.h lua/luaconf.h \
  lua/lauxlib.h lua/lua.h filesystem.h vector.h point.h hashmap.h
-generate_manpage.o: generate_manpage.c cmdoptions.h vector.h \
- cmdoptions_def.c
 generics.o: generics.c generics.h keyvaluepairs.h vector.h technology.h \
  lua/lua.h lua/luaconf.h util.h
 geometry.o: geometry.c geometry.h technology.h lua/lua.h lua/luaconf.h \

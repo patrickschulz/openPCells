@@ -44,6 +44,7 @@ struct export_functions
     void (*at_begin_cell)(struct export_data*, const char*);
     void (*at_end_cell)(struct export_data*);
     void (*write_rectangle)(struct export_data*, const struct keyvaluearray*, point_t*, point_t*);
+    void (*write_triangle)(struct export_data*, const struct keyvaluearray*, point_t*, point_t*, point_t*);
     void (*write_polygon)(struct export_data*, const struct keyvaluearray*, point_t**, size_t);
     void (*write_path)(struct export_data*, const struct keyvaluearray*, point_t**, size_t, ucoordinate_t, coordinate_t*);
     void (*write_cell_reference)(struct export_data*, const char*, coordinate_t, coordinate_t, transformationmatrix_t*);

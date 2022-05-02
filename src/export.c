@@ -138,6 +138,19 @@ static void _write_cell(object_t* cell, struct export_data* data, struct export_
             case POLYGON:
                 funcs->write_polygon(data, layerdata, shape->points, shape->size);
                 break;
+            case TRIANGULATED_POLYGON:
+                for(unsigned int i = 0; i < shape->size - 2; i += 3)
+                {
+                    if(funcs->write_triangle)
+                    {
+                        funcs->write_triangle(data, layerdata, shape->points[i], shape->points[i + 1], shape->points[i + 2]);
+                    }
+                    else
+                    {
+                        funcs->write_polygon(data, layerdata, shape->points + i, 3);
+                    }
+                }
+                break;
             case PATH:
                 if(funcs->write_path)
                 {
