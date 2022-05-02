@@ -1,11 +1,11 @@
-#ifndef LGRAPHICS_H
-#define LGRAPHICS_H
+#ifndef OPC_GRAPHICS_H
+#define OPC_GRAPHICS_H
 
-#include "lua/lua.h"
+#include <stddef.h>
 
-#define LGRAPHICSMETA "lgraphics"
-#define LGRAPHICSMODULE "graphics"
+#include "point.h"
+#include "vector.h"
 
-int open_lgraphics_lib(lua_State* L);
+struct vector* graphics_cubic_bezier(struct vector* curve);
 
-#endif // LGRAPHICS_H
+#endif // OPC_GRAPHICS_H

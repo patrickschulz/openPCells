@@ -1,5 +1,6 @@
 function parameters()
     pcell.reference_cell("stdcells/base")
+    pcell.reference_cell("stdcells/harness")
     pcell.add_parameters(
         { "ifingers", 1 },
         { "ofingers", 1 },
@@ -11,7 +12,7 @@ end
 function layout(gate, _P)
     local bp = pcell.get_parameters("stdcells/base")
 
-    pcell.push_overwrites("stdcells/base", {
+    pcell.push_overwrites("stdcells/harness", {
         rightdummies = _P.ifingers % 2 == 0 and 0 or 1
     })
     local iinv = pcell.create_layout("stdcells/not_gate", { 
@@ -19,9 +20,9 @@ function layout(gate, _P)
         shiftinput = _P.shiftinput1, 
         shiftoutput = bp.glength / 2 + bp.gspace / 2 
     }):move_anchor("right")
-    pcell.pop_overwrites("stdcells/base")
+    pcell.pop_overwrites("stdcells/harness")
 
-    pcell.push_overwrites("stdcells/base", {
+    pcell.push_overwrites("stdcells/harness", {
         leftdummies = 0,
     })
     local oinv = pcell.create_layout("stdcells/not_gate", { 
@@ -29,16 +30,16 @@ function layout(gate, _P)
         shiftinput = _P.shiftinput2, 
         shiftoutput = bp.glength / 2 + bp.gspace / 2 
     }):move_anchor("left")
-    pcell.pop_overwrites("stdcells/base")
+    pcell.pop_overwrites("stdcells/harness")
     gate:merge_into_shallow(iinv)
     gate:merge_into_shallow(oinv)
 
     -- draw connection
     local ishift = _P.ifingers % 2 == 0 and 0 or 1
-    gate:merge_into_shallow(geometry.path(generics.metal(1), 
+    geometry.path(gate, generics.metal(1), 
         geometry.path_points_yx(iinv:get_anchor("O"), {
         oinv:get_anchor("I"),
-    }), bp.sdwidth))
+    }), bp.sdwidth)
 
     gate:set_alignment_box(
         iinv:get_anchor("bottomleft"),

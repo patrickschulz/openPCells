@@ -1,0 +1,3 @@
+return {
+    metals = 10
+}

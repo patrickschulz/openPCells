@@ -1,5 +1,5 @@
-#ifndef LPLACER_RAND_H
-#define LPLACER_RAND_H
+#ifndef OPC_LPLACER_RAND_H
+#define OPC_LPLACER_RAND_H
 
 typedef unsigned long Rand64;
 struct RanState {
@@ -23,4 +23,4 @@ void UPRNG_destroy(struct UPRNG* rng);
 void UPRNG_resize(struct UPRNG** rng, unsigned int size);
 unsigned int UPRNG_next(struct UPRNG* rng);
 
-#endif // LPLACER_RAND_H
+#endif // OPC_LPLACER_RAND_H

@@ -36,8 +36,8 @@ function layout(ccp, _P)
 
     local leftgate = left:get_anchor("topgatestrapright")
     local rightgate = right:get_anchor("topgatestrapleft"):copy():translate(0, -200)
-    ccp:merge_into_shallow(geometry.crossing(
-        generics.metal(_P.connmetal), generics.metal(_P.connmetal - 1),
-        _P.connwidth, leftgate, rightgate, "rectangular-separated", 200)
+    geometry.crossing(
+        ccp, generics.metal(_P.connmetal), generics.metal(_P.connmetal - 1),
+        _P.connwidth, leftgate, rightgate, "rectangular-separated", 200
     )
 end

@@ -13,7 +13,7 @@ end
 function layout(mesh, _P)
     local rwidth = 600
     for i = 1, _P.captopmetal do
-        mesh:merge_into_shallow(geometry.ring(generics.metal(i), _P.cellsize - _P.metalwidth[i], _P.cellsize - _P.metalwidth[i], _P.metalwidth[i]))
+        geometry.ring(mesh, generics.metal(i), _P.cellsize - _P.metalwidth[i], _P.cellsize - _P.metalwidth[i], _P.metalwidth[i])
         local foffset = 100
         local fwidth = 50
         local fspace = 50
@@ -34,51 +34,35 @@ function layout(mesh, _P)
         mesh:merge_into_shallow(botcap)
         -- inner rail via
         if i > 1 then
-            mesh:merge_into_shallow(geometry.rectangle(generics.via(i - 1, i), (2 * nfingers + 1) * (fwidth + fspace), rwidth))
+            geometry.via(mesh, i - 1, i, (2 * nfingers + 1) * (fwidth + fspace), rwidth)
         end
         -- outer rail via
         if i > 1 then
             local mwidth = math.min(_P.metalwidth[i - 1], _P.metalwidth[i])
-            mesh:merge_into_shallow(geometry.rectangle(generics.via(i - 1, i), mwidth, _P.cellsize - 2 * mwidth)
-                :translate(-_P.cellsize / 2 + mwidth / 2, 0)
-            )
-            mesh:merge_into_shallow(geometry.rectangle(generics.via(i - 1, i), mwidth, _P.cellsize - 2 * mwidth)
-                :translate(_P.cellsize / 2 - mwidth / 2, 0)
-            )
-            mesh:merge_into_shallow(geometry.rectangle(generics.via(i - 1, i), _P.cellsize - 2 * mwidth, mwidth)
-                :translate(0, -_P.cellsize / 2 + mwidth / 2, 0)
-            )
-            mesh:merge_into_shallow(geometry.rectangle(generics.via(i - 1, i), _P.cellsize - 2 * mwidth, mwidth)
-                :translate(0, _P.cellsize / 2 - mwidth / 2, 0)
-            )
+            geometry.via(mesh, i - 1, i, mwidth, _P.cellsize - 2 * mwidth, -_P.cellsize / 2 + mwidth / 2, 0)
+            geometry.via(mesh, i - 1, i, mwidth, _P.cellsize - 2 * mwidth, _P.cellsize / 2 - mwidth / 2, 0)
+            geometry.via(mesh, i - 1, i, _P.cellsize - 2 * mwidth, mwidth, 0, -_P.cellsize / 2 + mwidth / 2, 0)
+            geometry.via(mesh, i - 1, i, _P.cellsize - 2 * mwidth, mwidth, 0, _P.cellsize / 2 - mwidth / 2, 0)
         end
     end
     -- connection between top lower metal and intermediate metal
     local mwidth = math.min(_P.metalwidth[_P.gridstartmetal - 2], _P.metalwidth[_P.gridstartmetal - 1])
-    mesh:merge_into_shallow(geometry.rectangle(generics.via(_P.gridstartmetal - 2, _P.gridstartmetal - 1), mwidth, _P.cellsize - 2 * mwidth)
-        :translate(-_P.cellsize / 2 + mwidth / 2, 0)
-    )
-    mesh:merge_into_shallow(geometry.rectangle(generics.via(_P.gridstartmetal - 2, _P.gridstartmetal - 1), mwidth, _P.cellsize - 2 * mwidth)
-        :translate(_P.cellsize / 2 - mwidth / 2, 0)
-    )
-    mesh:merge_into_shallow(geometry.rectangle(generics.via(_P.gridstartmetal - 2, _P.gridstartmetal - 1), _P.cellsize - 2 * mwidth, mwidth)
-        :translate(0, -_P.cellsize / 2 + mwidth / 2, 0)
-    )
-    mesh:merge_into_shallow(geometry.rectangle(generics.via(_P.gridstartmetal - 2, _P.gridstartmetal - 1), _P.cellsize - 2 * mwidth, mwidth)
-        :translate(0, _P.cellsize / 2 - mwidth / 2, 0)
-    )
-    mesh:merge_into_shallow(geometry.rectangle(generics.via(_P.gridstartmetal - 2, _P.gridstartmetal - 1), _P.cellsize / 2, rwidth))
+    geometry.via(mesh, _P.gridstartmetal - 2, _P.gridstartmetal - 1, mwidth, _P.cellsize - 2 * mwidth, -_P.cellsize / 2 + mwidth / 2, 0)
+    geometry.via(mesh, _P.gridstartmetal - 2, _P.gridstartmetal - 1, mwidth, _P.cellsize - 2 * mwidth, _P.cellsize / 2 - mwidth / 2, 0)
+    geometry.via(mesh, _P.gridstartmetal - 2, _P.gridstartmetal - 1, _P.cellsize - 2 * mwidth, mwidth, 0, -_P.cellsize / 2 + mwidth / 2, 0)
+    geometry.via(mesh, _P.gridstartmetal - 2, _P.gridstartmetal - 1, _P.cellsize - 2 * mwidth, mwidth, 0, _P.cellsize / 2 - mwidth / 2, 0)
+    geometry.via(mesh, _P.gridstartmetal - 2, _P.gridstartmetal - 1, _P.cellsize / 2, rwidth)
     -- top metal grid
-    mesh:merge_into_shallow(geometry.ring(generics.metal(_P.gridstartmetal - 1), 
-        _P.cellsize - _P.metalwidth[_P.gridstartmetal - 1], _P.cellsize - _P.metalwidth[_P.gridstartmetal - 1], _P.metalwidth[_P.gridstartmetal - 1]))
-    mesh:merge_into_shallow(geometry.rectangle(generics.metal(_P.gridstartmetal - 1), _P.cellsize / 2, _P.cellsize / 2))
-    mesh:merge_into_shallow(geometry.rectangle(generics.via(_P.gridstartmetal - 1, _P.gridtopmetal, { bare = true }), _P.cellsize / 2, _P.cellsize / 2))
+    geometry.ring(mesh, generics.metal(_P.gridstartmetal - 1), 
+        _P.cellsize - _P.metalwidth[_P.gridstartmetal - 1], _P.cellsize - _P.metalwidth[_P.gridstartmetal - 1], _P.metalwidth[_P.gridstartmetal - 1])
+    geometry.rectangle(mesh, generics.metal(_P.gridstartmetal - 1), _P.cellsize / 2, _P.cellsize / 2)
+    geometry.via(mesh, _P.gridstartmetal - 1, _P.gridtopmetal, _P.cellsize / 2, _P.cellsize / 2)
     local rotate = false
     for i = _P.gridstartmetal, _P.gridtopmetal do
         if rotate then
-            mesh:merge_into_shallow(geometry.rectangle(generics.metal(i), _P.cellsize / 2, _P.cellsize))
+            geometry.rectangle(mesh, generics.metal(i), _P.cellsize / 2, _P.cellsize)
         else
-            mesh:merge_into_shallow(geometry.rectangle(generics.metal(i), _P.cellsize, _P.cellsize / 2))
+            geometry.rectangle(mesh, generics.metal(i), _P.cellsize, _P.cellsize / 2)
         end
         rotate = not rotate
     end

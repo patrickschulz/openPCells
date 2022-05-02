@@ -42,13 +42,13 @@ shape_t* shape_create_path(size_t capacity, ucoordinate_t width, coordinate_t ex
 
 shape_t* shape_copy(shape_t* self)
 {
+    shape_t* new;
     if(self->type == RECTANGLE)
     {
-        return shape_create_rectangle(self->points[0]->x, self->points[0]->y, self->points[1]->x, self->points[1]->y);
+        new = shape_create_rectangle(self->points[0]->x, self->points[0]->y, self->points[1]->x, self->points[1]->y);
     }
     else
     {
-        shape_t* new;
         if(self->type == POLYGON)
         {
             new = shape_create_polygon(self->capacity);
@@ -63,8 +63,9 @@ shape_t* shape_copy(shape_t* self)
             new->points[i] = point_copy(self->points[i]);
         }
         new->size = self->size;
-        return new;
     }
+    new->layer = self->layer; // copy only pointer, this is intended
+    return new;
 }
 
 void shape_destroy(shape_t* shape)
@@ -126,6 +127,19 @@ int shape_get_path_extension(shape_t* shape, coordinate_t* start, coordinate_t* 
     return 1;
 }
 
+int shape_is_empty(shape_t* shape)
+{
+    return shape->layer->size == 0;
+}
+
+void shape_translate(shape_t* shape, coordinate_t dx, coordinate_t dy)
+{
+    for(unsigned int i = 0; i < shape->size; ++i)
+    {
+        point_translate(shape->points[i], dx, dy);
+    }
+}
+
 void shape_apply_transformation(shape_t* shape, transformationmatrix_t* matrix)
 {
     for(unsigned int i = 0; i < shape->size; ++i)
@@ -148,15 +162,6 @@ void shape_apply_transformation(shape_t* shape, transformationmatrix_t* matrix)
             shape->points[1]->y = tmp;
         }
     }
-}
-
-void shape_apply_translation(shape_t* shape, transformationmatrix_t* matrix)
-{
-    for(unsigned int i = 0; i < shape->size; ++i)
-    {
-        transformationmatrix_apply_transformation(matrix, shape->points[i]);
-    }
-    // no checks for rectangles are needed as translations can not reorder points
 }
 
 void shape_apply_inverse_transformation(shape_t* shape, transformationmatrix_t* matrix)
@@ -264,3 +269,16 @@ void shape_resolve_path(shape_t* shape)
     free(new);
 }
 
+void shape_triangulate_polygon(shape_t* shape)
+{
+    if(shape->type != POLYGON)
+    {
+        return;
+    }
+    point_t** result = geometry_triangulate_polygon(shape->points, shape->size);
+    free(shape->points);
+    shape->points = result;
+    shape->size = (shape->size - 2) * 3;
+    shape->capacity = shape->size;
+    shape->type = TRIANGULATED_POLYGON;
+}

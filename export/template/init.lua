@@ -13,8 +13,8 @@ local __content = {}
 
 -- * optional *
 -- make arbitrary calculations that are needed for this export
--- the function gets the toplevel cell as argument
-function M.initialize(toplevel)
+-- the function gets the minimum and maximum coordinates (x and y)
+function M.initialize(minx, maxx, miny, maxy)
 end
 
 -- * mandatory *
@@ -30,6 +30,7 @@ end
 -- * mandatory *
 -- provides the file ending of the generated layout (e.g. returns "gds" for the gds export)
 function M.get_extension()
+    return "TEMPLATE"
 end
 
 -- * optional *
@@ -38,20 +39,14 @@ end
 -- but some exports can reuse other data, such as the OASIS export, which can reuse 
 -- layer names from GDS
 function M.get_techexport()
+    return "OTHERTEMPLATE"
 end
 
 -- * optional *
 -- callback for export command line options
 -- before the export starts, this function (if present) is called with the collected
--- command line arguments. Only useful if a cmdoptions.lua file is provided for this export type
+-- command line arguments.
 function M.set_options(opt)
-end
-
--- * mandatory *
--- function which defines how the export gets its layer
--- usually pretty simple, as most of the work is already done in the technology translation
--- example from the GDS export: return { S:get_lpp():get().layer, purpose = S:get_lpp():get().purpose }
-function M.get_layer(S)
 end
 
 -- * optional *
@@ -81,14 +76,22 @@ end
 function M.write_rectangle(layer, bl, tr)
 end
 
--- * mandatory *
+-- * optional *
+-- how to write a triangle
+function M.write_triangle(layer, pt1, pt2, pt3)
+end
+
+-- * sort-of mandatory *
 -- how to write a polygon
+-- if this is not present but write_triangle is provided,
+-- polygons are triangulated and written by write_triangle
 function M.write_polygon(layer, pts)
 end
 
 -- * optional *
 -- how to write a path
--- if not present, the shape will be converted accordingly (to a single rectangle if possible, otherwise to a polygon)
+-- if not present, the shape will be converted accordingly
+-- (to a single rectangle if possible, otherwise to a polygon)
 function M.write_path(layer, pts, width)
 end
 

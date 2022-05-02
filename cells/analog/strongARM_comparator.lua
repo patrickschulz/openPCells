@@ -33,25 +33,24 @@
 function parameters()
     pcell.reference_cell("basic/mosfet")
     pcell.add_parameters(
+        { "gatelength", tech.get_dimension("Minimum Gate Length") },
+        { "gatespace", tech.get_dimension("Minimum Gate Space") },
+        { "fingerwidth", tech.get_dimension("Minimum Gate Width") },
         { "clockfingers", 8 },
         { "nmosinputfingers", 2 },
         { "latchfingers", 2 },
         { "resetfingers", 2 },
-        { "sdwidth", 40 }
+        { "sdwidth", tech.get_dimension("Minimum M1 Width") }
     )
 end
 
 function layout(comparator, _P)
-    local glength = 40
-    local gspace = 90
-    local xpitch = glength + gspace
-    local fingerwidth = 500
-    local fingerpitch = glength + gspace
+    local xpitch = _P.gatelength + _P.gatespace
 
     pcell.push_overwrites("basic/mosfet", {
-        gatelength = glength, 
-        gatespace = gspace, 
-        fwidth = fingerwidth, 
+        gatelength = _P.gatelength, 
+        gatespace = _P.gatespace, 
+        fwidth = _P.fingerwidth, 
         sdwidth = _P.sdwidth,
     })
     pcell.push_overwrites("basic/mosfet", {
@@ -115,7 +114,7 @@ function layout(comparator, _P)
     })
     local pmosinvref = pcell.create_layout("basic/mosfet", { 
         channeltype = "pmos",
-        vthtype = 3,
+        vthtype = 1,
         drawbotgate = true,
         fingers = _P.latchfingers,
         connectsource = true,
@@ -133,7 +132,7 @@ function layout(comparator, _P)
     -- reset switches
     local pmosresetref = pcell.create_layout("basic/mosfet", { 
         channeltype = "pmos",
-        vthtype = 3,
+        vthtype = 1,
         drawbotgate = true,
         fingers = _P.resetfingers,
         connectsource = true,
@@ -189,82 +188,82 @@ function layout(comparator, _P)
     pmosresetright2:move_anchor("sourcedrainmiddlecenterleft", pmosresetright1:get_anchor("sourcedrainmiddlecenterright"))
 
     -- connect reset gates
-    comparator:merge_into_shallow(geometry.path(generics.metal(1), {
+    geometry.path(comparator, generics.metal(1), {
         pmosresetleft1:get_anchor("botgatestrapleft"),
         pmosresetleft2:get_anchor("botgatestrapright"),
-    }, _P.sdwidth))
-    comparator:merge_into_shallow(geometry.path(generics.metal(1), {
+    }, _P.sdwidth)
+    geometry.path(comparator, generics.metal(1), {
         pmosresetright1:get_anchor("botgatestrapright"),
         pmosresetright2:get_anchor("botgatestrapleft"),
-    }, _P.sdwidth))
+    }, _P.sdwidth)
 
     -- connect latch gates
-    comparator:merge_into_shallow(geometry.path(generics.metal(3), geometry.path_points_xy(
+    geometry.path(comparator, generics.metal(3), geometry.path_points_xy(
         pmosinvleft:get_anchor("sourcedrainmiddlecenter2"), {
             3 * xpitch,
             nmosinvright:get_anchor("topgatestrap"),
-    }), _P.sdwidth))
-    comparator:merge_into_shallow(geometry.path(generics.metal(3), geometry.path_points_xy(
+    }), _P.sdwidth)
+    geometry.path(comparator, generics.metal(3), geometry.path_points_xy(
         nmosinvright:get_anchor("sourcedrainmiddlecenter2"), {
             -3 * xpitch,
             nmosinvleft:get_anchor("topgatestrap"),
-    }), _P.sdwidth))
-    comparator:merge_into_shallow(geometry.rectanglebltr(generics.via(1, 3),
+    }), _P.sdwidth)
+    geometry.viabltr(comparator, 1, 3,
         nmosinvleft:get_anchor("topgatestraplowerleft"),
         nmosinvleft:get_anchor("topgatestrapupperright")
-    ))
-    comparator:merge_into_shallow(geometry.rectanglebltr(generics.via(1, 3),
+    )
+    geometry.viabltr(comparator, 1, 3,
         nmosinvright:get_anchor("topgatestraplowerleft"),
         nmosinvright:get_anchor("topgatestrapupperright")
-    ))
+    )
 
     -- connect latch drains
-    comparator:merge_into_shallow(geometry.path(generics.metal(3), {
+    geometry.path(comparator, generics.metal(3), {
         pmosinvleft:get_anchor("sourcedrainmiddlecenter2"),
         pmosinvleft:get_anchor("sourcedrainmiddlecenter2"):translate(-xpitch, 0),
         nmosinvleft:get_anchor("sourcedrainmiddlecenter2"):translate(-xpitch, 0),
         nmosinvleft:get_anchor("sourcedrainmiddlecenter2"),
-    }, _P.sdwidth))
-    comparator:merge_into_shallow(geometry.path(generics.metal(3), {
+    }, _P.sdwidth)
+    geometry.path(comparator, generics.metal(3), {
         pmosinvright:get_anchor("sourcedrainmiddlecenter2"),
         pmosinvright:get_anchor("sourcedrainmiddlecenter2"):translate(xpitch, 0),
         nmosinvright:get_anchor("sourcedrainmiddlecenter2"):translate(xpitch, 0),
         nmosinvright:get_anchor("sourcedrainmiddlecenter2"),
-    }, _P.sdwidth))
+    }, _P.sdwidth)
 
     -- connect inner reset transistors
-    comparator:merge_into_shallow(geometry.path(generics.metal(2), {
+    geometry.path(comparator, generics.metal(2), {
         pmosresetleft1:get_anchor(string.format("sourcedrainmiddlecenter%d", _P.resetfingers)),
         pmosinvleft:get_anchor(string.format("sourcedrainmiddlecenter%d", 2)),
-    }, _P.sdwidth))
-    comparator:merge_into_shallow(geometry.path(generics.metal(2), {
+    }, _P.sdwidth)
+    geometry.path(comparator, generics.metal(2), {
         pmosresetright1:get_anchor(string.format("sourcedrainmiddlecenter%d", 2)),
         pmosinvright:get_anchor(string.format("sourcedrainmiddlecenter%d", _P.resetfingers)),
-    }, _P.sdwidth))
+    }, _P.sdwidth)
 
     -- connect outer reset transistors
-    comparator:merge_into_shallow(geometry.path(generics.metal(2), 
+    geometry.path(comparator, generics.metal(2), 
         geometry.path_points_yx(pmosresetleft2:get_anchor(string.format("sourcedrainmiddlecenter%d", _P.resetfingers)), {
             nmosinvleft:get_anchor("sourcestrapmiddlecenter")
-    }), _P.sdwidth))
-    comparator:merge_into_shallow(geometry.path(generics.metal(2), 
+    }), _P.sdwidth)
+    geometry.path(comparator, generics.metal(2), 
         geometry.path_points_yx(pmosresetright2:get_anchor(string.format("sourcedrainmiddlecenter%d", 2)), {
             nmosinvright:get_anchor("sourcestrapmiddlecenter")
-    }), _P.sdwidth))
+    }), _P.sdwidth)
 
     -- connect clock gates
-    comparator:merge_into_shallow(geometry.path(generics.metal(1), {
+    geometry.path(comparator, generics.metal(1), {
         nmosclockleft:get_anchor("topgatestrapleft"),
         nmosclockright:get_anchor("topgatestrapright")
-    }, _P.sdwidth))
-    comparator:merge_into_shallow(geometry.path(generics.metal(1), 
+    }, _P.sdwidth)
+    geometry.path(comparator, generics.metal(1), 
         geometry.path_points_yx(pmosresetleft2:get_anchor("botgatestrap"), {
             nmosclockleft:get_anchor("topgatestrapleft")
-    }), _P.sdwidth))
-    comparator:merge_into_shallow(geometry.path(generics.metal(1), 
+    }), _P.sdwidth)
+    geometry.path(comparator, generics.metal(1), 
         geometry.path_points_yx(pmosresetright2:get_anchor("botgatestrap"), {
             nmosclockright:get_anchor("topgatestrapright")
-    }), _P.sdwidth))
+    }), _P.sdwidth)
 
     -- add ports
     comparator:add_port("clk", generics.metal(1), point.combine(nmosclockleft:get_anchor("topgatestrap"), nmosclockright:get_anchor("topgatestrap")))

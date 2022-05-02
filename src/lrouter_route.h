@@ -3,7 +3,11 @@
 
 #include "lrouter_net.h"
 
-/* use lee algorithm for routing */
-void route(net_t net, int** field, size_t fieldsize);
+#define STUCK 0
+#define ROUTED 1
+
+/* use lee algorithm for routing, returns 1 on possible routing, 0 on stuck */
+int route(net_t *net, int*** field, size_t width, size_t height,
+	  size_t num_layers, size_t wrong_dir_cost, size_t via_cost);
 
 #endif

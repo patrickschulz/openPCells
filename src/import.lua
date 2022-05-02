@@ -1,5 +1,3 @@
-local M = {}
-
 local function _format_lpp(layer, purpose, layermap)
     local lppt = {
         string.format("gds = { layer = %d, purpose = %d }", layer, purpose)
@@ -27,22 +25,22 @@ local function _format_shape(shape, layermap, x0, y0)
     if shape.shapetype == "rectangle" then
         local bl = string.format("point.create(%d, %d)", shape.pts[1], shape.pts[2])
         local tr = string.format("point.create(%d, %d)", shape.pts[3], shape.pts[4])
-        return string.format("geometry.rectanglebltr(%s, %s, %s)", lpp, bl, tr)
+        return string.format("geometry.rectanglebltr(cell, %s, %s, %s)", lpp, bl, tr)
     elseif shape.shapetype == "polygon" then
         local ptsstrt = {}
         for i = 1, #shape.pts - 1, 2 do
             table.insert(ptsstrt, string.format("point.create(%d, %d)", shape.pts[i], shape.pts[i + 1]))
         end
-        return string.format("geometry.polygon(%s, { %s })", lpp, table.concat(ptsstrt, ", "))
+        return string.format("geometry.polygon(cell, %s, { %s })", lpp, table.concat(ptsstrt, ", "))
     elseif shape.shapetype == "path" then
         local ptsstrt = {}
         for i = 1, #shape.pts - 1, 2 do
             table.insert(ptsstrt, string.format("point.create(%d, %d)", shape.pts[i], shape.pts[i + 1]))
         end
         if type(shape.pathtype) == "table" then
-            return string.format("geometry.path(%s, { %s }, %d, { %d, %d })", lpp, table.concat(ptsstrt, ", "), shape.width, shape.pathtype[1], shape.pathtype[2])
+            return string.format("geometry.path(cell, %s, { %s }, %d, { %d, %d })", lpp, table.concat(ptsstrt, ", "), shape.width, shape.pathtype[1], shape.pathtype[2])
         else
-            return string.format("geometry.path(%s, { %s }, %d, \"%s\")", lpp, table.concat(ptsstrt, ", "), shape.width, shape.pathtype)
+            return string.format("geometry.path(cell, %s, { %s }, %d, \"%s\")", lpp, table.concat(ptsstrt, ", "), shape.width, shape.pathtype)
         end
     else
         error(string.format("wrong shape: %s", shapetype))
@@ -64,7 +62,7 @@ local function _write_cell(chunk, cell, cells, path, dirname, layermap, alignmen
                 end
             end
         end
-        table.insert(chunk, string.format("    cell:merge_into_shallow(%s)", _format_shape(shape, layermap, x0, y0)))
+        table.insert(chunk, string.format("    %s", _format_shape(shape, layermap, x0, y0)))
     end
     local references = {}
     -- sort references before placing them, otherwise this can cause placement of wrong cells
@@ -88,9 +86,9 @@ local function _write_cell(chunk, cell, cells, path, dirname, layermap, alignmen
             if ref.xrep then -- AREF
                 local xpitch = (ref.pts[3] - ref.pts[1]) / ref.xrep
                 local ypitch = (ref.pts[6] - ref.pts[2]) / ref.yrep
-                table.insert(chunk, string.format('    child = cell:add_child_array(name, %d, %d, %d, %d):translate(%d, %d)', ref.xrep, ref.yrep, xpitch, ypitch, ref.pts[1], ref.pts[2]))
+                table.insert(chunk, string.format('    child = cell:add_child_array(name, %d, %d, %d, %d)', ref.xrep, ref.yrep, xpitch, ypitch))
             else
-                table.insert(chunk, string.format('    child = cell:add_child(name):translate(%d, %d)', ref.pts[1], ref.pts[2]))
+                table.insert(chunk, string.format('    child = cell:add_child(name)'))
             end
             if ref.angle == 180 then
                 if ref.transformation and ref.transformation[1] == 1 then
@@ -100,12 +98,13 @@ local function _write_cell(chunk, cell, cells, path, dirname, layermap, alignmen
                     table.insert(chunk, string.format('    child:mirror_at_xaxis()'))
                 end
             elseif ref.angle == 90 then
-                table.insert(chunk, string.format('    child:rotate_90()'))
+                table.insert(chunk, string.format('    child:rotate_90_left()'))
             else
                 if ref.transformation and ref.transformation[1] == 1 then
                     table.insert(chunk, string.format('    child:mirror_at_xaxis()'))
                 end
             end
+            table.insert(chunk, string.format('    child:translate(%d, %d)', ref.pts[1], ref.pts[2]))
         end
     end
     for _, label in ipairs(cell.labels) do
@@ -120,7 +119,8 @@ local function _write_cell(chunk, cell, cells, path, dirname, layermap, alignmen
     end
 end
 
-function M.translate_cells(cells, prefix, dirname, layermap, alignmentbox, overwrite, flatpattern, namepattern)
+import = {}
+function import.translate_cells(cells, prefix, dirname, layermap, alignmentbox, overwrite, flatpattern, namepattern)
     local path
     if prefix and prefix ~= "" then
         path = string.format("%s/%s", prefix, dirname)
@@ -145,7 +145,7 @@ function M.translate_cells(cells, prefix, dirname, layermap, alignmentbox, overw
                     local filename = string.format("%s/%s.lua", path, cellbasename)
                     local cellfile = io.open(filename, "w")
                     if not cellfile then
-                        moderror(string.format("import: could not open file for cell export. Did you create the appropriate directory (%s)?", dirname))
+                        error(string.format("import: could not open file for cell export. Did you create the appropriate directory (%s)?", dirname))
                     end
                     table.insert(chunk, "end") -- close 'layout' function
                     cellfile:write(string.format("%s\n", table.concat(chunk, "\n")))
@@ -157,11 +157,9 @@ function M.translate_cells(cells, prefix, dirname, layermap, alignmentbox, overw
                 -- flattened cells don't need to be created
             end
         else
-            moderror("import: could not create import directory")
+            error("import: could not create import directory")
         end
     else
-        moderror("import: directory exists. Use --import-overwrite to overwrite this directory");
+        error(string.format("import: directory '%s' exists. Use --import-overwrite to overwrite this directory", path));
     end
 end
-
-return M

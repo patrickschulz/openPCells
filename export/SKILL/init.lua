@@ -17,17 +17,30 @@ local __groupname = "opcgroup"
 local __let = true
 local __labelsize = 0.1
 function M.set_options(opt)
-    if opt.group then
-        __group = true
-    end
-    if opt.nolet then
-        __let = false
-    end
-    if opt.groupname then
-        __groupname = opt.groupname
-    end
-    if opt.labelsize then
-        __labelsize = opt.labelsize
+    for i = 1, #opt do
+        local arg = opt[i]
+        if arg == "-L" or arg == "--label-size" then
+            if i < #opt then
+                __labelsize = opt[i + 1]
+            else
+                error("SKILL export: --label-size: argument expected")
+            end
+            i = i + 1
+        end
+        if arg == "-g" or arg == "--group" then
+            __group = true
+        end
+        if arg == "-n" or arg == "--group-name" then
+            if i < #opt then
+                __groupname = opt[i + 1]
+            else
+                error("SKILL export: --group-name: argument expected")
+            end
+            i = i + 1
+        end
+        if arg == "-l" or arg == "--no-let" then
+            __let = false
+        end
     end
 end
 
@@ -60,10 +73,6 @@ function M.at_end()
     end
 end
 
-function M.get_layer(S)
-    return { layer = S:get_lpp():get().layer, purpose = S:get_lpp():get().purpose }
-end
-
 local function _format(l)
     local str
     if type(l) == "number" then
@@ -83,15 +92,48 @@ local function _format_lpp(layer)
     return string.format("list(%s %s)", _format(layer.layer), _format(layer.purpose))
 end
 
+local function intlog10(num)
+    if num == 0 then return 0 end
+    if num == 1 then return 0 end
+    local ret = 0
+    while num > 1 do
+        num = num / 10
+        ret = ret + 1
+    end
+    return ret
+end
+
+local function _format_number(num, baseunit)
+    local fmt = string.format("%%s%%u.%%0%uu", intlog10(baseunit))
+    local sign = "";
+    if num < 0 then
+        sign = "-"
+        num = -num
+    end
+    local ipart = num // baseunit;
+    local fpart = num - baseunit * ipart;
+    return string.format(fmt, sign, ipart, fpart)
+end
+
+local function _format_point(pt, baseunit, sep)
+    local sx = _format_number(pt.x, baseunit)
+    local sy = _format_number(pt.y, baseunit)
+    return string.format("%s%s%s", sx, sep, sy)
+end
+
 local function _get_shape_fmt(shapetype)
     if __let then
         if __group then
-            return string.format("dbCreate%s(cv %%s)", shapetype)
+            return string.format("        dbCreate%s(cv %%s)", shapetype)
         else
             return string.format("    dbCreate%s(cv %%s)", shapetype)
         end
     else
-        return string.format("dbCreate%s(cv %%s)", shapetype)
+        if __group then
+            return string.format("    dbCreate%s(cv %%s)", shapetype)
+        else
+            return string.format("dbCreate%s(cv %%s)", shapetype)
+        end
     end
 end
 
@@ -107,21 +149,31 @@ end
 
 local function _finish_shape_for_group()
     if __group then
-        table.insert(__content, ")")
+        if __let then
+            table.insert(__content, "    )")
+        else
+            table.insert(__content, ")")
+        end
     end
 end
 
 function M.write_rectangle(layer, bl, tr)
     local fmt = _get_shape_fmt("Rect")
     _prepare_shape_for_group()
-    table.insert(__content, string.format(fmt, string.format("%s list(%s %s)", _format_lpp(layer), bl:format(1000, ":"), tr:format(1000, ":"))))
+    table.insert(__content, 
+        string.format(fmt, 
+        string.format("%s list(%s %s)", 
+        _format_lpp(layer), 
+        _format_point(bl, 1000, ":"), 
+        _format_point(tr, 1000, ":")))
+    )
     _finish_shape_for_group()
 end
 
 function M.write_polygon(layer, pts)
     local ptrstr = {}
     for _, pt in ipairs(pts) do
-        table.insert(ptrstr, pt:format(1000, ":"))
+        table.insert(ptrstr, _format_point(pt, 1000, ":"))
     end
     local fmt = _get_shape_fmt("Polygon")
     _prepare_shape_for_group()
@@ -132,7 +184,7 @@ end
 function M.write_path(layer, pts, width, extension)
     local ptrstr = {}
     for _, pt in ipairs(pts) do
-        table.insert(ptrstr, pt:format(1000, ":"))
+        table.insert(ptrstr, _format_point(pt, 1000, ":"))
     end
     local fmt = _get_shape_fmt("Path")
     _prepare_shape_for_group()
@@ -151,7 +203,7 @@ end
 function M.write_port(name, layer, where)
     local fmt = _get_shape_fmt("Label")
     _prepare_shape_for_group()
-    table.insert(__content, string.format(fmt, string.format('%s %s "%s" "centerCenter" "R0" "roman" %f', _format_lpp(layer), where:format(baseunit, ":"), name, __labelsize)))
+    table.insert(__content, string.format(fmt, string.format('%s %s "%s" "centerCenter" "R0" "roman" %f', _format_lpp(layer), _format_point(where, baseunit, ":"), name, __labelsize)))
     _finish_shape_for_group()
 end
 

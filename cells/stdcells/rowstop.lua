@@ -1,6 +1,7 @@
 function parameters()
     pcell.reference_cell("basic/mosfet")
     pcell.reference_cell("stdcells/base")
+    pcell.reference_cell("stdcells/harness")
     pcell.add_parameters(
         { "glengths", { 40, 40, 40, 40, 40 }, { argtype = "strtable" } },
         { "gspaces", { 90, 90, 90, 90, 90 }, { argtype = "strtable" } },
@@ -11,13 +12,17 @@ end
 function layout(gate, _P)
     local tp = pcell.get_parameters("basic/mosfet")
     local bp = pcell.get_parameters("stdcells/base")
-    pcell.push_overwrites("stdcells/base", { leftdummies = 0, rightdummies = 0 })
+    pcell.push_overwrites("stdcells/harness", { leftdummies = 0, rightdummies = 0 })
+    local gatecontactpos = {}
+    for i = 1, #_P.glengths do
+        gatecontactpos[i] = "unused"
+    end
     local harness = pcell.create_layout("stdcells/harness", { 
-        fingers = #_P.glengths,
+        gatecontactpos = gatecontactpos,
         drawtransistors = false,
         drawgatecontacts = false,
     })
-    pcell.pop_overwrites("stdcells/base")
+    pcell.pop_overwrites("stdcells/harness")
     gate:merge_into_shallow(harness)
     gate:inherit_alignment_box(harness)
 
@@ -34,31 +39,52 @@ function layout(gate, _P)
         end
         dprint(i, correction)
         -- gates
-        gate:merge_into_shallow(geometry.rectangle(generics.other("gate"), gl, height)
-            :translate(startx - shift, 0))
+        geometry.rectanglebltr(
+            gate, generics.other("gate"), 
+            point.create(startx - shift - gl / 2, -height / 2),
+            point.create(startx - shift + gl / 2,  height / 2)
+        )
         -- tuck gate marking
         if i == 1 then
             if _P.splitgates then
-                gate:merge_into_shallow(geometry.rectangle(generics.other("tuckgatemarker"), gl, height / 2 - tp.cutheight / 2)
-                    :translate(startx, (height / 2 + tp.cutheight / 2) / 2))
-                gate:merge_into_shallow(geometry.rectangle(generics.other("tuckgatemarker"), gl, height / 2 - tp.cutheight / 2)
-                    :translate(startx, -(height / 2 + tp.cutheight / 2) / 2))
+                geometry.rectanglebltr(
+                    gate, generics.other("tuckgatemarker"), 
+                    point.create(startx - gl / 2, -(height / 2 + tp.cutheight / 2) / 2 - (height / 2 - tp.cutheight / 2) / 2),
+                    point.create(startx + gl / 2,  (height / 2 + tp.cutheight / 2) / 2 + (height / 2 - tp.cutheight / 2) / 2)
+                )
+                geometry.rectanglebltr(
+                    gate, generics.other("tuckgatemarker"), 
+                    point.create(startx - gl / 2, -(height / 2 + tp.cutheight / 2) / 2 - (height / 2 - tp.cutheight / 2) / 2),
+                    point.create(startx + gl / 2, -(height / 2 + tp.cutheight / 2) / 2 + (height / 2 - tp.cutheight / 2) / 2)
+                )
             else
-                gate:merge_into_shallow(geometry.rectangle(generics.other("tuckgatemarker"), gl, height)
-                    :translate(startx, 0))
+                geometry.rectanglebltr(
+                    gate, generics.other("tuckgatemarker"), 
+                    point.create(startx - gl / 2, -height / 2),
+                    point.create(startx + gl / 2,  height / 2)
+                )
             end
         end
     end
 
     -- implants
-    gate:merge_into_shallow(geometry.rectanglebltr(generics.other("pimpl"), 
-        gate:get_anchor("left"):translate(-200, 0), gate:get_anchor("topright"):translate(0, 200)))
-    gate:merge_into_shallow(geometry.rectanglebltr(generics.other("nimpl"), 
-        gate:get_anchor("bottomleft"):translate(-200, -200), gate:get_anchor("right")))
+    geometry.rectanglebltr(
+        gate, generics.implant("p"), 
+        gate:get_anchor("left"):translate(-200, 0), 
+        gate:get_anchor("topright"):translate(0, 200)
+    )
+    geometry.rectanglebltr(
+        gate, generics.implant("n"), 
+        gate:get_anchor("bottomleft"):translate(-200, -200), 
+        gate:get_anchor("right")
+    )
 
     -- gate cuts
     if _P.splitgates then
-        gate:merge_into_shallow(geometry.rectangle(generics.other("gatecut"), bp.glength + bp.gspace, tp.cutheight)
-            :translate(gate:get_anchor("right"):translate(-(bp.glength + bp.gspace) / 2, 0)))
+        geometry.rectanglebltr(
+            gate, generics.other("gatecut"),
+            gate:get_anchor("right"):translate(-(bp.glength + bp.gspace), -tp.cutheight / 2),
+            gate:get_anchor("right"):translate(0,  tp.cutheight / 2)
+        )
     end
 end

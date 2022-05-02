@@ -65,6 +65,7 @@ function M.run_test(module, test)
         _get_opc_home = _get_opc_home,
         ipairs = ipairs,
         pcall = pcall,
+        object = object,
         point = point,
         graphics = graphics,
         reduce = reduce,
