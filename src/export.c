@@ -342,35 +342,96 @@ static int _write_lua_path(lua_State* L, struct keyvaluearray* layerdata, shape_
     return lua_pcall(L, 4, 0, 0);
 }
 
+static int _write_lua_curve(lua_State* L, struct keyvaluearray* layerdata, shape_t* shape)
+{
+    lua_getfield(L, -1, "setup_curve");
+    _push_layer(L, layerdata);
+    int ret = lua_pcall(L, 1, 0, 0);
+    if(ret != LUA_OK)
+    {
+        return ret;
+    }
+    size_t ptidx = 0;
+    struct vector_iterator* it = vector_iterator_create(shape->properties);
+    while(vector_iterator_is_valid(it))
+    {
+        struct curve_segment* segment = vector_iterator_get(it);
+        switch(segment->type)
+        {
+            case LINE:
+                lua_getfield(L, -1, "curve_add_line_segment");
+                _push_point(L, shape->points[ptidx]);
+                _push_point(L, shape->points[ptidx + 1]);
+                ret = lua_pcall(L, 2, 0, 0);
+                if(ret != LUA_OK)
+                {
+                    return ret;
+                }
+                ptidx += 2;
+                break;
+            case ARC:
+                lua_getfield(L, -1, "curve_add_arc_segment");
+                _push_point(L, shape->points[ptidx]);
+                _push_point(L, shape->points[ptidx + 1]);
+                _push_point(L, shape->points[ptidx + 2]);
+                ret = lua_pcall(L, 3, 0, 0);
+                if(ret != LUA_OK)
+                {
+                    return ret;
+                }
+                ptidx += 3;
+                break;
+        }
+        vector_iterator_next(it);
+    }
+    lua_getfield(L, -1, "close_curve");
+    ret = lua_pcall(L, 0, 0, 0);
+    if(ret != LUA_OK)
+    {
+        return ret;
+    }
+    return LUA_OK;
+}
+
+static int _check_function(lua_State* L, const char* funcname)
+{
+    lua_getfield(L, -1, funcname);
+    if(lua_isnil(L, -1))
+    {
+        lua_pop(L, 1);
+        return 0;
+    }
+    if(lua_type(L, -1) != LUA_TFUNCTION)
+    {
+        lua_pop(L, 1);
+        return 0;
+    }
+    lua_pop(L, 1);
+    return 1;
+}
+
 static int _write_cell_lua(lua_State* L, object_t* cell, int write_ports, char leftdelim, char rightdelim)
 {
-    // check 'write_path'
-    int has_write_path = 0;
-    lua_getfield(L, -1, "write_path");
-    if(!lua_isnil(L, -1))
-    {
-        has_write_path = 1;
-    }
-    lua_pop(L, 1);
-
-    // check 'write_polygon'
-    int has_write_polygon = 0;
-    lua_getfield(L, -1, "write_polygon");
-    if(!lua_isnil(L, -1))
-    {
-        has_write_polygon = 1;
-    }
-    lua_pop(L, 1);
+    int has_write_path = _check_function(L, "write_path");
+    int has_curves = _check_function(L, "setup_curve") && _check_function(L, "close_curve") && _check_function(L, "curve_add_line_segment");
+    int has_write_polygon = _check_function(L, "write_polygon");
     for(unsigned int i = 0; i < cell->shapes_size; ++i)
     {
         shape_t* shape = cell->shapes[i];
         shape_apply_transformation(shape, cell->trans);
         struct keyvaluearray* layerdata = shape->layer->data[0];
-        if(!has_write_path && shape->type == PATH)
+        // order of the following statements matter!
+        // (if a curves and polygons can't be written,
+        //  a rasterized and triangulated curve can be used)
+        if(shape->type == PATH && !has_write_path)
         {
             shape_resolve_path(shape);
         }
-        if(!has_write_polygon && shape->type == POLYGON)
+        if(shape->type == CURVE && !has_curves)
+        {
+            shape_rasterize_curve(shape);
+        }
+        if(shape->type == POLYGON && !has_write_polygon)
         {
             shape_triangulate_polygon(shape);
         }
@@ -396,6 +457,12 @@ static int _write_cell_lua(lua_State* L, object_t* cell, int write_ports, char l
                 break;
             case PATH:
                 if(_write_lua_path(L, layerdata, shape) != LUA_OK)
+                {
+                    return LUA_ERRRUN;
+                }
+                break;
+            case CURVE:
+                if(_write_lua_curve(L, layerdata, shape) != LUA_OK)
                 {
                     return LUA_ERRRUN;
                 }
@@ -486,23 +553,6 @@ static int _call_or_pop_nil(lua_State* L, int numargs)
         lua_pop(L, 1 + numargs);
     }
     return LUA_OK;
-}
-
-static int _check_function(lua_State* L, const char* funcname)
-{
-    lua_getfield(L, -1, funcname);
-    if(lua_isnil(L, -1))
-    {
-        lua_pop(L, 1);
-        return 0;
-    }
-    if(lua_type(L, -1) != LUA_TFUNCTION)
-    {
-        lua_pop(L, 1);
-        return 0;
-    }
-    lua_pop(L, 1);
-    return 1;
 }
 
 static int _check_lua_export(lua_State* L)

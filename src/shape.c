@@ -87,6 +87,10 @@ void shape_destroy(shape_t* shape)
     {
         free(shape->properties);
     }
+    if(shape->type == CURVE)
+    {
+        vector_destroy(shape->properties, free);
+    }
     free(shape);
 }
 

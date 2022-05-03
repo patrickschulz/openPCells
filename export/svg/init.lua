@@ -107,6 +107,10 @@ local function _get_style(layer)
     return string.format("fill:#%s;opacity:%s;fill-opacity:%s", layer.color, layer.drawopacity or "1", layer.fillopacity or "1")
 end
 
+local function _format_point(pt)
+    return string.format("%d,%d", pt.x + __xoffset, pt.y + __yoffset)
+end
+
 function M.write_rectangle(layer, bl, tr)
     local pointstr = string.format('x="%d" y="%d" width="%d" height="%d"',
         bl.x + __xoffset,
@@ -120,9 +124,31 @@ end
 function M.write_polygon(layer, pts)
     local ptstream = {}
     for _, pt in ipairs(pts) do
-        table.insert(ptstream, string.format("%d,%d", pt.x + __xoffset, pt.y + __yoffset))
+        table.insert(ptstream, _format_point(pt))
     end
     _insert_ordered_content(layer.order or 0, string.format('<polygon style = "%s" points = "%s" />', _get_style(layer), table.concat(ptstream, " ")))
+end
+
+-- curve support (paths in SVG terminology)
+local curveorder
+local curvecontent = {}
+function M.setup_curve(layer)
+    curveorder = layer.order or 0
+    table.insert(curvecontent, string.format('<path style = "%s" d = "', _get_style(layer)))
+end
+
+function M.curve_add_line_segment(pt1, pt2)
+    table.insert(curvecontent, string.format("L %d %d", pt1.x, pt1.y))
+    table.insert(curvecontent, string.format("L %d %d", pt2.x, pt2.y))
+end
+
+function M.curve_add_arc_segment(pt1, center, pt2)
+    table.insert(curvecontent, string.format("A %d %d", pt1.x, pt1.y))
+end
+
+function M.close_curve()
+    table.insert(curvecontent, '/>')
+    _insert_ordered_content(curveorder, table.concat(curvecontent, ' '))
 end
 
 return M
