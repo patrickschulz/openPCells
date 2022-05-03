@@ -138,84 +138,96 @@ return {
         name = "via4",
         layer = {
             gds = { layer = 15, purpose = 0 },
-            SKILL = { layer = "via4", purpose = "drawing" }
+            SKILL = { layer = "via4", purpose = "drawing" },
+            svg = { color = "ffffff" },
         }
     },
     M5 = {
         name = "metal5",
         layer = {
             gds = { layer = 16, purpose = 0 },
-            SKILL = { layer = "metal5", purpose = "drawing" }
+            SKILL = { layer = "metal5", purpose = "drawing" },
+            svg = { color = "0080ff" },
         }
     },
     viacutM5M6 = {
         name = "via5",
         layer = {
             gds = { layer = 17, purpose = 0 },
-            SKILL = { layer = "via5", purpose = "drawing" }
+            SKILL = { layer = "via5", purpose = "drawing" },
+            svg = { color = "ffffff" },
         }
     },
     M6 = {
         name = "metal6",
         layer = {
             gds = { layer = 18, purpose = 0 },
-            SKILL = { layer = "metal6", purpose = "drawing" }
+            SKILL = { layer = "metal6", purpose = "drawing" },
+            svg = { color = "ff0000" },
         }
     },
     viacutM6M7 = {
         name = "via6",
         layer = {
             gds = { layer = 19, purpose = 0 },
-            SKILL = { layer = "via6", purpose = "drawing" }
+            SKILL = { layer = "via6", purpose = "drawing" },
+            svg = { color = "ffffff" },
         }
     },
     M7 = {
         name = "metal7",
         layer = {
             gds = { layer = 20, purpose = 0 },
-            SKILL = { layer = "metal7", purpose = "drawing" }
+            SKILL = { layer = "metal7", purpose = "drawing" },
+            svg = { color = "8000ff" },
         }
     },
     viacutM7M8 = {
         name = "via7",
         layer = {
             gds = { layer = 21, purpose = 0 },
-            SKILL = { layer = "via7", purpose = "drawing" }
+            SKILL = { layer = "via7", purpose = "drawing" },
+            svg = { color = "ffffff" },
         }
     },
     M8 = {
         name = "metal8",
         layer = {
             gds = { layer = 22, purpose = 0 },
-            SKILL = { layer = "metal8", purpose = "drawing" }
+            SKILL = { layer = "metal8", purpose = "drawing" },
+            svg = { color = "008000" },
         }
     },
     viacutM8M9 = {
         name = "via8",
         layer = {
             gds = { layer = 23, purpose = 0 },
-            SKILL = { layer = "via8", purpose = "drawing" }
+            SKILL = { layer = "via8", purpose = "drawing" },
+            svg = { color = "ffffff" },
         }
     },
     M9 = {
         name = "metal9",
         layer = {
             gds = { layer = 24, purpose = 0 },
-            SKILL = { layer = "metal9", purpose = "drawing" }
+            SKILL = { layer = "metal9", purpose = "drawing" },
+            svg = { color = "ff00ff" },
         }
     },
     viacutM9M10 = {
         name = "via9",
         layer = {
             gds = { layer = 25, purpose = 0 },
-            SKILL = { layer = "via9", purpose = "drawing" }
+            SKILL = { layer = "via9", purpose = "drawing" },
+            svg = { color = "ffffff" },
         }
     },
     M10 = {
         name = "metal10",
         layer = {
             gds = { layer = 26, purpose = 0 },
-            SKILL = { layer = "metal10", purpose = "drawing" }
+            SKILL = { layer = "metal10", purpose = "drawing" },
+            svg = { color = "8000ff" },
         }
     },
     -- unused layers
