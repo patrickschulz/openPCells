@@ -37,20 +37,29 @@ void export_data_append_string_unchecked(struct export_data* data, const char* s
 
 struct export_functions
 {
+    // initialization
+    const char* (*get_extension)(void);
     const char* (*get_techexport)(void);
     void (*initialize)(object_t*);
+    // at begin/end
     void (*at_begin)(struct export_data*);
     void (*at_end)(struct export_data*);
     void (*at_begin_cell)(struct export_data*, const char*);
     void (*at_end_cell)(struct export_data*);
+    // write basic shapes
     void (*write_rectangle)(struct export_data*, const struct keyvaluearray*, point_t*, point_t*);
     void (*write_triangle)(struct export_data*, const struct keyvaluearray*, point_t*, point_t*, point_t*);
     void (*write_polygon)(struct export_data*, const struct keyvaluearray*, point_t**, size_t);
     void (*write_path)(struct export_data*, const struct keyvaluearray*, point_t**, size_t, ucoordinate_t, coordinate_t*);
+    // write curves
+    void (*setup_curve)(struct export_data*, const struct keyvaluearray);
+    void (*curve_add_line_segment)(struct export_data*, point_t*, point_t*);
+    void (*close_curve)(struct export_data*, const struct keyvaluearray);
+    // write references
     void (*write_cell_reference)(struct export_data*, const char*, coordinate_t, coordinate_t, transformationmatrix_t*);
     void (*write_cell_array)(struct export_data*, const char*, coordinate_t, coordinate_t, transformationmatrix_t*, unsigned int, unsigned int, unsigned int, unsigned int);
+    // write ports
     void (*write_port)(struct export_data*, const char* name, const struct keyvaluearray*, coordinate_t x, coordinate_t y);
-    const char* (*get_extension)(void);
 };
 
 struct export_functions* export_create_functions(void);

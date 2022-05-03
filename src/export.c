@@ -163,6 +163,15 @@ static void _write_cell(object_t* cell, struct export_data* data, struct export_
                     funcs->write_polygon(data, layerdata, shape->points, shape->size);
                 }
                 break;
+            case CURVE:
+                if(funcs->setup_curve && funcs->close_curve && funcs->curve_add_line_segment)
+                {
+                }
+                else
+                {
+                    shape_rasterize_curve(shape);
+                    funcs->write_polygon(data, layerdata, shape->points, shape->size);
+                }
         }
     }
     if(cell->children)

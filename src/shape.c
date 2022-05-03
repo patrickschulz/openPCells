@@ -2,9 +2,10 @@
 
 #include <stdlib.h>
 
+#include "graphics.h"
 #include "geometry.h"
 
-static shape_t* _create_shape(shapetype type, size_t capacity)
+static shape_t* _create_shape(enum shapetype type, size_t capacity)
 {
     shape_t* shape = malloc(sizeof(*shape));
     shape->type = type;
@@ -37,6 +38,13 @@ shape_t* shape_create_path(size_t capacity, ucoordinate_t width, coordinate_t ex
     properties->extension[0] = extstart;
     properties->extension[1] = extend;
     shape->properties = properties;
+    return shape;
+}
+
+shape_t* shape_create_curve(void)
+{
+    shape_t* shape = _create_shape(CURVE, 0);
+    shape->properties = vector_create();
     return shape;
 }
 
@@ -95,6 +103,22 @@ void shape_append(shape_t* shape, coordinate_t x, coordinate_t y)
         {
             return;
         }
+    }
+    if(shape->size == shape->capacity)
+    {
+        shape->capacity = (shape->capacity * 2) > (shape->size + 1) ? (shape->capacity * 2) : (shape->size + 1);
+        point_t** points = realloc(shape->points, shape->capacity * sizeof(*shape->points));
+        shape->points = points;
+    }
+    shape->points[shape->size] = point_create(x, y);
+    shape->size += 1;
+}
+
+void shape_append_unconditionally(shape_t* shape, coordinate_t x, coordinate_t y)
+{
+    if(shape->type == RECTANGLE)
+    {
+        return;
     }
     if(shape->size == shape->capacity)
     {
@@ -206,6 +230,35 @@ coordinate_t shape_get_width(shape_t* shape)
     return maxx - minx;
 }
 
+void shape_curve_add_line_segment(shape_t* shape, point_t* startpt, point_t* endpt)
+{
+    if(shape->type != CURVE)
+    {
+        return;
+    }
+    shape_append_unconditionally(shape, startpt->x, startpt->y);
+    shape_append_unconditionally(shape, endpt->x, endpt->y);
+    struct vector* curve_segments = shape->properties;
+    struct curve_segment* segment = malloc(sizeof(*segment));
+    segment->type = LINE;
+    vector_append(curve_segments, segment);
+}
+
+void shape_curve_add_arc_segment(shape_t* shape, point_t* firstpt, point_t* centerpt, point_t* lastpt)
+{
+    if(shape->type != CURVE)
+    {
+        return;
+    }
+    shape_append_unconditionally(shape, firstpt->x, firstpt->y);
+    shape_append_unconditionally(shape, centerpt->x, centerpt->y);
+    shape_append_unconditionally(shape, lastpt->x, lastpt->y);
+    struct vector* curve_segments = shape->properties;
+    struct curve_segment* segment = malloc(sizeof(*segment));
+    segment->type = ARC;
+    vector_append(curve_segments, segment);
+}
+
 coordinate_t shape_get_height(shape_t* shape)
 {
     coordinate_t miny = COORDINATE_MAX;
@@ -267,6 +320,38 @@ void shape_resolve_path(shape_t* shape)
     shape->capacity = new->capacity;
     shape->type = new->type;
     free(new);
+}
+
+void shape_rasterize_curve(shape_t* shape)
+{
+    if(shape->type != CURVE)
+    {
+        return;
+    }
+    // FIXME: add_curve_xxx_segment MUST also specify the type, then we can iterate over the individual segments here!
+    struct vector* rastered_points = vector_create();
+    size_t ptidx = 0;
+    struct vector_iterator* it = vector_iterator_create(shape->properties);
+    while(vector_iterator_is_valid(it))
+    {
+        struct curve_segment* segment = vector_iterator_get(it);
+        switch(segment->type)
+        {
+            case LINE:
+                graphics_raster_line_segment(shape->points[ptidx], shape->points[ptidx + 1], 100, 1, rastered_points);
+                ptidx += 2;
+                break;
+            case ARC:
+                graphics_raster_arc_segment(shape->points[ptidx], shape->points[ptidx + 1], shape->points[ptidx + 2], 100, 1, rastered_points);
+                ptidx += 3;
+                break;
+        }
+        vector_iterator_next(it);
+    }
+    shape->type = POLYGON;
+    shape->points = vector_content(rastered_points);
+    shape->size = vector_size(rastered_points);
+    shape->capacity = vector_capacity(rastered_points);
 }
 
 void shape_triangulate_polygon(shape_t* shape)

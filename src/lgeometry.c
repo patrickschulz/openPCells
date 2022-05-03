@@ -498,6 +498,76 @@ static int lgeometry_cubic_bezier(lua_State* L)
     return 0;
 }
 
+static int lgeometry_curve(lua_State* L)
+{
+    lobject_t* lobject = lobject_check(L, 1);
+    generics_t* layer = _check_generics(L, 2);
+    shape_t* S = shape_create_curve();
+    S->layer = layer;
+
+    lua_len(L, 3);
+    size_t len = lua_tointeger(L, -1);
+    lua_pop(L, 1);
+
+    for(unsigned int i = 1; i <= len; ++i)
+    {
+        lua_rawgeti(L, 3, i);
+        lua_getfield(L, -1, "type");
+        const char* type = lua_tostring(L, -1);
+        if(strcmp(type, "linesegment") == 0)
+        {
+            lua_getfield(L, -2, "startpt");
+            lpoint_t* startpt = lpoint_checkpoint(L, -1);
+            lua_getfield(L, -3, "endpt");
+            lpoint_t* endpt = lpoint_checkpoint(L, -1);
+            shape_curve_add_line_segment(S, startpt->point, endpt->point);
+            lua_pop(L, 2); // pop points
+        }
+        else
+        {
+            lua_getfield(L, -2, "firstpt");
+            lpoint_t* firstpt = lpoint_checkpoint(L, -1);
+            lua_getfield(L, -3, "centerpt");
+            lpoint_t* centerpt = lpoint_checkpoint(L, -1);
+            lua_getfield(L, -4, "lastpt");
+            lpoint_t* lastpt = lpoint_checkpoint(L, -1);
+            shape_curve_add_arc_segment(S, firstpt->point, centerpt->point, lastpt->point);
+            lua_pop(L, 3); // pop points
+        }
+        lua_pop(L, 1); // pop type
+        lua_pop(L, 1); // pop segment
+    }
+
+    object_add_shape(lobject->object, S);
+    return 0;
+}
+
+static int lcurve_linesegment(lua_State* L)
+{
+    lua_newtable(L);
+    lua_pushstring(L, "linesegment");
+    lua_setfield(L, -2, "type");
+    lua_pushvalue(L, 1);
+    lua_setfield(L, -2, "startpt");
+    lua_pushvalue(L, 2);
+    lua_setfield(L, -2, "endpt");
+    return 1;
+}
+
+static int lcurve_arcsegment(lua_State* L)
+{
+    lua_newtable(L);
+    lua_pushstring(L, "arcsegment");
+    lua_setfield(L, -2, "type");
+    lua_pushvalue(L, 1);
+    lua_setfield(L, -2, "firstpt");
+    lua_pushvalue(L, 2);
+    lua_setfield(L, -2, "centerpt");
+    lua_pushvalue(L, 3);
+    lua_setfield(L, -2, "lastpt");
+    return 1;
+}
+
 int open_lgeometry_lib(lua_State* L)
 {
     lua_newtable(L);
@@ -519,10 +589,22 @@ int open_lgeometry_lib(lua_State* L)
         { "cross",           lgeometry_cross           },
         { "ring",            lgeometry_ring            },
         { "unequal_ring",    lgeometry_unequal_ring    },
+        { "curve",           lgeometry_curve           },
         { NULL,              NULL                      }
     };
     luaL_setfuncs(L, modfuncs, 0);
 
     lua_setglobal(L, LGEOMETRYMODULE);
+
+    lua_newtable(L);
+    static const luaL_Reg curvefuncs[] =
+    {
+        { "linesegment", lcurve_linesegment },
+        { "arcsegment",  lcurve_arcsegment },
+        { NULL,          NULL               }
+    };
+    luaL_setfuncs(L, curvefuncs, 0);
+
+    lua_setglobal(L, "curve");
     return 0;
 }

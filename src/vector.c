@@ -65,9 +65,19 @@ size_t vector_size(const struct vector* vector)
     return vector->size;
 }
 
+size_t vector_capacity(const struct vector* vector)
+{
+    return vector->capacity;
+}
+
 void* vector_get(struct vector* vector, size_t i)
 {
     return vector->elements[i];
+}
+
+void* vector_content(struct vector* vector)
+{
+    return vector->elements;
 }
 
 void vector_set(struct vector* vector, size_t i, void* element)
