@@ -37,10 +37,10 @@ static order_t rect_order(coordinate_t bl1, coordinate_t tr1, coordinate_t bl2, 
 
 shape_t* rectangle_union(shape_t* rect1, shape_t* rect2)
 {
-    point_t* bl1 = vector_get(rect1->points, 0);
-    point_t* tr1 = vector_get(rect1->points, 1);
-    point_t* bl2 = vector_get(rect2->points, 0);
-    point_t* tr2 = vector_get(rect2->points, 1);
+    point_t *bl1, *tr1;
+    shape_get_rectangle_points(rect1, &bl1, &tr1);
+    point_t *bl2, *tr2;
+    shape_get_rectangle_points(rect2, &bl2, &tr2);
     order_t xorder = rect_order(bl1->x, tr1->x, bl2->x, tr2->x);
     order_t yorder = rect_order(bl1->y, tr1->y, bl2->y, tr2->y);
     if(xorder == NOINTERSECTION || yorder == NOINTERSECTION)

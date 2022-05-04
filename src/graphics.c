@@ -217,7 +217,7 @@ static unsigned int _map_xy_to_quadrant(coordinate_t x, coordinate_t y)
     }
 }
 
-static void _get_quadrant_list(unsigned int startquadrant, unsigned int endquadrant, unsigned int* quadrants)
+static void _get_quadrant_list(unsigned int startquadrant, unsigned int endquadrant, int clockwise, unsigned int* quadrants)
 {
     unsigned int i = startquadrant;
     int stop = 0;
@@ -230,7 +230,16 @@ static void _get_quadrant_list(unsigned int startquadrant, unsigned int endquadr
         {
             break;
         }
-        i = (i % 4) + 1;
+        if(clockwise)
+        {
+            if(i == 1) { i = 4; }
+            else { i = i - 1; }
+        }
+        else
+        {
+            if(i == 4) { i = 1; }
+            else { i = i + 1; }
+        }
         if(i == endquadrant)
         {
             stop = 1;
@@ -280,9 +289,9 @@ static int _ysign(unsigned int quadrant)
     return 1; // never reached
 }
 
-static int _check_startquadrant(unsigned int quadrant, coordinate_t x, coordinate_t y, coordinate_t xstart, coordinate_t ystart)
+static int _check_startquadrant(unsigned int quadrant, coordinate_t x, coordinate_t y, coordinate_t xstart, coordinate_t ystart, int clockwise)
 {
-    if(quadrant == 1)
+    if((!clockwise && quadrant == 1) || (clockwise && quadrant == 3))
     {
         if(x <= xstart && y >= ystart)
         {
@@ -290,7 +299,7 @@ static int _check_startquadrant(unsigned int quadrant, coordinate_t x, coordinat
         }
         return 0;
     }
-    else if(quadrant == 2)
+    else if((!clockwise && quadrant == 2) || (clockwise && quadrant == 4))
     {
         if(x <= xstart && y <= ystart)
         {
@@ -298,7 +307,7 @@ static int _check_startquadrant(unsigned int quadrant, coordinate_t x, coordinat
         }
         return 0;
     }
-    else if(quadrant == 3)
+    else if((!clockwise && quadrant == 3) || (clockwise && quadrant == 1))
     {
         if(x >= xstart && y <= ystart)
         {
@@ -306,7 +315,7 @@ static int _check_startquadrant(unsigned int quadrant, coordinate_t x, coordinat
         }
         return 0;
     }
-    else if(quadrant == 4)
+    else if((!clockwise && quadrant == 4) || (clockwise && quadrant == 2))
     {
         if(x >= xstart && y >= ystart)
         {
@@ -317,9 +326,9 @@ static int _check_startquadrant(unsigned int quadrant, coordinate_t x, coordinat
     return 0; // never reached
 }
 
-static int _check_endquadrant(unsigned int quadrant, coordinate_t x, coordinate_t y, coordinate_t xend, coordinate_t yend)
+static int _check_endquadrant(unsigned int quadrant, coordinate_t x, coordinate_t y, coordinate_t xend, coordinate_t yend, int clockwise)
 {
-    if(quadrant == 1)
+    if((!clockwise && quadrant == 1) || (clockwise && quadrant == 3))
     {
         if(x >= xend && y <= yend)
         {
@@ -327,7 +336,7 @@ static int _check_endquadrant(unsigned int quadrant, coordinate_t x, coordinate_
         }
         return 0;
     }
-    else if(quadrant == 2)
+    else if((!clockwise && quadrant == 2) || (clockwise && quadrant == 4))
     {
         if(x >= xend && y >= yend)
         {
@@ -335,7 +344,7 @@ static int _check_endquadrant(unsigned int quadrant, coordinate_t x, coordinate_
         }
         return 0;
     }
-    else if(quadrant == 3)
+    else if((!clockwise && quadrant == 3) || (clockwise && quadrant == 1))
     {
         if(x <= xend && y >= yend)
         {
@@ -343,7 +352,7 @@ static int _check_endquadrant(unsigned int quadrant, coordinate_t x, coordinate_
         }
         return 0;
     }
-    else if(quadrant == 4)
+    else if((!clockwise && quadrant == 4) || (clockwise && quadrant == 2))
     {
         if(x <= xend && y <= yend)
         {
@@ -354,7 +363,7 @@ static int _check_endquadrant(unsigned int quadrant, coordinate_t x, coordinate_
     return 0; // never reached
 }
 
-static void _assemble_circle_points(struct vector* quarterpoints, unsigned int* quadrants, coordinate_t xstart, coordinate_t ystart, coordinate_t xend, coordinate_t yend, coordinate_t xc, coordinate_t yc, struct vector* result)
+static void _assemble_circle_points(struct vector* quarterpoints, unsigned int* quadrants, coordinate_t xstart, coordinate_t ystart, coordinate_t xend, coordinate_t yend, coordinate_t xc, coordinate_t yc, int clockwise, struct vector* result)
 {
     for(unsigned int i = 0; i < 4; ++i)
     {
@@ -366,7 +375,15 @@ static void _assemble_circle_points(struct vector* quarterpoints, unsigned int* 
         unsigned int startj = (i == 0) ? 0 : 1;
         for(unsigned int j = startj; j < vector_size(quarterpoints); ++j)
         {
-            unsigned int idx = (q % 2 == 0) ? (vector_size(quarterpoints) - j - 1) : j;
+            unsigned int idx;
+            if(clockwise)
+            {
+                idx = (q % 2 == 0) ? j : (vector_size(quarterpoints) - j - 1);
+            }
+            else
+            {
+                idx = (q % 2 == 0) ? (vector_size(quarterpoints) - j - 1) : j;
+            }
             point_t* pt = vector_get(quarterpoints, idx);
             coordinate_t x = pt->x;
             coordinate_t y = pt->y;
@@ -375,11 +392,11 @@ static void _assemble_circle_points(struct vector* quarterpoints, unsigned int* 
             int insert = 0;
             if(i == 0) // start quadrant
             {
-                insert = _check_startquadrant(q, x, y, xstart, ystart);
+                insert = _check_startquadrant(q, x, y, xstart, ystart, clockwise);
             }
             else if(i == 3 || quadrants[i + 1] == 0) // end quadrant
             {
-                insert = _check_endquadrant(q, x, y, xend, yend);
+                insert = _check_endquadrant(q, x, y, xend, yend, clockwise);
             }
             else // insert every point of an intermediate quadrant
             {
@@ -393,7 +410,7 @@ static void _assemble_circle_points(struct vector* quarterpoints, unsigned int* 
     }
 }
 
-static void _ellipse(coordinate_t ox, coordinate_t oy, ucoordinate_t xradius, ucoordinate_t yradius, double startangle, double endangle, unsigned int grid, int allow45, struct vector* result)
+static void _ellipse(coordinate_t ox, coordinate_t oy, ucoordinate_t xradius, ucoordinate_t yradius, double startangle, double endangle, int clockwise, unsigned int grid, int allow45, struct vector* result)
 {
     //util.check_grid(grid, origin->x, origin->y, xradius, yradius)
 
@@ -408,12 +425,12 @@ static void _ellipse(coordinate_t ox, coordinate_t oy, ucoordinate_t xradius, uc
     struct vector* quarterpoints = _rasterize_quarterellipse(xradius, yradius, grid, allow45);
 
     unsigned int quadrants[4] = { 0 };
-    _get_quadrant_list(startquadrant, endquadrant, quadrants);
+    _get_quadrant_list(startquadrant, endquadrant, clockwise, quadrants);
 
-    _assemble_circle_points(quarterpoints, quadrants, xstart, ystart, xend, yend, ox, oy, result);
+    _assemble_circle_points(quarterpoints, quadrants, xstart, ystart, xend, yend, ox, oy, clockwise, result);
 }
 
-static void _circle(coordinate_t ox, coordinate_t oy, ucoordinate_t radius, double startangle, double endangle, unsigned int grid, int allow45, struct vector* result)
+static void _circle(coordinate_t ox, coordinate_t oy, ucoordinate_t radius, double startangle, double endangle, int clockwise, unsigned int grid, int allow45, struct vector* result)
 {
     //util.check_grid(grid, origin->x, origin->y, xradius, yradius)
 
@@ -428,17 +445,17 @@ static void _circle(coordinate_t ox, coordinate_t oy, ucoordinate_t radius, doub
     struct vector* quarterpoints = _rasterize_quartercircle(radius, grid, allow45);
 
     unsigned int quadrants[4] = { 0 };
-    _get_quadrant_list(startquadrant, endquadrant, quadrants);
+    _get_quadrant_list(startquadrant, endquadrant, clockwise, quadrants);
 
-    _assemble_circle_points(quarterpoints, quadrants, xstart, ystart, xend, yend, ox, oy, result);
+    _assemble_circle_points(quarterpoints, quadrants, xstart, ystart, xend, yend, ox, oy, clockwise, result);
 
     vector_destroy(quarterpoints, point_destroy);
 }
 
-void graphics_raster_arc_segment(point_t* startpt, double startangle, double endangle, coordinate_t radius, unsigned int grid, int allow45, struct vector* result)
+void graphics_raster_arc_segment(point_t* startpt, double startangle, double endangle, coordinate_t radius, int clockwise, unsigned int grid, int allow45, struct vector* result)
 {
     coordinate_t cx = startpt->x - cos(startangle * M_PI / 180) * radius;
     coordinate_t cy = startpt->y - sin(startangle * M_PI / 180) * radius;
-    _circle(cx, cy, radius, startangle, endangle, grid, allow45, result);
+    _circle(cx, cy, radius, startangle, endangle, clockwise, grid, allow45, result);
 }
 

@@ -738,14 +738,7 @@ void object_flatten(object_t* cell, struct pcell_state* pcell_state, int flatten
                         shape_t* S = shape_copy(reference->shapes[i]);
                         shape_apply_transformation(S, child->trans);
                         shape_apply_transformation(S, reference->trans);
-                        for(unsigned int i = 0; i < vector_size(S->points); ++i)
-                        {
-                            point_translate(vector_get(
-                                S->points, i),
-                                (ix - 1) * child->xpitch,
-                                (iy - 1) * child->ypitch
-                            );
-                        }
+                        shape_translate(S, (ix - 1) * child->xpitch, (iy - 1) * child->ypitch);
                         object_add_raw_shape(cell, S);
                     }
                     //if flattenports then

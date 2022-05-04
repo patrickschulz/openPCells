@@ -7,56 +7,74 @@
 #include "transformationmatrix.h"
 #include "generics.h"
 
-enum shapetype
-{
-    RECTANGLE,
-    POLYGON,
-    TRIANGULATED_POLYGON,
-    PATH,
-    CURVE
+struct rectangle {
+    point_t* bl;
+    point_t* tr;
 };
 
-struct curve_segment
-{
-    enum curve_segment_type {
-        LINE,
-        ARC
-    } type;
-    union
-    {
-        struct {
-            double arc_startangle;
-            double arc_endangle;
-            coordinate_t arc_radius;
-        };
-    } properties;
+struct polygon {
+    struct vector* points;
 };
 
-typedef struct
-{
+struct path {
+    struct vector* points;
     ucoordinate_t width;
     coordinate_t extension[2];
-} path_properties_t;
+};
 
-typedef struct
-{
-    enum shapetype type;
-    struct vector* points;
+struct curve_segment {
+    enum segment_type {
+        LINESEGMENT,
+        ARCSEGMENT
+    } type;
+    union {
+        struct {
+            point_t* pt;
+        };
+        struct {
+            double startangle;
+            double endangle;
+            coordinate_t radius;
+            int clockwise;
+        };
+    } data;
+};
+
+struct curve {
+    point_t* origin;
+    struct vector* segments;
+    unsigned int grid;
+};
+
+typedef struct {
+    enum shapetype {
+        RECTANGLE,
+        POLYGON,
+        TRIANGULATED_POLYGON, // re-uses struct polygon
+        PATH,
+        CURVE
+    } type;
+    void* content;
     generics_t* layer;
-    void* properties; // optional
 } shape_t;
 
 shape_t* shape_create_rectangle(generics_t* layer, coordinate_t bl_x, coordinate_t bl_y, coordinate_t tr_x, coordinate_t tr_y);
 shape_t* shape_create_polygon(generics_t* layer, size_t capacity);
 shape_t* shape_create_path(generics_t* layer, size_t capacity, ucoordinate_t width, coordinate_t extstart, coordinate_t extend);
-shape_t* shape_create_curve(generics_t* layer, point_t* origin);
+shape_t* shape_create_curve(generics_t* layer, coordinate_t x, coordinate_t y, unsigned int grid);
 shape_t* shape_copy(shape_t* shape);
 void shape_destroy(shape_t* shape);
 
-point_t* shape_get_point(shape_t* shape, size_t index);
-
 void shape_append(shape_t* shape, coordinate_t x, coordinate_t y);
 
+// rectangle access functions
+int shape_get_rectangle_points(shape_t* shape, point_t** blp, point_t** trp);
+
+// polygon (including triangulated) access functions
+int shape_get_polygon_points(shape_t* shape, struct vector** points);
+
+// path access functions
+int shape_get_path_points(shape_t* shape, struct vector** points);
 int shape_get_path_width(shape_t* shape, ucoordinate_t* width);
 int shape_get_path_extension(shape_t* shape, coordinate_t* start, coordinate_t* end);
 
@@ -74,11 +92,11 @@ void shape_get_minmax_xy(const shape_t* shape, const transformationmatrix_t* tra
 
 // curve segments
 void shape_curve_add_line_segment(shape_t* shape, point_t* pt);
-void shape_curve_add_arc_segment(shape_t* shape, double startangle, double endangle, coordinate_t radius);
+void shape_curve_add_arc_segment(shape_t* shape, double startangle, double endangle, coordinate_t radius, int clockwise);
 
 int shape_get_center(shape_t* shape, coordinate_t* x, coordinate_t* y);
 
-int shape_resize_lrtb(shape_t* shape, coordinate_t left, coordinate_t right, coordinate_t top, coordinate_t bottom);
+void shape_resize_lrtb(shape_t* shape, coordinate_t left, coordinate_t right, coordinate_t top, coordinate_t bottom);
 void shape_resolve_path(shape_t* shape);
 void shape_triangulate_polygon(shape_t* shape);
 void shape_rasterize_curve(shape_t* shape);

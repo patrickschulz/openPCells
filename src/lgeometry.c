@@ -505,7 +505,8 @@ static int lgeometry_curve(lua_State* L)
     lobject_t* lobject = lobject_check(L, 1);
     generics_t* layer = _check_generics(L, 2);
     lpoint_t* origin = lpoint_checkpoint(L, 3);
-    shape_t* S = shape_create_curve(layer, origin->point);
+    unsigned int grid = luaL_optinteger(L, 5, 1);
+    shape_t* S = shape_create_curve(layer, origin->point->x, origin->point->y, grid);
 
     lua_len(L, 4);
     size_t len = lua_tointeger(L, -1);
@@ -531,7 +532,9 @@ static int lgeometry_curve(lua_State* L)
             double endangle = lua_tonumber(L, -1);
             lua_getfield(L, -4, "radius");
             coordinate_t radius = lua_tointeger(L, -1);
-            shape_curve_add_arc_segment(S, startangle, endangle, radius);
+            lua_getfield(L, -5, "clockwise");
+            int clockwise = lua_toboolean(L, -1);
+            shape_curve_add_arc_segment(S, startangle, endangle, radius, clockwise);
             lua_pop(L, 3); // pop points
         }
         lua_pop(L, 1); // pop type
@@ -563,6 +566,8 @@ static int lcurve_arcto(lua_State* L)
     lua_setfield(L, -2, "endangle");
     lua_pushvalue(L, 3);
     lua_setfield(L, -2, "radius");
+    lua_pushvalue(L, 4);
+    lua_setfield(L, -2, "clockwise");
     return 1;
 }
 

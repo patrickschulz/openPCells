@@ -133,39 +133,63 @@ static void _write_cell(object_t* cell, struct export_data* data, struct export_
         switch(shape->type)
         {
             case RECTANGLE:
-                funcs->write_rectangle(data, layerdata, shape_get_point(shape, 0), shape_get_point(shape, 1));
+            {
+                point_t* bl;
+                point_t* tr;
+                shape_get_rectangle_points(shape, &bl, &tr);
+                funcs->write_rectangle(data, layerdata, bl, tr);
                 break;
+            }
             case POLYGON:
-                funcs->write_polygon(data, layerdata, shape->points, vector_size(shape->points));
+            {
+                struct vector* points;
+                shape_get_polygon_points(shape, &points);
+                funcs->write_polygon(data, layerdata, points);
                 break;
+            }
             case TRIANGULATED_POLYGON:
-                for(unsigned int i = 0; i < vector_size(shape->points) - 2; i += 3)
+            {
+                struct vector* points;
+                shape_get_polygon_points(shape, &points);
+                for(unsigned int i = 0; i < vector_size(points) - 2; i += 3)
                 {
                     if(funcs->write_triangle)
                     {
                         funcs->write_triangle(
                             data, layerdata,
-                            shape_get_point(shape, i),
-                            shape_get_point(shape, i + 1),
-                            shape_get_point(shape, i + 2)
+                            vector_get(points, i),
+                            vector_get(points, i + 1),
+                            vector_get(points, i + 2)
                         );
                     }
                     else
                     {
-                        funcs->write_polygon(data, layerdata, shape->points + i, 3);
+                        struct vector* tripts = vector_create(3);
+                        vector_append(tripts, vector_get(points, i));
+                        vector_append(tripts, vector_get(points, i + 1));
+                        vector_append(tripts, vector_get(points, i + 2));
+                        funcs->write_polygon(data, layerdata, tripts);
                     }
                 }
                 break;
+            }
             case PATH:
                 if(funcs->write_path)
                 {
-                    path_properties_t* properties = shape->properties;
-                    funcs->write_path(data, layerdata, shape->points, properties->width, properties->extension);
+                    struct vector* points;
+                    shape_get_path_points(shape, &points);
+                    ucoordinate_t width;
+                    shape_get_path_width(shape, &width);
+                    coordinate_t extension[2];
+                    shape_get_path_extension(shape, &extension[0], &extension[1]);
+                    funcs->write_path(data, layerdata, points, width, extension);
                 }
                 else
                 {
                     shape_resolve_path(shape);
-                    funcs->write_polygon(data, layerdata, shape->points, vector_size(shape->points));
+                    struct vector* points;
+                    shape_get_polygon_points(shape, &points);
+                    funcs->write_polygon(data, layerdata, points);
                 }
                 break;
             case CURVE:
@@ -175,7 +199,9 @@ static void _write_cell(object_t* cell, struct export_data* data, struct export_
                 else
                 {
                     shape_rasterize_curve(shape);
-                    funcs->write_polygon(data, layerdata, shape->points, vector_size(shape->points));
+                    struct vector* points;
+                    shape_get_polygon_points(shape, &points);
+                    funcs->write_polygon(data, layerdata, points);
                 }
         }
     }
@@ -301,8 +327,11 @@ static int _write_lua_rectangle(lua_State* L, struct keyvaluearray* layerdata, s
 {
     lua_getfield(L, -1, "write_rectangle");
     _push_layer(L, layerdata);
-    _push_point(L, shape_get_point(shape, 0));
-    _push_point(L, shape_get_point(shape, 1));
+    point_t* bl;
+    point_t* tr;
+    shape_get_rectangle_points(shape, &bl, &tr);
+    _push_point(L, bl);
+    _push_point(L, tr);
     return lua_pcall(L, 3, 0, 0);
 }
 
@@ -310,19 +339,23 @@ static int _write_lua_polygon(lua_State* L, struct keyvaluearray* layerdata, sha
 {
     lua_getfield(L, -1, "write_polygon");
     _push_layer(L, layerdata);
-    _push_points(L, shape->points);
+    struct vector* points;
+    shape_get_polygon_points(shape, &points);
+    _push_points(L, points);
     return lua_pcall(L, 2, 0, 0);
 }
 
 static int _write_lua_triangulated_polygon(lua_State* L, struct keyvaluearray* layerdata, shape_t* shape)
 {
-    for(unsigned int i = 0; i < vector_size(shape->points) - 2; i += 3)
+    struct vector* points;
+    shape_get_polygon_points(shape, &points);
+    for(unsigned int i = 0; i < vector_size(points) - 2; i += 3)
     {
         lua_getfield(L, -1, "write_triangle");
         _push_layer(L, layerdata);
-        _push_point(L, shape_get_point(shape, i + 0));
-        _push_point(L, shape_get_point(shape, i + 1));
-        _push_point(L, shape_get_point(shape, i + 2));
+        _push_point(L, vector_get(points, i + 0));
+        _push_point(L, vector_get(points, i + 1));
+        _push_point(L, vector_get(points, i + 2));
         int ret = lua_pcall(L, 4, 0, 0);
         if(ret != LUA_OK)
         {
@@ -335,14 +368,19 @@ static int _write_lua_triangulated_polygon(lua_State* L, struct keyvaluearray* l
 static int _write_lua_path(lua_State* L, struct keyvaluearray* layerdata, shape_t* shape)
 {
     lua_getfield(L, -1, "write_path");
-    path_properties_t* properties = shape->properties;
     _push_layer(L, layerdata);
-    _push_points(L, shape->points);
-    lua_pushinteger(L, properties->width);
+    struct vector* points;
+    shape_get_path_points(shape, &points);
+    _push_points(L, points);
+    ucoordinate_t width;
+    shape_get_path_width(shape, &width);
+    lua_pushinteger(L, width);
+    coordinate_t extension[2];
+    shape_get_path_extension(shape, &extension[0], &extension[1]);
     lua_newtable(L);
-    lua_pushinteger(L, properties->extension[0]);
+    lua_pushinteger(L, extension[0]);
     lua_rawseti(L, -2, 1);
-    lua_pushinteger(L, properties->extension[0]);
+    lua_pushinteger(L, extension[0]);
     lua_rawseti(L, -2, 2);
     return lua_pcall(L, 4, 0, 0);
 }
@@ -356,36 +394,42 @@ static int _write_lua_curve(lua_State* L, struct keyvaluearray* layerdata, shape
     {
         return ret;
     }
-    size_t ptidx = 0;
-    struct vector_iterator* it = vector_iterator_create(shape->properties);
+    struct curve* curve = shape->content;
+    struct vector_iterator* it = vector_iterator_create(curve->segments);
+    point_t* lastpt = curve->origin;
     while(vector_iterator_is_valid(it))
     {
         struct curve_segment* segment = vector_iterator_get(it);
         switch(segment->type)
         {
-            case LINE:
+            case LINESEGMENT:
+            {
                 lua_getfield(L, -1, "curve_add_line_segment");
-                _push_point(L, shape_get_point(shape, ptidx));
-                _push_point(L, shape_get_point(shape, ptidx + 1));
+                _push_point(L, lastpt);
+                _push_point(L, segment->data.pt);
                 ret = lua_pcall(L, 2, 0, 0);
                 if(ret != LUA_OK)
                 {
                     return ret;
                 }
-                ptidx += 2;
+                lastpt = segment->data.pt;
                 break;
-            case ARC:
+            }
+            case ARCSEGMENT:
+            {
                 lua_getfield(L, -1, "curve_add_arc_segment");
-                _push_point(L, shape_get_point(shape, ptidx));
-                _push_point(L, shape_get_point(shape, ptidx + 1));
-                _push_point(L, shape_get_point(shape, ptidx + 2));
-                ret = lua_pcall(L, 3, 0, 0);
+                _push_point(L, lastpt);
+                lua_pushnumber(L, segment->data.startangle);
+                lua_pushnumber(L, segment->data.endangle);
+                lua_pushinteger(L, segment->data.radius);
+                ret = lua_pcall(L, 4, 0, 0);
                 if(ret != LUA_OK)
                 {
                     return ret;
                 }
-                ptidx += 3;
+                // FIXME: update lastpt
                 break;
+            }
         }
         vector_iterator_next(it);
     }
