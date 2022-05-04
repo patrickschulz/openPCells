@@ -710,7 +710,6 @@ struct vector* geometry_triangulate_polygon(struct vector* polypoints)
     struct vector* result = vector_create((vector_size(vertices) - 2) * 3);
 
     // loop until the polygon has only 3 vertices remaining
-    size_t numresultpoints = 0;
     while(sz >= 3)
     {
         for(size_t i = 0; i < sz; i++)
