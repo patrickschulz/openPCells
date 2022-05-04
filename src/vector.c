@@ -10,21 +10,17 @@ static void _resize_data(struct vector* vector, size_t capacity)
     vector->elements = e;
 }
 
-struct vector* _create(size_t capacity)
+struct vector* vector_create(size_t capacity)
 {
     struct vector* vector = malloc(sizeof(*vector));
     vector->elements = NULL;
     vector->size = 0;
+    vector->capacity = capacity;
     if(capacity > 0)
     {
         _resize_data(vector, capacity);
     }
     return vector;
-}
-
-struct vector* vector_create(void)
-{
-    return _create(1024);
 }
 
 void vector_destroy(struct vector* vector, void (*destructor)(void*))
@@ -43,7 +39,7 @@ void vector_destroy(struct vector* vector, void (*destructor)(void*))
 
 struct vector* vector_copy(struct vector* vector)
 {
-    struct vector* new = _create(vector->capacity);
+    struct vector* new = vector_create(vector->capacity);
     for(size_t i = 0; i < vector->size; ++i)
     {
         new->elements[i] = vector->elements[i];
@@ -75,9 +71,21 @@ void* vector_get(struct vector* vector, size_t i)
     return vector->elements[i];
 }
 
+void* vector_get_reference(struct vector* vector, size_t i)
+{
+    return &vector->elements[i];
+}
+
 void* vector_content(struct vector* vector)
 {
     return vector->elements;
+}
+
+void* vector_disown_content(struct vector* vector)
+{
+    void* content = vector->elements;
+    free(vector);
+    return content;
 }
 
 void vector_set(struct vector* vector, size_t i, void* element)
@@ -89,7 +97,7 @@ void vector_append(struct vector* vector, void* element)
 {
     while(vector->size + 1 > vector->capacity)
     {
-        _resize_data(vector, vector->capacity * 2);
+        _resize_data(vector, vector->capacity ? vector->capacity * 2 : 1);
     }
     vector->elements[vector->size] = element;
     vector->size += 1;
@@ -99,7 +107,7 @@ void vector_prepend(struct vector* vector, void* element)
 {
     while(vector->size + 1 > vector->capacity)
     {
-        _resize_data(vector, vector->capacity * 2);
+        _resize_data(vector, vector->capacity ? vector->capacity * 2 : 1);
     }
     memmove(vector->elements + 1, vector->elements, vector->size);
     vector->elements[0] = element;
@@ -160,12 +168,12 @@ static void _const_resize_data(struct const_vector* const_vector, size_t capacit
     const_vector->elements = e;
 }
 
-struct const_vector* const_vector_create(void)
+struct const_vector* const_vector_create(size_t capacity)
 {
     struct const_vector* const_vector = malloc(sizeof(*const_vector));
     const_vector->elements = NULL;
     const_vector->size = 0;
-    _const_resize_data(const_vector, 1024);
+    _const_resize_data(const_vector, capacity);
     return const_vector;
 }
 
@@ -194,7 +202,7 @@ void const_vector_append(struct const_vector* const_vector, const void* element)
 {
     while(const_vector->size + 1 > const_vector->capacity)
     {
-        _const_resize_data(const_vector, const_vector->capacity * 2);
+        _const_resize_data(const_vector, const_vector->capacity ? const_vector->capacity * 2 : 1);
     }
     const_vector->elements[const_vector->size] = element;
     const_vector->size += 1;
@@ -204,7 +212,7 @@ void const_vector_prepend(struct const_vector* const_vector, const void* element
 {
     while(const_vector->size + 1 > const_vector->capacity)
     {
-        _const_resize_data(const_vector, const_vector->capacity * 2);
+        _const_resize_data(const_vector, const_vector->capacity ? const_vector->capacity * 2 : 1);
     }
     memmove(const_vector->elements + 1, const_vector->elements, const_vector->size);
     const_vector->elements[0] = element;

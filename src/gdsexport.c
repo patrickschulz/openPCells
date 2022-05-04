@@ -338,7 +338,7 @@ static void _write_rectangle(struct export_data* data, const struct keyvaluearra
     _write_ENDEL_unchecked(data); // 4 bytes
 }
 
-static void _write_polygon(struct export_data* data, const struct keyvaluearray* layer, point_t** points, size_t len)
+static void _write_polygon(struct export_data* data, const struct keyvaluearray* layer, struct vector* points, size_t len)
 {
     _write_layer(data, RECORDTYPE_BOUNDARY, layer);
 
@@ -349,14 +349,15 @@ static void _write_polygon(struct export_data* data, const struct keyvaluearray*
     export_data_append_byte(data, DATATYPE_FOUR_BYTE_INTEGER); // FOUR_BYTE_INTEGER
     for(unsigned int i = 0; i < len; ++i)
     {
-        export_data_append_four_bytes(data, multiplier * points[i]->x);
-        export_data_append_four_bytes(data, multiplier * points[i]->y);
+        point_t* pt = vector_get(points, i);
+        export_data_append_four_bytes(data, multiplier * pt->x);
+        export_data_append_four_bytes(data, multiplier * pt->y);
     }
 
     _write_ENDEL(data);
 }
 
-static void _write_path(struct export_data* data, const struct keyvaluearray* layer, point_t** points, size_t len, ucoordinate_t width, coordinate_t* extension)
+static void _write_path(struct export_data* data, const struct keyvaluearray* layer, struct vector* points, ucoordinate_t width, coordinate_t* extension)
 {
     _write_layer(data, RECORDTYPE_PATH, layer);
 
@@ -395,13 +396,14 @@ static void _write_path(struct export_data* data, const struct keyvaluearray* la
 
     // XY
     unsigned int multiplier = 1; // FIXME: make proper use of units
-    export_data_append_two_bytes(data, 4 + 4 * 2 * len);
+    export_data_append_two_bytes(data, 4 + 4 * 2 * vector_size(points));
     export_data_append_byte(data, RECORDTYPE_XY);
     export_data_append_byte(data, DATATYPE_FOUR_BYTE_INTEGER); // FOUR_BYTE_INTEGER
-    for(unsigned int i = 0; i < len; ++i)
+    for(unsigned int i = 0; i < vector_size(points); ++i)
     {
-        export_data_append_four_bytes(data, multiplier * points[i]->x);
-        export_data_append_four_bytes(data, multiplier * points[i]->y);
+        point_t* pt = vector_get(points, i);
+        export_data_append_four_bytes(data, multiplier * pt->x);
+        export_data_append_four_bytes(data, multiplier * pt->y);
     }
 
     _write_ENDEL(data);

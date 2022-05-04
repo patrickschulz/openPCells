@@ -10,14 +10,16 @@ struct vector
     size_t capacity;
 };
 
-struct vector* vector_create(void);
+struct vector* vector_create(size_t capacity);
 void vector_destroy(struct vector* vector, void (*desctructor)(void*));
 struct vector* vector_copy(struct vector* vector);
 void vector_reserve(struct vector* vector, size_t additional_capacity);
 size_t vector_size(const struct vector* vector);
 size_t vector_capacity(const struct vector* vector);
 void* vector_get(struct vector* vector, size_t i);
+void* vector_get_reference(struct vector* vector, size_t i);
 void* vector_content(struct vector* vector);
+void* vector_disown_content(struct vector* vector);
 void vector_set(struct vector* vector, size_t i, void* element);
 void vector_append(struct vector* vector, void* element);
 void vector_prepend(struct vector* vector, void* element);
@@ -37,7 +39,7 @@ struct const_vector
     size_t capacity;
 };
 
-struct const_vector* const_vector_create(void);
+struct const_vector* const_vector_create(size_t capacity);
 void const_vector_destroy(struct const_vector* const_vector);
 size_t const_vector_size(struct const_vector* const_vector);
 const void* const_vector_get(struct const_vector* const_vector, size_t i);

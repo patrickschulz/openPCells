@@ -37,16 +37,12 @@ static order_t rect_order(coordinate_t bl1, coordinate_t tr1, coordinate_t bl2, 
 
 shape_t* rectangle_union(shape_t* rect1, shape_t* rect2)
 {
-    coordinate_t bl1x = rect1->points[0]->x;
-    coordinate_t bl1y = rect1->points[0]->y;
-    coordinate_t tr1x = rect1->points[1]->x;
-    coordinate_t tr1y = rect1->points[1]->y;
-    coordinate_t bl2x = rect2->points[0]->x;
-    coordinate_t bl2y = rect2->points[0]->y;
-    coordinate_t tr2x = rect2->points[1]->x;
-    coordinate_t tr2y = rect2->points[1]->y;
-    order_t xorder = rect_order(bl1x, tr1x, bl2x, tr2x);
-    order_t yorder = rect_order(bl1y, tr1y, bl2y, tr2y);
+    point_t* bl1 = vector_get(rect1->points, 0);
+    point_t* tr1 = vector_get(rect1->points, 1);
+    point_t* bl2 = vector_get(rect2->points, 0);
+    point_t* tr2 = vector_get(rect2->points, 1);
+    order_t xorder = rect_order(bl1->x, tr1->x, bl2->x, tr2->x);
+    order_t yorder = rect_order(bl1->y, tr1->y, bl2->y, tr2->y);
     if(xorder == NOINTERSECTION || yorder == NOINTERSECTION)
     {
         return NULL;
@@ -59,40 +55,40 @@ shape_t* rectangle_union(shape_t* rect1, shape_t* rect2)
     switch(xorder)
     {
         case HALFEQUALLEFTREGULAR:
-            blx = bl1x;
-            trx = tr2x;
+            blx = bl1->x;
+            trx = tr2->x;
             break;
         case HALFEQUALLEFTINVERSE:
-            blx = bl1x;
-            trx = tr1x;
+            blx = bl1->x;
+            trx = tr1->x;
             break;
         case HALFEQUALRIGHTREGULAR:
-            blx = bl1x;
-            trx = tr1x;
+            blx = bl1->x;
+            trx = tr1->x;
             break;
         case HALFEQUALRIGHTINVERSE:
-            blx = bl2x;
-            trx = tr1x;
+            blx = bl2->x;
+            trx = tr1->x;
             break;
         case EQUAL:
-            blx = bl1x;
-            trx = tr1x;
+            blx = bl1->x;
+            trx = tr1->x;
             break;
         case OUTER:
-            blx = bl1x;
-            trx = tr1x;
+            blx = bl1->x;
+            trx = tr1->x;
             break;
         case INNER:
-            blx = bl2x;
-            trx = tr2x;
+            blx = bl2->x;
+            trx = tr2->x;
             break;
         case REGULAR:
-            blx = bl1x;
-            trx = tr2x;
+            blx = bl1->x;
+            trx = tr2->x;
             break;
         case INVERSE:
-            blx = bl2x;
-            trx = tr1x;
+            blx = bl2->x;
+            trx = tr1->x;
             break;
         default: // silence warning about not handling NOINTERSECTION, which is handled earlier
             break;
@@ -100,46 +96,45 @@ shape_t* rectangle_union(shape_t* rect1, shape_t* rect2)
     switch(yorder)
     {
         case HALFEQUALLEFTREGULAR:
-            bly = bl1y;
-            try = tr2y;
+            bly = bl1->y;
+            try = tr2->y;
             break;
         case HALFEQUALLEFTINVERSE:
-            bly = bl1y;
-            try = tr1y;
+            bly = bl1->y;
+            try = tr1->y;
             break;
         case HALFEQUALRIGHTREGULAR:
-            bly = bl1y;
-            try = tr1y;
+            bly = bl1->y;
+            try = tr1->y;
             break;
         case HALFEQUALRIGHTINVERSE:
-            bly = bl2y;
-            try = tr1y;
+            bly = bl2->y;
+            try = tr1->y;
             break;
         case EQUAL:
-            bly = bl1y;
-            try = tr1y;
+            bly = bl1->y;
+            try = tr1->y;
             break;
         case OUTER:
-            bly = bl1y;
-            try = tr1y;
+            bly = bl1->y;
+            try = tr1->y;
             break;
         case INNER:
-            bly = bl2y;
-            try = tr2y;
+            bly = bl2->y;
+            try = tr2->y;
             break;
         case REGULAR:
-            bly = bl1y;
-            try = tr2y;
+            bly = bl1->y;
+            try = tr2->y;
             break;
         case INVERSE:
-            bly = bl2y;
-            try = tr1y;
+            bly = bl2->y;
+            try = tr1->y;
             break;
         default: // silence warning about not handling NOINTERSECTION, which is handled earlier
             break;
     }
-    shape_t* new = shape_create_rectangle(blx, bly, trx, try);
-    new->layer = rect1->layer;
+    shape_t* new = shape_create_rectangle(rect1->layer, blx, bly, trx, try);
     return new;
 }
 

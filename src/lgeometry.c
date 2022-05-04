@@ -206,6 +206,7 @@ static int lgeometry_path_manhatten(lua_State* L)
     return 0;
 }
 
+/*
 static int lgeometry_path_3x(lua_State* L)
 {
     lobject_t* cell = lobject_check(L, 1);
@@ -248,6 +249,7 @@ static int lgeometry_path_3x(lua_State* L)
     free(points);
     return 0;
 }
+*/
 
 static int lgeometry_path_cshape(lua_State* L)
 {
@@ -475,7 +477,7 @@ static int lgeometry_cubic_bezier(lua_State* L)
         lua_error(L);
     }
 
-    struct vector* curve = vector_create();
+    struct vector* curve = vector_create(32);
     for(unsigned int i = 1; i <= len; ++i)
     {
         lua_rawgeti(L, 3, i);
@@ -502,36 +504,34 @@ static int lgeometry_curve(lua_State* L)
 {
     lobject_t* lobject = lobject_check(L, 1);
     generics_t* layer = _check_generics(L, 2);
-    shape_t* S = shape_create_curve();
-    S->layer = layer;
+    lpoint_t* origin = lpoint_checkpoint(L, 3);
+    shape_t* S = shape_create_curve(layer, origin->point);
 
-    lua_len(L, 3);
+    lua_len(L, 4);
     size_t len = lua_tointeger(L, -1);
     lua_pop(L, 1);
 
     for(unsigned int i = 1; i <= len; ++i)
     {
-        lua_rawgeti(L, 3, i);
+        lua_rawgeti(L, 4, i);
         lua_getfield(L, -1, "type");
         const char* type = lua_tostring(L, -1);
-        if(strcmp(type, "linesegment") == 0)
+        if(strcmp(type, "lineto") == 0)
         {
-            lua_getfield(L, -2, "startpt");
-            lpoint_t* startpt = lpoint_checkpoint(L, -1);
-            lua_getfield(L, -3, "endpt");
-            lpoint_t* endpt = lpoint_checkpoint(L, -1);
-            shape_curve_add_line_segment(S, startpt->point, endpt->point);
-            lua_pop(L, 2); // pop points
+            lua_getfield(L, -2, "pt");
+            lpoint_t* pt = lpoint_checkpoint(L, -1);
+            shape_curve_add_line_segment(S, pt->point);
+            lua_pop(L, 1); // pop points
         }
         else
         {
-            lua_getfield(L, -2, "firstpt");
-            lpoint_t* firstpt = lpoint_checkpoint(L, -1);
-            lua_getfield(L, -3, "centerpt");
-            lpoint_t* centerpt = lpoint_checkpoint(L, -1);
-            lua_getfield(L, -4, "lastpt");
-            lpoint_t* lastpt = lpoint_checkpoint(L, -1);
-            shape_curve_add_arc_segment(S, firstpt->point, centerpt->point, lastpt->point);
+            lua_getfield(L, -2, "startangle");
+            double startangle = lua_tonumber(L, -1);
+            lua_getfield(L, -3, "endangle");
+            double endangle = lua_tonumber(L, -1);
+            lua_getfield(L, -4, "radius");
+            coordinate_t radius = lua_tointeger(L, -1);
+            shape_curve_add_arc_segment(S, startangle, endangle, radius);
             lua_pop(L, 3); // pop points
         }
         lua_pop(L, 1); // pop type
@@ -542,29 +542,27 @@ static int lgeometry_curve(lua_State* L)
     return 0;
 }
 
-static int lcurve_linesegment(lua_State* L)
+static int lcurve_lineto(lua_State* L)
 {
     lua_newtable(L);
-    lua_pushstring(L, "linesegment");
+    lua_pushstring(L, "lineto");
     lua_setfield(L, -2, "type");
     lua_pushvalue(L, 1);
-    lua_setfield(L, -2, "startpt");
-    lua_pushvalue(L, 2);
-    lua_setfield(L, -2, "endpt");
+    lua_setfield(L, -2, "pt");
     return 1;
 }
 
-static int lcurve_arcsegment(lua_State* L)
+static int lcurve_arcto(lua_State* L)
 {
     lua_newtable(L);
-    lua_pushstring(L, "arcsegment");
+    lua_pushstring(L, "arcto");
     lua_setfield(L, -2, "type");
     lua_pushvalue(L, 1);
-    lua_setfield(L, -2, "firstpt");
+    lua_setfield(L, -2, "startangle");
     lua_pushvalue(L, 2);
-    lua_setfield(L, -2, "centerpt");
+    lua_setfield(L, -2, "endangle");
     lua_pushvalue(L, 3);
-    lua_setfield(L, -2, "lastpt");
+    lua_setfield(L, -2, "radius");
     return 1;
 }
 
@@ -599,9 +597,9 @@ int open_lgeometry_lib(lua_State* L)
     lua_newtable(L);
     static const luaL_Reg curvefuncs[] =
     {
-        { "linesegment", lcurve_linesegment },
-        { "arcsegment",  lcurve_arcsegment },
-        { NULL,          NULL               }
+        { "lineto", lcurve_lineto },
+        { "arcto",  lcurve_arcto  },
+        { NULL,     NULL          }
     };
     luaL_setfuncs(L, curvefuncs, 0);
 

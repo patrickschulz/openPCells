@@ -89,8 +89,8 @@ void geometry_unequal_ring(
     ucoordinate_t ringwidth, ucoordinate_t ringheight
 );
 
-shape_t* geometry_path_to_polygon(point_t** points, size_t numpoints, ucoordinate_t width, int miterjoin);
+shape_t* geometry_path_to_polygon(generics_t* layer, point_t** points, size_t numpoints, ucoordinate_t width, int miterjoin);
 
-point_t** geometry_triangulate_polygon(point_t** points, size_t numpoints);
+struct vector* geometry_triangulate_polygon(struct vector* points);
 
 #endif /* OPC_GEOMETRY_H */

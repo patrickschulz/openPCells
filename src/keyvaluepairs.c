@@ -6,7 +6,7 @@
 struct keyvaluearray* keyvaluearray_create(void)
 {
     struct keyvaluearray* array = malloc(sizeof(*array));
-    array->pairs = vector_create();
+    array->pairs = vector_create(32);
     return array;
 }
 

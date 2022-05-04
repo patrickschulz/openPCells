@@ -99,7 +99,7 @@ object_t* object_copy(object_t* cell)
         // children
         if(cell->children)
         {
-            new->children = vector_create();
+            new->children = vector_create(16);
             for(unsigned int i = 0; i < vector_size(cell->children); ++i)
             {
                 vector_append(new->children, object_copy(vector_get(cell->children, i)));
@@ -206,7 +206,7 @@ object_t* object_add_child(object_t* cell, struct pcell_state* pcell_state, cons
     child->trans = transformationmatrix_invert(cell->trans);
     if(!cell->children)
     {
-        cell->children = vector_create();
+        cell->children = vector_create(16);
     }
     vector_append(cell->children, child);
     return child;
@@ -590,25 +590,15 @@ void object_get_minmax_xy(const object_t* cell, coordinate_t* minxp, coordinate_
     for(unsigned int i = 0; i < cell->shapes_size; ++i)
     {
         shape_t* S = cell->shapes[i];
-        // FIXME: also include paths
-        switch(S->type)
-        {
-            case RECTANGLE:
-            case POLYGON:
-            case TRIANGULATED_POLYGON:
-            case CURVE: // FIXME: this likely overestimates the bounding box of curves
-                for(unsigned int j = 0; j < S->size; ++j)
-                {
-                    coordinate_t x = S->points[j]->x;
-                    coordinate_t y = S->points[j]->y;
-                    transformationmatrix_apply_transformation_xy(cell->trans, &x, &y);
-                    minx = min(minx, x);
-                    maxx = max(maxx, x);
-                    miny = min(miny, y);
-                    maxy = max(maxy, y);
-                }
-                break;
-        }
+        coordinate_t _minx;
+        coordinate_t _maxx;
+        coordinate_t _miny;
+        coordinate_t _maxy;
+        shape_get_minmax_xy(S, cell->trans, &_minx, &_miny, &_maxx, &_maxy);
+        minx = min(minx, _minx);
+        maxx = max(maxx, _miny);
+        miny = min(miny, _maxx);
+        maxy = max(maxy, _maxy);
     }
     if(cell->children)
     {
@@ -748,10 +738,13 @@ void object_flatten(object_t* cell, struct pcell_state* pcell_state, int flatten
                         shape_t* S = shape_copy(reference->shapes[i]);
                         shape_apply_transformation(S, child->trans);
                         shape_apply_transformation(S, reference->trans);
-                        for(unsigned int i = 0; i < S->size; ++i)
+                        for(unsigned int i = 0; i < vector_size(S->points); ++i)
                         {
-                            S->points[i]->x += (ix - 1) * child->xpitch;
-                            S->points[i]->y += (iy - 1) * child->ypitch;
+                            point_translate(vector_get(
+                                S->points, i),
+                                (ix - 1) * child->xpitch,
+                                (iy - 1) * child->ypitch
+                            );
                         }
                         object_add_raw_shape(cell, S);
                     }

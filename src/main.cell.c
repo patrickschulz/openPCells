@@ -176,8 +176,8 @@ void main_list_cell_parameters(struct cmdoptions* cmdoptions, struct keyvaluearr
     }
 
     // pcell state
-    struct vector* cellpaths_to_prepend = vector_create();
-    struct vector* cellpaths_to_append = vector_create();
+    struct vector* cellpaths_to_prepend = vector_create(1);
+    struct vector* cellpaths_to_append = vector_create(1);
     _prepare_cellpaths(cellpaths_to_prepend, cellpaths_to_append, cmdoptions, config);
     struct pcell_state* pcell_state = pcell_initialize_state(cellpaths_to_prepend, cellpaths_to_append);
     vector_destroy(cellpaths_to_prepend, free);
@@ -438,8 +438,8 @@ int main_create_and_export_cell(struct cmdoptions* cmdoptions, struct keyvaluear
     }
 
     // pcell state
-    struct vector* cellpaths_to_prepend = vector_create();
-    struct vector* cellpaths_to_append = vector_create();
+    struct vector* cellpaths_to_prepend = vector_create(1);
+    struct vector* cellpaths_to_append = vector_create(1);
     _prepare_cellpaths(cellpaths_to_prepend, cellpaths_to_append, cmdoptions, config);
     struct pcell_state* pcell_state = pcell_initialize_state(cellpaths_to_prepend, cellpaths_to_append);
     vector_destroy(cellpaths_to_prepend, free);
@@ -467,7 +467,7 @@ int main_create_and_export_cell(struct cmdoptions* cmdoptions, struct keyvaluear
         cellname = cmdoptions_get_argument_long(cmdoptions, "cell");
     }
     int enabledprint = cmdoptions_was_provided_long(cmdoptions, "enable-dprint");
-    struct const_vector* pfilenames = const_vector_create();
+    struct const_vector* pfilenames = const_vector_create(1);
     const char* const * prependpfilenames = cmdoptions_get_argument_long(cmdoptions, "prepend-parameter-file");
     if(prependpfilenames)
     {
@@ -545,7 +545,7 @@ int main_create_and_export_cell(struct cmdoptions* cmdoptions, struct keyvaluear
         if(cmdoptions_was_provided_long(cmdoptions, "export"))
         {
             // add export search paths. FIXME: add --exportpath cmd option
-            struct const_vector* searchpaths = const_vector_create();
+            struct const_vector* searchpaths = const_vector_create(1);
             const_vector_append(searchpaths, OPC_HOME "/export");
 
             const char* basename = cmdoptions_get_argument_long(cmdoptions, "filename");

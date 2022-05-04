@@ -12,7 +12,7 @@ static void _merge_shapes(object_t* object, struct layermap* layermap)
     while(layer_iterator_is_valid(it))
     {
         generics_t* layer = layer_iterator_get(it);
-        struct vector* rectangles = vector_create();
+        struct vector* rectangles = vector_create(32);
         for(int j = object->shapes_size - 1; j >= 0; --j)
         {
             shape_t* S = object->shapes[j];

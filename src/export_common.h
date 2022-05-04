@@ -49,8 +49,8 @@ struct export_functions
     // write basic shapes
     void (*write_rectangle)(struct export_data*, const struct keyvaluearray*, point_t*, point_t*);
     void (*write_triangle)(struct export_data*, const struct keyvaluearray*, point_t*, point_t*, point_t*);
-    void (*write_polygon)(struct export_data*, const struct keyvaluearray*, point_t**, size_t);
-    void (*write_path)(struct export_data*, const struct keyvaluearray*, point_t**, size_t, ucoordinate_t, coordinate_t*);
+    void (*write_polygon)(struct export_data*, const struct keyvaluearray*, struct vector*, size_t);
+    void (*write_path)(struct export_data*, const struct keyvaluearray*, struct vector*, ucoordinate_t, coordinate_t*);
     // write curves
     void (*setup_curve)(struct export_data*, const struct keyvaluearray);
     void (*curve_add_line_segment)(struct export_data*, point_t*, point_t*);

@@ -54,8 +54,8 @@ static void _flatten_curve(struct vector* points, struct vector* result)
     }
     else
     {
-        struct vector* l = vector_create();
-        struct vector* r = vector_create();
+        struct vector* l = vector_create(32);
+        struct vector* r = vector_create(32);
         _subdivide(points, l, r);
         _flatten_curve(l, result);
         _flatten_curve(r, result);
@@ -66,7 +66,7 @@ static void _flatten_curve(struct vector* points, struct vector* result)
 
 struct vector* graphics_cubic_bezier(struct vector* curve)
 {
-    struct vector* result = vector_create();
+    struct vector* result = vector_create(128);
     _flatten_curve(curve, result);
     return result;
 }
@@ -129,27 +129,44 @@ void graphics_raster_line_segment(point_t* startpt, point_t* endpt, unsigned int
     }
 }
 
-static void _ellipse(point_t* origin, ucoordinate_t xradius, ucoordinate_t yradius, double startangle, double endangle, unsigned int grid, int allow45, struct vector* result);
-
-void graphics_raster_arc_segment(point_t* firstpt, point_t* centerpt, point_t* lastpt, unsigned int grid, int allow45, struct vector* result)
+static struct vector* _rasterize_quartercircle(coordinate_t radius, unsigned int grid, int allow45)
 {
-    coordinate_t x0 = centerpt->x;
-    coordinate_t y0 = centerpt->y;
-    double startangle = atan2(firstpt->y - y0, firstpt->x - x0) * 180 / M_PI;
-    double endangle = atan2(lastpt->y - y0, lastpt->x - x0) * 180 / M_PI;
-    ucoordinate_t xradius = sqrt((firstpt->x - x0) * (firstpt->x - x0) + (firstpt->y - y0) * (firstpt->y - y0));
-    ucoordinate_t yradius = xradius;
-    _ellipse(centerpt, xradius, yradius, startangle, endangle, 100, 1, result);
+    coordinate_t x = radius;
+    coordinate_t y = 0;
+    int sx = -grid;
+    int sy = grid;
+    struct vector* pts = vector_create(128);
+    while(1)
+    {
+        vector_append(pts, point_create(x, y));
+        if(x == 0 && y == (coordinate_t)radius)
+        {
+            break;
+        }
+        int64_t exy = ((x + sx) * (x + sx) + (y + sy) * (y + sy) - radius * radius) * radius * radius;
+        int64_t ex  = (x * x + (y + sy) * (y + sy) - radius * radius) * radius * radius;
+        int64_t ey  = ((x + sx) * (x + sx) + y * y - radius * radius) * radius * radius;
+        if(allow45)
+        {
+            if(iabs(exy) < iabs(ex)) { x = x + sx; }
+            if(iabs(exy) < iabs(ey)) { y = y + sy; }
+        }
+        else
+        {
+            if(iabs(ex) < iabs(ey)) { y = y + sy; }
+            else { x = x + sx; }
+        }
+    }
+    return pts;
 }
 
-///////////////////////////////////////////////////////////
-static struct vector* _rasterize_quartercircle(coordinate_t xradius, coordinate_t yradius, unsigned int grid, int allow45)
+static struct vector* _rasterize_quarterellipse(coordinate_t xradius, coordinate_t yradius, unsigned int grid, int allow45)
 {
     coordinate_t x = xradius;
     coordinate_t y = 0;
     int sx = -grid;
     int sy = grid;
-    struct vector* pts = vector_create();
+    struct vector* pts = vector_create(128);
     while(1)
     {
         vector_append(pts, point_create(x, y));
@@ -162,25 +179,13 @@ static struct vector* _rasterize_quartercircle(coordinate_t xradius, coordinate_
         int64_t ey  = (x + sx) * (x + sx) * xradius * xradius + y * y * yradius * yradius - xradius * xradius * yradius * yradius;
         if(allow45)
         {
-            if(iabs(exy) < iabs(ex))
-            {
-                x = x + sx;
-            }
-            if(iabs(exy) < iabs(ey))
-            {
-                y = y + sy;
-            }
+            if(iabs(exy) < iabs(ex)) { x = x + sx; }
+            if(iabs(exy) < iabs(ey)) { y = y + sy; }
         }
         else
         {
-            if(iabs(ex) < iabs(ey))
-            {
-                y = y + sy;
-            }
-            else
-            {
-                x = x + sx;
-            }
+            if(iabs(ex) < iabs(ey)) { y = y + sy; }
+            else { x = x + sx; }
         }
     }
     return pts;
@@ -388,7 +393,7 @@ static void _assemble_circle_points(struct vector* quarterpoints, unsigned int* 
     }
 }
 
-static void _ellipse(point_t* origin, ucoordinate_t xradius, ucoordinate_t yradius, double startangle, double endangle, unsigned int grid, int allow45, struct vector* result)
+static void _ellipse(coordinate_t ox, coordinate_t oy, ucoordinate_t xradius, ucoordinate_t yradius, double startangle, double endangle, unsigned int grid, int allow45, struct vector* result)
 {
     //util.check_grid(grid, origin->x, origin->y, xradius, yradius)
 
@@ -400,16 +405,40 @@ static void _ellipse(point_t* origin, ucoordinate_t xradius, ucoordinate_t yradi
     unsigned int startquadrant = _map_xy_to_quadrant(xstart, ystart);
     unsigned int endquadrant = _map_xy_to_quadrant(xend, yend);
 
-    struct vector* quarterpoints = _rasterize_quartercircle(xradius, yradius, grid, allow45);
+    struct vector* quarterpoints = _rasterize_quarterellipse(xradius, yradius, grid, allow45);
 
     unsigned int quadrants[4] = { 0 };
     _get_quadrant_list(startquadrant, endquadrant, quadrants);
 
-    _assemble_circle_points(quarterpoints, quadrants, xstart, ystart, xend, yend, origin->x, origin->y, result);
+    _assemble_circle_points(quarterpoints, quadrants, xstart, ystart, xend, yend, ox, oy, result);
 }
 
-/*
-function graphics.circle(origin, radius, startangle, endangle, grid, allow45)
-    return graphics.ellipse(origin, radius, radius, startangle, endangle, grid, allow45)
-end
-*/
+static void _circle(coordinate_t ox, coordinate_t oy, ucoordinate_t radius, double startangle, double endangle, unsigned int grid, int allow45, struct vector* result)
+{
+    //util.check_grid(grid, origin->x, origin->y, xradius, yradius)
+
+    coordinate_t xstart = radius * cos(startangle * M_PI / 180);
+    coordinate_t xend = radius * cos(endangle * M_PI / 180);
+    coordinate_t ystart = radius * sin(startangle * M_PI / 180);
+    coordinate_t yend = radius * sin(endangle * M_PI / 180);
+
+    unsigned int startquadrant = _map_xy_to_quadrant(xstart, ystart);
+    unsigned int endquadrant = _map_xy_to_quadrant(xend, yend);
+
+    struct vector* quarterpoints = _rasterize_quartercircle(radius, grid, allow45);
+
+    unsigned int quadrants[4] = { 0 };
+    _get_quadrant_list(startquadrant, endquadrant, quadrants);
+
+    _assemble_circle_points(quarterpoints, quadrants, xstart, ystart, xend, yend, ox, oy, result);
+
+    vector_destroy(quarterpoints, point_destroy);
+}
+
+void graphics_raster_arc_segment(point_t* startpt, double startangle, double endangle, coordinate_t radius, unsigned int grid, int allow45, struct vector* result)
+{
+    coordinate_t cx = startpt->x - cos(startangle * M_PI / 180) * radius;
+    coordinate_t cy = startpt->y - sin(startangle * M_PI / 180) * radius;
+    _circle(cx, cy, radius, startangle, endangle, grid, allow45, result);
+}
+

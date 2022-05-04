@@ -27,8 +27,7 @@ static void _multiple_xy(object_t* cell, shape_t* base, ucoordinate_t xrep, ucoo
 
 static void _rectanglebltr(object_t* cell, generics_t* layer, coordinate_t blx, coordinate_t bly, coordinate_t trx, coordinate_t try, ucoordinate_t xrep, ucoordinate_t yrep, ucoordinate_t xpitch, ucoordinate_t ypitch)
 {
-    shape_t* S = shape_create_rectangle(blx, bly, trx, try);
-    S->layer = layer;
+    shape_t* S = shape_create_rectangle(layer, blx, bly, trx, try);
     _multiple_xy(cell, S, xrep, yrep, xpitch, ypitch);
     shape_destroy(S);
 }
@@ -65,8 +64,7 @@ void geometry_rectanglepoints(object_t* cell, generics_t* layer, point_t* pt1, p
 
 void geometry_polygon(object_t* cell, generics_t* layer, point_t** points, size_t len)
 {
-    shape_t* S = shape_create_polygon(len);
-    S->layer = layer;
+    shape_t* S = shape_create_polygon(layer, len);
     for(unsigned int i = 0; i < len; ++i)
     {
         shape_append(S, points[i]->x, points[i]->y);
@@ -83,8 +81,7 @@ void geometry_polygon(object_t* cell, generics_t* layer, point_t** points, size_
 
 void geometry_path(object_t* cell, generics_t* layer, point_t** points, size_t len, ucoordinate_t width, ucoordinate_t bgnext, ucoordinate_t endext)
 {
-    shape_t* S = shape_create_path(len, width, bgnext, endext);
-    S->layer = layer;
+    shape_t* S = shape_create_path(layer, len, width, bgnext, endext);
     for(unsigned int i = 0; i < len; ++i)
     {
         shape_append(S, points[i]->x, points[i]->y);
@@ -108,21 +105,21 @@ static void _shift_line(point_t* pt1, point_t* pt2, ucoordinate_t width, point_t
     *spt2 = point_create(pt2->x + xshift, pt2->y + yshift);
 }
 
-static point_t** _get_edge_segments(point_t** points, size_t numpoints, ucoordinate_t width, unsigned int grid)
+static struct vector* _get_edge_segments(point_t** points, size_t numpoints, ucoordinate_t width, unsigned int grid)
 {
-    point_t** edges = calloc(4 * (numpoints - 1), sizeof(*edges));
+    struct vector* edges = vector_create(4 * (numpoints - 1));
     // start to end
     for(unsigned int i = 0; i < numpoints - 1; ++i)
     {
-        _shift_line(points[i], points[i + 1], width / 2, &edges[2 * i], &edges[2 * i + 1], grid);
+        _shift_line(points[i], points[i + 1], width / 2, vector_get_reference(edges, 2 * i), vector_get_reference(edges, 2 * i + 1), grid);
     }
     // end to start (shift in other direction)
     for(unsigned int i = numpoints - 1; i > 0; --i)
     {
         // the indexing looks funny, but it works out, trust me
         _shift_line(points[i], points[i - 1], width / 2, 
-            &edges[2 * (2 * numpoints - 2 - i)], 
-            &edges[2 * (2 * numpoints - 2 - i) + 1],
+            vector_get_reference(edges, 2 * (2 * numpoints - 2 - i)), 
+            vector_get_reference(edges, 2 * (2 * numpoints - 2 - i) + 1),
             grid
         );
     }
@@ -166,57 +163,58 @@ static int _intersection(point_t* s1, point_t* s2, point_t* c1, point_t* c2, poi
 *        This is a miter join
 * the endpoints of the path need extra care
 */
-static shape_t* _get_path_pts(point_t** edges, size_t numedges, int miterjoin)
+static struct vector* _get_path_pts(struct vector* edges, int miterjoin)
 {
-    shape_t* poly = shape_create_polygon(2 * numedges); // 2 * numedges: wild guess
+    size_t numedges = vector_size(edges);
+    struct vector* poly = vector_create(2 * numedges); // wild guess on the number of points
     // first start point
-    shape_append(poly, edges[0]->x, edges[0]->y);
+    vector_append(poly, point_copy(vector_get(edges, 0)));
     // first middle points
     size_t segs = numedges / 4;
     for(unsigned int seg = 0; seg < segs - 1; ++seg)
     {
         unsigned int i = 2 * seg + 1;
         point_t* pt = NULL;
-        int inner_outer = _intersection(edges[i - 1], edges[i], edges[i + 1], edges[i + 2], &pt);
+        int inner_outer = _intersection(vector_get(edges, i - 1), vector_get(edges, i), vector_get(edges, i + 1), vector_get(edges, i + 2), &pt);
         if(pt)
         {
             if(inner_outer || miterjoin)
             {
-                shape_append(poly, pt->x, pt->y);
+                vector_append(poly, point_copy(pt));
             }
             else
             {
-                shape_append(poly, edges[i]->x, edges[i]->y);
-                shape_append(poly, edges[i + 1]->x, edges[i + 1]->y);
+                vector_append(poly, point_copy(vector_get(edges, i)));
+                vector_append(poly, point_copy(vector_get(edges, i + 1)));
             }
             free(pt);
         }
     }
     // end points
-    shape_append(poly, edges[2 * segs - 1]->x, edges[2 * segs - 1]->y);
-    shape_append(poly, edges[2 * segs]->x, edges[2 * segs]->y);
+    vector_append(poly, point_copy(vector_get(edges, 2 * segs)));
+    vector_append(poly, point_copy(vector_get(edges, 2 * segs)));
     // second middle points
     for(unsigned int seg = 0; seg < segs - 1; ++seg)
     {
         unsigned int i = 2 * (segs + seg) + 1;
         point_t* pt = NULL;
-        int inner_outer = _intersection(edges[i - 1], edges[i], edges[i + 1], edges[i + 2], &pt);
+        int inner_outer = _intersection(vector_get(edges, i - 1), vector_get(edges, i), vector_get(edges, i + 1), vector_get(edges, i + 2), &pt);
         if(pt)
         {
             if(inner_outer || miterjoin)
             {
-                shape_append(poly, pt->x, pt->y);
+                vector_append(poly, point_copy(pt));
             }
             else
             {
-                shape_append(poly, edges[i]->x, edges[i]->y);
-                shape_append(poly, edges[i + 1]->x, edges[i + 1]->y);
+                vector_append(poly, point_copy(vector_get(edges, i)));
+                vector_append(poly, point_copy(vector_get(edges, i + 1)));
             }
             free(pt);
         }
     }
     // second start point
-    shape_append(poly, edges[numedges - 1]->x, edges[numedges - 1]->y);
+    vector_append(poly, point_copy(vector_get(edges, numedges)));
     return poly;
 }
 
@@ -236,7 +234,7 @@ void _make_unique_points(point_t** points, size_t* numpoints)
     }
 }
 
-shape_t* geometry_path_to_polygon(point_t** points, size_t numpoints, ucoordinate_t width, int miterjoin)
+shape_t* geometry_path_to_polygon(generics_t* layer, point_t** points, size_t numpoints, ucoordinate_t width, int miterjoin)
 {
     _make_unique_points(points, &numpoints);
     
@@ -247,41 +245,42 @@ shape_t* geometry_path_to_polygon(point_t** points, size_t numpoints, ucoordinat
     {
         if    ((points[0]->x  < points[1]->x) && (points[0]->y == points[1]->y))
         {
-            return shape_create_rectangle(points[0]->x, points[0]->y - width / 2, points[1]->x, points[0]->y + width / 2);
+            return shape_create_rectangle(layer, points[0]->x, points[0]->y - width / 2, points[1]->x, points[0]->y + width / 2);
         }
         else if((points[0]->x  > points[1]->x) && (points[0]->y == points[1]->y))
         {
-            return shape_create_rectangle(points[1]->x, points[0]->y - width / 2, points[0]->x, points[0]->y + width / 2);
+            return shape_create_rectangle(layer, points[1]->x, points[0]->y - width / 2, points[0]->x, points[0]->y + width / 2);
         }
         else if((points[0]->x == points[1]->x) && (points[0]->y  > points[1]->y))
         {
-            return shape_create_rectangle(points[0]->x - width / 2, points[1]->y, points[0]->x + width / 2, points[0]->y);
+            return shape_create_rectangle(layer, points[0]->x - width / 2, points[1]->y, points[0]->x + width / 2, points[0]->y);
         }
         else if((points[0]->x == points[1]->x) && (points[0]->y  < points[1]->y))
         {
-            return shape_create_rectangle(points[0]->x - width / 2, points[0]->y, points[0]->x + width / 2, points[1]->y);
+            return shape_create_rectangle(layer, points[0]->x - width / 2, points[0]->y, points[0]->x + width / 2, points[1]->y);
         }
     }
     // polygon
-    point_t** edges = _get_edge_segments(points, numpoints, width, 1);
-    shape_t* poly = _get_path_pts(edges, 4 * (numpoints - 1), miterjoin);
-    for(unsigned int i = 0; i < 4 * (numpoints - 1); ++i)
+    struct vector* edges = _get_edge_segments(points, numpoints, width, 1);
+    struct vector* poly = _get_path_pts(edges, miterjoin);
+    vector_destroy(edges, point_destroy);
+    shape_t* S = shape_create_polygon(layer, vector_size(poly));
+    struct vector_iterator* it = vector_iterator_create(poly);
+    while(vector_iterator_is_valid(it))
     {
-        point_destroy(edges[i]);
+        point_t* pt = vector_iterator_get(it);
+        shape_append(S, pt->x, pt->y);
+        vector_iterator_next(it);
     }
-    free(edges);
-    return poly;
+    vector_iterator_destroy(it);
+    return S;
 }
 
 point_t** _get_any_angle_path_pts(point_t** pts, size_t len, ucoordinate_t width, ucoordinate_t grid, int miterjoin, int allow45, size_t* numpoints)
 {
-    point_t** edges = _get_edge_segments(pts, len, width, grid);
-    shape_t* poly = _get_path_pts(edges, 4 * (len - 1), miterjoin);
-    for(unsigned int i = 0; i < 4 * (len - 1); ++i)
-    {
-        point_destroy(edges[i]);
-    }
-    free(edges);
+    struct vector* edges = _get_edge_segments(pts, len, width, grid);
+    struct vector* poly = _get_path_pts(edges, miterjoin);
+    vector_destroy(edges, point_destroy);
 //    table.insert(pathpts, edges[1]:copy()) -- close path
 //    local poly = {}
 //    for i = 1, #pathpts - 1 do
@@ -291,7 +290,7 @@ point_t** _get_any_angle_path_pts(point_t** pts, size_t len, ucoordinate_t width
 //        end
 //    end
 //    return poly
-    return poly;
+    return vector_disown_content(poly);
 }
 
 void geometry_any_angle_path(object_t* cell, generics_t* layer, point_t** pts, size_t len, ucoordinate_t width, ucoordinate_t grid, int miterjoin, int allow45)
@@ -549,8 +548,7 @@ void geometry_contact(
 
 void geometry_cross(object_t* cell, generics_t* layer, ucoordinate_t width, ucoordinate_t height, ucoordinate_t crosssize)
 {
-    shape_t* S = shape_create_polygon(13);
-    S->layer = layer;
+    shape_t* S = shape_create_polygon(layer, 13);
     shape_append(S,     -width / 2, -crosssize / 2);
     shape_append(S,     -width / 2,  crosssize / 2);
     shape_append(S, -crosssize / 2,  crosssize / 2);
@@ -580,8 +578,7 @@ void geometry_unequal_ring(object_t* cell, generics_t* layer, ucoordinate_t widt
     coordinate_t h = height;
     coordinate_t rw = ringwidth;
     coordinate_t rh = ringheight;
-    shape_t* S = shape_create_polygon(13);
-    S->layer = layer;
+    shape_t* S = shape_create_polygon(layer, 13);
     shape_append(S, -(w + rw) / 2, -(h + rh) / 2);
     shape_append(S,  (w + rw) / 2, -(h + rh) / 2);
     shape_append(S,  (w + rw) / 2,  (h + rh) / 2);
@@ -692,13 +689,13 @@ static void _evaluate(struct vector* vertices, size_t i, size_t idx1, size_t idx
     }
 }
 
-point_t** geometry_triangulate_polygon(point_t** polypoints, size_t numpoints)
+struct vector* geometry_triangulate_polygon(struct vector* polypoints)
 {
     // build data structure
-    struct vector* vertices = vector_create();
-    for(size_t i = 0; i < numpoints; ++i)
+    struct vector* vertices = vector_create(1024);
+    for(size_t i = 0; i < vector_size(polypoints); ++i)
     {
-        vector_append(vertices, _vertex_create(polypoints[i]));
+        vector_append(vertices, _vertex_create(vector_get(polypoints, i)));
     }
 
     // loop through all vertices and check them for ear/non-ear property
@@ -710,7 +707,7 @@ point_t** geometry_triangulate_polygon(point_t** polypoints, size_t numpoints)
         v->index = i;
     }
 
-    point_t** result = calloc((vector_size(vertices) - 2) * 3, sizeof(*result));
+    struct vector* result = vector_create((vector_size(vertices) - 2) * 3);
 
     // loop until the polygon has only 3 vertices remaining
     size_t numresultpoints = 0;
@@ -726,10 +723,9 @@ point_t** geometry_triangulate_polygon(point_t** polypoints, size_t numpoints)
             if(((struct trivertex*)vector_get(vertices, idx1))->is_ear)
             {
                 // store the triangle points
-                result[numresultpoints + 0] = ((struct trivertex*)vector_get(vertices, i))->pt;
-                result[numresultpoints + 1] = ((struct trivertex*)vector_get(vertices, idx1))->pt;
-                result[numresultpoints + 2] = ((struct trivertex*)vector_get(vertices, idx2))->pt;
-                numresultpoints += 3;
+                vector_append(result, ((struct trivertex*)vector_get(vertices, i))->pt);
+                vector_append(result, ((struct trivertex*)vector_get(vertices, idx1))->pt);
+                vector_append(result, ((struct trivertex*)vector_get(vertices, idx2))->pt);
 
                 // remove the trivertex from the polygon
                 vector_remove(vertices, idx1, NULL); // vertices is non-owning
