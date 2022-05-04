@@ -539,6 +539,7 @@ function state.create_cellenv(state, cellname, ovrenv)
         placement = placement,
         routing = routing,
         geometry = geometry,
+        curve = curve,
         layout = layout,
         graphics = graphics,
         shape = shape,
