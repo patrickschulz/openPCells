@@ -109,7 +109,7 @@ local function intlog10(num)
     return ret
 end
 
-local function _format_number(num, baseunit)
+local function _format_number(num)
     local fmt = string.format("%%s%%u.%%0%uu", intlog10(baseunit))
     local sign = "";
     if num < 0 then
@@ -121,10 +121,10 @@ local function _format_number(num, baseunit)
     return string.format(fmt, sign, ipart, fpart)
 end
 
-local function _format_point(pt, baseunit, sep)
-    local sx = _format_number(pt.x, baseunit)
-    local sy = _format_number(pt.y, baseunit)
-    return string.format("%s%s%s", sx, sep, sy)
+local function _format_point(pt)
+    local sx = _format_number(pt.x)
+    local sy = _format_number(pt.y)
+    return string.format("%s, %s", sx, sy)
 end
 
 local colors = {}
@@ -167,18 +167,49 @@ end
 function M.write_rectangle(layer, bl, tr)
     table.insert(__content, {
         order = layer.order or 0,
-        content = string.format("%s (%s) rectangle (%s);", _format_layer(layer), _format_point(bl, baseunit, ", "), _format_point(tr, baseunit, ", "))
+        content = string.format("%s (%s) rectangle (%s);", _format_layer(layer), _format_point(bl), _format_point(tr))
     })
 end
 
 function M.write_polygon(layer, pts)
     local ptstream = {}
     for _, pt in ipairs(pts) do
-        table.insert(ptstream, string.format("(%s)", _format_point(pt, baseunit, ", ")))
+        table.insert(ptstream, string.format("(%s)", _format_point(pt)))
     end
     table.insert(__content, {
         order = layer.order or 0,
         content = string.format("%s %s;", _format_layer(layer), table.concat(ptstream, " -- "))
+    })
+end
+
+local curveorder
+local curvecontent
+function M.setup_curve(layer, origin)
+    curvecontent = {}
+    curveorder = layer.order or 0
+    table.insert(curvecontent, string.format("%s (%s)", _format_layer(layer), _format_point(origin)))
+end
+
+function M.curve_add_line_segment(pt1, pt2)
+    table.insert(curvecontent, string.format("-- (%s)", _format_point(pt1)))
+    table.insert(curvecontent, string.format("-- (%s)", _format_point(pt2)))
+end
+
+function M.curve_add_arc_segment(startpt, startangle, endangle, radius, clockwise)
+    local pt = {
+        x = math.floor(startpt.x + (math.cos(endangle * math.pi / 180) - math.cos(startangle * math.pi / 180)) * radius),
+        y = math.floor(startpt.y + (math.sin(endangle * math.pi / 180) - math.sin(startangle * math.pi / 180)) * radius)
+    }
+    clockwise = clockwise and 0 or 1
+    --table.insert(curvecontent, string.format("A %d %d 0 0 %d %s", __scale * radius, __scale * radius, clockwise, _format_point(pt)))
+    table.insert(curvecontent, string.format("arc[start angle = %d, end angle = %d, radius = %d]", startangle, endangle, _format_number(radius)))
+end
+
+function M.close_curve()
+    table.insert(curvecontent, "-- cycle;")
+    table.insert(__content, {
+        order = curveorder,
+        content = table.concat(curvecontent, ' ')
     })
 end
 
