@@ -16,6 +16,89 @@
 #define EXPORT_STATUS_NOTFOUND 1
 #define EXPORT_STATUS_LOADERROR 2
 
+struct export_state* export_create_state(void)
+{
+    struct export_state* state = malloc(sizeof(*state));
+    memset(state, 0, sizeof(*state));
+    state->searchpaths = const_vector_create(1);
+    return state;
+}
+
+void export_destroy_state(struct export_state* state)
+{
+    const_vector_destroy(state->searchpaths);
+    if(state->exportname)
+    {
+        free(state->exportname);
+    }
+    if(state->exportlayername)
+    {
+        free(state->exportlayername);
+    }
+    free(state);
+}
+
+void export_add_searchpath(struct export_state* state, const char* path)
+{
+    const_vector_append(state->searchpaths, path);
+}
+
+void export_set_basename(struct export_state* state, const char* basename)
+{
+    state->basename = basename;
+}
+
+void export_set_toplevel_name(struct export_state* state, const char* cellname)
+{
+    state->toplevelname = cellname;
+}
+
+void export_set_export_options(struct export_state* state, const char** exportoptions)
+{
+    state->exportoptions = exportoptions;
+}
+
+void export_set_write_children_ports(struct export_state* state, int writechildrenports)
+{
+    state->writechildrenports = writechildrenports;
+}
+
+void export_set_bus_delimiters(struct export_state* state, char leftdelim, char rightdelim)
+{
+    state->leftdelim = leftdelim;
+    state->rightdelim = rightdelim;
+}
+
+static void _get_exportname(const char* exportname, struct const_vector* searchpaths, char** exportname_ptr, char** exportlayername_ptr)
+{
+    if(!util_split_string(exportname, ':', exportlayername_ptr, exportname_ptr)) // export layers were not specified
+    {
+        *exportname_ptr = util_copy_string(exportname);
+        char* exportlayername_from_function = export_get_export_layername(searchpaths, *exportname_ptr);
+        if(exportlayername_from_function)
+        {
+            *exportlayername_ptr = exportlayername_from_function;
+        }
+        else
+        {
+            *exportlayername_ptr = util_copy_string(exportname);
+        }
+    }
+}
+
+void export_set_exportname(struct export_state* state, const char* str)
+{
+    char *exportname, *exportlayername;
+    _get_exportname(str, state->searchpaths, &exportname, &exportlayername);
+    state->exportname = exportname;
+    state->exportlayername = exportlayername;
+}
+
+const char* export_get_layername(const struct export_state* state)
+{
+    return state->exportlayername;
+}
+
 static struct export_functions* _get_export_functions(const char* exportname)
 {
     struct export_functions* funcs = NULL;
@@ -750,7 +833,7 @@ static int _write_toplevel_lua(lua_State* L, object_t* object, struct pcell_stat
     return LUA_OK;
 }
 
-void export_write_toplevel(object_t* toplevel, struct pcell_state* pcell_state, struct const_vector* searchpaths, const char* exportname, const char* basename, const char* toplevelname, char leftdelim, char rightdelim, const char* const * exportoptions, int writechildrenports)
+void export_write_toplevel(object_t* toplevel, struct pcell_state* pcell_state, struct export_state* state)
 {
     if(object_is_empty(toplevel))
     {
@@ -762,23 +845,23 @@ void export_write_toplevel(object_t* toplevel, struct pcell_state* pcell_state, 
     char* extension;
     int status = EXPORT_STATUS_NOTFOUND;
 
-    struct export_functions* funcs = _get_export_functions(exportname);
+    struct export_functions* funcs = _get_export_functions(state->exportname);
     if(funcs) // C-defined exports
     {
-        _write_toplevel_C(toplevel, pcell_state, toplevelname, data, funcs, writechildrenports, leftdelim, rightdelim);
+        _write_toplevel_C(toplevel, pcell_state, state->toplevelname, data, funcs, state->writechildrenports, state->leftdelim, state->rightdelim);
         extension = util_copy_string(funcs->get_extension());
         status = EXPORT_STATUS_SUCCESS;
     }
     else // lua-defined exports
     {
-        if(searchpaths)
+        if(state->searchpaths)
         {
-            for(unsigned int i = 0; i < const_vector_size(searchpaths); ++i)
+            for(unsigned int i = 0; i < const_vector_size(state->searchpaths); ++i)
             {
-                const char* searchpath = const_vector_get(searchpaths, i);
-                size_t len = strlen(searchpath) + strlen(exportname) + 11; // + 11: "init.lua" + 2 * '/' + terminating zero
+                const char* searchpath = const_vector_get(state->searchpaths, i);
+                size_t len = strlen(searchpath) + strlen(state->exportname) + 11; // + 11: "init.lua" + 2 * '/' + terminating zero
                 char* exportfilename = malloc(len);
-                snprintf(exportfilename, len, "%s/%s/init.lua", searchpath, exportname);
+                snprintf(exportfilename, len, "%s/%s/init.lua", searchpath, state->exportname);
                 if(!filesystem_exists(exportfilename))
                 {
                     continue;
@@ -797,28 +880,28 @@ void export_write_toplevel(object_t* toplevel, struct pcell_state* pcell_state, 
                     // check minimal function support
                     if(!_check_lua_export(L))
                     {
-                        fprintf(stderr, "export '%s' must define at least the functions 'get_extension', 'write_rectangle', 'write_polygon' (or 'write_triangle') and 'finalize'\n", exportname);
+                        fprintf(stderr, "export '%s' must define at least the functions 'get_extension', 'write_rectangle', 'write_polygon' (or 'write_triangle') and 'finalize'\n", state->exportname);
                         status = EXPORT_STATUS_LOADERROR;
                         lua_close(L);
                         break;
                     }
 
                     // parse and set export cmd options
-                    if(exportoptions)
+                    if(state->exportoptions)
                     {
                         lua_getfield(L, -1, "set_options");
                         lua_newtable(L);
-                        const char* const * opt = exportoptions;
+                        const char* const * opt = state->exportoptions;
                         while(*opt)
                         {
                             lua_pushstring(L, *opt);
-                            lua_rawseti(L, -2, opt - exportoptions + 1);
+                            lua_rawseti(L, -2, opt - state->exportoptions + 1);
                             ++opt;
                         }
                         _call_or_pop_nil(L, 1);
                     }
 
-                    int ret = _write_toplevel_lua(L, toplevel, pcell_state, toplevelname, data, writechildrenports, leftdelim, rightdelim);
+                    int ret = _write_toplevel_lua(L, toplevel, pcell_state, state->toplevelname, data, state->writechildrenports, state->leftdelim, state->rightdelim);
                     if(ret != LUA_OK)
                     {
                         const char* msg = lua_tostring(L, -1);
@@ -849,15 +932,15 @@ void export_write_toplevel(object_t* toplevel, struct pcell_state* pcell_state, 
 
     if(status == EXPORT_STATUS_SUCCESS)
     {
-        if(*basename == '-' && !*(basename + 1)) // send to standard output
+        if(*state->basename == '-' && !*(state->basename + 1)) // send to standard output
         {
             fwrite(data->data, 1, data->length, stdout);
         }
         else
         {
-            size_t len = strlen(basename) + strlen(extension) + 2; // + 2: '.' and the terminating zero
+            size_t len = strlen(state->basename) + strlen(extension) + 2; // + 2: '.' and the terminating zero
             char* filename = malloc(len);
-            snprintf(filename, len + 2, "%s.%s", basename, extension);
+            snprintf(filename, len + 2, "%s.%s", state->basename, extension);
             FILE* file = fopen(filename, "w");
             fwrite(data->data, 1, data->length, file);
             fclose(file);
@@ -869,7 +952,7 @@ void export_write_toplevel(object_t* toplevel, struct pcell_state* pcell_state, 
     }
     else if(status == EXPORT_STATUS_NOTFOUND)
     {
-        printf("could not find export '%s'\n", exportname);
+        printf("could not find export '%s'\n", state->exportname);
     }
     else // EXPORT_STATUS_LOADERROR
     {

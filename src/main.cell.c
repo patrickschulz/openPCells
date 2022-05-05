@@ -294,23 +294,6 @@ object_t* _create_cell(
     return toplevel;
 }
 
-void _get_exportname(const char* exportname, struct const_vector* searchpaths, char** exportname_ptr, char** exportlayername_ptr)
-{
-    if(!util_split_string(exportname, ':', exportlayername_ptr, exportname_ptr)) // export layers were not specified
-    {
-        *exportname_ptr = util_copy_string(exportname);
-        char* exportlayername_from_function = export_get_export_layername(searchpaths, *exportname_ptr);
-        if(exportlayername_from_function)
-        {
-            *exportlayername_ptr = exportlayername_from_function;
-        }
-        else
-        {
-            *exportlayername_ptr = util_copy_string(exportname);
-        }
-    }
-}
-
 void _move_origin(object_t* toplevel, struct cmdoptions* cmdoptions)
 {
     if(cmdoptions_was_provided_long(cmdoptions, "origin"))
@@ -544,29 +527,39 @@ int main_create_and_export_cell(struct cmdoptions* cmdoptions, struct keyvaluear
         // export cell
         if(cmdoptions_was_provided_long(cmdoptions, "export"))
         {
-            // add export search paths. FIXME: add --exportpath cmd option
-            struct const_vector* searchpaths = const_vector_create(1);
-            const_vector_append(searchpaths, OPC_HOME "/export");
+            struct export_state* export_state = export_create_state();
 
-            const char* basename = cmdoptions_get_argument_long(cmdoptions, "filename");
-            const char* toplevelname = cmdoptions_get_argument_long(cmdoptions, "cellname");
-            const char** exportoptions = cmdoptions_get_argument_long(cmdoptions, "export-options");
-            int writechildrenports = cmdoptions_was_provided_long(cmdoptions, "write-children-ports");
+            // add export search paths. FIXME: add --exportpath cmd option
+            export_add_searchpath(export_state, OPC_HOME "/export");
+
+            // basename
+            export_set_basename(export_state, cmdoptions_get_argument_long(cmdoptions, "filename"));
+
+            // toplevelname
+            export_set_toplevel_name(export_state, cmdoptions_get_argument_long(cmdoptions, "cellname"));
+
+            // export options
+            export_set_export_options(export_state, cmdoptions_get_argument_long(cmdoptions, "export-options"));
+
+            // write children ports
+            export_set_write_children_ports(export_state, cmdoptions_was_provided_long(cmdoptions, "write-children-ports"));
+
+            // bus delimiters
             const char* delimiters = cmdoptions_get_argument_long(cmdoptions, "bus-delimiters");
-            char leftdelim = '<';
-            char rightdelim = '>';
             if(delimiters && delimiters[0] && delimiters[1])
             {
-                leftdelim = delimiters[0];
-                rightdelim = delimiters[1];
+                export_set_bus_delimiters(export_state, delimiters[0], delimiters[1]);
+            }
+            else
+            {
+                export_set_bus_delimiters(export_state, '<', '>');
             }
 
             const char* const * exportnames = cmdoptions_get_argument_long(cmdoptions, "export");
             while(*exportnames)
             {
-                char *exportname, *exportlayername;
-                _get_exportname(*exportnames, searchpaths, &exportname, &exportlayername);
-                if(!generics_resolve_premapped_layers(layermap, exportlayername))
+                export_set_exportname(export_state, *exportnames);
+                if(!generics_resolve_premapped_layers(layermap, export_get_layername(export_state)))
                 {
                     retval = 0;
                     goto DESTROY_OBJECT;
@@ -574,15 +567,11 @@ int main_create_and_export_cell(struct cmdoptions* cmdoptions, struct keyvaluear
                 export_write_toplevel(
                     toplevel, 
                     pcell_state, 
-                    searchpaths, exportname, basename, toplevelname, 
-                    leftdelim, rightdelim, 
-                    exportoptions, writechildrenports
+                    export_state
                 );
-                free(exportname);
-                free(exportlayername);
                 ++exportnames;
             }
-            const_vector_destroy(searchpaths);
+            export_destroy_state(export_state);
         }
         else
         {
