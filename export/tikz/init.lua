@@ -37,6 +37,14 @@ function M.set_options(opt)
         if arg == "-x" or arg == "--disable-externalize" then
             __externaldisable = true
         end
+        if arg == "-c" or arg == "--color" then
+            if i < #opt then
+                __color = opt[i + 1]
+            else
+                error("tikz export: --color: argument (a HTML color string) expected")
+            end
+            i = i + 1
+        end
     end
 end
 
@@ -137,24 +145,32 @@ end
 local colors = {}
 local numcolors = 0
 local function _get_layer_style(layer)
-    if not colors[layer.color] then
-        local colorname
-        if layer.style then
-            colorname = string.format("%scolor", layer.style)
-        else
-            colorname = string.format("layoutcolor%d", numcolors + 1)
-            numcolors = numcolors + 1
+    local color
+    if __color then
+        local colorstring = "layoutcolor"
+        table.insert(__header, string.format("\\definecolor{%s}{HTML}{%s}", colorstring, __color))
+        color = colorstring
+    else
+        if not colors[layer.color] then
+            local colorname
+            if layer.style then
+                colorname = string.format("%scolor", layer.style)
+            else
+                colorname = string.format("layoutcolor%d", numcolors + 1)
+                numcolors = numcolors + 1
+            end
+            table.insert(__header, string.format("\\definecolor{%s}{HTML}{%s}", colorname, layer.color))
+            colors[layer.color] = colorname
         end
-        table.insert(__header, string.format("\\definecolor{%s}{HTML}{%s}", colorname, layer.color))
-        colors[layer.color] = colorname
+        color = colors[layer.color]
     end
     if layer.nofill then
-        return string.format("draw = %s", colors[layer.color])
+        return string.format("draw = %s", color)
     else
         if layer.pattern then
-            return string.format("draw = %s, pattern = crosshatch, pattern color = %s", colors[layer.color], colors[layer.color])
+            return string.format("draw = %s, pattern = crosshatch, pattern color = %s", color, color)
         else
-            return string.format("fill = %s, draw = %s", colors[layer.color], colors[layer.color])
+            return string.format("fill = %s, draw = %s", color, color)
         end
     end
 end
