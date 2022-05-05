@@ -174,7 +174,7 @@ function M.curve_add_arc_segment(startpt, startangle, endangle, radius, clockwis
 end
 
 function M.close_curve()
-    table.insert(curvecontent, '"/>')
+    table.insert(curvecontent, 'Z" />')
     _insert_ordered_content(curveorder, table.concat(curvecontent, ' '))
 end
 
