@@ -129,7 +129,7 @@ static void _write_cell(object_t* cell, struct export_data* data, struct export_
     {
         shape_t* shape = cell->shapes[i];
         shape_apply_transformation(shape, cell->trans);
-        struct keyvaluearray* layerdata = shape->layer->data[0];
+        const struct keyvaluearray* layerdata = shape_get_main_layerdata(shape);
         switch(shape->type)
         {
             case RECTANGLE:
@@ -235,12 +235,12 @@ static void _write_cell(object_t* cell, struct export_data* data, struct export_
     }
 }
 
-static void _push_layer(lua_State* L, struct keyvaluearray* data)
+static void _push_layer(lua_State* L, const struct keyvaluearray* data)
 {
     lua_newtable(L);
     for(unsigned int i = 0; i < keyvaluearray_size(data); ++i)
     {
-        struct keyvaluepair* pair = keyvaluearray_get_indexed_pair(data, i);
+        const struct keyvaluepair* pair = keyvaluearray_get_indexed_pair(data, i);
         lua_pushstring(L, pair->key);
         switch(pair->tag)
         {
@@ -323,7 +323,7 @@ static int _write_ports_lua(lua_State* L, object_t* cell, char leftdelim, char r
     return LUA_OK;
 }
 
-static int _write_lua_rectangle(lua_State* L, struct keyvaluearray* layerdata, shape_t* shape)
+static int _write_lua_rectangle(lua_State* L, const struct keyvaluearray* layerdata, shape_t* shape)
 {
     lua_getfield(L, -1, "write_rectangle");
     _push_layer(L, layerdata);
@@ -335,7 +335,7 @@ static int _write_lua_rectangle(lua_State* L, struct keyvaluearray* layerdata, s
     return lua_pcall(L, 3, 0, 0);
 }
 
-static int _write_lua_polygon(lua_State* L, struct keyvaluearray* layerdata, shape_t* shape)
+static int _write_lua_polygon(lua_State* L, const struct keyvaluearray* layerdata, shape_t* shape)
 {
     lua_getfield(L, -1, "write_polygon");
     _push_layer(L, layerdata);
@@ -345,7 +345,7 @@ static int _write_lua_polygon(lua_State* L, struct keyvaluearray* layerdata, sha
     return lua_pcall(L, 2, 0, 0);
 }
 
-static int _write_lua_triangulated_polygon(lua_State* L, struct keyvaluearray* layerdata, shape_t* shape)
+static int _write_lua_triangulated_polygon(lua_State* L, const struct keyvaluearray* layerdata, shape_t* shape)
 {
     struct vector* points;
     shape_get_polygon_points(shape, &points);
@@ -365,7 +365,7 @@ static int _write_lua_triangulated_polygon(lua_State* L, struct keyvaluearray* l
     return LUA_OK;
 }
 
-static int _write_lua_path(lua_State* L, struct keyvaluearray* layerdata, shape_t* shape)
+static int _write_lua_path(lua_State* L, const struct keyvaluearray* layerdata, shape_t* shape)
 {
     lua_getfield(L, -1, "write_path");
     _push_layer(L, layerdata);
@@ -385,15 +385,24 @@ static int _write_lua_path(lua_State* L, struct keyvaluearray* layerdata, shape_
     return lua_pcall(L, 4, 0, 0);
 }
 
-static int _write_lua_curve(lua_State* L, struct keyvaluearray* layerdata, shape_t* shape)
+static coordinate_t _fix_to_grid(coordinate_t c, unsigned int grid)
+{
+    return (c / grid) * grid;
+}
+
+static int _write_lua_curve(lua_State* L, const struct keyvaluearray* layerdata, shape_t* shape)
 {
     lua_getfield(L, -1, "setup_curve");
     _push_layer(L, layerdata);
-    int ret = lua_pcall(L, 1, 0, 0);
+    point_t* origin;
+    shape_get_curve_origin(shape, &origin);
+    _push_point(L, origin);
+    int ret = lua_pcall(L, 2, 0, 0);
     if(ret != LUA_OK)
     {
         return ret;
     }
+    // FIXME: implement an abstraction for this
     struct curve* curve = shape->content;
     struct vector_iterator* it = vector_iterator_create(curve->segments);
     point_t* lastpt = curve->origin;
@@ -422,12 +431,18 @@ static int _write_lua_curve(lua_State* L, struct keyvaluearray* layerdata, shape
                 lua_pushnumber(L, segment->data.startangle);
                 lua_pushnumber(L, segment->data.endangle);
                 lua_pushinteger(L, segment->data.radius);
-                ret = lua_pcall(L, 4, 0, 0);
+                lua_pushboolean(L, segment->data.clockwise);
+                ret = lua_pcall(L, 5, 0, 0);
                 if(ret != LUA_OK)
                 {
                     return ret;
                 }
-                // FIXME: update lastpt
+                double startcos = cos(segment->data.startangle * M_PI / 180);
+                double startsin = sin(segment->data.startangle * M_PI / 180);
+                double endcos = cos(segment->data.endangle * M_PI / 180);
+                double endsin = sin(segment->data.endangle * M_PI / 180);
+                lastpt->x = lastpt->x + _fix_to_grid((endcos - startcos) * segment->data.radius, curve->grid);
+                lastpt->y = lastpt->y + _fix_to_grid((endsin - startsin) * segment->data.radius, curve->grid);
                 break;
             }
         }
@@ -468,9 +483,9 @@ static int _write_cell_lua(lua_State* L, object_t* cell, int write_ports, char l
     {
         shape_t* shape = cell->shapes[i];
         shape_apply_transformation(shape, cell->trans);
-        struct keyvaluearray* layerdata = shape->layer->data[0];
+        const struct keyvaluearray* layerdata = shape_get_main_layerdata(shape);
         // order of the following statements matter!
-        // (if a curves and polygons can't be written,
+        // (e.g. if curves and polygons can't be written,
         //  a rasterized and triangulated curve can be used)
         if(shape->type == PATH && !has_write_path)
         {

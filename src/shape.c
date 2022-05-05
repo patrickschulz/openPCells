@@ -176,6 +176,11 @@ void shape_append(shape_t* shape, coordinate_t x, coordinate_t y)
     _append_unconditionally(shape, x, y);
 }
 
+const struct keyvaluearray* shape_get_main_layerdata(const shape_t* shape)
+{
+    return shape->layer->data[0];
+}
+
 int shape_get_rectangle_points(shape_t* shape, point_t** bl, point_t** tr)
 {
     if(shape->type != RECTANGLE)
@@ -233,6 +238,16 @@ int shape_get_path_extension(shape_t* shape, coordinate_t* start, coordinate_t* 
     return 1;
 }
 
+int shape_get_curve_origin(shape_t* shape, point_t** originp)
+{
+    if(shape->type != CURVE)
+    {
+        return 0;
+    }
+    struct curve* curve = shape->content;
+    *originp = curve->origin;
+    return 1;
+}
 int shape_is_empty(shape_t* shape)
 {
     return shape->layer->size == 0;
@@ -696,7 +711,6 @@ void shape_rasterize_curve(shape_t* shape)
                 double endsin = sin(segment->data.endangle * M_PI / 180);
                 lastpt->x = lastpt->x + _fix_to_grid((endcos - startcos) * segment->data.radius, curve->grid);
                 lastpt->y = lastpt->y + _fix_to_grid((endsin - startsin) * segment->data.radius, curve->grid);
-                // FIXME: update lastpt
                 break;
             }
         }

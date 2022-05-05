@@ -67,6 +67,8 @@ void shape_destroy(shape_t* shape);
 
 void shape_append(shape_t* shape, coordinate_t x, coordinate_t y);
 
+const struct keyvaluearray* shape_get_main_layerdata(const shape_t*);
+
 // rectangle access functions
 int shape_get_rectangle_points(shape_t* shape, point_t** blp, point_t** trp);
 
@@ -77,6 +79,9 @@ int shape_get_polygon_points(shape_t* shape, struct vector** points);
 int shape_get_path_points(shape_t* shape, struct vector** points);
 int shape_get_path_width(shape_t* shape, ucoordinate_t* width);
 int shape_get_path_extension(shape_t* shape, coordinate_t* start, coordinate_t* end);
+
+// curve access functions
+int shape_get_curve_origin(shape_t* shape, point_t** origin);
 
 int shape_is_empty(shape_t* shape);
 
