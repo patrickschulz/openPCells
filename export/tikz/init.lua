@@ -1,7 +1,5 @@
 local M = {}
 
-local baseunit = 100
-
 function M.get_extension()
     return "tikz"
 end
@@ -11,9 +9,10 @@ function M.get_techexport()
 end
 
 local __standalone = false
-local __drawpatterns = true
+local __drawpatterns = false
 local __resizebox = false
 local __externaldisable
+local __baseunit = 1
 
 function M.set_options(opt)
     for i = 1, #opt do
@@ -21,8 +20,16 @@ function M.set_options(opt)
         if arg == "-S" or arg == "--standalone" then
             __standalone = true
         end
-        if arg == "-s" or arg == "--solid" then
-            __drawpatterns = false
+        if arg == "-p" or arg == "--pattern" then
+            __drawpatterns = true
+        end
+        if arg == "-b" or arg == "--base-unit" then
+            if i < #opt then
+                __baseunit = tonumber(opt[i + 1])
+            else
+                error("tikz export: --base-unit: argument (a number) expected")
+            end
+            i = i + 1
         end
         if arg == "-r" or arg == "--resize-box" then
             __resizebox = true
@@ -110,14 +117,14 @@ local function intlog10(num)
 end
 
 local function _format_number(num)
-    local fmt = string.format("%%s%%u.%%0%uu", intlog10(baseunit))
+    local fmt = string.format("%%s%%u.%%0%uu", intlog10(__baseunit))
     local sign = "";
     if num < 0 then
         sign = "-"
         num = -num
     end
-    local ipart = num // baseunit;
-    local fpart = num - baseunit * ipart;
+    local ipart = num // __baseunit;
+    local fpart = num - __baseunit * ipart;
     return string.format(fmt, sign, ipart, fpart)
 end
 
