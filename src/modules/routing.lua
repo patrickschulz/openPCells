@@ -64,13 +64,10 @@ function M.route(cell, routes, cells, width, xgrid, ygrid)
             elseif movement.type == "anchor" then
                 local pt = cells[movement.name]:get_anchor(movement.anchor)
                 table.insert(pts, pt)
-<<<<<<< HEAD
             elseif movement.type == "switchdirection" then
                 -- FIXME: remove this elseif in the future
                 --error("routing: use of deprecated movement 'switchdirection'")
                 --table.insert(pts, 0)
-=======
->>>>>>> 2e57e77f47857b8c9a618f1086e211a629541c6c
             elseif movement.type == "delta" then
                 local lastpt = pts[#pts]
                 local x, y = lastpt:unwrap()
@@ -79,7 +76,6 @@ function M.route(cell, routes, cells, width, xgrid, ygrid)
                 elseif movement.x then
                     table.insert(pts, point.create(
                         x + xgrid * movement.x,
-<<<<<<< HEAD
                         pts[#pts]:gety()
                     ))
                     x = x + xgrid * movement.x
@@ -89,20 +85,10 @@ function M.route(cell, routes, cells, width, xgrid, ygrid)
                         y + ygrid * movement.y
                     ))
                     y = y + ygrid * movement.y
-=======
-                        y
-                    ))
-                elseif movement.y then
-                    table.insert(pts, point.create(
-                        x,
-                        y + ygrid * movement.y
-                    ))
->>>>>>> 2e57e77f47857b8c9a618f1086e211a629541c6c
                 end
             elseif movement.type == "via" then
                 local targetmetal
                 if movement.z then
-<<<<<<< HEAD
                     geometry.via(cell, currmetal, currmetal + movement.z, width, width, x, y)
                     if #pts > 0 then
                         geometry.path(cell, generics.metal(currmetal), pts,
@@ -120,11 +106,6 @@ function M.route(cell, routes, cells, width, xgrid, ygrid)
                     startpt = point.create(x, y)
                     pts = { startpt }
                     currmetal = movement.metal
-=======
-                    targetmetal = currmetal + movement.z
-                else
-                    targetmetal = movement.metal
->>>>>>> 2e57e77f47857b8c9a618f1086e211a629541c6c
                 end
                 local lastpt = pts[#pts]
                 local x, y = lastpt:unwrap()
