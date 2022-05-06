@@ -16,7 +16,7 @@ local function _prepare_routing_nets(nets, rows, numtracks)
                             if not offset then
                                 error(string.format("cell '%s' has no pin offset data on port '%s'", column.reference, n.port))
                             end
-                            table.insert(netpositions[i].positions, { instance = column.instance, port = n.port, x = c + offset.x + curwidth, y = (r + offset.y) * numtracks })
+                            table.insert(netpositions[i].positions, { instance = column.instance, port = n.port, x = c + offset.x + curwidth, y = r * numtracks + offset.y - (numtracks  - 1) // 2 })
                         end
                     end
                 end
@@ -55,7 +55,7 @@ function M.route(cell, routes, cells, width, xgrid, ygrid)
         else
             startpt = route[1].where
         end
-        local pts = {}
+        local pts = { startpt }
         local currmetal = route.startmetal or 1
         local x, y = startpt:unwrap()
         for i = 2, #route do
@@ -69,37 +69,43 @@ function M.route(cell, routes, cells, width, xgrid, ygrid)
                 x, y = pt:unwrap()
                 table.insert(pts, pt)
             elseif movement.type == "switchdirection" then
-                table.insert(pts, 0)
+                -- FIXME: remove this elseif in the future
+                --error("routing: use of deprecated movement 'switchdirection'")
+                --table.insert(pts, 0)
             elseif movement.type == "delta" then
                 if movement.x and movement.y then
-                    table.insert(pts, xgrid * movement.x)
-                    table.insert(pts, ygrid * movement.y)
+                    error("routing movement must not specify both x and y")
                 elseif movement.x then
-                    table.insert(pts, xgrid * movement.x)
+                    table.insert(pts, point.create(
+                        x + xgrid * movement.x,
+                        pts[#pts]:gety()
+                    ))
+                    x = x + xgrid * movement.x
                 elseif movement.y then
-                    table.insert(pts, 0)
-                    table.insert(pts, ygrid * movement.y)
+                    table.insert(pts, point.create(
+                        pts[#pts]:getx(),
+                        y + ygrid * movement.y
+                    ))
+                    y = y + ygrid * movement.y
                 end
-                x = x + xgrid * (movement.x or 0)
-                y = y + ygrid * (movement.y or 0)
             elseif movement.type == "via" then
                 if movement.z then
                     geometry.via(cell, currmetal, currmetal + movement.z, width, width, x, y)
                     if #pts > 0 then
-                        geometry.path(cell, generics.metal(currmetal),
-                            geometry.path_points_xy(startpt, pts), width)
+                        geometry.path(cell, generics.metal(currmetal), pts,
+                            width)
                     end
                     startpt = point.create(x, y)
-                    pts = {}
+                    pts = { startpt }
                     currmetal = currmetal + movement.z
                 else
                     geometry.via(cell, currmetal, movement.metal, width, width, x, y)
                     if #pts > 0 then
-                        geometry.path(cell, generics.metal(currmetal),
-                            geometry.path_points_xy(startpt, pts), width)
+                        geometry.path(cell, generics.metal(currmetal), pts,
+                            width)
                     end
                     startpt = point.create(x, y)
-                    pts = {}
+                    pts = { startpt }
                     currmetal = movement.metal
                 end
             else
@@ -107,8 +113,7 @@ function M.route(cell, routes, cells, width, xgrid, ygrid)
             end
         end
         if #pts > 0 then
-            geometry.path(cell, generics.metal(currmetal), 
-                geometry.path_points_xy(startpt, pts), width)
+            geometry.path(cell, generics.metal(currmetal), pts, width)
         end
     end
 end
