@@ -1,11 +1,14 @@
 #ifndef OPC_GRAPHICS_H
 #define OPC_GRAPHICS_H
 
-#include "lua/lua.h"
+#include <stddef.h>
 
-#define LGRAPHICSMETA "lgraphics"
-#define LGRAPHICSMODULE "graphics"
+#include "point.h"
+#include "vector.h"
 
-int open_lgraphics_lib(lua_State* L);
+void graphics_raster_line_segment(point_t* startpt, point_t* endpt, unsigned int grid, int allow45, struct vector* result);
+void graphics_raster_arc_segment(point_t* startpt, double startangle, double endangle, coordinate_t radius, int clockwise, unsigned int grid, int allow45, struct vector* result);
+
+struct vector* graphics_cubic_bezier(struct vector* curve);
 
 #endif // OPC_GRAPHICS_H

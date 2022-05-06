@@ -99,7 +99,7 @@ object_t* object_copy(object_t* cell)
         // children
         if(cell->children)
         {
-            new->children = vector_create();
+            new->children = vector_create(16);
             for(unsigned int i = 0; i < vector_size(cell->children); ++i)
             {
                 vector_append(new->children, object_copy(vector_get(cell->children, i)));
@@ -206,7 +206,7 @@ object_t* object_add_child(object_t* cell, struct pcell_state* pcell_state, cons
     child->trans = transformationmatrix_invert(cell->trans);
     if(!cell->children)
     {
-        cell->children = vector_create();
+        cell->children = vector_create(16);
     }
     vector_append(cell->children, child);
     return child;
@@ -581,7 +581,7 @@ void object_move_anchor_y(object_t* cell, const char* name, coordinate_t x, coor
     object_translate(cell, 0, dy);
 }
 
-static void _get_minmax_xy(object_t* cell, coordinate_t* minxp, coordinate_t* minyp, coordinate_t* maxxp, coordinate_t* maxyp)
+void object_get_minmax_xy(const object_t* cell, coordinate_t* minxp, coordinate_t* minyp, coordinate_t* maxxp, coordinate_t* maxyp)
 {
     coordinate_t minx = COORDINATE_MAX;
     coordinate_t maxx = COORDINATE_MIN;
@@ -590,25 +590,15 @@ static void _get_minmax_xy(object_t* cell, coordinate_t* minxp, coordinate_t* mi
     for(unsigned int i = 0; i < cell->shapes_size; ++i)
     {
         shape_t* S = cell->shapes[i];
-        // FIXME: also include paths
-        switch(S->type)
-        {
-            case RECTANGLE:
-                minx = min(minx, S->points[0]->x);
-                maxx = max(maxx, S->points[1]->x);
-                miny = min(miny, S->points[0]->y);
-                maxy = max(maxy, S->points[1]->y);
-                break;
-            case POLYGON:
-                for(unsigned int i = 0; i < S->size; ++i)
-                {
-                    minx = min(minx, S->points[i]->x);
-                    maxx = max(maxx, S->points[i]->x);
-                    miny = min(miny, S->points[i]->y);
-                    maxy = max(maxy, S->points[i]->y);
-                }
-                break;
-        }
+        coordinate_t _minx;
+        coordinate_t _maxx;
+        coordinate_t _miny;
+        coordinate_t _maxy;
+        shape_get_minmax_xy(S, cell->trans, &_minx, &_miny, &_maxx, &_maxy);
+        minx = min(minx, _minx);
+        maxx = max(maxx, _miny);
+        miny = min(miny, _maxx);
+        maxy = max(maxy, _maxy);
     }
     if(cell->children)
     {
@@ -617,7 +607,7 @@ static void _get_minmax_xy(object_t* cell, coordinate_t* minxp, coordinate_t* mi
             object_t* child = vector_get(cell->children, i);
             object_t* obj = child->reference;
             coordinate_t minx_, maxx_, miny_, maxy_;
-            _get_minmax_xy(obj, &minx_, &miny_, &maxx_, &maxy_);
+            object_get_minmax_xy(obj, &minx_, &miny_, &maxx_, &maxy_);
             // FIXME: is the transformation really needed? If yes, then the shapes points also need to be transformed
             //local pt1 = point.create(minx_, miny_)
             //local pt2 = point.create(maxx_, maxy_)
@@ -654,7 +644,7 @@ static void _get_transformation_correction(object_t* cell, coordinate_t* cx, coo
     }
     else
     {
-        _get_minmax_xy(obj, &blx, &bly, &trx, &try);
+        object_get_minmax_xy(obj, &blx, &bly, &trx, &try);
     }
     coordinate_t x = 0;
     coordinate_t y = 0;
@@ -748,11 +738,7 @@ void object_flatten(object_t* cell, struct pcell_state* pcell_state, int flatten
                         shape_t* S = shape_copy(reference->shapes[i]);
                         shape_apply_transformation(S, child->trans);
                         shape_apply_transformation(S, reference->trans);
-                        for(unsigned int i = 0; i < S->size; ++i)
-                        {
-                            S->points[i]->x += (ix - 1) * child->xpitch;
-                            S->points[i]->y += (iy - 1) * child->ypitch;
-                        }
+                        shape_translate(S, (ix - 1) * child->xpitch, (iy - 1) * child->ypitch);
                         object_add_raw_shape(cell, S);
                     }
                     //if flattenports then

@@ -159,7 +159,7 @@ struct layermap* generics_initialize_layer_map(void)
 {
     struct layermap* layermap = malloc(sizeof(*layermap));
     layermap->hashmap = hashmap_create();
-    layermap->extra_layers = vector_create();
+    layermap->extra_layers = vector_create(1024);
     return layermap;
 }
 

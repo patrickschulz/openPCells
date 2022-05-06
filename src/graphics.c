@@ -1,236 +1,461 @@
 #include "graphics.h"
 
-#include <stddef.h>
 #include <stdlib.h>
 #include <stdio.h>
-
-#include "lua/lauxlib.h"
+#include <math.h>
 
 #include "lpoint.h"
+#include "vector.h"
 
-struct curve
+static point_t* _midpoint(point_t* p1, point_t* p2)
 {
-    point_t* points;
-    size_t size;
-    size_t capacity;
-};
-
-static struct curve* _create(size_t initial_capacity)
-{
-    struct curve* c = malloc(sizeof(*c));
-    c->size = 0;
-    c->capacity = initial_capacity;
-    if(initial_capacity > 0)
-    {
-        c->points = calloc(initial_capacity, sizeof(*c->points));
-    }
-    return c;
+    return point_create((p1->x + p2->x) / 2, (p1->y + p2->y) / 2);
 }
 
-static void _destroy(struct curve* c)
+static void _subdivide(struct vector* points, struct vector* l, struct vector* r)
 {
-    if(c->capacity > 0)
-    {
-        free(c->points);
-    }
-    free(c);
+    point_t* l1 = _midpoint(pointarray_get(points, 0), pointarray_get(points, 1));
+    point_t* m = _midpoint(pointarray_get(points, 1), pointarray_get(points, 2));
+    point_t* r2 = _midpoint(pointarray_get(points, 2), pointarray_get(points, 3));
+    point_t* l2 = _midpoint(l1, m);
+    point_t* r1 = _midpoint(m, r2);
+    point_t* l3r0 = _midpoint(l2, r1);
+
+    vector_append(l, point_copy(pointarray_get(points, 0)));
+    vector_append(l, l1);
+    vector_append(l, l2);
+    vector_append(l, l3r0);
+
+    vector_append(r, l3r0);
+    vector_append(r, r1);
+    vector_append(r, r2);
+    vector_append(r, point_copy(pointarray_get(points, 3)));
 }
 
-static void _append_point(struct curve* c, int x, int y)
+//static int _is_sufficiently_flat(struct vector* points)
+static int _is_sufficiently_flat(struct pointarray* points)
 {
-    if(c->size + 1 > c->capacity)
-    {
-        c->capacity = ((2 * c->capacity) > (c->size + 1)) ? (2 * c->capacity) : (c->size + 1);
-        point_t* ptr = realloc(c->points, c->capacity * sizeof(*ptr));
-        c->points = ptr;
-    }
-    c->points[c->size].x = x;
-    c->points[c->size].y = y;
-    c->size += 1;
-}
-
-static point_t _midpoint(point_t p1, point_t p2)
-{
-    point_t p = { .x = (p1.x + p2.x) / 2, .y = (p1.y + p2.y) / 2 };
-    return p;
-}
-
-static void _subdivide(struct curve* c, struct curve* l, struct curve* r)
-{
-    point_t l1 = _midpoint(c->points[0], c->points[1]);
-    point_t m = _midpoint(c->points[1], c->points[2]);
-    point_t r2 = _midpoint(c->points[2], c->points[3]);
-    point_t l2 = _midpoint(l1, m);
-    point_t r1 = _midpoint(m, r2);
-    point_t l3r0 = _midpoint(l2, r1);
-    l->points[0] = c->points[0];
-    l->points[1] = l1;
-    l->points[2] = l2;
-    l->points[3] = l3r0;
-    l->size = 4;
-    r->points[0] = l3r0;
-    r->points[1] = r1;
-    r->points[2] = r2;
-    r->points[3] = c->points[3];
-    r->size = 4;
-}
-
-static int _is_sufficiently_flat(struct curve* c)
-{
-    double ux = 3.0 * c->points[1].x - 2.0 * c->points[0].x - c->points[3].x; ux *= ux;
-    double uy = 3.0 * c->points[1].y - 2.0 * c->points[0].y - c->points[3].y; uy *= uy;
-    double vx = 3.0 * c->points[2].x - 2.0 * c->points[3].x - c->points[0].x; vx *= vx;
-    double vy = 3.0 * c->points[2].y - 2.0 * c->points[3].y - c->points[0].y; vy *= vy;
+    double ux = 3.0 * pointarray_get(points, 1)->x - 2.0 * pointarray_get(points, 0)->x - pointarray_get(points, 3)->x; ux *= ux;
+    double uy = 3.0 * pointarray_get(points, 1)->y - 2.0 * pointarray_get(points, 0)->y - pointarray_get(points, 3)->y; uy *= uy;
+    double vx = 3.0 * pointarray_get(points, 2)->x - 2.0 * pointarray_get(points, 3)->x - pointarray_get(points, 0)->x; vx *= vx;
+    double vy = 3.0 * pointarray_get(points, 2)->y - 2.0 * pointarray_get(points, 3)->y - pointarray_get(points, 0)->y; vy *= vy;
     if (ux < vx) ux = vx;
     if (uy < vy) uy = vy;
     double tolerance = 1;
     return (ux + uy <= (16 * tolerance * tolerance));
 }
 
-static void _flatten_curve(struct curve* c, struct curve* result)
+static void _flatten_curve(struct vector* points, struct vector* result)
 {
-    if(_is_sufficiently_flat(c))
+    if(_is_sufficiently_flat(points))
     {
-        _append_point(result, c->points[0].x, c->points[0].y);
-        _append_point(result, c->points[c->size - 1].x, c->points[c->size - 1].y);
+        vector_append(result, point_create(pointarray_get(points, 0)->x, pointarray_get(points, 0)->y));
+        vector_append(result, point_create(pointarray_get(points, vector_size(points) - 1)->x, pointarray_get(points, vector_size(points) - 1)->y));
     }
     else
     {
-        struct curve* l = _create(4);
-        struct curve* r = _create(4);
-        _subdivide(c, l, r);
+        struct vector* l = vector_create(32);
+        struct vector* r = vector_create(32);
+        _subdivide(points, l, r);
         _flatten_curve(l, result);
         _flatten_curve(r, result);
-        _destroy(l);
-        _destroy(r);
+        vector_destroy(l, NULL);
+        vector_destroy(r, NULL);
     }
+}
+
+struct vector* graphics_cubic_bezier(struct vector* curve)
+{
+    struct vector* result = vector_create(128);
+    _flatten_curve(curve, result);
+    return result;
 }
 
 #define iabs(x) ((x) < 0 ? -(x) : (x))
 
-static struct curve* _raster_line(int x1, int y1, int x2, int y2, unsigned int grid, int allow45)
+void graphics_raster_line_segment(point_t* startpt, point_t* endpt, unsigned int grid, int allow45, struct vector* result)
 {
+    coordinate_t x1 = startpt->x;
+    coordinate_t y1 = startpt->y;
+    coordinate_t x2 = endpt->x;
+    coordinate_t y2 = endpt->y;
+
     int sx = (x2 > x1) ? grid : -grid;
     int sy = (y2 > y1) ? grid : -grid;
 
-    int x = x1;
-    int y = y1;
-
-    if((x1 == x2) || (y1 == y2))
+    if(x1 == x2 || y1 == y2)
     {
-        struct curve* result = _create(2);
-        _append_point(result, x1, y1);
-        _append_point(result, x2, y2);
-        return result;
+        vector_append(result, point_create(x1, y1));
+        vector_append(result, point_create(x2, y2));
+        return;
     }
 
-    struct curve* result = _create(100);
+    coordinate_t x = x1;
+    coordinate_t y = y1;
 
     while(1)
     {
-        _append_point(result, x, y);
-        //if(x == x2 && y == y2)
-        if(x == x2)
+        vector_append(result, point_create(x, y));
+        if(x == x2 && y == y2)
+        //if(x == x2)
         {
             break;
         }
-        int exy = (y + sy - y1) * (x2 - x1) - (x + sx - x1) * (y2 - y1);
-        int ex  = (y + sy - y1) * (x2 - x1) - (x +  0 - x1) * (y2 - y1);
-        int ey  = (y +  0 - y1) * (x2 - x1) - (x + sx - x1) * (y2 - y1);
+        coordinate_t exy = (y + sy - y1) * (x2 - x1) - (x + sx - x1) * (y2 - y1);
+        coordinate_t ex  = (y + sy - y1) * (x2 - x1) - (x +  0 - x1) * (y2 - y1);
+        coordinate_t ey  = (y +  0 - y1) * (x2 - x1) - (x + sx - x1) * (y2 - y1);
         if(allow45)
         {
-            if(iabs(exy) <= iabs(ex))
+            if(iabs(exy) < iabs(ex))
             {
                 x = x + sx;
             }
-            if(iabs(exy) <= iabs(ey))
+            if(iabs(exy) < iabs(ey))
             {
                 y = y + sy;
             }
         }
         else
         {
-            if(iabs(ex) <= iabs(ey))
+            if(iabs(ex) < iabs(ey))
             {
                 y = y + sy;
             }
+            else
             {
                 x = x + sx;
             }
         }
     }
-    return result;
 }
 
-static int line(lua_State* L)
+static struct vector* _rasterize_quartercircle(coordinate_t radius, unsigned int grid, int allow45)
 {
-    lpoint_t* pt1 = lua_touserdata(L, 1);
-    lpoint_t* pt2 = lua_touserdata(L, 2);
-    int grid = lua_tointeger(L, 3);
-    int allow45 = lua_toboolean(L, 4);
-
-    struct curve* result = _raster_line(pt1->point->x, pt1->point->y, pt2->point->x, pt2->point->y, grid, allow45);
-
-    lua_newtable(L);
-    for(unsigned int i = 0; i < result->size; ++i)
+    coordinate_t x = radius;
+    coordinate_t y = 0;
+    int sx = -grid;
+    int sy = grid;
+    struct vector* pts = vector_create(128);
+    while(1)
     {
-        lua_pushinteger(L, result->points[i].x);
-        lua_pushinteger(L, result->points[i].y);
-        lpoint_create(L);
-        lua_rawseti(L, -2, i + 1);
+        vector_append(pts, point_create(x, y));
+        if(x == 0 && y == (coordinate_t)radius)
+        {
+            break;
+        }
+        int64_t exy = ((x + sx) * (x + sx) + (y + sy) * (y + sy) - radius * radius) * radius * radius;
+        int64_t ex  = (x * x + (y + sy) * (y + sy) - radius * radius) * radius * radius;
+        int64_t ey  = ((x + sx) * (x + sx) + y * y - radius * radius) * radius * radius;
+        if(allow45)
+        {
+            if(iabs(exy) < iabs(ex)) { x = x + sx; }
+            if(iabs(exy) < iabs(ey)) { y = y + sy; }
+        }
+        else
+        {
+            if(iabs(ex) < iabs(ey)) { y = y + sy; }
+            else { x = x + sx; }
+        }
     }
-
-    _destroy(result);
-
-    return 1;
+    return pts;
 }
 
-static int flatten_cubic_bezier(lua_State* L)
+static struct vector* _rasterize_quarterellipse(coordinate_t xradius, coordinate_t yradius, unsigned int grid, int allow45)
 {
-    int x1 = lua_tonumber(L, 1);
-    int y1 = lua_tonumber(L, 2);
-    int x2 = lua_tonumber(L, 3);
-    int y2 = lua_tonumber(L, 4);
-    int x3 = lua_tonumber(L, 5);
-    int y3 = lua_tonumber(L, 6);
-    int x4 = lua_tonumber(L, 7);
-    int y4 = lua_tonumber(L, 8);
-    struct curve* c = _create(4);
-    _append_point(c, x1, y1);
-    _append_point(c, x2, y2);
-    _append_point(c, x3, y3);
-    _append_point(c, x4, y4);
-
-    struct curve* result = _create(100);
-    _flatten_curve(c, result);
-
-    lua_newtable(L);
-    for(unsigned int i = 0; i < result->size; ++i)
+    coordinate_t x = xradius;
+    coordinate_t y = 0;
+    int sx = -grid;
+    int sy = grid;
+    struct vector* pts = vector_create(128);
+    while(1)
     {
-        lua_pushnumber(L, result->points[i].x);
-        lua_rawseti(L, -2, 2 * i + 1);
-        lua_pushnumber(L, result->points[i].y);
-        lua_rawseti(L, -2, 2 * i + 2);
+        vector_append(pts, point_create(x, y));
+        if(x == 0 && y == (coordinate_t)yradius)
+        {
+            break;
+        }
+        int64_t exy = (x + sx) * (x + sx) * xradius * xradius + (y + sy) * (y + sy) * yradius * yradius - xradius * xradius * yradius * yradius;
+        int64_t ex  = x * x * xradius * xradius + (y + sy) * (y + sy) * yradius * yradius - xradius * xradius * yradius * yradius;
+        int64_t ey  = (x + sx) * (x + sx) * xradius * xradius + y * y * yradius * yradius - xradius * xradius * yradius * yradius;
+        if(allow45)
+        {
+            if(iabs(exy) < iabs(ex)) { x = x + sx; }
+            if(iabs(exy) < iabs(ey)) { y = y + sy; }
+        }
+        else
+        {
+            if(iabs(ex) < iabs(ey)) { y = y + sy; }
+            else { x = x + sx; }
+        }
     }
-
-    _destroy(result);
-
-    _destroy(c);
-
-    return 1;
+    return pts;
 }
 
-int open_lgraphics_lib(lua_State* L)
+static unsigned int _map_xy_to_quadrant(coordinate_t x, coordinate_t y)
 {
-    static const luaL_Reg modfuncs[] =
+    if(x >= 0)
     {
-        { "line",                 line                 },
-        { "flatten_cubic_bezier", flatten_cubic_bezier },
-        { NULL, NULL }
-    };
-    lua_newtable(L);
-    luaL_setfuncs(L, modfuncs, 0);
-    lua_setglobal(L, LGRAPHICSMODULE);
-    return 0;
+        if(y >= 0)
+        {
+            return 1;
+        }
+        else
+        {
+            return 4;
+        }
+    }
+    else
+    {
+        if(y >= 0)
+        {
+            return 2;
+        }
+        else
+        {
+            return 3;
+        }
+    }
+}
+
+static void _get_quadrant_list(unsigned int startquadrant, unsigned int endquadrant, int clockwise, unsigned int* quadrants)
+{
+    unsigned int i = startquadrant;
+    int stop = 0;
+    unsigned int idx = 0;
+    while(1)
+    {
+        quadrants[idx] = i;
+        ++idx;
+        if(stop)
+        {
+            break;
+        }
+        if(clockwise)
+        {
+            if(i == 1) { i = 4; }
+            else { i = i - 1; }
+        }
+        else
+        {
+            if(i == 4) { i = 1; }
+            else { i = i + 1; }
+        }
+        if(i == endquadrant)
+        {
+            stop = 1;
+        }
+    }
+}
+
+static int _xsign(unsigned int quadrant)
+{
+    if(quadrant == 1)
+    {
+        return 1;
+    }
+    else if(quadrant == 2)
+    {
+        return -1;
+    }
+    else if(quadrant == 3)
+    {
+        return -1;
+    }
+    else if(quadrant == 4)
+    {
+        return 1;
+    }
+    return 1; // never reached
+}
+
+static int _ysign(unsigned int quadrant)
+{
+    if(quadrant == 1)
+    {
+        return 1;
+    }
+    else if(quadrant == 2)
+    {
+        return 1;
+    }
+    else if(quadrant == 3)
+    {
+        return -1;
+    }
+    else if(quadrant == 4)
+    {
+        return -1;
+    }
+    return 1; // never reached
+}
+
+static int _check_startquadrant(unsigned int quadrant, coordinate_t x, coordinate_t y, coordinate_t xstart, coordinate_t ystart, int clockwise)
+{
+    if((!clockwise && quadrant == 1) || (clockwise && quadrant == 3))
+    {
+        if(x <= xstart && y >= ystart)
+        {
+            return 1;
+        }
+        return 0;
+    }
+    else if((!clockwise && quadrant == 2) || (clockwise && quadrant == 4))
+    {
+        if(x <= xstart && y <= ystart)
+        {
+            return 1;
+        }
+        return 0;
+    }
+    else if((!clockwise && quadrant == 3) || (clockwise && quadrant == 1))
+    {
+        if(x >= xstart && y <= ystart)
+        {
+            return 1;
+        }
+        return 0;
+    }
+    else if((!clockwise && quadrant == 4) || (clockwise && quadrant == 2))
+    {
+        if(x >= xstart && y >= ystart)
+        {
+            return 1;
+        }
+        return 0;
+    }
+    return 0; // never reached
+}
+
+static int _check_endquadrant(unsigned int quadrant, coordinate_t x, coordinate_t y, coordinate_t xend, coordinate_t yend, int clockwise)
+{
+    if((!clockwise && quadrant == 1) || (clockwise && quadrant == 3))
+    {
+        if(x >= xend && y <= yend)
+        {
+            return 1;
+        }
+        return 0;
+    }
+    else if((!clockwise && quadrant == 2) || (clockwise && quadrant == 4))
+    {
+        if(x >= xend && y >= yend)
+        {
+            return 1;
+        }
+        return 0;
+    }
+    else if((!clockwise && quadrant == 3) || (clockwise && quadrant == 1))
+    {
+        if(x <= xend && y >= yend)
+        {
+            return 1;
+        }
+        return 0;
+    }
+    else if((!clockwise && quadrant == 4) || (clockwise && quadrant == 2))
+    {
+        if(x <= xend && y <= yend)
+        {
+            return 1;
+        }
+        return 0;
+    }
+    return 0; // never reached
+}
+
+static void _assemble_circle_points(struct vector* quarterpoints, unsigned int* quadrants, coordinate_t xstart, coordinate_t ystart, coordinate_t xend, coordinate_t yend, coordinate_t xc, coordinate_t yc, int clockwise, struct vector* result)
+{
+    for(unsigned int i = 0; i < 4; ++i)
+    {
+        unsigned int q = quadrants[i];
+        if(!q)
+        {
+            break;
+        }
+        unsigned int startj = (i == 0) ? 0 : 1;
+        for(unsigned int j = startj; j < vector_size(quarterpoints); ++j)
+        {
+            unsigned int idx;
+            if(clockwise)
+            {
+                idx = (q % 2 == 0) ? j : (vector_size(quarterpoints) - j - 1);
+            }
+            else
+            {
+                idx = (q % 2 == 0) ? (vector_size(quarterpoints) - j - 1) : j;
+            }
+            point_t* pt = vector_get(quarterpoints, idx);
+            coordinate_t x = pt->x;
+            coordinate_t y = pt->y;
+            x = x * _xsign(q);
+            y = y * _ysign(q);
+            int insert = 0;
+            if(i == 0) // start quadrant
+            {
+                insert = _check_startquadrant(q, x, y, xstart, ystart, clockwise);
+            }
+            else if(i == 3 || quadrants[i + 1] == 0) // end quadrant
+            {
+                insert = _check_endquadrant(q, x, y, xend, yend, clockwise);
+            }
+            else // insert every point of an intermediate quadrant
+            {
+                insert = 1;
+            }
+            if(insert)
+            {
+                vector_append(result, point_create(xc + x, yc + y));
+            }
+        }
+    }
+}
+
+static void _ellipse(coordinate_t ox, coordinate_t oy, ucoordinate_t xradius, ucoordinate_t yradius, double startangle, double endangle, int clockwise, unsigned int grid, int allow45, struct vector* result)
+{
+    //util.check_grid(grid, origin->x, origin->y, xradius, yradius)
+
+    coordinate_t xstart = xradius * cos(startangle * M_PI / 180);
+    coordinate_t xend = xradius * cos(endangle * M_PI / 180);
+    coordinate_t ystart = yradius * sin(startangle * M_PI / 180);
+    coordinate_t yend = yradius * sin(endangle * M_PI / 180);
+
+    unsigned int startquadrant = _map_xy_to_quadrant(xstart, ystart);
+    unsigned int endquadrant = _map_xy_to_quadrant(xend, yend);
+
+    struct vector* quarterpoints = _rasterize_quarterellipse(xradius, yradius, grid, allow45);
+
+    unsigned int quadrants[4] = { 0 };
+    _get_quadrant_list(startquadrant, endquadrant, clockwise, quadrants);
+
+    _assemble_circle_points(quarterpoints, quadrants, xstart, ystart, xend, yend, ox, oy, clockwise, result);
+}
+
+static void _circle(coordinate_t ox, coordinate_t oy, ucoordinate_t radius, double startangle, double endangle, int clockwise, unsigned int grid, int allow45, struct vector* result)
+{
+    //util.check_grid(grid, origin->x, origin->y, xradius, yradius)
+
+    coordinate_t xstart = radius * cos(startangle * M_PI / 180);
+    coordinate_t xend = radius * cos(endangle * M_PI / 180);
+    coordinate_t ystart = radius * sin(startangle * M_PI / 180);
+    coordinate_t yend = radius * sin(endangle * M_PI / 180);
+
+    unsigned int startquadrant = _map_xy_to_quadrant(xstart, ystart);
+    unsigned int endquadrant = _map_xy_to_quadrant(xend, yend);
+
+    struct vector* quarterpoints = _rasterize_quartercircle(radius, grid, allow45);
+
+    unsigned int quadrants[4] = { 0 };
+    _get_quadrant_list(startquadrant, endquadrant, clockwise, quadrants);
+
+    _assemble_circle_points(quarterpoints, quadrants, xstart, ystart, xend, yend, ox, oy, clockwise, result);
+
+    vector_destroy(quarterpoints, point_destroy);
+}
+
+void graphics_raster_arc_segment(point_t* startpt, double startangle, double endangle, coordinate_t radius, int clockwise, unsigned int grid, int allow45, struct vector* result)
+{
+    coordinate_t cx = startpt->x - cos(startangle * M_PI / 180) * radius;
+    coordinate_t cy = startpt->y - sin(startangle * M_PI / 180) * radius;
+    _circle(cx, cy, radius, startangle, endangle, clockwise, grid, allow45, result);
 }
 

@@ -61,6 +61,7 @@ void object_add_port(object_t* cell, const char* name, generics_t* layer, point_
 void object_add_bus_port(object_t* cell, const char* name, generics_t* layer, point_t* where, int startindex, int endindex, unsigned int xpitch, unsigned int ypitch);
 void object_set_alignment_box(object_t* cell, coordinate_t blx, coordinate_t bly, coordinate_t trx, coordinate_t try);
 void object_inherit_alignment_box(object_t* cell, object_t* other);
+void object_get_minmax_xy(const object_t* cell, coordinate_t* minxp, coordinate_t* minyp, coordinate_t* maxxp, coordinate_t* maxyp);
 
 // transformations
 void object_move_to(object_t* cell, coordinate_t x, coordinate_t y);

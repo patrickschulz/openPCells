@@ -20,10 +20,10 @@ struct entry
 struct cmdoptions* cmdoptions_create(void)
 {
     struct cmdoptions* options = malloc(sizeof(*options));
-    options->entries = vector_create();
-    options->positional_parameters = vector_create();
-    options->prehelpmsg = const_vector_create();
-    options->posthelpmsg = const_vector_create();
+    options->entries = vector_create(128);
+    options->positional_parameters = vector_create(8);
+    options->prehelpmsg = const_vector_create(1);
+    options->posthelpmsg = const_vector_create(1);
     options->force_narrow_mode = 0;
     return options;
 }

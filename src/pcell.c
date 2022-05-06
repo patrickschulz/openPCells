@@ -15,9 +15,9 @@
 struct pcell_state* pcell_initialize_state(struct vector* cellpaths_to_prepend, struct vector* cellpaths_to_append)
 {
     struct pcell_state* pcell_state = malloc(sizeof(*pcell_state));
-    pcell_state->used_names = vector_create();
-    pcell_state->references = vector_create();
-    pcell_state->cellpaths = vector_create();
+    pcell_state->used_names = vector_create(64);
+    pcell_state->references = vector_create(64);
+    pcell_state->cellpaths = vector_create(64);
     if(cellpaths_to_prepend)
     {
         for(unsigned int i = 0; i < vector_size(cellpaths_to_prepend); ++i)

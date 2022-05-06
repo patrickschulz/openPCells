@@ -6,7 +6,7 @@
 struct keyvaluearray* keyvaluearray_create(void)
 {
     struct keyvaluearray* array = malloc(sizeof(*array));
-    array->pairs = vector_create();
+    array->pairs = vector_create(32);
     return array;
 }
 
@@ -72,7 +72,7 @@ size_t keyvaluearray_size(const struct keyvaluearray* array)
     return vector_size(array->pairs);
 }
 
-struct keyvaluepair* keyvaluearray_get_indexed_pair(const struct keyvaluearray* array, size_t idx)
+const struct keyvaluepair* keyvaluearray_get_indexed_pair(const struct keyvaluearray* array, size_t idx)
 {
     return vector_get(array->pairs, idx);
 }

@@ -40,7 +40,7 @@ static int _load_config(struct keyvaluearray* config)
     free(filename);
     if(ret == LUA_OK)
     {
-        struct vector* techpaths = vector_create();
+        struct vector* techpaths = vector_create(8);
         lua_getfield(L, -1, "techpaths");
         if(!lua_isnil(L, -1))
         {
@@ -178,7 +178,7 @@ int main(int argc, const char* const * argv)
     if(cmdoptions_was_provided_long(cmdoptions, "listcellpaths") ||
        cmdoptions_was_provided_long(cmdoptions, "list"))
     {
-        struct vector* cellpaths_to_prepend = vector_create();
+        struct vector* cellpaths_to_prepend = vector_create(8);
         if(cmdoptions_was_provided_long(cmdoptions, "prepend-cellpath"))
         {
             const char** arg = cmdoptions_get_argument_long(cmdoptions, "prepend-cellpath");
@@ -188,7 +188,7 @@ int main(int argc, const char* const * argv)
                 ++arg;
             }
         }
-        struct vector* cellpaths_to_append = vector_create();
+        struct vector* cellpaths_to_append = vector_create(8);
         if(cmdoptions_was_provided_long(cmdoptions, "cellpath"))
         {
             const char** arg = cmdoptions_get_argument_long(cmdoptions, "cellpath");

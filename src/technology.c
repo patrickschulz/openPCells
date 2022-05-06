@@ -437,11 +437,11 @@ int technology_resolve_metal(struct technology_state* techstate, int metalnum)
 struct technology_state* technology_initialize(void)
 {
     struct technology_state* techstate = malloc(sizeof(*techstate));
-    techstate->layertable = vector_create();
-    techstate->viatable = vector_create();
+    techstate->layertable = vector_create(32);
+    techstate->viatable = vector_create(32);
     techstate->config = malloc(sizeof(*techstate->config));
     techstate->constraints = keyvaluearray_create();
-    techstate->techpaths = vector_create();
+    techstate->techpaths = vector_create(32);
     return techstate;
 }
 

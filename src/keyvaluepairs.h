@@ -30,7 +30,7 @@ void keyvaluearray_add_untagged(struct keyvaluearray*, const char* key, void* va
 
 size_t keyvaluearray_size(const struct keyvaluearray* array);
 
-struct keyvaluepair* keyvaluearray_get_indexed_pair(const struct keyvaluearray*, size_t idx);
+const struct keyvaluepair* keyvaluearray_get_indexed_pair(const struct keyvaluearray*, size_t idx);
 void* keyvaluearray_get(const struct keyvaluearray*, const char* key);
 int keyvaluearray_get_int(const struct keyvaluearray*, const char* key, int* value);
 
