@@ -9,14 +9,14 @@ return {
     nand_gate = {
         width = 2,
         pinoffsets = {
-            A = { x = 0, y = 0 },
-            B = { x = 1, y = 0 },
+            A = { x = 0, y = -1 },
+            B = { x = 1, y = 1 },
             O = { x = 2, y = 0 }
         },
     },
     nor_gate = {
         width = 2,
-        pinoffsets = { 
+        pinoffsets = {
             A = { x = 0, y = 0 },
             B = { x = 1, y = 0 },
             O = { x = 2, y = 0 }
@@ -43,7 +43,7 @@ return {
         pinoffsets = {
             CLK = { x = 0, y = 0 },
             D = { x = 0, y = 0 },
-            Q = { x = 20, y = 0 },
+            Q = { x = 20, y = 1 },
         },
     },
     dffnq = {
