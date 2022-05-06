@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <stdbool.h>
 
 #include "lrouter_net.h"
 #include "lrouter_route.h"
@@ -104,7 +105,7 @@ static void lrouter_split_nets(struct netcollection* nc)
                 for(size_t k = 0; k < nc->nets[i].size; k++)
                 {
                     /* dont check m.d. for itself again */
-                        if((int)k == j)
+                    if((int)k == j)
                         continue;
 
                     nextx = (int)nc->nets[i].positions[k].x;
@@ -175,6 +176,7 @@ int lrouter_route(lua_State* L)
 
     lrouter_split_nets(nc);
     net_sort_nets(nc->nets, nc->num_nets);
+    net_fill_ports(nc->nets, nc->num_nets, field);
 
     int routed_count = 0;
 
@@ -182,7 +184,6 @@ int lrouter_route(lua_State* L)
     lua_newtable(L);
 
     for(unsigned int i = 0; i < nc->num_nets; ++i)
-    //for(unsigned int i = 0; i < 4; ++i)
     {
 
         /* dont route nets without at least 2 points */
@@ -216,8 +217,6 @@ int lrouter_route(lua_State* L)
             printf("post create deltas\n");
             net_print_path(&nc->nets[i]);
 
-	    bool need_switchdirection = false;
-
             point_t *curr_point;
             int point_count = 2;
             while((curr_point = (point_t *)queue_dequeue(nc->nets[i].path))
@@ -227,15 +226,7 @@ int lrouter_route(lua_State* L)
                     if(curr_point->x)
 			moves_create_delta(L, X_DIR, curr_point->x);
 		    else if(curr_point->y)
-                    {
-			moves_create_switchdirection(L);
-			need_switchdirection = true;
-		        lua_rawseti(L, -2, point_count + 1);
-		        point_count++;
-
-			lua_newtable(L);
 			moves_create_delta(L, Y_DIR, curr_point->y);
-                    }
 		    else if(curr_point->z)
 			moves_create_via(L, -1 * curr_point->z);
 

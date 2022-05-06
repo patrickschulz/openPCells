@@ -98,7 +98,7 @@ void field_destroy(int*** field, size_t width, size_t height, size_t num_layers)
 
 void field_print(int*** field, size_t width, size_t height, unsigned int layer)
 {
-	for(int i = (int)width; i >= 0; i--) {
+	for(int i = (int)width + 1; i >= 0; i--) {
 		if(i == 0) {
 			printf("%u", layer);
 		} else {
@@ -107,6 +107,7 @@ void field_print(int*** field, size_t width, size_t height, unsigned int layer)
 	}
 	printf("=\n");
 	for(int i = (int)height - 1; i >= 0; i--) {
+		printf("%02i ", i);
 		for(size_t j = 0; j < width; j++) {
 			if(field[layer][j][i] == PATH)
 				green();

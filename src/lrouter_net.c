@@ -197,3 +197,20 @@ void net_sort_nets(net_t* nets, size_t num_nets)
 	/* sort rankings */
 	qsort(nets, num_nets, sizeof(net_t), cmp_func);
 }
+
+
+void net_fill_ports(net_t* nets, size_t num_nets, int*** field)
+{
+	for(unsigned int i = 0; i < num_nets; i++)
+	{
+		net_t net = nets[i];
+		for(unsigned int j = 0; j < net.size; j++)
+		{
+			unsigned int x, y, z;
+			x = net.positions[j].x;
+			y = net.positions[j].y;
+			z = net.positions[j].z;
+			field[z][x][y] = PORT;
+		}
+	}
+}
