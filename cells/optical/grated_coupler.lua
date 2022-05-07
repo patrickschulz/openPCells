@@ -38,7 +38,7 @@ function layout(coupler, _P)
         ):fix(_P.grid)),
         curve.lineto(point.create(0, -_P.linewidth / 2)),
         curve.lineto(point.create(-_P.linelength, -_P.linewidth / 2)),
-    }, _P.grid)
+    }, _P.grid, true)
 
     -- circle segments
     for i = 1, _P.numsegments do
@@ -53,6 +53,6 @@ function layout(coupler, _P)
                 -math.floor(sin * (_P.baseradius + _P.segmentspace + (i - 1) * pitch + _P.segmentwidth))
             ):fix(_P.grid)),
             curve.arcto(-_P.angle / 2, _P.angle / 2, _P.baseradius + _P.segmentspace + (i - 1) * pitch + _P.segmentwidth, false),
-        }, _P.grid)
+        }, _P.grid, true)
     end
 end

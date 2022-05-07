@@ -506,7 +506,8 @@ static int lgeometry_curve(lua_State* L)
     generics_t* layer = _check_generics(L, 2);
     lpoint_t* origin = lpoint_checkpoint(L, 3);
     unsigned int grid = luaL_optinteger(L, 5, 1);
-    shape_t* S = shape_create_curve(layer, origin->point->x, origin->point->y, grid);
+    int allow45 = lua_toboolean(L, 6);
+    shape_t* S = shape_create_curve(layer, origin->point->x, origin->point->y, grid, allow45);
 
     lua_len(L, 4);
     size_t len = lua_tointeger(L, -1);
