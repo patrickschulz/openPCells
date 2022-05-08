@@ -23,6 +23,7 @@ function layout(coupler, _P)
     local cos = math.cos(_P.angle / 2 * math.pi / 180)
     local sin = math.sin(_P.angle / 2 * math.pi / 180)
 
+    -- FIXME: calculate intersection of horizontal feed line and angled line from main segment
     -- main segment (with feed line)
     geometry.curve(coupler, generics.metal(_P.metalnum), point.create(-_P.linelength, 0), {
         curve.lineto(point.create(-_P.linelength, _P.linewidth / 2)),
@@ -32,10 +33,6 @@ function layout(coupler, _P)
             math.floor(math.sin(_P.angle / 2 * math.pi / 180) * _P.baseradius)
         ):fix(_P.grid)),
         curve.arcto(_P.angle / 2, -_P.angle / 2, _P.baseradius, true),
-        curve.lineto(point.create(
-            math.floor(math.cos(_P.angle / 2 * math.pi / 180) * _P.baseradius),
-            -math.floor(math.sin(_P.angle / 2 * math.pi / 180) * _P.baseradius)
-        ):fix(_P.grid)),
         curve.lineto(point.create(0, -_P.linewidth / 2)),
         curve.lineto(point.create(-_P.linelength, -_P.linewidth / 2)),
     }, _P.grid, true)
