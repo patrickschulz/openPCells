@@ -13,6 +13,7 @@ local __drawpatterns = false
 local __resizebox = false
 local __externaldisable
 local __baseunit = 1
+local __expressionscale = false
 
 function M.set_options(opt)
     for i = 1, #opt do
@@ -22,6 +23,10 @@ function M.set_options(opt)
         end
         if arg == "-p" or arg == "--pattern" then
             __drawpatterns = true
+        end
+        if arg == "-e" or arg == "--expression-scale" then
+            print("expressionsscale")
+            __expressionscale = true
         end
         if arg == "-b" or arg == "--base-unit" then
             if i < #opt then
@@ -99,8 +104,11 @@ function M.at_begin()
     if __resizebox then
         table.insert(__before, '\\begin{adjustbox}{width=\\linewidth}')
     end
+    if __expressionscale then
+        table.insert(__before, '\\def\\opclayoutscale{20}')
+    end
     table.insert(__before, '\\begin{tikzpicture}')
-    table.insert(__options, "x = 5, y = 5")
+    --table.insert(__options, "x = 5, y = 5")
 end
 
 function M.at_end()
@@ -125,7 +133,12 @@ local function intlog10(num)
 end
 
 local function _format_number(num)
-    local fmt = string.format("%%s%%u.%%0%uu", intlog10(__baseunit))
+    local fmt
+    if __expressionscale then
+        fmt = string.format("%%s%%u.%%0%uu / \\opclayoutscale", intlog10(__baseunit))
+    else
+        fmt = string.format("%%s%%u.%%0%uu", intlog10(__baseunit))
+    end
     local sign = "";
     if num < 0 then
         sign = "-"
@@ -139,7 +152,11 @@ end
 local function _format_point(pt)
     local sx = _format_number(pt.x)
     local sy = _format_number(pt.y)
-    return string.format("%s, %s", sx, sy)
+    if __expressionscale then
+        return string.format("{ %s, %s }", sx, sy)
+    else
+        return string.format("%s, %s", sx, sy)
+    end
 end
 
 local colors = {}
@@ -213,9 +230,8 @@ function M.setup_curve(layer, origin)
     table.insert(curvecontent, string.format("%s (%s)", _format_layer(layer), _format_point(origin)))
 end
 
-function M.curve_add_line_segment(pt1, pt2)
-    table.insert(curvecontent, string.format("-- (%s)", _format_point(pt1)))
-    table.insert(curvecontent, string.format("-- (%s)", _format_point(pt2)))
+function M.curve_add_line_segment(pt)
+    table.insert(curvecontent, string.format("-- (%s)", _format_point(pt)))
 end
 
 function M.curve_add_arc_segment(startpt, startangle, endangle, radius, clockwise)
@@ -225,7 +241,7 @@ function M.curve_add_arc_segment(startpt, startangle, endangle, radius, clockwis
     }
     clockwise = clockwise and 0 or 1
     --table.insert(curvecontent, string.format("A %d %d 0 0 %d %s", __scale * radius, __scale * radius, clockwise, _format_point(pt)))
-    table.insert(curvecontent, string.format("arc[start angle = %d, end angle = %d, radius = %d]", startangle, endangle, _format_number(radius)))
+    table.insert(curvecontent, string.format("arc[start angle = %d, end angle = %d, radius = %s]", startangle, endangle, _format_number(radius)))
 end
 
 function M.close_curve()
