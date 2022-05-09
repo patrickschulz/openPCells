@@ -497,9 +497,8 @@ static int _write_lua_curve(lua_State* L, const struct keyvaluearray* layerdata,
             case LINESEGMENT:
             {
                 lua_getfield(L, -1, "curve_add_line_segment");
-                _push_point(L, lastpt);
                 _push_point(L, segment->data.pt);
-                ret = lua_pcall(L, 2, 0, 0);
+                ret = lua_pcall(L, 1, 0, 0);
                 if(ret != LUA_OK)
                 {
                     return ret;

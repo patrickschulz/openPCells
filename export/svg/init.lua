@@ -159,9 +159,8 @@ function M.setup_curve(layer, origin)
     table.insert(curvecontent, string.format('<path style = "%s" d = "M %s', _get_style(layer), _format_point(origin)))
 end
 
-function M.curve_add_line_segment(pt1, pt2)
+function M.curve_add_line_segment(pt1)
     table.insert(curvecontent, string.format("L %s", _format_point(pt1)))
-    table.insert(curvecontent, string.format("L %s", _format_point(pt2)))
 end
 
 function M.curve_add_arc_segment(startpt, startangle, endangle, radius, clockwise)

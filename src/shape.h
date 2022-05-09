@@ -44,6 +44,7 @@ struct curve {
     point_t* origin;
     struct vector* segments;
     unsigned int grid;
+    int allow45;
 };
 
 typedef struct {
@@ -61,7 +62,7 @@ typedef struct {
 shape_t* shape_create_rectangle(generics_t* layer, coordinate_t bl_x, coordinate_t bl_y, coordinate_t tr_x, coordinate_t tr_y);
 shape_t* shape_create_polygon(generics_t* layer, size_t capacity);
 shape_t* shape_create_path(generics_t* layer, size_t capacity, ucoordinate_t width, coordinate_t extstart, coordinate_t extend);
-shape_t* shape_create_curve(generics_t* layer, coordinate_t x, coordinate_t y, unsigned int grid);
+shape_t* shape_create_curve(generics_t* layer, coordinate_t x, coordinate_t y, unsigned int grid, int allow45);
 shape_t* shape_copy(shape_t* shape);
 void shape_destroy(shape_t* shape);
 

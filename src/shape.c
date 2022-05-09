@@ -46,13 +46,14 @@ shape_t* shape_create_path(generics_t* layer, size_t capacity, ucoordinate_t wid
     return shape;
 }
 
-shape_t* shape_create_curve(generics_t* layer, coordinate_t x, coordinate_t y, unsigned int grid)
+shape_t* shape_create_curve(generics_t* layer, coordinate_t x, coordinate_t y, unsigned int grid, int allow45)
 {
     shape_t* shape = _create_shape(CURVE, layer);
     struct curve* curve = malloc(sizeof(*curve));
     curve->origin = point_create(x, y);
     curve->segments = vector_create(8);
     curve->grid = grid;
+    curve->allow45 = allow45;
     shape->content = curve;
     return shape;
 }
@@ -671,6 +672,19 @@ static coordinate_t _fix_to_grid(coordinate_t c, unsigned int grid)
     return (c / grid) * grid;
 }
 
+static void _remove_superfluous_points(struct vector* pts)
+{
+    for(size_t i = vector_size(pts) - 1; i > 0; --i)
+    {
+        point_t* this = vector_get(pts, i);
+        point_t* that = vector_get(pts, i - 1);
+        if(this->x == that->x && this->y == that->y)
+        {
+            vector_remove(pts, i, point_destroy);
+        }
+    }
+}
+
 void shape_rasterize_curve(shape_t* shape)
 {
     if(shape->type != CURVE)
@@ -691,7 +705,7 @@ void shape_rasterize_curve(shape_t* shape)
             {
                 graphics_raster_line_segment(
                     lastpt, segment->data.pt,
-                    curve->grid, 1, rastered_points);
+                    curve->grid, curve->allow45, rastered_points);
                 lastpt->x = segment->data.pt->x;
                 lastpt->y = segment->data.pt->y;
                 break;
@@ -704,7 +718,7 @@ void shape_rasterize_curve(shape_t* shape)
                     segment->data.endangle,
                     segment->data.radius,
                     segment->data.clockwise,
-                    curve->grid, 1, rastered_points);
+                    curve->grid, curve->allow45, rastered_points);
                 double startcos = cos(segment->data.startangle * M_PI / 180);
                 double startsin = sin(segment->data.startangle * M_PI / 180);
                 double endcos = cos(segment->data.endangle * M_PI / 180);
@@ -720,6 +734,8 @@ void shape_rasterize_curve(shape_t* shape)
     vector_iterator_destroy(it);
     point_destroy(curve->origin);
     vector_destroy(curve->segments, free);
+
+    _remove_superfluous_points(rastered_points);
 
     struct polygon* polygon = malloc(sizeof(*polygon));
     polygon->points = rastered_points;
