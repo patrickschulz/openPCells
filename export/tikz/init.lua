@@ -25,7 +25,6 @@ function M.set_options(opt)
             __drawpatterns = true
         end
         if arg == "-e" or arg == "--expression-scale" then
-            print("expressionsscale")
             __expressionscale = true
         end
         if arg == "-b" or arg == "--base-unit" then
@@ -218,7 +217,7 @@ function M.write_polygon(layer, pts)
     end
     table.insert(__content, {
         order = layer.order or 0,
-        content = string.format("%s %s;", _format_layer(layer), table.concat(ptstream, " -- "))
+        content = string.format("%s %s -- cycle;", _format_layer(layer), table.concat(ptstream, " -- "))
     })
 end
 
