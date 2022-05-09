@@ -403,26 +403,20 @@ static struct via_definition* _get_rectangular_arrayzation(ucoordinate_t regionw
     return result;
 }
 
-static void _viabltr(object_t* cell, struct layermap* layermap, struct technology_state* techstate, int metal1, int metal2, coordinate_t blx, coordinate_t bly, coordinate_t trx, coordinate_t try, ucoordinate_t xrep, ucoordinate_t yrep, ucoordinate_t xpitch, ucoordinate_t ypitch)
+static void _via_contact_bltr(
+    object_t* cell,
+    struct via_definition** viadefs, struct via_definition* fallback,
+    generics_t* cutlayer, generics_t* surrounding1, generics_t* surrounding2,
+    coordinate_t blx, coordinate_t bly, coordinate_t trx, coordinate_t try,
+    ucoordinate_t xrep, ucoordinate_t yrep,
+    ucoordinate_t xpitch, ucoordinate_t ypitch,
+    int makearray
+)
 {
-    metal1 = technology_resolve_metal(techstate, metal1);
-    metal2 = technology_resolve_metal(techstate, metal2);
-    if(metal1 > metal2)
+    if(makearray)
     {
-        int tmp = metal1;
-        metal1 = metal2;
-        metal2 = tmp;
-    }
-    ucoordinate_t width = trx - blx;
-    ucoordinate_t height = try - bly;
-    for(int i = metal1; i < metal2; ++i)
-    {
-        struct via_definition** viadefs = technology_get_via_definitions(techstate, i, i + 1);
-        struct via_definition* fallback = technology_get_via_fallback(techstate, i, i + 1);
-        if(!viadefs)
-        {
-            return;
-        }
+        ucoordinate_t width = trx - blx;
+        ucoordinate_t height = try - bly;
         unsigned int viaxrep, viayrep, viaxpitch, viaypitch;
         struct via_definition* entry = _get_rectangular_arrayzation(width, height, viadefs, fallback, &viaxrep, &viayrep, &viaxpitch, &viaypitch, 0, 0);
         if(!entry)
@@ -434,7 +428,7 @@ static void _viabltr(object_t* cell, struct layermap* layermap, struct technolog
             for(unsigned int y = 1; y <= yrep; ++y)
             {
                 _rectanglebltr(cell, 
-                    generics_create_viacut(layermap, techstate, i, i + 1), 
+                    cutlayer, 
                     (x - 1) * xpitch - (xrep - 1) * xpitch / 2 + (blx + trx) / 2 - entry->width / 2,
                     (y - 1) * ypitch - (yrep - 1) * ypitch / 2 + (bly + try) / 2 - entry->height / 2,
                     (x - 1) * xpitch - (xrep - 1) * xpitch / 2 + (blx + trx) / 2 + entry->width / 2,
@@ -443,8 +437,50 @@ static void _viabltr(object_t* cell, struct layermap* layermap, struct technolog
                 );
             }
         }
-        _rectanglebltr(cell, generics_create_metal(layermap, techstate, i), blx, bly, trx, try, xrep, yrep, xpitch, ypitch);
-        _rectanglebltr(cell, generics_create_metal(layermap, techstate, i + 1), blx, bly, trx, try, xrep, yrep, xpitch, ypitch);
+    }
+    else
+    {
+        _rectanglebltr(cell, cutlayer, blx, bly, trx, try, xrep, yrep, xpitch, ypitch);
+    }
+    _rectanglebltr(cell, surrounding1, blx, bly, trx, try, xrep, yrep, xpitch, ypitch);
+    _rectanglebltr(cell, surrounding2, blx, bly, trx, try, xrep, yrep, xpitch, ypitch);
+}
+
+static void _viabltr(
+    object_t* cell,
+    struct layermap* layermap,
+    struct technology_state* techstate,
+    int metal1, int metal2,
+    coordinate_t blx, coordinate_t bly, coordinate_t trx, coordinate_t try,
+    ucoordinate_t xrep, ucoordinate_t yrep,
+    ucoordinate_t xpitch, ucoordinate_t ypitch
+)
+{
+    metal1 = technology_resolve_metal(techstate, metal1);
+    metal2 = technology_resolve_metal(techstate, metal2);
+    if(metal1 > metal2)
+    {
+        int tmp = metal1;
+        metal1 = metal2;
+        metal2 = tmp;
+    }
+    for(int i = metal1; i < metal2; ++i)
+    {
+        struct via_definition** viadefs = technology_get_via_definitions(techstate, i, i + 1);
+        struct via_definition* fallback = technology_get_via_fallback(techstate, i, i + 1);
+        if(!viadefs)
+        {
+            return;
+        }
+        _via_contact_bltr(cell,
+            viadefs, fallback,
+            generics_create_viacut(layermap, techstate, i, i + 1),
+            generics_create_metal(layermap, techstate, i),
+            generics_create_metal(layermap, techstate, i + 1),
+            blx, bly, trx, try,
+            xrep, yrep, xpitch, ypitch,
+            1
+        );
     }
 }
 
@@ -484,22 +520,15 @@ static void _contactbltr(
     {
         return;
     }
-    for(unsigned int x = 1; x <= xrep; ++x)
-    {
-        for(unsigned int y = 1; y <= yrep; ++y)
-        {
-            _rectanglebltr(cell, 
-                generics_create_contact(layermap, techstate, region),
-                (x - 1) * xpitch - (xrep - 1) * xpitch / 2 + (blx + trx) / 2 - entry->width / 2,
-                (y - 1) * ypitch - (yrep - 1) * ypitch / 2 + (bly + try) / 2 - entry->height / 2,
-                (x - 1) * xpitch - (xrep - 1) * xpitch / 2 + (blx + trx) / 2 + entry->width / 2,
-                (y - 1) * ypitch - (yrep - 1) * ypitch / 2 + (bly + try) / 2 + entry->height / 2,
-                viaxrep, viayrep, viaxpitch, viaypitch
-            );
-        }
-    }
-    _rectanglebltr(cell, generics_create_metal(layermap, techstate, 1), blx, bly, trx, try, xrep, yrep, xpitch, ypitch);
-    _rectanglebltr(cell, generics_create_other(layermap, techstate, "active"), blx, bly, trx, try, xrep, yrep, xpitch, ypitch);
+    _via_contact_bltr(cell,
+        viadefs, fallback,
+        generics_create_contact(layermap, techstate, region),
+        generics_create_metal(layermap, techstate, 1),
+        generics_create_other(layermap, techstate, "active"),
+        blx, bly, trx, try,
+        xrep, yrep, xpitch, ypitch,
+        1
+    );
 }
 
 void geometry_contactbltr(
