@@ -249,7 +249,12 @@ int main(int argc, const char* const * argv)
         {
             returnvalue = 1;
         }
+        goto DESTROY_CONFIG;
     }
+
+    // should not reach here
+    fputs("no cell given\n", stderr);
+    returnvalue = 1;
 
     // clean up states
 DESTROY_CONFIG: ;
