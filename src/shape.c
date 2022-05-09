@@ -672,6 +672,19 @@ static coordinate_t _fix_to_grid(coordinate_t c, unsigned int grid)
     return (c / grid) * grid;
 }
 
+static void _remove_superfluous_points(struct vector* pts)
+{
+    for(size_t i = vector_size(pts) - 1; i > 0; --i)
+    {
+        point_t* this = vector_get(pts, i);
+        point_t* that = vector_get(pts, i - 1);
+        if(this->x == that->x && this->y == that->y)
+        {
+            vector_remove(pts, i, point_destroy);
+        }
+    }
+}
+
 void shape_rasterize_curve(shape_t* shape)
 {
     if(shape->type != CURVE)
@@ -721,6 +734,8 @@ void shape_rasterize_curve(shape_t* shape)
     vector_iterator_destroy(it);
     point_destroy(curve->origin);
     vector_destroy(curve->segments, free);
+
+    _remove_superfluous_points(rastered_points);
 
     struct polygon* polygon = malloc(sizeof(*polygon));
     polygon->points = rastered_points;
