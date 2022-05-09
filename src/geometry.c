@@ -108,6 +108,11 @@ static void _shift_line(point_t* pt1, point_t* pt2, ucoordinate_t width, point_t
 static struct vector* _get_edge_segments(point_t** points, size_t numpoints, ucoordinate_t width, unsigned int grid)
 {
     struct vector* edges = vector_create(4 * (numpoints - 1));
+    // append dummy points, later filled by _shift_line
+    for(unsigned int i = 0; i < 4 * (numpoints - 1); ++i)
+    {
+        vector_append(edges, point_create(0, 0));
+    }
     // start to end
     for(unsigned int i = 0; i < numpoints - 1; ++i)
     {
@@ -191,7 +196,7 @@ static struct vector* _get_path_pts(struct vector* edges, int miterjoin)
         }
     }
     // end points
-    vector_append(poly, point_copy(vector_get(edges, 2 * segs)));
+    vector_append(poly, point_copy(vector_get(edges, 2 * segs - 1)));
     vector_append(poly, point_copy(vector_get(edges, 2 * segs)));
     // second middle points
     for(unsigned int seg = 0; seg < segs - 1; ++seg)
@@ -213,8 +218,8 @@ static struct vector* _get_path_pts(struct vector* edges, int miterjoin)
             free(pt);
         }
     }
-    // second start point
-    vector_append(poly, point_copy(vector_get(edges, numedges)));
+    // second start point FIXME: index too high?
+    vector_append(poly, point_copy(vector_get(edges, numedges - 1)));
     return poly;
 }
 
