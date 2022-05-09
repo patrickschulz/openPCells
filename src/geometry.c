@@ -487,7 +487,7 @@ static void _viabltr(
             generics_create_metal(layermap, techstate, i + 1),
             blx, bly, trx, try,
             xrep, yrep, xpitch, ypitch,
-            1
+            techstate->create_via_arrays
         );
     }
 }
@@ -535,7 +535,7 @@ static void _contactbltr(
         generics_create_other(layermap, techstate, "active"),
         blx, bly, trx, try,
         xrep, yrep, xpitch, ypitch,
-        1
+        techstate->create_via_arrays
     );
 }
 
