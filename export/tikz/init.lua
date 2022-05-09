@@ -105,7 +105,7 @@ function M.at_begin()
         table.insert(__before, '\\begin{adjustbox}{width=\\linewidth}')
     end
     if __expressionscale then
-        table.insert(__before, '\\def\\opclayoutscale{20}')
+        table.insert(__before, '\\def\\opclayoutscale{1}')
     end
     table.insert(__before, '\\begin{tikzpicture}')
     --table.insert(__options, "x = 5, y = 5")
@@ -135,7 +135,7 @@ end
 local function _format_number(num)
     local fmt
     if __expressionscale then
-        fmt = string.format("%%s%%u.%%0%uu / \\opclayoutscale", intlog10(__baseunit))
+        fmt = string.format("%%s%%u.%%0%uu * \\opclayoutscale", intlog10(__baseunit))
     else
         fmt = string.format("%%s%%u.%%0%uu", intlog10(__baseunit))
     end
