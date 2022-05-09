@@ -243,6 +243,11 @@ int lrouter_route(lua_State* L)
 		    }
                 }
 
+                /* FIXME: via before seconds anchor */
+	        lua_newtable(L);
+	        moves_create_via(L, -2);
+	        lua_rawseti(L, -2, 2);
+
 		/* second anchor */
 		lua_newtable(L);
 	        moves_create_anchor(L, nc->nets[i].positions[1].instance,
