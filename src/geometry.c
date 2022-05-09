@@ -101,8 +101,10 @@ static void _shift_line(point_t* pt1, point_t* pt2, ucoordinate_t width, point_t
     double angle = atan2(pt2->y - pt1->y, pt2->x - pt1->x) - M_PI / 2;
     coordinate_t xshift = grid * floor(floor(width * cos(angle) + 0.5) / grid);
     coordinate_t yshift = grid * floor(floor(width * sin(angle) + 0.5) / grid);
-    *spt1 = point_create(pt1->x + xshift, pt1->y + yshift);
-    *spt2 = point_create(pt2->x + xshift, pt2->y + yshift);
+    (*spt1)->x = pt1->x + xshift;
+    (*spt1)->y = pt1->y + yshift;
+    (*spt2)->x = pt2->x + xshift;
+    (*spt2)->y = pt2->y + yshift;
 }
 
 static struct vector* _get_edge_segments(point_t** points, size_t numpoints, ucoordinate_t width, unsigned int grid)
@@ -218,7 +220,7 @@ static struct vector* _get_path_pts(struct vector* edges, int miterjoin)
             free(pt);
         }
     }
-    // second start point FIXME: index too high?
+    // second start point
     vector_append(poly, point_copy(vector_get(edges, numedges - 1)));
     return poly;
 }
@@ -278,6 +280,7 @@ shape_t* geometry_path_to_polygon(generics_t* layer, point_t** points, size_t nu
         vector_iterator_next(it);
     }
     vector_iterator_destroy(it);
+    vector_destroy(poly, point_destroy);
     return S;
 }
 
