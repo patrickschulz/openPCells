@@ -450,8 +450,14 @@ static void _via_contact_bltr(
     {
         _rectanglebltr(cell, cutlayer, blx, bly, trx, try, xrep, yrep, xpitch, ypitch);
     }
-    _rectanglebltr(cell, surrounding1, blx, bly, trx, try, xrep, yrep, xpitch, ypitch);
-    _rectanglebltr(cell, surrounding2, blx, bly, trx, try, xrep, yrep, xpitch, ypitch);
+    if(surrounding1)
+    {
+        _rectanglebltr(cell, surrounding1, blx, bly, trx, try, xrep, yrep, xpitch, ypitch);
+    }
+    if(surrounding2)
+    {
+        _rectanglebltr(cell, surrounding2, blx, bly, trx, try, xrep, yrep, xpitch, ypitch);
+    }
 }
 
 static void _viabltr(
@@ -532,7 +538,7 @@ static void _contactbltr(
         viadefs, fallback,
         generics_create_contact(layermap, techstate, region),
         generics_create_metal(layermap, techstate, 1),
-        generics_create_other(layermap, techstate, "active"),
+        NULL,
         blx, bly, trx, try,
         xrep, yrep, xpitch, ypitch,
         techstate->create_via_arrays
