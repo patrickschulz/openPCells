@@ -7,6 +7,15 @@
 #include "vector.h"
 #include "hashmap.h"
 
+struct port
+{
+    char* name;
+    point_t* where;
+    generics_t* layer;
+    int isbusport;
+    int busindex;
+};
+
 struct object_t
 {
     char* name;
@@ -26,15 +35,7 @@ struct object_t
     size_t shapes_size;
     size_t shapes_capacity;
 
-    struct port
-    {
-        char* name;
-        point_t* where;
-        generics_t* layer;
-        int isbusport;
-        int busindex;
-    } **ports;
-    size_t ports_size;
+    struct vector* ports;
 
     struct hashmap* anchors;
 

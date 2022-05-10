@@ -9,7 +9,7 @@ static void _push_layer(lua_State* L, generics_t* layer, const char* info)
 {
     if(!layer)
     {
-        lua_pushfstring(L, "generics: got NULL layer: generics.%s", info);
+        lua_pushfstring(L, "generics: got NULL layer: generics.%s\nif this layer is not needed, set it to {}", info);
         lua_error(L);
     }
     lua_pushlightuserdata(L, layer);
@@ -129,6 +129,20 @@ static int lgenerics_create_other(lua_State* L)
     return 1;
 }
 
+static int lgenerics_create_otherport(lua_State* L)
+{
+    const char* str = luaL_checkstring(L, 1);
+    lua_getfield(L, LUA_REGISTRYINDEX, "genericslayermap");
+    struct layermap* layermap = lua_touserdata(L, -1);
+    lua_pop(L, 1); // pop layermap
+    lua_getfield(L, LUA_REGISTRYINDEX, "techstate");
+    struct technology_state* techstate = lua_touserdata(L, -1);
+    lua_pop(L, 1); // pop techstate
+    generics_t* layer = generics_create_otherport(layermap, techstate, str);
+    _push_layer(L, layer, "otherport");
+    return 1;
+}
+
 static int lgenerics_create_special(lua_State* L)
 {
     lua_getfield(L, LUA_REGISTRYINDEX, "genericslayermap");
@@ -177,6 +191,7 @@ int open_lgenerics_lib(lua_State* L)
         { "implant",                  lgenerics_create_implant           },
         { "vthtype",                  lgenerics_create_vthtype           },
         { "other",                    lgenerics_create_other             },
+        { "otherport",                lgenerics_create_otherport         },
         { "special",                  lgenerics_create_special           },
         { "premapped",                lgenerics_create_premapped         },
         { "resolve_premapped_layers", lgenerics_resolve_premapped_layers },

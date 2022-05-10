@@ -441,21 +441,21 @@ function layout(dff, _P)
     end
 
     -- ports
-    dff:add_port("VDD", generics.metal(1), harness:get_anchor("top"))
-    dff:add_port("VSS", generics.metal(1), harness:get_anchor("bottom"))
-    dff:add_port("CLK", generics.metal(1), gate(1))
-    dff:add_port("D", generics.metal(1), gate(1):translate(0, 2 * (bp.gstwidth + bp.gstspace)))
+    dff:add_port("VDD", generics.metalport(1), harness:get_anchor("top"))
+    dff:add_port("VSS", generics.metalport(1), harness:get_anchor("bottom"))
+    dff:add_port("CLK", generics.metalport(1), gate(1))
+    dff:add_port("D", generics.metalport(1), gate(1):translate(0, 2 * (bp.gstwidth + bp.gstspace)))
     if _P.enable_Q then
-        dff:add_port("Q", generics.metal(1), gate(21 + 2 * setshift + 3 * resetshift):translate(xpitch, 0))
+        dff:add_port("Q", generics.metalport(1), gate(21 + 2 * setshift + 3 * resetshift):translate(xpitch, 0))
     end
     if _P.enable_QN then
-        dff:add_port("QN", generics.metal(1), gate(23 + 2 * setshift + 3 * resetshift):translate(xpitch, 0))
+        dff:add_port("QN", generics.metalport(1), gate(23 + 2 * setshift + 3 * resetshift):translate(xpitch, 0))
     end
     if _P.enable_set then
-        dff:add_port("SET", generics.metal(2), point.combine(gate(13), gate(22)))
+        dff:add_port("SET", generics.metalport(2), point.combine(gate(13), gate(22)))
     end
     if _P.enable_reset then
-        dff:add_port("RST", generics.metal(2), point.combine(gate(12), gate(21)))
+        dff:add_port("RST", generics.metalport(2), point.combine(gate(12), gate(21)))
     end
 
     -- alignment box

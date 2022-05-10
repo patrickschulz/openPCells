@@ -230,6 +230,31 @@ return {
             svg = { color = "8000ff" },
         }
     },
+    -- ports
+    M1port = {
+        name = "metal1port",
+        layer = {
+            gds = { layer = 8, purpose = 1 },
+            SKILL = { layer = "metal1", purpose = "label" },
+            svg = { style = "metal1", order = 4, color = "0000ff" },
+        }
+    },
+    M2port = {
+        name = "metal2port",
+        layer = {
+            gds = { layer = 10, purpose = 1 },
+            SKILL = { layer = "metal2", purpose = "label" },
+            svg = { style = "metal2", order = 6, color = "bb0077" },
+        }
+    },
+    pwellport = {
+        name = "pwellport",
+        layer = {
+            gds = { layer = 2, purpose = 1 },
+            SKILL = { layer = "pwell", purpose = "label" },
+            svg = { color = "ffffcc", order = 1 },
+        }
+    },
     -- unused layers
     soiopen = {},
     oxide1 = {},

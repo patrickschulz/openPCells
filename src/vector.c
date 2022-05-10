@@ -66,6 +66,11 @@ size_t vector_capacity(const struct vector* vector)
     return vector->capacity;
 }
 
+int vector_empty(const struct vector* vector)
+{
+    return vector->size == 0;
+}
+
 void* vector_get(struct vector* vector, size_t i)
 {
     return vector->elements[i];

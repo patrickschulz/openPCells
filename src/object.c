@@ -110,6 +110,14 @@ object_t* object_copy(object_t* cell)
 }
 
 
+void _port_destroy(void* p)
+{
+    struct port* port = p;
+    point_destroy(port->where);
+    free(port->name);
+    free(port);
+}
+
 void object_destroy(void* cellv)
 {
     object_t* cell = cellv;
@@ -138,14 +146,10 @@ void object_destroy(void* cellv)
             hashmap_destroy(cell->anchors, point_destroy);
         }
 
-        // ports
-        for(unsigned int i = 0; i < cell->ports_size; ++i)
+        if(cell->ports)
         {
-            point_destroy(cell->ports[i]->where);
-            free(cell->ports[i]->name);
-            free(cell->ports[i]);
+            vector_destroy(cell->ports, _port_destroy);
         }
-        free(cell->ports);
     }
 
     // name
@@ -423,16 +427,18 @@ struct keyvaluearray* object_get_all_regular_anchors(const object_t* cell)
 
 static void _add_port(object_t* cell, const char* name, const char* anchorname, generics_t* layer, coordinate_t x, coordinate_t y, int isbusport, int busindex)
 {
-    cell->ports_size += 1;
-    struct port** ports = realloc(cell->ports, sizeof(*ports) * cell->ports_size);
-    cell->ports = ports; // TODO: error checking
-    cell->ports[cell->ports_size - 1] = malloc(sizeof(*cell->ports[cell->ports_size]));
-    cell->ports[cell->ports_size - 1]->where = point_create(x, y);
-    cell->ports[cell->ports_size - 1]->layer = layer;
-    cell->ports[cell->ports_size - 1]->isbusport = isbusport;
-    cell->ports[cell->ports_size - 1]->busindex = busindex;
-    cell->ports[cell->ports_size - 1]->name = malloc(strlen(name) + 1);
-    strcpy(cell->ports[cell->ports_size - 1]->name, name);
+    if(!cell->ports)
+    {
+        cell->ports = vector_create(16);
+    }
+    struct port* port = malloc(sizeof(*port));
+    port->where = point_create(x, y);
+    port->layer = layer;
+    port->isbusport = isbusport;
+    port->busindex = busindex;
+    port->name = malloc(strlen(name) + 1);
+    strcpy(port->name, name);
+    vector_append(cell->ports, port);
     object_add_anchor(cell, anchorname, x, y);
 }
 
@@ -716,7 +722,7 @@ void object_apply_transformation(object_t* cell)
 
 int object_is_empty(object_t* cell)
 {
-    return (cell->shapes_size == 0) && (!cell->children) && (cell->ports_size == 0);
+    return (cell->shapes_size == 0) && (!cell->children) && vector_empty(cell->ports);
 }
 
 void object_flatten(object_t* cell, struct pcell_state* pcell_state, int flattenports)

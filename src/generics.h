@@ -33,6 +33,7 @@ generics_t* generics_create_oxide(struct layermap* generics_layer_map, struct te
 generics_t* generics_create_implant(struct layermap* generics_layer_map, struct technology_state* techstate, char polarity);
 generics_t* generics_create_vthtype(struct layermap* generics_layer_map, struct technology_state* techstate, char channeltype, int vthtype);
 generics_t* generics_create_other(struct layermap* generics_layer_map, struct technology_state* techstate, const char* str);
+generics_t* generics_create_otherport(struct layermap* generics_layer_map, struct technology_state* techstate, const char* str);
 
 void generics_destroy_layer(void* layerv);
 
