@@ -35,6 +35,12 @@ function layout(gate, _P)
     local powerspace = (bp.numtracks * (bp.gstwidth + bp.gstspace) - 2 * bp.powerwidth - bp.nwidth - bp.pwidth - separation) / 2
     local routingshift = (bp.gstwidth + bp.gstspace) / (bp.numinnerroutes % 2 == 0 and 2 or 1)
     local cmos = pcell.create_layout("basic/cmos", {
+        nvthtype = bp.nvthtype,
+        pvthtype = bp.pvthtype,
+        pmosflippedwell = bp.pmosflippedwell,
+        nmosflippedwell = bp.nmosflippedwell,
+        gatelength = bp.glength,
+        gatespace = bp.gspace,
         gatecontactpos = _P.gatecontactpos,
         pcontactpos = _P.pcontactpos,
         ncontactpos = _P.ncontactpos,

@@ -7,6 +7,8 @@ function parameters()
         { "oxidetype(Oxide Type)",                             1 },
         { "pvthtype(PMOS Threshold Voltage Type) ",            1 },
         { "nvthtype(NMOS Threshold Voltage Type)",             1 },
+        { "pmosflippedwell(PMOS Flipped Well) ",            false },
+        { "nmosflippedwell(NMOS Flipped Well)",             false },
         { "pwidth(PMOS Finger Width)",                         tech.get_dimension("Minimum Gate Width"), even() },
         { "nwidth(NMOS Finger Width)",                         tech.get_dimension("Minimum Gate Width"), even() },
         { "separation(Separation Between Active Regions)",     tech.get_dimension("Minimum Active Space"), even() },
@@ -89,6 +91,7 @@ function layout(cmos, _P)
         pcell.push_overwrites("basic/mosfet", {
             channeltype = "pmos",
             vthtype = _P.pvthtype,
+            flippedwell = pmosflippedwell,
             fwidth = _P.pwidth,
             gbotext = _P.separation / 2,
             gtopext = ext,
@@ -121,6 +124,7 @@ function layout(cmos, _P)
         -- nmos
         pcell.push_overwrites("basic/mosfet", {
             vthtype = _P.nvthtype,
+            flippedwell = nmosflippedwell,
             fwidth = _P.nwidth,
             gtopext = _P.separation / 2,
             gbotext = ext,

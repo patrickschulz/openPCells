@@ -7,6 +7,8 @@ function parameters()
         { "oxidetype(Oxide Type)",                             1 },
         { "pvthtype(PMOS Threshold Voltage Type) ",            1 },
         { "nvthtype(NMOS Threshold Voltage Type)",             1 },
+        { "pmosflippedwell(PMOS Flipped Well) ",            false },
+        { "nmosflippedwell(NMOS Flipped Well)",             false },
         { "glength(Gate Length)",                              tech.get_dimension("Minimum Gate Length") },
         { "gspace(Gate Spacing)",                              tech.get_dimension("Minimum Gate Space") },
         { "pwidth(PMOS Finger Width)",                         2 * tech.get_dimension("Minimum Gate Width"), even() },
