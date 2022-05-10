@@ -304,7 +304,7 @@
   <xfill>false</xfill>
   <animation>0</animation>
   <name>via5 drawing</name>
-  <source>17/1@1</source>
+  <source>17/0@1</source>
  </properties>
  <properties>
   <frame-color>#ff0000</frame-color>

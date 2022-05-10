@@ -442,6 +442,7 @@ struct technology_state* technology_initialize(void)
     techstate->config = malloc(sizeof(*techstate->config));
     techstate->constraints = keyvaluearray_create();
     techstate->techpaths = vector_create(32);
+    techstate->create_via_arrays = 1;
     return techstate;
 }
 
@@ -477,6 +478,12 @@ void technology_destroy(struct technology_state* techstate)
     vector_destroy(techstate->techpaths, free);
 
     free(techstate);
+}
+
+
+void technology_disable_via_arrayzation(struct technology_state* techstate)
+{
+    techstate->create_via_arrays = 0;
 }
 
 static int ltechnology_get_dimension(lua_State* L)

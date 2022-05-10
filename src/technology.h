@@ -30,6 +30,7 @@ struct technology_state
     struct technology_config* config;
     struct keyvaluearray* constraints;
     struct vector* techpaths; // stores strings
+    int create_via_arrays;
 };
 
 struct technology_state* technology_initialize(void);
@@ -37,6 +38,8 @@ void technology_destroy(struct technology_state* state);
 
 void technology_add_techpath(struct technology_state* techstate, const char* path);
 int technology_load(struct technology_state* techstate, const char* name);
+
+void technology_disable_via_arrayzation(struct technology_state* techstate);
 
 generics_t* technology_get_layer(struct technology_state* state, const char* layername);
 int technology_resolve_metal(struct technology_state* state, int metalnum);

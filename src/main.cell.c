@@ -440,6 +440,10 @@ int main_create_and_export_cell(struct cmdoptions* cmdoptions, struct keyvaluear
         retval = 0;
         goto EXIT;
     }
+    if(cmdoptions_was_provided_long(cmdoptions, "disable-via-arrayzation"))
+    {
+        technology_disable_via_arrayzation(techstate);
+    }
 
     // pcell state
     struct vector* cellpaths_to_prepend = vector_create(1);
