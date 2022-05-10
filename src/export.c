@@ -209,9 +209,9 @@ static void _write_ports(object_t* cell, struct export_data* data, struct export
 
 static void _write_cell(object_t* cell, struct export_data* data, struct export_functions* funcs, int write_ports, char leftdelim, char rightdelim)
 {
-    for(unsigned int i = 0; i < cell->shapes_size; ++i)
+    for(unsigned int i = 0; i < object_get_shapes_size(cell); ++i)
     {
-        shape_t* shape = cell->shapes[i];
+        shape_t* shape = object_get_shape(cell, i);
         shape_apply_transformation(shape, cell->trans);
         const struct keyvaluearray* layerdata = shape_get_main_layerdata(shape);
         switch(shape->type)
@@ -313,7 +313,7 @@ static void _write_cell(object_t* cell, struct export_data* data, struct export_
             }
         }
     }
-    if(write_ports)
+    if(write_ports && object_has_ports(cell))
     {
         _write_ports(cell, data, funcs, leftdelim, rightdelim);
     }
@@ -563,9 +563,9 @@ static int _write_cell_lua(lua_State* L, object_t* cell, int write_ports, char l
     int has_write_path = _check_function(L, "write_path");
     int has_curves = _check_function(L, "setup_curve") && _check_function(L, "close_curve") && _check_function(L, "curve_add_line_segment");
     int has_write_polygon = _check_function(L, "write_polygon");
-    for(unsigned int i = 0; i < cell->shapes_size; ++i)
+    for(unsigned int i = 0; i < object_get_shapes_size(cell); ++i)
     {
-        shape_t* shape = cell->shapes[i];
+        shape_t* shape = object_get_shape(cell, i);
         shape_apply_transformation(shape, cell->trans);
         const struct keyvaluearray* layerdata = shape_get_main_layerdata(shape);
         // order of the following statements matter!
@@ -670,7 +670,7 @@ static int _write_cell_lua(lua_State* L, object_t* cell, int write_ports, char l
             }
         }
     }
-    if(write_ports)
+    if(write_ports && object_has_ports(cell))
     {
         lua_getfield(L, -1, "write_port");
         if(!lua_isnil(L, -1))

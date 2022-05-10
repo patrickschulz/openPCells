@@ -67,12 +67,9 @@ object_t* object_copy(object_t* cell)
     else
     {
         // shapes
-        new->shapes_size = cell->shapes_size;
-        new->shapes_capacity = cell->shapes_capacity;
-        new->shapes = malloc(sizeof(*new->shapes) * new->shapes_capacity);
-        for(unsigned int i = 0; i < new->shapes_size; ++i)
+        if(cell->shapes)
         {
-            new->shapes[i] = shape_copy(cell->shapes[i]);
+            new->shapes = vector_copy(cell->shapes, shape_copy);
         }
 
         // alignmentbox
@@ -128,11 +125,10 @@ void object_destroy(void* cellv)
     else
     {
         // shapes
-        for(unsigned int i = 0; i < cell->shapes_size; ++i)
+        if(cell->shapes)
         {
-            shape_destroy(cell->shapes[i]);
+            vector_destroy(cell->shapes, shape_destroy);
         }
-        free(cell->shapes);
 
         // children
         if(cell->children)
@@ -173,14 +169,11 @@ void object_destroy(void* cellv)
 
 void object_add_raw_shape(object_t* cell, shape_t* S)
 {
-    if(cell->shapes_capacity == cell->shapes_size)
+    if(!cell->shapes)
     {
-        cell->shapes_capacity = cell->shapes_capacity == 0 ? 1 : cell->shapes_capacity * 2;
-        shape_t** shapes = realloc(cell->shapes, sizeof(*shapes) * cell->shapes_capacity);
-        cell->shapes = shapes;
+        cell->shapes = vector_create(32);
     }
-    cell->shapes[cell->shapes_size] = S;
-    cell->shapes_size += 1;
+    vector_append(cell->shapes, S);
 }
 
 void object_add_shape(object_t* cell, shape_t* S)
@@ -191,11 +184,7 @@ void object_add_shape(object_t* cell, shape_t* S)
 
 void object_remove_shape(object_t* cell, size_t idx)
 {
-    for(size_t i = idx + 1; i < cell->shapes_size; ++i)
-    {
-        cell->shapes[i - 1] = cell->shapes[i];
-    }
-    --cell->shapes_size;
+    vector_remove(cell->shapes, idx, shape_destroy);
 }
 
 object_t* object_add_child(object_t* cell, struct pcell_state* pcell_state, const char* identifier, const char* name)
@@ -232,13 +221,16 @@ object_t* object_add_child_array(object_t* cell, struct pcell_state* pcell_state
     return child;
 }
 
-void object_merge_into_shallow(object_t* cell, object_t* other)
+void object_merge_into_shallow(object_t* cell, const object_t* other)
 {
-    for(unsigned int i = 0; i < other->shapes_size; ++i)
+    if(other->shapes)
     {
-        shape_t* shape = shape_copy(other->shapes[i]);
-        object_add_shape(cell, shape);
-        shape_apply_transformation(shape, other->trans);
+        for(unsigned int i = 0; i < vector_size(other->shapes); ++i)
+        {
+            shape_t* shape = shape_copy(vector_get(other->shapes, i));
+            object_add_shape(cell, shape);
+            shape_apply_transformation(shape, other->trans);
+        }
     }
 }
 
@@ -490,7 +482,7 @@ void object_set_alignment_box(object_t* cell, coordinate_t blx, coordinate_t bly
     cell->alignmentbox[3] = try;
 }
 
-void object_inherit_alignment_box(object_t* cell, object_t* other)
+void object_inherit_alignment_box(object_t* cell, const object_t* other)
 {
     point_t* bl = object_get_anchor(other, "bottomleft");
     point_t* tr = object_get_anchor(other, "topright");
@@ -552,7 +544,7 @@ void object_rotate_90_right(object_t* cell)
     transformationmatrix_rotate_90_right(cell->trans);
 }
 
-static void _get_move_anchor_translation(object_t* cell, const char* name, coordinate_t wx, coordinate_t wy, coordinate_t* dx, coordinate_t* dy)
+static void _get_move_anchor_translation(const object_t* cell, const char* name, coordinate_t wx, coordinate_t wy, coordinate_t* dx, coordinate_t* dy)
 {
     point_t* anchor = object_get_anchor(cell, name);
     if(anchor)
@@ -593,25 +585,28 @@ void object_get_minmax_xy(const object_t* cell, coordinate_t* minxp, coordinate_
     coordinate_t maxx = COORDINATE_MIN;
     coordinate_t miny = COORDINATE_MAX;
     coordinate_t maxy = COORDINATE_MIN;
-    for(unsigned int i = 0; i < cell->shapes_size; ++i)
+    if(cell->shapes)
     {
-        shape_t* S = cell->shapes[i];
-        coordinate_t _minx;
-        coordinate_t _maxx;
-        coordinate_t _miny;
-        coordinate_t _maxy;
-        shape_get_minmax_xy(S, cell->trans, &_minx, &_miny, &_maxx, &_maxy);
-        minx = min(minx, _minx);
-        maxx = max(maxx, _miny);
-        miny = min(miny, _maxx);
-        maxy = max(maxy, _maxy);
+        for(unsigned int i = 0; i < vector_size(cell->shapes); ++i)
+        {
+            shape_t* S = vector_get(cell->shapes, i);
+            coordinate_t _minx;
+            coordinate_t _maxx;
+            coordinate_t _miny;
+            coordinate_t _maxy;
+            shape_get_minmax_xy(S, cell->trans, &_minx, &_miny, &_maxx, &_maxy);
+            minx = min(minx, _minx);
+            maxx = max(maxx, _miny);
+            miny = min(miny, _maxx);
+            maxy = max(maxy, _maxy);
+        }
     }
     if(cell->children)
     {
         for(unsigned int i = 0; i < vector_size(cell->children); ++i)
         {
-            object_t* child = vector_get(cell->children, i);
-            object_t* obj = child->reference;
+            const object_t* child = vector_get(cell->children, i);
+            const object_t* obj = child->reference;
             coordinate_t minx_, maxx_, miny_, maxy_;
             object_get_minmax_xy(obj, &minx_, &miny_, &maxx_, &maxy_);
             // FIXME: is the transformation really needed? If yes, then the shapes points also need to be transformed
@@ -632,10 +627,35 @@ void object_get_minmax_xy(const object_t* cell, coordinate_t* minxp, coordinate_
     *minyp = miny;
     *maxyp = maxy;
 }
-
-static void _get_transformation_correction(object_t* cell, coordinate_t* cx, coordinate_t* cy)
+void object_foreach_shapes(object_t* cell, void (*func)(shape_t*))
 {
-    object_t* obj = cell;
+    for(unsigned int i = 0; i < vector_size(cell->shapes); ++i)
+    {
+        shape_t* shape = vector_get(cell->shapes, i);
+        func(shape);
+    }
+}
+
+size_t object_get_shapes_size(const object_t* cell)
+{
+    if(!cell->shapes)
+    {
+        return 0;
+    }
+    else
+    {
+        return vector_size(cell->shapes);
+    }
+}
+
+shape_t* object_get_shape(object_t* cell, size_t idx)
+{
+    return vector_get(cell->shapes, idx);
+}
+
+static void _get_transformation_correction(const object_t* cell, coordinate_t* cx, coordinate_t* cy)
+{
+    const object_t* obj = cell;
     if(cell->isproxy)
     {
         obj = cell->reference;
@@ -713,16 +733,34 @@ void object_flipy(object_t* cell)
 
 void object_apply_transformation(object_t* cell)
 {
-    for(unsigned int i = 0; i < cell->shapes_size; ++i)
+    if(cell->shapes)
     {
-        shape_t* shape = cell->shapes[i];
-        shape_apply_transformation(shape, cell->trans);
+        for(unsigned int i = 0; i < vector_size(cell->shapes); ++i)
+        {
+            shape_t* shape = vector_get(cell->shapes, i);
+            shape_apply_transformation(shape, cell->trans);
+        }
     }
 }
 
-int object_is_empty(object_t* cell)
+int object_has_shapes(const object_t* cell)
 {
-    return (cell->shapes_size == 0) && (!cell->children) && vector_empty(cell->ports);
+    return cell->shapes ? !vector_empty(cell->shapes) : 0;
+}
+
+int object_has_children(const object_t* cell)
+{
+    return cell->children ? !vector_empty(cell->children) : 0;
+}
+
+int object_has_ports(const object_t* cell)
+{
+    return cell->ports ? !vector_empty(cell->ports) : 0;
+}
+
+int object_is_empty(const object_t* cell)
+{
+    return !object_has_shapes(cell) && !object_has_children(cell) && !object_has_ports(cell);
 }
 
 void object_flatten(object_t* cell, struct pcell_state* pcell_state, int flattenports)
@@ -735,26 +773,29 @@ void object_flatten(object_t* cell, struct pcell_state* pcell_state, int flatten
             object_t* child = vector_get(cell->children, i);
             object_t* reference = child->reference; // FIXME: do we need to copy? If this cell is used somewhere else (partial flatten) than that will most likely cause headaches
             object_flatten(reference, pcell_state, flattenports);
-            for(unsigned int ix = 1; ix <= child->xrep; ++ix)
+            if(reference->shapes)
             {
-                for(unsigned int iy = 1; iy <= child->yrep; ++iy)
+                for(unsigned int ix = 1; ix <= child->xrep; ++ix)
                 {
-                    for(unsigned int i = 0; i < reference->shapes_size; ++i)
+                    for(unsigned int iy = 1; iy <= child->yrep; ++iy)
                     {
-                        shape_t* S = shape_copy(reference->shapes[i]);
-                        shape_apply_transformation(S, child->trans);
-                        shape_apply_transformation(S, reference->trans);
-                        shape_translate(S, (ix - 1) * child->xpitch, (iy - 1) * child->ypitch);
-                        object_add_raw_shape(cell, S);
+                        for(unsigned int i = 0; i < vector_size(reference->shapes); ++i)
+                        {
+                            shape_t* S = shape_copy(vector_get(reference->shapes, i));
+                            shape_apply_transformation(S, child->trans);
+                            shape_apply_transformation(S, reference->trans);
+                            shape_translate(S, (ix - 1) * child->xpitch, (iy - 1) * child->ypitch);
+                            object_add_raw_shape(cell, S);
+                        }
+                        //if flattenports then
+                        //    for _, port in ipairs(cell.ports) do
+                        //        local new = { name = port.name, layer = port.layer:copy(), where = port.where:copy() }
+                        //        child.trans:apply_translation(new.where)
+                        //        obj.trans:apply_translation(new.where)
+                        //        new.where:translate((ix - 1) * xpitch, (iy - 1) * ypitch)
+                        //    end
+                        //end
                     }
-                    //if flattenports then
-                    //    for _, port in ipairs(cell.ports) do
-                    //        local new = { name = port.name, layer = port.layer:copy(), where = port.where:copy() }
-                    //        child.trans:apply_translation(new.where)
-                    //        obj.trans:apply_translation(new.where)
-                    //        new.where:translate((ix - 1) * xpitch, (iy - 1) * ypitch)
-                    //    end
-                    //end
                 }
             }
         }

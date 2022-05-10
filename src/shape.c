@@ -58,8 +58,9 @@ shape_t* shape_create_curve(generics_t* layer, coordinate_t x, coordinate_t y, u
     return shape;
 }
 
-shape_t* shape_copy(shape_t* self)
+void* shape_copy(void* v)
 {
+    shape_t* self = v;
     shape_t* new;
     switch(self->type)
     {
@@ -97,8 +98,9 @@ shape_t* shape_copy(shape_t* self)
     return new;
 }
 
-void shape_destroy(shape_t* shape)
+void shape_destroy(void* v)
 {
+    shape_t* shape = v;
     switch(shape->type)
     {
         case RECTANGLE:

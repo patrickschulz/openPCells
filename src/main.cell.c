@@ -400,10 +400,7 @@ static void _merge_rectangles(object_t* toplevel, struct cmdoptions* cmdoptions,
 
 static void _raster_cell_curves(object_t* cell)
 {
-    for(unsigned int i = 0; i < cell->shapes_size; ++i)
-    {
-        shape_rasterize_curve(cell->shapes[i]);
-    }
+    object_foreach_shapes(cell, shape_rasterize_curve);
 }
 
 static void _raster_curves(object_t* toplevel, struct cmdoptions* cmdoptions, struct pcell_state* pcell_state)

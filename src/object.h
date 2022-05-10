@@ -31,9 +31,7 @@ struct object_t
 
     transformationmatrix_t* trans;
 
-    shape_t** shapes;
-    size_t shapes_size;
-    size_t shapes_capacity;
+    struct vector* shapes;
 
     struct vector* ports;
 
@@ -55,14 +53,18 @@ void object_add_shape(object_t* cell, shape_t* S);
 void object_remove_shape(object_t* cell, size_t i);
 object_t* object_add_child(object_t* cell, struct pcell_state* pcell_state, const char* identifier, const char* name);
 object_t* object_add_child_array(object_t* cell, struct pcell_state* pcell_state, const char* identifier, unsigned int xrep, unsigned int yrep, unsigned int xpitch, unsigned int ypitch, const char* name);
-void object_merge_into_shallow(object_t* cell, object_t* other);
+void object_merge_into_shallow(object_t* cell, const object_t* other);
 void object_add_anchor(object_t* cell, const char* name, coordinate_t x, coordinate_t y);
 point_t* object_get_anchor(const object_t* cell, const char* name);
 void object_add_port(object_t* cell, const char* name, generics_t* layer, point_t* where);
 void object_add_bus_port(object_t* cell, const char* name, generics_t* layer, point_t* where, int startindex, int endindex, unsigned int xpitch, unsigned int ypitch);
 void object_set_alignment_box(object_t* cell, coordinate_t blx, coordinate_t bly, coordinate_t trx, coordinate_t try);
-void object_inherit_alignment_box(object_t* cell, object_t* other);
+void object_inherit_alignment_box(object_t* cell, const object_t* other);
 void object_get_minmax_xy(const object_t* cell, coordinate_t* minxp, coordinate_t* minyp, coordinate_t* maxxp, coordinate_t* maxyp);
+void object_foreach_shapes(object_t* cell, void (*func)(shape_t*));
+
+size_t object_get_shapes_size(const object_t* cell);
+shape_t* object_get_shape(object_t* cell, size_t idx);
 
 // transformations
 void object_move_to(object_t* cell, coordinate_t x, coordinate_t y);
@@ -79,7 +81,10 @@ void object_move_anchor_x(object_t* cell, const char* name, coordinate_t x, coor
 void object_move_anchor_y(object_t* cell, const char* name, coordinate_t x, coordinate_t y);
 
 void object_apply_transformation(object_t* cell);
-int object_is_empty(object_t* cell);
+int object_has_shapes(const object_t* cell);
+int object_has_children(const object_t* cell);
+int object_has_ports(const object_t* cell);
+int object_is_empty(const object_t* cell);
 void object_flatten(object_t* cell, struct pcell_state* pcell_state, int flattenports);
 
 #endif // OPC_OBJECT_H
