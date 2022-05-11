@@ -534,7 +534,8 @@ function state.create_cellenv(state, cellname, ovrenv)
             create_layout                   = pcell.create_layout
         },
         tech = {
-            get_dimension = technology.get_dimension
+            get_dimension = technology.get_dimension,
+            has_layer = technology.has_layer,
         },
         placement = placement,
         routing = routing,

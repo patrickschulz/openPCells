@@ -505,6 +505,13 @@ static int ltechnology_get_dimension(lua_State* L)
     return 1;
 }
 
+static int ltechnology_has_layer(lua_State* L)
+{
+    generics_t* layer = lua_touserdata(L, 1);
+    lua_pushboolean(L, layer->size != 0);
+    return 1;
+}
+
 int open_ltechnology_lib(lua_State* L)
 {
     lua_newtable(L);
@@ -512,6 +519,7 @@ int open_ltechnology_lib(lua_State* L)
     {
         { "list_techpaths", ltechnology_list_techpaths },
         { "get_dimension",  ltechnology_get_dimension  },
+        { "has_layer",      ltechnology_has_layer      },
         { NULL,             NULL                       }
     };
     luaL_setfuncs(L, modfuncs, 0);
