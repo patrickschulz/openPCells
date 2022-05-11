@@ -342,12 +342,12 @@ function layout(dff, _P)
 
     -- second latch clk bar vias
     geometry.viabltr(dff, 1, 2,
-        gate(17 + setshift + 2 * resetshift):translate((clkshift - 1) * xpitch - bp.glength / 2, -bp.sdwidth / 2),
-        gate(17 + setshift + 2 * resetshift):translate((clkshift + 1) * xpitch + bp.glength / 2, bp.sdwidth / 2)
+        gate(17 + setshift + 2 * resetshift):translate((clkshift - 1) * xpitch - bp.glength / 2, -bp.routingwidth / 2),
+        gate(17 + setshift + 2 * resetshift):translate((clkshift + 1) * xpitch + bp.glength / 2, bp.routingwidth / 2)
     )
     geometry.viabltr(dff, 1, 2,
-        gate(18 + setshift + 2 * resetshift):translate((-clkshift - 1) * xpitch - bp.glength / 2, -bp.sdwidth / 2),
-        gate(18 + setshift + 2 * resetshift):translate((-clkshift + 1) * xpitch + bp.glength / 2, bp.sdwidth / 2)
+        gate(18 + setshift + 2 * resetshift):translate((-clkshift - 1) * xpitch - bp.glength / 2, -bp.routingwidth / 2),
+        gate(18 + setshift + 2 * resetshift):translate((-clkshift + 1) * xpitch + bp.glength / 2, bp.routingwidth / 2)
     )
 
     -- second latch short nmos or pmos
@@ -415,12 +415,12 @@ function layout(dff, _P)
             gate(22):translate(0, bp.routingwidth / 2)
         )
         geometry.viabltr(dff, 1, 2,
-            gate(13):translate(-xpitch - bp.glength / 2, -bp.sdwidth / 2),
-            gate(13):translate( xpitch + bp.glength / 2, bp.sdwidth / 2)
+            gate(13):translate(-xpitch - bp.glength / 2, -bp.routingwidth / 2),
+            gate(13):translate( xpitch + bp.glength / 2, bp.routingwidth / 2)
         )
         geometry.viabltr(dff, 1, 2,
-            gate(22):translate(-xpitch - bp.glength / 2, -bp.sdwidth / 2),
-            gate(22):translate( xpitch + bp.glength / 2, bp.sdwidth / 2)
+            gate(22):translate(-xpitch - bp.glength / 2, -bp.routingwidth / 2),
+            gate(22):translate( xpitch + bp.glength / 2, bp.routingwidth / 2)
         )
     end
 
@@ -431,12 +431,12 @@ function layout(dff, _P)
             gate(21):translate(0, bp.routingwidth / 2)
         )
         geometry.viabltr(dff, 1, 2,
-            gate(12):translate(-xpitch - bp.glength / 2, -bp.sdwidth / 2),
-            gate(12):translate( xpitch + bp.glength / 2, bp.sdwidth / 2)
+            gate(12):translate(-xpitch - bp.glength / 2, -bp.routingwidth / 2),
+            gate(12):translate( xpitch + bp.glength / 2, bp.routingwidth / 2)
         )
         geometry.viabltr(dff, 1, 2,
-            gate(21):translate(-xpitch - bp.glength / 2, -bp.sdwidth / 2),
-            gate(21):translate( xpitch + bp.glength / 2, bp.sdwidth / 2)
+            gate(21):translate(-xpitch - bp.glength / 2, -bp.routingwidth / 2),
+            gate(21):translate( xpitch + bp.glength / 2, bp.routingwidth / 2)
         )
     end
 
