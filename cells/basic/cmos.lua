@@ -91,7 +91,7 @@ function layout(cmos, _P)
         pcell.push_overwrites("basic/mosfet", {
             channeltype = "pmos",
             vthtype = _P.pvthtype,
-            flippedwell = pmosflippedwell,
+            flippedwell = _P.pmosflippedwell,
             fwidth = _P.pwidth,
             gbotext = _P.separation / 2,
             gtopext = ext,
@@ -124,7 +124,7 @@ function layout(cmos, _P)
         -- nmos
         pcell.push_overwrites("basic/mosfet", {
             vthtype = _P.nvthtype,
-            flippedwell = nmosflippedwell,
+            flippedwell = _P.nmosflippedwell,
             fwidth = _P.nwidth,
             gtopext = _P.separation / 2,
             gbotext = ext,
