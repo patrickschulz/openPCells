@@ -146,6 +146,11 @@ generics_t* generics_create_special(struct layermap* layermap, struct technology
     return layer;
 }
 
+int generics_is_empty(const generics_t* layer)
+{
+    return layer->size == 0;
+}
+
 void generics_insert_extra_layer(struct layermap* layermap, generics_t* layer)
 {
     vector_append(layermap->extra_layers, layer);

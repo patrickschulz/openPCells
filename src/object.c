@@ -419,18 +419,21 @@ struct keyvaluearray* object_get_all_regular_anchors(const object_t* cell)
 
 static void _add_port(object_t* cell, const char* name, const char* anchorname, generics_t* layer, coordinate_t x, coordinate_t y, int isbusport, int busindex)
 {
-    if(!cell->ports)
+    if(!generics_is_empty(layer))
     {
-        cell->ports = vector_create(16);
+        if(!cell->ports)
+        {
+            cell->ports = vector_create(16);
+        }
+        struct port* port = malloc(sizeof(*port));
+        port->where = point_create(x, y);
+        port->layer = layer;
+        port->isbusport = isbusport;
+        port->busindex = busindex;
+        port->name = malloc(strlen(name) + 1);
+        strcpy(port->name, name);
+        vector_append(cell->ports, port);
     }
-    struct port* port = malloc(sizeof(*port));
-    port->where = point_create(x, y);
-    port->layer = layer;
-    port->isbusport = isbusport;
-    port->busindex = busindex;
-    port->name = malloc(strlen(name) + 1);
-    strcpy(port->name, name);
-    vector_append(cell->ports, port);
     object_add_anchor(cell, anchorname, x, y);
 }
 

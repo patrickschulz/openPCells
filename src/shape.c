@@ -253,7 +253,7 @@ int shape_get_curve_origin(shape_t* shape, point_t** originp)
 }
 int shape_is_empty(shape_t* shape)
 {
-    return shape->layer->size == 0;
+    return generics_is_empty(shape->layer);
 }
 
 void shape_translate(shape_t* shape, coordinate_t dx, coordinate_t dy)
