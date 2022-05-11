@@ -93,7 +93,26 @@ void* shape_copy(void* v)
             }
             break;
         }
-        //case CURVE: break;
+        case CURVE:
+        {
+            struct curve* curve = self->content;
+            new = shape_create_curve(self->layer, curve->origin->x, curve->origin->y, curve->grid, curve->allow45);
+            for(unsigned int i = 0; i < vector_size(curve->segments); ++i)
+            {
+                struct curve_segment* segment = vector_get(curve->segments, i);
+                struct curve_segment* new_segment = malloc(sizeof(*new_segment));
+                new_segment->type = segment->type;
+                if(segment->type == LINESEGMENT)
+                {
+                    new_segment->data.pt = point_copy(segment->data.pt);
+                }
+                else
+                {
+                    new_segment->data = segment->data;
+                }
+            }
+            break;
+        }
     }
     return new;
 }
@@ -288,7 +307,20 @@ void shape_translate(shape_t* shape, coordinate_t dx, coordinate_t dy)
             }
             break;
         }
-        //case CURVE: break;
+        case CURVE:
+        {
+            struct curve* curve = shape->content;
+            point_translate(curve->origin, dx, dy);
+            for(unsigned int i = 0; i < vector_size(curve->segments); ++i)
+            {
+                struct curve_segment* segment = vector_get(curve->segments, i);
+                if(segment->type == LINESEGMENT)
+                {
+                    point_translate(segment->data.pt, dx, dy);
+                }
+            }
+            break;
+        }
     }
 }
 

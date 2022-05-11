@@ -605,6 +605,10 @@ int gdsparser_read_stream(const char* filename, const char* importname)
         if(record->recordtype == LIBNAME)
         {
             libname = (const char*)record->data;
+            if(!importname)
+            {
+                importname = libname;
+            }
             size_t len = strlen(importname) + strlen(importname) + 1; // +1: '/'
             char* path = malloc(len + 1);
             snprintf(path, len + 1, "%s/%s", importname, importname);
