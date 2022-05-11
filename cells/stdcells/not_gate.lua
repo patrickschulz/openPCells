@@ -35,7 +35,7 @@ function layout(gate, _P)
     if _P.fingers > 1 then
         geometry.rectangle(
             gate, generics.metal(1),
-            _P.fingers * bp.glength + (_P.fingers - 1) * bp.gspace, bp.gstwidth,
+            _P.fingers * bp.glength + (_P.fingers - 1) * bp.gspace, bp.routingwidth,
             0, _P.shiftinput
         )
     end
