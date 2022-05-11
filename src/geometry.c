@@ -372,7 +372,7 @@ static struct via_definition* _get_rectangular_arrayzation(ucoordinate_t regionw
         unsigned int _yrep = 0;
         unsigned int _yspace = 0;
         xstrat(regionwidth, entry->width, entry->xspace, entry->xenclosure, &_xrep, &_xspace);
-        ystrat(regionheight, entry->width, entry->yspace, entry->yenclosure, &_yrep, &_yspace);
+        ystrat(regionheight, entry->height, entry->yspace, entry->yenclosure, &_yrep, &_yspace);
         if(_xrep > 0 && _yrep > 0)
         {
             unsigned int area = (_xrep + _yrep) * entry->width * entry->height;
