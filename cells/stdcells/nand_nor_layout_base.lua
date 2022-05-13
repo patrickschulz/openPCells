@@ -89,14 +89,14 @@ function layout(gate, _P)
     else
         geometry.path(gate, generics.metal(1), 
             {
-                harness:get_anchor("Gcc2"):translate(xpitch - bp.sdwidth / 2 - bp.gstspace, 0),
-                (harness:get_anchor("Gcc1") .. harness:get_anchor("Gcc2")):translate(-xpitch + bp.sdwidth / 2 + bp.gstspace, 0),
+                harness:get_anchor("Gcc2"):translate(xpitch - bp.sdwidth / 2 - bp.routingspace, 0),
+                (harness:get_anchor("Gcc1") .. harness:get_anchor("Gcc2")):translate(-xpitch + bp.sdwidth / 2 + bp.routingspace, 0),
             }, bp.routingwidth
         )
         geometry.path(gate, generics.metal(1), 
             {
-                harness:get_anchor("Gcc1"):translate(-xpitch + bp.sdwidth / 2 + bp.gstspace, 0),
-                (harness:get_anchor("Gcc2") .. harness:get_anchor("Gcc1")):translate(xpitch - bp.sdwidth / 2 - bp.gstspace, 0),
+                harness:get_anchor("Gcc1"):translate(-xpitch + bp.sdwidth / 2 + bp.routingspace, 0),
+                (harness:get_anchor("Gcc2") .. harness:get_anchor("Gcc1")):translate(xpitch - bp.sdwidth / 2 - bp.routingspace, 0),
             }, bp.routingwidth
         )
     end

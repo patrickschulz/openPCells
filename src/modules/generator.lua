@@ -43,9 +43,9 @@ local function _write_module(rows, routes)
         end
         table.insert(lines, '    }')
         table.insert(lines, '    local bp = pcell.get_parameters("stdcells/base")')
-        table.insert(lines, '    local width = bp.gstwidth')
+        table.insert(lines, '    local width = bp.routingwidth')
         table.insert(lines, '    local xgrid = bp.gspace + bp.glength')
-        table.insert(lines, '    local ygrid = bp.gstwidth + bp.gstspace')
+        table.insert(lines, '    local ygrid = bp.routingwidth + bp.routingspace')
         table.insert(lines, string.format('    routing.route(toplevel, routes, cells, width, xgrid, ygrid)'))
     else
         print("no routing information found")
