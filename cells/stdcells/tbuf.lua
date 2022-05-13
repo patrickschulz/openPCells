@@ -29,25 +29,25 @@ function layout(gate, _P)
     geometry.path(gate, generics.metal(1), 
         geometry.path_points_yx(inv:get_anchor("O"), { 
         cinv:get_anchor("EP") 
-        }), bp.gstwidth)
-    geometry.path(gate, generics.metal(2), { inv:get_anchor("I"), cinv:get_anchor("EN") }, bp.gstwidth)
+        }), bp.routingwidth)
+    geometry.path(gate, generics.metal(2), { inv:get_anchor("I"), cinv:get_anchor("EN") }, bp.routingwidth)
     geometry.viabltr(gate, 1, 2, 
-        inv:get_anchor("I"):translate(-bp.glength / 2, -bp.gstwidth / 2),
-        inv:get_anchor("I"):translate( bp.glength / 2,  bp.gstwidth / 2)
+        inv:get_anchor("I"):translate(-bp.glength / 2, -bp.routingwidth / 2),
+        inv:get_anchor("I"):translate( bp.glength / 2,  bp.routingwidth / 2)
     )
     geometry.viabltr(gate, 1, 2, 
-        cinv:get_anchor("EN"):translate(-bp.glength / 2, -bp.gstwidth / 2),
-        cinv:get_anchor("EN"):translate( bp.glength / 2,  bp.gstwidth / 2)
+        cinv:get_anchor("EN"):translate(-bp.glength / 2, -bp.routingwidth / 2),
+        cinv:get_anchor("EN"):translate( bp.glength / 2,  bp.routingwidth / 2)
     )
 
-    geometry.path(gate, generics.metal(2), { cinv:get_anchor("I"), point.combine_12(inv:get_anchor("I"), cinv:get_anchor("I")) }, bp.gstwidth)
+    geometry.path(gate, generics.metal(2), { cinv:get_anchor("I"), point.combine_12(inv:get_anchor("I"), cinv:get_anchor("I")) }, bp.routingwidth)
     geometry.viabltr(gate, 1, 2, 
-        point.combine_12(inv:get_anchor("I"), cinv:get_anchor("I")):translate(-bp.glength / 2, -bp.gstwidth / 2),
-        point.combine_12(inv:get_anchor("I"), cinv:get_anchor("I")):translate( bp.glength / 2,  bp.gstwidth / 2)
+        point.combine_12(inv:get_anchor("I"), cinv:get_anchor("I")):translate(-bp.glength / 2, -bp.routingwidth / 2),
+        point.combine_12(inv:get_anchor("I"), cinv:get_anchor("I")):translate( bp.glength / 2,  bp.routingwidth / 2)
     )
     geometry.viabltr(gate, 1, 2, 
-        cinv:get_anchor("I"):translate(-bp.glength / 2, -bp.gstwidth / 2),
-        cinv:get_anchor("I"):translate( bp.glength / 2,  bp.gstwidth / 2)
+        cinv:get_anchor("I"):translate(-bp.glength / 2, -bp.routingwidth / 2),
+        cinv:get_anchor("I"):translate( bp.glength / 2,  bp.routingwidth / 2)
     )
 
     -- ports

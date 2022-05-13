@@ -130,10 +130,25 @@ generics_t* generics_create_other(struct layermap* layermap, struct technology_s
     return layer;
 }
 
+generics_t* generics_create_otherport(struct layermap* layermap, struct technology_state* techstate, const char* str)
+{
+    size_t len = strlen(str) + 4; // + "port"
+    char* layername = malloc(len + 1);
+    snprintf(layername, len + 1, "%sport", str);
+    generics_t* layer = _get_or_create_layer(layermap, techstate, layername);
+    free(layername);
+    return layer;
+}
+
 generics_t* generics_create_special(struct layermap* layermap, struct technology_state* techstate)
 {
     generics_t* layer = _get_or_create_layer(layermap, techstate, "special");
     return layer;
+}
+
+int generics_is_empty(const generics_t* layer)
+{
+    return layer->size == 0;
 }
 
 void generics_insert_extra_layer(struct layermap* layermap, generics_t* layer)

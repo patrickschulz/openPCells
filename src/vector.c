@@ -37,12 +37,12 @@ void vector_destroy(struct vector* vector, void (*destructor)(void*))
     free(vector);
 }
 
-struct vector* vector_copy(struct vector* vector)
+struct vector* vector_copy(struct vector* vector, void* (*copy)(void*))
 {
     struct vector* new = vector_create(vector->capacity);
     for(size_t i = 0; i < vector->size; ++i)
     {
-        new->elements[i] = vector->elements[i];
+        new->elements[i] = copy(vector->elements[i]);
     }
     new->size = vector->size;
     return new;
@@ -64,6 +64,11 @@ size_t vector_size(const struct vector* vector)
 size_t vector_capacity(const struct vector* vector)
 {
     return vector->capacity;
+}
+
+int vector_empty(const struct vector* vector)
+{
+    return vector->size == 0;
 }
 
 void* vector_get(struct vector* vector, size_t i)

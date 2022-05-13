@@ -94,13 +94,53 @@ function layout(transistor, _P)
         drainshift, sourceshift = sourceshift, drainshift
     end
 
-    -- gates
-    geometry.rectanglebltr(transistor, 
-        generics.other("gate"),
-        point.create(-_P.gatelength / 2, -_P.fwidth / 2 - gateaddbot - enable(_P.drawbotgate, sourceshift)),
-        point.create( _P.gatelength / 2,  _P.fwidth / 2 + gateaddtop + enable(_P.drawtopgate, drainshift)),
-        _P.fingers, 1, gatepitch, 0
-    )
+    local hasgatecut = tech.has_layer(generics.other("gatecut"))
+
+    if hasgatecut then
+        -- gates
+        geometry.rectanglebltr(transistor, 
+            generics.other("gate"),
+            point.create(-_P.gatelength / 2, -_P.fwidth / 2 - gateaddbot - enable(_P.drawbotgate, sourceshift)),
+            point.create( _P.gatelength / 2,  _P.fwidth / 2 + gateaddtop + enable(_P.drawtopgate, drainshift)),
+            _P.fingers, 1, gatepitch, 0
+        )
+
+        -- gate cut
+        local cutext = _P.gatespace / 2
+        local cutwidth = _P.fingers * _P.gatelength + (_P.fingers - 1) * _P.gatespace + 2 * cutext
+        if _P.drawtopgcut then
+            geometry.rectanglebltr(
+                transistor,
+                generics.other("gatecut"),
+                point.create(-cutwidth / 2, _P.fwidth / 2 + gateaddtop - _P.cutheight / 2 - _P.topgcutoffset),
+                point.create( cutwidth / 2, _P.fwidth / 2 + gateaddtop + _P.cutheight / 2 - _P.topgcutoffset)
+            )
+        end
+        if _P.drawbotgcut then
+            geometry.rectanglebltr(
+                transistor,
+                generics.other("gatecut"),
+                point.create(-cutwidth / 2, -_P.fwidth / 2 - gateaddbot - _P.cutheight / 2 + _P.botgcutoffset),
+                point.create( cutwidth / 2, -_P.fwidth / 2 - gateaddbot + _P.cutheight / 2 + _P.botgcutoffset)
+            )
+        end
+    else -- not hasgatecut
+        local lowerpt = point.create(-_P.gatelength / 2, -_P.fwidth / 2 - gateaddbot - enable(_P.drawbotgate, sourceshift))
+        local higherpt = point.create( _P.gatelength / 2,  _P.fwidth / 2 + gateaddtop + enable(_P.drawtopgate, drainshift))
+        if _P.drawtopgcut then
+            higherpt:translate(0, -enable(_P.drawtopgate, drainshift) - _P.cutheight / 2 + _P.topgcutoffset)
+        end
+        if _P.drawbotgcut then
+            lowerpt:translate(0, enable(_P.drawbotgate, sourceshift) + _P.cutheight / 2 - _P.botgcutoffset)
+        end
+        -- gates
+        geometry.rectanglebltr(transistor, 
+            generics.other("gate"),
+            lowerpt, higherpt,
+            _P.fingers, 1, gatepitch, 0
+        )
+    end
+
 
     -- active
     if _P.drawactive then
@@ -174,7 +214,6 @@ function layout(transistor, _P)
         )
     end
 
-
     -- oxide thickness
     geometry.rectanglebltr(transistor,
         generics.oxide(_P.oxidetype),
@@ -230,26 +269,6 @@ function layout(transistor, _P)
                 point.create( (_P.fingers * _P.gatelength + (_P.fingers - 1) * _P.gatespace + extend) / 2, -_P.fwidth / 2 - _P.botgatestrspace)
             )
         end
-    end
-
-    -- gate cut
-    local cutext = _P.gatespace / 2
-    local cutwidth = _P.fingers * _P.gatelength + (_P.fingers - 1) * _P.gatespace + 2 * cutext
-    if _P.drawtopgcut then
-        geometry.rectanglebltr(
-            transistor,
-            generics.other("gatecut"),
-            point.create(-cutwidth / 2, _P.fwidth / 2 + gateaddtop - _P.cutheight / 2 - _P.topgcutoffset),
-            point.create( cutwidth / 2, _P.fwidth / 2 + gateaddtop + _P.cutheight / 2 - _P.topgcutoffset)
-        )
-    end
-    if _P.drawbotgcut then
-        geometry.rectanglebltr(
-            transistor,
-            generics.other("gatecut"),
-            point.create(-cutwidth / 2, -_P.fwidth / 2 - gateaddbot - _P.cutheight / 2 + _P.botgcutoffset),
-            point.create( cutwidth / 2, -_P.fwidth / 2 - gateaddbot + _P.cutheight / 2 + _P.botgcutoffset)
-        )
     end
 
     -- source/drain contacts and vias

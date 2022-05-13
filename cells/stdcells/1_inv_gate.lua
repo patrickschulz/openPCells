@@ -30,8 +30,8 @@ function layout(gate, _P)
     -- draw connection
     geometry.path(gate, generics.metal(1), {
         subgateref:get_anchor("O"),
-        invref:get_anchor("I"):translate(xpitch - bp.sdwidth / 2 - bp.gstspace, 0)
-    }, bp.gstwidth)
+        invref:get_anchor("I"):translate(xpitch - bp.sdwidth / 2 - bp.routingspace, 0)
+    }, bp.routingwidth)
 
     gate:inherit_alignment_box(subgateref)
     gate:inherit_alignment_box(invref)

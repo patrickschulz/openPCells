@@ -284,7 +284,7 @@ shape_t* geometry_path_to_polygon(generics_t* layer, point_t** points, size_t nu
     return S;
 }
 
-point_t** _get_any_angle_path_pts(point_t** pts, size_t len, ucoordinate_t width, ucoordinate_t grid, int miterjoin, int allow45, size_t* numpoints)
+struct vector* _get_any_angle_path_pts(point_t** pts, size_t len, ucoordinate_t width, ucoordinate_t grid, int miterjoin, int allow45)
 {
     struct vector* edges = _get_edge_segments(pts, len, width, grid);
     struct vector* poly = _get_path_pts(edges, miterjoin);
@@ -298,15 +298,15 @@ point_t** _get_any_angle_path_pts(point_t** pts, size_t len, ucoordinate_t width
 //        end
 //    end
 //    return poly
-    return vector_disown_content(poly);
+    return poly;
 }
 
 void geometry_any_angle_path(object_t* cell, generics_t* layer, point_t** pts, size_t len, ucoordinate_t width, ucoordinate_t grid, int miterjoin, int allow45)
 {
     _make_unique_points(pts, &len);
-    size_t numpoints;
-    point_t** points = _get_any_angle_path_pts(pts, len, width, grid, miterjoin, allow45, &numpoints);
-    geometry_polygon(cell, layer, points, numpoints);
+    struct vector* points = _get_any_angle_path_pts(pts, len, width, grid, miterjoin, allow45);
+    geometry_polygon(cell, layer, vector_content(points), vector_size(points));
+    vector_destroy(points, point_destroy);
 }
 
 typedef void (*via_strategy) (ucoordinate_t size, unsigned int cutsize, unsigned int space, int encl, unsigned int* rep_result, unsigned int* space_result);
@@ -372,7 +372,7 @@ static struct via_definition* _get_rectangular_arrayzation(ucoordinate_t regionw
         unsigned int _yrep = 0;
         unsigned int _yspace = 0;
         xstrat(regionwidth, entry->width, entry->xspace, entry->xenclosure, &_xrep, &_xspace);
-        ystrat(regionheight, entry->width, entry->yspace, entry->yenclosure, &_yrep, &_yspace);
+        ystrat(regionheight, entry->height, entry->yspace, entry->yenclosure, &_yrep, &_yspace);
         if(_xrep > 0 && _yrep > 0)
         {
             unsigned int area = (_xrep + _yrep) * entry->width * entry->height;

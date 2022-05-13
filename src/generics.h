@@ -24,7 +24,6 @@ struct layer_iterator;
 generics_t* generics_create_empty_layer(const char* name);
 generics_t* generics_create_premapped_layer(const char* name, size_t size);
 
-generics_t* generics_create_special(struct layermap* generics_layer_map, struct technology_state* techstate);
 generics_t* generics_create_metal(struct layermap* generics_layer_map, struct technology_state* techstate, int num);
 generics_t* generics_create_metalport(struct layermap* generics_layer_map, struct technology_state* techstate, int num);
 generics_t* generics_create_viacut(struct layermap* generics_layer_map, struct technology_state* techstate, int metal1, int metal2);
@@ -33,6 +32,10 @@ generics_t* generics_create_oxide(struct layermap* generics_layer_map, struct te
 generics_t* generics_create_implant(struct layermap* generics_layer_map, struct technology_state* techstate, char polarity);
 generics_t* generics_create_vthtype(struct layermap* generics_layer_map, struct technology_state* techstate, char channeltype, int vthtype);
 generics_t* generics_create_other(struct layermap* generics_layer_map, struct technology_state* techstate, const char* str);
+generics_t* generics_create_otherport(struct layermap* generics_layer_map, struct technology_state* techstate, const char* str);
+generics_t* generics_create_special(struct layermap* generics_layer_map, struct technology_state* techstate);
+
+int generics_is_empty(const generics_t* layer);
 
 void generics_destroy_layer(void* layerv);
 

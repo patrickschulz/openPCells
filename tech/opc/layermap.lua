@@ -14,14 +14,6 @@ return {
             svg = { style = "active", order = 2, color = "38c316" },
         }
     },
-    pwell = {
-        name = "pwell",
-        layer = {
-            gds = { layer = 2, purpose = 0 },
-            SKILL = { layer = "pwell", purpose = "drawing" },
-            svg = { color = "ffffcc", order = 1 },
-        }
-    },
     nwell = {
         name = "nwell",
         layer = {
@@ -230,11 +222,37 @@ return {
             svg = { color = "8000ff" },
         }
     },
+    -- ports
+    M1port = {
+        name = "metal1port",
+        layer = {
+            gds = { layer = 8, purpose = 1 },
+            SKILL = { layer = "metal1", purpose = "label" },
+            svg = { style = "metal1", order = 4, color = "0000ff" },
+        }
+    },
+    M2port = {
+        name = "metal2port",
+        layer = {
+            gds = { layer = 10, purpose = 1 },
+            SKILL = { layer = "metal2", purpose = "label" },
+            svg = { style = "metal2", order = 6, color = "bb0077" },
+        }
+    },
+    nwellport = {
+        name = "nwellport",
+        layer = {
+            gds = { layer = 3, purpose = 1 },
+            SKILL = { layer = "nwell", purpose = "label" },
+            svg = { color = "ccffff", order = 1 },
+        }
+    },
     -- unused layers
     soiopen = {},
     oxide1 = {},
     vthtypen1 = {},
     vthtypep1 = {},
+    pwell = {},
     deeppwell = {},
     deepnwell = {},
     gatecut = {},
@@ -242,4 +260,5 @@ return {
     padopening = {},
     polyres = {},
     nres = {},
+    pwellport = {},
 }

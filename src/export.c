@@ -183,23 +183,24 @@ char* export_get_export_layername(struct const_vector* searchpaths, const char* 
 
 static void _write_ports(object_t* cell, struct export_data* data, struct export_functions* funcs, char leftdelim, char rightdelim)
 {
-    for(unsigned int i = 0; i < cell->ports_size; ++i)
+    for(unsigned int i = 0; i < vector_size(cell->ports); ++i)
     {
         char* name;
-        if(cell->ports[i]->isbusport)
+        struct port* port = vector_get(cell->ports, i);
+        if(port->isbusport)
         {
-            size_t len = strlen(cell->ports[i]->name) + 2 + util_num_digits(cell->ports[i]->busindex);
+            size_t len = strlen(port->name) + 2 + util_num_digits(port->busindex);
             name = malloc(len + 1);
-            snprintf(name, len + 1, "%s%c%d%c", cell->ports[i]->name, leftdelim, cell->ports[i]->busindex, rightdelim);
+            snprintf(name, len + 1, "%s%c%d%c", port->name, leftdelim, port->busindex, rightdelim);
         }
         else
         {
-            name = cell->ports[i]->name;
+            name = port->name;
         }
-        transformationmatrix_apply_transformation(cell->trans, cell->ports[i]->where);
-        struct keyvaluearray* layerdata = cell->ports[i]->layer->data[0];
-        funcs->write_port(data, name, layerdata, cell->ports[i]->where->x, cell->ports[i]->where->y);
-        if(cell->ports[i]->isbusport)
+        transformationmatrix_apply_transformation(cell->trans, port->where);
+        struct keyvaluearray* layerdata = port->layer->data[0];
+        funcs->write_port(data, name, layerdata, port->where->x, port->where->y);
+        if(port->isbusport)
         {
             free(name);
         }
@@ -208,9 +209,9 @@ static void _write_ports(object_t* cell, struct export_data* data, struct export
 
 static void _write_cell(object_t* cell, struct export_data* data, struct export_functions* funcs, int write_ports, char leftdelim, char rightdelim)
 {
-    for(unsigned int i = 0; i < cell->shapes_size; ++i)
+    for(unsigned int i = 0; i < object_get_shapes_size(cell); ++i)
     {
-        shape_t* shape = cell->shapes[i];
+        shape_t* shape = object_get_shape(cell, i);
         shape_apply_transformation(shape, cell->trans);
         const struct keyvaluearray* layerdata = shape_get_main_layerdata(shape);
         switch(shape->type)
@@ -312,7 +313,7 @@ static void _write_cell(object_t* cell, struct export_data* data, struct export_
             }
         }
     }
-    if(write_ports)
+    if(write_ports && object_has_ports(cell))
     {
         _write_ports(cell, data, funcs, leftdelim, rightdelim);
     }
@@ -374,31 +375,32 @@ static void _push_trans(lua_State* L, transformationmatrix_t* trans)
 
 static int _write_ports_lua(lua_State* L, object_t* cell, char leftdelim, char rightdelim)
 {
-    for(unsigned int i = 0; i < cell->ports_size; ++i)
+    for(unsigned int i = 0; i < vector_size(cell->ports); ++i)
     {
         char* name;
-        if(cell->ports[i]->isbusport)
+        struct port* port = vector_get(cell->ports, i);
+        if(port->isbusport)
         {
-            size_t len = strlen(cell->ports[i]->name) + 2 + util_num_digits(cell->ports[i]->busindex);
+            size_t len = strlen(port->name) + 2 + util_num_digits(port->busindex);
             name = malloc(len + 1);
-            snprintf(name, len + 1, "%s%c%d%c", cell->ports[i]->name, leftdelim, cell->ports[i]->busindex, rightdelim);
+            snprintf(name, len + 1, "%s%c%d%c", port->name, leftdelim, port->busindex, rightdelim);
         }
         else
         {
-            name = cell->ports[i]->name;
+            name = port->name;
         }
-        transformationmatrix_apply_transformation(cell->trans, cell->ports[i]->where);
-        struct keyvaluearray* layerdata = cell->ports[i]->layer->data[0];
+        transformationmatrix_apply_transformation(cell->trans, port->where);
+        struct keyvaluearray* layerdata = port->layer->data[0];
         lua_pushvalue(L, -1); // write_port is already on the stack (from the check if the function exists)
         lua_pushstring(L, name);
         _push_layer(L, layerdata);
-        _push_point(L, cell->ports[i]->where);
+        _push_point(L, port->where);
         int ret = lua_pcall(L, 3, 0, 0);
         if(ret != LUA_OK)
         {
             return ret;
         }
-        if(cell->ports[i]->isbusport)
+        if(port->isbusport)
         {
             free(name);
         }
@@ -561,9 +563,9 @@ static int _write_cell_lua(lua_State* L, object_t* cell, int write_ports, char l
     int has_write_path = _check_function(L, "write_path");
     int has_curves = _check_function(L, "setup_curve") && _check_function(L, "close_curve") && _check_function(L, "curve_add_line_segment");
     int has_write_polygon = _check_function(L, "write_polygon");
-    for(unsigned int i = 0; i < cell->shapes_size; ++i)
+    for(unsigned int i = 0; i < object_get_shapes_size(cell); ++i)
     {
-        shape_t* shape = cell->shapes[i];
+        shape_t* shape = object_get_shape(cell, i);
         shape_apply_transformation(shape, cell->trans);
         const struct keyvaluearray* layerdata = shape_get_main_layerdata(shape);
         // order of the following statements matter!
@@ -668,7 +670,7 @@ static int _write_cell_lua(lua_State* L, object_t* cell, int write_ports, char l
             }
         }
     }
-    if(write_ports)
+    if(write_ports && object_has_ports(cell))
     {
         lua_getfield(L, -1, "write_port");
         if(!lua_isnil(L, -1))

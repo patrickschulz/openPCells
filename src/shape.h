@@ -63,8 +63,8 @@ shape_t* shape_create_rectangle(generics_t* layer, coordinate_t bl_x, coordinate
 shape_t* shape_create_polygon(generics_t* layer, size_t capacity);
 shape_t* shape_create_path(generics_t* layer, size_t capacity, ucoordinate_t width, coordinate_t extstart, coordinate_t extend);
 shape_t* shape_create_curve(generics_t* layer, coordinate_t x, coordinate_t y, unsigned int grid, int allow45);
-shape_t* shape_copy(shape_t* shape);
-void shape_destroy(shape_t* shape);
+void* shape_copy(void* shape);
+void shape_destroy(void* shape);
 
 void shape_append(shape_t* shape, coordinate_t x, coordinate_t y);
 

@@ -12,7 +12,7 @@ function layout(gate, _P)
     local bp = pcell.get_parameters("stdcells/base")
 
     local xpitch = bp.gspace + bp.glength
-    local yrpitch = bp.gstwidth + bp.gstspace
+    local yrpitch = bp.routingwidth + bp.routingspace
 
     local gatecontactpos = {
         "center", "center", "lower", "upper", "center", "dummy"
@@ -57,7 +57,7 @@ function layout(gate, _P)
 
     local anchor = function(str, suffix) return harness:get_anchor(string.format("%s%s", str, suffix or "")) end
 
-    local spacing = bp.sdwidth / 2 + bp.gstspace
+    local spacing = bp.sdwidth / 2 + bp.routingspace
     local yinvert = _P.clockpolarity == "positive" and 1 or -1
 
     local gateoffset = _P.enable_reset and 1 or 0
@@ -110,17 +110,17 @@ function layout(gate, _P)
         }),
     bp.sdwidth))
     gate:merge_into_shallow(geometry.rectanglebltr(generics.via(1, 2), 
-        anchor("Gcc9"):translate(-bp.glength / 2, -bp.gstwidth / 2),
-        anchor("Gcc9"):translate( bp.glength / 2,  bp.gstwidth / 2)
+        anchor("Gcc9"):translate(-bp.glength / 2, -bp.routingwidth / 2),
+        anchor("Gcc9"):translate( bp.glength / 2,  bp.routingwidth / 2)
     ))
     gate:merge_into_shallow(geometry.rectanglebltr(generics.via(1, 2), 
-        anchor("Gcc13"):translate(-bp.glength / 2, -bp.gstwidth / 2),
-        anchor("Gcc13"):translate( bp.glength / 2,  bp.gstwidth / 2)
+        anchor("Gcc13"):translate(-bp.glength / 2, -bp.routingwidth / 2),
+        anchor("Gcc13"):translate( bp.glength / 2,  bp.routingwidth / 2)
     ))
     if _P.enable_reset then
         gate:add_port("RST", generics.metal(1), anchor("Gcc16"):translate(-xpitch / 2, 0))
     end
-    gate:add_port("D", generics.metal(1), anchor("Gcc1"):translate(0, yinvert * 2 * (bp.gstwidth + bp.gstspace)))
+    gate:add_port("D", generics.metal(1), anchor("Gcc1"):translate(0, yinvert * 2 * (bp.routingwidth + bp.routingspace)))
     gate:add_port("CLK", generics.metal(1), anchor("Gcc1"))
     gate:add_port("VDD", generics.metal(1), anchor("top"))
     gate:add_port("VSS", generics.metal(1), anchor("bottom"))

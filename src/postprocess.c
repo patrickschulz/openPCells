@@ -13,9 +13,9 @@ static void _merge_shapes(object_t* object, struct layermap* layermap)
     {
         generics_t* layer = layer_iterator_get(it);
         struct vector* rectangles = vector_create(32);
-        for(int j = object->shapes_size - 1; j >= 0; --j)
+        for(int j = object_get_shapes_size(object) - 1; j >= 0; --j)
         {
-            shape_t* S = object->shapes[j];
+            shape_t* S = object_get_shape(object, j);
             if(S->type == RECTANGLE && S->layer == layer)
             {
                 vector_append(rectangles, S);
@@ -43,9 +43,9 @@ void postprocess_merge_shapes(object_t* object, struct layermap* layermap)
 
 void postprocess_filter_exclude(object_t* object, const char** layernames)
 {
-    for(int i = object->shapes_size - 1; i >= 0; --i)
+    for(int i = object_get_shapes_size(object) - 1; i >= 0; --i)
     {
-        shape_t* S = object->shapes[i];
+        shape_t* S = object_get_shape(object, i);
         const char** layername = layernames;
         while(*layername)
         {
@@ -60,9 +60,9 @@ void postprocess_filter_exclude(object_t* object, const char** layernames)
 
 void postprocess_filter_include(object_t* object, const char** layernames)
 {
-    for(int i = object->shapes_size - 1; i >= 0; --i)
+    for(int i = object_get_shapes_size(object) - 1; i >= 0; --i)
     {
-        shape_t* S = object->shapes[i];
+        shape_t* S = object_get_shape(object, i);
         int keep = 0;
         const char** layername = layernames;
         while(*layername)

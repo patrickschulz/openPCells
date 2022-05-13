@@ -58,8 +58,9 @@ shape_t* shape_create_curve(generics_t* layer, coordinate_t x, coordinate_t y, u
     return shape;
 }
 
-shape_t* shape_copy(shape_t* self)
+void* shape_copy(void* v)
 {
+    shape_t* self = v;
     shape_t* new;
     switch(self->type)
     {
@@ -92,13 +93,33 @@ shape_t* shape_copy(shape_t* self)
             }
             break;
         }
-        //case CURVE: break;
+        case CURVE:
+        {
+            struct curve* curve = self->content;
+            new = shape_create_curve(self->layer, curve->origin->x, curve->origin->y, curve->grid, curve->allow45);
+            for(unsigned int i = 0; i < vector_size(curve->segments); ++i)
+            {
+                struct curve_segment* segment = vector_get(curve->segments, i);
+                struct curve_segment* new_segment = malloc(sizeof(*new_segment));
+                new_segment->type = segment->type;
+                if(segment->type == LINESEGMENT)
+                {
+                    new_segment->data.pt = point_copy(segment->data.pt);
+                }
+                else
+                {
+                    new_segment->data = segment->data;
+                }
+            }
+            break;
+        }
     }
     return new;
 }
 
-void shape_destroy(shape_t* shape)
+void shape_destroy(void* v)
 {
+    shape_t* shape = v;
     switch(shape->type)
     {
         case RECTANGLE:
@@ -251,7 +272,7 @@ int shape_get_curve_origin(shape_t* shape, point_t** originp)
 }
 int shape_is_empty(shape_t* shape)
 {
-    return shape->layer->size == 0;
+    return generics_is_empty(shape->layer);
 }
 
 void shape_translate(shape_t* shape, coordinate_t dx, coordinate_t dy)
@@ -286,7 +307,20 @@ void shape_translate(shape_t* shape, coordinate_t dx, coordinate_t dy)
             }
             break;
         }
-        //case CURVE: break;
+        case CURVE:
+        {
+            struct curve* curve = shape->content;
+            point_translate(curve->origin, dx, dy);
+            for(unsigned int i = 0; i < vector_size(curve->segments); ++i)
+            {
+                struct curve_segment* segment = vector_get(curve->segments, i);
+                if(segment->type == LINESEGMENT)
+                {
+                    point_translate(segment->data.pt, dx, dy);
+                }
+            }
+            break;
+        }
     }
 }
 
