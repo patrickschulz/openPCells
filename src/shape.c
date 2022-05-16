@@ -7,6 +7,33 @@
 #include "graphics.h"
 #include "geometry.h"
 
+struct rectangle {
+    point_t* bl;
+    point_t* tr;
+};
+
+struct polygon {
+    struct vector* points;
+};
+
+struct path {
+    struct vector* points;
+    ucoordinate_t width;
+    coordinate_t extension[2];
+};
+
+struct shape {
+    enum shapetype {
+        RECTANGLE,
+        POLYGON,
+        TRIANGULATED_POLYGON, // re-uses struct polygon
+        PATH,
+        CURVE
+    } type;
+    void* content;
+    generics_t* layer;
+};
+
 static shape_t* _create_shape(enum shapetype type, generics_t* layer)
 {
     shape_t* shape = malloc(sizeof(*shape));
@@ -201,6 +228,41 @@ void shape_append(shape_t* shape, coordinate_t x, coordinate_t y)
 const struct keyvaluearray* shape_get_main_layerdata(const shape_t* shape)
 {
     return shape->layer->data[0];
+}
+
+generics_t* shape_get_layer(shape_t* shape)
+{
+    return shape->layer;
+}
+
+int shape_is_rectangle(shape_t* shape)
+{
+    return shape->type == RECTANGLE;
+}
+
+int shape_is_path(shape_t* shape)
+{
+    return shape->type == PATH;
+}
+
+int shape_is_polygon(shape_t* shape)
+{
+    return shape->type == POLYGON;
+}
+
+int shape_is_triangulated_polygon(shape_t* shape)
+{
+    return shape->type == TRIANGULATED_POLYGON;
+}
+
+int shape_is_curve(shape_t* shape)
+{
+    return shape->type == CURVE;
+}
+
+void* shape_get_content(shape_t* shape)
+{
+    return shape->content;
 }
 
 int shape_get_rectangle_points(shape_t* shape, point_t** bl, point_t** tr)

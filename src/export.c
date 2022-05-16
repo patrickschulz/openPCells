@@ -214,79 +214,76 @@ static void _write_cell(object_t* cell, struct export_data* data, struct export_
         shape_t* shape = object_get_shape(cell, i);
         shape_apply_transformation(shape, cell->trans);
         const struct keyvaluearray* layerdata = shape_get_main_layerdata(shape);
-        switch(shape->type)
+        if(shape_is_rectangle(shape))
         {
-            case RECTANGLE:
+            point_t* bl;
+            point_t* tr;
+            shape_get_rectangle_points(shape, &bl, &tr);
+            funcs->write_rectangle(data, layerdata, bl, tr);
+        }
+        if(shape_is_polygon(shape))
+        {
+            struct vector* points;
+            shape_get_polygon_points(shape, &points);
+            funcs->write_polygon(data, layerdata, points);
+        }
+        if(shape_is_triangulated_polygon(shape))
+        {
+            struct vector* points;
+            shape_get_polygon_points(shape, &points);
+            for(unsigned int i = 0; i < vector_size(points) - 2; i += 3)
             {
-                point_t* bl;
-                point_t* tr;
-                shape_get_rectangle_points(shape, &bl, &tr);
-                funcs->write_rectangle(data, layerdata, bl, tr);
-                break;
+                if(funcs->write_triangle)
+                {
+                    funcs->write_triangle(
+                        data, layerdata,
+                        vector_get(points, i),
+                        vector_get(points, i + 1),
+                        vector_get(points, i + 2)
+                    );
+                }
+                else
+                {
+                    struct vector* tripts = vector_create(3);
+                    vector_append(tripts, vector_get(points, i));
+                    vector_append(tripts, vector_get(points, i + 1));
+                    vector_append(tripts, vector_get(points, i + 2));
+                    funcs->write_polygon(data, layerdata, tripts);
+                }
             }
-            case POLYGON:
+        }
+        if(shape_is_path(shape))
+        {
+            if(funcs->write_path)
             {
+                struct vector* points;
+                shape_get_path_points(shape, &points);
+                ucoordinate_t width;
+                shape_get_path_width(shape, &width);
+                coordinate_t extension[2];
+                shape_get_path_extension(shape, &extension[0], &extension[1]);
+                funcs->write_path(data, layerdata, points, width, extension);
+            }
+            else
+            {
+                shape_resolve_path(shape);
                 struct vector* points;
                 shape_get_polygon_points(shape, &points);
                 funcs->write_polygon(data, layerdata, points);
-                break;
             }
-            case TRIANGULATED_POLYGON:
+        }
+        if(shape_is_curve(shape))
+        {
+            if(funcs->setup_curve && funcs->close_curve && funcs->curve_add_line_segment)
             {
+            }
+            else
+            {
+                shape_rasterize_curve(shape);
                 struct vector* points;
                 shape_get_polygon_points(shape, &points);
-                for(unsigned int i = 0; i < vector_size(points) - 2; i += 3)
-                {
-                    if(funcs->write_triangle)
-                    {
-                        funcs->write_triangle(
-                            data, layerdata,
-                            vector_get(points, i),
-                            vector_get(points, i + 1),
-                            vector_get(points, i + 2)
-                        );
-                    }
-                    else
-                    {
-                        struct vector* tripts = vector_create(3);
-                        vector_append(tripts, vector_get(points, i));
-                        vector_append(tripts, vector_get(points, i + 1));
-                        vector_append(tripts, vector_get(points, i + 2));
-                        funcs->write_polygon(data, layerdata, tripts);
-                    }
-                }
-                break;
+                funcs->write_polygon(data, layerdata, points);
             }
-            case PATH:
-                if(funcs->write_path)
-                {
-                    struct vector* points;
-                    shape_get_path_points(shape, &points);
-                    ucoordinate_t width;
-                    shape_get_path_width(shape, &width);
-                    coordinate_t extension[2];
-                    shape_get_path_extension(shape, &extension[0], &extension[1]);
-                    funcs->write_path(data, layerdata, points, width, extension);
-                }
-                else
-                {
-                    shape_resolve_path(shape);
-                    struct vector* points;
-                    shape_get_polygon_points(shape, &points);
-                    funcs->write_polygon(data, layerdata, points);
-                }
-                break;
-            case CURVE:
-                if(funcs->setup_curve && funcs->close_curve && funcs->curve_add_line_segment)
-                {
-                }
-                else
-                {
-                    shape_rasterize_curve(shape);
-                    struct vector* points;
-                    shape_get_polygon_points(shape, &points);
-                    funcs->write_polygon(data, layerdata, points);
-                }
         }
     }
     if(cell->children)
@@ -488,7 +485,7 @@ static int _write_lua_curve(lua_State* L, const struct keyvaluearray* layerdata,
         return ret;
     }
     // FIXME: implement an abstraction for this
-    struct curve* curve = shape->content;
+    struct curve* curve = shape_get_content(shape);
     struct vector_iterator* it = vector_iterator_create(curve->segments);
     point_t* lastpt = curve->origin;
     while(vector_iterator_is_valid(it))
@@ -571,50 +568,52 @@ static int _write_cell_lua(lua_State* L, object_t* cell, int write_ports, char l
         // order of the following statements matter!
         // (e.g. if curves and polygons can't be written,
         //  a rasterized and triangulated curve can be used)
-        if(shape->type == PATH && !has_write_path)
+        if(shape_is_path(shape) && !has_write_path)
         {
             shape_resolve_path(shape);
         }
-        if(shape->type == CURVE && !has_curves)
+        if(shape_is_curve(shape) && !has_curves)
         {
             shape_rasterize_curve(shape);
         }
-        if(shape->type == POLYGON && !has_write_polygon)
+        if(shape_is_polygon(shape) && !has_write_polygon)
         {
             shape_triangulate_polygon(shape);
         }
-        switch(shape->type)
+        if(shape_is_rectangle(shape))
         {
-            case RECTANGLE:
-                if(_write_lua_rectangle(L, layerdata, shape) != LUA_OK)
-                {
-                    return LUA_ERRRUN;
-                }
-                break;
-            case POLYGON:
-                if(_write_lua_polygon(L, layerdata, shape) != LUA_OK)
-                {
-                    return LUA_ERRRUN;
-                }
-                break;
-            case TRIANGULATED_POLYGON:
-                if(_write_lua_triangulated_polygon(L, layerdata, shape) != LUA_OK)
-                {
-                    return LUA_ERRRUN;
-                }
-                break;
-            case PATH:
-                if(_write_lua_path(L, layerdata, shape) != LUA_OK)
-                {
-                    return LUA_ERRRUN;
-                }
-                break;
-            case CURVE:
-                if(_write_lua_curve(L, layerdata, shape) != LUA_OK)
-                {
-                    return LUA_ERRRUN;
-                }
-                break;
+            if(_write_lua_rectangle(L, layerdata, shape) != LUA_OK)
+            {
+                return LUA_ERRRUN;
+            }
+        }
+        if(shape_is_polygon(shape))
+        {
+            if(_write_lua_polygon(L, layerdata, shape) != LUA_OK)
+            {
+                return LUA_ERRRUN;
+            }
+        }
+        if(shape_is_triangulated_polygon(shape))
+        {
+            if(_write_lua_triangulated_polygon(L, layerdata, shape) != LUA_OK)
+            {
+                return LUA_ERRRUN;
+            }
+        }
+        if(shape_is_path(shape))
+        {
+            if(_write_lua_path(L, layerdata, shape) != LUA_OK)
+            {
+                return LUA_ERRRUN;
+            }
+        }
+        if(shape_is_curve(shape))
+        {
+            if(_write_lua_curve(L, layerdata, shape) != LUA_OK)
+            {
+                return LUA_ERRRUN;
+            }
         }
     }
     if(cell->children)

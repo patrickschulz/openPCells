@@ -16,7 +16,7 @@ static void _merge_shapes(object_t* object, struct layermap* layermap)
         for(int j = object_get_shapes_size(object) - 1; j >= 0; --j)
         {
             shape_t* S = object_get_shape(object, j);
-            if(S->type == RECTANGLE && S->layer == layer)
+            if(shape_is_rectangle(S) && shape_get_layer(S) == layer)
             {
                 vector_append(rectangles, S);
                 object_remove_shape(object, j);
@@ -49,7 +49,7 @@ void postprocess_filter_exclude(object_t* object, const char** layernames)
         const char** layername = layernames;
         while(*layername)
         {
-            if(strcmp(S->layer->name, *layername) == 0)
+            if(strcmp(shape_get_layer(S)->name, *layername) == 0)
             {
                 object_remove_shape(object, i);
             }
@@ -67,7 +67,7 @@ void postprocess_filter_include(object_t* object, const char** layernames)
         const char** layername = layernames;
         while(*layername)
         {
-            if(strcmp(S->layer->name, *layername) == 0)
+            if(strcmp(shape_get_layer(S)->name, *layername) == 0)
             {
                 keep = 1;
             }

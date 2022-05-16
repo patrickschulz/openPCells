@@ -134,7 +134,7 @@ shape_t* rectangle_union(shape_t* rect1, shape_t* rect2)
         default: // silence warning about not handling NOINTERSECTION, which is handled earlier
             break;
     }
-    shape_t* new = shape_create_rectangle(rect1->layer, blx, bly, trx, try);
+    shape_t* new = shape_create_rectangle(shape_get_layer(rect1), blx, bly, trx, try);
     return new;
 }
 
