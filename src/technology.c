@@ -6,6 +6,17 @@
 
 #include "util.h"
 #include "lua_util.h"
+#include "vector.h"
+#include "tagged_value.h"
+
+struct technology_state {
+    struct vector* layertable; // stores generics_t*
+    struct vector* viatable; // stores struct viaentry*
+    struct technology_config* config;
+    struct hashmap* constraints;
+    struct vector* techpaths; // stores strings
+    int create_via_arrays;
+};
 
 void technology_add_techpath(struct technology_state* techstate, const char* path)
 {
@@ -25,73 +36,12 @@ static int ltechnology_list_techpaths(lua_State* L)
     return 0;
 }
 
-static void _insert_lpp_pairs(lua_State* L, struct keyvaluearray* map)
-{
-    lua_pushnil(L);
-    while (lua_next(L, -2) != 0)
-    {
-        switch(lua_type(L, -1))
-        {
-            case LUA_TNUMBER:
-                keyvaluearray_add_int(map, lua_tostring(L, -2), lua_tointeger(L, -1));
-                break;
-            case LUA_TSTRING:
-                keyvaluearray_add_string(map, lua_tostring(L, -2), lua_tostring(L, -1));
-                break;
-            case LUA_TBOOLEAN:
-                keyvaluearray_add_boolean(map, lua_tostring(L, -2), lua_toboolean(L, -1));
-                break;
-        }
-        lua_pop(L, 1); // pop value, keep key for next iteration
-    }
-}
-
 struct viaentry
 {
     char* name;
     struct via_definition** viadefs;
     struct via_definition* fallback;
 };
-
-
-static void _insert_layer(struct technology_state* techstate, generics_t* layer)
-{
-    vector_append(techstate->layertable, layer);
-}
-
-generics_t* technology_make_layer(const char* layername, lua_State* L)
-{
-    generics_t* layer;
-    if(lua_isnil(L, -1))
-    {
-        layer = generics_create_empty_layer(layername);
-    }
-    else
-    {
-        // count entries
-        size_t num = 0;
-        lua_pushnil(L);
-        while(lua_next(L, -2) != 0)
-        {
-            lua_pop(L, 1); // pop value, keep key for next iteration
-            num += 1;
-        }
-
-        layer = generics_create_premapped_layer(layername, num);
-        unsigned int i = 0;
-        lua_pushnil(L);
-        while (lua_next(L, -2) != 0)
-        {
-            const char* name = lua_tostring(L, -2);
-            layer->exportnames[i] = util_copy_string(name);
-            layer->data[i] = keyvaluearray_create();
-            _insert_lpp_pairs(L, layer->data[i]);
-            lua_pop(L, 1); // pop value, keep key for next iteration
-            ++i;
-        }
-    }
-    return layer;
-}
 
 static char* _get_tech_filename(struct technology_state* techstate, const char* name, const char* what)
 {
@@ -125,8 +75,8 @@ int technology_load_layermap(struct technology_state* techstate, const char* nam
     {
         const char* layername = lua_tostring(L, -2);
         lua_getfield(L, -1, "layer");
-        generics_t* layer = technology_make_layer(layername, L);
-        _insert_layer(techstate, layer);
+        generics_t* layer = generics_make_layer_from_lua(layername, L);
+        vector_append(techstate->layertable, layer);
         lua_pop(L, 1); // pop layer table
         lua_pop(L, 1); // pop value, keep key for next iteration
     }
@@ -257,9 +207,11 @@ int technology_load_constraints(struct technology_state* techstate, const char* 
         return 0;
     }
     lua_pushnil(L);
+    // FIXME: get the keys that are needed, the current approach is unsafe
     while (lua_next(L, -2) != 0)
     {
-        keyvaluearray_add_int(techstate->constraints, lua_tostring(L, -2), lua_tointeger(L, -1));
+        struct tagged_value* value = tagged_value_create_integer(lua_tointeger(L, -1));
+        hashmap_insert(techstate->constraints, lua_tostring(L, -2), value);
         lua_pop(L, 1); // pop value, keep key for next iteration
     }
     lua_pop(L, 1); // pop constraints table
@@ -322,7 +274,7 @@ generics_t* technology_get_layer(struct technology_state* techstate, const char*
     for(unsigned int i = 0; i < vector_size(techstate->layertable); ++i)
     {
         generics_t* layer = vector_get(techstate->layertable, i);
-        if(strcmp(layer->name, layername) == 0)
+        if(generics_is_layer_name(layer, layername))
         {
             return layer;
         }
@@ -440,7 +392,7 @@ struct technology_state* technology_initialize(void)
     techstate->layertable = vector_create(32);
     techstate->viatable = vector_create(32);
     techstate->config = malloc(sizeof(*techstate->config));
-    techstate->constraints = keyvaluearray_create();
+    techstate->constraints = hashmap_create();
     techstate->techpaths = vector_create(32);
     techstate->create_via_arrays = 1;
     return techstate;
@@ -448,12 +400,7 @@ struct technology_state* technology_initialize(void)
 
 void technology_destroy(struct technology_state* techstate)
 {
-    for(unsigned int i = 0; i < vector_size(techstate->layertable); ++i)
-    {
-        generics_t* layer = vector_get(techstate->layertable, i);
-        generics_destroy_layer(layer);
-    }
-    vector_destroy(techstate->layertable, NULL);
+    vector_destroy(techstate->layertable, generics_destroy_layer);
 
     for(unsigned int i = 0; i < vector_size(techstate->viatable); ++i)
     {
@@ -473,7 +420,7 @@ void technology_destroy(struct technology_state* techstate)
 
     free(techstate->config);
 
-    keyvaluearray_destroy(techstate->constraints);
+    hashmap_destroy(techstate->constraints, tagged_value_destroy);
 
     vector_destroy(techstate->techpaths, free);
 
@@ -486,15 +433,21 @@ void technology_disable_via_arrayzation(struct technology_state* techstate)
     techstate->create_via_arrays = 0;
 }
 
+int technology_is_create_via_arrays(const struct technology_state* techstate)
+{
+    return techstate->create_via_arrays;
+}
+
 static int ltechnology_get_dimension(lua_State* L)
 {
     const char* dimension = lua_tostring(L, 1);
     lua_getfield(L, LUA_REGISTRYINDEX, "techstate");
     struct technology_state* techstate = lua_touserdata(L, -1);
     lua_pop(L, 1); // pop techstate
-    int value;
-    if(keyvaluearray_get_int(techstate->constraints, dimension, &value))
+    if(hashmap_exists(techstate->constraints, dimension))
     {
+        struct tagged_value* v = hashmap_get(techstate->constraints, dimension);
+        int value = tagged_value_get_integer(v);
         lua_pushinteger(L, value);
     }
     else
@@ -508,7 +461,7 @@ static int ltechnology_get_dimension(lua_State* L)
 static int ltechnology_has_layer(lua_State* L)
 {
     generics_t* layer = lua_touserdata(L, 1);
-    lua_pushboolean(L, layer->size != 0);
+    lua_pushboolean(L, !generics_is_empty(layer));
     return 1;
 }
 

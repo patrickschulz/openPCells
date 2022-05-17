@@ -2,6 +2,12 @@
 
 #include <string.h>
 
+struct export_data {
+    unsigned char* data;
+    size_t length;
+    size_t capacity;
+};
+
 static void _resize_data(struct export_data* data, size_t capacity)
 {
     data->capacity = capacity;
@@ -145,6 +151,11 @@ void export_data_append_string_unchecked(struct export_data* data, const char* s
 {
     memcpy(data->data + data->length, str, length);
     data->length += length;
+}
+
+void export_data_write_to_file(struct export_data* data, FILE* file)
+{
+    fwrite(data->data, 1, data->length, file);
 }
 
 struct export_functions* export_create_functions(void)

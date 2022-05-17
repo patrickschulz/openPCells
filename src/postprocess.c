@@ -49,7 +49,7 @@ void postprocess_filter_exclude(object_t* object, const char** layernames)
         const char** layername = layernames;
         while(*layername)
         {
-            if(strcmp(shape_get_layer(S)->name, *layername) == 0)
+            if(generics_is_layer_name(shape_get_layer(S), *layername))
             {
                 object_remove_shape(object, i);
             }
@@ -67,7 +67,7 @@ void postprocess_filter_include(object_t* object, const char** layernames)
         const char** layername = layernames;
         while(*layername)
         {
-            if(strcmp(shape_get_layer(S)->name, *layername) == 0)
+            if(generics_is_layer_name(shape_get_layer(S), *layername))
             {
                 keep = 1;
             }

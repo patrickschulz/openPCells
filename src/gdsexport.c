@@ -140,7 +140,7 @@ static inline void _write_ENDEL_unchecked(struct export_data* data)
     export_data_append_byte_unchecked(data, DATATYPE_NONE);
 }
 
-static inline void _write_layer(struct export_data* data, uint8_t type, const struct keyvaluearray* layer)
+static inline void _write_layer(struct export_data* data, uint8_t type, uint8_t datatype, const struct hashmap* layer)
 {
     // BOUNDARY (4 bytes)
     _write_length_short(data, 4);
@@ -151,20 +151,20 @@ static inline void _write_layer(struct export_data* data, uint8_t type, const st
     _write_length_short_unchecked(data, 6);
     export_data_append_byte(data, RECORDTYPE_LAYER);
     export_data_append_byte(data, DATATYPE_TWO_BYTE_INTEGER);
-    int layernum;
-    keyvaluearray_get_int(layer, "layer", &layernum);
+    const struct tagged_value* vl = hashmap_get_const(layer, "layer");
+    int layernum = tagged_value_get_integer(vl);
     export_data_append_two_bytes(data, layernum);
 
     // DATATYPE (6 bytes)
     _write_length_short_unchecked(data, 6);
-    export_data_append_byte(data, RECORDTYPE_DATATYPE);
+    export_data_append_byte(data, datatype);
     export_data_append_byte(data, DATATYPE_TWO_BYTE_INTEGER);
-    int layerpurpose;
-    keyvaluearray_get_int(layer, "purpose", &layerpurpose);
+    const struct tagged_value* vp = hashmap_get_const(layer, "purpose");
+    int layerpurpose = tagged_value_get_integer(vp);
     export_data_append_two_bytes(data, layerpurpose);
 }
 
-static inline void _write_layer_unchecked(struct export_data* data, uint8_t type, const struct keyvaluearray* layer)
+static inline void _write_layer_unchecked(struct export_data* data, uint8_t type, const struct hashmap* layer)
 {
     // BOUNDARY (4 bytes)
     _write_length_short(data, 4);
@@ -175,16 +175,16 @@ static inline void _write_layer_unchecked(struct export_data* data, uint8_t type
     _write_length_short_unchecked(data, 6);
     export_data_append_byte_unchecked(data, RECORDTYPE_LAYER);
     export_data_append_byte_unchecked(data, DATATYPE_TWO_BYTE_INTEGER);
-    int layernum = 0;
-    keyvaluearray_get_int(layer, "layer", &layernum);
+    const struct tagged_value* vl = hashmap_get_const(layer, "layer");
+    int layernum = tagged_value_get_integer(vl);
     export_data_append_two_bytes_unchecked(data, (int16_t)layernum);
 
     // DATATYPE (6 bytes)
     _write_length_short_unchecked(data, 6);
     export_data_append_byte_unchecked(data, RECORDTYPE_DATATYPE);
     export_data_append_byte_unchecked(data, DATATYPE_TWO_BYTE_INTEGER);
-    int layerpurpose = 0;
-    keyvaluearray_get_int(layer, "purpose", &layerpurpose);
+    const struct tagged_value* vp = hashmap_get_const(layer, "purpose");
+    int layerpurpose = tagged_value_get_integer(vp);
     export_data_append_two_bytes_unchecked(data, (int16_t)layerpurpose);
 }
 
@@ -314,7 +314,7 @@ static void _at_end_cell(struct export_data* data)
     export_data_append_byte(data, DATATYPE_NONE);
 }
 
-static void _write_rectangle(struct export_data* data, const struct keyvaluearray* layer, point_t* bl, point_t* tr)
+static void _write_rectangle(struct export_data* data, const struct hashmap* layer, point_t* bl, point_t* tr)
 {
     export_data_ensure_additional_capacity(data, 64); // a rectangle has exactly 64 bytes
     _write_layer_unchecked(data, RECORDTYPE_BOUNDARY, layer);
@@ -338,9 +338,9 @@ static void _write_rectangle(struct export_data* data, const struct keyvaluearra
     _write_ENDEL_unchecked(data); // 4 bytes
 }
 
-static void _write_polygon(struct export_data* data, const struct keyvaluearray* layer, struct vector* points)
+static void _write_polygon(struct export_data* data, const struct hashmap* layer, struct vector* points)
 {
-    _write_layer(data, RECORDTYPE_BOUNDARY, layer);
+    _write_layer(data, RECORDTYPE_BOUNDARY, RECORDTYPE_DATATYPE, layer);
 
     // XY
     unsigned int multiplier = 1; // FIXME: make proper use of units
@@ -357,9 +357,9 @@ static void _write_polygon(struct export_data* data, const struct keyvaluearray*
     _write_ENDEL(data);
 }
 
-static void _write_path(struct export_data* data, const struct keyvaluearray* layer, struct vector* points, ucoordinate_t width, coordinate_t* extension)
+static void _write_path(struct export_data* data, const struct hashmap* layer, struct vector* points, ucoordinate_t width, coordinate_t* extension)
 {
-    _write_layer(data, RECORDTYPE_PATH, layer);
+    _write_layer(data, RECORDTYPE_PATH, RECORDTYPE_DATATYPE, layer);
 
     // PATHTYPE
     _write_length_short(data, 6);
@@ -692,28 +692,9 @@ static void _write_cell_array(struct export_data* data, const char* identifier, 
     _write_ENDEL(data);
 }
 
-static void _write_port(struct export_data* data, const char* name, const struct keyvaluearray* layer, coordinate_t x, coordinate_t y)
+static void _write_port(struct export_data* data, const char* name, const struct hashmap* layer, coordinate_t x, coordinate_t y)
 {
-    // TEXT
-    _write_length_short(data, 4);
-    export_data_append_byte(data, RECORDTYPE_TEXT);
-    export_data_append_byte(data, DATATYPE_NONE);
-
-    // LAYER
-    _write_length_short(data, 6);
-    export_data_append_byte(data, RECORDTYPE_LAYER);
-    export_data_append_byte(data, DATATYPE_TWO_BYTE_INTEGER);
-    int layernum;
-    keyvaluearray_get_int(layer, "layer", &layernum);
-    export_data_append_two_bytes(data, layernum);
-
-    // TEXTTYPE
-    _write_length_short(data, 6);
-    export_data_append_byte(data, RECORDTYPE_TEXTTYPE);
-    export_data_append_byte(data, DATATYPE_TWO_BYTE_INTEGER);
-    int layerpurpose;
-    keyvaluearray_get_int(layer, "purpose", &layerpurpose);
-    export_data_append_two_bytes(data, layerpurpose);
+    _write_layer(data, RECORDTYPE_TEXT, RECORDTYPE_TEXTTYPE, layer);
 
     // PRESENTATION
     _write_length_short(data, 6);

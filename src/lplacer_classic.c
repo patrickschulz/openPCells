@@ -10,7 +10,7 @@
 #include "lplacer_common.h"
 #include "lplacer_rand.h"
 
-#include "keyvaluepairs.h"
+#include "hashmap.h"
 #include "util.h"
 
 struct cell {
@@ -131,12 +131,12 @@ static struct block* _initialize(lua_State* L, struct floorplan* floorplan, stru
     lua_pop(L, 1);
     block->num_nets = num_nets;
     block->nets = calloc(block->num_nets, sizeof(struct net));
-    struct keyvaluearray* netmap = keyvaluearray_create();
+    struct hashmap* netmap = hashmap_create();
     for(size_t i = 1; i <= num_nets; ++i)
     {
         lua_geti(L, 2, i);
         const char* name = lua_tostring(L, -1);
-        keyvaluearray_add_untagged(netmap, name, block->nets + i - 1);
+        hashmap_insert(netmap, name, block->nets + i - 1);
         lua_pop(L, 1);
     }
 
@@ -150,7 +150,7 @@ static struct block* _initialize(lua_State* L, struct floorplan* floorplan, stru
         placer_initialize_base_cell(L, base, i, netmap);
         lua_pop(L, 1); // pop instance
     }
-    keyvaluearray_destroy(netmap);
+    hashmap_destroy(netmap, free);
 
     // shuffle cells
     for (unsigned int i = num_cells - 1; i > 0; i--)

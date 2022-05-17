@@ -10,6 +10,31 @@
 #define min(a, b) ((a) < (b) ? (a) : (b))
 #define max(a, b) ((a) > (b) ? (a) : (b))
 
+struct object {
+    char* name;
+
+    char* identifier; // for children
+    struct object_t* reference; // for children
+    int isproxy;
+    int isarray;
+    unsigned int xrep;
+    unsigned int yrep;
+    unsigned int xpitch;
+    unsigned int ypitch;
+
+    transformationmatrix_t* trans;
+
+    struct vector* shapes;
+
+    struct vector* ports;
+
+    struct hashmap* anchors;
+
+    coordinate_t* alignmentbox; // NULL or contains four coordinates
+
+    struct vector* children;
+};
+
 static object_t* _create(void)
 {
     object_t* obj = malloc(sizeof(*obj));

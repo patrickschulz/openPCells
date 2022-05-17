@@ -23,6 +23,7 @@
 #include "info.h"
 #include "postprocess.h"
 #include "geometry.h"
+#include "hashmap.h"
 
 #include "config.h"
 
@@ -105,7 +106,7 @@ static int _parse_point(const char* arg, int* xptr, int* yptr)
     return 1;
 }
 
-static void _prepare_cellpaths(struct vector* cellpaths_to_prepend, struct vector* cellpaths_to_append, struct cmdoptions* cmdoptions, struct keyvaluearray* config)
+static void _prepare_cellpaths(struct vector* cellpaths_to_prepend, struct vector* cellpaths_to_append, struct cmdoptions* cmdoptions, struct hashmap* config)
 {
 
     if(cmdoptions_was_provided_long(cmdoptions, "prepend-cellpath"))
@@ -126,7 +127,7 @@ static void _prepare_cellpaths(struct vector* cellpaths_to_prepend, struct vecto
             ++arg;
         }
     }
-    struct vector* config_prepend_cellpaths = keyvaluearray_get(config, "prepend_cellpaths");
+    struct vector* config_prepend_cellpaths = hashmap_get(config, "prepend_cellpaths");
     if(config_prepend_cellpaths)
     {
         for(unsigned int i = 0; i < vector_size(config_prepend_cellpaths); ++i)
@@ -134,7 +135,7 @@ static void _prepare_cellpaths(struct vector* cellpaths_to_prepend, struct vecto
             vector_append(cellpaths_to_prepend, vector_get(config_prepend_cellpaths, i));
         }
     }
-    struct vector* config_append_cellpaths = keyvaluearray_get(config, "append_cellpaths");
+    struct vector* config_append_cellpaths = hashmap_get(config, "append_cellpaths");
     if(config_append_cellpaths)
     {
         for(unsigned int i = 0; i < vector_size(config_append_cellpaths); ++i)
@@ -145,7 +146,7 @@ static void _prepare_cellpaths(struct vector* cellpaths_to_prepend, struct vecto
     vector_append(cellpaths_to_append, util_copy_string(OPC_HOME "/cells"));
 }
 
-void main_list_cell_parameters(struct cmdoptions* cmdoptions, struct keyvaluearray* config)
+void main_list_cell_parameters(struct cmdoptions* cmdoptions, struct hashmap* config)
 {
     lua_State* L = _create_and_initialize_lua();
 
@@ -155,7 +156,7 @@ void main_list_cell_parameters(struct cmdoptions* cmdoptions, struct keyvaluearr
     module_load_pcell(L);
     module_load_load(L);
 
-    struct vector* techpaths = keyvaluearray_get(config, "techpaths");
+    struct vector* techpaths = hashmap_get(config, "techpaths");
     vector_append(techpaths, util_copy_string(OPC_HOME "/tech"));
     if(cmdoptions_was_provided_long(cmdoptions, "techpath"))
     {
@@ -416,10 +417,10 @@ static void _raster_curves(object_t* toplevel, struct cmdoptions* cmdoptions, st
     }
 }
 
-int main_create_and_export_cell(struct cmdoptions* cmdoptions, struct keyvaluearray* config, int iscellscript)
+int main_create_and_export_cell(struct cmdoptions* cmdoptions, struct hashmap* config, int iscellscript)
 {
     int retval = 1;
-    struct vector* techpaths = keyvaluearray_get(config, "techpaths");
+    struct vector* techpaths = hashmap_get(config, "techpaths");
     vector_append(techpaths, util_copy_string(OPC_HOME "/tech"));
     if(cmdoptions_was_provided_long(cmdoptions, "techpath"))
     {

@@ -43,7 +43,7 @@ void shape_destroy(void* shape);
 
 void shape_append(shape_t* shape, coordinate_t x, coordinate_t y);
 
-const struct keyvaluearray* shape_get_main_layerdata(const shape_t*);
+const struct hashmap* shape_get_main_layerdata(const shape_t*);
 
 generics_t* shape_get_layer(shape_t* shape);
 

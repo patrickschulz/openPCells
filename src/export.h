@@ -9,16 +9,7 @@
 #include "pcell.h"
 #include "vector.h"
 
-struct export_state {
-    const char* toplevelname;
-    struct const_vector* searchpaths;
-    char* exportname;
-    char* exportlayername;
-    const char* basename;
-    char leftdelim, rightdelim;
-    const char* const * exportoptions;
-    int writechildrenports;
-};
+struct export_state;
 
 struct export_state* export_create_state(void);
 void export_destroy_state(struct export_state* state);

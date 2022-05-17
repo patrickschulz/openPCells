@@ -161,7 +161,7 @@ static int lgenerics_create_premapped(lua_State* L)
     lua_getfield(L, LUA_REGISTRYINDEX, "genericslayermap");
     struct layermap* layermap = lua_touserdata(L, -1);
     lua_pop(L, 1); // pop layermap
-    generics_t* layer = technology_make_layer("_EXPLICIT_PREMAPPED", L); // FIXME: get layername
+    generics_t* layer = generics_make_layer_from_lua("_EXPLICITLY_PREMAPPED", L); // FIXME: get layername
     generics_insert_extra_layer(layermap, layer);
     _push_layer(L, layer, "premapped");
     return 1;

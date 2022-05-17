@@ -225,9 +225,9 @@ void shape_append(shape_t* shape, coordinate_t x, coordinate_t y)
     _append_unconditionally(shape, x, y);
 }
 
-const struct keyvaluearray* shape_get_main_layerdata(const shape_t* shape)
+const struct hashmap* shape_get_main_layerdata(const shape_t* shape)
 {
-    return shape->layer->data[0];
+    return generics_get_first_layer_data(shape->layer);
 }
 
 generics_t* shape_get_layer(shape_t* shape)

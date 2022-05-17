@@ -11,10 +11,22 @@
 #include "gdsexport.h"
 #include "lpoint.h"
 #include "filesystem.h"
+#include "hashmap.h"
 
 #define EXPORT_STATUS_SUCCESS 0
 #define EXPORT_STATUS_NOTFOUND 1
 #define EXPORT_STATUS_LOADERROR 2
+
+struct export_state {
+    const char* toplevelname;
+    struct const_vector* searchpaths;
+    char* exportname;
+    char* exportlayername;
+    const char* basename;
+    char leftdelim, rightdelim;
+    const char* const * exportoptions;
+    int writechildrenports;
+};
 
 struct export_state* export_create_state(void)
 {
@@ -198,7 +210,7 @@ static void _write_ports(object_t* cell, struct export_data* data, struct export
             name = port->name;
         }
         transformationmatrix_apply_transformation(cell->trans, port->where);
-        struct keyvaluearray* layerdata = port->layer->data[0];
+        struct hashmap* layerdata = generics_get_first_layer_data(port->layer);
         funcs->write_port(data, name, layerdata, port->where->x, port->where->y);
         if(port->isbusport)
         {
@@ -213,7 +225,7 @@ static void _write_cell(object_t* cell, struct export_data* data, struct export_
     {
         shape_t* shape = object_get_shape(cell, i);
         shape_apply_transformation(shape, cell->trans);
-        const struct keyvaluearray* layerdata = shape_get_main_layerdata(shape);
+        const struct hashmap* layerdata = shape_get_main_layerdata(shape);
         if(shape_is_rectangle(shape))
         {
             point_t* bl;
@@ -316,29 +328,30 @@ static void _write_cell(object_t* cell, struct export_data* data, struct export_
     }
 }
 
-static void _push_layer(lua_State* L, const struct keyvaluearray* data)
+static void _push_layer(lua_State* L, const struct hashmap* data)
 {
     lua_newtable(L);
-    for(unsigned int i = 0; i < keyvaluearray_size(data); ++i)
+    struct hashmap_const_iterator* it = hashmap_const_iterator_create(data);
+    while(hashmap_const_iterator_is_valid(it))
     {
-        const struct keyvaluepair* pair = keyvaluearray_get_indexed_pair(data, i);
-        lua_pushstring(L, pair->key);
-        switch(pair->tag)
+        lua_pushstring(L, hashmap_const_iterator_key(it));
+        const struct tagged_value* value = hashmap_const_iterator_value(it);
+        if(tagged_value_is_integer(value))
         {
-            case INT:
-                lua_pushinteger(L, *(int*)pair->value);
-                break;
-            case STRING:
-                lua_pushstring(L, (const char*)pair->value);
-                break;
-            case BOOLEAN:
-                lua_pushboolean(L, *(int*)pair->value);
-                break;
-            default: // silence warning about unhandled UNTAGGED
-                break;
+            lua_pushinteger(L, tagged_value_get_integer(value));
+        }
+        if(tagged_value_is_string(value))
+        {
+            lua_pushstring(L, tagged_value_get_const_string(value));
+        }
+        if(tagged_value_is_boolean(value))
+        {
+            lua_pushboolean(L, tagged_value_get_boolean(value));
         }
         lua_rawset(L, -3);
+        hashmap_const_iterator_next(it);
     }
+    hashmap_const_iterator_destroy(it);
 }
 
 static void _push_point(lua_State* L, point_t* pt)
@@ -387,7 +400,7 @@ static int _write_ports_lua(lua_State* L, object_t* cell, char leftdelim, char r
             name = port->name;
         }
         transformationmatrix_apply_transformation(cell->trans, port->where);
-        struct keyvaluearray* layerdata = port->layer->data[0];
+        struct hashmap* layerdata = generics_get_first_layer_data(port->layer);
         lua_pushvalue(L, -1); // write_port is already on the stack (from the check if the function exists)
         lua_pushstring(L, name);
         _push_layer(L, layerdata);
@@ -405,7 +418,7 @@ static int _write_ports_lua(lua_State* L, object_t* cell, char leftdelim, char r
     return LUA_OK;
 }
 
-static int _write_lua_rectangle(lua_State* L, const struct keyvaluearray* layerdata, shape_t* shape)
+static int _write_lua_rectangle(lua_State* L, const struct hashmap* layerdata, shape_t* shape)
 {
     lua_getfield(L, -1, "write_rectangle");
     _push_layer(L, layerdata);
@@ -417,7 +430,7 @@ static int _write_lua_rectangle(lua_State* L, const struct keyvaluearray* layerd
     return lua_pcall(L, 3, 0, 0);
 }
 
-static int _write_lua_polygon(lua_State* L, const struct keyvaluearray* layerdata, shape_t* shape)
+static int _write_lua_polygon(lua_State* L, const struct hashmap* layerdata, shape_t* shape)
 {
     lua_getfield(L, -1, "write_polygon");
     _push_layer(L, layerdata);
@@ -427,7 +440,7 @@ static int _write_lua_polygon(lua_State* L, const struct keyvaluearray* layerdat
     return lua_pcall(L, 2, 0, 0);
 }
 
-static int _write_lua_triangulated_polygon(lua_State* L, const struct keyvaluearray* layerdata, shape_t* shape)
+static int _write_lua_triangulated_polygon(lua_State* L, const struct hashmap* layerdata, shape_t* shape)
 {
     struct vector* points;
     shape_get_polygon_points(shape, &points);
@@ -447,7 +460,7 @@ static int _write_lua_triangulated_polygon(lua_State* L, const struct keyvaluear
     return LUA_OK;
 }
 
-static int _write_lua_path(lua_State* L, const struct keyvaluearray* layerdata, shape_t* shape)
+static int _write_lua_path(lua_State* L, const struct hashmap* layerdata, shape_t* shape)
 {
     lua_getfield(L, -1, "write_path");
     _push_layer(L, layerdata);
@@ -472,7 +485,7 @@ static coordinate_t _fix_to_grid(coordinate_t c, unsigned int grid)
     return (c / grid) * grid;
 }
 
-static int _write_lua_curve(lua_State* L, const struct keyvaluearray* layerdata, shape_t* shape)
+static int _write_lua_curve(lua_State* L, const struct hashmap* layerdata, shape_t* shape)
 {
     lua_getfield(L, -1, "setup_curve");
     _push_layer(L, layerdata);
@@ -564,7 +577,7 @@ static int _write_cell_lua(lua_State* L, object_t* cell, int write_ports, char l
     {
         shape_t* shape = object_get_shape(cell, i);
         shape_apply_transformation(shape, cell->trans);
-        const struct keyvaluearray* layerdata = shape_get_main_layerdata(shape);
+        const struct hashmap* layerdata = shape_get_main_layerdata(shape);
         // order of the following statements matter!
         // (e.g. if curves and polygons can't be written,
         //  a rasterized and triangulated curve can be used)
@@ -934,7 +947,7 @@ void export_write_toplevel(object_t* toplevel, struct pcell_state* pcell_state, 
     {
         if(*state->basename == '-' && !*(state->basename + 1)) // send to standard output
         {
-            fwrite(data->data, 1, data->length, stdout);
+            export_data_write_to_file(data, stdout);
         }
         else
         {
@@ -942,7 +955,7 @@ void export_write_toplevel(object_t* toplevel, struct pcell_state* pcell_state, 
             char* filename = malloc(len);
             snprintf(filename, len + 2, "%s.%s", state->basename, extension);
             FILE* file = fopen(filename, "w");
-            fwrite(data->data, 1, data->length, file);
+            export_data_write_to_file(data, file);
             fclose(file);
             free(extension);
             free(filename);
