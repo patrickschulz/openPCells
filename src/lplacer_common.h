@@ -5,7 +5,7 @@
 
 #include <stddef.h>
 
-#include "keyvaluepairs.h"
+#include "hashmap.h"
 
 struct basic_cell {
     unsigned int instance;
@@ -16,7 +16,7 @@ struct basic_cell {
     unsigned int num_conns;
 };
 
-void placer_initialize_base_cell(lua_State* L, struct basic_cell* base, size_t index, struct keyvaluearray* netmap);
+void placer_initialize_base_cell(lua_State* L, struct basic_cell* base, size_t index, struct hashmap* netmap);
 void placer_destroy_base_cell_contents(struct basic_cell* base);
 
 struct floorplan {

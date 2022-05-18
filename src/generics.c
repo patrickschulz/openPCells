@@ -6,6 +6,14 @@
 
 #include "technology.h"
 #include "util.h"
+#include "tagged_value.h"
+
+struct generics {
+    char* name;
+    char** exportnames;
+    struct hashmap** data;
+    size_t size;
+};
 
 struct layermap
 {
@@ -27,6 +35,66 @@ generics_t* generics_create_premapped_layer(const char* name, size_t size)
     layer->data = calloc(size, sizeof(*layer->data));
     layer->exportnames = calloc(size, sizeof(*layer->exportnames));
     layer->size = size;
+    return layer;
+}
+
+static void _insert_lpp_pairs(lua_State* L, struct hashmap* map)
+{
+    lua_pushnil(L);
+    while (lua_next(L, -2) != 0)
+    {
+        struct tagged_value* value = NULL;
+        switch(lua_type(L, -1))
+        {
+            case LUA_TNUMBER:
+                value = tagged_value_create_integer(lua_tointeger(L, -1));
+                break;
+            case LUA_TSTRING:
+                value = tagged_value_create_string(lua_tostring(L, -1));
+                break;
+            case LUA_TBOOLEAN:
+                value = tagged_value_create_boolean(lua_tointeger(L, -1));
+                break;
+        }
+        if(value)
+        {
+            hashmap_insert(map, lua_tostring(L, -2), value);
+        }
+        lua_pop(L, 1); // pop value, keep key for next iteration
+    }
+}
+
+generics_t* generics_make_layer_from_lua(const char* layername, lua_State* L)
+{
+    generics_t* layer;
+    if(lua_isnil(L, -1))
+    {
+        layer = generics_create_empty_layer(layername);
+    }
+    else
+    {
+        // count entries
+        size_t num = 0;
+        lua_pushnil(L);
+        while(lua_next(L, -2) != 0)
+        {
+            lua_pop(L, 1); // pop value, keep key for next iteration
+            num += 1;
+        }
+
+        layer = generics_create_premapped_layer(layername, num);
+        unsigned int i = 0;
+        lua_pushnil(L);
+        while (lua_next(L, -2) != 0)
+        {
+            const char* name = lua_tostring(L, -2);
+            layer->exportnames[i] = util_copy_string(name);
+            layer->data[i] = hashmap_create();
+            _insert_lpp_pairs(L, layer->data[i]);
+            lua_pop(L, 1); // pop value, keep key for next iteration
+            ++i;
+        }
+    }
     return layer;
 }
 
@@ -151,6 +219,16 @@ int generics_is_empty(const generics_t* layer)
     return layer->size == 0;
 }
 
+int generics_is_layer_name(const generics_t* layer, const char* layername)
+{
+    return strcmp(layer->name, layername) == 0;
+}
+
+struct hashmap* generics_get_first_layer_data(generics_t* layer)
+{
+    return layer->data[0];
+}
+
 void generics_insert_extra_layer(struct layermap* layermap, generics_t* layer)
 {
     vector_append(layermap->extra_layers, layer);
@@ -162,7 +240,7 @@ void generics_destroy_layer(void* layerv)
     for(unsigned int i = 0; i < layer->size; ++i)
     {
         free(layer->exportnames[i]);
-        keyvaluearray_destroy(layer->data[i]);
+        hashmap_destroy(layer->data[i], tagged_value_destroy);
     }
     free(layer->name);
     free(layer->exportnames);
@@ -210,7 +288,7 @@ int _resolve_layer(generics_t* layer, const char* exportname)
         // and let _destroy_generics free all data, regardless if a layer is premapped or mapped
 
         // swap data
-        struct keyvaluearray* tmp = layer->data[0];
+        struct hashmap* tmp = layer->data[0];
         layer->data[0] = layer->data[idx];
         layer->data[idx] = tmp;
 

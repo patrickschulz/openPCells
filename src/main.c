@@ -23,13 +23,14 @@
 #include "lplacer.h"
 #include "lrouter.h"
 #include "filesystem.h"
+#include "hashmap.h"
 
 #include "main.functions.h"
 #include "main.cell.h"
 #include "main.gds.h"
 #include "main.verilog.h"
 
-static int _load_config(struct keyvaluearray* config)
+static int _load_config(struct hashmap* config)
 {
     const char* home = getenv("HOME");
     lua_State* L = util_create_basic_lua_state();
@@ -53,7 +54,7 @@ static int _load_config(struct keyvaluearray* config)
             }
         }
         lua_pop(L, 1); // pop techpaths table (or nil)
-        keyvaluearray_add_untagged(config, "techpaths", techpaths);
+        hashmap_insert(config, "techpaths", techpaths);
     }
     lua_close(L);
     return ret == LUA_OK;
@@ -108,7 +109,7 @@ int main(int argc, const char* const * argv)
     }
 
     // load config
-    struct keyvaluearray* config = keyvaluearray_create();
+    struct hashmap* config = hashmap_create();
     if(!cmdoptions_was_provided_long(cmdoptions, "no-user-config"))
     {
         if(!_load_config(config))
@@ -166,7 +167,7 @@ int main(int argc, const char* const * argv)
             printf("%s\n", *arg);
             ++arg;
         }
-        struct vector* techpaths = keyvaluearray_get(config, "techpaths");
+        struct vector* techpaths = hashmap_get(config, "techpaths");
         for(unsigned int i = 0; i < vector_size(techpaths); ++i)
         {
             printf("%s\n", (const char*)vector_get(techpaths, i));
@@ -258,12 +259,12 @@ int main(int argc, const char* const * argv)
 
     // clean up states
 DESTROY_CONFIG: ;
-    struct vector* techpaths = keyvaluearray_get(config, "techpaths");
-    if(techpaths)
+    if(hashmap_exists(config, "techpaths"))
     {
+        struct vector* techpaths = hashmap_get(config, "techpaths");
         vector_destroy(techpaths, free); // every techpath is a copied string
     }
-    keyvaluearray_destroy(config);
+    hashmap_destroy(config, NULL);
 DESTROY_CMDOPTIONS:
     cmdoptions_destroy(cmdoptions);
     return returnvalue;

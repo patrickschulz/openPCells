@@ -11,6 +11,31 @@
 
 #include "util.h"
 
+struct option
+{
+    char short_identifier;
+    const char* long_identifier;
+    int numargs;
+    void* argument; // is char* for once-only options, char** (with NULL terminator) for multiple options
+    int was_provided;
+    const char* help;
+    struct option* aliased;
+};
+
+struct section
+{
+    const char* name;
+};
+
+struct cmdoptions
+{
+    struct vector* entries;
+    struct vector* positional_parameters;
+    struct const_vector* prehelpmsg;
+    struct const_vector* posthelpmsg;
+    int force_narrow_mode;
+};
+
 struct entry
 {
     void* value;

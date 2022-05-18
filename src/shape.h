@@ -7,21 +7,6 @@
 #include "transformationmatrix.h"
 #include "generics.h"
 
-struct rectangle {
-    point_t* bl;
-    point_t* tr;
-};
-
-struct polygon {
-    struct vector* points;
-};
-
-struct path {
-    struct vector* points;
-    ucoordinate_t width;
-    coordinate_t extension[2];
-};
-
 struct curve_segment {
     enum segment_type {
         LINESEGMENT,
@@ -47,17 +32,7 @@ struct curve {
     int allow45;
 };
 
-typedef struct {
-    enum shapetype {
-        RECTANGLE,
-        POLYGON,
-        TRIANGULATED_POLYGON, // re-uses struct polygon
-        PATH,
-        CURVE
-    } type;
-    void* content;
-    generics_t* layer;
-} shape_t;
+typedef struct shape shape_t;
 
 shape_t* shape_create_rectangle(generics_t* layer, coordinate_t bl_x, coordinate_t bl_y, coordinate_t tr_x, coordinate_t tr_y);
 shape_t* shape_create_polygon(generics_t* layer, size_t capacity);
@@ -68,7 +43,18 @@ void shape_destroy(void* shape);
 
 void shape_append(shape_t* shape, coordinate_t x, coordinate_t y);
 
-const struct keyvaluearray* shape_get_main_layerdata(const shape_t*);
+const struct hashmap* shape_get_main_layerdata(const shape_t*);
+
+generics_t* shape_get_layer(shape_t* shape);
+
+// type checking
+int shape_is_rectangle(shape_t* shape);
+int shape_is_path(shape_t* shape);
+int shape_is_polygon(shape_t* shape);
+int shape_is_triangulated_polygon(shape_t* shape);
+int shape_is_curve(shape_t* shape);
+
+void* shape_get_content(shape_t* shape);
 
 // rectangle access functions
 int shape_get_rectangle_points(shape_t* shape, point_t** blp, point_t** trp);
