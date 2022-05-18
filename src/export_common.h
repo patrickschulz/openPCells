@@ -41,7 +41,7 @@ struct export_functions
     // initialization
     const char* (*get_extension)(void);
     const char* (*get_techexport)(void);
-    void (*initialize)(object_t*);
+    void (*initialize)(struct object*);
     // at begin/end
     void (*at_begin)(struct export_data*);
     void (*at_end)(struct export_data*);
@@ -57,8 +57,8 @@ struct export_functions
     void (*curve_add_line_segment)(struct export_data*, point_t*, point_t*);
     void (*close_curve)(struct export_data*, const struct hashmap);
     // write references
-    void (*write_cell_reference)(struct export_data*, const char*, coordinate_t, coordinate_t, transformationmatrix_t*);
-    void (*write_cell_array)(struct export_data*, const char*, coordinate_t, coordinate_t, transformationmatrix_t*, unsigned int, unsigned int, unsigned int, unsigned int);
+    void (*write_cell_reference)(struct export_data*, const char*, coordinate_t, coordinate_t, const transformationmatrix_t*);
+    void (*write_cell_array)(struct export_data*, const char*, coordinate_t, coordinate_t, const transformationmatrix_t*, unsigned int, unsigned int, unsigned int, unsigned int);
     // write ports
     void (*write_port)(struct export_data*, const char* name, const struct hashmap*, coordinate_t x, coordinate_t y);
 };

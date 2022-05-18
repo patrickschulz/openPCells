@@ -10,7 +10,7 @@
 #include "point.h"
 
 void geometry_rectanglebltr(
-    object_t* cell,
+    struct object* cell,
     generics_t* layer,
     point_t* bl, point_t* tr,
     ucoordinate_t xrep, ucoordinate_t yrep,
@@ -18,7 +18,7 @@ void geometry_rectanglebltr(
 );
 
 void geometry_rectanglepoints(
-    object_t* cell,
+    struct object* cell,
     generics_t* layer,
     point_t* bl, point_t* tr,
     ucoordinate_t xrep, ucoordinate_t yrep,
@@ -26,7 +26,7 @@ void geometry_rectanglepoints(
 );
 
 void geometry_rectangle(
-    object_t* cell,
+    struct object* cell,
     generics_t* layer,
     coordinate_t width, coordinate_t height,
     coordinate_t xshift, coordinate_t yshift,
@@ -34,10 +34,10 @@ void geometry_rectangle(
     ucoordinate_t xpitch, ucoordinate_t ypitch
 );
 
-void geometry_polygon(object_t* cell, generics_t* layer, point_t** points, size_t len);
+void geometry_polygon(struct object* cell, generics_t* layer, point_t** points, size_t len);
 
 void geometry_path(
-    object_t* cell,
+    struct object* cell,
     generics_t* layer,
     point_t** points, size_t len,
     ucoordinate_t width,
@@ -45,10 +45,10 @@ void geometry_path(
 );
 
 void geometry_viabltr(
-    object_t* cell, struct layermap* layermap, struct technology_state* techstate, int metal1, int metal2, point_t* bl, point_t* tr, ucoordinate_t xrep, ucoordinate_t yrep, ucoordinate_t xpitch, ucoordinate_t ypitch);
+    struct object* cell, struct layermap* layermap, struct technology_state* techstate, int metal1, int metal2, point_t* bl, point_t* tr, ucoordinate_t xrep, ucoordinate_t yrep, ucoordinate_t xpitch, ucoordinate_t ypitch);
 
 void geometry_via(
-    object_t* cell,
+    struct object* cell,
     struct layermap* layermap, struct technology_state* techstate,
     int metal1, int metal2,
     ucoordinate_t width, ucoordinate_t height,
@@ -58,7 +58,7 @@ void geometry_via(
 );
 
 void geometry_contactbltr(
-    object_t* cell,
+    struct object* cell,
     struct layermap* layermap, struct technology_state* techstate,
     const char* region,
     point_t* bl, point_t* tr,
@@ -68,7 +68,7 @@ void geometry_contactbltr(
 );
 
 void geometry_contact(
-    object_t* cell,
+    struct object* cell,
     struct layermap* layermap, struct technology_state* techstate,
     const char* region,
     ucoordinate_t width, ucoordinate_t height,
@@ -78,12 +78,12 @@ void geometry_contact(
     int xcont, int ycont
 );
 
-void geometry_cross(object_t* cell, generics_t* layer, ucoordinate_t width, ucoordinate_t height, ucoordinate_t crosssize);
+void geometry_cross(struct object* cell, generics_t* layer, ucoordinate_t width, ucoordinate_t height, ucoordinate_t crosssize);
 
-void geometry_ring(object_t* cell, generics_t* layer, ucoordinate_t width, ucoordinate_t height, ucoordinate_t ringwidth);
+void geometry_ring(struct object* cell, generics_t* layer, ucoordinate_t width, ucoordinate_t height, ucoordinate_t ringwidth);
 
 void geometry_unequal_ring(
-    object_t* cell,
+    struct object* cell,
     generics_t* layer,
     ucoordinate_t width, ucoordinate_t height,
     ucoordinate_t ringwidth, ucoordinate_t ringheight

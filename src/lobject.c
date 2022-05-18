@@ -30,7 +30,7 @@ lobject_t* lobject_check_soft(lua_State* L, int idx)
   return luaL_testudata(L, idx, LOBJECTMODULE);
 }
 
-lobject_t* lobject_adapt(lua_State* L, object_t* object)
+lobject_t* lobject_adapt(lua_State* L, struct object* object)
 {
     lobject_t* cell = _create(L);
     cell->object = object;
@@ -55,7 +55,7 @@ static int lobject_exchange(lua_State* L)
 {
     lobject_t* cell = lobject_check(L, 1);
     lobject_t* other = lobject_check(L, 2);
-    object_t* old = cell->object;
+    struct object* old = cell->object;
     cell->object = other->object;
     other->destroy = 0;
     object_destroy(old);
@@ -209,7 +209,7 @@ int lobject_add_child(lua_State* L)
     lua_getfield(L, LUA_REGISTRYINDEX, "pcellstate");
     struct pcell_state* pcell_state = lua_touserdata(L, -1);
     lua_pop(L, 1); // pop pcell state
-    object_t* child = object_add_child(cell->object, pcell_state, identifier, name);
+    struct object* child = object_add_child(cell->object, pcell_state, identifier, name);
     lobject_adapt(L, child);
     return 1;
 }
@@ -226,7 +226,7 @@ int lobject_add_child_array(lua_State* L)
     lua_getfield(L, LUA_REGISTRYINDEX, "pcellstate");
     struct pcell_state* pcell_state = lua_touserdata(L, -1);
     lua_pop(L, 1); // pop pcell state
-    object_t* child = object_add_child_array(cell->object, pcell_state, identifier, xrep, yrep, xpitch, ypitch, name);
+    struct object* child = object_add_child_array(cell->object, pcell_state, identifier, xrep, yrep, xpitch, ypitch, name);
     lobject_adapt(L, child);
     return 1;
 }

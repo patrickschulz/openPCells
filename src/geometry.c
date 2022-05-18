@@ -5,7 +5,7 @@
 #include <math.h>
 #include <stdio.h>
 
-static void _multiple_xy(object_t* cell, shape_t* base, ucoordinate_t xrep, ucoordinate_t yrep, ucoordinate_t xpitch, ucoordinate_t ypitch)
+static void _multiple_xy(struct object* cell, shape_t* base, ucoordinate_t xrep, ucoordinate_t yrep, ucoordinate_t xpitch, ucoordinate_t ypitch)
 {
     if(!shape_is_empty(base))
     {
@@ -25,24 +25,24 @@ static void _multiple_xy(object_t* cell, shape_t* base, ucoordinate_t xrep, ucoo
     }
 }
 
-static void _rectanglebltr(object_t* cell, generics_t* layer, coordinate_t blx, coordinate_t bly, coordinate_t trx, coordinate_t try, ucoordinate_t xrep, ucoordinate_t yrep, ucoordinate_t xpitch, ucoordinate_t ypitch)
+static void _rectanglebltr(struct object* cell, generics_t* layer, coordinate_t blx, coordinate_t bly, coordinate_t trx, coordinate_t try, ucoordinate_t xrep, ucoordinate_t yrep, ucoordinate_t xpitch, ucoordinate_t ypitch)
 {
     shape_t* S = shape_create_rectangle(layer, blx, bly, trx, try);
     _multiple_xy(cell, S, xrep, yrep, xpitch, ypitch);
     shape_destroy(S);
 }
 
-void geometry_rectanglebltr(object_t* cell, generics_t* layer, point_t* bl, point_t* tr, ucoordinate_t xrep, ucoordinate_t yrep, ucoordinate_t xpitch, ucoordinate_t ypitch)
+void geometry_rectanglebltr(struct object* cell, generics_t* layer, point_t* bl, point_t* tr, ucoordinate_t xrep, ucoordinate_t yrep, ucoordinate_t xpitch, ucoordinate_t ypitch)
 {
     _rectanglebltr(cell, layer, bl->x, bl->y, tr->x, tr->y, xrep, yrep, xpitch, ypitch);
 }
 
-void geometry_rectangle(object_t* cell, generics_t* layer, coordinate_t width, coordinate_t height, coordinate_t xshift, coordinate_t yshift, ucoordinate_t xrep, ucoordinate_t yrep, ucoordinate_t xpitch, ucoordinate_t ypitch)
+void geometry_rectangle(struct object* cell, generics_t* layer, coordinate_t width, coordinate_t height, coordinate_t xshift, coordinate_t yshift, ucoordinate_t xrep, ucoordinate_t yrep, ucoordinate_t xpitch, ucoordinate_t ypitch)
 {
     _rectanglebltr(cell, layer, -width / 2 + xshift, -height / 2 + yshift, width / 2 + xshift, height / 2 + yshift, xrep, yrep, xpitch, ypitch);
 }
 
-void geometry_rectanglepoints(object_t* cell, generics_t* layer, point_t* pt1, point_t* pt2, ucoordinate_t xrep, ucoordinate_t yrep, ucoordinate_t xpitch, ucoordinate_t ypitch)
+void geometry_rectanglepoints(struct object* cell, generics_t* layer, point_t* pt1, point_t* pt2, ucoordinate_t xrep, ucoordinate_t yrep, ucoordinate_t xpitch, ucoordinate_t ypitch)
 {
     if(pt1->x <= pt2->x && pt1->y <= pt2->y)
     {
@@ -62,7 +62,7 @@ void geometry_rectanglepoints(object_t* cell, generics_t* layer, point_t* pt1, p
     }
 }
 
-void geometry_polygon(object_t* cell, generics_t* layer, point_t** points, size_t len)
+void geometry_polygon(struct object* cell, generics_t* layer, point_t** points, size_t len)
 {
     shape_t* S = shape_create_polygon(layer, len);
     for(unsigned int i = 0; i < len; ++i)
@@ -79,7 +79,7 @@ void geometry_polygon(object_t* cell, generics_t* layer, point_t** points, size_
     }
 }
 
-void geometry_path(object_t* cell, generics_t* layer, point_t** points, size_t len, ucoordinate_t width, ucoordinate_t bgnext, ucoordinate_t endext)
+void geometry_path(struct object* cell, generics_t* layer, point_t** points, size_t len, ucoordinate_t width, ucoordinate_t bgnext, ucoordinate_t endext)
 {
     shape_t* S = shape_create_path(layer, len, width, bgnext, endext);
     for(unsigned int i = 0; i < len; ++i)
@@ -301,7 +301,7 @@ struct vector* _get_any_angle_path_pts(point_t** pts, size_t len, ucoordinate_t 
     return poly;
 }
 
-void geometry_any_angle_path(object_t* cell, generics_t* layer, point_t** pts, size_t len, ucoordinate_t width, ucoordinate_t grid, int miterjoin, int allow45)
+void geometry_any_angle_path(struct object* cell, generics_t* layer, point_t** pts, size_t len, ucoordinate_t width, ucoordinate_t grid, int miterjoin, int allow45)
 {
     _make_unique_points(pts, &len);
     struct vector* points = _get_any_angle_path_pts(pts, len, width, grid, miterjoin, allow45);
@@ -412,7 +412,7 @@ static struct via_definition* _get_rectangular_arrayzation(ucoordinate_t regionw
 }
 
 static void _via_contact_bltr(
-    object_t* cell,
+    struct object* cell,
     struct via_definition** viadefs, struct via_definition* fallback,
     generics_t* cutlayer, generics_t* surrounding1, generics_t* surrounding2,
     coordinate_t blx, coordinate_t bly, coordinate_t trx, coordinate_t try,
@@ -461,7 +461,7 @@ static void _via_contact_bltr(
 }
 
 static void _viabltr(
-    object_t* cell,
+    struct object* cell,
     struct layermap* layermap,
     struct technology_state* techstate,
     int metal1, int metal2,
@@ -498,18 +498,18 @@ static void _viabltr(
     }
 }
 
-void geometry_viabltr(object_t* cell, struct layermap* layermap, struct technology_state* techstate, int metal1, int metal2, point_t* bl, point_t* tr, ucoordinate_t xrep, ucoordinate_t yrep, ucoordinate_t xpitch, ucoordinate_t ypitch)
+void geometry_viabltr(struct object* cell, struct layermap* layermap, struct technology_state* techstate, int metal1, int metal2, point_t* bl, point_t* tr, ucoordinate_t xrep, ucoordinate_t yrep, ucoordinate_t xpitch, ucoordinate_t ypitch)
 {
     _viabltr(cell, layermap, techstate, metal1, metal2, bl->x, bl->y, tr->x, tr->y, xrep, yrep, xpitch, ypitch);
 }
 
-void geometry_via(object_t* cell, struct layermap* layermap, struct technology_state* techstate, int metal1, int metal2, ucoordinate_t width, ucoordinate_t height, coordinate_t xshift, coordinate_t yshift, ucoordinate_t xrep, ucoordinate_t yrep, ucoordinate_t xpitch, ucoordinate_t ypitch)
+void geometry_via(struct object* cell, struct layermap* layermap, struct technology_state* techstate, int metal1, int metal2, ucoordinate_t width, ucoordinate_t height, coordinate_t xshift, coordinate_t yshift, ucoordinate_t xrep, ucoordinate_t yrep, ucoordinate_t xpitch, ucoordinate_t ypitch)
 {
     _viabltr(cell, layermap, techstate, metal1, metal2, -(coordinate_t)width / 2 + xshift, -(coordinate_t)height / 2 + yshift, width / 2 + xshift, height / 2 + yshift, xrep, yrep, xpitch, ypitch);
 }
 
 static void _contactbltr(
-    object_t* cell,
+    struct object* cell,
     struct layermap* layermap, struct technology_state* techstate,
     const char* region,
     coordinate_t blx, coordinate_t bly, coordinate_t trx, coordinate_t try,
@@ -546,7 +546,7 @@ static void _contactbltr(
 }
 
 void geometry_contactbltr(
-    object_t* cell,
+    struct object* cell,
     struct layermap* layermap, struct technology_state* techstate,
     const char* region,
     point_t* bl, point_t* tr,
@@ -567,7 +567,7 @@ void geometry_contactbltr(
 }
 
 void geometry_contact(
-    object_t* cell,
+    struct object* cell,
     struct layermap* layermap, struct technology_state* techstate,
     const char* region,
     ucoordinate_t width, ucoordinate_t height,
@@ -589,7 +589,7 @@ void geometry_contact(
     );
 }
 
-void geometry_cross(object_t* cell, generics_t* layer, ucoordinate_t width, ucoordinate_t height, ucoordinate_t crosssize)
+void geometry_cross(struct object* cell, generics_t* layer, ucoordinate_t width, ucoordinate_t height, ucoordinate_t crosssize)
 {
     shape_t* S = shape_create_polygon(layer, 13);
     shape_append(S,     -width / 2, -crosssize / 2);
@@ -615,7 +615,7 @@ void geometry_cross(object_t* cell, generics_t* layer, ucoordinate_t width, ucoo
     }
 }
 
-void geometry_unequal_ring(object_t* cell, generics_t* layer, ucoordinate_t width, ucoordinate_t height, ucoordinate_t ringwidth, ucoordinate_t ringheight)
+void geometry_unequal_ring(struct object* cell, generics_t* layer, ucoordinate_t width, ucoordinate_t height, ucoordinate_t ringwidth, ucoordinate_t ringheight)
 {
     coordinate_t w = width;
     coordinate_t h = height;
@@ -643,7 +643,7 @@ void geometry_unequal_ring(object_t* cell, generics_t* layer, ucoordinate_t widt
     }
 }
 
-void geometry_ring(object_t* cell, generics_t* layer, ucoordinate_t width, ucoordinate_t height, ucoordinate_t ringwidth)
+void geometry_ring(struct object* cell, generics_t* layer, ucoordinate_t width, ucoordinate_t height, ucoordinate_t ringwidth)
 {
     geometry_unequal_ring(cell, layer, width, height, ringwidth, ringwidth);
 }

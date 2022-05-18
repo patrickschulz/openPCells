@@ -193,12 +193,13 @@ char* export_get_export_layername(struct const_vector* searchpaths, const char* 
     return NULL;
 }
 
-static void _write_ports(object_t* cell, struct export_data* data, struct export_functions* funcs, char leftdelim, char rightdelim)
+static void _write_ports(struct object* cell, struct export_data* data, struct export_functions* funcs, char leftdelim, char rightdelim)
 {
-    for(unsigned int i = 0; i < vector_size(cell->ports); ++i)
+    struct port_iterator* it = object_create_port_iterator(cell);
+    while(port_iterator_is_valid(it))
     {
+        struct port* port = port_iterator_get(it);
         char* name;
-        struct port* port = vector_get(cell->ports, i);
         if(port->isbusport)
         {
             size_t len = strlen(port->name) + 2 + util_num_digits(port->busindex);
@@ -209,22 +210,24 @@ static void _write_ports(object_t* cell, struct export_data* data, struct export
         {
             name = port->name;
         }
-        transformationmatrix_apply_transformation(cell->trans, port->where);
+        point_t where = { .x = port->where->x, .y = port->where->y };
+        object_transform_point(cell, &where);
         struct hashmap* layerdata = generics_get_first_layer_data(port->layer);
-        funcs->write_port(data, name, layerdata, port->where->x, port->where->y);
+        funcs->write_port(data, name, layerdata, where.x, where.y);
         if(port->isbusport)
         {
             free(name);
         }
+        port_iterator_next(it);
     }
+    port_iterator_destroy(it);
 }
 
-static void _write_cell(object_t* cell, struct export_data* data, struct export_functions* funcs, int write_ports, char leftdelim, char rightdelim)
+static void _write_cell(struct object* cell, struct export_data* data, struct export_functions* funcs, int write_ports, char leftdelim, char rightdelim)
 {
     for(unsigned int i = 0; i < object_get_shapes_size(cell); ++i)
     {
-        shape_t* shape = object_get_shape(cell, i);
-        shape_apply_transformation(shape, cell->trans);
+        shape_t* shape = object_get_transformed_shape(cell, i);
         const struct hashmap* layerdata = shape_get_main_layerdata(shape);
         if(shape_is_rectangle(shape))
         {
@@ -298,30 +301,41 @@ static void _write_cell(object_t* cell, struct export_data* data, struct export_
             }
         }
     }
-    if(cell->children)
+    struct child_iterator* it = object_create_child_iterator(cell);
+    while(child_iterator_is_valid(it))
     {
-        for(unsigned int i = 0; i < vector_size(cell->children); ++i)
+        struct object* child = child_iterator_get(it);
+        point_t origin = { .x = 0, .y = 0 };
+        object_transform_point(child, &origin);
+        object_transform_point(cell, &origin);
+        if(object_is_child_array(child) && funcs->write_cell_array)
         {
-            point_t origin = { .x = 0, .y = 0 };
-            object_t* child = vector_get(cell->children, i);
-            transformationmatrix_apply_transformation(child->trans, &origin);
-            transformationmatrix_apply_transformation(cell->trans, &origin);
-            if(child->isarray && funcs->write_cell_array)
+            funcs->write_cell_array(data,
+                object_get_identifier(child),
+                origin.x, origin.y,
+                object_get_transformation_matrix(child),
+                object_get_child_xrep(child), object_get_child_yrep(child),
+                object_get_child_xpitch(child), object_get_child_ypitch(child)
+            );
+        }
+        else
+        {
+            for(unsigned int ix = 1; ix <= object_get_child_xrep(child); ++ix)
             {
-                funcs->write_cell_array(data, child->identifier, origin.x, origin.y, child->trans, child->xrep, child->yrep, child->xpitch, child->ypitch);
-            }
-            else
-            {
-                for(unsigned int ix = 1; ix <= child->xrep; ++ix)
+                for(unsigned int iy = 1; iy <= object_get_child_yrep(child); ++iy)
                 {
-                    for(unsigned int iy = 1; iy <= child->yrep; ++iy)
-                    {
-                        funcs->write_cell_reference(data, child->identifier, origin.x + (ix - 1) * child->xpitch, origin.y + (iy - 1) * child->ypitch, child->trans);
-                    }
+                    funcs->write_cell_reference(data,
+                        object_get_identifier(child),
+                        origin.x + (ix - 1) * object_get_child_xpitch(child),
+                        origin.y + (iy - 1) * object_get_child_ypitch(child),
+                        object_get_transformation_matrix(child)
+                    );
                 }
             }
         }
+        child_iterator_next(it);
     }
+    child_iterator_destroy(it);
     if(write_ports && object_has_ports(cell))
     {
         _write_ports(cell, data, funcs, leftdelim, rightdelim);
@@ -373,7 +387,7 @@ static void _push_points(lua_State* L, struct vector* pts)
     }
 }
 
-static void _push_trans(lua_State* L, transformationmatrix_t* trans)
+static void _push_trans(lua_State* L, const transformationmatrix_t* trans)
 {
     lua_newtable(L);
     for(unsigned int i = 0; i < 6; ++i)
@@ -383,12 +397,13 @@ static void _push_trans(lua_State* L, transformationmatrix_t* trans)
     }
 }
 
-static int _write_ports_lua(lua_State* L, object_t* cell, char leftdelim, char rightdelim)
+static int _write_ports_lua(lua_State* L, struct object* cell, char leftdelim, char rightdelim)
 {
-    for(unsigned int i = 0; i < vector_size(cell->ports); ++i)
+    struct port_iterator* it = object_create_port_iterator(cell);
+    while(port_iterator_is_valid(it))
     {
+        struct port* port = port_iterator_get(it);
         char* name;
-        struct port* port = vector_get(cell->ports, i);
         if(port->isbusport)
         {
             size_t len = strlen(port->name) + 2 + util_num_digits(port->busindex);
@@ -399,12 +414,13 @@ static int _write_ports_lua(lua_State* L, object_t* cell, char leftdelim, char r
         {
             name = port->name;
         }
-        transformationmatrix_apply_transformation(cell->trans, port->where);
+        point_t where = { .x = port->where->x, .y = port->where->y };
+        object_transform_point(cell, &where);
         struct hashmap* layerdata = generics_get_first_layer_data(port->layer);
         lua_pushvalue(L, -1); // write_port is already on the stack (from the check if the function exists)
         lua_pushstring(L, name);
         _push_layer(L, layerdata);
-        _push_point(L, port->where);
+        _push_point(L, &where);
         int ret = lua_pcall(L, 3, 0, 0);
         if(ret != LUA_OK)
         {
@@ -414,7 +430,9 @@ static int _write_ports_lua(lua_State* L, object_t* cell, char leftdelim, char r
         {
             free(name);
         }
+        port_iterator_next(it);
     }
+    port_iterator_destroy(it);
     return LUA_OK;
 }
 
@@ -568,15 +586,14 @@ static int _check_function(lua_State* L, const char* funcname)
     return 1;
 }
 
-static int _write_cell_lua(lua_State* L, object_t* cell, int write_ports, char leftdelim, char rightdelim)
+static int _write_cell_lua(lua_State* L, struct object* cell, int write_ports, char leftdelim, char rightdelim)
 {
     int has_write_path = _check_function(L, "write_path");
     int has_curves = _check_function(L, "setup_curve") && _check_function(L, "close_curve") && _check_function(L, "curve_add_line_segment");
     int has_write_polygon = _check_function(L, "write_polygon");
     for(unsigned int i = 0; i < object_get_shapes_size(cell); ++i)
     {
-        shape_t* shape = object_get_shape(cell, i);
-        shape_apply_transformation(shape, cell->trans);
+        shape_t* shape = object_get_transformed_shape(cell, i);
         const struct hashmap* layerdata = shape_get_main_layerdata(shape);
         // order of the following statements matter!
         // (e.g. if curves and polygons can't be written,
@@ -629,59 +646,59 @@ static int _write_cell_lua(lua_State* L, object_t* cell, int write_ports, char l
             }
         }
     }
-    if(cell->children)
+    struct child_iterator* it = object_create_child_iterator(cell);
+    while(child_iterator_is_valid(it))
     {
-        for(unsigned int i = 0; i < vector_size(cell->children); ++i)
+        struct object* child = child_iterator_get(it);
+        point_t origin = { .x = 0, .y = 0 };
+        object_transform_point(child, &origin);
+        object_transform_point(cell, &origin);
+        if(object_is_child_array(child))
         {
-            point_t origin = { .x = 0, .y = 0 };
-            object_t* child = vector_get(cell->children, i);
-            transformationmatrix_apply_transformation(child->trans, &origin);
-            transformationmatrix_apply_transformation(cell->trans, &origin);
-            if(child->isarray)
+            lua_getfield(L, -1, "write_cell_array");
+            if(lua_isnil(L, -1))
             {
-                lua_getfield(L, -1, "write_cell_array");
-                if(lua_isnil(L, -1))
+                lua_pop(L, 1);
+            }
+            else
+            {
+                lua_pushstring(L, object_get_identifier(child));
+                lua_pushinteger(L, origin.x);
+                lua_pushinteger(L, origin.y);
+                _push_trans(L, object_get_transformation_matrix(child));
+                lua_pushinteger(L, object_get_child_xrep(child));
+                lua_pushinteger(L, object_get_child_yrep(child));
+                lua_pushinteger(L, object_get_child_xpitch(child));
+                lua_pushinteger(L, object_get_child_ypitch(child));
+                int ret = lua_pcall(L, 8, 0, 0);
+                if(ret != LUA_OK)
                 {
-                    lua_pop(L, 1);
+                    return ret;
                 }
-                else
+            }
+        }
+        else
+        {
+            for(unsigned int ix = 1; ix <= object_get_child_xrep(child); ++ix)
+            {
+                for(unsigned int iy = 1; iy <= object_get_child_yrep(child); ++iy)
                 {
-                    lua_pushstring(L, child->identifier);
-                    lua_pushinteger(L, origin.x);
-                    lua_pushinteger(L, origin.y);
-                    _push_trans(L, child->trans);
-                    lua_pushinteger(L, child->xrep);
-                    lua_pushinteger(L, child->yrep);
-                    lua_pushinteger(L, child->xpitch);
-                    lua_pushinteger(L, child->ypitch);
-                    int ret = lua_pcall(L, 8, 0, 0);
+                    lua_getfield(L, -1, "write_cell_reference");
+                    lua_pushstring(L, object_get_identifier(child));
+                    lua_pushinteger(L, origin.x + (ix - 1) * object_get_child_xpitch(child));
+                    lua_pushinteger(L, origin.y + (iy - 1) * object_get_child_ypitch(child));
+                    _push_trans(L, object_get_transformation_matrix(child));
+                    int ret = lua_pcall(L, 4, 0, 0);
                     if(ret != LUA_OK)
                     {
                         return ret;
                     }
                 }
             }
-            else
-            {
-                for(unsigned int ix = 1; ix <= child->xrep; ++ix)
-                {
-                    for(unsigned int iy = 1; iy <= child->yrep; ++iy)
-                    {
-                        lua_getfield(L, -1, "write_cell_reference");
-                        lua_pushstring(L, child->identifier);
-                        lua_pushinteger(L, origin.x + (ix - 1) * child->xpitch);
-                        lua_pushinteger(L, origin.y + (iy - 1) * child->ypitch);
-                        _push_trans(L, child->trans);
-                        int ret = lua_pcall(L, 4, 0, 0);
-                        if(ret != LUA_OK)
-                        {
-                            return ret;
-                        }
-                    }
-                }
-            }
         }
+        child_iterator_next(it);
     }
+    child_iterator_destroy(it);
     if(write_ports && object_has_ports(cell))
     {
         lua_getfield(L, -1, "write_port");
@@ -739,7 +756,7 @@ static int _check_lua_export(lua_State* L)
     return 1;
 }
 
-static void _write_toplevel_C(object_t* object, struct pcell_state* pcell_state, const char* toplevelname, struct export_data* data, struct export_functions* funcs, int writechildrenports, char leftdelim, char rightdelim)
+static void _write_toplevel_C(struct object* object, struct pcell_state* pcell_state, const char* toplevelname, struct export_data* data, struct export_functions* funcs, int writechildrenports, char leftdelim, char rightdelim)
 {
     if(funcs->initialize)
     {
@@ -765,7 +782,7 @@ static void _write_toplevel_C(object_t* object, struct pcell_state* pcell_state,
     funcs->at_end(data);
 }
 
-static int _write_toplevel_lua(lua_State* L, object_t* object, struct pcell_state* pcell_state, const char* toplevelname, struct export_data* data, int writechildrenports, char leftdelim, char rightdelim)
+static int _write_toplevel_lua(lua_State* L, struct object* object, struct pcell_state* pcell_state, const char* toplevelname, struct export_data* data, int writechildrenports, char leftdelim, char rightdelim)
 {
     int ret;
     // check if export supports hierarchies
@@ -846,7 +863,7 @@ static int _write_toplevel_lua(lua_State* L, object_t* object, struct pcell_stat
     return LUA_OK;
 }
 
-void export_write_toplevel(object_t* toplevel, struct pcell_state* pcell_state, struct export_state* state)
+void export_write_toplevel(struct object* toplevel, struct pcell_state* pcell_state, struct export_state* state)
 {
     if(object_is_empty(toplevel))
     {
