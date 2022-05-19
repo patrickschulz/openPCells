@@ -12,6 +12,17 @@
 #include "scriptmanager.h"
 #include "modulemanager.h"
 
+struct used_name {
+    char* identifier;
+    unsigned int numused;
+};
+
+struct pcell_state {
+    struct vector* used_names;
+    struct vector* references;
+    struct vector* cellpaths;
+};
+
 struct pcell_state* pcell_initialize_state(struct vector* cellpaths_to_prepend, struct vector* cellpaths_to_append)
 {
     struct pcell_state* pcell_state = malloc(sizeof(*pcell_state));

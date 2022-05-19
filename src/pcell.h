@@ -14,18 +14,7 @@ struct cellreference
     unsigned int numused;
 };
 
-struct used_name
-{
-    char* identifier;
-    unsigned int numused;
-};
-
-struct pcell_state
-{
-    struct vector* used_names;
-    struct vector* references;
-    struct vector* cellpaths;
-};
+struct pcell_state;
 
 struct pcell_state* pcell_initialize_state(struct vector* to_prepend, struct vector* to_append);
 void pcell_destroy_state(struct pcell_state* state);
