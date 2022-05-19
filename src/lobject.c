@@ -269,7 +269,7 @@ int lobject_add_port(lua_State* L)
 {
     lobject_t* cell = lobject_check(L, 1);
     const char* name = luaL_checkstring(L, 2);
-    generics_t* layer = lua_touserdata(L, 3);
+    struct generics* layer = lua_touserdata(L, 3);
     lpoint_t* lpoint = lpoint_checkpoint(L, 4);
     object_add_port(cell->object, name, layer, lpoint->point);
     return 0;
@@ -279,7 +279,7 @@ int lobject_add_bus_port(lua_State* L)
 {
     lobject_t* cell = lobject_check(L, 1);
     const char* name = luaL_checkstring(L, 2);
-    generics_t* layer = lua_touserdata(L, 3);
+    struct generics* layer = lua_touserdata(L, 3);
     lpoint_t* lpoint = lpoint_checkpoint(L, 4);
     int startindex = lua_tointeger(L, 5);
     int endindex = lua_tointeger(L, 6);

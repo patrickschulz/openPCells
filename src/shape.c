@@ -31,20 +31,20 @@ struct shape {
         CURVE
     } type;
     void* content;
-    generics_t* layer;
+    struct generics* layer;
 };
 
-static shape_t* _create_shape(enum shapetype type, generics_t* layer)
+static struct shape* _create_shape(enum shapetype type, struct generics* layer)
 {
-    shape_t* shape = malloc(sizeof(*shape));
+    struct shape* shape = malloc(sizeof(*shape));
     shape->type = type;
     shape->layer = layer;
     return shape;
 }
 
-shape_t* shape_create_rectangle(generics_t* layer, coordinate_t blx, coordinate_t bly, coordinate_t trx, coordinate_t try)
+struct shape* shape_create_rectangle(struct generics* layer, coordinate_t blx, coordinate_t bly, coordinate_t trx, coordinate_t try)
 {
-    shape_t* shape = _create_shape(RECTANGLE, layer);
+    struct shape* shape = _create_shape(RECTANGLE, layer);
     struct rectangle* rectangle = malloc(sizeof(*rectangle));
     rectangle->bl = point_create(blx, bly);
     rectangle->tr = point_create(trx, try);
@@ -52,18 +52,18 @@ shape_t* shape_create_rectangle(generics_t* layer, coordinate_t blx, coordinate_
     return shape;
 }
 
-shape_t* shape_create_polygon(generics_t* layer, size_t capacity)
+struct shape* shape_create_polygon(struct generics* layer, size_t capacity)
 {
-    shape_t* shape = _create_shape(POLYGON, layer);
+    struct shape* shape = _create_shape(POLYGON, layer);
     struct polygon* polygon = malloc(sizeof(*polygon));
     polygon->points = vector_create(capacity);
     shape->content = polygon;
     return shape;
 }
 
-shape_t* shape_create_path(generics_t* layer, size_t capacity, ucoordinate_t width, coordinate_t extstart, coordinate_t extend)
+struct shape* shape_create_path(struct generics* layer, size_t capacity, ucoordinate_t width, coordinate_t extstart, coordinate_t extend)
 {
-    shape_t* shape = _create_shape(PATH, layer);
+    struct shape* shape = _create_shape(PATH, layer);
     struct path* path = malloc(sizeof(*path));
     path->points = vector_create(capacity);
     path->width = width;
@@ -73,9 +73,9 @@ shape_t* shape_create_path(generics_t* layer, size_t capacity, ucoordinate_t wid
     return shape;
 }
 
-shape_t* shape_create_curve(generics_t* layer, coordinate_t x, coordinate_t y, unsigned int grid, int allow45)
+struct shape* shape_create_curve(struct generics* layer, coordinate_t x, coordinate_t y, unsigned int grid, int allow45)
 {
-    shape_t* shape = _create_shape(CURVE, layer);
+    struct shape* shape = _create_shape(CURVE, layer);
     struct curve* curve = malloc(sizeof(*curve));
     curve->origin = point_create(x, y);
     curve->segments = vector_create(8);
@@ -87,8 +87,8 @@ shape_t* shape_create_curve(generics_t* layer, coordinate_t x, coordinate_t y, u
 
 void* shape_copy(void* v)
 {
-    shape_t* self = v;
-    shape_t* new;
+    struct shape* self = v;
+    struct shape* new;
     switch(self->type)
     {
         case RECTANGLE:
@@ -146,7 +146,7 @@ void* shape_copy(void* v)
 
 void shape_destroy(void* v)
 {
-    shape_t* shape = v;
+    struct shape* shape = v;
     switch(shape->type)
     {
         case RECTANGLE:
@@ -181,7 +181,7 @@ void shape_destroy(void* v)
     free(shape);
 }
 
-static void _append_unconditionally(shape_t* shape, coordinate_t x, coordinate_t y)
+static void _append_unconditionally(struct shape* shape, coordinate_t x, coordinate_t y)
 {
     if(shape->type == POLYGON)
     {
@@ -195,7 +195,7 @@ static void _append_unconditionally(shape_t* shape, coordinate_t x, coordinate_t
     }
 }
 
-void shape_append(shape_t* shape, coordinate_t x, coordinate_t y)
+void shape_append(struct shape* shape, coordinate_t x, coordinate_t y)
 {
     // don't append points that are equal as the last one
     if(shape->type == POLYGON)
@@ -225,47 +225,47 @@ void shape_append(shape_t* shape, coordinate_t x, coordinate_t y)
     _append_unconditionally(shape, x, y);
 }
 
-const struct hashmap* shape_get_main_layerdata(const shape_t* shape)
+const struct hashmap* shape_get_main_layerdata(const struct shape* shape)
 {
     return generics_get_first_layer_data(shape->layer);
 }
 
-generics_t* shape_get_layer(shape_t* shape)
+struct generics* shape_get_layer(struct shape* shape)
 {
     return shape->layer;
 }
 
-int shape_is_rectangle(shape_t* shape)
+int shape_is_rectangle(struct shape* shape)
 {
     return shape->type == RECTANGLE;
 }
 
-int shape_is_path(shape_t* shape)
+int shape_is_path(struct shape* shape)
 {
     return shape->type == PATH;
 }
 
-int shape_is_polygon(shape_t* shape)
+int shape_is_polygon(struct shape* shape)
 {
     return shape->type == POLYGON;
 }
 
-int shape_is_triangulated_polygon(shape_t* shape)
+int shape_is_triangulated_polygon(struct shape* shape)
 {
     return shape->type == TRIANGULATED_POLYGON;
 }
 
-int shape_is_curve(shape_t* shape)
+int shape_is_curve(struct shape* shape)
 {
     return shape->type == CURVE;
 }
 
-void* shape_get_content(shape_t* shape)
+void* shape_get_content(struct shape* shape)
 {
     return shape->content;
 }
 
-int shape_get_rectangle_points(shape_t* shape, point_t** bl, point_t** tr)
+int shape_get_rectangle_points(struct shape* shape, point_t** bl, point_t** tr)
 {
     if(shape->type != RECTANGLE)
     {
@@ -277,7 +277,7 @@ int shape_get_rectangle_points(shape_t* shape, point_t** bl, point_t** tr)
     return 1;
 }
 
-int shape_get_polygon_points(shape_t* shape, struct vector** points)
+int shape_get_polygon_points(struct shape* shape, struct vector** points)
 {
     if(shape->type != POLYGON && shape->type != TRIANGULATED_POLYGON)
     {
@@ -288,7 +288,7 @@ int shape_get_polygon_points(shape_t* shape, struct vector** points)
     return 1;
 }
 
-int shape_get_path_points(shape_t* shape, struct vector** points)
+int shape_get_path_points(struct shape* shape, struct vector** points)
 {
     if(shape->type != PATH)
     {
@@ -299,7 +299,7 @@ int shape_get_path_points(shape_t* shape, struct vector** points)
     return 1;
 }
 
-int shape_get_path_width(shape_t* shape, ucoordinate_t* width)
+int shape_get_path_width(struct shape* shape, ucoordinate_t* width)
 {
     if(shape->type != PATH)
     {
@@ -310,7 +310,7 @@ int shape_get_path_width(shape_t* shape, ucoordinate_t* width)
     return 1;
 }
 
-int shape_get_path_extension(shape_t* shape, coordinate_t* start, coordinate_t* end)
+int shape_get_path_extension(struct shape* shape, coordinate_t* start, coordinate_t* end)
 {
     if(shape->type != PATH)
     {
@@ -322,7 +322,7 @@ int shape_get_path_extension(shape_t* shape, coordinate_t* start, coordinate_t* 
     return 1;
 }
 
-int shape_get_curve_origin(shape_t* shape, point_t** originp)
+int shape_get_curve_origin(struct shape* shape, point_t** originp)
 {
     if(shape->type != CURVE)
     {
@@ -332,12 +332,12 @@ int shape_get_curve_origin(shape_t* shape, point_t** originp)
     *originp = curve->origin;
     return 1;
 }
-int shape_is_empty(shape_t* shape)
+int shape_is_empty(struct shape* shape)
 {
     return generics_is_empty(shape->layer);
 }
 
-void shape_translate(shape_t* shape, coordinate_t dx, coordinate_t dy)
+void shape_translate(struct shape* shape, coordinate_t dx, coordinate_t dy)
 {
     switch(shape->type)
     {
@@ -386,7 +386,7 @@ void shape_translate(shape_t* shape, coordinate_t dx, coordinate_t dy)
     }
 }
 
-static void _correct_rectangle_point_order(shape_t* shape)
+static void _correct_rectangle_point_order(struct shape* shape)
 {
     if(shape->type == RECTANGLE)
     {
@@ -409,7 +409,7 @@ static void _correct_rectangle_point_order(shape_t* shape)
     }
 }
 
-void shape_apply_transformation(shape_t* shape, transformationmatrix_t* matrix)
+void shape_apply_transformation(struct shape* shape, transformationmatrix_t* matrix)
 {
     switch(shape->type)
     {
@@ -446,7 +446,7 @@ void shape_apply_transformation(shape_t* shape, transformationmatrix_t* matrix)
     _correct_rectangle_point_order(shape);
 }
 
-void shape_apply_inverse_transformation(shape_t* shape, transformationmatrix_t* matrix)
+void shape_apply_inverse_transformation(struct shape* shape, transformationmatrix_t* matrix)
 {
     switch(shape->type)
     {
@@ -486,7 +486,7 @@ void shape_apply_inverse_transformation(shape_t* shape, transformationmatrix_t* 
 #define min(a, b) ((a) < (b) ? (a) : (b))
 #define max(a, b) ((a) > (b) ? (a) : (b))
 
-coordinate_t shape_get_width(const shape_t* shape)
+coordinate_t shape_get_width(const struct shape* shape)
 {
     coordinate_t minx = COORDINATE_MAX;
     coordinate_t maxx = COORDINATE_MIN;
@@ -524,7 +524,7 @@ coordinate_t shape_get_width(const shape_t* shape)
     return maxx - minx;
 }
 
-coordinate_t shape_get_height(const shape_t* shape)
+coordinate_t shape_get_height(const struct shape* shape)
 {
     coordinate_t miny = COORDINATE_MAX;
     coordinate_t maxy = COORDINATE_MIN;
@@ -563,7 +563,7 @@ coordinate_t shape_get_height(const shape_t* shape)
     return maxy - miny;
 }
 
-void shape_get_width_height(const shape_t* shape, coordinate_t* width, coordinate_t* height)
+void shape_get_width_height(const struct shape* shape, coordinate_t* width, coordinate_t* height)
 {
     coordinate_t minx = COORDINATE_MAX;
     coordinate_t maxx = COORDINATE_MIN;
@@ -613,7 +613,7 @@ void shape_get_width_height(const shape_t* shape, coordinate_t* width, coordinat
     *height = maxy - miny;
 }
 
-void shape_get_minmax_xy(const shape_t* shape, const transformationmatrix_t* trans, coordinate_t* minxp, coordinate_t* minyp, coordinate_t* maxxp, coordinate_t* maxyp)
+void shape_get_minmax_xy(const struct shape* shape, const transformationmatrix_t* trans, coordinate_t* minxp, coordinate_t* minyp, coordinate_t* maxxp, coordinate_t* maxyp)
 {
     coordinate_t minx = COORDINATE_MAX;
     coordinate_t maxx = COORDINATE_MIN;
@@ -673,7 +673,7 @@ void shape_get_minmax_xy(const shape_t* shape, const transformationmatrix_t* tra
     *maxyp = maxy;
 }
 
-int shape_get_center(shape_t* shape, coordinate_t* x, coordinate_t* y)
+int shape_get_center(struct shape* shape, coordinate_t* x, coordinate_t* y)
 {
     if(shape->type != RECTANGLE) // FIXME: support other types
     {
@@ -687,7 +687,7 @@ int shape_get_center(shape_t* shape, coordinate_t* x, coordinate_t* y)
     return 1;
 }
 
-void shape_resize_lrtb(shape_t* shape, coordinate_t left, coordinate_t right, coordinate_t top, coordinate_t bottom)
+void shape_resize_lrtb(struct shape* shape, coordinate_t left, coordinate_t right, coordinate_t top, coordinate_t bottom)
 {
     if(shape->type != RECTANGLE) // FIXME: support other types
     {
@@ -713,7 +713,7 @@ static int _check_grid(point_t* pt, unsigned int grid)
     return 1;
 }
 
-void shape_curve_add_line_segment(shape_t* shape, point_t* pt)
+void shape_curve_add_line_segment(struct shape* shape, point_t* pt)
 {
     if(shape->type != CURVE)
     {
@@ -731,7 +731,7 @@ void shape_curve_add_line_segment(shape_t* shape, point_t* pt)
     vector_append(curve->segments, segment);
 }
 
-void shape_curve_add_arc_segment(shape_t* shape, double startangle, double endangle, coordinate_t radius, int clockwise)
+void shape_curve_add_arc_segment(struct shape* shape, double startangle, double endangle, coordinate_t radius, int clockwise)
 {
     if(shape->type != CURVE)
     {
@@ -747,7 +747,7 @@ void shape_curve_add_arc_segment(shape_t* shape, double startangle, double endan
     vector_append(curve->segments, segment);
 }
 
-void shape_resolve_path(shape_t* shape)
+void shape_resolve_path(struct shape* shape)
 {
     if(shape->type != PATH)
     {
@@ -755,7 +755,7 @@ void shape_resolve_path(shape_t* shape)
     }
     int miterjoin = 1;
     struct path* path = shape->content;
-    shape_t* new = geometry_path_to_polygon(shape->layer, vector_content(path->points), vector_size(path->points), path->width, miterjoin);
+    struct shape* new = geometry_path_to_polygon(shape->layer, vector_content(path->points), vector_size(path->points), path->width, miterjoin);
     shape->content = new->content;
     shape->type = POLYGON;
     vector_destroy(path->points, point_destroy);
@@ -781,7 +781,7 @@ static void _remove_superfluous_points(struct vector* pts)
     }
 }
 
-void shape_rasterize_curve(shape_t* shape)
+void shape_rasterize_curve(struct shape* shape)
 {
     if(shape->type != CURVE)
     {
@@ -839,7 +839,7 @@ void shape_rasterize_curve(shape_t* shape)
     shape->content = polygon;
 }
 
-void shape_triangulate_polygon(shape_t* shape)
+void shape_triangulate_polygon(struct shape* shape)
 {
     if(shape->type != POLYGON)
     {

@@ -192,7 +192,7 @@ void object_destroy(void* cellv)
     free(cell);
 }
 
-void object_add_raw_shape(struct object* cell, shape_t* S)
+void object_add_raw_shape(struct object* cell, struct shape* S)
 {
     if(!cell->shapes)
     {
@@ -201,7 +201,7 @@ void object_add_raw_shape(struct object* cell, shape_t* S)
     vector_append(cell->shapes, S);
 }
 
-void object_add_shape(struct object* cell, shape_t* S)
+void object_add_shape(struct object* cell, struct shape* S)
 {
     object_add_raw_shape(cell, S);
     shape_apply_inverse_transformation(S, cell->trans);
@@ -252,7 +252,7 @@ void object_merge_into_shallow(struct object* cell, const struct object* other)
     {
         for(unsigned int i = 0; i < vector_size(other->shapes); ++i)
         {
-            shape_t* shape = shape_copy(vector_get(other->shapes, i));
+            struct shape* shape = shape_copy(vector_get(other->shapes, i));
             object_add_shape(cell, shape);
             shape_apply_transformation(shape, other->trans);
         }
@@ -442,7 +442,7 @@ struct keyvaluearray* object_get_all_regular_anchors(const struct object* cell)
 }
 */
 
-static void _add_port(struct object* cell, const char* name, const char* anchorname, generics_t* layer, coordinate_t x, coordinate_t y, int isbusport, int busindex)
+static void _add_port(struct object* cell, const char* name, const char* anchorname, struct generics* layer, coordinate_t x, coordinate_t y, int isbusport, int busindex)
 {
     if(!generics_is_empty(layer))
     {
@@ -462,12 +462,12 @@ static void _add_port(struct object* cell, const char* name, const char* anchorn
     object_add_anchor(cell, anchorname, x, y);
 }
 
-void object_add_port(struct object* cell, const char* name, generics_t* layer, point_t* where)
+void object_add_port(struct object* cell, const char* name, struct generics* layer, point_t* where)
 {
     _add_port(cell, name, name, layer, where->x, where->y, 0, 0);
 }
 
-void object_add_bus_port(struct object* cell, const char* name, generics_t* layer, point_t* where, int startindex, int endindex, unsigned int xpitch, unsigned int ypitch)
+void object_add_bus_port(struct object* cell, const char* name, struct generics* layer, point_t* where, int startindex, int endindex, unsigned int xpitch, unsigned int ypitch)
 {
     int shift = 0;
     if(startindex < endindex)
@@ -617,7 +617,7 @@ void object_get_minmax_xy(const struct object* cell, coordinate_t* minxp, coordi
     {
         for(unsigned int i = 0; i < vector_size(cell->shapes); ++i)
         {
-            shape_t* S = vector_get(cell->shapes, i);
+            struct shape* S = vector_get(cell->shapes, i);
             coordinate_t _minx;
             coordinate_t _maxx;
             coordinate_t _miny;
@@ -655,11 +655,11 @@ void object_get_minmax_xy(const struct object* cell, coordinate_t* minxp, coordi
     *minyp = miny;
     *maxyp = maxy;
 }
-void object_foreach_shapes(struct object* cell, void (*func)(shape_t*))
+void object_foreach_shapes(struct object* cell, void (*func)(struct shape*))
 {
     for(unsigned int i = 0; i < vector_size(cell->shapes); ++i)
     {
-        shape_t* shape = vector_get(cell->shapes, i);
+        struct shape* shape = vector_get(cell->shapes, i);
         func(shape);
     }
 }
@@ -676,14 +676,14 @@ size_t object_get_shapes_size(const struct object* cell)
     }
 }
 
-shape_t* object_get_shape(struct object* cell, size_t idx)
+struct shape* object_get_shape(struct object* cell, size_t idx)
 {
     return vector_get(cell->shapes, idx);
 }
 
-shape_t* object_get_transformed_shape(struct object* cell, size_t idx)
+struct shape* object_get_transformed_shape(struct object* cell, size_t idx)
 {
-    shape_t* shape = vector_get(cell->shapes, idx);
+    struct shape* shape = vector_get(cell->shapes, idx);
     shape_apply_transformation(shape, cell->trans);
     return shape;
 }
@@ -777,7 +777,7 @@ void object_apply_transformation(struct object* cell)
     {
         for(unsigned int i = 0; i < vector_size(cell->shapes); ++i)
         {
-            shape_t* shape = vector_get(cell->shapes, i);
+            struct shape* shape = vector_get(cell->shapes, i);
             shape_apply_transformation(shape, cell->trans);
         }
     }
@@ -826,7 +826,7 @@ void object_flatten(struct object* cell, struct pcell_state* pcell_state, int fl
                     {
                         for(unsigned int i = 0; i < vector_size(reference->shapes); ++i)
                         {
-                            shape_t* S = shape_copy(vector_get(reference->shapes, i));
+                            struct shape* S = shape_copy(vector_get(reference->shapes, i));
                             shape_apply_transformation(S, child->trans);
                             shape_apply_transformation(S, reference->trans);
                             shape_translate(S, (ix - 1) * child->xpitch, (iy - 1) * child->ypitch);

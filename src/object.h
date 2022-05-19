@@ -10,7 +10,7 @@
 struct port {
     char* name;
     point_t* where;
-    generics_t* layer;
+    struct generics* layer;
     int isbusport;
     int busindex;
 };
@@ -21,24 +21,24 @@ struct object* object_create(void);
 struct object* object_copy(struct object*);
 void object_destroy(void* cell);
 
-void object_add_raw_shape(struct object* cell, shape_t* S);
-void object_add_shape(struct object* cell, shape_t* S);
+void object_add_raw_shape(struct object* cell, struct shape* S);
+void object_add_shape(struct object* cell, struct shape* S);
 void object_remove_shape(struct object* cell, size_t i);
 struct object* object_add_child(struct object* cell, struct pcell_state* pcell_state, const char* identifier, const char* name);
 struct object* object_add_child_array(struct object* cell, struct pcell_state* pcell_state, const char* identifier, unsigned int xrep, unsigned int yrep, unsigned int xpitch, unsigned int ypitch, const char* name);
 void object_merge_into_shallow(struct object* cell, const struct object* other);
 void object_add_anchor(struct object* cell, const char* name, coordinate_t x, coordinate_t y);
 point_t* object_get_anchor(const struct object* cell, const char* name);
-void object_add_port(struct object* cell, const char* name, generics_t* layer, point_t* where);
-void object_add_bus_port(struct object* cell, const char* name, generics_t* layer, point_t* where, int startindex, int endindex, unsigned int xpitch, unsigned int ypitch);
+void object_add_port(struct object* cell, const char* name, struct generics* layer, point_t* where);
+void object_add_bus_port(struct object* cell, const char* name, struct generics* layer, point_t* where, int startindex, int endindex, unsigned int xpitch, unsigned int ypitch);
 void object_set_alignment_box(struct object* cell, coordinate_t blx, coordinate_t bly, coordinate_t trx, coordinate_t try);
 void object_inherit_alignment_box(struct object* cell, const struct object* other);
 void object_get_minmax_xy(const struct object* cell, coordinate_t* minxp, coordinate_t* minyp, coordinate_t* maxxp, coordinate_t* maxyp);
-void object_foreach_shapes(struct object* cell, void (*func)(shape_t*));
+void object_foreach_shapes(struct object* cell, void (*func)(struct shape*));
 
 size_t object_get_shapes_size(const struct object* cell);
-shape_t* object_get_shape(struct object* cell, size_t idx);
-shape_t* object_get_transformed_shape(struct object* cell, size_t idx);
+struct shape* object_get_shape(struct object* cell, size_t idx);
+struct shape* object_get_transformed_shape(struct object* cell, size_t idx);
 
 const transformationmatrix_t* object_get_transformation_matrix(const struct object* cell);
 

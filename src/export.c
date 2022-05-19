@@ -227,7 +227,7 @@ static void _write_cell(struct object* cell, struct export_data* data, struct ex
 {
     for(unsigned int i = 0; i < object_get_shapes_size(cell); ++i)
     {
-        shape_t* shape = object_get_transformed_shape(cell, i);
+        struct shape* shape = object_get_transformed_shape(cell, i);
         const struct hashmap* layerdata = shape_get_main_layerdata(shape);
         if(shape_is_rectangle(shape))
         {
@@ -436,7 +436,7 @@ static int _write_ports_lua(lua_State* L, struct object* cell, char leftdelim, c
     return LUA_OK;
 }
 
-static int _write_lua_rectangle(lua_State* L, const struct hashmap* layerdata, shape_t* shape)
+static int _write_lua_rectangle(lua_State* L, const struct hashmap* layerdata, struct shape* shape)
 {
     lua_getfield(L, -1, "write_rectangle");
     _push_layer(L, layerdata);
@@ -448,7 +448,7 @@ static int _write_lua_rectangle(lua_State* L, const struct hashmap* layerdata, s
     return lua_pcall(L, 3, 0, 0);
 }
 
-static int _write_lua_polygon(lua_State* L, const struct hashmap* layerdata, shape_t* shape)
+static int _write_lua_polygon(lua_State* L, const struct hashmap* layerdata, struct shape* shape)
 {
     lua_getfield(L, -1, "write_polygon");
     _push_layer(L, layerdata);
@@ -458,7 +458,7 @@ static int _write_lua_polygon(lua_State* L, const struct hashmap* layerdata, sha
     return lua_pcall(L, 2, 0, 0);
 }
 
-static int _write_lua_triangulated_polygon(lua_State* L, const struct hashmap* layerdata, shape_t* shape)
+static int _write_lua_triangulated_polygon(lua_State* L, const struct hashmap* layerdata, struct shape* shape)
 {
     struct vector* points;
     shape_get_polygon_points(shape, &points);
@@ -478,7 +478,7 @@ static int _write_lua_triangulated_polygon(lua_State* L, const struct hashmap* l
     return LUA_OK;
 }
 
-static int _write_lua_path(lua_State* L, const struct hashmap* layerdata, shape_t* shape)
+static int _write_lua_path(lua_State* L, const struct hashmap* layerdata, struct shape* shape)
 {
     lua_getfield(L, -1, "write_path");
     _push_layer(L, layerdata);
@@ -503,7 +503,7 @@ static coordinate_t _fix_to_grid(coordinate_t c, unsigned int grid)
     return (c / grid) * grid;
 }
 
-static int _write_lua_curve(lua_State* L, const struct hashmap* layerdata, shape_t* shape)
+static int _write_lua_curve(lua_State* L, const struct hashmap* layerdata, struct shape* shape)
 {
     lua_getfield(L, -1, "setup_curve");
     _push_layer(L, layerdata);
@@ -593,7 +593,7 @@ static int _write_cell_lua(lua_State* L, struct object* cell, int write_ports, c
     int has_write_polygon = _check_function(L, "write_polygon");
     for(unsigned int i = 0; i < object_get_shapes_size(cell); ++i)
     {
-        shape_t* shape = object_get_transformed_shape(cell, i);
+        struct shape* shape = object_get_transformed_shape(cell, i);
         const struct hashmap* layerdata = shape_get_main_layerdata(shape);
         // order of the following statements matter!
         // (e.g. if curves and polygons can't be written,

@@ -32,14 +32,14 @@ int technology_load(struct technology_state* techstate, const char* name);
 void technology_disable_via_arrayzation(struct technology_state* techstate);
 int technology_is_create_via_arrays(const struct technology_state* techstate);
 
-generics_t* technology_get_layer(struct technology_state* state, const char* layername);
+struct generics* technology_get_layer(struct technology_state* state, const char* layername);
 int technology_resolve_metal(struct technology_state* state, int metalnum);
 struct via_definition** technology_get_via_definitions(struct technology_state* state, int metal1, int metal2);
 struct via_definition* technology_get_via_fallback(struct technology_state* state, int metal1, int metal2);
 struct via_definition** technology_get_contact_definitions(struct technology_state* state, const char* region);
 struct via_definition* technology_get_contact_fallback(struct technology_state* state, const char* region);
 
-generics_t* technology_make_layer(const char* layername, lua_State* L);
+struct generics* technology_make_layer(const char* layername, lua_State* L);
 
 int open_ltechnology_lib(lua_State* L);
 

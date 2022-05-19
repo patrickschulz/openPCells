@@ -10,7 +10,7 @@
 #include "tagged_value.h"
 
 struct technology_state {
-    struct vector* layertable; // stores generics_t*
+    struct vector* layertable; // stores struct generics*
     struct vector* viatable; // stores struct viaentry*
     struct technology_config* config;
     struct hashmap* constraints;
@@ -75,7 +75,7 @@ int technology_load_layermap(struct technology_state* techstate, const char* nam
     {
         const char* layername = lua_tostring(L, -2);
         lua_getfield(L, -1, "layer");
-        generics_t* layer = generics_make_layer_from_lua(layername, L);
+        struct generics* layer = generics_make_layer_from_lua(layername, L);
         vector_append(techstate->layertable, layer);
         lua_pop(L, 1); // pop layer table
         lua_pop(L, 1); // pop value, keep key for next iteration
@@ -269,11 +269,11 @@ int technology_load(struct technology_state* techstate, const char* techname)
     return 1;
 }
 
-generics_t* technology_get_layer(struct technology_state* techstate, const char* layername)
+struct generics* technology_get_layer(struct technology_state* techstate, const char* layername)
 {
     for(unsigned int i = 0; i < vector_size(techstate->layertable); ++i)
     {
-        generics_t* layer = vector_get(techstate->layertable, i);
+        struct generics* layer = vector_get(techstate->layertable, i);
         if(generics_is_layer_name(layer, layername))
         {
             return layer;
@@ -460,7 +460,7 @@ static int ltechnology_get_dimension(lua_State* L)
 
 static int ltechnology_has_layer(lua_State* L)
 {
-    generics_t* layer = lua_touserdata(L, 1);
+    struct generics* layer = lua_touserdata(L, 1);
     lua_pushboolean(L, !generics_is_empty(layer));
     return 1;
 }

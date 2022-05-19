@@ -3,6 +3,12 @@
 #include <stdlib.h>
 #include <string.h>
 
+struct vector {
+    void** elements;
+    size_t size;
+    size_t capacity;
+};
+
 static void _resize_data(struct vector* vector, size_t capacity)
 {
     vector->capacity = capacity;
@@ -165,6 +171,12 @@ void vector_iterator_destroy(struct vector_iterator* iterator)
 {
     free(iterator);
 }
+
+struct const_vector {
+    const void** elements;
+    size_t size;
+    size_t capacity;
+};
 
 static void _const_resize_data(struct const_vector* const_vector, size_t capacity)
 {

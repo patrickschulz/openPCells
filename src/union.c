@@ -6,7 +6,7 @@
 #include "point.h"
 #include "shape.h"
 
-typedef enum
+enum order
 {
     NOINTERSECTION,
     REGULAR,
@@ -18,9 +18,9 @@ typedef enum
     EQUAL,
     OUTER,
     INNER
-} order_t;
+};
 
-static order_t rect_order(coordinate_t bl1, coordinate_t tr1, coordinate_t bl2, coordinate_t tr2)
+static enum order rect_order(coordinate_t bl1, coordinate_t tr1, coordinate_t bl2, coordinate_t tr2)
 {
     if(bl1  > tr2 || bl2  > tr1) return NOINTERSECTION;
     if(bl1  < bl2 && tr1  > tr2) return OUTER;
@@ -35,14 +35,14 @@ static order_t rect_order(coordinate_t bl1, coordinate_t tr1, coordinate_t bl2, 
     return NOINTERSECTION;
 }
 
-shape_t* rectangle_union(shape_t* rect1, shape_t* rect2)
+struct shape* rectangle_union(struct shape* rect1, struct shape* rect2)
 {
     point_t *bl1, *tr1;
     shape_get_rectangle_points(rect1, &bl1, &tr1);
     point_t *bl2, *tr2;
     shape_get_rectangle_points(rect2, &bl2, &tr2);
-    order_t xorder = rect_order(bl1->x, tr1->x, bl2->x, tr2->x);
-    order_t yorder = rect_order(bl1->y, tr1->y, bl2->y, tr2->y);
+    enum order xorder = rect_order(bl1->x, tr1->x, bl2->x, tr2->x);
+    enum order yorder = rect_order(bl1->y, tr1->y, bl2->y, tr2->y);
     if(xorder == NOINTERSECTION || yorder == NOINTERSECTION)
     {
         return NULL;
@@ -134,7 +134,7 @@ shape_t* rectangle_union(shape_t* rect1, shape_t* rect2)
         default: // silence warning about not handling NOINTERSECTION, which is handled earlier
             break;
     }
-    shape_t* new = shape_create_rectangle(shape_get_layer(rect1), blx, bly, trx, try);
+    struct shape* new = shape_create_rectangle(shape_get_layer(rect1), blx, bly, trx, try);
     return new;
 }
 
@@ -146,9 +146,9 @@ size_t union_rectangle_all(struct vector* rectangles)
     {
         //if(i == vector_size(rectangles) - 1 && j == vector_size(rectangles)) break;
         if(i >= (int)vector_size(rectangles) - 1) break;
-        shape_t* rect1 = vector_get(rectangles, i);
-        shape_t* rect2 = vector_get(rectangles, j);
-        shape_t* result = rectangle_union(rect1, rect2);
+        struct shape* rect1 = vector_get(rectangles, i);
+        struct shape* rect2 = vector_get(rectangles, j);
+        struct shape* result = rectangle_union(rect1, rect2);
         if(result)
         {
             vector_set(rectangles, i, result);
