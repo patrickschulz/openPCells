@@ -1,4 +1,4 @@
-foreach(file list("call" "creation" "edit_update" "export" "menu" "misc" "paramform" "settings")
+foreach(file list("backup" "call" "creation" "edit_update" "export" "menu" "misc" "paramform" "settings")
     load(lsprintf("%s/interface/virtuoso/%s.il" OPCPath file))
 )
 
