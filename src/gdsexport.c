@@ -419,7 +419,7 @@ enum orientation
     MY
 };
 
-static enum orientation _get_matrix_orientation(transformationmatrix_t* matrix)
+static enum orientation _get_matrix_orientation(const transformationmatrix_t* matrix)
 {
     if(matrix->coefficients[0] >= 0 && matrix->coefficients[4] >= 0)
     {
@@ -447,7 +447,7 @@ static enum orientation _get_matrix_orientation(transformationmatrix_t* matrix)
     // FIXME: R270?
 }
 
-static void _write_cell_reference(struct export_data* data, const char* identifier, coordinate_t x, coordinate_t y, transformationmatrix_t* trans)
+static void _write_cell_reference(struct export_data* data, const char* identifier, coordinate_t x, coordinate_t y, const transformationmatrix_t* trans)
 {
     // SREF
     _write_length_short(data, 4);
@@ -560,7 +560,7 @@ static void _write_cell_reference(struct export_data* data, const char* identifi
     _write_ENDEL(data);
 }
 
-static void _write_cell_array(struct export_data* data, const char* identifier, coordinate_t x, coordinate_t y, transformationmatrix_t* trans, unsigned int xrep, unsigned int yrep, unsigned int xpitch, unsigned int ypitch)
+static void _write_cell_array(struct export_data* data, const char* identifier, coordinate_t x, coordinate_t y, const transformationmatrix_t* trans, unsigned int xrep, unsigned int yrep, unsigned int xpitch, unsigned int ypitch)
 {
     // AREF
     _write_length_short(data, 4);

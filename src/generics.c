@@ -21,17 +21,17 @@ struct layermap
     struct vector* extra_layers;
 };
 
-generics_t* generics_create_empty_layer(const char* name)
+struct generics* generics_create_empty_layer(const char* name)
 {
-    generics_t* layer = malloc(sizeof(*layer));
+    struct generics* layer = malloc(sizeof(*layer));
     memset(layer, 0, sizeof(*layer));
     layer->name = util_copy_string(name);
     return layer;
 }
 
-generics_t* generics_create_premapped_layer(const char* name, size_t size)
+struct generics* generics_create_premapped_layer(const char* name, size_t size)
 {
-    generics_t* layer = generics_create_empty_layer(name);
+    struct generics* layer = generics_create_empty_layer(name);
     layer->data = calloc(size, sizeof(*layer->data));
     layer->exportnames = calloc(size, sizeof(*layer->exportnames));
     layer->size = size;
@@ -64,9 +64,9 @@ static void _insert_lpp_pairs(lua_State* L, struct hashmap* map)
     }
 }
 
-generics_t* generics_make_layer_from_lua(const char* layername, lua_State* L)
+struct generics* generics_make_layer_from_lua(const char* layername, lua_State* L)
 {
-    generics_t* layer;
+    struct generics* layer;
     if(lua_isnil(L, -1))
     {
         layer = generics_create_empty_layer(layername);
@@ -98,11 +98,11 @@ generics_t* generics_make_layer_from_lua(const char* layername, lua_State* L)
     return layer;
 }
 
-static generics_t* _get_or_create_layer(struct layermap* layermap, struct technology_state* techstate, const char* layername)
+static struct generics* _get_or_create_layer(struct layermap* layermap, struct technology_state* techstate, const char* layername)
 {
     if(!hashmap_exists(layermap->hashmap, layername))
     {
-        generics_t* layer = technology_get_layer(techstate, layername);
+        struct generics* layer = technology_get_layer(techstate, layername);
         hashmap_insert(layermap->hashmap, layername, layer);
         return layer;
     }
@@ -112,29 +112,29 @@ static generics_t* _get_or_create_layer(struct layermap* layermap, struct techno
     }
 }
 
-generics_t* generics_create_metal(struct layermap* layermap, struct technology_state* techstate, int num)
+struct generics* generics_create_metal(struct layermap* layermap, struct technology_state* techstate, int num)
 {
     num = technology_resolve_metal(techstate, num);
     size_t len = 1 + util_num_digits(num);
     char* layername = malloc(len + 1);
     snprintf(layername, len + 1, "M%d", num);
-    generics_t* layer = _get_or_create_layer(layermap, techstate, layername);
+    struct generics* layer = _get_or_create_layer(layermap, techstate, layername);
     free(layername);
     return layer;
 }
 
-generics_t* generics_create_metalport(struct layermap* layermap, struct technology_state* techstate, int num)
+struct generics* generics_create_metalport(struct layermap* layermap, struct technology_state* techstate, int num)
 {
     num = technology_resolve_metal(techstate, num);
     size_t len = 1 + util_num_digits(num) + 4; // M + %d + port
     char* layername = malloc(len + 1);
     snprintf(layername, len + 1, "M%dport", num);
-    generics_t* layer = _get_or_create_layer(layermap, techstate, layername);
+    struct generics* layer = _get_or_create_layer(layermap, techstate, layername);
     free(layername);
     return layer;
 }
 
-generics_t* generics_create_viacut(struct layermap* layermap, struct technology_state* techstate, int metal1, int metal2)
+struct generics* generics_create_viacut(struct layermap* layermap, struct technology_state* techstate, int metal1, int metal2)
 {
     metal1 = technology_resolve_metal(techstate, metal1);
     metal2 = technology_resolve_metal(techstate, metal2);
@@ -147,96 +147,96 @@ generics_t* generics_create_viacut(struct layermap* layermap, struct technology_
     size_t len = 6 + 1 + util_num_digits(metal1) + 1 + util_num_digits(metal2); // viacut + M + %d + M + %d
     char* layername = malloc(len + 1);
     snprintf(layername, len + 1, "viacutM%dM%d", metal1, metal2);
-    generics_t* layer = _get_or_create_layer(layermap, techstate, layername);
+    struct generics* layer = _get_or_create_layer(layermap, techstate, layername);
     free(layername);
     return layer;
 }
 
-generics_t* generics_create_contact(struct layermap* layermap, struct technology_state* techstate, const char* region)
+struct generics* generics_create_contact(struct layermap* layermap, struct technology_state* techstate, const char* region)
 {
     size_t len = 7 + strlen(region); // contact + %s
     char* layername = malloc(len + 1);
     snprintf(layername, len + 1, "contact%s", region);
-    generics_t* layer = _get_or_create_layer(layermap, techstate, layername);
+    struct generics* layer = _get_or_create_layer(layermap, techstate, layername);
     free(layername);
     return layer;
 }
 
-generics_t* generics_create_oxide(struct layermap* layermap, struct technology_state* techstate, int num)
+struct generics* generics_create_oxide(struct layermap* layermap, struct technology_state* techstate, int num)
 {
     size_t len = 5 + util_num_digits(num); // oxide + %d
     char* layername = malloc(len + 1);
     snprintf(layername, len + 1, "oxide%d", num);
-    generics_t* layer = _get_or_create_layer(layermap, techstate, layername);
+    struct generics* layer = _get_or_create_layer(layermap, techstate, layername);
     free(layername);
     return layer;
 }
 
-generics_t* generics_create_implant(struct layermap* layermap, struct technology_state* techstate, char polarity)
+struct generics* generics_create_implant(struct layermap* layermap, struct technology_state* techstate, char polarity)
 {
     size_t len = 8; // [np]implant
     char* layername = malloc(len + 1);
     snprintf(layername, len + 1, "%cimplant", polarity);
-    generics_t* layer = _get_or_create_layer(layermap, techstate, layername);
+    struct generics* layer = _get_or_create_layer(layermap, techstate, layername);
     free(layername);
     return layer;
 }
 
-generics_t* generics_create_vthtype(struct layermap* layermap, struct technology_state* techstate, char channeltype, int vthtype)
+struct generics* generics_create_vthtype(struct layermap* layermap, struct technology_state* techstate, char channeltype, int vthtype)
 {
     size_t len = 7 + 1 + util_num_digits(vthtype); // vthtype + %c + %d
     char* layername = malloc(len + 1);
     snprintf(layername, len + 1, "vthtype%c%d", channeltype, vthtype);
-    generics_t* layer = _get_or_create_layer(layermap, techstate, layername);
+    struct generics* layer = _get_or_create_layer(layermap, techstate, layername);
     free(layername);
     return layer;
 }
 
-generics_t* generics_create_other(struct layermap* layermap, struct technology_state* techstate, const char* layername)
+struct generics* generics_create_other(struct layermap* layermap, struct technology_state* techstate, const char* layername)
 {
-    generics_t* layer = _get_or_create_layer(layermap, techstate, layername);
+    struct generics* layer = _get_or_create_layer(layermap, techstate, layername);
     return layer;
 }
 
-generics_t* generics_create_otherport(struct layermap* layermap, struct technology_state* techstate, const char* str)
+struct generics* generics_create_otherport(struct layermap* layermap, struct technology_state* techstate, const char* str)
 {
     size_t len = strlen(str) + 4; // + "port"
     char* layername = malloc(len + 1);
     snprintf(layername, len + 1, "%sport", str);
-    generics_t* layer = _get_or_create_layer(layermap, techstate, layername);
+    struct generics* layer = _get_or_create_layer(layermap, techstate, layername);
     free(layername);
     return layer;
 }
 
-generics_t* generics_create_special(struct layermap* layermap, struct technology_state* techstate)
+struct generics* generics_create_special(struct layermap* layermap, struct technology_state* techstate)
 {
-    generics_t* layer = _get_or_create_layer(layermap, techstate, "special");
+    struct generics* layer = _get_or_create_layer(layermap, techstate, "special");
     return layer;
 }
 
-int generics_is_empty(const generics_t* layer)
+int generics_is_empty(const struct generics* layer)
 {
     return layer->size == 0;
 }
 
-int generics_is_layer_name(const generics_t* layer, const char* layername)
+int generics_is_layer_name(const struct generics* layer, const char* layername)
 {
     return strcmp(layer->name, layername) == 0;
 }
 
-struct hashmap* generics_get_first_layer_data(generics_t* layer)
+struct hashmap* generics_get_first_layer_data(struct generics* layer)
 {
     return layer->data[0];
 }
 
-void generics_insert_extra_layer(struct layermap* layermap, generics_t* layer)
+void generics_insert_extra_layer(struct layermap* layermap, struct generics* layer)
 {
     vector_append(layermap->extra_layers, layer);
 }
 
 void generics_destroy_layer(void* layerv)
 {
-    generics_t* layer = layerv;
+    struct generics* layer = layerv;
     for(unsigned int i = 0; i < layer->size; ++i)
     {
         free(layer->exportnames[i]);
@@ -263,7 +263,7 @@ void generics_destroy_layer_map(struct layermap* layermap)
     free(layermap);
 }
 
-int _resolve_layer(generics_t* layer, const char* exportname)
+int _resolve_layer(struct generics* layer, const char* exportname)
 {
     int found = 0;
     if(layer->size > 0) // empty layers are ignored
@@ -306,7 +306,7 @@ int generics_resolve_premapped_layers(struct layermap* layermap, const char* exp
     struct hashmap_iterator* it = hashmap_iterator_create(layermap->hashmap);
     while(hashmap_iterator_is_valid(it))
     {
-        generics_t* layer = hashmap_iterator_value(it);
+        struct generics* layer = hashmap_iterator_value(it);
         if(!_resolve_layer(layer, exportname))
         {
             return 0;
@@ -318,7 +318,7 @@ int generics_resolve_premapped_layers(struct layermap* layermap, const char* exp
     // extra layers
     for(unsigned int i = 0; i < vector_size(layermap->extra_layers); ++i)
     {
-        generics_t* layer = vector_get(layermap->extra_layers, i);
+        struct generics* layer = vector_get(layermap->extra_layers, i);
         if(!_resolve_layer(layer, exportname))
         {
             return 0;

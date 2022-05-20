@@ -3,13 +3,7 @@
 
 #include <stddef.h>
 
-struct vector
-{
-    void** elements;
-    size_t size;
-    size_t capacity;
-};
-
+struct vector;
 struct vector* vector_create(size_t capacity);
 void vector_destroy(struct vector* vector, void (*destructor)(void*));
 struct vector* vector_copy(struct vector* vector, void* (*copy)(void*));
@@ -33,13 +27,7 @@ void* vector_iterator_get(struct vector_iterator* iterator);
 void vector_iterator_next(struct vector_iterator* iterator);
 void vector_iterator_destroy(struct vector_iterator* iterator);
 
-struct const_vector
-{
-    const void** elements;
-    size_t size;
-    size_t capacity;
-};
-
+struct const_vector;
 struct const_vector* const_vector_create(size_t capacity);
 void const_vector_destroy(struct const_vector* const_vector);
 size_t const_vector_size(struct const_vector* const_vector);

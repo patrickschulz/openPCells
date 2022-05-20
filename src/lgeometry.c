@@ -44,7 +44,7 @@ static void _check_rectangle_points(lua_State* L, lpoint_t* bl, lpoint_t* tr, co
 static int lgeometry_rectanglebltr(lua_State* L)
 {
     lobject_t* cell = lobject_check(L, 1);
-    generics_t* layer = _check_generics(L, 2);
+    struct generics* layer = _check_generics(L, 2);
     lpoint_t* bl = lpoint_checkpoint(L, 3);
     lpoint_t* tr = lpoint_checkpoint(L, 4);
     _check_rectangle_points(L, bl, tr, "geometry.rectanglebltr");
@@ -59,7 +59,7 @@ static int lgeometry_rectanglebltr(lua_State* L)
 static int lgeometry_rectangle(lua_State* L)
 {
     lobject_t* cell = lobject_check(L, 1);
-    generics_t* layer = _check_generics(L, 2);
+    struct generics* layer = _check_generics(L, 2);
     coordinate_t width = lua_tointeger(L, 3);
     coordinate_t height = lua_tointeger(L, 4);
     coordinate_t xshift = luaL_optinteger(L, 5, 0);
@@ -75,7 +75,7 @@ static int lgeometry_rectangle(lua_State* L)
 static int lgeometry_rectanglepoints(lua_State* L)
 {
     lobject_t* cell = lobject_check(L, 1);
-    generics_t* layer = _check_generics(L, 2);
+    struct generics* layer = _check_generics(L, 2);
     lpoint_t* pt1 = lpoint_checkpoint(L, 3);
     lpoint_t* pt2 = lpoint_checkpoint(L, 4);
     ucoordinate_t xrep = luaL_optinteger(L, 5, 1);
@@ -89,7 +89,7 @@ static int lgeometry_rectanglepoints(lua_State* L)
 static int lgeometry_polygon(lua_State* L)
 {
     lobject_t* cell = lobject_check(L, 1);
-    generics_t* layer = _check_generics(L, 2);
+    struct generics* layer = _check_generics(L, 2);
     lua_len(L, 3);
     size_t len = lua_tointeger(L, -1);
     lua_pop(L, 1);
@@ -140,7 +140,7 @@ void _get_path_extension(lua_State* L, int idx, int* bgnext, int* endext)
 static int lgeometry_path(lua_State* L)
 {
     lobject_t* cell = lobject_check(L, 1);
-    generics_t* layer = _check_generics(L, 2);
+    struct generics* layer = _check_generics(L, 2);
     lua_len(L, 3);
     size_t len = lua_tointeger(L, -1);
     lua_pop(L, 1);
@@ -166,7 +166,7 @@ static int lgeometry_path(lua_State* L)
 static int lgeometry_path_manhatten(lua_State* L)
 {
     lobject_t* cell = lobject_check(L, 1);
-    generics_t* layer = _check_generics(L, 2);
+    struct generics* layer = _check_generics(L, 2);
     lua_len(L, 3);
     size_t len = lua_tointeger(L, -1);
     lua_pop(L, 1);
@@ -210,7 +210,7 @@ static int lgeometry_path_manhatten(lua_State* L)
 static int lgeometry_path_3x(lua_State* L)
 {
     lobject_t* cell = lobject_check(L, 1);
-    generics_t* layer = _check_generics(L, 2);
+    struct generics* layer = _check_generics(L, 2);
     lua_len(L, 3);
     size_t len = lua_tointeger(L, -1);
     lua_pop(L, 1);
@@ -254,7 +254,7 @@ static int lgeometry_path_3x(lua_State* L)
 static int lgeometry_path_cshape(lua_State* L)
 {
     lobject_t* cell = lobject_check(L, 1);
-    generics_t* layer = _check_generics(L, 2);
+    struct generics* layer = _check_generics(L, 2);
     lpoint_t* ptstart = lpoint_checkpoint(L, 3);
     lpoint_t* ptend = lpoint_checkpoint(L, 4);
     lpoint_t* ptoffset = lpoint_checkpoint(L, 5);
@@ -279,7 +279,7 @@ static int lgeometry_path_cshape(lua_State* L)
 static int lgeometry_path_ushape(lua_State* L)
 {
     lobject_t* cell = lobject_check(L, 1);
-    generics_t* layer = _check_generics(L, 2);
+    struct generics* layer = _check_generics(L, 2);
     lpoint_t* ptstart = lpoint_checkpoint(L, 3);
     lpoint_t* ptend = lpoint_checkpoint(L, 4);
     lpoint_t* ptoffset = lpoint_checkpoint(L, 5);
@@ -432,7 +432,7 @@ static int lgeometry_contact(lua_State* L)
 static int lgeometry_cross(lua_State* L)
 {
     lobject_t* cell = lobject_check(L, 1);
-    generics_t* layer = _check_generics(L, 2);
+    struct generics* layer = _check_generics(L, 2);
     ucoordinate_t width = luaL_checkinteger(L, 3);
     ucoordinate_t height = luaL_checkinteger(L, 4);
     ucoordinate_t crosssize = luaL_checkinteger(L, 5);
@@ -443,7 +443,7 @@ static int lgeometry_cross(lua_State* L)
 static int lgeometry_ring(lua_State* L)
 {
     lobject_t* cell = lobject_check(L, 1);
-    generics_t* layer = _check_generics(L, 2);
+    struct generics* layer = _check_generics(L, 2);
     ucoordinate_t width = luaL_checkinteger(L, 3);
     ucoordinate_t height = luaL_checkinteger(L, 4);
     ucoordinate_t ringwidth = luaL_checkinteger(L, 5);
@@ -454,7 +454,7 @@ static int lgeometry_ring(lua_State* L)
 static int lgeometry_unequal_ring(lua_State* L)
 {
     lobject_t* cell = lobject_check(L, 1);
-    generics_t* layer = _check_generics(L, 2);
+    struct generics* layer = _check_generics(L, 2);
     ucoordinate_t width = luaL_checkinteger(L, 3);
     ucoordinate_t height = luaL_checkinteger(L, 4);
     ucoordinate_t ringwidth = luaL_checkinteger(L, 5);
@@ -466,7 +466,7 @@ static int lgeometry_unequal_ring(lua_State* L)
 static int lgeometry_cubic_bezier(lua_State* L)
 {
     lobject_t* cell = lobject_check(L, 1);
-    generics_t* layer = _check_generics(L, 2);
+    struct generics* layer = _check_generics(L, 2);
     lua_len(L, 3);
     size_t len = lua_tointeger(L, -1);
     lua_pop(L, 1);
@@ -503,11 +503,11 @@ static int lgeometry_cubic_bezier(lua_State* L)
 static int lgeometry_curve(lua_State* L)
 {
     lobject_t* lobject = lobject_check(L, 1);
-    generics_t* layer = _check_generics(L, 2);
+    struct generics* layer = _check_generics(L, 2);
     lpoint_t* origin = lpoint_checkpoint(L, 3);
     unsigned int grid = luaL_optinteger(L, 5, 1);
     int allow45 = lua_toboolean(L, 6);
-    shape_t* S = shape_create_curve(layer, origin->point->x, origin->point->y, grid, allow45);
+    struct shape* S = shape_create_curve(layer, origin->point->x, origin->point->y, grid, allow45);
 
     lua_len(L, 4);
     size_t len = lua_tointeger(L, -1);

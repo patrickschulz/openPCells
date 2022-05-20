@@ -12,6 +12,17 @@
 #include "scriptmanager.h"
 #include "modulemanager.h"
 
+struct used_name {
+    char* identifier;
+    unsigned int numused;
+};
+
+struct pcell_state {
+    struct vector* used_names;
+    struct vector* references;
+    struct vector* cellpaths;
+};
+
 struct pcell_state* pcell_initialize_state(struct vector* cellpaths_to_prepend, struct vector* cellpaths_to_append)
 {
     struct pcell_state* pcell_state = malloc(sizeof(*pcell_state));
@@ -96,7 +107,7 @@ static char* _unique_name(struct pcell_state* pcell_state, const char* identifie
     return str;
 }
 
-const char* pcell_add_cell_reference(struct pcell_state* pcell_state, object_t* cell, const char* identifier)
+const char* pcell_add_cell_reference(struct pcell_state* pcell_state, struct object* cell, const char* identifier)
 {
     struct cellreference* cref = malloc(sizeof(*cref));
     cref->cell = cell;
@@ -106,7 +117,7 @@ const char* pcell_add_cell_reference(struct pcell_state* pcell_state, object_t* 
     return cref->identifier;
 }
 
-object_t* pcell_use_cell_reference(struct pcell_state* pcell_state, const char* identifier)
+struct object* pcell_use_cell_reference(struct pcell_state* pcell_state, const char* identifier)
 {
     for(unsigned int i = 0; i < vector_size(pcell_state->references); ++i)
     {

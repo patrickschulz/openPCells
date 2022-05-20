@@ -9,7 +9,7 @@ typedef unsigned long long int ucoordinate_t;
 #define COORDINATE_MAX LLONG_MAX
 #define COORDINATE_MIN LLONG_MIN
 #define UCOORDINATE_MAX ULLONG_MAX
-#define UCOORDINATE_MIN LLONG_MIN // ?
+#define UCOORDINATE_MIN 0
 
 typedef struct
 {
