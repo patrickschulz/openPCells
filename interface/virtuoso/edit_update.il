@@ -18,7 +18,7 @@ procedure(OPCEditCallback()
     )
 ) ; procedure
 
-procedure(OPCUpdateCallback()
+procedure(OPCUpdateCallback(xpath)
     letseq(
         (
             (cv geGetEditCellView())
@@ -26,7 +26,12 @@ procedure(OPCUpdateCallback()
             (cellName cv->cellName)
             path OPCArgs OPCCmd
         )
-        path = lsprintf("%s/%s/layout/layout.lua" libPath cellName)
+        if(xpath
+            then
+                path = xpath
+            else
+                path = lsprintf("%s/%s/layout/layout.lua" libPath cellName)
+        )
         OPCArgs = OPCPrepareArgsForCellCreation(lsprintf("--cellscript %s -f %s" path OPCSettingsForm->OPCCellFilename->value) ?newgroup t)
         OPCCmd = OPCBuildCallCommand(OPCArgs)
         if(OPCCall(OPCCmd nil)
