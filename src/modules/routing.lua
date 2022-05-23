@@ -63,7 +63,11 @@ function M.route(cell, routes, cells, width, xgrid, ygrid)
             if movement.type == "point" then
                 table.insert(pts, movement.where)
             elseif movement.type == "anchor" then
-                local pt = cells[movement.name]:get_anchor(movement.anchor)
+                local where = cells[movement.name]:get_anchor(movement.anchor)
+                local pt = point.create(
+                    where:getx() + xgrid * (movement.xoffset or 0),
+                    where:gety() + ygrid * (movement.yoffset or 0)
+                )
                 table.insert(pts, pt)
             elseif movement.type == "delta" then
                 local lastpt = pts[#pts]
@@ -91,7 +95,7 @@ function M.route(cell, routes, cells, width, xgrid, ygrid)
                 local lastpt = pts[#pts]
                 local x, y = lastpt:unwrap()
                 geometry.via(cell, currmetal, targetmetal, width, width, x, y)
-                if #pts > 0 then
+                if #pts > 1 then
                     geometry.path(cell, generics.metal(currmetal), pts, width)
                 end
                 pts = { lastpt }
@@ -100,7 +104,7 @@ function M.route(cell, routes, cells, width, xgrid, ygrid)
                 error(string.format("routing.route: unknown movement type '%s'", movement.type))
             end
         end
-        if #pts > 0 then
+        if #pts > 1 then
             geometry.path(cell, generics.metal(currmetal), pts, width)
         end
     end

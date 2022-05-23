@@ -32,7 +32,8 @@ function layout(gate, _P)
     local xshift = (_P.rightdummies - _P.leftdummies) * xpitch / 2
     local separation = bp.numinnerroutes * bp.routingwidth + (bp.numinnerroutes + 1) * bp.routingspace
     local fingers = #_P.gatecontactpos
-    local powerspace = (bp.numtracks * (bp.routingwidth + bp.routingspace) - 2 * bp.powerwidth - bp.nwidth - bp.pwidth - separation) / 2
+    -- numtracks + 2 for powerspace calculation: only virtual routes on power bars (no real ones)
+    local powerspace = ((bp.numtracks + 2) * (bp.routingwidth + bp.routingspace) - 2 * bp.powerwidth - bp.nwidth - bp.pwidth - separation) / 2 - bp.routingspace / 2
     local routingshift = (bp.routingwidth + bp.routingspace) / (bp.numinnerroutes % 2 == 0 and 2 or 1)
     local cmos = pcell.create_layout("basic/cmos", {
         nvthtype = bp.nvthtype,
