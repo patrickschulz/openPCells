@@ -16,8 +16,12 @@ local function _prepare_routing_nets(nets, rows, numtracks)
                             if not offset then
                                 error(string.format("cell '%s' has no pin offset data on port '%s'", column.reference, n.port))
                             end
-                            -- FIXME: test 'numtracks // 2' for correctness (even/odd number of tracks)
-                            table.insert(netpositions[i].positions, { instance = column.instance, port = n.port, x = c + offset.x + curwidth, y = r * numtracks + offset.y + numtracks // 2 })
+                            table.insert(netpositions[i].positions, {
+                                instance = column.instance,
+                                port = n.port,
+                                x = c + offset.x + curwidth,
+                                y = (r - 1) * numtracks + offset.y + (numtracks - 1) / 2
+                            })
                         end
                     end
                 end
