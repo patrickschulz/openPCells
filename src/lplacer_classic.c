@@ -150,7 +150,7 @@ static struct block* _initialize(lua_State* L, struct floorplan* floorplan, stru
         placer_initialize_base_cell(L, base, i, netmap);
         lua_pop(L, 1); // pop instance
     }
-    hashmap_destroy(netmap, free);
+    hashmap_destroy(netmap, NULL);
 
     // shuffle cells
     for (unsigned int i = num_cells - 1; i > 0; i--)
