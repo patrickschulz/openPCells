@@ -164,14 +164,12 @@ int lobject_move_anchor_x(lua_State* L)
     lobject_t* cell = lobject_check(L, 1);
     const char* name = lua_tostring(L, 2);
     coordinate_t x = 0;
-    coordinate_t y = 0;
-    if(lua_gettop(L) > 2)
+    if(lua_gettop(L) > 2 && !lua_isnil(L, 3))
     {
         lpoint_t* lpoint = lpoint_checkpoint(L, 3);
         x = lpoint->point->x;
-        y = lpoint->point->y;
     }
-    object_move_anchor_x(cell->object, name, x, y);
+    object_move_anchor_x(cell->object, name, x);
     lua_rotate(L, 1, numstack - 1);
     return 1;
 }
@@ -181,15 +179,13 @@ int lobject_move_anchor_y(lua_State* L)
     int numstack = lua_gettop(L);
     lobject_t* cell = lobject_check(L, 1);
     const char* name = lua_tostring(L, 2);
-    coordinate_t x = 0;
     coordinate_t y = 0;
-    if(lua_gettop(L) > 2)
+    if(lua_gettop(L) > 2 && !lua_isnil(L, 3))
     {
         lpoint_t* lpoint = lpoint_checkpoint(L, 3);
-        x = lpoint->point->x;
         y = lpoint->point->y;
     }
-    object_move_anchor_y(cell->object, name, x, y);
+    object_move_anchor_y(cell->object, name, y);
     lua_rotate(L, 1, numstack - 1);
     return 1;
 }

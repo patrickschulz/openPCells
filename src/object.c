@@ -591,19 +591,19 @@ void object_move_anchor(struct object* cell, const char* name, coordinate_t x, c
     object_translate(cell, dx, dy);
 }
 
-void object_move_anchor_x(struct object* cell, const char* name, coordinate_t x, coordinate_t y)
+void object_move_anchor_x(struct object* cell, const char* name, coordinate_t x)
 {
     coordinate_t dx = 0;
-    coordinate_t dy = 0;
-    _get_move_anchor_translation(cell, name, x, y, &dx, &dy);
+    coordinate_t dy = 0; // not used
+    _get_move_anchor_translation(cell, name, x, 0, &dx, &dy);
     object_translate(cell, dx, 0);
 }
 
-void object_move_anchor_y(struct object* cell, const char* name, coordinate_t x, coordinate_t y)
+void object_move_anchor_y(struct object* cell, const char* name, coordinate_t y)
 {
-    coordinate_t dx = 0;
+    coordinate_t dx = 0; // not used
     coordinate_t dy = 0;
-    _get_move_anchor_translation(cell, name, x, y, &dx, &dy);
+    _get_move_anchor_translation(cell, name, 0, y, &dx, &dy);
     object_translate(cell, 0, dy);
 }
 
