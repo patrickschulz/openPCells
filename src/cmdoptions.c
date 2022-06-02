@@ -11,6 +11,31 @@
 
 #include "util.h"
 
+struct option
+{
+    char short_identifier;
+    const char* long_identifier;
+    int numargs;
+    void* argument; // is char* for once-only options, char** (with NULL terminator) for multiple options
+    int was_provided;
+    const char* help;
+    struct option* aliased;
+};
+
+struct section
+{
+    const char* name;
+};
+
+struct cmdoptions
+{
+    struct vector* entries;
+    struct vector* positional_parameters;
+    struct const_vector* prehelpmsg;
+    struct const_vector* posthelpmsg;
+    int force_narrow_mode;
+};
+
 struct entry
 {
     void* value;
@@ -20,10 +45,10 @@ struct entry
 struct cmdoptions* cmdoptions_create(void)
 {
     struct cmdoptions* options = malloc(sizeof(*options));
-    options->entries = vector_create();
-    options->positional_parameters = vector_create();
-    options->prehelpmsg = const_vector_create();
-    options->posthelpmsg = const_vector_create();
+    options->entries = vector_create(128);
+    options->positional_parameters = vector_create(8);
+    options->prehelpmsg = const_vector_create(1);
+    options->posthelpmsg = const_vector_create(1);
     options->force_narrow_mode = 0;
     return options;
 }

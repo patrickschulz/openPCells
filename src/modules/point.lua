@@ -47,6 +47,7 @@ end
 function meta.fix(self, grid)
     local x, y = self:unwrap()
     point._update(self, grid * (x // grid), grid * (y // grid))
+    return self
 end
 
 local function intlog10(num)

@@ -4,18 +4,16 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
+#include <stdio.h>
 
 #include "object.h"
 #include "generics.h"
 #include "point.h"
 #include "transformationmatrix.h"
+#include "hashmap.h"
+#include "tagged_value.h"
 
-struct export_data
-{
-    unsigned char* data;
-    size_t length;
-    size_t capacity;
-};
+struct export_data;
 
 struct export_data* export_create_data(void);
 void export_destroy_data(struct export_data* data);
@@ -35,22 +33,34 @@ void export_data_append_two_bytes_unchecked(struct export_data* data, int16_t da
 void export_data_append_four_bytes_unchecked(struct export_data* data, int32_t datum);
 void export_data_append_string_unchecked(struct export_data* data, const char* str, size_t length);
 
+// output
+void export_data_write_to_file(struct export_data* data, FILE* file);
+
 struct export_functions
 {
+    // initialization
+    const char* (*get_extension)(void);
     const char* (*get_techexport)(void);
-    void (*initialize)(object_t*);
+    void (*initialize)(struct object*);
+    // at begin/end
     void (*at_begin)(struct export_data*);
     void (*at_end)(struct export_data*);
     void (*at_begin_cell)(struct export_data*, const char*);
     void (*at_end_cell)(struct export_data*);
-    void (*write_rectangle)(struct export_data*, const struct keyvaluearray*, point_t*, point_t*);
-    void (*write_triangle)(struct export_data*, const struct keyvaluearray*, point_t*, point_t*, point_t*);
-    void (*write_polygon)(struct export_data*, const struct keyvaluearray*, point_t**, size_t);
-    void (*write_path)(struct export_data*, const struct keyvaluearray*, point_t**, size_t, ucoordinate_t, coordinate_t*);
-    void (*write_cell_reference)(struct export_data*, const char*, coordinate_t, coordinate_t, transformationmatrix_t*);
-    void (*write_cell_array)(struct export_data*, const char*, coordinate_t, coordinate_t, transformationmatrix_t*, unsigned int, unsigned int, unsigned int, unsigned int);
-    void (*write_port)(struct export_data*, const char* name, const struct keyvaluearray*, coordinate_t x, coordinate_t y);
-    const char* (*get_extension)(void);
+    // write basic shapes
+    void (*write_rectangle)(struct export_data*, const struct hashmap*, point_t*, point_t*);
+    void (*write_triangle)(struct export_data*, const struct hashmap*, point_t*, point_t*, point_t*);
+    void (*write_polygon)(struct export_data*, const struct hashmap*, struct vector*);
+    void (*write_path)(struct export_data*, const struct hashmap*, struct vector*, ucoordinate_t, coordinate_t*);
+    // write curves
+    void (*setup_curve)(struct export_data*, const struct hashmap);
+    void (*curve_add_line_segment)(struct export_data*, point_t*, point_t*);
+    void (*close_curve)(struct export_data*, const struct hashmap);
+    // write references
+    void (*write_cell_reference)(struct export_data*, const char*, coordinate_t, coordinate_t, const transformationmatrix_t*);
+    void (*write_cell_array)(struct export_data*, const char*, coordinate_t, coordinate_t, const transformationmatrix_t*, unsigned int, unsigned int, unsigned int, unsigned int);
+    // write ports
+    void (*write_port)(struct export_data*, const char* name, const struct hashmap*, coordinate_t x, coordinate_t y);
 };
 
 struct export_functions* export_create_functions(void);

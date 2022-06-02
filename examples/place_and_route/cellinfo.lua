@@ -9,14 +9,14 @@ return {
     nand_gate = {
         width = 2,
         pinoffsets = {
-            A = { x = 0, y = 0 },
-            B = { x = 1, y = 0 },
+            A = { x = 0, y = -1 },
+            B = { x = 1, y = 1 },
             O = { x = 2, y = 0 }
         },
     },
     nor_gate = {
         width = 2,
-        pinoffsets = { 
+        pinoffsets = {
             A = { x = 0, y = 0 },
             B = { x = 1, y = 0 },
             O = { x = 2, y = 0 }
@@ -41,26 +41,74 @@ return {
     dffpq = {
         width = 22,
         pinoffsets = {
-            CLK = { x = 0, y = 0 },
-            D = { x = 0, y = 0 },
-            Q = { x = 20, y = 0 },
+            CLK = { x = 0, y = -1 },
+            D = { x = 0, y = 1 },
+            Q = { x = 21, y = 0 },
         },
+        blockages = {
+            {
+                { x = 0, y = 1, z = 2},
+                { x = 6, y = 1, z = 2},
+            },
+            {
+                { x = 3, y = 0, z = 2},
+                { x = 17, y = 0, z = 2},
+            },
+            {
+                { x = 1, y = -1, z = 2},
+                { x = 17, y = -1, z = 2},
+            },
+        }
     },
     dffnq = {
         width = 22,
         pinoffsets = {
-            CLK = { x = 0, y = 0 },
-            D = { x = 0, y = 0 },
-            Q = { x = 20, y = 0 }
+            CLK = { x = 0, y = -1 },
+            D = { x = 0, y = 1 },
+            Q = { x = 21, y = 0 },
         },
+        blockages = {
+            {
+                { x = 0, y = 1, z = 2},
+                { x = 6, y = 1, z = 2},
+            },
+            {
+                { x = 3, y = 0, z = 2},
+                { x = 17, y = 0, z = 2},
+            },
+            {
+                { x = 1, y = -1, z = 2},
+                { x = 17, y = -1, z = 2},
+            },
+        }
     },
     dffprq = {
         width = 25,
         pinoffsets = {
-            CLK = { x = 0, y = 0 },
-            D = { x = 0, y = 0 },
+            CLK = { x = 0, y = -1 },
+            D = { x = 0, y = 1 },
             Q = { x = 20, y = 0 }
         },
+        blockages = {
+            {
+                { x = 0, y = 1, z = 2},
+                { x = 6, y = 1, z = 2},
+            },
+            {
+                { x = 2, y = -1, z = 2},
+                { x = 22, y = -1, z = 2},
+            },
+            {
+                { x = 3, y = 0, z = 2},
+                { x = 8, y = 0, z = 2},
+                { x = 8, y = 1, z = 2},
+                { x = 19, y = 1, z = 2},
+            },
+            {
+                { x = 10, y = 0, z = 2},
+                { x = 21, y = 0, z = 2},
+            },
+        }
     },
     dffprsq = {
         width = 25,

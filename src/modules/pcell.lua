@@ -127,6 +127,10 @@ function paramlib.check_constraints(parameter, value)
             if value % 2 ~= 1 then
                 moderror(string.format("parameter '%s' (%s) must be odd", name, value))
             end
+        elseif posvals.type == "positive" then
+            if value <= 0 then
+                moderror(string.format("parameter '%s' (%s) must be positive (exluding zero)", name, value))
+            end
         else
         end
     end
@@ -510,9 +514,10 @@ function state.create_cellenv(state, cellname, ovrenv)
     local envmeta = {
         -- "global" functions for posvals entries:
         set = function(...) return { type = "set", values = { ... } } end,
-        interval = function(lower, upper) return { type= "interval", values = { lower = lower, upper = upper }} end,
-        even = function() return { type= "even" } end,
-        odd = function() return { type= "odd" } end,
+        interval = function(lower, upper) return { type = "interval", values = { lower = lower, upper = upper }} end,
+        even = function() return { type = "even" } end,
+        odd = function() return { type = "odd" } end,
+        positive = function() return { type = "positive" } end,
         multiple = function(val) return { type = "multiple", value = val } end,
         inf = math.huge,
         pcell = {
@@ -534,11 +539,13 @@ function state.create_cellenv(state, cellname, ovrenv)
             create_layout                   = pcell.create_layout
         },
         tech = {
-            get_dimension = technology.get_dimension
+            get_dimension = technology.get_dimension,
+            has_layer = technology.has_layer,
         },
         placement = placement,
         routing = routing,
         geometry = geometry,
+        curve = curve,
         layout = layout,
         graphics = graphics,
         shape = shape,

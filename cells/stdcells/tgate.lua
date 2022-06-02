@@ -33,12 +33,12 @@ function layout(gate, _P)
         geometry.path(
             gate,
             generics.metal(1), { harness:get_anchor("Guppercc1"), harness:get_anchor(string.format("Guppercc%d", _P.fingers)) },
-            bp.gstwidth
+            bp.routingwidth
         )
         geometry.path(
             gate,
             generics.metal(1), { harness:get_anchor("Glowercc1"), harness:get_anchor(string.format("Glowercc%d", _P.fingers)) },
-            bp.gstwidth
+            bp.routingwidth
         )
     end
 

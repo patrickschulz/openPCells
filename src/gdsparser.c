@@ -605,6 +605,10 @@ int gdsparser_read_stream(const char* filename, const char* importname)
         if(record->recordtype == LIBNAME)
         {
             libname = (const char*)record->data;
+            if(!importname)
+            {
+                importname = libname;
+            }
             size_t len = strlen(importname) + strlen(importname) + 1; // +1: '/'
             char* path = malloc(len + 1);
             snprintf(path, len + 1, "%s/%s", importname, importname);
@@ -613,7 +617,7 @@ int gdsparser_read_stream(const char* filename, const char* importname)
         }
         else if(record->recordtype == BGNSTR)
         {
-            children = vector_create();
+            children = vector_create(32);
         }
         else if(record->recordtype == ENDSTR)
         {
@@ -688,7 +692,7 @@ int gdsparser_read_stream(const char* filename, const char* importname)
         else if(record->recordtype == BOUNDARY)
         {
             what = BOUNDARY;
-            points = vector_create();
+            points = vector_create(32);
         }
         else if(record->recordtype == BOX)
         {
@@ -697,22 +701,22 @@ int gdsparser_read_stream(const char* filename, const char* importname)
         else if(record->recordtype == PATH)
         {
             what = PATH;
-            points = vector_create();
+            points = vector_create(32);
         }
         else if(record->recordtype == SREF)
         {
             what = SREF;
-            points = vector_create();
+            points = vector_create(32);
         }
         else if(record->recordtype == AREF)
         {
             what = AREF;
-            points = vector_create();
+            points = vector_create(32);
         }
         else if(record->recordtype == TEXT)
         {
             what = TEXT;
-            points = vector_create();
+            points = vector_create(32);
         }
         else if(record->recordtype == ENDEL)
         {

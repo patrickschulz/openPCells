@@ -1,7 +1,18 @@
 local M = {}
 
-local function _prepare_routing_nets(nets, rows, numtracks)
+local function _get_blockages(instances, reference)
+    for i, instance in ipairs(instances) do
+        if instance.reference == reference then
+            return instance.blockages
+        end
+    end
+    return nil
+end
+
+local function _prepare_routing_nets(nets, rows, numtracks, instances)
+    aux.tprint(instances)
     local netpositions = {}
+    local blockages = {}
     for i, net in ipairs(nets) do
         for r, row in ipairs(rows) do
             local curwidth = 0
@@ -16,7 +27,27 @@ local function _prepare_routing_nets(nets, rows, numtracks)
                             if not offset then
                                 error(string.format("cell '%s' has no pin offset data on port '%s'", column.reference, n.port))
                             end
-                            table.insert(netpositions[i].positions, { instance = column.instance, port = n.port, x = c + offset.x + curwidth, y = (r + offset.y) * numtracks })
+                            table.insert(netpositions[i].positions, {
+                                instance = column.instance,
+                                port = n.port,
+                                x = c + offset.x + curwidth,
+                                y = (r - 1) * numtracks + offset.y + (numtracks - 1) / 2
+                            })
+                            -- calc blockage coordinates
+                            local blockblockages = _get_blockages(instances, column.reference)
+                            if blockblockages then
+                                for h, blockageroute in ipairs(blockblockages) do
+                                    route = {}
+                                    for u, delta in ipairs(blockageroute) do
+                                        table.insert(route, {
+                                            x = c + blockageroute[u].x + curwidth,
+                                            y = (r - 1) * numtracks + blockageroute[u].y + (numtracks - 1) / 2,
+                                            z = blockageroute[u].z
+                                        })
+                                    end
+                                    table.insert(blockages, route)
+                                end
+                            end
                         end
                     end
                 end
@@ -24,11 +55,11 @@ local function _prepare_routing_nets(nets, rows, numtracks)
             end
         end
     end
-    return netpositions
+    return netpositions, blockages
 end
 
-function M.legalize(nets, rows, numtracks, floorplan)
-    local netpositions = _prepare_routing_nets(nets, rows, numtracks)
+function M.legalize(nets, rows, numtracks, floorplan, instances)
+    local netpositions, blockages = _prepare_routing_nets(nets, rows, numtracks, instances)
     for _, pos in ipairs(netpositions) do
         print(pos.name)
         for _, p in ipairs(pos.positions) do
@@ -36,6 +67,8 @@ function M.legalize(nets, rows, numtracks, floorplan)
         end
         print()
     end
+
+    router.fillblockages(blockages)
     -- call router here
     local routednets, numroutednets = router.route(netpositions,
         floorplan.floorplan_width, floorplan.floorplan_height * numtracks)
@@ -55,60 +88,56 @@ function M.route(cell, routes, cells, width, xgrid, ygrid)
         else
             startpt = route[1].where
         end
-        local pts = {}
+        local pts = { startpt }
         local currmetal = route.startmetal or 1
-        local x, y = startpt:unwrap()
         for i = 2, #route do
             local movement = route[i]
             if movement.type == "point" then
-                local pt = movement.where
-                x, y = pt:unwrap()
-                table.insert(pts, pt)
+                table.insert(pts, movement.where)
             elseif movement.type == "anchor" then
-                local pt = cells[movement.name]:get_anchor(movement.anchor)
-                x, y = pt:unwrap()
+                local where = cells[movement.name]:get_anchor(movement.anchor)
+                local pt = point.create(
+                    where:getx() + xgrid * (movement.xoffset or 0),
+                    where:gety() + ygrid * (movement.yoffset or 0)
+                )
                 table.insert(pts, pt)
-            elseif movement.type == "switchdirection" then
-                table.insert(pts, 0)
             elseif movement.type == "delta" then
+                local lastpt = pts[#pts]
+                local x, y = lastpt:unwrap()
                 if movement.x and movement.y then
-                    table.insert(pts, xgrid * movement.x)
-                    table.insert(pts, ygrid * movement.y)
+                    error("routing movement must not specify both x and y")
                 elseif movement.x then
-                    table.insert(pts, xgrid * movement.x)
+                    table.insert(pts, point.create(
+                        x + xgrid * movement.x,
+                        y
+                    ))
                 elseif movement.y then
-                    table.insert(pts, 0)
-                    table.insert(pts, ygrid * movement.y)
+                    table.insert(pts, point.create(
+                        x,
+                        y + ygrid * movement.y
+                    ))
                 end
-                x = x + xgrid * (movement.x or 0)
-                y = y + ygrid * (movement.y or 0)
             elseif movement.type == "via" then
+                local targetmetal
                 if movement.z then
-                    geometry.via(cell, currmetal, currmetal + movement.z, width, width, x, y)
-                    if #pts > 0 then
-                        geometry.path(cell, generics.metal(currmetal),
-                            geometry.path_points_xy(startpt, pts), width)
-                    end
-                    startpt = point.create(x, y)
-                    pts = {}
-                    currmetal = currmetal + movement.z
+                    targetmetal = currmetal + movement.z
                 else
-                    geometry.via(cell, currmetal, movement.metal, width, width, x, y)
-                    if #pts > 0 then
-                        geometry.path(cell, generics.metal(currmetal),
-                            geometry.path_points_xy(startpt, pts), width)
-                    end
-                    startpt = point.create(x, y)
-                    pts = {}
-                    currmetal = movement.metal
+                    targetmetal = movement.metal
                 end
+                local lastpt = pts[#pts]
+                local x, y = lastpt:unwrap()
+                geometry.via(cell, currmetal, targetmetal, width, width, x, y)
+                if #pts > 1 then
+                    geometry.path(cell, generics.metal(currmetal), pts, width)
+                end
+                pts = { lastpt }
+                currmetal = targetmetal
             else
                 error(string.format("routing.route: unknown movement type '%s'", movement.type))
             end
         end
-        if #pts > 0 then
-            geometry.path(cell, generics.metal(currmetal), 
-                geometry.path_points_xy(startpt, pts), width)
+        if #pts > 1 then
+            geometry.path(cell, generics.metal(currmetal), pts, width)
         end
     end
 end

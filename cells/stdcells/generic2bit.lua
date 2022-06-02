@@ -61,40 +61,40 @@ function layout(gate, _P)
                 {
                     harness:get_anchor("G2"),
                     harness:get_anchor(string.format("G%d", 2 * _P.fingers - 1))
-                }, bp.gstwidth
+                }, bp.routingwidth
             ))
             gate:merge_into_shallow(geometry.path(generics.metal(1), 
                 {
                     harness:get_anchor("G1"),
                     harness:get_anchor(string.format("G%d", 2 * _P.fingers))
-                }, bp.gstwidth
+                }, bp.routingwidth
             ))
         else
             gate:merge_into_shallow(geometry.path(generics.metal(1), 
                 {
                     harness:get_anchor("G2"),
                     harness:get_anchor(string.format("G%d", 2 * _P.fingers))
-                }, bp.gstwidth
+                }, bp.routingwidth
             ))
             gate:merge_into_shallow(geometry.path(generics.metal(1), 
                 {
                     harness:get_anchor("G1"),
                     harness:get_anchor(string.format("G%d", 2 * _P.fingers - 1))
-                }, bp.gstwidth
+                }, bp.routingwidth
             ))
         end
     else
         gate:merge_into_shallow(geometry.path(generics.metal(1), 
             {
-                harness:get_anchor("G2"):translate(xpitch - bp.sdwidth / 2 - bp.gstspace, 0),
-                (harness:get_anchor("G1") .. harness:get_anchor("G2")):translate(-xpitch + bp.sdwidth / 2 + bp.gstspace, 0),
-            }, bp.gstwidth
+                harness:get_anchor("G2"):translate(xpitch - bp.sdwidth / 2 - bp.routingspace, 0),
+                (harness:get_anchor("G1") .. harness:get_anchor("G2")):translate(-xpitch + bp.sdwidth / 2 + bp.routingspace, 0),
+            }, bp.routingwidth
         ))
         gate:merge_into_shallow(geometry.path(generics.metal(1), 
             {
-                harness:get_anchor("G1"):translate(-xpitch + bp.sdwidth / 2 + bp.gstspace, 0),
-                (harness:get_anchor("G2") .. harness:get_anchor("G1")):translate(xpitch - bp.sdwidth / 2 - bp.gstspace, 0),
-            }, bp.gstwidth
+                harness:get_anchor("G1"):translate(-xpitch + bp.sdwidth / 2 + bp.routingspace, 0),
+                (harness:get_anchor("G2") .. harness:get_anchor("G1")):translate(xpitch - bp.sdwidth / 2 - bp.routingspace, 0),
+            }, bp.routingwidth
         ))
     end
 

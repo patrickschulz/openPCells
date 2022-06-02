@@ -31,6 +31,8 @@ cmdoptions_add_option_default(cmdoptions, NO_SHORT, "export-filter-list", SINGLE
 cmdoptions_add_option(cmdoptions, NO_SHORT, "ignore-missing-layers", NO_ARG, "ignore missing layers in the technology translation. Layers that are not present in the layermap file are handled as if their values was '{}'");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "ignore-missing-export", NO_ARG, "ignore layers with missing exports in the technology translation");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "merge-rectangles", NO_ARG, "merge rectangles");
+cmdoptions_add_option(cmdoptions, NO_SHORT, "rasterize-curves", NO_ARG, "rasterize curves");
+cmdoptions_add_option(cmdoptions, NO_SHORT, "disable-via-arrayzation", NO_ARG, "don't create via arrays, instead create single large via regions (useful for EM simulations)");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "separator", SINGLE_ARG, "cell parameter separator (default \\n)");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "seed", SINGLE_ARG, "set seed for random functions for reproducible layout generation. Random functions are mostly used in digital place & route functions, but also in some cells");
 cmdoptions_add_section(cmdoptions, "Layout debugging functions");
@@ -77,9 +79,8 @@ cmdoptions_add_option(cmdoptions, NO_SHORT, "show-cellinfo", NO_ARG, "show some 
 cmdoptions_add_option(cmdoptions, NO_SHORT, "profile", NO_ARG, "collect and display profiling data (this significantly increases run time, be patient while profiling larger cells)");
 cmdoptions_add_option(cmdoptions, 'V', "verbose", NO_ARG, "enable verbose output");
 cmdoptions_add_option(cmdoptions, 'D', "debug", NO_ARG, "enable debugging output");
-cmdoptions_add_option(cmdoptions, NO_SHORT, "check", NO_ARG, "check cell code and parameter variations. Strict checking, e.g. if a cell parameter can not work with even values, specify the parameter as even()");
+cmdoptions_add_option(cmdoptions, NO_SHORT, "check", NO_ARG, "check cell code and parameter variations. Strict checking, e.g. if a cell parameter can not work with odd values, specify the parameter as even()");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "check-technology", NO_ARG, "check technology layer map and config. (not implemented)");
-cmdoptions_add_option(cmdoptions, NO_SHORT, "notech", NO_ARG, "disable all technology translation functions (metal translation, via arrayzation, layer mapping, grid fixing). This also installs a dummy technology that can be used for debugging");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "noexport", NO_ARG, "disable all export functions. This is different from --dryrun, which calls the export translation, but does not write any files. Both options are mostly related to profiling, if exporting should be profiled --dryrun must be used");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "dryrun", NO_ARG, "perform all calculations, but don't actually write any files. This is useful for profiling, where the program should run normally but should not produce any output");
 cmdoptions_add_option(cmdoptions, 'v', "version", NO_ARG, "display version");

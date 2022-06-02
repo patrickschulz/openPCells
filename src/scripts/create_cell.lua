@@ -20,7 +20,7 @@ if not args.noparamfile or args.isscript then -- cellscripts don't support pfile
         end
     end
 end
-for k, v in string.gmatch(table.concat(args.cellargs, " "), "([%w_]+)%s*=%s*(%S+)") do
+for k, v in string.gmatch(table.concat(args.cellargs, " "), "([%w_/.]+)%s*=%s*(%S+)") do
     cellargs[k] = v
 end
 

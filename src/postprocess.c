@@ -6,17 +6,17 @@
 #include "union.h"
 #include "pcell.h"
 
-static void _merge_shapes(object_t* object, struct layermap* layermap)
+static void _merge_shapes(struct object* object, struct layermap* layermap)
 {
     struct layer_iterator* it = layer_iterator_create(layermap);
     while(layer_iterator_is_valid(it))
     {
-        generics_t* layer = layer_iterator_get(it);
-        struct vector* rectangles = vector_create();
-        for(int j = object->shapes_size - 1; j >= 0; --j)
+        struct generics* layer = layer_iterator_get(it);
+        struct vector* rectangles = vector_create(32);
+        for(int j = object_get_shapes_size(object) - 1; j >= 0; --j)
         {
-            shape_t* S = object->shapes[j];
-            if(S->type == RECTANGLE && S->layer == layer)
+            struct shape* S = object_get_shape(object, j);
+            if(shape_is_rectangle(S) && shape_get_layer(S) == layer)
             {
                 vector_append(rectangles, S);
                 object_remove_shape(object, j);
@@ -36,20 +36,20 @@ static void _merge_shapes(object_t* object, struct layermap* layermap)
     layer_iterator_destroy(it);
 }
 
-void postprocess_merge_shapes(object_t* object, struct layermap* layermap)
+void postprocess_merge_shapes(struct object* object, struct layermap* layermap)
 {
     _merge_shapes(object, layermap);
 }
 
-void postprocess_filter_exclude(object_t* object, const char** layernames)
+void postprocess_filter_exclude(struct object* object, const char** layernames)
 {
-    for(int i = object->shapes_size - 1; i >= 0; --i)
+    for(int i = object_get_shapes_size(object) - 1; i >= 0; --i)
     {
-        shape_t* S = object->shapes[i];
+        struct shape* S = object_get_shape(object, i);
         const char** layername = layernames;
         while(*layername)
         {
-            if(strcmp(S->layer->name, *layername) == 0)
+            if(generics_is_layer_name(shape_get_layer(S), *layername))
             {
                 object_remove_shape(object, i);
             }
@@ -58,16 +58,16 @@ void postprocess_filter_exclude(object_t* object, const char** layernames)
     }
 }
 
-void postprocess_filter_include(object_t* object, const char** layernames)
+void postprocess_filter_include(struct object* object, const char** layernames)
 {
-    for(int i = object->shapes_size - 1; i >= 0; --i)
+    for(int i = object_get_shapes_size(object) - 1; i >= 0; --i)
     {
-        shape_t* S = object->shapes[i];
+        struct shape* S = object_get_shape(object, i);
         int keep = 0;
         const char** layername = layernames;
         while(*layername)
         {
-            if(strcmp(S->layer->name, *layername) == 0)
+            if(generics_is_layer_name(shape_get_layer(S), *layername))
             {
                 keep = 1;
             }

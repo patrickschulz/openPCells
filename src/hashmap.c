@@ -4,6 +4,17 @@
 #include <string.h>
 #include <stdint.h>
 
+struct hashmap_entry {
+    char* key;
+    void* value;
+};
+
+struct hashmap {
+    struct hashmap_entry* entries;
+    size_t size;
+    size_t capacity;
+};
+
 static uint32_t _hash(const char* key)
 {
     size_t length = strlen(key);
@@ -15,7 +26,7 @@ static uint32_t _hash(const char* key)
     return hash;
 }
 
-static struct hashmap_entry* _find(struct hashmap* map, const char* key)
+static struct hashmap_entry* _find(const struct hashmap* map, const char* key)
 {
     size_t index = _hash(key) % map->capacity;
     while(1)
@@ -116,6 +127,17 @@ void* hashmap_get(struct hashmap* map, const char* key)
     return entry->value;
 }
 
+const void* hashmap_get_const(const struct hashmap* map, const char* key)
+{
+    struct hashmap_entry* entry = _find(map, key);
+    return entry->value;
+}
+
+struct hashmap_iterator {
+    struct hashmap* hashmap;
+    size_t index;
+};
+
 struct hashmap_iterator* hashmap_iterator_create(struct hashmap* map)
 {
     struct hashmap_iterator* iterator = malloc(sizeof(*iterator));
@@ -158,3 +180,49 @@ void hashmap_iterator_destroy(struct hashmap_iterator* iterator)
     free(iterator);
 }
 
+struct hashmap_const_iterator {
+    const struct hashmap* hashmap;
+    size_t index;
+};
+
+struct hashmap_const_iterator* hashmap_const_iterator_create(const struct hashmap* map)
+{
+    struct hashmap_const_iterator* iterator = malloc(sizeof(*iterator));
+    iterator->hashmap = map;
+    iterator->index = 0;
+    hashmap_const_iterator_next(iterator);
+    while((iterator->index < iterator->hashmap->capacity) && (!(iterator->hashmap->entries + iterator->index)->key))
+    {
+        ++iterator->index;
+    }
+    return iterator;
+}
+
+int hashmap_const_iterator_is_valid(struct hashmap_const_iterator* iterator)
+{
+    return iterator->index < iterator->hashmap->capacity;
+}
+
+void* hashmap_const_iterator_key(struct hashmap_const_iterator* iterator)
+{
+    return (iterator->hashmap->entries + iterator->index)->key;
+}
+
+void* hashmap_const_iterator_value(struct hashmap_const_iterator* iterator)
+{
+    return (iterator->hashmap->entries + iterator->index)->value;
+}
+
+void hashmap_const_iterator_next(struct hashmap_const_iterator* iterator)
+{
+    do
+    {
+        ++iterator->index;
+    }
+    while((iterator->index < iterator->hashmap->capacity) && (!(iterator->hashmap->entries + iterator->index)->key));
+}
+
+void hashmap_const_iterator_destroy(struct hashmap_const_iterator* iterator)
+{
+    free(iterator);
+}

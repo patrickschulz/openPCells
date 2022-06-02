@@ -23,6 +23,7 @@
 #include "info.h"
 #include "postprocess.h"
 #include "geometry.h"
+#include "hashmap.h"
 
 #include "config.h"
 
@@ -105,7 +106,7 @@ static int _parse_point(const char* arg, int* xptr, int* yptr)
     return 1;
 }
 
-static void _prepare_cellpaths(struct vector* cellpaths_to_prepend, struct vector* cellpaths_to_append, struct cmdoptions* cmdoptions, struct keyvaluearray* config)
+static void _prepare_cellpaths(struct vector* cellpaths_to_prepend, struct vector* cellpaths_to_append, struct cmdoptions* cmdoptions, struct hashmap* config)
 {
 
     if(cmdoptions_was_provided_long(cmdoptions, "prepend-cellpath"))
@@ -126,7 +127,7 @@ static void _prepare_cellpaths(struct vector* cellpaths_to_prepend, struct vecto
             ++arg;
         }
     }
-    struct vector* config_prepend_cellpaths = keyvaluearray_get(config, "prepend_cellpaths");
+    struct vector* config_prepend_cellpaths = hashmap_get(config, "prepend_cellpaths");
     if(config_prepend_cellpaths)
     {
         for(unsigned int i = 0; i < vector_size(config_prepend_cellpaths); ++i)
@@ -134,7 +135,7 @@ static void _prepare_cellpaths(struct vector* cellpaths_to_prepend, struct vecto
             vector_append(cellpaths_to_prepend, vector_get(config_prepend_cellpaths, i));
         }
     }
-    struct vector* config_append_cellpaths = keyvaluearray_get(config, "append_cellpaths");
+    struct vector* config_append_cellpaths = hashmap_get(config, "append_cellpaths");
     if(config_append_cellpaths)
     {
         for(unsigned int i = 0; i < vector_size(config_append_cellpaths); ++i)
@@ -145,7 +146,7 @@ static void _prepare_cellpaths(struct vector* cellpaths_to_prepend, struct vecto
     vector_append(cellpaths_to_append, util_copy_string(OPC_HOME "/cells"));
 }
 
-void main_list_cell_parameters(struct cmdoptions* cmdoptions, struct keyvaluearray* config)
+void main_list_cell_parameters(struct cmdoptions* cmdoptions, struct hashmap* config)
 {
     lua_State* L = _create_and_initialize_lua();
 
@@ -155,7 +156,7 @@ void main_list_cell_parameters(struct cmdoptions* cmdoptions, struct keyvaluearr
     module_load_pcell(L);
     module_load_load(L);
 
-    struct vector* techpaths = keyvaluearray_get(config, "techpaths");
+    struct vector* techpaths = hashmap_get(config, "techpaths");
     vector_append(techpaths, util_copy_string(OPC_HOME "/tech"));
     if(cmdoptions_was_provided_long(cmdoptions, "techpath"))
     {
@@ -176,8 +177,8 @@ void main_list_cell_parameters(struct cmdoptions* cmdoptions, struct keyvaluearr
     }
 
     // pcell state
-    struct vector* cellpaths_to_prepend = vector_create();
-    struct vector* cellpaths_to_append = vector_create();
+    struct vector* cellpaths_to_prepend = vector_create(1);
+    struct vector* cellpaths_to_append = vector_create(1);
     _prepare_cellpaths(cellpaths_to_prepend, cellpaths_to_append, cmdoptions, config);
     struct pcell_state* pcell_state = pcell_initialize_state(cellpaths_to_prepend, cellpaths_to_append);
     vector_destroy(cellpaths_to_prepend, free);
@@ -209,7 +210,7 @@ void main_list_cell_parameters(struct cmdoptions* cmdoptions, struct keyvaluearr
     lua_close(L);
 }
 
-object_t* _create_cell(
+static struct object* _create_cell(
     const char* cellname,
     int iscellscript,
     struct vector* cellargs,
@@ -287,31 +288,14 @@ object_t* _create_cell(
         return NULL;
     }
     lobject_disown(lobject);
-    object_t* toplevel = lobject->object;
+    struct object* toplevel = lobject->object;
 
     lua_close(L);
 
     return toplevel;
 }
 
-void _get_exportname(const char* exportname, struct const_vector* searchpaths, char** exportname_ptr, char** exportlayername_ptr)
-{
-    if(!util_split_string(exportname, ':', exportlayername_ptr, exportname_ptr)) // export layers were not specified
-    {
-        *exportname_ptr = util_copy_string(exportname);
-        char* exportlayername_from_function = export_get_export_layername(searchpaths, *exportname_ptr);
-        if(exportlayername_from_function)
-        {
-            *exportlayername_ptr = exportlayername_from_function;
-        }
-        else
-        {
-            *exportlayername_ptr = util_copy_string(exportname);
-        }
-    }
-}
-
-void _move_origin(object_t* toplevel, struct cmdoptions* cmdoptions)
+static void _move_origin(struct object* toplevel, struct cmdoptions* cmdoptions)
 {
     if(cmdoptions_was_provided_long(cmdoptions, "origin"))
     {
@@ -328,7 +312,7 @@ void _move_origin(object_t* toplevel, struct cmdoptions* cmdoptions)
     }
 }
 
-void _translate(object_t* toplevel, struct cmdoptions* cmdoptions)
+static void _translate(struct object* toplevel, struct cmdoptions* cmdoptions)
 {
     if(cmdoptions_was_provided_long(cmdoptions, "translate"))
     {
@@ -345,7 +329,7 @@ void _translate(object_t* toplevel, struct cmdoptions* cmdoptions)
     }
 }
 
-void _draw_alignmentboxes(object_t* toplevel, struct cmdoptions* cmdoptions, struct technology_state* techstate, struct layermap* layermap, struct pcell_state* pcell_state)
+static void _draw_alignmentboxes(struct object* toplevel, struct cmdoptions* cmdoptions, struct technology_state* techstate, struct layermap* layermap, struct pcell_state* pcell_state)
 {
     if(cmdoptions_was_provided_long(cmdoptions, "draw-alignmentbox") || cmdoptions_was_provided_long(cmdoptions, "draw-all-alignmentboxes"))
     {
@@ -362,7 +346,7 @@ void _draw_alignmentboxes(object_t* toplevel, struct cmdoptions* cmdoptions, str
     {
         for(unsigned int i = 0; i < pcell_get_reference_count(pcell_state); ++i)
         {
-            object_t* cell = pcell_get_indexed_cell_reference(pcell_state, i)->cell;
+            struct object* cell = pcell_get_indexed_cell_reference(pcell_state, i)->cell;
             point_t* bl = object_get_anchor(cell, "bottomleft");
             point_t* tr = object_get_anchor(cell, "topright");
             if(bl && tr)
@@ -375,7 +359,7 @@ void _draw_alignmentboxes(object_t* toplevel, struct cmdoptions* cmdoptions, str
     }
 }
 
-void _filter_layers(object_t* toplevel, struct cmdoptions* cmdoptions, struct pcell_state* pcell_state)
+static void _filter_layers(struct object* toplevel, struct cmdoptions* cmdoptions, struct pcell_state* pcell_state)
 {
     if(cmdoptions_was_provided_long(cmdoptions, "filter-layers"))
     {
@@ -386,7 +370,7 @@ void _filter_layers(object_t* toplevel, struct cmdoptions* cmdoptions, struct pc
             postprocess_filter_include(toplevel, layernames);
             for(unsigned int i = 0; i < pcell_get_reference_count(pcell_state); ++i)
             {
-                object_t* cell = pcell_get_indexed_cell_reference(pcell_state, i)->cell;
+                struct object* cell = pcell_get_indexed_cell_reference(pcell_state, i)->cell;
                 postprocess_filter_include(cell, layernames);
             }
         }
@@ -395,30 +379,48 @@ void _filter_layers(object_t* toplevel, struct cmdoptions* cmdoptions, struct pc
             postprocess_filter_exclude(toplevel, layernames);
             for(unsigned int i = 0; i < pcell_get_reference_count(pcell_state); ++i)
             {
-                object_t* cell = pcell_get_indexed_cell_reference(pcell_state, i)->cell;
+                struct object* cell = pcell_get_indexed_cell_reference(pcell_state, i)->cell;
                 postprocess_filter_exclude(cell, layernames);
             }
         }
     }
 }
 
-void _merge_rectangles(object_t* toplevel, struct cmdoptions* cmdoptions, struct layermap* layermap, struct pcell_state* pcell_state)
+static void _merge_rectangles(struct object* toplevel, struct cmdoptions* cmdoptions, struct layermap* layermap, struct pcell_state* pcell_state)
 {
     if(cmdoptions_was_provided_long(cmdoptions, "merge-rectangles"))
     {
         postprocess_merge_shapes(toplevel, layermap);
         for(unsigned int i = 0; i < pcell_get_reference_count(pcell_state); ++i)
         {
-            object_t* cell = pcell_get_indexed_cell_reference(pcell_state, i)->cell;
+            struct object* cell = pcell_get_indexed_cell_reference(pcell_state, i)->cell;
             postprocess_merge_shapes(cell, layermap);
         }
     }
 }
 
-int main_create_and_export_cell(struct cmdoptions* cmdoptions, struct keyvaluearray* config, int iscellscript)
+static void _raster_cell_curves(struct object* cell)
+{
+    object_foreach_shapes(cell, shape_rasterize_curve);
+}
+
+static void _raster_curves(struct object* toplevel, struct cmdoptions* cmdoptions, struct pcell_state* pcell_state)
+{
+    if(cmdoptions_was_provided_long(cmdoptions, "rasterize-curves"))
+    {
+        _raster_cell_curves(toplevel);
+        for(unsigned int i = 0; i < pcell_get_reference_count(pcell_state); ++i)
+        {
+            struct object* cell = pcell_get_indexed_cell_reference(pcell_state, i)->cell;
+            _raster_cell_curves(cell);
+        }
+    }
+}
+
+int main_create_and_export_cell(struct cmdoptions* cmdoptions, struct hashmap* config, int iscellscript)
 {
     int retval = 1;
-    struct vector* techpaths = keyvaluearray_get(config, "techpaths");
+    struct vector* techpaths = hashmap_get(config, "techpaths");
     vector_append(techpaths, util_copy_string(OPC_HOME "/tech"));
     if(cmdoptions_was_provided_long(cmdoptions, "techpath"))
     {
@@ -436,10 +438,14 @@ int main_create_and_export_cell(struct cmdoptions* cmdoptions, struct keyvaluear
         retval = 0;
         goto EXIT;
     }
+    if(cmdoptions_was_provided_long(cmdoptions, "disable-via-arrayzation"))
+    {
+        technology_disable_via_arrayzation(techstate);
+    }
 
     // pcell state
-    struct vector* cellpaths_to_prepend = vector_create();
-    struct vector* cellpaths_to_append = vector_create();
+    struct vector* cellpaths_to_prepend = vector_create(1);
+    struct vector* cellpaths_to_append = vector_create(1);
     _prepare_cellpaths(cellpaths_to_prepend, cellpaths_to_append, cmdoptions, config);
     struct pcell_state* pcell_state = pcell_initialize_state(cellpaths_to_prepend, cellpaths_to_append);
     vector_destroy(cellpaths_to_prepend, free);
@@ -467,7 +473,7 @@ int main_create_and_export_cell(struct cmdoptions* cmdoptions, struct keyvaluear
         cellname = cmdoptions_get_argument_long(cmdoptions, "cell");
     }
     int enabledprint = cmdoptions_was_provided_long(cmdoptions, "enable-dprint");
-    struct const_vector* pfilenames = const_vector_create();
+    struct const_vector* pfilenames = const_vector_create(1);
     const char* const * prependpfilenames = cmdoptions_get_argument_long(cmdoptions, "prepend-parameter-file");
     if(prependpfilenames)
     {
@@ -486,7 +492,7 @@ int main_create_and_export_cell(struct cmdoptions* cmdoptions, struct keyvaluear
             ++appendpfilenames;
         }
     }
-    object_t* toplevel = _create_cell(cellname, iscellscript, cellargs, techstate, pcell_state, layermap, enabledprint, pfilenames);
+    struct object* toplevel = _create_cell(cellname, iscellscript, cellargs, techstate, pcell_state, layermap, enabledprint, pfilenames);
     const_vector_destroy(pfilenames);
     if(toplevel)
     {
@@ -541,32 +547,45 @@ int main_create_and_export_cell(struct cmdoptions* cmdoptions, struct keyvaluear
         _filter_layers(toplevel, cmdoptions, pcell_state);
         _merge_rectangles(toplevel, cmdoptions, layermap, pcell_state);
 
+        // curve rasterization
+        _raster_curves(toplevel, cmdoptions, pcell_state);
+
         // export cell
         if(cmdoptions_was_provided_long(cmdoptions, "export"))
         {
-            // add export search paths. FIXME: add --exportpath cmd option
-            struct const_vector* searchpaths = const_vector_create();
-            const_vector_append(searchpaths, OPC_HOME "/export");
+            struct export_state* export_state = export_create_state();
 
-            const char* basename = cmdoptions_get_argument_long(cmdoptions, "filename");
-            const char* toplevelname = cmdoptions_get_argument_long(cmdoptions, "cellname");
-            const char** exportoptions = cmdoptions_get_argument_long(cmdoptions, "export-options");
-            int writechildrenports = cmdoptions_was_provided_long(cmdoptions, "write-children-ports");
+            // add export search paths. FIXME: add --exportpath cmd option
+            export_add_searchpath(export_state, OPC_HOME "/export");
+
+            // basename
+            export_set_basename(export_state, cmdoptions_get_argument_long(cmdoptions, "filename"));
+
+            // toplevelname
+            export_set_toplevel_name(export_state, cmdoptions_get_argument_long(cmdoptions, "cellname"));
+
+            // export options
+            export_set_export_options(export_state, cmdoptions_get_argument_long(cmdoptions, "export-options"));
+
+            // write children ports
+            export_set_write_children_ports(export_state, cmdoptions_was_provided_long(cmdoptions, "write-children-ports"));
+
+            // bus delimiters
             const char* delimiters = cmdoptions_get_argument_long(cmdoptions, "bus-delimiters");
-            char leftdelim = '<';
-            char rightdelim = '>';
             if(delimiters && delimiters[0] && delimiters[1])
             {
-                leftdelim = delimiters[0];
-                rightdelim = delimiters[1];
+                export_set_bus_delimiters(export_state, delimiters[0], delimiters[1]);
+            }
+            else
+            {
+                export_set_bus_delimiters(export_state, '<', '>');
             }
 
             const char* const * exportnames = cmdoptions_get_argument_long(cmdoptions, "export");
             while(*exportnames)
             {
-                char *exportname, *exportlayername;
-                _get_exportname(*exportnames, searchpaths, &exportname, &exportlayername);
-                if(!generics_resolve_premapped_layers(layermap, exportlayername))
+                export_set_exportname(export_state, *exportnames);
+                if(!generics_resolve_premapped_layers(layermap, export_get_layername(export_state)))
                 {
                     retval = 0;
                     goto DESTROY_OBJECT;
@@ -574,15 +593,11 @@ int main_create_and_export_cell(struct cmdoptions* cmdoptions, struct keyvaluear
                 export_write_toplevel(
                     toplevel, 
                     pcell_state, 
-                    searchpaths, exportname, basename, toplevelname, 
-                    leftdelim, rightdelim, 
-                    exportoptions, writechildrenports
+                    export_state
                 );
-                free(exportname);
-                free(exportlayername);
                 ++exportnames;
             }
-            const_vector_destroy(searchpaths);
+            export_destroy_state(export_state);
         }
         else
         {

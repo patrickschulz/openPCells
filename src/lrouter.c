@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <stdbool.h>
 
 #include "lrouter_net.h"
 #include "lrouter_route.h"
@@ -62,8 +63,6 @@ static struct netcollection* _initialize(lua_State* L)
             int y = lua_tointeger(L, -1);
             lua_pop(L, 1);
 
-	    printf("filled in from lua net position with x:%i, y:%i\n", x - 1,
-		   y - 1);
 	    position_t pos = *net_create_position(instance, port, x - 1, y - 1);
 	    nets[i - 1].positions[j - 1] = pos;
 
@@ -75,6 +74,11 @@ static struct netcollection* _initialize(lua_State* L)
     nc->nets = nets;
     nc->num_nets = num_nets;
     return nc;
+}
+
+static void lrouter_fill_blockages(lua_State *l)
+{
+ 
 }
 
 /*
@@ -104,7 +108,7 @@ static void lrouter_split_nets(struct netcollection* nc)
                 for(size_t k = 0; k < nc->nets[i].size; k++)
                 {
                     /* dont check m.d. for itself again */
-                        if((int)k == j)
+                    if((int)k == j)
                         continue;
 
                     nextx = (int)nc->nets[i].positions[k].x;
@@ -175,6 +179,7 @@ int lrouter_route(lua_State* L)
 
     lrouter_split_nets(nc);
     net_sort_nets(nc->nets, nc->num_nets);
+    net_fill_ports(nc->nets, nc->num_nets, field);
 
     int routed_count = 0;
 
@@ -182,7 +187,6 @@ int lrouter_route(lua_State* L)
     lua_newtable(L);
 
     for(unsigned int i = 0; i < nc->num_nets; ++i)
-    //for(unsigned int i = 0; i < 4; ++i)
     {
 
         /* dont route nets without at least 2 points */
@@ -210,13 +214,7 @@ int lrouter_route(lua_State* L)
 	    moves_create_via(L, 2);
             lua_rawseti(L, -2, 2);
 
-            printf("pre create deltas\n");
-            net_print_path(&nc->nets[i]);
             net_create_deltas(&nc->nets[i]);
-            printf("post create deltas\n");
-            net_print_path(&nc->nets[i]);
-
-	    bool need_switchdirection = false;
 
             point_t *curr_point;
             int point_count = 2;
@@ -227,15 +225,7 @@ int lrouter_route(lua_State* L)
                     if(curr_point->x)
 			moves_create_delta(L, X_DIR, curr_point->x);
 		    else if(curr_point->y)
-                    {
-			moves_create_switchdirection(L);
-			need_switchdirection = true;
-		        lua_rawseti(L, -2, point_count + 1);
-		        point_count++;
-
-			lua_newtable(L);
 			moves_create_delta(L, Y_DIR, curr_point->y);
-                    }
 		    else if(curr_point->z)
 			moves_create_via(L, -1 * curr_point->z);
 
@@ -252,11 +242,16 @@ int lrouter_route(lua_State* L)
 		    }
                 }
 
+                /* FIXME: via before second anchor */
+	        lua_newtable(L);
+	        moves_create_via(L, -2);
+	        lua_rawseti(L, -2, point_count + 1);
+
 		/* second anchor */
 		lua_newtable(L);
 	        moves_create_anchor(L, nc->nets[i].positions[1].instance,
 				nc->nets[i].positions[1].port, nc->nets[i].name);
-		lua_rawseti(L, -2, point_count + 1);
+		lua_rawseti(L, -2, point_count + 2);
 
 		/* put moves table into bigger table */
 		lua_rawseti(L, -2, routed_count + 1);
@@ -283,6 +278,7 @@ int open_lrouter_lib(lua_State* L)
     static const luaL_Reg modfuncs[] =
     {
         { "route", lrouter_route },
+        { "fillblockages", lrouter_fill_blockages },
         { NULL,    NULL          }
     };
     lua_newtable(L);

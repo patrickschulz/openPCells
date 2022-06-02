@@ -3,6 +3,6 @@
 
 #include "object.h"
 
-void info_cellinfo(object_t* cell);
+void info_cellinfo(struct object* cell);
 
 #endif // OPC_INFO_H

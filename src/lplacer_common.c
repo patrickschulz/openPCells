@@ -71,7 +71,7 @@ int next_permutation(unsigned int* array, size_t len)
     return 1;
 }
 
-void placer_initialize_base_cell(lua_State* L, struct basic_cell* base, size_t index, struct keyvaluearray* netmap)
+void placer_initialize_base_cell(lua_State* L, struct basic_cell* base, size_t index, struct hashmap* netmap)
 {
     // instance
     base->instance = index;
@@ -95,7 +95,7 @@ void placer_initialize_base_cell(lua_State* L, struct basic_cell* base, size_t i
 
         lua_getfield(L, -1, "name");
         const char* name = lua_tostring(L, -1);
-        base->nets[j - 1] = keyvaluearray_get(netmap, name);
+        base->nets[j - 1] = hashmap_get(netmap, name);
         lua_pop(L, 1); // pop name
 
         lua_getfield(L, -3, "pinoffsets");

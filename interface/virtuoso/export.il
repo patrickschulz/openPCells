@@ -10,7 +10,7 @@ procedure(OPCWriteRectangle(file layer purpose bBox)
 	let(
 		(
 		)
-        fprintf(file "cell:merge_into_shallow(geometry.rectanglebltr(generics.mapped(nil, { layer = \"%s\", purpose = \"%s\" }), point.create(%d, %d), point.create(%d, %d)))\n", 
+        fprintf(file "geometry.rectanglebltr(cell, generics.premapped(nil, { SKILL = { layer = \"%s\", purpose = \"%s\" } }), point.create(%d, %d), point.create(%d, %d))\n", 
             layer purpose xCoord(car(bBox)) yCoord(car(bBox)) xCoord(cadr(bBox)) yCoord(cadr(bBox))
         )
 	)
@@ -20,30 +20,44 @@ procedure(OPCWritePolygon(file layer purpose pts)
 	let(
 		(
 		)
-        fprintf(file "cell:merge_into_shallow(geometry.polygon(generics.mapped(nil, { layer = \"%s\", purpose = \"%s\" }), { %s }))\n"
+        fprintf(file "geometry.polygon(cell, generics.premapped(nil, { SKILL = { layer = \"%s\", purpose = \"%s\" } }), { %s })\n"
             layer purpose 
             buildString(mapcar(lambda( (pt) lsprintf("point.create(%d, %d)" xCoord(pt) yCoord(pt))) pts) ", ")
         )
 	)
 )
 
+procedure(OPCWriteLabel(file layer purpose name pt)
+	let(
+		(
+		)
+        fprintf(file "cell:add_port(\"%s\", generics.premapped(nil, { SKILL = { layer = \"%s\", purpose = \"%s\" } }), point.create(%d, %d))\n"
+            name
+            layer purpose 
+            xCoord(pt) yCoord(pt)
+        )
+	)
+)
+
 procedure(OPCWriteShape(file shape x y)
     unless(shape->layerName == "instance"
-        if(shape->objType == "rect"
-            then
-                OPCWriteRectangle(file shape->layerName shape->purpose OPCConvertPtsToNanometer(OPCAddPtsOffset(shape->bBox x y)))
-            else
-                OPCWritePolygon(file shape->layerName shape->purpose OPCConvertPtsToNanometer(OPCAddPtsOffset(shape->points x y)))
+        case(shape->objType
+            ("rect" OPCWriteRectangle(file shape->layerName shape->purpose OPCConvertPtsToNanometer(OPCAddPtsOffset(shape->bBox x y))))
+            ("polygon" OPCWritePolygon(file shape->layerName shape->purpose OPCConvertPtsToNanometer(OPCAddPtsOffset(shape->points x y))))
+            ("label" OPCWriteLabel(file shape->layerName shape->purpose shape->theLabel car(OPCConvertPtsToNanometer(OPCAddPtsOffset(list(shape->xy) x y)))))
         )
     )
 )
 
-procedure(OPCExportCell()
+procedure(OPCExportCell(filename)
     let(
         (
             (cv geGetEditCellView())
-            (file outfile("openPCells_export.lua" "w"))
+            (path if(filename filename "openPCells_export.lua"))
+            file
         )
+        file = outfile(path "w")
+        println(file)
         fprintf(file "local cell = object.create()\n")
         foreach(shape cv->shapes
             OPCWriteShape(file shape 0 0)
@@ -58,7 +72,7 @@ procedure(OPCExportCell()
         hiDisplayAppDBox(
             ?name        'OPCInfoDialog
             ?dboxBanner  "openPCells"
-            ?dboxText    lsprintf("written opc representation of layout to %s" "openPCells_export.lua")
+            ?dboxText    lsprintf("written opc representation of layout to %s" path)
             ?dialogType   hicWarningDialog
             ?dialogStyle 'modeless
             ?buttonLayout 'Close
