@@ -14,7 +14,7 @@ placement.insert_filler_names(rows, floorplan.floorplan_width)
 
 --FIXME: hardoded number of routing tracks per cell
 local numtracks = 13
-local routes = routing.legalize(nets, rows, numtracks, floorplan)
+local routes = routing.legalize(nets, rows, numtracks, floorplan, instances)
 
 local filename = generator.get_cell_filename("verilogimport", "verilogimport", module)
 print(string.format("writing to file '%s'", filename))

@@ -63,8 +63,6 @@ static struct netcollection* _initialize(lua_State* L)
             int y = lua_tointeger(L, -1);
             lua_pop(L, 1);
 
-	    printf("filled in from lua net position with x:%i, y:%i\n", x - 1,
-		   y - 1);
 	    position_t pos = *net_create_position(instance, port, x - 1, y - 1);
 	    nets[i - 1].positions[j - 1] = pos;
 
@@ -76,6 +74,11 @@ static struct netcollection* _initialize(lua_State* L)
     nc->nets = nets;
     nc->num_nets = num_nets;
     return nc;
+}
+
+static void lrouter_fill_blockages(lua_State *l)
+{
+ 
 }
 
 /*
@@ -211,11 +214,7 @@ int lrouter_route(lua_State* L)
 	    moves_create_via(L, 2);
             lua_rawseti(L, -2, 2);
 
-            printf("pre create deltas\n");
-            net_print_path(&nc->nets[i]);
             net_create_deltas(&nc->nets[i]);
-            printf("post create deltas\n");
-            net_print_path(&nc->nets[i]);
 
             point_t *curr_point;
             int point_count = 2;
@@ -243,16 +242,16 @@ int lrouter_route(lua_State* L)
 		    }
                 }
 
-                /* FIXME: via before seconds anchor */
+                /* FIXME: via before second anchor */
 	        lua_newtable(L);
 	        moves_create_via(L, -2);
-	        lua_rawseti(L, -2, 2);
+	        lua_rawseti(L, -2, point_count + 1);
 
 		/* second anchor */
 		lua_newtable(L);
 	        moves_create_anchor(L, nc->nets[i].positions[1].instance,
 				nc->nets[i].positions[1].port, nc->nets[i].name);
-		lua_rawseti(L, -2, point_count + 1);
+		lua_rawseti(L, -2, point_count + 2);
 
 		/* put moves table into bigger table */
 		lua_rawseti(L, -2, routed_count + 1);
@@ -279,6 +278,7 @@ int open_lrouter_lib(lua_State* L)
     static const luaL_Reg modfuncs[] =
     {
         { "route", lrouter_route },
+        { "fillblockages", lrouter_fill_blockages },
         { NULL,    NULL          }
     };
     lua_newtable(L);
