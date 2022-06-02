@@ -581,7 +581,7 @@ void object_move_anchor_y(object_t* cell, const char* name, coordinate_t x, coor
     object_translate(cell, 0, dy);
 }
 
-static void _get_minmax_xy(object_t* cell, coordinate_t* minxp, coordinate_t* minyp, coordinate_t* maxxp, coordinate_t* maxyp)
+void object_get_minmax_xy(const object_t* cell, coordinate_t* minxp, coordinate_t* minyp, coordinate_t* maxxp, coordinate_t* maxyp)
 {
     coordinate_t minx = COORDINATE_MAX;
     coordinate_t maxx = COORDINATE_MIN;
@@ -594,18 +594,17 @@ static void _get_minmax_xy(object_t* cell, coordinate_t* minxp, coordinate_t* mi
         switch(S->type)
         {
             case RECTANGLE:
-                minx = min(minx, S->points[0]->x);
-                maxx = max(maxx, S->points[1]->x);
-                miny = min(miny, S->points[0]->y);
-                maxy = max(maxy, S->points[1]->y);
-                break;
             case POLYGON:
-                for(unsigned int i = 0; i < S->size; ++i)
+            case TRIANGULATED_POLYGON:
+                for(unsigned int j = 0; j < S->size; ++j)
                 {
-                    minx = min(minx, S->points[i]->x);
-                    maxx = max(maxx, S->points[i]->x);
-                    miny = min(miny, S->points[i]->y);
-                    maxy = max(maxy, S->points[i]->y);
+                    coordinate_t x = S->points[j]->x;
+                    coordinate_t y = S->points[j]->y;
+                    transformationmatrix_apply_transformation_xy(cell->trans, &x, &y);
+                    minx = min(minx, x);
+                    maxx = max(maxx, x);
+                    miny = min(miny, y);
+                    maxy = max(maxy, y);
                 }
                 break;
         }
@@ -617,7 +616,7 @@ static void _get_minmax_xy(object_t* cell, coordinate_t* minxp, coordinate_t* mi
             object_t* child = vector_get(cell->children, i);
             object_t* obj = child->reference;
             coordinate_t minx_, maxx_, miny_, maxy_;
-            _get_minmax_xy(obj, &minx_, &miny_, &maxx_, &maxy_);
+            object_get_minmax_xy(obj, &minx_, &miny_, &maxx_, &maxy_);
             // FIXME: is the transformation really needed? If yes, then the shapes points also need to be transformed
             //local pt1 = point.create(minx_, miny_)
             //local pt2 = point.create(maxx_, maxy_)
@@ -654,7 +653,7 @@ static void _get_transformation_correction(object_t* cell, coordinate_t* cx, coo
     }
     else
     {
-        _get_minmax_xy(obj, &blx, &bly, &trx, &try);
+        object_get_minmax_xy(obj, &blx, &bly, &trx, &try);
     }
     coordinate_t x = 0;
     coordinate_t y = 0;

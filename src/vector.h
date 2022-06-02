@@ -6,13 +6,15 @@
 struct vector
 {
     void** elements;
-    size_t length;
+    size_t size;
     size_t capacity;
 };
 
 struct vector* vector_create(void);
 void vector_destroy(struct vector* vector, void (*desctructor)(void*));
-size_t vector_size(struct vector* vector);
+struct vector* vector_copy(struct vector* vector);
+void vector_reserve(struct vector* vector, size_t additional_capacity);
+size_t vector_size(const struct vector* vector);
 void* vector_get(struct vector* vector, size_t i);
 void vector_set(struct vector* vector, size_t i, void* element);
 void vector_append(struct vector* vector, void* element);
@@ -29,7 +31,7 @@ void vector_iterator_destroy(struct vector_iterator* iterator);
 struct const_vector
 {
     const void** elements;
-    size_t length;
+    size_t size;
     size_t capacity;
 };
 

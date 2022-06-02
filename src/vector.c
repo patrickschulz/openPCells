@@ -10,20 +10,28 @@ static void _resize_data(struct vector* vector, size_t capacity)
     vector->elements = e;
 }
 
-struct vector* vector_create(void)
+struct vector* _create(size_t capacity)
 {
     struct vector* vector = malloc(sizeof(*vector));
     vector->elements = NULL;
-    vector->length = 0;
-    _resize_data(vector, 1024);
+    vector->size = 0;
+    if(capacity > 0)
+    {
+        _resize_data(vector, capacity);
+    }
     return vector;
+}
+
+struct vector* vector_create(void)
+{
+    return _create(1024);
 }
 
 void vector_destroy(struct vector* vector, void (*destructor)(void*))
 {
     if(destructor)
     {
-        for(size_t i = 0; i < vector->length; ++i)
+        for(size_t i = 0; i < vector->size; ++i)
         {
             destructor(vector->elements[i]);
         }
@@ -33,9 +41,28 @@ void vector_destroy(struct vector* vector, void (*destructor)(void*))
     free(vector);
 }
 
-size_t vector_size(struct vector* vector)
+struct vector* vector_copy(struct vector* vector)
 {
-    return vector->length;
+    struct vector* new = _create(vector->capacity);
+    for(size_t i = 0; i < vector->size; ++i)
+    {
+        new->elements[i] = vector->elements[i];
+    }
+    new->size = vector->size;
+    return new;
+}
+
+void vector_reserve(struct vector* vector, size_t additional_capacity)
+{
+    if((vector->capacity - vector->size) < additional_capacity)
+    {
+        _resize_data(vector, vector->capacity + (additional_capacity - (vector->capacity - vector->size)));
+    }
+}
+
+size_t vector_size(const struct vector* vector)
+{
+    return vector->size;
 }
 
 void* vector_get(struct vector* vector, size_t i)
@@ -50,23 +77,23 @@ void vector_set(struct vector* vector, size_t i, void* element)
 
 void vector_append(struct vector* vector, void* element)
 {
-    while(vector->length + 1 > vector->capacity)
+    while(vector->size + 1 > vector->capacity)
     {
         _resize_data(vector, vector->capacity * 2);
     }
-    vector->elements[vector->length] = element;
-    vector->length += 1;
+    vector->elements[vector->size] = element;
+    vector->size += 1;
 }
 
 void vector_prepend(struct vector* vector, void* element)
 {
-    while(vector->length + 1 > vector->capacity)
+    while(vector->size + 1 > vector->capacity)
     {
         _resize_data(vector, vector->capacity * 2);
     }
-    memmove(vector->elements + 1, vector->elements, vector->length);
+    memmove(vector->elements + 1, vector->elements, vector->size);
     vector->elements[0] = element;
-    vector->length += 1;
+    vector->size += 1;
 }
 
 void vector_remove(struct vector* vector, size_t index, void (*destructor)(void*))
@@ -75,11 +102,11 @@ void vector_remove(struct vector* vector, size_t index, void (*destructor)(void*
     {
         destructor(vector->elements[index]);
     }
-    for(size_t i = index + 1; i < vector->length; ++i)
+    for(size_t i = index + 1; i < vector->size; ++i)
     {
         vector->elements[i - 1] = vector->elements[i];
     }
-    --vector->length;
+    --vector->size;
 }
 
 struct vector_iterator
@@ -98,7 +125,7 @@ struct vector_iterator* vector_iterator_create(struct vector* vector)
 
 int vector_iterator_is_valid(struct vector_iterator* iterator)
 {
-    return iterator->index < iterator->vector->length;
+    return iterator->index < iterator->vector->size;
 }
 
 void* vector_iterator_get(struct vector_iterator* iterator)
@@ -127,7 +154,7 @@ struct const_vector* const_vector_create(void)
 {
     struct const_vector* const_vector = malloc(sizeof(*const_vector));
     const_vector->elements = NULL;
-    const_vector->length = 0;
+    const_vector->size = 0;
     _const_resize_data(const_vector, 1024);
     return const_vector;
 }
@@ -140,7 +167,7 @@ void const_vector_destroy(struct const_vector* const_vector)
 
 size_t const_vector_size(struct const_vector* const_vector)
 {
-    return const_vector->length;
+    return const_vector->size;
 }
 
 const void* const_vector_get(struct const_vector* const_vector, size_t i)
@@ -155,30 +182,30 @@ void const_vector_set(struct const_vector* const_vector, size_t i, const void* e
 
 void const_vector_append(struct const_vector* const_vector, const void* element)
 {
-    while(const_vector->length + 1 > const_vector->capacity)
+    while(const_vector->size + 1 > const_vector->capacity)
     {
         _const_resize_data(const_vector, const_vector->capacity * 2);
     }
-    const_vector->elements[const_vector->length] = element;
-    const_vector->length += 1;
+    const_vector->elements[const_vector->size] = element;
+    const_vector->size += 1;
 }
 
 void const_vector_prepend(struct const_vector* const_vector, const void* element)
 {
-    while(const_vector->length + 1 > const_vector->capacity)
+    while(const_vector->size + 1 > const_vector->capacity)
     {
         _const_resize_data(const_vector, const_vector->capacity * 2);
     }
-    memmove(const_vector->elements + 1, const_vector->elements, const_vector->length);
+    memmove(const_vector->elements + 1, const_vector->elements, const_vector->size);
     const_vector->elements[0] = element;
-    const_vector->length += 1;
+    const_vector->size += 1;
 }
 
 void const_vector_remove(struct const_vector* const_vector, size_t index)
 {
-    for(size_t i = index + 1; i < const_vector->length; ++i)
+    for(size_t i = index + 1; i < const_vector->size; ++i)
     {
         const_vector->elements[i - 1] = const_vector->elements[i];
     }
-    --const_vector->length;
+    --const_vector->size;
 }

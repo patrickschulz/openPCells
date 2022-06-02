@@ -7,7 +7,7 @@
 #include "geometry.h"
 #include "lobject.h"
 #include "lpoint.h"
-
+#include "graphics.h"
 
 static void* _check_generics(lua_State* L, int idx)
 {
@@ -461,6 +461,43 @@ static int lgeometry_unequal_ring(lua_State* L)
     return 0;
 }
 
+static int lgeometry_cubic_bezier(lua_State* L)
+{
+    lobject_t* cell = lobject_check(L, 1);
+    generics_t* layer = _check_generics(L, 2);
+    lua_len(L, 3);
+    size_t len = lua_tointeger(L, -1);
+    lua_pop(L, 1);
+
+    if(len != 4)
+    {
+        lua_pushstring(L, "geometry.cubic_bezier: expecting a multiple of four points");
+        lua_error(L);
+    }
+
+    struct vector* curve = vector_create();
+    for(unsigned int i = 1; i <= len; ++i)
+    {
+        lua_rawgeti(L, 3, i);
+        lpoint_t* pt = lpoint_checkpoint(L, -1);
+        vector_append(curve, pt->point);
+        lua_pop(L, 1);
+    }
+
+    struct vector* points = graphics_cubic_bezier(curve);
+    vector_destroy(curve, NULL);
+
+    point_t** polypoints = calloc(vector_size(points), sizeof(*polypoints));
+    for(unsigned int i = 0; i < vector_size(points); ++i)
+    {
+        polypoints[i] = vector_get(points, i);
+    }
+    geometry_polygon(cell->object, layer, polypoints, vector_size(points));
+    free(polypoints);
+    vector_destroy(points, NULL);
+    return 0;
+}
+
 int open_lgeometry_lib(lua_State* L)
 {
     lua_newtable(L);
@@ -478,6 +515,7 @@ int open_lgeometry_lib(lua_State* L)
         { "via",             lgeometry_via             },
         { "contactbltr",     lgeometry_contactbltr     },
         { "contact",         lgeometry_contact         },
+        { "cubic_bezier",    lgeometry_cubic_bezier    },
         { "cross",           lgeometry_cross           },
         { "ring",            lgeometry_ring            },
         { "unequal_ring",    lgeometry_unequal_ring    },

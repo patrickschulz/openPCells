@@ -39,8 +39,12 @@ local recordtypes = {
 
 local __content = {}
 
+local function _write_byte(byte)
+    table.insert(__content, string.char(byte))
+end
+
 local function _write_record(recordtype)
-    table.insert(__content, string.char(recordtype))
+    _write_byte(recordtype)
 end
 
 local function _write_infobyte(data)
@@ -50,12 +54,12 @@ local function _write_infobyte(data)
             byte = byte + (1 << (8 - i))
         end
     end
-    table.insert(__content, string.char(byte))
+    _write_byte(byte)
 end
 
 local function _write_int(num)
     if num == 0 then
-        table.insert(__content, string.char(0))
+        _write_byte(0)
     else
         local sign = 0
         if num < 0 then
@@ -77,7 +81,7 @@ local function _write_int(num)
             if num > 0 then
                 byte = byte + 128
             end
-            table.insert(__content, string.char(byte))
+            _write_byte(byte)
             i = i + 1
         end
     end
@@ -85,7 +89,7 @@ end
 
 local function _write_uint(num)
     if num == 0 then
-        table.insert(__content, string.char(0))
+        _write_byte(0)
     else
         while num > 0 do
             local byte = num % 128
@@ -93,7 +97,7 @@ local function _write_uint(num)
             if num > 0 then
                 byte = byte + 128
             end
-            table.insert(__content, string.char(byte))
+            _write_byte(byte)
         end
     end
 end
@@ -137,6 +141,37 @@ local function _write_string(str)
     table.insert(__content, str)
 end
 
+local function _write_gdelta2(num)
+    print(num)
+    if num == 0 then
+        _write_byte(0)
+        print(0)
+    else
+        local config = 3
+        if num < 0 then
+            config = 1
+            num = -num
+        end
+        local byte = ((num % 32) << 2) + config
+        num = (num - (num % 32)) >> 5
+        if num > 0 then
+            byte = byte + 128
+        end
+        _write_byte(byte)
+        print(byte)
+        while num > 0 do
+            local byte = num % 128
+            num = (num - byte) >> 7
+            if num > 0 then
+                byte = byte + 128
+            end
+            _write_byte(byte)
+        print(byte)
+        end
+    end
+    print()
+end
+
 -- public interface
 function M.finalize()
     return table.concat(__content)
@@ -144,6 +179,10 @@ end
 
 function M.get_extension()
     return "oas"
+end
+
+function M.get_techexport()
+    return "gds"
 end
 
 function M.at_begin()
@@ -196,10 +235,41 @@ function M.write_rectangle(layer, bl, tr)
     _write_int(bl.y)
 end
 
----[[
-function M.write_polygon()
+function M.write_polygon(layer, pts)
+    _write_record(recordtypes.POLYGON)
+    _write_infobyte({ 0, 0, 1, 0, 0, 0, 1, 1 }) -- 00PXYRDL
+    _write_uint(layer.layer)
+    _write_uint(layer.purpose)
+    _write_uint(4) -- point-list type
+    _write_uint(#pts - 1)
+    --[[
+    _write_uint(#pts) -- vertex count
+    for _, pt in ipairs(pts) do
+        _write_gdelta2(pt.x)
+        _write_gdelta2(pt.y)
+    end
+    --]]
+    _write_byte(0xe2) -- 1110 0010
+    _write_byte(0x03) -- 0000 0011
+    _write_byte(0xa0) -- 1010 0000
+    _write_byte(0x01) -- 0000 0001
+    _write_byte(0x29) -- 0010 1001
+    _write_byte(0x29) -- 0010 1001
+    --_write_byte(0x02) -- 0000 0010
+    --print(pts[1].x, pts[1].y)
+    --_write_int(pts[1].x)
+    --_write_int(pts[2].y)
+    --0x15: POLYGON
+    --0x23: infobyte
+    --0x00: layer
+    --0x00: purpose
+    --0x04: point-list type
+    --0x03: number of vertices
+    --0xe2 0x03: first vertex
+    --0xa0 0x01: second vertex
+    --0x29
+    --0x29
 end
---]]
 
 --[[
 function M.write_port(name, layer, where)

@@ -13,10 +13,10 @@ important point for this project is technology independece. This is achieved by 
 
 # How to use
 After building opc (see Building and Installation), layouts can be generated either from pcell definition (--cell option) (there are already some in the cell
-subdirectory) or from so-called cellscripts (--cellscript). For this, a technology layer map file to export layouts. The project supplies some
-technology files for the open source technology skywater130, so you can directly test the setup.
+subdirectory) or from so-called cellscripts (--cellscript). For this, a technology layer map file to export layouts. The project supplies generic
+technology files ('opc'), so you can directly test the setup.
 
-    ./opc --technology skywater130 --export svg --cell basic/transistor
+    ./opc --technology opc --export svg --cell basic/transistor
 
 This produces the following image: 
 
@@ -24,7 +24,7 @@ This produces the following image:
 
 Positional command line arguments (that is, arguments without - or --) are taken as key-value pairs for cell parameters:
 
-    ./opc --technology skywater130 --export svg --cell basic/transistor fingers = 4
+    ./opc --technology opc --export svg --cell basic/transistor fingers = 4
 
 ![Example Transistor](./doc/info/mosfet_2.png). 
 
@@ -56,7 +56,7 @@ After you compiled the program and checked if it works (see previous section), y
 You need to include these lines in your `.cdsinit`:
 
     ; in your .cdsinit
-    OPCTech = "skywater130"     ; edit to match your PDK
+    OPCTech = "TECH"            ; edit to match your PDK
     OPCPath = "/path/to/pcells" ; edit to match the path to opc
     OPCExec = "opc"             ; edit to match the name of the executable (usually 'opc')
     load(lsprintf("%s/%s" OPCPath "export/virtuoso/init.il")
@@ -74,7 +74,7 @@ cell generation. This works in two runs: first vias have to be translated, as th
 spacing or sizing of the individual vias into the pcell. After this, all generic layers need to become technology-specific layers.
 ## How to add technologies
 Every technology needs three files (currently, this might change in the future): a general configuration, a layer map and a via rules file.
-Have a look in tech/template or tech/skywater130 on how to write these files.
+Have a look in tech/template or tech/opc on how to write these files.
 
 The config is pretty simple:
 

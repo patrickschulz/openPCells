@@ -11,6 +11,7 @@ typedef enum
 {
     RECTANGLE,
     POLYGON,
+    TRIANGULATED_POLYGON,
     PATH
 } shapetype;
 
@@ -57,5 +58,6 @@ int shape_get_center(shape_t* shape, coordinate_t* x, coordinate_t* y);
 
 int shape_resize_lrtb(shape_t* shape, coordinate_t left, coordinate_t right, coordinate_t top, coordinate_t bottom);
 void shape_resolve_path(shape_t* shape);
+void shape_triangulate_polygon(shape_t* shape);
 
 #endif /* OPC_SHAPE_H */

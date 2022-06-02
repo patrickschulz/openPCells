@@ -269,3 +269,16 @@ void shape_resolve_path(shape_t* shape)
     free(new);
 }
 
+void shape_triangulate_polygon(shape_t* shape)
+{
+    if(shape->type != POLYGON)
+    {
+        return;
+    }
+    point_t** result = geometry_triangulate_polygon(shape->points, shape->size);
+    free(shape->points);
+    shape->points = result;
+    shape->size = (shape->size - 2) * 3;
+    shape->capacity = shape->size;
+    shape->type = TRIANGULATED_POLYGON;
+}

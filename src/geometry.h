@@ -91,4 +91,6 @@ void geometry_unequal_ring(
 
 shape_t* geometry_path_to_polygon(point_t** points, size_t numpoints, ucoordinate_t width, int miterjoin);
 
+point_t** geometry_triangulate_polygon(point_t** points, size_t numpoints);
+
 #endif /* OPC_GEOMETRY_H */

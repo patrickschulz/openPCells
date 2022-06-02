@@ -109,7 +109,10 @@ embed_compiled_lua_file: embed_compiled_lua_file.c lua/liblua.a
 clean:
 	rm -f $(PROGNAME)
 	rm -f config.h
+	rm -f embed_compiled_lua_file
+	rm -f generate_manpage
 	rm -f modulemanager.h modulemanager.c
+	rm -f scriptmanager.h scriptmanager.c
 	rm -f scriptmanager.h scriptmanager.c
 	rm -f $(OPCOBJ)
 	rm -f lua/*.o lua/liblua.a
@@ -169,8 +172,6 @@ gdsexport.o: gdsexport.c gdsexport.h export_common.h generics.h \
  keyvaluepairs.h vector.h point.h transformationmatrix.h
 gdsparser.o: gdsparser.c gdsparser.h lua/lua.h lua/luaconf.h \
  lua/lauxlib.h lua/lua.h filesystem.h vector.h point.h hashmap.h
-generate_manpage.o: generate_manpage.c cmdoptions.h vector.h \
- cmdoptions_def.c
 generics.o: generics.c generics.h keyvaluepairs.h vector.h technology.h \
  lua/lua.h lua/luaconf.h util.h
 geometry.o: geometry.c geometry.h technology.h lua/lua.h lua/luaconf.h \
@@ -189,8 +190,8 @@ lgenerics.o: lgenerics.c lgenerics.h lua/lua.h lua/luaconf.h generics.h \
  keyvaluepairs.h vector.h lua/lauxlib.h lua/lua.h technology.h
 lgeometry.o: lgeometry.c lgeometry.h lua/lua.h lua/luaconf.h \
  lua/lauxlib.h lua/lua.h geometry.h technology.h vector.h generics.h \
- keyvaluepairs.h object.h transformationmatrix.h point.h shape.h pcell.h \
- lobject.h lpoint.h
+ keyvaluepairs.h hashmap.h object.h transformationmatrix.h point.h \
+ shape.h pcell.h lobject.h lpoint.h
 lobject.o: lobject.c lobject.h lua/lua.h lua/luaconf.h object.h \
  transformationmatrix.h point.h shape.h generics.h keyvaluepairs.h \
  vector.h pcell.h lua/lauxlib.h lua/lua.h lpoint.h

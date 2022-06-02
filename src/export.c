@@ -37,8 +37,11 @@ char* export_get_export_layername(struct const_vector* searchpaths, const char* 
     {
         if(funcs->get_techexport)
         {
-            return util_copy_string(funcs->get_techexport());
+            char* techexport = util_copy_string(funcs->get_techexport());
+            export_destroy_functions(funcs);
+            return techexport;
         }
+        export_destroy_functions(funcs);
     }
     else // lua-defined exports
     {
@@ -59,6 +62,7 @@ char* export_get_export_layername(struct const_vector* searchpaths, const char* 
                 free(exportfilename);
                 if(ret != LUA_OK)
                 {
+                    fprintf(stderr, "error while loading export '%s': %s\n", exportname, lua_tostring(L, -1));
                     lua_close(L);
                     break;
                 }
@@ -133,6 +137,19 @@ static void _write_cell(object_t* cell, struct export_data* data, struct export_
                 break;
             case POLYGON:
                 funcs->write_polygon(data, layerdata, shape->points, shape->size);
+                break;
+            case TRIANGULATED_POLYGON:
+                for(unsigned int i = 0; i < shape->size - 2; i += 3)
+                {
+                    if(funcs->write_triangle)
+                    {
+                        funcs->write_triangle(data, layerdata, shape->points[i], shape->points[i + 1], shape->points[i + 2]);
+                    }
+                    else
+                    {
+                        funcs->write_polygon(data, layerdata, shape->points + i, 3);
+                    }
+                }
                 break;
             case PATH:
                 if(funcs->write_path)
@@ -266,13 +283,73 @@ static int _write_ports_lua(lua_State* L, object_t* cell, char leftdelim, char r
     return LUA_OK;
 }
 
+static int _write_lua_rectangle(lua_State* L, struct keyvaluearray* layerdata, shape_t* shape)
+{
+    lua_getfield(L, -1, "write_rectangle");
+    _push_layer(L, layerdata);
+    _push_point(L, shape->points[0]);
+    _push_point(L, shape->points[1]);
+    return lua_pcall(L, 3, 0, 0);
+}
+
+static int _write_lua_polygon(lua_State* L, struct keyvaluearray* layerdata, shape_t* shape)
+{
+    lua_getfield(L, -1, "write_polygon");
+    _push_layer(L, layerdata);
+    _push_points(L, shape->points, shape->size);
+    return lua_pcall(L, 2, 0, 0);
+}
+
+static int _write_lua_triangulated_polygon(lua_State* L, struct keyvaluearray* layerdata, shape_t* shape)
+{
+    for(unsigned int i = 0; i < shape->size - 2; i += 3)
+    {
+        lua_getfield(L, -1, "write_triangle");
+        _push_layer(L, layerdata);
+        _push_point(L, shape->points[i + 0]);
+        _push_point(L, shape->points[i + 1]);
+        _push_point(L, shape->points[i + 2]);
+        int ret = lua_pcall(L, 4, 0, 0);
+        if(ret != LUA_OK)
+        {
+            return ret;
+        }
+    }
+    return LUA_OK;
+}
+
+static int _write_lua_path(lua_State* L, struct keyvaluearray* layerdata, shape_t* shape)
+{
+    lua_getfield(L, -1, "write_path");
+    path_properties_t* properties = shape->properties;
+    _push_layer(L, layerdata);
+    _push_points(L, shape->points, shape->size);
+    lua_pushinteger(L, properties->width);
+    lua_newtable(L);
+    lua_pushinteger(L, properties->extension[0]);
+    lua_rawseti(L, -2, 1);
+    lua_pushinteger(L, properties->extension[0]);
+    lua_rawseti(L, -2, 2);
+    return lua_pcall(L, 4, 0, 0);
+}
+
 static int _write_cell_lua(lua_State* L, object_t* cell, int write_ports, char leftdelim, char rightdelim)
 {
+    // check 'write_path'
     int has_write_path = 0;
     lua_getfield(L, -1, "write_path");
     if(!lua_isnil(L, -1))
     {
         has_write_path = 1;
+    }
+    lua_pop(L, 1);
+
+    // check 'write_polygon'
+    int has_write_polygon = 0;
+    lua_getfield(L, -1, "write_polygon");
+    if(!lua_isnil(L, -1))
+    {
+        has_write_polygon = 1;
     }
     lua_pop(L, 1);
     for(unsigned int i = 0; i < cell->shapes_size; ++i)
@@ -284,52 +361,36 @@ static int _write_cell_lua(lua_State* L, object_t* cell, int write_ports, char l
         {
             shape_resolve_path(shape);
         }
+        if(!has_write_polygon && shape->type == POLYGON)
+        {
+            shape_triangulate_polygon(shape);
+        }
         switch(shape->type)
         {
             case RECTANGLE:
-            {
-                lua_getfield(L, -1, "write_rectangle");
-                _push_layer(L, layerdata);
-                _push_point(L, shape->points[0]);
-                _push_point(L, shape->points[1]);
-                int ret = lua_pcall(L, 3, 0, 0);
-                if(ret != LUA_OK)
+                if(_write_lua_rectangle(L, layerdata, shape) != LUA_OK)
                 {
-                    return ret;
+                    return LUA_ERRRUN;
                 }
                 break;
-            }
             case POLYGON:
-            {
-                lua_getfield(L, -1, "write_polygon");
-                _push_layer(L, layerdata);
-                _push_points(L, shape->points, shape->size);
-                int ret = lua_pcall(L, 2, 0, 0);
-                if(ret != LUA_OK)
+                if(_write_lua_polygon(L, layerdata, shape) != LUA_OK)
                 {
-                    return ret;
+                    return LUA_ERRRUN;
                 }
                 break;
-            }
+            case TRIANGULATED_POLYGON:
+                if(_write_lua_triangulated_polygon(L, layerdata, shape) != LUA_OK)
+                {
+                    return LUA_ERRRUN;
+                }
+                break;
             case PATH:
-            {
-                lua_getfield(L, -1, "write_path");
-                path_properties_t* properties = shape->properties;
-                _push_layer(L, layerdata);
-                _push_points(L, shape->points, shape->size);
-                lua_pushinteger(L, properties->width);
-                lua_newtable(L);
-                lua_pushinteger(L, properties->extension[0]);
-                lua_rawseti(L, -2, 1);
-                lua_pushinteger(L, properties->extension[0]);
-                lua_rawseti(L, -2, 2);
-                int ret = lua_pcall(L, 4, 0, 0);
-                if(ret != LUA_OK)
+                if(_write_lua_path(L, layerdata, shape) != LUA_OK)
                 {
-                    return ret;
+                    return LUA_ERRRUN;
                 }
                 break;
-            }
         }
     }
     if(cell->children)
@@ -447,7 +508,10 @@ static int _check_lua_export(lua_State* L)
     }
     if(!_check_function(L, "write_polygon"))
     {
-        return 0;
+        if(!_check_function(L, "write_triangle"))
+        {
+            return 0;
+        }
     }
     if(!_check_function(L, "finalize"))
     {
@@ -493,6 +557,19 @@ static int _write_toplevel_lua(lua_State* L, object_t* object, struct pcell_stat
         object_flatten(object, pcell_state, 0);
     }
     lua_pop(L, 1);
+
+    lua_getfield(L, -1, "initialize");
+    coordinate_t minx, maxx, miny, maxy;
+    object_get_minmax_xy(object, &minx, &miny, &maxx, &maxy);
+    lua_pushinteger(L, minx);
+    lua_pushinteger(L, maxx);
+    lua_pushinteger(L, miny);
+    lua_pushinteger(L, maxy);
+    ret = _call_or_pop_nil(L, 4);
+    if(ret != LUA_OK)
+    {
+        return ret;
+    }
 
     lua_getfield(L, -1, "at_begin");
     ret = _call_or_pop_nil(L, 0);
@@ -597,7 +674,7 @@ void export_write_toplevel(object_t* toplevel, struct pcell_state* pcell_state, 
                     // check minimal function support
                     if(!_check_lua_export(L))
                     {
-                        fprintf(stderr, "export '%s' must define at least the functions 'get_extension', 'write_rectangle', 'write_polygon' and 'finalize'\n", exportname);
+                        fprintf(stderr, "export '%s' must define at least the functions 'get_extension', 'write_rectangle', 'write_polygon' (or 'write_triangle') and 'finalize'\n", exportname);
                         status = EXPORT_STATUS_LOADERROR;
                         lua_close(L);
                         break;
