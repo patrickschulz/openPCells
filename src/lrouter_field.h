@@ -6,6 +6,7 @@
 #define PATH -2
 #define PORT -3
 #define VIA -4
+#define BLOCKAGE -5
 
 #include <stddef.h>
 
@@ -19,6 +20,7 @@ int*** field_init(size_t width, size_t height, size_t num_layers);
 void field_destroy(int*** field, size_t width, size_t height, size_t num_layers);
 void field_print(int*** field, size_t width, size_t height, unsigned int layer);
 void field_unprint(size_t size);
+void field_create_blockage(int ***field, point_t start, point_t end);
 point_t *point_new(int x, int y, int z, unsigned int score);
 
 /*

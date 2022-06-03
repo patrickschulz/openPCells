@@ -68,9 +68,8 @@ function M.legalize(nets, rows, numtracks, floorplan, instances)
         print()
     end
 
-    router.fillblockages(blockages)
     -- call router here
-    local routednets, numroutednets = router.route(netpositions,
+    local routednets, numroutednets = router.route(netpositions, blockages,
         floorplan.floorplan_width, floorplan.floorplan_height * numtracks)
     return routednets
 end

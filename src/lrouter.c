@@ -14,11 +14,37 @@
 
 #define MANHATTAN_DIST(x1, y1, x2, y2) (abs(x1 - x2) + abs(y1 - y2))
 
+struct blockage_route
+{
+    point_t *deltas;
+    size_t num_deltas;
+};
+
 struct netcollection
 {
     net_t *nets;
     size_t num_nets;
+    struct blockage_route *blockages;
+    size_t num_blockages;
 };
+
+/* creates point_t if lua stack is in certain order */
+static point_t lrouter_create_point(lua_State *L)
+{
+    point_t point;
+
+    lua_getfield(L, -1, "x");
+    point.x = lua_tointeger(L, -1);
+    lua_pop(L, 1);
+    lua_getfield(L, -1, "y");
+    point.y = lua_tointeger(L, -1);
+    lua_pop(L, 1);
+    lua_getfield(L, -1, "z");
+    point.z = lua_tointeger(L, -1);
+    lua_pop(L, 1);
+
+    return point;
+}
 
 static struct netcollection* _initialize(lua_State* L)
 {
@@ -70,15 +96,64 @@ static struct netcollection* _initialize(lua_State* L)
         }
         lua_pop(L, 1);
     }
+
+    /* fill in blockage deltas */
+    size_t num_blockages = lua_rawlen(L, 2);
+    struct blockage_route *blockages = calloc(num_blockages,
+				      sizeof(*blockages));
+
+    for(size_t i = 1; i <= num_blockages; i++)
+    {
+	lua_geti(L, 2, i);
+
+	/* now we have a list of deltas forming one blockage route */
+	size_t route_size = lua_rawlen(L, -1);
+	struct blockage_route *blockage_route =
+		calloc(1, sizeof(*blockage_route));
+	blockage_route->deltas = calloc(route_size, sizeof(point_t));
+	blockage_route->num_deltas = route_size;
+
+	for(size_t j = 1; j <= route_size; j++)
+	{
+	    lua_geti(L, -1, j);
+	    blockage_route->deltas[j - 1] = lrouter_create_point(L);
+	    lua_pop(L, 1);
+	}
+	blockages[i - 1] = *blockage_route;
+	lua_pop(L, 1);
+    }
+
     struct netcollection* nc = malloc(sizeof(struct netcollection));
     nc->nets = nets;
     nc->num_nets = num_nets;
+    nc->blockages = blockages;
+    nc->num_blockages = num_blockages;
+
+    for(int i = 0; i < num_blockages; i++)
+    {
+	printf("blockage nr %i\n", i);
+        for(int j = 0; j < blockages[i].num_deltas; j++)
+        {
+	    int x = blockages[i].deltas[j].x;
+	    int y = blockages[i].deltas[j].y;
+	    int z = blockages[i].deltas[j].z;
+	    printf("\tdelta %i %i %i\n", x, y, z);
+        }
+    }
     return nc;
 }
 
-static void lrouter_fill_blockages(lua_State *l)
+static void lrouter_fill_blockages(int ***field, struct netcollection *nc)
 {
- 
+    for(int i = 0; i < (int)nc->num_blockages; i++)
+    {
+	for(int j = 0; j < (int)nc->blockages[i].num_deltas - 1; j++)
+	{
+		point_t start = nc->blockages[i].deltas[j];
+		point_t end = nc->blockages[i].deltas[j + 1];
+		field_create_blockage(field, start, end);
+	}
+    }
 }
 
 /*
@@ -168,14 +243,15 @@ static void lrouter_split_nets(struct netcollection* nc)
 int lrouter_route(lua_State* L)
 {
     struct netcollection* nc = _initialize(L);
-    const size_t field_height = lua_tointeger(L, 3);
-    const size_t field_width = lua_tointeger(L, 2);
+    const size_t field_height = lua_tointeger(L, 4);
+    const size_t field_width = lua_tointeger(L, 3);
     const size_t num_layers = 3;
 
     const unsigned int via_cost = 10;
     const unsigned int wrong_dir_cost = 30;
 
     int*** field = field_init(field_width, field_height, num_layers);
+    lrouter_fill_blockages(field, nc);
 
     lrouter_split_nets(nc);
     net_sort_nets(nc->nets, nc->num_nets);
@@ -211,7 +287,7 @@ int lrouter_route(lua_State* L)
 
             /* FIXME: via after first anchor */
             lua_newtable(L);
-	    moves_create_via(L, 2);
+	    moves_create_via(L, 1);
             lua_rawseti(L, -2, 2);
 
             net_create_deltas(&nc->nets[i]);
@@ -244,7 +320,7 @@ int lrouter_route(lua_State* L)
 
                 /* FIXME: via before second anchor */
 	        lua_newtable(L);
-	        moves_create_via(L, -2);
+	        moves_create_via(L, -1);
 	        lua_rawseti(L, -2, point_count + 1);
 
 		/* second anchor */
@@ -278,7 +354,6 @@ int open_lrouter_lib(lua_State* L)
     static const luaL_Reg modfuncs[] =
     {
         { "route", lrouter_route },
-        { "fillblockages", lrouter_fill_blockages },
         { NULL,    NULL          }
     };
     lua_newtable(L);
