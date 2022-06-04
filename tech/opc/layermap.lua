@@ -22,6 +22,14 @@ return {
             svg = { color = "ccffff", order = 1 },
         }
     },
+    deepnwell = {
+        name = "deepnwell",
+        layer = {
+            gds = { layer = 33, purpose = 0 },
+            SKILL = { layer = "deepnwell", purpose = "drawing" },
+            svg = { color = "ccffff", order = 1 },
+        }
+    },
     pimplant = {
         name = "pimplant",
         layer = {
@@ -254,7 +262,6 @@ return {
     vthtypep1 = {},
     pwell = {},
     deeppwell = {},
-    deepnwell = {},
     gatecut = {},
     tuckgatemarker = {},
     padopening = {},
