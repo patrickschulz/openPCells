@@ -615,24 +615,24 @@ void geometry_cross(struct object* cell, struct generics* layer, ucoordinate_t w
     }
 }
 
-void geometry_unequal_ring(struct object* cell, struct generics* layer, ucoordinate_t width, ucoordinate_t height, ucoordinate_t ringwidth, ucoordinate_t ringheight)
+void geometry_unequal_ring(struct object* cell, struct generics* layer, ucoordinate_t holewidth, ucoordinate_t holeheight, ucoordinate_t ringwidth, ucoordinate_t ringheight)
 {
-    coordinate_t w = width;
-    coordinate_t h = height;
+    coordinate_t w = holewidth;
+    coordinate_t h = holeheight;
     coordinate_t rw = ringwidth;
     coordinate_t rh = ringheight;
     struct shape* S = shape_create_polygon(layer, 13);
-    shape_append(S, -(w + rw) / 2, -(h + rh) / 2);
-    shape_append(S,  (w + rw) / 2, -(h + rh) / 2);
-    shape_append(S,  (w + rw) / 2,  (h + rh) / 2);
-    shape_append(S, -(w + rw) / 2,  (h + rh) / 2);
-    shape_append(S, -(w + rw) / 2, -(h - rh) / 2);
-    shape_append(S, -(w - rw) / 2, -(h - rh) / 2);
-    shape_append(S, -(w - rw) / 2,  (h - rh) / 2);
-    shape_append(S,  (w - rw) / 2,  (h - rh) / 2);
-    shape_append(S,  (w - rw) / 2, -(h - rh) / 2);
-    shape_append(S, -(w + rw) / 2, -(h - rh) / 2);
-    shape_append(S, -(w + rw) / 2, -(h + rh) / 2); // close polygon
+    shape_append(S, -(w / 2 + rw), -(h / 2 + rh));
+    shape_append(S,  (w / 2 + rw), -(h / 2 + rh));
+    shape_append(S,  (w / 2 + rw),  (h / 2 + rh));
+    shape_append(S, -(w / 2 + rw),  (h / 2 + rh));
+    shape_append(S, -(w / 2 + rw), -(h / 2));
+    shape_append(S, -(w / 2), -(h / 2));
+    shape_append(S, -(w / 2),  (h / 2));
+    shape_append(S,  (w / 2),  (h / 2));
+    shape_append(S,  (w / 2), -(h / 2));
+    shape_append(S, -(w / 2 + rw), -(h / 2));
+    shape_append(S, -(w / 2 + rw), -(h / 2 + rh)); // close polygon
     if(!shape_is_empty(S))
     {
         object_add_shape(cell, S);
@@ -643,9 +643,9 @@ void geometry_unequal_ring(struct object* cell, struct generics* layer, ucoordin
     }
 }
 
-void geometry_ring(struct object* cell, struct generics* layer, ucoordinate_t width, ucoordinate_t height, ucoordinate_t ringwidth)
+void geometry_ring(struct object* cell, struct generics* layer, ucoordinate_t holewidth, ucoordinate_t holeheight, ucoordinate_t ringwidth)
 {
-    geometry_unequal_ring(cell, layer, width, height, ringwidth, ringwidth);
+    geometry_unequal_ring(cell, layer, holewidth, holeheight, ringwidth, ringwidth);
 }
 
 struct trivertex
