@@ -4,14 +4,14 @@
 
 #include "lpoint.h"
 
-struct lobject_t {
+struct lobject {
     struct object* object;
     int destroy;
 };
 
-static struct lobject_t* _create(lua_State* L)
+static struct lobject* _create(lua_State* L)
 {
-    struct lobject_t* cell = lua_newuserdata(L, sizeof(*cell));
+    struct lobject* cell = lua_newuserdata(L, sizeof(*cell));
     luaL_setmetatable(L, LOBJECTMODULE);
     cell->destroy = 0;
     return cell;
@@ -19,35 +19,35 @@ static struct lobject_t* _create(lua_State* L)
 
 int lobject_create(lua_State* L)
 {
-    struct lobject_t* cell = _create(L);
+    struct lobject* cell = _create(L);
     cell->object = object_create();
     cell->destroy = 1;
     return 1;
 }
 
-struct lobject_t* lobject_check(lua_State* L, int idx)
+struct lobject* lobject_check(lua_State* L, int idx)
 {
     return luaL_checkudata(L, idx, LOBJECTMODULE);
 }
 
-struct lobject_t* lobject_check_soft(lua_State* L, int idx)
+struct lobject* lobject_check_soft(lua_State* L, int idx)
 {
   return luaL_testudata(L, idx, LOBJECTMODULE);
 }
 
-struct lobject_t* lobject_adapt(lua_State* L, struct object* object)
+struct lobject* lobject_adapt(lua_State* L, struct object* object)
 {
-    struct lobject_t* cell = _create(L);
+    struct lobject* cell = _create(L);
     cell->object = object;
     return cell;
 }
 
-struct object* lobject_get(struct lobject_t* lobject)
+struct object* lobject_get(struct lobject* lobject)
 {
     return lobject->object;
 }
 
-struct object* lobject_disown(struct lobject_t* lobject)
+struct object* lobject_disown(struct lobject* lobject)
 {
     lobject->destroy = 0;
     return lobject->object;
@@ -55,8 +55,8 @@ struct object* lobject_disown(struct lobject_t* lobject)
 
 static int lobject_copy(lua_State* L)
 {
-    struct lobject_t* cell = lobject_check(L, 1);
-    struct lobject_t* new = _create(L);
+    struct lobject* cell = lobject_check(L, 1);
+    struct lobject* new = _create(L);
     new->object = object_copy(cell->object);
     new->destroy = 1;
     return 1;
@@ -64,8 +64,8 @@ static int lobject_copy(lua_State* L)
 
 static int lobject_exchange(lua_State* L)
 {
-    struct lobject_t* cell = lobject_check(L, 1);
-    struct lobject_t* other = lobject_check(L, 2);
+    struct lobject* cell = lobject_check(L, 1);
+    struct lobject* other = lobject_check(L, 2);
     struct object* old = cell->object;
     cell->object = other->object;
     other->destroy = 0;
@@ -75,7 +75,7 @@ static int lobject_exchange(lua_State* L)
 
 static int lobject_destroy(lua_State* L)
 {
-    struct lobject_t* cell = lobject_check(L, 1);
+    struct lobject* cell = lobject_check(L, 1);
     if(cell->destroy)
     {
         object_destroy(cell->object);
@@ -85,7 +85,7 @@ static int lobject_destroy(lua_State* L)
 
 static int lobject_move_to(lua_State* L)
 {
-    struct lobject_t* cell = lobject_check(L, 1);
+    struct lobject* cell = lobject_check(L, 1);
     coordinate_t x = lua_tointeger(L, 2);
     coordinate_t y = lua_tointeger(L, 3);
     object_move_to(cell->object, x, y);
@@ -94,7 +94,7 @@ static int lobject_move_to(lua_State* L)
 
 static int lobject_translate(lua_State* L)
 {
-    struct lobject_t* cell = lobject_check(L, 1);
+    struct lobject* cell = lobject_check(L, 1);
     coordinate_t x = lua_tointeger(L, 2);
     coordinate_t y = lua_tointeger(L, 3);
     object_translate(cell->object, x, y);
@@ -104,49 +104,49 @@ static int lobject_translate(lua_State* L)
 
 int lobject_mirror_at_xaxis(lua_State* L)
 {
-    struct lobject_t* cell = lobject_check(L, 1);
+    struct lobject* cell = lobject_check(L, 1);
     object_mirror_at_xaxis(cell->object);
     return 1;
 }
 
 int lobject_mirror_at_yaxis(lua_State* L)
 {
-    struct lobject_t* cell = lobject_check(L, 1);
+    struct lobject* cell = lobject_check(L, 1);
     object_mirror_at_yaxis(cell->object);
     return 1;
 }
 
 int lobject_mirror_at_origin(lua_State* L)
 {
-    struct lobject_t* cell = lobject_check(L, 1);
+    struct lobject* cell = lobject_check(L, 1);
     object_mirror_at_origin(cell->object);
     return 1;
 }
 
 int lobject_rotate_90_left(lua_State* L)
 {
-    struct lobject_t* cell = lobject_check(L, 1);
+    struct lobject* cell = lobject_check(L, 1);
     object_rotate_90_left(cell->object);
     return 1;
 }
 
 int lobject_rotate_90_right(lua_State* L)
 {
-    struct lobject_t* cell = lobject_check(L, 1);
+    struct lobject* cell = lobject_check(L, 1);
     object_rotate_90_right(cell->object);
     return 1;
 }
 
 int lobject_flipx(lua_State* L)
 {
-    struct lobject_t* cell = lobject_check(L, 1);
+    struct lobject* cell = lobject_check(L, 1);
     object_flipx(cell->object);
     return 1;
 }
 
 int lobject_flipy(lua_State* L)
 {
-    struct lobject_t* cell = lobject_check(L, 1);
+    struct lobject* cell = lobject_check(L, 1);
     object_flipy(cell->object);
     return 1;
 }
@@ -154,7 +154,7 @@ int lobject_flipy(lua_State* L)
 int lobject_move_anchor(lua_State* L)
 {
     int numstack = lua_gettop(L);
-    struct lobject_t* cell = lobject_check(L, 1);
+    struct lobject* cell = lobject_check(L, 1);
     const char* name = lua_tostring(L, 2);
     coordinate_t x = 0;
     coordinate_t y = 0;
@@ -172,7 +172,7 @@ int lobject_move_anchor(lua_State* L)
 int lobject_move_anchor_x(lua_State* L)
 {
     int numstack = lua_gettop(L);
-    struct lobject_t* cell = lobject_check(L, 1);
+    struct lobject* cell = lobject_check(L, 1);
     const char* name = lua_tostring(L, 2);
     coordinate_t x = 0;
     if(lua_gettop(L) > 2 && !lua_isnil(L, 3))
@@ -188,7 +188,7 @@ int lobject_move_anchor_x(lua_State* L)
 int lobject_move_anchor_y(lua_State* L)
 {
     int numstack = lua_gettop(L);
-    struct lobject_t* cell = lobject_check(L, 1);
+    struct lobject* cell = lobject_check(L, 1);
     const char* name = lua_tostring(L, 2);
     coordinate_t y = 0;
     if(lua_gettop(L) > 2 && !lua_isnil(L, 3))
@@ -203,14 +203,14 @@ int lobject_move_anchor_y(lua_State* L)
 
 int lobject_apply_transformation(lua_State* L)
 {
-    struct lobject_t* cell = lobject_check(L, 1);
+    struct lobject* cell = lobject_check(L, 1);
     object_apply_transformation(cell->object);
     return 0;
 }
 
 int lobject_add_child(lua_State* L)
 {
-    struct lobject_t* cell = lobject_check(L, 1);
+    struct lobject* cell = lobject_check(L, 1);
     const char* identifier = lua_tostring(L, 2);
     const char* name = lua_tostring(L, 3);
     lua_getfield(L, LUA_REGISTRYINDEX, "pcellstate");
@@ -223,7 +223,7 @@ int lobject_add_child(lua_State* L)
 
 int lobject_add_child_array(lua_State* L)
 {
-    struct lobject_t* cell = lobject_check(L, 1);
+    struct lobject* cell = lobject_check(L, 1);
     const char* identifier = lua_tostring(L, 2);
     unsigned int xrep = lua_tointeger(L, 3);
     unsigned int yrep = lua_tointeger(L, 4);
@@ -240,15 +240,15 @@ int lobject_add_child_array(lua_State* L)
 
 static int lobject_merge_into_shallow(lua_State* L)
 {
-    struct lobject_t* cell = lobject_check(L, 1);
-    struct lobject_t* other = lobject_check(L, 2);
+    struct lobject* cell = lobject_check(L, 1);
+    struct lobject* other = lobject_check(L, 2);
     object_merge_into_shallow(cell->object, other->object);
     return 0;
 }
 
 int lobject_add_anchor(lua_State* L)
 {
-    struct lobject_t* cell = lobject_check(L, 1);
+    struct lobject* cell = lobject_check(L, 1);
     const char* name = lua_tostring(L, 2);
     lpoint_t* lpoint = lpoint_checkpoint(L, 3);
     object_add_anchor(cell->object, name, lpoint->point->x, lpoint->point->y);
@@ -257,7 +257,7 @@ int lobject_add_anchor(lua_State* L)
 
 int lobject_get_anchor(lua_State* L)
 {
-    struct lobject_t* cell = lobject_check(L, 1);
+    struct lobject* cell = lobject_check(L, 1);
     const char* name = lua_tostring(L, 2);
     point_t* point = object_get_anchor(cell->object, name);
     if(point)
@@ -274,7 +274,7 @@ int lobject_get_anchor(lua_State* L)
 
 int lobject_add_port(lua_State* L)
 {
-    struct lobject_t* cell = lobject_check(L, 1);
+    struct lobject* cell = lobject_check(L, 1);
     const char* name = luaL_checkstring(L, 2);
     struct generics* layer = lua_touserdata(L, 3);
     lpoint_t* lpoint = lpoint_checkpoint(L, 4);
@@ -284,7 +284,7 @@ int lobject_add_port(lua_State* L)
 
 int lobject_add_bus_port(lua_State* L)
 {
-    struct lobject_t* cell = lobject_check(L, 1);
+    struct lobject* cell = lobject_check(L, 1);
     const char* name = luaL_checkstring(L, 2);
     struct generics* layer = lua_touserdata(L, 3);
     lpoint_t* lpoint = lpoint_checkpoint(L, 4);
@@ -298,7 +298,7 @@ int lobject_add_bus_port(lua_State* L)
 
 int lobject_set_alignment_box(lua_State* L)
 {
-    struct lobject_t* cell = lobject_check(L, 1);
+    struct lobject* cell = lobject_check(L, 1);
     lpoint_t* bl = lpoint_checkpoint(L, 2);
     lpoint_t* tr = lpoint_checkpoint(L, 3);
     object_set_alignment_box(cell->object, bl->point->x, bl->point->y, tr->point->x, tr->point->y);
@@ -307,22 +307,22 @@ int lobject_set_alignment_box(lua_State* L)
 
 int lobject_inherit_alignment_box(lua_State* L)
 {
-    struct lobject_t* cell = lobject_check(L, 1);
-    struct lobject_t* other = lobject_check(L, 2);
+    struct lobject* cell = lobject_check(L, 1);
+    struct lobject* other = lobject_check(L, 2);
     object_inherit_alignment_box(cell->object, other->object);
     return 0;
 }
 
 int lobject_is_empty(lua_State* L)
 {
-    struct lobject_t* cell = lobject_check(L, 1);
+    struct lobject* cell = lobject_check(L, 1);
     lua_pushboolean(L, object_is_empty(cell->object));
     return 1;
 }
 
 int lobject_flatten(lua_State* L)
 {
-    struct lobject_t* cell = lobject_check(L, 1);
+    struct lobject* cell = lobject_check(L, 1);
     lua_getfield(L, LUA_REGISTRYINDEX, "pcellstate");
     struct pcell_state* pcell_state = lua_touserdata(L, -1);
     lua_pop(L, 1); // pop pcell state

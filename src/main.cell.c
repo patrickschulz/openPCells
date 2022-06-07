@@ -280,7 +280,7 @@ static struct object* _create_cell(
         lua_close(L);
         return NULL;
     }
-    struct lobject_t* lobject = lobject_check_soft(L, -1);
+    struct lobject* lobject = lobject_check_soft(L, -1);
     if(!lobject)
     {
         fputs("cell/cellscript did not return an object\n", stderr);
