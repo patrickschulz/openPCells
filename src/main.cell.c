@@ -280,15 +280,14 @@ static struct object* _create_cell(
         lua_close(L);
         return NULL;
     }
-    lobject_t* lobject = lobject_check_soft(L, -1);
+    struct lobject_t* lobject = lobject_check_soft(L, -1);
     if(!lobject)
     {
         fputs("cell/cellscript did not return an object\n", stderr);
         lua_close(L);
         return NULL;
     }
-    lobject_disown(lobject);
-    struct object* toplevel = lobject->object;
+    struct object* toplevel = lobject_disown(lobject);
 
     lua_close(L);
 
