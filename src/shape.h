@@ -72,13 +72,13 @@ int shape_is_empty(struct shape* shape);
 
 // transformations
 void shape_translate(struct shape* shape, coordinate_t dx, coordinate_t dy);
-void shape_apply_transformation(struct shape* shape, transformationmatrix_t* matrix);
-void shape_apply_inverse_transformation(struct shape* shape, transformationmatrix_t* matrix);
+void shape_apply_transformation(struct shape* shape, struct transformationmatrix* matrix);
+void shape_apply_inverse_transformation(struct shape* shape, struct transformationmatrix* matrix);
 
 coordinate_t shape_get_width(const struct shape* shape);
 coordinate_t shape_get_height(const struct shape* shape);
 void shape_get_width_height(const struct shape* shape, coordinate_t* width, coordinate_t* height);
-void shape_get_minmax_xy(const struct shape* shape, const transformationmatrix_t* trans, coordinate_t* minxp, coordinate_t* minyp, coordinate_t* maxxp, coordinate_t* maxyp);
+void shape_get_minmax_xy(const struct shape* shape, const struct transformationmatrix* trans, coordinate_t* minxp, coordinate_t* minyp, coordinate_t* maxxp, coordinate_t* maxyp);
 
 // curve segments
 void shape_curve_add_line_segment(struct shape* shape, point_t* pt);

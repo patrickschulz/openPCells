@@ -4,15 +4,17 @@
 
 #include "lua/lauxlib.h"
 
+/*
 static int ltransformationmatrix_tostring(lua_State* L)
 {
     ltransformationmatrix_t* lmatrix = lua_touserdata(L, 1);
-    transformationmatrix_t* matrix = lmatrix->matrix;
+    struct transformationmatrix* matrix = lmatrix->matrix;
     lua_pushfstring(L, "%d %d %d\n%d %d %d", 
             matrix->coefficients[0], matrix->coefficients[1], matrix->coefficients[2], 
             matrix->coefficients[3], matrix->coefficients[4], matrix->coefficients[5]);
     return 1;
 }
+*/
 
 static ltransformationmatrix_t* _create(lua_State* L)
 {
@@ -176,36 +178,6 @@ static int ltransformationmatrix_apply_inverse_transformation(lua_State* l)
     return 1;
 }
 
-static int ltransformationmatrix_orientation_string(lua_State* L)
-{
-    ltransformationmatrix_t* lmatrix = lua_touserdata(L, 1);
-    transformationmatrix_t* matrix = lmatrix->matrix;
-    if(matrix->coefficients[0] >= 0 && matrix->coefficients[4] >= 0)
-    {
-        if(matrix->coefficients[1] < 0)
-        {
-            lua_pushstring(L, "R90");
-        }
-        else
-        {
-            lua_pushstring(L, "R0");
-        }
-    }
-    else if(matrix->coefficients[0] <  0 && matrix->coefficients[4] >= 0)
-    {
-        lua_pushstring(L, "MY");
-    }
-    else if(matrix->coefficients[0] >= 0 && matrix->coefficients[4] <  0)
-    {
-        lua_pushstring(L, "MX");
-    }
-    else if(matrix->coefficients[0] <  0 && matrix->coefficients[4] <  0)
-    {
-        lua_pushstring(L, "R180");
-    }
-    return 1;
-}
-
 int open_ltransformationmatrix_lib(lua_State* L)
 {
     // create metatable for shapes
@@ -214,7 +186,7 @@ int open_ltransformationmatrix_lib(lua_State* L)
     // set methods
     static const luaL_Reg metafuncs[] =
     {
-        { "__tostring", ltransformationmatrix_tostring },
+        //{ "__tostring", ltransformationmatrix_tostring },
         { "__gc",       ltransformationmatrix_destroy  },
         { NULL,         NULL                           }
     };
@@ -245,7 +217,6 @@ int open_ltransformationmatrix_lib(lua_State* L)
         { "rotate_90_left",               ltransformationmatrix_rotate_90_left               },
         { "apply_transformation",         ltransformationmatrix_apply_transformation         },
         { "apply_inverse_transformation", ltransformationmatrix_apply_inverse_transformation },
-        { "orientation_string",           ltransformationmatrix_orientation_string           },
         { NULL,                           NULL                                               }
     };
     luaL_setfuncs(L, modfuncs, 0);

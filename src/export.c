@@ -387,12 +387,13 @@ static void _push_points(lua_State* L, struct vector* pts)
     }
 }
 
-static void _push_trans(lua_State* L, const transformationmatrix_t* trans)
+static void _push_trans(lua_State* L, const struct transformationmatrix* trans)
 {
     lua_newtable(L);
+    const coordinate_t* coefficients = transformationmatrix_get_coefficients(trans);
     for(unsigned int i = 0; i < 6; ++i)
     {
-        lua_pushinteger(L, trans->coefficients[i]);
+        lua_pushinteger(L, coefficients[i]);
         lua_rawseti(L, -2, i + 1);
     }
 }
