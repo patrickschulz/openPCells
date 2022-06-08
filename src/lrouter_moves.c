@@ -38,9 +38,3 @@ void moves_create_delta(lua_State *L, dir_t dir, int dist)
     else if(dir == Y_DIR)
         lua_setfield(L, -2, "y");
 }
-
-void moves_create_switchdirection(lua_State *L)
-{
-    lua_pushstring(L, "switchdirection");
-    lua_setfield(L, -2, "type");
-}
