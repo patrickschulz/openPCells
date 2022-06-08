@@ -1,7 +1,8 @@
 local M = {}
 
 function M.read_cellinfo_from_file(filename)
-    return dofile(filename)
+    cellinfo = dofile(filename)
+    return cellinfo
 end
 
 function M.collect_nets_cells(netlist, cellinfo)
@@ -29,13 +30,18 @@ function M.collect_nets_cells(netlist, cellinfo)
             if not width then
                 error(string.format("no width data for cell '%s'", instance.reference))
             end
-            table.insert(instances, { 
-                instance = instance.name, 
+            -- some cells dont have blockages so no error if they dont have it
+            local blockages = cellinfo[instance.reference].blockages
+            print(blockages)
+            table.insert(instances, {
+                instance = instance.name,
                 reference = instance.reference,
                 nets = ct,
                 pinoffsets = pinoffsets,
-                width = width
+                width = width,
+                blockages = blockages
             })
+            print(instance.reference, width)
         end
     end
     return instances, nets

@@ -1,7 +1,18 @@
 local M = {}
 
-local function _prepare_routing_nets(nets, rows, numtracks)
+local function _get_blockages(instances, reference)
+    for i, instance in ipairs(instances) do
+        if instance.reference == reference then
+            return instance.blockages
+        end
+    end
+    return nil
+end
+
+local function _prepare_routing_nets(nets, rows, numtracks, instances)
+    aux.tprint(instances)
     local netpositions = {}
+    local blockages = {}
     for i, net in ipairs(nets) do
         for r, row in ipairs(rows) do
             local curwidth = 0
@@ -13,6 +24,7 @@ local function _prepare_routing_nets(nets, rows, numtracks)
                                 netpositions[i] = { name = net, positions = {} }
                             end
                             local offset = column.pinoffsets[n.port]
+                            local flip = (r - 1) % 2 == 0 and 1 or -1
                             if not offset then
                                 error(string.format("cell '%s' has no pin offset data on port '%s'", column.reference, n.port))
                             end
@@ -20,8 +32,23 @@ local function _prepare_routing_nets(nets, rows, numtracks)
                                 instance = column.instance,
                                 port = n.port,
                                 x = c + offset.x + curwidth,
-                                y = (r - 1) * numtracks + offset.y + (numtracks - 1) / 2
+                                y = (r - 1) * numtracks + flip * offset.y + (numtracks - 1) / 2 + (r - 1)
                             })
+                            -- calc blockage coordinates
+                            local blockblockages = _get_blockages(instances, column.reference)
+                            if blockblockages then
+                                for h, blockageroute in ipairs(blockblockages) do
+                                    route = {}
+                                    for u, delta in ipairs(blockageroute) do
+                                        table.insert(route, {
+                                            x = c + blockageroute[u].x + curwidth,
+                                            y = (r - 1) * numtracks + flip * blockageroute[u].y + (numtracks - 1) / 2 + (r - 1),
+                                            z = blockageroute[u].z
+                                        })
+                                    end
+                                    table.insert(blockages, route)
+                                end
+                            end
                         end
                     end
                 end
@@ -29,11 +56,11 @@ local function _prepare_routing_nets(nets, rows, numtracks)
             end
         end
     end
-    return netpositions
+    return netpositions, blockages
 end
 
-function M.legalize(nets, rows, numtracks, floorplan)
-    local netpositions = _prepare_routing_nets(nets, rows, numtracks)
+function M.legalize(nets, rows, numtracks, floorplan, instances)
+    local netpositions, blockages = _prepare_routing_nets(nets, rows, numtracks, instances)
     for _, pos in ipairs(netpositions) do
         print(pos.name)
         for _, p in ipairs(pos.positions) do
@@ -41,9 +68,14 @@ function M.legalize(nets, rows, numtracks, floorplan)
         end
         print()
     end
+
     -- call router here
-    local routednets, numroutednets = router.route(netpositions,
-        floorplan.floorplan_width, floorplan.floorplan_height * numtracks)
+    -- per full row insert one powerrail (except for the first row)
+    local height = floorplan.floorplan_height * numtracks
+    height = height + math.floor(height / numtracks) - 1
+
+    local routednets, numroutednets = router.route(netpositions, blockages,
+        floorplan.floorplan_width, height)
     return routednets
 end
 

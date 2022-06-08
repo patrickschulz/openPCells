@@ -102,6 +102,7 @@ function M.insert_filler_names(rows, width)
         rowwidths[row] = 0
         for column, cellname in ipairs(entries) do
             local cellwidth = cellname.width
+            print(cellname.reference, cellwidth)
             rowwidths[row] = rowwidths[row] + cellwidth
         end
         -- check for too wide rows

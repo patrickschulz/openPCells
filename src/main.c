@@ -153,6 +153,7 @@ int main(int argc, const char* const * argv)
     if(cmdoptions_was_provided_long(cmdoptions, "techfile-assistant"))
     {
         lua_State* L = util_create_basic_lua_state();
+        open_lfilesystem_lib(L);
         script_call_assistant(L);
         lua_close(L);
         goto DESTROY_CONFIG;

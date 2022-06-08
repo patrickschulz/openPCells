@@ -1,12 +1,12 @@
 local M = {}
 
-local function _write_module(rows, routes)
+local function _write_module(rows, routes, numtracks)
     local lines = {}
     table.insert(lines, 'function parameters()')
     table.insert(lines, '    pcell.reference_cell("stdcells/base")')
     table.insert(lines, 'end')
     table.insert(lines, 'function layout(toplevel)')
-
+    table.insert(lines, string.format('    pcell.push_overwrites("stdcells/base", { numtracks = %i })', numtracks))
     -- placement
     if rows then
         table.insert(lines, '    local cellnames = {')
@@ -75,8 +75,8 @@ function M.get_cell_filename(prefix, libname, cellname)
     return string.format("%s/%s.lua", basename, cellname)
 end
 
-function M.digital(file, rows, routes)
-    local lines = _write_module(rows, routes)
+function M.digital(file, rows, routes, numtracks)
+    local lines = _write_module(rows, routes, numtracks)
     file:write(table.concat(lines, '\n'))
 end
 

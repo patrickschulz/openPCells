@@ -392,4 +392,3 @@ int lplacer_place_classic(lua_State* L)
 
     return 1; // cells table is returned to lua
 }
-

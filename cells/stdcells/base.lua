@@ -16,7 +16,7 @@ function parameters()
         { "sdwidth(Source/Drain Metal Width)",                 tech.get_dimension("Minimum M1 Width"), posvals = even() },
         { "routingwidth(Routing Metal Width)",                  tech.get_dimension("Minimum M1 Width") },
         { "routingspace(Routing Metal Space)",                  tech.get_dimension("Minimum M1 Space") },
-        { "numtracks(Number of Routing Tracks)",               11, posvals = odd() },
+        { "numtracks(Number of Routing Tracks)",               13, posvals = odd() },
         { "numinnerroutes(Number of inner M1 routes)",         3, readonly = true },
         { "powerwidth(Power Rail Metal Width)",                tech.get_dimension("Minimum M1 Width") },
         { "powerspace(Power Rail Space)",                      tech.get_dimension("Minimum M1 Space") },

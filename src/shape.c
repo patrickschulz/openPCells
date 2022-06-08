@@ -483,153 +483,48 @@ void shape_apply_inverse_transformation(struct shape* shape, struct transformati
     _correct_rectangle_point_order(shape);
 }
 
-#define min(a, b) ((a) < (b) ? (a) : (b))
-#define max(a, b) ((a) > (b) ? (a) : (b))
-
 coordinate_t shape_get_width(const struct shape* shape)
 {
-    coordinate_t minx = COORDINATE_MAX;
-    coordinate_t maxx = COORDINATE_MIN;
-    switch(shape->type)
-    {
-        case RECTANGLE:
-        {
-            struct rectangle* rectangle = shape->content;
-            return rectangle->tr->x - rectangle->bl->x;
-        }
-        case POLYGON:
-        case TRIANGULATED_POLYGON:
-        {
-            struct polygon* polygon = shape->content;
-            for(unsigned int i = 0; i < vector_size(polygon->points); ++i)
-            {
-                point_t* pt = vector_get(polygon->points, i);
-                maxx = max(maxx, pt->x);
-            }
-            break;
-        }
-        case PATH:
-        {
-            struct path* path = shape->content;
-            for(unsigned int i = 0; i < vector_size(path->points); ++i)
-            {
-                point_t* pt = vector_get(path->points, i);
-                minx = min(minx, pt->x);
-                maxx = max(maxx, pt->x);
-            }
-            break;
-        }
-        //case CURVE: break;
-    }
-    return maxx - minx;
+    coordinate_t width, height;
+    shape_get_width_height(shape, &width, &height);
+    (void) height; // not used
+    return width;
 }
 
 coordinate_t shape_get_height(const struct shape* shape)
 {
-    coordinate_t miny = COORDINATE_MAX;
-    coordinate_t maxy = COORDINATE_MIN;
-    switch(shape->type)
-    {
-        case RECTANGLE:
-        {
-            struct rectangle* rectangle = shape->content;
-            return rectangle->tr->y - rectangle->bl->y;
-        }
-        case POLYGON:
-        case TRIANGULATED_POLYGON:
-        {
-            struct polygon* polygon = shape->content;
-            for(unsigned int i = 0; i < vector_size(polygon->points); ++i)
-            {
-                point_t* pt = vector_get(polygon->points, i);
-                miny = min(miny, pt->y);
-                maxy = max(maxy, pt->y);
-            }
-            break;
-        }
-        case PATH:
-        {
-            struct path* path = shape->content;
-            for(unsigned int i = 0; i < vector_size(path->points); ++i)
-            {
-                point_t* pt = vector_get(path->points, i);
-                miny = min(miny, pt->y);
-                maxy = max(maxy, pt->y);
-            }
-            break;
-        }
-        //case CURVE: break;
-    }
-    return maxy - miny;
+    coordinate_t width, height;
+    shape_get_width_height(shape, &width, &height);
+    (void) width; // not used
+    return height;
 }
 
-void shape_get_width_height(const struct shape* shape, coordinate_t* width, coordinate_t* height)
+void shape_get_width_height(const struct shape* shape, coordinate_t* widthp, coordinate_t* heightp)
 {
-    coordinate_t minx = COORDINATE_MAX;
-    coordinate_t maxx = COORDINATE_MIN;
-    coordinate_t miny = COORDINATE_MAX;
-    coordinate_t maxy = COORDINATE_MIN;
-    switch(shape->type)
-    {
-        case RECTANGLE:
-        {
-            struct rectangle* rectangle = shape->content;
-            minx = rectangle->bl->x;
-            maxx = rectangle->tr->x;
-            miny = rectangle->bl->y;
-            maxy = rectangle->tr->y;
-            break;
-        }
-        case POLYGON:
-        case TRIANGULATED_POLYGON:
-        {
-            struct polygon* polygon = shape->content;
-            for(unsigned int i = 0; i < vector_size(polygon->points); ++i)
-            {
-                point_t* pt = vector_get(polygon->points, i);
-                minx = min(minx, pt->x);
-                maxx = max(maxx, pt->x);
-                miny = min(miny, pt->y);
-                maxy = max(maxy, pt->y);
-            }
-            break;
-        }
-        case PATH:
-        {
-            struct path* path = shape->content;
-            for(unsigned int i = 0; i < vector_size(path->points); ++i)
-            {
-                point_t* pt = vector_get(path->points, i);
-                minx = min(minx, pt->x);
-                maxx = max(maxx, pt->x);
-                miny = min(miny, pt->y);
-                maxy = max(maxy, pt->y);
-            }
-            break;
-        }
-        //case CURVE: break;
-    }
-    *width = maxx - minx;
-    *height = maxy - miny;
+    coordinate_t minx, miny, maxx, maxy;
+    shape_get_minmax_xy(shape, NULL, &minx, &miny, &maxx, &maxy);
+    *widthp = maxx - minx;
+    *heightp = maxy - miny;
 }
 
 void shape_get_minmax_xy(const struct shape* shape, const struct transformationmatrix* trans, coordinate_t* minxp, coordinate_t* minyp, coordinate_t* maxxp, coordinate_t* maxyp)
 {
-    coordinate_t minx = COORDINATE_MAX;
-    coordinate_t maxx = COORDINATE_MIN;
-    coordinate_t miny = COORDINATE_MAX;
-    coordinate_t maxy = COORDINATE_MIN;
+    point_t* min = point_create_minimum();
+    point_t* max = point_create_maximum();
     switch(shape->type)
     {
         case RECTANGLE:
         {
             struct rectangle* rectangle = shape->content;
-            minx = rectangle->bl->x;
-            maxx = rectangle->tr->x;
-            miny = rectangle->bl->y;
-            maxy = rectangle->tr->y;
-            transformationmatrix_apply_transformation_xy(trans, &minx, &miny);
-            transformationmatrix_apply_transformation_xy(trans, &maxx, &maxy);
+            point_t bl = *rectangle->bl;
+            point_t tr = *rectangle->tr;
+            if(trans)
+            {
+                transformationmatrix_apply_transformation(trans, &bl);
+                transformationmatrix_apply_transformation(trans, &tr);
+            }
+            point_update_minimum(&min, &bl);
+            point_update_maximum(&max, &tr);
             break;
         }
         case POLYGON:
@@ -638,14 +533,14 @@ void shape_get_minmax_xy(const struct shape* shape, const struct transformationm
             struct polygon* polygon = shape->content;
             for(unsigned int i = 0; i < vector_size(polygon->points); ++i)
             {
-                point_t* pt = vector_get(polygon->points, i);
-                coordinate_t x = pt->x;
-                coordinate_t y = pt->y;
-                transformationmatrix_apply_transformation_xy(trans, &x, &y);
-                minx = min(minx, x);
-                maxx = max(maxx, x);
-                miny = min(miny, y);
-                maxy = max(maxy, y);
+                point_t* ptr = vector_get(polygon->points, i);
+                point_t pt = *ptr;
+                if(trans)
+                {
+                    transformationmatrix_apply_transformation(trans, &pt);
+                }
+                point_update_minimum(&min, &pt);
+                point_update_maximum(&max, &pt);
             }
             break;
         }
@@ -654,23 +549,25 @@ void shape_get_minmax_xy(const struct shape* shape, const struct transformationm
             struct path* path = shape->content;
             for(unsigned int i = 0; i < vector_size(path->points); ++i)
             {
-                point_t* pt = vector_get(path->points, i);
-                coordinate_t x = pt->x;
-                coordinate_t y = pt->y;
-                transformationmatrix_apply_transformation_xy(trans, &x, &y);
-                minx = min(minx, x);
-                maxx = max(maxx, x);
-                miny = min(miny, y);
-                maxy = max(maxy, y);
+                point_t* ptr = vector_get(path->points, i);
+                point_t pt = *ptr;
+                if(trans)
+                {
+                    transformationmatrix_apply_transformation(trans, &pt);
+                }
+                point_update_minimum(&min, &pt);
+                point_update_maximum(&max, &pt);
             }
             break;
         }
         //case CURVE: break;
     }
-    *minxp = minx;
-    *minyp = miny;
-    *maxxp = maxx;
-    *maxyp = maxy;
+    *minxp = min->x;
+    *minyp = min->y;
+    *maxxp = max->x;
+    *maxyp = max->y;
+    point_destroy(min);
+    point_destroy(max);
 }
 
 int shape_get_center(struct shape* shape, coordinate_t* x, coordinate_t* y)

@@ -18,6 +18,7 @@ verilogimport
 
 # NDA-related
 tech/GF22FDSOI
+tech/cmos22fdsoi
 tech/TSMC28HPCplus
 
 # build object files

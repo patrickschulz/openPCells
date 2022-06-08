@@ -19,9 +19,18 @@ typedef struct
 
 point_t* point_create(coordinate_t x, coordinate_t y);
 void point_destroy(void* pt); // void*, otherwise we get a warning while destroying vectors
-point_t* point_copy(point_t* pt);
+point_t* point_copy(const point_t* pt);
 
 void point_translate(point_t* pt, coordinate_t x, coordinate_t y);
+
+// min/max calculations
+point_t* point_create_minimum(void);
+point_t* point_create_maximum(void);
+void point_update_minimum(point_t** min, const point_t* pt);
+void point_update_maximum(point_t** max, const point_t* pt);
+
+coordinate_t point_xdifference(const point_t* pt1, const point_t* pt2);
+coordinate_t point_ydifference(const point_t* pt1, const point_t* pt2);
 
 #define pointarray vector
 #define pointarray_get(p, i) ((point_t*)vector_get(p, i))

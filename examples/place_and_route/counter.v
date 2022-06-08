@@ -59,4 +59,3 @@ module counter(clk, count);
     .Q(count[1])
   );
 endmodule
-
