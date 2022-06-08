@@ -34,10 +34,10 @@ static point_t lrouter_create_point(lua_State *L)
     point_t point;
 
     lua_getfield(L, -1, "x");
-    point.x = lua_tointeger(L, -1);
+    point.x = lua_tointeger(L, -1) - 1;
     lua_pop(L, 1);
     lua_getfield(L, -1, "y");
-    point.y = lua_tointeger(L, -1);
+    point.y = lua_tointeger(L, -1) - 1;
     lua_pop(L, 1);
     lua_getfield(L, -1, "z");
     point.z = lua_tointeger(L, -1);
@@ -45,6 +45,7 @@ static point_t lrouter_create_point(lua_State *L)
 
     return point;
 }
+
 
 static struct netcollection* _initialize(lua_State* L)
 {
@@ -340,7 +341,7 @@ int lrouter_route(lua_State* L)
     net_print_nets(nc->nets, nc->num_nets);
     field_print(field, field_width, field_height, 0);
     field_print(field, field_width, field_height, 1);
-    field_print(field, field_width, field_height, 2);
+    //field_print(field, field_width, field_height, 2);
     usleep(1000000);
 
     field_destroy(field, field_width, field_height, num_layers);

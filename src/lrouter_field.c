@@ -4,6 +4,8 @@
 #include <string.h>
 #include <stdlib.h>
 
+#define LOWEST_ROUTING_METAL 2
+
 void black(void)
 {
 	printf("\033[0;30m");
@@ -172,7 +174,7 @@ void field_create_blockage(int ***field, point_t start, point_t end)
 
 	for(int i = 0; i < len; i++)
 	{
-		field[start.z - 2][start.x + i * xincr][start.y + i * yincr] =
+		field[start.z - LOWEST_ROUTING_METAL][start.x + i * xincr][start.y + i * yincr] =
 			BLOCKAGE;
 	}
 }

@@ -24,6 +24,7 @@ local function _prepare_routing_nets(nets, rows, numtracks, instances)
                                 netpositions[i] = { name = net, positions = {} }
                             end
                             local offset = column.pinoffsets[n.port]
+                            local flip = (r - 1) % 2 == 0 and 1 or -1
                             if not offset then
                                 error(string.format("cell '%s' has no pin offset data on port '%s'", column.reference, n.port))
                             end
@@ -31,7 +32,7 @@ local function _prepare_routing_nets(nets, rows, numtracks, instances)
                                 instance = column.instance,
                                 port = n.port,
                                 x = c + offset.x + curwidth,
-                                y = (r - 1) * numtracks + offset.y + (numtracks - 1) / 2
+                                y = (r - 1) * numtracks + flip * offset.y + (numtracks - 1) / 2 + (r - 1)
                             })
                             -- calc blockage coordinates
                             local blockblockages = _get_blockages(instances, column.reference)
@@ -41,7 +42,7 @@ local function _prepare_routing_nets(nets, rows, numtracks, instances)
                                     for u, delta in ipairs(blockageroute) do
                                         table.insert(route, {
                                             x = c + blockageroute[u].x + curwidth,
-                                            y = (r - 1) * numtracks + blockageroute[u].y + (numtracks - 1) / 2,
+                                            y = (r - 1) * numtracks + flip * blockageroute[u].y + (numtracks - 1) / 2 + (r - 1),
                                             z = blockageroute[u].z
                                         })
                                     end
@@ -69,8 +70,12 @@ function M.legalize(nets, rows, numtracks, floorplan, instances)
     end
 
     -- call router here
+    -- per full row insert one powerrail (except for the first row)
+    local height = floorplan.floorplan_height * numtracks
+    height = height + math.floor(height / numtracks) - 1
+
     local routednets, numroutednets = router.route(netpositions, blockages,
-        floorplan.floorplan_width, floorplan.floorplan_height * numtracks)
+        floorplan.floorplan_width, height)
     return routednets
 end
 
