@@ -4,6 +4,8 @@
 #include <string.h>
 #include <stdlib.h>
 
+#define LOWEST_ROUTING_METAL 2
+
 void black(void)
 {
 	printf("\033[0;30m");
@@ -54,7 +56,7 @@ static void reset_layer(int** layer, size_t width, size_t height)
 	for(size_t i = 0; i < height; i++) {
 		for(size_t j = 0; j < width; j++) {
 			if(layer[j][i] != PATH && layer[j][i] != PORT
-			   && layer[j][i] != VIA)
+			   && layer[j][i] != VIA && layer[j][i] != BLOCKAGE)
 				layer[j][i] = UNVISITED;
 		}
 	}
@@ -69,6 +71,7 @@ void field_reset(int*** field, size_t width, size_t height, size_t num_layers)
 
 int*** field_init(size_t width, size_t height, size_t num_layers)
 {
+    width++;
     int*** field = calloc(num_layers, sizeof(**field));
     for(size_t i = 0; i < num_layers; i++)
     {
@@ -97,7 +100,7 @@ void field_destroy(int*** field, size_t width, size_t height, size_t num_layers)
 
 void field_print(int*** field, size_t width, size_t height, unsigned int layer)
 {
-	for(int i = (int)width; i >= 0; i--) {
+	for(int i = (int)width + 1; i >= 0; i--) {
 		if(i == 0) {
 			printf("%u", layer);
 		} else {
@@ -106,6 +109,8 @@ void field_print(int*** field, size_t width, size_t height, unsigned int layer)
 	}
 	printf("=\n");
 	for(int i = (int)height - 1; i >= 0; i--) {
+		normal();
+		printf("%02i ", i);
 		for(size_t j = 0; j < width; j++) {
 			if(field[layer][j][i] == PATH)
 				green();
@@ -113,6 +118,8 @@ void field_print(int*** field, size_t width, size_t height, unsigned int layer)
 				red();
 			else if(field[layer][j][i] == VIA)
 				blue();
+			else if(field[layer][j][i] == BLOCKAGE)
+				purple();
 			else
 				normal();
 			printf("%2i", field[layer][j][i]);
@@ -142,6 +149,33 @@ void field_unprint(size_t size)
 		printf("\33[F");
 		/* VT100 excape code to clear a line */
 		printf("\33[2K");
+	}
+}
+
+void field_create_blockage(int ***field, point_t start, point_t end)
+{
+	int len = 0;
+	int xincr = 0;
+	int yincr = 0;
+
+	printf("creating blockage from %i, %i to %i, %i\n", start.x, start.y,
+	       end.x, end.y);
+
+	if(start.x != end.x)
+	{
+		len = abs(start.x - end.x);
+		xincr = (end.x < start.x) ? -1 : 1;
+	}
+	else
+	{
+		len = abs(start.y - end.y);
+		yincr = (end.y < start.y) ? -1 : 1;
+	}
+
+	for(int i = 0; i < len; i++)
+	{
+		field[start.z - LOWEST_ROUTING_METAL][start.x + i * xincr][start.y + i * yincr] =
+			BLOCKAGE;
 	}
 }
 

@@ -155,10 +155,7 @@ void queue_reverse(queue_t *queue)
 point_t *queue_as_array(queue_t *queue)
 {
 	if(queue_len(queue) < 1)
-	{
-		printf("ERROR: queue_as_array got a 0 len array\n");
 		return NULL;
-	}
 
 	point_t *arr = calloc(queue_len(queue), sizeof(point_t));
 	int i = 0;
@@ -167,11 +164,8 @@ point_t *queue_as_array(queue_t *queue)
 	while(node != NULL)
 	{
 		arr[i] = *(point_t *)node->data;
-		printf("\n\nas array %i: %i, %i, %i\n", i, arr[i].x, arr[i].y,
-		       arr[i].z);
 		node = node->next;
 		i++;
 	}
-
 	return arr;
 }

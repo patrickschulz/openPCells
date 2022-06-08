@@ -24,4 +24,3 @@ int open_lplacer_lib(lua_State* L)
     lua_setglobal(L, "placer");
     return 0;
 }
-

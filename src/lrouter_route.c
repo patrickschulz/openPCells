@@ -41,6 +41,9 @@ int route(net_t *net, int*** field, size_t width, size_t height,
 	unsigned int endy = net->positions[1].y;
 	unsigned int endz = net->positions[1].z;
 
+	printf("calling route with net from x:%u, y:%u, z:%u to\
+	       x:%u, y:%u, z:%u\n", startx, starty, startz, endx, endy, endz);
+
 	/* prepare starting point */
 	point_t start;
 	start.x = startx;

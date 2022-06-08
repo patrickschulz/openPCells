@@ -559,3 +559,4 @@ function M.filter_excluded_nets(netlist, excluded_nets)
 end
 
 return M
+

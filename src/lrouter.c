@@ -4,19 +4,48 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <stdbool.h>
 
 #include "lrouter_net.h"
 #include "lrouter_route.h"
 #include "lrouter_field.h"
+#include "lrouter_moves.h"
 #include "ldebug.h"
 
 #define MANHATTAN_DIST(x1, y1, x2, y2) (abs(x1 - x2) + abs(y1 - y2))
+
+struct blockage_route
+{
+    point_t *deltas;
+    size_t num_deltas;
+};
 
 struct netcollection
 {
     net_t *nets;
     size_t num_nets;
+    struct blockage_route *blockages;
+    size_t num_blockages;
 };
+
+/* creates point_t if lua stack is in certain order */
+static point_t lrouter_create_point(lua_State *L)
+{
+    point_t point;
+
+    lua_getfield(L, -1, "x");
+    point.x = lua_tointeger(L, -1) - 1;
+    lua_pop(L, 1);
+    lua_getfield(L, -1, "y");
+    point.y = lua_tointeger(L, -1) - 1;
+    lua_pop(L, 1);
+    lua_getfield(L, -1, "z");
+    point.z = lua_tointeger(L, -1);
+    lua_pop(L, 1);
+
+    return point;
+}
+
 
 static struct netcollection* _initialize(lua_State* L)
 {
@@ -30,7 +59,7 @@ static struct netcollection* _initialize(lua_State* L)
 	lua_getfield(L, -1, "name");
 	const char *name = lua_tostring(L, -1);
 
-	lua_pop(L, 1); 
+	lua_pop(L, 1);
 
 	lua_getfield(L, -1, "positions");
 	size_t size = lua_rawlen(L, -1);
@@ -68,10 +97,64 @@ static struct netcollection* _initialize(lua_State* L)
         }
         lua_pop(L, 1);
     }
+
+    /* fill in blockage deltas */
+    size_t num_blockages = lua_rawlen(L, 2);
+    struct blockage_route *blockages = calloc(num_blockages,
+				      sizeof(*blockages));
+
+    for(size_t i = 1; i <= num_blockages; i++)
+    {
+	lua_geti(L, 2, i);
+
+	/* now we have a list of deltas forming one blockage route */
+	size_t route_size = lua_rawlen(L, -1);
+	struct blockage_route *blockage_route =
+		calloc(1, sizeof(*blockage_route));
+	blockage_route->deltas = calloc(route_size, sizeof(point_t));
+	blockage_route->num_deltas = route_size;
+
+	for(size_t j = 1; j <= route_size; j++)
+	{
+	    lua_geti(L, -1, j);
+	    blockage_route->deltas[j - 1] = lrouter_create_point(L);
+	    lua_pop(L, 1);
+	}
+	blockages[i - 1] = *blockage_route;
+	lua_pop(L, 1);
+    }
+
     struct netcollection* nc = malloc(sizeof(struct netcollection));
     nc->nets = nets;
     nc->num_nets = num_nets;
+    nc->blockages = blockages;
+    nc->num_blockages = num_blockages;
+
+    for(int i = 0; i < num_blockages; i++)
+    {
+	printf("blockage nr %i\n", i);
+        for(int j = 0; j < blockages[i].num_deltas; j++)
+        {
+	    int x = blockages[i].deltas[j].x;
+	    int y = blockages[i].deltas[j].y;
+	    int z = blockages[i].deltas[j].z;
+	    printf("\tdelta %i %i %i\n", x, y, z);
+        }
+    }
     return nc;
+}
+
+static void lrouter_fill_blockages(int ***field, struct netcollection *nc)
+{
+    for(int i = 0; i < (int)nc->num_blockages; i++)
+    {
+	for(int j = 0; j < (int)nc->blockages[i].num_deltas - 1; j++)
+	{
+		point_t start = nc->blockages[i].deltas[j];
+		point_t end = nc->blockages[i].deltas[j + 1];
+		field_create_blockage(field, start, end);
+	}
+    }
 }
 
 /*
@@ -101,7 +184,7 @@ static void lrouter_split_nets(struct netcollection* nc)
                 for(size_t k = 0; k < nc->nets[i].size; k++)
                 {
                     /* dont check m.d. for itself again */
-                        if((int)k == j)
+                    if((int)k == j)
                         continue;
 
                     nextx = (int)nc->nets[i].positions[k].x;
@@ -161,19 +244,21 @@ static void lrouter_split_nets(struct netcollection* nc)
 int lrouter_route(lua_State* L)
 {
     struct netcollection* nc = _initialize(L);
-    const size_t field_height = lua_tointeger(L, 3);
-    const size_t field_width = lua_tointeger(L, 2);
+    const size_t field_height = lua_tointeger(L, 4);
+    const size_t field_width = lua_tointeger(L, 3);
     const size_t num_layers = 3;
 
     const unsigned int via_cost = 10;
     const unsigned int wrong_dir_cost = 30;
 
     int*** field = field_init(field_width, field_height, num_layers);
+    lrouter_fill_blockages(field, nc);
 
     lrouter_split_nets(nc);
     net_sort_nets(nc->nets, nc->num_nets);
+    net_fill_ports(nc->nets, nc->num_nets, field);
 
-    int count = 0;
+    int routed_count = 0;
 
     /* table for all nets */
     lua_newtable(L);
@@ -189,36 +274,24 @@ int lrouter_route(lua_State* L)
                        wrong_dir_cost);
         }
 
-	    /* table for whole net */
-        lua_newtable(L);
-
-        /* first anchor entry */
-        lua_newtable(L);
-        lua_pushstring(L, "anchor");
-        lua_setfield(L, -2, "type");
-    
-        lua_pushstring(L, nc->nets[i].positions[0].port);
-        lua_setfield(L, -2, "anchor");
-    
-        lua_pushstring(L, nc->nets[i].positions[0].instance);
-        lua_setfield(L, -2, "name");
-        lua_rawseti(L, -2, 1);
-
-	/* FIXME: via after first anchor */
-	lua_newtable(L);
-	lua_pushstring(L, "via");
-	lua_setfield(L, -2, "type");
-	lua_pushinteger(L, 2);
-	lua_setfield(L, -2, "z");
-        lua_rawseti(L, -2, 2);
 
         if(nc->nets[i].routed)
         {
-            printf("pre create deltas\n");
-            net_print_path(&nc->nets[i]);
+            /* table for whole net */
+            lua_newtable(L);
+
+            /* first anchor entry */
+            lua_newtable(L);
+	    moves_create_anchor(L, nc->nets[i].positions[0].instance,
+				nc->nets[i].positions[0].port, nc->nets[i].name);
+            lua_rawseti(L, -2, 1);
+
+            /* FIXME: via after first anchor */
+            lua_newtable(L);
+	    moves_create_via(L, 1);
+            lua_rawseti(L, -2, 2);
+
             net_create_deltas(&nc->nets[i]);
-            printf("post create deltas\n");
-            net_print_path(&nc->nets[i]);
 
             point_t *curr_point;
             int point_count = 2;
@@ -227,55 +300,48 @@ int lrouter_route(lua_State* L)
                 {
                     lua_newtable(L);
                     if(curr_point->x)
-                    {
-                        lua_pushstring(L, "delta");
-                        lua_setfield(L, -2, "type");
-                        lua_pushinteger(L, curr_point->x);
-                        lua_setfield(L, -2, "x");
-                    }
+			moves_create_delta(L, X_DIR, curr_point->x);
 		    else if(curr_point->y)
-                    {
-                        lua_pushstring(L, "delta");
-                        lua_setfield(L, -2, "type");
-                        lua_pushinteger(L, curr_point->y);
-                        lua_setfield(L, -2, "y");
-                    }
+			moves_create_delta(L, Y_DIR, curr_point->y);
 		    else if(curr_point->z)
-                    {
-                        lua_pushstring(L, "via");
-                        lua_setfield(L, -2, "type");
-                        lua_pushinteger(L, curr_point->z);
-                        lua_setfield(L, -2, "z");
-                    }
+			moves_create_via(L, -1 * curr_point->z);
+
                     /* move entry */
-                    lua_rawseti(L, -2, point_count + 1);
-                    point_count++;
+		    /* FIXME: not sure why "zero" deltas are happening */
+		    if(curr_point->x || curr_point->y || curr_point->z)
+		    {
+		        lua_rawseti(L, -2, point_count + 1);
+		        point_count++;
+		    }
+		    else
+		    {
+			lua_pop(L, 1);
+		    }
                 }
+
+                /* FIXME: via before second anchor */
+	        lua_newtable(L);
+	        moves_create_via(L, -1);
+	        lua_rawseti(L, -2, point_count + 1);
 
 		/* second anchor */
 		lua_newtable(L);
-		lua_pushstring(L, "anchor");
-		lua_setfield(L, -2, "type");
+	        moves_create_anchor(L, nc->nets[i].positions[1].instance,
+				nc->nets[i].positions[1].port, nc->nets[i].name);
+		lua_rawseti(L, -2, point_count + 2);
 
-		lua_pushstring(L, nc->nets[i].positions[1].port);
-		lua_setfield(L, -2, "anchor");
-
-		lua_pushstring(L, nc->nets[i].positions[1].instance);
-		lua_setfield(L, -2, "name");
-                lua_rawseti(L, -2, point_count + 1);
-                count++;
+		/* put moves table into bigger table */
+		lua_rawseti(L, -2, routed_count + 1);
+		routed_count++;
         }
-        /* put moves table into bigger table */
-        lua_rawseti(L, -2, i + 1);
     }
-
     /* num_routed_nets on stack */
-    lua_pushinteger(L, count);
+    lua_pushinteger(L, routed_count);
 
     net_print_nets(nc->nets, nc->num_nets);
     field_print(field, field_width, field_height, 0);
     field_print(field, field_width, field_height, 1);
-    field_print(field, field_width, field_height, 2);
+    //field_print(field, field_width, field_height, 2);
     usleep(1000000);
 
     field_destroy(field, field_width, field_height, num_layers);
