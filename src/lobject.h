@@ -6,17 +6,14 @@
 
 #define LOBJECTMODULE "object"
 
-typedef struct
-{
-    struct object* object;
-    int destroy;
-} lobject_t;
+struct lobject;
 
 int lobject_create(lua_State* L);
-lobject_t* lobject_check(lua_State* L, int idx);
-lobject_t* lobject_check_soft(lua_State* L, int idx);
-lobject_t* lobject_adapt(lua_State* L, struct object* cell);
-void lobject_disown(lobject_t* lobject);
+struct lobject* lobject_check(lua_State* L, int idx);
+struct lobject* lobject_check_soft(lua_State* L, int idx);
+struct lobject* lobject_adapt(lua_State* L, struct object* cell);
+struct object* lobject_get(struct lobject* lobject);
+struct object* lobject_disown(struct lobject* lobject);
 
 int open_lobject_lib(lua_State* L);
 

@@ -1,4 +1,3 @@
----[===[
 --[[
 This file is part of the openPCells project.
 
@@ -809,7 +808,7 @@ function pcell.check(cellname)
     local cell = _get_cell(state, cellname)
     _override_cell_environment(nil)
 
-    -- all loaded cells are in a unusable state after collecting the parameters. Reset and start again
+    -- all loaded cells are in an unusable state after collecting the parameters. Reset and start again
     state.loadedcells = {}
 
     -- check if cell is instantiable
@@ -845,4 +844,4 @@ function pcell.check(cellname)
         end
     end
 end
---]===]
+
