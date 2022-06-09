@@ -16,17 +16,25 @@ typedef struct {
 	unsigned int score;
 } point_t;
 
-int*** field_init(size_t width, size_t height, size_t num_layers);
-void field_destroy(int*** field, size_t width, size_t height, size_t num_layers);
-void field_print(int*** field, size_t width, size_t height, unsigned int layer);
+struct field;
+struct field* field_init(size_t width, size_t height, size_t num_layers);
+void field_destroy(struct field* field);
+void field_print(struct field* field, int layer);
 void field_unprint(size_t size);
-void field_create_blockage(int ***field, point_t start, point_t end);
+void field_create_blockage(struct field*field, point_t start, point_t end);
 point_t *point_new(int x, int y, int z, unsigned int score);
+
+size_t field_get_width(struct field* field);
+size_t field_get_height(struct field* field);
+size_t field_get_num_layers(struct field* field);
+
+void field_set(struct field* field, size_t x, size_t y, size_t z, int what);
+int field_get(struct field* field, size_t x, size_t y, size_t z);
 
 /*
  * resets the values in the field for a next iteration
  * (keeps ports and paths)
  */
-void field_reset(int*** field, size_t width, size_t height, size_t num_layers);
+void field_reset(struct field* field);
 
-#endif
+#endif /* LROUTER_FIELD_H */

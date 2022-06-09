@@ -4,50 +4,44 @@
 #include <stddef.h>
 #include <string.h>
 
-typedef struct position_s position_t;
+#include "vector.h"
 
-#include "lrouter_queue.h"
-
-struct position_s {
-    char *instance;
-    char *port;
+struct position {
+    char* instance;
+    char* port;
     unsigned int x;
     unsigned int y;
     unsigned int z;
 };
 
+#include "lrouter_queue.h"
+
 /* net struct */
-typedef struct {
+struct net {
     char *name;
-    unsigned int size;
     unsigned int ranking;
-    position_t *positions;
+    struct vector* positions;
     int routed;
     /* queue to save the path in the end */
-    queue_t *path;
-} net_t;
+    struct queue* path;
+};
+
+struct net* net_create(const char* name, size_t size);
+void net_destroy_position(void *pp);
+void net_destroy(void* np);
 
 /*
  * sorts the nets in ascending order of number of
  * pins within their bounding boxes
  */
-void net_sort_nets(net_t *nets, size_t num_nets);
-
-void net_print_nets(net_t* nets, size_t num_nets);
+void net_sort_nets(struct vector* nets);
 
 /* fill ports of nets into field */
-void net_fill_ports(net_t* nets, size_t num_nets, int*** field);
+void net_fill_ports(struct vector* nets, struct field* field);
 
-/* prints the path of a given net */
-void net_print_path(net_t *net);
+void net_create_deltas(struct net *net);
 
-void net_create_deltas(net_t *net);
-
-/* deletes the nth element of an position_t array and resizes it */
-void net_del_nth_el_arr(position_t *arr, size_t n, size_t arr_size);
-
-/* constructor for position_t */
-position_t *net_create_position(const char *instance, const char *port,
-			       unsigned int x, unsigned int y);
+struct position* net_create_position(const char *instance, const char *port, unsigned int x, unsigned int y);
+struct position* net_copy_position(struct net* net, size_t index);
 
 #endif

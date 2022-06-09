@@ -11,95 +11,72 @@
 
 #define BETWEEN(value, min, max) (value < max && value > min)
 
-void net_print_nets(net_t* nets, size_t num_nets)
+struct position* net_create_position(const char *instance, const char *port, unsigned int x, unsigned int y)
 {
-    for (unsigned int i = 0; i < num_nets; i++)
-    {
-        printf("Net %s, size: %u\n", nets[i].name, nets[i].size);
-	for (size_t j = 0; j < nets[i].size; j++)
-	{
-		printf("\t(%u, %u, %u, inst: %s, port: %s) ->\n",
-		       nets[i].positions[j].x,
-		       nets[i].positions[j].y,
-		       nets[i].positions[j].z,
-		       nets[i].positions[j].instance,
-		       nets[i].positions[j].port);
-	}
-	printf("rank: %u, routed?: %i\n", nets[i].ranking, nets[i].routed);
-    }
+    struct position* pos = malloc(sizeof(*pos));
+
+    pos->instance = malloc(strlen(instance) + 1);
+    strcpy(pos->instance, instance);
+    pos->port = malloc(strlen(port) + 1);
+    strcpy(pos->port, port);
+
+    pos->x = x;
+    pos->y = y;
+    /* all ports are on metal 1 */
+    pos->z = 0;
+
+    return pos;
 }
 
-void net_print_path(net_t *net)
+void net_destroy_position(void *pp)
 {
-	printf("Printing path of %s:\n", net->name);
-	point_t *point;
-	for(int i = 0; i < queue_len(net->path); i++)
-	{
-		point = (point_t *)queue_peek_nth_elem(net->path, i);
-		printf("P %i, x:%i, y:%i, z:%i\n", i, point->x, point->y,
-		       point->z);
-	}
+    struct position* pos = pp;
+    free(pos->instance);
+    free(pos->port);
+    free(pos);
+}
+
+struct net* net_create(const char* name, size_t size)
+{
+    struct net* net = malloc(sizeof(*net));
+    net->name = malloc(strlen(name) + 1);
+    strcpy(net->name, name);
+    net->positions = vector_create(size);
+    net->path = queue_new();
+    return net;
+}
+
+void net_destroy(void* np)
+{
+    struct net* net = np;
+    free(net->name);
+    vector_destroy(net->positions, net_destroy_position);
+    queue_destroy(net->path);
+    free(net);
 }
 
 int cmp_func(void const *a, void const *b)
 {
-	return (((net_t *)a)->ranking - ((net_t *)b)->ranking);
-}
-
-position_t *net_create_position(const char *instance, const char *port,
-			       unsigned int x, unsigned int y)
-{
-	position_t *pos = calloc(1, sizeof(position_t));
-
-	pos->instance = calloc(strlen(instance) + 1, 1);
-	strcpy(pos->instance, instance);
-	pos->port = calloc(strlen(port) + 1, 1);
-	strcpy(pos->port, port);
-
-	pos->x = x;
-	pos->y = y;
-	/* all ports are on metal 1 */
-	pos->z = 0;
-
-	return pos;
-}
-
-void net_del_nth_el_arr(position_t *arr, size_t n, size_t arr_size)
-{
-    if(arr == NULL || n >= arr_size)
-        return;
-
-    for(size_t i = n; i < arr_size - 1; i++)
-    {
-        arr[i] = arr[i+1];
-    }
-    position_t *new_arr = realloc(arr, sizeof(position_t) * (arr_size - 1));
-
-    if (!new_arr)
-    {
-        printf("couldnt realloc in del_nth_el_arr\n");
-        return;
-    }
-    else
-    {
-        arr = new_arr;
-    }
-
+    return (*((struct net**)a))->ranking - ((*(struct net**)b))->ranking;
 }
 
 /* creates deltas out of a nets routed path */
-void net_create_deltas(net_t *net)
+void net_create_deltas(struct net *net)
 {
     /* dont need to create deltas if the net has too few points */
     int net_len;
     if((net_len = queue_len(net->path)) < 3)
+    {
         return;
+    }
 
     point_t *points;
     if((points = queue_as_array(net->path)) == NULL)
+    {
         return;
+    }
 
-    queue_t *queue = queue_new();
+    queue_clear(net->path);
 
     int xsteps = 0;
     int ysteps = 0;
@@ -109,30 +86,30 @@ void net_create_deltas(net_t *net)
     {
         /*
          * a delta is there when it was running in some direction and gets
-	 * to a corner e.g. x != 0 and the next x == 0, valid for x, y or z
+         * to a corner e.g. x != 0 and the next x == 0, valid for x, y or z
          * so in c booleans: current x: true and next x false
          */
-	xsteps += points[i].x;
-	ysteps += points[i].y;
-	zsteps += points[i].z;
+        xsteps += points[i].x;
+        ysteps += points[i].y;
+        zsteps += points[i].z;
 
         if(points[i].x && !points[i+1].x)
         {
             point_t *point = point_new(xsteps, 0, 0, DEFAULT_POINT_SCORE);
-            queue_enqueue(queue, point);
-	    xsteps = 0;
+            queue_enqueue(net->path, point);
+            xsteps = 0;
         }
         else if(points[i].y && !points[i+1].y)
         {
             point_t *point = point_new(0, ysteps, 0, DEFAULT_POINT_SCORE);
-            queue_enqueue(queue, point);
-	    ysteps = 0;
+            queue_enqueue(net->path, point);
+            ysteps = 0;
         }
         else if(points[i].z && !points[i+1].z)
         {
             point_t *point = point_new(0, 0, zsteps, DEFAULT_POINT_SCORE);
-            queue_enqueue(queue, point);
-	    zsteps = 0;
+            queue_enqueue(net->path, point);
+            zsteps = 0;
         }
     }
 
@@ -144,73 +121,81 @@ void net_create_deltas(net_t *net)
 
     if(points[net_len - 1].x)
     {
-	    point = point_new(xsteps, 0, 0, DEFAULT_POINT_SCORE);
+        point = point_new(xsteps, 0, 0, DEFAULT_POINT_SCORE);
     }
     else if(points[net_len - 1].y)
     {
-	    point = point_new(0, ysteps, 0, DEFAULT_POINT_SCORE);
+        point = point_new(0, ysteps, 0, DEFAULT_POINT_SCORE);
     }
     else if(points[net_len - 1].z)
     {
-	    point = point_new(0, 0, zsteps, DEFAULT_POINT_SCORE);
+        point = point_new(0, 0, zsteps, DEFAULT_POINT_SCORE);
     }
-    queue_enqueue(queue, point);
+    queue_enqueue(net->path, point);
 
-    /* delete the old path */
-    free(net->path);
-    net->path = queue;
+    free(points);
 }
 
-void net_sort_nets(net_t* nets, size_t num_nets)
+void net_sort_nets(struct vector* nets)
 {
-	unsigned int xlo, xhi, ylo, yhi;
-	for(size_t i = 0; i < num_nets; i++)
-	{
-		unsigned int ranking = 0;
+    unsigned int xlo, xhi, ylo, yhi;
+    for(size_t i = 0; i < vector_size(nets); i++)
+    {
+        struct net* neti = vector_get(nets, i);
+        unsigned int ranking = 0;
 
-		/* create rectangle */
-		xlo = (nets[i].positions[0].x <= nets[i].positions[1].x) ?
-			nets[i].positions[0].y : nets[i].positions[1].y;
-		xhi = (nets[i].positions[0].x > nets[i].positions[1].x) ?
-			nets[i].positions[0].x : nets[i].positions[1].x;
-		ylo = (nets[i].positions[0].y <= nets[i].positions[1].y) ?
-			nets[i].positions[0].y : nets[i].positions[1].y;
-		yhi = (nets[i].positions[0].y > nets[i].positions[1].y) ?
-			nets[i].positions[0].y : nets[i].positions[1].y;
+        /* create rectangle */
+        struct position* posi0 = vector_get(neti->positions, 0);
+        struct position* posi1 = vector_get(neti->positions, 1);
+        xlo = (posi0->x <= posi1->x) ? posi0->y : posi1->y;
+        xhi = (posi0->x >  posi1->x) ? posi0->x : posi1->x;
+        ylo = (posi0->y <= posi1->y) ? posi0->y : posi1->y;
+        yhi = (posi0->y >  posi1->y) ? posi0->y : posi1->y;
 
-		for(size_t j = 0; j < num_nets; j++)
-		{
-			/* how many ports of other nets are inside rect */
-			if(j != i)
-			{
-				if(BETWEEN(nets[j].positions[0].x, xlo, xhi) &&
-				   BETWEEN(nets[j].positions[0].y, ylo, yhi))
-					ranking++;
+        for(size_t j = 0; j < vector_size(nets); j++)
+        {
+            struct net* netj = vector_get(nets, j);
+            /* how many ports of other nets are inside rect */
+            if(j != i)
+            {
+                struct position* posj0 = vector_get(netj->positions, 0);
+                struct position* posj1 = vector_get(netj->positions, 1);
+                if(BETWEEN(posj0->x, xlo, xhi) && BETWEEN(posj0->y, ylo, yhi))
+                {
+                    ranking++;
+                }
 
-				if(BETWEEN(nets[j].positions[1].x, xlo, xhi) &&
-				   BETWEEN(nets[j].positions[1].y, ylo, yhi))
-					ranking++;
-			}
-		}
-		nets[i].ranking = ranking;
-	}
-	/* sort rankings */
-	qsort(nets, num_nets, sizeof(net_t), cmp_func);
+                if(BETWEEN(posj1->x, xlo, xhi) && BETWEEN(posj1->y, ylo, yhi))
+                {
+                    ranking++;
+                }
+            }
+        }
+        neti->ranking = ranking;
+    }
+    /* sort rankings */
+    //qsort(nets, num_nets, sizeof(struct net), cmp_func);
+    vector_sort(nets, cmp_func);
 }
 
 
-void net_fill_ports(net_t* nets, size_t num_nets, int*** field)
+void net_fill_ports(struct vector* nets, struct field* field)
 {
-	for(unsigned int i = 0; i < num_nets; i++)
-	{
-		net_t net = nets[i];
-		for(unsigned int j = 0; j < net.size; j++)
-		{
-			unsigned int x, y, z;
-			x = net.positions[j].x;
-			y = net.positions[j].y;
-			z = net.positions[j].z;
-			field[z][x][y] = PORT;
-		}
-	}
+    for(unsigned int i = 0; i < vector_size(nets); i++)
+    {
+        struct net* net = vector_get(nets, i);
+        for(unsigned int j = 0; j < vector_size(net->positions); j++)
+        {
+            struct position* pos = vector_get(net->positions, j);
+            field_set(field, pos->x, pos->y, pos->z, PORT);
+        }
+    }
 }
+
+struct position* net_copy_position(struct net* net, size_t index)
+{
+    struct position* pos = vector_get(net->positions, index);
+    struct position* new = net_create_position(pos->instance, pos->port, pos->x, pos->y);
+    return new;
+}
+

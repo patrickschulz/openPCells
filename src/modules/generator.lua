@@ -32,6 +32,7 @@ local function _write_module(rows, routes, numtracks)
         table.insert(lines, '    local routes = {')
         for _, route in ipairs(routes) do
             table.insert(lines, '        {')
+            table.insert(lines, string.format('            name = "%s",', route.name))
             for _, moves in ipairs(route) do
                 local entry = {}
                 for k, v in pairs(moves) do

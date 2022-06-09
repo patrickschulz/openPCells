@@ -11,11 +11,10 @@
 #include <string.h>
 #include <limits.h>
 
-#define EVEN(val) ((val % 2 ) == 0)
+#define EVEN(val) ((val % 2) == 0)
 #define POSITIVE(val) (val > 0)
-#define NUM_DIRECTIONS 6
 
-/* helps to traverse the field */
+#define NUM_DIRECTIONS 6
 const int xincr[NUM_DIRECTIONS] = {-1, 0, 1, 0, 0, 0};
 const int yincr[NUM_DIRECTIONS] = {0, 1, 0, -1, 0, 0};
 const int zincr[NUM_DIRECTIONS] = {0, 0, 0, 0, -1, 1};
@@ -31,36 +30,28 @@ static point_t *get_min_point(point_t *arr)
 	return point;
 }
 
-int route(net_t *net, int*** field, size_t width, size_t height,
-	  size_t num_layers, size_t wrong_dir_cost, size_t via_cost)
+int route(struct net *net, struct field* field, size_t wrong_dir_cost, size_t via_cost)
 {
-	unsigned int startx = net->positions[0].x;
-	unsigned int starty = net->positions[0].y;
-	unsigned int startz = net->positions[0].z;
-	unsigned int endx = net->positions[1].x;
-	unsigned int endy = net->positions[1].y;
-	unsigned int endz = net->positions[1].z;
+    struct position* pos0 = vector_get(net->positions, 0);
+	unsigned int startx = pos0->x;
+	unsigned int starty = pos0->y;
+	unsigned int startz = pos0->z;
+    struct position* pos1 = vector_get(net->positions, 1);
+	unsigned int endx = pos1->x;
+	unsigned int endy = pos1->y;
+	unsigned int endz = pos1->z;
 
 	printf("calling route with net from x:%u, y:%u, z:%u to\
 	       x:%u, y:%u, z:%u\n", startx, starty, startz, endx, endy, endz);
 
-	/* prepare starting point */
-	point_t start;
-	start.x = startx;
-	start.y = starty;
-	start.z = startz;
-	start.score = 0;
-
 	/* put starting point in min_heap */
-	min_heap_t *min_heap = heap_init();
-	heap_insert_point(min_heap, &start);
-
-	net->path = queue_new();
+	min_heap_t* min_heap = heap_init();
+	heap_insert_point(min_heap, startx, starty, startz, 0);
 
 	int score = 0;
 	unsigned int x, y, z, nextx, nexty, nextz = 0;
 	point_t *point_ptr;
-	field[startz][startx][starty] = 0;
+	field_set(field, startx, starty, startz, 0);
 
 	/*
 	 * do as long as there are points
@@ -75,7 +66,9 @@ int route(net_t *net, int*** field, size_t width, size_t height,
 		y = point_ptr->y;
 		z = point_ptr->z;
 
-		score = field[z][x][y];
+        free(point_ptr);
+
+		score = field_get(field, x, y, z);
 
 		/* circle around every point */
 		for(int i = 0; i < NUM_DIRECTIONS; i++)
@@ -84,12 +77,10 @@ int route(net_t *net, int*** field, size_t width, size_t height,
 			nexty = y + yincr[i];
 			nextz = z + zincr[i];
 
-			if(nextx >= width || nexty >= height ||
-			   nextz >= num_layers)
+			if(nextx >= field_get_width(field) || nexty >= field_get_height(field) || nextz >= field_get_num_layers(field))
+            {
 				continue;
-
-			/* check if point is visitable */
-			int nextfield = field[nextz][nextx][nexty];
+            }
 
 			/* decide the val of the score incrementer */
 			unsigned int score_incr = 1;
@@ -100,10 +91,7 @@ int route(net_t *net, int*** field, size_t width, size_t height,
 			}
 			else if (nexty != y && EVEN(z))
 			{
-				/*
-				 * route in y direction preferred on
-				 * uneven layers
-				 */
+				/* route in y direction preferred on uneven layers */
 				score_incr = wrong_dir_cost;
 			}
 			else if (nextx != x && !EVEN(z))
@@ -111,6 +99,8 @@ int route(net_t *net, int*** field, size_t width, size_t height,
 				score_incr = wrong_dir_cost;
 			}
 
+			/* check if point is visitable */
+		    int nextfield = field_get(field, nextx, nexty, nextz);
 			if((nextfield == PORT &&
 			    nextx == endx &&
 			    nexty == endy &&
@@ -118,40 +108,38 @@ int route(net_t *net, int*** field, size_t width, size_t height,
 			   nextfield == UNVISITED ||
 			   (score + (int)score_incr < nextfield))
 			{
-				if(nextx == endx &&
-				   nexty == endy &&
-				   nextz == endz)
+				if(nextx == endx && nexty == endy && nextz == endz)
 				{
 					/*
 					 * if next point is endpoint
 					 * put it into front of heap
 					 * so empty the heap (not nice way)
 					 */
-					while(heap_get_point(min_heap));
+                    point_t* pt;
+					while((pt = heap_get_point(min_heap)))
+                    {
+                        free(pt);
+                    }
 				}
 
-				field[nextz][nextx][nexty] = score + score_incr;
+				field_set(field, nextx, nexty, nextz, score + score_incr);
 
 				/* put the point in the to be visited queue */
-				point_t *next = malloc(sizeof(point_t));
-				next->x = nextx;
-				next->y = nexty;
-				next->z = nextz;
-				next->score = score + score_incr;
-				heap_insert_point(min_heap, next);
+				heap_insert_point(min_heap, nextx, nexty, nextz, score + score_incr);
 			}
-
-
 		}
 
-	/* router is stuck */
-	if(!min_heap->size)
-	{
-		/* clean up */
-		field_reset(field, width, height, num_layers);
-		return STUCK;
-	}
+        /* router is stuck */
+        if(!min_heap->size)
+        {
+            /* clean up */
+            field_reset(field);
+            heap_destroy(min_heap);
+            return STUCK;
+        }
 	} while(!(x == endx && y == endy && z == endz));
+
+    heap_destroy(min_heap);
 
 	/* 
     * backtrace
@@ -165,7 +153,7 @@ int route(net_t *net, int*** field, size_t width, size_t height,
     int zdiff = 0;
 
 	do {
-		score = field[z][x][y];
+		score = field_get(field, x, y, z);
 
 		/* array to look for the least costing neighboring point */
 		point_t nextpoints[NUM_DIRECTIONS];
@@ -181,33 +169,25 @@ int route(net_t *net, int*** field, size_t width, size_t height,
 			nexty = y + yincr[i];
 			nextz = z + zincr[i];
 
-			if(nextx >= width ||
-			   nexty >= height ||
-			   nextz >= num_layers)
+			if(nextx >= field_get_width(field) || nexty >= field_get_height(field) || nextz >= field_get_num_layers(field))
 			{
 				continue;
 			}
 
 			/* check if point is visitable if yes store it in array */
-			int nextfield = field[nextz][nextx][nexty];
-
-			switch(nextfield)
+			int nextfield = field_get(field, nextx, nexty, nextz);
+			if(nextfield == UNVISITED || nextfield == PATH || nextfield == VIA)
 			{
-				case UNVISITED:
-				case PATH:
-				case VIA:
-					continue;
+                continue;
 			}
 
-				if(nextfield < score)
-				{
-				    point_t point;
-				    point.x = nextx;
-				    point.y = nexty;
-				    point.z = nextz;
-				    point.score = nextfield;
-				    nextpoints[i] = point;
-				}
+            if(nextfield < score)
+            {
+                nextpoints[i].x = nextx;
+                nextpoints[i].y = nexty;
+                nextpoints[i].z = nextz;
+                nextpoints[i].score = nextfield;
+            }
 		}
 
 		bool next_is_via = false;
@@ -215,27 +195,24 @@ int route(net_t *net, int*** field, size_t width, size_t height,
 		point_t *npoint = get_min_point(nextpoints);
 		if(next_is_via)
 		{
-			field[z][x][y] = VIA;
+            field_set(field, x, y, z, VIA);
 			next_is_via = true;
 		}
 		else if(npoint->z != (int)z)
 		{
-			field[z][x][y] = VIA;
+            field_set(field, x, y, z, VIA);
 			next_is_via = true;
 		}
 		else
 		{
-			field[z][x][y] = PATH;
+            field_set(field, x, y, z, PATH);
 		}
 
 		xdiff = npoint->x - (int)x;
 		ydiff = npoint->y - (int)y;
 		zdiff = npoint->z - (int)z;
 
-		point_t *path_point = calloc(1, sizeof(point_t));
-		path_point->x = xdiff;
-		path_point->y = ydiff;
-		path_point->z = zdiff;
+		point_t* path_point = point_new(xdiff, ydiff, zdiff, 0);
 		queue_enqueue(net->path, path_point);
 
 		x = npoint->x;
@@ -247,9 +224,10 @@ int route(net_t *net, int*** field, size_t width, size_t height,
 	queue_reverse(net->path);
 
 	/* mark start and end of net as ports */
-	field[startz][startx][starty] = PORT;
-	field[endz][endx][endy] = PORT;
-	field_reset(field, width, height, num_layers);
+    field_set(field, startx, starty, startz, PORT);
+    field_set(field, endx, endy, endz, PORT);
+	field_reset(field);
 
 	return ROUTED;
 }
+

@@ -17,29 +17,20 @@
 #define FALSE 0
 #define TRUE 1
 
-typedef struct queue_s queue_t;
+struct queue;
 
-struct queue_node_s {
-	struct queue_node_s *next;
-	void *data;
-};
-
-struct queue_s {
-	struct queue_node_s *front;
-	struct queue_node_s *back;
-};
-
-int queue_destroy(queue_t *queue);
-int queue_empty(queue_t *queue);
-queue_t *queue_new(void);
-void *queue_dequeue(queue_t *queue);
-int queue_enqueue(queue_t *queue, void *data);
-int queue_len(queue_t *queue);
-void queue_print(queue_t *queue);
-void queue_reverse(queue_t *queue);
-void *queue_peek_nth_elem(queue_t *queue, unsigned int n);
+int queue_destroy(struct queue *queue);
+int queue_empty(struct queue *queue);
+void queue_clear(struct queue *queue);
+struct queue *queue_new(void);
+void *queue_dequeue(struct queue *queue);
+int queue_enqueue(struct queue *queue, void *data);
+int queue_len(struct queue *queue);
+void queue_print(struct queue *queue);
+void queue_reverse(struct queue *queue);
+void *queue_peek_nth_elem(struct queue *queue, unsigned int n);
 
 /* takes a queue and gives back the entries as a position_t array */
-point_t *queue_as_array(queue_t *queue);
+point_t *queue_as_array(struct queue *queue);
 
 #endif

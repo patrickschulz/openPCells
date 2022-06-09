@@ -10,7 +10,6 @@ local function _get_blockages(instances, reference)
 end
 
 local function _prepare_routing_nets(nets, rows, numtracks, instances)
-    aux.tprint(instances)
     local netpositions = {}
     local blockages = {}
     for i, net in ipairs(nets) do
@@ -31,7 +30,7 @@ local function _prepare_routing_nets(nets, rows, numtracks, instances)
                             table.insert(netpositions[i].positions, {
                                 instance = column.instance,
                                 port = n.port,
-                                x = c + offset.x + curwidth,
+                                x = curwidth + offset.x + 1,
                                 y = (r - 1) * numtracks + flip * offset.y + (numtracks - 1) / 2 + (r - 1)
                             })
                             -- calc blockage coordinates
@@ -41,7 +40,8 @@ local function _prepare_routing_nets(nets, rows, numtracks, instances)
                                     route = {}
                                     for u, delta in ipairs(blockageroute) do
                                         table.insert(route, {
-                                            x = c + blockageroute[u].x + curwidth,
+                                            --x = c + blockageroute[u].x + curwidth,
+                                            x = curwidth + blockageroute[u].x + 1,
                                             y = (r - 1) * numtracks + flip * blockageroute[u].y + (numtracks - 1) / 2 + (r - 1),
                                             z = blockageroute[u].z
                                         })
@@ -52,7 +52,7 @@ local function _prepare_routing_nets(nets, rows, numtracks, instances)
                         end
                     end
                 end
-                curwidth = curwidth + column.width - 1
+                curwidth = curwidth + column.width
             end
         end
     end
@@ -61,21 +61,12 @@ end
 
 function M.legalize(nets, rows, numtracks, floorplan, instances)
     local netpositions, blockages = _prepare_routing_nets(nets, rows, numtracks, instances)
-    for _, pos in ipairs(netpositions) do
-        print(pos.name)
-        for _, p in ipairs(pos.positions) do
-            print(string.format("x = %d, y = %d (instance: '%s', port: '%s')", p.x, p.y, p.instance, p.port))
-        end
-        print()
-    end
-
     -- call router here
     -- per full row insert one powerrail (except for the first row)
     local height = floorplan.floorplan_height * numtracks
     height = height + math.floor(height / numtracks) - 1
 
-    local routednets, numroutednets = router.route(netpositions, blockages,
-        floorplan.floorplan_width, height)
+    local routednets, numroutednets = router.route(netpositions, blockages, floorplan.floorplan_width, height)
     return routednets
 end
 
@@ -131,7 +122,7 @@ function M.route(cell, routes, cells, width, xgrid, ygrid)
                 local lastpt = pts[#pts]
                 local x, y = lastpt:unwrap()
                 geometry.via(cell, currmetal, targetmetal, width, width, x, y)
-                if #pts > 1 then
+                if #pts > 1 and (pts[1] ~= pts[2]) then
                     geometry.path(cell, generics.metal(currmetal), pts, width)
                 end
                 pts = { lastpt }
@@ -140,7 +131,7 @@ function M.route(cell, routes, cells, width, xgrid, ygrid)
                 error(string.format("routing.route: unknown movement type '%s'", movement.type))
             end
         end
-        if #pts > 1 then
+        if #pts > 1 and (pts[1] ~= pts[2]) then
             geometry.path(cell, generics.metal(currmetal), pts, width)
         end
     end

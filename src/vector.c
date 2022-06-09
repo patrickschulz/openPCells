@@ -172,6 +172,11 @@ void vector_iterator_destroy(struct vector_iterator* iterator)
     free(iterator);
 }
 
+void vector_sort(struct vector* vector, int (*cmp_func)(const void* left, const void* right))
+{
+    qsort(vector->elements, vector->size, sizeof(void*), cmp_func);
+}
+
 struct const_vector {
     const void** elements;
     size_t size;

@@ -22,6 +22,7 @@ typedef struct minheap {
 
 /* Function to initialize the min heap with size = 0 */
 min_heap_t *heap_init(void);
+void heap_destroy(min_heap_t* heap);
 
 /*
 *  Function to insert a node into the min heap, by allocating space for
@@ -30,7 +31,7 @@ min_heap_t *heap_init(void);
 *  Changed smaller to smaller or equal so it works as a FIFO queue for same val
 *  nodes
 */
-void heap_insert_point(min_heap_t *hp, point_t *point);
+void heap_insert_point(min_heap_t *hp, int x, int y, int z, unsigned int score);
 
 /*
 *  Function to get a node from the min heap

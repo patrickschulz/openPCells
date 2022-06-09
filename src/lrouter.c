@@ -12,24 +12,23 @@
 #include "lrouter_moves.h"
 #include "ldebug.h"
 
+#include "vector.h"
+
 #define MANHATTAN_DIST(x1, y1, x2, y2) (abs(x1 - x2) + abs(y1 - y2))
 
-struct blockage_route
-{
+struct blockage_route {
     point_t *deltas;
     size_t num_deltas;
 };
 
-struct netcollection
-{
-    net_t *nets;
-    size_t num_nets;
+struct netcollection {
+    struct vector* nets;
     struct blockage_route *blockages;
     size_t num_blockages;
 };
 
 /* creates point_t if lua stack is in certain order */
-static point_t lrouter_create_point(lua_State *L)
+static point_t _create_point(lua_State *L)
 {
     point_t point;
 
@@ -50,7 +49,7 @@ static point_t lrouter_create_point(lua_State *L)
 static struct netcollection* _initialize(lua_State* L)
 {
     size_t num_nets = lua_rawlen(L, 1);
-    net_t* nets = calloc(num_nets, sizeof(*nets));
+    struct vector* nets = vector_create(num_nets);
 
     for(size_t i = 1; i < num_nets + 1; i++)
     {
@@ -64,10 +63,13 @@ static struct netcollection* _initialize(lua_State* L)
         lua_getfield(L, -1, "positions");
         size_t size = lua_rawlen(L, -1);
 
-        nets[i - 1].size = size;
-        nets[i - 1].name = calloc(strlen(name) + 1, 1);
-        strcpy(nets[i - 1].name, name);
-        nets[i - 1].positions = calloc(size, sizeof(position_t));
+        /* don't include nets with only one endpoint */
+        if(size < 2)
+        {
+            continue;
+        }
+
+        struct net* net = net_create(name, size);
 
         /* fill in net struct from lua */
         for(size_t j = 1; j <= size; ++j)
@@ -90,11 +92,12 @@ static struct netcollection* _initialize(lua_State* L)
             int y = lua_tointeger(L, -1);
             lua_pop(L, 1);
 
-            position_t pos = *net_create_position(instance, port, x - 1, y - 1);
-            nets[i - 1].positions[j - 1] = pos;
+            struct position* pos = net_create_position(instance, port, x - 1, y - 1);
+            vector_append(net->positions, pos);
 
             lua_pop(L, 1);
         }
+        vector_append(nets, net);
         lua_pop(L, 1);
     }
 
@@ -115,34 +118,21 @@ static struct netcollection* _initialize(lua_State* L)
         for(size_t j = 1; j <= route_size; j++)
         {
             lua_geti(L, -1, j);
-            blockage_route->deltas[j - 1] = lrouter_create_point(L);
+            blockage_route->deltas[j - 1] = _create_point(L);
             lua_pop(L, 1);
         }
         blockages[i - 1] = *blockage_route;
         lua_pop(L, 1);
     }
 
-    struct netcollection* nc = malloc(sizeof(struct netcollection));
+    struct netcollection* nc = malloc(sizeof(*nc));
     nc->nets = nets;
-    nc->num_nets = num_nets;
     nc->blockages = blockages;
     nc->num_blockages = num_blockages;
-
-    for(int i = 0; i < num_blockages; i++)
-    {
-        printf("blockage nr %i\n", i);
-        for(int j = 0; j < blockages[i].num_deltas; j++)
-        {
-            int x = blockages[i].deltas[j].x;
-            int y = blockages[i].deltas[j].y;
-            int z = blockages[i].deltas[j].z;
-            printf("\tdelta %i %i %i\n", x, y, z);
-        }
-    }
     return nc;
 }
 
-static void lrouter_fill_blockages(int ***field, struct netcollection *nc)
+static void _fill_blockages(struct field* field, struct netcollection *nc)
 {
     for(int i = 0; i < (int)nc->num_blockages; i++)
     {
@@ -161,34 +151,40 @@ static void lrouter_fill_blockages(int ***field, struct netcollection *nc)
  * e. g. net0: p1 has manhattan distance (m.d.) 4 to p2 and p1 has 3 m.d. to
  * p3 then: make new nets with p1 and p3, and p2 and p3
  */
-static void lrouter_split_nets(struct netcollection* nc)
+static void _split_nets(struct netcollection* nc)
 {
     /* iterate over all nets */
-    for(size_t i = 0; i < nc->num_nets; i++)
+    for(size_t i = 0; i < vector_size(nc->nets); i++)
     {
+        struct net* net = vector_get(nc->nets, i);
         /* split "more" if still less than 3 positions */
-        if(nc->nets[i].size < 3)
+        if(vector_size(net->positions) < 3)
+        {
             continue;
+        }
 
-        size_t splitcount = 0;
         /* iterate over all points in net */
-        for(int j = 0; j < (int)nc->nets[i].size; j++)
+        size_t splitcount = 0;
+        for(int j = 0; j < (int)vector_size(net->positions); j++)
         {
             int tempx, tempy, nextx, nexty, mindist, nextdist;
             size_t mink = 0;
-            tempx = (int)nc->nets[i].positions[0].x;
-            tempy = (int)nc->nets[i].positions[0].y;
+            struct position* pos = vector_get(net->positions, 0);
+            tempx = (int)pos->x;
+            tempy = (int)pos->y;
             mindist = INT_MAX;
-            for(size_t k = 0; k < nc->nets[i].size; k++)
+            for(size_t k = 0; k < vector_size(net->positions); k++)
             {
                 /* dont check m.d. for itself again */
                 if((int)k == j)
+                {
                     continue;
+                }
 
-                nextx = (int)nc->nets[i].positions[k].x;
-                nexty = (int)nc->nets[i].positions[k].y;
-                if((nextdist = MANHATTAN_DIST
-                            (tempx, tempy, nextx, nexty)) < mindist)
+                struct position* npos = vector_get(net->positions, k);
+                nextx = (int)npos->x;
+                nexty = (int)npos->y;
+                if((nextdist = MANHATTAN_DIST(tempx, tempy, nextx, nexty)) < mindist)
                 {
                     mindist = nextdist;
                     mink = k;
@@ -196,46 +192,32 @@ static void lrouter_split_nets(struct netcollection* nc)
             }
 
             if (mindist == 0)
+            {
                 continue;
+            }
 
             /*
              * now point nr. j in net has minimum m.d. to point nr. mink
              * so create new split net with only 2 now
              */
-            net_t *newnet = calloc(1, sizeof(net_t));
-            newnet->name = calloc(strlen(nc->nets[i].name) + 10, 1);
-            newnet->positions = calloc(2, sizeof(position_t));
+            char* name = malloc(strlen(net->name) + 10);
+            sprintf(name, "%s_(%zu)", net->name, splitcount);
+            struct net *newnet = net_create(name, 2);
+            free(name);
 
-            sprintf(newnet->name, "%s_(%zu)", nc->nets[i].name, splitcount);
+            vector_append(newnet->positions, net_copy_position(net, 0));
+            vector_append(newnet->positions, net_copy_position(net, mink));
 
-            newnet->positions[0] = *net_create_position(
-                    nc->nets[i].positions[0].instance,
-                    nc->nets[i].positions[0].port,
-                    nc->nets[i].positions[0].x,
-                    nc->nets[i].positions[0].y);
-
-            newnet->positions[1] = *net_create_position(
-                    nc->nets[i].positions[mink].instance,
-                    nc->nets[i].positions[mink].port,
-                    nc->nets[i].positions[mink].x,
-                    nc->nets[i].positions[mink].y);
-
-            newnet->size = 2;
-
-            net_del_nth_el_arr(nc->nets[i].positions, 0, nc->nets[i].size);
-            nc->nets[i].size--;
+            vector_remove(net->positions, 0, net_destroy_position);
 
             /* continute splitting net */
-            if(nc->nets[i].size > 2)
+            if(vector_size(net->positions) > 2)
             {
                 j = -1;
             }
 
             /* add new net to end of net list */
-            nc->nets = (net_t *)realloc(nc->nets, sizeof(net_t) *
-                    (nc->num_nets + 1));
-            nc->nets[nc->num_nets] = *newnet;
-            nc->num_nets++;
+            vector_append(nc->nets, newnet);
             splitcount++;
         }
     }
@@ -251,37 +233,38 @@ int lrouter_route(lua_State* L)
     const unsigned int via_cost = 10;
     const unsigned int wrong_dir_cost = 30;
 
-    int*** field = field_init(field_width, field_height, num_layers);
-    lrouter_fill_blockages(field, nc);
+    struct field* field = field_init(field_width + 1, field_height, num_layers);
+    _fill_blockages(field, nc);
 
-    lrouter_split_nets(nc);
-    net_sort_nets(nc->nets, nc->num_nets);
-    net_fill_ports(nc->nets, nc->num_nets, field);
+    _split_nets(nc);
+    net_sort_nets(nc->nets);
+    net_fill_ports(nc->nets, field);
 
     int routed_count = 0;
 
     /* table for all nets */
     lua_newtable(L);
 
-    for(unsigned int i = 0; i < nc->num_nets; ++i)
+    for(unsigned int i = 0; i < vector_size(nc->nets); ++i)
     {
+        struct net* net = vector_get(nc->nets, i);
         /* dont route nets without at least 2 points */
-        if(nc->nets[i].size > 1)
+        if(vector_size(net->positions) > 1)
         {
-            nc->nets[i].routed = route(&nc->nets[i], field, field_width,
-                    field_height, num_layers, via_cost,
-                    wrong_dir_cost);
+            net->routed = route(net, field, via_cost, wrong_dir_cost);
         }
 
-        if(nc->nets[i].routed)
+        if(net->routed)
         {
             /* table for whole net */
             lua_newtable(L);
+            lua_pushstring(L, net->name);
+            lua_setfield(L, -2, "name");
 
             /* first anchor entry */
             lua_newtable(L);
-            moves_create_anchor(L, nc->nets[i].positions[0].instance,
-                    nc->nets[i].positions[0].port, nc->nets[i].name);
+            struct position* pos0 = vector_get(net->positions, 0);
+            moves_create_anchor(L, pos0->instance, pos0->port);
             lua_rawseti(L, -2, 1);
 
             /* FIXME: via after first anchor */
@@ -289,20 +272,29 @@ int lrouter_route(lua_State* L)
             moves_create_via(L, 1);
             lua_rawseti(L, -2, 2);
 
-            net_create_deltas(&nc->nets[i]);
+            net_create_deltas(net);
 
-            point_t *curr_point;
             int point_count = 2;
-            while((curr_point = queue_dequeue(nc->nets[i].path))
-                    != NULL)
+            while(1)
             {
+                point_t* curr_point = queue_dequeue(net->path);
+                if(!curr_point)
+                {
+                    break;
+                }
                 lua_newtable(L);
                 if(curr_point->x)
+                {
                     moves_create_delta(L, X_DIR, curr_point->x);
+                }
                 else if(curr_point->y)
+                {
                     moves_create_delta(L, Y_DIR, curr_point->y);
+                }
                 else if(curr_point->z)
+                {
                     moves_create_via(L, -1 * curr_point->z);
+                }
 
                 /* move entry */
                 /* FIXME: not sure why "zero" deltas are happening */
@@ -315,6 +307,7 @@ int lrouter_route(lua_State* L)
                 {
                     lua_pop(L, 1);
                 }
+                free(curr_point);
             }
 
             /* FIXME: via before second anchor */
@@ -324,8 +317,8 @@ int lrouter_route(lua_State* L)
 
             /* second anchor */
             lua_newtable(L);
-            moves_create_anchor(L, nc->nets[i].positions[1].instance,
-                    nc->nets[i].positions[1].port, nc->nets[i].name);
+            struct position* pos1 = vector_get(net->positions, 1);
+            moves_create_anchor(L, pos1->instance, pos1->port);
             lua_rawseti(L, -2, point_count + 2);
 
             /* put moves table into bigger table */
@@ -336,13 +329,14 @@ int lrouter_route(lua_State* L)
     /* num_routed_nets on stack */
     lua_pushinteger(L, routed_count);
 
-    net_print_nets(nc->nets, nc->num_nets);
-    field_print(field, field_width, field_height, 0);
-    field_print(field, field_width, field_height, 1);
-    //field_print(field, field_width, field_height, 2);
+    for(unsigned int i = 0; i < 2; ++i)
+    {
+        field_print(field, i);
+    }
 
-    field_destroy(field, field_width, field_height, num_layers);
-    free(nc->nets);
+    field_destroy(field);
+    vector_destroy(nc->nets, net_destroy);
+    free(nc->blockages);
     free(nc);
     return 2;
 }

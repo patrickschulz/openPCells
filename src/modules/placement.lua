@@ -95,6 +95,22 @@ function M.optimize(instances, nets, floorplan)
     return rows
 end
 
+function M.manual(instances, names)
+    local rows = {}
+    for _, rownames in ipairs(names) do
+        local row = {}
+        for _, name in ipairs(rownames) do
+            for _, inst in ipairs(instances) do
+                if inst.instance == name then
+                    table.insert(row, inst)
+                end
+            end
+        end
+        table.insert(rows, row)
+    end
+    return rows
+end
+
 function M.insert_filler_names(rows, width)
     -- calculate row widths
     local rowwidths = {}
@@ -102,7 +118,6 @@ function M.insert_filler_names(rows, width)
         rowwidths[row] = 0
         for column, cellname in ipairs(entries) do
             local cellwidth = cellname.width
-            print(cellname.reference, cellwidth)
             rowwidths[row] = rowwidths[row] + cellwidth
         end
         -- check for too wide rows

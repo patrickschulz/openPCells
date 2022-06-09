@@ -32,7 +32,6 @@ function M.collect_nets_cells(netlist, cellinfo)
             end
             -- some cells dont have blockages so no error if they dont have it
             local blockages = cellinfo[instance.reference].blockages
-            print(blockages)
             table.insert(instances, {
                 instance = instance.name,
                 reference = instance.reference,
@@ -41,7 +40,6 @@ function M.collect_nets_cells(netlist, cellinfo)
                 width = width,
                 blockages = blockages
             })
-            print(instance.reference, width)
         end
     end
     return instances, nets

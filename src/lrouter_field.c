@@ -6,144 +6,142 @@
 
 #define LOWEST_ROUTING_METAL 2
 
+struct field {
+    size_t width;
+    size_t height;
+    size_t num_layers;
+    int* content;
+};
+
 void black(void)
 {
-    printf("\033[0;30m");
+    fputs("\033[0;30m", stdout);
 }
 
 void red(void)
 {
-    printf("\033[0;31m");
+    fputs("\033[0;31m", stdout);
 }
 
 void green(void)
 {
-    printf("\033[0;32m");
+    fputs("\033[0;32m", stdout);
 }
 
 void yellow(void)
 {
-    printf("\033[0;33m");
+    fputs("\033[0;33m", stdout);
 }
 
 void blue(void)
 {
-    printf("\033[0;34m");
+    fputs("\033[0;34m", stdout);
 }
 
 void purple(void)
 {
-    printf("\033[0;35m");
+    fputs("\033[0;35m", stdout);
 }
 
 void cyan(void)
 {
-    printf("\033[0;36m");
+    fputs("\033[0;36m", stdout);
 }
 
 void white(void)
 {
-    printf("\033[0;37m");
+    fputs("\033[0;37m", stdout);
 }
 
 void normal(void)
 {
-    printf("\033[0m");
+    fputs("\033[0m", stdout);
 }
 
-static void reset_layer(int** layer, size_t width, size_t height)
+void field_reset(struct field* field)
 {
-    for(size_t i = 0; i < height; i++)
+    for(size_t i = 0; i < field->width * field->height * field->num_layers; i++)
     {
-        for(size_t j = 0; j < width; j++)
+        if(field->content[i] != PATH && field->content[i] != PORT && field->content[i] != VIA && field->content[i] != BLOCKAGE)
         {
-            if(layer[j][i] != PATH && layer[j][i] != PORT
-                    && layer[j][i] != VIA && layer[j][i] != BLOCKAGE)
-            {
-                layer[j][i] = UNVISITED;
-            }
+            field->content[i] = UNVISITED;
         }
     }
 }
 
-void field_reset(int*** field, size_t width, size_t height, size_t num_layers)
+struct field* field_init(size_t width, size_t height, size_t num_layers)
 {
-    for(size_t l = 0; l < num_layers; l++)
-    {
-        reset_layer(field[l], width, height);
-    }
-}
-
-int*** field_init(size_t width, size_t height, size_t num_layers)
-{
-    width++;
-    int*** field = calloc(num_layers, sizeof(**field));
-    for(size_t i = 0; i < num_layers; i++)
-    {
-        field[i] = calloc(width, sizeof(*field));
-        for(size_t j = 0; j < width; j++)
-        {
-            field[i][j] = calloc(height, sizeof(field));
-            memset(field[i][j], UNVISITED, height * sizeof(field));
-        }
-    }
+    struct field* field = malloc(sizeof(*field));
+    field->width = width;
+    field->height = height;
+    field->num_layers = num_layers;
+    field->content = calloc(width * height * num_layers, sizeof(*field->content));
+    memset(field->content, UNVISITED, width * height * num_layers * sizeof(*field->content));
     return field;
 }
 
-void field_destroy(int*** field, size_t width, size_t height, size_t num_layers)
+void field_destroy(struct field* field)
 {
-    (void)width;
-    for(size_t i = 0; i < num_layers; i++)
-    {
-        for(size_t j = 0; j < height; j++)
-        {
-            free(field[i][j]);
-        }
-        free(field[i]);
-    }
+    free(field->content);
     free(field);
 }
 
-void field_print(int*** field, size_t width, size_t height, unsigned int layer)
+static int* _get(struct field* field, size_t x, size_t y, size_t z)
 {
-    for(int i = (int)width + 1; i >= 0; i--)
+    return &field->content[x + y * field->width + z * field->width * field->height];
+}
+
+void field_print(struct field* field, int layer)
+{
+    for(size_t i = 0; i < field->width + 1; ++i)
     {
-        if(i == 0)
+        if(i == field->width)
         {
             printf("%u", layer);
         }
         else
         {
-            printf("==");
+            fputs("==", stdout);
         }
     }
-    printf("=\n");
-    for(int i = (int)height - 1; i >= 0; i--)
+    fputs("=\n", stdout);
+    for(int i = (int)field->height - 1; i >= 0; i--)
     {
         normal();
         printf("%02i ", i);
-        for(size_t j = 0; j < width; j++) {
-            if(field[layer][j][i] == PATH)
-                green();
-            else if(field[layer][j][i] == PORT)
-                red();
-            else if(field[layer][j][i] == VIA)
-                blue();
-            else if(field[layer][j][i] == BLOCKAGE)
-                purple();
-            else
-                normal();
-            printf("%2i", field[layer][j][i]);
+        for(size_t j = 0; j < field->width; j++)
+        {
+            switch(*_get(field, j, i, layer))
+            {
+                case(PATH):
+                    green();
+                    break;
+                case(PORT):
+                    red();
+                    break;
+                case(VIA):
+                    blue();
+                    break;
+                case(BLOCKAGE):
+                    purple();
+                    break;
+                default:
+                    normal();
+                    break;
+            }
+            printf("%2i", *_get(field, j, i, layer));
         }
-        printf("\n");
+        putchar('\n');
     }
 }
 
 point_t *point_new(int x, int y, int z, unsigned int score)
 {
-    point_t *new_point = calloc(1, sizeof(point_t));
+    point_t* new_point = malloc(sizeof(*new_point));
     if(new_point == NULL)
+    {
         return NULL;
+    }
 
     new_point->x = x;
     new_point->y = y;
@@ -153,25 +151,47 @@ point_t *point_new(int x, int y, int z, unsigned int score)
     return new_point;
 }
 
+size_t field_get_width(struct field* field)
+{
+    return field->width;
+}
+
+size_t field_get_height(struct field* field)
+{
+    return field->height;
+}
+
+size_t field_get_num_layers(struct field* field)
+{
+    return field->num_layers;
+}
+
+void field_set(struct field* field, size_t x, size_t y, size_t z, int what)
+{
+    *_get(field, x, y, z) = what;
+}
+
+int field_get(struct field* field, size_t x, size_t y, size_t z)
+{
+    return *_get(field, x, y, z);
+}
+
 void field_unprint(size_t size)
 {
     for(size_t i = 0; i <= size; i++)
     {
         /* VT100 excape code to move cursor to start of prev line */
-        printf("\33[F");
+        fputs("\33[F", stdout);
         /* VT100 excape code to clear a line */
-        printf("\33[2K");
+        fputs("\33[2K", stdout);
     }
 }
 
-void field_create_blockage(int ***field, point_t start, point_t end)
+void field_create_blockage(struct field* field, point_t start, point_t end)
 {
     int len = 0;
     int xincr = 0;
     int yincr = 0;
-
-    printf("creating blockage from %i, %i to %i, %i\n", start.x, start.y,
-            end.x, end.y);
 
     if(start.x != end.x)
     {
@@ -186,8 +206,7 @@ void field_create_blockage(int ***field, point_t start, point_t end)
 
     for(int i = 0; i < len; i++)
     {
-        field[start.z - LOWEST_ROUTING_METAL][start.x + i * xincr][start.y + i * yincr] =
-            BLOCKAGE;
+        *_get(field, start.x + i * xincr, start.y + i * yincr, start.z - LOWEST_ROUTING_METAL) = BLOCKAGE;
     }
 }
 
