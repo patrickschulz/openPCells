@@ -18,7 +18,8 @@ local plan = {
 local rows = placement.manual(instances, plan)
 placement.insert_filler_names(rows, floorplan.floorplan_width)
 
---FIXME: hardoded number of routing tracks per cell
+-- this value can be (at least in theory) changed in the generated layout, but the router assumes this many tracks
+-- this means that reducing this value CAN work, but only increasing it will work certainly
 local numtracks = 9
 local routes = routing.legalize(nets, rows, numtracks, floorplan, instances)
 
