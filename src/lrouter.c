@@ -16,14 +16,9 @@
 
 #define MANHATTAN_DIST(x1, y1, x2, y2) (abs(x1 - x2) + abs(y1 - y2))
 
-struct blockage_route {
-    struct vector* deltas; /* stores point_t */
-};
-
 struct netcollection {
     struct vector* nets;
-    struct vector* blockages;
-    size_t num_blockages;
+    struct vector* blockages; /* stores vector* of point_t* */
 };
 
 static point_t* _create_point(lua_State *L)
@@ -105,23 +100,21 @@ static struct netcollection* _initialize(lua_State* L)
 
         /* now we have a list of deltas forming one blockage route */
         size_t route_size = lua_rawlen(L, -1);
-        struct blockage_route* blockage_route = malloc(sizeof(*blockage_route));
-        blockage_route->deltas = vector_create(route_size);
+        struct vector* deltas = vector_create(route_size);
 
         for(size_t j = 1; j <= route_size; j++)
         {
             lua_geti(L, -1, j);
-            vector_append(blockage_route->deltas, _create_point(L));
+            vector_append(deltas, _create_point(L));
             lua_pop(L, 1);
         }
-        vector_append(blockages, blockage_route);
+        vector_append(blockages, deltas);
         lua_pop(L, 1);
     }
 
     struct netcollection* nc = malloc(sizeof(*nc));
     nc->nets = nets;
     nc->blockages = blockages;
-    nc->num_blockages = num_blockages;
     return nc;
 }
 
@@ -129,11 +122,11 @@ static void _fill_blockages(struct field* field, struct netcollection *nc)
 {
     for(size_t i = 0; i < vector_size(nc->blockages); i++)
     {
-        struct blockage_route* br = vector_get(nc->blockages, i);
-        for(size_t j = 0; j < vector_size(br->deltas) - 1; j++)
+        struct vector* deltas = vector_get(nc->blockages, i);
+        for(size_t j = 0; j < vector_size(deltas) - 1; j++)
         {
-            point_t* start = vector_get(br->deltas, j);
-            point_t* end = vector_get(br->deltas, j + 1);
+            point_t* start = vector_get(deltas, j);
+            point_t* end = vector_get(deltas, j + 1);
             field_create_blockage(field, start, end);
         }
     }
@@ -217,11 +210,10 @@ static void _split_nets(struct netcollection* nc)
     }
 }
 
-static void _destroy_blockage(void* bp)
+static void _destroy_blockage(void* ptr)
 {
-    struct blockage_route* b = bp;
-    vector_destroy(b->deltas, free);
-    free(b);
+    struct vector* deltas = ptr;
+    vector_destroy(deltas, free);
 }
 
 int lrouter_route(lua_State* L)
