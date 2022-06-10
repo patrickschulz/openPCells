@@ -21,7 +21,7 @@ struct field* field_init(size_t width, size_t height, size_t num_layers);
 void field_destroy(struct field* field);
 void field_print(struct field* field, int layer);
 void field_unprint(size_t size);
-void field_create_blockage(struct field*field, point_t start, point_t end);
+void field_create_blockage(struct field*field, point_t* start, point_t* end);
 point_t *point_new(int x, int y, int z, unsigned int score);
 
 size_t field_get_width(struct field* field);

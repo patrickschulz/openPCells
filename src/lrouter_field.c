@@ -187,26 +187,26 @@ void field_unprint(size_t size)
     }
 }
 
-void field_create_blockage(struct field* field, point_t start, point_t end)
+void field_create_blockage(struct field* field, point_t* start, point_t* end)
 {
     int len = 0;
     int xincr = 0;
     int yincr = 0;
 
-    if(start.x != end.x)
+    if(start->x != end->x)
     {
-        len = abs(start.x - end.x);
-        xincr = (end.x < start.x) ? -1 : 1;
+        len = abs(start->x - end->x);
+        xincr = (end->x < start->x) ? -1 : 1;
     }
     else
     {
-        len = abs(start.y - end.y);
-        yincr = (end.y < start.y) ? -1 : 1;
+        len = abs(start->y - end->y);
+        yincr = (end->y < start->y) ? -1 : 1;
     }
 
     for(int i = 0; i < len; i++)
     {
-        *_get(field, start.x + i * xincr, start.y + i * yincr, start.z - LOWEST_ROUTING_METAL) = BLOCKAGE;
+        *_get(field, start->x + i * xincr, start->y + i * yincr, start->z - LOWEST_ROUTING_METAL) = BLOCKAGE;
     }
 }
 
