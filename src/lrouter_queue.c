@@ -5,11 +5,7 @@
  */
 
 #include "lrouter_queue.h"
-#include "lrouter_field.h"
-#include "lrouter_net.h"
 
-#include <stddef.h>
-#include <stdio.h>
 #include <stdlib.h>
 
 struct queue_node {
@@ -38,19 +34,12 @@ int queue_destroy(struct queue *queue)
         free(node);
     }
     free(queue);
-    return SUCCESS;
+    return 1;
 }
 
 int queue_empty(struct queue *queue)
 {
-    if (queue->front == NULL)
-    {
-        return TRUE;
-    }
-    else
-    {
-        return FALSE;
-    }
+    return queue->front == NULL;
 }
 
 void queue_clear(struct queue *queue)
@@ -105,7 +94,7 @@ int queue_enqueue(struct queue *queue, void *data)
     struct queue_node* node = malloc(sizeof(*node));
     if (node == NULL)
     {
-        return ERR_NOMEM;
+        return 0;
     }
     node->data = data;
     node->next = NULL;
@@ -118,7 +107,7 @@ int queue_enqueue(struct queue *queue, void *data)
         queue->back->next = node;
         queue->back = node;
     }
-    return SUCCESS;
+    return 1;
 }
 
 int queue_len(struct queue *queue)
@@ -138,19 +127,6 @@ int queue_len(struct queue *queue)
     }
 
     return count;
-}
-
-void queue_print(struct queue *queue)
-{
-    struct queue_node *node = queue->front;
-    while(node != NULL)
-    {
-        point_t point = *(point_t*)node->data;
-        printf("p: x %i, y %i, z %i\n", (int)point.x,
-                (int)point.y, (int)point.z);
-        node = node->next;
-    }
-
 }
 
 void queue_reverse(struct queue *queue)

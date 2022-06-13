@@ -10,13 +10,6 @@
  * Modified by Philipp nickel
  */
 
-#define SUCCESS 0
-#define ERR_INVAL 1
-#define ERR_NOMEM 2
-
-#define FALSE 0
-#define TRUE 1
-
 struct queue;
 
 int queue_destroy(struct queue *queue);

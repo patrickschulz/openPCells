@@ -17,14 +17,23 @@
 #define RCHILD(x) 2 * x + 2
 #define PARENT(x) (x - 1) / 2
 
-min_heap_t *heap_init(void)
+struct node {
+    point_t *point;
+};
+
+struct minheap {
+    size_t size;
+    struct node *elem;
+};
+
+struct minheap *heap_init(void)
 {
-    min_heap_t *heap = malloc(sizeof(min_heap_t));
+    struct minheap *heap = malloc(sizeof(struct minheap));
     heap->size = 0;
     return heap;
 }
 
-void heap_destroy(min_heap_t* heap)
+void heap_destroy(struct minheap* heap)
 {
     for(size_t i = 0; i < heap->size; ++i)
     {
@@ -38,9 +47,9 @@ void heap_destroy(min_heap_t* heap)
 }
 
 /* Function to swap data within two nodes of the min heap using pointers */
-static void swap(heap_node_t *n1, heap_node_t *n2)
+static void swap(struct node *n1, struct node *n2)
 {
-    heap_node_t temp = *n1;
+    struct node temp = *n1;
     *n1 = *n2;
     *n2 = temp;
 }
@@ -51,7 +60,7 @@ static void swap(heap_node_t *n1, heap_node_t *n2)
  *  may be violated. In such cases, heapify function can be called to make sure that
  *  heap property is never violated
  */
-static void heapify(min_heap_t *hp, size_t i)
+static void heapify(struct minheap *hp, size_t i)
 {
     size_t smallest = (LCHILD(i) < hp->size && hp->elem[LCHILD(i)].point->score <
             hp->elem[i].point->score) ? LCHILD(i) : i;
@@ -67,18 +76,18 @@ static void heapify(min_heap_t *hp, size_t i)
     }
 }
 
-void heap_insert_point(min_heap_t *hp, int x, int y, int z, unsigned int score)
+void heap_insert_point(struct minheap *hp, int x, int y, int z, unsigned int score)
 {
     if(hp->size)
     {
-        hp->elem = realloc(hp->elem, (hp->size + 1) * sizeof(heap_node_t));
+        hp->elem = realloc(hp->elem, (hp->size + 1) * sizeof(struct node));
     }
     else
     {
-        hp->elem = malloc(sizeof(heap_node_t));
+        hp->elem = malloc(sizeof(struct node));
     }
 
-    heap_node_t nd;
+    struct node nd;
     nd.point = point_new(x, y, z, score);
 
     size_t i = hp->size;
@@ -97,13 +106,13 @@ void heap_insert_point(min_heap_t *hp, int x, int y, int z, unsigned int score)
  *  and then call heapify function to make sure that the heap property
  *  is never violated
  */
-point_t *heap_get_point(min_heap_t *hp)
+point_t *heap_get_point(struct minheap *hp)
 {
     if(hp->size)
     {
         point_t* point = hp->elem[0].point;
         hp->elem[0] = hp->elem[--(hp->size)];
-        hp->elem = realloc(hp->elem, hp->size * sizeof(heap_node_t));
+        hp->elem = realloc(hp->elem, hp->size * sizeof(struct node));
         heapify(hp, 0);
         return point;
     }
@@ -120,7 +129,7 @@ point_t *heap_get_point(min_heap_t *hp)
  *  compare which is larger. It shall be done recursively until we get the maximum
  *  node
  */
-point_t *heap_get_max_node(min_heap_t *hp, size_t i)
+point_t *heap_get_max_node(struct minheap *hp, size_t i)
 {
     if(LCHILD(i) >= hp->size)
     {
@@ -144,7 +153,7 @@ point_t *heap_get_max_node(min_heap_t *hp, size_t i)
 
 
 /* Function to clear the memory allocated for the min heap */
-void heap_delete(min_heap_t *hp)
+void heap_delete(struct minheap *hp)
 {
     free(hp->elem);
 }
@@ -153,7 +162,7 @@ void heap_delete(min_heap_t *hp)
 /*
    Function to display all the nodes in the min heap by doing a inorder traversal
    */
-void heap_inorder_trav(min_heap_t *hp, size_t i)
+void heap_inorder_trav(struct minheap *hp, size_t i)
 {
     if(LCHILD(i) < hp->size)
     {
@@ -170,7 +179,7 @@ void heap_inorder_trav(min_heap_t *hp, size_t i)
 /*
    Function to display all the nodes in the min heap by doing a preorder traversal
    */
-void heap_preorder_trav(min_heap_t *hp, size_t i)
+void heap_preorder_trav(struct minheap *hp, size_t i)
 {
     if(LCHILD(i) < hp->size)
     {
@@ -187,7 +196,7 @@ void heap_preorder_trav(min_heap_t *hp, size_t i)
 /*
    Function to display all the nodes in the min heap by doing a post order traversal
    */
-void heap_postorder_trav(min_heap_t *hp, size_t i)
+void heap_postorder_trav(struct minheap *hp, size_t i)
 {
     printf("%d ", hp->elem[i].point->score);
     if(LCHILD(i) < hp->size)
@@ -204,12 +213,17 @@ void heap_postorder_trav(min_heap_t *hp, size_t i)
 /*
    Function to display all the nodes in the min heap by doing a level order traversal
    */
-void heap_levelorder_trav(min_heap_t *hp)
+void heap_levelorder_trav(struct minheap *hp)
 {
     size_t i;
     for(i = 0; i < hp->size; i++)
     {
         printf("%d ", hp->elem[i].point->score);
     }
+}
+
+int heap_empty(struct minheap* heap)
+{
+    return heap->size == 0;
 }
 

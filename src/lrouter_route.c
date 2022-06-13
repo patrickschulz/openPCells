@@ -30,13 +30,13 @@ static point_t *get_min_point(point_t *arr)
 	return point;
 }
 
-int route(struct net *net, struct field* field, size_t wrong_dir_cost, size_t via_cost)
+void route(struct net *net, struct field* field, size_t wrong_dir_cost, size_t via_cost)
 {
-    struct position* pos0 = vector_get(net->positions, 0);
+    const struct position* pos0 = net_get_startpos(net);
 	unsigned int startx = pos0->x;
 	unsigned int starty = pos0->y;
 	unsigned int startz = pos0->z;
-    struct position* pos1 = vector_get(net->positions, 1);
+    const struct position* pos1 = net_get_endpos(net);
 	unsigned int endx = pos1->x;
 	unsigned int endy = pos1->y;
 	unsigned int endz = pos1->z;
@@ -45,7 +45,7 @@ int route(struct net *net, struct field* field, size_t wrong_dir_cost, size_t vi
 	       x:%u, y:%u, z:%u\n", startx, starty, startz, endx, endy, endz);
 
 	/* put starting point in min_heap */
-	min_heap_t* min_heap = heap_init();
+	struct minheap* min_heap = heap_init();
 	heap_insert_point(min_heap, startx, starty, startz, 0);
 
 	int score = 0;
@@ -130,12 +130,12 @@ int route(struct net *net, struct field* field, size_t wrong_dir_cost, size_t vi
 		}
 
         /* router is stuck */
-        if(!min_heap->size)
+        if(heap_empty(min_heap))
         {
             /* clean up */
             field_reset(field);
             heap_destroy(min_heap);
-            return STUCK;
+            return;
         }
 	} while(!(x == endx && y == endy && z == endz));
 
@@ -213,7 +213,7 @@ int route(struct net *net, struct field* field, size_t wrong_dir_cost, size_t vi
 		zdiff = npoint->z - (int)z;
 
 		point_t* path_point = point_new(xdiff, ydiff, zdiff, 0);
-		queue_enqueue(net->path, path_point);
+		net_enqueue_point(net, path_point);
 
 		x = npoint->x;
 		y = npoint->y;
@@ -221,13 +221,12 @@ int route(struct net *net, struct field* field, size_t wrong_dir_cost, size_t vi
 
 	} while (!(x == startx && y == starty && z == startz));
 
-	queue_reverse(net->path);
+	net_reverse_points(net);
 
 	/* mark start and end of net as ports */
     field_set(field, startx, starty, startz, PORT);
     field_set(field, endx, endy, endz, PORT);
 	field_reset(field);
-
-	return ROUTED;
+    net_mark_as_routed(net);
 }
 
