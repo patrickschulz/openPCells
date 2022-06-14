@@ -144,6 +144,10 @@ int route(net_t *net, int*** field, size_t width, size_t height,
 
 		}
 
+		field_print(field, width, height, 0);
+		field_print(field, width, height, 1);
+		getchar();
+
 	/* router is stuck */
 	if(!min_heap->size)
 	{
@@ -153,13 +157,13 @@ int route(net_t *net, int*** field, size_t width, size_t height,
 	}
 	} while(!(x == endx && y == endy && z == endz));
 
-	/* 
-    * backtrace
-    * go to end point 
-    */
+	   /*
+	    * backtrace
+	    * go to end point
+	    */
 	x = endx;
 	y = endy;
-    
+
     int xdiff = 0;
     int ydiff = 0;
     int zdiff = 0;
@@ -199,15 +203,27 @@ int route(net_t *net, int*** field, size_t width, size_t height,
 					continue;
 			}
 
-				if(nextfield < score)
-				{
-				    point_t point;
-				    point.x = nextx;
-				    point.y = nexty;
-				    point.z = nextz;
-				    point.score = nextfield;
-				    nextpoints[i] = point;
-				}
+			/*
+			 * check if next field is actually reachable
+			 * e.g. one via cost, one wrong direction cost or
+			 * one normal step cost lower (not an odd number of
+			 * points lower)
+			 */
+			int is_reachable = (score - nextfield == via_cost) ||
+					   (score - nextfield ==
+					    wrong_dir_cost) ||
+					   (score - nextfield == 1);
+
+
+			if(is_reachable && nextfield < score)
+			{
+			    point_t point;
+			    point.x = nextx;
+			    point.y = nexty;
+			    point.z = nextz;
+			    point.score = nextfield;
+			    nextpoints[i] = point;
+			}
 		}
 
 		bool next_is_via = false;

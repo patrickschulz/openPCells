@@ -36,7 +36,9 @@ local function _create_options(fixedrows, required_min_width, total_width, utili
             floorplan_width = required_min_width / math.sqrt(utilization)
             floorplan_height = area / utilization / floorplan_width
             print("Floorplan width is smaller than required width, this will be fixed.")
-            print(string.format("The actual aspect ratio (%.2f) will differ from the specified aspect ratio (%.2f)", floorplan_width / floorplan_height, aspectratio))
+            print(string.format("The actual aspect ratio (%.2f) will differ from the specified aspect ratio (%.2f)",
+                floorplan_width / floorplan_height, aspectratio)
+            )
         end
 
         -- normalize
@@ -61,8 +63,10 @@ local function _create_options(fixedrows, required_min_width, total_width, utili
     if options.desired_row_width == 0 then
         moderror("desired row width is zero")
     end
-    if options.desired_row_width >= options.floorplan_width then
-        moderror("desired row width must be smaller than floorplan width")
+    if options.desired_row_width > options.floorplan_width then
+        moderror(string.format("desired row width (%d) must be smaller than floorplan width (%d)",
+            options.desired_row_width, options.floorplan_width)
+        )
     end
     return options
 end
@@ -76,6 +80,9 @@ end
 
 function M.create_floorplan_fixed_rows(instances, utilization, numrows)
     -- placer options
+    if #instances < numrows then
+        moderror(string.format("placement.create_floorplan_fixed_rows: number of rows (%d) must not be larger than number of instances (%d)", numrows, #instances))
+    end
     local required_min_width, total_width = _get_geometry(instances)
     local options = _create_options(numrows, required_min_width, total_width, utilization) -- aspectratio not used
     return options
@@ -95,6 +102,22 @@ function M.optimize(instances, nets, floorplan)
     return rows
 end
 
+function M.manual(instances, names)
+    local rows = {}
+    for _, rownames in ipairs(names) do
+        local row = {}
+        for _, name in ipairs(rownames) do
+            for _, inst in ipairs(instances) do
+                if inst.instance == name then
+                    table.insert(row, inst)
+                end
+            end
+        end
+        table.insert(rows, row)
+    end
+    return rows
+end
+
 function M.insert_filler_names(rows, width)
     -- calculate row widths
     local rowwidths = {}
@@ -102,7 +125,6 @@ function M.insert_filler_names(rows, width)
         rowwidths[row] = 0
         for column, cellname in ipairs(entries) do
             local cellwidth = cellname.width
-            print(cellname.reference, cellwidth)
             rowwidths[row] = rowwidths[row] + cellwidth
         end
         -- check for too wide rows

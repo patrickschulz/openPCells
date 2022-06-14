@@ -122,7 +122,7 @@ void field_print(int*** field, size_t width, size_t height, unsigned int layer)
 				purple();
 			else
 				normal();
-			printf("%2i", field[layer][j][i]);
+			printf("%4i", field[layer][j][i]);
 		}
 		printf("\n");
 	}
