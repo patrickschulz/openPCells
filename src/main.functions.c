@@ -48,7 +48,7 @@ int main_call_lua_program(lua_State* L, const char* filename)
 
 int main_call_lua_program_from_buffer(lua_State* L, const unsigned char* data, size_t len, const char* name)
 {
-    int status = luaL_loadbuffer(L, data, len, name);
+    int status = luaL_loadbuffer(L, (const char*)data, len, name);
     if(status == LUA_OK)
     {
         lua_pushcfunction(L, util_msghandler);
