@@ -46,7 +46,7 @@ int main_call_lua_program(lua_State* L, const char* filename)
     return LUA_OK;
 }
 
-int main_call_lua_program_from_buffer(lua_State* L, const char* data, size_t len, const char* name)
+int main_call_lua_program_from_buffer(lua_State* L, const unsigned char* data, size_t len, const char* name)
 {
     int status = luaL_loadbuffer(L, data, len, name);
     if(status == LUA_OK)
@@ -69,7 +69,7 @@ int main_call_lua_program_from_buffer(lua_State* L, const char* data, size_t len
     return LUA_OK;
 }
 
-int main_load_module(lua_State* L, const char* data, size_t len, const char* name, const char* chunkname)
+int main_load_module(lua_State* L, const unsigned char* data, size_t len, const char* name, const char* chunkname)
 {
     int status = main_call_lua_program_from_buffer(L, data, len, chunkname);
     if(status == LUA_OK)
