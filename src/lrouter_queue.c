@@ -9,13 +9,13 @@
 #include <stdlib.h>
 
 struct queue_node {
-	struct queue_node *next;
-	void *data;
+    struct queue_node *next;
+    void *data;
 };
 
 struct queue {
-	struct queue_node *front;
-	struct queue_node *back;
+    struct queue_node *front;
+    struct queue_node *back;
 };
 
 struct queue *queue_new(void)
@@ -150,20 +150,20 @@ void queue_reverse(struct queue *queue)
     queue->front = prev;
 }
 
-point_t *queue_as_array(struct queue *queue)
+struct rpoint *queue_as_array(struct queue *queue)
 {
     if(queue_len(queue) < 1)
     {
         return NULL;
     }
 
-    point_t *arr = calloc(queue_len(queue), sizeof(*arr));
+    struct rpoint *arr = calloc(queue_len(queue), sizeof(*arr));
     int i = 0;
     struct queue_node *node = queue->front;
 
     while(node != NULL)
     {
-        arr[i] = *(point_t *)node->data;
+        arr[i] = *(struct rpoint*)node->data;
         free(node->data);
         node = node->next;
         i++;

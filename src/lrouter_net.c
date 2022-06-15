@@ -100,12 +100,12 @@ const struct position* net_get_endpos(const struct net* net)
     return net->endpos;
 }
 
-void net_enqueue_point(struct net* net, point_t* pt)
+void net_enqueue_point(struct net* net, struct rpoint* pt)
 {
-	queue_enqueue(net->path, pt);
+    queue_enqueue(net->path, pt);
 }
 
-point_t* net_dequeue_point(struct net* net)
+struct rpoint* net_dequeue_point(struct net* net)
 {
     return queue_dequeue(net->path);
 }
@@ -125,7 +125,7 @@ void net_create_deltas(struct net *net)
         return;
     }
 
-    point_t *points;
+    struct rpoint *points;
     if((points = queue_as_array(net->path)) == NULL)
     {
         return;
@@ -150,26 +150,26 @@ void net_create_deltas(struct net *net)
 
         if(points[i].x && !points[i+1].x)
         {
-            point_t *point = point_new(xsteps, 0, 0, 0);
+            struct rpoint *point = point_new(xsteps, 0, 0, 0);
             queue_enqueue(net->path, point);
             xsteps = 0;
         }
         else if(points[i].y && !points[i+1].y)
         {
-            point_t *point = point_new(0, ysteps, 0, 0);
+            struct rpoint *point = point_new(0, ysteps, 0, 0);
             queue_enqueue(net->path, point);
             ysteps = 0;
         }
         else if(points[i].z && !points[i+1].z)
         {
-            point_t *point = point_new(0, 0, zsteps, 0);
+            struct rpoint *point = point_new(0, 0, zsteps, 0);
             queue_enqueue(net->path, point);
             zsteps = 0;
         }
     }
 
     /* put last connection to end port into queue (no corner here) */
-    point_t *point;
+    struct rpoint *point;
     xsteps += points[net_len - 1].x;
     ysteps += points[net_len - 1].y;
     zsteps += points[net_len - 1].z;

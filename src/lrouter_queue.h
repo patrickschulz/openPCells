@@ -24,6 +24,6 @@ void queue_reverse(struct queue *queue);
 void *queue_peek_nth_elem(struct queue *queue, unsigned int n);
 
 /* takes a queue and gives back the entries as a position_t array */
-point_t *queue_as_array(struct queue *queue);
+struct rpoint* queue_as_array(struct queue *queue);
 
 #endif

@@ -91,6 +91,11 @@ static int* _get(struct field* field, size_t x, size_t y, size_t z)
     return &field->content[x + y * field->width + z * field->width * field->height];
 }
 
+static int _get_const(const struct field* field, size_t x, size_t y, size_t z)
+{
+    return field->content[x + y * field->width + z * field->width * field->height];
+}
+
 void field_print(struct field* field, int layer)
 {
     for(size_t i = 0; i < field->width + 1; ++i)
@@ -108,7 +113,7 @@ void field_print(struct field* field, int layer)
     for(int i = (int)field->height - 1; i >= 0; i--)
     {
         normal();
-        printf("%02i ", i);
+        printf("%04i ", i);
         for(size_t j = 0; j < field->width; j++)
         {
             switch(*_get(field, j, i, layer))
@@ -129,15 +134,15 @@ void field_print(struct field* field, int layer)
                     normal();
                     break;
             }
-            printf("%2i", *_get(field, j, i, layer));
+            printf("%4i", *_get(field, j, i, layer));
         }
         putchar('\n');
     }
 }
 
-point_t *point_new(int x, int y, int z, unsigned int score)
+struct rpoint *point_new(int x, int y, int z, unsigned int score)
 {
-    point_t* new_point = malloc(sizeof(*new_point));
+    struct rpoint* new_point = malloc(sizeof(*new_point));
     if(new_point == NULL)
     {
         return NULL;
@@ -166,6 +171,18 @@ size_t field_get_num_layers(struct field* field)
     return field->num_layers;
 }
 
+int field_is_field_point(const struct field* field, size_t x, size_t y, size_t z)
+{
+    return (x < field->width && y < field->height && z < field->num_layers);
+}
+
+int field_is_visitable(const struct field* field, size_t x, size_t y, size_t z)
+{
+    int value = _get_const(field, x, y, z);
+    return value >= 0;
+}
+
+
 void field_set(struct field* field, size_t x, size_t y, size_t z, int what)
 {
     *_get(field, x, y, z) = what;
@@ -187,7 +204,7 @@ void field_unprint(size_t size)
     }
 }
 
-void field_create_blockage(struct field* field, point_t* start, point_t* end)
+void field_create_blockage(struct field* field, struct rpoint* start, struct rpoint* end)
 {
     int len = 0;
     int xincr = 0;
@@ -195,13 +212,29 @@ void field_create_blockage(struct field* field, point_t* start, point_t* end)
 
     if(start->x != end->x)
     {
-        len = abs(start->x - end->x);
-        xincr = (end->x < start->x) ? -1 : 1;
+        if(start->x > end->x)
+        {
+            len = start->x - end->x;
+            xincr = -1;
+        }
+        else
+        {
+            len = end->x - start->x;
+            xincr = 1;
+        }
     }
     else
     {
-        len = abs(start->y - end->y);
-        yincr = (end->y < start->y) ? -1 : 1;
+        if(start->y > end->y)
+        {
+            len = start->y - end->y;
+            yincr = -1;
+        }
+        else
+        {
+            len = end->y - start->y;
+            yincr = 1;
+        }
     }
 
     for(int i = 0; i < len; i++)

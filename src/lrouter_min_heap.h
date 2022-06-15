@@ -3,7 +3,7 @@
 *  Desc:   Program showing various operations on a binary min heap
 *  Author: Robin Thomas <robinthomas2591@gmail.com>
 *  Taken from: https://github.com/robin-thomas/min-heap
-*  Changed and restructured by Philipp Nickel to store point_t
+*  Changed and restructured by Philipp Nickel to store struct rpoint
 */
 
 #ifndef LROUTER_MIN_HEAP_H
@@ -32,7 +32,7 @@ void heap_insert_point(struct minheap *hp, int x, int y, int z, unsigned int sco
 *  and then call heapify function to make sure that the heap property
 *  is never violated
 */
-point_t *heap_get_point(struct minheap *hp);
+struct rpoint *heap_get_point(struct minheap *hp);
 
 /* Function to display all the nodes in the min heap by inorder traversal */
 void heap_inorder_trav(struct minheap *hp, size_t i);

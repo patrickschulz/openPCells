@@ -3,7 +3,7 @@
  *  Desc:   Program showing various operations on a binary min heap
  *  Author: Robin Thomas <robinthomas2591@gmail.com>
  *  Taken from: https://github.com/robin-thomas/min-heap
- *  Changed and restructured by Philipp Nickel to store point_t
+ *  Changed and restructured by Philipp Nickel to store struct rpoint
  */
 
 #include "lrouter_field.h"
@@ -18,7 +18,7 @@
 #define PARENT(x) (x - 1) / 2
 
 struct node {
-    point_t *point;
+    struct rpoint *point;
 };
 
 struct minheap {
@@ -106,11 +106,11 @@ void heap_insert_point(struct minheap *hp, int x, int y, int z, unsigned int sco
  *  and then call heapify function to make sure that the heap property
  *  is never violated
  */
-point_t *heap_get_point(struct minheap *hp)
+struct rpoint *heap_get_point(struct minheap *hp)
 {
     if(hp->size)
     {
-        point_t* point = hp->elem[0].point;
+        struct rpoint* point = hp->elem[0].point;
         hp->elem[0] = hp->elem[--(hp->size)];
         hp->elem = realloc(hp->elem, hp->size * sizeof(struct node));
         heapify(hp, 0);
@@ -129,16 +129,16 @@ point_t *heap_get_point(struct minheap *hp)
  *  compare which is larger. It shall be done recursively until we get the maximum
  *  node
  */
-point_t *heap_get_max_node(struct minheap *hp, size_t i)
+struct rpoint *heap_get_max_node(struct minheap *hp, size_t i)
 {
     if(LCHILD(i) >= hp->size)
     {
         return hp->elem[i].point;
     }
 
-    point_t *left = heap_get_max_node(hp, LCHILD(i));
+    struct rpoint *left = heap_get_max_node(hp, LCHILD(i));
     unsigned int l = left->score;
-    point_t *right = heap_get_max_node(hp, RCHILD(i));
+    struct rpoint *right = heap_get_max_node(hp, RCHILD(i));
     unsigned int r = right->score;
 
     if(l >= r)

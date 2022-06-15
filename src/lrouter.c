@@ -19,10 +19,10 @@
 
 struct netcollection {
     struct vector* nets;
-    struct vector* blockages; /* stores vector* of point_t* */
+    struct vector* blockages; /* stores vector* of struct rpoint* */
 };
 
-static point_t* _create_point(lua_State *L)
+static struct rpoint* _create_point(lua_State *L)
 {
     lua_getfield(L, -1, "x");
     int x = lua_tointeger(L, -1) - 1;
@@ -161,8 +161,8 @@ static void _fill_blockages(struct field* field, struct netcollection *nc)
         struct vector* deltas = vector_get(nc->blockages, i);
         for(size_t j = 0; j < vector_size(deltas) - 1; j++)
         {
-            point_t* start = vector_get(deltas, j);
-            point_t* end = vector_get(deltas, j + 1);
+            struct rpoint* start = vector_get(deltas, j);
+            struct rpoint* end = vector_get(deltas, j + 1);
             field_create_blockage(field, start, end);
         }
     }
@@ -223,7 +223,7 @@ int lrouter_route(lua_State* L)
             int point_count = 2;
             while(1)
             {
-                point_t* curr_point = net_dequeue_point(net);
+                struct rpoint* curr_point = net_dequeue_point(net);
                 if(!curr_point)
                 {
                     break;
@@ -277,7 +277,7 @@ int lrouter_route(lua_State* L)
 
     for(unsigned int i = 0; i < 2; ++i)
     {
-        field_print(field, i);
+        //field_print(field, i);
     }
 
     field_destroy(field);

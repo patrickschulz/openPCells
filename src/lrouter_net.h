@@ -30,8 +30,8 @@ const char* net_get_name(const struct net* net);
 const struct position* net_get_startpos(const struct net* net);
 const struct position* net_get_endpos(const struct net* net);
 
-void net_enqueue_point(struct net* net, point_t* pt);
-point_t* net_dequeue_point(struct net* net);
+void net_enqueue_point(struct net* net, struct rpoint* pt);
+struct rpoint* net_dequeue_point(struct net* net);
 void net_reverse_points(struct net* net);
 
 /*
