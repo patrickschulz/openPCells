@@ -82,21 +82,21 @@ static int _parse_point(const char* arg, int* xptr, int* yptr)
     {
         if(*ptr == '(')
         {
-            idx1 = ptr - arg;
+            idx1 = (unsigned int)(ptr - arg);
         }
         if(*ptr == ',')
         {
-            idx2 = ptr - arg;
+            idx2 = (unsigned int)(ptr - arg);
         }
         ++ptr;
     }
     char* endptr;
-    int x = strtol(arg + idx1 + 1, &endptr, 10);
+    int x = (int)strtol(arg + idx1 + 1, &endptr, 10);
     if(endptr == arg + idx1 + 1)
     {
         return 0;
     }
-    int y = strtol(arg + idx2 + 1, &endptr, 10);
+    int y = (int)strtol(arg + idx2 + 1, &endptr, 10);
     if(endptr == arg + idx2 + 1)
     {
         return 0;
