@@ -159,7 +159,12 @@ void route(struct net *net, struct field* field, size_t wrong_dir_cost, size_t v
                 continue;
             }
 
-            if(nextfield < score && nextfield < nextpoint.score)
+            int is_reachable =
+                ((score - nextfield) == via_cost) ||
+                ((score - nextfield) == wrong_dir_cost) ||
+                ((score - nextfield) == 1);
+
+            if(is_reachable && nextfield < score && nextfield < nextpoint.score)
             {
                 nextpoint = next;
                 nextpoint.score = nextfield;
