@@ -31,8 +31,6 @@ void route(struct net *net, struct field* field, int step_cost, int wrong_dir_co
     const struct position* startpos = net_get_startpos(net);
     const struct position* endpos = net_get_endpos(net);
 
-    printf("calling route with net '%s' from x:%u, y:%u, z:%u to x:%u, y:%u, z:%u\n", net_get_name(net), startpos->x, startpos->y, startpos->z, endpos->x, endpos->y, endpos->z);
-
     /* put starting point in min_heap */
     struct minheap* min_heap = heap_init();
     heap_insert_point(min_heap, startpos->x, startpos->y, startpos->z, 0);
@@ -172,7 +170,6 @@ void route(struct net *net, struct field* field, int step_cost, int wrong_dir_co
             }
         }
 
-        printf("nextpoint = (%d, %d, %d)\n", nextpoint.x, nextpoint.y, nextpoint.z);
         if(nextpoint.z != current.z)
         {
             field_set(field, current.x, current.y, current.z, VIA);
