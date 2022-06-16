@@ -244,16 +244,8 @@ int lrouter_route(lua_State* L)
                 }
 
                 /* move entry */
-                /* FIXME: not sure why "zero" deltas are happening */
-                if(curr_point->x || curr_point->y || curr_point->z)
-                {
-                    lua_rawseti(L, -2, point_count + 1);
-                    point_count++;
-                }
-                else
-                {
-                    lua_pop(L, 1);
-                }
+                lua_rawseti(L, -2, point_count + 1);
+                point_count++;
                 free(curr_point);
             }
 
