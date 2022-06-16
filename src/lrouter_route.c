@@ -26,7 +26,7 @@ static int _next_field_position(int i, const struct rpoint* current, struct rpoi
     return 1;
 }
 
-void route(struct net *net, struct field* field, size_t wrong_dir_cost, size_t via_cost)
+void route(struct net *net, struct field* field, int step_cost, int wrong_dir_cost, int via_cost)
 {
     const struct position* startpos = net_get_startpos(net);
     const struct position* endpos = net_get_endpos(net);
@@ -73,7 +73,7 @@ void route(struct net *net, struct field* field, size_t wrong_dir_cost, size_t v
             }
 
             /* decide the val of the score incrementer */
-            int score_incr = 1;
+            int score_incr = step_cost;
             if(next.z != current.z) /* via */
             {
                 score_incr = via_cost;
@@ -127,6 +127,7 @@ void route(struct net *net, struct field* field, size_t wrong_dir_cost, size_t v
         }
     } while(!(current.x == endpos->x && current.y == endpos->y && current.z == endpos->z));
 
+
     heap_destroy(min_heap);
 
     int xdiff = 0;
@@ -162,7 +163,7 @@ void route(struct net *net, struct field* field, size_t wrong_dir_cost, size_t v
             int is_reachable =
                 ((score - nextfield) == via_cost) ||
                 ((score - nextfield) == wrong_dir_cost) ||
-                ((score - nextfield) == 1);
+                ((score - nextfield) == step_cost);
 
             if(is_reachable && nextfield < score && nextfield < nextpoint.score)
             {

@@ -181,8 +181,9 @@ int lrouter_route(lua_State* L)
     const size_t field_width = lua_tointeger(L, 3);
     const size_t num_layers = 3;
 
-    const unsigned int via_cost = 10;
-    const unsigned int wrong_dir_cost = 30;
+    const int step_cost = 2;
+    const int via_cost = 63;
+    const int wrong_dir_cost = 11;
 
     struct field* field = field_init(field_width + 1, field_height, num_layers);
     _fill_blockages(field, nc);
@@ -198,7 +199,7 @@ int lrouter_route(lua_State* L)
     for(unsigned int i = 0; i < vector_size(nc->nets); ++i)
     {
         struct net* net = vector_get(nc->nets, i);
-        route(net, field, via_cost, wrong_dir_cost);
+        route(net, field, step_cost, wrong_dir_cost, via_cost);
 
         if(net_is_routed(net))
         {
