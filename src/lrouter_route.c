@@ -31,8 +31,9 @@ static point_t *get_min_point(point_t *arr)
 	return point;
 }
 
-int route(net_t *net, int*** field, size_t width, size_t height,
-	  size_t num_layers, size_t wrong_dir_cost, size_t via_cost)
+int route(net_t *net, int*** field, unsigned int width, unsigned int height,
+	  unsigned int num_layers, unsigned int wrong_dir_cost,
+	  unsigned int via_cost, unsigned int step_cost)
 {
 	unsigned int startx = net->positions[0].x;
 	unsigned int starty = net->positions[0].y;
@@ -92,7 +93,7 @@ int route(net_t *net, int*** field, size_t width, size_t height,
 			int nextfield = field[nextz][nextx][nexty];
 
 			/* decide the val of the score incrementer */
-			unsigned int score_incr = 1;
+			unsigned int score_incr = step_cost;
 			if(nextz != z)
 			{
 				/* got a via */
@@ -208,7 +209,7 @@ int route(net_t *net, int*** field, size_t width, size_t height,
 			int is_reachable = ((score - nextfield) == via_cost) ||
 					   ((score - nextfield) == 
 					    wrong_dir_cost) ||
-					   ((score - nextfield) == 1);
+					   ((score - nextfield) == step_cost);
 
 
 			if(is_reachable && nextfield < score)

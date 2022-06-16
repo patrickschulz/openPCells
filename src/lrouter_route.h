@@ -7,7 +7,8 @@
 #define ROUTED 1
 
 /* use lee algorithm for routing, returns 1 on possible routing, 0 on stuck */
-int route(net_t *net, int*** field, size_t width, size_t height,
-	  size_t num_layers, size_t wrong_dir_cost, size_t via_cost);
+int route(net_t *net, int*** field, unsigned int width, unsigned int height,
+	  unsigned int num_layers, unsigned int wrong_dir_cost,
+	  unsigned int via_cost, unsigned int step_cost);
 
 #endif

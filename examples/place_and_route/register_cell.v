@@ -4,15 +4,15 @@
 (* src = "register_cell.sv:2.1-37.10" *)
 module register_cell(chain_in, update, clk, reset, enable, chain_out, bit_out);
   (* src = "register_cell.sv:14.5-21.8" *)
-  wire _00_;
+  wire _01_;
   (* src = "register_cell.sv:14.5-21.8" *)
   wire _01_;
   (* src = "register_cell.sv:4.15-4.23" *)
-  wire _02_;
+  wire chain_in;
   (* src = "register_cell.sv:9.16-9.25" *)
-  wire _03_;
+  wire chain_out;
   (* src = "register_cell.sv:8.15-8.21" *)
-  wire _04_;
+  wire enable;
   wire _05_;
   wire _06_;
   wire _07_;
@@ -33,16 +33,16 @@ module register_cell(chain_in, update, clk, reset, enable, chain_out, bit_out);
   (* src = "register_cell.sv:5.15-5.21" *)
   input update;
   not_gate inv (
-    .I(_04_),
+    .I(enable),
     .O(_05_)
   );
   nand_gate nand1 (
-    .A(_02_),
-    .B(_04_),
+    .A(chain_in),
+    .B(enable),
     .O(_06_)
   );
   nand_gate nand2 (
-    .A(_03_),
+    .A(chain_out),
     .B(_05_),
     .O(_07_)
   );
@@ -67,11 +67,7 @@ module register_cell(chain_in, update, clk, reset, enable, chain_out, bit_out);
   (* src = "register_cell.sv:14.5-21.8" *)
   dffpq dff_in (
     .CLK(clk),
-    .D(_00_),
+    .D(_01_),
     .Q(ff_in)
   );
-  assign _03_ = chain_out;
-  assign _02_ = chain_in;
-  assign _04_ = enable;
-  assign _00_ = _01_;
 endmodule
