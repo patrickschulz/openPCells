@@ -14,13 +14,11 @@ function M.collect_nets_cells(netlist, cellinfo)
             -- create nets
             local ct = {}
             for _, c in ipairs(instance.connections) do
-                if not aux.any_of(function(v) return v == c.net end, module:get_ports()) then
-                    if not netset[c.net] then
-                        netset[c.net] = true
-                        table.insert(nets, c.net)
-                    end
-                    table.insert(ct, { name = c.net, port = c.port })
+                if not netset[c.net] then
+                    netset[c.net] = true
+                    table.insert(nets, c.net)
                 end
+                table.insert(ct, { name = c.net, port = c.port })
             end
             local pinoffsets = cellinfo[instance.reference] and cellinfo[instance.reference].pinoffsets
             if not pinoffsets then
