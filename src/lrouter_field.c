@@ -98,25 +98,20 @@ static int _get_const(const struct field* field, size_t x, size_t y, size_t z)
 
 void field_print(struct field* field, int layer)
 {
-    for(size_t i = 0; i < field->width + 1; ++i)
-    {
-        if(i == field->width)
-        {
-            printf("%u", layer);
-        }
-        else
-        {
-            fputs("==", stdout);
-        }
-    }
-    fputs("=\n", stdout);
-    for(int i = (int)field->height - 1; i >= 0; i--)
+    //for(size_t i = 0; i < field->width; ++i)
+    //{
+    //    fputs("=====", stdout);
+    //}
+    printf("layer %u\n", layer);
+    for(size_t i = 0; i < field->height; ++i)
     {
         normal();
-        printf("%04i ", i);
+        size_t yidx = field->height - i - 1;
+        printf("%04li:", yidx);
         for(size_t j = 0; j < field->width; j++)
         {
-            switch(*_get(field, j, i, layer))
+            int value = *_get(field, j, yidx, layer);
+            switch(value)
             {
                 case(PATH):
                     green();
@@ -134,7 +129,7 @@ void field_print(struct field* field, int layer)
                     normal();
                     break;
             }
-            printf("%4i", *_get(field, j, i, layer));
+            printf("%4i", value);
         }
         putchar('\n');
     }
