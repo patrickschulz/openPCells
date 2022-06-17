@@ -271,8 +271,8 @@ int lrouter_route(lua_State* L)
         if(nc->nets[i].size > 1)
         {
 	        nc->nets[i].routed = route(&nc->nets[i], field, field_width,
-                       field_height, num_layers, via_cost,
-                       wrong_dir_cost, step_cost);
+                       field_height, num_layers, step_cost, wrong_dir_cost,
+                       via_cost);
         }
 
 
