@@ -130,10 +130,10 @@ static struct netcollection* _initialize(lua_State* L)
     nc->blockages = blockages;
     nc->num_blockages = num_blockages;
 
-    for(int i = 0; i < num_blockages; i++)
+    for(unsigned int i = 0; i < num_blockages; i++)
     {
 	printf("blockage nr %i\n", i);
-        for(int j = 0; j < blockages[i].num_deltas; j++)
+        for(unsigned int j = 0; j < blockages[i].num_deltas; j++)
         {
 	    int x = blockages[i].deltas[j].x;
 	    int y = blockages[i].deltas[j].y;

@@ -12,7 +12,7 @@
 
 /* point of the field struct */
 typedef struct {
-	int x, y, z;
+	unsigned int x, y, z;
 	unsigned int score;
 } point_t;
 

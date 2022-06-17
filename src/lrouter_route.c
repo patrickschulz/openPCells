@@ -32,8 +32,8 @@ static point_t *get_min_point(point_t *arr)
 }
 
 int route(net_t *net, int*** field, unsigned int width, unsigned int height,
-	  unsigned int num_layers, unsigned int wrong_dir_cost,
-	  unsigned int via_cost, unsigned int step_cost)
+	  unsigned int num_layers, unsigned int step_cost,
+	  unsigned int wrong_dir_cost, unsigned int via_cost)
 {
 	unsigned int startx = net->positions[0].x;
 	unsigned int starty = net->positions[0].y;
@@ -119,17 +119,17 @@ int route(net_t *net, int*** field, unsigned int width, unsigned int height,
 			   nextfield == UNVISITED ||
 			   (score + (int)score_incr < nextfield))
 			{
-				if(nextx == endx &&
-				   nexty == endy &&
-				   nextz == endz)
-				{
-					/*
-					 * if next point is endpoint
-					 * put it into front of heap
-					 * so empty the heap (not nice way)
-					 */
-					while(heap_get_point(min_heap));
-				}
+//				if(nextx == endx &&
+//				   nexty == endy &&
+//				   nextz == endz)
+//				{
+//					/*
+//					 * if next point is endpoint
+//					 * put it into front of heap
+//					 * so empty the heap (not nice way)
+//					 */
+//					while(heap_get_point(min_heap));
+//				}
 
 				field[nextz][nextx][nexty] = score + score_incr;
 
@@ -152,12 +152,19 @@ int route(net_t *net, int*** field, unsigned int width, unsigned int height,
 		field_reset(field, width, height, num_layers);
 		return STUCK;
 	}
+
+//	field_print(field, width, height, 0);
+//	field_print(field, width, height, 1);
+//	getchar();
+
 	} while(!(x == endx && y == endy && z == endz));
 
 	   /*
 	    * backtrace
 	    * go to end point
 	    */
+
+
 	x = endx;
 	y = endy;
 
@@ -206,10 +213,10 @@ int route(net_t *net, int*** field, unsigned int width, unsigned int height,
 			 * one normal step cost lower (not an odd number of
 			 * points lower)
 			 */
-			int is_reachable = ((score - nextfield) == via_cost) ||
-					   ((score - nextfield) == 
+			int is_reachable = ((score - (unsigned int)nextfield) == via_cost) ||
+					   ((score - (unsigned int)nextfield) == 
 					    wrong_dir_cost) ||
-					   ((score - nextfield) == step_cost);
+					   ((score - (unsigned int)nextfield) == step_cost);
 
 
 			if(is_reachable && nextfield < score)
@@ -231,7 +238,7 @@ int route(net_t *net, int*** field, unsigned int width, unsigned int height,
 			field[z][x][y] = VIA;
 			next_is_via = true;
 		}
-		else if(npoint->z != (int)z)
+		else if(npoint->z != z)
 		{
 			field[z][x][y] = VIA;
 			next_is_via = true;
@@ -255,6 +262,11 @@ int route(net_t *net, int*** field, unsigned int width, unsigned int height,
 		y = npoint->y;
 		z = npoint->z;
 
+	field_print(field, width, height, 0);
+	field_print(field, width, height, 1);
+	getchar();
+
+
 	} while (!(x == startx && y == starty && z == startz));
 
 	queue_reverse(net->path);
@@ -262,6 +274,8 @@ int route(net_t *net, int*** field, unsigned int width, unsigned int height,
 	/* mark start and end of net as ports */
 	field[startz][startx][starty] = PORT;
 	field[endz][endx][endy] = PORT;
+
+
 	field_reset(field, width, height, num_layers);
 
 	return ROUTED;
