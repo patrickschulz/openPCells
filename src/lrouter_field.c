@@ -89,7 +89,7 @@ void field_destroy(int*** field, size_t width, size_t height, size_t num_layers)
 {
 	for(size_t i = 0; i < num_layers; i++)
 	{
-	    for(size_t j = 0; j < height; j++)
+	    for(size_t j = 0; j < width; j++)
 	    {
 		    free(field[i][j]);
 	    }
