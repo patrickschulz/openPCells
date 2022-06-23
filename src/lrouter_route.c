@@ -212,12 +212,13 @@ int route(net_t *net, int*** field, unsigned int width, unsigned int height,
 			 * check if next field is actually reachable
 			 * e.g. one via cost, one wrong direction cost or
 			 * one normal step cost lower (not an odd number of
-			 * points lower)
+			 * points lower) also checks if the costs align with 
+             * running in the wrong direction
 			 */
+            int is_wrong_dir = (yincr[i] && EVEN(z)) || (xincr[i] && !EVEN(z));
 			int is_reachable = ((score - (unsigned int)nextfield) == via_cost) ||
-					   ((score - (unsigned int)nextfield) == 
-					    wrong_dir_cost) ||
-					   ((score - (unsigned int)nextfield) == step_cost);
+					   (((score - (unsigned int)nextfield) == wrong_dir_cost) && is_wrong_dir) ||
+					   ((score - (unsigned int)nextfield) == step_cost && !is_wrong_dir);
 
 			if(is_reachable && nextfield < score)
 			{
@@ -262,12 +263,12 @@ int route(net_t *net, int*** field, unsigned int width, unsigned int height,
 		y = npoint->y;
 		z = npoint->z;
 
-	if(strcmp(net->name, "ff_in") == 0)
-	{
-		field_print(field, width, height, 0);
-		field_print(field, width, height, 1);
-		getchar();
-	}
+	//if(strcmp(net->name, "ff_in") == 0)
+	//{
+	//	field_print(field, width, height, 0);
+	//	field_print(field, width, height, 1);
+	//	getchar();
+	//}
 
 
 
