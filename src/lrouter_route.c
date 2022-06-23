@@ -153,6 +153,7 @@ int route(net_t *net, int*** field, unsigned int width, unsigned int height,
 		return STUCK;
 	}
 
+
 //	field_print(field, width, height, 0);
 //	field_print(field, width, height, 1);
 //	getchar();
@@ -218,7 +219,6 @@ int route(net_t *net, int*** field, unsigned int width, unsigned int height,
 					    wrong_dir_cost) ||
 					   ((score - (unsigned int)nextfield) == step_cost);
 
-
 			if(is_reachable && nextfield < score)
 			{
 			    point_t point;
@@ -262,9 +262,13 @@ int route(net_t *net, int*** field, unsigned int width, unsigned int height,
 		y = npoint->y;
 		z = npoint->z;
 
-	field_print(field, width, height, 0);
-	field_print(field, width, height, 1);
-	getchar();
+	if(strcmp(net->name, "ff_in") == 0)
+	{
+		field_print(field, width, height, 0);
+		field_print(field, width, height, 1);
+		getchar();
+	}
+
 
 
 	} while (!(x == startx && y == starty && z == startz));

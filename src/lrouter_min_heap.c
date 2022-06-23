@@ -63,7 +63,7 @@ void heap_insert_point(min_heap_t *hp, point_t *point) {
     nd.point = point;
 
     size_t i = (hp->size)++;
-    while(i && nd.point->score <= hp->elem[PARENT(i)].point->score) {
+    while(i && nd.point->score < hp->elem[PARENT(i)].point->score) {
         hp->elem[i] = hp->elem[PARENT(i)];
         i = PARENT(i);
     }
