@@ -286,6 +286,7 @@ struct shape* geometry_path_to_polygon(struct generics* layer, point_t** points,
 
 struct vector* _get_any_angle_path_pts(point_t** pts, size_t len, ucoordinate_t width, ucoordinate_t grid, int miterjoin, int allow45)
 {
+    (void)allow45;
     struct vector* edges = _get_edge_segments(pts, len, width, grid);
     struct vector* poly = _get_path_pts(edges, miterjoin);
     vector_destroy(edges, point_destroy);

@@ -384,6 +384,10 @@ int lplacer_place_classic(lua_State* L)
     const int verbose = lua_toboolean(L, -1);
     lua_pop(L, 1);
 
+    (void)coolingfactor;
+    (void)moves_per_cell_per_temp;
+    (void)verbose;
+    (void)_simulated_annealing;
     //_simulated_annealing(&rstate, block, floorplan, coolingfactor, moves_per_cell_per_temp, verbose);
 
     placer_create_lua_result(L, block, get_cell_in_row_index, floorplan);
