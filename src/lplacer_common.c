@@ -106,6 +106,7 @@ void placer_initialize_base_cell(lua_State* L, struct basic_cell* base, size_t i
         lua_pop(L, 2); // pop pinoffset + pinoffsets table
         lua_pop(L, 1); // pop net
     }
+    lua_pop(L, 1); // pop nets table
 }
 
 void placer_destroy_base_cell_contents(struct basic_cell* base)
