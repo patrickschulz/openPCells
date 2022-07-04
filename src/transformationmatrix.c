@@ -4,20 +4,31 @@
 
 #include "point.h"
 
+/*
+ *  /   0   1   2   \
+ *  |   3   4   5   |
+ *  \   6   7   8   /
+ *  6 & 7 are always 0, 8 is always 1
+ *      -> these values are not explicitly stored
+ */
+struct transformationmatrix {
+    coordinate_t coefficients[6];
+};
+
 #define M(matrix, idx) matrix->coefficients[idx]
 
-transformationmatrix_t* transformationmatrix_create()
+struct transformationmatrix* transformationmatrix_create()
 {
-    transformationmatrix_t* matrix = malloc(sizeof(*matrix));
+    struct transformationmatrix* matrix = malloc(sizeof(*matrix));
     return matrix;
 }
 
-void transformationmatrix_destroy(transformationmatrix_t* matrix)
+void transformationmatrix_destroy(struct transformationmatrix* matrix)
 {
     free(matrix);
 }
 
-void transformationmatrix_identity(transformationmatrix_t* matrix)
+void transformationmatrix_identity(struct transformationmatrix* matrix)
 {
     M(matrix, 0) = 1;
     M(matrix, 1) = 0;
@@ -27,9 +38,9 @@ void transformationmatrix_identity(transformationmatrix_t* matrix)
     M(matrix, 5) = 0;
 }
 
-transformationmatrix_t* transformationmatrix_chain(const transformationmatrix_t* lhs, const transformationmatrix_t* rhs)
+struct transformationmatrix* transformationmatrix_chain(const struct transformationmatrix* lhs, const struct transformationmatrix* rhs)
 {
-    transformationmatrix_t* matrix = transformationmatrix_create();
+    struct transformationmatrix* matrix = transformationmatrix_create();
     M(matrix, 0) = M(lhs, 0) * M(rhs, 0) + M(lhs, 1) * M(rhs, 3);
     M(matrix, 1) = M(lhs, 0) * M(rhs, 1) + M(lhs, 1) * M(rhs, 4);
     M(matrix, 2) = M(lhs, 0) * M(rhs, 2) + M(lhs, 1) * M(rhs, 5) + M(lhs, 2);
@@ -39,9 +50,9 @@ transformationmatrix_t* transformationmatrix_chain(const transformationmatrix_t*
     return matrix;
 }
 
-transformationmatrix_t* transformationmatrix_copy(const transformationmatrix_t* old)
+struct transformationmatrix* transformationmatrix_copy(const struct transformationmatrix* old)
 {
-    transformationmatrix_t* matrix = transformationmatrix_create();
+    struct transformationmatrix* matrix = transformationmatrix_create();
     M(matrix, 0) = M(old, 0);
     M(matrix, 1) = M(old, 1);
     M(matrix, 2) = M(old, 2);
@@ -51,9 +62,9 @@ transformationmatrix_t* transformationmatrix_copy(const transformationmatrix_t* 
     return matrix;
 }
 
-transformationmatrix_t* transformationmatrix_invert(const transformationmatrix_t* old)
+struct transformationmatrix* transformationmatrix_invert(const struct transformationmatrix* old)
 {
-    transformationmatrix_t* matrix = transformationmatrix_create();
+    struct transformationmatrix* matrix = transformationmatrix_create();
     coordinate_t c0 = M(old, 0);
     coordinate_t c1 = M(old, 1);
     coordinate_t c2 = M(old, 2);
@@ -70,39 +81,39 @@ transformationmatrix_t* transformationmatrix_invert(const transformationmatrix_t
     return matrix;
 }
 
-void transformationmatrix_move_to(transformationmatrix_t* matrix, coordinate_t x, coordinate_t y)
+void transformationmatrix_move_to(struct transformationmatrix* matrix, coordinate_t x, coordinate_t y)
 {
     M(matrix, 2) = x;
     M(matrix, 5) = y;
 }
 
-void transformationmatrix_move_x_to(transformationmatrix_t* matrix, coordinate_t x)
+void transformationmatrix_move_x_to(struct transformationmatrix* matrix, coordinate_t x)
 {
     M(matrix, 2) = x;
 }
 
-void transformationmatrix_move_y_to(transformationmatrix_t* matrix, coordinate_t y)
+void transformationmatrix_move_y_to(struct transformationmatrix* matrix, coordinate_t y)
 {
     M(matrix, 5) = y;
 }
 
-void transformationmatrix_translate(transformationmatrix_t* matrix, coordinate_t dx, coordinate_t dy)
+void transformationmatrix_translate(struct transformationmatrix* matrix, coordinate_t dx, coordinate_t dy)
 {
     M(matrix, 2) += dx;
     M(matrix, 5) += dy;
 }
 
-void transformationmatrix_translate_x(transformationmatrix_t* matrix, coordinate_t dx)
+void transformationmatrix_translate_x(struct transformationmatrix* matrix, coordinate_t dx)
 {
     M(matrix, 2) += dx;
 }
 
-void transformationmatrix_translate_y(transformationmatrix_t* matrix, coordinate_t dy)
+void transformationmatrix_translate_y(struct transformationmatrix* matrix, coordinate_t dy)
 {
     M(matrix, 5) += dy;
 }
 
-void transformationmatrix_scale(transformationmatrix_t* matrix, double factor)
+void transformationmatrix_scale(struct transformationmatrix* matrix, double factor)
 {
     M(matrix, 0) *= factor;
     M(matrix, 1) *= factor;
@@ -112,21 +123,21 @@ void transformationmatrix_scale(transformationmatrix_t* matrix, double factor)
     M(matrix, 5) *= factor;
 }
 
-void transformationmatrix_mirror_x(transformationmatrix_t* matrix)
+void transformationmatrix_mirror_x(struct transformationmatrix* matrix)
 {
     M(matrix, 3) = -M(matrix, 3);
     M(matrix, 4) = -M(matrix, 4);
     M(matrix, 5) = -M(matrix, 5);
 }
 
-void transformationmatrix_mirror_y(transformationmatrix_t* matrix)
+void transformationmatrix_mirror_y(struct transformationmatrix* matrix)
 {
     M(matrix, 0) = -M(matrix, 0);
     M(matrix, 1) = -M(matrix, 1);
     M(matrix, 2) = -M(matrix, 2);
 }
 
-void transformationmatrix_mirror_origin(transformationmatrix_t* matrix)
+void transformationmatrix_mirror_origin(struct transformationmatrix* matrix)
 {
     M(matrix, 0) = -M(matrix, 0);
     M(matrix, 1) = -M(matrix, 1);
@@ -136,7 +147,7 @@ void transformationmatrix_mirror_origin(transformationmatrix_t* matrix)
     M(matrix, 5) = -M(matrix, 5);
 }
 
-void transformationmatrix_rotate_90_right(transformationmatrix_t* matrix)
+void transformationmatrix_rotate_90_right(struct transformationmatrix* matrix)
 {
     coordinate_t tmp = M(matrix, 3);
     M(matrix, 3) = -M(matrix, 0);
@@ -149,7 +160,7 @@ void transformationmatrix_rotate_90_right(transformationmatrix_t* matrix)
     M(matrix, 2) = tmp;
 }
 
-void transformationmatrix_rotate_90_left(transformationmatrix_t* matrix)
+void transformationmatrix_rotate_90_left(struct transformationmatrix* matrix)
 {
     coordinate_t tmp = M(matrix, 0);
     M(matrix, 0) = -M(matrix, 3);
@@ -162,7 +173,7 @@ void transformationmatrix_rotate_90_left(transformationmatrix_t* matrix)
     M(matrix, 5) = tmp;
 }
 
-void transformationmatrix_apply_transformation(const transformationmatrix_t* matrix, point_t* pt)
+void transformationmatrix_apply_transformation(const struct transformationmatrix* matrix, point_t* pt)
 {
     coordinate_t x = pt->x;
     coordinate_t y = pt->y;
@@ -170,7 +181,7 @@ void transformationmatrix_apply_transformation(const transformationmatrix_t* mat
     pt->y = M(matrix, 3) * x + M(matrix, 4) * y + M(matrix, 5);
 }
 
-void transformationmatrix_apply_transformation_xy(const transformationmatrix_t* matrix, coordinate_t* x, coordinate_t* y)
+void transformationmatrix_apply_transformation_xy(const struct transformationmatrix* matrix, coordinate_t* x, coordinate_t* y)
 {
     coordinate_t xx = *x;
     coordinate_t yy = *y;
@@ -178,7 +189,7 @@ void transformationmatrix_apply_transformation_xy(const transformationmatrix_t* 
     *y = M(matrix, 3) * xx + M(matrix, 4) * yy + M(matrix, 5);
 }
 
-void transformationmatrix_apply_inverse_transformation(const transformationmatrix_t* matrix, point_t* pt)
+void transformationmatrix_apply_inverse_transformation(const struct transformationmatrix* matrix, point_t* pt)
 {
     coordinate_t x = pt->x;
     coordinate_t y = pt->y;
@@ -187,3 +198,7 @@ void transformationmatrix_apply_inverse_transformation(const transformationmatri
     pt->y = (-M(matrix, 3) * x +  M(matrix, 0) * y + (-M(matrix, 0) * M(matrix, 5) - M(matrix, 2) * M(matrix, 3))) / det;
 }
 
+const coordinate_t* transformationmatrix_get_coefficients(const struct transformationmatrix* matrix)
+{
+    return matrix->coefficients;
+}

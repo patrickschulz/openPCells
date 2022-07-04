@@ -40,7 +40,7 @@ size_t object_get_shapes_size(const struct object* cell);
 struct shape* object_get_shape(struct object* cell, size_t idx);
 struct shape* object_get_transformed_shape(struct object* cell, size_t idx);
 
-const transformationmatrix_t* object_get_transformation_matrix(const struct object* cell);
+const struct transformationmatrix* object_get_transformation_matrix(const struct object* cell);
 
 // transformations
 void object_move_to(struct object* cell, coordinate_t x, coordinate_t y);

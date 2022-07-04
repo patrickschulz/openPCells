@@ -160,6 +160,7 @@ static struct vector* _rasterize_quartercircle(coordinate_t radius, unsigned int
     return pts;
 }
 
+/*
 static struct vector* _rasterize_quarterellipse(coordinate_t xradius, coordinate_t yradius, unsigned int grid, int allow45)
 {
     coordinate_t x = xradius;
@@ -190,6 +191,7 @@ static struct vector* _rasterize_quarterellipse(coordinate_t xradius, coordinate
     }
     return pts;
 }
+*/
 
 static unsigned int _map_xy_to_quadrant(coordinate_t x, coordinate_t y)
 {
@@ -410,6 +412,7 @@ static void _assemble_circle_points(struct vector* quarterpoints, unsigned int* 
     }
 }
 
+/*
 static void _ellipse(coordinate_t ox, coordinate_t oy, ucoordinate_t xradius, ucoordinate_t yradius, double startangle, double endangle, int clockwise, unsigned int grid, int allow45, struct vector* result)
 {
     //util.check_grid(grid, origin->x, origin->y, xradius, yradius)
@@ -429,6 +432,7 @@ static void _ellipse(coordinate_t ox, coordinate_t oy, ucoordinate_t xradius, uc
 
     _assemble_circle_points(quarterpoints, quadrants, xstart, ystart, xend, yend, ox, oy, clockwise, result);
 }
+*/
 
 static void _circle(coordinate_t ox, coordinate_t oy, ucoordinate_t radius, double startangle, double endangle, int clockwise, unsigned int grid, int allow45, struct vector* result)
 {

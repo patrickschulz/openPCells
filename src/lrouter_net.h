@@ -4,50 +4,48 @@
 #include <stddef.h>
 #include <string.h>
 
-typedef struct position_s position_t;
+#include "lrouter_field.h"
 
-#include "lrouter_queue.h"
+#include "vector.h"
 
-struct position_s {
-    char *instance;
-    char *port;
+struct position {
+    char* instance;
+    char* port;
     unsigned int x;
     unsigned int y;
     unsigned int z;
 };
 
-/* net struct */
-typedef struct {
-    char *name;
-    unsigned int size;
-    unsigned int ranking;
-    position_t *positions;
-    int routed;
-    /* queue to save the path in the end */
-    queue_t *path;
-} net_t;
+struct net;
+
+struct net* net_create(const char* name, int suffixnum, struct position* startpos, struct position* endpos);
+void net_destroy_position(void *pp);
+void net_destroy(void* np);
+
+void net_mark_as_routed(struct net* net);
+int net_is_routed(const struct net* net);
+
+const char* net_get_name(const struct net* net);
+
+const struct position* net_get_startpos(const struct net* net);
+const struct position* net_get_endpos(const struct net* net);
+
+void net_enqueue_point(struct net* net, struct rpoint* pt);
+struct rpoint* net_dequeue_point(struct net* net);
+void net_reverse_points(struct net* net);
 
 /*
  * sorts the nets in ascending order of number of
  * pins within their bounding boxes
  */
-void net_sort_nets(net_t *nets, size_t num_nets);
-
-void net_print_nets(net_t* nets, size_t num_nets);
+void net_sort_nets(struct vector* nets);
 
 /* fill ports of nets into field */
-void net_fill_ports(net_t* nets, size_t num_nets, int*** field);
+void net_fill_ports(struct vector* nets, struct field* field);
 
-/* prints the path of a given net */
-void net_print_path(net_t *net);
+void net_create_deltas(struct net *net);
 
-void net_create_deltas(net_t *net);
-
-/* deletes the nth element of an position_t array and resizes it */
-void net_del_nth_el_arr(position_t *arr, size_t n, size_t arr_size);
-
-/* constructor for position_t */
-position_t *net_create_position(const char *instance, const char *port,
-			       unsigned int x, unsigned int y);
+struct position* net_create_position(const char *instance, const char *port, unsigned int x, unsigned int y);
+struct position* net_copy_position(struct position* pos);
 
 #endif

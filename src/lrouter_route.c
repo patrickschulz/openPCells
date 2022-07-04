@@ -6,282 +6,198 @@
 
 #include <unistd.h>
 #include <stdlib.h>
-#include <stdbool.h>
 #include <stdio.h>
 #include <string.h>
 #include <limits.h>
 
-#define EVEN(val) ((val % 2 ) == 0)
+#define EVEN(val) ((val % 2) == 0)
 #define POSITIVE(val) (val > 0)
-#define NUM_DIRECTIONS 6
 
-/* helps to traverse the field */
+#define NUM_DIRECTIONS 6
 const int xincr[NUM_DIRECTIONS] = {-1, 0, 1, 0, 0, 0};
 const int yincr[NUM_DIRECTIONS] = {0, 1, 0, -1, 0, 0};
 const int zincr[NUM_DIRECTIONS] = {0, 0, 0, 0, -1, 1};
 
-/* returns the minimum score point from a NUM_DIRECTIONS large point_t array */
-static point_t *get_min_point(point_t *arr)
+static int _next_field_position(int i, const struct rpoint* current, struct rpoint* next)
 {
-	point_t *point = arr;
-	for(int i = 0; i < NUM_DIRECTIONS; i++)
-	{
-		point = (arr[i].score < point->score) ? &arr[i] : point;
-	}
-	return point;
+    next->x = current->x + xincr[i];
+    next->y = current->y + yincr[i];
+    next->z = current->z + zincr[i];
+    return 1;
 }
 
-int route(net_t *net, int*** field, unsigned int width, unsigned int height,
-	  unsigned int num_layers, unsigned int step_cost,
-	  unsigned int wrong_dir_cost, unsigned int via_cost)
+void route(struct net *net, struct field* field, int step_cost, int wrong_dir_cost, int via_cost)
 {
-	unsigned int startx = net->positions[0].x;
-	unsigned int starty = net->positions[0].y;
-	unsigned int startz = net->positions[0].z;
-	unsigned int endx = net->positions[1].x;
-	unsigned int endy = net->positions[1].y;
-	unsigned int endz = net->positions[1].z;
+    const struct position* startpos = net_get_startpos(net);
+    const struct position* endpos = net_get_endpos(net);
 
-	printf("calling route with net from x:%u, y:%u, z:%u to\
-	       x:%u, y:%u, z:%u\n", startx, starty, startz, endx, endy, endz);
+    /* put starting point in min_heap */
+    struct minheap* min_heap = heap_init();
+    heap_insert_point(min_heap, startpos->x, startpos->y, startpos->z, 0);
 
-	/* prepare starting point */
-	point_t start;
-	start.x = startx;
-	start.y = starty;
-	start.z = startz;
-	start.score = 0;
+    struct rpoint current = { .x = 0, .y = 0, .z = 0 };
 
-	/* put starting point in min_heap */
-	min_heap_t *min_heap = heap_init();
-	heap_insert_point(min_heap, &start);
+    field_set(field, startpos->x, startpos->y, startpos->z, 0);
 
-	net->path = queue_new();
+    /*
+     * do as long as there are points
+     * to be marked or
+     * endpoint is reached
+     */
+    do {
+        /* get next point from heap */
+        struct rpoint* point_ptr = heap_get_point(min_heap);
 
-	int score = 0;
-	unsigned int x, y, z, nextx, nexty, nextz = 0;
-	point_t *point_ptr;
-	field[startz][startx][starty] = 0;
+        current.x = point_ptr->x;
+        current.y = point_ptr->y;
+        current.z = point_ptr->z;
 
-	/*
-	 * do as long as there are points
-	 * to be marked or
-	 * endpoint is reached
-	 */
-	do {
-		/* get next point from heap */
-		point_ptr = heap_get_point(min_heap);
+        free(point_ptr);
 
-		x = point_ptr->x;
-		y = point_ptr->y;
-		z = point_ptr->z;
+        int score = field_get(field, current.x, current.y, current.z);
 
-		score = field[z][x][y];
+        /* circle around every point */
+        for(int i = 0; i < NUM_DIRECTIONS; i++)
+        {
+            struct rpoint next;
+            if(!_next_field_position(i, &current, &next))
+            {
+                continue;
+            }
 
-		/* circle around every point */
-		for(int i = 0; i < NUM_DIRECTIONS; i++)
-		{
-			nextx = x + xincr[i];
-			nexty = y + yincr[i];
-			nextz = z + zincr[i];
+            if(!field_is_field_point(field, next.x, next.y, next.z))
+            {
+                continue;
+            }
 
-			if(nextx >= width || nexty >= height ||
-			   nextz >= num_layers)
-				continue;
+            /* decide the val of the score incrementer */
+            int score_incr = step_cost;
+            if(next.z != current.z) /* via */
+            {
+                score_incr = via_cost;
+            }
+            else if(next.y != current.y && EVEN(current.z)) /* wrong y direction */
+            {
+                score_incr = wrong_dir_cost;
+            }
+            else if (next.x != current.x && !EVEN(current.z)) /* wrong x direction */
+            {
+                score_incr = wrong_dir_cost;
+            }
 
-			/* check if point is visitable */
-			int nextfield = field[nextz][nextx][nexty];
+            /* check if point is visitable */
+            int nextfield = field_get(field, next.x, next.y, next.z);
+            if((nextfield == PORT &&
+                next.x == endpos->x &&
+                next.y == endpos->y &&
+                next.z == endpos->z) ||
+               nextfield == UNVISITED ||
+               (score + score_incr < nextfield))
+            {
+                if(next.x == endpos->x && next.y == endpos->y && next.z == endpos->z)
+                {
+                    /*
+                     * if next point is endpoint
+                     * put it into front of heap
+                     * so empty the heap (not nice way)
+                     */
+                    struct rpoint* pt;
+                    while((pt = heap_get_point(min_heap)))
+                    {
+                        free(pt);
+                    }
+                }
 
-			/* decide the val of the score incrementer */
-			unsigned int score_incr = step_cost;
-			if(nextz != z)
-			{
-				/* got a via */
-				score_incr = via_cost;
-			}
-			else if (nexty != y && EVEN(z))
-			{
-				/*
-				 * route in y direction preferred on
-				 * uneven layers
-				 */
-				score_incr = wrong_dir_cost;
-			}
-			else if (nextx != x && !EVEN(z))
-			{
-				score_incr = wrong_dir_cost;
-			}
+                field_set(field, next.x, next.y, next.z, score + score_incr);
 
-			if((nextfield == PORT &&
-			    nextx == endx &&
-			    nexty == endy &&
-			    nextz == endz) ||
-			   nextfield == UNVISITED ||
-			   (score + (int)score_incr < nextfield))
-			{
-//				if(nextx == endx &&
-//				   nexty == endy &&
-//				   nextz == endz)
-//				{
-//					/*
-//					 * if next point is endpoint
-//					 * put it into front of heap
-//					 * so empty the heap (not nice way)
-//					 */
-//					while(heap_get_point(min_heap));
-//				}
+                /* put the point in the to be visited queue */
+                heap_insert_point(min_heap, next.x, next.y, next.z, score + score_incr);
+            }
+        }
 
-				field[nextz][nextx][nexty] = score + score_incr;
-
-				/* put the point in the to be visited queue */
-				point_t *next = malloc(sizeof(point_t));
-				next->x = nextx;
-				next->y = nexty;
-				next->z = nextz;
-				next->score = score + score_incr;
-				heap_insert_point(min_heap, next);
-			}
+        /* router is stuck */
+        if(heap_empty(min_heap))
+        {
+            /* clean up */
+            field_reset(field);
+            heap_destroy(min_heap);
+            return;
+        }
+    } while(!(current.x == endpos->x && current.y == endpos->y && current.z == endpos->z));
 
 
-		}
-
-	/* router is stuck */
-	if(!min_heap->size)
-	{
-		/* clean up */
-		field_reset(field, width, height, num_layers);
-		return STUCK;
-	}
-
-
-//	field_print(field, width, height, 0);
-//	field_print(field, width, height, 1);
-//	getchar();
-
-	} while(!(x == endx && y == endy && z == endz));
-
-	   /*
-	    * backtrace
-	    * go to end point
-	    */
-
-
-	x = endx;
-	y = endy;
+    heap_destroy(min_heap);
 
     int xdiff = 0;
     int ydiff = 0;
     int zdiff = 0;
 
-	do {
-		score = field[z][x][y];
+    /* backtrace */
+    do {
+        int score = field_get(field, current.x, current.y, current.z);
 
-		/* array to look for the least costing neighboring point */
-		point_t nextpoints[NUM_DIRECTIONS];
-		memset(nextpoints, UINT_MAX, sizeof(point_t) * NUM_DIRECTIONS);
+        struct rpoint nextpoint = { .x = INT_MAX, .y = INT_MAX, .z = INT_MAX, .score = INT_MAX };
 
-		/*
-		 * circle around every point + check layer above and below
-		 * store possible points in array
-		 */
-		for(int i = 0; i < NUM_DIRECTIONS; i++)
-		{
-			nextx = x + xincr[i];
-			nexty = y + yincr[i];
-			nextz = z + zincr[i];
+        /* circle around every point + check layer above and below store possible points in array */
+        for(int i = 0; i < NUM_DIRECTIONS; i++)
+        {
+            struct rpoint next;
+            next.x = current.x + xincr[i];
+            next.y = current.y + yincr[i];
+            next.z = current.z + zincr[i];
 
-			if(nextx >= width ||
-			   nexty >= height ||
-			   nextz >= num_layers)
-			{
-				continue;
-			}
+            if(!field_is_field_point(field, next.x, next.y, next.z))
+            {
+                continue;
+            }
 
-			/* check if point is visitable if yes store it in array */
-			int nextfield = field[nextz][nextx][nexty];
+            /* check if point is visitable if yes store it in array */
+            int nextfield = field_get(field, next.x, next.y, next.z);
+            if(!field_is_visitable(field, next.x, next.y, next.z))
+            {
+                continue;
+            }
 
-			switch(nextfield)
-			{
-				case UNVISITED:
-				case PATH:
-				case VIA:
-					continue;
-			}
+            int is_reachable =
+                ((score - nextfield) == via_cost) ||
+                ((score - nextfield) == wrong_dir_cost) ||
+                ((score - nextfield) == step_cost);
 
-			/*
-			 * check if next field is actually reachable
-			 * e.g. one via cost, one wrong direction cost or
-			 * one normal step cost lower (not an odd number of
-			 * points lower) also checks if the costs align with 
-             * running in the wrong direction
-			 */
-            int is_wrong_dir = (yincr[i] && EVEN(z)) || (xincr[i] && !EVEN(z));
-			int is_reachable = ((score - (unsigned int)nextfield) == via_cost) ||
-					   (((score - (unsigned int)nextfield) == wrong_dir_cost) && is_wrong_dir) ||
-					   ((score - (unsigned int)nextfield) == step_cost && !is_wrong_dir);
+            if(is_reachable && nextfield < score && nextfield < nextpoint.score)
+            {
+                nextpoint = next;
+                nextpoint.score = nextfield;
+            }
+        }
 
-			if(is_reachable && nextfield < score)
-			{
-			    point_t point;
-			    point.x = nextx;
-			    point.y = nexty;
-			    point.z = nextz;
-			    point.score = nextfield;
-			    nextpoints[i] = point;
-			}
-		}
+        if(nextpoint.z != current.z)
+        {
+            field_set(field, current.x, current.y, current.z, VIA);
+        }
+        else
+        {
+            field_set(field, current.x, current.y, current.z, PATH);
+        }
 
-		bool next_is_via = false;
+        xdiff = nextpoint.x - (int)current.x;
+        ydiff = nextpoint.y - (int)current.y;
+        zdiff = nextpoint.z - (int)current.z;
 
-		point_t *npoint = get_min_point(nextpoints);
-		if(next_is_via)
-		{
-			field[z][x][y] = VIA;
-			next_is_via = true;
-		}
-		else if(npoint->z != z)
-		{
-			field[z][x][y] = VIA;
-			next_is_via = true;
-		}
-		else
-		{
-			field[z][x][y] = PATH;
-		}
+        struct rpoint* path_point = point_new(xdiff, ydiff, zdiff, 0);
+        net_enqueue_point(net, path_point);
 
-		xdiff = npoint->x - (int)x;
-		ydiff = npoint->y - (int)y;
-		zdiff = npoint->z - (int)z;
+        current.x = nextpoint.x;
+        current.y = nextpoint.y;
+        current.z = nextpoint.z;
 
-		point_t *path_point = calloc(1, sizeof(point_t));
-		path_point->x = xdiff;
-		path_point->y = ydiff;
-		path_point->z = zdiff;
-		queue_enqueue(net->path, path_point);
+    } while (!(current.x == startpos->x && current.y == startpos->y && current.z == startpos->z));
 
-		x = npoint->x;
-		y = npoint->y;
-		z = npoint->z;
+    net_reverse_points(net);
 
-	//if(strcmp(net->name, "ff_in") == 0)
-	//{
-	//	field_print(field, width, height, 0);
-	//	field_print(field, width, height, 1);
-	//	getchar();
-	//}
-
-
-
-	} while (!(x == startx && y == starty && z == startz));
-
-	queue_reverse(net->path);
-
-	/* mark start and end of net as ports */
-	field[startz][startx][starty] = PORT;
-	field[endz][endx][endy] = PORT;
-
-
-	field_reset(field, width, height, num_layers);
-
-	return ROUTED;
+    /* mark start and end of net as ports */
+    field_set(field, startpos->x, startpos->y, startpos->z, PORT);
+    field_set(field, endpos->x, endpos->y, endpos->z, PORT);
+    field_reset(field);
+    net_mark_as_routed(net);
 }
+

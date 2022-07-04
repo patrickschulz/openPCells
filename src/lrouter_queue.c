@@ -5,167 +5,168 @@
  */
 
 #include "lrouter_queue.h"
-#include "lrouter_field.h"
-#include "lrouter_net.h"
 
-#include <stddef.h>
-#include <stdio.h>
 #include <stdlib.h>
 
-int queue_destroy(queue_t *queue)
+struct queue_node {
+    struct queue_node *next;
+    void *data;
+};
+
+struct queue {
+    struct queue_node *front;
+    struct queue_node *back;
+};
+
+struct queue *queue_new(void)
 {
-	if (queue == NULL) {
-		return ERR_INVAL;
-	}
-	while (queue->front != NULL) {
-	    struct queue_node_s *node = queue->front;
-	    queue->front = node->next;
-	    free(node);
-	}
-	free(queue);
-	return SUCCESS;
+    struct queue *queue = malloc(sizeof(*queue));
+    queue->front = queue->back = NULL;
+    return queue;
 }
 
-int queue_empty(queue_t *queue)
+int queue_destroy(struct queue *queue)
 {
-	  if (queue == NULL || queue->front == NULL) {
-		return TRUE;
-	  } else {
-		return FALSE;
-	  }
+    while(queue->front != NULL)
+    {
+        struct queue_node *node = queue->front;
+        queue->front = node->next;
+        free(node);
+    }
+    free(queue);
+    return 1;
 }
 
-void *queue_peek_nth_elem(queue_t *queue, unsigned int n)
+int queue_empty(struct queue *queue)
 {
-	if (queue == NULL || queue->front == NULL ||
-	    (unsigned int)queue_len(queue) < n) {
-		return NULL;
-	}
-	struct queue_node_s *node = queue->front;
-	unsigned int count = 0;
-
-	while(node != NULL) {
-		if (count == n)
-			return node->data;
-		node = node->next;
-		count++;
-	}
-
-	return NULL;
+    return queue->front == NULL;
 }
 
-queue_t *queue_new(void)
+void queue_clear(struct queue *queue)
 {
-	  queue_t *queue = malloc(sizeof(*queue));
-	  if (queue == NULL) {
-		return NULL;
-	  }
-	  queue->front = queue->back = NULL;
-	  return queue;
+    while(queue->front != NULL)
+    {
+        struct queue_node *node = queue->front;
+        queue->front = node->next;
+        free(node);
+    }
+    queue->back = NULL;
 }
 
-void *queue_dequeue(queue_t *queue)
+void *queue_peek_nth_elem(struct queue *queue, unsigned int n)
 {
-	  if (queue == NULL || queue->front == NULL) {
-		return NULL;
-	  }
-	  struct queue_node_s *node = queue->front;
-	  void *data = node->data;
-	  queue->front = node->next;
-	  if (queue->front == NULL) {
-		queue->back = NULL;
-	  }
-	  free(node);
-	  return data;
+    if (queue->front == NULL || (unsigned int)queue_len(queue) < n)
+    {
+        return NULL;
+    }
+    struct queue_node *node = queue->front;
+    unsigned int count = 0;
+
+    while(node != NULL) {
+        if (count == n)
+            return node->data;
+        node = node->next;
+        count++;
+    }
+
+    return NULL;
 }
 
-int queue_enqueue(queue_t *queue, void *data)
+void *queue_dequeue(struct queue *queue)
 {
-	  if (queue == NULL) {
-		return ERR_INVAL;
-	  }
-	  struct queue_node_s *node = malloc(sizeof(*node));
-	  if (node == NULL) {
-		return ERR_NOMEM;
-	  }
-	  node->data = data;
-	  node->next = NULL;
-	  if (queue->back == NULL) {
-		queue->front = queue->back = node;
-	  } else {
-		queue->back->next = node;
-		queue->back = node;
-	  }
-	  return SUCCESS;
+    if(queue->front == NULL)
+    {
+        return NULL;
+    }
+    struct queue_node *node = queue->front;
+    void *data = node->data;
+    queue->front = node->next;
+    if (queue->front == NULL)
+    {
+        queue->back = NULL;
+    }
+    free(node);
+    return data;
 }
 
-int queue_len(queue_t *queue)
+int queue_enqueue(struct queue *queue, void *data)
 {
-	if(queue == NULL)
-		return -1;
-	if(queue->front == NULL)
-		return 0;
-
-	int count = 0;
-	struct queue_node_s *node = queue->front;
-
-	while(node != NULL)
-	{
-		node = node->next;
-		count++;
-	}
-
-	return count;
+    struct queue_node* node = malloc(sizeof(*node));
+    if (node == NULL)
+    {
+        return 0;
+    }
+    node->data = data;
+    node->next = NULL;
+    if (queue->back == NULL)
+    {
+        queue->front = queue->back = node;
+    }
+    else
+    {
+        queue->back->next = node;
+        queue->back = node;
+    }
+    return 1;
 }
 
-void queue_print(queue_t *queue)
+int queue_len(struct queue *queue)
 {
-	if(queue == NULL)
-		return;
-	struct queue_node_s *node = queue->front;
-	while(node != NULL)
-	{
-		point_t point = *(point_t*)node->data;
-		printf("p: x %i, y %i, z %i\n", (int)point.x,
-		       (int)point.y, (int)point.z);
-		node = node->next;
-	}
+    if(queue->front == NULL)
+    {
+        return 0;
+    }
 
+    int count = 0;
+    struct queue_node *node = queue->front;
+
+    while(node != NULL)
+    {
+        node = node->next;
+        count++;
+    }
+
+    return count;
 }
 
-void queue_reverse(queue_t *queue)
+void queue_reverse(struct queue *queue)
 {
-	if(queue == NULL || queue->front == NULL)
-		return;
+    if(queue->front == NULL)
+    {
+        return;
+    }
 
-	struct queue_node_s *prev = NULL;
-	struct queue_node_s *current = queue->front;
-	struct queue_node_s *next = NULL;
+    struct queue_node *prev = NULL;
+    struct queue_node *current = queue->front;
+    struct queue_node *next = NULL;
 
-	while(current != NULL)
-	{
-		next = current->next;
-		current->next = prev;
-		prev = current;
-		current = next;
-	}
-	queue->front = prev;
+    while(current != NULL)
+    {
+        next = current->next;
+        current->next = prev;
+        prev = current;
+        current = next;
+    }
+    queue->front = prev;
 }
 
-point_t *queue_as_array(queue_t *queue)
+struct rpoint *queue_as_array(struct queue *queue)
 {
-	if(queue_len(queue) < 1)
-		return NULL;
+    if(queue_len(queue) < 1)
+    {
+        return NULL;
+    }
 
-	point_t *arr = calloc(queue_len(queue), sizeof(point_t));
-	int i = 0;
-	struct queue_node_s *node = queue->front;
+    struct rpoint *arr = calloc(queue_len(queue), sizeof(*arr));
+    int i = 0;
+    struct queue_node *node = queue->front;
 
-	while(node != NULL)
-	{
-		arr[i] = *(point_t *)node->data;
-		node = node->next;
-		i++;
-	}
-	return arr;
+    while(node != NULL)
+    {
+        arr[i] = *(struct rpoint*)node->data;
+        free(node->data);
+        node = node->next;
+        i++;
+    }
+    return arr;
 }

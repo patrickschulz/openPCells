@@ -78,7 +78,7 @@ int main(int argc, char** argv)
 
     // export to C representation
     FILE* cfile = fopen(target, "a");
-    fprintf(cfile, "char %s_data[] = {", base);
+    fprintf(cfile, "unsigned char %s_data[] = {", base);
     for(size_t i = 0; i < buffer->length; ++i)
     {
         if(i % 16 == 0)

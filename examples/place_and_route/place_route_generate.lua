@@ -1,31 +1,31 @@
-local module = "register_cell"
+local module = "inverter_chain"
 local exporttype = "gds"
 
 local netlist = verilog.read_parse_file(string.format("%s.v", module))
 
-verilog.filter_excluded_nets(netlist, { "clk", "update", "reset" })
+verilog.filter_excluded_nets(netlist, { "reset", "clk", "update" })
 
 local cellinfo = verilogprocessor.read_cellinfo_from_file("cellinfo.lua")
 local instances, nets = verilogprocessor.collect_nets_cells(netlist, cellinfo)
 
 local utilization = 0.8
-local numrows = 3
+local numrows = 2
 local floorplan = placement.create_floorplan_fixed_rows(instances, utilization, numrows)
---local rows = placement.optimize(instances, nets, floorplan)
-local plan = {
-    { "inv", "nand1", "dff_out" },
-    { "nand2", "dff_buf" },
-    { "nand3", "dff_in" },
-}
-
+local rows = placement.optimize(instances, nets, floorplan)
 --local plan = {
---    { "inv1", },
---    { "inv2" }
+--    { "inv", "nand1", "dff_out" },
+--    { "nand2", "dff_buf" },
+--    { "nand3", "dff_in" },
 --}
-local rows = placement.manual(instances, plan)
+local plan = {
+    { "inv1", },
+    { "inv2" }
+}
+-- local rows = placement.manual(instances, plan)
 placement.insert_filler_names(rows, floorplan.floorplan_width)
 
---FIXME: hardoded number of routing tracks per cell
+-- this value can be (at least in theory) changed in the generated layout, but the router assumes this many tracks
+-- this means that reducing this value CAN work, but only increasing it will work certainly
 local numtracks = 9
 local routes = routing.legalize(nets, rows, numtracks, floorplan, instances)
 

@@ -7,9 +7,8 @@
 
 #define LTRANSFORMATIONMATRIXMODULE "transformationmatrix"
 
-typedef struct 
-{
-    transformationmatrix_t* matrix;
+typedef struct {
+    struct transformationmatrix* matrix;
 } ltransformationmatrix_t;
 
 int open_ltransformationmatrix_lib(lua_State* L);

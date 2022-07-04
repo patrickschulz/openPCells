@@ -409,7 +409,7 @@ static void _correct_rectangle_point_order(struct shape* shape)
     }
 }
 
-void shape_apply_transformation(struct shape* shape, transformationmatrix_t* matrix)
+void shape_apply_transformation(struct shape* shape, struct transformationmatrix* matrix)
 {
     switch(shape->type)
     {
@@ -446,7 +446,7 @@ void shape_apply_transformation(struct shape* shape, transformationmatrix_t* mat
     _correct_rectangle_point_order(shape);
 }
 
-void shape_apply_inverse_transformation(struct shape* shape, transformationmatrix_t* matrix)
+void shape_apply_inverse_transformation(struct shape* shape, struct transformationmatrix* matrix)
 {
     switch(shape->type)
     {
@@ -507,7 +507,7 @@ void shape_get_width_height(const struct shape* shape, coordinate_t* widthp, coo
     *heightp = maxy - miny;
 }
 
-void shape_get_minmax_xy(const struct shape* shape, const transformationmatrix_t* trans, coordinate_t* minxp, coordinate_t* minyp, coordinate_t* maxxp, coordinate_t* maxyp)
+void shape_get_minmax_xy(const struct shape* shape, const struct transformationmatrix* trans, coordinate_t* minxp, coordinate_t* minyp, coordinate_t* maxxp, coordinate_t* maxyp)
 {
     point_t* min = point_create_minimum();
     point_t* max = point_create_maximum();

@@ -5,7 +5,7 @@
 #include "lua/lua.h"
 
 /* avoid using extra bits when needed */
-#define trim64(x)	((x) & 0xffffffffffffffffu)
+#define trim64(x)   ((x) & 0xffffffffffffffffu)
 
 /* rotate left 'x' by 'n' bits */
 static Rand64 rotl (Rand64 x, int n) {
@@ -41,7 +41,7 @@ void randseed(struct RanState *state, unsigned long n1, unsigned long n2)
 }
 
 /* convert a 'Rand64' to a 'unsigned long' */
-#define I2UInt(x)	((unsigned long)trim64(x))
+#define I2UInt(x)   ((unsigned long)trim64(x))
 
 /*
 ** Project the random integer 'ran' into the interval [0, n].
@@ -76,10 +76,10 @@ static unsigned long project (unsigned long ran, unsigned long n,
 
 #define FIGS 64
 /* must throw out the extra (64 - FIGS) bits */
-#define shift64_FIG	(64 - FIGS)
+#define shift64_FIG (64 - FIGS)
 
 /* to scale to [0, 1), multiply by scaleFIG = 2^(-FIGS) */
-#define scaleFIG	(l_mathop(0.5) / ((Rand64)1 << (FIGS - 1)))
+#define scaleFIG    (l_mathop(0.5) / ((Rand64)1 << (FIGS - 1)))
 
 static double I2d (Rand64 x) {
   return (double)(trim64(x) >> shift64_FIG) * scaleFIG;

@@ -22,7 +22,7 @@ struct object {
     unsigned int xpitch;
     unsigned int ypitch;
 
-    transformationmatrix_t* trans;
+    struct transformationmatrix* trans;
 
     struct vector* shapes;
 
@@ -268,7 +268,7 @@ void object_add_anchor(struct object* cell, const char* name, coordinate_t x, co
     hashmap_insert(cell->anchors, name, point_create(x, y));
 }
 
-static point_t* _get_special_anchor(const struct object* cell, const char* name, const transformationmatrix_t* trans1, const transformationmatrix_t* trans2)
+static point_t* _get_special_anchor(const struct object* cell, const char* name, const struct transformationmatrix* trans1, const struct transformationmatrix* trans2)
 {
     if(!cell->alignmentbox)
     {
@@ -395,8 +395,8 @@ static point_t* _get_regular_anchor(const struct object* cell, const char* name)
 
 point_t* object_get_anchor(const struct object* cell, const char* name)
 {
-    transformationmatrix_t* trans1 = cell->trans;
-    transformationmatrix_t* trans2 = NULL;
+    struct transformationmatrix* trans1 = cell->trans;
+    struct transformationmatrix* trans2 = NULL;
     const struct object* obj = cell;
     if(cell->isproxy)
     {
@@ -688,7 +688,7 @@ struct shape* object_get_transformed_shape(struct object* cell, size_t idx)
     return shape;
 }
 
-const transformationmatrix_t* object_get_transformation_matrix(const struct object* cell)
+const struct transformationmatrix* object_get_transformation_matrix(const struct object* cell)
 {
     return cell->trans;
 }
