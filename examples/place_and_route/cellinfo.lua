@@ -31,11 +31,11 @@ return {
         },
     },
     xnor_gate = {
-        width = 11,
+        width = 13,
         pinoffsets = {
             A = { x = 0, y = 0 },
             B = { x = 1, y = 0 },
-            O = { x = 10, y = 0 }
+            O = { x = 13, y = 0 }
         },
     },
     dffpq = {
@@ -87,7 +87,8 @@ return {
         pinoffsets = {
             CLK = { x = 0, y = -1 },
             D = { x = 0, y = 1 },
-            Q = { x = 20, y = 0 }
+            Q = { x = 24, y = 0 },
+            RESET = { x = 16, y = -2 }
         },
         blockages = {
             {
