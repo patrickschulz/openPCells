@@ -104,7 +104,6 @@ void placer_initialize_base_cell(lua_State* L, struct basic_cell* base, size_t i
         int pinoffset = lua_tointeger(L, -1);
         base->pinoffset[j - 1] = pinoffset;
         lua_pop(L, 2); // pop pinoffset + pinoffsets table
-                       //
         lua_pop(L, 1); // pop net
     }
 }
