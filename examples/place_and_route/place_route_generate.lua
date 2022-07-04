@@ -1,4 +1,4 @@
-local module = "inverter_chain"
+local module = "serial_ctrl"
 local exporttype = "gds"
 
 local netlist = verilog.read_parse_file(string.format("%s.v", module))
@@ -8,8 +8,8 @@ verilog.filter_excluded_nets(netlist, { "reset", "clk", "update" })
 local cellinfo = verilogprocessor.read_cellinfo_from_file("cellinfo.lua")
 local instances, nets = verilogprocessor.collect_nets_cells(netlist, cellinfo)
 
-local utilization = 0.8
-local numrows = 2
+local utilization = 0.5
+local numrows = 8
 local floorplan = placement.create_floorplan_fixed_rows(instances, utilization, numrows)
 local rows = placement.optimize(instances, nets, floorplan)
 --local plan = {
@@ -17,10 +17,10 @@ local rows = placement.optimize(instances, nets, floorplan)
 --    { "nand2", "dff_buf" },
 --    { "nand3", "dff_in" },
 --}
-local plan = {
-    { "inv1", },
-    { "inv2" }
-}
+--local plan = {
+--    { "inv1", },
+--    { "inv2" }
+--}
 -- local rows = placement.manual(instances, plan)
 placement.insert_filler_names(rows, floorplan.floorplan_width)
 

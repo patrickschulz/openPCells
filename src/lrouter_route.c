@@ -158,10 +158,14 @@ void route(struct net *net, struct field* field, int step_cost, int wrong_dir_co
                 continue;
             }
 
+            int is_wrong_dir =
+		    (yincr[i] && EVEN(current.z)) ||
+		    (xincr[i] && !EVEN(current.z));
+
             int is_reachable =
                 ((score - nextfield) == via_cost) ||
-                ((score - nextfield) == wrong_dir_cost) ||
-                ((score - nextfield) == step_cost);
+                (((score - nextfield) == wrong_dir_cost) && is_wrong_dir) ||
+                (((score - nextfield) == step_cost) && !is_wrong_dir);
 
             if(is_reachable && nextfield < score && nextfield < nextpoint.score)
             {
