@@ -88,52 +88,6 @@ void field_destroy(struct field* field)
 
 static int* _get(struct field* field, size_t x, size_t y, size_t z)
 {
-<<<<<<< HEAD
-	for(size_t i = 0; i < num_layers; i++)
-	{
-	    for(size_t j = 0; j < width; j++)
-	    {
-		    free(field[i][j]);
-	    }
-		free(field[i]);
-	}
-    free(field);
-}
-
-void field_print(int*** field, size_t width, size_t height, unsigned int layer)
-{
-	for(int i = (int)width + 1; i >= 0; i--) {
-		if(i == 0) {
-			printf("%u", layer);
-		} else {
-			printf("==");
-		}
-	}
-	printf("=\n");
-	for(int i = (int)height - 1; i >= 0; i--) {
-		normal();
-		printf("%02i ", i);
-		for(size_t j = 0; j < width; j++) {
-			if(field[layer][j][i] == PATH)
-				green();
-			else if(field[layer][j][i] == PORT)
-				red();
-			else if(field[layer][j][i] == VIA)
-				blue();
-			else if(field[layer][j][i] == BLOCKAGE)
-				purple();
-			else
-				normal();
-			printf("%4i", field[layer][j][i]);
-		}
-		printf("\n");
-	}
-}
-
-point_t *point_new(int x, int y, int z, unsigned int score)
-{
-    point_t *new_point = calloc(1, sizeof(point_t));
-=======
     return &field->content[x + y * field->width + z * field->width * field->height];
 }
 
@@ -184,7 +138,6 @@ void field_print(struct field* field, int layer)
 struct rpoint *point_new(int x, int y, int z, unsigned int score)
 {
     struct rpoint* new_point = malloc(sizeof(*new_point));
->>>>>>> 92e5c5713b99c6efc9c10a47c2c70617a7c022d7
     if(new_point == NULL)
     {
         return NULL;
