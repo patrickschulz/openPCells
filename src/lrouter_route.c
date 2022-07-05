@@ -12,11 +12,22 @@
 
 #define EVEN(val) ((val % 2) == 0)
 #define POSITIVE(val) (val > 0)
-
 #define NUM_DIRECTIONS 6
+
 const int xincr[NUM_DIRECTIONS] = {-1, 0, 1, 0, 0, 0};
 const int yincr[NUM_DIRECTIONS] = {0, 1, 0, -1, 0, 0};
 const int zincr[NUM_DIRECTIONS] = {0, 0, 0, 0, -1, 1};
+
+static struct rpoint _min_next_point(const struct rpoint *nextpoints)
+{
+    struct rpoint min_point = { .score = INT_MAX };
+    for(int i = 0; i < NUM_DIRECTIONS; i++)
+    {
+        min_point = (nextpoints[i].score < min_point.score) ? 
+                nextpoints[i] : min_point;
+    }
+    return min_point;
+}
 
 static int _next_field_position(int i, const struct rpoint* current, struct rpoint* next)
 {
@@ -132,11 +143,13 @@ void route(struct net *net, struct field* field, int step_cost, int wrong_dir_co
     int ydiff = 0;
     int zdiff = 0;
 
+    struct rpoint oldpoint = {.x = INT_MAX, .y = INT_MAX, .z = INT_MAX};
+
     /* backtrace */
     do {
         int score = field_get(field, current.x, current.y, current.z);
-
-        struct rpoint nextpoint = { .x = INT_MAX, .y = INT_MAX, .z = INT_MAX, .score = INT_MAX };
+        struct rpoint nextpoints[] = { [0  ... NUM_DIRECTIONS - 1] = 
+                {.x = INT_MAX, .y = INT_MAX, .z = INT_MAX}};
 
         /* circle around every point + check layer above and below store possible points in array */
         for(int i = 0; i < NUM_DIRECTIONS; i++)
@@ -159,20 +172,35 @@ void route(struct net *net, struct field* field, int step_cost, int wrong_dir_co
             }
 
             int is_wrong_dir =
-		    (yincr[i] && EVEN(current.z)) ||
-		    (xincr[i] && !EVEN(current.z));
+		        (yincr[i] && EVEN(current.z)) ||
+		        (xincr[i] && !EVEN(current.z));
 
             int is_reachable =
                 ((score - nextfield) == via_cost) ||
                 (((score - nextfield) == wrong_dir_cost) && is_wrong_dir) ||
                 (((score - nextfield) == step_cost) && !is_wrong_dir);
 
-            if(is_reachable && nextfield < score && nextfield < nextpoint.score)
+            if(is_reachable && nextfield < score)
             {
-                nextpoint = next;
-                nextpoint.score = nextfield;
+                nextpoints[i] = next;
+                nextpoints[i].score = nextfield;
+
+                /* 
+                 * check if the point before the current point has been initialized
+                 * and a corner is ocurring
+                 * if yes store the corner, so it gets ranked lower than another
+                 * reachable point with the same score without a corner
+                 */
+                if(oldpoint.x != INT_MAX && 
+                                ((oldpoint.x != current.x && current.x == next.x) ||
+                                (oldpoint.y != current.y && current.y == next.y)))
+                {
+                    nextpoints[i].score++;
+                }
             }
         }
+
+        struct rpoint nextpoint = _min_next_point(nextpoints);
 
         if(nextpoint.z != current.z)
         {
@@ -189,6 +217,10 @@ void route(struct net *net, struct field* field, int step_cost, int wrong_dir_co
 
         struct rpoint* path_point = point_new(xdiff, ydiff, zdiff, 0);
         net_enqueue_point(net, path_point);
+
+        oldpoint.x = current.x;
+        oldpoint.y = current.y;
+        oldpoint.z = current.z;
 
         current.x = nextpoint.x;
         current.y = nextpoint.y;
