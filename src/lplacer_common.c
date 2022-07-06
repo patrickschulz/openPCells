@@ -83,7 +83,7 @@ void placer_initialize_base_cell(lua_State* L, struct basic_cell* base, size_t i
 
     // nets
     lua_getfield(L, -1, "nets");
-    //lua_len(L, -1);
+    lua_len(L, -1);
     size_t num_conns = lua_tointeger(L, -1);
     lua_pop(L, 1);
     base->nets = calloc(num_conns, sizeof(*base->nets));
