@@ -23,7 +23,7 @@ static struct rpoint _min_next_point(const struct rpoint *nextpoints)
     struct rpoint min_point = { .score = INT_MAX };
     for(int i = 0; i < NUM_DIRECTIONS; i++)
     {
-        min_point = (nextpoints[i].score < min_point.score) ? 
+        min_point = (nextpoints[i].score < min_point.score) ?
                 nextpoints[i] : min_point;
     }
     return min_point;
@@ -37,7 +37,8 @@ static int _next_field_position(int i, const struct rpoint* current, struct rpoi
     return 1;
 }
 
-void route(struct net *net, struct field* field, int step_cost, int wrong_dir_cost, int via_cost)
+void route(struct net *net, struct field* field, int step_cost,
+	   int wrong_dir_cost, int via_cost, int new_turn_cost)
 {
     const struct position* startpos = net_get_startpos(net);
     const struct position* endpos = net_get_endpos(net);
@@ -47,6 +48,7 @@ void route(struct net *net, struct field* field, int step_cost, int wrong_dir_co
     heap_insert_point(min_heap, startpos->x, startpos->y, startpos->z, 0);
 
     struct rpoint current = { .x = 0, .y = 0, .z = 0 };
+    struct rpoint old = { .x = 0, .y = 0, .z = 0 };
 
     field_set(field, startpos->x, startpos->y, startpos->z, 0);
 
@@ -105,20 +107,6 @@ void route(struct net *net, struct field* field, int step_cost, int wrong_dir_co
                nextfield == UNVISITED ||
                (score + score_incr < nextfield))
             {
-                if(next.x == endpos->x && next.y == endpos->y && next.z == endpos->z)
-                {
-                    /*
-                     * if next point is endpoint
-                     * put it into front of heap
-                     * so empty the heap (not nice way)
-                     */
-                    struct rpoint* pt;
-                    while((pt = heap_get_point(min_heap)))
-                    {
-                        free(pt);
-                    }
-                }
-
                 field_set(field, next.x, next.y, next.z, score + score_incr);
 
                 /* put the point in the to be visited queue */
@@ -143,13 +131,14 @@ void route(struct net *net, struct field* field, int step_cost, int wrong_dir_co
     int ydiff = 0;
     int zdiff = 0;
 
-    struct rpoint oldpoint = {.x = INT_MAX, .y = INT_MAX, .z = INT_MAX};
+    struct rpoint oldpoint = {.x = UINT_MAX, .y = UINT_MAX, .z = UINT_MAX, 
+	    .score = INT_MAX};
 
     /* backtrace */
     do {
         int score = field_get(field, current.x, current.y, current.z);
         struct rpoint nextpoints[] = { [0  ... NUM_DIRECTIONS - 1] = 
-                {.x = INT_MAX, .y = INT_MAX, .z = INT_MAX}};
+                {.x = UINT_MAX, .y = UINT_MAX, .z = UINT_MAX, .score = INT_MAX}};
 
         /* circle around every point + check layer above and below store possible points in array */
         for(int i = 0; i < NUM_DIRECTIONS; i++)
@@ -180,18 +169,19 @@ void route(struct net *net, struct field* field, int step_cost, int wrong_dir_co
                 (((score - nextfield) == wrong_dir_cost) && is_wrong_dir) ||
                 (((score - nextfield) == step_cost) && !is_wrong_dir);
 
-            if(is_reachable && nextfield < score)
+            if(is_reachable && nextfield < score &&
+	       nextfield < nextpoints[i].score)
             {
                 nextpoints[i] = next;
                 nextpoints[i].score = nextfield;
 
-                /* 
+                /*
                  * check if the point before the current point has been initialized
                  * and a corner is ocurring
                  * if yes store the corner, so it gets ranked lower than another
                  * reachable point with the same score without a corner
                  */
-                if(oldpoint.x != INT_MAX && 
+                if(oldpoint.x != UINT_MAX &&
                                 ((oldpoint.x != current.x && current.x == next.x) ||
                                 (oldpoint.y != current.y && current.y == next.y)))
                 {
@@ -225,6 +215,14 @@ void route(struct net *net, struct field* field, int step_cost, int wrong_dir_co
         current.x = nextpoint.x;
         current.y = nextpoint.y;
         current.z = nextpoint.z;
+
+	if(strcmp(net_get_name(net), "chain_out_(0)") == 0)
+	{
+	    field_print(field, 0);
+	    getchar();
+	}
+
+
 
     } while (!(current.x == startpos->x && current.y == startpos->y && current.z == startpos->z));
 
