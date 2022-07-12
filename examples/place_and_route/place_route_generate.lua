@@ -6,9 +6,18 @@ local netlist = verilog.read_parse_file(string.format("%s.v", module))
 verilog.filter_excluded_nets(netlist, { "reset", "clk", "update" })
 
 local cellinfo = verilogprocessor.read_cellinfo_from_file("cellinfo.lua")
-local instances, nets = verilogprocessor.collect_nets_cells(netlist, cellinfo)
+local ignorednets = {
+    --"chain_out",
+    --"ff_in",
+    --"enable",
+    --"_00_",
+    --"_05_",
+    --"_06_",
+    --"_07_",
+}
+local instances, nets = verilogprocessor.collect_nets_cells(netlist, cellinfo, ignorednets)
 
-local utilization = 0.5
+local utilization = 0.8
 local numrows = 3
 local floorplan = placement.create_floorplan_fixed_rows(instances, utilization, numrows)
 --local rows = placement.optimize(instances, nets, floorplan)

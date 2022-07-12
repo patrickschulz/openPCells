@@ -52,7 +52,7 @@ function layout(gate, _P)
         gatecontactpos = gatecontactpos,
         pcontactpos = _P.gatetype == "nand" and pcontacts or ncontacts,
         ncontactpos = _P.gatetype == "nand" and ncontacts or pcontacts,
-        rightdummies = 0
+        rightdummies = _P.fingers % 2,
     })
     gate:merge_into_shallow(harness)
     gate:inherit_alignment_box(harness)

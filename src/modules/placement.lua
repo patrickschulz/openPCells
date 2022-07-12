@@ -104,16 +104,26 @@ end
 
 function M.manual(instances, names)
     local rows = {}
+    local processed = {}
     for _, rownames in ipairs(names) do
         local row = {}
         for _, name in ipairs(rownames) do
             for _, inst in ipairs(instances) do
                 if inst.instance == name then
+                    processed[name] = true
                     table.insert(row, inst)
                 end
             end
         end
         table.insert(rows, row)
+    end
+    for _, rownames in ipairs(names) do
+        local row = {}
+        for _, name in ipairs(rownames) do
+            if not processed[name] then
+                moderror(string.format("placement.manual: provide instance name of unknown/unused instance: '%s'", name))
+            end
+        end
     end
     return rows
 end

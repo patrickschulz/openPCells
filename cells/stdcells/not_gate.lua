@@ -83,7 +83,7 @@ function layout(gate, _P)
 
     -- ports
     gate:add_port("I", generics.metalport(1), harness:get_anchor("Gcc1"))
-    gate:add_port("O", generics.metalport(1), point.create((_P.fingers - 0) * xpitch + _P.shiftoutput, 0))
+    gate:add_port("O", generics.metalport(1), point.create((_P.fingers + 1) * xpitch / 2 + _P.shiftoutput, 0))
     gate:add_port("VDD", generics.metalport(1), harness:get_anchor("top"))
     gate:add_port("VSS", generics.metalport(1), harness:get_anchor("bottom"))
 end

@@ -5,7 +5,7 @@ function M.read_cellinfo_from_file(filename)
     return cellinfo
 end
 
-function M.collect_nets_cells(netlist, cellinfo)
+function M.collect_nets_cells(netlist, cellinfo, ignorednets)
     local netset = {}
     local nets = {}
     local instances = {}
@@ -14,11 +14,16 @@ function M.collect_nets_cells(netlist, cellinfo)
             -- create nets
             local ct = {}
             for _, c in ipairs(instance.connections) do
-                if not netset[c.net] then
-                    netset[c.net] = true
-                    table.insert(nets, c.net)
+                if not aux.any_of(
+                    function(v) return c.net == v end,
+                    ignorednets or {}
+                ) then
+                    if not netset[c.net] then
+                        netset[c.net] = true
+                        table.insert(nets, c.net)
+                    end
+                    table.insert(ct, { name = c.net, port = c.port })
                 end
-                table.insert(ct, { name = c.net, port = c.port })
             end
             local pinoffsets = cellinfo[instance.reference] and cellinfo[instance.reference].pinoffsets
             if not pinoffsets then
