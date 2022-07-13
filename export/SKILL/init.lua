@@ -13,8 +13,8 @@ function M.finalize()
 end
 
 local __group = false
+local __incell = false
 local __groupname = "opcgroup"
-local __let = true
 local __labelsize = 0.1
 function M.set_options(opt)
     for i = 1, #opt do
@@ -30,6 +30,9 @@ function M.set_options(opt)
         if arg == "-g" or arg == "--group" then
             __group = true
         end
+        if arg == "-c" or arg == "--in-cell" then
+            __incell = true
+        end
         if arg == "-n" or arg == "--group-name" then
             if i < #opt then
                 __groupname = opt[i + 1]
@@ -38,48 +41,33 @@ function M.set_options(opt)
             end
             i = i + 1
         end
-        if arg == "-l" or arg == "--no-let" then
-            __let = false
-        end
     end
 end
 
 function M.at_begin()
-    if __let then
-        if __group then
-            table.insert(__content, string.format([[
-let(
-    (
-        (group if(dbGetFigGroupByName(cv "%s") then dbGetFigGroupByName(cv "%s") else dbCreateFigGroup(cv "%s" t 0:0 "R0")))
-        shape
-    )]], __groupname, __groupname, __groupname))
-        else
-            table.insert(__content, [[
-let(
-    (
-        shape
-    )]])
-        end
-    else
-        if __group then
-            table.insert(__content, string.format('if(dbGetFigGroupByName(cv "%s") then dbGetFigGroupByName(cv "%s") else dbCreateFigGroup(cv "%s" t 0:0 "R0"))', __groupname, __groupname, __groupname))
-        end
+    if __incell and not __group then
+        return
     end
+    local c = { "let(", "    (" }
+    if not __incell then
+        table.insert(c, "        cv")
+    end
+    if __group and __incell then
+        table.insert(c, string.format('        (group if(dbGetFigGroupByName(cv "%s") then dbGetFigGroupByName(cv "%s") else dbCreateFigGroup(cv "%s" t 0:0 "R0")))', __groupname, __groupname, __groupname))
+    end
+    table.insert(c, "    )")
+    table.insert(__content, table.concat(c, "\n"))
 end
 
 function M.at_end()
-    if __let then
-        table.insert(__content, ") ; let")
+    if __incell and not __group then
+        return
     end
+    table.insert(__content, ") ; let")
 end
 
 local function _format(l)
     local str
-    if type(l) == "number" then
-        str = tostring(l)
-    else
-        str = string.format('"%s"', l)
-    end
     if type(l) == "number" then
         str = tostring(l)
     else
@@ -121,39 +109,35 @@ local function _format_point(pt, baseunit, sep)
     return string.format("%s%s%s", sx, sep, sy)
 end
 
-local function _get_shape_fmt(shapetype)
-    if __let then
-        if __group then
-            return string.format("        dbCreate%s(cv %%s)", shapetype)
-        else
-            return string.format("    dbCreate%s(cv %%s)", shapetype)
-        end
+local function _format_xy(x, y, baseunit, sep)
+    local sx = _format_number(x, baseunit)
+    local sy = _format_number(y, baseunit)
+    return string.format("%s%s%s", sx, sep, sy)
+end
+
+local function _get_indent()
+    if __group and __incell then
+        return "        "
+    elseif not __incell then
+        return "    "
     else
-        if __group then
-            return string.format("    dbCreate%s(cv %%s)", shapetype)
-        else
-            return string.format("dbCreate%s(cv %%s)", shapetype)
-        end
+        return ""
     end
 end
 
+local function _get_shape_fmt(shapetype)
+    return string.format("%sdbCreate%s(cv %%s)", _get_indent(), shapetype)
+end
+
 local function _prepare_shape_for_group()
-    if __group then
-        if __let then
-            table.insert(__content, "    dbAddFigToFigGroup(group ")
-        else
-            table.insert(__content, string.format("dbAddFigToFigGroup(dbGetFigGroupByName(cv \"%s\") ", __groupname))
-        end
+    if __group and __incell then
+        table.insert(__content, "    dbAddFigToFigGroup(group ")
     end
 end
 
 local function _finish_shape_for_group()
-    if __group then
-        if __let then
-            table.insert(__content, "    )")
-        else
-            table.insert(__content, ")")
-        end
+    if __group and __incell then
+        --table.insert(__content, "    )")
     end
 end
 
@@ -205,6 +189,23 @@ function M.write_port(name, layer, where)
     _prepare_shape_for_group()
     table.insert(__content, string.format(fmt, string.format('%s %s "%s" "centerCenter" "R0" "roman" %f', _format_lpp(layer), _format_point(where, baseunit, ":"), name, __labelsize)))
     _finish_shape_for_group()
+end
+
+function M.at_begin_cell(cellname)
+    if not __incell then
+        table.insert(__content, string.format('%scv = dbOpenCellViewByType(libname "%s" "layout" "maskLayout" "w")', _get_indent(), cellname))
+    end
+end
+function M.at_end_cell(...)
+    if not __incell then
+        table.insert(__content, "    dbSave(cv)")
+        table.insert(__content, "    dbPurge(cv)")
+    end
+end
+
+function M.write_cell_reference(identifier, x, y, orientation)
+    local fmt = _get_shape_fmt("InstByMasterName")
+    table.insert(__content, string.format(fmt, string.format('libname "%s" "layout" nil %s "%s"', identifier, _format_xy(x, y, 1000, ":"), "R0")))
 end
 
 return M
