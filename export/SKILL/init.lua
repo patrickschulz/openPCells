@@ -191,15 +191,17 @@ function M.write_port(name, layer, where)
     _finish_shape_for_group()
 end
 
-function M.at_begin_cell(cellname)
+function M.at_begin_cell(cellname, istoplevel)
     if not __incell then
         table.insert(__content, string.format('%scv = dbOpenCellViewByType(libname "%s" "layout" "maskLayout" "w")', _get_indent(), cellname))
     end
 end
-function M.at_end_cell(...)
-    if not __incell then
-        table.insert(__content, "    dbSave(cv)")
-        table.insert(__content, "    dbPurge(cv)")
+function M.at_end_cell(istoplevel)
+    if not istoplevel then
+        if not __incell then
+            table.insert(__content, "    dbSave(cv)")
+            table.insert(__content, "    dbPurge(cv)")
+        end
     end
 end
 

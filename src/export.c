@@ -817,7 +817,8 @@ static int _write_toplevel_lua(lua_State* L, struct object* object, struct pcell
 
     lua_getfield(L, -1, "at_begin_cell");
     lua_pushstring(L, toplevelname);
-    ret = _call_or_pop_nil(L, 1);
+    lua_pushboolean(L, 1); // cell is toplevel
+    ret = _call_or_pop_nil(L, 2);
     if(ret != LUA_OK)
     {
         return ret;
@@ -828,7 +829,8 @@ static int _write_toplevel_lua(lua_State* L, struct object* object, struct pcell
         return ret;
     }
     lua_getfield(L, -1, "at_end_cell");
-    _call_or_pop_nil(L, 0);
+    lua_pushboolean(L, 1); // cell is toplevel
+    _call_or_pop_nil(L, 1);
 
     for(unsigned int i = 0; i < pcell_get_reference_count(pcell_state); ++i)
     {
@@ -837,14 +839,16 @@ static int _write_toplevel_lua(lua_State* L, struct object* object, struct pcell
         {
             lua_getfield(L, -1, "at_begin_cell");
             lua_pushstring(L, reference->identifier);
-            _call_or_pop_nil(L, 1);
+            lua_pushboolean(L, 0); // cell is not toplevel
+            _call_or_pop_nil(L, 2);
             ret = _write_cell_lua(L, reference->cell, writechildrenports, leftdelim, rightdelim);
             if(ret != LUA_OK)
             {
                 return ret;
             }
             lua_getfield(L, -1, "at_end_cell");
-            _call_or_pop_nil(L, 0);
+            lua_pushboolean(L, 0); // cell is not toplevel
+            _call_or_pop_nil(L, 1);
         }
     }
 
