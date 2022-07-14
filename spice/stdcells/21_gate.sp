@@ -1,6 +1,6 @@
 * Created by KLayout
 
-* cell opctoplevel
+* cell 21_gate
 * pin A
 * pin B1
 * pin B2
@@ -8,7 +8,7 @@
 * pin VDD
 * pin VSS
 * pin SUBSTRATE
-.SUBCKT opctoplevel 2 3 4 5 6 7 8
+.SUBCKT 21_gate 2 3 4 5 6 7 8
 * net 2 A
 * net 3 B1
 * net 4 B2
@@ -40,4 +40,4 @@ M$11 7 7 7 8 slvtnfet L=0.2U W=2U AS=0.3P AD=0.55P PS=2.6U PD=4.1U
 M$12 7 2 5 8 slvtnfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U PD=1.3U
 * device instance $13 r0 *1 1,-1.2 slvtnfet
 M$13 5 1 7 8 slvtnfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U PD=1.3U
-.ENDS opctoplevel
+.ENDS 21_gate

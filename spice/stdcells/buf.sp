@@ -1,12 +1,12 @@
 * Created by KLayout
 
-* cell opctoplevel
+* cell buf
 * pin VSS
 * pin VDD
 * pin I
 * pin O
 * pin SUBSTRATE
-.SUBCKT opctoplevel 1 2 3 6 7
+.SUBCKT buf 1 2 3 6 7
 * net 1 VSS
 * net 2 VDD
 * net 3 I
@@ -28,4 +28,4 @@ M$6 5 1 1 7 slvtnfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U PD=1.3U
 M$7 1 5 6 7 slvtnfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U PD=1.3U
 * device instance $8 r0 *1 0.75,-1.2 slvtnfet
 M$8 6 1 1 7 slvtnfet L=0.2U W=1U AS=0.15P AD=0.4P PS=1.3U PD=2.8U
-.ENDS opctoplevel
+.ENDS buf

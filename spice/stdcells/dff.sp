@@ -1,8 +1,8 @@
 * Created by KLayout
 
-* cell opctoplevel
+* cell dff
 * pin SUBSTRATE
-.SUBCKT opctoplevel 18
+.SUBCKT dff 18
 * net 18 SUBSTRATE
 * device instance $1 r0 *1 -5,1.2 slvtpfet
 M$1 1 8 9 13 slvtpfet L=0.2U W=1U AS=0.4P AD=0.15P PS=2.8U PD=1.3U
@@ -90,4 +90,4 @@ M$42 12 1 1 18 slvtnfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U PD=1.3U
 M$43 1 12 14 18 slvtnfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U PD=1.3U
 * device instance $44 r0 *1 5.5,-1.2 slvtnfet
 M$44 14 1 1 18 slvtnfet L=0.2U W=1U AS=0.15P AD=0.4P PS=1.3U PD=2.8U
-.ENDS opctoplevel
+.ENDS dff

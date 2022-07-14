@@ -1,9 +1,9 @@
 * Created by KLayout
 
-* cell opctoplevel
+* cell half_adder
 * pin A,B,COUT
 * pin SUBSTRATE
-.SUBCKT opctoplevel 6 12
+.SUBCKT half_adder 6 12
 * net 6 A,B,COUT
 * net 12 SUBSTRATE
 * device instance $1 r0 *1 -0.25,1.2 slvtpfet
@@ -54,4 +54,4 @@ M$32 8 6 2 12 slvtnfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U PD=1.3U
 M$33 2 6 2 12 slvtnfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U PD=1.3U
 * device instance $34 r0 *1 7.75,-1.2 slvtnfet
 M$34 2 6 1 12 slvtnfet L=0.2U W=1U AS=0.15P AD=0.4P PS=1.3U PD=2.8U
-.ENDS opctoplevel
+.ENDS half_adder
