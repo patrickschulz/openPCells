@@ -1,3 +1,4 @@
+#!/bin/bash
 FILENAMES=`cd ../cells/stdcells/ && ls *.lua`
 OUTPUTPATH="spice/stdcells"
 
