@@ -193,7 +193,11 @@ end
 
 function M.at_begin_cell(cellname, istoplevel)
     if not __incell then
-        table.insert(__content, string.format('%scv = dbOpenCellViewByType(libname "%s" "layout" "maskLayout" "w")', _get_indent(), cellname))
+        if istoplevel then
+            table.insert(__content, string.format('%scv = geGetEditCellView()', _get_indent()))
+        else
+            table.insert(__content, string.format('%scv = dbOpenCellViewByType(libname "%s" "layout" "maskLayout" "w")', _get_indent(), cellname))
+        end
     end
 end
 function M.at_end_cell(istoplevel)
