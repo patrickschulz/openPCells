@@ -56,7 +56,8 @@ via3        = input(13, 0)
 metal4      = input(14, 0)
 via4        = input(15, 0)
 metal5      = input(16, 0)
-ports       = input(8, 1)
+port1       = input(8, 1)
+port2       = input(10, 1)
 
 
 # Bulk layer for terminal provisioning
@@ -105,7 +106,8 @@ connect(metal3,     via3)
 connect(via3,       metal4)
 connect(metal4,     via4)
 connect(via4,       metal5)
-connect(ports,      metal1)
+connect(port1,      metal1)
+connect(port2,      metal2)
 
 # Global
 connect_global(bulk, "SUBSTRATE")

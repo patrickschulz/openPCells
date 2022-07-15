@@ -5,9 +5,10 @@
 * pin D
 * pin VDD
 * pin CLK
+* pin RESET
 * pin Q
 * pin SUBSTRATE
-.SUBCKT dffprq VSS D VDD CLK Q SUBSTRATE
+.SUBCKT dffprq VSS D VDD CLK RESET Q SUBSTRATE
 * device instance $1 r0 *1 -5.75,1.2 slvtpfet
 M$1 VDD CLK \$10 \$15 slvtpfet L=0.2U W=1U AS=0.4P AD=0.15P PS=2.8U PD=1.3U
 * device instance $2 r0 *1 -5.25,1.2 slvtpfet
@@ -31,7 +32,7 @@ M$10 \$18 \$10 VDD \$15 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U PD=1.3U
 * device instance $11 r0 *1 -0.75,1.2 slvtpfet
 M$11 VDD \$11 VDD \$15 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U PD=1.3U
 * device instance $12 r0 *1 -0.25,1.2 slvtpfet
-M$12 VDD \$12 \$13 \$15 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U PD=1.3U
+M$12 VDD RESET \$13 \$15 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U PD=1.3U
 * device instance $13 r0 *1 0.25,1.2 slvtpfet
 M$13 \$13 \$3 VDD \$15 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U PD=1.3U
 * device instance $14 r0 *1 0.75,1.2 slvtpfet
@@ -47,7 +48,7 @@ M$18 \$5 \$14 \$20 \$15 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U PD=1.3U
 * device instance $19 r0 *1 3.25,1.2 slvtpfet
 M$19 \$20 \$11 VDD \$15 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U PD=1.3U
 * device instance $21 r0 *1 4.25,1.2 slvtpfet
-M$21 VDD \$12 \$14 \$15 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U PD=1.3U
+M$21 VDD RESET \$14 \$15 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U PD=1.3U
 * device instance $22 r0 *1 4.75,1.2 slvtpfet
 M$22 \$14 \$5 VDD \$15 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U PD=1.3U
 * device instance $23 r0 *1 5.25,1.2 slvtpfet
@@ -89,7 +90,7 @@ M$35 \$4 \$10 \$4 SUBSTRATE slvtnfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
 M$36 \$4 \$11 VSS SUBSTRATE slvtnfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
 + PD=1.3U
 * device instance $37 r0 *1 -0.25,-1.2 slvtnfet
-M$37 VSS \$12 \$19 SUBSTRATE slvtnfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
+M$37 VSS RESET \$19 SUBSTRATE slvtnfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
 + PD=1.3U
 * device instance $38 r0 *1 0.25,-1.2 slvtnfet
 M$38 \$19 \$3 \$13 SUBSTRATE slvtnfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
@@ -116,7 +117,7 @@ M$44 \$6 \$11 \$6 SUBSTRATE slvtnfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
 M$45 \$6 \$10 VSS SUBSTRATE slvtnfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
 + PD=1.3U
 * device instance $46 r0 *1 4.25,-1.2 slvtnfet
-M$46 VSS \$12 \$21 SUBSTRATE slvtnfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
+M$46 VSS RESET \$21 SUBSTRATE slvtnfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
 + PD=1.3U
 * device instance $47 r0 *1 4.75,-1.2 slvtnfet
 M$47 \$21 \$5 \$14 SUBSTRATE slvtnfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
