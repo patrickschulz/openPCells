@@ -255,7 +255,7 @@ return {
             svg = { color = "ccffff", order = 1 },
         }
     },
-    soiopen = {
+    gatecut = {
         name = "gatecut",
         layer = {
             gds = { layer = 27, purpose = 0 },
@@ -267,7 +267,7 @@ return {
     vthtypep1 = {},
     pwell = {},
     deeppwell = {},
-    gatecut = {},
+    soiopen = {},
     tuckgatemarker = {},
     padopening = {},
     polyres = {},
