@@ -33,7 +33,7 @@ procedure(OPCCreateCellInternal(cv @optional (origin 0:0))
 
         ; assemble call arguments
         OPCArgs = OPCPrepareArgsForCellCreation(lsprintf(
-            "--cell %s --origin '(%d, %d)' -f %s --append-parameter-file %s"
+            "--cell %s --origin '(%d, %d)' -f %s --append-parameter-file %s -X -c"
             lsprintf("%s/%s" OPCCellForm->OPCLibList->value OPCCellForm->OPCCellList->value)
             fix(1000 * xCoord(origin)) fix(1000 * yCoord(origin)) 
             OPCSettingsForm->OPCCellFilename->value

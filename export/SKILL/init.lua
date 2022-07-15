@@ -137,7 +137,7 @@ end
 
 local function _finish_shape_for_group()
     if __group and __incell then
-        --table.insert(__content, "    )")
+        table.insert(__content, "    )")
     end
 end
 
