@@ -211,7 +211,7 @@ int lobject_apply_transformation(lua_State* L)
 int lobject_add_child(lua_State* L)
 {
     struct lobject* cell = lobject_check(L, 1);
-    const char* identifier = lua_tostring(L, 2);
+    const char* identifier = luaL_checkstring(L, 2);
     const char* name = lua_tostring(L, 3);
     lua_getfield(L, LUA_REGISTRYINDEX, "pcellstate");
     struct pcell_state* pcell_state = lua_touserdata(L, -1);
@@ -224,11 +224,11 @@ int lobject_add_child(lua_State* L)
 int lobject_add_child_array(lua_State* L)
 {
     struct lobject* cell = lobject_check(L, 1);
-    const char* identifier = lua_tostring(L, 2);
-    unsigned int xrep = lua_tointeger(L, 3);
-    unsigned int yrep = lua_tointeger(L, 4);
-    unsigned int xpitch = lua_tointeger(L, 5);
-    unsigned int ypitch = lua_tointeger(L, 6);
+    const char* identifier = luaL_checkstring(L, 2);
+    unsigned int xrep = luaL_checkinteger(L, 3);
+    unsigned int yrep = luaL_checkinteger(L, 4);
+    unsigned int xpitch = luaL_checkinteger(L, 5);
+    unsigned int ypitch = luaL_checkinteger(L, 6);
     const char* name = lua_tostring(L, 7);
     lua_getfield(L, LUA_REGISTRYINDEX, "pcellstate");
     struct pcell_state* pcell_state = lua_touserdata(L, -1);
