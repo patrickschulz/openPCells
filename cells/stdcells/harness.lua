@@ -52,6 +52,7 @@ function layout(gate, _P)
         powerspace = powerspace,
         pwidth = bp.pwidth,
         nwidth = bp.nwidth,
+        sdwidth = bp.sdwidth,
         separation = separation,
         gatecontactsplitshift = routingshift,
     })
