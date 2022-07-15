@@ -255,8 +255,13 @@ return {
             svg = { color = "ccffff", order = 1 },
         }
     },
+    soiopen = {
+        name = "gatecut",
+        layer = {
+            gds = { layer = 27, purpose = 0 },
+        }
+    },
     -- unused layers
-    soiopen = {},
     oxide1 = {},
     vthtypen1 = {},
     vthtypep1 = {},
