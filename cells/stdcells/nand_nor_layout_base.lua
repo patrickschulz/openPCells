@@ -62,27 +62,27 @@ function layout(gate, _P)
         if _P.fingers % 2 == 0 then
             geometry.path(gate, generics.metal(1), 
                 {
-                    harness:get_anchor("Gcc2"),
-                    harness:get_anchor(string.format("Gcc%d", 2 * _P.fingers - 1))
+                    harness:get_anchor("Gcc2"):translate(-bp.glength / 2, 0),
+                    harness:get_anchor(string.format("Gcc%d", 2 * _P.fingers - 1)):translate(bp.glength / 2, 0)
                 }, bp.routingwidth
             )
             geometry.path(gate, generics.metal(1), 
                 {
-                    harness:get_anchor("Gcc1"),
-                    harness:get_anchor(string.format("Gcc%d", 2 * _P.fingers))
+                    harness:get_anchor("Gcc1"):translate(-bp.glength / 2, 0),
+                    harness:get_anchor(string.format("Gcc%d", 2 * _P.fingers)):translate(bp.glength / 2, 0)
                 }, bp.routingwidth
             )
         else
             geometry.path(gate, generics.metal(1), 
                 {
-                    harness:get_anchor("Gcc2"),
-                    harness:get_anchor(string.format("Gcc%d", 2 * _P.fingers))
+                    harness:get_anchor("Gcc2"):translate(-bp.glength / 2, 0),
+                    harness:get_anchor(string.format("Gcc%d", 2 * _P.fingers)):translate(bp.glength / 2, 0)
                 }, bp.routingwidth
             )
             geometry.path(gate, generics.metal(1), 
                 {
-                    harness:get_anchor("Gcc1"),
-                    harness:get_anchor(string.format("Gcc%d", 2 * _P.fingers - 1))
+                    harness:get_anchor("Gcc1"):translate(-bp.glength / 2, 0),
+                    harness:get_anchor(string.format("Gcc%d", 2 * _P.fingers - 1)):translate(bp.glength / 2, 0)
                 }, bp.routingwidth
             )
         end
