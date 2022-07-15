@@ -33,7 +33,7 @@ procedure(OPCUpdateCallbackHierarchical(xpath)
             else
                 path = lsprintf("%s/%s/layout/layout.lua" libPath cellName)
         )
-        OPCArgs = OPCPrepareArgsForCellCreation(lsprintf("--cellscript %s -f %s" path OPCSettingsForm->OPCCellFilename->value))
+        OPCArgs = OPCPrepareArgsForCellCreation(lsprintf("--cellscript %s -f %s --write-children-ports" path OPCSettingsForm->OPCCellFilename->value))
         OPCCmd = OPCBuildCallCommand(OPCArgs)
         if(OPCCall(OPCCmd nil)
             then
