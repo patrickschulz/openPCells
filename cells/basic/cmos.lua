@@ -81,6 +81,7 @@ function layout(cmos, _P)
             gatelength = _P.gatelength,
             gatespace = _P.gatespace,
             sdwidth = _P.sdwidth,
+            oxidetype = _P.oxidetype,
             drawinnersourcedrain = "none",
             drawoutersourcedrain = "none",
             drawactive = _P.drawactive
