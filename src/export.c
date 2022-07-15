@@ -868,12 +868,12 @@ static int _write_toplevel_lua(lua_State* L, struct object* object, struct pcell
     return LUA_OK;
 }
 
-void export_write_toplevel(struct object* toplevel, struct pcell_state* pcell_state, struct export_state* state)
+int export_write_toplevel(struct object* toplevel, struct pcell_state* pcell_state, struct export_state* state)
 {
     if(object_is_empty(toplevel))
     {
         puts("export: toplevel is empty");
-        return;
+        return 0;
     }
 
     struct export_data* data = export_create_data();
@@ -942,7 +942,7 @@ void export_write_toplevel(struct object* toplevel, struct pcell_state* pcell_st
                         const char* msg = lua_tostring(L, -1);
                         fprintf(stderr, "error while calling lua export: %s\n", msg);
                         lua_close(L);
-                        return;
+                        return 0;
                     }
 
                     lua_getfield(L, -1, "get_extension");
@@ -952,7 +952,7 @@ void export_write_toplevel(struct object* toplevel, struct pcell_state* pcell_st
                         const char* msg = lua_tostring(L, -1);
                         fprintf(stderr, "error while calling lua export: %s\n", msg);
                         lua_close(L);
-                        return;
+                        return 0;
                     }
                     extension = util_copy_string(lua_tostring(L, -1));
                     lua_pop(L, 1); // pop extension
@@ -984,14 +984,17 @@ void export_write_toplevel(struct object* toplevel, struct pcell_state* pcell_st
         }
         export_destroy_data(data);
         export_destroy_functions(funcs);
+        return 1;
     }
     else if(status == EXPORT_STATUS_NOTFOUND)
     {
         printf("could not find export '%s'\n", state->exportname);
+        return 0;
     }
     else // EXPORT_STATUS_LOADERROR
     {
         puts("error while loading export");
+        return 0;
     }
 }
 
