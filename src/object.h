@@ -23,6 +23,7 @@ void object_destroy(void* cell);
 
 void object_add_raw_shape(struct object* cell, struct shape* S);
 void object_add_shape(struct object* cell, struct shape* S);
+void object_disown_shape(struct object* cell, size_t i);
 void object_remove_shape(struct object* cell, size_t i);
 struct object* object_add_child(struct object* cell, struct pcell_state* pcell_state, const char* identifier, const char* name);
 struct object* object_add_child_array(struct object* cell, struct pcell_state* pcell_state, const char* identifier, unsigned int xrep, unsigned int yrep, unsigned int xpitch, unsigned int ypitch, const char* name);
