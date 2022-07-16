@@ -8,6 +8,7 @@ function M.get_techexport()
     return "svg"
 end
 
+local __outlineblack = false
 local __standalone = false
 local __drawpatterns = false
 local __resizebox = false
@@ -18,6 +19,9 @@ local __expressionscale = false
 function M.set_options(opt)
     for i = 1, #opt do
         local arg = opt[i]
+        if arg == "-b" or arg == "--black-outline" then
+            __outlineblack = true
+        end
         if arg == "-S" or arg == "--standalone" then
             __standalone = true
         end
@@ -27,7 +31,7 @@ function M.set_options(opt)
         if arg == "-e" or arg == "--expression-scale" then
             __expressionscale = true
         end
-        if arg == "-b" or arg == "--base-unit" then
+        if arg == "-u" or arg == "--base-unit" then
             if i < #opt then
                 __baseunit = tonumber(opt[i + 1])
             else
@@ -158,6 +162,14 @@ local function _format_point(pt)
     end
 end
 
+local function _get_outline_color(color)
+    if __outlineblack then
+        return "black"
+    else
+        return color
+    end
+end
+
 local colors = {}
 local numcolors = 0
 local function _get_layer_style(layer)
@@ -184,9 +196,9 @@ local function _get_layer_style(layer)
         return string.format("draw = %s", color)
     else
         if layer.pattern then
-            return string.format("draw = %s, pattern = crosshatch, pattern color = %s", color, color)
+            return string.format("draw = %s, pattern = crosshatch, pattern color = %s", _get_outline_color(color), color)
         else
-            return string.format("fill = %s, draw = %s", color, color)
+            return string.format("fill = %s, draw = %s", color, _get_outline_color(color))
         end
     end
 end
