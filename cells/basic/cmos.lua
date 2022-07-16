@@ -125,37 +125,40 @@ function layout(cmos, _P)
                 nmosoptions["drawtopgcut"] = false
                 pmosoptions["drawbotgcut"] = false
             end
+            local shift = (i - 1) * xpitch - (fingers - 1) // 2 * xpitch - xpitch / 2
             local nfet = pcell.create_layout("basic/mosfet", nmosoptions)
             nfet:move_anchor("topgate")
-            nfet:translate((i - 1) * xpitch - (fingers - 1) // 2 * xpitch, 0)
+            nfet:translate(shift, 0)
             cmos:merge_into_shallow(nfet)
             local pfet = pcell.create_layout("basic/mosfet", pmosoptions)
             pfet:move_anchor("botgate")
-            pfet:translate((i - 1) * xpitch - (fingers - 1) // 2 * xpitch, 0)
+            pfet:translate(shift, 0)
             cmos:merge_into_shallow(pfet)
         end
         nmosoptions["drawtopgcut"] = true
         pmosoptions["drawbotgcut"] = true
         -- leftdummies
         for i = 1, _P.leftdummies do
+            local shift = -i * xpitch - (fingers - 1) // 2 * xpitch - xpitch / 2
             local nfet = pcell.create_layout("basic/mosfet", nmosoptions)
             nfet:move_anchor("topgate")
-            nfet:translate(-i * xpitch - (fingers - 1) // 2 * xpitch, 0)
+            nfet:translate(shift, 0)
             cmos:merge_into_shallow(nfet)
             local pfet = pcell.create_layout("basic/mosfet", pmosoptions)
             pfet:move_anchor("botgate")
-            pfet:translate(-i * xpitch - (fingers - 1) // 2 * xpitch, 0)
+            pfet:translate(shift, 0)
             cmos:merge_into_shallow(pfet)
         end
         -- rightdummies
         for i = 1, _P.rightdummies do
+            local shift = (fingers + i - 1) * xpitch - (fingers - 1) // 2 * xpitch - xpitch / 2
             local nfet = pcell.create_layout("basic/mosfet", nmosoptions)
             nfet:move_anchor("topgate")
-            nfet:translate((fingers + i - 1) * xpitch - (fingers - 1) // 2 * xpitch, 0)
+            nfet:translate(shift, 0)
             cmos:merge_into_shallow(nfet)
             local pfet = pcell.create_layout("basic/mosfet", pmosoptions)
             pfet:move_anchor("botgate")
-            pfet:translate((fingers + i - 1) * xpitch - (fingers - 1) // 2 * xpitch, 0)
+            pfet:translate(shift, 0)
             cmos:merge_into_shallow(pfet)
         end
         -- pop general transistor settings
@@ -329,7 +332,7 @@ function layout(cmos, _P)
             cmos, "sourcedrain", 
             point.create((fingers + _P.leftdummies + 1) * xpitch / 2 + xshift - (_P.sdwidth) / 2, -_P.separation / 2 - _P.nwidth + ncontactpowerheight / 2 - (ncontactpowerheight) / 2),
             point.create((fingers + _P.leftdummies + 1) * xpitch / 2 + xshift + (_P.sdwidth) / 2, -_P.separation / 2 - _P.nwidth + ncontactpowerheight /2 + (ncontactpowerheight) / 2),
-            _P.rightdummies, xpitch
+            _P.rightdummies, 1, xpitch, 0
         )
         geometry.rectanglebltr(
             cmos, generics.metal(1), 
