@@ -263,6 +263,8 @@ function layout(cmos, _P)
                 cmos:add_anchor(string.format("Gn%d", i), point.create(
                     x,
                     -_P.separation / 2 - _P.nwidth - _P.outergstspace - _P.outergstwidth / 2 - _P.powerwidth - _P.powerspace))
+            elseif _P.gatecontactpos[i] == "unused" then
+                -- ignore
             else
                 moderror(string.format("unknown gate contact position: %s", _P.gatecontactpos[i]))
             end
