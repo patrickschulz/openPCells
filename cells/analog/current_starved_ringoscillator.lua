@@ -101,13 +101,11 @@ function layout(oscillator, _P)
     local cbp = pcell.get_parameters("basic/cmos")
     local xpitch = _P.glength + _P.gspace
 
-    pcell.push_overwrites("basic/mosfet", {
-        gatelength = _P.glength,
-        gatespace = _P.gspace,
-    })
     local numinnerroutes = 3
     local separation = numinnerroutes * _P.gstwidth + (numinnerroutes + 1) * _P.gstspace
     pcell.push_overwrites("basic/cmos", {
+        gatelength = _P.glength,
+        gatespace = _P.gspace,
         gstwidth = _P.gstwidth,
         sdwidth = _P.gstwidth,
         pwidth = _P.pfingerwidth,
@@ -450,6 +448,5 @@ function layout(oscillator, _P)
         oscillator:add_child(nguardringname)
     end
 
-    pcell.pop_overwrites("basic/mosfet")
     pcell.pop_overwrites("basic/cmos")
 end
