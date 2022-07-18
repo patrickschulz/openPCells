@@ -48,6 +48,7 @@ function layout(gate, _P)
         pmosflippedwell = bp.pmosflippedwell,
         nmosflippedwell = bp.nmosflippedwell,
         oxidetype = bp.oxidetype,
+        gatemarker = bp.gatemarker,
         gatelength = bp.glength,
         gatespace = bp.gspace,
         gatecontactpos = _P.gatecontactpos,

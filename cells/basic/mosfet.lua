@@ -3,6 +3,7 @@ function parameters()
         { "channeltype(Channel Type)",                              "nmos", posvals = set("nmos", "pmos") },
         { "oxidetype(Oxide Thickness Type)",                             1, argtype = "integer", posvals = interval(1, inf) },
         { "vthtype(Threshold Voltage Type)",                             1, argtype = "integer", posvals = interval(1, inf) },
+        { "gatemarker(Gate Marking Layer Index)",                        1, argtype = "integer", posvals = interval(1, inf) },
         { "flippedwell(Flipped Well)",                                 false },
         { "fingers(Number of Fingers)",                                  1, argtype = "integer", posvals = interval(1, inf) },
         { "fwidth(Finger Width)",                                      tech.get_dimension("Minimum Gate Width"), argtype = "integer", posvals = even() },
@@ -98,7 +99,7 @@ function layout(transistor, _P)
 
     if hasgatecut then
         -- gates
-        geometry.rectanglebltr(transistor, 
+        geometry.rectanglebltr(transistor,
             generics.other("gate"),
             point.create(-_P.gatelength / 2, -_P.fwidth / 2 - gateaddbot - enable(_P.drawbotgate, sourceshift)),
             point.create( _P.gatelength / 2,  _P.fwidth / 2 + gateaddtop + enable(_P.drawtopgate, drainshift)),
@@ -140,7 +141,13 @@ function layout(transistor, _P)
             _P.fingers, 1, gatepitch, 0
         )
     end
-
+    -- gate marker
+    geometry.rectanglebltr(transistor,
+        generics.other(string.format("gatemarker%d", _P.gatemarker)),
+        point.create(-_P.gatelength / 2, -_P.fwidth / 2),
+        point.create( _P.gatelength / 2,  _P.fwidth / 2),
+        _P.fingers, 1, gatepitch, 0
+    )
 
     -- active
     if _P.drawactive then

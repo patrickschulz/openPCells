@@ -5,6 +5,7 @@ end
 function parameters()
     pcell.add_parameters(
         { "oxidetype(Oxide Type)",                                      1 },
+        { "gatemarker(Gate Marker Index)",                              1 },
         { "pvthtype(PMOS Threshold Voltage Type) ",                     1 },
         { "nvthtype(NMOS Threshold Voltage Type)",                      1 },
         { "pmosflippedwell(PMOS Flipped Well) ",                        false },

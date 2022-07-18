@@ -258,6 +258,7 @@ return {
     -- unused layers
     soiopen = {},
     oxide1 = {},
+    gatemarker1 = {},
     vthtypen1 = {},
     vthtypep1 = {},
     pwell = {},
