@@ -51,15 +51,15 @@
                        |        |---|   |              |
                        |        |       |              |
                        |        |---|   |              |
-                       |            |o--*              |
-                       |        |---|   |              |
+  'pmostunefingers'    |            |o--*              |
+   in series (nf = 1)  |        |---|   |              |
                        |        |       |              |
-                       |        |---|   |              |
-                       |            |o--*              |
-                       |        |---|   |              |
-   'pmostunefingers'   |        |       |              |    'pmosdiodefingers'
-                   |---|        |---|   |              |---| 
-       vtune o----o|                |o--*---- VSS          |o--*-o vbiasp
+                   |---|        |---|   |              |
+               ---o|   |            |o--*              |
+               |   |---|        |---|   |              |
+               |       |        |       |              |    'pmosdiodefingers'
+               |   |---|        |---|   |              |---| 
+       vtune o-*--o|                |o--*---- VSS          |o--*-o vbiasp
                    |---|        |---|                  |---|   |
                        *---------                      |       |
                        |                               *--------
@@ -242,12 +242,10 @@ function layout(oscillator, _P)
         cmpactivecontacts[cmfingers + 2 - i] = "inner"
         cmpactivecontacts[cmfingers + 1 - i] = "power"
     end
-    for i = 2, _P.pmostunefingers, 2 do
-        cmpactivecontacts[cmfingers - _P.pmosdiodefingers - _P.pmoszerofingers - _P.pmosseparationfingers + 2 - i] = "inner"
-        cmpactivecontacts[cmfingers - _P.pmosdiodefingers - _P.pmoszerofingers - _P.pmosseparationfingers + 1 - i] = "power"
-    end
+    cmpactivecontacts[cmfingers + 1 - _P.pmosdiodefingers - _P.pmoszerofingers - _P.pmosseparationfingers] = "inner"
+    cmpactivecontacts[cmfingers + 1 - _P.pmosdiodefingers - _P.pmoszerofingers - _P.pmosseparationfingers - _P.pmostunefingers] = "power"
     -- pmos separation fingers
-    for i = 1, _P.pmosseparationfingers do
+    for i = 1, _P.pmosseparationfingers - 1 do
         cmpactivecontacts[cmfingers - _P.pmosdiodefingers - _P.pmoszerofingers - i + 1] = "power"
     end
     -- nmos active contacts
@@ -256,7 +254,7 @@ function layout(oscillator, _P)
         cmnactivecontacts[cmfingers + 1 - i] = "power"
     end
     -- fill dummy contacts
-    cmpactivecontacts[cmfingers - _P.pmosdiodefingers - _P.pmoszerofingers - _P.pmosseparationfingers + 1] = "power"
+    cmpactivecontacts[cmfingers - _P.pmosdiodefingers - _P.pmoszerofingers - _P.pmosseparationfingers - _P.pmostunefingers + 1] = "power"
     for i = 1, cmfingers - _P.pmostunefingers - _P.pmoszerofingers - _P.pmosdiodefingers - _P.pmosseparationfingers do
         cmpactivecontacts[i] = "power"
     end
@@ -361,13 +359,11 @@ function layout(oscillator, _P)
         cmarray:get_anchor(string.format("pSDi%d", cmfingers - _P.pmosdiodefingers - _P.pmoszerofingers - _P.pmosseparationfingers // 2)):translate(_P.gstwidth / 2, 0)
     )
     -- connect left pmos/nmos
-    for i = 1, _P.pmostunefingers, 2 do
-        local index = cmfingers - _P.pmosdiodefingers - _P.pmoszerofingers - _P.pmosseparationfingers + 1 - i
-        geometry.viabltr(cmarray, 1, 2, 
-            cmarray:get_anchor(string.format("pSDi%d", index)):translate(-_P.gstwidth / 2, 0),
-            cmarray:get_anchor(string.format("pSDo%d", index)):translate( _P.gstwidth / 2, 0)
-        )
-    end
+    local index = cmfingers - _P.pmosdiodefingers - _P.pmoszerofingers - _P.pmosseparationfingers + 1
+    geometry.viabltr(cmarray, 1, 2, 
+        cmarray:get_anchor(string.format("pSDi%d", index)):translate(-_P.gstwidth / 2, 0),
+        cmarray:get_anchor(string.format("pSDo%d", index)):translate( _P.gstwidth / 2, 0)
+    )
     local index = cmfingers - _P.pmosdiodefingers - _P.pmoszerofingers + 1
     geometry.viabltr(cmarray, 1, 2, 
         cmarray:get_anchor(string.format("pSDi%d", index)):translate(-_P.gstwidth / 2, 0),
@@ -478,7 +474,7 @@ function layout(oscillator, _P)
     )
 
     geometry.path(oscillator, generics.metal(2), geometry.path_points_xy(
-        currentmirror:get_anchor(string.format("pSDc%d", cmfingers - _P.pmosdiodefingers - _P.pmoszerofingers - _P.pmostunefingers - _P.pmosseparationfingers + 2)), {
+        currentmirror:get_anchor(string.format("pSDc%d", cmfingers - _P.pmosdiodefingers - _P.pmoszerofingers - _P.pmosseparationfingers + 1)), {
         currentmirror:get_anchor(string.format("pSDc%d", cmfingers - _P.pmosdiodefingers - _P.pmoszerofingers + 1)),
         0, -- toggle xy
         currentmirror:get_anchor(string.format("Glowercc%d", cmfingers - _P.nmoscurrentfingers)),
