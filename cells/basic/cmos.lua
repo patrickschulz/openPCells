@@ -62,6 +62,7 @@ end
 function layout(cmos, _P)
     local xpitch = _P.gatespace + _P.gatelength
     local fingers = #_P.gatecontactpos
+    local allfingers = #_P.gatecontactpos + _P.rightdummies + _P.leftdummies
     local xshift = (_P.rightdummies - _P.leftdummies) * xpitch / 2
 
     -- check if outer gates are drawn
@@ -125,7 +126,7 @@ function layout(cmos, _P)
                 nmosoptions["drawtopgcut"] = false
                 pmosoptions["drawbotgcut"] = false
             end
-            local shift = (i - 1) * xpitch - (fingers - 1) // 2 * xpitch - xpitch / 2
+            local shift = (2 * i - fingers - 1) * xpitch / 2
             local nfet = pcell.create_layout("basic/mosfet", nmosoptions)
             nfet:move_anchor("topgate")
             nfet:translate(shift, 0)
@@ -139,7 +140,7 @@ function layout(cmos, _P)
         pmosoptions["drawbotgcut"] = true
         -- leftdummies
         for i = 1, _P.leftdummies do
-            local shift = -i * xpitch - (fingers - 1) // 2 * xpitch - xpitch / 2
+            local shift = (1 - fingers - 2 * i) * xpitch / 2
             local nfet = pcell.create_layout("basic/mosfet", nmosoptions)
             nfet:move_anchor("topgate")
             nfet:translate(shift, 0)
@@ -151,7 +152,7 @@ function layout(cmos, _P)
         end
         -- rightdummies
         for i = 1, _P.rightdummies do
-            local shift = (fingers + i - 1) * xpitch - (fingers - 1) // 2 * xpitch - xpitch / 2
+            local shift = (fingers - 1 + 2 * i) * xpitch / 2
             local nfet = pcell.create_layout("basic/mosfet", nmosoptions)
             nfet:move_anchor("topgate")
             nfet:translate(shift, 0)
@@ -347,9 +348,8 @@ function layout(cmos, _P)
     local ncontactheight = (_P.nsdheight > 0) and _P.nsdheight or _P.nwidth / 2
     local pcontactpowerheight = (_P.psdpowerheight > 0) and _P.psdpowerheight or _P.pwidth / 2
     local ncontactpowerheight = (_P.nsdpowerheight > 0) and _P.nsdpowerheight or _P.nwidth / 2
-    local indexshift = fingers + 2
     for i = 1, fingers + 1 do
-        local x = (2 * i - indexshift) * xpitch / 2
+        local x = (2 * (i - 1) - fingers) * xpitch / 2
         local y = _P.separation / 2 + _P.pwidth / 2
         -- p contacts
         if _P.pcontactpos[i] == "power" or _P.pcontactpos[i] == "outer" then
