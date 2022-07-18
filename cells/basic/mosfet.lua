@@ -60,6 +60,10 @@ function parameters()
         { "botactivedummywidth",                                          80 },
         { "botactivedummysep",                                            80 },
         { "drawactive",                                                 true },
+        { "extendoxidetop",                                                0 },
+        { "extendoxidebot",                                                0 },
+        { "extendoxideleft",                                               0 },
+        { "extendoxideright",                                              0 },
         { "extendvthtop",                                                  0 },
         { "extendvthbot",                                                  0 },
         { "extendvthleft",                                                 0 },
@@ -177,15 +181,15 @@ function layout(transistor, _P)
     -- threshold voltage
     geometry.rectanglebltr(transistor,
         generics.vthtype(_P.channeltype, _P.vthtype),
-        point.create(-actwidth / 2 - _P.extendvthleft, -_P.fwidth / 2 - gateaddbot - _P.extendvthbot),
-        point.create( actwidth / 2 + _P.extendvthright, _P.fwidth / 2 + gateaddtop + _P.extendvthtop)
+        point.create(-actwidth / 2 - _P.extendvthleft, -_P.fwidth / 2 - gateaddbot - enable(not _P.clipbot, _P.extendvthbot)),
+        point.create( actwidth / 2 + _P.extendvthright, _P.fwidth / 2 + gateaddtop + enable(not _P.cliptop, _P.extendvthtop))
     )
 
     -- implant
     geometry.rectanglebltr(transistor,
         generics.implant(_P.channeltype),
-        point.create(-actwidth / 2 - _P.extendimplantleft, -_P.fwidth / 2 - gateaddbot - _P.extendimplantbot),
-        point.create( actwidth / 2 + _P.extendimplantright, _P.fwidth / 2 + gateaddtop + _P.extendimplanttop)
+        point.create(-actwidth / 2 - _P.extendimplantleft, -_P.fwidth / 2 - gateaddbot - enable(not _P.clipbot, _P.extendimplantbot)),
+        point.create( actwidth / 2 + _P.extendimplantright, _P.fwidth / 2 + gateaddtop + enable(not _P.cliptop, _P.extendimplanttop))
     )
 
     -- well
@@ -232,8 +236,8 @@ function layout(transistor, _P)
     -- oxide thickness
     geometry.rectanglebltr(transistor,
         generics.oxide(_P.oxidetype),
-        point.create(-actwidth / 2, -_P.fwidth / 2 - gateaddbot),
-        point.create( actwidth / 2,  _P.fwidth / 2 + gateaddtop)
+        point.create(-actwidth / 2 - _P.extendoxideleft, -_P.fwidth / 2 - gateaddbot - enable(_P.clipbot, _P.extendoxidebot)),
+        point.create( actwidth / 2 + _P.extendoxideright, _P.fwidth / 2 + gateaddtop + enable(_P.cliptop, _P.extendoxidetop))
     )
 
     -- gate contacts
