@@ -189,8 +189,8 @@ void route(struct net *net, struct field* field, int step_cost, int wrong_dir_co
                                 ((oldpoint.x != current.x && current.x == next.x) ||
                                 (oldpoint.y != current.y && current.y == next.y)))
                 {
-                    nextpoints[i].score+=wrong_dir_cost;
-                    nextpoints[i].score+=step_cost;
+                    nextpoints[i].score += wrong_dir_cost;
+                    nextpoints[i].score += step_cost;
                 }
             }
         }

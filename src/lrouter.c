@@ -14,8 +14,11 @@
 
 #include "vector.h"
 
+#define EXCLUDE 1
+
 #define UABSDIFF(v1, v2) (v1 > v2 ? v1 - v2 : v2 - v1)
 #define MANHATTAN_DIST(pos1, pos2) (UABSDIFF(pos1->x, pos2->x) + UABSDIFF(pos1->y, pos2->y))
+#define CEIL(x1, x2) (x1/x2 + (x1 % x2 != 0))
 
 struct netcollection {
     struct vector* nets;
@@ -44,34 +47,38 @@ static struct rpoint* _create_point(lua_State *L)
  */
 static void _split_and_make_nets(const char* name, struct vector* nets, struct vector* positions)
 {
-    size_t splitcount = 0;
-    while(vector_size(positions) > 1)
+    int exclude_positions[vector_size(positions)];
+    memset(exclude_positions, 0, vector_size(positions));
+    for(size_t i = 0; i < vector_size(positions); i++)
     {
-        struct position* pos1 = vector_get(positions, 0);
-        struct position* pos2 = NULL; // FIXME: check for NULL when using this
-        int mindist = INT_MAX;
-        for(size_t k = 1; k < vector_size(positions); k++)
-        {
-            struct position* npos = vector_get(positions, k);
-            int nextdist = MANHATTAN_DIST(pos1, npos);
-            if(nextdist < mindist)
-            {
-                mindist = nextdist;
-                pos2 = npos;
-            }
-        }
+	if(exclude_positions[i] == EXCLUDE)
+	{
+	    continue;
+	}
+	struct position *pos1 = vector_get(positions, i);
+	struct position *pos2 = NULL;
+	int mindist = INT_MAX;
+	size_t minindex;
+	for(size_t j = 0; j < vector_size(positions); j++)
+	{
+	    if(i == j)
+	    {
+		continue;
+	    }
 
-        if (mindist == 0)
-        {
-            continue;
-        }
-
-        struct net *net = net_create(name, splitcount, net_copy_position(pos1), net_copy_position(pos2));
-
-        vector_remove(positions, 0, net_destroy_position);
-
-        vector_append(nets, net);
-        splitcount++;
+	    struct position *npos = vector_get(positions, j);
+	    int nextdist = MANHATTAN_DIST(pos1, npos);
+	    if(nextdist < mindist)
+	    {
+		mindist = nextdist;
+		pos2 = npos;
+		minindex = j;
+	    }
+	}
+        struct net *net = net_create(name, i, net_copy_position(pos1),
+				     net_copy_position(pos2));
+	exclude_positions[minindex] = EXCLUDE;
+	vector_append(nets, net);
     }
 }
 
@@ -273,6 +280,7 @@ int lrouter_route(lua_State* L)
         //field_print(field, i);
     }
 
+    field_print(field, 0);
     field_destroy(field);
     vector_destroy(nc->nets, net_destroy);
     vector_destroy(nc->blockages, _destroy_blockage);
