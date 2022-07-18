@@ -654,7 +654,7 @@ void shape_resolve_path(struct shape* shape)
     struct path* path = shape->content;
     struct shape* new = geometry_path_to_polygon(shape->layer, vector_content(path->points), vector_size(path->points), path->width, miterjoin);
     shape->content = new->content;
-    shape->type = POLYGON;
+    shape->type = new->type;
     vector_destroy(path->points, point_destroy);
     free(path);
     free(new);

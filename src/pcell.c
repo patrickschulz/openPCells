@@ -100,10 +100,19 @@ static char* _unique_name(struct pcell_state* pcell_state, const char* identifie
         vector_append(pcell_state->used_names, entry);
     }
     *ptr += 1;
-    unsigned int digits = util_num_digits(*ptr);
-    unsigned int len = strlen(identifier) + 1 + digits; // + 1 for underscore
-    char* str = malloc(len + 1);
-    snprintf(str, len + 1, "%s_%*d", identifier, digits, *ptr);
+    char* str;
+    unsigned int len = strlen(identifier);
+    if(*ptr == 1) // handle names that are only used once specially
+    {
+        str = malloc(len + 1);
+        snprintf(str, len + 1, "%s", identifier);
+    }
+    else
+    {
+        unsigned int digits = util_num_digits(*ptr);
+        str = malloc(len + 1 + digits + 1); // + 1 for underscore
+        snprintf(str, len + 1 + digits + 1, "%s_%*d", identifier, digits, *ptr);
+    }
     return str;
 }
 

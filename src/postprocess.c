@@ -19,7 +19,7 @@ static void _merge_shapes(struct object* object, struct layermap* layermap)
             if(shape_is_rectangle(S) && shape_get_layer(S) == layer)
             {
                 vector_append(rectangles, S);
-                object_remove_shape(object, j);
+                object_disown_shape(object, j);
             }
         }
         if(vector_size(rectangles) > 1)

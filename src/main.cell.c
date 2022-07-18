@@ -589,11 +589,16 @@ int main_create_and_export_cell(struct cmdoptions* cmdoptions, struct hashmap* c
                     retval = 0;
                     goto DESTROY_OBJECT;
                 }
-                export_write_toplevel(
+                int export_result = export_write_toplevel(
                     toplevel, 
                     pcell_state, 
                     export_state
                 );
+                if(!export_result)
+                {
+                    retval = 0;
+                    goto DESTROY_OBJECT;
+                }
                 ++exportnames;
             }
             export_destroy_state(export_state);

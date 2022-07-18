@@ -5,6 +5,7 @@ end
 function parameters()
     pcell.add_parameters(
         { "oxidetype(Oxide Type)",                             1 },
+        { "gatemarker(Gate Marker Index)",                     1 },
         { "pvthtype(PMOS Threshold Voltage Type) ",            1 },
         { "nvthtype(NMOS Threshold Voltage Type)",             1 },
         { "pmosflippedwell(PMOS Flipped Well) ",            false },
@@ -62,6 +63,7 @@ end
 function layout(cmos, _P)
     local xpitch = _P.gatespace + _P.gatelength
     local fingers = #_P.gatecontactpos
+    local allfingers = #_P.gatecontactpos + _P.rightdummies + _P.leftdummies
     local xshift = (_P.rightdummies - _P.leftdummies) * xpitch / 2
 
     -- check if outer gates are drawn
@@ -81,6 +83,8 @@ function layout(cmos, _P)
             gatelength = _P.gatelength,
             gatespace = _P.gatespace,
             sdwidth = _P.sdwidth,
+            oxidetype = _P.oxidetype,
+            gatemarker = _P.gatemarker,
             drawinnersourcedrain = "none",
             drawoutersourcedrain = "none",
             drawactive = _P.drawactive
@@ -88,7 +92,7 @@ function layout(cmos, _P)
         local ext = math.max(_P.powerspace + _P.powerwidth + outergateshift, math.max(_P.gateext, _P.cutheight / 2, _P.dummycontheight / 2))
 
         -- pmos
-        pcell.push_overwrites("basic/mosfet", {
+        local pmosoptions = {
             channeltype = "pmos",
             vthtype = _P.pvthtype,
             flippedwell = _P.pmosflippedwell,
@@ -100,29 +104,9 @@ function layout(cmos, _P)
             drawtopwelltap = _P.drawpmoswelltap,
             topwelltapwidth = _P.pmoswelltapwidth,
             topwelltapspace = _P.powerspace + _P.powerwidth + _P.pmoswelltapspace,
-        })
-        -- main
-        local pmos
-        if fingers > 0 then
-            pmos = pcell.create_layout("basic/mosfet", { fingers = fingers } ):move_anchor("botgate")
-            cmos:merge_into_shallow(pmos)
-        end
-        -- left dummy
-        if _P.leftdummies > 0 then
-            cmos:merge_into_shallow(
-                pcell.create_layout("basic/mosfet", { fingers = _P.leftdummies, drawtopgcut = false, drawbotgcut = true }
-            ):move_anchor("rightbotgate", pmos and pmos:get_anchor("leftbotgate") or nil))
-        end
-        -- rightdummy
-        if _P.rightdummies > 0 then
-            cmos:merge_into_shallow(
-                pcell.create_layout("basic/mosfet", { fingers = _P.rightdummies, drawtopgcut = false, drawbotgcut = true }
-            ):move_anchor("leftbotgate", pmos and pmos:get_anchor("rightbotgate") or nil))
-        end
-        pcell.pop_overwrites("basic/mosfet")
-
-        -- nmos
-        pcell.push_overwrites("basic/mosfet", {
+        }
+        local nmosoptions = {
+            channeltype = "nmos",
             vthtype = _P.nvthtype,
             flippedwell = _P.nmosflippedwell,
             fwidth = _P.nwidth,
@@ -130,29 +114,56 @@ function layout(cmos, _P)
             gbotext = ext,
             botgcutoffset = ext,
             cliptop = true,
+            drawbotgcut = false,
             drawbotwelltap = _P.drawnmoswelltap,
             botwelltapwidth = _P.nmoswelltapwidth,
             botwelltapspace = _P.powerspace + _P.powerwidth + _P.nmoswelltapspace,
-        })
+        }
         -- main
-        local nmos
-        if fingers > 0 then
-            nmos = pcell.create_layout("basic/mosfet", { fingers = fingers, channeltype = "nmos" }):move_anchor("topgate")
-            cmos:merge_into_shallow(nmos)
+        for i = 1, fingers do
+            if _P.gatecontactpos[i] == "dummy" then
+                nmosoptions["drawtopgcut"] = true
+                pmosoptions["drawbotgcut"] = true
+            else
+                nmosoptions["drawtopgcut"] = false
+                pmosoptions["drawbotgcut"] = false
+            end
+            local shift = (2 * i - fingers - 1) * xpitch / 2
+            local nfet = pcell.create_layout("basic/mosfet", nmosoptions)
+            nfet:move_anchor("topgate")
+            nfet:translate(shift, 0)
+            cmos:merge_into_shallow(nfet)
+            local pfet = pcell.create_layout("basic/mosfet", pmosoptions)
+            pfet:move_anchor("botgate")
+            pfet:translate(shift, 0)
+            cmos:merge_into_shallow(pfet)
         end
-        -- left dummy
-        if _P.leftdummies > 0 then
-            cmos:merge_into_shallow(
-                pcell.create_layout("basic/mosfet", { fingers = _P.leftdummies, drawtopgcut = true, drawbotgcut = false }
-            ):move_anchor("righttopgate", nmos and nmos:get_anchor("lefttopgate") or nil))
+        nmosoptions["drawtopgcut"] = true
+        pmosoptions["drawbotgcut"] = true
+        -- leftdummies
+        for i = 1, _P.leftdummies do
+            local shift = (1 - fingers - 2 * i) * xpitch / 2
+            local nfet = pcell.create_layout("basic/mosfet", nmosoptions)
+            nfet:move_anchor("topgate")
+            nfet:translate(shift, 0)
+            cmos:merge_into_shallow(nfet)
+            local pfet = pcell.create_layout("basic/mosfet", pmosoptions)
+            pfet:move_anchor("botgate")
+            pfet:translate(shift, 0)
+            cmos:merge_into_shallow(pfet)
         end
-        -- rightdummy
-        if _P.rightdummies > 0 then
-            cmos:merge_into_shallow(
-                pcell.create_layout("basic/mosfet", { fingers = _P.rightdummies, drawtopgcut = true, drawbotgcut = false }
-            ):move_anchor("lefttopgate", nmos and nmos:get_anchor("righttopgate") or nil))
+        -- rightdummies
+        for i = 1, _P.rightdummies do
+            local shift = (fingers - 1 + 2 * i) * xpitch / 2
+            local nfet = pcell.create_layout("basic/mosfet", nmosoptions)
+            nfet:move_anchor("topgate")
+            nfet:translate(shift, 0)
+            cmos:merge_into_shallow(nfet)
+            local pfet = pcell.create_layout("basic/mosfet", pmosoptions)
+            pfet:move_anchor("botgate")
+            pfet:translate(shift, 0)
+            cmos:merge_into_shallow(pfet)
         end
-        pcell.pop_overwrites("basic/mosfet")
         -- pop general transistor settings
         pcell.pop_overwrites("basic/mosfet")
     end
@@ -258,6 +269,8 @@ function layout(cmos, _P)
                 cmos:add_anchor(string.format("Gn%d", i), point.create(
                     x,
                     -_P.separation / 2 - _P.nwidth - _P.outergstspace - _P.outergstwidth / 2 - _P.powerwidth - _P.powerspace))
+            elseif _P.gatecontactpos[i] == "unused" then
+                -- ignore
             else
                 moderror(string.format("unknown gate contact position: %s", _P.gatecontactpos[i]))
             end
@@ -322,7 +335,7 @@ function layout(cmos, _P)
             cmos, "sourcedrain", 
             point.create((fingers + _P.leftdummies + 1) * xpitch / 2 + xshift - (_P.sdwidth) / 2, -_P.separation / 2 - _P.nwidth + ncontactpowerheight / 2 - (ncontactpowerheight) / 2),
             point.create((fingers + _P.leftdummies + 1) * xpitch / 2 + xshift + (_P.sdwidth) / 2, -_P.separation / 2 - _P.nwidth + ncontactpowerheight /2 + (ncontactpowerheight) / 2),
-            _P.rightdummies, xpitch
+            _P.rightdummies, 1, xpitch, 0
         )
         geometry.rectanglebltr(
             cmos, generics.metal(1), 
@@ -337,9 +350,8 @@ function layout(cmos, _P)
     local ncontactheight = (_P.nsdheight > 0) and _P.nsdheight or _P.nwidth / 2
     local pcontactpowerheight = (_P.psdpowerheight > 0) and _P.psdpowerheight or _P.pwidth / 2
     local ncontactpowerheight = (_P.nsdpowerheight > 0) and _P.nsdpowerheight or _P.nwidth / 2
-    local indexshift = fingers + 2
     for i = 1, fingers + 1 do
-        local x = (2 * i - indexshift) * xpitch / 2
+        local x = (2 * (i - 1) - fingers) * xpitch / 2
         local y = _P.separation / 2 + _P.pwidth / 2
         -- p contacts
         if _P.pcontactpos[i] == "power" or _P.pcontactpos[i] == "outer" then

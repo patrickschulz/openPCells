@@ -757,7 +757,7 @@ static int _check_lua_export(lua_State* L)
     return 1;
 }
 
-static void _write_toplevel_C(struct object* object, struct pcell_state* pcell_state, const char* toplevelname, struct export_data* data, struct export_functions* funcs, int writechildrenports, char leftdelim, char rightdelim)
+static void _write_toplevel_C(struct object* object, struct pcell_state* pcell_state, const char* toplevelname, struct export_data* data, struct export_functions* funcs, struct export_state* state)
 {
     if(funcs->initialize)
     {
@@ -765,25 +765,25 @@ static void _write_toplevel_C(struct object* object, struct pcell_state* pcell_s
     }
     funcs->at_begin(data);
 
-    funcs->at_begin_cell(data, toplevelname);
-    _write_cell(object, data, funcs, 1, leftdelim, rightdelim); // 1: write ports
-    funcs->at_end_cell(data);
-
     for(unsigned int i = 0; i < pcell_get_reference_count(pcell_state); ++i)
     {
         struct cellreference* reference = pcell_get_indexed_cell_reference(pcell_state, i);
         if(reference->numused > 0)
         {
             funcs->at_begin_cell(data, reference->identifier);
-            _write_cell(reference->cell, data, funcs, writechildrenports, leftdelim, rightdelim);
+            _write_cell(reference->cell, data, funcs, state->writechildrenports, state->leftdelim, state->rightdelim);
             funcs->at_end_cell(data);
         }
     }
 
+    funcs->at_begin_cell(data, toplevelname);
+    _write_cell(object, data, funcs, 1, state->leftdelim, state->rightdelim); // 1: write ports
+    funcs->at_end_cell(data);
+
     funcs->at_end(data);
 }
 
-static int _write_toplevel_lua(lua_State* L, struct object* object, struct pcell_state* pcell_state, const char* toplevelname, struct export_data* data, int writechildrenports, char leftdelim, char rightdelim)
+static int _write_toplevel_lua(lua_State* L, struct object* object, struct pcell_state* pcell_state, const char* toplevelname, struct export_data* data, struct export_state* state)
 {
     int ret;
     // check if export supports hierarchies
@@ -815,21 +815,6 @@ static int _write_toplevel_lua(lua_State* L, struct object* object, struct pcell
         return ret;
     }
 
-    lua_getfield(L, -1, "at_begin_cell");
-    lua_pushstring(L, toplevelname);
-    ret = _call_or_pop_nil(L, 1);
-    if(ret != LUA_OK)
-    {
-        return ret;
-    }
-    ret = _write_cell_lua(L, object, 1, leftdelim, rightdelim); // 1: write ports
-    if(ret != LUA_OK)
-    {
-        return ret;
-    }
-    lua_getfield(L, -1, "at_end_cell");
-    _call_or_pop_nil(L, 0);
-
     for(unsigned int i = 0; i < pcell_get_reference_count(pcell_state); ++i)
     {
         struct cellreference* reference = pcell_get_indexed_cell_reference(pcell_state, i);
@@ -837,16 +822,35 @@ static int _write_toplevel_lua(lua_State* L, struct object* object, struct pcell
         {
             lua_getfield(L, -1, "at_begin_cell");
             lua_pushstring(L, reference->identifier);
-            _call_or_pop_nil(L, 1);
-            ret = _write_cell_lua(L, reference->cell, writechildrenports, leftdelim, rightdelim);
+            lua_pushboolean(L, 0); // cell is not toplevel
+            _call_or_pop_nil(L, 2);
+            ret = _write_cell_lua(L, reference->cell, state->writechildrenports, state->leftdelim, state->rightdelim);
             if(ret != LUA_OK)
             {
                 return ret;
             }
             lua_getfield(L, -1, "at_end_cell");
-            _call_or_pop_nil(L, 0);
+            lua_pushboolean(L, 0); // cell is not toplevel
+            _call_or_pop_nil(L, 1);
         }
     }
+
+    lua_getfield(L, -1, "at_begin_cell");
+    lua_pushstring(L, toplevelname);
+    lua_pushboolean(L, 1); // cell is toplevel
+    ret = _call_or_pop_nil(L, 2);
+    if(ret != LUA_OK)
+    {
+        return ret;
+    }
+    ret = _write_cell_lua(L, object, 1, state->leftdelim, state->rightdelim); // 1: write ports
+    if(ret != LUA_OK)
+    {
+        return ret;
+    }
+    lua_getfield(L, -1, "at_end_cell");
+    lua_pushboolean(L, 1); // cell is toplevel
+    _call_or_pop_nil(L, 1);
 
     lua_getfield(L, -1, "at_end");
     _call_or_pop_nil(L, 0);
@@ -864,12 +868,12 @@ static int _write_toplevel_lua(lua_State* L, struct object* object, struct pcell
     return LUA_OK;
 }
 
-void export_write_toplevel(struct object* toplevel, struct pcell_state* pcell_state, struct export_state* state)
+int export_write_toplevel(struct object* toplevel, struct pcell_state* pcell_state, struct export_state* state)
 {
     if(object_is_empty(toplevel))
     {
         puts("export: toplevel is empty");
-        return;
+        return 0;
     }
 
     struct export_data* data = export_create_data();
@@ -879,7 +883,7 @@ void export_write_toplevel(struct object* toplevel, struct pcell_state* pcell_st
     struct export_functions* funcs = _get_export_functions(state->exportname);
     if(funcs) // C-defined exports
     {
-        _write_toplevel_C(toplevel, pcell_state, state->toplevelname, data, funcs, state->writechildrenports, state->leftdelim, state->rightdelim);
+        _write_toplevel_C(toplevel, pcell_state, state->toplevelname, data, funcs, state);
         extension = util_copy_string(funcs->get_extension());
         status = EXPORT_STATUS_SUCCESS;
     }
@@ -932,13 +936,13 @@ void export_write_toplevel(struct object* toplevel, struct pcell_state* pcell_st
                         _call_or_pop_nil(L, 1);
                     }
 
-                    int ret = _write_toplevel_lua(L, toplevel, pcell_state, state->toplevelname, data, state->writechildrenports, state->leftdelim, state->rightdelim);
+                    int ret = _write_toplevel_lua(L, toplevel, pcell_state, state->toplevelname, data, state);
                     if(ret != LUA_OK)
                     {
                         const char* msg = lua_tostring(L, -1);
                         fprintf(stderr, "error while calling lua export: %s\n", msg);
                         lua_close(L);
-                        return;
+                        return 0;
                     }
 
                     lua_getfield(L, -1, "get_extension");
@@ -948,7 +952,7 @@ void export_write_toplevel(struct object* toplevel, struct pcell_state* pcell_st
                         const char* msg = lua_tostring(L, -1);
                         fprintf(stderr, "error while calling lua export: %s\n", msg);
                         lua_close(L);
-                        return;
+                        return 0;
                     }
                     extension = util_copy_string(lua_tostring(L, -1));
                     lua_pop(L, 1); // pop extension
@@ -980,14 +984,17 @@ void export_write_toplevel(struct object* toplevel, struct pcell_state* pcell_st
         }
         export_destroy_data(data);
         export_destroy_functions(funcs);
+        return 1;
     }
     else if(status == EXPORT_STATUS_NOTFOUND)
     {
         printf("could not find export '%s'\n", state->exportname);
+        return 0;
     }
     else // EXPORT_STATUS_LOADERROR
     {
         puts("error while loading export");
+        return 0;
     }
 }
 

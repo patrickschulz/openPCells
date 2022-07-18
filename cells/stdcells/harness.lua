@@ -30,16 +30,25 @@ function layout(gate, _P)
     local bp = pcell.get_parameters("stdcells/base")
     local xpitch = bp.gspace + bp.glength
     local xshift = (_P.rightdummies - _P.leftdummies) * xpitch / 2
-    local separation = bp.numinnerroutes * bp.routingwidth + (bp.numinnerroutes + 1) * bp.routingspace
     local fingers = #_P.gatecontactpos
     -- numtracks + 2 for powerspace calculation: only virtual routes on power bars (no real ones)
-    local powerspace = ((bp.numtracks + 2) * (bp.routingwidth + bp.routingspace) - 2 * bp.powerwidth - bp.nwidth - bp.pwidth - separation) / 2 - bp.routingspace / 2
+    local powerspace
+    local separation
+    if bp.spacesepautocalc then
+        separation = bp.numinnerroutes * bp.routingwidth + (bp.numinnerroutes + 1) * bp.routingspace
+        powerspace = ((bp.numtracks + 2) * (bp.routingwidth + bp.routingspace) - 2 * bp.powerwidth - bp.nwidth - bp.pwidth - separation) / 2 - bp.routingspace / 2
+    else
+        separation = bp.separation
+        powerspace = bp.powerspace
+    end
     local routingshift = (bp.routingwidth + bp.routingspace) / (bp.numinnerroutes % 2 == 0 and 2 or 1)
     local cmos = pcell.create_layout("basic/cmos", {
         nvthtype = bp.nvthtype,
         pvthtype = bp.pvthtype,
         pmosflippedwell = bp.pmosflippedwell,
         nmosflippedwell = bp.nmosflippedwell,
+        oxidetype = bp.oxidetype,
+        gatemarker = bp.gatemarker,
         gatelength = bp.glength,
         gatespace = bp.gspace,
         gatecontactpos = _P.gatecontactpos,
@@ -51,6 +60,7 @@ function layout(gate, _P)
         powerspace = powerspace,
         pwidth = bp.pwidth,
         nwidth = bp.nwidth,
+        sdwidth = bp.sdwidth,
         separation = separation,
         gatecontactsplitshift = routingshift,
     })

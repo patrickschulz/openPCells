@@ -8,8 +8,10 @@ function M.get_techexport()
     return "svg"
 end
 
+local __outlineblack = false
 local __standalone = false
 local __drawpatterns = false
+local __writeignored = false
 local __resizebox = false
 local __externaldisable
 local __baseunit = 1
@@ -18,16 +20,22 @@ local __expressionscale = false
 function M.set_options(opt)
     for i = 1, #opt do
         local arg = opt[i]
+        if arg == "-b" or arg == "--black-outline" then
+            __outlineblack = true
+        end
         if arg == "-S" or arg == "--standalone" then
             __standalone = true
         end
         if arg == "-p" or arg == "--pattern" then
             __drawpatterns = true
         end
+        if arg == "-i" or arg == "--write-ignored" then
+            __writeignored = true
+        end
         if arg == "-e" or arg == "--expression-scale" then
             __expressionscale = true
         end
-        if arg == "-b" or arg == "--base-unit" then
+        if arg == "-u" or arg == "--base-unit" then
             if i < #opt then
                 __baseunit = tonumber(opt[i + 1])
             else
@@ -158,6 +166,14 @@ local function _format_point(pt)
     end
 end
 
+local function _get_outline_color(color)
+    if __outlineblack then
+        return "black"
+    else
+        return color
+    end
+end
+
 local colors = {}
 local numcolors = 0
 local function _get_layer_style(layer)
@@ -184,9 +200,11 @@ local function _get_layer_style(layer)
         return string.format("draw = %s", color)
     else
         if layer.pattern then
-            return string.format("draw = %s, pattern = crosshatch, pattern color = %s", color, color)
+            return string.format("draw = %s, pattern = crosshatch, pattern color = %s", _get_outline_color(color), color)
+        elseif layer.nooutline then
+            return string.format("fill = %s", color)
         else
-            return string.format("fill = %s, draw = %s", color, color)
+            return string.format("fill = %s, draw = %s", color, _get_outline_color(color))
         end
     end
 end
@@ -203,11 +221,23 @@ local function _format_layer(layer)
     return string.format("\\path[%s]", _get_layer_style(layer))
 end
 
+local function _insert(ignore, order, content)
+    if not ignore then
+        table.insert(__content, {
+            order = order or 0,
+            content = content
+        })
+    elseif __writeignored then
+        table.insert(__content, {
+            order = order or 0,
+            content = "%" .. content
+        })
+    end
+end
+
 function M.write_rectangle(layer, bl, tr)
-    table.insert(__content, {
-        order = layer.order or 0,
-        content = string.format("%s (%s) rectangle (%s);", _format_layer(layer), _format_point(bl), _format_point(tr))
-    })
+    local content = string.format("%s (%s) rectangle (%s);", _format_layer(layer), _format_point(bl), _format_point(tr))
+    _insert(layer.ignore, layer.order, content)
 end
 
 function M.write_polygon(layer, pts)
@@ -215,17 +245,17 @@ function M.write_polygon(layer, pts)
     for _, pt in ipairs(pts) do
         table.insert(ptstream, string.format("(%s)", _format_point(pt)))
     end
-    table.insert(__content, {
-        order = layer.order or 0,
-        content = string.format("%s %s -- cycle;", _format_layer(layer), table.concat(ptstream, " -- "))
-    })
+    local content = string.format("%s %s -- cycle;", _format_layer(layer), table.concat(ptstream, " -- "))
+    _insert(layer.ignore, layer.order, content)
 end
 
+local curveignore
 local curveorder
 local curvecontent
 function M.setup_curve(layer, origin)
     curvecontent = {}
     curveorder = layer.order or 0
+    curveignore = layer.ignore
     table.insert(curvecontent, string.format("%s (%s)", _format_layer(layer), _format_point(origin)))
 end
 
@@ -245,10 +275,8 @@ end
 
 function M.close_curve()
     table.insert(curvecontent, "-- cycle;")
-    table.insert(__content, {
-        order = curveorder,
-        content = table.concat(curvecontent, ' ')
-    })
+    local content = table.concat(curvecontent, ' ')
+    _insert(curveignore, curveorder, content)
 end
 
 return M

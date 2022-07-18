@@ -23,6 +23,6 @@ void export_set_exportname(struct export_state* state, const char* exportname);
 const char* export_get_layername(const struct export_state* state);
 
 char* export_get_export_layername(struct const_vector* searchpaths, const char* exportname);
-void export_write_toplevel(struct object* toplevel, struct pcell_state* pcell_state, struct export_state* state);
+int export_write_toplevel(struct object* toplevel, struct pcell_state* pcell_state, struct export_state* state);
 
 #endif // OPC_LEXPORT_H

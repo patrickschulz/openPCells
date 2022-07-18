@@ -207,6 +207,11 @@ void object_add_shape(struct object* cell, struct shape* S)
     shape_apply_inverse_transformation(S, cell->trans);
 }
 
+void object_disown_shape(struct object* cell, size_t idx)
+{
+    vector_remove(cell->shapes, idx, NULL);
+}
+
 void object_remove_shape(struct object* cell, size_t idx)
 {
     vector_remove(cell->shapes, idx, shape_destroy);

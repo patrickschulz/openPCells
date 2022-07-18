@@ -33,7 +33,7 @@ procedure(OPCCreateSettingsForm()
             )
             hiCreateStringField(
                 ?name 'OPCSettingsCmdAdditionalArgs
-                ?value "-X -l"
+                ?value ""
                 ?prompt "Additional Command Line Arguments"
             )
             hiCreateRadioField(
