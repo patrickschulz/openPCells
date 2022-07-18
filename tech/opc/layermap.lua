@@ -19,7 +19,7 @@ return {
         layer = {
             gds = { layer = 3, purpose = 0 },
             SKILL = { layer = "nwell", purpose = "drawing" },
-            svg = { color = "ccffff", order = 1 },
+            svg = { color = "ccffff", order = 1, nooutline = true },
         }
     },
     deepnwell = {
@@ -35,7 +35,7 @@ return {
         layer = {
             gds = { layer = 4, purpose = 0 },
             SKILL = { layer = "pimplant", purpose = "drawing" },
-            svg = { color = "000000", nofill = true },
+            svg = { color = "000000", ignore = true },
         }
     },
     nimplant = {
@@ -43,7 +43,7 @@ return {
         layer = {
             gds = { layer = 5, purpose = 0 },
             SKILL = { layer = "nimplant", purpose = "drawing" },
-            svg = { color = "000000", nofill = true },
+            svg = { color = "000000", ignore = true },
         }
     },
     gate = {
