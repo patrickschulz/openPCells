@@ -201,6 +201,8 @@ local function _get_layer_style(layer)
     else
         if layer.pattern then
             return string.format("draw = %s, pattern = crosshatch, pattern color = %s", _get_outline_color(color), color)
+        elseif layer.nooutline then
+            return string.format("fill = %s", color)
         else
             return string.format("fill = %s, draw = %s", color, _get_outline_color(color))
         end
