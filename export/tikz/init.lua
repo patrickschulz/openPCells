@@ -11,6 +11,7 @@ end
 local __outlineblack = false
 local __standalone = false
 local __drawpatterns = false
+local __writeignored = false
 local __resizebox = false
 local __externaldisable
 local __baseunit = 1
@@ -27,6 +28,9 @@ function M.set_options(opt)
         end
         if arg == "-p" or arg == "--pattern" then
             __drawpatterns = true
+        end
+        if arg == "-i" or arg == "--write-ignored" then
+            __writeignored = true
         end
         if arg == "-e" or arg == "--expression-scale" then
             __expressionscale = true
@@ -215,11 +219,23 @@ local function _format_layer(layer)
     return string.format("\\path[%s]", _get_layer_style(layer))
 end
 
+local function _insert(ignore, order, content)
+    if not ignore then
+        table.insert(__content, {
+            order = order or 0,
+            content = content
+        })
+    elseif __writeignored then
+        table.insert(__content, {
+            order = order or 0,
+            content = "%" .. content
+        })
+    end
+end
+
 function M.write_rectangle(layer, bl, tr)
-    table.insert(__content, {
-        order = layer.order or 0,
-        content = string.format("%s (%s) rectangle (%s);", _format_layer(layer), _format_point(bl), _format_point(tr))
-    })
+    local content = string.format("%s (%s) rectangle (%s);", _format_layer(layer), _format_point(bl), _format_point(tr))
+    _insert(layer.ignore, layer.order, content)
 end
 
 function M.write_polygon(layer, pts)
@@ -227,17 +243,17 @@ function M.write_polygon(layer, pts)
     for _, pt in ipairs(pts) do
         table.insert(ptstream, string.format("(%s)", _format_point(pt)))
     end
-    table.insert(__content, {
-        order = layer.order or 0,
-        content = string.format("%s %s -- cycle;", _format_layer(layer), table.concat(ptstream, " -- "))
-    })
+    local content = string.format("%s %s -- cycle;", _format_layer(layer), table.concat(ptstream, " -- "))
+    _insert(layer.ignore, layer.order, content)
 end
 
+local curveignore
 local curveorder
 local curvecontent
 function M.setup_curve(layer, origin)
     curvecontent = {}
     curveorder = layer.order or 0
+    curveignore = layer.ignore
     table.insert(curvecontent, string.format("%s (%s)", _format_layer(layer), _format_point(origin)))
 end
 
@@ -257,10 +273,8 @@ end
 
 function M.close_curve()
     table.insert(curvecontent, "-- cycle;")
-    table.insert(__content, {
-        order = curveorder,
-        content = table.concat(curvecontent, ' ')
-    })
+    local content = table.concat(curvecontent, ' ')
+    _insert(curveignore, curveorder, content)
 end
 
 return M
