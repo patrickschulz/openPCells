@@ -178,7 +178,7 @@ function layout(transistor, _P)
     geometry.rectanglebltr(transistor,
         generics.vthtype(_P.channeltype, _P.vthtype),
         point.create(-actwidth / 2 - _P.extendvthleft, -_P.fwidth / 2 - gateaddbot - _P.extendvthbot),
-        point.create( actwidth / 2 - _P.extendvthright, _P.fwidth / 2 + gateaddtop + _P.extendvthtop)
+        point.create( actwidth / 2 + _P.extendvthright, _P.fwidth / 2 + gateaddtop + _P.extendvthtop)
     )
 
     -- implant
