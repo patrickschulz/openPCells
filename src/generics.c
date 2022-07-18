@@ -53,7 +53,7 @@ static void _insert_lpp_pairs(lua_State* L, struct hashmap* map)
                 value = tagged_value_create_string(lua_tostring(L, -1));
                 break;
             case LUA_TBOOLEAN:
-                value = tagged_value_create_boolean(lua_tointeger(L, -1));
+                value = tagged_value_create_boolean(lua_toboolean(L, -1));
                 break;
         }
         if(value)
