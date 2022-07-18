@@ -435,16 +435,16 @@ function layout(oscillator, _P)
             contype = "p",
             fillwell = true,
             ringwidth = _P.guardringwidth,
-            width = (cmfingers + 2 * _P.numinv * _P.invfingers + 4) * xpitch, 
-            height = 9 * _P.separation + _P.pfingerwidth + _P.nfingerwidth + _P.guardringwidth
+            holewidth = (cmfingers + 2 * _P.numinv * _P.invfingers + 4) * xpitch, 
+            holeheight = 9 * _P.separation + _P.pfingerwidth + _P.nfingerwidth + _P.guardringwidth
         }), "pguardring")
         local nguardringname = pcell.add_cell_reference(pcell.create_layout("auxiliary/guardring", { 
             contype = "n",
             fillwell = false,
             drawdeepwell = true,
             ringwidth = _P.guardringwidth,
-            width = (cmfingers + 2 * _P.numinv * _P.invfingers + 4) * xpitch + 2 * _P.separation + 2 * _P.guardringwidth,
-            height = 11 * _P.separation + _P.pfingerwidth + _P.nfingerwidth + _P.guardringwidth + 2 * _P.guardringwidth
+            holewidth = (cmfingers + 2 * _P.numinv * _P.invfingers + 4) * xpitch + 2 * _P.separation + 2 * _P.guardringwidth,
+            holeheight = 11 * _P.separation + _P.pfingerwidth + _P.nfingerwidth + _P.guardringwidth + 2 * _P.guardringwidth
         }), "nguardring")
         oscillator:add_child(pguardringname)
         oscillator:add_child(nguardringname)
