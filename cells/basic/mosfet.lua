@@ -60,6 +60,14 @@ function parameters()
         { "botactivedummywidth",                                          80 },
         { "botactivedummysep",                                            80 },
         { "drawactive",                                                 true },
+        { "extendvthtop",                                                  0 },
+        { "extendvthbot",                                                  0 },
+        { "extendvthleft",                                                 0 },
+        { "extendvthright",                                                0 },
+        { "extendimplanttop",                                              0 },
+        { "extendimplantbot",                                              0 },
+        { "extendimplantleft",                                             0 },
+        { "extendimplantright",                                            0 },
         { "extendwelltop",                                                 0 },
         { "extendwellbot",                                                 0 },
         { "extendwellleft",                                                0 },
@@ -169,15 +177,15 @@ function layout(transistor, _P)
     -- threshold voltage
     geometry.rectanglebltr(transistor,
         generics.vthtype(_P.channeltype, _P.vthtype),
-        point.create(-actwidth / 2, -_P.fwidth / 2 - gateaddbot),
-        point.create( actwidth / 2,  _P.fwidth / 2 + gateaddtop)
+        point.create(-actwidth / 2 - _P.extendvthleft, -_P.fwidth / 2 - gateaddbot - _P.extendvthbot),
+        point.create( actwidth / 2 - _P.extendvthright, _P.fwidth / 2 + gateaddtop + _P.extendvthtop)
     )
 
     -- implant
     geometry.rectanglebltr(transistor,
         generics.implant(_P.channeltype),
-        point.create(-actwidth / 2, -_P.fwidth / 2 - gateaddbot),
-        point.create( actwidth / 2,  _P.fwidth / 2 + gateaddtop)
+        point.create(-actwidth / 2 - _P.extendimplantleft, -_P.fwidth / 2 - gateaddbot - _P.extendimplantbot),
+        point.create( actwidth / 2 + _P.extendimplantright, _P.fwidth / 2 + gateaddtop + _P.extendimplanttop)
     )
 
     -- well
