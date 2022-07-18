@@ -263,12 +263,9 @@ function layout(cmos, _P)
                     point.create(x - _P.gatelength / 2, -_P.separation / 2 - _P.nwidth - _P.outergstspace - _P.gstwidth / 2 - _P.powerwidth - _P.powerspace - _P.outergstwidth / 2),
                     point.create(x + _P.gatelength / 2, -_P.separation / 2 - _P.nwidth - _P.outergstspace - _P.gstwidth / 2 - _P.powerwidth - _P.powerspace + _P.outergstwidth / 2)
                 )
-                cmos:add_anchor(string.format("Gp%d", i), point.create(
-                    x,
-                    _P.separation / 2 + _P.pwidth + _P.outergstspace + _P.outergstwidth / 2 + _P.powerwidth + _P.powerspace))
-                cmos:add_anchor(string.format("Gn%d", i), point.create(
-                    x,
-                    -_P.separation / 2 - _P.nwidth - _P.outergstspace - _P.outergstwidth / 2 - _P.powerwidth - _P.powerspace))
+                _make_anchors(cmos, x,  _P.separation / 2 + _P.pwidth + _P.outergstspace + _P.outergstwidth / 2 + _P.powerwidth + _P.powerspace, _P.gatelength, _P.gstwidth, "Gp", string.format("%d", i))
+                _make_anchors(cmos, x, -_P.separation / 2 - _P.nwidth - _P.outergstspace - _P.outergstwidth / 2 - _P.powerwidth - _P.powerspace, _P.gatelength, _P.gstwidth, "Gn", string.format("%d", i))
+                geometry.rectangle(cmos, generics.other("gatecut"), xpitch, _P.cutheight, x, 0)
             elseif _P.gatecontactpos[i] == "unused" then
                 -- ignore
             else
