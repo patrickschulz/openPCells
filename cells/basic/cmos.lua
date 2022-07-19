@@ -56,7 +56,10 @@ function parameters()
         { "nmoswelltapwidth(nMOS Well Tap Width)", tech.get_dimension("Minimum M1 Width") },
         { "drawpmoswelltap(Draw pMOS Well Tap)", false },
         { "pmoswelltapspace(pMOS Well Tap Space)", tech.get_dimension("Minimum M1 Space") },
-        { "pmoswelltapwidth(pMOS Well Tap Width)", tech.get_dimension("Minimum M1 Width") }
+        { "pmoswelltapwidth(pMOS Well Tap Width)", tech.get_dimension("Minimum M1 Width") },
+        { "drawactivedummy", false },
+        { "activedummywidth", 0 },
+        { "activedummysep", 0 }
     )
 end
 
@@ -104,6 +107,9 @@ function layout(cmos, _P)
             drawtopwelltap = _P.drawpmoswelltap,
             topwelltapwidth = _P.pmoswelltapwidth,
             topwelltapspace = _P.powerspace + _P.powerwidth + _P.pmoswelltapspace,
+            drawtopactivedummy = _P.drawactivedummy,
+            topactivedummywidth = _P.activedummywidth,
+            topactivedummysep = _P.activedummysep
         }
         local nmosoptions = {
             channeltype = "nmos",
@@ -118,6 +124,9 @@ function layout(cmos, _P)
             drawbotwelltap = _P.drawnmoswelltap,
             botwelltapwidth = _P.nmoswelltapwidth,
             botwelltapspace = _P.powerspace + _P.powerwidth + _P.nmoswelltapspace,
+            drawbotactivedummy = _P.drawactivedummy,
+            botactivedummywidth = _P.activedummywidth,
+            botactivedummysep = _P.activedummysep
         }
         -- main
         for i = 1, fingers do
