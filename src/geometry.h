@@ -44,10 +44,10 @@ void geometry_path(
     ucoordinate_t bgnext, ucoordinate_t endext
 );
 
-void geometry_viabltr(
+int geometry_viabltr(
     struct object* cell, struct layermap* layermap, struct technology_state* techstate, int metal1, int metal2, point_t* bl, point_t* tr, ucoordinate_t xrep, ucoordinate_t yrep, ucoordinate_t xpitch, ucoordinate_t ypitch);
 
-void geometry_via(
+int geometry_via(
     struct object* cell,
     struct layermap* layermap, struct technology_state* techstate,
     int metal1, int metal2,
@@ -57,7 +57,7 @@ void geometry_via(
     ucoordinate_t xpitch, ucoordinate_t ypitch
 );
 
-void geometry_contactbltr(
+int geometry_contactbltr(
     struct object* cell,
     struct layermap* layermap, struct technology_state* techstate,
     const char* region,
@@ -67,7 +67,7 @@ void geometry_contactbltr(
     int xcont, int ycont
 );
 
-void geometry_contact(
+int geometry_contact(
     struct object* cell,
     struct layermap* layermap, struct technology_state* techstate,
     const char* region,

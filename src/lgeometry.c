@@ -319,7 +319,12 @@ static int lgeometry_viabltr(lua_State* L)
     lua_getfield(L, LUA_REGISTRYINDEX, "techstate");
     struct technology_state* techstate = lua_touserdata(L, -1);
     lua_pop(L, 1); // pop techstate
-    geometry_viabltr(lobject_get(cell), layermap, techstate, metal1, metal2, bl->point, tr->point, xrep, yrep, xpitch, ypitch);
+    int res = geometry_viabltr(lobject_get(cell), layermap, techstate, metal1, metal2, bl->point, tr->point, xrep, yrep, xpitch, ypitch);
+    if(!res)
+    {
+        lua_pushstring(L, "geometry.viabltr: could not fit via");
+        lua_error(L);
+    }
     return 0;
 }
 
@@ -342,7 +347,12 @@ static int lgeometry_via(lua_State* L)
     lua_getfield(L, LUA_REGISTRYINDEX, "techstate");
     struct technology_state* techstate = lua_touserdata(L, -1);
     lua_pop(L, 1); // pop techstate
-    geometry_via(lobject_get(cell), layermap, techstate, metal1, metal2, width, height, xshift, yshift, xrep, yrep, xpitch, ypitch);
+    int res = geometry_via(lobject_get(cell), layermap, techstate, metal1, metal2, width, height, xshift, yshift, xrep, yrep, xpitch, ypitch);
+    if(!res)
+    {
+        lua_pushstring(L, "geometry.via: could not fit via");
+        lua_error(L);
+    }
     return 0;
 }
 
@@ -375,7 +385,7 @@ static int lgeometry_contactbltr(lua_State* L)
     lua_getfield(L, LUA_REGISTRYINDEX, "techstate");
     struct technology_state* techstate = lua_touserdata(L, -1);
     lua_pop(L, 1); // pop techstate
-    geometry_contactbltr(
+    int res = geometry_contactbltr(
         lobject_get(cell),
         layermap, techstate,
         region,
@@ -384,6 +394,11 @@ static int lgeometry_contactbltr(lua_State* L)
         xpitch, ypitch,
         xcont, ycont
     );
+    if(!res)
+    {
+        lua_pushstring(L, "geometry.contactbltr: could not fit via");
+        lua_error(L);
+    }
     return 0;
 }
 
@@ -416,7 +431,7 @@ static int lgeometry_contact(lua_State* L)
     lua_getfield(L, LUA_REGISTRYINDEX, "techstate");
     struct technology_state* techstate = lua_touserdata(L, -1);
     lua_pop(L, 1); // pop techstate
-    geometry_contact(
+    int res = geometry_contact(
         lobject_get(cell),
         layermap, techstate,
         region,
@@ -426,6 +441,11 @@ static int lgeometry_contact(lua_State* L)
         xpitch, ypitch,
         xcont, ycont
     );
+    if(!res)
+    {
+        lua_pushstring(L, "geometry.contact: could not fit via");
+        lua_error(L);
+    }
     return 0;
 }
 

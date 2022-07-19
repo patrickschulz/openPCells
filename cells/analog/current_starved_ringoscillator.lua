@@ -130,10 +130,6 @@ function layout(oscillator, _P)
         gateext = 2 * _P.powerwidth + 2 * _P.powerspace,
         outergstwidth = _P.gstwidth,
         outergstspace = _P.powerspace,
-        drawpmoswelltap = true,
-        pmoswelltapspace = 2 * _P.powerspace + _P.gstwidth,
-        drawnmoswelltap = true,
-        nmoswelltapspace = 2 * _P.powerspace + _P.gstwidth,
     })
 
     -- place inverter cells

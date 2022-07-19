@@ -401,7 +401,6 @@ static struct via_definition* _get_rectangular_arrayzation(ucoordinate_t regionw
         }
         else
         {
-            puts("could not fit via, the shape will be ignored. The layout will most likely not be correct.");
             return NULL;
         }
     }
@@ -412,7 +411,7 @@ static struct via_definition* _get_rectangular_arrayzation(ucoordinate_t regionw
     return result;
 }
 
-static void _via_contact_bltr(
+static int _via_contact_bltr(
     struct object* cell,
     struct via_definition** viadefs, struct via_definition* fallback,
     struct generics* cutlayer, struct generics* surrounding1, struct generics* surrounding2,
@@ -430,7 +429,7 @@ static void _via_contact_bltr(
         struct via_definition* entry = _get_rectangular_arrayzation(width, height, viadefs, fallback, &viaxrep, &viayrep, &viaxpitch, &viaypitch, 0, 0);
         if(!entry)
         {
-            return;
+            return 0;
         }
         for(unsigned int x = 1; x <= xrep; ++x)
         {
@@ -459,9 +458,10 @@ static void _via_contact_bltr(
     {
         _rectanglebltr(cell, surrounding2, blx, bly, trx, try, xrep, yrep, xpitch, ypitch);
     }
+    return 1;
 }
 
-static void _viabltr(
+static int _viabltr(
     struct object* cell,
     struct layermap* layermap,
     struct technology_state* techstate,
@@ -485,7 +485,7 @@ static void _viabltr(
         struct via_definition* fallback = technology_get_via_fallback(techstate, i, i + 1);
         if(!viadefs)
         {
-            return;
+            return 0;
         }
         _via_contact_bltr(cell,
             viadefs, fallback,
@@ -497,19 +497,20 @@ static void _viabltr(
             technology_is_create_via_arrays(techstate)
         );
     }
+    return 1;
 }
 
-void geometry_viabltr(struct object* cell, struct layermap* layermap, struct technology_state* techstate, int metal1, int metal2, point_t* bl, point_t* tr, ucoordinate_t xrep, ucoordinate_t yrep, ucoordinate_t xpitch, ucoordinate_t ypitch)
+int geometry_viabltr(struct object* cell, struct layermap* layermap, struct technology_state* techstate, int metal1, int metal2, point_t* bl, point_t* tr, ucoordinate_t xrep, ucoordinate_t yrep, ucoordinate_t xpitch, ucoordinate_t ypitch)
 {
-    _viabltr(cell, layermap, techstate, metal1, metal2, bl->x, bl->y, tr->x, tr->y, xrep, yrep, xpitch, ypitch);
+    return _viabltr(cell, layermap, techstate, metal1, metal2, bl->x, bl->y, tr->x, tr->y, xrep, yrep, xpitch, ypitch);
 }
 
-void geometry_via(struct object* cell, struct layermap* layermap, struct technology_state* techstate, int metal1, int metal2, ucoordinate_t width, ucoordinate_t height, coordinate_t xshift, coordinate_t yshift, ucoordinate_t xrep, ucoordinate_t yrep, ucoordinate_t xpitch, ucoordinate_t ypitch)
+int geometry_via(struct object* cell, struct layermap* layermap, struct technology_state* techstate, int metal1, int metal2, ucoordinate_t width, ucoordinate_t height, coordinate_t xshift, coordinate_t yshift, ucoordinate_t xrep, ucoordinate_t yrep, ucoordinate_t xpitch, ucoordinate_t ypitch)
 {
-    _viabltr(cell, layermap, techstate, metal1, metal2, -(coordinate_t)width / 2 + xshift, -(coordinate_t)height / 2 + yshift, width / 2 + xshift, height / 2 + yshift, xrep, yrep, xpitch, ypitch);
+    return _viabltr(cell, layermap, techstate, metal1, metal2, -(coordinate_t)width / 2 + xshift, -(coordinate_t)height / 2 + yshift, width / 2 + xshift, height / 2 + yshift, xrep, yrep, xpitch, ypitch);
 }
 
-static void _contactbltr(
+static int _contactbltr(
     struct object* cell,
     struct layermap* layermap, struct technology_state* techstate,
     const char* region,
@@ -533,7 +534,7 @@ static void _contactbltr(
     );
     if(!entry)
     {
-        return;
+        return 0;
     }
     _via_contact_bltr(cell,
         viadefs, fallback,
@@ -544,9 +545,10 @@ static void _contactbltr(
         xrep, yrep, xpitch, ypitch,
         technology_is_create_via_arrays(techstate)
     );
+    return 1;
 }
 
-void geometry_contactbltr(
+int geometry_contactbltr(
     struct object* cell,
     struct layermap* layermap, struct technology_state* techstate,
     const char* region,
@@ -556,7 +558,7 @@ void geometry_contactbltr(
     int xcont, int ycont
 )
 {
-    _contactbltr(
+    return _contactbltr(
         cell,
         layermap, techstate,
         region,
@@ -567,7 +569,7 @@ void geometry_contactbltr(
     );
 }
 
-void geometry_contact(
+int geometry_contact(
     struct object* cell,
     struct layermap* layermap, struct technology_state* techstate,
     const char* region,
@@ -578,7 +580,7 @@ void geometry_contact(
     int xcont, int ycont
 )
 {
-    _contactbltr(
+    return _contactbltr(
         cell,
         layermap, techstate,
         region,
