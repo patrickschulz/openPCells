@@ -210,8 +210,25 @@ function M.at_end_cell(istoplevel)
 end
 
 function M.write_cell_reference(identifier, x, y, orientation)
+    print(string.format("%d %d %d", orientation[1], orientation[2], orientation[3]))
+    print(string.format("%d %d %d", orientation[4], orientation[5], orientation[6]))
+    local orientstr
+    if orientation[1] >= 0 and orientation[5] >= 0 then
+        if orientation[2] < 0 then
+            orientstr = "R90"
+        else
+            orientstr = "R0"
+        end
+    elseif orientation[1] <  0 and orientation[5] >= 0 then
+        orientstr = "MY"
+    elseif orientation[1] >= 0 and orientation[5] <  0 then
+        orientstr = "MX"
+    else
+        orientstr = "R180"
+    end
+    -- FIXME: R270?
     local fmt = _get_shape_fmt("InstByMasterName")
-    table.insert(__content, string.format(fmt, string.format('libname "%s" "layout" nil %s "%s"', identifier, _format_xy(x, y, 1000, ":"), "R0")))
+    table.insert(__content, string.format(fmt, string.format('libname "%s" "layout" nil %s "%s"', identifier, _format_xy(x, y, 1000, ":"), orientstr)))
 end
 
 return M
