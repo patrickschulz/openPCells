@@ -1,8 +1,10 @@
 function parameters()
     pcell.reference_cell("stdcells/base")
+    pcell.reference_cell("stdcells/not_gate")
+    pcell.reference_cell("stdcells/nor_gate")
+    pcell.reference_cell("stdcells/nand_gate")
 end
 function layout(toplevel)
-    pcell.push_overwrites("stdcells/base", { numtracks = 9 })
     local cellnames = {
         {
             { instance = "nor3", reference = "nor_gate" },
@@ -55,7 +57,7 @@ function layout(toplevel)
             startmetal = 2,
             { type = "anchor", name = "nor1", anchor = "A" },
             { type = "shift", x = 1, y = 1 },
-            { y = 7, type = "delta" },
+            { y = 9, type = "delta" },
             { x = -1, type = "delta" },
             { z = -1, type = "via" },
             { type = "anchor", name = "nandr", anchor = "A" },
@@ -66,7 +68,7 @@ function layout(toplevel)
             { type = "shift", x = -1 },
             { z = 1, type = "via" },
             { x = 2, type = "delta" },
-            { y = 9, type = "delta" },
+            { y = 11, type = "delta" },
             { z = -1, type = "via" },
             { type = "anchor", name = "nor1", anchor = "O" },
         },
@@ -88,7 +90,7 @@ function layout(toplevel)
             { type = "anchor", name = "nor4", anchor = "B" },
             { type = "shift", x = -1 },
             { z = 1, type = "via" },
-            { y = 8, type = "delta" },
+            { y = 10, type = "delta" },
             { z = -1, type = "via" },
             { type = "anchor", name = "nor2", anchor = "B" },
         },
@@ -119,7 +121,7 @@ function layout(toplevel)
             startmetal = 2,
             { type = "anchor", name = "nor5", anchor = "B" },
             { type = "shift", x = 0, y = -1 },
-            { y = -7, type = "delta" },
+            { y = -9, type = "delta" },
             { x = -1, type = "delta" },
             { z = -1, type = "via" },
             { type = "anchor", name = "nandr", anchor = "B" },
@@ -129,7 +131,7 @@ function layout(toplevel)
             { type = "anchor", name = "nor7", anchor = "A" },
             { z = 1, type = "via" },
             { x = 2, type = "delta" },
-            { y = -9, type = "delta" },
+            { y = -11, type = "delta" },
             { z = -1, type = "via" },
             { type = "anchor", name = "nor5", anchor = "O" },
         },
@@ -151,7 +153,7 @@ function layout(toplevel)
             { type = "anchor", name = "nor8", anchor = "A" },
             --{ type = "shift", x = 1 },
             { z = 1, type = "via" },
-            { y = -8, type = "delta" },
+            { y = -10, type = "delta" },
             { z = -1, type = "via" },
         },
         {
@@ -174,7 +176,7 @@ function layout(toplevel)
             name = "reset_1",
             { type = "anchor", name = "notr", anchor = "O" },
             { z = 1, type = "via" },
-            { y = -21, type = "delta" },
+            { y = -25, type = "delta" },
             { x = 2, type = "delta" },
             { z = -1, type = "via" },
             { type = "anchor", name = "nor4", anchor = "A" },
@@ -183,7 +185,7 @@ function layout(toplevel)
             name = "reset_2",
             { type = "anchor", name = "notr", anchor = "O" },
             { z = 1, type = "via" },
-            { y = 21, type = "delta" },
+            { y = 25, type = "delta" },
             { x = 2, type = "delta" },
             { z = -1, type = "via" },
             { type = "anchor", name = "nor8", anchor = "B" },

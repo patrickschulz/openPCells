@@ -5,6 +5,8 @@ end
 
 function parameters()
     pcell.add_parameters(
+        { "pwidth", 2 * tech.get_dimension("Minimum Gate Width") },
+        { "nwidth", 2 * tech.get_dimension("Minimum Gate Width") },
         { "drawtransistors", true },
         { "drawactive", true },
         { "drawrails", true },
@@ -36,7 +38,8 @@ function layout(gate, _P)
     local separation
     if bp.spacesepautocalc then
         separation = bp.numinnerroutes * bp.routingwidth + (bp.numinnerroutes + 1) * bp.routingspace
-        powerspace = ((bp.numtracks + 2) * (bp.routingwidth + bp.routingspace) - 2 * bp.powerwidth - bp.nwidth - bp.pwidth - separation) / 2 - bp.routingspace / 2
+        powerspace = ((bp.numtracks + 2) * (bp.routingwidth + bp.routingspace) - 2 * bp.powerwidth - _P.nwidth - _P.pwidth - separation) / 2 - bp.routingspace / 2
+        dprint(bp.numtracks, _P.nwidth, _P.pwidth, powerspace)
     else
         separation = bp.separation
         powerspace = bp.powerspace
@@ -58,8 +61,8 @@ function layout(gate, _P)
         rightdummies = _P.rightdummies,
         powerwidth = bp.powerwidth,
         powerspace = powerspace,
-        pwidth = bp.pwidth,
-        nwidth = bp.nwidth,
+        pwidth = _P.pwidth,
+        nwidth = _P.nwidth,
         sdwidth = bp.sdwidth,
         separation = separation,
         gatecontactsplitshift = routingshift,

@@ -12,8 +12,6 @@ function parameters()
         { "nmosflippedwell(NMOS Flipped Well)",                         false },
         { "glength(Gate Length)",                                       tech.get_dimension("Minimum Gate Length") },
         { "gspace(Gate Spacing)",                                       tech.get_dimension("Minimum Gate Space") },
-        { "pwidth(PMOS Finger Width)",                                  2 * tech.get_dimension("Minimum Gate Width"), posvals = even() },
-        { "nwidth(NMOS Finger Width)",                                  2 * tech.get_dimension("Minimum Gate Width"), posvals = even() },
         { "sdwidth(Source/Drain Metal Width)",                          tech.get_dimension("Minimum M1 Width"), posvals = even() },
         { "routingwidth(Routing Metal Width)",                          tech.get_dimension("Minimum M1 Width") },
         { "routingspace(Routing Metal Space)",                          tech.get_dimension("Minimum M1 Space") },
