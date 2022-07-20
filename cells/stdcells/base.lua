@@ -15,7 +15,8 @@ function parameters()
         { "sdwidth(Source/Drain Metal Width)",                          tech.get_dimension("Minimum M1 Width"), posvals = even() },
         { "routingwidth(Routing Metal Width)",                          tech.get_dimension("Minimum M1 Width") },
         { "routingspace(Routing Metal Space)",                          tech.get_dimension("Minimum M1 Space") },
-        { "numtracks(Number of Routing Tracks)",                        13, posvals = odd() },
+        { "pnumtracks(Number of PMOS Routing Tracks)",                  5 },
+        { "nnumtracks(Number of NMOS Routing Tracks)",                  5 },
         { "numinnerroutes(Number of inner M1 routes)",                  3 }, -- if you use complex gates (xor, dff), this must be (at least) 3
         { "powerwidth(Power Rail Metal Width)",                         tech.get_dimension("Minimum M1 Width") },
         { "powerspace(Power Rail Space)",                               tech.get_dimension("Minimum M1 Space") },

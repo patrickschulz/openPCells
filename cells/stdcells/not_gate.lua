@@ -1,6 +1,8 @@
 function parameters()
     pcell.reference_cell("stdcells/base")
     pcell.add_parameter("fingers", 1)
+    pcell.add_parameter("pwidth", 2 * tech.get_dimension("Minimum Gate Width"))
+    pcell.add_parameter("nwidth", 2 * tech.get_dimension("Minimum Gate Width"))
     pcell.add_parameter("shiftinput", 0)
     pcell.add_parameter("inputpos", "center", { posvals = set("center", "lower", "upper") })
     pcell.add_parameter("shiftoutput", 0)
@@ -22,6 +24,8 @@ function layout(gate, _P)
         end
     end
     local harness = pcell.create_layout("stdcells/harness", { 
+        pwidth = _P.pwidth,
+        nwidth = _P.nwidth,
         rightdummies = _P.fingers % 2,
         shiftgatecontacts = _P.shiftinput,
         gatecontactpos = gatecontactpos,
