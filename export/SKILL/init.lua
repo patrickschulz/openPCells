@@ -210,8 +210,6 @@ function M.at_end_cell(istoplevel)
 end
 
 function M.write_cell_reference(identifier, x, y, orientation)
-    print(string.format("%d %d %d", orientation[1], orientation[2], orientation[3]))
-    print(string.format("%d %d %d", orientation[4], orientation[5], orientation[6]))
     local orientstr
     if orientation[1] >= 0 and orientation[5] >= 0 then
         if orientation[2] < 0 then
