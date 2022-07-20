@@ -40,6 +40,7 @@ function layout(toplevel)
     }
     local rows = placement.create_reference_rows(cellnames)
     local cells = placement.rowwise(toplevel, rows)
+    local bp = pcell.get_parameters("stdcells/base")
     local routes = {
         {
             name = "up_(0)",
@@ -57,7 +58,7 @@ function layout(toplevel)
             startmetal = 2,
             { type = "anchor", name = "nor1", anchor = "A" },
             { type = "shift", x = 1, y = 1 },
-            { y = 9, type = "delta" },
+            { type = "rowshift", rows = 1, offset = -3 },
             { x = -1, type = "delta" },
             { z = -1, type = "via" },
             { type = "anchor", name = "nandr", anchor = "A" },
@@ -68,7 +69,7 @@ function layout(toplevel)
             { type = "shift", x = -1 },
             { z = 1, type = "via" },
             { x = 2, type = "delta" },
-            { y = 11, type = "delta" },
+            { type = "rowshift", rows = 1, offset = -1 },
             { z = -1, type = "via" },
             { type = "anchor", name = "nor1", anchor = "O" },
         },
@@ -90,7 +91,7 @@ function layout(toplevel)
             { type = "anchor", name = "nor4", anchor = "B" },
             { type = "shift", x = -1 },
             { z = 1, type = "via" },
-            { y = 10, type = "delta" },
+            { type = "rowshift", rows = 1, offset = -2 },
             { z = -1, type = "via" },
             { type = "anchor", name = "nor2", anchor = "B" },
         },
@@ -121,7 +122,7 @@ function layout(toplevel)
             startmetal = 2,
             { type = "anchor", name = "nor5", anchor = "B" },
             { type = "shift", x = 0, y = -1 },
-            { y = -9, type = "delta" },
+            { type = "rowshift", rows = -1, offset = 3 },
             { x = -1, type = "delta" },
             { z = -1, type = "via" },
             { type = "anchor", name = "nandr", anchor = "B" },
@@ -131,7 +132,7 @@ function layout(toplevel)
             { type = "anchor", name = "nor7", anchor = "A" },
             { z = 1, type = "via" },
             { x = 2, type = "delta" },
-            { y = -11, type = "delta" },
+            { type = "rowshift", rows = -1, offset = 1 },
             { z = -1, type = "via" },
             { type = "anchor", name = "nor5", anchor = "O" },
         },
@@ -153,7 +154,7 @@ function layout(toplevel)
             { type = "anchor", name = "nor8", anchor = "A" },
             --{ type = "shift", x = 1 },
             { z = 1, type = "via" },
-            { y = -10, type = "delta" },
+            { type = "rowshift", rows = -1, offset = 2 },
             { z = -1, type = "via" },
         },
         {
@@ -176,7 +177,7 @@ function layout(toplevel)
             name = "reset_1",
             { type = "anchor", name = "notr", anchor = "O" },
             { z = 1, type = "via" },
-            { y = -25, type = "delta" },
+            { type = "rowshift", rows = -2, offset = -1 },
             { x = 2, type = "delta" },
             { z = -1, type = "via" },
             { type = "anchor", name = "nor4", anchor = "A" },
@@ -185,7 +186,7 @@ function layout(toplevel)
             name = "reset_2",
             { type = "anchor", name = "notr", anchor = "O" },
             { z = 1, type = "via" },
-            { y = 25, type = "delta" },
+            { type = "rowshift", rows = 2, offset = 1 },
             { x = 2, type = "delta" },
             { z = -1, type = "via" },
             { type = "anchor", name = "nor8", anchor = "B" },
@@ -195,7 +196,7 @@ function layout(toplevel)
     local width = bp.routingwidth
     local xgrid = bp.gspace + bp.glength
     local ygrid = bp.routingwidth + bp.routingspace
-    routing.route(toplevel, routes, cells, width, xgrid, ygrid)
+    routing.route(toplevel, routes, cells, width, bp.numinnerroutes, bp.pnumtracks, bp.nnumtracks, xgrid, ygrid)
     toplevel:add_port("ref", generics.metalport(1), cells["nor1"]:get_anchor("B"))
     toplevel:add_port("sig", generics.metalport(1), cells["nor5"]:get_anchor("A"))
     toplevel:add_port("up", generics.metalport(1), cells["nor2"]:get_anchor("O"))
