@@ -237,11 +237,6 @@ struct object* object_add_child(struct object* cell, struct pcell_state* pcell_s
 
 struct object* object_add_child_array(struct object* cell, struct pcell_state* pcell_state, const char* identifier, unsigned int xrep, unsigned int yrep, unsigned int xpitch, unsigned int ypitch, const char* name)
 {
-    //if not xpitch then -- alignmentbox mode
-    //    local obj = pcell.get_cell_reference(identifier)
-    //    local xpitch, ypitch = obj:width_height_alignmentbox()
-    //    return cell:add_child_array(identifier, xrep, yrep, xpitch, ypitch, name)
-
     struct object* child = object_add_child(cell, pcell_state, identifier, name);
     child->isarray = 1;
     child->xrep = xrep;
@@ -303,7 +298,7 @@ static point_t* _get_special_anchor(const struct object* cell, const char* name,
         try = tmp;
     }
     coordinate_t x, y;
-    if(strcmp(name, "left") == 0)
+    if(util_match_string(name, "left") == 0)
     {
         x = blx;
         y = (bly + try) / 2;
@@ -312,7 +307,7 @@ static point_t* _get_special_anchor(const struct object* cell, const char* name,
             y += (cell->yrep - 1) * cell->ypitch / 2;
         }
     }
-    else if(strcmp(name, "right") == 0)
+    else if(util_match_string(name, "right") == 0)
     {
         x = trx;
         y = (bly + try) / 2;
@@ -322,7 +317,7 @@ static point_t* _get_special_anchor(const struct object* cell, const char* name,
             y += (cell->yrep - 1) * cell->ypitch / 2;
         }
     }
-    else if(strcmp(name, "top") == 0)
+    else if(util_match_string(name, "top") == 0)
     {
         x = (blx + trx) / 2;
         y = try;
@@ -332,7 +327,7 @@ static point_t* _get_special_anchor(const struct object* cell, const char* name,
             y += (cell->yrep - 1) * cell->ypitch;
         }
     }
-    else if(strcmp(name, "bottom") == 0)
+    else if(util_match_string(name, "bottom") == 0)
     {
         x = (blx + trx) / 2;
         y = bly;
@@ -341,12 +336,12 @@ static point_t* _get_special_anchor(const struct object* cell, const char* name,
             x += (cell->xrep - 1) * cell->xpitch / 2;
         }
     }
-    else if(strcmp(name, "bottomleft") == 0)
+    else if(util_match_string(name, "bottomleft") == 0)
     {
         x = blx;
         y = bly;
     }
-    else if(strcmp(name, "bottomright") == 0)
+    else if(util_match_string(name, "bottomright") == 0)
     {
         x = trx;
         y = bly;
@@ -355,7 +350,7 @@ static point_t* _get_special_anchor(const struct object* cell, const char* name,
             x += (cell->xrep - 1) * cell->xpitch;
         }
     }
-    else if(strcmp(name, "topleft") == 0)
+    else if(util_match_string(name, "topleft") == 0)
     {
         x = blx;
         y = try;
@@ -364,7 +359,7 @@ static point_t* _get_special_anchor(const struct object* cell, const char* name,
             y += (cell->yrep - 1) * cell->ypitch;
         }
     }
-    else if(strcmp(name, "topright") == 0)
+    else if(util_match_string(name, "topright") == 0)
     {
         x = trx;
         y = try;

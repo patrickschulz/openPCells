@@ -119,7 +119,9 @@ function M.route(cell, routes, cells, width, numinnerroutes, pnumtracks, nnumtra
             elseif movement.type == "rowshift" then
                 local lastpt = pts[#pts]
                 local x, y = lastpt:unwrap()
-                local currentrow = math.ceil(y / (ygrid * (pnumtracks + nnumtracks + numinnerroutes + 1)))
+                local yoffset = (nnumtracks + numinnerroutes / 2) * ygrid
+                local rowheight = ygrid * (pnumtracks + nnumtracks + numinnerroutes + 1)
+                local currentrow = math.ceil((y + yoffset) / rowheight)
                 local updown = movement.rows < 0 and -1 or 1
                 local steps = math.abs(movement.rows)
                 local target = y
