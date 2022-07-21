@@ -189,7 +189,8 @@ end
 ---------------------------------------------------------------------------------
 --                         In-cell layout functions                            --
 ---------------------------------------------------------------------------------
-local function _get_cell_width(name)
+local function _get_cell_width(identifier, xpitch)
+    --[[
     local lut = {
         isogate = 1,
         not_gate = 2,
@@ -209,9 +210,13 @@ local function _get_cell_width(name)
         moderror(string.format("unknown stdcell '%s'", name))
     end
     return lut[name]
+    --]]
+    local reference = pcell.get_cell_reference(identifier)
+    local width = reference:width_height_alignmentbox()
+    return width / xpitch
 end
 
-function M.create_reference_rows(cellnames)
+function M.create_reference_rows(cellnames, xpitch)
     local names = {}
     local references = {}
     for row, entries in ipairs(cellnames) do
@@ -232,7 +237,7 @@ function M.create_reference_rows(cellnames)
             names[row][column] = { 
                 instance = instance,
                 reference = references[cellname],
-                width = _get_cell_width(cellname)
+                width = _get_cell_width(references[cellname], xpitch)
             }
         end
     end
