@@ -91,7 +91,8 @@ function layout(cmos, _P)
             gatemarker = _P.gatemarker,
             drawinnersourcedrain = "none",
             drawoutersourcedrain = "none",
-            drawactive = _P.drawactive
+            drawactive = _P.drawactive,
+            cutheight = _P.cutheight,
         })
         local n_ext = math.max(_P.npowerspace + _P.powerwidth + outergateshift, math.max(_P.gateext, _P.cutheight / 2, _P.dummycontheight / 2))
         local p_ext = math.max(_P.ppowerspace + _P.powerwidth + outergateshift, math.max(_P.gateext, _P.cutheight / 2, _P.dummycontheight / 2))
