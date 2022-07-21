@@ -221,22 +221,42 @@ int lobject_add_child(lua_State* L)
     return 1;
 }
 
+int lobject_width_height_alignmentbox(lua_State* L)
+{
+    struct lobject* cell = lobject_check(L, 1);
+    const point_t* bl = object_get_anchor(cell->object, "bottomleft");
+    const point_t* tr = object_get_anchor(cell->object, "topright");
+    if(!bl || !tr)
+    {
+        lua_pushstring(L, "object.width_height_alignmentbox: cell has no alignmentbox");
+        lua_error(L);
+    }
+    unsigned int width = tr->x - bl->x;
+    unsigned int height = tr->y - bl->y;
+    lua_pushinteger(L, width);
+    lua_pushinteger(L, height);
+    return 2;
+}
+
 int lobject_add_child_array(lua_State* L)
 {
+    struct lobject* cell = lobject_check(L, 1);
+    const char* identifier;
+    unsigned int xrep;
+    unsigned int yrep;
+    unsigned int xpitch;
+    unsigned int ypitch;
+    const char* name;
+    lua_getfield(L, LUA_REGISTRYINDEX, "pcellstate");
+    struct pcell_state* pcell_state = lua_touserdata(L, -1);
+    lua_pop(L, 1); // pop pcell state
     if(lua_gettop(L) < 6) // no-pitch mode
     {
-    //if not xpitch then -- alignmentbox mode
-    //    local obj = pcell.get_cell_reference(identifier)
-    //    local xpitch, ypitch = obj:width_height_alignmentbox()
-    //    return cell:add_child_array(identifier, xrep, yrep, xpitch, ypitch, name)
-
-        struct lobject* cell = lobject_check(L, 1);
-        const char* identifier = luaL_checkstring(L, 2);
-        unsigned int xrep = luaL_checkinteger(L, 3);
-        unsigned int yrep = luaL_checkinteger(L, 4);
-        const char* name = lua_tostring(L, 5);
+        identifier = luaL_checkstring(L, 2);
+        xrep = luaL_checkinteger(L, 3);
+        yrep = luaL_checkinteger(L, 4);
+        name = lua_tostring(L, 5);
         lua_getfield(L, LUA_REGISTRYINDEX, "pcellstate");
-        struct pcell_state* pcell_state = lua_touserdata(L, -1);
         struct object* obj = pcell_get_cell_reference_by_name(pcell_state, identifier);
         if(!obj)
         {
@@ -250,29 +270,21 @@ int lobject_add_child_array(lua_State* L)
             lua_pushfstring(L, "add_child_array: no-pitch mode, but cell reference '%s' has no alignmentbox", identifier);
             lua_error(L);
         }
-        unsigned int xpitch = tr->x - bl->x;
-        unsigned int ypitch = tr->y - bl->y;
-        lua_pop(L, 1); // pop pcell state
-        struct object* child = object_add_child_array(cell->object, pcell_state, identifier, xrep, yrep, xpitch, ypitch, name);
-        lobject_adapt(L, child);
-        return 1;
+        xpitch = tr->x - bl->x;
+        ypitch = tr->y - bl->y;
     }
     else
     {
-        struct lobject* cell = lobject_check(L, 1);
-        const char* identifier = luaL_checkstring(L, 2);
-        unsigned int xrep = luaL_checkinteger(L, 3);
-        unsigned int yrep = luaL_checkinteger(L, 4);
-        unsigned int xpitch = luaL_checkinteger(L, 5);
-        unsigned int ypitch = luaL_checkinteger(L, 6);
-        const char* name = lua_tostring(L, 7);
-        lua_getfield(L, LUA_REGISTRYINDEX, "pcellstate");
-        struct pcell_state* pcell_state = lua_touserdata(L, -1);
-        lua_pop(L, 1); // pop pcell state
-        struct object* child = object_add_child_array(cell->object, pcell_state, identifier, xrep, yrep, xpitch, ypitch, name);
-        lobject_adapt(L, child);
-        return 1;
+        identifier = luaL_checkstring(L, 2);
+        xrep = luaL_checkinteger(L, 3);
+        yrep = luaL_checkinteger(L, 4);
+        xpitch = luaL_checkinteger(L, 5);
+        ypitch = luaL_checkinteger(L, 6);
+        name = lua_tostring(L, 7);
     }
+    struct object* child = object_add_child_array(cell->object, pcell_state, identifier, xrep, yrep, xpitch, ypitch, name);
+    lobject_adapt(L, child);
+    return 1;
 }
 
 static int lobject_merge_into_shallow(lua_State* L)
@@ -375,35 +387,36 @@ int open_lobject_lib(lua_State* L)
     // set methods
     static const luaL_Reg metafuncs[] =
     {
-        { "create",                lobject_create                },
-        { "copy",                  lobject_copy                  },
-        { "exchange",              lobject_exchange              },
-        { "add_anchor",            lobject_add_anchor            },
-        { "get_anchor",            lobject_get_anchor            },
-        { "add_port",              lobject_add_port              },
-        { "add_bus_port",          lobject_add_bus_port          },
-        { "set_alignment_box",     lobject_set_alignment_box     },
-        { "inherit_alignment_box", lobject_inherit_alignment_box },
-        { "move_to",               lobject_move_to               },
-        { "translate",             lobject_translate             },
-        { "mirror_at_xaxis",       lobject_mirror_at_xaxis       },
-        { "mirror_at_yaxis",       lobject_mirror_at_yaxis       },
-        { "mirror_at_origin",      lobject_mirror_at_origin      },
-        { "rotate_90_left",        lobject_rotate_90_left        },
-        { "rotate_90_right",       lobject_rotate_90_right       },
-        { "flipx",                 lobject_flipx                 },
-        { "flipy",                 lobject_flipy                 },
-        { "move_anchor",           lobject_move_anchor           },
-        { "move_anchor_x",         lobject_move_anchor_x         },
-        { "move_anchor_y",         lobject_move_anchor_y         },
-        { "apply_transformation",  lobject_apply_transformation  },
-        { "add_child",             lobject_add_child             },
-        { "add_child_array",       lobject_add_child_array       },
-        { "merge_into_shallow",    lobject_merge_into_shallow    },
-        { "is_empty",              lobject_is_empty              },
-        { "flatten",               lobject_flatten               },
-        { "__gc",                  lobject_destroy               },
-        { NULL,                    NULL                          }
+        { "create",                     lobject_create                      },
+        { "copy",                       lobject_copy                        },
+        { "exchange",                   lobject_exchange                    },
+        { "add_anchor",                 lobject_add_anchor                  },
+        { "get_anchor",                 lobject_get_anchor                  },
+        { "add_port",                   lobject_add_port                    },
+        { "add_bus_port",               lobject_add_bus_port                },
+        { "set_alignment_box",          lobject_set_alignment_box           },
+        { "inherit_alignment_box",      lobject_inherit_alignment_box       },
+        { "width_height_alignmentbox",  lobject_width_height_alignmentbox   },
+        { "move_to",                    lobject_move_to                     },
+        { "translate",                  lobject_translate                   },
+        { "mirror_at_xaxis",            lobject_mirror_at_xaxis             },
+        { "mirror_at_yaxis",            lobject_mirror_at_yaxis             },
+        { "mirror_at_origin",           lobject_mirror_at_origin            },
+        { "rotate_90_left",             lobject_rotate_90_left              },
+        { "rotate_90_right",            lobject_rotate_90_right             },
+        { "flipx",                      lobject_flipx                       },
+        { "flipy",                      lobject_flipy                       },
+        { "move_anchor",                lobject_move_anchor                 },
+        { "move_anchor_x",              lobject_move_anchor_x               },
+        { "move_anchor_y",              lobject_move_anchor_y               },
+        { "apply_transformation",       lobject_apply_transformation        },
+        { "add_child",                  lobject_add_child                   },
+        { "add_child_array",            lobject_add_child_array             },
+        { "merge_into_shallow",         lobject_merge_into_shallow          },
+        { "is_empty",                   lobject_is_empty                    },
+        { "flatten",                    lobject_flatten                     },
+        { "__gc",                       lobject_destroy                     },
+        { NULL,                         NULL                                }
     };
     luaL_setfuncs(L, metafuncs, 0);
 

@@ -187,10 +187,21 @@ static int lpcell_add_cell_reference(lua_State* L)
     struct pcell_state* pcell_state = lua_touserdata(L, -1);
     lua_pop(L, 1); // pop pcell state
     struct lobject* lobject = lobject_check(L, 1);
-    const char* identifier = lua_tostring(L, 2);
+    const char* identifier = luaL_checkstring(L, 2);
     const char* new_identifier = pcell_add_cell_reference(pcell_state, lobject_get(lobject), identifier);
     lua_pushstring(L, new_identifier);
     lobject_disown(lobject); // memory is not managed by lua
+    return 1;
+}
+
+static int lpcell_get_cell_reference(lua_State* L)
+{
+    lua_getfield(L, LUA_REGISTRYINDEX, "pcellstate");
+    struct pcell_state* pcell_state = lua_touserdata(L, -1);
+    lua_pop(L, 1); // pop pcell state
+    const char* identifier = luaL_checkstring(L, 1);
+    struct object* cell = pcell_get_cell_reference_by_name(pcell_state, identifier);
+    lobject_adapt(L, cell);
     return 1;
 }
 
@@ -241,7 +252,7 @@ static int lpcell_get_cell_filename(lua_State* L)
     lua_getfield(L, LUA_REGISTRYINDEX, "pcellstate");
     struct pcell_state* pcell_state = lua_touserdata(L, -1);
     lua_pop(L, 1); // pop pcell state
-    const char* cellname = lua_tostring(L, 1);
+    const char* cellname = luaL_checkstring(L, 1);
     for(unsigned int i = 0; i < vector_size(pcell_state->cellpaths); ++i)
     {
         const char* path = vector_get(pcell_state->cellpaths, i);
@@ -279,6 +290,7 @@ int open_lpcell_lib(lua_State* L)
     static const luaL_Reg modfuncs[] =
     {
         { "add_cell_reference",      lpcell_add_cell_reference      },
+        { "get_cell_reference",      lpcell_get_cell_reference      },
         { "get_cell_filename",       lpcell_get_cell_filename       },
         { NULL,                      NULL                           }
     };
