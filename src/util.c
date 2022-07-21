@@ -24,6 +24,27 @@ char* util_copy_string(const char* str)
     return copy;
 }
 
+int util_match_string(const char* str, const char* match)
+{
+    const char* ptr = str;
+    while(*ptr)
+    {
+        const char* src = ptr;
+        const char* cmp = match;
+        while(*cmp && *src && *cmp == *src)
+        {
+            ++cmp;
+            ++src;
+        }
+        if(!*cmp) // match found
+        {
+            return 1;
+        }
+        ++ptr;
+    }
+    return 0;
+}
+
 int util_split_string(const char* src, char delim, char** first, char** second)
 {
     const char* ptr = src;

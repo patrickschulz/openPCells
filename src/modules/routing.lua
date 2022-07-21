@@ -70,7 +70,7 @@ function M.legalize(nets, rows, numtracks, floorplan, instances)
     return routednets
 end
 
-function M.route(cell, routes, cells, width, xgrid, ygrid)
+function M.route(cell, routes, cells, width, numinnerroutes, pnumtracks, nnumtracks, xgrid, ygrid)
     local xgrid = xgrid or 1
     local ygrid = ygrid or 1
     for r, route in ipairs(routes) do
@@ -116,6 +116,30 @@ function M.route(cell, routes, cells, width, xgrid, ygrid)
                         y + ygrid * movement.y
                     ))
                 end
+            elseif movement.type == "rowshift" then
+                local lastpt = pts[#pts]
+                local x, y = lastpt:unwrap()
+                local yoffset = (nnumtracks + numinnerroutes / 2) * ygrid
+                local rowheight = ygrid * (pnumtracks + nnumtracks + numinnerroutes + 1)
+                local currentrow = math.ceil((y + yoffset) / rowheight)
+                local updown = movement.rows < 0 and -1 or 1
+                local steps = math.abs(movement.rows)
+                local target = y
+                while steps > 1 do
+                    target = target + updown * ygrid * 2 * (pnumtracks + 1 + nnumtracks + numinnerroutes)
+                    steps = steps - 2
+                end
+                if steps > 0 then
+                    local shift
+                    if ((currentrow % 2 == 0) and (updown < 0)) or ((currentrow % 2 == 1) and (updown > 0)) then
+                        shift = pnumtracks
+                    else
+                        shift = nnumtracks
+                    end
+                    target = target + ygrid * updown * (2 * shift + 1 + numinnerroutes)
+                end
+                target = target + ygrid * (movement.offset or 0)
+                table.insert(pts, point.create(x, target))
             elseif movement.type == "via" then
                 local targetmetal
                 if movement.z then

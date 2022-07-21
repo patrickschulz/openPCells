@@ -20,7 +20,8 @@ function parameters()
         { "gstspace(Gate Strap Metal Space)",                  tech.get_dimension("Minimum M1 Space") },
         { "gatecontactsplitshift(Gate Contact Split Shift)",   tech.get_dimension("Minimum M1 Width") + tech.get_dimension("Minimum M1 Space") },
         { "powerwidth(Power Rail Metal Width)",                tech.get_dimension("Minimum M1 Width") },
-        { "powerspace(Power Rail Space)",                      tech.get_dimension("Minimum M1 Space"), posvals = positive() },
+        { "npowerspace(NMOS Power Rail Space)",                tech.get_dimension("Minimum M1 Space"), posvals = positive() },
+        { "ppowerspace(PMOS Power Rail Space)",                tech.get_dimension("Minimum M1 Space"), posvals = positive() },
         { "gateext(Gate Extension)",                           0 },
         { "psdheight(PMOS Source/Drain Contact Height)",       0 },
         { "nsdheight(NMOS Source/Drain Contact Height)",       0 },
@@ -56,7 +57,10 @@ function parameters()
         { "nmoswelltapwidth(nMOS Well Tap Width)", tech.get_dimension("Minimum M1 Width") },
         { "drawpmoswelltap(Draw pMOS Well Tap)", false },
         { "pmoswelltapspace(pMOS Well Tap Space)", tech.get_dimension("Minimum M1 Space") },
-        { "pmoswelltapwidth(pMOS Well Tap Width)", tech.get_dimension("Minimum M1 Width") }
+        { "pmoswelltapwidth(pMOS Well Tap Width)", tech.get_dimension("Minimum M1 Width") },
+        { "drawactivedummy", false },
+        { "activedummywidth", 0 },
+        { "activedummysep", 0 }
     )
 end
 
@@ -87,9 +91,11 @@ function layout(cmos, _P)
             gatemarker = _P.gatemarker,
             drawinnersourcedrain = "none",
             drawoutersourcedrain = "none",
-            drawactive = _P.drawactive
+            drawactive = _P.drawactive,
+            cutheight = _P.cutheight,
         })
-        local ext = math.max(_P.powerspace + _P.powerwidth + outergateshift, math.max(_P.gateext, _P.cutheight / 2, _P.dummycontheight / 2))
+        local n_ext = math.max(_P.npowerspace + _P.powerwidth + outergateshift, math.max(_P.gateext, _P.cutheight / 2, _P.dummycontheight / 2))
+        local p_ext = math.max(_P.ppowerspace + _P.powerwidth + outergateshift, math.max(_P.gateext, _P.cutheight / 2, _P.dummycontheight / 2))
 
         -- pmos
         local pmosoptions = {
@@ -98,12 +104,15 @@ function layout(cmos, _P)
             flippedwell = _P.pmosflippedwell,
             fwidth = _P.pwidth,
             gbotext = _P.separation / 2,
-            gtopext = ext,
-            topgcutoffset = ext,
+            gtopext = p_ext,
+            topgcutoffset = p_ext,
             clipbot = true,
             drawtopwelltap = _P.drawpmoswelltap,
             topwelltapwidth = _P.pmoswelltapwidth,
-            topwelltapspace = _P.powerspace + _P.powerwidth + _P.pmoswelltapspace,
+            topwelltapspace = _P.ppowerspace + _P.powerwidth + _P.pmoswelltapspace,
+            drawtopactivedummy = _P.drawactivedummy,
+            topactivedummywidth = _P.activedummywidth,
+            topactivedummysep = _P.activedummysep
         }
         local nmosoptions = {
             channeltype = "nmos",
@@ -111,13 +120,16 @@ function layout(cmos, _P)
             flippedwell = _P.nmosflippedwell,
             fwidth = _P.nwidth,
             gtopext = _P.separation / 2,
-            gbotext = ext,
-            botgcutoffset = ext,
+            gbotext = n_ext,
+            botgcutoffset = n_ext,
             cliptop = true,
             drawbotgcut = false,
             drawbotwelltap = _P.drawnmoswelltap,
             botwelltapwidth = _P.nmoswelltapwidth,
-            botwelltapspace = _P.powerspace + _P.powerwidth + _P.nmoswelltapspace,
+            botwelltapspace = _P.npowerspace + _P.powerwidth + _P.nmoswelltapspace,
+            drawbotactivedummy = _P.drawactivedummy,
+            botactivedummywidth = _P.activedummywidth,
+            botactivedummysep = _P.activedummysep
         }
         -- main
         for i = 1, fingers do
@@ -173,28 +185,28 @@ function layout(cmos, _P)
         geometry.rectangle(cmos,
             generics.metal(1), 
             (fingers + _P.leftdummies + _P.rightdummies) * xpitch + _P.sdwidth, _P.powerwidth,
-            xshift, (_P.pwidth - _P.nwidth) / 2,
-            1, 2, 0, _P.separation + _P.pwidth + _P.nwidth + 2 * _P.powerspace + _P.powerwidth
+            xshift, (_P.pwidth - _P.nwidth) / 2 + (_P.ppowerspace - _P.npowerspace) / 2,
+            1, 2, 0, _P.separation + _P.pwidth + _P.nwidth + _P.ppowerspace + _P.npowerspace + _P.powerwidth
         )
     end
-    cmos:add_anchor("PRpll", point.create(-fingers * xpitch / 2 - _P.sdwidth / 2,  _P.separation / 2 + _P.pwidth + _P.powerspace))
-    cmos:add_anchor("PRpcl", point.create(-fingers * xpitch / 2 - _P.sdwidth / 2,  _P.separation / 2 + _P.pwidth + _P.powerspace + _P.powerwidth / 2))
-    cmos:add_anchor("PRpul", point.create(-fingers * xpitch / 2 - _P.sdwidth / 2,  _P.separation / 2 + _P.pwidth + _P.powerspace + _P.powerwidth))
-    cmos:add_anchor("PRplc", point.create(0,                      _P.separation / 2 + _P.pwidth + _P.powerspace))
-    cmos:add_anchor("PRpcc", point.create(0,                      _P.separation / 2 + _P.pwidth + _P.powerspace + _P.powerwidth / 2))
-    cmos:add_anchor("PRpuc", point.create(0,                      _P.separation / 2 + _P.pwidth + _P.powerspace + _P.powerwidth))
-    cmos:add_anchor("PRplr", point.create( fingers * xpitch / 2 + _P.sdwidth / 2,  _P.separation / 2 + _P.pwidth + _P.powerspace))
-    cmos:add_anchor("PRpcr", point.create( fingers * xpitch / 2 + _P.sdwidth / 2,  _P.separation / 2 + _P.pwidth + _P.powerspace + _P.powerwidth / 2))
-    cmos:add_anchor("PRpur", point.create( fingers * xpitch / 2 + _P.sdwidth / 2,  _P.separation / 2 + _P.pwidth + _P.powerspace + _P.powerwidth))
-    cmos:add_anchor("PRnll", point.create(-fingers * xpitch / 2 - _P.sdwidth / 2, -_P.separation / 2 - _P.nwidth - _P.powerspace - _P.powerwidth))
-    cmos:add_anchor("PRncl", point.create(-fingers * xpitch / 2 - _P.sdwidth / 2, -_P.separation / 2 - _P.nwidth - _P.powerspace - _P.powerwidth / 2))
-    cmos:add_anchor("PRnul", point.create(-fingers * xpitch / 2 - _P.sdwidth / 2, -_P.separation / 2 - _P.nwidth - _P.powerspace))
-    cmos:add_anchor("PRnlc", point.create(0,                     -_P.separation / 2 - _P.nwidth - _P.powerspace - _P.powerwidth))
-    cmos:add_anchor("PRncc", point.create(0,                     -_P.separation / 2 - _P.nwidth - _P.powerspace - _P.powerwidth / 2))
-    cmos:add_anchor("PRnuc", point.create(0,                     -_P.separation / 2 - _P.nwidth - _P.powerspace))
-    cmos:add_anchor("PRnlr", point.create( fingers * xpitch / 2 + _P.sdwidth / 2, -_P.separation / 2 - _P.nwidth - _P.powerspace - _P.powerwidth))
-    cmos:add_anchor("PRncr", point.create( fingers * xpitch / 2 + _P.sdwidth / 2, -_P.separation / 2 - _P.nwidth - _P.powerspace - _P.powerwidth / 2))
-    cmos:add_anchor("PRnur", point.create( fingers * xpitch / 2 + _P.sdwidth / 2, -_P.separation / 2 - _P.nwidth - _P.powerspace))
+    cmos:add_anchor("PRpll", point.create(-fingers * xpitch / 2 - _P.sdwidth / 2,  _P.separation / 2 + _P.pwidth + _P.ppowerspace))
+    cmos:add_anchor("PRpcl", point.create(-fingers * xpitch / 2 - _P.sdwidth / 2,  _P.separation / 2 + _P.pwidth + _P.ppowerspace + _P.powerwidth / 2))
+    cmos:add_anchor("PRpul", point.create(-fingers * xpitch / 2 - _P.sdwidth / 2,  _P.separation / 2 + _P.pwidth + _P.ppowerspace + _P.powerwidth))
+    cmos:add_anchor("PRplc", point.create(0,                      _P.separation / 2 + _P.pwidth + _P.ppowerspace))
+    cmos:add_anchor("PRpcc", point.create(0,                      _P.separation / 2 + _P.pwidth + _P.ppowerspace + _P.powerwidth / 2))
+    cmos:add_anchor("PRpuc", point.create(0,                      _P.separation / 2 + _P.pwidth + _P.ppowerspace + _P.powerwidth))
+    cmos:add_anchor("PRplr", point.create( fingers * xpitch / 2 + _P.sdwidth / 2,  _P.separation / 2 + _P.pwidth + _P.ppowerspace))
+    cmos:add_anchor("PRpcr", point.create( fingers * xpitch / 2 + _P.sdwidth / 2,  _P.separation / 2 + _P.pwidth + _P.ppowerspace + _P.powerwidth / 2))
+    cmos:add_anchor("PRpur", point.create( fingers * xpitch / 2 + _P.sdwidth / 2,  _P.separation / 2 + _P.pwidth + _P.ppowerspace + _P.powerwidth))
+    cmos:add_anchor("PRnll", point.create(-fingers * xpitch / 2 - _P.sdwidth / 2, -_P.separation / 2 - _P.nwidth - _P.npowerspace - _P.powerwidth))
+    cmos:add_anchor("PRncl", point.create(-fingers * xpitch / 2 - _P.sdwidth / 2, -_P.separation / 2 - _P.nwidth - _P.npowerspace - _P.powerwidth / 2))
+    cmos:add_anchor("PRnul", point.create(-fingers * xpitch / 2 - _P.sdwidth / 2, -_P.separation / 2 - _P.nwidth - _P.npowerspace))
+    cmos:add_anchor("PRnlc", point.create(0,                     -_P.separation / 2 - _P.nwidth - _P.npowerspace - _P.powerwidth))
+    cmos:add_anchor("PRncc", point.create(0,                     -_P.separation / 2 - _P.nwidth - _P.npowerspace - _P.powerwidth / 2))
+    cmos:add_anchor("PRnuc", point.create(0,                     -_P.separation / 2 - _P.nwidth - _P.npowerspace))
+    cmos:add_anchor("PRnlr", point.create( fingers * xpitch / 2 + _P.sdwidth / 2, -_P.separation / 2 - _P.nwidth - _P.npowerspace - _P.powerwidth))
+    cmos:add_anchor("PRncr", point.create( fingers * xpitch / 2 + _P.sdwidth / 2, -_P.separation / 2 - _P.nwidth - _P.npowerspace - _P.powerwidth / 2))
+    cmos:add_anchor("PRnur", point.create( fingers * xpitch / 2 + _P.sdwidth / 2, -_P.separation / 2 - _P.nwidth - _P.npowerspace))
 
     -- draw gate contacts
     local _make_anchors = function(parent, x, y, xshift, yshift, pre, post)
@@ -247,28 +259,25 @@ function layout(cmos, _P)
             elseif _P.gatecontactpos[i] == "dummy" then
                 geometry.contactbltr(
                     cmos, "gate", 
-                    point.create(x - _P.gatelength / 2, (_P.pwidth - _P.nwidth) / 2 + -_P.dummycontheight / 2),
-                    point.create(x + _P.gatelength / 2, (_P.pwidth - _P.nwidth) / 2 +  _P.dummycontheight / 2),
-                    1, 2, 0, _P.separation + _P.pwidth + _P.nwidth + 2 * _P.powerspace + _P.powerwidth
+                    point.create(x - _P.gatelength / 2, (_P.pwidth - _P.nwidth) / 2 + (_P.ppowerspace - _P.npowerspace) / 2 + -_P.dummycontheight / 2),
+                    point.create(x + _P.gatelength / 2, (_P.pwidth - _P.nwidth) / 2 + (_P.ppowerspace - _P.npowerspace) / 2 +  _P.dummycontheight / 2),
+                    1, 2, 0, _P.separation + _P.pwidth + _P.nwidth + _P.ppowerspace + _P.npowerspace + _P.powerwidth
                 )
                 geometry.rectangle(cmos, generics.other("gatecut"), xpitch, _P.cutheight, x, 0)
             elseif _P.gatecontactpos[i] == "outer" then
                 geometry.contactbltr(
                     cmos, "gate",
-                    point.create(x - _P.gatelength / 2, _P.separation / 2 + _P.pwidth + _P.outergstspace + _P.gstwidth / 2 + _P.powerwidth + _P.powerspace - _P.outergstwidth / 2),
-                    point.create(x + _P.gatelength / 2, _P.separation / 2 + _P.pwidth + _P.outergstspace + _P.gstwidth / 2 + _P.powerwidth + _P.powerspace + _P.outergstwidth / 2)
+                    point.create(x - _P.gatelength / 2, _P.separation / 2 + _P.pwidth + _P.outergstspace + _P.gstwidth / 2 + _P.powerwidth + _P.ppowerspace - _P.outergstwidth / 2),
+                    point.create(x + _P.gatelength / 2, _P.separation / 2 + _P.pwidth + _P.outergstspace + _P.gstwidth / 2 + _P.powerwidth + _P.ppowerspace + _P.outergstwidth / 2)
                 )
                 geometry.contactbltr(
                     cmos, "gate",
-                    point.create(x - _P.gatelength / 2, -_P.separation / 2 - _P.nwidth - _P.outergstspace - _P.gstwidth / 2 - _P.powerwidth - _P.powerspace - _P.outergstwidth / 2),
-                    point.create(x + _P.gatelength / 2, -_P.separation / 2 - _P.nwidth - _P.outergstspace - _P.gstwidth / 2 - _P.powerwidth - _P.powerspace + _P.outergstwidth / 2)
+                    point.create(x - _P.gatelength / 2, -_P.separation / 2 - _P.nwidth - _P.outergstspace - _P.gstwidth / 2 - _P.powerwidth - _P.npowerspace - _P.outergstwidth / 2),
+                    point.create(x + _P.gatelength / 2, -_P.separation / 2 - _P.nwidth - _P.outergstspace - _P.gstwidth / 2 - _P.powerwidth - _P.npowerspace + _P.outergstwidth / 2)
                 )
-                cmos:add_anchor(string.format("Gp%d", i), point.create(
-                    x,
-                    _P.separation / 2 + _P.pwidth + _P.outergstspace + _P.outergstwidth / 2 + _P.powerwidth + _P.powerspace))
-                cmos:add_anchor(string.format("Gn%d", i), point.create(
-                    x,
-                    -_P.separation / 2 - _P.nwidth - _P.outergstspace - _P.outergstwidth / 2 - _P.powerwidth - _P.powerspace))
+                _make_anchors(cmos, x,  _P.separation / 2 + _P.pwidth + _P.outergstspace + _P.outergstwidth / 2 + _P.powerwidth + _P.ppowerspace, _P.gatelength, _P.gstwidth, "Gp", string.format("%d", i))
+                _make_anchors(cmos, x, -_P.separation / 2 - _P.nwidth - _P.outergstspace - _P.outergstwidth / 2 - _P.powerwidth - _P.npowerspace, _P.gatelength, _P.gstwidth, "Gn", string.format("%d", i))
+                geometry.rectangle(cmos, generics.other("gatecut"), xpitch, _P.cutheight, x, 0)
             elseif _P.gatecontactpos[i] == "unused" then
                 -- ignore
             else
@@ -278,9 +287,9 @@ function layout(cmos, _P)
                 if _P.drawgcut then
                 geometry.rectanglebltr(
                     cmos, generics.other("gatecut"),
-                    point.create(x - xpitch / 2, (_P.pwidth - _P.nwidth) / 2 - _P.cutheight / 2),
-                    point.create(x + xpitch / 2, (_P.pwidth - _P.nwidth) / 2 + _P.cutheight / 2),
-                    1, 2, 0, _P.separation + _P.pwidth + _P.nwidth + 2 * _P.powerspace + _P.powerwidth
+                    point.create(x - xpitch / 2, (_P.pwidth - _P.nwidth) / 2 + (_P.ppowerspace - _P.npowerspace) / 2 - _P.cutheight / 2),
+                    point.create(x + xpitch / 2, (_P.pwidth - _P.nwidth) / 2 + (_P.ppowerspace - _P.npowerspace) / 2 + _P.cutheight / 2),
+                    1, 2, 0, _P.separation + _P.pwidth + _P.nwidth + _P.ppowerspace + _P.npowerspace + _P.powerwidth
                 )
                 end
             end
@@ -289,15 +298,15 @@ function layout(cmos, _P)
     if _P.drawdummygatecontacts then
         geometry.contactbltr(
             cmos, "gate", 
-            point.create(-(fingers + _P.rightdummies) * xpitch / 2 + xshift - (_P.gatelength) / 2, (_P.pwidth - _P.nwidth) / 2 - (_P.dummycontheight) / 2),
-            point.create(-(fingers + _P.rightdummies) * xpitch / 2 + xshift + (_P.gatelength) / 2, (_P.pwidth - _P.nwidth) / 2 + (_P.dummycontheight) / 2),
-            _P.leftdummies, 2, xpitch, _P.separation + _P.pwidth + _P.nwidth + 2 * _P.powerspace + _P.powerwidth
+            point.create(-(fingers + _P.rightdummies) * xpitch / 2 + xshift - (_P.gatelength) / 2, (_P.pwidth - _P.nwidth) / 2 + (_P.ppowerspace - _P.npowerspace) / 2 - (_P.dummycontheight) / 2),
+            point.create(-(fingers + _P.rightdummies) * xpitch / 2 + xshift + (_P.gatelength) / 2, (_P.pwidth - _P.nwidth) / 2 + (_P.ppowerspace - _P.npowerspace) / 2 + (_P.dummycontheight) / 2),
+            _P.leftdummies, 2, xpitch, _P.separation + _P.pwidth + _P.nwidth + _P.ppowerspace + _P.npowerspace + _P.powerwidth
         )
         geometry.contactbltr(
             cmos, "gate", 
-            point.create((fingers + _P.leftdummies) * xpitch / 2 + xshift - (_P.gatelength) / 2, (_P.pwidth - _P.nwidth) / 2 - (_P.dummycontheight) / 2),
-            point.create((fingers + _P.leftdummies) * xpitch / 2 + xshift + (_P.gatelength) / 2, (_P.pwidth - _P.nwidth) / 2 + (_P.dummycontheight) / 2),
-            _P.rightdummies, 2, xpitch, _P.separation + _P.pwidth + _P.nwidth + 2 * _P.powerspace + _P.powerwidth
+            point.create((fingers + _P.leftdummies) * xpitch / 2 + xshift - (_P.gatelength) / 2, (_P.pwidth - _P.nwidth) / 2 + (_P.ppowerspace - _P.npowerspace) / 2 - (_P.dummycontheight) / 2),
+            point.create((fingers + _P.leftdummies) * xpitch / 2 + xshift + (_P.gatelength) / 2, (_P.pwidth - _P.nwidth) / 2 + (_P.ppowerspace - _P.npowerspace) / 2 + (_P.dummycontheight) / 2),
+            _P.rightdummies, 2, xpitch, _P.separation + _P.pwidth + _P.nwidth + _P.ppowerspace + _P.npowerspace + _P.powerwidth
         )
     end
 
@@ -321,9 +330,15 @@ function layout(cmos, _P)
         )
         geometry.rectanglebltr(
             cmos, generics.metal(1), 
-            point.create(-(fingers + _P.rightdummies + 1) * xpitch / 2 + xshift - (_P.sdwidth) / 2, (_P.pwidth - _P.nwidth) / 2 - (_P.powerspace) / 2),
-            point.create(-(fingers + _P.rightdummies + 1) * xpitch / 2 + xshift + (_P.sdwidth) / 2, (_P.pwidth - _P.nwidth) / 2 + (_P.powerspace) / 2),
-            _P.leftdummies, 2, xpitch, _P.separation + _P.pwidth + _P.nwidth + _P.powerspace
+            point.create(-(fingers + _P.rightdummies + 1) * xpitch / 2 + xshift - (_P.sdwidth) / 2, _P.separation / 2 + _P.pwidth),
+            point.create(-(fingers + _P.rightdummies + 1) * xpitch / 2 + xshift + (_P.sdwidth) / 2, _P.separation / 2 + _P.pwidth + _P.ppowerspace),
+            _P.leftdummies, 1, xpitch, 0
+        )
+        geometry.rectanglebltr(
+            cmos, generics.metal(1), 
+            point.create(-(fingers + _P.rightdummies + 1) * xpitch / 2 + xshift - (_P.sdwidth) / 2, -_P.separation / 2 - _P.nwidth - _P.npowerspace),
+            point.create(-(fingers + _P.rightdummies + 1) * xpitch / 2 + xshift + (_P.sdwidth) / 2, -_P.separation / 2 - _P.nwidth),
+            _P.leftdummies, 1, xpitch, 0
         )
         geometry.contactbltr(
             cmos, "sourcedrain", 
@@ -339,9 +354,15 @@ function layout(cmos, _P)
         )
         geometry.rectanglebltr(
             cmos, generics.metal(1), 
-            point.create((fingers + _P.leftdummies + 1) * xpitch / 2 + xshift - (_P.sdwidth) / 2, (_P.pwidth - _P.nwidth) / 2 - (_P.powerspace) / 2),
-            point.create((fingers + _P.leftdummies + 1) * xpitch / 2 + xshift + (_P.sdwidth) / 2, (_P.pwidth - _P.nwidth) / 2 + (_P.powerspace) / 2),
-            _P.rightdummies, 2, xpitch, _P.separation + _P.pwidth + _P.nwidth + _P.powerspace
+            point.create((fingers + _P.leftdummies + 1) * xpitch / 2 + xshift - (_P.sdwidth) / 2, _P.separation / 2 + _P.pwidth),
+            point.create((fingers + _P.leftdummies + 1) * xpitch / 2 + xshift + (_P.sdwidth) / 2, _P.separation / 2 + _P.pwidth + _P.ppowerspace),
+            _P.rightdummies, 1, xpitch, 0
+        )
+        geometry.rectanglebltr(
+            cmos, generics.metal(1), 
+            point.create((fingers + _P.leftdummies + 1) * xpitch / 2 + xshift - (_P.sdwidth) / 2, -_P.separation / 2 - _P.nwidth - _P.npowerspace),
+            point.create((fingers + _P.leftdummies + 1) * xpitch / 2 + xshift + (_P.sdwidth) / 2, -_P.separation / 2 - _P.nwidth),
+            _P.rightdummies, 1, xpitch, 0
         )
     end
 
@@ -386,8 +407,8 @@ function layout(cmos, _P)
         if _P.pcontactpos[i] == "power" or _P.pcontactpos[i] == "powerfull" then
             geometry.rectanglebltr(
                 cmos, generics.metal(1), 
-                point.create(x - _P.sdwidth / 2, y + _P.pwidth / 2 + _P.powerspace / 2 - _P.shiftpcontactsouter - _P.powerspace / 2),
-                point.create(x + _P.sdwidth / 2, y + _P.pwidth / 2 + _P.powerspace / 2 - _P.shiftpcontactsouter + _P.powerspace / 2)
+                point.create(x - _P.sdwidth / 2, y + _P.pwidth / 2 + _P.ppowerspace / 2 - _P.shiftpcontactsouter - _P.ppowerspace / 2),
+                point.create(x + _P.sdwidth / 2, y + _P.pwidth / 2 + _P.ppowerspace / 2 - _P.shiftpcontactsouter + _P.ppowerspace / 2)
             )
         end
         y = -_P.separation / 2 - _P.nwidth / 2
@@ -424,14 +445,14 @@ function layout(cmos, _P)
         if _P.ncontactpos[i] == "power" or _P.ncontactpos[i] == "powerfull" then
             geometry.rectanglebltr(
                 cmos, generics.metal(1), 
-                point.create(x - _P.sdwidth / 2, y - _P.nwidth / 2 - _P.powerspace / 2 + _P.shiftncontactsouter - _P.powerspace / 2),
-                point.create(x + _P.sdwidth / 2, y - _P.nwidth / 2 - _P.powerspace / 2 + _P.shiftncontactsouter + _P.powerspace / 2)
+                point.create(x - _P.sdwidth / 2, y - _P.nwidth / 2 - _P.npowerspace / 2 + _P.shiftncontactsouter - _P.npowerspace / 2),
+                point.create(x + _P.sdwidth / 2, y - _P.nwidth / 2 - _P.npowerspace / 2 + _P.shiftncontactsouter + _P.npowerspace / 2)
             )
         end
     end
 
     cmos:set_alignment_box(
-        point.create(-(fingers + 2 * _P.leftdummies) * (_P.gatelength + _P.gatespace) / 2, -_P.separation / 2 - _P.nwidth - _P.powerspace - _P.powerwidth / 2),
-        point.create( (fingers + 2 * _P.rightdummies) * (_P.gatelength + _P.gatespace) / 2, _P.separation / 2 + _P.pwidth + _P.powerspace + _P.powerwidth / 2)
+        point.create(-(fingers + 2 * _P.leftdummies) * (_P.gatelength + _P.gatespace) / 2, -_P.separation / 2 - _P.nwidth - _P.npowerspace - _P.powerwidth / 2),
+        point.create( (fingers + 2 * _P.rightdummies) * (_P.gatelength + _P.gatespace) / 2, _P.separation / 2 + _P.pwidth + _P.ppowerspace + _P.powerwidth / 2)
     )
 end

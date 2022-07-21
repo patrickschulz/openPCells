@@ -25,7 +25,7 @@ procedure(OPCBuildCallCommand(args)
         ((additionalargs ""))
         additionalargs = OPCSettingsForm->OPCSettingsCmdAdditionalArgs->value
         when(OPCSettingsForm->OPCSettingsMerge->value == "true"
-            additionalargs = lsprintf("%s --flat --merge-rectangles" additionalargs)
+            additionalargs = lsprintf("%s --merge-rectangles" additionalargs)
         )
         lsprintf( "%s/%s %s %s" OPCPath OPCExec args additionalargs)
     )

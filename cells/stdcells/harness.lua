@@ -5,6 +5,8 @@ end
 
 function parameters()
     pcell.add_parameters(
+        { "pwidth", 2 * tech.get_dimension("Minimum Gate Width") },
+        { "nwidth", 2 * tech.get_dimension("Minimum Gate Width") },
         { "drawtransistors", true },
         { "drawactive", true },
         { "drawrails", true },
@@ -32,14 +34,21 @@ function layout(gate, _P)
     local xshift = (_P.rightdummies - _P.leftdummies) * xpitch / 2
     local fingers = #_P.gatecontactpos
     -- numtracks + 2 for powerspace calculation: only virtual routes on power bars (no real ones)
-    local powerspace
+    local ppowerspace, npowerspace
     local separation
     if bp.spacesepautocalc then
         separation = bp.numinnerroutes * bp.routingwidth + (bp.numinnerroutes + 1) * bp.routingspace
-        powerspace = ((bp.numtracks + 2) * (bp.routingwidth + bp.routingspace) - 2 * bp.powerwidth - bp.nwidth - bp.pwidth - separation) / 2 - bp.routingspace / 2
+        if bp.numinnerroutes % 2 == 0 then
+            ppowerspace = (2 * (bp.pnumtracks + 1) + bp.numinnerroutes - 1) * (bp.routingwidth + bp.routingspace) / 2 - separation / 2 - _P.pwidth - bp.powerwidth / 2
+            npowerspace = (2 * (bp.nnumtracks + 1) + bp.numinnerroutes - 1) * (bp.routingwidth + bp.routingspace) / 2 - separation / 2 - _P.nwidth - bp.powerwidth / 2
+        else
+            ppowerspace = ((bp.numinnerroutes + 1) / 2 + bp.pnumtracks) * (bp.routingwidth + bp.routingspace) - separation / 2 - _P.pwidth - bp.powerwidth / 2
+            npowerspace = ((bp.numinnerroutes + 1) / 2 + bp.nnumtracks) * (bp.routingwidth + bp.routingspace) - separation / 2 - _P.nwidth - bp.powerwidth / 2
+        end
     else
         separation = bp.separation
-        powerspace = bp.powerspace
+        npowerspace = bp.powerspace
+        ppowerspace = bp.powerspace
     end
     local routingshift = (bp.routingwidth + bp.routingspace) / (bp.numinnerroutes % 2 == 0 and 2 or 1)
     local cmos = pcell.create_layout("basic/cmos", {
@@ -57,9 +66,10 @@ function layout(gate, _P)
         leftdummies = _P.leftdummies,
         rightdummies = _P.rightdummies,
         powerwidth = bp.powerwidth,
-        powerspace = powerspace,
-        pwidth = bp.pwidth,
-        nwidth = bp.nwidth,
+        npowerspace = npowerspace,
+        ppowerspace = ppowerspace,
+        pwidth = _P.pwidth,
+        nwidth = _P.nwidth,
         sdwidth = bp.sdwidth,
         separation = separation,
         gatecontactsplitshift = routingshift,

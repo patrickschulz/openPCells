@@ -237,11 +237,6 @@ struct object* object_add_child(struct object* cell, struct pcell_state* pcell_s
 
 struct object* object_add_child_array(struct object* cell, struct pcell_state* pcell_state, const char* identifier, unsigned int xrep, unsigned int yrep, unsigned int xpitch, unsigned int ypitch, const char* name)
 {
-    //if not xpitch then -- alignmentbox mode
-    //    local obj = pcell.get_cell_reference(identifier)
-    //    local xpitch, ypitch = obj:width_height_alignmentbox()
-    //    return cell:add_child_array(identifier, xrep, yrep, xpitch, ypitch, name)
-
     struct object* child = object_add_child(cell, pcell_state, identifier, name);
     child->isarray = 1;
     child->xrep = xrep;

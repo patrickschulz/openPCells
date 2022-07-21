@@ -5,7 +5,8 @@ function config()
 end
 
 function parameters()
-
+    pcell.add_parameter("pwidth", 2 * tech.get_dimension("Minimum Gate Width"))
+    pcell.add_parameter("nwidth", 2 * tech.get_dimension("Minimum Gate Width"))
 end
 
 function layout(gate, _P)
@@ -14,6 +15,8 @@ function layout(gate, _P)
 
     local harness = pcell.create_layout("stdcells/harness", {
         gatecontactpos = {}, 
+        pwidth = _P.pwidth,
+        nwidth = _P.nwidth,
         drawdummyactivecontacts = false,
         leftdummies = 1,
         rightdummies = 0

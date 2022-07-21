@@ -7,6 +7,8 @@ function parameters()
     pcell.add_parameters(
         { "fingers",       1 },
         { "gatetype", "nand" },
+        { "pwidth", 2 * tech.get_dimension("Minimum Gate Width") },
+        { "nwidth", 2 * tech.get_dimension("Minimum Gate Width") },
         { "swapinputs", false },
         { "shiftoutput", 0 }
     )
@@ -52,6 +54,8 @@ function layout(gate, _P)
         gatecontactpos = gatecontactpos,
         pcontactpos = _P.gatetype == "nand" and pcontacts or ncontacts,
         ncontactpos = _P.gatetype == "nand" and ncontacts or pcontacts,
+        pwidth = _P.pwidth,
+        nwidth = _P.nwidth,
         rightdummies = _P.fingers % 2,
     })
     gate:merge_into_shallow(harness)

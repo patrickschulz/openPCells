@@ -167,6 +167,19 @@ struct cellreference* pcell_get_indexed_cell_reference(struct pcell_state* pcell
     return vector_get(pcell_state->references, i);
 }
 
+struct object* pcell_get_cell_reference_by_name(struct pcell_state* pcell_state, const char* identifier)
+{
+    for(unsigned int i = 0; i < vector_size(pcell_state->references); ++i)
+    {
+        struct cellreference* cref = vector_get(pcell_state->references, i);
+        if(strcmp(cref->identifier, identifier) == 0)
+        {
+            return cref->cell;
+        }
+    }
+    return NULL;
+}
+
 //////////////// lua bridge
 static int lpcell_add_cell_reference(lua_State* L)
 {
