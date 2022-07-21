@@ -11,29 +11,29 @@
 * pin SUBSTRATE
 .SUBCKT 22_gate A1 A2 B1 B2 O VDD VSS SUBSTRATE
 * device instance $1 r0 *1 -0.25,1.2 slvtpfet
-M$1 VDD A1 \$I8 \$I6 slvtpfet L=0.2U W=1U AS=0.4P AD=0.15P PS=2.8U PD=1.3U
+M$1 VDD A1 \$I8 \$I4 slvtpfet L=0.2U W=1U AS=0.4P AD=0.15P PS=2.8U PD=1.3U
 * device instance $2 r0 *1 0.25,1.2 slvtpfet
-M$2 \$I8 A2 VDD \$I6 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U PD=1.3U
+M$2 \$I8 A2 VDD \$I4 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U PD=1.3U
 * device instance $3 r0 *1 0.75,1.2 slvtpfet
-M$3 VDD VDD VDD \$I6 slvtpfet L=0.2U W=6U AS=0.9P AD=0.9P PS=7.8U PD=7.8U
+M$3 VDD VDD VDD \$I4 slvtpfet L=0.2U W=6U AS=0.9P AD=0.9P PS=7.8U PD=7.8U
 * device instance $5 r0 *1 1.75,1.2 slvtpfet
-M$5 VDD \$I8 \$1 \$I6 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U PD=1.3U
+M$5 VDD \$I8 \$1 \$I4 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U PD=1.3U
 * device instance $6 r0 *1 2.25,1.2 slvtpfet
-M$6 \$1 VDD VDD \$I6 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U PD=1.3U
+M$6 \$1 VDD VDD \$I4 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U PD=1.3U
 * device instance $8 r0 *1 3.25,1.2 slvtpfet
-M$8 VDD B1 \$I16 \$I6 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U PD=1.3U
+M$8 VDD B1 \$I59 \$I4 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U PD=1.3U
 * device instance $9 r0 *1 3.75,1.2 slvtpfet
-M$9 \$I16 B2 VDD \$I6 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U PD=1.3U
+M$9 \$I59 B2 VDD \$I4 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U PD=1.3U
 * device instance $12 r0 *1 5.25,1.2 slvtpfet
-M$12 VDD \$I16 \$2 \$I6 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U PD=1.3U
+M$12 VDD \$I59 \$2 \$I4 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U PD=1.3U
 * device instance $13 r0 *1 5.75,1.2 slvtpfet
-M$13 \$2 VDD VDD \$I6 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U PD=1.3U
+M$13 \$2 VDD VDD \$I4 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U PD=1.3U
 * device instance $15 r0 *1 6.75,1.2 slvtpfet
-M$15 VDD \$2 \$I9 \$I6 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U PD=1.3U
+M$15 VDD \$2 \$I52 \$I4 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U PD=1.3U
 * device instance $16 r0 *1 7.25,1.2 slvtpfet
-M$16 \$I9 \$1 O \$I6 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U PD=1.3U
+M$16 \$I52 \$1 O \$I4 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U PD=1.3U
 * device instance $17 r0 *1 7.75,1.2 slvtpfet
-M$17 O VDD VDD \$I6 slvtpfet L=0.2U W=1U AS=0.15P AD=0.4P PS=1.3U PD=2.8U
+M$17 O VDD VDD \$I4 slvtpfet L=0.2U W=1U AS=0.15P AD=0.4P PS=1.3U PD=2.8U
 * device instance $18 r0 *1 -0.25,-1.2 slvtnfet
 M$18 VSS A1 \$I66 SUBSTRATE slvtnfet L=0.2U W=1U AS=0.4P AD=0.15P PS=2.8U
 + PD=1.3U
@@ -55,13 +55,13 @@ M$23 \$1 VSS VSS SUBSTRATE slvtnfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
 M$25 VSS B1 \$I76 SUBSTRATE slvtnfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
 + PD=1.3U
 * device instance $26 r0 *1 3.75,-1.2 slvtnfet
-M$26 \$I76 B2 \$I16 SUBSTRATE slvtnfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
+M$26 \$I76 B2 \$I59 SUBSTRATE slvtnfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
 + PD=1.3U
 * device instance $27 r0 *1 4.25,-1.2 slvtnfet
-M$27 \$I16 VSS VSS SUBSTRATE slvtnfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
+M$27 \$I59 VSS VSS SUBSTRATE slvtnfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
 + PD=1.3U
 * device instance $29 r0 *1 5.25,-1.2 slvtnfet
-M$29 VSS \$I16 \$2 SUBSTRATE slvtnfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
+M$29 VSS \$I59 \$2 SUBSTRATE slvtnfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
 + PD=1.3U
 * device instance $30 r0 *1 5.75,-1.2 slvtnfet
 M$30 \$2 VSS VSS SUBSTRATE slvtnfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U

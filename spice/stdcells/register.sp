@@ -4,471 +4,471 @@
 * pin SUBSTRATE
 .SUBCKT register SUBSTRATE
 * device instance $1 r0 *1 44.25,1.2 slvtpfet
-M$1 \$1 \$I10 \$I445 \$I43 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
+M$1 \$1 \$I10 \$I445 \$I36 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
 + PD=1.3U
 * device instance $2 r0 *1 44.75,1.2 slvtpfet
-M$2 \$I445 \$1 \$1 \$I43 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U PD=1.3U
+M$2 \$I445 \$1 \$1 \$I36 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U PD=1.3U
 * device instance $3 r0 *1 45.25,1.2 slvtpfet
-M$3 \$1 \$I445 \$I484 \$I43 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
+M$3 \$1 \$I445 \$I484 \$I36 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
 + PD=1.3U
 * device instance $4 r0 *1 45.75,1.2 slvtpfet
-M$4 \$I484 \$1 \$1 \$I43 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U PD=1.3U
+M$4 \$I484 \$1 \$1 \$I36 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U PD=1.3U
 * device instance $5 r0 *1 46.25,1.2 slvtpfet
-M$5 \$1 \$I445 \$1 \$I43 slvtpfet L=0.2U W=2U AS=0.3P AD=0.3P PS=2.6U PD=2.6U
+M$5 \$1 \$I445 \$1 \$I36 slvtpfet L=0.2U W=2U AS=0.3P AD=0.3P PS=2.6U PD=2.6U
 * device instance $6 r0 *1 46.75,1.2 slvtpfet
-M$6 \$1 \$I484 \$I1159 \$I43 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
+M$6 \$1 \$I484 \$I1159 \$I36 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
 + PD=1.3U
 * device instance $7 r0 *1 47.25,1.2 slvtpfet
-M$7 \$I1159 \$I10 \$I475 \$I43 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
+M$7 \$I1159 \$I10 \$I475 \$I36 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
 + PD=1.3U
 * device instance $8 r0 *1 47.75,1.2 slvtpfet
-M$8 \$I475 \$1 \$I475 \$I43 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
+M$8 \$I475 \$1 \$I475 \$I36 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
 + PD=1.3U
 * device instance $9 r0 *1 48.25,1.2 slvtpfet
-M$9 \$I475 \$I127 \$I1156 \$I43 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
+M$9 \$I475 \$I127 \$I1156 \$I36 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
 + PD=1.3U
 * device instance $10 r0 *1 48.75,1.2 slvtpfet
-M$10 \$I1156 \$I445 \$1 \$I43 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
+M$10 \$I1156 \$I445 \$1 \$I36 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
 + PD=1.3U
 * device instance $11 r0 *1 49.25,1.2 slvtpfet
-M$11 \$1 \$I484 \$1 \$I43 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U PD=1.3U
+M$11 \$1 \$I484 \$1 \$I36 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U PD=1.3U
 * device instance $12 r0 *1 49.75,1.2 slvtpfet
-M$12 \$1 \$I475 \$I127 \$I43 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
+M$12 \$1 \$I475 \$I127 \$I36 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
 + PD=1.3U
 * device instance $13 r0 *1 50.25,1.2 slvtpfet
-M$13 \$I127 \$I484 \$I127 \$I43 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
+M$13 \$I127 \$I484 \$I127 \$I36 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
 + PD=1.3U
 * device instance $14 r0 *1 50.75,1.2 slvtpfet
-M$14 \$I127 \$I445 \$I469 \$I43 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
+M$14 \$I127 \$I445 \$I469 \$I36 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
 + PD=1.3U
 * device instance $15 r0 *1 51.25,1.2 slvtpfet
-M$15 \$I469 \$1 \$I469 \$I43 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
+M$15 \$I469 \$1 \$I469 \$I36 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
 + PD=1.3U
 * device instance $16 r0 *1 51.75,1.2 slvtpfet
-M$16 \$I469 \$I120 \$I1184 \$I43 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
+M$16 \$I469 \$I120 \$I1184 \$I36 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
 + PD=1.3U
 * device instance $17 r0 *1 52.25,1.2 slvtpfet
-M$17 \$I1184 \$I484 \$1 \$I43 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
+M$17 \$I1184 \$I484 \$1 \$I36 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
 + PD=1.3U
 * device instance $19 r0 *1 53.25,1.2 slvtpfet
-M$19 \$1 \$I469 \$I120 \$I43 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
+M$19 \$1 \$I469 \$I120 \$I36 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
 + PD=1.3U
 * device instance $20 r0 *1 53.75,1.2 slvtpfet
-M$20 \$I120 \$1 \$1 \$I43 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U PD=1.3U
+M$20 \$I120 \$1 \$1 \$I36 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U PD=1.3U
 * device instance $21 r0 *1 54.25,1.2 slvtpfet
-M$21 \$1 \$I120 \$I11 \$I43 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
+M$21 \$1 \$I120 \$I11 \$I36 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
 + PD=1.3U
 * device instance $22 r0 *1 54.75,1.2 slvtpfet
-M$22 \$I11 \$1 \$1 \$I43 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U PD=1.3U
+M$22 \$I11 \$1 \$1 \$I36 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U PD=1.3U
 * device instance $23 r0 *1 55.25,1.2 slvtpfet
-M$23 \$1 \$I11 \$I512 \$I43 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
+M$23 \$1 \$I11 \$I512 \$I36 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
 + PD=1.3U
 * device instance $24 r0 *1 55.75,1.2 slvtpfet
-M$24 \$I512 \$1 \$1 \$I43 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U PD=1.3U
+M$24 \$I512 \$1 \$1 \$I36 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U PD=1.3U
 * device instance $25 r0 *1 56.25,1.2 slvtpfet
-M$25 \$1 \$I512 \$I510 \$I43 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
+M$25 \$1 \$I512 \$I510 \$I36 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
 + PD=1.3U
 * device instance $26 r0 *1 56.75,1.2 slvtpfet
-M$26 \$I510 \$1 \$1 \$I43 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U PD=1.3U
+M$26 \$I510 \$1 \$1 \$I36 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U PD=1.3U
 * device instance $27 r0 *1 57.25,1.2 slvtpfet
-M$27 \$1 \$I512 \$1 \$I43 slvtpfet L=0.2U W=2U AS=0.3P AD=0.3P PS=2.6U PD=2.6U
+M$27 \$1 \$I512 \$1 \$I36 slvtpfet L=0.2U W=2U AS=0.3P AD=0.3P PS=2.6U PD=2.6U
 * device instance $28 r0 *1 57.75,1.2 slvtpfet
-M$28 \$1 \$I510 \$I1196 \$I43 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
+M$28 \$1 \$I510 \$I1196 \$I36 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
 + PD=1.3U
 * device instance $29 r0 *1 58.25,1.2 slvtpfet
-M$29 \$I1196 \$I11 \$I506 \$I43 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
+M$29 \$I1196 \$I11 \$I506 \$I36 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
 + PD=1.3U
 * device instance $30 r0 *1 58.75,1.2 slvtpfet
-M$30 \$I506 \$1 \$I506 \$I43 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
+M$30 \$I506 \$1 \$I506 \$I36 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
 + PD=1.3U
 * device instance $31 r0 *1 59.25,1.2 slvtpfet
-M$31 \$I506 \$I158 \$I1199 \$I43 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
+M$31 \$I506 \$I158 \$I1199 \$I36 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
 + PD=1.3U
 * device instance $32 r0 *1 59.75,1.2 slvtpfet
-M$32 \$I1199 \$I512 \$1 \$I43 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
+M$32 \$I1199 \$I512 \$1 \$I36 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
 + PD=1.3U
 * device instance $33 r0 *1 60.25,1.2 slvtpfet
-M$33 \$1 \$I510 \$1 \$I43 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U PD=1.3U
+M$33 \$1 \$I510 \$1 \$I36 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U PD=1.3U
 * device instance $34 r0 *1 60.75,1.2 slvtpfet
-M$34 \$1 \$I506 \$I158 \$I43 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
+M$34 \$1 \$I506 \$I158 \$I36 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
 + PD=1.3U
 * device instance $35 r0 *1 61.25,1.2 slvtpfet
-M$35 \$I158 \$I510 \$I158 \$I43 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
+M$35 \$I158 \$I510 \$I158 \$I36 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
 + PD=1.3U
 * device instance $36 r0 *1 61.75,1.2 slvtpfet
-M$36 \$I158 \$I512 \$I500 \$I43 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
+M$36 \$I158 \$I512 \$I500 \$I36 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
 + PD=1.3U
 * device instance $37 r0 *1 62.25,1.2 slvtpfet
-M$37 \$I500 \$1 \$I500 \$I43 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
+M$37 \$I500 \$1 \$I500 \$I36 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
 + PD=1.3U
 * device instance $38 r0 *1 62.75,1.2 slvtpfet
-M$38 \$I500 \$I151 \$I1206 \$I43 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
+M$38 \$I500 \$I151 \$I1206 \$I36 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
 + PD=1.3U
 * device instance $39 r0 *1 63.25,1.2 slvtpfet
-M$39 \$I1206 \$I510 \$1 \$I43 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
+M$39 \$I1206 \$I510 \$1 \$I36 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
 + PD=1.3U
 * device instance $41 r0 *1 64.25,1.2 slvtpfet
-M$41 \$1 \$I500 \$I151 \$I43 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
+M$41 \$1 \$I500 \$I151 \$I36 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
 + PD=1.3U
 * device instance $42 r0 *1 64.75,1.2 slvtpfet
-M$42 \$I151 \$1 \$1 \$I43 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U PD=1.3U
+M$42 \$I151 \$1 \$1 \$I36 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U PD=1.3U
 * device instance $43 r0 *1 65.25,1.2 slvtpfet
-M$43 \$1 \$I151 \$I12 \$I43 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
+M$43 \$1 \$I151 \$I12 \$I36 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
 + PD=1.3U
 * device instance $44 r0 *1 65.75,1.2 slvtpfet
-M$44 \$I12 \$1 \$1 \$I43 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U PD=1.3U
+M$44 \$I12 \$1 \$1 \$I36 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U PD=1.3U
 * device instance $45 r0 *1 66.25,1.2 slvtpfet
-M$45 \$1 \$I12 \$I442 \$I43 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
+M$45 \$1 \$I12 \$I442 \$I36 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
 + PD=1.3U
 * device instance $46 r0 *1 66.75,1.2 slvtpfet
-M$46 \$I442 \$1 \$1 \$I43 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U PD=1.3U
+M$46 \$I442 \$1 \$1 \$I36 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U PD=1.3U
 * device instance $47 r0 *1 67.25,1.2 slvtpfet
-M$47 \$1 \$I442 \$I523 \$I43 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
+M$47 \$1 \$I442 \$I523 \$I36 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
 + PD=1.3U
 * device instance $48 r0 *1 67.75,1.2 slvtpfet
-M$48 \$I523 \$1 \$1 \$I43 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U PD=1.3U
+M$48 \$I523 \$1 \$1 \$I36 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U PD=1.3U
 * device instance $49 r0 *1 68.25,1.2 slvtpfet
-M$49 \$1 \$I442 \$1 \$I43 slvtpfet L=0.2U W=2U AS=0.3P AD=0.3P PS=2.6U PD=2.6U
+M$49 \$1 \$I442 \$1 \$I36 slvtpfet L=0.2U W=2U AS=0.3P AD=0.3P PS=2.6U PD=2.6U
 * device instance $50 r0 *1 68.75,1.2 slvtpfet
-M$50 \$1 \$I523 \$I1307 \$I43 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
+M$50 \$1 \$I523 \$I1307 \$I36 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
 + PD=1.3U
 * device instance $51 r0 *1 69.25,1.2 slvtpfet
-M$51 \$I1307 \$I12 \$I519 \$I43 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
+M$51 \$I1307 \$I12 \$I519 \$I36 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
 + PD=1.3U
 * device instance $52 r0 *1 69.75,1.2 slvtpfet
-M$52 \$I519 \$1 \$I519 \$I43 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
+M$52 \$I519 \$1 \$I519 \$I36 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
 + PD=1.3U
 * device instance $53 r0 *1 70.25,1.2 slvtpfet
-M$53 \$I519 \$I224 \$I1316 \$I43 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
+M$53 \$I519 \$I224 \$I1316 \$I36 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
 + PD=1.3U
 * device instance $54 r0 *1 70.75,1.2 slvtpfet
-M$54 \$I1316 \$I442 \$1 \$I43 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
+M$54 \$I1316 \$I442 \$1 \$I36 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
 + PD=1.3U
 * device instance $55 r0 *1 71.25,1.2 slvtpfet
-M$55 \$1 \$I523 \$1 \$I43 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U PD=1.3U
+M$55 \$1 \$I523 \$1 \$I36 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U PD=1.3U
 * device instance $56 r0 *1 71.75,1.2 slvtpfet
-M$56 \$1 \$I519 \$I224 \$I43 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
+M$56 \$1 \$I519 \$I224 \$I36 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
 + PD=1.3U
 * device instance $57 r0 *1 72.25,1.2 slvtpfet
-M$57 \$I224 \$I523 \$I224 \$I43 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
+M$57 \$I224 \$I523 \$I224 \$I36 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
 + PD=1.3U
 * device instance $58 r0 *1 72.75,1.2 slvtpfet
-M$58 \$I224 \$I442 \$I566 \$I43 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
+M$58 \$I224 \$I442 \$I566 \$I36 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
 + PD=1.3U
 * device instance $59 r0 *1 73.25,1.2 slvtpfet
-M$59 \$I566 \$1 \$I566 \$I43 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
+M$59 \$I566 \$1 \$I566 \$I36 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
 + PD=1.3U
 * device instance $60 r0 *1 73.75,1.2 slvtpfet
-M$60 \$I566 \$I217 \$I1318 \$I43 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
+M$60 \$I566 \$I217 \$I1318 \$I36 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
 + PD=1.3U
 * device instance $61 r0 *1 74.25,1.2 slvtpfet
-M$61 \$I1318 \$I523 \$1 \$I43 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
+M$61 \$I1318 \$I523 \$1 \$I36 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
 + PD=1.3U
 * device instance $63 r0 *1 75.25,1.2 slvtpfet
-M$63 \$1 \$I566 \$I217 \$I43 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
+M$63 \$1 \$I566 \$I217 \$I36 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
 + PD=1.3U
 * device instance $64 r0 *1 75.75,1.2 slvtpfet
-M$64 \$I217 \$1 \$1 \$I43 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U PD=1.3U
+M$64 \$I217 \$1 \$1 \$I36 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U PD=1.3U
 * device instance $65 r0 *1 76.25,1.2 slvtpfet
-M$65 \$1 \$I217 \$I13 \$I43 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
+M$65 \$1 \$I217 \$I13 \$I36 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
 + PD=1.3U
 * device instance $66 r0 *1 76.75,1.2 slvtpfet
-M$66 \$I13 \$1 \$1 \$I43 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U PD=1.3U
+M$66 \$I13 \$1 \$1 \$I36 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U PD=1.3U
 * device instance $67 r0 *1 77.25,1.2 slvtpfet
-M$67 \$1 \$I13 \$I556 \$I43 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
+M$67 \$1 \$I13 \$I556 \$I36 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
 + PD=1.3U
 * device instance $68 r0 *1 77.75,1.2 slvtpfet
-M$68 \$I556 \$1 \$1 \$I43 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U PD=1.3U
+M$68 \$I556 \$1 \$1 \$I36 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U PD=1.3U
 * device instance $69 r0 *1 78.25,1.2 slvtpfet
-M$69 \$1 \$I556 \$I554 \$I43 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
+M$69 \$1 \$I556 \$I554 \$I36 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
 + PD=1.3U
 * device instance $70 r0 *1 78.75,1.2 slvtpfet
-M$70 \$I554 \$1 \$1 \$I43 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U PD=1.3U
+M$70 \$I554 \$1 \$1 \$I36 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U PD=1.3U
 * device instance $71 r0 *1 79.25,1.2 slvtpfet
-M$71 \$1 \$I556 \$1 \$I43 slvtpfet L=0.2U W=2U AS=0.3P AD=0.3P PS=2.6U PD=2.6U
+M$71 \$1 \$I556 \$1 \$I36 slvtpfet L=0.2U W=2U AS=0.3P AD=0.3P PS=2.6U PD=2.6U
 * device instance $72 r0 *1 79.75,1.2 slvtpfet
-M$72 \$1 \$I554 \$I1282 \$I43 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
+M$72 \$1 \$I554 \$I1282 \$I36 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
 + PD=1.3U
 * device instance $73 r0 *1 80.25,1.2 slvtpfet
-M$73 \$I1282 \$I13 \$I550 \$I43 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
+M$73 \$I1282 \$I13 \$I550 \$I36 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
 + PD=1.3U
 * device instance $74 r0 *1 80.75,1.2 slvtpfet
-M$74 \$I550 \$1 \$I550 \$I43 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
+M$74 \$I550 \$1 \$I550 \$I36 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
 + PD=1.3U
 * device instance $75 r0 *1 81.25,1.2 slvtpfet
-M$75 \$I550 \$I202 \$I1285 \$I43 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
+M$75 \$I550 \$I202 \$I1285 \$I36 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
 + PD=1.3U
 * device instance $76 r0 *1 81.75,1.2 slvtpfet
-M$76 \$I1285 \$I556 \$1 \$I43 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
+M$76 \$I1285 \$I556 \$1 \$I36 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
 + PD=1.3U
 * device instance $77 r0 *1 82.25,1.2 slvtpfet
-M$77 \$1 \$I554 \$1 \$I43 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U PD=1.3U
+M$77 \$1 \$I554 \$1 \$I36 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U PD=1.3U
 * device instance $78 r0 *1 82.75,1.2 slvtpfet
-M$78 \$1 \$I550 \$I202 \$I43 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
+M$78 \$1 \$I550 \$I202 \$I36 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
 + PD=1.3U
 * device instance $79 r0 *1 83.25,1.2 slvtpfet
-M$79 \$I202 \$I554 \$I202 \$I43 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
+M$79 \$I202 \$I554 \$I202 \$I36 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
 + PD=1.3U
 * device instance $80 r0 *1 83.75,1.2 slvtpfet
-M$80 \$I202 \$I556 \$I489 \$I43 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
+M$80 \$I202 \$I556 \$I489 \$I36 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
 + PD=1.3U
 * device instance $81 r0 *1 84.25,1.2 slvtpfet
-M$81 \$I489 \$1 \$I489 \$I43 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
+M$81 \$I489 \$1 \$I489 \$I36 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
 + PD=1.3U
 * device instance $82 r0 *1 84.75,1.2 slvtpfet
-M$82 \$I489 \$I136 \$I1292 \$I43 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
+M$82 \$I489 \$I136 \$I1292 \$I36 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
 + PD=1.3U
 * device instance $83 r0 *1 85.25,1.2 slvtpfet
-M$83 \$I1292 \$I554 \$1 \$I43 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
+M$83 \$I1292 \$I554 \$1 \$I36 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
 + PD=1.3U
 * device instance $85 r0 *1 86.25,1.2 slvtpfet
-M$85 \$1 \$I489 \$I136 \$I43 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
+M$85 \$1 \$I489 \$I136 \$I36 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
 + PD=1.3U
 * device instance $86 r0 *1 86.75,1.2 slvtpfet
-M$86 \$I136 \$1 \$1 \$I43 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U PD=1.3U
+M$86 \$I136 \$1 \$1 \$I36 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U PD=1.3U
 * device instance $87 r0 *1 87.25,1.2 slvtpfet
-M$87 \$1 \$I136 \$I477 \$I43 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
+M$87 \$1 \$I136 \$I477 \$I36 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
 + PD=1.3U
 * device instance $88 r0 *1 87.75,1.2 slvtpfet
-M$88 \$I477 \$1 \$1 \$I43 slvtpfet L=0.2U W=1U AS=0.15P AD=0.4P PS=1.3U PD=2.8U
+M$88 \$I477 \$1 \$1 \$I36 slvtpfet L=0.2U W=1U AS=0.15P AD=0.4P PS=1.3U PD=2.8U
 * device instance $89 r0 *1 0.25,1.2 slvtpfet
-M$89 \$1 \$I36 \$I51 \$I43 slvtpfet L=0.2U W=1U AS=0.4P AD=0.15P PS=2.8U PD=1.3U
+M$89 \$1 \$I14 \$I51 \$I36 slvtpfet L=0.2U W=1U AS=0.4P AD=0.15P PS=2.8U PD=1.3U
 * device instance $90 r0 *1 0.75,1.2 slvtpfet
-M$90 \$I51 \$1 \$1 \$I43 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U PD=1.3U
+M$90 \$I51 \$1 \$1 \$I36 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U PD=1.3U
 * device instance $91 r0 *1 1.25,1.2 slvtpfet
-M$91 \$1 \$I51 \$I404 \$I43 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
+M$91 \$1 \$I51 \$I404 \$I36 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
 + PD=1.3U
 * device instance $92 r0 *1 1.75,1.2 slvtpfet
-M$92 \$I404 \$1 \$1 \$I43 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U PD=1.3U
+M$92 \$I404 \$1 \$1 \$I36 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U PD=1.3U
 * device instance $93 r0 *1 2.25,1.2 slvtpfet
-M$93 \$1 \$I51 \$1 \$I43 slvtpfet L=0.2U W=2U AS=0.3P AD=0.3P PS=2.6U PD=2.6U
+M$93 \$1 \$I51 \$1 \$I36 slvtpfet L=0.2U W=2U AS=0.3P AD=0.3P PS=2.6U PD=2.6U
 * device instance $94 r0 *1 2.75,1.2 slvtpfet
-M$94 \$1 \$I404 \$I1239 \$I43 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
+M$94 \$1 \$I404 \$I1239 \$I36 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
 + PD=1.3U
 * device instance $95 r0 *1 3.25,1.2 slvtpfet
-M$95 \$I1239 \$I62 \$I408 \$I43 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
+M$95 \$I1239 \$I62 \$I408 \$I36 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
 + PD=1.3U
 * device instance $96 r0 *1 3.75,1.2 slvtpfet
-M$96 \$I408 \$1 \$I408 \$I43 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
+M$96 \$I408 \$1 \$I408 \$I36 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
 + PD=1.3U
 * device instance $97 r0 *1 4.25,1.2 slvtpfet
-M$97 \$I408 \$I64 \$I1265 \$I43 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
+M$97 \$I408 \$I64 \$I1265 \$I36 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
 + PD=1.3U
 * device instance $98 r0 *1 4.75,1.2 slvtpfet
-M$98 \$I1265 \$I51 \$1 \$I43 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
+M$98 \$I1265 \$I51 \$1 \$I36 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
 + PD=1.3U
 * device instance $99 r0 *1 5.25,1.2 slvtpfet
-M$99 \$1 \$I404 \$1 \$I43 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U PD=1.3U
+M$99 \$1 \$I404 \$1 \$I36 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U PD=1.3U
 * device instance $100 r0 *1 5.75,1.2 slvtpfet
-M$100 \$1 \$I408 \$I64 \$I43 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
+M$100 \$1 \$I408 \$I64 \$I36 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
 + PD=1.3U
 * device instance $101 r0 *1 6.25,1.2 slvtpfet
-M$101 \$I64 \$I404 \$I64 \$I43 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
+M$101 \$I64 \$I404 \$I64 \$I36 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
 + PD=1.3U
 * device instance $102 r0 *1 6.75,1.2 slvtpfet
-M$102 \$I64 \$I51 \$I448 \$I43 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
+M$102 \$I64 \$I51 \$I448 \$I36 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
 + PD=1.3U
 * device instance $103 r0 *1 7.25,1.2 slvtpfet
-M$103 \$I448 \$1 \$I448 \$I43 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
+M$103 \$I448 \$1 \$I448 \$I36 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
 + PD=1.3U
 * device instance $104 r0 *1 7.75,1.2 slvtpfet
-M$104 \$I448 \$I105 \$I1272 \$I43 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P
+M$104 \$I448 \$I105 \$I1272 \$I36 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P
 + PS=1.3U PD=1.3U
 * device instance $105 r0 *1 8.25,1.2 slvtpfet
-M$105 \$I1272 \$I404 \$1 \$I43 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
+M$105 \$I1272 \$I404 \$1 \$I36 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
 + PD=1.3U
 * device instance $107 r0 *1 9.25,1.2 slvtpfet
-M$107 \$1 \$I448 \$I105 \$I43 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
+M$107 \$1 \$I448 \$I105 \$I36 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
 + PD=1.3U
 * device instance $108 r0 *1 9.75,1.2 slvtpfet
-M$108 \$I105 \$1 \$1 \$I43 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
+M$108 \$I105 \$1 \$1 \$I36 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
 + PD=1.3U
 * device instance $109 r0 *1 10.25,1.2 slvtpfet
-M$109 \$1 \$I105 \$I22 \$I43 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
+M$109 \$1 \$I105 \$I22 \$I36 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
 + PD=1.3U
 * device instance $110 r0 *1 10.75,1.2 slvtpfet
-M$110 \$I22 \$1 \$1 \$I43 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U PD=1.3U
+M$110 \$I22 \$1 \$1 \$I36 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U PD=1.3U
 * device instance $111 r0 *1 11.25,1.2 slvtpfet
-M$111 \$1 \$I22 \$I458 \$I43 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
+M$111 \$1 \$I22 \$I458 \$I36 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
 + PD=1.3U
 * device instance $112 r0 *1 11.75,1.2 slvtpfet
-M$112 \$I458 \$1 \$1 \$I43 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
+M$112 \$I458 \$1 \$1 \$I36 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
 + PD=1.3U
 * device instance $113 r0 *1 12.25,1.2 slvtpfet
-M$113 \$1 \$I458 \$I460 \$I43 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
+M$113 \$1 \$I458 \$I460 \$I36 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
 + PD=1.3U
 * device instance $114 r0 *1 12.75,1.2 slvtpfet
-M$114 \$I460 \$1 \$1 \$I43 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
+M$114 \$I460 \$1 \$1 \$I36 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
 + PD=1.3U
 * device instance $115 r0 *1 13.25,1.2 slvtpfet
-M$115 \$1 \$I458 \$1 \$I43 slvtpfet L=0.2U W=2U AS=0.3P AD=0.3P PS=2.6U PD=2.6U
+M$115 \$1 \$I458 \$1 \$I36 slvtpfet L=0.2U W=2U AS=0.3P AD=0.3P PS=2.6U PD=2.6U
 * device instance $116 r0 *1 13.75,1.2 slvtpfet
-M$116 \$1 \$I460 \$I1221 \$I43 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
+M$116 \$1 \$I460 \$I1221 \$I36 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
 + PD=1.3U
 * device instance $117 r0 *1 14.25,1.2 slvtpfet
-M$117 \$I1221 \$I22 \$I464 \$I43 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
+M$117 \$I1221 \$I22 \$I464 \$I36 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
 + PD=1.3U
 * device instance $118 r0 *1 14.75,1.2 slvtpfet
-M$118 \$I464 \$1 \$I464 \$I43 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
+M$118 \$I464 \$1 \$I464 \$I36 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
 + PD=1.3U
 * device instance $119 r0 *1 15.25,1.2 slvtpfet
-M$119 \$I464 \$I83 \$I1224 \$I43 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
+M$119 \$I464 \$I83 \$I1224 \$I36 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
 + PD=1.3U
 * device instance $120 r0 *1 15.75,1.2 slvtpfet
-M$120 \$I1224 \$I458 \$1 \$I43 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
+M$120 \$I1224 \$I458 \$1 \$I36 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
 + PD=1.3U
 * device instance $121 r0 *1 16.25,1.2 slvtpfet
-M$121 \$1 \$I460 \$1 \$I43 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
+M$121 \$1 \$I460 \$1 \$I36 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
 + PD=1.3U
 * device instance $122 r0 *1 16.75,1.2 slvtpfet
-M$122 \$1 \$I464 \$I83 \$I43 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
+M$122 \$1 \$I464 \$I83 \$I36 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
 + PD=1.3U
 * device instance $123 r0 *1 17.25,1.2 slvtpfet
-M$123 \$I83 \$I460 \$I83 \$I43 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
+M$123 \$I83 \$I460 \$I83 \$I36 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
 + PD=1.3U
 * device instance $124 r0 *1 17.75,1.2 slvtpfet
-M$124 \$I83 \$I458 \$I433 \$I43 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
+M$124 \$I83 \$I458 \$I433 \$I36 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
 + PD=1.3U
 * device instance $125 r0 *1 18.25,1.2 slvtpfet
-M$125 \$I433 \$1 \$I433 \$I43 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
+M$125 \$I433 \$1 \$I433 \$I36 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
 + PD=1.3U
 * device instance $126 r0 *1 18.75,1.2 slvtpfet
-M$126 \$I433 \$I90 \$I1231 \$I43 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
+M$126 \$I433 \$I90 \$I1231 \$I36 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
 + PD=1.3U
 * device instance $127 r0 *1 19.25,1.2 slvtpfet
-M$127 \$I1231 \$I460 \$1 \$I43 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
+M$127 \$I1231 \$I460 \$1 \$I36 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
 + PD=1.3U
 * device instance $129 r0 *1 20.25,1.2 slvtpfet
-M$129 \$1 \$I433 \$I90 \$I43 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
+M$129 \$1 \$I433 \$I90 \$I36 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
 + PD=1.3U
 * device instance $130 r0 *1 20.75,1.2 slvtpfet
-M$130 \$I90 \$1 \$1 \$I43 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U PD=1.3U
+M$130 \$I90 \$1 \$1 \$I36 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U PD=1.3U
 * device instance $131 r0 *1 21.25,1.2 slvtpfet
-M$131 \$1 \$I90 \$I8 \$I43 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
+M$131 \$1 \$I90 \$I8 \$I36 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
 + PD=1.3U
 * device instance $132 r0 *1 21.75,1.2 slvtpfet
-M$132 \$I8 \$1 \$1 \$I43 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U PD=1.3U
+M$132 \$I8 \$1 \$1 \$I36 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U PD=1.3U
 * device instance $133 r0 *1 22.25,1.2 slvtpfet
-M$133 \$1 \$I8 \$I505 \$I43 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
+M$133 \$1 \$I8 \$I505 \$I36 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
 + PD=1.3U
 * device instance $134 r0 *1 22.75,1.2 slvtpfet
-M$134 \$I505 \$1 \$1 \$I43 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
+M$134 \$I505 \$1 \$1 \$I36 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
 + PD=1.3U
 * device instance $135 r0 *1 23.25,1.2 slvtpfet
-M$135 \$1 \$I505 \$I526 \$I43 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
+M$135 \$1 \$I505 \$I526 \$I36 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
 + PD=1.3U
 * device instance $136 r0 *1 23.75,1.2 slvtpfet
-M$136 \$I526 \$1 \$1 \$I43 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
+M$136 \$I526 \$1 \$1 \$I36 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
 + PD=1.3U
 * device instance $137 r0 *1 24.25,1.2 slvtpfet
-M$137 \$1 \$I505 \$1 \$I43 slvtpfet L=0.2U W=2U AS=0.3P AD=0.3P PS=2.6U PD=2.6U
+M$137 \$1 \$I505 \$1 \$I36 slvtpfet L=0.2U W=2U AS=0.3P AD=0.3P PS=2.6U PD=2.6U
 * device instance $138 r0 *1 24.75,1.2 slvtpfet
-M$138 \$1 \$I526 \$I1146 \$I43 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
+M$138 \$1 \$I526 \$I1146 \$I36 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
 + PD=1.3U
 * device instance $139 r0 *1 25.25,1.2 slvtpfet
-M$139 \$I1146 \$I8 \$I530 \$I43 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
+M$139 \$I1146 \$I8 \$I530 \$I36 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
 + PD=1.3U
 * device instance $140 r0 *1 25.75,1.2 slvtpfet
-M$140 \$I530 \$1 \$I530 \$I43 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
+M$140 \$I530 \$1 \$I530 \$I36 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
 + PD=1.3U
 * device instance $141 r0 *1 26.25,1.2 slvtpfet
-M$141 \$I530 \$I172 \$I1164 \$I43 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P
+M$141 \$I530 \$I172 \$I1164 \$I36 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P
 + PS=1.3U PD=1.3U
 * device instance $142 r0 *1 26.75,1.2 slvtpfet
-M$142 \$I1164 \$I505 \$1 \$I43 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
+M$142 \$I1164 \$I505 \$1 \$I36 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
 + PD=1.3U
 * device instance $143 r0 *1 27.25,1.2 slvtpfet
-M$143 \$1 \$I526 \$1 \$I43 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
+M$143 \$1 \$I526 \$1 \$I36 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
 + PD=1.3U
 * device instance $144 r0 *1 27.75,1.2 slvtpfet
-M$144 \$1 \$I530 \$I172 \$I43 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
+M$144 \$1 \$I530 \$I172 \$I36 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
 + PD=1.3U
 * device instance $145 r0 *1 28.25,1.2 slvtpfet
-M$145 \$I172 \$I526 \$I172 \$I43 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
+M$145 \$I172 \$I526 \$I172 \$I36 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
 + PD=1.3U
 * device instance $146 r0 *1 28.75,1.2 slvtpfet
-M$146 \$I172 \$I505 \$I536 \$I43 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
+M$146 \$I172 \$I505 \$I536 \$I36 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
 + PD=1.3U
 * device instance $147 r0 *1 29.25,1.2 slvtpfet
-M$147 \$I536 \$1 \$I536 \$I43 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
+M$147 \$I536 \$1 \$I536 \$I36 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
 + PD=1.3U
 * device instance $148 r0 *1 29.75,1.2 slvtpfet
-M$148 \$I536 \$I193 \$I1171 \$I43 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P
+M$148 \$I536 \$I193 \$I1171 \$I36 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P
 + PS=1.3U PD=1.3U
 * device instance $149 r0 *1 30.25,1.2 slvtpfet
-M$149 \$I1171 \$I526 \$1 \$I43 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
+M$149 \$I1171 \$I526 \$1 \$I36 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
 + PD=1.3U
 * device instance $151 r0 *1 31.25,1.2 slvtpfet
-M$151 \$1 \$I536 \$I193 \$I43 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
+M$151 \$1 \$I536 \$I193 \$I36 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
 + PD=1.3U
 * device instance $152 r0 *1 31.75,1.2 slvtpfet
-M$152 \$I193 \$1 \$1 \$I43 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
+M$152 \$I193 \$1 \$1 \$I36 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
 + PD=1.3U
 * device instance $153 r0 *1 32.25,1.2 slvtpfet
-M$153 \$1 \$I193 \$I9 \$I43 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
+M$153 \$1 \$I193 \$I9 \$I36 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
 + PD=1.3U
 * device instance $154 r0 *1 32.75,1.2 slvtpfet
-M$154 \$I9 \$1 \$1 \$I43 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U PD=1.3U
+M$154 \$I9 \$1 \$1 \$I36 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U PD=1.3U
 * device instance $155 r0 *1 33.25,1.2 slvtpfet
-M$155 \$1 \$I9 \$I402 \$I43 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
+M$155 \$1 \$I9 \$I402 \$I36 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
 + PD=1.3U
 * device instance $156 r0 *1 33.75,1.2 slvtpfet
-M$156 \$I402 \$1 \$1 \$I43 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
+M$156 \$I402 \$1 \$1 \$I36 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
 + PD=1.3U
 * device instance $157 r0 *1 34.25,1.2 slvtpfet
-M$157 \$1 \$I402 \$I399 \$I43 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
+M$157 \$1 \$I402 \$I399 \$I36 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
 + PD=1.3U
 * device instance $158 r0 *1 34.75,1.2 slvtpfet
-M$158 \$I399 \$1 \$1 \$I43 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
+M$158 \$I399 \$1 \$1 \$I36 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
 + PD=1.3U
 * device instance $159 r0 *1 35.25,1.2 slvtpfet
-M$159 \$1 \$I402 \$1 \$I43 slvtpfet L=0.2U W=2U AS=0.3P AD=0.3P PS=2.6U PD=2.6U
+M$159 \$1 \$I402 \$1 \$I36 slvtpfet L=0.2U W=2U AS=0.3P AD=0.3P PS=2.6U PD=2.6U
 * device instance $160 r0 *1 35.75,1.2 slvtpfet
-M$160 \$1 \$I399 \$I1246 \$I43 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
+M$160 \$1 \$I399 \$I1246 \$I36 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
 + PD=1.3U
 * device instance $161 r0 *1 36.25,1.2 slvtpfet
-M$161 \$I1246 \$I9 \$I415 \$I43 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
+M$161 \$I1246 \$I9 \$I415 \$I36 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
 + PD=1.3U
 * device instance $162 r0 *1 36.75,1.2 slvtpfet
-M$162 \$I415 \$1 \$I415 \$I43 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
+M$162 \$I415 \$1 \$I415 \$I36 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
 + PD=1.3U
 * device instance $163 r0 *1 37.25,1.2 slvtpfet
-M$163 \$I415 \$I71 \$I1249 \$I43 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
+M$163 \$I415 \$I71 \$I1249 \$I36 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
 + PD=1.3U
 * device instance $164 r0 *1 37.75,1.2 slvtpfet
-M$164 \$I1249 \$I402 \$1 \$I43 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
+M$164 \$I1249 \$I402 \$1 \$I36 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
 + PD=1.3U
 * device instance $165 r0 *1 38.25,1.2 slvtpfet
-M$165 \$1 \$I399 \$1 \$I43 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
+M$165 \$1 \$I399 \$1 \$I36 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
 + PD=1.3U
 * device instance $166 r0 *1 38.75,1.2 slvtpfet
-M$166 \$1 \$I415 \$I71 \$I43 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
+M$166 \$1 \$I415 \$I71 \$I36 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
 + PD=1.3U
 * device instance $167 r0 *1 39.25,1.2 slvtpfet
-M$167 \$I71 \$I399 \$I71 \$I43 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
+M$167 \$I71 \$I399 \$I71 \$I36 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
 + PD=1.3U
 * device instance $168 r0 *1 39.75,1.2 slvtpfet
-M$168 \$I71 \$I402 \$I421 \$I43 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
+M$168 \$I71 \$I402 \$I421 \$I36 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
 + PD=1.3U
 * device instance $169 r0 *1 40.25,1.2 slvtpfet
-M$169 \$I421 \$1 \$I421 \$I43 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
+M$169 \$I421 \$1 \$I421 \$I36 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
 + PD=1.3U
 * device instance $170 r0 *1 40.75,1.2 slvtpfet
-M$170 \$I421 \$I78 \$I1256 \$I43 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
+M$170 \$I421 \$I78 \$I1256 \$I36 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
 + PD=1.3U
 * device instance $171 r0 *1 41.25,1.2 slvtpfet
-M$171 \$I1256 \$I399 \$1 \$I43 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
+M$171 \$I1256 \$I399 \$1 \$I36 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
 + PD=1.3U
 * device instance $173 r0 *1 42.25,1.2 slvtpfet
-M$173 \$1 \$I421 \$I78 \$I43 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
+M$173 \$1 \$I421 \$I78 \$I36 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
 + PD=1.3U
 * device instance $174 r0 *1 42.75,1.2 slvtpfet
-M$174 \$I78 \$1 \$1 \$I43 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U PD=1.3U
+M$174 \$I78 \$1 \$1 \$I36 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U PD=1.3U
 * device instance $175 r0 *1 43.25,1.2 slvtpfet
-M$175 \$1 \$I78 \$I10 \$I43 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
+M$175 \$1 \$I78 \$I10 \$I36 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
 + PD=1.3U
 * device instance $176 r0 *1 43.75,1.2 slvtpfet
-M$176 \$I10 \$1 \$1 \$I43 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U PD=1.3U
+M$176 \$I10 \$1 \$1 \$I36 slvtpfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U PD=1.3U
 * device instance $177 r0 *1 44.25,-1.2 slvtnfet
 M$177 \$3 \$I10 \$I445 SUBSTRATE slvtnfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
 + PD=1.3U
@@ -734,7 +734,7 @@ M$263 \$3 \$I136 \$I477 SUBSTRATE slvtnfet L=0.2U W=1U AS=0.15P AD=0.15P
 M$264 \$I477 \$3 \$3 SUBSTRATE slvtnfet L=0.2U W=1U AS=0.15P AD=0.4P PS=1.3U
 + PD=2.8U
 * device instance $265 r0 *1 0.25,-1.2 slvtnfet
-M$265 \$3 \$I36 \$I51 SUBSTRATE slvtnfet L=0.2U W=1U AS=0.4P AD=0.15P PS=2.8U
+M$265 \$3 \$I14 \$I51 SUBSTRATE slvtnfet L=0.2U W=1U AS=0.4P AD=0.15P PS=2.8U
 + PD=1.3U
 * device instance $266 r0 *1 0.75,-1.2 slvtnfet
 M$266 \$I51 \$3 \$3 SUBSTRATE slvtnfet L=0.2U W=1U AS=0.15P AD=0.15P PS=1.3U
