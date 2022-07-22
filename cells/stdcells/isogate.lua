@@ -14,12 +14,12 @@ function layout(gate, _P)
     local xpitch = bp.gspace + bp.glength
 
     local harness = pcell.create_layout("stdcells/harness", {
-        gatecontactpos = {}, 
+        gatecontactpos = { "dummy" }, 
+        pcontactpos = { "unused", "unused" }, 
+        ncontactpos = { "unused", "unused" }, 
         pwidth = _P.pwidth,
         nwidth = _P.nwidth,
         drawdummyactivecontacts = false,
-        leftdummies = 1,
-        rightdummies = 0
     })
     gate:merge_into_shallow(harness)
 

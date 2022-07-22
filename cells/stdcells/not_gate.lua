@@ -23,10 +23,13 @@ function layout(gate, _P)
             contactpos[i] = "power"
         end
     end
+    if _P.fingers % 2 == 1 then
+        gatecontactpos[#gatecontactpos + 1] = "dummy"
+        contactpos[#contactpos + 1] = "power"
+    end
     local harness = pcell.create_layout("stdcells/harness", { 
         pwidth = _P.pwidth,
         nwidth = _P.nwidth,
-        rightdummies = _P.fingers % 2,
         shiftgatecontacts = _P.shiftinput,
         gatecontactpos = gatecontactpos,
         pcontactpos = contactpos,

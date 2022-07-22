@@ -42,8 +42,6 @@ function parameters()
         { "shiftgatecontacts", 0 },
         { "pcontactpos", {}, argtype = "strtable" },
         { "ncontactpos", {}, argtype = "strtable" },
-        { "leftdummies", 0 },
-        { "rightdummies", 0 },
         { "shiftpcontactsinner", 0 },
         { "shiftpcontactsouter", 0 },
         { "shiftncontactsinner", 0 },
@@ -60,15 +58,19 @@ function parameters()
         { "pmoswelltapwidth(pMOS Well Tap Width)", tech.get_dimension("Minimum M1 Width") },
         { "drawactivedummy", false },
         { "activedummywidth", 0 },
-        { "activedummysep", 0 }
+        { "activedummysep", 0 },
+        { "drawleftstopgate", false },
+        { "drawrightstopgate", false },
+        { "numleftpolylines", 0 },
+        { "numrightpolylines", 0 }
     )
 end
 
 function layout(cmos, _P)
     local xpitch = _P.gatespace + _P.gatelength
     local fingers = #_P.gatecontactpos
-    local allfingers = #_P.gatecontactpos + _P.rightdummies + _P.leftdummies
-    local xshift = (_P.rightdummies - _P.leftdummies) * xpitch / 2
+    local allfingers = #_P.gatecontactpos
+    local xshift = 0
 
     -- check if outer gates are drawn
     local outergatepresent = false
@@ -105,7 +107,7 @@ function layout(cmos, _P)
             fwidth = _P.pwidth,
             gbotext = _P.separation / 2,
             gtopext = p_ext,
-            topgcutoffset = p_ext,
+            topgcutoffset = -_P.powerwidth / 2,
             clipbot = true,
             drawtopwelltap = _P.drawpmoswelltap,
             topwelltapwidth = _P.pmoswelltapwidth,
@@ -121,7 +123,7 @@ function layout(cmos, _P)
             fwidth = _P.nwidth,
             gtopext = _P.separation / 2,
             gbotext = n_ext,
-            botgcutoffset = n_ext,
+            botgcutoffset = _P.powerwidth / 2,
             cliptop = true,
             drawbotgcut = false,
             drawbotwelltap = _P.drawnmoswelltap,
@@ -133,12 +135,40 @@ function layout(cmos, _P)
         }
         -- main
         for i = 1, fingers do
+            if i == 1 then
+                nmosoptions["numleftpolylines"] = _P.numleftpolylines
+                pmosoptions["numleftpolylines"] = _P.numleftpolylines
+                if _P.drawleftstopgate then
+                    nmosoptions["drawleftstopgate"] = true
+                    nmosoptions["drawstopgatetopgcut"] = true
+                    nmosoptions["drawstopgatebotgcut"] = false
+                    pmosoptions["drawleftstopgate"] = true
+                    pmosoptions["drawstopgatetopgcut"] = false
+                    pmosoptions["drawstopgatebotgcut"] = true
+                end
+            end
+            if i == fingers then
+                nmosoptions["numrightpolylines"] = _P.numrightpolylines
+                pmosoptions["numrightpolylines"] = _P.numrightpolylines
+                if _P.drawrightstopgate then
+                    nmosoptions["drawrightstopgate"] = true
+                    nmosoptions["drawstopgatetopgcut"] = true
+                    nmosoptions["drawstopgatebotgcut"] = false
+                    pmosoptions["drawrightstopgate"] = true
+                    pmosoptions["drawstopgatetopgcut"] = false
+                    pmosoptions["drawstopgatebotgcut"] = true
+                end
+            end
             if _P.gatecontactpos[i] == "dummy" then
                 nmosoptions["drawtopgcut"] = true
+                nmosoptions["drawbotgcut"] = false
                 pmosoptions["drawbotgcut"] = true
+                pmosoptions["drawtopgcut"] = false
             else
                 nmosoptions["drawtopgcut"] = false
+                nmosoptions["drawbotgcut"] = true
                 pmosoptions["drawbotgcut"] = false
+                pmosoptions["drawtopgcut"] = true
             end
             local shift = (2 * i - fingers - 1) * xpitch / 2
             local nfet = pcell.create_layout("basic/mosfet", nmosoptions)
@@ -152,30 +182,6 @@ function layout(cmos, _P)
         end
         nmosoptions["drawtopgcut"] = true
         pmosoptions["drawbotgcut"] = true
-        -- leftdummies
-        for i = 1, _P.leftdummies do
-            local shift = (1 - fingers - 2 * i) * xpitch / 2
-            local nfet = pcell.create_layout("basic/mosfet", nmosoptions)
-            nfet:move_anchor("topgate")
-            nfet:translate(shift, 0)
-            cmos:merge_into_shallow(nfet)
-            local pfet = pcell.create_layout("basic/mosfet", pmosoptions)
-            pfet:move_anchor("botgate")
-            pfet:translate(shift, 0)
-            cmos:merge_into_shallow(pfet)
-        end
-        -- rightdummies
-        for i = 1, _P.rightdummies do
-            local shift = (fingers - 1 + 2 * i) * xpitch / 2
-            local nfet = pcell.create_layout("basic/mosfet", nmosoptions)
-            nfet:move_anchor("topgate")
-            nfet:translate(shift, 0)
-            cmos:merge_into_shallow(nfet)
-            local pfet = pcell.create_layout("basic/mosfet", pmosoptions)
-            pfet:move_anchor("botgate")
-            pfet:translate(shift, 0)
-            cmos:merge_into_shallow(pfet)
-        end
         -- pop general transistor settings
         pcell.pop_overwrites("basic/mosfet")
     end
@@ -184,7 +190,7 @@ function layout(cmos, _P)
     if _P.drawrails then
         geometry.rectangle(cmos,
             generics.metal(1), 
-            (fingers + _P.leftdummies + _P.rightdummies) * xpitch + _P.sdwidth, _P.powerwidth,
+            fingers * xpitch + _P.sdwidth, _P.powerwidth,
             xshift, (_P.pwidth - _P.nwidth) / 2 + (_P.ppowerspace - _P.npowerspace) / 2,
             1, 2, 0, _P.separation + _P.pwidth + _P.nwidth + _P.ppowerspace + _P.npowerspace + _P.powerwidth
         )
@@ -222,7 +228,7 @@ function layout(cmos, _P)
     end
     if _P.drawgatecontacts then
         for i = 1, fingers do
-            local x = (2 * i - fingers - 1 + _P.leftdummies - _P.rightdummies) * xpitch / 2 + xshift
+            local x = (2 * i - fingers - 1) * xpitch / 2 + xshift
             if _P.gatecontactpos[i] == "center" then
                 geometry.contactbltr(
                     cmos, "gate", 
@@ -281,7 +287,7 @@ function layout(cmos, _P)
             elseif _P.gatecontactpos[i] == "unused" then
                 -- ignore
             else
-                moderror(string.format("unknown gate contact position: %s", _P.gatecontactpos[i]))
+                moderror(string.format("unknown gate contact position: [%d] = '%s'", i, _P.gatecontactpos[i]))
             end
             if _P.gatecontactpos[i] ~= "dummy" then
                 if _P.drawgcut then
@@ -294,76 +300,6 @@ function layout(cmos, _P)
                 end
             end
         end
-    end
-    if _P.drawdummygatecontacts then
-        geometry.contactbltr(
-            cmos, "gate", 
-            point.create(-(fingers + _P.rightdummies) * xpitch / 2 + xshift - (_P.gatelength) / 2, (_P.pwidth - _P.nwidth) / 2 + (_P.ppowerspace - _P.npowerspace) / 2 - (_P.dummycontheight) / 2),
-            point.create(-(fingers + _P.rightdummies) * xpitch / 2 + xshift + (_P.gatelength) / 2, (_P.pwidth - _P.nwidth) / 2 + (_P.ppowerspace - _P.npowerspace) / 2 + (_P.dummycontheight) / 2),
-            _P.leftdummies, 2, xpitch, _P.separation + _P.pwidth + _P.nwidth + _P.ppowerspace + _P.npowerspace + _P.powerwidth
-        )
-        geometry.contactbltr(
-            cmos, "gate", 
-            point.create((fingers + _P.leftdummies) * xpitch / 2 + xshift - (_P.gatelength) / 2, (_P.pwidth - _P.nwidth) / 2 + (_P.ppowerspace - _P.npowerspace) / 2 - (_P.dummycontheight) / 2),
-            point.create((fingers + _P.leftdummies) * xpitch / 2 + xshift + (_P.gatelength) / 2, (_P.pwidth - _P.nwidth) / 2 + (_P.ppowerspace - _P.npowerspace) / 2 + (_P.dummycontheight) / 2),
-            _P.rightdummies, 2, xpitch, _P.separation + _P.pwidth + _P.nwidth + _P.ppowerspace + _P.npowerspace + _P.powerwidth
-        )
-    end
-
-    -- dummy source/drain contacts
-    local pcontactheight = (_P.psdheight > 0) and _P.psdheight or _P.pwidth / 2
-    local ncontactheight = (_P.nsdheight > 0) and _P.nsdheight or _P.nwidth / 2
-    local pcontactpowerheight = (_P.psdpowerheight > 0) and _P.psdpowerheight or _P.pwidth / 2
-    local ncontactpowerheight = (_P.nsdpowerheight > 0) and _P.nsdpowerheight or _P.nwidth / 2
-    if _P.drawdummyactivecontacts then
-        geometry.contactbltr(
-            cmos, "sourcedrain", 
-            point.create(-(fingers + _P.rightdummies + 1) * xpitch / 2 + xshift - (_P.sdwidth) / 2, _P.separation / 2 + _P.pwidth - pcontactpowerheight / 2 - (pcontactpowerheight) / 2),
-            point.create(-(fingers + _P.rightdummies + 1) * xpitch / 2 + xshift + (_P.sdwidth) / 2, _P.separation / 2 + _P.pwidth - pcontactpowerheight / 2 + (pcontactpowerheight) / 2),
-            _P.leftdummies, 1, xpitch, 0
-        )
-        geometry.contactbltr(
-            cmos, "sourcedrain", 
-            point.create(-(fingers + _P.rightdummies + 1) * xpitch / 2 + xshift - (_P.sdwidth) / 2, -_P.separation / 2 - _P.nwidth + ncontactpowerheight / 2 - (ncontactpowerheight) / 2),
-            point.create(-(fingers + _P.rightdummies + 1) * xpitch / 2 + xshift + (_P.sdwidth) / 2, -_P.separation / 2 - _P.nwidth + ncontactpowerheight /2 + (ncontactpowerheight) / 2),
-            _P.leftdummies, 1, xpitch, 0
-        )
-        geometry.rectanglebltr(
-            cmos, generics.metal(1), 
-            point.create(-(fingers + _P.rightdummies + 1) * xpitch / 2 + xshift - (_P.sdwidth) / 2, _P.separation / 2 + _P.pwidth),
-            point.create(-(fingers + _P.rightdummies + 1) * xpitch / 2 + xshift + (_P.sdwidth) / 2, _P.separation / 2 + _P.pwidth + _P.ppowerspace),
-            _P.leftdummies, 1, xpitch, 0
-        )
-        geometry.rectanglebltr(
-            cmos, generics.metal(1), 
-            point.create(-(fingers + _P.rightdummies + 1) * xpitch / 2 + xshift - (_P.sdwidth) / 2, -_P.separation / 2 - _P.nwidth - _P.npowerspace),
-            point.create(-(fingers + _P.rightdummies + 1) * xpitch / 2 + xshift + (_P.sdwidth) / 2, -_P.separation / 2 - _P.nwidth),
-            _P.leftdummies, 1, xpitch, 0
-        )
-        geometry.contactbltr(
-            cmos, "sourcedrain", 
-            point.create((fingers + _P.leftdummies + 1) * xpitch / 2 + xshift - (_P.sdwidth) / 2, _P.separation / 2 + _P.pwidth - pcontactpowerheight / 2 - (pcontactpowerheight) / 2),
-            point.create((fingers + _P.leftdummies + 1) * xpitch / 2 + xshift + (_P.sdwidth) / 2, _P.separation / 2 + _P.pwidth - pcontactpowerheight /2 + (pcontactpowerheight) / 2),
-            _P.rightdummies, 1, xpitch, 0
-        )
-        geometry.contactbltr(
-            cmos, "sourcedrain", 
-            point.create((fingers + _P.leftdummies + 1) * xpitch / 2 + xshift - (_P.sdwidth) / 2, -_P.separation / 2 - _P.nwidth + ncontactpowerheight / 2 - (ncontactpowerheight) / 2),
-            point.create((fingers + _P.leftdummies + 1) * xpitch / 2 + xshift + (_P.sdwidth) / 2, -_P.separation / 2 - _P.nwidth + ncontactpowerheight /2 + (ncontactpowerheight) / 2),
-            _P.rightdummies, 1, xpitch, 0
-        )
-        geometry.rectanglebltr(
-            cmos, generics.metal(1), 
-            point.create((fingers + _P.leftdummies + 1) * xpitch / 2 + xshift - (_P.sdwidth) / 2, _P.separation / 2 + _P.pwidth),
-            point.create((fingers + _P.leftdummies + 1) * xpitch / 2 + xshift + (_P.sdwidth) / 2, _P.separation / 2 + _P.pwidth + _P.ppowerspace),
-            _P.rightdummies, 1, xpitch, 0
-        )
-        geometry.rectanglebltr(
-            cmos, generics.metal(1), 
-            point.create((fingers + _P.leftdummies + 1) * xpitch / 2 + xshift - (_P.sdwidth) / 2, -_P.separation / 2 - _P.nwidth - _P.npowerspace),
-            point.create((fingers + _P.leftdummies + 1) * xpitch / 2 + xshift + (_P.sdwidth) / 2, -_P.separation / 2 - _P.nwidth),
-            _P.rightdummies, 1, xpitch, 0
-        )
     end
 
     -- draw source/drain contacts
@@ -403,6 +339,10 @@ function layout(cmos, _P)
             cmos:add_anchor(string.format("pSDc%d", i), point.create(x, y))
             cmos:add_anchor(string.format("pSDi%d", i), point.create(x, y - _P.pwidth / 2))
             cmos:add_anchor(string.format("pSDo%d", i), point.create(x, y + _P.pwidth / 2))
+        elseif _P.pcontactpos[i] == "unused" then
+            -- ignore
+        else
+            moderror(string.format("unknown source/drain contact position (p): [%d] = '%s'", i, _P.pcontactpos[i]))
         end
         if _P.pcontactpos[i] == "power" or _P.pcontactpos[i] == "powerfull" then
             geometry.rectanglebltr(
@@ -441,6 +381,10 @@ function layout(cmos, _P)
             cmos:add_anchor(string.format("nSDc%d", i), point.create(x, y))
             cmos:add_anchor(string.format("nSDi%d", i), point.create(x, y + _P.nwidth / 2))
             cmos:add_anchor(string.format("nSDo%d", i), point.create(x, y - _P.nwidth / 2))
+        elseif _P.ncontactpos[i] == "unused" then
+            -- ignore
+        else
+            moderror(string.format("unknown source/drain contact position (n): [%d] = '%s'", i, _P.ncontactpos[i]))
         end
         if _P.ncontactpos[i] == "power" or _P.ncontactpos[i] == "powerfull" then
             geometry.rectanglebltr(
@@ -452,7 +396,7 @@ function layout(cmos, _P)
     end
 
     cmos:set_alignment_box(
-        point.create(-(fingers + 2 * _P.leftdummies) * (_P.gatelength + _P.gatespace) / 2, -_P.separation / 2 - _P.nwidth - _P.npowerspace - _P.powerwidth / 2),
-        point.create( (fingers + 2 * _P.rightdummies) * (_P.gatelength + _P.gatespace) / 2, _P.separation / 2 + _P.pwidth + _P.ppowerspace + _P.powerwidth / 2)
+        point.create(-fingers * (_P.gatelength + _P.gatespace) / 2, -_P.separation / 2 - _P.nwidth - _P.npowerspace - _P.powerwidth / 2),
+        point.create( fingers * (_P.gatelength + _P.gatespace) / 2, _P.separation / 2 + _P.pwidth + _P.ppowerspace + _P.powerwidth / 2)
     )
 end
