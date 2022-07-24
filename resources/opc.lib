@@ -4,13 +4,13 @@
  * (The area of the cells is not really interesting, but added for completeness. It is normalized, so a gate with one transistor has an area of 1. -> not finished)
  * List of cells:
  *    not_gate
- *    buf
+ *    buf_gate
  *    tinv
  *    tbuf
  *    nand_gate
  *    nor_gate
  *    xor_gate
- *    x_gatenor
+ *    xnor_gate
  *    dffpq
  *    dffnq
  *    dffprq
@@ -24,13 +24,103 @@
  */
 
 library (opc) {
-  cell (buf) {
+  cell (not_gate) {
+    area : "0.133120";
+    pin (O) {
+      direction : "output";
+      function : "!I";
+    }
+    pin (I) {
+      direction : "input";
+    }
+  }
+  cell (buf_gate) {
     area : "0.266240";
     pin (O) {
       direction : "output";
       function : "I";
     }
     pin (I) {
+      direction : "input";
+    }
+  }
+  cell (tinv) {
+    area : "0.399360";
+    pin (O) {
+      direction : "output";
+      function : "!I";
+      three_state : "!EN";
+    }
+    pin (I) {
+      direction : "input";
+    }
+    pin (EN) {
+      direction : "input";
+    }
+  }
+  cell (tbuf) {
+    area : "0.532480";
+    pin (O) {
+      direction : "output";
+      function : "I";
+      three_state : "!EN";
+    }
+    pin (I) {
+      direction : "input";
+    }
+    pin (EN) {
+      direction : "input";
+    }
+  }
+  cell (nand_gate) {
+    area : "0.199680";
+    pin (O) {
+      direction : "output";
+      function : "!A+!B";
+    }
+    pin (A) {
+      direction : "input";
+    }
+    pin (B) {
+      direction : "input";
+    }
+  }
+  cell (nor_gate) {
+    area : "0.199680";
+    pin (O) {
+      direction : "output";
+      function : "!A&!B";
+    }
+    pin (A) {
+      direction : "input";
+    }
+    pin (B) {
+      direction : "input";
+    }
+  }
+  cell (xor_gate) {
+    area : "0.199680";
+    pin (O) {
+      direction : "output";
+      function : "A&!B+!A&B";
+    }
+    pin (A) {
+      direction : "input";
+    }
+    pin (B) {
+      direction : "input";
+    }
+  }
+  cell (xnor_gate) {
+    area : "0.199680";
+    pin (O) {
+      direction : "output";
+      function : "!(A&!B+!A&B)";
+    }
+    pin (A) {
+      direction : "input";
+    }
+    pin (B) {
       direction : "input";
     }
   }
@@ -95,6 +185,29 @@ library (opc) {
       clear : "!RESET";
     }
   }
+  cell (dffnrq) {
+    area : "2.063360";
+    pin (Q) {
+      direction : "output";
+      function : "IQ";
+    }
+    pin (CLK) {
+      clock : true;
+      direction : "input";
+    }
+    pin (D) {
+      direction : "input";
+      nextstate_type : "data";
+    }
+    pin (RESET) {
+      direction : "input";
+    }
+    ff (IQ,IQN) {
+      clocked_on : "!CLK";
+      next_state : "D";
+      clear : "!RESET";
+    }
+  }
   cell (dffpsq) {
     area : "2.063360";
     pin (Q) {
@@ -114,6 +227,29 @@ library (opc) {
     }
     ff (IQ,IQN) {
       clocked_on : "CLK";
+      next_state : "D";
+      preset : "(!SET)";
+    }
+  }
+  cell (dffpsq) {
+    area : "2.063360";
+    pin (Q) {
+      direction : "output";
+      function : "IQ";
+    }
+    pin (CLK) {
+      clock : true;
+      direction : "input";
+    }
+    pin (D) {
+      direction : "input";
+      nextstate_type : "data";
+    }
+    pin (SET) {
+      direction : "input";
+    }
+    ff (IQ,IQN) {
+      clocked_on : "!CLK";
       next_state : "D";
       preset : "(!SET)";
     }
@@ -172,16 +308,6 @@ library (opc) {
       preset : "(!SET)";
     }
   }
-  cell (not_gate) {
-    area : "0.133120";
-    pin (O) {
-      direction : "output";
-      function : "!I";
-    }
-    pin (I) {
-      direction : "input";
-    }
-  }
   cell (latchq) {
     area : "0.998400";
     pin (Q) {
@@ -220,86 +346,6 @@ library (opc) {
       clear : "!RESET";
       data_in : "D";
       enable : "CLK";
-    }
-  }
-  cell (nand_gate) {
-    area : "0.199680";
-    pin (O) {
-      direction : "output";
-      function : "!A+!B";
-    }
-    pin (A) {
-      direction : "input";
-    }
-    pin (B) {
-      direction : "input";
-    }
-  }
-  cell (nor_gate) {
-    area : "0.199680";
-    pin (O) {
-      direction : "output";
-      function : "!A&!B";
-    }
-    pin (A) {
-      direction : "input";
-    }
-    pin (B) {
-      direction : "input";
-    }
-  }
-  cell (xor_gate) {
-    area : "0.199680";
-    pin (O) {
-      direction : "output";
-      function : "A&!B+!A&B";
-    }
-    pin (A) {
-      direction : "input";
-    }
-    pin (B) {
-      direction : "input";
-    }
-  }
-  cell (xnor_gate) {
-    area : "0.199680";
-    pin (O) {
-      direction : "output";
-      function : "A&B+!A&!B";
-    }
-    pin (A) {
-      direction : "input";
-    }
-    pin (B) {
-      direction : "input";
-    }
-  }
-  cell (tbuf) {
-    area : "0.532480";
-    pin (O) {
-      direction : "output";
-      function : "I";
-      three_state : "!EN";
-    }
-    pin (I) {
-      direction : "input";
-    }
-    pin (EN) {
-      direction : "input";
-    }
-  }
-  cell (tinv) {
-    area : "0.399360";
-    pin (O) {
-      direction : "output";
-      function : "!I";
-      three_state : "!EN";
-    }
-    pin (I) {
-      direction : "input";
-    }
-    pin (EN) {
-      direction : "input";
     }
   }
 }
