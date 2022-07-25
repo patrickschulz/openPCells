@@ -321,6 +321,25 @@ int lobject_get_anchor(lua_State* L)
     return 1;
 }
 
+int lobject_get_all_regular_anchors(lua_State* L)
+{
+    struct lobject* cell = lobject_check(L, 1);
+    const struct hashmap* anchors = object_get_all_regular_anchors(cell->object);
+    struct hashmap_const_iterator* iterator = hashmap_const_iterator_create(anchors);
+    lua_newtable(L);
+    while(hashmap_const_iterator_is_valid(iterator))
+    {
+        const char* key = hashmap_const_iterator_key(iterator);
+        const point_t* anchor = hashmap_const_iterator_value(iterator);
+        point_t* pt = point_copy(anchor);
+        lpoint_adapt_point(L, pt);
+        lua_setfield(L, -2, key);
+        hashmap_const_iterator_next(iterator);
+    }
+    hashmap_const_iterator_destroy(iterator);
+    return 1;
+}
+
 int lobject_add_port(lua_State* L)
 {
     struct lobject* cell = lobject_check(L, 1);
@@ -343,6 +362,25 @@ int lobject_add_bus_port(lua_State* L)
     unsigned int ypitch = lua_tointeger(L, 8);
     object_add_bus_port(cell->object, name, layer, lpoint->point, startindex, endindex, xpitch, ypitch);
     return 0;
+}
+
+int lobject_get_ports(lua_State* L)
+{
+    struct lobject* cell = lobject_check(L, 1);
+    struct vector* ports = object_get_ports(cell->object);
+    lua_newtable(L);
+    size_t len = vector_size(ports);
+    for(size_t i = 0; i < len; ++i)
+    {
+        struct port* port = vector_get(ports, i);
+        lua_newtable(L);
+        lua_pushstring(L, port->name);
+        lua_setfield(L, -2, "name");
+        lpoint_adapt_point(L, port->where);
+        lua_setfield(L, -2, "where");
+        lua_rawseti(L, -2, i + 1);
+    }
+    return 1;
 }
 
 int lobject_set_alignment_box(lua_State* L)
@@ -392,8 +430,10 @@ int open_lobject_lib(lua_State* L)
         { "exchange",                   lobject_exchange                    },
         { "add_anchor",                 lobject_add_anchor                  },
         { "get_anchor",                 lobject_get_anchor                  },
+        { "get_all_regular_anchors",    lobject_get_all_regular_anchors     },
         { "add_port",                   lobject_add_port                    },
         { "add_bus_port",               lobject_add_bus_port                },
+        { "get_ports",                  lobject_get_ports                   },
         { "set_alignment_box",          lobject_set_alignment_box           },
         { "inherit_alignment_box",      lobject_inherit_alignment_box       },
         { "width_height_alignmentbox",  lobject_width_height_alignmentbox   },

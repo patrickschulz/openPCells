@@ -426,21 +426,19 @@ point_t* object_get_anchor(const struct object* cell, const char* name)
     return NULL;
 }
 
-/*
-struct keyvaluearray* object_get_all_regular_anchors(const struct object* cell)
+const struct hashmap* object_get_all_regular_anchors(const struct object* cell)
 {
-    pt = _get_regular_anchor(obj, name);
-    if(pt)
+    const struct object* obj = cell;
+    if(cell->isproxy)
     {
-        transformationmatrix_apply_transformation(obj->trans, pt);
-        if(cell->isproxy)
-        {
-            transformationmatrix_apply_transformation(cell->trans, pt);
-        }
-        return pt;
+        obj = cell->reference;
     }
+    if(obj->anchors)
+    {
+        return obj->anchors;
+    }
+    return NULL;
 }
-*/
 
 static void _add_port(struct object* cell, const char* name, const char* anchorname, struct generics* layer, coordinate_t x, coordinate_t y, int isbusport, int busindex)
 {
@@ -496,6 +494,11 @@ void object_add_bus_port(struct object* cell, const char* name, struct generics*
             ++shift;
         }
     }
+}
+
+struct vector* object_get_ports(struct object* cell)
+{
+    return cell->ports;
 }
 
 void object_set_alignment_box(struct object* cell, coordinate_t blx, coordinate_t bly, coordinate_t trx, coordinate_t try)
