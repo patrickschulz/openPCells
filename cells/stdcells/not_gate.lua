@@ -40,10 +40,10 @@ function layout(gate, _P)
 
     -- gate strap
     if _P.fingers > 1 then
-        geometry.rectangle(
+        geometry.rectanglebltr(
             gate, generics.metal(1),
-            _P.fingers * bp.glength + (_P.fingers - 1) * bp.gspace, bp.routingwidth,
-            0, _P.shiftinput
+            harness:get_anchor("Gll1"),
+            harness:get_anchor("Gur4")
         )
     end
 

@@ -70,7 +70,6 @@ function layout(cmos, _P)
     local xpitch = _P.gatespace + _P.gatelength
     local fingers = #_P.gatecontactpos
     local allfingers = #_P.gatecontactpos
-    local xshift = 0
 
     -- check if outer gates are drawn
     local outergatepresent = false
@@ -170,7 +169,8 @@ function layout(cmos, _P)
                 pmosoptions["drawbotgcut"] = false
                 pmosoptions["drawtopgcut"] = true
             end
-            local shift = (2 * i - fingers - 1) * xpitch / 2
+            --local shift = (2 * i - fingers - 1) * xpitch / 2
+            local shift = (i - 1) * xpitch
             local nfet = pcell.create_layout("basic/mosfet", nmosoptions)
             nfet:move_anchor("topgate")
             nfet:translate(shift, 0)
@@ -191,7 +191,7 @@ function layout(cmos, _P)
         geometry.rectangle(cmos,
             generics.metal(1), 
             fingers * xpitch + _P.sdwidth, _P.powerwidth,
-            xshift, (_P.pwidth - _P.nwidth) / 2 + (_P.ppowerspace - _P.npowerspace) / 2,
+            (fingers - 1) * xpitch / 2, (_P.pwidth - _P.nwidth) / 2 + (_P.ppowerspace - _P.npowerspace) / 2,
             1, 2, 0, _P.separation + _P.pwidth + _P.nwidth + _P.ppowerspace + _P.npowerspace + _P.powerwidth
         )
     end
@@ -228,7 +228,7 @@ function layout(cmos, _P)
     end
     if _P.drawgatecontacts then
         for i = 1, fingers do
-            local x = (2 * i - fingers - 1) * xpitch / 2 + xshift
+            local x = (i - 1) * xpitch
             if _P.gatecontactpos[i] == "center" then
                 geometry.contactbltr(
                     cmos, "gate", 
@@ -308,7 +308,7 @@ function layout(cmos, _P)
     local pcontactpowerheight = (_P.psdpowerheight > 0) and _P.psdpowerheight or _P.pwidth / 2
     local ncontactpowerheight = (_P.nsdpowerheight > 0) and _P.nsdpowerheight or _P.nwidth / 2
     for i = 1, fingers + 1 do
-        local x = (2 * (i - 1) - fingers) * xpitch / 2
+        local x = (i - 1) * xpitch - xpitch / 2
         local y = _P.separation / 2 + _P.pwidth / 2
         -- p contacts
         if _P.pcontactpos[i] == "power" or _P.pcontactpos[i] == "outer" then
@@ -339,7 +339,7 @@ function layout(cmos, _P)
             cmos:add_anchor(string.format("pSDc%d", i), point.create(x, y))
             cmos:add_anchor(string.format("pSDi%d", i), point.create(x, y - _P.pwidth / 2))
             cmos:add_anchor(string.format("pSDo%d", i), point.create(x, y + _P.pwidth / 2))
-        elseif _P.pcontactpos[i] == "unused" then
+        elseif not _P.pcontactpos[i] or _P.pcontactpos[i] == "unused" then
             -- ignore
         else
             moderror(string.format("unknown source/drain contact position (p): [%d] = '%s'", i, _P.pcontactpos[i]))
@@ -381,7 +381,7 @@ function layout(cmos, _P)
             cmos:add_anchor(string.format("nSDc%d", i), point.create(x, y))
             cmos:add_anchor(string.format("nSDi%d", i), point.create(x, y + _P.nwidth / 2))
             cmos:add_anchor(string.format("nSDo%d", i), point.create(x, y - _P.nwidth / 2))
-        elseif _P.ncontactpos[i] == "unused" then
+        elseif not _P.ncontactpos[i] or _P.ncontactpos[i] == "unused" then
             -- ignore
         else
             moderror(string.format("unknown source/drain contact position (n): [%d] = '%s'", i, _P.ncontactpos[i]))
@@ -396,7 +396,7 @@ function layout(cmos, _P)
     end
 
     cmos:set_alignment_box(
-        point.create(-fingers * (_P.gatelength + _P.gatespace) / 2, -_P.separation / 2 - _P.nwidth - _P.npowerspace - _P.powerwidth / 2),
-        point.create( fingers * (_P.gatelength + _P.gatespace) / 2, _P.separation / 2 + _P.pwidth + _P.ppowerspace + _P.powerwidth / 2)
+        point.create(-1 * (_P.gatelength + _P.gatespace) / 2, -_P.separation / 2 - _P.nwidth - _P.npowerspace - _P.powerwidth / 2),
+        point.create( (2 * fingers - 1) * (_P.gatelength + _P.gatespace) / 2, _P.separation / 2 + _P.pwidth + _P.ppowerspace + _P.powerwidth / 2)
     )
 end

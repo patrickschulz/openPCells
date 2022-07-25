@@ -12,19 +12,15 @@ function layout(gate, _P)
     local bp = pcell.get_parameters("stdcells/base")
     local xpitch = bp.glength + bp.gspace
 
-    pcell.push_overwrites("stdcells/harness", { rightdummies = 0 })
     local subgateref = pcell.create_layout(string.format("stdcells/%s", _P.subgate), { fingers = _P.subgatefingers })
-    pcell.pop_overwrites("stdcells/harness")
     gate:merge_into_shallow(subgateref)
 
-    local isogateref = pcell.create_layout("stdcells/isogate")
-    isogateref:move_anchor("left", subgateref:get_anchor("right"))
-    gate:merge_into_shallow(isogateref)
+    --local isogateref = pcell.create_layout("stdcells/isogate")
+    --isogateref:move_anchor("left", subgateref:get_anchor("right"))
+    --gate:merge_into_shallow(isogateref)
 
-    pcell.push_overwrites("stdcells/harness", { leftdummies = 0, rightdummies = 1 })
     local invref = pcell.create_layout("stdcells/not_gate", { fingers = _P.notfingers, shiftoutput = xpitch / 2 })
-    pcell.pop_overwrites("stdcells/harness")
-    invref:move_anchor("left", isogateref:get_anchor("right"))
+    invref:move_anchor("left", subgateref:get_anchor("right"))
     gate:merge_into_shallow(invref)
 
     -- draw connection

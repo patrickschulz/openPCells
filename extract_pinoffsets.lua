@@ -1,36 +1,15 @@
 local celllist = {
-    --"1_inv_gate",
-    --"21_gate",
-    --"221_gate",
-    --"22_gate",
-    --"and_gate",
     --"buf",
     --"cinv",
-    --"colstop",
-    --"dff",
-    --"dffnq",
     --"dffpq",
+    --"dffnq",
     --"dffprq",
-    --"endcell",
-    --"generic2bit",
-    --"half_adder",
-    --"harness",
-    --"isogate",
-    --"latch_cell",
-    --"latch",
-    --"leftcolstop",
-    "nand_gate",
-    --"nand_nor_layout_base",
-    "nor_gate",
     "not_gate",
-    --"or_gate",
-    --"register",
-    --"rightcolstop",
-    --"rowstop",
-    --"shiftregister",
+    "nand_gate",
+    "nor_gate",
+    "or_gate",
+    "and_gate",
     --"tbuf",
-    --"test",
-    --"tgate",
     --"xor_gate",
 }
 
@@ -43,21 +22,35 @@ pcell.push_overwrites("stdcells/base", {
     glength = gatelength,
     gspace = gatespace,
     routingwidth = routingwidth,
-    routingspace = routingspace
+    routingspace = routingspace,
+    powerwidth = 500,
+    pnumtracks = 3,
+    nnumtracks = 3,
 })
 
-for _, cellname in ipairs(celllist) do
+local toplevel = object.create()
+local lastanchor
+
+for i, cellname in ipairs(celllist) do
     local cell = pcell.create_layout(string.format("stdcells/%s", cellname))
+    local childname = pcell.add_cell_reference(cell, cellname)
+    local child = toplevel:add_child(childname)
+    if lastanchor then
+        child:move_anchor("bottom", lastanchor)
+    end
+    lastanchor = child:get_anchor("top")
 
     print(cellname)
     local ports = cell:get_ports()
-    for _, port in ipairs(anchors) do
-        local x, y = port.anchor:unwrap()
-        local xoffset = x // (gatelength + gatespace)
-        local yoffset = y // (routingwidth + routingspace)
-        print(string.format("%4s (%6d, %6d) -> %3d:%3d", port.name, x, y, xoffset, yoffset))
+    for _, port in ipairs(ports) do
+        if port.name ~= "VDD" and port.name ~= "VSS" then
+            local x, y = port.where:unwrap()
+            local xoffset = x // (gatelength + gatespace)
+            local yoffset = y // (routingwidth + routingspace)
+            print(string.format("%4s (%6d, %6d) -> %3d:%3d", port.name, x, y, xoffset, yoffset))
+        end
     end
     print()
 end
 
-return nil
+return toplevel
