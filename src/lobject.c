@@ -311,7 +311,7 @@ int lobject_get_anchor(lua_State* L)
     point_t* point = object_get_anchor(cell->object, name);
     if(point)
     {
-        lpoint_adapt_point(L, point);
+        lpoint_takeover_point(L, point);
     }
     else
     {

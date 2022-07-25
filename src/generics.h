@@ -43,6 +43,7 @@ struct generics* generics_create_vthtype(struct layermap* generics_layer_map, st
 struct generics* generics_create_other(struct layermap* generics_layer_map, struct technology_state* techstate, const char* str);
 struct generics* generics_create_otherport(struct layermap* generics_layer_map, struct technology_state* techstate, const char* str);
 struct generics* generics_create_special(struct layermap* generics_layer_map, struct technology_state* techstate);
+struct generics* generics_create_special(struct layermap* generics_layer_map, struct technology_state* techstate);
 
 // layermap iterator
 struct layer_iterator* layer_iterator_create(struct layermap* layermap);

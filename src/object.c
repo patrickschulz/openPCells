@@ -460,12 +460,12 @@ static void _add_port(struct object* cell, const char* name, const char* anchorn
     object_add_anchor(cell, anchorname, x, y);
 }
 
-void object_add_port(struct object* cell, const char* name, struct generics* layer, point_t* where)
+void object_add_port(struct object* cell, const char* name, struct generics* layer, const point_t* where)
 {
     _add_port(cell, name, name, layer, where->x, where->y, 0, 0);
 }
 
-void object_add_bus_port(struct object* cell, const char* name, struct generics* layer, point_t* where, int startindex, int endindex, unsigned int xpitch, unsigned int ypitch)
+void object_add_bus_port(struct object* cell, const char* name, struct generics* layer, const point_t* where, int startindex, int endindex, unsigned int xpitch, unsigned int ypitch)
 {
     int shift = 0;
     if(startindex < endindex)

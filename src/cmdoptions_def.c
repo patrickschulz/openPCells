@@ -37,6 +37,7 @@ cmdoptions_add_option(cmdoptions, NO_SHORT, "separator", SINGLE_ARG, "cell param
 cmdoptions_add_option(cmdoptions, NO_SHORT, "seed", SINGLE_ARG, "set seed for random functions for reproducible layout generation. Random functions are mostly used in digital place & route functions, but also in some cells");
 cmdoptions_add_section(cmdoptions, "Layout debugging functions");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "draw-anchor", MULTI_ARGS, "draw a cell anchor. It is drawn in the 'special' layer, so your layermap needs to have an entry for that.");
+cmdoptions_add_option(cmdoptions, NO_SHORT, "draw-all-anchors", NO_ARG, "draw all cell anchors. They are drawn in the 'special' layer, so your layermap needs to have an entry for that.");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "draw-alignmentbox", NO_ARG, "draw the alignment box (if present). The box is drawn in the 'special' layer, so your layermap needs to have an entry for that.");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "draw-all-alignmentboxes", NO_ARG, "draw all present alignment box (also those of subcells). The box is drawn in the 'special' layer, so your layermap needs to have an entry for that.");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "enable-dprint", NO_ARG, "enables debugging print statements in cell layout definitions");
