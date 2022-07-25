@@ -368,7 +368,7 @@ static void _draw_anchors(struct object* toplevel, struct cmdoptions* cmdoptions
             point_t* pt = object_get_anchor(toplevel, *anchornames);
             if(pt) // FIXME: handle NULL point
             {
-                object_add_port(toplevel, *anchornames, generics_create_special(layermap, techstate), pt);
+                object_add_port(toplevel, *anchornames, generics_create_special(layermap, techstate), pt, 0); // 0: don't store anchor
                 point_destroy(pt);
             }
             else
@@ -386,7 +386,7 @@ static void _draw_anchors(struct object* toplevel, struct cmdoptions* cmdoptions
         {
             const char* key = hashmap_const_iterator_key(iterator);
             const point_t* anchor = hashmap_const_iterator_value(iterator);
-            object_add_port(toplevel, key, generics_create_special(layermap, techstate), anchor);
+            object_add_port(toplevel, key, generics_create_special(layermap, techstate), anchor, 0); // 0: don't store anchor
             hashmap_const_iterator_next(iterator);
         }
         hashmap_const_iterator_destroy(iterator);
