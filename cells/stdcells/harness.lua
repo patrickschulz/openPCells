@@ -15,8 +15,6 @@ function parameters()
         { "shiftgatecontacts", 0 },
         { "pcontactpos", {}, argtype = "strtable" },
         { "ncontactpos", {}, argtype = "strtable" },
-        { "leftdummies", 0 },
-        { "rightdummies", 0 },
         { "shiftpcontactsinner", 0 },
         { "shiftpcontactsouter", 0 },
         { "shiftncontactsinner", 0 },
@@ -24,14 +22,17 @@ function parameters()
         { "drawdummygatecontacts", true },
         { "drawdummyactivecontacts", true },
         { "drawtopgcut", true },
-        { "drawbotgcut", true }
+        { "drawbotgcut", true },
+        { "drawleftstopgate", false },
+        { "drawrightstopgate", false },
+        { "numleftpolylines", 0 },
+        { "numrightpolylines", 0 }
     )
 end
 
 function layout(gate, _P)
     local bp = pcell.get_parameters("stdcells/base")
     local xpitch = bp.gspace + bp.glength
-    local xshift = (_P.rightdummies - _P.leftdummies) * xpitch / 2
     local fingers = #_P.gatecontactpos
     -- numtracks + 2 for powerspace calculation: only virtual routes on power bars (no real ones)
     local ppowerspace, npowerspace
@@ -63,8 +64,6 @@ function layout(gate, _P)
         gatecontactpos = _P.gatecontactpos,
         pcontactpos = _P.pcontactpos,
         ncontactpos = _P.ncontactpos,
-        leftdummies = _P.leftdummies,
-        rightdummies = _P.rightdummies,
         powerwidth = bp.powerwidth,
         npowerspace = npowerspace,
         ppowerspace = ppowerspace,
@@ -73,6 +72,10 @@ function layout(gate, _P)
         sdwidth = bp.sdwidth,
         separation = separation,
         gatecontactsplitshift = routingshift,
+        drawleftstopgate = _P.drawleftstopgate,
+        numleftpolylines = _P.numleftpolylines,
+        drawrightstopgate = _P.drawrightstopgate,
+        numrightpolylines = _P.numrightpolylines,
     })
     gate:exchange(cmos)
 end

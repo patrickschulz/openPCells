@@ -156,7 +156,7 @@ int hashmap_iterator_is_valid(struct hashmap_iterator* iterator)
     return iterator->index < iterator->hashmap->capacity;
 }
 
-void* hashmap_iterator_key(struct hashmap_iterator* iterator)
+char* hashmap_iterator_key(struct hashmap_iterator* iterator)
 {
     return (iterator->hashmap->entries + iterator->index)->key;
 }
@@ -203,12 +203,12 @@ int hashmap_const_iterator_is_valid(struct hashmap_const_iterator* iterator)
     return iterator->index < iterator->hashmap->capacity;
 }
 
-void* hashmap_const_iterator_key(struct hashmap_const_iterator* iterator)
+const char* hashmap_const_iterator_key(struct hashmap_const_iterator* iterator)
 {
     return (iterator->hashmap->entries + iterator->index)->key;
 }
 
-void* hashmap_const_iterator_value(struct hashmap_const_iterator* iterator)
+const void* hashmap_const_iterator_value(struct hashmap_const_iterator* iterator)
 {
     return (iterator->hashmap->entries + iterator->index)->value;
 }

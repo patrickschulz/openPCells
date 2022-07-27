@@ -47,7 +47,15 @@ function layout(gate, _P)
             ncontacts[i] = "power"
         elseif i % 4 == 3 then
             ncontacts[i] = "inner"
+        else
+            ncontacts[i] = "unused"
         end
+    end
+
+    if _P.fingers % 2 == 1 then
+        gatecontactpos[#gatecontactpos + 1] = "dummy"
+        pcontacts[#pcontacts + 1] = "power"
+        ncontacts[#ncontacts + 1] = "power"
     end
 
     local harness = pcell.create_layout("stdcells/harness", { 
@@ -56,7 +64,6 @@ function layout(gate, _P)
         ncontactpos = _P.gatetype == "nand" and ncontacts or pcontacts,
         pwidth = _P.pwidth,
         nwidth = _P.nwidth,
-        rightdummies = _P.fingers % 2,
     })
     gate:merge_into_shallow(harness)
     gate:inherit_alignment_box(harness)

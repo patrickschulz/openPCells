@@ -4,41 +4,56 @@ function parameters()
     pcell.reference_cell("stdcells/nor_gate")
     pcell.reference_cell("stdcells/nand_gate")
 end
+
 function layout(toplevel)
     local cellnames = {
         {
+            "leftcolstop",
             { instance = "nor3", reference = "nor_gate" },
             { instance = "fill_1_2", reference = "isogate" },
             { instance = "fill_1_1", reference = "isogate" },
             { instance = "nor4", reference = "nor_gate" },
+            "rightcolstop",
         },
         {
+            "leftcolstop",
             { instance = "nor1", reference = "nor_gate" },
             { instance = "fill_2_2", reference = "isogate" },
             { instance = "fill_2_1", reference = "isogate" },
             { instance = "nor2", reference = "nor_gate" },
+            "rightcolstop",
         },
         {
+            "leftcolstop",
             { instance = "nandr", reference = "nand_gate" },
-            { instance = "notr", reference = "not_gate" },
             { instance = "fill_3_3", reference = "isogate" },
             { instance = "fill_3_2", reference = "isogate" },
+            { instance = "notr", reference = "not_gate" },
             { instance = "fill_3_1", reference = "isogate" },
+            "rightcolstop",
         },
         {
+            "leftcolstop",
             { instance = "nor5", reference = "nor_gate" },
             { instance = "fill_4_2", reference = "isogate" },
             { instance = "fill_4_1", reference = "isogate" },
             { instance = "nor6", reference = "nor_gate" },
+            "rightcolstop",
         },
         {
+            "leftcolstop",
             { instance = "nor7", reference = "nor_gate" },
             { instance = "fill_5_2", reference = "isogate" },
             { instance = "fill_5_1", reference = "isogate" },
             { instance = "nor8", reference = "nor_gate" },
+            "rightcolstop",
         },
     }
-    local rows = placement.create_reference_rows(cellnames)
+    local bp = pcell.get_parameters("stdcells/base")
+    local width = bp.routingwidth
+    local xgrid = bp.gspace + bp.glength
+    local ygrid = bp.routingwidth + bp.routingspace
+    local rows = placement.create_reference_rows(cellnames, xgrid)
     local cells = placement.rowwise(toplevel, rows)
     local bp = pcell.get_parameters("stdcells/base")
     local routes = {
@@ -178,7 +193,7 @@ function layout(toplevel)
             { type = "anchor", name = "notr", anchor = "O" },
             { z = 1, type = "via" },
             { type = "rowshift", rows = -2, offset = -1 },
-            { x = 2, type = "delta" },
+            { x = -1, type = "delta" },
             { z = -1, type = "via" },
             { type = "anchor", name = "nor4", anchor = "A" },
         },
@@ -187,15 +202,11 @@ function layout(toplevel)
             { type = "anchor", name = "notr", anchor = "O" },
             { z = 1, type = "via" },
             { type = "rowshift", rows = 2, offset = 1 },
-            { x = 2, type = "delta" },
+            { x = -1, type = "delta" },
             { z = -1, type = "via" },
             { type = "anchor", name = "nor8", anchor = "B" },
         },
     }
-    local bp = pcell.get_parameters("stdcells/base")
-    local width = bp.routingwidth
-    local xgrid = bp.gspace + bp.glength
-    local ygrid = bp.routingwidth + bp.routingspace
     routing.route(toplevel, routes, cells, width, bp.numinnerroutes, bp.pnumtracks, bp.nnumtracks, xgrid, ygrid)
     toplevel:add_port("ref", generics.metalport(1), cells["nor1"]:get_anchor("B"))
     toplevel:add_port("sig", generics.metalport(1), cells["nor5"]:get_anchor("A"))

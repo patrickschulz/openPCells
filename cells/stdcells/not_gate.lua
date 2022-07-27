@@ -23,10 +23,13 @@ function layout(gate, _P)
             contactpos[i] = "power"
         end
     end
+    if _P.fingers % 2 == 1 then
+        gatecontactpos[#gatecontactpos + 1] = "dummy"
+        contactpos[#contactpos + 1] = "power"
+    end
     local harness = pcell.create_layout("stdcells/harness", { 
         pwidth = _P.pwidth,
         nwidth = _P.nwidth,
-        rightdummies = _P.fingers % 2,
         shiftgatecontacts = _P.shiftinput,
         gatecontactpos = gatecontactpos,
         pcontactpos = contactpos,
@@ -37,10 +40,10 @@ function layout(gate, _P)
 
     -- gate strap
     if _P.fingers > 1 then
-        geometry.rectangle(
+        geometry.rectanglebltr(
             gate, generics.metal(1),
-            _P.fingers * bp.glength + (_P.fingers - 1) * bp.gspace, bp.routingwidth,
-            0, _P.shiftinput
+            harness:get_anchor("Gll1"),
+            harness:get_anchor("Gur4")
         )
     end
 

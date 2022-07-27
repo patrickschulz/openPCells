@@ -26,6 +26,7 @@ lpoint_t* lpoint_create_internal(lua_State* L, coordinate_t x, coordinate_t y)
     lpoint_t* p = lua_newuserdata(L, sizeof(lpoint_t));
     luaL_setmetatable(L, LPOINTMETA);
     p->point = point_create(x, y);
+    p->destroy = 1;
     return p;
 }
 
@@ -34,6 +35,7 @@ lpoint_t* lpoint_adapt_point(lua_State* L, point_t* pt)
     lpoint_t* p = lua_newuserdata(L, sizeof(lpoint_t));
     luaL_setmetatable(L, LPOINTMETA);
     p->point = pt;
+    p->destroy = 0;
     return p;
 }
 
@@ -42,6 +44,7 @@ lpoint_t* lpoint_takeover_point(lua_State* L, point_t* pt)
     lpoint_t* p = lua_newuserdata(L, sizeof(lpoint_t));
     luaL_setmetatable(L, LPOINTMETA);
     p->point = pt;
+    p->destroy = 1;
     return p;
 }
 
@@ -57,7 +60,10 @@ int lpoint_create(lua_State* L)
 static int lpoint_destroy(lua_State* L)
 {
     lpoint_t* p = luaL_checkudata(L, -1, LPOINTMETA);
-    point_destroy(p->point);
+    if(p->destroy)
+    {
+        point_destroy(p->point);
+    }
     return 0;
 }
 

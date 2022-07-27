@@ -30,8 +30,10 @@ struct object* object_add_child_array(struct object* cell, struct pcell_state* p
 void object_merge_into_shallow(struct object* cell, const struct object* other);
 void object_add_anchor(struct object* cell, const char* name, coordinate_t x, coordinate_t y);
 point_t* object_get_anchor(const struct object* cell, const char* name);
-void object_add_port(struct object* cell, const char* name, struct generics* layer, point_t* where);
-void object_add_bus_port(struct object* cell, const char* name, struct generics* layer, point_t* where, int startindex, int endindex, unsigned int xpitch, unsigned int ypitch);
+const struct hashmap* object_get_all_regular_anchors(const struct object* cell);
+void object_add_port(struct object* cell, const char* name, struct generics* layer, const point_t* where, int storeanchor);
+void object_add_bus_port(struct object* cell, const char* name, struct generics* layer, const point_t* where, int startindex, int endindex, unsigned int xpitch, unsigned int ypitch, int storeanchor);
+struct vector* object_get_ports(struct object* cell);
 void object_set_alignment_box(struct object* cell, coordinate_t blx, coordinate_t bly, coordinate_t trx, coordinate_t try);
 void object_inherit_alignment_box(struct object* cell, const struct object* other);
 void object_get_minmax_xy(const struct object* cell, coordinate_t* minxp, coordinate_t* minyp, coordinate_t* maxxp, coordinate_t* maxyp);

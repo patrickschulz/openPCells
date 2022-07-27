@@ -358,6 +358,41 @@ static void _draw_alignmentboxes(struct object* toplevel, struct cmdoptions* cmd
     }
 }
 
+static void _draw_anchors(struct object* toplevel, struct cmdoptions* cmdoptions, struct technology_state* techstate, struct layermap* layermap)
+{
+    if(cmdoptions_was_provided_long(cmdoptions, "draw-anchor"))
+    {
+        const char** anchornames = cmdoptions_get_argument_long(cmdoptions, "draw-anchor");
+        while(*anchornames)
+        {
+            point_t* pt = object_get_anchor(toplevel, *anchornames);
+            if(pt) // FIXME: handle NULL point
+            {
+                object_add_port(toplevel, *anchornames, generics_create_special(layermap, techstate), pt, 0); // 0: don't store anchor
+                point_destroy(pt);
+            }
+            else
+            {
+                fprintf(stderr, "--draw-anchor: could not find anchor '%s', ignoring\n", *anchornames);
+            }
+            ++anchornames;
+        }
+    }
+    if(cmdoptions_was_provided_long(cmdoptions, "draw-all-anchors"))
+    {
+        const struct hashmap* anchors = object_get_all_regular_anchors(toplevel);
+        struct hashmap_const_iterator* iterator = hashmap_const_iterator_create(anchors);
+        while(hashmap_const_iterator_is_valid(iterator))
+        {
+            const char* key = hashmap_const_iterator_key(iterator);
+            const point_t* anchor = hashmap_const_iterator_value(iterator);
+            object_add_port(toplevel, key, generics_create_special(layermap, techstate), anchor, 0); // 0: don't store anchor
+            hashmap_const_iterator_next(iterator);
+        }
+        hashmap_const_iterator_destroy(iterator);
+    }
+}
+
 static void _filter_layers(struct object* toplevel, struct cmdoptions* cmdoptions, struct pcell_state* pcell_state)
 {
     if(cmdoptions_was_provided_long(cmdoptions, "filter-layers"))
@@ -534,6 +569,9 @@ int main_create_and_export_cell(struct cmdoptions* cmdoptions, struct hashmap* c
 
         // draw alignmentbox(es)
         _draw_alignmentboxes(toplevel, cmdoptions, techstate, layermap, pcell_state);
+
+        // draw achors
+        _draw_anchors(toplevel, cmdoptions, techstate, layermap);
 
         // flatten cell
         if(cmdoptions_was_provided_long(cmdoptions, "flat"))
