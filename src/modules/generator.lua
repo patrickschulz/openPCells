@@ -1,12 +1,15 @@
 local M = {}
 
-local function _write_module(rows, routes, numtracks)
+local function _write_module(rows, routes, numinnerroutes, pnumtracks, nnumtracks)
     local lines = {}
     table.insert(lines, 'function parameters()')
     table.insert(lines, '    pcell.reference_cell("stdcells/base")')
     table.insert(lines, 'end')
     table.insert(lines, 'function layout(toplevel)')
-    table.insert(lines, string.format('    pcell.push_overwrites("stdcells/base", { numtracks = %i })', numtracks))
+    table.insert(lines, string.format('    pcell.push_overwrites("stdcells/base", { pnumtracks = %i })', pnumtracks))
+    table.insert(lines, string.format('    pcell.push_overwrites("stdcells/base", { nnumtracks = %i })', nnumtracks))
+    table.insert(lines, string.format('    pcell.push_overwrites("stdcells/base", { numinnerroutes= %i })', numinnerroutes))
+    table.insert(lines, '    local bp = pcell.get_parameters("stdcells/base")')
     -- placement
     if rows then
         table.insert(lines, '    local cellnames = {')
@@ -21,7 +24,8 @@ local function _write_module(rows, routes, numtracks)
             table.insert(lines, '        },')
         end
         table.insert(lines, '    }')
-        table.insert(lines, '    local rows = placement.create_reference_rows(cellnames)')
+        table.insert(lines, '    local xpitch = bp.gspace + bp.glength')
+        table.insert(lines, '    local rows = placement.create_reference_rows(cellnames, xpitch)')
         table.insert(lines, string.format('    local cells = placement.rowwise(toplevel, rows)'))
     else
         print("no placement information found")
@@ -43,11 +47,13 @@ local function _write_module(rows, routes, numtracks)
             table.insert(lines, '        },')
         end
         table.insert(lines, '    }')
-        table.insert(lines, '    local bp = pcell.get_parameters("stdcells/base")')
         table.insert(lines, '    local width = bp.routingwidth')
         table.insert(lines, '    local xgrid = bp.gspace + bp.glength')
         table.insert(lines, '    local ygrid = bp.routingwidth + bp.routingspace')
-        table.insert(lines, string.format('    routing.route(toplevel, routes, cells, width, xgrid, ygrid)'))
+        table.insert(lines, '    local pnumtracks = bp.pnumtracks')
+        table.insert(lines, '    local nnumtracks = bp.nnumtracks')
+        table.insert(lines, '    local numinnerroutes = bp.numinnerroutes')
+        table.insert(lines, string.format('    routing.route(toplevel, routes, cells, width, numinnerroutes, pnumtracks, nnumtracks, xgrid, ygrid)'))
     else
         print("no routing information found")
     end
@@ -76,8 +82,8 @@ function M.get_cell_filename(prefix, libname, cellname)
     return string.format("%s/%s.lua", basename, cellname)
 end
 
-function M.digital(file, rows, routes, numtracks)
-    local lines = _write_module(rows, routes, numtracks)
+function M.digital(file, rows, routes, numinnerroutes, pnumtracks, nnumtracks)
+    local lines = _write_module(rows, routes, numinnerroutes, pnumtracks, nnumtracks)
     file:write(table.concat(lines, '\n'))
 end
 

@@ -9,7 +9,7 @@ local function _get_blockages(instances, reference)
     return nil
 end
 
-local function _prepare_routing_nets(nets, rows, numtracks, instances)
+local function _prepare_routing_nets(nets, rows, numinnerroutes, pnumtracks, nnumtracks, instances)
     local netpositions = {}
     local blockages = {}
     for i, net in ipairs(nets) do
@@ -31,7 +31,8 @@ local function _prepare_routing_nets(nets, rows, numtracks, instances)
                                 instance = column.instance,
                                 port = n.port,
                                 x = curwidth + offset.x + 1,
-                                y = (r - 1) * numtracks + flip * offset.y + (numtracks - 1) / 2 + (r - 1)
+                                y = (r - 1) * (nnumtracks + pnumtracks + numinnerroutes) + flip * offset.y + ((nnumtracks + pnumtracks + numinnerroutes) - 1) / 2 + (r - 1),
+                                row = r
                             })
                             -- calc blockage coordinates
                             local blockblockages = _get_blockages(instances, column.reference)
@@ -40,10 +41,12 @@ local function _prepare_routing_nets(nets, rows, numtracks, instances)
                                     route = {}
                                     for u, delta in ipairs(blockageroute) do
                                         table.insert(route, {
-                                            --x = c + blockageroute[u].x + curwidth,
+                                            -- x = c + blockageroute[u].x + curwidth,
+                                            -- FIXME: doesnt work with assymetric track numbers
                                             x = curwidth + blockageroute[u].x + 1,
-                                            y = (r - 1) * numtracks + flip * blockageroute[u].y + (numtracks - 1) / 2 + (r - 1),
-                                            z = blockageroute[u].z
+                                            y = (r - 1) * (nnumtracks + pnumtracks + numinnerroutes) + flip * blockageroute[u].y + ((nnumtracks + pnumtracks + numinnerroutes) - 1) / 2 + (r - 1),
+                                            z = blockageroute[u].z,
+                                            row = r
                                         })
                                     end
                                     table.insert(blockages, route)
@@ -59,12 +62,12 @@ local function _prepare_routing_nets(nets, rows, numtracks, instances)
     return netpositions, blockages
 end
 
-function M.legalize(nets, rows, numtracks, floorplan, instances)
-    local netpositions, blockages = _prepare_routing_nets(nets, rows, numtracks, instances)
+function M.legalize(nets, rows, numinnerroutes, pnumtracks, nnumtracks, floorplan, instances)
+    local netpositions, blockages = _prepare_routing_nets(nets, rows, numinnerroutes, pnumtracks, nnumtracks, instances)
     -- call router here
     -- per full row insert one powerrail (except for the first row)
-    local height = floorplan.floorplan_height * numtracks
-    height = height + math.floor(height / numtracks) - 1
+    local height = floorplan.floorplan_height * (pnumtracks + nnumtracks + numinnerroutes)
+    height = height + math.floor(height / (pnumtracks + nnumtracks + numinnerroutes)) - 1
 
     local routednets, numroutednets = router.route(netpositions, blockages, floorplan.floorplan_width, height)
     return routednets
