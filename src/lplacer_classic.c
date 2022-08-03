@@ -43,6 +43,12 @@ struct rollback {
     unsigned int y2;
 };
 
+static inline unsigned int calculate_half_perimeter_wirelength(struct net *net)
+{
+    unsigned int hpwl = (net->xmax - net->xmin) + (net->ymax - net->ymin);
+    return hpwl;
+}
+
 static unsigned int calculate_total_wirelength(struct block* block)
 {
     unsigned int total_wirelength = 0;
@@ -250,24 +256,27 @@ void m2(struct cell* a, struct cell* b, struct rollback* r)
     b->pos_y = r->y1;
 }
 
+#define START_TEMPERATURE 5000.0
+#define END_TEMPERATURE 0.01
+#define ACCEPT_WORSE_PROBABILITY 0.25
+
 static void _simulated_annealing(struct RanState* rstate, struct block* block, struct floorplan* floorplan, double coolingfactor, size_t moves_per_cell_per_temp, int verbose)
 {
     (void) verbose;
 
-    double temperature = 5000.0;
-    double end_temperature = 0.01;
-    unsigned int needed_steps = (unsigned int) log(temperature / end_temperature) / log(1.0 / coolingfactor) + 1;
+    double temperature = START_TEMPERATURE;
+    unsigned int needed_steps = (unsigned int) log(temperature / END_TEMPERATURE) / log(1.0 / coolingfactor) + 1;
     unsigned int steps = 1;
     unsigned int percentage_divisor = 10;
     unsigned int percentage = 0;
     unsigned int last_total_penalty = UINT_MAX;
-    while(temperature > end_temperature)
+    while(temperature > END_TEMPERATURE)
     {
         for(size_t move_ctr = 0; move_ctr < moves_per_cell_per_temp * block->num_cells; move_ctr++)
         {
             struct rollback rollback;
 
-            if(random_choice(rstate, 0.25))
+            if(random_choice(rstate, ACCEPT_WORSE_PROBABILITY))
             {
                 m2(random_cell(block, rstate), random_cell(block, rstate), &rollback);
             }
@@ -290,7 +299,7 @@ static void _simulated_annealing(struct RanState* rstate, struct block* block, s
                 report_status(temperature, block, floorplan);
             }
             */
-
+//
             if(move_ctr == 0)
             {
                 if(steps * 100 / needed_steps >= percentage)
@@ -302,16 +311,16 @@ static void _simulated_annealing(struct RanState* rstate, struct block* block, s
 
             if(total_penalty > last_total_penalty)
             {
-                undo(&rollback);
-                //if(random_choice(rstate, exp(-(total_penalty - last_total_penalty) / temperature)))
-                //{
-                //    // accept
-                //    last_total_penalty = total_penalty;    
-                //}
-                //else
-                //{
-                //    undo(&rollback);
-                //}
+                //undo(&rollback);
+                if(random_choice(rstate, exp(-(total_penalty - last_total_penalty) / temperature)))
+                {
+                    // accept
+                    last_total_penalty = total_penalty;    
+                }
+                else
+                {
+                    undo(&rollback);
+                }
             }
             else // last_total_penalty >= total_penalty
             {
@@ -387,8 +396,8 @@ int lplacer_place_classic(lua_State* L)
     (void)coolingfactor;
     (void)moves_per_cell_per_temp;
     (void)verbose;
-    (void)_simulated_annealing;
-    //_simulated_annealing(&rstate, block, floorplan, coolingfactor, moves_per_cell_per_temp, verbose);
+    //(void)_simulated_annealing;
+    _simulated_annealing(&rstate, block, floorplan, coolingfactor, moves_per_cell_per_temp, verbose);
 
     placer_create_lua_result(L, block, get_cell_in_row_index, floorplan);
 
