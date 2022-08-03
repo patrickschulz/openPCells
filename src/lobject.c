@@ -308,11 +308,11 @@ int lobject_add_anchor_area(lua_State* L)
 {
     struct lobject* cell = lobject_check(L, 1);
     const char* base = luaL_checkstring(L, 2);
-    coordinate_t x = luaL_checkinteger(L, 3);
-    coordinate_t y = luaL_checkinteger(L, 4);
+    coordinate_t width = luaL_checkinteger(L, 3);
+    coordinate_t height = luaL_checkinteger(L, 4);
     coordinate_t xshift = luaL_checkinteger(L, 5);
     coordinate_t yshift = luaL_checkinteger(L, 6);
-    object_add_anchor_area(cell->object, base, x, y, xshift, yshift);
+    object_add_anchor_area(cell->object, base, width, height, xshift, yshift);
     return 0;
 }
 
