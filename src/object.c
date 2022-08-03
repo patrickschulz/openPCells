@@ -268,6 +268,32 @@ void object_add_anchor(struct object* cell, const char* name, coordinate_t x, co
     hashmap_insert(cell->anchors, name, point_create(x, y));
 }
 
+void object_add_anchor_area(struct object* cell, const char* base, coordinate_t x, coordinate_t y, coordinate_t xshift, coordinate_t yshift)
+{
+    size_t len = strlen(base) + 2; // +2 for suffix
+    char* name = malloc(len + 1);
+    strcpy(name, base);
+    name[len] = 0; // terminate string
+    name[len - 2] = 'l'; name[len - 1] = 'l';
+    object_add_anchor(cell, name, x - xshift / 2, y - yshift / 2);
+    name[len - 2] = 'c'; name[len - 1] = 'l';
+    object_add_anchor(cell, name, x - xshift / 2, y             );
+    name[len - 2] = 'u'; name[len - 1] = 'l';
+    object_add_anchor(cell, name, x - xshift / 2, y + yshift / 2);
+    name[len - 2] = 'l'; name[len - 1] = 'c';
+    object_add_anchor(cell, name, x             , y - yshift / 2);
+    name[len - 2] = 'c'; name[len - 1] = 'c';
+    object_add_anchor(cell, name, x             , y             );
+    name[len - 2] = 'u'; name[len - 1] = 'c';
+    object_add_anchor(cell, name, x             , y + yshift / 2);
+    name[len - 2] = 'l'; name[len - 1] = 'r';
+    object_add_anchor(cell, name, x + xshift / 2, y - yshift / 2);
+    name[len - 2] = 'c'; name[len - 1] = 'r';
+    object_add_anchor(cell, name, x + xshift / 2, y             );
+    name[len - 2] = 'u'; name[len - 1] = 'r';
+    object_add_anchor(cell, name, x + xshift / 2, y + yshift / 2);
+}
+
 static point_t* _get_special_anchor(const struct object* cell, const char* name, const struct transformationmatrix* trans1, const struct transformationmatrix* trans2)
 {
     if(!cell->alignmentbox)

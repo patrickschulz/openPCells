@@ -304,6 +304,18 @@ int lobject_add_anchor(lua_State* L)
     return 0;
 }
 
+int lobject_add_anchor_area(lua_State* L)
+{
+    struct lobject* cell = lobject_check(L, 1);
+    const char* base = luaL_checkstring(L, 2);
+    coordinate_t x = luaL_checkinteger(L, 3);
+    coordinate_t y = luaL_checkinteger(L, 4);
+    coordinate_t xshift = luaL_checkinteger(L, 5);
+    coordinate_t yshift = luaL_checkinteger(L, 6);
+    object_add_anchor_area(cell->object, base, x, y, xshift, yshift);
+    return 0;
+}
+
 int lobject_get_anchor(lua_State* L)
 {
     struct lobject* cell = lobject_check(L, 1);
@@ -429,6 +441,7 @@ int open_lobject_lib(lua_State* L)
         { "copy",                       lobject_copy                        },
         { "exchange",                   lobject_exchange                    },
         { "add_anchor",                 lobject_add_anchor                  },
+        { "add_anchor_area",            lobject_add_anchor_area             },
         { "get_anchor",                 lobject_get_anchor                  },
         { "get_all_regular_anchors",    lobject_get_all_regular_anchors     },
         { "add_port",                   lobject_add_port                    },
