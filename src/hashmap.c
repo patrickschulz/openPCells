@@ -143,6 +143,10 @@ struct hashmap_iterator* hashmap_iterator_create(struct hashmap* map)
     struct hashmap_iterator* iterator = malloc(sizeof(*iterator));
     iterator->hashmap = map;
     iterator->index = 0;
+    if(!map)
+    {
+        return iterator;
+    }
     hashmap_iterator_next(iterator);
     while((iterator->index < iterator->hashmap->capacity) && (!(iterator->hashmap->entries + iterator->index)->key))
     {
@@ -153,7 +157,7 @@ struct hashmap_iterator* hashmap_iterator_create(struct hashmap* map)
 
 int hashmap_iterator_is_valid(struct hashmap_iterator* iterator)
 {
-    return iterator->index < iterator->hashmap->capacity;
+    return iterator->hashmap && iterator->index < iterator->hashmap->capacity;
 }
 
 char* hashmap_iterator_key(struct hashmap_iterator* iterator)
@@ -190,6 +194,10 @@ struct hashmap_const_iterator* hashmap_const_iterator_create(const struct hashma
     struct hashmap_const_iterator* iterator = malloc(sizeof(*iterator));
     iterator->hashmap = map;
     iterator->index = 0;
+    if(!map)
+    {
+        return iterator;
+    }
     hashmap_const_iterator_next(iterator);
     while((iterator->index < iterator->hashmap->capacity) && (!(iterator->hashmap->entries + iterator->index)->key))
     {
@@ -200,7 +208,7 @@ struct hashmap_const_iterator* hashmap_const_iterator_create(const struct hashma
 
 int hashmap_const_iterator_is_valid(struct hashmap_const_iterator* iterator)
 {
-    return iterator->index < iterator->hashmap->capacity;
+    return iterator->hashmap && iterator->index < iterator->hashmap->capacity;
 }
 
 const char* hashmap_const_iterator_key(struct hashmap_const_iterator* iterator)
