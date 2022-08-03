@@ -7,6 +7,10 @@ local function _write_module(rows, routes, numtracks)
     table.insert(lines, 'end')
     table.insert(lines, 'function layout(toplevel)')
     table.insert(lines, string.format('    pcell.push_overwrites("stdcells/base", { numtracks = %i })', numtracks))
+    table.insert(lines, '    local bp = pcell.get_parameters("stdcells/base")')
+    table.insert(lines, '    local width = bp.routingwidth')
+    table.insert(lines, '    local xgrid = bp.gspace + bp.glength')
+    table.insert(lines, '    local ygrid = bp.routingwidth + bp.routingspace')
     -- placement
     if rows then
         table.insert(lines, '    local cellnames = {')
@@ -21,7 +25,7 @@ local function _write_module(rows, routes, numtracks)
             table.insert(lines, '        },')
         end
         table.insert(lines, '    }')
-        table.insert(lines, '    local rows = placement.create_reference_rows(cellnames)')
+        table.insert(lines, '    local rows = placement.create_reference_rows(cellnames, xgrid)')
         table.insert(lines, string.format('    local cells = placement.rowwise(toplevel, rows)'))
     else
         print("no placement information found")
@@ -43,10 +47,6 @@ local function _write_module(rows, routes, numtracks)
             table.insert(lines, '        },')
         end
         table.insert(lines, '    }')
-        table.insert(lines, '    local bp = pcell.get_parameters("stdcells/base")')
-        table.insert(lines, '    local width = bp.routingwidth')
-        table.insert(lines, '    local xgrid = bp.gspace + bp.glength')
-        table.insert(lines, '    local ygrid = bp.routingwidth + bp.routingspace')
         table.insert(lines, string.format('    routing.route(toplevel, routes, cells, width, xgrid, ygrid)'))
     else
         print("no routing information found")
