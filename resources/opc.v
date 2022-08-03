@@ -36,6 +36,18 @@ module nor_gate(A, B, O);
     assign O = !(A || B);
 endmodule
 
+module and_gate(A, B, O);
+    input A, B;
+    output O;
+    assign O = A && B;
+endmodule
+
+module or_gate(A, B, O);
+    input A, B;
+    output O;
+    assign O = A || B;
+endmodule
+
 module xor_gate(A, B, O);
     input A, B;
     output O;
@@ -46,6 +58,12 @@ module xnor_gate(A, B, O);
     input A, B;
     output O;
     assign O = !(A ^ B);
+endmodule
+
+module mux(A, B, SEL, O);
+    input A, B, SEL;
+    output O;
+    assign O = SEL ? A : B;
 endmodule
 
 module dffpq(D, Q, CLK);
