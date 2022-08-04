@@ -164,7 +164,12 @@ int lobject_move_anchor(lua_State* L)
         x = lpoint->point->x;
         y = lpoint->point->y;
     }
-    object_move_anchor(cell->object, name, x, y);
+    int ret = object_move_anchor(cell->object, name, x, y);
+    if(!ret)
+    {
+        lua_pushfstring(L, "move_anchor: could not access anchor '%s'", name);
+        lua_error(L);
+    }
     lua_rotate(L, 1, numstack - 1);
     return 1;
 }
@@ -180,7 +185,12 @@ int lobject_move_anchor_x(lua_State* L)
         lpoint_t* lpoint = lpoint_checkpoint(L, 3);
         x = lpoint->point->x;
     }
-    object_move_anchor_x(cell->object, name, x);
+    int ret = object_move_anchor_x(cell->object, name, x);
+    if(!ret)
+    {
+        lua_pushfstring(L, "move_anchor_x: could not access anchor '%s'", name);
+        lua_error(L);
+    }
     lua_rotate(L, 1, numstack - 1);
     return 1;
 }
@@ -196,7 +206,12 @@ int lobject_move_anchor_y(lua_State* L)
         lpoint_t* lpoint = lpoint_checkpoint(L, 3);
         y = lpoint->point->y;
     }
-    object_move_anchor_y(cell->object, name, y);
+    int ret = object_move_anchor_y(cell->object, name, y);
+    if(!ret)
+    {
+        lua_pushfstring(L, "move_anchor_y: could not access anchor '%s'", name);
+        lua_error(L);
+    }
     lua_rotate(L, 1, numstack - 1);
     return 1;
 }

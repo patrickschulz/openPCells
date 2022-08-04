@@ -56,9 +56,9 @@ void object_rotate_90_left(struct object* cell);
 void object_rotate_90_right(struct object* cell);
 void object_flipx(struct object* cell);
 void object_flipy(struct object* cell);
-void object_move_anchor(struct object* cell, const char* name, coordinate_t x, coordinate_t y);
-void object_move_anchor_x(struct object* cell, const char* name, coordinate_t x);
-void object_move_anchor_y(struct object* cell, const char* name, coordinate_t y);
+int object_move_anchor(struct object* cell, const char* name, coordinate_t x, coordinate_t y);
+int object_move_anchor_x(struct object* cell, const char* name, coordinate_t x);
+int object_move_anchor_y(struct object* cell, const char* name, coordinate_t y);
 
 void object_apply_transformation(struct object* cell);
 void object_transform_point(struct object* cell, point_t* pt);
