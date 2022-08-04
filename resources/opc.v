@@ -108,6 +108,32 @@ module dffnrq(D, Q, CLK, RESET);
     end
 endmodule
 
+module dffpsq(D, Q, CLK, SET);
+    input D, CLK, SET;
+    output reg Q;
+    always @(posedge CLK, negedge SET) begin
+        if(!SET) begin
+            Q <= 1;
+        end
+        else begin
+            Q <= D;
+        end
+    end
+endmodule
+
+module dffnsq(D, Q, CLK, SET);
+    input D, CLK, SET;
+    output reg Q;
+    always @(negedge CLK, negedge SET) begin
+        if(!SET) begin
+            Q <= 1;
+        end
+        else begin
+            Q <= D;
+        end
+    end
+endmodule
+
 module dffprsq(D, Q, CLK, SET, RESET);
     input D, CLK, RESET, SET;
     output reg Q;
