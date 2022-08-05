@@ -40,13 +40,13 @@ function parameters()
         { "nfetvthtype", 1 },
         { "pfetflippedwell", false },
         { "nfetflippedwell", false },
-        { "clockfingers", 8 },
+        { "clockfingers", 4 },
         { "clockdummyfingers", 1 },
         { "clockfwidth", 500 },
-        { "inputfingers", 4 },
+        { "inputfingers", 2 },
         { "inputfwidth", 800 },
         { "inputdummyfingers", 1 },
-        { "latchfingers", 8 },
+        { "latchfingers", 2 },
         { "latchnfwidth", 1000 },
         { "latchpfwidth", 1000 },
         { "invdummyfingers", 1 },
@@ -389,14 +389,14 @@ function layout(comparator, _P)
     -- fill up input row
     if invpfingers < maxfingers then
         -- left
-        local lastanchor = pmosinvleft:get_anchor("sourcedrainleftcc")
+        local lastanchor = pmosresetleft2:get_anchor("sourcedrainleftcc")
         for i = 1, (maxfingers - invpfingers) / 2 do
             local pmosinvfill = comparator:add_child(pmosinvfillname)
             pmosinvfill:move_anchor("sourcedrainrightcc", lastanchor)
             lastanchor = pmosinvfill:get_anchor("sourcedrainleftcc")
         end
         -- right
-        lastanchor = pmosinvright:get_anchor("sourcedrainrightcc")
+        lastanchor = pmosresetright2:get_anchor("sourcedrainrightcc")
         for i = 1, (maxfingers - invpfingers) / 2 do
             local pmosinvfill = comparator:add_child(pmosinvfillname)
             pmosinvfill:move_anchor("sourcedrainleftcc", lastanchor)
