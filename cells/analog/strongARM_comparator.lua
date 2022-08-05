@@ -67,6 +67,12 @@ function layout(comparator, _P)
         gatespace = _P.gatespace, 
         sdwidth = _P.sdwidth,
     })
+
+    local clockrowfingers = _P.clockfingers + _P.clockdummyfingers
+    local inputrowfingers = 2 * _P.inputfingers + _P.inputdummyfingers
+    local invnfingers = 2 * _P.latchfingers + _P.invdummyfingers
+    local invpfingers = 2 * _P.latchfingers + 4 * _P.resetfingers + _P.invdummyfingers
+    local maxfingers = math.max(clockrowfingers, inputrowfingers, invnfingers, invpfingers)
     -- clock tail dummy transistor (split actual clock transistor in two, left and right)
     -- this is not needed, maybe I will get rid of this at some point
     -- the transistor in the middle can be used to equalize the width regarding the input transistors
@@ -110,6 +116,20 @@ function layout(comparator, _P)
         connsourcewidth = _P.powerwidth,
         gbotext = 200 + 200,
     })
+    local clockfillref = pcell.create_layout("basic/mosfet", { 
+        channeltype = "nmos",
+        flippedwell = _P.nfetflippedwell,
+        vthtype = _P.nfetvthtype,
+        fingers = 1,
+        fwidth = _P.clockfwidth,
+        connectdrain = true,
+        connectdraininverse = true,
+        connectsource = true,
+        connsourcewidth = _P.powerwidth,
+        conndrainwidth = _P.powerwidth,
+        extenddrainconnection = true,
+        extendsourceconnection = true
+    })
     -- input transistors
     local inputdummyref = pcell.create_layout("basic/mosfet", { 
         channeltype = "nmos",
@@ -141,6 +161,14 @@ function layout(comparator, _P)
         conndrainspace = _P.invinputsdspace,
         botgatecompsd = false
     })
+    local inputfillref = pcell.create_layout("basic/mosfet", { 
+        channeltype = "nmos",
+        flippedwell = _P.nfetflippedwell,
+        vthtype = _P.nfetvthtype,
+        fingers = 1,
+        fwidth = _P.inputfwidth,
+        drawsourcedrain = "none",
+    })
     -- CMOS inverter
     local nmosdummyref = pcell.create_layout("basic/mosfet", { 
         channeltype = "nmos",
@@ -170,6 +198,14 @@ function layout(comparator, _P)
         conndraininline = true,
         cliptop = true
     })
+    local nmosinvfillref = pcell.create_layout("basic/mosfet", { 
+        channeltype = "nmos",
+        flippedwell = _P.nfetflippedwell,
+        vthtype = _P.nfetvthtype,
+        fingers = 1,
+        fwidth = _P.latchnfwidth,
+        drawsourcedrain = "none",
+    })
     local pmosinvref = pcell.create_layout("basic/mosfet", { 
         channeltype = "pmos",
         flippedwell = _P.pfetflippedwell,
@@ -185,6 +221,14 @@ function layout(comparator, _P)
         drawdrainvia = true,
         conndraininline = true,
         clipbot = true
+    })
+    local pmosinvfillref = pcell.create_layout("basic/mosfet", { 
+        channeltype = "nmos",
+        flippedwell = _P.nfetflippedwell,
+        vthtype = _P.nfetvthtype,
+        fingers = 1,
+        fwidth = _P.latchpfwidth,
+        drawsourcedrain = "none",
     })
     local pmosdummyref = pcell.create_layout("basic/mosfet", { 
         channeltype = "pmos",
@@ -233,6 +277,10 @@ function layout(comparator, _P)
     local pmosdummyname = pcell.add_cell_reference(pmosdummyref, "pmosdummy")
     local pmosinvname = pcell.add_cell_reference(pmosinvref, "pmosinv")
     local pmosresetname = pcell.add_cell_reference(pmosresetref, "pmosreset")
+    local clockfillname = pcell.add_cell_reference(clockfillref, "clockfill")
+    local inputfillname = pcell.add_cell_reference(inputfillref, "inputfill")
+    local nmosinvfillname = pcell.add_cell_reference(nmosinvfillref, "nmosinvfill")
+    local pmosinvfillname = pcell.add_cell_reference(pmosinvfillref, "pmosinvfill")
 
     local clockdummy
     local clockleft, clockright
@@ -283,6 +331,78 @@ function layout(comparator, _P)
     pmosresetleft2:move_anchor("sourcedrainrightcc", pmosresetleft1:get_anchor("sourcedrainleftcc"))
     pmosresetright1:move_anchor("sourcedrainleftcc", pmosinvright:get_anchor("sourcedrainrightcc"))
     pmosresetright2:move_anchor("sourcedrainleftcc", pmosresetright1:get_anchor("sourcedrainrightcc"))
+
+    -- fill up clock row
+    if clockrowfingers < maxfingers then
+        -- left
+        local lastanchor = clockleft:get_anchor("sourcedrainleftcc")
+        for i = 1, (maxfingers - clockrowfingers) / 2 do
+            local clockfill = comparator:add_child(clockfillname)
+            clockfill:move_anchor("sourcedrainrightcc", lastanchor)
+            lastanchor = clockfill:get_anchor("sourcedrainleftcc")
+        end
+        -- right
+        lastanchor = clockright:get_anchor("sourcedrainrightcc")
+        for i = 1, (maxfingers - clockrowfingers) / 2 do
+            local clockfill = comparator:add_child(clockfillname)
+            clockfill:move_anchor("sourcedrainleftcc", lastanchor)
+            lastanchor = clockfill:get_anchor("sourcedrainrightcc")
+        end
+    end
+
+    -- fill up input row
+    if inputrowfingers < maxfingers then
+        -- left
+        local lastanchor = inputleft:get_anchor("sourcedrainleftcc")
+        for i = 1, (maxfingers - inputrowfingers) / 2 do
+            local inputfill = comparator:add_child(inputfillname)
+            inputfill:move_anchor("sourcedrainrightcc", lastanchor)
+            lastanchor = inputfill:get_anchor("sourcedrainleftcc")
+        end
+        -- right
+        lastanchor = inputright:get_anchor("sourcedrainrightcc")
+        for i = 1, (maxfingers - inputrowfingers) / 2 do
+            local inputfill = comparator:add_child(inputfillname)
+            inputfill:move_anchor("sourcedrainleftcc", lastanchor)
+            lastanchor = inputfill:get_anchor("sourcedrainrightcc")
+        end
+    end
+
+    -- fill up nmos inv row
+    if invnfingers < maxfingers then
+        -- left
+        local lastanchor = nmosinvleft:get_anchor("sourcedrainleftcc")
+        for i = 1, (maxfingers - invnfingers) / 2 do
+            local nmosinvfill = comparator:add_child(nmosinvfillname)
+            nmosinvfill:move_anchor("sourcedrainrightcc", lastanchor)
+            lastanchor = nmosinvfill:get_anchor("sourcedrainleftcc")
+        end
+        -- right
+        lastanchor = nmosinvright:get_anchor("sourcedrainrightcc")
+        for i = 1, (maxfingers - invnfingers) / 2 do
+            local nmosinvfill = comparator:add_child(nmosinvfillname)
+            nmosinvfill:move_anchor("sourcedrainleftcc", lastanchor)
+            lastanchor = nmosinvfill:get_anchor("sourcedrainrightcc")
+        end
+    end
+
+    -- fill up input row
+    if invpfingers < maxfingers then
+        -- left
+        local lastanchor = pmosinvleft:get_anchor("sourcedrainleftcc")
+        for i = 1, (maxfingers - invpfingers) / 2 do
+            local pmosinvfill = comparator:add_child(pmosinvfillname)
+            pmosinvfill:move_anchor("sourcedrainrightcc", lastanchor)
+            lastanchor = pmosinvfill:get_anchor("sourcedrainleftcc")
+        end
+        -- right
+        lastanchor = pmosinvright:get_anchor("sourcedrainrightcc")
+        for i = 1, (maxfingers - invpfingers) / 2 do
+            local pmosinvfill = comparator:add_child(pmosinvfillname)
+            pmosinvfill:move_anchor("sourcedrainleftcc", lastanchor)
+            lastanchor = pmosinvfill:get_anchor("sourcedrainrightcc")
+        end
+    end
 
     -- connect reset gates
     geometry.path(comparator, generics.metal(1), {
