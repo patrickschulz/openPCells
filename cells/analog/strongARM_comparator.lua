@@ -41,7 +41,7 @@ function parameters()
         { "inputfingers", 4 },
         { "inputdummyfingers", 2 },
         { "latchfingers", 8 },
-        { "invdummyfingers", 2 },
+        { "invdummyfingers", 1 },
         { "resetfingers", 2 },
         { "sdwidth", tech.get_dimension("Minimum M1 Width") }
     )
@@ -165,7 +165,7 @@ function layout(comparator, _P)
     end
     local clockname = pcell.add_cell_reference(clockref, "clock")
     local nmosinputdummyname = pcell.add_cell_reference(inputdummyref, "nmosinputdummy")
-    local nmosinputname = pcell.add_cell_reference(inputref, "nmosinput")
+    local inputname = pcell.add_cell_reference(inputref, "nmosinput")
     local nmosdummyname = pcell.add_cell_reference(nmosdummyref, "nmosdummy")
     local nmosinvname = pcell.add_cell_reference(nmosinvref, "nmosinv")
     local pmosdummyname = pcell.add_cell_reference(pmosdummyref, "pmosdummy")
@@ -190,8 +190,8 @@ function layout(comparator, _P)
         clockright = clockleft
     end
     --local nmosinputdummy = comparator:add_child(nmosinputdummyname)
-    local nmosinputleft = comparator:add_child(nmosinputname)
-    local nmosinputright = comparator:add_child(nmosinputname)
+    local inputleft = comparator:add_child(inputname)
+    local inputright = comparator:add_child(inputname)
     local nmosdummy = comparator:add_child(nmosdummyname)
     local nmosinvleft = comparator:add_child(nmosinvname)
     local nmosinvright = comparator:add_child(nmosinvname)
@@ -204,11 +204,11 @@ function layout(comparator, _P)
     local pmosresetright2 = comparator:add_child(pmosresetname)
 
     --nmosinputdummy:move_anchor("sourcestrap", clockdummy:get_anchor("topgate"))
-    nmosinputleft:move_anchor("sourcedrainrightcc")
-    nmosinputleft:move_anchor_y("sourcestrapcr", clockleft:get_anchor("drainstrapcr"))
-    nmosinputright:move_anchor("sourcedrainleftcc")
-    nmosinputright:move_anchor_y("sourcestrapcc", clockright:get_anchor("drainstrapcc"))
-    nmosinvleft:move_anchor_y("sourcestrapcc", nmosinputleft:get_anchor("drainstrapcc"))
+    inputleft:move_anchor("sourcedrainrightcc")
+    inputleft:move_anchor_y("sourcestrapcr", clockleft:get_anchor("drainstrapcr"))
+    inputright:move_anchor("sourcedrainleftcc")
+    inputright:move_anchor_y("sourcestrapcc", clockright:get_anchor("drainstrapcc"))
+    nmosinvleft:move_anchor_y("sourcestrapcc", inputleft:get_anchor("drainstrapcc"))
     nmosdummy:move_anchor_y("sourcedrainleftcc", nmosinvleft:get_anchor("sourcedrainrightcc"))
     nmosinvleft:move_anchor("sourcedrainrightcc", nmosdummy:get_anchor("sourcedrainleftcc"))
     nmosinvright:move_anchor("sourcedrainleftcc", nmosdummy:get_anchor("sourcedrainrightcc"))
@@ -296,8 +296,8 @@ function layout(comparator, _P)
 
     ---- add ports
     --comparator:add_port("clk", generics.metal(1), point.combine(clockleft:get_anchor("topgatestrap"), clockright:get_anchor("topgatestrap")))
-    --comparator:add_port("vinp", generics.metal(1), nmosinputleft:get_anchor("topgatestrap"))
-    --comparator:add_port("vinn", generics.metal(1), nmosinputright:get_anchor("topgatestrap"))
+    --comparator:add_port("vinp", generics.metal(1), inputleft:get_anchor("topgatestrap"))
+    --comparator:add_port("vinn", generics.metal(1), inputright:get_anchor("topgatestrap"))
     --comparator:add_port("vss", generics.metal(1), clockdummy:get_anchor("sourcestrapmiddlecenter"))
     --comparator:add_port("vdd", generics.metal(1), pmosinvleft:get_anchor("drainstrapmiddlecenter"))
 end
