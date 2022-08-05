@@ -36,6 +36,10 @@ function parameters()
         { "gatelength", tech.get_dimension("Minimum Gate Length") },
         { "gatespace", tech.get_dimension("Minimum Gate Space") },
         { "fingerwidth", tech.get_dimension("Minimum Gate Width") },
+        { "pfetvthtype", 1 },
+        { "nfetvthtype", 1 },
+        { "pfetflippedwell", false },
+        { "nfetflippedwell", false },
         { "clockfingers", 8 },
         { "clockdummyfingers", 1 },
         { "clockfwidth", 500 },
@@ -43,11 +47,13 @@ function parameters()
         { "inputfwidth", 800 },
         { "inputdummyfingers", 1 },
         { "latchfingers", 8 },
-        { "latchfwidth", 1000 },
+        { "latchnfwidth", 1000 },
+        { "latchpfwidth", 1000 },
         { "invdummyfingers", 1 },
         { "resetfingers", 2 },
         { "inputclocksdspace", 800 },
         { "invinputsdspace", 400 },
+        { "invgstrapspace", 200 },
         { "sdwidth", tech.get_dimension("Minimum M1 Width") },
         { "powerwidth", 400 }
     )
@@ -68,6 +74,8 @@ function layout(comparator, _P)
     if _P.clockdummyfingers > 0 then
         clockdummyref = pcell.create_layout("basic/mosfet", { 
             channeltype = "nmos",
+            flippedwell = _P.nfetflippedwell,
+            vthtype = _P.nfetvthtype,
             fingers = _P.clockdummyfingers,
             fwidth = _P.clockfwidth,
             drawbotgate = true,
@@ -85,6 +93,8 @@ function layout(comparator, _P)
     -- clock tail transistor
     local clockref = pcell.create_layout("basic/mosfet", { 
         channeltype = "nmos",
+        flippedwell = _P.nfetflippedwell,
+        vthtype = _P.nfetvthtype,
         fingers = _P.clockfingers / 2,
         fwidth = _P.clockfwidth,
         drawtopgate = true,
@@ -103,6 +113,8 @@ function layout(comparator, _P)
     -- input transistors
     local inputdummyref = pcell.create_layout("basic/mosfet", { 
         channeltype = "nmos",
+        flippedwell = _P.nfetflippedwell,
+        vthtype = _P.nfetvthtype,
         fingers = _P.inputdummyfingers,
         fwidth = _P.inputfwidth,
         drawtopgate = false,
@@ -115,6 +127,8 @@ function layout(comparator, _P)
     })
     local inputref = pcell.create_layout("basic/mosfet", { 
         channeltype = "nmos",
+        flippedwell = _P.nfetflippedwell,
+        vthtype = _P.nfetvthtype,
         fingers = _P.inputfingers,
         fwidth = _P.inputfwidth,
         connectsource = true,
@@ -130,16 +144,21 @@ function layout(comparator, _P)
     -- CMOS inverter
     local nmosdummyref = pcell.create_layout("basic/mosfet", { 
         channeltype = "nmos",
+        flippedwell = _P.nfetflippedwell,
+        vthtype = _P.nfetvthtype,
         fingers = _P.invdummyfingers,
-        fwidth = _P.latchfwidth,
+        fwidth = _P.latchnfwidth,
         cliptop = true,
         gbotext = _P.invinputsdspace + _P.sdwidth / 2
     })
     local nmosinvref = pcell.create_layout("basic/mosfet", { 
         channeltype = "nmos",
+        flippedwell = _P.nfetflippedwell,
+        vthtype = _P.nfetvthtype,
         drawtopgate = true,
+        topgatestrspace = _P.invgstrapspace,
         fingers = _P.latchfingers,
-        fwidth = _P.latchfwidth,
+        fwidth = _P.latchnfwidth,
         connectsource = true,
         connsourcemetal = 1,
         drawsourcevia = true,
@@ -153,9 +172,12 @@ function layout(comparator, _P)
     })
     local pmosinvref = pcell.create_layout("basic/mosfet", { 
         channeltype = "pmos",
-        vthtype = 1,
+        flippedwell = _P.pfetflippedwell,
+        vthtype = _P.pfetvthtype,
         drawbotgate = true,
+        botgatestrspace = _P.invgstrapspace,
         fingers = _P.latchfingers,
+        fwidth = _P.latchpfwidth,
         connectsource = true,
         connsourcewidth = _P.powerwidth,
         connectdrain = true,
@@ -166,7 +188,10 @@ function layout(comparator, _P)
     })
     local pmosdummyref = pcell.create_layout("basic/mosfet", { 
         channeltype = "pmos",
+        flippedwell = _P.pfetflippedwell,
+        vthtype = _P.pfetvthtype,
         fingers = _P.invdummyfingers,
+        fwidth = _P.latchpfwidth,
         clipbot = true,
         drawtopgate = true,
         topgatecompsd = false,
@@ -181,9 +206,11 @@ function layout(comparator, _P)
     -- reset switches
     local pmosresetref = pcell.create_layout("basic/mosfet", { 
         channeltype = "pmos",
-        vthtype = 1,
+        flippedwell = _P.pfetflippedwell,
+        vthtype = _P.pfetvthtype,
         drawbotgate = true,
         fingers = _P.resetfingers,
+        fwidth = _P.latchpfwidth,
         connectsource = true,
         connsourcewidth = _P.powerwidth,
         connectdrain = true,
@@ -320,6 +347,20 @@ function layout(comparator, _P)
         geometry.path_points_yx(pmosresetright2:get_anchor(string.format("sourcedrain%dcc", 2)), {
             nmosinvright:get_anchor("sourcestrapcl")
     }), _P.sdwidth)
+    geometry.viabltr(comparator, 1, 2,
+        nmosinvright:get_anchor("sourcestrapll"),
+        nmosinvright:get_anchor("sourcestrapur")
+    )
+    geometry.viabltr(comparator, 1, 2,
+        nmosinvleft:get_anchor("sourcestrapll"),
+        nmosinvleft:get_anchor("sourcestrapur")
+    )
+
+    -- connect vtail
+    geometry.rectanglebltr(comparator, generics.metal(2),
+        inputleft:get_anchor("sourcestraplr"),
+        inputright:get_anchor("sourcestrapul")
+    )
 
     -- connect clock gates
     geometry.path(comparator, generics.metal(1), 
@@ -332,9 +373,9 @@ function layout(comparator, _P)
     }), _P.sdwidth)
 
     ---- add ports
-    comparator:add_port("clk", generics.metal(1), point.combine(clockleft:get_anchor("topgatestrapcc"), clockright:get_anchor("topgatestrapcc")))
-    comparator:add_port("vinp", generics.metal(1), inputleft:get_anchor("botgatestrapcc"))
-    comparator:add_port("vinn", generics.metal(1), inputright:get_anchor("botgatestrapcc"))
-    comparator:add_port("vss", generics.metal(1), clockdummy:get_anchor("sourcestrapcc"))
-    comparator:add_port("vdd", generics.metal(1), pmosdummy:get_anchor("sourcestrapcc"))
+    comparator:add_port("clk", generics.metalport(1), point.combine(clockleft:get_anchor("topgatestrapcc"), clockright:get_anchor("topgatestrapcc")))
+    comparator:add_port("vinp", generics.metalport(1), inputleft:get_anchor("botgatestrapcc"))
+    comparator:add_port("vinn", generics.metalport(1), inputright:get_anchor("botgatestrapcc"))
+    comparator:add_port("vss", generics.metalport(1), clockdummy:get_anchor("sourcestrapcc"))
+    comparator:add_port("vdd", generics.metalport(1), pmosdummy:get_anchor("sourcestrapcc"))
 end
