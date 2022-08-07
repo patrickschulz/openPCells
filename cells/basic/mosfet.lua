@@ -5,7 +5,7 @@ function parameters()
         { "vthtype(Threshold Voltage Type)",                             1, argtype = "integer", posvals = interval(1, inf) },
         { "gatemarker(Gate Marking Layer Index)",                        1, argtype = "integer", posvals = interval(1, inf) },
         { "flippedwell(Flipped Well)",                                 false },
-        { "fingers(Number of Fingers)",                                  1, argtype = "integer", posvals = interval(1, inf) },
+        { "fingers(Number of Fingers)",                                  1, argtype = "integer", posvals = interval(0, inf) },
         { "fwidth(Finger Width)",                                      tech.get_dimension("Minimum Gate Width"), argtype = "integer", posvals = even() },
         { "gatelength(Gate Length)",                                   tech.get_dimension("Minimum Gate Length"), argtype = "integer", posvals = even() },
         { "gatespace(Gate Spacing)",                                   tech.get_dimension("Minimum Gate Space"), argtype = "integer", posvals = even() },
@@ -266,15 +266,27 @@ function layout(transistor, _P)
     -- threshold voltage
     geometry.rectanglebltr(transistor,
         generics.vthtype(_P.channeltype, _P.vthtype),
-        point.create(-activewidth / 2 - virtualactiveleftext  - _P.extendvthleft, -_P.fwidth / 2 - gateaddbot - enable(not _P.clipbot, _P.extendvthbot)),
-        point.create( activewidth / 2 + virtualactiverightext + _P.extendvthright, _P.fwidth / 2 + gateaddtop + enable(not _P.cliptop, _P.extendvthtop))
+        point.create(
+            -activewidth / 2 - virtualactiveleftext  - _P.extendvthleft,
+            -_P.fwidth / 2 - gateaddbot - enable(not _P.clipbot, _P.extendvthbot)
+        ),
+        point.create(
+            activewidth / 2 + virtualactiverightext + _P.extendvthright,
+            _P.fwidth / 2 + gateaddtop + enable(not _P.cliptop, _P.extendvthtop)
+        )
     )
 
     -- implant
     geometry.rectanglebltr(transistor,
         generics.implant(_P.channeltype),
-        point.create(-activewidth / 2 - virtualactiveleftext  - _P.extendimplantleft, -_P.fwidth / 2 - gateaddbot - enable(not _P.clipbot, _P.extendimplantbot)),
-        point.create( activewidth / 2 + virtualactiverightext + _P.extendimplantright, _P.fwidth / 2 + gateaddtop + enable(not _P.cliptop, _P.extendimplanttop))
+        point.create(
+            -activewidth / 2 - virtualactiveleftext  - _P.extendimplantleft,
+            -_P.fwidth / 2 - gateaddbot - enable(not _P.clipbot, _P.extendimplantbot)
+        ),
+        point.create(
+            activewidth / 2 + virtualactiverightext + _P.extendimplantright,
+            _P.fwidth / 2 + gateaddtop + enable(not _P.cliptop, _P.extendimplanttop)
+        )
     )
 
     -- well
