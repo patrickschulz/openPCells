@@ -10,7 +10,7 @@ end
 function meta.__add(lhs, rhs)
     local x1, y1 = lhs:unwrap()
     local x2, y2 = rhs:unwrap()
-    return point.create(x1 + x2, y1 + y2)
+    return point.create((x1 + x2) / 2, (y1 + y2) / 2)
 end
 
 function meta.__sub(lhs, rhs)
