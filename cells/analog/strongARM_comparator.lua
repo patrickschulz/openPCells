@@ -145,7 +145,9 @@ function layout(comparator, _P)
         flippedwell = _P.nfetflippedwell,
         vthtype = _P.nfetvthtype,
         fwidth = _P.clockfwidth,
-        drawleftstopgate = true
+        drawleftstopgate = true,
+        drawsourcedrain = "none",
+        drawtopgcut = true,
     })
     local clockendrightref = pcell.create_layout("basic/mosfet", {
         fingers = 0,
@@ -153,7 +155,9 @@ function layout(comparator, _P)
         flippedwell = _P.nfetflippedwell,
         vthtype = _P.nfetvthtype,
         fwidth = _P.clockfwidth,
-        drawrightstopgate = true
+        drawrightstopgate = true,
+        drawsourcedrain = "none",
+        drawtopgcut = true,
     })
     -- input transistors
     local inputdummyref = pcell.create_layout("basic/mosfet", {
@@ -202,7 +206,8 @@ function layout(comparator, _P)
         flippedwell = _P.nfetflippedwell,
         vthtype = _P.nfetvthtype,
         fwidth = _P.inputfwidth,
-        drawleftstopgate = true
+        drawleftstopgate = true,
+        drawsourcedrain = "none",
     })
     local inputendrightref = pcell.create_layout("basic/mosfet", {
         fingers = 0,
@@ -210,7 +215,8 @@ function layout(comparator, _P)
         flippedwell = _P.nfetflippedwell,
         vthtype = _P.nfetvthtype,
         fwidth = _P.inputfwidth,
-        drawrightstopgate = true
+        drawrightstopgate = true,
+        drawsourcedrain = "none",
     })
     -- CMOS inverter
     local nmosdummyref = pcell.create_layout("basic/mosfet", {
@@ -259,7 +265,8 @@ function layout(comparator, _P)
         flippedwell = _P.nfetflippedwell,
         vthtype = _P.nfetvthtype,
         fwidth = _P.latchnfwidth,
-        drawleftstopgate = true
+        drawleftstopgate = true,
+        drawsourcedrain = "none",
     })
     local nmosinvendrightref = pcell.create_layout("basic/mosfet", {
         fingers = 0,
@@ -267,7 +274,8 @@ function layout(comparator, _P)
         flippedwell = _P.nfetflippedwell,
         vthtype = _P.nfetvthtype,
         fwidth = _P.latchnfwidth,
-        drawrightstopgate = true
+        drawrightstopgate = true,
+        drawsourcedrain = "none",
     })
     local pmosinvref = pcell.create_layout("basic/mosfet", {
         channeltype = "pmos",
@@ -316,7 +324,8 @@ function layout(comparator, _P)
         flippedwell = _P.pfetflippedwell,
         vthtype = _P.pfetvthtype,
         fwidth = _P.latchpfwidth,
-        drawleftstopgate = true
+        drawleftstopgate = true,
+        drawsourcedrain = "none",
     })
     local pmosinvendrightref = pcell.create_layout("basic/mosfet", {
         fingers = 0,
@@ -324,7 +333,8 @@ function layout(comparator, _P)
         flippedwell = _P.pfetflippedwell,
         vthtype = _P.pfetvthtype,
         fwidth = _P.latchpfwidth,
-        drawrightstopgate = true
+        drawrightstopgate = true,
+        drawsourcedrain = "none",
     })
     -- reset switches
     local pmosresetref = pcell.create_layout("basic/mosfet", {
