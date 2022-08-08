@@ -206,15 +206,15 @@ function layout(transistor, _P)
         if _P.drawstopgatetopgcut then
             geometry.rectanglebltr(transistor,
                 generics.other("gatecut"),
-                point.create(-cutwidth / 2 - (_P.fingers + 1) / 2 * gatepitch, _P.fwidth / 2 + gateaddtop - _P.cutheight / 2 + _P.topgcutoffset),
-                point.create( cutwidth / 2 - (_P.fingers + 1) / 2 * gatepitch, _P.fwidth / 2 + gateaddtop + _P.cutheight / 2 + _P.topgcutoffset)
+                point.create(-gatepitch / 2 - (_P.fingers + 1) / 2 * gatepitch, _P.fwidth / 2 + gateaddtop - _P.cutheight / 2 + _P.topgcutoffset),
+                point.create( gatepitch / 2 - (_P.fingers + 1) / 2 * gatepitch, _P.fwidth / 2 + gateaddtop + _P.cutheight / 2 + _P.topgcutoffset)
             )
         end
         if _P.drawstopgatebotgcut then
             geometry.rectanglebltr(transistor,
                 generics.other("gatecut"),
-                point.create(-cutwidth / 2 - (_P.fingers + 1) / 2 * gatepitch, -_P.fwidth / 2 - gateaddbot - _P.cutheight / 2 + _P.botgcutoffset),
-                point.create( cutwidth / 2 - (_P.fingers + 1) / 2 * gatepitch, -_P.fwidth / 2 - gateaddbot + _P.cutheight / 2 + _P.botgcutoffset)
+                point.create(-gatepitch / 2 - (_P.fingers + 1) / 2 * gatepitch, -_P.fwidth / 2 - gateaddbot - _P.cutheight / 2 + _P.botgcutoffset),
+                point.create( gatepitch / 2 - (_P.fingers + 1) / 2 * gatepitch, -_P.fwidth / 2 - gateaddbot + _P.cutheight / 2 + _P.botgcutoffset)
             )
         end
     end
@@ -233,15 +233,15 @@ function layout(transistor, _P)
         if _P.drawstopgatetopgcut then
             geometry.rectanglebltr(transistor,
                 generics.other("gatecut"),
-                point.create(-cutwidth / 2 + (_P.fingers + 1) / 2 * gatepitch, _P.fwidth / 2 + gateaddtop - _P.cutheight / 2 + _P.topgcutoffset),
-                point.create( cutwidth / 2 + (_P.fingers + 1) / 2 * gatepitch, _P.fwidth / 2 + gateaddtop + _P.cutheight / 2 + _P.topgcutoffset)
+                point.create(-gatepitch / 2 + (_P.fingers + 1) / 2 * gatepitch, _P.fwidth / 2 + gateaddtop - _P.cutheight / 2 + _P.topgcutoffset),
+                point.create( gatepitch / 2 + (_P.fingers + 1) / 2 * gatepitch, _P.fwidth / 2 + gateaddtop + _P.cutheight / 2 + _P.topgcutoffset)
             )
         end
         if _P.drawstopgatebotgcut then
             geometry.rectanglebltr(transistor,
                 generics.other("gatecut"),
-                point.create(-cutwidth / 2 + (_P.fingers + 1) / 2 * gatepitch, -_P.fwidth / 2 - gateaddbot - _P.cutheight / 2 + _P.botgcutoffset),
-                point.create( cutwidth / 2 + (_P.fingers + 1) / 2 * gatepitch, -_P.fwidth / 2 - gateaddbot + _P.cutheight / 2 + _P.botgcutoffset)
+                point.create(-gatepitch / 2 + (_P.fingers + 1) / 2 * gatepitch, -_P.fwidth / 2 - gateaddbot - _P.cutheight / 2 + _P.botgcutoffset),
+                point.create( gatepitch / 2 + (_P.fingers + 1) / 2 * gatepitch, -_P.fwidth / 2 - gateaddbot + _P.cutheight / 2 + _P.botgcutoffset)
             )
         end
     end
