@@ -57,6 +57,7 @@ function parameters()
         { "invinputsdspace", tech.get_dimension("Minimum M1 Space") },
         { "invgstrapwidth", tech.get_dimension("Minimum M1 Width") },
         { "invgstrapspace", tech.get_dimension("Minimum M1 Space") },
+        { "invskip", 200 },
         { "sdwidth", tech.get_dimension("Minimum M1 Width") },
         { "powerwidth", tech.get_dimension("Minimum M1 Width") },
         { "powerspace", tech.get_dimension("Minimum M1 Space") }
@@ -89,7 +90,7 @@ function layout(comparator, _P)
             fingers = _P.clockdummyfingers,
             fwidth = _P.clockfwidth,
             drawbotgate = true,
-            gtopext = _P.inputclocksdspace + _P.sdwidth / 2,
+            gtopext = _P.clockinputgatespace + _P.clockinputgatewidth + _P.inputclocksdspace + _P.sdwidth / 2,
             botgatecompsd = false,
             connectdrain = true,
             connectdraininverse = true,
@@ -114,18 +115,37 @@ function layout(comparator, _P)
         connectdrain = true,
         conndrainmetal = 2,
         conndrainwidth = _P.sdwidth,
-        conndrainspace = _P.inputclocksdspace,
+        conndrainspace = _P.clockinputgatespace + _P.clockinputgatewidth + _P.inputclocksdspace,
         drawdrainvia = true,
         connectsource = true,
         connsourcewidth = _P.powerwidth,
         connsourcespace = _P.powerspace,
         gbotext = _P.powerwidth + _P.powerspace,
     })
-    local clockfillref = pcell.create_layout("basic/mosfet", {
+    local clockfillleftref = pcell.create_layout("basic/mosfet", {
         channeltype = "nmos",
         flippedwell = _P.nfetflippedwell,
         vthtype = _P.nfetvthtype,
-        fingers = 1,
+        fingers = (maxfingers - clockrowfingers) / 2,
+        fwidth = _P.clockfwidth,
+        connectdrain = true,
+        connectdraininverse = true,
+        connectsource = true,
+        connsourcewidth = _P.powerwidth,
+        conndrainwidth = _P.powerwidth,
+        extenddrainconnection = true,
+        extendsourceconnection = true,
+        drawbotgate = true,
+        gtopext = _P.clockinputgatespace + _P.clockinputgatewidth + _P.inputclocksdspace + _P.sdwidth / 2,
+        botgatecompsd = false,
+        drawleftstopgate = true,
+        drawstopgatetopgcut = true,
+    })
+    local clockfillrightref = pcell.create_layout("basic/mosfet", {
+        channeltype = "nmos",
+        flippedwell = _P.nfetflippedwell,
+        vthtype = _P.nfetvthtype,
+        fingers = (maxfingers - clockrowfingers) / 2,
         fwidth = _P.clockfwidth,
         connectdrain = true,
         connectdraininverse = true,
@@ -136,28 +156,10 @@ function layout(comparator, _P)
         extendsourceconnection = true,
         gtopext = (clockrowfingers == inputrowfingers) and _P.inputclocksdspace + _P.sdwidth / 2,
         drawbotgate = true,
-        gtopext = _P.inputclocksdspace + _P.sdwidth / 2,
+        gtopext = _P.clockinputgatespace + _P.clockinputgatewidth + _P.inputclocksdspace + _P.sdwidth / 2,
         botgatecompsd = false,
-    })
-    local clockendleftref = pcell.create_layout("basic/mosfet", {
-        fingers = 0,
-        channeltype = "nmos",
-        flippedwell = _P.nfetflippedwell,
-        vthtype = _P.nfetvthtype,
-        fwidth = _P.clockfwidth,
-        drawleftstopgate = true,
-        drawsourcedrain = "none",
-        drawtopgcut = true,
-    })
-    local clockendrightref = pcell.create_layout("basic/mosfet", {
-        fingers = 0,
-        channeltype = "nmos",
-        flippedwell = _P.nfetflippedwell,
-        vthtype = _P.nfetvthtype,
-        fwidth = _P.clockfwidth,
         drawrightstopgate = true,
-        drawsourcedrain = "none",
-        drawtopgcut = true,
+        drawstopgatetopgcut = true,
     })
     -- input transistors
     local inputdummyref = pcell.create_layout("basic/mosfet", {
@@ -172,7 +174,7 @@ function layout(comparator, _P)
         connectdrain = false,
         drawdrainvia = false,
         gtopext = _P.invinputsdspace + _P.sdwidth / 2,
-        gbotext = _P.inputclocksdspace + _P.sdwidth / 2
+        gbotext = _P.clockinputgatespace + _P.clockinputgatewidth + _P.inputclocksdspace + _P.sdwidth / 2,
     })
     local inputref = pcell.create_layout("basic/mosfet", {
         channeltype = "nmos",
@@ -184,39 +186,37 @@ function layout(comparator, _P)
         connsourcemetal = 2,
         drawsourcevia = true,
         drawbotgate = true,
-        connsourcespace = _P.inputclocksdspace,
+        connsourcespace = _P.clockinputgatespace + _P.clockinputgatewidth + _P.inputclocksdspace,
         connectdrain = true,
         conndrainwidth = _P.sdwidth,
         conndrainspace = _P.invinputsdspace,
-        botgatecompsd = false
+        botgatecompsd = false,
+        gtopext = _P.invinputsdspace + _P.sdwidth / 2,
+        drawtopgcut = true
     })
-    local inputfillref = pcell.create_layout("basic/mosfet", {
+    local inputfillleftref = pcell.create_layout("basic/mosfet", {
         channeltype = "nmos",
         flippedwell = _P.nfetflippedwell,
         vthtype = _P.nfetvthtype,
-        fingers = 1,
+        fingers = (maxfingers - inputrowfingers) / 2,
         fwidth = _P.inputfwidth,
-        drawsourcedrain = "none",
-        gbotext = (clockrowfingers == inputrowfingers) and _P.inputclocksdspace + _P.sdwidth / 2,
+        gbotext = _P.clockinputgatespace + _P.clockinputgatewidth + _P.inputclocksdspace + _P.sdwidth / 2,
         gtopext = (inputrowfingers == invnfingers) and _P.invinputsdspace + _P.sdwidth / 2,
-    })
-    local inputendleftref = pcell.create_layout("basic/mosfet", {
-        fingers = 0,
-        channeltype = "nmos",
-        flippedwell = _P.nfetflippedwell,
-        vthtype = _P.nfetvthtype,
-        fwidth = _P.inputfwidth,
         drawleftstopgate = true,
-        drawsourcedrain = "none",
+        drawstopgatebotgcut = true,
+        drawstopgatetopgcut = true,
     })
-    local inputendrightref = pcell.create_layout("basic/mosfet", {
-        fingers = 0,
+    local inputfillrightref = pcell.create_layout("basic/mosfet", {
         channeltype = "nmos",
         flippedwell = _P.nfetflippedwell,
         vthtype = _P.nfetvthtype,
+        fingers = (maxfingers - inputrowfingers) / 2,
         fwidth = _P.inputfwidth,
+        gbotext = _P.clockinputgatespace + _P.clockinputgatewidth + _P.inputclocksdspace + _P.sdwidth / 2,
+        gtopext = (inputrowfingers == invnfingers) and _P.invinputsdspace + _P.sdwidth / 2,
         drawrightstopgate = true,
-        drawsourcedrain = "none",
+        drawstopgatebotgcut = true,
+        drawstopgatetopgcut = true,
     })
     -- CMOS inverter
     local nmosdummyref = pcell.create_layout("basic/mosfet", {
@@ -226,7 +226,8 @@ function layout(comparator, _P)
         fingers = _P.invdummyfingers,
         fwidth = _P.latchnfwidth,
         cliptop = true,
-        gbotext = _P.invinputsdspace + _P.sdwidth / 2
+        gtopext = _P.invgstrapwidth + _P.invgstrapspace / 2 + _P.invskip,
+        drawtopgcut = true,
     })
     local nmosinvref = pcell.create_layout("basic/mosfet", {
         channeltype = "nmos",
@@ -234,7 +235,7 @@ function layout(comparator, _P)
         vthtype = _P.nfetvthtype,
         drawtopgate = true,
         topgatestrwidth = _P.invgstrapwidth,
-        topgatestrspace = _P.invgstrapspace,
+        topgatestrspace = _P.invgstrapspace + _P.invskip,
         fingers = _P.latchfingers,
         fwidth = _P.latchnfwidth,
         connectsource = true,
@@ -243,39 +244,38 @@ function layout(comparator, _P)
         connsourcewidth = _P.sdwidth,
         connsourcespace = _P.invinputsdspace,
         connectdrain = true,
-        conndrainmetal = 3,
+        conndrainmetal = 2,
         drawdrainvia = true,
         conndraininline = true,
-        cliptop = true
+        cliptop = true,
+        gbotext = _P.invinputsdspace + _P.sdwidth / 2,
+        drawbotgcut = true
     })
-    local nmosinvfillref = pcell.create_layout("basic/mosfet", {
+    local nmosinvfillleftref = pcell.create_layout("basic/mosfet", {
         channeltype = "nmos",
         flippedwell = _P.nfetflippedwell,
         vthtype = _P.nfetvthtype,
-        fingers = 1,
+        fingers = (maxfingers - invnfingers) / 2,
         fwidth = _P.latchnfwidth,
-        drawsourcedrain = "none",
         gtopext = _P.invgstrapwidth + _P.invgstrapspace / 2,
         cliptop = true,
         gbotext = (inputrowfingers == invnfingers) and _P.invinputsdspace + _P.sdwidth / 2,
-    })
-    local nmosinvendleftref = pcell.create_layout("basic/mosfet", {
-        fingers = 0,
-        channeltype = "nmos",
-        flippedwell = _P.nfetflippedwell,
-        vthtype = _P.nfetvthtype,
-        fwidth = _P.latchnfwidth,
+        drawtopgcut = true,
         drawleftstopgate = true,
-        drawsourcedrain = "none",
+        drawstopgatebotgcut = true,
     })
-    local nmosinvendrightref = pcell.create_layout("basic/mosfet", {
-        fingers = 0,
+    local nmosinvfillrightref = pcell.create_layout("basic/mosfet", {
         channeltype = "nmos",
         flippedwell = _P.nfetflippedwell,
         vthtype = _P.nfetvthtype,
+        fingers = (maxfingers - invnfingers) / 2,
         fwidth = _P.latchnfwidth,
+        gtopext = _P.invgstrapwidth + _P.invgstrapspace / 2,
+        cliptop = true,
+        gbotext = (inputrowfingers == invnfingers) and _P.invinputsdspace + _P.sdwidth / 2,
+        drawtopgcut = true,
         drawrightstopgate = true,
-        drawsourcedrain = "none",
+        drawstopgatebotgcut = true,
     })
     local pmosinvref = pcell.create_layout("basic/mosfet", {
         channeltype = "pmos",
@@ -288,18 +288,32 @@ function layout(comparator, _P)
         connectsource = true,
         connsourcewidth = _P.powerwidth,
         connectdrain = true,
-        conndrainmetal = 3,
+        conndrainmetal = 2,
         drawdrainvia = true,
         conndraininline = true,
-        clipbot = true
+        clipbot = true,
     })
-    local pmosinvfillref = pcell.create_layout("basic/mosfet", {
+    local pmosinvfillleftref = pcell.create_layout("basic/mosfet", {
         channeltype = "nmos",
         flippedwell = _P.nfetflippedwell,
         vthtype = _P.nfetvthtype,
-        fingers = 1,
+        fingers = (maxfingers - invpfingers) / 2,
         fwidth = _P.latchpfwidth,
         drawsourcedrain = "none",
+        drawleftstopgate = true,
+        drawstopgatebotgcut = true,
+        gbotext = _P.invgstrapwidth + _P.invgstrapspace / 2 + _P.invskip
+    })
+    local pmosinvfillrightref = pcell.create_layout("basic/mosfet", {
+        channeltype = "nmos",
+        flippedwell = _P.nfetflippedwell,
+        vthtype = _P.nfetvthtype,
+        fingers = (maxfingers - invpfingers) / 2,
+        fwidth = _P.latchpfwidth,
+        drawsourcedrain = "none",
+        drawrightstopgate = true,
+        drawstopgatebotgcut = true,
+        gbotext = _P.invgstrapwidth + _P.invgstrapspace / 2 + _P.invskip
     })
     local pmosdummyref = pcell.create_layout("basic/mosfet", {
         channeltype = "pmos",
@@ -316,25 +330,9 @@ function layout(comparator, _P)
         connsourcewidth = _P.powerwidth,
         conndrainwidth = _P.powerwidth,
         extenddrainconnection = true,
-        extendsourceconnection = true
-    })
-    local pmosinvendleftref = pcell.create_layout("basic/mosfet", {
-        fingers = 0,
-        channeltype = "pmos",
-        flippedwell = _P.pfetflippedwell,
-        vthtype = _P.pfetvthtype,
-        fwidth = _P.latchpfwidth,
-        drawleftstopgate = true,
-        drawsourcedrain = "none",
-    })
-    local pmosinvendrightref = pcell.create_layout("basic/mosfet", {
-        fingers = 0,
-        channeltype = "pmos",
-        flippedwell = _P.pfetflippedwell,
-        vthtype = _P.pfetvthtype,
-        fwidth = _P.latchpfwidth,
-        drawrightstopgate = true,
-        drawsourcedrain = "none",
+        extendsourceconnection = true,
+        drawbotgcut = true,
+        gbotext = _P.invgstrapwidth + _P.invgstrapspace / 2
     })
     -- reset switches
     local pmosresetref = pcell.create_layout("basic/mosfet", {
@@ -350,7 +348,8 @@ function layout(comparator, _P)
         conndrainmetal = 2,
         drawdrainvia = true,
         conndraininline = true,
-        clipbot = true
+        clipbot = true,
+        gbotext = _P.invgstrapwidth + _P.invgstrapspace / 2 + _P.invskip
     })
     pcell.pop_overwrites("basic/mosfet")
 
@@ -359,25 +358,21 @@ function layout(comparator, _P)
         clockdummyname = pcell.add_cell_reference(clockdummyref, "clockdummy")
     end
     local clockname = pcell.add_cell_reference(clockref, "clock")
-    local clockfillname = pcell.add_cell_reference(clockfillref, "clockfill")
-    local clockendleftname = pcell.add_cell_reference(clockendleftref, "clockendleft")
-    local clockendrightname = pcell.add_cell_reference(clockendrightref, "clockendright")
+    local clockfillleftname = pcell.add_cell_reference(clockfillleftref, "clockfillleft")
+    local clockfillrightname = pcell.add_cell_reference(clockfillrightref, "clockfillright")
     local inputdummyname = pcell.add_cell_reference(inputdummyref, "nmosinputdummy")
     local inputname = pcell.add_cell_reference(inputref, "nmosinput")
-    local inputfillname = pcell.add_cell_reference(inputfillref, "inputfill")
-    local inputendleftname = pcell.add_cell_reference(inputendleftref, "inputendleft")
-    local inputendrightname = pcell.add_cell_reference(inputendrightref, "inputendright")
+    local inputfillleftname = pcell.add_cell_reference(inputfillleftref, "inputfillleft")
+    local inputfillrightname = pcell.add_cell_reference(inputfillrightref, "inputfillright")
     local nmosdummyname = pcell.add_cell_reference(nmosdummyref, "nmosdummy")
-    local nmosinvfillname = pcell.add_cell_reference(nmosinvfillref, "nmosinvfill")
+    local nmosinvfillleftname = pcell.add_cell_reference(nmosinvfillleftref, "nmosinvleftfill")
+    local nmosinvfillrightname = pcell.add_cell_reference(nmosinvfillrightref, "nmosinvrightfill")
     local nmosinvname = pcell.add_cell_reference(nmosinvref, "nmosinv")
-    local nmosinvendleftname = pcell.add_cell_reference(nmosinvendleftref, "nmosinvendleft")
-    local nmosinvendrightname = pcell.add_cell_reference(nmosinvendrightref, "nmosinvendright")
     local pmosdummyname = pcell.add_cell_reference(pmosdummyref, "pmosdummy")
     local pmosinvname = pcell.add_cell_reference(pmosinvref, "pmosinv")
     local pmosresetname = pcell.add_cell_reference(pmosresetref, "pmosreset")
-    local pmosinvfillname = pcell.add_cell_reference(pmosinvfillref, "pmosinvfill")
-    local pmosinvendleftname = pcell.add_cell_reference(pmosinvendleftref, "pmosinvendleft")
-    local pmosinvendrightname = pcell.add_cell_reference(pmosinvendrightref, "pmosinvendright")
+    local pmosinvfillleftname = pcell.add_cell_reference(pmosinvfillleftref, "pmosinvfillleft")
+    local pmosinvfillrightname = pcell.add_cell_reference(pmosinvfillrightref, "pmosinvfillright")
 
     local clockdummy
     local clockleft, clockright
@@ -430,121 +425,28 @@ function layout(comparator, _P)
     pmosresetright2:move_anchor("sourcedrainleftcc", pmosresetright1:get_anchor("sourcedrainrightcc"))
 
     -- fill up clock row
-    local leftend, rightend
-    if clockrowfingers < maxfingers then
-        local lastanchor = clockleft:get_anchor("sourcedrainleftcc")
-        -- left
-        for i = 1, (maxfingers - clockrowfingers) / 2 do
-            local clockfill = comparator:add_child(clockfillname)
-            clockfill:move_anchor("sourcedrainrightcc", lastanchor)
-            lastanchor = clockfill:get_anchor("sourcedrainleftcc")
-        end
-        leftend = lastanchor
-        -- right
-        lastanchor = clockright:get_anchor("sourcedrainrightcc")
-        for i = 1, (maxfingers - clockrowfingers) / 2 do
-            local clockfill = comparator:add_child(clockfillname)
-            clockfill:move_anchor("sourcedrainleftcc", lastanchor)
-            lastanchor = clockfill:get_anchor("sourcedrainrightcc")
-        end
-        rightend = lastanchor
-    else -- no fill, but save anchors for end transistors
-        leftend = clockleft:get_anchor("sourcedrainleftcc")
-        rightend = clockright:get_anchor("sourcedrainrightcc")
-    end
-    local clockendleft = comparator:add_child(clockendleftname)
-    clockendleft:move_anchor("sourcedrainrightcc", leftend)
-    local clockendright = comparator:add_child(clockendrightname)
-    clockendright:move_anchor("sourcedrainleftcc", rightend)
+    local clockfillleft = comparator:add_child(clockfillleftname)
+    clockfillleft:move_anchor("sourcedrainrightcc", clockleft:get_anchor("sourcedrainleftcc"))
+    local clockfillright = comparator:add_child(clockfillrightname)
+    clockfillright:move_anchor("sourcedrainleftcc", clockright:get_anchor("sourcedrainrightcc"))
 
     -- fill up input row
-    leftend = nil
-    rightend = nil
-    if inputrowfingers < maxfingers then
-        -- left
-        local lastanchor = inputleft:get_anchor("sourcedrainleftcc")
-        for i = 1, (maxfingers - inputrowfingers) / 2 do
-            local inputfill = comparator:add_child(inputfillname)
-            inputfill:move_anchor("sourcedrainrightcc", lastanchor)
-            lastanchor = inputfill:get_anchor("sourcedrainleftcc")
-        end
-        leftend = lastanchor
-        -- right
-        lastanchor = inputright:get_anchor("sourcedrainrightcc")
-        for i = 1, (maxfingers - inputrowfingers) / 2 do
-            local inputfill = comparator:add_child(inputfillname)
-            inputfill:move_anchor("sourcedrainleftcc", lastanchor)
-            lastanchor = inputfill:get_anchor("sourcedrainrightcc")
-        end
-        rightend = lastanchor
-    else
-        leftend = inputleft:get_anchor("sourcedrainleftcc")
-        rightend = inputright:get_anchor("sourcedrainrightcc")
-    end
-    local inputendleft = comparator:add_child(inputendleftname)
-    inputendleft:move_anchor("sourcedrainrightcc", leftend)
-    local inputendright = comparator:add_child(inputendrightname)
-    inputendright:move_anchor("sourcedrainleftcc", rightend)
+    local inputfillleft = comparator:add_child(inputfillleftname)
+    inputfillleft:move_anchor("sourcedrainrightcc", inputleft:get_anchor("sourcedrainleftcc"))
+    local inputfillright = comparator:add_child(inputfillrightname)
+    inputfillright:move_anchor("sourcedrainleftcc", inputright:get_anchor("sourcedrainrightcc"))
 
     -- fill up nmos inv row
-    leftend = nil
-    rightend = nil
-    if invnfingers < maxfingers then
-        -- left
-        local lastanchor = nmosinvleft:get_anchor("sourcedrainleftcc")
-        for i = 1, (maxfingers - invnfingers) / 2 do
-            local nmosinvfill = comparator:add_child(nmosinvfillname)
-            nmosinvfill:move_anchor("sourcedrainrightcc", lastanchor)
-            lastanchor = nmosinvfill:get_anchor("sourcedrainleftcc")
-        end
-        leftend = lastanchor
-        -- right
-        lastanchor = nmosinvright:get_anchor("sourcedrainrightcc")
-        for i = 1, (maxfingers - invnfingers) / 2 do
-            local nmosinvfill = comparator:add_child(nmosinvfillname)
-            nmosinvfill:move_anchor("sourcedrainleftcc", lastanchor)
-            lastanchor = nmosinvfill:get_anchor("sourcedrainrightcc")
-        end
-        rightend = lastanchor
-    end
-    if not leftend then
-        leftend = nmosinvendleft:get_anchor("sourcedrainleftcc")
-        rightend = nmosinvendright:get_anchor("sourcedrainrightcc")
-    end
-    local nmosinvendleft = comparator:add_child(nmosinvendleftname)
-    nmosinvendleft:move_anchor("sourcedrainrightcc", leftend)
-    local nmosinvendright = comparator:add_child(nmosinvendrightname)
-    nmosinvendright:move_anchor("sourcedrainleftcc", rightend)
+    local nmosinvfillleft = comparator:add_child(nmosinvfillleftname)
+    nmosinvfillleft:move_anchor("sourcedrainrightcc", nmosinvleft:get_anchor("sourcedrainleftcc"))
+    local nmosinvfillright = comparator:add_child(nmosinvfillrightname)
+    nmosinvfillright:move_anchor("sourcedrainleftcc", nmosinvright:get_anchor("sourcedrainrightcc"))
 
     -- fill up input row
-    leftend = nil
-    rightend = nil
-    if invpfingers < maxfingers then
-        -- left
-        local lastanchor = pmosresetleft2:get_anchor("sourcedrainleftcc")
-        for i = 1, (maxfingers - invpfingers) / 2 do
-            local pmosinvfill = comparator:add_child(pmosinvfillname)
-            pmosinvfill:move_anchor("sourcedrainrightcc", lastanchor)
-            lastanchor = pmosinvfill:get_anchor("sourcedrainleftcc")
-        end
-        leftend = lastanchor
-        -- right
-        lastanchor = pmosresetright2:get_anchor("sourcedrainrightcc")
-        for i = 1, (maxfingers - invpfingers) / 2 do
-            local pmosinvfill = comparator:add_child(pmosinvfillname)
-            pmosinvfill:move_anchor("sourcedrainleftcc", lastanchor)
-            lastanchor = pmosinvfill:get_anchor("sourcedrainrightcc")
-        end
-        rightend = lastanchor
-    end
-    if not leftend then
-        leftend = pmosresetleft2:get_anchor("sourcedrainleftcc")
-        rightend = pmosresetright2:get_anchor("sourcedrainrightcc")
-    end
-    local pmosinvendleft = comparator:add_child(pmosinvendleftname)
-    pmosinvendleft:move_anchor("sourcedrainrightcc", leftend)
-    local pmosinvendright = comparator:add_child(pmosinvendrightname)
-    pmosinvendright:move_anchor("sourcedrainleftcc", rightend)
+    local pmosinvfillleft = comparator:add_child(pmosinvfillleftname)
+    pmosinvfillleft:move_anchor("sourcedrainrightcc", pmosresetleft2:get_anchor("sourcedrainleftcc"))
+    local pmosinvfillright = comparator:add_child(pmosinvfillrightname)
+    pmosinvfillright:move_anchor("sourcedrainleftcc", pmosresetright2:get_anchor("sourcedrainrightcc"))
 
     -- connect reset gates
     geometry.path(comparator, generics.metal(1), {
@@ -557,33 +459,33 @@ function layout(comparator, _P)
     }, _P.sdwidth)
 
     -- connect latch gates
-    geometry.path(comparator, generics.metal(3), geometry.path_points_xy(
+    geometry.path(comparator, generics.metal(2), geometry.path_points_xy(
         pmosinvleft:get_anchor(string.format("sourcedrain%dcc", _P.latchfingers)), {
             (_P.invdummyfingers + 1) * xpitch,
             nmosinvright:get_anchor("topgatestrapcr"),
     }), _P.sdwidth)
-    geometry.path(comparator, generics.metal(3), geometry.path_points_xy(
+    geometry.path(comparator, generics.metal(2), geometry.path_points_xy(
         nmosinvright:get_anchor("sourcedrain2cc"), {
             -(_P.invdummyfingers + 1) * xpitch,
             nmosinvleft:get_anchor("topgatestrapcl"),
     }), _P.sdwidth)
-    geometry.viabltr(comparator, 1, 3,
+    geometry.viabltr(comparator, 1, 2,
         nmosinvleft:get_anchor("topgatestrapll"),
         nmosinvleft:get_anchor("topgatestrapur")
     )
-    geometry.viabltr(comparator, 1, 3,
+    geometry.viabltr(comparator, 1, 2,
         nmosinvright:get_anchor("topgatestrapll"),
         nmosinvright:get_anchor("topgatestrapur")
     )
 
     -- connect latch drains
-    geometry.path(comparator, generics.metal(3), {
+    geometry.path(comparator, generics.metal(2), {
         pmosinvleft:get_anchor(string.format("sourcedrain%dcc", 2)),
         pmosinvleft:get_anchor(string.format("sourcedrain%dcc", 2)):translate(-2 * xpitch, 0),
         nmosinvleft:get_anchor(string.format("sourcedrain%dcc", 2)):translate(-2 * xpitch, 0),
         nmosinvleft:get_anchor(string.format("sourcedrain%dcc", 2)),
     }, _P.sdwidth)
-    geometry.path(comparator, generics.metal(3), {
+    geometry.path(comparator, generics.metal(2), {
         pmosinvright:get_anchor(string.format("sourcedrain%dcc", _P.latchfingers)),
         pmosinvright:get_anchor(string.format("sourcedrain%dcc", _P.latchfingers)):translate(2 * xpitch, 0),
         nmosinvright:get_anchor(string.format("sourcedrain%dcc", _P.latchfingers)):translate(2 * xpitch, 0),
@@ -627,14 +529,38 @@ function layout(comparator, _P)
     -- connect clock gates
     geometry.path(comparator, generics.metal(1),
         geometry.path_points_yx(pmosresetleft2:get_anchor("botgatestrapcc"), {
+            0,
+            -500,
             clockleft:get_anchor("topgatestrapcc")
     }), _P.sdwidth)
     geometry.path(comparator, generics.metal(1),
         geometry.path_points_yx(pmosresetright2:get_anchor("botgatestrapcc"), {
+            0,
+            500,
             clockright:get_anchor("topgatestrapcc")
     }), _P.sdwidth)
 
-    ---- add ports
+    -- connect input row fill dummies
+    geometry.path(comparator, generics.metal(1), {
+        inputfillleft:get_anchor("sourcedrainleftcc"),
+        inputfillleft:get_anchor(string.format("sourcedrain%dcc", (maxfingers - inputrowfingers) / 2)),
+    }, _P.sdwidth)
+    geometry.path(comparator, generics.metal(1), {
+        inputfillright:get_anchor(string.format("sourcedrain%dcc", 2)),
+        inputfillright:get_anchor("sourcedrainrightcc"),
+    }, _P.sdwidth)
+
+    -- connect nmos inverter row fill dummies
+    geometry.path(comparator, generics.metal(1), {
+        nmosinvfillleft:get_anchor("sourcedrainleftcc"),
+        nmosinvfillleft:get_anchor(string.format("sourcedrain%dcc", (maxfingers - invnfingers) / 2)),
+    }, _P.sdwidth)
+    geometry.path(comparator, generics.metal(1), {
+        nmosinvfillright:get_anchor(string.format("sourcedrain%dcc", 2)),
+        nmosinvfillright:get_anchor("sourcedrainrightcc"),
+    }, _P.sdwidth)
+
+    -- add ports
     comparator:add_port("clk", generics.metalport(1), point.combine(clockleft:get_anchor("topgatestrapcc"), clockright:get_anchor("topgatestrapcc")))
     comparator:add_port("vinp", generics.metalport(1), inputleft:get_anchor("botgatestrapcc"))
     comparator:add_port("vinn", generics.metalport(1), inputright:get_anchor("botgatestrapcc"))
