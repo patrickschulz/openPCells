@@ -58,6 +58,8 @@ function parameters()
         { "invgstrapwidth", tech.get_dimension("Minimum M1 Width") },
         { "invgstrapspace", tech.get_dimension("Minimum M1 Space") },
         { "invskip", 200 },
+        { "resetgatestrapwidth", tech.get_dimension("Minimum M1 Width") },
+        { "resetgatestrapspace", tech.get_dimension("Minimum M1 Space") },
         { "gstrwidth", tech.get_dimension("Minimum M1 Width") },
         { "sdwidth", tech.get_dimension("Minimum M1 Width") },
         { "powerwidth", 3 * tech.get_dimension("Minimum M1 Width") },
@@ -131,6 +133,7 @@ function layout(comparator, _P)
         connsourcespace = _P.powerspace,
         gtopext = _P.clockinputgatespace + _P.clockinputgatewidth + _P.inputclocksdspace + _P.sdwidth / 2,
         gbotext = _P.powerwidth + 2 * _P.powerspace,
+        drawtopgcut = true,
         extendimplantbot = 100,
     })
     local clockfillleftref = pcell.create_layout("basic/mosfet", {
@@ -212,6 +215,7 @@ function layout(comparator, _P)
         drawbotgate = true,
         botgatestrwidth = _P.clockinputgatewidth,
         botgatestrspace = _P.clockinputgatespace,
+        connsourcewidth = _P.sdwidth,
         connsourcespace = _P.clockinputgatespace + _P.clockinputgatewidth + _P.inputclocksdspace,
         connectdrain = true,
         conndrainwidth = _P.sdwidth,
@@ -254,7 +258,7 @@ function layout(comparator, _P)
         vthtype = _P.nfetvthtype,
         fingers = _P.invdummyfingers,
         fwidth = _P.latchnfwidth,
-        gtopext = _P.invgstrapwidth + _P.invgstrapspace / 2 + _P.invskip,
+        gtopext = _P.invgstrapspace + _P.invgstrapwidth / 2,
         gbotext = _P.invinputsdspace + _P.sdwidth / 2,
         extendimplanttop = -_P.invskip,
         extendvthtop = -_P.invskip,
@@ -266,7 +270,7 @@ function layout(comparator, _P)
         vthtype = _P.nfetvthtype,
         drawtopgate = true,
         topgatestrwidth = _P.invgstrapwidth,
-        topgatestrspace = _P.invgstrapspace + _P.invskip,
+        topgatestrspace = _P.invgstrapspace,
         fingers = _P.latchfingers,
         fwidth = _P.latchnfwidth,
         connectsource = true,
@@ -278,8 +282,8 @@ function layout(comparator, _P)
         conndrainmetal = 2,
         drawdrainvia = true,
         conndraininline = true,
-        extendimplanttop = -_P.invskip,
-        extendvthtop = -_P.invskip,
+        extendimplanttop = -_P.invgstrapwidth / 2,
+        extendvthtop = -_P.invgstrapwidth / 2,
         gbotext = _P.invinputsdspace + _P.sdwidth / 2,
         drawbotgcut = true
     })
@@ -289,7 +293,7 @@ function layout(comparator, _P)
         vthtype = _P.nfetvthtype,
         fingers = (maxfingers - invnfingers) / 2,
         fwidth = _P.latchnfwidth,
-        gtopext = _P.invgstrapwidth + _P.invgstrapspace,
+        gtopext = _P.invgstrapwidth / 2 + _P.invgstrapspace,
         cliptop = true,
         gbotext = (inputrowfingers == invnfingers) and _P.invinputsdspace + _P.sdwidth / 2,
         drawtopgcut = true,
@@ -304,7 +308,7 @@ function layout(comparator, _P)
         vthtype = _P.nfetvthtype,
         fingers = (maxfingers - invnfingers) / 2,
         fwidth = _P.latchnfwidth,
-        gtopext = _P.invgstrapwidth + _P.invgstrapspace,
+        gtopext = _P.invgstrapwidth / 2 + _P.invgstrapspace,
         cliptop = true,
         gbotext = (inputrowfingers == invnfingers) and _P.invinputsdspace + _P.sdwidth / 2,
         drawtopgcut = true,
@@ -318,7 +322,8 @@ function layout(comparator, _P)
         flippedwell = _P.pfetflippedwell,
         vthtype = _P.pfetvthtype,
         drawbotgate = true,
-        botgatestrspace = _P.invgstrapspace,
+        botgatestrwidth = _P.invgstrapwidth,
+        botgatestrspace = _P.resetgatestrapspace + _P.resetgatestrapwidth + _P.invskip,
         fingers = _P.latchfingers,
         fwidth = _P.latchpfwidth,
         connectsource = true,
@@ -328,8 +333,8 @@ function layout(comparator, _P)
         conndrainmetal = 2,
         drawdrainvia = true,
         conndraininline = true,
-        extendimplantbot = -_P.invgstrapwidth + _P.invskip,
-        extendvthbot = -_P.invgstrapwidth + _P.invskip,
+        extendimplantbot = -_P.invgstrapwidth / 2,
+        extendvthbot = -_P.invgstrapwidth / 2,
         gtopext = 2 * _P.powerspace + _P.powerwidth,
         extendimplanttop = 100,
     })
@@ -341,7 +346,7 @@ function layout(comparator, _P)
         fwidth = _P.latchpfwidth,
         drawleftstopgate = true,
         drawstopgatebotgcut = true,
-        gbotext = _P.invgstrapwidth + _P.invskip,
+        gbotext = _P.resetgatestrapspace + _P.resetgatestrapwidth + _P.invskip + _P.invgstrapwidth / 2,
         connectsource = true,
         connsourcewidth = _P.powerwidth,
         connsourcespace = _P.powerspace,
@@ -357,7 +362,7 @@ function layout(comparator, _P)
         fwidth = _P.latchpfwidth,
         drawrightstopgate = true,
         drawstopgatebotgcut = true,
-        gbotext = _P.invgstrapwidth + _P.invskip,
+        gbotext = _P.resetgatestrapspace + _P.resetgatestrapwidth + _P.invskip + _P.invgstrapwidth / 2,
         connectsource = true,
         connsourcewidth = _P.powerwidth,
         connsourcespace = _P.powerspace,
@@ -371,7 +376,6 @@ function layout(comparator, _P)
         vthtype = _P.pfetvthtype,
         fingers = _P.invdummyfingers,
         fwidth = _P.latchpfwidth,
-        clipbot = true,
         drawtopgate = true,
         topgatestrwidth = _P.powerwidth,
         topgatestrspace = _P.powerspace,
@@ -387,7 +391,7 @@ function layout(comparator, _P)
         extenddrainconnection = true,
         extendsourceconnection = true,
         drawbotgcut = true,
-        gbotext = _P.invgstrapwidth + _P.invgstrapspace / 2,
+        gbotext = _P.resetgatestrapspace + _P.resetgatestrapwidth + _P.invskip + _P.invgstrapwidth / 2,
         extendimplanttop = 100,
     })
     -- reset switches
@@ -396,6 +400,8 @@ function layout(comparator, _P)
         flippedwell = _P.pfetflippedwell,
         vthtype = _P.pfetvthtype,
         drawbotgate = true,
+        botgatestrwidth = _P.resetgatestrapwidth,
+        botgatestrspace = _P.resetgatestrapspace,
         fingers = _P.resetfingers,
         fwidth = _P.latchpfwidth,
         connectsource = true,
@@ -406,7 +412,7 @@ function layout(comparator, _P)
         drawdrainvia = true,
         conndraininline = true,
         clipbot = true,
-        gbotext = _P.invgstrapwidth + _P.invskip,
+        gbotext = _P.resetgatestrapspace + _P.resetgatestrapwidth + _P.invskip + _P.invgstrapwidth / 2,
         gtopext = 2 * _P.powerspace + _P.powerwidth,
         extendimplanttop = 100,
     })
@@ -507,6 +513,7 @@ function layout(comparator, _P)
     local pmosinvfillright = comparator:add_child(pmosinvfillrightname)
     pmosinvfillright:move_anchor("sourcedrainleftcc", pmosresetright2:get_anchor("sourcedrainrightcc"))
 
+    --[[ not needed when extendhalfspace is used
     -- connect reset gates
     geometry.path(comparator, generics.metal(1), {
         pmosresetleft1:get_anchor("botgatestrapcl"),
@@ -516,6 +523,7 @@ function layout(comparator, _P)
         pmosresetright1:get_anchor("botgatestrapcr"),
         pmosresetright2:get_anchor("botgatestrapcl"),
     }, _P.sdwidth)
+    --]]
 
     -- connect latch gates
     geometry.path(comparator, generics.metal(2), geometry.path_points_xy(
