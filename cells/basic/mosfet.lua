@@ -126,53 +126,55 @@ function layout(transistor, _P)
     -- FIXME: this is probably wrong if connectsourceinverse or connectdraininverse is used
     local topgatecompsd = _P.topgatecompsd and not ((_P.channeltype == "nmos") and _P.conndraininline or _P.connsourceinline)
     local botgatecompsd = _P.botgatecompsd and not ((_P.channeltype == "nmos") and _P.connsourceinline or _P.conndraininline)
-    if hasgatecut then
-        -- gates
-        geometry.rectanglebltr(transistor,
-            generics.other("gate"),
-            point.create(-_P.gatelength / 2, -_P.fwidth / 2 - gateaddbot - enable(_P.drawbotgate and botgatecompsd, sourceshift)),
-            point.create( _P.gatelength / 2,  _P.fwidth / 2 + gateaddtop + enable(_P.drawtopgate and topgatecompsd, drainshift)),
-            _P.fingers, 1, gatepitch, 0
-        )
+    if _P.fingers > 0 then
+        if hasgatecut then
+            -- gates
+            geometry.rectanglebltr(transistor,
+                generics.other("gate"),
+                point.create(-_P.gatelength / 2, -_P.fwidth / 2 - gateaddbot - enable(_P.drawbotgate and botgatecompsd, sourceshift)),
+                point.create( _P.gatelength / 2,  _P.fwidth / 2 + gateaddtop + enable(_P.drawtopgate and topgatecompsd, drainshift)),
+                _P.fingers, 1, gatepitch, 0
+            )
 
-        -- gate cut
-        if _P.drawtopgcut then
-            geometry.rectanglebltr(transistor,
-                generics.other("gatecut"),
-                point.create(-cutwidth / 2, _P.fwidth / 2 + gateaddtop - _P.cutheight / 2 + _P.topgcutoffset),
-                point.create( cutwidth / 2, _P.fwidth / 2 + gateaddtop + _P.cutheight / 2 + _P.topgcutoffset)
+            -- gate cut
+            if _P.drawtopgcut then
+                geometry.rectanglebltr(transistor,
+                    generics.other("gatecut"),
+                    point.create(-cutwidth / 2, _P.fwidth / 2 + gateaddtop - _P.cutheight / 2 + _P.topgcutoffset),
+                    point.create( cutwidth / 2, _P.fwidth / 2 + gateaddtop + _P.cutheight / 2 + _P.topgcutoffset)
+                )
+            end
+            if _P.drawbotgcut then
+                geometry.rectanglebltr(transistor,
+                    generics.other("gatecut"),
+                    point.create(-cutwidth / 2, -_P.fwidth / 2 - gateaddbot - _P.cutheight / 2 + _P.botgcutoffset),
+                    point.create( cutwidth / 2, -_P.fwidth / 2 - gateaddbot + _P.cutheight / 2 + _P.botgcutoffset)
+                )
+            end
+        else -- not hasgatecut
+            local lowerpt  = point.create(-_P.gatelength / 2, -_P.fwidth / 2 - gateaddbot - enable(_P.drawbotgate and botgatecompsd, sourceshift))
+            local higherpt = point.create( _P.gatelength / 2,  _P.fwidth / 2 + gateaddtop + enable(_P.drawtopgate and topgatecompsd, drainshift))
+            if _P.drawtopgcut then
+                higherpt:translate(0, -enable(_P.drawtopgate and topgatecompsd, drainshift) - _P.cutheight / 2 + _P.topgcutoffset)
+            end
+            if _P.drawbotgcut then
+                lowerpt:translate(0, enable(_P.drawbotgate and _P.botgatecompsd and not _P.connsourceinline, sourceshift) + _P.cutheight / 2 - _P.botgcutoffset)
+            end
+            -- gates
+            geometry.rectanglebltr(transistor, 
+                generics.other("gate"),
+                lowerpt, higherpt,
+                _P.fingers, 1, gatepitch, 0
             )
         end
-        if _P.drawbotgcut then
-            geometry.rectanglebltr(transistor,
-                generics.other("gatecut"),
-                point.create(-cutwidth / 2, -_P.fwidth / 2 - gateaddbot - _P.cutheight / 2 + _P.botgcutoffset),
-                point.create( cutwidth / 2, -_P.fwidth / 2 - gateaddbot + _P.cutheight / 2 + _P.botgcutoffset)
-            )
-        end
-    else -- not hasgatecut
-        local lowerpt  = point.create(-_P.gatelength / 2, -_P.fwidth / 2 - gateaddbot - enable(_P.drawbotgate and botgatecompsd, sourceshift))
-        local higherpt = point.create( _P.gatelength / 2,  _P.fwidth / 2 + gateaddtop + enable(_P.drawtopgate and topgatecompsd, drainshift))
-        if _P.drawtopgcut then
-            higherpt:translate(0, -enable(_P.drawtopgate and topgatecompsd, drainshift) - _P.cutheight / 2 + _P.topgcutoffset)
-        end
-        if _P.drawbotgcut then
-            lowerpt:translate(0, enable(_P.drawbotgate and _P.botgatecompsd and not _P.connsourceinline, sourceshift) + _P.cutheight / 2 - _P.botgcutoffset)
-        end
-        -- gates
-        geometry.rectanglebltr(transistor, 
-            generics.other("gate"),
-            lowerpt, higherpt,
+        -- gate marker
+        geometry.rectanglebltr(transistor,
+            generics.other(string.format("gatemarker%d", _P.gatemarker)),
+            point.create(-_P.gatelength / 2, -_P.fwidth / 2),
+            point.create( _P.gatelength / 2,  _P.fwidth / 2),
             _P.fingers, 1, gatepitch, 0
         )
     end
-    -- gate marker
-    geometry.rectanglebltr(transistor,
-        generics.other(string.format("gatemarker%d", _P.gatemarker)),
-        point.create(-_P.gatelength / 2, -_P.fwidth / 2),
-        point.create( _P.gatelength / 2,  _P.fwidth / 2),
-        _P.fingers, 1, gatepitch, 0
-    )
     
     -- left and right polylines
     for i = 1, _P.numleftpolylines do
