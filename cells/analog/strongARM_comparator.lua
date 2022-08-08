@@ -58,9 +58,10 @@ function parameters()
         { "invgstrapwidth", tech.get_dimension("Minimum M1 Width") },
         { "invgstrapspace", tech.get_dimension("Minimum M1 Space") },
         { "invskip", 200 },
+        { "gstrwidth", tech.get_dimension("Minimum M1 Width") },
         { "sdwidth", tech.get_dimension("Minimum M1 Width") },
-        { "powerwidth", tech.get_dimension("Minimum M1 Width") },
-        { "powerspace", tech.get_dimension("Minimum M1 Space") }
+        { "powerwidth", 3 * tech.get_dimension("Minimum M1 Width") },
+        { "powerspace", 2 * tech.get_dimension("Minimum M1 Space") }
     )
 end
 
@@ -71,6 +72,8 @@ function layout(comparator, _P)
         gatelength = _P.gatelength,
         gatespace = _P.gatespace,
         sdwidth = _P.sdwidth,
+        topgateextendhalfspace = true,
+        botgateextendhalfspace = true,
     })
 
     local clockrowfingers = _P.clockfingers + _P.clockdummyfingers
@@ -90,15 +93,21 @@ function layout(comparator, _P)
             fingers = _P.clockdummyfingers,
             fwidth = _P.clockfwidth,
             drawbotgate = true,
+            botgatestrwidth = _P.powerwidth,
+            botgatestrspace = _P.powerspace,
             gtopext = _P.clockinputgatespace + _P.clockinputgatewidth + _P.inputclocksdspace + _P.sdwidth / 2,
+            gbotext = _P.powerwidth + 2 * _P.powerspace,
             botgatecompsd = false,
             connectdrain = true,
             connectdraininverse = true,
             connectsource = true,
             connsourcewidth = _P.powerwidth,
+            connsourcespace = _P.powerspace,
             conndrainwidth = _P.powerwidth,
+            conndrainspace = _P.powerspace,
             extenddrainconnection = true,
-            extendsourceconnection = true
+            extendsourceconnection = true,
+            extendimplantbot = 100,
         })
     end
     -- clock tail transistor
@@ -109,8 +118,8 @@ function layout(comparator, _P)
         fingers = _P.clockfingers / 2,
         fwidth = _P.clockfwidth,
         drawtopgate = true,
-        topgatestrspace = _P.clockinputgatewidth,
-        topgatestrwidth = _P.clockinputgatespace,
+        topgatestrwidth = _P.clockinputgatewidth,
+        topgatestrspace = _P.clockinputgatespace,
         topgatecompsd = false,
         connectdrain = true,
         conndrainmetal = 2,
@@ -120,7 +129,9 @@ function layout(comparator, _P)
         connectsource = true,
         connsourcewidth = _P.powerwidth,
         connsourcespace = _P.powerspace,
-        gbotext = _P.powerwidth + _P.powerspace,
+        gtopext = _P.clockinputgatespace + _P.clockinputgatewidth + _P.inputclocksdspace + _P.sdwidth / 2,
+        gbotext = _P.powerwidth + 2 * _P.powerspace,
+        extendimplantbot = 100,
     })
     local clockfillleftref = pcell.create_layout("basic/mosfet", {
         channeltype = "nmos",
@@ -132,14 +143,21 @@ function layout(comparator, _P)
         connectdraininverse = true,
         connectsource = true,
         connsourcewidth = _P.powerwidth,
+        connsourcespace = _P.powerspace,
         conndrainwidth = _P.powerwidth,
+        conndrainspace = _P.powerspace,
         extenddrainconnection = true,
         extendsourceconnection = true,
         drawbotgate = true,
+        botgatestrspace = _P.powerspace,
+        botgatestrwidth = _P.powerwidth,
         gtopext = _P.clockinputgatespace + _P.clockinputgatewidth + _P.inputclocksdspace + _P.sdwidth / 2,
         botgatecompsd = false,
         drawleftstopgate = true,
         drawstopgatetopgcut = true,
+        gbotext = _P.powerwidth + 2 * _P.powerspace,
+        extendimplantbot = 100,
+        leftpolylines = { { 40, 90 }, { 40, 90 } },
     })
     local clockfillrightref = pcell.create_layout("basic/mosfet", {
         channeltype = "nmos",
@@ -151,15 +169,21 @@ function layout(comparator, _P)
         connectdraininverse = true,
         connectsource = true,
         connsourcewidth = _P.powerwidth,
+        connsourcespace = _P.powerspace,
         conndrainwidth = _P.powerwidth,
+        conndrainspace = _P.powerspace,
         extenddrainconnection = true,
         extendsourceconnection = true,
-        gtopext = (clockrowfingers == inputrowfingers) and _P.inputclocksdspace + _P.sdwidth / 2,
         drawbotgate = true,
+        botgatestrspace = _P.powerspace,
+        botgatestrwidth = _P.powerwidth,
         gtopext = _P.clockinputgatespace + _P.clockinputgatewidth + _P.inputclocksdspace + _P.sdwidth / 2,
         botgatecompsd = false,
         drawrightstopgate = true,
         drawstopgatetopgcut = true,
+        gbotext = _P.powerwidth + 2 * _P.powerspace,
+        extendimplantbot = 100,
+        rightpolylines = { { 40, 90 }, { 40, 90 } },
     })
     -- input transistors
     local inputdummyref = pcell.create_layout("basic/mosfet", {
@@ -186,12 +210,15 @@ function layout(comparator, _P)
         connsourcemetal = 2,
         drawsourcevia = true,
         drawbotgate = true,
+        botgatestrwidth = _P.clockinputgatewidth,
+        botgatestrspace = _P.clockinputgatespace,
         connsourcespace = _P.clockinputgatespace + _P.clockinputgatewidth + _P.inputclocksdspace,
         connectdrain = true,
         conndrainwidth = _P.sdwidth,
         conndrainspace = _P.invinputsdspace,
         botgatecompsd = false,
         gtopext = _P.invinputsdspace + _P.sdwidth / 2,
+        gbotext = _P.clockinputgatespace + _P.clockinputgatewidth + _P.inputclocksdspace + _P.sdwidth / 2,
         drawtopgcut = true
     })
     local inputfillleftref = pcell.create_layout("basic/mosfet", {
@@ -205,6 +232,7 @@ function layout(comparator, _P)
         drawleftstopgate = true,
         drawstopgatebotgcut = true,
         drawstopgatetopgcut = true,
+        leftpolylines = { { 40, 90 }, { 40, 90 } },
     })
     local inputfillrightref = pcell.create_layout("basic/mosfet", {
         channeltype = "nmos",
@@ -217,6 +245,7 @@ function layout(comparator, _P)
         drawrightstopgate = true,
         drawstopgatebotgcut = true,
         drawstopgatetopgcut = true,
+        rightpolylines = { { 40, 90 }, { 40, 90 } },
     })
     -- CMOS inverter
     local nmosdummyref = pcell.create_layout("basic/mosfet", {
@@ -225,8 +254,10 @@ function layout(comparator, _P)
         vthtype = _P.nfetvthtype,
         fingers = _P.invdummyfingers,
         fwidth = _P.latchnfwidth,
-        cliptop = true,
         gtopext = _P.invgstrapwidth + _P.invgstrapspace / 2 + _P.invskip,
+        gbotext = _P.invinputsdspace + _P.sdwidth / 2,
+        extendimplanttop = -_P.invskip,
+        extendvthtop = -_P.invskip,
         drawtopgcut = true,
     })
     local nmosinvref = pcell.create_layout("basic/mosfet", {
@@ -247,7 +278,8 @@ function layout(comparator, _P)
         conndrainmetal = 2,
         drawdrainvia = true,
         conndraininline = true,
-        cliptop = true,
+        extendimplanttop = -_P.invskip,
+        extendvthtop = -_P.invskip,
         gbotext = _P.invinputsdspace + _P.sdwidth / 2,
         drawbotgcut = true
     })
@@ -257,12 +289,14 @@ function layout(comparator, _P)
         vthtype = _P.nfetvthtype,
         fingers = (maxfingers - invnfingers) / 2,
         fwidth = _P.latchnfwidth,
-        gtopext = _P.invgstrapwidth + _P.invgstrapspace / 2,
+        gtopext = _P.invgstrapwidth + _P.invgstrapspace,
         cliptop = true,
         gbotext = (inputrowfingers == invnfingers) and _P.invinputsdspace + _P.sdwidth / 2,
         drawtopgcut = true,
         drawleftstopgate = true,
         drawstopgatebotgcut = true,
+        drawstopgatetopgcut = true,
+        leftpolylines = { { 40, 90 }, { 40, 90 } },
     })
     local nmosinvfillrightref = pcell.create_layout("basic/mosfet", {
         channeltype = "nmos",
@@ -270,12 +304,14 @@ function layout(comparator, _P)
         vthtype = _P.nfetvthtype,
         fingers = (maxfingers - invnfingers) / 2,
         fwidth = _P.latchnfwidth,
-        gtopext = _P.invgstrapwidth + _P.invgstrapspace / 2,
+        gtopext = _P.invgstrapwidth + _P.invgstrapspace,
         cliptop = true,
         gbotext = (inputrowfingers == invnfingers) and _P.invinputsdspace + _P.sdwidth / 2,
         drawtopgcut = true,
         drawrightstopgate = true,
         drawstopgatebotgcut = true,
+        drawstopgatetopgcut = true,
+        rightpolylines = { { 40, 90 }, { 40, 90 } },
     })
     local pmosinvref = pcell.create_layout("basic/mosfet", {
         channeltype = "pmos",
@@ -287,33 +323,47 @@ function layout(comparator, _P)
         fwidth = _P.latchpfwidth,
         connectsource = true,
         connsourcewidth = _P.powerwidth,
+        connsourcespace = _P.powerspace,
         connectdrain = true,
         conndrainmetal = 2,
         drawdrainvia = true,
         conndraininline = true,
-        clipbot = true,
+        extendimplantbot = -_P.invgstrapwidth + _P.invskip,
+        extendvthbot = -_P.invgstrapwidth + _P.invskip,
+        gtopext = 2 * _P.powerspace + _P.powerwidth,
+        extendimplanttop = 100,
     })
     local pmosinvfillleftref = pcell.create_layout("basic/mosfet", {
-        channeltype = "nmos",
-        flippedwell = _P.nfetflippedwell,
-        vthtype = _P.nfetvthtype,
+        channeltype = "pmos",
+        flippedwell = _P.pfetflippedwell,
+        vthtype = _P.pfetvthtype,
         fingers = (maxfingers - invpfingers) / 2,
         fwidth = _P.latchpfwidth,
-        drawsourcedrain = "none",
         drawleftstopgate = true,
         drawstopgatebotgcut = true,
-        gbotext = _P.invgstrapwidth + _P.invgstrapspace / 2 + _P.invskip
+        gbotext = _P.invgstrapwidth + _P.invskip,
+        connectsource = true,
+        connsourcewidth = _P.powerwidth,
+        connsourcespace = _P.powerspace,
+        gtopext = 2 * _P.powerspace + _P.powerwidth,
+        extendimplanttop = 100,
+        leftpolylines = { { 40, 90 }, { 40, 90 } },
     })
     local pmosinvfillrightref = pcell.create_layout("basic/mosfet", {
-        channeltype = "nmos",
-        flippedwell = _P.nfetflippedwell,
-        vthtype = _P.nfetvthtype,
+        channeltype = "pmos",
+        flippedwell = _P.pfetflippedwell,
+        vthtype = _P.pfetvthtype,
         fingers = (maxfingers - invpfingers) / 2,
         fwidth = _P.latchpfwidth,
-        drawsourcedrain = "none",
         drawrightstopgate = true,
         drawstopgatebotgcut = true,
-        gbotext = _P.invgstrapwidth + _P.invgstrapspace / 2 + _P.invskip
+        gbotext = _P.invgstrapwidth + _P.invskip,
+        connectsource = true,
+        connsourcewidth = _P.powerwidth,
+        connsourcespace = _P.powerspace,
+        gtopext = 2 * _P.powerspace + _P.powerwidth,
+        extendimplanttop = 100,
+        rightpolylines = { { 40, 90 }, { 40, 90 } },
     })
     local pmosdummyref = pcell.create_layout("basic/mosfet", {
         channeltype = "pmos",
@@ -323,16 +373,22 @@ function layout(comparator, _P)
         fwidth = _P.latchpfwidth,
         clipbot = true,
         drawtopgate = true,
+        topgatestrwidth = _P.powerwidth,
+        topgatestrspace = _P.powerspace,
         topgatecompsd = false,
+        gtopext = 2 * _P.powerspace + _P.powerwidth,
         connectdrain = true,
         connectdraininverse = true,
         connectsource = true,
         connsourcewidth = _P.powerwidth,
+        connsourcespace = _P.powerspace,
         conndrainwidth = _P.powerwidth,
+        conndrainspace = _P.powerspace,
         extenddrainconnection = true,
         extendsourceconnection = true,
         drawbotgcut = true,
-        gbotext = _P.invgstrapwidth + _P.invgstrapspace / 2
+        gbotext = _P.invgstrapwidth + _P.invgstrapspace / 2,
+        extendimplanttop = 100,
     })
     -- reset switches
     local pmosresetref = pcell.create_layout("basic/mosfet", {
@@ -344,12 +400,15 @@ function layout(comparator, _P)
         fwidth = _P.latchpfwidth,
         connectsource = true,
         connsourcewidth = _P.powerwidth,
+        connsourcespace = _P.powerspace,
         connectdrain = true,
         conndrainmetal = 2,
         drawdrainvia = true,
         conndraininline = true,
         clipbot = true,
-        gbotext = _P.invgstrapwidth + _P.invgstrapspace / 2 + _P.invskip
+        gbotext = _P.invgstrapwidth + _P.invskip,
+        gtopext = 2 * _P.powerspace + _P.powerwidth,
+        extendimplanttop = 100,
     })
     pcell.pop_overwrites("basic/mosfet")
 

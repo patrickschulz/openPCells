@@ -93,8 +93,10 @@ function parameters()
         { "drawrightstopgate",                                             false },
         { "drawstopgatetopgcut",                                           false },
         { "drawstopgatebotgcut",                                           false },
-        { "numleftpolylines",                                              0 },
-        { "numrightpolylines",                                             0 }
+        { "leftpolylines",                                                 {} },
+        { "rightpolylines",                                                {} }
+        --{ "numleftpolylines",                                              0 },
+        --{ "numrightpolylines",                                             0 }
     )
 end
 
@@ -105,8 +107,8 @@ function layout(transistor, _P)
         or
         (_P.fingers + 1) * gatepitch
 
-    local virtualactiveleftext = enable(_P.drawleftstopgate, gatepitch) + _P.numleftpolylines * gatepitch
-    local virtualactiverightext = enable(_P.drawrightstopgate, gatepitch) + _P.numrightpolylines * gatepitch
+    local virtualactiveleftext = enable(_P.drawleftstopgate, gatepitch) + #_P.leftpolylines * gatepitch
+    local virtualactiverightext = enable(_P.drawrightstopgate, gatepitch) + #_P.rightpolylines * gatepitch
 
     local topgateshift = enable(_P.drawtopgate, _P.topgatestrspace + _P.topgatestrwidth)
     local botgateshift = enable(_P.drawbotgate, _P.botgatestrspace + _P.botgatestrwidth)
@@ -177,19 +179,25 @@ function layout(transistor, _P)
     end
     
     -- left and right polylines
-    for i = 1, _P.numleftpolylines do
+    local leftpolyoffset = (_P.fingers + 1) * gatepitch / 2 + _P.gatelength
+    for i = 1, #_P.leftpolylines do
+        local polyline = _P.leftpolylines[i]
         geometry.rectanglebltr(transistor,
             generics.other("gate"),
-            point.create(-_P.gatelength / 2 - (_P.fingers + 1 + 2 * i) / 2 * gatepitch, -_P.fwidth / 2 - gateaddbot - enable(_P.drawbotgate and botgatecompsd, sourceshift)),
-            point.create( _P.gatelength / 2 - (_P.fingers + 1 + 2 * i) / 2 * gatepitch,  _P.fwidth / 2 + gateaddtop + enable(_P.drawtopgate and topgatecompsd, drainshift))
+            point.create(-polyline[1] / 2 - polyline[2] - leftpolyoffset, -_P.fwidth / 2 - gateaddbot - enable(_P.drawbotgate and botgatecompsd, sourceshift)),
+            point.create( polyline[1] / 2 - polyline[2] - leftpolyoffset,  _P.fwidth / 2 + gateaddtop + enable(_P.drawtopgate and topgatecompsd, drainshift))
         )
+        leftpolyoffset = leftpolyoffset + polyline[1] + polyline[2]
     end
-    for i = 1, _P.numrightpolylines do
+    local rightpolyoffset = (_P.fingers + 1) * gatepitch / 2 + _P.gatelength
+    for i = 1, #_P.rightpolylines do
+        local polyline = _P.rightpolylines[i]
         geometry.rectanglebltr(transistor,
             generics.other("gate"),
-            point.create(-_P.gatelength / 2 + (_P.fingers + 1 + 2 * i) / 2 * gatepitch, -_P.fwidth / 2 - gateaddbot - enable(_P.drawbotgate and botgatecompsd, sourceshift)),
-            point.create( _P.gatelength / 2 + (_P.fingers + 1 + 2 * i) / 2 * gatepitch,  _P.fwidth / 2 + gateaddtop + enable(_P.drawtopgate and topgatecompsd, drainshift))
+            point.create(-polyline[1] / 2 + polyline[2] + rightpolyoffset, -_P.fwidth / 2 - gateaddbot - enable(_P.drawbotgate and botgatecompsd, sourceshift)),
+            point.create( polyline[1] / 2 + polyline[2] + rightpolyoffset,  _P.fwidth / 2 + gateaddtop + enable(_P.drawtopgate and topgatecompsd, drainshift))
         )
+        rightpolyoffset = rightpolyoffset + polyline[1] + polyline[2]
     end
 
     -- stop gates
@@ -201,8 +209,8 @@ function layout(transistor, _P)
         )
         geometry.rectanglebltr(transistor,
             generics.other("diffusionbreakgate"),
-            point.create(-_P.gatelength / 2 - (_P.fingers + 1) / 2 * gatepitch, -_P.fwidth / 2 - gateaddbot - enable(_P.drawbotgate and botgatecompsd, sourceshift)),
-            point.create( _P.gatelength / 2 - (_P.fingers + 1) / 2 * gatepitch,  _P.fwidth / 2 + gateaddtop + enable(_P.drawtopgate and topgatecompsd, drainshift))
+            point.create(-_P.gatelength / 2 - (_P.fingers + 1) / 2 * gatepitch, -_P.fwidth / 2 - gateaddbot - enable(_P.drawbotgate and botgatecompsd, sourceshift) + enable(_P.drawstopgatebotgcut, _P.cutheight / 2)),
+            point.create( _P.gatelength / 2 - (_P.fingers + 1) / 2 * gatepitch,  _P.fwidth / 2 + gateaddtop + enable(_P.drawtopgate and topgatecompsd, drainshift) - enable(_P.drawstopgatetopgcut, _P.cutheight / 2))
         )
         -- gate cut
         if _P.drawstopgatetopgcut then
@@ -228,8 +236,8 @@ function layout(transistor, _P)
         )
         geometry.rectanglebltr(transistor,
             generics.other("diffusionbreakgate"),
-            point.create(-_P.gatelength / 2 + (_P.fingers + 1) / 2 * gatepitch, -_P.fwidth / 2 - gateaddbot - enable(_P.drawbotgate and botgatecompsd, sourceshift)),
-            point.create( _P.gatelength / 2 + (_P.fingers + 1) / 2 * gatepitch,  _P.fwidth / 2 + gateaddtop + enable(_P.drawtopgate and topgatecompsd, drainshift))
+            point.create(-_P.gatelength / 2 + (_P.fingers + 1) / 2 * gatepitch, -_P.fwidth / 2 - gateaddbot - enable(_P.drawbotgate and botgatecompsd, sourceshift) + enable(_P.drawstopgatebotgcut, _P.cutheight / 2)),
+            point.create( _P.gatelength / 2 + (_P.fingers + 1) / 2 * gatepitch,  _P.fwidth / 2 + gateaddtop + enable(_P.drawtopgate and topgatecompsd, drainshift) - enable(_P.drawstopgatetopgcut, _P.cutheight / 2))
         )
         -- gate cut
         if _P.drawstopgatetopgcut then
@@ -384,7 +392,7 @@ function layout(transistor, _P)
     end
     if _P.drawbotgatestrap then
         local extend = _P.botgateextendhalfspace and _P.gatespace or 0
-        local width = _P.fingers * _P.gatelength + (_P.fingers - 1) * _P.gatespace
+        local width = _P.fingers * _P.gatelength + (_P.fingers - 1) * _P.gatespace + extend
         local height = _P.botgatestrwidth
         local xshift = 0
         local yshift = -_P.fwidth / 2 - _P.botgatestrspace - _P.botgatestrwidth / 2 - enable(botgatecompsd, sourceshift)
