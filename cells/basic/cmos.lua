@@ -194,37 +194,18 @@ function layout(cmos, _P)
             1, 2, 0, _P.separation + _P.pwidth + _P.nwidth + _P.ppowerspace + _P.npowerspace + _P.powerwidth
         )
     end
-    cmos:add_anchor("PRpll", point.create(-fingers * xpitch / 2 - _P.sdwidth / 2,  _P.separation / 2 + _P.pwidth + _P.ppowerspace))
-    cmos:add_anchor("PRpcl", point.create(-fingers * xpitch / 2 - _P.sdwidth / 2,  _P.separation / 2 + _P.pwidth + _P.ppowerspace + _P.powerwidth / 2))
-    cmos:add_anchor("PRpul", point.create(-fingers * xpitch / 2 - _P.sdwidth / 2,  _P.separation / 2 + _P.pwidth + _P.ppowerspace + _P.powerwidth))
-    cmos:add_anchor("PRplc", point.create(0,                      _P.separation / 2 + _P.pwidth + _P.ppowerspace))
-    cmos:add_anchor("PRpcc", point.create(0,                      _P.separation / 2 + _P.pwidth + _P.ppowerspace + _P.powerwidth / 2))
-    cmos:add_anchor("PRpuc", point.create(0,                      _P.separation / 2 + _P.pwidth + _P.ppowerspace + _P.powerwidth))
-    cmos:add_anchor("PRplr", point.create( fingers * xpitch / 2 + _P.sdwidth / 2,  _P.separation / 2 + _P.pwidth + _P.ppowerspace))
-    cmos:add_anchor("PRpcr", point.create( fingers * xpitch / 2 + _P.sdwidth / 2,  _P.separation / 2 + _P.pwidth + _P.ppowerspace + _P.powerwidth / 2))
-    cmos:add_anchor("PRpur", point.create( fingers * xpitch / 2 + _P.sdwidth / 2,  _P.separation / 2 + _P.pwidth + _P.ppowerspace + _P.powerwidth))
-    cmos:add_anchor("PRnll", point.create(-fingers * xpitch / 2 - _P.sdwidth / 2, -_P.separation / 2 - _P.nwidth - _P.npowerspace - _P.powerwidth))
-    cmos:add_anchor("PRncl", point.create(-fingers * xpitch / 2 - _P.sdwidth / 2, -_P.separation / 2 - _P.nwidth - _P.npowerspace - _P.powerwidth / 2))
-    cmos:add_anchor("PRnul", point.create(-fingers * xpitch / 2 - _P.sdwidth / 2, -_P.separation / 2 - _P.nwidth - _P.npowerspace))
-    cmos:add_anchor("PRnlc", point.create(0,                     -_P.separation / 2 - _P.nwidth - _P.npowerspace - _P.powerwidth))
-    cmos:add_anchor("PRncc", point.create(0,                     -_P.separation / 2 - _P.nwidth - _P.npowerspace - _P.powerwidth / 2))
-    cmos:add_anchor("PRnuc", point.create(0,                     -_P.separation / 2 - _P.nwidth - _P.npowerspace))
-    cmos:add_anchor("PRnlr", point.create( fingers * xpitch / 2 + _P.sdwidth / 2, -_P.separation / 2 - _P.nwidth - _P.npowerspace - _P.powerwidth))
-    cmos:add_anchor("PRncr", point.create( fingers * xpitch / 2 + _P.sdwidth / 2, -_P.separation / 2 - _P.nwidth - _P.npowerspace - _P.powerwidth / 2))
-    cmos:add_anchor("PRnur", point.create( fingers * xpitch / 2 + _P.sdwidth / 2, -_P.separation / 2 - _P.nwidth - _P.npowerspace))
+    cmos:add_anchor_area(
+        "PRp",
+        fingers * xpitch + _P.sdwidth, _P.powerwidth,
+        (fingers - 1) * xpitch / 2, _P.separation / 2 + _P.pwidth + _P.ppowerspace + _P.powerwidth / 2
+    )
+    cmos:add_anchor_area(
+        "PRn",
+        fingers * xpitch + _P.sdwidth, _P.powerwidth,
+        (fingers - 1) * xpitch / 2, -_P.separation / 2 - _P.nwidth - _P.npowerspace - _P.powerwidth / 2
+    )
 
     -- draw gate contacts
-    local _make_anchors = function(parent, x, y, xshift, yshift, pre, post)
-        parent:add_anchor(string.format("%sll%s", pre, post), point.create(x - xshift / 2, y - yshift / 2))
-        parent:add_anchor(string.format("%scl%s", pre, post), point.create(x - xshift / 2, y             ))
-        parent:add_anchor(string.format("%sul%s", pre, post), point.create(x - xshift / 2, y + yshift / 2))
-        parent:add_anchor(string.format("%slc%s", pre, post), point.create(x,              y - yshift / 2))
-        parent:add_anchor(string.format("%scc%s", pre, post), point.create(x,              y             ))
-        parent:add_anchor(string.format("%suc%s", pre, post), point.create(x,              y + yshift / 2))
-        parent:add_anchor(string.format("%slr%s", pre, post), point.create(x + xshift / 2, y - yshift / 2))
-        parent:add_anchor(string.format("%scr%s", pre, post), point.create(x + xshift / 2, y             ))
-        parent:add_anchor(string.format("%sur%s", pre, post), point.create(x + xshift / 2, y + yshift / 2))
-    end
     if _P.drawgatecontacts then
         for i = 1, fingers do
             local x = (i - 1) * xpitch
@@ -234,21 +215,21 @@ function layout(cmos, _P)
                     point.create(x - _P.gatelength / 2, _P.shiftgatecontacts - _P.gstwidth / 2),
                     point.create(x + _P.gatelength / 2, _P.shiftgatecontacts + _P.gstwidth / 2)
                 )
-                _make_anchors(cmos, x, _P.shiftgatecontacts, _P.gatelength, _P.gstwidth, "G", string.format("%d", i))
+                cmos:add_anchor_area(string.format("G%d", i), _P.gatelength, _P.gstwidth, x, _P.shiftgatecontacts)
             elseif _P.gatecontactpos[i] == "upper" then
                 geometry.contactbltr(
                     cmos, "gate", 
                     point.create(x - _P.gatelength / 2, _P.gatecontactsplitshift + _P.shiftgatecontacts - _P.gstwidth / 2),
                     point.create(x + _P.gatelength / 2, _P.gatecontactsplitshift + _P.shiftgatecontacts + _P.gstwidth / 2)
                 )
-                _make_anchors(cmos, x, _P.gatecontactsplitshift + _P.shiftgatecontacts, _P.gatelength, _P.gstwidth, "G", string.format("%d", i))
+                cmos:add_anchor_area(string.format("G%d", i), _P.gatelength, _P.gstwidth, x, _P.gatecontactsplitshift + _P.shiftgatecontacts)
             elseif _P.gatecontactpos[i] == "lower" then
                 geometry.contactbltr(
                     cmos, "gate", 
                     point.create(x - _P.gatelength / 2, -_P.gatecontactsplitshift + _P.shiftgatecontacts - _P.gstwidth / 2),
                     point.create(x + _P.gatelength / 2, -_P.gatecontactsplitshift + _P.shiftgatecontacts + _P.gstwidth / 2)
                 )
-                _make_anchors(cmos, x, -_P.gatecontactsplitshift + _P.shiftgatecontacts, _P.gatelength, _P.gstwidth, "G", string.format("%d", i))
+                cmos:add_anchor_area(string.format("G%d", i), _P.gatelength, _P.gstwidth, x, -_P.gatecontactsplitshift + _P.shiftgatecontacts)
             elseif _P.gatecontactpos[i] == "split" then
                 local y = _P.shiftgatecontacts
                 geometry.contactbltr(
@@ -257,9 +238,9 @@ function layout(cmos, _P)
                     point.create(x + _P.gatelength / 2, y + _P.gstwidth / 2),
                     1, 2, 0, 2 * _P.gatecontactsplitshift
                 )
-                _make_anchors(cmos, x, y,                _P.gatelength, _P.gstwidth, "G", string.format("%d", i))
-                _make_anchors(cmos, x, y + _P.gatecontactsplitshift, _P.gatelength, _P.gstwidth, "Gupper", string.format("%d", i))
-                _make_anchors(cmos, x, y - _P.gatecontactsplitshift, _P.gatelength, _P.gstwidth, "Glower", string.format("%d", i))
+                cmos:add_anchor_area(string.format("G%d", i), _P.gatelength, _P.gstwidth, x, y)
+                cmos:add_anchor_area(string.format("Gupper%d", i), _P.gatelength, _P.gstwidth, x, y + _P.gatecontactsplitshift)
+                cmos:add_anchor_area(string.format("Glower%d", i), _P.gatelength, _P.gstwidth, x, y - _P.gatecontactsplitshift)
                 geometry.rectangle(cmos, generics.other("gatecut"), xpitch, _P.cutheight, x, 0)
             elseif _P.gatecontactpos[i] == "dummy" then
                 geometry.contactbltr(
@@ -280,8 +261,8 @@ function layout(cmos, _P)
                     point.create(x - _P.gatelength / 2, -_P.separation / 2 - _P.nwidth - _P.outergstspace - _P.gstwidth / 2 - _P.powerwidth - _P.npowerspace - _P.outergstwidth / 2),
                     point.create(x + _P.gatelength / 2, -_P.separation / 2 - _P.nwidth - _P.outergstspace - _P.gstwidth / 2 - _P.powerwidth - _P.npowerspace + _P.outergstwidth / 2)
                 )
-                _make_anchors(cmos, x,  _P.separation / 2 + _P.pwidth + _P.outergstspace + _P.outergstwidth / 2 + _P.powerwidth + _P.ppowerspace, _P.gatelength, _P.gstwidth, "Gp", string.format("%d", i))
-                _make_anchors(cmos, x, -_P.separation / 2 - _P.nwidth - _P.outergstspace - _P.outergstwidth / 2 - _P.powerwidth - _P.npowerspace, _P.gatelength, _P.gstwidth, "Gn", string.format("%d", i))
+                cmos:add_anchor_area(string.format("Gp%d", i), _P.gatelength, _P.gstwidth, x, _P.separation / 2 + _P.pwidth + _P.outergstspace + _P.outergstwidth / 2 + _P.powerwidth + _P.ppowerspace)
+                cmos:add_anchor_area(string.format("Gn%d", i), _P.gatelength, _P.gstwidth, x, -_P.separation / 2 - _P.nwidth - _P.outergstspace - _P.outergstwidth / 2 - _P.powerwidth - _P.npowerspace)
                 geometry.rectangle(cmos, generics.other("gatecut"), xpitch, _P.cutheight, x, 0)
             elseif _P.gatecontactpos[i] == "unused" then
                 -- ignore
