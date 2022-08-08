@@ -558,6 +558,9 @@ function layout(transistor, _P)
         )
     )
 
+    transistor:add_anchor("topgate", point.create(0, _P.fwidth / 2 + math.max(_P.gtopext, enable(_P.drawtopgate and topgatecompsd, _P.topgatestrspace + _P.topgatestrwidth / 2))))
+    transistor:add_anchor("botgate", point.create(0, -_P.fwidth / 2 - math.max(_P.gbotext, enable(_P.drawbotgate and botgatecompsd, _P.botgatestrspace + _P.botgatestrwidth / 2))))
+
     transistor:add_anchor("sourcedrainleftll", transistor:get_anchor("sourcedrainactive1ll"))
     transistor:add_anchor("sourcedrainleftcl", transistor:get_anchor("sourcedrainactive1cl"))
     transistor:add_anchor("sourcedrainleftul", transistor:get_anchor("sourcedrainactive1ul"))

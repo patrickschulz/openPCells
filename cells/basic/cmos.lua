@@ -61,8 +61,8 @@ function parameters()
         { "activedummysep", 0 },
         { "drawleftstopgate", false },
         { "drawrightstopgate", false },
-        { "numleftpolylines", 0 },
-        { "numrightpolylines", 0 }
+        { "leftpolylines", {} },
+        { "rightpolylines", {} }
     )
 end
 
@@ -90,8 +90,7 @@ function layout(cmos, _P)
             sdwidth = _P.sdwidth,
             oxidetype = _P.oxidetype,
             gatemarker = _P.gatemarker,
-            drawinnersourcedrain = "none",
-            drawoutersourcedrain = "none",
+            drawsourcedrain = "none",
             drawactive = _P.drawactive,
             cutheight = _P.cutheight,
         })
@@ -135,8 +134,8 @@ function layout(cmos, _P)
         -- main
         for i = 1, fingers do
             if i == 1 then
-                nmosoptions["numleftpolylines"] = _P.numleftpolylines
-                pmosoptions["numleftpolylines"] = _P.numleftpolylines
+                nmosoptions["leftpolylines"] = _P.leftpolylines
+                pmosoptions["leftpolylines"] = _P.leftpolylines
                 if _P.drawleftstopgate then
                     nmosoptions["drawleftstopgate"] = true
                     nmosoptions["drawstopgatetopgcut"] = true
@@ -147,8 +146,8 @@ function layout(cmos, _P)
                 end
             end
             if i == fingers then
-                nmosoptions["numrightpolylines"] = _P.numrightpolylines
-                pmosoptions["numrightpolylines"] = _P.numrightpolylines
+                nmosoptions["rightpolylines"] = _P.rightpolylines
+                pmosoptions["rightpolylines"] = _P.rightpolylines
                 if _P.drawrightstopgate then
                     nmosoptions["drawrightstopgate"] = true
                     nmosoptions["drawstopgatetopgcut"] = true
