@@ -69,10 +69,18 @@ function layout(momcap, _P)
         momcap:add_child_array(fingername, _P.fingers, 1, 2 * pitch, 0):translate(-_P.fingers * pitch + pitch, -_P.foffset / 2)
     end
 
-    momcap:add_anchor("plus", point.create(0,   _P.foffset / 2 + _P.fheight / 2 + _P.rwidth / 2))
-    momcap:add_anchor("minus", point.create(0, -_P.foffset / 2 - _P.fheight / 2 - _P.rwidth / 2))
+    momcap:add_anchor("plus", point.create(0,   _P.foffset + _P.fheight / 2 + _P.rwidth / 2))
+    momcap:add_anchor("minus", point.create(0, -_P.foffset - _P.fheight / 2 - _P.rwidth / 2))
+    momcap:add_anchor_area("plus", 
+        (_P.fingers + 1) * (_P.fwidth + _P.fspace), _P.rwidth,
+        0, _P.foffset + _P.fheight / 2 + _P.rwidth / 2
+    )
+    momcap:add_anchor_area("minus", 
+        (_P.fingers + 1) * (_P.fwidth + _P.fspace), _P.rwidth,
+        0, -_P.foffset - _P.fheight / 2 - _P.rwidth / 2
+    )
     momcap:set_alignment_box(
-        point.create(-_P.fingers * (_P.fwidth + _P.fspace), -_P.foffset / 2 - _P.fheight / 2 - _P.rwidth / 2),
-        point.create( _P.fingers * (_P.fwidth + _P.fspace),  _P.foffset / 2 + _P.fheight / 2 + _P.rwidth / 2)
+        point.create(-_P.fingers * (_P.fwidth + _P.fspace) / 2, -_P.foffset - _P.fheight / 2 - _P.rwidth / 2),
+        point.create( _P.fingers * (_P.fwidth + _P.fspace) / 2,  _P.foffset + _P.fheight / 2 + _P.rwidth / 2)
     )
 end
