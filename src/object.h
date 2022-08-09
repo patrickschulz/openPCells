@@ -29,6 +29,7 @@ struct object* object_add_child(struct object* cell, struct pcell_state* pcell_s
 struct object* object_add_child_array(struct object* cell, struct pcell_state* pcell_state, const char* identifier, unsigned int xrep, unsigned int yrep, unsigned int xpitch, unsigned int ypitch, const char* name);
 void object_merge_into_shallow(struct object* cell, const struct object* other);
 void object_add_anchor(struct object* cell, const char* name, coordinate_t x, coordinate_t y);
+void object_add_anchor_area(struct object* cell, const char* base, coordinate_t width, coordinate_t height, coordinate_t xshift, coordinate_t yshift);
 point_t* object_get_anchor(const struct object* cell, const char* name);
 const struct hashmap* object_get_all_regular_anchors(const struct object* cell);
 void object_add_port(struct object* cell, const char* name, struct generics* layer, const point_t* where, int storeanchor);
@@ -55,9 +56,9 @@ void object_rotate_90_left(struct object* cell);
 void object_rotate_90_right(struct object* cell);
 void object_flipx(struct object* cell);
 void object_flipy(struct object* cell);
-void object_move_anchor(struct object* cell, const char* name, coordinate_t x, coordinate_t y);
-void object_move_anchor_x(struct object* cell, const char* name, coordinate_t x);
-void object_move_anchor_y(struct object* cell, const char* name, coordinate_t y);
+int object_move_anchor(struct object* cell, const char* name, coordinate_t x, coordinate_t y);
+int object_move_anchor_x(struct object* cell, const char* name, coordinate_t x);
+int object_move_anchor_y(struct object* cell, const char* name, coordinate_t y);
 
 void object_apply_transformation(struct object* cell);
 void object_transform_point(struct object* cell, point_t* pt);

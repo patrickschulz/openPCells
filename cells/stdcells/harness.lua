@@ -25,8 +25,8 @@ function parameters()
         { "drawbotgcut", true },
         { "drawleftstopgate", false },
         { "drawrightstopgate", false },
-        { "numleftpolylines", 0 },
-        { "numrightpolylines", 0 }
+        { "leftpolylines", {} },
+        { "rightpolylines", {} }
     )
 end
 
@@ -73,9 +73,9 @@ function layout(gate, _P)
         separation = separation,
         gatecontactsplitshift = routingshift,
         drawleftstopgate = _P.drawleftstopgate,
-        numleftpolylines = _P.numleftpolylines,
+        leftpolylines = _P.leftpolylines,
         drawrightstopgate = _P.drawrightstopgate,
-        numrightpolylines = _P.numrightpolylines,
+        rightpolylines = _P.rightpolylines,
     })
     gate:exchange(cmos)
 end

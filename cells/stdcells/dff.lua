@@ -136,7 +136,7 @@ function layout(dff, _P)
     local resetshift = _P.enable_reset and 1 or 0
 
     -- easy anchor access functions
-    local gate = function(num) return harness:get_anchor(string.format("Gcc%d", num)) end
+    local gate = function(num) return harness:get_anchor(string.format("G%dcc", num)) end
     local sourcedrain = function(fet, pos, num) return harness:get_anchor(string.format("%sSD%s%d", fet, pos, num)) end
 
     local spacing = bp.sdwidth / 2 + bp.routingspace

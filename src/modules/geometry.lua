@@ -1,10 +1,19 @@
-function geometry.path3x(layer, startpt, endpt, width, extension)
-    return geometry.path(layer, geometry.path_points_xy(startpt, { endpt }), width, extension)
+function geometry.path3x(cell, layer, startpt, endpt, width, extension)
+    return geometry.path(cell, layer, geometry.path_points_xy(startpt, { endpt }), width, extension)
 end
 
-function geometry.path3y(layer, startpt, endpt, width, extension)
-    return geometry.path(layer, geometry.path_points_yx(startpt, { endpt }), width, extension)
+function geometry.path3y(cell, layer, startpt, endpt, width, extension)
+    return geometry.path(cell, layer, geometry.path_points_yx(startpt, { endpt }), width, extension)
 end
+
+function geometry.cshape(cell, layer, startpt, endpt, offset, width)
+    check_object(cell, "geometry.cshape: first argument must be an object")
+    check_point(startpt, "geometry.cshape: 3rd argument (startpt) must be a point")
+    check_point(endpt, "geometry.cshape: 4th argument (endpt) must be a point")
+    check_number(offset, "geometry.cshape: 5th argument (offset) must be a number")
+    check_number(width, "geometry.cshape: 6th argument (width) must be a number")
+    return geometry.path(cell, layer, geometry.path_points_xy(startpt, { offset, endpt }), width, extension)
+end 
 
 function geometry.path_points_xy(startpt, movements)
     local pts = {}

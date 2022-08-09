@@ -74,7 +74,7 @@ function layout(gate, _P)
     )
     geometry.path(gate, generics.metal(1), 
         geometry.path_points_xy(anchor("pSDc2"), {
-            anchor("Gcc1"),
+            anchor("G1cc"),
             0,
             anchor("nSDc2")
         }), bp.sdwidth
@@ -83,7 +83,7 @@ function layout(gate, _P)
     --[[
     gate:merge_into_shallow(geometry.path(generics.metal(1), 
         geometry.path_points_xy(anchor("pSDi8"):translate(0, bp.sdwidth / 2), {
-            anchor("Gcc1"),
+            anchor("G1cc"),
             0,
             anchor("nSDi8"):translate(0, -bp.sdwidth / 2)
         }),
@@ -91,7 +91,7 @@ function layout(gate, _P)
     gate:merge_into_shallow(geometry.path(generics.metal(1), 
         geometry.path_points_yx(anchor("pSDo12"), {
             -bp.pwidth + bp.sdwidth / 2,
-            anchor("Gcc13"),
+            anchor("G13cc"),
             0,
             anchor("nSDc13")
         }),
@@ -105,23 +105,23 @@ function layout(gate, _P)
         anchor("nSDc12"):translate(0, bp.sdwidth / 2)
     ))
     gate:merge_into_shallow(geometry.path(generics.metal(2), 
-        geometry.path_points_yx(anchor("Gcc13"), {
-            anchor("Gcc9"),
+        geometry.path_points_yx(anchor("G13cc"), {
+            anchor("G9cc"),
         }),
     bp.sdwidth))
     gate:merge_into_shallow(geometry.rectanglebltr(generics.via(1, 2), 
-        anchor("Gcc9"):translate(-bp.glength / 2, -bp.routingwidth / 2),
-        anchor("Gcc9"):translate( bp.glength / 2,  bp.routingwidth / 2)
+        anchor("G9cc"):translate(-bp.glength / 2, -bp.routingwidth / 2),
+        anchor("G9cc"):translate( bp.glength / 2,  bp.routingwidth / 2)
     ))
     gate:merge_into_shallow(geometry.rectanglebltr(generics.via(1, 2), 
-        anchor("Gcc13"):translate(-bp.glength / 2, -bp.routingwidth / 2),
-        anchor("Gcc13"):translate( bp.glength / 2,  bp.routingwidth / 2)
+        anchor("G13cc"):translate(-bp.glength / 2, -bp.routingwidth / 2),
+        anchor("G13cc"):translate( bp.glength / 2,  bp.routingwidth / 2)
     ))
     if _P.enable_reset then
-        gate:add_port("RST", generics.metal(1), anchor("Gcc16"):translate(-xpitch / 2, 0))
+        gate:add_port("RST", generics.metal(1), anchor("G16cc"):translate(-xpitch / 2, 0))
     end
-    gate:add_port("D", generics.metal(1), anchor("Gcc1"):translate(0, yinvert * 2 * (bp.routingwidth + bp.routingspace)))
-    gate:add_port("CLK", generics.metal(1), anchor("Gcc1"))
+    gate:add_port("D", generics.metal(1), anchor("G1cc"):translate(0, yinvert * 2 * (bp.routingwidth + bp.routingspace)))
+    gate:add_port("CLK", generics.metal(1), anchor("G1cc"))
     gate:add_port("VDD", generics.metal(1), anchor("top"))
     gate:add_port("VSS", generics.metal(1), anchor("bottom"))
     --]]

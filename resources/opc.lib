@@ -9,6 +9,8 @@
  *    tbuf
  *    nand_gate
  *    nor_gate
+ *    and_gate
+ *    or_gate
  *    xor_gate
  *    xnor_gate
  *    dffpq
@@ -24,6 +26,15 @@
  */
 
 library (opc) {
+  input_threshold_pct_fall : 50;
+  input_threshold_pct_rise : 50;
+  output_threshold_pct_fall : 50;
+  output_threshold_pct_rise : 50;
+  slew_derate_from_library : 1;
+  slew_lower_threshold_pct_fall : 20;
+  slew_lower_threshold_pct_rise : 20;
+  slew_upper_threshold_pct_fall : 80;
+  slew_upper_threshold_pct_rise : 80;
   cell (not_gate) {
     area : "0.133120";
     pin (O) {
@@ -98,6 +109,32 @@ library (opc) {
       direction : "input";
     }
   }
+  cell (and_gate) {
+    area : "0.199680";
+    pin (O) {
+      direction : "output";
+      function : "A&B";
+    }
+    pin (A) {
+      direction : "input";
+    }
+    pin (B) {
+      direction : "input";
+    }
+  }
+  cell (or_gate) {
+    area : "0.199680";
+    pin (O) {
+      direction : "output";
+      function : "A+B";
+    }
+    pin (A) {
+      direction : "input";
+    }
+    pin (B) {
+      direction : "input";
+    }
+  }
   cell (xor_gate) {
     area : "0.199680";
     pin (O) {
@@ -121,6 +158,22 @@ library (opc) {
       direction : "input";
     }
     pin (B) {
+      direction : "input";
+    }
+  }
+  cell (mux) {
+    area : "0.798720";
+    pin (O) {
+      direction : "output";
+      function : "B&!SEL+A&SEL";
+    }
+    pin (A) {
+      direction : "input";
+    }
+    pin (B) {
+      direction : "input";
+    }
+    pin (SEL) {
       direction : "input";
     }
   }
@@ -349,5 +402,3 @@ library (opc) {
     }
   }
 }
-
-// vim: ft=
