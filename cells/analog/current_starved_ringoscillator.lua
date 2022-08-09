@@ -77,7 +77,7 @@ function parameters()
     pcell.reference_cell("basic/cmos")
     pcell.add_parameters(
         { "invfingers",            2, posvals = even() },
-        { "numinv",               17, posvals = odd() },
+        { "numinv",               3, posvals = odd() },
         { "pmosdiodefingers",      2, posvals = even() },
         { "pmoszerofingers",       7 },
         { "pmostunefingers",       2, posvals = even() },
@@ -115,7 +115,7 @@ function layout(oscillator, _P)
         sdwidth = _P.gstwidth,
         pwidth = _P.pfingerwidth,
         nwidth = _P.nfingerwidth,
-        nvthtype = 3,
+        nvthtype = 1,
         pvthtype = 1,
         nmosflippedwell = false,
         pmosflippedwell = true,
@@ -124,7 +124,8 @@ function layout(oscillator, _P)
         psdpowerheight = _P.pfingercontactwidth,
         nsdpowerheight = _P.nfingercontactwidth,
         powerwidth = _P.powerwidth,
-        powerspace = _P.powerspace,
+        ppowerspace = _P.powerspace,
+        npowerspace = _P.powerspace,
         separation = _P.separation,
         gatecontactsplitshift = _P.gstwidth + _P.gstspace,
         gateext = 2 * _P.powerwidth + 2 * _P.powerspace,
@@ -158,17 +159,17 @@ function layout(oscillator, _P)
     })
     -- current sources gate straps
     geometry.rectanglebltr(inverterref, generics.metal(1), 
-        inverterref:get_anchor("Gncc1"):translate(-xpitch / 2, -_P.gstwidth / 2),
-        inverterref:get_anchor(string.format("Gncc%d", 2 * _P.invfingers)):translate(xpitch / 2, _P.gstwidth / 2)
+        inverterref:get_anchor("Gn1cc"):translate(-xpitch / 2, -_P.gstwidth / 2),
+        inverterref:get_anchor(string.format("Gn%dcc", 2 * _P.invfingers)):translate(xpitch / 2, _P.gstwidth / 2)
     )
     geometry.rectanglebltr(inverterref, generics.metal(1), 
-        inverterref:get_anchor("Gpcc1"):translate(-xpitch / 2, -_P.gstwidth / 2),
-        inverterref:get_anchor(string.format("Gpcc%d", 2 * _P.invfingers)):translate(xpitch / 2, _P.gstwidth / 2)
+        inverterref:get_anchor("Gp1cc"):translate(-xpitch / 2, -_P.gstwidth / 2),
+        inverterref:get_anchor(string.format("Gp%dcc", 2 * _P.invfingers)):translate(xpitch / 2, _P.gstwidth / 2)
     )
     -- connect inverter gates
     geometry.rectanglebltr(inverterref, generics.metal(1), 
-        inverterref:get_anchor(string.format("Gll%d", 2 + 0)),
-        inverterref:get_anchor(string.format("Gur%d", 2 + 4 * (_P.invfingers / 2 - 1) + 1))
+        inverterref:get_anchor(string.format("G%dll", 2 + 0)),
+        inverterref:get_anchor(string.format("G%dur", 2 + 4 * (_P.invfingers / 2 - 1) + 1))
     )
     for i = 3, 2 * _P.invfingers, 4 do
         geometry.rectanglebltr(inverterref, generics.metal(1), 
@@ -207,10 +208,10 @@ function layout(oscillator, _P)
             inverterref:get_anchor(string.format("nSDi%d", 3)):translate(0, -_P.gstwidth / 2),
         }), _P.gstwidth
     )
-    inverterref:add_port("vin", generics.metalport(1), inverterref:get_anchor("Gcc2"))
-    inverterref:add_port("vout", generics.metalport(1), inverterref:get_anchor(string.format("Gcc%d", 2 * _P.invfingers - 1)):translate(3 * xpitch / 2, 0))
-    inverterref:add_port("vbiasp", generics.metalport(1), inverterref:get_anchor(string.format("Gpcc%d", 1)):translate(3 * xpitch / 2, 0))
-    inverterref:add_port("vbiasn", generics.metalport(1), inverterref:get_anchor(string.format("Gncc%d", 1)):translate(3 * xpitch / 2, 0))
+    inverterref:add_port("vin", generics.metalport(1), inverterref:get_anchor("G2cc"))
+    inverterref:add_port("vout", generics.metalport(1), inverterref:get_anchor(string.format("G%dcc", 2 * _P.invfingers - 1)):translate(3 * xpitch / 2, 0))
+    inverterref:add_port("vbiasp", generics.metalport(1), inverterref:get_anchor(string.format("Gp%dcc", 1)):translate(3 * xpitch / 2, 0))
+    inverterref:add_port("vbiasn", generics.metalport(1), inverterref:get_anchor(string.format("Gn%dcc", 1)):translate(3 * xpitch / 2, 0))
     inverterref:add_port("vdd", generics.metalport(1), inverterref:get_anchor("PRpcc"))
     inverterref:add_port("vss", generics.metalport(1), inverterref:get_anchor("PRncc"))
     local invname = pcell.add_cell_reference(inverterref, "vco_inverter")
@@ -263,45 +264,45 @@ function layout(oscillator, _P)
     })
     -- pmos diode
     geometry.rectanglebltr(cmarray, generics.metal(1), 
-        cmarray:get_anchor(string.format("Gupperll%d", cmfingers - _P.pmosdiodefingers + 1)),
-        cmarray:get_anchor(string.format("Gupperur%d", cmfingers))
+        cmarray:get_anchor(string.format("Gupper%dll", cmfingers - _P.pmosdiodefingers + 1)),
+        cmarray:get_anchor(string.format("Gupper%dur", cmfingers))
     )
     -- pmos zero current
     geometry.rectanglebltr(cmarray, generics.metal(1), 
-        cmarray:get_anchor(string.format("Gupperll%d", cmfingers - _P.pmosdiodefingers - _P.pmoszerofingers + 1)),
-        cmarray:get_anchor(string.format("Gupperur%d", cmfingers - _P.pmosdiodefingers))
+        cmarray:get_anchor(string.format("Gupper%dll", cmfingers - _P.pmosdiodefingers - _P.pmoszerofingers + 1)),
+        cmarray:get_anchor(string.format("Gupper%dur", cmfingers - _P.pmosdiodefingers))
     )
     -- pmos tuning
     geometry.rectanglebltr(cmarray, generics.metal(1), 
-        cmarray:get_anchor(string.format("Gupperll%d", cmfingers - _P.pmosdiodefingers - _P.pmoszerofingers - _P.pmostunefingers - _P.pmosseparationfingers + 1)),
-        cmarray:get_anchor(string.format("Gupperur%d", cmfingers - _P.pmosdiodefingers - _P.pmoszerofingers - _P.pmosseparationfingers))
+        cmarray:get_anchor(string.format("Gupper%dll", cmfingers - _P.pmosdiodefingers - _P.pmoszerofingers - _P.pmostunefingers - _P.pmosseparationfingers + 1)),
+        cmarray:get_anchor(string.format("Gupper%dur", cmfingers - _P.pmosdiodefingers - _P.pmoszerofingers - _P.pmosseparationfingers))
     )
     -- nmos current mirror
     geometry.rectanglebltr(cmarray, generics.metal(1), 
-        cmarray:get_anchor(string.format("Glowerll%d", cmfingers - _P.nmoscurrentfingers - _P.nmosdiodefingers + 1)),
-        cmarray:get_anchor(string.format("Glowerur%d", cmfingers))
+        cmarray:get_anchor(string.format("Glower%dll", cmfingers - _P.nmoscurrentfingers - _P.nmosdiodefingers + 1)),
+        cmarray:get_anchor(string.format("Glower%dur", cmfingers))
     )
     -- pmos dummies
     if _P.pmosdiodefingers + _P.pmoszerofingers + _P.pmostunefingers + 1 < _P.nmoscurrentfingers + _P.nmosdiodefingers then
         geometry.rectanglebltr(cmarray, generics.metal(1), 
-            cmarray:get_anchor(string.format("Gupperll%d", 1)),
-            cmarray:get_anchor(string.format("Gupperur%d", cmfingers - _P.pmosdiodefingers - _P.pmoszerofingers - _P.pmostunefingers - 1))
+            cmarray:get_anchor(string.format("Gupper%dll", 1)),
+            cmarray:get_anchor(string.format("Gupper%dur", cmfingers - _P.pmosdiodefingers - _P.pmoszerofingers - _P.pmostunefingers - 1))
         )
     end
     -- nmos dummies
     if _P.pmosdiodefingers + _P.pmoszerofingers + _P.pmostunefingers + _P.pmosseparationfingers > _P.nmoscurrentfingers + _P.nmosdiodefingers then
         geometry.rectanglebltr(cmarray, generics.metal(1), 
-            cmarray:get_anchor(string.format("Glowerll%d", 1)),
-            cmarray:get_anchor(string.format("Glowerur%d", cmfingers - _P.nmosdiodefingers - _P.nmoscurrentfingers))
+            cmarray:get_anchor(string.format("Glower%dll", 1)),
+            cmarray:get_anchor(string.format("Glower%dur", cmfingers - _P.nmosdiodefingers - _P.nmoscurrentfingers))
         )
     end
     -- draw bias source/drain connections
     for i = 2, _P.pmosdiodefingers, 2 do
         local index = cmfingers + 2 - i
-        geometry.rectanglebltr(cmarray, generics.metal(1), 
+        geometry.rectanglepoints(cmarray, generics.metal(2), 
             point.combine_12(
                 cmarray:get_anchor(string.format("pSDi%d", index)),
-                cmarray:get_anchor(string.format("Gupperuc%d", index))
+                cmarray:get_anchor(string.format("Gupper%duc", index))
             ):translate(-_P.gstwidth / 2, 0),
             cmarray:get_anchor(string.format("pSDi%d", index)):translate(_P.gstwidth / 2, 0)
         )
@@ -312,20 +313,20 @@ function layout(oscillator, _P)
             cmarray:get_anchor(string.format("nSDi%d", index)):translate(-_P.gstwidth / 2, 0),
             point.combine_12(
                 cmarray:get_anchor(string.format("nSDi%d", index)),
-                cmarray:get_anchor(string.format("Glowerlc%d", index))
+                cmarray:get_anchor(string.format("Glower%dlc", index))
             ):translate(_P.gstwidth / 2, 0)
         )
     end
     -- connect pmos zero gates to vss
     geometry.rectanglebltr(cmarray, generics.metal(1), 
-        cmarray:get_anchor(string.format("Gloweruc%d", cmfingers - _P.pmosdiodefingers - _P.pmoszerofingers // 2)):translate(-_P.gstwidth / 2, 0),
-        cmarray:get_anchor(string.format("Gupperuc%d", cmfingers - _P.pmosdiodefingers - _P.pmoszerofingers // 2)):translate( _P.gstwidth / 2, 0)
+        cmarray:get_anchor(string.format("Glower%duc", cmfingers - _P.pmosdiodefingers - _P.pmoszerofingers // 2)):translate(-_P.gstwidth / 2, 0),
+        cmarray:get_anchor(string.format("Gupper%duc", cmfingers - _P.pmosdiodefingers - _P.pmoszerofingers // 2)):translate( _P.gstwidth / 2, 0)
     )
     for i = 2, cmfingers - _P.pmostunefingers - _P.pmoszerofingers - _P.pmosdiodefingers - _P.pmosseparationfingers, _P.mosdummieseverynth do
         geometry.rectanglebltr(cmarray, generics.metal(1), 
             point.combine_12(
                 cmarray:get_anchor(string.format("pSDi%d", i)),
-                cmarray:get_anchor(string.format("Gupperuc%d", i))
+                cmarray:get_anchor(string.format("Gupper%duc", i))
             ):translate(-_P.gstwidth / 2, 0),
             cmarray:get_anchor(string.format("pSDi%d", i)):translate(_P.gstwidth / 2, 0)
         )
@@ -335,20 +336,20 @@ function layout(oscillator, _P)
             cmarray:get_anchor(string.format("nSDi%d", i)):translate(-_P.gstwidth / 2, 0),
             point.combine_12(
                 cmarray:get_anchor(string.format("nSDi%d", i)),
-                cmarray:get_anchor(string.format("Glowerlc%d", i))
+                cmarray:get_anchor(string.format("Glower%dlc", i))
             ):translate(_P.gstwidth / 2, 0)
         )
     end
     -- connect dummy pmos separation gate
     geometry.rectanglebltr(cmarray, generics.metal(1),
-        cmarray:get_anchor(string.format("Gupperll%d", cmfingers - _P.pmosdiodefingers - _P.pmoszerofingers - _P.pmosseparationfingers + 1)),
-        cmarray:get_anchor(string.format("Gupperur%d", cmfingers - _P.pmosdiodefingers - _P.pmoszerofingers))
+        cmarray:get_anchor(string.format("Gupper%dll", cmfingers - _P.pmosdiodefingers - _P.pmoszerofingers - _P.pmosseparationfingers + 1)),
+        cmarray:get_anchor(string.format("Gupper%dur", cmfingers - _P.pmosdiodefingers - _P.pmoszerofingers))
     )
     -- connect dummy pmos separation gate to drain
     geometry.rectanglebltr(cmarray, generics.metal(1), 
         point.combine_12(
             cmarray:get_anchor(string.format("pSDi%d", cmfingers - _P.pmosdiodefingers - _P.pmoszerofingers - _P.pmosseparationfingers // 2)),
-            cmarray:get_anchor(string.format("Gupperur%d", cmfingers - _P.pmosdiodefingers - _P.pmoszerofingers - _P.pmosseparationfingers // 2))
+            cmarray:get_anchor(string.format("Gupper%dur", cmfingers - _P.pmosdiodefingers - _P.pmoszerofingers - _P.pmosseparationfingers // 2))
         ):translate(-_P.gstwidth / 2, 0),
         cmarray:get_anchor(string.format("pSDi%d", cmfingers - _P.pmosdiodefingers - _P.pmoszerofingers - _P.pmosseparationfingers // 2)):translate(_P.gstwidth / 2, 0)
     )
@@ -361,7 +362,7 @@ function layout(oscillator, _P)
     geometry.rectanglebltr(cmarray, generics.metal(2),
         point.combine_12(
             cmarray:get_anchor(string.format("pSDc%d", cmfingers - _P.pmosdiodefingers - _P.pmoszerofingers - _P.pmosseparationfingers + 1)),
-            cmarray:get_anchor(string.format("Glowerlc%d", cmfingers - _P.nmoscurrentfingers))
+            cmarray:get_anchor(string.format("Glower%dlc", cmfingers - _P.nmoscurrentfingers))
         ):translate(-_P.gstwidth / 2, 0),
         cmarray:get_anchor(string.format("pSDi%d", index)):translate(_P.gstwidth / 2, 0)
     )
@@ -373,7 +374,7 @@ function layout(oscillator, _P)
     geometry.rectanglebltr(cmarray, generics.metal(2),
         point.combine_12(
             cmarray:get_anchor(string.format("pSDc%d", cmfingers - _P.pmosdiodefingers - _P.pmoszerofingers + 1)),
-            cmarray:get_anchor(string.format("Glowerlc%d", cmfingers - _P.nmoscurrentfingers))
+            cmarray:get_anchor(string.format("Glower%dlc", cmfingers - _P.nmoscurrentfingers))
         ):translate(-_P.gstwidth / 2, 0),
         cmarray:get_anchor(string.format("pSDi%d", cmfingers - _P.pmosdiodefingers - _P.pmoszerofingers + 1)):translate(_P.gstwidth / 2, 0)
     )
@@ -441,8 +442,8 @@ function layout(oscillator, _P)
     })
     geometry.rectanglebltr(bufferarray,
         generics.metal(1),
-        bufferarray:get_anchor(string.format("Gll%d", _P.bufspacers + 1)),
-        bufferarray:get_anchor(string.format("Gur%d", _P.bufspacers + _P.buffingers))
+        bufferarray:get_anchor(string.format("G%dll", _P.bufspacers + 1)),
+        bufferarray:get_anchor(string.format("G%dur", _P.bufspacers + _P.buffingers))
     )
     geometry.path(bufferarray, generics.metal(1), 
         {
@@ -465,68 +466,68 @@ function layout(oscillator, _P)
             geometry.path_points_xy(
             point.combine_12(
                 inverters[i]:get_anchor(string.format("pSDi%d", 2 * _P.invfingers + 1)),
-                inverters[i]:get_anchor(string.format("Gcc%d", 2))
+                inverters[i]:get_anchor(string.format("G%dcc", 2))
             ), { 2 * xpitch }), _P.gstwidth)
     end
 
     geometry.path(oscillator, generics.metal(2), geometry.path_points_yx(
         currentmirror:get_anchor(string.format("pSDo%d", cmfingers)), {
-            inverters[1]:get_anchor("Gpcc1")
+            inverters[1]:get_anchor("Gp1cc")
         }), _P.gstwidth
     )
     geometry.viabltr(
         oscillator, 1, 2, 
-        inverters[1]:get_anchor("Gpll1"):translate(-_P.gspace / 2, 0),
-        inverters[_P.numinv]:get_anchor(string.format("Gpur%d", 2 * _P.invfingers)):translate(_P.gspace / 2, 0)
+        inverters[1]:get_anchor("Gp1ll"):translate(-_P.gspace / 2, 0),
+        inverters[_P.numinv]:get_anchor(string.format("Gp%dur", 2 * _P.invfingers)):translate(_P.gspace / 2, 0)
     )
 
      -- connect vbiasn to core
     geometry.path(oscillator, generics.metal(2), {
         point.combine_12(
             currentmirror:get_anchor(string.format("pSDc%d", cmfingers - _P.pmosdiodefingers - _P.pmoszerofingers - _P.pmosseparationfingers + 1)),
-            currentmirror:get_anchor(string.format("Glowercc%d", cmfingers - _P.nmoscurrentfingers))
+            currentmirror:get_anchor(string.format("Glower%dcc", cmfingers - _P.nmoscurrentfingers))
         ),
         point.combine_12(
             currentmirror:get_anchor(string.format("nSDi%d", cmfingers - _P.nmoscurrentfingers)),
-            currentmirror:get_anchor(string.format("Glowercc%d", cmfingers - _P.nmoscurrentfingers))
+            currentmirror:get_anchor(string.format("Glower%dcc", cmfingers - _P.nmoscurrentfingers))
         ),
         point.combine_12(
             currentmirror:get_anchor(string.format("nSDi%d", cmfingers - _P.nmoscurrentfingers)),
-            inverters[1]:get_anchor("Gncc1")
+            inverters[1]:get_anchor("Gn1cc")
         ),
-        inverters[1]:get_anchor("Gncc1")
+        inverters[1]:get_anchor("Gn1cc")
     }, _P.gstwidth)
     geometry.viabltr(
         oscillator, 1, 2,
-        inverters[1]:get_anchor("Gnll1"):translate(-_P.gspace / 2, 0),
-        inverters[_P.numinv]:get_anchor(string.format("Gnur%d", 2 * _P.invfingers)):translate(_P.gspace / 2, 0)
+        inverters[1]:get_anchor("Gn1ll"):translate(-_P.gspace / 2, 0),
+        inverters[_P.numinv]:get_anchor(string.format("Gn%dur", 2 * _P.invfingers)):translate(_P.gspace / 2, 0)
     )
 
     -- feedback connection
     geometry.path(oscillator, generics.metal(2), {
-            inverters[_P.numinv]:get_anchor(string.format("pSDc%d", 2 * _P.invfingers + 1)) .. inverters[_P.numinv]:get_anchor(string.format("Gcc%d", 2)),
-            inverters[1]:get_anchor("Gcc2"):translate(-_P.glength / 2, 0)
+            inverters[_P.numinv]:get_anchor(string.format("pSDc%d", 2 * _P.invfingers + 1)) .. inverters[_P.numinv]:get_anchor(string.format("G%dcc", 2)),
+            inverters[1]:get_anchor("G2cc"):translate(-_P.glength / 2, 0)
         }, _P.gstwidth
     )
     geometry.viabltr(oscillator, 1, 2,
-        inverters[_P.numinv]:get_anchor(string.format("Gll%d", 2 * _P.invfingers - 1)):translate(xpitch + _P.glength + _P.gstwidth / 2, 0),
-        buffer:get_anchor(string.format("Gur%d", _P.bufspacers + 1))
+        inverters[_P.numinv]:get_anchor(string.format("G%dll", 2 * _P.invfingers - 1)):translate(xpitch + _P.glength + _P.gstwidth / 2, 0),
+        buffer:get_anchor(string.format("G%dur", _P.bufspacers + 1))
     )
     geometry.viabltr(
         oscillator, 1, 2,
-        inverters[1]:get_anchor("Gcc2"):translate(xpitch / 2, 0):translate(-_P.glength - _P.gspace / 2, -_P.gstwidth / 2),
-        inverters[1]:get_anchor("Gcc2"):translate(xpitch / 2, 0):translate( _P.glength + _P.gspace / 2,  _P.gstwidth / 2)
+        inverters[1]:get_anchor("G2cc"):translate(xpitch / 2, 0):translate(-_P.glength - _P.gspace / 2, -_P.gstwidth / 2),
+        inverters[1]:get_anchor("G2cc"):translate(xpitch / 2, 0):translate( _P.glength + _P.gspace / 2,  _P.gstwidth / 2)
     )
 
     -- connect core to buffer
     geometry.rectanglebltr(oscillator, generics.metal(1),
-        inverters[_P.numinv]:get_anchor(string.format("Gll%d", 2 * _P.invfingers - 1)):translate(xpitch + _P.glength + _P.gstwidth / 2, 0),
-        buffer:get_anchor(string.format("Gur%d", _P.bufspacers + 1))
+        inverters[_P.numinv]:get_anchor(string.format("G%dll", 2 * _P.invfingers - 1)):translate(xpitch + _P.glength + _P.gstwidth / 2, 0),
+        buffer:get_anchor(string.format("G%dur", _P.bufspacers + 1))
     )
 
     -- ports
-    oscillator:add_port("vtune", generics.metalport(1), currentmirror:get_anchor("Guppercc1"))
-    oscillator:add_port("vout", generics.metalport(1), buffer:get_anchor(string.format("Gcc%d", _P.bufspacers + _P.buffingers)):translate(3 * xpitch / 2, 0))
+    oscillator:add_port("vtune", generics.metalport(1), currentmirror:get_anchor("Gupper1cc"))
+    oscillator:add_port("vout", generics.metalport(1), buffer:get_anchor(string.format("G%dcc", _P.bufspacers + _P.buffingers)):translate(3 * xpitch / 2, 0))
     oscillator:add_port("vdd", generics.metalport(1), currentmirror:get_anchor("PRpcc"))
     oscillator:add_port("vss", generics.metalport(1), currentmirror:get_anchor("PRncc"))
 
