@@ -76,3 +76,18 @@ procedure(OPCUpdateCallbackFlat(xpath)
         )
     )
 ) ; procedure
+
+procedure(OPCDeleteDesignFile()
+
+    letseq(
+        (
+            (cv geGetEditCellView())
+            (libPath cv->lib->readPath)
+            (cellName cv->cellName)
+            (path lsprintf("%s/%s/layout/layout.lua" libPath cellName))
+        )
+        when(isFile(path)
+            deleteFile(path)
+        )
+    )
+) ; procedure

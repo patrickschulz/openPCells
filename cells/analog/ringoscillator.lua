@@ -33,19 +33,19 @@
 --]]
 function parameters()
     pcell.reference_cell("basic/cmos")
-    pcell.reference_cell("basic/mosfet")
     pcell.add_parameters(
-        { "invfingers", 2, posvals = even() },
+        { "invfingers", 4, posvals = even() },
         { "numinv", 3, posvals = odd() },
-        { "glength",             200 },
-        { "gspace",              140 },
-        { "pfingerwidth",        500 },
-        { "nfingerwidth",        500 },
-        { "separation",          400 },
-        { "gstwidth",             60 },
-        { "sdwidth",              60 },
-        { "powerwidth",          200 },
-        { "powerspace",          200 }
+        { "invdummies", 1 },
+        { "glength",             tech.get_dimension("Minimum Gate Length") },
+        { "gspace",              tech.get_dimension("Minimum Gate Space") },
+        { "pfingerwidth",        2 * tech.get_dimension("Minimum Gate Width") },
+        { "nfingerwidth",        2 * tech.get_dimension("Minimum Gate Width") },
+        { "gstwidth",             tech.get_dimension("Minimum M1 Width") },
+        { "gstspace",             tech.get_dimension("Minimum M1 Space") },
+        { "sdwidth",              tech.get_dimension("Minimum M1 Width") },
+        { "powerwidth",          3 * tech.get_dimension("Minimum M1 Width") },
+        { "powerspace",          3 * tech.get_dimension("Minimum M1 Space") }
     )
 end
 
@@ -53,33 +53,41 @@ function layout(oscillator, _P)
     local cbp = pcell.get_parameters("basic/cmos")
     local xpitch = _P.glength + _P.gspace
 
-    pcell.push_overwrites("basic/mosfet", {
+    pcell.push_overwrites("basic/cmos", {
         gatelength = _P.glength,
         gatespace = _P.gspace,
-    })
-    pcell.push_overwrites("basic/cmos", {
         nvthtype = 1,
         pvthtype = 1,
-        separation = _P.separation,
+        separation = 2 * _P.gstspace + _P.gstwidth,
         pwidth = _P.pfingerwidth,
         nwidth = _P.nfingerwidth,
         powerwidth = _P.powerwidth,
-        powerspace = _P.powerspace,
+        ppowerspace = _P.powerspace,
+        npowerspace = _P.powerspace,
         gstwidth = _P.gstwidth,
+        gstspace = _P.gstspace,
         sdwidth = _P.sdwidth,
     })
 
     -- place inverter cells
     local invgatecontacts = {}
+    for i = 1, _P.invdummies do
+        invgatecontacts[i] = "dummy"
+        invgatecontacts[_P.invdummies + _P.invfingers + i] = "dummy"
+    end
     for i = 1, _P.invfingers do
-        invgatecontacts[i] = "center"
+        invgatecontacts[_P.invdummies + i] = "center"
     end
     local invactivecontacts = {}
+    for i = 1, _P.invdummies do
+        invactivecontacts[i] = "power"
+        invactivecontacts[_P.invdummies + _P.invfingers + i + 1] = "power"
+    end
     for i = 1, _P.invfingers + 1 do
         if i % 2 == 0 then
-            invactivecontacts[i] = "inner"
+            invactivecontacts[_P.invdummies + i] = "inner"
         else
-            invactivecontacts[i] = "power"
+            invactivecontacts[_P.invdummies + i] = "power"
         end
     end
     local inverterref = pcell.create_layout("basic/cmos", { 
@@ -87,21 +95,17 @@ function layout(oscillator, _P)
         pcontactpos = invactivecontacts, 
         ncontactpos = invactivecontacts,
     })
+    pcell.pop_overwrites("basic/cmos")
+
     geometry.rectanglebltr(inverterref, generics.metal(1), 
-        inverterref:get_anchor("Gll1"),
-        inverterref:get_anchor(string.format("Gur%d", _P.invfingers))
+        inverterref:get_anchor(string.format("G%dll", _P.invdummies + 1)),
+        inverterref:get_anchor(string.format("G%dur", _P.invdummies + _P.invfingers))
     )
-    geometry.rectanglebltr(inverterref, generics.metal(1), 
-        inverterref:get_anchor(string.format("pSDi%d", 2)),
-        inverterref:get_anchor(string.format("pSDi%d", _P.invfingers)):translate(3 * xpitch / 2, _P.gstwidth)
-    )
-    geometry.rectanglebltr(inverterref, generics.metal(1), 
-        inverterref:get_anchor(string.format("nSDi%d", 2)):translate(0, -_P.gstwidth),
-        inverterref:get_anchor(string.format("nSDi%d", _P.invfingers)):translate(3 * xpitch / 2, 0)
-    )
-    geometry.rectanglebltr(inverterref, generics.metal(1), 
-        inverterref:get_anchor(string.format("nSDi%d", _P.invfingers)):translate(3 * xpitch / 2 - _P.gstwidth / 2, -_P.gstwidth),
-        inverterref:get_anchor(string.format("pSDi%d", _P.invfingers)):translate(3 * xpitch / 2 + _P.gstwidth / 2,  _P.gstwidth)
+    geometry.cshape(inverterref, generics.metal(1), 
+        inverterref:get_anchor(string.format("pSDi%d", _P.invdummies + 2)):translate(0,  _P.sdwidth / 2),
+        inverterref:get_anchor(string.format("nSDi%d", _P.invdummies + 2)):translate(0, -_P.sdwidth / 2),
+        (_P.invfingers - 1) * xpitch,
+        _P.sdwidth
     )
     local invname = pcell.add_cell_reference(inverterref, "inverter")
     local inverters = {}
@@ -114,19 +118,20 @@ function layout(oscillator, _P)
 
     -- feedback connection
     geometry.path(oscillator, generics.metal(2), {
-            inverters[_P.numinv]:get_anchor(string.format("Gcc%d", _P.invfingers)):translate(xpitch, 0),
-            inverters[1]:get_anchor("Gcc1"):translate(-_P.glength / 2, 0)
+            (inverters[_P.numinv]:get_anchor(string.format("nSDi%d", _P.invdummies + _P.invfingers)):translate(xpitch - _P.gstwidth / 2, 0) +
+            inverters[_P.numinv]:get_anchor(string.format("pSDi%d", _P.invdummies + _P.invfingers)):translate(xpitch + _P.gstwidth / 2, 0)),
+            inverters[1]:get_anchor(string.format("G%dcc", _P.invdummies + 1)):translate(-_P.glength / 2, 0)
         }, _P.gstwidth
     )
     geometry.viabltr(
         oscillator, 1, 2, 
-        inverters[_P.numinv]:get_anchor(string.format("Gcc%d", _P.invfingers)):translate(xpitch - _P.gstwidth / 2, -_P.separation / 2 - _P.gstwidth),
-        inverters[_P.numinv]:get_anchor(string.format("Gcc%d", _P.invfingers)):translate(xpitch + _P.gstwidth / 2,  _P.separation / 2 + _P.gstwidth)
+        inverters[_P.numinv]:get_anchor(string.format("nSDi%d", _P.invdummies + _P.invfingers)):translate(xpitch - _P.gstwidth / 2, 0),
+        inverters[_P.numinv]:get_anchor(string.format("pSDi%d", _P.invdummies + _P.invfingers)):translate(xpitch + _P.gstwidth / 2, 0)
     )
     geometry.viabltr(
         oscillator, 1, 2,
-        inverters[1]:get_anchor("Gll1"),
-        inverters[1]:get_anchor(string.format("Gur%d", _P.invfingers))
+        inverters[1]:get_anchor(string.format("G%dll", _P.invdummies + 1)),
+        inverters[1]:get_anchor(string.format("G%dur", _P.invdummies + _P.invfingers))
     )
 
     local width = point.xdistance(inverters[_P.numinv]:get_anchor("PRpur"), inverters[1]:get_anchor("PRpul"))
@@ -172,7 +177,7 @@ function layout(oscillator, _P)
     -- ports
     oscillator:add_port("vdd", generics.metal(1), inverters[1]:get_anchor("top"))
     oscillator:add_port("vss", generics.metal(1), inverters[1]:get_anchor("bottom"))
-    oscillator:add_port("vout", generics.metal(1), inverters[_P.numinv]:get_anchor(string.format("Gcc%d", _P.invfingers)):translate(xpitch, 0))
+    oscillator:add_port("vout", generics.metal(1), inverters[_P.numinv]:get_anchor(string.format("G%dcc", _P.invfingers)):translate(xpitch, 0))
 
     -- center oscillator
     oscillator:translate(-(_P.numinv - 1) * _P.invfingers * xpitch / 2, 0)

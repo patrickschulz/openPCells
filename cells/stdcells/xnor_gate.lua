@@ -1,3 +1,5 @@
+
+-- FIXME: this is just a copy of the xor_gate
 --[[
     VDD ----*-----------------------*
             |                       |
