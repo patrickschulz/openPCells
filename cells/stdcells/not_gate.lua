@@ -42,8 +42,8 @@ function layout(gate, _P)
     if _P.fingers > 1 then
         geometry.rectanglebltr(
             gate, generics.metal(1),
-            harness:get_anchor("Gll1"),
-            harness:get_anchor("Gur4")
+            harness:get_anchor("G1ll"),
+            harness:get_anchor("G4ur")
         )
     end
 
@@ -63,7 +63,7 @@ function layout(gate, _P)
         geometry.path(gate, generics.metal(1),
             geometry.path_points_xy(harness:get_anchor(string.format("pSDi%d", n)):translate(0, bp.sdwidth / 2),
             {
-                harness:get_anchor(string.format("Gcc%d", _P.fingers)):translate(xpitch + _P.shiftoutput, 0),
+                harness:get_anchor(string.format("G%dcc", _P.fingers)):translate(xpitch + _P.shiftoutput, 0),
                 0, -- toggle xy
                 harness:get_anchor(string.format("nSDi%d", n)):translate(0, -bp.sdwidth / 2),
             }),
@@ -89,7 +89,7 @@ function layout(gate, _P)
     gate:add_anchor("OBRo", harness:get_anchor(string.format("nSDo%d", _P.fingers + 1)))
 
     -- ports
-    gate:add_port("I", generics.metalport(1), harness:get_anchor("Gcc1"))
+    gate:add_port("I", generics.metalport(1), harness:get_anchor("G1cc"))
     gate:add_port("O", generics.metalport(1), point.create((_P.fingers + 1) * xpitch / 2 + _P.shiftoutput, 0))
     gate:add_port("VDD", generics.metalport(1), harness:get_anchor("top"))
     gate:add_port("VSS", generics.metalport(1), harness:get_anchor("bottom"))
