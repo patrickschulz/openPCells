@@ -42,8 +42,8 @@ function layout(gate, _P)
         gatecontactpos = { "lower", "center", "center", "upper", "center", "lower" },
         pcontactpos = { "power", "outer", "outer", "outer", nil, "power", "power" },
         ncontactpos = { "power", "power", nil, "inner", "outer", "outer", "power" },
-        leftdummies = 0,
-        rightdummies = 0
+        numleftpolylines  = 0,
+        numrightpolylines = 0
     })
     gate:merge_into_shallow(harness)
 
@@ -84,7 +84,7 @@ function layout(gate, _P)
     gate:inherit_alignment_box(harness)
 
     -- inverter B
-    pcell.push_overwrites("stdcells/harness", { leftdummies = 0, rightdummies = 1 })
+    pcell.push_overwrites("stdcells/harness", { numleftpolylines = 0, numrightpolylines = 1 })
     pcell.push_overwrites("stdcells/base", { connectoutput = false })
     local invb = pcell.create_layout("stdcells/not_gate", { inputpos = "upper" })
     invb:move_anchor("right", gate:get_anchor("left"))
@@ -94,7 +94,7 @@ function layout(gate, _P)
     pcell.pop_overwrites("stdcells/base")
 
     -- inverter A
-    pcell.push_overwrites("stdcells/harness", { rightdummies = 1 })
+    pcell.push_overwrites("stdcells/harness", { numleftpolylines = 1 })
     pcell.push_overwrites("stdcells/base", { compact = false })
     local inva = pcell.create_layout("stdcells/not_gate", { inputpos = "lower", shiftoutput = xpitch / 2 })
     inva:move_anchor("right", invb:get_anchor("left"))
