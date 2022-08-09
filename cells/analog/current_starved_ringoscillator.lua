@@ -77,7 +77,7 @@ function parameters()
     pcell.reference_cell("basic/cmos")
     pcell.add_parameters(
         { "invfingers",            2, posvals = even() },
-        { "numinv",               3, posvals = odd() },
+        { "numinv",                3, posvals = odd() },
         { "pmosdiodefingers",      2, posvals = even() },
         { "pmoszerofingers",       7 },
         { "pmostunefingers",       2, posvals = even() },
@@ -85,28 +85,29 @@ function parameters()
         { "nmosdiodefingers",      4, posvals = even() },
         { "pmosseparationfingers", 3 },
         { "mosdummieseverynth",    1 },
-        { "glength",             tech.get_dimension("Minimum Gate Length") },
-        { "gspace",              tech.get_dimension("Minimum Gate Space") },
-        { "pfingerwidth",       2 * tech.get_dimension("Minimum Gate Width") },
-        { "nfingerwidth",       2 * tech.get_dimension("Minimum Gate Width") },
-        { "pfingercontactwidth", tech.get_dimension("Minimum Gate Width") },
-        { "nfingercontactwidth", tech.get_dimension("Minimum Gate Width") },
-        { "separation",          400 },
-        { "gstwidth",             tech.get_dimension("Minimum M1 Width") },
-        { "gstspace",             tech.get_dimension("Minimum M1 Space") },
-        { "powerwidth",          tech.get_dimension("Minimum M1 Width") },
-        { "powerspace",           tech.get_dimension("Minimum M1 Space") },
+        { "glength",               tech.get_dimension("Minimum Gate Length") },
+        { "gspace",                tech.get_dimension("Minimum Gate Space") },
+        { "pfingerwidth",          2 * tech.get_dimension("Minimum Gate Width") },
+        { "nfingerwidth",          2 * tech.get_dimension("Minimum Gate Width") },
+        { "pfingercontactwidth",   tech.get_dimension("Minimum Gate Width") },
+        { "nfingercontactwidth",   tech.get_dimension("Minimum Gate Width") },
+        { "gstwidth",              tech.get_dimension("Minimum M1 Width") },
+        { "gstspace",              tech.get_dimension("Minimum M1 Space") },
+        { "powerwidth",            tech.get_dimension("Minimum M1 Width") },
+        { "powerspace",            tech.get_dimension("Minimum M1 Space") },
         { "bufspacers",            2 },
         { "buffingers",            4 },
-        { "drawguardrings",     true },
-        { "guardringwidth",     200 },
-        { "guardringspace",     300 }
+        { "drawguardrings",        true },
+        { "guardringwidth",        200 },
+        { "guardringspace",        300 }
     )
 end
 
 function layout(oscillator, _P)
     local cbp = pcell.get_parameters("basic/cmos")
     local xpitch = _P.glength + _P.gspace
+
+    local separation = 3 * _P.gstwidth + 5 * _P.gstspace
 
     pcell.push_overwrites("basic/cmos", {
         gatelength = _P.glength,
@@ -126,7 +127,7 @@ function layout(oscillator, _P)
         powerwidth = _P.powerwidth,
         ppowerspace = _P.powerspace,
         npowerspace = _P.powerspace,
-        separation = _P.separation,
+        separation = separation,
         gatecontactsplitshift = _P.gstwidth + _P.gstspace,
         gateext = 2 * _P.powerwidth + 2 * _P.powerspace,
         outergstwidth = _P.gstwidth,
@@ -532,7 +533,7 @@ function layout(oscillator, _P)
     oscillator:add_port("vss", generics.metalport(1), currentmirror:get_anchor("PRncc"))
 
     -- center oscillator
-    oscillator:translate((cmfingers + _P.invfingers + _P.buffingers + _P.bufspacers - (_P.numinv * 2 * _P.invfingers - _P.invfingers + 2 * _P.buffingers + 2 * _P.bufspacers)) * xpitch / 2, 0)
+    oscillator:translate((cmfingers + 1 - _P.numinv * 2 * _P.invfingers - _P.bufspacers - _P.buffingers) * xpitch / 2, 0)
 
     -- place guardring
     if _P.drawguardrings then
@@ -540,16 +541,18 @@ function layout(oscillator, _P)
             contype = "p",
             fillwell = true,
             ringwidth = _P.guardringwidth,
-            holewidth = (cmfingers + 2 * _P.numinv * _P.invfingers + _P.buffingers + _P.bufspacers) * xpitch + 2 * _P.guardringspace, 
-            holeheight = _P.separation + _P.pfingerwidth + _P.nfingerwidth + 2 * (_P.powerspace + _P.powerwidth + _P.gstwidth + _P.powerspace + _P.guardringspace)
+            -- totalfingers + 2 for extra margin/spacing to guardring
+            holewidth = (cmfingers + _P.numinv * 2 * _P.invfingers + _P.buffingers + _P.bufspacers + 2) * xpitch + 2 * _P.guardringspace, 
+            holeheight = separation + _P.pfingerwidth + _P.nfingerwidth + 2 * (_P.powerspace + _P.powerwidth + _P.gstwidth + _P.powerspace + _P.guardringspace)
         }), "vco_pguardring")
         local nguardringname = pcell.add_cell_reference(pcell.create_layout("auxiliary/guardring", { 
             contype = "n",
             fillwell = false,
             drawdeepwell = true,
             ringwidth = _P.guardringwidth,
-            holewidth = (cmfingers + 2 * _P.numinv * _P.invfingers + _P.buffingers + _P.bufspacers) * xpitch + 2 * _P.guardringspace + 4 * _P.guardringwidth,
-            holeheight = _P.separation + _P.pfingerwidth + _P.nfingerwidth + 2 * (_P.powerspace + _P.powerwidth + _P.gstwidth + _P.powerspace + _P.guardringspace + 2 * _P.guardringwidth)
+            -- totalfingers + 2 for extra margin/spacing to guardring
+            holewidth = (cmfingers + 2 * _P.numinv * _P.invfingers + _P.buffingers + _P.bufspacers + 2) * xpitch + 2 * _P.guardringspace + 4 * _P.guardringwidth,
+            holeheight = separation + _P.pfingerwidth + _P.nfingerwidth + 2 * (_P.powerspace + _P.powerwidth + _P.gstwidth + _P.powerspace + _P.guardringspace + 2 * _P.guardringwidth)
         }), "vco_nguardring")
         oscillator:add_child(pguardringname)
         oscillator:add_child(nguardringname)
