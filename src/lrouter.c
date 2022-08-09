@@ -280,7 +280,7 @@ int lrouter_route(lua_State* L)
         //field_print(field, i);
     }
 
-    field_print(field, 0);
+    //field_print(field, 0);
     field_destroy(field);
     vector_destroy(nc->nets, net_destroy);
     vector_destroy(nc->blockages, _destroy_blockage);
