@@ -268,6 +268,32 @@ void object_add_anchor(struct object* cell, const char* name, coordinate_t x, co
     hashmap_insert(cell->anchors, name, point_create(x, y));
 }
 
+void object_add_anchor_area(struct object* cell, const char* base, coordinate_t width, coordinate_t height, coordinate_t xshift, coordinate_t yshift)
+{
+    size_t len = strlen(base) + 2; // +2 for suffix
+    char* name = malloc(len + 1);
+    strcpy(name, base);
+    name[len] = 0; // terminate string
+    name[len - 2] = 'l'; name[len - 1] = 'l';
+    object_add_anchor(cell, name, xshift - width / 2, yshift - height / 2);
+    name[len - 2] = 'c'; name[len - 1] = 'l';
+    object_add_anchor(cell, name, xshift - width / 2, yshift             );
+    name[len - 2] = 'u'; name[len - 1] = 'l';
+    object_add_anchor(cell, name, xshift - width / 2, yshift + height / 2);
+    name[len - 2] = 'l'; name[len - 1] = 'c';
+    object_add_anchor(cell, name, xshift            , yshift - height / 2);
+    name[len - 2] = 'c'; name[len - 1] = 'c';
+    object_add_anchor(cell, name, xshift            , yshift             );
+    name[len - 2] = 'u'; name[len - 1] = 'c';
+    object_add_anchor(cell, name, xshift            , yshift + height / 2);
+    name[len - 2] = 'l'; name[len - 1] = 'r';
+    object_add_anchor(cell, name, xshift + width / 2, yshift - height / 2);
+    name[len - 2] = 'c'; name[len - 1] = 'r';
+    object_add_anchor(cell, name, xshift + width / 2, yshift             );
+    name[len - 2] = 'u'; name[len - 1] = 'r';
+    object_add_anchor(cell, name, xshift + width / 2, yshift + height / 2);
+}
+
 static point_t* _get_special_anchor(const struct object* cell, const char* name, const struct transformationmatrix* trans1, const struct transformationmatrix* trans2)
 {
     if(!cell->alignmentbox)
@@ -578,39 +604,59 @@ void object_rotate_90_right(struct object* cell)
     transformationmatrix_rotate_90_right(cell->trans);
 }
 
-static void _get_move_anchor_translation(const struct object* cell, const char* name, coordinate_t wx, coordinate_t wy, coordinate_t* dx, coordinate_t* dy)
+static int _get_move_anchor_translation(const struct object* cell, const char* name, coordinate_t wx, coordinate_t wy, coordinate_t* dx, coordinate_t* dy)
 {
     point_t* anchor = object_get_anchor(cell, name);
     if(anchor)
     {
         *dx = wx - anchor->x;
         *dy = wy - anchor->y;
+        point_destroy(anchor);
+        return 1;
     }
-    point_destroy(anchor);
+    else
+    {
+        return 0;
+    }
 }
 
-void object_move_anchor(struct object* cell, const char* name, coordinate_t x, coordinate_t y)
+int object_move_anchor(struct object* cell, const char* name, coordinate_t x, coordinate_t y)
 {
     coordinate_t dx = 0;
     coordinate_t dy = 0;
-    _get_move_anchor_translation(cell, name, x, y, &dx, &dy);
+    int ret = _get_move_anchor_translation(cell, name, x, y, &dx, &dy);
+    if(!ret)
+    {
+        return 0;
+    }
     object_translate(cell, dx, dy);
+    return 1;
 }
 
-void object_move_anchor_x(struct object* cell, const char* name, coordinate_t x)
+int object_move_anchor_x(struct object* cell, const char* name, coordinate_t x)
 {
     coordinate_t dx = 0;
     coordinate_t dy = 0; // not used
-    _get_move_anchor_translation(cell, name, x, 0, &dx, &dy);
+    int ret = _get_move_anchor_translation(cell, name, x, 0, &dx, &dy);
+    if(!ret)
+    {
+        return 0;
+    }
     object_translate(cell, dx, 0);
+    return 1;
 }
 
-void object_move_anchor_y(struct object* cell, const char* name, coordinate_t y)
+int object_move_anchor_y(struct object* cell, const char* name, coordinate_t y)
 {
     coordinate_t dx = 0; // not used
     coordinate_t dy = 0;
-    _get_move_anchor_translation(cell, name, 0, y, &dx, &dy);
+    int ret = _get_move_anchor_translation(cell, name, 0, y, &dx, &dy);
+    if(!ret)
+    {
+        return 0;
+    }
     object_translate(cell, 0, dy);
+    return 1;
 }
 
 void object_get_minmax_xy(const struct object* cell, coordinate_t* minxp, coordinate_t* minyp, coordinate_t* maxxp, coordinate_t* maxyp)

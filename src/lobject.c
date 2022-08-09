@@ -164,7 +164,12 @@ int lobject_move_anchor(lua_State* L)
         x = lpoint->point->x;
         y = lpoint->point->y;
     }
-    object_move_anchor(cell->object, name, x, y);
+    int ret = object_move_anchor(cell->object, name, x, y);
+    if(!ret)
+    {
+        lua_pushfstring(L, "move_anchor: could not access anchor '%s'", name);
+        lua_error(L);
+    }
     lua_rotate(L, 1, numstack - 1);
     return 1;
 }
@@ -180,7 +185,12 @@ int lobject_move_anchor_x(lua_State* L)
         lpoint_t* lpoint = lpoint_checkpoint(L, 3);
         x = lpoint->point->x;
     }
-    object_move_anchor_x(cell->object, name, x);
+    int ret = object_move_anchor_x(cell->object, name, x);
+    if(!ret)
+    {
+        lua_pushfstring(L, "move_anchor_x: could not access anchor '%s'", name);
+        lua_error(L);
+    }
     lua_rotate(L, 1, numstack - 1);
     return 1;
 }
@@ -196,7 +206,12 @@ int lobject_move_anchor_y(lua_State* L)
         lpoint_t* lpoint = lpoint_checkpoint(L, 3);
         y = lpoint->point->y;
     }
-    object_move_anchor_y(cell->object, name, y);
+    int ret = object_move_anchor_y(cell->object, name, y);
+    if(!ret)
+    {
+        lua_pushfstring(L, "move_anchor_y: could not access anchor '%s'", name);
+        lua_error(L);
+    }
     lua_rotate(L, 1, numstack - 1);
     return 1;
 }
@@ -301,6 +316,18 @@ int lobject_add_anchor(lua_State* L)
     const char* name = lua_tostring(L, 2);
     lpoint_t* lpoint = lpoint_checkpoint(L, 3);
     object_add_anchor(cell->object, name, lpoint->point->x, lpoint->point->y);
+    return 0;
+}
+
+int lobject_add_anchor_area(lua_State* L)
+{
+    struct lobject* cell = lobject_check(L, 1);
+    const char* base = luaL_checkstring(L, 2);
+    coordinate_t width = luaL_checkinteger(L, 3);
+    coordinate_t height = luaL_checkinteger(L, 4);
+    coordinate_t xshift = luaL_checkinteger(L, 5);
+    coordinate_t yshift = luaL_checkinteger(L, 6);
+    object_add_anchor_area(cell->object, base, width, height, xshift, yshift);
     return 0;
 }
 
@@ -429,6 +456,7 @@ int open_lobject_lib(lua_State* L)
         { "copy",                       lobject_copy                        },
         { "exchange",                   lobject_exchange                    },
         { "add_anchor",                 lobject_add_anchor                  },
+        { "add_anchor_area",            lobject_add_anchor_area             },
         { "get_anchor",                 lobject_get_anchor                  },
         { "get_all_regular_anchors",    lobject_get_all_regular_anchors     },
         { "add_port",                   lobject_add_port                    },

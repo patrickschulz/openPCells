@@ -18,31 +18,48 @@ function check_arg_or_nil(arg, argtype, msg)
     end
 end
 
-local function _check_argument(arg, argtype, isoptional, extracheck)
-    local info = debug.getinfo(2, "nS")
+local function _check_type(arg, argtype)
+    if type(arg) == argtype then
+        return true
+    elseif type(arg) == "userdata" then
+        local meta = getmetatable(arg)
+        if not meta then
+            return false
+        end
+        if meta.__name and meta.__name == argtype then
+            return true
+        end
+        return false
+    end
+    return false
+end
+
+local function _check_argument(arg, argtype, msg, isoptional, extracheck)
+    local info = debug.getinfo(3, "nS")
+    msg = msg or string.format("%s: %s expected", info.name, argtype)
     if isoptional then
         if arg then
-            if type(arg) ~= argtype then
-                moderror(string.format("%s: %s expected, got %s", info.name, argtype, type(arg)))
+            if not _check_type(arg, argtype) then
+                moderror(string.format("%s (got %s)", msg, type(arg)))
             end
         end
     else
-        if not arg or type(arg) ~= argtype then
-            moderror(string.format("%s: %s expected, got %s", info.name, argtype, type(arg)))
+        if not arg or not _check_type(arg, argtype) then
+            moderror(string.format("%s (got %s)", msg, type(arg)))
         end
-        if not extracheck(arg) then
+        if extracheck and not extracheck(arg) then
             local res, msg = extracheck(arg)
-            moderror(string.format("%s: %s", info.name, msg))
+            moderror(string.format("%s (got %s)", msg, type(arg)))
         end
     end
 end
 
-function check_number(arg)
+function check_number(arg, msg)
     -- explicitely pass 'isoptional' as false (default) for NaN check (n != n)
-    _check_argument(arg, "number", false, function(n) return n == n end)
+    _check_argument(arg, "number", msg, false, function(n) return n == n end)
 end
 
-function check_number_range(arg, bound)
+function check_number_range(arg, bound, msg)
     local NaNcheck = function(n) 
         if n ~= n then
             return false, string.format("number is NaN")
@@ -59,7 +76,7 @@ function check_number_range(arg, bound)
         return true
     end
     -- explicitely pass 'isoptional' as false (default) for NaN and boundary checks
-    _check_argument(arg, "number", false, function(n) 
+    _check_argument(arg, "number", msg, false, function(n) 
         local ret, msg = NaNcheck(n)
         if not ret then
             return false, msg
@@ -72,16 +89,24 @@ function check_number_range(arg, bound)
     end)
 end
 
-function check_string(arg)
-    _check_argument(arg, "string")
+function check_string(arg, msg)
+    _check_argument(arg, "string", msg)
 end
 
-function check_table(arg)
-    _check_argument(arg, "table")
+function check_table(arg, msg)
+    _check_argument(arg, "table", msg)
 end
 
-function check_optional_table(arg)
-    _check_argument(arg, "table", true)
+function check_optional_table(arg, msg)
+    _check_argument(arg, "table", msg, true)
+end
+
+function check_point(arg, msg)
+    _check_argument(arg, "lpoint", msg)
+end
+
+function check_object(arg, msg)
+    _check_argument(arg, "object", msg)
 end
 
 function modinfo(msg)

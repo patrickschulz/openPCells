@@ -1,13 +1,17 @@
 #include "valvector.h"
 
 #include <stdlib.h>
-#include <stdio.h>
 #include <string.h>
 
 /*
  * Memory layout:
  * 
  *  | element_size | capacity | size | data.... |
+ *                                     ^
+ *                                     |
+ *                                     |
+ *                              returned pointer
+ *                               points to data
  */
 #define VECTOR_ELEMENT_SIZE_OFFSET 0
 #define VECTOR_CAPACITY_OFFSET 1
@@ -18,6 +22,11 @@
 #define _elem_size(data) ((size_t*) (data + (-VECTOR_BOOKKEEPING_SIZE + VECTOR_ELEMENT_SIZE_OFFSET) * sizeof(size_t)))
 #define _capacity(data) ((size_t*) (data + (-VECTOR_BOOKKEEPING_SIZE + VECTOR_CAPACITY_OFFSET) * sizeof(size_t)))
 #define _size(data) ((size_t*) (data + (-VECTOR_BOOKKEEPING_SIZE + VECTOR_SIZE_OFFSET) * sizeof(size_t)))
+
+/* 
+ * note: all valvector_* functions get passed a pointer to a valvector,
+ * so the signature is actually valvector_*(void** v, ...)
+ */
 
 void* _create(size_t capacity, size_t elem_size)
 {
