@@ -17,6 +17,9 @@ procedure(OPCPrepareArgsForCellCreation(args @key (newgroup nil))
     when(OPCSettingsForm->OPCSettingsDrawAlignmentbox->value == "true"
         OPCArgs = lsprintf("%s --draw-alignmentbox" OPCArgs)
     )
+    when(OPCSettingsForm->OPCSettingsDrawAllAlignmentboxes->value == "true"
+        OPCArgs = lsprintf("%s --draw-all-alignmentboxes" OPCArgs)
+    )
     OPCArgs
 )
 

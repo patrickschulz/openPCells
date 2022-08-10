@@ -36,6 +36,9 @@ src/lua/liblua.a
 *.toc
 *.pygtex
 *_minted*
+*.nav
+*.out
+*.vrb
 
 # development information
 devinfo

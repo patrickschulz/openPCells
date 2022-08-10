@@ -281,7 +281,6 @@ int _is_wirelength_decreasing_over_last_temps(unsigned int *wirelengths, unsigne
 static void _simulated_annealing(struct RanState* rstate, struct block* block, struct floorplan* floorplan, double coolingfactor, size_t moves_per_cell_per_temp, int verbose)
 {
     (void) calculate_row_width_penalty;
-    (void) verbose;
     (void) floorplan;
     int frozen = 0;
 
@@ -290,6 +289,12 @@ static void _simulated_annealing(struct RanState* rstate, struct block* block, s
     unsigned int new_wirelength = UINT_MAX;
     int delta = UINT_MAX;
 
+    if (verbose) 
+    {
+        puts("temperature, oldlen, newlen, iteration\n");
+    }
+    
+    unsigned int iterations = 0;
     unsigned int wl_cnt = 0;
     double temperature = START_TEMPERATURE;
     while(!frozen)
@@ -309,7 +314,7 @@ static void _simulated_annealing(struct RanState* rstate, struct block* block, s
             {
                 if(random_choice(rstate, exp(-(delta) / temperature)))
                 {
-                    printf("last wirelength/ new wirelength: %u / %u / temp: %f\n", last_wirelength, new_wirelength, temperature);
+                    printf("%f, %u, %u, %u\n", temperature, last_wirelength, new_wirelength, iterations);
                     last_wirelength = new_wirelength;    
                     last_wirelengths[wl_cnt] = last_wirelength;
                     wl_cnt = (wl_cnt + 1) % LAST_WIRELENGTH_AMOUNT;
@@ -321,14 +326,14 @@ static void _simulated_annealing(struct RanState* rstate, struct block* block, s
             } 
             else
             {
-                printf("last wirelength/ new wirelength: %u / %u / temp: %f\n", last_wirelength, new_wirelength, temperature);
+                printf("%f, %u, %u, %u\n", temperature, last_wirelength, new_wirelength, iterations);
                 last_wirelength = new_wirelength;    
                 last_wirelengths[wl_cnt] = last_wirelength;
                 wl_cnt = (wl_cnt + 1) % LAST_WIRELENGTH_AMOUNT;
             }
+            iterations++;
         }
         temperature = temperature * coolingfactor;
-        puts("decreasing \n");
         if(_is_wirelength_decreasing_over_last_temps(last_wirelengths, 
                     LAST_WIRELENGTH_AMOUNT, MAX_DEVIATION_FACTOR))
         {
@@ -394,12 +399,13 @@ int lplacer_place_classic(lua_State* L)
     lua_pop(L, 1);
 
     lua_getfield(L, 3, "report");
-    const int verbose = lua_toboolean(L, -1);
+    int verb = lua_toboolean(L, -1);
     lua_pop(L, 1);
 
     (void)coolingfactor;
     (void)moves_per_cell_per_temp;
-    (void)verbose;
+    (void)verb;
+    const int verbose = 1;
     _simulated_annealing(&rstate, block, floorplan, coolingfactor, moves_per_cell_per_temp, verbose);
 
     placer_create_lua_result(L, block, get_cell_in_row_index, floorplan);

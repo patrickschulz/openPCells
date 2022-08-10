@@ -848,42 +848,42 @@ module serial_ctrl(data_inout, clk, reset_in, count_reached_in, data_out_shift_r
     .CLK(clk),
     .D(_109_[0]),
     .Q(curr_state_pre[0]),
-    .RESET(syncreset2)
+    .RST(syncreset2)
   );
   (* src = "../examples/place_and_route/serial_ctrl.sv:152.5-232.8" *)
   dffprq _239_ (
     .CLK(clk),
     .D(_109_[1]),
     .Q(curr_state_pre[1]),
-    .RESET(syncreset2)
+    .RST(syncreset2)
   );
   (* src = "../examples/place_and_route/serial_ctrl.sv:152.5-232.8" *)
   dffprq _240_ (
     .CLK(clk),
     .D(_109_[2]),
     .Q(curr_state_pre[2]),
-    .RESET(syncreset2)
+    .RST(syncreset2)
   );
   (* src = "../examples/place_and_route/serial_ctrl.sv:152.5-232.8" *)
   dffprq _241_ (
     .CLK(clk),
     .D(_109_[3]),
     .Q(curr_state_pre[3]),
-    .RESET(syncreset2)
+    .RST(syncreset2)
   );
   (* src = "../examples/place_and_route/serial_ctrl.sv:144.5-151.8" *)
   dffprq _242_ (
     .CLK(_004_),
     .D(syncreset1),
     .Q(syncreset2),
-    .RESET(reset_in)
+    .RST(reset_in)
   );
   (* src = "../examples/place_and_route/serial_ctrl.sv:136.5-143.8" *)
   dffprq _243_ (
     .CLK(clk),
     .D(1'h1),
     .Q(syncreset1),
-    .RESET(reset_in)
+    .RST(reset_in)
   );
   (* src = "../examples/place_and_route/serial_ctrl.sv:130.5-132.8" *)
   dffpq _244_ (

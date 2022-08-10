@@ -88,7 +88,7 @@ return {
             CLK = { x = 0, y = -1 },
             D = { x = 0, y = 1 },
             Q = { x = 24, y = 0 },
-            RESET = { x = 16, y = -2 }
+            RST = { x = 16, y = -2 }
         },
         blockages = {
             {
