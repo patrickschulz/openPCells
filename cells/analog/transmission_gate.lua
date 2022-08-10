@@ -44,6 +44,13 @@ function layout(tgate, _P)
         -200,
         _P.sdwidth
     )
+    geometry.cshape(tgate, generics.metal(1),
+        cmos:get_anchor(string.format("pSDi%d", _P.fingers + 1)):translate(0,  _P.sdwidth / 2),
+        cmos:get_anchor(string.format("nSDi%d", _P.fingers + 1)):translate(0, -_P.sdwidth / 2),
+        200,
+        _P.sdwidth
+    )
 
-    tgate:add_anchor("input", (cmos:get_anchor("PRpcl") + cmos:get_anchor("PRncl")):translate(-200, 0))
+    tgate:add_port("input", generics.metalport(1), (cmos:get_anchor("PRpcl") + cmos:get_anchor("PRncl")):translate(-200, 0))
+    tgate:add_port("output", generics.metalport(1), (cmos:get_anchor(string.format("pSDi%d", _P.fingers + 1)) + cmos:get_anchor(string.format("nSDi%d", _P.fingers + 1))):translate(200, 0))
 end

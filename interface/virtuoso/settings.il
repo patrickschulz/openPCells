@@ -43,6 +43,12 @@ procedure(OPCCreateSettingsForm()
                 ?prompt "Draw Alignment Box"
             )
             hiCreateRadioField(
+                ?name 'OPCSettingsDrawAllAlignmentboxes
+                ?choices list("true" "false")
+                ?value "false"
+                ?prompt "Draw All Alignment Boxes"
+            )
+            hiCreateRadioField(
                 ?name 'OPCSettingsLog
                 ?choices list("true" "false")
                 ?value "false"
