@@ -1,10 +1,14 @@
-function geometry.path3x(layer, startpt, endpt, width, extension)
-    return geometry.path(layer, geometry.path_points_xy(startpt, { endpt }), width, extension)
+function geometry.path3x(cell, layer, startpt, endpt, width, extension)
+    return geometry.path(cell, layer, geometry.path_points_xy(startpt, { endpt }), width, extension)
 end
 
-function geometry.path3y(layer, startpt, endpt, width, extension)
-    return geometry.path(layer, geometry.path_points_yx(startpt, { endpt }), width, extension)
+function geometry.path3y(cell, layer, startpt, endpt, width, extension)
+    return geometry.path(cell, layer, geometry.path_points_yx(startpt, { endpt }), width, extension)
 end
+
+function geometry.cshape(cell, layer, startpt, endpt, offset, width)
+    return geometry.path(cell, layer, geometry.path_points_xy(startpt, { offset, endpt }), width, extension)
+end 
 
 function geometry.path_points_xy(startpt, movements)
     local pts = {}
