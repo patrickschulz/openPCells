@@ -6,6 +6,7 @@
 #include "lrouter_field.h"
 
 #include <stdlib.h>
+#include <stdio.h>
 #include <limits.h>
 
 #define EVEN(val) ((val % 2) == 0)
@@ -71,7 +72,6 @@ void route(struct net *net, struct field* field, int step_cost, int wrong_dir_co
 {
     const struct position* startpos = net_get_startpos(net);
     const struct position* endpos = net_get_endpos(net);
-
     /* put starting point in min_heap */
     struct minheap* min_heap = heap_init();
     heap_insert_point(min_heap, startpos->x, startpos->y, startpos->z, 0);
@@ -193,6 +193,26 @@ void route(struct net *net, struct field* field, int step_cost, int wrong_dir_co
                     nextpoints[i].score += step_cost;
                 }
             }
+        }
+        
+        //FIXME: remove 
+        int i;
+        for(i = 0; i < NUM_DIRECTIONS; i++)
+        {
+          if (nextpoints[i].score != INT_MAX)
+          {
+            break; 
+          }
+        }
+        if(i == NUM_DIRECTIONS)
+        {
+          size_t width, height;
+          width = field_get_width(field);
+          height = field_get_height(field);
+          /*printf("fail in routing at %u, %u, %u\n field size %lu, %lu\n", current.x, current.y, current.z, 
+              field_get_width(field), field_get_height(field)); */
+          field_print(field, 0, 0, width, 0, height);
+          getchar();
         }
 
         struct rpoint nextpoint = _min_next_point(nextpoints);

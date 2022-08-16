@@ -48,7 +48,7 @@ static struct rpoint* _create_point(lua_State *L)
 static void _split_and_make_nets(const char* name, struct vector* nets, struct vector* positions)
 {
     int exclude_positions[vector_size(positions)];
-    memset(exclude_positions, 0, vector_size(positions));
+    memset(exclude_positions, 0, vector_size(positions) * sizeof(int));
     for(size_t i = 0; i < vector_size(positions); i++)
     {
 	if(exclude_positions[i] == EXCLUDE)
@@ -183,9 +183,10 @@ static void _destroy_blockage(void* ptr)
 
 int lrouter_route(lua_State* L)
 {
+    puts("started routing\n");
     struct netcollection* nc = _initialize(L);
-    const size_t field_height = lua_tointeger(L, 4);
-    const size_t field_width = lua_tointeger(L, 3);
+    const size_t field_height = lua_tointeger(L, 4) + 1;
+    const size_t field_width = lua_tointeger(L, 3) + 1;
     const size_t num_layers = 3;
 
     const int step_cost = 2;
@@ -285,6 +286,7 @@ int lrouter_route(lua_State* L)
     vector_destroy(nc->nets, net_destroy);
     vector_destroy(nc->blockages, _destroy_blockage);
     free(nc);
+    puts("finished routing\n");
     return 2;
 }
 
