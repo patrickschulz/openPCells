@@ -12,7 +12,6 @@ end
 function layout(gate, _P)
     local tp = pcell.get_parameters("basic/mosfet")
     local bp = pcell.get_parameters("stdcells/base")
-    pcell.push_overwrites("stdcells/harness", { leftdummies = 0, rightdummies = 0 })
     local gatecontactpos = {}
     for i = 1, #_P.glengths do
         gatecontactpos[i] = "unused"
@@ -22,7 +21,6 @@ function layout(gate, _P)
         drawtransistors = false,
         drawgatecontacts = false,
     })
-    pcell.pop_overwrites("stdcells/harness")
     gate:merge_into_shallow(harness)
     gate:inherit_alignment_box(harness)
 

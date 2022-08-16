@@ -16,6 +16,16 @@ function layout(gate, _P)
     else
         sdcontacts = { "unused", "power" }
     end
+    local leftpolylines = {}
+    local rightpolylines = {}
+    for i = 1, _P.fingers do
+        local entry = { bp.glength, bp.gspace }
+        if _P.leftnotright then
+            leftpolylines[i] = entry
+        else
+            rightpolylines[i] = entry
+        end
+    end
     local harness = pcell.create_layout("stdcells/harness", { 
         gatecontactpos = gatecontactpos,
         pcontactpos = sdcontacts,
@@ -27,9 +37,9 @@ function layout(gate, _P)
         drawtopgcut = false,
         drawbotgcut = false,
         drawleftstopgate = _P.leftnotright,
-        numleftpolylines = _P.leftnotright and (_P.fingers - 1) or 0,
+        leftpolylines = leftpolylines,
         drawrightstopgate = not _P.leftnotright,
-        numrightpolylines = not _P.leftnotright and (_P.fingers - 1) or 0,
+        rightpolylines = rightpolylines,
     })
     gate:merge_into_shallow(harness)
     gate:inherit_alignment_box(harness)
