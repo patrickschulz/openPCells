@@ -7,7 +7,7 @@ function layout(gate, _P)
     local bp = pcell.get_parameters("stdcells/base")
 
     -- clock inverter/buffer
-    local clockbuf = pcell.create_layout("stdcells/buf"):move_anchor("right")
+    local clockbuf = pcell.create_layout("stdcells/buf")
     gate:merge_into_shallow(clockbuf)
 
     -- first clocked inverter

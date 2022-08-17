@@ -35,6 +35,19 @@ function layout(gate, _P)
     local bp = pcell.get_parameters("stdcells/base")
     local xpitch = bp.gspace + bp.glength
 
+    -- inverter A
+    pcell.push_overwrites("stdcells/base", { compact = false })
+    local inva = pcell.create_layout("stdcells/not_gate", { inputpos = "lower", shiftoutput = xpitch / 2 })
+    gate:merge_into_shallow(inva)
+    pcell.pop_overwrites("stdcells/base")
+
+    -- inverter B
+    pcell.push_overwrites("stdcells/base", { connectoutput = false })
+    local invb = pcell.create_layout("stdcells/not_gate", { inputpos = "upper" })
+    invb:move_anchor("left", invb:get_anchor("right"))
+    gate:merge_into_shallow(invb)
+    pcell.pop_overwrites("stdcells/base")
+
     local block = object.create()
 
     local harness = pcell.create_layout("stdcells/harness", { 
@@ -43,6 +56,7 @@ function layout(gate, _P)
         pcontactpos = { "power", "outer", "outer", "outer", nil, "power", "power" },
         ncontactpos = { "power", "power", nil, "inner", "outer", "outer", "power" },
     })
+    harness:move_anchor("left", invb:get_anchor("right"))
     gate:merge_into_shallow(harness)
 
     -- gate contact metal blobs (DRC)
@@ -79,23 +93,8 @@ function layout(gate, _P)
         end
     end
 
-    gate:inherit_alignment_box(harness)
-
-    -- inverter B
-    pcell.push_overwrites("stdcells/base", { connectoutput = false })
-    local invb = pcell.create_layout("stdcells/not_gate", { inputpos = "upper" })
-    invb:move_anchor("right", gate:get_anchor("left"))
-    gate:merge_into_shallow(invb)
-    gate:inherit_alignment_box(invb)
-    pcell.pop_overwrites("stdcells/base")
-
-    -- inverter A
-    pcell.push_overwrites("stdcells/base", { compact = false })
-    local inva = pcell.create_layout("stdcells/not_gate", { inputpos = "lower", shiftoutput = xpitch / 2 })
-    inva:move_anchor("right", invb:get_anchor("left"))
-    gate:merge_into_shallow(inva)
     gate:inherit_alignment_box(inva)
-    pcell.pop_overwrites("stdcells/base")
+    gate:inherit_alignment_box(harness)
 
     -- output connection
     geometry.path(gate, generics.metal(1), geometry.path_points_xy(
@@ -179,7 +178,4 @@ function layout(gate, _P)
     gate:add_port("O", generics.metal(1), point.create(3 * xpitch + _P.shiftoutput, 0))
     gate:add_port("VDD", generics.metal(1), harness:get_anchor("top"))
     gate:add_port("VSS", generics.metal(1), harness:get_anchor("bottom"))
-    
-    -- center cell
-    gate:translate(2 * xpitch, 0)
 end
