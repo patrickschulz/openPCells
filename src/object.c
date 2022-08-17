@@ -659,6 +659,11 @@ int object_move_anchor_y(struct object* cell, const char* name, coordinate_t y)
     return 1;
 }
 
+void object_scale(struct object* cell, double factor)
+{
+    transformationmatrix_scale(cell->trans, factor);
+}
+
 void object_get_minmax_xy(const struct object* cell, coordinate_t* minxp, coordinate_t* minyp, coordinate_t* maxxp, coordinate_t* maxyp)
 {
     coordinate_t minx = COORDINATE_MAX;
