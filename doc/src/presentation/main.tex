@@ -507,6 +507,58 @@
     \end{luacode}
 \end{frame}
 
+\begin{frame}[fragile]
+    \centering
+    \frametitle{Cell Hierarchies}
+    \begin{itemize}
+        \item Often-used cells more efficiently represented by hierarchies (re-use)
+        \item Put sub-layouts in objects (\luainline{object.create()}) or re-use existing cells with (\luainline{pcell.create_layout()})
+        \item Create a reference handle with \luainline{pcell.add_cell_reference(ref, name)}
+        \item Use \luainline{object.add_child()} to instantiate this reference
+        \item The (light/proxy) object returned by \luainline{object.add_child()} can be use as a regular object (transformed, aligned, etc.)
+    \end{itemize}
+    \vfill
+    \begin{luacode}
+        function layout(cell)
+            local child_reference = pcell.create_layout("libname/subname")
+            local child_name = pcell.add_cell_reference(child_reference,
+                "child")
+            local child = cell:add_child(child_name)
+            child:move_anchor("left")
+        end
+    \end{luacode}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Object Alignment Boxes}
+    \begin{itemize}
+        \item Define an object's main boundary (rectangular)
+        \item Align with other similar objects (for example digital standard cells)
+        \item Provide standardized means of object positioning
+        \item Alignment boxes are \emph{not transformed} (rotated, mirrored, flipped)
+    \end{itemize}
+    \vfill
+    \centering
+    \begin{tikzpicture}
+    [
+        every label/.style = {font=\normalsize},
+        point/.style = {circle, fill, inner sep = 0pt, minimum size = 4pt}
+    ]
+        \draw[thick] (-3, -1) rectangle (-2, 1);
+        \node[point, label = left:left] at (-3, 0) {};
+        \node[point, label = right:right] at (-2, 0) {};
+        \node[point, label = above:top] at (-2.5, 1) {};
+        \node[point, label = below:bottom] at (-2.5, -1) {};
+        \node[below] {rotate};
+        \draw[tip] (-0.3, 0) to[out = 60, in = 120] (0.3, 0);
+        \draw[thick] (1.5, -0.5) rectangle (3, 0.5);
+        \node[point, label = left:left] at (1.5, 0) {};
+        \node[point, label = right:right] at (3, 0) {};
+        \node[point, label = above:top] at (2.25, 0.5) {};
+        \node[point, label = below:bottom] at (2.25, -0.5) {};
+    \end{tikzpicture}
+\end{frame}
+
 \section{Examples}
 \begin{frame}
     \centering
