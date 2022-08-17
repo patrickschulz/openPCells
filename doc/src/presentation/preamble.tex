@@ -4,13 +4,14 @@
 % Font
 \RequirePackage{mathpazo}
 %\RequirePackage{fontspec}
+%\setsansfont{Beteckna}
 %\setsansfont{Noto Sans}
 %\setsansfont{Futura LT}
 
 %% Graphics
 %\RequirePackage{shellesc}
-%\RequirePackage{tikz}
-%\usetikzlibrary{
+\RequirePackage{tikz}
+\usetikzlibrary{
 %    arrows, 
 %    arrows.meta,
 %    backgrounds,
@@ -21,21 +22,92 @@
 %    external,
 %    fit,
 %    matrix,
-%    patterns,
+    patterns,
 %    positioning,
 %    scopes,
 %    shapes,
 %    shapes.geometric,
 %    fadings
-%}
+}
 %\tikzexternalize[prefix=tikzfigures/]
-%\input{tikzsettings}
+\input{tikzsettings}
 %% Pgfplots
 %\RequirePackage{pgfplots}
 %\usepgfplotslibrary{patchplots, groupplots}
 %\input{pgfplotssettings}
 %% Circuits symbols
 %\input{circuit_symbols}
+
+% Code listings
+\usepackage{listings}
+\lstset{
+    breaklines = true,
+    %breakatwhitespace = true,
+    language=[5.3]Lua,
+    backgroundcolor = \color{blue!10!white},
+    basicstyle = \small\ttfamily,
+    keywordstyle = \color{blue},
+    commentstyle = \color{red},
+    stringstyle = \color{green!70!black},
+    showstringspaces = false,
+    tabsize = 4,
+    gobble = 8,
+    numbers = none,
+    emph = {
+        layout,
+        parameters,
+        config,
+        pointarray,
+        path,
+        geometry,
+        geometry.rectangle, 
+        geometry.rectanglebltr, 
+        geometry.polygon, 
+        geometry.via, 
+        geometry.viabltr, 
+        geometry.contact, 
+        geometry.contactbltr, 
+        geometry.path, 
+        pcell.setup, 
+        pcell.process_args, 
+        pcell.check_args,
+        pcell.add_parameter,
+        pcell.add_parameters,
+        pcell.get_parameters,
+        pcell.push_overwrites,
+        pcell.pop_overwrites,
+        object.translate,
+        object.merge_into_shallow,
+        get_anchor,
+        move_anchor,
+        translate,
+        merge_into_shallow,
+        flipx,
+        flipy,
+        add_child,
+        add_child_reference,
+        add_child_link,
+        generics,
+        generics.metal,
+        generics.via,
+        generics.contact,
+        generics.other,
+        generics.mapped,
+        util.xmirror,
+        util.make_insert_xy,
+        posvals,
+        even,
+        odd,
+        interval,
+        set,
+        inf
+    },
+    emphstyle = \color{blue!60!green}\bfseries,
+    %belowskip=-0.2\baselineskip
+}
+\lstnewenvironment{luacode}{}{}
+\newcommand{\luainline}[1]{\lstinline!#1!}
+%\lstnewenvironment{shellcode}{\lstset{keywordstyle = \relax, commentstyle = \relax, stringstyle = \relax, identifierstyle = \relax, breakautoindent = false}}{}
 
 % Units
 \RequirePackage[per-mode=fraction, range-phrase=\ ---\ , exponent-product = \cdot]{siunitx}

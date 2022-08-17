@@ -1,19 +1,19 @@
-\definecolor{sharky_black}{RGB}{43,40,40}
-\colorlet{sharky_main}{DodgerBlue3!90}
-\colorlet{sharky_main}{black!15}
-\colorlet{sharky_secondary}{sharky_black}
-%\colorlet{sharky_secondary}{white}
+\definecolor{opc_black}{RGB}{43,40,40}
+\colorlet{opc_main}{DodgerBlue3!90}
+\colorlet{opc_main}{black!15}
+\colorlet{opc_secondary}{opc_black}
+%\colorlet{opc_secondary}{white}
 
-\setbeamercolor{section in head/foot}{fg=sharky_secondary, bg=sharky_main}
-\setbeamercolor{frametitle}{fg=sharky_secondary, bg=sharky_main}
-\setbeamercolor{framesubtitle}{fg=sharky_secondary, bg=sharky_main}
-\setbeamercolor{title page top}{fg=sharky_secondary, bg=sharky_main}
-\setbeamercolor{title page bottom}{fg=sharky_black, bg=white}
+\setbeamercolor{section in head/foot}{fg=opc_secondary, bg=opc_main}
+\setbeamercolor{frametitle}{fg=opc_secondary, bg=opc_main}
+\setbeamercolor{framesubtitle}{fg=opc_secondary, bg=opc_main}
+\setbeamercolor{title page top}{fg=opc_secondary, bg=opc_main}
+\setbeamercolor{title page bottom}{fg=opc_black, bg=white}
 
 % blocks
 \setbeamerfont{block title}{series=\bfseries}
-\setbeamercolor*{block title}{fg=sharky_secondary,bg=sharky_main}
-\setbeamercolor*{block body}{fg=black,bg=sharky_main!10!white}
+\setbeamercolor*{block title}{fg=opc_secondary,bg=opc_main}
+\setbeamercolor*{block body}{fg=black,bg=opc_main!10!white}
 
 \setbeamercolor{enumerate item}{fg = black}
 
@@ -28,18 +28,10 @@
 \setbeamertemplate{itemize item}[circle]
 \setbeamertemplate{itemize subitem}[-]
 
-% bibliography
-\setbeamercolor*{bibliography item}{fg=black}
-\setbeamercolor*{bibliography entry author}{fg=black}
-\setbeamercolor*{bibliography entry location}{fg=black!80}
-\setbeamercolor*{bibliography entry title}{fg=black}
-\setbeamercolor*{bibliography entry note}{fg=black}
-\setbeamertemplate{bibliography item}[text]
-
-\newdimen\sharky@frametitlesep
-\sharky@frametitlesep=2.5ex
-\newdimen\sharky@footbarsep
-\sharky@footbarsep=0.5ex
+\newdimen\opc@frametitlesep
+\opc@frametitlesep=2.5ex
+\newdimen\opc@footbarsep
+\opc@footbarsep=0.5ex
 
 % disable navigation
 \setbeamertemplate{navigation symbols}{}
@@ -77,7 +69,7 @@
 \setbeamertemplate{footline}{
     \nointerlineskip%
     \usebeamerfont{frametitle}%
-    \begin{beamercolorbox}[wd=\paperwidth, sep=\sharky@footbarsep]{section in head/foot}
-        \scriptsize Patrick Schulz\hfill\insertframenumber/\inserttotalframenumber%
+    \begin{beamercolorbox}[wd=\paperwidth, sep=\opc@footbarsep]{section in head/foot}
+        \scriptsize Patrick Kurth\hfill\insertframenumber/\inserttotalframenumber%
     \end{beamercolorbox}
 }
