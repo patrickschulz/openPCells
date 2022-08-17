@@ -1,10 +1,6 @@
 #ifndef OPC_LEXPORT_H
 #define OPC_LEXPORT_H
 
-#include "lua/lua.h"
-
-#define LEXPORTMODULE "export"
-
 #include "object.h"
 #include "pcell.h"
 #include "vector.h"

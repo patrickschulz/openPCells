@@ -1,9 +1,14 @@
 #include "export.h"
 
+#include "lua/lua.h"
 #include "lua/lauxlib.h"
+
+#include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <math.h>
 
+#include "tagged_value.h"
 #include "util.h"
 #include "lua_util.h"
 #include "lobject.h"

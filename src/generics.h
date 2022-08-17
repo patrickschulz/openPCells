@@ -2,12 +2,11 @@
 #define OPC_GENERICS_H
 
 #include <stddef.h>
-#include <stdint.h>
 
 #include "lua/lua.h"
 
 #include "hashmap.h"
-#include "vector.h"
+
 //#include "technology.h"
 struct technology_state;
 

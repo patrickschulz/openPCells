@@ -1,5 +1,6 @@
 #include "export_common.h"
 
+#include <stdlib.h>
 #include <string.h>
 
 struct export_data {

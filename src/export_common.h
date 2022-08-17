@@ -1,17 +1,11 @@
 #ifndef OPC_LEXPORT_COMMON_H
 #define OPC_LEXPORT_COMMON_H
 
-#include <stdlib.h>
-#include <string.h>
-#include <math.h>
-#include <stdio.h>
+#include <stdio.h> // FILE
 
 #include "object.h"
-#include "generics.h"
-#include "point.h"
 #include "transformationmatrix.h"
 #include "hashmap.h"
-#include "tagged_value.h"
 
 struct export_data;
 
