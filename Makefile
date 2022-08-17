@@ -8,6 +8,10 @@ opc.1: src/cmdoptions_def.c
 	@$(MAKE) -C src opc.1
 	mv src/opc.1 .
 
+.PHONY: doc
+doc:
+	@$(MAKE) -C doc full
+
 .PHONY: clean
 clean:
 	@$(MAKE) -C src clean
