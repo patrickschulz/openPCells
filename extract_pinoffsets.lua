@@ -1,9 +1,14 @@
 local celllist = {
     --"buf",
     --"cinv",
-    --"dffpq",
-    --"dffnq",
-    --"dffprq",
+    "dffpq",
+    "dffnq",
+    "dffprq",
+    "dffnrq",
+    "dffpsq",
+    "dffnsq",
+    --"dffprsq",
+    --"dffnrsq",
     "not_gate",
     "nand_gate",
     "nor_gate",
@@ -35,9 +40,7 @@ for i, cellname in ipairs(celllist) do
     local cell = pcell.create_layout(string.format("stdcells/%s", cellname))
     local childname = pcell.add_cell_reference(cell, cellname)
     local child = toplevel:add_child(childname)
-    if lastanchor then
-        child:move_anchor("bottom", lastanchor)
-    end
+    child:move_anchor_y("bottom", lastanchor)
     lastanchor = child:get_anchor("top")
 
     print(cellname)
@@ -45,9 +48,9 @@ for i, cellname in ipairs(celllist) do
     for _, port in ipairs(ports) do
         if port.name ~= "VDD" and port.name ~= "VSS" then
             local x, y = port.where:unwrap()
-            local xoffset = x // (gatelength + gatespace)
-            local yoffset = y // (routingwidth + routingspace)
-            print(string.format("%4s (%6d, %6d) -> %3d:%3d", port.name, x, y, xoffset, yoffset))
+            local xoffset = x / (gatelength + gatespace)
+            local yoffset = y / (routingwidth + routingspace)
+            print(string.format("%4s (%6d, %6d) -> %5.1f:%5.1f", port.name, x, y, xoffset, yoffset))
         end
     end
     print()
