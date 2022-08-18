@@ -135,32 +135,6 @@ library (opc) {
       direction : "input";
     }
   }
-  cell (xor_gate) {
-    area : "0.199680";
-    pin (O) {
-      direction : "output";
-      function : "A&!B+!A&B";
-    }
-    pin (A) {
-      direction : "input";
-    }
-    pin (B) {
-      direction : "input";
-    }
-  }
-  cell (xnor_gate) {
-    area : "0.199680";
-    pin (O) {
-      direction : "output";
-      function : "!(A&!B+!A&B)";
-    }
-    pin (A) {
-      direction : "input";
-    }
-    pin (B) {
-      direction : "input";
-    }
-  }
   cell (mux) {
     area : "0.798720";
     pin (O) {
