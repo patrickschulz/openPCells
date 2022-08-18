@@ -844,42 +844,42 @@ module serial_ctrl(data_inout, clk, reset_in, count_reached_in, data_out_shift_r
     .CLK(clk),
     .D(_106_[0]),
     .Q(curr_state_pre[0]),
-    .RESET(syncreset2)
+    .RST(syncreset2)
   );
   (* src = "serial_ctrl.sv:152.5-232.8" *)
   dffprq _233_ (
     .CLK(clk),
     .D(_106_[1]),
     .Q(curr_state_pre[1]),
-    .RESET(syncreset2)
+    .RST(syncreset2)
   );
   (* src = "serial_ctrl.sv:152.5-232.8" *)
   dffprq _234_ (
     .CLK(clk),
     .D(_106_[2]),
     .Q(curr_state_pre[2]),
-    .RESET(syncreset2)
+    .RST(syncreset2)
   );
   (* src = "serial_ctrl.sv:152.5-232.8" *)
   dffprq _235_ (
     .CLK(clk),
     .D(_106_[3]),
     .Q(curr_state_pre[3]),
-    .RESET(syncreset2)
+    .RST(syncreset2)
   );
   (* src = "serial_ctrl.sv:144.5-151.8" *)
   dffnrq _236_ (
     .CLK(clk),
     .D(syncreset1),
     .Q(syncreset2),
-    .RESET(reset_in)
+    .RST(reset_in)
   );
   (* src = "serial_ctrl.sv:136.5-143.8" *)
   dffprq _237_ (
     .CLK(clk),
     .D(1'h1),
     .Q(syncreset1),
-    .RESET(reset_in)
+    .RST(reset_in)
   );
   (* src = "serial_ctrl.sv:130.5-132.8" *)
   dffpq _238_ (
