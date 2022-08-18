@@ -479,6 +479,7 @@ static int _viabltr(
         metal1 = metal2;
         metal2 = tmp;
     }
+    int ret = 1;
     for(int i = metal1; i < metal2; ++i)
     {
         struct via_definition** viadefs = technology_get_via_definitions(techstate, i, i + 1);
@@ -487,7 +488,7 @@ static int _viabltr(
         {
             return 0;
         }
-        _via_contact_bltr(cell,
+        ret = ret && _via_contact_bltr(cell,
             viadefs, fallback,
             generics_create_viacut(layermap, techstate, i, i + 1),
             generics_create_metal(layermap, techstate, i),
@@ -497,7 +498,7 @@ static int _viabltr(
             technology_is_create_via_arrays(techstate)
         );
     }
-    return 1;
+    return ret;
 }
 
 int geometry_viabltr(struct object* cell, struct layermap* layermap, struct technology_state* techstate, int metal1, int metal2, point_t* bl, point_t* tr, ucoordinate_t xrep, ucoordinate_t yrep, ucoordinate_t xpitch, ucoordinate_t ypitch)
@@ -536,7 +537,7 @@ static int _contactbltr(
     {
         return 0;
     }
-    _via_contact_bltr(cell,
+    return _via_contact_bltr(cell,
         viadefs, fallback,
         generics_create_contact(layermap, techstate, region),
         generics_create_metal(layermap, techstate, 1),
@@ -545,7 +546,6 @@ static int _contactbltr(
         xrep, yrep, xpitch, ypitch,
         technology_is_create_via_arrays(techstate)
     );
-    return 1;
 }
 
 int geometry_contactbltr(
