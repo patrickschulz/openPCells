@@ -324,6 +324,16 @@ int lobject_add_anchor_area(lua_State* L)
     return 0;
 }
 
+int lobject_add_anchor_area_bltr(lua_State* L)
+{
+    struct lobject* cell = lobject_check(L, 1);
+    const char* base = luaL_checkstring(L, 2);
+    lpoint_t* bl = lpoint_checkpoint(L, 3);
+    lpoint_t* tr = lpoint_checkpoint(L, 4);
+    object_add_anchor_area_bltr(cell->object, base, bl->point, tr->point);
+    return 0;
+}
+
 int lobject_get_anchor(lua_State* L)
 {
     struct lobject* cell = lobject_check(L, 1);
@@ -443,6 +453,7 @@ int open_lobject_lib(lua_State* L)
         { "exchange",                   lobject_exchange                    },
         { "add_anchor",                 lobject_add_anchor                  },
         { "add_anchor_area",            lobject_add_anchor_area             },
+        { "add_anchor_area_bltr",       lobject_add_anchor_area             },
         { "get_anchor",                 lobject_get_anchor                  },
         { "get_all_regular_anchors",    lobject_get_all_regular_anchors     },
         { "add_port",                   lobject_add_port                    },
