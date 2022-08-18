@@ -219,28 +219,28 @@ function layout(cmos, _P)
             elseif _P.gatecontactpos[i] == "upper" then
                 geometry.contactbltr(
                     cmos, "gate", 
-                    point.create(x - _P.gatelength / 2, _P.gatecontactsplitshift + _P.shiftgatecontacts - _P.gstwidth / 2),
-                    point.create(x + _P.gatelength / 2, _P.gatecontactsplitshift + _P.shiftgatecontacts + _P.gstwidth / 2)
+                    point.create(x - _P.gatelength / 2, _P.gatecontactsplitshift / 2 + _P.shiftgatecontacts - _P.gstwidth / 2),
+                    point.create(x + _P.gatelength / 2, _P.gatecontactsplitshift / 2 + _P.shiftgatecontacts + _P.gstwidth / 2)
                 )
-                cmos:add_anchor_area(string.format("G%d", i), _P.gatelength, _P.gstwidth, x, _P.gatecontactsplitshift + _P.shiftgatecontacts)
+                cmos:add_anchor_area(string.format("G%d", i), _P.gatelength, _P.gstwidth, x, _P.gatecontactsplitshift / 2 + _P.shiftgatecontacts)
             elseif _P.gatecontactpos[i] == "lower" then
                 geometry.contactbltr(
                     cmos, "gate", 
-                    point.create(x - _P.gatelength / 2, -_P.gatecontactsplitshift + _P.shiftgatecontacts - _P.gstwidth / 2),
-                    point.create(x + _P.gatelength / 2, -_P.gatecontactsplitshift + _P.shiftgatecontacts + _P.gstwidth / 2)
+                    point.create(x - _P.gatelength / 2, -_P.gatecontactsplitshift / 2 + _P.shiftgatecontacts - _P.gstwidth / 2),
+                    point.create(x + _P.gatelength / 2, -_P.gatecontactsplitshift / 2 + _P.shiftgatecontacts + _P.gstwidth / 2)
                 )
-                cmos:add_anchor_area(string.format("G%d", i), _P.gatelength, _P.gstwidth, x, -_P.gatecontactsplitshift + _P.shiftgatecontacts)
+                cmos:add_anchor_area(string.format("G%d", i), _P.gatelength, _P.gstwidth, x, -_P.gatecontactsplitshift / 2 + _P.shiftgatecontacts)
             elseif _P.gatecontactpos[i] == "split" then
                 local y = _P.shiftgatecontacts
                 geometry.contactbltr(
                     cmos, "gate", 
                     point.create(x - _P.gatelength / 2, y - _P.gstwidth / 2),
                     point.create(x + _P.gatelength / 2, y + _P.gstwidth / 2),
-                    1, 2, 0, 2 * _P.gatecontactsplitshift
+                    1, 2, 0, _P.gatecontactsplitshift
                 )
                 cmos:add_anchor_area(string.format("G%d", i), _P.gatelength, _P.gstwidth, x, y)
-                cmos:add_anchor_area(string.format("Gupper%d", i), _P.gatelength, _P.gstwidth, x, y + _P.gatecontactsplitshift)
-                cmos:add_anchor_area(string.format("Glower%d", i), _P.gatelength, _P.gstwidth, x, y - _P.gatecontactsplitshift)
+                cmos:add_anchor_area(string.format("Gupper%d", i), _P.gatelength, _P.gstwidth, x, y + _P.gatecontactsplitshift / 2)
+                cmos:add_anchor_area(string.format("Glower%d", i), _P.gatelength, _P.gstwidth, x, y - _P.gatecontactsplitshift / 2)
                 geometry.rectangle(cmos, generics.other("gatecut"), xpitch, _P.cutheight, x, 0)
             elseif _P.gatecontactpos[i] == "dummy" then
                 geometry.contactbltr(
