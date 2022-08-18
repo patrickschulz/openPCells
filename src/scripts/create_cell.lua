@@ -24,26 +24,13 @@ for k, v in string.gmatch(table.concat(args.cellargs, " "), "([%w_/.]+)%s*=%s*(%
     cellargs[k] = v
 end
 
+-- create cell
+pcell.enable_debug(args.debugcell)
+pcell.enable_dprint(args.enabledprint)
 if args.isscript then
-    -- create cell
-    pcell.enable_debug(args.debugcell)
-    pcell.enable_dprint(args.enabledprint)
-    pcell.update_other_cell_parameters(cellargs, true)
-    local reader = _get_reader(args.cell)
-    if reader then
-        local cell = _dofile(reader, string.format("@%s", args.cell), nil, env)
-        if not cell then
-            print("cellscript did not return an object")
-            return nil
-        end
-        return cell
-    else
-        print(string.format("cellscript '%s' could not be opened", args.cell))
-        return nil
-    end
+    local cell = pcell.create_layout_from_script(args.cell, cellargs, true)
+    return cell
 else
-    pcell.enable_debug(args.debugcell)
-    pcell.enable_dprint(args.enabledprint)
     local cell = pcell.create_layout(args.cell, cellargs, nil, true) -- nil: no environment, true: evaluate parameters
     return cell
 end
