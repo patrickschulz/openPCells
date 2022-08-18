@@ -529,6 +529,22 @@
     \end{luacode}
 \end{frame}
 
+\begin{frame}[fragile]
+    \frametitle{Object Anchors for Placement}
+    \begin{itemize}
+        \item Cells can define arbitrary \emph{anchors} (points with a name)
+        \item Can be used to position cells (\luainline{object.move_anchor}) or to query positions within cells (\luainline{object.get_anchor})
+        \item With both methods, cells can be placed relatively to each other
+    \end{itemize}
+    \vfill
+    \begin{luacode}
+        local cell1 = pcell.create_layout("cell1")
+        local cell2 = pcell.create_layout("cell2")
+
+        cell1:move_anchor("output", cell2:get_anchor("input"))
+    \end{luacode}
+\end{frame}
+
 \begin{frame}
     \frametitle{Object Alignment Boxes}
     \begin{itemize}
