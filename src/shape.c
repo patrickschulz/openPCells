@@ -332,6 +332,7 @@ int shape_get_curve_origin(struct shape* shape, point_t** originp)
     *originp = curve->origin;
     return 1;
 }
+
 int shape_is_empty(struct shape* shape)
 {
     return generics_is_empty(shape->layer);

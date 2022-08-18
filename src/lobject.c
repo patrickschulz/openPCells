@@ -216,13 +216,6 @@ int lobject_move_anchor_y(lua_State* L)
     return 1;
 }
 
-int lobject_apply_transformation(lua_State* L)
-{
-    struct lobject* cell = lobject_check(L, 1);
-    object_apply_transformation(cell->object);
-    return 0;
-}
-
 int lobject_add_child(lua_State* L)
 {
     struct lobject* cell = lobject_check(L, 1);
@@ -427,13 +420,6 @@ int lobject_inherit_alignment_box(lua_State* L)
     return 0;
 }
 
-int lobject_is_empty(lua_State* L)
-{
-    struct lobject* cell = lobject_check(L, 1);
-    lua_pushboolean(L, object_is_empty(cell->object));
-    return 1;
-}
-
 int lobject_flatten(lua_State* L)
 {
     struct lobject* cell = lobject_check(L, 1);
@@ -477,11 +463,9 @@ int open_lobject_lib(lua_State* L)
         { "move_anchor",                lobject_move_anchor                 },
         { "move_anchor_x",              lobject_move_anchor_x               },
         { "move_anchor_y",              lobject_move_anchor_y               },
-        { "apply_transformation",       lobject_apply_transformation        },
         { "add_child",                  lobject_add_child                   },
         { "add_child_array",            lobject_add_child_array             },
         { "merge_into_shallow",         lobject_merge_into_shallow          },
-        { "is_empty",                   lobject_is_empty                    },
         { "flatten",                    lobject_flatten                     },
         { "__gc",                       lobject_destroy                     },
         { NULL,                         NULL                                }
