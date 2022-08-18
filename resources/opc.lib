@@ -203,13 +203,13 @@ library (opc) {
       direction : "input";
       nextstate_type : "data";
     }
-    pin (RESET) {
+    pin (RST) {
       direction : "input";
     }
     ff (IQ,IQN) {
       clocked_on : "CLK";
       next_state : "D";
-      clear : "!RESET";
+      clear : "!RST";
     }
   }
   cell (dffnrq) {
@@ -226,13 +226,13 @@ library (opc) {
       direction : "input";
       nextstate_type : "data";
     }
-    pin (RESET) {
+    pin (RST) {
       direction : "input";
     }
     ff (IQ,IQN) {
       clocked_on : "!CLK";
       next_state : "D";
-      clear : "!RESET";
+      clear : "!RST";
     }
   }
   cell (dffpsq) {
@@ -295,7 +295,7 @@ library (opc) {
       direction : "input";
       nextstate_type : "data";
     }
-    pin (RESET) {
+    pin (RST) {
       direction : "input";
     }
     pin (SET) {
@@ -304,7 +304,7 @@ library (opc) {
     ff (IQ,IQN) {
       clocked_on : "CLK";
       next_state : "D";
-      clear : "!RESET";
+      clear : "!RST";
       preset : "(!SET)";
     }
   }
@@ -322,7 +322,7 @@ library (opc) {
       direction : "input";
       nextstate_type : "data";
     }
-    pin (RESET) {
+    pin (RST) {
       direction : "input";
     }
     pin (SET) {
@@ -331,7 +331,7 @@ library (opc) {
     ff (IQ,IQN) {
       clocked_on : "!CLK";
       next_state : "D";
-      clear : "!RESET";
+      clear : "!RST";
       preset : "(!SET)";
     }
   }
@@ -366,11 +366,11 @@ library (opc) {
     pin (D) {
       direction : "input";
     }
-    pin (RESET) {
+    pin (RST) {
       direction : "input";
     }
     latch (IQ,IQN) {
-      clear : "!RESET";
+      clear : "!RST";
       data_in : "D";
       enable : "CLK";
     }
