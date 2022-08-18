@@ -453,7 +453,7 @@ int open_lobject_lib(lua_State* L)
         { "exchange",                   lobject_exchange                    },
         { "add_anchor",                 lobject_add_anchor                  },
         { "add_anchor_area",            lobject_add_anchor_area             },
-        { "add_anchor_area_bltr",       lobject_add_anchor_area             },
+        { "add_anchor_area_bltr",       lobject_add_anchor_area_bltr        },
         { "get_anchor",                 lobject_get_anchor                  },
         { "get_all_regular_anchors",    lobject_get_all_regular_anchors     },
         { "add_port",                   lobject_add_port                    },
