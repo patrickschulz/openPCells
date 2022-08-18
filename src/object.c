@@ -294,6 +294,36 @@ void object_add_anchor_area(struct object* cell, const char* base, coordinate_t 
     object_add_anchor(cell, name, xshift + width / 2, yshift + height / 2);
 }
 
+void object_add_anchor_area_bltr(struct object* cell, const char* base, const point_t* bl, const point_t* tr)
+{
+    coordinate_t blx = bl->x;
+    coordinate_t bly = bl->y;
+    coordinate_t trx = tr->x;
+    coordinate_t try = tr->y;
+    size_t len = strlen(base) + 2; // +2 for suffix
+    char* name = malloc(len + 1);
+    strcpy(name, base);
+    name[len] = 0; // terminate string
+    name[len - 2] = 'l'; name[len - 1] = 'l';
+    object_add_anchor(cell, name, blx, bly);
+    name[len - 2] = 'c'; name[len - 1] = 'l';
+    object_add_anchor(cell, name, blx, (bly + try) / 2);
+    name[len - 2] = 'u'; name[len - 1] = 'l';
+    object_add_anchor(cell, name, blx, try);
+    name[len - 2] = 'l'; name[len - 1] = 'c';
+    object_add_anchor(cell, name, (blx + trx) / 2, bly);
+    name[len - 2] = 'c'; name[len - 1] = 'c';
+    object_add_anchor(cell, name, (blx + trx) / 2, (bly + try) / 2);
+    name[len - 2] = 'u'; name[len - 1] = 'c';
+    object_add_anchor(cell, name, (blx + trx) / 2, try);
+    name[len - 2] = 'l'; name[len - 1] = 'r';
+    object_add_anchor(cell, name, trx, bly);
+    name[len - 2] = 'c'; name[len - 1] = 'r';
+    object_add_anchor(cell, name, trx, (bly + try) / 2);
+    name[len - 2] = 'u'; name[len - 1] = 'r';
+    object_add_anchor(cell, name, trx, try);
+}
+
 static point_t* _get_special_anchor(const struct object* cell, const char* name, const struct transformationmatrix* trans1, const struct transformationmatrix* trans2)
 {
     if(!cell->alignmentbox)
@@ -659,6 +689,11 @@ int object_move_anchor_y(struct object* cell, const char* name, coordinate_t y)
     return 1;
 }
 
+void object_scale(struct object* cell, double factor)
+{
+    transformationmatrix_scale(cell->trans, factor);
+}
+
 void object_get_minmax_xy(const struct object* cell, coordinate_t* minxp, coordinate_t* minyp, coordinate_t* maxxp, coordinate_t* maxyp)
 {
     coordinate_t minx = COORDINATE_MAX;
@@ -676,8 +711,8 @@ void object_get_minmax_xy(const struct object* cell, coordinate_t* minxp, coordi
             coordinate_t _maxy;
             shape_get_minmax_xy(S, cell->trans, &_minx, &_miny, &_maxx, &_maxy);
             minx = min(minx, _minx);
-            maxx = max(maxx, _miny);
-            miny = min(miny, _maxx);
+            maxx = max(maxx, _maxx);
+            miny = min(miny, _miny);
             maxy = max(maxy, _maxy);
         }
     }

@@ -4,7 +4,15 @@ documents := presentation.pdf userguide.pdf techdoc.pdf techfiles.pdf celldesign
 .PHONY: all
 all: ${documents}
 
-presentation.pdf: src/presentation/main.tex src/preamble.tex
+.PHONY: full
+full:
+	@$(MAKE) all
+	rm ${documents}
+	@$(MAKE) all
+	rm ${documents}
+	@$(MAKE) all
+
+presentation.pdf: src/presentation/main.tex src/presentation/preamble.tex
 	$(MAKE) -C src/presentation main.pdf
 	mv src/presentation/main.pdf presentation.pdf
 

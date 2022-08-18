@@ -4,7 +4,9 @@ function parameters()
     pcell.add_parameters(
         { "subgate", "nand_gate", posvals = set("nand_gate", "nor_gate", "xor_gate") },
         { "subgatefingers", 1 },
-        { "notfingers", 1 }
+        { "notfingers", 1 },
+        { "pwidth", 2 * tech.get_dimension("Minimum Gate Width") },
+        { "nwidth", 2 * tech.get_dimension("Minimum Gate Width") }
     )
 end
 
@@ -12,14 +14,23 @@ function layout(gate, _P)
     local bp = pcell.get_parameters("stdcells/base")
     local xpitch = bp.glength + bp.gspace
 
-    local subgateref = pcell.create_layout(string.format("stdcells/%s", _P.subgate), { fingers = _P.subgatefingers })
+    local subgateref = pcell.create_layout(string.format("stdcells/%s", _P.subgate), {
+        fingers = _P.subgatefingers,
+        pwidth = _P.pwidth,
+        nwidth = _P.nwidth,
+    })
     gate:merge_into_shallow(subgateref)
 
     --local isogateref = pcell.create_layout("stdcells/isogate")
     --isogateref:move_anchor("left", subgateref:get_anchor("right"))
     --gate:merge_into_shallow(isogateref)
 
-    local invref = pcell.create_layout("stdcells/not_gate", { fingers = _P.notfingers, shiftoutput = xpitch / 2 })
+    local invref = pcell.create_layout("stdcells/not_gate", {
+        fingers = _P.notfingers,
+        shiftoutput = xpitch / 2,
+        pwidth = _P.pwidth,
+        nwidth = _P.nwidth,
+    })
     invref:move_anchor("left", subgateref:get_anchor("right"))
     gate:merge_into_shallow(invref)
 

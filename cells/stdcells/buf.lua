@@ -16,13 +16,13 @@ function layout(gate, _P)
         fingers = _P.ifingers, 
         shiftinput = _P.shiftinput1, 
         shiftoutput = bp.glength / 2 + bp.gspace / 2 
-    }):move_anchor("right")
+    })
 
     local oinv = pcell.create_layout("stdcells/not_gate", { 
         fingers = _P.ofingers, 
         shiftinput = _P.shiftinput2, 
         shiftoutput = bp.glength / 2 + bp.gspace / 2 
-    }):move_anchor("left")
+    }):move_anchor("left", iinv:get_anchor("right"))
     gate:merge_into_shallow(iinv)
     gate:merge_into_shallow(oinv)
 

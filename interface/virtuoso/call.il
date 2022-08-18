@@ -36,7 +36,7 @@ procedure(OPCBuildCallCommand(args)
 
 procedure(OPCCall(OPCCommand redirect)
     let(
-        ()
+        (errmsg)
         when(redirect
             OPCCommand = lsprintf( "%s > %s" OPCCommand redirect)
         )
@@ -48,10 +48,14 @@ procedure(OPCCall(OPCCommand redirect)
         exitstatus = ipcGetExitStatus(pid)
         if(exitstatus != 0
             then 
+                errmsg = ipcReadProcess(pid)
+                unless(errmsg
+                    errmsg = "unknown error, this is a bug in opc (likely a segmentation fault)"
+                )
                 hiDisplayAppDBox(
                     ?name        'OPCInfoDialog
                     ?dboxBanner  "openPCells"
-                    ?dboxText    lsprintf("errors while executing opc: %s" ipcReadProcess(pid))
+                    ?dboxText    lsprintf("errors while executing opc: %s" errmsg)
                     ?dialogType   hicWarningDialog
                     ?dialogStyle 'modeless
                     ?buttonLayout 'Close

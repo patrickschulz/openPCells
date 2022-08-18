@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "vector.h"
 #include "technology.h"
 #include "util.h"
 #include "tagged_value.h"

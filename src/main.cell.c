@@ -328,6 +328,21 @@ static void _translate(struct object* toplevel, struct cmdoptions* cmdoptions)
     }
 }
 
+static void _scale(struct object* toplevel, struct cmdoptions* cmdoptions, struct pcell_state* pcell_state)
+{
+    if(cmdoptions_was_provided_long(cmdoptions, "scale"))
+    {
+        const char* arg = cmdoptions_get_argument_long(cmdoptions, "scale");
+        double factor = atof(arg);
+        object_scale(toplevel, factor);
+        for(unsigned int i = 0; i < pcell_get_reference_count(pcell_state); ++i)
+        {
+            struct object* cell = pcell_get_indexed_cell_reference(pcell_state, i)->cell;
+            object_scale(cell, factor);
+        }
+    }
+}
+
 static void _draw_alignmentboxes(struct object* toplevel, struct cmdoptions* cmdoptions, struct technology_state* techstate, struct layermap* layermap, struct pcell_state* pcell_state)
 {
     if(cmdoptions_was_provided_long(cmdoptions, "draw-alignmentbox") || cmdoptions_was_provided_long(cmdoptions, "draw-all-alignmentboxes"))
@@ -532,6 +547,7 @@ int main_create_and_export_cell(struct cmdoptions* cmdoptions, struct hashmap* c
     {
         _move_origin(toplevel, cmdoptions);
         _translate(toplevel, cmdoptions);
+        _scale(toplevel, cmdoptions, pcell_state);
 
         /*
         // orientation

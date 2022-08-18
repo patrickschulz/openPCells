@@ -687,6 +687,26 @@ function pcell.create_layout(cellname, cellargs, env, evaluate)
     return obj
 end
 
+function pcell.create_layout_from_script(scriptpath, cellargs, evaluate)
+    if cellargs then
+        pcell.update_other_cell_parameters(cellargs, evaluate)
+    end
+    local reader = _get_reader(scriptpath)
+    if reader then
+        local env = _ENV
+        local path, name = aux.split_path(scriptpath)
+        env._CURRENT_SCRIPT_PATH = path
+        env._CURRENT_SCRIPT_NAME = name
+        local cell = _dofile(reader, string.format("@%s", scriptpath), nil, env)
+        if not cell then
+            error(string.format("cellscript '%s' did not return an object", scriptpath))
+        end
+        return cell
+    else
+        error(string.format("cellscript '%s' could not be opened", scriptpath))
+    end
+end
+
 function pcell.constraints(cellname)
     -- replace tech module in environment
     local constraints = {}

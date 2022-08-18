@@ -1,6 +1,10 @@
 #include "gdsexport.h"
 
+#include <string.h>
 #include <stdint.h>
+#include <math.h> // modf
+
+#include "tagged_value.h"
 
 #define RECORDTYPE_HEADER       0x00
 #define RECORDTYPE_BGNLIB       0x01
@@ -71,13 +75,12 @@
 #define DATATYPE_EIGHT_BYTE_REAL     0x05
 #define DATATYPE_ASCII_STRING        0x06
 
-static char* _number_to_gdsfloat(double num, unsigned int width)
+static void _number_to_gdsfloat(double num, unsigned int width, char* data)
 {
-    char* data = malloc(width);
     if(num == 0)
     {
         memset(data, 0, width);
-        return data;
+        return;
     }
     int sign = 0;
     if(num < 0.0)
@@ -111,7 +114,6 @@ static char* _number_to_gdsfloat(double num, unsigned int width)
         num = frac;
         data[i] = integer;
     }
-    return data;
 }
 
 static inline void _write_length_short(struct export_data* data, uint8_t length)
@@ -707,12 +709,12 @@ static void _write_port(struct export_data* data, const char* name, const struct
     _write_length_short(data, 12);
     export_data_append_byte(data, RECORDTYPE_MAG);
     export_data_append_byte(data, DATATYPE_EIGHT_BYTE_REAL);
-    char* sizedata = _number_to_gdsfloat(0.1, 8);
+    char sizedata[8];
+    _number_to_gdsfloat(0.1, 8, sizedata);
     for(unsigned int i = 0; i < 8; ++i)
     {
         export_data_append_byte(data, sizedata[i]);
     }
-    free(sizedata);
 
     // XY
     unsigned int multiplier = 1; // FIXME: make proper use of units

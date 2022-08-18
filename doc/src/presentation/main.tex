@@ -1,21 +1,1619 @@
-\documentclass[dvipsnames, x11names, svgnames, 11pt]{beamer}
+\documentclass[aspectratio=169, dvipsnames, x11names, svgnames, 11pt]{beamer}
 
 \input{preamble}
 
 \title{OpenPCells}
 \subtitle{A Technology-Indendent Layout Generator for Integrated Circuits}
 \author{Patrick Kurth\\p.kurth@posteo.de}
-\date{2021-10-20}
+\date{2022-08-08}
+
+\overfullrule=2pt
+
+\AtBeginSection[] {
+    \begin{frame}[noframenumbering, plain]
+        \tableofcontents[currentsection]
+    \end{frame}
+}
 
 \begin{document}
 
 \maketitle
+
+\section{Introduction}
+
 \begin{frame}
-    \frametitle{Introduction}
+    \frametitle{Motivation}
+    \begin{itemize}
+        \item Design re-use quite poor in analog design
+        \item Still many repetitive tasks, especially in layout
+        \item Designs usually subject to restrictive non-disclosure agreements
+    \end{itemize}
 \end{frame}
+
 \begin{frame}
-    \frametitle{Dependencies}
-    opc has no dependencies except for a C compiler.
+    \frametitle{Goals}
+    \begin{itemize}
+        \item Enable design re-use
+        \item Provide reference implementations of common circuits
+        \item Port complex systems to other technology nodes
+        \item Share circuits with other researchers/companies/...
+    \end{itemize}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Difficulties in Layout Automation for Integrated Circuits}
+    \begin{itemize}
+        \item Integrated circuits are complex
+        \item Many, many, many different ways to do the same thing
+        \item Even more design rules, especially in modern technology nodes
+    \end{itemize}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Principles of Maintainable Circuit Layouts}
+    \begin{enumerate}
+        \item Simplify the schematic
+        \item Simplify the schematic
+        \item Simplify the schematic
+        \item DRY in layout (don't repeat yourself)
+            \begin{itemize}
+                \item Draw everything only once (instances, vias, etc.)
+                \item Make extensive use of symmetry, only draw half/quarter/... layouts
+                \item Find minimum common representation of sub-blocks (e.g. transistors without implants)
+                \item Hard to do and can result in very steep instance hierarchies
+                \item More special cases make this even harder
+            \end{itemize}
+    \end{enumerate}
+\end{frame}
+
+%\begin{frame}
+%    \frametitle{Dependencies}
+%    opc has no dependencies except for a C compiler.
+%\end{frame}
+\section{Technology Mapping}
+%\begin{frame}
+%    \frametitle{Metals}
+%\end{frame}
+\begin{frame}
+    \frametitle{Vias and Contacts}
+    \begin{itemize}
+        \item Resolve via cuts with set of simple rules
+        \item Fit via: $R = \biggl\lfloor\frac{W + S_{\mathrm{min}} - 2 \cdot E_{\mathrm{min}}}{C + S_{\mathrm{min}}}\biggr\rfloor$
+        \item Continuous via: $R = \biggl\lfloor\frac{W + S_{\mathrm{min}} - 2 \cdot E_{\mathrm{min}}}{C + S_{\mathrm{min}}}\biggr\rfloor$
+    \end{itemize}
+    
+    \begin{center}
+        \begin{tikzpicture}[scale = 2]
+            \def\viaxsize{0.2}
+            \def\viaysize{0.2}
+            \def\viaxspace{0.1}
+            \def\viayspace{0.2}
+            \def\vianumx{2}
+            \def\vianumy{3}
+            \def\viaxencl{0.1}
+            \def\viayencl{0.1}
+            \def\shiftx{1.8}
+            \draw[thick, pattern = north west lines] 
+                (
+                    {-0.5 * (\vianumx * \viaxsize + (\vianumx - 1) * \viaxspace + 2 * \viaxencl)},
+                    {-0.5 * (\vianumy * \viaysize + (\vianumy - 1) * \viayspace + 2 * \viayencl)}
+                )
+                rectangle 
+                (
+                    { 0.5 * (\vianumx * \viaxsize + (\vianumx - 1) * \viaxspace + 2 * \viaxencl)},
+                    { 0.5 * (\vianumy * \viaysize + (\vianumy - 1) * \viayspace + 2 * \viayencl)}
+                );
+            \draw[densely dotted] 
+                (
+                    {\shiftx + -0.5 * (\vianumx * \viaxsize + (\vianumx - 1) * \viaxspace + 2 * \viaxencl)},
+                    {-0.5 * (\vianumy * \viaysize + (\vianumy - 1) * \viayspace + 2 * \viayencl)}
+                )
+                rectangle 
+                (
+                    {\shiftx +  0.5 * (\vianumx * \viaxsize + (\vianumx - 1) * \viaxspace + 2 * \viaxencl)},
+                    { 0.5 * (\vianumy * \viaysize + (\vianumy - 1) * \viayspace + 2 * \viayencl)}
+                );
+            \foreach \x in {1, ..., \vianumx}
+            {
+                \foreach \y in {1, ..., \vianumy}
+                {
+                    \draw[thick, pattern = crosshatch dots] 
+                        (
+                            {\shiftx + (\x - 0.5 * (\vianumx - 1) - 1) * (\viaxsize + \viaxspace) - 0.5 * \viaxsize}, 
+                            {(\y - 0.5 * (\vianumy - 1) - 1) * (\viaysize + \viayspace) - 0.5 * \viaysize}
+                        ) rectangle 
+                        (
+                            {\shiftx + (\x - 0.5 * (\vianumx - 1) - 1) * (\viaxsize + \viaxspace) + 0.5 * \viaxsize}, 
+                            {(\y - 0.5 * (\vianumy - 1) - 1) * (\viaysize + \viayspace) + 0.5 * \viaysize}
+                        );
+                }
+            }
+            \draw[tip] 
+                ({ 0.05 + 0.5 * (\vianumx * \viaxsize + (\vianumx - 1) * \viaxspace + 2 * \viaxencl)}, 0)
+                    -- node[above, align = center] { Generate \\ Via Array } 
+                ({-0.05 + \shiftx - 0.5 * (\vianumx * \viaxsize + (\vianumx - 1) * \viaxspace + 2 * \viaxencl)}, 0);
+            % legend
+            \draw[thick, pattern = north west lines] 
+                (
+                    {-0.5 * (\vianumx * \viaxsize + (\vianumx - 1) * \viaxspace + 2 * \viaxencl)},
+                    {-0.5 * (\vianumy * \viaysize + (\vianumy - 1) * \viayspace + 2 * \viayencl) - 0.2}
+                )
+                rectangle 
+                (
+                    {-0.5 * (\vianumx * \viaxsize + (\vianumx - 1) * \viaxspace + 2 * \viaxencl) + 0.2},
+                    {-0.5 * (\vianumy * \viaysize + (\vianumy - 1) * \viayspace + 2 * \viayencl) - 0.4}
+                );
+            \node[anchor = west]
+                at
+                (
+                    {-0.5 * (\vianumx * \viaxsize + (\vianumx - 1) * \viaxspace + 2 * \viaxencl) + 0.3},
+                    {-0.5 * (\vianumy * \viaysize + (\vianumy - 1) * \viayspace + 2 * \viayencl) - 0.3}
+                )
+                {Target Area};
+            \draw[thick, pattern = crosshatch dots] 
+                (
+                    {-0.5 * (\vianumx * \viaxsize + (\vianumx - 1) * \viaxspace + 2 * \viaxencl)},
+                    {-0.5 * (\vianumy * \viaysize + (\vianumy - 1) * \viayspace + 2 * \viayencl) - 0.6}
+                )
+                rectangle 
+                (
+                    {-0.5 * (\vianumx * \viaxsize + (\vianumx - 1) * \viaxspace + 2 * \viaxencl) + 0.2},
+                    {-0.5 * (\vianumy * \viaysize + (\vianumy - 1) * \viayspace + 2 * \viayencl) - 0.8}
+                );
+            \node[anchor = west]
+                at
+                (
+                    {-0.5 * (\vianumx * \viaxsize + (\vianumx - 1) * \viaxspace + 2 * \viaxencl) + 0.3},
+                    {-0.5 * (\vianumy * \viaysize + (\vianumy - 1) * \viayspace + 2 * \viayencl) - 0.7}
+                )
+                {Via Cut Layer};
+        \end{tikzpicture}
+    \end{center}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Continuous Vias}
+    \begin{itemize}
+        \item Simple cut fitting not suitable in some applications (for example merging/aligning guard rings)
+        \item Specialized via translation ensures equal spacing
+    \end{itemize}
+    \vfill
+    \begin{center}
+        \def\viaarray{
+            \draw
+                (
+                    {\shiftx + -0.5 * (\vianumx * \viaxsize + (\vianumx - 1) * \viaxspace + 2 * \viaxencl)},
+                    {\shifty + -0.5 * (\vianumy * \viaysize + (\vianumy - 1) * \viayspace + 2 * \viayencl)}
+                )
+                rectangle 
+                (
+                    {\shiftx +  0.5 * (\vianumx * \viaxsize + (\vianumx - 1) * \viaxspace + 2 * \viaxencl)},
+                    {\shifty +  0.5 * (\vianumy * \viaysize + (\vianumy - 1) * \viayspace + 2 * \viayencl)}
+                );
+            \foreach \x in {1, ..., \vianumx}
+            {
+                \foreach \y in {1, ..., \vianumy}
+                {
+                    \draw[thick, pattern = crosshatch dots] 
+                        (
+                            {\shiftx + (\x - 0.5 * (\vianumx - 1) - 1) * (\viaxsize + \viaxspace) - 0.5 * \viaxsize}, 
+                            {\shifty + (\y - 0.5 * (\vianumy - 1) - 1) * (\viaysize + \viayspace) - 0.5 * \viaysize}
+                        ) rectangle 
+                        (
+                            {\shiftx + (\x - 0.5 * (\vianumx - 1) - 1) * (\viaxsize + \viaxspace) + 0.5 * \viaxsize}, 
+                            {\shifty + (\y - 0.5 * (\vianumy - 1) - 1) * (\viaysize + \viayspace) + 0.5 * \viaysize}
+                        );
+                }
+            }
+        }
+        \def\viaxsize{0.3}
+        \def\viaysize{0.3}
+        \begin{tikzpicture}
+            [
+                leftlabel/.style = {font = \small, left=0.3cm, align = right},
+                spacelabel/.style = {font = \small, below}
+            ]
+            \def\viaxspace{0.6}
+            \def\viayspace{0.6}
+            \def\vianumx{3}
+            \def\vianumy{1}
+            \def\viaxencl{0.15}
+            \def\viayencl{0.15}
+            \def\shiftx{0}
+            \def\shifty{0}
+
+            \node[leftlabel] at (-1.5, \shifty) {Fitted Via Array\\(Enclosure < Space / 2)};
+            \viaarray
+            \def\shiftx{2.4}
+            \viaarray
+
+            \def\labelshift{0.5}
+
+            \draw[densely dotted] ({0.5 * \shiftx - \viaxencl - \viaxsize - \viaxspace}, \shifty) -- ++(0, -\labelshift);
+            \draw[densely dotted] ({0.5 * \shiftx - \viaxencl - \viaxsize}, \shifty) -- ++(0, -\labelshift);
+            \draw[bitip] ({0.5 * \shiftx - \viaxencl - \viaxsize}, { \shifty - \labelshift }) -- ++(-\viaxspace, 0);
+
+            \draw[densely dotted] ({0.5 * \shiftx - \viaxencl}, \shifty) -- ++(0, -\labelshift);
+            \draw[densely dotted] ({0.5 * \shiftx + \viaxencl}, \shifty) -- ++(0, -\labelshift);
+            \draw[bitip] ({0.5 * \shiftx - \viaxencl}, { \shifty - \labelshift }) -- ++({2 * \viaxencl}, 0);
+            
+            \node[spacelabel] at ({0.5 * \shiftx}, {\shifty -\labelshift}) {spacing too small};
+
+            \def\shiftx{0}
+            \def\shifty{-1.5}
+            \def\vianumx{2}
+            \def\viaxencl{0.6}
+            \node[leftlabel] at (-1.5, \shifty) {Fitted Via Array\\(Enclosure > Space / 2)};
+            \viaarray
+            \def\shiftx{2.4}
+            \viaarray
+
+            \def\labelshift{0.5}
+
+            \draw[densely dotted] ({0.5 * \shiftx - \viaxencl - \viaxsize - \viaxspace}, \shifty) -- ++(0, -\labelshift);
+            \draw[densely dotted] ({0.5 * \shiftx - \viaxencl - \viaxsize}, \shifty) -- ++(0, -\labelshift);
+            \draw[bitip] ({0.5 * \shiftx - \viaxencl - \viaxsize}, { \shifty - \labelshift }) -- ++(-\viaxspace, 0);
+
+            \draw[densely dotted] ({0.5 * \shiftx - \viaxencl}, \shifty) -- ++(0, -\labelshift);
+            \draw[densely dotted] ({0.5 * \shiftx + \viaxencl}, \shifty) -- ++(0, -\labelshift);
+            \draw[bitip] ({0.5 * \shiftx - \viaxencl}, { \shifty - \labelshift }) -- ++({2 * \viaxencl}, 0);
+            
+            \node[spacelabel] at ({0.5 * \shiftx}, {\shifty -\labelshift}) {spacing uneven};
+
+            \def\shifty{-3}
+            \node[leftlabel] at (-1.5, \shifty) {Continuous Via Array\\(Enclosure = Space / 2)};
+            \def\viaxspace{0.9}
+            \def\vianumx{2}
+            \def\viaxencl{0.45}
+            \def\shiftx{0}
+            \viaarray
+            \def\shiftx{2.4}
+            \viaarray
+
+            \draw[densely dotted] ({0.5 * \shiftx - \viaxencl - \viaxsize - \viaxspace}, \shifty) -- ++(0, -\labelshift);
+            \draw[densely dotted] ({0.5 * \shiftx - \viaxencl - \viaxsize}, \shifty) -- ++(0, -\labelshift);
+            \draw[bitip] ({0.5 * \shiftx - \viaxencl - \viaxsize}, { \shifty - \labelshift }) -- ++(-\viaxspace, 0);
+
+            \draw[densely dotted] ({0.5 * \shiftx - \viaxencl}, \shifty) -- ++(0, -\labelshift);
+            \draw[densely dotted] ({0.5 * \shiftx + \viaxencl}, \shifty) -- ++(0, -\labelshift);
+            \draw[bitip] ({0.5 * \shiftx - \viaxencl}, { \shifty - \labelshift }) -- ++({2 * \viaxencl}, 0);
+            
+            \node[spacelabel] at ({0.5 * \shiftx}, {\shifty - \labelshift}) {spacing equal};
+        \end{tikzpicture}
+    \end{center}
+\end{frame}
+
+%\begin{frame}
+%    \frametitle{Unused Layers}
+%\end{frame}
+%\begin{frame}
+%    \frametitle{SOI, Bulk and FINFET Processes}
+%\end{frame}
+%\begin{frame}
+%    \frametitle{Other Technologies (Bipolar, Optical)}
+%\end{frame}
+%\section{Toolkit for PCells}
+%\begin{frame}
+%    \frametitle{Geometry}
+%\end{frame}
+%\begin{frame}
+%    \frametitle{Hierarchies}
+%\end{frame}
+%\section{Digital Layouts}
+%\begin{frame}
+%    \frametitle{Digital Standard Cell Design}
+%    % * number-of-tracks-based design (auto calculation of powerspace)
+%    % * different pwidth and nwidth per cell
+%    % * abutting
+%\end{frame}
+%\begin{frame}
+%    \frametitle{Symbolic Place \& Route}
+%    % * placer: generate relative placement table
+%    % * router: resolve routes in generic way to support size-changing standard cells
+%    % * router: on top, handle different values of ptracks and ntracks (requires rowshifts)
+%\end{frame}
+%\section{Export Types}
+%\begin{frame}
+%    \frametitle{Output-Independent Cells}
+%\end{frame}
+%\begin{frame}
+%    \frametitle{Adding Custom Export Types}
+%\end{frame}
+%\begin{frame}
+%    \frametitle{Minimum Export Requirements}
+%\end{frame}
+%\section{Interfacing in other Programs}
+%\begin{frame}
+%    \frametitle{Cadence Virtuoso}
+%\end{frame}
+
+\section{Code}
+\begin{frame}[fragile]
+    \centering
+    \frametitle{Basic Cell Code}
+    \begin{luacode}
+        function parameters()
+            -- parameter definitions go here
+        end
+
+        function layout(cell, _P, env)
+            -- layout descriptions go here
+        end
+
+        function config()
+            -- special stuff
+        end
+    \end{luacode}
+    \vfill
+    \begin{itemize}
+        \item Cells are described by defining public (global) functions
+        \item Every cell \emph{must} define \luainline{layout()}
+        \item \luainline{parameters()} defines the parameters of the cell (and some minor other things)
+        \item A cell without any parameters always represents the same layout
+        \item In rare cases, \luainline{config()} is used, but this is only required for special cells
+    \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+    \centering
+    \frametitle{Adding Parameters}
+    \begin{luacode}
+        function parameters()
+            pcell.add_parameter("width", 100)
+            pcell.add_parameter("height", 100)
+        end
+    \end{luacode}
+    \vfill
+
+    or with a shorthand:
+    \begin{luacode}
+        function parameters()
+            pcell.add_parameters({
+                { "width", 100 },
+                { "height", 100 } -- <--- uses varargs function call,
+            })                    --      no comma after last argument
+        end
+    \end{luacode}
+\end{frame}
+
+\begin{frame}[fragile]
+    \centering
+    \frametitle{Parameters -- Allowed Values}
+    \begin{itemize}
+        \item Per default, numeric parameters can take any values
+        \item Allowed parameters can be limited to \luainline{even} or \luainline{odd} values, intervals (\luainline{interval}) or explicit sets (\luainline{set})
+    \end{itemize}
+    \vfill
+    \begin{luacode}
+        function parameters()
+            pcell.add_parameters({
+                { "width", 100, posvals = even() },
+                { "height", 100, posvals = interval(1, inf) },
+                { "rep", 2, posvals = set(2, 4, 8, 16) }
+            })
+        end
+    \end{luacode}
+\end{frame}
+
+\begin{frame}[fragile]
+    \centering
+    \frametitle{The Layout Function}
+    \begin{itemize}
+        \item First argument is the cell buing built (it is created by the calling code)
+        \item The first argument is in theory optional, but a cell without a cell argument makes no sense
+        \item Second (optional) argument is the table holding all parameters with their current value (default or user-given values)
+        \item Third (optional) argument is the environment, similar to parameters but concerns values that are defined by cell higher up in the
+            hierarchy
+    \end{itemize}
+    \vfill
+    \begin{luacode}
+        function layout(cell, _P, env)
+        end
+    \end{luacode}
+\end{frame}
+
+\begin{frame}[fragile]
+    \centering
+    \frametitle{Adding Shapes}
+    \begin{itemize}
+        \item Basic shapes are added with the \luainline{geometry} module
+        \item All \luainline{geometry} functions take the cell as first argument
+        \item The layer as second argument
+        \item Shape parameters (for example width and height for a rectangle) as remaining parameters
+        \item All sizes are in nanometers (only integers allowed)
+    \end{itemize}
+    \vfill
+    \begin{luacode}
+        function layout(cell)
+            geometry.rectangle(cell, layer, 100, 100)
+        end
+    \end{luacode}
+    \vfill
+    But what do we put into the layer?
+\end{frame}
+
+\begin{frame}[fragile]
+    \centering
+    \frametitle{Digression: Generic Layers}
+    \begin{itemize}
+        \item Shapes need to have layer information
+        \item Can't put in specific technology layers (for example metal 1)
+        \item Can't put in layers for the specific format (for example GDSII)
+        \item Need a system to represent chip layers technology-independent and format-independent
+        \item This is achieved by using \emph{generic} layers
+    \end{itemize}
+    \vfill
+    \begin{luacode}
+        function layout(cell)
+            geometry.rectangle(cell, generics.metal(1), 100, 100)
+        end
+    \end{luacode}
+\end{frame}
+
+\begin{frame}[fragile]
+    \centering
+    \frametitle{Digression: Generic Layers}
+    \begin{itemize}
+        \item Metals indexed by a number (1 being at the bottom of the metal stack, closest to the bulk wafer)
+        \item Generic layers for gates, active regions, implants, threshold voltage markings, oxide thickness
+        \item Generics layers are translated into specific technology-bound layers
+        \item Mapping described in layermap file with simple syntax
+        \item Layermap has to be created for every technology node
+    \end{itemize}
+    \vfill
+    Layermap example with only one layer (gate):
+    \begin{luacode}
+        return {
+            gate = { layer = { gds = { layer = 6, purpose = 0 } } },
+            -- more layers here
+        }
+    \end{luacode}
+\end{frame}
+
+\begin{frame}[fragile]
+    \centering
+    \frametitle{Digression: Generic Layers}
+    \begin{itemize}
+        \item The technology layermap can define various export types (output formats)
+        \item Most important is currently gds (GDSII)
+    \end{itemize}
+    \vfill
+    More complex layermap example with only one layer (gate):
+    \begin{luacode}
+        return {
+            gate = {
+                name = "poly",
+                layer = {
+                    gds = { layer = 6, purpose = 0 },
+                    SKILL = { layer = "poly", purpose = "drawing" },
+                    svg = { style = "gate", order = 3, color = "ff0000" },
+                }
+            },
+        }
+    \end{luacode}
+\end{frame}
+
+\begin{frame}[fragile]
+    \centering
+    \frametitle{Digression: Generic Layers}
+    \begin{itemize}
+        \item Unused layers can be marked as empty
+        \item For example, non-SOI (silicon-on-insulator) technology nodes don't need a buried-oxide break (soiopen)
+    \end{itemize}
+    \vfill
+    \begin{luacode}
+        return {
+            soiopen = {}, -- will be skipped
+        }
+    \end{luacode}
+\end{frame}
+
+\begin{frame}[fragile]
+    \centering
+    \frametitle{Cell Hierarchies}
+    \begin{itemize}
+        \item Often-used cells more efficiently represented by hierarchies (re-use)
+        \item Put sub-layouts in objects (\luainline{object.create()}) or re-use existing cells with (\luainline{pcell.create_layout()})
+        \item Create a reference handle with \luainline{pcell.add_cell_reference(ref, name)}
+        \item Use \luainline{object.add_child()} to instantiate this reference
+        \item The (light/proxy) object returned by \luainline{object.add_child()} can be use as a regular object (transformed, aligned, etc.)
+    \end{itemize}
+    \vfill
+    \begin{luacode}
+        function layout(cell)
+            local child_reference = pcell.create_layout("libname/subname")
+            local child_name = pcell.add_cell_reference(child_reference,
+                "child")
+            local child = cell:add_child(child_name)
+            child:move_anchor("left")
+        end
+    \end{luacode}
+\end{frame}
+
+\begin{frame}[fragile]
+    \frametitle{Object Translations and Transformations}
+    \begin{itemize}
+        \item Cells can be transformed (rotated, flipped, \dots) and translated in x and y
+        \item Vital for building complex hierarchies with many different sub-cells
+        \item Implementation handles this efficiently by using transformation matrices
+    \end{itemize}
+    \vfill
+    \begin{luacode}
+        local cell = object.create()
+        -- add some shapes
+        cell:translate(100, 100) -- takes x and y
+        cell:rotate_90_left()
+        cell:mirror_at_xaxis()
+    \end{luacode}
+\end{frame}
+
+\begin{frame}[fragile]
+    \frametitle{Object Anchors for Relative Placement}
+    \begin{itemize}
+        \item Cells can define arbitrary \emph{anchors} (points with a name)
+        \item Can be used to position cells (\luainline{object.move_anchor}) or to query positions within cells (\luainline{object.get_anchor})
+        \item With both methods, cells can be placed relatively to each other
+    \end{itemize}
+    \vfill
+    \begin{luacode}
+        local cell1 = pcell.create_layout("cell1")
+        local cell2 = pcell.create_layout("cell2")
+
+        cell1:move_anchor("output", cell2:get_anchor("input"))
+    \end{luacode}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Object Alignment Boxes}
+    \begin{itemize}
+        \item Define an object's main boundary (rectangular)
+        \item Align with other similar objects (for example digital standard cells)
+        \item Define eight special anchors
+        \item Provide standardized means of object positioning
+        \item Alignment boxes are transformed (rotated, mirrored, flipped), but the position of the special anchors is updated to reflect this
+    \end{itemize}
+    \vfill
+    \begin{tabular*}{\linewidth}{@{\extracolsep{\fill}}cc}
+        \begin{tikzpicture}
+        [
+            every label/.style = {font=\small},
+            point/.style = {circle, fill, inner sep = 0pt, minimum size = 4pt},
+            scale = 0.8
+        ]
+            \draw[thick] (-2, -1) rectangle (2, 1);
+            \node[point, label = left:left] at (-2, 0) {};
+            \node[point, label = right:right] at (2, 0) {};
+            \node[point, label = above:top] at (0, 1) {};
+            \node[point, label = below:bottom] at (0, -1) {};
+            \node[point, label = below:bottomleft] at (-2, -1) {};
+            \node[point, label = below:bottomright] at (2, -1) {};
+            \node[point, label = above:topleft] at (-2, 1) {};
+            \node[point, label = above:topright] at (2, 1) {};
+        \end{tikzpicture}
+        &
+        \begin{tikzpicture}
+        [
+            every label/.style = {font=\small},
+            point/.style = {circle, fill, inner sep = 0pt, minimum size = 4pt}
+        ]
+            \begin{scope}[xshift = -2cm]
+                \draw[thick] (-0.5, -1) rectangle (0.5, 1);
+                \node[point, label = left:left] at (-0.5, 0) {};
+                \node[point, label = right:right] at (0.5, 0) {};
+                \node[point, label = above:top] at (0, 1) {};
+                \node[point, label = below:bottom] at (0, -1) {};
+            \end{scope}
+            \node[above=4pt] at (0, 0.5) {rotate};
+            \draw[tip] (-0.3, 0.5) to[out = 60, in = 120] ++(0.6, 0);
+            \begin{scope}[xshift = 2cm]
+                \draw[thick] (-1, -0.5) rectangle (1, 0.5);
+                \node[point, label = left:left] at (-1, 0) {};
+                \node[point, label = right:right] at (1, 0) {};
+                \node[point, label = above:top] at (0, 0.5) {};
+                \node[point, label = below:bottom] at (0, -0.5) {};
+            \end{scope}
+        \end{tikzpicture}
+    \end{tabular*}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Relative Placements Everywhere}
+    \begin{itemize}
+        \item Relative placement should be chosen wherever possible
+        \item Absolute coordinates are usually only needed in fundamental/basic cells like transistors
+        \item With relative placements (using alignment boxes), the cells \enquote{know} their own size
+        \item This enables changes deeper in the hierarchy to propagate \emph{up}
+        \item Done correctly, child cells can be fixed/adapted without having to change the top cell
+    \end{itemize}
+\end{frame}
+
+\section{Examples}
+\begin{frame}
+    \centering
+    \frametitle{Current-Starved Ring Oscillator}
+    \definecolor{metal1color}{HTML}{0000ff}
+    \definecolor{metal2color}{HTML}{bb0077}
+    \definecolor{via1color}{HTML}{fff000}
+    \definecolor{gatecolor}{HTML}{ff0000}
+    \definecolor{activecolor}{HTML}{38c316}
+    \definecolor{layoutcolor1}{HTML}{000000}
+    \definecolor{contactgatecolor}{HTML}{ffffff}
+    \definecolor{layoutcolor2}{HTML}{ccffff}
+    \def\opclayoutscale{0.7}
+    \begin{tikzpicture}
+    [
+        metal1/.style = { fill = metal1color, draw = metal1color },
+        metal2/.style = { fill = metal2color, draw = metal2color },
+        via1/.style = { fill = via1color, draw = via1color },
+        gate/.style = { fill = gatecolor, draw = gatecolor },
+        active/.style = { fill = activecolor, draw = activecolor },
+        contactgate/.style = { fill = contactgatecolor, draw = contactgatecolor },
+        contactsourcedrain/.style = { fill = contactgatecolor, draw = contactgatecolor },
+        contactactive/.style = { fill = contactgatecolor, draw = contactgatecolor }
+    ]
+        \path[fill = layoutcolor2, draw = layoutcolor2] ({ -9.300 * \opclayoutscale, -3.400 * \opclayoutscale }) rectangle ({ 9.300 * \opclayoutscale, 3.400 * \opclayoutscale });
+        \path[fill = layoutcolor2] ({ -9.450 * \opclayoutscale, -3.550 * \opclayoutscale }) -- ({ 9.450 * \opclayoutscale, -3.550 * \opclayoutscale }) -- ({ 9.450 * \opclayoutscale, 3.550 * \opclayoutscale }) -- ({ -9.450 * \opclayoutscale, 3.550 * \opclayoutscale }) -- ({ -9.450 * \opclayoutscale, -3.250 * \opclayoutscale }) -- ({ -9.150 * \opclayoutscale, -3.250 * \opclayoutscale }) -- ({ -9.150 * \opclayoutscale, 3.250 * \opclayoutscale }) -- ({ 9.150 * \opclayoutscale, 3.250 * \opclayoutscale }) -- ({ 9.150 * \opclayoutscale, -3.250 * \opclayoutscale }) -- ({ -9.450 * \opclayoutscale, -3.250 * \opclayoutscale }) -- ({ -9.450 * \opclayoutscale, -3.550 * \opclayoutscale }) -- cycle;
+        \path[active] ({ 3.750 * \opclayoutscale, -1.800 * \opclayoutscale }) rectangle ({ 4.750 * \opclayoutscale, -0.800 * \opclayoutscale });
+        \path[active] ({ -1.250 * \opclayoutscale, -1.800 * \opclayoutscale }) rectangle ({ -0.250 * \opclayoutscale, -0.800 * \opclayoutscale });
+        \path[active] ({ -1.250 * \opclayoutscale, 0.800 * \opclayoutscale }) rectangle ({ -0.250 * \opclayoutscale, 1.800 * \opclayoutscale });
+        \path[active] ({ -0.750 * \opclayoutscale, -1.800 * \opclayoutscale }) rectangle ({ 0.250 * \opclayoutscale, -0.800 * \opclayoutscale });
+        \path[active] ({ -0.750 * \opclayoutscale, 0.800 * \opclayoutscale }) rectangle ({ 0.250 * \opclayoutscale, 1.800 * \opclayoutscale });
+        \path[active] ({ 3.250 * \opclayoutscale, 0.800 * \opclayoutscale }) rectangle ({ 4.250 * \opclayoutscale, 1.800 * \opclayoutscale });
+        \path[active] ({ 3.750 * \opclayoutscale, 0.800 * \opclayoutscale }) rectangle ({ 4.750 * \opclayoutscale, 1.800 * \opclayoutscale });
+        \path[active] ({ -0.250 * \opclayoutscale, 0.800 * \opclayoutscale }) rectangle ({ 0.750 * \opclayoutscale, 1.800 * \opclayoutscale });
+        \path[active] ({ -0.250 * \opclayoutscale, -1.800 * \opclayoutscale }) rectangle ({ 0.750 * \opclayoutscale, -0.800 * \opclayoutscale });
+        \path[active] ({ 3.250 * \opclayoutscale, -1.800 * \opclayoutscale }) rectangle ({ 4.250 * \opclayoutscale, -0.800 * \opclayoutscale });
+        \path[active] ({ 6.250 * \opclayoutscale, -1.800 * \opclayoutscale }) rectangle ({ 7.250 * \opclayoutscale, -0.800 * \opclayoutscale });
+        \path[active] ({ 6.250 * \opclayoutscale, 0.800 * \opclayoutscale }) rectangle ({ 7.250 * \opclayoutscale, 1.800 * \opclayoutscale });
+        \path[active] ({ 7.250 * \opclayoutscale, -1.800 * \opclayoutscale }) rectangle ({ 8.250 * \opclayoutscale, -0.800 * \opclayoutscale });
+        \path[active] ({ 7.250 * \opclayoutscale, 0.800 * \opclayoutscale }) rectangle ({ 8.250 * \opclayoutscale, 1.800 * \opclayoutscale });
+        \path[active] ({ -2.750 * \opclayoutscale, -1.800 * \opclayoutscale }) rectangle ({ -1.750 * \opclayoutscale, -0.800 * \opclayoutscale });
+        \path[active] ({ 4.250 * \opclayoutscale, -1.800 * \opclayoutscale }) rectangle ({ 5.250 * \opclayoutscale, -0.800 * \opclayoutscale });
+        \path[active] ({ -2.750 * \opclayoutscale, 0.800 * \opclayoutscale }) rectangle ({ -1.750 * \opclayoutscale, 1.800 * \opclayoutscale });
+        \path[active] ({ 4.250 * \opclayoutscale, 0.800 * \opclayoutscale }) rectangle ({ 5.250 * \opclayoutscale, 1.800 * \opclayoutscale });
+        \path[active] ({ 6.750 * \opclayoutscale, 0.800 * \opclayoutscale }) rectangle ({ 7.750 * \opclayoutscale, 1.800 * \opclayoutscale });
+        \path[active] ({ 0.750 * \opclayoutscale, -1.800 * \opclayoutscale }) rectangle ({ 1.750 * \opclayoutscale, -0.800 * \opclayoutscale });
+        \path[active] ({ -3.250 * \opclayoutscale, 0.800 * \opclayoutscale }) rectangle ({ -2.250 * \opclayoutscale, 1.800 * \opclayoutscale });
+        \path[active] ({ 0.250 * \opclayoutscale, -1.800 * \opclayoutscale }) rectangle ({ 1.250 * \opclayoutscale, -0.800 * \opclayoutscale });
+        \path[active] ({ 5.750 * \opclayoutscale, 0.800 * \opclayoutscale }) rectangle ({ 6.750 * \opclayoutscale, 1.800 * \opclayoutscale });
+        \path[active] ({ 1.750 * \opclayoutscale, 0.800 * \opclayoutscale }) rectangle ({ 2.750 * \opclayoutscale, 1.800 * \opclayoutscale });
+        \path[active] ({ 2.250 * \opclayoutscale, -1.800 * \opclayoutscale }) rectangle ({ 3.250 * \opclayoutscale, -0.800 * \opclayoutscale });
+        \path[active] ({ 2.250 * \opclayoutscale, 0.800 * \opclayoutscale }) rectangle ({ 3.250 * \opclayoutscale, 1.800 * \opclayoutscale });
+        \path[active] ({ -1.750 * \opclayoutscale, 0.800 * \opclayoutscale }) rectangle ({ -0.750 * \opclayoutscale, 1.800 * \opclayoutscale });
+        \path[active] ({ 1.750 * \opclayoutscale, -1.800 * \opclayoutscale }) rectangle ({ 2.750 * \opclayoutscale, -0.800 * \opclayoutscale });
+        \path[active] ({ 1.250 * \opclayoutscale, -1.800 * \opclayoutscale }) rectangle ({ 2.250 * \opclayoutscale, -0.800 * \opclayoutscale });
+        \path[active] ({ 1.250 * \opclayoutscale, 0.800 * \opclayoutscale }) rectangle ({ 2.250 * \opclayoutscale, 1.800 * \opclayoutscale });
+        \path[active] ({ 0.750 * \opclayoutscale, 0.800 * \opclayoutscale }) rectangle ({ 1.750 * \opclayoutscale, 1.800 * \opclayoutscale });
+        \path[active] ({ 0.250 * \opclayoutscale, 0.800 * \opclayoutscale }) rectangle ({ 1.250 * \opclayoutscale, 1.800 * \opclayoutscale });
+        \path[active] ({ -1.750 * \opclayoutscale, -1.800 * \opclayoutscale }) rectangle ({ -0.750 * \opclayoutscale, -0.800 * \opclayoutscale });
+        \path[active] ({ -2.250 * \opclayoutscale, -1.800 * \opclayoutscale }) rectangle ({ -1.250 * \opclayoutscale, -0.800 * \opclayoutscale });
+        \path[active] ({ 5.250 * \opclayoutscale, 0.800 * \opclayoutscale }) rectangle ({ 6.250 * \opclayoutscale, 1.800 * \opclayoutscale });
+        \path[active] ({ 5.750 * \opclayoutscale, -1.800 * \opclayoutscale }) rectangle ({ 6.750 * \opclayoutscale, -0.800 * \opclayoutscale });
+        \path[active] ({ 2.750 * \opclayoutscale, 0.800 * \opclayoutscale }) rectangle ({ 3.750 * \opclayoutscale, 1.800 * \opclayoutscale });
+        \path[active] ({ -2.250 * \opclayoutscale, 0.800 * \opclayoutscale }) rectangle ({ -1.250 * \opclayoutscale, 1.800 * \opclayoutscale });
+        \path[active] ({ 2.750 * \opclayoutscale, -1.800 * \opclayoutscale }) rectangle ({ 3.750 * \opclayoutscale, -0.800 * \opclayoutscale });
+        \path[active] ({ 4.750 * \opclayoutscale, 0.800 * \opclayoutscale }) rectangle ({ 5.750 * \opclayoutscale, 1.800 * \opclayoutscale });
+        \path[active] ({ 5.250 * \opclayoutscale, -1.800 * \opclayoutscale }) rectangle ({ 6.250 * \opclayoutscale, -0.800 * \opclayoutscale });
+        \path[active] ({ 4.750 * \opclayoutscale, -1.800 * \opclayoutscale }) rectangle ({ 5.750 * \opclayoutscale, -0.800 * \opclayoutscale });
+        \path[active] ({ -3.250 * \opclayoutscale, -1.800 * \opclayoutscale }) rectangle ({ -2.250 * \opclayoutscale, -0.800 * \opclayoutscale });
+        \path[active] ({ 6.750 * \opclayoutscale, -1.800 * \opclayoutscale }) rectangle ({ 7.750 * \opclayoutscale, -0.800 * \opclayoutscale });
+        \path[active] ({ -7.250 * \opclayoutscale, 0.800 * \opclayoutscale }) rectangle ({ -6.250 * \opclayoutscale, 1.800 * \opclayoutscale });
+        \path[active] ({ -7.750 * \opclayoutscale, 0.800 * \opclayoutscale }) rectangle ({ -6.750 * \opclayoutscale, 1.800 * \opclayoutscale });
+        \path[active] ({ -5.750 * \opclayoutscale, -1.800 * \opclayoutscale }) rectangle ({ -4.750 * \opclayoutscale, -0.800 * \opclayoutscale });
+        \path[active] ({ -5.750 * \opclayoutscale, 0.800 * \opclayoutscale }) rectangle ({ -4.750 * \opclayoutscale, 1.800 * \opclayoutscale });
+        \path[active] ({ -5.250 * \opclayoutscale, 0.800 * \opclayoutscale }) rectangle ({ -4.250 * \opclayoutscale, 1.800 * \opclayoutscale });
+        \path[active] ({ -5.250 * \opclayoutscale, -1.800 * \opclayoutscale }) rectangle ({ -4.250 * \opclayoutscale, -0.800 * \opclayoutscale });
+        \path[active] ({ -9.400 * \opclayoutscale, -3.500 * \opclayoutscale }) -- ({ 9.400 * \opclayoutscale, -3.500 * \opclayoutscale }) -- ({ 9.400 * \opclayoutscale, 3.500 * \opclayoutscale }) -- ({ -9.400 * \opclayoutscale, 3.500 * \opclayoutscale }) -- ({ -9.400 * \opclayoutscale, -3.300 * \opclayoutscale }) -- ({ -9.200 * \opclayoutscale, -3.300 * \opclayoutscale }) -- ({ -9.200 * \opclayoutscale, 3.300 * \opclayoutscale }) -- ({ 9.200 * \opclayoutscale, 3.300 * \opclayoutscale }) -- ({ 9.200 * \opclayoutscale, -3.300 * \opclayoutscale }) -- ({ -9.400 * \opclayoutscale, -3.300 * \opclayoutscale }) -- ({ -9.400 * \opclayoutscale, -3.500 * \opclayoutscale }) -- cycle;
+        \path[active] ({ -6.250 * \opclayoutscale, 0.800 * \opclayoutscale }) rectangle ({ -5.250 * \opclayoutscale, 1.800 * \opclayoutscale });
+        \path[active] ({ -6.250 * \opclayoutscale, -1.800 * \opclayoutscale }) rectangle ({ -5.250 * \opclayoutscale, -0.800 * \opclayoutscale });
+        \path[active] ({ -6.750 * \opclayoutscale, -1.800 * \opclayoutscale }) rectangle ({ -5.750 * \opclayoutscale, -0.800 * \opclayoutscale });
+        \path[active] ({ -7.250 * \opclayoutscale, -1.800 * \opclayoutscale }) rectangle ({ -6.250 * \opclayoutscale, -0.800 * \opclayoutscale });
+        \path[active] ({ -9.000 * \opclayoutscale, -3.100 * \opclayoutscale }) -- ({ 9.000 * \opclayoutscale, -3.100 * \opclayoutscale }) -- ({ 9.000 * \opclayoutscale, 3.100 * \opclayoutscale }) -- ({ -9.000 * \opclayoutscale, 3.100 * \opclayoutscale }) -- ({ -9.000 * \opclayoutscale, -2.900 * \opclayoutscale }) -- ({ -8.800 * \opclayoutscale, -2.900 * \opclayoutscale }) -- ({ -8.800 * \opclayoutscale, 2.900 * \opclayoutscale }) -- ({ 8.800 * \opclayoutscale, 2.900 * \opclayoutscale }) -- ({ 8.800 * \opclayoutscale, -2.900 * \opclayoutscale }) -- ({ -9.000 * \opclayoutscale, -2.900 * \opclayoutscale }) -- ({ -9.000 * \opclayoutscale, -3.100 * \opclayoutscale }) -- cycle;
+        \path[active] ({ -6.750 * \opclayoutscale, 0.800 * \opclayoutscale }) rectangle ({ -5.750 * \opclayoutscale, 1.800 * \opclayoutscale });
+        \path[active] ({ -4.750 * \opclayoutscale, -1.800 * \opclayoutscale }) rectangle ({ -3.750 * \opclayoutscale, -0.800 * \opclayoutscale });
+        \path[active] ({ -7.750 * \opclayoutscale, -1.800 * \opclayoutscale }) rectangle ({ -6.750 * \opclayoutscale, -0.800 * \opclayoutscale });
+        \path[active] ({ -4.250 * \opclayoutscale, 0.800 * \opclayoutscale }) rectangle ({ -3.250 * \opclayoutscale, 1.800 * \opclayoutscale });
+        \path[active] ({ -3.750 * \opclayoutscale, 0.800 * \opclayoutscale }) rectangle ({ -2.750 * \opclayoutscale, 1.800 * \opclayoutscale });
+        \path[active] ({ -8.250 * \opclayoutscale, 0.800 * \opclayoutscale }) rectangle ({ -7.250 * \opclayoutscale, 1.800 * \opclayoutscale });
+        \path[active] ({ -4.250 * \opclayoutscale, -1.800 * \opclayoutscale }) rectangle ({ -3.250 * \opclayoutscale, -0.800 * \opclayoutscale });
+        \path[active] ({ -8.250 * \opclayoutscale, -1.800 * \opclayoutscale }) rectangle ({ -7.250 * \opclayoutscale, -0.800 * \opclayoutscale });
+        \path[active] ({ -4.750 * \opclayoutscale, 0.800 * \opclayoutscale }) rectangle ({ -3.750 * \opclayoutscale, 1.800 * \opclayoutscale });
+        \path[active] ({ -3.750 * \opclayoutscale, -1.800 * \opclayoutscale }) rectangle ({ -2.750 * \opclayoutscale, -0.800 * \opclayoutscale });
+        \path[gate] ({ -1.850 * \opclayoutscale, 0.000 * \opclayoutscale }) rectangle ({ -1.650 * \opclayoutscale, 2.470 * \opclayoutscale });
+        \path[gate] ({ 1.650 * \opclayoutscale, -2.670 * \opclayoutscale }) rectangle ({ 1.850 * \opclayoutscale, 0.000 * \opclayoutscale });
+        \path[gate] ({ -6.850 * \opclayoutscale, 0.000 * \opclayoutscale }) rectangle ({ -6.650 * \opclayoutscale, 2.470 * \opclayoutscale });
+        \path[gate] ({ -1.350 * \opclayoutscale, -2.670 * \opclayoutscale }) rectangle ({ -1.150 * \opclayoutscale, 0.000 * \opclayoutscale });
+        \path[gate] ({ -7.850 * \opclayoutscale, -2.670 * \opclayoutscale }) rectangle ({ -7.650 * \opclayoutscale, 0.000 * \opclayoutscale });
+        \path[gate] ({ -7.850 * \opclayoutscale, 0.000 * \opclayoutscale }) rectangle ({ -7.650 * \opclayoutscale, 2.470 * \opclayoutscale });
+        \path[gate] ({ -7.350 * \opclayoutscale, -2.670 * \opclayoutscale }) rectangle ({ -7.150 * \opclayoutscale, 0.000 * \opclayoutscale });
+        \path[gate] ({ 2.150 * \opclayoutscale, 0.000 * \opclayoutscale }) rectangle ({ 2.350 * \opclayoutscale, 2.470 * \opclayoutscale });
+        \path[gate] ({ -1.850 * \opclayoutscale, -2.670 * \opclayoutscale }) rectangle ({ -1.650 * \opclayoutscale, 0.000 * \opclayoutscale });
+        \path[gate] ({ 2.150 * \opclayoutscale, -2.670 * \opclayoutscale }) rectangle ({ 2.350 * \opclayoutscale, 0.000 * \opclayoutscale });
+        \path[gate] ({ 2.650 * \opclayoutscale, -2.670 * \opclayoutscale }) rectangle ({ 2.850 * \opclayoutscale, 0.000 * \opclayoutscale });
+        \path[gate] ({ -6.850 * \opclayoutscale, -2.670 * \opclayoutscale }) rectangle ({ -6.650 * \opclayoutscale, 0.000 * \opclayoutscale });
+        \path[gate] ({ 2.650 * \opclayoutscale, 0.000 * \opclayoutscale }) rectangle ({ 2.850 * \opclayoutscale, 2.470 * \opclayoutscale });
+        \path[gate] ({ 1.650 * \opclayoutscale, 0.000 * \opclayoutscale }) rectangle ({ 1.850 * \opclayoutscale, 2.470 * \opclayoutscale });
+        \path[gate] ({ -7.350 * \opclayoutscale, 0.000 * \opclayoutscale }) rectangle ({ -7.150 * \opclayoutscale, 2.470 * \opclayoutscale });
+        \path[gate] ({ -1.350 * \opclayoutscale, 0.000 * \opclayoutscale }) rectangle ({ -1.150 * \opclayoutscale, 2.470 * \opclayoutscale });
+        \path[gate] ({ -2.850 * \opclayoutscale, -2.670 * \opclayoutscale }) rectangle ({ -2.650 * \opclayoutscale, 0.000 * \opclayoutscale });
+        \path[gate] ({ -5.850 * \opclayoutscale, -2.670 * \opclayoutscale }) rectangle ({ -5.650 * \opclayoutscale, 0.000 * \opclayoutscale });
+        \path[gate] ({ -6.350 * \opclayoutscale, -2.670 * \opclayoutscale }) rectangle ({ -6.150 * \opclayoutscale, 0.000 * \opclayoutscale });
+        \path[gate] ({ -3.850 * \opclayoutscale, -2.670 * \opclayoutscale }) rectangle ({ -3.650 * \opclayoutscale, 0.000 * \opclayoutscale });
+        \path[gate] ({ 4.650 * \opclayoutscale, 0.000 * \opclayoutscale }) rectangle ({ 4.850 * \opclayoutscale, 2.470 * \opclayoutscale });
+        \path[gate] ({ -4.350 * \opclayoutscale, 0.000 * \opclayoutscale }) rectangle ({ -4.150 * \opclayoutscale, 2.470 * \opclayoutscale });
+        \path[gate] ({ 4.650 * \opclayoutscale, -2.670 * \opclayoutscale }) rectangle ({ 4.850 * \opclayoutscale, 0.000 * \opclayoutscale });
+        \path[gate] ({ -4.350 * \opclayoutscale, -2.670 * \opclayoutscale }) rectangle ({ -4.150 * \opclayoutscale, 0.000 * \opclayoutscale });
+        \path[gate] ({ -3.850 * \opclayoutscale, 0.000 * \opclayoutscale }) rectangle ({ -3.650 * \opclayoutscale, 2.470 * \opclayoutscale });
+        \path[gate] ({ -2.350 * \opclayoutscale, 0.000 * \opclayoutscale }) rectangle ({ -2.150 * \opclayoutscale, 2.470 * \opclayoutscale });
+        \path[gate] ({ -3.350 * \opclayoutscale, -2.670 * \opclayoutscale }) rectangle ({ -3.150 * \opclayoutscale, 0.000 * \opclayoutscale });
+        \path[gate] ({ -2.350 * \opclayoutscale, -2.670 * \opclayoutscale }) rectangle ({ -2.150 * \opclayoutscale, 0.000 * \opclayoutscale });
+        \path[gate] ({ -3.350 * \opclayoutscale, 0.000 * \opclayoutscale }) rectangle ({ -3.150 * \opclayoutscale, 2.470 * \opclayoutscale });
+        \path[gate] ({ 3.150 * \opclayoutscale, -2.670 * \opclayoutscale }) rectangle ({ 3.350 * \opclayoutscale, 0.000 * \opclayoutscale });
+        \path[gate] ({ 4.150 * \opclayoutscale, 0.000 * \opclayoutscale }) rectangle ({ 4.350 * \opclayoutscale, 2.470 * \opclayoutscale });
+        \path[gate] ({ 4.150 * \opclayoutscale, -2.670 * \opclayoutscale }) rectangle ({ 4.350 * \opclayoutscale, 0.000 * \opclayoutscale });
+        \path[gate] ({ -2.850 * \opclayoutscale, 0.000 * \opclayoutscale }) rectangle ({ -2.650 * \opclayoutscale, 2.470 * \opclayoutscale });
+        \path[gate] ({ -5.850 * \opclayoutscale, 0.000 * \opclayoutscale }) rectangle ({ -5.650 * \opclayoutscale, 2.470 * \opclayoutscale });
+        \path[gate] ({ 3.150 * \opclayoutscale, 0.000 * \opclayoutscale }) rectangle ({ 3.350 * \opclayoutscale, 2.470 * \opclayoutscale });
+        \path[gate] ({ -6.350 * \opclayoutscale, 0.000 * \opclayoutscale }) rectangle ({ -6.150 * \opclayoutscale, 2.470 * \opclayoutscale });
+        \path[gate] ({ -4.850 * \opclayoutscale, 0.000 * \opclayoutscale }) rectangle ({ -4.650 * \opclayoutscale, 2.470 * \opclayoutscale });
+        \path[gate] ({ 3.650 * \opclayoutscale, -2.670 * \opclayoutscale }) rectangle ({ 3.850 * \opclayoutscale, 0.000 * \opclayoutscale });
+        \path[gate] ({ 3.650 * \opclayoutscale, 0.000 * \opclayoutscale }) rectangle ({ 3.850 * \opclayoutscale, 2.470 * \opclayoutscale });
+        \path[gate] ({ -5.350 * \opclayoutscale, -2.670 * \opclayoutscale }) rectangle ({ -5.150 * \opclayoutscale, 0.000 * \opclayoutscale });
+        \path[gate] ({ -4.850 * \opclayoutscale, -2.670 * \opclayoutscale }) rectangle ({ -4.650 * \opclayoutscale, 0.000 * \opclayoutscale });
+        \path[gate] ({ -5.350 * \opclayoutscale, 0.000 * \opclayoutscale }) rectangle ({ -5.150 * \opclayoutscale, 2.470 * \opclayoutscale });
+        \path[gate] ({ 1.150 * \opclayoutscale, -2.670 * \opclayoutscale }) rectangle ({ 1.350 * \opclayoutscale, 0.000 * \opclayoutscale });
+        \path[gate] ({ 1.150 * \opclayoutscale, 0.000 * \opclayoutscale }) rectangle ({ 1.350 * \opclayoutscale, 2.470 * \opclayoutscale });
+        \path[gate] ({ -0.350 * \opclayoutscale, 0.000 * \opclayoutscale }) rectangle ({ -0.150 * \opclayoutscale, 2.470 * \opclayoutscale });
+        \path[gate] ({ 0.150 * \opclayoutscale, -2.670 * \opclayoutscale }) rectangle ({ 0.350 * \opclayoutscale, 0.000 * \opclayoutscale });
+        \path[gate] ({ 7.650 * \opclayoutscale, 0.000 * \opclayoutscale }) rectangle ({ 7.850 * \opclayoutscale, 2.470 * \opclayoutscale });
+        \path[gate] ({ 0.150 * \opclayoutscale, 0.000 * \opclayoutscale }) rectangle ({ 0.350 * \opclayoutscale, 2.470 * \opclayoutscale });
+        \path[gate] ({ 0.650 * \opclayoutscale, 0.000 * \opclayoutscale }) rectangle ({ 0.850 * \opclayoutscale, 2.470 * \opclayoutscale });
+        \path[gate] ({ 0.650 * \opclayoutscale, -2.670 * \opclayoutscale }) rectangle ({ 0.850 * \opclayoutscale, 0.000 * \opclayoutscale });
+        \path[gate] ({ 6.150 * \opclayoutscale, 0.000 * \opclayoutscale }) rectangle ({ 6.350 * \opclayoutscale, 2.470 * \opclayoutscale });
+        \path[gate] ({ -0.350 * \opclayoutscale, -2.670 * \opclayoutscale }) rectangle ({ -0.150 * \opclayoutscale, 0.000 * \opclayoutscale });
+        \path[gate] ({ -0.850 * \opclayoutscale, -2.670 * \opclayoutscale }) rectangle ({ -0.650 * \opclayoutscale, 0.000 * \opclayoutscale });
+        \path[gate] ({ 7.150 * \opclayoutscale, -2.670 * \opclayoutscale }) rectangle ({ 7.350 * \opclayoutscale, 0.000 * \opclayoutscale });
+        \path[gate] ({ -0.850 * \opclayoutscale, 0.000 * \opclayoutscale }) rectangle ({ -0.650 * \opclayoutscale, 2.470 * \opclayoutscale });
+        \path[gate] ({ 6.650 * \opclayoutscale, 0.000 * \opclayoutscale }) rectangle ({ 6.850 * \opclayoutscale, 2.470 * \opclayoutscale });
+        \path[gate] ({ 6.650 * \opclayoutscale, -2.670 * \opclayoutscale }) rectangle ({ 6.850 * \opclayoutscale, 0.000 * \opclayoutscale });
+        \path[gate] ({ 7.150 * \opclayoutscale, 0.000 * \opclayoutscale }) rectangle ({ 7.350 * \opclayoutscale, 2.470 * \opclayoutscale });
+        \path[gate] ({ 6.150 * \opclayoutscale, -2.670 * \opclayoutscale }) rectangle ({ 6.350 * \opclayoutscale, 0.000 * \opclayoutscale });
+        \path[gate] ({ 5.650 * \opclayoutscale, -2.600 * \opclayoutscale }) rectangle ({ 5.850 * \opclayoutscale, -0.030 * \opclayoutscale });
+        \path[gate] ({ 5.650 * \opclayoutscale, 0.030 * \opclayoutscale }) rectangle ({ 5.850 * \opclayoutscale, 2.600 * \opclayoutscale });
+        \path[gate] ({ 5.150 * \opclayoutscale, -2.600 * \opclayoutscale }) rectangle ({ 5.350 * \opclayoutscale, -0.030 * \opclayoutscale });
+        \path[gate] ({ 7.650 * \opclayoutscale, -2.670 * \opclayoutscale }) rectangle ({ 7.850 * \opclayoutscale, 0.000 * \opclayoutscale });
+        \path[gate] ({ 5.150 * \opclayoutscale, 0.030 * \opclayoutscale }) rectangle ({ 5.350 * \opclayoutscale, 2.600 * \opclayoutscale });
+        \path[metal1] ({ 6.150 * \opclayoutscale, -0.100 * \opclayoutscale }) rectangle ({ 6.350 * \opclayoutscale, 0.100 * \opclayoutscale });
+        \path[metal1] ({ 4.900 * \opclayoutscale, 2.000 * \opclayoutscale }) rectangle ({ 8.100 * \opclayoutscale, 2.200 * \opclayoutscale });
+        \path[metal1] ({ 6.650 * \opclayoutscale, -0.100 * \opclayoutscale }) rectangle ({ 6.850 * \opclayoutscale, 0.100 * \opclayoutscale });
+        \path[metal1] ({ 4.900 * \opclayoutscale, -2.200 * \opclayoutscale }) rectangle ({ 8.100 * \opclayoutscale, -2.000 * \opclayoutscale });
+        \path[metal1] ({ 5.650 * \opclayoutscale, 2.000 * \opclayoutscale }) rectangle ({ 5.850 * \opclayoutscale, 2.200 * \opclayoutscale });
+        \path[metal1] ({ 5.150 * \opclayoutscale, -2.200 * \opclayoutscale }) rectangle ({ 5.350 * \opclayoutscale, -2.000 * \opclayoutscale });
+        \path[metal1] ({ 5.650 * \opclayoutscale, -2.200 * \opclayoutscale }) rectangle ({ 5.850 * \opclayoutscale, -2.000 * \opclayoutscale });
+        \path[metal1] ({ 5.150 * \opclayoutscale, 2.000 * \opclayoutscale }) rectangle ({ 5.350 * \opclayoutscale, 2.200 * \opclayoutscale });
+        \path[metal1] ({ -1.600 * \opclayoutscale, 0.800 * \opclayoutscale }) rectangle ({ -1.400 * \opclayoutscale, 1.300 * \opclayoutscale });
+        \path[metal1] ({ -1.600 * \opclayoutscale, -1.300 * \opclayoutscale }) rectangle ({ -1.400 * \opclayoutscale, -0.800 * \opclayoutscale });
+        \path[metal1] ({ -6.600 * \opclayoutscale, 0.500 * \opclayoutscale }) rectangle ({ -6.400 * \opclayoutscale, 1.300 * \opclayoutscale });
+        \path[metal1] ({ -8.100 * \opclayoutscale, -2.200 * \opclayoutscale }) rectangle ({ -0.900 * \opclayoutscale, -2.000 * \opclayoutscale });
+        \path[metal1] ({ -8.100 * \opclayoutscale, 2.000 * \opclayoutscale }) rectangle ({ -0.900 * \opclayoutscale, 2.200 * \opclayoutscale });
+        \path[metal1] ({ 7.150 * \opclayoutscale, -0.100 * \opclayoutscale }) rectangle ({ 7.350 * \opclayoutscale, 0.100 * \opclayoutscale });
+        \path[metal1] ({ -7.100 * \opclayoutscale, 0.800 * \opclayoutscale }) rectangle ({ -6.900 * \opclayoutscale, 1.300 * \opclayoutscale });
+        \path[metal1] ({ -2.600 * \opclayoutscale, -1.300 * \opclayoutscale }) rectangle ({ -2.400 * \opclayoutscale, -0.800 * \opclayoutscale });
+        \path[metal1] ({ -5.600 * \opclayoutscale, 0.800 * \opclayoutscale }) rectangle ({ -5.400 * \opclayoutscale, 1.300 * \opclayoutscale });
+        \path[metal1] ({ -1.600 * \opclayoutscale, 0.800 * \opclayoutscale }) rectangle ({ -1.400 * \opclayoutscale, 1.300 * \opclayoutscale });
+        \path[metal1] ({ -7.850 * \opclayoutscale, -0.500 * \opclayoutscale }) rectangle ({ -7.650 * \opclayoutscale, -0.300 * \opclayoutscale });
+        \path[metal1] ({ 7.650 * \opclayoutscale, -0.100 * \opclayoutscale }) rectangle ({ 7.850 * \opclayoutscale, 0.100 * \opclayoutscale });
+        \path[metal1] ({ 4.900 * \opclayoutscale, 1.800 * \opclayoutscale }) rectangle ({ 5.100 * \opclayoutscale, 2.000 * \opclayoutscale });
+        \path[metal1] ({ 6.500 * \opclayoutscale, 0.800 * \opclayoutscale }) -- ({ 8.400 * \opclayoutscale, 0.800 * \opclayoutscale }) -- ({ 8.400 * \opclayoutscale, -0.800 * \opclayoutscale }) -- ({ 6.500 * \opclayoutscale, -0.800 * \opclayoutscale }) -- ({ 6.500 * \opclayoutscale, -1.000 * \opclayoutscale }) -- ({ 8.600 * \opclayoutscale, -1.000 * \opclayoutscale }) -- ({ 8.600 * \opclayoutscale, 1.000 * \opclayoutscale }) -- ({ 6.500 * \opclayoutscale, 1.000 * \opclayoutscale }) -- cycle;
+        \path[metal1] ({ -9.000 * \opclayoutscale, -3.100 * \opclayoutscale }) -- ({ 9.000 * \opclayoutscale, -3.100 * \opclayoutscale }) -- ({ 9.000 * \opclayoutscale, 3.100 * \opclayoutscale }) -- ({ -9.000 * \opclayoutscale, 3.100 * \opclayoutscale }) -- ({ -9.000 * \opclayoutscale, -2.900 * \opclayoutscale }) -- ({ -8.800 * \opclayoutscale, -2.900 * \opclayoutscale }) -- ({ -8.800 * \opclayoutscale, 2.900 * \opclayoutscale }) -- ({ 8.800 * \opclayoutscale, 2.900 * \opclayoutscale }) -- ({ 8.800 * \opclayoutscale, -2.900 * \opclayoutscale }) -- ({ -9.000 * \opclayoutscale, -2.900 * \opclayoutscale }) -- ({ -9.000 * \opclayoutscale, -3.100 * \opclayoutscale }) -- cycle;
+        \path[metal1] ({ -8.800 * \opclayoutscale, 2.900 * \opclayoutscale }) rectangle ({ 8.800 * \opclayoutscale, 3.100 * \opclayoutscale });
+        \path[metal1] ({ 6.150 * \opclayoutscale, -0.100 * \opclayoutscale }) rectangle ({ 7.850 * \opclayoutscale, 0.100 * \opclayoutscale });
+        \path[metal1] ({ 7.900 * \opclayoutscale, -1.800 * \opclayoutscale }) rectangle ({ 8.100 * \opclayoutscale, -1.300 * \opclayoutscale });
+        \path[metal1] ({ 7.900 * \opclayoutscale, -2.000 * \opclayoutscale }) rectangle ({ 8.100 * \opclayoutscale, -1.800 * \opclayoutscale });
+        \path[metal1] ({ 7.900 * \opclayoutscale, 1.800 * \opclayoutscale }) rectangle ({ 8.100 * \opclayoutscale, 2.000 * \opclayoutscale });
+        \path[metal1] ({ 7.900 * \opclayoutscale, 1.300 * \opclayoutscale }) rectangle ({ 8.100 * \opclayoutscale, 1.800 * \opclayoutscale });
+        \path[metal1] ({ -8.800 * \opclayoutscale, -3.100 * \opclayoutscale }) rectangle ({ 8.800 * \opclayoutscale, -2.900 * \opclayoutscale });
+        \path[metal1] ({ 8.800 * \opclayoutscale, -2.900 * \opclayoutscale }) rectangle ({ 9.000 * \opclayoutscale, 2.900 * \opclayoutscale });
+        \path[metal1] ({ 9.200 * \opclayoutscale, -3.300 * \opclayoutscale }) rectangle ({ 9.400 * \opclayoutscale, 3.300 * \opclayoutscale });
+        \path[metal1] ({ 4.000 * \opclayoutscale, 0.800 * \opclayoutscale }) -- ({ 4.900 * \opclayoutscale, 0.800 * \opclayoutscale }) -- ({ 4.900 * \opclayoutscale, -0.800 * \opclayoutscale }) -- ({ 4.000 * \opclayoutscale, -0.800 * \opclayoutscale }) -- ({ 4.000 * \opclayoutscale, -1.000 * \opclayoutscale }) -- ({ 5.100 * \opclayoutscale, -1.000 * \opclayoutscale }) -- ({ 5.100 * \opclayoutscale, 1.000 * \opclayoutscale }) -- ({ 4.000 * \opclayoutscale, 1.000 * \opclayoutscale }) -- cycle;
+        \path[metal1] ({ -9.000 * \opclayoutscale, -2.900 * \opclayoutscale }) rectangle ({ -8.800 * \opclayoutscale, 2.900 * \opclayoutscale });
+        \path[metal1] ({ -9.400 * \opclayoutscale, -3.300 * \opclayoutscale }) rectangle ({ -9.200 * \opclayoutscale, 3.300 * \opclayoutscale });
+        \path[metal1] ({ -9.200 * \opclayoutscale, 3.300 * \opclayoutscale }) rectangle ({ 9.200 * \opclayoutscale, 3.500 * \opclayoutscale });
+        \path[metal1] ({ -9.200 * \opclayoutscale, -3.500 * \opclayoutscale }) rectangle ({ 9.200 * \opclayoutscale, -3.300 * \opclayoutscale });
+        \path[metal1] ({ -9.400 * \opclayoutscale, -3.500 * \opclayoutscale }) -- ({ 9.400 * \opclayoutscale, -3.500 * \opclayoutscale }) -- ({ 9.400 * \opclayoutscale, 3.500 * \opclayoutscale }) -- ({ -9.400 * \opclayoutscale, 3.500 * \opclayoutscale }) -- ({ -9.400 * \opclayoutscale, -3.300 * \opclayoutscale }) -- ({ -9.200 * \opclayoutscale, -3.300 * \opclayoutscale }) -- ({ -9.200 * \opclayoutscale, 3.300 * \opclayoutscale }) -- ({ 9.200 * \opclayoutscale, 3.300 * \opclayoutscale }) -- ({ 9.200 * \opclayoutscale, -3.300 * \opclayoutscale }) -- ({ -9.400 * \opclayoutscale, -3.300 * \opclayoutscale }) -- ({ -9.400 * \opclayoutscale, -3.500 * \opclayoutscale }) -- cycle;
+        \path[metal1] ({ 4.900 * \opclayoutscale, 1.300 * \opclayoutscale }) rectangle ({ 5.100 * \opclayoutscale, 1.800 * \opclayoutscale });
+        \path[metal1] ({ 7.400 * \opclayoutscale, -1.300 * \opclayoutscale }) rectangle ({ 7.600 * \opclayoutscale, -0.800 * \opclayoutscale });
+        \path[metal1] ({ 6.900 * \opclayoutscale, -2.000 * \opclayoutscale }) rectangle ({ 7.100 * \opclayoutscale, -1.800 * \opclayoutscale });
+        \path[metal1] ({ 5.400 * \opclayoutscale, -1.800 * \opclayoutscale }) rectangle ({ 5.600 * \opclayoutscale, -1.300 * \opclayoutscale });
+        \path[metal1] ({ 5.400 * \opclayoutscale, -2.000 * \opclayoutscale }) rectangle ({ 5.600 * \opclayoutscale, -1.800 * \opclayoutscale });
+        \path[metal1] ({ 5.900 * \opclayoutscale, 1.300 * \opclayoutscale }) rectangle ({ 6.100 * \opclayoutscale, 1.800 * \opclayoutscale });
+        \path[metal1] ({ 5.400 * \opclayoutscale, 1.800 * \opclayoutscale }) rectangle ({ 5.600 * \opclayoutscale, 2.000 * \opclayoutscale });
+        \path[metal1] ({ 4.900 * \opclayoutscale, -2.000 * \opclayoutscale }) rectangle ({ 5.100 * \opclayoutscale, -1.800 * \opclayoutscale });
+        \path[metal1] ({ 5.400 * \opclayoutscale, 1.300 * \opclayoutscale }) rectangle ({ 5.600 * \opclayoutscale, 1.800 * \opclayoutscale });
+        \path[metal1] ({ 4.900 * \opclayoutscale, -1.800 * \opclayoutscale }) rectangle ({ 5.100 * \opclayoutscale, -1.300 * \opclayoutscale });
+        \path[metal1] ({ 7.400 * \opclayoutscale, 0.800 * \opclayoutscale }) rectangle ({ 7.600 * \opclayoutscale, 1.300 * \opclayoutscale });
+        \path[metal1] ({ 5.900 * \opclayoutscale, 1.800 * \opclayoutscale }) rectangle ({ 6.100 * \opclayoutscale, 2.000 * \opclayoutscale });
+        \path[metal1] ({ 5.900 * \opclayoutscale, -2.000 * \opclayoutscale }) rectangle ({ 6.100 * \opclayoutscale, -1.800 * \opclayoutscale });
+        \path[metal1] ({ 6.900 * \opclayoutscale, 1.800 * \opclayoutscale }) rectangle ({ 7.100 * \opclayoutscale, 2.000 * \opclayoutscale });
+        \path[metal1] ({ 6.900 * \opclayoutscale, -1.800 * \opclayoutscale }) rectangle ({ 7.100 * \opclayoutscale, -1.300 * \opclayoutscale });
+        \path[metal1] ({ 5.900 * \opclayoutscale, -1.800 * \opclayoutscale }) rectangle ({ 6.100 * \opclayoutscale, -1.300 * \opclayoutscale });
+        \path[metal1] ({ 6.900 * \opclayoutscale, 1.300 * \opclayoutscale }) rectangle ({ 7.100 * \opclayoutscale, 1.800 * \opclayoutscale });
+        \path[metal1] ({ 6.400 * \opclayoutscale, 0.800 * \opclayoutscale }) rectangle ({ 6.600 * \opclayoutscale, 1.300 * \opclayoutscale });
+        \path[metal1] ({ 6.400 * \opclayoutscale, -1.300 * \opclayoutscale }) rectangle ({ 6.600 * \opclayoutscale, -0.800 * \opclayoutscale });
+        \path[metal1] ({ -1.600 * \opclayoutscale, -1.300 * \opclayoutscale }) rectangle ({ -1.400 * \opclayoutscale, -0.800 * \opclayoutscale });
+        \path[metal1] ({ -7.850 * \opclayoutscale, 0.300 * \opclayoutscale }) rectangle ({ -7.650 * \opclayoutscale, 0.500 * \opclayoutscale });
+        \path[metal1] ({ -7.350 * \opclayoutscale, 0.300 * \opclayoutscale }) rectangle ({ -7.150 * \opclayoutscale, 0.500 * \opclayoutscale });
+        \path[metal1] ({ -2.600 * \opclayoutscale, -0.800 * \opclayoutscale }) rectangle ({ -2.400 * \opclayoutscale, -0.500 * \opclayoutscale });
+        \path[metal1] ({ -3.600 * \opclayoutscale, -0.800 * \opclayoutscale }) rectangle ({ -3.400 * \opclayoutscale, -0.500 * \opclayoutscale });
+        \path[metal1] ({ -3.850 * \opclayoutscale, -0.300 * \opclayoutscale }) rectangle ({ -3.650 * \opclayoutscale, 0.500 * \opclayoutscale });
+        \path[metal1] ({ -3.850 * \opclayoutscale, -0.500 * \opclayoutscale }) rectangle ({ -1.150 * \opclayoutscale, -0.300 * \opclayoutscale });
+        \path[metal1] ({ 3.500 * \opclayoutscale, -1.800 * \opclayoutscale }) rectangle ({ 4.500 * \opclayoutscale, -1.600 * \opclayoutscale });
+        \path[metal1] ({ -7.850 * \opclayoutscale, 0.300 * \opclayoutscale }) rectangle ({ -7.150 * \opclayoutscale, 0.500 * \opclayoutscale });
+        \path[metal1] ({ -5.350 * \opclayoutscale, 0.300 * \opclayoutscale }) rectangle ({ -2.150 * \opclayoutscale, 0.500 * \opclayoutscale });
+        \path[metal1] ({ -1.850 * \opclayoutscale, 0.300 * \opclayoutscale }) rectangle ({ -1.150 * \opclayoutscale, 0.500 * \opclayoutscale });
+        \path[metal1] ({ -7.600 * \opclayoutscale, -1.300 * \opclayoutscale }) rectangle ({ -7.400 * \opclayoutscale, -0.500 * \opclayoutscale });
+        \path[metal1] ({ -6.600 * \opclayoutscale, -1.300 * \opclayoutscale }) rectangle ({ -6.400 * \opclayoutscale, -0.500 * \opclayoutscale });
+        \path[metal1] ({ -6.850 * \opclayoutscale, 0.300 * \opclayoutscale }) rectangle ({ -5.650 * \opclayoutscale, 0.500 * \opclayoutscale });
+        \path[metal1] ({ -6.100 * \opclayoutscale, -1.800 * \opclayoutscale }) rectangle ({ -5.900 * \opclayoutscale, -1.300 * \opclayoutscale });
+        \path[metal1] ({ -7.100 * \opclayoutscale, -1.300 * \opclayoutscale }) rectangle ({ -6.900 * \opclayoutscale, -0.500 * \opclayoutscale });
+        \path[metal1] ({ -4.600 * \opclayoutscale, -1.300 * \opclayoutscale }) rectangle ({ -4.400 * \opclayoutscale, -0.500 * \opclayoutscale });
+        \path[metal1] ({ -5.600 * \opclayoutscale, -1.300 * \opclayoutscale }) rectangle ({ -5.400 * \opclayoutscale, -0.500 * \opclayoutscale });
+        \path[metal1] ({ -5.100 * \opclayoutscale, -1.300 * \opclayoutscale }) rectangle ({ -4.900 * \opclayoutscale, -0.500 * \opclayoutscale });
+        \path[metal1] ({ -6.100 * \opclayoutscale, -1.300 * \opclayoutscale }) rectangle ({ -5.900 * \opclayoutscale, -0.500 * \opclayoutscale });
+        \path[metal1] ({ -6.100 * \opclayoutscale, 1.800 * \opclayoutscale }) rectangle ({ -5.900 * \opclayoutscale, 2.000 * \opclayoutscale });
+        \path[metal1] ({ -6.100 * \opclayoutscale, -2.000 * \opclayoutscale }) rectangle ({ -5.900 * \opclayoutscale, -1.800 * \opclayoutscale });
+        \path[metal1] ({ -5.600 * \opclayoutscale, -1.800 * \opclayoutscale }) rectangle ({ -5.400 * \opclayoutscale, -1.300 * \opclayoutscale });
+        \path[metal1] ({ -2.600 * \opclayoutscale, -1.300 * \opclayoutscale }) rectangle ({ -2.400 * \opclayoutscale, -0.800 * \opclayoutscale });
+        \path[metal1] ({ -3.100 * \opclayoutscale, -2.000 * \opclayoutscale }) rectangle ({ -2.900 * \opclayoutscale, -1.800 * \opclayoutscale });
+        \path[metal1] ({ -3.100 * \opclayoutscale, -1.800 * \opclayoutscale }) rectangle ({ -2.900 * \opclayoutscale, -1.300 * \opclayoutscale });
+        \path[metal1] ({ -2.100 * \opclayoutscale, 1.300 * \opclayoutscale }) rectangle ({ -1.900 * \opclayoutscale, 1.800 * \opclayoutscale });
+        \path[metal1] ({ -2.100 * \opclayoutscale, -1.800 * \opclayoutscale }) rectangle ({ -1.900 * \opclayoutscale, -1.300 * \opclayoutscale });
+        \path[metal1] ({ -2.100 * \opclayoutscale, 1.800 * \opclayoutscale }) rectangle ({ -1.900 * \opclayoutscale, 2.000 * \opclayoutscale });
+        \path[metal1] ({ -2.100 * \opclayoutscale, -2.000 * \opclayoutscale }) rectangle ({ -1.900 * \opclayoutscale, -1.800 * \opclayoutscale });
+        \path[metal1] ({ -5.600 * \opclayoutscale, 0.800 * \opclayoutscale }) rectangle ({ -5.400 * \opclayoutscale, 1.300 * \opclayoutscale });
+        \path[metal1] ({ -3.600 * \opclayoutscale, -1.300 * \opclayoutscale }) rectangle ({ -3.400 * \opclayoutscale, -0.800 * \opclayoutscale });
+        \path[metal1] ({ -4.100 * \opclayoutscale, -1.800 * \opclayoutscale }) rectangle ({ -3.900 * \opclayoutscale, -1.300 * \opclayoutscale });
+        \path[metal1] ({ -5.100 * \opclayoutscale, -1.800 * \opclayoutscale }) rectangle ({ -4.900 * \opclayoutscale, -1.300 * \opclayoutscale });
+        \path[metal1] ({ -5.600 * \opclayoutscale, -2.000 * \opclayoutscale }) rectangle ({ -5.400 * \opclayoutscale, -1.800 * \opclayoutscale });
+        \path[metal1] ({ -4.100 * \opclayoutscale, -2.000 * \opclayoutscale }) rectangle ({ -3.900 * \opclayoutscale, -1.800 * \opclayoutscale });
+        \path[metal1] ({ -5.100 * \opclayoutscale, -2.000 * \opclayoutscale }) rectangle ({ -4.900 * \opclayoutscale, -1.800 * \opclayoutscale });
+        \path[metal1] ({ -4.600 * \opclayoutscale, -2.000 * \opclayoutscale }) rectangle ({ -4.400 * \opclayoutscale, -1.800 * \opclayoutscale });
+        \path[metal1] ({ -4.600 * \opclayoutscale, -1.800 * \opclayoutscale }) rectangle ({ -4.400 * \opclayoutscale, -1.300 * \opclayoutscale });
+        \path[metal1] ({ -7.350 * \opclayoutscale, -0.500 * \opclayoutscale }) rectangle ({ -7.150 * \opclayoutscale, -0.300 * \opclayoutscale });
+        \path[metal1] ({ -6.100 * \opclayoutscale, 1.300 * \opclayoutscale }) rectangle ({ -5.900 * \opclayoutscale, 1.800 * \opclayoutscale });
+        \path[metal1] ({ -6.600 * \opclayoutscale, -1.800 * \opclayoutscale }) rectangle ({ -6.400 * \opclayoutscale, -1.300 * \opclayoutscale });
+        \path[metal1] ({ -4.350 * \opclayoutscale, 0.300 * \opclayoutscale }) rectangle ({ -4.150 * \opclayoutscale, 0.500 * \opclayoutscale });
+        \path[metal1] ({ -4.350 * \opclayoutscale, -0.500 * \opclayoutscale }) rectangle ({ -4.150 * \opclayoutscale, -0.300 * \opclayoutscale });
+        \path[metal1] ({ -4.850 * \opclayoutscale, 0.300 * \opclayoutscale }) rectangle ({ -4.650 * \opclayoutscale, 0.500 * \opclayoutscale });
+        \path[metal1] ({ -3.850 * \opclayoutscale, -0.500 * \opclayoutscale }) rectangle ({ -3.650 * \opclayoutscale, -0.300 * \opclayoutscale });
+        \path[metal1] ({ -3.350 * \opclayoutscale, -0.500 * \opclayoutscale }) rectangle ({ -3.150 * \opclayoutscale, -0.300 * \opclayoutscale });
+        \path[metal1] ({ -3.850 * \opclayoutscale, 0.300 * \opclayoutscale }) rectangle ({ -3.650 * \opclayoutscale, 0.500 * \opclayoutscale });
+        \path[metal1] ({ -3.350 * \opclayoutscale, 0.300 * \opclayoutscale }) rectangle ({ -3.150 * \opclayoutscale, 0.500 * \opclayoutscale });
+        \path[metal1] ({ -2.850 * \opclayoutscale, -0.500 * \opclayoutscale }) rectangle ({ -2.650 * \opclayoutscale, -0.300 * \opclayoutscale });
+        \path[metal1] ({ -4.850 * \opclayoutscale, -0.500 * \opclayoutscale }) rectangle ({ -4.650 * \opclayoutscale, -0.300 * \opclayoutscale });
+        \path[metal1] ({ -5.350 * \opclayoutscale, -0.500 * \opclayoutscale }) rectangle ({ -5.150 * \opclayoutscale, -0.300 * \opclayoutscale });
+        \path[metal1] ({ -6.850 * \opclayoutscale, 0.300 * \opclayoutscale }) rectangle ({ -6.650 * \opclayoutscale, 0.500 * \opclayoutscale });
+        \path[metal1] ({ -6.850 * \opclayoutscale, -0.500 * \opclayoutscale }) rectangle ({ -6.650 * \opclayoutscale, -0.300 * \opclayoutscale });
+        \path[metal1] ({ -5.350 * \opclayoutscale, 0.300 * \opclayoutscale }) rectangle ({ -5.150 * \opclayoutscale, 0.500 * \opclayoutscale });
+        \path[metal1] ({ -6.350 * \opclayoutscale, -0.500 * \opclayoutscale }) rectangle ({ -6.150 * \opclayoutscale, -0.300 * \opclayoutscale });
+        \path[metal1] ({ -5.850 * \opclayoutscale, -0.500 * \opclayoutscale }) rectangle ({ -5.650 * \opclayoutscale, -0.300 * \opclayoutscale });
+        \path[metal1] ({ -6.350 * \opclayoutscale, 0.300 * \opclayoutscale }) rectangle ({ -6.150 * \opclayoutscale, 0.500 * \opclayoutscale });
+        \path[metal1] ({ -5.850 * \opclayoutscale, 0.300 * \opclayoutscale }) rectangle ({ -5.650 * \opclayoutscale, 0.500 * \opclayoutscale });
+        \path[metal1] ({ -6.600 * \opclayoutscale, -2.000 * \opclayoutscale }) rectangle ({ -6.400 * \opclayoutscale, -1.800 * \opclayoutscale });
+        \path[metal1] ({ -2.850 * \opclayoutscale, 0.300 * \opclayoutscale }) rectangle ({ -2.650 * \opclayoutscale, 0.500 * \opclayoutscale });
+        \path[metal1] ({ -2.350 * \opclayoutscale, 0.300 * \opclayoutscale }) rectangle ({ -2.150 * \opclayoutscale, 0.500 * \opclayoutscale });
+        \path[metal1] ({ -7.100 * \opclayoutscale, 0.800 * \opclayoutscale }) rectangle ({ -6.900 * \opclayoutscale, 1.300 * \opclayoutscale });
+        \path[metal1] ({ -7.600 * \opclayoutscale, -2.000 * \opclayoutscale }) rectangle ({ -7.400 * \opclayoutscale, -1.800 * \opclayoutscale });
+        \path[metal1] ({ -7.600 * \opclayoutscale, -1.800 * \opclayoutscale }) rectangle ({ -7.400 * \opclayoutscale, -1.300 * \opclayoutscale });
+        \path[metal1] ({ -7.100 * \opclayoutscale, -1.800 * \opclayoutscale }) rectangle ({ -6.900 * \opclayoutscale, -1.300 * \opclayoutscale });
+        \path[metal1] ({ -6.600 * \opclayoutscale, 1.300 * \opclayoutscale }) rectangle ({ -6.400 * \opclayoutscale, 1.800 * \opclayoutscale });
+        \path[metal1] ({ -7.100 * \opclayoutscale, -2.000 * \opclayoutscale }) rectangle ({ -6.900 * \opclayoutscale, -1.800 * \opclayoutscale });
+        \path[metal1] ({ -6.600 * \opclayoutscale, 1.800 * \opclayoutscale }) rectangle ({ -6.400 * \opclayoutscale, 2.000 * \opclayoutscale });
+        \path[metal1] ({ -2.350 * \opclayoutscale, -0.500 * \opclayoutscale }) rectangle ({ -2.150 * \opclayoutscale, -0.300 * \opclayoutscale });
+        \path[metal1] ({ -8.100 * \opclayoutscale, -2.000 * \opclayoutscale }) rectangle ({ -7.900 * \opclayoutscale, -1.800 * \opclayoutscale });
+        \path[metal1] ({ -8.100 * \opclayoutscale, 1.800 * \opclayoutscale }) rectangle ({ -7.900 * \opclayoutscale, 2.000 * \opclayoutscale });
+        \path[metal1] ({ -1.850 * \opclayoutscale, 0.300 * \opclayoutscale }) rectangle ({ -1.650 * \opclayoutscale, 0.500 * \opclayoutscale });
+        \path[metal1] ({ -1.850 * \opclayoutscale, -0.500 * \opclayoutscale }) rectangle ({ -1.650 * \opclayoutscale, -0.300 * \opclayoutscale });
+        \path[metal1] ({ -8.100 * \opclayoutscale, -1.800 * \opclayoutscale }) rectangle ({ -7.900 * \opclayoutscale, -1.300 * \opclayoutscale });
+        \path[metal1] ({ -1.350 * \opclayoutscale, -0.500 * \opclayoutscale }) rectangle ({ -1.150 * \opclayoutscale, -0.300 * \opclayoutscale });
+        \path[metal1] ({ -8.100 * \opclayoutscale, 1.300 * \opclayoutscale }) rectangle ({ -7.900 * \opclayoutscale, 1.800 * \opclayoutscale });
+        \path[metal1] ({ -1.350 * \opclayoutscale, 0.300 * \opclayoutscale }) rectangle ({ -1.150 * \opclayoutscale, 0.500 * \opclayoutscale });
+        \path[metal1] ({ 3.500 * \opclayoutscale, 1.600 * \opclayoutscale }) rectangle ({ 4.500 * \opclayoutscale, 1.800 * \opclayoutscale });
+        \path[metal1] ({ -7.850 * \opclayoutscale, -0.500 * \opclayoutscale }) rectangle ({ -4.150 * \opclayoutscale, -0.300 * \opclayoutscale });
+        \path[metal1] ({ 3.000 * \opclayoutscale, 2.400 * \opclayoutscale }) rectangle ({ 5.000 * \opclayoutscale, 2.600 * \opclayoutscale });
+        \path[metal1] ({ 0.900 * \opclayoutscale, 2.000 * \opclayoutscale }) rectangle ({ 3.100 * \opclayoutscale, 2.200 * \opclayoutscale });
+        \path[metal1] ({ 0.900 * \opclayoutscale, -2.200 * \opclayoutscale }) rectangle ({ 3.100 * \opclayoutscale, -2.000 * \opclayoutscale });
+        \path[metal1] ({ 1.150 * \opclayoutscale, 2.400 * \opclayoutscale }) rectangle ({ 1.350 * \opclayoutscale, 2.600 * \opclayoutscale });
+        \path[metal1] ({ 1.650 * \opclayoutscale, -0.100 * \opclayoutscale }) rectangle ({ 1.850 * \opclayoutscale, 0.100 * \opclayoutscale });
+        \path[metal1] ({ 1.150 * \opclayoutscale, -2.600 * \opclayoutscale }) rectangle ({ 1.350 * \opclayoutscale, -2.400 * \opclayoutscale });
+        \path[metal1] ({ 2.150 * \opclayoutscale, -0.100 * \opclayoutscale }) rectangle ({ 2.350 * \opclayoutscale, 0.100 * \opclayoutscale });
+        \path[metal1] ({ 0.000 * \opclayoutscale, 0.800 * \opclayoutscale }) -- ({ 0.900 * \opclayoutscale, 0.800 * \opclayoutscale }) -- ({ 0.900 * \opclayoutscale, -0.800 * \opclayoutscale }) -- ({ 0.000 * \opclayoutscale, -0.800 * \opclayoutscale }) -- ({ 0.000 * \opclayoutscale, -1.000 * \opclayoutscale }) -- ({ 1.100 * \opclayoutscale, -1.000 * \opclayoutscale }) -- ({ 1.100 * \opclayoutscale, 1.000 * \opclayoutscale }) -- ({ 0.000 * \opclayoutscale, 1.000 * \opclayoutscale }) -- cycle;
+        \path[metal1] ({ -0.500 * \opclayoutscale, 1.600 * \opclayoutscale }) rectangle ({ 0.500 * \opclayoutscale, 1.800 * \opclayoutscale });
+        \path[metal1] ({ -1.000 * \opclayoutscale, -2.600 * \opclayoutscale }) rectangle ({ 1.000 * \opclayoutscale, -2.400 * \opclayoutscale });
+        \path[metal1] ({ -0.500 * \opclayoutscale, -1.800 * \opclayoutscale }) rectangle ({ 0.500 * \opclayoutscale, -1.600 * \opclayoutscale });
+        \path[metal1] ({ -1.000 * \opclayoutscale, 2.400 * \opclayoutscale }) rectangle ({ 1.000 * \opclayoutscale, 2.600 * \opclayoutscale });
+        \path[metal1] ({ -0.350 * \opclayoutscale, -0.100 * \opclayoutscale }) rectangle ({ 0.350 * \opclayoutscale, 0.100 * \opclayoutscale });
+        \path[metal1] ({ 0.900 * \opclayoutscale, -2.000 * \opclayoutscale }) rectangle ({ 1.100 * \opclayoutscale, -1.800 * \opclayoutscale });
+        \path[metal1] ({ 2.650 * \opclayoutscale, 2.400 * \opclayoutscale }) rectangle ({ 2.850 * \opclayoutscale, 2.600 * \opclayoutscale });
+        \path[metal1] ({ 0.900 * \opclayoutscale, 1.300 * \opclayoutscale }) rectangle ({ 1.100 * \opclayoutscale, 1.800 * \opclayoutscale });
+        \path[metal1] ({ 2.400 * \opclayoutscale, 1.300 * \opclayoutscale }) rectangle ({ 2.600 * \opclayoutscale, 1.800 * \opclayoutscale });
+        \path[metal1] ({ 1.900 * \opclayoutscale, -1.300 * \opclayoutscale }) rectangle ({ 2.100 * \opclayoutscale, -0.800 * \opclayoutscale });
+        \path[metal1] ({ 2.400 * \opclayoutscale, -1.800 * \opclayoutscale }) rectangle ({ 2.600 * \opclayoutscale, -1.300 * \opclayoutscale });
+        \path[metal1] ({ 2.900 * \opclayoutscale, 1.300 * \opclayoutscale }) rectangle ({ 3.100 * \opclayoutscale, 1.800 * \opclayoutscale });
+        \path[metal1] ({ 2.650 * \opclayoutscale, -2.600 * \opclayoutscale }) rectangle ({ 2.850 * \opclayoutscale, -2.400 * \opclayoutscale });
+        \path[metal1] ({ 1.900 * \opclayoutscale, 0.800 * \opclayoutscale }) rectangle ({ 2.100 * \opclayoutscale, 1.300 * \opclayoutscale });
+        \path[metal1] ({ 1.400 * \opclayoutscale, 1.300 * \opclayoutscale }) rectangle ({ 1.600 * \opclayoutscale, 1.800 * \opclayoutscale });
+        \path[metal1] ({ 0.900 * \opclayoutscale, 1.800 * \opclayoutscale }) rectangle ({ 1.100 * \opclayoutscale, 2.000 * \opclayoutscale });
+        \path[metal1] ({ 1.400 * \opclayoutscale, -1.800 * \opclayoutscale }) rectangle ({ 1.600 * \opclayoutscale, -1.300 * \opclayoutscale });
+        \path[metal1] ({ 0.900 * \opclayoutscale, -1.800 * \opclayoutscale }) rectangle ({ 1.100 * \opclayoutscale, -1.300 * \opclayoutscale });
+        \path[metal1] ({ 0.900 * \opclayoutscale, -2.000 * \opclayoutscale }) rectangle ({ 1.100 * \opclayoutscale, -1.800 * \opclayoutscale });
+        \path[metal1] ({ 2.900 * \opclayoutscale, 1.800 * \opclayoutscale }) rectangle ({ 3.100 * \opclayoutscale, 2.000 * \opclayoutscale });
+        \path[metal1] ({ 0.900 * \opclayoutscale, -1.800 * \opclayoutscale }) rectangle ({ 1.100 * \opclayoutscale, -1.300 * \opclayoutscale });
+        \path[metal1] ({ 0.900 * \opclayoutscale, 1.300 * \opclayoutscale }) rectangle ({ 1.100 * \opclayoutscale, 1.800 * \opclayoutscale });
+        \path[metal1] ({ -1.100 * \opclayoutscale, -2.200 * \opclayoutscale }) rectangle ({ 1.100 * \opclayoutscale, -2.000 * \opclayoutscale });
+        \path[metal1] ({ 4.950 * \opclayoutscale, -0.100 * \opclayoutscale }) rectangle ({ 6.350 * \opclayoutscale, 0.100 * \opclayoutscale });
+        \path[metal1] ({ -1.100 * \opclayoutscale, 2.000 * \opclayoutscale }) rectangle ({ 1.100 * \opclayoutscale, 2.200 * \opclayoutscale });
+        \path[metal1] ({ -0.850 * \opclayoutscale, -2.600 * \opclayoutscale }) rectangle ({ -0.650 * \opclayoutscale, -2.400 * \opclayoutscale });
+        \path[metal1] ({ -0.850 * \opclayoutscale, 2.400 * \opclayoutscale }) rectangle ({ -0.650 * \opclayoutscale, 2.600 * \opclayoutscale });
+        \path[metal1] ({ -0.350 * \opclayoutscale, -0.100 * \opclayoutscale }) rectangle ({ -0.150 * \opclayoutscale, 0.100 * \opclayoutscale });
+        \path[metal1] ({ -0.350 * \opclayoutscale, -0.100 * \opclayoutscale }) rectangle ({ 0.350 * \opclayoutscale, 0.100 * \opclayoutscale });
+        \path[metal1] ({ -1.000 * \opclayoutscale, -2.600 * \opclayoutscale }) rectangle ({ 5.000 * \opclayoutscale, -2.400 * \opclayoutscale });
+        \path[metal1] ({ 3.000 * \opclayoutscale, -0.100 * \opclayoutscale }) rectangle ({ 4.000 * \opclayoutscale, 0.100 * \opclayoutscale });
+        \path[metal1] ({ 4.950 * \opclayoutscale, -0.100 * \opclayoutscale }) rectangle ({ 6.350 * \opclayoutscale, 0.100 * \opclayoutscale });
+        \path[metal1] ({ 3.650 * \opclayoutscale, -0.100 * \opclayoutscale }) rectangle ({ 4.350 * \opclayoutscale, 0.100 * \opclayoutscale });
+        \path[metal1] ({ -1.000 * \opclayoutscale, 2.400 * \opclayoutscale }) rectangle ({ 5.000 * \opclayoutscale, 2.600 * \opclayoutscale });
+        \path[metal1] ({ 0.900 * \opclayoutscale, 1.800 * \opclayoutscale }) rectangle ({ 1.100 * \opclayoutscale, 2.000 * \opclayoutscale });
+        \path[metal1] ({ 0.150 * \opclayoutscale, -0.100 * \opclayoutscale }) rectangle ({ 0.350 * \opclayoutscale, 0.100 * \opclayoutscale });
+        \path[metal1] ({ 0.650 * \opclayoutscale, -2.600 * \opclayoutscale }) rectangle ({ 0.850 * \opclayoutscale, -2.400 * \opclayoutscale });
+        \path[metal1] ({ -0.100 * \opclayoutscale, -1.300 * \opclayoutscale }) rectangle ({ 0.100 * \opclayoutscale, -0.800 * \opclayoutscale });
+        \path[metal1] ({ -0.100 * \opclayoutscale, 0.800 * \opclayoutscale }) rectangle ({ 0.100 * \opclayoutscale, 1.300 * \opclayoutscale });
+        \path[metal1] ({ 0.400 * \opclayoutscale, 1.300 * \opclayoutscale }) rectangle ({ 0.600 * \opclayoutscale, 1.800 * \opclayoutscale });
+        \path[metal1] ({ 0.400 * \opclayoutscale, -1.800 * \opclayoutscale }) rectangle ({ 0.600 * \opclayoutscale, -1.300 * \opclayoutscale });
+        \path[metal1] ({ 0.650 * \opclayoutscale, 2.400 * \opclayoutscale }) rectangle ({ 0.850 * \opclayoutscale, 2.600 * \opclayoutscale });
+        \path[metal1] ({ -0.600 * \opclayoutscale, -1.800 * \opclayoutscale }) rectangle ({ -0.400 * \opclayoutscale, -1.300 * \opclayoutscale });
+        \path[metal1] ({ -1.100 * \opclayoutscale, -2.000 * \opclayoutscale }) rectangle ({ -0.900 * \opclayoutscale, -1.800 * \opclayoutscale });
+        \path[metal1] ({ -1.100 * \opclayoutscale, 1.300 * \opclayoutscale }) rectangle ({ -0.900 * \opclayoutscale, 1.800 * \opclayoutscale });
+        \path[metal1] ({ -0.600 * \opclayoutscale, 1.300 * \opclayoutscale }) rectangle ({ -0.400 * \opclayoutscale, 1.800 * \opclayoutscale });
+        \path[metal1] ({ -1.100 * \opclayoutscale, 1.800 * \opclayoutscale }) rectangle ({ -0.900 * \opclayoutscale, 2.000 * \opclayoutscale });
+        \path[metal1] ({ -1.100 * \opclayoutscale, -1.800 * \opclayoutscale }) rectangle ({ -0.900 * \opclayoutscale, -1.300 * \opclayoutscale });
+        \path[metal1] ({ 2.900 * \opclayoutscale, -1.800 * \opclayoutscale }) rectangle ({ 3.100 * \opclayoutscale, -1.300 * \opclayoutscale });
+        \path[metal1] ({ 1.000 * \opclayoutscale, -0.100 * \opclayoutscale }) rectangle ({ 2.000 * \opclayoutscale, 0.100 * \opclayoutscale });
+        \path[metal1] ({ 3.900 * \opclayoutscale, -1.300 * \opclayoutscale }) rectangle ({ 4.100 * \opclayoutscale, -0.800 * \opclayoutscale });
+        \path[metal1] ({ 2.900 * \opclayoutscale, -2.200 * \opclayoutscale }) rectangle ({ 5.100 * \opclayoutscale, -2.000 * \opclayoutscale });
+        \path[metal1] ({ 2.900 * \opclayoutscale, 2.000 * \opclayoutscale }) rectangle ({ 5.100 * \opclayoutscale, 2.200 * \opclayoutscale });
+        \path[metal1] ({ 4.650 * \opclayoutscale, -2.600 * \opclayoutscale }) rectangle ({ 4.850 * \opclayoutscale, -2.400 * \opclayoutscale });
+        \path[metal1] ({ 3.150 * \opclayoutscale, 2.400 * \opclayoutscale }) rectangle ({ 3.350 * \opclayoutscale, 2.600 * \opclayoutscale });
+        \path[metal1] ({ 3.400 * \opclayoutscale, -1.800 * \opclayoutscale }) rectangle ({ 3.600 * \opclayoutscale, -1.300 * \opclayoutscale });
+        \path[metal1] ({ 4.900 * \opclayoutscale, 1.300 * \opclayoutscale }) rectangle ({ 5.100 * \opclayoutscale, 1.800 * \opclayoutscale });
+        \path[metal1] ({ 4.900 * \opclayoutscale, 1.800 * \opclayoutscale }) rectangle ({ 5.100 * \opclayoutscale, 2.000 * \opclayoutscale });
+        \path[metal1] ({ 4.400 * \opclayoutscale, -1.800 * \opclayoutscale }) rectangle ({ 4.600 * \opclayoutscale, -1.300 * \opclayoutscale });
+        \path[metal1] ({ 2.000 * \opclayoutscale, 0.800 * \opclayoutscale }) -- ({ 2.900 * \opclayoutscale, 0.800 * \opclayoutscale }) -- ({ 2.900 * \opclayoutscale, -0.800 * \opclayoutscale }) -- ({ 2.000 * \opclayoutscale, -0.800 * \opclayoutscale }) -- ({ 2.000 * \opclayoutscale, -1.000 * \opclayoutscale }) -- ({ 3.100 * \opclayoutscale, -1.000 * \opclayoutscale }) -- ({ 3.100 * \opclayoutscale, 1.000 * \opclayoutscale }) -- ({ 2.000 * \opclayoutscale, 1.000 * \opclayoutscale }) -- cycle;
+        \path[metal1] ({ 1.500 * \opclayoutscale, -1.800 * \opclayoutscale }) rectangle ({ 2.500 * \opclayoutscale, -1.600 * \opclayoutscale });
+        \path[metal1] ({ 3.400 * \opclayoutscale, 1.300 * \opclayoutscale }) rectangle ({ 3.600 * \opclayoutscale, 1.800 * \opclayoutscale });
+        \path[metal1] ({ 3.650 * \opclayoutscale, -0.100 * \opclayoutscale }) rectangle ({ 3.850 * \opclayoutscale, 0.100 * \opclayoutscale });
+        \path[metal1] ({ 2.900 * \opclayoutscale, 1.800 * \opclayoutscale }) rectangle ({ 3.100 * \opclayoutscale, 2.000 * \opclayoutscale });
+        \path[metal1] ({ 4.650 * \opclayoutscale, 2.400 * \opclayoutscale }) rectangle ({ 4.850 * \opclayoutscale, 2.600 * \opclayoutscale });
+        \path[metal1] ({ 2.900 * \opclayoutscale, 1.300 * \opclayoutscale }) rectangle ({ 3.100 * \opclayoutscale, 1.800 * \opclayoutscale });
+        \path[metal1] ({ 3.150 * \opclayoutscale, -2.600 * \opclayoutscale }) rectangle ({ 3.350 * \opclayoutscale, -2.400 * \opclayoutscale });
+        \path[metal1] ({ 4.150 * \opclayoutscale, -0.100 * \opclayoutscale }) rectangle ({ 4.350 * \opclayoutscale, 0.100 * \opclayoutscale });
+        \path[metal1] ({ 2.900 * \opclayoutscale, -2.000 * \opclayoutscale }) rectangle ({ 3.100 * \opclayoutscale, -1.800 * \opclayoutscale });
+        \path[metal1] ({ 2.900 * \opclayoutscale, -1.800 * \opclayoutscale }) rectangle ({ 3.100 * \opclayoutscale, -1.300 * \opclayoutscale });
+        \path[metal1] ({ 4.900 * \opclayoutscale, -1.800 * \opclayoutscale }) rectangle ({ 5.100 * \opclayoutscale, -1.300 * \opclayoutscale });
+        \path[metal1] ({ 3.900 * \opclayoutscale, 0.800 * \opclayoutscale }) rectangle ({ 4.100 * \opclayoutscale, 1.300 * \opclayoutscale });
+        \path[metal1] ({ 4.900 * \opclayoutscale, -2.000 * \opclayoutscale }) rectangle ({ 5.100 * \opclayoutscale, -1.800 * \opclayoutscale });
+        \path[metal1] ({ 1.000 * \opclayoutscale, 2.400 * \opclayoutscale }) rectangle ({ 3.000 * \opclayoutscale, 2.600 * \opclayoutscale });
+        \path[metal1] ({ 2.900 * \opclayoutscale, -2.000 * \opclayoutscale }) rectangle ({ 3.100 * \opclayoutscale, -1.800 * \opclayoutscale });
+        \path[metal1] ({ 1.500 * \opclayoutscale, 1.600 * \opclayoutscale }) rectangle ({ 2.500 * \opclayoutscale, 1.800 * \opclayoutscale });
+        \path[metal1] ({ 1.650 * \opclayoutscale, -0.100 * \opclayoutscale }) rectangle ({ 2.350 * \opclayoutscale, 0.100 * \opclayoutscale });
+        \path[metal1] ({ 1.000 * \opclayoutscale, -2.600 * \opclayoutscale }) rectangle ({ 3.000 * \opclayoutscale, -2.400 * \opclayoutscale });
+        \path[metal1] ({ 3.000 * \opclayoutscale, -2.600 * \opclayoutscale }) rectangle ({ 5.000 * \opclayoutscale, -2.400 * \opclayoutscale });
+        \path[metal1] ({ 4.400 * \opclayoutscale, 1.300 * \opclayoutscale }) rectangle ({ 4.600 * \opclayoutscale, 1.800 * \opclayoutscale });
+        \path[contactactive] ({ -8.950 * \opclayoutscale, 1.750 * \opclayoutscale }) rectangle ({ -8.850 * \opclayoutscale, 1.850 * \opclayoutscale });
+        \path[contactactive] ({ -8.950 * \opclayoutscale, 2.350 * \opclayoutscale }) rectangle ({ -8.850 * \opclayoutscale, 2.450 * \opclayoutscale });
+        \path[contactactive] ({ -8.950 * \opclayoutscale, 0.250 * \opclayoutscale }) rectangle ({ -8.850 * \opclayoutscale, 0.350 * \opclayoutscale });
+        \path[contactactive] ({ -8.950 * \opclayoutscale, -0.050 * \opclayoutscale }) rectangle ({ -8.850 * \opclayoutscale, 0.050 * \opclayoutscale });
+        \path[contactactive] ({ -8.950 * \opclayoutscale, 2.650 * \opclayoutscale }) rectangle ({ -8.850 * \opclayoutscale, 2.750 * \opclayoutscale });
+        \path[contactactive] ({ -8.950 * \opclayoutscale, 1.450 * \opclayoutscale }) rectangle ({ -8.850 * \opclayoutscale, 1.550 * \opclayoutscale });
+        \path[contactactive] ({ -8.950 * \opclayoutscale, 0.550 * \opclayoutscale }) rectangle ({ -8.850 * \opclayoutscale, 0.650 * \opclayoutscale });
+        \path[contactactive] ({ -4.250 * \opclayoutscale, 3.350 * \opclayoutscale }) rectangle ({ -4.150 * \opclayoutscale, 3.450 * \opclayoutscale });
+        \path[contactactive] ({ -8.950 * \opclayoutscale, 1.150 * \opclayoutscale }) rectangle ({ -8.850 * \opclayoutscale, 1.250 * \opclayoutscale });
+        \path[contactactive] ({ -8.950 * \opclayoutscale, 2.050 * \opclayoutscale }) rectangle ({ -8.850 * \opclayoutscale, 2.150 * \opclayoutscale });
+        \path[contactactive] ({ -3.950 * \opclayoutscale, 3.350 * \opclayoutscale }) rectangle ({ -3.850 * \opclayoutscale, 3.450 * \opclayoutscale });
+        \path[contactactive] ({ -8.950 * \opclayoutscale, 0.850 * \opclayoutscale }) rectangle ({ -8.850 * \opclayoutscale, 0.950 * \opclayoutscale });
+        \path[contactactive] ({ -8.950 * \opclayoutscale, -0.350 * \opclayoutscale }) rectangle ({ -8.850 * \opclayoutscale, -0.250 * \opclayoutscale });
+        \path[contactactive] ({ -6.950 * \opclayoutscale, 3.350 * \opclayoutscale }) rectangle ({ -6.850 * \opclayoutscale, 3.450 * \opclayoutscale });
+        \path[contactactive] ({ 8.850 * \opclayoutscale, -2.750 * \opclayoutscale }) rectangle ({ 8.950 * \opclayoutscale, -2.650 * \opclayoutscale });
+        \path[contactactive] ({ -8.950 * \opclayoutscale, -2.750 * \opclayoutscale }) rectangle ({ -8.850 * \opclayoutscale, -2.650 * \opclayoutscale });
+        \path[contactactive] ({ -8.950 * \opclayoutscale, -2.450 * \opclayoutscale }) rectangle ({ -8.850 * \opclayoutscale, -2.350 * \opclayoutscale });
+        \path[contactactive] ({ -3.050 * \opclayoutscale, 3.350 * \opclayoutscale }) rectangle ({ -2.950 * \opclayoutscale, 3.450 * \opclayoutscale });
+        \path[contactactive] ({ 8.650 * \opclayoutscale, -3.050 * \opclayoutscale }) rectangle ({ 8.750 * \opclayoutscale, -2.950 * \opclayoutscale });
+        \path[contactactive] ({ 8.050 * \opclayoutscale, -3.050 * \opclayoutscale }) rectangle ({ 8.150 * \opclayoutscale, -2.950 * \opclayoutscale });
+        \path[contactactive] ({ 8.350 * \opclayoutscale, -3.050 * \opclayoutscale }) rectangle ({ 8.450 * \opclayoutscale, -2.950 * \opclayoutscale });
+        \path[contactactive] ({ -3.650 * \opclayoutscale, 3.350 * \opclayoutscale }) rectangle ({ -3.550 * \opclayoutscale, 3.450 * \opclayoutscale });
+        \path[contactactive] ({ -3.350 * \opclayoutscale, 3.350 * \opclayoutscale }) rectangle ({ -3.250 * \opclayoutscale, 3.450 * \opclayoutscale });
+        \path[contactactive] ({ -8.950 * \opclayoutscale, -1.850 * \opclayoutscale }) rectangle ({ -8.850 * \opclayoutscale, -1.750 * \opclayoutscale });
+        \path[contactactive] ({ -8.950 * \opclayoutscale, -0.650 * \opclayoutscale }) rectangle ({ -8.850 * \opclayoutscale, -0.550 * \opclayoutscale });
+        \path[contactactive] ({ -8.950 * \opclayoutscale, -2.150 * \opclayoutscale }) rectangle ({ -8.850 * \opclayoutscale, -2.050 * \opclayoutscale });
+        \path[contactactive] ({ -8.950 * \opclayoutscale, -0.950 * \opclayoutscale }) rectangle ({ -8.850 * \opclayoutscale, -0.850 * \opclayoutscale });
+        \path[contactactive] ({ -8.950 * \opclayoutscale, -1.550 * \opclayoutscale }) rectangle ({ -8.850 * \opclayoutscale, -1.450 * \opclayoutscale });
+        \path[contactactive] ({ -8.950 * \opclayoutscale, -1.250 * \opclayoutscale }) rectangle ({ -8.850 * \opclayoutscale, -1.150 * \opclayoutscale });
+        \path[contactactive] ({ 8.850 * \opclayoutscale, -2.450 * \opclayoutscale }) rectangle ({ 8.950 * \opclayoutscale, -2.350 * \opclayoutscale });
+        \path[contactactive] ({ -4.550 * \opclayoutscale, 3.350 * \opclayoutscale }) rectangle ({ -4.450 * \opclayoutscale, 3.450 * \opclayoutscale });
+        \path[contactactive] ({ -7.250 * \opclayoutscale, 3.350 * \opclayoutscale }) rectangle ({ -7.150 * \opclayoutscale, 3.450 * \opclayoutscale });
+        \path[contactactive] ({ -5.750 * \opclayoutscale, 3.350 * \opclayoutscale }) rectangle ({ -5.650 * \opclayoutscale, 3.450 * \opclayoutscale });
+        \path[contactactive] ({ -9.050 * \opclayoutscale, 3.350 * \opclayoutscale }) rectangle ({ -8.950 * \opclayoutscale, 3.450 * \opclayoutscale });
+        \path[contactactive] ({ -8.750 * \opclayoutscale, 3.350 * \opclayoutscale }) rectangle ({ -8.650 * \opclayoutscale, 3.450 * \opclayoutscale });
+        \path[contactactive] ({ -5.450 * \opclayoutscale, 3.350 * \opclayoutscale }) rectangle ({ -5.350 * \opclayoutscale, 3.450 * \opclayoutscale });
+        \path[contactactive] ({ 8.850 * \opclayoutscale, 2.350 * \opclayoutscale }) rectangle ({ 8.950 * \opclayoutscale, 2.450 * \opclayoutscale });
+        \path[contactactive] ({ 8.850 * \opclayoutscale, 2.650 * \opclayoutscale }) rectangle ({ 8.950 * \opclayoutscale, 2.750 * \opclayoutscale });
+        \path[contactactive] ({ 8.850 * \opclayoutscale, 2.050 * \opclayoutscale }) rectangle ({ 8.950 * \opclayoutscale, 2.150 * \opclayoutscale });
+        \path[contactactive] ({ -8.450 * \opclayoutscale, 3.350 * \opclayoutscale }) rectangle ({ -8.350 * \opclayoutscale, 3.450 * \opclayoutscale });
+        \path[contactactive] ({ -8.150 * \opclayoutscale, 3.350 * \opclayoutscale }) rectangle ({ -8.050 * \opclayoutscale, 3.450 * \opclayoutscale });
+        \path[contactactive] ({ -6.650 * \opclayoutscale, 3.350 * \opclayoutscale }) rectangle ({ -6.550 * \opclayoutscale, 3.450 * \opclayoutscale });
+        \path[contactactive] ({ -6.050 * \opclayoutscale, 3.350 * \opclayoutscale }) rectangle ({ -5.950 * \opclayoutscale, 3.450 * \opclayoutscale });
+        \path[contactactive] ({ -6.350 * \opclayoutscale, 3.350 * \opclayoutscale }) rectangle ({ -6.250 * \opclayoutscale, 3.450 * \opclayoutscale });
+        \path[contactactive] ({ -7.850 * \opclayoutscale, 3.350 * \opclayoutscale }) rectangle ({ -7.750 * \opclayoutscale, 3.450 * \opclayoutscale });
+        \path[contactactive] ({ -7.550 * \opclayoutscale, 3.350 * \opclayoutscale }) rectangle ({ -7.450 * \opclayoutscale, 3.450 * \opclayoutscale });
+        \path[contactactive] ({ 8.850 * \opclayoutscale, -2.150 * \opclayoutscale }) rectangle ({ 8.950 * \opclayoutscale, -2.050 * \opclayoutscale });
+        \path[contactactive] ({ 8.850 * \opclayoutscale, 1.750 * \opclayoutscale }) rectangle ({ 8.950 * \opclayoutscale, 1.850 * \opclayoutscale });
+        \path[contactactive] ({ 8.850 * \opclayoutscale, 1.450 * \opclayoutscale }) rectangle ({ 8.950 * \opclayoutscale, 1.550 * \opclayoutscale });
+        \path[contactactive] ({ 8.850 * \opclayoutscale, -1.250 * \opclayoutscale }) rectangle ({ 8.950 * \opclayoutscale, -1.150 * \opclayoutscale });
+        \path[contactactive] ({ 8.850 * \opclayoutscale, -0.950 * \opclayoutscale }) rectangle ({ 8.950 * \opclayoutscale, -0.850 * \opclayoutscale });
+        \path[contactactive] ({ -4.850 * \opclayoutscale, 3.350 * \opclayoutscale }) rectangle ({ -4.750 * \opclayoutscale, 3.450 * \opclayoutscale });
+        \path[contactactive] ({ 8.850 * \opclayoutscale, -1.850 * \opclayoutscale }) rectangle ({ 8.950 * \opclayoutscale, -1.750 * \opclayoutscale });
+        \path[contactactive] ({ 8.850 * \opclayoutscale, -1.550 * \opclayoutscale }) rectangle ({ 8.950 * \opclayoutscale, -1.450 * \opclayoutscale });
+        \path[contactactive] ({ -5.150 * \opclayoutscale, 3.350 * \opclayoutscale }) rectangle ({ -5.050 * \opclayoutscale, 3.450 * \opclayoutscale });
+        \path[contactactive] ({ 8.850 * \opclayoutscale, -0.650 * \opclayoutscale }) rectangle ({ 8.950 * \opclayoutscale, -0.550 * \opclayoutscale });
+        \path[contactactive] ({ 8.850 * \opclayoutscale, -0.050 * \opclayoutscale }) rectangle ({ 8.950 * \opclayoutscale, 0.050 * \opclayoutscale });
+        \path[contactactive] ({ 8.850 * \opclayoutscale, 1.150 * \opclayoutscale }) rectangle ({ 8.950 * \opclayoutscale, 1.250 * \opclayoutscale });
+        \path[contactactive] ({ 8.850 * \opclayoutscale, -0.350 * \opclayoutscale }) rectangle ({ 8.950 * \opclayoutscale, -0.250 * \opclayoutscale });
+        \path[contactactive] ({ 8.850 * \opclayoutscale, 0.850 * \opclayoutscale }) rectangle ({ 8.950 * \opclayoutscale, 0.950 * \opclayoutscale });
+        \path[contactactive] ({ 8.850 * \opclayoutscale, 0.250 * \opclayoutscale }) rectangle ({ 8.950 * \opclayoutscale, 0.350 * \opclayoutscale });
+        \path[contactactive] ({ 8.850 * \opclayoutscale, 0.550 * \opclayoutscale }) rectangle ({ 8.950 * \opclayoutscale, 0.650 * \opclayoutscale });
+        \path[contactactive] ({ 7.750 * \opclayoutscale, -3.050 * \opclayoutscale }) rectangle ({ 7.850 * \opclayoutscale, -2.950 * \opclayoutscale });
+        \path[contactactive] ({ 5.650 * \opclayoutscale, -3.050 * \opclayoutscale }) rectangle ({ 5.750 * \opclayoutscale, -2.950 * \opclayoutscale });
+        \path[contactactive] ({ 7.150 * \opclayoutscale, -3.050 * \opclayoutscale }) rectangle ({ 7.250 * \opclayoutscale, -2.950 * \opclayoutscale });
+        \path[contactactive] ({ -7.250 * \opclayoutscale, -3.050 * \opclayoutscale }) rectangle ({ -7.150 * \opclayoutscale, -2.950 * \opclayoutscale });
+        \path[contactactive] ({ -6.950 * \opclayoutscale, -3.050 * \opclayoutscale }) rectangle ({ -6.850 * \opclayoutscale, -2.950 * \opclayoutscale });
+        \path[contactactive] ({ -6.650 * \opclayoutscale, -3.050 * \opclayoutscale }) rectangle ({ -6.550 * \opclayoutscale, -2.950 * \opclayoutscale });
+        \path[contactactive] ({ -7.550 * \opclayoutscale, -3.050 * \opclayoutscale }) rectangle ({ -7.450 * \opclayoutscale, -2.950 * \opclayoutscale });
+        \path[contactactive] ({ -8.150 * \opclayoutscale, -3.050 * \opclayoutscale }) rectangle ({ -8.050 * \opclayoutscale, -2.950 * \opclayoutscale });
+        \path[contactactive] ({ -7.850 * \opclayoutscale, -3.050 * \opclayoutscale }) rectangle ({ -7.750 * \opclayoutscale, -2.950 * \opclayoutscale });
+        \path[contactactive] ({ -8.450 * \opclayoutscale, -3.050 * \opclayoutscale }) rectangle ({ -8.350 * \opclayoutscale, -2.950 * \opclayoutscale });
+        \path[contactactive] ({ -8.750 * \opclayoutscale, -3.050 * \opclayoutscale }) rectangle ({ -8.650 * \opclayoutscale, -2.950 * \opclayoutscale });
+        \path[contactactive] ({ -6.350 * \opclayoutscale, -3.050 * \opclayoutscale }) rectangle ({ -6.250 * \opclayoutscale, -2.950 * \opclayoutscale });
+        \path[contactactive] ({ -5.750 * \opclayoutscale, -3.050 * \opclayoutscale }) rectangle ({ -5.650 * \opclayoutscale, -2.950 * \opclayoutscale });
+        \path[contactactive] ({ -4.550 * \opclayoutscale, -3.050 * \opclayoutscale }) rectangle ({ -4.450 * \opclayoutscale, -2.950 * \opclayoutscale });
+        \path[contactactive] ({ -4.250 * \opclayoutscale, -3.050 * \opclayoutscale }) rectangle ({ -4.150 * \opclayoutscale, -2.950 * \opclayoutscale });
+        \path[contactactive] ({ -6.050 * \opclayoutscale, -3.050 * \opclayoutscale }) rectangle ({ -5.950 * \opclayoutscale, -2.950 * \opclayoutscale });
+        \path[contactactive] ({ -4.850 * \opclayoutscale, -3.050 * \opclayoutscale }) rectangle ({ -4.750 * \opclayoutscale, -2.950 * \opclayoutscale });
+        \path[contactactive] ({ -5.450 * \opclayoutscale, -3.050 * \opclayoutscale }) rectangle ({ -5.350 * \opclayoutscale, -2.950 * \opclayoutscale });
+        \path[contactactive] ({ -5.150 * \opclayoutscale, -3.050 * \opclayoutscale }) rectangle ({ -5.050 * \opclayoutscale, -2.950 * \opclayoutscale });
+        \path[contactactive] ({ -3.950 * \opclayoutscale, -3.050 * \opclayoutscale }) rectangle ({ -3.850 * \opclayoutscale, -2.950 * \opclayoutscale });
+        \path[contactactive] ({ 8.650 * \opclayoutscale, 2.950 * \opclayoutscale }) rectangle ({ 8.750 * \opclayoutscale, 3.050 * \opclayoutscale });
+        \path[contactactive] ({ 8.050 * \opclayoutscale, 2.950 * \opclayoutscale }) rectangle ({ 8.150 * \opclayoutscale, 3.050 * \opclayoutscale });
+        \path[contactactive] ({ 4.750 * \opclayoutscale, 2.950 * \opclayoutscale }) rectangle ({ 4.850 * \opclayoutscale, 3.050 * \opclayoutscale });
+        \path[contactactive] ({ 5.050 * \opclayoutscale, 2.950 * \opclayoutscale }) rectangle ({ 5.150 * \opclayoutscale, 3.050 * \opclayoutscale });
+        \path[contactactive] ({ 5.350 * \opclayoutscale, 2.950 * \opclayoutscale }) rectangle ({ 5.450 * \opclayoutscale, 3.050 * \opclayoutscale });
+        \path[contactactive] ({ 4.450 * \opclayoutscale, 2.950 * \opclayoutscale }) rectangle ({ 4.550 * \opclayoutscale, 3.050 * \opclayoutscale });
+        \path[contactactive] ({ 3.850 * \opclayoutscale, 2.950 * \opclayoutscale }) rectangle ({ 3.950 * \opclayoutscale, 3.050 * \opclayoutscale });
+        \path[contactactive] ({ 4.150 * \opclayoutscale, 2.950 * \opclayoutscale }) rectangle ({ 4.250 * \opclayoutscale, 3.050 * \opclayoutscale });
+        \path[contactactive] ({ 3.550 * \opclayoutscale, 2.950 * \opclayoutscale }) rectangle ({ 3.650 * \opclayoutscale, 3.050 * \opclayoutscale });
+        \path[contactactive] ({ 8.350 * \opclayoutscale, 2.950 * \opclayoutscale }) rectangle ({ 8.450 * \opclayoutscale, 3.050 * \opclayoutscale });
+        \path[contactactive] ({ 5.650 * \opclayoutscale, 2.950 * \opclayoutscale }) rectangle ({ 5.750 * \opclayoutscale, 3.050 * \opclayoutscale });
+        \path[contactactive] ({ 6.250 * \opclayoutscale, 2.950 * \opclayoutscale }) rectangle ({ 6.350 * \opclayoutscale, 3.050 * \opclayoutscale });
+        \path[contactactive] ({ 7.450 * \opclayoutscale, 2.950 * \opclayoutscale }) rectangle ({ 7.550 * \opclayoutscale, 3.050 * \opclayoutscale });
+        \path[contactactive] ({ 7.750 * \opclayoutscale, 2.950 * \opclayoutscale }) rectangle ({ 7.850 * \opclayoutscale, 3.050 * \opclayoutscale });
+        \path[contactactive] ({ 5.950 * \opclayoutscale, 2.950 * \opclayoutscale }) rectangle ({ 6.050 * \opclayoutscale, 3.050 * \opclayoutscale });
+        \path[contactactive] ({ 7.150 * \opclayoutscale, 2.950 * \opclayoutscale }) rectangle ({ 7.250 * \opclayoutscale, 3.050 * \opclayoutscale });
+        \path[contactactive] ({ 6.550 * \opclayoutscale, 2.950 * \opclayoutscale }) rectangle ({ 6.650 * \opclayoutscale, 3.050 * \opclayoutscale });
+        \path[contactactive] ({ 6.850 * \opclayoutscale, 2.950 * \opclayoutscale }) rectangle ({ 6.950 * \opclayoutscale, 3.050 * \opclayoutscale });
+        \path[contactactive] ({ 7.450 * \opclayoutscale, -3.050 * \opclayoutscale }) rectangle ({ 7.550 * \opclayoutscale, -2.950 * \opclayoutscale });
+        \path[contactactive] ({ -3.650 * \opclayoutscale, -3.050 * \opclayoutscale }) rectangle ({ -3.550 * \opclayoutscale, -2.950 * \opclayoutscale });
+        \path[contactactive] ({ -3.050 * \opclayoutscale, -3.050 * \opclayoutscale }) rectangle ({ -2.950 * \opclayoutscale, -2.950 * \opclayoutscale });
+        \path[contactactive] ({ 3.850 * \opclayoutscale, -3.050 * \opclayoutscale }) rectangle ({ 3.950 * \opclayoutscale, -2.950 * \opclayoutscale });
+        \path[contactactive] ({ 4.150 * \opclayoutscale, -3.050 * \opclayoutscale }) rectangle ({ 4.250 * \opclayoutscale, -2.950 * \opclayoutscale });
+        \path[contactactive] ({ 4.450 * \opclayoutscale, -3.050 * \opclayoutscale }) rectangle ({ 4.550 * \opclayoutscale, -2.950 * \opclayoutscale });
+        \path[contactactive] ({ 3.550 * \opclayoutscale, -3.050 * \opclayoutscale }) rectangle ({ 3.650 * \opclayoutscale, -2.950 * \opclayoutscale });
+        \path[contactactive] ({ 2.950 * \opclayoutscale, -3.050 * \opclayoutscale }) rectangle ({ 3.050 * \opclayoutscale, -2.950 * \opclayoutscale });
+        \path[contactactive] ({ 3.250 * \opclayoutscale, -3.050 * \opclayoutscale }) rectangle ({ 3.350 * \opclayoutscale, -2.950 * \opclayoutscale });
+        \path[contactactive] ({ 2.650 * \opclayoutscale, -3.050 * \opclayoutscale }) rectangle ({ 2.750 * \opclayoutscale, -2.950 * \opclayoutscale });
+        \path[contactactive] ({ 2.350 * \opclayoutscale, -3.050 * \opclayoutscale }) rectangle ({ 2.450 * \opclayoutscale, -2.950 * \opclayoutscale });
+        \path[contactactive] ({ 4.750 * \opclayoutscale, -3.050 * \opclayoutscale }) rectangle ({ 4.850 * \opclayoutscale, -2.950 * \opclayoutscale });
+        \path[contactactive] ({ 5.350 * \opclayoutscale, -3.050 * \opclayoutscale }) rectangle ({ 5.450 * \opclayoutscale, -2.950 * \opclayoutscale });
+        \path[contactactive] ({ 6.550 * \opclayoutscale, -3.050 * \opclayoutscale }) rectangle ({ 6.650 * \opclayoutscale, -2.950 * \opclayoutscale });
+        \path[contactactive] ({ 6.850 * \opclayoutscale, -3.050 * \opclayoutscale }) rectangle ({ 6.950 * \opclayoutscale, -2.950 * \opclayoutscale });
+        \path[contactactive] ({ 5.050 * \opclayoutscale, -3.050 * \opclayoutscale }) rectangle ({ 5.150 * \opclayoutscale, -2.950 * \opclayoutscale });
+        \path[contactactive] ({ 6.250 * \opclayoutscale, -3.050 * \opclayoutscale }) rectangle ({ 6.350 * \opclayoutscale, -2.950 * \opclayoutscale });
+        \path[contactactive] ({ -2.750 * \opclayoutscale, 3.350 * \opclayoutscale }) rectangle ({ -2.650 * \opclayoutscale, 3.450 * \opclayoutscale });
+        \path[contactactive] ({ 5.950 * \opclayoutscale, -3.050 * \opclayoutscale }) rectangle ({ 6.050 * \opclayoutscale, -2.950 * \opclayoutscale });
+        \path[contactactive] ({ -3.350 * \opclayoutscale, -3.050 * \opclayoutscale }) rectangle ({ -3.250 * \opclayoutscale, -2.950 * \opclayoutscale });
+        \path[contactactive] ({ 2.050 * \opclayoutscale, -3.050 * \opclayoutscale }) rectangle ({ 2.150 * \opclayoutscale, -2.950 * \opclayoutscale });
+        \path[contactactive] ({ 1.450 * \opclayoutscale, -3.050 * \opclayoutscale }) rectangle ({ 1.550 * \opclayoutscale, -2.950 * \opclayoutscale });
+        \path[contactactive] ({ -1.850 * \opclayoutscale, -3.050 * \opclayoutscale }) rectangle ({ -1.750 * \opclayoutscale, -2.950 * \opclayoutscale });
+        \path[contactactive] ({ -1.550 * \opclayoutscale, -3.050 * \opclayoutscale }) rectangle ({ -1.450 * \opclayoutscale, -2.950 * \opclayoutscale });
+        \path[contactactive] ({ -1.250 * \opclayoutscale, -3.050 * \opclayoutscale }) rectangle ({ -1.150 * \opclayoutscale, -2.950 * \opclayoutscale });
+        \path[contactactive] ({ -2.150 * \opclayoutscale, -3.050 * \opclayoutscale }) rectangle ({ -2.050 * \opclayoutscale, -2.950 * \opclayoutscale });
+        \path[contactactive] ({ -2.750 * \opclayoutscale, -3.050 * \opclayoutscale }) rectangle ({ -2.650 * \opclayoutscale, -2.950 * \opclayoutscale });
+        \path[contactactive] ({ -2.450 * \opclayoutscale, -3.050 * \opclayoutscale }) rectangle ({ -2.350 * \opclayoutscale, -2.950 * \opclayoutscale });
+        \path[contactactive] ({ 1.750 * \opclayoutscale, -3.050 * \opclayoutscale }) rectangle ({ 1.850 * \opclayoutscale, -2.950 * \opclayoutscale });
+        \path[contactactive] ({ -0.950 * \opclayoutscale, -3.050 * \opclayoutscale }) rectangle ({ -0.850 * \opclayoutscale, -2.950 * \opclayoutscale });
+        \path[contactactive] ({ -0.350 * \opclayoutscale, -3.050 * \opclayoutscale }) rectangle ({ -0.250 * \opclayoutscale, -2.950 * \opclayoutscale });
+        \path[contactactive] ({ 0.850 * \opclayoutscale, -3.050 * \opclayoutscale }) rectangle ({ 0.950 * \opclayoutscale, -2.950 * \opclayoutscale });
+        \path[contactactive] ({ 1.150 * \opclayoutscale, -3.050 * \opclayoutscale }) rectangle ({ 1.250 * \opclayoutscale, -2.950 * \opclayoutscale });
+        \path[contactactive] ({ -0.650 * \opclayoutscale, -3.050 * \opclayoutscale }) rectangle ({ -0.550 * \opclayoutscale, -2.950 * \opclayoutscale });
+        \path[contactactive] ({ 0.550 * \opclayoutscale, -3.050 * \opclayoutscale }) rectangle ({ 0.650 * \opclayoutscale, -2.950 * \opclayoutscale });
+        \path[contactactive] ({ -0.050 * \opclayoutscale, -3.050 * \opclayoutscale }) rectangle ({ 0.050 * \opclayoutscale, -2.950 * \opclayoutscale });
+        \path[contactactive] ({ 0.250 * \opclayoutscale, -3.050 * \opclayoutscale }) rectangle ({ 0.350 * \opclayoutscale, -2.950 * \opclayoutscale });
+        \path[contactactive] ({ -2.450 * \opclayoutscale, 3.350 * \opclayoutscale }) rectangle ({ -2.350 * \opclayoutscale, 3.450 * \opclayoutscale });
+        \path[contactsourcedrain] ({ 2.950 * \opclayoutscale, -1.450 * \opclayoutscale }) rectangle ({ 3.050 * \opclayoutscale, -1.350 * \opclayoutscale });
+        \path[contactactive] ({ -1.850 * \opclayoutscale, 3.350 * \opclayoutscale }) rectangle ({ -1.750 * \opclayoutscale, 3.450 * \opclayoutscale });
+        \path[contactactive] ({ 8.350 * \opclayoutscale, -3.450 * \opclayoutscale }) rectangle ({ 8.450 * \opclayoutscale, -3.350 * \opclayoutscale });
+        \path[contactactive] ({ 8.650 * \opclayoutscale, -3.450 * \opclayoutscale }) rectangle ({ 8.750 * \opclayoutscale, -3.350 * \opclayoutscale });
+        \path[contactactive] ({ 8.950 * \opclayoutscale, -3.450 * \opclayoutscale }) rectangle ({ 9.050 * \opclayoutscale, -3.350 * \opclayoutscale });
+        \path[contactactive] ({ 8.050 * \opclayoutscale, -3.450 * \opclayoutscale }) rectangle ({ 8.150 * \opclayoutscale, -3.350 * \opclayoutscale });
+        \path[contactactive] ({ 7.450 * \opclayoutscale, -3.450 * \opclayoutscale }) rectangle ({ 7.550 * \opclayoutscale, -3.350 * \opclayoutscale });
+        \path[contactactive] ({ 7.750 * \opclayoutscale, -3.450 * \opclayoutscale }) rectangle ({ 7.850 * \opclayoutscale, -3.350 * \opclayoutscale });
+        \path[contactactive] ({ 7.150 * \opclayoutscale, -3.450 * \opclayoutscale }) rectangle ({ 7.250 * \opclayoutscale, -3.350 * \opclayoutscale });
+        \path[contactactive] ({ 6.850 * \opclayoutscale, -3.450 * \opclayoutscale }) rectangle ({ 6.950 * \opclayoutscale, -3.350 * \opclayoutscale });
+        \path[contactactive] ({ -9.350 * \opclayoutscale, -3.200 * \opclayoutscale }) rectangle ({ -9.250 * \opclayoutscale, -3.100 * \opclayoutscale });
+        \path[contactactive] ({ -9.350 * \opclayoutscale, -2.600 * \opclayoutscale }) rectangle ({ -9.250 * \opclayoutscale, -2.500 * \opclayoutscale });
+        \path[contactactive] ({ -9.350 * \opclayoutscale, -1.400 * \opclayoutscale }) rectangle ({ -9.250 * \opclayoutscale, -1.300 * \opclayoutscale });
+        \path[contactactive] ({ -9.350 * \opclayoutscale, -1.100 * \opclayoutscale }) rectangle ({ -9.250 * \opclayoutscale, -1.000 * \opclayoutscale });
+        \path[contactactive] ({ -9.350 * \opclayoutscale, -2.900 * \opclayoutscale }) rectangle ({ -9.250 * \opclayoutscale, -2.800 * \opclayoutscale });
+        \path[contactactive] ({ -9.350 * \opclayoutscale, -1.700 * \opclayoutscale }) rectangle ({ -9.250 * \opclayoutscale, -1.600 * \opclayoutscale });
+        \path[contactactive] ({ -9.350 * \opclayoutscale, -2.300 * \opclayoutscale }) rectangle ({ -9.250 * \opclayoutscale, -2.200 * \opclayoutscale });
+        \path[contactactive] ({ -9.350 * \opclayoutscale, -2.000 * \opclayoutscale }) rectangle ({ -9.250 * \opclayoutscale, -1.900 * \opclayoutscale });
+        \path[contactactive] ({ -9.350 * \opclayoutscale, -0.800 * \opclayoutscale }) rectangle ({ -9.250 * \opclayoutscale, -0.700 * \opclayoutscale });
+        \path[contactactive] ({ 6.550 * \opclayoutscale, -3.450 * \opclayoutscale }) rectangle ({ 6.650 * \opclayoutscale, -3.350 * \opclayoutscale });
+        \path[contactactive] ({ 5.950 * \opclayoutscale, -3.450 * \opclayoutscale }) rectangle ({ 6.050 * \opclayoutscale, -3.350 * \opclayoutscale });
+        \path[contactactive] ({ 2.650 * \opclayoutscale, -3.450 * \opclayoutscale }) rectangle ({ 2.750 * \opclayoutscale, -3.350 * \opclayoutscale });
+        \path[contactactive] ({ 2.950 * \opclayoutscale, -3.450 * \opclayoutscale }) rectangle ({ 3.050 * \opclayoutscale, -3.350 * \opclayoutscale });
+        \path[contactactive] ({ 3.250 * \opclayoutscale, -3.450 * \opclayoutscale }) rectangle ({ 3.350 * \opclayoutscale, -3.350 * \opclayoutscale });
+        \path[contactactive] ({ 2.350 * \opclayoutscale, -3.450 * \opclayoutscale }) rectangle ({ 2.450 * \opclayoutscale, -3.350 * \opclayoutscale });
+        \path[contactactive] ({ 1.750 * \opclayoutscale, -3.450 * \opclayoutscale }) rectangle ({ 1.850 * \opclayoutscale, -3.350 * \opclayoutscale });
+        \path[contactactive] ({ 2.050 * \opclayoutscale, -3.450 * \opclayoutscale }) rectangle ({ 2.150 * \opclayoutscale, -3.350 * \opclayoutscale });
+        \path[contactactive] ({ 6.250 * \opclayoutscale, -3.450 * \opclayoutscale }) rectangle ({ 6.350 * \opclayoutscale, -3.350 * \opclayoutscale });
+        \path[contactactive] ({ 3.550 * \opclayoutscale, -3.450 * \opclayoutscale }) rectangle ({ 3.650 * \opclayoutscale, -3.350 * \opclayoutscale });
+        \path[contactactive] ({ 4.150 * \opclayoutscale, -3.450 * \opclayoutscale }) rectangle ({ 4.250 * \opclayoutscale, -3.350 * \opclayoutscale });
+        \path[contactactive] ({ 5.350 * \opclayoutscale, -3.450 * \opclayoutscale }) rectangle ({ 5.450 * \opclayoutscale, -3.350 * \opclayoutscale });
+        \path[contactactive] ({ 5.650 * \opclayoutscale, -3.450 * \opclayoutscale }) rectangle ({ 5.750 * \opclayoutscale, -3.350 * \opclayoutscale });
+        \path[contactactive] ({ 3.850 * \opclayoutscale, -3.450 * \opclayoutscale }) rectangle ({ 3.950 * \opclayoutscale, -3.350 * \opclayoutscale });
+        \path[contactactive] ({ 5.050 * \opclayoutscale, -3.450 * \opclayoutscale }) rectangle ({ 5.150 * \opclayoutscale, -3.350 * \opclayoutscale });
+        \path[contactactive] ({ 4.450 * \opclayoutscale, -3.450 * \opclayoutscale }) rectangle ({ 4.550 * \opclayoutscale, -3.350 * \opclayoutscale });
+        \path[contactactive] ({ 4.750 * \opclayoutscale, -3.450 * \opclayoutscale }) rectangle ({ 4.850 * \opclayoutscale, -3.350 * \opclayoutscale });
+        \path[contactactive] ({ 1.450 * \opclayoutscale, -3.450 * \opclayoutscale }) rectangle ({ 1.550 * \opclayoutscale, -3.350 * \opclayoutscale });
+        \path[contactactive] ({ -9.350 * \opclayoutscale, -0.500 * \opclayoutscale }) rectangle ({ -9.250 * \opclayoutscale, -0.400 * \opclayoutscale });
+        \path[contactactive] ({ -9.350 * \opclayoutscale, 0.100 * \opclayoutscale }) rectangle ({ -9.250 * \opclayoutscale, 0.200 * \opclayoutscale });
+        \path[contactactive] ({ 9.250 * \opclayoutscale, 0.100 * \opclayoutscale }) rectangle ({ 9.350 * \opclayoutscale, 0.200 * \opclayoutscale });
+        \path[contactactive] ({ 9.250 * \opclayoutscale, 0.400 * \opclayoutscale }) rectangle ({ 9.350 * \opclayoutscale, 0.500 * \opclayoutscale });
+        \path[contactactive] ({ 9.250 * \opclayoutscale, 0.700 * \opclayoutscale }) rectangle ({ 9.350 * \opclayoutscale, 0.800 * \opclayoutscale });
+        \path[contactactive] ({ 9.250 * \opclayoutscale, -0.200 * \opclayoutscale }) rectangle ({ 9.350 * \opclayoutscale, -0.100 * \opclayoutscale });
+        \path[contactactive] ({ 9.250 * \opclayoutscale, -0.800 * \opclayoutscale }) rectangle ({ 9.350 * \opclayoutscale, -0.700 * \opclayoutscale });
+        \path[contactactive] ({ 9.250 * \opclayoutscale, -0.500 * \opclayoutscale }) rectangle ({ 9.350 * \opclayoutscale, -0.400 * \opclayoutscale });
+        \path[contactactive] ({ 9.250 * \opclayoutscale, -1.100 * \opclayoutscale }) rectangle ({ 9.350 * \opclayoutscale, -1.000 * \opclayoutscale });
+        \path[contactactive] ({ 9.250 * \opclayoutscale, 1.000 * \opclayoutscale }) rectangle ({ 9.350 * \opclayoutscale, 1.100 * \opclayoutscale });
+        \path[contactactive] ({ 9.250 * \opclayoutscale, 1.600 * \opclayoutscale }) rectangle ({ 9.350 * \opclayoutscale, 1.700 * \opclayoutscale });
+        \path[contactactive] ({ 9.250 * \opclayoutscale, 2.800 * \opclayoutscale }) rectangle ({ 9.350 * \opclayoutscale, 2.900 * \opclayoutscale });
+        \path[contactactive] ({ 9.250 * \opclayoutscale, 3.100 * \opclayoutscale }) rectangle ({ 9.350 * \opclayoutscale, 3.200 * \opclayoutscale });
+        \path[contactactive] ({ 9.250 * \opclayoutscale, 1.300 * \opclayoutscale }) rectangle ({ 9.350 * \opclayoutscale, 1.400 * \opclayoutscale });
+        \path[contactactive] ({ 9.250 * \opclayoutscale, 2.500 * \opclayoutscale }) rectangle ({ 9.350 * \opclayoutscale, 2.600 * \opclayoutscale });
+        \path[contactactive] ({ 9.250 * \opclayoutscale, 1.900 * \opclayoutscale }) rectangle ({ 9.350 * \opclayoutscale, 2.000 * \opclayoutscale });
+        \path[contactactive] ({ 9.250 * \opclayoutscale, 2.200 * \opclayoutscale }) rectangle ({ 9.350 * \opclayoutscale, 2.300 * \opclayoutscale });
+        \path[contactactive] ({ -9.350 * \opclayoutscale, -0.200 * \opclayoutscale }) rectangle ({ -9.250 * \opclayoutscale, -0.100 * \opclayoutscale });
+        \path[contactactive] ({ 9.250 * \opclayoutscale, -1.400 * \opclayoutscale }) rectangle ({ 9.350 * \opclayoutscale, -1.300 * \opclayoutscale });
+        \path[contactactive] ({ 9.250 * \opclayoutscale, -2.000 * \opclayoutscale }) rectangle ({ 9.350 * \opclayoutscale, -1.900 * \opclayoutscale });
+        \path[contactactive] ({ -9.350 * \opclayoutscale, 1.300 * \opclayoutscale }) rectangle ({ -9.250 * \opclayoutscale, 1.400 * \opclayoutscale });
+        \path[contactactive] ({ -9.350 * \opclayoutscale, 1.600 * \opclayoutscale }) rectangle ({ -9.250 * \opclayoutscale, 1.700 * \opclayoutscale });
+        \path[contactactive] ({ -9.350 * \opclayoutscale, 1.900 * \opclayoutscale }) rectangle ({ -9.250 * \opclayoutscale, 2.000 * \opclayoutscale });
+        \path[contactactive] ({ -9.350 * \opclayoutscale, 1.000 * \opclayoutscale }) rectangle ({ -9.250 * \opclayoutscale, 1.100 * \opclayoutscale });
+        \path[contactactive] ({ -9.350 * \opclayoutscale, 0.400 * \opclayoutscale }) rectangle ({ -9.250 * \opclayoutscale, 0.500 * \opclayoutscale });
+        \path[contactactive] ({ -9.350 * \opclayoutscale, 0.700 * \opclayoutscale }) rectangle ({ -9.250 * \opclayoutscale, 0.800 * \opclayoutscale });
+        \path[contactactive] ({ 9.250 * \opclayoutscale, -1.700 * \opclayoutscale }) rectangle ({ 9.350 * \opclayoutscale, -1.600 * \opclayoutscale });
+        \path[contactactive] ({ -9.350 * \opclayoutscale, 2.200 * \opclayoutscale }) rectangle ({ -9.250 * \opclayoutscale, 2.300 * \opclayoutscale });
+        \path[contactactive] ({ -9.350 * \opclayoutscale, 2.800 * \opclayoutscale }) rectangle ({ -9.250 * \opclayoutscale, 2.900 * \opclayoutscale });
+        \path[contactactive] ({ 9.250 * \opclayoutscale, -2.600 * \opclayoutscale }) rectangle ({ 9.350 * \opclayoutscale, -2.500 * \opclayoutscale });
+        \path[contactactive] ({ 9.250 * \opclayoutscale, -2.300 * \opclayoutscale }) rectangle ({ 9.350 * \opclayoutscale, -2.200 * \opclayoutscale });
+        \path[contactactive] ({ -9.350 * \opclayoutscale, 2.500 * \opclayoutscale }) rectangle ({ -9.250 * \opclayoutscale, 2.600 * \opclayoutscale });
+        \path[contactactive] ({ 9.250 * \opclayoutscale, -2.900 * \opclayoutscale }) rectangle ({ 9.350 * \opclayoutscale, -2.800 * \opclayoutscale });
+        \path[contactactive] ({ -9.350 * \opclayoutscale, 3.100 * \opclayoutscale }) rectangle ({ -9.250 * \opclayoutscale, 3.200 * \opclayoutscale });
+        \path[contactactive] ({ 9.250 * \opclayoutscale, -3.200 * \opclayoutscale }) rectangle ({ 9.350 * \opclayoutscale, -3.100 * \opclayoutscale });
+        \path[contactactive] ({ -2.150 * \opclayoutscale, 3.350 * \opclayoutscale }) rectangle ({ -2.050 * \opclayoutscale, 3.450 * \opclayoutscale });
+        \path[contactactive] ({ 1.150 * \opclayoutscale, -3.450 * \opclayoutscale }) rectangle ({ 1.250 * \opclayoutscale, -3.350 * \opclayoutscale });
+        \path[contactactive] ({ 0.550 * \opclayoutscale, -3.450 * \opclayoutscale }) rectangle ({ 0.650 * \opclayoutscale, -3.350 * \opclayoutscale });
+        \path[contactactive] ({ 4.750 * \opclayoutscale, 3.350 * \opclayoutscale }) rectangle ({ 4.850 * \opclayoutscale, 3.450 * \opclayoutscale });
+        \path[contactactive] ({ 5.050 * \opclayoutscale, 3.350 * \opclayoutscale }) rectangle ({ 5.150 * \opclayoutscale, 3.450 * \opclayoutscale });
+        \path[contactactive] ({ 5.350 * \opclayoutscale, 3.350 * \opclayoutscale }) rectangle ({ 5.450 * \opclayoutscale, 3.450 * \opclayoutscale });
+        \path[contactactive] ({ 4.450 * \opclayoutscale, 3.350 * \opclayoutscale }) rectangle ({ 4.550 * \opclayoutscale, 3.450 * \opclayoutscale });
+        \path[contactactive] ({ 3.850 * \opclayoutscale, 3.350 * \opclayoutscale }) rectangle ({ 3.950 * \opclayoutscale, 3.450 * \opclayoutscale });
+        \path[contactactive] ({ 4.150 * \opclayoutscale, 3.350 * \opclayoutscale }) rectangle ({ 4.250 * \opclayoutscale, 3.450 * \opclayoutscale });
+        \path[contactactive] ({ 3.550 * \opclayoutscale, 3.350 * \opclayoutscale }) rectangle ({ 3.650 * \opclayoutscale, 3.450 * \opclayoutscale });
+        \path[contactactive] ({ 3.250 * \opclayoutscale, 3.350 * \opclayoutscale }) rectangle ({ 3.350 * \opclayoutscale, 3.450 * \opclayoutscale });
+        \path[contactactive] ({ 5.650 * \opclayoutscale, 3.350 * \opclayoutscale }) rectangle ({ 5.750 * \opclayoutscale, 3.450 * \opclayoutscale });
+        \path[contactactive] ({ 6.250 * \opclayoutscale, 3.350 * \opclayoutscale }) rectangle ({ 6.350 * \opclayoutscale, 3.450 * \opclayoutscale });
+        \path[contactactive] ({ 7.450 * \opclayoutscale, 3.350 * \opclayoutscale }) rectangle ({ 7.550 * \opclayoutscale, 3.450 * \opclayoutscale });
+        \path[contactactive] ({ 7.750 * \opclayoutscale, 3.350 * \opclayoutscale }) rectangle ({ 7.850 * \opclayoutscale, 3.450 * \opclayoutscale });
+        \path[contactactive] ({ 5.950 * \opclayoutscale, 3.350 * \opclayoutscale }) rectangle ({ 6.050 * \opclayoutscale, 3.450 * \opclayoutscale });
+        \path[contactactive] ({ 7.150 * \opclayoutscale, 3.350 * \opclayoutscale }) rectangle ({ 7.250 * \opclayoutscale, 3.450 * \opclayoutscale });
+        \path[contactactive] ({ 6.550 * \opclayoutscale, 3.350 * \opclayoutscale }) rectangle ({ 6.650 * \opclayoutscale, 3.450 * \opclayoutscale });
+        \path[contactactive] ({ 6.850 * \opclayoutscale, 3.350 * \opclayoutscale }) rectangle ({ 6.950 * \opclayoutscale, 3.450 * \opclayoutscale });
+        \path[contactactive] ({ 8.050 * \opclayoutscale, 3.350 * \opclayoutscale }) rectangle ({ 8.150 * \opclayoutscale, 3.450 * \opclayoutscale });
+        \path[contactactive] ({ 2.950 * \opclayoutscale, 3.350 * \opclayoutscale }) rectangle ({ 3.050 * \opclayoutscale, 3.450 * \opclayoutscale });
+        \path[contactactive] ({ 2.350 * \opclayoutscale, 3.350 * \opclayoutscale }) rectangle ({ 2.450 * \opclayoutscale, 3.450 * \opclayoutscale });
+        \path[contactactive] ({ -0.650 * \opclayoutscale, 3.350 * \opclayoutscale }) rectangle ({ -0.550 * \opclayoutscale, 3.450 * \opclayoutscale });
+        \path[contactactive] ({ -0.350 * \opclayoutscale, 3.350 * \opclayoutscale }) rectangle ({ -0.250 * \opclayoutscale, 3.450 * \opclayoutscale });
+        \path[contactactive] ({ -0.050 * \opclayoutscale, 3.350 * \opclayoutscale }) rectangle ({ 0.050 * \opclayoutscale, 3.450 * \opclayoutscale });
+        \path[contactactive] ({ -0.950 * \opclayoutscale, 3.350 * \opclayoutscale }) rectangle ({ -0.850 * \opclayoutscale, 3.450 * \opclayoutscale });
+        \path[contactactive] ({ -1.550 * \opclayoutscale, 3.350 * \opclayoutscale }) rectangle ({ -1.450 * \opclayoutscale, 3.450 * \opclayoutscale });
+        \path[contactactive] ({ -1.250 * \opclayoutscale, 3.350 * \opclayoutscale }) rectangle ({ -1.150 * \opclayoutscale, 3.450 * \opclayoutscale });
+        \path[contactactive] ({ 2.650 * \opclayoutscale, 3.350 * \opclayoutscale }) rectangle ({ 2.750 * \opclayoutscale, 3.450 * \opclayoutscale });
+        \path[contactactive] ({ 0.250 * \opclayoutscale, 3.350 * \opclayoutscale }) rectangle ({ 0.350 * \opclayoutscale, 3.450 * \opclayoutscale });
+        \path[contactactive] ({ 3.250 * \opclayoutscale, 2.950 * \opclayoutscale }) rectangle ({ 3.350 * \opclayoutscale, 3.050 * \opclayoutscale });
+        \path[contactactive] ({ 1.750 * \opclayoutscale, 3.350 * \opclayoutscale }) rectangle ({ 1.850 * \opclayoutscale, 3.450 * \opclayoutscale });
+        \path[contactactive] ({ 2.050 * \opclayoutscale, 3.350 * \opclayoutscale }) rectangle ({ 2.150 * \opclayoutscale, 3.450 * \opclayoutscale });
+        \path[contactactive] ({ 0.550 * \opclayoutscale, 3.350 * \opclayoutscale }) rectangle ({ 0.650 * \opclayoutscale, 3.450 * \opclayoutscale });
+        \path[contactactive] ({ 1.450 * \opclayoutscale, 3.350 * \opclayoutscale }) rectangle ({ 1.550 * \opclayoutscale, 3.450 * \opclayoutscale });
+        \path[contactactive] ({ 0.850 * \opclayoutscale, 3.350 * \opclayoutscale }) rectangle ({ 0.950 * \opclayoutscale, 3.450 * \opclayoutscale });
+        \path[contactactive] ({ 1.150 * \opclayoutscale, 3.350 * \opclayoutscale }) rectangle ({ 1.250 * \opclayoutscale, 3.450 * \opclayoutscale });
+        \path[contactactive] ({ 0.850 * \opclayoutscale, -3.450 * \opclayoutscale }) rectangle ({ 0.950 * \opclayoutscale, -3.350 * \opclayoutscale });
+        \path[contactactive] ({ 8.350 * \opclayoutscale, 3.350 * \opclayoutscale }) rectangle ({ 8.450 * \opclayoutscale, 3.450 * \opclayoutscale });
+        \path[contactactive] ({ 8.950 * \opclayoutscale, 3.350 * \opclayoutscale }) rectangle ({ 9.050 * \opclayoutscale, 3.450 * \opclayoutscale });
+        \path[contactactive] ({ -2.750 * \opclayoutscale, -3.450 * \opclayoutscale }) rectangle ({ -2.650 * \opclayoutscale, -3.350 * \opclayoutscale });
+        \path[contactactive] ({ -2.450 * \opclayoutscale, -3.450 * \opclayoutscale }) rectangle ({ -2.350 * \opclayoutscale, -3.350 * \opclayoutscale });
+        \path[contactactive] ({ -2.150 * \opclayoutscale, -3.450 * \opclayoutscale }) rectangle ({ -2.050 * \opclayoutscale, -3.350 * \opclayoutscale });
+        \path[contactactive] ({ -3.050 * \opclayoutscale, -3.450 * \opclayoutscale }) rectangle ({ -2.950 * \opclayoutscale, -3.350 * \opclayoutscale });
+        \path[contactactive] ({ -3.650 * \opclayoutscale, -3.450 * \opclayoutscale }) rectangle ({ -3.550 * \opclayoutscale, -3.350 * \opclayoutscale });
+        \path[contactactive] ({ -3.350 * \opclayoutscale, -3.450 * \opclayoutscale }) rectangle ({ -3.250 * \opclayoutscale, -3.350 * \opclayoutscale });
+        \path[contactactive] ({ -3.950 * \opclayoutscale, -3.450 * \opclayoutscale }) rectangle ({ -3.850 * \opclayoutscale, -3.350 * \opclayoutscale });
+        \path[contactactive] ({ -1.850 * \opclayoutscale, -3.450 * \opclayoutscale }) rectangle ({ -1.750 * \opclayoutscale, -3.350 * \opclayoutscale });
+        \path[contactactive] ({ -1.250 * \opclayoutscale, -3.450 * \opclayoutscale }) rectangle ({ -1.150 * \opclayoutscale, -3.350 * \opclayoutscale });
+        \path[contactactive] ({ -0.050 * \opclayoutscale, -3.450 * \opclayoutscale }) rectangle ({ 0.050 * \opclayoutscale, -3.350 * \opclayoutscale });
+        \path[contactactive] ({ 0.250 * \opclayoutscale, -3.450 * \opclayoutscale }) rectangle ({ 0.350 * \opclayoutscale, -3.350 * \opclayoutscale });
+        \path[contactactive] ({ -1.550 * \opclayoutscale, -3.450 * \opclayoutscale }) rectangle ({ -1.450 * \opclayoutscale, -3.350 * \opclayoutscale });
+        \path[contactactive] ({ -0.350 * \opclayoutscale, -3.450 * \opclayoutscale }) rectangle ({ -0.250 * \opclayoutscale, -3.350 * \opclayoutscale });
+        \path[contactactive] ({ -0.950 * \opclayoutscale, -3.450 * \opclayoutscale }) rectangle ({ -0.850 * \opclayoutscale, -3.350 * \opclayoutscale });
+        \path[contactactive] ({ -0.650 * \opclayoutscale, -3.450 * \opclayoutscale }) rectangle ({ -0.550 * \opclayoutscale, -3.350 * \opclayoutscale });
+        \path[contactactive] ({ 8.650 * \opclayoutscale, 3.350 * \opclayoutscale }) rectangle ({ 8.750 * \opclayoutscale, 3.450 * \opclayoutscale });
+        \path[contactactive] ({ -4.250 * \opclayoutscale, -3.450 * \opclayoutscale }) rectangle ({ -4.150 * \opclayoutscale, -3.350 * \opclayoutscale });
+        \path[contactactive] ({ -4.850 * \opclayoutscale, -3.450 * \opclayoutscale }) rectangle ({ -4.750 * \opclayoutscale, -3.350 * \opclayoutscale });
+        \path[contactactive] ({ -8.150 * \opclayoutscale, -3.450 * \opclayoutscale }) rectangle ({ -8.050 * \opclayoutscale, -3.350 * \opclayoutscale });
+        \path[contactactive] ({ -7.850 * \opclayoutscale, -3.450 * \opclayoutscale }) rectangle ({ -7.750 * \opclayoutscale, -3.350 * \opclayoutscale });
+        \path[contactactive] ({ -7.550 * \opclayoutscale, -3.450 * \opclayoutscale }) rectangle ({ -7.450 * \opclayoutscale, -3.350 * \opclayoutscale });
+        \path[contactactive] ({ -8.450 * \opclayoutscale, -3.450 * \opclayoutscale }) rectangle ({ -8.350 * \opclayoutscale, -3.350 * \opclayoutscale });
+        \path[contactactive] ({ -9.050 * \opclayoutscale, -3.450 * \opclayoutscale }) rectangle ({ -8.950 * \opclayoutscale, -3.350 * \opclayoutscale });
+        \path[contactactive] ({ -8.750 * \opclayoutscale, -3.450 * \opclayoutscale }) rectangle ({ -8.650 * \opclayoutscale, -3.350 * \opclayoutscale });
+        \path[contactactive] ({ -4.550 * \opclayoutscale, -3.450 * \opclayoutscale }) rectangle ({ -4.450 * \opclayoutscale, -3.350 * \opclayoutscale });
+        \path[contactactive] ({ -7.250 * \opclayoutscale, -3.450 * \opclayoutscale }) rectangle ({ -7.150 * \opclayoutscale, -3.350 * \opclayoutscale });
+        \path[contactactive] ({ -6.650 * \opclayoutscale, -3.450 * \opclayoutscale }) rectangle ({ -6.550 * \opclayoutscale, -3.350 * \opclayoutscale });
+        \path[contactactive] ({ -5.450 * \opclayoutscale, -3.450 * \opclayoutscale }) rectangle ({ -5.350 * \opclayoutscale, -3.350 * \opclayoutscale });
+        \path[contactactive] ({ -5.150 * \opclayoutscale, -3.450 * \opclayoutscale }) rectangle ({ -5.050 * \opclayoutscale, -3.350 * \opclayoutscale });
+        \path[contactactive] ({ -6.950 * \opclayoutscale, -3.450 * \opclayoutscale }) rectangle ({ -6.850 * \opclayoutscale, -3.350 * \opclayoutscale });
+        \path[contactactive] ({ -5.750 * \opclayoutscale, -3.450 * \opclayoutscale }) rectangle ({ -5.650 * \opclayoutscale, -3.350 * \opclayoutscale });
+        \path[contactactive] ({ -6.350 * \opclayoutscale, -3.450 * \opclayoutscale }) rectangle ({ -6.250 * \opclayoutscale, -3.350 * \opclayoutscale });
+        \path[contactactive] ({ -6.050 * \opclayoutscale, -3.450 * \opclayoutscale }) rectangle ({ -5.950 * \opclayoutscale, -3.350 * \opclayoutscale });
+        \path[contactactive] ({ 2.950 * \opclayoutscale, 2.950 * \opclayoutscale }) rectangle ({ 3.050 * \opclayoutscale, 3.050 * \opclayoutscale });
+        \path[contactactive] ({ -0.050 * \opclayoutscale, 2.950 * \opclayoutscale }) rectangle ({ 0.050 * \opclayoutscale, 3.050 * \opclayoutscale });
+        \path[contactactive] ({ 2.350 * \opclayoutscale, 2.950 * \opclayoutscale }) rectangle ({ 2.450 * \opclayoutscale, 3.050 * \opclayoutscale });
+        \path[contactsourcedrain] ({ -4.050 * \opclayoutscale, -1.750 * \opclayoutscale }) rectangle ({ -3.950 * \opclayoutscale, -1.650 * \opclayoutscale });
+        \path[contactsourcedrain] ({ -4.050 * \opclayoutscale, -1.450 * \opclayoutscale }) rectangle ({ -3.950 * \opclayoutscale, -1.350 * \opclayoutscale });
+        \path[contactsourcedrain] ({ 0.950 * \opclayoutscale, -1.450 * \opclayoutscale }) rectangle ({ 1.050 * \opclayoutscale, -1.350 * \opclayoutscale });
+        \path[contactsourcedrain] ({ -4.550 * \opclayoutscale, -1.450 * \opclayoutscale }) rectangle ({ -4.450 * \opclayoutscale, -1.350 * \opclayoutscale });
+        \path[contactsourcedrain] ({ 2.950 * \opclayoutscale, -1.450 * \opclayoutscale }) rectangle ({ 3.050 * \opclayoutscale, -1.350 * \opclayoutscale });
+        \path[contactsourcedrain] ({ -4.550 * \opclayoutscale, -1.750 * \opclayoutscale }) rectangle ({ -4.450 * \opclayoutscale, -1.650 * \opclayoutscale });
+        \path[contactsourcedrain] ({ 2.950 * \opclayoutscale, -1.750 * \opclayoutscale }) rectangle ({ 3.050 * \opclayoutscale, -1.650 * \opclayoutscale });
+        \path[contactsourcedrain] ({ 0.950 * \opclayoutscale, -1.750 * \opclayoutscale }) rectangle ({ 1.050 * \opclayoutscale, -1.650 * \opclayoutscale });
+        \path[contactsourcedrain] ({ -3.550 * \opclayoutscale, -0.950 * \opclayoutscale }) rectangle ({ -3.450 * \opclayoutscale, -0.850 * \opclayoutscale });
+        \path[contactsourcedrain] ({ 3.450 * \opclayoutscale, 1.650 * \opclayoutscale }) rectangle ({ 3.550 * \opclayoutscale, 1.750 * \opclayoutscale });
+        \path[contactsourcedrain] ({ 0.950 * \opclayoutscale, 1.650 * \opclayoutscale }) rectangle ({ 1.050 * \opclayoutscale, 1.750 * \opclayoutscale });
+        \path[contactsourcedrain] ({ -3.550 * \opclayoutscale, -1.250 * \opclayoutscale }) rectangle ({ -3.450 * \opclayoutscale, -1.150 * \opclayoutscale });
+        \path[contactsourcedrain] ({ -3.050 * \opclayoutscale, -1.450 * \opclayoutscale }) rectangle ({ -2.950 * \opclayoutscale, -1.350 * \opclayoutscale });
+        \path[contactsourcedrain] ({ 3.450 * \opclayoutscale, 1.350 * \opclayoutscale }) rectangle ({ 3.550 * \opclayoutscale, 1.450 * \opclayoutscale });
+        \path[contactsourcedrain] ({ -3.050 * \opclayoutscale, -1.750 * \opclayoutscale }) rectangle ({ -2.950 * \opclayoutscale, -1.650 * \opclayoutscale });
+        \path[contactsourcedrain] ({ -2.550 * \opclayoutscale, -1.250 * \opclayoutscale }) rectangle ({ -2.450 * \opclayoutscale, -1.150 * \opclayoutscale });
+        \path[contactsourcedrain] ({ -5.050 * \opclayoutscale, -1.450 * \opclayoutscale }) rectangle ({ -4.950 * \opclayoutscale, -1.350 * \opclayoutscale });
+        \path[contactsourcedrain] ({ -5.550 * \opclayoutscale, -1.450 * \opclayoutscale }) rectangle ({ -5.450 * \opclayoutscale, -1.350 * \opclayoutscale });
+        \path[contactsourcedrain] ({ -6.050 * \opclayoutscale, 1.650 * \opclayoutscale }) rectangle ({ -5.950 * \opclayoutscale, 1.750 * \opclayoutscale });
+        \path[contactgate] ({ 1.200 * \opclayoutscale, 2.450 * \opclayoutscale }) rectangle ({ 1.300 * \opclayoutscale, 2.550 * \opclayoutscale });
+        \path[contactgate] ({ 4.700 * \opclayoutscale, -2.550 * \opclayoutscale }) rectangle ({ 4.800 * \opclayoutscale, -2.450 * \opclayoutscale });
+        \path[contactsourcedrain] ({ -6.050 * \opclayoutscale, 1.350 * \opclayoutscale }) rectangle ({ -5.950 * \opclayoutscale, 1.450 * \opclayoutscale });
+        \path[contactsourcedrain] ({ -6.550 * \opclayoutscale, -1.450 * \opclayoutscale }) rectangle ({ -6.450 * \opclayoutscale, -1.350 * \opclayoutscale });
+        \path[contactgate] ({ 1.200 * \opclayoutscale, -2.550 * \opclayoutscale }) rectangle ({ 1.300 * \opclayoutscale, -2.450 * \opclayoutscale });
+        \path[contactsourcedrain] ({ -5.050 * \opclayoutscale, -1.750 * \opclayoutscale }) rectangle ({ -4.950 * \opclayoutscale, -1.650 * \opclayoutscale });
+        \path[contactsourcedrain] ({ -6.050 * \opclayoutscale, -1.750 * \opclayoutscale }) rectangle ({ -5.950 * \opclayoutscale, -1.650 * \opclayoutscale });
+        \path[contactsourcedrain] ({ 2.950 * \opclayoutscale, 1.350 * \opclayoutscale }) rectangle ({ 3.050 * \opclayoutscale, 1.450 * \opclayoutscale });
+        \path[contactsourcedrain] ({ -5.550 * \opclayoutscale, -1.750 * \opclayoutscale }) rectangle ({ -5.450 * \opclayoutscale, -1.650 * \opclayoutscale });
+        \path[contactsourcedrain] ({ -6.050 * \opclayoutscale, -1.450 * \opclayoutscale }) rectangle ({ -5.950 * \opclayoutscale, -1.350 * \opclayoutscale });
+        \path[contactsourcedrain] ({ 2.950 * \opclayoutscale, 1.650 * \opclayoutscale }) rectangle ({ 3.050 * \opclayoutscale, 1.750 * \opclayoutscale });
+        \path[contactsourcedrain] ({ -5.550 * \opclayoutscale, 0.850 * \opclayoutscale }) rectangle ({ -5.450 * \opclayoutscale, 0.950 * \opclayoutscale });
+        \path[contactsourcedrain] ({ -5.550 * \opclayoutscale, 1.150 * \opclayoutscale }) rectangle ({ -5.450 * \opclayoutscale, 1.250 * \opclayoutscale });
+        \path[contactsourcedrain] ({ -6.550 * \opclayoutscale, -1.750 * \opclayoutscale }) rectangle ({ -6.450 * \opclayoutscale, -1.650 * \opclayoutscale });
+        \path[contactsourcedrain] ({ -2.550 * \opclayoutscale, -0.950 * \opclayoutscale }) rectangle ({ -2.450 * \opclayoutscale, -0.850 * \opclayoutscale });
+        \path[contactsourcedrain] ({ -2.050 * \opclayoutscale, 1.350 * \opclayoutscale }) rectangle ({ -1.950 * \opclayoutscale, 1.450 * \opclayoutscale });
+        \path[contactsourcedrain] ({ 3.950 * \opclayoutscale, 1.150 * \opclayoutscale }) rectangle ({ 4.050 * \opclayoutscale, 1.250 * \opclayoutscale });
+        \path[contactsourcedrain] ({ -0.550 * \opclayoutscale, 1.650 * \opclayoutscale }) rectangle ({ -0.450 * \opclayoutscale, 1.750 * \opclayoutscale });
+        \path[contactsourcedrain] ({ -0.550 * \opclayoutscale, 1.350 * \opclayoutscale }) rectangle ({ -0.450 * \opclayoutscale, 1.450 * \opclayoutscale });
+        \path[contactsourcedrain] ({ -0.550 * \opclayoutscale, -1.750 * \opclayoutscale }) rectangle ({ -0.450 * \opclayoutscale, -1.650 * \opclayoutscale });
+        \path[contactsourcedrain] ({ 3.950 * \opclayoutscale, 0.850 * \opclayoutscale }) rectangle ({ 4.050 * \opclayoutscale, 0.950 * \opclayoutscale });
+        \path[contactsourcedrain] ({ -0.550 * \opclayoutscale, -1.450 * \opclayoutscale }) rectangle ({ -0.450 * \opclayoutscale, -1.350 * \opclayoutscale });
+        \path[contactsourcedrain] ({ -0.050 * \opclayoutscale, 0.850 * \opclayoutscale }) rectangle ({ 0.050 * \opclayoutscale, 0.950 * \opclayoutscale });
+        \path[contactsourcedrain] ({ 3.950 * \opclayoutscale, -1.250 * \opclayoutscale }) rectangle ({ 4.050 * \opclayoutscale, -1.150 * \opclayoutscale });
+        \path[contactsourcedrain] ({ -1.050 * \opclayoutscale, -1.750 * \opclayoutscale }) rectangle ({ -0.950 * \opclayoutscale, -1.650 * \opclayoutscale });
+        \path[contactsourcedrain] ({ -1.050 * \opclayoutscale, 1.350 * \opclayoutscale }) rectangle ({ -0.950 * \opclayoutscale, 1.450 * \opclayoutscale });
+        \path[contactsourcedrain] ({ -1.050 * \opclayoutscale, -1.450 * \opclayoutscale }) rectangle ({ -0.950 * \opclayoutscale, -1.350 * \opclayoutscale });
+        \path[contactactive] ({ 2.650 * \opclayoutscale, 2.950 * \opclayoutscale }) rectangle ({ 2.750 * \opclayoutscale, 3.050 * \opclayoutscale });
+        \path[contactsourcedrain] ({ 3.950 * \opclayoutscale, -0.950 * \opclayoutscale }) rectangle ({ 4.050 * \opclayoutscale, -0.850 * \opclayoutscale });
+        \path[contactsourcedrain] ({ -1.050 * \opclayoutscale, 1.650 * \opclayoutscale }) rectangle ({ -0.950 * \opclayoutscale, 1.750 * \opclayoutscale });
+        \path[contactsourcedrain] ({ 0.950 * \opclayoutscale, 1.350 * \opclayoutscale }) rectangle ({ 1.050 * \opclayoutscale, 1.450 * \opclayoutscale });
+        \path[contactsourcedrain] ({ -0.050 * \opclayoutscale, 1.150 * \opclayoutscale }) rectangle ({ 0.050 * \opclayoutscale, 1.250 * \opclayoutscale });
+        \path[contactsourcedrain] ({ -0.050 * \opclayoutscale, -0.950 * \opclayoutscale }) rectangle ({ 0.050 * \opclayoutscale, -0.850 * \opclayoutscale });
+        \path[contactsourcedrain] ({ -2.050 * \opclayoutscale, -1.450 * \opclayoutscale }) rectangle ({ -1.950 * \opclayoutscale, -1.350 * \opclayoutscale });
+        \path[contactsourcedrain] ({ 0.450 * \opclayoutscale, -1.750 * \opclayoutscale }) rectangle ({ 0.550 * \opclayoutscale, -1.650 * \opclayoutscale });
+        \path[contactsourcedrain] ({ 3.450 * \opclayoutscale, -1.750 * \opclayoutscale }) rectangle ({ 3.550 * \opclayoutscale, -1.650 * \opclayoutscale });
+        \path[contactsourcedrain] ({ -2.050 * \opclayoutscale, -1.750 * \opclayoutscale }) rectangle ({ -1.950 * \opclayoutscale, -1.650 * \opclayoutscale });
+        \path[contactsourcedrain] ({ -2.050 * \opclayoutscale, 1.650 * \opclayoutscale }) rectangle ({ -1.950 * \opclayoutscale, 1.750 * \opclayoutscale });
+        \path[contactsourcedrain] ({ 0.450 * \opclayoutscale, -1.450 * \opclayoutscale }) rectangle ({ 0.550 * \opclayoutscale, -1.350 * \opclayoutscale });
+        \path[contactsourcedrain] ({ -0.050 * \opclayoutscale, -1.250 * \opclayoutscale }) rectangle ({ 0.050 * \opclayoutscale, -1.150 * \opclayoutscale });
+        \path[contactsourcedrain] ({ -1.550 * \opclayoutscale, 0.850 * \opclayoutscale }) rectangle ({ -1.450 * \opclayoutscale, 0.950 * \opclayoutscale });
+        \path[contactsourcedrain] ({ 0.450 * \opclayoutscale, 1.650 * \opclayoutscale }) rectangle ({ 0.550 * \opclayoutscale, 1.750 * \opclayoutscale });
+        \path[contactsourcedrain] ({ 3.450 * \opclayoutscale, -1.450 * \opclayoutscale }) rectangle ({ 3.550 * \opclayoutscale, -1.350 * \opclayoutscale });
+        \path[contactsourcedrain] ({ -1.550 * \opclayoutscale, 1.150 * \opclayoutscale }) rectangle ({ -1.450 * \opclayoutscale, 1.250 * \opclayoutscale });
+        \path[contactsourcedrain] ({ 0.450 * \opclayoutscale, 1.350 * \opclayoutscale }) rectangle ({ 0.550 * \opclayoutscale, 1.450 * \opclayoutscale });
+        \path[contactsourcedrain] ({ -1.550 * \opclayoutscale, -1.250 * \opclayoutscale }) rectangle ({ -1.450 * \opclayoutscale, -1.150 * \opclayoutscale });
+        \path[contactsourcedrain] ({ -1.550 * \opclayoutscale, -0.950 * \opclayoutscale }) rectangle ({ -1.450 * \opclayoutscale, -0.850 * \opclayoutscale });
+        \path[contactsourcedrain] ({ 4.450 * \opclayoutscale, 1.350 * \opclayoutscale }) rectangle ({ 4.550 * \opclayoutscale, 1.450 * \opclayoutscale });
+        \path[contactgate] ({ 4.700 * \opclayoutscale, 2.450 * \opclayoutscale }) rectangle ({ 4.800 * \opclayoutscale, 2.550 * \opclayoutscale });
+        \path[contactsourcedrain] ({ -6.550 * \opclayoutscale, 1.650 * \opclayoutscale }) rectangle ({ -6.450 * \opclayoutscale, 1.750 * \opclayoutscale });
+        \path[contactgate] ({ -4.800 * \opclayoutscale, -0.450 * \opclayoutscale }) rectangle ({ -4.700 * \opclayoutscale, -0.350 * \opclayoutscale });
+        \path[contactgate] ({ -4.800 * \opclayoutscale, 0.350 * \opclayoutscale }) rectangle ({ -4.700 * \opclayoutscale, 0.450 * \opclayoutscale });
+        \path[contactsourcedrain] ({ 1.950 * \opclayoutscale, -1.250 * \opclayoutscale }) rectangle ({ 2.050 * \opclayoutscale, -1.150 * \opclayoutscale });
+        \path[contactsourcedrain] ({ 1.950 * \opclayoutscale, -0.950 * \opclayoutscale }) rectangle ({ 2.050 * \opclayoutscale, -0.850 * \opclayoutscale });
+        \path[contactgate] ({ -5.300 * \opclayoutscale, -0.450 * \opclayoutscale }) rectangle ({ -5.200 * \opclayoutscale, -0.350 * \opclayoutscale });
+        \path[contactgate] ({ -5.300 * \opclayoutscale, 0.350 * \opclayoutscale }) rectangle ({ -5.200 * \opclayoutscale, 0.450 * \opclayoutscale });
+        \path[contactsourcedrain] ({ 2.450 * \opclayoutscale, 1.350 * \opclayoutscale }) rectangle ({ 2.550 * \opclayoutscale, 1.450 * \opclayoutscale });
+        \path[contactgate] ({ -4.300 * \opclayoutscale, -0.450 * \opclayoutscale }) rectangle ({ -4.200 * \opclayoutscale, -0.350 * \opclayoutscale });
+        \path[contactsourcedrain] ({ 1.950 * \opclayoutscale, 1.150 * \opclayoutscale }) rectangle ({ 2.050 * \opclayoutscale, 1.250 * \opclayoutscale });
+        \path[contactsourcedrain] ({ 1.450 * \opclayoutscale, -1.450 * \opclayoutscale }) rectangle ({ 1.550 * \opclayoutscale, -1.350 * \opclayoutscale });
+        \path[contactgate] ({ -3.300 * \opclayoutscale, -0.450 * \opclayoutscale }) rectangle ({ -3.200 * \opclayoutscale, -0.350 * \opclayoutscale });
+        \path[contactgate] ({ -4.300 * \opclayoutscale, 0.350 * \opclayoutscale }) rectangle ({ -4.200 * \opclayoutscale, 0.450 * \opclayoutscale });
+        \path[contactgate] ({ -3.800 * \opclayoutscale, 0.350 * \opclayoutscale }) rectangle ({ -3.700 * \opclayoutscale, 0.450 * \opclayoutscale });
+        \path[contactsourcedrain] ({ 1.950 * \opclayoutscale, 0.850 * \opclayoutscale }) rectangle ({ 2.050 * \opclayoutscale, 0.950 * \opclayoutscale });
+        \path[contactgate] ({ -3.800 * \opclayoutscale, -0.450 * \opclayoutscale }) rectangle ({ -3.700 * \opclayoutscale, -0.350 * \opclayoutscale });
+        \path[contactgate] ({ -3.300 * \opclayoutscale, 0.350 * \opclayoutscale }) rectangle ({ -3.200 * \opclayoutscale, 0.450 * \opclayoutscale });
+        \path[contactsourcedrain] ({ 2.450 * \opclayoutscale, 1.650 * \opclayoutscale }) rectangle ({ 2.550 * \opclayoutscale, 1.750 * \opclayoutscale });
+        \path[contactgate] ({ -5.800 * \opclayoutscale, -0.450 * \opclayoutscale }) rectangle ({ -5.700 * \opclayoutscale, -0.350 * \opclayoutscale });
+        \path[contactgate] ({ -7.300 * \opclayoutscale, -0.450 * \opclayoutscale }) rectangle ({ -7.200 * \opclayoutscale, -0.350 * \opclayoutscale });
+        \path[contactgate] ({ -7.300 * \opclayoutscale, 0.350 * \opclayoutscale }) rectangle ({ -7.200 * \opclayoutscale, 0.450 * \opclayoutscale });
+        \path[contactsourcedrain] ({ 2.950 * \opclayoutscale, 1.650 * \opclayoutscale }) rectangle ({ 3.050 * \opclayoutscale, 1.750 * \opclayoutscale });
+        \path[contactgate] ({ -7.800 * \opclayoutscale, 0.350 * \opclayoutscale }) rectangle ({ -7.700 * \opclayoutscale, 0.450 * \opclayoutscale });
+        \path[contactsourcedrain] ({ 2.950 * \opclayoutscale, -1.750 * \opclayoutscale }) rectangle ({ 3.050 * \opclayoutscale, -1.650 * \opclayoutscale });
+        \path[contactgate] ({ -7.800 * \opclayoutscale, -0.450 * \opclayoutscale }) rectangle ({ -7.700 * \opclayoutscale, -0.350 * \opclayoutscale });
+        \path[contactgate] ({ -5.800 * \opclayoutscale, 0.350 * \opclayoutscale }) rectangle ({ -5.700 * \opclayoutscale, 0.450 * \opclayoutscale });
+        \path[contactsourcedrain] ({ 2.950 * \opclayoutscale, 1.350 * \opclayoutscale }) rectangle ({ 3.050 * \opclayoutscale, 1.450 * \opclayoutscale });
+        \path[contactgate] ({ -6.800 * \opclayoutscale, 0.350 * \opclayoutscale }) rectangle ({ -6.700 * \opclayoutscale, 0.450 * \opclayoutscale });
+        \path[contactsourcedrain] ({ 2.450 * \opclayoutscale, -1.750 * \opclayoutscale }) rectangle ({ 2.550 * \opclayoutscale, -1.650 * \opclayoutscale });
+        \path[contactgate] ({ -6.800 * \opclayoutscale, -0.450 * \opclayoutscale }) rectangle ({ -6.700 * \opclayoutscale, -0.350 * \opclayoutscale });
+        \path[contactgate] ({ -6.300 * \opclayoutscale, 0.350 * \opclayoutscale }) rectangle ({ -6.200 * \opclayoutscale, 0.450 * \opclayoutscale });
+        \path[contactsourcedrain] ({ 2.450 * \opclayoutscale, -1.450 * \opclayoutscale }) rectangle ({ 2.550 * \opclayoutscale, -1.350 * \opclayoutscale });
+        \path[contactgate] ({ -6.300 * \opclayoutscale, -0.450 * \opclayoutscale }) rectangle ({ -6.200 * \opclayoutscale, -0.350 * \opclayoutscale });
+        \path[contactgate] ({ 1.700 * \opclayoutscale, -0.050 * \opclayoutscale }) rectangle ({ 1.800 * \opclayoutscale, 0.050 * \opclayoutscale });
+        \path[contactsourcedrain] ({ 1.450 * \opclayoutscale, -1.750 * \opclayoutscale }) rectangle ({ 1.550 * \opclayoutscale, -1.650 * \opclayoutscale });
+        \path[contactgate] ({ -2.800 * \opclayoutscale, 0.350 * \opclayoutscale }) rectangle ({ -2.700 * \opclayoutscale, 0.450 * \opclayoutscale });
+        \path[contactsourcedrain] ({ -7.550 * \opclayoutscale, -1.750 * \opclayoutscale }) rectangle ({ -7.450 * \opclayoutscale, -1.650 * \opclayoutscale });
+        \path[contactsourcedrain] ({ -7.550 * \opclayoutscale, -1.450 * \opclayoutscale }) rectangle ({ -7.450 * \opclayoutscale, -1.350 * \opclayoutscale });
+        \path[contactgate] ({ 2.700 * \opclayoutscale, 2.450 * \opclayoutscale }) rectangle ({ 2.800 * \opclayoutscale, 2.550 * \opclayoutscale });
+        \path[contactgate] ({ 2.700 * \opclayoutscale, -2.550 * \opclayoutscale }) rectangle ({ 2.800 * \opclayoutscale, -2.450 * \opclayoutscale });
+        \path[contactsourcedrain] ({ -8.050 * \opclayoutscale, -1.450 * \opclayoutscale }) rectangle ({ -7.950 * \opclayoutscale, -1.350 * \opclayoutscale });
+        \path[contactgate] ({ 3.700 * \opclayoutscale, -0.050 * \opclayoutscale }) rectangle ({ 3.800 * \opclayoutscale, 0.050 * \opclayoutscale });
+        \path[contactsourcedrain] ({ -8.050 * \opclayoutscale, -1.750 * \opclayoutscale }) rectangle ({ -7.950 * \opclayoutscale, -1.650 * \opclayoutscale });
+        \path[contactsourcedrain] ({ -7.050 * \opclayoutscale, 0.850 * \opclayoutscale }) rectangle ({ -6.950 * \opclayoutscale, 0.950 * \opclayoutscale });
+        \path[contactgate] ({ 4.200 * \opclayoutscale, -0.050 * \opclayoutscale }) rectangle ({ 4.300 * \opclayoutscale, 0.050 * \opclayoutscale });
+        \path[contactsourcedrain] ({ -6.550 * \opclayoutscale, 1.350 * \opclayoutscale }) rectangle ({ -6.450 * \opclayoutscale, 1.450 * \opclayoutscale });
+        \path[contactsourcedrain] ({ -7.050 * \opclayoutscale, 1.150 * \opclayoutscale }) rectangle ({ -6.950 * \opclayoutscale, 1.250 * \opclayoutscale });
+        \path[contactgate] ({ 2.200 * \opclayoutscale, -0.050 * \opclayoutscale }) rectangle ({ 2.300 * \opclayoutscale, 0.050 * \opclayoutscale });
+        \path[contactsourcedrain] ({ -7.050 * \opclayoutscale, -1.750 * \opclayoutscale }) rectangle ({ -6.950 * \opclayoutscale, -1.650 * \opclayoutscale });
+        \path[contactsourcedrain] ({ -7.050 * \opclayoutscale, -1.450 * \opclayoutscale }) rectangle ({ -6.950 * \opclayoutscale, -1.350 * \opclayoutscale });
+        \path[contactgate] ({ -2.800 * \opclayoutscale, -0.450 * \opclayoutscale }) rectangle ({ -2.700 * \opclayoutscale, -0.350 * \opclayoutscale });
+        \path[contactsourcedrain] ({ 0.950 * \opclayoutscale, 1.350 * \opclayoutscale }) rectangle ({ 1.050 * \opclayoutscale, 1.450 * \opclayoutscale });
+        \path[contactsourcedrain] ({ -8.050 * \opclayoutscale, 1.650 * \opclayoutscale }) rectangle ({ -7.950 * \opclayoutscale, 1.750 * \opclayoutscale });
+        \path[contactgate] ({ -2.300 * \opclayoutscale, 0.350 * \opclayoutscale }) rectangle ({ -2.200 * \opclayoutscale, 0.450 * \opclayoutscale });
+        \path[contactgate] ({ 3.200 * \opclayoutscale, 2.450 * \opclayoutscale }) rectangle ({ 3.300 * \opclayoutscale, 2.550 * \opclayoutscale });
+        \path[contactgate] ({ -1.800 * \opclayoutscale, -0.450 * \opclayoutscale }) rectangle ({ -1.700 * \opclayoutscale, -0.350 * \opclayoutscale });
+        \path[contactgate] ({ -2.300 * \opclayoutscale, -0.450 * \opclayoutscale }) rectangle ({ -2.200 * \opclayoutscale, -0.350 * \opclayoutscale });
+        \path[contactsourcedrain] ({ 1.450 * \opclayoutscale, 1.650 * \opclayoutscale }) rectangle ({ 1.550 * \opclayoutscale, 1.750 * \opclayoutscale });
+        \path[contactsourcedrain] ({ 1.450 * \opclayoutscale, 1.350 * \opclayoutscale }) rectangle ({ 1.550 * \opclayoutscale, 1.450 * \opclayoutscale });
+        \path[contactsourcedrain] ({ 0.950 * \opclayoutscale, 1.650 * \opclayoutscale }) rectangle ({ 1.050 * \opclayoutscale, 1.750 * \opclayoutscale });
+        \path[contactgate] ({ -1.800 * \opclayoutscale, 0.350 * \opclayoutscale }) rectangle ({ -1.700 * \opclayoutscale, 0.450 * \opclayoutscale });
+        \path[contactsourcedrain] ({ 0.950 * \opclayoutscale, -1.750 * \opclayoutscale }) rectangle ({ 1.050 * \opclayoutscale, -1.650 * \opclayoutscale });
+        \path[contactsourcedrain] ({ -8.050 * \opclayoutscale, 1.350 * \opclayoutscale }) rectangle ({ -7.950 * \opclayoutscale, 1.450 * \opclayoutscale });
+        \path[contactsourcedrain] ({ 0.950 * \opclayoutscale, -1.450 * \opclayoutscale }) rectangle ({ 1.050 * \opclayoutscale, -1.350 * \opclayoutscale });
+        \path[contactgate] ({ 3.200 * \opclayoutscale, -2.550 * \opclayoutscale }) rectangle ({ 3.300 * \opclayoutscale, -2.450 * \opclayoutscale });
+        \path[contactgate] ({ -1.300 * \opclayoutscale, -0.450 * \opclayoutscale }) rectangle ({ -1.200 * \opclayoutscale, -0.350 * \opclayoutscale });
+        \path[contactgate] ({ -1.300 * \opclayoutscale, 0.350 * \opclayoutscale }) rectangle ({ -1.200 * \opclayoutscale, 0.450 * \opclayoutscale });
+        \path[contactgate] ({ 0.700 * \opclayoutscale, -2.550 * \opclayoutscale }) rectangle ({ 0.800 * \opclayoutscale, -2.450 * \opclayoutscale });
+        \path[contactactive] ({ -8.750 * \opclayoutscale, 2.950 * \opclayoutscale }) rectangle ({ -8.650 * \opclayoutscale, 3.050 * \opclayoutscale });
+        \path[contactsourcedrain] ({ 5.950 * \opclayoutscale, 1.350 * \opclayoutscale }) rectangle ({ 6.050 * \opclayoutscale, 1.450 * \opclayoutscale });
+        \path[contactactive] ({ -6.050 * \opclayoutscale, 2.950 * \opclayoutscale }) rectangle ({ -5.950 * \opclayoutscale, 3.050 * \opclayoutscale });
+        \path[contactactive] ({ -6.350 * \opclayoutscale, 2.950 * \opclayoutscale }) rectangle ({ -6.250 * \opclayoutscale, 3.050 * \opclayoutscale });
+        \path[contactsourcedrain] ({ 4.950 * \opclayoutscale, -1.450 * \opclayoutscale }) rectangle ({ 5.050 * \opclayoutscale, -1.350 * \opclayoutscale });
+        \path[contactsourcedrain] ({ 4.950 * \opclayoutscale, -1.750 * \opclayoutscale }) rectangle ({ 5.050 * \opclayoutscale, -1.650 * \opclayoutscale });
+        \path[contactactive] ({ -5.750 * \opclayoutscale, 2.950 * \opclayoutscale }) rectangle ({ -5.650 * \opclayoutscale, 3.050 * \opclayoutscale });
+        \path[contactsourcedrain] ({ 5.450 * \opclayoutscale, 1.350 * \opclayoutscale }) rectangle ({ 5.550 * \opclayoutscale, 1.450 * \opclayoutscale });
+        \path[contactactive] ({ -6.650 * \opclayoutscale, 2.950 * \opclayoutscale }) rectangle ({ -6.550 * \opclayoutscale, 3.050 * \opclayoutscale });
+        \path[contactsourcedrain] ({ 5.450 * \opclayoutscale, 1.650 * \opclayoutscale }) rectangle ({ 5.550 * \opclayoutscale, 1.750 * \opclayoutscale });
+        \path[contactsourcedrain] ({ 5.450 * \opclayoutscale, -1.750 * \opclayoutscale }) rectangle ({ 5.550 * \opclayoutscale, -1.650 * \opclayoutscale });
+        \path[contactactive] ({ -6.950 * \opclayoutscale, 2.950 * \opclayoutscale }) rectangle ({ -6.850 * \opclayoutscale, 3.050 * \opclayoutscale });
+        \path[contactactive] ({ -7.250 * \opclayoutscale, 2.950 * \opclayoutscale }) rectangle ({ -7.150 * \opclayoutscale, 3.050 * \opclayoutscale });
+        \path[contactactive] ({ -5.450 * \opclayoutscale, 2.950 * \opclayoutscale }) rectangle ({ -5.350 * \opclayoutscale, 3.050 * \opclayoutscale });
+        \path[contactsourcedrain] ({ 4.950 * \opclayoutscale, 1.350 * \opclayoutscale }) rectangle ({ 5.050 * \opclayoutscale, 1.450 * \opclayoutscale });
+        \path[contactactive] ({ -4.250 * \opclayoutscale, 2.950 * \opclayoutscale }) rectangle ({ -4.150 * \opclayoutscale, 3.050 * \opclayoutscale });
+        \path[contactgate] ({ 6.200 * \opclayoutscale, -0.050 * \opclayoutscale }) rectangle ({ 6.300 * \opclayoutscale, 0.050 * \opclayoutscale });
+        \path[contactactive] ({ -3.950 * \opclayoutscale, 2.950 * \opclayoutscale }) rectangle ({ -3.850 * \opclayoutscale, 3.050 * \opclayoutscale });
+        \path[contactsourcedrain] ({ 4.950 * \opclayoutscale, 1.650 * \opclayoutscale }) rectangle ({ 5.050 * \opclayoutscale, 1.750 * \opclayoutscale });
+        \path[contactgate] ({ 6.700 * \opclayoutscale, -0.050 * \opclayoutscale }) rectangle ({ 6.800 * \opclayoutscale, 0.050 * \opclayoutscale });
+        \path[contactactive] ({ -4.850 * \opclayoutscale, 2.950 * \opclayoutscale }) rectangle ({ -4.750 * \opclayoutscale, 3.050 * \opclayoutscale });
+        \path[contactgate] ({ 7.200 * \opclayoutscale, -0.050 * \opclayoutscale }) rectangle ({ 7.300 * \opclayoutscale, 0.050 * \opclayoutscale });
+        \path[contactactive] ({ -5.150 * \opclayoutscale, 2.950 * \opclayoutscale }) rectangle ({ -5.050 * \opclayoutscale, 3.050 * \opclayoutscale });
+        \path[contactgate] ({ 7.700 * \opclayoutscale, -0.050 * \opclayoutscale }) rectangle ({ 7.800 * \opclayoutscale, 0.050 * \opclayoutscale });
+        \path[contactactive] ({ -3.650 * \opclayoutscale, 2.950 * \opclayoutscale }) rectangle ({ -3.550 * \opclayoutscale, 3.050 * \opclayoutscale });
+        \path[contactsourcedrain] ({ 5.450 * \opclayoutscale, -1.450 * \opclayoutscale }) rectangle ({ 5.550 * \opclayoutscale, -1.350 * \opclayoutscale });
+        \path[contactactive] ({ -7.850 * \opclayoutscale, 2.950 * \opclayoutscale }) rectangle ({ -7.750 * \opclayoutscale, 3.050 * \opclayoutscale });
+        \path[contactsourcedrain] ({ 7.450 * \opclayoutscale, 1.150 * \opclayoutscale }) rectangle ({ 7.550 * \opclayoutscale, 1.250 * \opclayoutscale });
+        \path[contactsourcedrain] ({ 7.950 * \opclayoutscale, -1.450 * \opclayoutscale }) rectangle ({ 8.050 * \opclayoutscale, -1.350 * \opclayoutscale });
+        \path[contactsourcedrain] ({ 7.450 * \opclayoutscale, 0.850 * \opclayoutscale }) rectangle ({ 7.550 * \opclayoutscale, 0.950 * \opclayoutscale });
+        \path[contactsourcedrain] ({ 6.950 * \opclayoutscale, -1.450 * \opclayoutscale }) rectangle ({ 7.050 * \opclayoutscale, -1.350 * \opclayoutscale });
+        \path[contactsourcedrain] ({ 6.950 * \opclayoutscale, -1.750 * \opclayoutscale }) rectangle ({ 7.050 * \opclayoutscale, -1.650 * \opclayoutscale });
+        \path[contactsourcedrain] ({ 7.450 * \opclayoutscale, -1.250 * \opclayoutscale }) rectangle ({ 7.550 * \opclayoutscale, -1.150 * \opclayoutscale });
+        \path[contactsourcedrain] ({ 7.950 * \opclayoutscale, -1.750 * \opclayoutscale }) rectangle ({ 8.050 * \opclayoutscale, -1.650 * \opclayoutscale });
+        \path[contactsourcedrain] ({ 7.450 * \opclayoutscale, -0.950 * \opclayoutscale }) rectangle ({ 7.550 * \opclayoutscale, -0.850 * \opclayoutscale });
+        \path[contactsourcedrain] ({ 7.950 * \opclayoutscale, 1.650 * \opclayoutscale }) rectangle ({ 8.050 * \opclayoutscale, 1.750 * \opclayoutscale });
+        \path[contactsourcedrain] ({ 7.950 * \opclayoutscale, 1.350 * \opclayoutscale }) rectangle ({ 8.050 * \opclayoutscale, 1.450 * \opclayoutscale });
+        \path[contactactive] ({ -7.550 * \opclayoutscale, 2.950 * \opclayoutscale }) rectangle ({ -7.450 * \opclayoutscale, 3.050 * \opclayoutscale });
+        \path[contactsourcedrain] ({ 6.950 * \opclayoutscale, 1.650 * \opclayoutscale }) rectangle ({ 7.050 * \opclayoutscale, 1.750 * \opclayoutscale });
+        \path[contactsourcedrain] ({ 6.450 * \opclayoutscale, -0.950 * \opclayoutscale }) rectangle ({ 6.550 * \opclayoutscale, -0.850 * \opclayoutscale });
+        \path[contactactive] ({ -8.450 * \opclayoutscale, 2.950 * \opclayoutscale }) rectangle ({ -8.350 * \opclayoutscale, 3.050 * \opclayoutscale });
+        \path[contactsourcedrain] ({ 5.950 * \opclayoutscale, 1.650 * \opclayoutscale }) rectangle ({ 6.050 * \opclayoutscale, 1.750 * \opclayoutscale });
+        \path[contactactive] ({ -8.150 * \opclayoutscale, 2.950 * \opclayoutscale }) rectangle ({ -8.050 * \opclayoutscale, 3.050 * \opclayoutscale });
+        \path[contactsourcedrain] ({ 6.950 * \opclayoutscale, 1.350 * \opclayoutscale }) rectangle ({ 7.050 * \opclayoutscale, 1.450 * \opclayoutscale });
+        \path[contactsourcedrain] ({ 5.950 * \opclayoutscale, -1.750 * \opclayoutscale }) rectangle ({ 6.050 * \opclayoutscale, -1.650 * \opclayoutscale });
+        \path[contactsourcedrain] ({ 6.450 * \opclayoutscale, 0.850 * \opclayoutscale }) rectangle ({ 6.550 * \opclayoutscale, 0.950 * \opclayoutscale });
+        \path[contactsourcedrain] ({ 5.950 * \opclayoutscale, -1.450 * \opclayoutscale }) rectangle ({ 6.050 * \opclayoutscale, -1.350 * \opclayoutscale });
+        \path[contactsourcedrain] ({ 6.450 * \opclayoutscale, -1.250 * \opclayoutscale }) rectangle ({ 6.550 * \opclayoutscale, -1.150 * \opclayoutscale });
+        \path[contactsourcedrain] ({ 6.450 * \opclayoutscale, 1.150 * \opclayoutscale }) rectangle ({ 6.550 * \opclayoutscale, 1.250 * \opclayoutscale });
+        \path[contactgate] ({ 5.700 * \opclayoutscale, 2.050 * \opclayoutscale }) rectangle ({ 5.800 * \opclayoutscale, 2.150 * \opclayoutscale });
+        \path[contactactive] ({ -4.550 * \opclayoutscale, 2.950 * \opclayoutscale }) rectangle ({ -4.450 * \opclayoutscale, 3.050 * \opclayoutscale });
+        \path[contactgate] ({ -0.300 * \opclayoutscale, -0.050 * \opclayoutscale }) rectangle ({ -0.200 * \opclayoutscale, 0.050 * \opclayoutscale });
+        \path[contactgate] ({ -0.800 * \opclayoutscale, -2.550 * \opclayoutscale }) rectangle ({ -0.700 * \opclayoutscale, -2.450 * \opclayoutscale });
+        \path[contactsourcedrain] ({ 4.450 * \opclayoutscale, -1.450 * \opclayoutscale }) rectangle ({ 4.550 * \opclayoutscale, -1.350 * \opclayoutscale });
+        \path[contactgate] ({ 5.700 * \opclayoutscale, -2.150 * \opclayoutscale }) rectangle ({ 5.800 * \opclayoutscale, -2.050 * \opclayoutscale });
+        \path[contactgate] ({ -0.800 * \opclayoutscale, 2.450 * \opclayoutscale }) rectangle ({ -0.700 * \opclayoutscale, 2.550 * \opclayoutscale });
+        \path[contactsourcedrain] ({ 4.950 * \opclayoutscale, 1.650 * \opclayoutscale }) rectangle ({ 5.050 * \opclayoutscale, 1.750 * \opclayoutscale });
+        \path[contactsourcedrain] ({ 4.450 * \opclayoutscale, 1.650 * \opclayoutscale }) rectangle ({ 4.550 * \opclayoutscale, 1.750 * \opclayoutscale });
+        \path[contactactive] ({ -0.350 * \opclayoutscale, 2.950 * \opclayoutscale }) rectangle ({ -0.250 * \opclayoutscale, 3.050 * \opclayoutscale });
+        \path[contactactive] ({ -0.650 * \opclayoutscale, 2.950 * \opclayoutscale }) rectangle ({ -0.550 * \opclayoutscale, 3.050 * \opclayoutscale });
+        \path[contactsourcedrain] ({ 4.450 * \opclayoutscale, -1.750 * \opclayoutscale }) rectangle ({ 4.550 * \opclayoutscale, -1.650 * \opclayoutscale });
+        \path[contactactive] ({ 0.550 * \opclayoutscale, 2.950 * \opclayoutscale }) rectangle ({ 0.650 * \opclayoutscale, 3.050 * \opclayoutscale });
+        \path[contactgate] ({ 0.200 * \opclayoutscale, -0.050 * \opclayoutscale }) rectangle ({ 0.300 * \opclayoutscale, 0.050 * \opclayoutscale });
+        \path[contactactive] ({ 1.450 * \opclayoutscale, 2.950 * \opclayoutscale }) rectangle ({ 1.550 * \opclayoutscale, 3.050 * \opclayoutscale });
+        \path[contactactive] ({ 0.250 * \opclayoutscale, 2.950 * \opclayoutscale }) rectangle ({ 0.350 * \opclayoutscale, 3.050 * \opclayoutscale });
+        \path[contactactive] ({ 1.150 * \opclayoutscale, 2.950 * \opclayoutscale }) rectangle ({ 1.250 * \opclayoutscale, 3.050 * \opclayoutscale });
+        \path[contactactive] ({ 1.750 * \opclayoutscale, 2.950 * \opclayoutscale }) rectangle ({ 1.850 * \opclayoutscale, 3.050 * \opclayoutscale });
+        \path[contactactive] ({ 0.850 * \opclayoutscale, 2.950 * \opclayoutscale }) rectangle ({ 0.950 * \opclayoutscale, 3.050 * \opclayoutscale });
+        \path[contactactive] ({ 2.050 * \opclayoutscale, 2.950 * \opclayoutscale }) rectangle ({ 2.150 * \opclayoutscale, 3.050 * \opclayoutscale });
+        \path[contactactive] ({ -0.950 * \opclayoutscale, 2.950 * \opclayoutscale }) rectangle ({ -0.850 * \opclayoutscale, 3.050 * \opclayoutscale });
+        \path[contactsourcedrain] ({ 4.950 * \opclayoutscale, 1.350 * \opclayoutscale }) rectangle ({ 5.050 * \opclayoutscale, 1.450 * \opclayoutscale });
+        \path[contactactive] ({ -1.250 * \opclayoutscale, 2.950 * \opclayoutscale }) rectangle ({ -1.150 * \opclayoutscale, 3.050 * \opclayoutscale });
+        \path[contactgate] ({ 5.200 * \opclayoutscale, -2.150 * \opclayoutscale }) rectangle ({ 5.300 * \opclayoutscale, -2.050 * \opclayoutscale });
+        \path[contactactive] ({ -3.050 * \opclayoutscale, 2.950 * \opclayoutscale }) rectangle ({ -2.950 * \opclayoutscale, 3.050 * \opclayoutscale });
+        \path[contactactive] ({ -2.750 * \opclayoutscale, 2.950 * \opclayoutscale }) rectangle ({ -2.650 * \opclayoutscale, 3.050 * \opclayoutscale });
+        \path[contactgate] ({ 5.200 * \opclayoutscale, 2.050 * \opclayoutscale }) rectangle ({ 5.300 * \opclayoutscale, 2.150 * \opclayoutscale });
+        \path[contactactive] ({ -3.350 * \opclayoutscale, 2.950 * \opclayoutscale }) rectangle ({ -3.250 * \opclayoutscale, 3.050 * \opclayoutscale });
+        \path[contactsourcedrain] ({ 4.950 * \opclayoutscale, -1.450 * \opclayoutscale }) rectangle ({ 5.050 * \opclayoutscale, -1.350 * \opclayoutscale });
+        \path[contactactive] ({ -2.450 * \opclayoutscale, 2.950 * \opclayoutscale }) rectangle ({ -2.350 * \opclayoutscale, 3.050 * \opclayoutscale });
+        \path[contactgate] ({ 0.700 * \opclayoutscale, 2.450 * \opclayoutscale }) rectangle ({ 0.800 * \opclayoutscale, 2.550 * \opclayoutscale });
+        \path[contactactive] ({ -1.850 * \opclayoutscale, 2.950 * \opclayoutscale }) rectangle ({ -1.750 * \opclayoutscale, 3.050 * \opclayoutscale });
+        \path[contactactive] ({ -1.550 * \opclayoutscale, 2.950 * \opclayoutscale }) rectangle ({ -1.450 * \opclayoutscale, 3.050 * \opclayoutscale });
+        \path[contactsourcedrain] ({ 4.950 * \opclayoutscale, -1.750 * \opclayoutscale }) rectangle ({ 5.050 * \opclayoutscale, -1.650 * \opclayoutscale });
+        \path[contactactive] ({ -2.150 * \opclayoutscale, 2.950 * \opclayoutscale }) rectangle ({ -2.050 * \opclayoutscale, 3.050 * \opclayoutscale });
+        \path[metal2] ({ -0.350 * \opclayoutscale, -0.100 * \opclayoutscale }) rectangle ({ 0.350 * \opclayoutscale, 0.100 * \opclayoutscale });
+        \path[metal2] ({ -7.000 * \opclayoutscale, -0.500 * \opclayoutscale }) -- ({ -2.600 * \opclayoutscale, -0.500 * \opclayoutscale }) -- ({ -2.600 * \opclayoutscale, -2.600 * \opclayoutscale }) -- ({ -0.750 * \opclayoutscale, -2.600 * \opclayoutscale }) -- ({ -0.750 * \opclayoutscale, -2.400 * \opclayoutscale }) -- ({ -2.400 * \opclayoutscale, -2.400 * \opclayoutscale }) -- ({ -2.400 * \opclayoutscale, -0.300 * \opclayoutscale }) -- ({ -7.000 * \opclayoutscale, -0.300 * \opclayoutscale }) -- cycle;
+        \path[metal2] ({ -5.600 * \opclayoutscale, 0.800 * \opclayoutscale }) rectangle ({ -5.400 * \opclayoutscale, 1.300 * \opclayoutscale });
+        \path[metal2] ({ -1.000 * \opclayoutscale, 2.400 * \opclayoutscale }) rectangle ({ 5.000 * \opclayoutscale, 2.600 * \opclayoutscale });
+        \path[metal2] ({ -2.600 * \opclayoutscale, -1.300 * \opclayoutscale }) rectangle ({ -2.400 * \opclayoutscale, -0.800 * \opclayoutscale });
+        \path[metal2] ({ -5.600 * \opclayoutscale, -0.500 * \opclayoutscale }) rectangle ({ -5.400 * \opclayoutscale, 0.800 * \opclayoutscale });
+        \path[metal2] ({ -1.600 * \opclayoutscale, 0.800 * \opclayoutscale }) rectangle ({ -1.400 * \opclayoutscale, 1.300 * \opclayoutscale });
+        \path[metal2] ({ 4.950 * \opclayoutscale, -0.100 * \opclayoutscale }) rectangle ({ 6.350 * \opclayoutscale, 0.100 * \opclayoutscale });
+        \path[metal2] ({ -7.100 * \opclayoutscale, -0.500 * \opclayoutscale }) rectangle ({ -6.900 * \opclayoutscale, 0.800 * \opclayoutscale });
+        \path[metal2] ({ -0.350 * \opclayoutscale, -0.100 * \opclayoutscale }) rectangle ({ 5.000 * \opclayoutscale, 0.100 * \opclayoutscale });
+        \path[metal2] ({ -1.600 * \opclayoutscale, -1.300 * \opclayoutscale }) rectangle ({ -1.400 * \opclayoutscale, -0.800 * \opclayoutscale });
+        \path[metal2] ({ -1.600 * \opclayoutscale, -1.300 * \opclayoutscale }) rectangle ({ -1.400 * \opclayoutscale, 1.300 * \opclayoutscale });
+        \path[metal2] ({ -1.000 * \opclayoutscale, -2.600 * \opclayoutscale }) rectangle ({ 5.000 * \opclayoutscale, -2.400 * \opclayoutscale });
+        \path[metal2] ({ -7.100 * \opclayoutscale, 0.800 * \opclayoutscale }) rectangle ({ -6.900 * \opclayoutscale, 1.300 * \opclayoutscale });
+        \path[metal2] ({ -1.600 * \opclayoutscale, 0.500 * \opclayoutscale }) rectangle ({ -1.400 * \opclayoutscale, 0.800 * \opclayoutscale });
+        \path[metal2] ({ -1.400 * \opclayoutscale, 1.300 * \opclayoutscale }) -- ({ -1.400 * \opclayoutscale, 2.400 * \opclayoutscale }) -- ({ -0.750 * \opclayoutscale, 2.400 * \opclayoutscale }) -- ({ -0.750 * \opclayoutscale, 2.600 * \opclayoutscale }) -- ({ -1.600 * \opclayoutscale, 2.600 * \opclayoutscale }) -- ({ -1.600 * \opclayoutscale, 1.300 * \opclayoutscale }) -- cycle;
+        \path[via1] ({ 1.200 * \opclayoutscale, 2.450 * \opclayoutscale }) rectangle ({ 1.300 * \opclayoutscale, 2.550 * \opclayoutscale });
+        \path[via1] ({ 2.700 * \opclayoutscale, 2.450 * \opclayoutscale }) rectangle ({ 2.800 * \opclayoutscale, 2.550 * \opclayoutscale });
+        \path[via1] ({ 1.500 * \opclayoutscale, 2.450 * \opclayoutscale }) rectangle ({ 1.600 * \opclayoutscale, 2.550 * \opclayoutscale });
+        \path[via1] ({ 3.300 * \opclayoutscale, 2.450 * \opclayoutscale }) rectangle ({ 3.400 * \opclayoutscale, 2.550 * \opclayoutscale });
+        \path[via1] ({ 3.000 * \opclayoutscale, 2.450 * \opclayoutscale }) rectangle ({ 3.100 * \opclayoutscale, 2.550 * \opclayoutscale });
+        \path[via1] ({ 1.800 * \opclayoutscale, 2.450 * \opclayoutscale }) rectangle ({ 1.900 * \opclayoutscale, 2.550 * \opclayoutscale });
+        \path[via1] ({ 2.400 * \opclayoutscale, 2.450 * \opclayoutscale }) rectangle ({ 2.500 * \opclayoutscale, 2.550 * \opclayoutscale });
+        \path[via1] ({ 2.100 * \opclayoutscale, 2.450 * \opclayoutscale }) rectangle ({ 2.200 * \opclayoutscale, 2.550 * \opclayoutscale });
+        \path[via1] ({ -0.900 * \opclayoutscale, 2.450 * \opclayoutscale }) rectangle ({ -0.800 * \opclayoutscale, 2.550 * \opclayoutscale });
+        \path[via1] ({ -1.550 * \opclayoutscale, -1.250 * \opclayoutscale }) rectangle ({ -1.450 * \opclayoutscale, -1.150 * \opclayoutscale });
+        \path[via1] ({ 3.900 * \opclayoutscale, 2.450 * \opclayoutscale }) rectangle ({ 4.000 * \opclayoutscale, 2.550 * \opclayoutscale });
+        \path[via1] ({ 5.600 * \opclayoutscale, -0.050 * \opclayoutscale }) rectangle ({ 5.700 * \opclayoutscale, 0.050 * \opclayoutscale });
+        \path[via1] ({ 5.900 * \opclayoutscale, -0.050 * \opclayoutscale }) rectangle ({ 6.000 * \opclayoutscale, 0.050 * \opclayoutscale });
+        \path[via1] ({ 6.200 * \opclayoutscale, -0.050 * \opclayoutscale }) rectangle ({ 6.300 * \opclayoutscale, 0.050 * \opclayoutscale });
+        \path[via1] ({ 0.300 * \opclayoutscale, 2.450 * \opclayoutscale }) rectangle ({ 0.400 * \opclayoutscale, 2.550 * \opclayoutscale });
+        \path[via1] ({ 5.300 * \opclayoutscale, -0.050 * \opclayoutscale }) rectangle ({ 5.400 * \opclayoutscale, 0.050 * \opclayoutscale });
+        \path[via1] ({ -0.600 * \opclayoutscale, 2.450 * \opclayoutscale }) rectangle ({ -0.500 * \opclayoutscale, 2.550 * \opclayoutscale });
+        \path[via1] ({ 5.000 * \opclayoutscale, -0.050 * \opclayoutscale }) rectangle ({ 5.100 * \opclayoutscale, 0.050 * \opclayoutscale });
+        \path[via1] ({ 4.500 * \opclayoutscale, -2.550 * \opclayoutscale }) rectangle ({ 4.600 * \opclayoutscale, -2.450 * \opclayoutscale });
+        \path[via1] ({ 4.800 * \opclayoutscale, -2.550 * \opclayoutscale }) rectangle ({ 4.900 * \opclayoutscale, -2.450 * \opclayoutscale });
+        \path[via1] ({ 4.200 * \opclayoutscale, -2.550 * \opclayoutscale }) rectangle ({ 4.300 * \opclayoutscale, -2.450 * \opclayoutscale });
+        \path[via1] ({ 0.000 * \opclayoutscale, 2.450 * \opclayoutscale }) rectangle ({ 0.100 * \opclayoutscale, 2.550 * \opclayoutscale });
+        \path[via1] ({ -0.200 * \opclayoutscale, -0.050 * \opclayoutscale }) rectangle ({ -0.100 * \opclayoutscale, 0.050 * \opclayoutscale });
+        \path[via1] ({ -2.550 * \opclayoutscale, -1.250 * \opclayoutscale }) rectangle ({ -2.450 * \opclayoutscale, -1.150 * \opclayoutscale });
+        \path[via1] ({ -1.550 * \opclayoutscale, 0.850 * \opclayoutscale }) rectangle ({ -1.450 * \opclayoutscale, 0.950 * \opclayoutscale });
+        \path[via1] ({ -1.550 * \opclayoutscale, 1.150 * \opclayoutscale }) rectangle ({ -1.450 * \opclayoutscale, 1.250 * \opclayoutscale });
+        \path[via1] ({ -0.300 * \opclayoutscale, 2.450 * \opclayoutscale }) rectangle ({ -0.200 * \opclayoutscale, 2.550 * \opclayoutscale });
+        \path[via1] ({ -5.550 * \opclayoutscale, 1.150 * \opclayoutscale }) rectangle ({ -5.450 * \opclayoutscale, 1.250 * \opclayoutscale });
+        \path[via1] ({ -7.050 * \opclayoutscale, 1.150 * \opclayoutscale }) rectangle ({ -6.950 * \opclayoutscale, 1.250 * \opclayoutscale });
+        \path[via1] ({ -5.550 * \opclayoutscale, 0.850 * \opclayoutscale }) rectangle ({ -5.450 * \opclayoutscale, 0.950 * \opclayoutscale });
+        \path[via1] ({ 0.100 * \opclayoutscale, -0.050 * \opclayoutscale }) rectangle ({ 0.200 * \opclayoutscale, 0.050 * \opclayoutscale });
+        \path[via1] ({ -7.050 * \opclayoutscale, 0.850 * \opclayoutscale }) rectangle ({ -6.950 * \opclayoutscale, 0.950 * \opclayoutscale });
+        \path[via1] ({ 3.600 * \opclayoutscale, 2.450 * \opclayoutscale }) rectangle ({ 3.700 * \opclayoutscale, 2.550 * \opclayoutscale });
+        \path[via1] ({ 3.900 * \opclayoutscale, -2.550 * \opclayoutscale }) rectangle ({ 4.000 * \opclayoutscale, -2.450 * \opclayoutscale });
+        \path[via1] ({ 3.600 * \opclayoutscale, -2.550 * \opclayoutscale }) rectangle ({ 3.700 * \opclayoutscale, -2.450 * \opclayoutscale });
+        \path[via1] ({ -0.300 * \opclayoutscale, -2.550 * \opclayoutscale }) rectangle ({ -0.200 * \opclayoutscale, -2.450 * \opclayoutscale });
+        \path[via1] ({ 0.000 * \opclayoutscale, -2.550 * \opclayoutscale }) rectangle ({ 0.100 * \opclayoutscale, -2.450 * \opclayoutscale });
+        \path[via1] ({ 0.300 * \opclayoutscale, -2.550 * \opclayoutscale }) rectangle ({ 0.400 * \opclayoutscale, -2.450 * \opclayoutscale });
+        \path[via1] ({ -1.550 * \opclayoutscale, -0.950 * \opclayoutscale }) rectangle ({ -1.450 * \opclayoutscale, -0.850 * \opclayoutscale });
+        \path[via1] ({ -0.600 * \opclayoutscale, -2.550 * \opclayoutscale }) rectangle ({ -0.500 * \opclayoutscale, -2.450 * \opclayoutscale });
+        \path[via1] ({ 4.800 * \opclayoutscale, 2.450 * \opclayoutscale }) rectangle ({ 4.900 * \opclayoutscale, 2.550 * \opclayoutscale });
+        \path[via1] ({ -0.900 * \opclayoutscale, -2.550 * \opclayoutscale }) rectangle ({ -0.800 * \opclayoutscale, -2.450 * \opclayoutscale });
+        \path[via1] ({ 4.200 * \opclayoutscale, 2.450 * \opclayoutscale }) rectangle ({ 4.300 * \opclayoutscale, 2.550 * \opclayoutscale });
+        \path[via1] ({ 4.500 * \opclayoutscale, 2.450 * \opclayoutscale }) rectangle ({ 4.600 * \opclayoutscale, 2.550 * \opclayoutscale });
+        \path[via1] ({ 0.600 * \opclayoutscale, 2.450 * \opclayoutscale }) rectangle ({ 0.700 * \opclayoutscale, 2.550 * \opclayoutscale });
+        \path[via1] ({ 0.600 * \opclayoutscale, -2.550 * \opclayoutscale }) rectangle ({ 0.700 * \opclayoutscale, -2.450 * \opclayoutscale });
+        \path[via1] ({ 0.900 * \opclayoutscale, 2.450 * \opclayoutscale }) rectangle ({ 1.000 * \opclayoutscale, 2.550 * \opclayoutscale });
+        \path[via1] ({ 2.700 * \opclayoutscale, -2.550 * \opclayoutscale }) rectangle ({ 2.800 * \opclayoutscale, -2.450 * \opclayoutscale });
+        \path[via1] ({ 3.000 * \opclayoutscale, -2.550 * \opclayoutscale }) rectangle ({ 3.100 * \opclayoutscale, -2.450 * \opclayoutscale });
+        \path[via1] ({ 3.300 * \opclayoutscale, -2.550 * \opclayoutscale }) rectangle ({ 3.400 * \opclayoutscale, -2.450 * \opclayoutscale });
+        \path[via1] ({ 0.900 * \opclayoutscale, -2.550 * \opclayoutscale }) rectangle ({ 1.000 * \opclayoutscale, -2.450 * \opclayoutscale });
+        \path[via1] ({ 2.400 * \opclayoutscale, -2.550 * \opclayoutscale }) rectangle ({ 2.500 * \opclayoutscale, -2.450 * \opclayoutscale });
+        \path[via1] ({ 1.800 * \opclayoutscale, -2.550 * \opclayoutscale }) rectangle ({ 1.900 * \opclayoutscale, -2.450 * \opclayoutscale });
+        \path[via1] ({ 2.100 * \opclayoutscale, -2.550 * \opclayoutscale }) rectangle ({ 2.200 * \opclayoutscale, -2.450 * \opclayoutscale });
+        \path[via1] ({ 1.200 * \opclayoutscale, -2.550 * \opclayoutscale }) rectangle ({ 1.300 * \opclayoutscale, -2.450 * \opclayoutscale });
+        \path[via1] ({ 1.500 * \opclayoutscale, -2.550 * \opclayoutscale }) rectangle ({ 1.600 * \opclayoutscale, -2.450 * \opclayoutscale });
+        \path[via1] ({ -2.550 * \opclayoutscale, -0.950 * \opclayoutscale }) rectangle ({ -2.450 * \opclayoutscale, -0.850 * \opclayoutscale });
+    \end{tikzpicture}
+\end{frame}
+
+\begin{frame}
+    \centering
+    \frametitle{Grated Coupler}
+    \def\opclayoutscale{0.3}
+    \definecolor{layoutcolor1}{HTML}{808080}
+    \begin{tikzpicture}
+        \path[fill = layoutcolor1, draw = layoutcolor1] ({ -5.000 * \opclayoutscale, 0.000 * \opclayoutscale }) -- ({ -5.000 * \opclayoutscale, 0.500 * \opclayoutscale }) -- ({ 1.373 * \opclayoutscale, 0.500 * \opclayoutscale }) -- ({ 9.396 * \opclayoutscale, 3.420 * \opclayoutscale }) arc[start angle = 20, end angle = -20, radius = 10.000 * \opclayoutscale] -- ({ 1.373 * \opclayoutscale, -0.500 * \opclayoutscale }) -- ({ -5.000 * \opclayoutscale, -0.500 * \opclayoutscale }) -- cycle;
+        \path[fill = layoutcolor1, draw = layoutcolor1] ({ 17.384 * \opclayoutscale, 6.327 * \opclayoutscale }) arc[start angle = 20, end angle = -20, radius = 18.500 * \opclayoutscale] -- ({ 17.854 * \opclayoutscale, -6.498 * \opclayoutscale }) arc[start angle = -20, end angle = 20, radius = 19.000 * \opclayoutscale] -- cycle;
+        \path[fill = layoutcolor1, draw = layoutcolor1] ({ 16.444 * \opclayoutscale, 5.985 * \opclayoutscale }) arc[start angle = 20, end angle = -20, radius = 17.500 * \opclayoutscale] -- ({ 16.914 * \opclayoutscale, -6.156 * \opclayoutscale }) arc[start angle = -20, end angle = 20, radius = 18.000 * \opclayoutscale] -- cycle;
+        \path[fill = layoutcolor1, draw = layoutcolor1] ({ 18.324 * \opclayoutscale, 6.669 * \opclayoutscale }) arc[start angle = 20, end angle = -20, radius = 19.500 * \opclayoutscale] -- ({ 18.793 * \opclayoutscale, -6.840 * \opclayoutscale }) arc[start angle = -20, end angle = 20, radius = 20.000 * \opclayoutscale] -- cycle;
+        \path[fill = layoutcolor1, draw = layoutcolor1] ({ 20.203 * \opclayoutscale, 7.353 * \opclayoutscale }) arc[start angle = 20, end angle = -20, radius = 21.500 * \opclayoutscale] -- ({ 20.673 * \opclayoutscale, -7.524 * \opclayoutscale }) arc[start angle = -20, end angle = 20, radius = 22.000 * \opclayoutscale] -- cycle;
+        \path[fill = layoutcolor1, draw = layoutcolor1] ({ 19.263 * \opclayoutscale, 7.011 * \opclayoutscale }) arc[start angle = 20, end angle = -20, radius = 20.500 * \opclayoutscale] -- ({ 19.733 * \opclayoutscale, -7.182 * \opclayoutscale }) arc[start angle = -20, end angle = 20, radius = 21.000 * \opclayoutscale] -- cycle;
+        \path[fill = layoutcolor1, draw = layoutcolor1] ({ 21.143 * \opclayoutscale, 7.695 * \opclayoutscale }) arc[start angle = 20, end angle = -20, radius = 22.500 * \opclayoutscale] -- ({ 21.612 * \opclayoutscale, -7.866 * \opclayoutscale }) arc[start angle = -20, end angle = 20, radius = 23.000 * \opclayoutscale] -- cycle;
+        \path[fill = layoutcolor1, draw = layoutcolor1] ({ 15.504 * \opclayoutscale, 5.643 * \opclayoutscale }) arc[start angle = 20, end angle = -20, radius = 16.500 * \opclayoutscale] -- ({ 15.974 * \opclayoutscale, -5.814 * \opclayoutscale }) arc[start angle = -20, end angle = 20, radius = 17.000 * \opclayoutscale] -- cycle;
+        \path[fill = layoutcolor1, draw = layoutcolor1] ({ 13.625 * \opclayoutscale, 4.959 * \opclayoutscale }) arc[start angle = 20, end angle = -20, radius = 14.500 * \opclayoutscale] -- ({ 14.095 * \opclayoutscale, -5.130 * \opclayoutscale }) arc[start angle = -20, end angle = 20, radius = 15.000 * \opclayoutscale] -- cycle;
+        \path[fill = layoutcolor1, draw = layoutcolor1] ({ 9.866 * \opclayoutscale, 3.591 * \opclayoutscale }) arc[start angle = 20, end angle = -20, radius = 10.500 * \opclayoutscale] -- ({ 10.336 * \opclayoutscale, -3.762 * \opclayoutscale }) arc[start angle = -20, end angle = 20, radius = 11.000 * \opclayoutscale] -- cycle;
+        \path[fill = layoutcolor1, draw = layoutcolor1] ({ 14.565 * \opclayoutscale, 5.301 * \opclayoutscale }) arc[start angle = 20, end angle = -20, radius = 15.500 * \opclayoutscale] -- ({ 15.035 * \opclayoutscale, -5.472 * \opclayoutscale }) arc[start angle = -20, end angle = 20, radius = 16.000 * \opclayoutscale] -- cycle;
+        \path[fill = layoutcolor1, draw = layoutcolor1] ({ 10.806 * \opclayoutscale, 3.933 * \opclayoutscale }) arc[start angle = 20, end angle = -20, radius = 11.500 * \opclayoutscale] -- ({ 11.276 * \opclayoutscale, -4.104 * \opclayoutscale }) arc[start angle = -20, end angle = 20, radius = 12.000 * \opclayoutscale] -- cycle;
+        \path[fill = layoutcolor1, draw = layoutcolor1] ({ 12.685 * \opclayoutscale, 4.617 * \opclayoutscale }) arc[start angle = 20, end angle = -20, radius = 13.500 * \opclayoutscale] -- ({ 13.155 * \opclayoutscale, -4.788 * \opclayoutscale }) arc[start angle = -20, end angle = 20, radius = 14.000 * \opclayoutscale] -- cycle;
+        \path[fill = layoutcolor1, draw = layoutcolor1] ({ 11.746 * \opclayoutscale, 4.275 * \opclayoutscale }) arc[start angle = 20, end angle = -20, radius = 12.500 * \opclayoutscale] -- ({ 12.216 * \opclayoutscale, -4.446 * \opclayoutscale }) arc[start angle = -20, end angle = 20, radius = 13.000 * \opclayoutscale] -- cycle;
+        \path[fill = layoutcolor1, draw = layoutcolor1] ({ 22.082 * \opclayoutscale, 8.037 * \opclayoutscale }) arc[start angle = 20, end angle = -20, radius = 23.500 * \opclayoutscale] -- ({ 22.552 * \opclayoutscale, -8.208 * \opclayoutscale }) arc[start angle = -20, end angle = 20, radius = 24.000 * \opclayoutscale] -- cycle;
+    \end{tikzpicture}
 \end{frame}
 
 \end{document}
+
+% vim: nowrap

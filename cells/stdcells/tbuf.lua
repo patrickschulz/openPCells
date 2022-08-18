@@ -10,12 +10,13 @@ end
 function layout(gate, _P)
     local bp = pcell.get_parameters("stdcells/base")
 
-    local isogate = pcell.create_layout("stdcells/isogate")
-    gate:merge_into_shallow(isogate)
-
     -- inverter
-    local inv = pcell.create_layout("stdcells/not_gate", { inputpos = "lower", fingers = _P.ifingers }):move_anchor("right", isogate:get_anchor("left"))
+    local inv = pcell.create_layout("stdcells/not_gate", { inputpos = "lower", fingers = _P.ifingers })
     gate:merge_into_shallow(inv)
+
+    local isogate = pcell.create_layout("stdcells/isogate")
+    isogate:move_anchor("left", inv:get_anchor("right"))
+    gate:merge_into_shallow(isogate)
 
     -- clocked inverter
     local cinv = pcell.create_layout("stdcells/cinv", { fingers = _P.ofingers }):move_anchor("left", isogate:get_anchor("right"))

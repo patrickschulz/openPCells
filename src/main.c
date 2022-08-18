@@ -100,6 +100,14 @@ int main(int argc, const char* const * argv)
         puts("Copyright 2020-2022 Patrick Kurth");
         goto DESTROY_CMDOPTIONS;
     }
+    FILE* pfd_f = NULL;
+    if(cmdoptions_was_provided_long(cmdoptions, "stderr-to"))
+    {
+        const char* stderrto = cmdoptions_get_argument_long(cmdoptions, "stderr-to");
+        pfd_f = fopen(stderrto, "w");
+        int pfd = fileno(pfd_f);
+        dup2(pfd, STDERR_FILENO);
+    }
 
     if(cmdoptions_was_provided_long(cmdoptions, "import-verilog"))
     {
@@ -257,6 +265,11 @@ int main(int argc, const char* const * argv)
     // should not reach here
     fputs("no cell given\n", stderr);
     returnvalue = 1;
+
+    if(pfd_f)
+    {
+        fclose(pfd_f);
+    }
 
     // clean up states
 DESTROY_CONFIG: ;

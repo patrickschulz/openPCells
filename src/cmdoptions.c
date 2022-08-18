@@ -278,9 +278,10 @@ void cmdoptions_help(struct cmdoptions* options)
     unsigned int startskip = 4;
     unsigned int helpsep = 4;
     unsigned int leftmargin = 0;
+    unsigned int rightmargin = 1;
     int narrow = options->force_narrow_mode || (displaywidth < 100); // FIXME: make dynamic (dependent on maximum word width or something)
     unsigned int offset = narrow ? 2 * startskip : optwidth + startskip + helpsep;
-    unsigned int textwidth = displaywidth - offset - leftmargin;
+    unsigned int textwidth = displaywidth - offset - leftmargin - rightmargin;
 
     for(unsigned int i = 0; i < const_vector_size(options->prehelpmsg); ++i)
     {

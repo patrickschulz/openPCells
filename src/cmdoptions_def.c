@@ -20,6 +20,7 @@ cmdoptions_add_option_default(cmdoptions, 'f', "filename", SINGLE_ARG, "openPCel
 cmdoptions_add_option(cmdoptions, NO_SHORT, "origin", SINGLE_ARG, "origin of cell (move (0, 0)). This option expects a point input, e.g. '(10, 10)' (with parantheses)");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "translate", SINGLE_ARG, "move cell by (x, y). This option expects a point input, e.g. '(10, 10)' (with parantheses)");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "orientation", SINGLE_ARG, "orientation of cell (possible values: 0 (regular), fx (flip x), fy (flip y), fxy (flip x and y))");
+cmdoptions_add_option(cmdoptions, NO_SHORT, "scale", SINGLE_ARG, "scale factor for all shapes");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "write-children-ports", NO_ARG, "export ports of sub cells. Depending on what you do with the generated layouts this could possible break a clean LVS (possible szenario: importing a SKILL representation of a layout hierarchy. Since the SKILL export creates a flat layout, sub-level ports now become top-level ports, which is almost certainly wrong.)");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "append-cellpath", MULTI_ARGS, "append searchpath for cells (can be used multiple times: --append-cellpath foo --append-cellpath bar)");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "prepend-cellpath", MULTI_ARGS, "prepend searchpath for cells (can be used multiple times: --prepend-cellpath foo --prepend-cellpath bar)");
@@ -86,6 +87,7 @@ cmdoptions_add_option(cmdoptions, NO_SHORT, "noexport", NO_ARG, "disable all exp
 cmdoptions_add_option(cmdoptions, NO_SHORT, "dryrun", NO_ARG, "perform all calculations, but don't actually write any files. This is useful for profiling, where the program should run normally but should not produce any output");
 cmdoptions_add_option(cmdoptions, 'v', "version", NO_ARG, "display version");
 cmdoptions_add_option(cmdoptions, 'h', "help", NO_ARG, "display help");
+cmdoptions_add_option(cmdoptions, NO_SHORT, "stderr-to", SINGLE_ARG, "redirect standard error to the given file (will be overwritten)");
 
 cmdoptions_prepend_help_message(cmdoptions, "openPCells layout generator (opc) - Patrick Kurth 2020 - 2021");
 cmdoptions_prepend_help_message(cmdoptions, "");
