@@ -14,25 +14,15 @@ module serial_ctrl(data_inout, clk, reset_in, count_reached_in, data_out_shift_r
   wire _003_;
   (* src = "serial_ctrl.sv:68.5-75.8" *)
   wire _004_;
-  (* src = "serial_ctrl.sv:83.5-90.8" *)
   wire _005_;
-  (* src = "serial_ctrl.sv:83.5-90.8" *)
   wire _006_;
-  (* src = "serial_ctrl.sv:108.5-118.8" *)
   wire _007_;
-  (* src = "serial_ctrl.sv:55.5-62.8" *)
   wire _008_;
-  (* src = "serial_ctrl.sv:42.5-49.8" *)
   wire _009_;
-  (* src = "serial_ctrl.sv:68.5-75.8" *)
   wire _010_;
-  (* src = "serial_ctrl.sv:121.71-121.78" *)
   wire _011_;
-  (* src = "serial_ctrl.sv:121.71-121.78" *)
   wire _012_;
-  (* src = "serial_ctrl.sv:121.71-121.78" *)
   wire _013_;
-  (* src = "serial_ctrl.sv:27.71-27.82" *)
   wire _014_;
   wire _015_;
   wire _016_;
@@ -40,57 +30,31 @@ module serial_ctrl(data_inout, clk, reset_in, count_reached_in, data_out_shift_r
   wire _018_;
   wire _019_;
   wire _020_;
-  (* src = "serial_ctrl.sv:94.219-94.228" *)
   wire _021_;
-  (* src = "serial_ctrl.sv:94.219-94.228" *)
   wire _022_;
-  (* src = "serial_ctrl.sv:94.219-94.228" *)
   wire _023_;
-  (* src = "serial_ctrl.sv:93.219-93.232" *)
   wire _024_;
-  (* src = "serial_ctrl.sv:93.219-93.232" *)
   wire _025_;
-  (* src = "serial_ctrl.sv:93.219-93.232" *)
   wire _026_;
-  (* src = "serial_ctrl.sv:79.74-79.81" *)
   wire _027_;
-  (* src = "serial_ctrl.sv:79.74-79.81" *)
   wire _028_;
-  (* src = "serial_ctrl.sv:16.17-16.33" *)
   wire _029_;
-  (* src = "serial_ctrl.sv:32.18-32.28" *)
   wire _030_;
-  (* src = "serial_ctrl.sv:32.18-32.28" *)
   wire _031_;
-  (* src = "serial_ctrl.sv:32.18-32.28" *)
   wire _032_;
-  (* src = "serial_ctrl.sv:32.18-32.28" *)
   wire _033_;
-  (* src = "serial_ctrl.sv:33.18-33.33" *)
   wire _034_;
-  (* src = "serial_ctrl.sv:33.18-33.33" *)
   wire _035_;
-  (* src = "serial_ctrl.sv:33.18-33.33" *)
   wire _036_;
-  (* src = "serial_ctrl.sv:33.18-33.33" *)
   wire _037_;
-  (* src = "serial_ctrl.sv:31.18-31.32" *)
   wire _038_;
-  (* src = "serial_ctrl.sv:31.18-31.32" *)
   wire _039_;
-  (* src = "serial_ctrl.sv:31.18-31.32" *)
   wire _040_;
-  (* src = "serial_ctrl.sv:31.18-31.32" *)
   wire _041_;
-  (* src = "serial_ctrl.sv:12.17-12.27" *)
   wire _042_;
-  (* src = "serial_ctrl.sv:17.17-17.38" *)
   wire _043_;
-  (* src = "serial_ctrl.sv:24.11-24.21" *)
   wire _044_;
-  (* src = "serial_ctrl.sv:21.18-21.39" *)
   wire _045_;
-  (* src = "serial_ctrl.sv:26.11-26.23" *)
   wire _046_;
   wire _047_;
   wire _048_;
@@ -140,204 +104,13 @@ module serial_ctrl(data_inout, clk, reset_in, count_reached_in, data_out_shift_r
   wire _092_;
   wire _093_;
   wire _094_;
-  wire _095_;
-  wire _096_;
-  wire _097_;
-  wire _098_;
-  wire _099_;
-  wire _100_;
-  wire _101_;
-  wire _102_;
-  wire _103_;
-  wire _104_;
-  wire _105_;
-  wire _106_;
-  wire _107_;
-  wire _108_;
-  wire _109_;
-  wire _110_;
-  wire _111_;
-  wire _112_;
-  wire _113_;
-  wire _114_;
-  wire _115_;
-  wire _116_;
-  wire _117_;
-  wire _118_;
-  wire _119_;
-  wire _120_;
-  wire _121_;
-  wire _122_;
-  wire _123_;
-  wire _124_;
-  wire _125_;
-  wire _126_;
-  wire _127_;
-  wire _128_;
-  wire _129_;
-  wire _130_;
-  (* src = "serial_ctrl.sv:0.0-0.0|serial_ctrl.sv:157.13-230.20|/usr/bin/../share/yosys/techmap.v:575.21-575.22" *)
-  wire _131_;
-  (* src = "serial_ctrl.sv:0.0-0.0|serial_ctrl.sv:157.13-230.20|/usr/bin/../share/yosys/techmap.v:575.21-575.22" *)
-  wire _132_;
-  (* src = "serial_ctrl.sv:0.0-0.0|serial_ctrl.sv:157.13-230.20|/usr/bin/../share/yosys/techmap.v:575.21-575.22" *)
-  wire _133_;
-  (* src = "serial_ctrl.sv:0.0-0.0|serial_ctrl.sv:157.13-230.20|/usr/bin/../share/yosys/techmap.v:575.21-575.22" *)
-  wire _134_;
-  (* src = "serial_ctrl.sv:18.18-18.33" *)
-  wire _135_;
-  wire _136_;
-  wire _137_;
-  wire _138_;
-  wire _139_;
-  wire _140_;
-  wire _141_;
-  wire _142_;
-  wire _143_;
-  wire _144_;
-  wire _145_;
-  wire _146_;
-  wire _147_;
-  wire _148_;
-  wire _149_;
-  wire _150_;
-  wire _151_;
-  wire _152_;
-  wire _153_;
-  wire [1:0] _154_;
-  wire [1:0] _155_;
-  wire [4:0] _156_;
-  wire [1:0] _157_;
-  wire _158_;
-  wire [1:0] _159_;
-  wire [1:0] _160_;
-  wire [1:0] _161_;
-  wire _162_;
-  wire _163_;
-  wire [1:0] _164_;
-  wire [1:0] _165_;
-  wire [1:0] _166_;
-  wire [1:0] _167_;
-  wire [1:0] _168_;
-  wire [15:0] _169_;
-  wire [7:0] _170_;
-  wire [2:0] _171_;
-  wire [1:0] _172_;
-  wire [2:0] _173_;
-  wire [1:0] _174_;
-  wire [2:0] _175_;
-  wire [1:0] _176_;
-  wire [2:0] _177_;
-  wire [1:0] _178_;
-  wire [1:0] _179_;
-  wire _180_;
-  wire _181_;
-  wire [3:0] _182_;
-  wire _183_;
-  wire _184_;
-  wire _185_;
-  wire _186_;
-  wire _187_;
-  wire _188_;
-  wire _189_;
-  wire _190_;
-  wire _191_;
-  wire _192_;
-  wire _193_;
-  wire _194_;
-  wire _195_;
-  wire _196_;
-  wire _197_;
-  wire _198_;
-  wire _199_;
-  wire _200_;
-  wire _201_;
-  wire _202_;
-  wire _203_;
-  (* src = "serial_ctrl.sv:109.13-109.41" *)
-  wire _204_;
-  (* src = "serial_ctrl.sv:110.17-110.30" *)
-  wire _205_;
-  (* src = "serial_ctrl.sv:109.12-110.84" *)
-  wire _206_;
-  (* src = "serial_ctrl.sv:123.12-123.61" *)
-  wire _207_;
-  (* src = "serial_ctrl.sv:29.26-29.52" *)
-  wire _208_;
-  (* force_downto = 32'd1 *)
-  (* src = "serial_ctrl.sv:0.0-0.0|serial_ctrl.sv:157.13-230.20|/usr/bin/../share/yosys/techmap.v:571.28-571.29" *)
-  wire [27:0] _209_;
-  (* force_downto = 32'd1 *)
-  (* src = "serial_ctrl.sv:0.0-0.0|serial_ctrl.sv:157.13-230.20|/usr/bin/../share/yosys/techmap.v:583.28-583.35" *)
-  wire [27:0] _210_;
-  (* force_downto = 32'd1 *)
-  (* src = "serial_ctrl.sv:0.0-0.0|serial_ctrl.sv:157.13-230.20|/usr/bin/../share/yosys/techmap.v:573.22-573.23" *)
-  wire [6:0] _211_;
   (* force_downto = 32'd1 *)
   (* src = "serial_ctrl.sv:0.0-0.0|serial_ctrl.sv:157.13-230.20|/usr/bin/../share/yosys/techmap.v:575.21-575.22" *)
-  wire [3:0] _212_;
-  (* force_downto = 32'd1 *)
-  (* src = "serial_ctrl.sv:0.0-0.0|serial_ctrl.sv:157.13-230.20|/usr/bin/../share/yosys/techmap.v:578.19-578.22" *)
-  wire [3:0] _213_;
-  wire _214_;
-  wire _215_;
-  wire _216_;
-  wire _217_;
-  wire _218_;
-  wire _219_;
-  wire _220_;
-  (* force_downto = 32'd1 *)
-  (* src = "serial_ctrl.sv:0.0-0.0|serial_ctrl.sv:188.25-201.32|/usr/bin/../share/yosys/techmap.v:583.28-583.35" *)
-  wire [15:0] _221_;
-  (* force_downto = 32'd1 *)
-  (* src = "serial_ctrl.sv:0.0-0.0|serial_ctrl.sv:188.25-201.32|/usr/bin/../share/yosys/techmap.v:575.21-575.22" *)
-  wire [3:0] _222_;
-  (* force_downto = 32'd1 *)
-  (* src = "serial_ctrl.sv:0.0-0.0|serial_ctrl.sv:188.25-201.32|/usr/bin/../share/yosys/techmap.v:578.19-578.22" *)
-  wire [3:0] _223_;
-  wire _224_;
-  wire _225_;
-  (* force_downto = 32'd1 *)
-  (* src = "serial_ctrl.sv:100.30-100.43|/usr/bin/../share/yosys/techmap.v:274.23-274.25" *)
-  (* unused_bits = "2" *)
-  wire [31:0] _226_;
-  (* force_downto = 32'd1 *)
-  (* src = "serial_ctrl.sv:100.30-100.43|/usr/bin/../share/yosys/techmap.v:270.23-270.24" *)
-  wire [31:0] _227_;
-  (* force_downto = 32'd1 *)
-  (* src = "serial_ctrl.sv:100.30-100.43|/usr/bin/../share/yosys/techmap.v:270.26-270.27" *)
-  (* unused_bits = "3" *)
-  wire [31:0] _228_;
-  (* force_downto = 32'd1 *)
-  (* src = "serial_ctrl.sv:110.17-110.30|/usr/bin/../share/yosys/techmap.v:274.23-274.25" *)
-  wire [31:0] _229_;
-  (* force_downto = 32'd1 *)
-  (* src = "serial_ctrl.sv:110.17-110.30|/usr/bin/../share/yosys/techmap.v:270.23-270.24" *)
-  wire [31:0] _230_;
-  (* force_downto = 32'd1 *)
-  (* src = "serial_ctrl.sv:110.17-110.30|/usr/bin/../share/yosys/techmap.v:270.26-270.27" *)
-  (* unused_bits = "1 2" *)
-  wire [31:0] _231_;
-  wire _232_;
-  (* force_downto = 32'd1 *)
-  (* src = "serial_ctrl.sv:111.17-111.215|/usr/bin/../share/yosys/techmap.v:274.23-274.25" *)
-  wire [31:0] _233_;
-  (* force_downto = 32'd1 *)
-  (* src = "serial_ctrl.sv:111.17-111.215|/usr/bin/../share/yosys/techmap.v:270.26-270.27" *)
-  (* unused_bits = "1 2" *)
-  wire [31:0] _234_;
-  (* src = "serial_ctrl.sv:0.0-0.0|serial_ctrl.sv:157.13-230.20|/usr/bin/../share/yosys/techmap.v:597.13-597.15" *)
-  wire _235_;
-  (* src = "serial_ctrl.sv:0.0-0.0|serial_ctrl.sv:188.25-201.32|/usr/bin/../share/yosys/techmap.v:597.13-597.15" *)
-  wire _236_;
-  (* src = "serial_ctrl.sv:110.17-110.30|/usr/bin/../share/yosys/techmap.v:286.27-286.69|/usr/bin/../share/yosys/techmap.v:240.19-240.41" *)
-  wire _237_;
+  wire [3:0] _095_;
   (* src = "serial_ctrl.sv:121.71-121.78" *)
   wire [2:0] ack_out;
   (* src = "serial_ctrl.sv:27.71-27.82" *)
   wire [2:0] ack_out_pre;
-  (* src = "serial_ctrl.sv:119.70-119.81" *)
-  wire [2:0] ack_pattern;
   (* src = "serial_ctrl.sv:13.17-13.20" *)
   input clk;
   (* src = "serial_ctrl.sv:94.219-94.228" *)
@@ -409,8 +182,6 @@ module serial_ctrl(data_inout, clk, reset_in, count_reached_in, data_out_shift_r
   wire [3:0] curr_state_pre;
   (* src = "serial_ctrl.sv:12.17-12.27" *)
   inout data_inout;
-  (* src = "serial_ctrl.sv:25.11-25.19" *)
-  wire data_out;
   (* src = "serial_ctrl.sv:17.17-17.38" *)
   input data_out_shift_reg_in;
   (* src = "serial_ctrl.sv:24.11-24.21" *)
@@ -425,803 +196,726 @@ module serial_ctrl(data_inout, clk, reset_in, count_reached_in, data_out_shift_r
   input reset_in;
   (* src = "serial_ctrl.sv:20.18-20.37" *)
   output reset_shift_reg_out;
-  (* src = "serial_ctrl.sv:35.11-35.26" *)
-  wire statetransition;
   (* src = "serial_ctrl.sv:135.11-135.21" *)
   wire syncreset1;
   (* src = "serial_ctrl.sv:135.23-135.33" *)
   wire syncreset2;
   (* src = "serial_ctrl.sv:19.18-19.38" *)
   output update_shift_reg_out;
-  not_gate _238_ (
-    .I(_011_),
-    .O(_091_)
-  );
-  not_gate _239_ (
-    .I(_033_),
-    .O(_092_)
-  );
-  not_gate _240_ (
-    .I(_040_),
-    .O(_093_)
-  );
-  not_gate _241_ (
-    .I(_028_),
-    .O(_094_)
-  );
-  not_gate _242_ (
-    .I(_023_),
-    .O(_095_)
-  );
-  not_gate _243_ (
-    .I(_030_),
-    .O(_096_)
-  );
-  not_gate _244_ (
-    .I(_038_),
-    .O(_097_)
-  );
-  not_gate _245_ (
-    .I(_029_),
-    .O(_098_)
-  );
-  nand_gate _246_ (
-    .A(_039_),
-    .B(_097_),
-    .O(_099_)
-  );
-  or_gate _247_ (
-    .A(_041_),
-    .B(_099_),
-    .O(_100_)
-  );
-  nor_gate _248_ (
-    .A(_040_),
-    .B(_100_),
-    .O(_101_)
-  );
-  nor_gate _249_ (
-    .A(_021_),
-    .B(_101_),
-    .O(_015_)
-  );
-  and_gate _250_ (
-    .A(_021_),
-    .B(_022_),
-    .O(_102_)
-  );
-  xnor_gate _251_ (
-    .A(_021_),
-    .B(_022_),
-    .O(_103_)
-  );
-  nor_gate _252_ (
-    .A(_101_),
-    .B(_103_),
-    .O(_016_)
-  );
-  and_gate _253_ (
-    .A(_095_),
-    .B(_102_),
-    .O(_104_)
-  );
-  xnor_gate _254_ (
-    .A(_023_),
-    .B(_102_),
-    .O(_105_)
-  );
-  nor_gate _255_ (
-    .A(_101_),
-    .B(_105_),
-    .O(_017_)
-  );
-  nor_gate _256_ (
-    .A(_093_),
-    .B(_100_),
-    .O(_106_)
-  );
-  xnor_gate _257_ (
-    .A(_041_),
-    .B(_037_),
-    .O(_107_)
-  );
-  xnor_gate _258_ (
-    .A(_040_),
-    .B(_036_),
-    .O(_108_)
-  );
-  xnor_gate _259_ (
-    .A(_038_),
-    .B(_034_),
-    .O(_109_)
-  );
-  xnor_gate _260_ (
-    .A(_039_),
-    .B(_035_),
-    .O(_110_)
-  );
-  and_gate _261_ (
-    .A(_108_),
-    .B(_110_),
-    .O(_111_)
-  );
-  and_gate _262_ (
-    .A(_107_),
-    .B(_109_),
-    .O(_112_)
-  );
-  nand_gate _263_ (
-    .A(_111_),
-    .B(_112_),
-    .O(_113_)
-  );
-  and_gate _264_ (
-    .A(_106_),
-    .B(_113_),
-    .O(_114_)
-  );
-  or_gate _265_ (
-    .A(_013_),
-    .B(_114_),
-    .O(_018_)
-  );
-  nor_gate _266_ (
-    .A(_091_),
-    .B(_114_),
-    .O(_019_)
-  );
-  or_gate _267_ (
-    .A(_012_),
-    .B(_114_),
-    .O(_020_)
-  );
-  nor_gate _268_ (
-    .A(_039_),
-    .B(_038_),
-    .O(_115_)
-  );
-  nand_gate _269_ (
-    .A(_040_),
-    .B(_115_),
-    .O(_116_)
-  );
-  or_gate _270_ (
-    .A(_041_),
-    .B(_116_),
-    .O(_009_)
-  );
-  and_gate _271_ (
-    .A(_030_),
-    .B(_031_),
-    .O(_117_)
-  );
-  nor_gate _272_ (
-    .A(_033_),
-    .B(_032_),
-    .O(_118_)
-  );
-  and_gate _273_ (
-    .A(_117_),
-    .B(_118_),
-    .O(_010_)
-  );
-  and_gate _274_ (
-    .A(_096_),
-    .B(_031_),
-    .O(_119_)
-  );
-  and_gate _275_ (
-    .A(_092_),
-    .B(_032_),
-    .O(_120_)
-  );
-  and_gate _276_ (
-    .A(_119_),
-    .B(_120_),
-    .O(_121_)
-  );
-  not_gate _277_ (
-    .I(_121_),
-    .O(_135_)
-  );
-  and_gate _278_ (
-    .A(_041_),
-    .B(_115_),
-    .O(_122_)
-  );
-  and_gate _279_ (
-    .A(_093_),
-    .B(_122_),
-    .O(_008_)
-  );
-  nand_gate _280_ (
-    .A(_117_),
-    .B(_120_),
-    .O(_123_)
-  );
-  or_gate _281_ (
-    .A(_032_),
-    .B(_030_),
-    .O(_124_)
-  );
-  nor_gate _282_ (
-    .A(_030_),
-    .B(_031_),
-    .O(_125_)
-  );
-  or_gate _283_ (
-    .A(_030_),
-    .B(_031_),
-    .O(_126_)
-  );
-  nor_gate _284_ (
-    .A(_092_),
-    .B(_032_),
-    .O(_127_)
-  );
-  nand_gate _285_ (
-    .A(_125_),
-    .B(_127_),
-    .O(_128_)
-  );
-  nand_gate _286_ (
-    .A(_123_),
-    .B(_128_),
-    .O(_045_)
-  );
-  nor_gate _287_ (
-    .A(_095_),
-    .B(_022_),
-    .O(_129_)
-  );
-  or_gate _288_ (
-    .A(_104_),
-    .B(_129_),
-    .O(_130_)
-  );
-  and_gate _289_ (
-    .A(_106_),
-    .B(_130_),
-    .O(_007_)
-  );
-  nand_gate _290_ (
-    .A(_046_),
-    .B(_043_),
-    .O(_047_)
-  );
-  nand_gate _291_ (
-    .A(_044_),
-    .B(_014_),
-    .O(_048_)
-  );
-  or_gate _292_ (
-    .A(_044_),
-    .B(_047_),
-    .O(_049_)
-  );
-  nand_gate _293_ (
-    .A(_048_),
-    .B(_049_),
-    .O(_042_)
-  );
-  nor_gate _294_ (
-    .A(_096_),
-    .B(_031_),
-    .O(_050_)
-  );
-  and_gate _295_ (
-    .A(_120_),
-    .B(_050_),
-    .O(_051_)
-  );
-  nand_gate _296_ (
-    .A(_120_),
-    .B(_050_),
-    .O(_052_)
-  );
-  nand_gate _297_ (
-    .A(_027_),
-    .B(_052_),
-    .O(_053_)
-  );
-  nand_gate _298_ (
-    .A(_042_),
-    .B(_051_),
-    .O(_054_)
-  );
-  nand_gate _299_ (
-    .A(_053_),
-    .B(_054_),
-    .O(_005_)
-  );
-  nand_gate _300_ (
-    .A(_027_),
-    .B(_051_),
+  not_gate _096_ (
+    .I(ack_out[0]),
     .O(_055_)
   );
-  nand_gate _301_ (
-    .A(_028_),
-    .B(_052_),
+  not_gate _097_ (
+    .I(curr_state[3]),
     .O(_056_)
   );
-  nand_gate _302_ (
-    .A(_055_),
-    .B(_056_),
-    .O(_006_)
-  );
-  or_gate _303_ (
-    .A(_029_),
-    .B(_123_),
+  not_gate _098_ (
+    .I(curr_state_pre[2]),
     .O(_057_)
   );
-  and_gate _304_ (
-    .A(_118_),
-    .B(_119_),
+  not_gate _099_ (
+    .I(cmd_reg[1]),
     .O(_058_)
   );
-  nand_gate _305_ (
-    .A(_118_),
-    .B(_119_),
+  not_gate _100_ (
+    .I(cmd_count[2]),
     .O(_059_)
   );
-  nand_gate _306_ (
-    .A(_042_),
-    .B(_058_),
+  not_gate _101_ (
+    .I(curr_state[0]),
     .O(_060_)
   );
-  and_gate _307_ (
-    .A(_057_),
-    .B(_060_),
+  not_gate _102_ (
+    .I(curr_state_pre[0]),
     .O(_061_)
   );
-  and_gate _308_ (
-    .A(_026_),
-    .B(_024_),
+  not_gate _103_ (
+    .I(count_reached_in),
     .O(_062_)
   );
-  and_gate _309_ (
-    .A(_025_),
-    .B(_062_),
+  nand_gate _104_ (
+    .A(curr_state_pre[1]),
+    .B(_061_),
     .O(_063_)
   );
-  and_gate _310_ (
-    .A(_028_),
-    .B(_121_),
+  or_gate _105_ (
+    .A(curr_state_pre[3]),
+    .B(_063_),
     .O(_064_)
   );
-  nand_gate _311_ (
-    .A(_063_),
+  nor_gate _106_ (
+    .A(curr_state_pre[2]),
     .B(_064_),
     .O(_065_)
   );
-  nor_gate _312_ (
-    .A(_026_),
-    .B(_024_),
+  nor_gate _107_ (
+    .A(cmd_count[0]),
+    .B(_065_),
+    .O(_005_)
+  );
+  and_gate _108_ (
+    .A(cmd_count[0]),
+    .B(cmd_count[1]),
     .O(_066_)
   );
-  and_gate _313_ (
-    .A(_025_),
-    .B(_066_),
+  xnor_gate _109_ (
+    .A(cmd_count[0]),
+    .B(cmd_count[1]),
     .O(_067_)
   );
-  or_gate _314_ (
-    .A(_052_),
+  nor_gate _110_ (
+    .A(_065_),
     .B(_067_),
+    .O(_006_)
+  );
+  and_gate _111_ (
+    .A(_059_),
+    .B(_066_),
     .O(_068_)
   );
-  or_gate _315_ (
-    .A(_098_),
-    .B(_128_),
+  xnor_gate _112_ (
+    .A(cmd_count[2]),
+    .B(_066_),
     .O(_069_)
   );
-  and_gate _316_ (
-    .A(_068_),
+  nor_gate _113_ (
+    .A(_065_),
     .B(_069_),
+    .O(_007_)
+  );
+  nor_gate _114_ (
+    .A(_057_),
+    .B(_064_),
     .O(_070_)
   );
-  and_gate _317_ (
-    .A(_065_),
-    .B(_070_),
+  xnor_gate _115_ (
+    .A(curr_state_pre[3]),
+    .B(curr_state_post[3]),
     .O(_071_)
   );
-  nand_gate _318_ (
-    .A(_061_),
-    .B(_071_),
-    .O(_131_)
-  );
-  nand_gate _319_ (
-    .A(_032_),
-    .B(_126_),
+  xnor_gate _116_ (
+    .A(curr_state_pre[2]),
+    .B(curr_state_post[2]),
     .O(_072_)
   );
-  nand_gate _320_ (
-    .A(_124_),
-    .B(_072_),
+  xnor_gate _117_ (
+    .A(curr_state_pre[0]),
+    .B(curr_state_post[0]),
     .O(_073_)
   );
-  nand_gate _321_ (
-    .A(_033_),
-    .B(_126_),
+  xnor_gate _118_ (
+    .A(curr_state_pre[1]),
+    .B(curr_state_post[1]),
     .O(_074_)
   );
-  and_gate _322_ (
-    .A(_123_),
+  and_gate _119_ (
+    .A(_072_),
     .B(_074_),
     .O(_075_)
   );
-  and_gate _323_ (
-    .A(_073_),
-    .B(_075_),
+  and_gate _120_ (
+    .A(_071_),
+    .B(_073_),
     .O(_076_)
   );
-  nand_gate _324_ (
-    .A(_051_),
-    .B(_067_),
+  nand_gate _121_ (
+    .A(_075_),
+    .B(_076_),
     .O(_077_)
   );
-  or_gate _325_ (
-    .A(_042_),
-    .B(_059_),
+  and_gate _122_ (
+    .A(_070_),
+    .B(_077_),
     .O(_078_)
   );
-  nand_gate _326_ (
-    .A(_094_),
-    .B(_063_),
+  or_gate _123_ (
+    .A(ack_out[2]),
+    .B(_078_),
+    .O(_008_)
+  );
+  nor_gate _124_ (
+    .A(_055_),
+    .B(_078_),
+    .O(_009_)
+  );
+  or_gate _125_ (
+    .A(ack_out[1]),
+    .B(_078_),
+    .O(_010_)
+  );
+  nor_gate _126_ (
+    .A(curr_state_pre[1]),
+    .B(curr_state_pre[0]),
     .O(_079_)
   );
-  nand_gate _327_ (
-    .A(_121_),
+  nand_gate _127_ (
+    .A(curr_state_pre[2]),
     .B(_079_),
     .O(_080_)
   );
-  and_gate _328_ (
-    .A(_077_),
+  or_gate _128_ (
+    .A(curr_state_pre[3]),
     .B(_080_),
+    .O(_003_)
+  );
+  and_gate _129_ (
+    .A(curr_state[0]),
+    .B(curr_state[1]),
     .O(_081_)
   );
-  and_gate _329_ (
-    .A(_078_),
-    .B(_081_),
+  nor_gate _130_ (
+    .A(curr_state[3]),
+    .B(curr_state[2]),
     .O(_082_)
   );
-  nand_gate _330_ (
-    .A(_076_),
+  and_gate _131_ (
+    .A(_081_),
     .B(_082_),
-    .O(_132_)
+    .O(_004_)
   );
-  nand_gate _331_ (
-    .A(_027_),
-    .B(_063_),
+  and_gate _132_ (
+    .A(_060_),
+    .B(curr_state[1]),
     .O(_083_)
   );
-  nand_gate _332_ (
-    .A(_121_),
-    .B(_083_),
+  and_gate _133_ (
+    .A(_056_),
+    .B(curr_state[2]),
     .O(_084_)
   );
-  nand_gate _333_ (
-    .A(_118_),
-    .B(_125_),
+  and_gate _134_ (
+    .A(_083_),
+    .B(_084_),
     .O(_085_)
   );
-  and_gate _334_ (
-    .A(_052_),
-    .B(_085_),
+  not_gate _135_ (
+    .I(_085_),
+    .O(reset_count_out)
+  );
+  and_gate _136_ (
+    .A(curr_state_pre[3]),
+    .B(_079_),
     .O(_086_)
   );
-  and_gate _335_ (
-    .A(_084_),
+  and_gate _137_ (
+    .A(_057_),
     .B(_086_),
+    .O(_002_)
+  );
+  nand_gate _138_ (
+    .A(_081_),
+    .B(_084_),
     .O(_087_)
   );
-  nand_gate _336_ (
-    .A(_061_),
-    .B(_087_),
-    .O(_133_)
-  );
-  or_gate _337_ (
-    .A(_029_),
-    .B(_128_),
+  or_gate _139_ (
+    .A(curr_state[2]),
+    .B(curr_state[0]),
     .O(_088_)
   );
-  nand_gate _338_ (
-    .A(_094_),
-    .B(_121_),
+  nor_gate _140_ (
+    .A(curr_state[0]),
+    .B(curr_state[1]),
     .O(_089_)
   );
-  or_gate _339_ (
-    .A(_083_),
-    .B(_089_),
+  or_gate _141_ (
+    .A(curr_state[0]),
+    .B(curr_state[1]),
     .O(_090_)
   );
-  nand_gate _340_ (
-    .A(_088_),
+  nor_gate _142_ (
+    .A(_056_),
+    .B(curr_state[2]),
+    .O(_091_)
+  );
+  nand_gate _143_ (
+    .A(_089_),
+    .B(_091_),
+    .O(_092_)
+  );
+  nand_gate _144_ (
+    .A(_087_),
+    .B(_092_),
+    .O(enable_shift_register)
+  );
+  nor_gate _145_ (
+    .A(_059_),
+    .B(cmd_count[1]),
+    .O(_093_)
+  );
+  or_gate _146_ (
+    .A(_068_),
+    .B(_093_),
+    .O(_094_)
+  );
+  and_gate _147_ (
+    .A(_070_),
+    .B(_094_),
+    .O(_001_)
+  );
+  nand_gate _148_ (
+    .A(enable_write),
+    .B(data_out_shift_reg_in),
+    .O(_011_)
+  );
+  nand_gate _149_ (
+    .A(enable_ack),
+    .B(ack_out_pre[0]),
+    .O(_012_)
+  );
+  or_gate _150_ (
+    .A(enable_ack),
+    .B(_011_),
+    .O(_013_)
+  );
+  nand_gate _151_ (
+    .A(_012_),
+    .B(_013_),
+    .O(data_inout)
+  );
+  nor_gate _152_ (
+    .A(_060_),
+    .B(curr_state[1]),
+    .O(_014_)
+  );
+  and_gate _153_ (
+    .A(_084_),
+    .B(_014_),
+    .O(_015_)
+  );
+  nand_gate _154_ (
+    .A(_084_),
+    .B(_014_),
+    .O(_016_)
+  );
+  nand_gate _155_ (
+    .A(cmd_reg[0]),
+    .B(_016_),
+    .O(_017_)
+  );
+  nand_gate _156_ (
+    .A(data_inout),
+    .B(_015_),
+    .O(_018_)
+  );
+  nand_gate _157_ (
+    .A(_017_),
+    .B(_018_),
+    .O(_000_[0])
+  );
+  nand_gate _158_ (
+    .A(cmd_reg[0]),
+    .B(_015_),
+    .O(_019_)
+  );
+  nand_gate _159_ (
+    .A(cmd_reg[1]),
+    .B(_016_),
+    .O(_020_)
+  );
+  nand_gate _160_ (
+    .A(_019_),
+    .B(_020_),
+    .O(_000_[1])
+  );
+  or_gate _161_ (
+    .A(count_reached_in),
+    .B(_087_),
+    .O(_021_)
+  );
+  and_gate _162_ (
+    .A(_082_),
+    .B(_083_),
+    .O(_022_)
+  );
+  nand_gate _163_ (
+    .A(_082_),
+    .B(_083_),
+    .O(_023_)
+  );
+  nand_gate _164_ (
+    .A(data_inout),
+    .B(_022_),
+    .O(_024_)
+  );
+  and_gate _165_ (
+    .A(_021_),
+    .B(_024_),
+    .O(_025_)
+  );
+  and_gate _166_ (
+    .A(cmd_count_pre[2]),
+    .B(cmd_count_pre[0]),
+    .O(_026_)
+  );
+  and_gate _167_ (
+    .A(cmd_count_pre[1]),
+    .B(_026_),
+    .O(_027_)
+  );
+  and_gate _168_ (
+    .A(cmd_reg[1]),
+    .B(_085_),
+    .O(_028_)
+  );
+  nand_gate _169_ (
+    .A(_027_),
+    .B(_028_),
+    .O(_029_)
+  );
+  nor_gate _170_ (
+    .A(cmd_count_pre[2]),
+    .B(cmd_count_pre[0]),
+    .O(_030_)
+  );
+  and_gate _171_ (
+    .A(cmd_count_pre[1]),
+    .B(_030_),
+    .O(_031_)
+  );
+  or_gate _172_ (
+    .A(_016_),
+    .B(_031_),
+    .O(_032_)
+  );
+  or_gate _173_ (
+    .A(_062_),
+    .B(_092_),
+    .O(_033_)
+  );
+  and_gate _174_ (
+    .A(_032_),
+    .B(_033_),
+    .O(_034_)
+  );
+  and_gate _175_ (
+    .A(_029_),
+    .B(_034_),
+    .O(_035_)
+  );
+  nand_gate _176_ (
+    .A(_025_),
+    .B(_035_),
+    .O(_095_[0])
+  );
+  nand_gate _177_ (
+    .A(curr_state[2]),
     .B(_090_),
-    .O(_134_)
+    .O(_036_)
+  );
+  nand_gate _178_ (
+    .A(_088_),
+    .B(_036_),
+    .O(_037_)
+  );
+  nand_gate _179_ (
+    .A(curr_state[3]),
+    .B(_090_),
+    .O(_038_)
+  );
+  and_gate _180_ (
+    .A(_087_),
+    .B(_038_),
+    .O(_039_)
+  );
+  and_gate _181_ (
+    .A(_037_),
+    .B(_039_),
+    .O(_040_)
+  );
+  nand_gate _182_ (
+    .A(_015_),
+    .B(_031_),
+    .O(_041_)
+  );
+  or_gate _183_ (
+    .A(data_inout),
+    .B(_023_),
+    .O(_042_)
+  );
+  nand_gate _184_ (
+    .A(_058_),
+    .B(_027_),
+    .O(_043_)
+  );
+  nand_gate _185_ (
+    .A(_085_),
+    .B(_043_),
+    .O(_044_)
+  );
+  and_gate _186_ (
+    .A(_041_),
+    .B(_044_),
+    .O(_045_)
+  );
+  and_gate _187_ (
+    .A(_042_),
+    .B(_045_),
+    .O(_046_)
+  );
+  nand_gate _188_ (
+    .A(_040_),
+    .B(_046_),
+    .O(_095_[1])
+  );
+  nand_gate _189_ (
+    .A(cmd_reg[0]),
+    .B(_027_),
+    .O(_047_)
+  );
+  nand_gate _190_ (
+    .A(_085_),
+    .B(_047_),
+    .O(_048_)
+  );
+  nand_gate _191_ (
+    .A(_082_),
+    .B(_089_),
+    .O(_049_)
+  );
+  and_gate _192_ (
+    .A(_016_),
+    .B(_049_),
+    .O(_050_)
+  );
+  and_gate _193_ (
+    .A(_048_),
+    .B(_050_),
+    .O(_051_)
+  );
+  nand_gate _194_ (
+    .A(_025_),
+    .B(_051_),
+    .O(_095_[2])
+  );
+  or_gate _195_ (
+    .A(count_reached_in),
+    .B(_092_),
+    .O(_052_)
+  );
+  nand_gate _196_ (
+    .A(_058_),
+    .B(_085_),
+    .O(_053_)
+  );
+  or_gate _197_ (
+    .A(_047_),
+    .B(_053_),
+    .O(_054_)
+  );
+  nand_gate _198_ (
+    .A(_052_),
+    .B(_054_),
+    .O(_095_[3])
   );
   (* src = "serial_ctrl.sv:95.5-102.8" *)
-  dffnq _341_ (
+  dffnq _199_ (
     .CLK(clk),
-    .D(_148_),
+    .D(_005_),
     .Q(cmd_count_pre[0])
   );
   (* src = "serial_ctrl.sv:95.5-102.8" *)
-  dffnq _342_ (
+  dffnq _200_ (
     .CLK(clk),
-    .D(_149_),
+    .D(_006_),
     .Q(cmd_count_pre[1])
   );
   (* src = "serial_ctrl.sv:95.5-102.8" *)
-  dffnq _343_ (
+  dffnq _201_ (
     .CLK(clk),
-    .D(_150_),
+    .D(_007_),
     .Q(cmd_count_pre[2])
   );
   (* src = "serial_ctrl.sv:236.5-238.8" *)
-  dffpq _344_ (
+  dffpq _202_ (
     .CLK(clk),
     .D(curr_state[0]),
     .Q(curr_state_post[0])
   );
   (* src = "serial_ctrl.sv:236.5-238.8" *)
-  dffpq _345_ (
+  dffpq _203_ (
     .CLK(clk),
     .D(curr_state[1]),
     .Q(curr_state_post[1])
   );
   (* src = "serial_ctrl.sv:236.5-238.8" *)
-  dffpq _346_ (
+  dffpq _204_ (
     .CLK(clk),
     .D(curr_state[2]),
     .Q(curr_state_post[2])
   );
   (* src = "serial_ctrl.sv:236.5-238.8" *)
-  dffpq _347_ (
+  dffpq _205_ (
     .CLK(clk),
     .D(curr_state[3]),
     .Q(curr_state_post[3])
   );
   (* src = "serial_ctrl.sv:233.5-235.8" *)
-  dffnq _348_ (
+  dffnq _206_ (
     .CLK(clk),
     .D(curr_state_pre[0]),
     .Q(curr_state[0])
   );
   (* src = "serial_ctrl.sv:233.5-235.8" *)
-  dffnq _349_ (
+  dffnq _207_ (
     .CLK(clk),
     .D(curr_state_pre[1]),
     .Q(curr_state[1])
   );
   (* src = "serial_ctrl.sv:233.5-235.8" *)
-  dffnq _350_ (
+  dffnq _208_ (
     .CLK(clk),
     .D(curr_state_pre[2]),
     .Q(curr_state[2])
   );
   (* src = "serial_ctrl.sv:233.5-235.8" *)
-  dffnq _351_ (
+  dffnq _209_ (
     .CLK(clk),
     .D(curr_state_pre[3]),
     .Q(curr_state[3])
   );
   (* src = "serial_ctrl.sv:152.5-232.8" *)
-  dffprq _352_ (
+  dffprq _210_ (
     .CLK(clk),
-    .D(_212_[0]),
+    .D(_095_[0]),
     .Q(curr_state_pre[0]),
     .RESET(syncreset2)
   );
   (* src = "serial_ctrl.sv:152.5-232.8" *)
-  dffprq _353_ (
+  dffprq _211_ (
     .CLK(clk),
-    .D(_212_[1]),
+    .D(_095_[1]),
     .Q(curr_state_pre[1]),
     .RESET(syncreset2)
   );
   (* src = "serial_ctrl.sv:152.5-232.8" *)
-  dffprq _354_ (
+  dffprq _212_ (
     .CLK(clk),
-    .D(_212_[2]),
+    .D(_095_[2]),
     .Q(curr_state_pre[2]),
     .RESET(syncreset2)
   );
   (* src = "serial_ctrl.sv:152.5-232.8" *)
-  dffprq _355_ (
+  dffprq _213_ (
     .CLK(clk),
-    .D(_212_[3]),
+    .D(_095_[3]),
     .Q(curr_state_pre[3]),
     .RESET(syncreset2)
   );
   (* src = "serial_ctrl.sv:144.5-151.8" *)
-  dffnrq _356_ (
+  dffnrq _214_ (
     .CLK(clk),
     .D(syncreset1),
     .Q(syncreset2),
     .RESET(reset_in)
   );
   (* src = "serial_ctrl.sv:136.5-143.8" *)
-  dffprq _357_ (
+  dffprq _215_ (
     .CLK(clk),
     .D(1'h1),
     .Q(syncreset1),
     .RESET(reset_in)
   );
   (* src = "serial_ctrl.sv:130.5-132.8" *)
-  dffpq _358_ (
+  dffpq _216_ (
     .CLK(clk),
     .D(ack_out_pre[0]),
     .Q(ack_out[0])
   );
   (* src = "serial_ctrl.sv:130.5-132.8" *)
-  dffpq _359_ (
+  dffpq _217_ (
     .CLK(clk),
     .D(ack_out_pre[1]),
     .Q(ack_out[1])
   );
   (* src = "serial_ctrl.sv:130.5-132.8" *)
-  dffpq _360_ (
+  dffpq _218_ (
     .CLK(clk),
     .D(ack_out_pre[2]),
     .Q(ack_out[2])
   );
   (* src = "serial_ctrl.sv:108.5-118.8" *)
-  dffnq _361_ (
+  dffnq _219_ (
     .CLK(clk),
     .D(_001_),
     .Q(enable_ack)
   );
   (* src = "serial_ctrl.sv:103.5-105.8" *)
-  dffpq _362_ (
+  dffpq _220_ (
     .CLK(clk),
     .D(cmd_count_pre[0]),
     .Q(cmd_count[0])
   );
   (* src = "serial_ctrl.sv:103.5-105.8" *)
-  dffpq _363_ (
+  dffpq _221_ (
     .CLK(clk),
     .D(cmd_count_pre[1]),
     .Q(cmd_count[1])
   );
   (* src = "serial_ctrl.sv:103.5-105.8" *)
-  dffpq _364_ (
+  dffpq _222_ (
     .CLK(clk),
     .D(cmd_count_pre[2]),
     .Q(cmd_count[2])
   );
   (* src = "serial_ctrl.sv:122.5-129.8" *)
-  dffnq _365_ (
+  dffnq _223_ (
     .CLK(clk),
-    .D(_151_),
+    .D(_008_),
     .Q(ack_out_pre[0])
   );
   (* src = "serial_ctrl.sv:122.5-129.8" *)
-  dffnq _366_ (
+  dffnq _224_ (
     .CLK(clk),
-    .D(_152_),
+    .D(_009_),
     .Q(ack_out_pre[1])
   );
   (* src = "serial_ctrl.sv:122.5-129.8" *)
-  dffnq _367_ (
+  dffnq _225_ (
     .CLK(clk),
-    .D(_153_),
+    .D(_010_),
     .Q(ack_out_pre[2])
   );
   (* src = "serial_ctrl.sv:83.5-90.8" *)
-  dffpq _368_ (
+  dffpq _226_ (
     .CLK(clk),
     .D(_000_[0]),
     .Q(cmd_reg_pre[0])
   );
   (* src = "serial_ctrl.sv:83.5-90.8" *)
-  dffpq _369_ (
+  dffpq _227_ (
     .CLK(clk),
     .D(_000_[1]),
     .Q(cmd_reg_pre[1])
   );
   (* src = "serial_ctrl.sv:80.5-82.8" *)
-  dffnq _370_ (
+  dffnq _228_ (
     .CLK(clk),
     .D(cmd_reg_pre[0]),
     .Q(cmd_reg[0])
   );
   (* src = "serial_ctrl.sv:80.5-82.8" *)
-  dffnq _371_ (
+  dffnq _229_ (
     .CLK(clk),
     .D(cmd_reg_pre[1]),
     .Q(cmd_reg[1])
   );
   (* src = "serial_ctrl.sv:68.5-75.8" *)
-  dffpq _372_ (
+  dffpq _230_ (
     .CLK(clk),
     .D(_004_),
     .Q(update_shift_reg_out)
   );
   (* src = "serial_ctrl.sv:55.5-62.8" *)
-  dffnq _373_ (
+  dffnq _231_ (
     .CLK(clk),
     .D(_002_),
     .Q(enable_write)
   );
   (* src = "serial_ctrl.sv:42.5-49.8" *)
-  dffnq _374_ (
+  dffnq _232_ (
     .CLK(clk),
     .D(_003_),
     .Q(reset_shift_reg_out)
   );
-  assign _159_[0] = _155_[0];
-  assign _165_[1] = _164_[1];
-  assign _166_[1] = _164_[1];
-  assign _167_[0] = _164_[0];
-  assign _168_[0] = _164_[0];
-  assign _169_[15:1] = { 14'h3fff, _230_[2] };
-  assign _170_[7:1] = 7'h7f;
-  assign _171_[1:0] = { _210_[14], _210_[6] };
-  assign _173_[1] = _210_[13];
-  assign _174_[1] = _173_[2];
-  assign _175_[0] = _210_[6];
-  assign _176_[1] = _175_[2];
-  assign _177_[0] = _173_[0];
-  assign { _209_[27:22], _209_[20:18], _209_[10:0] } = { 5'h08, data_inout, data_inout, 4'h4, count_reached_in, 1'h0, _209_[11], 1'h1, _209_[11], 4'h2 };
-  assign { _210_[27], _210_[25:23], _210_[20:19], _210_[10:9], _210_[7], _210_[4:2], _210_[0] } = { 4'h0, _210_[22], 4'h0, _210_[6], 3'h0 };
-  assign { _211_[6], _211_[4], _211_[1:0] } = { _210_[26], _210_[18], _210_[5], _210_[1] };
-  assign { _221_[14:11], _221_[9:7], _221_[5:2], _221_[0] } = { 4'h0, _221_[10], _221_[10], 5'h00, _221_[1] };
-  assign _222_[0] = _222_[1];
-  assign { _223_[3], _223_[0] } = { _221_[15], _223_[1] };
-  assign { _226_[31:3], _226_[0] } = { 29'h00000000, cmd_count[0] };
-  assign _227_[31:1] = { 29'h00000000, cmd_count[2:1] };
-  assign { _228_[31:3], _228_[0] } = { 28'h0000000, _226_[2], _227_[0] };
-  assign _229_[30:0] = { _229_[31], _229_[31], _229_[31], _229_[31], _229_[31], _229_[31], _229_[31], _229_[31], _229_[31], _229_[31], _229_[31], _229_[31], _229_[31], _229_[31], _229_[31], _229_[31], _229_[31], _229_[31], _229_[31], _229_[31], _229_[31], _229_[31], _229_[31], _229_[31], _229_[31], _229_[31], _229_[31], _229_[31], _229_[31], cmd_count[1], 1'h1 };
-  assign { _230_[31:3], _230_[1:0] } = { 29'h1fffffff, cmd_count[1], _227_[0] };
-  assign { _231_[30:3], _231_[0] } = { _231_[31], _231_[31], _231_[31], _231_[31], _231_[31], _231_[31], _231_[31], _231_[31], _231_[31], _231_[31], _231_[31], _231_[31], _231_[31], _231_[31], _231_[31], _231_[31], _231_[31], _231_[31], _231_[31], _231_[31], _231_[31], _231_[31], _231_[31], _231_[31], _231_[31], _231_[31], _231_[31], _231_[31], cmd_count[0] };
-  assign _233_[30:0] = { _233_[31], _233_[31], _233_[31], _233_[31], _233_[31], _233_[31], _233_[31], _233_[31], _233_[31], _233_[31], _233_[31], _233_[31], _233_[31], _233_[31], _233_[31], _233_[31], _233_[31], _233_[31], _233_[31], _233_[31], _233_[31], _233_[31], _233_[31], _233_[31], _233_[31], _233_[31], _233_[31], _233_[31], _233_[31], cmd_count[1], 1'h1 };
-  assign { _234_[30:3], _234_[1:0] } = { _234_[31], _234_[31], _234_[31], _234_[31], _234_[31], _234_[31], _234_[31], _234_[31], _234_[31], _234_[31], _234_[31], _234_[31], _234_[31], _234_[31], _234_[31], _234_[31], _234_[31], _234_[31], _234_[31], _234_[31], _234_[31], _234_[31], _234_[31], _234_[31], _234_[31], _234_[31], _234_[31], _234_[31], _231_[1], cmd_count[0] };
-  assign ack_pattern = 3'h5;
-  assign _148_ = _015_;
-  assign _149_ = _016_;
-  assign _150_ = _017_;
-  assign _013_ = ack_out[2];
-  assign _151_ = _018_;
-  assign _011_ = ack_out[0];
-  assign _152_ = _019_;
-  assign _012_ = ack_out[1];
-  assign _153_ = _020_;
-  assign _033_ = curr_state[3];
-  assign _039_ = curr_state_pre[1];
-  assign _040_ = curr_state_pre[2];
-  assign _026_ = cmd_count_pre[2];
-  assign _024_ = cmd_count_pre[0];
-  assign _025_ = cmd_count_pre[1];
-  assign _027_ = cmd_reg[0];
-  assign _028_ = cmd_reg[1];
-  assign _023_ = cmd_count[2];
-  assign _021_ = cmd_count[0];
-  assign _041_ = curr_state_pre[3];
-  assign _032_ = curr_state[2];
-  assign _030_ = curr_state[0];
-  assign _031_ = curr_state[1];
-  assign _003_ = _009_;
-  assign _004_ = _010_;
-  assign _038_ = curr_state_pre[0];
-  assign reset_count_out = _135_;
-  assign _022_ = cmd_count[1];
-  assign _002_ = _008_;
-  assign _046_ = enable_write;
-  assign _044_ = enable_ack;
-  assign enable_shift_register = _045_;
-  assign _001_ = _007_;
-  assign _043_ = data_out_shift_reg_in;
-  assign _014_ = ack_out_pre[0];
-  assign data_inout = _042_;
-  assign _029_ = count_reached_in;
-  assign _000_[0] = _005_;
-  assign _000_[1] = _006_;
-  assign _212_[0] = _131_;
-  assign _212_[1] = _132_;
-  assign _212_[2] = _133_;
-  assign _212_[3] = _134_;
-  assign _034_ = curr_state_post[0];
-  assign _035_ = curr_state_post[1];
-  assign _036_ = curr_state_post[2];
-  assign _037_ = curr_state_post[3];
 endmodule
