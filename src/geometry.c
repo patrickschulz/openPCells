@@ -537,6 +537,10 @@ static int _contactbltr(
     {
         return 0;
     }
+    if(!viadefs)
+    {
+        return 0;
+    }
     return _via_contact_bltr(cell,
         viadefs, fallback,
         generics_create_contact(layermap, techstate, region),
