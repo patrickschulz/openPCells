@@ -370,7 +370,7 @@
         function parameters()
             pcell.add_parameters({
                 { "width", 100 },
-                { "height", 100 } -- <--- uses varargs function call, no
+                { "height", 100 } -- <--- uses varargs function call,
             })                    --      no comma after last argument
         end
     \end{luacode}
@@ -420,6 +420,7 @@
         \item All \luainline{geometry} functions take the cell as first argument
         \item The layer as second argument
         \item Shape parameters (for example width and height for a rectangle) as remaining parameters
+        \item All sizes are in nanometers (only integers allowed)
     \end{itemize}
     \vfill
     \begin{luacode}
@@ -530,7 +531,24 @@
 \end{frame}
 
 \begin{frame}[fragile]
-    \frametitle{Object Anchors for Placement}
+    \frametitle{Object Translations and Transformations}
+    \begin{itemize}
+        \item Cells can be transformed (rotated, flipped, \dots) and translated in x and y
+        \item Vital for building complex hierarchies with many different sub-cells
+        \item Implementation handles this efficiently by using transformation matrices
+    \end{itemize}
+    \vfill
+    \begin{luacode}
+        local cell = object.create()
+        -- add some shapes
+        cell:translate(100, 100) -- takes x and y
+        cell:rotate_90_left()
+        cell:mirror_at_xaxis()
+    \end{luacode}
+\end{frame}
+
+\begin{frame}[fragile]
+    \frametitle{Object Anchors for Relative Placement}
     \begin{itemize}
         \item Cells can define arbitrary \emph{anchors} (points with a name)
         \item Can be used to position cells (\luainline{object.move_anchor}) or to query positions within cells (\luainline{object.get_anchor})
@@ -550,29 +568,63 @@
     \begin{itemize}
         \item Define an object's main boundary (rectangular)
         \item Align with other similar objects (for example digital standard cells)
+        \item Define eight special anchors
         \item Provide standardized means of object positioning
-        \item Alignment boxes are \emph{not transformed} (rotated, mirrored, flipped)
+        \item Alignment boxes are transformed (rotated, mirrored, flipped), but the position of the special anchors is updated to reflect this
     \end{itemize}
     \vfill
-    \centering
-    \begin{tikzpicture}
-    [
-        every label/.style = {font=\normalsize},
-        point/.style = {circle, fill, inner sep = 0pt, minimum size = 4pt}
-    ]
-        \draw[thick] (-3, -1) rectangle (-2, 1);
-        \node[point, label = left:left] at (-3, 0) {};
-        \node[point, label = right:right] at (-2, 0) {};
-        \node[point, label = above:top] at (-2.5, 1) {};
-        \node[point, label = below:bottom] at (-2.5, -1) {};
-        \node[below] {rotate};
-        \draw[tip] (-0.3, 0) to[out = 60, in = 120] (0.3, 0);
-        \draw[thick] (1.5, -0.5) rectangle (3, 0.5);
-        \node[point, label = left:left] at (1.5, 0) {};
-        \node[point, label = right:right] at (3, 0) {};
-        \node[point, label = above:top] at (2.25, 0.5) {};
-        \node[point, label = below:bottom] at (2.25, -0.5) {};
-    \end{tikzpicture}
+    \begin{tabular*}{\linewidth}{@{\extracolsep{\fill}}cc}
+        \begin{tikzpicture}
+        [
+            every label/.style = {font=\small},
+            point/.style = {circle, fill, inner sep = 0pt, minimum size = 4pt},
+            scale = 0.8
+        ]
+            \draw[thick] (-2, -1) rectangle (2, 1);
+            \node[point, label = left:left] at (-2, 0) {};
+            \node[point, label = right:right] at (2, 0) {};
+            \node[point, label = above:top] at (0, 1) {};
+            \node[point, label = below:bottom] at (0, -1) {};
+            \node[point, label = below:bottomleft] at (-2, -1) {};
+            \node[point, label = below:bottomright] at (2, -1) {};
+            \node[point, label = above:topleft] at (-2, 1) {};
+            \node[point, label = above:topright] at (2, 1) {};
+        \end{tikzpicture}
+        &
+        \begin{tikzpicture}
+        [
+            every label/.style = {font=\small},
+            point/.style = {circle, fill, inner sep = 0pt, minimum size = 4pt}
+        ]
+            \begin{scope}[xshift = -2cm]
+                \draw[thick] (-0.5, -1) rectangle (0.5, 1);
+                \node[point, label = left:left] at (-0.5, 0) {};
+                \node[point, label = right:right] at (0.5, 0) {};
+                \node[point, label = above:top] at (0, 1) {};
+                \node[point, label = below:bottom] at (0, -1) {};
+            \end{scope}
+            \node[above=4pt] at (0, 0.5) {rotate};
+            \draw[tip] (-0.3, 0.5) to[out = 60, in = 120] ++(0.6, 0);
+            \begin{scope}[xshift = 2cm]
+                \draw[thick] (-1, -0.5) rectangle (1, 0.5);
+                \node[point, label = left:left] at (-1, 0) {};
+                \node[point, label = right:right] at (1, 0) {};
+                \node[point, label = above:top] at (0, 0.5) {};
+                \node[point, label = below:bottom] at (0, -0.5) {};
+            \end{scope}
+        \end{tikzpicture}
+    \end{tabular*}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Relative Placements Everywhere}
+    \begin{itemize}
+        \item Relative placement should be chosen wherever possible
+        \item Absolute coordinates are usually only needed in fundamental/basic cells like transistors
+        \item With relative placements (using alignment boxes), the cells \enquote{know} their own size
+        \item This enables changes deeper in the hierarchy to propagate \emph{up}
+        \item Done correctly, child cells can be fixed/adapted without having to change the top cell
+    \end{itemize}
 \end{frame}
 
 \section{Examples}
