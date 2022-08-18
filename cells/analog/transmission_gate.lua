@@ -1,8 +1,8 @@
 function parameters()
     pcell.add_parameters(
         { "fingers", 2 },
-        { "pwidth", tech.get_dimension("Minimum Gate Width") },
-        { "nwidth", tech.get_dimension("Minimum Gate Width") },
+        { "pwidth", 2 * tech.get_dimension("Minimum Gate Width") },
+        { "nwidth", 2 * tech.get_dimension("Minimum Gate Width") },
         { "gstwidth", tech.get_dimension("Minimum M1 Width") },
         { "gstspace", tech.get_dimension("Minimum M1 Space") },
         { "sdwidth", tech.get_dimension("Minimum M1 Width") }

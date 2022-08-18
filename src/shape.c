@@ -510,8 +510,8 @@ void shape_get_width_height(const struct shape* shape, coordinate_t* widthp, coo
 
 void shape_get_minmax_xy(const struct shape* shape, const struct transformationmatrix* trans, coordinate_t* minxp, coordinate_t* minyp, coordinate_t* maxxp, coordinate_t* maxyp)
 {
-    point_t* min = point_create_minimum();
-    point_t* max = point_create_maximum();
+    point_t* min = point_create_maximum();
+    point_t* max = point_create_minimum();
     switch(shape->type)
     {
         case RECTANGLE:

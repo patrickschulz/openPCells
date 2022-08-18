@@ -711,8 +711,8 @@ void object_get_minmax_xy(const struct object* cell, coordinate_t* minxp, coordi
             coordinate_t _maxy;
             shape_get_minmax_xy(S, cell->trans, &_minx, &_miny, &_maxx, &_maxy);
             minx = min(minx, _minx);
-            maxx = max(maxx, _miny);
-            miny = min(miny, _maxx);
+            maxx = max(maxx, _maxx);
+            miny = min(miny, _miny);
             maxy = max(maxy, _maxy);
         }
     }
