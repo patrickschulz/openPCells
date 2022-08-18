@@ -687,15 +687,6 @@ function pcell.create_layout(cellname, cellargs, env, evaluate)
     return obj
 end
 
-local function _split_path(path)
-    local base, name = string.match(path, "^(.+)%/([^/]+)$")
-    if not base then -- no path separator
-        return ".", path
-    else
-        return base, name
-    end
-end
-
 function pcell.create_layout_from_script(scriptpath, cellargs, evaluate)
     if cellargs then
         pcell.update_other_cell_parameters(cellargs, evaluate)
@@ -703,7 +694,7 @@ function pcell.create_layout_from_script(scriptpath, cellargs, evaluate)
     local reader = _get_reader(scriptpath)
     if reader then
         local env = _ENV
-        local path, name = _split_path(scriptpath)
+        local path, name = aux.split_path(scriptpath)
         env._CURRENT_SCRIPT_PATH = path
         env._CURRENT_SCRIPT_NAME = name
         local cell = _dofile(reader, string.format("@%s", scriptpath), nil, env)

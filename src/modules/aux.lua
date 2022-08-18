@@ -174,3 +174,18 @@ function aux.tprint(tbl, indent)
         end                                                                         
     end                                                                           
 end
+
+function aux.pop_top_directory(path)
+    local base, name = aux.split_path(path)
+    return base
+end
+
+function aux.split_path(path)
+    local base, name = string.match(path, "^(.+)%/([^/]+)$")
+    if not base then -- no path separator
+        return ".", path
+    else
+        return base, name
+    end
+end
+
