@@ -50,7 +50,7 @@ procedure(OPCCall(OPCCommand redirect)
             then 
                 errmsg = ipcReadProcess(pid)
                 unless(errmsg
-                    errmsg = "unknown error"
+                    errmsg = "unknown error, this is a bug in opc (likely a segmentation fault)"
                 )
                 hiDisplayAppDBox(
                     ?name        'OPCInfoDialog
