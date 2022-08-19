@@ -232,8 +232,8 @@ int lobject_add_child(lua_State* L)
 int lobject_width_height_alignmentbox(lua_State* L)
 {
     struct lobject* cell = lobject_check(L, 1);
-    const point_t* bl = object_get_anchor(cell->object, "bottomleft");
-    const point_t* tr = object_get_anchor(cell->object, "topright");
+    point_t* bl = object_get_anchor(cell->object, "bottomleft");
+    point_t* tr = object_get_anchor(cell->object, "topright");
     if(!bl || !tr)
     {
         lua_pushstring(L, "object.width_height_alignmentbox: cell has no alignmentbox");
@@ -243,6 +243,8 @@ int lobject_width_height_alignmentbox(lua_State* L)
     unsigned int height = tr->y - bl->y;
     lua_pushinteger(L, width);
     lua_pushinteger(L, height);
+    point_destroy(bl);
+    point_destroy(tr);
     return 2;
 }
 
