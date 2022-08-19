@@ -120,7 +120,10 @@ void vector_prepend(struct vector* vector, void* element)
     {
         _resize_data(vector, vector->capacity ? vector->capacity * 2 : 1);
     }
-    memmove(vector->elements + 1, vector->elements, vector->size);
+    for(size_t i = vector->size; i > 0; --i)
+    {
+        vector->elements[i] = vector->elements[i - 1];
+    }
     vector->elements[0] = element;
     vector->size += 1;
 }
