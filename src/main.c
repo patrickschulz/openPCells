@@ -41,6 +41,7 @@ static int _load_config(struct hashmap* config)
     free(filename);
     if(ret == LUA_OK)
     {
+        // techpaths
         struct vector* techpaths = vector_create(8);
         lua_getfield(L, -1, "techpaths");
         if(!lua_isnil(L, -1))
@@ -55,6 +56,54 @@ static int _load_config(struct hashmap* config)
         }
         lua_pop(L, 1); // pop techpaths table (or nil)
         hashmap_insert(config, "techpaths", techpaths);
+        // remove entry
+        lua_pushnil(L);
+        lua_setfield(L, -2, "techpaths");
+
+        // cellpaths
+        struct vector* prepend_cellpaths = vector_create(8);
+        lua_getfield(L, -1, "prepend_cellpaths");
+        if(!lua_isnil(L, -1))
+        {
+            lua_pushnil(L);
+            while(lua_next(L, -2) != 0)
+            {
+                const char* path = lua_tostring(L, -1);
+                vector_append(prepend_cellpaths, util_copy_string(path));
+                lua_pop(L, 1);
+            }
+        }
+        lua_pop(L, 1); // pop prepend_cellpaths table (or nil)
+        hashmap_insert(config, "prepend_cellpaths", prepend_cellpaths);
+        // remove entry
+        lua_pushnil(L);
+        lua_setfield(L, -2, "prepend_cellpaths");
+
+        struct vector* append_cellpaths = vector_create(8);
+        lua_getfield(L, -1, "append_cellpaths");
+        if(!lua_isnil(L, -1))
+        {
+            lua_pushnil(L);
+            while(lua_next(L, -2) != 0)
+            {
+                const char* path = lua_tostring(L, -1);
+                vector_append(append_cellpaths, util_copy_string(path));
+                lua_pop(L, 1);
+            }
+        }
+        lua_pop(L, 1); // pop append_cellpaths table (or nil)
+        hashmap_insert(config, "append_cellpaths", append_cellpaths);
+        // remove entry
+        lua_pushnil(L);
+        lua_setfield(L, -2, "append_cellpaths");
+
+        lua_pushnil(L);
+        while(lua_next(L, -2) != 0)
+        {
+            printf("unknown config entry '%s'\n", lua_tostring(L, -2));
+            lua_pop(L, 1);
+            ret = LUA_ERRRUN;
+        }
     }
     lua_close(L);
     return ret == LUA_OK;
@@ -176,10 +225,13 @@ int main(int argc, const char* const * argv)
             printf("%s\n", *arg);
             ++arg;
         }
-        struct vector* techpaths = hashmap_get(config, "techpaths");
-        for(unsigned int i = 0; i < vector_size(techpaths); ++i)
+        if(hashmap_exists(config, "techpaths"))
         {
-            printf("%s\n", (const char*)vector_get(techpaths, i));
+            struct vector* techpaths = hashmap_get(config, "techpaths");
+            for(unsigned int i = 0; i < vector_size(techpaths); ++i)
+            {
+                printf("%s\n", (const char*)vector_get(techpaths, i));
+            }
         }
         goto DESTROY_CONFIG;
     }
@@ -215,6 +267,22 @@ int main(int argc, const char* const * argv)
             {
                 vector_append(cellpaths_to_append, util_copy_string(*arg));
                 ++arg;
+            }
+        }
+        if(hashmap_exists(config, "prepend_cellpaths"))
+        {
+            struct vector* config_cellpaths_to_prepend = hashmap_get(config, "prepend_cellpaths");
+            for(unsigned int i = 0; i < vector_size(config_cellpaths_to_prepend); ++i)
+            {
+                vector_append(cellpaths_to_prepend, util_copy_string((const char*)vector_get(config_cellpaths_to_prepend, i)));
+            }
+        }
+        if(hashmap_exists(config, "prepend_cellpaths"))
+        {
+            struct vector* config_cellpaths_to_append = hashmap_get(config, "append_cellpaths");
+            for(unsigned int i = 0; i < vector_size(config_cellpaths_to_append); ++i)
+            {
+                vector_append(cellpaths_to_append, util_copy_string((const char*)vector_get(config_cellpaths_to_append, i)));
             }
         }
         vector_append(cellpaths_to_append, util_copy_string(OPC_HOME "/cells"));

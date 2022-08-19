@@ -15,7 +15,7 @@ local celllist = {
     "or_gate",
     "and_gate",
     --"tbuf",
-    --"xor_gate",
+    "xor_gate",
 }
 
 local gatelength = 200
@@ -36,6 +36,8 @@ pcell.push_overwrites("stdcells/base", {
 local toplevel = object.create()
 local lastanchor
 
+local lines = {}
+table.insert(lines, "return {")
 for i, cellname in ipairs(celllist) do
     local cell = pcell.create_layout(string.format("stdcells/%s", cellname))
     local childname = pcell.add_cell_reference(cell, cellname)
@@ -43,17 +45,25 @@ for i, cellname in ipairs(celllist) do
     child:move_anchor_y("bottom", lastanchor)
     lastanchor = child:get_anchor("top")
 
-    print(cellname)
+    local left = child:get_anchor("left")
+    local right = child:get_anchor("right")
+    local width = (right:getx() - left:getx()) / (gatelength + gatespace)
+    table.insert(lines, string.format("    %s = {", cellname))
+    table.insert(lines, string.format("        width = %d,", width))
     local ports = cell:get_ports()
+    table.insert(lines, "        pinoffsets = {")
     for _, port in ipairs(ports) do
         if port.name ~= "VDD" and port.name ~= "VSS" then
             local x, y = port.where:unwrap()
             local xoffset = x / (gatelength + gatespace)
             local yoffset = y / (routingwidth + routingspace)
-            print(string.format("%4s (%6d, %6d) -> %5.1f:%5.1f", port.name, x, y, xoffset, yoffset))
+            table.insert(lines, string.format("            %s = { x = %d, y = %d },", port.name, math.floor(xoffset), math.floor(yoffset)))
         end
     end
-    print()
+    table.insert(lines, "        },")
+    table.insert(lines, "    },")
 end
+table.insert(lines, "}")
+print(table.concat(lines, "\n"))
 
 return toplevel
