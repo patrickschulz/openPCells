@@ -76,7 +76,8 @@ static struct layermap* _create_layermap(void)
 
 static int _parse_point(const char* arg, int* xptr, int* yptr)
 {
-    unsigned int idx1, idx2;
+    unsigned int idx1 = 0;
+    unsigned int idx2 = 0;
     const char* ptr = arg;
     while(*ptr)
     {
