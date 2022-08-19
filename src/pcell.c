@@ -266,6 +266,7 @@ static int lpcell_get_cell_filename(lua_State* L)
             free(filename);
             return 1;
         }
+        free(filename);
     }
     lua_newtable(L);
     lua_pushfstring(L, "could not find cell '%s' in:\n", cellname);

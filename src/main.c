@@ -346,6 +346,16 @@ DESTROY_CONFIG: ;
         struct vector* techpaths = hashmap_get(config, "techpaths");
         vector_destroy(techpaths, free); // every techpath is a copied string
     }
+    if(hashmap_exists(config, "prepend_cellpaths"))
+    {
+        struct vector* techpaths = hashmap_get(config, "prepend_cellpaths");
+        vector_destroy(techpaths, free); // every techpath is a copied string
+    }
+    if(hashmap_exists(config, "append_cellpaths"))
+    {
+        struct vector* techpaths = hashmap_get(config, "append_cellpaths");
+        vector_destroy(techpaths, free); // every techpath is a copied string
+    }
     hashmap_destroy(config, NULL);
 DESTROY_CMDOPTIONS:
     cmdoptions_destroy(cmdoptions);
