@@ -322,7 +322,7 @@ static int lgeometry_viabltr(lua_State* L)
     int res = geometry_viabltr(lobject_get(cell), layermap, techstate, metal1, metal2, bl->point, tr->point, xrep, yrep, xpitch, ypitch);
     if(!res)
     {
-        lua_pushstring(L, "geometry.viabltr: could not fit via");
+        lua_pushfstring(L, "geometry.viabltr: could not fit via from metal %d to metal %d. Area: (%d, %d) and (%d, %d)", metal1, metal2, bl->point->x, bl->point->y, tr->point->x, tr->point->y);
         lua_error(L);
     }
     return 0;
@@ -350,7 +350,7 @@ static int lgeometry_via(lua_State* L)
     int res = geometry_via(lobject_get(cell), layermap, techstate, metal1, metal2, width, height, xshift, yshift, xrep, yrep, xpitch, ypitch);
     if(!res)
     {
-        lua_pushstring(L, "geometry.via: could not fit via");
+        lua_pushfstring(L, "geometry.via: could not fit via from metal %d to metal %d. Area: (%d, %d) and (%d, %d)", metal1, metal2, xshift - width / 2, yshift - height / 2, xshift + width / 2, yshift + height / 2);
         lua_error(L);
     }
     return 0;
