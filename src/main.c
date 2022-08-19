@@ -56,6 +56,10 @@ static int _load_config(struct hashmap* config)
         }
         lua_pop(L, 1); // pop techpaths table (or nil)
         hashmap_insert(config, "techpaths", techpaths);
+        // remove entry
+        lua_pushnil(L);
+        lua_setfield(L, -2, "techpaths");
+
         // cellpaths
         struct vector* prepend_cellpaths = vector_create(8);
         lua_getfield(L, -1, "prepend_cellpaths");
@@ -71,6 +75,9 @@ static int _load_config(struct hashmap* config)
         }
         lua_pop(L, 1); // pop prepend_cellpaths table (or nil)
         hashmap_insert(config, "prepend_cellpaths", prepend_cellpaths);
+        // remove entry
+        lua_pushnil(L);
+        lua_setfield(L, -2, "prepend_cellpaths");
 
         struct vector* append_cellpaths = vector_create(8);
         lua_getfield(L, -1, "append_cellpaths");
@@ -86,6 +93,17 @@ static int _load_config(struct hashmap* config)
         }
         lua_pop(L, 1); // pop append_cellpaths table (or nil)
         hashmap_insert(config, "append_cellpaths", append_cellpaths);
+        // remove entry
+        lua_pushnil(L);
+        lua_setfield(L, -2, "append_cellpaths");
+
+        lua_pushnil(L);
+        while(lua_next(L, -2) != 0)
+        {
+            printf("unknown config entry '%s'\n", lua_tostring(L, -2));
+            lua_pop(L, 1);
+            ret = LUA_ERRRUN;
+        }
     }
     lua_close(L);
     return ret == LUA_OK;
