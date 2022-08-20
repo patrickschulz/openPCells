@@ -20,71 +20,71 @@ function layout(gate, _P)
 
     local fingers = (_P.splitenables and 3 or 2) * _P.fingers
 
-    local gatecontactpos = { }
+    local gatecontactpos = { "dummy" }
     if _P.splitenables then
         for i = 1, _P.fingers do
             if i % 2 == 1 then
-                gatecontactpos[(i - 1) * 3 + 1] = _P.enablenpos
-                gatecontactpos[(i - 1) * 3 + 2] = _P.enableppos
-                gatecontactpos[(i - 1) * 3 + 3] = _P.inputpos
+                gatecontactpos[1 + (i - 1) * 3 + 1] = _P.enablenpos
+                gatecontactpos[1 + (i - 1) * 3 + 2] = _P.enableppos
+                gatecontactpos[1 + (i - 1) * 3 + 3] = _P.inputpos
             else
-                gatecontactpos[(i - 1) * 3 + 1] = _P.inputpos
-                gatecontactpos[(i - 1) * 3 + 2] = _P.enableppos
-                gatecontactpos[(i - 1) * 3 + 3] = _P.enablenpos
+                gatecontactpos[1 + (i - 1) * 3 + 1] = _P.inputpos
+                gatecontactpos[1 + (i - 1) * 3 + 2] = _P.enableppos
+                gatecontactpos[1 + (i - 1) * 3 + 3] = _P.enablenpos
             end
         end
     else
         for i = 1, _P.fingers do
             if i % 2 == (_P.swapinputs and 0 or 1) then
-                gatecontactpos[(i - 1) * 2 + 1] = _P.inputpos
-                gatecontactpos[(i - 1) * 2 + 2] = "split"
+                gatecontactpos[1 + (i - 1) * 2 + 1] = _P.inputpos
+                gatecontactpos[1 + (i - 1) * 2 + 2] = "split"
             else
-                gatecontactpos[(i - 1) * 2 + 1] = "split"
-                gatecontactpos[(i - 1) * 2 + 2] = _P.inputpos
+                gatecontactpos[1 + (i - 1) * 2 + 1] = "split"
+                gatecontactpos[1 + (i - 1) * 2 + 2] = _P.inputpos
             end
         end
     end
 
-    local pcontactpos = { }
-    local ncontactpos = { }
+    local pcontactpos = { "power" }
+    local ncontactpos = { "power" }
     local ci1 = _P.swapoutputs and 3 or 1
     local ci2 = _P.swapoutputs and 1 or 3
     if _P.splitenables then
         for i = 1, _P.fingers do
-            ncontactpos[(i - 1) * 3 + 2] = "outer"
-            ncontactpos[(i - 1) * 3 + 3] = "outer"
+            ncontactpos[1 + (i - 1) * 3 + 2] = "outer"
+            ncontactpos[1 + (i - 1) * 3 + 3] = "outer"
             if _P.swapoutputs then
                 if i % 2 == 1 then
-                    pcontactpos[(i - 1) * 3 + 4] = "inner"
-                    ncontactpos[(i - 1) * 3 + 4] = "inner"
-                    pcontactpos[(i - 1) * 3 + 2] = "power"
-                    ncontactpos[(i - 1) * 3 + 1] = "power"
+                    pcontactpos[1 + (i - 1) * 3 + 4] = "inner"
+                    ncontactpos[1 + (i - 1) * 3 + 4] = "inner"
+                    pcontactpos[1 + (i - 1) * 3 + 2] = "power"
+                    ncontactpos[1 + (i - 1) * 3 + 1] = "power"
                 else
-                    pcontactpos[(i - 1) * 3 + 3] = "power"
+                    pcontactpos[1 + (i - 1) * 3 + 3] = "power"
                 end
             else
                 if i % 2 == 1 then
-                    pcontactpos[(i - 1) * 3 + 1] = "inner"
-                    ncontactpos[(i - 1) * 3 + 1] = "inner"
-                    pcontactpos[(i - 1) * 3 + 3] = "power"
-                    ncontactpos[(i - 1) * 3 + 4] = "power"
+                    pcontactpos[1 + (i - 1) * 3 + 1] = "inner"
+                    ncontactpos[1 + (i - 1) * 3 + 1] = "inner"
+                    pcontactpos[1 + (i - 1) * 3 + 3] = "power"
+                    ncontactpos[1 + (i - 1) * 3 + 4] = "power"
                 else
-                    pcontactpos[(i - 1) * 3 + 2] = "power"
+                    pcontactpos[1 + (i - 1) * 3 + 2] = "power"
                 end
             end
         end
     else
         for i = 1, _P.fingers do
             if i % 2 == 1 then
-                pcontactpos[(i - 1) * 2 + ci1] = "inner"
-                ncontactpos[(i - 1) * 2 + ci1] = "inner"
-                pcontactpos[(i - 1) * 2 + ci2] = "power"
-                ncontactpos[(i - 1) * 2 + ci2] = "power"
+                pcontactpos[1 + (i - 1) * 2 + ci1] = "inner"
+                ncontactpos[1 + (i - 1) * 2 + ci1] = "inner"
+                pcontactpos[1 + (i - 1) * 2 + ci2] = "power"
+                ncontactpos[1 + (i - 1) * 2 + ci2] = "power"
             else
-                pcontactpos[(i - 1) * 2 + ci1] = "power"
-                ncontactpos[(i - 1) * 2 + ci1] = "power"
-                pcontactpos[(i - 1) * 2 + ci2] = "inner"
-                ncontactpos[(i - 1) * 2 + ci2] = "inner"
+                pcontactpos[1 + (i - 1) * 2 + ci1] = "power"
+                ncontactpos[1 + (i - 1) * 2 + ci1] = "power"
+                pcontactpos[1 + (i - 1) * 2 + ci2] = "inner"
+                ncontactpos[1 + (i - 1) * 2 + ci2] = "inner"
             end
         end
     end
@@ -102,21 +102,11 @@ function layout(gate, _P)
                 geometry.path(
                     gate, generics.metal(1),
                     {
-                        harness:get_anchor("G1cc"),
-                        harness:get_anchor(string.format("G%dcc",
-                            _P.fingers % 2 == 0 and
-                                (3 * _P.fingers) or
-                                (3 * _P.fingers - 2)
-                        )),
-                    },
-                    bp.sdwidth
-                )
-                geometry.path(
-                    gate, generics.metal(1),
-                    {
                         harness:get_anchor("G2cc"),
                         harness:get_anchor(string.format("G%dcc",
-                            3 * _P.fingers - 1
+                            _P.fingers % 2 == 0 and
+                                1 + (3 * _P.fingers) or
+                                1 + (3 * _P.fingers - 2)
                         )),
                     },
                     bp.sdwidth
@@ -126,9 +116,19 @@ function layout(gate, _P)
                     {
                         harness:get_anchor("G3cc"),
                         harness:get_anchor(string.format("G%dcc",
+                            3 * _P.fingers
+                        )),
+                    },
+                    bp.sdwidth
+                )
+                geometry.path(
+                    gate, generics.metal(1),
+                    {
+                        harness:get_anchor("G4cc"),
+                        harness:get_anchor(string.format("G%dcc",
                             _P.fingers % 2 == 0 and
-                                (3 * _P.fingers - 3) or
-                                (3 * _P.fingers)
+                                1 + (3 * _P.fingers - 3) or
+                                1 + (3 * _P.fingers)
                         )),
                     },
                     bp.sdwidth
@@ -138,48 +138,11 @@ function layout(gate, _P)
                 geometry.path(
                     gate, generics.metal(1),
                     {
-                        harness:get_anchor("G2cc"),
+                        harness:get_anchor("G3cc"),
                         harness:get_anchor(string.format("G%dcc",
                             _P.fingers % 2 == 0 and
-                                (2 * _P.fingers - 1) or
-                                (2 * _P.fingers)
-                        )),
-                    },
-                    bp.sdwidth
-                )
-                geometry.path(
-                    gate, generics.metal(1),
-                    {
-                        harness:get_anchor("Gupper1cc"),
-                        harness:get_anchor(string.format("Gupper%dcc",
-                            _P.fingers % 2 == 0 and
-                                (2 * _P.fingers) or
-                                (2 * _P.fingers - 1)
-                        )),
-                    },
-                    bp.sdwidth
-                )
-                geometry.path(
-                    gate, generics.metal(1),
-                    {
-                        harness:get_anchor("Glower1cc"),
-                        harness:get_anchor(string.format("Glower%dcc",
-                            _P.fingers % 2 == 0 and
-                                (2 * _P.fingers) or
-                                (2 * _P.fingers - 1)
-                        )),
-                    },
-                    bp.sdwidth
-                )
-            else
-                geometry.path(
-                    gate, generics.metal(1),
-                    {
-                        harness:get_anchor("G1cc"),
-                        harness:get_anchor(string.format("G%dcc",
-                            _P.fingers % 2 == 0 and
-                                (2 * _P.fingers) or
-                                (2 * _P.fingers - 1)
+                                1 + (2 * _P.fingers - 1) or
+                                1 + (2 * _P.fingers)
                         )),
                     },
                     bp.sdwidth
@@ -190,8 +153,8 @@ function layout(gate, _P)
                         harness:get_anchor("Gupper2cc"),
                         harness:get_anchor(string.format("Gupper%dcc",
                             _P.fingers % 2 == 0 and
-                                (2 * _P.fingers - 1) or
-                                (2 * _P.fingers)
+                                1 + (2 * _P.fingers) or
+                                1 + (2 * _P.fingers - 1)
                         )),
                     },
                     bp.sdwidth
@@ -202,8 +165,45 @@ function layout(gate, _P)
                         harness:get_anchor("Glower2cc"),
                         harness:get_anchor(string.format("Glower%dcc",
                             _P.fingers % 2 == 0 and
-                                (2 * _P.fingers - 1) or
-                                (2 * _P.fingers)
+                                1 + (2 * _P.fingers) or
+                                1 + (2 * _P.fingers - 1)
+                        )),
+                    },
+                    bp.sdwidth
+                )
+            else
+                geometry.path(
+                    gate, generics.metal(1),
+                    {
+                        harness:get_anchor("G2cc"),
+                        harness:get_anchor(string.format("G%dcc",
+                            _P.fingers % 2 == 0 and
+                                1 + (2 * _P.fingers) or
+                                1 + (2 * _P.fingers - 1)
+                        )),
+                    },
+                    bp.sdwidth
+                )
+                geometry.path(
+                    gate, generics.metal(1),
+                    {
+                        harness:get_anchor("Gupper3cc"),
+                        harness:get_anchor(string.format("Gupper%dcc",
+                            _P.fingers % 2 == 0 and
+                                1 + (2 * _P.fingers - 1) or
+                                1 + (2 * _P.fingers)
+                        )),
+                    },
+                    bp.sdwidth
+                )
+                geometry.path(
+                    gate, generics.metal(1),
+                    {
+                        harness:get_anchor("Glower3cc"),
+                        harness:get_anchor(string.format("Glower%dcc",
+                            _P.fingers % 2 == 0 and
+                                1 + (2 * _P.fingers - 1) or
+                                1 + (2 * _P.fingers)
                         )),
                     },
                     bp.sdwidth
@@ -214,10 +214,10 @@ function layout(gate, _P)
 
     -- drain connection
     if bp.connectoutput then
-        local dend = _P.splitenables and (_P.swapoutputs and 4 or 1) or (_P.swapoutputs and 3 or 1)
+        local dend = _P.splitenables and (_P.swapoutputs and 5 or 2) or (_P.swapoutputs and 4 or 2)
         geometry.path(gate, generics.metal(1), geometry.path_points_xy(
             harness:get_anchor(string.format("pSDi%d", dend)):translate(0,  bp.sdwidth / 2), {
-                harness:get_anchor(string.format("G%dcc", fingers)):translate(_P.shiftoutput + xpitch / 2, 0),
+                harness:get_anchor(string.format("G%dcc", fingers + 1)):translate(_P.shiftoutput + xpitch / 2, 0),
                 0, -- toggle xy
                 harness:get_anchor(string.format("nSDi%d", dend)):translate(0, -bp.sdwidth / 2),
         }), bp.sdwidth)
@@ -227,26 +227,26 @@ function layout(gate, _P)
     if _P.splitenables then
         for i = 1, _P.fingers do
             geometry.path(gate, generics.metal(1), {
-                harness:get_anchor(string.format("nSDc%d", (i - 1) * 3 + 2)),
-                harness:get_anchor(string.format("nSDc%d", (i - 1) * 3 + 3)),
+                harness:get_anchor(string.format("nSDc%d", 1 + (i - 1) * 3 + 2)),
+                harness:get_anchor(string.format("nSDc%d", 1 + (i - 1) * 3 + 3)),
             }, bp.sdwidth)
         end
     end
 
     -- ports
     if _P.splitenables then
-        gate:add_port("I", generics.metal(1), harness:get_anchor("G3cc"))
-        gate:add_port("EP", generics.metal(1), harness:get_anchor("G2cc"))
-        gate:add_port("EN", generics.metal(1), harness:get_anchor("G1cc"))
+        gate:add_port("I", generics.metal(1), harness:get_anchor("G4cc"))
+        gate:add_port("EP", generics.metal(1), harness:get_anchor("G3cc"))
+        gate:add_port("EN", generics.metal(1), harness:get_anchor("G2cc"))
     else
         if _P.swapinputs then
-            gate:add_port("I", generics.metal(1), harness:get_anchor("G2cc"))
-            gate:add_port("EP", generics.metal(1), harness:get_anchor("Gupper1cc"))
-            gate:add_port("EN", generics.metal(1), harness:get_anchor("Glower1cc"))
-        else
-            gate:add_port("I", generics.metal(1), harness:get_anchor("G1cc"))
+            gate:add_port("I", generics.metal(1), harness:get_anchor("G3cc"))
             gate:add_port("EP", generics.metal(1), harness:get_anchor("Gupper2cc"))
             gate:add_port("EN", generics.metal(1), harness:get_anchor("Glower2cc"))
+        else
+            gate:add_port("I", generics.metal(1), harness:get_anchor("G2cc"))
+            gate:add_port("EP", generics.metal(1), harness:get_anchor("Gupper3cc"))
+            gate:add_port("EN", generics.metal(1), harness:get_anchor("Glower3cc"))
         end
     end
     gate:add_port("O", generics.metal(1), point.create(_P.fingers * xpitch + _P.shiftoutput, 0))
