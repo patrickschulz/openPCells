@@ -6,7 +6,7 @@ for FILE in $FILENAMES
 do
     (cd .. &&
     ./opc --technology opc --export gds --cell /stdcells/${FILE%.lua} &&
-    klayout openPCells.gds -rd filename=${FILE%.lua}.sp -z -n opc -r ressources/opc.lylvs &&
+    klayout openPCells.gds -rd filename=${FILE%.lua}.sp -z -n opc -r resources/opc.lylvs &&
     sed -i "s/opctoplevel/${FILE%.lua}/" *.sp &&
     mv *.sp $OUTPUTPATH)
 done
