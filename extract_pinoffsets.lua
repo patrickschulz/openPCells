@@ -1,6 +1,13 @@
 local celllist = {
-    --"buf",
-    --"cinv",
+    "buf",
+    "cinv",
+    "not_gate",
+    "nand_gate",
+    "nor_gate",
+    "or_gate",
+    "and_gate",
+    --"tbuf",
+    "xor_gate",
     "dffpq",
     "dffnq",
     "dffprq",
@@ -9,13 +16,6 @@ local celllist = {
     "dffnsq",
     --"dffprsq",
     --"dffnrsq",
-    "not_gate",
-    "nand_gate",
-    "nor_gate",
-    "or_gate",
-    "and_gate",
-    --"tbuf",
-    "xor_gate",
 }
 
 local gatelength = 200
@@ -57,7 +57,8 @@ for i, cellname in ipairs(celllist) do
             local x, y = port.where:unwrap()
             local xoffset = x / (gatelength + gatespace)
             local yoffset = y / (routingwidth + routingspace)
-            table.insert(lines, string.format("            %s = { x = %d, y = %d },", port.name, math.floor(xoffset), math.floor(yoffset)))
+            --table.insert(lines, string.format("            %s = { x = %d, y = %d },", port.name, math.floor(xoffset), math.floor(yoffset)))
+            table.insert(lines, string.format("            %s = { x = %.1f, y = %.1f },", port.name, xoffset, yoffset))
         end
     end
     table.insert(lines, "        },")

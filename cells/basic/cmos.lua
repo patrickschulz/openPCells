@@ -283,10 +283,10 @@ function layout(cmos, _P)
     end
 
     -- draw source/drain contacts
-    local pcontactheight = (_P.psdheight > 0) and _P.psdheight or _P.pwidth / 2
-    local ncontactheight = (_P.nsdheight > 0) and _P.nsdheight or _P.nwidth / 2
-    local pcontactpowerheight = (_P.psdpowerheight > 0) and _P.psdpowerheight or _P.pwidth / 2
-    local ncontactpowerheight = (_P.nsdpowerheight > 0) and _P.nsdpowerheight or _P.nwidth / 2
+    local pcontactheight = (_P.psdheight > 0) and _P.psdheight or aux.make_even(_P.pwidth / 2)
+    local ncontactheight = (_P.nsdheight > 0) and _P.nsdheight or aux.make_even(_P.nwidth / 2)
+    local pcontactpowerheight = (_P.psdpowerheight > 0) and _P.psdpowerheight or aux.make_even(_P.pwidth / 2)
+    local ncontactpowerheight = (_P.nsdpowerheight > 0) and _P.nsdpowerheight or aux.make_even(_P.nwidth / 2)
     for i = 1, fingers + 1 do
         local x = (i - 1) * xpitch - xpitch / 2
         local y = _P.separation / 2 + _P.pwidth / 2

@@ -329,8 +329,8 @@
 
 \section{Code}
 \begin{frame}[fragile]
-    \centering
     \frametitle{Basic Cell Code}
+    \centering
     \begin{luacode}
         function parameters()
             -- parameter definitions go here
@@ -355,8 +355,8 @@
 \end{frame}
 
 \begin{frame}[fragile]
-    \centering
     \frametitle{Adding Parameters}
+    \centering
     \begin{luacode}
         function parameters()
             pcell.add_parameter("width", 100)
@@ -377,8 +377,8 @@
 \end{frame}
 
 \begin{frame}[fragile]
-    \centering
     \frametitle{Parameters -- Allowed Values}
+    \centering
     \begin{itemize}
         \item Per default, numeric parameters can take any values
         \item Allowed parameters can be limited to \luainline{even} or \luainline{odd} values, intervals (\luainline{interval}) or explicit sets (\luainline{set})
@@ -396,8 +396,8 @@
 \end{frame}
 
 \begin{frame}[fragile]
-    \centering
     \frametitle{The Layout Function}
+    \centering
     \begin{itemize}
         \item First argument is the cell buing built (it is created by the calling code)
         \item The first argument is in theory optional, but a cell without a cell argument makes no sense
@@ -413,8 +413,8 @@
 \end{frame}
 
 \begin{frame}[fragile]
-    \centering
     \frametitle{Adding Shapes}
+    \centering
     \begin{itemize}
         \item Basic shapes are added with the \luainline{geometry} module
         \item All \luainline{geometry} functions take the cell as first argument
@@ -433,8 +433,8 @@
 \end{frame}
 
 \begin{frame}[fragile]
-    \centering
     \frametitle{Digression: Generic Layers}
+    \centering
     \begin{itemize}
         \item Shapes need to have layer information
         \item Can't put in specific technology layers (for example metal 1)
@@ -451,8 +451,8 @@
 \end{frame}
 
 \begin{frame}[fragile]
-    \centering
     \frametitle{Digression: Generic Layers}
+    \centering
     \begin{itemize}
         \item Metals indexed by a number (1 being at the bottom of the metal stack, closest to the bulk wafer)
         \item Generic layers for gates, active regions, implants, threshold voltage markings, oxide thickness
@@ -471,8 +471,8 @@
 \end{frame}
 
 \begin{frame}[fragile]
-    \centering
     \frametitle{Digression: Generic Layers}
+    \centering
     \begin{itemize}
         \item The technology layermap can define various export types (output formats)
         \item Most important is currently gds (GDSII)
@@ -494,8 +494,8 @@
 \end{frame}
 
 \begin{frame}[fragile]
-    \centering
     \frametitle{Digression: Generic Layers}
+    \centering
     \begin{itemize}
         \item Unused layers can be marked as empty
         \item For example, non-SOI (silicon-on-insulator) technology nodes don't need a buried-oxide break (soiopen)
@@ -509,8 +509,34 @@
 \end{frame}
 
 \begin{frame}[fragile]
+    \frametitle{Adding Shapes -- Basic Shapes}
     \centering
+    \begin{minipage}{0.15\linewidth}Rectangles:\end{minipage} \hfill \begin{minipage}{0.80\linewidth}
+    \begin{luacode}
+        -- width and height
+        geometry.rectangle(cell, generics.metal(1), 
+            width, height)
+        -- corner points (bottom left, top right)
+        geometry.rectanglebltr(cell, generics.metal(1), 
+            bl, tr)
+    \end{luacode}\end{minipage}
+
+    \begin{minipage}{0.15\linewidth}Paths:\end{minipage} \hfill \begin{minipage}{0.8\linewidth}
+    \begin{luacode}
+        geometry.path(cell, generics.metal(1),
+            { pt1, pt2, ..., ptN }, width)
+    \end{luacode}\end{minipage}
+
+    \begin{minipage}{0.15\linewidth}Polygons:\end{minipage} \hfill \begin{minipage}{0.8\linewidth}
+    \begin{luacode}
+        geometry.polygon(cell, generics.metal(1),
+            { pt1, pt2, ..., ptN })
+    \end{luacode}\end{minipage}
+\end{frame}
+
+\begin{frame}[fragile]
     \frametitle{Cell Hierarchies}
+    \centering
     \begin{itemize}
         \item Often-used cells more efficiently represented by hierarchies (re-use)
         \item Put sub-layouts in objects (\luainline{object.create()}) or re-use existing cells with (\luainline{pcell.create_layout()})

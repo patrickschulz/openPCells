@@ -91,6 +91,7 @@ struct shape* rectangle_union(struct shape* rect1, struct shape* rect2)
             trx = tr1->x;
             break;
         default: // silence warning about not handling NOINTERSECTION, which is handled earlier
+            return NULL;
             break;
     }
     switch(yorder)
@@ -132,6 +133,7 @@ struct shape* rectangle_union(struct shape* rect1, struct shape* rect2)
             try = tr1->y;
             break;
         default: // silence warning about not handling NOINTERSECTION, which is handled earlier
+            return NULL;
             break;
     }
     struct shape* new = shape_create_rectangle(shape_get_layer(rect1), blx, bly, trx, try);

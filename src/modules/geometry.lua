@@ -1,9 +1,35 @@
 function geometry.path3x(cell, layer, startpt, endpt, width, extension)
+    check_object(cell, "geometry.path3x: first argument must be an object")
+    check_point(startpt, "geometry.path3x: 3rd argument (startpt) must be a point")
+    check_point(endpt, "geometry.path3x: 4th argument (endpt) must be a point")
+    check_number(width, "geometry.path3x: 5th argument (width) must be a number")
     return geometry.path(cell, layer, geometry.path_points_xy(startpt, { endpt }), width, extension)
 end
 
 function geometry.path3y(cell, layer, startpt, endpt, width, extension)
+    check_object(cell, "geometry.path3y: first argument must be an object")
+    check_point(startpt, "geometry.path3y: 3rd argument (startpt) must be a point")
+    check_point(endpt, "geometry.path3y: 4th argument (endpt) must be a point")
+    check_number(width, "geometry.path3y: 5th argument (width) must be a number")
     return geometry.path(cell, layer, geometry.path_points_yx(startpt, { endpt }), width, extension)
+end
+
+function geometry.path4xy(cell, layer, startpt, endpt, width, extension)
+    check_object(cell, "geometry.path3x: first argument must be an object")
+    check_point(startpt, "geometry.path3x: 3rd argument (startpt) must be a point")
+    check_point(endpt, "geometry.path3x: 4th argument (endpt) must be a point")
+    check_number(width, "geometry.path3x: 5th argument (width) must be a number")
+    local midpoint = startpt + endpt
+    return geometry.path(cell, layer, geometry.path_points_xy(startpt, { midpoint, 0, endpt }), width, extension)
+end
+
+function geometry.path4y(cell, layer, startpt, endpt, width, extension)
+    check_object(cell, "geometry.path3y: first argument must be an object")
+    check_point(startpt, "geometry.path3y: 3rd argument (startpt) must be a point")
+    check_point(endpt, "geometry.path3y: 4th argument (endpt) must be a point")
+    check_number(width, "geometry.path3y: 5th argument (width) must be a number")
+    local midpoint = startpt + endpt
+    return geometry.path(cell, layer, geometry.path_points_yx(startpt, { midpoint, endpt }), width, extension)
 end
 
 function geometry.cshape(cell, layer, startpt, endpt, offset, width)
@@ -73,6 +99,7 @@ function geometry.path_points_yx(startpt, movements)
     return pts
 end
 
+--[[
 -- FIXME: rectangular-separated does not work in y direction
 -- This could be fixed by using a more general (and cleaner) approach by tweaking the mirroring, not the points
 local function _crossing(obj, layer1, layer2, width, dxy, ext, direction, mode, separation)
@@ -157,6 +184,12 @@ function geometry.crossing(cell, layer1, layer2, width, tl, br, mode)
     _crossing(obj, layer1, layer2, width, dxy, ext, direction, mode)
     obj:translate(0, tly - dxy / 2)
     cell:merge_into_shallow(obj)
+end
+--]]
+
+function geometry.metalcrossing(cell, metal1, metal2, startpt1, endpt1, startpt2, endpt2, width)
+    geometry.path4xy(cell, generics.metal(metal1), startpt1, endpt1, width)
+    geometry.path4xy(cell, generics.metal(metal2), startpt2, endpt2, width)
 end
 
 function geometry.path_midpoint(cell, layer, pts, width, method, miterjoin)

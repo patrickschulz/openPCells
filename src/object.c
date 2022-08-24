@@ -292,6 +292,7 @@ void object_add_anchor_area(struct object* cell, const char* base, coordinate_t 
     object_add_anchor(cell, name, xshift + width / 2, yshift             );
     name[len - 2] = 'u'; name[len - 1] = 'r';
     object_add_anchor(cell, name, xshift + width / 2, yshift + height / 2);
+    free(name);
 }
 
 void object_add_anchor_area_bltr(struct object* cell, const char* base, const point_t* bl, const point_t* tr)
@@ -322,6 +323,7 @@ void object_add_anchor_area_bltr(struct object* cell, const char* base, const po
     object_add_anchor(cell, name, trx, (bly + try) / 2);
     name[len - 2] = 'u'; name[len - 1] = 'r';
     object_add_anchor(cell, name, trx, try);
+    free(name);
 }
 
 static point_t* _get_special_anchor(const struct object* cell, const char* name, const struct transformationmatrix* trans1, const struct transformationmatrix* trans2)
