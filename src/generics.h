@@ -7,7 +7,6 @@
 
 #include "hashmap.h"
 
-//#include "technology.h"
 struct technology_state;
 
 struct generics;
@@ -23,7 +22,7 @@ void generics_destroy_layer(void* layerv);
 
 int generics_is_empty(const struct generics* layer);
 int generics_is_layer_name(const struct generics* layer, const char* layername);
-struct hashmap* generics_get_first_layer_data(struct generics* layer);
+const struct hashmap* generics_get_first_layer_data(const struct generics* layer);
 
 // layermap
 struct layermap* generics_initialize_layer_map(void);

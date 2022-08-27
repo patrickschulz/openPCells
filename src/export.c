@@ -203,25 +203,25 @@ static void _write_ports(struct object* cell, struct export_data* data, struct e
     struct port_iterator* it = object_create_port_iterator(cell);
     while(port_iterator_is_valid(it))
     {
-        struct port* port = port_iterator_get(it);
-        char* name;
-        if(port->isbusport)
+        const char* portname;
+        const point_t* portwhere;
+        const struct generics* portlayer;
+        int portisbusport;
+        int portbusindex;
+        port_iterator_get(it, &portname, &portwhere, &portlayer, &portisbusport, &portbusindex);
+        point_t where = { .x = portwhere->x, .y = portwhere->y };
+        object_transform_point(cell, &where);
+        const struct hashmap* layerdata = generics_get_first_layer_data(portlayer);
+        if(portisbusport)
         {
-            size_t len = strlen(port->name) + 2 + util_num_digits(port->busindex);
-            name = malloc(len + 1);
-            snprintf(name, len + 1, "%s%c%d%c", port->name, leftdelim, port->busindex, rightdelim);
+            size_t len = strlen(portname) + 2 + util_num_digits(portbusindex);
+            char* name = malloc(len + 1);
+            snprintf(name, len + 1, "%s%c%d%c", portname, leftdelim, portbusindex, rightdelim);
+            funcs->write_port(data, name, layerdata, where.x, where.y);
         }
         else
         {
-            name = port->name;
-        }
-        point_t where = { .x = port->where->x, .y = port->where->y };
-        object_transform_point(cell, &where);
-        struct hashmap* layerdata = generics_get_first_layer_data(port->layer);
-        funcs->write_port(data, name, layerdata, where.x, where.y);
-        if(port->isbusport)
-        {
-            free(name);
+            funcs->write_port(data, portname, layerdata, where.x, where.y);
         }
         port_iterator_next(it);
     }
@@ -408,33 +408,30 @@ static int _write_ports_lua(lua_State* L, struct object* cell, char leftdelim, c
     struct port_iterator* it = object_create_port_iterator(cell);
     while(port_iterator_is_valid(it))
     {
-        struct port* port = port_iterator_get(it);
-        char* name;
-        if(port->isbusport)
+        const char* portname;
+        const point_t* portwhere;
+        const struct generics* portlayer;
+        int portisbusport;
+        int portbusindex;
+        port_iterator_get(it, &portname, &portwhere, &portlayer, &portisbusport, &portbusindex);
+        point_t where = { .x = portwhere->x, .y = portwhere->y };
+        object_transform_point(cell, &where);
+        const struct hashmap* layerdata = generics_get_first_layer_data(portlayer);
+        lua_pushvalue(L, -1); // write_port is already on the stack (from the check if the function exists)
+        if(portisbusport)
         {
-            size_t len = strlen(port->name) + 2 + util_num_digits(port->busindex);
-            name = malloc(len + 1);
-            snprintf(name, len + 1, "%s%c%d%c", port->name, leftdelim, port->busindex, rightdelim);
+            lua_pushfstring(L, "%s%c%d%c", portname, leftdelim, portbusindex, rightdelim);
         }
         else
         {
-            name = port->name;
+            lua_pushstring(L, portname);
         }
-        point_t where = { .x = port->where->x, .y = port->where->y };
-        object_transform_point(cell, &where);
-        struct hashmap* layerdata = generics_get_first_layer_data(port->layer);
-        lua_pushvalue(L, -1); // write_port is already on the stack (from the check if the function exists)
-        lua_pushstring(L, name);
         _push_layer(L, layerdata);
         _push_point(L, &where);
         int ret = lua_pcall(L, 3, 0, 0);
         if(ret != LUA_OK)
         {
             return ret;
-        }
-        if(port->isbusport)
-        {
-            free(name);
         }
         port_iterator_next(it);
     }

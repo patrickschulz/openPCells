@@ -399,19 +399,24 @@ int lobject_add_bus_port(lua_State* L)
 int lobject_get_ports(lua_State* L)
 {
     struct lobject* cell = lobject_check(L, 1);
-    struct vector* ports = object_get_ports(cell->object);
     lua_newtable(L);
-    size_t len = vector_size(ports);
-    for(size_t i = 0; i < len; ++i)
+    struct port_iterator* it = object_create_port_iterator(cell->object);
+    int i = 1;
+    while(port_iterator_is_valid(it))
     {
-        struct port* port = vector_get(ports, i);
+        const char* portname;
+        const point_t* portwhere;
+        port_iterator_get(it, &portname, &portwhere, NULL, NULL, NULL);
         lua_newtable(L);
-        lua_pushstring(L, port->name);
+        lua_pushstring(L, portname);
         lua_setfield(L, -2, "name");
-        lpoint_adapt_point(L, port->where);
+        lpoint_create_internal(L, portwhere->x, portwhere->y);
         lua_setfield(L, -2, "where");
-        lua_rawseti(L, -2, i + 1);
+        lua_rawseti(L, -2, i);
+        port_iterator_next(it);
+        ++i;
     }
+    port_iterator_destroy(it);
     return 1;
 }
 

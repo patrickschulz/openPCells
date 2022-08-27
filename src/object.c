@@ -10,6 +10,14 @@
 #define min(a, b) ((a) < (b) ? (a) : (b))
 #define max(a, b) ((a) > (b) ? (a) : (b))
 
+struct port {
+    char* name;
+    point_t* where;
+    struct generics* layer;
+    int isbusport;
+    int busindex;
+};
+
 struct object {
     char* name;
 
@@ -1050,9 +1058,14 @@ void port_iterator_next(struct port_iterator* it)
     it->index += 1;
 }
 
-struct port* port_iterator_get(struct port_iterator* it)
+void port_iterator_get(struct port_iterator* it, const char** portname, const point_t** portwhere, const struct generics** portlayer, int* portisbusport, int* portbusindex)
 {
-    return vector_get(it->ports, it->index);
+    struct port* port = vector_get(it->ports, it->index);
+    if(portname) { *portname = port->name; }
+    if(portwhere) { *portwhere = port->where; }
+    if(portlayer) { *portlayer = port->layer; }
+    if(portisbusport) { *portisbusport = port->isbusport; }
+    if(portbusindex) { *portbusindex = port->busindex; }
 }
 
 void port_iterator_destroy(struct port_iterator* it)
