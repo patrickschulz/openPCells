@@ -133,7 +133,7 @@ static void _prepare_cellpaths(struct vector* cellpaths_to_prepend, struct vecto
     {
         for(unsigned int i = 0; i < vector_size(config_prepend_cellpaths); ++i)
         {
-            vector_append(cellpaths_to_prepend, vector_get(config_prepend_cellpaths, i));
+            vector_append(cellpaths_to_prepend, util_copy_string(vector_get(config_prepend_cellpaths, i)));
         }
     }
     struct vector* config_append_cellpaths = hashmap_get(config, "append_cellpaths");
@@ -141,7 +141,7 @@ static void _prepare_cellpaths(struct vector* cellpaths_to_prepend, struct vecto
     {
         for(unsigned int i = 0; i < vector_size(config_append_cellpaths); ++i)
         {
-            vector_append(cellpaths_to_append, vector_get(config_append_cellpaths, i));
+            vector_append(cellpaths_to_append, util_copy_string(vector_get(config_append_cellpaths, i)));
         }
     }
     vector_append(cellpaths_to_append, util_copy_string(OPC_HOME "/cells"));
