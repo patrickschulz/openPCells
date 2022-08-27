@@ -774,11 +774,10 @@ static void _write_toplevel_C(struct object* object, struct pcell_state* pcell_s
     struct cell_reference_iterator* it = pcell_create_cell_reference_iterator(pcell_state);
     while(pcell_cell_reference_iterator_is_valid(it))
     {
-        const char* refidentifier;
-        const struct object* refcell;
+        char* refidentifier;
+        struct object* refcell;
         int refnumused;
         pcell_cell_reference_iterator_get(it, &refidentifier, &refcell, &refnumused);
-        //struct cellreference* reference = pcell_get_indexed_cell_reference(pcell_state, i);
         if(refnumused > 0)
         {
             funcs->at_begin_cell(data, refidentifier);
@@ -831,8 +830,8 @@ static int _write_toplevel_lua(lua_State* L, struct object* object, struct pcell
     struct cell_reference_iterator* it = pcell_create_cell_reference_iterator(pcell_state);
     while(pcell_cell_reference_iterator_is_valid(it))
     {
-        const char* refidentifier;
-        const struct object* refcell;
+        char* refidentifier;
+        struct object* refcell;
         int refnumused;
         pcell_cell_reference_iterator_get(it, &refidentifier, &refcell, &refnumused);
         if(refnumused > 0)
