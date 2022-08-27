@@ -10,6 +10,9 @@
 #define min(a, b) ((a) < (b) ? (a) : (b))
 #define max(a, b) ((a) > (b) ? (a) : (b))
 
+#define OBJECT_DEFAULT_CHILDREN_SIZE 16
+#define OBJECT_DEFAULT_PORT_SIZE 16
+
 struct port {
     char* name;
     point_t* where;
@@ -42,7 +45,7 @@ struct object {
 
     struct hashmap* anchors;
 
-    coordinate_t* alignmentbox; // NULL or contains four coordinates
+    coordinate_t* alignmentbox; // NULL or contains four coordinates: blx, blx, trx, try
 
     struct vector* children; // stores struct object*
 };
@@ -76,6 +79,11 @@ struct object* object_create_proxy(const char* name, struct object* reference, c
     strcpy(obj->identifier, identifier);
     obj->isproxy = 1;
     // don't need a transformation matrix as it is created by add_child
+    obj->isarray = 0;
+    obj->xrep = 1;
+    obj->yrep = 1;
+    obj->xpitch = 0;
+    obj->ypitch = 0;
     return obj;
 }
 
@@ -133,7 +141,7 @@ struct object* object_copy(struct object* cell)
         // children
         if(cell->children)
         {
-            new->children = vector_create(16);
+            new->children = vector_create(vector_size(cell->children));
             for(unsigned int i = 0; i < vector_size(cell->children); ++i)
             {
                 vector_append(new->children, object_copy(vector_get(cell->children, i)));
@@ -233,15 +241,10 @@ struct object* object_add_child(struct object* cell, struct pcell_state* pcell_s
 {
     struct object* reference = pcell_use_cell_reference(pcell_state, identifier);
     struct object* child = object_create_proxy(name, reference, identifier);
-    child->isarray = 0;
-    child->xrep = 1;
-    child->yrep = 1;
-    child->xpitch = 0;
-    child->ypitch = 0;
     child->trans = transformationmatrix_invert(cell->trans);
     if(!cell->children)
     {
-        cell->children = vector_create(16);
+        cell->children = vector_create(OBJECT_DEFAULT_CHILDREN_SIZE);
     }
     vector_append(cell->children, child);
     return child;
@@ -280,31 +283,30 @@ void object_add_anchor(struct object* cell, const char* name, coordinate_t x, co
     hashmap_insert(cell->anchors, name, point_create(x, y));
 }
 
+void object_add_anchor_suffix(struct object* cell, const char* base, const char* suffix, coordinate_t x, coordinate_t y)
+{
+    if(!cell->anchors)
+    {
+        cell->anchors = hashmap_create();
+    }
+    size_t len = strlen(base) + strlen(suffix);
+    char* name = malloc(len + 1);
+    snprintf(name, len + 1, "%s%s", base, suffix);
+    hashmap_insert(cell->anchors, name, point_create(x, y));
+    free(name);
+}
+
 void object_add_anchor_area(struct object* cell, const char* base, coordinate_t width, coordinate_t height, coordinate_t xshift, coordinate_t yshift)
 {
-    size_t len = strlen(base) + 2; // +2 for suffix
-    char* name = malloc(len + 1);
-    strcpy(name, base);
-    name[len] = 0; // terminate string
-    name[len - 2] = 'l'; name[len - 1] = 'l';
-    object_add_anchor(cell, name, xshift - width / 2, yshift - height / 2);
-    name[len - 2] = 'c'; name[len - 1] = 'l';
-    object_add_anchor(cell, name, xshift - width / 2, yshift             );
-    name[len - 2] = 'u'; name[len - 1] = 'l';
-    object_add_anchor(cell, name, xshift - width / 2, yshift + height / 2);
-    name[len - 2] = 'l'; name[len - 1] = 'c';
-    object_add_anchor(cell, name, xshift            , yshift - height / 2);
-    name[len - 2] = 'c'; name[len - 1] = 'c';
-    object_add_anchor(cell, name, xshift            , yshift             );
-    name[len - 2] = 'u'; name[len - 1] = 'c';
-    object_add_anchor(cell, name, xshift            , yshift + height / 2);
-    name[len - 2] = 'l'; name[len - 1] = 'r';
-    object_add_anchor(cell, name, xshift + width / 2, yshift - height / 2);
-    name[len - 2] = 'c'; name[len - 1] = 'r';
-    object_add_anchor(cell, name, xshift + width / 2, yshift             );
-    name[len - 2] = 'u'; name[len - 1] = 'r';
-    object_add_anchor(cell, name, xshift + width / 2, yshift + height / 2);
-    free(name);
+    object_add_anchor_suffix(cell, base, "ll", xshift - width / 2, yshift - height / 2);
+    object_add_anchor_suffix(cell, base, "cl", xshift - width / 2, yshift             );
+    object_add_anchor_suffix(cell, base, "ul", xshift - width / 2, yshift + height / 2);
+    object_add_anchor_suffix(cell, base, "lc", xshift            , yshift - height / 2);
+    object_add_anchor_suffix(cell, base, "cc", xshift            , yshift             );
+    object_add_anchor_suffix(cell, base, "uc", xshift            , yshift + height / 2);
+    object_add_anchor_suffix(cell, base, "lr", xshift + width / 2, yshift - height / 2);
+    object_add_anchor_suffix(cell, base, "cr", xshift + width / 2, yshift             );
+    object_add_anchor_suffix(cell, base, "ur", xshift + width / 2, yshift + height / 2);
 }
 
 void object_add_anchor_area_bltr(struct object* cell, const char* base, const point_t* bl, const point_t* tr)
@@ -313,29 +315,15 @@ void object_add_anchor_area_bltr(struct object* cell, const char* base, const po
     coordinate_t bly = bl->y;
     coordinate_t trx = tr->x;
     coordinate_t try = tr->y;
-    size_t len = strlen(base) + 2; // +2 for suffix
-    char* name = malloc(len + 1);
-    strcpy(name, base);
-    name[len] = 0; // terminate string
-    name[len - 2] = 'l'; name[len - 1] = 'l';
-    object_add_anchor(cell, name, blx, bly);
-    name[len - 2] = 'c'; name[len - 1] = 'l';
-    object_add_anchor(cell, name, blx, (bly + try) / 2);
-    name[len - 2] = 'u'; name[len - 1] = 'l';
-    object_add_anchor(cell, name, blx, try);
-    name[len - 2] = 'l'; name[len - 1] = 'c';
-    object_add_anchor(cell, name, (blx + trx) / 2, bly);
-    name[len - 2] = 'c'; name[len - 1] = 'c';
-    object_add_anchor(cell, name, (blx + trx) / 2, (bly + try) / 2);
-    name[len - 2] = 'u'; name[len - 1] = 'c';
-    object_add_anchor(cell, name, (blx + trx) / 2, try);
-    name[len - 2] = 'l'; name[len - 1] = 'r';
-    object_add_anchor(cell, name, trx, bly);
-    name[len - 2] = 'c'; name[len - 1] = 'r';
-    object_add_anchor(cell, name, trx, (bly + try) / 2);
-    name[len - 2] = 'u'; name[len - 1] = 'r';
-    object_add_anchor(cell, name, trx, try);
-    free(name);
+    object_add_anchor_suffix(cell, base, "ll", blx, bly);
+    object_add_anchor_suffix(cell, base, "cl", blx, (bly + try) / 2);
+    object_add_anchor_suffix(cell, base, "ul", blx, try);
+    object_add_anchor_suffix(cell, base, "lc", (blx + trx) / 2, bly);
+    object_add_anchor_suffix(cell, base, "cc", (blx + trx) / 2, (bly + try) / 2);
+    object_add_anchor_suffix(cell, base, "uc", (blx + trx) / 2, try);
+    object_add_anchor_suffix(cell, base, "lr", trx, bly);
+    object_add_anchor_suffix(cell, base, "cr", trx, (bly + try) / 2);
+    object_add_anchor_suffix(cell, base, "ur", trx, try);
 }
 
 static point_t* _get_special_anchor(const struct object* cell, const char* name, const struct transformationmatrix* trans1, const struct transformationmatrix* trans2)
@@ -516,7 +504,7 @@ static void _add_port(struct object* cell, const char* name, const char* anchorn
     {
         if(!cell->ports)
         {
-            cell->ports = vector_create(16);
+            cell->ports = vector_create(OBJECT_DEFAULT_PORT_SIZE);
         }
         struct port* port = malloc(sizeof(*port));
         port->where = point_create(x, y);
