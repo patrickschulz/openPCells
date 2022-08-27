@@ -13,9 +13,13 @@
 struct object {
     char* name;
 
-    char* identifier; // for children
-    struct object* reference; // for children
+    // for children:
+    // 'proxy' objects are light handles to objects
+    // these are created by the 'all_child' method of objects
+    // proxy objects behave like real objects (they can be moved etc.)
     int isproxy;
+    char* identifier;
+    struct object* reference;
     int isarray;
     unsigned int xrep;
     unsigned int yrep;
@@ -24,15 +28,15 @@ struct object {
 
     struct transformationmatrix* trans;
 
-    struct vector* shapes;
+    struct vector* shapes; // stores struct shape*
 
-    struct vector* ports;
+    struct vector* ports; // stores struct port*
 
     struct hashmap* anchors;
 
     coordinate_t* alignmentbox; // NULL or contains four coordinates
 
-    struct vector* children;
+    struct vector* children; // stores struct object*
 };
 
 static struct object* _create(void)

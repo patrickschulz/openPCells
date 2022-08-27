@@ -32,6 +32,8 @@ struct curve {
     int allow45;
 };
 
+struct shape;
+
 struct shape* shape_create_rectangle(struct generics* layer, coordinate_t bl_x, coordinate_t bl_y, coordinate_t tr_x, coordinate_t tr_y);
 struct shape* shape_create_polygon(struct generics* layer, size_t capacity);
 struct shape* shape_create_path(struct generics* layer, size_t capacity, ucoordinate_t width, coordinate_t extstart, coordinate_t extend);
