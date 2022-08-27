@@ -157,6 +157,8 @@ void pcell_unlink_cell_reference(struct pcell_state* pcell_state, const char* id
     // FIXME: error if not found?
 }
 
+// FIXME: remove this function (and pcell_get_indexed_cell_reference)
+// solve everything these functions solve with iterators
 size_t pcell_get_reference_count(struct pcell_state* pcell_state)
 {
     return vector_size(pcell_state->references);
@@ -213,6 +215,42 @@ void pcell_list_cellpaths(struct pcell_state* pcell_state)
     }
 }
 
+// reference cell iterator
+struct cell_reference_iterator {
+    const struct pcell_state* state;
+    size_t index;
+};
+
+struct cell_reference_iterator* pcell_create_cell_reference_iterator(const struct pcell_state* pcell_state)
+{
+    struct cell_reference_iterator* it = malloc(sizeof(*it));
+    it->state = pcell_state;
+    it->index = 0;
+    return it;
+}
+
+void pcell_cell_reference_iterator_get(struct cell_reference_iterator* it, const char** identifier, const struct object** reference, int* numused)
+{
+    struct cellreference* cellrefreference = vector_get(it->state->references, it->index);
+    *identifier = cellrefreference->identifier;
+    *reference = cellrefreference->cell;
+    *numused = cellrefreference->numused;
+}
+
+int pcell_cell_reference_iterator_is_valid(const struct cell_reference_iterator* it)
+{
+    return it->index < vector_size(it->state->references);
+}
+
+void pcell_cell_reference_iterator_advance(struct cell_reference_iterator* it)
+{
+    ++it->index;
+}
+
+void pcell_destroy_cell_reference_iterator(struct cell_reference_iterator* it)
+{
+    free(it);
+}
 
 void pcell_list_cells(struct pcell_state* pcell_state, const char* listformat)
 {

@@ -31,6 +31,14 @@ void pcell_append_cellpath(struct pcell_state*, const char* path);
 void pcell_list_cellpaths(struct pcell_state* pcell_state);
 void pcell_list_cells(struct pcell_state* pcell_state, const char* listformat);
 
+// reference cell iterator
+struct cell_reference_iterator;
+struct cell_reference_iterator* pcell_create_cell_reference_iterator(const struct pcell_state* pcell_state);
+void pcell_cell_reference_iterator_get(struct cell_reference_iterator* it, const char** identifier, const struct object** reference, int* numused);
+int pcell_cell_reference_iterator_is_valid(const struct cell_reference_iterator* it);
+void pcell_cell_reference_iterator_advance(struct cell_reference_iterator* it);
+void pcell_destroy_cell_reference_iterator(struct cell_reference_iterator* it);
+
 int open_lpcell_lib(lua_State* L);
 
 #endif // OPC_PCELL_H
