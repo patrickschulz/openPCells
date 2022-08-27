@@ -7,13 +7,6 @@
 
 struct object;
 
-struct cellreference
-{
-    char* identifier;
-    struct object* cell;
-    unsigned int numused;
-};
-
 struct pcell_state;
 
 struct pcell_state* pcell_initialize_state(struct vector* to_prepend, struct vector* to_append);

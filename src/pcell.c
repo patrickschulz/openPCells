@@ -17,6 +17,12 @@ struct used_name {
     unsigned int numused;
 };
 
+struct cellreference {
+    char* identifier;
+    struct object* cell;
+    unsigned int numused;
+};
+
 struct pcell_state {
     struct vector* used_names;
     struct vector* references;
