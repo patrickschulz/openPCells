@@ -9,7 +9,6 @@
 #include "lpoint.h"
 #include "lgeometry.h"
 #include "lgenerics.h"
-#include "lbind.h"
 #include "ldir.h"
 #include "lobject.h"
 #include "filesystem.h"
@@ -38,17 +37,18 @@ static lua_State* _create_and_initialize_lua(void)
 
     // opc libraries
     open_ldir_lib(L);
+    open_lfilesystem_lib(L);
     open_lpoint_lib(L);
     open_lgeometry_lib(L);
     open_lgenerics_lib(L);
     open_ltechnology_lib(L);
-    open_lbind_lib(L);
-    open_lobject_lib(L);
     open_lpcell_lib(L);
-    open_lfilesystem_lib(L);
+    open_lobject_lib(L);
+    // FIXME: these libraries are probably not needed for cell creation (they are used in place & route scripts)
     open_lplacer_lib(L);
     open_lrouter_lib(L);
 
+    // FIXME: probably not needed for cell creation (used in gdsimport)
     open_gdsparser_lib(L);
 
     return L;
@@ -149,9 +149,9 @@ static void _prepare_cellpaths(struct vector* cellpaths_to_prepend, struct vecto
 
 void main_list_cell_parameters(struct cmdoptions* cmdoptions, struct hashmap* config)
 {
+    // FIXME: this probably loads too many C modules
     lua_State* L = _create_and_initialize_lua();
 
-    open_lpcell_lib(L);
     module_load_aux(L);
     module_load_stack(L);
     module_load_pcell(L);
