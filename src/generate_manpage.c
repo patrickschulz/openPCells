@@ -2,17 +2,11 @@
 
 #include "cmdoptions.h"
 
-int main(int argc, const char* const * argv)
+int main(void)
 {
-    int returnvalue = 0;
     struct cmdoptions* cmdoptions = cmdoptions_create();
     #include "cmdoptions_def.c" // yes, I did that
-    if(!cmdoptions_parse(cmdoptions, argc, argv))
-    {
-        returnvalue = 1;
-        goto DESTROY_CMDOPTIONS;
-    }
-    puts(".TH opc 1 \"26 Aug 2021\" \"1.0\" \"opc man page\"");
+    puts(".TH opc 1 \"29 Aug 2022\" \"1.0\" \"opc man page\"");
     puts(".SH NAME");
     puts("opc \\- parametric and technology-independent IC layout generator");
     puts(".SH SYNOPSIS");
@@ -24,8 +18,7 @@ int main(int argc, const char* const * argv)
     puts(".SH AUTHOR");
     puts("Patrick Kurth <p.kurth@posteo.de>");
 
-DESTROY_CMDOPTIONS:
     cmdoptions_destroy(cmdoptions);
-    return returnvalue;
+    return 0;
 }
 
