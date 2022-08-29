@@ -298,15 +298,15 @@ void object_add_anchor_suffix(struct object* cell, const char* base, const char*
 
 void object_add_anchor_area(struct object* cell, const char* base, coordinate_t width, coordinate_t height, coordinate_t xshift, coordinate_t yshift)
 {
-    object_add_anchor_suffix(cell, base, "ll", xshift - width / 2, yshift - height / 2);
+    object_add_anchor_suffix(cell, base, "bl", xshift - width / 2, yshift - height / 2);
     object_add_anchor_suffix(cell, base, "cl", xshift - width / 2, yshift             );
-    object_add_anchor_suffix(cell, base, "ul", xshift - width / 2, yshift + height / 2);
-    object_add_anchor_suffix(cell, base, "lc", xshift            , yshift - height / 2);
+    object_add_anchor_suffix(cell, base, "tl", xshift - width / 2, yshift + height / 2);
+    object_add_anchor_suffix(cell, base, "bc", xshift            , yshift - height / 2);
     object_add_anchor_suffix(cell, base, "cc", xshift            , yshift             );
-    object_add_anchor_suffix(cell, base, "uc", xshift            , yshift + height / 2);
-    object_add_anchor_suffix(cell, base, "lr", xshift + width / 2, yshift - height / 2);
+    object_add_anchor_suffix(cell, base, "tc", xshift            , yshift + height / 2);
+    object_add_anchor_suffix(cell, base, "br", xshift + width / 2, yshift - height / 2);
     object_add_anchor_suffix(cell, base, "cr", xshift + width / 2, yshift             );
-    object_add_anchor_suffix(cell, base, "ur", xshift + width / 2, yshift + height / 2);
+    object_add_anchor_suffix(cell, base, "tr", xshift + width / 2, yshift + height / 2);
 }
 
 void object_add_anchor_area_bltr(struct object* cell, const char* base, const point_t* bl, const point_t* tr)
@@ -315,15 +315,15 @@ void object_add_anchor_area_bltr(struct object* cell, const char* base, const po
     coordinate_t bly = bl->y;
     coordinate_t trx = tr->x;
     coordinate_t try = tr->y;
-    object_add_anchor_suffix(cell, base, "ll", blx, bly);
+    object_add_anchor_suffix(cell, base, "bl", blx, bly);
     object_add_anchor_suffix(cell, base, "cl", blx, (bly + try) / 2);
-    object_add_anchor_suffix(cell, base, "ul", blx, try);
-    object_add_anchor_suffix(cell, base, "lc", (blx + trx) / 2, bly);
+    object_add_anchor_suffix(cell, base, "tl", blx, try);
+    object_add_anchor_suffix(cell, base, "bc", (blx + trx) / 2, bly);
     object_add_anchor_suffix(cell, base, "cc", (blx + trx) / 2, (bly + try) / 2);
-    object_add_anchor_suffix(cell, base, "uc", (blx + trx) / 2, try);
-    object_add_anchor_suffix(cell, base, "lr", trx, bly);
+    object_add_anchor_suffix(cell, base, "tc", (blx + trx) / 2, try);
+    object_add_anchor_suffix(cell, base, "br", trx, bly);
     object_add_anchor_suffix(cell, base, "cr", trx, (bly + try) / 2);
-    object_add_anchor_suffix(cell, base, "ur", trx, try);
+    object_add_anchor_suffix(cell, base, "tr", trx, try);
 }
 
 static point_t* _get_special_anchor(const struct object* cell, const char* name, const struct transformationmatrix* trans1, const struct transformationmatrix* trans2)

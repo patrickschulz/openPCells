@@ -85,6 +85,10 @@ function parameters()
         { "topwelltapextendleft",                                          0 },
         { "topwelltapextendright",                                         0 },
         { "drawbotwelltap",                                            false },
+        { "drawguardring",                                             false },
+        { "guardringwidth",                                             100 },
+        { "guardringxsep",                                             0 },
+        { "guardringysep",                                             0 },
         { "botwelltapwidth",                                           tech.get_dimension("Minimum M1 Width") },
         { "botwelltapspace",                                           tech.get_dimension("Minimum M1 Space") },
         { "botwelltapextendleft",                                          0 },
@@ -95,8 +99,6 @@ function parameters()
         { "drawstopgatebotgcut",                                           false },
         { "leftpolylines",                                                 {} },
         { "rightpolylines",                                                {} }
-        --{ "numleftpolylines",                                              0 },
-        --{ "numrightpolylines",                                             0 }
     )
 end
 
@@ -307,36 +309,52 @@ function layout(transistor, _P)
         ),
         point.create(
             -activewidth / 2 - virtualactiveleftext - _P.extendwellleft,
-            -_P.fwidth / 2 - math.max(gateaddbot, enable(_P.drawbotwelltap, _P.botwelltapspace + _P.botwelltapwidth))- sourceshift - _P.extendwellbot
+            -_P.fwidth / 2 - math.max(gateaddbot, enable(_P.drawbotwelltap, _P.botwelltapspace + _P.botwelltapwidth)) - _P.extendwellbot
         ),
         point.create(
             activewidth / 2 + virtualactiverightext + _P.extendwellright,
-            _P.fwidth / 2 + math.max(gateaddtop, enable(_P.drawtopwelltap, _P.topwelltapspace + _P.topwelltapwidth)) + drainshift + _P.extendwelltop
+            _P.fwidth / 2 + math.max(gateaddtop, enable(_P.drawtopwelltap, _P.topwelltapspace + _P.topwelltapwidth)) + _P.extendwelltop
         )
     )
     -- well taps
     if _P.drawtopwelltap then
-        geometry.contact(transistor,
-            "active",
-            activewidth + _P.topwelltapextendleft + _P.topwelltapextendright,
-            _P.topwelltapwidth,
-            -- shifts
-            (_P.topwelltapextendright - _P.topwelltapextendleft) / 2,
-            _P.fwidth / 2 + drainshift + topgateshift + _P.topwelltapspace + _P.topwelltapwidth / 2,
-            1, 1, 0, 0,
-            { xcontinuous = true }
-        )
+        transistor:merge_into_shallow(pcell.create_layout("auxiliary/welltap", {
+            contype = _P.flippedwell and (_P.channeltype == "nmos" and "n" or "p") or (_P.channeltype == "nmos" and "p" or "n"),
+            width = activewidth + _P.topwelltapextendleft + _P.topwelltapextendright,
+            height = _P.topwelltapwidth,
+        }):translate((_P.topwelltapextendright - _P.topwelltapextendleft) / 2, _P.fwidth / 2 + drainshift + topgateshift + _P.topwelltapspace + _P.topwelltapwidth / 2))
     end
     if _P.drawbotwelltap then
-        geometry.contact(transistor,
-            "active",
-            activewidth + _P.botwelltapextendleft + _P.botwelltapextendright,
-            _P.botwelltapwidth,
-            -- shifts
-            (_P.botwelltapextendright - _P.botwelltapextendleft) / 2,
-            -_P.fwidth / 2 - sourceshift - botgateshift - _P.botwelltapspace - _P.botwelltapwidth / 2,
-            1, 1, 0, 0,
-            { xcontinuous = true }
+        transistor:merge_into_shallow(pcell.create_layout("auxiliary/welltap", {
+            contype = _P.flippedwell and (_P.channeltype == "nmos" and "n" or "p") or (_P.channeltype == "nmos" and "p" or "n"),
+            width = activewidth + _P.botwelltapextendleft + _P.botwelltapextendright,
+            height = _P.botwelltapwidth,
+        }):translate((_P.botwelltapextendright - _P.botwelltapextendleft) / 2, -_P.fwidth / 2 - drainshift - botgateshift - _P.botwelltapspace - _P.botwelltapwidth / 2))
+    end
+
+    local guardring -- variable needs to be visible for alignment box setting
+    if _P.drawguardring then
+        guardring = pcell.create_layout("auxiliary/guardring", {
+            contype = _P.flippedwell and (_P.channeltype == "nmos" and "n" or "p") or (_P.channeltype == "nmos" and "p" or "n"),
+            ringwidth = _P.guardringwidth,
+            holewidth = activewidth + 2 * _P.guardringxsep,
+            holeheight = 
+                _P.fwidth
+                + enable(_P.drawtopgate and topgatecompsd, drainshift + _P.topgatestrwidth + _P.topgatestrspace)
+                + enable(_P.drawbotgate and botgatecompsd, sourceshift + _P.botgatestrwidth + _P.botgatestrspace)
+                + 2 * _P.guardringysep,
+            fillwell = true,
+            drawsegments = { "top", "bottom" }
+        })
+        local yshift = (
+            enable(_P.drawtopgate and topgatecompsd, drainshift + _P.topgatestrwidth + _P.topgatestrspace)
+            - enable(_P.drawbotgate and botgatecompsd, sourceshift + _P.botgatestrwidth + _P.botgatestrspace)
+        ) / 2
+        guardring:translate(0, yshift)
+        transistor:merge_into_shallow(guardring)
+        transistor:add_anchor_area_bltr("guardring",
+            guardring:get_anchor("bottomleft"):translate(-_P.guardringwidth / 2, -_P.guardringwidth / 2),
+            guardring:get_anchor("topright"):translate(_P.guardringwidth / 2, _P.guardringwidth / 2)
         )
     end
 
@@ -539,45 +557,49 @@ function layout(transistor, _P)
     end
 
     -- alignmentbox (FIXME, perhaps a simpler one is better)
-    local y1 =  _P.fwidth / 2 + math.max(_P.gtopext, enable(_P.drawtopgate and topgatecompsd, _P.topgatestrspace + _P.topgatestrwidth / 2))
-    local y2 = -_P.fwidth / 2 - math.max(_P.gbotext, enable(_P.drawbotgate and botgatecompsd, _P.botgatestrspace + _P.botgatestrwidth / 2))
-    if _P.connectsource and not _P.connsourceinline then
-        y1 = ysign * (_P.fwidth + _P.connsourcewidth + 2 * _P.connsourcespace) / 2
-    end
-    if _P.connectdrain and not _P.conndraininline then
-        y2 = -ysign * (_P.fwidth + _P.conndrainwidth + 2 * _P.conndrainspace) / 2
-    end
-    transistor:set_alignment_box(
-        point.create(
-            -_P.fingers / 2 * gatepitch, 
-            math.min(y1, y2)
-        ),
-        point.create( 
-            _P.fingers / 2 * gatepitch, 
-            math.max(y1, y2)
+    if _P.drawguardring then
+        transistor:inherit_alignment_box(guardring)
+    else
+        local y1 =  _P.fwidth / 2 + math.max(_P.gtopext, enable(_P.drawtopgate and topgatecompsd, _P.topgatestrspace + _P.topgatestrwidth / 2))
+        local y2 = -_P.fwidth / 2 - math.max(_P.gbotext, enable(_P.drawbotgate and botgatecompsd, _P.botgatestrspace + _P.botgatestrwidth / 2))
+        if _P.connectsource and not _P.connsourceinline then
+            y1 = ysign * (_P.fwidth + _P.connsourcewidth + 2 * _P.connsourcespace) / 2
+        end
+        if _P.connectdrain and not _P.conndraininline then
+            y2 = -ysign * (_P.fwidth + _P.conndrainwidth + 2 * _P.conndrainspace) / 2
+        end
+        transistor:set_alignment_box(
+            point.create(
+                -_P.fingers / 2 * gatepitch, 
+                math.min(y1, y2)
+            ),
+            point.create( 
+                _P.fingers / 2 * gatepitch, 
+                math.max(y1, y2)
+            )
         )
-    )
+    end
 
     transistor:add_anchor("topgate", point.create(0, _P.fwidth / 2 + math.max(_P.gtopext, enable(_P.drawtopgate and topgatecompsd, _P.topgatestrspace + _P.topgatestrwidth / 2))))
     transistor:add_anchor("botgate", point.create(0, -_P.fwidth / 2 - math.max(_P.gbotext, enable(_P.drawbotgate and botgatecompsd, _P.botgatestrspace + _P.botgatestrwidth / 2))))
 
-    transistor:add_anchor("sourcedrainleftll", transistor:get_anchor("sourcedrainactive1ll"))
+    transistor:add_anchor("sourcedrainleftbl", transistor:get_anchor("sourcedrainactive1bl"))
     transistor:add_anchor("sourcedrainleftcl", transistor:get_anchor("sourcedrainactive1cl"))
-    transistor:add_anchor("sourcedrainleftul", transistor:get_anchor("sourcedrainactive1ul"))
-    transistor:add_anchor("sourcedrainleftlc", transistor:get_anchor("sourcedrainactive1lc"))
+    transistor:add_anchor("sourcedrainlefttl", transistor:get_anchor("sourcedrainactive1tl"))
+    transistor:add_anchor("sourcedrainleftbc", transistor:get_anchor("sourcedrainactive1bc"))
     transistor:add_anchor("sourcedrainleftcc", transistor:get_anchor("sourcedrainactive1cc"))
-    transistor:add_anchor("sourcedrainleftuc", transistor:get_anchor("sourcedrainactive1uc"))
-    transistor:add_anchor("sourcedrainleftlr", transistor:get_anchor("sourcedrainactive1lr"))
+    transistor:add_anchor("sourcedrainlefttc", transistor:get_anchor("sourcedrainactive1tc"))
+    transistor:add_anchor("sourcedrainleftbr", transistor:get_anchor("sourcedrainactive1br"))
     transistor:add_anchor("sourcedrainleftcr", transistor:get_anchor("sourcedrainactive1cr"))
-    transistor:add_anchor("sourcedrainleftur", transistor:get_anchor("sourcedrainactive1ur"))
+    transistor:add_anchor("sourcedrainlefttr", transistor:get_anchor("sourcedrainactive1tr"))
 
-    transistor:add_anchor("sourcedrainrightll", transistor:get_anchor(string.format("sourcedrainactive%dll", _P.fingers + 1)))
+    transistor:add_anchor("sourcedrainrightbl", transistor:get_anchor(string.format("sourcedrainactive%dbl", _P.fingers + 1)))
     transistor:add_anchor("sourcedrainrightcl", transistor:get_anchor(string.format("sourcedrainactive%dcl", _P.fingers + 1)))
-    transistor:add_anchor("sourcedrainrightul", transistor:get_anchor(string.format("sourcedrainactive%dul", _P.fingers + 1)))
-    transistor:add_anchor("sourcedrainrightlc", transistor:get_anchor(string.format("sourcedrainactive%dlc", _P.fingers + 1)))
+    transistor:add_anchor("sourcedrainrighttl", transistor:get_anchor(string.format("sourcedrainactive%dtl", _P.fingers + 1)))
+    transistor:add_anchor("sourcedrainrightbc", transistor:get_anchor(string.format("sourcedrainactive%dbc", _P.fingers + 1)))
     transistor:add_anchor("sourcedrainrightcc", transistor:get_anchor(string.format("sourcedrainactive%dcc", _P.fingers + 1)))
-    transistor:add_anchor("sourcedrainrightuc", transistor:get_anchor(string.format("sourcedrainactive%duc", _P.fingers + 1)))
-    transistor:add_anchor("sourcedrainrightlr", transistor:get_anchor(string.format("sourcedrainactive%dlr", _P.fingers + 1)))
+    transistor:add_anchor("sourcedrainrighttc", transistor:get_anchor(string.format("sourcedrainactive%dtc", _P.fingers + 1)))
+    transistor:add_anchor("sourcedrainrightbr", transistor:get_anchor(string.format("sourcedrainactive%dbr", _P.fingers + 1)))
     transistor:add_anchor("sourcedrainrightcr", transistor:get_anchor(string.format("sourcedrainactive%dcr", _P.fingers + 1)))
-    transistor:add_anchor("sourcedrainrightur", transistor:get_anchor(string.format("sourcedrainactive%dur", _P.fingers + 1)))
+    transistor:add_anchor("sourcedrainrighttr", transistor:get_anchor(string.format("sourcedrainactive%dtr", _P.fingers + 1)))
 end
