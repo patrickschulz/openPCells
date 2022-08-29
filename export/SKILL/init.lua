@@ -53,7 +53,7 @@ function M.at_begin()
     table.insert(__content, "    (")
     table.insert(__content, "        cv")
     if __group then
-        table.insert(__content, string.format('        (group if(dbGetFigGroupByName(cv "%s") then dbGetFigGroupByName(cv "%s") else dbCreateFigGroup(cv "%s" t 0:0 "R0")))', __groupname, __groupname, __groupname))
+        table.insert(__content, string.format('        group', __groupname, __groupname, __groupname))
     end
     table.insert(__content, "    )")
 end
@@ -133,15 +133,16 @@ local function _ensure_legal_limit(nocreatecv)
             table.insert(__content, "    (")
             table.insert(__content, "        cv")
             if __group then
-                table.insert(__content, string.format('        (group if(dbGetFigGroupByName(cv "%s") then dbGetFigGroupByName(cv "%s") else dbCreateFigGroup(cv "%s" t 0:0 "R0")))', __groupname, __groupname, __groupname))
+                table.insert(__content, string.format('        group'))
             end
             table.insert(__content, "    )")
             if not nocreatecv then
                 if __istoplevel then
-                    table.insert(__content, string.format('%scv = geGetEditCellView()', _get_indent()))
+                    table.insert(__content, '    cv = geGetEditCellView()')
                 else
-                    table.insert(__content, string.format('%scv = dbOpenCellViewByType(libname "%s" "layout" "maskLayout" "w")', _get_indent(), cellname))
+                    table.insert(__content, string.format('    scv = dbOpenCellViewByType(libname "%s" "layout" "maskLayout" "w")', cellname))
                 end
+                table.insert(__content, string.format('    group = if(dbGetFigGroupByName(cv "%s") then dbGetFigGroupByName(cv "%s") else dbCreateFigGroup(cv "%s" t 0:0 "R0"))', __groupname, __groupname, __groupname))
             end
             __counter = 0
         end
@@ -217,10 +218,11 @@ end
 function M.at_begin_cell(cellname, istoplevel)
     _ensure_legal_limit(true) -- true: don't create cv
     if istoplevel then
-        table.insert(__content, string.format('%scv = geGetEditCellView()', _get_indent()))
+        table.insert(__content, '    cv = geGetEditCellView()')
     else
-        table.insert(__content, string.format('%scv = dbOpenCellViewByType(libname "%s" "layout" "maskLayout" "w")', _get_indent(), cellname))
+        table.insert(__content, string.format('    cv = dbOpenCellViewByType(libname "%s" "layout" "maskLayout" "w")', cellname))
     end
+    table.insert(__content, string.format('    group = if(dbGetFigGroupByName(cv "%s") then dbGetFigGroupByName(cv "%s") else dbCreateFigGroup(cv "%s" t 0:0 "R0"))', __groupname, __groupname, __groupname))
     __istoplevel = istoplevel -- store for let limit legalization
 end
 function M.at_end_cell(istoplevel)
