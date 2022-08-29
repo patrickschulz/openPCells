@@ -140,7 +140,7 @@ local function _ensure_legal_limit(nocreatecv)
                 if __istoplevel then
                     table.insert(__content, '    cv = geGetEditCellView()')
                 else
-                    table.insert(__content, string.format('    scv = dbOpenCellViewByType(libname "%s" "layout" "maskLayout" "w")', cellname))
+                    table.insert(__content, string.format('    cv = dbOpenCellViewByType(libname "%s" "layout" "maskLayout" "w")', cellname))
                 end
                 table.insert(__content, string.format('    group = if(dbGetFigGroupByName(cv "%s") then dbGetFigGroupByName(cv "%s") else dbCreateFigGroup(cv "%s" t 0:0 "R0"))', __groupname, __groupname, __groupname))
             end
