@@ -17,16 +17,26 @@ function parameters()
 end
 
 function layout(tgate, _P)
+    local guardringxsep = 200
+    local guardringysep = 200
     pcell.push_overwrites("basic/mosfet", {
         fingers = _P.fingers,
+        sdwidth = _P.sdwidth,
+        conndrainwidth = _P.sdwidth,
+        connsourcewidth = _P.sdwidth,
         connectsource = true,
         connectdrain = true,
+        conndrainspace = guardringysep + _P.guardringwidth + _P.powerspace,
         conndrainmetal = 2,
         drawdrainvia = true,
         drawguardring = true,
         guardringwidth = _P.guardringwidth,
-        guardringxsep = 500,
-        guardringysep = 500,
+        guardringxsep = guardringxsep,
+        guardringysep = guardringysep,
+        topgatestrwidth = _P.sdwidth,
+        topgatestrspace = _P.sdwidth,
+        botgatestrwidth = _P.sdwidth,
+        botgatestrspace = _P.sdwidth,
     })
     local pmos = pcell.create_layout("basic/mosfet", {
         channeltype = "pmos",
@@ -46,91 +56,42 @@ function layout(tgate, _P)
     })
     pcell.pop_overwrites("basic/mosfet")
     pmos:move_anchor_y("bottom")
-    pmos:translate(0, _P.guardringwidth / 2 + _P.powerspace / 2)
+    pmos:translate(0, _P.sdwidth / 2 + _P.guardringwidth / 2 + _P.powerspace)
     nmos:move_anchor_y("top")
-    nmos:translate(0, -_P.guardringwidth / 2 - _P.powerspace / 2)
+    nmos:translate(0, -_P.sdwidth / 2 - _P.guardringwidth / 2 - _P.powerspace)
     tgate:merge_into_shallow(pmos)
     tgate:merge_into_shallow(nmos)
 
-    geometry.rectanglebltr(tgate, generics.metal(1), nmos:get_anchor("guardringtl"), pmos:get_anchor("guardringbr"))
-
-    tgate:inherit_alignment_box(pmos)
-    tgate:inherit_alignment_box(nmos)
-
-    --[[
-    local cmos = pcell.create_layout("basic/cmos", {
-        separation = 3 * _P.gstwidth + 5 * _P.gstspace,
-        pwidth = _P.pwidth,
-        nwidth = _P.nwidth,
-        nvthtype = _P.nmosvthtype,
-        pvthtype = _P.pmosvthtype,
-        nmosflippedwell = _P.nmosflippedwell,
-        pmosflippedwell = _P.pmosflippedwell,
-        drawnmoswelltap = true,
-        drawpmoswelltap = true,
-        nmoswelltapwidth = _P.welltapwidth,
-        pmoswelltapwidth = _P.welltapwidth,
-        nmoswelltapspace = _P.powerspace,
-        pmoswelltapspace = _P.powerspace,
-        gatecontactpos = util.fill_all_with(_P.fingers, "split"),
-        ncontactpos = util.fill_odd_with(_P.fingers + 1, "inner", "power"),
-        pcontactpos = util.fill_odd_with(_P.fingers + 1, "inner", "power"),
-        gstwidth = _P.gstwidth,
-        gstspace = _P.gstspace,
-        gatecontactsplitshift = _P.gstwidth + _P.gstspace,
-        separation = 3 * _P.gstspace + 2 * _P.gstwidth,
-        powerwidth = _P.sdwidth,
-        npowerspace = _P.powerspace,
-        ppowerspace = _P.powerspace,
-    })
-    tgate:merge_into_shallow(cmos)
+    -- additional rails between guard rings
     geometry.rectanglebltr(tgate, generics.metal(1),
-        cmos:get_anchor(string.format("Glower%dll", 1)),
-        cmos:get_anchor(string.format("Glower%dur", _P.fingers))
+        nmos:get_anchor("guardringtl") .. point.create(0, -_P.sdwidth / 2),
+        pmos:get_anchor("guardringbr") .. point.create(0,  _P.sdwidth / 2)
     )
     geometry.rectanglebltr(tgate, generics.metal(1),
-        cmos:get_anchor(string.format("Gupper%dll", 1)),
-        cmos:get_anchor(string.format("Gupper%dur", _P.fingers))
+        pmos:get_anchor("guardringtl"):translate(0, _P.powerspace),
+        pmos:get_anchor("guardringtr"):translate(0, _P.powerspace + _P.sdwidth)
     )
-    geometry.path(tgate, generics.metal(1), {
-        cmos:get_anchor(string.format("nSDi%d", 1)):translate(0, -_P.sdwidth / 2),
-        cmos:get_anchor(string.format("nSDi%d", _P.fingers + 1)):translate(0, -_P.sdwidth / 2)
-    }, _P.sdwidth)
-    geometry.path(tgate, generics.metal(1), {
-        cmos:get_anchor(string.format("pSDi%d", 1)):translate(0, _P.sdwidth / 2),
-        cmos:get_anchor(string.format("pSDi%d", _P.fingers + 1)):translate(0, _P.sdwidth / 2)
-    }, _P.sdwidth)
+    geometry.rectanglebltr(tgate, generics.metal(1),
+        nmos:get_anchor("guardringbl"):translate(0, -_P.powerspace - _P.sdwidth),
+        nmos:get_anchor("guardringbr"):translate(0, -_P.powerspace)
+    )
+
+    -- input connection
     geometry.cshape(tgate, generics.metal(1),
-        cmos:get_anchor("PRpcl"),
-        cmos:get_anchor("PRncl"),
+        nmos:get_anchor("sourcestrapcl"),
+        pmos:get_anchor("sourcestrapcl"),
         -200,
         _P.sdwidth
     )
-    geometry.cshape(tgate, generics.metal(1),
-        cmos:get_anchor(string.format("pSDi%d", _P.fingers + 1)):translate(0,  _P.sdwidth / 2),
-        cmos:get_anchor(string.format("nSDi%d", _P.fingers + 1)):translate(0, -_P.sdwidth / 2),
-        200,
-        _P.sdwidth
-    )
 
-    -- add additional rails
-    geometry.rectanglebltr(tgate, generics.metal(1),
-        cmos:get_anchor("PRpll"):translate(0, _P.sdwidth + 2 * _P.powerspace + _P.welltapwidth),
-        cmos:get_anchor("PRpur"):translate(0, _P.sdwidth + 2 * _P.powerspace + _P.welltapwidth)
-    )
-    geometry.rectanglebltr(tgate, generics.metal(1),
-        cmos:get_anchor("PRnll"):translate(0, -_P.sdwidth - 2 * _P.powerspace - _P.welltapwidth),
-        cmos:get_anchor("PRnur"):translate(0, -_P.sdwidth - 2 * _P.powerspace - _P.welltapwidth)
-    )
-
+    -- alignmentbox
     tgate:set_alignment_box(
-        cmos:get_anchor("PRpur"):translate(0,  2 * _P.powerspace + _P.welltapwidth + _P.sdwidth / 2),
-        cmos:get_anchor("PRnll"):translate(0, -2 * _P.powerspace - _P.welltapwidth - _P.sdwidth / 2)
+        nmos:get_anchor("guardringbl"):translate(0, -_P.powerspace - _P.sdwidth / 2),
+        pmos:get_anchor("guardringtr"):translate(0, _P.powerspace + _P.sdwidth / 2)
     )
 
-    tgate:add_anchor_area_bltr("clkp", cmos:get_anchor("Glower1ll"), cmos:get_anchor(string.format("Glower%dur", _P.fingers)))
-    tgate:add_anchor_area_bltr("clkn", cmos:get_anchor("Gupper1ll"), cmos:get_anchor(string.format("Gupper%dur", _P.fingers)))
-    tgate:add_port("input", generics.metalport(1), (cmos:get_anchor("PRpcl") + cmos:get_anchor("PRncl")):translate(-200, 0))
-    tgate:add_port("output", generics.metalport(1), (cmos:get_anchor(string.format("pSDi%d", _P.fingers + 1)) + cmos:get_anchor(string.format("nSDi%d", _P.fingers + 1))):translate(200, 0))
-    --]]
+    tgate:add_anchor_area_bltr("clkp", pmos:get_anchor("topgatestrapbl"), pmos:get_anchor("topgatestraptr"))
+    tgate:add_anchor_area_bltr("clkn", nmos:get_anchor("botgatestrapbl"), nmos:get_anchor("botgatestraptr"))
+    tgate:add_port("input", generics.metalport(1), (pmos:get_anchor("sourcestrapcl") + nmos:get_anchor("sourcestrapcl")):translate(-200, 0))
+    tgate:add_port("output", generics.metalport(1), (pmos:get_anchor("drainstrapcr") + nmos:get_anchor("drainstrapcr")):translate(200, 0))
 end

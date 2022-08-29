@@ -246,4 +246,13 @@ function M.fill_odd_with(num, filler, other)
     return M.fill_predicate_with(num, filler, function(i) return i % 2 == 1 end, other)
 end
 
+function M.any_of(comp, t, ...)
+    return aux.any_of(comp, t, ...)
+end
+
+function aux.all_of(comp, t, ...)
+    return aux.all_of(comp, t, ...)
+end
+
+
 return M
