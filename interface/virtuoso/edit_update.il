@@ -21,6 +21,7 @@ procedure(OPCEditCallback()
 procedure(OPCUpdateCallbackHierarchical(xpath)
     letseq(
         (
+            (cv geGetEditCellView())
             (libPath cv->lib->readPath)
             (libname cv->libName)
             (cellName cv->cellName)
@@ -51,6 +52,7 @@ procedure(OPCUpdateCallbackHierarchical(xpath)
 procedure(OPCUpdateCallbackFlat(xpath)
     letseq(
         (
+            (cv geGetEditCellView())
             (libPath cv->lib->readPath)
             (cellName cv->cellName)
             path OPCArgs OPCCmd
