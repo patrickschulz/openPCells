@@ -85,6 +85,7 @@ function parameters()
         { "topwelltapextendleft",                                          0 },
         { "topwelltapextendright",                                         0 },
         { "drawbotwelltap",                                            false },
+        { "drawguardring",                                             false },
         { "botwelltapwidth",                                           tech.get_dimension("Minimum M1 Width") },
         { "botwelltapspace",                                           tech.get_dimension("Minimum M1 Space") },
         { "botwelltapextendleft",                                          0 },
@@ -95,8 +96,6 @@ function parameters()
         { "drawstopgatebotgcut",                                           false },
         { "leftpolylines",                                                 {} },
         { "rightpolylines",                                                {} }
-        --{ "numleftpolylines",                                              0 },
-        --{ "numrightpolylines",                                             0 }
     )
 end
 
@@ -316,28 +315,26 @@ function layout(transistor, _P)
     )
     -- well taps
     if _P.drawtopwelltap then
-        geometry.contact(transistor,
-            "active",
-            activewidth + _P.topwelltapextendleft + _P.topwelltapextendright,
-            _P.topwelltapwidth,
-            -- shifts
-            (_P.topwelltapextendright - _P.topwelltapextendleft) / 2,
-            _P.fwidth / 2 + drainshift + topgateshift + _P.topwelltapspace + _P.topwelltapwidth / 2,
-            1, 1, 0, 0,
-            { xcontinuous = true }
-        )
+        transistor:merge_into_shallow(pcell.create_layout("auxiliary/welltap", {
+            contype = _P.flippedwell and (_P.channeltype == "nmos" and "n" or "p") or (_P.channeltype == "nmos" and "p" or "n"),
+            width = activewidth + _P.topwelltapextendleft + _P.topwelltapextendright,
+            height = _P.topwelltapwidth,
+        }):translate((_P.topwelltapextendright - _P.topwelltapextendleft) / 2, _P.fwidth / 2 + drainshift + topgateshift + _P.topwelltapspace + _P.topwelltapwidth / 2))
     end
     if _P.drawbotwelltap then
-        geometry.contact(transistor,
-            "active",
-            activewidth + _P.botwelltapextendleft + _P.botwelltapextendright,
-            _P.botwelltapwidth,
-            -- shifts
-            (_P.botwelltapextendright - _P.botwelltapextendleft) / 2,
-            -_P.fwidth / 2 - sourceshift - botgateshift - _P.botwelltapspace - _P.botwelltapwidth / 2,
-            1, 1, 0, 0,
-            { xcontinuous = true }
-        )
+        transistor:merge_into_shallow(pcell.create_layout("auxiliary/welltap", {
+            contype = _P.flippedwell and (_P.channeltype == "nmos" and "n" or "p") or (_P.channeltype == "nmos" and "p" or "n"),
+            width = activewidth + _P.botwelltapextendleft + _P.botwelltapextendright,
+            height = _P.botwelltapwidth,
+        }):translate((_P.botwelltapextendright - _P.botwelltapextendleft) / 2, -_P.fwidth / 2 - drainshift - botgateshift - _P.botwelltapspace - _P.botwelltapwidth / 2))
+    end
+
+    if _P.drawguardring then
+        local guardring = pcell.create_layout("auxiliary/guardring", {
+            holewidth = 2 * activewidth,
+            holeheight = 2 * fwidth
+        })
+        transistor:merge_into_shallow(guardring)
     end
 
     -- oxide thickness
