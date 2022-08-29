@@ -18,7 +18,7 @@ local __labelsize = 0.1
 local __splitlets = true
 local __counter = 0
 --local __maxletlimit = 65536
-local __maxletlimit = 67
+local __maxletlimit = 10
 local __istoplevel = false
 function M.set_options(opt)
     for i = 1, #opt do
@@ -46,20 +46,6 @@ function M.set_options(opt)
             i = i + 1
         end
     end
-end
-
-function M.at_begin()
-    table.insert(__content, "let(")
-    table.insert(__content, "    (")
-    table.insert(__content, "        cv")
-    if __group then
-        table.insert(__content, string.format('        group', __groupname, __groupname, __groupname))
-    end
-    table.insert(__content, "    )")
-end
-
-function M.at_end()
-    table.insert(__content, ") ; let")
 end
 
 local function _format(l)
@@ -111,93 +97,93 @@ local function _format_xy(x, y, sep)
     return string.format("%s%s%s", sx, sep, sy)
 end
 
-local function _get_indent()
+local function _get_shape_fmt(shapetype)
+    return string.format("dbCreate%s(cv %%s)", shapetype)
+end
+
+local function _prepare_shape_for_group(c)
     if __group then
-        return "        "
-    else
-        return "    "
+        table.insert(c, "    dbAddFigToFigGroup(group ")
     end
 end
 
-local function _get_shape_fmt(shapetype)
-    return string.format("%sdbCreate%s(cv %%s)", _get_indent(), shapetype)
+local function _finish_shape_for_group(c)
+    if __group then
+        table.insert(c, ")")
+    end
 end
 
--- FIXME: let splitting for hierarchical output is broken
-local function _ensure_legal_limit(nocreatecv)
+local function _start_let(initial)
+    table.insert(__content, "let(")
+    table.insert(__content, "    (")
+    if __istoplevel then
+        table.insert(__content, '        (cv geGetEditCellView())')
+    else
+        if initial then
+            table.insert(__content, string.format('        (cv dbOpenCellViewByType(libname "%s" "layout" "maskLayout" "w"))', __cellname))
+        else
+            table.insert(__content, string.format('        (cv dbOpenCellViewByType(libname "%s" "layout" "maskLayout" "a"))', __cellname))
+        end
+    end
+    if __group then
+        table.insert(__content, string.format('        (group if(dbGetFigGroupByName(cv "%s") then dbGetFigGroupByName(cv "%s") else dbCreateFigGroup(cv "%s" t 0:0 "R0")))', __groupname, __groupname, __groupname))
+    end
+    table.insert(__content, "    )")
+end
+
+local function _close_let()
+    table.insert(__content, ") ; let")
+end
+
+local function _ensure_legal_limit()
     if __splitlets then
         __counter = __counter + 1
         if __counter > __maxletlimit then
-            if not nocreatecv and not __istoplevel then
-                table.insert(__content, "    dbSave(cv)")
-                table.insert(__content, "    dbPurge(cv)")
-            end
-            table.insert(__content, ")") -- close let
-
-            table.insert(__content, "let(")
-            table.insert(__content, "    (")
-            table.insert(__content, "        cv")
-            if __group then
-                table.insert(__content, string.format('        group'))
-            end
-            table.insert(__content, "    )")
-            if not nocreatecv and __istoplevel then
-                    table.insert(__content, '    cv = geGetEditCellView()')
-            else
-                table.insert(__content, string.format('    cv = dbOpenCellViewByType(libname "%s" "layout" "maskLayout" "w")', __cellname))
-            end
-            table.insert(__content, string.format('    group = if(dbGetFigGroupByName(cv "%s") then dbGetFigGroupByName(cv "%s") else dbCreateFigGroup(cv "%s" t 0:0 "R0"))', __groupname, __groupname, __groupname))
+            _close_let()
+            _start_let()
             __counter = 0
         end
     end
 end
 
-local function _prepare_shape_for_group()
-    if __group then
-        table.insert(__content, "    dbAddFigToFigGroup(group ")
-    end
-end
-
-local function _finish_shape_for_group()
-    if __group then
-        table.insert(__content, "    )")
-    end
-end
-
 function M.write_rectangle(layer, bl, tr)
-    _ensure_legal_limit()
     local fmt = _get_shape_fmt("Rect")
-    _prepare_shape_for_group()
-    table.insert(__content, 
+    local c = {}
+    _prepare_shape_for_group(c)
+    table.insert(c, 
         string.format(fmt, 
         string.format("%s list(%s %s)", 
         _format_lpp(layer), 
         _format_point(bl, ":"), 
         _format_point(tr, ":")))
     )
-    _finish_shape_for_group()
+    _finish_shape_for_group(c)
+    _ensure_legal_limit()
+    table.insert(__content, table.concat(c))
 end
 
 function M.write_polygon(layer, pts)
-    _ensure_legal_limit()
     local ptrstr = {}
     for _, pt in ipairs(pts) do
         table.insert(ptrstr, _format_point(pt, ":"))
     end
     local fmt = _get_shape_fmt("Polygon")
-    _prepare_shape_for_group()
-    table.insert(__content, string.format(fmt, string.format("%s list(%s)", _format_lpp(layer), table.concat(ptrstr, " "))))
-    _finish_shape_for_group()
+    local c = {}
+    _prepare_shape_for_group(c)
+    table.insert(c, string.format(fmt, string.format("%s list(%s)", _format_lpp(layer), table.concat(ptrstr, " "))))
+    _finish_shape_for_group(c)
+    _ensure_legal_limit()
+    table.insert(__content, table.concat(c))
 end
 
 function M.write_path(layer, pts, width, extension)
-    _ensure_legal_limit()
     local ptrstr = {}
     for _, pt in ipairs(pts) do
         table.insert(ptrstr, _format_point(pt, ":"))
     end
     local fmt = _get_shape_fmt("Path")
-    _prepare_shape_for_group()
+    local c = {}
+    _prepare_shape_for_group(c)
     local extstr = ''
     if extension == "butt" then
         extstr = '"squareFlush"'
@@ -206,29 +192,26 @@ function M.write_path(layer, pts, width, extension)
     elseif extension == "cap" then
         extstr = '"extendExtend"'
     end
-    table.insert(__content, string.format(fmt, string.format("%s list(%s) %.3f %s", _format_lpp(layer), table.concat(ptrstr, " "), width / __baseunit, extstr)))
-    _finish_shape_for_group()
+    table.insert(c, string.format(fmt, string.format("%s list(%s) %.3f %s", _format_lpp(layer), table.concat(ptrstr, " "), width / __baseunit, extstr)))
+    _finish_shape_for_group(c)
+    _ensure_legal_limit()
+    table.insert(__content, table.concat(c))
 end
 
 function M.write_port(name, layer, where)
-    _ensure_legal_limit()
     local fmt = _get_shape_fmt("Label")
-    _prepare_shape_for_group()
-    table.insert(__content, string.format(fmt, string.format('%s %s "%s" "centerCenter" "R0" "roman" %f', _format_lpp(layer), _format_point(where, ":"), name, __labelsize)))
-    _finish_shape_for_group()
+    local c = {}
+    _prepare_shape_for_group(c)
+    table.insert(c, string.format(fmt, string.format('%s %s "%s" "centerCenter" "R0" "roman" %f', _format_lpp(layer), _format_point(where, ":"), name, __labelsize)))
+    _finish_shape_for_group(c)
+    _ensure_legal_limit()
+    table.insert(__content, table.concat(c))
 end
 
 function M.at_begin_cell(cellname, istoplevel)
-    _ensure_legal_limit(true) -- true: don't create cv
-    if istoplevel then
-        table.insert(__content, '    cv = geGetEditCellView()')
-    else
-        table.insert(__content, string.format('    cv = dbOpenCellViewByType(libname "%s" "layout" "maskLayout" "w")', cellname))
-    end
-    table.insert(__content, string.format('    group = if(dbGetFigGroupByName(cv "%s") then dbGetFigGroupByName(cv "%s") else dbCreateFigGroup(cv "%s" t 0:0 "R0"))', __groupname, __groupname, __groupname))
-    -- store for let limit legalization
     __istoplevel = istoplevel
     __cellname = cellname
+    _start_let(true) -- true: initial let for this cell
 end
 
 function M.at_end_cell(istoplevel)
@@ -236,6 +219,7 @@ function M.at_end_cell(istoplevel)
         table.insert(__content, "    dbSave(cv)")
         table.insert(__content, "    dbPurge(cv)")
     end
+    _close_let()
 end
 
 function M.write_cell_reference(identifier, x, y, orientation)
@@ -255,6 +239,7 @@ function M.write_cell_reference(identifier, x, y, orientation)
     end
     -- FIXME: R270?
     local fmt = _get_shape_fmt("InstByMasterName")
+    _ensure_legal_limit()
     table.insert(__content, string.format(fmt, string.format('libname "%s" "layout" nil %s "%s"', identifier, _format_xy(x, y, ":"), orientstr)))
 end
 
