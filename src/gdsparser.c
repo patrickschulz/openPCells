@@ -65,6 +65,7 @@ int _read_record(FILE* file, struct record* record)
     read = fread(data, 1, numbytes, file);
     if(read != numbytes)
     {
+        free(data);
         return 0;
     }
     record->data = data;
