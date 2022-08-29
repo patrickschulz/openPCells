@@ -123,10 +123,15 @@ local function _get_shape_fmt(shapetype)
     return string.format("%sdbCreate%s(cv %%s)", _get_indent(), shapetype)
 end
 
+-- FIXME: let splitting for hierarchical output is broken
 local function _ensure_legal_limit(nocreatecv)
     if __splitlets then
         __counter = __counter + 1
         if __counter > __maxletlimit then
+            if not nocreatecv and not __istoplevel then
+                table.insert(__content, "    dbSave(cv)")
+                table.insert(__content, "    dbPurge(cv)")
+            end
             table.insert(__content, ")") -- close let
 
             table.insert(__content, "let(")
@@ -136,14 +141,12 @@ local function _ensure_legal_limit(nocreatecv)
                 table.insert(__content, string.format('        group'))
             end
             table.insert(__content, "    )")
-            if not nocreatecv then
-                if __istoplevel then
+            if not nocreatecv and __istoplevel then
                     table.insert(__content, '    cv = geGetEditCellView()')
-                else
-                    table.insert(__content, string.format('    cv = dbOpenCellViewByType(libname "%s" "layout" "maskLayout" "w")', __cellname))
-                end
-                table.insert(__content, string.format('    group = if(dbGetFigGroupByName(cv "%s") then dbGetFigGroupByName(cv "%s") else dbCreateFigGroup(cv "%s" t 0:0 "R0"))', __groupname, __groupname, __groupname))
+            else
+                table.insert(__content, string.format('    cv = dbOpenCellViewByType(libname "%s" "layout" "maskLayout" "w")', __cellname))
             end
+            table.insert(__content, string.format('    group = if(dbGetFigGroupByName(cv "%s") then dbGetFigGroupByName(cv "%s") else dbCreateFigGroup(cv "%s" t 0:0 "R0"))', __groupname, __groupname, __groupname))
             __counter = 0
         end
     end
@@ -227,6 +230,7 @@ function M.at_begin_cell(cellname, istoplevel)
     __istoplevel = istoplevel
     __cellname = cellname
 end
+
 function M.at_end_cell(istoplevel)
     if not istoplevel then
         table.insert(__content, "    dbSave(cv)")
