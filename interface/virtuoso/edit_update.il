@@ -21,7 +21,6 @@ procedure(OPCEditCallback()
 procedure(OPCUpdateCallbackHierarchical(xpath)
     letseq(
         (
-            (cv geGetEditCellView())
             (libPath cv->lib->readPath)
             (libname cv->libName)
             (cellName cv->cellName)
@@ -51,7 +50,6 @@ procedure(OPCUpdateCallbackHierarchical(xpath)
 procedure(OPCUpdateCallbackFlat(xpath)
     letseq(
         (
-            (cv geGetEditCellView())
             (libPath cv->lib->readPath)
             (cellName cv->cellName)
             path OPCArgs OPCCmd
@@ -62,7 +60,7 @@ procedure(OPCUpdateCallbackFlat(xpath)
             else
                 path = lsprintf("%s/%s/layout/layout.lua" libPath cellName)
         )
-        OPCArgs = OPCPrepareArgsForCellCreation(lsprintf("--cellscript %s -f %s -X -c --flat" path OPCSettingsForm->OPCCellFilename->value) ?newgroup t)
+        OPCArgs = OPCPrepareArgsForCellCreation(lsprintf("--cellscript %s -f %s --flat" path OPCSettingsForm->OPCCellFilename->value) ?newgroup t)
         OPCCmd = OPCBuildCallCommand(OPCArgs)
         if(OPCCall(OPCCmd nil)
             then
