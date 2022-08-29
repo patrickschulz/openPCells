@@ -51,7 +51,7 @@ function layout(guardring, _P)
 
     -- alignment box
     guardring:set_alignment_box(
-        point.create(-_P.holewidth / 2, -_P.holeheight / 2),
-        point.create( _P.holewidth / 2,  _P.holeheight / 2)
+        point.create(-(_P.holewidth + _P.ringwidth) / 2, -(_P.holeheight + _P.ringwidth) / 2),
+        point.create( (_P.holewidth + _P.ringwidth) / 2,  (_P.holeheight + _P.ringwidth) / 2)
     )
 end
