@@ -7,14 +7,6 @@
 #include "vector.h"
 #include "hashmap.h"
 
-struct port {
-    char* name;
-    point_t* where;
-    struct generics* layer;
-    int isbusport;
-    int busindex;
-};
-
 struct object;
 
 struct object* object_create(void);
@@ -90,7 +82,7 @@ struct port_iterator;
 struct port_iterator* object_create_port_iterator(struct object* cell);
 int port_iterator_is_valid(struct port_iterator* it);
 void port_iterator_next(struct port_iterator* it);
-struct port* port_iterator_get(struct port_iterator* it);
+void port_iterator_get(struct port_iterator* it, const char** portname, const point_t** portwhere, const struct generics** portlayer, int* portisbusport, int* portbusindex);
 void port_iterator_destroy(struct port_iterator* it);
 
 #endif // OPC_OBJECT_H

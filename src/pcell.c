@@ -17,6 +17,12 @@ struct used_name {
     unsigned int numused;
 };
 
+struct cellreference {
+    char* identifier;
+    struct object* cell;
+    unsigned int numused;
+};
+
 struct pcell_state {
     struct vector* used_names;
     struct vector* references;
@@ -157,16 +163,6 @@ void pcell_unlink_cell_reference(struct pcell_state* pcell_state, const char* id
     // FIXME: error if not found?
 }
 
-size_t pcell_get_reference_count(struct pcell_state* pcell_state)
-{
-    return vector_size(pcell_state->references);
-}
-
-struct cellreference* pcell_get_indexed_cell_reference(struct pcell_state* pcell_state, unsigned int i)
-{
-    return vector_get(pcell_state->references, i);
-}
-
 struct object* pcell_get_cell_reference_by_name(struct pcell_state* pcell_state, const char* identifier)
 {
     for(unsigned int i = 0; i < vector_size(pcell_state->references); ++i)
@@ -213,6 +209,78 @@ void pcell_list_cellpaths(struct pcell_state* pcell_state)
     }
 }
 
+// reference cell iterator
+struct cell_reference_iterator {
+    const struct pcell_state* state;
+    size_t index;
+};
+
+struct cell_reference_iterator* pcell_create_cell_reference_iterator(const struct pcell_state* pcell_state)
+{
+    struct cell_reference_iterator* it = malloc(sizeof(*it));
+    it->state = pcell_state;
+    it->index = 0;
+    return it;
+}
+
+void pcell_cell_reference_iterator_get(struct cell_reference_iterator* it, char** identifier, struct object** reference, int* numused)
+{
+    struct cellreference* cellrefreference = vector_get(it->state->references, it->index);
+    *identifier = cellrefreference->identifier;
+    *reference = cellrefreference->cell;
+    *numused = cellrefreference->numused;
+}
+
+int pcell_cell_reference_iterator_is_valid(const struct cell_reference_iterator* it)
+{
+    return it->index < vector_size(it->state->references);
+}
+
+void pcell_cell_reference_iterator_advance(struct cell_reference_iterator* it)
+{
+    ++it->index;
+}
+
+void pcell_destroy_cell_reference_iterator(struct cell_reference_iterator* it)
+{
+    free(it);
+}
+
+struct cell_reference_const_iterator {
+    const struct pcell_state* state;
+    size_t index;
+};
+
+struct cell_reference_const_iterator* pcell_create_cell_reference_const_iterator(const struct pcell_state* pcell_state)
+{
+    struct cell_reference_const_iterator* it = malloc(sizeof(*it));
+    it->state = pcell_state;
+    it->index = 0;
+    return it;
+}
+
+void pcell_cell_reference_const_iterator_get(struct cell_reference_const_iterator* it, const char** identifier, const struct object** reference, int* numused)
+{
+    struct cellreference* cellrefreference = vector_get(it->state->references, it->index);
+    *identifier = cellrefreference->identifier;
+    *reference = cellrefreference->cell;
+    *numused = cellrefreference->numused;
+}
+
+int pcell_cell_reference_const_iterator_is_valid(const struct cell_reference_const_iterator* it)
+{
+    return it->index < vector_size(it->state->references);
+}
+
+void pcell_cell_reference_const_iterator_advance(struct cell_reference_const_iterator* it)
+{
+    ++it->index;
+}
+
+void pcell_destroy_cell_reference_const_iterator(struct cell_reference_const_iterator* it)
+{
+    free(it);
+}
 
 void pcell_list_cells(struct pcell_state* pcell_state, const char* listformat)
 {

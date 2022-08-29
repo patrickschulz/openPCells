@@ -12,6 +12,6 @@
  */
 
 void* valvector_create(size_t elem_size);
-void valvector_destroy(void* vp)
-void valvector_append(void* vp, void* e)
-size_t valvector_size(void* vp)
+void valvector_destroy(void* vp);
+void valvector_append(void* vp, const void* e);
+size_t valvector_size(void* vp);

@@ -14,7 +14,7 @@ SYSCFLAGS=
 SYSLDFLAGS=
 SYSLIBS=
 
-OPCOBJ:=main.functions.o main.cell.o main.gds.o main.verilog.o cmdoptions.o util.o lua_util.o vector.o union.o postprocess.o point.o technology.o transformationmatrix.o ltransformationmatrix.o shape.o object.o geometry.o hashmap.o tagged_value.o generics.o lgenerics.o lgeometry.o ldir.o lpoint.o graphics.o lbind.o lobject.o pcell.o filesystem.o lplacer.o lplacer_common.o lplacer_rand.o lplacer_nonoverlapping.o lplacer_classic.o lrouter.o lrouter_net.o lrouter_queue.o lrouter_moves.o lrouter_min_heap.o lrouter_field.o lrouter_route.o gdsparser.o ldebug.o export.o export_common.o gdsexport.o info.o
+OPCOBJ:=main.functions.o main.cell.o main.gds.o main.verilog.o cmdoptions.o util.o lua_util.o vector.o union.o postprocess.o point.o technology.o transformationmatrix.o ltransformationmatrix.o shape.o object.o geometry.o hashmap.o tagged_value.o generics.o lgenerics.o lgeometry.o ldir.o lpoint.o graphics.o lobject.o pcell.o filesystem.o lplacer.o lplacer_common.o lplacer_rand.o lplacer_nonoverlapping.o lplacer_classic.o lrouter.o lrouter_net.o lrouter_queue.o lrouter_moves.o lrouter_min_heap.o lrouter_field.o lrouter_route.o gdsparser.o ldebug.o export.o export_common.o gdsexport.o info.o
 
 .PHONY: default
 default:
@@ -184,7 +184,6 @@ graphics.o: graphics.c graphics.h point.h vector.h lpoint.h lua/lua.h \
 hashmap.o: hashmap.c hashmap.h
 info.o: info.c info.h object.h transformationmatrix.h point.h shape.h \
  generics.h lua/lua.h lua/luaconf.h hashmap.h pcell.h vector.h
-lbind.o: lbind.c lua/lua.h lua/luaconf.h lua/lauxlib.h lua/lua.h
 ldebug.o: ldebug.c ldebug.h lua/lua.h lua/luaconf.h
 ldir.o: ldir.c ldir.h lua/lua.h lua/luaconf.h lua/lauxlib.h lua/lua.h
 lgenerics.o: lgenerics.c lgenerics.h lua/lua.h lua/luaconf.h generics.h \
@@ -232,7 +231,7 @@ main.o: main.c lua/lprefix.h lua/lua.h lua/luaconf.h lua/lauxlib.h \
  cmdoptions_def.c
 main.cell.o: main.cell.c main.cell.h hashmap.h cmdoptions.h vector.h \
  lua/lauxlib.h lua/luaconf.h lua/lua.h lpoint.h lua/lua.h point.h \
- lgeometry.h lgenerics.h generics.h lbind.h ldir.h lobject.h object.h \
+ lgeometry.h lgenerics.h generics.h ldir.h lobject.h object.h \
  transformationmatrix.h shape.h pcell.h filesystem.h lplacer.h lrouter.h \
  gdsparser.h technology.h util.h lua_util.h export.h info.h postprocess.h \
  geometry.h config.h main.functions.h modulemanager.h scriptmanager.h

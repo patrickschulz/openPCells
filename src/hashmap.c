@@ -77,7 +77,7 @@ struct hashmap* hashmap_create(void)
 {
     struct hashmap* map = malloc(sizeof(*map));
     map->size = 0;
-    map->capacity = 32; // power of two!
+    map->capacity = 32; // must be power of two!
     map->entries = NULL;
     _resize(map);
     return map;
@@ -107,7 +107,7 @@ void hashmap_insert(struct hashmap* map, const char* key, void* value)
         _resize(map);
     }
     struct hashmap_entry* entry = _find(map, key);
-    if(!entry->key) // entry does not exists
+    if(!entry->key) // entry does not exist
     {
         entry->key = strdup(key);
     }

@@ -203,31 +203,35 @@ static void _write_ports(struct object* cell, struct export_data* data, struct e
     struct port_iterator* it = object_create_port_iterator(cell);
     while(port_iterator_is_valid(it))
     {
-        struct port* port = port_iterator_get(it);
-        char* name;
-        if(port->isbusport)
+        const char* portname;
+        const point_t* portwhere;
+        const struct generics* portlayer;
+        int portisbusport;
+        int portbusindex;
+        port_iterator_get(it, &portname, &portwhere, &portlayer, &portisbusport, &portbusindex);
+        point_t where = { .x = portwhere->x, .y = portwhere->y };
+        object_transform_point(cell, &where);
+        const struct hashmap* layerdata = generics_get_first_layer_data(portlayer);
+        if(portisbusport)
         {
-            size_t len = strlen(port->name) + 2 + util_num_digits(port->busindex);
-            name = malloc(len + 1);
-            snprintf(name, len + 1, "%s%c%d%c", port->name, leftdelim, port->busindex, rightdelim);
+            size_t len = strlen(portname) + 2 + util_num_digits(portbusindex);
+            char* name = malloc(len + 1);
+            snprintf(name, len + 1, "%s%c%d%c", portname, leftdelim, portbusindex, rightdelim);
+            funcs->write_port(data, name, layerdata, where.x, where.y);
         }
         else
         {
-            name = port->name;
-        }
-        point_t where = { .x = port->where->x, .y = port->where->y };
-        object_transform_point(cell, &where);
-        struct hashmap* layerdata = generics_get_first_layer_data(port->layer);
-        funcs->write_port(data, name, layerdata, where.x, where.y);
-        if(port->isbusport)
-        {
-            free(name);
+            funcs->write_port(data, portname, layerdata, where.x, where.y);
         }
         port_iterator_next(it);
     }
     port_iterator_destroy(it);
 }
 
+// FIXME: 'cell' should be const, currently this function alters cell
+// (via object_get_transformed_shape)
+// This function should get the untransformed shapes and either transform the points itself
+// or pass the transformation matric on to the actual export functions
 static void _write_cell(struct object* cell, struct export_data* data, struct export_functions* funcs, int write_ports, char leftdelim, char rightdelim)
 {
     for(unsigned int i = 0; i < object_get_shapes_size(cell); ++i)
@@ -408,33 +412,30 @@ static int _write_ports_lua(lua_State* L, struct object* cell, char leftdelim, c
     struct port_iterator* it = object_create_port_iterator(cell);
     while(port_iterator_is_valid(it))
     {
-        struct port* port = port_iterator_get(it);
-        char* name;
-        if(port->isbusport)
+        const char* portname;
+        const point_t* portwhere;
+        const struct generics* portlayer;
+        int portisbusport;
+        int portbusindex;
+        port_iterator_get(it, &portname, &portwhere, &portlayer, &portisbusport, &portbusindex);
+        point_t where = { .x = portwhere->x, .y = portwhere->y };
+        object_transform_point(cell, &where);
+        const struct hashmap* layerdata = generics_get_first_layer_data(portlayer);
+        lua_pushvalue(L, -1); // write_port is already on the stack (from the check if the function exists)
+        if(portisbusport)
         {
-            size_t len = strlen(port->name) + 2 + util_num_digits(port->busindex);
-            name = malloc(len + 1);
-            snprintf(name, len + 1, "%s%c%d%c", port->name, leftdelim, port->busindex, rightdelim);
+            lua_pushfstring(L, "%s%c%d%c", portname, leftdelim, portbusindex, rightdelim);
         }
         else
         {
-            name = port->name;
+            lua_pushstring(L, portname);
         }
-        point_t where = { .x = port->where->x, .y = port->where->y };
-        object_transform_point(cell, &where);
-        struct hashmap* layerdata = generics_get_first_layer_data(port->layer);
-        lua_pushvalue(L, -1); // write_port is already on the stack (from the check if the function exists)
-        lua_pushstring(L, name);
         _push_layer(L, layerdata);
         _push_point(L, &where);
         int ret = lua_pcall(L, 3, 0, 0);
         if(ret != LUA_OK)
         {
             return ret;
-        }
-        if(port->isbusport)
-        {
-            free(name);
         }
         port_iterator_next(it);
     }
@@ -770,16 +771,22 @@ static void _write_toplevel_C(struct object* object, struct pcell_state* pcell_s
     }
     funcs->at_begin(data);
 
-    for(unsigned int i = 0; i < pcell_get_reference_count(pcell_state); ++i)
+    struct cell_reference_iterator* it = pcell_create_cell_reference_iterator(pcell_state);
+    while(pcell_cell_reference_iterator_is_valid(it))
     {
-        struct cellreference* reference = pcell_get_indexed_cell_reference(pcell_state, i);
-        if(reference->numused > 0)
+        char* refidentifier;
+        struct object* refcell;
+        int refnumused;
+        pcell_cell_reference_iterator_get(it, &refidentifier, &refcell, &refnumused);
+        if(refnumused > 0)
         {
-            funcs->at_begin_cell(data, reference->identifier);
-            _write_cell(reference->cell, data, funcs, state->writechildrenports, state->leftdelim, state->rightdelim);
+            funcs->at_begin_cell(data, refidentifier);
+            _write_cell(refcell, data, funcs, state->writechildrenports, state->leftdelim, state->rightdelim);
             funcs->at_end_cell(data);
         }
+        pcell_cell_reference_iterator_advance(it);
     }
+    pcell_destroy_cell_reference_iterator(it);
 
     funcs->at_begin_cell(data, toplevelname);
     _write_cell(object, data, funcs, 1, state->leftdelim, state->rightdelim); // 1: write ports
@@ -820,16 +827,20 @@ static int _write_toplevel_lua(lua_State* L, struct object* object, struct pcell
         return ret;
     }
 
-    for(unsigned int i = 0; i < pcell_get_reference_count(pcell_state); ++i)
+    struct cell_reference_iterator* it = pcell_create_cell_reference_iterator(pcell_state);
+    while(pcell_cell_reference_iterator_is_valid(it))
     {
-        struct cellreference* reference = pcell_get_indexed_cell_reference(pcell_state, i);
-        if(reference->numused > 0)
+        char* refidentifier;
+        struct object* refcell;
+        int refnumused;
+        pcell_cell_reference_iterator_get(it, &refidentifier, &refcell, &refnumused);
+        if(refnumused > 0)
         {
             lua_getfield(L, -1, "at_begin_cell");
-            lua_pushstring(L, reference->identifier);
+            lua_pushstring(L, refidentifier);
             lua_pushboolean(L, 0); // cell is not toplevel
             _call_or_pop_nil(L, 2);
-            ret = _write_cell_lua(L, reference->cell, state->writechildrenports, state->leftdelim, state->rightdelim);
+            ret = _write_cell_lua(L, refcell, state->writechildrenports, state->leftdelim, state->rightdelim);
             if(ret != LUA_OK)
             {
                 return ret;
@@ -838,7 +849,9 @@ static int _write_toplevel_lua(lua_State* L, struct object* object, struct pcell
             lua_pushboolean(L, 0); // cell is not toplevel
             _call_or_pop_nil(L, 1);
         }
+        pcell_cell_reference_iterator_advance(it);
     }
+    pcell_destroy_cell_reference_iterator(it);
 
     lua_getfield(L, -1, "at_begin_cell");
     lua_pushstring(L, toplevelname);

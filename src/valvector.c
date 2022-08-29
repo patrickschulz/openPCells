@@ -34,7 +34,7 @@ void* _create(size_t capacity, size_t elem_size)
     return data;
 }
 
-void* valvector_create(size_t elem_size);
+void* valvector_create(size_t elem_size)
 {
     size_t capacity = 0;
     void* data = _create(capacity, elem_size);
@@ -55,7 +55,7 @@ void valvector_destroy(void* vp)
     free(v);
 }
 
-void valvector_append(void* vp, void* e)
+void valvector_append(void* vp, const void* e)
 {
     void* data = *(void**)vp;
     size_t elem_size = *_elem_size(data);

@@ -9,7 +9,6 @@
 #include "lpoint.h"
 #include "lgeometry.h"
 #include "lgenerics.h"
-#include "lbind.h"
 #include "ldir.h"
 #include "lobject.h"
 #include "filesystem.h"
@@ -38,17 +37,18 @@ static lua_State* _create_and_initialize_lua(void)
 
     // opc libraries
     open_ldir_lib(L);
+    open_lfilesystem_lib(L);
     open_lpoint_lib(L);
     open_lgeometry_lib(L);
     open_lgenerics_lib(L);
     open_ltechnology_lib(L);
-    open_lbind_lib(L);
-    open_lobject_lib(L);
     open_lpcell_lib(L);
-    open_lfilesystem_lib(L);
+    open_lobject_lib(L);
+    // FIXME: these libraries are probably not needed for cell creation (they are used in place & route scripts)
     open_lplacer_lib(L);
     open_lrouter_lib(L);
 
+    // FIXME: probably not needed for cell creation (used in gdsimport)
     open_gdsparser_lib(L);
 
     return L;
@@ -133,7 +133,7 @@ static void _prepare_cellpaths(struct vector* cellpaths_to_prepend, struct vecto
     {
         for(unsigned int i = 0; i < vector_size(config_prepend_cellpaths); ++i)
         {
-            vector_append(cellpaths_to_prepend, vector_get(config_prepend_cellpaths, i));
+            vector_append(cellpaths_to_prepend, util_copy_string(vector_get(config_prepend_cellpaths, i)));
         }
     }
     struct vector* config_append_cellpaths = hashmap_get(config, "append_cellpaths");
@@ -141,7 +141,7 @@ static void _prepare_cellpaths(struct vector* cellpaths_to_prepend, struct vecto
     {
         for(unsigned int i = 0; i < vector_size(config_append_cellpaths); ++i)
         {
-            vector_append(cellpaths_to_append, vector_get(config_append_cellpaths, i));
+            vector_append(cellpaths_to_append, util_copy_string(vector_get(config_append_cellpaths, i)));
         }
     }
     vector_append(cellpaths_to_append, util_copy_string(OPC_HOME "/cells"));
@@ -149,9 +149,9 @@ static void _prepare_cellpaths(struct vector* cellpaths_to_prepend, struct vecto
 
 void main_list_cell_parameters(struct cmdoptions* cmdoptions, struct hashmap* config)
 {
+    // FIXME: this probably loads too many C modules
     lua_State* L = _create_and_initialize_lua();
 
-    open_lpcell_lib(L);
     module_load_aux(L);
     module_load_stack(L);
     module_load_pcell(L);
@@ -336,11 +336,17 @@ static void _scale(struct object* toplevel, struct cmdoptions* cmdoptions, struc
         const char* arg = cmdoptions_get_argument_long(cmdoptions, "scale");
         double factor = atof(arg);
         object_scale(toplevel, factor);
-        for(unsigned int i = 0; i < pcell_get_reference_count(pcell_state); ++i)
+        struct cell_reference_iterator* it = pcell_create_cell_reference_iterator(pcell_state);
+        while(pcell_cell_reference_iterator_is_valid(it))
         {
-            struct object* cell = pcell_get_indexed_cell_reference(pcell_state, i)->cell;
-            object_scale(cell, factor);
+            char* refidentifier;
+            struct object* refcell;
+            int refnumused;
+            pcell_cell_reference_iterator_get(it, &refidentifier, &refcell, &refnumused);
+            object_scale(refcell, factor);
+            pcell_cell_reference_iterator_advance(it);
         }
+        pcell_destroy_cell_reference_iterator(it);
     }
 }
 
@@ -359,18 +365,24 @@ static void _draw_alignmentboxes(struct object* toplevel, struct cmdoptions* cmd
     }
     if(cmdoptions_was_provided_long(cmdoptions, "draw-all-alignmentboxes"))
     {
-        for(unsigned int i = 0; i < pcell_get_reference_count(pcell_state); ++i)
+        struct cell_reference_iterator* it = pcell_create_cell_reference_iterator(pcell_state);
+        while(pcell_cell_reference_iterator_is_valid(it))
         {
-            struct object* cell = pcell_get_indexed_cell_reference(pcell_state, i)->cell;
-            point_t* bl = object_get_anchor(cell, "bottomleft");
-            point_t* tr = object_get_anchor(cell, "topright");
+            char* refidentifier;
+            struct object* refcell;
+            int refnumused;
+            pcell_cell_reference_iterator_get(it, &refidentifier, &refcell, &refnumused);
+            point_t* bl = object_get_anchor(refcell, "bottomleft");
+            point_t* tr = object_get_anchor(refcell, "topright");
             if(bl && tr)
             {
-                geometry_rectanglebltr(cell, generics_create_special(layermap, techstate), bl, tr, 1, 1, 0, 0);
+                geometry_rectanglebltr(refcell, generics_create_special(layermap, techstate), bl, tr, 1, 1, 0, 0);
                 point_destroy(bl);
                 point_destroy(tr);
             }
+            pcell_cell_reference_iterator_advance(it);
         }
+        pcell_destroy_cell_reference_iterator(it);
     }
 }
 
@@ -418,20 +430,32 @@ static void _filter_layers(struct object* toplevel, struct cmdoptions* cmdoption
                 strcmp(cmdoptions_get_argument_long(cmdoptions, "filter-list"), "include") == 0)
         {
             postprocess_filter_include(toplevel, layernames);
-            for(unsigned int i = 0; i < pcell_get_reference_count(pcell_state); ++i)
+            struct cell_reference_iterator* it = pcell_create_cell_reference_iterator(pcell_state);
+            while(pcell_cell_reference_iterator_is_valid(it))
             {
-                struct object* cell = pcell_get_indexed_cell_reference(pcell_state, i)->cell;
-                postprocess_filter_include(cell, layernames);
+                char* refidentifier;
+                struct object* refcell;
+                int refnumused;
+                pcell_cell_reference_iterator_get(it, &refidentifier, &refcell, &refnumused);
+                postprocess_filter_include(refcell, layernames);
+                pcell_cell_reference_iterator_advance(it);
             }
+            pcell_destroy_cell_reference_iterator(it);
         }
         else
         {
             postprocess_filter_exclude(toplevel, layernames);
-            for(unsigned int i = 0; i < pcell_get_reference_count(pcell_state); ++i)
+            struct cell_reference_iterator* it = pcell_create_cell_reference_iterator(pcell_state);
+            while(pcell_cell_reference_iterator_is_valid(it))
             {
-                struct object* cell = pcell_get_indexed_cell_reference(pcell_state, i)->cell;
-                postprocess_filter_exclude(cell, layernames);
+                char* refidentifier;
+                struct object* refcell;
+                int refnumused;
+                pcell_cell_reference_iterator_get(it, &refidentifier, &refcell, &refnumused);
+                postprocess_filter_exclude(refcell, layernames);
+                pcell_cell_reference_iterator_advance(it);
             }
+            pcell_destroy_cell_reference_iterator(it);
         }
     }
 }
@@ -441,11 +465,17 @@ static void _merge_rectangles(struct object* toplevel, struct cmdoptions* cmdopt
     if(cmdoptions_was_provided_long(cmdoptions, "merge-rectangles"))
     {
         postprocess_merge_shapes(toplevel, layermap);
-        for(unsigned int i = 0; i < pcell_get_reference_count(pcell_state); ++i)
+        struct cell_reference_iterator* it = pcell_create_cell_reference_iterator(pcell_state);
+        while(pcell_cell_reference_iterator_is_valid(it))
         {
-            struct object* cell = pcell_get_indexed_cell_reference(pcell_state, i)->cell;
-            postprocess_merge_shapes(cell, layermap);
+            char* refidentifier;
+            struct object* refcell;
+            int refnumused;
+            pcell_cell_reference_iterator_get(it, &refidentifier, &refcell, &refnumused);
+            postprocess_merge_shapes(refcell, layermap);
+            pcell_cell_reference_iterator_advance(it);
         }
+        pcell_destroy_cell_reference_iterator(it);
     }
 }
 
@@ -459,11 +489,17 @@ static void _raster_curves(struct object* toplevel, struct cmdoptions* cmdoption
     if(cmdoptions_was_provided_long(cmdoptions, "rasterize-curves"))
     {
         _raster_cell_curves(toplevel);
-        for(unsigned int i = 0; i < pcell_get_reference_count(pcell_state); ++i)
+        struct cell_reference_iterator* it = pcell_create_cell_reference_iterator(pcell_state);
+        while(pcell_cell_reference_iterator_is_valid(it))
         {
-            struct object* cell = pcell_get_indexed_cell_reference(pcell_state, i)->cell;
-            _raster_cell_curves(cell);
+            char* refidentifier;
+            struct object* refcell;
+            int refnumused;
+            pcell_cell_reference_iterator_get(it, &refidentifier, &refcell, &refnumused);
+            _raster_cell_curves(refcell);
+            pcell_cell_reference_iterator_advance(it);
         }
+        pcell_destroy_cell_reference_iterator(it);
     }
 }
 
