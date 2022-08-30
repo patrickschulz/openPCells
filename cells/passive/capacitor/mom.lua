@@ -8,6 +8,7 @@ function parameters()
         { "rwidth(Rail Width)",       100 },
         { "firstmetal(Start Metal)",    1 },
         { "lastmetal(End Metal)",       2 },
+        { "alternatingpolarity",     true },
         { "flat",                    true }
     )
 end
@@ -19,16 +20,17 @@ function layout(momcap, _P)
         for i = _P.firstmetal, _P.lastmetal do
             local xreptop, xrepbot = evenodddiv2(_P.fingers)
             local xshift = (_P.fingers % 2 == 0) and pitch / 2 or 0
+            local xsign = (_P.alternatingpolarity and (i % 2 == 0)) and 1 or -1
             geometry.rectanglebltr(
                 momcap, generics.metal(i),
-                point.create(-xshift - _P.fwidth / 2, -_P.fheight / 2),
-                point.create(-xshift + _P.fwidth / 2, _P.foffset + _P.fheight / 2),
+                point.create(-xsign * xshift - _P.fwidth / 2, -_P.fheight / 2),
+                point.create(-xsign * xshift + _P.fwidth / 2, _P.foffset + _P.fheight / 2),
                 xreptop, 1, 2 * pitch, 0
             )
             geometry.rectanglebltr(
                 momcap, generics.metal(i),
-                point.create(xshift - _P.fwidth / 2, -_P.foffset - _P.fheight / 2),
-                point.create(xshift + _P.fwidth / 2, _P.fheight / 2),
+                point.create(xsign * xshift - _P.fwidth / 2, -_P.foffset - _P.fheight / 2),
+                point.create(xsign * xshift + _P.fwidth / 2, _P.fheight / 2),
                 xrepbot, 1, 2 * pitch, 0
             )
         end
