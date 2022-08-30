@@ -7,6 +7,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
+#include <assert.h>
 
 #include "tagged_value.h"
 #include "util.h"
@@ -135,13 +136,13 @@ char* export_get_export_layername(struct const_vector* searchpaths, const char* 
     struct export_functions* funcs = _get_export_functions(exportname);
     if(funcs) // C-defined exports
     {
+        char* techexport = NULL;
         if(funcs->get_techexport)
         {
-            char* techexport = util_copy_string(funcs->get_techexport());
-            export_destroy_functions(funcs);
-            return techexport;
+            techexport = util_copy_string(funcs->get_techexport());
         }
         export_destroy_functions(funcs);
+        return techexport;
     }
     else // lua-defined exports
     {
@@ -198,7 +199,7 @@ char* export_get_export_layername(struct const_vector* searchpaths, const char* 
     return NULL;
 }
 
-static void _write_ports(struct object* cell, struct export_data* data, struct export_functions* funcs, char leftdelim, char rightdelim)
+static void _write_ports(struct object* cell, struct export_data* data, const struct export_functions* funcs, char leftdelim, char rightdelim)
 {
     struct port_iterator* it = object_create_port_iterator(cell);
     while(port_iterator_is_valid(it))
@@ -228,88 +229,119 @@ static void _write_ports(struct object* cell, struct export_data* data, struct e
     port_iterator_destroy(it);
 }
 
-// FIXME: 'cell' should be const, currently this function alters cell
-// (via object_get_transformed_shape)
-// This function should get the untransformed shapes and either transform the points itself
-// or pass the transformation matric on to the actual export functions
-static void _write_cell(struct object* cell, struct export_data* data, struct export_functions* funcs, int write_ports, char leftdelim, char rightdelim)
+static void _write_cell_shape_rectangle(struct shape* shape, struct export_data* data, const struct export_functions* funcs)
+{
+    const struct hashmap* layerdata = shape_get_main_layerdata(shape);
+    point_t* bl;
+    point_t* tr;
+    shape_get_rectangle_points(shape, &bl, &tr);
+    funcs->write_rectangle(data, layerdata, bl, tr);
+}
+
+static void _write_cell_shape_polygon(struct shape* shape, struct export_data* data, const struct export_functions* funcs)
+{
+    const struct hashmap* layerdata = shape_get_main_layerdata(shape);
+    struct vector* points;
+    shape_get_polygon_points(shape, &points);
+    funcs->write_polygon(data, layerdata, points);
+}
+
+static void _write_cell_shape_triangulated_polygon(struct shape* shape, struct export_data* data, const struct export_functions* funcs)
+{
+    const struct hashmap* layerdata = shape_get_main_layerdata(shape);
+    struct vector* points;
+    shape_get_polygon_points(shape, &points);
+    for(unsigned int i = 0; i < vector_size(points) - 2; i += 3)
+    {
+        if(funcs->write_triangle)
+        {
+            funcs->write_triangle(
+                    data, layerdata,
+                    vector_get(points, i),
+                    vector_get(points, i + 1),
+                    vector_get(points, i + 2)
+                    );
+        }
+        else
+        {
+            struct vector* tripts = vector_create(3);
+            vector_append(tripts, vector_get(points, i));
+            vector_append(tripts, vector_get(points, i + 1));
+            vector_append(tripts, vector_get(points, i + 2));
+            funcs->write_polygon(data, layerdata, tripts);
+        }
+    }
+}
+
+static void _write_cell_shape_path(struct shape* shape, struct export_data* data, const struct export_functions* funcs)
+{
+    const struct hashmap* layerdata = shape_get_main_layerdata(shape);
+    if(funcs->write_path)
+    {
+        struct vector* points;
+        shape_get_path_points(shape, &points);
+        ucoordinate_t width;
+        shape_get_path_width(shape, &width);
+        coordinate_t extension[2];
+        shape_get_path_extension(shape, &extension[0], &extension[1]);
+        funcs->write_path(data, layerdata, points, width, extension);
+    }
+    else
+    {
+        shape_resolve_path(shape);
+        struct vector* points;
+        shape_get_polygon_points(shape, &points);
+        funcs->write_polygon(data, layerdata, points);
+    }
+}
+
+static void _write_cell_shape_curve(struct shape* shape, struct export_data* data, const struct export_functions* funcs)
+{
+    const struct hashmap* layerdata = shape_get_main_layerdata(shape);
+    if(funcs->setup_curve && funcs->close_curve && funcs->curve_add_line_segment)
+    {
+        // FIXME: implement this
+        assert(0);
+    }
+    else
+    {
+        shape_rasterize_curve(shape);
+        struct vector* points;
+        shape_get_polygon_points(shape, &points);
+        funcs->write_polygon(data, layerdata, points);
+    }
+}
+
+static void _write_cell_shapes(struct object* cell, struct export_data* data, const struct export_functions* funcs)
 {
     for(unsigned int i = 0; i < object_get_shapes_size(cell); ++i)
     {
         struct shape* shape = object_get_transformed_shape(cell, i);
-        const struct hashmap* layerdata = shape_get_main_layerdata(shape);
         if(shape_is_rectangle(shape))
         {
-            point_t* bl;
-            point_t* tr;
-            shape_get_rectangle_points(shape, &bl, &tr);
-            funcs->write_rectangle(data, layerdata, bl, tr);
+            _write_cell_shape_rectangle(shape, data, funcs);
         }
         if(shape_is_polygon(shape))
         {
-            struct vector* points;
-            shape_get_polygon_points(shape, &points);
-            funcs->write_polygon(data, layerdata, points);
+            _write_cell_shape_polygon(shape, data, funcs);
         }
         if(shape_is_triangulated_polygon(shape))
         {
-            struct vector* points;
-            shape_get_polygon_points(shape, &points);
-            for(unsigned int i = 0; i < vector_size(points) - 2; i += 3)
-            {
-                if(funcs->write_triangle)
-                {
-                    funcs->write_triangle(
-                        data, layerdata,
-                        vector_get(points, i),
-                        vector_get(points, i + 1),
-                        vector_get(points, i + 2)
-                    );
-                }
-                else
-                {
-                    struct vector* tripts = vector_create(3);
-                    vector_append(tripts, vector_get(points, i));
-                    vector_append(tripts, vector_get(points, i + 1));
-                    vector_append(tripts, vector_get(points, i + 2));
-                    funcs->write_polygon(data, layerdata, tripts);
-                }
-            }
+            _write_cell_shape_triangulated_polygon(shape, data, funcs);
         }
         if(shape_is_path(shape))
         {
-            if(funcs->write_path)
-            {
-                struct vector* points;
-                shape_get_path_points(shape, &points);
-                ucoordinate_t width;
-                shape_get_path_width(shape, &width);
-                coordinate_t extension[2];
-                shape_get_path_extension(shape, &extension[0], &extension[1]);
-                funcs->write_path(data, layerdata, points, width, extension);
-            }
-            else
-            {
-                shape_resolve_path(shape);
-                struct vector* points;
-                shape_get_polygon_points(shape, &points);
-                funcs->write_polygon(data, layerdata, points);
-            }
+            _write_cell_shape_path(shape, data, funcs);
         }
         if(shape_is_curve(shape))
         {
-            if(funcs->setup_curve && funcs->close_curve && funcs->curve_add_line_segment)
-            {
-            }
-            else
-            {
-                shape_rasterize_curve(shape);
-                struct vector* points;
-                shape_get_polygon_points(shape, &points);
-                funcs->write_polygon(data, layerdata, points);
-            }
+            _write_cell_shape_curve(shape, data, funcs);
         }
     }
+}
+
+static void _write_cell_children(struct object* cell, struct export_data* data, const struct export_functions* funcs)
+{
     struct child_iterator* it = object_create_child_iterator(cell);
     while(child_iterator_is_valid(it))
     {
@@ -345,6 +377,16 @@ static void _write_cell(struct object* cell, struct export_data* data, struct ex
         child_iterator_next(it);
     }
     child_iterator_destroy(it);
+}
+
+// FIXME: 'cell' should be const, currently this function alters cell
+// (via object_get_transformed_shape)
+// This function should get the untransformed shapes and either transform the points itself
+// or pass the transformation matric on to the actual export functions
+static void _write_cell(struct object* cell, struct export_data* data, const struct export_functions* funcs, int write_ports, char leftdelim, char rightdelim)
+{
+    _write_cell_shapes(cell, data, funcs);
+    _write_cell_children(cell, data, funcs);
     if(write_ports && object_has_ports(cell))
     {
         _write_ports(cell, data, funcs, leftdelim, rightdelim);
@@ -764,7 +806,7 @@ static int _check_lua_export(lua_State* L)
     return 1;
 }
 
-static void _write_toplevel_C(struct object* object, struct pcell_state* pcell_state, const char* toplevelname, struct export_data* data, struct export_functions* funcs, struct export_state* state)
+static void _write_toplevel_C(struct object* object, struct pcell_state* pcell_state, const char* toplevelname, struct export_data* data, const struct export_functions* funcs, struct export_state* state)
 {
     if(funcs->initialize)
     {
