@@ -17,8 +17,7 @@ local __groupname = "opcgroup"
 local __labelsize = 0.1
 local __splitlets = true
 local __counter = 0
---local __maxletlimit = 65536
-local __maxletlimit = 10
+local __maxletlimit = 65536
 local __istoplevel = false
 function M.set_options(opt)
     for i = 1, #opt do
@@ -34,14 +33,22 @@ function M.set_options(opt)
         if arg == "-g" or arg == "--group" then
             __group = true
         end
-        if arg == "-s" or arg == "--no-let-splits" then
-            __splitlets = false
-        end
         if arg == "-n" or arg == "--group-name" then
             if i < #opt then
                 __groupname = opt[i + 1]
             else
                 error("SKILL export: --group-name: argument expected")
+            end
+            i = i + 1
+        end
+        if arg == "-s" or arg == "--no-let-splits" then
+            __splitlets = false
+        end
+        if arg == "--max-let-splits" then
+            if i < #opt then
+                __maxletlimit = tonumber(opt[i + 1])
+            else
+                error("SKILL export: --max-let-splits: argument expected")
             end
             i = i + 1
         end
@@ -239,8 +246,13 @@ function M.write_cell_reference(identifier, x, y, orientation)
     end
     -- FIXME: R270?
     local fmt = _get_shape_fmt("InstByMasterName")
+
+    local c = {}
+    _prepare_shape_for_group(c)
+    table.insert(c, string.format(fmt, string.format('libname "%s" "layout" nil %s "%s"', identifier, _format_xy(x, y, ":"), orientstr)))
+    _finish_shape_for_group(c)
     _ensure_legal_limit()
-    table.insert(__content, string.format(fmt, string.format('libname "%s" "layout" nil %s "%s"', identifier, _format_xy(x, y, ":"), orientstr)))
+    table.insert(__content, table.concat(c))
 end
 
 return M
