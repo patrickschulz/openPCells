@@ -111,6 +111,8 @@ end
 local function _prepare_shape_for_group(c)
     if __group then
         table.insert(c, "    dbAddFigToFigGroup(group ")
+    else
+        table.insert(c, "    ")
     end
 end
 
