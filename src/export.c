@@ -660,7 +660,8 @@ static int _write_cell_lua(lua_State* L, struct object* cell, int write_ports, c
         point_t origin = { .x = 0, .y = 0 };
         object_transform_point(child, &origin);
         object_transform_point(cell, &origin);
-        if(object_is_child_array(child))
+        int has_write_cell_array = _check_function(L, "write_cell_array");
+        if(object_is_child_array(child) && has_write_cell_array)
         {
             lua_getfield(L, -1, "write_cell_array");
             if(lua_isnil(L, -1))
