@@ -716,7 +716,7 @@ int _check_lpp(int16_t layer, int16_t purpose, const struct vector* ignorelpp)
     return 1;
 }
 
-int gdsparser_read_stream(const char* filename, const char* importname, const struct vector* gdslayermap, const struct vector* ignorelpp)
+int gdsparser_read_stream(const char* filename, const char* importname, const struct vector* gdslayermap, const struct vector* ignorelpp, int16_t* ablayer, int16_t* abpurpose)
 {
     const char* libname;
     struct stream* stream = _read_raw_stream(filename);
@@ -735,6 +735,10 @@ int gdsparser_read_stream(const char* filename, const char* importname, const st
     double angle = 0.0;
     struct vector* children = NULL;
     int* transformation = NULL;
+    coordinate_t abblx = 0;
+    coordinate_t abbly = 0;
+    coordinate_t abtrx = 0;
+    coordinate_t abtry = 0;
 
     for(size_t i = 0; i < stream->numrecords; ++i)
     {
@@ -811,6 +815,8 @@ int gdsparser_read_stream(const char* filename, const char* importname, const st
             hashmap_destroy(references, NULL);
             vector_destroy(children, NULL);
             children = NULL;
+            // alignment box
+            fprintf(cellfile, "    cell:set_alignment_box(point.create(%lld, %lld), point.create(%lld, %lld))\n", abblx, abbly, abtrx, abtry);
             fputs("end", cellfile); // close layout function
             fclose(cellfile);
         }
@@ -857,6 +863,13 @@ int gdsparser_read_stream(const char* filename, const char* importname, const st
         }
         else if(record->recordtype == ENDEL)
         {
+            if(what == BOUNDARY && ablayer && abpurpose && layer == *ablayer && purpose == *abpurpose)
+            {
+                abblx = MIN4((get_point(points, 0))->x, (get_point(points, 1))->x, (get_point(points, 2))->x, (get_point(points, 3))->x);
+                abbly = MIN4((get_point(points, 0))->y, (get_point(points, 1))->y, (get_point(points, 2))->y, (get_point(points, 3))->y);
+                abtrx = MAX4((get_point(points, 0))->x, (get_point(points, 1))->x, (get_point(points, 2))->x, (get_point(points, 3))->x);
+                abtry = MAX4((get_point(points, 0))->y, (get_point(points, 1))->y, (get_point(points, 2))->y, (get_point(points, 3))->y);
+            }
             if(what == BOUNDARY && _check_lpp(layer, purpose, ignorelpp))
             {
                 // check for rectangles
