@@ -913,7 +913,7 @@ int gdsparser_read_stream(const char* filename, const char* importname, const st
                 point_t* pt = vector_get(points, 0);
                 fprintf(cellfile, "    cell:add_port(\"%s\", ", str);
                 _write_layers(cellfile, layer, purpose, gdslayermap);
-                fprintf(cellfile, "    cell:add_port(, point.create(%lld, %lld))\n", pt->x, pt->y);
+                fprintf(cellfile, ", point.create(%lld, %lld))\n", pt->x, pt->y);
                 vector_destroy(points, point_destroy);
                 free(str);
                 if(transformation)
