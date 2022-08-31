@@ -68,6 +68,7 @@ int technology_load_layermap(struct technology_state* techstate, const char* nam
     {
         const char* msg = lua_tostring(L, -1);
         fprintf(stderr, "error while loading layermap:\n  %s\n", msg);
+        lua_close(L);
         return 0;
     }
     lua_pushnil(L);
@@ -166,6 +167,7 @@ int technology_load_viadefinitions(struct technology_state* techstate, const cha
     if(ret != LUA_OK)
     {
         puts("error while loading via definitions");
+        lua_close(L);
         return 0;
     }
     lua_pushnil(L);
@@ -188,6 +190,7 @@ int technology_load_config(struct technology_state* techstate, const char* name)
     if(ret != LUA_OK)
     {
         puts("error while loading config");
+        lua_close(L);
         return 0;
     }
     lua_getfield(L, -1, "metals");
@@ -204,6 +207,7 @@ int technology_load_constraints(struct technology_state* techstate, const char* 
     if(ret != LUA_OK)
     {
         puts("error while loading constraints");
+        lua_close(L);
         return 0;
     }
     lua_pushnil(L);
