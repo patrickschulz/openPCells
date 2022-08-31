@@ -872,7 +872,7 @@ void object_apply_transformation(struct object* cell)
     }
 }
 
-void object_transform_point(struct object* cell, point_t* pt)
+void object_transform_point(const struct object* cell, point_t* pt)
 {
     transformationmatrix_apply_transformation(cell->trans, pt);
 }
@@ -974,13 +974,53 @@ const char* object_get_identifier(const struct object* cell)
     return cell->identifier;
 }
 
-// child iterator
-struct child_iterator {
-    struct vector* children;
+struct shape_iterator {
+    const struct vector* shapes;
     size_t index;
 };
 
-struct child_iterator* object_create_child_iterator(struct object* cell)
+struct shape_iterator* object_create_shape_iterator(const struct object* cell)
+{
+    struct shape_iterator* it = malloc(sizeof(*it));
+    it->shapes = cell->shapes;
+    it->index = 0;
+    return it;
+}
+
+int shape_iterator_is_valid(struct shape_iterator* it)
+{
+    if(!it->shapes)
+    {
+        return 0;
+    }
+    else
+    {
+        return it->index < vector_size(it->shapes);
+    }
+}
+
+void shape_iterator_next(struct shape_iterator* it)
+{
+    it->index += 1;
+}
+
+const struct shape* shape_iterator_get(struct shape_iterator* it)
+{
+    return vector_get_const(it->shapes, it->index);
+}
+
+void shape_iterator_destroy(struct shape_iterator* it)
+{
+    free(it);
+}
+
+// child iterator
+struct child_iterator {
+    const struct vector* children;
+    size_t index;
+};
+
+struct child_iterator* object_create_child_iterator(const struct object* cell)
 {
     struct child_iterator* it = malloc(sizeof(*it));
     it->children = cell->children;
@@ -1005,9 +1045,9 @@ void child_iterator_next(struct child_iterator* it)
     it->index += 1;
 }
 
-struct object* child_iterator_get(struct child_iterator* it)
+const struct object* child_iterator_get(struct child_iterator* it)
 {
-    return vector_get(it->children, it->index);
+    return vector_get_const(it->children, it->index);
 }
 
 void child_iterator_destroy(struct child_iterator* it)

@@ -309,11 +309,11 @@ function layout(transistor, _P)
         ),
         point.create(
             -activewidth / 2 - virtualactiveleftext - _P.extendwellleft,
-            -_P.fwidth / 2 - math.max(gateaddbot, enable(_P.drawbotwelltap, _P.botwelltapspace + _P.botwelltapwidth))- sourceshift - _P.extendwellbot
+            -_P.fwidth / 2 - math.max(gateaddbot, enable(_P.drawbotwelltap, _P.botwelltapspace + _P.botwelltapwidth)) - _P.extendwellbot
         ),
         point.create(
             activewidth / 2 + virtualactiverightext + _P.extendwellright,
-            _P.fwidth / 2 + math.max(gateaddtop, enable(_P.drawtopwelltap, _P.topwelltapspace + _P.topwelltapwidth)) + drainshift + _P.extendwelltop
+            _P.fwidth / 2 + math.max(gateaddtop, enable(_P.drawtopwelltap, _P.topwelltapspace + _P.topwelltapwidth)) + _P.extendwelltop
         )
     )
     -- well taps
@@ -338,9 +338,19 @@ function layout(transistor, _P)
             contype = _P.flippedwell and (_P.channeltype == "nmos" and "n" or "p") or (_P.channeltype == "nmos" and "p" or "n"),
             ringwidth = _P.guardringwidth,
             holewidth = activewidth + 2 * _P.guardringxsep,
-            holeheight = _P.fwidth + 2 * _P.guardringysep,
+            holeheight = 
+                _P.fwidth
+                + enable(_P.drawtopgate and topgatecompsd, drainshift + _P.topgatestrwidth + _P.topgatestrspace)
+                + enable(_P.drawbotgate and botgatecompsd, sourceshift + _P.botgatestrwidth + _P.botgatestrspace)
+                + 2 * _P.guardringysep,
             fillwell = true,
+            drawsegments = { "top", "bottom" }
         })
+        local yshift = (
+            enable(_P.drawtopgate and topgatecompsd, drainshift + _P.topgatestrwidth + _P.topgatestrspace)
+            - enable(_P.drawbotgate and botgatecompsd, sourceshift + _P.botgatestrwidth + _P.botgatestrspace)
+        ) / 2
+        guardring:translate(0, yshift)
         transistor:merge_into_shallow(guardring)
         transistor:add_anchor_area_bltr("guardring",
             guardring:get_anchor("bottomleft"):translate(-_P.guardringwidth / 2, -_P.guardringwidth / 2),

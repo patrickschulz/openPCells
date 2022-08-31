@@ -68,7 +68,36 @@ void main_gds_read(struct cmdoptions* cmdoptions)
             must_free = 1;
         }
     }
-    int ret = gdsparser_read_stream(readgds, importlibname);
+    const char* gdslayermapfile = cmdoptions_get_argument_long(cmdoptions, "gds-layermap");
+    struct vector* gdslayermap = gdsparser_create_layermap(gdslayermapfile);
+    struct vector* ignorelpp = vector_create(1);
+    if(cmdoptions_was_provided_long(cmdoptions, "gds-ignore-lpp"))
+    {
+        const char** lppstrs = cmdoptions_get_argument_long(cmdoptions, "gds-ignore-lpp");
+        while(*lppstrs)
+        {
+            const char* lppstr = *lppstrs;
+            char* ptr;
+            int16_t* lpp = malloc(2 * sizeof(*lpp));
+            lpp[0] = strtol(lppstr, &ptr, 10);
+            lpp[1] = strtol(ptr + 1, NULL, 10);
+            vector_append(ignorelpp, lpp);
+            ++lppstrs;
+        }
+    }
+    int16_t* ablayer = NULL;
+    if(cmdoptions_was_provided_long(cmdoptions, "gds-alignmentbox-layer"))
+    {
+        ablayer = malloc(sizeof(*ablayer));
+        *ablayer = strtol(cmdoptions_get_argument_long(cmdoptions, "gds-alignmentbox-layer"), NULL, 10);
+    }
+    int16_t* abpurpose = NULL;
+    if(cmdoptions_was_provided_long(cmdoptions, "gds-alignmentbox-purpose"))
+    {
+        abpurpose = malloc(sizeof(*abpurpose));
+        *abpurpose = strtol(cmdoptions_get_argument_long(cmdoptions, "gds-alignmentbox-purpose"), NULL, 10);
+    }
+    int ret = gdsparser_read_stream(readgds, importlibname, gdslayermap, ignorelpp, ablayer, abpurpose);
     if(must_free)
     {
         free(importlibname);
@@ -76,5 +105,15 @@ void main_gds_read(struct cmdoptions* cmdoptions)
     if(!ret)
     {
         printf("could not read stream file '%s'\n", readgds);
+    }
+    gdsparser_destroy_layermap(gdslayermap);
+    vector_destroy(ignorelpp, free);
+    if(ablayer)
+    {
+        free(ablayer);
+    }
+    if(abpurpose)
+    {
+        free(abpurpose);
     }
 }

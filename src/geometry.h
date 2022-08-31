@@ -78,6 +78,27 @@ int geometry_contact(
     int xcont, int ycont
 );
 
+int geometry_contactbarebltr(
+    struct object* cell,
+    struct layermap* layermap, struct technology_state* techstate,
+    const char* region,
+    point_t* bl, point_t* tr,
+    ucoordinate_t xrep, ucoordinate_t yrep,
+    ucoordinate_t xpitch, ucoordinate_t ypitch,
+    int xcont, int ycont
+);
+
+int geometry_contactbare(
+    struct object* cell,
+    struct layermap* layermap, struct technology_state* techstate,
+    const char* region,
+    ucoordinate_t width, ucoordinate_t height,
+    coordinate_t xshift, coordinate_t yshift,
+    ucoordinate_t xrep, ucoordinate_t yrep,
+    ucoordinate_t xpitch, ucoordinate_t ypitch,
+    int xcont, int ycont
+);
+
 void geometry_cross(struct object* cell, struct generics* layer, ucoordinate_t width, ucoordinate_t height, ucoordinate_t crosssize);
 
 void geometry_ring(struct object* cell, struct generics* layer, ucoordinate_t width, ucoordinate_t height, ucoordinate_t ringwidth);

@@ -33,7 +33,8 @@ procedure(OPCUpdateCallbackHierarchical(xpath)
             else
                 path = lsprintf("%s/%s/layout/layout.lua" libPath cellName)
         )
-        OPCArgs = OPCPrepareArgsForCellCreation(lsprintf("--cellscript %s -f %s --write-children-ports" path OPCSettingsForm->OPCCellFilename->value))
+        ; FIXME: -X -s only needed, because SKILL export is broken
+        OPCArgs = OPCPrepareArgsForCellCreation(lsprintf("--cellscript %s -f %s --write-children-ports -X -s" path OPCSettingsForm->OPCCellFilename->value))
         OPCCmd = OPCBuildCallCommand(OPCArgs)
         if(OPCCall(OPCCmd nil)
             then
@@ -62,7 +63,7 @@ procedure(OPCUpdateCallbackFlat(xpath)
             else
                 path = lsprintf("%s/%s/layout/layout.lua" libPath cellName)
         )
-        OPCArgs = OPCPrepareArgsForCellCreation(lsprintf("--cellscript %s -f %s -X -c --flat" path OPCSettingsForm->OPCCellFilename->value) ?newgroup t)
+        OPCArgs = OPCPrepareArgsForCellCreation(lsprintf("--cellscript %s -f %s --flat" path OPCSettingsForm->OPCCellFilename->value) ?newgroup t)
         OPCCmd = OPCBuildCallCommand(OPCArgs)
         if(OPCCall(OPCCmd nil)
             then

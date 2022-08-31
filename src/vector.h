@@ -12,6 +12,7 @@ size_t vector_size(const struct vector* vector);
 size_t vector_capacity(const struct vector* vector);
 int vector_empty(const struct vector* vector);
 void* vector_get(struct vector* vector, size_t i);
+const void* vector_get_const(const struct vector* vector, size_t i);
 void* vector_get_reference(struct vector* vector, size_t i);
 void* vector_content(struct vector* vector);
 void* vector_disown_content(struct vector* vector);
@@ -27,6 +28,13 @@ int vector_iterator_is_valid(struct vector_iterator* iterator);
 void* vector_iterator_get(struct vector_iterator* iterator);
 void vector_iterator_next(struct vector_iterator* iterator);
 void vector_iterator_destroy(struct vector_iterator* iterator);
+
+struct vector_const_iterator;
+struct vector_const_iterator* vector_const_iterator_create(const struct vector* vector);
+int vector_const_iterator_is_valid(struct vector_const_iterator* iterator);
+const void* vector_const_iterator_get(struct vector_const_iterator* iterator);
+void vector_const_iterator_next(struct vector_const_iterator* iterator);
+void vector_const_iterator_destroy(struct vector_const_iterator* iterator);
 
 struct const_vector;
 struct const_vector* const_vector_create(size_t capacity);

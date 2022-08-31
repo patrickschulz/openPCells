@@ -12,6 +12,7 @@
 #include "vector.h"
 #include "point.h"
 #include "hashmap.h"
+#include "lua_util.h"
 
 enum datatypes
 {
@@ -65,6 +66,7 @@ int _read_record(FILE* file, struct record* record)
     read = fread(data, 1, numbytes, file);
     if(read != numbytes)
     {
+        free(data);
         return 0;
     }
     record->data = data;
@@ -563,23 +565,158 @@ struct _cellref
     double angle;
 };
 
-int _check_rectangle(struct vector* points)
+static const point_t* get_point(const struct vector* vector, size_t i )
 {
-    return ((((point_t*)vector_get(points, 0))->y == ((point_t*)vector_get(points, 1))->y)  &&
-            (((point_t*)vector_get(points, 1))->x == ((point_t*)vector_get(points, 2))->x)  &&
-            (((point_t*)vector_get(points, 2))->y == ((point_t*)vector_get(points, 3))->y)  &&
-            (((point_t*)vector_get(points, 3))->x == ((point_t*)vector_get(points, 4))->x)  &&
-            (((point_t*)vector_get(points, 0))->x == ((point_t*)vector_get(points, 4))->x)  &&
-            (((point_t*)vector_get(points, 0))->y == ((point_t*)vector_get(points, 4))->y)) ||
-           ((((point_t*)vector_get(points, 0))->x == ((point_t*)vector_get(points, 1))->x)  &&
-            (((point_t*)vector_get(points, 1))->y == ((point_t*)vector_get(points, 2))->y)  &&
-            (((point_t*)vector_get(points, 2))->x == ((point_t*)vector_get(points, 3))->x)  &&
-            (((point_t*)vector_get(points, 3))->y == ((point_t*)vector_get(points, 4))->y)  &&
-            (((point_t*)vector_get(points, 0))->x == ((point_t*)vector_get(points, 4))->x)  &&
-            (((point_t*)vector_get(points, 0))->y == ((point_t*)vector_get(points, 4))->y));
+    return vector_get_const(vector, i);
 }
 
-int gdsparser_read_stream(const char* filename, const char* importname)
+int _check_rectangle(struct vector* points)
+{
+    return (((get_point(points, 0))->y == (get_point(points, 1))->y)  &&
+            ((get_point(points, 1))->x == (get_point(points, 2))->x)  &&
+            ((get_point(points, 2))->y == (get_point(points, 3))->y)  &&
+            ((get_point(points, 3))->x == (get_point(points, 4))->x)  &&
+            ((get_point(points, 0))->x == (get_point(points, 4))->x)  &&
+            ((get_point(points, 0))->y == (get_point(points, 4))->y)) ||
+           (((get_point(points, 0))->x == (get_point(points, 1))->x)  &&
+            ((get_point(points, 1))->y == (get_point(points, 2))->y)  &&
+            ((get_point(points, 2))->x == (get_point(points, 3))->x)  &&
+            ((get_point(points, 3))->y == (get_point(points, 4))->y)  &&
+            ((get_point(points, 0))->x == (get_point(points, 4))->x)  &&
+            ((get_point(points, 0))->y == (get_point(points, 4))->y));
+}
+
+struct layermapping {
+    int16_t layer;
+    int16_t purpose;
+    char** mappings;
+    size_t num;
+};
+
+struct vector* gdsparser_create_layermap(const char* filename)
+{
+    if(!filename)
+    {
+        return NULL;
+    }
+    lua_State* L = util_create_minimal_lua_state();
+    int ret = luaL_dofile(L, filename);
+    if(ret != LUA_OK)
+    {
+        const char* msg = lua_tostring(L, -1);
+        fprintf(stderr, "error while loading gdslayermap:\n  %s\n", msg);
+        lua_close(L);
+        return NULL;
+    }
+    struct vector* map = vector_create(1);
+    lua_len(L, -1);
+    size_t len = lua_tointeger(L, -1);
+    lua_pop(L, 1);
+    for(size_t i = 1; i <= len; ++i)
+    {
+        struct layermapping* layermapping = malloc(sizeof(*layermapping));
+        lua_rawgeti(L, -1, i); // get entry
+
+        lua_getfield(L, -1, "layer");
+        layermapping->layer = lua_tointeger(L, -1);
+        lua_pop(L, 1);
+
+        lua_getfield(L, -1, "purpose");
+        layermapping->purpose = lua_tointeger(L, -1);
+        lua_pop(L, 1);
+
+        lua_getfield(L, -1, "mappings");
+        lua_len(L, -1);
+        size_t maplen = lua_tointeger(L, -1);
+        lua_pop(L, 1);
+        layermapping->num = maplen;
+        layermapping->mappings = malloc(len * sizeof(*layermapping->mappings));
+        for(size_t j = 1; j <= maplen; ++j)
+        {
+            lua_rawgeti(L, -1, j);
+            const char* mapping = lua_tostring(L, -1);
+            layermapping->mappings[j - 1] = strdup(mapping);
+            lua_pop(L, 1);
+        }
+        lua_pop(L, 1);
+
+        lua_pop(L, 1); // pop entry
+        
+        vector_append(map, layermapping);
+    }
+    lua_close(L);
+    return map;
+}
+
+void gdsparser_destroy_layermap(struct vector* layermap)
+{
+    if(layermap)
+    {
+        struct vector_iterator* it = vector_iterator_create(layermap);
+        while(vector_iterator_is_valid(it))
+        {
+            struct layermapping* mapping = vector_iterator_get(it);
+            for(unsigned int i = 0; i < mapping->num; ++i)
+            {
+                free(mapping->mappings[i]);
+            }
+            free(mapping->mappings);
+            free(mapping);
+            vector_iterator_next(it);
+        }
+        vector_iterator_destroy(it);
+        vector_destroy(layermap, NULL);
+    }
+}
+
+static void _write_layers(FILE* cellfile, int16_t layer, int16_t purpose, const struct vector* layermap)
+{
+    fputs("generics.premapped(nil, { ", cellfile);
+    fputs("gds = { layer = ", cellfile);
+    _print_int16(cellfile, layer);
+    fputs(", purpose = ", cellfile);
+    _print_int16(cellfile, purpose);
+    fputs(" }", cellfile);
+    if(layermap)
+    {
+        struct vector_const_iterator* it = vector_const_iterator_create(layermap);
+        while(vector_const_iterator_is_valid(it))
+        {
+            const struct layermapping* mapping = vector_const_iterator_get(it);
+            if(layer == mapping->layer && purpose == mapping->purpose)
+            {
+                for(unsigned int i = 0; i < mapping->num; ++i)
+                {
+                    fprintf(cellfile, ", %s", mapping->mappings[i]);
+                }
+            }
+            vector_const_iterator_next(it);
+        }
+        vector_const_iterator_destroy(it);
+    }
+    fputs(" })", cellfile);
+}
+
+int _check_lpp(int16_t layer, int16_t purpose, const struct vector* ignorelpp)
+{
+    if(ignorelpp)
+    {
+        struct vector_const_iterator* it = vector_const_iterator_create(ignorelpp);
+        while(vector_const_iterator_is_valid(it))
+        {
+            const int16_t* lpp = vector_const_iterator_get(it);
+            if(layer == lpp[0] && purpose == lpp[1])
+            {
+                return 0;
+            }
+            vector_const_iterator_next(it);
+        }
+        vector_const_iterator_destroy(it);
+    }
+    return 1;
+}
+
+int gdsparser_read_stream(const char* filename, const char* importname, const struct vector* gdslayermap, const struct vector* ignorelpp, int16_t* ablayer, int16_t* abpurpose)
 {
     const char* libname;
     struct stream* stream = _read_raw_stream(filename);
@@ -598,6 +735,10 @@ int gdsparser_read_stream(const char* filename, const char* importname)
     double angle = 0.0;
     struct vector* children = NULL;
     int* transformation = NULL;
+    coordinate_t abblx = 0;
+    coordinate_t abbly = 0;
+    coordinate_t abtrx = 0;
+    coordinate_t abtry = 0;
 
     for(size_t i = 0; i < stream->numrecords; ++i)
     {
@@ -674,6 +815,8 @@ int gdsparser_read_stream(const char* filename, const char* importname)
             hashmap_destroy(references, NULL);
             vector_destroy(children, NULL);
             children = NULL;
+            // alignment box
+            fprintf(cellfile, "    cell:set_alignment_box(point.create(%lld, %lld), point.create(%lld, %lld))\n", abblx, abbly, abtrx, abtry);
             fputs("end", cellfile); // close layout function
             fclose(cellfile);
         }
@@ -720,36 +863,38 @@ int gdsparser_read_stream(const char* filename, const char* importname)
         }
         else if(record->recordtype == ENDEL)
         {
-            if(what == BOUNDARY)
+            if(what == BOUNDARY && ablayer && abpurpose && layer == *ablayer && purpose == *abpurpose)
+            {
+                abblx = MIN4((get_point(points, 0))->x, (get_point(points, 1))->x, (get_point(points, 2))->x, (get_point(points, 3))->x);
+                abbly = MIN4((get_point(points, 0))->y, (get_point(points, 1))->y, (get_point(points, 2))->y, (get_point(points, 3))->y);
+                abtrx = MAX4((get_point(points, 0))->x, (get_point(points, 1))->x, (get_point(points, 2))->x, (get_point(points, 3))->x);
+                abtry = MAX4((get_point(points, 0))->y, (get_point(points, 1))->y, (get_point(points, 2))->y, (get_point(points, 3))->y);
+            }
+            if(what == BOUNDARY && _check_lpp(layer, purpose, ignorelpp))
             {
                 // check for rectangles
                 // BOX is not used for rectangles, at least most tool suppliers seem to do it this way
                 // therefor, we check if some "polygons" are actually rectangles and fix the shape types
                 if(vector_size(points) == 5 && _check_rectangle(points))
                 {
+                    fputs("    geometry.rectanglebltr(cell, ", cellfile);
+                    _write_layers(cellfile, layer, purpose, gdslayermap);
                     // FIXME: the calls to MAX4 and MIN4 are terrible
-                    fputs("    geometry.rectanglebltr(cell, generics.premapped(nil, { gds = { layer = ", cellfile);
-                    _print_int16(cellfile, layer);
-                    fputs(", purpose = ", cellfile);
-                    _print_int16(cellfile, purpose);
-                    fputs(" } }), point.create(", cellfile);
-                    _print_int32(cellfile, MIN4(((point_t*)vector_get(points, 0))->x, ((point_t*)vector_get(points, 1))->x, ((point_t*)vector_get(points, 2))->x, ((point_t*)vector_get(points, 3))->x));
+                    fputs(", point.create(", cellfile);
+                    _print_int32(cellfile, MIN4((get_point(points, 0))->x, (get_point(points, 1))->x, (get_point(points, 2))->x, (get_point(points, 3))->x));
                     fputs(", ", cellfile);
-                    _print_int32(cellfile, MIN4(((point_t*)vector_get(points, 0))->y, ((point_t*)vector_get(points, 1))->y, ((point_t*)vector_get(points, 2))->y, ((point_t*)vector_get(points, 3))->y));
+                    _print_int32(cellfile, MIN4((get_point(points, 0))->y, (get_point(points, 1))->y, (get_point(points, 2))->y, (get_point(points, 3))->y));
                     fputs("), point.create(", cellfile);
-                    _print_int32(cellfile, MAX4(((point_t*)vector_get(points, 0))->x, ((point_t*)vector_get(points, 1))->x, ((point_t*)vector_get(points, 2))->x, ((point_t*)vector_get(points, 3))->x));
+                    _print_int32(cellfile, MAX4((get_point(points, 0))->x, (get_point(points, 1))->x, (get_point(points, 2))->x, (get_point(points, 3))->x));
                     fputs(", ", cellfile);
-                    _print_int32(cellfile, MAX4(((point_t*)vector_get(points, 0))->y, ((point_t*)vector_get(points, 1))->y, ((point_t*)vector_get(points, 2))->y, ((point_t*)vector_get(points, 3))->y));
+                    _print_int32(cellfile, MAX4((get_point(points, 0))->y, (get_point(points, 1))->y, (get_point(points, 2))->y, (get_point(points, 3))->y));
                     fputs("))\n", cellfile);
                 }
                 else
                 {
-                    fputs("geometry.polygon(cell, generics.premapped(nil, { gds = {", cellfile);
-                    fputs("layer = ", cellfile);
-                    _print_int16(cellfile, layer);
-                    fputs(", purpose = ", cellfile);
-                    _print_int16(cellfile, purpose);
-                    fputs("} }), { ", cellfile);
+                    fputs("geometry.polygon(cell, ", cellfile);
+                    _write_layers(cellfile, layer, purpose, gdslayermap);
+                    fputs(", { ", cellfile);
                     for(unsigned int i = 0; i < vector_size(points); ++i)
                     {
                         point_t* pt = vector_get(points, i);
@@ -763,9 +908,11 @@ int gdsparser_read_stream(const char* filename, const char* importname)
                 }
                 vector_destroy(points, point_destroy);
             }
-            if(what == PATH)
+            if(what == PATH && _check_lpp(layer, purpose, ignorelpp))
             {
-                fprintf(cellfile, "    geometry.path(cell, generics.premapped(nil, { gds = { layer = %d, purpose = %d } }), { ", layer, purpose);
+                fputs("    geometry.path(cell, ", cellfile);
+                _write_layers(cellfile, layer, purpose, gdslayermap);
+                fputs(", { ", cellfile);
                 for(unsigned int i = 0; i < vector_size(points); ++i)
                 {
                     point_t* pt = vector_get(points, i);
@@ -774,10 +921,12 @@ int gdsparser_read_stream(const char* filename, const char* importname)
                 fprintf(cellfile, "}, %d)\n", width);
                 vector_destroy(points, point_destroy);
             }
-            if(what == TEXT)
+            if(what == TEXT && _check_lpp(layer, purpose, ignorelpp))
             {
                 point_t* pt = vector_get(points, 0);
-                fprintf(cellfile, "    cell:add_port(\"%s\", generics.premapped(nil, { gds = { layer = %d, purpose = %d } }), point.create(%lld, %lld))\n", str, layer, purpose, pt->x, pt->y);
+                fprintf(cellfile, "    cell:add_port(\"%s\", ", str);
+                _write_layers(cellfile, layer, purpose, gdslayermap);
+                fprintf(cellfile, ", point.create(%lld, %lld))\n", pt->x, pt->y);
                 vector_destroy(points, point_destroy);
                 free(str);
                 if(transformation)

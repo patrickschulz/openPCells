@@ -82,6 +82,11 @@ void* vector_get(struct vector* vector, size_t i)
     return vector->elements[i];
 }
 
+const void* vector_get_const(const struct vector* vector, size_t i)
+{
+    return vector->elements[i];
+}
+
 void* vector_get_reference(struct vector* vector, size_t i)
 {
     return &vector->elements[i];
@@ -168,6 +173,40 @@ void vector_iterator_next(struct vector_iterator* iterator)
 }
 
 void vector_iterator_destroy(struct vector_iterator* iterator)
+{
+    free(iterator);
+}
+
+struct vector_const_iterator
+{
+    const struct vector* vector;
+    size_t index;
+};
+
+struct vector_const_iterator* vector_const_iterator_create(const struct vector* vector)
+{
+    struct vector_const_iterator* it = malloc(sizeof(*it));
+    it->vector = vector;
+    it->index = 0;
+    return it;
+}
+
+int vector_const_iterator_is_valid(struct vector_const_iterator* iterator)
+{
+    return iterator->index < iterator->vector->size;
+}
+
+const void* vector_const_iterator_get(struct vector_const_iterator* iterator)
+{
+    return vector_get_const(iterator->vector, iterator->index);
+}
+
+void vector_const_iterator_next(struct vector_const_iterator* iterator)
+{
+    iterator->index += 1;
+}
+
+void vector_const_iterator_destroy(struct vector_const_iterator* iterator)
 {
     free(iterator);
 }

@@ -292,7 +292,7 @@ void cmdoptions_help(struct cmdoptions* options)
     for(unsigned int i = 0; i < vector_size(options->entries); ++i)
     {
         struct entry* entry = vector_get(options->entries, i);
-        if(entry->what == SECTION) // FIXME: section
+        if(entry->what == SECTION)
         {
             struct section* section = entry->value;
             puts(section->name);
@@ -341,6 +341,38 @@ void cmdoptions_help(struct cmdoptions* options)
     }
 }
 
+static void _print_with_correct_escape_sequences(const char* str)
+{
+    unsigned int numescape = 0;
+    const char* ptr = str;
+    while(*ptr)
+    {
+        if(*ptr == '\\')
+        {
+            ++numescape;
+        }
+        ++ptr;
+    }
+    size_t len = strlen(str);
+    char* buf = malloc(len + numescape + 1);
+    ptr = str;
+    char* dest = buf;
+    while(*ptr)
+    {
+        *dest = *ptr;
+        if(*ptr == '\\')
+        {
+            *(dest + 1) = '\\';
+            ++dest;
+        }
+        ++ptr;
+        ++dest;
+    }
+    *dest = 0;
+    puts(buf);
+    free(buf);
+}
+
 void cmdoptions_export_manpage(struct cmdoptions* options)
 {
     for(unsigned int i = 0; i < vector_size(options->entries); ++i)
@@ -371,9 +403,9 @@ void cmdoptions_export_manpage(struct cmdoptions* options)
                 fputs(option->long_identifier, stdout);
             }
             printf("\\fR %s\" 4\n", "");
-            puts(option->help);
+            _print_with_correct_escape_sequences(option->help);
         }
-        else
+        else // section
         {
             struct section* section = entry->value;
             printf(".SS %s\n", section->name);

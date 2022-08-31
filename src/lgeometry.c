@@ -449,6 +449,99 @@ static int lgeometry_contact(lua_State* L)
     return 0;
 }
 
+static int lgeometry_contactbarebltr(lua_State* L)
+{
+    struct lobject* cell = lobject_check(L, 1);
+    const char* region = luaL_checkstring(L, 2);
+    lpoint_t* bl = lpoint_checkpoint(L, 3);
+    lpoint_t* tr = lpoint_checkpoint(L, 4);
+    _check_rectangle_points(L, bl, tr, "geometry.contactbarebltr");
+    ucoordinate_t xrep = luaL_optinteger(L, 5, 1);
+    ucoordinate_t yrep = luaL_optinteger(L, 6, 1);
+    ucoordinate_t xpitch = luaL_optinteger(L, 7, 0);
+    ucoordinate_t ypitch = luaL_optinteger(L, 8, 0);
+    int xcont = 0;
+    int ycont = 0;
+    if(lua_type(L, 9) == LUA_TTABLE) // properties table
+    {
+        lua_getfield(L, 9, "xcontinuous");
+        xcont = lua_toboolean(L, -1);
+        lua_pop(L, 1);
+        lua_getfield(L, 9, "ycontinuous");
+        ycont = lua_toboolean(L, -1);
+        lua_pop(L, 1);
+    }
+
+    lua_getfield(L, LUA_REGISTRYINDEX, "genericslayermap");
+    struct layermap* layermap = lua_touserdata(L, -1);
+    lua_pop(L, 1); // pop layermap
+    lua_getfield(L, LUA_REGISTRYINDEX, "techstate");
+    struct technology_state* techstate = lua_touserdata(L, -1);
+    lua_pop(L, 1); // pop techstate
+    int res = geometry_contactbarebltr(
+        lobject_get(cell),
+        layermap, techstate,
+        region,
+        bl->point, tr->point,
+        xrep, yrep,
+        xpitch, ypitch,
+        xcont, ycont
+    );
+    if(!res)
+    {
+        lua_pushstring(L, "geometry.contactbarebltr: could not fit via");
+        lua_error(L);
+    }
+    return 0;
+}
+
+static int lgeometry_contactbare(lua_State* L)
+{
+    struct lobject* cell = lobject_check(L, 1);
+    const char* region = luaL_checkstring(L, 2);
+    ucoordinate_t width = luaL_checkinteger(L, 3);
+    ucoordinate_t height = luaL_checkinteger(L, 4);
+    coordinate_t xshift = luaL_optinteger(L, 5, 0);
+    coordinate_t yshift = luaL_optinteger(L, 6, 0);
+    ucoordinate_t xrep = luaL_optinteger(L, 7, 1);
+    ucoordinate_t yrep = luaL_optinteger(L, 8, 1);
+    ucoordinate_t xpitch = luaL_optinteger(L, 9, 0);
+    ucoordinate_t ypitch = luaL_optinteger(L, 10, 0);
+    int xcont = 0;
+    int ycont = 0;
+    if(lua_type(L, 11) == LUA_TTABLE) // properties table
+    {
+        lua_getfield(L, 11, "xcontinuous");
+        xcont = lua_toboolean(L, -1);
+        lua_pop(L, 1);
+        lua_getfield(L, 11, "ycontinuous");
+        ycont = lua_toboolean(L, -1);
+        lua_pop(L, 1);
+    }
+    lua_getfield(L, LUA_REGISTRYINDEX, "genericslayermap");
+    struct layermap* layermap = lua_touserdata(L, -1);
+    lua_pop(L, 1); // pop layermap
+    lua_getfield(L, LUA_REGISTRYINDEX, "techstate");
+    struct technology_state* techstate = lua_touserdata(L, -1);
+    lua_pop(L, 1); // pop techstate
+    int res = geometry_contactbare(
+        lobject_get(cell),
+        layermap, techstate,
+        region,
+        width, height,
+        xshift, yshift,
+        xrep, yrep,
+        xpitch, ypitch,
+        xcont, ycont
+    );
+    if(!res)
+    {
+        lua_pushstring(L, "geometry.contactbare: could not fit via");
+        lua_error(L);
+    }
+    return 0;
+}
+
 static int lgeometry_cross(lua_State* L)
 {
     struct lobject* cell = lobject_check(L, 1);
@@ -609,6 +702,8 @@ int open_lgeometry_lib(lua_State* L)
         { "via",             lgeometry_via             },
         { "contactbltr",     lgeometry_contactbltr     },
         { "contact",         lgeometry_contact         },
+        { "contactbarebltr", lgeometry_contactbarebltr },
+        { "contactbare",     lgeometry_contactbare     },
         { "cubic_bezier",    lgeometry_cubic_bezier    },
         { "cross",           lgeometry_cross           },
         { "ring",            lgeometry_ring            },

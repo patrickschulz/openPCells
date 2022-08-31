@@ -1,4 +1,4 @@
-procedure(OPCCreateCellInternal(cv @optional (origin 0:0))
+procedure(OPCCreateCellInternal(@optional (origin 0:0))
     let(
         (
             (pfile outfile(OPCSettingsForm->OPCPfileFilename->value))
@@ -64,7 +64,7 @@ procedure(OPCCreateCellInternal(cv @optional (origin 0:0))
 
 procedure(OPCCreateCell(w done pts)
     when(done
-        OPCCreateCellInternal(geGetEditCellView() car(pts))
+        OPCCreateCellInternal(car(pts))
     )
     t
 ) ; OPCCreateCell
