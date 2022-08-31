@@ -552,6 +552,46 @@ static int _contactbltr(
     );
 }
 
+static int _contactbarebltr(
+    struct object* cell,
+    struct layermap* layermap, struct technology_state* techstate,
+    const char* region,
+    coordinate_t blx, coordinate_t bly, coordinate_t trx, coordinate_t try,
+    ucoordinate_t xrep, ucoordinate_t yrep,
+    ucoordinate_t xpitch, ucoordinate_t ypitch,
+    int xcont, int ycont
+)
+{
+    ucoordinate_t width = trx - blx;
+    ucoordinate_t height = try - bly;
+    struct via_definition** viadefs = technology_get_contact_definitions(techstate, region);
+    struct via_definition* fallback = technology_get_contact_fallback(techstate, region);
+    unsigned int viaxrep, viayrep, viaxpitch, viaypitch;
+    struct via_definition* entry = _get_rectangular_arrayzation(
+        width, height,
+        viadefs, fallback,
+        &viaxrep, &viayrep,
+        &viaxpitch, &viaypitch,
+        xcont, ycont
+    );
+    if(!entry)
+    {
+        return 0;
+    }
+    if(!viadefs)
+    {
+        return 0;
+    }
+    return _via_contact_bltr(cell,
+        viadefs, fallback,
+        generics_create_contact(layermap, techstate, region),
+        NULL, NULL,
+        blx, bly, trx, try,
+        xrep, yrep, xpitch, ypitch,
+        technology_is_create_via_arrays(techstate)
+    );
+}
+
 int geometry_contactbltr(
     struct object* cell,
     struct layermap* layermap, struct technology_state* techstate,
@@ -585,6 +625,50 @@ int geometry_contact(
 )
 {
     return _contactbltr(
+        cell,
+        layermap, techstate,
+        region,
+        -(coordinate_t)width / 2 + xshift, -(coordinate_t)height / 2 + yshift,
+        width / 2 + xshift, height / 2 + yshift,
+        xrep, yrep,
+        xpitch, ypitch,
+        xcont, ycont
+    );
+}
+
+int geometry_contactbarebltr(
+    struct object* cell,
+    struct layermap* layermap, struct technology_state* techstate,
+    const char* region,
+    point_t* bl, point_t* tr,
+    ucoordinate_t xrep, ucoordinate_t yrep,
+    ucoordinate_t xpitch, ucoordinate_t ypitch,
+    int xcont, int ycont
+)
+{
+    return _contactbarebltr(
+        cell,
+        layermap, techstate,
+        region,
+        bl->x, bl->y, tr->x, tr->y,
+        xrep, yrep,
+        xpitch, ypitch,
+        xcont, ycont
+    );
+}
+
+int geometry_contactbare(
+    struct object* cell,
+    struct layermap* layermap, struct technology_state* techstate,
+    const char* region,
+    ucoordinate_t width, ucoordinate_t height,
+    coordinate_t xshift, coordinate_t yshift,
+    ucoordinate_t xrep, ucoordinate_t yrep,
+    ucoordinate_t xpitch, ucoordinate_t ypitch,
+    int xcont, int ycont
+)
+{
+    return _contactbarebltr(
         cell,
         layermap, techstate,
         region,
