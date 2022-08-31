@@ -1057,11 +1057,11 @@ void child_iterator_destroy(struct child_iterator* it)
 
 // port iterator
 struct port_iterator {
-    struct vector* ports;
+    const struct vector* ports;
     size_t index;
 };
 
-struct port_iterator* object_create_port_iterator(struct object* cell)
+struct port_iterator* object_create_port_iterator(const struct object* cell)
 {
     struct port_iterator* it = malloc(sizeof(*it));
     it->ports = cell->ports;
@@ -1088,7 +1088,7 @@ void port_iterator_next(struct port_iterator* it)
 
 void port_iterator_get(struct port_iterator* it, const char** portname, const point_t** portwhere, const struct generics** portlayer, int* portisbusport, int* portbusindex)
 {
-    struct port* port = vector_get(it->ports, it->index);
+    const struct port* port = vector_get_const(it->ports, it->index);
     if(portname) { *portname = port->name; }
     if(portwhere) { *portwhere = port->where; }
     if(portlayer) { *portlayer = port->layer; }

@@ -35,7 +35,7 @@ struct export_functions
     // initialization
     const char* (*get_extension)(void);
     const char* (*get_techexport)(void);
-    void (*initialize)(struct object*);
+    void (*initialize)(const struct object*);
     // at begin/end
     void (*at_begin)(struct export_data*);
     void (*at_end)(struct export_data*);

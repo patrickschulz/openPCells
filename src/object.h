@@ -87,7 +87,7 @@ void child_iterator_destroy(struct child_iterator* it);
 
 // port iterator
 struct port_iterator;
-struct port_iterator* object_create_port_iterator(struct object* cell);
+struct port_iterator* object_create_port_iterator(const struct object* cell);
 int port_iterator_is_valid(struct port_iterator* it);
 void port_iterator_next(struct port_iterator* it);
 void port_iterator_get(struct port_iterator* it, const char** portname, const point_t** portwhere, const struct generics** portlayer, int* portisbusport, int* portbusindex);

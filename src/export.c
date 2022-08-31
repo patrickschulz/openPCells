@@ -199,7 +199,7 @@ char* export_get_export_layername(struct const_vector* searchpaths, const char* 
     return NULL;
 }
 
-static void _write_ports(struct object* cell, struct export_data* data, const struct export_functions* funcs, char leftdelim, char rightdelim)
+static void _write_ports(const struct object* cell, struct export_data* data, const struct export_functions* funcs, char leftdelim, char rightdelim)
 {
     struct port_iterator* it = object_create_port_iterator(cell);
     while(port_iterator_is_valid(it))
@@ -390,11 +390,7 @@ static void _write_cell_children(const struct object* cell, struct export_data* 
     child_iterator_destroy(it);
 }
 
-// FIXME: 'cell' should be const, currently this function alters cell
-// (via object_get_transformed_shape)
-// This function should get the untransformed shapes and either transform the points itself
-// or pass the transformation matric on to the actual export functions
-static void _write_cell(struct object* cell, struct export_data* data, const struct export_functions* funcs, int write_ports, char leftdelim, char rightdelim)
+static void _write_cell(const struct object* cell, struct export_data* data, const struct export_functions* funcs, int write_ports, char leftdelim, char rightdelim)
 {
     _write_cell_shapes(cell, data, funcs);
     _write_cell_children(cell, data, funcs);
@@ -817,7 +813,7 @@ static int _check_lua_export(lua_State* L)
     return 1;
 }
 
-static void _write_toplevel_C(struct object* object, struct pcell_state* pcell_state, const char* toplevelname, struct export_data* data, const struct export_functions* funcs, struct export_state* state)
+static void _write_toplevel_C(const struct object* object, struct pcell_state* pcell_state, const char* toplevelname, struct export_data* data, const struct export_functions* funcs, struct export_state* state)
 {
     if(funcs->initialize)
     {
