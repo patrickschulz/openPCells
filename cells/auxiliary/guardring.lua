@@ -16,7 +16,7 @@ end
 
 function layout(guardring, _P)
     if util.any_of("top", _P.drawsegments) then
-        geometry.contactbltr(guardring, "active", 
+        geometry.contactbarebltr(guardring, "active", 
             point.create(-_P.holewidth / 2, _P.holeheight / 2),
             point.create( _P.holewidth / 2, _P.holeheight / 2 + _P.ringwidth)
         )
@@ -38,7 +38,7 @@ function layout(guardring, _P)
         )
     end
     if util.any_of("bottom", _P.drawsegments) then
-        geometry.contactbltr(guardring, "active", 
+        geometry.contactbarebltr(guardring, "active", 
             point.create(-_P.holewidth / 2, -_P.holeheight / 2 - _P.ringwidth),
             point.create( _P.holewidth / 2, -_P.holeheight / 2)
         )
@@ -60,7 +60,7 @@ function layout(guardring, _P)
         )
     end
     if util.any_of("left", _P.drawsegments) then
-        geometry.contactbltr(guardring, "active", 
+        geometry.contactbarebltr(guardring, "active", 
             point.create(-_P.holewidth / 2 - _P.ringwidth, -_P.holeheight / 2),
             point.create(-_P.holewidth / 2,  _P.holeheight / 2)
         )
@@ -82,7 +82,7 @@ function layout(guardring, _P)
         )
     end
     if util.any_of("right", _P.drawsegments) then
-        geometry.contactbltr(guardring, "active", 
+        geometry.contactbarebltr(guardring, "active", 
             point.create( _P.holewidth / 2, -_P.holeheight / 2),
             point.create( _P.holewidth / 2 + _P.ringwidth,  _P.holeheight / 2)
         )
