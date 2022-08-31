@@ -68,7 +68,9 @@ void main_gds_read(struct cmdoptions* cmdoptions)
             must_free = 1;
         }
     }
-    int ret = gdsparser_read_stream(readgds, importlibname);
+    const char* gdslayermapfile = cmdoptions_get_argument_long(cmdoptions, "gds-layermap");
+    struct vector* gdslayermap = gdsparser_create_layermap(gdslayermapfile);
+    int ret = gdsparser_read_stream(readgds, importlibname, gdslayermap);
     if(must_free)
     {
         free(importlibname);
@@ -77,4 +79,5 @@ void main_gds_read(struct cmdoptions* cmdoptions)
     {
         printf("could not read stream file '%s'\n", readgds);
     }
+    gdsparser_destroy_layermap(gdslayermap);
 }
