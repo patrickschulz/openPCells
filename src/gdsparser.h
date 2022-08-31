@@ -7,7 +7,7 @@
 
 struct vector* gdsparser_create_layermap(const char* filename);
 void gdsparser_destroy_layermap(struct vector* layermap);
-int gdsparser_read_stream(const char* filename, const char* importname, const struct vector* layermap);
+int gdsparser_read_stream(const char* filename, const char* importname, const struct vector* layermap, const struct vector* ignorelpp);
 int gdsparser_show_records(const char* filename);
 
 int open_gdsparser_lib(lua_State* L);

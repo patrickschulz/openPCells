@@ -595,16 +595,17 @@ struct layermapping {
 
 struct vector* gdsparser_create_layermap(const char* filename)
 {
-    lua_State* L = util_create_minimal_lua_state();
     if(!filename)
     {
         return NULL;
     }
+    lua_State* L = util_create_minimal_lua_state();
     int ret = luaL_dofile(L, filename);
     if(ret != LUA_OK)
     {
         const char* msg = lua_tostring(L, -1);
         fprintf(stderr, "error while loading gdslayermap:\n  %s\n", msg);
+        lua_close(L);
         return NULL;
     }
     struct vector* map = vector_create(1);
@@ -649,20 +650,23 @@ struct vector* gdsparser_create_layermap(const char* filename)
 
 void gdsparser_destroy_layermap(struct vector* layermap)
 {
-    struct vector_iterator* it = vector_iterator_create(layermap);
-    while(vector_iterator_is_valid(it))
+    if(layermap)
     {
-        struct layermapping* mapping = vector_iterator_get(it);
-        for(unsigned int i = 0; i < mapping->num; ++i)
+        struct vector_iterator* it = vector_iterator_create(layermap);
+        while(vector_iterator_is_valid(it))
         {
-            free(mapping->mappings[i]);
+            struct layermapping* mapping = vector_iterator_get(it);
+            for(unsigned int i = 0; i < mapping->num; ++i)
+            {
+                free(mapping->mappings[i]);
+            }
+            free(mapping->mappings);
+            free(mapping);
+            vector_iterator_next(it);
         }
-        free(mapping->mappings);
-        free(mapping);
-        vector_iterator_next(it);
+        vector_iterator_destroy(it);
+        vector_destroy(layermap, NULL);
     }
-    vector_iterator_destroy(it);
-    vector_destroy(layermap, NULL);
 }
 
 static void _write_layers(FILE* cellfile, int16_t layer, int16_t purpose, const struct vector* layermap)
@@ -693,7 +697,26 @@ static void _write_layers(FILE* cellfile, int16_t layer, int16_t purpose, const 
     fputs(" })", cellfile);
 }
 
-int gdsparser_read_stream(const char* filename, const char* importname, const struct vector* gdslayermap)
+int _check_lpp(int16_t layer, int16_t purpose, const struct vector* ignorelpp)
+{
+    if(ignorelpp)
+    {
+        struct vector_const_iterator* it = vector_const_iterator_create(ignorelpp);
+        while(vector_const_iterator_is_valid(it))
+        {
+            const int16_t* lpp = vector_const_iterator_get(it);
+            if(layer == lpp[0] && purpose == lpp[1])
+            {
+                return 0;
+            }
+            vector_const_iterator_next(it);
+        }
+        vector_const_iterator_destroy(it);
+    }
+    return 1;
+}
+
+int gdsparser_read_stream(const char* filename, const char* importname, const struct vector* gdslayermap, const struct vector* ignorelpp)
 {
     const char* libname;
     struct stream* stream = _read_raw_stream(filename);
@@ -834,7 +857,7 @@ int gdsparser_read_stream(const char* filename, const char* importname, const st
         }
         else if(record->recordtype == ENDEL)
         {
-            if(what == BOUNDARY)
+            if(what == BOUNDARY && _check_lpp(layer, purpose, ignorelpp))
             {
                 // check for rectangles
                 // BOX is not used for rectangles, at least most tool suppliers seem to do it this way
@@ -872,7 +895,7 @@ int gdsparser_read_stream(const char* filename, const char* importname, const st
                 }
                 vector_destroy(points, point_destroy);
             }
-            if(what == PATH)
+            if(what == PATH && _check_lpp(layer, purpose, ignorelpp))
             {
                 fputs("    geometry.path(cell, ", cellfile);
                 _write_layers(cellfile, layer, purpose, gdslayermap);
@@ -885,7 +908,7 @@ int gdsparser_read_stream(const char* filename, const char* importname, const st
                 fprintf(cellfile, "}, %d)\n", width);
                 vector_destroy(points, point_destroy);
             }
-            if(what == TEXT)
+            if(what == TEXT && _check_lpp(layer, purpose, ignorelpp))
             {
                 point_t* pt = vector_get(points, 0);
                 fprintf(cellfile, "    cell:add_port(\"%s\", generics.premapped(nil, { gds = { layer = %d, purpose = %d } }), point.create(%lld, %lld))\n", str, layer, purpose, pt->x, pt->y);

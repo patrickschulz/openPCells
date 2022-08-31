@@ -70,7 +70,22 @@ void main_gds_read(struct cmdoptions* cmdoptions)
     }
     const char* gdslayermapfile = cmdoptions_get_argument_long(cmdoptions, "gds-layermap");
     struct vector* gdslayermap = gdsparser_create_layermap(gdslayermapfile);
-    int ret = gdsparser_read_stream(readgds, importlibname, gdslayermap);
+    struct vector* ignorelpp = vector_create(1);
+    if(cmdoptions_was_provided_long(cmdoptions, "gds-ignore-lpp"))
+    {
+        const char** lppstrs = cmdoptions_get_argument_long(cmdoptions, "gds-ignore-lpp");
+        while(*lppstrs)
+        {
+            const char* lppstr = *lppstrs;
+            char* ptr;
+            int16_t* lpp = malloc(2 * sizeof(*lpp));
+            lpp[0] = strtol(lppstr, &ptr, 10);
+            lpp[1] = strtol(ptr + 1, NULL, 10);
+            vector_append(ignorelpp, lpp);
+            ++lppstrs;
+        }
+    }
+    int ret = gdsparser_read_stream(readgds, importlibname, gdslayermap, ignorelpp);
     if(must_free)
     {
         free(importlibname);
@@ -80,4 +95,5 @@ void main_gds_read(struct cmdoptions* cmdoptions)
         printf("could not read stream file '%s'\n", readgds);
     }
     gdsparser_destroy_layermap(gdslayermap);
+    vector_destroy(ignorelpp, free);
 }
