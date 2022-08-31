@@ -481,7 +481,7 @@ static void _merge_rectangles(struct object* toplevel, struct cmdoptions* cmdopt
 
 static void _raster_cell_curves(struct object* cell)
 {
-    object_foreach_shapes(cell, shape_rasterize_curve);
+    object_foreach_shapes(cell, shape_rasterize_curve_inline);
 }
 
 static void _raster_curves(struct object* toplevel, struct cmdoptions* cmdoptions, struct pcell_state* pcell_state)

@@ -55,7 +55,7 @@ int object_move_anchor_y(struct object* cell, const char* name, coordinate_t y);
 void object_scale(struct object* cell, double factor);
 
 void object_apply_transformation(struct object* cell);
-void object_transform_point(struct object* cell, point_t* pt);
+void object_transform_point(const struct object* cell, point_t* pt);
 int object_has_shapes(const struct object* cell);
 int object_has_children(const struct object* cell);
 int object_has_ports(const struct object* cell);
@@ -69,12 +69,20 @@ unsigned int object_get_child_xpitch(const struct object* cell);
 unsigned int object_get_child_ypitch(const struct object* cell);
 const char* object_get_identifier(const struct object* cell);
 
+// shape iterator
+struct shape_iterator;
+struct shape_iterator* object_create_shape_iterator(const struct object*);
+int shape_iterator_is_valid(struct shape_iterator* it);
+void shape_iterator_next(struct shape_iterator* it);
+const struct shape* shape_iterator_get(struct shape_iterator* it);
+void shape_iterator_destroy(struct shape_iterator* it);;
+
 // child iterator
 struct child_iterator;
-struct child_iterator* object_create_child_iterator(struct object* cell);
+struct child_iterator* object_create_child_iterator(const struct object* cell);
 int child_iterator_is_valid(struct child_iterator* it);
 void child_iterator_next(struct child_iterator* it);
-struct object* child_iterator_get(struct child_iterator* it);
+const struct object* child_iterator_get(struct child_iterator* it);
 void child_iterator_destroy(struct child_iterator* it);
 
 // port iterator
