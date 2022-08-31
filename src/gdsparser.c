@@ -629,7 +629,7 @@ struct vector* gdsparser_create_layermap(const char* filename)
         lua_len(L, -1);
         size_t maplen = lua_tointeger(L, -1);
         lua_pop(L, 1);
-        layermapping->num = len;
+        layermapping->num = maplen;
         layermapping->mappings = malloc(len * sizeof(*layermapping->mappings));
         for(size_t j = 1; j <= maplen; ++j)
         {
