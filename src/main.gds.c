@@ -88,11 +88,13 @@ void main_gds_read(struct cmdoptions* cmdoptions)
     int16_t* ablayer = NULL;
     if(cmdoptions_was_provided_long(cmdoptions, "gds-alignmentbox-layer"))
     {
+        ablayer = malloc(sizeof(*ablayer));
         *ablayer = strtol(cmdoptions_get_argument_long(cmdoptions, "gds-alignmentbox-layer"), NULL, 10);
     }
     int16_t* abpurpose = NULL;
     if(cmdoptions_was_provided_long(cmdoptions, "gds-alignmentbox-purpose"))
     {
+        abpurpose = malloc(sizeof(*abpurpose));
         *abpurpose = strtol(cmdoptions_get_argument_long(cmdoptions, "gds-alignmentbox-purpose"), NULL, 10);
     }
     int ret = gdsparser_read_stream(readgds, importlibname, gdslayermap, ignorelpp, ablayer, abpurpose);
@@ -106,4 +108,12 @@ void main_gds_read(struct cmdoptions* cmdoptions)
     }
     gdsparser_destroy_layermap(gdslayermap);
     vector_destroy(ignorelpp, free);
+    if(ablayer)
+    {
+        free(ablayer);
+    }
+    if(abpurpose)
+    {
+        free(abpurpose);
+    }
 }
