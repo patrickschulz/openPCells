@@ -85,9 +85,9 @@ struct shape* shape_create_curve(struct generics* layer, coordinate_t x, coordin
     return shape;
 }
 
-void* shape_copy(void* v)
+void* shape_copy(const void* v)
 {
-    struct shape* self = v;
+    const struct shape* self = v;
     struct shape* new;
     switch(self->type)
     {
@@ -260,7 +260,7 @@ int shape_is_curve(const struct shape* shape)
     return shape->type == CURVE;
 }
 
-void* shape_get_content(struct shape* shape)
+const void* shape_get_content(const struct shape* shape)
 {
     return shape->content;
 }
@@ -382,6 +382,18 @@ int shape_get_curve_origin(struct shape* shape, point_t** originp)
     }
     struct curve* curve = shape->content;
     *originp = curve->origin;
+    return 1;
+}
+
+int shape_get_transformed_curve_origin(const struct shape* shape, const struct transformationmatrix* trans, point_t* origin)
+{
+    if(shape->type != CURVE)
+    {
+        return 0;
+    }
+    struct curve* curve = shape->content;
+    *origin = *curve->origin;
+    transformationmatrix_apply_transformation(trans, origin);
     return 1;
 }
 
@@ -855,7 +867,7 @@ struct shape* shape_rasterize_curve(const struct shape* shape)
     return new;
 }
 
-void shape_triangulate_polygon(struct shape* shape)
+void shape_triangulate_polygon_inline(struct shape* shape)
 {
     if(shape->type != POLYGON)
     {
@@ -867,3 +879,17 @@ void shape_triangulate_polygon(struct shape* shape)
     polygon->points = result;
     shape->type = TRIANGULATED_POLYGON;
 }
+
+struct shape* shape_triangulate_polygon(const struct shape* shape)
+{
+    if(shape->type != POLYGON)
+    {
+        return NULL;
+    }
+    struct shape* new = shape_copy(shape);
+    struct vector* result = geometry_triangulate_polygon(((struct polygon*)shape->content)->points);
+    ((struct polygon*)shape->content)->points = result;
+    new->type = TRIANGULATED_POLYGON;
+    return new;
+}
+
