@@ -27,7 +27,6 @@ function parameters()
         { "nsdheight(NMOS Source/Drain Contact Height)",       0 },
         { "psdpowerheight(PMOS Source/Drain Contact Height)",  0 },
         { "nsdpowerheight(NMOS Source/Drain Contact Height)",  0 },
-        { "dummycontheight(Dummy Gate Contact Height)",        tech.get_dimension("Minimum M1 Width") },
         { "cutheight",                                         60, posvals = even() },
         { "drawdummygcut(Draw Dummy Gate Cut)",                false },
         { "compact(Compact Layout)",                           true },
