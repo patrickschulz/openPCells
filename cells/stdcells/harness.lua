@@ -39,6 +39,7 @@ function layout(gate, _P)
     local separation
     if bp.spacesepautocalc then
         separation = bp.numinnerroutes * bp.routingwidth + (bp.numinnerroutes + 1) * bp.routingspace
+        -- FIXME: are these calculations really different?
         if bp.numinnerroutes % 2 == 0 then
             ppowerspace = (2 * (bp.pnumtracks + 1) + bp.numinnerroutes - 1) * (bp.routingwidth + bp.routingspace) / 2 - separation / 2 - _P.pwidth - bp.powerwidth / 2
             npowerspace = (2 * (bp.nnumtracks + 1) + bp.numinnerroutes - 1) * (bp.routingwidth + bp.routingspace) / 2 - separation / 2 - _P.nwidth - bp.powerwidth / 2
