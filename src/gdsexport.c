@@ -316,7 +316,7 @@ static void _at_end_cell(struct export_data* data)
     export_data_append_byte(data, DATATYPE_NONE);
 }
 
-static void _write_rectangle(struct export_data* data, const struct hashmap* layer, point_t* bl, point_t* tr)
+static void _write_rectangle(struct export_data* data, const struct hashmap* layer, const point_t* bl, const point_t* tr)
 {
     export_data_ensure_additional_capacity(data, 64); // a rectangle has exactly 64 bytes
     _write_layer_unchecked(data, RECORDTYPE_BOUNDARY, layer);
@@ -340,7 +340,7 @@ static void _write_rectangle(struct export_data* data, const struct hashmap* lay
     _write_ENDEL_unchecked(data); // 4 bytes
 }
 
-static void _write_polygon(struct export_data* data, const struct hashmap* layer, struct vector* points)
+static void _write_polygon(struct export_data* data, const struct hashmap* layer, const struct vector* points)
 {
     _write_layer(data, RECORDTYPE_BOUNDARY, RECORDTYPE_DATATYPE, layer);
 
@@ -351,7 +351,7 @@ static void _write_polygon(struct export_data* data, const struct hashmap* layer
     export_data_append_byte(data, DATATYPE_FOUR_BYTE_INTEGER); // FOUR_BYTE_INTEGER
     for(unsigned int i = 0; i < vector_size(points); ++i)
     {
-        point_t* pt = vector_get(points, i);
+        const point_t* pt = vector_get_const(points, i);
         export_data_append_four_bytes(data, multiplier * pt->x);
         export_data_append_four_bytes(data, multiplier * pt->y);
     }
@@ -359,7 +359,7 @@ static void _write_polygon(struct export_data* data, const struct hashmap* layer
     _write_ENDEL(data);
 }
 
-static void _write_path(struct export_data* data, const struct hashmap* layer, struct vector* points, ucoordinate_t width, coordinate_t* extension)
+static void _write_path(struct export_data* data, const struct hashmap* layer, const struct vector* points, ucoordinate_t width, const coordinate_t* extension)
 {
     _write_layer(data, RECORDTYPE_PATH, RECORDTYPE_DATATYPE, layer);
 
@@ -403,7 +403,7 @@ static void _write_path(struct export_data* data, const struct hashmap* layer, s
     export_data_append_byte(data, DATATYPE_FOUR_BYTE_INTEGER); // FOUR_BYTE_INTEGER
     for(unsigned int i = 0; i < vector_size(points); ++i)
     {
-        point_t* pt = vector_get(points, i);
+        const point_t* pt = vector_get_const(points, i);
         export_data_append_four_bytes(data, multiplier * pt->x);
         export_data_append_four_bytes(data, multiplier * pt->y);
     }

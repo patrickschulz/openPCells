@@ -16,7 +16,7 @@
 struct port {
     char* name;
     point_t* where;
-    struct generics* layer;
+    const struct generics* layer;
     int isbusport;
     int busindex;
 };
@@ -30,7 +30,7 @@ struct object {
     // proxy objects behave like real objects (they can be moved etc.)
     int isproxy;
     char* identifier;
-    struct object* reference;
+    const struct object* reference;
     int isarray;
     unsigned int xrep;
     unsigned int yrep;
@@ -87,7 +87,7 @@ struct object* object_create_proxy(const char* name, struct object* reference, c
     return obj;
 }
 
-struct object* object_copy(struct object* cell)
+struct object* object_copy(const struct object* cell)
 {
     struct object* new = _create();
     new->isproxy = cell->isproxy;
@@ -108,6 +108,12 @@ struct object* object_copy(struct object* cell)
     {
         new->identifier = malloc(strlen(cell->identifier) + 1);
         strcpy(new->identifier, cell->identifier);
+        new->reference = cell->reference;
+        new->isarray = cell->isarray;
+        new->xrep = cell->xrep;
+        new->yrep = cell->yrep;
+        new->xpitch = cell->xpitch;
+        new->ypitch = cell->ypitch;
     }
     else
     {
@@ -227,9 +233,11 @@ void object_add_shape(struct object* cell, struct shape* S)
     shape_apply_inverse_transformation(S, cell->trans);
 }
 
-void object_disown_shape(struct object* cell, size_t idx)
+struct shape* object_disown_shape(struct object* cell, size_t idx)
 {
+    struct shape* shape = vector_get(cell->shapes, idx);
     vector_remove(cell->shapes, idx, NULL);
+    return shape;
 }
 
 void object_remove_shape(struct object* cell, size_t idx)
@@ -498,7 +506,7 @@ const struct hashmap* object_get_all_regular_anchors(const struct object* cell)
     return NULL;
 }
 
-static void _add_port(struct object* cell, const char* name, const char* anchorname, struct generics* layer, coordinate_t x, coordinate_t y, int isbusport, int busindex, int storeanchor)
+static void _add_port(struct object* cell, const char* name, const char* anchorname, const struct generics* layer, coordinate_t x, coordinate_t y, int isbusport, int busindex, int storeanchor)
 {
     if(!generics_is_empty(layer))
     {
@@ -521,12 +529,12 @@ static void _add_port(struct object* cell, const char* name, const char* anchorn
     }
 }
 
-void object_add_port(struct object* cell, const char* name, struct generics* layer, const point_t* where, int storeanchor)
+void object_add_port(struct object* cell, const char* name, const struct generics* layer, const point_t* where, int storeanchor)
 {
     _add_port(cell, name, name, layer, where->x, where->y, 0, 0, storeanchor);
 }
 
-void object_add_bus_port(struct object* cell, const char* name, struct generics* layer, const point_t* where, int startindex, int endindex, unsigned int xpitch, unsigned int ypitch, int storeanchor)
+void object_add_bus_port(struct object* cell, const char* name, const struct generics* layer, const point_t* where, int startindex, int endindex, unsigned int xpitch, unsigned int ypitch, int storeanchor)
 {
     int shift = 0;
     if(startindex < endindex)
@@ -557,7 +565,7 @@ void object_add_bus_port(struct object* cell, const char* name, struct generics*
     }
 }
 
-struct vector* object_get_ports(struct object* cell)
+const struct vector* object_get_ports(const struct object* cell)
 {
     return cell->ports;
 }
@@ -897,7 +905,7 @@ int object_is_empty(const struct object* cell)
     return !object_has_shapes(cell) && !object_has_children(cell) && !object_has_ports(cell);
 }
 
-void object_flatten(struct object* cell, struct pcell_state* pcell_state, int flattenports)
+void object_flatten_inline(struct object* cell, struct pcell_state* pcell_state, int flattenports)
 {
     // add shapes and flatten children (recursive)
     if(cell->children)
@@ -905,33 +913,40 @@ void object_flatten(struct object* cell, struct pcell_state* pcell_state, int fl
         for(unsigned int i = 0; i < vector_size(cell->children); ++i)
         {
             struct object* child = vector_get(cell->children, i);
-            struct object* reference = child->reference; // FIXME: do we need to copy? If this cell is used somewhere else (partial flatten) than that will most likely cause headaches
-            object_flatten(reference, pcell_state, flattenports);
-            if(reference->shapes)
+            const struct object* reference = child->reference;
+            struct object* flat = object_flatten(reference, pcell_state, flattenports);
+            if(flat->shapes)
             {
                 for(unsigned int ix = 1; ix <= child->xrep; ++ix)
                 {
                     for(unsigned int iy = 1; iy <= child->yrep; ++iy)
                     {
-                        for(unsigned int i = 0; i < vector_size(reference->shapes); ++i)
+                        size_t size = vector_size(flat->shapes);
+                        while(size > 0)
                         {
-                            struct shape* S = shape_copy(vector_get(reference->shapes, i));
+                            struct shape* S = object_disown_shape(flat, size - 1);
+                            --size;
                             shape_apply_transformation(S, child->trans);
-                            shape_apply_transformation(S, reference->trans);
+                            shape_apply_transformation(S, flat->trans);
                             shape_translate(S, (ix - 1) * child->xpitch, (iy - 1) * child->ypitch);
                             object_add_raw_shape(cell, S);
                         }
-                        //if flattenports then
-                        //    for _, port in ipairs(cell.ports) do
-                        //        local new = { name = port.name, layer = port.layer:copy(), where = port.where:copy() }
-                        //        child.trans:apply_translation(new.where)
-                        //        obj.trans:apply_translation(new.where)
-                        //        new.where:translate((ix - 1) * xpitch, (iy - 1) * ypitch)
-                        //    end
-                        //end
+                        if(flattenports)
+                        {
+                            for(unsigned int p = 0; p < vector_size(flat->ports); ++p)
+                            {
+                                struct port* port = vector_get(flat->ports, p);
+                                coordinate_t x = port->where->x;
+                                coordinate_t y = port->where->y;
+                                transformationmatrix_apply_transformation_xy(child->trans, &x, &y);
+                                transformationmatrix_apply_transformation_xy(flat->trans, &x, &y);
+                                _add_port(cell, port->name, NULL, port->layer, x, y, port->isbusport, port->busindex, 0); // 0: !storeanchor
+                            }
+                        }
                     }
                 }
             }
+            object_destroy(flat);
         }
         // destroy children
         for(unsigned int i = 0; i < vector_size(cell->children); ++i)
@@ -942,6 +957,13 @@ void object_flatten(struct object* cell, struct pcell_state* pcell_state, int fl
         vector_destroy(cell->children, object_destroy);
     }
     cell->children = NULL;
+}
+
+struct object* object_flatten(const struct object* cell, struct pcell_state* pcell_state, int flattenports)
+{
+    struct object* new = object_copy(cell);
+    object_flatten_inline(new, pcell_state, flattenports);
+    return new;
 }
 
 int object_is_child_array(const struct object* cell)
@@ -1057,11 +1079,11 @@ void child_iterator_destroy(struct child_iterator* it)
 
 // port iterator
 struct port_iterator {
-    struct vector* ports;
+    const struct vector* ports;
     size_t index;
 };
 
-struct port_iterator* object_create_port_iterator(struct object* cell)
+struct port_iterator* object_create_port_iterator(const struct object* cell)
 {
     struct port_iterator* it = malloc(sizeof(*it));
     it->ports = cell->ports;
@@ -1088,7 +1110,7 @@ void port_iterator_next(struct port_iterator* it)
 
 void port_iterator_get(struct port_iterator* it, const char** portname, const point_t** portwhere, const struct generics** portlayer, int* portisbusport, int* portbusindex)
 {
-    struct port* port = vector_get(it->ports, it->index);
+    const struct port* port = vector_get_const(it->ports, it->index);
     if(portname) { *portname = port->name; }
     if(portwhere) { *portwhere = port->where; }
     if(portlayer) { *portlayer = port->layer; }

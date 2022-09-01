@@ -27,7 +27,6 @@ function parameters()
         { "nsdheight(NMOS Source/Drain Contact Height)",       0 },
         { "psdpowerheight(PMOS Source/Drain Contact Height)",  0 },
         { "nsdpowerheight(NMOS Source/Drain Contact Height)",  0 },
-        { "dummycontheight(Dummy Gate Contact Height)",        tech.get_dimension("Minimum M1 Width") },
         { "cutheight",                                         60, posvals = even() },
         { "drawdummygcut(Draw Dummy Gate Cut)",                false },
         { "compact(Compact Layout)",                           true },
@@ -49,7 +48,9 @@ function parameters()
         { "drawdummygatecontacts", true },
         { "drawdummyactivecontacts", true },
         { "drawgcut", false },
+        { "drawgcuteverywhere", false },
         { "dummycontheight(Dummy Gate Contact Height)",        tech.get_dimension("Minimum M1 Width") },
+        { "dummycontshift(Dummy Gate Shift)",                  0 },
         { "drawnmoswelltap(Draw nMOS Well Tap)", false },
         { "nmoswelltapspace(nMOS Well Tap Space)", tech.get_dimension("Minimum M1 Space") },
         { "nmoswelltapwidth(nMOS Well Tap Width)", tech.get_dimension("Minimum M1 Width") },
@@ -262,7 +263,7 @@ function layout(cmos, _P)
                     cmos, "gate", 
                     point.create(x - _P.gatelength / 2, (_P.pwidth - _P.nwidth) / 2 + (_P.ppowerspace - _P.npowerspace) / 2 + -_P.dummycontheight / 2),
                     point.create(x + _P.gatelength / 2, (_P.pwidth - _P.nwidth) / 2 + (_P.ppowerspace - _P.npowerspace) / 2 +  _P.dummycontheight / 2),
-                    1, 2, 0, _P.separation + _P.pwidth + _P.nwidth + _P.ppowerspace + _P.npowerspace + _P.powerwidth
+                    1, 2, 0, _P.separation + _P.pwidth + _P.nwidth + _P.ppowerspace + _P.npowerspace + _P.powerwidth + 2 * _P.dummycontshift
                 )
                 geometry.rectangle(cmos, generics.other("gatecut"), gatepitch, _P.cutheight, x, 0)
             elseif _P.gatecontactpos[i] == "outer" then
@@ -285,7 +286,7 @@ function layout(cmos, _P)
                 moderror(string.format("unknown gate contact position: [%d] = '%s'", i, _P.gatecontactpos[i]))
             end
             if _P.gatecontactpos[i] ~= "dummy" then
-                if _P.drawgcut then
+                if _P.drawgcut and not _P.drawgcuteverywhere then
                 geometry.rectanglebltr(
                     cmos, generics.other("gatecut"),
                     point.create(x - gatepitch / 2, (_P.pwidth - _P.nwidth) / 2 + (_P.ppowerspace - _P.npowerspace) / 2 - _P.cutheight / 2),
@@ -295,6 +296,14 @@ function layout(cmos, _P)
                 end
             end
         end
+    end
+    if _P.drawgcut and _P.drawgcuteverywhere then
+        geometry.rectangle(cmos,
+            generics.other("gatecut"), 
+            fingers * gatepitch + _P.sdwidth, _P.cutheight,
+            (fingers - 1) * gatepitch / 2, (_P.pwidth - _P.nwidth) / 2 + (_P.ppowerspace - _P.npowerspace) / 2,
+            1, 2, 0, _P.separation + _P.pwidth + _P.nwidth + _P.ppowerspace + _P.npowerspace + _P.powerwidth
+        )
     end
 
     -- draw source/drain contacts

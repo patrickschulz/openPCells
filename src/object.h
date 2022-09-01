@@ -10,12 +10,12 @@
 struct object;
 
 struct object* object_create(void);
-struct object* object_copy(struct object*);
+struct object* object_copy(const struct object*);
 void object_destroy(void* cell);
 
 void object_add_raw_shape(struct object* cell, struct shape* S);
 void object_add_shape(struct object* cell, struct shape* S);
-void object_disown_shape(struct object* cell, size_t i);
+struct shape* object_disown_shape(struct object* cell, size_t i);
 void object_remove_shape(struct object* cell, size_t i);
 struct object* object_add_child(struct object* cell, struct pcell_state* pcell_state, const char* identifier, const char* name);
 struct object* object_add_child_array(struct object* cell, struct pcell_state* pcell_state, const char* identifier, unsigned int xrep, unsigned int yrep, unsigned int xpitch, unsigned int ypitch, const char* name);
@@ -25,9 +25,9 @@ void object_add_anchor_area(struct object* cell, const char* base, coordinate_t 
 void object_add_anchor_area_bltr(struct object* cell, const char* base, const point_t* bl, const point_t* tr);
 point_t* object_get_anchor(const struct object* cell, const char* name);
 const struct hashmap* object_get_all_regular_anchors(const struct object* cell);
-void object_add_port(struct object* cell, const char* name, struct generics* layer, const point_t* where, int storeanchor);
-void object_add_bus_port(struct object* cell, const char* name, struct generics* layer, const point_t* where, int startindex, int endindex, unsigned int xpitch, unsigned int ypitch, int storeanchor);
-struct vector* object_get_ports(struct object* cell);
+void object_add_port(struct object* cell, const char* name, const struct generics* layer, const point_t* where, int storeanchor);
+void object_add_bus_port(struct object* cell, const char* name, const struct generics* layer, const point_t* where, int startindex, int endindex, unsigned int xpitch, unsigned int ypitch, int storeanchor);
+const struct vector* object_get_ports(const struct object* cell);
 void object_set_alignment_box(struct object* cell, coordinate_t blx, coordinate_t bly, coordinate_t trx, coordinate_t try);
 void object_inherit_alignment_box(struct object* cell, const struct object* other);
 void object_get_minmax_xy(const struct object* cell, coordinate_t* minxp, coordinate_t* minyp, coordinate_t* maxxp, coordinate_t* maxyp);
@@ -60,7 +60,8 @@ int object_has_shapes(const struct object* cell);
 int object_has_children(const struct object* cell);
 int object_has_ports(const struct object* cell);
 int object_is_empty(const struct object* cell);
-void object_flatten(struct object* cell, struct pcell_state* pcell_state, int flattenports);
+void object_flatten_inline(struct object* cell, struct pcell_state* pcell_state, int flattenports);
+struct object* object_flatten(const struct object* cell, struct pcell_state* pcell_state, int flattenports);
 
 int object_is_child_array(const struct object* cell);
 unsigned int object_get_child_xrep(const struct object* cell);
@@ -87,7 +88,7 @@ void child_iterator_destroy(struct child_iterator* it);
 
 // port iterator
 struct port_iterator;
-struct port_iterator* object_create_port_iterator(struct object* cell);
+struct port_iterator* object_create_port_iterator(const struct object* cell);
 int port_iterator_is_valid(struct port_iterator* it);
 void port_iterator_next(struct port_iterator* it);
 void port_iterator_get(struct port_iterator* it, const char** portname, const point_t** portwhere, const struct generics** portlayer, int* portisbusport, int* portbusindex);

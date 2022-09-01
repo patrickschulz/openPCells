@@ -34,18 +34,18 @@ struct curve {
 
 struct shape;
 
-struct shape* shape_create_rectangle(struct generics* layer, coordinate_t bl_x, coordinate_t bl_y, coordinate_t tr_x, coordinate_t tr_y);
-struct shape* shape_create_polygon(struct generics* layer, size_t capacity);
-struct shape* shape_create_path(struct generics* layer, size_t capacity, ucoordinate_t width, coordinate_t extstart, coordinate_t extend);
-struct shape* shape_create_curve(struct generics* layer, coordinate_t x, coordinate_t y, unsigned int grid, int allow45);
-void* shape_copy(void* shape);
+struct shape* shape_create_rectangle(const struct generics* layer, coordinate_t bl_x, coordinate_t bl_y, coordinate_t tr_x, coordinate_t tr_y);
+struct shape* shape_create_polygon(const struct generics* layer, size_t capacity);
+struct shape* shape_create_path(const struct generics* layer, size_t capacity, ucoordinate_t width, coordinate_t extstart, coordinate_t extend);
+struct shape* shape_create_curve(const struct generics* layer, coordinate_t x, coordinate_t y, unsigned int grid, int allow45);
+void* shape_copy(const void* shape);
 void shape_destroy(void* shape);
 
 void shape_append(struct shape* shape, coordinate_t x, coordinate_t y);
 
 const struct hashmap* shape_get_main_layerdata(const struct shape*);
 
-struct generics* shape_get_layer(struct shape* shape);
+const struct generics* shape_get_layer(const struct shape* shape);
 
 // type checking
 int shape_is_rectangle(const struct shape* shape);
@@ -54,7 +54,7 @@ int shape_is_polygon(const struct shape* shape);
 int shape_is_triangulated_polygon(const struct shape* shape);
 int shape_is_curve(const struct shape* shape);
 
-void* shape_get_content(struct shape* shape);
+const void* shape_get_content(const struct shape* shape);
 
 // rectangle access functions
 int shape_get_rectangle_points(struct shape* shape, point_t** blp, point_t** trp);
@@ -72,8 +72,9 @@ int shape_get_path_extension(const struct shape* shape, coordinate_t* start, coo
 
 // curve access functions
 int shape_get_curve_origin(struct shape* shape, point_t** origin);
+int shape_get_transformed_curve_origin(const struct shape* shape, const struct transformationmatrix* trans, point_t* origin);
 
-int shape_is_empty(struct shape* shape);
+int shape_is_empty(const struct shape* shape);
 
 // transformations
 void shape_translate(struct shape* shape, coordinate_t dx, coordinate_t dy);
@@ -89,12 +90,13 @@ void shape_get_minmax_xy(const struct shape* shape, const struct transformationm
 void shape_curve_add_line_segment(struct shape* shape, point_t* pt);
 void shape_curve_add_arc_segment(struct shape* shape, double startangle, double endangle, coordinate_t radius, int clockwise);
 
-int shape_get_center(struct shape* shape, coordinate_t* x, coordinate_t* y);
+int shape_get_center(const struct shape* shape, coordinate_t* x, coordinate_t* y);
 
 void shape_resize_lrtb(struct shape* shape, coordinate_t left, coordinate_t right, coordinate_t top, coordinate_t bottom);
 void shape_resolve_path_inline(struct shape* shape);
 struct shape* shape_resolve_path(const struct shape* shape);
-void shape_triangulate_polygon(struct shape* shape);
+void shape_triangulate_polygon_inline(struct shape* shape);
+struct shape* shape_triangulate_polygon(const struct shape* shape);
 void shape_rasterize_curve_inline(struct shape* shape);
 struct shape* shape_rasterize_curve(const struct shape* shape);
 
