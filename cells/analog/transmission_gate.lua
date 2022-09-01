@@ -1,5 +1,7 @@
 function parameters()
     pcell.add_parameters(
+        { "glength", tech.get_dimension("Minimum Gate Length") },
+        { "gspace", tech.get_dimension("Minimum Gate Space") },
         { "fingers", 2 },
         { "pwidth", 2 * tech.get_dimension("Minimum Gate Width") },
         { "nwidth", 2 * tech.get_dimension("Minimum Gate Width") },
@@ -20,19 +22,24 @@ function layout(tgate, _P)
     local guardringxsep = 200
     local guardringysep = 200
     pcell.push_overwrites("basic/mosfet", {
+        gatelength = _P.glength,
+        gatespace = _P.gspace,
         fingers = _P.fingers,
         sdwidth = _P.sdwidth,
         conndrainwidth = _P.sdwidth,
         connsourcewidth = _P.sdwidth,
         connectsource = true,
         connectdrain = true,
-        conndrainspace = guardringysep + _P.guardringwidth + _P.powerspace,
+        conndrainspace = _P.sdwidth + _P.sdwidth + guardringysep + _P.guardringwidth + _P.powerspace,
         conndrainmetal = 2,
         drawdrainvia = true,
         drawguardring = true,
         guardringwidth = _P.guardringwidth,
         guardringxsep = guardringxsep,
         guardringysep = guardringysep,
+        guardringsegments = { "top", "bottom" },
+        drawtopgate = true,
+        drawbotgate = true,
         topgatestrwidth = _P.sdwidth,
         topgatestrspace = _P.sdwidth,
         botgatestrwidth = _P.sdwidth,
@@ -44,7 +51,7 @@ function layout(tgate, _P)
         fwidth = _P.pwidth,
         vthtype = _P.pmosvthtype,
         flippedwell = _P.pmosflippedwell,
-        drawtopgate = true,
+        botgatecompsd = false,
     })
     local nmos = pcell.create_layout("basic/mosfet", {
         channeltype = "nmos",
@@ -52,7 +59,7 @@ function layout(tgate, _P)
         fwidth = _P.nwidth,
         vthtype = _P.nmosvthtype,
         flippedwell = _P.nmosflippedwell,
-        drawbotgate = true,
+        topgatecompsd = false,
     })
     pcell.pop_overwrites("basic/mosfet")
     pmos:move_anchor_y("bottom")
@@ -76,11 +83,26 @@ function layout(tgate, _P)
         nmos:get_anchor("guardringbr"):translate(0, -_P.powerspace)
     )
 
+    -- connect top and bottom gate strap
+    geometry.cshape(tgate, generics.metal(1),
+        nmos:get_anchor("botgatestrapcr"),
+        nmos:get_anchor("topgatestrapcr"),
+        2 * (_P.glength + _P.gspace),
+        _P.sdwidth
+    )
+    geometry.cshape(tgate, generics.metal(1),
+        pmos:get_anchor("botgatestrapcr"),
+        pmos:get_anchor("topgatestrapcr"),
+        2 * (_P.glength + _P.gspace),
+        _P.sdwidth
+    )
+
     -- input connection
+    local inputconnoffset = 500
     geometry.cshape(tgate, generics.metal(1),
         nmos:get_anchor("sourcestrapcl"),
         pmos:get_anchor("sourcestrapcl"),
-        -200,
+        -inputconnoffset,
         _P.sdwidth
     )
 
@@ -92,6 +114,6 @@ function layout(tgate, _P)
 
     tgate:add_anchor_area_bltr("clkp", pmos:get_anchor("topgatestrapbl"), pmos:get_anchor("topgatestraptr"))
     tgate:add_anchor_area_bltr("clkn", nmos:get_anchor("botgatestrapbl"), nmos:get_anchor("botgatestraptr"))
-    tgate:add_port("input", generics.metalport(1), (pmos:get_anchor("sourcestrapcl") + nmos:get_anchor("sourcestrapcl")):translate(-200, 0))
-    tgate:add_port("output", generics.metalport(1), (pmos:get_anchor("drainstrapcr") + nmos:get_anchor("drainstrapcr")):translate(200, 0))
+    tgate:add_port("input", generics.metalport(1), (pmos:get_anchor("sourcestrapcl") + nmos:get_anchor("sourcestrapcl")):translate(-inputconnoffset, 0))
+    tgate:add_port("output", generics.metalport(1), (pmos:get_anchor("drainstrapcc") + nmos:get_anchor("drainstrapcc")))
 end
