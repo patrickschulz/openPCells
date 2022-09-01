@@ -565,7 +565,7 @@ void object_add_bus_port(struct object* cell, const char* name, const struct gen
     }
 }
 
-struct vector* object_get_ports(struct object* cell)
+const struct vector* object_get_ports(const struct object* cell)
 {
     return cell->ports;
 }

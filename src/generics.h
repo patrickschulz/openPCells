@@ -31,17 +31,17 @@ void generics_insert_extra_layer(struct layermap* generics_layer_map, struct gen
 int generics_resolve_premapped_layers(struct layermap* generics_layer_map, const char* exportname);
 
 // layer creation interface
-struct generics* generics_create_metal(struct layermap* generics_layer_map, struct technology_state* techstate, int num);
-struct generics* generics_create_metalport(struct layermap* generics_layer_map, struct technology_state* techstate, int num);
-struct generics* generics_create_viacut(struct layermap* generics_layer_map, struct technology_state* techstate, int metal1, int metal2);
-struct generics* generics_create_contact(struct layermap* generics_layer_map, struct technology_state* techstate, const char* region);
-struct generics* generics_create_oxide(struct layermap* generics_layer_map, struct technology_state* techstate, int num);
-struct generics* generics_create_implant(struct layermap* generics_layer_map, struct technology_state* techstate, char polarity);
-struct generics* generics_create_vthtype(struct layermap* generics_layer_map, struct technology_state* techstate, char channeltype, int vthtype);
-struct generics* generics_create_other(struct layermap* generics_layer_map, struct technology_state* techstate, const char* str);
-struct generics* generics_create_otherport(struct layermap* generics_layer_map, struct technology_state* techstate, const char* str);
-struct generics* generics_create_special(struct layermap* generics_layer_map, struct technology_state* techstate);
-struct generics* generics_create_special(struct layermap* generics_layer_map, struct technology_state* techstate);
+const struct generics* generics_create_metal(struct layermap* generics_layer_map, struct technology_state* techstate, int num);
+const struct generics* generics_create_metalport(struct layermap* generics_layer_map, struct technology_state* techstate, int num);
+const struct generics* generics_create_viacut(struct layermap* generics_layer_map, struct technology_state* techstate, int metal1, int metal2);
+const struct generics* generics_create_contact(struct layermap* generics_layer_map, struct technology_state* techstate, const char* region);
+const struct generics* generics_create_oxide(struct layermap* generics_layer_map, struct technology_state* techstate, int num);
+const struct generics* generics_create_implant(struct layermap* generics_layer_map, struct technology_state* techstate, char polarity);
+const struct generics* generics_create_vthtype(struct layermap* generics_layer_map, struct technology_state* techstate, char channeltype, int vthtype);
+const struct generics* generics_create_other(struct layermap* generics_layer_map, struct technology_state* techstate, const char* str);
+const struct generics* generics_create_otherport(struct layermap* generics_layer_map, struct technology_state* techstate, const char* str);
+const struct generics* generics_create_special(struct layermap* generics_layer_map, struct technology_state* techstate);
+const struct generics* generics_create_special(struct layermap* generics_layer_map, struct technology_state* techstate);
 
 // layermap iterator
 struct layer_iterator* layer_iterator_create(struct layermap* layermap);

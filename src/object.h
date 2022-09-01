@@ -27,7 +27,7 @@ point_t* object_get_anchor(const struct object* cell, const char* name);
 const struct hashmap* object_get_all_regular_anchors(const struct object* cell);
 void object_add_port(struct object* cell, const char* name, const struct generics* layer, const point_t* where, int storeanchor);
 void object_add_bus_port(struct object* cell, const char* name, const struct generics* layer, const point_t* where, int startindex, int endindex, unsigned int xpitch, unsigned int ypitch, int storeanchor);
-struct vector* object_get_ports(struct object* cell);
+const struct vector* object_get_ports(const struct object* cell);
 void object_set_alignment_box(struct object* cell, coordinate_t blx, coordinate_t bly, coordinate_t trx, coordinate_t try);
 void object_inherit_alignment_box(struct object* cell, const struct object* other);
 void object_get_minmax_xy(const struct object* cell, coordinate_t* minxp, coordinate_t* minyp, coordinate_t* maxxp, coordinate_t* maxyp);

@@ -31,10 +31,10 @@ struct shape {
         CURVE
     } type;
     void* content;
-    struct generics* layer;
+    const struct generics* layer;
 };
 
-static struct shape* _create_shape(enum shapetype type, struct generics* layer)
+static struct shape* _create_shape(enum shapetype type, const struct generics* layer)
 {
     struct shape* shape = malloc(sizeof(*shape));
     shape->type = type;
@@ -42,7 +42,7 @@ static struct shape* _create_shape(enum shapetype type, struct generics* layer)
     return shape;
 }
 
-struct shape* shape_create_rectangle(struct generics* layer, coordinate_t blx, coordinate_t bly, coordinate_t trx, coordinate_t try)
+struct shape* shape_create_rectangle(const struct generics* layer, coordinate_t blx, coordinate_t bly, coordinate_t trx, coordinate_t try)
 {
     struct shape* shape = _create_shape(RECTANGLE, layer);
     struct rectangle* rectangle = malloc(sizeof(*rectangle));
@@ -52,7 +52,7 @@ struct shape* shape_create_rectangle(struct generics* layer, coordinate_t blx, c
     return shape;
 }
 
-struct shape* shape_create_polygon(struct generics* layer, size_t capacity)
+struct shape* shape_create_polygon(const struct generics* layer, size_t capacity)
 {
     struct shape* shape = _create_shape(POLYGON, layer);
     struct polygon* polygon = malloc(sizeof(*polygon));
@@ -61,7 +61,7 @@ struct shape* shape_create_polygon(struct generics* layer, size_t capacity)
     return shape;
 }
 
-struct shape* shape_create_path(struct generics* layer, size_t capacity, ucoordinate_t width, coordinate_t extstart, coordinate_t extend)
+struct shape* shape_create_path(const struct generics* layer, size_t capacity, ucoordinate_t width, coordinate_t extstart, coordinate_t extend)
 {
     struct shape* shape = _create_shape(PATH, layer);
     struct path* path = malloc(sizeof(*path));
@@ -73,7 +73,7 @@ struct shape* shape_create_path(struct generics* layer, size_t capacity, ucoordi
     return shape;
 }
 
-struct shape* shape_create_curve(struct generics* layer, coordinate_t x, coordinate_t y, unsigned int grid, int allow45)
+struct shape* shape_create_curve(const struct generics* layer, coordinate_t x, coordinate_t y, unsigned int grid, int allow45)
 {
     struct shape* shape = _create_shape(CURVE, layer);
     struct curve* curve = malloc(sizeof(*curve));
@@ -230,7 +230,7 @@ const struct hashmap* shape_get_main_layerdata(const struct shape* shape)
     return generics_get_first_layer_data(shape->layer);
 }
 
-struct generics* shape_get_layer(struct shape* shape)
+const struct generics* shape_get_layer(const struct shape* shape)
 {
     return shape->layer;
 }
@@ -397,7 +397,7 @@ int shape_get_transformed_curve_origin(const struct shape* shape, const struct t
     return 1;
 }
 
-int shape_is_empty(struct shape* shape)
+int shape_is_empty(const struct shape* shape)
 {
     return generics_is_empty(shape->layer);
 }
@@ -635,7 +635,7 @@ void shape_get_minmax_xy(const struct shape* shape, const struct transformationm
     point_destroy(max);
 }
 
-int shape_get_center(struct shape* shape, coordinate_t* x, coordinate_t* y)
+int shape_get_center(const struct shape* shape, coordinate_t* x, coordinate_t* y)
 {
     if(shape->type != RECTANGLE) // FIXME: support other types
     {
