@@ -79,6 +79,8 @@ function layout(gate, _P)
         leftpolylines = _P.leftpolylines,
         drawrightstopgate = _P.drawrightstopgate,
         rightpolylines = _P.rightpolylines,
+        drawgcut = true,
+        drawgcuteverywhere = true,
     })
     gate:exchange(cmos)
 end

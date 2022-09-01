@@ -48,6 +48,7 @@ function parameters()
         { "drawdummygatecontacts", true },
         { "drawdummyactivecontacts", true },
         { "drawgcut", false },
+        { "drawgcuteverywhere", false },
         { "dummycontheight(Dummy Gate Contact Height)",        tech.get_dimension("Minimum M1 Width") },
         { "dummycontshift(Dummy Gate Shift)",                  0 },
         { "drawnmoswelltap(Draw nMOS Well Tap)", false },
@@ -285,7 +286,7 @@ function layout(cmos, _P)
                 moderror(string.format("unknown gate contact position: [%d] = '%s'", i, _P.gatecontactpos[i]))
             end
             if _P.gatecontactpos[i] ~= "dummy" then
-                if _P.drawgcut then
+                if _P.drawgcut and not _P.drawgcuteverywhere then
                 geometry.rectanglebltr(
                     cmos, generics.other("gatecut"),
                     point.create(x - gatepitch / 2, (_P.pwidth - _P.nwidth) / 2 + (_P.ppowerspace - _P.npowerspace) / 2 - _P.cutheight / 2),
@@ -295,6 +296,14 @@ function layout(cmos, _P)
                 end
             end
         end
+    end
+    if _P.drawgcut and _P.drawgcuteverywhere then
+        geometry.rectangle(cmos,
+            generics.other("gatecut"), 
+            fingers * gatepitch + _P.sdwidth, _P.cutheight,
+            (fingers - 1) * gatepitch / 2, (_P.pwidth - _P.nwidth) / 2 + (_P.ppowerspace - _P.npowerspace) / 2,
+            1, 2, 0, _P.separation + _P.pwidth + _P.nwidth + _P.ppowerspace + _P.npowerspace + _P.powerwidth
+        )
     end
 
     -- draw source/drain contacts
