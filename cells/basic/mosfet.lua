@@ -89,6 +89,7 @@ function parameters()
         { "guardringwidth",                                             100 },
         { "guardringxsep",                                             0 },
         { "guardringysep",                                             0 },
+        { "guardringsegments",                                         { "left", "right", "top", "bottom" } },
         { "botwelltapwidth",                                           tech.get_dimension("Minimum M1 Width") },
         { "botwelltapspace",                                           tech.get_dimension("Minimum M1 Space") },
         { "botwelltapextendleft",                                          0 },
@@ -340,15 +341,19 @@ function layout(transistor, _P)
             holewidth = activewidth + 2 * _P.guardringxsep,
             holeheight = 
                 _P.fwidth
-                + enable(_P.drawtopgate and topgatecompsd, drainshift + _P.topgatestrwidth + _P.topgatestrspace)
-                + enable(_P.drawbotgate and botgatecompsd, sourceshift + _P.botgatestrwidth + _P.botgatestrspace)
+                + enable(_P.drawtopgate, _P.topgatestrwidth + _P.topgatestrspace)
+                + enable(topgatecompsd, drainshift)
+                + enable(_P.drawbotgate, _P.botgatestrwidth + _P.botgatestrspace)
+                + enable(botgatecompsd, sourceshift)
                 + 2 * _P.guardringysep,
             fillwell = true,
-            drawsegments = { "top", "bottom" }
+            drawsegments = _P.guardringsegments
         })
         local yshift = (
-            enable(_P.drawtopgate and topgatecompsd, drainshift + _P.topgatestrwidth + _P.topgatestrspace)
-            - enable(_P.drawbotgate and botgatecompsd, sourceshift + _P.botgatestrwidth + _P.botgatestrspace)
+              enable(_P.drawtopgate, _P.topgatestrwidth + _P.topgatestrspace)
+            + enable(topgatecompsd, drainshift)
+            - enable(_P.drawbotgate, _P.botgatestrwidth + _P.botgatestrspace)
+            - enable(botgatecompsd, sourceshift)
         ) / 2
         guardring:translate(0, yshift)
         transistor:merge_into_shallow(guardring)
