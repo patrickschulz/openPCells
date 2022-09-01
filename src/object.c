@@ -506,7 +506,7 @@ const struct hashmap* object_get_all_regular_anchors(const struct object* cell)
     return NULL;
 }
 
-static void _add_port(struct object* cell, const char* name, const char* anchorname, struct generics* layer, coordinate_t x, coordinate_t y, int isbusport, int busindex, int storeanchor)
+static void _add_port(struct object* cell, const char* name, const char* anchorname, const struct generics* layer, coordinate_t x, coordinate_t y, int isbusport, int busindex, int storeanchor)
 {
     if(!generics_is_empty(layer))
     {
@@ -529,12 +529,12 @@ static void _add_port(struct object* cell, const char* name, const char* anchorn
     }
 }
 
-void object_add_port(struct object* cell, const char* name, struct generics* layer, const point_t* where, int storeanchor)
+void object_add_port(struct object* cell, const char* name, const struct generics* layer, const point_t* where, int storeanchor)
 {
     _add_port(cell, name, name, layer, where->x, where->y, 0, 0, storeanchor);
 }
 
-void object_add_bus_port(struct object* cell, const char* name, struct generics* layer, const point_t* where, int startindex, int endindex, unsigned int xpitch, unsigned int ypitch, int storeanchor)
+void object_add_bus_port(struct object* cell, const char* name, const struct generics* layer, const point_t* where, int startindex, int endindex, unsigned int xpitch, unsigned int ypitch, int storeanchor)
 {
     int shift = 0;
     if(startindex < endindex)
@@ -921,9 +921,11 @@ void object_flatten_inline(struct object* cell, struct pcell_state* pcell_state,
                 {
                     for(unsigned int iy = 1; iy <= child->yrep; ++iy)
                     {
-                        for(unsigned int i = 0; i < vector_size(flat->shapes); ++i)
+                        size_t size = vector_size(flat->shapes);
+                        while(size > 0)
                         {
-                            struct shape* S = object_disown_shape(flat, i);
+                            struct shape* S = object_disown_shape(flat, size - 1);
+                            --size;
                             shape_apply_transformation(S, child->trans);
                             shape_apply_transformation(S, flat->trans);
                             shape_translate(S, (ix - 1) * child->xpitch, (iy - 1) * child->ypitch);
@@ -934,15 +936,11 @@ void object_flatten_inline(struct object* cell, struct pcell_state* pcell_state,
                             for(unsigned int p = 0; p < vector_size(flat->ports); ++p)
                             {
                                 struct port* port = vector_get(flat->ports, p);
-                                struct port* newport = malloc(sizeof(*newport));
-                                point_t where = *port->where;
-                                transformationmatrix_apply_transformation(child->trans, &where);
-                                transformationmatrix_apply_transformation(flat->trans, &where);
-                                newport->where = point_create(where.x, where.y);
-                                newport->layer = port->layer;
-                                newport->isbusport = port->isbusport;
-                                newport->busindex = port->busindex;
-                                newport->name = strdup(port->name);
+                                coordinate_t x = port->where->x;
+                                coordinate_t y = port->where->y;
+                                transformationmatrix_apply_transformation_xy(child->trans, &x, &y);
+                                transformationmatrix_apply_transformation_xy(flat->trans, &x, &y);
+                                _add_port(cell, port->name, NULL, port->layer, x, y, port->isbusport, port->busindex, 0); // 0: !storeanchor
                             }
                         }
                     }
