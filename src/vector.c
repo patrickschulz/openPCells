@@ -244,12 +244,12 @@ void const_vector_destroy(struct const_vector* const_vector)
     free(const_vector);
 }
 
-size_t const_vector_size(struct const_vector* const_vector)
+size_t const_vector_size(const struct const_vector* const_vector)
 {
     return const_vector->size;
 }
 
-const void* const_vector_get(struct const_vector* const_vector, size_t i)
+const void* const_vector_get(const struct const_vector* const_vector, size_t i)
 {
     return const_vector->elements[i];
 }

@@ -10,12 +10,12 @@
 struct object;
 
 struct object* object_create(void);
-struct object* object_copy(struct object*);
+struct object* object_copy(const struct object*);
 void object_destroy(void* cell);
 
 void object_add_raw_shape(struct object* cell, struct shape* S);
 void object_add_shape(struct object* cell, struct shape* S);
-void object_disown_shape(struct object* cell, size_t i);
+struct shape* object_disown_shape(struct object* cell, size_t i);
 void object_remove_shape(struct object* cell, size_t i);
 struct object* object_add_child(struct object* cell, struct pcell_state* pcell_state, const char* identifier, const char* name);
 struct object* object_add_child_array(struct object* cell, struct pcell_state* pcell_state, const char* identifier, unsigned int xrep, unsigned int yrep, unsigned int xpitch, unsigned int ypitch, const char* name);
@@ -60,7 +60,8 @@ int object_has_shapes(const struct object* cell);
 int object_has_children(const struct object* cell);
 int object_has_ports(const struct object* cell);
 int object_is_empty(const struct object* cell);
-void object_flatten(struct object* cell, struct pcell_state* pcell_state, int flattenports);
+void object_flatten_inline(struct object* cell, struct pcell_state* pcell_state, int flattenports);
+struct object* object_flatten(const struct object* cell, struct pcell_state* pcell_state, int flattenports);
 
 int object_is_child_array(const struct object* cell);
 unsigned int object_get_child_xrep(const struct object* cell);

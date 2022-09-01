@@ -42,13 +42,13 @@ struct export_functions
     void (*at_begin_cell)(struct export_data*, const char*);
     void (*at_end_cell)(struct export_data*);
     // write basic shapes
-    void (*write_rectangle)(struct export_data*, const struct hashmap*, point_t*, point_t*);
-    void (*write_triangle)(struct export_data*, const struct hashmap*, point_t*, point_t*, point_t*);
-    void (*write_polygon)(struct export_data*, const struct hashmap*, struct vector*);
-    void (*write_path)(struct export_data*, const struct hashmap*, struct vector*, ucoordinate_t, coordinate_t*);
+    void (*write_rectangle)(struct export_data*, const struct hashmap*, const point_t*, const point_t*);
+    void (*write_triangle)(struct export_data*, const struct hashmap*, const point_t*, const point_t*, const point_t*);
+    void (*write_polygon)(struct export_data*, const struct hashmap*, const struct vector*);
+    void (*write_path)(struct export_data*, const struct hashmap*, const struct vector*, ucoordinate_t, const coordinate_t*);
     // write curves
     void (*setup_curve)(struct export_data*, const struct hashmap);
-    void (*curve_add_line_segment)(struct export_data*, point_t*, point_t*);
+    void (*curve_add_line_segment)(struct export_data*, const point_t*, const point_t*);
     void (*close_curve)(struct export_data*, const struct hashmap);
     // write references
     void (*write_cell_reference)(struct export_data*, const char*, coordinate_t, coordinate_t, const struct transformationmatrix*);

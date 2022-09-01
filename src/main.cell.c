@@ -630,7 +630,7 @@ int main_create_and_export_cell(struct cmdoptions* cmdoptions, struct hashmap* c
         if(cmdoptions_was_provided_long(cmdoptions, "flat"))
         {
             int flattenports = cmdoptions_was_provided_long(cmdoptions, "flattenports");
-            object_flatten(toplevel, pcell_state, flattenports);
+            object_flatten_inline(toplevel, pcell_state, flattenports);
         }
 
         // post-processing
