@@ -49,6 +49,7 @@ function parameters()
         { "drawdummyactivecontacts", true },
         { "drawgcut", false },
         { "dummycontheight(Dummy Gate Contact Height)",        tech.get_dimension("Minimum M1 Width") },
+        { "dummycontshift(Dummy Gate Shift)",                  0 },
         { "drawnmoswelltap(Draw nMOS Well Tap)", false },
         { "nmoswelltapspace(nMOS Well Tap Space)", tech.get_dimension("Minimum M1 Space") },
         { "nmoswelltapwidth(nMOS Well Tap Width)", tech.get_dimension("Minimum M1 Width") },
@@ -261,7 +262,7 @@ function layout(cmos, _P)
                     cmos, "gate", 
                     point.create(x - _P.gatelength / 2, (_P.pwidth - _P.nwidth) / 2 + (_P.ppowerspace - _P.npowerspace) / 2 + -_P.dummycontheight / 2),
                     point.create(x + _P.gatelength / 2, (_P.pwidth - _P.nwidth) / 2 + (_P.ppowerspace - _P.npowerspace) / 2 +  _P.dummycontheight / 2),
-                    1, 2, 0, _P.separation + _P.pwidth + _P.nwidth + _P.ppowerspace + _P.npowerspace + _P.powerwidth
+                    1, 2, 0, _P.separation + _P.pwidth + _P.nwidth + _P.ppowerspace + _P.npowerspace + _P.powerwidth + 2 * _P.dummycontshift
                 )
                 geometry.rectangle(cmos, generics.other("gatecut"), gatepitch, _P.cutheight, x, 0)
             elseif _P.gatecontactpos[i] == "outer" then

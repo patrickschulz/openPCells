@@ -73,6 +73,8 @@ function layout(gate, _P)
         sdwidth = bp.sdwidth,
         separation = separation,
         gatecontactsplitshift = 2 * routingshift,
+        dummycontheight = bp.powerwidth / 4,
+        dummycontshift = -bp.powerwidth / 2 + bp.powerwidth / 8,
         drawleftstopgate = _P.drawleftstopgate,
         leftpolylines = _P.leftpolylines,
         drawrightstopgate = _P.drawrightstopgate,
