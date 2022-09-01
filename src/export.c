@@ -199,7 +199,63 @@ char* export_get_export_layername(struct const_vector* searchpaths, const char* 
     return NULL;
 }
 
-static void _write_ports(const struct object* cell, struct export_data* data, const struct export_functions* funcs, char leftdelim, char rightdelim)
+static void _push_layer(lua_State* L, const struct hashmap* data)
+{
+    lua_newtable(L);
+    struct hashmap_const_iterator* it = hashmap_const_iterator_create(data);
+    while(hashmap_const_iterator_is_valid(it))
+    {
+        lua_pushstring(L, hashmap_const_iterator_key(it));
+        const struct tagged_value* value = hashmap_const_iterator_value(it);
+        if(tagged_value_is_integer(value))
+        {
+            lua_pushinteger(L, tagged_value_get_integer(value));
+        }
+        if(tagged_value_is_string(value))
+        {
+            lua_pushstring(L, tagged_value_get_const_string(value));
+        }
+        if(tagged_value_is_boolean(value))
+        {
+            lua_pushboolean(L, tagged_value_get_boolean(value));
+        }
+        lua_rawset(L, -3);
+        hashmap_const_iterator_next(it);
+    }
+    hashmap_const_iterator_destroy(it);
+}
+
+static void _push_point(lua_State* L, point_t* pt)
+{
+    lua_newtable(L);
+    lua_pushinteger(L, pt->x);
+    lua_setfield(L, -2, "x");
+    lua_pushinteger(L, pt->y);
+    lua_setfield(L, -2, "y");
+}
+
+static void _push_points(lua_State* L, struct vector* pts)
+{
+    lua_newtable(L);
+    for(unsigned int i = 0; i < vector_size(pts); ++i)
+    {
+        _push_point(L, vector_get(pts, i));
+        lua_rawseti(L, -2, i + 1);
+    }
+}
+
+static void _push_trans(lua_State* L, const struct transformationmatrix* trans)
+{
+    lua_newtable(L);
+    const coordinate_t* coefficients = transformationmatrix_get_coefficients(trans);
+    for(unsigned int i = 0; i < 6; ++i)
+    {
+        lua_pushinteger(L, coefficients[i]);
+        lua_rawseti(L, -2, i + 1);
+    }
+}
+
+static int _write_ports_C_lua(lua_State* L, const struct object* cell, struct export_data* data, const struct export_functions* funcs, char leftdelim, char rightdelim)
 {
     struct port_iterator* it = object_create_port_iterator(cell);
     while(port_iterator_is_valid(it))
@@ -213,20 +269,41 @@ static void _write_ports(const struct object* cell, struct export_data* data, co
         point_t where = { .x = portwhere->x, .y = portwhere->y };
         object_transform_point(cell, &where);
         const struct hashmap* layerdata = generics_get_first_layer_data(portlayer);
+        char* busportname = NULL;
+        const char* name = portname;
         if(portisbusport)
         {
             size_t len = strlen(portname) + 2 + util_num_digits(portbusindex);
-            char* name = malloc(len + 1);
-            snprintf(name, len + 1, "%s%c%d%c", portname, leftdelim, portbusindex, rightdelim);
-            funcs->write_port(data, name, layerdata, where.x, where.y);
+            char* busportname = malloc(len + 1);
+            snprintf(busportname, len + 1, "%s%c%d%c", portname, leftdelim, portbusindex, rightdelim);
+            name = busportname;
+        }
+
+        if(L)
+        {
+            lua_pushvalue(L, -1); // write_port is already on the stack (from the check if the function exists)
+            lua_pushstring(L, name);
+            _push_layer(L, layerdata);
+            _push_point(L, &where);
+            int ret = lua_pcall(L, 3, 0, 0);
+            if(ret != LUA_OK)
+            {
+                return ret;
+            }
         }
         else
         {
-            funcs->write_port(data, portname, layerdata, where.x, where.y);
+            funcs->write_port(data, name, layerdata, where.x, where.y);
+        }
+
+        if(busportname)
+        {
+            free(busportname);
         }
         port_iterator_next(it);
     }
     port_iterator_destroy(it);
+    return LUA_OK;
 }
 
 static void _write_cell_shape_rectangle(const struct shape* shape, const struct transformationmatrix* trans, struct export_data* data, const struct export_functions* funcs)
@@ -351,6 +428,33 @@ static void _write_cell_shapes(const struct object* cell, struct export_data* da
     shape_iterator_destroy(it);
 }
 
+static void _write_cell_children_arrayed(const struct object* child, const point_t* origin, struct export_data* data, const struct export_functions* funcs)
+{
+    funcs->write_cell_array(data,
+        object_get_identifier(child),
+        origin->x, origin->y,
+        object_get_transformation_matrix(child),
+        object_get_child_xrep(child), object_get_child_yrep(child),
+        object_get_child_xpitch(child), object_get_child_ypitch(child)
+    );
+}
+
+static void _write_cell_children_single(const struct object* child, const point_t* origin, struct export_data* data, const struct export_functions* funcs)
+{
+    for(unsigned int ix = 1; ix <= object_get_child_xrep(child); ++ix)
+    {
+        for(unsigned int iy = 1; iy <= object_get_child_yrep(child); ++iy)
+        {
+            funcs->write_cell_reference(data,
+                object_get_identifier(child),
+                origin->x + (ix - 1) * object_get_child_xpitch(child),
+                origin->y + (iy - 1) * object_get_child_ypitch(child),
+                object_get_transformation_matrix(child)
+            );
+        }
+    }
+}
+
 static void _write_cell_children(const struct object* cell, struct export_data* data, const struct export_functions* funcs)
 {
     struct child_iterator* it = object_create_child_iterator(cell);
@@ -362,28 +466,11 @@ static void _write_cell_children(const struct object* cell, struct export_data* 
         object_transform_point(cell, &origin);
         if(object_is_child_array(child) && funcs->write_cell_array)
         {
-            funcs->write_cell_array(data,
-                object_get_identifier(child),
-                origin.x, origin.y,
-                object_get_transformation_matrix(child),
-                object_get_child_xrep(child), object_get_child_yrep(child),
-                object_get_child_xpitch(child), object_get_child_ypitch(child)
-            );
+            _write_cell_children_arrayed(child, &origin, data, funcs);
         }
         else
         {
-            for(unsigned int ix = 1; ix <= object_get_child_xrep(child); ++ix)
-            {
-                for(unsigned int iy = 1; iy <= object_get_child_yrep(child); ++iy)
-                {
-                    funcs->write_cell_reference(data,
-                        object_get_identifier(child),
-                        origin.x + (ix - 1) * object_get_child_xpitch(child),
-                        origin.y + (iy - 1) * object_get_child_ypitch(child),
-                        object_get_transformation_matrix(child)
-                    );
-                }
-            }
+            _write_cell_children_single(child, &origin, data, funcs);
         }
         child_iterator_next(it);
     }
@@ -396,128 +483,41 @@ static void _write_cell(const struct object* cell, struct export_data* data, con
     _write_cell_children(cell, data, funcs);
     if(write_ports && object_has_ports(cell))
     {
-        _write_ports(cell, data, funcs, leftdelim, rightdelim);
+        _write_ports_C_lua(NULL, cell, data, funcs, leftdelim, rightdelim);
     }
 }
 
-static void _push_layer(lua_State* L, const struct hashmap* data)
-{
-    lua_newtable(L);
-    struct hashmap_const_iterator* it = hashmap_const_iterator_create(data);
-    while(hashmap_const_iterator_is_valid(it))
-    {
-        lua_pushstring(L, hashmap_const_iterator_key(it));
-        const struct tagged_value* value = hashmap_const_iterator_value(it);
-        if(tagged_value_is_integer(value))
-        {
-            lua_pushinteger(L, tagged_value_get_integer(value));
-        }
-        if(tagged_value_is_string(value))
-        {
-            lua_pushstring(L, tagged_value_get_const_string(value));
-        }
-        if(tagged_value_is_boolean(value))
-        {
-            lua_pushboolean(L, tagged_value_get_boolean(value));
-        }
-        lua_rawset(L, -3);
-        hashmap_const_iterator_next(it);
-    }
-    hashmap_const_iterator_destroy(it);
-}
-
-static void _push_point(lua_State* L, point_t* pt)
-{
-    lua_newtable(L);
-    lua_pushinteger(L, pt->x);
-    lua_setfield(L, -2, "x");
-    lua_pushinteger(L, pt->y);
-    lua_setfield(L, -2, "y");
-}
-
-static void _push_points(lua_State* L, struct vector* pts)
-{
-    lua_newtable(L);
-    for(unsigned int i = 0; i < vector_size(pts); ++i)
-    {
-        _push_point(L, vector_get(pts, i));
-        lua_rawseti(L, -2, i + 1);
-    }
-}
-
-static void _push_trans(lua_State* L, const struct transformationmatrix* trans)
-{
-    lua_newtable(L);
-    const coordinate_t* coefficients = transformationmatrix_get_coefficients(trans);
-    for(unsigned int i = 0; i < 6; ++i)
-    {
-        lua_pushinteger(L, coefficients[i]);
-        lua_rawseti(L, -2, i + 1);
-    }
-}
-
-static int _write_ports_lua(lua_State* L, struct object* cell, char leftdelim, char rightdelim)
-{
-    struct port_iterator* it = object_create_port_iterator(cell);
-    while(port_iterator_is_valid(it))
-    {
-        const char* portname;
-        const point_t* portwhere;
-        const struct generics* portlayer;
-        int portisbusport;
-        int portbusindex;
-        port_iterator_get(it, &portname, &portwhere, &portlayer, &portisbusport, &portbusindex);
-        point_t where = { .x = portwhere->x, .y = portwhere->y };
-        object_transform_point(cell, &where);
-        const struct hashmap* layerdata = generics_get_first_layer_data(portlayer);
-        lua_pushvalue(L, -1); // write_port is already on the stack (from the check if the function exists)
-        if(portisbusport)
-        {
-            lua_pushfstring(L, "%s%c%d%c", portname, leftdelim, portbusindex, rightdelim);
-        }
-        else
-        {
-            lua_pushstring(L, portname);
-        }
-        _push_layer(L, layerdata);
-        _push_point(L, &where);
-        int ret = lua_pcall(L, 3, 0, 0);
-        if(ret != LUA_OK)
-        {
-            return ret;
-        }
-        port_iterator_next(it);
-    }
-    port_iterator_destroy(it);
-    return LUA_OK;
-}
-
-static int _write_lua_rectangle(lua_State* L, const struct hashmap* layerdata, struct shape* shape)
+static int _write_lua_rectangle(lua_State* L, const struct shape* shape, const struct transformationmatrix* trans)
 {
     lua_getfield(L, -1, "write_rectangle");
+    const struct hashmap* layerdata = shape_get_main_layerdata(shape);
     _push_layer(L, layerdata);
-    point_t* bl;
-    point_t* tr;
-    shape_get_rectangle_points(shape, &bl, &tr);
-    _push_point(L, bl);
-    _push_point(L, tr);
+    point_t bl;
+    point_t tr;
+    shape_get_transformed_rectangle_points(shape, trans, &bl, &tr);
+    _push_point(L, &bl);
+    _push_point(L, &tr);
     return lua_pcall(L, 3, 0, 0);
 }
 
-static int _write_lua_polygon(lua_State* L, const struct hashmap* layerdata, struct shape* shape)
+static int _write_lua_polygon(lua_State* L, const struct shape* shape, const struct transformationmatrix* trans)
 {
     lua_getfield(L, -1, "write_polygon");
+    const struct hashmap* layerdata = shape_get_main_layerdata(shape);
     _push_layer(L, layerdata);
-    struct vector* points;
-    shape_get_polygon_points(shape, &points);
+    struct vector* points = vector_create(128);
+    shape_get_transformed_polygon_points(shape, trans, points);
     _push_points(L, points);
+    vector_destroy(points, point_destroy);
     return lua_pcall(L, 2, 0, 0);
 }
 
-static int _write_lua_triangulated_polygon(lua_State* L, const struct hashmap* layerdata, struct shape* shape)
+static int _write_lua_triangulated_polygon(lua_State* L, const struct shape* shape, const struct transformationmatrix* trans)
 {
-    struct vector* points;
-    shape_get_polygon_points(shape, &points);
+    struct vector* points = vector_create(128);
+    shape_get_transformed_polygon_points(shape, trans, points);
+    const struct hashmap* layerdata = shape_get_main_layerdata(shape);
+    int ret = LUA_OK;
     for(unsigned int i = 0; i < vector_size(points) - 2; i += 3)
     {
         lua_getfield(L, -1, "write_triangle");
@@ -528,19 +528,24 @@ static int _write_lua_triangulated_polygon(lua_State* L, const struct hashmap* l
         int ret = lua_pcall(L, 4, 0, 0);
         if(ret != LUA_OK)
         {
-            return ret;
+            ret = LUA_ERRRUN;
+            goto TRIANGULATED_POLYGON_CLEANUP;
         }
     }
-    return LUA_OK;
+TRIANGULATED_POLYGON_CLEANUP:
+    vector_destroy(points, point_destroy);
+    return ret;
 }
 
-static int _write_lua_path(lua_State* L, const struct hashmap* layerdata, struct shape* shape)
+static int _write_lua_path(lua_State* L, const struct shape* shape, const struct transformationmatrix* trans)
 {
     lua_getfield(L, -1, "write_path");
+    const struct hashmap* layerdata = shape_get_main_layerdata(shape);
     _push_layer(L, layerdata);
-    struct vector* points;
-    shape_get_path_points(shape, &points);
+    struct vector* points = vector_create(128);
+    shape_get_transformed_polygon_points(shape, trans, points);
     _push_points(L, points);
+    vector_destroy(points, point_destroy);
     ucoordinate_t width;
     shape_get_path_width(shape, &width);
     lua_pushinteger(L, width);
@@ -559,25 +564,26 @@ static coordinate_t _fix_to_grid(coordinate_t c, unsigned int grid)
     return (c / grid) * grid;
 }
 
-static int _write_lua_curve(lua_State* L, const struct hashmap* layerdata, struct shape* shape)
+static int _write_lua_curve(lua_State* L, const struct shape* shape, const struct transformationmatrix* trans)
 {
     lua_getfield(L, -1, "setup_curve");
+    const struct hashmap* layerdata = shape_get_main_layerdata(shape);
     _push_layer(L, layerdata);
-    point_t* origin;
-    shape_get_curve_origin(shape, &origin);
-    _push_point(L, origin);
+    point_t origin;
+    shape_get_transformed_curve_origin(shape, trans, &origin);
+    _push_point(L, &origin);
     int ret = lua_pcall(L, 2, 0, 0);
     if(ret != LUA_OK)
     {
         return ret;
     }
     // FIXME: implement an abstraction for this
-    struct curve* curve = shape_get_content(shape);
-    struct vector_iterator* it = vector_iterator_create(curve->segments);
+    const struct curve* curve = shape_get_content(shape);
+    struct vector_const_iterator* it = vector_const_iterator_create(curve->segments);
     point_t* lastpt = curve->origin;
-    while(vector_iterator_is_valid(it))
+    while(vector_const_iterator_is_valid(it))
     {
-        struct curve_segment* segment = vector_iterator_get(it);
+        const struct curve_segment* segment = vector_const_iterator_get(it);
         switch(segment->type)
         {
             case LINESEGMENT:
@@ -614,8 +620,9 @@ static int _write_lua_curve(lua_State* L, const struct hashmap* layerdata, struc
                 break;
             }
         }
-        vector_iterator_next(it);
+        vector_const_iterator_next(it);
     }
+    vector_const_iterator_destroy(it);
     lua_getfield(L, -1, "close_curve");
     ret = lua_pcall(L, 0, 0, 0);
     if(ret != LUA_OK)
@@ -642,66 +649,84 @@ static int _check_function(lua_State* L, const char* funcname)
     return 1;
 }
 
-static int _write_cell_lua(lua_State* L, struct object* cell, int write_ports, char leftdelim, char rightdelim)
+static int _write_cell_shapes_lua(lua_State* L, const struct object* cell)
 {
     int has_write_path = _check_function(L, "write_path");
     int has_curves = _check_function(L, "setup_curve") && _check_function(L, "close_curve") && _check_function(L, "curve_add_line_segment");
     int has_write_polygon = _check_function(L, "write_polygon");
-    for(unsigned int i = 0; i < object_get_shapes_size(cell); ++i)
+    struct shape_iterator* it = object_create_shape_iterator(cell);
+    const struct transformationmatrix* trans = object_get_transformation_matrix(cell);
+    int ret = LUA_OK;
+    while(shape_iterator_is_valid(it))
     {
-        struct shape* shape = object_get_transformed_shape(cell, i);
-        const struct hashmap* layerdata = shape_get_main_layerdata(shape);
+        const struct shape* shape = shape_iterator_get(it);
         // order of the following statements matter!
         // (e.g. if curves and polygons can't be written,
         //  a rasterized and triangulated curve can be used)
         if(shape_is_path(shape) && !has_write_path)
         {
+            // FIXME: the return value is needed
             shape_resolve_path(shape);
         }
         if(shape_is_curve(shape) && !has_curves)
         {
+            // FIXME: the return value is needed
             shape_rasterize_curve(shape);
         }
         if(shape_is_polygon(shape) && !has_write_polygon)
         {
+            // FIXME: the return value is needed
             shape_triangulate_polygon(shape);
         }
         if(shape_is_rectangle(shape))
         {
-            if(_write_lua_rectangle(L, layerdata, shape) != LUA_OK)
+            if(_write_lua_rectangle(L, shape, trans) != LUA_OK)
             {
-                return LUA_ERRRUN;
+                ret = LUA_ERRRUN;
+                goto SHAPE_CLEANUP;
             }
         }
         if(shape_is_polygon(shape))
         {
-            if(_write_lua_polygon(L, layerdata, shape) != LUA_OK)
+            if(_write_lua_polygon(L, shape, trans) != LUA_OK)
             {
-                return LUA_ERRRUN;
+                ret = LUA_ERRRUN;
+                goto SHAPE_CLEANUP;
             }
         }
         if(shape_is_triangulated_polygon(shape))
         {
-            if(_write_lua_triangulated_polygon(L, layerdata, shape) != LUA_OK)
+            if(_write_lua_triangulated_polygon(L, shape, trans) != LUA_OK)
             {
-                return LUA_ERRRUN;
+                ret = LUA_ERRRUN;
+                goto SHAPE_CLEANUP;
             }
         }
         if(shape_is_path(shape))
         {
-            if(_write_lua_path(L, layerdata, shape) != LUA_OK)
+            if(_write_lua_path(L, shape, trans) != LUA_OK)
             {
-                return LUA_ERRRUN;
+                ret = LUA_ERRRUN;
+                goto SHAPE_CLEANUP;
             }
         }
         if(shape_is_curve(shape))
         {
-            if(_write_lua_curve(L, layerdata, shape) != LUA_OK)
+            if(_write_lua_curve(L, shape, trans) != LUA_OK)
             {
-                return LUA_ERRRUN;
+                ret = LUA_ERRRUN;
+                goto SHAPE_CLEANUP;
             }
         }
+        shape_iterator_next(it);
     }
+SHAPE_CLEANUP:
+    shape_iterator_destroy(it);
+    return ret;
+}
+
+static int _write_cell_children_lua(lua_State* L, const struct object* cell)
+{
     struct child_iterator* it = object_create_child_iterator(cell);
     while(child_iterator_is_valid(it))
     {
@@ -756,12 +781,23 @@ static int _write_cell_lua(lua_State* L, struct object* cell, int write_ports, c
         child_iterator_next(it);
     }
     child_iterator_destroy(it);
+    return LUA_OK;
+}
+
+static int _write_cell_lua(lua_State* L, struct object* cell, int write_ports, char leftdelim, char rightdelim)
+{
+    _write_cell_shapes_lua(L, cell);
+    int ret = _write_cell_children_lua(L, cell);
+    if(ret != LUA_OK)
+    {
+        return ret;
+    }
     if(write_ports && object_has_ports(cell))
     {
         lua_getfield(L, -1, "write_port");
         if(!lua_isnil(L, -1))
         {
-            int ret = _write_ports_lua(L, cell, leftdelim, rightdelim);
+            int ret = _write_ports_C_lua(L, cell, NULL, NULL, leftdelim, rightdelim);
             if(ret != LUA_OK)
             {
                 return ret;
