@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="utf-8"?>
+<klayout-macro>
+ <description/>
+ <version/>
+ <category>lvs</category>
+ <prolog/>
+ <epilog/>
+ <doc/>
+ <autorun>false</autorun>
+ <autorun-early>false</autorun-early>
+ <shortcut/>
+ <show-in-menu>true</show-in-menu>
+ <group-name>lvs_scripts</group-name>
+ <menu-path>tools_menu.lvs.end</menu-path>
+ <interpreter>dsl</interpreter>
+ <dsl-interpreter-name>lvs-dsl-xml</dsl-interpreter-name>
+ <text>
+# Read about LVS scripts in the User Manual in "Layout vs. Schematic (LVS)"
+
+# Try this sample script with this layout:
+#   https://github.com/KLayout/klayout/tree/master/samples/lvs/ringo.gds
+# and this schematic:
+#   https://github.com/KLayout/klayout/tree/master/samples/lvs/schematic.cir
+
+# Reference schematic (if not absolute: path relative to original layout)
+#schematic("schematic.cir")
+
+# Tip: you can also use:
+#   schematic(source.path.sub(/\.(oas|gds)/, ".cir"))
+# to derive the schematic name from the layout file's name 
+# by substituting .oas or .gsd with .cir.
+
+# Enable hierarchical mode
+deep
+
+# Produce LVS report
+report_lvs
+
+# -------------------------------------------------------------------
+# Layers
+
+# Drawing layers
+active      = input(1, 0)
+pwell       = input(2, 0)
+nwell       = input(3, 0)
+pimplant    = input(4, 0)
+nimplant    = input(5, 0)
+gate        = input(6, 0) - input(27, 0)
+contact     = input(7, 0)
+metal1      = input(8, 0)
+via1        = input(9, 0)
+metal2      = input(10, 0)
+via2        = input(11, 0)
+metal3      = input(12, 0)
+via3        = input(13, 0)
+metal4      = input(14, 0)
+via4        = input(15, 0)
+metal5      = input(16, 0)
+port1       = input(8, 1)
+port2       = input(10, 1)
+
+
+# Bulk layer for terminal provisioning
+bulk        = polygon_layer
+
+# Computed layers
+active_in_nwell       = active &amp; nwell
+pactive               = active_in_nwell &amp; pimplant
+pgate                 = pactive &amp; gate
+psd                   = pactive - pgate
+ntie                  = active_in_nwell &amp; nimplant
+
+active_outside_nwell  = active - nwell
+nactive               = active_outside_nwell &amp; nimplant
+ngate                 = nactive &amp; gate
+nsd                   = nactive - ngate
+ptie                  = active_outside_nwell &amp; pimplant
+
+# -------------------------------------------------------------------
+# Device extraction
+
+# PMOS transistor device extraction
+extract_devices(mos4("slvtpfet"), { "SD" =&gt; psd, "G" =&gt; pgate, "W" =&gt; nwell, 
+                                "tS" =&gt; psd, "tD" =&gt; psd, "tG" =&gt; gate, "tW" =&gt; nwell })
+
+# NMOS transistor device extraction
+extract_devices(mos4("slvtnfet"), { "SD" =&gt; nsd, "G" =&gt; ngate, "W" =&gt; bulk, 
+                                "tS" =&gt; nsd, "tD" =&gt; nsd, "tG" =&gt; gate, "tW" =&gt; bulk })
+
+# -------------------------------------------------------------------
+# Connectivity
+
+# Inter-layer
+connect(psd,        contact)
+connect(nsd,        contact)
+connect(gate,       contact)
+connect(ntie,       contact)
+connect(nwell,      ntie)
+connect(ptie,       contact)
+connect(contact,    metal1)
+connect(metal1,     via1)
+connect(via1,       metal2)
+connect(metal2,     via2)
+connect(via2,       metal3)
+connect(metal3,     via3)
+connect(via3,       metal4)
+connect(metal4,     via4)
+connect(via4,       metal5)
+connect(port1,      metal1)
+connect(port2,      metal2)
+
+# Global
+connect_global(bulk, "SUBSTRATE")
+connect_global(ptie, "SUBSTRATE")
+
+# -------------------------------------------------------------------
+# Netlist and compare
+
+# Netlist normalization
+netlist.simplify
+if $filename
+  puts "Variable 'filename' given with value: #{$filename}"
+else
+  puts "Variable 'filename' not given please provide it with -rd filename=..."
+end
+
+#argument in write_spice to write out pin names
+target_netlist($filename, write_spice(true), "Created by KLayout")
+
+# Hierarchy alignment (flatten out unmatched cells)
+#align
+
+# Netlist vs. netlist
+#compare
+</text>
+</klayout-macro>
+
