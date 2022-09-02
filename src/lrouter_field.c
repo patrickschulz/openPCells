@@ -96,23 +96,19 @@ static int _get_const(const struct field* field, size_t x, size_t y, size_t z)
     return field->content[x + y * field->width + z * field->width * field->height];
 }
 
-void field_print(struct field* field, int layer, unsigned int x_from, unsigned int x_to,
-    unsigned int y_from, unsigned int y_to)
+void field_print(struct field* field, int layer)
 {
     //for(size_t i = 0; i < field->width; ++i)
     //{
     //    fputs("=====", stdout);
     //}
-    x_to = (x_to > field->width) ? field->width : x_to;
-    y_to = (y_to > field->height) ? field->width : y_to;
-
     printf("layer %u\n", layer);
-    for(size_t i = y_from; i < y_to; ++i)
+    for(size_t i = 0; i < field->height; ++i)
     {
         normal();
         size_t yidx = field->height - i - 1;
         printf("%04li:", yidx);
-        for(size_t j = x_from; j < x_to; j++)
+        for(size_t j = 0; j < field->width; j++)
         {
             int value = *_get(field, j, yidx, layer);
             switch(value)

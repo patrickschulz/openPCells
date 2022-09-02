@@ -211,7 +211,6 @@ void route(struct net *net, struct field* field, int step_cost, int wrong_dir_co
           height = field_get_height(field);
           /*printf("fail in routing at %u, %u, %u\n field size %lu, %lu\n", current.x, current.y, current.z, 
               field_get_width(field), field_get_height(field)); */
-          field_print(field, 0, 0, width, 0, height);
           getchar();
         }
 

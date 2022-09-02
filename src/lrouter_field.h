@@ -19,8 +19,7 @@ struct rpoint {
 struct field;
 struct field* field_init(size_t width, size_t height, size_t num_layers);
 void field_destroy(struct field* field);
-void field_print(struct field* field, int layer, unsigned int x_from, unsigned int x_to,
-    unsigned int y_from, unsigned int y_to);
+void field_print(struct field* field, int layer);
 void field_unprint(size_t size);
 void field_create_blockage(struct field* field, struct rpoint* start, struct rpoint* end);
 struct rpoint *point_new(int x, int y, int z, unsigned int score);

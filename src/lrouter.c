@@ -187,6 +187,7 @@ int lrouter_route(lua_State* L)
     struct netcollection* nc = _initialize(L);
     const size_t field_height = lua_tointeger(L, 4) + 1;
     const size_t field_width = lua_tointeger(L, 3) + 1;
+    printf("field width %zu, field height %zu\n", field_height, field_width);
     const size_t num_layers = 3;
 
     const int step_cost = 2;
@@ -278,10 +279,9 @@ int lrouter_route(lua_State* L)
 
     for(unsigned int i = 0; i < 2; ++i)
     {
-        //field_print(field, i);
+        field_print(field, i);
     }
 
-    //field_print(field, 0);
     field_destroy(field);
     vector_destroy(nc->nets, net_destroy);
     vector_destroy(nc->blockages, _destroy_blockage);
