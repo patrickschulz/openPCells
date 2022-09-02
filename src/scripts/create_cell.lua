@@ -27,11 +27,10 @@ end
 -- create cell
 pcell.enable_debug(args.debugcell)
 pcell.enable_dprint(args.enabledprint)
-local parameters = pcell.evaluate_parameters(args.cell, cellargs)
 if args.isscript then
-    local cell = pcell.create_layout_from_script(args.cell, parameters)
+    local cell = pcell.create_layout_from_script(args.cell, cellargs, true)
     return cell
 else
-    local cell = pcell.create_layout(args.cell, parameters)
+    local cell = pcell.create_layout(args.cell, cellargs, nil, true) -- nil: no environment, true: evaluate parameters
     return cell
 end
