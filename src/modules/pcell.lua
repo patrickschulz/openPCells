@@ -647,6 +647,11 @@ function pcell.pop_overwrites(othercell)
     pop_overwrites(state, nil, othercell)
 end
 
+-- FIXME: parameters ('cellargs') should always be passed already evaluated
+-- currently, the evaluators are called when _get_parameters is called, but
+-- this is only needed when create_layout is called with parameters entered by the user.
+-- Parameters in cell layout functions or cellscripts are already evaluated, which is the more common case.
+-- -> create an API function to evaluate parameters and then pass those to this function
 function pcell.create_layout(cellname, cellargs, env, evaluate)
     if not cellname then
         error("pcell.create_layout: no cellname given")
