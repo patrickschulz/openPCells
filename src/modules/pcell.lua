@@ -269,7 +269,7 @@ local function _add_parameter(state, cellname, name, value, argtype, posvals, fo
     return cell.parameters:add(name, value, argtype, posvals, readonly)
 end
 
-local function _set_parameter_function(state, cellname, name, value, backup, evaluate, overwrite)
+local function _set_parameter_function(state, cellname, name, value, backup, overwrite)
     local cell = _get_cell(state, cellname)
     local p = cell.parameters:get(name)
     if not p then
@@ -278,17 +278,13 @@ local function _set_parameter_function(state, cellname, name, value, backup, eva
     if overwrite then
         p.overwritten = true
     end
-    local value = value
-    if evaluate then
-        value = evaluator(value, p.argtype)
-    end
     paramlib.check_constraints(p, value)
     paramlib.check_readonly(p)
     -- store old function for restoration
     backup[name] = p.func:get()
     -- important: use :replace(), don't create a new function object.
     -- Otherwise parameter binding does not work, because bound parameters link to the original function object
-    -- TODO: parameter binding is deprecated/does not exist any more. Is this comment/method still needed?
+    -- FIXME: parameter binding is deprecated/does not exist any more. Is this comment/method still needed?
     p.func:replace(function() return value end)
 end
 
@@ -304,16 +300,16 @@ local function _split_input_arguments(cellargs)
     return t
 end
 
-local function _process_input_parameters(state, cellname, cellargs, evaluate, overwrite)
+local function _process_input_parameters(state, cellname, cellargs, overwrite)
     local backup = {}
     if cellargs then
         local args = _split_input_arguments(cellargs)
         for _, arg in ipairs(args) do
             if arg.parent then
-                _set_parameter_function(state, arg.parent, arg.name, arg.value, {}, evaluate, overwrite)
+                _set_parameter_function(state, arg.parent, arg.name, arg.value, {}, overwrite)
             else
                 if cellname then -- can be called without a cellname to update only parent parameters
-                    _set_parameter_function(state, cellname, arg.name, arg.value, backup, evaluate, overwrite)
+                    _set_parameter_function(state, cellname, arg.name, arg.value, backup, overwrite)
                 end
             end
         end
@@ -321,7 +317,7 @@ local function _process_input_parameters(state, cellname, cellargs, evaluate, ov
     return backup
 end
 
-local function _get_parameters(state, cellname, othercellname, cellargs, evaluate)
+local function _get_parameters(state, cellname, othercellname, cellargs)
     local othercell = _get_cell(state, othercellname)
     local cellparams = othercell.parameters:get_values()
     cellargs = cellargs or {}
@@ -332,7 +328,7 @@ local function _get_parameters(state, cellname, othercellname, cellargs, evaluat
         if not cell.references[othercellname] then
             error(string.format("trying to access parameters of unreferenced cell (%s from %s)", othercellname, cellname))
         end
-        backup = _process_input_parameters(state, cellname, cellargs, evaluate)
+        backup = _process_input_parameters(state, cellname, cellargs)
     end
 
     -- store parameters in user-readable table
@@ -437,7 +433,7 @@ local function push_overwrites(state, cellname, othercell, cellargs)
             error(string.format("trying to access parameters of unreferenced cell (%s from %s)", othercell, cellname))
         end
     end
-    local backup = _process_input_parameters(state, othercell, cellargs, false, true)
+    local backup = _process_input_parameters(state, othercell, cellargs, true) -- true: overwrite
     if not state.backupstacks[othercell] then
         state.backupstacks[othercell] = stack.create()
     end
@@ -604,8 +600,8 @@ local function _check_parameter_expressions(state, cellname, parameters)
 end
 
 -- Public functions
-function pcell.get_parameters(othercell, cellargs, evaluate)
-    return _get_parameters(state, nil, othercell, cellargs, evaluate)
+function pcell.get_parameters(othercell, cellargs)
+    return _get_parameters(state, nil, othercell, cellargs)
 end
 
 function pcell.add_cell(cellname, funcs)
@@ -632,10 +628,10 @@ local function _find_cell_traceback()
     end
 end
 
-function pcell.update_other_cell_parameters(cellargs, evaluate)
+function pcell.update_other_cell_parameters(cellargs)
     for name, arg in pairs(cellargs) do
         -- call with cellname == nil, only update parent parameters
-        _process_input_parameters(state, nil, cellargs, evaluate, false)
+        _process_input_parameters(state, nil, cellargs, false) -- false: overwrite
     end
 end
 
@@ -647,12 +643,26 @@ function pcell.pop_overwrites(othercell)
     pop_overwrites(state, nil, othercell)
 end
 
--- FIXME: parameters ('cellargs') should always be passed already evaluated
--- currently, the evaluators are called when _get_parameters is called, but
--- this is only needed when create_layout is called with parameters entered by the user.
--- Parameters in cell layout functions or cellscripts are already evaluated, which is the more common case.
--- -> create an API function to evaluate parameters and then pass those to this function
-function pcell.create_layout(cellname, cellargs, env, evaluate)
+function pcell.evaluate_parameters(cellname, cellargs)
+    local parameters = {}
+    local args = _split_input_arguments(cellargs)
+    for _, arg in ipairs(args) do
+        local cell = _get_cell(state, arg.parent or cellname)
+        local p = cell.parameters:get(arg.name)
+        if not p then
+            error(string.format("argument '%s' has no matching parameter in cell '%s', maybe it was spelled wrong?", name, arg.parent or cellname))
+        end
+        local index = arg.name
+        if arg.parent then
+            index = string.format("%s.%s", arg.parent, arg.name)
+        end
+        parameters[index] = evaluator(arg.value, p.argtype)
+    end
+    return parameters
+end
+
+
+function pcell.create_layout(cellname, cellargs, env)
     if not cellname then
         error("pcell.create_layout: no cellname given")
     end
@@ -675,7 +685,7 @@ function pcell.create_layout(cellname, cellargs, env, evaluate)
     if not cell.funcs.layout then
         error(string.format("cell '%s' has no layout definition", cellname))
     end
-    local parameters, backup = _get_parameters(state, cellname, cellname, cellargs, evaluate) -- cellname needs to be passed twice
+    local parameters, backup = _get_parameters(state, cellname, cellname, cellargs) -- cellname needs to be passed twice
     _restore_parameters(state, cellname, backup)
     local failures = _check_parameter_expressions(state, cellname, parameters)
     if #failures > 0 then
@@ -692,9 +702,9 @@ function pcell.create_layout(cellname, cellargs, env, evaluate)
     return obj
 end
 
-function pcell.create_layout_from_script(scriptpath, cellargs, evaluate)
+function pcell.create_layout_from_script(scriptpath, cellargs)
     if cellargs then
-        pcell.update_other_cell_parameters(cellargs, evaluate)
+        pcell.update_other_cell_parameters(cellargs)
     end
     local reader = _get_reader(scriptpath)
     if reader then
@@ -755,8 +765,6 @@ local function _collect_parameters(cell, ptype, parent, str)
 end
 
 function pcell.parameters(cellname, cellargs, generictech)
-    local str = {}
-
     if generictech then
         local meta = {}
         meta.__add = function(lhs, rhs)
@@ -798,8 +806,24 @@ function pcell.parameters(cellname, cellargs, generictech)
     local cell = _get_cell(state, cellname)
     local parameters, backup = _get_parameters(state, cellname, cellname, cellargs, true) -- cellname needs to be passed twice
     --_restore_parameters(state, cellname, backup) -- FIXME?
+    local str = {}
     _collect_parameters(cell, "N", cellname, str)
 
+    -- FIXME: implement parameter collection from layout functions
+    -- execute the 'layout' function without creating any layouts to collect all used parameters
+    -- this is required in order to get the actual transparent parameters of subcells
+    -- (that is, parameters that are not overwritten on higher levels)
+        --local t = {
+        --    get_dimension = function(name) return 4 end, -- FIXME: find a suitable return value
+        --}
+        --_override_cell_environment("tech", t)
+        --local status, msg = pcall(pcell.create_layout, cellname)
+        --if not status then
+        --    print(string.format("cell '%s' is not instantiable. Error: %s", cellname, msg))
+        --    return
+        --end
+
+    --[[
     -- display referenced parameters
     for othercellname in pairs(cell.references) do
         if othercellname ~= cellname then
@@ -807,6 +831,7 @@ function pcell.parameters(cellname, cellargs, generictech)
             _collect_parameters(othercell, "R", othercellname, str) -- 'referenced' parameter
         end
     end
+    --]]
     _override_cell_environment(nil)
     return str
 end

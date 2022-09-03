@@ -20,7 +20,14 @@ if not args.noparamfile or args.isscript then -- cellscripts don't support pfile
         end
     end
 end
+
+-- process input (cmdline) parameters
+local toevaluate = {}
 for k, v in string.gmatch(table.concat(args.cellargs, " "), "([%w_/.]+)%s*=%s*(%S+)") do
+    toevaluate[k] = v
+end
+local parameters = pcell.evaluate_parameters(args.cell, toevaluate)
+for k, v in pairs(parameters) do
     cellargs[k] = v
 end
 
@@ -28,9 +35,9 @@ end
 pcell.enable_debug(args.debugcell)
 pcell.enable_dprint(args.enabledprint)
 if args.isscript then
-    local cell = pcell.create_layout_from_script(args.cell, cellargs, true)
+    local cell = pcell.create_layout_from_script(args.cell, cellargs)
     return cell
 else
-    local cell = pcell.create_layout(args.cell, cellargs, nil, true) -- nil: no environment, true: evaluate parameters
+    local cell = pcell.create_layout(args.cell, cellargs)
     return cell
 end
