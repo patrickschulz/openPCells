@@ -32,4 +32,5 @@ function parameters()
         { "compact(Compact Layout)",                                    true },
         { "connectoutput",                                              true }
     )
+    pcell.check_expression("powerwidth % 8 == 0", "powerwidth must be divisible by 8")
 end

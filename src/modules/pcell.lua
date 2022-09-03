@@ -317,6 +317,28 @@ local function _process_input_parameters(state, cellname, cellargs, overwrite)
     return backup
 end
 
+local function _check_parameter_expressions(state, cellname, parameters)
+    local failures = {}
+    if state.expressions[cellname] then
+        for _, expr in ipairs(state.expressions[cellname]) do
+            local chunk, msg = load("return " .. expr.expression, "parameterexpression", "t", parameters)
+            if not chunk then
+                print(msg)
+                return
+            end
+            local check = chunk()
+            if not check then
+                if expr.message then
+                    table.insert(failures, expr.message)
+                else
+                    table.insert(failures, expr.expression)
+                end
+            end
+        end
+    end
+    return failures
+end
+
 local function _get_parameters(state, cellname, othercellname, cellargs)
     local othercell = _get_cell(state, othercellname)
     local cellparams = othercell.parameters:get_values()
@@ -361,6 +383,14 @@ local function _get_parameters(state, cellname, othercellname, cellargs)
             error(string.format("trying to access undefined parameter value '%s'", k))
         end,
     })
+
+    local failures = _check_parameter_expressions(state, othercellname, P)
+    if #failures > 0 then
+        for _, failure in ipairs(failures) do
+            print(failure)
+        end
+        error(string.format("could not satisfy parameter expression for cell '%s'", cellname), 0)
+    end
 
     return P, backup
 end
@@ -577,28 +607,6 @@ function state.create_cellenv(state, cellname, ovrenv)
     return env
 end
 
-local function _check_parameter_expressions(state, cellname, parameters)
-    local failures = {}
-    if state.expressions[cellname] then
-        for _, expr in ipairs(state.expressions[cellname]) do
-            local chunk, msg = load("return " .. expr.expression, "parameterexpression", "t", parameters)
-            if not chunk then
-                print(msg)
-                return
-            end
-            local check = chunk()
-            if not check then
-                if expr.message then
-                    table.insert(failures, expr.message)
-                else
-                    table.insert(failures, expr.expression)
-                end
-            end
-        end
-    end
-    return failures
-end
-
 -- Public functions
 function pcell.get_parameters(othercell, cellargs)
     return _get_parameters(state, nil, othercell, cellargs)
@@ -687,13 +695,6 @@ function pcell.create_layout(cellname, cellargs, env)
     end
     local parameters, backup = _get_parameters(state, cellname, cellname, cellargs) -- cellname needs to be passed twice
     _restore_parameters(state, cellname, backup)
-    local failures = _check_parameter_expressions(state, cellname, parameters)
-    if #failures > 0 then
-        for _, failure in ipairs(failures) do
-            print(failure)
-        end
-        error(string.format("could not satisfy parameter expression for cell '%s'", cellname), 0)
-    end
     local obj = object.create(cellname)
     cell.funcs.layout(obj, parameters, env)
     if explicitlib then
