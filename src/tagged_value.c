@@ -4,7 +4,11 @@
 #include <string.h>
 
 struct tagged_value {
-    void* value;
+    //void* value;
+    union {
+        int i;
+        char* str;
+    };
     enum tag {
         INTEGER,
         STRING,
@@ -22,33 +26,32 @@ struct tagged_value* _create(enum tag tag)
 struct tagged_value* tagged_value_create_integer(int i)
 {
     struct tagged_value* value = _create(INTEGER);
-    int* v = malloc(sizeof(i));
-    *v = i;
-    value->value = v;
+    value->i = i;
     return value;
 }
 
 struct tagged_value* tagged_value_create_string(const char* str)
 {
     struct tagged_value* value = _create(STRING);
-    value->value = strdup(str);
+    value->str = strdup(str);
     return value;
 }
 
 struct tagged_value* tagged_value_create_boolean(int b)
 {
     struct tagged_value* value = _create(BOOLEAN);
-    int* v = malloc(sizeof(b));
-    *v = b;
-    value->value = v;
+    value->i = b;
     return value;
 }
 
 void tagged_value_destroy(void* vp)
 {
-    struct tagged_value* value = vp;
-    free(value->value);
-    free(value);
+    struct tagged_value* v = vp;
+    if(v->tag == STRING)
+    {
+        free(v->str);
+    }
+    free(vp);
 }
 
 int tagged_value_is_integer(const struct tagged_value* value)
@@ -68,20 +71,20 @@ int tagged_value_is_boolean(const struct tagged_value* value)
 
 int tagged_value_get_integer(const struct tagged_value* value)
 {
-    return *((int*)value->value);
+    return value->i;
 }
 
 const char* tagged_value_get_const_string(const struct tagged_value* value)
 {
-    return value->value;
+    return value->str;
 }
 
 char* tagged_value_get_string(struct tagged_value* value)
 {
-    return value->value;
+    return value->str;
 }
 
 int tagged_value_get_boolean(const struct tagged_value* value)
 {
-    return *((int*)value->value);
+    return value->i;
 }
