@@ -92,7 +92,7 @@ static void _get_exportname(const char* exportname, struct const_vector* searchp
 {
     if(!util_split_string(exportname, ':', exportlayername_ptr, exportname_ptr)) // export layers were not specified
     {
-        *exportname_ptr = util_copy_string(exportname);
+        *exportname_ptr = strdup(exportname);
         char* exportlayername_from_function = export_get_export_layername(searchpaths, *exportname_ptr);
         if(exportlayername_from_function)
         {
@@ -100,7 +100,7 @@ static void _get_exportname(const char* exportname, struct const_vector* searchp
         }
         else
         {
-            *exportlayername_ptr = util_copy_string(exportname);
+            *exportlayername_ptr = strdup(exportname);
         }
     }
 }
@@ -140,7 +140,7 @@ char* export_get_export_layername(struct const_vector* searchpaths, const char* 
         char* techexport = NULL;
         if(funcs->get_techexport)
         {
-            techexport = util_copy_string(funcs->get_techexport());
+            techexport = strdup(funcs->get_techexport());
         }
         export_destroy_functions(funcs);
         return techexport;
@@ -182,7 +182,7 @@ char* export_get_export_layername(struct const_vector* searchpaths, const char* 
                         }
                         else
                         {
-                            char* s = util_copy_string(lua_tostring(L, -1));
+                            char* s = strdup(lua_tostring(L, -1));
                             lua_close(L);
                             return s;
                         }
@@ -296,7 +296,7 @@ int export_write_toplevel(struct object* toplevel, struct pcell_state* pcell_sta
         struct export_writer* writer = export_writer_create_C(funcs, data);
         export_writer_write_toplevel(writer, toplevel, pcell_state, state->toplevelname, state->writechildrenports, state->leftdelim, state->rightdelim);
         export_writer_destroy(writer);
-        extension = util_copy_string(funcs->get_extension());
+        extension = strdup(funcs->get_extension());
         status = EXPORT_STATUS_SUCCESS;
     }
     else // lua-defined exports
@@ -357,7 +357,7 @@ int export_write_toplevel(struct object* toplevel, struct pcell_state* pcell_sta
                 lua_close(L);
                 return 0;
             }
-            extension = util_copy_string(lua_tostring(L, -1));
+            extension = strdup(lua_tostring(L, -1));
             lua_pop(L, 1); // pop extension
             status = EXPORT_STATUS_SUCCESS;
             lua_close(L);

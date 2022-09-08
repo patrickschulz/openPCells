@@ -25,7 +25,7 @@ struct generics* generics_create_empty_layer(const char* name)
 {
     struct generics* layer = malloc(sizeof(*layer));
     memset(layer, 0, sizeof(*layer));
-    layer->name = util_copy_string(name);
+    layer->name = strdup(name);
     return layer;
 }
 
@@ -88,7 +88,7 @@ struct generics* generics_make_layer_from_lua(const char* layername, lua_State* 
         while (lua_next(L, -2) != 0)
         {
             const char* name = lua_tostring(L, -2);
-            layer->exportnames[i] = util_copy_string(name);
+            layer->exportnames[i] = strdup(name);
             layer->data[i] = hashmap_create();
             _insert_lpp_pairs(L, layer->data[i]);
             lua_pop(L, 1); // pop value, keep key for next iteration

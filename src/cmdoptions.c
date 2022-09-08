@@ -162,13 +162,13 @@ void cmdoptions_add_option_default(struct cmdoptions* options, char short_identi
     if(numargs > 1)
     {
         const char** arg = calloc(2, sizeof(*arg));
-        arg[0] = util_copy_string(default_arg);
+        arg[0] = strdup(default_arg);
         arg[1] = NULL;
         ((struct option*)entry->value)->argument = arg;
     }
     else
     {
-        ((struct option*)entry->value)->argument = util_copy_string(default_arg);
+        ((struct option*)entry->value)->argument = strdup(default_arg);
     }
     vector_append(options->entries, entry);
 }
@@ -487,7 +487,7 @@ int _store_argument(struct option* option, int* iptr, int argc, const char* cons
                 if(!option->argument)
                 {
                     char** argument = calloc(2, sizeof(char*));
-                    argument[0] = util_copy_string(argv[*iptr + 1]);
+                    argument[0] = strdup(argv[*iptr + 1]);
                     option->argument = argument;
                 }
                 else
@@ -500,14 +500,14 @@ int _store_argument(struct option* option, int* iptr, int argc, const char* cons
                     {
                         argument[j] = ((char**)option->argument)[j];
                     }
-                    argument[len] = util_copy_string(argv[*iptr + 1]);
+                    argument[len] = strdup(argv[*iptr + 1]);
                     free(option->argument);
                     option->argument = argument;
                 }
             }
             else // SINGLE_ARG option
             {
-                option->argument = util_copy_string(argv[*iptr + 1]);
+                option->argument = strdup(argv[*iptr + 1]);
             }
         }
         else // argument required, but not entries in argv left
@@ -592,7 +592,7 @@ int cmdoptions_parse(struct cmdoptions* options, int argc, const char* const * a
         }
         else // positional parameter
         {
-            vector_append(options->positional_parameters, util_copy_string(arg));
+            vector_append(options->positional_parameters, strdup(arg));
         }
     }
     return 1;
