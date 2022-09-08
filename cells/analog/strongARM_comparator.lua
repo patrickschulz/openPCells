@@ -449,8 +449,8 @@ function layout(comparator, _P)
         clockright:move_anchor("sourcedrainleftcc", clockdummy:get_anchor("sourcedrainrightcc"))
         -- connect both gates
         geometry.rectanglebltr(comparator, generics.metal(1),
-            clockleft:get_anchor("topgatestrapll"),
-            clockright:get_anchor("topgatestrapur")
+            clockleft:get_anchor("topgatestrapbl"),
+            clockright:get_anchor("topgatestraptr")
         )
     else
         clockleft = comparator:add_child(clockname)
@@ -537,12 +537,12 @@ function layout(comparator, _P)
             nmosinvleft:get_anchor("topgatestrapcl"),
     }), _P.sdwidth)
     geometry.viabltr(comparator, 1, 2,
-        nmosinvleft:get_anchor("topgatestrapll"),
-        nmosinvleft:get_anchor("topgatestrapur")
+        nmosinvleft:get_anchor("topgatestrapbl"),
+        nmosinvleft:get_anchor("topgatestraptr")
     )
     geometry.viabltr(comparator, 1, 2,
-        nmosinvright:get_anchor("topgatestrapll"),
-        nmosinvright:get_anchor("topgatestrapur")
+        nmosinvright:get_anchor("topgatestrapbl"),
+        nmosinvright:get_anchor("topgatestraptr")
     )
 
     -- connect latch drains
@@ -579,18 +579,18 @@ function layout(comparator, _P)
             nmosinvright:get_anchor("sourcestrapcl")
     }), _P.sdwidth)
     geometry.viabltr(comparator, 1, 2,
-        nmosinvright:get_anchor("sourcestrapll"),
-        nmosinvright:get_anchor("sourcestrapur")
+        nmosinvright:get_anchor("sourcestrapbl"),
+        nmosinvright:get_anchor("sourcestraptr")
     )
     geometry.viabltr(comparator, 1, 2,
-        nmosinvleft:get_anchor("sourcestrapll"),
-        nmosinvleft:get_anchor("sourcestrapur")
+        nmosinvleft:get_anchor("sourcestrapbl"),
+        nmosinvleft:get_anchor("sourcestraptr")
     )
 
     -- connect vtail
     geometry.rectanglebltr(comparator, generics.metal(2),
-        inputleft:get_anchor("sourcestraplr"),
-        inputright:get_anchor("sourcestrapul")
+        inputleft:get_anchor("sourcestrapbr"),
+        inputright:get_anchor("sourcestraptl")
     )
 
     -- connect clock gates
