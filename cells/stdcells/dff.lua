@@ -125,6 +125,11 @@ function layout(dff, _P)
         pcontactpos[23] = "power"
     end
 
+    -- finish dff gates
+    table.insert(gatecontactpos, "dummy")
+    table.insert(pcontactpos, "power")
+    table.insert(ncontactpos, "power")
+
     local harness = pcell.create_layout("stdcells/harness", {
         gatecontactpos = gatecontactpos,
         pcontactpos = pcontactpos,
