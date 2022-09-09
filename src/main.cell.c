@@ -115,7 +115,7 @@ static void _prepare_cellpaths(struct vector* cellpaths_to_prepend, struct vecto
         const char** arg = cmdoptions_get_argument_long(cmdoptions, "prepend-cellpath");
         while(*arg)
         {
-            vector_append(cellpaths_to_prepend, util_copy_string(*arg));
+            vector_append(cellpaths_to_prepend, strdup(*arg));
             ++arg;
         }
     }
@@ -124,7 +124,7 @@ static void _prepare_cellpaths(struct vector* cellpaths_to_prepend, struct vecto
         const char** arg = cmdoptions_get_argument_long(cmdoptions, "append-cellpath");
         while(*arg)
         {
-            vector_append(cellpaths_to_append, util_copy_string(*arg));
+            vector_append(cellpaths_to_append, strdup(*arg));
             ++arg;
         }
     }
@@ -133,7 +133,7 @@ static void _prepare_cellpaths(struct vector* cellpaths_to_prepend, struct vecto
     {
         for(unsigned int i = 0; i < vector_size(config_prepend_cellpaths); ++i)
         {
-            vector_append(cellpaths_to_prepend, util_copy_string(vector_get(config_prepend_cellpaths, i)));
+            vector_append(cellpaths_to_prepend, strdup(vector_get(config_prepend_cellpaths, i)));
         }
     }
     struct vector* config_append_cellpaths = hashmap_get(config, "append_cellpaths");
@@ -141,10 +141,10 @@ static void _prepare_cellpaths(struct vector* cellpaths_to_prepend, struct vecto
     {
         for(unsigned int i = 0; i < vector_size(config_append_cellpaths); ++i)
         {
-            vector_append(cellpaths_to_append, util_copy_string(vector_get(config_append_cellpaths, i)));
+            vector_append(cellpaths_to_append, strdup(vector_get(config_append_cellpaths, i)));
         }
     }
-    vector_append(cellpaths_to_append, util_copy_string(OPC_HOME "/cells"));
+    vector_append(cellpaths_to_append, strdup(OPC_HOME "/cells"));
 }
 
 void main_list_cell_parameters(struct cmdoptions* cmdoptions, struct hashmap* config)
@@ -158,13 +158,13 @@ void main_list_cell_parameters(struct cmdoptions* cmdoptions, struct hashmap* co
     module_load_load(L);
 
     struct vector* techpaths = hashmap_get(config, "techpaths");
-    vector_append(techpaths, util_copy_string(OPC_HOME "/tech"));
+    vector_append(techpaths, strdup(OPC_HOME "/tech"));
     if(cmdoptions_was_provided_long(cmdoptions, "techpath"))
     {
         const char** arg = cmdoptions_get_argument_long(cmdoptions, "techpath");
         while(*arg)
         {
-            vector_append(techpaths, util_copy_string(*arg));
+            vector_append(techpaths, strdup(*arg));
             ++arg;
         }
     }
@@ -507,13 +507,13 @@ int main_create_and_export_cell(struct cmdoptions* cmdoptions, struct hashmap* c
 {
     int retval = 1;
     struct vector* techpaths = hashmap_get(config, "techpaths");
-    vector_append(techpaths, util_copy_string(OPC_HOME "/tech"));
+    vector_append(techpaths, strdup(OPC_HOME "/tech"));
     if(cmdoptions_was_provided_long(cmdoptions, "techpath"))
     {
         const char** arg = cmdoptions_get_argument_long(cmdoptions, "techpath");
         while(*arg)
         {
-            vector_append(techpaths, util_copy_string(*arg));
+            vector_append(techpaths, strdup(*arg));
             ++arg;
         }
     }

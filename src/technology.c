@@ -20,7 +20,7 @@ struct technology_state {
 
 void technology_add_techpath(struct technology_state* techstate, const char* path)
 {
-    vector_append(techstate->techpaths, util_copy_string(path));
+    vector_append(techstate->techpaths, strdup(path));
 }
 
 static int ltechnology_list_techpaths(lua_State* L)
@@ -173,7 +173,7 @@ int technology_load_viadefinitions(struct technology_state* techstate, const cha
     lua_pushnil(L);
     while(lua_next(L, -2) != 0)
     {
-        char* vianame = util_copy_string(lua_tostring(L, -2));
+        char* vianame = strdup(lua_tostring(L, -2));
         struct via_definition** viadefs = _read_via(L);
         struct via_definition* fallback = _read_via_fallback(L);
         _insert_via(techstate, vianame, viadefs, fallback);

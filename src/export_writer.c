@@ -224,6 +224,54 @@ static int _has_curve_support(struct export_writer* writer)
     return 0;
 }
 
+static int _write_child_array(struct export_writer* writer, const char* identifier, const point_t* origin, const struct transformationmatrix* trans, unsigned int xrep, unsigned int yrep, unsigned int xpitch, unsigned int ypitch)
+{
+    if(writer->islua)
+    {
+        lua_getfield(writer->L, -1, "write_cell_array");
+        lua_pushstring(writer->L, identifier);
+        _push_point(writer->L, origin);
+        _push_trans(writer->L, trans);
+        _push_rep_pitch(writer->L, xrep, yrep, xpitch, ypitch);
+        return lua_pcall(writer->L, 8, 0, 0);
+    }
+    else // C
+    {
+        writer->funcs->write_cell_array(writer->data, identifier, origin->x, origin->y, trans, xrep, yrep, xpitch, ypitch);
+    }
+    return LUA_OK;
+}
+
+static int _write_child_single(struct export_writer* writer, const char* identifier, const point_t* origin, const struct transformationmatrix* trans, unsigned int xrep, unsigned int yrep, unsigned int xpitch, unsigned int ypitch)
+{
+    for(unsigned int ix = 1; ix <= xrep; ++ix)
+    {
+        for(unsigned int iy = 1; iy <= yrep; ++iy)
+        {
+            coordinate_t x = origin->x + (ix - 1) * xpitch;
+            coordinate_t y = origin->y + (iy - 1) * ypitch;
+            if(writer->islua)
+            {
+                lua_getfield(writer->L, -1, "write_cell_reference");
+                lua_pushstring(writer->L, identifier);
+                lua_pushinteger(writer->L, x);
+                lua_pushinteger(writer->L, y);
+                _push_trans(writer->L, trans);
+                int ret = lua_pcall(writer->L, 4, 0, 0);
+                if(ret != LUA_OK)
+                {
+                    return ret;
+                }
+            }
+            else // C
+            {
+                writer->funcs->write_cell_reference(writer->data, identifier, x, y, trans);
+            }
+        }
+    }
+    return LUA_OK;
+}
+
 static int _write_child(struct export_writer* writer, const struct object* child, const point_t* origin)
 {
     unsigned int xrep = object_get_child_xrep(child);
@@ -235,52 +283,11 @@ static int _write_child(struct export_writer* writer, const struct object* child
     int ret = LUA_OK;
     if(object_is_child_array(child) && _has_write_cell_array(writer))
     {
-        if(writer->islua)
-        {
-            lua_getfield(writer->L, -1, "write_cell_array");
-            lua_pushstring(writer->L, identifier);
-            _push_point(writer->L, origin);
-            _push_trans(writer->L, trans);
-            _push_rep_pitch(writer->L, xrep, yrep, xpitch, ypitch);
-            ret = lua_pcall(writer->L, 8, 0, 0);
-            if(ret != LUA_OK)
-            {
-                return ret;
-            }
-        }
-        else // C
-        {
-            writer->funcs->write_cell_array(writer->data, identifier, origin->x, origin->y, trans, xrep, yrep, xpitch, ypitch);
-        }
+        _write_child_array(writer, identifier, origin, trans, xrep, yrep, xpitch, ypitch);
     }
     else
     {
-        for(unsigned int ix = 1; ix <= xrep; ++ix)
-        {
-            for(unsigned int iy = 1; iy <= yrep; ++iy)
-            {
-                coordinate_t x = origin->x + (ix - 1) * xpitch;
-                coordinate_t y = origin->y + (iy - 1) * ypitch;
-                if(writer->islua)
-                {
-                    lua_getfield(writer->L, -1, "write_cell_reference");
-                    lua_pushstring(writer->L, identifier);
-                    lua_pushinteger(writer->L, x);
-                    lua_pushinteger(writer->L, y);
-                    _push_trans(writer->L, trans);
-                    ret = lua_pcall(writer->L, 4, 0, 0);
-                    if(ret != LUA_OK)
-                    {
-                        return ret;
-                    }
-                }
-                else // C
-                {
-                    writer->funcs->write_cell_reference(writer->data, identifier, x, y, trans);
-                }
-            }
-        }
-
+        _write_child_single(writer, identifier, origin, trans, xrep, yrep, xpitch, ypitch);
     }
     return ret;
 }

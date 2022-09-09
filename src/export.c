@@ -92,7 +92,7 @@ static void _get_exportname(const char* exportname, struct const_vector* searchp
 {
     if(!util_split_string(exportname, ':', exportlayername_ptr, exportname_ptr)) // export layers were not specified
     {
-        *exportname_ptr = util_copy_string(exportname);
+        *exportname_ptr = strdup(exportname);
         char* exportlayername_from_function = export_get_export_layername(searchpaths, *exportname_ptr);
         if(exportlayername_from_function)
         {
@@ -100,7 +100,7 @@ static void _get_exportname(const char* exportname, struct const_vector* searchp
         }
         else
         {
-            *exportlayername_ptr = util_copy_string(exportname);
+            *exportlayername_ptr = strdup(exportname);
         }
     }
 }
@@ -140,7 +140,7 @@ char* export_get_export_layername(struct const_vector* searchpaths, const char* 
         char* techexport = NULL;
         if(funcs->get_techexport)
         {
-            techexport = util_copy_string(funcs->get_techexport());
+            techexport = strdup(funcs->get_techexport());
         }
         export_destroy_functions(funcs);
         return techexport;
@@ -182,7 +182,7 @@ char* export_get_export_layername(struct const_vector* searchpaths, const char* 
                         }
                         else
                         {
-                            char* s = util_copy_string(lua_tostring(L, -1));
+                            char* s = strdup(lua_tostring(L, -1));
                             lua_close(L);
                             return s;
                         }
@@ -258,6 +258,26 @@ static int _check_lua_export(lua_State* L)
     return 1;
 }
 
+static char* _find_lua_export(const struct const_vector* searchpaths, const char* exportname)
+{
+    if(searchpaths)
+    {
+        for(unsigned int i = 0; i < const_vector_size(searchpaths); ++i)
+        {
+            const char* searchpath = const_vector_get(searchpaths, i);
+            size_t len = strlen(searchpath) + strlen(exportname) + 11; // + 11: "init.lua" + 2 * '/' + terminating zero
+            char* exportfilename = malloc(len);
+            snprintf(exportfilename, len, "%s/%s/init.lua", searchpath, exportname);
+            if(filesystem_exists(exportfilename))
+            {
+                return exportfilename;
+            }
+            free(exportfilename);
+        }
+    }
+    return NULL;
+}
+
 int export_write_toplevel(struct object* toplevel, struct pcell_state* pcell_state, struct export_state* state)
 {
     if(object_is_empty(toplevel))
@@ -276,86 +296,75 @@ int export_write_toplevel(struct object* toplevel, struct pcell_state* pcell_sta
         struct export_writer* writer = export_writer_create_C(funcs, data);
         export_writer_write_toplevel(writer, toplevel, pcell_state, state->toplevelname, state->writechildrenports, state->leftdelim, state->rightdelim);
         export_writer_destroy(writer);
-        extension = util_copy_string(funcs->get_extension());
+        extension = strdup(funcs->get_extension());
         status = EXPORT_STATUS_SUCCESS;
     }
     else // lua-defined exports
     {
-        if(state->searchpaths)
+        char* exportfilename = _find_lua_export(state->searchpaths, state->exportname);
+        lua_State* L = util_create_basic_lua_state();
+        int ret = luaL_dofile(L, exportfilename);
+        free(exportfilename);
+        if(ret != LUA_OK)
         {
-            for(unsigned int i = 0; i < const_vector_size(state->searchpaths); ++i)
+            status = EXPORT_STATUS_LOADERROR;
+            lua_close(L);
+            return ret;
+        }
+        if(lua_type(L, -1) == LUA_TTABLE)
+        {
+            // check minimal function support
+            if(!_check_lua_export(L))
             {
-                const char* searchpath = const_vector_get(state->searchpaths, i);
-                size_t len = strlen(searchpath) + strlen(state->exportname) + 11; // + 11: "init.lua" + 2 * '/' + terminating zero
-                char* exportfilename = malloc(len);
-                snprintf(exportfilename, len, "%s/%s/init.lua", searchpath, state->exportname);
-                if(!filesystem_exists(exportfilename))
-                {
-                    continue;
-                }
-                lua_State* L = util_create_basic_lua_state();
-                int ret = luaL_dofile(L, exportfilename);
-                free(exportfilename);
-                if(ret != LUA_OK)
-                {
-                    status = EXPORT_STATUS_LOADERROR;
-                    lua_close(L);
-                    break;
-                }
-                if(lua_type(L, -1) == LUA_TTABLE)
-                {
-                    // check minimal function support
-                    if(!_check_lua_export(L))
-                    {
-                        fprintf(stderr, "export '%s' must define at least the functions 'get_extension', 'write_rectangle', 'write_polygon' (or 'write_triangle') and 'finalize'\n", state->exportname);
-                        status = EXPORT_STATUS_LOADERROR;
-                        lua_close(L);
-                        break;
-                    }
-
-                    // parse and set export cmd options
-                    if(state->exportoptions)
-                    {
-                        lua_getfield(L, -1, "set_options");
-                        lua_newtable(L);
-                        const char* const * opt = state->exportoptions;
-                        while(*opt)
-                        {
-                            lua_pushstring(L, *opt);
-                            lua_rawseti(L, -2, opt - state->exportoptions + 1);
-                            ++opt;
-                        }
-                        _call_or_pop_nil(L, 1);
-                    }
-
-                    struct export_writer* writer = export_writer_create_lua(L, data);
-                    int ret = export_writer_write_toplevel(writer, toplevel, pcell_state, state->toplevelname, state->writechildrenports, state->leftdelim, state->rightdelim);
-                    export_writer_destroy(writer);
-                    if(ret != LUA_OK)
-                    {
-                        const char* msg = lua_tostring(L, -1);
-                        fprintf(stderr, "error while calling lua export: %s\n", msg);
-                        lua_close(L);
-                        return 0;
-                    }
-
-                    lua_getfield(L, -1, "get_extension");
-                    ret = lua_pcall(L, 0, 1, 0);
-                    if(ret != LUA_OK)
-                    {
-                        const char* msg = lua_tostring(L, -1);
-                        fprintf(stderr, "error while calling lua export: %s\n", msg);
-                        lua_close(L);
-                        return 0;
-                    }
-                    extension = util_copy_string(lua_tostring(L, -1));
-                    lua_pop(L, 1); // pop extension
-                    status = EXPORT_STATUS_SUCCESS;
-                    lua_close(L);
-                    break; // found export, don't continue search
-                }
+                fprintf(stderr, "export '%s' must define at least the functions 'get_extension', 'write_rectangle', 'write_polygon' (or 'write_triangle') and 'finalize'\n", state->exportname);
+                status = EXPORT_STATUS_LOADERROR;
                 lua_close(L);
+                return ret;
             }
+
+            // parse and set export cmd options
+            if(state->exportoptions)
+            {
+                lua_getfield(L, -1, "set_options");
+                lua_newtable(L);
+                const char* const * opt = state->exportoptions;
+                while(*opt)
+                {
+                    lua_pushstring(L, *opt);
+                    lua_rawseti(L, -2, opt - state->exportoptions + 1);
+                    ++opt;
+                }
+                _call_or_pop_nil(L, 1);
+            }
+
+            struct export_writer* writer = export_writer_create_lua(L, data);
+            int ret = export_writer_write_toplevel(writer, toplevel, pcell_state, state->toplevelname, state->writechildrenports, state->leftdelim, state->rightdelim);
+            export_writer_destroy(writer);
+            if(ret != LUA_OK)
+            {
+                const char* msg = lua_tostring(L, -1);
+                fprintf(stderr, "error while calling lua export: %s\n", msg);
+                lua_close(L);
+                return 0;
+            }
+
+            lua_getfield(L, -1, "get_extension");
+            ret = lua_pcall(L, 0, 1, 0);
+            if(ret != LUA_OK)
+            {
+                const char* msg = lua_tostring(L, -1);
+                fprintf(stderr, "error while calling lua export: %s\n", msg);
+                lua_close(L);
+                return 0;
+            }
+            extension = strdup(lua_tostring(L, -1));
+            lua_pop(L, 1); // pop extension
+            status = EXPORT_STATUS_SUCCESS;
+            lua_close(L);
+        }
+        else
+        {
+            lua_close(L);
         }
     }
 

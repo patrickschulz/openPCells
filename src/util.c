@@ -16,14 +16,6 @@ unsigned int util_num_digits(unsigned int n)
     return count;
 }
 
-char* util_copy_string(const char* str)
-{
-    size_t len = strlen(str);
-    char* copy = malloc(len + 1);
-    strncpy(copy, str, len + 1);
-    return copy;
-}
-
 int util_match_string(const char* str, const char* match)
 {
     const char* ptr = str;

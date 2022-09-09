@@ -77,12 +77,12 @@ void pcell_destroy_state(struct pcell_state* pcell_state)
 
 void pcell_prepend_cellpath(struct pcell_state* pcell_state, const char* path)
 {
-    vector_prepend(pcell_state->cellpaths, util_copy_string(path));
+    vector_prepend(pcell_state->cellpaths, strdup(path));
 }
 
 void pcell_append_cellpath(struct pcell_state* pcell_state, const char* path)
 {
-    vector_append(pcell_state->cellpaths, util_copy_string(path));
+    vector_append(pcell_state->cellpaths, strdup(path));
 }
 
 static char* _unique_name(struct pcell_state* pcell_state, const char* identifier)
@@ -100,7 +100,7 @@ static char* _unique_name(struct pcell_state* pcell_state, const char* identifie
     if(!ptr)
     {
         struct used_name* entry = malloc(sizeof(*entry));
-        entry->identifier = util_copy_string(identifier);
+        entry->identifier = strdup(identifier);
         entry->numused = 0;
         ptr = &entry->numused;
         vector_append(pcell_state->used_names, entry);
