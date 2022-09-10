@@ -707,24 +707,25 @@ int main_create_and_export_cell(struct cmdoptions* cmdoptions, struct hashmap* c
         goto DESTROY_OBJECT;
     }
 
+    // cell info
+    if(cmdoptions_was_provided_long(cmdoptions, "show-cellinfo"))
+    {
+        if(toplevel)
+        {
+            info_cellinfo(toplevel);
+        }
+    }
+
 DESTROY_OBJECT:
     if(toplevel)
     {
         object_destroy(toplevel);
     }
-//DESTROY_LAYERMAP:
     generics_destroy_layer_map(layermap);
 DESTROY_PCELL_STATE:
     pcell_destroy_state(pcell_state);
 DESTROY_TECHNOLOGY:
     technology_destroy(techstate);
-
-    // cell info
-    if(cmdoptions_was_provided_long(cmdoptions, "show-cellinfo"))
-    {
-       info_cellinfo(toplevel);
-    }
 EXIT:
-
     return retval;
 }

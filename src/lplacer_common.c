@@ -48,7 +48,7 @@ int next_permutation(unsigned int* array, size_t len)
     }
     else
     {
-        int l;
+        int l = 0;
         for (unsigned int i = j + 1; i < len; i++)
         {
             if (array[i] > array[j])
