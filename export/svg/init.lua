@@ -39,10 +39,10 @@ end
 
 local __width, __height
 function M.initialize(minx, maxx, miny, maxy)
-    minx = -20000
-    maxx = 100000
-    miny = -100000
-    maxy = 100000
+    --minx = -20000
+    --maxx = 100000
+    --miny = -100000
+    --maxy = 100000
     local width = maxx - minx
     local height = maxy - miny
     __xoffset = -minx * __scale + __xmargin

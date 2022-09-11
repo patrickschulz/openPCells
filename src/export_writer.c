@@ -791,6 +791,14 @@ int export_writer_write_toplevel(struct export_writer* writer, const struct obje
     pcell_destroy_cell_reference_iterator(it);
 
     _write_cell2(writer, object, toplevelname, 1, 1, leftdelim, rightdelim); // first 1: istoplevel, second 1: write_ports
+
+    ret = _write_at_end(writer);
+    if(ret != LUA_OK)
+    {
+        return ret;
+    }
+
+    // finalize (only lua exports)
     if(writer->islua)
     {
         lua_getfield(writer->L, -1, "finalize");
@@ -803,14 +811,8 @@ int export_writer_write_toplevel(struct export_writer* writer, const struct obje
         const char* strdata = lua_tolstring(writer->L, -1, &datalen);
         export_data_append_string(writer->data, strdata, datalen);
         lua_pop(writer->L, 1); // pop data
-        return ret;
     }
 
-    ret = _write_at_end(writer);
-    if(ret != LUA_OK)
-    {
-        return ret;
-    }
     return LUA_OK;
 }
 
