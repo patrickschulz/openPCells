@@ -59,7 +59,7 @@ return {
         layer = {
             gds = { layer = 7, purpose = 0 },
             SKILL = { layer = "contactactive", purpose = "drawing" },
-            svg = { style = "contactactive", order = 5, color = "ffffff" },
+            svg = { style = "contactactive", order = 5, color = "ffff00" },
         }
     },
     contactsourcedrain = {
@@ -67,7 +67,7 @@ return {
         layer = {
             gds = { layer = 7, purpose = 0 },
             SKILL = { layer = "contactsourcedrain", purpose = "drawing" },
-            svg = { style = "contactsourcedrain", order = 5, color = "ffffff" },
+            svg = { style = "contactsourcedrain", order = 5, color = "ffff00" },
         }
     },
     contactgate = {

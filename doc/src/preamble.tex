@@ -97,7 +97,8 @@
 %\lstnewenvironment{shellcode}{\lstset{language=bash, keywordstyle = \relax, commentstyle = \relax, stringstyle = \relax, identifierstyle = \relax, breakautoindent = false}}{}
 \lstnewenvironment{shellcode}{\lstset{keywordstyle = \relax, commentstyle = \relax, stringstyle = \relax, identifierstyle = \relax, breakautoindent = false}}{}
 \newcommand{\luainline}[1]{\lstinline!#1!}
-\newcommand{\lualisting}[2][]{\lstinputlisting[#1]{#2}}
+\lstnewenvironment{lualisting}{}{}
+\newcommand{\luafilelisting}[2][]{\lstinputlisting[#1]{#2}}
 %\newmintedfile[lualisting]{lua}{autogobble, fontsize = \small}
 % API documentation commands
 \newcommand{\param}[1]{\luainline{#1}}
