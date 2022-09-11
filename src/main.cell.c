@@ -503,6 +503,30 @@ static void _raster_curves(struct object* toplevel, struct cmdoptions* cmdoption
     }
 }
 
+static void _triangulate_cell_polygons(struct object* cell)
+{
+    object_foreach_shapes(cell, shape_triangulate_polygon_inline);
+}
+
+static void _triangulate_polygons(struct object* toplevel, struct cmdoptions* cmdoptions, struct pcell_state* pcell_state)
+{
+    if(cmdoptions_was_provided_long(cmdoptions, "triangulate-polygons"))
+    {
+        _triangulate_cell_polygons(toplevel);
+        struct cell_reference_iterator* it = pcell_create_cell_reference_iterator(pcell_state);
+        while(pcell_cell_reference_iterator_is_valid(it))
+        {
+            char* refidentifier;
+            struct object* refcell;
+            int refnumused;
+            pcell_cell_reference_iterator_get(it, &refidentifier, &refcell, &refnumused);
+            _triangulate_cell_polygons(refcell);
+            pcell_cell_reference_iterator_advance(it);
+        }
+        pcell_destroy_cell_reference_iterator(it);
+    }
+}
+
 int main_create_and_export_cell(struct cmdoptions* cmdoptions, struct hashmap* config, int iscellscript)
 {
     int retval = 1;
@@ -639,6 +663,9 @@ int main_create_and_export_cell(struct cmdoptions* cmdoptions, struct hashmap* c
 
         // curve rasterization
         _raster_curves(toplevel, cmdoptions, pcell_state);
+
+        // polygon triangulation
+        _triangulate_polygons(toplevel, cmdoptions, pcell_state);
 
         // export cell
         if(cmdoptions_was_provided_long(cmdoptions, "export"))
