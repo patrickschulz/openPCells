@@ -1,28 +1,50 @@
 local M = {}
 
 local __blackbackground = false
+local __transparentbackground = false
 local __xmargin = 0
 local __ymargin = 0
 local __scale = 1
+local __xoffsetmanual = 0
+local __yoffsetmanual = 0
 function M.set_options(opt)
     for i = 1, #opt do
         local arg = opt[i]
-        if arg == "-b" or arg == "--black" then
+        if arg == "-b" or arg == "--black-background" then
             __blackbackground = true
         end
-        if arg == "-x" or arg == "--x-margin" then
+        if arg == "-t" or arg == "--transparent-background" then
+            __transparentbackground = true
+        end
+        if arg == "--xoffset" then
             if i < #opt then
-                __xmargin = tonumber(opt[i + 1])
+                __xoffsetmanual = tonumber(opt[i + 1])
             else
-                error("svg export: --x-margin: argument expected")
+                error("svg export: --xoffset: argument expected")
             end
             i = i + 1
         end
-        if arg == "-y" or arg == "--y-margin" then
+        if arg == "--yoffset" then
+            if i < #opt then
+                __yoffsetmanual = tonumber(opt[i + 1])
+            else
+                error("svg export: --yoffset: argument expected")
+            end
+            i = i + 1
+        end
+        if arg == "--xmargin" then
+            if i < #opt then
+                __xmargin = tonumber(opt[i + 1])
+            else
+                error("svg export: --xmargin: argument expected")
+            end
+            i = i + 1
+        end
+        if arg == "--ymargin" then
             if i < #opt then
                 __ymargin = tonumber(opt[i + 1])
             else
-                error("svg export: --y-margin: argument expected")
+                error("svg export: --ymargin: argument expected")
             end
             i = i + 1
         end
@@ -39,14 +61,10 @@ end
 
 local __width, __height
 function M.initialize(minx, maxx, miny, maxy)
-    --minx = -20000
-    --maxx = 100000
-    --miny = -100000
-    --maxy = 100000
     local width = maxx - minx
     local height = maxy - miny
-    __xoffset = -minx * __scale + __xmargin
-    __yoffset = -miny * __scale + __ymargin
+    __xoffset = -minx * __scale + __xmargin + __xoffsetmanual
+    __yoffset = -miny * __scale + __ymargin + __yoffsetmanual
     __width = width * __scale + 2 * __xmargin
     __height = height * __scale + 2 * __ymargin
 end
@@ -104,11 +122,13 @@ function M.at_begin()
         --string.format('<svg width="%d" height="%d" viewBox="-%d -%d %d %d">', x, y, x/ 2, y / 2, x, y),
         string.format('<svg width="%d" height="%d">', x, y),
     }
-    local fill = "ffffff"
-    if __blackbackground then
-        fill = "000000"
+    if not __transparentbackground then
+        local fill = "ffffff"
+        if __blackbackground then
+            fill = "000000"
+        end
+        table.insert(lines, string.format('<rect style="fill:#%s" x="0" y="0" width="%d" height="%d"/>', fill, x, y))
     end
-    table.insert(lines, string.format('<rect style="fill:#%s" x="0" y="0" width="%d" height="%d"/>', fill, x, y))
     table.insert(__content.before, table.concat(lines, '\n'))
 end
 
@@ -132,10 +152,17 @@ local function _format_point(pt)
     return string.format("%s,%s", _format_x_coordinate(pt.x), _format_y_coordinate(pt.y))
 end
 
+local function _check_layer(layer)
+    return not layer.ignore
+end
+
 function M.write_rectangle(layer, bl, tr)
+    if not _check_layer(layer) then
+        return
+    end
     local pointstr = string.format('x="%d" y="%d" width="%d" height="%d"',
         _format_x_coordinate(bl.x),
-        _format_x_coordinate(bl.y),
+        _format_y_coordinate(bl.y),
         tr.x - bl.x,
         tr.y - bl.y
     )
@@ -143,6 +170,9 @@ function M.write_rectangle(layer, bl, tr)
 end
 
 function M.write_polygon(layer, pts)
+    if not _check_layer(layer) then
+        return
+    end
     local ptstream = {}
     for _, pt in ipairs(pts) do
         table.insert(ptstream, _format_point(pt))
