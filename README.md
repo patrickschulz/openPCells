@@ -42,7 +42,7 @@ These two calls produce the following images:
 ![Example transistor layouts (left: fingers=1, right: fingers=4)](./doc/info/mosfet.png)
 
 The mosfet cell currently supports around 100 parameters, it can draw gate contacts, guard rings, deep n-wells and many more.
-A more complex example of 
+The more complex example
 
     ./opc --technology opc --export svg --cell basic/mosfet gatelength=300 gatespace=500 fwidth=1500 fingers=4 drawtopgate=true connectsource=true drawguardring=true guardringxsep=200 guardringysep=200
 
