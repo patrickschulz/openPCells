@@ -247,6 +247,70 @@ return {
             svg = { style = "metal2", order = 6, color = "bb0077" },
         }
     },
+    M3port = {
+        name = "metal3port",
+        layer = {
+            gds = { layer = 12, purpose = 1 },
+            SKILL = { layer = "metal3", purpose = "label" },
+            svg = { style = "metal3", color = "ff1212" },
+        }
+    },
+    M4port = {
+        name = "metal4port",
+        layer = {
+            gds = { layer = 14, purpose = 1 },
+            SKILL = { layer = "metal4", purpose = "label" },
+            svg = { style = "metal4", color = "808080" },
+        }
+    },
+    M5port = {
+        name = "metal5port",
+        layer = {
+            gds = { layer = 16, purpose = 1 },
+            SKILL = { layer = "metal5", purpose = "label" },
+            svg = { style = "metal5", color = "0080ff" },
+        }
+    },
+    M6port = {
+        name = "metal6port",
+        layer = {
+            gds = { layer = 18, purpose = 1 },
+            SKILL = { layer = "metal6", purpose = "label" },
+            svg = { style = "metal6", color = "ff0000" },
+        }
+    },
+    M7port = {
+        name = "metal7port",
+        layer = {
+            gds = { layer = 20, purpose = 1 },
+            SKILL = { layer = "metal7", purpose = "label" },
+            svg = { style = "metal7", color = "8000ff" },
+        }
+    },
+    M8port = {
+        name = "metal8port",
+        layer = {
+            gds = { layer = 22, purpose = 1 },
+            SKILL = { layer = "metal8", purpose = "label" },
+            svg = { style = "metal8", color = "008000" },
+        }
+    },
+    M9port = {
+        name = "metal9port",
+        layer = {
+            gds = { layer = 24, purpose = 1 },
+            SKILL = { layer = "metal9", purpose = "label" },
+            svg = { style = "metal9", color = "ff00ff" },
+        }
+    },
+    M10port = {
+        name = "metal10port",
+        layer = {
+            gds = { layer = 26, purpose = 1 },
+            SKILL = { layer = "metal10", purpose = "label" },
+            svg = { style = "metal10", color = "8000ff" },
+        }
+    },
     nwellport = {
         name = "nwellport",
         layer = {

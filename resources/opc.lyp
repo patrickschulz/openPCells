@@ -222,6 +222,23 @@
   <source>10/0@1</source>
  </properties>
  <properties>
+  <frame-color>#ff00ff</frame-color>
+  <fill-color>#ff00ff</fill-color>
+  <frame-brightness>0</frame-brightness>
+  <fill-brightness>0</fill-brightness>
+  <dither-pattern>C4</dither-pattern>
+  <line-style/>
+  <valid>true</valid>
+  <visible>false</visible>
+  <transparent>false</transparent>
+  <width/>
+  <marked>false</marked>
+  <xfill>false</xfill>
+  <animation>0</animation>
+  <name>metal2 label</name>
+  <source>10/1@1</source>
+ </properties>
+ <properties>
   <frame-color>#c0c0c0</frame-color>
   <fill-color>#c0c0c0</fill-color>
   <frame-brightness>0</frame-brightness>
@@ -254,6 +271,23 @@
   <animation>0</animation>
   <name>metal3 drawing</name>
   <source>12/0@1</source>
+ </properties>
+ <properties>
+  <frame-color>#ffae00</frame-color>
+  <fill-color>#ffae00</fill-color>
+  <frame-brightness>0</frame-brightness>
+  <fill-brightness>0</fill-brightness>
+  <dither-pattern>C8</dither-pattern>
+  <line-style/>
+  <valid>true</valid>
+  <visible>false</visible>
+  <transparent>false</transparent>
+  <width/>
+  <marked>false</marked>
+  <xfill>false</xfill>
+  <animation>0</animation>
+  <name>metal3 label</name>
+  <source>12/1@1</source>
  </properties>
  <properties>
   <frame-color>#ffffff</frame-color>
@@ -290,6 +324,23 @@
   <source>14/0@1</source>
  </properties>
  <properties>
+  <frame-color>#ddff00</frame-color>
+  <fill-color>#ddff00</fill-color>
+  <frame-brightness>0</frame-brightness>
+  <fill-brightness>0</fill-brightness>
+  <dither-pattern>C7</dither-pattern>
+  <line-style/>
+  <valid>true</valid>
+  <visible>false</visible>
+  <transparent>false</transparent>
+  <width/>
+  <marked>false</marked>
+  <xfill>false</xfill>
+  <animation>0</animation>
+  <name>metal4 label</name>
+  <source>14/1@1</source>
+ </properties>
+ <properties>
   <frame-color>#ffffff</frame-color>
   <fill-color>#ffffff</fill-color>
   <frame-brightness>0</frame-brightness>
@@ -324,6 +375,23 @@
   <source>16/0@1</source>
  </properties>
  <properties>
+  <frame-color>#0080ff</frame-color>
+  <fill-color>#0080ff</fill-color>
+  <frame-brightness>0</frame-brightness>
+  <fill-brightness>0</fill-brightness>
+  <dither-pattern>C12</dither-pattern>
+  <line-style/>
+  <valid>true</valid>
+  <visible>false</visible>
+  <transparent>false</transparent>
+  <width>1</width>
+  <marked>false</marked>
+  <xfill>false</xfill>
+  <animation>0</animation>
+  <name>metal5 label</name>
+  <source>16/1@1</source>
+ </properties>
+ <properties>
   <frame-color>#ffffff</frame-color>
   <fill-color>#ffffff</fill-color>
   <frame-brightness>0</frame-brightness>
@@ -338,7 +406,7 @@
   <xfill>false</xfill>
   <animation>0</animation>
   <name>via5 drawing</name>
-  <source>17/1@1</source>
+  <source>17/0@1</source>
  </properties>
  <properties>
   <frame-color>#ff0000</frame-color>
@@ -356,6 +424,23 @@
   <animation>0</animation>
   <name>metal6 drawing</name>
   <source>18/0@1</source>
+ </properties>
+ <properties>
+  <frame-color>#ff0000</frame-color>
+  <fill-color>#ff0000</fill-color>
+  <frame-brightness>0</frame-brightness>
+  <fill-brightness>0</fill-brightness>
+  <dither-pattern>I9</dither-pattern>
+  <line-style/>
+  <valid>true</valid>
+  <visible>false</visible>
+  <transparent>false</transparent>
+  <width/>
+  <marked>false</marked>
+  <xfill>false</xfill>
+  <animation>0</animation>
+  <name>metal6 label</name>
+  <source>18/1@1</source>
  </properties>
  <properties>
   <frame-color>#ffffff</frame-color>
@@ -392,6 +477,23 @@
   <source>20/0@1</source>
  </properties>
  <properties>
+  <frame-color>#8000ff</frame-color>
+  <fill-color>#8000ff</fill-color>
+  <frame-brightness>0</frame-brightness>
+  <fill-brightness>0</fill-brightness>
+  <dither-pattern>I5</dither-pattern>
+  <line-style/>
+  <valid>true</valid>
+  <visible>false</visible>
+  <transparent>false</transparent>
+  <width/>
+  <marked>false</marked>
+  <xfill>false</xfill>
+  <animation>0</animation>
+  <name>metal7 label</name>
+  <source>20/1@1</source>
+ </properties>
+ <properties>
   <frame-color>#ddff00</frame-color>
   <fill-color>#ddff00</fill-color>
   <frame-brightness>0</frame-brightness>
@@ -424,6 +526,23 @@
   <animation>0</animation>
   <name>metal8 drawing</name>
   <source>22/0@1</source>
+ </properties>
+ <properties>
+  <frame-color>#008000</frame-color>
+  <fill-color>#008000</fill-color>
+  <frame-brightness>0</frame-brightness>
+  <fill-brightness>0</fill-brightness>
+  <dither-pattern>I5</dither-pattern>
+  <line-style/>
+  <valid>true</valid>
+  <visible>false</visible>
+  <transparent>false</transparent>
+  <width/>
+  <marked>false</marked>
+  <xfill>false</xfill>
+  <animation>0</animation>
+  <name>metal8 label</name>
+  <source>22/1@1</source>
  </properties>
  <properties>
   <frame-color>#ffff00</frame-color>
@@ -460,6 +579,23 @@
   <source>24/0@1</source>
  </properties>
  <properties>
+  <frame-color>#ff00ff</frame-color>
+  <fill-color>#ff00ff</fill-color>
+  <frame-brightness>0</frame-brightness>
+  <fill-brightness>0</fill-brightness>
+  <dither-pattern>C6</dither-pattern>
+  <line-style/>
+  <valid>true</valid>
+  <visible>false</visible>
+  <transparent>false</transparent>
+  <width>1</width>
+  <marked>false</marked>
+  <xfill>false</xfill>
+  <animation>0</animation>
+  <name>metal9 label</name>
+  <source>24/1@1</source>
+ </properties>
+ <properties>
   <frame-color>#ddff00</frame-color>
   <fill-color>#ddff00</fill-color>
   <frame-brightness>0</frame-brightness>
@@ -494,6 +630,23 @@
   <source>26/0@1</source>
  </properties>
  <properties>
+  <frame-color>#8000ff</frame-color>
+  <fill-color>#8000ff</fill-color>
+  <frame-brightness>0</frame-brightness>
+  <fill-brightness>0</fill-brightness>
+  <dither-pattern>C5</dither-pattern>
+  <line-style/>
+  <valid>true</valid>
+  <visible>false</visible>
+  <transparent>false</transparent>
+  <width/>
+  <marked>false</marked>
+  <xfill>false</xfill>
+  <animation>0</animation>
+  <name>metal10 label</name>
+  <source>26/1@1</source>
+ </properties>
+ <properties>
   <frame-color>#0000ff</frame-color>
   <fill-color>#0000ff</fill-color>
   <frame-brightness>0</frame-brightness>
@@ -526,23 +679,6 @@
   <animation>0</animation>
   <name/>
   <source>15/20@1</source>
- </properties>
- <properties>
-  <frame-color>#004080</frame-color>
-  <fill-color>#004080</fill-color>
-  <frame-brightness>0</frame-brightness>
-  <fill-brightness>0</fill-brightness>
-  <dither-pattern>I9</dither-pattern>
-  <line-style/>
-  <valid>true</valid>
-  <visible>true</visible>
-  <transparent>false</transparent>
-  <width/>
-  <marked>false</marked>
-  <xfill>false</xfill>
-  <animation>0</animation>
-  <name/>
-  <source>17/0@1</source>
  </properties>
  <properties>
   <frame-color>#008000</frame-color>
