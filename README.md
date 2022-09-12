@@ -59,7 +59,8 @@ It was tested with various gcc versions >= 11.1.0, but should work with other co
 Currently, the build is set up to create a stand-alone executable, which knows how to load the needed shared libraries (project-owned) by itself.
 This means that it is easy for a user without any root privileges to install opc:
 Just leave it where you compiled it (this is important) and point your PATH to the directory or create an alias or call opc with its absolute path.
-A more sophisticated installation for instance installation to `/usr` using a dedicated package manager is currently not supported.
+A more sophisticated installation for instance installation to `/usr` using a dedicated package manager is currently not supported in an easy way (though it is possible of course).
+
 That all said, building is just
 
     make
