@@ -32,6 +32,7 @@ cmdoptions_add_option_default(cmdoptions, NO_SHORT, "export-filter-list", SINGLE
 cmdoptions_add_option(cmdoptions, NO_SHORT, "ignore-missing-layers", NO_ARG, "ignore missing layers in the technology translation. Layers that are not present in the layermap file are handled as if their values was '{}'");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "ignore-missing-export", NO_ARG, "ignore layers with missing exports in the technology translation");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "merge-rectangles", NO_ARG, "merge rectangles");
+cmdoptions_add_option(cmdoptions, NO_SHORT, "resolve-paths", NO_ARG, "resolve paths to rectangles and polygons");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "rasterize-curves", NO_ARG, "rasterize curves");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "triangulate-polygons", NO_ARG, "triangulate all polygons");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "disable-via-arrayzation", NO_ARG, "don't create via arrays, instead create single large via regions (useful for EM simulations)");

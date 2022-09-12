@@ -479,6 +479,20 @@ static void _merge_rectangles(struct object* toplevel, struct cmdoptions* cmdopt
     }
 }
 
+static void _resolve_cell_paths(struct object* cell)
+{
+    object_foreach_shapes(cell, shape_resolve_path_inline);
+}
+
+static void _resolve_paths(struct object* toplevel, struct cmdoptions* cmdoptions, struct pcell_state* pcell_state)
+{
+    if(cmdoptions_was_provided_long(cmdoptions, "resolve-paths"))
+    {
+        _resolve_cell_paths(toplevel);
+        pcell_foreach_cell_reference(pcell_state, _resolve_cell_paths);
+    }
+}
+
 static void _raster_cell_curves(struct object* cell)
 {
     object_foreach_shapes(cell, shape_rasterize_curve_inline);
@@ -489,17 +503,7 @@ static void _raster_curves(struct object* toplevel, struct cmdoptions* cmdoption
     if(cmdoptions_was_provided_long(cmdoptions, "rasterize-curves"))
     {
         _raster_cell_curves(toplevel);
-        struct cell_reference_iterator* it = pcell_create_cell_reference_iterator(pcell_state);
-        while(pcell_cell_reference_iterator_is_valid(it))
-        {
-            char* refidentifier;
-            struct object* refcell;
-            int refnumused;
-            pcell_cell_reference_iterator_get(it, &refidentifier, &refcell, &refnumused);
-            _raster_cell_curves(refcell);
-            pcell_cell_reference_iterator_advance(it);
-        }
-        pcell_destroy_cell_reference_iterator(it);
+        pcell_foreach_cell_reference(pcell_state, _raster_cell_curves);
     }
 }
 
@@ -513,17 +517,7 @@ static void _triangulate_polygons(struct object* toplevel, struct cmdoptions* cm
     if(cmdoptions_was_provided_long(cmdoptions, "triangulate-polygons"))
     {
         _triangulate_cell_polygons(toplevel);
-        struct cell_reference_iterator* it = pcell_create_cell_reference_iterator(pcell_state);
-        while(pcell_cell_reference_iterator_is_valid(it))
-        {
-            char* refidentifier;
-            struct object* refcell;
-            int refnumused;
-            pcell_cell_reference_iterator_get(it, &refidentifier, &refcell, &refnumused);
-            _triangulate_cell_polygons(refcell);
-            pcell_cell_reference_iterator_advance(it);
-        }
-        pcell_destroy_cell_reference_iterator(it);
+        pcell_foreach_cell_reference(pcell_state, _triangulate_cell_polygons);
     }
 }
 
@@ -660,6 +654,9 @@ int main_create_and_export_cell(struct cmdoptions* cmdoptions, struct hashmap* c
         // post-processing
         _filter_layers(toplevel, cmdoptions, pcell_state);
         _merge_rectangles(toplevel, cmdoptions, layermap, pcell_state);
+
+        // resolve paths
+        _resolve_paths(toplevel, cmdoptions, pcell_state);
 
         // curve rasterization
         _raster_curves(toplevel, cmdoptions, pcell_state);
