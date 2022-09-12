@@ -86,7 +86,7 @@ function parameters()
         { "topwelltapextendright",                                         0 },
         { "drawbotwelltap",                                            false },
         { "drawguardring",                                             false },
-        { "guardringwidth",                                             100 },
+        { "guardringwidth",                                            tech.get_dimension("Minimum M1 Width") },
         { "guardringxsep",                                             0 },
         { "guardringysep",                                             0 },
         { "guardringsegments",                                         { "left", "right", "top", "bottom" } },
