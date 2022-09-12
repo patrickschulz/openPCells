@@ -38,7 +38,7 @@ Positional command line arguments (that is, arguments without - or --) are taken
 
 These two calls produce the following images:
 
-![Example Transistor Layouts (left: fingers=1, right: fingers=4)](./doc/info/mosfet.png).
+![Example Transistor Layouts (left: fingers=1, right: fingers=4)](./doc/info/mosfet.png)
 
 Available cells can be listed with
 
