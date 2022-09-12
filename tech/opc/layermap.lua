@@ -115,7 +115,7 @@ return {
         layer = {
             gds = { layer = 12, purpose = 0 },
             SKILL = { layer = "metal3", purpose = "drawing" },
-            svg = { color = "ff1212" },
+            svg = { color = "ff1212", order = 8 },
         }
     },
     viacutM3M4 = {

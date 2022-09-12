@@ -38,7 +38,22 @@ Positional command line arguments (that is, arguments without - or --) are taken
 
 These two calls produce the following images:
 
-![Example Transistor Layouts (left: fingers=1, right: fingers=4)](./doc/info/mosfet.png)
+![Example transistor layouts (left: fingers=1, right: fingers=4)](./doc/info/mosfet.png)
+
+The mosfet cell currently supports around 100 parameters, it can draw gate contacts, guard rings, deep n-wells and many more.
+A more complex example of 
+
+    ./opc --technology opc --export svg --cell basic/mosfet gatelength=300 gatespace=500 fwidth=1500 fingers=4 drawtopgate=true connectsource=true drawguardring=true guardringxsep=200 guardringysep=200
+
+produces
+
+![Complex transistor with many parameters](./doc/info/mosfet_complex.png)
+
+Increasing complexity is displayed by a current-starved ring oscillator:
+
+    ./opc --technology opc --export svg --cell analog/current_starved_ringoscillator
+
+![Current-starved ring oscillator](./doc/info/ringoscillator.png)
 
 Available cells can be listed with
 
