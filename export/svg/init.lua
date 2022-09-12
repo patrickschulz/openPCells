@@ -7,6 +7,8 @@ local __ymargin = 0
 local __scale = 1
 local __xoffsetmanual = 0
 local __yoffsetmanual = 0
+local __forcetransparency = false
+local __forcetransparancyfactor = 0.8
 function M.set_options(opt)
     for i = 1, #opt do
         local arg = opt[i]
@@ -15,6 +17,9 @@ function M.set_options(opt)
         end
         if arg == "-t" or arg == "--transparent-background" then
             __transparentbackground = true
+        end
+        if arg == "--force-transparancy" then
+            __forcetransparency = true
         end
         if arg == "--xoffset" then
             if i < #opt then
@@ -137,15 +142,20 @@ function M.at_end()
 end
 
 local function _get_style(layer)
-    return string.format("fill:#%s;opacity:%s;fill-opacity:%s", layer.color, layer.drawopacity or "1", layer.fillopacity or "1")
+    if __forcetransparency then
+        return string.format("fill:#%s; opacity:%s; fill-opacity:%s", layer.color, __forcetransparancyfactor, __forcetransparancyfactor)
+    else
+        return string.format("fill:#%s; opacity:%s; fill-opacity:%s", layer.color, layer.drawopacity or "1", layer.fillopacity or "1")
+    end
 end
 
 local function _format_x_coordinate(x)
     return string.format("%d", math.floor(__scale * x) + __xoffset)
 end
 
-local function _format_y_coordinate(y)
-    return string.format("%d", math.floor(__scale * y) + __yoffset)
+local function _format_y_coordinate(y, mirroroffset)
+    mirroroffset = mirroroffset or 0
+    return string.format("%d", __height - (mirroroffset + math.floor(__scale * y) + __yoffset))
 end
 
 local function _format_point(pt)
@@ -162,7 +172,7 @@ function M.write_rectangle(layer, bl, tr)
     end
     local pointstr = string.format('x="%d" y="%d" width="%d" height="%d"',
         _format_x_coordinate(bl.x),
-        _format_y_coordinate(bl.y),
+        _format_y_coordinate(bl.y, tr.y - bl.y),
         tr.x - bl.x,
         tr.y - bl.y
     )
