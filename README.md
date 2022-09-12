@@ -26,12 +26,12 @@ For installation there is currently no direct support for the classic `make && m
 For more instructions on building and installation, see the section about [building and installation](#building-and-installation).
 
 # Basic Usage
-After building opc, layouts can be generated either from pcell definition (--cell option) or from so-called cellscripts (--cellscript).
-Besides a cell/cellscript, a technology node (--technology) and an export type (--export) must be provided.
+After building opc, layouts can be generated either from pcell definition (`--cell` option) or from so-called cellscripts (`--cellscript`).
+Besides a cell/cellscript, a technology node (`--technology`) and an export type (`--export`) must be provided.
 The project supplies generic technology files ('opc'), so you can directly test the setup.
 Common required export formats are also available.
-Currently, the most important and sophisticated export type is the GDSII (--export gds), but for this tutorial the SVG format will be used to directly show the generated layouts [^1].
-Positional command line arguments (that is, arguments without - or --) are taken as key-value pairs for cell parameters:
+Currently, the most important and sophisticated export type is the GDSII (`--export` gds), but for this tutorial the SVG format will be used to directly show the generated layouts [^1].
+Positional command line arguments (that is, arguments without `-` or `--`) are taken as key-value pairs for cell parameters:
 
     ./opc --technology opc --export svg --cell basic/mosfet
     ./opc --technology opc --export svg --cell basic/mosfet fingers=4
