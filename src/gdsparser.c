@@ -798,12 +798,9 @@ int gdsparser_read_stream(const char* filename, const char* importname, const st
                 {
                     fputs("    child:rotate_90_left()\n", cellfile);
                 }
-                else
+                if(cellref->transformation && cellref->transformation[0] == 1)
                 {
-                    if(cellref->transformation && cellref->transformation[0] == 1)
-                    {
-                        fputs("    child:mirror_at_xaxis()\n", cellfile);
-                    }
+                    fputs("    child:mirror_at_xaxis()\n", cellfile);
                 }
                 fprintf(cellfile, "    child:translate(%lld, %lld)\n", cellref->origin->x, cellref->origin->y);
                 free(cellref->name);
