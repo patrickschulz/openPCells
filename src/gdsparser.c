@@ -160,6 +160,11 @@ static int32_t* _parse_four_byte_integer(uint8_t* data, size_t length)
     return pdata;
 }
 
+static void _parse_xy_i(uint8_t* data, size_t i, coordinate_t* xy)
+{
+    *xy = (data[i * 4] << 24) + (data[i * 4 + 1] << 16) + (data[i * 4 + 2] << 8) + data[i * 4 + 3];
+}
+
 static void _parse_single_point(uint8_t* data, point_t* pt)
 {
     pt->x = (data[0] << 24) + (data[1] << 16) + (data[2] << 8) + data[3];
@@ -168,14 +173,14 @@ static void _parse_single_point(uint8_t* data, point_t* pt)
 
 static inline void _parse_single_point_i(uint8_t* data, size_t i, point_t* pt)
 {
-    pt->x = (data[i * 4] << 24) + (data[i * 4 + 1] << 16) + (data[i * 4 + 2] << 8) + data[i * 4 + 3];
-    pt->y = (data[i * 4 + 4] << 24) + (data[i * 4 + 5] << 16) + (data[i * 4 + 6] << 8) + data[i * 4 + 7];
+    pt->x = (data[i * 8] << 24) + (data[i * 8 + 1] << 16) + (data[i * 8 + 2] << 8) + data[i * 8 + 3];
+    pt->y = (data[i * 8 + 4] << 24) + (data[i * 8 + 5] << 16) + (data[i * 8 + 6] << 8) + data[i * 8 + 7];
 }
 
 static struct vector* _parse_points(uint8_t* data, size_t length)
 {
-    struct vector* points = vector_create(length / 8);
-    for(size_t i = 0; i < length / 4; i += 2)
+    struct vector* points = vector_create(length >> 3);
+    for(size_t i = 0; i < length >> 3; ++i)
     {
         point_t* pt = point_create(0, 0);
         _parse_single_point_i(data, i, pt);
@@ -816,21 +821,11 @@ static int _read_TEXT(const struct stream* stream, size_t* i, char** str, int16_
     return 1;
 }
 
-static void _destroy_cellref(struct cellref* cellref)
-{
-    //point_destroy(cellref->origin);
-    //if(cellref->transformation)
-    //{
-    //    free(cellref->transformation);
-    //}
-    free(cellref);
-}
-
 static struct cellref* _read_SREF_AREF(const struct stream* stream, size_t* i, int isAREF)
 {
     struct cellref* cellref = malloc(sizeof(*cellref));
     cellref->name = NULL;
-    cellref->origin = NULL;
+    cellref->origin = point_create(0, 0);
     cellref->xrep = 1;
     cellref->yrep = 1;
     cellref->angle = 0.0;
@@ -874,18 +869,20 @@ static struct cellref* _read_SREF_AREF(const struct stream* stream, size_t* i, i
         }
         else if(record->recordtype == XY)
         {
-            struct vector* points = _parse_points(record->data, record->length - 4);
-            cellref->origin = vector_get(points, 0);
+            _parse_single_point(record->data, cellref->origin);
             if(isAREF)
             {
-                point_t* pt1 = vector_get(points, 1);
-                point_t* pt2 = vector_get(points, 2);
-                cellref->xpitch = llabs(pt1->x - cellref->origin->x) / cellref->xrep;
-                cellref->ypitch = llabs(pt2->y - cellref->origin->y) / cellref->yrep;
-                point_destroy(pt1);
-                point_destroy(pt2);
+                coordinate_t x1, y2;
+                // coordinate words memory locations:
+                // pt1: x [0] y [1]
+                // pt2: x [2] y [3]
+                // pt3: x [4] y [5]
+                // for pitch, only x2 and y3 are needed
+                _parse_xy_i(record->data, 2, &x1);
+                _parse_xy_i(record->data, 5, &y2);
+                cellref->xpitch = llabs(x1 - cellref->origin->x) / cellref->xrep;
+                cellref->ypitch = llabs(y2 - cellref->origin->y) / cellref->yrep;
             }
-            vector_destroy(points, NULL);
         }
         else if(record->recordtype == ENDEL)
         {
@@ -1212,7 +1209,7 @@ static int _read_structure(const char* importname, const struct stream* stream, 
             if(cellref)
             {
                 _write_cellref(cellfile, importname, cellref, references);
-                _destroy_cellref(cellref);
+                free(cellref);
             }
             else
             {
@@ -1225,7 +1222,7 @@ static int _read_structure(const char* importname, const struct stream* stream, 
             if(cellref)
             {
                 _write_cellref(cellfile, importname, cellref, references);
-                _destroy_cellref(cellref);
+                free(cellref);
             }
             else
             {
@@ -1249,6 +1246,15 @@ static int _read_structure(const char* importname, const struct stream* stream, 
     return 1;
 }
 
+static void _create_libdir(const char* importname)
+{
+    size_t len = strlen(importname) + strlen(importname) + 1; // +1: '/'
+    char* path = malloc(len + 1);
+    snprintf(path, len + 1, "%s/%s", importname, importname);
+    filesystem_mkdir(path);
+    free(path);
+}
+
 int gdsparser_read_stream(const char* filename, const char* importname, const struct vector* gdslayermap, const struct vector* ignorelpp, int16_t* ablayer, int16_t* abpurpose)
 {
     const char* libname;
@@ -1269,11 +1275,7 @@ int gdsparser_read_stream(const char* filename, const char* importname, const st
             {
                 importname = libname;
             }
-            size_t len = strlen(importname) + strlen(importname) + 1; // +1: '/'
-            char* path = malloc(len + 1);
-            snprintf(path, len + 1, "%s/%s", importname, importname);
-            filesystem_mkdir(path);
-            free(path);
+            _create_libdir(importname);
         }
         else if(record->recordtype == BGNSTR)
         {
