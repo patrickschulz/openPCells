@@ -5,7 +5,7 @@ struct hashmap;
 struct hashmap* hashmap_create(void);
 void hashmap_destroy(struct hashmap* map, void (*destructor)(void*));
 void hashmap_insert(struct hashmap* map, const char* key, void* value);
-int hashmap_exists(struct hashmap* map, const char* key);
+int hashmap_exists(const struct hashmap* map, const char* key);
 void* hashmap_get(struct hashmap* map, const char* key);
 const void* hashmap_get_const(const struct hashmap* map, const char* key);
 

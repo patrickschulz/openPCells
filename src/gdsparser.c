@@ -5,6 +5,7 @@
 #include <stdint.h>
 #include <math.h>
 #include <string.h>
+#include <assert.h>
 
 #include "lua/lauxlib.h"
 
@@ -157,6 +158,30 @@ static int32_t* _parse_four_byte_integer(uint8_t* data, size_t length)
         pdata[i] = (data[i * 4] << 24) + (data[i * 4 + 1] << 16) + (data[i * 4 + 2] << 8) + data[i * 4 + 3];
     }
     return pdata;
+}
+
+static void _parse_single_point(uint8_t* data, point_t* pt)
+{
+    pt->x = (data[0] << 24) + (data[1] << 16) + (data[2] << 8) + data[3];
+    pt->y = (data[4] << 24) + (data[5] << 16) + (data[6] << 8) + data[7];
+}
+
+static inline void _parse_single_point_i(uint8_t* data, size_t i, point_t* pt)
+{
+    pt->x = (data[i * 4] << 24) + (data[i * 4 + 1] << 16) + (data[i * 4 + 2] << 8) + data[i * 4 + 3];
+    pt->y = (data[i * 4 + 4] << 24) + (data[i * 4 + 5] << 16) + (data[i * 4 + 6] << 8) + data[i * 4 + 7];
+}
+
+static struct vector* _parse_points(uint8_t* data, size_t length)
+{
+    struct vector* points = vector_create(length / 8);
+    for(size_t i = 0; i < length / 4; i += 2)
+    {
+        point_t* pt = point_create(0, 0);
+        _parse_single_point_i(data, i, pt);
+        vector_append(points, pt);
+    }
+    return points;
 }
 
 static double* _parse_four_byte_real(uint8_t* data, size_t length)
@@ -568,8 +593,7 @@ static void _print_int32(FILE* file, int32_t num)
 #define MAX4(a, b, c, d) MAX2(MAX2(a, b), MAX2(c, d))
 #define MIN4(a, b, c, d) MIN2(MIN2(a, b), MIN2(c, d))
 
-struct _cellref
-{
+struct cellref {
     char* name;
     point_t* origin;
     int16_t xrep;
@@ -585,7 +609,7 @@ static const point_t* get_point(const struct vector* vector, size_t i )
     return vector_get_const(vector, i);
 }
 
-int _check_rectangle(struct vector* points)
+int _check_rectangle(const struct vector* points)
 {
     return (((get_point(points, 0))->y == (get_point(points, 1))->y)  &&
             ((get_point(points, 1))->x == (get_point(points, 2))->x)  &&
@@ -731,6 +755,500 @@ int _check_lpp(int16_t layer, int16_t purpose, const struct vector* ignorelpp)
     return 1;
 }
 
+static int _read_TEXT(const struct stream* stream, size_t* i, char** str, int16_t* layer, int16_t* purpose, point_t* origin, double* angle, int** transformation)
+{
+    ++(*i); // skip TEXT
+    while(1)
+    {
+        struct record* record = &stream->records[*i];
+        if(record->recordtype == ELFLAGS)
+        {
+            // FIXME: handle record
+        }
+        else if(record->recordtype == PLEX)
+        {
+            // FIXME: handle record
+        }
+        else if(record->recordtype == LAYER)
+        {
+            int16_t* pdata = _parse_two_byte_integer(record->data, 2);
+            *layer = *pdata;
+            free(pdata);
+        }
+        else if(record->recordtype == TEXTTYPE)
+        {
+            int16_t* pdata = _parse_two_byte_integer(record->data, 2);
+            *purpose = *pdata;
+            free(pdata);
+        }
+        else if(record->recordtype == PRESENTATION)
+        {
+            // FIXME: handle record
+        }
+        else if(record->recordtype == STRANS)
+        {
+            *transformation = _parse_bit_array(record->data);
+        }
+        else if(record->recordtype == ANGLE)
+        {
+            double* pdata = _parse_eight_byte_real(record->data, record->length - 4);
+            *angle = *pdata;
+            free(pdata);
+        }
+        else if(record->recordtype == MAG)
+        {
+            // FIXME: handle record
+        }
+        else if(record->recordtype == XY)
+        {
+            _parse_single_point(record->data, origin);
+        }
+        else if(record->recordtype == STRING)
+        {
+            *str = _parse_string(record->data, record->length - 4);
+        }
+        else // wrong record
+        {
+            return 0;
+        }
+        ++(*i);
+    }
+    return 1;
+}
+
+static void _destroy_cellref(struct cellref* cellref)
+{
+    //point_destroy(cellref->origin);
+    //if(cellref->transformation)
+    //{
+    //    free(cellref->transformation);
+    //}
+    free(cellref);
+}
+
+static struct cellref* _read_SREF_AREF(const struct stream* stream, size_t* i, int isAREF)
+{
+    struct cellref* cellref = malloc(sizeof(*cellref));
+    cellref->name = NULL;
+    cellref->origin = NULL;
+    cellref->xrep = 1;
+    cellref->yrep = 1;
+    cellref->angle = 0.0;
+    cellref->transformation = NULL;
+    ++(*i); // skip SREF/AREF
+    while(1)
+    {
+        struct record* record = &stream->records[*i];
+        if(record->recordtype == ELFLAGS)
+        {
+            // FIXME: handle record
+        }
+        else if(record->recordtype == PLEX)
+        {
+            // FIXME: handle record
+        }
+        else if(record->recordtype == SNAME)
+        {
+            cellref->name = _parse_string(record->data, record->length - 4);
+        }
+        else if(record->recordtype == STRANS)
+        {
+            cellref->transformation = _parse_bit_array(record->data);
+        }
+        else if(record->recordtype == ANGLE)
+        {
+            double* pdata = _parse_eight_byte_real(record->data, record->length - 4);
+            cellref->angle = *pdata;
+            free(pdata);
+        }
+        else if(record->recordtype == MAG)
+        {
+            // FIXME: handle record
+        }
+        else if(record->recordtype == COLROW)
+        {
+            int16_t* pdata = _parse_two_byte_integer(record->data, 4);
+            cellref->xrep = pdata[0];
+            cellref->yrep = pdata[1];
+            free(pdata);
+        }
+        else if(record->recordtype == XY)
+        {
+            struct vector* points = _parse_points(record->data, record->length - 4);
+            cellref->origin = vector_get(points, 0);
+            if(isAREF)
+            {
+                point_t* pt1 = vector_get(points, 1);
+                point_t* pt2 = vector_get(points, 2);
+                cellref->xpitch = llabs(pt1->x - cellref->origin->x) / cellref->xrep;
+                cellref->ypitch = llabs(pt2->y - cellref->origin->y) / cellref->yrep;
+                point_destroy(pt1);
+                point_destroy(pt2);
+            }
+            vector_destroy(points, NULL);
+        }
+        else if(record->recordtype == ENDEL)
+        {
+            break;
+        }
+        else // wrong record
+        {
+            fprintf(stderr, "malformed SREF/AREF, got unexpected record '%s' (#%zd)\n", recordnames[record->recordtype], *i + 1);
+            return NULL;
+        }
+        ++(*i);
+    }
+    return cellref;
+}
+#define _read_SREF(stream, i) _read_SREF_AREF(stream, i, 0)
+#define _read_AREF(stream, i) _read_SREF_AREF(stream, i, 1)
+
+static void _write_cellref(FILE* cellfile, const char* importname, const struct cellref* cellref, struct hashmap* references)
+{
+    if(!hashmap_exists(references, cellref->name))
+    {
+        fprintf(cellfile, "    ref = pcell.create_layout(\"%s/%s\")\n", importname, cellref->name);
+        fprintf(cellfile, "    name = pcell.add_cell_reference(ref, \"%s\")\n", cellref->name);
+        hashmap_insert(references, cellref->name, NULL); // use hashmap as set (value == NULL)
+    }
+    if(cellref->xrep > 1 || cellref->yrep > 1)
+    {
+        fprintf(cellfile, "    child = cell:add_child_array(name, %d, %d, %d, %d)\n", cellref->xrep, cellref->yrep, cellref->xpitch, cellref->ypitch);
+    }
+    else
+    {
+        fputs("    child = cell:add_child(name)\n", cellfile);
+    }
+    if(cellref->angle == 180)
+    {
+        if(cellref->transformation && cellref->transformation[0] == 1)
+        {
+            fputs("    child:mirror_at_xaxis()\n", cellfile);
+            fputs("    child:mirror_at_yaxis()\n", cellfile);
+        }
+        else
+        {
+            fputs("    child:mirror_at_yaxis()\n", cellfile);
+        }
+    }
+    else if(cellref->angle == 90)
+    {
+        fputs("    child:rotate_90_left()\n", cellfile);
+    }
+    if(cellref->transformation && cellref->transformation[0] == 1)
+    {
+        fputs("    child:mirror_at_xaxis()\n", cellfile);
+    }
+    fprintf(cellfile, "    child:translate(%lld, %lld)\n", cellref->origin->x, cellref->origin->y);
+    free(cellref->name);
+    point_destroy(cellref->origin);
+    if(cellref->transformation)
+    {
+        free(cellref->transformation);
+    }
+}
+
+static int _read_BOUNDARY(const struct stream* stream, size_t* i, int16_t* layer, int16_t* purpose, struct vector** points)
+{
+    ++(*i); // skip BOUNDARY
+    while(1)
+    {
+        struct record* record = &stream->records[*i];
+        if(record->recordtype == ELFLAGS)
+        {
+            // FIXME: handle record
+        }
+        else if(record->recordtype == PLEX)
+        {
+            // FIXME: handle record
+        }
+        else if(record->recordtype == LAYER)
+        {
+            int16_t* pdata = _parse_two_byte_integer(record->data, 2);
+            *layer = *pdata;
+            free(pdata);
+        }
+        else if(record->recordtype == DATATYPE)
+        {
+            int16_t* pdata = _parse_two_byte_integer(record->data, 2);
+            *purpose = *pdata;
+            free(pdata);
+        }
+        else if(record->recordtype == XY)
+        {
+            *points = _parse_points(record->data, record->length - 4);
+        }
+        else if(record->recordtype == PROPATTR)
+        {
+            // FIXME: handle record
+        }
+        else if(record->recordtype == PROPVALUE)
+        {
+            // FIXME: handle record
+        }
+        else if(record->recordtype == ENDEL)
+        {
+            break;
+        }
+        else // wrong record
+        {
+            fprintf(stderr, "malformed BOUNDARY, got unexpected record '%s' (#%zd)\n", recordnames[record->recordtype], *i + 1);
+            return 0;
+        }
+        ++(*i);
+    }
+    return 1;
+}
+
+static void _write_BOUNDARY(FILE* cellfile, int16_t layer, int16_t purpose, const struct vector* points, const struct vector* gdslayermap)
+{
+    // check for rectangles
+    // BOX is not used for rectangles, at least most tool suppliers seem to do it this way
+    // therefor, we check if some "polygons" are actually rectangles and fix the shape types
+    if(vector_size(points) == 5 && _check_rectangle(points))
+    {
+        fputs("    geometry.rectanglebltr(cell, ", cellfile);
+        _write_layers(cellfile, layer, purpose, gdslayermap);
+        // FIXME: the calls to MAX4 and MIN4 are terrible
+        fputs(", point.create(", cellfile);
+        _print_int32(cellfile, MIN4((get_point(points, 0))->x, (get_point(points, 1))->x, (get_point(points, 2))->x, (get_point(points, 3))->x));
+        fputs(", ", cellfile);
+        _print_int32(cellfile, MIN4((get_point(points, 0))->y, (get_point(points, 1))->y, (get_point(points, 2))->y, (get_point(points, 3))->y));
+        fputs("), point.create(", cellfile);
+        _print_int32(cellfile, MAX4((get_point(points, 0))->x, (get_point(points, 1))->x, (get_point(points, 2))->x, (get_point(points, 3))->x));
+        fputs(", ", cellfile);
+        _print_int32(cellfile, MAX4((get_point(points, 0))->y, (get_point(points, 1))->y, (get_point(points, 2))->y, (get_point(points, 3))->y));
+        fputs("))\n", cellfile);
+    }
+    else
+    {
+        fputs("geometry.polygon(cell, ", cellfile);
+        _write_layers(cellfile, layer, purpose, gdslayermap);
+        fputs(", { ", cellfile);
+        for(unsigned int i = 0; i < vector_size(points); ++i)
+        {
+            const point_t* pt = vector_get_const(points, i);
+            fputs("point.create(", cellfile);
+            _print_int32(cellfile, pt->x);
+            fputs(", ", cellfile);
+            _print_int32(cellfile, pt->y);
+            fputs("), ", cellfile);
+        }
+        fputs("})\n", cellfile);
+    }
+}
+
+static int _read_PATH(const struct stream* stream, size_t* i, int16_t* layer, int16_t* purpose, struct vector** points, coordinate_t* width)
+{
+    ++(*i); // skip PATH
+    while(1)
+    {
+        struct record* record = &stream->records[*i];
+        if(record->recordtype == ELFLAGS)
+        {
+            // FIXME: handle record
+        }
+        else if(record->recordtype == PLEX)
+        {
+            // FIXME: handle record
+        }
+        else if(record->recordtype == LAYER)
+        {
+            int16_t* pdata = _parse_two_byte_integer(record->data, 2);
+            *layer = *pdata;
+            free(pdata);
+        }
+        else if(record->recordtype == DATATYPE)
+        {
+            int16_t* pdata = _parse_two_byte_integer(record->data, 2);
+            *purpose = *pdata;
+            free(pdata);
+        }
+        else if(record->recordtype == PATHTYPE)
+        {
+            // FIXME: handle record
+        }
+        else if(record->recordtype == WIDTH)
+        {
+            int32_t* pdata = _parse_four_byte_integer(record->data, 4);
+            *width = *pdata;
+            free(pdata);
+        }
+        else if(record->recordtype == BGNEXTN)
+        {
+            // FIXME: handle record
+        }
+        else if(record->recordtype == ENDEXTN)
+        {
+            // FIXME: handle record
+        }
+        else if(record->recordtype == XY)
+        {
+            *points = _parse_points(record->data, record->length - 4);
+        }
+        else if(record->recordtype == ENDEL)
+        {
+            break;
+        }
+        else // wrong record
+        {
+            fprintf(stderr, "malformed PATH, got unexpected record '%s' (#%zd)\n", recordnames[record->recordtype], *i + 1);
+            return 0;
+        }
+        ++(*i);
+    }
+    return 1;
+}
+
+static void _write_PATH(FILE* cellfile, int16_t layer, int16_t purpose, const struct vector* points, coordinate_t width, const struct vector* gdslayermap)
+{
+    fputs("    geometry.path(cell, ", cellfile);
+    _write_layers(cellfile, layer, purpose, gdslayermap);
+    fputs(", { ", cellfile);
+    for(unsigned int i = 0; i < vector_size(points); ++i)
+    {
+        const point_t* pt = vector_get_const(points, i);
+        fprintf(cellfile, "point.create(%lld, %lld), ", pt->x, pt->y);
+    }
+    fprintf(cellfile, "}, %lld)\n", width);
+}
+
+static int _read_structure(const char* importname, const struct stream* stream, size_t* i, const struct vector* gdslayermap, const struct vector* ignorelpp, int16_t* ablayer, int16_t* abpurpose)
+{
+    FILE* cellfile = NULL;
+    struct hashmap* references = hashmap_create();
+    ++(*i); // skip BGNSTR
+    while(1)
+    {
+        struct record* record = &stream->records[*i];
+        if(record->recordtype == STRNAME)
+        {
+            char* cellname = _parse_string(record->data, record->length - 4);
+            size_t len = strlen(importname) + strlen(importname) + strlen(cellname) + 6; // +2: 2 * '/' + ".lua"
+            char* path = malloc(len + 1);
+            snprintf(path, len + 1, "%s/%s/%s.lua", importname, importname, cellname);
+            cellfile = fopen(path, "w");
+            fputs("function parameters() end\n", cellfile);
+            fputs("function layout(cell)\n", cellfile);
+            fputs("    local ref, name, child\n", cellfile);
+            free(cellname);
+            free(path);
+        }
+        else if(record->recordtype == STRCLASS)
+        {
+            // FIXME: handle record
+        }
+        else if(record->recordtype == ENDSTR)
+        {
+            break;
+        }
+        else if(record->recordtype == BOUNDARY)
+        {
+            int16_t layer, purpose;
+            struct vector* points = NULL;
+            if(!_read_BOUNDARY(stream, i, &layer, &purpose, &points))
+            {
+                return 0;
+            }
+            if(_check_lpp(layer, purpose, ignorelpp))
+            {
+                _write_BOUNDARY(cellfile, layer, purpose, points, gdslayermap);
+            }
+            vector_destroy(points, point_destroy);
+            // alignment box
+            if(ablayer && abpurpose && layer == *ablayer && purpose == *abpurpose)
+            {
+                coordinate_t abblx = MIN4((get_point(points, 0))->x, (get_point(points, 1))->x, (get_point(points, 2))->x, (get_point(points, 3))->x);
+                coordinate_t abbly = MIN4((get_point(points, 0))->y, (get_point(points, 1))->y, (get_point(points, 2))->y, (get_point(points, 3))->y);
+                coordinate_t abtrx = MAX4((get_point(points, 0))->x, (get_point(points, 1))->x, (get_point(points, 2))->x, (get_point(points, 3))->x);
+                coordinate_t abtry = MAX4((get_point(points, 0))->y, (get_point(points, 1))->y, (get_point(points, 2))->y, (get_point(points, 3))->y);
+                fprintf(cellfile, "    cell:set_alignment_box(point.create(%lld, %lld), point.create(%lld, %lld))\n", abblx, abbly, abtrx, abtry);
+            }
+        }
+        else if(record->recordtype == BOX)
+        {
+            // FIXME: handle record
+        }
+        else if(record->recordtype == PATH)
+        {
+            int16_t layer, purpose;
+            struct vector* points = NULL;
+            coordinate_t width;
+            if(!_read_PATH(stream, i, &layer, &purpose, &points, &width))
+            {
+                return 0;
+            }
+            if(_check_lpp(layer, purpose, ignorelpp))
+            {
+                _write_PATH(cellfile, layer, purpose, points, width, gdslayermap);
+            }
+            vector_destroy(points, point_destroy);
+        }
+        else if(record->recordtype == TEXT)
+        {
+            int16_t layer, purpose;
+            point_t origin;
+            char* str;
+            double angle = 0.0;
+            int* transformation = NULL;
+            _read_TEXT(stream, i, &str, &layer, &purpose, &origin, &angle, &transformation);
+            if(_check_lpp(layer, purpose, ignorelpp))
+            {
+                fprintf(cellfile, "    cell:add_port(\"%s\", ", str);
+                _write_layers(cellfile, layer, purpose, gdslayermap);
+                fprintf(cellfile, ", point.create(%lld, %lld))\n", origin.x, origin.y);
+                free(str);
+            }
+            (void) transformation; // port transformation is currently not supported
+            (void) angle; // port rotation is currently not supported
+            if(transformation)
+            {
+                free(transformation);
+            }
+        }
+        else if(record->recordtype == SREF)
+        {
+            struct cellref* cellref = _read_SREF(stream, i);
+            if(cellref)
+            {
+                _write_cellref(cellfile, importname, cellref, references);
+                _destroy_cellref(cellref);
+            }
+            else
+            {
+                return 0;
+            }
+        }
+        else if(record->recordtype == AREF)
+        {
+            struct cellref* cellref = _read_AREF(stream, i);
+            if(cellref)
+            {
+                _write_cellref(cellfile, importname, cellref, references);
+                _destroy_cellref(cellref);
+            }
+            else
+            {
+                return 0;
+            }
+        }
+        else if(record->recordtype == PROPVALUE)
+        {
+            // FIXME: handle record
+        }
+        else // wrong record
+        {
+            printf("structure: unexpected record '%s' (#%zd)\n", recordnames[record->recordtype], *i);
+            return 0;
+        }
+        ++(*i);
+    }
+    hashmap_destroy(references, NULL);
+    fputs("end", cellfile); // close layout function
+    fclose(cellfile);
+    return 1;
+}
+
 int gdsparser_read_stream(const char* filename, const char* importname, const struct vector* gdslayermap, const struct vector* ignorelpp, int16_t* ablayer, int16_t* abpurpose)
 {
     const char* libname;
@@ -739,23 +1257,9 @@ int gdsparser_read_stream(const char* filename, const char* importname, const st
     {
         return 0;
     }
-    FILE* cellfile = NULL;
-    int16_t layer;
-    int16_t purpose;
-    int32_t width;
-    struct vector* points = NULL;
-    uint8_t what;
-    char* str;
-    int16_t xrep, yrep;
-    double angle = 0.0;
-    struct vector* children = NULL;
-    int* transformation = NULL;
-    coordinate_t abblx = 0;
-    coordinate_t abbly = 0;
-    coordinate_t abtrx = 0;
-    coordinate_t abtry = 0;
 
-    for(size_t i = 0; i < stream->numrecords; ++i)
+    size_t i = 0;
+    while(i < stream->numrecords)
     {
         struct record* record = &stream->records[i];
         if(record->recordtype == LIBNAME)
@@ -773,314 +1277,15 @@ int gdsparser_read_stream(const char* filename, const char* importname, const st
         }
         else if(record->recordtype == BGNSTR)
         {
-            children = vector_create(32);
-        }
-        else if(record->recordtype == ENDSTR)
-        {
-            struct hashmap* references = hashmap_create();
-            fputs("    local ref, name, child\n", cellfile);
-            for(unsigned int i = 0; i < vector_size(children); ++i)
+            if(!_read_structure(importname, stream, &i, gdslayermap, ignorelpp, ablayer, abpurpose))
             {
-                struct _cellref* cellref = vector_get(children, i);
-                if(!hashmap_exists(references, cellref->name))
-                {
-                    fprintf(cellfile, "    ref = pcell.create_layout(\"%s/%s\")\n", importname, cellref->name);
-                    fprintf(cellfile, "    name = pcell.add_cell_reference(ref, \"%s\")\n", cellref->name);
-                    hashmap_insert(references, cellref->name, NULL); // use hashmap as set (value == NULL)
-                }
-                if(cellref->xrep > 1 || cellref->yrep > 1)
-                {
-                    fprintf(cellfile, "    child = cell:add_child_array(name, %d, %d, %d, %d)\n", cellref->xrep, cellref->yrep, cellref->xpitch, cellref->ypitch);
-                }
-                else
-                {
-                    fputs("    child = cell:add_child(name)\n", cellfile);
-                }
-                if(cellref->angle == 180)
-                {
-                    if(cellref->transformation && cellref->transformation[0] == 1)
-                    {
-                        fputs("    child:mirror_at_xaxis()\n", cellfile);
-                        fputs("    child:mirror_at_yaxis()\n", cellfile);
-                    }
-                    else
-                    {
-                        fputs("    child:mirror_at_yaxis()\n", cellfile);
-                    }
-                }
-                else if(cellref->angle == 90)
-                {
-                    fputs("    child:rotate_90_left()\n", cellfile);
-                }
-                if(cellref->transformation && cellref->transformation[0] == 1)
-                {
-                    fputs("    child:mirror_at_xaxis()\n", cellfile);
-                }
-                fprintf(cellfile, "    child:translate(%lld, %lld)\n", cellref->origin->x, cellref->origin->y);
-                free(cellref->name);
-                point_destroy(cellref->origin);
-                if(cellref->transformation)
-                {
-                    free(cellref->transformation);
-                }
-            }
-            hashmap_destroy(references, NULL);
-            vector_destroy(children, NULL);
-            children = NULL;
-            // alignment box
-            fprintf(cellfile, "    cell:set_alignment_box(point.create(%lld, %lld), point.create(%lld, %lld))\n", abblx, abbly, abtrx, abtry);
-            fputs("end", cellfile); // close layout function
-            fclose(cellfile);
-        }
-        else if(record->recordtype == STRNAME)
-        {
-            char* cellname = _parse_string(record->data, record->length - 4);
-            size_t len = strlen(importname) + strlen(importname) + strlen(cellname) + 6; // +2: 2 * '/' + ".lua"
-            char* path = malloc(len + 1);
-            snprintf(path, len + 1, "%s/%s/%s.lua", importname, importname, cellname);
-            cellfile = fopen(path, "w");
-            fputs("function parameters() end\n", cellfile);
-            fputs("function layout(cell)\n", cellfile);
-            free(cellname);
-            free(path);
-        }
-        else if(record->recordtype == BOUNDARY)
-        {
-            what = BOUNDARY;
-            points = vector_create(32);
-        }
-        else if(record->recordtype == BOX)
-        {
-            // FIXME
-        }
-        else if(record->recordtype == PATH)
-        {
-            what = PATH;
-            points = vector_create(32);
-        }
-        else if(record->recordtype == SREF)
-        {
-            what = SREF;
-            points = vector_create(32);
-        }
-        else if(record->recordtype == AREF)
-        {
-            what = AREF;
-            points = vector_create(32);
-        }
-        else if(record->recordtype == TEXT)
-        {
-            what = TEXT;
-            points = vector_create(32);
-        }
-        else if(record->recordtype == ENDEL)
-        {
-            if(what == BOUNDARY && ablayer && abpurpose && layer == *ablayer && purpose == *abpurpose)
-            {
-                abblx = MIN4((get_point(points, 0))->x, (get_point(points, 1))->x, (get_point(points, 2))->x, (get_point(points, 3))->x);
-                abbly = MIN4((get_point(points, 0))->y, (get_point(points, 1))->y, (get_point(points, 2))->y, (get_point(points, 3))->y);
-                abtrx = MAX4((get_point(points, 0))->x, (get_point(points, 1))->x, (get_point(points, 2))->x, (get_point(points, 3))->x);
-                abtry = MAX4((get_point(points, 0))->y, (get_point(points, 1))->y, (get_point(points, 2))->y, (get_point(points, 3))->y);
-            }
-            if(what == BOUNDARY && _check_lpp(layer, purpose, ignorelpp))
-            {
-                // check for rectangles
-                // BOX is not used for rectangles, at least most tool suppliers seem to do it this way
-                // therefor, we check if some "polygons" are actually rectangles and fix the shape types
-                if(vector_size(points) == 5 && _check_rectangle(points))
-                {
-                    fputs("    geometry.rectanglebltr(cell, ", cellfile);
-                    _write_layers(cellfile, layer, purpose, gdslayermap);
-                    // FIXME: the calls to MAX4 and MIN4 are terrible
-                    fputs(", point.create(", cellfile);
-                    _print_int32(cellfile, MIN4((get_point(points, 0))->x, (get_point(points, 1))->x, (get_point(points, 2))->x, (get_point(points, 3))->x));
-                    fputs(", ", cellfile);
-                    _print_int32(cellfile, MIN4((get_point(points, 0))->y, (get_point(points, 1))->y, (get_point(points, 2))->y, (get_point(points, 3))->y));
-                    fputs("), point.create(", cellfile);
-                    _print_int32(cellfile, MAX4((get_point(points, 0))->x, (get_point(points, 1))->x, (get_point(points, 2))->x, (get_point(points, 3))->x));
-                    fputs(", ", cellfile);
-                    _print_int32(cellfile, MAX4((get_point(points, 0))->y, (get_point(points, 1))->y, (get_point(points, 2))->y, (get_point(points, 3))->y));
-                    fputs("))\n", cellfile);
-                }
-                else
-                {
-                    fputs("geometry.polygon(cell, ", cellfile);
-                    _write_layers(cellfile, layer, purpose, gdslayermap);
-                    fputs(", { ", cellfile);
-                    for(unsigned int i = 0; i < vector_size(points); ++i)
-                    {
-                        point_t* pt = vector_get(points, i);
-                        fputs("point.create(", cellfile);
-                        _print_int32(cellfile, pt->x);
-                        fputs(", ", cellfile);
-                        _print_int32(cellfile, pt->y);
-                        fputs("), ", cellfile);
-                    }
-                    fputs("})\n", cellfile);
-                }
-                vector_destroy(points, point_destroy);
-            }
-            if(what == PATH && _check_lpp(layer, purpose, ignorelpp))
-            {
-                fputs("    geometry.path(cell, ", cellfile);
-                _write_layers(cellfile, layer, purpose, gdslayermap);
-                fputs(", { ", cellfile);
-                for(unsigned int i = 0; i < vector_size(points); ++i)
-                {
-                    point_t* pt = vector_get(points, i);
-                    fprintf(cellfile, "point.create(%lld, %lld), ", pt->x, pt->y);
-                }
-                fprintf(cellfile, "}, %d)\n", width);
-                vector_destroy(points, point_destroy);
-            }
-            if(what == TEXT && _check_lpp(layer, purpose, ignorelpp))
-            {
-                point_t* pt = vector_get(points, 0);
-                fprintf(cellfile, "    cell:add_port(\"%s\", ", str);
-                _write_layers(cellfile, layer, purpose, gdslayermap);
-                fprintf(cellfile, ", point.create(%lld, %lld))\n", pt->x, pt->y);
-                vector_destroy(points, point_destroy);
-                free(str);
-                if(transformation)
-                {
-                    free(transformation);
-                }
-                transformation = NULL;
-                angle = 0.0;
-            }
-            if(what == SREF)
-            {
-                struct _cellref* cellref = malloc(sizeof(*cellref));
-                // cellref takes ownership of str, point and transformation
-                cellref->name = str;
-                cellref->origin = vector_get(points, 0);
-                cellref->xrep = 1;
-                cellref->yrep = 1;
-                cellref->angle = angle;
-                cellref->transformation = transformation;
-                vector_append(children, cellref);
-                vector_destroy(points, NULL); // don't destroy points, it is now owned by cellref->origin
-                transformation = NULL;
-                angle = 0.0;
-            }
-            if(what == AREF)
-            {
-                struct _cellref* cellref = malloc(sizeof(*cellref));
-                // cellref takes ownership of str, point and transformation
-                cellref->name = str;
-                cellref->origin = vector_get(points, 0);
-                cellref->xrep = xrep;
-                cellref->yrep = yrep;
-                point_t* pt1 = vector_get(points, 1);
-                point_t* pt2 = vector_get(points, 2);
-                cellref->xpitch = llabs(pt1->x - cellref->origin->x) / cellref->xrep;
-                cellref->ypitch = llabs(pt2->y - cellref->origin->y) / cellref->yrep;
-                cellref->angle = angle;
-                cellref->transformation = transformation;
-                vector_append(children, cellref);
-                vector_destroy(points, NULL); // don't destroy point, it is now owned by cellref->origin
-                transformation = NULL;
-                angle = 0.0;
+                _destroy_stream(stream);
+                return 0;
             }
         }
-        else if(record->recordtype == LAYER)
-        {
-            int16_t* pdata = _parse_two_byte_integer(record->data, 2);
-            layer = *pdata;
-            free(pdata);
-        }
-        else if(record->recordtype == DATATYPE)
-        {
-            int16_t* pdata = _parse_two_byte_integer(record->data, 2);
-            purpose = *pdata;
-            free(pdata);
-        }
-        else if(record->recordtype == TEXTTYPE)
-        {
-            int16_t* pdata = _parse_two_byte_integer(record->data, 2);
-            purpose = *pdata;
-            free(pdata);
-        }
-        else if(record->recordtype == XY)
-        {
-            int32_t* pdata = _parse_four_byte_integer(record->data, record->length - 4);
-            for(int i = 0; i < (record->length - 4) / 4; i += 2)
-            {
-                int32_t x = pdata[i];
-                int32_t y = pdata[i + 1];
-                vector_append(points, point_create(x, y));
-            }
-            free(pdata);
-        }
-        else if(record->recordtype == WIDTH)
-        {
-            int32_t* pdata = _parse_four_byte_integer(record->data, 4);
-            width = *pdata;
-            free(pdata);
-        }
-        else if(record->recordtype == PATHTYPE)
-        {
-    //        if record.data == 0 then
-    //            obj.pathtype = "butt"
-    //        elseif record.data == 1 then
-    //            obj.pathtype = "round"
-    //        elseif record.data == 2 then
-    //            obj.pathtype = "cap"
-    //        elseif record.data == 4 then
-    //            obj.pathtype = { 0, 0 }
-    //        end
-        }
-        else if(record->recordtype == COLROW)
-        {
-            int16_t* pdata = _parse_two_byte_integer(record->data, 4);
-            xrep = pdata[0];
-            yrep = pdata[1];
-            free(pdata);
-        }
-        else if(record->recordtype == SNAME)
-        {
-            str = _parse_string(record->data, record->length - 4);
-        }
-        else if(record->recordtype == STRING)
-        {
-            str = _parse_string(record->data, record->length - 4);
-        }
-        else if(record->recordtype == STRANS)
-        {
-            transformation = _parse_bit_array(record->data);
-        }
-        else if(record->recordtype == ANGLE)
-        {
-            double* pdata = _parse_eight_byte_real(record->data, record->length - 4);
-            angle = *pdata;
-            free(pdata);
-        }
-        else if(record->recordtype == BGNEXTN)
-        {
-    //        obj.pathtype[1] = record.data
-        }
-        else if(record->recordtype == ENDEXTN)
-        {
-    //        obj.pathtype[2] = record.data
-        }
+        ++i;
     }
-
     _destroy_stream(stream);
-
-    //-- check for ignored layer-purpose pairs
-    //if ignorelpp then
-    //    for _, cell in ipairs(cells) do
-    //        for i = #cell.shapes, 1, -1 do -- backwards for deletion
-    //            local shape = cell.shapes[i]
-    //            for _, lpp in ipairs(ignorelpp) do
-    //                local layer, purpose = string.match(lpp, "(%w+):(%w+)")
-    //                if shape.layer == tonumber(layer) and shape.purpose == tonumber(purpose) then
-    //                    table.remove(cell.shapes, i)
-    //                end
-    //            end
-    //        end
-    //    end
-    //end
     return 1;
 }
 
