@@ -420,8 +420,7 @@ enum orientation
     MX,
     MY,
     MXR90,
-    MYR90,
-    RUNDEFINED // FIXME: write the conditions that this is not needed
+    MYR90
 };
 
 static enum orientation _get_matrix_orientation(const struct transformationmatrix* matrix)
@@ -460,13 +459,10 @@ static enum orientation _get_matrix_orientation(const struct transformationmatri
     {
         return MXR90;
     }
-    else if((pt1.x == pt2.x) && (pt3.x > pt1.x))
-    {
-        return MYR90;
-    }
+    //else if((pt1.x == pt2.x) && (pt3.x > pt1.x))
     else
     {
-        return RUNDEFINED;
+        return MYR90;
     }
 }
 
