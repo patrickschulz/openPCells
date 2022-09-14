@@ -217,6 +217,12 @@ local function _get_cell_width(identifier, xpitch)
 end
 
 function M.create_reference_rows(cellnames, xpitch)
+    if not cellnames or type(cellnames) ~= "table" then
+        moderror("placement.create_reference_rows: table for 'cellnames' (first argument) expected")
+    end
+    if not xpitch or type(xpitch) ~= "number" then
+        moderror("placement.create_reference_rows: number for 'xpitch' (second argument) expected")
+    end
     local names = {}
     local references = {}
     for row, entries in ipairs(cellnames) do
