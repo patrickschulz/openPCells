@@ -250,6 +250,7 @@ static int lgdsparser_read_raw_stream(lua_State* L)
         lua_rawset(L, -3);
 
         // data
+        // FIXME: use existing functions to parse gds data
         switch(record->datatype)
         {
             case BIT_ARRAY:
