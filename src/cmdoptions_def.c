@@ -77,7 +77,7 @@ cmdoptions_add_option(cmdoptions, NO_SHORT, "show-gds-data", SINGLE_ARG, "show d
 cmdoptions_add_option(cmdoptions, NO_SHORT, "show-gds-cell-hierarchy", SINGLE_ARG, "show cell hierarchy in a GDS stream file");
 cmdoptions_add_option_default(cmdoptions, NO_SHORT, "show-gds-depth", SINGLE_ARG, "1000", "maximum depth for gds traversal (affects --show-gds-data and --show-gds-hierarchy)");
 cmdoptions_add_option_default(cmdoptions, NO_SHORT, "show-gds-data-flags", MULTI_ARGS, "all", "flags to control what data is shown with --show-gds-data (default: all)");
-cmdoptions_add_option(cmdoptions, NO_SHORT, "show-gds-data-raw", MULTI_ARGS, "also print the raw stream data after the parsed data");
+cmdoptions_add_option(cmdoptions, NO_SHORT, "show-gds-data-raw", NO_ARG, "also print the raw stream data after the parsed data");
 cmdoptions_add_section(cmdoptions, "Diagnostic functions");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "show-cellinfo", NO_ARG, "show some cell information: shape count, used layers, etc.");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "profile", NO_ARG, "collect and display profiling data (this significantly increases run time, be patient while profiling larger cells)");

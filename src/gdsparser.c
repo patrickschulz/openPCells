@@ -399,7 +399,7 @@ static int lgdsparser_read_raw_stream(lua_State* L)
     return 1;
 }
 
-int gdsparser_show_records(const char* filename)
+int gdsparser_show_records(const char* filename, int raw)
 {
     struct stream* stream = _read_raw_stream(filename);
     if(!stream)
@@ -503,6 +503,20 @@ int gdsparser_show_records(const char* filename)
                 default:
                     break;
             }
+        }
+        if(raw)
+        {
+            putchar(' ');
+            putchar('(');
+            for(int i = 0; i < record->length - 4; ++i)
+            {
+                printf("0x%02x", record->data[i]);
+                if(i < record->length - 5)
+                {
+                    putchar(' ');
+                }
+            }
+            putchar(')');
         }
         putchar('\n');
 
@@ -786,12 +800,12 @@ int gdsparser_read_stream(const char* filename, const char* importname, const st
                 {
                     if(cellref->transformation && cellref->transformation[0] == 1)
                     {
+                        fputs("    child:mirror_at_xaxis()\n", cellfile);
                         fputs("    child:mirror_at_yaxis()\n", cellfile);
                     }
                     else
                     {
                         fputs("    child:mirror_at_yaxis()\n", cellfile);
-                        fputs("    child:mirror_at_xaxis()\n", cellfile);
                     }
                 }
                 else if(cellref->angle == 90)
@@ -932,6 +946,7 @@ int gdsparser_read_stream(const char* filename, const char* importname, const st
                     free(transformation);
                 }
                 transformation = NULL;
+                angle = 0.0;
             }
             if(what == SREF)
             {
@@ -944,9 +959,9 @@ int gdsparser_read_stream(const char* filename, const char* importname, const st
                 cellref->angle = angle;
                 cellref->transformation = transformation;
                 vector_append(children, cellref);
-                vector_destroy(points, NULL); // don't destroy point, it is now owned by cellref->origin
+                vector_destroy(points, NULL); // don't destroy points, it is now owned by cellref->origin
                 transformation = NULL;
-                angle = 0;
+                angle = 0.0;
             }
             if(what == AREF)
             {
@@ -965,7 +980,7 @@ int gdsparser_read_stream(const char* filename, const char* importname, const st
                 vector_append(children, cellref);
                 vector_destroy(points, NULL); // don't destroy point, it is now owned by cellref->origin
                 transformation = NULL;
-                angle = 0;
+                angle = 0.0;
             }
         }
         else if(record->recordtype == LAYER)
@@ -1072,7 +1087,7 @@ int gdsparser_read_stream(const char* filename, const char* importname, const st
 static int lgdsparser_show_records(lua_State* L)
 {
     const char* filename = lua_tostring(L, 1);
-    if(!gdsparser_show_records(filename))
+    if(!gdsparser_show_records(filename, 0))
     {
         lua_pushnil(L);
         lua_pushstring(L, "could not read stream");

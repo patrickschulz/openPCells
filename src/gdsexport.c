@@ -418,36 +418,144 @@ enum orientation
     R180,
     R270,
     MX,
-    MY
+    MY,
+    MXR90,
+    MYR90,
+    RUNDEFINED // FIXME: write the conditions that this is not needed
 };
 
 static enum orientation _get_matrix_orientation(const struct transformationmatrix* matrix)
 {
-    const coordinate_t* coefficients = transformationmatrix_get_coefficients(matrix);
-    if(coefficients[0] >= 0 && coefficients[4] >= 0)
+    point_t pt1 = { .x = 1, .y = 0 };
+    point_t pt2 = { .x = 3, .y = 0 };
+    point_t pt3 = { .x = 2, .y = 1 };
+    transformationmatrix_apply_transformation_rot_mirr(matrix, &pt1);
+    transformationmatrix_apply_transformation_rot_mirr(matrix, &pt2);
+    transformationmatrix_apply_transformation_rot_mirr(matrix, &pt3);
+    if((pt1.x < pt2.x) && (pt3.y > pt1.y))
     {
-        if(coefficients[1] < 0)
-        {
-            return R90;
-        }
-        else
-        {
-            return R0;
-        }
+        return R0;
     }
-    else if(coefficients[0] <  0 && coefficients[4] >= 0)
+    else if((pt1.x == pt2.x) && (pt3.x < pt1.x) && (pt3.y > pt1.y))
     {
-        return MY;
+        return R90;
     }
-    else if(coefficients[0] >= 0 && coefficients[4] <  0)
-    {
-        return MX;
-    }
-    else//if(coefficients[0] <  0 && coefficients[4] <  0)
+    else if((pt1.x > pt2.x) && (pt3.y < pt1.y))
     {
         return R180;
     }
-    // FIXME: R270?
+    else if((pt1.x == pt2.x) && pt3.x > 0 && pt3.y < 0)
+    {
+        return R270;
+    }
+    else if((pt1.x < pt2.x) && (pt3.y < pt1.y))
+    {
+        return MX;
+    }
+    else if((pt1.x > pt2.x) && (pt3.y > pt1.y))
+    {
+        return MY;
+    }
+    else if((pt1.x == pt2.x) && (pt3.x < pt1.x))
+    {
+        return MXR90;
+    }
+    else if((pt1.x == pt2.x) && (pt3.x > pt1.x))
+    {
+        return MYR90;
+    }
+    else
+    {
+        return RUNDEFINED;
+    }
+}
+
+static void _write_reflection(struct export_data* data)
+{
+    _write_length_short(data, 6);
+    export_data_append_byte(data, RECORDTYPE_STRANS);
+    export_data_append_byte(data, DATATYPE_BIT_ARRAY);
+    export_data_append_byte(data, 0x80);
+    export_data_append_byte(data, 0x00);
+}
+
+static void _write_angle_90(struct export_data* data)
+{
+    _write_length_short(data, 12);
+    export_data_append_byte(data, RECORDTYPE_ANGLE);
+    export_data_append_byte(data, DATATYPE_EIGHT_BYTE_REAL);
+    export_data_append_byte(data, 0x42);
+    export_data_append_byte(data, 0x5a);
+    export_data_append_byte(data, 0x00);
+    export_data_append_byte(data, 0x00);
+    export_data_append_byte(data, 0x00);
+    export_data_append_byte(data, 0x00);
+    export_data_append_byte(data, 0x00);
+    export_data_append_byte(data, 0x00);
+}
+
+static void _write_angle_180(struct export_data* data)
+{
+    _write_length_short(data, 12);
+    export_data_append_byte(data, RECORDTYPE_ANGLE);
+    export_data_append_byte(data, DATATYPE_EIGHT_BYTE_REAL);
+    export_data_append_byte(data, 0x42);
+    export_data_append_byte(data, 0xb4);
+    export_data_append_byte(data, 0x00);
+    export_data_append_byte(data, 0x00);
+    export_data_append_byte(data, 0x00);
+    export_data_append_byte(data, 0x00);
+    export_data_append_byte(data, 0x00);
+    export_data_append_byte(data, 0x00);
+}
+
+static void _write_angle_270(struct export_data* data)
+{
+    _write_length_short(data, 12);
+    export_data_append_byte(data, RECORDTYPE_ANGLE);
+    export_data_append_byte(data, DATATYPE_EIGHT_BYTE_REAL);
+    export_data_append_byte(data, 0x43);
+    export_data_append_byte(data, 0x10);
+    export_data_append_byte(data, 0x00);
+    export_data_append_byte(data, 0x00);
+    export_data_append_byte(data, 0x00);
+    export_data_append_byte(data, 0x00);
+    export_data_append_byte(data, 0x00);
+    export_data_append_byte(data, 0x00);
+}
+
+static void _write_strans_angle(struct export_data* data, const struct transformationmatrix* trans)
+{
+    enum orientation orientation = _get_matrix_orientation(trans);
+    switch(orientation)
+    {
+        case R0:
+            break;
+        case R90:
+            _write_angle_90(data);
+            break;
+        case R180:
+            _write_angle_180(data);
+            break;
+        case R270:
+            _write_angle_270(data);
+            break;
+        case MX:
+            _write_reflection(data);
+            break;
+        case MY:
+            _write_reflection(data);
+            _write_angle_180(data);
+            break;
+        case MXR90:
+            _write_reflection(data);
+            _write_angle_90(data);
+            break;
+        case MYR90:
+            _write_reflection(data);
+            _write_angle_270(data);
+            break;
+    }
 }
 
 static void _write_cell_reference(struct export_data* data, const char* identifier, coordinate_t x, coordinate_t y, const struct transformationmatrix* trans)
@@ -475,83 +583,7 @@ static void _write_cell_reference(struct export_data* data, const char* identifi
         export_data_append_byte(data, 0x00);
     }
 
-    // STRANS/ANGLE
-    enum orientation orientation = _get_matrix_orientation(trans);
-    switch(orientation)
-    {
-        case R0:
-            break;
-        case MX:
-            // STRANS
-            _write_length_short(data, 6);
-            export_data_append_byte(data, RECORDTYPE_STRANS);
-            export_data_append_byte(data, DATATYPE_BIT_ARRAY);
-            export_data_append_byte(data, 0x80);
-            export_data_append_byte(data, 0x00);
-            break;
-        case MY:
-            // STRANS
-            _write_length_short(data, 6);
-            export_data_append_byte(data, RECORDTYPE_STRANS);
-            export_data_append_byte(data, DATATYPE_BIT_ARRAY);
-            export_data_append_byte(data, 0x80);
-            export_data_append_byte(data, 0x00);
-            // ANGLE (180 degrees)
-            _write_length_short(data, 12);
-            export_data_append_byte(data, RECORDTYPE_ANGLE);
-            export_data_append_byte(data, DATATYPE_EIGHT_BYTE_REAL);
-            export_data_append_byte(data, 0x42);
-            export_data_append_byte(data, 0xb4);
-            export_data_append_byte(data, 0x00);
-            export_data_append_byte(data, 0x00);
-            export_data_append_byte(data, 0x00);
-            export_data_append_byte(data, 0x00);
-            export_data_append_byte(data, 0x00);
-            export_data_append_byte(data, 0x00);
-            break;
-        case R90:
-            // STRANS
-            _write_length_short(data, 6);
-            export_data_append_byte(data, RECORDTYPE_STRANS);
-            export_data_append_byte(data, DATATYPE_BIT_ARRAY);
-            export_data_append_byte(data, 0x00);
-            export_data_append_byte(data, 0x00);
-            // ANGLE (90 degrees)
-            _write_length_short(data, 12);
-            export_data_append_byte(data, RECORDTYPE_ANGLE);
-            export_data_append_byte(data, DATATYPE_EIGHT_BYTE_REAL);
-            export_data_append_byte(data, 0x42);
-            export_data_append_byte(data, 0x5a);
-            export_data_append_byte(data, 0x00);
-            export_data_append_byte(data, 0x00);
-            export_data_append_byte(data, 0x00);
-            export_data_append_byte(data, 0x00);
-            export_data_append_byte(data, 0x00);
-            export_data_append_byte(data, 0x00);
-            break;
-        case R180:
-            // STRANS
-            _write_length_short(data, 6);
-            export_data_append_byte(data, RECORDTYPE_STRANS);
-            export_data_append_byte(data, DATATYPE_BIT_ARRAY);
-            export_data_append_byte(data, 0x00);
-            export_data_append_byte(data, 0x00);
-            // ANGLE (180 degrees)
-            _write_length_short(data, 12);
-            export_data_append_byte(data, RECORDTYPE_ANGLE);
-            export_data_append_byte(data, DATATYPE_EIGHT_BYTE_REAL);
-            export_data_append_byte(data, 0x42);
-            export_data_append_byte(data, 0xb4);
-            export_data_append_byte(data, 0x00);
-            export_data_append_byte(data, 0x00);
-            export_data_append_byte(data, 0x00);
-            export_data_append_byte(data, 0x00);
-            export_data_append_byte(data, 0x00);
-            export_data_append_byte(data, 0x00);
-            break;
-        case R270: //FIXME
-            break;
-    }
+    _write_strans_angle(data, trans);
 
     unsigned int multiplier = 1; // FIXME: make proper use of units
     _write_length_short(data, 12);
@@ -588,90 +620,7 @@ static void _write_cell_array(struct export_data* data, const char* identifier, 
         export_data_append_nullbyte(data);
     }
 
-    // STRANS/ANGLE
-    enum orientation orientation = _get_matrix_orientation(trans);
-    switch(orientation)
-    {
-        case R0:
-            break;
-        case MX:
-            // STRANS
-            export_data_append_byte(data, 0x00);
-            export_data_append_byte(data, 0x06);
-            export_data_append_byte(data, 0x1a);
-            export_data_append_byte(data, 0x01);
-            export_data_append_byte(data, 0x80);
-            export_data_append_byte(data, 0x00);
-            break;
-        case MY:
-            // STRANS
-            export_data_append_byte(data, 0x00);
-            export_data_append_byte(data, 0x06);
-            export_data_append_byte(data, 0x1a);
-            export_data_append_byte(data, 0x01);
-            export_data_append_byte(data, 0x80);
-            export_data_append_byte(data, 0x00);
-            // ANGLE (180 degrees)
-            export_data_append_byte(data, 0x00);
-            export_data_append_byte(data, 0x0c);
-            export_data_append_byte(data, 0x1c);
-            export_data_append_byte(data, 0x05);
-            export_data_append_byte(data, 0x42);
-            export_data_append_byte(data, 0xb4);
-            export_data_append_byte(data, 0x00);
-            export_data_append_byte(data, 0x00);
-            export_data_append_byte(data, 0x00);
-            export_data_append_byte(data, 0x00);
-            export_data_append_byte(data, 0x00);
-            export_data_append_byte(data, 0x00);
-            break;
-        case R90:
-            // STRANS
-            export_data_append_byte(data, 0x00);
-            export_data_append_byte(data, 0x06);
-            export_data_append_byte(data, 0x1a);
-            export_data_append_byte(data, 0x01);
-            export_data_append_byte(data, 0x00);
-            export_data_append_byte(data, 0x00);
-            // ANGLE (90 degrees)
-            export_data_append_byte(data, 0x00);
-            export_data_append_byte(data, 0x0c);
-            export_data_append_byte(data, 0x1c);
-            export_data_append_byte(data, 0x05);
-            export_data_append_byte(data, 0x42);
-            export_data_append_byte(data, 0x5a);
-            export_data_append_byte(data, 0x00);
-            export_data_append_byte(data, 0x00);
-            export_data_append_byte(data, 0x00);
-            export_data_append_byte(data, 0x00);
-            export_data_append_byte(data, 0x00);
-            export_data_append_byte(data, 0x00);
-            break;
-        case R180:
-            // STRANS
-            export_data_append_byte(data, 0x00);
-            export_data_append_byte(data, 0x06);
-            export_data_append_byte(data, 0x1a);
-            export_data_append_byte(data, 0x01);
-            export_data_append_byte(data, 0x00);
-            export_data_append_byte(data, 0x00);
-            // ANGLE (180 degrees)
-            export_data_append_byte(data, 0x00);
-            export_data_append_byte(data, 0x0c);
-            export_data_append_byte(data, 0x1c);
-            export_data_append_byte(data, 0x05);
-            export_data_append_byte(data, 0x42);
-            export_data_append_byte(data, 0xb4);
-            export_data_append_byte(data, 0x00);
-            export_data_append_byte(data, 0x00);
-            export_data_append_byte(data, 0x00);
-            export_data_append_byte(data, 0x00);
-            export_data_append_byte(data, 0x00);
-            export_data_append_byte(data, 0x00);
-            break;
-        case R270: //FIXME
-            break;
-    }
+    _write_strans_angle(data, trans);
 
     // COLROW
     _write_length_short(data, 8);

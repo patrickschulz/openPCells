@@ -181,6 +181,14 @@ void transformationmatrix_apply_transformation(const struct transformationmatrix
     pt->y = M(matrix, 3) * x + M(matrix, 4) * y + M(matrix, 5);
 }
 
+void transformationmatrix_apply_transformation_rot_mirr(const struct transformationmatrix* matrix, point_t* pt)
+{
+    coordinate_t x = pt->x;
+    coordinate_t y = pt->y;
+    pt->x = M(matrix, 0) * x + M(matrix, 1) * y;
+    pt->y = M(matrix, 3) * x + M(matrix, 4) * y;
+}
+
 void transformationmatrix_apply_transformation_xy(const struct transformationmatrix* matrix, coordinate_t* x, coordinate_t* y)
 {
     coordinate_t xx = *x;

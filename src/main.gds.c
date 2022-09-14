@@ -16,7 +16,8 @@
 void main_gds_show_data(struct cmdoptions* cmdoptions)
 {
     const char* arg = cmdoptions_get_argument_long(cmdoptions, "show-gds-data");
-    int ret = gdsparser_show_records(arg);
+    int raw = cmdoptions_was_provided_long(cmdoptions, "show-gds-data-raw");
+    int ret = gdsparser_show_records(arg, raw);
     if(!ret)
     {
         // FIXME
