@@ -22,6 +22,8 @@ void pcell_append_cellpath(struct pcell_state*, const char* path);
 void pcell_list_cellpaths(struct pcell_state* pcell_state);
 void pcell_list_cells(struct pcell_state* pcell_state, const char* listformat);
 
+void pcell_foreach_cell_reference(struct pcell_state* pcell_state, void (*cellfunc)(struct object*));
+
 // reference cell iterator
 struct cell_reference_iterator;
 struct cell_reference_iterator* pcell_create_cell_reference_iterator(const struct pcell_state* pcell_state);

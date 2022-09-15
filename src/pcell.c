@@ -315,6 +315,21 @@ void pcell_list_cells(struct pcell_state* pcell_state, const char* listformat)
     lua_close(L);
 }
 
+void pcell_foreach_cell_reference(struct pcell_state* pcell_state, void (*cellfunc)(struct object*))
+{
+    struct cell_reference_iterator* it = pcell_create_cell_reference_iterator(pcell_state);
+    while(pcell_cell_reference_iterator_is_valid(it))
+    {
+        char* refidentifier;
+        struct object* refcell;
+        int refnumused;
+        pcell_cell_reference_iterator_get(it, &refidentifier, &refcell, &refnumused);
+        cellfunc(refcell);
+        pcell_cell_reference_iterator_advance(it);
+    }
+    pcell_destroy_cell_reference_iterator(it);
+}
+
 static int lpcell_get_cell_filename(lua_State* L)
 {
     lua_getfield(L, LUA_REGISTRYINDEX, "pcellstate");

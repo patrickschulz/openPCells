@@ -32,7 +32,9 @@ cmdoptions_add_option_default(cmdoptions, NO_SHORT, "export-filter-list", SINGLE
 cmdoptions_add_option(cmdoptions, NO_SHORT, "ignore-missing-layers", NO_ARG, "ignore missing layers in the technology translation. Layers that are not present in the layermap file are handled as if their values was '{}'");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "ignore-missing-export", NO_ARG, "ignore layers with missing exports in the technology translation");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "merge-rectangles", NO_ARG, "merge rectangles");
+cmdoptions_add_option(cmdoptions, NO_SHORT, "resolve-paths", NO_ARG, "resolve paths to rectangles and polygons");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "rasterize-curves", NO_ARG, "rasterize curves");
+cmdoptions_add_option(cmdoptions, NO_SHORT, "triangulate-polygons", NO_ARG, "triangulate all polygons");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "disable-via-arrayzation", NO_ARG, "don't create via arrays, instead create single large via regions (useful for EM simulations)");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "separator", SINGLE_ARG, "cell parameter separator (default \\n)");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "seed", SINGLE_ARG, "set seed for random functions for reproducible layout generation. Random functions are mostly used in digital place & route functions, but also in some cells");
@@ -75,7 +77,7 @@ cmdoptions_add_option(cmdoptions, NO_SHORT, "show-gds-data", SINGLE_ARG, "show d
 cmdoptions_add_option(cmdoptions, NO_SHORT, "show-gds-cell-hierarchy", SINGLE_ARG, "show cell hierarchy in a GDS stream file");
 cmdoptions_add_option_default(cmdoptions, NO_SHORT, "show-gds-depth", SINGLE_ARG, "1000", "maximum depth for gds traversal (affects --show-gds-data and --show-gds-hierarchy)");
 cmdoptions_add_option_default(cmdoptions, NO_SHORT, "show-gds-data-flags", MULTI_ARGS, "all", "flags to control what data is shown with --show-gds-data (default: all)");
-cmdoptions_add_option(cmdoptions, NO_SHORT, "show-gds-data-raw", MULTI_ARGS, "also print the raw stream data after the parsed data");
+cmdoptions_add_option(cmdoptions, NO_SHORT, "show-gds-data-raw", NO_ARG, "also print the raw stream data after the parsed data");
 cmdoptions_add_section(cmdoptions, "Diagnostic functions");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "show-cellinfo", NO_ARG, "show some cell information: shape count, used layers, etc.");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "profile", NO_ARG, "collect and display profiling data (this significantly increases run time, be patient while profiling larger cells)");

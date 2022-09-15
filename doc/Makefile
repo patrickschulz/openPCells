@@ -1,5 +1,5 @@
 cells := ../cells/passive/capacitor/mom.lua ../cells/passive/inductor/octagonal.lua
-documents := presentation.pdf userguide.pdf techdoc.pdf techfiles.pdf celldesign.pdf
+documents := presentation.pdf userguide.pdf techdoc.pdf techfiles.pdf celldesign.pdf export.pdf
 
 .PHONY: all
 all: ${documents}
@@ -31,6 +31,10 @@ celldesign.pdf: src/celldesign/main.tex src/preamble.tex ${cells} src/celldesign
 techfiles.pdf: src/techfiles/main.tex src/preamble.tex
 	$(MAKE) -C src/techfiles main.pdf
 	mv src/techfiles/main.pdf techfiles.pdf
+
+export.pdf: src/export/main.tex src/preamble.tex
+	$(MAKE) -C src/export main.pdf
+	mv src/export/main.pdf export.pdf
 
 # in src directories
 main.pdf:

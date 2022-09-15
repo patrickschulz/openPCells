@@ -1,0 +1,149 @@
+\input{../preamble}
+
+\title{OpenPCells}
+\subtitle{Writing Custom Exports}
+\author{Patrick Kurth}
+
+\begin{document}
+\maketitle
+\begin{abstract}
+    \noindent This is the official documentation of the OpenPCells project. It is split in several different files for clarity. 
+    This document provides an overview of the creation of custom export types.
+    If you are looking for a general overview of the project and how to use it, start with the user guide, which also contains a tutorial for getting started quickly. 
+    If you are looking for a guide and documentation on the creation of parametrized cells, consult the celldesign manual.
+    If you want to now more about the technical details and implementation notes, look into the technical documentation.
+\end{abstract}
+
+\section{Overview}
+Exports in openPCells work by defining functions that write specific shapes/objects such as rectangles or polygons.
+The functions that need to be defined follow closely the way layouts are represented in opc.
+Some functions (such as writing rectangles) are elementary and are mandatory, other are optional (such as functions dealing with cell hierarchies).
+The calling environment of an export makes sure to reduce the layout to a representation that the export can understand (for example flattening layout hierarchies).
+In total, 16~different functions can be defined, but only 4 are mandatory.
+
+In the following, all export functions (mandatory and optional) will be discussed in detail and some basic best practices regarding the writing of export types will be given.
+All viewings of export types will be focused on lua exports.
+C exports follow a similar fashion, but have more freedom in their processing of output data.
+The specific differences are shown in section~\ref{sec:cspecial}.
+
+\section{Export Functions}
+\subsection{initialize}
+%-- * optional *
+%-- make arbitrary calculations that are needed for this export
+%-- the function gets the minimum and maximum coordinates (x and y)
+%function M.initialize(minx, maxx, miny, maxy)
+%end
+%
+%-- * mandatory *
+%-- function which defines how the export gets its layer
+%-- usually pretty simple, as most of the work is already done in the technology translation
+%-- example from the GDS export: return { S:get_lpp():get().layer, purpose = S:get_lpp():get().purpose }
+\subsection{finalize}
+%function M.finalize()
+%    -- example for string return
+%    -- most exports work like this, but some need to do something else
+%    return table.concat(__content)
+%end
+%
+%-- * mandatory *
+%-- provides the file ending of the generated layout (e.g. returns "gds" for the gds export)
+\subsection{get\_extension}
+%function M.get_extension()
+%    return "TEMPLATE"
+%end
+%
+%-- * optional *
+%-- provides a different name to be used for the technology translation
+%-- usually, each export needs their one layer definitions in the technology layermap,
+%-- but some exports can reuse other data, such as the OASIS export, which can reuse 
+%-- layer names from GDS
+\subsection{get\_techexport}
+%function M.get_techexport()
+%    return "OTHERTEMPLATE"
+%end
+%
+%-- * optional *
+%-- callback for export command line options
+%-- before the export starts, this function (if present) is called with the collected
+%-- command line arguments.
+\subsection{set\_options}
+%function M.set_options(opt)
+%end
+%
+%-- * optional *
+%-- function called at the start of the export, data will be written before other data
+\subsection{at\_begin}
+%function M.at_begin()
+%end
+%
+%-- * optional *
+%-- function called at the end of the export, data will be written after all other data
+\subsection{at\_end}
+%function M.at_end()
+%end
+%
+%-- * optional *
+%-- function called at the start of a cell
+%-- usefull for exports that support hierarchies, but some exports such as GDS need this 
+%-- also in the case of flat layouts
+\subsection{at\_begin\_cell}
+%function M.at_begin_cell(cellname)
+%end
+%
+%-- * optional *
+%-- counterpart to at_begin_cell. Called AFTER the cell is written
+\subsection{at\_end\_cell}
+%function M.at_end_cell()
+%end
+%
+%-- * mandatory *
+%-- how to write a rectangle
+\subsection{write\_rectangle}
+%function M.write_rectangle(layer, bl, tr)
+%end
+%
+%-- * optional *
+%-- how to write a triangle
+\subsection{write\_triangle}
+%function M.write_triangle(layer, pt1, pt2, pt3)
+%end
+%
+%-- * sort-of mandatory *
+%-- how to write a polygon
+%-- if this is not present but write_triangle is provided,
+%-- polygons are triangulated and written by write_triangle
+\subsection{write\_polygon}
+%function M.write_polygon(layer, pts)
+%end
+%
+%-- * optional *
+%-- how to write a path
+%-- if not present, the shape will be converted accordingly
+%-- (to a single rectangle if possible, otherwise to a polygon)
+\subsection{write\_path}
+%function M.write_path(layer, pts, width)
+%end
+%
+%-- * optional *
+%-- how to write a cell reference (a child in opc terminology). Needed for hierarchies
+\subsection{write\_cell\_reference}
+%function M.write_cell_reference(identifier, x, y, orientation)
+%end
+%
+%-- * optional *
+%-- how to write an array of cell reference
+\subsection{write\_cell\_array}
+%function M.write_cell_array(identifier, x, y, orientation, xrep, yrep, xpitch, ypitch)
+%end
+%
+%-- * optional *
+%-- how to write a named for layout topology data (e.g. LVS)
+\subsection{write\_cell\_port}
+%function M.write_port(name, layer, where)
+%end
+
+\section{C Export Specialities}\label{sec:cspecial}
+
+\end{document}
+
+% vim: ft=tex

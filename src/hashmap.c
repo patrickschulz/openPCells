@@ -115,7 +115,7 @@ void hashmap_insert(struct hashmap* map, const char* key, void* value)
     map->size += 1;
 }
 
-int hashmap_exists(struct hashmap* map, const char* key)
+int hashmap_exists(const struct hashmap* map, const char* key)
 {
     struct hashmap_entry* entry = _find(map, key);
     return entry->key != NULL;

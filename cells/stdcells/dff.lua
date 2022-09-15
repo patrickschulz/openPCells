@@ -125,7 +125,7 @@ function layout(dff, _P)
         pcontactpos[23] = "power"
     end
 
-    -- finish flip flop gates
+    -- finish dff gates
     table.insert(gatecontactpos, "dummy")
     table.insert(pcontactpos, "power")
     table.insert(ncontactpos, "power")

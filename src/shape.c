@@ -88,7 +88,7 @@ struct shape* shape_create_curve(const struct generics* layer, coordinate_t x, c
 void* shape_copy(const void* v)
 {
     const struct shape* self = v;
-    struct shape* new;
+    struct shape* new = NULL;
     switch(self->type)
     {
         case RECTANGLE:

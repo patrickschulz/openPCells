@@ -32,17 +32,30 @@
 
 static int _load_config(struct hashmap* config)
 {
+    // prepare config
+    struct vector* techpaths = vector_create(8);
+    hashmap_insert(config, "techpaths", techpaths);
+    struct vector* prepend_cellpaths = vector_create(8);
+    hashmap_insert(config, "prepend_cellpaths", prepend_cellpaths);
+    struct vector* append_cellpaths = vector_create(8);
+    hashmap_insert(config, "append_cellpaths", append_cellpaths);
+
     const char* home = getenv("HOME");
-    lua_State* L = util_create_basic_lua_state();
     size_t len = strlen(home) + strlen("/.opcconfig.lua");
     char* filename = malloc(len + 1);
     snprintf(filename, len + 1, "%s/.opcconfig.lua", home);
+    if(!filesystem_exists(filename))
+    {
+        free(filename);
+        return 1; // non-existing user config is not an error
+    }
+    lua_State* L = util_create_basic_lua_state();
     int ret = luaL_dofile(L, filename);
     free(filename);
     if(ret == LUA_OK)
     {
         // techpaths
-        struct vector* techpaths = vector_create(8);
+        techpaths = hashmap_get(config, "techpaths");
         lua_getfield(L, -1, "techpaths");
         if(!lua_isnil(L, -1))
         {
@@ -55,13 +68,12 @@ static int _load_config(struct hashmap* config)
             }
         }
         lua_pop(L, 1); // pop techpaths table (or nil)
-        hashmap_insert(config, "techpaths", techpaths);
         // remove entry
         lua_pushnil(L);
         lua_setfield(L, -2, "techpaths");
 
         // cellpaths
-        struct vector* prepend_cellpaths = vector_create(8);
+        techpaths = hashmap_get(config, "prepend_cellpaths");
         lua_getfield(L, -1, "prepend_cellpaths");
         if(!lua_isnil(L, -1))
         {
@@ -74,12 +86,11 @@ static int _load_config(struct hashmap* config)
             }
         }
         lua_pop(L, 1); // pop prepend_cellpaths table (or nil)
-        hashmap_insert(config, "prepend_cellpaths", prepend_cellpaths);
         // remove entry
         lua_pushnil(L);
         lua_setfield(L, -2, "prepend_cellpaths");
 
-        struct vector* append_cellpaths = vector_create(8);
+        append_cellpaths = hashmap_get(config, "append_cellpaths");
         lua_getfield(L, -1, "append_cellpaths");
         if(!lua_isnil(L, -1))
         {
@@ -92,7 +103,6 @@ static int _load_config(struct hashmap* config)
             }
         }
         lua_pop(L, 1); // pop append_cellpaths table (or nil)
-        hashmap_insert(config, "append_cellpaths", append_cellpaths);
         // remove entry
         lua_pushnil(L);
         lua_setfield(L, -2, "append_cellpaths");
