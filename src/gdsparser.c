@@ -160,17 +160,6 @@ static int32_t* _parse_four_byte_integer(uint8_t* data, size_t length)
     return pdata;
 }
 
-static void _parse_xy_i(uint8_t* data, size_t i, coordinate_t* xy)
-{
-    *xy = (data[i * 4] << 24) + (data[i * 4 + 1] << 16) + (data[i * 4 + 2] << 8) + data[i * 4 + 3];
-}
-
-static void _parse_single_point(uint8_t* data, point_t* pt)
-{
-    pt->x = (data[0] << 24) + (data[1] << 16) + (data[2] << 8) + data[3];
-    pt->y = (data[4] << 24) + (data[5] << 16) + (data[6] << 8) + data[7];
-}
-
 static inline void _parse_single_point_i(uint8_t* data, size_t i, point_t* pt)
 {
     pt->x = (data[i * 8] << 24) + (data[i * 8 + 1] << 16) + (data[i * 8 + 2] << 8) + data[i * 8 + 3];
@@ -185,6 +174,21 @@ static struct vector* _parse_points(uint8_t* data, size_t length)
         point_t* pt = point_create(0, 0);
         _parse_single_point_i(data, i, pt);
         vector_append(points, pt);
+    }
+    return points;
+}
+
+static void _parse_xy_i(uint8_t* data, size_t i, coordinate_t* xy)
+{
+    *xy = (data[i * 4] << 24) + (data[i * 4 + 1] << 16) + (data[i * 4 + 2] << 8) + data[i * 4 + 3];
+}
+
+static coordinate_t* _parse_points_xy(uint8_t* data, size_t length)
+{
+    coordinate_t* points = malloc(sizeof(*points) * (length >> 2));
+    for(size_t i = 0; i < length >> 2; ++i)
+    {
+        _parse_xy_i(data, i, points + i);
     }
     return points;
 }
@@ -579,6 +583,15 @@ static void _print_int16(FILE* file, int16_t num)
     fputc((num % 10) + '0', file);
 }
 
+static void _print_pos_int32(FILE* file, int32_t num)
+{
+    if(num > 9)
+    {
+        _print_pos_int32(file, num / 10);
+    }
+    fputc((num % 10) + '0', file);
+}
+
 static void _print_int32(FILE* file, int32_t num)
 {
     if(num < 0)
@@ -588,15 +601,41 @@ static void _print_int32(FILE* file, int32_t num)
     }
     if(num > 9)
     {
-        _print_int32(file, num / 10);
+        _print_pos_int32(file, num / 10);
     }
     fputc((num % 10) + '0', file);
+    /*
+    static const char* lut = "0123456789abcdef";
+    if(num < 0)
+    {
+        fputc('-', file);
+        num *= -1;
+    }
+    fputc('0', file);
+    fputc('x', file);
+    fputc(lut[(num & 0xf0000000) >> 28], file);
+    fputc(lut[(num & 0x0f000000) >> 24], file);
+    fputc(lut[(num & 0x00f00000) >> 20], file);
+    fputc(lut[(num & 0x000f0000) >> 16], file);
+    fputc(lut[(num & 0x0000f000) >> 12], file);
+    fputc(lut[(num & 0x00000f00) >>  8], file);
+    fputc(lut[(num & 0x000000f0) >>  4], file);
+    fputc(lut[(num & 0x0000000f) >>  0], file);
+    */
 }
 
 #define MAX2(a, b) ((a) > (b) ? (a) : (b))
 #define MIN2(a, b) ((a) > (b) ? (b) : (a))
 #define MAX4(a, b, c, d) MAX2(MAX2(a, b), MAX2(c, d))
 #define MIN4(a, b, c, d) MIN2(MIN2(a, b), MIN2(c, d))
+
+static void _rectangle_coordinates(const coordinate_t* points, coordinate_t* blx, coordinate_t* bly, coordinate_t* trx, coordinate_t* try)
+{
+    *blx = MIN4(points[0], points[2], points[4], points[6]);
+    *bly = MIN4(points[1], points[3], points[5], points[7]);
+    *trx = MAX4(points[0], points[2], points[4], points[6]);
+    *try = MAX4(points[1], points[3], points[5], points[7]);
+}
 
 struct cellref {
     char* name;
@@ -609,25 +648,20 @@ struct cellref {
     double angle;
 };
 
-static const point_t* get_point(const struct vector* vector, size_t i )
+int _check_rectangle(const coordinate_t* points)
 {
-    return vector_get_const(vector, i);
-}
-
-int _check_rectangle(const struct vector* points)
-{
-    return (((get_point(points, 0))->y == (get_point(points, 1))->y)  &&
-            ((get_point(points, 1))->x == (get_point(points, 2))->x)  &&
-            ((get_point(points, 2))->y == (get_point(points, 3))->y)  &&
-            ((get_point(points, 3))->x == (get_point(points, 4))->x)  &&
-            ((get_point(points, 0))->x == (get_point(points, 4))->x)  &&
-            ((get_point(points, 0))->y == (get_point(points, 4))->y)) ||
-           (((get_point(points, 0))->x == (get_point(points, 1))->x)  &&
-            ((get_point(points, 1))->y == (get_point(points, 2))->y)  &&
-            ((get_point(points, 2))->x == (get_point(points, 3))->x)  &&
-            ((get_point(points, 3))->y == (get_point(points, 4))->y)  &&
-            ((get_point(points, 0))->x == (get_point(points, 4))->x)  &&
-            ((get_point(points, 0))->y == (get_point(points, 4))->y));
+    return ((points[1] == points[3])  &&
+            (points[2] == points[4])  &&
+            (points[5] == points[7])  &&
+            (points[6] == points[8])  &&
+            (points[0] == points[8])  &&
+            (points[1] == points[9])) ||
+           ((points[0] == points[2])  &&
+            (points[3] == points[5])  &&
+            (points[4] == points[6])  &&
+            (points[7] == points[9])  &&
+            (points[0] == points[8])  &&
+            (points[1] == points[9]));
 }
 
 struct layermapping {
@@ -806,7 +840,7 @@ static int _read_TEXT(const struct stream* stream, size_t* i, char** str, int16_
         }
         else if(record->recordtype == XY)
         {
-            _parse_single_point(record->data, origin);
+            _parse_single_point_i(record->data, 0, origin);
         }
         else if(record->recordtype == STRING)
         {
@@ -869,7 +903,7 @@ static struct cellref* _read_SREF_AREF(const struct stream* stream, size_t* i, i
         }
         else if(record->recordtype == XY)
         {
-            _parse_single_point(record->data, cellref->origin);
+            _parse_single_point_i(record->data, 0, cellref->origin);
             if(isAREF)
             {
                 coordinate_t x1, y2;
@@ -945,7 +979,8 @@ static void _write_cellref(FILE* cellfile, const char* importname, const struct 
     }
 }
 
-static int _read_BOUNDARY(const struct stream* stream, size_t* i, int16_t* layer, int16_t* purpose, struct vector** points)
+//static int _read_BOUNDARY(const struct stream* stream, size_t* i, int16_t* layer, int16_t* purpose, struct vector** points)
+static int _read_BOUNDARY(const struct stream* stream, size_t* i, int16_t* layer, int16_t* purpose, coordinate_t** points, size_t* size)
 {
     ++(*i); // skip BOUNDARY
     while(1)
@@ -973,7 +1008,8 @@ static int _read_BOUNDARY(const struct stream* stream, size_t* i, int16_t* layer
         }
         else if(record->recordtype == XY)
         {
-            *points = _parse_points(record->data, record->length - 4);
+            *points = _parse_points_xy(record->data, record->length - 4);
+            *size = (record->length - 4) >> 2;
         }
         else if(record->recordtype == PROPATTR)
         {
@@ -997,38 +1033,40 @@ static int _read_BOUNDARY(const struct stream* stream, size_t* i, int16_t* layer
     return 1;
 }
 
-static void _write_BOUNDARY(FILE* cellfile, int16_t layer, int16_t purpose, const struct vector* points, const struct vector* gdslayermap)
+//static void _write_BOUNDARY(FILE* cellfile, int16_t layer, int16_t purpose, const struct vector* points, const struct vector* gdslayermap)
+static void _write_BOUNDARY(FILE* cellfile, int16_t layer, int16_t purpose, const coordinate_t* points, size_t numpoints, const struct vector* gdslayermap)
 {
-    // check for rectangles
+    // check for rectangle
     // BOX is not used for rectangles, at least most tool suppliers seem to do it this way
     // therefor, we check if some "polygons" are actually rectangles and fix the shape types
-    if(vector_size(points) == 5 && _check_rectangle(points))
+    //if(vector_size(points) == 5 && _check_rectangle(points))
+    if(numpoints == 5 && _check_rectangle(points))
     {
         fputs("    geometry.rectanglebltr(cell, ", cellfile);
         _write_layers(cellfile, layer, purpose, gdslayermap);
-        // FIXME: the calls to MAX4 and MIN4 are terrible
+        coordinate_t blx, bly, trx, try;
+        _rectangle_coordinates(points, &blx, &bly, &trx, &try);
         fputs(", point.create(", cellfile);
-        _print_int32(cellfile, MIN4((get_point(points, 0))->x, (get_point(points, 1))->x, (get_point(points, 2))->x, (get_point(points, 3))->x));
+        _print_int32(cellfile, blx);
         fputs(", ", cellfile);
-        _print_int32(cellfile, MIN4((get_point(points, 0))->y, (get_point(points, 1))->y, (get_point(points, 2))->y, (get_point(points, 3))->y));
+        _print_int32(cellfile, bly);
         fputs("), point.create(", cellfile);
-        _print_int32(cellfile, MAX4((get_point(points, 0))->x, (get_point(points, 1))->x, (get_point(points, 2))->x, (get_point(points, 3))->x));
+        _print_int32(cellfile, trx);
         fputs(", ", cellfile);
-        _print_int32(cellfile, MAX4((get_point(points, 0))->y, (get_point(points, 1))->y, (get_point(points, 2))->y, (get_point(points, 3))->y));
+        _print_int32(cellfile, try);
         fputs("))\n", cellfile);
     }
     else
     {
-        fputs("geometry.polygon(cell, ", cellfile);
+        fputs("    geometry.polygon(cell, ", cellfile);
         _write_layers(cellfile, layer, purpose, gdslayermap);
         fputs(", { ", cellfile);
-        for(unsigned int i = 0; i < vector_size(points); ++i)
+        for(unsigned int i = 0; i < numpoints; i += 2)
         {
-            const point_t* pt = vector_get_const(points, i);
             fputs("point.create(", cellfile);
-            _print_int32(cellfile, pt->x);
+            _print_int32(cellfile, points[i]);
             fputs(", ", cellfile);
-            _print_int32(cellfile, pt->y);
+            _print_int32(cellfile, points[i + 1]);
             fputs("), ", cellfile);
         }
         fputs("})\n", cellfile);
@@ -1142,23 +1180,24 @@ static int _read_structure(const char* importname, const struct stream* stream, 
         else if(record->recordtype == BOUNDARY)
         {
             int16_t layer, purpose;
-            struct vector* points = NULL;
-            if(!_read_BOUNDARY(stream, i, &layer, &purpose, &points))
+            //struct vector* points = NULL;
+            coordinate_t* points = NULL;
+            size_t numpoints = 0;
+            if(!_read_BOUNDARY(stream, i, &layer, &purpose, &points, &numpoints))
             {
+                free(points);
                 return 0;
             }
             if(_check_lpp(layer, purpose, ignorelpp))
             {
-                _write_BOUNDARY(cellfile, layer, purpose, points, gdslayermap);
+                _write_BOUNDARY(cellfile, layer, purpose, points, numpoints, gdslayermap);
             }
-            vector_destroy(points, point_destroy);
+            free(points);
             // alignment box
             if(ablayer && abpurpose && layer == *ablayer && purpose == *abpurpose)
             {
-                coordinate_t abblx = MIN4((get_point(points, 0))->x, (get_point(points, 1))->x, (get_point(points, 2))->x, (get_point(points, 3))->x);
-                coordinate_t abbly = MIN4((get_point(points, 0))->y, (get_point(points, 1))->y, (get_point(points, 2))->y, (get_point(points, 3))->y);
-                coordinate_t abtrx = MAX4((get_point(points, 0))->x, (get_point(points, 1))->x, (get_point(points, 2))->x, (get_point(points, 3))->x);
-                coordinate_t abtry = MAX4((get_point(points, 0))->y, (get_point(points, 1))->y, (get_point(points, 2))->y, (get_point(points, 3))->y);
+                coordinate_t abblx, abbly, abtrx, abtry;
+                _rectangle_coordinates(points, &abblx, &abbly, &abtrx, &abtry);
                 fprintf(cellfile, "    cell:set_alignment_box(point.create(%lld, %lld), point.create(%lld, %lld))\n", abblx, abbly, abtrx, abtry);
             }
         }
