@@ -65,572 +65,632 @@ module counter_compare(clk, finished);
   wire _058_;
   wire _059_;
   wire _060_;
+  wire _061_;
+  wire _062_;
+  wire _063_;
+  wire _064_;
+  wire _065_;
+  wire _066_;
   (* force_downto = 32'd1 *)
   (* src = "debug_behavioral.v:7.18-7.27|/usr/bin/../share/yosys/techmap.v:270.23-270.24" *)
-  wire [31:0] _061_;
+  wire [31:0] _067_;
   (* force_downto = 32'd1 *)
   (* src = "debug_behavioral.v:7.18-7.27|/usr/bin/../share/yosys/techmap.v:270.26-270.27" *)
-  (* unused_bits = "22" *)
-  wire [31:0] _062_;
+  (* unused_bits = "24" *)
+  wire [31:0] _068_;
   (* src = "debug_behavioral.v:3.31-3.34" *)
   input clk;
   wire clk;
-  (* src = "debug_behavioral.v:4.34-4.39" *)
-  wire [21:0] count;
+  (* src = "debug_behavioral.v:4.35-4.40" *)
+  wire [23:0] count;
   (* src = "debug_behavioral.v:3.43-3.51" *)
   output finished;
   wire finished;
-  not_gate _063_ (
+  not_gate _069_ (
     .I(count[0]),
-    .O(_061_[0])
-  );
-  nor_gate _064_ (
-    .A(count[0]),
-    .B(count[1]),
-    .O(_020_)
-  );
-  nor_gate _065_ (
-    .A(count[2]),
-    .B(count[3]),
-    .O(_021_)
-  );
-  nor_gate _066_ (
-    .A(count[4]),
-    .B(count[5]),
-    .O(_022_)
-  );
-  and_gate _067_ (
-    .A(_021_),
-    .B(_022_),
-    .O(_023_)
-  );
-  and_gate _068_ (
-    .A(_020_),
-    .B(_023_),
-    .O(_024_)
-  );
-  nor_gate _069_ (
-    .A(count[10]),
-    .B(count[11]),
-    .O(_025_)
+    .O(_067_[0])
   );
   nor_gate _070_ (
-    .A(count[12]),
-    .B(count[13]),
-    .O(_026_)
-  );
-  and_gate _071_ (
-    .A(_025_),
-    .B(_026_),
-    .O(_027_)
-  );
-  nor_gate _072_ (
-    .A(count[6]),
-    .B(count[7]),
+    .A(count[4]),
+    .B(count[5]),
     .O(_028_)
   );
-  nor_gate _073_ (
-    .A(count[8]),
-    .B(count[9]),
+  nor_gate _071_ (
+    .A(count[6]),
+    .B(count[7]),
     .O(_029_)
   );
-  and_gate _074_ (
+  and_gate _072_ (
     .A(_028_),
     .B(_029_),
     .O(_030_)
   );
-  and_gate _075_ (
-    .A(_027_),
-    .B(_030_),
+  nor_gate _073_ (
+    .A(count[0]),
+    .B(count[1]),
     .O(_031_)
   );
-  nor_gate _076_ (
-    .A(count[18]),
-    .B(count[19]),
+  nor_gate _074_ (
+    .A(count[2]),
+    .B(count[3]),
     .O(_032_)
   );
-  nor_gate _077_ (
-    .A(count[20]),
-    .B(count[21]),
+  and_gate _075_ (
+    .A(_031_),
+    .B(_032_),
     .O(_033_)
   );
-  and_gate _078_ (
-    .A(_032_),
+  and_gate _076_ (
+    .A(_030_),
     .B(_033_),
     .O(_034_)
   );
-  nor_gate _079_ (
-    .A(count[14]),
-    .B(count[15]),
+  nor_gate _077_ (
+    .A(count[12]),
+    .B(count[13]),
     .O(_035_)
   );
-  nor_gate _080_ (
-    .A(count[16]),
-    .B(count[17]),
+  nor_gate _078_ (
+    .A(count[14]),
+    .B(count[15]),
     .O(_036_)
   );
-  and_gate _081_ (
+  and_gate _079_ (
     .A(_035_),
     .B(_036_),
     .O(_037_)
   );
-  and_gate _082_ (
-    .A(_034_),
-    .B(_037_),
+  nor_gate _080_ (
+    .A(count[8]),
+    .B(count[9]),
     .O(_038_)
   );
-  and_gate _083_ (
-    .A(_031_),
-    .B(_038_),
+  nor_gate _081_ (
+    .A(count[10]),
+    .B(count[11]),
     .O(_039_)
   );
-  and_gate _084_ (
-    .A(_024_),
+  and_gate _082_ (
+    .A(_038_),
     .B(_039_),
-    .O(finished)
-  );
-  and_gate _085_ (
-    .A(count[0]),
-    .B(count[1]),
     .O(_040_)
   );
-  nor_gate _086_ (
-    .A(_020_),
-    .B(_040_),
-    .O(_062_[1])
-  );
-  and_gate _087_ (
-    .A(count[2]),
+  and_gate _083_ (
+    .A(_037_),
     .B(_040_),
     .O(_041_)
   );
-  nor_gate _088_ (
-    .A(count[2]),
-    .B(_040_),
+  nor_gate _084_ (
+    .A(count[20]),
+    .B(count[21]),
     .O(_042_)
   );
-  nor_gate _089_ (
-    .A(_041_),
-    .B(_042_),
-    .O(_062_[2])
-  );
-  and_gate _090_ (
-    .A(count[3]),
-    .B(_041_),
+  nor_gate _085_ (
+    .A(count[22]),
+    .B(count[23]),
     .O(_043_)
   );
-  nor_gate _091_ (
-    .A(count[3]),
-    .B(_041_),
+  and_gate _086_ (
+    .A(_042_),
+    .B(_043_),
     .O(_044_)
   );
-  nor_gate _092_ (
-    .A(_043_),
-    .B(_044_),
-    .O(_062_[3])
-  );
-  and_gate _093_ (
-    .A(count[4]),
-    .B(_043_),
+  nor_gate _087_ (
+    .A(count[16]),
+    .B(count[17]),
     .O(_045_)
   );
-  nor_gate _094_ (
-    .A(count[4]),
-    .B(_043_),
+  nor_gate _088_ (
+    .A(count[18]),
+    .B(count[19]),
     .O(_046_)
   );
-  nor_gate _095_ (
+  and_gate _089_ (
     .A(_045_),
     .B(_046_),
-    .O(_062_[4])
-  );
-  and_gate _096_ (
-    .A(count[5]),
-    .B(_045_),
     .O(_047_)
   );
-  nor_gate _097_ (
-    .A(count[5]),
-    .B(_045_),
+  and_gate _090_ (
+    .A(_044_),
+    .B(_047_),
     .O(_048_)
   );
-  nor_gate _098_ (
-    .A(_047_),
+  and_gate _091_ (
+    .A(_041_),
     .B(_048_),
-    .O(_062_[5])
-  );
-  and_gate _099_ (
-    .A(count[6]),
-    .B(_047_),
     .O(_049_)
   );
-  nor_gate _100_ (
-    .A(count[6]),
-    .B(_047_),
+  and_gate _092_ (
+    .A(_034_),
+    .B(_049_),
+    .O(finished)
+  );
+  and_gate _093_ (
+    .A(count[0]),
+    .B(count[1]),
     .O(_050_)
   );
-  nor_gate _101_ (
-    .A(_049_),
+  nor_gate _094_ (
+    .A(_031_),
     .B(_050_),
-    .O(_062_[6])
+    .O(_068_[1])
   );
-  and_gate _102_ (
-    .A(count[7]),
-    .B(_049_),
+  and_gate _095_ (
+    .A(count[2]),
+    .B(_050_),
     .O(_051_)
   );
-  nor_gate _103_ (
-    .A(count[7]),
-    .B(_049_),
+  nor_gate _096_ (
+    .A(count[2]),
+    .B(_050_),
     .O(_052_)
   );
-  nor_gate _104_ (
+  nor_gate _097_ (
     .A(_051_),
     .B(_052_),
-    .O(_062_[7])
+    .O(_068_[2])
   );
-  and_gate _105_ (
-    .A(count[8]),
+  and_gate _098_ (
+    .A(count[3]),
     .B(_051_),
     .O(_053_)
   );
-  nor_gate _106_ (
-    .A(count[8]),
+  nor_gate _099_ (
+    .A(count[3]),
     .B(_051_),
     .O(_054_)
   );
-  nor_gate _107_ (
+  nor_gate _100_ (
     .A(_053_),
     .B(_054_),
-    .O(_062_[8])
+    .O(_068_[3])
   );
-  and_gate _108_ (
-    .A(count[9]),
+  and_gate _101_ (
+    .A(count[4]),
     .B(_053_),
     .O(_055_)
   );
-  nor_gate _109_ (
-    .A(count[9]),
+  nor_gate _102_ (
+    .A(count[4]),
     .B(_053_),
     .O(_056_)
   );
-  nor_gate _110_ (
+  nor_gate _103_ (
     .A(_055_),
     .B(_056_),
-    .O(_062_[9])
+    .O(_068_[4])
   );
-  and_gate _111_ (
-    .A(count[10]),
+  and_gate _104_ (
+    .A(count[5]),
     .B(_055_),
     .O(_057_)
   );
-  nor_gate _112_ (
-    .A(count[10]),
+  nor_gate _105_ (
+    .A(count[5]),
     .B(_055_),
     .O(_058_)
   );
-  nor_gate _113_ (
+  nor_gate _106_ (
     .A(_057_),
     .B(_058_),
-    .O(_062_[10])
+    .O(_068_[5])
   );
-  and_gate _114_ (
-    .A(count[11]),
+  and_gate _107_ (
+    .A(count[6]),
     .B(_057_),
     .O(_059_)
   );
-  nor_gate _115_ (
-    .A(count[11]),
+  nor_gate _108_ (
+    .A(count[6]),
     .B(_057_),
     .O(_060_)
   );
-  nor_gate _116_ (
+  nor_gate _109_ (
     .A(_059_),
     .B(_060_),
-    .O(_062_[11])
+    .O(_068_[6])
   );
-  and_gate _117_ (
-    .A(count[12]),
+  and_gate _110_ (
+    .A(count[7]),
     .B(_059_),
-    .O(_000_)
+    .O(_061_)
+  );
+  nor_gate _111_ (
+    .A(count[7]),
+    .B(_059_),
+    .O(_062_)
+  );
+  nor_gate _112_ (
+    .A(_061_),
+    .B(_062_),
+    .O(_068_[7])
+  );
+  and_gate _113_ (
+    .A(count[8]),
+    .B(_061_),
+    .O(_063_)
+  );
+  nor_gate _114_ (
+    .A(count[8]),
+    .B(_061_),
+    .O(_064_)
+  );
+  nor_gate _115_ (
+    .A(_063_),
+    .B(_064_),
+    .O(_068_[8])
+  );
+  and_gate _116_ (
+    .A(count[9]),
+    .B(_063_),
+    .O(_065_)
+  );
+  nor_gate _117_ (
+    .A(count[9]),
+    .B(_063_),
+    .O(_066_)
   );
   nor_gate _118_ (
-    .A(count[12]),
-    .B(_059_),
+    .A(_065_),
+    .B(_066_),
+    .O(_068_[9])
+  );
+  and_gate _119_ (
+    .A(count[10]),
+    .B(_065_),
+    .O(_000_)
+  );
+  nor_gate _120_ (
+    .A(count[10]),
+    .B(_065_),
     .O(_001_)
   );
-  nor_gate _119_ (
+  nor_gate _121_ (
     .A(_000_),
     .B(_001_),
-    .O(_062_[12])
+    .O(_068_[10])
   );
-  and_gate _120_ (
-    .A(count[13]),
+  and_gate _122_ (
+    .A(count[11]),
     .B(_000_),
     .O(_002_)
   );
-  nor_gate _121_ (
-    .A(count[13]),
+  nor_gate _123_ (
+    .A(count[11]),
     .B(_000_),
     .O(_003_)
   );
-  nor_gate _122_ (
+  nor_gate _124_ (
     .A(_002_),
     .B(_003_),
-    .O(_062_[13])
+    .O(_068_[11])
   );
-  and_gate _123_ (
-    .A(count[14]),
+  and_gate _125_ (
+    .A(count[12]),
     .B(_002_),
     .O(_004_)
   );
-  nor_gate _124_ (
-    .A(count[14]),
+  nor_gate _126_ (
+    .A(count[12]),
     .B(_002_),
     .O(_005_)
   );
-  nor_gate _125_ (
+  nor_gate _127_ (
     .A(_004_),
     .B(_005_),
-    .O(_062_[14])
+    .O(_068_[12])
   );
-  and_gate _126_ (
-    .A(count[15]),
+  and_gate _128_ (
+    .A(count[13]),
     .B(_004_),
     .O(_006_)
   );
-  nor_gate _127_ (
-    .A(count[15]),
+  nor_gate _129_ (
+    .A(count[13]),
     .B(_004_),
     .O(_007_)
   );
-  nor_gate _128_ (
+  nor_gate _130_ (
     .A(_006_),
     .B(_007_),
-    .O(_062_[15])
+    .O(_068_[13])
   );
-  and_gate _129_ (
-    .A(count[16]),
+  and_gate _131_ (
+    .A(count[14]),
     .B(_006_),
     .O(_008_)
   );
-  nor_gate _130_ (
-    .A(count[16]),
+  nor_gate _132_ (
+    .A(count[14]),
     .B(_006_),
     .O(_009_)
   );
-  nor_gate _131_ (
+  nor_gate _133_ (
     .A(_008_),
     .B(_009_),
-    .O(_062_[16])
+    .O(_068_[14])
   );
-  and_gate _132_ (
-    .A(count[17]),
+  and_gate _134_ (
+    .A(count[15]),
     .B(_008_),
     .O(_010_)
   );
-  nor_gate _133_ (
-    .A(count[17]),
+  nor_gate _135_ (
+    .A(count[15]),
     .B(_008_),
     .O(_011_)
   );
-  nor_gate _134_ (
+  nor_gate _136_ (
     .A(_010_),
     .B(_011_),
-    .O(_062_[17])
+    .O(_068_[15])
   );
-  and_gate _135_ (
-    .A(count[18]),
+  and_gate _137_ (
+    .A(count[16]),
     .B(_010_),
     .O(_012_)
   );
-  nor_gate _136_ (
-    .A(count[18]),
+  nor_gate _138_ (
+    .A(count[16]),
     .B(_010_),
     .O(_013_)
   );
-  nor_gate _137_ (
+  nor_gate _139_ (
     .A(_012_),
     .B(_013_),
-    .O(_062_[18])
+    .O(_068_[16])
   );
-  and_gate _138_ (
-    .A(count[19]),
+  and_gate _140_ (
+    .A(count[17]),
     .B(_012_),
     .O(_014_)
   );
-  nor_gate _139_ (
-    .A(count[19]),
+  nor_gate _141_ (
+    .A(count[17]),
     .B(_012_),
     .O(_015_)
   );
-  nor_gate _140_ (
+  nor_gate _142_ (
     .A(_014_),
     .B(_015_),
-    .O(_062_[19])
+    .O(_068_[17])
   );
-  and_gate _141_ (
-    .A(count[20]),
+  and_gate _143_ (
+    .A(count[18]),
     .B(_014_),
     .O(_016_)
   );
-  nor_gate _142_ (
-    .A(count[20]),
+  nor_gate _144_ (
+    .A(count[18]),
     .B(_014_),
     .O(_017_)
   );
-  nor_gate _143_ (
+  nor_gate _145_ (
     .A(_016_),
     .B(_017_),
-    .O(_062_[20])
+    .O(_068_[18])
   );
-  or_gate _144_ (
-    .A(count[21]),
+  and_gate _146_ (
+    .A(count[19]),
     .B(_016_),
     .O(_018_)
   );
-  nand_gate _145_ (
-    .A(count[21]),
+  nor_gate _147_ (
+    .A(count[19]),
     .B(_016_),
     .O(_019_)
   );
-  and_gate _146_ (
+  nor_gate _148_ (
     .A(_018_),
     .B(_019_),
-    .O(_062_[21])
+    .O(_068_[19])
   );
-  (* src = "debug_behavioral.v:6.5-8.8" *)
-  dffpq _147_ (
-    .CLK(clk),
-    .D(_062_[18]),
-    .Q(count[18])
+  and_gate _149_ (
+    .A(count[20]),
+    .B(_018_),
+    .O(_020_)
   );
-  (* src = "debug_behavioral.v:6.5-8.8" *)
-  dffpq _148_ (
-    .CLK(clk),
-    .D(_062_[19]),
-    .Q(count[19])
+  nor_gate _150_ (
+    .A(count[20]),
+    .B(_018_),
+    .O(_021_)
   );
-  (* src = "debug_behavioral.v:6.5-8.8" *)
-  dffpq _149_ (
-    .CLK(clk),
-    .D(_062_[20]),
-    .Q(count[20])
+  nor_gate _151_ (
+    .A(_020_),
+    .B(_021_),
+    .O(_068_[20])
   );
-  (* src = "debug_behavioral.v:6.5-8.8" *)
-  dffpq _150_ (
-    .CLK(clk),
-    .D(_062_[21]),
-    .Q(count[21])
+  and_gate _152_ (
+    .A(count[21]),
+    .B(_020_),
+    .O(_022_)
   );
-  (* src = "debug_behavioral.v:6.5-8.8" *)
-  dffpq _151_ (
-    .CLK(clk),
-    .D(_061_[0]),
-    .Q(count[0])
+  nor_gate _153_ (
+    .A(count[21]),
+    .B(_020_),
+    .O(_023_)
   );
-  (* src = "debug_behavioral.v:6.5-8.8" *)
-  dffpq _152_ (
-    .CLK(clk),
-    .D(_062_[1]),
-    .Q(count[1])
+  nor_gate _154_ (
+    .A(_022_),
+    .B(_023_),
+    .O(_068_[21])
   );
-  (* src = "debug_behavioral.v:6.5-8.8" *)
-  dffpq _153_ (
-    .CLK(clk),
-    .D(_062_[2]),
-    .Q(count[2])
+  and_gate _155_ (
+    .A(count[22]),
+    .B(_022_),
+    .O(_024_)
   );
-  (* src = "debug_behavioral.v:6.5-8.8" *)
-  dffpq _154_ (
-    .CLK(clk),
-    .D(_062_[3]),
-    .Q(count[3])
+  nor_gate _156_ (
+    .A(count[22]),
+    .B(_022_),
+    .O(_025_)
   );
-  (* src = "debug_behavioral.v:6.5-8.8" *)
-  dffpq _155_ (
-    .CLK(clk),
-    .D(_062_[4]),
-    .Q(count[4])
+  nor_gate _157_ (
+    .A(_024_),
+    .B(_025_),
+    .O(_068_[22])
   );
-  (* src = "debug_behavioral.v:6.5-8.8" *)
-  dffpq _156_ (
-    .CLK(clk),
-    .D(_062_[5]),
-    .Q(count[5])
+  or_gate _158_ (
+    .A(count[23]),
+    .B(_024_),
+    .O(_026_)
   );
-  (* src = "debug_behavioral.v:6.5-8.8" *)
-  dffpq _157_ (
-    .CLK(clk),
-    .D(_062_[6]),
-    .Q(count[6])
+  nand_gate _159_ (
+    .A(count[23]),
+    .B(_024_),
+    .O(_027_)
   );
-  (* src = "debug_behavioral.v:6.5-8.8" *)
-  dffpq _158_ (
-    .CLK(clk),
-    .D(_062_[7]),
-    .Q(count[7])
-  );
-  (* src = "debug_behavioral.v:6.5-8.8" *)
-  dffpq _159_ (
-    .CLK(clk),
-    .D(_062_[8]),
-    .Q(count[8])
-  );
-  (* src = "debug_behavioral.v:6.5-8.8" *)
-  dffpq _160_ (
-    .CLK(clk),
-    .D(_062_[9]),
-    .Q(count[9])
+  and_gate _160_ (
+    .A(_026_),
+    .B(_027_),
+    .O(_068_[23])
   );
   (* src = "debug_behavioral.v:6.5-8.8" *)
   dffpq _161_ (
     .CLK(clk),
-    .D(_062_[10]),
-    .Q(count[10])
+    .D(_068_[15]),
+    .Q(count[15])
   );
   (* src = "debug_behavioral.v:6.5-8.8" *)
   dffpq _162_ (
     .CLK(clk),
-    .D(_062_[11]),
-    .Q(count[11])
+    .D(_068_[16]),
+    .Q(count[16])
   );
   (* src = "debug_behavioral.v:6.5-8.8" *)
   dffpq _163_ (
     .CLK(clk),
-    .D(_062_[12]),
-    .Q(count[12])
+    .D(_068_[17]),
+    .Q(count[17])
   );
   (* src = "debug_behavioral.v:6.5-8.8" *)
   dffpq _164_ (
     .CLK(clk),
-    .D(_062_[13]),
-    .Q(count[13])
+    .D(_068_[18]),
+    .Q(count[18])
   );
   (* src = "debug_behavioral.v:6.5-8.8" *)
   dffpq _165_ (
     .CLK(clk),
-    .D(_062_[14]),
-    .Q(count[14])
+    .D(_068_[19]),
+    .Q(count[19])
   );
   (* src = "debug_behavioral.v:6.5-8.8" *)
   dffpq _166_ (
     .CLK(clk),
-    .D(_062_[15]),
-    .Q(count[15])
+    .D(_068_[20]),
+    .Q(count[20])
   );
   (* src = "debug_behavioral.v:6.5-8.8" *)
   dffpq _167_ (
     .CLK(clk),
-    .D(_062_[16]),
-    .Q(count[16])
+    .D(_068_[21]),
+    .Q(count[21])
   );
   (* src = "debug_behavioral.v:6.5-8.8" *)
   dffpq _168_ (
     .CLK(clk),
-    .D(_062_[17]),
-    .Q(count[17])
+    .D(_068_[22]),
+    .Q(count[22])
   );
-  assign _061_[31:1] = { 10'h000, count[21:1] };
-  assign { _062_[31:23], _062_[0] } = { 9'h000, _061_[0] };
+  (* src = "debug_behavioral.v:6.5-8.8" *)
+  dffpq _169_ (
+    .CLK(clk),
+    .D(_068_[23]),
+    .Q(count[23])
+  );
+  (* src = "debug_behavioral.v:6.5-8.8" *)
+  dffpq _170_ (
+    .CLK(clk),
+    .D(_067_[0]),
+    .Q(count[0])
+  );
+  (* src = "debug_behavioral.v:6.5-8.8" *)
+  dffpq _171_ (
+    .CLK(clk),
+    .D(_068_[1]),
+    .Q(count[1])
+  );
+  (* src = "debug_behavioral.v:6.5-8.8" *)
+  dffpq _172_ (
+    .CLK(clk),
+    .D(_068_[2]),
+    .Q(count[2])
+  );
+  (* src = "debug_behavioral.v:6.5-8.8" *)
+  dffpq _173_ (
+    .CLK(clk),
+    .D(_068_[3]),
+    .Q(count[3])
+  );
+  (* src = "debug_behavioral.v:6.5-8.8" *)
+  dffpq _174_ (
+    .CLK(clk),
+    .D(_068_[4]),
+    .Q(count[4])
+  );
+  (* src = "debug_behavioral.v:6.5-8.8" *)
+  dffpq _175_ (
+    .CLK(clk),
+    .D(_068_[5]),
+    .Q(count[5])
+  );
+  (* src = "debug_behavioral.v:6.5-8.8" *)
+  dffpq _176_ (
+    .CLK(clk),
+    .D(_068_[6]),
+    .Q(count[6])
+  );
+  (* src = "debug_behavioral.v:6.5-8.8" *)
+  dffpq _177_ (
+    .CLK(clk),
+    .D(_068_[7]),
+    .Q(count[7])
+  );
+  (* src = "debug_behavioral.v:6.5-8.8" *)
+  dffpq _178_ (
+    .CLK(clk),
+    .D(_068_[8]),
+    .Q(count[8])
+  );
+  (* src = "debug_behavioral.v:6.5-8.8" *)
+  dffpq _179_ (
+    .CLK(clk),
+    .D(_068_[9]),
+    .Q(count[9])
+  );
+  (* src = "debug_behavioral.v:6.5-8.8" *)
+  dffpq _180_ (
+    .CLK(clk),
+    .D(_068_[10]),
+    .Q(count[10])
+  );
+  (* src = "debug_behavioral.v:6.5-8.8" *)
+  dffpq _181_ (
+    .CLK(clk),
+    .D(_068_[11]),
+    .Q(count[11])
+  );
+  (* src = "debug_behavioral.v:6.5-8.8" *)
+  dffpq _182_ (
+    .CLK(clk),
+    .D(_068_[12]),
+    .Q(count[12])
+  );
+  (* src = "debug_behavioral.v:6.5-8.8" *)
+  dffpq _183_ (
+    .CLK(clk),
+    .D(_068_[13]),
+    .Q(count[13])
+  );
+  (* src = "debug_behavioral.v:6.5-8.8" *)
+  dffpq _184_ (
+    .CLK(clk),
+    .D(_068_[14]),
+    .Q(count[14])
+  );
+  assign _067_[31:24] = 8'h00;
+  assign _067_[23:1] = count[23:1];
+  assign _068_[31:25] = 7'h00;
+  assign _068_[0] = _067_[0];
 endmodule
