@@ -126,6 +126,9 @@ function layout(dff, _P)
     end
 
     -- finish dff gates
+    table.insert(gatecontactpos, 1, "dummy")
+    table.insert(pcontactpos, 1, "power")
+    table.insert(ncontactpos, 1, "power")
     table.insert(gatecontactpos, "dummy")
     table.insert(pcontactpos, "power")
     table.insert(ncontactpos, "power")
@@ -141,8 +144,8 @@ function layout(dff, _P)
     local resetshift = _P.enable_reset and 1 or 0
 
     -- easy anchor access functions
-    local gate = function(num) return harness:get_anchor(string.format("G%dcc", num)) end
-    local sourcedrain = function(fet, pos, num) return harness:get_anchor(string.format("%sSD%s%d", fet, pos, num)) end
+    local gate = function(num) return harness:get_anchor(string.format("G%dcc", num + 1)) end
+    local sourcedrain = function(fet, pos, num) return harness:get_anchor(string.format("%sSD%s%d", fet, pos, num + 1)) end
 
     local spacing = bp.sdwidth / 2 + bp.routingspace
     -- clock buffer input port landing
@@ -447,7 +450,7 @@ function layout(dff, _P)
     dff:add_port("VDD", generics.metalport(1), harness:get_anchor("top"))
     dff:add_port("VSS", generics.metalport(1), harness:get_anchor("bottom"))
     dff:add_port("CLK", generics.metalport(1), gate(1))
-    dff:add_port("D", generics.metalport(1), gate(1):translate(0, 2 * (bp.routingwidth + bp.routingspace)))
+    dff:add_port("D", generics.metalport(2), gate(1):translate(0, 2 * (bp.routingwidth + bp.routingspace)))
     if _P.enable_Q then
         dff:add_port("Q", generics.metalport(1), gate(21 + 2 * setshift + 3 * resetshift):translate(xpitch, 0))
     end
