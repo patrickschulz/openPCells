@@ -604,24 +604,6 @@ static void _print_int32(FILE* file, int32_t num)
         _print_pos_int32(file, num / 10);
     }
     fputc((num % 10) + '0', file);
-    /*
-    static const char* lut = "0123456789abcdef";
-    if(num < 0)
-    {
-        fputc('-', file);
-        num *= -1;
-    }
-    fputc('0', file);
-    fputc('x', file);
-    fputc(lut[(num & 0xf0000000) >> 28], file);
-    fputc(lut[(num & 0x0f000000) >> 24], file);
-    fputc(lut[(num & 0x00f00000) >> 20], file);
-    fputc(lut[(num & 0x000f0000) >> 16], file);
-    fputc(lut[(num & 0x0000f000) >> 12], file);
-    fputc(lut[(num & 0x00000f00) >>  8], file);
-    fputc(lut[(num & 0x000000f0) >>  4], file);
-    fputc(lut[(num & 0x0000000f) >>  0], file);
-    */
 }
 
 #define MAX2(a, b) ((a) > (b) ? (a) : (b))
