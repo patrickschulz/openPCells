@@ -15,8 +15,8 @@ function layout(gate, _P)
 
     local harness = pcell.create_layout("stdcells/harness", {
         gatecontactpos = { "dummy" }, 
-        pcontactpos = { "unused", "unused" }, 
-        ncontactpos = { "unused", "unused" }, 
+        pcontactpos = { "power", "power" }, 
+        ncontactpos = { "power", "power" }, 
         pwidth = _P.pwidth,
         nwidth = _P.nwidth,
         drawdummyactivecontacts = false,
