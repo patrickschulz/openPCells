@@ -29,6 +29,17 @@ struct vector* vector_create(size_t capacity)
     return vector;
 }
 
+void vector_swap(struct vector* vector, size_t i, size_t j)
+{
+    if(i > vector->capacity || j > vector->capacity)
+    {
+	return;
+    }
+    void *temp = vector->elements[i];
+    vector->elements[i] = vector->elements[j];
+    vector->elements[j] = temp; 
+}
+
 void vector_destroy(struct vector* vector, void (*destructor)(void*))
 {
     if(destructor)
