@@ -47,21 +47,20 @@ static struct rpoint* _create_point(lua_State *L)
  */
 static void _split_and_make_nets(const char* name, struct vector* nets, struct vector* positions)
 {
-    int exclude_positions[vector_size(positions)];
-    memset(exclude_positions, 0, vector_size(positions) * sizeof(int));
-    for(size_t i = 0; i < vector_size(positions); i++)
+    size_t num_positions = vector_size(positions);
+    int exclude_positions[num_positions];
+    memset(exclude_positions, 0, num_positions * sizeof(int));
+
+    size_t splitcount = 0;
+    for(size_t i = 0; i < num_positions - 1; i++)
     {
-	if(exclude_positions[i] == EXCLUDE)
-	{
-	    continue;
-	}
 	struct position *pos1 = vector_get(positions, i);
 	struct position *pos2 = NULL;
 	int mindist = INT_MAX;
-	size_t minindex;
-	for(size_t j = 0; j < vector_size(positions); j++)
+	size_t minindex = UINT_MAX;
+	for(size_t j = 0; j < num_positions; j++)
 	{
-	    if(i == j)
+	    if(i == j || exclude_positions[j])
 	    {
 		continue;
 	    }
@@ -75,10 +74,13 @@ static void _split_and_make_nets(const char* name, struct vector* nets, struct v
 		minindex = j;
 	    }
 	}
-        struct net *net = net_create(name, i, net_copy_position(pos1),
+        struct net *net = net_create(name, splitcount, net_copy_position(pos1),
 				     net_copy_position(pos2));
-	exclude_positions[minindex] = EXCLUDE;
+
 	vector_append(nets, net);
+	splitcount++;
+	exclude_positions[i] = EXCLUDE;
+	vector_swap(positions, i+1, minindex);
     }
 }
 
@@ -279,7 +281,7 @@ int lrouter_route(lua_State* L)
 
     for(unsigned int i = 0; i < 2; ++i)
     {
-        field_print(field, i);
+//        field_print(field, i);
     }
 
     field_destroy(field);
