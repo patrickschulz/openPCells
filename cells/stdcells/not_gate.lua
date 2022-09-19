@@ -42,8 +42,8 @@ function layout(gate, _P)
     if _P.fingers > 1 then
         geometry.rectanglebltr(
             gate, generics.metal(1),
-            harness:get_anchor("G1ll"),
-            harness:get_anchor("G4ur")
+            harness:get_anchor("G1bl"),
+            harness:get_anchor("G4tr")
         )
     end
 
