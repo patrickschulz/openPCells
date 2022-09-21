@@ -718,7 +718,7 @@ int open_lgeometry_lib(lua_State* L)
         { "polygon",         lgeometry_polygon         },
         { "path",            lgeometry_path            },
         { "path_manhatten",  lgeometry_path_manhatten  },
-        { "cshape",          lgeometry_path_cshape     },
+        { "path_cshape",     lgeometry_path_cshape     },
         { "path_ushape",     lgeometry_path_ushape     },
         { "viabltr",         lgeometry_viabltr         },
         { "via",             lgeometry_via             },
