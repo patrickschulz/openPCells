@@ -472,21 +472,28 @@ int technology_is_create_via_arrays(const struct technology_state* techstate)
 
 static int ltechnology_get_dimension(lua_State* L)
 {
-    const char* dimension = lua_tostring(L, 1);
-    lua_getfield(L, LUA_REGISTRYINDEX, "techstate");
-    struct technology_state* techstate = lua_touserdata(L, -1);
-    lua_pop(L, 1); // pop techstate
-    if(hashmap_exists(techstate->constraints, dimension))
+    int n = lua_gettop(L);
+    for(int i = 1; i <= n; ++i)
     {
-        struct tagged_value* v = hashmap_get(techstate->constraints, dimension);
-        int value = tagged_value_get_integer(v);
-        lua_pushinteger(L, value);
+        const char* dimension = lua_tostring(L, i);
+        lua_getfield(L, LUA_REGISTRYINDEX, "techstate");
+        struct technology_state* techstate = lua_touserdata(L, -1);
+        lua_pop(L, 1); // pop techstate
+        if(hashmap_exists(techstate->constraints, dimension))
+        {
+            struct tagged_value* v = hashmap_get(techstate->constraints, dimension);
+            int value = tagged_value_get_integer(v);
+            lua_pushinteger(L, value);
+            return 1;
+        }
     }
-    else
-    {
-        lua_pushfstring(L, "technology: no dimension '%s' found", dimension);
-        lua_error(L);
-    }
+    // FIXME: this looks ugly for multiple arguments
+    lua_concat(L, n);
+    lua_pushstring(L, "technology.get_dimension: '");
+    lua_rotate(L, -2, 1);
+    lua_pushstring(L, "' not found");
+    lua_concat(L, 3);
+    lua_error(L);
     return 1;
 }
 
