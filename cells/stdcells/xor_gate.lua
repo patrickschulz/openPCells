@@ -71,14 +71,14 @@ function layout(gate, _P)
 
     -- short pmos
     geometry.rectanglebltr(block, generics.metal(1), 
-        harness:get_anchor("pSDc2"):translate(0, -bp.sdwidth / 2), 
-        harness:get_anchor("pSDc3"):translate(0,  bp.sdwidth / 2)
+        harness:get_anchor("pSD2cc"):translate(0, -bp.sdwidth / 2), 
+        harness:get_anchor("pSD3cc"):translate(0,  bp.sdwidth / 2)
     )
 
     -- short nmos
     geometry.rectanglebltr(block, generics.metal(1), 
-        harness:get_anchor("nSDc5"):translate(0, -bp.sdwidth / 2), 
-        harness:get_anchor("nSDc6"):translate(0,  bp.sdwidth / 2)
+        harness:get_anchor("nSD5cc"):translate(0, -bp.sdwidth / 2), 
+        harness:get_anchor("nSD6cc"):translate(0,  bp.sdwidth / 2)
     )
 
     -- place block
@@ -98,11 +98,11 @@ function layout(gate, _P)
 
     -- output connection
     geometry.path(gate, generics.metal(1), geometry.path_points_xy(
-        harness:get_anchor("pSDc4"), {
-            point.combine_12(harness:get_anchor("pSDc4"), invb:get_anchor("OTRi")):translate(xpitch, bp.sdwidth / 2),
+        harness:get_anchor("pSD4cc"), {
+            point.combine_12(harness:get_anchor("pSD4cc"), invb:get_anchor("OTRi")):translate(xpitch, bp.sdwidth / 2),
             harness:get_anchor("G6cc"):translate(xpitch, 0),
             0, -- toggle xy
-            harness:get_anchor("nSDi4"):translate(0, -bp.sdwidth / 2)
+            harness:get_anchor("nSD4tc"):translate(0, -bp.sdwidth / 2)
         }), bp.sdwidth)
 
     -- B

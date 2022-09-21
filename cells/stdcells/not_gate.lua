@@ -61,11 +61,11 @@ function layout(gate, _P)
     end
     if bp.connectoutput then
         geometry.path(gate, generics.metal(1),
-            geometry.path_points_xy(harness:get_anchor(string.format("pSDi%d", n)):translate(0, bp.sdwidth / 2),
+            geometry.path_points_xy(harness:get_anchor(string.format("pSD%dbr", n)):translate(0, bp.sdwidth / 2),
             {
                 harness:get_anchor(string.format("G%dcc", _P.fingers)):translate(xpitch + _P.shiftoutput, 0),
                 0, -- toggle xy
-                harness:get_anchor(string.format("nSDi%d", n)):translate(0, -bp.sdwidth / 2),
+                harness:get_anchor(string.format("nSD%dtr", n)):translate(0, -bp.sdwidth / 2),
             }),
             bp.sdwidth,
             true
@@ -75,18 +75,18 @@ function layout(gate, _P)
     -- anchors (Out Top/Bottom Left/Right center/inner/outer)
     --          ^      ^           ^               ^
     --    e.g.  O      T           L               c    -> OTLc
-    gate:add_anchor("OTLc", harness:get_anchor(string.format("pSDc%d", 1)))
-    gate:add_anchor("OBLc", harness:get_anchor(string.format("nSDc%d", 1)))
-    gate:add_anchor("OTRc", harness:get_anchor(string.format("pSDc%d", _P.fingers + 1)))
-    gate:add_anchor("OBRc", harness:get_anchor(string.format("nSDc%d", _P.fingers + 1)))
-    gate:add_anchor("OTLi", harness:get_anchor(string.format("pSDi%d", 1)))
-    gate:add_anchor("OBLi", harness:get_anchor(string.format("nSDi%d", 1)))
-    gate:add_anchor("OTRi", harness:get_anchor(string.format("pSDi%d", _P.fingers + 1)))
-    gate:add_anchor("OBRi", harness:get_anchor(string.format("nSDi%d", _P.fingers + 1)))
-    gate:add_anchor("OTLo", harness:get_anchor(string.format("pSDo%d", 1)))
-    gate:add_anchor("OBLo", harness:get_anchor(string.format("nSDo%d", 1)))
-    gate:add_anchor("OTRo", harness:get_anchor(string.format("pSDo%d", _P.fingers + 1)))
-    gate:add_anchor("OBRo", harness:get_anchor(string.format("nSDo%d", _P.fingers + 1)))
+    gate:add_anchor("OTLc", harness:get_anchor(string.format("pSD%dcc", 1)))
+    gate:add_anchor("OBLc", harness:get_anchor(string.format("nSD%dcc", 1)))
+    gate:add_anchor("OTRc", harness:get_anchor(string.format("pSD%dcc", _P.fingers + 1)))
+    gate:add_anchor("OBRc", harness:get_anchor(string.format("nSD%dcc", _P.fingers + 1)))
+    gate:add_anchor("OTLi", harness:get_anchor(string.format("pSD%dbc", 1)))
+    gate:add_anchor("OBLi", harness:get_anchor(string.format("nSD%dtc", 1)))
+    gate:add_anchor("OTRi", harness:get_anchor(string.format("pSD%dbc", _P.fingers + 1)))
+    gate:add_anchor("OBRi", harness:get_anchor(string.format("nSD%dtc", _P.fingers + 1)))
+    gate:add_anchor("OTLo", harness:get_anchor(string.format("pSD%dtc", 1)))
+    gate:add_anchor("OBLo", harness:get_anchor(string.format("nSD%dbc", 1)))
+    gate:add_anchor("OTRo", harness:get_anchor(string.format("pSD%dtc", _P.fingers + 1)))
+    gate:add_anchor("OBRo", harness:get_anchor(string.format("nSD%dbc", _P.fingers + 1)))
 
     -- ports
     gate:add_port("I", generics.metalport(1), harness:get_anchor("G1cc"))
