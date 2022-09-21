@@ -60,7 +60,26 @@ static char* _get_tech_filename(struct technology_state* techstate, const char* 
     return NULL;
 }
 
-int technology_load_layermap(struct technology_state* techstate, const char* name)
+static int _is_ignored_layer(const char* layername, const struct const_vector* ignoredlayers)
+{
+    if(ignoredlayers)
+    {
+        struct const_vector_iterator* it = const_vector_iterator_create(ignoredlayers);
+        while(const_vector_iterator_is_valid(it))
+        {
+            const char* name = const_vector_iterator_get(it);
+            if(strcmp(layername, name) == 0)
+            {
+                return 1;
+            }
+            const_vector_iterator_next(it);
+        }
+        const_vector_iterator_destroy(it);
+    }
+    return 0;
+}
+
+int technology_load_layermap(struct technology_state* techstate, const char* name, const struct const_vector* ignoredlayers)
 {
     lua_State* L = util_create_minimal_lua_state();
     int ret = luaL_dofile(L, name);
@@ -75,10 +94,19 @@ int technology_load_layermap(struct technology_state* techstate, const char* nam
     while(lua_next(L, -2) != 0)
     {
         const char* layername = lua_tostring(L, -2);
-        lua_getfield(L, -1, "layer");
-        struct generics* layer = generics_make_layer_from_lua(layername, L);
-        vector_append(techstate->layertable, layer);
-        lua_pop(L, 1); // pop layer table
+        if(!_is_ignored_layer(layername, ignoredlayers))
+        {
+            lua_getfield(L, -1, "layer");
+            struct generics* layer = generics_make_layer_from_lua(layername, L);
+            vector_append(techstate->layertable, layer);
+            lua_pop(L, 1); // pop layer table
+        }
+        else
+        {
+            // create dummy layer (as if {} was given in the layermap file)
+            struct generics* layer = generics_create_premapped_layer(layername, 0);
+            vector_append(techstate->layertable, layer);
+        }
         lua_pop(L, 1); // pop value, keep key for next iteration
     }
     lua_close(L);
@@ -223,7 +251,7 @@ int technology_load_constraints(struct technology_state* techstate, const char* 
     return 0;
 }
 
-int technology_load(struct technology_state* techstate, const char* techname)
+int technology_load(struct technology_state* techstate, const char* techname, const struct const_vector* ignoredlayers)
 {
     char* layermapname = _get_tech_filename(techstate, techname, "layermap");
     if(!layermapname)
@@ -233,7 +261,7 @@ int technology_load(struct technology_state* techstate, const char* techname)
         return 0;
     }
     int ret;
-    ret = technology_load_layermap(techstate, layermapname);
+    ret = technology_load_layermap(techstate, layermapname, ignoredlayers);
     free(layermapname);
     if(!ret)
     {

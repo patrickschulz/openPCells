@@ -31,6 +31,7 @@ cmdoptions_add_option(cmdoptions, NO_SHORT, "export-filter", MULTI_ARGS, "filter
 cmdoptions_add_option_default(cmdoptions, NO_SHORT, "export-filter-list", SINGLE_ARG, "exclude", "set export filter list type (include or exclude, default exclude)");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "ignore-missing-layers", NO_ARG, "ignore missing layers in the technology translation. Layers that are not present in the layermap file are handled as if their values was '{}'");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "ignore-missing-export", NO_ARG, "ignore layers with missing exports in the technology translation");
+cmdoptions_add_option(cmdoptions, NO_SHORT, "disable-gatecut", NO_ARG, "disable gatecut (only useful for technologies that support gate cuts)");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "merge-rectangles", NO_ARG, "merge rectangles");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "resolve-paths", NO_ARG, "resolve paths to rectangles and polygons");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "rasterize-curves", NO_ARG, "rasterize curves");

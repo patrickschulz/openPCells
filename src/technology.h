@@ -4,6 +4,7 @@
 #include "lua/lua.h"
 
 #include "generics.h"
+#include "vector.h"
 
 struct technology_config
 {
@@ -27,7 +28,7 @@ struct technology_state* technology_initialize(void);
 void technology_destroy(struct technology_state* state);
 
 void technology_add_techpath(struct technology_state* techstate, const char* path);
-int technology_load(struct technology_state* techstate, const char* name);
+int technology_load(struct technology_state* techstate, const char* name, const struct const_vector* ignoredlayers);
 
 void technology_disable_via_arrayzation(struct technology_state* techstate);
 int technology_is_create_via_arrays(const struct technology_state* techstate);

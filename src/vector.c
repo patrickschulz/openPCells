@@ -295,3 +295,38 @@ void const_vector_remove(struct const_vector* const_vector, size_t index)
     }
     --const_vector->size;
 }
+
+struct const_vector_iterator
+{
+    const struct const_vector* vector;
+    size_t index;
+};
+
+struct const_vector_iterator* const_vector_iterator_create(const struct const_vector* vector)
+{
+    struct const_vector_iterator* it = malloc(sizeof(*it));
+    it->vector = vector;
+    it->index = 0;
+    return it;
+}
+
+int const_vector_iterator_is_valid(struct const_vector_iterator* iterator)
+{
+    return iterator->index < iterator->vector->size;
+}
+
+const void* const_vector_iterator_get(struct const_vector_iterator* iterator)
+{
+    return const_vector_get(iterator->vector, iterator->index);
+}
+
+void const_vector_iterator_next(struct const_vector_iterator* iterator)
+{
+    iterator->index += 1;
+}
+
+void const_vector_iterator_destroy(struct const_vector_iterator* iterator)
+{
+    free(iterator);
+}
+

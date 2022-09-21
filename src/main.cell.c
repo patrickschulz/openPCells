@@ -54,14 +54,14 @@ static lua_State* _create_and_initialize_lua(void)
     return L;
 }
 
-static struct technology_state* _create_techstate(struct vector* techpaths, const char* techname)
+static struct technology_state* _create_techstate(struct vector* techpaths, const char* techname, const struct const_vector* ignoredlayers)
 {
     struct technology_state* techstate = technology_initialize();
     for(unsigned int i = 0; i < vector_size(techpaths); ++i)
     {
         technology_add_techpath(techstate, vector_get(techpaths, i));
     }
-    if(!technology_load(techstate, techname))
+    if(!technology_load(techstate, techname, ignoredlayers))
     {
         return NULL;
     }
@@ -168,10 +168,11 @@ void main_list_cell_parameters(struct cmdoptions* cmdoptions, struct hashmap* co
             ++arg;
         }
     }
+    struct const_vector* ignoredlayers = hashmap_get(config, "ignoredlayers");
     const char* techname = cmdoptions_get_argument_long(cmdoptions, "technology");
     if(techname)
     {
-        struct technology_state* techstate = _create_techstate(techpaths, techname);
+        struct technology_state* techstate = _create_techstate(techpaths, techname, ignoredlayers);
         // register techstate
         lua_pushlightuserdata(L, techstate);
         lua_setfield(L, LUA_REGISTRYINDEX, "techstate");
@@ -535,8 +536,9 @@ int main_create_and_export_cell(struct cmdoptions* cmdoptions, struct hashmap* c
             ++arg;
         }
     }
+    struct const_vector* ignoredlayers = hashmap_get(config, "ignoredlayers");
     const char* techname = cmdoptions_get_argument_long(cmdoptions, "technology");
-    struct technology_state* techstate = _create_techstate(techpaths, techname);
+    struct technology_state* techstate = _create_techstate(techpaths, techname, ignoredlayers);
     if(!techstate)
     {
         retval = 0;

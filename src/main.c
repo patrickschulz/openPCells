@@ -39,6 +39,8 @@ static int _load_config(struct hashmap* config)
     hashmap_insert(config, "prepend_cellpaths", prepend_cellpaths);
     struct vector* append_cellpaths = vector_create(8);
     hashmap_insert(config, "append_cellpaths", append_cellpaths);
+    struct const_vector* ignoredlayers = const_vector_create(8);
+    hashmap_insert(config, "ignoredlayers", ignoredlayers);
 
     const char* home = getenv("HOME");
     size_t len = strlen(home) + strlen("/.opcconfig.lua");
@@ -193,6 +195,12 @@ int main(int argc, const char* const * argv)
         puts("sorry, watch mode is currently not implemented");
         returnvalue = 1;
         goto DESTROY_CONFIG;
+    }
+
+    if(cmdoptions_was_provided_long(cmdoptions, "disable-gatecut"))
+    {
+        struct const_vector* ignoredlayers = hashmap_get(config, "ignoredlayers");
+        const_vector_append(ignoredlayers, "gatecut");
     }
 
     // show gds data

@@ -47,4 +47,11 @@ void const_vector_append(struct const_vector* const_vector, const void* element)
 void const_vector_prepend(struct const_vector* const_vector, const void* element);
 void const_vector_remove(struct const_vector* const_vector, size_t index);
 
+struct const_vector_iterator;
+struct const_vector_iterator* const_vector_iterator_create(const struct const_vector* vector);
+int const_vector_iterator_is_valid(struct const_vector_iterator* iterator);
+const void* const_vector_iterator_get(struct const_vector_iterator* iterator);
+void const_vector_iterator_next(struct const_vector_iterator* iterator);
+void const_vector_iterator_destroy(struct const_vector_iterator* iterator);
+
 #endif // OPC_LVECTOR_H
