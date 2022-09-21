@@ -28,7 +28,7 @@ pcell.push_overwrites("stdcells/base", {
     gspace = gatespace,
     routingwidth = routingwidth,
     routingspace = routingspace,
-    powerwidth = 500,
+    powerwidth = 480,
     pnumtracks = 3,
     nnumtracks = 3,
 })
