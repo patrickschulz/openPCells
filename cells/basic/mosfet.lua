@@ -8,7 +8,7 @@ function parameters()
         { "fingers(Number of Fingers)",                                  1, argtype = "integer", posvals = interval(0, inf) },
         { "fwidth(Finger Width)",                                      tech.get_dimension("Minimum Gate Width"), argtype = "integer", posvals = even() },
         { "gatelength(Gate Length)",                                   tech.get_dimension("Minimum Gate Length"), argtype = "integer", posvals = even() },
-        { "gatespace(Gate Spacing)",                                   tech.get_dimension("Minimum Gate Space"), argtype = "integer", posvals = even() },
+        { "gatespace(Gate Spacing)",                                   tech.get_dimension("Minimum Gate XSpace"), argtype = "integer", posvals = even() },
         { "actext(Active Extension)",                                     30 },
         { "specifyactext(Specify Active Extension)",                   false },
         { "sdwidth(Source/Drain Metal Width)",                         tech.get_dimension("Minimum M1 Width"), argtype = "integer", posvals = even() },
@@ -34,7 +34,7 @@ function parameters()
         { "drawbotgcut(Draw Bottom Gate Cut)",                         false },
         { "topgcutoffset(Top Gate Cut Y Offset)",                          0 },
         { "botgcutoffset(Bottom Gate Cut Y Offset)",                       0 },
-        { "cutheight",                                                  60, posvals = even() },
+        { "cutheight",                                                  tech.get_dimension("Minimum Gate Cut Height", "Minimum Gate YSpace"), posvals = even() },
         { "drawsourcedrain(Draw Source/Drain Contacts)",              "both", posvals = set("both", "source", "drain", "none") },
         { "sourcesize(Source Size)",                                  tech.get_dimension("Minimum Gate Width"), argtype = "integer", follow = "fwidth" },
         { "drainsize(Drain Size)",                                    tech.get_dimension("Minimum Gate Width"), argtype = "integer", follow = "fwidth" },
@@ -132,15 +132,9 @@ function layout(transistor, _P)
     local topgatecompsd = _P.topgatecompsd and not ((_P.channeltype == "nmos") and _P.conndraininline or _P.connsourceinline)
     local botgatecompsd = _P.botgatecompsd and not ((_P.channeltype == "nmos") and _P.connsourceinline or _P.conndraininline)
     if _P.fingers > 0 then
+        local lowerpt = point.create(-_P.gatelength / 2, -_P.fwidth / 2 - gateaddbot - enable(_P.drawbotgate and botgatecompsd, sourceshift))
+        local higherpt = point.create( _P.gatelength / 2,  _P.fwidth / 2 + gateaddtop + enable(_P.drawtopgate and topgatecompsd, drainshift))
         if hasgatecut then
-            -- gates
-            geometry.rectanglebltr(transistor,
-                generics.other("gate"),
-                point.create(-_P.gatelength / 2, -_P.fwidth / 2 - gateaddbot - enable(_P.drawbotgate and botgatecompsd, sourceshift)),
-                point.create( _P.gatelength / 2,  _P.fwidth / 2 + gateaddtop + enable(_P.drawtopgate and topgatecompsd, drainshift)),
-                _P.fingers, 1, gatepitch, 0
-            )
-
             -- gate cut
             if _P.drawtopgcut then
                 geometry.rectanglebltr(transistor,
@@ -157,21 +151,21 @@ function layout(transistor, _P)
                 )
             end
         else -- not hasgatecut
-            local lowerpt  = point.create(-_P.gatelength / 2, -_P.fwidth / 2 - gateaddbot - enable(_P.drawbotgate and botgatecompsd, sourceshift))
-            local higherpt = point.create( _P.gatelength / 2,  _P.fwidth / 2 + gateaddtop + enable(_P.drawtopgate and topgatecompsd, drainshift))
             if _P.drawtopgcut then
                 higherpt:translate(0, -enable(_P.drawtopgate and topgatecompsd, drainshift) - _P.cutheight / 2 + _P.topgcutoffset)
             end
             if _P.drawbotgcut then
-                lowerpt:translate(0, enable(_P.drawbotgate and _P.botgatecompsd and not _P.connsourceinline, sourceshift) + _P.cutheight / 2 - _P.botgcutoffset)
+                lowerpt:translate(0, enable(_P.drawbotgate and _P.botgatecompsd and not _P.connsourceinline, sourceshift) + _P.cutheight / 2 + _P.botgcutoffset)
             end
-            -- gates
-            geometry.rectanglebltr(transistor, 
-                generics.other("gate"),
-                lowerpt, higherpt,
-                _P.fingers, 1, gatepitch, 0
-            )
         end
+
+        -- gates
+        geometry.rectanglebltr(transistor, 
+            generics.other("gate"),
+            lowerpt, higherpt,
+            _P.fingers, 1, gatepitch, 0
+        )
+
         -- gate marker
         geometry.rectanglebltr(transistor,
             generics.other(string.format("gatemarker%d", _P.gatemarker)),
