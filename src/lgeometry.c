@@ -259,7 +259,7 @@ static int lgeometry_path_cshape(lua_State* L)
     lpoint_t* ptend = lpoint_checkpoint(L, 4);
     lpoint_t* ptoffset = lpoint_checkpoint(L, 5);
     coordinate_t offset = ptoffset->point->x;
-    coordinate_t width = lua_tointeger(L, 6);
+    coordinate_t width = luaL_checkinteger(L, 6);
 
     int bgnext = 0;
     int endext = 0;
@@ -718,7 +718,7 @@ int open_lgeometry_lib(lua_State* L)
         { "polygon",         lgeometry_polygon         },
         { "path",            lgeometry_path            },
         { "path_manhatten",  lgeometry_path_manhatten  },
-        { "path_cshape",     lgeometry_path_cshape     },
+        { "cshape",          lgeometry_path_cshape     },
         { "path_ushape",     lgeometry_path_ushape     },
         { "viabltr",         lgeometry_viabltr         },
         { "via",             lgeometry_via             },
