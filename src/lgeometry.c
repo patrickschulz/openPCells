@@ -313,13 +313,24 @@ static int lgeometry_viabltr(lua_State* L)
     ucoordinate_t yrep = luaL_optinteger(L, 7, 1);
     ucoordinate_t xpitch = luaL_optinteger(L, 8, 0);
     ucoordinate_t ypitch = luaL_optinteger(L, 9, 0);
+    int xcont = 0;
+    int ycont = 0;
+    if(lua_type(L, 10) == LUA_TTABLE) // properties table
+    {
+        lua_getfield(L, 10, "xcontinuous");
+        xcont = lua_toboolean(L, -1);
+        lua_pop(L, 1);
+        lua_getfield(L, 10, "ycontinuous");
+        ycont = lua_toboolean(L, -1);
+        lua_pop(L, 1);
+    }
     lua_getfield(L, LUA_REGISTRYINDEX, "genericslayermap");
     struct layermap* layermap = lua_touserdata(L, -1);
     lua_pop(L, 1); // pop layermap
     lua_getfield(L, LUA_REGISTRYINDEX, "techstate");
     struct technology_state* techstate = lua_touserdata(L, -1);
     lua_pop(L, 1); // pop techstate
-    int res = geometry_viabltr(lobject_get(cell), layermap, techstate, metal1, metal2, bl->point, tr->point, xrep, yrep, xpitch, ypitch);
+    int res = geometry_viabltr(lobject_get(cell), layermap, techstate, metal1, metal2, bl->point, tr->point, xrep, yrep, xpitch, ypitch, xcont, ycont);
     if(!res)
     {
         lua_pushfstring(L, "geometry.viabltr: could not fit via from metal %d to metal %d. Area: (%d, %d) and (%d, %d)", metal1, metal2, bl->point->x, bl->point->y, tr->point->x, tr->point->y);
@@ -342,12 +353,23 @@ static int lgeometry_via(lua_State* L)
     ucoordinate_t xpitch = luaL_optinteger(L, 10, 0);
     ucoordinate_t ypitch = luaL_optinteger(L, 11, 0);
     lua_getfield(L, LUA_REGISTRYINDEX, "genericslayermap");
+    int xcont = 0;
+    int ycont = 0;
+    if(lua_type(L, 12) == LUA_TTABLE) // properties table
+    {
+        lua_getfield(L, 12, "xcontinuous");
+        xcont = lua_toboolean(L, -1);
+        lua_pop(L, 1);
+        lua_getfield(L, 12, "ycontinuous");
+        ycont = lua_toboolean(L, -1);
+        lua_pop(L, 1);
+    }
     struct layermap* layermap = lua_touserdata(L, -1);
     lua_pop(L, 1); // pop layermap
     lua_getfield(L, LUA_REGISTRYINDEX, "techstate");
     struct technology_state* techstate = lua_touserdata(L, -1);
     lua_pop(L, 1); // pop techstate
-    int res = geometry_via(lobject_get(cell), layermap, techstate, metal1, metal2, width, height, xshift, yshift, xrep, yrep, xpitch, ypitch);
+    int res = geometry_via(lobject_get(cell), layermap, techstate, metal1, metal2, width, height, xshift, yshift, xrep, yrep, xpitch, ypitch, xcont, ycont);
     if(!res)
     {
         lua_pushfstring(L, "geometry.via: could not fit via from metal %d to metal %d. Area: (%d, %d) and (%d, %d)", metal1, metal2, xshift - width / 2, yshift - height / 2, xshift + width / 2, yshift + height / 2);

@@ -9,17 +9,36 @@
 #include "util.h"
 #include "tagged_value.h"
 
+struct generics_entry {
+    char* exportname;
+    struct hashmap* data;
+};
+
 struct generics {
     char* name;
-    char** exportnames;
-    struct hashmap** data;
-    size_t size;
+    struct vector* entries; // stores struct generics_entry*
 };
 
 struct layermap {
     struct hashmap* hashmap;
     struct vector* extra_layers;
 };
+
+static struct generics_entry* _create_entry(const char* name)
+{
+    struct generics_entry* entry = malloc(sizeof(*entry));
+    entry->exportname = strdup(name);
+    entry->data = hashmap_create();
+    return entry;
+}
+
+static void _destroy_entry(void* entryv)
+{
+    struct generics_entry* entry = entryv;
+    free(entry->exportname);
+    hashmap_destroy(entry->data, tagged_value_destroy);
+    free(entry);
+}
 
 struct generics* generics_create_empty_layer(const char* name)
 {
@@ -32,9 +51,7 @@ struct generics* generics_create_empty_layer(const char* name)
 struct generics* generics_create_premapped_layer(const char* name, size_t size)
 {
     struct generics* layer = generics_create_empty_layer(name);
-    layer->data = calloc(size, sizeof(*layer->data));
-    layer->exportnames = calloc(size, sizeof(*layer->exportnames));
-    layer->size = size;
+    layer->entries = vector_create(size);
     return layer;
 }
 
@@ -83,16 +100,14 @@ struct generics* generics_make_layer_from_lua(const char* layername, lua_State* 
         }
 
         layer = generics_create_premapped_layer(layername, num);
-        unsigned int i = 0;
         lua_pushnil(L);
         while (lua_next(L, -2) != 0)
         {
             const char* name = lua_tostring(L, -2);
-            layer->exportnames[i] = strdup(name);
-            layer->data[i] = hashmap_create();
-            _insert_lpp_pairs(L, layer->data[i]);
+            struct generics_entry* entry = _create_entry(name);
+            _insert_lpp_pairs(L, entry->data);
+            vector_append(layer->entries, entry);
             lua_pop(L, 1); // pop value, keep key for next iteration
-            ++i;
         }
     }
     return layer;
@@ -216,7 +231,14 @@ const struct generics* generics_create_special(struct layermap* layermap, struct
 
 int generics_is_empty(const struct generics* layer)
 {
-    return layer->size == 0;
+    if(layer->entries)
+    {
+        return vector_size(layer->entries) == 0;
+    }
+    else
+    {
+        return 1;
+    }
 }
 
 int generics_is_layer_name(const struct generics* layer, const char* layername)
@@ -226,7 +248,8 @@ int generics_is_layer_name(const struct generics* layer, const char* layername)
 
 const struct hashmap* generics_get_first_layer_data(const struct generics* layer)
 {
-    return layer->data[0];
+    const struct generics_entry* entry = vector_get_const(layer->entries, 0);
+    return entry->data;
 }
 
 void generics_insert_extra_layer(struct layermap* layermap, struct generics* layer)
@@ -237,14 +260,11 @@ void generics_insert_extra_layer(struct layermap* layermap, struct generics* lay
 void generics_destroy_layer(void* layerv)
 {
     struct generics* layer = layerv;
-    for(unsigned int i = 0; i < layer->size; ++i)
+    if(layer->entries)
     {
-        free(layer->exportnames[i]);
-        hashmap_destroy(layer->data[i], tagged_value_destroy);
+        vector_destroy(layer->entries, _destroy_entry);
     }
     free(layer->name);
-    free(layer->exportnames);
-    free(layer->data);
     free(layer);
 }
 
@@ -266,12 +286,13 @@ void generics_destroy_layer_map(struct layermap* layermap)
 int _resolve_layer(struct generics* layer, const char* exportname)
 {
     int found = 0;
-    if(layer->size > 0) // empty layers are ignored
+    if(!generics_is_empty(layer)) // empty layers are ignored
     {
         unsigned int idx = 0;
-        for(unsigned int k = 0; k < layer->size; ++k)
+        for(unsigned int k = 0; k < vector_size(layer->entries); ++k)
         {
-            if(strcmp(exportname, layer->exportnames[k]) == 0)
+            const struct generics_entry* entry = vector_get_const(layer->entries, k);
+            if(strcmp(exportname, entry->exportname) == 0)
             {
                 found = 1;
                 idx = k;
@@ -283,19 +304,10 @@ int _resolve_layer(struct generics* layer, const char* exportname)
             return 0;
         }
 
-        // swap entries and mark as mapped
-        // for mapped entries, only data[0] is used, but it is easier to keep the data here
-        // and let _destroy_generics free all data, regardless if a layer is premapped or mapped
-
         // swap data
-        struct hashmap* tmp = layer->data[0];
-        layer->data[0] = layer->data[idx];
-        layer->data[idx] = tmp;
-
-        // swap export names
-        char* str = layer->exportnames[0];
-        layer->exportnames[0] = layer->exportnames[idx];
-        layer->exportnames[idx] = str;
+        // for mapped entries, only the first entry is used, but it is easier to keep the data here
+        // and let _destroy_generics free all data, regardless if a layer is premapped or mapped
+        vector_swap(layer->entries, 0, idx);
     }
     return 1;
 }
@@ -327,8 +339,7 @@ int generics_resolve_premapped_layers(struct layermap* layermap, const char* exp
     return 1;
 }
 
-struct layer_iterator
-{
+struct layer_iterator {
     struct hashmap_iterator* hashmap_iterator;
     struct vector_iterator* extra_iterator;
 };

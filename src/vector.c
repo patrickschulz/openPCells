@@ -216,6 +216,13 @@ void vector_sort(struct vector* vector, int (*cmp_func)(const void* left, const 
     qsort(vector->elements, vector->size, sizeof(void*), cmp_func);
 }
 
+void vector_swap(struct vector* vector, size_t idx1, size_t idx2)
+{
+    void* tmp = vector->elements[idx1];
+    vector->elements[idx1] = vector->elements[idx2];
+    vector->elements[idx2] = tmp;
+}
+
 struct const_vector {
     const void** elements;
     size_t size;

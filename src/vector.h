@@ -21,6 +21,7 @@ void vector_append(struct vector* vector, void* element);
 void vector_prepend(struct vector* vector, void* element);
 void vector_remove(struct vector* vector, size_t index, void (*destructor)(void*));
 void vector_sort(struct vector* vector, int (*cmp_func)(const void*, const void*));
+void vector_swap(struct vector* vector, size_t idx1, size_t idx2);
 
 struct vector_iterator;
 struct vector_iterator* vector_iterator_create(struct vector* vector);

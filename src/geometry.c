@@ -418,6 +418,7 @@ static int _via_contact_bltr(
     coordinate_t blx, coordinate_t bly, coordinate_t trx, coordinate_t try,
     ucoordinate_t xrep, ucoordinate_t yrep,
     ucoordinate_t xpitch, ucoordinate_t ypitch,
+    int xcont, int ycont,
     int makearray
 )
 {
@@ -426,7 +427,7 @@ static int _via_contact_bltr(
         ucoordinate_t width = trx - blx;
         ucoordinate_t height = try - bly;
         unsigned int viaxrep, viayrep, viaxpitch, viaypitch;
-        struct via_definition* entry = _get_rectangular_arrayzation(width, height, viadefs, fallback, &viaxrep, &viayrep, &viaxpitch, &viaypitch, 0, 0);
+        struct via_definition* entry = _get_rectangular_arrayzation(width, height, viadefs, fallback, &viaxrep, &viayrep, &viaxpitch, &viaypitch, xcont, ycont);
         if(!entry)
         {
             return 0;
@@ -468,7 +469,8 @@ static int _viabltr(
     int metal1, int metal2,
     coordinate_t blx, coordinate_t bly, coordinate_t trx, coordinate_t try,
     ucoordinate_t xrep, ucoordinate_t yrep,
-    ucoordinate_t xpitch, ucoordinate_t ypitch
+    ucoordinate_t xpitch, ucoordinate_t ypitch,
+    int xcont, int ycont
 )
 {
     metal1 = technology_resolve_metal(techstate, metal1);
@@ -495,20 +497,21 @@ static int _viabltr(
             generics_create_metal(layermap, techstate, i + 1),
             blx, bly, trx, try,
             xrep, yrep, xpitch, ypitch,
+            xcont, ycont,
             technology_is_create_via_arrays(techstate)
         );
     }
     return ret;
 }
 
-int geometry_viabltr(struct object* cell, struct layermap* layermap, struct technology_state* techstate, int metal1, int metal2, point_t* bl, point_t* tr, ucoordinate_t xrep, ucoordinate_t yrep, ucoordinate_t xpitch, ucoordinate_t ypitch)
+int geometry_viabltr(struct object* cell, struct layermap* layermap, struct technology_state* techstate, int metal1, int metal2, point_t* bl, point_t* tr, ucoordinate_t xrep, ucoordinate_t yrep, ucoordinate_t xpitch, ucoordinate_t ypitch, int xcont, int ycont)
 {
-    return _viabltr(cell, layermap, techstate, metal1, metal2, bl->x, bl->y, tr->x, tr->y, xrep, yrep, xpitch, ypitch);
+    return _viabltr(cell, layermap, techstate, metal1, metal2, bl->x, bl->y, tr->x, tr->y, xrep, yrep, xpitch, ypitch, xcont, ycont);
 }
 
-int geometry_via(struct object* cell, struct layermap* layermap, struct technology_state* techstate, int metal1, int metal2, ucoordinate_t width, ucoordinate_t height, coordinate_t xshift, coordinate_t yshift, ucoordinate_t xrep, ucoordinate_t yrep, ucoordinate_t xpitch, ucoordinate_t ypitch)
+int geometry_via(struct object* cell, struct layermap* layermap, struct technology_state* techstate, int metal1, int metal2, ucoordinate_t width, ucoordinate_t height, coordinate_t xshift, coordinate_t yshift, ucoordinate_t xrep, ucoordinate_t yrep, ucoordinate_t xpitch, ucoordinate_t ypitch, int xcont, int ycont)
 {
-    return _viabltr(cell, layermap, techstate, metal1, metal2, -(coordinate_t)width / 2 + xshift, -(coordinate_t)height / 2 + yshift, width / 2 + xshift, height / 2 + yshift, xrep, yrep, xpitch, ypitch);
+    return _viabltr(cell, layermap, techstate, metal1, metal2, -(coordinate_t)width / 2 + xshift, -(coordinate_t)height / 2 + yshift, width / 2 + xshift, height / 2 + yshift, xrep, yrep, xpitch, ypitch, xcont, ycont);
 }
 
 static int _contactbltr(
@@ -521,22 +524,8 @@ static int _contactbltr(
     int xcont, int ycont
 )
 {
-    ucoordinate_t width = trx - blx;
-    ucoordinate_t height = try - bly;
     struct via_definition** viadefs = technology_get_contact_definitions(techstate, region);
     struct via_definition* fallback = technology_get_contact_fallback(techstate, region);
-    unsigned int viaxrep, viayrep, viaxpitch, viaypitch;
-    struct via_definition* entry = _get_rectangular_arrayzation(
-        width, height,
-        viadefs, fallback,
-        &viaxrep, &viayrep,
-        &viaxpitch, &viaypitch,
-        xcont, ycont
-    );
-    if(!entry)
-    {
-        return 0;
-    }
     if(!viadefs)
     {
         return 0;
@@ -548,6 +537,7 @@ static int _contactbltr(
         NULL,
         blx, bly, trx, try,
         xrep, yrep, xpitch, ypitch,
+        xcont, ycont,
         technology_is_create_via_arrays(techstate)
     );
 }
@@ -562,22 +552,8 @@ static int _contactbarebltr(
     int xcont, int ycont
 )
 {
-    ucoordinate_t width = trx - blx;
-    ucoordinate_t height = try - bly;
     struct via_definition** viadefs = technology_get_contact_definitions(techstate, region);
     struct via_definition* fallback = technology_get_contact_fallback(techstate, region);
-    unsigned int viaxrep, viayrep, viaxpitch, viaypitch;
-    struct via_definition* entry = _get_rectangular_arrayzation(
-        width, height,
-        viadefs, fallback,
-        &viaxrep, &viayrep,
-        &viaxpitch, &viaypitch,
-        xcont, ycont
-    );
-    if(!entry)
-    {
-        return 0;
-    }
     if(!viadefs)
     {
         return 0;
@@ -588,6 +564,7 @@ static int _contactbarebltr(
         NULL, NULL,
         blx, bly, trx, try,
         xrep, yrep, xpitch, ypitch,
+        xcont, ycont,
         technology_is_create_via_arrays(techstate)
     );
 }
