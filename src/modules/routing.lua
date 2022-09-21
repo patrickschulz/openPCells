@@ -71,8 +71,12 @@ function M.legalize(nets, rows, numtracks, floorplan, instances)
 end
 
 function M.route(cell, routes, cells, width, numinnerroutes, pnumtracks, nnumtracks, xgrid, ygrid)
-    local xgrid = xgrid or 1
-    local ygrid = ygrid or 1
+    if not xgrid then
+        moderror("routing.route: 'xgrid' must be given")
+    end
+    if not ygrid then
+        moderror("routing.route: 'ygrid' must be given")
+    end
     for r, route in ipairs(routes) do
         if not (route[1].type == "anchor" or route[1].type == "point") then
             moderror(string.format("routing.route: route #%d: first movement needs to be of type 'anchor' or 'point'", r))
