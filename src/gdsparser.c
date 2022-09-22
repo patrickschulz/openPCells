@@ -448,9 +448,18 @@ int gdsparser_show_records(const char* filename, int raw)
         return 0;
     }
     unsigned int indent = 0;
-    for(size_t i = 0; i < stream->numrecords; ++i)
+    while(1)
     {
-        struct record* record = &stream->records[i];
+        struct record* record = _get_next_record(stream);
+        if(!record)
+        {
+            _destroy_stream(stream);
+            return 0;
+        }
+        if(record->recordtype == ENDLIB)
+        {
+            break;
+        }
         if(record->recordtype == ENDLIB || record->recordtype == ENDSTR || record->recordtype == ENDEL)
         {
             --indent;
