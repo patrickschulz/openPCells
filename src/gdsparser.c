@@ -74,11 +74,17 @@ int _read_record(FILE* file, struct record* record)
     return 1;
 }
 
-struct stream
-{
+struct stream {
     struct record* records;
     size_t numrecords;
+    size_t index;
 };
+
+static struct record* _get_next_record(struct stream* stream)
+{
+    ++stream->index;
+    return stream->records + stream->index - 1;
+}
 
 static struct stream* _read_raw_stream(const char* filename)
 {
@@ -113,6 +119,7 @@ static struct stream* _read_raw_stream(const char* filename)
     struct stream* stream = malloc(sizeof(struct stream));
     stream->records = records;
     stream->numrecords = numrecords;
+    stream->index = 0;
     return stream;
 }
 
@@ -776,13 +783,17 @@ int _check_lpp(int16_t layer, int16_t purpose, const struct vector* ignorelpp)
     return 1;
 }
 
-static int _read_TEXT(const struct stream* stream, size_t* i, char** str, int16_t* layer, int16_t* purpose, point_t* origin, double* angle, int** transformation)
+static int _read_TEXT(struct stream* stream, char** str, int16_t* layer, int16_t* purpose, point_t* origin, double* angle, int** transformation)
 {
-    ++(*i); // skip TEXT
+    _get_next_record(stream); // skip TEXT
     while(1)
     {
-        struct record* record = &stream->records[*i];
-        if(record->recordtype == ELFLAGS)
+        struct record* record = _get_next_record(stream);
+        if(!record)
+        {
+            return 0;
+        }
+        else if(record->recordtype == ELFLAGS)
         {
             // FIXME: handle record
         }
@@ -832,12 +843,11 @@ static int _read_TEXT(const struct stream* stream, size_t* i, char** str, int16_
         {
             return 0;
         }
-        ++(*i);
     }
     return 1;
 }
 
-static struct cellref* _read_SREF_AREF(const struct stream* stream, size_t* i, int isAREF)
+static struct cellref* _read_SREF_AREF(struct stream* stream, int isAREF)
 {
     struct cellref* cellref = malloc(sizeof(*cellref));
     cellref->name = NULL;
@@ -846,10 +856,13 @@ static struct cellref* _read_SREF_AREF(const struct stream* stream, size_t* i, i
     cellref->yrep = 1;
     cellref->angle = 0.0;
     cellref->transformation = NULL;
-    ++(*i); // skip SREF/AREF
     while(1)
     {
-        struct record* record = &stream->records[*i];
+        struct record* record = _get_next_record(stream);
+        if(!record)
+        {
+            return 0;
+        }
         if(record->recordtype == ELFLAGS)
         {
             // FIXME: handle record
@@ -906,15 +919,14 @@ static struct cellref* _read_SREF_AREF(const struct stream* stream, size_t* i, i
         }
         else // wrong record
         {
-            fprintf(stderr, "malformed SREF/AREF, got unexpected record '%s' (#%zd)\n", recordnames[record->recordtype], *i + 1);
+            fprintf(stderr, "malformed SREF/AREF, got unexpected record '%s' (#%zd)\n", recordnames[record->recordtype], stream->index);
             return NULL;
         }
-        ++(*i);
     }
     return cellref;
 }
-#define _read_SREF(stream, i) _read_SREF_AREF(stream, i, 0)
-#define _read_AREF(stream, i) _read_SREF_AREF(stream, i, 1)
+#define _read_SREF(stream) _read_SREF_AREF(stream, 0)
+#define _read_AREF(stream) _read_SREF_AREF(stream, 1)
 
 static void _write_cellref(FILE* cellfile, const char* importname, const struct cellref* cellref, struct hashmap* references)
 {
@@ -961,13 +973,15 @@ static void _write_cellref(FILE* cellfile, const char* importname, const struct 
     }
 }
 
-//static int _read_BOUNDARY(const struct stream* stream, size_t* i, int16_t* layer, int16_t* purpose, struct vector** points)
-static int _read_BOUNDARY(const struct stream* stream, size_t* i, int16_t* layer, int16_t* purpose, coordinate_t** points, size_t* size)
+static int _read_BOUNDARY(struct stream* stream, int16_t* layer, int16_t* purpose, coordinate_t** points, size_t* size)
 {
-    ++(*i); // skip BOUNDARY
     while(1)
     {
-        struct record* record = &stream->records[*i];
+        struct record* record = _get_next_record(stream);
+        if(!record)
+        {
+            return 0;
+        }
         if(record->recordtype == ELFLAGS)
         {
             // FIXME: handle record
@@ -1007,10 +1021,9 @@ static int _read_BOUNDARY(const struct stream* stream, size_t* i, int16_t* layer
         }
         else // wrong record
         {
-            fprintf(stderr, "malformed BOUNDARY, got unexpected record '%s' (#%zd)\n", recordnames[record->recordtype], *i + 1);
+            fprintf(stderr, "malformed BOUNDARY, got unexpected record '%s' (#%zd)\n", recordnames[record->recordtype], stream->index);
             return 0;
         }
-        ++(*i);
     }
     return 1;
 }
@@ -1055,12 +1068,15 @@ static void _write_BOUNDARY(FILE* cellfile, int16_t layer, int16_t purpose, cons
     }
 }
 
-static int _read_PATH(const struct stream* stream, size_t* i, int16_t* layer, int16_t* purpose, struct vector** points, coordinate_t* width)
+static int _read_PATH(struct stream* stream, int16_t* layer, int16_t* purpose, struct vector** points, coordinate_t* width)
 {
-    ++(*i); // skip PATH
     while(1)
     {
-        struct record* record = &stream->records[*i];
+        struct record* record = _get_next_record(stream);
+        if(!record)
+        {
+            return 0;
+        }
         if(record->recordtype == ELFLAGS)
         {
             // FIXME: handle record
@@ -1109,10 +1125,9 @@ static int _read_PATH(const struct stream* stream, size_t* i, int16_t* layer, in
         }
         else // wrong record
         {
-            fprintf(stderr, "malformed PATH, got unexpected record '%s' (#%zd)\n", recordnames[record->recordtype], *i + 1);
+            fprintf(stderr, "malformed PATH, got unexpected record '%s' (#%zd)\n", recordnames[record->recordtype], stream->index);
             return 0;
         }
-        ++(*i);
     }
     return 1;
 }
@@ -1130,14 +1145,17 @@ static void _write_PATH(FILE* cellfile, int16_t layer, int16_t purpose, const st
     fprintf(cellfile, "}, %lld)\n", width);
 }
 
-static int _read_structure(const char* importname, const struct stream* stream, size_t* i, const struct vector* gdslayermap, const struct vector* ignorelpp, int16_t* ablayer, int16_t* abpurpose)
+static int _read_structure(const char* importname, struct stream* stream, const struct vector* gdslayermap, const struct vector* ignorelpp, int16_t* ablayer, int16_t* abpurpose)
 {
     FILE* cellfile = NULL;
     struct hashmap* references = hashmap_create();
-    ++(*i); // skip BGNSTR
     while(1)
     {
-        struct record* record = &stream->records[*i];
+        struct record* record = _get_next_record(stream);
+        if(!record)
+        {
+            return 0;
+        }
         if(record->recordtype == STRNAME)
         {
             char* cellname = _parse_string(record->data, record->length - 4);
@@ -1165,7 +1183,7 @@ static int _read_structure(const char* importname, const struct stream* stream, 
             //struct vector* points = NULL;
             coordinate_t* points = NULL;
             size_t numpoints = 0;
-            if(!_read_BOUNDARY(stream, i, &layer, &purpose, &points, &numpoints))
+            if(!_read_BOUNDARY(stream, &layer, &purpose, &points, &numpoints))
             {
                 free(points);
                 return 0;
@@ -1192,7 +1210,7 @@ static int _read_structure(const char* importname, const struct stream* stream, 
             int16_t layer, purpose;
             struct vector* points = NULL;
             coordinate_t width;
-            if(!_read_PATH(stream, i, &layer, &purpose, &points, &width))
+            if(!_read_PATH(stream, &layer, &purpose, &points, &width))
             {
                 return 0;
             }
@@ -1209,7 +1227,7 @@ static int _read_structure(const char* importname, const struct stream* stream, 
             char* str;
             double angle = 0.0;
             int* transformation = NULL;
-            _read_TEXT(stream, i, &str, &layer, &purpose, &origin, &angle, &transformation);
+            _read_TEXT(stream, &str, &layer, &purpose, &origin, &angle, &transformation);
             if(_check_lpp(layer, purpose, ignorelpp))
             {
                 fprintf(cellfile, "    cell:add_port(\"%s\", ", str);
@@ -1226,7 +1244,7 @@ static int _read_structure(const char* importname, const struct stream* stream, 
         }
         else if(record->recordtype == SREF)
         {
-            struct cellref* cellref = _read_SREF(stream, i);
+            struct cellref* cellref = _read_SREF(stream);
             if(cellref)
             {
                 _write_cellref(cellfile, importname, cellref, references);
@@ -1239,7 +1257,7 @@ static int _read_structure(const char* importname, const struct stream* stream, 
         }
         else if(record->recordtype == AREF)
         {
-            struct cellref* cellref = _read_AREF(stream, i);
+            struct cellref* cellref = _read_AREF(stream);
             if(cellref)
             {
                 _write_cellref(cellfile, importname, cellref, references);
@@ -1256,10 +1274,9 @@ static int _read_structure(const char* importname, const struct stream* stream, 
         }
         else // wrong record
         {
-            printf("structure: unexpected record '%s' (#%zd)\n", recordnames[record->recordtype], *i);
+            printf("structure: unexpected record '%s' (#%zd)\n", recordnames[record->recordtype], stream->index - 2);
             return 0;
         }
-        ++(*i);
     }
     hashmap_destroy(references, NULL);
     fputs("end", cellfile); // close layout function
@@ -1285,10 +1302,14 @@ int gdsparser_read_stream(const char* filename, const char* importname, const st
         return 0;
     }
 
-    size_t i = 0;
-    while(i < stream->numrecords)
+    while(1)
     {
-        struct record* record = &stream->records[i];
+        struct record* record = _get_next_record(stream);
+        if(!record)
+        {
+            _destroy_stream(stream);
+            return 0;
+        }
         if(record->recordtype == LIBNAME)
         {
             libname = (const char*)record->data;
@@ -1300,13 +1321,16 @@ int gdsparser_read_stream(const char* filename, const char* importname, const st
         }
         else if(record->recordtype == BGNSTR)
         {
-            if(!_read_structure(importname, stream, &i, gdslayermap, ignorelpp, ablayer, abpurpose))
+            if(!_read_structure(importname, stream, gdslayermap, ignorelpp, ablayer, abpurpose))
             {
                 _destroy_stream(stream);
                 return 0;
             }
         }
-        ++i;
+        else if(record->recordtype == ENDLIB)
+        {
+            break;
+        }
     }
     _destroy_stream(stream);
     return 1;
