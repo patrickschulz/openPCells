@@ -40,12 +40,24 @@ static struct rpoint* _create_point(lua_State *L)
 }
 
 /*
+ * take the two most far apart points in a multi net, route two random ones,
+ * then get the closest points from ports to the route itself and
+ *
+ */
+static void _alt_split_and_make_nets(const char* name, struct vector *nets,
+				     struct vector *positions)
+{
+    
+}
+
+/*
  * split nets with more than 2 points into more nets with 2 points
  * with minimum manhattan distance in between
  * e. g. net0: p1 has manhattan distance (m.d.) 4 to p2 and p1 has 3 m.d. to
  * p3 then: make new nets with p1 and p3, and p2 and p3
  */
-static void _split_and_make_nets(const char* name, struct vector* nets, struct vector* positions)
+static void _split_and_make_nets(const char* name, struct vector* nets,
+				 struct vector* positions)
 {
     size_t num_positions = vector_size(positions);
     int exclude_positions[num_positions];
