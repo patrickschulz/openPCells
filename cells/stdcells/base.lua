@@ -27,10 +27,10 @@ function parameters()
         { "nsdheight(NMOS Source/Drain Contact Height)",                0 },
         { "psdpowerheight(PMOS Source/Drain Contact Height)",           0 },
         { "nsdpowerheight(NMOS Source/Drain Contact Height)",           0 },
+        { "drawtopbotwelltaps",                                         true },
         { "dummycontheight(Dummy Gate Contact Height)",                 tech.get_dimension("Minimum M1 Width") },
         { "drawdummygcut(Draw Dummy Gate Cut)",                         false },
-        { "compact(Compact Layout)",                                    true },
-        { "connectoutput",                                              true }
+        { "compact(Compact Layout)",                                    true }
     )
-    pcell.check_expression("powerwidth % 8 == 0", "powerwidth must be divisible by 8")
+    pcell.check_expression("not drawtopbotwelltaps and (powerwidth % 8 == 0) or true", "powerwidth must be divisible by 8 if drawtopbotwelltaps is false")
 end

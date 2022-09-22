@@ -27,7 +27,7 @@ function parameters()
         { "nsdheight(NMOS Source/Drain Contact Height)",       0 },
         { "psdpowerheight(PMOS Source/Drain Contact Height)",  0 },
         { "nsdpowerheight(NMOS Source/Drain Contact Height)",  0 },
-        { "cutheight",                                         60, posvals = even() },
+        { "cutheight",                                         tech.get_dimension("Minimum Gate Cut Height", "Minimum Gate YSpace"), posvals = even() },
         { "compact(Compact Layout)",                           true },
         { "connectoutput",                                     true },
         { "drawtransistors", true },
@@ -154,7 +154,7 @@ function layout(cmos, _P)
                     popt.drawstopgatebotgcut = true
                 end
             end
-            if _P.gatecontactpos[i] == "dummy" then
+            if _P.gatecontactpos[i] == "dummy" or _P.gatecontactpos[i] == "split" then
                 nopt.drawtopgcut = true
                 nopt.drawbotgcut = false
                 popt.drawtopgcut = false
@@ -202,21 +202,23 @@ function layout(cmos, _P)
     )
 
     -- well taps (can't use the mosfet pcell well taps, as only single fingers are instantiated)
-    local activewidth = (fingers + 1) * gatepitch
-    local welltapwidth = activewidth + _P.welltapextendleft + _P.welltapextendright
+    -- FIXME: this does not fit well with different gates
+    local welltapwidth = fingers * gatepitch + _P.welltapextendleft + _P.welltapextendright
     if _P.drawpmoswelltap then
         cmos:merge_into_shallow(pcell.create_layout("auxiliary/welltap", {
             contype = _P.pmosflippedwell and "p" or "n",
             width = welltapwidth,
             height = _P.pmoswelltapwidth,
-        }):translate((_P.welltapextendright - _P.welltapextendleft) / 2 + welltapwidth / 2 - gatepitch, _P.separation / 2 + _P.pwidth + _P.ppowerspace + _P.powerwidth + _P.pmoswelltapspace + _P.pmoswelltapwidth / 2))
+            xcontinuous = true
+        }):translate(gatepitch / 2 + (_P.welltapextendright - _P.welltapextendleft) / 2 + welltapwidth / 2 - gatepitch, _P.separation / 2 + _P.pwidth + _P.ppowerspace + _P.powerwidth + _P.pmoswelltapspace + _P.pmoswelltapwidth / 2))
     end
     if _P.drawnmoswelltap then
         cmos:merge_into_shallow(pcell.create_layout("auxiliary/welltap", {
             contype = _P.nmosflippedwell and "n" or "p",
             width = welltapwidth,
             height = _P.nmoswelltapwidth,
-        }):translate((_P.welltapextendright - _P.welltapextendleft) / 2 + welltapwidth / 2 - gatepitch, -_P.separation / 2 - _P.nwidth - _P.npowerspace - _P.powerwidth - _P.nmoswelltapspace - _P.nmoswelltapwidth / 2))
+            xcontinuous = true
+        }):translate(gatepitch / 2 + (_P.welltapextendright - _P.welltapextendleft) / 2 + welltapwidth / 2 - gatepitch, -_P.separation / 2 - _P.nwidth - _P.npowerspace - _P.powerwidth - _P.nmoswelltapspace - _P.nmoswelltapwidth / 2))
     end
 
     -- draw gate contacts

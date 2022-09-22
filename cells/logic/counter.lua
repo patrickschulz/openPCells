@@ -28,9 +28,9 @@ end
 
 function layout(counter, _P)
     local bp = pcell.get_parameters("stdcells/base")
-    local width = bp.gstwidth
+    local width = bp.routingwidth
     local xgrid = bp.gspace + bp.glength
-    local ygrid = bp.gstwidth + bp.gstspace
+    local ygrid = bp.routingwidth + bp.routingspace
 
     -- single bit instance
     local bitref = object.create()
@@ -42,7 +42,7 @@ function layout(counter, _P)
             { instance = "dffn", reference = "dffnq" },
         }
     }
-    local bitrow = placement.create_reference_rows(bitcellnames)
+    local bitrow = placement.create_reference_rows(bitcellnames, xgrid)
     local bitcells = placement.rowwise(bitref, bitrow)
     bitref:add_anchor("I", bitcells["dffp"]:get_anchor("D"))
     bitref:add_anchor("O", bitcells["dffn"]:get_anchor("Q"))
@@ -50,29 +50,30 @@ function layout(counter, _P)
     table.insert(bitroutes, {
         { type = "anchor", name = "dffn", anchor = "Q" },
         { type = "via", metal = 3 },
-        { type = "delta", y = 2 },
+        { type = "delta", y = 1 },
         { type = "anchor", name = "dffp", anchor = "D" },
         { type = "via", metal = 2 },
     })
     table.insert(bitroutes, {
         { type = "anchor", name = "dffp", anchor = "Q" },
         { type = "via", metal = 3 },
+        { type = "delta", y = 1 },
         { type = "anchor", name = "xnor", anchor = "A" },
-        { type = "anchor", name = "or", anchor = "A" },
-        { type = "via", metal = 1 },
+        --{ type = "anchor", name = "or", anchor = "A" },
+        --{ type = "via", metal = 1 },
     })
-    table.insert(bitroutes, {
-        { type = "anchor", name = "xnor", anchor = "B" },
-        { type = "via", metal = 3 },
-        { type = "anchor", name = "or", anchor = "B" },
-    })
+    --table.insert(bitroutes, {
+    --    { type = "anchor", name = "xnor", anchor = "B" },
+    --    { type = "via", metal = 3 },
+    --    { type = "anchor", name = "or", anchor = "B" },
+    --})
     --table.insert(bitroutes, {
     --    { type = "anchor", name = "xnor", anchor = "O" },
     --    { type = "via", metal = 2 },
     --    { type = "delta", x = 100 },
     --    { type = "anchor", name = "dffn", anchor = "D" },
     --})
-    routing.route(bitref, bitroutes, bitcells, width, xgrid, ygrid)
+    routing.route(bitref, bitroutes, bitcells, width, bp.numinnerroutes, bp.pnumtracks, bp.nnumtracks, xgrid, ygrid)
 
     -- row placement
     local bitname = pcell.add_cell_reference(bitref, "bit")
@@ -104,6 +105,6 @@ function layout(counter, _P)
             end
         end
     end
-    routing.route(counter, routes, cells, width, xgrid, ygrid)
+    routing.route(counter, routes, cells, width, bp.numinnerroutes, bp.pnumtracks, bp.nnumtracks, xgrid, ygrid)
 end
 

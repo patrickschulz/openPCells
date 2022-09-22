@@ -9,7 +9,8 @@ function parameters()
         { "enablenpos", "lower" },
         { "swapinputs", false },
         { "swapoutputs", false },
-        { "shiftoutput", 0 }
+        { "shiftoutput", 0 },
+        { "connectoutput", true }
     )
 end
 
@@ -213,7 +214,7 @@ function layout(gate, _P)
     end
 
     -- drain connection
-    if bp.connectoutput then
+    if _P.connectoutput then
         local dend = _P.splitenables and (_P.swapoutputs and 5 or 2) or (_P.swapoutputs and 4 or 2)
         geometry.path(gate, generics.metal(1), geometry.path_points_xy(
             harness:get_anchor(string.format("pSD%dbr", dend)):translate(0,  bp.sdwidth / 2), {
