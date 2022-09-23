@@ -195,6 +195,29 @@ static void _destroy_blockage(void* ptr)
     vector_destroy(deltas, free);
 }
 
+static int _is_routing_successful(struct vector *nets, int retry_count)
+{
+    for(unsigned int i = 0; i < vector_size(nets); i++)
+    {
+	struct net *net = vector_get(nets, i);
+	if(!net_is_routed(net))
+	{
+            for(unsigned int j = 0; j < vector_size(nets); j++)
+	    {
+		struct net *net1 = vector_get(nets, j);
+		if(!net_is_routed(net1))
+		{
+		    printf("couldnt route %s\n", net_get_name(net1));
+		}
+	    }
+	    printf("\nrouting not successful, retrying for %i time\n", 
+		   retry_count);
+	    return 0;
+	}
+    }
+    return 1;
+}
+
 int lrouter_route(lua_State* L)
 {
     puts("started routing\n");
@@ -208,13 +231,26 @@ int lrouter_route(lua_State* L)
     const int via_cost = 63;
     const int wrong_dir_cost = 11;
 
-    struct field* field = field_init(field_width + 1, field_height, num_layers);
-    _fill_blockages(field, nc);
-
     net_sort_nets(nc->nets);
-    net_fill_ports(nc->nets, field);
 
     int routed_count = 0;
+    struct field *field = NULL;
+    int retry_count = -1;
+    do
+    {
+	retry_count++;
+	field_destroy(field);
+        field = field_init(field_width + 1, field_height, num_layers);
+        _fill_blockages(field, nc);
+
+        net_fill_ports(nc->nets, field);
+	for(unsigned int i = 0; i < vector_size(nc->nets); ++i)
+	{
+	    struct net* net = vector_get(nc->nets, i);
+	    route(net, field, step_cost, wrong_dir_cost, via_cost);
+	}
+    }
+    while(!_is_routing_successful(nc->nets, retry_count));
 
     /* table for all nets */
     lua_newtable(L);
@@ -222,10 +258,6 @@ int lrouter_route(lua_State* L)
     for(unsigned int i = 0; i < vector_size(nc->nets); ++i)
     {
         struct net* net = vector_get(nc->nets, i);
-        route(net, field, step_cost, wrong_dir_cost, via_cost);
-
-        if(net_is_routed(net))
-        {
             /* table for whole net */
             lua_newtable(L);
             lua_pushstring(L, net_get_name(net));
@@ -270,7 +302,6 @@ int lrouter_route(lua_State* L)
                 lua_rawseti(L, -2, point_count + 1);
                 point_count++;
                 free(curr_point);
-            }
 
             /* FIXME: via before second anchor */
             lua_newtable(L);
