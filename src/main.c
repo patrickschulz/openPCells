@@ -39,7 +39,7 @@ static int _load_config(struct hashmap* config)
     hashmap_insert(config, "prepend_cellpaths", prepend_cellpaths);
     struct vector* append_cellpaths = vector_create(8);
     hashmap_insert(config, "append_cellpaths", append_cellpaths);
-    struct const_vector* ignoredlayers = const_vector_create(8);
+    struct vector* ignoredlayers = vector_create(8);
     hashmap_insert(config, "ignoredlayers", ignoredlayers);
 
     const char* home = getenv("HOME");
@@ -199,8 +199,8 @@ int main(int argc, const char* const * argv)
 
     if(cmdoptions_was_provided_long(cmdoptions, "disable-gatecut"))
     {
-        struct const_vector* ignoredlayers = hashmap_get(config, "ignoredlayers");
-        const_vector_append(ignoredlayers, "gatecut");
+        struct vector* ignoredlayers = hashmap_get(config, "ignoredlayers");
+        vector_append(ignoredlayers, strdup("gatecut"));
     }
 
     // show gds data
@@ -359,20 +359,15 @@ int main(int argc, const char* const * argv)
 
     // clean up states
 DESTROY_CONFIG: ;
-    if(hashmap_exists(config, "techpaths"))
     {
         struct vector* techpaths = hashmap_get(config, "techpaths");
         vector_destroy(techpaths, free); // every techpath is a copied string
-    }
-    if(hashmap_exists(config, "prepend_cellpaths"))
-    {
-        struct vector* techpaths = hashmap_get(config, "prepend_cellpaths");
-        vector_destroy(techpaths, free); // every techpath is a copied string
-    }
-    if(hashmap_exists(config, "append_cellpaths"))
-    {
-        struct vector* techpaths = hashmap_get(config, "append_cellpaths");
-        vector_destroy(techpaths, free); // every techpath is a copied string
+        struct vector* prepend_cellpaths = hashmap_get(config, "prepend_cellpaths");
+        vector_destroy(prepend_cellpaths, free); // every techpath is a copied string
+        struct vector* append_cellpaths = hashmap_get(config, "append_cellpaths");
+        vector_destroy(append_cellpaths, free); // every techpath is a copied string
+        struct vector* ignoredlayers = hashmap_get(config, "ignoredlayers");
+        vector_destroy(ignoredlayers, free);
     }
     hashmap_destroy(config, NULL);
 DESTROY_CMDOPTIONS:
