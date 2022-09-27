@@ -28,6 +28,17 @@ function M.ymirror(pts, ycenter)
     return mirrored
 end
 
+function M.xymirror(pts, xcenter, ycenter)
+    local mirrored = {}
+    xcenter = xcenter or 0
+    ycenter = ycenter or 0
+    for i, pt in ipairs(pts) do
+        local x, y = pt:unwrap()
+        mirrored[i] = point.create(2 * xcenter - x, 2 * ycenter - y)
+    end
+    return mirrored
+end
+
 function M.filter_forward(pts, fun)
     local filtered = {}
     for i = 1, #pts, 1 do
@@ -48,9 +59,15 @@ function M.filter_backward(pts, fun)
     return filtered
 end
 
-function M.merge(pts, pts2)
-    for _, pt in ipairs(pts2) do
-        table.insert(pts, pt)
+function M.merge_forwards(pts, pts2)
+    for i = 1, #pts2 do
+        table.insert(pts, pts2[i])
+    end
+end
+
+function M.merge_backwards(pts, pts2)
+    for i = #pts2, 1, -1 do
+        table.insert(pts, pts2[i])
     end
 end
 
