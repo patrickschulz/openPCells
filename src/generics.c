@@ -321,6 +321,7 @@ int generics_resolve_premapped_layers(struct layermap* layermap, const char* exp
         struct generics* layer = hashmap_iterator_value(it);
         if(!_resolve_layer(layer, exportname))
         {
+            hashmap_iterator_destroy(it);
             return 0;
         }
         hashmap_iterator_next(it);
