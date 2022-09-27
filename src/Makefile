@@ -18,7 +18,7 @@ SYSCFLAGS=
 SYSLDFLAGS=
 SYSLIBS=
 
-OPCOBJ:=main.functions.o main.cell.o main.gds.o main.verilog.o cmdoptions.o util.o lua_util.o vector.o union.o postprocess.o point.o technology.o transformationmatrix.o ltransformationmatrix.o shape.o object.o geometry.o hashmap.o tagged_value.o generics.o lgenerics.o lgeometry.o ldir.o lpoint.o graphics.o lobject.o pcell.o filesystem.o lplacer.o lplacer_common.o lplacer_rand.o lplacer_nonoverlapping.o lplacer_classic.o lrouter.o lrouter_net.o lrouter_queue.o lrouter_moves.o lrouter_min_heap.o lrouter_field.o lrouter_route.o gdsparser.o ldebug.o export.o export_writer.o export_common.o gdsexport.o info.o
+OPCOBJ:=main.functions.o main.cell.o main.gds.o main.verilog.o cmdoptions.o util.o lua_util.o vector.o union.o postprocess.o point.o technology.o transformationmatrix.o shape.o object.o geometry.o geometry_triangulate.o hashmap.o tagged_value.o generics.o lgenerics.o lgeometry.o ldir.o lpoint.o graphics.o lobject.o pcell.o filesystem.o lplacer.o lplacer_common.o lplacer_rand.o lplacer_nonoverlapping.o lplacer_classic.o lrouter.o lrouter_net.o lrouter_queue.o lrouter_moves.o lrouter_min_heap.o lrouter_field.o lrouter_route.o gdsparser.o ldebug.o export.o export_writer.o export_common.o gdsexport.o info.o
 
 .PHONY: default
 default:
@@ -190,6 +190,7 @@ generics.o: generics.c generics.h lua/lua.h lua/luaconf.h hashmap.h \
 geometry.o: geometry.c geometry.h technology.h lua/lua.h lua/luaconf.h \
  generics.h hashmap.h object.h transformationmatrix.h point.h shape.h \
  pcell.h vector.h
+geometry_triangulate.o: geometry_triangulate.c geometry.h point.h
 graphics.o: graphics.c graphics.h point.h vector.h lpoint.h lua/lua.h \
  lua/luaconf.h
 hashmap.o: hashmap.c hashmap.h
@@ -230,9 +231,6 @@ lrouter_net.o: lrouter_net.c lrouter_net.h lrouter_field.h vector.h \
 lrouter_queue.o: lrouter_queue.c lrouter_queue.h lrouter_field.h
 lrouter_route.o: lrouter_route.c lrouter_route.h lrouter_net.h \
  lrouter_field.h vector.h lrouter_queue.h lrouter_min_heap.h
-ltransformationmatrix.o: ltransformationmatrix.c ltransformationmatrix.h \
- lua/lua.h lua/luaconf.h transformationmatrix.h point.h lpoint.h \
- lua/lauxlib.h lua/lua.h
 lua_util.o: lua_util.c lua_util.h lua/lua.h lua/luaconf.h lua/lauxlib.h \
  lua/lua.h lua/lualib.h
 main.o: main.c lua/lprefix.h lua/lua.h lua/luaconf.h lua/lauxlib.h \
