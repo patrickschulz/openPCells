@@ -87,7 +87,7 @@ void shape_get_width_height(const struct shape* shape, coordinate_t* width, coor
 void shape_get_minmax_xy(const struct shape* shape, const struct transformationmatrix* trans, coordinate_t* minxp, coordinate_t* minyp, coordinate_t* maxxp, coordinate_t* maxyp);
 
 // curve segments
-void shape_curve_add_line_segment(struct shape* shape, point_t* pt);
+void shape_curve_add_line_segment(struct shape* shape, const point_t* pt);
 void shape_curve_add_arc_segment(struct shape* shape, double startangle, double endangle, coordinate_t radius, int clockwise);
 
 int shape_get_center(const struct shape* shape, coordinate_t* x, coordinate_t* y);

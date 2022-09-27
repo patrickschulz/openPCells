@@ -662,7 +662,7 @@ void shape_resize_lrtb(struct shape* shape, coordinate_t left, coordinate_t righ
     point_translate(tr, right, top);
 }
 
-static int _check_grid(point_t* pt, unsigned int grid)
+static int _check_grid(const point_t* pt, unsigned int grid)
 {
     if((pt->x % grid) != 0)
     {
@@ -675,7 +675,7 @@ static int _check_grid(point_t* pt, unsigned int grid)
     return 1;
 }
 
-void shape_curve_add_line_segment(struct shape* shape, point_t* pt)
+void shape_curve_add_line_segment(struct shape* shape, const point_t* pt)
 {
     if(shape->type != CURVE)
     {
@@ -875,6 +875,11 @@ void shape_triangulate_polygon_inline(struct shape* shape)
     }
     struct polygon* polygon = shape->content;
     struct vector* result = geometry_triangulate_polygon(polygon->points);
+    if(!result)
+    {
+        fputs("could not triangulate polygon\n", stderr);
+        return;
+    }
     vector_destroy(polygon->points, point_destroy);
     polygon->points = result;
     shape->type = TRIANGULATED_POLYGON;

@@ -160,9 +160,9 @@ int lobject_move_anchor(lua_State* L)
     coordinate_t y = 0;
     if(lua_gettop(L) > 2 && !lua_isnil(L, 3))
     {
-        lpoint_t* lpoint = lpoint_checkpoint(L, 3);
-        x = lpoint->point->x;
-        y = lpoint->point->y;
+        struct lpoint* lpoint = lpoint_checkpoint(L, 3);
+        x = lpoint_get(lpoint)->x;
+        y = lpoint_get(lpoint)->y;
     }
     int ret = object_move_anchor(cell->object, name, x, y);
     if(!ret)
@@ -182,8 +182,8 @@ int lobject_move_anchor_x(lua_State* L)
     coordinate_t x = 0;
     if(lua_gettop(L) > 2 && !lua_isnil(L, 3))
     {
-        lpoint_t* lpoint = lpoint_checkpoint(L, 3);
-        x = lpoint->point->x;
+        struct lpoint* lpoint = lpoint_checkpoint(L, 3);
+        x = lpoint_get(lpoint)->x;
     }
     int ret = object_move_anchor_x(cell->object, name, x);
     if(!ret)
@@ -203,8 +203,8 @@ int lobject_move_anchor_y(lua_State* L)
     coordinate_t y = 0;
     if(lua_gettop(L) > 2 && !lua_isnil(L, 3))
     {
-        lpoint_t* lpoint = lpoint_checkpoint(L, 3);
-        y = lpoint->point->y;
+        struct lpoint* lpoint = lpoint_checkpoint(L, 3);
+        y = lpoint_get(lpoint)->y;
     }
     int ret = object_move_anchor_y(cell->object, name, y);
     if(!ret)
@@ -309,8 +309,8 @@ int lobject_add_anchor(lua_State* L)
 {
     struct lobject* cell = lobject_check(L, 1);
     const char* name = lua_tostring(L, 2);
-    lpoint_t* lpoint = lpoint_checkpoint(L, 3);
-    object_add_anchor(cell->object, name, lpoint->point->x, lpoint->point->y);
+    struct lpoint* lpoint = lpoint_checkpoint(L, 3);
+    object_add_anchor(cell->object, name, lpoint_get(lpoint)->x, lpoint_get(lpoint)->y);
     return 0;
 }
 
@@ -330,9 +330,9 @@ int lobject_add_anchor_area_bltr(lua_State* L)
 {
     struct lobject* cell = lobject_check(L, 1);
     const char* base = luaL_checkstring(L, 2);
-    lpoint_t* bl = lpoint_checkpoint(L, 3);
-    lpoint_t* tr = lpoint_checkpoint(L, 4);
-    object_add_anchor_area_bltr(cell->object, base, bl->point, tr->point);
+    struct lpoint* bl = lpoint_checkpoint(L, 3);
+    struct lpoint* tr = lpoint_checkpoint(L, 4);
+    object_add_anchor_area_bltr(cell->object, base, lpoint_get(bl), lpoint_get(tr));
     return 0;
 }
 
@@ -377,8 +377,8 @@ int lobject_add_port(lua_State* L)
     struct lobject* cell = lobject_check(L, 1);
     const char* name = luaL_checkstring(L, 2);
     struct generics* layer = lua_touserdata(L, 3);
-    lpoint_t* lpoint = lpoint_checkpoint(L, 4);
-    object_add_port(cell->object, name, layer, lpoint->point, 1); // 1: store anchor
+    struct lpoint* lpoint = lpoint_checkpoint(L, 4);
+    object_add_port(cell->object, name, layer, lpoint_get(lpoint), 1); // 1: store anchor
     return 0;
 }
 
@@ -387,12 +387,12 @@ int lobject_add_bus_port(lua_State* L)
     struct lobject* cell = lobject_check(L, 1);
     const char* name = luaL_checkstring(L, 2);
     struct generics* layer = lua_touserdata(L, 3);
-    lpoint_t* lpoint = lpoint_checkpoint(L, 4);
+    struct lpoint* lpoint = lpoint_checkpoint(L, 4);
     int startindex = lua_tointeger(L, 5);
     int endindex = lua_tointeger(L, 6);
     unsigned int xpitch = lua_tointeger(L, 7);
     unsigned int ypitch = lua_tointeger(L, 8);
-    object_add_bus_port(cell->object, name, layer, lpoint->point, startindex, endindex, xpitch, ypitch, 1); // 1: store anchor
+    object_add_bus_port(cell->object, name, layer, lpoint_get(lpoint), startindex, endindex, xpitch, ypitch, 1); // 1: store anchor
     return 0;
 }
 
@@ -423,9 +423,9 @@ int lobject_get_ports(lua_State* L)
 int lobject_set_alignment_box(lua_State* L)
 {
     struct lobject* cell = lobject_check(L, 1);
-    lpoint_t* bl = lpoint_checkpoint(L, 2);
-    lpoint_t* tr = lpoint_checkpoint(L, 3);
-    object_set_alignment_box(cell->object, bl->point->x, bl->point->y, tr->point->x, tr->point->y);
+    struct lpoint* bl = lpoint_checkpoint(L, 2);
+    struct lpoint* tr = lpoint_checkpoint(L, 3);
+    object_set_alignment_box(cell->object, lpoint_get(bl)->x, lpoint_get(bl)->y, lpoint_get(tr)->x, lpoint_get(tr)->y);
     return 0;
 }
 

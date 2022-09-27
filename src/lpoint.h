@@ -8,18 +8,15 @@
 #define LPOINTMETA "lpoint"
 #define LPOINTMODULE "point"
 
-typedef struct
-{
-    point_t* point;
-    int destroy;
-} lpoint_t;
+struct lpoint;
 
-lpoint_t* lpoint_create_internal(lua_State* L, coordinate_t x, coordinate_t y);
-lpoint_t* lpoint_adapt_point(lua_State* L, point_t* pt);
-lpoint_t* lpoint_takeover_point(lua_State* L, point_t* pt);
+struct lpoint* lpoint_create_internal(lua_State* L, coordinate_t x, coordinate_t y);
+struct lpoint* lpoint_adapt_point(lua_State* L, point_t* pt);
+struct lpoint* lpoint_takeover_point(lua_State* L, point_t* pt);
 int lpoint_create(lua_State* L);
 int lpoint_copy(lua_State* L);
-lpoint_t* lpoint_checkpoint(lua_State* L, int idx);
+const point_t* lpoint_get(const struct lpoint* pt);
+struct lpoint* lpoint_checkpoint(lua_State* L, int idx);
 
 int open_lpoint_lib(lua_State* L);
 

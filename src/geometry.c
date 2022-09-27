@@ -32,7 +32,7 @@ static void _rectanglebltr(struct object* cell, const struct generics* layer, co
     shape_destroy(S);
 }
 
-void geometry_rectanglebltr(struct object* cell, const struct generics* layer, point_t* bl, point_t* tr, ucoordinate_t xrep, ucoordinate_t yrep, ucoordinate_t xpitch, ucoordinate_t ypitch)
+void geometry_rectanglebltr(struct object* cell, const struct generics* layer, const point_t* bl, const point_t* tr, ucoordinate_t xrep, ucoordinate_t yrep, ucoordinate_t xpitch, ucoordinate_t ypitch)
 {
     _rectanglebltr(cell, layer, bl->x, bl->y, tr->x, tr->y, xrep, yrep, xpitch, ypitch);
 }
@@ -42,7 +42,7 @@ void geometry_rectangle(struct object* cell, const struct generics* layer, coord
     _rectanglebltr(cell, layer, -width / 2 + xshift, -height / 2 + yshift, width / 2 + xshift, height / 2 + yshift, xrep, yrep, xpitch, ypitch);
 }
 
-void geometry_rectanglepoints(struct object* cell, const struct generics* layer, point_t* pt1, point_t* pt2, ucoordinate_t xrep, ucoordinate_t yrep, ucoordinate_t xpitch, ucoordinate_t ypitch)
+void geometry_rectanglepoints(struct object* cell, const struct generics* layer, const point_t* pt1, const point_t* pt2, ucoordinate_t xrep, ucoordinate_t yrep, ucoordinate_t xpitch, ucoordinate_t ypitch)
 {
     if(pt1->x <= pt2->x && pt1->y <= pt2->y)
     {
@@ -62,8 +62,12 @@ void geometry_rectanglepoints(struct object* cell, const struct generics* layer,
     }
 }
 
-void geometry_polygon(struct object* cell, const struct generics* layer, point_t** points, size_t len)
+void geometry_polygon(struct object* cell, const struct generics* layer, const point_t** points, size_t len)
 {
+    if(len == 0) // don't add empty polygons
+    {
+        return;
+    }
     struct shape* S = shape_create_polygon(layer, len);
     for(unsigned int i = 0; i < len; ++i)
     {
@@ -79,7 +83,7 @@ void geometry_polygon(struct object* cell, const struct generics* layer, point_t
     }
 }
 
-void geometry_path(struct object* cell, const struct generics* layer, point_t** points, size_t len, ucoordinate_t width, ucoordinate_t bgnext, ucoordinate_t endext)
+void geometry_path(struct object* cell, const struct generics* layer, const point_t** points, size_t len, ucoordinate_t width, ucoordinate_t bgnext, ucoordinate_t endext)
 {
     struct shape* S = shape_create_path(layer, len, width, bgnext, endext);
     for(unsigned int i = 0; i < len; ++i)
@@ -96,7 +100,7 @@ void geometry_path(struct object* cell, const struct generics* layer, point_t** 
     }
 }
 
-static void _shift_line(point_t* pt1, point_t* pt2, ucoordinate_t width, point_t** spt1, point_t** spt2, unsigned int grid)
+static void _shift_line(const point_t* pt1, const point_t* pt2, ucoordinate_t width, point_t** spt1, point_t** spt2, unsigned int grid)
 {
     double angle = atan2(pt2->y - pt1->y, pt2->x - pt1->x) - M_PI / 2;
     coordinate_t xshift = grid * floor(floor(width * cos(angle) + 0.5) / grid);
@@ -133,7 +137,7 @@ static struct vector* _get_edge_segments(point_t** points, size_t numpoints, uco
     return edges;
 }
 
-static int _intersection(point_t* s1, point_t* s2, point_t* c1, point_t* c2, point_t** pt)
+static int _intersection(const point_t* s1, const point_t* s2, const point_t* c1, const point_t* c2, point_t** pt)
 {
     coordinate_t snum = (c2->x - c1->x) * (s1->y - c1->y) - (s1->x - c1->x) * (c2->y - c1->y);
     coordinate_t cnum = (s2->x - s1->x) * (s1->y - c1->y) - (s1->x - c1->x) * (s2->y - s1->y);
@@ -504,7 +508,7 @@ static int _viabltr(
     return ret;
 }
 
-int geometry_viabltr(struct object* cell, struct layermap* layermap, struct technology_state* techstate, int metal1, int metal2, point_t* bl, point_t* tr, ucoordinate_t xrep, ucoordinate_t yrep, ucoordinate_t xpitch, ucoordinate_t ypitch, int xcont, int ycont)
+int geometry_viabltr(struct object* cell, struct layermap* layermap, struct technology_state* techstate, int metal1, int metal2, const point_t* bl, const point_t* tr, ucoordinate_t xrep, ucoordinate_t yrep, ucoordinate_t xpitch, ucoordinate_t ypitch, int xcont, int ycont)
 {
     return _viabltr(cell, layermap, techstate, metal1, metal2, bl->x, bl->y, tr->x, tr->y, xrep, yrep, xpitch, ypitch, xcont, ycont);
 }
@@ -573,7 +577,7 @@ int geometry_contactbltr(
     struct object* cell,
     struct layermap* layermap, struct technology_state* techstate,
     const char* region,
-    point_t* bl, point_t* tr,
+    const point_t* bl, const point_t* tr,
     ucoordinate_t xrep, ucoordinate_t yrep,
     ucoordinate_t xpitch, ucoordinate_t ypitch,
     int xcont, int ycont
@@ -617,7 +621,7 @@ int geometry_contactbarebltr(
     struct object* cell,
     struct layermap* layermap, struct technology_state* techstate,
     const char* region,
-    point_t* bl, point_t* tr,
+    const point_t* bl, const point_t* tr,
     ucoordinate_t xrep, ucoordinate_t yrep,
     ucoordinate_t xpitch, ucoordinate_t ypitch,
     int xcont, int ycont
@@ -714,143 +718,5 @@ void geometry_unequal_ring(struct object* cell, const struct generics* layer, uc
 void geometry_ring(struct object* cell, const struct generics* layer, ucoordinate_t holewidth, ucoordinate_t holeheight, ucoordinate_t ringwidth)
 {
     geometry_unequal_ring(cell, layer, holewidth, holeheight, ringwidth, ringwidth);
-}
-
-struct trivertex
-{
-    point_t* pt;
-    int is_ear;
-    size_t index;
-};
-
-struct trivertex* _vertex_create(point_t* pt)
-{
-    struct trivertex* v = malloc(sizeof(*v));
-    v->pt = pt;
-    v->is_ear = 0;
-    v->index = 0;
-    return v;
-}
-
-// bayer coordinates used here to check if a point is in the given triangle, a different approach can also be used
-static int _is_in_triangle(const struct trivertex* p, const struct trivertex* v1, const struct trivertex* v2, const struct trivertex* v3)
-{
-    int alpha = 
-        (
-            (v2->pt->y - v3->pt->y) * (p->pt->x - v3->pt->x) + 
-            (v3->pt->x - v2->pt->x) * (p->pt->y - v3->pt->y)
-        ) / 
-        (
-            (v2->pt->y - v3->pt->y) * (v1->pt->x - v3->pt->x) + 
-            (v3->pt->x - v2->pt->x) * (v1->pt->y - v3->pt->y)
-        );
-
-    int beta = 
-        (
-            (v3->pt->y - v1->pt->y) * (p->pt->x - v3->pt->x) + 
-            (v1->pt->x - v3->pt->x) * (p->pt->y - v3->pt->y)
-        ) / 
-        (
-            (v2->pt->y - v3->pt->y) * (v1->pt->x - v3->pt->x) + 
-            (v3->pt->x - v2->pt->x) * (v1->pt->y - v3->pt->y)
-        );
-
-    return (alpha > 0) && (beta > 0) && ((1 - alpha) > beta);
-}
-
-// function to check if any point lies within the given triangle
-static int _has_points_in_tri(struct vector* vertices, size_t i, size_t idx1, size_t idx2)
-{
-    for(size_t j = 0; j < vector_size(vertices); j++)
-    {
-        if(j == idx1 || j == idx2 || j == i)
-        {
-            continue;
-        }
-        if(_is_in_triangle(vector_get(vertices, j), vector_get(vertices, i), vector_get(vertices, idx1), vector_get(vertices, idx2)))
-        {
-            return 1;
-        }
-    }
-    return 0;
-}
-
-// ear evaluation is done here
-static void _evaluate(struct vector* vertices, size_t i, size_t idx1, size_t idx2)
-{
-    struct trivertex* vi = vector_get(vertices, i);
-    struct trivertex* vidx1 = vector_get(vertices, idx1);
-    struct trivertex* vidx2 = vector_get(vertices, idx2);
-    // calculate the determinant
-    int det = (
-        (vi->pt->x - vidx1->pt->x) * (vidx1->pt->y - vidx2->pt->y) -
-        (vi->pt->y - vidx1->pt->y) * (vidx1->pt->x - vidx2->pt->x)
-    );
-
-    // if positive, we have an ear and set the trivertex ear property to true
-    if (det < 0)
-    {
-        return;
-    }
-
-    // check if there is any point in the triangle
-    if (!_has_points_in_tri(vertices, i, idx1, idx2))
-    {
-        vidx1->is_ear = 1;
-    }
-}
-
-struct vector* geometry_triangulate_polygon(struct vector* polypoints)
-{
-    // build data structure
-    struct vector* vertices = vector_create(1024);
-    for(size_t i = 0; i < vector_size(polypoints); ++i)
-    {
-        vector_append(vertices, _vertex_create(vector_get(polypoints, i)));
-    }
-
-    // loop through all vertices and check them for ear/non-ear property
-    size_t sz = vector_size(vertices);
-    for(size_t i = 0; i < sz; i++)
-    {
-        _evaluate(vertices, i, (i + 1) % sz, (i + 2) % sz);
-        struct trivertex* v = vector_get(vertices, i);
-        v->index = i;
-    }
-
-    struct vector* result = vector_create((vector_size(vertices) - 2) * 3);
-
-    // loop until the polygon has only 3 vertices remaining
-    while(sz >= 3)
-    {
-        for(size_t i = 0; i < sz; i++)
-        {
-            // calculate adjacent trivertex indices
-            size_t idx1 = (i + 1) % sz; 
-            size_t idx2 = (i + 2) % sz;
-
-            // check if trivertex is an ear
-            if(((struct trivertex*)vector_get(vertices, idx1))->is_ear)
-            {
-                // store the triangle points
-                vector_append(result, ((struct trivertex*)vector_get(vertices, i))->pt);
-                vector_append(result, ((struct trivertex*)vector_get(vertices, idx1))->pt);
-                vector_append(result, ((struct trivertex*)vector_get(vertices, idx2))->pt);
-
-                // remove the trivertex from the polygon
-                vector_remove(vertices, idx1, NULL); // vertices is non-owning
-                sz--;
-
-                // check if adjacent vertices changed their ear/non-ear configuration and update
-                idx1 = (i + 1) % sz;
-                _evaluate(vertices, i == 0 ? sz - 1 : i - 1, i, idx1);
-                idx2 = (i + 2) % sz;
-                _evaluate(vertices, idx1, idx2, (idx2 + 1) % sz);
-
-                break;
-            }
-        }
-    }
-    return result;
 }
 

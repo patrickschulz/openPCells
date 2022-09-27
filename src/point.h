@@ -34,5 +34,7 @@ coordinate_t point_ydifference(const point_t* pt1, const point_t* pt2);
 
 #define pointarray vector
 #define pointarray_get(p, i) ((point_t*)vector_get(p, i))
+#define cpointarray const_vector
+#define cpointarray_get(p, i) ((const point_t*)const_vector_get(p, i))
 
 #endif // OPC_POINT_H
