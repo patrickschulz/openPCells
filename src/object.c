@@ -859,7 +859,7 @@ static void _flipx(struct object* cell, int ischild)
 {
     coordinate_t cx, cy;
     _get_transformation_correction(cell, &cx, &cy);
-    transformationmatrix_mirror_x(cell->trans);
+    transformationmatrix_mirror_y(cell->trans);
     if(!ischild)
     {
         object_translate(cell, cx, 0);
