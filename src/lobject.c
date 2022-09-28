@@ -89,6 +89,7 @@ static int lobject_move_to(lua_State* L)
     coordinate_t x = lua_tointeger(L, 2);
     coordinate_t y = lua_tointeger(L, 3);
     object_move_to(cell->object, x, y);
+    lua_rotate(L, 1, 2);
     return 1;
 }
 
