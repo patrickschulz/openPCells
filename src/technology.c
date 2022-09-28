@@ -504,6 +504,17 @@ static int ltechnology_has_layer(lua_State* L)
     return 1;
 }
 
+static int ltechnology_resolve_metal(lua_State* L)
+{
+    lua_getfield(L, LUA_REGISTRYINDEX, "techstate");
+    struct technology_state* techstate = lua_touserdata(L, -1);
+    lua_pop(L, 1); // pop techstate
+    int metal = luaL_checkinteger(L, 1);
+    int resolved = technology_resolve_metal(techstate, metal);
+    lua_pushinteger(L, resolved);
+    return 1;
+}
+
 int open_ltechnology_lib(lua_State* L)
 {
     lua_newtable(L);
@@ -512,6 +523,7 @@ int open_ltechnology_lib(lua_State* L)
         { "list_techpaths", ltechnology_list_techpaths },
         { "get_dimension",  ltechnology_get_dimension  },
         { "has_layer",      ltechnology_has_layer      },
+        { "resolve_metal",  ltechnology_resolve_metal  },
         { NULL,             NULL                       }
     };
     luaL_setfuncs(L, modfuncs, 0);
