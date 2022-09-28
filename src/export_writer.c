@@ -661,7 +661,7 @@ static int _call_or_pop_nil(lua_State* L, int numargs)
     return LUA_OK;
 }
 
-static int _write_cell2(struct export_writer* writer, const struct object* refcell, const char* refidentifier, int istoplevel, int write_ports, char leftdelim, char rightdelim)
+static int _write_cell_main(struct export_writer* writer, const struct object* refcell, const char* refidentifier, int istoplevel, int write_ports, char leftdelim, char rightdelim)
 {
     int ret = LUA_OK;
     if(writer->islua)
@@ -784,13 +784,13 @@ int export_writer_write_toplevel(struct export_writer* writer, const struct obje
         pcell_cell_reference_iterator_get(it, &refidentifier, &refcell, &refnumused);
         if(refnumused > 0)
         {
-            _write_cell2(writer, refcell, refidentifier, 0, writechildrenports, leftdelim, rightdelim); // 0: cell is not toplevel
+            _write_cell_main(writer, refcell, refidentifier, 0, writechildrenports, leftdelim, rightdelim); // 0: cell is not toplevel
         }
         pcell_cell_reference_iterator_advance(it);
     }
     pcell_destroy_cell_reference_iterator(it);
 
-    _write_cell2(writer, object, toplevelname, 1, 1, leftdelim, rightdelim); // first 1: istoplevel, second 1: write_ports
+    _write_cell_main(writer, object, toplevelname, 1, 1, leftdelim, rightdelim); // first 1: istoplevel, second 1: write_ports
 
     ret = _write_at_end(writer);
     if(ret != LUA_OK)
