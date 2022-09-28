@@ -37,7 +37,7 @@ void vector_swap(struct vector* vector, size_t i, size_t j)
     }
     void *temp = vector->elements[i];
     vector->elements[i] = vector->elements[j];
-    vector->elements[j] = temp; 
+    vector->elements[j] = temp;
 }
 
 void vector_destroy(struct vector* vector, void (*destructor)(void*))
@@ -128,6 +128,26 @@ void vector_append(struct vector* vector, void* element)
     }
     vector->elements[vector->size] = element;
     vector->size += 1;
+}
+
+int _has_element(struct vector *vector, void *element)
+{
+    for(unsigned int i = 0; i < vector->size; i++)
+    {
+	if(memcmp(vector->elements[i], element, sizeof(*element)) == 0)
+	{
+	    return 1;
+	}
+    }
+    return 0;
+}
+
+void vector_unique_append(struct vector *vector, void *element)
+{
+    if(!_has_element(vector, element))
+    {
+	vector_append(vector, element);
+    }
 }
 
 void vector_prepend(struct vector* vector, void* element)

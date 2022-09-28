@@ -2,6 +2,7 @@
 #include "lrouter_queue.h"
 
 #include "util.h"
+#include "vector.h"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -13,14 +14,16 @@
 struct net {
     char *name;
     unsigned int ranking;
-    struct position* startpos;
-    struct position* endpos;
+    struct vector *positions;
+    int num_positions;
     int routed;
     /* queue to save the path in the end */
     struct queue* path;
 };
 
-struct position* net_create_position(const char *instance, const char *port, unsigned int x, unsigned int y)
+struct position* net_create_position(const char *instance, const char *port,
+				     unsigned int x, unsigned int y,
+				     unsigned int z)
 {
     struct position* pos = malloc(sizeof(*pos));
 
@@ -31,15 +34,15 @@ struct position* net_create_position(const char *instance, const char *port, uns
 
     pos->x = x;
     pos->y = y;
-    /* all ports are on metal 1 */
-    pos->z = 0;
+    pos->z = z;
 
     return pos;
 }
 
 struct position* net_copy_position(struct position* pos)
 {
-    struct position* new = net_create_position(pos->instance, pos->port, pos->x, pos->y);
+    struct position* new = net_create_position(pos->instance, pos->port,
+					       pos->x, pos->y, pos->z);
     return new;
 }
 
@@ -51,26 +54,42 @@ void net_destroy_position(void *pp)
     free(pos);
 }
 
-struct net* net_create(const char* name, int suffixnum, struct position* startpos, struct position* endpos)
+struct net* net_create(const char* name, int suffixnum, struct vector *positions)
 {
     struct net* net = malloc(sizeof(*net));
     memset(net, 0, sizeof(*net));
-    unsigned int dlen = util_num_digits(suffixnum);
-    net->name = malloc(strlen(name) + dlen + 3 + 1); /* + 3: _(), + 1 for terminating zero */
-    sprintf(net->name, "%s_(%d)", name, suffixnum);
+    if(suffixnum != NO_SUFFIX)
+    {
+        unsigned int dlen = util_num_digits(suffixnum);
+        net->name = malloc(strlen(name) + dlen + 3 + 1); /* + 3: _(), + 1 for terminating zero */
+        sprintf(net->name, "%s_(%d)", name, suffixnum);
+    }
+    else
+    {
+	net->name = malloc(strlen(name) + 1);
+	strcpy(net->name, name);
+    }
     net->path = queue_new();
-    net->startpos = startpos;
-    net->endpos = endpos;
+    net->positions = positions;
+    net->num_positions = vector_size(positions);
     net->routed = 0;
     return net;
+}
+
+int net_get_size(const struct net *net)
+{
+    return net->num_positions;
 }
 
 void net_destroy(void* np)
 {
     struct net* net = np;
     free(net->name);
-    net_destroy_position(net->startpos);
-    net_destroy_position(net->endpos);
+    for(int i = 0; i < net->num_positions; i++)
+    {
+	free(vector_get(net->positions, i));
+    }
+    free(net->positions);
     queue_destroy(net->path);
     free(net);
 }
@@ -88,16 +107,6 @@ int net_is_routed(const struct net* net)
 const char* net_get_name(const struct net* net)
 {
     return net->name;
-}
-
-const struct position* net_get_startpos(const struct net* net)
-{
-    return net->startpos;
-}
-
-const struct position* net_get_endpos(const struct net* net)
-{
-    return net->endpos;
 }
 
 void net_enqueue_point(struct net* net, struct rpoint* pt)
@@ -196,45 +205,45 @@ static int cmp_func(void const *a, void const *b)
     return (*((struct net**)a))->ranking - ((*(struct net**)b))->ranking;
 }
 
-void net_sort_nets(struct vector* nets)
-{
-    unsigned int xlo, xhi, ylo, yhi;
-    for(size_t i = 0; i < vector_size(nets); i++)
-    {
-        struct net* neti = vector_get(nets, i);
-        unsigned int ranking = 0;
-
-        /* create rectangle */
-        struct position* posi0 = neti->startpos;
-        struct position* posi1 = neti->endpos;
-        xlo = (posi0->x <= posi1->x) ? posi0->y : posi1->y;
-        xhi = (posi0->x >  posi1->x) ? posi0->x : posi1->x;
-        ylo = (posi0->y <= posi1->y) ? posi0->y : posi1->y;
-        yhi = (posi0->y >  posi1->y) ? posi0->y : posi1->y;
-
-        for(size_t j = 0; j < vector_size(nets); j++)
-        {
-            struct net* netj = vector_get(nets, j);
-            /* how many ports of other nets are inside rect */
-            if(j != i)
-            {
-                struct position* posj0 = netj->startpos;
-                struct position* posj1 = netj->endpos;
-                if(BETWEEN(posj0->x, xlo, xhi) && BETWEEN(posj0->y, ylo, yhi))
-                {
-                    ranking++;
-                }
-
-                if(BETWEEN(posj1->x, xlo, xhi) && BETWEEN(posj1->y, ylo, yhi))
-                {
-                    ranking++;
-                }
-            }
-        }
-        neti->ranking = ranking;
-    }
-    vector_sort(nets, cmp_func);
-}
+//void net_sort_nets(struct vector* nets)
+//{
+//    unsigned int xlo, xhi, ylo, yhi;
+//    for(size_t i = 0; i < vector_size(nets); i++)
+//    {
+//        struct net* neti = vector_get(nets, i);
+//        unsigned int ranking = 0;
+//
+//        /* create rectangle */
+//        struct position* posi0 = neti->startpos;
+//        struct position* posi1 = neti->endpos;
+//        xlo = (posi0->x <= posi1->x) ? posi0->y : posi1->y;
+//        xhi = (posi0->x >  posi1->x) ? posi0->x : posi1->x;
+//        ylo = (posi0->y <= posi1->y) ? posi0->y : posi1->y;
+//        yhi = (posi0->y >  posi1->y) ? posi0->y : posi1->y;
+//
+//        for(size_t j = 0; j < vector_size(nets); j++)
+//        {
+//            struct net* netj = vector_get(nets, j);
+//            /* how many ports of other nets are inside rect */
+//            if(j != i)
+//            {
+//                struct position* posj0 = netj->startpos;
+//                struct position* posj1 = netj->endpos;
+//                if(BETWEEN(posj0->x, xlo, xhi) && BETWEEN(posj0->y, ylo, yhi))
+//                {
+//                    ranking++;
+//                }
+//
+//                if(BETWEEN(posj1->x, xlo, xhi) && BETWEEN(posj1->y, ylo, yhi))
+//                {
+//                    ranking++;
+//                }
+//            }
+//        }
+//        neti->ranking = ranking;
+//    }
+//    vector_sort(nets, cmp_func);
+//}
 
 
 void net_fill_ports(struct vector* nets, struct field* field)
@@ -242,8 +251,47 @@ void net_fill_ports(struct vector* nets, struct field* field)
     for(unsigned int i = 0; i < vector_size(nets); i++)
     {
         struct net* net = vector_get(nets, i);
-        field_set(field, net->startpos->x, net->startpos->y, net->startpos->z, PORT);
-        field_set(field, net->endpos->x, net->endpos->y, net->endpos->z, PORT);
+	printf("net fill ports from net %s with size %i\n",
+	       net_get_name(net), net_get_size(net));
+	for(int j = 0; j < net_get_size(net); j++)
+	{
+	    struct position *pos = vector_get(net->positions, j);
+            field_set(field, pos->x, pos->y, pos->z, PORT);
+	}
     }
+}
+
+void net_append_position(struct net *net, struct position *position)
+{
+    vector_append(net->positions, position);
+    net->num_positions++;
+}
+
+void net_remove_position(struct net *net, unsigned int i)
+{
+    vector_remove(net->positions, i, NULL);
+    net->num_positions--;
+}
+
+struct position *net_get_position(struct net *net, unsigned int i)
+{
+    if(i > vector_size(net->positions))
+    {
+        return NULL;
+    }
+    return vector_get(net->positions, i);
+}
+
+struct position *net_point_to_position(struct rpoint *point)
+{
+    struct position *pos = net_create_position("NOINST", "NOPORT",
+					       point->x, point->y, point->z);
+    return pos;
+}
+
+struct rpoint *net_position_to_point(struct position *pos)
+{
+    struct rpoint *point = point_new(pos->x, pos->y, pos->z, UNVISITED);
+    return point;
 }
 

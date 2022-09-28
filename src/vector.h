@@ -18,6 +18,7 @@ void* vector_content(struct vector* vector);
 void* vector_disown_content(struct vector* vector);
 void vector_set(struct vector* vector, size_t i, void* element);
 void vector_append(struct vector* vector, void* element);
+void vector_unique_append(struct vector* vector, void* element);
 void vector_swap(struct vector* vector, size_t i, size_t j);
 void vector_prepend(struct vector* vector, void* element);
 void vector_remove(struct vector* vector, size_t index, void (*destructor)(void*));

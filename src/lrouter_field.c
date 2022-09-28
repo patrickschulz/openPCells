@@ -62,7 +62,8 @@ void field_reset(struct field* field)
 {
     for(size_t i = 0; i < field->width * field->height * field->num_layers; i++)
     {
-        if(field->content[i] != PATH && field->content[i] != PORT && field->content[i] != VIA && field->content[i] != BLOCKAGE)
+        if(field->content[i] != PATH && field->content[i] != PORT &&
+	   field->content[i] != VIA && field->content[i] != BLOCKAGE)
         {
             field->content[i] = UNVISITED;
         }
@@ -129,7 +130,7 @@ void field_print(struct field* field, int layer)
                     normal();
                     break;
             }
-            printf("%2i", value);
+            printf("%3i", value);
         }
         putchar('\n');
     }
@@ -166,7 +167,8 @@ size_t field_get_num_layers(struct field* field)
     return field->num_layers;
 }
 
-int field_is_field_point(const struct field* field, size_t x, size_t y, size_t z)
+int field_is_field_point(const struct field* field, size_t x, size_t y,
+			 size_t z)
 {
     return (x < field->width && y < field->height && z < field->num_layers);
 }
@@ -199,7 +201,8 @@ void field_unprint(size_t size)
     }
 }
 
-void field_create_blockage(struct field* field, struct rpoint* start, struct rpoint* end)
+void field_create_blockage(struct field* field, struct rpoint* start,
+			   struct rpoint* end)
 {
     int len = 0;
     int xincr = 0;
@@ -234,7 +237,8 @@ void field_create_blockage(struct field* field, struct rpoint* start, struct rpo
 
     for(int i = 0; i < len; i++)
     {
-        *_get(field, start->x + i * xincr, start->y + i * yincr, start->z - LOWEST_ROUTING_METAL) = BLOCKAGE;
+        *_get(field, start->x + i * xincr, start->y + i * yincr,
+	      start->z - LOWEST_ROUTING_METAL) = BLOCKAGE;
     }
 }
 
