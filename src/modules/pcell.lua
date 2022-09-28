@@ -566,6 +566,7 @@ function state.create_cellenv(state, cellname, ovrenv)
         tech = {
             get_dimension = technology.get_dimension,
             has_layer = technology.has_layer,
+            resolve_metal = technology.resolve_metal
         },
         placement = placement,
         routing = routing,
