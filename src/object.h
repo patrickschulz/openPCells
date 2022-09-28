@@ -24,12 +24,14 @@ void object_add_anchor(struct object* cell, const char* name, coordinate_t x, co
 void object_add_anchor_area(struct object* cell, const char* base, coordinate_t width, coordinate_t height, coordinate_t xshift, coordinate_t yshift);
 void object_add_anchor_area_bltr(struct object* cell, const char* base, const point_t* bl, const point_t* tr);
 point_t* object_get_anchor(const struct object* cell, const char* name);
+point_t* object_get_array_anchor(const struct object* cell, int xindex, int yindex, const char* name);
 const struct hashmap* object_get_all_regular_anchors(const struct object* cell);
 void object_add_port(struct object* cell, const char* name, const struct generics* layer, const point_t* where, int storeanchor);
 void object_add_bus_port(struct object* cell, const char* name, const struct generics* layer, const point_t* where, int startindex, int endindex, unsigned int xpitch, unsigned int ypitch, int storeanchor);
 const struct vector* object_get_ports(const struct object* cell);
 void object_set_alignment_box(struct object* cell, coordinate_t blx, coordinate_t bly, coordinate_t trx, coordinate_t try);
 void object_inherit_alignment_box(struct object* cell, const struct object* other);
+int object_get_alignment_box_corners(const struct object* cell, coordinate_t* blx, coordinate_t* bly, coordinate_t* trx, coordinate_t* try);
 void object_get_minmax_xy(const struct object* cell, coordinate_t* minxp, coordinate_t* minyp, coordinate_t* maxxp, coordinate_t* maxyp);
 void object_foreach_shapes(struct object* cell, void (*func)(struct shape*));
 

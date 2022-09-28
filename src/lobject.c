@@ -281,15 +281,14 @@ int lobject_add_child_array(lua_State* L)
             lua_pushfstring(L, "could not find cell reference '%s'\n", identifier);
             lua_error(L);
         }
-        const point_t* bl = object_get_anchor(obj, "bottomleft");
-        const point_t* tr = object_get_anchor(obj, "topright");
-        if(!bl || !tr)
+        coordinate_t blx, bly, trx, try;
+        if(!object_get_alignment_box_corners(obj, &blx, &bly, &trx, &try))
         {
             lua_pushfstring(L, "add_child_array: no-pitch mode, but cell reference '%s' has no alignmentbox", identifier);
             lua_error(L);
         }
-        xpitch = tr->x - bl->x;
-        ypitch = tr->y - bl->y;
+        xpitch = trx - blx;
+        ypitch = try - bly;
     }
     else
     {
@@ -349,6 +348,25 @@ int lobject_get_anchor(lua_State* L)
     struct lobject* cell = lobject_check(L, 1);
     const char* name = lua_tostring(L, 2);
     point_t* point = object_get_anchor(cell->object, name);
+    if(point)
+    {
+        lpoint_takeover_point(L, point);
+    }
+    else
+    {
+        lua_pushfstring(L, "trying to access undefined anchor '%s'", name);
+        lua_error(L);
+    }
+    return 1;
+}
+
+int lobject_get_array_anchor(lua_State* L)
+{
+    struct lobject* cell = lobject_check(L, 1);
+    int xindex = luaL_checkinteger(L, 2);
+    int yindex = luaL_checkinteger(L, 3);
+    const char* name = lua_tostring(L, 4);
+    point_t* point = object_get_array_anchor(cell->object, xindex, yindex, name);
     if(point)
     {
         lpoint_takeover_point(L, point);
@@ -470,6 +488,7 @@ int open_lobject_lib(lua_State* L)
         { "add_anchor_area",            lobject_add_anchor_area             },
         { "add_anchor_area_bltr",       lobject_add_anchor_area_bltr        },
         { "get_anchor",                 lobject_get_anchor                  },
+        { "get_array_anchor",           lobject_get_array_anchor            },
         { "get_all_regular_anchors",    lobject_get_all_regular_anchors     },
         { "add_port",                   lobject_add_port                    },
         { "add_bus_port",               lobject_add_bus_port                },

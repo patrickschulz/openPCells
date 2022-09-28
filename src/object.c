@@ -288,7 +288,16 @@ void object_add_anchor(struct object* cell, const char* name, coordinate_t x, co
     {
         cell->anchors = hashmap_create();
     }
-    hashmap_insert(cell->anchors, name, point_create(x, y));
+    if(hashmap_exists(cell->anchors, name))
+    {
+        point_t* pt = hashmap_get(cell->anchors, name);
+        pt->x = x;
+        pt->y = y;
+    }
+    else
+    {
+        hashmap_insert(cell->anchors, name, point_create(x, y));
+    }
 }
 
 void object_add_anchor_suffix(struct object* cell, const char* base, const char* suffix, coordinate_t x, coordinate_t y)
@@ -334,7 +343,7 @@ void object_add_anchor_area_bltr(struct object* cell, const char* base, const po
     object_add_anchor_suffix(cell, base, "tr", trx, try);
 }
 
-static point_t* _get_special_anchor(const struct object* cell, const struct object* origcell, const char* name, const struct transformationmatrix* trans1, const struct transformationmatrix* trans2)
+static point_t* _get_special_anchor(const struct object* cell, const char* name, const struct transformationmatrix* trans1, const struct transformationmatrix* trans2)
 {
     if(!cell->alignmentbox)
     {
@@ -346,7 +355,6 @@ static point_t* _get_special_anchor(const struct object* cell, const struct obje
     coordinate_t try = cell->alignmentbox[3];
     transformationmatrix_apply_transformation_xy(trans1, &blx, &bly);
     transformationmatrix_apply_transformation_xy(trans1, &trx, &try);
-    int array = origcell->isproxy && origcell->isarray;
     if(trans2)
     {
         transformationmatrix_apply_transformation_xy(trans2, &blx, &bly);
@@ -369,39 +377,21 @@ static point_t* _get_special_anchor(const struct object* cell, const struct obje
     {
         x = blx;
         y = (bly + try) / 2;
-        if(array)
-        {
-            y += (origcell->yrep - 1) * origcell->ypitch / 2;
-        }
     }
     else if(strcmp(name, "right") == 0)
     {
         x = trx;
         y = (bly + try) / 2;
-        if(array)
-        {
-            x += (origcell->xrep - 1) * origcell->xpitch;
-            y += (origcell->yrep - 1) * origcell->ypitch / 2;
-        }
     }
     else if(strcmp(name, "top") == 0)
     {
         x = (blx + trx) / 2;
         y = try;
-        if(array)
-        {
-            x += (origcell->xrep - 1) * origcell->xpitch / 2;
-            y += (origcell->yrep - 1) * origcell->ypitch;
-        }
     }
     else if(strcmp(name, "bottom") == 0)
     {
         x = (blx + trx) / 2;
         y = bly;
-        if(array)
-        {
-            x += (origcell->xrep - 1) * origcell->xpitch / 2;
-        }
     }
     else if(strcmp(name, "bottomleft") == 0)
     {
@@ -412,29 +402,16 @@ static point_t* _get_special_anchor(const struct object* cell, const struct obje
     {
         x = trx;
         y = bly;
-        if(array)
-        {
-            x += (origcell->xrep - 1) * origcell->xpitch;
-        }
     }
     else if(strcmp(name, "topleft") == 0)
     {
         x = blx;
         y = try;
-        if(array)
-        {
-            y += (origcell->yrep - 1) * origcell->ypitch;
-        }
     }
     else if(strcmp(name, "topright") == 0)
     {
         x = trx;
         y = try;
-        if(array)
-        {
-            x += (origcell->xrep - 1) * origcell->xpitch;
-            y += (origcell->yrep - 1) * origcell->ypitch;
-        }
     }
     else
     {
@@ -471,9 +448,7 @@ point_t* object_get_anchor(const struct object* cell, const char* name)
         trans2 = obj->trans;
     }
     point_t* pt = NULL;
-    // obj == cell for regular objects
-    // for proxy objects, cell can be used to resolve special anchors in arrays
-    pt = _get_special_anchor(obj, cell, name, trans1, trans2);
+    pt = _get_special_anchor(obj, name, trans1, trans2);
     if(pt)
     {
         return pt;
@@ -488,6 +463,49 @@ point_t* object_get_anchor(const struct object* cell, const char* name)
             {
                 transformationmatrix_apply_transformation(cell->trans, pt);
             }
+            return pt;
+        }
+    }
+    // no anchor found
+    return NULL;
+}
+
+point_t* object_get_array_anchor(const struct object* cell, int xindex, int yindex, const char* name)
+{
+    if(!cell->isarray)
+    {
+        return NULL;
+    }
+    struct transformationmatrix* trans1 = cell->trans;
+    struct transformationmatrix* trans2 = cell->reference->trans;
+    const struct object* obj = cell->reference;
+    // resolve negative indices
+    if(xindex < 0)
+    {
+        xindex = cell->xrep + xindex + 1;
+    }
+    if(yindex < 0)
+    {
+        yindex = cell->yrep + yindex + 1;
+    }
+    point_t* pt = NULL;
+    pt = _get_special_anchor(obj, name, trans1, trans2);
+    if(pt)
+    {
+        point_translate(pt, cell->xpitch * (xindex - 1), cell->ypitch * (yindex - 1));
+        return pt;
+    }
+    else
+    {
+        pt = _get_regular_anchor(obj, name);
+        if(pt)
+        {
+            transformationmatrix_apply_transformation(obj->trans, pt);
+            if(cell->isproxy)
+            {
+                transformationmatrix_apply_transformation(cell->trans, pt);
+            }
+            point_translate(pt, cell->xpitch * (xindex - 1), cell->ypitch * (yindex - 1));
             return pt;
         }
     }
@@ -610,6 +628,19 @@ void object_inherit_alignment_box(struct object* cell, const struct object* othe
         point_destroy(bl);
         point_destroy(tr);
     }
+}
+
+int object_get_alignment_box_corners(const struct object* cell, coordinate_t* blx, coordinate_t* bly, coordinate_t* trx, coordinate_t* try)
+{
+    if(!cell->alignmentbox)
+    {
+        return 0;
+    }
+    *blx = cell->alignmentbox[0];
+    *bly = cell->alignmentbox[1];
+    *trx = cell->alignmentbox[2];
+    *try = cell->alignmentbox[3];
+    return 1;
 }
 
 void object_move_to(struct object* cell, coordinate_t x, coordinate_t y)
