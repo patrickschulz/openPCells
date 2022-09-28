@@ -150,7 +150,7 @@ static inline void _write_layer(struct export_data* data, uint8_t type, uint8_t 
     export_data_append_byte(data, DATATYPE_NONE);
 
     // LAYER (6 bytes)
-    _write_length_short_unchecked(data, 6);
+    _write_length_short(data, 6);
     export_data_append_byte(data, RECORDTYPE_LAYER);
     export_data_append_byte(data, DATATYPE_TWO_BYTE_INTEGER);
     const struct tagged_value* vl = hashmap_get_const(layer, "layer");
@@ -158,7 +158,7 @@ static inline void _write_layer(struct export_data* data, uint8_t type, uint8_t 
     export_data_append_two_bytes(data, layernum);
 
     // DATATYPE (6 bytes)
-    _write_length_short_unchecked(data, 6);
+    _write_length_short(data, 6);
     export_data_append_byte(data, datatype);
     export_data_append_byte(data, DATATYPE_TWO_BYTE_INTEGER);
     const struct tagged_value* vp = hashmap_get_const(layer, "purpose");
