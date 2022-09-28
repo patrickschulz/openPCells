@@ -665,6 +665,7 @@ int _check_rectangle(const coordinate_t* points)
 struct layermapping {
     int16_t layer;
     int16_t purpose;
+    char* map;
     char** mappings;
     size_t num;
 };
@@ -691,6 +692,9 @@ struct vector* gdsparser_create_layermap(const char* filename)
     for(size_t i = 1; i <= len; ++i)
     {
         struct layermapping* layermapping = malloc(sizeof(*layermapping));
+        layermapping->map = NULL;
+        layermapping->mappings = NULL;
+        layermapping->num = 0;
         lua_rawgeti(L, -1, i); // get entry
 
         lua_getfield(L, -1, "layer");
@@ -701,18 +705,28 @@ struct vector* gdsparser_create_layermap(const char* filename)
         layermapping->purpose = lua_tointeger(L, -1);
         lua_pop(L, 1);
 
-        lua_getfield(L, -1, "mappings");
-        lua_len(L, -1);
-        size_t maplen = lua_tointeger(L, -1);
-        lua_pop(L, 1);
-        layermapping->num = maplen;
-        layermapping->mappings = malloc(len * sizeof(*layermapping->mappings));
-        for(size_t j = 1; j <= maplen; ++j)
+        lua_getfield(L, -1, "map");
+        if(!lua_isnil(L, -1))
         {
-            lua_rawgeti(L, -1, j);
-            const char* mapping = lua_tostring(L, -1);
-            layermapping->mappings[j - 1] = strdup(mapping);
+            layermapping->map = strdup(lua_tostring(L, -1));
+        }
+        lua_pop(L, 1);
+
+        lua_getfield(L, -1, "mappings");
+        if(!lua_isnil(L, -1))
+        {
+            lua_len(L, -1);
+            size_t maplen = lua_tointeger(L, -1);
             lua_pop(L, 1);
+            layermapping->num = maplen;
+            layermapping->mappings = malloc(len * sizeof(*layermapping->mappings));
+            for(size_t j = 1; j <= maplen; ++j)
+            {
+                lua_rawgeti(L, -1, j);
+                const char* mapping = lua_tostring(L, -1);
+                layermapping->mappings[j - 1] = strdup(mapping);
+                lua_pop(L, 1);
+            }
         }
         lua_pop(L, 1);
 
@@ -732,11 +746,18 @@ void gdsparser_destroy_layermap(struct vector* layermap)
         while(vector_iterator_is_valid(it))
         {
             struct layermapping* mapping = vector_iterator_get(it);
-            for(unsigned int i = 0; i < mapping->num; ++i)
+            if(mapping->mappings)
             {
-                free(mapping->mappings[i]);
+                for(unsigned int i = 0; i < mapping->num; ++i)
+                {
+                    free(mapping->mappings[i]);
+                }
+                free(mapping->mappings);
             }
-            free(mapping->mappings);
+            if(mapping->map)
+            {
+                free(mapping->map);
+            }
             free(mapping);
             vector_iterator_next(it);
         }
@@ -745,32 +766,61 @@ void gdsparser_destroy_layermap(struct vector* layermap)
     }
 }
 
+static const char* _has_direct_mapping(int16_t layer, int16_t purpose, const struct vector* layermap)
+{
+    if(!layermap)
+    {
+        return NULL;
+    }
+    struct vector_const_iterator* it = vector_const_iterator_create(layermap);
+    while(vector_const_iterator_is_valid(it))
+    {
+        const struct layermapping* mapping = vector_const_iterator_get(it);
+        if(layer == mapping->layer && purpose == mapping->purpose && mapping->map)
+        {
+            vector_const_iterator_destroy(it);
+            return mapping->map;
+        }
+        vector_const_iterator_next(it);
+    }
+    vector_const_iterator_destroy(it);
+    return NULL;
+}
+
 static void _write_layers(FILE* cellfile, int16_t layer, int16_t purpose, const struct vector* layermap)
 {
-    fputs("generics.premapped(nil, { ", cellfile);
-    fputs("gds = { layer = ", cellfile);
-    _print_int16(cellfile, layer);
-    fputs(", purpose = ", cellfile);
-    _print_int16(cellfile, purpose);
-    fputs(" }", cellfile);
-    if(layermap)
+    const char* directmap = _has_direct_mapping(layer, purpose, layermap);
+    if(directmap)
     {
-        struct vector_const_iterator* it = vector_const_iterator_create(layermap);
-        while(vector_const_iterator_is_valid(it))
-        {
-            const struct layermapping* mapping = vector_const_iterator_get(it);
-            if(layer == mapping->layer && purpose == mapping->purpose)
-            {
-                for(unsigned int i = 0; i < mapping->num; ++i)
-                {
-                    fprintf(cellfile, ", %s", mapping->mappings[i]);
-                }
-            }
-            vector_const_iterator_next(it);
-        }
-        vector_const_iterator_destroy(it);
+        fputs(directmap, cellfile);
     }
-    fputs(" })", cellfile);
+    else
+    {
+        fputs("generics.premapped(nil, { ", cellfile);
+        fputs("gds = { layer = ", cellfile);
+        _print_int16(cellfile, layer);
+        fputs(", purpose = ", cellfile);
+        _print_int16(cellfile, purpose);
+        fputs(" }", cellfile);
+        if(layermap)
+        {
+            struct vector_const_iterator* it = vector_const_iterator_create(layermap);
+            while(vector_const_iterator_is_valid(it))
+            {
+                const struct layermapping* mapping = vector_const_iterator_get(it);
+                if(layer == mapping->layer && purpose == mapping->purpose)
+                {
+                    for(unsigned int i = 0; i < mapping->num; ++i)
+                    {
+                        fprintf(cellfile, ", %s", mapping->mappings[i]);
+                    }
+                }
+                vector_const_iterator_next(it);
+            }
+            vector_const_iterator_destroy(it);
+        }
+        fputs(" })", cellfile);
+    }
 }
 
 int _check_lpp(int16_t layer, int16_t purpose, const struct vector* ignorelpp)
@@ -1014,7 +1064,7 @@ static int _read_BOUNDARY(struct stream* stream, int16_t* layer, int16_t* purpos
         else if(record->recordtype == XY)
         {
             *points = _parse_points_xy(record->data, record->length - 4);
-            *size = (record->length - 4) >> 2;
+            *size = (record->length - 4) / 4;
         }
         else if(record->recordtype == PROPATTR)
         {
@@ -1038,13 +1088,13 @@ static int _read_BOUNDARY(struct stream* stream, int16_t* layer, int16_t* purpos
 }
 
 //static void _write_BOUNDARY(FILE* cellfile, int16_t layer, int16_t purpose, const struct vector* points, const struct vector* gdslayermap)
-static void _write_BOUNDARY(FILE* cellfile, int16_t layer, int16_t purpose, const coordinate_t* points, size_t numpoints, const struct vector* gdslayermap)
+static void _write_BOUNDARY(FILE* cellfile, int16_t layer, int16_t purpose, const coordinate_t* points, size_t numxy, const struct vector* gdslayermap)
 {
     // check for rectangle
     // BOX is not used for rectangles, at least most tool suppliers seem to do it this way
     // therefor, we check if some "polygons" are actually rectangles and fix the shape types
     //if(vector_size(points) == 5 && _check_rectangle(points))
-    if(numpoints == 5 && _check_rectangle(points))
+    if(numxy == 10 && _check_rectangle(points))
     {
         fputs("    geometry.rectanglebltr(cell, ", cellfile);
         _write_layers(cellfile, layer, purpose, gdslayermap);
@@ -1065,7 +1115,7 @@ static void _write_BOUNDARY(FILE* cellfile, int16_t layer, int16_t purpose, cons
         fputs("    geometry.polygon(cell, ", cellfile);
         _write_layers(cellfile, layer, purpose, gdslayermap);
         fputs(", { ", cellfile);
-        for(unsigned int i = 0; i < numpoints; i += 2)
+        for(unsigned int i = 0; i < numxy; i += 2)
         {
             fputs("point.create(", cellfile);
             _print_int32(cellfile, points[i]);
