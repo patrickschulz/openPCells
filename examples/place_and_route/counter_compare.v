@@ -139,7 +139,7 @@ module counter_compare(clk, finished);
     .Q(count[4])
   );
   assign _10_[31:5] = 27'h0000000;
-  assign _10_[5] = 1;
+  assign _10_[5] = 1'd1;
   assign _10_[4:1] = count[4:1];
   assign _11_[31:6] = 26'h0000000;
   assign _11_[0] = _10_[0];
