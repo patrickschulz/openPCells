@@ -7,7 +7,7 @@
 
 struct vertex {
     size_t index;
-    point_t* v;
+    point_t* pt;
     int is_ear;
     struct vertex* next;
     struct vertex* prev;
@@ -124,7 +124,7 @@ static int _diagonalie(const struct vertex* vertices, const struct vertex* a, co
         /* Skip edges incident to a or b */
         if (    (c != a) && (c1 != a)
                 && (c != b) && (c1 != b)
-                && _intersect(a->v, b->v, c->v, c1->v)
+                && _intersect(a->pt, b->pt, c->pt, c1->pt)
            )
             return 0;
         c = c->next;
@@ -146,13 +146,13 @@ static int _in_cone(const struct vertex* a, const struct vertex* b)
     a0 = a->prev;
 
     /* If a is a convex vertex ... */
-    if(left_on(a->v, a1->v, a0->v))
+    if(left_on(a->pt, a1->pt, a0->pt))
     {
-        return _left(a->v, b->v, a0->v) && _left(b->v, a->v, a1->v);
+        return _left(a->pt, b->pt, a0->pt) && _left(b->pt, a->pt, a1->pt);
     }
     else /* Else a is reflex: */
     {
-        return !(left_on(a->v, b->v, a1->v) && left_on(b->v, a->v, a0->v));
+        return !(left_on(a->pt, b->pt, a1->pt) && left_on(b->pt, a->pt, a0->pt));
     }
 }
 
@@ -188,9 +188,9 @@ static void ear_init(struct vertex* vertices)
 
 static void _add_triangle(const struct vertex* a, const struct vertex* b, const struct vertex* c, struct vector* result)
 {
-    vector_append(result, point_copy(a->v));
-    vector_append(result, point_copy(b->v));
-    vector_append(result, point_copy(c->v));
+    vector_append(result, point_copy(a->pt));
+    vector_append(result, point_copy(b->pt));
+    vector_append(result, point_copy(c->pt));
 }
 
 static int _triangulate(struct vertex* vertices, size_t nvertices, struct vector* result)
@@ -212,8 +212,10 @@ static int _triangulate(struct vertex* vertices, size_t nvertices, struct vector
             if (v2->is_ear) {
                 earfound = 1;
                 /* Ear found. Fill variables. */
-                v3 = v2->next; v4 = v3->next;
-                v1 = v2->prev; v0 = v1->prev;
+                v0 = v2->prev->prev;
+                v1 = v2->prev;
+                v3 = v2->next;
+                v4 = v2->next->next;
 
                 /* (v1,v3) is a diagonal */
                 _add_triangle(v1, v2, v3, result);
@@ -227,6 +229,9 @@ static int _triangulate(struct vertex* vertices, size_t nvertices, struct vector
                 v3->prev = v1;
                 vertices = v3; /* In case the head was v2. */
                 --nvertices;
+
+                //point_destroy(v2->pt);
+                //free(v2);
                 break;   /* out of inner loop; resume outer loop */
             } /* end if ear found */
             v2 = v2->next;
@@ -250,7 +255,7 @@ struct vector* geometry_triangulate_polygon(const struct vector* points)
     {
         const point_t* pt = vector_const_iterator_get(it);
         struct vertex* v = malloc(sizeof(*v));
-        v->v = point_copy(pt);
+        v->pt = point_copy(pt);
         v->index = numvertices;
         if(vertices)
         {
@@ -272,6 +277,29 @@ struct vector* geometry_triangulate_polygon(const struct vector* points)
 
     struct vector* result = vector_create(32);
     int ret = _triangulate(vertices, numvertices, result);
+
+    // destroy vertices
+    /*
+    struct vertex* v = vertices;
+    do {
+        if(v->next == v)
+        {
+            point_destroy(v->pt);
+            free(v);
+            v = NULL;
+        }
+        else
+        {
+            struct vertex* tmp = v;
+            v = v->next;
+            tmp->prev->next = tmp->next;
+            tmp->next->prev = tmp->prev;
+            point_destroy(tmp->pt);
+            free(tmp);
+        }
+    } while(v);
+    */
+
     if(!ret)
     {
         vector_destroy(result, point_destroy);
