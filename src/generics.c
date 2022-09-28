@@ -149,6 +149,17 @@ const struct generics* generics_create_metalport(struct layermap* layermap, stru
     return layer;
 }
 
+const struct generics* generics_create_metalexclude(struct layermap* layermap, struct technology_state* techstate, int num)
+{
+    num = technology_resolve_metal(techstate, num);
+    size_t len = 1 + util_num_digits(num) + 7; // M + %d + exclude
+    char* layername = malloc(len + 1);
+    snprintf(layername, len + 1, "M%dexclude", num);
+    const struct generics* layer = _get_or_create_layer(layermap, techstate, layername);
+    free(layername);
+    return layer;
+}
+
 const struct generics* generics_create_viacut(struct layermap* layermap, struct technology_state* techstate, int metal1, int metal2)
 {
     metal1 = technology_resolve_metal(techstate, metal1);

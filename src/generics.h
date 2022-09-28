@@ -33,6 +33,7 @@ int generics_resolve_premapped_layers(struct layermap* generics_layer_map, const
 // layer creation interface
 const struct generics* generics_create_metal(struct layermap* generics_layer_map, struct technology_state* techstate, int num);
 const struct generics* generics_create_metalport(struct layermap* generics_layer_map, struct technology_state* techstate, int num);
+const struct generics* generics_create_metalexclude(struct layermap* generics_layer_map, struct technology_state* techstate, int num);
 const struct generics* generics_create_viacut(struct layermap* generics_layer_map, struct technology_state* techstate, int metal1, int metal2);
 const struct generics* generics_create_contact(struct layermap* generics_layer_map, struct technology_state* techstate, const char* region);
 const struct generics* generics_create_oxide(struct layermap* generics_layer_map, struct technology_state* techstate, int num);
