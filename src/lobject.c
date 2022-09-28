@@ -92,6 +92,13 @@ static int lobject_move_to(lua_State* L)
     return 1;
 }
 
+static int lobject_reset_translation(lua_State* L)
+{
+    struct lobject* cell = lobject_check(L, 1);
+    object_reset_translation(cell->object);
+    return 1;
+}
+
 static int lobject_translate(lua_State* L)
 {
     struct lobject* cell = lobject_check(L, 1);
@@ -470,6 +477,7 @@ int open_lobject_lib(lua_State* L)
         { "inherit_alignment_box",      lobject_inherit_alignment_box       },
         { "width_height_alignmentbox",  lobject_width_height_alignmentbox   },
         { "move_to",                    lobject_move_to                     },
+        { "reset_translation",          lobject_reset_translation           },
         { "translate",                  lobject_translate                   },
         { "mirror_at_xaxis",            lobject_mirror_at_xaxis             },
         { "mirror_at_yaxis",            lobject_mirror_at_yaxis             },

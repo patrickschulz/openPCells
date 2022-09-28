@@ -617,6 +617,11 @@ void object_move_to(struct object* cell, coordinate_t x, coordinate_t y)
     transformationmatrix_move_to(cell->trans, x, y);
 }
 
+void object_reset_translation(struct object* cell)
+{
+    transformationmatrix_move_to(cell->trans, 0, 0);
+}
+
 void object_translate(struct object* cell, coordinate_t x, coordinate_t y)
 {
     transformationmatrix_translate(cell->trans, x, y);

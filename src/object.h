@@ -41,6 +41,7 @@ const struct transformationmatrix* object_get_transformation_matrix(const struct
 
 // transformations
 void object_move_to(struct object* cell, coordinate_t x, coordinate_t y);
+void object_reset_translation(struct object* cell);
 void object_translate(struct object* cell, coordinate_t x, coordinate_t y);
 void object_mirror_at_xaxis(struct object* cell);
 void object_mirror_at_yaxis(struct object* cell);
