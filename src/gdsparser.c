@@ -44,7 +44,7 @@ const char* recordnames[] = {
 struct record
 {
     uint16_t length;
-    uint8_t recordtype;
+    enum recordtypes recordtype;
     uint8_t datatype;
     uint8_t* data;
 };
@@ -844,7 +844,6 @@ int _check_lpp(int16_t layer, int16_t purpose, const struct vector* ignorelpp)
 
 static int _read_TEXT(struct stream* stream, char** str, int16_t* layer, int16_t* purpose, point_t* origin, double* angle, int** transformation)
 {
-    _get_next_record(stream); // skip TEXT
     while(1)
     {
         struct record* record = _get_next_record(stream);
@@ -1008,22 +1007,31 @@ static void _write_cellref(FILE* cellfile, const char* importname, const struct 
         if(cellref->transformation && cellref->transformation[0] == 1)
         {
             fputs("    child:mirror_at_xaxis()\n", cellfile);
-            fputs("    child:mirror_at_yaxis()\n", cellfile);
         }
-        else
-        {
-            fputs("    child:mirror_at_yaxis()\n", cellfile);
-        }
+        fputs("    child:rotate_90_left()\n", cellfile);
+        fputs("    child:rotate_90_left()\n", cellfile);
     }
     else if(cellref->angle == 90)
     {
         fputs("    child:rotate_90_left()\n", cellfile);
     }
-    if(cellref->transformation && cellref->transformation[0] == 1)
+    else if(cellref->angle == 270)
     {
-        fputs("    child:mirror_at_xaxis()\n", cellfile);
+        fputs("    child:rotate_90_left()\n", cellfile);
+        fputs("    child:rotate_90_left()\n", cellfile);
+        fputs("    child:rotate_90_left()\n", cellfile);
     }
-    fprintf(cellfile, "    child:translate(%lld, %lld)\n", cellref->origin->x, cellref->origin->y);
+    else
+    {
+        if(cellref->transformation && cellref->transformation[0] == 1)
+        {
+            fputs("    child:mirror_at_xaxis()\n", cellfile);
+        }
+    }
+    if(!(cellref->origin->x == 0 && cellref->origin->y == 0))
+    {
+        fprintf(cellfile, "    child:translate(%lld, %lld)\n", cellref->origin->x, cellref->origin->y);
+    }
     free(cellref->name);
     point_destroy(cellref->origin);
     if(cellref->transformation)
