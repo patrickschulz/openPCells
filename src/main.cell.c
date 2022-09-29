@@ -212,6 +212,26 @@ void main_list_cell_parameters(struct cmdoptions* cmdoptions, struct hashmap* co
     lua_close(L);
 }
 
+static int _read_cellenv(lua_State* L, const char* filename)
+{
+    if(!filename)
+    {
+        lua_newtable(L);
+    }
+    else
+    {
+        // call adapted from macro for luaL_dofile (only one return value as a fail-safe)
+        if((luaL_loadfile(L, filename) || lua_pcall(L, 0, 1, 0)) != LUA_OK)
+        {
+            const char* msg = lua_tostring(L, -1);
+            fprintf(stderr, "error while loading cell environment file: %s\n", msg);
+            return 0;
+        }
+    }
+    lua_setfield(L, -2, "cellenv");
+    return 1;
+}
+
 static struct object* _create_cell(
     const char* cellname,
     int iscellscript,
@@ -220,7 +240,8 @@ static struct object* _create_cell(
     struct pcell_state* pcell_state,
     struct layermap* layermap,
     int enabledprint,
-    struct const_vector* pfilenames
+    struct const_vector* pfilenames,
+    const char* cellenvfilename
 )
 {
     lua_State* L = _create_and_initialize_lua();
@@ -254,12 +275,20 @@ static struct object* _create_cell(
 
     // assemble cell arguments
     lua_newtable(L);
+
+    // is cell script
     lua_pushboolean(L, iscellscript);
     lua_setfield(L, -2, "isscript");
+
+    // cell name
     lua_pushstring(L, cellname);
     lua_setfield(L, -2, "cell");
+
+    // enable dprint
     lua_pushboolean(L, enabledprint);
     lua_setfield(L, -2, "enabledprint");
+
+    // cell args
     lua_newtable(L);
     for(unsigned int i = 0; i < vector_size(cellargs); ++i)
     {
@@ -267,6 +296,8 @@ static struct object* _create_cell(
         lua_rawseti(L, -2, i + 1);
     }
     lua_setfield(L, -2, "cellargs");
+
+    // pfile names
     lua_newtable(L);
     for(unsigned int i = 0; i < const_vector_size(pfilenames); ++i)
     {
@@ -274,6 +305,15 @@ static struct object* _create_cell(
         lua_rawseti(L, -2, i + 1);
     }
     lua_setfield(L, -2, "pfilenames");
+    
+    // cell environment
+    if(!_read_cellenv(L, cellenvfilename))
+    {
+        lua_close(L);
+        return NULL;
+    }
+
+    // register args
     lua_setglobal(L, "args");
 
     int retval = script_call_create_cell(L);
@@ -598,7 +638,8 @@ int main_create_and_export_cell(struct cmdoptions* cmdoptions, struct hashmap* c
             ++appendpfilenames;
         }
     }
-    struct object* toplevel = _create_cell(cellname, iscellscript, cellargs, techstate, pcell_state, layermap, enabledprint, pfilenames);
+    const char* cellenvfilename = cmdoptions_get_argument_long(cmdoptions, "cell-environment");
+    struct object* toplevel = _create_cell(cellname, iscellscript, cellargs, techstate, pcell_state, layermap, enabledprint, pfilenames, cellenvfilename);
     const_vector_destroy(pfilenames);
     if(toplevel)
     {

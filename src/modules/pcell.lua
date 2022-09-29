@@ -670,8 +670,7 @@ function pcell.evaluate_parameters(cellname, cellargs)
     return parameters
 end
 
-
-function pcell.create_layout(cellname, cellargs, env)
+local function _create_layout_internal(cellname, cellargs, env)
     if not cellname then
         error("pcell.create_layout: no cellname given")
     end
@@ -701,6 +700,31 @@ function pcell.create_layout(cellname, cellargs, env)
     if explicitlib then
         state.libnamestacks:pop()
     end
+    return obj
+end
+
+local _globalenv
+function pcell.create_layout(cellname, cellargs, ...)
+    if not cellname then
+        error("pcell.create_layout_env: expected cellname as first argument")
+    end
+    if select("#", ...) > 0 then
+        error("pcell.create_layout was called with more than two arguments. If you wanted to pass an environment, use pcell.create_layout_env")
+    end
+    return _create_layout_internal(cellname, cellargs, _globalenv)
+end
+
+function pcell.create_layout_env(cellname, cellargs, env)
+    if not cellname then
+        error("pcell.create_layout_env: expected cellname as first argument")
+    end
+    -- cellargs can be nil
+    if not env then
+        error("pcell.create_layout_env: expected environment as third argument")
+    end
+    _globalenv = env
+    local obj = _create_layout_internal(cellname, cellargs, _globalenv)
+    _globalenv = nil
     return obj
 end
 
