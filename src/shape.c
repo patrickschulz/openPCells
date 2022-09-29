@@ -85,6 +85,35 @@ struct shape* shape_create_curve(const struct generics* layer, coordinate_t x, c
     return shape;
 }
 
+static void _remove_superfluous_points(struct vector* pts)
+{
+    for(size_t i = vector_size(pts) - 2; i > 1; --i)
+    {
+        point_t* pt1 = vector_get(pts, i - 1);
+        point_t* pt2 = vector_get(pts, i);
+        point_t* pt3 = vector_get(pts, i + 1);
+        if(((pt1->x == pt2->x) && (pt1->x == pt3->x)) || ((pt1->y == pt2->y) && (pt1->y == pt3->y)))
+        {
+            vector_remove(pts, i, point_destroy);
+            --i;
+        }
+    }
+}
+
+void shape_cleanup(struct shape* shape)
+{
+    if(shape->type == POLYGON)
+    {
+        struct polygon* polygon = shape->content;
+        _remove_superfluous_points(polygon->points);
+    }
+    if(shape->type == PATH)
+    {
+        struct path* path = shape->content;
+        _remove_superfluous_points(path->points);
+    }
+}
+
 void* shape_copy(const void* v)
 {
     const struct shape* self = v;
@@ -197,31 +226,6 @@ static void _append_unconditionally(struct shape* shape, coordinate_t x, coordin
 
 void shape_append(struct shape* shape, coordinate_t x, coordinate_t y)
 {
-    // don't append points that are equal as the last one
-    if(shape->type == POLYGON)
-    {
-        struct polygon* polygon = shape->content;
-        if(vector_size(polygon->points) > 0)
-        {
-            point_t* lastpt = vector_get(polygon->points, vector_size(polygon->points) - 1);
-            if((lastpt->x == x) && (lastpt->y == y))
-            {
-                return;
-            }
-        }
-    }
-    if(shape->type == PATH)
-    {
-        struct path* path = shape->content;
-        if(vector_size(path->points) > 0)
-        {
-            point_t* lastpt = vector_get(path->points, vector_size(path->points) - 1);
-            if((lastpt->x == x) && (lastpt->y == y))
-            {
-                return;
-            }
-        }
-    }
     _append_unconditionally(shape, x, y);
 }
 
@@ -742,19 +746,6 @@ static coordinate_t _fix_to_grid(coordinate_t c, unsigned int grid)
     return (c / grid) * grid;
 }
 
-static void _remove_superfluous_points(struct vector* pts)
-{
-    for(size_t i = vector_size(pts) - 1; i > 0; --i)
-    {
-        point_t* this = vector_get(pts, i);
-        point_t* that = vector_get(pts, i - 1);
-        if(this->x == that->x && this->y == that->y)
-        {
-            vector_remove(pts, i, point_destroy);
-        }
-    }
-}
-
 void shape_rasterize_curve_inline(struct shape* shape)
 {
     if(shape->type != CURVE)
@@ -819,51 +810,8 @@ struct shape* shape_rasterize_curve(const struct shape* shape)
     {
         return NULL;
     }
-    // FIXME: add_curve_xxx_segment MUST also specify the type, then we can iterate over the individual segments here!
-    struct shape* new = shape_create_polygon(shape->layer, 128);
-    struct vector* rastered_points = ((struct polygon*)new->content)->points;
-    struct curve* curve = shape->content;
-    struct vector_iterator* it = vector_iterator_create(curve->segments);
-    point_t* lastpt = point_copy(curve->origin);
-    while(vector_iterator_is_valid(it))
-    {
-        struct curve_segment* segment = vector_iterator_get(it);
-        switch(segment->type)
-        {
-            case LINESEGMENT:
-            {
-                graphics_raster_line_segment(
-                    lastpt, segment->data.pt,
-                    curve->grid, curve->allow45, rastered_points);
-                lastpt->x = segment->data.pt->x;
-                lastpt->y = segment->data.pt->y;
-                break;
-            }
-            case ARCSEGMENT:
-            {
-                graphics_raster_arc_segment(
-                    lastpt,
-                    segment->data.startangle,
-                    segment->data.endangle,
-                    segment->data.radius,
-                    segment->data.clockwise,
-                    curve->grid, curve->allow45, rastered_points);
-                double startcos = cos(segment->data.startangle * M_PI / 180);
-                double startsin = sin(segment->data.startangle * M_PI / 180);
-                double endcos = cos(segment->data.endangle * M_PI / 180);
-                double endsin = sin(segment->data.endangle * M_PI / 180);
-                lastpt->x = lastpt->x + _fix_to_grid((endcos - startcos) * segment->data.radius, curve->grid);
-                lastpt->y = lastpt->y + _fix_to_grid((endsin - startsin) * segment->data.radius, curve->grid);
-                break;
-            }
-        }
-        vector_iterator_next(it);
-    }
-    point_destroy(lastpt);
-    vector_iterator_destroy(it);
-
-    _remove_superfluous_points(rastered_points);
-
+    struct shape* new = shape_copy(shape);
+    shape_rasterize_curve_inline(new);
     return new;
 }
 

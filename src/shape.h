@@ -38,6 +38,7 @@ struct shape* shape_create_rectangle(const struct generics* layer, coordinate_t 
 struct shape* shape_create_polygon(const struct generics* layer, size_t capacity);
 struct shape* shape_create_path(const struct generics* layer, size_t capacity, ucoordinate_t width, coordinate_t extstart, coordinate_t extend);
 struct shape* shape_create_curve(const struct generics* layer, coordinate_t x, coordinate_t y, unsigned int grid, int allow45);
+void shape_cleanup(struct shape* shape);
 void* shape_copy(const void* shape);
 void shape_destroy(void* shape);
 
