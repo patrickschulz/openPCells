@@ -9,7 +9,8 @@ function parameters()
         { "firstmetal(Start Metal)",    1 },
         { "lastmetal(End Metal)",       2 },
         { "alternatingpolarity",     true },
-        { "flat",                    true }
+        { "flat",                    true },
+        { "drawvia",                 true }
     )
 end
 
@@ -38,33 +39,37 @@ function layout(momcap, _P)
         for i = _P.firstmetal, _P.lastmetal do
             geometry.rectanglebltr(
                 momcap, generics.metal(i),
-                point.create(-(_P.fingers + 1) * (_P.fwidth + _P.fspace) / 2, -_P.rwidth / 2),
-                point.create( (_P.fingers + 1) * (_P.fwidth + _P.fspace) / 2,  _P.rwidth / 2),
+                point.create(-_P.fingers * (_P.fwidth + _P.fspace) / 2, -_P.rwidth / 2),
+                point.create( _P.fingers * (_P.fwidth + _P.fspace) / 2,  _P.rwidth / 2),
                 1, 2, 0, 2 * _P.foffset + _P.fheight + _P.rwidth
             )
         end
         -- vias
-        if _P.firstmetal ~= _P.lastmetal then
-            geometry.viabltr(
-                momcap, _P.firstmetal, _P.lastmetal,
-                point.create(-(_P.fingers + 1) * (_P.fwidth + _P.fspace) / 2, -_P.rwidth / 2),
-                point.create( (_P.fingers + 1) * (_P.fwidth + _P.fspace) / 2,  _P.rwidth / 2),
-                1, 2, 0, 2 * _P.foffset + _P.fheight + _P.rwidth
-            ) -- FIXME: make via continuous
+        if _P.drawvia then
+            if _P.firstmetal ~= _P.lastmetal then
+                geometry.viabltr(
+                    momcap, _P.firstmetal, _P.lastmetal,
+                    point.create(-(_P.fingers + 1) * (_P.fwidth + _P.fspace) / 2, -_P.rwidth / 2),
+                    point.create( (_P.fingers + 1) * (_P.fwidth + _P.fspace) / 2,  _P.rwidth / 2),
+                    1, 2, 0, 2 * _P.foffset + _P.fheight + _P.rwidth
+                ) -- FIXME: make via continuous
+            end
         end
     else
         local fingerref = object.create()
         for i = _P.firstmetal, _P.lastmetal do
             geometry.rectangle(fingerref, generics.metal(i), _P.fwidth, _P.fheight + _P.foffset)
         end
-        if _P.firstmetal ~= _P.lastmetal then
-            local viaref = object.create()
-            geometry.viabltr(
-                viaref, _P.firstmetal, _P.lastmetal,
-                point.create(-(_P.fwidth + _P.fspace) / 2, _P.foffset / 2 - _P.rwidth / 2),
-                point.create( (_P.fwidth + _P.fspace) / 2, _P.foffset / 2 + _P.rwidth / 2),
-                1, 2, 0, 2 * _P.foffset + _P.fheight + _P.rwidth
-            ) -- FIXME: make via continuous
+        if _P.drawvia then
+            if _P.firstmetal ~= _P.lastmetal then
+                local viaref = object.create()
+                geometry.viabltr(
+                    viaref, _P.firstmetal, _P.lastmetal,
+                    point.create(-(_P.fwidth + _P.fspace) / 2, _P.foffset / 2 - _P.rwidth / 2),
+                    point.create( (_P.fwidth + _P.fspace) / 2, _P.foffset / 2 + _P.rwidth / 2),
+                    1, 2, 0, 2 * _P.foffset + _P.fheight + _P.rwidth
+                ) -- FIXME: make via continuous
+            end
         end
         local fingername = pcell.add_cell_reference(fingerref, "momcapfinger")
         momcap:add_child_array(fingername, _P.fingers + 1, 1, 2 * pitch, 0):flipy():translate(-_P.fingers * pitch, -_P.foffset / 2)
