@@ -119,7 +119,8 @@ void geometry_unequal_ring(
     struct object* cell,
     const struct generics* layer,
     ucoordinate_t width, ucoordinate_t height,
-    ucoordinate_t ringwidth, ucoordinate_t ringheight
+    ucoordinate_t leftwidth, ucoordinate_t rightwidth,
+    ucoordinate_t topwidth, ucoordinate_t bottomwidth
 );
 
 struct shape* geometry_path_to_polygon(const struct generics* layer, point_t** points, size_t numpoints, ucoordinate_t width, int miterjoin);

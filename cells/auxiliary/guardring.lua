@@ -1,17 +1,22 @@
 function parameters()
     pcell.add_parameters(
-        { "contype",            "p" },
-        { "topmetal",             1 },
-        { "holewidth",         5000 },
-        { "holeheight",        5000 },
-        { "ringwidth",          200 },
-        { "drawsegments",      { "left", "right", "top", "bottom" } },
-        { "wellextension",       50 },
-        { "soiopenextension",    50 },
-        { "implantextension",    50 },
-        { "fillwell",          true },
-        { "drawdeepwell",     false },
-        { "deepwelloffset",       0 }
+        { "contype",                                       "p" },
+        { "topmetal",                                        1 },
+        { "holewidth",                                    5000 },
+        { "holeheight",                                   5000 },
+        { "ringwidth",                                     200 },
+        { "drawsegments", { "left", "right", "top", "bottom" } },
+        { "wellextension",                                  50 },
+        { "soiopenextension",                               50 },
+        { "implantextension",                               50 },
+        { "fillwell",                                     true },
+        { "fillwelldrawhole",                            false },
+        { "fillwellholeoffsettop",                           0 },
+        { "fillwellholeoffsetbottom",                           0 },
+        { "fillwellholeoffsetleft",                          0 },
+        { "fillwellholeoffsetright",                         0 },
+        { "drawdeepwell",                                false },
+        { "deepwelloffset",                                  0 }
     )
 end
 
@@ -140,9 +145,27 @@ function layout(guardring, _P)
 
     -- well
     if _P.fillwell then
-        geometry.rectangle(guardring, generics.other(string.format("%swell", _P.contype)), _P.holewidth + _P.ringwidth + 2 * _P.wellextension, _P.holeheight + _P.ringwidth + 2 * _P.wellextension)
+        if _P.fillwelldrawhole then
+            geometry.unequal_ring(guardring, generics.other(string.format("%swell", _P.contype)),
+                _P.holewidth + 2 * _P.ringwidth + 2 * _P.wellextension,
+                _P.holeheight + 2 * _P.ringwidth + 2 * _P.wellextension,
+                _P.ringwidth + _P.wellextension + _P.fillwellholeoffsetleft,
+                _P.ringwidth + _P.wellextension + _P.fillwellholeoffsetright,
+                _P.ringwidth + _P.wellextension + _P.fillwellholeoffsettop,
+                _P.ringwidth + _P.wellextension + _P.fillwellholeoffsetbottom
+            )
+        else
+            geometry.rectangle(guardring, generics.other(string.format("%swell", _P.contype)),
+                _P.holewidth + 2 * _P.ringwidth + 2 * _P.wellextension,
+                _P.holeheight + 2 * _P.ringwidth + 2 * _P.wellextension
+            )
+        end
     else
-        geometry.ring(guardring, generics.other(string.format("%swell", _P.contype)), _P.holewidth - 2 * _P.wellextension, _P.holeheight - 2 * _P.wellextension, _P.ringwidth + 2 * _P.wellextension)
+        geometry.ring(guardring, generics.other(string.format("%swell", _P.contype)),
+            _P.holewidth + 2 * _P.ringwidth + 2 * _P.wellextension,
+            _P.holeheight + 2 * _P.ringwidth + 2 * _P.wellextension,
+            _P.ringwidth + 2 * _P.wellextension
+        )
     end
     -- draw deep n/p-well
     if _P.drawdeepwell then

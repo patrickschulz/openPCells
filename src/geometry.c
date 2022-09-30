@@ -687,24 +687,26 @@ void geometry_cross(struct object* cell, const struct generics* layer, ucoordina
     }
 }
 
-void geometry_unequal_ring(struct object* cell, const struct generics* layer, ucoordinate_t holewidth, ucoordinate_t holeheight, ucoordinate_t ringwidth, ucoordinate_t ringheight)
+void geometry_unequal_ring(struct object* cell, const struct generics* layer, ucoordinate_t outerwidth, ucoordinate_t outerheight, ucoordinate_t leftwidth, ucoordinate_t rightwidth, ucoordinate_t topwidth, ucoordinate_t bottomwidth)
 {
-    coordinate_t w = holewidth;
-    coordinate_t h = holeheight;
-    coordinate_t rw = ringwidth;
-    coordinate_t rh = ringheight;
+    coordinate_t w = outerwidth;
+    coordinate_t h = outerheight;
+    coordinate_t lw = leftwidth;
+    coordinate_t rw = rightwidth;
+    coordinate_t tw = topwidth;
+    coordinate_t bw = bottomwidth;
     struct shape* S = shape_create_polygon(layer, 13);
-    shape_append(S, -(w / 2 + rw), -(h / 2 + rh));
-    shape_append(S,  (w / 2 + rw), -(h / 2 + rh));
-    shape_append(S,  (w / 2 + rw),  (h / 2 + rh));
-    shape_append(S, -(w / 2 + rw),  (h / 2 + rh));
-    shape_append(S, -(w / 2 + rw), -(h / 2));
     shape_append(S, -(w / 2), -(h / 2));
-    shape_append(S, -(w / 2),  (h / 2));
-    shape_append(S,  (w / 2),  (h / 2));
     shape_append(S,  (w / 2), -(h / 2));
-    shape_append(S, -(w / 2 + rw), -(h / 2));
-    shape_append(S, -(w / 2 + rw), -(h / 2 + rh)); // close polygon
+    shape_append(S,  (w / 2),  (h / 2));
+    shape_append(S, -(w / 2),  (h / 2));
+    shape_append(S, -(w / 2), -(h / 2 - bw));
+    shape_append(S, -(w / 2 - lw), -(h / 2 - bw));
+    shape_append(S, -(w / 2 - lw),  (h / 2 - tw));
+    shape_append(S,  (w / 2 - rw),  (h / 2 - tw));
+    shape_append(S,  (w / 2 - rw), -(h / 2 - bw));
+    shape_append(S, -(w / 2), -(h / 2 - bw));
+    shape_append(S, -(w / 2), -(h / 2)); // close polygon
     if(!shape_is_empty(S))
     {
         object_add_shape(cell, S);
@@ -715,8 +717,8 @@ void geometry_unequal_ring(struct object* cell, const struct generics* layer, uc
     }
 }
 
-void geometry_ring(struct object* cell, const struct generics* layer, ucoordinate_t holewidth, ucoordinate_t holeheight, ucoordinate_t ringwidth)
+void geometry_ring(struct object* cell, const struct generics* layer, ucoordinate_t outerwidth, ucoordinate_t outerheight, ucoordinate_t ringwidth)
 {
-    geometry_unequal_ring(cell, layer, holewidth, holeheight, ringwidth, ringwidth);
+    geometry_unequal_ring(cell, layer, outerwidth, outerheight, ringwidth, ringwidth, ringwidth, ringwidth);
 }
 
