@@ -85,6 +85,12 @@ void pcell_append_cellpath(struct pcell_state* pcell_state, const char* path)
     vector_append(pcell_state->cellpaths, strdup(path));
 }
 
+// FIXME: the cell reference system is partly broken.
+// currently, the user passes a name that they want as name for that cell
+// the pcell module resolves that into a unique name, even if the same is exactly the same
+// the second issue is the unique naming system. Currently, using ascii characters a layout
+// hierarchy could have a naming scheme that messes up the name system in the pcell module
+// a better way has to be found
 static char* _unique_name(struct pcell_state* pcell_state, const char* identifier)
 {
     unsigned int* ptr = NULL;
@@ -116,8 +122,8 @@ static char* _unique_name(struct pcell_state* pcell_state, const char* identifie
     else
     {
         unsigned int digits = util_num_digits(*ptr);
-        str = malloc(len + 1 + digits + 1); // + 1 for underscore
-        snprintf(str, len + 1 + digits + 1, "%s_%*d", identifier, digits, *ptr);
+        str = malloc(len + 6 + digits + 1); // + 6: _~OPC~_
+        snprintf(str, len + 6 + digits + 1, "%s_~OPC~_%*d", identifier, digits, *ptr);
     }
     return str;
 }
