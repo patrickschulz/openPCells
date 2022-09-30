@@ -122,8 +122,8 @@ static char* _unique_name(struct pcell_state* pcell_state, const char* identifie
     else
     {
         unsigned int digits = util_num_digits(*ptr);
-        str = malloc(len + 6 + digits + 1); // + 6: _~OPC~_
-        snprintf(str, len + 6 + digits + 1, "%s_~OPC~_%*d", identifier, digits, *ptr);
+        str = malloc(len + 7 + digits + 1); // + 7: _~OPC~_
+        snprintf(str, len + 7 + digits + 1, "%s_~OPC~_%*d", identifier, digits, *ptr);
     }
     return str;
 }
