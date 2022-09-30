@@ -1002,17 +1002,17 @@ static void _write_cellref(FILE* cellfile, const char* importname, const struct 
     {
         fputs("    child = cell:add_child(name)\n", cellfile);
     }
-    if(cellref->angle == 180)
+    if(cellref->transformation && cellref->transformation[0] == 1)
     {
-        if(cellref->transformation && cellref->transformation[0] == 1)
-        {
-            fputs("    child:mirror_at_xaxis()\n", cellfile);
-        }
-        fputs("    child:rotate_90_left()\n", cellfile);
+        fputs("    child:mirror_at_xaxis()\n", cellfile);
+    }
+    if(cellref->angle == 90)
+    {
         fputs("    child:rotate_90_left()\n", cellfile);
     }
-    else if(cellref->angle == 90)
+    else if(cellref->angle == 180)
     {
+        fputs("    child:rotate_90_left()\n", cellfile);
         fputs("    child:rotate_90_left()\n", cellfile);
     }
     else if(cellref->angle == 270)
@@ -1020,13 +1020,6 @@ static void _write_cellref(FILE* cellfile, const char* importname, const struct 
         fputs("    child:rotate_90_left()\n", cellfile);
         fputs("    child:rotate_90_left()\n", cellfile);
         fputs("    child:rotate_90_left()\n", cellfile);
-    }
-    else
-    {
-        if(cellref->transformation && cellref->transformation[0] == 1)
-        {
-            fputs("    child:mirror_at_xaxis()\n", cellfile);
-        }
     }
     if(!(cellref->origin->x == 0 && cellref->origin->y == 0))
     {
