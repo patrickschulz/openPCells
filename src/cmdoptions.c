@@ -209,6 +209,22 @@ static void _print_sep(unsigned int num)
     }
 }
 
+static void _put_line(unsigned int textwidth, unsigned int* linewidth, const char** ch, const char* wptr, unsigned int leftmargin)
+{
+    if(*linewidth + wptr - *ch > textwidth)
+    {
+        *linewidth = 0;
+        putchar('\n');
+        _print_sep(leftmargin - 1);
+    }
+    *linewidth += (wptr - *ch);
+    while(*ch < wptr)
+    {
+        putchar(**ch);
+        ++(*ch);
+    }
+}
+
 static void _print_wrapped_paragraph(const char* text, unsigned int textwidth, unsigned int leftmargin)
 {
     const char* ch = text;
@@ -218,34 +234,11 @@ static void _print_wrapped_paragraph(const char* text, unsigned int textwidth, u
     {
         if(*wptr == ' ')
         {
-            if(linewidth + wptr - ch > textwidth)
-            {
-                linewidth = 0;
-                putchar('\n');
-                _print_sep(leftmargin - 1);
-            }
-            linewidth += (wptr - ch);
-            while(ch < wptr)
-            {
-                putchar(*ch);
-                ++ch;
-            }
+            _put_line(textwidth, &linewidth, &ch, wptr, leftmargin);
         }
         ++wptr;
     }
-    // insert rest of line
-    if(linewidth + wptr - ch > textwidth)
-    {
-        linewidth = 0;
-        putchar('\n');
-        _print_sep(leftmargin - 1);
-    }
-    linewidth += (wptr - ch);
-    while(ch < wptr)
-    {
-        putchar(*ch);
-        ++ch;
-    }
+    _put_line(textwidth, &linewidth, &ch, wptr, leftmargin);
 }
 
 void cmdoptions_help(struct cmdoptions* options)
