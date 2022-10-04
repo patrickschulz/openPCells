@@ -1,19 +1,24 @@
 #ifndef OPC_TECHNOLOGY_H
 #define OPC_TECHNOLOGY_H
 
+#include <stddef.h>
+
 #include "lua/lua.h"
 
-#include "generics.h"
 #include "vector.h"
+#include "hashmap.h"
 
-struct technology_config
-{
+// public struct declarations
+struct technology_state;
+struct generics;
+struct layer_iterator;
+
+struct technology_config {
     unsigned int metals;
     unsigned int grid;
 };
 
-struct via_definition
-{
+struct via_definition {
     unsigned int width;
     unsigned int height;
     unsigned int xspace;
@@ -21,8 +26,6 @@ struct via_definition
     int xenclosure;
     int yenclosure;
 };
-
-struct technology_state;
 
 struct technology_state* technology_initialize(void);
 void technology_destroy(struct technology_state* state);
@@ -43,5 +46,34 @@ struct via_definition* technology_get_contact_fallback(struct technology_state* 
 struct generics* technology_make_layer(const char* layername, lua_State* L);
 
 int open_ltechnology_lib(lua_State* L);
+
+int generics_is_empty(const struct generics* layer);
+int generics_is_layer_name(const struct generics* layer, const char* layername);
+const struct hashmap* generics_get_first_layer_data(const struct generics* layer);
+
+void technology_insert_extra_layer(struct technology_state* techstate, struct generics* layer);
+int technology_resolve_premapped_layers(struct technology_state* techstate, const char* exportname);
+
+// layer creation interface
+const struct generics* generics_create_metal(struct technology_state* techstate, int num);
+const struct generics* generics_create_metalport(struct technology_state* techstate, int num);
+const struct generics* generics_create_metalexclude(struct technology_state* techstate, int num);
+const struct generics* generics_create_viacut(struct technology_state* techstate, int metal1, int metal2);
+const struct generics* generics_create_contact(struct technology_state* techstate, const char* region);
+const struct generics* generics_create_oxide(struct technology_state* techstate, int num);
+const struct generics* generics_create_implant(struct technology_state* techstate, char polarity);
+const struct generics* generics_create_vthtype(struct technology_state* techstate, char channeltype, int vthtype);
+const struct generics* generics_create_other(struct technology_state* techstate, const char* str);
+const struct generics* generics_create_otherport(struct technology_state* techstate, const char* str);
+const struct generics* generics_create_special(struct technology_state* techstate);
+const struct generics* generics_create_special(struct technology_state* techstate);
+const struct generics* generics_create_layer_from_lua(struct technology_state* techstate, const char* layername, lua_State* L);
+
+// layermap iterator
+struct layer_iterator* layer_iterator_create(struct technology_state* techstate);
+int layer_iterator_is_valid(struct layer_iterator* iterator);
+void* layer_iterator_get(struct layer_iterator* iterator);
+void layer_iterator_next(struct layer_iterator* iterator);
+void layer_iterator_destroy(struct layer_iterator* iterator);
 
 #endif // OPC_TECHNOLOGY_H

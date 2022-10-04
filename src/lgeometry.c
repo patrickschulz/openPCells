@@ -328,13 +328,10 @@ static int lgeometry_viabltr(lua_State* L)
         ycont = lua_toboolean(L, -1);
         lua_pop(L, 1);
     }
-    lua_getfield(L, LUA_REGISTRYINDEX, "genericslayermap");
-    struct layermap* layermap = lua_touserdata(L, -1);
-    lua_pop(L, 1); // pop layermap
     lua_getfield(L, LUA_REGISTRYINDEX, "techstate");
     struct technology_state* techstate = lua_touserdata(L, -1);
     lua_pop(L, 1); // pop techstate
-    int res = geometry_viabltr(lobject_get(cell), layermap, techstate, metal1, metal2, lpoint_get(bl), lpoint_get(tr), xrep, yrep, xpitch, ypitch, xcont, ycont);
+    int res = geometry_viabltr(lobject_get(cell), techstate, metal1, metal2, lpoint_get(bl), lpoint_get(tr), xrep, yrep, xpitch, ypitch, xcont, ycont);
     if(!res)
     {
         lua_pushfstring(L, "geometry.viabltr: could not fit via from metal %d to metal %d. Area: (%d, %d) and (%d, %d)", metal1, metal2, lpoint_get(bl)->x, lpoint_get(bl)->y, lpoint_get(tr)->x, lpoint_get(tr)->y);
@@ -356,7 +353,6 @@ static int lgeometry_via(lua_State* L)
     ucoordinate_t yrep = luaL_optinteger(L, 9, 1);
     ucoordinate_t xpitch = luaL_optinteger(L, 10, 0);
     ucoordinate_t ypitch = luaL_optinteger(L, 11, 0);
-    lua_getfield(L, LUA_REGISTRYINDEX, "genericslayermap");
     int xcont = 0;
     int ycont = 0;
     if(lua_type(L, 12) == LUA_TTABLE) // properties table
@@ -368,12 +364,10 @@ static int lgeometry_via(lua_State* L)
         ycont = lua_toboolean(L, -1);
         lua_pop(L, 1);
     }
-    struct layermap* layermap = lua_touserdata(L, -1);
-    lua_pop(L, 1); // pop layermap
     lua_getfield(L, LUA_REGISTRYINDEX, "techstate");
     struct technology_state* techstate = lua_touserdata(L, -1);
     lua_pop(L, 1); // pop techstate
-    int res = geometry_via(lobject_get(cell), layermap, techstate, metal1, metal2, width, height, xshift, yshift, xrep, yrep, xpitch, ypitch, xcont, ycont);
+    int res = geometry_via(lobject_get(cell), techstate, metal1, metal2, width, height, xshift, yshift, xrep, yrep, xpitch, ypitch, xcont, ycont);
     if(!res)
     {
         lua_pushfstring(L, "geometry.via: could not fit via from metal %d to metal %d. Area: (%d, %d) and (%d, %d)", metal1, metal2, xshift - width / 2, yshift - height / 2, xshift + width / 2, yshift + height / 2);
@@ -405,15 +399,12 @@ static int lgeometry_contactbltr(lua_State* L)
         lua_pop(L, 1);
     }
 
-    lua_getfield(L, LUA_REGISTRYINDEX, "genericslayermap");
-    struct layermap* layermap = lua_touserdata(L, -1);
-    lua_pop(L, 1); // pop layermap
     lua_getfield(L, LUA_REGISTRYINDEX, "techstate");
     struct technology_state* techstate = lua_touserdata(L, -1);
     lua_pop(L, 1); // pop techstate
     int res = geometry_contactbltr(
         lobject_get(cell),
-        layermap, techstate,
+        techstate,
         region,
         lpoint_get(bl), lpoint_get(tr),
         xrep, yrep,
@@ -451,15 +442,12 @@ static int lgeometry_contact(lua_State* L)
         ycont = lua_toboolean(L, -1);
         lua_pop(L, 1);
     }
-    lua_getfield(L, LUA_REGISTRYINDEX, "genericslayermap");
-    struct layermap* layermap = lua_touserdata(L, -1);
-    lua_pop(L, 1); // pop layermap
     lua_getfield(L, LUA_REGISTRYINDEX, "techstate");
     struct technology_state* techstate = lua_touserdata(L, -1);
     lua_pop(L, 1); // pop techstate
     int res = geometry_contact(
         lobject_get(cell),
-        layermap, techstate,
+        techstate,
         region,
         width, height,
         xshift, yshift,
@@ -498,15 +486,12 @@ static int lgeometry_contactbarebltr(lua_State* L)
         lua_pop(L, 1);
     }
 
-    lua_getfield(L, LUA_REGISTRYINDEX, "genericslayermap");
-    struct layermap* layermap = lua_touserdata(L, -1);
-    lua_pop(L, 1); // pop layermap
     lua_getfield(L, LUA_REGISTRYINDEX, "techstate");
     struct technology_state* techstate = lua_touserdata(L, -1);
     lua_pop(L, 1); // pop techstate
     int res = geometry_contactbarebltr(
         lobject_get(cell),
-        layermap, techstate,
+        techstate,
         region,
         lpoint_get(bl), lpoint_get(tr),
         xrep, yrep,
@@ -544,15 +529,12 @@ static int lgeometry_contactbare(lua_State* L)
         ycont = lua_toboolean(L, -1);
         lua_pop(L, 1);
     }
-    lua_getfield(L, LUA_REGISTRYINDEX, "genericslayermap");
-    struct layermap* layermap = lua_touserdata(L, -1);
-    lua_pop(L, 1); // pop layermap
     lua_getfield(L, LUA_REGISTRYINDEX, "techstate");
     struct technology_state* techstate = lua_touserdata(L, -1);
     lua_pop(L, 1); // pop techstate
     int res = geometry_contactbare(
         lobject_get(cell),
-        layermap, techstate,
+        techstate,
         region,
         width, height,
         xshift, yshift,

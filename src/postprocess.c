@@ -6,9 +6,9 @@
 #include "union.h"
 #include "pcell.h"
 
-static void _merge_shapes(struct object* object, struct layermap* layermap)
+static void _merge_shapes(struct object* object, struct technology_state* techstate)
 {
-    struct layer_iterator* it = layer_iterator_create(layermap);
+    struct layer_iterator* it = layer_iterator_create(techstate);
     while(layer_iterator_is_valid(it))
     {
         struct generics* layer = layer_iterator_get(it);
@@ -36,9 +36,9 @@ static void _merge_shapes(struct object* object, struct layermap* layermap)
     layer_iterator_destroy(it);
 }
 
-void postprocess_merge_shapes(struct object* object, struct layermap* layermap)
+void postprocess_merge_shapes(struct object* object, struct technology_state* techstate)
 {
-    _merge_shapes(object, layermap);
+    _merge_shapes(object, techstate);
 }
 
 void postprocess_filter_exclude(struct object* object, const char** layernames)

@@ -6,7 +6,6 @@
 #include "technology.h"
 #include "object.h"
 #include "shape.h"
-#include "generics.h"
 #include "point.h"
 
 void geometry_rectanglebltr(
@@ -50,7 +49,6 @@ void geometry_path(
 
 int geometry_viabltr(
     struct object* cell,
-    struct layermap* layermap,
     struct technology_state* techstate,
     int metal1, int metal2,
     const point_t* bl, const point_t* tr,
@@ -60,7 +58,7 @@ int geometry_viabltr(
 
 int geometry_via(
     struct object* cell,
-    struct layermap* layermap, struct technology_state* techstate,
+    struct technology_state* techstate,
     int metal1, int metal2,
     ucoordinate_t width, ucoordinate_t height,
     coordinate_t xshift, coordinate_t yshift,
@@ -71,7 +69,7 @@ int geometry_via(
 
 int geometry_contactbltr(
     struct object* cell,
-    struct layermap* layermap, struct technology_state* techstate,
+    struct technology_state* techstate,
     const char* region,
     const point_t* bl, const point_t* tr,
     ucoordinate_t xrep, ucoordinate_t yrep,
@@ -81,7 +79,7 @@ int geometry_contactbltr(
 
 int geometry_contact(
     struct object* cell,
-    struct layermap* layermap, struct technology_state* techstate,
+    struct technology_state* techstate,
     const char* region,
     ucoordinate_t width, ucoordinate_t height,
     coordinate_t xshift, coordinate_t yshift,
@@ -92,7 +90,7 @@ int geometry_contact(
 
 int geometry_contactbarebltr(
     struct object* cell,
-    struct layermap* layermap, struct technology_state* techstate,
+    struct technology_state* techstate,
     const char* region,
     const point_t* bl, const point_t* tr,
     ucoordinate_t xrep, ucoordinate_t yrep,
@@ -102,7 +100,7 @@ int geometry_contactbarebltr(
 
 int geometry_contactbare(
     struct object* cell,
-    struct layermap* layermap, struct technology_state* techstate,
+    struct technology_state* techstate,
     const char* region,
     ucoordinate_t width, ucoordinate_t height,
     coordinate_t xshift, coordinate_t yshift,

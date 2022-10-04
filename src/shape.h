@@ -5,7 +5,7 @@
 
 #include "point.h"
 #include "transformationmatrix.h"
-#include "generics.h"
+#include "technology.h"
 
 struct curve_segment {
     enum segment_type {

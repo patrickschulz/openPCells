@@ -3,8 +3,6 @@
 
 #include "lua/lua.h"
 
-#include "generics.h"
-
 #define LGENERICSMODULE "generics"
 
 int open_lgenerics_lib(lua_State* L);

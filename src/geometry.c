@@ -468,7 +468,6 @@ static int _via_contact_bltr(
 
 static int _viabltr(
     struct object* cell,
-    struct layermap* layermap,
     struct technology_state* techstate,
     int metal1, int metal2,
     coordinate_t blx, coordinate_t bly, coordinate_t trx, coordinate_t try,
@@ -496,9 +495,9 @@ static int _viabltr(
         }
         ret = ret && _via_contact_bltr(cell,
             viadefs, fallback,
-            generics_create_viacut(layermap, techstate, i, i + 1),
-            generics_create_metal(layermap, techstate, i),
-            generics_create_metal(layermap, techstate, i + 1),
+            generics_create_viacut(techstate, i, i + 1),
+            generics_create_metal(techstate, i),
+            generics_create_metal(techstate, i + 1),
             blx, bly, trx, try,
             xrep, yrep, xpitch, ypitch,
             xcont, ycont,
@@ -508,19 +507,19 @@ static int _viabltr(
     return ret;
 }
 
-int geometry_viabltr(struct object* cell, struct layermap* layermap, struct technology_state* techstate, int metal1, int metal2, const point_t* bl, const point_t* tr, ucoordinate_t xrep, ucoordinate_t yrep, ucoordinate_t xpitch, ucoordinate_t ypitch, int xcont, int ycont)
+int geometry_viabltr(struct object* cell, struct technology_state* techstate, int metal1, int metal2, const point_t* bl, const point_t* tr, ucoordinate_t xrep, ucoordinate_t yrep, ucoordinate_t xpitch, ucoordinate_t ypitch, int xcont, int ycont)
 {
-    return _viabltr(cell, layermap, techstate, metal1, metal2, bl->x, bl->y, tr->x, tr->y, xrep, yrep, xpitch, ypitch, xcont, ycont);
+    return _viabltr(cell, techstate, metal1, metal2, bl->x, bl->y, tr->x, tr->y, xrep, yrep, xpitch, ypitch, xcont, ycont);
 }
 
-int geometry_via(struct object* cell, struct layermap* layermap, struct technology_state* techstate, int metal1, int metal2, ucoordinate_t width, ucoordinate_t height, coordinate_t xshift, coordinate_t yshift, ucoordinate_t xrep, ucoordinate_t yrep, ucoordinate_t xpitch, ucoordinate_t ypitch, int xcont, int ycont)
+int geometry_via(struct object* cell, struct technology_state* techstate, int metal1, int metal2, ucoordinate_t width, ucoordinate_t height, coordinate_t xshift, coordinate_t yshift, ucoordinate_t xrep, ucoordinate_t yrep, ucoordinate_t xpitch, ucoordinate_t ypitch, int xcont, int ycont)
 {
-    return _viabltr(cell, layermap, techstate, metal1, metal2, -(coordinate_t)width / 2 + xshift, -(coordinate_t)height / 2 + yshift, width / 2 + xshift, height / 2 + yshift, xrep, yrep, xpitch, ypitch, xcont, ycont);
+    return _viabltr(cell, techstate, metal1, metal2, -(coordinate_t)width / 2 + xshift, -(coordinate_t)height / 2 + yshift, width / 2 + xshift, height / 2 + yshift, xrep, yrep, xpitch, ypitch, xcont, ycont);
 }
 
 static int _contactbltr(
     struct object* cell,
-    struct layermap* layermap, struct technology_state* techstate,
+    struct technology_state* techstate,
     const char* region,
     coordinate_t blx, coordinate_t bly, coordinate_t trx, coordinate_t try,
     ucoordinate_t xrep, ucoordinate_t yrep,
@@ -536,8 +535,8 @@ static int _contactbltr(
     }
     return _via_contact_bltr(cell,
         viadefs, fallback,
-        generics_create_contact(layermap, techstate, region),
-        generics_create_metal(layermap, techstate, 1),
+        generics_create_contact(techstate, region),
+        generics_create_metal(techstate, 1),
         NULL,
         blx, bly, trx, try,
         xrep, yrep, xpitch, ypitch,
@@ -548,7 +547,7 @@ static int _contactbltr(
 
 static int _contactbarebltr(
     struct object* cell,
-    struct layermap* layermap, struct technology_state* techstate,
+    struct technology_state* techstate,
     const char* region,
     coordinate_t blx, coordinate_t bly, coordinate_t trx, coordinate_t try,
     ucoordinate_t xrep, ucoordinate_t yrep,
@@ -564,7 +563,7 @@ static int _contactbarebltr(
     }
     return _via_contact_bltr(cell,
         viadefs, fallback,
-        generics_create_contact(layermap, techstate, region),
+        generics_create_contact(techstate, region),
         NULL, NULL,
         blx, bly, trx, try,
         xrep, yrep, xpitch, ypitch,
@@ -575,7 +574,7 @@ static int _contactbarebltr(
 
 int geometry_contactbltr(
     struct object* cell,
-    struct layermap* layermap, struct technology_state* techstate,
+    struct technology_state* techstate,
     const char* region,
     const point_t* bl, const point_t* tr,
     ucoordinate_t xrep, ucoordinate_t yrep,
@@ -585,7 +584,7 @@ int geometry_contactbltr(
 {
     return _contactbltr(
         cell,
-        layermap, techstate,
+        techstate,
         region,
         bl->x, bl->y, tr->x, tr->y,
         xrep, yrep,
@@ -596,7 +595,7 @@ int geometry_contactbltr(
 
 int geometry_contact(
     struct object* cell,
-    struct layermap* layermap, struct technology_state* techstate,
+    struct technology_state* techstate,
     const char* region,
     ucoordinate_t width, ucoordinate_t height,
     coordinate_t xshift, coordinate_t yshift,
@@ -607,7 +606,7 @@ int geometry_contact(
 {
     return _contactbltr(
         cell,
-        layermap, techstate,
+        techstate,
         region,
         -(coordinate_t)width / 2 + xshift, -(coordinate_t)height / 2 + yshift,
         width / 2 + xshift, height / 2 + yshift,
@@ -619,7 +618,7 @@ int geometry_contact(
 
 int geometry_contactbarebltr(
     struct object* cell,
-    struct layermap* layermap, struct technology_state* techstate,
+    struct technology_state* techstate,
     const char* region,
     const point_t* bl, const point_t* tr,
     ucoordinate_t xrep, ucoordinate_t yrep,
@@ -629,7 +628,7 @@ int geometry_contactbarebltr(
 {
     return _contactbarebltr(
         cell,
-        layermap, techstate,
+        techstate,
         region,
         bl->x, bl->y, tr->x, tr->y,
         xrep, yrep,
@@ -640,7 +639,7 @@ int geometry_contactbarebltr(
 
 int geometry_contactbare(
     struct object* cell,
-    struct layermap* layermap, struct technology_state* techstate,
+    struct technology_state* techstate,
     const char* region,
     ucoordinate_t width, ucoordinate_t height,
     coordinate_t xshift, coordinate_t yshift,
@@ -651,7 +650,7 @@ int geometry_contactbare(
 {
     return _contactbarebltr(
         cell,
-        layermap, techstate,
+        techstate,
         region,
         -(coordinate_t)width / 2 + xshift, -(coordinate_t)height / 2 + yshift,
         width / 2 + xshift, height / 2 + yshift,

@@ -68,12 +68,6 @@ static struct technology_state* _create_techstate(struct vector* techpaths, cons
     return techstate;
 }
 
-static struct layermap* _create_layermap(void)
-{
-    struct layermap* layermap = generics_initialize_layer_map();
-    return layermap;
-}
-
 static int _parse_point(const char* arg, int* xptr, int* yptr)
 {
     unsigned int idx1 = 0;
@@ -238,7 +232,6 @@ static struct object* _create_cell(
     struct vector* cellargs,
     struct technology_state* techstate,
     struct pcell_state* pcell_state,
-    struct layermap* layermap,
     int enabledprint,
     struct const_vector* pfilenames,
     const char* cellenvfilename
@@ -253,10 +246,6 @@ static struct object* _create_cell(
     // register pcell state
     lua_pushlightuserdata(L, pcell_state);
     lua_setfield(L, LUA_REGISTRYINDEX, "pcellstate");
-
-    // register layermap
-    lua_pushlightuserdata(L, layermap);
-    lua_setfield(L, LUA_REGISTRYINDEX, "genericslayermap");
 
     // load main modules
     module_load_aux(L);
@@ -391,7 +380,7 @@ static void _scale(struct object* toplevel, struct cmdoptions* cmdoptions, struc
     }
 }
 
-static void _draw_alignmentboxes(struct object* toplevel, struct cmdoptions* cmdoptions, struct technology_state* techstate, struct layermap* layermap, struct pcell_state* pcell_state)
+static void _draw_alignmentboxes(struct object* toplevel, struct cmdoptions* cmdoptions, struct technology_state* techstate, struct pcell_state* pcell_state)
 {
     if(cmdoptions_was_provided_long(cmdoptions, "draw-alignmentbox") || cmdoptions_was_provided_long(cmdoptions, "draw-all-alignmentboxes"))
     {
@@ -399,7 +388,7 @@ static void _draw_alignmentboxes(struct object* toplevel, struct cmdoptions* cmd
         point_t* tr = object_get_anchor(toplevel, "topright");
         if(bl && tr)
         {
-            geometry_rectanglebltr(toplevel, generics_create_special(layermap, techstate), bl, tr, 1, 1, 0, 0);
+            geometry_rectanglebltr(toplevel, generics_create_special(techstate), bl, tr, 1, 1, 0, 0);
             point_destroy(bl);
             point_destroy(tr);
         }
@@ -417,7 +406,7 @@ static void _draw_alignmentboxes(struct object* toplevel, struct cmdoptions* cmd
             point_t* tr = object_get_anchor(refcell, "topright");
             if(bl && tr)
             {
-                geometry_rectanglebltr(refcell, generics_create_special(layermap, techstate), bl, tr, 1, 1, 0, 0);
+                geometry_rectanglebltr(refcell, generics_create_special(techstate), bl, tr, 1, 1, 0, 0);
                 point_destroy(bl);
                 point_destroy(tr);
             }
@@ -427,7 +416,7 @@ static void _draw_alignmentboxes(struct object* toplevel, struct cmdoptions* cmd
     }
 }
 
-static void _draw_anchors(struct object* toplevel, struct cmdoptions* cmdoptions, struct technology_state* techstate, struct layermap* layermap)
+static void _draw_anchors(struct object* toplevel, struct cmdoptions* cmdoptions, struct technology_state* techstate)
 {
     if(cmdoptions_was_provided_long(cmdoptions, "draw-anchor"))
     {
@@ -437,7 +426,7 @@ static void _draw_anchors(struct object* toplevel, struct cmdoptions* cmdoptions
             point_t* pt = object_get_anchor(toplevel, *anchornames);
             if(pt) // FIXME: handle NULL point
             {
-                object_add_port(toplevel, *anchornames, generics_create_special(layermap, techstate), pt, 0); // 0: don't store anchor
+                object_add_port(toplevel, *anchornames, generics_create_special(techstate), pt, 0); // 0: don't store anchor
                 point_destroy(pt);
             }
             else
@@ -455,7 +444,7 @@ static void _draw_anchors(struct object* toplevel, struct cmdoptions* cmdoptions
         {
             const char* key = hashmap_const_iterator_key(iterator);
             const point_t* anchor = hashmap_const_iterator_value(iterator);
-            object_add_port(toplevel, key, generics_create_special(layermap, techstate), anchor, 0); // 0: don't store anchor
+            object_add_port(toplevel, key, generics_create_special(techstate), anchor, 0); // 0: don't store anchor
             hashmap_const_iterator_next(iterator);
         }
         hashmap_const_iterator_destroy(iterator);
@@ -501,11 +490,11 @@ static void _filter_layers(struct object* toplevel, struct cmdoptions* cmdoption
     }
 }
 
-static void _merge_rectangles(struct object* toplevel, struct cmdoptions* cmdoptions, struct layermap* layermap, struct pcell_state* pcell_state)
+static void _merge_rectangles(struct object* toplevel, struct cmdoptions* cmdoptions, struct technology_state* techstate, struct pcell_state* pcell_state)
 {
     if(cmdoptions_was_provided_long(cmdoptions, "merge-rectangles"))
     {
-        postprocess_merge_shapes(toplevel, layermap);
+        postprocess_merge_shapes(toplevel, techstate);
         struct cell_reference_iterator* it = pcell_create_cell_reference_iterator(pcell_state);
         while(pcell_cell_reference_iterator_is_valid(it))
         {
@@ -513,7 +502,7 @@ static void _merge_rectangles(struct object* toplevel, struct cmdoptions* cmdopt
             struct object* refcell;
             int refnumused;
             pcell_cell_reference_iterator_get(it, &refidentifier, &refcell, &refnumused);
-            postprocess_merge_shapes(refcell, layermap);
+            postprocess_merge_shapes(refcell, techstate);
             pcell_cell_reference_iterator_advance(it);
         }
         pcell_destroy_cell_reference_iterator(it);
@@ -602,12 +591,6 @@ int main_create_and_export_cell(struct cmdoptions* cmdoptions, struct hashmap* c
         retval = 0;
         goto DESTROY_TECHNOLOGY;
     }
-    struct layermap* layermap = _create_layermap();
-    if(!layermap)
-    {
-        retval = 0;
-        goto DESTROY_PCELL_STATE;
-    }
     struct vector* cellargs = cmdoptions_get_positional_parameters(cmdoptions);
     const char* cellname;
     if(iscellscript)
@@ -639,7 +622,7 @@ int main_create_and_export_cell(struct cmdoptions* cmdoptions, struct hashmap* c
         }
     }
     const char* cellenvfilename = cmdoptions_get_argument_long(cmdoptions, "cell-environment");
-    struct object* toplevel = _create_cell(cellname, iscellscript, cellargs, techstate, pcell_state, layermap, enabledprint, pfilenames, cellenvfilename);
+    struct object* toplevel = _create_cell(cellname, iscellscript, cellargs, techstate, pcell_state, enabledprint, pfilenames, cellenvfilename);
     const_vector_destroy(pfilenames);
     if(toplevel)
     {
@@ -682,10 +665,10 @@ int main_create_and_export_cell(struct cmdoptions* cmdoptions, struct hashmap* c
         */
 
         // draw alignmentbox(es)
-        _draw_alignmentboxes(toplevel, cmdoptions, techstate, layermap, pcell_state);
+        _draw_alignmentboxes(toplevel, cmdoptions, techstate, pcell_state);
 
         // draw achors
-        _draw_anchors(toplevel, cmdoptions, techstate, layermap);
+        _draw_anchors(toplevel, cmdoptions, techstate);
 
         // flatten cell
         if(cmdoptions_was_provided_long(cmdoptions, "flat"))
@@ -696,7 +679,7 @@ int main_create_and_export_cell(struct cmdoptions* cmdoptions, struct hashmap* c
 
         // post-processing
         _filter_layers(toplevel, cmdoptions, pcell_state);
-        _merge_rectangles(toplevel, cmdoptions, layermap, pcell_state);
+        _merge_rectangles(toplevel, cmdoptions, techstate, pcell_state);
 
         // resolve paths
         _resolve_paths(toplevel, cmdoptions, pcell_state);
@@ -742,7 +725,7 @@ int main_create_and_export_cell(struct cmdoptions* cmdoptions, struct hashmap* c
             while(*exportnames)
             {
                 export_set_exportname(export_state, *exportnames);
-                if(!generics_resolve_premapped_layers(layermap, export_get_layername(export_state)))
+                if(!technology_resolve_premapped_layers(techstate, export_get_layername(export_state)))
                 {
                     retval = 0;
                     goto DESTROY_OBJECT;
@@ -788,8 +771,6 @@ DESTROY_OBJECT:
     {
         object_destroy(toplevel);
     }
-    generics_destroy_layer_map(layermap);
-DESTROY_PCELL_STATE:
     pcell_destroy_state(pcell_state);
 DESTROY_TECHNOLOGY:
     technology_destroy(techstate);

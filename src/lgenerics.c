@@ -2,7 +2,6 @@
 
 #include "lua/lauxlib.h"
 
-#include "generics.h"
 #include "technology.h"
 
 static void _push_layer(lua_State* L, const struct generics* layer)
@@ -14,13 +13,10 @@ static void _push_layer(lua_State* L, const struct generics* layer)
 static int lgenerics_create_metal(lua_State* L)
 {
     int num = luaL_checkinteger(L, 1);
-    lua_getfield(L, LUA_REGISTRYINDEX, "genericslayermap");
-    struct layermap* layermap = lua_touserdata(L, -1);
-    lua_pop(L, 1); // pop layermap
     lua_getfield(L, LUA_REGISTRYINDEX, "techstate");
     struct technology_state* techstate = lua_touserdata(L, -1);
     lua_pop(L, 1); // pop techstate
-    const struct generics* layer = generics_create_metal(layermap, techstate, num);
+    const struct generics* layer = generics_create_metal(techstate, num);
     if(!layer)
     {
         lua_pushfstring(L, "generics: got NULL layer: generics.metal(%d)\nif this layer is not needed, set it to {}", num);
@@ -33,13 +29,10 @@ static int lgenerics_create_metal(lua_State* L)
 static int lgenerics_create_metalport(lua_State* L)
 {
     int num = luaL_checkinteger(L, 1);
-    lua_getfield(L, LUA_REGISTRYINDEX, "genericslayermap");
-    struct layermap* layermap = lua_touserdata(L, -1);
-    lua_pop(L, 1); // pop layermap
     lua_getfield(L, LUA_REGISTRYINDEX, "techstate");
     struct technology_state* techstate = lua_touserdata(L, -1);
     lua_pop(L, 1); // pop techstate
-    const struct generics* layer = generics_create_metalport(layermap, techstate, num);
+    const struct generics* layer = generics_create_metalport(techstate, num);
     if(!layer)
     {
         lua_pushfstring(L, "generics: got NULL layer: generics.metalport(%d)\nif this layer is not needed, set it to {}", num);
@@ -52,13 +45,10 @@ static int lgenerics_create_metalport(lua_State* L)
 static int lgenerics_create_metalexclude(lua_State* L)
 {
     int num = luaL_checkinteger(L, 1);
-    lua_getfield(L, LUA_REGISTRYINDEX, "genericslayermap");
-    struct layermap* layermap = lua_touserdata(L, -1);
-    lua_pop(L, 1); // pop layermap
     lua_getfield(L, LUA_REGISTRYINDEX, "techstate");
     struct technology_state* techstate = lua_touserdata(L, -1);
     lua_pop(L, 1); // pop techstate
-    const struct generics* layer = generics_create_metalexclude(layermap, techstate, num);
+    const struct generics* layer = generics_create_metalexclude(techstate, num);
     if(!layer)
     {
         lua_pushfstring(L, "generics: got NULL layer: generics.metalexclude(%d)\nif this layer is not needed, set it to {}", num);
@@ -72,13 +62,10 @@ static int lgenerics_create_viacut(lua_State* L)
 {
     int metal1 = luaL_checkinteger(L, 1);
     int metal2 = luaL_checkinteger(L, 2);
-    lua_getfield(L, LUA_REGISTRYINDEX, "genericslayermap");
-    struct layermap* layermap = lua_touserdata(L, -1);
-    lua_pop(L, 1); // pop layermap
     lua_getfield(L, LUA_REGISTRYINDEX, "techstate");
     struct technology_state* techstate = lua_touserdata(L, -1);
     lua_pop(L, 1); // pop techstate
-    const struct generics* layer = generics_create_viacut(layermap, techstate, metal1, metal2);
+    const struct generics* layer = generics_create_viacut(techstate, metal1, metal2);
     if(!layer)
     {
         lua_pushfstring(L, "generics: got NULL layer: generics.viacut(%d, %d)\nif this layer is not needed, set it to {}", metal1, metal2);
@@ -91,13 +78,10 @@ static int lgenerics_create_viacut(lua_State* L)
 static int lgenerics_create_contact(lua_State* L)
 {
     const char* region = luaL_checkstring(L, 1);
-    lua_getfield(L, LUA_REGISTRYINDEX, "genericslayermap");
-    struct layermap* layermap = lua_touserdata(L, -1);
-    lua_pop(L, 1); // pop layermap
     lua_getfield(L, LUA_REGISTRYINDEX, "techstate");
     struct technology_state* techstate = lua_touserdata(L, -1);
     lua_pop(L, 1); // pop techstate
-    const struct generics* layer = generics_create_contact(layermap, techstate, region);
+    const struct generics* layer = generics_create_contact(techstate, region);
     if(!layer)
     {
         lua_pushfstring(L, "generics: got NULL layer: generics.contact(\"%s\")\nif this layer is not needed, set it to {}", region);
@@ -110,13 +94,10 @@ static int lgenerics_create_contact(lua_State* L)
 static int lgenerics_create_oxide(lua_State* L)
 {
     int num = luaL_checkinteger(L, 1);
-    lua_getfield(L, LUA_REGISTRYINDEX, "genericslayermap");
-    struct layermap* layermap = lua_touserdata(L, -1);
-    lua_pop(L, 1); // pop layermap
     lua_getfield(L, LUA_REGISTRYINDEX, "techstate");
     struct technology_state* techstate = lua_touserdata(L, -1);
     lua_pop(L, 1); // pop techstate
-    const struct generics* layer = generics_create_oxide(layermap, techstate, num);
+    const struct generics* layer = generics_create_oxide(techstate, num);
     if(!layer)
     {
         lua_pushfstring(L, "generics: got NULL layer: generics.oxide(%d)\nif this layer is not needed, set it to {}", num);
@@ -129,13 +110,10 @@ static int lgenerics_create_oxide(lua_State* L)
 static int lgenerics_create_implant(lua_State* L)
 {
     const char* str = luaL_checkstring(L, 1);
-    lua_getfield(L, LUA_REGISTRYINDEX, "genericslayermap");
-    struct layermap* layermap = lua_touserdata(L, -1);
-    lua_pop(L, 1); // pop layermap
     lua_getfield(L, LUA_REGISTRYINDEX, "techstate");
     struct technology_state* techstate = lua_touserdata(L, -1);
     lua_pop(L, 1); // pop techstate
-    const struct generics* layer = generics_create_implant(layermap, techstate, str[0]);
+    const struct generics* layer = generics_create_implant(techstate, str[0]);
     if(!layer)
     {
         lua_pushfstring(L, "generics: got NULL layer: generics.implant('%c')\nif this layer is not needed, set it to {}", str[0]);
@@ -149,13 +127,10 @@ static int lgenerics_create_vthtype(lua_State* L)
 {
     const char* channeltype = luaL_checkstring(L, 1);
     int vthtype = luaL_checkinteger(L, 2);
-    lua_getfield(L, LUA_REGISTRYINDEX, "genericslayermap");
-    struct layermap* layermap = lua_touserdata(L, -1);
-    lua_pop(L, 1); // pop layermap
     lua_getfield(L, LUA_REGISTRYINDEX, "techstate");
     struct technology_state* techstate = lua_touserdata(L, -1);
     lua_pop(L, 1); // pop techstate
-    const struct generics* layer = generics_create_vthtype(layermap, techstate, channeltype[0], vthtype);
+    const struct generics* layer = generics_create_vthtype(techstate, channeltype[0], vthtype);
     if(!layer)
     {
         lua_pushfstring(L, "generics: got NULL layer: generics.vthtype('%c', %d)\nif this layer is not needed, set it to {}", channeltype[0], vthtype);
@@ -168,13 +143,10 @@ static int lgenerics_create_vthtype(lua_State* L)
 static int lgenerics_create_other(lua_State* L)
 {
     const char* str = luaL_checkstring(L, 1);
-    lua_getfield(L, LUA_REGISTRYINDEX, "genericslayermap");
-    struct layermap* layermap = lua_touserdata(L, -1);
-    lua_pop(L, 1); // pop layermap
     lua_getfield(L, LUA_REGISTRYINDEX, "techstate");
     struct technology_state* techstate = lua_touserdata(L, -1);
     lua_pop(L, 1); // pop techstate
-    const struct generics* layer = generics_create_other(layermap, techstate, str);
+    const struct generics* layer = generics_create_other(techstate, str);
     if(!layer)
     {
         lua_pushfstring(L, "generics: got NULL layer: generics.other(\"%s\")\nif this layer is not needed, set it to {}", str);
@@ -187,13 +159,10 @@ static int lgenerics_create_other(lua_State* L)
 static int lgenerics_create_otherport(lua_State* L)
 {
     const char* str = luaL_checkstring(L, 1);
-    lua_getfield(L, LUA_REGISTRYINDEX, "genericslayermap");
-    struct layermap* layermap = lua_touserdata(L, -1);
-    lua_pop(L, 1); // pop layermap
     lua_getfield(L, LUA_REGISTRYINDEX, "techstate");
     struct technology_state* techstate = lua_touserdata(L, -1);
     lua_pop(L, 1); // pop techstate
-    const struct generics* layer = generics_create_otherport(layermap, techstate, str);
+    const struct generics* layer = generics_create_otherport(techstate, str);
     if(!layer)
     {
         lua_pushfstring(L, "generics: got NULL layer: generics.otherport(\"%s\")\nif this layer is not needed, set it to {}", str);
@@ -205,13 +174,10 @@ static int lgenerics_create_otherport(lua_State* L)
 
 static int lgenerics_create_special(lua_State* L)
 {
-    lua_getfield(L, LUA_REGISTRYINDEX, "genericslayermap");
-    struct layermap* layermap = lua_touserdata(L, -1);
-    lua_pop(L, 1); // pop layermap
     lua_getfield(L, LUA_REGISTRYINDEX, "techstate");
     struct technology_state* techstate = lua_touserdata(L, -1);
     lua_pop(L, 1); // pop techstate
-    const struct generics* layer = generics_create_special(layermap, techstate);
+    const struct generics* layer = generics_create_special(techstate);
     if(!layer)
     {
         lua_pushstring(L, "generics: got NULL layer: generics.special()\nif this layer is not needed, set it to {}");
@@ -223,22 +189,26 @@ static int lgenerics_create_special(lua_State* L)
 
 static int lgenerics_create_premapped(lua_State* L)
 {
-    lua_getfield(L, LUA_REGISTRYINDEX, "genericslayermap");
-    struct layermap* layermap = lua_touserdata(L, -1);
-    lua_pop(L, 1); // pop layermap
-    struct generics* layer = generics_make_layer_from_lua("_EXPLICITLY_PREMAPPED", L); // FIXME: get layername
-    generics_insert_extra_layer(layermap, layer);
+    lua_getfield(L, LUA_REGISTRYINDEX, "techstate");
+    struct technology_state* techstate = lua_touserdata(L, -1);
+    lua_pop(L, 1); // pop techstate
+    const char* layername = lua_tostring(L, 1);
+    if(!layername)
+    {
+        layername = "_EXPLICITLY_PREMAPPED";
+    }
+    const struct generics* layer = generics_create_layer_from_lua(techstate, layername, L);
     _push_layer(L, layer);
     return 1;
 }
 
 static int lgenerics_resolve_premapped_layers(lua_State* L)
 {
-    lua_getfield(L, LUA_REGISTRYINDEX, "genericslayermap");
-    struct layermap* layermap = lua_touserdata(L, -1);
-    lua_pop(L, 1); // pop layermap
+    lua_getfield(L, LUA_REGISTRYINDEX, "techstate");
+    struct technology_state* techstate = lua_touserdata(L, -1);
+    lua_pop(L, 1); // pop techstate
     const char* exportname = luaL_checkstring(L, 1);
-    int ret = generics_resolve_premapped_layers(layermap, exportname);
+    int ret = technology_resolve_premapped_layers(techstate, exportname);
     lua_pushboolean(L, ret);
     return 1;
 }
