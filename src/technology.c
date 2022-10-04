@@ -870,54 +870,54 @@ const struct hashmap* generics_get_first_layer_data(const struct generics* layer
 
 // layer iterator
 struct layer_iterator {
-    struct hashmap_iterator* hashmap_iterator;
-    struct vector_iterator* extra_iterator;
+    struct hashmap_const_iterator* hashmap_iterator;
+    struct vector_const_iterator* extra_iterator;
 };
 
-struct layer_iterator* layer_iterator_create(struct technology_state* techstate)
+struct layer_iterator* layer_iterator_create(const struct technology_state* techstate)
 {
     struct layer_iterator* it = malloc(sizeof(*it));
-    it->hashmap_iterator = hashmap_iterator_create(techstate->layermap);
-    it->extra_iterator = vector_iterator_create(techstate->extra_layers);
+    it->hashmap_iterator = hashmap_const_iterator_create(techstate->layermap);
+    it->extra_iterator = vector_const_iterator_create(techstate->extra_layers);
     return it;
 }
 
 int layer_iterator_is_valid(struct layer_iterator* iterator)
 {
     return
-        hashmap_iterator_is_valid(iterator->hashmap_iterator)
+        hashmap_const_iterator_is_valid(iterator->hashmap_iterator)
         ||
-        vector_iterator_is_valid(iterator->extra_iterator)
+        vector_const_iterator_is_valid(iterator->extra_iterator)
         ;
 }
 
-void* layer_iterator_get(struct layer_iterator* iterator)
+const struct generics* layer_iterator_get(struct layer_iterator* iterator)
 {
-    if(hashmap_iterator_is_valid(iterator->hashmap_iterator))
+    if(hashmap_const_iterator_is_valid(iterator->hashmap_iterator))
     {
-        return hashmap_iterator_value(iterator->hashmap_iterator);
+        return hashmap_const_iterator_value(iterator->hashmap_iterator);
     }
     else
     {
-        return vector_iterator_get(iterator->extra_iterator);
+        return vector_const_iterator_get(iterator->extra_iterator);
     }
 }
 
 void layer_iterator_next(struct layer_iterator* iterator)
 {
-    if(hashmap_iterator_is_valid(iterator->hashmap_iterator))
+    if(hashmap_const_iterator_is_valid(iterator->hashmap_iterator))
     {
-        hashmap_iterator_next(iterator->hashmap_iterator);
+        hashmap_const_iterator_next(iterator->hashmap_iterator);
     }
     else
     {
-        vector_iterator_next(iterator->extra_iterator);
+        vector_const_iterator_next(iterator->extra_iterator);
     }
 }
 
 void layer_iterator_destroy(struct layer_iterator* iterator)
 {
-    hashmap_iterator_destroy(iterator->hashmap_iterator);
-    vector_iterator_destroy(iterator->extra_iterator);
+    hashmap_const_iterator_destroy(iterator->hashmap_iterator);
+    vector_const_iterator_destroy(iterator->extra_iterator);
 }
 

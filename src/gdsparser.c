@@ -738,31 +738,29 @@ struct vector* gdsparser_create_layermap(const char* filename)
     return map;
 }
 
+static void _destroy_mapping(void* v)
+{
+    struct layermapping* mapping = v;
+    if(mapping->mappings)
+    {
+        for(unsigned int i = 0; i < mapping->num; ++i)
+        {
+            free(mapping->mappings[i]);
+        }
+        free(mapping->mappings);
+    }
+    if(mapping->map)
+    {
+        free(mapping->map);
+    }
+    free(mapping);
+}
+
 void gdsparser_destroy_layermap(struct vector* layermap)
 {
     if(layermap)
     {
-        struct vector_iterator* it = vector_iterator_create(layermap);
-        while(vector_iterator_is_valid(it))
-        {
-            struct layermapping* mapping = vector_iterator_get(it);
-            if(mapping->mappings)
-            {
-                for(unsigned int i = 0; i < mapping->num; ++i)
-                {
-                    free(mapping->mappings[i]);
-                }
-                free(mapping->mappings);
-            }
-            if(mapping->map)
-            {
-                free(mapping->map);
-            }
-            free(mapping);
-            vector_iterator_next(it);
-        }
-        vector_iterator_destroy(it);
-        vector_destroy(layermap, NULL);
+        vector_destroy(layermap, _destroy_mapping);
     }
 }
 

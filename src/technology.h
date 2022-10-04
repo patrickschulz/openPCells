@@ -70,9 +70,9 @@ const struct generics* generics_create_special(struct technology_state* techstat
 const struct generics* generics_create_layer_from_lua(struct technology_state* techstate, const char* layername, lua_State* L);
 
 // layermap iterator
-struct layer_iterator* layer_iterator_create(struct technology_state* techstate);
+struct layer_iterator* layer_iterator_create(const struct technology_state* techstate);
 int layer_iterator_is_valid(struct layer_iterator* iterator);
-void* layer_iterator_get(struct layer_iterator* iterator);
+const struct generics* layer_iterator_get(struct layer_iterator* iterator);
 void layer_iterator_next(struct layer_iterator* iterator);
 void layer_iterator_destroy(struct layer_iterator* iterator);
 

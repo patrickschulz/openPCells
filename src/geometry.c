@@ -276,14 +276,14 @@ struct shape* geometry_path_to_polygon(const struct generics* layer, point_t** p
     struct vector* poly = _get_path_pts(edges, miterjoin);
     vector_destroy(edges, point_destroy);
     struct shape* S = shape_create_polygon(layer, vector_size(poly));
-    struct vector_iterator* it = vector_iterator_create(poly);
-    while(vector_iterator_is_valid(it))
+    struct vector_const_iterator* it = vector_const_iterator_create(poly);
+    while(vector_const_iterator_is_valid(it))
     {
-        point_t* pt = vector_iterator_get(it);
+        const point_t* pt = vector_const_iterator_get(it);
         shape_append(S, pt->x, pt->y);
-        vector_iterator_next(it);
+        vector_const_iterator_next(it);
     }
-    vector_iterator_destroy(it);
+    vector_const_iterator_destroy(it);
     vector_destroy(poly, point_destroy);
     return S;
 }

@@ -755,11 +755,11 @@ void shape_rasterize_curve_inline(struct shape* shape)
     // FIXME: add_curve_xxx_segment MUST also specify the type, then we can iterate over the individual segments here!
     struct vector* rastered_points = vector_create(1024);
     struct curve* curve = shape->content;
-    struct vector_iterator* it = vector_iterator_create(curve->segments);
+    struct vector_const_iterator* it = vector_const_iterator_create(curve->segments);
     point_t* lastpt = point_copy(curve->origin);
-    while(vector_iterator_is_valid(it))
+    while(vector_const_iterator_is_valid(it))
     {
-        struct curve_segment* segment = vector_iterator_get(it);
+        const struct curve_segment* segment = vector_const_iterator_get(it);
         switch(segment->type)
         {
             case LINESEGMENT:
@@ -789,10 +789,10 @@ void shape_rasterize_curve_inline(struct shape* shape)
                 break;
             }
         }
-        vector_iterator_next(it);
+        vector_const_iterator_next(it);
     }
+    vector_const_iterator_destroy(it);
     point_destroy(lastpt);
-    vector_iterator_destroy(it);
     point_destroy(curve->origin);
     vector_destroy(curve->segments, free);
 

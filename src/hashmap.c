@@ -155,12 +155,12 @@ struct hashmap_iterator* hashmap_iterator_create(struct hashmap* map)
     return iterator;
 }
 
-int hashmap_iterator_is_valid(struct hashmap_iterator* iterator)
+int hashmap_iterator_is_valid(const struct hashmap_iterator* iterator)
 {
     return iterator->hashmap && iterator->index < iterator->hashmap->capacity;
 }
 
-char* hashmap_iterator_key(struct hashmap_iterator* iterator)
+const char* hashmap_iterator_key(const struct hashmap_iterator* iterator)
 {
     return (iterator->hashmap->entries + iterator->index)->key;
 }

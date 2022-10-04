@@ -12,8 +12,8 @@ const void* hashmap_get_const(const struct hashmap* map, const char* key);
 // iterator
 struct hashmap_iterator;
 struct hashmap_iterator* hashmap_iterator_create(struct hashmap* map);
-int hashmap_iterator_is_valid(struct hashmap_iterator* iterator);
-char* hashmap_iterator_key(struct hashmap_iterator* iterator);
+int hashmap_iterator_is_valid(const struct hashmap_iterator* iterator);
+const char* hashmap_iterator_key(const struct hashmap_iterator* iterator);
 void* hashmap_iterator_value(struct hashmap_iterator* iterator);
 void hashmap_iterator_next(struct hashmap_iterator* iterator);
 void hashmap_iterator_destroy(struct hashmap_iterator* iterator);

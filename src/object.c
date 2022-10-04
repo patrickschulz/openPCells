@@ -133,15 +133,15 @@ struct object* object_copy(const struct object* cell)
         if(cell->anchors)
         {
             new->anchors = hashmap_create();
-            struct hashmap_iterator* it = hashmap_iterator_create(cell->anchors);
-            while(hashmap_iterator_is_valid(it))
+            struct hashmap_const_iterator* it = hashmap_const_iterator_create(cell->anchors);
+            while(hashmap_const_iterator_is_valid(it))
             {
-                const char* key = hashmap_iterator_key(it);
-                point_t* pt = hashmap_iterator_value(it);
+                const char* key = hashmap_const_iterator_key(it);
+                const point_t* pt = hashmap_const_iterator_value(it);
                 hashmap_insert(new->anchors, key, point_copy(pt));
-                hashmap_iterator_next(it);
+                hashmap_const_iterator_next(it);
             }
-            hashmap_iterator_destroy(it);
+            hashmap_const_iterator_destroy(it);
         }
 
         // children
