@@ -186,6 +186,30 @@ void* shape_copy(const void* v)
     return new;
 }
 
+static void _destroy_segment(void* v)
+{
+    struct curve_segment* segment = v;
+    switch(segment->type)
+    {
+        case LINESEGMENT:
+        {
+            point_destroy(segment->data.pt);
+            break;
+        }
+        case ARCSEGMENT:
+        {
+            break;
+        }
+        case CUBIC_BEZIER:
+        {
+            point_destroy(segment->data.cpt1);
+            point_destroy(segment->data.cpt2);
+            point_destroy(segment->data.endpt);
+        }
+    }
+    free(segment);
+}
+
 void shape_destroy(void* v)
 {
     struct shape* shape = v;
@@ -215,7 +239,7 @@ void shape_destroy(void* v)
         {
             struct curve* curve = shape->content;
             point_destroy(curve->origin);
-            vector_destroy(curve->segments, free);
+            vector_destroy(curve->segments, _destroy_segment);
             break;
         }
     }
@@ -847,7 +871,8 @@ void shape_rasterize_curve_inline(struct shape* shape)
     vector_const_iterator_destroy(it);
     point_destroy(lastpt);
     point_destroy(curve->origin);
-    vector_destroy(curve->segments, free);
+    vector_destroy(curve->segments, _destroy_segment);
+    free(curve);
 
     _remove_superfluous_points(rastered_points);
 

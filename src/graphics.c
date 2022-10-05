@@ -22,19 +22,19 @@ static void _subdivide(const struct vector* points, struct vector* l, struct vec
     point_t* l2 = _midpoint(l1, m);
     point_t* r1 = _midpoint(m, r2);
     point_t* l3r0 = _midpoint(l2, r1);
+    point_destroy(m);
 
     vector_append(l, point_copy(pointarray_get(points, 0)));
     vector_append(l, l1);
     vector_append(l, l2);
     vector_append(l, l3r0);
 
-    vector_append(r, l3r0);
+    vector_append(r, point_copy(l3r0)); // l3r0 is in both vectors, copy it once or deallocation fails
     vector_append(r, r1);
     vector_append(r, r2);
     vector_append(r, point_copy(pointarray_get(points, 3)));
 }
 
-//static int _is_sufficiently_flat(struct vector* points)
 static int _is_sufficiently_flat(const struct vector* points)
 {
     double ux = 3.0 * pointarray_get(points, 1)->x - 2.0 * pointarray_get(points, 0)->x - pointarray_get(points, 3)->x; ux *= ux;
@@ -51,7 +51,6 @@ static void _flatten_curve(const struct vector* points, unsigned int grid, int a
 {
     if(_is_sufficiently_flat(points))
     {
-        // FIXME: rasterize line points
         point_t* startpt = point_create(pointarray_get(points, 0)->x, pointarray_get(points, 0)->y);
         startpt->x = (startpt->x / grid) * grid;
         startpt->y = (startpt->y / grid) * grid;
@@ -59,6 +58,8 @@ static void _flatten_curve(const struct vector* points, unsigned int grid, int a
         endpt->x = (endpt->x / grid) * grid;
         endpt->y = (endpt->y / grid) * grid;
         graphics_raster_line_segment(startpt, endpt, grid, allow45, result);
+        point_destroy(startpt);
+        point_destroy(endpt);
     }
     else
     {
@@ -67,8 +68,8 @@ static void _flatten_curve(const struct vector* points, unsigned int grid, int a
         _subdivide(points, l, r);
         _flatten_curve(l, grid, allow45, result);
         _flatten_curve(r, grid, allow45, result);
-        vector_destroy(l, NULL);
-        vector_destroy(r, NULL);
+        vector_destroy(l, point_destroy);
+        vector_destroy(r, point_destroy);
     }
 }
 
@@ -80,6 +81,7 @@ void graphics_raster_cubic_bezier_segment(const point_t* startpt, const point_t*
     vector_append(curve, point_copy(cpt2));
     vector_append(curve, point_copy(endpt));
     _flatten_curve(curve, grid, allow45, result);
+    vector_destroy(curve, point_destroy);
 }
 
 #define iabs(x) ((x) < 0 ? -(x) : (x))
