@@ -451,9 +451,10 @@ static int _write_cell_shape_curve(struct export_writer* writer, const struct sh
                 return ret;
             }
             // FIXME: implement an abstraction for this
-            const struct curve* curve = shape_get_content(shape);
-            struct vector_const_iterator* it = vector_const_iterator_create(curve->segments);
-            point_t* lastpt = curve->origin;
+            point_t* lastpt;
+            unsigned int grid;
+            struct vector_const_iterator* it;
+            shape_get_curve_content(shape, &lastpt, &grid, &it);
             while(vector_const_iterator_is_valid(it))
             {
                 const struct curve_segment* segment = vector_const_iterator_get(it);
@@ -488,13 +489,14 @@ static int _write_cell_shape_curve(struct export_writer* writer, const struct sh
                         double startsin = sin(segment->data.startangle * M_PI / 180);
                         double endcos = cos(segment->data.endangle * M_PI / 180);
                         double endsin = sin(segment->data.endangle * M_PI / 180);
-                        lastpt->x = lastpt->x + _fix_to_grid((endcos - startcos) * segment->data.radius, curve->grid);
-                        lastpt->y = lastpt->y + _fix_to_grid((endsin - startsin) * segment->data.radius, curve->grid);
+                        lastpt->x = lastpt->x + _fix_to_grid((endcos - startcos) * segment->data.radius, grid);
+                        lastpt->y = lastpt->y + _fix_to_grid((endsin - startsin) * segment->data.radius, grid);
                         break;
                     }
                 }
                 vector_const_iterator_next(it);
             }
+            point_destroy(lastpt);
             vector_const_iterator_destroy(it);
             lua_getfield(writer->L, -1, "close_curve");
             ret = lua_pcall(writer->L, 0, 0, 0);

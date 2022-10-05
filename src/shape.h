@@ -31,13 +31,6 @@ struct curve_segment {
     } data;
 };
 
-struct curve {
-    point_t* origin;
-    struct vector* segments;
-    unsigned int grid;
-    int allow45;
-};
-
 struct shape;
 
 struct shape* shape_create_rectangle(const struct generics* layer, coordinate_t bl_x, coordinate_t bl_y, coordinate_t tr_x, coordinate_t tr_y);
@@ -78,7 +71,8 @@ int shape_get_path_width(const struct shape* shape, ucoordinate_t* width);
 int shape_get_path_extension(const struct shape* shape, coordinate_t* start, coordinate_t* end);
 
 // curve access functions
-int shape_get_curve_origin(struct shape* shape, point_t** origin);
+int shape_get_curve_content(const struct shape* shape, point_t** origin, unsigned int* grid, struct vector_const_iterator** it);
+int shape_get_curve_origin(const struct shape* shape, point_t** origin);
 int shape_get_transformed_curve_origin(const struct shape* shape, const struct transformationmatrix* trans, point_t* origin);
 
 int shape_is_empty(const struct shape* shape);

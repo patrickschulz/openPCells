@@ -22,6 +22,13 @@ struct path {
     coordinate_t extension[2];
 };
 
+struct curve {
+    point_t* origin;
+    struct vector* segments;
+    unsigned int grid;
+    int allow45;
+};
+
 struct shape {
     enum shapetype {
         RECTANGLE,
@@ -415,7 +422,20 @@ int shape_get_path_extension(const struct shape* shape, coordinate_t* start, coo
     return 1;
 }
 
-int shape_get_curve_origin(struct shape* shape, point_t** originp)
+int shape_get_curve_content(const struct shape* shape, point_t** origin, unsigned int* grid, struct vector_const_iterator** it)
+{
+    if(shape->type != CURVE)
+    {
+        return 0;
+    }
+    struct curve* curve = shape->content;
+    *origin = point_copy(curve->origin);
+    *grid = curve->grid;
+    *it = vector_const_iterator_create(curve->segments);
+    return 1;
+}
+
+int shape_get_curve_origin(const struct shape* shape, point_t** originp)
 {
     if(shape->type != CURVE)
     {
