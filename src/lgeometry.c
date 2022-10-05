@@ -586,6 +586,7 @@ static int lgeometry_unequal_ring(lua_State* L)
     return 0;
 }
 
+/*
 static int lgeometry_cubic_bezier(lua_State* L)
 {
     struct lobject* cell = lobject_check(L, 1);
@@ -600,17 +601,18 @@ static int lgeometry_cubic_bezier(lua_State* L)
         lua_error(L);
     }
 
-    struct const_vector* curve = const_vector_create(32);
+    struct vector* curve = vector_create(32);
     for(unsigned int i = 1; i <= len; ++i)
     {
         lua_rawgeti(L, 3, i);
         struct lpoint* pt = lpoint_checkpoint(L, -1);
-        const_vector_append(curve, lpoint_get(pt));
+        vector_append(curve, lpoint_get(pt));
         lua_pop(L, 1);
     }
 
-    struct vector* points = graphics_cubic_bezier(curve);
-    const_vector_destroy(curve);
+    struct vector* points = vector_create(128);
+    graphics_raster_cubic_bezier_segment(curve, points);
+    vector_destroy(curve, NULL);
 
     const point_t** polypoints = calloc(vector_size(points), sizeof(*polypoints));
     for(unsigned int i = 0; i < vector_size(points); ++i)
@@ -622,6 +624,7 @@ static int lgeometry_cubic_bezier(lua_State* L)
     vector_destroy(points, NULL);
     return 0;
 }
+*/
 
 static int lgeometry_curve(lua_State* L)
 {
@@ -648,7 +651,7 @@ static int lgeometry_curve(lua_State* L)
             shape_curve_add_line_segment(S, lpoint_get(pt));
             lua_pop(L, 1); // pop points
         }
-        else
+        else if(strcmp(type, "arcto") == 0)
         {
             lua_getfield(L, -2, "startangle");
             double startangle = lua_tonumber(L, -1);
@@ -661,6 +664,27 @@ static int lgeometry_curve(lua_State* L)
             shape_curve_add_arc_segment(S, startangle, endangle, radius, clockwise);
             lua_pop(L, 3); // pop points
         }
+        else if(strcmp(type, "cubicto") == 0)
+        {
+            lua_getfield(L, -2, "cpt1");
+            struct lpoint* lcpt1 = lpoint_checkpoint(L, -1);
+            const point_t* cpt1 = lpoint_get(lcpt1);
+            lua_pop(L, 1);
+            lua_getfield(L, -2, "cpt2");
+            struct lpoint* lcpt2 = lpoint_checkpoint(L, -1);
+            const point_t* cpt2 = lpoint_get(lcpt2);
+            lua_pop(L, 1);
+            lua_getfield(L, -2, "endpt");
+            struct lpoint* lendpt = lpoint_checkpoint(L, -1);
+            const point_t* endpt = lpoint_get(lendpt);
+            lua_pop(L, 1);
+            shape_curve_add_cubic_bezier_segment(S, cpt1, cpt2, endpt);
+        }
+        else
+        {
+            lua_pushfstring(L, "unknown curve segment: %s", type);
+            lua_error(L);
+        }
         lua_pop(L, 1); // pop type
         lua_pop(L, 1); // pop segment
     }
@@ -671,11 +695,24 @@ static int lgeometry_curve(lua_State* L)
 
 static int lcurve_lineto(lua_State* L)
 {
-    lua_newtable(L);
-    lua_pushstring(L, "lineto");
-    lua_setfield(L, -2, "type");
-    lua_pushvalue(L, 1);
-    lua_setfield(L, -2, "pt");
+    if(lua_gettop(L) == 1)
+    {
+        lua_newtable(L);
+        lua_pushstring(L, "lineto");
+        lua_setfield(L, -2, "type");
+        lua_pushvalue(L, 1);
+        lua_setfield(L, -2, "pt");
+    }
+    else
+    {
+        lua_newtable(L);
+        lua_pushstring(L, "lineto");
+        lua_setfield(L, -2, "type");
+        coordinate_t x = lpoint_checkcoordinate(L, 1);
+        coordinate_t y = lpoint_checkcoordinate(L, 2);
+        lpoint_create_internal(L, x, y);
+        lua_setfield(L, -2, "pt");
+    }
     return 1;
 }
 
@@ -692,6 +729,20 @@ static int lcurve_arcto(lua_State* L)
     lua_setfield(L, -2, "radius");
     lua_pushvalue(L, 4);
     lua_setfield(L, -2, "clockwise");
+    return 1;
+}
+
+static int lcurve_cubicto(lua_State* L)
+{
+    lua_newtable(L);
+    lua_pushstring(L, "cubicto");
+    lua_setfield(L, -2, "type");
+    lua_pushvalue(L, 1);
+    lua_setfield(L, -2, "cpt1");
+    lua_pushvalue(L, 2);
+    lua_setfield(L, -2, "cpt2");
+    lua_pushvalue(L, 3);
+    lua_setfield(L, -2, "endpt");
     return 1;
 }
 
@@ -714,7 +765,7 @@ int open_lgeometry_lib(lua_State* L)
         { "contact",         lgeometry_contact         },
         { "contactbarebltr", lgeometry_contactbarebltr },
         { "contactbare",     lgeometry_contactbare     },
-        { "cubic_bezier",    lgeometry_cubic_bezier    },
+        //{ "cubic_bezier",    lgeometry_cubic_bezier    },
         { "cross",           lgeometry_cross           },
         { "ring",            lgeometry_ring            },
         { "unequal_ring",    lgeometry_unequal_ring    },
@@ -728,9 +779,10 @@ int open_lgeometry_lib(lua_State* L)
     lua_newtable(L);
     static const luaL_Reg curvefuncs[] =
     {
-        { "lineto", lcurve_lineto },
-        { "arcto",  lcurve_arcto  },
-        { NULL,     NULL          }
+        { "lineto",  lcurve_lineto  },
+        { "arcto",   lcurve_arcto   },
+        { "cubicto", lcurve_cubicto },
+        { NULL,      NULL           }
     };
     luaL_setfuncs(L, curvefuncs, 0);
 

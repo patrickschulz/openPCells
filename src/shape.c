@@ -153,19 +153,32 @@ void* shape_copy(const void* v)
         {
             struct curve* curve = self->content;
             new = shape_create_curve(self->layer, curve->origin->x, curve->origin->y, curve->grid, curve->allow45);
+            struct curve* new_curve = new->content;
             for(unsigned int i = 0; i < vector_size(curve->segments); ++i)
             {
                 struct curve_segment* segment = vector_get(curve->segments, i);
                 struct curve_segment* new_segment = malloc(sizeof(*new_segment));
                 new_segment->type = segment->type;
-                if(segment->type == LINESEGMENT)
+                switch(segment->type)
                 {
-                    new_segment->data.pt = point_copy(segment->data.pt);
+                    case LINESEGMENT:
+                    {
+                        new_segment->data.pt = point_copy(segment->data.pt);
+                        break;
+                    }
+                    case ARCSEGMENT:
+                    {
+                        new_segment->data = segment->data;
+                        break;
+                    }
+                    case CUBIC_BEZIER:
+                    {
+                        new_segment->data.cpt1 = point_copy(segment->data.cpt1);
+                        new_segment->data.cpt2 = point_copy(segment->data.cpt2);
+                        new_segment->data.endpt = point_copy(segment->data.endpt);
+                    }
                 }
-                else
-                {
-                    new_segment->data = segment->data;
-                }
+                vector_append(new_curve->segments, new_segment);
             }
             break;
         }
@@ -445,9 +458,22 @@ void shape_translate(struct shape* shape, coordinate_t dx, coordinate_t dy)
             for(unsigned int i = 0; i < vector_size(curve->segments); ++i)
             {
                 struct curve_segment* segment = vector_get(curve->segments, i);
-                if(segment->type == LINESEGMENT)
+                switch(segment->type)
                 {
-                    point_translate(segment->data.pt, dx, dy);
+                    case LINESEGMENT:
+                    {
+                        point_translate(segment->data.pt, dx, dy);
+                        break;
+                    }
+                    case CUBIC_BEZIER:
+                    {
+                        point_translate(segment->data.cpt1, dx, dy);
+                        point_translate(segment->data.cpt2, dx, dy);
+                        point_translate(segment->data.endpt, dx, dy);
+                        break;
+                    }
+                    default: // ARCSEGMENTS don't need to be translated
+                        break;
                 }
             }
             break;
@@ -713,6 +739,21 @@ void shape_curve_add_arc_segment(struct shape* shape, double startangle, double 
     vector_append(curve->segments, segment);
 }
 
+void shape_curve_add_cubic_bezier_segment(struct shape* shape, const point_t* cpt1, const point_t* cpt2, const point_t* endpt)
+{
+    if(shape->type != CURVE)
+    {
+        return;
+    }
+    struct curve* curve = shape->content;
+    struct curve_segment* segment = malloc(sizeof(*segment));
+    segment->type = CUBIC_BEZIER;
+    segment->data.cpt1 = point_copy(cpt1);
+    segment->data.cpt2 = point_copy(cpt2);
+    segment->data.endpt = point_copy(endpt);
+    vector_append(curve->segments, segment);
+}
+
 void shape_resolve_path_inline(struct shape* shape)
 {
     if(shape->type != PATH)
@@ -786,6 +827,18 @@ void shape_rasterize_curve_inline(struct shape* shape)
                 double endsin = sin(segment->data.endangle * M_PI / 180);
                 lastpt->x = lastpt->x + _fix_to_grid((endcos - startcos) * segment->data.radius, curve->grid);
                 lastpt->y = lastpt->y + _fix_to_grid((endsin - startsin) * segment->data.radius, curve->grid);
+                break;
+            }
+            case CUBIC_BEZIER:
+            {
+                graphics_raster_cubic_bezier_segment(
+                    lastpt,
+                    segment->data.cpt1,
+                    segment->data.cpt2,
+                    segment->data.endpt,
+                    rastered_points);
+                lastpt->x = segment->data.endpt->x;
+                lastpt->y = segment->data.endpt->y;
                 break;
             }
         }

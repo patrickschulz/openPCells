@@ -7,68 +7,73 @@
 #include "lpoint.h"
 #include "vector.h"
 
+#define pointarray_get(p, i) ((point_t*)vector_get_const(p, i))
+
 static point_t* _midpoint(const point_t* p1, const point_t* p2)
 {
     return point_create((p1->x + p2->x) / 2, (p1->y + p2->y) / 2);
 }
 
-static void _subdivide(const struct const_vector* points, struct const_vector* l, struct const_vector* r)
+static void _subdivide(const struct vector* points, struct vector* l, struct vector* r)
 {
-    point_t* l1 = _midpoint(cpointarray_get(points, 0), cpointarray_get(points, 1));
-    point_t* m = _midpoint(cpointarray_get(points, 1), cpointarray_get(points, 2));
-    point_t* r2 = _midpoint(cpointarray_get(points, 2), cpointarray_get(points, 3));
+    point_t* l1 = _midpoint(pointarray_get(points, 0), pointarray_get(points, 1));
+    point_t* m = _midpoint(pointarray_get(points, 1), pointarray_get(points, 2));
+    point_t* r2 = _midpoint(pointarray_get(points, 2), pointarray_get(points, 3));
     point_t* l2 = _midpoint(l1, m);
     point_t* r1 = _midpoint(m, r2);
     point_t* l3r0 = _midpoint(l2, r1);
 
-    const_vector_append(l, point_copy(cpointarray_get(points, 0)));
-    const_vector_append(l, l1);
-    const_vector_append(l, l2);
-    const_vector_append(l, l3r0);
+    vector_append(l, point_copy(pointarray_get(points, 0)));
+    vector_append(l, l1);
+    vector_append(l, l2);
+    vector_append(l, l3r0);
 
-    const_vector_append(r, l3r0);
-    const_vector_append(r, r1);
-    const_vector_append(r, r2);
-    const_vector_append(r, point_copy(cpointarray_get(points, 3)));
+    vector_append(r, l3r0);
+    vector_append(r, r1);
+    vector_append(r, r2);
+    vector_append(r, point_copy(pointarray_get(points, 3)));
 }
 
 //static int _is_sufficiently_flat(struct vector* points)
-static int _is_sufficiently_flat(const struct cpointarray* points)
+static int _is_sufficiently_flat(const struct vector* points)
 {
-    double ux = 3.0 * cpointarray_get(points, 1)->x - 2.0 * cpointarray_get(points, 0)->x - cpointarray_get(points, 3)->x; ux *= ux;
-    double uy = 3.0 * cpointarray_get(points, 1)->y - 2.0 * cpointarray_get(points, 0)->y - cpointarray_get(points, 3)->y; uy *= uy;
-    double vx = 3.0 * cpointarray_get(points, 2)->x - 2.0 * cpointarray_get(points, 3)->x - cpointarray_get(points, 0)->x; vx *= vx;
-    double vy = 3.0 * cpointarray_get(points, 2)->y - 2.0 * cpointarray_get(points, 3)->y - cpointarray_get(points, 0)->y; vy *= vy;
+    double ux = 3.0 * pointarray_get(points, 1)->x - 2.0 * pointarray_get(points, 0)->x - pointarray_get(points, 3)->x; ux *= ux;
+    double uy = 3.0 * pointarray_get(points, 1)->y - 2.0 * pointarray_get(points, 0)->y - pointarray_get(points, 3)->y; uy *= uy;
+    double vx = 3.0 * pointarray_get(points, 2)->x - 2.0 * pointarray_get(points, 3)->x - pointarray_get(points, 0)->x; vx *= vx;
+    double vy = 3.0 * pointarray_get(points, 2)->y - 2.0 * pointarray_get(points, 3)->y - pointarray_get(points, 0)->y; vy *= vy;
     if (ux < vx) ux = vx;
     if (uy < vy) uy = vy;
     double tolerance = 1;
     return (ux + uy <= (16 * tolerance * tolerance));
 }
 
-static void _flatten_curve(const struct const_vector* points, struct vector* result)
+static void _flatten_curve(const struct vector* points, struct vector* result)
 {
     if(_is_sufficiently_flat(points))
     {
-        vector_append(result, point_create(cpointarray_get(points, 0)->x, cpointarray_get(points, 0)->y));
-        vector_append(result, point_create(cpointarray_get(points, const_vector_size(points) - 1)->x, cpointarray_get(points, const_vector_size(points) - 1)->y));
+        vector_append(result, point_create(pointarray_get(points, 0)->x, pointarray_get(points, 0)->y));
+        vector_append(result, point_create(pointarray_get(points, vector_size(points) - 1)->x, pointarray_get(points, vector_size(points) - 1)->y));
     }
     else
     {
-        struct const_vector* l = const_vector_create(32);
-        struct const_vector* r = const_vector_create(32);
+        struct vector* l = vector_create(32);
+        struct vector* r = vector_create(32);
         _subdivide(points, l, r);
         _flatten_curve(l, result);
         _flatten_curve(r, result);
-        const_vector_destroy(l);
-        const_vector_destroy(r);
+        vector_destroy(l, NULL);
+        vector_destroy(r, NULL);
     }
 }
 
-struct vector* graphics_cubic_bezier(const struct const_vector* curve)
+void graphics_raster_cubic_bezier_segment(const point_t* startpt, const point_t* cpt1, const point_t* cpt2, const point_t* endpt, struct vector* result)
 {
-    struct vector* result = vector_create(128);
+    struct vector* curve = vector_create(4);
+    vector_append(curve, startpt);
+    vector_append(curve, cpt1);
+    vector_append(curve, cpt2);
+    vector_append(curve, endpt);
     _flatten_curve(curve, result);
-    return result;
 }
 
 #define iabs(x) ((x) < 0 ? -(x) : (x))

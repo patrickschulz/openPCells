@@ -10,7 +10,8 @@
 struct curve_segment {
     enum segment_type {
         LINESEGMENT,
-        ARCSEGMENT
+        ARCSEGMENT,
+        CUBIC_BEZIER
     } type;
     union {
         struct {
@@ -21,6 +22,11 @@ struct curve_segment {
             double endangle;
             coordinate_t radius;
             int clockwise;
+        };
+        struct {
+            point_t* cpt1;
+            point_t* cpt2;
+            point_t* endpt;
         };
     } data;
 };
@@ -90,6 +96,7 @@ void shape_get_minmax_xy(const struct shape* shape, const struct transformationm
 // curve segments
 void shape_curve_add_line_segment(struct shape* shape, const point_t* pt);
 void shape_curve_add_arc_segment(struct shape* shape, double startangle, double endangle, coordinate_t radius, int clockwise);
+void shape_curve_add_cubic_bezier_segment(struct shape* shape, const point_t* cpt1, const point_t* cpt2, const point_t* endpt);
 
 int shape_get_center(const struct shape* shape, coordinate_t* x, coordinate_t* y);
 

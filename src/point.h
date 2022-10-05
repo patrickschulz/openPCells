@@ -19,7 +19,7 @@ typedef struct
 
 point_t* point_create(coordinate_t x, coordinate_t y);
 void point_destroy(void* pt); // void*, otherwise we get a warning while destroying vectors
-point_t* point_copy(const point_t* pt);
+void* point_copy(const void* pt);
 
 void point_translate(point_t* pt, coordinate_t x, coordinate_t y);
 
@@ -31,10 +31,5 @@ void point_update_maximum(point_t** max, const point_t* pt);
 
 coordinate_t point_xdifference(const point_t* pt1, const point_t* pt2);
 coordinate_t point_ydifference(const point_t* pt1, const point_t* pt2);
-
-#define pointarray vector
-#define pointarray_get(p, i) ((point_t*)vector_get(p, i))
-#define cpointarray const_vector
-#define cpointarray_get(p, i) ((const point_t*)const_vector_get(p, i))
 
 #endif // OPC_POINT_H
