@@ -51,6 +51,7 @@ static void _flatten_curve(const struct vector* points, struct vector* result)
 {
     if(_is_sufficiently_flat(points))
     {
+        // FIXME: rasterize line points
         vector_append(result, point_create(pointarray_get(points, 0)->x, pointarray_get(points, 0)->y));
         vector_append(result, point_create(pointarray_get(points, vector_size(points) - 1)->x, pointarray_get(points, vector_size(points) - 1)->y));
     }
