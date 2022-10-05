@@ -836,7 +836,7 @@ void shape_rasterize_curve_inline(struct shape* shape)
                     segment->data.cpt1,
                     segment->data.cpt2,
                     segment->data.endpt,
-                    rastered_points);
+                    curve->grid, curve->allow45, rastered_points);
                 lastpt->x = segment->data.endpt->x;
                 lastpt->y = segment->data.endpt->y;
                 break;

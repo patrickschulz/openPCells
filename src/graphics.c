@@ -47,34 +47,39 @@ static int _is_sufficiently_flat(const struct vector* points)
     return (ux + uy <= (16 * tolerance * tolerance));
 }
 
-static void _flatten_curve(const struct vector* points, struct vector* result)
+static void _flatten_curve(const struct vector* points, unsigned int grid, int allow45, struct vector* result)
 {
     if(_is_sufficiently_flat(points))
     {
         // FIXME: rasterize line points
-        vector_append(result, point_create(pointarray_get(points, 0)->x, pointarray_get(points, 0)->y));
-        vector_append(result, point_create(pointarray_get(points, vector_size(points) - 1)->x, pointarray_get(points, vector_size(points) - 1)->y));
+        point_t* startpt = point_create(pointarray_get(points, 0)->x, pointarray_get(points, 0)->y);
+        startpt->x = (startpt->x / grid) * grid;
+        startpt->y = (startpt->y / grid) * grid;
+        point_t* endpt = point_create(pointarray_get(points, vector_size(points) - 1)->x, pointarray_get(points, vector_size(points) - 1)->y);
+        endpt->x = (endpt->x / grid) * grid;
+        endpt->y = (endpt->y / grid) * grid;
+        graphics_raster_line_segment(startpt, endpt, grid, allow45, result);
     }
     else
     {
         struct vector* l = vector_create(32);
         struct vector* r = vector_create(32);
         _subdivide(points, l, r);
-        _flatten_curve(l, result);
-        _flatten_curve(r, result);
+        _flatten_curve(l, grid, allow45, result);
+        _flatten_curve(r, grid, allow45, result);
         vector_destroy(l, NULL);
         vector_destroy(r, NULL);
     }
 }
 
-void graphics_raster_cubic_bezier_segment(const point_t* startpt, const point_t* cpt1, const point_t* cpt2, const point_t* endpt, struct vector* result)
+void graphics_raster_cubic_bezier_segment(const point_t* startpt, const point_t* cpt1, const point_t* cpt2, const point_t* endpt, unsigned int grid, int allow45, struct vector* result)
 {
     struct vector* curve = vector_create(4);
-    vector_append(curve, startpt);
-    vector_append(curve, cpt1);
-    vector_append(curve, cpt2);
-    vector_append(curve, endpt);
-    _flatten_curve(curve, result);
+    vector_append(curve, point_copy(startpt));
+    vector_append(curve, point_copy(cpt1));
+    vector_append(curve, point_copy(cpt2));
+    vector_append(curve, point_copy(endpt));
+    _flatten_curve(curve, grid, allow45, result);
 }
 
 #define iabs(x) ((x) < 0 ? -(x) : (x))
