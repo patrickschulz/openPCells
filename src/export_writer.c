@@ -515,7 +515,7 @@ static int _write_cell_shape_curve(struct export_writer* writer, const struct sh
         struct shape* resolved = shape_rasterize_curve(shape);
         struct vector* points = vector_create(128);
         shape_get_transformed_polygon_points(resolved, trans, points);
-        writer->funcs->write_polygon(writer->data, layerdata, points);
+        _write_polygon(writer, layerdata, points);
         vector_destroy(points, point_destroy);
         shape_destroy(resolved);
     }
