@@ -75,6 +75,7 @@ void geometry_polygon(struct object* cell, const struct generics* layer, const p
     }
     if(!shape_is_empty(S))
     {
+        shape_cleanup(S);
         object_add_shape(cell, S);
     }
     else
