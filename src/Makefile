@@ -172,8 +172,8 @@ endif
 cmdoptions.o: cmdoptions.c cmdoptions.h vector.h util.h
 export.o: export.c export.h object.h transformationmatrix.h point.h \
  shape.h technology.h lua/lua.h lua/luaconf.h vector.h hashmap.h pcell.h \
- lua/lauxlib.h lua/lua.h export_common.h export_writer.h tagged_value.h \
- util.h lua_util.h lobject.h gdsexport.h lpoint.h filesystem.h
+ lua/lauxlib.h lua/lua.h export_common.h export_writer.h util.h \
+ lua_util.h gdsexport.h filesystem.h
 export_common.o: export_common.c export_common.h object.h \
  transformationmatrix.h point.h shape.h technology.h lua/lua.h \
  lua/luaconf.h vector.h hashmap.h pcell.h
@@ -191,8 +191,7 @@ geometry.o: geometry.c geometry.h technology.h lua/lua.h lua/luaconf.h \
  vector.h hashmap.h object.h transformationmatrix.h point.h shape.h \
  pcell.h
 geometry_triangulate.o: geometry_triangulate.c point.h vector.h
-graphics.o: graphics.c graphics.h point.h vector.h lpoint.h lua/lua.h \
- lua/luaconf.h
+graphics.o: graphics.c graphics.h point.h vector.h
 hashmap.o: hashmap.c hashmap.h
 info.o: info.c info.h object.h transformationmatrix.h point.h shape.h \
  technology.h lua/lua.h lua/luaconf.h vector.h hashmap.h pcell.h

@@ -1,10 +1,8 @@
 #include "graphics.h"
 
 #include <stdlib.h>
-#include <stdio.h>
 #include <math.h>
 
-#include "lpoint.h"
 #include "vector.h"
 
 #define pointarray_get(p, i) ((point_t*)vector_get_const(p, i))

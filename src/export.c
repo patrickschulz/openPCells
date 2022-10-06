@@ -7,18 +7,13 @@
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
-#include <assert.h>
 
 #include "export_common.h"
 #include "export_writer.h"
-#include "tagged_value.h"
 #include "util.h"
 #include "lua_util.h"
-#include "lobject.h"
 #include "gdsexport.h"
-#include "lpoint.h"
 #include "filesystem.h"
-#include "hashmap.h"
 
 #define EXPORT_STATUS_SUCCESS 0
 #define EXPORT_STATUS_NOTFOUND 1
