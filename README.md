@@ -102,7 +102,7 @@ virtuoso or execute the four lines in that order in your CIW to activate the men
 
 ---
 
-[^1]: Technically, the here displayed images are png files, but these are conversion results from the generated SVG. A binary image format with compression like png is more complex than an SVG an not vital (but desirable) to this project, therefore there is currently no implementation of it.
+[^1]: Technically, the here displayed images are png files, but these are conversion results from the generated SVG. A binary image format with compression like png is more complex than an SVG Furthermore it is not vital (but desirable) to this project, therefore there is currently no implementation of it.
 
 
 <!---
