@@ -92,17 +92,26 @@ struct shape* shape_create_curve(const struct generics* layer, coordinate_t x, c
     return shape;
 }
 
+static int _collinear(const point_t* pt1, const point_t* pt2, const point_t* pt3)
+{
+    return (pt1->x * (pt2->y - pt3->y) + pt2->x * (pt3->y - pt1->y) + pt3->x * (pt1->y - pt2->y)) == 0;
+}
+
 static void _remove_superfluous_points(struct vector* pts)
 {
-    for(size_t i = vector_size(pts) - 2; i > 1; --i)
+    size_t index = 0;
+    while(index + 2 < vector_size(pts))
     {
-        point_t* pt1 = vector_get(pts, i - 1);
-        point_t* pt2 = vector_get(pts, i);
-        point_t* pt3 = vector_get(pts, i + 1);
-        if(((pt1->x == pt2->x) && (pt1->x == pt3->x)) || ((pt1->y == pt2->y) && (pt1->y == pt3->y)))
+        point_t* pt1 = vector_get(pts, index);
+        point_t* pt2 = vector_get(pts, index + 1);
+        point_t* pt3 = vector_get(pts, index + 2);
+        if(_collinear(pt1, pt2, pt3))
         {
-            vector_remove(pts, i, point_destroy);
-            --i;
+            vector_remove(pts, index + 1, point_destroy);
+        }
+        else
+        {
+            ++index;
         }
     }
 }
