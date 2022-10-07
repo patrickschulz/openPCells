@@ -11,8 +11,7 @@ typedef unsigned long long int ucoordinate_t;
 #define UCOORDINATE_MAX ULLONG_MAX
 #define UCOORDINATE_MIN 0
 
-typedef struct
-{
+typedef struct {
     coordinate_t x;
     coordinate_t y;
 } point_t;
