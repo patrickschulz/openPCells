@@ -223,6 +223,14 @@ void vector_swap(struct vector* vector, size_t idx1, size_t idx2)
     vector->elements[idx2] = tmp;
 }
 
+void vector_reverse(struct vector* vector)
+{
+    for(size_t i = 0; i < vector->size / 2; ++i)
+    {
+        vector_swap(vector, i, vector->size - 1 - i);
+    }
+}
+
 struct const_vector {
     const void** elements;
     size_t size;
