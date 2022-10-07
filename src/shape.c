@@ -114,6 +114,36 @@ static void _remove_superfluous_points(struct vector* pts)
             ++index;
         }
     }
+    if(!vector_empty(pts))
+    {
+        point_t* firstpt = vector_get(pts, 0);
+        point_t* lastpt = vector_get(pts, vector_size(pts) - 1);
+        if(firstpt->x == lastpt->x && firstpt->y == lastpt->y)
+        {
+            vector_remove(pts, vector_size(pts) - 1, point_destroy);
+        }
+    }
+}
+
+static int _is_counterclockwise(const struct vector* points)
+{
+    double sum = 0.0;
+    const point_t* pt1 = vector_get_const(points, vector_size(points) - 1);
+    for(size_t i = 0; i < vector_size(points); i++)
+    {
+        const point_t* pt2 = vector_get_const(points, i);
+        sum += (pt2->x - pt1->x) * (pt2->y + pt1->y);
+        pt1 = pt2;
+    }
+    return sum < 0.0;
+}
+
+static void _check_counterclockwise(struct vector* points)
+{
+    if(!_is_counterclockwise(points))
+    {
+        vector_reverse(points);
+    }
 }
 
 void shape_cleanup(struct shape* shape)
@@ -122,6 +152,7 @@ void shape_cleanup(struct shape* shape)
     {
         struct polygon* polygon = shape->content;
         _remove_superfluous_points(polygon->points);
+        _check_counterclockwise(polygon->points);
     }
     if(shape->type == PATH)
     {
@@ -840,6 +871,11 @@ static coordinate_t _fix_to_grid(coordinate_t c, unsigned int grid)
     return (c / grid) * grid;
 }
 
+static void _check_acute_angles(struct vector* points)
+{
+
+}
+
 void shape_rasterize_curve_inline(struct shape* shape)
 {
     if(shape->type != CURVE)
@@ -903,12 +939,14 @@ void shape_rasterize_curve_inline(struct shape* shape)
     vector_destroy(curve->segments, _destroy_segment);
     free(curve);
 
-    _remove_superfluous_points(rastered_points);
+    _check_acute_angles(rastered_points);
 
     struct polygon* polygon = malloc(sizeof(*polygon));
     polygon->points = rastered_points;
     shape->type = POLYGON;
     shape->content = polygon;
+
+    shape_cleanup(shape);
 }
 
 struct shape* shape_rasterize_curve(const struct shape* shape)
