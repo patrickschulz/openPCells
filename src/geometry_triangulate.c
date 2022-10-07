@@ -5,6 +5,8 @@
 #include "point.h"
 #include "vector.h"
 
+/* code adapted from 'Computational Geometry in C' by Joseph O'Rourke */
+
 struct vertex {
     size_t index;
     point_t* pt;
