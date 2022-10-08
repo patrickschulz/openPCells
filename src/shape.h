@@ -71,7 +71,7 @@ int shape_get_path_width(const struct shape* shape, ucoordinate_t* width);
 int shape_get_path_extension(const struct shape* shape, coordinate_t* start, coordinate_t* end);
 
 // curve access functions
-int shape_get_curve_content(const struct shape* shape, point_t** origin, unsigned int* grid, struct vector_const_iterator** it);
+int shape_get_curve_content(const struct shape* shape, coordinate_t* originx, coordinate_t* originy, unsigned int* grid, struct vector_const_iterator** it);
 int shape_get_curve_origin(const struct shape* shape, point_t** origin);
 int shape_get_transformed_curve_origin(const struct shape* shape, const struct transformationmatrix* trans, point_t* origin);
 

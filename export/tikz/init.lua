@@ -273,6 +273,10 @@ function M.curve_add_arc_segment(startpt, startangle, endangle, radius, clockwis
     table.insert(curvecontent, string.format("arc[start angle = %d, end angle = %d, radius = %s]", startangle, endangle, _format_number(radius)))
 end
 
+function M.curve_add_cubic_bezier_segment(cpt1, cpt2, endpt)
+    table.insert(curvecontent, string.format(".. controls (%s) and (%s) .. (%s)", _format_point(cpt1), _format_point(cpt2), _format_point(endpt)))
+end
+
 function M.close_curve()
     table.insert(curvecontent, "-- cycle;")
     local content = table.concat(curvecontent, ' ')

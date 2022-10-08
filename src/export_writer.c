@@ -91,13 +91,18 @@ static void _push_layer(lua_State* L, const struct hashmap* data)
     hashmap_const_iterator_destroy(it);
 }
 
-static void _push_point(lua_State* L, const point_t* pt)
+static void _push_point_xy(lua_State* L, coordinate_t x, coordinate_t y)
 {
     lua_newtable(L);
-    lua_pushinteger(L, pt->x);
+    lua_pushinteger(L, x);
     lua_setfield(L, -2, "x");
-    lua_pushinteger(L, pt->y);
+    lua_pushinteger(L, y);
     lua_setfield(L, -2, "y");
+}
+
+static void _push_point(lua_State* L, const point_t* pt)
+{
+    _push_point_xy(L, pt->x, pt->y);
 }
 
 static void _push_points(lua_State* L, const struct vector* pts)
@@ -451,10 +456,11 @@ static int _write_cell_shape_curve(struct export_writer* writer, const struct sh
                 return ret;
             }
             // FIXME: implement an abstraction for this
-            point_t* lastpt;
+            coordinate_t lastx;
+            coordinate_t lasty;
             unsigned int grid;
             struct vector_const_iterator* it;
-            shape_get_curve_content(shape, &lastpt, &grid, &it);
+            shape_get_curve_content(shape, &lastx, &lasty, &grid, &it);
             while(vector_const_iterator_is_valid(it))
             {
                 const struct curve_segment* segment = vector_const_iterator_get(it);
@@ -469,13 +475,14 @@ static int _write_cell_shape_curve(struct export_writer* writer, const struct sh
                         {
                             return ret;
                         }
-                        lastpt = segment->data.pt;
+                        lastx = segment->data.pt->x;
+                        lasty = segment->data.pt->y;
                         break;
                     }
                     case ARCSEGMENT:
                     {
                         lua_getfield(writer->L, -1, "curve_add_arc_segment");
-                        _push_point(writer->L, lastpt);
+                        _push_point_xy(writer->L, lastx, lasty);
                         lua_pushnumber(writer->L, segment->data.startangle);
                         lua_pushnumber(writer->L, segment->data.endangle);
                         lua_pushinteger(writer->L, segment->data.radius);
@@ -489,14 +496,28 @@ static int _write_cell_shape_curve(struct export_writer* writer, const struct sh
                         double startsin = sin(segment->data.startangle * M_PI / 180);
                         double endcos = cos(segment->data.endangle * M_PI / 180);
                         double endsin = sin(segment->data.endangle * M_PI / 180);
-                        lastpt->x = lastpt->x + _fix_to_grid((endcos - startcos) * segment->data.radius, grid);
-                        lastpt->y = lastpt->y + _fix_to_grid((endsin - startsin) * segment->data.radius, grid);
+                        lastx += _fix_to_grid((endcos - startcos) * segment->data.radius, grid);
+                        lasty += _fix_to_grid((endsin - startsin) * segment->data.radius, grid);
+                        break;
+                    }
+                    case CUBIC_BEZIER:
+                    {
+                        lua_getfield(writer->L, -1, "curve_add_cubic_bezier_segment");
+                        _push_point(writer->L, segment->data.cpt1);
+                        _push_point(writer->L, segment->data.cpt2);
+                        _push_point(writer->L, segment->data.endpt);
+                        ret = lua_pcall(writer->L, 3, 0, 0);
+                        if(ret != LUA_OK)
+                        {
+                            return ret;
+                        }
+                        lastx = segment->data.endpt->x;
+                        lasty = segment->data.endpt->y;
                         break;
                     }
                 }
                 vector_const_iterator_next(it);
             }
-            point_destroy(lastpt);
             vector_const_iterator_destroy(it);
             lua_getfield(writer->L, -1, "close_curve");
             ret = lua_pcall(writer->L, 0, 0, 0);
@@ -765,10 +786,14 @@ int export_writer_write_toplevel(struct export_writer* writer, const struct obje
         return ret;
     }
 
+    int mustdelete = 0;
+    struct object* copy;
     if(!_has_write_cell_reference(writer))
     {
         fputs("this export does not know how to write hierarchies, hence the cell is being written flat\n", stderr);
-        object = object_flatten(object, pcell_state, 0); // 0: !flattenports
+        copy = object_flatten(object, pcell_state, 0); // 0: !flattenports
+        object = copy; // extra pointer to silence warning
+        mustdelete = 1;
     }
 
     ret = _write_at_begin(writer);
@@ -793,6 +818,11 @@ int export_writer_write_toplevel(struct export_writer* writer, const struct obje
     pcell_destroy_cell_reference_iterator(it);
 
     _write_cell_main(writer, object, toplevelname, 1, 1, leftdelim, rightdelim); // first 1: istoplevel, second 1: write_ports
+
+    if(mustdelete)
+    {
+        object_destroy(copy);
+    }
 
     ret = _write_at_end(writer);
     if(ret != LUA_OK)

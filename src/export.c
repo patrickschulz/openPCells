@@ -323,10 +323,30 @@ int export_write_toplevel(struct object* toplevel, struct pcell_state* pcell_sta
                 lua_getfield(L, -1, "set_options");
                 lua_newtable(L);
                 const char* const * opt = state->exportoptions;
+                int numopts = 1;
                 while(*opt)
                 {
-                    lua_pushstring(L, *opt);
-                    lua_rawseti(L, -2, opt - state->exportoptions + 1);
+                    // split string at whitespace
+                    const char* str = *opt;
+                    while(*str)
+                    {
+                        const char* end = str;
+                        while(*end && *end != ' ')
+                        {
+                            ++end;
+                        }
+                        lua_pushlstring(L, str, end - str);
+                        lua_rawseti(L, -2, numopts);
+                        ++numopts;
+                        if(*end)
+                        {
+                            str = end + 1;
+                        }
+                        else
+                        {
+                            str = end;
+                        }
+                    }
                     ++opt;
                 }
                 _call_or_pop_nil(L, 1);

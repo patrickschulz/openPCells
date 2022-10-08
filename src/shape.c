@@ -462,14 +462,15 @@ int shape_get_path_extension(const struct shape* shape, coordinate_t* start, coo
     return 1;
 }
 
-int shape_get_curve_content(const struct shape* shape, point_t** origin, unsigned int* grid, struct vector_const_iterator** it)
+int shape_get_curve_content(const struct shape* shape, coordinate_t* originx, coordinate_t* originy, unsigned int* grid, struct vector_const_iterator** it)
 {
     if(shape->type != CURVE)
     {
         return 0;
     }
     struct curve* curve = shape->content;
-    *origin = point_copy(curve->origin);
+    *originx = curve->origin->x;
+    *originy = curve->origin->y;
     *grid = curve->grid;
     *it = vector_const_iterator_create(curve->segments);
     return 1;
