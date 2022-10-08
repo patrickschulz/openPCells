@@ -355,7 +355,7 @@ int export_write_toplevel(struct object* toplevel, struct pcell_state* pcell_sta
             struct export_writer* writer = export_writer_create_lua(L, data);
             int ret = export_writer_write_toplevel(writer, toplevel, pcell_state, state->toplevelname, state->writechildrenports, state->leftdelim, state->rightdelim);
             export_writer_destroy(writer);
-            if(ret != LUA_OK)
+            if(!ret)
             {
                 const char* msg = lua_tostring(L, -1);
                 fprintf(stderr, "error while calling lua export: %s\n", msg);

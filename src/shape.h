@@ -7,31 +7,10 @@
 #include "transformationmatrix.h"
 #include "technology.h"
 
-struct curve_segment {
-    enum segment_type {
-        LINESEGMENT,
-        ARCSEGMENT,
-        CUBIC_BEZIER
-    } type;
-    union {
-        struct {
-            point_t* pt;
-        };
-        struct {
-            double startangle;
-            double endangle;
-            coordinate_t radius;
-            int clockwise;
-        };
-        struct {
-            point_t* cpt1;
-            point_t* cpt2;
-            point_t* endpt;
-        };
-    } data;
-};
-
 struct shape;
+typedef int (*line_segment_handler)(const point_t*, void*);
+typedef int (*arc_segment_handler)(double, double, coordinate_t, int, void*);
+typedef int (*cubic_bezier_segment_handler)(const point_t*, const point_t*, const point_t*, void*);
 
 struct shape* shape_create_rectangle(const struct generics* layer, coordinate_t bl_x, coordinate_t bl_y, coordinate_t tr_x, coordinate_t tr_y);
 struct shape* shape_create_polygon(const struct generics* layer, size_t capacity);
@@ -71,6 +50,7 @@ int shape_get_path_width(const struct shape* shape, ucoordinate_t* width);
 int shape_get_path_extension(const struct shape* shape, coordinate_t* start, coordinate_t* end);
 
 // curve access functions
+int shape_foreach_curve_segments(const struct shape* shape, void* blob, line_segment_handler, arc_segment_handler, cubic_bezier_segment_handler);
 int shape_get_curve_content(const struct shape* shape, coordinate_t* originx, coordinate_t* originy, unsigned int* grid, struct vector_const_iterator** it);
 int shape_get_curve_origin(const struct shape* shape, point_t** origin);
 int shape_get_transformed_curve_origin(const struct shape* shape, const struct transformationmatrix* trans, point_t* origin);

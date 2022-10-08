@@ -115,7 +115,6 @@ function M.at_begin()
         table.insert(__before, '\\def\\opclayoutscale{1}')
     end
     table.insert(__before, '\\begin{tikzpicture}')
-    --table.insert(__options, "x = 5, y = 5")
 end
 
 function M.at_end()
@@ -269,7 +268,6 @@ function M.curve_add_arc_segment(startpt, startangle, endangle, radius, clockwis
         y = math.floor(startpt.y + (math.sin(endangle * math.pi / 180) - math.sin(startangle * math.pi / 180)) * radius)
     }
     clockwise = clockwise and 0 or 1
-    --table.insert(curvecontent, string.format("A %d %d 0 0 %d %s", __scale * radius, __scale * radius, clockwise, _format_point(pt)))
     table.insert(curvecontent, string.format("arc[start angle = %d, end angle = %d, radius = %s]", startangle, endangle, _format_number(radius)))
 end
 
