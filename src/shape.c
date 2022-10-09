@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <math.h>
 
+#include "point.h"
 #include "graphics.h"
 #include "geometry.h"
 
@@ -43,7 +44,7 @@ struct curve_segment {
             point_t* cpt2;
             point_t* endpt;
         };
-    } data;
+    };
 };
 
 struct curve {
@@ -234,19 +235,22 @@ void* shape_copy(const void* v)
                 {
                     case LINE_SEGMENT:
                     {
-                        new_segment->data.pt = point_copy(segment->data.pt);
+                        new_segment->pt = point_copy(segment->pt);
                         break;
                     }
                     case ARC_SEGMENT:
                     {
-                        new_segment->data = segment->data;
+                        new_segment->startangle = segment->startangle;
+                        new_segment->endangle = segment->endangle;
+                        new_segment->radius = segment->radius;
+                        new_segment->clockwise = segment->clockwise;
                         break;
                     }
                     case CUBIC_BEZIER_SEGMENT:
                     {
-                        new_segment->data.cpt1 = point_copy(segment->data.cpt1);
-                        new_segment->data.cpt2 = point_copy(segment->data.cpt2);
-                        new_segment->data.endpt = point_copy(segment->data.endpt);
+                        new_segment->cpt1 = point_copy(segment->cpt1);
+                        new_segment->cpt2 = point_copy(segment->cpt2);
+                        new_segment->endpt = point_copy(segment->endpt);
                     }
                 }
                 vector_append(new_curve->segments, new_segment);
@@ -264,7 +268,7 @@ static void _destroy_segment(void* v)
     {
         case LINE_SEGMENT:
         {
-            point_destroy(segment->data.pt);
+            point_destroy(segment->pt);
             break;
         }
         case ARC_SEGMENT:
@@ -273,9 +277,9 @@ static void _destroy_segment(void* v)
         }
         case CUBIC_BEZIER_SEGMENT:
         {
-            point_destroy(segment->data.cpt1);
-            point_destroy(segment->data.cpt2);
-            point_destroy(segment->data.endpt);
+            point_destroy(segment->cpt1);
+            point_destroy(segment->cpt2);
+            point_destroy(segment->endpt);
         }
     }
     free(segment);
@@ -509,27 +513,27 @@ int shape_foreach_curve_segments(const struct shape* shape, void* blob, line_seg
         {
             case LINE_SEGMENT:
             {
-                _line_segment(segment->data.pt, blob);
-                lastx = segment->data.pt->x;
-                lasty = segment->data.pt->y;
+                _line_segment(segment->pt, blob);
+                lastx = segment->pt->x;
+                lasty = segment->pt->y;
                 break;
             }
             case ARC_SEGMENT:
             {
-                _arc_segment(segment->data.startangle, segment->data.endangle, segment->data.radius, segment->data.clockwise, blob);
-                double startcos = cos(segment->data.startangle * M_PI / 180);
-                double startsin = sin(segment->data.startangle * M_PI / 180);
-                double endcos = cos(segment->data.endangle * M_PI / 180);
-                double endsin = sin(segment->data.endangle * M_PI / 180);
-                lastx += _fix_to_grid((endcos - startcos) * segment->data.radius, grid);
-                lasty += _fix_to_grid((endsin - startsin) * segment->data.radius, grid);
+                _arc_segment(segment->startangle, segment->endangle, segment->radius, segment->clockwise, blob);
+                double startcos = cos(segment->startangle * M_PI / 180);
+                double startsin = sin(segment->startangle * M_PI / 180);
+                double endcos = cos(segment->endangle * M_PI / 180);
+                double endsin = sin(segment->endangle * M_PI / 180);
+                lastx += _fix_to_grid((endcos - startcos) * segment->radius, grid);
+                lasty += _fix_to_grid((endsin - startsin) * segment->radius, grid);
                 break;
             }
             case CUBIC_BEZIER_SEGMENT:
             {
-                _cubic_bezier_segment(segment->data.cpt1, segment->data.cpt2, segment->data.endpt, blob);
-                lastx = segment->data.endpt->x;
-                lasty = segment->data.endpt->y;
+                _cubic_bezier_segment(segment->cpt1, segment->cpt2, segment->endpt, blob);
+                lastx = segment->endpt->x;
+                lasty = segment->endpt->y;
                 break;
             }
         }
@@ -624,14 +628,14 @@ void shape_translate(struct shape* shape, coordinate_t dx, coordinate_t dy)
                 {
                     case LINE_SEGMENT:
                     {
-                        point_translate(segment->data.pt, dx, dy);
+                        point_translate(segment->pt, dx, dy);
                         break;
                     }
                     case CUBIC_BEZIER_SEGMENT:
                     {
-                        point_translate(segment->data.cpt1, dx, dy);
-                        point_translate(segment->data.cpt2, dx, dy);
-                        point_translate(segment->data.endpt, dx, dy);
+                        point_translate(segment->cpt1, dx, dy);
+                        point_translate(segment->cpt2, dx, dy);
+                        point_translate(segment->endpt, dx, dy);
                         break;
                     }
                     default: // ARC_SEGMENTS don't need to be translated
@@ -881,7 +885,7 @@ void shape_curve_add_line_segment(struct shape* shape, const point_t* pt)
     }
     struct curve_segment* segment = malloc(sizeof(*segment));
     segment->type = LINE_SEGMENT;
-    segment->data.pt = point_copy(pt);
+    segment->pt = point_copy(pt);
     vector_append(curve->segments, segment);
 }
 
@@ -894,10 +898,10 @@ void shape_curve_add_arc_segment(struct shape* shape, double startangle, double 
     struct curve* curve = shape->content;
     struct curve_segment* segment = malloc(sizeof(*segment));
     segment->type = ARC_SEGMENT;
-    segment->data.startangle = startangle;
-    segment->data.endangle = endangle;
-    segment->data.radius = radius;
-    segment->data.clockwise = clockwise;
+    segment->startangle = startangle;
+    segment->endangle = endangle;
+    segment->radius = radius;
+    segment->clockwise = clockwise;
     vector_append(curve->segments, segment);
 }
 
@@ -910,9 +914,9 @@ void shape_curve_add_cubic_bezier_segment(struct shape* shape, const point_t* cp
     struct curve* curve = shape->content;
     struct curve_segment* segment = malloc(sizeof(*segment));
     segment->type = CUBIC_BEZIER_SEGMENT;
-    segment->data.cpt1 = point_copy(cpt1);
-    segment->data.cpt2 = point_copy(cpt2);
-    segment->data.endpt = point_copy(endpt);
+    segment->cpt1 = point_copy(cpt1);
+    segment->cpt2 = point_copy(cpt2);
+    segment->endpt = point_copy(endpt);
     vector_append(curve->segments, segment);
 }
 
@@ -968,39 +972,39 @@ void shape_rasterize_curve_inline(struct shape* shape)
             case LINE_SEGMENT:
             {
                 graphics_raster_line_segment(
-                    lastpt, segment->data.pt,
+                    lastpt, segment->pt,
                     curve->grid, curve->allow45, rastered_points);
-                lastpt->x = segment->data.pt->x;
-                lastpt->y = segment->data.pt->y;
+                lastpt->x = segment->pt->x;
+                lastpt->y = segment->pt->y;
                 break;
             }
             case ARC_SEGMENT:
             {
                 graphics_raster_arc_segment(
                     lastpt,
-                    segment->data.startangle,
-                    segment->data.endangle,
-                    segment->data.radius,
-                    segment->data.clockwise,
+                    segment->startangle,
+                    segment->endangle,
+                    segment->radius,
+                    segment->clockwise,
                     curve->grid, curve->allow45, rastered_points);
-                double startcos = cos(segment->data.startangle * M_PI / 180);
-                double startsin = sin(segment->data.startangle * M_PI / 180);
-                double endcos = cos(segment->data.endangle * M_PI / 180);
-                double endsin = sin(segment->data.endangle * M_PI / 180);
-                lastpt->x = lastpt->x + _fix_to_grid((endcos - startcos) * segment->data.radius, curve->grid);
-                lastpt->y = lastpt->y + _fix_to_grid((endsin - startsin) * segment->data.radius, curve->grid);
+                double startcos = cos(segment->startangle * M_PI / 180);
+                double startsin = sin(segment->startangle * M_PI / 180);
+                double endcos = cos(segment->endangle * M_PI / 180);
+                double endsin = sin(segment->endangle * M_PI / 180);
+                lastpt->x = lastpt->x + _fix_to_grid((endcos - startcos) * segment->radius, curve->grid);
+                lastpt->y = lastpt->y + _fix_to_grid((endsin - startsin) * segment->radius, curve->grid);
                 break;
             }
             case CUBIC_BEZIER_SEGMENT:
             {
                 graphics_raster_cubic_bezier_segment(
                     lastpt,
-                    segment->data.cpt1,
-                    segment->data.cpt2,
-                    segment->data.endpt,
+                    segment->cpt1,
+                    segment->cpt2,
+                    segment->endpt,
                     curve->grid, curve->allow45, rastered_points);
-                lastpt->x = segment->data.endpt->x;
-                lastpt->y = segment->data.endpt->y;
+                lastpt->x = segment->endpt->x;
+                lastpt->y = segment->endpt->y;
                 break;
             }
         }
