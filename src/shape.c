@@ -506,6 +506,7 @@ int shape_foreach_curve_segments(const struct shape* shape, void* blob, line_seg
     coordinate_t lastx = curve->origin->x;
     coordinate_t lasty = curve->origin->y;
     unsigned int grid = curve->grid;
+    int ret = 1;
     while(vector_const_iterator_is_valid(it))
     {
         const struct curve_segment* segment = vector_const_iterator_get(it);
@@ -513,14 +514,22 @@ int shape_foreach_curve_segments(const struct shape* shape, void* blob, line_seg
         {
             case LINE_SEGMENT:
             {
-                _line_segment(segment->pt, blob);
+                ret = _line_segment(segment->pt, blob);
+                if(!ret)
+                {
+                    goto SHAPE_FOREACH_CURVE_SEGMENTS_CLEANUP;
+                }
                 lastx = segment->pt->x;
                 lasty = segment->pt->y;
                 break;
             }
             case ARC_SEGMENT:
             {
-                _arc_segment(segment->startangle, segment->endangle, segment->radius, segment->clockwise, blob);
+                ret = _arc_segment(segment->startangle, segment->endangle, segment->radius, segment->clockwise, blob);
+                if(!ret)
+                {
+                    goto SHAPE_FOREACH_CURVE_SEGMENTS_CLEANUP;
+                }
                 double startcos = cos(segment->startangle * M_PI / 180);
                 double startsin = sin(segment->startangle * M_PI / 180);
                 double endcos = cos(segment->endangle * M_PI / 180);
@@ -531,7 +540,11 @@ int shape_foreach_curve_segments(const struct shape* shape, void* blob, line_seg
             }
             case CUBIC_BEZIER_SEGMENT:
             {
-                _cubic_bezier_segment(segment->cpt1, segment->cpt2, segment->endpt, blob);
+                ret = _cubic_bezier_segment(segment->cpt1, segment->cpt2, segment->endpt, blob);
+                if(!ret)
+                {
+                    goto SHAPE_FOREACH_CURVE_SEGMENTS_CLEANUP;
+                }
                 lastx = segment->endpt->x;
                 lasty = segment->endpt->y;
                 break;
@@ -539,8 +552,9 @@ int shape_foreach_curve_segments(const struct shape* shape, void* blob, line_seg
         }
         vector_const_iterator_next(it);
     }
+SHAPE_FOREACH_CURVE_SEGMENTS_CLEANUP:
     vector_const_iterator_destroy(it);
-    return 1;
+    return ret;
 }
 
 int shape_get_curve_content(const struct shape* shape, coordinate_t* originx, coordinate_t* originy, unsigned int* grid, struct vector_const_iterator** it)

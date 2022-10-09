@@ -472,7 +472,7 @@ static int _arc_segment(double startangle, double endangle, coordinate_t radius,
     lua_pushnumber(writer->L, endangle);
     lua_pushinteger(writer->L, radius);
     lua_pushboolean(writer->L, clockwise);
-    int ret = lua_pcall(writer->L, 5, 0, 0);
+    int ret = lua_pcall(writer->L, 4, 0, 0);
     if(ret != LUA_OK)
     {
         return 0;
@@ -512,7 +512,11 @@ static int _write_cell_shape_curve(struct export_writer* writer, const struct sh
             {
                 return 0;
             }
-            shape_foreach_curve_segments(shape, writer, _line_segment, _arc_segment, _cubic_bezier_segment);
+            ret = shape_foreach_curve_segments(shape, writer, _line_segment, _arc_segment, _cubic_bezier_segment);
+            if(!ret)
+            {
+                return 0;
+            }
             lua_getfield(writer->L, -1, "close_curve");
             ret = lua_pcall(writer->L, 0, 0, 0);
             if(ret != LUA_OK)
@@ -650,8 +654,12 @@ static int _write_ports(struct export_writer* writer, const struct object* cell,
 
 static int _write_cell(struct export_writer* writer, const struct object* cell, int write_ports, char leftdelim, char rightdelim)
 {
-    _write_shapes(writer, cell);
-    int ret = _write_children(writer, cell);
+    int ret = _write_shapes(writer, cell);
+    if(!ret)
+    {
+        return 0;
+    }
+    ret = _write_children(writer, cell);
     if(!ret)
     {
         return 0;
@@ -815,13 +823,23 @@ int export_writer_write_toplevel(struct export_writer* writer, const struct obje
         pcell_cell_reference_iterator_get(it, &refidentifier, &refcell, &refnumused);
         if(refnumused > 0)
         {
-            _write_cell_main(writer, refcell, refidentifier, 0, writechildrenports, leftdelim, rightdelim); // 0: cell is not toplevel
+            ret = _write_cell_main(writer, refcell, refidentifier, 0, writechildrenports, leftdelim, rightdelim); // 0: cell is not toplevel
+            if(!ret)
+            {
+                // FIXME: proper cleanup
+                return 0;
+            }
         }
         pcell_cell_reference_iterator_advance(it);
     }
     pcell_destroy_cell_reference_iterator(it);
 
-    _write_cell_main(writer, object, toplevelname, 1, 1, leftdelim, rightdelim); // first 1: istoplevel, second 1: write_ports
+    ret = _write_cell_main(writer, object, toplevelname, 1, 1, leftdelim, rightdelim); // first 1: istoplevel, second 1: write_ports
+    if(!ret)
+    {
+        // FIXME: proper cleanup
+        return 0;
+    }
 
     if(mustdelete)
     {
