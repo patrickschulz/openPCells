@@ -557,21 +557,7 @@ SHAPE_FOREACH_CURVE_SEGMENTS_CLEANUP:
     return ret;
 }
 
-int shape_get_curve_content(const struct shape* shape, coordinate_t* originx, coordinate_t* originy, unsigned int* grid, struct vector_const_iterator** it)
-{
-    if(shape->type != CURVE)
-    {
-        return 0;
-    }
-    struct curve* curve = shape->content;
-    *originx = curve->origin->x;
-    *originy = curve->origin->y;
-    *grid = curve->grid;
-    *it = vector_const_iterator_create(curve->segments);
-    return 1;
-}
-
-int shape_get_curve_origin(const struct shape* shape, point_t** originp)
+int shape_get_curve_origin(const struct shape* shape, const point_t** originp)
 {
     if(shape->type != CURVE)
     {

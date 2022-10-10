@@ -51,8 +51,7 @@ int shape_get_path_extension(const struct shape* shape, coordinate_t* start, coo
 
 // curve access functions
 int shape_foreach_curve_segments(const struct shape* shape, void* blob, line_segment_handler, arc_segment_handler, cubic_bezier_segment_handler);
-int shape_get_curve_content(const struct shape* shape, coordinate_t* originx, coordinate_t* originy, unsigned int* grid, struct vector_const_iterator** it);
-int shape_get_curve_origin(const struct shape* shape, point_t** origin);
+int shape_get_curve_origin(const struct shape* shape, const point_t** origin);
 int shape_get_transformed_curve_origin(const struct shape* shape, const struct transformationmatrix* trans, point_t* origin);
 
 int shape_is_empty(const struct shape* shape);
