@@ -9,39 +9,47 @@
 
 struct object;
 
+// object construction/destruction
 struct object* object_create(void);
 struct object* object_copy(const struct object*);
 void object_destroy(void* cell);
 
+// shape handling
 void object_add_raw_shape(struct object* cell, struct shape* S);
 void object_add_shape(struct object* cell, struct shape* S);
 struct shape* object_disown_shape(struct object* cell, size_t i);
 void object_remove_shape(struct object* cell, size_t i);
+void object_merge_into_shallow(struct object* cell, const struct object* other);
+void object_foreach_shapes(struct object* cell, void (*func)(struct shape*));
+size_t object_get_shapes_size(const struct object* cell);
+struct shape* object_get_shape(struct object* cell, size_t idx);
+struct shape* object_get_transformed_shape(struct object* cell, size_t idx);
+
+// children
 struct object* object_add_child(struct object* cell, struct pcell_state* pcell_state, const char* identifier, const char* name);
 struct object* object_add_child_array(struct object* cell, struct pcell_state* pcell_state, const char* identifier, unsigned int xrep, unsigned int yrep, unsigned int xpitch, unsigned int ypitch, const char* name);
-void object_merge_into_shallow(struct object* cell, const struct object* other);
+
+// anchors
 void object_add_anchor(struct object* cell, const char* name, coordinate_t x, coordinate_t y);
 void object_add_anchor_area(struct object* cell, const char* base, coordinate_t width, coordinate_t height, coordinate_t xshift, coordinate_t yshift);
 void object_add_anchor_area_bltr(struct object* cell, const char* base, const point_t* bl, const point_t* tr);
 point_t* object_get_anchor(const struct object* cell, const char* name);
 point_t* object_get_array_anchor(const struct object* cell, int xindex, int yindex, const char* name);
 const struct hashmap* object_get_all_regular_anchors(const struct object* cell);
+
+// ports
 void object_add_port(struct object* cell, const char* name, const struct generics* layer, const point_t* where, int storeanchor);
 void object_add_bus_port(struct object* cell, const char* name, const struct generics* layer, const point_t* where, int startindex, int endindex, unsigned int xpitch, unsigned int ypitch, int storeanchor);
 const struct vector* object_get_ports(const struct object* cell);
+
+// alignment box and bounding box
 void object_set_alignment_box(struct object* cell, coordinate_t blx, coordinate_t bly, coordinate_t trx, coordinate_t try);
 void object_inherit_alignment_box(struct object* cell, const struct object* other);
 int object_get_alignment_box_corners(const struct object* cell, coordinate_t* blx, coordinate_t* bly, coordinate_t* trx, coordinate_t* try);
 void object_get_minmax_xy(const struct object* cell, coordinate_t* minxp, coordinate_t* minyp, coordinate_t* maxxp, coordinate_t* maxyp);
-void object_foreach_shapes(struct object* cell, void (*func)(struct shape*));
-
-size_t object_get_shapes_size(const struct object* cell);
-struct shape* object_get_shape(struct object* cell, size_t idx);
-struct shape* object_get_transformed_shape(struct object* cell, size_t idx);
-
-const struct transformationmatrix* object_get_transformation_matrix(const struct object* cell);
 
 // transformations
+const struct transformationmatrix* object_get_transformation_matrix(const struct object* cell);
 void object_move_to(struct object* cell, coordinate_t x, coordinate_t y);
 void object_reset_translation(struct object* cell);
 void object_translate(struct object* cell, coordinate_t x, coordinate_t y);
