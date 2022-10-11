@@ -773,13 +773,7 @@ void object_get_minmax_xy(const struct object* cell, coordinate_t* minxp, coordi
             const struct object* obj = child->reference;
             coordinate_t minx_, maxx_, miny_, maxy_;
             object_get_minmax_xy(obj, &minx_, &miny_, &maxx_, &maxy_);
-            // FIXME: is the transformation really needed? If yes, then the shapes points also need to be transformed
-            //local pt1 = point.create(minx_, miny_)
-            //local pt2 = point.create(maxx_, maxy_)
-            //obj.trans:apply_transformation(pt1)
-            //obj.trans:apply_transformation(pt2)
-            //minx_, miny_ = pt1:unwrap()
-            //maxx_, maxy_ = pt2:unwrap()
+            // FIXME: transformation?
             minx = min(minx, minx_);
             maxx = max(maxx, maxx_);
             miny = min(miny, miny_);
