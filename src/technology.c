@@ -51,8 +51,7 @@ static int ltechnology_list_techpaths(lua_State* L)
     return 0;
 }
 
-struct viaentry
-{
+struct viaentry {
     char* name;
     struct via_definition** viadefs;
     struct via_definition* fallback;
@@ -710,7 +709,6 @@ int open_ltechnology_lib(lua_State* L)
     return 0;
 }
 
-//////////////////////////////////
 static const struct generics* _get_or_create_layer(struct technology_state* techstate, const char* layername)
 {
     if(!hashmap_exists(techstate->layermap, layername))
