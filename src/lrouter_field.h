@@ -33,6 +33,9 @@ int field_is_visitable(const struct field* field, size_t x, size_t y, size_t z);
 
 void field_set(struct field* field, size_t x, size_t y, size_t z, int what);
 int field_get(struct field* field, size_t x, size_t y, size_t z);
+struct net *field_get_net(struct field* field, size_t x, size_t y, size_t z);
+void field_set_net(struct field* field, size_t x, size_t y, size_t z,
+		   struct net *what);
 
 /* resets the values in the field for a next iteration (keeps special values) */
 void field_reset(struct field* field);

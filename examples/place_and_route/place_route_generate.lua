@@ -1,9 +1,9 @@
-local module = "counter_compare"
+local module = "register_cell"
 local exporttype = "gds"
 
 local netlist = verilog.read_parse_file(string.format("%s.v", module))
 
-verilog.filter_excluded_nets(netlist, { "reset", "clk", "update" })
+--verilog.filter_excluded_nets(netlist, { "reset", "clk", "update" })
 
 local cellinfo = verilogprocessor.read_cellinfo_from_file("cellinfo.lua")
 local ignorednets = {
@@ -18,7 +18,7 @@ local ignorednets = {
 local instances, nets = verilogprocessor.collect_nets_cells(netlist, cellinfo, ignorednets)
 
 local utilization = 0.5
-local numrows = 10
+local numrows = 1
 local floorplan = placement.create_floorplan_fixed_rows(instances, utilization, numrows)
 local rows = placement.optimize(instances, nets, floorplan)
 --local plan = {
