@@ -147,7 +147,7 @@ struct object* object_copy(const struct object* cell)
         // children
         if(cell->children)
         {
-            new->children = vector_create(vector_size(cell->children));
+            new->children = vector_create(vector_size(cell->children), object_destroy);
             for(unsigned int i = 0; i < vector_size(cell->children); ++i)
             {
                 vector_append(new->children, object_copy(vector_get(cell->children, i)));
@@ -155,15 +155,6 @@ struct object* object_copy(const struct object* cell)
         }
     }
     return new;
-}
-
-
-void _port_destroy(void* p)
-{
-    struct port* port = p;
-    point_destroy(port->where);
-    free(port->name);
-    free(port);
 }
 
 void object_destroy(void* cellv)
@@ -178,13 +169,13 @@ void object_destroy(void* cellv)
         // shapes
         if(cell->shapes)
         {
-            vector_destroy(cell->shapes, shape_destroy);
+            vector_destroy(cell->shapes);
         }
 
         // children
         if(cell->children)
         {
-            vector_destroy(cell->children, object_destroy);
+            vector_destroy(cell->children);
         }
 
         // anchors
@@ -195,7 +186,7 @@ void object_destroy(void* cellv)
 
         if(cell->ports)
         {
-            vector_destroy(cell->ports, _port_destroy);
+            vector_destroy(cell->ports);
         }
     }
 
@@ -222,7 +213,7 @@ void object_add_raw_shape(struct object* cell, struct shape* S)
 {
     if(!cell->shapes)
     {
-        cell->shapes = vector_create(32);
+        cell->shapes = vector_create(32, shape_destroy);
     }
     vector_append(cell->shapes, S);
 }
@@ -252,7 +243,7 @@ struct object* object_add_child(struct object* cell, struct pcell_state* pcell_s
     child->trans = transformationmatrix_invert(cell->trans);
     if(!cell->children)
     {
-        cell->children = vector_create(OBJECT_DEFAULT_CHILDREN_SIZE);
+        cell->children = vector_create(OBJECT_DEFAULT_CHILDREN_SIZE, object_destroy);
     }
     vector_append(cell->children, child);
     return child;
@@ -527,13 +518,21 @@ const struct hashmap* object_get_all_regular_anchors(const struct object* cell)
     return NULL;
 }
 
+void _port_destroy(void* p)
+{
+    struct port* port = p;
+    point_destroy(port->where);
+    free(port->name);
+    free(port);
+}
+
 static void _add_port(struct object* cell, const char* name, const char* anchorname, const struct generics* layer, coordinate_t x, coordinate_t y, int isbusport, int busindex, int storeanchor)
 {
     if(!generics_is_empty(layer))
     {
         if(!cell->ports)
         {
-            cell->ports = vector_create(OBJECT_DEFAULT_PORT_SIZE);
+            cell->ports = vector_create(OBJECT_DEFAULT_PORT_SIZE, _port_destroy);
         }
         struct port* port = malloc(sizeof(*port));
         port->where = point_create(x, y);
@@ -987,7 +986,7 @@ void object_flatten_inline(struct object* cell, struct pcell_state* pcell_state,
             struct object* child = vector_get(cell->children, i);
             pcell_unlink_cell_reference(pcell_state, child->identifier);
         }
-        vector_destroy(cell->children, object_destroy);
+        vector_destroy(cell->children);
     }
     cell->children = NULL;
 }

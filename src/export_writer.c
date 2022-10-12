@@ -352,17 +352,17 @@ static int _write_polygon(struct export_writer* writer, const struct hashmap* la
 static int _write_cell_shape_polygon(struct export_writer* writer, const struct shape* shape, const struct transformationmatrix* trans)
 {
     const struct hashmap* layerdata = shape_get_main_layerdata(shape);
-    struct vector* points = vector_create(128);
+    struct vector* points = vector_create(128, point_destroy);
     shape_get_transformed_polygon_points(shape, trans, points);
     int ret = _write_polygon(writer, layerdata, points);
-    vector_destroy(points, point_destroy);
+    vector_destroy(points);
     return ret;
 }
 
 static int _write_cell_shape_triangulated_polygon(struct export_writer* writer, const struct shape* shape, const struct transformationmatrix* trans)
 {
     const struct hashmap* layerdata = shape_get_main_layerdata(shape);
-    struct vector* points = vector_create(128);
+    struct vector* points = vector_create(128, point_destroy);
     shape_get_transformed_polygon_points(shape, trans, points);
     int ret = 1;
     for(unsigned int i = 0; i < vector_size(points) - 2; i += 3)
@@ -393,22 +393,22 @@ static int _write_cell_shape_triangulated_polygon(struct export_writer* writer, 
         }
         else // !has_write_triangle
         {
-            struct vector* tripts = vector_create(3);
+            struct vector* tripts = vector_create(3, NULL);
             vector_append(tripts, vector_get(points, i));
             vector_append(tripts, vector_get(points, i + 1));
             vector_append(tripts, vector_get(points, i + 2));
             ret = _write_polygon(writer, layerdata, tripts);
-            vector_destroy(tripts, NULL);
+            vector_destroy(tripts);
         }
     }
-    vector_destroy(points, point_destroy);
+    vector_destroy(points);
     return ret;
 }
 
 static int _write_cell_shape_path(struct export_writer* writer, const struct shape* shape, const struct transformationmatrix* trans)
 {
     const struct hashmap* layerdata = shape_get_main_layerdata(shape);
-    struct vector* points = vector_create(128);
+    struct vector* points = vector_create(128, point_destroy);
     int ret = 1;
     if(_has_write_path(writer))
     {
@@ -448,7 +448,7 @@ static int _write_cell_shape_path(struct export_writer* writer, const struct sha
         ret = _write_polygon(writer, layerdata, points);
     }
 WRITE_CELL_SHAPE_PATH_CLEANUP:
-    vector_destroy(points, point_destroy);
+    vector_destroy(points);
     return ret;
 }
 
@@ -533,10 +533,10 @@ static int _write_cell_shape_curve(struct export_writer* writer, const struct sh
     else
     {
         struct shape* resolved = shape_rasterize_curve(shape);
-        struct vector* points = vector_create(128);
+        struct vector* points = vector_create(128, point_destroy);
         shape_get_transformed_polygon_points(resolved, trans, points);
         _write_polygon(writer, layerdata, points);
-        vector_destroy(points, point_destroy);
+        vector_destroy(points);
         shape_destroy(resolved);
     }
     return 1;

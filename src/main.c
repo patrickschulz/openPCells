@@ -33,13 +33,13 @@
 static int _load_config(struct hashmap* config)
 {
     // prepare config
-    struct vector* techpaths = vector_create(8);
+    struct vector* techpaths = vector_create(8, free);
     hashmap_insert(config, "techpaths", techpaths);
-    struct vector* prepend_cellpaths = vector_create(8);
+    struct vector* prepend_cellpaths = vector_create(8, free);
     hashmap_insert(config, "prepend_cellpaths", prepend_cellpaths);
-    struct vector* append_cellpaths = vector_create(8);
+    struct vector* append_cellpaths = vector_create(8, free);
     hashmap_insert(config, "append_cellpaths", append_cellpaths);
-    struct vector* ignoredlayers = vector_create(8);
+    struct vector* ignoredlayers = vector_create(8, free);
     hashmap_insert(config, "ignoredlayers", ignoredlayers);
 
     const char* home = getenv("HOME");
@@ -258,7 +258,7 @@ int main(int argc, const char* const * argv)
     if(cmdoptions_was_provided_long(cmdoptions, "listcellpaths") ||
        cmdoptions_was_provided_long(cmdoptions, "list"))
     {
-        struct vector* cellpaths_to_prepend = vector_create(8);
+        struct vector* cellpaths_to_prepend = vector_create(8, free);
         if(cmdoptions_was_provided_long(cmdoptions, "prepend-cellpath"))
         {
             const char** arg = cmdoptions_get_argument_long(cmdoptions, "prepend-cellpath");
@@ -268,7 +268,7 @@ int main(int argc, const char* const * argv)
                 ++arg;
             }
         }
-        struct vector* cellpaths_to_append = vector_create(8);
+        struct vector* cellpaths_to_append = vector_create(8, free);
         if(cmdoptions_was_provided_long(cmdoptions, "cellpath"))
         {
             const char** arg = cmdoptions_get_argument_long(cmdoptions, "cellpath");
@@ -305,8 +305,8 @@ int main(int argc, const char* const * argv)
         }
         vector_append(cellpaths_to_append, strdup(OPC_HOME "/cells"));
         struct pcell_state* pcell_state = pcell_initialize_state(cellpaths_to_prepend, cellpaths_to_append);
-        vector_destroy(cellpaths_to_prepend, free);
-        vector_destroy(cellpaths_to_append, free);
+        vector_destroy(cellpaths_to_prepend);
+        vector_destroy(cellpaths_to_append);
         if(cmdoptions_was_provided_long(cmdoptions, "list"))
         {
             const char* listformat = cmdoptions_get_argument_long(cmdoptions, "list-format");
@@ -361,13 +361,13 @@ int main(int argc, const char* const * argv)
 DESTROY_CONFIG: ;
     {
         struct vector* techpaths = hashmap_get(config, "techpaths");
-        vector_destroy(techpaths, free); // every techpath is a copied string
+        vector_destroy(techpaths);
         struct vector* prepend_cellpaths = hashmap_get(config, "prepend_cellpaths");
-        vector_destroy(prepend_cellpaths, free); // every techpath is a copied string
+        vector_destroy(prepend_cellpaths);
         struct vector* append_cellpaths = hashmap_get(config, "append_cellpaths");
-        vector_destroy(append_cellpaths, free); // every techpath is a copied string
+        vector_destroy(append_cellpaths);
         struct vector* ignoredlayers = hashmap_get(config, "ignoredlayers");
-        vector_destroy(ignoredlayers, free);
+        vector_destroy(ignoredlayers);
     }
     hashmap_destroy(config, NULL);
 DESTROY_CMDOPTIONS:

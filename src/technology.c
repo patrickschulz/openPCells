@@ -135,10 +135,18 @@ static struct generics* _create_empty_layer(const char* name)
     return layer;
 }
 
+static void _destroy_entry(void* entryv)
+{
+    struct generics_entry* entry = entryv;
+    free(entry->exportname);
+    hashmap_destroy(entry->data, tagged_value_destroy);
+    free(entry);
+}
+
 static struct generics* _create_premapped_layer(const char* name, size_t size)
 {
     struct generics* layer = _create_empty_layer(name);
-    layer->entries = vector_create(size);
+    layer->entries = vector_create(size, _destroy_entry);
     return layer;
 }
 
@@ -571,68 +579,59 @@ int technology_resolve_premapped_layers(struct technology_state* techstate, cons
     return 1;
 }
 
-
-struct technology_state* technology_initialize(void)
-{
-    struct technology_state* techstate = malloc(sizeof(*techstate));
-    techstate->layertable = vector_create(32);
-    techstate->viatable = vector_create(32);
-    techstate->config = malloc(sizeof(*techstate->config));
-    techstate->constraints = hashmap_create();
-    techstate->techpaths = vector_create(32);
-    techstate->create_via_arrays = 1;
-    techstate->layermap = hashmap_create();
-    techstate->extra_layers = vector_create(1024);
-    return techstate;
-}
-
-static void _destroy_entry(void* entryv)
-{
-    struct generics_entry* entry = entryv;
-    free(entry->exportname);
-    hashmap_destroy(entry->data, tagged_value_destroy);
-    free(entry);
-}
-
 static void _destroy_layer(void* layerv)
 {
     struct generics* layer = layerv;
     if(layer->entries)
     {
-        vector_destroy(layer->entries, _destroy_entry);
+        vector_destroy(layer->entries);
     }
     free(layer->name);
     free(layer);
 }
 
+static void _destroy_viaentry(void* viav)
+{
+    struct viaentry* entry = viav;
+    free(entry->name);
+    struct via_definition** viadef = entry->viadefs;
+    while(*viadef)
+    {
+        free(*viadef);
+        ++viadef;
+    }
+    free(entry->viadefs);
+    free(entry->fallback);
+    free(entry);
+}
+
+struct technology_state* technology_initialize(void)
+{
+    struct technology_state* techstate = malloc(sizeof(*techstate));
+    techstate->layertable = vector_create(32, _destroy_layer);
+    techstate->viatable = vector_create(32, _destroy_viaentry);
+    techstate->config = malloc(sizeof(*techstate->config));
+    techstate->constraints = hashmap_create();
+    techstate->techpaths = vector_create(32, free);
+    techstate->create_via_arrays = 1;
+    techstate->layermap = hashmap_create();
+    techstate->extra_layers = vector_create(1024, _destroy_layer);
+    return techstate;
+}
+
 void technology_destroy(struct technology_state* techstate)
 {
-    vector_destroy(techstate->layertable, _destroy_layer);
-
-    for(unsigned int i = 0; i < vector_size(techstate->viatable); ++i)
-    {
-        struct viaentry* entry = vector_get(techstate->viatable, i);
-        free(entry->name);
-        struct via_definition** viadef = entry->viadefs;
-        while(*viadef)
-        {
-            free(*viadef);
-            ++viadef;
-        }
-        free(entry->viadefs);
-        free(entry->fallback);
-        free(entry);
-    }
-    vector_destroy(techstate->viatable, NULL);
+    vector_destroy(techstate->layertable);
+    vector_destroy(techstate->viatable);
 
     free(techstate->config);
 
     hashmap_destroy(techstate->constraints, tagged_value_destroy);
 
-    vector_destroy(techstate->techpaths, free);
+    vector_destroy(techstate->techpaths);
 
     hashmap_destroy(techstate->layermap, NULL);
-    vector_destroy(techstate->extra_layers, _destroy_layer); // (externally) premapped layers are owned by the layer map
+    vector_destroy(techstate->extra_layers); // (externally) premapped layers are owned by the layer map
 
     free(techstate);
 }

@@ -114,7 +114,7 @@ static void _shift_line(const point_t* pt1, const point_t* pt2, ucoordinate_t wi
 
 static struct vector* _get_edge_segments(point_t** points, size_t numpoints, ucoordinate_t width, unsigned int grid)
 {
-    struct vector* edges = vector_create(4 * (numpoints - 1));
+    struct vector* edges = vector_create(4 * (numpoints - 1), point_destroy);
     // append dummy points, later filled by _shift_line
     for(unsigned int i = 0; i < 4 * (numpoints - 1); ++i)
     {
@@ -178,7 +178,7 @@ static int _intersection(const point_t* s1, const point_t* s2, const point_t* c1
 static struct vector* _get_path_pts(struct vector* edges, int miterjoin)
 {
     size_t numedges = vector_size(edges);
-    struct vector* poly = vector_create(2 * numedges); // wild guess on the number of points
+    struct vector* poly = vector_create(2 * numedges, point_destroy); // wild guess on the number of points
     // first start point
     vector_append(poly, point_copy(vector_get(edges, 0)));
     // first middle points
@@ -275,7 +275,7 @@ struct shape* geometry_path_to_polygon(const struct generics* layer, point_t** p
     // polygon
     struct vector* edges = _get_edge_segments(points, numpoints, width, 1);
     struct vector* poly = _get_path_pts(edges, miterjoin);
-    vector_destroy(edges, point_destroy);
+    vector_destroy(edges);
     struct shape* S = shape_create_polygon(layer, vector_size(poly));
     struct vector_const_iterator* it = vector_const_iterator_create(poly);
     while(vector_const_iterator_is_valid(it))
@@ -285,7 +285,7 @@ struct shape* geometry_path_to_polygon(const struct generics* layer, point_t** p
         vector_const_iterator_next(it);
     }
     vector_const_iterator_destroy(it);
-    vector_destroy(poly, point_destroy);
+    vector_destroy(poly);
     return S;
 }
 
@@ -294,7 +294,7 @@ struct vector* _get_any_angle_path_pts(point_t** pts, size_t len, ucoordinate_t 
     (void)allow45;
     struct vector* edges = _get_edge_segments(pts, len, width, grid);
     struct vector* poly = _get_path_pts(edges, miterjoin);
-    vector_destroy(edges, point_destroy);
+    vector_destroy(edges);
 //    table.insert(pathpts, edges[1]:copy()) -- close path
 //    local poly = {}
 //    for i = 1, #pathpts - 1 do
@@ -312,7 +312,7 @@ void geometry_any_angle_path(struct object* cell, const struct generics* layer, 
     _make_unique_points(pts, &len);
     struct vector* points = _get_any_angle_path_pts(pts, len, width, grid, miterjoin, allow45);
     geometry_polygon(cell, layer, vector_content(points), vector_size(points));
-    vector_destroy(points, point_destroy);
+    vector_destroy(points);
 }
 
 typedef void (*via_strategy) (ucoordinate_t size, unsigned int cutsize, unsigned int space, int encl, unsigned int* rep_result, unsigned int* space_result);

@@ -88,7 +88,7 @@ struct shape* shape_create_polygon(const struct generics* layer, size_t capacity
 {
     struct shape* shape = _create_shape(POLYGON, layer);
     struct polygon* polygon = malloc(sizeof(*polygon));
-    polygon->points = vector_create(capacity);
+    polygon->points = vector_create(capacity, point_destroy);
     shape->content = polygon;
     return shape;
 }
@@ -97,7 +97,7 @@ struct shape* shape_create_path(const struct generics* layer, size_t capacity, u
 {
     struct shape* shape = _create_shape(PATH, layer);
     struct path* path = malloc(sizeof(*path));
-    path->points = vector_create(capacity);
+    path->points = vector_create(capacity, point_destroy);
     path->width = width;
     path->extension[0] = extstart;
     path->extension[1] = extend;
@@ -105,12 +105,36 @@ struct shape* shape_create_path(const struct generics* layer, size_t capacity, u
     return shape;
 }
 
+static void _destroy_segment(void* v)
+{
+    struct curve_segment* segment = v;
+    switch(segment->type)
+    {
+        case LINE_SEGMENT:
+        {
+            point_destroy(segment->pt);
+            break;
+        }
+        case ARC_SEGMENT:
+        {
+            break;
+        }
+        case CUBIC_BEZIER_SEGMENT:
+        {
+            point_destroy(segment->cpt1);
+            point_destroy(segment->cpt2);
+            point_destroy(segment->endpt);
+        }
+    }
+    free(segment);
+}
+
 struct shape* shape_create_curve(const struct generics* layer, coordinate_t x, coordinate_t y, unsigned int grid, int allow45)
 {
     struct shape* shape = _create_shape(CURVE, layer);
     struct curve* curve = malloc(sizeof(*curve));
     curve->origin = point_create(x, y);
-    curve->segments = vector_create(8);
+    curve->segments = vector_create(8, _destroy_segment);
     curve->grid = grid;
     curve->allow45 = allow45;
     shape->content = curve;
@@ -261,30 +285,6 @@ void* shape_copy(const void* v)
     return new;
 }
 
-static void _destroy_segment(void* v)
-{
-    struct curve_segment* segment = v;
-    switch(segment->type)
-    {
-        case LINE_SEGMENT:
-        {
-            point_destroy(segment->pt);
-            break;
-        }
-        case ARC_SEGMENT:
-        {
-            break;
-        }
-        case CUBIC_BEZIER_SEGMENT:
-        {
-            point_destroy(segment->cpt1);
-            point_destroy(segment->cpt2);
-            point_destroy(segment->endpt);
-        }
-    }
-    free(segment);
-}
-
 void shape_destroy(void* v)
 {
     struct shape* shape = v;
@@ -301,20 +301,20 @@ void shape_destroy(void* v)
         case TRIANGULATED_POLYGON:
         {
             struct polygon* polygon = shape->content;
-            vector_destroy(polygon->points, point_destroy);
+            vector_destroy(polygon->points);
             break;
         }
         case PATH:
         {
             struct path* path = shape->content;
-            vector_destroy(path->points, point_destroy);
+            vector_destroy(path->points);
             break;
         }
         case CURVE:
         {
             struct curve* curve = shape->content;
             point_destroy(curve->origin);
-            vector_destroy(curve->segments, _destroy_segment);
+            vector_destroy(curve->segments);
             break;
         }
     }
@@ -931,7 +931,7 @@ void shape_resolve_path_inline(struct shape* shape)
     struct shape* new = geometry_path_to_polygon(shape->layer, vector_content(path->points), vector_size(path->points), path->width, miterjoin);
     shape->content = new->content;
     shape->type = new->type;
-    vector_destroy(path->points, point_destroy);
+    vector_destroy(path->points);
     free(path);
     free(new);
 }
@@ -960,7 +960,7 @@ void shape_rasterize_curve_inline(struct shape* shape)
         return;
     }
     // FIXME: add_curve_xxx_segment MUST also specify the type, then we can iterate over the individual segments here!
-    struct vector* rastered_points = vector_create(1024);
+    struct vector* rastered_points = vector_create(1024, point_destroy);
     struct curve* curve = shape->content;
     struct vector_const_iterator* it = vector_const_iterator_create(curve->segments);
     point_t* lastpt = point_copy(curve->origin);
@@ -1013,7 +1013,7 @@ void shape_rasterize_curve_inline(struct shape* shape)
     vector_const_iterator_destroy(it);
     point_destroy(lastpt);
     point_destroy(curve->origin);
-    vector_destroy(curve->segments, _destroy_segment);
+    vector_destroy(curve->segments);
     free(curve);
 
     _check_acute_angles(rastered_points);
@@ -1050,7 +1050,7 @@ void shape_triangulate_polygon_inline(struct shape* shape)
         fputs("could not triangulate polygon\n", stderr);
         return;
     }
-    vector_destroy(polygon->points, point_destroy);
+    vector_destroy(polygon->points);
     polygon->points = result;
     shape->type = TRIANGULATED_POLYGON;
 }

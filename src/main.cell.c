@@ -173,12 +173,12 @@ void main_list_cell_parameters(struct cmdoptions* cmdoptions, struct hashmap* co
     }
 
     // pcell state
-    struct vector* cellpaths_to_prepend = vector_create(1);
-    struct vector* cellpaths_to_append = vector_create(1);
+    struct vector* cellpaths_to_prepend = vector_create(1, free);
+    struct vector* cellpaths_to_append = vector_create(1, free);
     _prepare_cellpaths(cellpaths_to_prepend, cellpaths_to_append, cmdoptions, config);
     struct pcell_state* pcell_state = pcell_initialize_state(cellpaths_to_prepend, cellpaths_to_append);
-    vector_destroy(cellpaths_to_prepend, free);
-    vector_destroy(cellpaths_to_append, free);
+    vector_destroy(cellpaths_to_prepend);
+    vector_destroy(cellpaths_to_append);
     // and register
     lua_pushlightuserdata(L, pcell_state);
     lua_setfield(L, LUA_REGISTRYINDEX, "pcellstate");
@@ -579,12 +579,12 @@ int main_create_and_export_cell(struct cmdoptions* cmdoptions, struct hashmap* c
     }
 
     // pcell state
-    struct vector* cellpaths_to_prepend = vector_create(1);
-    struct vector* cellpaths_to_append = vector_create(1);
+    struct vector* cellpaths_to_prepend = vector_create(1, free);
+    struct vector* cellpaths_to_append = vector_create(1, free);
     _prepare_cellpaths(cellpaths_to_prepend, cellpaths_to_append, cmdoptions, config);
     struct pcell_state* pcell_state = pcell_initialize_state(cellpaths_to_prepend, cellpaths_to_append);
-    vector_destroy(cellpaths_to_prepend, free);
-    vector_destroy(cellpaths_to_append, free);
+    vector_destroy(cellpaths_to_prepend);
+    vector_destroy(cellpaths_to_append);
 
     if(!pcell_state)
     {

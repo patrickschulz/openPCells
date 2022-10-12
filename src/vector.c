@@ -7,6 +7,7 @@ struct vector {
     void** elements;
     size_t size;
     size_t capacity;
+    void (*destructor)(void*);
 };
 
 static void _resize_data(struct vector* vector, size_t capacity)
@@ -16,7 +17,7 @@ static void _resize_data(struct vector* vector, size_t capacity)
     vector->elements = e;
 }
 
-struct vector* vector_create(size_t capacity)
+struct vector* vector_create(size_t capacity, void (*destructor)(void*))
 {
     struct vector* vector = malloc(sizeof(*vector));
     vector->elements = NULL;
@@ -26,16 +27,17 @@ struct vector* vector_create(size_t capacity)
     {
         _resize_data(vector, capacity);
     }
+    vector->destructor = destructor;
     return vector;
 }
 
-void vector_destroy(struct vector* vector, void (*destructor)(void*))
+void vector_destroy(struct vector* vector)
 {
-    if(destructor)
+    if(vector->destructor)
     {
         for(size_t i = 0; i < vector->size; ++i)
         {
-            destructor(vector->elements[i]);
+            vector->destructor(vector->elements[i]);
         }
     }
     // non-owned data, only destroy vector structure
@@ -45,7 +47,7 @@ void vector_destroy(struct vector* vector, void (*destructor)(void*))
 
 struct vector* vector_copy(struct vector* vector, void* (*copy)(const void*))
 {
-    struct vector* new = vector_create(vector->capacity);
+    struct vector* new = vector_create(vector->capacity, vector->destructor);
     for(size_t i = 0; i < vector->size; ++i)
     {
         new->elements[i] = copy(vector->elements[i]);

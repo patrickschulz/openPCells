@@ -4,8 +4,8 @@
 #include <stddef.h>
 
 struct vector;
-struct vector* vector_create(size_t capacity);
-void vector_destroy(struct vector* vector, void (*destructor)(void*));
+struct vector* vector_create(size_t capacity, void (*destructor)(void*));
+void vector_destroy(struct vector* vector);
 struct vector* vector_copy(struct vector* vector, void* (*copy)(const void*));
 void vector_reserve(struct vector* vector, size_t additional_capacity);
 size_t vector_size(const struct vector* vector);

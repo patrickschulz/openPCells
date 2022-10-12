@@ -61,25 +61,25 @@ static void _flatten_curve(const struct vector* points, unsigned int grid, int a
     }
     else
     {
-        struct vector* l = vector_create(32);
-        struct vector* r = vector_create(32);
+        struct vector* l = vector_create(32, point_destroy);
+        struct vector* r = vector_create(32, point_destroy);
         _subdivide(points, l, r);
         _flatten_curve(l, grid, allow45, result);
         _flatten_curve(r, grid, allow45, result);
-        vector_destroy(l, point_destroy);
-        vector_destroy(r, point_destroy);
+        vector_destroy(l);
+        vector_destroy(r);
     }
 }
 
 void graphics_raster_cubic_bezier_segment(const point_t* startpt, const point_t* cpt1, const point_t* cpt2, const point_t* endpt, unsigned int grid, int allow45, struct vector* result)
 {
-    struct vector* curve = vector_create(4);
+    struct vector* curve = vector_create(4, point_destroy);
     vector_append(curve, point_copy(startpt));
     vector_append(curve, point_copy(cpt1));
     vector_append(curve, point_copy(cpt2));
     vector_append(curve, point_copy(endpt));
     _flatten_curve(curve, grid, allow45, result);
-    vector_destroy(curve, point_destroy);
+    vector_destroy(curve);
 }
 
 #define iabs(x) ((x) < 0 ? -(x) : (x))
@@ -146,7 +146,7 @@ static struct vector* _rasterize_quartercircle(coordinate_t radius, unsigned int
     coordinate_t y = 0;
     int sx = -grid;
     int sy = grid;
-    struct vector* pts = vector_create(128);
+    struct vector* pts = vector_create(128, point_destroy);
     while(1)
     {
         vector_append(pts, point_create(x, y));
@@ -464,7 +464,7 @@ static void _circle(coordinate_t ox, coordinate_t oy, ucoordinate_t radius, doub
 
     _assemble_circle_points(quarterpoints, quadrants, xstart, ystart, xend, yend, ox, oy, clockwise, result);
 
-    vector_destroy(quarterpoints, point_destroy);
+    vector_destroy(quarterpoints);
 }
 
 void graphics_raster_arc_segment(point_t* startpt, double startangle, double endangle, coordinate_t radius, int clockwise, unsigned int grid, int allow45, struct vector* result)

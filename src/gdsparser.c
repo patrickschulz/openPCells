@@ -175,7 +175,7 @@ static inline void _parse_single_point_i(uint8_t* data, size_t i, point_t* pt)
 
 static struct vector* _parse_points(uint8_t* data, size_t length)
 {
-    struct vector* points = vector_create(length >> 3);
+    struct vector* points = vector_create(length >> 3, point_destroy);
     for(size_t i = 0; i < length >> 3; ++i)
     {
         point_t* pt = point_create(0, 0);
@@ -670,6 +670,24 @@ struct layermapping {
     size_t num;
 };
 
+static void _destroy_mapping(void* v)
+{
+    struct layermapping* mapping = v;
+    if(mapping->mappings)
+    {
+        for(unsigned int i = 0; i < mapping->num; ++i)
+        {
+            free(mapping->mappings[i]);
+        }
+        free(mapping->mappings);
+    }
+    if(mapping->map)
+    {
+        free(mapping->map);
+    }
+    free(mapping);
+}
+
 struct vector* gdsparser_create_layermap(const char* filename)
 {
     if(!filename)
@@ -685,7 +703,7 @@ struct vector* gdsparser_create_layermap(const char* filename)
         lua_close(L);
         return NULL;
     }
-    struct vector* map = vector_create(1);
+    struct vector* map = vector_create(1, _destroy_mapping);
     lua_len(L, -1);
     size_t len = lua_tointeger(L, -1);
     lua_pop(L, 1);
@@ -738,29 +756,11 @@ struct vector* gdsparser_create_layermap(const char* filename)
     return map;
 }
 
-static void _destroy_mapping(void* v)
-{
-    struct layermapping* mapping = v;
-    if(mapping->mappings)
-    {
-        for(unsigned int i = 0; i < mapping->num; ++i)
-        {
-            free(mapping->mappings[i]);
-        }
-        free(mapping->mappings);
-    }
-    if(mapping->map)
-    {
-        free(mapping->map);
-    }
-    free(mapping);
-}
-
 void gdsparser_destroy_layermap(struct vector* layermap)
 {
     if(layermap)
     {
-        vector_destroy(layermap, _destroy_mapping);
+        vector_destroy(layermap);
     }
 }
 
@@ -1276,7 +1276,7 @@ static int _read_structure(const char* importname, struct stream* stream, const 
             {
                 _write_PATH(cellfile, layer, purpose, points, width, gdslayermap);
             }
-            vector_destroy(points, point_destroy);
+            vector_destroy(points);
         }
         else if(record->recordtype == TEXT)
         {

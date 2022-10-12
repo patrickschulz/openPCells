@@ -29,12 +29,27 @@ struct pcell_state {
     struct vector* cellpaths;
 };
 
+static void _destroy_cellref(void* ptr)
+{
+    struct cellreference* cref = ptr;
+    object_destroy(cref->cell);
+    free(cref->identifier);
+    free(cref);
+}
+
+static void _destroy_used_name(void* ptr)
+{
+    struct used_name* entry = ptr;
+    free(entry->identifier);
+    free(entry);
+}
+
 struct pcell_state* pcell_initialize_state(struct vector* cellpaths_to_prepend, struct vector* cellpaths_to_append)
 {
     struct pcell_state* pcell_state = malloc(sizeof(*pcell_state));
-    pcell_state->used_names = vector_create(64);
-    pcell_state->references = vector_create(64);
-    pcell_state->cellpaths = vector_create(64);
+    pcell_state->used_names = vector_create(64, _destroy_used_name);
+    pcell_state->references = vector_create(64, _destroy_cellref);
+    pcell_state->cellpaths = vector_create(64, free);
     if(cellpaths_to_prepend)
     {
         for(unsigned int i = 0; i < vector_size(cellpaths_to_prepend); ++i)
@@ -52,26 +67,11 @@ struct pcell_state* pcell_initialize_state(struct vector* cellpaths_to_prepend, 
     return pcell_state;
 }
 
-static void _destroy_cellref(void* ptr)
-{
-    struct cellreference* cref = ptr;
-    object_destroy(cref->cell);
-    free(cref->identifier);
-    free(cref);
-}
-
-static void _destroy_used_name(void* ptr)
-{
-    struct used_name* entry = ptr;
-    free(entry->identifier);
-    free(entry);
-}
-
 void pcell_destroy_state(struct pcell_state* pcell_state)
 {
-    vector_destroy(pcell_state->used_names, _destroy_used_name);
-    vector_destroy(pcell_state->references, _destroy_cellref);
-    vector_destroy(pcell_state->cellpaths, free);
+    vector_destroy(pcell_state->used_names);
+    vector_destroy(pcell_state->references);
+    vector_destroy(pcell_state->cellpaths);
     free(pcell_state);
 }
 

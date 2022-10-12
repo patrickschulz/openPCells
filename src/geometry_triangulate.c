@@ -281,7 +281,7 @@ struct vector* geometry_triangulate_polygon(const struct vector* points)
     }
     vector_const_iterator_destroy(it);
 
-    struct vector* result = vector_create(32);
+    struct vector* result = vector_create(32, point_destroy);
     int ret = _triangulate(&vertices, numvertices, result);
 
     // destroy remaining vertices
@@ -306,7 +306,7 @@ struct vector* geometry_triangulate_polygon(const struct vector* points)
 
     if(!ret)
     {
-        vector_destroy(result, point_destroy);
+        vector_destroy(result);
         return NULL;
     }
     return result;

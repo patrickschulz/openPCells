@@ -12,7 +12,7 @@ static void _merge_shapes(struct object* object, struct technology_state* techst
     while(layer_iterator_is_valid(it))
     {
         const struct generics* layer = layer_iterator_get(it);
-        struct vector* rectangles = vector_create(32);
+        struct vector* rectangles = vector_create(32, NULL);
         for(int j = object_get_shapes_size(object) - 1; j >= 0; --j)
         {
             struct shape* S = object_get_shape(object, j);
@@ -30,7 +30,7 @@ static void _merge_shapes(struct object* object, struct technology_state* techst
         {
             object_add_raw_shape(object, vector_get(rectangles, i));
         }
-        vector_destroy(rectangles, NULL);
+        vector_destroy(rectangles);
         layer_iterator_next(it);
     }
     layer_iterator_destroy(it);
