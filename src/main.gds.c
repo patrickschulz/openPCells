@@ -7,8 +7,6 @@
 #include "main.functions.h"
 #include "lua_util.h"
 #include "gdsparser.h"
-#include "filesystem.h"
-#include "config.h"
 
 #include "scriptmanager.h"
 #include "modulemanager.h"
