@@ -1110,7 +1110,8 @@ local letteroutlines = {
 function parameters()
     pcell.add_parameters(
         { "text(Text)",                  "TEXT" },
-        { "scale(Letter Scaling)",         1000 },
+        { "scale",                            1 },
+        { "lettersize(Letter Size)     ",  1000 },
         { "spacing(Width of a Space)",      600 },
         { "letterspacing(Letter Spacing)",  200 },
         { "leading(Line Leading)",          200 },
@@ -1126,10 +1127,10 @@ function layout(text, _P)
         local char = string.sub(string.upper(_P.text), i, i)
         if char == "\n" then
             x = 0
-            y = y - _P.scale - _P.leading
+            y = y - _P.scale * (_P.lettersize - _P.leading)
         else
             if char == " " then
-                x = x + _P.spacing
+                x = x + _P.scale * _P.spacing
             else
                 local outlines = letteroutlines[char]
                 if outlines then
@@ -1138,14 +1139,14 @@ function layout(text, _P)
                         local pts = {}
                         local minx, maxx = math.huge, -math.huge
                         for _, pt in ipairs(outline) do
-                            minx = math.min(_P.scale * pt.x, minx)
-                            maxx = math.max(_P.scale * pt.x, maxx)
-                            table.insert(pts, point.create(_P.scale * pt.x + x, _P.scale * pt.y + y))
+                            minx = math.min(_P.scale * _P.lettersize * pt.x, minx)
+                            maxx = math.max(_P.scale * _P.lettersize * pt.x, maxx)
+                            table.insert(pts, point.create(_P.scale * _P.lettersize * pt.x + x, _P.scale * _P.lettersize * pt.y + y))
                         end
                         geometry.polygon(text, generics.metal(_P.metalnum), pts)
                         width = math.max(width, maxx - minx)
                     end
-                    x = x + width + _P.letterspacing
+                    x = x + width + _P.scale * _P.letterspacing
                 end
             end
         end
