@@ -586,52 +586,12 @@ static int lgeometry_unequal_ring(lua_State* L)
     return 0;
 }
 
-/*
-static int lgeometry_cubic_bezier(lua_State* L)
-{
-    struct lobject* cell = lobject_check(L, 1);
-    struct generics* layer = _check_generics(L, 2);
-    lua_len(L, 3);
-    size_t len = lua_tointeger(L, -1);
-    lua_pop(L, 1);
-
-    if(len != 4)
-    {
-        lua_pushstring(L, "geometry.cubic_bezier: expecting a multiple of four points");
-        lua_error(L);
-    }
-
-    struct vector* curve = vector_create(32);
-    for(unsigned int i = 1; i <= len; ++i)
-    {
-        lua_rawgeti(L, 3, i);
-        struct lpoint* pt = lpoint_checkpoint(L, -1);
-        vector_append(curve, lpoint_get(pt));
-        lua_pop(L, 1);
-    }
-
-    struct vector* points = vector_create(128);
-    graphics_raster_cubic_bezier_segment(curve, points);
-    vector_destroy(curve, NULL);
-
-    const point_t** polypoints = calloc(vector_size(points), sizeof(*polypoints));
-    for(unsigned int i = 0; i < vector_size(points); ++i)
-    {
-        polypoints[i] = vector_get_const(points, i);
-    }
-    geometry_polygon(lobject_get(cell), layer, polypoints, vector_size(points));
-    free(polypoints);
-    vector_destroy(points, NULL);
-    return 0;
-}
-*/
-
 static int lgeometry_curve(lua_State* L)
 {
     struct lobject* lobject = lobject_check(L, 1);
     struct generics* layer = _check_generics(L, 2);
     struct lpoint* origin = lpoint_checkpoint(L, 3);
-    unsigned int grid = luaL_optinteger(L, 5, 1);
+    unsigned int grid = luaL_checkinteger(L, 5);
     int allow45 = lua_toboolean(L, 6);
     struct shape* S = shape_create_curve(layer, lpoint_get(origin)->x, lpoint_get(origin)->y, grid, allow45);
 
