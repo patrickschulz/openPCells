@@ -20,6 +20,12 @@ procedure(OPCPrepareArgsForCellCreation(args @key (newgroup nil))
     when(OPCSettingsForm->OPCSettingsDrawAllAlignmentboxes->value == "true"
         OPCArgs = lsprintf("%s --draw-all-alignmentboxes" OPCArgs)
     )
+    if(OPCSettingsForm->OPCSettingsSplitLets->value == "false"
+        then
+            OPCArgs = lsprintf("%s -X --no-let-splits" OPCArgs)
+        else
+            OPCArgs = lsprintf("%s -X '--max-let-splits %d'" OPCArgs OPCSettingsForm->OPCSettingsMaxLetSplits->value)
+    )
     OPCArgs
 )
 

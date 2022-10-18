@@ -78,6 +78,17 @@ procedure(OPCCreateSettingsForm()
                 ?prompt "Create Groups Consecutively"
             )
             hiCreateRadioField(
+                ?name 'OPCSettingsSplitLets
+                ?choices list("true" "false")
+                ?value "true"
+                ?prompt "Split Let Statements"
+            )
+            hiCreateIntField(
+                ?name 'OPCSettingsMaxLetSplits
+                ?value 65536
+                ?prompt "Maximum Values in a 'let' Statement"
+            )
+            hiCreateRadioField(
                 ?name 'OPCSettingsDeleteFile
                 ?choices list("true" "false")
                 ?value "true"
