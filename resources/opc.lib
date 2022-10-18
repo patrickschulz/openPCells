@@ -413,13 +413,13 @@ library (opc) {
             nextstate_type : "data";
 			timing() {
 				related_pin : "CLK";
-				timing_type : hold_rising;
+				timing_type : hold_falling;
 				rise_constraint (scalar) { values("1.0"); }
 	            fall_constraint (scalar) { values("1.0"); }
 			}
 			timing() {
 				related_pin : "CLK";
-				timing_type : setup_rising;
+				timing_type : setup_falling;
 				rise_constraint (scalar) { values("1.0"); }
 	            fall_constraint (scalar) { values("1.0"); }
 			}
@@ -497,13 +497,13 @@ library (opc) {
             nextstate_type : "data";
 			timing() {
 				related_pin : "CLK";
-				timing_type : hold_rising;
+				timing_type : hold_falling;
 				rise_constraint (scalar) { values("1.0"); }
 	            fall_constraint (scalar) { values("1.0"); }
 			}
 			timing() {
 				related_pin : "CLK";
-				timing_type : setup_rising;
+				timing_type : setup_falling;
 				rise_constraint (scalar) { values("1.0"); }
 	            fall_constraint (scalar) { values("1.0"); }
 			}
@@ -585,13 +585,13 @@ library (opc) {
             nextstate_type : "data";
 			timing() {
 				related_pin : "CLK";
-				timing_type : hold_rising;
+				timing_type : hold_falling;
 				rise_constraint (scalar) { values("1.0"); }
 	            fall_constraint (scalar) { values("1.0"); }
 			}
 			timing() {
 				related_pin : "CLK";
-				timing_type : setup_rising;
+				timing_type : setup_falling;
 				rise_constraint (scalar) { values("1.0"); }
 	            fall_constraint (scalar) { values("1.0"); }
 			}
@@ -661,7 +661,7 @@ library (opc) {
 			timing() {
 				related_pin : "CLK";
 				timing_sense : non_unate;
-				timing_type : fallingising_edge;
+				timing_type : falling_edge;
 				cell_fall(scalar) { values ("0.5"); }
 				cell_rise(scalar) { values ("0.5"); }
 				fall_transition(scalar) { values ("0.5"); }
@@ -677,13 +677,13 @@ library (opc) {
             nextstate_type : "data";
 			timing() {
 				related_pin : "CLK";
-				timing_type : hold_rising;
+				timing_type : hold_falling;
 				rise_constraint (scalar) { values("1.0"); }
 	            fall_constraint (scalar) { values("1.0"); }
 			}
 			timing() {
 				related_pin : "CLK";
-				timing_type : setup_rising;
+				timing_type : setup_falling;
 				rise_constraint (scalar) { values("1.0"); }
 	            fall_constraint (scalar) { values("1.0"); }
 			}
