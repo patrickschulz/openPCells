@@ -238,8 +238,8 @@ static int _write_child_array(struct export_writer* writer, const char* identifi
         _push_point(writer->L, origin);
         _push_trans(writer->L, trans);
         _push_rep_pitch(writer->L, xrep, yrep, xpitch, ypitch);
-        int ret = lua_pcall(writer->L, 8, 0, 0);
-        if(ret != LUA_OK)
+        int lret = lua_pcall(writer->L, 8, 0, 0);
+        if(lret != LUA_OK)
         {
             return 0;
         }
@@ -267,8 +267,8 @@ static int _write_child_single(struct export_writer* writer, const char* identif
                 lua_pushinteger(writer->L, x);
                 lua_pushinteger(writer->L, y);
                 _push_trans(writer->L, trans);
-                int ret = lua_pcall(writer->L, 4, 0, 0);
-                if(ret != LUA_OK)
+                int lret = lua_pcall(writer->L, 4, 0, 0);
+                if(lret != LUA_OK)
                 {
                     return 0;
                 }
@@ -314,8 +314,8 @@ static int _write_cell_shape_rectangle(struct export_writer* writer, const struc
         _push_layer(writer->L, layerdata);
         _push_point(writer->L, &bl);
         _push_point(writer->L, &tr);
-        int ret = lua_pcall(writer->L, 3, 0, 0);
-        if(ret != LUA_OK)
+        int lret = lua_pcall(writer->L, 3, 0, 0);
+        if(lret != LUA_OK)
         {
             return 0;
         }
@@ -335,8 +335,8 @@ static int _write_polygon(struct export_writer* writer, const struct hashmap* la
         lua_getfield(writer->L, -1, "write_polygon");
         _push_layer(writer->L, layerdata);
         _push_points(writer->L, points);
-        int ret = lua_pcall(writer->L, 2, 0, 0);
-        if(ret != LUA_OK)
+        int lret = lua_pcall(writer->L, 2, 0, 0);
+        if(lret != LUA_OK)
         {
             return 0;
         }
@@ -379,8 +379,8 @@ static int _write_cell_shape_triangulated_polygon(struct export_writer* writer, 
                 _push_point(writer->L, pt1);
                 _push_point(writer->L, pt2);
                 _push_point(writer->L, pt3);
-                ret = lua_pcall(writer->L, 4, 0, 0);
-                if(ret != LUA_OK)
+                int lret = lua_pcall(writer->L, 4, 0, 0);
+                if(lret != LUA_OK)
                 {
                     ret = 0;
                     break;
@@ -428,8 +428,8 @@ static int _write_cell_shape_path(struct export_writer* writer, const struct sha
             lua_rawseti(writer->L, -2, 1);
             lua_pushinteger(writer->L, extension[0]);
             lua_rawseti(writer->L, -2, 2);
-            ret = lua_pcall(writer->L, 4, 0, 0);
-            if(ret != LUA_OK)
+            int lret = lua_pcall(writer->L, 4, 0, 0);
+            if(lret != LUA_OK)
             {
                 ret = 0;
                 goto WRITE_CELL_SHAPE_PATH_CLEANUP;
@@ -457,8 +457,8 @@ static int _line_segment(const point_t* pt, void* writerv)
     struct export_writer* writer = writerv;
     lua_getfield(writer->L, -1, "curve_add_line_segment");
     _push_point(writer->L, pt);
-    int ret = lua_pcall(writer->L, 1, 0, 0);
-    if(ret != LUA_OK)
+    int lret = lua_pcall(writer->L, 1, 0, 0);
+    if(lret != LUA_OK)
     {
         return 0;
     }
@@ -472,8 +472,8 @@ static int _arc_segment(double startangle, double endangle, coordinate_t radius,
     lua_pushnumber(writer->L, endangle);
     lua_pushinteger(writer->L, radius);
     lua_pushboolean(writer->L, clockwise);
-    int ret = lua_pcall(writer->L, 4, 0, 0);
-    if(ret != LUA_OK)
+    int lret = lua_pcall(writer->L, 4, 0, 0);
+    if(lret != LUA_OK)
     {
         return 0;
     }
@@ -487,8 +487,8 @@ static int _cubic_bezier_segment(const point_t* cpt1, const point_t* cpt2, const
     _push_point(writer->L, cpt1);
     _push_point(writer->L, cpt2);
     _push_point(writer->L, endpt);
-    int ret = lua_pcall(writer->L, 3, 0, 0);
-    if(ret != LUA_OK)
+    int lret = lua_pcall(writer->L, 3, 0, 0);
+    if(lret != LUA_OK)
     {
         return 0;
     }
@@ -507,19 +507,19 @@ static int _write_cell_shape_curve(struct export_writer* writer, const struct sh
             lua_getfield(writer->L, -1, "setup_curve");
             _push_layer(writer->L, layerdata);
             _push_point(writer->L, &origin);
-            int ret = lua_pcall(writer->L, 2, 0, 0);
-            if(ret != LUA_OK)
+            int lret = lua_pcall(writer->L, 2, 0, 0);
+            if(lret != LUA_OK)
             {
                 return 0;
             }
-            ret = shape_foreach_curve_segments(shape, writer, _line_segment, _arc_segment, _cubic_bezier_segment);
+            int ret = shape_foreach_curve_segments(shape, writer, _line_segment, _arc_segment, _cubic_bezier_segment);
             if(!ret)
             {
                 return 0;
             }
             lua_getfield(writer->L, -1, "close_curve");
-            ret = lua_pcall(writer->L, 0, 0, 0);
-            if(ret != LUA_OK)
+            lret = lua_pcall(writer->L, 0, 0, 0);
+            if(lret != LUA_OK)
             {
                 return 0;
             }
@@ -604,8 +604,8 @@ static int _write_port(struct export_writer* writer, const char* name, const str
         lua_pushstring(writer->L, name);
         _push_layer(writer->L, layerdata);
         _push_point(writer->L, where);
-        int ret = lua_pcall(writer->L, 3, 0, 0);
-        if(ret != LUA_OK)
+        int lret = lua_pcall(writer->L, 3, 0, 0);
+        if(lret != LUA_OK)
         {
             return 0;
         }
@@ -679,8 +679,8 @@ static int _call_or_pop_nil(lua_State* L, int numargs)
 {
     if(!lua_isnil(L, -1 - numargs))
     {
-        int ret = lua_pcall(L, numargs, 0, 0);
-        if(ret != LUA_OK)
+        int lret = lua_pcall(L, numargs, 0, 0);
+        if(lret != LUA_OK)
         {
             return 0;
         }
@@ -856,8 +856,8 @@ int export_writer_write_toplevel(struct export_writer* writer, const struct obje
     if(writer->islua)
     {
         lua_getfield(writer->L, -1, "finalize");
-        ret = lua_pcall(writer->L, 0, 1, 0);
-        if(ret != LUA_OK)
+        int lret = lua_pcall(writer->L, 0, 1, 0);
+        if(lret != LUA_OK)
         {
             return 0;
         }
