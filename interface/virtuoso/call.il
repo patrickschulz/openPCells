@@ -50,7 +50,7 @@ procedure(OPCCall(OPCCommand @key (redirect nil))
             printf("opc call: %s\n" OPCCommand)
         )
         pid = ipcBeginProcess(OPCCommand)
-        ipcWait(pid 30 1) ; wait for process to finish
+        ipcWait(pid 30 30) ; wait for process to finish
         exitstatus = ipcGetExitStatus(pid)
         if(exitstatus != 0
             then 
