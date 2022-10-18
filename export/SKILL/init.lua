@@ -41,7 +41,7 @@ function M.set_options(opt)
             end
             i = i + 1
         end
-        if arg == "-s" or arg == "--no-let-splits" then
+        if arg == "--no-let-splits" then
             __splitlets = false
         end
         if arg == "--max-let-splits" then
