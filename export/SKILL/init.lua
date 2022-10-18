@@ -273,7 +273,7 @@ function M.write_cell_array(identifier, x, y, orientation, xrep, yrep, xpitch, y
         orientstr = "R180"
     end
     -- FIXME: R270?
-    local fmt = _get_shape_fmt("SimpleMoasic")
+    local fmt = _get_shape_fmt("SimpleMosaic")
 
     local c = {}
     _prepare_shape_for_group(c)
