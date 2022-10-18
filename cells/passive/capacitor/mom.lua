@@ -6,6 +6,7 @@ function parameters()
         { "fheight(Finger Height)",  1000 },
         { "foffset(Finger Offset)",   100 },
         { "rwidth(Rail Width)",       100 },
+        { "rext(Rail Extension)",       0 },
         { "firstmetal(Start Metal)",    1 },
         { "lastmetal(End Metal)",       2 },
         { "alternatingpolarity",     true },
@@ -42,8 +43,8 @@ function layout(momcap, _P)
         for i = firstmetal, lastmetal do
             geometry.rectanglebltr(
                 momcap, generics.metal(i),
-                point.create(-_P.fingers * (_P.fwidth + _P.fspace) / 2, -_P.rwidth / 2),
-                point.create( _P.fingers * (_P.fwidth + _P.fspace) / 2,  _P.rwidth / 2),
+                point.create(-_P.fingers * (_P.fwidth + _P.fspace) / 2 - _P.rext, -_P.rwidth / 2),
+                point.create( _P.fingers * (_P.fwidth + _P.fspace) / 2 + _P.rext,  _P.rwidth / 2),
                 1, 2, 0, 2 * _P.foffset + _P.fheight + _P.rwidth
             )
         end
@@ -52,8 +53,8 @@ function layout(momcap, _P)
             if firstmetal ~= lastmetal then
                 geometry.viabltr(
                     momcap, firstmetal, lastmetal,
-                    point.create(-(_P.fingers + 1) * (_P.fwidth + _P.fspace) / 2, -_P.rwidth / 2),
-                    point.create( (_P.fingers + 1) * (_P.fwidth + _P.fspace) / 2,  _P.rwidth / 2),
+                    point.create(-(_P.fingers + 1) * (_P.fwidth + _P.fspace) / 2 - _P.rext, -_P.rwidth / 2),
+                    point.create( (_P.fingers + 1) * (_P.fwidth + _P.fspace) / 2 + _P.rext,  _P.rwidth / 2),
                     1, 2, 0, 2 * _P.foffset + _P.fheight + _P.rwidth
                 ) -- FIXME: make via continuous
             end
@@ -68,8 +69,8 @@ function layout(momcap, _P)
                 local viaref = object.create()
                 geometry.viabltr(
                     viaref, firstmetal, lastmetal,
-                    point.create(-(_P.fwidth + _P.fspace) / 2, _P.foffset / 2 - _P.rwidth / 2),
-                    point.create( (_P.fwidth + _P.fspace) / 2, _P.foffset / 2 + _P.rwidth / 2),
+                    point.create(-(_P.fwidth + _P.fspace) / 2 - _P.rext, _P.foffset / 2 - _P.rwidth / 2),
+                    point.create( (_P.fwidth + _P.fspace) / 2 + _P.rext, _P.foffset / 2 + _P.rwidth / 2),
                     1, 2, 0, 2 * _P.foffset + _P.fheight + _P.rwidth
                 ) -- FIXME: make via continuous
             end
@@ -82,15 +83,15 @@ function layout(momcap, _P)
     momcap:add_anchor("plus", point.create(0,   _P.foffset + _P.fheight / 2 + _P.rwidth / 2))
     momcap:add_anchor("minus", point.create(0, -_P.foffset - _P.fheight / 2 - _P.rwidth / 2))
     momcap:add_anchor_area("plus", 
-        (_P.fingers + 1) * (_P.fwidth + _P.fspace), _P.rwidth,
+        (_P.fingers + 1) * (_P.fwidth + _P.fspace) + 2 * _P.rext, _P.rwidth,
         0, _P.foffset + _P.fheight / 2 + _P.rwidth / 2
     )
     momcap:add_anchor_area("minus", 
-        (_P.fingers + 1) * (_P.fwidth + _P.fspace), _P.rwidth,
+        (_P.fingers + 1) * (_P.fwidth + _P.fspace) + 2 * _P.rext, _P.rwidth,
         0, -_P.foffset - _P.fheight / 2 - _P.rwidth / 2
     )
     momcap:set_alignment_box(
-        point.create(-_P.fingers * (_P.fwidth + _P.fspace) / 2, -_P.foffset - _P.fheight / 2 - _P.rwidth / 2),
-        point.create( _P.fingers * (_P.fwidth + _P.fspace) / 2,  _P.foffset + _P.fheight / 2 + _P.rwidth / 2)
+        point.create(-_P.fingers * (_P.fwidth + _P.fspace) / 2 - _P.rext, -_P.foffset - _P.fheight / 2 - _P.rwidth / 2),
+        point.create( _P.fingers * (_P.fwidth + _P.fspace) / 2 + _P.rext,  _P.foffset + _P.fheight / 2 + _P.rwidth / 2)
     )
 end
