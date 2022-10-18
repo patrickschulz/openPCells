@@ -62,16 +62,23 @@ int _read_record(FILE* file, struct record* record)
     record->recordtype = buf[2];
     record->datatype = buf[3];
 
-    size_t numbytes = record->length - 4;
-    uint8_t* data = malloc(numbytes);
-    read = fread(data, 1, numbytes, file);
-    if(read != numbytes)
+    if(record->length >= 4)
     {
-        free(data);
+        size_t numbytes = record->length - 4;
+        uint8_t* data = malloc(numbytes);
+        read = fread(data, 1, numbytes, file);
+        if(read != numbytes)
+        {
+            free(data);
+            return 0;
+        }
+        record->data = data;
+        return 1;
+    }
+    else
+    {
         return 0;
     }
-    record->data = data;
-    return 1;
 }
 
 struct stream {
@@ -106,8 +113,10 @@ static struct stream* _read_raw_stream(const char* filename)
         }
         if(!_read_record(file, &records[numrecords]))
         {
-            fprintf(stderr, "%s\n", "gdsparser: stream abort before ENDLIB");
-            break;
+            fprintf(stderr, "gdsparser: stream abort before ENDLIB (at byte %ld)\n", ftell(file));
+            fclose(file);
+            free(records);
+            return NULL;
         }
         ++numrecords;
         if(records[numrecords - 1].recordtype == ENDLIB)

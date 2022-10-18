@@ -971,7 +971,7 @@ void shape_rasterize_curve_inline(struct shape* shape)
         {
             case LINE_SEGMENT:
             {
-                graphics_raster_line_segment(
+                graphics_rasterize_line_segment(
                     lastpt, segment->pt,
                     curve->grid, curve->allow45, rastered_points);
                 lastpt->x = segment->pt->x;
@@ -980,7 +980,7 @@ void shape_rasterize_curve_inline(struct shape* shape)
             }
             case ARC_SEGMENT:
             {
-                graphics_raster_arc_segment(
+                graphics_rasterize_arc_segment(
                     lastpt,
                     segment->startangle,
                     segment->endangle,
@@ -997,7 +997,7 @@ void shape_rasterize_curve_inline(struct shape* shape)
             }
             case CUBIC_BEZIER_SEGMENT:
             {
-                graphics_raster_cubic_bezier_segment(
+                graphics_rasterize_cubic_bezier_segment(
                     lastpt,
                     segment->cpt1,
                     segment->cpt2,

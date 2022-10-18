@@ -55,7 +55,7 @@ static void _flatten_curve(const struct vector* points, unsigned int grid, int a
         point_t* endpt = point_create(pointarray_get(points, vector_size(points) - 1)->x, pointarray_get(points, vector_size(points) - 1)->y);
         endpt->x = (endpt->x / grid) * grid;
         endpt->y = (endpt->y / grid) * grid;
-        graphics_raster_line_segment(startpt, endpt, grid, allow45, result);
+        graphics_rasterize_line_segment(startpt, endpt, grid, allow45, result);
         point_destroy(startpt);
         point_destroy(endpt);
     }
@@ -71,7 +71,7 @@ static void _flatten_curve(const struct vector* points, unsigned int grid, int a
     }
 }
 
-void graphics_raster_cubic_bezier_segment(const point_t* startpt, const point_t* cpt1, const point_t* cpt2, const point_t* endpt, unsigned int grid, int allow45, struct vector* result)
+void graphics_rasterize_cubic_bezier_segment(const point_t* startpt, const point_t* cpt1, const point_t* cpt2, const point_t* endpt, unsigned int grid, int allow45, struct vector* result)
 {
     struct vector* curve = vector_create(4, point_destroy);
     vector_append(curve, point_copy(startpt));
@@ -84,7 +84,7 @@ void graphics_raster_cubic_bezier_segment(const point_t* startpt, const point_t*
 
 #define iabs(x) ((x) < 0 ? -(x) : (x))
 
-void graphics_raster_line_segment(point_t* startpt, point_t* endpt, unsigned int grid, int allow45, struct vector* result)
+void graphics_rasterize_line_segment(point_t* startpt, point_t* endpt, unsigned int grid, int allow45, struct vector* result)
 {
     coordinate_t x1 = startpt->x;
     coordinate_t y1 = startpt->y;
@@ -232,6 +232,11 @@ static unsigned int _map_xy_to_quadrant(coordinate_t x, coordinate_t y)
 
 static void _get_quadrant_list(unsigned int startquadrant, unsigned int endquadrant, int clockwise, unsigned int* quadrants)
 {
+    if(startquadrant == endquadrant)
+    {
+        quadrants[0] = startquadrant;
+        return;
+    }
     unsigned int i = startquadrant;
     int stop = 0;
     unsigned int idx = 0;
@@ -467,7 +472,7 @@ static void _circle(coordinate_t ox, coordinate_t oy, ucoordinate_t radius, doub
     vector_destroy(quarterpoints);
 }
 
-void graphics_raster_arc_segment(point_t* startpt, double startangle, double endangle, coordinate_t radius, int clockwise, unsigned int grid, int allow45, struct vector* result)
+void graphics_rasterize_arc_segment(point_t* startpt, double startangle, double endangle, coordinate_t radius, int clockwise, unsigned int grid, int allow45, struct vector* result)
 {
     coordinate_t cx = startpt->x - cos(startangle * M_PI / 180) * radius;
     coordinate_t cy = startpt->y - sin(startangle * M_PI / 180) * radius;
