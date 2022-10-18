@@ -17,8 +17,11 @@ end
 function layout(momcap, _P)
     local pitch = _P.fwidth + _P.fspace
 
+    local firstmetal = tech.resolve_metal(_P.firstmetal)
+    local lastmetal = tech.resolve_metal(_P.lastmetal)
+
     if _P.flat then
-        for i = _P.firstmetal, _P.lastmetal do
+        for i = firstmetal, lastmetal do
             local xreptop, xrepbot = evenodddiv2(_P.fingers)
             local xshift = (_P.fingers % 2 == 0) and pitch / 2 or 0
             local xsign = (_P.alternatingpolarity and (i % 2 == 0)) and 1 or -1
@@ -36,7 +39,7 @@ function layout(momcap, _P)
             )
         end
         -- rails
-        for i = _P.firstmetal, _P.lastmetal do
+        for i = firstmetal, lastmetal do
             geometry.rectanglebltr(
                 momcap, generics.metal(i),
                 point.create(-_P.fingers * (_P.fwidth + _P.fspace) / 2, -_P.rwidth / 2),
@@ -46,9 +49,9 @@ function layout(momcap, _P)
         end
         -- vias
         if _P.drawvia then
-            if _P.firstmetal ~= _P.lastmetal then
+            if firstmetal ~= lastmetal then
                 geometry.viabltr(
-                    momcap, _P.firstmetal, _P.lastmetal,
+                    momcap, firstmetal, lastmetal,
                     point.create(-(_P.fingers + 1) * (_P.fwidth + _P.fspace) / 2, -_P.rwidth / 2),
                     point.create( (_P.fingers + 1) * (_P.fwidth + _P.fspace) / 2,  _P.rwidth / 2),
                     1, 2, 0, 2 * _P.foffset + _P.fheight + _P.rwidth
@@ -57,14 +60,14 @@ function layout(momcap, _P)
         end
     else
         local fingerref = object.create()
-        for i = _P.firstmetal, _P.lastmetal do
+        for i = firstmetal, lastmetal do
             geometry.rectangle(fingerref, generics.metal(i), _P.fwidth, _P.fheight + _P.foffset)
         end
         if _P.drawvia then
-            if _P.firstmetal ~= _P.lastmetal then
+            if firstmetal ~= lastmetal then
                 local viaref = object.create()
                 geometry.viabltr(
-                    viaref, _P.firstmetal, _P.lastmetal,
+                    viaref, firstmetal, lastmetal,
                     point.create(-(_P.fwidth + _P.fspace) / 2, _P.foffset / 2 - _P.rwidth / 2),
                     point.create( (_P.fwidth + _P.fspace) / 2, _P.foffset / 2 + _P.rwidth / 2),
                     1, 2, 0, 2 * _P.foffset + _P.fheight + _P.rwidth
