@@ -949,33 +949,35 @@ void object_flatten_inline(struct object* cell, struct pcell_state* pcell_state,
             struct object* flat = object_flatten(reference, pcell_state, flattenports);
             if(flat->shapes)
             {
-                for(unsigned int ix = 1; ix <= child->xrep; ++ix)
+                size_t size = vector_size(flat->shapes);
+                while(size > 0)
                 {
-                    for(unsigned int iy = 1; iy <= child->yrep; ++iy)
+                    struct shape* S = object_disown_shape(flat, size - 1);
+                    --size;
+                    shape_apply_transformation(S, child->trans);
+                    shape_apply_transformation(S, flat->trans);
+                    for(unsigned int ix = 1; ix <= child->xrep; ++ix)
                     {
-                        size_t size = vector_size(flat->shapes);
-                        while(size > 0)
+                        for(unsigned int iy = 1; iy <= child->yrep; ++iy)
                         {
-                            struct shape* S = object_disown_shape(flat, size - 1);
-                            --size;
-                            shape_apply_transformation(S, child->trans);
-                            shape_apply_transformation(S, flat->trans);
-                            shape_translate(S, (ix - 1) * child->xpitch, (iy - 1) * child->ypitch);
-                            object_add_raw_shape(cell, S);
-                        }
-                        if(flattenports)
-                        {
-                            for(unsigned int p = 0; p < vector_size(flat->ports); ++p)
-                            {
-                                struct port* port = vector_get(flat->ports, p);
-                                coordinate_t x = port->where->x;
-                                coordinate_t y = port->where->y;
-                                transformationmatrix_apply_transformation_xy(child->trans, &x, &y);
-                                transformationmatrix_apply_transformation_xy(flat->trans, &x, &y);
-                                _add_port(cell, port->name, NULL, port->layer, x, y, port->isbusport, port->busindex, 0); // 0: !storeanchor
-                            }
+                            struct shape* copy = shape_copy(S);
+                            shape_translate(copy, (ix - 1) * child->xpitch, (iy - 1) * child->ypitch);
+                            object_add_raw_shape(cell, copy);
                         }
                     }
+                    shape_destroy(S);
+                }
+            }
+            if(flattenports)
+            {
+                for(unsigned int p = 0; p < vector_size(flat->ports); ++p)
+                {
+                    struct port* port = vector_get(flat->ports, p);
+                    coordinate_t x = port->where->x;
+                    coordinate_t y = port->where->y;
+                    transformationmatrix_apply_transformation_xy(child->trans, &x, &y);
+                    transformationmatrix_apply_transformation_xy(flat->trans, &x, &y);
+                    _add_port(cell, port->name, NULL, port->layer, x, y, port->isbusport, port->busindex, 0); // 0: !storeanchor
                 }
             }
             object_destroy(flat);
