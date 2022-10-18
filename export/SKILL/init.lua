@@ -257,4 +257,30 @@ function M.write_cell_reference(identifier, x, y, orientation)
     table.insert(__content, table.concat(c))
 end
 
+function M.write_cell_array(identifier, x, y, orientation, xrep, yrep, xpitch, ypitch)
+    local orientstr
+    if orientation[1] >= 0 and orientation[5] >= 0 then
+        if orientation[2] < 0 then
+            orientstr = "R90"
+        else
+            orientstr = "R0"
+        end
+    elseif orientation[1] <  0 and orientation[5] >= 0 then
+        orientstr = "MY"
+    elseif orientation[1] >= 0 and orientation[5] <  0 then
+        orientstr = "MX"
+    else
+        orientstr = "R180"
+    end
+    -- FIXME: R270?
+    local fmt = _get_shape_fmt("SimpleMoasic")
+
+    local c = {}
+    _prepare_shape_for_group(c)
+    table.insert(c, string.format(fmt, string.format('libname "%s" "layout" nil %s "%s %d %d %s %s"', identifier, _format_xy(x, y, ":"), orientstr, xrep, yrep, _format_number(xpitch), _format_number(ypitch))))
+    _finish_shape_for_group(c)
+    _ensure_legal_limit()
+    table.insert(__content, table.concat(c))
+end
+
 return M

@@ -235,7 +235,8 @@ static int _write_child_array(struct export_writer* writer, const char* identifi
     {
         lua_getfield(writer->L, -1, "write_cell_array");
         lua_pushstring(writer->L, identifier);
-        _push_point(writer->L, origin);
+        lua_pushinteger(writer->L, origin->x);
+        lua_pushinteger(writer->L, origin->y);
         _push_trans(writer->L, trans);
         _push_rep_pitch(writer->L, xrep, yrep, xpitch, ypitch);
         int lret = lua_pcall(writer->L, 8, 0, 0);
