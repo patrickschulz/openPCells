@@ -277,7 +277,7 @@ function M.write_cell_array(identifier, x, y, orientation, xrep, yrep, xpitch, y
 
     local c = {}
     _prepare_shape_for_group(c)
-    table.insert(c, string.format(fmt, string.format('libname "%s" "layout" nil %s "%s" %d %d %s %s nil', identifier, _format_xy(x, y, ":"), orientstr, xrep, yrep, _format_number(xpitch), _format_number(ypitch))))
+    table.insert(c, string.format(fmt, string.format('libname "%s" "layout" nil %s "%s" %d %d %s %s nil', identifier, _format_xy(x, y, ":"), orientstr, xrep, yrep, _format_number(ypitch), _format_number(xpitch))))
     _finish_shape_for_group(c)
     _ensure_legal_limit()
     table.insert(__content, table.concat(c))
