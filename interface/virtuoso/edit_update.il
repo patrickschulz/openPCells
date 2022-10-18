@@ -23,6 +23,7 @@ procedure(OPCUpdateCallback(@key (callopc t) (hierarchical t) (xpath nil))
         (
             (cv geGetEditCellView())
             (libPath cv->lib->readPath)
+            (libname cv->libName) ; read by generated .il script, don't remove
             (cellName cv->cellName)
             path OPCArgs OPCCmd success
         )
