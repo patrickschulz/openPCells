@@ -34,7 +34,7 @@ procedure(OPCBuildCallCommand(args)
     )
 )
 
-procedure(OPCCall(OPCCommand redirect)
+procedure(OPCCall(OPCCommand @key (redirect nil))
     let(
         (errmsg)
         when(redirect

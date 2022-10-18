@@ -105,7 +105,7 @@ procedure(OPCUpdateCellList()
 	let(
 		(OPCCmd)
         OPCCmd = OPCBuildCallCommand("-L --list-format 'OPCData = list(\\n:)\\n:::list(\\\"%b\\\" list(:))\\n:\\\"%c\\\" '")
-        OPCCall(OPCCmd OPCSettingsForm->OPCListFilename->value)
+        OPCCall(OPCCmd ?redirect OPCSettingsForm->OPCListFilename->value)
 		load(OPCSettingsForm->OPCListFilename->value)
         OPCCleanUp(OPCSettingsForm->OPCListFilename->value)
 	)
