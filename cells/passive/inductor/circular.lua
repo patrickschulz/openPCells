@@ -22,17 +22,17 @@ end
 function layout(inductor, _P)
     -- calculate center of auxiliary circle
     local xc = 0.5 * _P.separation + _P.cornerradius
-    local yc = -_P.grid * math.floor(math.sqrt((_P.radius + _P.cornerradius)^2 - xc^2) / _P.grid)
+    local yc = -_P.grid * math.floor(math.sqrt((_P.radius - _P.width / 2 + _P.cornerradius)^2 - xc^2) / _P.grid)
 
     -- circle points
-    local maininner = graphics.quartercircle(4, point.create(0, 0), _P.radius, _P.grid, _P.allow45)
+    local maininner = graphics.quartercircle(4, point.create(0, 0), _P.radius - _P.width / 2, _P.grid, _P.allow45)
     local auxinner  = graphics.quartercircle(2, point.create(xc, yc), _P.cornerradius, _P.grid, _P.allow45)
-    local mainouter = graphics.quartercircle(4, point.create(0, 0), _P.radius + _P.width, _P.grid, _P.allow45)
+    local mainouter = graphics.quartercircle(4, point.create(0, 0), _P.radius + _P.width / 2, _P.grid, _P.allow45)
     local auxouter  = graphics.quartercircle(2, point.create(xc, yc), _P.cornerradius - _P.width, _P.grid, _P.allow45)
 
     -- meeting points
-    local xminner = xc * _P.radius / (_P.cornerradius + _P.radius)
-    local xmouter = xc * (_P.radius + _P.width) / (_P.cornerradius + _P.radius)
+    local xminner = xc * (_P.radius - _P.width / 2) / (_P.cornerradius + _P.radius - _P.width / 2)
+    local xmouter = xc * (_P.radius + _P.width / 2) / (_P.cornerradius + _P.radius - _P.width / 2)
 
     -- inner part
     local inner = {}
