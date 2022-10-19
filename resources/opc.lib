@@ -1,7 +1,8 @@
 /*
  * This library is intended for a logic synthesis that targets opc cell generation
  * The opc verilog parser recognizes a set of standard cells (by name), therefore the gate netlist needs to use exactly these names.
- * (The area of the cells is not really interesting, but added for completeness. It is normalized, so a gate with one transistor has an area of 1. -> not finished)
+ * The area of every cell is 1.0, since this allows to optimize for cell count in an easy way by optimizing for minimum area.
+ * A low cell count greatly simplifies the cell generation with opc.
  * List of cells:
  *  not_gate
  *  buf_gate
@@ -37,7 +38,7 @@ library (opc) {
     slew_upper_threshold_pct_rise   : 80;
     delay_model                     : table_lookup;
     cell (not_gate) {
-        area : "0.133120";
+        area : "1.0";
         pin (O) {
             direction : "output";
             function : "!I";
@@ -56,7 +57,7 @@ library (opc) {
         }
     }
     cell (buf_gate) {
-        area : "0.266240";
+        area : "1.0";
         pin (O) {
             direction : "output";
             function : "I";
@@ -75,7 +76,7 @@ library (opc) {
         }
     }
     cell (tinv) {
-        area : "0.399360";
+        area : "1.0";
         pin (O) {
             direction : "output";
             function : "!I";
@@ -98,7 +99,7 @@ library (opc) {
         }
     }
     cell (tbuf) {
-        area : "0.532480";
+        area : "1.0";
         pin (O) {
             direction : "output";
             function : "I";
@@ -121,7 +122,7 @@ library (opc) {
         }
     }
     cell (nand_gate) {
-        area : "0.199680";
+        area : "1.0";
         pin (O) {
             direction : "output";
             function : "!A+!B";
@@ -152,7 +153,7 @@ library (opc) {
         }
     }
     cell (nor_gate) {
-        area : "0.199680";
+        area : "1.0";
         pin (O) {
             direction : "output";
             function : "!A&!B";
@@ -183,7 +184,7 @@ library (opc) {
         }
     }
     cell (and_gate) {
-        area : "0.199680";
+        area : "1.0";
         pin (O) {
             direction : "output";
             function : "A&B";
@@ -214,7 +215,7 @@ library (opc) {
         }
     }
     cell (or_gate) {
-        area : "0.199680";
+        area : "1.0";
         pin (O) {
             direction : "output";
             function : "A+B";
@@ -245,7 +246,7 @@ library (opc) {
         }
     }
     cell (xor_gate) {
-        area : "0.199680";
+        area : "1.0";
         pin (O) {
             direction : "output";
             function : "A&!B+!A&B";
@@ -276,7 +277,7 @@ library (opc) {
         }
     }
     cell (xnor_gate) {
-        area : "0.199680";
+        area : "1.0";
         pin (O) {
             direction : "output";
             function : "!(A&!B+!A&B)";
@@ -307,12 +308,12 @@ library (opc) {
         }
     }
     cell (mux) {
-        area : "0.798720";
+        area : "1.0";
         pin (O) {
             direction : "output";
-            function : "B&!SEL+A&SEL";
+            function : "(IP & SEL) + (IN & !SEL)";
 	        timing () {
-	            related_pin : "A";
+	            related_pin : "IP";
 	            timing_type: combinational;
 	            timing_sense : negative_unate;
 	            cell_fall(scalar) { values ("2.0"); }
@@ -321,7 +322,7 @@ library (opc) {
 	            rise_transition(scalar) { values ("0.01"); }
 	        }
 	        timing () {
-	            related_pin : "B";
+	            related_pin : "IN";
 	            timing_type: combinational;
 	            timing_sense : negative_unate;
 	            cell_fall(scalar) { values ("2.0"); }
@@ -339,10 +340,10 @@ library (opc) {
 	            rise_transition(scalar) { values ("0.01"); }
 	        }
         }
-        pin (A) {
+        pin (IP) {
             direction : "input";
         }
-        pin (B) {
+        pin (IN) {
             direction : "input";
         }
         pin (SEL) {
@@ -350,7 +351,7 @@ library (opc) {
         }
     }
     cell (dffpq) {
-        area : "1.530880";
+        area : "1.0";
         pin (Q) {
             direction : "output";
             function : "IQ";
@@ -390,7 +391,7 @@ library (opc) {
         }
     }
     cell (dffnq) {
-        area : "1.530880";
+        area : "1.0";
         pin (Q) {
             direction : "output";
             function : "IQ";
@@ -430,7 +431,7 @@ library (opc) {
         }
     }
     cell (dffprq) {
-        area : "2.063360";
+        area : "1.0";
         pin (Q) {
             direction : "output";
             function : "IQ";
@@ -474,7 +475,7 @@ library (opc) {
         }
     }
     cell (dffnrq) {
-        area : "2.063360";
+        area : "1.0";
         pin (Q) {
             direction : "output";
             function : "IQ";
@@ -518,7 +519,7 @@ library (opc) {
         }
     }
     cell (dffpsq) {
-        area : "2.063360";
+        area : "1.0";
         pin (Q) {
             direction : "output";
             function : "IQ";
@@ -562,7 +563,7 @@ library (opc) {
         }
     }
     cell (dffnsq) {
-        area : "2.063360";
+        area : "1.0";
         pin (Q) {
             direction : "output";
             function : "IQ";
@@ -606,7 +607,7 @@ library (opc) {
         }
     }
     cell (dffprsq) {
-        area : "2.063360";
+        area : "1.0";
         pin (Q) {
             direction : "output";
             function : "IQ";
@@ -654,7 +655,7 @@ library (opc) {
         }
     }
     cell (dffnrsq) {
-        area : "1.996800";
+        area : "1.0";
         pin (Q) {
             direction : "output";
             function : "IQ";
@@ -702,7 +703,7 @@ library (opc) {
         }
     }
     cell (latchq) {
-        area : "0.998400";
+        area : "1.0";
         pin (Q) {
             direction : "output";
             function : "IQ";
@@ -741,7 +742,7 @@ library (opc) {
         }
     }
     cell (latchrq) {
-        area : "1.131520";
+        area : "1.0";
         pin (Q) {
             direction : "output";
             function : "IQ";
