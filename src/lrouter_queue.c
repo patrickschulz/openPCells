@@ -7,6 +7,7 @@
 #include "lrouter_queue.h"
 
 #include <stdlib.h>
+#include <stdio.h>
 
 struct queue_node {
     struct queue_node *next;
@@ -148,6 +149,18 @@ void queue_reverse(struct queue *queue)
         current = next;
     }
     queue->front = prev;
+}
+
+void queue_print(struct queue *queue)
+{
+    for(int i = 0; i < queue_len(queue); i++)
+    {
+	struct rpoint *point = queue_peek_nth_elem(queue, i);
+	if(point != NULL)
+	{
+	    printf("Queue Point: %i %i %i\n", point->x, point->y, point->z);
+	}
+    }
 }
 
 struct rpoint *queue_as_array(struct queue *queue)

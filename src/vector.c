@@ -37,7 +37,7 @@ void vector_swap(struct vector* vector, size_t i, size_t j)
     }
     void *temp = vector->elements[i];
     vector->elements[i] = vector->elements[j];
-    vector->elements[j] = temp; 
+    vector->elements[j] = temp;
 }
 
 void vector_destroy(struct vector* vector, void (*destructor)(void*))

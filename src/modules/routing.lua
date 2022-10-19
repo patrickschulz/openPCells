@@ -68,6 +68,7 @@ function M.legalize(nets, rows, numinnerroutes, pnumtracks, nnumtracks, floorpla
     -- per full row insert one powerrail (except for the first row)
     local height = floorplan.floorplan_height * (pnumtracks + nnumtracks + numinnerroutes)
     height = height + math.floor(height / (pnumtracks + nnumtracks + numinnerroutes)) - 1
+    print(floorplan.floorplan_height)
 
     local routednets, numroutednets = router.route(netpositions, blockages, floorplan.floorplan_width, height)
     return routednets

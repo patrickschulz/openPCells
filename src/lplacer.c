@@ -8,7 +8,7 @@ int lplacer_place_simulated_annealing(lua_State* L)
 {
     puts("started placement");
     lplacer_place_classic(L);
-    puts("ended placement");
+    puts("finished placement");
     return 1;
 }
 

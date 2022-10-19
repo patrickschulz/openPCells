@@ -4,7 +4,12 @@
 #include "lrouter_net.h"
 #include "lrouter_field.h"
 
-/* use lee algorithm for routing, returns 1 on possible routing, 0 on stuck */
-void route(struct net *net, struct field* field, int step_cost, int wrong_dir_cost, int via_cost);
+/*
+ * use lee algorithm for routing, does backtrace & marks the path as blocked
+ * when has_backtrace flag is set
+ * returns the length of the route it found
+ * -1 if it couldnt find a route
+ */
+void route(struct net *net, struct field* field);
 
 #endif // LROUTER_ROUTE_H

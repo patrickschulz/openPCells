@@ -18,10 +18,13 @@ struct rpoint {
 
 struct field;
 struct field* field_init(size_t width, size_t height, size_t num_layers);
+struct field* field_copy(struct field *field);
+void field_restore(struct field *original, struct field *copy);
 void field_destroy(struct field* field);
 void field_print(struct field* field, int layer);
 void field_unprint(size_t size);
-void field_create_blockage(struct field* field, struct rpoint* start, struct rpoint* end);
+void field_create_blockage(struct field* field, struct rpoint* start,
+			   struct rpoint* end);
 struct rpoint *point_new(int x, int y, int z, unsigned int score);
 
 size_t field_get_width(struct field* field);
@@ -39,5 +42,6 @@ void field_set_net(struct field* field, size_t x, size_t y, size_t z,
 
 /* resets the values in the field for a next iteration (keeps special values) */
 void field_reset(struct field* field);
+int point_get_score(struct rpoint *point);
 
 #endif /* LROUTER_FIELD_H */
