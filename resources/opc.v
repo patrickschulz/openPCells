@@ -60,10 +60,10 @@ module xnor_gate(A, B, O);
     assign O = !(A ^ B);
 endmodule
 
-module mux(A, B, SEL, O);
-    input A, B, SEL;
+module mux(IP, IN, SEL, O);
+    input IP, IN, SEL;
     output O;
-    assign O = SEL ? A : B;
+    assign O = SEL ? IP : IN;
 endmodule
 
 module dffpq(D, Q, CLK);
