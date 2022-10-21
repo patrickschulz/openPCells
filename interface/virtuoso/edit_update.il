@@ -60,6 +60,27 @@ procedure(OPCUpdateCallback(@key (callopc t) (hierarchical t) (xpath nil))
     )
 ) ; procedure
 
+procedure(OPCUpdateAsGDS()
+    letseq(
+        (
+            (cv geGetEditCellView())
+            (libPath cv->lib->readPath)
+            (cellName cv->cellName)
+            (path lsprintf("%s/%s/layout/layout.lua" libPath cellName))
+            OPCArgs OPCCmd success
+        )
+        OPCArgs = OPCPrepareArgsForCellCreation(
+            lsprintf("--cellscript %s -f %s --write-children-ports" path OPCSettingsForm->OPCCellFilename->value)
+            ?exporttype "gds"
+        )
+        unless(hierarchical
+            OPCArgs = lsprintf("%s --flat" OPCArgs)
+        )
+        OPCCmd = OPCBuildCallCommand(OPCArgs)
+        OPCCall(OPCCmd ?redirect nil)
+    )
+) ; procedure
+
 procedure(OPCDeleteDesignFile()
 
     letseq(
