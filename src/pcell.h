@@ -19,8 +19,8 @@ void pcell_unlink_cell_reference(struct pcell_state*, const char* identifier);
 void pcell_prepend_cellpath(struct pcell_state*, const char* path);
 void pcell_append_cellpath(struct pcell_state*, const char* path);
 
-void pcell_list_cellpaths(struct pcell_state* pcell_state);
-void pcell_list_cells(struct pcell_state* pcell_state, const char* listformat);
+void pcell_list_cellpaths(const struct pcell_state* pcell_state);
+void pcell_list_cells(const struct pcell_state* pcell_state, const char* listformat);
 
 void pcell_foreach_cell_reference(struct pcell_state* pcell_state, void (*cellfunc)(struct object*));
 

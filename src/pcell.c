@@ -54,14 +54,14 @@ struct pcell_state* pcell_initialize_state(struct vector* cellpaths_to_prepend, 
     {
         for(unsigned int i = 0; i < vector_size(cellpaths_to_prepend); ++i)
         {
-            pcell_prepend_cellpath(pcell_state, vector_get(cellpaths_to_prepend, i));
+            pcell_prepend_cellpath(pcell_state, vector_get_const(cellpaths_to_prepend, i));
         }
     }
     if(cellpaths_to_append)
     {
         for(unsigned int i = 0; i < vector_size(cellpaths_to_append); ++i)
         {
-            pcell_append_cellpath(pcell_state, vector_get(cellpaths_to_append, i));
+            pcell_append_cellpath(pcell_state, vector_get_const(cellpaths_to_append, i));
         }
     }
     return pcell_state;
@@ -207,7 +207,7 @@ static int lpcell_get_cell_reference(lua_State* L)
     return 1;
 }
 
-void pcell_list_cellpaths(struct pcell_state* pcell_state)
+void pcell_list_cellpaths(const struct pcell_state* pcell_state)
 {
     for(unsigned int i = 0; i < vector_size(pcell_state->cellpaths); ++i)
     {
@@ -288,7 +288,7 @@ void pcell_destroy_cell_reference_const_iterator(struct cell_reference_const_ite
     free(it);
 }
 
-void pcell_list_cells(struct pcell_state* pcell_state, const char* listformat)
+void pcell_list_cells(const struct pcell_state* pcell_state, const char* listformat)
 {
     lua_State* L = util_create_basic_lua_state();
     module_load_support(L);
@@ -307,7 +307,7 @@ void pcell_list_cells(struct pcell_state* pcell_state, const char* listformat)
     lua_newtable(L);
     for(unsigned int i = 0; i < vector_size(pcell_state->cellpaths); ++i)
     {
-        lua_pushstring(L, vector_get(pcell_state->cellpaths, i));
+        lua_pushstring(L, vector_get_const(pcell_state->cellpaths, i));
         lua_rawseti(L, -2, i + 1);
     }
     lua_setfield(L, -2, "cellpaths");
@@ -344,7 +344,7 @@ static int lpcell_get_cell_filename(lua_State* L)
     const char* cellname = luaL_checkstring(L, 1);
     for(unsigned int i = 0; i < vector_size(pcell_state->cellpaths); ++i)
     {
-        const char* path = vector_get(pcell_state->cellpaths, i);
+        const char* path = vector_get_const(pcell_state->cellpaths, i);
         size_t len = strlen(path) + strlen(cellname) + 5; // '/' + ".lua"
         char* filename = malloc(len + 1);
         snprintf(filename, len + 1, "%s/%s.lua", path, cellname);
@@ -362,7 +362,7 @@ static int lpcell_get_cell_filename(lua_State* L)
     for(unsigned int i = 0; i < vector_size(pcell_state->cellpaths); ++i)
     {
         lua_pushstring(L, "  ");
-        const char* path = vector_get(pcell_state->cellpaths, i);
+        const char* path = vector_get_const(pcell_state->cellpaths, i);
         lua_pushstring(L, path);
         if(i < vector_size(pcell_state->cellpaths) - 1)
         {
