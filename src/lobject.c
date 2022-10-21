@@ -469,7 +469,8 @@ int lobject_flatten(lua_State* L)
     lua_getfield(L, LUA_REGISTRYINDEX, "pcellstate");
     struct pcell_state* pcell_state = lua_touserdata(L, -1);
     lua_pop(L, 1); // pop pcell state
-    object_flatten(cell->object, pcell_state, 0);
+    struct object* obj = object_flatten(cell->object, pcell_state, 0);
+    lobject_adapt(L, obj);
     return 1;
 }
 
