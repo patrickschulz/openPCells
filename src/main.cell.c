@@ -23,6 +23,7 @@
 #include "postprocess.h"
 #include "geometry.h"
 #include "hashmap.h"
+#include "pcell.h"
 
 #include "config.h"
 
@@ -228,6 +229,7 @@ static int _read_cellenv(lua_State* L, const char* filename)
 
 static struct object* _create_cell(
     const char* cellname,
+    const char* name,
     int iscellscript,
     struct vector* cellargs,
     struct technology_state* techstate,
@@ -272,6 +274,10 @@ static struct object* _create_cell(
     // cell name
     lua_pushstring(L, cellname);
     lua_setfield(L, -2, "cell");
+
+    // object name
+    lua_pushstring(L, name);
+    lua_setfield(L, -2, "toplevelname");
 
     // enable dprint
     lua_pushboolean(L, enabledprint);
@@ -359,28 +365,17 @@ static void _translate(struct object* toplevel, struct cmdoptions* cmdoptions)
     }
 }
 
-static void _scale(struct object* toplevel, struct cmdoptions* cmdoptions, struct pcell_state* pcell_state)
+static void _scale(struct object* toplevel, struct cmdoptions* cmdoptions)
 {
     if(cmdoptions_was_provided_long(cmdoptions, "scale"))
     {
         const char* arg = cmdoptions_get_argument_long(cmdoptions, "scale");
         double factor = atof(arg);
         object_scale(toplevel, factor);
-        struct cell_reference_iterator* it = pcell_create_cell_reference_iterator(pcell_state);
-        while(pcell_cell_reference_iterator_is_valid(it))
-        {
-            char* refidentifier;
-            struct object* refcell;
-            int refnumused;
-            pcell_cell_reference_iterator_get(it, &refidentifier, &refcell, &refnumused);
-            object_scale(refcell, factor);
-            pcell_cell_reference_iterator_advance(it);
-        }
-        pcell_destroy_cell_reference_iterator(it);
     }
 }
 
-static void _draw_alignmentboxes(struct object* toplevel, struct cmdoptions* cmdoptions, struct technology_state* techstate, struct pcell_state* pcell_state)
+static void _draw_alignmentboxes(struct object* toplevel, struct cmdoptions* cmdoptions, struct technology_state* techstate)
 {
     if(cmdoptions_was_provided_long(cmdoptions, "draw-alignmentbox") || cmdoptions_was_provided_long(cmdoptions, "draw-all-alignmentboxes"))
     {
@@ -395,24 +390,23 @@ static void _draw_alignmentboxes(struct object* toplevel, struct cmdoptions* cmd
     }
     if(cmdoptions_was_provided_long(cmdoptions, "draw-all-alignmentboxes"))
     {
-        struct cell_reference_iterator* it = pcell_create_cell_reference_iterator(pcell_state);
-        while(pcell_cell_reference_iterator_is_valid(it))
+        struct vector* references = object_collect_references_mutable(toplevel);
+        struct vector_iterator* it = vector_iterator_create(references);
+        while(vector_iterator_is_valid(it))
         {
-            char* refidentifier;
-            struct object* refcell;
-            int refnumused;
-            pcell_cell_reference_iterator_get(it, &refidentifier, &refcell, &refnumused);
-            point_t* bl = object_get_anchor(refcell, "bottomleft");
-            point_t* tr = object_get_anchor(refcell, "topright");
+            struct object* ref = vector_iterator_get(it);
+            point_t* bl = object_get_anchor(ref, "bottomleft");
+            point_t* tr = object_get_anchor(ref, "topright");
             if(bl && tr)
             {
-                geometry_rectanglebltr(refcell, generics_create_special(techstate), bl, tr, 1, 1, 0, 0);
+                geometry_rectanglebltr(ref, generics_create_special(techstate), bl, tr, 1, 1, 0, 0);
                 point_destroy(bl);
                 point_destroy(tr);
             }
-            pcell_cell_reference_iterator_advance(it);
+            vector_iterator_next(it);
         }
-        pcell_destroy_cell_reference_iterator(it);
+        vector_iterator_destroy(it);
+        vector_destroy(references);
     }
 }
 
@@ -424,7 +418,7 @@ static void _draw_anchors(struct object* toplevel, struct cmdoptions* cmdoptions
         while(*anchornames)
         {
             point_t* pt = object_get_anchor(toplevel, *anchornames);
-            if(pt) // FIXME: handle NULL point
+            if(pt)
             {
                 object_add_port(toplevel, *anchornames, generics_create_special(techstate), pt, 0); // 0: don't store anchor
                 point_destroy(pt);
@@ -451,7 +445,7 @@ static void _draw_anchors(struct object* toplevel, struct cmdoptions* cmdoptions
     }
 }
 
-static void _filter_layers(struct object* toplevel, struct cmdoptions* cmdoptions, struct pcell_state* pcell_state)
+static void _filter_layers(struct object* toplevel, struct cmdoptions* cmdoptions)
 {
     if(cmdoptions_was_provided_long(cmdoptions, "filter-layers"))
     {
@@ -460,52 +454,49 @@ static void _filter_layers(struct object* toplevel, struct cmdoptions* cmdoption
                 strcmp(cmdoptions_get_argument_long(cmdoptions, "filter-list"), "include") == 0)
         {
             postprocess_filter_include(toplevel, layernames);
-            struct cell_reference_iterator* it = pcell_create_cell_reference_iterator(pcell_state);
-            while(pcell_cell_reference_iterator_is_valid(it))
+            struct vector* references = object_collect_references_mutable(toplevel);
+            struct vector_iterator* it = vector_iterator_create(references);
+            while(vector_iterator_is_valid(it))
             {
-                char* refidentifier;
-                struct object* refcell;
-                int refnumused;
-                pcell_cell_reference_iterator_get(it, &refidentifier, &refcell, &refnumused);
-                postprocess_filter_include(refcell, layernames);
-                pcell_cell_reference_iterator_advance(it);
+                struct object* ref = vector_iterator_get(it);
+                postprocess_filter_include(ref, layernames);
+                vector_iterator_next(it);
             }
-            pcell_destroy_cell_reference_iterator(it);
+            vector_iterator_destroy(it);
+            vector_destroy(references);
         }
         else
         {
             postprocess_filter_exclude(toplevel, layernames);
-            struct cell_reference_iterator* it = pcell_create_cell_reference_iterator(pcell_state);
-            while(pcell_cell_reference_iterator_is_valid(it))
+            struct vector* references = object_collect_references_mutable(toplevel);
+            struct vector_iterator* it = vector_iterator_create(references);
+            while(vector_iterator_is_valid(it))
             {
-                char* refidentifier;
-                struct object* refcell;
-                int refnumused;
-                pcell_cell_reference_iterator_get(it, &refidentifier, &refcell, &refnumused);
-                postprocess_filter_exclude(refcell, layernames);
-                pcell_cell_reference_iterator_advance(it);
+                struct object* ref = vector_iterator_get(it);
+                postprocess_filter_exclude(ref, layernames);
+                vector_iterator_next(it);
             }
-            pcell_destroy_cell_reference_iterator(it);
+            vector_iterator_destroy(it);
+            vector_destroy(references);
         }
     }
 }
 
-static void _merge_rectangles(struct object* toplevel, struct cmdoptions* cmdoptions, struct technology_state* techstate, struct pcell_state* pcell_state)
+static void _merge_rectangles(struct object* toplevel, struct cmdoptions* cmdoptions, struct technology_state* techstate)
 {
     if(cmdoptions_was_provided_long(cmdoptions, "merge-rectangles"))
     {
         postprocess_merge_shapes(toplevel, techstate);
-        struct cell_reference_iterator* it = pcell_create_cell_reference_iterator(pcell_state);
-        while(pcell_cell_reference_iterator_is_valid(it))
+        struct vector* references = object_collect_references_mutable(toplevel);
+        struct vector_iterator* it = vector_iterator_create(references);
+        while(vector_iterator_is_valid(it))
         {
-            char* refidentifier;
-            struct object* refcell;
-            int refnumused;
-            pcell_cell_reference_iterator_get(it, &refidentifier, &refcell, &refnumused);
-            postprocess_merge_shapes(refcell, techstate);
-            pcell_cell_reference_iterator_advance(it);
+            struct object* ref = vector_iterator_get(it);
+            postprocess_merge_shapes(ref, techstate);
+            vector_iterator_next(it);
         }
-        pcell_destroy_cell_reference_iterator(it);
+        vector_iterator_destroy(it);
+        vector_destroy(references);
     }
 }
 
@@ -514,12 +505,21 @@ static void _resolve_cell_paths(struct object* cell)
     object_foreach_shapes(cell, shape_resolve_path_inline);
 }
 
-static void _resolve_paths(struct object* toplevel, struct cmdoptions* cmdoptions, struct pcell_state* pcell_state)
+static void _resolve_paths(struct object* toplevel, struct cmdoptions* cmdoptions)
 {
     if(cmdoptions_was_provided_long(cmdoptions, "resolve-paths"))
     {
         _resolve_cell_paths(toplevel);
-        pcell_foreach_cell_reference(pcell_state, _resolve_cell_paths);
+        struct vector* references = object_collect_references_mutable(toplevel);
+        struct vector_iterator* it = vector_iterator_create(references);
+        while(vector_iterator_is_valid(it))
+        {
+            struct object* ref = vector_iterator_get(it);
+            _resolve_cell_paths(ref);
+            vector_iterator_next(it);
+        }
+        vector_iterator_destroy(it);
+        vector_destroy(references);
     }
 }
 
@@ -528,12 +528,21 @@ static void _raster_cell_curves(struct object* cell)
     object_foreach_shapes(cell, shape_rasterize_curve_inline);
 }
 
-static void _raster_curves(struct object* toplevel, struct cmdoptions* cmdoptions, struct pcell_state* pcell_state)
+static void _raster_curves(struct object* toplevel, struct cmdoptions* cmdoptions)
 {
     if(cmdoptions_was_provided_long(cmdoptions, "rasterize-curves"))
     {
         _raster_cell_curves(toplevel);
-        pcell_foreach_cell_reference(pcell_state, _raster_cell_curves);
+        struct vector* references = object_collect_references_mutable(toplevel);
+        struct vector_iterator* it = vector_iterator_create(references);
+        while(vector_iterator_is_valid(it))
+        {
+            struct object* ref = vector_iterator_get(it);
+            _raster_cell_curves(ref);
+            vector_iterator_next(it);
+        }
+        vector_iterator_destroy(it);
+        vector_destroy(references);
     }
 }
 
@@ -542,12 +551,21 @@ static void _triangulate_cell_polygons(struct object* cell)
     object_foreach_shapes(cell, shape_triangulate_polygon_inline);
 }
 
-static void _triangulate_polygons(struct object* toplevel, struct cmdoptions* cmdoptions, struct pcell_state* pcell_state)
+static void _triangulate_polygons(struct object* toplevel, struct cmdoptions* cmdoptions)
 {
     if(cmdoptions_was_provided_long(cmdoptions, "triangulate-polygons"))
     {
         _triangulate_cell_polygons(toplevel);
-        pcell_foreach_cell_reference(pcell_state, _triangulate_cell_polygons);
+        struct vector* references = object_collect_references_mutable(toplevel);
+        struct vector_iterator* it = vector_iterator_create(references);
+        while(vector_iterator_is_valid(it))
+        {
+            struct object* ref = vector_iterator_get(it);
+            _triangulate_cell_polygons(ref);
+            vector_iterator_next(it);
+        }
+        vector_iterator_destroy(it);
+        vector_destroy(references);
     }
 }
 
@@ -622,50 +640,17 @@ int main_create_and_export_cell(struct cmdoptions* cmdoptions, struct hashmap* c
         }
     }
     const char* cellenvfilename = cmdoptions_get_argument_long(cmdoptions, "cell-environment");
-    struct object* toplevel = _create_cell(cellname, iscellscript, cellargs, techstate, pcell_state, enabledprint, pfilenames, cellenvfilename);
+    const char* name = cmdoptions_get_argument_long(cmdoptions, "cellname");
+    struct object* toplevel = _create_cell(cellname, name, iscellscript, cellargs, techstate, pcell_state, enabledprint, pfilenames, cellenvfilename);
     const_vector_destroy(pfilenames);
     if(toplevel)
     {
         _move_origin(toplevel, cmdoptions);
         _translate(toplevel, cmdoptions);
-        _scale(toplevel, cmdoptions, pcell_state);
-
-        /*
-        // orientation
-        //if args.orientation then
-        //    local lut = {
-        //        ["0"] = function() end, -- do nothing, but allow this as command line option
-        //        ["fx"] = function() cell:flipx() end,
-        //        ["fy"] = function() cell:flipy() end,
-        //        ["fxy"] = function() cell:flipx(); cell:flipy() end,
-        //    }
-        //    local f = lut[args.orientation]
-        //    if not f then
-        //        moderror(string.format("unknown orientation: '%s'", args.orientation))
-        //    end
-        //    f()
-        //end
-
-
-        //function marker.cross(where, size)
-        //    local x, y = where:unwrap()
-        //    local obj = object.create()
-        //    size = size or 100
-        //    obj:merge_into_shallow(geometry.rectanglebltr(generics.special(), point.create(x - 5, y - size), point.create(x + 5, y + size)))
-        //    obj:merge_into_shallow(geometry.rectanglebltr(generics.special(), point.create(x - size, y - 5), point.create(x + size, y + 5)))
-        //    return obj
-        //end
-        // draw anchors
-        //if args.drawanchor then
-        //    for _, da in ipairs(args.drawanchor) do
-        //        local anchor = cell:get_anchor(da)
-        //        cell:merge_into_shallow(marker.cross(anchor))
-        //    end
-        //end
-        */
+        _scale(toplevel, cmdoptions);
 
         // draw alignmentbox(es)
-        _draw_alignmentboxes(toplevel, cmdoptions, techstate, pcell_state);
+        _draw_alignmentboxes(toplevel, cmdoptions, techstate);
 
         // draw achors
         _draw_anchors(toplevel, cmdoptions, techstate);
@@ -674,21 +659,21 @@ int main_create_and_export_cell(struct cmdoptions* cmdoptions, struct hashmap* c
         if(cmdoptions_was_provided_long(cmdoptions, "flat"))
         {
             int flattenports = cmdoptions_was_provided_long(cmdoptions, "flattenports");
-            object_flatten_inline(toplevel, pcell_state, flattenports);
+            object_flatten_inline(toplevel, flattenports);
         }
 
         // post-processing
-        _filter_layers(toplevel, cmdoptions, pcell_state);
-        _merge_rectangles(toplevel, cmdoptions, techstate, pcell_state);
+        _filter_layers(toplevel, cmdoptions);
+        _merge_rectangles(toplevel, cmdoptions, techstate);
 
         // resolve paths
-        _resolve_paths(toplevel, cmdoptions, pcell_state);
+        _resolve_paths(toplevel, cmdoptions);
 
         // curve rasterization
-        _raster_curves(toplevel, cmdoptions, pcell_state);
+        _raster_curves(toplevel, cmdoptions);
 
         // polygon triangulation
-        _triangulate_polygons(toplevel, cmdoptions, pcell_state);
+        _triangulate_polygons(toplevel, cmdoptions);
 
         // export cell
         if(cmdoptions_was_provided_long(cmdoptions, "export"))
@@ -700,9 +685,6 @@ int main_create_and_export_cell(struct cmdoptions* cmdoptions, struct hashmap* c
 
             // basename
             export_set_basename(export_state, cmdoptions_get_argument_long(cmdoptions, "filename"));
-
-            // toplevelname
-            export_set_toplevel_name(export_state, cmdoptions_get_argument_long(cmdoptions, "cellname"));
 
             // export options
             export_set_export_options(export_state, cmdoptions_get_argument_long(cmdoptions, "export-options"));
@@ -732,7 +714,6 @@ int main_create_and_export_cell(struct cmdoptions* cmdoptions, struct hashmap* c
                 }
                 int export_result = export_write_toplevel(
                     toplevel, 
-                    pcell_state, 
                     export_state
                 );
                 if(!export_result)

@@ -38,6 +38,6 @@ if args.isscript then
     local cell = pcell.create_layout_from_script(args.cell, cellargs)
     return cell
 else
-    local cell = pcell.create_layout_env(args.cell, cellargs, args.cellenv)
+    local cell = pcell.create_layout_env(args.cell, args.toplevelname, cellargs, args.cellenv)
     return cell
 end

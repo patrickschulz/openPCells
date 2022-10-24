@@ -47,7 +47,7 @@ function layout(gate, _P)
         gatecontactpos[8] = "center"
     end
 
-    local harness = pcell.create_layout("stdcells/harness", {
+    local harness = pcell.create_layout("stdcells/harness", "mosfets", {
         --fingers = 20 + (_P.enableQN and 2 or 0) + (_P.enable_reset and 1 or 0),
         gatecontactpos = gatecontactpos,
         pcontactpos = pcontactpos,

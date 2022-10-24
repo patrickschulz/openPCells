@@ -998,16 +998,15 @@ static void _write_cellref(FILE* cellfile, const char* importname, const struct 
     if(!hashmap_exists(references, cellref->name))
     {
         fprintf(cellfile, "    ref = pcell.create_layout(\"%s/%s\")\n", importname, cellref->name);
-        fprintf(cellfile, "    name = pcell.add_cell_reference(ref, \"%s\")\n", cellref->name);
         hashmap_insert(references, cellref->name, NULL); // use hashmap as set (value == NULL)
     }
     if(cellref->xrep > 1 || cellref->yrep > 1)
     {
-        fprintf(cellfile, "    child = cell:add_child_array(name, %d, %d, %d, %d)\n", cellref->xrep, cellref->yrep, cellref->xpitch, cellref->ypitch);
+        fprintf(cellfile, "    child = cell:add_child_array(ref, \"%s\", %d, %d, %d, %d)\n", cellref->name, cellref->xrep, cellref->yrep, cellref->xpitch, cellref->ypitch);
     }
     else
     {
-        fputs("    child = cell:add_child(name)\n", cellfile);
+        fprintf(cellfile, "    child = cell:add_child(name, \"%s\")\n", cellref->name);
     }
     if(cellref->transformation && cellref->transformation[0] == 1)
     {

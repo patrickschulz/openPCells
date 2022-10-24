@@ -8,7 +8,7 @@ function parameters()
 end
 
 function layout(cell, _P)
-    local base = pcell.create_layout("stdcells/tie_highlow", {
+    local base = pcell.create_layout("stdcells/tie_highlow", "tie_high", {
         high = true,
         pwidth = _P.pwidth,
         nwidth = _P.nwidth,

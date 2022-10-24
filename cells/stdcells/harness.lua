@@ -53,7 +53,7 @@ function layout(gate, _P)
         ppowerspace = bp.powerspace
     end
     local routingshift = (bp.routingwidth + bp.routingspace) / (bp.numinnerroutes % 2 == 0 and 2 or 1)
-    local cmos = pcell.create_layout("basic/cmos", {
+    local cmos = pcell.create_layout("basic/cmos", "cmos", {
         nvthtype = bp.nvthtype,
         pvthtype = bp.pvthtype,
         pmosflippedwell = bp.pmosflippedwell,

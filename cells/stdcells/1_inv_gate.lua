@@ -14,18 +14,18 @@ function layout(gate, _P)
     local bp = pcell.get_parameters("stdcells/base")
     local xpitch = bp.glength + bp.gspace
 
-    local subgateref = pcell.create_layout(string.format("stdcells/%s", _P.subgate), {
+    local subgateref = pcell.create_layout(string.format("stdcells/%s", _P.subgate), "subgate", {
         fingers = _P.subgatefingers,
         pwidth = _P.pwidth,
         nwidth = _P.nwidth,
     })
     gate:merge_into_shallow(subgateref)
 
-    --local isogateref = pcell.create_layout("stdcells/isogate")
+    --local isogateref = pcell.create_layout("stdcells/isogate", "isogate")
     --isogateref:move_anchor("left", subgateref:get_anchor("right"))
     --gate:merge_into_shallow(isogateref)
 
-    local invref = pcell.create_layout("stdcells/not_gate", {
+    local invref = pcell.create_layout("stdcells/not_gate", "inv", {
         fingers = _P.notfingers,
         shiftoutput = xpitch / 2,
         pwidth = _P.pwidth,

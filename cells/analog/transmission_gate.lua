@@ -45,7 +45,7 @@ function layout(tgate, _P)
         botgatestrwidth = _P.sdwidth,
         botgatestrspace = _P.sdwidth,
     })
-    local pmos = pcell.create_layout("basic/mosfet", {
+    local pmos = pcell.create_layout("basic/mosfet", "pmos", {
         channeltype = "pmos",
         fingers = _P.fingers,
         fwidth = _P.pwidth,
@@ -53,7 +53,7 @@ function layout(tgate, _P)
         flippedwell = _P.pmosflippedwell,
         botgatecompsd = false,
     })
-    local nmos = pcell.create_layout("basic/mosfet", {
+    local nmos = pcell.create_layout("basic/mosfet", "nmos", {
         channeltype = "nmos",
         fingers = _P.fingers,
         fwidth = _P.nwidth,

@@ -17,13 +17,11 @@ end
 function layout(gate, _P)
     local bp = pcell.get_parameters("stdcells/base");
 
-    local gate1ref = pcell.create_layout(string.format("stdcells/%s", _P.gate1))
-    local gate1name = pcell.add_cell_reference(gate1ref, "gate1")
-    local gate1 = gate:add_child(gate1name)
+    local gate1ref = pcell.create_layout(string.format("stdcells/%s", _P.gate1), "gate1")
+    local gate1 = gate:add_child(gate1ref, "gate1")
 
-    local gate2ref = pcell.create_layout(string.format("stdcells/%s", _P.gate2))
-    local gate2name = pcell.add_cell_reference(gate2ref, "gate2")
-    local gate2 = gate:add_child(gate2name)
+    local gate2ref = pcell.create_layout(string.format("stdcells/%s", _P.gate2), "gate2")
+    local gate2 = gate:add_child(gate2ref, "gate2")
     gate2:move_anchor("left", gate1:get_anchor("right"))
 
     gate:inherit_alignment_box(gate1)

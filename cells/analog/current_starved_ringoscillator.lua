@@ -153,7 +153,7 @@ function layout(oscillator, _P)
             invactivecontacts[i] = "outer"
         end
     end
-    local inverterref = pcell.create_layout("basic/cmos", { 
+    local inverterref = pcell.create_layout("basic/cmos", "inverterref", { 
         gatecontactpos = invgatecontacts, 
         pcontactpos = invactivecontacts, 
         ncontactpos = invactivecontacts,
@@ -215,10 +215,9 @@ function layout(oscillator, _P)
     inverterref:add_port("vbiasn", generics.metalport(1), inverterref:get_anchor(string.format("Gn%dcc", 1)):translate(3 * xpitch / 2, 0))
     inverterref:add_port("vdd", generics.metalport(1), inverterref:get_anchor("PRpcc"))
     inverterref:add_port("vss", generics.metalport(1), inverterref:get_anchor("PRncc"))
-    local invname = pcell.add_cell_reference(inverterref, "vco_inverter")
     local inverters = {}
     for i = 1, _P.numinv do
-        inverters[i] = oscillator:add_child(invname)
+        inverters[i] = oscillator:add_child(inverterref, string.format("vco_inverter_%d", i))
         if i > 1 then
             inverters[i]:move_anchor("left", inverters[i - 1]:get_anchor("right"))
         end
@@ -258,7 +257,7 @@ function layout(oscillator, _P)
         cmnactivecontacts[i] = "power"
     end
     -- create current mirror layout
-    local cmarray = pcell.create_layout("basic/cmos", { 
+    local cmarray = pcell.create_layout("basic/cmos", "currentmirror", { 
         gatecontactpos = cmgatecontacts, 
         pcontactpos = cmpactivecontacts, 
         ncontactpos = cmnactivecontacts,
@@ -412,8 +411,7 @@ function layout(oscillator, _P)
             cmarray:get_anchor(string.format("nSD%dtr", cmfingers + 2 - i))
         )
     end
-    local cmname = pcell.add_cell_reference(cmarray, "vco_currentmirror")
-    local currentmirror = oscillator:add_child(cmname)
+    local currentmirror = oscillator:add_child(cmarray, "vco_currentmirror")
     currentmirror:move_anchor("right", inverters[1]:get_anchor("left"))
 
     -- create output buffer layout
@@ -436,7 +434,7 @@ function layout(oscillator, _P)
         buffernactivecontacts[_P.bufspacers + i] = "power"
         buffernactivecontacts[_P.bufspacers + i + 1] = "inner"
     end
-    local bufferarray = pcell.create_layout("basic/cmos", { 
+    local bufferarray = pcell.create_layout("basic/cmos", "buffer", { 
         gatecontactpos = buffergatecontacts, 
         pcontactpos = bufferpactivecontacts, 
         ncontactpos = buffernactivecontacts,
@@ -456,8 +454,7 @@ function layout(oscillator, _P)
             bufferarray:get_anchor(string.format("nSD%dtr", _P.bufspacers + 2)):translate(0, -_P.gstwidth / 2)
         }, _P.gstwidth
     )
-    local buffername = pcell.add_cell_reference(bufferarray, "vco_outputbuffer")
-    local buffer = oscillator:add_child(buffername)
+    local buffer = oscillator:add_child(bufferarray, "vco_outputbuffer")
     buffer:move_anchor("left", inverters[_P.numinv]:get_anchor("right"))
 
     -- draw inverter connections
@@ -537,15 +534,15 @@ function layout(oscillator, _P)
 
     -- place guardring
     if _P.drawguardrings then
-        local pguardringname = pcell.add_cell_reference(pcell.create_layout("auxiliary/guardring", { 
+        local pguardring = pcell.create_layout("auxiliary/guardring", "pguardring", { 
             contype = "p",
             fillwell = true,
             ringwidth = _P.guardringwidth,
             -- totalfingers + 2 for extra margin/spacing to guardring
             holewidth = (cmfingers + _P.numinv * 2 * _P.invfingers + _P.buffingers + _P.bufspacers + 2) * xpitch + 2 * _P.guardringspace, 
             holeheight = separation + _P.pfingerwidth + _P.nfingerwidth + 2 * (_P.powerspace + _P.powerwidth + _P.gstwidth + _P.powerspace + _P.guardringspace)
-        }), "vco_pguardring")
-        local nguardringname = pcell.add_cell_reference(pcell.create_layout("auxiliary/guardring", { 
+        })
+        local nguardring = pcell.create_layout("auxiliary/guardring", "nguardring", { 
             contype = "n",
             fillwell = false,
             drawdeepwell = true,
@@ -553,9 +550,9 @@ function layout(oscillator, _P)
             -- totalfingers + 2 for extra margin/spacing to guardring
             holewidth = (cmfingers + 2 * _P.numinv * _P.invfingers + _P.buffingers + _P.bufspacers + 2) * xpitch + 2 * _P.guardringspace + 4 * _P.guardringwidth,
             holeheight = separation + _P.pfingerwidth + _P.nfingerwidth + 2 * (_P.powerspace + _P.powerwidth + _P.gstwidth + _P.powerspace + _P.guardringspace + 2 * _P.guardringwidth)
-        }), "vco_nguardring")
-        oscillator:add_child(pguardringname)
-        oscillator:add_child(nguardringname)
+        })
+        oscillator:add_child(pguardring, "pguardring")
+        oscillator:add_child(nguardring, "nguardring")
     end
 
     pcell.pop_overwrites("basic/cmos")

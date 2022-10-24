@@ -75,9 +75,8 @@ function layout(momcap, _P)
                 ) -- FIXME: make via continuous
             end
         end
-        local fingername = pcell.add_cell_reference(fingerref, "momcapfinger")
-        momcap:add_child_array(fingername, _P.fingers + 1, 1, 2 * pitch, 0):flipy():translate(-_P.fingers * pitch, -_P.foffset / 2)
-        momcap:add_child_array(fingername, _P.fingers, 1, 2 * pitch, 0):translate(-_P.fingers * pitch + pitch, -_P.foffset / 2)
+        momcap:add_child_array(fingername, "finger1", _P.fingers + 1, 1, 2 * pitch, 0):flipy():translate(-_P.fingers * pitch, -_P.foffset / 2)
+        momcap:add_child_array(fingername, "finger2", _P.fingers, 1, 2 * pitch, 0):translate(-_P.fingers * pitch + pitch, -_P.foffset / 2)
     end
 
     momcap:add_anchor("plus", point.create(0,   _P.foffset + _P.fheight / 2 + _P.rwidth / 2))

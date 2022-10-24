@@ -19,8 +19,14 @@ static struct lobject* _create(lua_State* L)
 
 int lobject_create(lua_State* L)
 {
+    if(!lua_isstring(L, 1))
+    {
+        lua_pushstring(L, "object.create: expected object name as first argument");
+        lua_error(L);
+    }
+    const char* name = lua_tostring(L, 1);
     struct lobject* cell = _create(L);
-    cell->object = object_create();
+    cell->object = object_create(name);
     cell->destroy = 1;
     return 1;
 }
@@ -227,13 +233,42 @@ int lobject_move_anchor_y(lua_State* L)
 int lobject_add_child(lua_State* L)
 {
     struct lobject* cell = lobject_check(L, 1);
-    const char* identifier = luaL_checkstring(L, 2);
+    struct lobject* child = lobject_check(L, 2);
     const char* name = lua_tostring(L, 3);
-    lua_getfield(L, LUA_REGISTRYINDEX, "pcellstate");
-    struct pcell_state* pcell_state = lua_touserdata(L, -1);
-    lua_pop(L, 1); // pop pcell state
-    struct object* child = object_add_child(cell->object, pcell_state, identifier, name);
-    lobject_adapt(L, child);
+    struct object* proxy = object_add_child(cell->object, child->object, name);
+    lobject_adapt(L, proxy);
+    lobject_disown(child); // memory is now handled by cell
+    return 1;
+}
+
+int lobject_add_child_array(lua_State* L)
+{
+    struct lobject* cell = lobject_check(L, 1);
+    struct lobject* child = lobject_check(L, 2);
+    const char* name = luaL_checkstring(L, 3);
+    unsigned xrep = luaL_checkinteger(L, 4);
+    unsigned yrep = luaL_checkinteger(L, 5);
+    unsigned int xpitch;
+    unsigned int ypitch;
+    if(lua_gettop(L) < 7) // no-pitch mode
+    {
+        coordinate_t blx, bly, trx, try;
+        if(!object_get_alignment_box_corners(child->object, &blx, &bly, &trx, &try))
+        {
+            lua_pushfstring(L, "add_child_array: no-pitch mode, but object '%s' has no alignmentbox", object_get_name(child->object));
+            lua_error(L);
+        }
+        xpitch = trx - blx;
+        ypitch = try - bly;
+    }
+    else
+    {
+        xpitch = luaL_checkinteger(L, 6);
+        ypitch = luaL_checkinteger(L, 7);
+    }
+    struct object* proxy = object_add_child_array(cell->object, child->object, name, xrep, yrep, xpitch, ypitch);
+    lobject_adapt(L, proxy);
+    lobject_disown(child); // memory is now handled by cell
     return 1;
 }
 
@@ -254,54 +289,6 @@ int lobject_width_height_alignmentbox(lua_State* L)
     point_destroy(bl);
     point_destroy(tr);
     return 2;
-}
-
-int lobject_add_child_array(lua_State* L)
-{
-    struct lobject* cell = lobject_check(L, 1);
-    const char* identifier;
-    unsigned int xrep;
-    unsigned int yrep;
-    unsigned int xpitch;
-    unsigned int ypitch;
-    const char* name;
-    lua_getfield(L, LUA_REGISTRYINDEX, "pcellstate");
-    struct pcell_state* pcell_state = lua_touserdata(L, -1);
-    lua_pop(L, 1); // pop pcell state
-    if(lua_gettop(L) < 6) // no-pitch mode
-    {
-        identifier = luaL_checkstring(L, 2);
-        xrep = luaL_checkinteger(L, 3);
-        yrep = luaL_checkinteger(L, 4);
-        name = lua_tostring(L, 5);
-        lua_getfield(L, LUA_REGISTRYINDEX, "pcellstate");
-        struct object* obj = pcell_get_cell_reference_by_name(pcell_state, identifier);
-        if(!obj)
-        {
-            lua_pushfstring(L, "could not find cell reference '%s'\n", identifier);
-            lua_error(L);
-        }
-        coordinate_t blx, bly, trx, try;
-        if(!object_get_alignment_box_corners(obj, &blx, &bly, &trx, &try))
-        {
-            lua_pushfstring(L, "add_child_array: no-pitch mode, but cell reference '%s' has no alignmentbox", identifier);
-            lua_error(L);
-        }
-        xpitch = trx - blx;
-        ypitch = try - bly;
-    }
-    else
-    {
-        identifier = luaL_checkstring(L, 2);
-        xrep = luaL_checkinteger(L, 3);
-        yrep = luaL_checkinteger(L, 4);
-        xpitch = luaL_checkinteger(L, 5);
-        ypitch = luaL_checkinteger(L, 6);
-        name = lua_tostring(L, 7);
-    }
-    struct object* child = object_add_child_array(cell->object, pcell_state, identifier, xrep, yrep, xpitch, ypitch, name);
-    lobject_adapt(L, child);
-    return 1;
 }
 
 static int lobject_merge_into_shallow(lua_State* L)
@@ -466,10 +453,7 @@ int lobject_inherit_alignment_box(lua_State* L)
 int lobject_flatten(lua_State* L)
 {
     struct lobject* cell = lobject_check(L, 1);
-    lua_getfield(L, LUA_REGISTRYINDEX, "pcellstate");
-    struct pcell_state* pcell_state = lua_touserdata(L, -1);
-    lua_pop(L, 1); // pop pcell state
-    struct object* obj = object_flatten(cell->object, pcell_state, 0);
+    struct object* obj = object_flatten(cell->object, 0); // 0: !flattenports
     lobject_adapt(L, obj);
     return 1;
 }

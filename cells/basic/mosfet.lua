@@ -313,14 +313,14 @@ function layout(transistor, _P)
     )
     -- well taps
     if _P.drawtopwelltap then
-        transistor:merge_into_shallow(pcell.create_layout("auxiliary/welltap", {
+        transistor:merge_into_shallow(pcell.create_layout("auxiliary/welltap", "topwelltap", {
             contype = _P.flippedwell and (_P.channeltype == "nmos" and "n" or "p") or (_P.channeltype == "nmos" and "p" or "n"),
             width = activewidth + _P.topwelltapextendleft + _P.topwelltapextendright,
             height = _P.topwelltapwidth,
         }):translate((_P.topwelltapextendright - _P.topwelltapextendleft) / 2, _P.fwidth / 2 + drainshift + topgateshift + _P.topwelltapspace + _P.topwelltapwidth / 2))
     end
     if _P.drawbotwelltap then
-        transistor:merge_into_shallow(pcell.create_layout("auxiliary/welltap", {
+        transistor:merge_into_shallow(pcell.create_layout("auxiliary/welltap", "botwelltap", {
             contype = _P.flippedwell and (_P.channeltype == "nmos" and "n" or "p") or (_P.channeltype == "nmos" and "p" or "n"),
             width = activewidth + _P.botwelltapextendleft + _P.botwelltapextendright,
             height = _P.botwelltapwidth,
@@ -329,7 +329,7 @@ function layout(transistor, _P)
 
     local guardring -- variable needs to be visible for alignment box setting
     if _P.drawguardring then
-        guardring = pcell.create_layout("auxiliary/guardring", {
+        guardring = pcell.create_layout("auxiliary/guardring", "guardring", {
             contype = _P.flippedwell and (_P.channeltype == "nmos" and "n" or "p") or (_P.channeltype == "nmos" and "p" or "n"),
             ringwidth = _P.guardringwidth,
             holewidth = activewidth + 2 * _P.guardringxsep,

@@ -33,7 +33,7 @@ function layout(gate, _P)
         end
         table.insert(contactpos, "power")
     end
-    local harness = pcell.create_layout("stdcells/harness", { 
+    local harness = pcell.create_layout("stdcells/harness", "mosfets", {
         pwidth = _P.pwidth,
         nwidth = _P.nwidth,
         shiftgatecontacts = _P.shiftinput,

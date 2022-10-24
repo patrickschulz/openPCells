@@ -58,7 +58,7 @@ function layout(gate, _P)
         ncontacts[#ncontacts + 1] = "power"
     end
 
-    local harness = pcell.create_layout("stdcells/harness", { 
+    local harness = pcell.create_layout("stdcells/harness", "mosfets", {
         gatecontactpos = gatecontactpos,
         pcontactpos = _P.gatetype == "nand" and pcontacts or ncontacts,
         ncontactpos = _P.gatetype == "nand" and ncontacts or pcontacts,

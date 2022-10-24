@@ -33,7 +33,7 @@ function layout(counter, _P)
     local ygrid = bp.routingwidth + bp.routingspace
 
     -- single bit instance
-    local bitref = object.create()
+    local bitref = object.create("bit")
     local bitcellnames = {
         {
             { instance = "dffp", reference = "dffpq" },
@@ -76,12 +76,11 @@ function layout(counter, _P)
     routing.route(bitref, bitroutes, bitcells, width, bp.numinnerroutes, bp.pnumtracks, bp.nnumtracks, xgrid, ygrid)
 
     -- row placement
-    local bitname = pcell.add_cell_reference(bitref, "bit")
     local bitnames = {}
     for i = 1, _P.numrows do
         local row = {}
         for j = 1, _P.numcolumns do
-            row[j] = bitname
+            row[j] = bitref
         end
         table.insert(bitnames, row)
     end

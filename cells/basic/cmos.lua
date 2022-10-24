@@ -166,11 +166,11 @@ function layout(cmos, _P)
                 popt.drawbotgcut = false
             end
             local shift = (i - 1) * gatepitch
-            local nfet = pcell.create_layout("basic/mosfet", nopt)
+            local nfet = pcell.create_layout("basic/mosfet", "nfet", nopt)
             nfet:move_anchor("topgate")
             nfet:translate(shift, 0)
             cmos:merge_into_shallow(nfet)
-            local pfet = pcell.create_layout("basic/mosfet", popt)
+            local pfet = pcell.create_layout("basic/mosfet", "pfet", popt)
             pfet:move_anchor("botgate")
             pfet:translate(shift, 0)
             cmos:merge_into_shallow(pfet)
@@ -205,7 +205,7 @@ function layout(cmos, _P)
     -- FIXME: this does not fit well with different gates
     local welltapwidth = fingers * gatepitch + _P.welltapextendleft + _P.welltapextendright
     if _P.drawpmoswelltap then
-        cmos:merge_into_shallow(pcell.create_layout("auxiliary/welltap", {
+        cmos:merge_into_shallow(pcell.create_layout("auxiliary/welltap", "pmoswelltap", {
             contype = _P.pmosflippedwell and "p" or "n",
             width = welltapwidth,
             height = _P.pmoswelltapwidth,
@@ -213,7 +213,7 @@ function layout(cmos, _P)
         }):translate(gatepitch / 2 + (_P.welltapextendright - _P.welltapextendleft) / 2 + welltapwidth / 2 - gatepitch, _P.separation / 2 + _P.pwidth + _P.ppowerspace + _P.powerwidth + _P.pmoswelltapspace + _P.pmoswelltapwidth / 2))
     end
     if _P.drawnmoswelltap then
-        cmos:merge_into_shallow(pcell.create_layout("auxiliary/welltap", {
+        cmos:merge_into_shallow(pcell.create_layout("auxiliary/welltap", "nmoswelltap", {
             contype = _P.nmosflippedwell and "n" or "p",
             width = welltapwidth,
             height = _P.nmoswelltapwidth,

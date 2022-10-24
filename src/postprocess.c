@@ -4,7 +4,6 @@
 
 #include "vector.h"
 #include "union.h"
-#include "pcell.h"
 
 static void _merge_shapes(struct object* object, struct technology_state* techstate)
 {

@@ -20,7 +20,7 @@ function layout(gate, _P)
             contactpos[i] = "outer"
         end
     end
-    local harness = pcell.create_layout("stdcells/harness", { 
+    local harness = pcell.create_layout("stdcells/harness", "mosfets", {
         gatecontactpos = gatecontactpos,
         pcontactpos = contactpos,
         ncontactpos = contactpos,

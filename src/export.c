@@ -20,7 +20,6 @@
 #define EXPORT_STATUS_LOADERROR 2
 
 struct export_state {
-    const char* toplevelname;
     struct const_vector* searchpaths;
     char* exportname;
     char* exportlayername;
@@ -60,11 +59,6 @@ void export_add_searchpath(struct export_state* state, const char* path)
 void export_set_basename(struct export_state* state, const char* basename)
 {
     state->basename = basename;
-}
-
-void export_set_toplevel_name(struct export_state* state, const char* cellname)
-{
-    state->toplevelname = cellname;
 }
 
 void export_set_export_options(struct export_state* state, const char** exportoptions)
@@ -273,7 +267,7 @@ static char* _find_lua_export(const struct const_vector* searchpaths, const char
     return NULL;
 }
 
-int export_write_toplevel(struct object* toplevel, struct pcell_state* pcell_state, struct export_state* state)
+int export_write_toplevel(struct object* toplevel, struct export_state* state)
 {
     if(object_is_empty(toplevel))
     {
@@ -289,7 +283,7 @@ int export_write_toplevel(struct object* toplevel, struct pcell_state* pcell_sta
     if(funcs) // C-defined exports
     {
         struct export_writer* writer = export_writer_create_C(funcs, data);
-        export_writer_write_toplevel(writer, toplevel, pcell_state, state->toplevelname, state->writechildrenports, state->leftdelim, state->rightdelim);
+        export_writer_write_toplevel(writer, toplevel, state->writechildrenports, state->leftdelim, state->rightdelim);
         export_writer_destroy(writer);
         extension = strdup(funcs->get_extension());
         status = EXPORT_STATUS_SUCCESS;
@@ -353,7 +347,7 @@ int export_write_toplevel(struct object* toplevel, struct pcell_state* pcell_sta
             }
 
             struct export_writer* writer = export_writer_create_lua(L, data);
-            int ret = export_writer_write_toplevel(writer, toplevel, pcell_state, state->toplevelname, state->writechildrenports, state->leftdelim, state->rightdelim);
+            int ret = export_writer_write_toplevel(writer, toplevel, state->writechildrenports, state->leftdelim, state->rightdelim);
             export_writer_destroy(writer);
             if(!ret)
             {

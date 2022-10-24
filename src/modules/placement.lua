@@ -189,8 +189,7 @@ end
 ---------------------------------------------------------------------------------
 --                         In-cell layout functions                            --
 ---------------------------------------------------------------------------------
-local function _get_cell_width(identifier, xpitch)
-    local reference = pcell.get_cell_reference(identifier)
+local function _get_cell_width(reference, xpitch)
     local width = reference:width_height_alignmentbox()
     return width / xpitch
 end
@@ -217,7 +216,7 @@ function M.create_reference_rows(cellnames, xpitch)
                 cellname = entry
             end
             if not references[cellname] then
-                references[cellname] = pcell.add_cell_reference(pcell.create_layout(string.format("stdcells/%s", cellname), args), cellname)
+                references[cellname] = pcell.create_layout(string.format("stdcells/%s", cellname), cellname, args)
             end
             names[row][column] = { 
                 instance = instance,
@@ -269,7 +268,7 @@ function M.digital(parent, rows, width, startpt, startanchor, flipfirst, growdir
         end
     end
 
-    local fillref = pcell.add_cell_reference(pcell.create_layout("stdcells/isogate"), "fill")
+    local fillref = pcell.create_layout("stdcells/isogate", "fill")
 
     -- equalize rows and insert fillers
     for row, rowcells in ipairs(rows) do

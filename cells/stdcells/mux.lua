@@ -11,7 +11,7 @@ function layout(gate, _P)
     }
 
     local contactpos = { "power", "inner", "inner", "power" }
-    local harness = pcell.create_layout("stdcells/harness", { 
+    local harness = pcell.create_layout("stdcells/harness", "harness", {
         gatecontactpos = gatecontactpos,
         pcontactpos = contactpos,
         ncontactpos = contactpos,

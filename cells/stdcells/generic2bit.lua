@@ -45,7 +45,7 @@ function layout(gate, _P)
     end
 
     --[[
-    local harness = pcell.create_layout("stdcells/harness", { 
+    local harness = pcell.create_layout("stdcells/harness", "harness", {
         fingers = 2 * _P.fingers,
         gatecontactpos = gatecontactpos,
         pcontactpos = _P.gatetype == "nand" and pcontacts or ncontacts,

@@ -39,7 +39,7 @@ function layout(gate, _P)
 
     local block = object.create()
 
-    local harness = pcell.create_layout("stdcells/harness", { 
+    local harness = pcell.create_layout("stdcells/harness", "mosfets", {
         drawgatecontacts = true,
         gatecontactpos = { "lower", "center", "center", "upper", "center", "lower" },
         pcontactpos = { "power", "outer", "outer", "outer", nil, "power", "power" },

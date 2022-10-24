@@ -253,7 +253,7 @@ static int _write_child_array(struct export_writer* writer, const char* identifi
     }
 }
 
-static int _write_child_single(struct export_writer* writer, const char* identifier, const point_t* origin, const struct transformationmatrix* trans, unsigned int xrep, unsigned int yrep, unsigned int xpitch, unsigned int ypitch)
+static int _write_child_single(struct export_writer* writer, const char* refname, const point_t* origin, const struct transformationmatrix* trans, unsigned int xrep, unsigned int yrep, unsigned int xpitch, unsigned int ypitch)
 {
     for(unsigned int ix = 1; ix <= xrep; ++ix)
     {
@@ -264,7 +264,7 @@ static int _write_child_single(struct export_writer* writer, const char* identif
             if(writer->islua)
             {
                 lua_getfield(writer->L, -1, "write_cell_reference");
-                lua_pushstring(writer->L, identifier);
+                lua_pushstring(writer->L, refname);
                 lua_pushinteger(writer->L, x);
                 lua_pushinteger(writer->L, y);
                 _push_trans(writer->L, trans);
@@ -276,7 +276,7 @@ static int _write_child_single(struct export_writer* writer, const char* identif
             }
             else // C
             {
-                writer->funcs->write_cell_reference(writer->data, identifier, x, y, trans);
+                writer->funcs->write_cell_reference(writer->data, refname, x, y, trans);
             }
         }
     }
@@ -287,18 +287,18 @@ static int _write_child(struct export_writer* writer, const struct object* child
 {
     unsigned int xrep = object_get_child_xrep(child);
     unsigned int yrep = object_get_child_yrep(child);
-    const char* identifier = object_get_identifier(child);
+    const char* refname = object_get_child_reference_name(child);
     const struct transformationmatrix* trans = object_get_transformation_matrix(child);
     unsigned int xpitch = object_get_child_xpitch(child);
     unsigned int ypitch = object_get_child_ypitch(child);
     // FIXME: error checking
     if(object_is_child_array(child) && _has_write_cell_array(writer))
     {
-        _write_child_array(writer, identifier, origin, trans, xrep, yrep, xpitch, ypitch);
+        _write_child_array(writer, refname, origin, trans, xrep, yrep, xpitch, ypitch);
     }
     else
     {
-        _write_child_single(writer, identifier, origin, trans, xrep, yrep, xpitch, ypitch);
+        _write_child_single(writer, refname, origin, trans, xrep, yrep, xpitch, ypitch);
     }
     return 1;
 }
@@ -694,19 +694,20 @@ static int _call_or_pop_nil(lua_State* L, int numargs)
     }
 }
 
-static int _write_cell_main(struct export_writer* writer, const struct object* refcell, const char* refidentifier, int istoplevel, int write_ports, char leftdelim, char rightdelim)
+static int _write_cell_main(struct export_writer* writer, const struct object* cell, int istoplevel, int write_ports, char leftdelim, char rightdelim)
 {
+    const char* name = object_get_name(cell);
     if(writer->islua)
     {
         lua_getfield(writer->L, -1, "at_begin_cell");
-        lua_pushstring(writer->L, refidentifier);
+        lua_pushstring(writer->L, name);
         lua_pushboolean(writer->L, istoplevel);
         int ret = _call_or_pop_nil(writer->L, 2);
         if(!ret)
         {
             return 0;
         }
-        ret = _write_cell(writer, refcell, write_ports, leftdelim, rightdelim);
+        ret = _write_cell(writer, cell, write_ports, leftdelim, rightdelim);
         if(!ret)
         {
             return 0;
@@ -717,8 +718,8 @@ static int _write_cell_main(struct export_writer* writer, const struct object* r
     }
     else // C
     {
-        writer->funcs->at_begin_cell(writer->data, refidentifier);
-        _write_cell(writer, refcell, write_ports, leftdelim, rightdelim);
+        writer->funcs->at_begin_cell(writer->data, name);
+        _write_cell(writer, cell, write_ports, leftdelim, rightdelim);
         writer->funcs->at_end_cell(writer->data);
     }
     return 1;
@@ -787,12 +788,12 @@ static int _write_at_end(struct export_writer* writer)
     }
 }
 
-int export_writer_write_toplevel(struct export_writer* writer, const struct object* object, struct pcell_state* pcell_state, const char* toplevelname, int writechildrenports, char leftdelim, char rightdelim)
+int export_writer_write_toplevel(struct export_writer* writer, const struct object* toplevel, int writechildrenports, char leftdelim, char rightdelim)
 {
     int ret = 1;
     if(_has_initialize(writer))
     {
-        ret = _initialize(writer, object);
+        ret = _initialize(writer, toplevel);
     }
     if(!ret)
     {
@@ -804,8 +805,8 @@ int export_writer_write_toplevel(struct export_writer* writer, const struct obje
     if(!_has_write_cell_reference(writer))
     {
         fputs("this export does not know how to write hierarchies, hence the cell is being written flat\n", stderr);
-        copy = object_flatten(object, pcell_state, 0); // 0: !flattenports
-        object = copy; // extra pointer to silence warning
+        copy = object_flatten(toplevel, 0); // 0: !flattenports
+        toplevel = copy; // extra pointer to silence warning
         mustdelete = 1;
     }
 
@@ -815,27 +816,24 @@ int export_writer_write_toplevel(struct export_writer* writer, const struct obje
         return 0;
     }
 
-    struct cell_reference_iterator* it = pcell_create_cell_reference_iterator(pcell_state);
-    while(pcell_cell_reference_iterator_is_valid(it))
+    // collect and write cell references
+    struct const_vector* references = object_collect_references(toplevel);
+    struct const_vector_iterator* it = const_vector_iterator_create(references);
+    while(const_vector_iterator_is_valid(it))
     {
-        char* refidentifier;
-        struct object* refcell;
-        int refnumused;
-        pcell_cell_reference_iterator_get(it, &refidentifier, &refcell, &refnumused);
-        if(refnumused > 0)
+        const struct object* ref = const_vector_iterator_get(it);
+        ret = _write_cell_main(writer, ref, 0, writechildrenports, leftdelim, rightdelim); // 0: cell is not toplevel
+        if(!ret)
         {
-            ret = _write_cell_main(writer, refcell, refidentifier, 0, writechildrenports, leftdelim, rightdelim); // 0: cell is not toplevel
-            if(!ret)
-            {
-                // FIXME: proper cleanup
-                return 0;
-            }
+            // FIXME: proper cleanup
+            return 0;
         }
-        pcell_cell_reference_iterator_advance(it);
+        const_vector_iterator_next(it);
     }
-    pcell_destroy_cell_reference_iterator(it);
+    const_vector_iterator_destroy(it);
+    const_vector_destroy(references);
 
-    ret = _write_cell_main(writer, object, toplevelname, 1, 1, leftdelim, rightdelim); // first 1: istoplevel, second 1: write_ports
+    ret = _write_cell_main(writer, toplevel, 1, 1, leftdelim, rightdelim); // first 1: istoplevel, second 1: write_ports
     if(!ret)
     {
         // FIXME: proper cleanup

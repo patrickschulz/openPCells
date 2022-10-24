@@ -3,14 +3,13 @@
 
 #include "transformationmatrix.h"
 #include "shape.h"
-#include "pcell.h"
 #include "vector.h"
 #include "hashmap.h"
 
 struct object;
 
 // object construction/destruction
-struct object* object_create(void);
+struct object* object_create(const char* name);
 struct object* object_copy(const struct object*);
 void object_destroy(void* cell);
 
@@ -26,8 +25,8 @@ struct shape* object_get_shape(struct object* cell, size_t idx);
 struct shape* object_get_transformed_shape(struct object* cell, size_t idx);
 
 // children
-struct object* object_add_child(struct object* cell, struct pcell_state* pcell_state, const char* identifier, const char* name);
-struct object* object_add_child_array(struct object* cell, struct pcell_state* pcell_state, const char* identifier, unsigned int xrep, unsigned int yrep, unsigned int xpitch, unsigned int ypitch, const char* name);
+struct object* object_add_child(struct object* cell, struct object* child, const char* name);
+struct object* object_add_child_array(struct object* cell, struct object* child, const char* name, unsigned int xrep, unsigned int yrep, unsigned int xpitch, unsigned int ypitch);
 
 // anchors
 void object_add_anchor(struct object* cell, const char* name, coordinate_t x, coordinate_t y);
@@ -64,22 +63,28 @@ int object_move_anchor(struct object* cell, const char* name, coordinate_t x, co
 int object_move_anchor_x(struct object* cell, const char* name, coordinate_t x);
 int object_move_anchor_y(struct object* cell, const char* name, coordinate_t y);
 void object_scale(struct object* cell, double factor);
-
 void object_apply_transformation(struct object* cell);
 void object_transform_point(const struct object* cell, point_t* pt);
+
+// object info
 int object_has_shapes(const struct object* cell);
 int object_has_children(const struct object* cell);
 int object_has_ports(const struct object* cell);
 int object_is_empty(const struct object* cell);
-void object_flatten_inline(struct object* cell, struct pcell_state* pcell_state, int flattenports);
-struct object* object_flatten(const struct object* cell, struct pcell_state* pcell_state, int flattenports);
-
 int object_is_child_array(const struct object* cell);
+const char* object_get_name(const struct object* cell);
+const char* object_get_child_reference_name(const struct object* child);
+
+void object_flatten_inline(struct object* cell, int flattenports);
+struct object* object_flatten(const struct object* cell, int flattenports);
+
 unsigned int object_get_child_xrep(const struct object* cell);
 unsigned int object_get_child_yrep(const struct object* cell);
 unsigned int object_get_child_xpitch(const struct object* cell);
 unsigned int object_get_child_ypitch(const struct object* cell);
-const char* object_get_identifier(const struct object* cell);
+
+struct const_vector* object_collect_references(const struct object* cell);
+struct vector* object_collect_references_mutable(struct object* cell);
 
 // shape iterator
 struct shape_iterator;
@@ -87,7 +92,7 @@ struct shape_iterator* object_create_shape_iterator(const struct object*);
 int shape_iterator_is_valid(struct shape_iterator* it);
 void shape_iterator_next(struct shape_iterator* it);
 const struct shape* shape_iterator_get(struct shape_iterator* it);
-void shape_iterator_destroy(struct shape_iterator* it);;
+void shape_iterator_destroy(struct shape_iterator* it);
 
 // child iterator
 struct child_iterator;

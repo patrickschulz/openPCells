@@ -16,7 +16,7 @@ function layout(cell, _P)
     for i = 1, _P.fingers do gatecontactpos[i] = "center" end
 
     local contactpos = util.fill_even_with(_P.fingers + 1, "inner", "power")
-    local harness = pcell.create_layout("stdcells/harness", { 
+    local harness = pcell.create_layout("stdcells/harness", "mosfets", {
         pwidth = _P.pwidth,
         nwidth = _P.nwidth,
         gatecontactpos = gatecontactpos,

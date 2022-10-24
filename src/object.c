@@ -5,7 +5,6 @@
 #include <stdio.h>
 
 #include "util.h"
-#include "pcell.h"
 
 #define min(a, b) ((a) < (b) ? (a) : (b))
 #define max(a, b) ((a) > (b) ? (a) : (b))
@@ -23,60 +22,52 @@ struct port {
 
 struct object {
     char* name;
-
-    // for children:
-    // 'proxy' objects are light handles to objects
-    // these are created by the 'all_child' method of objects
-    // proxy objects behave like real objects (they can be moved etc.)
     int isproxy;
-    char* identifier;
-    const struct object* reference;
-    int isarray;
-    unsigned int xrep;
-    unsigned int yrep;
-    unsigned int xpitch;
-    unsigned int ypitch;
-
     struct transformationmatrix* trans;
 
-    struct vector* shapes; // stores struct shape*
-
-    struct vector* ports; // stores struct port*
-
-    struct hashmap* anchors;
-
-    coordinate_t* alignmentbox; // NULL or contains four coordinates: blx, blx, trx, try
-
-    struct vector* children; // stores struct object*
+    union{
+        // proxy objects (light handles to children)
+        struct {
+            const struct object* reference;
+            int isarray;
+            unsigned int xrep;
+            unsigned int yrep;
+            unsigned int xpitch;
+            unsigned int ypitch;
+        };
+        // full objects
+        struct {
+            struct vector* shapes; // stores struct shape*
+            struct vector* ports; // stores struct port*
+            struct hashmap* anchors;
+            struct vector* children; // stores struct object*
+            struct vector* references; // stores struct object*
+            coordinate_t* alignmentbox; // NULL or contains four coordinates: blx, blx, trx, try
+        };
+    };
 };
 
-static struct object* _create(void)
+static struct object* _create(const char* name)
 {
     struct object* obj = malloc(sizeof(*obj));
     memset(obj, 0, sizeof(*obj));
+    obj->name = strdup(name);
     return obj;
 }
 
-struct object* object_create(void)
+struct object* object_create(const char* name)
 {
-    struct object* obj = _create();
+    struct object* obj = _create(name);
     obj->trans = transformationmatrix_create();
     transformationmatrix_identity(obj->trans);
     obj->isproxy = 0;
     return obj;
 }
 
-struct object* object_create_proxy(const char* name, struct object* reference, const char* identifier)
+static struct object* _create_proxy(const char* name, struct object* reference)
 {
-    struct object* obj = _create();
-    if(name)
-    {
-        obj->name = malloc(strlen(name) + 1);
-        strcpy(obj->name, name);
-    }
+    struct object* obj = _create(name);
     obj->reference = reference;
-    obj->identifier = malloc(strlen(identifier) + 1);
-    strcpy(obj->identifier, identifier);
     obj->isproxy = 1;
     // don't need a transformation matrix as it is created by add_child
     obj->isarray = 0;
@@ -89,25 +80,15 @@ struct object* object_create_proxy(const char* name, struct object* reference, c
 
 struct object* object_copy(const struct object* cell)
 {
-    struct object* new = _create();
+    struct object* new = _create(cell->name);
     new->isproxy = cell->isproxy;
 
-    // name
-    if(cell->name)
-    {
-        new->name = malloc(strlen(cell->name) + 1);
-        strcpy(new->name, cell->name);
-        new->reference = cell->reference;
-    }
-    
     // trans
     transformationmatrix_destroy(new->trans);
     new->trans = transformationmatrix_copy(cell->trans);
 
     if(cell->isproxy)
     {
-        new->identifier = malloc(strlen(cell->identifier) + 1);
-        strcpy(new->identifier, cell->identifier);
         new->reference = cell->reference;
         new->isarray = cell->isarray;
         new->xrep = cell->xrep;
@@ -160,11 +141,7 @@ struct object* object_copy(const struct object* cell)
 void object_destroy(void* cellv)
 {
     struct object* cell = cellv;
-    if(cell->isproxy)
-    {
-        free(cell->identifier);
-    }
-    else
+    if(!cell->isproxy)
     {
         // shapes
         if(cell->shapes)
@@ -176,6 +153,7 @@ void object_destroy(void* cellv)
         if(cell->children)
         {
             vector_destroy(cell->children);
+            vector_destroy(cell->references);
         }
 
         // anchors
@@ -236,28 +214,46 @@ void object_remove_shape(struct object* cell, size_t idx)
     vector_remove(cell->shapes, idx, shape_destroy);
 }
 
-struct object* object_add_child(struct object* cell, struct pcell_state* pcell_state, const char* identifier, const char* name)
+struct object* object_add_child(struct object* cell, struct object* child, const char* name)
 {
-    struct object* reference = pcell_use_cell_reference(pcell_state, identifier);
-    struct object* child = object_create_proxy(name, reference, identifier);
-    child->trans = transformationmatrix_invert(cell->trans);
+    struct object* proxy = _create_proxy(name, child);
+    proxy->trans = transformationmatrix_invert(cell->trans);
     if(!cell->children)
     {
         cell->children = vector_create(OBJECT_DEFAULT_CHILDREN_SIZE, object_destroy);
+        cell->references = vector_create(8, object_destroy);
     }
-    vector_append(cell->children, child);
-    return child;
+    vector_append(cell->children, proxy);
+    // check if child is already stored
+    int found = 0;
+    struct vector_const_iterator* it = vector_const_iterator_create(cell->references);
+    while(vector_const_iterator_is_valid(it))
+    {
+        const struct object* ref = vector_const_iterator_get(it);
+        if(ref == child)
+        {
+            found = 1;
+            break;
+        }
+        vector_const_iterator_next(it);
+    }
+    vector_const_iterator_destroy(it);
+    if(!found)
+    {
+        vector_append(cell->references, child);
+    }
+    return proxy;
 }
 
-struct object* object_add_child_array(struct object* cell, struct pcell_state* pcell_state, const char* identifier, unsigned int xrep, unsigned int yrep, unsigned int xpitch, unsigned int ypitch, const char* name)
+struct object* object_add_child_array(struct object* cell, struct object* child, const char* name, unsigned int xrep, unsigned int yrep, unsigned int xpitch, unsigned int ypitch)
 {
-    struct object* child = object_add_child(cell, pcell_state, identifier, name);
-    child->isarray = 1;
-    child->xrep = xrep;
-    child->yrep = yrep;
-    child->xpitch = xpitch;
-    child->ypitch = ypitch;
-    return child;
+    struct object* proxy = object_add_child(cell, child, name);
+    proxy->isarray = 1;
+    proxy->xrep = xrep;
+    proxy->yrep = yrep;
+    proxy->xpitch = xpitch;
+    proxy->ypitch = ypitch;
+    return proxy;
 }
 
 void object_merge_into_shallow(struct object* cell, const struct object* other)
@@ -937,7 +933,22 @@ int object_is_empty(const struct object* cell)
     return !object_has_shapes(cell) && !object_has_children(cell) && !object_has_ports(cell);
 }
 
-void object_flatten_inline(struct object* cell, struct pcell_state* pcell_state, int flattenports)
+int object_is_child_array(const struct object* cell)
+{
+    return cell->isarray;
+}
+
+const char* object_get_name(const struct object* cell)
+{
+    return cell->name;
+}
+
+const char* object_get_child_reference_name(const struct object* child)
+{
+    return child->reference->name;
+}
+
+void object_flatten_inline(struct object* cell, int flattenports)
 {
     // add shapes and flatten children (recursive)
     if(cell->children)
@@ -946,7 +957,7 @@ void object_flatten_inline(struct object* cell, struct pcell_state* pcell_state,
         {
             struct object* child = vector_get(cell->children, i);
             const struct object* reference = child->reference;
-            struct object* flat = object_flatten(reference, pcell_state, flattenports);
+            struct object* flat = object_flatten(reference, flattenports);
             if(flat->shapes)
             {
                 size_t size = vector_size(flat->shapes);
@@ -982,27 +993,17 @@ void object_flatten_inline(struct object* cell, struct pcell_state* pcell_state,
             }
             object_destroy(flat);
         }
-        // destroy children
-        for(unsigned int i = 0; i < vector_size(cell->children); ++i)
-        {
-            struct object* child = vector_get(cell->children, i);
-            pcell_unlink_cell_reference(pcell_state, child->identifier);
-        }
-        vector_destroy(cell->children);
+        // FIXME: destroy children
+        //vector_destroy(cell->children);
     }
     cell->children = NULL;
 }
 
-struct object* object_flatten(const struct object* cell, struct pcell_state* pcell_state, int flattenports)
+struct object* object_flatten(const struct object* cell, int flattenports)
 {
     struct object* new = object_copy(cell);
-    object_flatten_inline(new, pcell_state, flattenports);
+    object_flatten_inline(new, flattenports);
     return new;
-}
-
-int object_is_child_array(const struct object* cell)
-{
-    return cell->isarray;
 }
 
 unsigned int object_get_child_xrep(const struct object* cell)
@@ -1025,10 +1026,58 @@ unsigned int object_get_child_ypitch(const struct object* cell)
     return cell->ypitch;
 }
 
+static void _collect_references(const struct object* cell, struct const_vector* references)
+{
+    if(cell->references)
+    {
+        struct vector_const_iterator* it = vector_const_iterator_create(cell->references);
+        while(vector_const_iterator_is_valid(it))
+        {
+            const struct object* ref = vector_const_iterator_get(it);
+            _collect_references(ref, references);
+            const_vector_append(references, ref);
+            vector_const_iterator_next(it);
+        }
+        vector_const_iterator_destroy(it);
+    }
+}
+
+struct const_vector* object_collect_references(const struct object* cell)
+{
+    struct const_vector* references = const_vector_create(8);
+    _collect_references(cell, references);
+    return references;
+}
+
+static void _collect_references_mutable(const struct object* cell, struct vector* references)
+{
+    if(cell->references)
+    {
+        struct vector_iterator* it = vector_iterator_create(cell->references);
+        while(vector_iterator_is_valid(it))
+        {
+            struct object* ref = vector_iterator_get(it);
+            _collect_references_mutable(ref, references);
+            vector_append(references, ref);
+            vector_iterator_next(it);
+        }
+        vector_iterator_destroy(it);
+    }
+}
+
+struct vector* object_collect_references_mutable(struct object* cell)
+{
+    struct vector* references = vector_create(8, NULL);
+    _collect_references_mutable(cell, references);
+    return references;
+}
+
+/*
 const char* object_get_identifier(const struct object* cell)
 {
     return cell->identifier;
 }
+*/
 
 struct shape_iterator {
     const struct vector* shapes;

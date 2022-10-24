@@ -130,7 +130,7 @@ function layout(dff, _P)
     table.insert(pcontactpos, "power")
     table.insert(ncontactpos, "power")
 
-    local harness = pcell.create_layout("stdcells/harness", {
+    local harness = pcell.create_layout("stdcells/harness", "mosfets", {
         gatecontactpos = gatecontactpos,
         pcontactpos = pcontactpos,
         ncontactpos = ncontactpos,

@@ -2,23 +2,23 @@
     VDD ----*-----------------------*
             |                       |
             |                       |
-          |-|                     |-|
-    A ---o|                ~A ---o|
-          |-|                     |-|
+         |--|                    |--|
+    A --o|                 ~A --o| 
+         |--|                    |--|
             |                       |
-          |-|                     |-|
-   ~B ---o|                 B ---o|
-          |-|                     |-|
+         |--|                    |--|
+   ~B --o|                  B --o| 
+         |--|                    |--|
             |                       |
             *-----------------------*-------o A XOR B
             |                       |
-          |-|                     |-|
-   ~B ----|                 B ----|
-          |-|                     |-|
+         |--|                    |--|
+   ~B ---|                  B ---| 
+         |--|                    |--|
             |                       |
-          |-|                     |-|
-   ~A ----|                 A ----|
-          |-|                     |-|
+         |--|                    |--|
+   ~A ---|                  A ---| 
+         |--|                    |--|
             |                       |
             |                       |
     VSS ----*-----------------------*
@@ -35,7 +35,7 @@ function layout(gate, _P)
     local bp = pcell.get_parameters("stdcells/base")
     local xpitch = bp.gspace + bp.glength
 
-    local harness = pcell.create_layout("stdcells/harness", { 
+    local harness = pcell.create_layout("stdcells/harness", "mosfets", { 
         drawgatecontacts = true,
         gatecontactpos = { "lower", "dummy", "dummy", "upper", "lower", "center", "center", "dummy", "upper", "center", "lower" },
         pcontactpos = { "power", "inner", "power", "inner", "power", "outer", "outer", "outer", "full", nil,     "power", "power" },
