@@ -44,8 +44,7 @@ static struct rpoint* _create_point(lua_State *L)
 static void _make_nets(const char* name, struct vector* nets,
 				 struct vector* positions)
 {
-    struct vector *deltas = vector_create(1);
-    struct net *net = net_create(name, NO_SUFFIX, positions, deltas);
+    struct net *net = net_create(name, NO_SUFFIX, positions);
     vector_append(nets, net);
 }
 
@@ -174,24 +173,59 @@ int lrouter_route(lua_State* L)
 	nets_fill_ports(nc->nets, field);
 
 	field_print(field, 0);
+	getchar();
 
         if(net_is_routed(net))
         {
-            ///* table for whole net */
-            //lua_newtable(L);
-            //lua_pushstring(L, net_get_name(net));
-            //lua_setfield(L, -2, "name");
+            /*
+	     * table for whole net
+	     * net is consisting of ports and deltas after the ports
+	     */
+            lua_newtable(L);
+            lua_pushstring(L, net_get_name(net));
+            lua_setfield(L, -2, "name");
 
-            ///* first anchor entry */
-            //lua_newtable(L);
-            //const struct position* pos0 = net_get_startpos(net);
-            //moves_create_anchor(L, pos0->instance, pos0->port);
-            //lua_rawseti(L, -2, 1);
+	    int num_deltas = net_get_num_deltas(net);
+	    int table_pos = 0;
 
-            ///* FIXME: via after first anchor */
-            //lua_newtable(L);
-            //moves_create_via(L, 1);
-            //lua_rawseti(L, -2, 2);
+	    for(int i = 0; i < num_deltas; i++, table_pos++)
+	    {
+		lua_newtable(L);
+		struct rpoint *point = net_get_delta(net, i);
+		if(point_get_score(point) == PORT)
+		{
+		    const struct position *pos =
+			    net_get_position_at_point(net, point);
+
+		    moves_create_port(L, net_position_get_inst(pos),
+					net_position_get_port(pos));
+		    lua_rawseti(L, -2, table_pos + 1);
+		    table_pos++;
+
+		    /* FIXME: via after first anchor */
+		    lua_newtable(L);
+		    moves_create_via(L, 1);
+
+		}
+		else if(point->x)
+		{
+		    moves_create_delta(L, X_DIR, point->x);
+		}
+		else if(point->y)
+		{
+		    moves_create_delta(L, Y_DIR, point->y);
+		}
+		else
+		{
+                    moves_create_via(L, -1 * point->z);
+		}
+
+                lua_rawseti(L, -2, table_pos + 1);
+	    }
+
+            lua_rawseti(L, -2, routed_count + 1);
+            routed_count++;
+
 
             //net_create_deltas(net);
 

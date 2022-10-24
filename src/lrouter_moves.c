@@ -3,12 +3,12 @@
 
 #include "lrouter_moves.h"
 
-void moves_create_anchor(lua_State *L, const char *name, const char *anchor)
+void moves_create_port(lua_State *L, const char *name, const char *port)
 {
     lua_pushstring(L, "anchor");
     lua_setfield(L, -2, "type");
 
-    lua_pushstring(L, anchor);
+    lua_pushstring(L, port);
     lua_setfield(L, -2, "anchor");
 
     lua_pushstring(L, name);
