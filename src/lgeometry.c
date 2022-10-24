@@ -725,7 +725,6 @@ int open_lgeometry_lib(lua_State* L)
         { "contact",         lgeometry_contact         },
         { "contactbarebltr", lgeometry_contactbarebltr },
         { "contactbare",     lgeometry_contactbare     },
-        //{ "cubic_bezier",    lgeometry_cubic_bezier    },
         { "cross",           lgeometry_cross           },
         { "ring",            lgeometry_ring            },
         { "unequal_ring",    lgeometry_unequal_ring    },
