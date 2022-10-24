@@ -154,6 +154,11 @@ static int _find_path(struct field *field, struct position *startpos,
     return routing_cost;
 }
 
+static int _has_same_coords(struct rpoint *point, struct position *pos)
+{
+   return (point->x == pos->x && point->y == pos->y && point->z == pos->z);
+}
+
 static void _backtrace(struct field *field, struct net *net,
 		      struct position *startpos, struct position *endpos,
 		      struct vector *pathpoints)
@@ -165,16 +170,9 @@ static void _backtrace(struct field *field, struct net *net,
     struct rpoint oldpoint = {.x = UINT_MAX, .y = UINT_MAX, .z = UINT_MAX,
 	    .score = INT_MAX};
 
-    int xsteps, ysteps, zsteps;
-    int xdiff = 0;
-    int ydiff = 0;
-    int zdiff = 0;
-    int xdiffold = 0;
-    int ydiffold = 0;
-    int zdiffold = 0;
+    int xdiff = 0, ydiff = 0, zdiff = 0;
 
-    while(!(current.x == startpos->x && current.y == startpos->y &&
-	    current.z == startpos->z))
+    do
     {
         int score = field_get(field, current.x, current.y, current.z);
         struct rpoint nextpoints[] = { [0  ... NUM_DIRECTIONS - 1] =
@@ -203,6 +201,7 @@ static void _backtrace(struct field *field, struct net *net,
 
             int is_wrong_dir = (yincr[i] && EVEN(current.z)) ||
 		    (xincr[i] && !EVEN(current.z));
+
             int is_reachable =
                 ((score - nextfield) == VIA_COST) ||
                 (((score - nextfield) == WRONG_DIR_COST) && is_wrong_dir) ||
@@ -244,44 +243,25 @@ static void _backtrace(struct field *field, struct net *net,
 	    vector_append(pathpoints, point_new(current.x, current.y,
 						current.z, PATH));
         }
-	/* calculate deltas for lua part */
 
-	xdiffold = xdiff;
-	ydiffold = ydiff;
-	zdiffold = zdiff;
+	/* put diffs into delta vector for lua part */
+	xdiff = ((int)nextpoint.x - (int)current.x);
+	ydiff = ((int)nextpoint.y - (int)current.y);
+	zdiff = ((int)nextpoint.z - (int)current.z);
 
-	xdiff = nextpoint.x - (int)current.x;
-	ydiff = nextpoint.y - (int)current.y;
-	zdiff = nextpoint.z - (int)current.z;
-
-	xsteps += xdiff;
-	ysteps += ydiff;
-	zsteps += zdiff;
-
-	struct rpoint *path_point;
-	int point_type = PATH;
-
-	if(current.x == endpos->x && current.y == endpos->y
-	   && current.z == endpos->z)
+	struct rpoint *diff_point;
+	/*
+	 * put endport of backtrace with absolute positions
+	 * into list of deltas to make the data transfer to lua easier
+	 */
+	if(_has_same_coords(&current, endpos))
 	{
-	    point_type = PORT;
+	    diff_point = point_new(endpos->x, endpos->y, endpos->z, PORT);
+	    net_append_delta(net, diff_point);
 	}
 
-	if(xdiffold && !xdiff)
-	{
-	    path_point = point_new(xsteps, 0, 0, point_type);
-	}
-	else if(ydiffold && !ydiff)
-	{
-	    path_point = point_new(0, ysteps, 0, point_type);
-	}
-	else if(zdiffold && !zdiff)
-	{
-	    point_type = VIA;
-	    path_point = point_new(0, 0, zsteps, point_type);
-	}
-
-        net_append_delta(net, path_point);
+	diff_point = point_new(xdiff, ydiff, zdiff, PATH);
+	net_append_delta(net, diff_point);
 
 	oldpoint.x = current.x;
 	oldpoint.x = current.y;
@@ -291,6 +271,8 @@ static void _backtrace(struct field *field, struct net *net,
         current.y = nextpoint.y;
         current.z = nextpoint.z;
     }
+    while(!(current.x == startpos->x && current.y == startpos->y &&
+	    current.z == startpos->z));
 }
 
 struct thread_data
@@ -316,6 +298,7 @@ void _mark_as_route(struct field *field, struct vector *pathpoints)
     {
 	struct rpoint *point = vector_get(pathpoints, i);
 	int value = point_get_score(point);
+
 	if(value == PATH || value == PORT || value == VIA)
 	{
 	    field_set(field, point->x, point->y, point->z, value);
@@ -495,14 +478,13 @@ void route(struct net *net, struct field* field)
     net_restore_positions(net, net_backup);
     //net_destroy(net_backup);
 
-    //net_reverse_points(net);
-
     _mark_as_route(field, pathpoints);
     net_mark_as_routed(net);
-    //net_print_deltas(net);
-
-    //field_print(field, 0);
-    //field_print(field, 1);
-    //getchar();
+    printf("pre make deltas\n");
+    net_print_deltas(net);
+    printf("post make deltas\n");
+    net_make_deltas(net);
+    //net_reverse_deltas(net);
+    net_print_deltas(net);
 }
 
