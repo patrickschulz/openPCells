@@ -7,26 +7,26 @@ function parameters()
         { "foffset(Finger Offset)",   100 },
         { "rwidth(Rail Width)",       200 },
         { "firstmetal(Start Metal)",    1 },
-        { "lastmetal(End Metal)",       2 },
-        { "flat",                    true }
+        { "lastmetal(End Metal)",       2 }
     )
 end
 
 function layout(momcap, _P)
     local pitch = _P.fwidth + _P.fspace
 
+    -- fingers
     for i = _P.firstmetal, _P.lastmetal do
         geometry.rectangle(
             momcap, generics.metal(i),
-            _P.fwidth, _P.fheight,
-            0, -_P.foffset / 2,
-            _P.fingers // 2, 1, 2 * (_P.fwidth + _P.fspace), 0
+            _P.fwidth, _P.fheight, -- width and height
+            0, -_P.foffset / 2, -- xshift and yshift
+            _P.fingers // 2, 1, 2 * (_P.fwidth + _P.fspace), 0 -- repetition
         )
         geometry.rectangle(
             momcap, generics.metal(i),
-            _P.fwidth, _P.fheight,
-            0, _P.foffset / 2,
-            _P.fingers // 2 + 1, 1, 2 * (_P.fwidth + _P.fspace), 0
+            _P.fwidth, _P.fheight, -- width and height
+            0, _P.foffset / 2, -- xshift and yshift
+            _P.fingers // 2 + 1, 1, 2 * (_P.fwidth + _P.fspace), 0 -- repetition
         )
     end
     -- rails

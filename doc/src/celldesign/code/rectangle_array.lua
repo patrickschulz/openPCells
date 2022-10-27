@@ -23,7 +23,7 @@ function layout(obj, _P)
     -- better approach
     geometry.rectangle(obj,
         generics.metal(1), _P.width, _P.height,
-        0, 0,
+        0, 0, -- xshift and yshift
         _P.rep, _P.rep, _P.pitch, _P.pitch
     )
 end
