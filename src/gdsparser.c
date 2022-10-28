@@ -44,7 +44,7 @@ const char* recordnames[] = {
 struct record
 {
     uint16_t length;
-    uint8_t recordtype;
+    enum recordtypes recordtype;
     uint8_t datatype;
     uint8_t* data;
 };
@@ -62,23 +62,36 @@ int _read_record(FILE* file, struct record* record)
     record->recordtype = buf[2];
     record->datatype = buf[3];
 
-    size_t numbytes = record->length - 4;
-    uint8_t* data = malloc(numbytes);
-    read = fread(data, 1, numbytes, file);
-    if(read != numbytes)
+    if(record->length >= 4)
     {
-        free(data);
+        size_t numbytes = record->length - 4;
+        uint8_t* data = malloc(numbytes);
+        read = fread(data, 1, numbytes, file);
+        if(read != numbytes)
+        {
+            free(data);
+            return 0;
+        }
+        record->data = data;
+        return 1;
+    }
+    else
+    {
         return 0;
     }
-    record->data = data;
-    return 1;
 }
 
-struct stream
-{
+struct stream {
     struct record* records;
     size_t numrecords;
+    size_t index;
 };
+
+static struct record* _get_next_record(struct stream* stream)
+{
+    ++stream->index;
+    return stream->records + stream->index - 1;
+}
 
 static struct stream* _read_raw_stream(const char* filename)
 {
@@ -100,8 +113,10 @@ static struct stream* _read_raw_stream(const char* filename)
         }
         if(!_read_record(file, &records[numrecords]))
         {
-            fprintf(stderr, "%s\n", "gdsparser: stream abort before ENDLIB");
-            break;
+            fprintf(stderr, "gdsparser: stream abort before ENDLIB (at byte %ld)\n", ftell(file));
+            fclose(file);
+            free(records);
+            return NULL;
         }
         ++numrecords;
         if(records[numrecords - 1].recordtype == ENDLIB)
@@ -113,6 +128,7 @@ static struct stream* _read_raw_stream(const char* filename)
     struct stream* stream = malloc(sizeof(struct stream));
     stream->records = records;
     stream->numrecords = numrecords;
+    stream->index = 0;
     return stream;
 }
 
@@ -168,7 +184,7 @@ static inline void _parse_single_point_i(uint8_t* data, size_t i, point_t* pt)
 
 static struct vector* _parse_points(uint8_t* data, size_t length)
 {
-    struct vector* points = vector_create(length >> 3);
+    struct vector* points = vector_create(length >> 3, point_destroy);
     for(size_t i = 0; i < length >> 3; ++i)
     {
         point_t* pt = point_create(0, 0);
@@ -441,9 +457,18 @@ int gdsparser_show_records(const char* filename, int raw)
         return 0;
     }
     unsigned int indent = 0;
-    for(size_t i = 0; i < stream->numrecords; ++i)
+    while(1)
     {
-        struct record* record = &stream->records[i];
+        struct record* record = _get_next_record(stream);
+        if(!record)
+        {
+            _destroy_stream(stream);
+            return 0;
+        }
+        if(record->recordtype == ENDLIB)
+        {
+            break;
+        }
         if(record->recordtype == ENDLIB || record->recordtype == ENDSTR || record->recordtype == ENDEL)
         {
             --indent;
@@ -649,9 +674,28 @@ int _check_rectangle(const coordinate_t* points)
 struct layermapping {
     int16_t layer;
     int16_t purpose;
+    char* map;
     char** mappings;
     size_t num;
 };
+
+static void _destroy_mapping(void* v)
+{
+    struct layermapping* mapping = v;
+    if(mapping->mappings)
+    {
+        for(unsigned int i = 0; i < mapping->num; ++i)
+        {
+            free(mapping->mappings[i]);
+        }
+        free(mapping->mappings);
+    }
+    if(mapping->map)
+    {
+        free(mapping->map);
+    }
+    free(mapping);
+}
 
 struct vector* gdsparser_create_layermap(const char* filename)
 {
@@ -668,13 +712,16 @@ struct vector* gdsparser_create_layermap(const char* filename)
         lua_close(L);
         return NULL;
     }
-    struct vector* map = vector_create(1);
+    struct vector* map = vector_create(1, _destroy_mapping);
     lua_len(L, -1);
     size_t len = lua_tointeger(L, -1);
     lua_pop(L, 1);
     for(size_t i = 1; i <= len; ++i)
     {
         struct layermapping* layermapping = malloc(sizeof(*layermapping));
+        layermapping->map = NULL;
+        layermapping->mappings = NULL;
+        layermapping->num = 0;
         lua_rawgeti(L, -1, i); // get entry
 
         lua_getfield(L, -1, "layer");
@@ -685,18 +732,28 @@ struct vector* gdsparser_create_layermap(const char* filename)
         layermapping->purpose = lua_tointeger(L, -1);
         lua_pop(L, 1);
 
-        lua_getfield(L, -1, "mappings");
-        lua_len(L, -1);
-        size_t maplen = lua_tointeger(L, -1);
-        lua_pop(L, 1);
-        layermapping->num = maplen;
-        layermapping->mappings = malloc(len * sizeof(*layermapping->mappings));
-        for(size_t j = 1; j <= maplen; ++j)
+        lua_getfield(L, -1, "map");
+        if(!lua_isnil(L, -1))
         {
-            lua_rawgeti(L, -1, j);
-            const char* mapping = lua_tostring(L, -1);
-            layermapping->mappings[j - 1] = strdup(mapping);
+            layermapping->map = strdup(lua_tostring(L, -1));
+        }
+        lua_pop(L, 1);
+
+        lua_getfield(L, -1, "mappings");
+        if(!lua_isnil(L, -1))
+        {
+            lua_len(L, -1);
+            size_t maplen = lua_tointeger(L, -1);
             lua_pop(L, 1);
+            layermapping->num = maplen;
+            layermapping->mappings = malloc(len * sizeof(*layermapping->mappings));
+            for(size_t j = 1; j <= maplen; ++j)
+            {
+                lua_rawgeti(L, -1, j);
+                const char* mapping = lua_tostring(L, -1);
+                layermapping->mappings[j - 1] = strdup(mapping);
+                lua_pop(L, 1);
+            }
         }
         lua_pop(L, 1);
 
@@ -712,49 +769,65 @@ void gdsparser_destroy_layermap(struct vector* layermap)
 {
     if(layermap)
     {
-        struct vector_iterator* it = vector_iterator_create(layermap);
-        while(vector_iterator_is_valid(it))
-        {
-            struct layermapping* mapping = vector_iterator_get(it);
-            for(unsigned int i = 0; i < mapping->num; ++i)
-            {
-                free(mapping->mappings[i]);
-            }
-            free(mapping->mappings);
-            free(mapping);
-            vector_iterator_next(it);
-        }
-        vector_iterator_destroy(it);
-        vector_destroy(layermap, NULL);
+        vector_destroy(layermap);
     }
+}
+
+static const char* _has_direct_mapping(int16_t layer, int16_t purpose, const struct vector* layermap)
+{
+    if(!layermap)
+    {
+        return NULL;
+    }
+    struct vector_const_iterator* it = vector_const_iterator_create(layermap);
+    while(vector_const_iterator_is_valid(it))
+    {
+        const struct layermapping* mapping = vector_const_iterator_get(it);
+        if(layer == mapping->layer && purpose == mapping->purpose && mapping->map)
+        {
+            vector_const_iterator_destroy(it);
+            return mapping->map;
+        }
+        vector_const_iterator_next(it);
+    }
+    vector_const_iterator_destroy(it);
+    return NULL;
 }
 
 static void _write_layers(FILE* cellfile, int16_t layer, int16_t purpose, const struct vector* layermap)
 {
-    fputs("generics.premapped(nil, { ", cellfile);
-    fputs("gds = { layer = ", cellfile);
-    _print_int16(cellfile, layer);
-    fputs(", purpose = ", cellfile);
-    _print_int16(cellfile, purpose);
-    fputs(" }", cellfile);
-    if(layermap)
+    const char* directmap = _has_direct_mapping(layer, purpose, layermap);
+    if(directmap)
     {
-        struct vector_const_iterator* it = vector_const_iterator_create(layermap);
-        while(vector_const_iterator_is_valid(it))
-        {
-            const struct layermapping* mapping = vector_const_iterator_get(it);
-            if(layer == mapping->layer && purpose == mapping->purpose)
-            {
-                for(unsigned int i = 0; i < mapping->num; ++i)
-                {
-                    fprintf(cellfile, ", %s", mapping->mappings[i]);
-                }
-            }
-            vector_const_iterator_next(it);
-        }
-        vector_const_iterator_destroy(it);
+        fputs(directmap, cellfile);
     }
-    fputs(" })", cellfile);
+    else
+    {
+        fputs("generics.premapped(nil, { ", cellfile);
+        fputs("gds = { layer = ", cellfile);
+        _print_int16(cellfile, layer);
+        fputs(", purpose = ", cellfile);
+        _print_int16(cellfile, purpose);
+        fputs(" }", cellfile);
+        if(layermap)
+        {
+            struct vector_const_iterator* it = vector_const_iterator_create(layermap);
+            while(vector_const_iterator_is_valid(it))
+            {
+                const struct layermapping* mapping = vector_const_iterator_get(it);
+                if(layer == mapping->layer && purpose == mapping->purpose)
+                {
+                    for(unsigned int i = 0; i < mapping->num; ++i)
+                    {
+                        fprintf(cellfile, ", %s", mapping->mappings[i]);
+                    }
+                }
+                vector_const_iterator_next(it);
+            }
+            vector_const_iterator_destroy(it);
+        }
+        fputs(" })", cellfile);
+    }
 }
 
 int _check_lpp(int16_t layer, int16_t purpose, const struct vector* ignorelpp)
@@ -776,13 +849,16 @@ int _check_lpp(int16_t layer, int16_t purpose, const struct vector* ignorelpp)
     return 1;
 }
 
-static int _read_TEXT(const struct stream* stream, size_t* i, char** str, int16_t* layer, int16_t* purpose, point_t* origin, double* angle, int** transformation)
+static int _read_TEXT(struct stream* stream, char** str, int16_t* layer, int16_t* purpose, point_t* origin, double* angle, int** transformation)
 {
-    ++(*i); // skip TEXT
     while(1)
     {
-        struct record* record = &stream->records[*i];
-        if(record->recordtype == ELFLAGS)
+        struct record* record = _get_next_record(stream);
+        if(!record)
+        {
+            return 0;
+        }
+        else if(record->recordtype == ELFLAGS)
         {
             // FIXME: handle record
         }
@@ -832,12 +908,11 @@ static int _read_TEXT(const struct stream* stream, size_t* i, char** str, int16_
         {
             return 0;
         }
-        ++(*i);
     }
     return 1;
 }
 
-static struct cellref* _read_SREF_AREF(const struct stream* stream, size_t* i, int isAREF)
+static struct cellref* _read_SREF_AREF(struct stream* stream, int isAREF)
 {
     struct cellref* cellref = malloc(sizeof(*cellref));
     cellref->name = NULL;
@@ -846,10 +921,13 @@ static struct cellref* _read_SREF_AREF(const struct stream* stream, size_t* i, i
     cellref->yrep = 1;
     cellref->angle = 0.0;
     cellref->transformation = NULL;
-    ++(*i); // skip SREF/AREF
     while(1)
     {
-        struct record* record = &stream->records[*i];
+        struct record* record = _get_next_record(stream);
+        if(!record)
+        {
+            return 0;
+        }
         if(record->recordtype == ELFLAGS)
         {
             // FIXME: handle record
@@ -906,53 +984,53 @@ static struct cellref* _read_SREF_AREF(const struct stream* stream, size_t* i, i
         }
         else // wrong record
         {
-            fprintf(stderr, "malformed SREF/AREF, got unexpected record '%s' (#%zd)\n", recordnames[record->recordtype], *i + 1);
+            fprintf(stderr, "malformed SREF/AREF, got unexpected record '%s' (#%zd)\n", recordnames[record->recordtype], stream->index);
             return NULL;
         }
-        ++(*i);
     }
     return cellref;
 }
-#define _read_SREF(stream, i) _read_SREF_AREF(stream, i, 0)
-#define _read_AREF(stream, i) _read_SREF_AREF(stream, i, 1)
+#define _read_SREF(stream) _read_SREF_AREF(stream, 0)
+#define _read_AREF(stream) _read_SREF_AREF(stream, 1)
 
 static void _write_cellref(FILE* cellfile, const char* importname, const struct cellref* cellref, struct hashmap* references)
 {
     if(!hashmap_exists(references, cellref->name))
     {
         fprintf(cellfile, "    ref = pcell.create_layout(\"%s/%s\")\n", importname, cellref->name);
-        fprintf(cellfile, "    name = pcell.add_cell_reference(ref, \"%s\")\n", cellref->name);
         hashmap_insert(references, cellref->name, NULL); // use hashmap as set (value == NULL)
     }
     if(cellref->xrep > 1 || cellref->yrep > 1)
     {
-        fprintf(cellfile, "    child = cell:add_child_array(name, %d, %d, %d, %d)\n", cellref->xrep, cellref->yrep, cellref->xpitch, cellref->ypitch);
+        fprintf(cellfile, "    child = cell:add_child_array(ref, \"%s\", %d, %d, %d, %d)\n", cellref->name, cellref->xrep, cellref->yrep, cellref->xpitch, cellref->ypitch);
     }
     else
     {
-        fputs("    child = cell:add_child(name)\n", cellfile);
-    }
-    if(cellref->angle == 180)
-    {
-        if(cellref->transformation && cellref->transformation[0] == 1)
-        {
-            fputs("    child:mirror_at_xaxis()\n", cellfile);
-            fputs("    child:mirror_at_yaxis()\n", cellfile);
-        }
-        else
-        {
-            fputs("    child:mirror_at_yaxis()\n", cellfile);
-        }
-    }
-    else if(cellref->angle == 90)
-    {
-        fputs("    child:rotate_90_left()\n", cellfile);
+        fprintf(cellfile, "    child = cell:add_child(name, \"%s\")\n", cellref->name);
     }
     if(cellref->transformation && cellref->transformation[0] == 1)
     {
         fputs("    child:mirror_at_xaxis()\n", cellfile);
     }
-    fprintf(cellfile, "    child:translate(%lld, %lld)\n", cellref->origin->x, cellref->origin->y);
+    if(cellref->angle == 90)
+    {
+        fputs("    child:rotate_90_left()\n", cellfile);
+    }
+    else if(cellref->angle == 180)
+    {
+        fputs("    child:rotate_90_left()\n", cellfile);
+        fputs("    child:rotate_90_left()\n", cellfile);
+    }
+    else if(cellref->angle == 270)
+    {
+        fputs("    child:rotate_90_left()\n", cellfile);
+        fputs("    child:rotate_90_left()\n", cellfile);
+        fputs("    child:rotate_90_left()\n", cellfile);
+    }
+    if(!(cellref->origin->x == 0 && cellref->origin->y == 0))
+    {
+        fprintf(cellfile, "    child:translate(%lld, %lld)\n", cellref->origin->x, cellref->origin->y);
+    }
     free(cellref->name);
     point_destroy(cellref->origin);
     if(cellref->transformation)
@@ -961,13 +1039,15 @@ static void _write_cellref(FILE* cellfile, const char* importname, const struct 
     }
 }
 
-//static int _read_BOUNDARY(const struct stream* stream, size_t* i, int16_t* layer, int16_t* purpose, struct vector** points)
-static int _read_BOUNDARY(const struct stream* stream, size_t* i, int16_t* layer, int16_t* purpose, coordinate_t** points, size_t* size)
+static int _read_BOUNDARY(struct stream* stream, int16_t* layer, int16_t* purpose, coordinate_t** points, size_t* size)
 {
-    ++(*i); // skip BOUNDARY
     while(1)
     {
-        struct record* record = &stream->records[*i];
+        struct record* record = _get_next_record(stream);
+        if(!record)
+        {
+            return 0;
+        }
         if(record->recordtype == ELFLAGS)
         {
             // FIXME: handle record
@@ -991,7 +1071,7 @@ static int _read_BOUNDARY(const struct stream* stream, size_t* i, int16_t* layer
         else if(record->recordtype == XY)
         {
             *points = _parse_points_xy(record->data, record->length - 4);
-            *size = (record->length - 4) >> 2;
+            *size = (record->length - 4) / 4;
         }
         else if(record->recordtype == PROPATTR)
         {
@@ -1007,22 +1087,21 @@ static int _read_BOUNDARY(const struct stream* stream, size_t* i, int16_t* layer
         }
         else // wrong record
         {
-            fprintf(stderr, "malformed BOUNDARY, got unexpected record '%s' (#%zd)\n", recordnames[record->recordtype], *i + 1);
+            fprintf(stderr, "malformed BOUNDARY, got unexpected record '%s' (#%zd)\n", recordnames[record->recordtype], stream->index);
             return 0;
         }
-        ++(*i);
     }
     return 1;
 }
 
 //static void _write_BOUNDARY(FILE* cellfile, int16_t layer, int16_t purpose, const struct vector* points, const struct vector* gdslayermap)
-static void _write_BOUNDARY(FILE* cellfile, int16_t layer, int16_t purpose, const coordinate_t* points, size_t numpoints, const struct vector* gdslayermap)
+static void _write_BOUNDARY(FILE* cellfile, int16_t layer, int16_t purpose, const coordinate_t* points, size_t numxy, const struct vector* gdslayermap)
 {
     // check for rectangle
     // BOX is not used for rectangles, at least most tool suppliers seem to do it this way
     // therefor, we check if some "polygons" are actually rectangles and fix the shape types
     //if(vector_size(points) == 5 && _check_rectangle(points))
-    if(numpoints == 5 && _check_rectangle(points))
+    if(numxy == 10 && _check_rectangle(points))
     {
         fputs("    geometry.rectanglebltr(cell, ", cellfile);
         _write_layers(cellfile, layer, purpose, gdslayermap);
@@ -1043,7 +1122,7 @@ static void _write_BOUNDARY(FILE* cellfile, int16_t layer, int16_t purpose, cons
         fputs("    geometry.polygon(cell, ", cellfile);
         _write_layers(cellfile, layer, purpose, gdslayermap);
         fputs(", { ", cellfile);
-        for(unsigned int i = 0; i < numpoints; i += 2)
+        for(unsigned int i = 0; i < numxy; i += 2)
         {
             fputs("point.create(", cellfile);
             _print_int32(cellfile, points[i]);
@@ -1055,12 +1134,15 @@ static void _write_BOUNDARY(FILE* cellfile, int16_t layer, int16_t purpose, cons
     }
 }
 
-static int _read_PATH(const struct stream* stream, size_t* i, int16_t* layer, int16_t* purpose, struct vector** points, coordinate_t* width)
+static int _read_PATH(struct stream* stream, int16_t* layer, int16_t* purpose, struct vector** points, coordinate_t* width)
 {
-    ++(*i); // skip PATH
     while(1)
     {
-        struct record* record = &stream->records[*i];
+        struct record* record = _get_next_record(stream);
+        if(!record)
+        {
+            return 0;
+        }
         if(record->recordtype == ELFLAGS)
         {
             // FIXME: handle record
@@ -1109,10 +1191,9 @@ static int _read_PATH(const struct stream* stream, size_t* i, int16_t* layer, in
         }
         else // wrong record
         {
-            fprintf(stderr, "malformed PATH, got unexpected record '%s' (#%zd)\n", recordnames[record->recordtype], *i + 1);
+            fprintf(stderr, "malformed PATH, got unexpected record '%s' (#%zd)\n", recordnames[record->recordtype], stream->index);
             return 0;
         }
-        ++(*i);
     }
     return 1;
 }
@@ -1130,14 +1211,17 @@ static void _write_PATH(FILE* cellfile, int16_t layer, int16_t purpose, const st
     fprintf(cellfile, "}, %lld)\n", width);
 }
 
-static int _read_structure(const char* importname, const struct stream* stream, size_t* i, const struct vector* gdslayermap, const struct vector* ignorelpp, int16_t* ablayer, int16_t* abpurpose)
+static int _read_structure(const char* importname, struct stream* stream, const struct vector* gdslayermap, const struct vector* ignorelpp, int16_t* ablayer, int16_t* abpurpose)
 {
     FILE* cellfile = NULL;
     struct hashmap* references = hashmap_create();
-    ++(*i); // skip BGNSTR
     while(1)
     {
-        struct record* record = &stream->records[*i];
+        struct record* record = _get_next_record(stream);
+        if(!record)
+        {
+            return 0;
+        }
         if(record->recordtype == STRNAME)
         {
             char* cellname = _parse_string(record->data, record->length - 4);
@@ -1165,7 +1249,7 @@ static int _read_structure(const char* importname, const struct stream* stream, 
             //struct vector* points = NULL;
             coordinate_t* points = NULL;
             size_t numpoints = 0;
-            if(!_read_BOUNDARY(stream, i, &layer, &purpose, &points, &numpoints))
+            if(!_read_BOUNDARY(stream, &layer, &purpose, &points, &numpoints))
             {
                 free(points);
                 return 0;
@@ -1192,7 +1276,7 @@ static int _read_structure(const char* importname, const struct stream* stream, 
             int16_t layer, purpose;
             struct vector* points = NULL;
             coordinate_t width;
-            if(!_read_PATH(stream, i, &layer, &purpose, &points, &width))
+            if(!_read_PATH(stream, &layer, &purpose, &points, &width))
             {
                 return 0;
             }
@@ -1200,7 +1284,7 @@ static int _read_structure(const char* importname, const struct stream* stream, 
             {
                 _write_PATH(cellfile, layer, purpose, points, width, gdslayermap);
             }
-            vector_destroy(points, point_destroy);
+            vector_destroy(points);
         }
         else if(record->recordtype == TEXT)
         {
@@ -1209,7 +1293,7 @@ static int _read_structure(const char* importname, const struct stream* stream, 
             char* str;
             double angle = 0.0;
             int* transformation = NULL;
-            _read_TEXT(stream, i, &str, &layer, &purpose, &origin, &angle, &transformation);
+            _read_TEXT(stream, &str, &layer, &purpose, &origin, &angle, &transformation);
             if(_check_lpp(layer, purpose, ignorelpp))
             {
                 fprintf(cellfile, "    cell:add_port(\"%s\", ", str);
@@ -1226,7 +1310,7 @@ static int _read_structure(const char* importname, const struct stream* stream, 
         }
         else if(record->recordtype == SREF)
         {
-            struct cellref* cellref = _read_SREF(stream, i);
+            struct cellref* cellref = _read_SREF(stream);
             if(cellref)
             {
                 _write_cellref(cellfile, importname, cellref, references);
@@ -1239,7 +1323,7 @@ static int _read_structure(const char* importname, const struct stream* stream, 
         }
         else if(record->recordtype == AREF)
         {
-            struct cellref* cellref = _read_AREF(stream, i);
+            struct cellref* cellref = _read_AREF(stream);
             if(cellref)
             {
                 _write_cellref(cellfile, importname, cellref, references);
@@ -1256,10 +1340,9 @@ static int _read_structure(const char* importname, const struct stream* stream, 
         }
         else // wrong record
         {
-            printf("structure: unexpected record '%s' (#%zd)\n", recordnames[record->recordtype], *i);
+            printf("structure: unexpected record '%s' (#%zd)\n", recordnames[record->recordtype], stream->index - 2);
             return 0;
         }
-        ++(*i);
     }
     hashmap_destroy(references, NULL);
     fputs("end", cellfile); // close layout function
@@ -1285,10 +1368,14 @@ int gdsparser_read_stream(const char* filename, const char* importname, const st
         return 0;
     }
 
-    size_t i = 0;
-    while(i < stream->numrecords)
+    while(1)
     {
-        struct record* record = &stream->records[i];
+        struct record* record = _get_next_record(stream);
+        if(!record)
+        {
+            _destroy_stream(stream);
+            return 0;
+        }
         if(record->recordtype == LIBNAME)
         {
             libname = (const char*)record->data;
@@ -1300,13 +1387,16 @@ int gdsparser_read_stream(const char* filename, const char* importname, const st
         }
         else if(record->recordtype == BGNSTR)
         {
-            if(!_read_structure(importname, stream, &i, gdslayermap, ignorelpp, ablayer, abpurpose))
+            if(!_read_structure(importname, stream, gdslayermap, ignorelpp, ablayer, abpurpose))
             {
                 _destroy_stream(stream);
                 return 0;
             }
         }
-        ++i;
+        else if(record->recordtype == ENDLIB)
+        {
+            break;
+        }
     }
     _destroy_stream(stream);
     return 1;

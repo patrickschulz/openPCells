@@ -256,3 +256,4 @@ function gdsparser.resolve_hierarchy(cells)
     end
     return tree
 end
+

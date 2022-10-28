@@ -60,10 +60,10 @@ module xnor_gate(A, B, O);
     assign O = !(A ^ B);
 endmodule
 
-module mux(A, B, SEL, O);
-    input A, B, SEL;
+module mux(IP, IN, SEL, O);
+    input IP, IN, SEL;
     output O;
-    assign O = SEL ? A : B;
+    assign O = SEL ? IP : IN;
 endmodule
 
 module dffpq(D, Q, CLK);
@@ -162,6 +162,106 @@ module dffnrsq(D, Q, CLK, RESET, SET);
         end
         else begin
             Q <= D;
+        end
+    end
+endmodule
+
+module dffpqn(D, QN, CLK);
+    input D, CLK;
+    output reg QN;
+    always @(posedge CLK) begin
+        QN <= !D;
+    end
+endmodule
+
+module dffnqn(D, QN, CLK);
+    input D, CLK;
+    output reg QN;
+    always @(negedge CLK) begin
+        QN <= !D;
+    end
+endmodule
+
+module dffprqn(D, QN, CLK, RESET);
+    input D, CLK, RESET;
+    output reg QN;
+    always @(posedge CLK, negedge RESET) begin
+        if(!RESET) begin
+            QN <= 1;
+        end
+        else begin
+            QN <= !D;
+        end
+    end
+endmodule
+
+module dffnrqn(D, QN, CLK, RESET);
+    input D, CLK, RESET;
+    output reg QN;
+    always @(negedge CLK, negedge RESET) begin
+        if(!RESET) begin
+            QN <= 1;
+        end
+        else begin
+            QN <= !D;
+        end
+    end
+endmodule
+
+module dffpsqn(D, QN, CLK, SET);
+    input D, CLK, SET;
+    output reg QN;
+    always @(posedge CLK, negedge SET) begin
+        if(!SET) begin
+            QN <= 0;
+        end
+        else begin
+            QN <= !D;
+        end
+    end
+endmodule
+
+module dffnsqn(D, QN, CLK, SET);
+    input D, CLK, SET;
+    output reg QN;
+    always @(negedge CLK, negedge SET) begin
+        if(!SET) begin
+            QN <= 0;
+        end
+        else begin
+            QN <= !D;
+        end
+    end
+endmodule
+
+module dffprsqn(D, QN, CLK, SET, RESET);
+    input D, CLK, RESET, SET;
+    output reg QN;
+    always @(posedge CLK, negedge RESET, negedge SET) begin
+        if(!RESET) begin
+            QN <= 1;
+        end
+        else if(!SET) begin
+            QN <= 0;
+        end
+        else begin
+            QN <= !D;
+        end
+    end
+endmodule
+
+module dffnrsqn(D, QN, CLK, RESET, SET);
+    input D, CLK, RESET, SET;
+    output reg QN;
+    always @(negedge CLK, negedge RESET, negedge SET) begin
+        if(!RESET) begin
+            QN <= 1;
+        end
+        else if(!SET) begin
+            QN <= 0;
+        end
+        else begin
+            QN <= !D;
         end
     end
 endmodule

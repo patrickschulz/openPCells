@@ -79,7 +79,7 @@ function layout(cell, _P)
         nactivecontacts[i] = "power"
     end
     -- create current mirror layout
-    local array = pcell.create_layout("basic/cmos", { 
+    local array = pcell.create_layout("basic/cmos", "mosfets", { 
         gatecontactpos = gatecontacts, 
         pcontactpos = _P.inputpolarity == "n" and pactivecontacts or nactivecontacts,
         ncontactpos = _P.inputpolarity == "n" and nactivecontacts or pactivecontacts,

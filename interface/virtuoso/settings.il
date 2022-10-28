@@ -78,6 +78,17 @@ procedure(OPCCreateSettingsForm()
                 ?prompt "Create Groups Consecutively"
             )
             hiCreateRadioField(
+                ?name 'OPCSettingsSplitLets
+                ?choices list("true" "false")
+                ?value "true"
+                ?prompt "Split Let Statements"
+            )
+            hiCreateIntField(
+                ?name 'OPCSettingsMaxLetSplits
+                ?value 65536
+                ?prompt "Maximum Values in a 'let' Statement"
+            )
+            hiCreateRadioField(
                 ?name 'OPCSettingsDeleteFile
                 ?choices list("true" "false")
                 ?value "true"
@@ -105,7 +116,7 @@ procedure(OPCUpdateCellList()
 	let(
 		(OPCCmd)
         OPCCmd = OPCBuildCallCommand("-L --list-format 'OPCData = list(\\n:)\\n:::list(\\\"%b\\\" list(:))\\n:\\\"%c\\\" '")
-        OPCCall(OPCCmd OPCSettingsForm->OPCListFilename->value)
+        OPCCall(OPCCmd ?redirect OPCSettingsForm->OPCListFilename->value)
 		load(OPCSettingsForm->OPCListFilename->value)
         OPCCleanUp(OPCSettingsForm->OPCListFilename->value)
 	)

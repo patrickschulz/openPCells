@@ -42,27 +42,6 @@ struct entry
     enum { SECTION, OPTION } what;
 };
 
-struct cmdoptions* cmdoptions_create(void)
-{
-    struct cmdoptions* options = malloc(sizeof(*options));
-    options->entries = vector_create(128);
-    options->positional_parameters = vector_create(8);
-    options->prehelpmsg = const_vector_create(1);
-    options->posthelpmsg = const_vector_create(1);
-    options->force_narrow_mode = 0;
-    return options;
-}
-
-void cmdoptions_enable_narrow_mode(struct cmdoptions* options)
-{
-    options->force_narrow_mode = 1;
-}
-
-void cmdoptions_disable_narrow_mode(struct cmdoptions* options)
-{
-    options->force_narrow_mode = 0;
-}
-
 void _destroy_option(void* ptr)
 {
     struct entry* entry = ptr;
@@ -87,10 +66,31 @@ void _destroy_option(void* ptr)
     free(ptr);
 }
 
+struct cmdoptions* cmdoptions_create(void)
+{
+    struct cmdoptions* options = malloc(sizeof(*options));
+    options->entries = vector_create(128, _destroy_option);
+    options->positional_parameters = vector_create(8, free);
+    options->prehelpmsg = const_vector_create(1);
+    options->posthelpmsg = const_vector_create(1);
+    options->force_narrow_mode = 0;
+    return options;
+}
+
+void cmdoptions_enable_narrow_mode(struct cmdoptions* options)
+{
+    options->force_narrow_mode = 1;
+}
+
+void cmdoptions_disable_narrow_mode(struct cmdoptions* options)
+{
+    options->force_narrow_mode = 0;
+}
+
 void cmdoptions_destroy(struct cmdoptions* options)
 {
-    vector_destroy(options->entries, _destroy_option);
-    vector_destroy(options->positional_parameters, free);
+    vector_destroy(options->entries);
+    vector_destroy(options->positional_parameters);
     const_vector_destroy(options->prehelpmsg);
     const_vector_destroy(options->posthelpmsg);
     free(options);
@@ -209,6 +209,22 @@ static void _print_sep(unsigned int num)
     }
 }
 
+static void _put_line(unsigned int textwidth, unsigned int* linewidth, const char** ch, const char* wptr, unsigned int leftmargin)
+{
+    if(*linewidth + wptr - *ch > textwidth)
+    {
+        *linewidth = 0;
+        putchar('\n');
+        _print_sep(leftmargin - 1);
+    }
+    *linewidth += (wptr - *ch);
+    while(*ch < wptr)
+    {
+        putchar(**ch);
+        ++(*ch);
+    }
+}
+
 static void _print_wrapped_paragraph(const char* text, unsigned int textwidth, unsigned int leftmargin)
 {
     const char* ch = text;
@@ -218,34 +234,11 @@ static void _print_wrapped_paragraph(const char* text, unsigned int textwidth, u
     {
         if(*wptr == ' ')
         {
-            if(linewidth + wptr - ch > textwidth)
-            {
-                linewidth = 0;
-                putchar('\n');
-                _print_sep(leftmargin - 1);
-            }
-            linewidth += (wptr - ch);
-            while(ch < wptr)
-            {
-                putchar(*ch);
-                ++ch;
-            }
+            _put_line(textwidth, &linewidth, &ch, wptr, leftmargin);
         }
         ++wptr;
     }
-    // insert rest of line
-    if(linewidth + wptr - ch > textwidth)
-    {
-        linewidth = 0;
-        putchar('\n');
-        _print_sep(leftmargin - 1);
-    }
-    linewidth += (wptr - ch);
-    while(ch < wptr)
-    {
-        putchar(*ch);
-        ++ch;
-    }
+    _put_line(textwidth, &linewidth, &ch, wptr, leftmargin);
 }
 
 void cmdoptions_help(struct cmdoptions* options)

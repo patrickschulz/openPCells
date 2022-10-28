@@ -115,7 +115,6 @@ function M.at_begin()
         table.insert(__before, '\\def\\opclayoutscale{1}')
     end
     table.insert(__before, '\\begin{tikzpicture}')
-    --table.insert(__options, "x = 5, y = 5")
 end
 
 function M.at_end()
@@ -263,14 +262,13 @@ function M.curve_add_line_segment(pt)
     table.insert(curvecontent, string.format("-- (%s)", _format_point(pt)))
 end
 
-function M.curve_add_arc_segment(startpt, startangle, endangle, radius, clockwise)
-    local pt = {
-        x = math.floor(startpt.x + (math.cos(endangle * math.pi / 180) - math.cos(startangle * math.pi / 180)) * radius),
-        y = math.floor(startpt.y + (math.sin(endangle * math.pi / 180) - math.sin(startangle * math.pi / 180)) * radius)
-    }
+function M.curve_add_arc_segment(startangle, endangle, radius, clockwise)
     clockwise = clockwise and 0 or 1
-    --table.insert(curvecontent, string.format("A %d %d 0 0 %d %s", __scale * radius, __scale * radius, clockwise, _format_point(pt)))
     table.insert(curvecontent, string.format("arc[start angle = %d, end angle = %d, radius = %s]", startangle, endangle, _format_number(radius)))
+end
+
+function M.curve_add_cubic_bezier_segment(cpt1, cpt2, endpt)
+    table.insert(curvecontent, string.format(".. controls (%s) and (%s) .. (%s)", _format_point(cpt1), _format_point(cpt2), _format_point(endpt)))
 end
 
 function M.close_curve()

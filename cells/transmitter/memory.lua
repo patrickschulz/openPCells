@@ -7,15 +7,13 @@ function parameters()
 end
 
 function layout(memory, _P)
-    local dffpref = pcell.create_layout("stdcells/dff", { clockpolarity = "positive" })
-    local dffnref = pcell.create_layout("stdcells/dff", { clockpolarity = "negative" })
-    local lane = object.create()
-    local dffpname = pcell.add_cell_reference(dffpref, "dffp")
-    local dffnname = pcell.add_cell_reference(dffnref, "dffn")
+    local dffpref = pcell.create_layout("stdcells/dff", "dffp", { clockpolarity = "positive" })
+    local dffnref = pcell.create_layout("stdcells/dff", "dffn", { clockpolarity = "negative" })
+    local laneref = object.create("lane")
     local dffs = {}
     for j = 1, _P.bitresolution do
         for k = 1, _P.bitsperlane do
-            local dff = lane:add_child((k % 2 == 1) and dffpname or dffnname)
+            local dff = laneref:add_child((k % 2 == 1) and dffpref or dffnref, string.format("dff_%d_%d", j, k))
             if k > 1 then
                 dff:move_anchor("left", dffs[(j - 1) * _P.bitsperlane + k - 1]:get_anchor("right"))
             elseif j > 1 then
@@ -27,7 +25,7 @@ function layout(memory, _P)
             dffs[(j - 1) * _P.bitsperlane + k] = dff
             -- connection to next dff
             if k > 1 then
-                geometry.path(lane, generics.metal(1), 
+                geometry.path(laneref, generics.metal(1), 
                     geometry.path_points_yx(dffs[(j - 1) * _P.bitsperlane + k - 1]:get_anchor("Q"), {
                         dffs[(j - 1) * _P.bitsperlane + k]:get_anchor("D")
                     }), 40
@@ -35,22 +33,21 @@ function layout(memory, _P)
             end
         end
         if _P.bitsperlane > 1 then
-            geometry.path(lane, generics.metal(3), {
+            geometry.path(laneref, generics.metal(3), {
                 dffs[(j - 1) * _P.bitsperlane + 1]:get_anchor("CLK"),
                 dffs[(j - 1) * _P.bitsperlane + _P.bitsperlane]:get_anchor("CLK")
             }, 40)
         end
-        lane:add_anchor("D", dffs[(j - 1) * _P.bitsperlane + 1]:get_anchor("D"))
+        laneref:add_anchor("D", dffs[(j - 1) * _P.bitsperlane + 1]:get_anchor("D"))
     end
-    lane:set_alignment_box(
+    laneref:set_alignment_box(
         dffs[1]:get_anchor("bottomleft"),
         dffs[_P.bitresolution * _P.bitsperlane]:get_anchor("topright")
     )
 
-    local lanename = pcell.add_cell_reference(lane, "lane")
     local lanes = {}
     for i = 1, _P.numlanes do
-        lanes[i] = memory:add_child(lanename)
+        lanes[i] = memory:add_child(laneref, string.format("lane_%d", i))
         if i % 2 == 0 then 
             dprint("flipy")
             lanes[i]:flipy()

@@ -58,7 +58,7 @@ function layout(gate, _P)
         ncontacts[#ncontacts + 1] = "power"
     end
 
-    local harness = pcell.create_layout("stdcells/harness", { 
+    local harness = pcell.create_layout("stdcells/harness", "mosfets", {
         gatecontactpos = gatecontactpos,
         pcontactpos = _P.gatetype == "nand" and pcontacts or ncontacts,
         ncontactpos = _P.gatetype == "nand" and ncontacts or pcontacts,
@@ -114,11 +114,11 @@ function layout(gate, _P)
 
     -- drain connection
     local yinvert = _P.gatetype == "nand" and 1 or -1
-    local startpt = harness:get_anchor(string.format("%sSDi3", _P.gatetype == "nand" and "n" or "p")):translate(0, -yinvert * bp.sdwidth / 2)
+    local startpt = harness:get_anchor(string.format("%sSD3%sr", _P.gatetype == "nand" and "n" or "p", _P.gatetype == "nand" and "t" or "b")):translate(0, -yinvert * bp.sdwidth / 2)
     local connpts = {
         harness:get_anchor(string.format("G%dcc", 2 * _P.fingers)):translate(xpitch + _P.shiftoutput, 0),
         0, -- toggle xy
-        harness:get_anchor(string.format("%sSDi2", _P.gatetype == "nand" and "p" or "n")):translate(0, yinvert * bp.sdwidth / 2),
+        harness:get_anchor(string.format("%sSD2%sr", _P.gatetype == "nand" and "p" or "n", _P.gatetype == "nand" and "b" or "t")):translate(0, yinvert * bp.sdwidth / 2),
     }
     geometry.path(gate, generics.metal(1), geometry.path_points_xy(
         startpt, connpts),

@@ -72,7 +72,7 @@ static struct position* _create_net_position(lua_State* L)
 static struct netcollection* _initialize(lua_State* L)
 {
     size_t num_nets = lua_rawlen(L, 1);
-    struct vector* nets = vector_create(num_nets);
+    struct vector* nets = vector_create(num_nets, net_destroy);
     /* nets */
     for(size_t i = 1; i < num_nets + 1; i++)
     {
@@ -89,7 +89,7 @@ static struct netcollection* _initialize(lua_State* L)
             continue;
         }
 
-        struct vector* positions = vector_create(size);
+        struct vector* positions = vector_create(size, net_destroy_position);
         for(size_t j = 1; j <= size; ++j)
         {
             lua_geti(L, -1, j);
@@ -104,12 +104,12 @@ static struct netcollection* _initialize(lua_State* L)
 
     /* blockages */
     size_t num_blockages = lua_rawlen(L, 2);
-    struct vector* blockages = vector_create(num_blockages);
+    struct vector* blockages = vector_create(num_blockages, free);
     for(size_t i = 1; i <= num_blockages; i++)
     {
         lua_geti(L, 2, i);
         size_t route_size = lua_rawlen(L, -1);
-        struct vector* deltas = vector_create(route_size);
+        struct vector* deltas = vector_create(route_size, free);
         for(size_t j = 1; j <= route_size; j++)
         {
             lua_geti(L, -1, j);
@@ -139,12 +139,6 @@ static void _fill_blockages(struct field* field, struct netcollection *nc)
             field_create_blockage(field, start, end);
         }
     }
-}
-
-static void _destroy_blockage(void* ptr)
-{
-    struct vector* deltas = ptr;
-    vector_destroy(deltas, free);
 }
 
 static void _create_routing_stack_data(lua_State *L, struct net *net)
@@ -242,8 +236,8 @@ int lrouter_route(lua_State* L)
     lua_pushinteger(L, routed_count);
 
     field_destroy(field);
-    vector_destroy(nc->nets, net_destroy);
-    vector_destroy(nc->blockages, _destroy_blockage);
+    vector_destroy(nc->nets);
+    vector_destroy(nc->blockages);
     free(nc);
     puts("finished routing\n");
     return 2;

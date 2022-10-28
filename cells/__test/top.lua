@@ -7,10 +7,9 @@ function layout(cell, _P)
     --geometry.rectangle(cell, generics.metal(1), 200, 200)
 
     -- place subcells
-    local sub = pcell.create_layout("__test/sub")
-    local name = pcell.add_cell_reference(sub, "sub")
-    cell:add_child(name):translate(   0,  500)
-    cell:add_child(name):translate(   0, -500):flipy()
-    cell:add_child(name):translate( 500,    0)
-    cell:add_child(name):translate(-500,    0)
+    local sub = pcell.create_layout("__test/sub", "sub")
+    cell:add_child(sub, "sub0"):translate(   0,  500)
+    cell:add_child(sub, "sub2"):translate(   0, -500):flipy()
+    cell:add_child(sub, "sub3"):translate( 500,    0)
+    cell:add_child(sub, "sub4"):translate(-500,    0)
 end

@@ -4,7 +4,8 @@ function parameters()
         { "width",           5000 },
         { "height",          5000 },
         { "extension",         50 },
-        { "continuousvias", false }
+        { "xcontinuous",    false },
+        { "ycontinuous",    false }
     )
 end
 
@@ -16,7 +17,7 @@ function layout(welltap, _P)
 
     -- M1 and contacts
     geometry.rectangle(welltap, generics.metal(1), _P.width, _P.height)
-    geometry.contact(welltap, "active", _P.width, _P.height)
+    geometry.contact(welltap, "active", _P.width, _P.height, 0, 0, 1, 1, 0, 0, { xcontinuous = _P.xcontinuous, ycontinuous = _P.ycontinuous })
 
     -- well
     geometry.rectangle(welltap, generics.other(string.format("%swell", _P.contype)), _P.width + 2 * _P.extension, _P.height + 2 * _P.extension)

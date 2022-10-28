@@ -7,7 +7,7 @@ function parameters()
 end
 
 function layout(gate, _P)
-    local base = pcell.create_layout("stdcells/nand_nor_layout_base", {
+    local base = pcell.create_layout("stdcells/nand_nor_layout_base", "nand_gate", {
         fingers = _P.fingers,
         gatetype = "nand",
         pwidth = _P.pwidth,

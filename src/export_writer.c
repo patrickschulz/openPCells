@@ -91,13 +91,18 @@ static void _push_layer(lua_State* L, const struct hashmap* data)
     hashmap_const_iterator_destroy(it);
 }
 
-static void _push_point(lua_State* L, const point_t* pt)
+static void _push_point_xy(lua_State* L, coordinate_t x, coordinate_t y)
 {
     lua_newtable(L);
-    lua_pushinteger(L, pt->x);
+    lua_pushinteger(L, x);
     lua_setfield(L, -2, "x");
-    lua_pushinteger(L, pt->y);
+    lua_pushinteger(L, y);
     lua_setfield(L, -2, "y");
+}
+
+static void _push_point(lua_State* L, const point_t* pt)
+{
+    _push_point_xy(L, pt->x, pt->y);
 }
 
 static void _push_points(lua_State* L, const struct vector* pts)
@@ -230,19 +235,25 @@ static int _write_child_array(struct export_writer* writer, const char* identifi
     {
         lua_getfield(writer->L, -1, "write_cell_array");
         lua_pushstring(writer->L, identifier);
-        _push_point(writer->L, origin);
+        lua_pushinteger(writer->L, origin->x);
+        lua_pushinteger(writer->L, origin->y);
         _push_trans(writer->L, trans);
         _push_rep_pitch(writer->L, xrep, yrep, xpitch, ypitch);
-        return lua_pcall(writer->L, 8, 0, 0);
+        int lret = lua_pcall(writer->L, 8, 0, 0);
+        if(lret != LUA_OK)
+        {
+            return 0;
+        }
+        return 1;
     }
     else // C
     {
         writer->funcs->write_cell_array(writer->data, identifier, origin->x, origin->y, trans, xrep, yrep, xpitch, ypitch);
+        return 1;
     }
-    return LUA_OK;
 }
 
-static int _write_child_single(struct export_writer* writer, const char* identifier, const point_t* origin, const struct transformationmatrix* trans, unsigned int xrep, unsigned int yrep, unsigned int xpitch, unsigned int ypitch)
+static int _write_child_single(struct export_writer* writer, const char* refname, const point_t* origin, const struct transformationmatrix* trans, unsigned int xrep, unsigned int yrep, unsigned int xpitch, unsigned int ypitch)
 {
     for(unsigned int ix = 1; ix <= xrep; ++ix)
     {
@@ -253,43 +264,43 @@ static int _write_child_single(struct export_writer* writer, const char* identif
             if(writer->islua)
             {
                 lua_getfield(writer->L, -1, "write_cell_reference");
-                lua_pushstring(writer->L, identifier);
+                lua_pushstring(writer->L, refname);
                 lua_pushinteger(writer->L, x);
                 lua_pushinteger(writer->L, y);
                 _push_trans(writer->L, trans);
-                int ret = lua_pcall(writer->L, 4, 0, 0);
-                if(ret != LUA_OK)
+                int lret = lua_pcall(writer->L, 4, 0, 0);
+                if(lret != LUA_OK)
                 {
-                    return ret;
+                    return 0;
                 }
             }
             else // C
             {
-                writer->funcs->write_cell_reference(writer->data, identifier, x, y, trans);
+                writer->funcs->write_cell_reference(writer->data, refname, x, y, trans);
             }
         }
     }
-    return LUA_OK;
+    return 1;
 }
 
 static int _write_child(struct export_writer* writer, const struct object* child, const point_t* origin)
 {
     unsigned int xrep = object_get_child_xrep(child);
     unsigned int yrep = object_get_child_yrep(child);
-    const char* identifier = object_get_identifier(child);
+    const char* refname = object_get_child_reference_name(child);
     const struct transformationmatrix* trans = object_get_transformation_matrix(child);
     unsigned int xpitch = object_get_child_xpitch(child);
     unsigned int ypitch = object_get_child_ypitch(child);
-    int ret = LUA_OK;
+    // FIXME: error checking
     if(object_is_child_array(child) && _has_write_cell_array(writer))
     {
-        _write_child_array(writer, identifier, origin, trans, xrep, yrep, xpitch, ypitch);
+        _write_child_array(writer, refname, origin, trans, xrep, yrep, xpitch, ypitch);
     }
     else
     {
-        _write_child_single(writer, identifier, origin, trans, xrep, yrep, xpitch, ypitch);
+        _write_child_single(writer, refname, origin, trans, xrep, yrep, xpitch, ypitch);
     }
-    return ret;
+    return 1;
 }
 
 static int _write_cell_shape_rectangle(struct export_writer* writer, const struct shape* shape, const struct transformationmatrix* trans)
@@ -304,49 +315,57 @@ static int _write_cell_shape_rectangle(struct export_writer* writer, const struc
         _push_layer(writer->L, layerdata);
         _push_point(writer->L, &bl);
         _push_point(writer->L, &tr);
-        return lua_pcall(writer->L, 3, 0, 0);
+        int lret = lua_pcall(writer->L, 3, 0, 0);
+        if(lret != LUA_OK)
+        {
+            return 0;
+        }
+        return 1;
     }
     else // C
     {
         writer->funcs->write_rectangle(writer->data, layerdata, &bl, &tr);
-        return LUA_OK;
+        return 1;
     }
 }
 
 static int _write_polygon(struct export_writer* writer, const struct hashmap* layerdata, const struct vector* points)
 {
-    int ret = LUA_OK;
     if(writer->islua)
     {
         lua_getfield(writer->L, -1, "write_polygon");
         _push_layer(writer->L, layerdata);
         _push_points(writer->L, points);
-        ret = lua_pcall(writer->L, 2, 0, 0);
+        int lret = lua_pcall(writer->L, 2, 0, 0);
+        if(lret != LUA_OK)
+        {
+            return 0;
+        }
+        return 1;
     }
     else // C
     {
         writer->funcs->write_polygon(writer->data, layerdata, points);
-        ret = LUA_OK;
+        return 1;
     }
-    return ret;
 }
 
 static int _write_cell_shape_polygon(struct export_writer* writer, const struct shape* shape, const struct transformationmatrix* trans)
 {
     const struct hashmap* layerdata = shape_get_main_layerdata(shape);
-    struct vector* points = vector_create(128);
+    struct vector* points = vector_create(128, point_destroy);
     shape_get_transformed_polygon_points(shape, trans, points);
     int ret = _write_polygon(writer, layerdata, points);
-    vector_destroy(points, point_destroy);
+    vector_destroy(points);
     return ret;
 }
 
 static int _write_cell_shape_triangulated_polygon(struct export_writer* writer, const struct shape* shape, const struct transformationmatrix* trans)
 {
     const struct hashmap* layerdata = shape_get_main_layerdata(shape);
-    struct vector* points = vector_create(128);
+    struct vector* points = vector_create(128, point_destroy);
     shape_get_transformed_polygon_points(shape, trans, points);
-    int ret = LUA_OK;
+    int ret = 1;
     for(unsigned int i = 0; i < vector_size(points) - 2; i += 3)
     {
         if(_has_write_triangle(writer))
@@ -361,10 +380,11 @@ static int _write_cell_shape_triangulated_polygon(struct export_writer* writer, 
                 _push_point(writer->L, pt1);
                 _push_point(writer->L, pt2);
                 _push_point(writer->L, pt3);
-                ret = lua_pcall(writer->L, 4, 0, 0);
-                if(ret != LUA_OK)
+                int lret = lua_pcall(writer->L, 4, 0, 0);
+                if(lret != LUA_OK)
                 {
-                    ret = LUA_ERRRUN;
+                    ret = 0;
+                    break;
                 }
             }
             else // C
@@ -374,23 +394,23 @@ static int _write_cell_shape_triangulated_polygon(struct export_writer* writer, 
         }
         else // !has_write_triangle
         {
-            struct vector* tripts = vector_create(3);
+            struct vector* tripts = vector_create(3, NULL);
             vector_append(tripts, vector_get(points, i));
             vector_append(tripts, vector_get(points, i + 1));
             vector_append(tripts, vector_get(points, i + 2));
             ret = _write_polygon(writer, layerdata, tripts);
-            vector_destroy(tripts, NULL);
+            vector_destroy(tripts);
         }
     }
-    vector_destroy(points, point_destroy);
+    vector_destroy(points);
     return ret;
 }
 
 static int _write_cell_shape_path(struct export_writer* writer, const struct shape* shape, const struct transformationmatrix* trans)
 {
     const struct hashmap* layerdata = shape_get_main_layerdata(shape);
-    struct vector* points = vector_create(128);
-    int ret = LUA_OK;
+    struct vector* points = vector_create(128, point_destroy);
+    int ret = 1;
     if(_has_write_path(writer))
     {
         shape_get_transformed_path_points(shape, trans, points);
@@ -409,7 +429,12 @@ static int _write_cell_shape_path(struct export_writer* writer, const struct sha
             lua_rawseti(writer->L, -2, 1);
             lua_pushinteger(writer->L, extension[0]);
             lua_rawseti(writer->L, -2, 2);
-            ret = lua_pcall(writer->L, 4, 0, 0);
+            int lret = lua_pcall(writer->L, 4, 0, 0);
+            if(lret != LUA_OK)
+            {
+                ret = 0;
+                goto WRITE_CELL_SHAPE_PATH_CLEANUP;
+            }
         }
         else
         {
@@ -423,19 +448,57 @@ static int _write_cell_shape_path(struct export_writer* writer, const struct sha
         shape_destroy(resolved);
         ret = _write_polygon(writer, layerdata, points);
     }
-    vector_destroy(points, point_destroy);
+WRITE_CELL_SHAPE_PATH_CLEANUP:
+    vector_destroy(points);
     return ret;
 }
 
-static coordinate_t _fix_to_grid(coordinate_t c, unsigned int grid)
+static int _line_segment(const point_t* pt, void* writerv)
 {
-    return (c / grid) * grid;
+    struct export_writer* writer = writerv;
+    lua_getfield(writer->L, -1, "curve_add_line_segment");
+    _push_point(writer->L, pt);
+    int lret = lua_pcall(writer->L, 1, 0, 0);
+    if(lret != LUA_OK)
+    {
+        return 0;
+    }
+    return 1;
+}
+static int _arc_segment(double startangle, double endangle, coordinate_t radius, int clockwise, void* writerv)
+{
+    struct export_writer* writer = writerv;
+    lua_getfield(writer->L, -1, "curve_add_arc_segment");
+    lua_pushnumber(writer->L, startangle);
+    lua_pushnumber(writer->L, endangle);
+    lua_pushinteger(writer->L, radius);
+    lua_pushboolean(writer->L, clockwise);
+    int lret = lua_pcall(writer->L, 4, 0, 0);
+    if(lret != LUA_OK)
+    {
+        return 0;
+    }
+    return 1;
+}
+
+static int _cubic_bezier_segment(const point_t* cpt1, const point_t* cpt2, const point_t* endpt, void* writerv)
+{
+    struct export_writer* writer = writerv;
+    lua_getfield(writer->L, -1, "curve_add_cubic_bezier_segment");
+    _push_point(writer->L, cpt1);
+    _push_point(writer->L, cpt2);
+    _push_point(writer->L, endpt);
+    int lret = lua_pcall(writer->L, 3, 0, 0);
+    if(lret != LUA_OK)
+    {
+        return 0;
+    }
+    return 1;
 }
 
 static int _write_cell_shape_curve(struct export_writer* writer, const struct shape* shape, const struct transformationmatrix* trans)
 {
     const struct hashmap* layerdata = shape_get_main_layerdata(shape);
-    int ret = LUA_OK;
     if(_has_curve_support(writer))
     {
         point_t origin;
@@ -445,64 +508,22 @@ static int _write_cell_shape_curve(struct export_writer* writer, const struct sh
             lua_getfield(writer->L, -1, "setup_curve");
             _push_layer(writer->L, layerdata);
             _push_point(writer->L, &origin);
-            ret = lua_pcall(writer->L, 2, 0, 0);
-            if(ret != LUA_OK)
+            int lret = lua_pcall(writer->L, 2, 0, 0);
+            if(lret != LUA_OK)
             {
-                return ret;
+                return 0;
             }
-            // FIXME: implement an abstraction for this
-            const struct curve* curve = shape_get_content(shape);
-            struct vector_const_iterator* it = vector_const_iterator_create(curve->segments);
-            point_t* lastpt = curve->origin;
-            while(vector_const_iterator_is_valid(it))
+            int ret = shape_foreach_curve_segments(shape, writer, _line_segment, _arc_segment, _cubic_bezier_segment);
+            if(!ret)
             {
-                const struct curve_segment* segment = vector_const_iterator_get(it);
-                switch(segment->type)
-                {
-                    case LINESEGMENT:
-                    {
-                        lua_getfield(writer->L, -1, "curve_add_line_segment");
-                        _push_point(writer->L, segment->data.pt);
-                        ret = lua_pcall(writer->L, 1, 0, 0);
-                        if(ret != LUA_OK)
-                        {
-                            return ret;
-                        }
-                        lastpt = segment->data.pt;
-                        break;
-                    }
-                    case ARCSEGMENT:
-                    {
-                        lua_getfield(writer->L, -1, "curve_add_arc_segment");
-                        _push_point(writer->L, lastpt);
-                        lua_pushnumber(writer->L, segment->data.startangle);
-                        lua_pushnumber(writer->L, segment->data.endangle);
-                        lua_pushinteger(writer->L, segment->data.radius);
-                        lua_pushboolean(writer->L, segment->data.clockwise);
-                        ret = lua_pcall(writer->L, 5, 0, 0);
-                        if(ret != LUA_OK)
-                        {
-                            return ret;
-                        }
-                        double startcos = cos(segment->data.startangle * M_PI / 180);
-                        double startsin = sin(segment->data.startangle * M_PI / 180);
-                        double endcos = cos(segment->data.endangle * M_PI / 180);
-                        double endsin = sin(segment->data.endangle * M_PI / 180);
-                        lastpt->x = lastpt->x + _fix_to_grid((endcos - startcos) * segment->data.radius, curve->grid);
-                        lastpt->y = lastpt->y + _fix_to_grid((endsin - startsin) * segment->data.radius, curve->grid);
-                        break;
-                    }
-                }
-                vector_const_iterator_next(it);
+                return 0;
             }
-            vector_const_iterator_destroy(it);
             lua_getfield(writer->L, -1, "close_curve");
-            ret = lua_pcall(writer->L, 0, 0, 0);
-            if(ret != LUA_OK)
+            lret = lua_pcall(writer->L, 0, 0, 0);
+            if(lret != LUA_OK)
             {
-                return ret;
+                return 0;
             }
-            return LUA_OK;
         }
         else // C
         {
@@ -513,20 +534,20 @@ static int _write_cell_shape_curve(struct export_writer* writer, const struct sh
     else
     {
         struct shape* resolved = shape_rasterize_curve(shape);
-        struct vector* points = vector_create(128);
+        struct vector* points = vector_create(128, point_destroy);
         shape_get_transformed_polygon_points(resolved, trans, points);
-        writer->funcs->write_polygon(writer->data, layerdata, points);
-        vector_destroy(points, point_destroy);
+        _write_polygon(writer, layerdata, points);
+        vector_destroy(points);
         shape_destroy(resolved);
     }
-    return ret;
+    return 1;
 }
 
 static int _write_shapes(struct export_writer* writer, const struct object* cell)
 {
     struct shape_iterator* it = object_create_shape_iterator(cell);
     const struct transformationmatrix* trans = object_get_transformation_matrix(cell);
-    int ret = LUA_OK;
+    int ret = 1;
     while(shape_iterator_is_valid(it))
     {
         const struct shape* shape = shape_iterator_get(it);
@@ -550,7 +571,7 @@ static int _write_shapes(struct export_writer* writer, const struct object* cell
         {
             ret = _write_cell_shape_curve(writer, shape, trans);
         }
-        if(ret != LUA_OK)
+        if(!ret)
         {
             break;
         }
@@ -573,26 +594,29 @@ static int _write_children(struct export_writer* writer, const struct object* ce
         child_iterator_next(it);
     }
     child_iterator_destroy(it);
-    return LUA_OK;
+    return 1;
 }
 
 static int _write_port(struct export_writer* writer, const char* name, const struct hashmap* layerdata, point_t* where)
 {
-    int ret;
     if(writer->islua)
     {
         lua_getfield(writer->L, -1, "write_port");
         lua_pushstring(writer->L, name);
         _push_layer(writer->L, layerdata);
         _push_point(writer->L, where);
-        ret = lua_pcall(writer->L, 3, 0, 0);
+        int lret = lua_pcall(writer->L, 3, 0, 0);
+        if(lret != LUA_OK)
+        {
+            return 0;
+        }
+        return 1;
     }
     else
     {
         writer->funcs->write_port(writer->data, name, layerdata, where->x, where->y);
-        ret = LUA_OK; // FIXME: don't use LUA_OK to signal success in the export module
+        return 1;
     }
-    return ret;
 }
 
 static int _write_ports(struct export_writer* writer, const struct object* cell, char leftdelim, char rightdelim)
@@ -626,58 +650,67 @@ static int _write_ports(struct export_writer* writer, const struct object* cell,
         port_iterator_next(it);
     }
     port_iterator_destroy(it);
-    return LUA_OK;
+    return 1;
 }
 
 static int _write_cell(struct export_writer* writer, const struct object* cell, int write_ports, char leftdelim, char rightdelim)
 {
-    _write_shapes(writer, cell);
-    int ret = _write_children(writer, cell);
-    if(ret != LUA_OK)
+    int ret = _write_shapes(writer, cell);
+    if(!ret)
     {
-        return ret;
+        return 0;
+    }
+    ret = _write_children(writer, cell);
+    if(!ret)
+    {
+        return 0;
     }
     if(write_ports && object_has_ports(cell))
     {
-        ret = _write_ports(writer, cell, leftdelim, rightdelim);
+        int ret = _write_ports(writer, cell, leftdelim, rightdelim);
+        if(!ret)
+        {
+            return 0;
+        }
     }
-    return ret;
+    return 1;
 }
 
 static int _call_or_pop_nil(lua_State* L, int numargs)
 {
     if(!lua_isnil(L, -1 - numargs))
     {
-        int ret = lua_pcall(L, numargs, 0, 0);
-        if(ret != LUA_OK)
+        int lret = lua_pcall(L, numargs, 0, 0);
+        if(lret != LUA_OK)
         {
-            return ret;
+            return 0;
         }
+        return 1;
     }
     else
     {
         lua_pop(L, 1 + numargs);
+        return 1;
     }
-    return LUA_OK;
 }
 
-static int _write_cell2(struct export_writer* writer, const struct object* refcell, const char* refidentifier, int istoplevel, int write_ports, char leftdelim, char rightdelim)
+static int _write_cell_main(struct export_writer* writer, const struct object* cell, int istoplevel, int write_ports, char leftdelim, char rightdelim)
 {
-    int ret = LUA_OK;
+    const char* name = object_get_name(cell);
     if(writer->islua)
     {
         lua_getfield(writer->L, -1, "at_begin_cell");
-        lua_pushstring(writer->L, refidentifier);
+        lua_pushstring(writer->L, name);
         lua_pushboolean(writer->L, istoplevel);
-        ret = _call_or_pop_nil(writer->L, 2);
-        if(ret != LUA_OK)
+        int ret = _call_or_pop_nil(writer->L, 2);
+        if(!ret)
         {
-            return ret;
+            return 0;
         }
-        ret = _write_cell(writer, refcell, write_ports, leftdelim, rightdelim);
-        if(ret != LUA_OK)
+        ret = _write_cell(writer, cell, write_ports, leftdelim, rightdelim);
+        if(!ret)
         {
-            return ret;
+            return 0;
         }
         lua_getfield(writer->L, -1, "at_end_cell");
         lua_pushboolean(writer->L, istoplevel);
@@ -685,16 +718,15 @@ static int _write_cell2(struct export_writer* writer, const struct object* refce
     }
     else // C
     {
-        writer->funcs->at_begin_cell(writer->data, refidentifier);
-        _write_cell(writer, refcell, write_ports, leftdelim, rightdelim);
+        writer->funcs->at_begin_cell(writer->data, name);
+        _write_cell(writer, cell, write_ports, leftdelim, rightdelim);
         writer->funcs->at_end_cell(writer->data);
     }
-    return ret;
+    return 1;
 }
 
 static int _initialize(struct export_writer* writer, const struct object* object)
 {
-    int ret = LUA_OK;
     if(writer->islua)
     {
         lua_getfield(writer->L, -1, "initialize");
@@ -704,108 +736,129 @@ static int _initialize(struct export_writer* writer, const struct object* object
         lua_pushinteger(writer->L, maxx);
         lua_pushinteger(writer->L, miny);
         lua_pushinteger(writer->L, maxy);
-        ret = _call_or_pop_nil(writer->L, 4);
+        int ret = _call_or_pop_nil(writer->L, 4);
+        if(!ret)
+        {
+            return 0;
+        }
+        return 1;
     }
     else // C
     {
         writer->funcs->initialize(object);
+        return 1;
     }
-    return ret;
 }
 
 static int _write_at_begin(struct export_writer* writer)
 {
-    int ret = LUA_OK;
     if(writer->islua)
     {
         lua_getfield(writer->L, -1, "at_begin");
-        ret = _call_or_pop_nil(writer->L, 0);
-        if(ret != LUA_OK)
+        int ret = _call_or_pop_nil(writer->L, 0);
+        if(!ret)
         {
-            return ret;
+            return 0;
         }
+        return 1;
     }
     else // C
     {
         writer->funcs->at_begin(writer->data);
+        return 1;
     }
-    return ret;
 }
 
 static int _write_at_end(struct export_writer* writer)
 {
-    int ret = LUA_OK;
     if(writer->islua)
     {
         lua_getfield(writer->L, -1, "at_end");
-        ret = _call_or_pop_nil(writer->L, 0);
-        if(ret != LUA_OK)
+        int ret = _call_or_pop_nil(writer->L, 0);
+        if(!ret)
         {
-            return ret;
+            return 0;
         }
+        return 1;
     }
     else // C
     {
         writer->funcs->at_end(writer->data);
+        return 1;
     }
-    return ret;
 }
 
-int export_writer_write_toplevel(struct export_writer* writer, const struct object* object, struct pcell_state* pcell_state, const char* toplevelname, int writechildrenports, char leftdelim, char rightdelim)
+int export_writer_write_toplevel(struct export_writer* writer, const struct object* toplevel, int writechildrenports, char leftdelim, char rightdelim)
 {
-    int ret = LUA_OK;
+    int ret = 1;
     if(_has_initialize(writer))
     {
-        ret = _initialize(writer, object);
+        ret = _initialize(writer, toplevel);
     }
-    if(ret != LUA_OK)
+    if(!ret)
     {
-        return ret;
+        return 0;
     }
 
+    int mustdelete = 0;
+    struct object* copy;
     if(!_has_write_cell_reference(writer))
     {
         fputs("this export does not know how to write hierarchies, hence the cell is being written flat\n", stderr);
-        object = object_flatten(object, pcell_state, 0); // 0: !flattenports
+        copy = object_flatten(toplevel, 0); // 0: !flattenports
+        toplevel = copy; // extra pointer to silence warning
+        mustdelete = 1;
     }
 
     ret = _write_at_begin(writer);
-    if(ret != LUA_OK)
+    if(!ret)
     {
-        return ret;
+        return 0;
     }
 
-    struct cell_reference_iterator* it = pcell_create_cell_reference_iterator(pcell_state);
-    while(pcell_cell_reference_iterator_is_valid(it))
+    // collect and write cell references
+    struct const_vector* references = object_collect_references(toplevel);
+    struct const_vector_iterator* it = const_vector_iterator_create(references);
+    while(const_vector_iterator_is_valid(it))
     {
-        char* refidentifier;
-        struct object* refcell;
-        int refnumused;
-        pcell_cell_reference_iterator_get(it, &refidentifier, &refcell, &refnumused);
-        if(refnumused > 0)
+        const struct object* ref = const_vector_iterator_get(it);
+        ret = _write_cell_main(writer, ref, 0, writechildrenports, leftdelim, rightdelim); // 0: cell is not toplevel
+        if(!ret)
         {
-            _write_cell2(writer, refcell, refidentifier, 0, writechildrenports, leftdelim, rightdelim); // 0: cell is not toplevel
+            // FIXME: proper cleanup
+            return 0;
         }
-        pcell_cell_reference_iterator_advance(it);
+        const_vector_iterator_next(it);
     }
-    pcell_destroy_cell_reference_iterator(it);
+    const_vector_iterator_destroy(it);
+    const_vector_destroy(references);
 
-    _write_cell2(writer, object, toplevelname, 1, 1, leftdelim, rightdelim); // first 1: istoplevel, second 1: write_ports
+    ret = _write_cell_main(writer, toplevel, 1, 1, leftdelim, rightdelim); // first 1: istoplevel, second 1: write_ports
+    if(!ret)
+    {
+        // FIXME: proper cleanup
+        return 0;
+    }
+
+    if(mustdelete)
+    {
+        object_destroy(copy);
+    }
 
     ret = _write_at_end(writer);
-    if(ret != LUA_OK)
+    if(!ret)
     {
-        return ret;
+        return 0;
     }
 
     // finalize (only lua exports)
     if(writer->islua)
     {
         lua_getfield(writer->L, -1, "finalize");
-        ret = lua_pcall(writer->L, 0, 1, 0);
-        if(ret != LUA_OK)
+        int lret = lua_pcall(writer->L, 0, 1, 0);
+        if(lret != LUA_OK)
         {
-            return ret;
+            return 0;
         }
         size_t datalen;
         const char* strdata = lua_tolstring(writer->L, -1, &datalen);
@@ -813,6 +866,6 @@ int export_writer_write_toplevel(struct export_writer* writer, const struct obje
         lua_pop(writer->L, 1); // pop data
     }
 
-    return LUA_OK;
+    return 1;
 }
 

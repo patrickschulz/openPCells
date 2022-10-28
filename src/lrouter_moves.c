@@ -3,16 +3,22 @@
 
 #include "lrouter_moves.h"
 
+#define STRLEN 50
+
 void moves_create_port(lua_State *L, const char *name, const char *port)
 {
-    lua_pushstring(L, "anchor");
+    char where_string [STRLEN];
+    snprintf(where_string, STRLEN, "cells[\"%s\"]:get_anchor(\"%s\")", name,
+            port);
+    lua_pushstring(L, where_string);
+    lua_setfield(L, -2, "where");
+
+    lua_pushstring(L, "true");
+    lua_setfield(L, -2, "nodraw");
+    
+    lua_pushstring(L, "point");
     lua_setfield(L, -2, "type");
 
-    lua_pushstring(L, port);
-    lua_setfield(L, -2, "anchor");
-
-    lua_pushstring(L, name);
-    lua_setfield(L, -2, "name");
 }
 
 void moves_create_via(lua_State *L, int z)

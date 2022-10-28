@@ -560,12 +560,12 @@ function state.create_cellenv(state, cellname, ovrenv)
             -- the following functions don't not need cell binding as they are called for other cells
             clone_parameters                = bindstate(clone_parameters),
             clone_matching_parameters       = bindstate(clone_matching_parameters),
-            add_cell_reference              = pcell.add_cell_reference,
             create_layout                   = pcell.create_layout
         },
         tech = {
             get_dimension = technology.get_dimension,
             has_layer = technology.has_layer,
+            resolve_metal = technology.resolve_metal
         },
         placement = placement,
         routing = routing,
@@ -669,11 +669,7 @@ function pcell.evaluate_parameters(cellname, cellargs)
     return parameters
 end
 
-
-function pcell.create_layout(cellname, cellargs, env)
-    if not cellname then
-        error("pcell.create_layout: no cellname given")
-    end
+local function _create_layout_internal(cellname, name, cellargs, env)
     if state.debug then 
         local status = _find_cell_traceback()
         if not status then -- main call to create_layout 
@@ -695,11 +691,42 @@ function pcell.create_layout(cellname, cellargs, env)
     end
     local parameters, backup = _get_parameters(state, cellname, cellname, cellargs) -- cellname needs to be passed twice
     _restore_parameters(state, cellname, backup)
-    local obj = object.create(cellname)
+    local obj = object.create(name)
     cell.funcs.layout(obj, parameters, env)
     if explicitlib then
         state.libnamestacks:pop()
     end
+    return obj
+end
+
+local _globalenv
+function pcell.create_layout(cellname, name, cellargs, ...)
+    if not cellname then
+        error("pcell.create_layout: expected cellname as first argument")
+    end
+    if not name then
+        error("pcell.create_layout: expected object name as second argument")
+    end
+    if select("#", ...) > 0 then
+        error("pcell.create_layout was called with more three two arguments. If you wanted to pass an environment, use pcell.create_layout_env")
+    end
+    return _create_layout_internal(cellname, name, cellargs, _globalenv)
+end
+
+function pcell.create_layout_env(cellname, name, cellargs, env)
+    if not cellname then
+        error("pcell.create_layout_env: expected cellname as first argument")
+    end
+    if not cellname then
+        error("pcell.create_layout_env: expetect object name as second argument")
+    end
+    -- cellargs can be nil
+    if not env then
+        error("pcell.create_layout_env: expected environment as fourth argument")
+    end
+    _globalenv = env
+    local obj = _create_layout_internal(cellname, name, cellargs, _globalenv)
+    _globalenv = nil
     return obj
 end
 

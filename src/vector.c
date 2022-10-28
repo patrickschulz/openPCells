@@ -7,6 +7,7 @@ struct vector {
     void** elements;
     size_t size;
     size_t capacity;
+    void (*destructor)(void*);
 };
 
 static void _resize_data(struct vector* vector, size_t capacity)
@@ -16,7 +17,7 @@ static void _resize_data(struct vector* vector, size_t capacity)
     vector->elements = e;
 }
 
-struct vector* vector_create(size_t capacity)
+struct vector* vector_create(size_t capacity, void (*destructor)(void*))
 {
     struct vector* vector = malloc(sizeof(*vector));
     vector->elements = NULL;
@@ -26,27 +27,17 @@ struct vector* vector_create(size_t capacity)
     {
         _resize_data(vector, capacity);
     }
+    vector->destructor = destructor;
     return vector;
 }
 
-void vector_swap(struct vector* vector, size_t i, size_t j)
+void vector_destroy(struct vector* vector)
 {
-    if(i > vector->capacity || j > vector->capacity)
-    {
-	return;
-    }
-    void *temp = vector->elements[i];
-    vector->elements[i] = vector->elements[j];
-    vector->elements[j] = temp;
-}
-
-void vector_destroy(struct vector* vector, void (*destructor)(void*))
-{
-    if(destructor)
+    if(vector->destructor)
     {
         for(size_t i = 0; i < vector->size; ++i)
         {
-            destructor(vector->elements[i]);
+            vector->destructor(vector->elements[i]);
         }
     }
     // non-owned data, only destroy vector structure
@@ -56,7 +47,7 @@ void vector_destroy(struct vector* vector, void (*destructor)(void*))
 
 struct vector* vector_copy(struct vector* vector, void* (*copy)(const void*))
 {
-    struct vector* new = vector_create(vector->capacity);
+    struct vector* new = vector_create(vector->capacity, vector->destructor);
     for(size_t i = 0; i < vector->size; ++i)
     {
         new->elements[i] = copy(vector->elements[i]);
@@ -227,6 +218,21 @@ void vector_sort(struct vector* vector, int (*cmp_func)(const void* left, const 
     qsort(vector->elements, vector->size, sizeof(void*), cmp_func);
 }
 
+void vector_swap(struct vector* vector, size_t idx1, size_t idx2)
+{
+    void* tmp = vector->elements[idx1];
+    vector->elements[idx1] = vector->elements[idx2];
+    vector->elements[idx2] = tmp;
+}
+
+void vector_reverse(struct vector* vector)
+{
+    for(size_t i = 0; i < vector->size / 2; ++i)
+    {
+        vector_swap(vector, i, vector->size - 1 - i);
+    }
+}
+
 struct const_vector {
     const void** elements;
     size_t size;
@@ -299,3 +305,38 @@ void const_vector_remove(struct const_vector* const_vector, size_t index)
     }
     --const_vector->size;
 }
+
+struct const_vector_iterator
+{
+    const struct const_vector* vector;
+    size_t index;
+};
+
+struct const_vector_iterator* const_vector_iterator_create(const struct const_vector* vector)
+{
+    struct const_vector_iterator* it = malloc(sizeof(*it));
+    it->vector = vector;
+    it->index = 0;
+    return it;
+}
+
+int const_vector_iterator_is_valid(struct const_vector_iterator* iterator)
+{
+    return iterator->index < iterator->vector->size;
+}
+
+const void* const_vector_iterator_get(struct const_vector_iterator* iterator)
+{
+    return const_vector_get(iterator->vector, iterator->index);
+}
+
+void const_vector_iterator_next(struct const_vector_iterator* iterator)
+{
+    iterator->index += 1;
+}
+
+void const_vector_iterator_destroy(struct const_vector_iterator* iterator)
+{
+    free(iterator);
+}
+

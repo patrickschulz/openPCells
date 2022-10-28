@@ -10,15 +10,15 @@ end
 function layout(gate, _P)
     local bp = pcell.get_parameters("stdcells/base");
 
-    local andgate = pcell.create_layout("stdcells/and_gate")
+    local andgate = pcell.create_layout("stdcells/and_gate", "and_gate")
     gate:merge_into_shallow(andgate)
     gate:inherit_alignment_box(andgate)
 
-    local isogate = pcell.create_layout("stdcells/isogate")
+    local isogate = pcell.create_layout("stdcells/isogate", "isogate")
     isogate:move_anchor("left", andgate:get_anchor("right"))
     gate:merge_into_shallow(isogate:copy())
 
-    local xorgate = pcell.create_layout("stdcells/xor_gate"):move_anchor("left", isogate:get_anchor("right"))
+    local xorgate = pcell.create_layout("stdcells/xor_gate", "xorgate"):move_anchor("left", isogate:get_anchor("right"))
     gate:merge_into_shallow(xorgate)
     gate:inherit_alignment_box(xorgate)
 

@@ -30,54 +30,10 @@ function meta.__concat(lhs, rhs)
     return point.create(x1, y2)
 end
 
-function meta.scale(self, factor)
-    local x, y = self:unwrap()
-    point._update(self, x * factor, y * factor)
-    return self
-end
-
-function meta.rotate(self, angle)
-    local x, y = self:unwrap()
-    local nx = x * math.cos(angle) - y * math.sin(angle)
-    local ny = x * math.sin(angle) + y * math.cos(angle)
-    point._update(self, math.floor(nx), math.floor(ny))
-    return self
-end
-
 function meta.fix(self, grid)
     local x, y = self:unwrap()
     point._update(self, grid * (x // grid), grid * (y // grid))
     return self
-end
-
-local function intlog10(num)
-    if num == 0 then return 0 end
-    if num == 1 then return 0 end
-    local ret = 0
-    while num > 1 do
-        num = num / 10
-        ret = ret + 1
-    end
-    return ret
-end
-
-local function _format_number(num, baseunit)
-    local fmt = string.format("%%s%%u.%%0%uu", intlog10(baseunit))
-    local sign = "";
-    if num < 0 then
-        sign = "-"
-        num = -num
-    end
-    local ipart = num // baseunit;
-    local fpart = num - baseunit * ipart;
-    return string.format(fmt, sign, ipart, fpart)
-end
-
-function meta.format(self, baseunit, sep)
-    local x, y = self:unwrap()
-    local sx = _format_number(x, baseunit)
-    local sy = _format_number(y, baseunit)
-    return string.format("%s%s%s", sx, sep, sy)
 end
 
 -- point module functions

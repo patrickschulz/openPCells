@@ -65,7 +65,8 @@ void net_sort_nets(struct vector *nets)
 
 struct net *net_copy(struct net *net)
 {
-    struct vector *copy_positions = vector_create(net->num_positions);
+    struct vector *copy_positions = vector_create(net->num_positions,
+            net_destroy_position);
 
     for(int i = 0; i < net->num_positions; i++)
     {
@@ -82,9 +83,10 @@ struct net *net_copy(struct net *net)
 
 void net_restore_positions(struct net *original, struct net *copy)
 {
-    vector_destroy(original->positions, free);
+    vector_destroy(original->positions);
     int num_copy_positions = vector_size(copy->positions);
-    original->positions = vector_create(num_copy_positions);
+    original->positions = vector_create(num_copy_positions,
+            net_destroy_position);
     for(int i = 0; i < num_copy_positions; i++)
     {
         struct position *copypos =
@@ -111,7 +113,7 @@ struct net* net_create(const char* name, int suffixnum,
         net->name = malloc(strlen(name) + 1);
         strcpy(net->name, name);
     }
-    net->deltas = vector_create(1);
+    net->deltas = vector_create(1, free);
     net->positions = positions;
     net->num_positions = vector_size(positions);
     net->routed = 0;
@@ -241,7 +243,7 @@ void net_make_deltas(struct net *net)
     struct rpoint *current;
     struct rpoint *next;
 
-    struct vector *new_deltas = vector_create(1);
+    struct vector *new_deltas = vector_create(1, free);
 
     /* get the port were starting from */
     vector_append(new_deltas, net_get_delta(net, 0));

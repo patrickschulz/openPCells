@@ -380,7 +380,7 @@ void route(struct net *net, struct field* field)
     struct position *minimum_endpos;
     struct position *minimum_startpos;
 
-    struct vector *pathpoints = vector_create(1);
+    struct vector *pathpoints = vector_create(1, free);
 
     /* append first port of net to position vector */
     vector_append(pathpoints, net_position_to_point(net_get_position(net, 0)));

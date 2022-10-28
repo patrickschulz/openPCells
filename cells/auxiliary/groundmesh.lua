@@ -18,7 +18,7 @@ function layout(mesh, _P)
         local fwidth = 50
         local fspace = 50
         local nfingers = math.floor((_P.cellsize - 2 * _P.metalwidth[i]) / (2 * (fwidth + fspace))) - 5
-        local topcap = pcell.create_layout("passive/capacitor/mom", { 
+        local topcap = pcell.create_layout("passive/capacitor/mom", "topcap", {
             firstmetal = i, lastmetal = i, 
             fingers = nfingers,
             fwidth = fwidth, fspace = fspace,
@@ -67,7 +67,7 @@ function layout(mesh, _P)
         rotate = not rotate
     end
     -- guard ring
-    mesh:merge_into_shallow(pcell.create_layout("auxiliary/guardring", { 
+    mesh:merge_into_shallow(pcell.create_layout("auxiliary/guardring", "guardring", { 
         contype = "p", 
         width = _P.cellsize - _P.metalwidth[1], height = _P.cellsize - _P.metalwidth[1], 
         ringwidth = _P.metalwidth[1] 

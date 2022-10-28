@@ -1,18 +1,18 @@
 #include "graphics.h"
 
 #include <stdlib.h>
-#include <stdio.h>
 #include <math.h>
 
-#include "lpoint.h"
 #include "vector.h"
 
-static point_t* _midpoint(point_t* p1, point_t* p2)
+#define pointarray_get(p, i) ((point_t*)vector_get_const(p, i))
+
+static point_t* _midpoint(const point_t* p1, const point_t* p2)
 {
     return point_create((p1->x + p2->x) / 2, (p1->y + p2->y) / 2);
 }
 
-static void _subdivide(struct vector* points, struct vector* l, struct vector* r)
+static void _subdivide(const struct vector* points, struct vector* l, struct vector* r)
 {
     point_t* l1 = _midpoint(pointarray_get(points, 0), pointarray_get(points, 1));
     point_t* m = _midpoint(pointarray_get(points, 1), pointarray_get(points, 2));
@@ -20,20 +20,20 @@ static void _subdivide(struct vector* points, struct vector* l, struct vector* r
     point_t* l2 = _midpoint(l1, m);
     point_t* r1 = _midpoint(m, r2);
     point_t* l3r0 = _midpoint(l2, r1);
+    point_destroy(m);
 
     vector_append(l, point_copy(pointarray_get(points, 0)));
     vector_append(l, l1);
     vector_append(l, l2);
     vector_append(l, l3r0);
 
-    vector_append(r, l3r0);
+    vector_append(r, point_copy(l3r0)); // l3r0 is in both vectors, copy it once or deallocation fails
     vector_append(r, r1);
     vector_append(r, r2);
     vector_append(r, point_copy(pointarray_get(points, 3)));
 }
 
-//static int _is_sufficiently_flat(struct vector* points)
-static int _is_sufficiently_flat(struct pointarray* points)
+static int _is_sufficiently_flat(const struct vector* points)
 {
     double ux = 3.0 * pointarray_get(points, 1)->x - 2.0 * pointarray_get(points, 0)->x - pointarray_get(points, 3)->x; ux *= ux;
     double uy = 3.0 * pointarray_get(points, 1)->y - 2.0 * pointarray_get(points, 0)->y - pointarray_get(points, 3)->y; uy *= uy;
@@ -45,35 +45,46 @@ static int _is_sufficiently_flat(struct pointarray* points)
     return (ux + uy <= (16 * tolerance * tolerance));
 }
 
-static void _flatten_curve(struct vector* points, struct vector* result)
+static void _flatten_curve(const struct vector* points, unsigned int grid, int allow45, struct vector* result)
 {
     if(_is_sufficiently_flat(points))
     {
-        vector_append(result, point_create(pointarray_get(points, 0)->x, pointarray_get(points, 0)->y));
-        vector_append(result, point_create(pointarray_get(points, vector_size(points) - 1)->x, pointarray_get(points, vector_size(points) - 1)->y));
+        point_t* startpt = point_create(pointarray_get(points, 0)->x, pointarray_get(points, 0)->y);
+        startpt->x = (startpt->x / grid) * grid;
+        startpt->y = (startpt->y / grid) * grid;
+        point_t* endpt = point_create(pointarray_get(points, vector_size(points) - 1)->x, pointarray_get(points, vector_size(points) - 1)->y);
+        endpt->x = (endpt->x / grid) * grid;
+        endpt->y = (endpt->y / grid) * grid;
+        graphics_rasterize_line_segment(startpt, endpt, grid, allow45, result);
+        point_destroy(startpt);
+        point_destroy(endpt);
     }
     else
     {
-        struct vector* l = vector_create(32);
-        struct vector* r = vector_create(32);
+        struct vector* l = vector_create(32, point_destroy);
+        struct vector* r = vector_create(32, point_destroy);
         _subdivide(points, l, r);
-        _flatten_curve(l, result);
-        _flatten_curve(r, result);
-        vector_destroy(l, NULL);
-        vector_destroy(r, NULL);
+        _flatten_curve(l, grid, allow45, result);
+        _flatten_curve(r, grid, allow45, result);
+        vector_destroy(l);
+        vector_destroy(r);
     }
 }
 
-struct vector* graphics_cubic_bezier(struct vector* curve)
+void graphics_rasterize_cubic_bezier_segment(const point_t* startpt, const point_t* cpt1, const point_t* cpt2, const point_t* endpt, unsigned int grid, int allow45, struct vector* result)
 {
-    struct vector* result = vector_create(128);
-    _flatten_curve(curve, result);
-    return result;
+    struct vector* curve = vector_create(4, point_destroy);
+    vector_append(curve, point_copy(startpt));
+    vector_append(curve, point_copy(cpt1));
+    vector_append(curve, point_copy(cpt2));
+    vector_append(curve, point_copy(endpt));
+    _flatten_curve(curve, grid, allow45, result);
+    vector_destroy(curve);
 }
 
 #define iabs(x) ((x) < 0 ? -(x) : (x))
 
-void graphics_raster_line_segment(point_t* startpt, point_t* endpt, unsigned int grid, int allow45, struct vector* result)
+void graphics_rasterize_line_segment(point_t* startpt, point_t* endpt, unsigned int grid, int allow45, struct vector* result)
 {
     coordinate_t x1 = startpt->x;
     coordinate_t y1 = startpt->y;
@@ -135,7 +146,7 @@ static struct vector* _rasterize_quartercircle(coordinate_t radius, unsigned int
     coordinate_t y = 0;
     int sx = -grid;
     int sy = grid;
-    struct vector* pts = vector_create(128);
+    struct vector* pts = vector_create(128, point_destroy);
     while(1)
     {
         vector_append(pts, point_create(x, y));
@@ -221,6 +232,11 @@ static unsigned int _map_xy_to_quadrant(coordinate_t x, coordinate_t y)
 
 static void _get_quadrant_list(unsigned int startquadrant, unsigned int endquadrant, int clockwise, unsigned int* quadrants)
 {
+    if(startquadrant == endquadrant)
+    {
+        quadrants[0] = startquadrant;
+        return;
+    }
     unsigned int i = startquadrant;
     int stop = 0;
     unsigned int idx = 0;
@@ -453,10 +469,10 @@ static void _circle(coordinate_t ox, coordinate_t oy, ucoordinate_t radius, doub
 
     _assemble_circle_points(quarterpoints, quadrants, xstart, ystart, xend, yend, ox, oy, clockwise, result);
 
-    vector_destroy(quarterpoints, point_destroy);
+    vector_destroy(quarterpoints);
 }
 
-void graphics_raster_arc_segment(point_t* startpt, double startangle, double endangle, coordinate_t radius, int clockwise, unsigned int grid, int allow45, struct vector* result)
+void graphics_rasterize_arc_segment(point_t* startpt, double startangle, double endangle, coordinate_t radius, int clockwise, unsigned int grid, int allow45, struct vector* result)
 {
     coordinate_t cx = startpt->x - cos(startangle * M_PI / 180) * radius;
     coordinate_t cy = startpt->y - sin(startangle * M_PI / 180) * radius;

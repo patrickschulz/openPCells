@@ -4,15 +4,14 @@
 
 #include "vector.h"
 #include "union.h"
-#include "pcell.h"
 
-static void _merge_shapes(struct object* object, struct layermap* layermap)
+static void _merge_shapes(struct object* object, struct technology_state* techstate)
 {
-    struct layer_iterator* it = layer_iterator_create(layermap);
+    struct layer_iterator* it = layer_iterator_create(techstate);
     while(layer_iterator_is_valid(it))
     {
-        struct generics* layer = layer_iterator_get(it);
-        struct vector* rectangles = vector_create(32);
+        const struct generics* layer = layer_iterator_get(it);
+        struct vector* rectangles = vector_create(32, NULL);
         for(int j = object_get_shapes_size(object) - 1; j >= 0; --j)
         {
             struct shape* S = object_get_shape(object, j);
@@ -30,15 +29,15 @@ static void _merge_shapes(struct object* object, struct layermap* layermap)
         {
             object_add_raw_shape(object, vector_get(rectangles, i));
         }
-        vector_destroy(rectangles, NULL);
+        vector_destroy(rectangles);
         layer_iterator_next(it);
     }
     layer_iterator_destroy(it);
 }
 
-void postprocess_merge_shapes(struct object* object, struct layermap* layermap)
+void postprocess_merge_shapes(struct object* object, struct technology_state* techstate)
 {
-    _merge_shapes(object, layermap);
+    _merge_shapes(object, techstate);
 }
 
 void postprocess_filter_exclude(struct object* object, const char** layernames)

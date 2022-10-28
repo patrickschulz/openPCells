@@ -1,5 +1,5 @@
 function layout(gate, _P)
-    local dff = pcell.create_layout("stdcells/dff", {
+    local dff = pcell.create_layout("stdcells/dff", "dffpq", {
         clockpolarity = "positive",
         enable_Q = true,
         enable_QN = false,

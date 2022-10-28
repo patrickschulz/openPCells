@@ -90,7 +90,7 @@ function layout(oscillator, _P)
             invactivecontacts[_P.invdummies + i] = "power"
         end
     end
-    local inverterref = pcell.create_layout("basic/cmos", { 
+    local inverterref = pcell.create_layout("basic/cmos", "inverter", { 
         gatecontactpos = invgatecontacts, 
         pcontactpos = invactivecontacts, 
         ncontactpos = invactivecontacts,
@@ -107,10 +107,9 @@ function layout(oscillator, _P)
         (_P.invfingers - 1) * xpitch,
         _P.sdwidth
     )
-    local invname = pcell.add_cell_reference(inverterref, "inverter")
     local inverters = {}
     for i = 1, _P.numinv do
-        inverters[i] = oscillator:add_child(invname)
+        inverters[i] = oscillator:add_child(inverterref, string.format("inverter_%d", i))
         if i > 1 then
             inverters[i]:move_anchor("left", inverters[i - 1]:get_anchor("right"))
         end
@@ -135,43 +134,43 @@ function layout(oscillator, _P)
     )
 
     local width = point.xdistance(inverters[_P.numinv]:get_anchor("PRpur"), inverters[1]:get_anchor("PRpul"))
-    local welltapp = pcell.create_layout("auxiliary/welltap", {
+    local pwelltap = pcell.create_layout("auxiliary/welltap", "nwelltap", {
         contype = "n",
         width = width,
         height = _P.powerwidth,
         extension = 50,
     })
-    welltapp:move_anchor("bottomleft", inverters[1]:get_anchor("PRpll"))
-    oscillator:merge_into_shallow(welltapp)
-    local welltapn = pcell.create_layout("auxiliary/welltap", {
+    pwelltap:move_anchor("bottomleft", inverters[1]:get_anchor("PRpll"))
+    oscillator:merge_into_shallow(pwelltap)
+    local nwelltap = pcell.create_layout("auxiliary/welltap", "nwelltap", {
         contype = "p",
         width = width,
         height = _P.powerwidth,
         extension = 50,
     })
-    welltapn:move_anchor("topleft", inverters[1]:get_anchor("PRnul"))
-    oscillator:merge_into_shallow(welltapn)
+    nwelltap:move_anchor("topleft", inverters[1]:get_anchor("PRnul"))
+    oscillator:merge_into_shallow(nwelltap)
 
     --[[
     -- place guardring
     local ringwidth = 200
-    local pguardringname = pcell.add_cell_reference(pcell.create_layout("auxiliary/guardring", { 
+    local pguardring = pcell.create_layout("auxiliary/guardring", "pguardring", { 
         contype = "p",
         fillwell = true,
         ringwidth = ringwidth,
         width = (_P.numinv * _P.invfingers + 4) * xpitch, 
         height = 6 * _P.separation + _P.pfingerwidth + _P.nfingerwidth + ringwidth
-    }), "pguardring")
-    local nguardringname = pcell.add_cell_reference(pcell.create_layout("auxiliary/guardring", { 
+    })
+    local nguardring = pcell.create_layout("auxiliary/guardring", "nguardring", { 
         contype = "n",
         fillwell = false,
         drawdeepwell = true,
         ringwidth = ringwidth,
         width = (_P.numinv * _P.invfingers + 4) * xpitch + 2 * _P.separation + 2 * ringwidth,
         height = 8 * _P.separation + _P.pfingerwidth + _P.nfingerwidth + ringwidth + 2 * ringwidth
-    }), "nguardring")
-    oscillator:add_child(pguardringname)
-    oscillator:add_child(nguardringname)
+    })
+    oscillator:add_child(pguardring, "pguardring")
+    oscillator:add_child(nguardring, "nguardring")
     --]]
 
     -- ports
