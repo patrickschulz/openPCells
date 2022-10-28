@@ -19,7 +19,7 @@
 
 #define UABSDIFF(v1, v2) (v1 > v2 ? v1 - v2 : v2 - v1)
 #define MANHATTAN_DIST(pos1, pos2) (UABSDIFF(pos1->x, pos2->x) +\
-				    UABSDIFF(pos1->y, pos2->y))
+        UABSDIFF(pos1->y, pos2->y))
 #define CEIL(x1, x2) (x1/x2 + (x1 % x2 != 0))
 
 struct netcollection {
@@ -42,7 +42,7 @@ static struct rpoint* _create_point(lua_State *L)
 }
 
 static void _make_nets(const char* name, struct vector* nets,
-				 struct vector* positions)
+        struct vector* positions)
 {
     struct net *net = net_create(name, NO_SUFFIX, positions);
     vector_append(nets, net);
@@ -147,6 +147,60 @@ static void _destroy_blockage(void* ptr)
     vector_destroy(deltas, free);
 }
 
+static void _create_routing_stack_data(lua_State *L, struct net *net)
+{
+    lua_newtable(L);
+    lua_pushstring(L, net_get_name(net));
+    lua_setfield(L, -2, "name");
+
+    int num_deltas = net_get_num_deltas(net);
+    int table_pos = 0;
+
+    for(int i = 0; i < num_deltas; i++, table_pos++)
+    {
+        lua_newtable(L);
+        struct rpoint *point = net_get_delta(net, i);
+        if(point_get_score(point) == PORT)
+        {
+            if(i != 0)
+            {
+                moves_create_via(L, -1);
+                lua_rawseti(L, -2, table_pos + 1);
+                table_pos++;
+
+                lua_newtable(L);
+            }
+            const struct position *pos =
+                net_get_position_at_point(net, point);
+
+            moves_create_port(L, net_position_get_inst(pos),
+                    net_position_get_port(pos));
+            lua_rawseti(L, -2, table_pos + 1);
+            table_pos++;
+
+            /* FIXME: via after first anchor */
+            lua_newtable(L);
+            moves_create_via(L, 1);
+
+        }
+        else if(point->x)
+        {
+            moves_create_delta(L, X_DIR, -1 * point->x);
+        }
+        else if(point->y)
+        {
+            moves_create_delta(L, Y_DIR, -1 * point->y);
+        }
+        else
+        {
+            moves_create_via(L, -1 * point->z);
+        }
+
+        lua_rawseti(L, -2, table_pos + 1);
+    }
+
+}
+
 int lrouter_route(lua_State* L)
 {
     puts("started routing\n");
@@ -167,124 +221,25 @@ int lrouter_route(lua_State* L)
 
     for(unsigned int i = 0; i < vector_size(nc->nets); ++i)
     {
-	nets_fill_ports(nc->nets, field);
+        nets_fill_ports(nc->nets, field);
         struct net* net = vector_get(nc->nets, i);
         route(net, field);
-	nets_fill_ports(nc->nets, field);
-
-	field_print(field, 0);
-	getchar();
+        nets_fill_ports(nc->nets, field);
 
         if(net_is_routed(net))
         {
-            /*
-	     * table for whole net
-	     * net is consisting of ports and deltas after the ports
-	     */
-            lua_newtable(L);
-            lua_pushstring(L, net_get_name(net));
-            lua_setfield(L, -2, "name");
-
-	    int num_deltas = net_get_num_deltas(net);
-	    int table_pos = 0;
-
-	    for(int i = 0; i < num_deltas; i++, table_pos++)
-	    {
-		lua_newtable(L);
-		struct rpoint *point = net_get_delta(net, i);
-		if(point_get_score(point) == PORT)
-		{
-		    const struct position *pos =
-			    net_get_position_at_point(net, point);
-
-		    moves_create_port(L, net_position_get_inst(pos),
-					net_position_get_port(pos));
-		    lua_rawseti(L, -2, table_pos + 1);
-		    table_pos++;
-
-		    /* FIXME: via after first anchor */
-		    lua_newtable(L);
-		    moves_create_via(L, 1);
-
-		}
-		else if(point->x)
-		{
-		    moves_create_delta(L, X_DIR, point->x);
-		}
-		else if(point->y)
-		{
-		    moves_create_delta(L, Y_DIR, point->y);
-		}
-		else
-		{
-                    moves_create_via(L, -1 * point->z);
-		}
-
-                lua_rawseti(L, -2, table_pos + 1);
-	    }
-
+            _create_routing_stack_data(L, net);
             lua_rawseti(L, -2, routed_count + 1);
             routed_count++;
-
-
-            //net_create_deltas(net);
-
-            //int point_count = 2;
-            //while(1)
-            //{
-            //    struct rpoint* curr_point = net_dequeue_point(net);
-            //    if(!curr_point)
-            //    {
-            //        break;
-            //    }
-            //    lua_newtable(L);
-            //    if(curr_point->x)
-            //    {
-            //        moves_create_delta(L, X_DIR, curr_point->x);
-            //    }
-            //    else if(curr_point->y)
-            //    {
-            //        moves_create_delta(L, Y_DIR, curr_point->y);
-            //    }
-            //    else if(curr_point->z)
-            //    {
-            //        moves_create_via(L, -1 * curr_point->z);
-            //    }
-
-            //    /* move entry */
-            //    lua_rawseti(L, -2, point_count + 1);
-            //    point_count++;
-            //    free(curr_point);
-            //}
-
-            ///* FIXME: via before second anchor */
-            //lua_newtable(L);
-            //moves_create_via(L, -1);
-            //lua_rawseti(L, -2, point_count + 1);
-
-            ///* second anchor */
-            //lua_newtable(L);
-            //const struct position* pos1 = net_get_endpos(net);
-            //moves_create_anchor(L, pos1->instance, pos1->port);
-            //lua_rawseti(L, -2, point_count + 2);
-
-            ///* put moves table into bigger table */
-            //lua_rawseti(L, -2, routed_count + 1);
-            //routed_count++;
-
         }
-	else
-	{
-	    printf("couldnt route %s\n", net_get_name(net));
-	}
+        else
+        {
+            printf("couldnt route %s\n", net_get_name(net));
+        }
     }
-    /* num_routed_nets on stack */
+    field_print(field, 0);
+    getchar();
     lua_pushinteger(L, routed_count);
-
-    for(unsigned int i = 0; i < 2; ++i)
-    {
-        //field_print(field, i);
-    }
 
     field_destroy(field);
     vector_destroy(nc->nets, net_destroy);

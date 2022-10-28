@@ -37,3 +37,15 @@ void moves_create_delta(lua_State *L, dir_t dir, int dist)
         lua_setfield(L, -2, "y");
     }
 }
+
+void moves_create_shift(lua_State *L, int x, int y)
+{
+    lua_pushstring(L, "shift");
+    lua_setfield(L, -2, "type");
+
+    lua_pushinteger(L, x);
+    lua_setfield(L, -2, "x");
+
+    lua_pushinteger(L, y);
+    lua_setfield(L, -2, "y");
+}

@@ -104,6 +104,7 @@ function M.route(cell, routes, cells, width, numinnerroutes, pnumtracks, nnumtra
                 local pt = pts[#pts]
                 local x, y = pt:unwrap()
                 point._update(pt, x + xgrid * (movement.x or 0), y + ygrid * (movement.y or 0))
+            elseif movement.type == "break" then
             elseif movement.type == "delta" then
                 local lastpt = pts[#pts]
                 local x, y = lastpt:unwrap()
