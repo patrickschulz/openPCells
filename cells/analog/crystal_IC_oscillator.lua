@@ -13,19 +13,17 @@ function layout(oscillator, _P)
         gatelength = 40, 
         gatespace = 90, 
     })
-    local cmosref = pcell.create_layout("basic/cmos", { 
+    local cmosref = pcell.create_layout("basic/cmos", "mosfets", { 
         gatecontactpos = gatecontacts, 
         pcontactpos = npcontacts, 
         ncontactpos = npcontacts, 
         separation = 400, 
     })
-    local cmosname = pcell.add_cell_reference(cmosref, "moscore")
 
-    local resref = pcell.create_layout("basic/polyresistor", { nxfingers = _P.resfingers, nyfingers = 2, dummies = 0, xspace = 90, contactheight = 200, extension = 300 })
-    local resname = pcell.add_cell_reference(resref, "resistor")
+    local resref = pcell.create_layout("basic/polyresistor", "resistor", { nxfingers = _P.resfingers, nyfingers = 2, dummies = 0, xspace = 90, contactheight = 200, extension = 300 })
 
-    local moscore = oscillator:add_child(cmosname)
-    local polyres = oscillator:add_child(resname)
+    local moscore = oscillator:add_child(cmosref, "moscore")
+    local polyres = oscillator:add_child(resref, "resistor")
     polyres:move_anchor("left", moscore:get_anchor("right"))
     polyres:translate((40 + 90) / 2, 0)
 end

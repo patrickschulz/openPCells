@@ -5,7 +5,6 @@
 #include <stdio.h>
 
 #include "util.h"
-#include "pcell.h"
 
 #define min(a, b) ((a) < (b) ? (a) : (b))
 #define max(a, b) ((a) > (b) ? (a) : (b))
@@ -23,60 +22,52 @@ struct port {
 
 struct object {
     char* name;
-
-    // for children:
-    // 'proxy' objects are light handles to objects
-    // these are created by the 'all_child' method of objects
-    // proxy objects behave like real objects (they can be moved etc.)
     int isproxy;
-    char* identifier;
-    const struct object* reference;
-    int isarray;
-    unsigned int xrep;
-    unsigned int yrep;
-    unsigned int xpitch;
-    unsigned int ypitch;
-
     struct transformationmatrix* trans;
 
-    struct vector* shapes; // stores struct shape*
-
-    struct vector* ports; // stores struct port*
-
-    struct hashmap* anchors;
-
-    coordinate_t* alignmentbox; // NULL or contains four coordinates: blx, blx, trx, try
-
-    struct vector* children; // stores struct object*
+    union{
+        // proxy objects (light handles to children)
+        struct {
+            const struct object* reference;
+            int isarray;
+            unsigned int xrep;
+            unsigned int yrep;
+            unsigned int xpitch;
+            unsigned int ypitch;
+        };
+        // full objects
+        struct {
+            struct vector* shapes; // stores struct shape*
+            struct vector* ports; // stores struct port*
+            struct hashmap* anchors;
+            struct vector* children; // stores struct object*
+            struct vector* references; // stores struct object*
+            coordinate_t* alignmentbox; // NULL or contains four coordinates: blx, blx, trx, try
+        };
+    };
 };
 
-static struct object* _create(void)
+static struct object* _create(const char* name)
 {
     struct object* obj = malloc(sizeof(*obj));
     memset(obj, 0, sizeof(*obj));
+    obj->name = strdup(name);
     return obj;
 }
 
-struct object* object_create(void)
+struct object* object_create(const char* name)
 {
-    struct object* obj = _create();
+    struct object* obj = _create(name);
     obj->trans = transformationmatrix_create();
     transformationmatrix_identity(obj->trans);
     obj->isproxy = 0;
     return obj;
 }
 
-struct object* object_create_proxy(const char* name, struct object* reference, const char* identifier)
+static struct object* _create_proxy(const char* name, struct object* reference)
 {
-    struct object* obj = _create();
-    if(name)
-    {
-        obj->name = malloc(strlen(name) + 1);
-        strcpy(obj->name, name);
-    }
+    struct object* obj = _create(name);
     obj->reference = reference;
-    obj->identifier = malloc(strlen(identifier) + 1);
-    strcpy(obj->identifier, identifier);
     obj->isproxy = 1;
     // don't need a transformation matrix as it is created by add_child
     obj->isarray = 0;
@@ -89,25 +80,15 @@ struct object* object_create_proxy(const char* name, struct object* reference, c
 
 struct object* object_copy(const struct object* cell)
 {
-    struct object* new = _create();
+    struct object* new = _create(cell->name);
     new->isproxy = cell->isproxy;
 
-    // name
-    if(cell->name)
-    {
-        new->name = malloc(strlen(cell->name) + 1);
-        strcpy(new->name, cell->name);
-        new->reference = cell->reference;
-    }
-    
     // trans
     transformationmatrix_destroy(new->trans);
     new->trans = transformationmatrix_copy(cell->trans);
 
     if(cell->isproxy)
     {
-        new->identifier = malloc(strlen(cell->identifier) + 1);
-        strcpy(new->identifier, cell->identifier);
         new->reference = cell->reference;
         new->isarray = cell->isarray;
         new->xrep = cell->xrep;
@@ -133,21 +114,21 @@ struct object* object_copy(const struct object* cell)
         if(cell->anchors)
         {
             new->anchors = hashmap_create();
-            struct hashmap_iterator* it = hashmap_iterator_create(cell->anchors);
-            while(hashmap_iterator_is_valid(it))
+            struct hashmap_const_iterator* it = hashmap_const_iterator_create(cell->anchors);
+            while(hashmap_const_iterator_is_valid(it))
             {
-                const char* key = hashmap_iterator_key(it);
-                point_t* pt = hashmap_iterator_value(it);
+                const char* key = hashmap_const_iterator_key(it);
+                const point_t* pt = hashmap_const_iterator_value(it);
                 hashmap_insert(new->anchors, key, point_copy(pt));
-                hashmap_iterator_next(it);
+                hashmap_const_iterator_next(it);
             }
-            hashmap_iterator_destroy(it);
+            hashmap_const_iterator_destroy(it);
         }
 
         // children
         if(cell->children)
         {
-            new->children = vector_create(vector_size(cell->children));
+            new->children = vector_create(vector_size(cell->children), object_destroy);
             for(unsigned int i = 0; i < vector_size(cell->children); ++i)
             {
                 vector_append(new->children, object_copy(vector_get(cell->children, i)));
@@ -157,34 +138,22 @@ struct object* object_copy(const struct object* cell)
     return new;
 }
 
-
-void _port_destroy(void* p)
-{
-    struct port* port = p;
-    point_destroy(port->where);
-    free(port->name);
-    free(port);
-}
-
 void object_destroy(void* cellv)
 {
     struct object* cell = cellv;
-    if(cell->isproxy)
-    {
-        free(cell->identifier);
-    }
-    else
+    if(!cell->isproxy)
     {
         // shapes
         if(cell->shapes)
         {
-            vector_destroy(cell->shapes, shape_destroy);
+            vector_destroy(cell->shapes);
         }
 
         // children
         if(cell->children)
         {
-            vector_destroy(cell->children, object_destroy);
+            vector_destroy(cell->children);
+            vector_destroy(cell->references);
         }
 
         // anchors
@@ -195,7 +164,7 @@ void object_destroy(void* cellv)
 
         if(cell->ports)
         {
-            vector_destroy(cell->ports, _port_destroy);
+            vector_destroy(cell->ports);
         }
     }
 
@@ -222,7 +191,7 @@ void object_add_raw_shape(struct object* cell, struct shape* S)
 {
     if(!cell->shapes)
     {
-        cell->shapes = vector_create(32);
+        cell->shapes = vector_create(32, shape_destroy);
     }
     vector_append(cell->shapes, S);
 }
@@ -245,28 +214,46 @@ void object_remove_shape(struct object* cell, size_t idx)
     vector_remove(cell->shapes, idx, shape_destroy);
 }
 
-struct object* object_add_child(struct object* cell, struct pcell_state* pcell_state, const char* identifier, const char* name)
+struct object* object_add_child(struct object* cell, struct object* child, const char* name)
 {
-    struct object* reference = pcell_use_cell_reference(pcell_state, identifier);
-    struct object* child = object_create_proxy(name, reference, identifier);
-    child->trans = transformationmatrix_invert(cell->trans);
+    struct object* proxy = _create_proxy(name, child);
+    proxy->trans = transformationmatrix_invert(cell->trans);
     if(!cell->children)
     {
-        cell->children = vector_create(OBJECT_DEFAULT_CHILDREN_SIZE);
+        cell->children = vector_create(OBJECT_DEFAULT_CHILDREN_SIZE, object_destroy);
+        cell->references = vector_create(8, object_destroy);
     }
-    vector_append(cell->children, child);
-    return child;
+    vector_append(cell->children, proxy);
+    // check if child is already stored
+    int found = 0;
+    struct vector_const_iterator* it = vector_const_iterator_create(cell->references);
+    while(vector_const_iterator_is_valid(it))
+    {
+        const struct object* ref = vector_const_iterator_get(it);
+        if(ref == child)
+        {
+            found = 1;
+            break;
+        }
+        vector_const_iterator_next(it);
+    }
+    vector_const_iterator_destroy(it);
+    if(!found)
+    {
+        vector_append(cell->references, child);
+    }
+    return proxy;
 }
 
-struct object* object_add_child_array(struct object* cell, struct pcell_state* pcell_state, const char* identifier, unsigned int xrep, unsigned int yrep, unsigned int xpitch, unsigned int ypitch, const char* name)
+struct object* object_add_child_array(struct object* cell, struct object* child, const char* name, unsigned int xrep, unsigned int yrep, unsigned int xpitch, unsigned int ypitch)
 {
-    struct object* child = object_add_child(cell, pcell_state, identifier, name);
-    child->isarray = 1;
-    child->xrep = xrep;
-    child->yrep = yrep;
-    child->xpitch = xpitch;
-    child->ypitch = ypitch;
-    return child;
+    struct object* proxy = object_add_child(cell, child, name);
+    proxy->isarray = 1;
+    proxy->xrep = xrep;
+    proxy->yrep = yrep;
+    proxy->xpitch = xpitch;
+    proxy->ypitch = ypitch;
+    return proxy;
 }
 
 void object_merge_into_shallow(struct object* cell, const struct object* other)
@@ -288,7 +275,16 @@ void object_add_anchor(struct object* cell, const char* name, coordinate_t x, co
     {
         cell->anchors = hashmap_create();
     }
-    hashmap_insert(cell->anchors, name, point_create(x, y));
+    if(hashmap_exists(cell->anchors, name))
+    {
+        point_t* pt = hashmap_get(cell->anchors, name);
+        pt->x = x;
+        pt->y = y;
+    }
+    else
+    {
+        hashmap_insert(cell->anchors, name, point_create(x, y));
+    }
 }
 
 void object_add_anchor_suffix(struct object* cell, const char* base, const char* suffix, coordinate_t x, coordinate_t y)
@@ -368,39 +364,21 @@ static point_t* _get_special_anchor(const struct object* cell, const char* name,
     {
         x = blx;
         y = (bly + try) / 2;
-        if(cell->isproxy && cell->isarray)
-        {
-            y += (cell->yrep - 1) * cell->ypitch / 2;
-        }
     }
     else if(strcmp(name, "right") == 0)
     {
         x = trx;
         y = (bly + try) / 2;
-        if(cell->isproxy && cell->isarray)
-        {
-            x += (cell->xrep - 1) * cell->xpitch;
-            y += (cell->yrep - 1) * cell->ypitch / 2;
-        }
     }
     else if(strcmp(name, "top") == 0)
     {
         x = (blx + trx) / 2;
         y = try;
-        if(cell->isproxy && cell->isarray)
-        {
-            x += (cell->xrep - 1) * cell->xpitch / 2;
-            y += (cell->yrep - 1) * cell->ypitch;
-        }
     }
     else if(strcmp(name, "bottom") == 0)
     {
         x = (blx + trx) / 2;
         y = bly;
-        if(cell->isproxy && cell->isarray)
-        {
-            x += (cell->xrep - 1) * cell->xpitch / 2;
-        }
     }
     else if(strcmp(name, "bottomleft") == 0)
     {
@@ -411,29 +389,16 @@ static point_t* _get_special_anchor(const struct object* cell, const char* name,
     {
         x = trx;
         y = bly;
-        if(cell->isproxy && cell->isarray)
-        {
-            x += (cell->xrep - 1) * cell->xpitch;
-        }
     }
     else if(strcmp(name, "topleft") == 0)
     {
         x = blx;
         y = try;
-        if(cell->isproxy && cell->isarray)
-        {
-            y += (cell->yrep - 1) * cell->ypitch;
-        }
     }
     else if(strcmp(name, "topright") == 0)
     {
         x = trx;
         y = try;
-        if(cell->isproxy && cell->isarray)
-        {
-            x += (cell->xrep - 1) * cell->xpitch;
-            y += (cell->yrep - 1) * cell->ypitch;
-        }
     }
     else
     {
@@ -492,6 +457,49 @@ point_t* object_get_anchor(const struct object* cell, const char* name)
     return NULL;
 }
 
+point_t* object_get_array_anchor(const struct object* cell, int xindex, int yindex, const char* name)
+{
+    if(!cell->isarray)
+    {
+        return NULL;
+    }
+    struct transformationmatrix* trans1 = cell->trans;
+    struct transformationmatrix* trans2 = cell->reference->trans;
+    const struct object* obj = cell->reference;
+    // resolve negative indices
+    if(xindex < 0)
+    {
+        xindex = cell->xrep + xindex + 1;
+    }
+    if(yindex < 0)
+    {
+        yindex = cell->yrep + yindex + 1;
+    }
+    point_t* pt = NULL;
+    pt = _get_special_anchor(obj, name, trans1, trans2);
+    if(pt)
+    {
+        point_translate(pt, cell->xpitch * (xindex - 1), cell->ypitch * (yindex - 1));
+        return pt;
+    }
+    else
+    {
+        pt = _get_regular_anchor(obj, name);
+        if(pt)
+        {
+            transformationmatrix_apply_transformation(obj->trans, pt);
+            if(cell->isproxy)
+            {
+                transformationmatrix_apply_transformation(cell->trans, pt);
+            }
+            point_translate(pt, cell->xpitch * (xindex - 1), cell->ypitch * (yindex - 1));
+            return pt;
+        }
+    }
+    // no anchor found
+    return NULL;
+}
+
 const struct hashmap* object_get_all_regular_anchors(const struct object* cell)
 {
     const struct object* obj = cell;
@@ -506,13 +514,21 @@ const struct hashmap* object_get_all_regular_anchors(const struct object* cell)
     return NULL;
 }
 
+void _port_destroy(void* p)
+{
+    struct port* port = p;
+    point_destroy(port->where);
+    free(port->name);
+    free(port);
+}
+
 static void _add_port(struct object* cell, const char* name, const char* anchorname, const struct generics* layer, coordinate_t x, coordinate_t y, int isbusport, int busindex, int storeanchor)
 {
     if(!generics_is_empty(layer))
     {
         if(!cell->ports)
         {
-            cell->ports = vector_create(OBJECT_DEFAULT_PORT_SIZE);
+            cell->ports = vector_create(OBJECT_DEFAULT_PORT_SIZE, _port_destroy);
         }
         struct port* port = malloc(sizeof(*port));
         port->where = point_create(x, y);
@@ -609,9 +625,27 @@ void object_inherit_alignment_box(struct object* cell, const struct object* othe
     }
 }
 
+int object_get_alignment_box_corners(const struct object* cell, coordinate_t* blx, coordinate_t* bly, coordinate_t* trx, coordinate_t* try)
+{
+    if(!cell->alignmentbox)
+    {
+        return 0;
+    }
+    *blx = cell->alignmentbox[0];
+    *bly = cell->alignmentbox[1];
+    *trx = cell->alignmentbox[2];
+    *try = cell->alignmentbox[3];
+    return 1;
+}
+
 void object_move_to(struct object* cell, coordinate_t x, coordinate_t y)
 {
     transformationmatrix_move_to(cell->trans, x, y);
+}
+
+void object_reset_translation(struct object* cell)
+{
+    transformationmatrix_move_to(cell->trans, 0, 0);
 }
 
 void object_translate(struct object* cell, coordinate_t x, coordinate_t y)
@@ -734,13 +768,7 @@ void object_get_minmax_xy(const struct object* cell, coordinate_t* minxp, coordi
             const struct object* obj = child->reference;
             coordinate_t minx_, maxx_, miny_, maxy_;
             object_get_minmax_xy(obj, &minx_, &miny_, &maxx_, &maxy_);
-            // FIXME: is the transformation really needed? If yes, then the shapes points also need to be transformed
-            //local pt1 = point.create(minx_, miny_)
-            //local pt2 = point.create(maxx_, maxy_)
-            //obj.trans:apply_transformation(pt1)
-            //obj.trans:apply_transformation(pt2)
-            //minx_, miny_ = pt1:unwrap()
-            //maxx_, maxy_ = pt2:unwrap()
+            // FIXME: transformation?
             minx = min(minx, minx_);
             maxx = max(maxx, maxx_);
             miny = min(miny, miny_);
@@ -820,7 +848,7 @@ static void _flipx(struct object* cell, int ischild)
 {
     coordinate_t cx, cy;
     _get_transformation_correction(cell, &cx, &cy);
-    transformationmatrix_mirror_x(cell->trans);
+    transformationmatrix_mirror_y(cell->trans);
     if(!ischild)
     {
         object_translate(cell, cx, 0);
@@ -905,7 +933,22 @@ int object_is_empty(const struct object* cell)
     return !object_has_shapes(cell) && !object_has_children(cell) && !object_has_ports(cell);
 }
 
-void object_flatten_inline(struct object* cell, struct pcell_state* pcell_state, int flattenports)
+int object_is_child_array(const struct object* cell)
+{
+    return cell->isarray;
+}
+
+const char* object_get_name(const struct object* cell)
+{
+    return cell->name;
+}
+
+const char* object_get_child_reference_name(const struct object* child)
+{
+    return child->reference->name;
+}
+
+void object_flatten_inline(struct object* cell, int flattenports)
 {
     // add shapes and flatten children (recursive)
     if(cell->children)
@@ -914,61 +957,53 @@ void object_flatten_inline(struct object* cell, struct pcell_state* pcell_state,
         {
             struct object* child = vector_get(cell->children, i);
             const struct object* reference = child->reference;
-            struct object* flat = object_flatten(reference, pcell_state, flattenports);
+            struct object* flat = object_flatten(reference, flattenports);
             if(flat->shapes)
             {
-                for(unsigned int ix = 1; ix <= child->xrep; ++ix)
+                size_t size = vector_size(flat->shapes);
+                while(size > 0)
                 {
-                    for(unsigned int iy = 1; iy <= child->yrep; ++iy)
+                    struct shape* S = object_disown_shape(flat, size - 1);
+                    --size;
+                    shape_apply_transformation(S, child->trans);
+                    shape_apply_transformation(S, flat->trans);
+                    for(unsigned int ix = 1; ix <= child->xrep; ++ix)
                     {
-                        size_t size = vector_size(flat->shapes);
-                        while(size > 0)
+                        for(unsigned int iy = 1; iy <= child->yrep; ++iy)
                         {
-                            struct shape* S = object_disown_shape(flat, size - 1);
-                            --size;
-                            shape_apply_transformation(S, child->trans);
-                            shape_apply_transformation(S, flat->trans);
-                            shape_translate(S, (ix - 1) * child->xpitch, (iy - 1) * child->ypitch);
-                            object_add_raw_shape(cell, S);
-                        }
-                        if(flattenports)
-                        {
-                            for(unsigned int p = 0; p < vector_size(flat->ports); ++p)
-                            {
-                                struct port* port = vector_get(flat->ports, p);
-                                coordinate_t x = port->where->x;
-                                coordinate_t y = port->where->y;
-                                transformationmatrix_apply_transformation_xy(child->trans, &x, &y);
-                                transformationmatrix_apply_transformation_xy(flat->trans, &x, &y);
-                                _add_port(cell, port->name, NULL, port->layer, x, y, port->isbusport, port->busindex, 0); // 0: !storeanchor
-                            }
+                            struct shape* copy = shape_copy(S);
+                            shape_translate(copy, (ix - 1) * child->xpitch, (iy - 1) * child->ypitch);
+                            object_add_raw_shape(cell, copy);
                         }
                     }
+                    shape_destroy(S);
+                }
+            }
+            if(flattenports)
+            {
+                for(unsigned int p = 0; p < vector_size(flat->ports); ++p)
+                {
+                    struct port* port = vector_get(flat->ports, p);
+                    coordinate_t x = port->where->x;
+                    coordinate_t y = port->where->y;
+                    transformationmatrix_apply_transformation_xy(child->trans, &x, &y);
+                    transformationmatrix_apply_transformation_xy(flat->trans, &x, &y);
+                    _add_port(cell, port->name, NULL, port->layer, x, y, port->isbusport, port->busindex, 0); // 0: !storeanchor
                 }
             }
             object_destroy(flat);
         }
-        // destroy children
-        for(unsigned int i = 0; i < vector_size(cell->children); ++i)
-        {
-            struct object* child = vector_get(cell->children, i);
-            pcell_unlink_cell_reference(pcell_state, child->identifier);
-        }
-        vector_destroy(cell->children, object_destroy);
+        // FIXME: destroy children
+        //vector_destroy(cell->children);
     }
     cell->children = NULL;
 }
 
-struct object* object_flatten(const struct object* cell, struct pcell_state* pcell_state, int flattenports)
+struct object* object_flatten(const struct object* cell, int flattenports)
 {
     struct object* new = object_copy(cell);
-    object_flatten_inline(new, pcell_state, flattenports);
+    object_flatten_inline(new, flattenports);
     return new;
-}
-
-int object_is_child_array(const struct object* cell)
-{
-    return cell->isarray;
 }
 
 unsigned int object_get_child_xrep(const struct object* cell)
@@ -991,10 +1026,58 @@ unsigned int object_get_child_ypitch(const struct object* cell)
     return cell->ypitch;
 }
 
+static void _collect_references(const struct object* cell, struct const_vector* references)
+{
+    if(cell->references)
+    {
+        struct vector_const_iterator* it = vector_const_iterator_create(cell->references);
+        while(vector_const_iterator_is_valid(it))
+        {
+            const struct object* ref = vector_const_iterator_get(it);
+            _collect_references(ref, references);
+            const_vector_append(references, ref);
+            vector_const_iterator_next(it);
+        }
+        vector_const_iterator_destroy(it);
+    }
+}
+
+struct const_vector* object_collect_references(const struct object* cell)
+{
+    struct const_vector* references = const_vector_create(8);
+    _collect_references(cell, references);
+    return references;
+}
+
+static void _collect_references_mutable(const struct object* cell, struct vector* references)
+{
+    if(cell->references)
+    {
+        struct vector_iterator* it = vector_iterator_create(cell->references);
+        while(vector_iterator_is_valid(it))
+        {
+            struct object* ref = vector_iterator_get(it);
+            _collect_references_mutable(ref, references);
+            vector_append(references, ref);
+            vector_iterator_next(it);
+        }
+        vector_iterator_destroy(it);
+    }
+}
+
+struct vector* object_collect_references_mutable(struct object* cell)
+{
+    struct vector* references = vector_create(8, NULL);
+    _collect_references_mutable(cell, references);
+    return references;
+}
+
+/*
 const char* object_get_identifier(const struct object* cell)
 {
     return cell->identifier;
 }
+*/
 
 struct shape_iterator {
     const struct vector* shapes;

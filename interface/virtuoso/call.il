@@ -1,5 +1,5 @@
-procedure(OPCPrepareArgsForCellCreation(args @key (newgroup nil))
-    OPCArgs = lsprintf("--technology %s --export SKILL %s -X '-L %f'" OPCTech args OPCSettingsForm->OPCSettingsLabelSize->value)
+procedure(OPCPrepareArgsForCellCreation(args @key (newgroup nil) (exporttype "SKILL"))
+    OPCArgs = lsprintf("--technology %s --export %s %s -X '-L %f'" OPCTech exporttype args OPCSettingsForm->OPCSettingsLabelSize->value)
     when(OPCSettingsForm->OPCSettingsGroup->value == "true"
         if(!newgroup && OPCSettingsForm->OPCSettingsGroupConsecutively->value == "true"
             then
@@ -20,6 +20,12 @@ procedure(OPCPrepareArgsForCellCreation(args @key (newgroup nil))
     when(OPCSettingsForm->OPCSettingsDrawAllAlignmentboxes->value == "true"
         OPCArgs = lsprintf("%s --draw-all-alignmentboxes" OPCArgs)
     )
+    if(OPCSettingsForm->OPCSettingsSplitLets->value == "false"
+        then
+            OPCArgs = lsprintf("%s -X --no-let-splits" OPCArgs)
+        else
+            OPCArgs = lsprintf("%s -X '--max-let-splits %d'" OPCArgs OPCSettingsForm->OPCSettingsMaxLetSplits->value)
+    )
     OPCArgs
 )
 
@@ -34,7 +40,7 @@ procedure(OPCBuildCallCommand(args)
     )
 )
 
-procedure(OPCCall(OPCCommand redirect)
+procedure(OPCCall(OPCCommand @key (redirect nil))
     let(
         (errmsg)
         when(redirect
@@ -44,7 +50,7 @@ procedure(OPCCall(OPCCommand redirect)
             printf("opc call: %s\n" OPCCommand)
         )
         pid = ipcBeginProcess(OPCCommand)
-        ipcWait(pid 30 1) ; wait for process to finish
+        ipcWait(pid 30 30) ; wait for process to finish
         exitstatus = ipcGetExitStatus(pid)
         if(exitstatus != 0
             then 

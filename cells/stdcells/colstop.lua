@@ -26,7 +26,7 @@ function layout(gate, _P)
             rightpolylines[i] = entry
         end
     end
-    local harness = pcell.create_layout("stdcells/harness", { 
+    local harness = pcell.create_layout("stdcells/harness", "harness", {
         gatecontactpos = gatecontactpos,
         pcontactpos = sdcontacts,
         ncontactpos = sdcontacts,

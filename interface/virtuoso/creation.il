@@ -41,7 +41,7 @@ procedure(OPCCreateCellInternal(@optional (origin 0:0))
         ))
         ; call opc
         OPCCmd = OPCBuildCallCommand(OPCArgs)
-        when(OPCCall(OPCCmd nil)
+        when(OPCCall(OPCCmd ?redirect nil)
             if(isFile(lsprintf("%s.il" OPCSettingsForm->OPCCellFilename->value))
                 then
                     load(lsprintf("%s.il" OPCSettingsForm->OPCCellFilename->value))

@@ -53,11 +53,13 @@ function layout(gate, _P)
         ppowerspace = bp.powerspace
     end
     local routingshift = (bp.routingwidth + bp.routingspace) / (bp.numinnerroutes % 2 == 0 and 2 or 1)
-    local cmos = pcell.create_layout("basic/cmos", {
+    local cmos = pcell.create_layout("basic/cmos", "cmos", {
         nvthtype = bp.nvthtype,
         pvthtype = bp.pvthtype,
         pmosflippedwell = bp.pmosflippedwell,
         nmosflippedwell = bp.nmosflippedwell,
+        drawpmoswelltap = bp.drawtopbotwelltaps,
+        drawnmoswelltap = bp.drawtopbotwelltaps,
         oxidetype = bp.oxidetype,
         gatemarker = bp.gatemarker,
         gatelength = bp.glength,
@@ -73,8 +75,8 @@ function layout(gate, _P)
         sdwidth = bp.sdwidth,
         separation = separation,
         gatecontactsplitshift = 2 * routingshift,
-        dummycontheight = bp.powerwidth / 4,
-        dummycontshift = -bp.powerwidth / 2 + bp.powerwidth / 8,
+        dummycontheight = bp.drawtopbotwelltaps and bp.powerwidth or (bp.powerwidth / 4),
+        dummycontshift = bp.drawtopbotwelltaps and 0 or (-bp.powerwidth / 2 + bp.powerwidth / 8),
         drawleftstopgate = _P.drawleftstopgate,
         leftpolylines = _P.leftpolylines,
         drawrightstopgate = _P.drawrightstopgate,

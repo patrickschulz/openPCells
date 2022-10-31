@@ -12,13 +12,13 @@ end
 function layout(gate, _P)
     local bp = pcell.get_parameters("stdcells/base")
 
-    local iinv = pcell.create_layout("stdcells/not_gate", { 
+    local iinv = pcell.create_layout("stdcells/not_gate", "iinv", { 
         fingers = _P.ifingers, 
         shiftinput = _P.shiftinput1, 
         shiftoutput = bp.glength / 2 + bp.gspace / 2 
     })
 
-    local oinv = pcell.create_layout("stdcells/not_gate", { 
+    local oinv = pcell.create_layout("stdcells/not_gate", "oinv", { 
         fingers = _P.ofingers, 
         shiftinput = _P.shiftinput2, 
         shiftoutput = bp.glength / 2 + bp.gspace / 2 

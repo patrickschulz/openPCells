@@ -1,378 +1,790 @@
 /*
  * This library is intended for a logic synthesis that targets opc cell generation
  * The opc verilog parser recognizes a set of standard cells (by name), therefore the gate netlist needs to use exactly these names.
- * (The area of the cells is not really interesting, but added for completeness. It is normalized, so a gate with one transistor has an area of 1. -> not finished)
+ * The area of every cell is 1.0, since this allows to optimize for cell count in an easy way by optimizing for minimum area.
+ * A low cell count greatly simplifies the cell generation with opc.
  * List of cells:
- *    not_gate
- *    buf_gate
- *    tinv
- *    tbuf
- *    nand_gate
- *    nor_gate
- *    and_gate
- *    or_gate
- *    xor_gate
- *    xnor_gate
- *    dffpq
- *    dffnq
- *    dffprq
- *    dffnrq
- *    dffpsq
- *    dffnsq
- *    dffprsq
- *    dffnrsq
- *    latchq
- *    latchrq
+ *  not_gate
+ *  buf_gate
+ *  tinv
+ *  tbuf
+ *  nand_gate
+ *  nor_gate
+ *  and_gate
+ *  or_gate
+ *  xor_gate
+ *  xnor_gate
+ *  dffpq
+ *  dffnq
+ *  dffprq
+ *  dffnrq
+ *  dffpsq
+ *  dffnsq
+ *  dffprsq
+ *  dffnrsq
+ *  latchq
+ *  latchrq
  */
 
 library (opc) {
-  input_threshold_pct_fall : 50;
-  input_threshold_pct_rise : 50;
-  output_threshold_pct_fall : 50;
-  output_threshold_pct_rise : 50;
-  slew_derate_from_library : 1;
-  slew_lower_threshold_pct_fall : 20;
-  slew_lower_threshold_pct_rise : 20;
-  slew_upper_threshold_pct_fall : 80;
-  slew_upper_threshold_pct_rise : 80;
-  cell (not_gate) {
-    area : "0.133120";
-    pin (O) {
-      direction : "output";
-      function : "!I";
-    }
-    pin (I) {
-      direction : "input";
-    }
-  }
-  cell (buf_gate) {
-    area : "0.266240";
-    pin (O) {
-      direction : "output";
-      function : "I";
-    }
-    pin (I) {
-      direction : "input";
-    }
-  }
-  cell (tinv) {
-    area : "0.399360";
-    pin (O) {
-      direction : "output";
-      function : "!I";
-      three_state : "!EN";
-    }
-    pin (I) {
-      direction : "input";
-    }
-    pin (EN) {
-      direction : "input";
-    }
-  }
-  cell (tbuf) {
-    area : "0.532480";
-    pin (O) {
-      direction : "output";
-      function : "I";
-      three_state : "!EN";
-    }
-    pin (I) {
-      direction : "input";
-    }
-    pin (EN) {
-      direction : "input";
-    }
-  }
-  cell (nand_gate) {
-    area : "0.199680";
-    pin (O) {
-      direction : "output";
-      function : "!A+!B";
-    }
-    pin (A) {
-      direction : "input";
-    }
-    pin (B) {
-      direction : "input";
-    }
-  }
-  cell (nor_gate) {
-    area : "0.199680";
-    pin (O) {
-      direction : "output";
-      function : "!A&!B";
-    }
-    pin (A) {
-      direction : "input";
-    }
-    pin (B) {
-      direction : "input";
-    }
-  }
-  cell (and_gate) {
-    area : "0.199680";
-    pin (O) {
-      direction : "output";
-      function : "A&B";
-    }
-    pin (A) {
-      direction : "input";
-    }
-    pin (B) {
-      direction : "input";
-    }
-  }
-  cell (or_gate) {
-    area : "0.199680";
-    pin (O) {
-      direction : "output";
-      function : "A+B";
-    }
-    pin (A) {
-      direction : "input";
-    }
-    pin (B) {
-      direction : "input";
-    }
-  }
-  cell (mux) {
-    area : "0.798720";
-    pin (O) {
-      direction : "output";
-      function : "B&!SEL+A&SEL";
-    }
-    pin (A) {
-      direction : "input";
-    }
-    pin (B) {
-      direction : "input";
-    }
-    pin (SEL) {
-      direction : "input";
-    }
-  }
-  cell (dffpq) {
-    area : "1.530880";
-    pin (Q) {
-      direction : "output";
-      function : "IQ";
-    }
-    pin (CLK) {
-      clock : true;
-      direction : "input";
-    }
-    pin (D) {
-      direction : "input";
-      nextstate_type : "data";
-    }
-    ff (IQ,IQN) {
-      clocked_on : "CLK";
-      next_state : "D";
-    }
-  }
-  cell (dffnq) {
-    area : "1.530880";
-    pin (Q) {
-      direction : "output";
-      function : "IQ";
-    }
-    pin (CLK) {
-      clock : true;
-      direction : "input";
-    }
-    pin (D) {
-      direction : "input";
-      nextstate_type : "data";
-    }
-    ff (IQ,IQN) {
-      clocked_on : "(!CLK)";
-      next_state : "D";
-    }
-  }
-  cell (dffprq) {
-    area : "2.063360";
-    pin (Q) {
-      direction : "output";
-      function : "IQ";
-    }
-    pin (CLK) {
-      clock : true;
-      direction : "input";
-    }
-    pin (D) {
-      direction : "input";
-      nextstate_type : "data";
-    }
-    pin (RST) {
-      direction : "input";
-    }
-    ff (IQ,IQN) {
-      clocked_on : "CLK";
-      next_state : "D";
-      clear : "!RST";
-    }
-  }
-  cell (dffnrq) {
-    area : "2.063360";
-    pin (Q) {
-      direction : "output";
-      function : "IQ";
-    }
-    pin (CLK) {
-      clock : true;
-      direction : "input";
-    }
-    pin (D) {
-      direction : "input";
-      nextstate_type : "data";
-    }
-    pin (RST) {
-      direction : "input";
-    }
-    ff (IQ,IQN) {
-      clocked_on : "!CLK";
-      next_state : "D";
-      clear : "!RST";
-    }
-  }
-  cell (dffpsq) {
-    area : "2.063360";
-    pin (Q) {
-      direction : "output";
-      function : "IQ";
-    }
-    pin (CLK) {
-      clock : true;
-      direction : "input";
-    }
-    pin (D) {
-      direction : "input";
-      nextstate_type : "data";
-    }
-    pin (SET) {
-      direction : "input";
-    }
-    ff (IQ,IQN) {
-      clocked_on : "CLK";
-      next_state : "D";
-      preset : "(!SET)";
-    }
-  }
-  cell (dffpsq) {
-    area : "2.063360";
-    pin (Q) {
-      direction : "output";
-      function : "IQ";
-    }
-    pin (CLK) {
-      clock : true;
-      direction : "input";
-    }
-    pin (D) {
-      direction : "input";
-      nextstate_type : "data";
-    }
-    pin (SET) {
-      direction : "input";
-    }
-    ff (IQ,IQN) {
-      clocked_on : "!CLK";
-      next_state : "D";
-      preset : "(!SET)";
-    }
-  }
-  cell (dffprsq) {
-    area : "2.063360";
-    pin (Q) {
-      direction : "output";
-      function : "IQ";
-    }
-    pin (CLK) {
-      clock : true;
-      direction : "input";
-    }
-    pin (D) {
-      direction : "input";
-      nextstate_type : "data";
-    }
-    pin (RST) {
-      direction : "input";
-    }
-    pin (SET) {
-      direction : "input";
-    }
-    ff (IQ,IQN) {
-      clocked_on : "CLK";
-      next_state : "D";
-      clear : "!RST";
-      preset : "(!SET)";
-    }
-  }
-  cell (dffnrsq) {
-    area : "1.996800";
-    pin (Q) {
-      direction : "output";
-      function : "IQ";
-    }
-    pin (CLK) {
-      clock : true;
-      direction : "input";
-    }
-    pin (D) {
-      direction : "input";
-      nextstate_type : "data";
-    }
-    pin (RST) {
-      direction : "input";
-    }
-    pin (SET) {
-      direction : "input";
-    }
-    ff (IQ,IQN) {
-      clocked_on : "!CLK";
-      next_state : "D";
-      clear : "!RST";
-      preset : "(!SET)";
-    }
-  }
-  cell (latchq) {
-    area : "0.998400";
-    pin (Q) {
-      direction : "output";
-      function : "IQ";
-    }
-    pin (CLK) {
-      clock : true;
-      direction : "input";
-    }
-    pin (D) {
-      direction : "input";
-    }
-    latch (IQ,IQN) {
-      data_in : "D";
-      enable : "CLK";
-    }
-  }
-  cell (latchrq) {
-    area : "1.131520";
-    pin (Q) {
-      direction : "output";
-      function : "IQ";
-    }
-    pin (CLK) {
-      clock : true;
-      direction : "input";
-    }
-    pin (D) {
-      direction : "input";
-    }
-    pin (RST) {
-      direction : "input";
-    }
-    latch (IQ,IQN) {
-      clear : "!RST";
-      data_in : "D";
-      enable : "CLK";
-    }
-  }
+    input_threshold_pct_fall        : 50;
+    input_threshold_pct_rise        : 50;
+    output_threshold_pct_fall       : 50;
+    output_threshold_pct_rise       : 50;
+    slew_derate_from_library        : 1;
+    slew_lower_threshold_pct_fall   : 20;
+    slew_lower_threshold_pct_rise   : 20;
+    slew_upper_threshold_pct_fall   : 80;
+    slew_upper_threshold_pct_rise   : 80;
+    delay_model                     : table_lookup;
+    cell (not_gate) {
+        area : "1.0";
+        pin (O) {
+            direction : "output";
+            function : "!I";
+	        timing () {
+	            related_pin : "I";
+	            timing_type: combinational;
+	            timing_sense : negative_unate;
+	            cell_fall(scalar) { values ("2.0"); }
+	            cell_rise(scalar) { values ("2.0"); }
+	            fall_transition(scalar) { values ("0.01"); }
+	            rise_transition(scalar) { values ("0.01"); }
+	        }
+        }
+        pin (I) {
+            direction : "input";
+        }
+    }
+    cell (buf_gate) {
+        area : "1.0";
+        pin (O) {
+            direction : "output";
+            function : "I";
+	        timing () {
+	            related_pin : "I";
+	            timing_type: combinational;
+	            timing_sense : negative_unate;
+	            cell_fall(scalar) { values ("2.0"); }
+	            cell_rise(scalar) { values ("2.0"); }
+	            fall_transition(scalar) { values ("0.01"); }
+	            rise_transition(scalar) { values ("0.01"); }
+	        }
+        }
+        pin (I) {
+            direction : "input";
+        }
+    }
+    cell (tinv) {
+        area : "1.0";
+        pin (O) {
+            direction : "output";
+            function : "!I";
+            three_state : "!EN";
+	        timing () {
+	            related_pin : "I";
+	            timing_type: combinational;
+	            timing_sense : negative_unate;
+	            cell_fall(scalar) { values ("2.0"); }
+	            cell_rise(scalar) { values ("2.0"); }
+	            fall_transition(scalar) { values ("0.01"); }
+	            rise_transition(scalar) { values ("0.01"); }
+	        }
+        }
+        pin (I) {
+            direction : "input";
+        }
+        pin (EN) {
+            direction : "input";
+        }
+    }
+    cell (tbuf) {
+        area : "1.0";
+        pin (O) {
+            direction : "output";
+            function : "I";
+            three_state : "!EN";
+	        timing () {
+	            related_pin : "I";
+	            timing_type: combinational;
+	            timing_sense : negative_unate;
+	            cell_fall(scalar) { values ("2.0"); }
+	            cell_rise(scalar) { values ("2.0"); }
+	            fall_transition(scalar) { values ("0.01"); }
+	            rise_transition(scalar) { values ("0.01"); }
+	        }
+        }
+        pin (I) {
+            direction : "input";
+        }
+        pin (EN) {
+            direction : "input";
+        }
+    }
+    cell (nand_gate) {
+        area : "1.0";
+        pin (O) {
+            direction : "output";
+            function : "!A+!B";
+	        timing () {
+	            related_pin : "A";
+	            timing_type: combinational;
+	            timing_sense : negative_unate;
+	            cell_fall(scalar) { values ("2.0"); }
+	            cell_rise(scalar) { values ("2.0"); }
+	            fall_transition(scalar) { values ("0.01"); }
+	            rise_transition(scalar) { values ("0.01"); }
+	        }
+	        timing () {
+	            related_pin : "B";
+	            timing_type: combinational;
+	            timing_sense : negative_unate;
+	            cell_fall(scalar) { values ("2.0"); }
+	            cell_rise(scalar) { values ("2.0"); }
+	            fall_transition(scalar) { values ("0.01"); }
+	            rise_transition(scalar) { values ("0.01"); }
+	        }
+        }
+        pin (A) {
+            direction : "input";
+        }
+        pin (B) {
+            direction : "input";
+        }
+    }
+    cell (nor_gate) {
+        area : "1.0";
+        pin (O) {
+            direction : "output";
+            function : "!A&!B";
+	        timing () {
+	            related_pin : "A";
+	            timing_type: combinational;
+	            timing_sense : negative_unate;
+	            cell_fall(scalar) { values ("2.0"); }
+	            cell_rise(scalar) { values ("2.0"); }
+	            fall_transition(scalar) { values ("0.01"); }
+	            rise_transition(scalar) { values ("0.01"); }
+	        }
+	        timing () {
+	            related_pin : "B";
+	            timing_type: combinational;
+	            timing_sense : negative_unate;
+	            cell_fall(scalar) { values ("2.0"); }
+	            cell_rise(scalar) { values ("2.0"); }
+	            fall_transition(scalar) { values ("0.01"); }
+	            rise_transition(scalar) { values ("0.01"); }
+	        }
+        }
+        pin (A) {
+            direction : "input";
+        }
+        pin (B) {
+            direction : "input";
+        }
+    }
+    cell (and_gate) {
+        area : "1.0";
+        pin (O) {
+            direction : "output";
+            function : "A&B";
+	        timing () {
+	            related_pin : "A";
+	            timing_type: combinational;
+	            timing_sense : negative_unate;
+	            cell_fall(scalar) { values ("2.0"); }
+	            cell_rise(scalar) { values ("2.0"); }
+	            fall_transition(scalar) { values ("0.01"); }
+	            rise_transition(scalar) { values ("0.01"); }
+	        }
+	        timing () {
+	            related_pin : "B";
+	            timing_type: combinational;
+	            timing_sense : negative_unate;
+	            cell_fall(scalar) { values ("2.0"); }
+	            cell_rise(scalar) { values ("2.0"); }
+	            fall_transition(scalar) { values ("0.01"); }
+	            rise_transition(scalar) { values ("0.01"); }
+	        }
+        }
+        pin (A) {
+            direction : "input";
+        }
+        pin (B) {
+            direction : "input";
+        }
+    }
+    cell (or_gate) {
+        area : "1.0";
+        pin (O) {
+            direction : "output";
+            function : "A+B";
+	        timing () {
+	            related_pin : "A";
+	            timing_type: combinational;
+	            timing_sense : negative_unate;
+	            cell_fall(scalar) { values ("2.0"); }
+	            cell_rise(scalar) { values ("2.0"); }
+	            fall_transition(scalar) { values ("0.01"); }
+	            rise_transition(scalar) { values ("0.01"); }
+	        }
+	        timing () {
+	            related_pin : "B";
+	            timing_type: combinational;
+	            timing_sense : negative_unate;
+	            cell_fall(scalar) { values ("2.0"); }
+	            cell_rise(scalar) { values ("2.0"); }
+	            fall_transition(scalar) { values ("0.01"); }
+	            rise_transition(scalar) { values ("0.01"); }
+	        }
+        }
+        pin (A) {
+            direction : "input";
+        }
+        pin (B) {
+            direction : "input";
+        }
+    }
+    cell (xor_gate) {
+        area : "1.0";
+        pin (O) {
+            direction : "output";
+            function : "A&!B+!A&B";
+	        timing () {
+	            related_pin : "A";
+	            timing_type: combinational;
+	            timing_sense : negative_unate;
+	            cell_fall(scalar) { values ("2.0"); }
+	            cell_rise(scalar) { values ("2.0"); }
+	            fall_transition(scalar) { values ("0.01"); }
+	            rise_transition(scalar) { values ("0.01"); }
+	        }
+	        timing () {
+	            related_pin : "B";
+	            timing_type: combinational;
+	            timing_sense : negative_unate;
+	            cell_fall(scalar) { values ("2.0"); }
+	            cell_rise(scalar) { values ("2.0"); }
+	            fall_transition(scalar) { values ("0.01"); }
+	            rise_transition(scalar) { values ("0.01"); }
+	        }
+        }
+        pin (A) {
+            direction : "input";
+        }
+        pin (B) {
+            direction : "input";
+        }
+    }
+    cell (xnor_gate) {
+        area : "1.0";
+        pin (O) {
+            direction : "output";
+            function : "!(A&!B+!A&B)";
+	        timing () {
+	            related_pin : "A";
+	            timing_type: combinational;
+	            timing_sense : negative_unate;
+	            cell_fall(scalar) { values ("2.0"); }
+	            cell_rise(scalar) { values ("2.0"); }
+	            fall_transition(scalar) { values ("0.01"); }
+	            rise_transition(scalar) { values ("0.01"); }
+	        }
+	        timing () {
+	            related_pin : "B";
+	            timing_type: combinational;
+	            timing_sense : negative_unate;
+	            cell_fall(scalar) { values ("2.0"); }
+	            cell_rise(scalar) { values ("2.0"); }
+	            fall_transition(scalar) { values ("0.01"); }
+	            rise_transition(scalar) { values ("0.01"); }
+	        }
+        }
+        pin (A) {
+            direction : "input";
+        }
+        pin (B) {
+            direction : "input";
+        }
+    }
+    cell (mux) {
+        area : "1.0";
+        pin (O) {
+            direction : "output";
+            function : "(IP & SEL) + (IN & !SEL)";
+	        timing () {
+	            related_pin : "IP";
+	            timing_type: combinational;
+	            timing_sense : negative_unate;
+	            cell_fall(scalar) { values ("2.0"); }
+	            cell_rise(scalar) { values ("2.0"); }
+	            fall_transition(scalar) { values ("0.01"); }
+	            rise_transition(scalar) { values ("0.01"); }
+	        }
+	        timing () {
+	            related_pin : "IN";
+	            timing_type: combinational;
+	            timing_sense : negative_unate;
+	            cell_fall(scalar) { values ("2.0"); }
+	            cell_rise(scalar) { values ("2.0"); }
+	            fall_transition(scalar) { values ("0.01"); }
+	            rise_transition(scalar) { values ("0.01"); }
+	        }
+	        timing () {
+	            related_pin : "SEL";
+	            timing_type: combinational;
+	            timing_sense : negative_unate;
+	            cell_fall(scalar) { values ("2.0"); }
+	            cell_rise(scalar) { values ("2.0"); }
+	            fall_transition(scalar) { values ("0.01"); }
+	            rise_transition(scalar) { values ("0.01"); }
+	        }
+        }
+        pin (IP) {
+            direction : "input";
+        }
+        pin (IN) {
+            direction : "input";
+        }
+        pin (SEL) {
+            direction : "input";
+        }
+    }
+    cell (dffpq) {
+        area : "1.0";
+        pin (Q) {
+            direction : "output";
+            function : "IQ";
+			timing() {
+				related_pin : "CLK";
+				timing_sense : non_unate;
+				timing_type : rising_edge;
+				cell_fall(scalar) { values ("0.5"); }
+				cell_rise(scalar) { values ("0.5"); }
+				fall_transition(scalar) { values ("0.5"); }
+				rise_transition(scalar) { values ("0.5"); }
+			}
+        }
+        pin (CLK) {
+            clock : true;
+            direction : "input";
+        }
+        pin (D) {
+            direction : "input";
+            nextstate_type : "data";
+			timing() {
+				related_pin : "CLK";
+				timing_type : hold_rising;
+				rise_constraint (scalar) { values("1.0"); }
+	            fall_constraint (scalar) { values("1.0"); }
+			}
+			timing() {
+				related_pin : "CLK";
+				timing_type : setup_rising;
+				rise_constraint (scalar) { values("1.0"); }
+	            fall_constraint (scalar) { values("1.0"); }
+			}
+        }
+        ff (IQ,IQN) {
+            clocked_on : "CLK";
+            next_state : "D";
+        }
+    }
+    cell (dffnq) {
+        area : "1.0";
+        pin (Q) {
+            direction : "output";
+            function : "IQ";
+			timing() {
+				related_pin : "CLK";
+				timing_sense : non_unate;
+				timing_type : falling_edge;
+				cell_fall(scalar) { values ("0.5"); }
+				cell_rise(scalar) { values ("0.5"); }
+				fall_transition(scalar) { values ("0.5"); }
+				rise_transition(scalar) { values ("0.5"); }
+			}
+        }
+        pin (CLK) {
+            clock : true;
+            direction : "input";
+        }
+        pin (D) {
+            direction : "input";
+            nextstate_type : "data";
+			timing() {
+				related_pin : "CLK";
+				timing_type : hold_falling;
+				rise_constraint (scalar) { values("1.0"); }
+	            fall_constraint (scalar) { values("1.0"); }
+			}
+			timing() {
+				related_pin : "CLK";
+				timing_type : setup_falling;
+				rise_constraint (scalar) { values("1.0"); }
+	            fall_constraint (scalar) { values("1.0"); }
+			}
+        }
+        ff (IQ,IQN) {
+            clocked_on : "(!CLK)";
+            next_state : "D";
+        }
+    }
+    cell (dffprq) {
+        area : "1.0";
+        pin (Q) {
+            direction : "output";
+            function : "IQ";
+			timing() {
+				related_pin : "CLK";
+				timing_sense : non_unate;
+				timing_type : rising_edge;
+				cell_fall(scalar) { values ("0.5"); }
+				cell_rise(scalar) { values ("0.5"); }
+				fall_transition(scalar) { values ("0.5"); }
+				rise_transition(scalar) { values ("0.5"); }
+			}
+        }
+        pin (CLK) {
+            clock : true;
+            direction : "input";
+        }
+        pin (D) {
+            direction : "input";
+            nextstate_type : "data";
+			timing() {
+				related_pin : "CLK";
+				timing_type : hold_rising;
+				rise_constraint (scalar) { values("1.0"); }
+	            fall_constraint (scalar) { values("1.0"); }
+			}
+			timing() {
+				related_pin : "CLK";
+				timing_type : setup_rising;
+				rise_constraint (scalar) { values("1.0"); }
+	            fall_constraint (scalar) { values("1.0"); }
+			}
+        }
+        pin (RESET) {
+            direction : "input";
+        }
+        ff (IQ,IQN) {
+            clocked_on : "CLK";
+            next_state : "D";
+            clear : "!RESET";
+        }
+    }
+    cell (dffnrq) {
+        area : "1.0";
+        pin (Q) {
+            direction : "output";
+            function : "IQ";
+			timing() {
+				related_pin : "CLK";
+				timing_sense : non_unate;
+				timing_type : falling_edge;
+				cell_fall(scalar) { values ("0.5"); }
+				cell_rise(scalar) { values ("0.5"); }
+				fall_transition(scalar) { values ("0.5"); }
+				rise_transition(scalar) { values ("0.5"); }
+			}
+        }
+        pin (CLK) {
+            clock : true;
+            direction : "input";
+        }
+        pin (D) {
+            direction : "input";
+            nextstate_type : "data";
+			timing() {
+				related_pin : "CLK";
+				timing_type : hold_falling;
+				rise_constraint (scalar) { values("1.0"); }
+	            fall_constraint (scalar) { values("1.0"); }
+			}
+			timing() {
+				related_pin : "CLK";
+				timing_type : setup_falling;
+				rise_constraint (scalar) { values("1.0"); }
+	            fall_constraint (scalar) { values("1.0"); }
+			}
+        }
+        pin (RESET) {
+            direction : "input";
+        }
+        ff (IQ,IQN) {
+            clocked_on : "!CLK";
+            next_state : "D";
+            clear : "!RESET";
+        }
+    }
+    cell (dffpsq) {
+        area : "1.0";
+        pin (Q) {
+            direction : "output";
+            function : "IQ";
+			timing() {
+				related_pin : "CLK";
+				timing_sense : non_unate;
+				timing_type : rising_edge;
+				cell_fall(scalar) { values ("0.5"); }
+				cell_rise(scalar) { values ("0.5"); }
+				fall_transition(scalar) { values ("0.5"); }
+				rise_transition(scalar) { values ("0.5"); }
+			}
+        }
+        pin (CLK) {
+            clock : true;
+            direction : "input";
+        }
+        pin (D) {
+            direction : "input";
+            nextstate_type : "data";
+			timing() {
+				related_pin : "CLK";
+				timing_type : hold_rising;
+				rise_constraint (scalar) { values("1.0"); }
+	            fall_constraint (scalar) { values("1.0"); }
+			}
+			timing() {
+				related_pin : "CLK";
+				timing_type : setup_rising;
+				rise_constraint (scalar) { values("1.0"); }
+	            fall_constraint (scalar) { values("1.0"); }
+			}
+        }
+        pin (SET) {
+            direction : "input";
+        }
+        ff (IQ,IQN) {
+            clocked_on : "CLK";
+            next_state : "D";
+            preset : "(!SET)";
+        }
+    }
+    cell (dffnsq) {
+        area : "1.0";
+        pin (Q) {
+            direction : "output";
+            function : "IQ";
+			timing() {
+				related_pin : "CLK";
+				timing_sense : non_unate;
+				timing_type : falling_edge;
+				cell_fall(scalar) { values ("0.5"); }
+				cell_rise(scalar) { values ("0.5"); }
+				fall_transition(scalar) { values ("0.5"); }
+				rise_transition(scalar) { values ("0.5"); }
+			}
+        }
+        pin (CLK) {
+            clock : true;
+            direction : "input";
+        }
+        pin (D) {
+            direction : "input";
+            nextstate_type : "data";
+			timing() {
+				related_pin : "CLK";
+				timing_type : hold_falling;
+				rise_constraint (scalar) { values("1.0"); }
+	            fall_constraint (scalar) { values("1.0"); }
+			}
+			timing() {
+				related_pin : "CLK";
+				timing_type : setup_falling;
+				rise_constraint (scalar) { values("1.0"); }
+	            fall_constraint (scalar) { values("1.0"); }
+			}
+        }
+        pin (SET) {
+            direction : "input";
+        }
+        ff (IQ,IQN) {
+            clocked_on : "!CLK";
+            next_state : "D";
+            preset : "(!SET)";
+        }
+    }
+    cell (dffprsq) {
+        area : "1.0";
+        pin (Q) {
+            direction : "output";
+            function : "IQ";
+			timing() {
+				related_pin : "CLK";
+				timing_sense : non_unate;
+				timing_type : rising_edge;
+				cell_fall(scalar) { values ("0.5"); }
+				cell_rise(scalar) { values ("0.5"); }
+				fall_transition(scalar) { values ("0.5"); }
+				rise_transition(scalar) { values ("0.5"); }
+			}
+        }
+        pin (CLK) {
+            clock : true;
+            direction : "input";
+        }
+        pin (D) {
+            direction : "input";
+            nextstate_type : "data";
+			timing() {
+				related_pin : "CLK";
+				timing_type : hold_rising;
+				rise_constraint (scalar) { values("1.0"); }
+	            fall_constraint (scalar) { values("1.0"); }
+			}
+			timing() {
+				related_pin : "CLK";
+				timing_type : setup_rising;
+				rise_constraint (scalar) { values("1.0"); }
+	            fall_constraint (scalar) { values("1.0"); }
+			}
+        }
+        pin (RESET) {
+            direction : "input";
+        }
+        pin (SET) {
+            direction : "input";
+        }
+        ff (IQ,IQN) {
+            clocked_on : "CLK";
+            next_state : "D";
+            clear : "!RESET";
+            preset : "(!SET)";
+        }
+    }
+    cell (dffnrsq) {
+        area : "1.0";
+        pin (Q) {
+            direction : "output";
+            function : "IQ";
+			timing() {
+				related_pin : "CLK";
+				timing_sense : non_unate;
+				timing_type : falling_edge;
+				cell_fall(scalar) { values ("0.5"); }
+				cell_rise(scalar) { values ("0.5"); }
+				fall_transition(scalar) { values ("0.5"); }
+				rise_transition(scalar) { values ("0.5"); }
+			}
+        }
+        pin (CLK) {
+            clock : true;
+            direction : "input";
+        }
+        pin (D) {
+            direction : "input";
+            nextstate_type : "data";
+			timing() {
+				related_pin : "CLK";
+				timing_type : hold_falling;
+				rise_constraint (scalar) { values("1.0"); }
+	            fall_constraint (scalar) { values("1.0"); }
+			}
+			timing() {
+				related_pin : "CLK";
+				timing_type : setup_falling;
+				rise_constraint (scalar) { values("1.0"); }
+	            fall_constraint (scalar) { values("1.0"); }
+			}
+        }
+        pin (RESET) {
+            direction : "input";
+        }
+        pin (SET) {
+            direction : "input";
+        }
+        ff (IQ,IQN) {
+            clocked_on : "!CLK";
+            next_state : "D";
+            clear : "!RESET";
+            preset : "(!SET)";
+        }
+    }
+    cell (latchq) {
+        area : "1.0";
+        pin (Q) {
+            direction : "output";
+            function : "IQ";
+			timing() {
+				related_pin : "CLK";
+				timing_sense : non_unate;
+				timing_type : rising_edge;
+				cell_fall(scalar) { values ("0.5"); }
+				cell_rise(scalar) { values ("0.5"); }
+				fall_transition(scalar) { values ("0.5"); }
+				rise_transition(scalar) { values ("0.5"); }
+			}
+        }
+        pin (CLK) {
+            clock : true;
+            direction : "input";
+        }
+        pin (D) {
+            direction : "input";
+			timing() {
+				related_pin : "CLK";
+				timing_type : hold_rising;
+				rise_constraint (scalar) { values("1.0"); }
+	            fall_constraint (scalar) { values("1.0"); }
+			}
+			timing() {
+				related_pin : "CLK";
+				timing_type : setup_rising;
+				rise_constraint (scalar) { values("1.0"); }
+	            fall_constraint (scalar) { values("1.0"); }
+			}
+        }
+        latch (IQ,IQN) {
+            data_in : "D";
+            enable : "CLK";
+        }
+    }
+    cell (latchrq) {
+        area : "1.0";
+        pin (Q) {
+            direction : "output";
+            function : "IQ";
+			timing() {
+				related_pin : "CLK";
+				timing_sense : non_unate;
+				timing_type : rising_edge;
+				cell_fall(scalar) { values ("0.5"); }
+				cell_rise(scalar) { values ("0.5"); }
+				fall_transition(scalar) { values ("0.5"); }
+				rise_transition(scalar) { values ("0.5"); }
+			}
+        }
+        pin (CLK) {
+            clock : true;
+            direction : "input";
+        }
+        pin (D) {
+            direction : "input";
+			timing() {
+				related_pin : "CLK";
+				timing_type : hold_rising;
+				rise_constraint (scalar) { values("1.0"); }
+	            fall_constraint (scalar) { values("1.0"); }
+			}
+			timing() {
+				related_pin : "CLK";
+				timing_type : setup_rising;
+				rise_constraint (scalar) { values("1.0"); }
+	            fall_constraint (scalar) { values("1.0"); }
+			}
+        }
+        pin (RESET) {
+            direction : "input";
+        }
+        latch (IQ,IQN) {
+            clear : "!RESET";
+            data_in : "D";
+            enable : "CLK";
+        }
+    }
 }
+
+/* vim: ft=
+*/

@@ -18,14 +18,14 @@ procedure(OPCEditCallback()
     )
 ) ; procedure
 
-procedure(OPCUpdateCallbackHierarchical(xpath)
+procedure(OPCUpdateCallback(@key (callopc t) (hierarchical t) (xpath nil))
     letseq(
         (
             (cv geGetEditCellView())
             (libPath cv->lib->readPath)
-            (libname cv->libName)
+            (libname cv->libName) ; read by generated .il script, don't remove
             (cellName cv->cellName)
-            path OPCArgs OPCCmd
+            path OPCArgs OPCCmd success
         )
         if(xpath
             then
@@ -33,48 +33,51 @@ procedure(OPCUpdateCallbackHierarchical(xpath)
             else
                 path = lsprintf("%s/%s/layout/layout.lua" libPath cellName)
         )
-        ; FIXME: -X -s only needed, because SKILL export is broken
-        OPCArgs = OPCPrepareArgsForCellCreation(lsprintf("--cellscript %s -f %s --write-children-ports -X -s" path OPCSettingsForm->OPCCellFilename->value))
+        OPCArgs = OPCPrepareArgsForCellCreation(lsprintf("--cellscript %s -f %s --write-children-ports" path OPCSettingsForm->OPCCellFilename->value))
+        unless(hierarchical
+            OPCArgs = lsprintf("%s --flat" OPCArgs)
+        )
         OPCCmd = OPCBuildCallCommand(OPCArgs)
-        if(OPCCall(OPCCmd nil)
+        if(callopc
             then
-                foreach(shape cv->shapes dbDeleteObject(shape))
-                foreach(inst cv->instances dbDeleteObject(inst))
-                foreach(via cv->vias dbDeleteObject(via))
-                load(lsprintf("%s.il" OPCSettingsForm->OPCCellFilename->value))
-                OPCCleanUp(lsprintf("%s.il" OPCSettingsForm->OPCCellFilename->value))
+                if(OPCCall(OPCCmd ?redirect nil)
+                    then
+                        foreach(shape cv->shapes dbDeleteObject(shape))
+                        foreach(inst cv->instances dbDeleteObject(inst))
+                        foreach(via cv->vias dbDeleteObject(via))
+                        success = t
+                    else
+                        success = nil
+                        printf("opc call: %s\n" OPCCmd)
+                )
             else
-                printf("opc call: %s\n" OPCCmd)
+                success = t
+        )
+        when(success
+            load(lsprintf("%s.il" OPCSettingsForm->OPCCellFilename->value))
+            OPCCleanUp(lsprintf("%s.il" OPCSettingsForm->OPCCellFilename->value))
         )
     )
 ) ; procedure
 
-procedure(OPCUpdateCallbackFlat(xpath)
+procedure(OPCUpdateAsGDS()
     letseq(
         (
             (cv geGetEditCellView())
             (libPath cv->lib->readPath)
             (cellName cv->cellName)
-            path OPCArgs OPCCmd
+            (path lsprintf("%s/%s/layout/layout.lua" libPath cellName))
+            OPCArgs OPCCmd success
         )
-        if(xpath
-            then
-                path = xpath
-            else
-                path = lsprintf("%s/%s/layout/layout.lua" libPath cellName)
+        OPCArgs = OPCPrepareArgsForCellCreation(
+            lsprintf("--cellscript %s -f %s --write-children-ports" path OPCSettingsForm->OPCCellFilename->value)
+            ?exporttype "gds"
         )
-        OPCArgs = OPCPrepareArgsForCellCreation(lsprintf("--cellscript %s -f %s --flat" path OPCSettingsForm->OPCCellFilename->value) ?newgroup t)
+        unless(hierarchical
+            OPCArgs = lsprintf("%s --flat" OPCArgs)
+        )
         OPCCmd = OPCBuildCallCommand(OPCArgs)
-        if(OPCCall(OPCCmd nil)
-            then
-                foreach(shape cv->shapes dbDeleteObject(shape))
-                foreach(inst cv->instances dbDeleteObject(inst))
-                foreach(via cv->vias dbDeleteObject(via))
-                load(lsprintf("%s.il" OPCSettingsForm->OPCCellFilename->value))
-                OPCCleanUp(lsprintf("%s.il" OPCSettingsForm->OPCCellFilename->value))
-            else
-                printf("opc call: %s\n" OPCCmd)
-        )
+        OPCCall(OPCCmd ?redirect nil)
     )
 ) ; procedure
 

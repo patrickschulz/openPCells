@@ -74,52 +74,62 @@ function M.legalize(nets, rows, numinnerroutes, pnumtracks, nnumtracks, floorpla
     return routednets
 end
 
-function M.route(cell, routes, cells, width, numinnerroutes, pnumtracks, nnumtracks, xgrid, ygrid)
-    local xgrid = xgrid or 1
-    local ygrid = ygrid or 1
+local function _finish_route_path(cell, pts, currmetal, width)
+    if #pts > 1 and (pts[1] ~= pts[2]) then
+        geometry.path(cell, generics.metal(currmetal), pts, width)
+    end
+    -- clear pts
+    for i = 1, #pts do
+        pts[i] = nil
+    end
+end
+
+local function _insert_or_update(cell, currmetal, pts, x, y, width, draw)
+    if draw then
+        table.insert(pts, point.create(x, y))
+    else
+        _finish_route_path(cell, pts, currmetal, width)
+        pts[1] = point.create(x, y)
+    end
+end
+
+function M.route(cell, routes, width, numinnerroutes, pnumtracks, nnumtracks, xgrid, ygrid)
+    print("called route with")
+    print(cell)
+    print(routes)
+    print(width)
+    print(numinnerroutes)
+    print(pnumtracks)
+    print(nnumtracks)
+    print(xgrid)
+    print(ygrid)
+    if not xgrid then
+        moderror("routing.route: 'xgrid' must be given")
+    end
+    if not ygrid then
+        moderror("routing.route: 'ygrid' must be given")
+    end
     for r, route in ipairs(routes) do
         if not (route[1].type == "anchor" or route[1].type == "point") then
             moderror(string.format("routing.route: route #%d: first movement needs to be of type 'anchor' or 'point'", r))
         end
-        local startpt
-        if route[1].type == "anchor" then
-            startpt = cells[route[1].name]:get_anchor(route[1].anchor)
-        else
-            startpt = route[1].where
-        end
+        local startpt = route[1].where
         local pts = { startpt }
         local currmetal = route.startmetal or 1
         for i = 2, #route do
             local movement = route[i]
             if movement.type == "point" then
-                table.insert(pts, movement.where)
-            elseif movement.type == "anchor" then
-                local where = cells[movement.name]:get_anchor(movement.anchor)
-                local pt = point.create(
-                    where:getx() + xgrid * (movement.xoffset or 0),
-                    where:gety() + ygrid * (movement.yoffset or 0)
-                )
-                table.insert(pts, pt)
-            elseif movement.type == "shift" then
-                local pt = pts[#pts]
-                local x, y = pt:unwrap()
-                point._update(pt, x + xgrid * (movement.x or 0), y + ygrid * (movement.y or 0))
+                local x, y = movement.where:unwrap()
+                _insert_or_update(cell, currmetal, pts, x * xgrid, y * ygrid, width, not movement.nodraw)
             elseif movement.type == "delta" then
+                if movement.x and movement.y then
+                    error("routing delta movement must not specify both x and y")
+                end
                 local lastpt = pts[#pts]
                 local x, y = lastpt:unwrap()
-                if movement.x and movement.y then
-                    error("routing movement must not specify both x and y")
-                elseif movement.x then
-                    table.insert(pts, point.create(
-                        x + xgrid * movement.x,
-                        y
-                    ))
-                elseif movement.y then
-                    table.insert(pts, point.create(
-                        x,
-                        y + ygrid * movement.y
-                    ))
-                end
+                x = x + xgrid * (movement.x or 0)
+                y = y + ygrid * (movement.y or 0)
+                _insert_or_update(cell, currmetal, pts, x, y, width, not movement.nodraw)
             elseif movement.type == "rowshift" then
                 local lastpt = pts[#pts]
                 local x, y = lastpt:unwrap()
@@ -143,7 +153,7 @@ function M.route(cell, routes, cells, width, numinnerroutes, pnumtracks, nnumtra
                     target = target + ygrid * updown * (2 * shift + 1 + numinnerroutes)
                 end
                 target = target + ygrid * (movement.offset or 0)
-                table.insert(pts, point.create(x, target))
+                _insert_or_update(cell, currmetal, pts, x, target, width, not movement.nodraw)
             elseif movement.type == "via" then
                 local targetmetal
                 if movement.z then
@@ -154,18 +164,15 @@ function M.route(cell, routes, cells, width, numinnerroutes, pnumtracks, nnumtra
                 local lastpt = pts[#pts]
                 local x, y = lastpt:unwrap()
                 geometry.via(cell, currmetal, targetmetal, width, width, x, y)
-                if #pts > 1 and (pts[1] ~= pts[2]) then
-                    geometry.path(cell, generics.metal(currmetal), pts, width)
-                end
-                pts = { lastpt }
+                _finish_route_path(cell, pts, currmetal, width)
+                pts[1] = lastpt
                 currmetal = targetmetal
             else
                 error(string.format("routing.route: unknown movement type '%s'", movement.type))
             end
         end
-        if #pts > 1 and (pts[1] ~= pts[2]) then
-            geometry.path(cell, generics.metal(currmetal), pts, width)
-        end
+        -- draw remaining points
+        _finish_route_path(cell, pts, currmetal, width)
     end
 end
 

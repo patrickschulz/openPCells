@@ -3,11 +3,10 @@ function parameters()
 end
 
 function layout(cell, _P)
-    local momcap = pcell.create_layout("passive/capacitor/mom")
-    local momname = pcell.add_cell_reference(momcap, "momcap")
-    local mom1 = cell:add_child(momname)
+    local momcap = pcell.create_layout("passive/capacitor/mom", "momcap")
+    local mom1 = cell:add_child(momcap, "mom2")
     mom1:move_anchor("minus")
-    local mom2 = cell:add_child(momname)
+    local mom2 = cell:add_child(momcap, "mom2")
     mom2:move_anchor("plus")
     mom2:flipy()
 end

@@ -1,3 +1,8 @@
+--[[
+This pcell draws one turn of a circular inductor.
+As circles are usually not possible in mainstream technologies, the shape is approximated by a line-drawing algorithm.
+The inductor is defined by two radii, one for the main loop and the second one for the exiting (aux).
+--]]
 function parameters()
     pcell.add_parameters(
         { "radius(Radius)",                        40000 },
@@ -9,48 +14,45 @@ function parameters()
         { "metalnum(Conductor Metal)",     -1, "integer" },
         { "allow45(Allow Angles with 45 Degrees)",  true }
     )
+    pcell.check_expression("width % grid == 0", "width must fit on grid")
+    pcell.check_expression("radius % grid == 0", "radius must fit on grid")
+    pcell.check_expression("(-0.5 * separation - cornerradius) % grid == 0", "can't fit points on grid with this separation and cornerradius")
 end
 
 function layout(inductor, _P)
     -- calculate center of auxiliary circle
-    local xc = -0.5 * _P.separation - _P.cornerradius
-    local yc = -_P.grid * math.floor(math.sqrt((_P.radius + _P.cornerradius)^2 - xc^2) / _P.grid)
+    local xc = 0.5 * _P.separation + _P.cornerradius
+    local yc = -_P.grid * math.floor(math.sqrt((_P.radius - _P.width / 2 + _P.cornerradius)^2 - xc^2) / _P.grid)
 
-    -- ** Inner part **
-    -- calculate meeting point
-    local xm = xc * _P.radius / (_P.cornerradius + _P.radius)
+    -- circle points
+    local maininner = graphics.quartercircle(4, point.create(0, 0), _P.radius - _P.width / 2, _P.grid, _P.allow45)
+    local auxinner  = graphics.quartercircle(2, point.create(xc, yc), _P.cornerradius, _P.grid, _P.allow45)
+    local mainouter = graphics.quartercircle(4, point.create(0, 0), _P.radius + _P.width / 2, _P.grid, _P.allow45)
+    local auxouter  = graphics.quartercircle(2, point.create(xc, yc), _P.cornerradius - _P.width, _P.grid, _P.allow45)
 
-    local main = graphics.quartercircle(3, point.create(0, 0), _P.radius, _P.grid, _P.allow45)
-    local aux  = graphics.quartercircle(1, point.create(xc, yc), _P.cornerradius, _P.grid, _P.allow45)
+    -- meeting points
+    local xminner = xc * (_P.radius - _P.width / 2) / (_P.cornerradius + _P.radius - _P.width / 2)
+    local xmouter = xc * (_P.radius + _P.width / 2) / (_P.cornerradius + _P.radius - _P.width / 2)
 
-    local inner = graphics.quartercircle(2, point.create(0, 0), _P.radius, _P.grid, _P.allow45) -- start with topleft quarter circle
-    util.merge(inner, util.filter_forward(main, function(pt) return pt:getx() < xm end))
-    util.merge(inner, util.filter_backward(aux, function(pt) return pt:getx() >= xm end))
-    -- mirror points and append
-    inner = util.reverse(inner)
-    util.merge(inner, util.reverse(util.xmirror(inner)))
+    -- inner part
+    local inner = {}
+    util.merge_forwards(inner, util.filter_backward(auxinner, function(pt) return pt:getx() < xminner end))
+    util.merge_forwards(inner, util.filter_forward(maininner, function(pt) return pt:getx() >= xminner end))
+    util.merge_backwards(inner, util.ymirror(maininner))
+    util.merge_backwards(inner, util.xmirror(inner))
 
-    -- ** Outer part **
-    -- calculate meeting point
-    xm = xc * (_P.radius + _P.width) / (_P.cornerradius + _P.radius)
+    -- outer part
+    local outer = {}
+    util.merge_forwards(outer, util.filter_backward(auxouter, function(pt) return pt:getx() < xmouter end))
+    util.merge_forwards(outer, util.filter_forward(mainouter, function(pt) return pt:getx() >= xmouter end))
+    util.merge_backwards(outer, util.ymirror(mainouter))
+    util.merge_backwards(outer, util.xmirror(outer))
 
-    main = graphics.quartercircle(3, point.create(0, 0), _P.radius + _P.width, _P.grid, _P.allow45)
-    aux  = graphics.quartercircle(1, point.create(xc, yc), _P.cornerradius - _P.width, _P.grid, _P.allow45)
-
-    local outer = graphics.quartercircle(2, point.create(0, 0), _P.radius + _P.width, _P.grid, _P.allow45) -- start with topleft quarter circle
-    util.merge(outer, util.filter_forward(main, function(pt) return pt:getx() < xm end))
-    util.merge(outer, util.filter_backward(aux, function(pt) return pt:getx() >= xm end))
-    -- mirror points and append
-    outer = util.reverse(outer)
-    util.merge(outer, util.reverse(util.xmirror(outer)))
-
-    -- ** assemble final path **
+    -- assemble points
     local pts = {}
-    for _, pt in ipairs(util.reverse(inner)) do
-        table.insert(pts, pt)
-    end
-    for _, pt in ipairs(outer) do
-        table.insert(pts, pt)
-    end
+    util.merge_forwards(pts, outer)
+    util.merge_backwards(pts, inner)
+
+    -- create polygon
     geometry.polygon(inductor, generics.metal(_P.metalnum), pts)
 end

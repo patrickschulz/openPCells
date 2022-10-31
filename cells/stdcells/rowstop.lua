@@ -16,7 +16,7 @@ function layout(gate, _P)
     for i = 1, #_P.glengths do
         gatecontactpos[i] = "unused"
     end
-    local harness = pcell.create_layout("stdcells/harness", { 
+    local harness = pcell.create_layout("stdcells/harness", "harness", {
         gatecontactpos = gatecontactpos,
         drawtransistors = false,
         drawgatecontacts = false,

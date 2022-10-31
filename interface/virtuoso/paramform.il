@@ -4,7 +4,7 @@ procedure(OPCGetCellParameters(cellname)
             fieldlist field OPCCmd
         )   
         OPCCmd = OPCBuildCallCommand(lsprintf("--technology %s --cell %s --parameters --parameters-format '%%t:%%p:%%n:%%d:%%v:%%a:%%r'" OPCTech cellname))
-        when(OPCCall(OPCCmd OPCSettingsForm->OPCParamFilename->value)
+        when(OPCCall(OPCCmd ?redirect OPCSettingsForm->OPCParamFilename->value)
             let(
                 ((file infile(OPCSettingsForm->OPCParamFilename->value)) (isown t) params ptype name display default vtype readonly sym)
                 while(line = gets(nil file)

@@ -28,7 +28,7 @@ pcell.push_overwrites("stdcells/base", {
     gspace = gatespace,
     routingwidth = routingwidth,
     routingspace = routingspace,
-    powerwidth = 500,
+    powerwidth = 480,
     pnumtracks = 3,
     nnumtracks = 3,
 })
@@ -40,8 +40,7 @@ local lines = {}
 table.insert(lines, "return {")
 for i, cellname in ipairs(celllist) do
     local cell = pcell.create_layout(string.format("stdcells/%s", cellname))
-    local childname = pcell.add_cell_reference(cell, cellname)
-    local child = toplevel:add_child(childname)
+    local child = toplevel:add_child(cell, cellname)
     child:move_anchor_y("bottom", lastanchor)
     lastanchor = child:get_anchor("top")
 

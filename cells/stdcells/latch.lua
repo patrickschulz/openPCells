@@ -7,19 +7,19 @@ function layout(gate, _P)
     local bp = pcell.get_parameters("stdcells/base")
 
     -- clock inverter/buffer
-    local clockbuf = pcell.create_layout("stdcells/buf")
+    local clockbuf = pcell.create_layout("stdcells/buf", "clockbuf")
     gate:merge_into_shallow(clockbuf)
 
     -- first clocked inverter
-    local cinv1 = pcell.create_layout("stdcells/cinv"):move_anchor("left", clockbuf:get_anchor("right"))
+    local cinv1 = pcell.create_layout("stdcells/cinv", "cinv1"):move_anchor("left", clockbuf:get_anchor("right"))
     gate:merge_into_shallow(cinv1)
 
     -- intermediate inverter
-    local inv = pcell.create_layout("stdcells/not_gate"):move_anchor("left", cinv1:get_anchor("right"))
+    local inv = pcell.create_layout("stdcells/not_gate", "inv"):move_anchor("left", cinv1:get_anchor("right"))
     gate:merge_into_shallow(inv)
     
     -- second clocked inverter
-    local cinv2 = pcell.create_layout("stdcells/cinv"):move_anchor("left", inv:get_anchor("right"))
+    local cinv2 = pcell.create_layout("stdcells/cinv", "cinv2"):move_anchor("left", inv:get_anchor("right"))
     gate:merge_into_shallow(cinv2)
 
     -- draw connections

@@ -34,7 +34,7 @@ function layout(pads, _P)
         padopeningwidth = _P.Spadopeningwidth, 
         padopeningheight = _P.Spadopeningheight,
     })
-    local Spad = pcell.add_cell_reference(pcell.create_layout("auxiliary/pad"), "Spad")
+    local Spad = pcell.create_layout("auxiliary/pad", "Spad")
     pcell.pop_overwrites("auxiliary/pad")
 
     pcell.push_overwrites("auxiliary/pad", { 
@@ -43,7 +43,7 @@ function layout(pads, _P)
         padopeningwidth = _P.Gpadopeningwidth, 
         padopeningheight = _P.Gpadopeningheight,
     })
-    local Gpad = pcell.add_cell_reference(pcell.create_layout("auxiliary/pad"), "Gpad")
+    local Gpad = pcell.create_layout("auxiliary/pad", "Gpad")
     pcell.pop_overwrites("auxiliary/pad")
 
     pcell.push_overwrites("auxiliary/pad", { 
@@ -52,7 +52,7 @@ function layout(pads, _P)
         padopeningwidth = _P.Ppadopeningwidth, 
         padopeningheight = _P.Ppadopeningheight,
     })
-    local Ppad = pcell.add_cell_reference(pcell.create_layout("auxiliary/pad"), "Ppad")
+    local Ppad = pcell.create_layout("auxiliary/pad", "Ppad")
     pcell.pop_overwrites("auxiliary/pad")
     pcell.pop_overwrites("auxiliary/pad")
 
@@ -60,11 +60,11 @@ function layout(pads, _P)
     for i, padtype in ipairs(_P.padconfig) do
         local pad
         if padtype == "S" then
-            pad = pads:add_child(Spad)
+            pad = pads:add_child(Spad, "Spad")
         elseif padtype == "G" then
-            pad = pads:add_child(Gpad)
+            pad = pads:add_child(Gpad, "Gpad")
         else
-            pad = pads:add_child(Ppad)
+            pad = pads:add_child(Ppad, "Ppad")
         end
         local x, y
         if _P.orientation == "horizontal" then

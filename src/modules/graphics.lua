@@ -210,13 +210,13 @@ function graphics.quarterellipse(quadrant, origin, xradius, yradius, grid, allow
         return quarter
     end
     if quadrant == 2 then
-        return util.reverse(util.xmirror(quarter))
+        return util.reverse(util.xmirror(quarter, xc))
     end
     if quadrant == 3 then
-        return util.xmirror(util.ymirror(quarter))
+        return util.xmirror(util.ymirror(quarter, yc))
     end
     if quadrant == 4 then
-        return util.reverse(util.ymirror(quarter))
+        return util.reverse(util.ymirror(quarter, yc))
     end
     assert(nil, string.format("wrong quadrant: %d", quadrant))
 end

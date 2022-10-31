@@ -9,7 +9,8 @@ function parameters()
         { "enablenpos", "lower" },
         { "swapinputs", false },
         { "swapoutputs", false },
-        { "shiftoutput", 0 }
+        { "shiftoutput", 0 },
+        { "connectoutput", true }
     )
 end
 
@@ -88,7 +89,7 @@ function layout(gate, _P)
             end
         end
     end
-    local harness = pcell.create_layout("stdcells/harness", {
+    local harness = pcell.create_layout("stdcells/harness", "mosfets", {
         gatecontactpos = gatecontactpos,
         pcontactpos = pcontactpos,
         ncontactpos = ncontactpos,
@@ -213,13 +214,13 @@ function layout(gate, _P)
     end
 
     -- drain connection
-    if bp.connectoutput then
+    if _P.connectoutput then
         local dend = _P.splitenables and (_P.swapoutputs and 5 or 2) or (_P.swapoutputs and 4 or 2)
         geometry.path(gate, generics.metal(1), geometry.path_points_xy(
-            harness:get_anchor(string.format("pSDi%d", dend)):translate(0,  bp.sdwidth / 2), {
+            harness:get_anchor(string.format("pSD%dbr", dend)):translate(0,  bp.sdwidth / 2), {
                 harness:get_anchor(string.format("G%dcc", fingers + 1)):translate(_P.shiftoutput + xpitch / 2, 0),
                 0, -- toggle xy
-                harness:get_anchor(string.format("nSDi%d", dend)):translate(0, -bp.sdwidth / 2),
+                harness:get_anchor(string.format("nSD%dtr", dend)):translate(0, -bp.sdwidth / 2),
         }), bp.sdwidth)
     end
 
@@ -227,8 +228,8 @@ function layout(gate, _P)
     if _P.splitenables then
         for i = 1, _P.fingers do
             geometry.path(gate, generics.metal(1), {
-                harness:get_anchor(string.format("nSDc%d", 1 + (i - 1) * 3 + 2)),
-                harness:get_anchor(string.format("nSDc%d", 1 + (i - 1) * 3 + 3)),
+                harness:get_anchor(string.format("nSD%dcc", 1 + (i - 1) * 3 + 2)),
+                harness:get_anchor(string.format("nSD%dcc", 1 + (i - 1) * 3 + 3)),
             }, bp.sdwidth)
         end
     end

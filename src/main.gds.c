@@ -7,8 +7,6 @@
 #include "main.functions.h"
 #include "lua_util.h"
 #include "gdsparser.h"
-#include "filesystem.h"
-#include "config.h"
 
 #include "scriptmanager.h"
 #include "modulemanager.h"
@@ -71,7 +69,7 @@ void main_gds_read(struct cmdoptions* cmdoptions)
     }
     const char* gdslayermapfile = cmdoptions_get_argument_long(cmdoptions, "gds-layermap");
     struct vector* gdslayermap = gdsparser_create_layermap(gdslayermapfile);
-    struct vector* ignorelpp = vector_create(1);
+    struct vector* ignorelpp = vector_create(1, free);
     if(cmdoptions_was_provided_long(cmdoptions, "gds-ignore-lpp"))
     {
         const char** lppstrs = cmdoptions_get_argument_long(cmdoptions, "gds-ignore-lpp");
@@ -108,7 +106,7 @@ void main_gds_read(struct cmdoptions* cmdoptions)
         printf("could not read stream file '%s'\n", readgds);
     }
     gdsparser_destroy_layermap(gdslayermap);
-    vector_destroy(ignorelpp, free);
+    vector_destroy(ignorelpp);
     if(ablayer)
     {
         free(ablayer);

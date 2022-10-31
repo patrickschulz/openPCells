@@ -11,12 +11,12 @@ function parameters()
         { "pmosflippedwell(PMOS Flipped Well) ",                        false },
         { "nmosflippedwell(NMOS Flipped Well)",                         false },
         { "glength(Gate Length)",                                       tech.get_dimension("Minimum Gate Length") },
-        { "gspace(Gate Spacing)",                                       tech.get_dimension("Minimum Gate Space") },
+        { "gspace(Gate Spacing)",                                       tech.get_dimension("Minimum Gate XSpace") },
         { "sdwidth(Source/Drain Metal Width)",                          tech.get_dimension("Minimum M1 Width"), posvals = even() },
         { "routingwidth(Routing Metal Width)",                          tech.get_dimension("Minimum M1 Width") },
         { "routingspace(Routing Metal Space)",                          tech.get_dimension("Minimum M1 Space") },
-        { "pnumtracks(Number of PMOS Routing Tracks)",                  5 },
-        { "nnumtracks(Number of NMOS Routing Tracks)",                  5 },
+        { "pnumtracks(Number of PMOS Routing Tracks)",                  3 },
+        { "nnumtracks(Number of NMOS Routing Tracks)",                  3 },
         { "numinnerroutes(Number of inner M1 routes)",                  3 }, -- if you use complex gates (xor, dff), this must be (at least) 3
         { "powerwidth(Power Rail Metal Width)",                         tech.get_dimension("Minimum M1 Width") },
         { "powerspace(Power Rail Space)",                               tech.get_dimension("Minimum M1 Space") },
@@ -27,10 +27,10 @@ function parameters()
         { "nsdheight(NMOS Source/Drain Contact Height)",                0 },
         { "psdpowerheight(PMOS Source/Drain Contact Height)",           0 },
         { "nsdpowerheight(NMOS Source/Drain Contact Height)",           0 },
+        { "drawtopbotwelltaps",                                         true },
         { "dummycontheight(Dummy Gate Contact Height)",                 tech.get_dimension("Minimum M1 Width") },
         { "drawdummygcut(Draw Dummy Gate Cut)",                         false },
-        { "compact(Compact Layout)",                                    true },
-        { "connectoutput",                                              true }
+        { "compact(Compact Layout)",                                    true }
     )
-    pcell.check_expression("powerwidth % 8 == 0", "powerwidth must be divisible by 8")
+    pcell.check_expression("not drawtopbotwelltaps and (powerwidth % 8 == 0) or true", "powerwidth must be divisible by 8 if drawtopbotwelltaps is false")
 end

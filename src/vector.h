@@ -4,8 +4,8 @@
 #include <stddef.h>
 
 struct vector;
-struct vector* vector_create(size_t capacity);
-void vector_destroy(struct vector* vector, void (*destructor)(void*));
+struct vector* vector_create(size_t capacity, void (*destructor)(void*));
+void vector_destroy(struct vector* vector);
 struct vector* vector_copy(struct vector* vector, void* (*copy)(const void*));
 void vector_reserve(struct vector* vector, size_t additional_capacity);
 size_t vector_size(const struct vector* vector);
@@ -22,6 +22,8 @@ void vector_swap(struct vector* vector, size_t i, size_t j);
 void vector_prepend(struct vector* vector, void* element);
 void vector_remove(struct vector* vector, size_t index, void (*destructor)(void*));
 void vector_sort(struct vector* vector, int (*cmp_func)(const void*, const void*));
+void vector_swap(struct vector* vector, size_t idx1, size_t idx2);
+void vector_reverse(struct vector* vector);
 
 struct vector_iterator;
 struct vector_iterator* vector_iterator_create(struct vector* vector);
@@ -46,5 +48,12 @@ void const_vector_set(struct const_vector* const_vector, size_t i, const void* e
 void const_vector_append(struct const_vector* const_vector, const void* element);
 void const_vector_prepend(struct const_vector* const_vector, const void* element);
 void const_vector_remove(struct const_vector* const_vector, size_t index);
+
+struct const_vector_iterator;
+struct const_vector_iterator* const_vector_iterator_create(const struct const_vector* vector);
+int const_vector_iterator_is_valid(struct const_vector_iterator* iterator);
+const void* const_vector_iterator_get(struct const_vector_iterator* iterator);
+void const_vector_iterator_next(struct const_vector_iterator* iterator);
+void const_vector_iterator_destroy(struct const_vector_iterator* iterator);
 
 #endif // OPC_LVECTOR_H

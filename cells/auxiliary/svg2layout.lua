@@ -27,10 +27,10 @@ local function collect(s)
             local toclose = table.remove(stack)  -- remove top
             top = stack[#stack]
             if #stack < 1 then
-                error("nothing to close with " .. label)
+                cellerror("nothing to close with " .. label)
             end
             if toclose.label ~= label then
-                error("trying to close " .. toclose.label .. " with " .. label)
+                cellerror("trying to close " .. toclose.label .. " with " .. label)
             end
             table.insert(top, toclose)
         end
@@ -41,7 +41,7 @@ local function collect(s)
         table.insert(stack[#stack], text)
     end
     if #stack > 1 then
-        error("unclosed " .. stack[#stack].label)
+        cellerror("unclosed " .. stack[#stack].label)
     end
     return stack[1]
 end
