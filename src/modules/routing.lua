@@ -94,15 +94,6 @@ local function _insert_or_update(cell, currmetal, pts, x, y, width, draw)
 end
 
 function M.route(cell, routes, width, numinnerroutes, pnumtracks, nnumtracks, xgrid, ygrid)
-    print("called route with")
-    print(cell)
-    print(routes)
-    print(width)
-    print(numinnerroutes)
-    print(pnumtracks)
-    print(nnumtracks)
-    print(xgrid)
-    print(ygrid)
     if not xgrid then
         moderror("routing.route: 'xgrid' must be given")
     end
@@ -120,7 +111,7 @@ function M.route(cell, routes, width, numinnerroutes, pnumtracks, nnumtracks, xg
             local movement = route[i]
             if movement.type == "point" then
                 local x, y = movement.where:unwrap()
-                _insert_or_update(cell, currmetal, pts, x * xgrid, y * ygrid, width, not movement.nodraw)
+                _insert_or_update(cell, currmetal, pts, x, y, width, not movement.nodraw)
             elseif movement.type == "delta" then
                 if movement.x and movement.y then
                     error("routing delta movement must not specify both x and y")
