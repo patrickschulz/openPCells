@@ -465,10 +465,6 @@ int gdsparser_show_records(const char* filename, int raw)
             _destroy_stream(stream);
             return 0;
         }
-        if(record->recordtype == ENDLIB)
-        {
-            break;
-        }
         if(record->recordtype == ENDLIB || record->recordtype == ENDSTR || record->recordtype == ENDEL)
         {
             --indent;
@@ -588,6 +584,10 @@ int gdsparser_show_records(const char* filename, int raw)
            record->recordtype == TEXT)
         {
             ++indent;
+        }
+        if(record->recordtype == ENDLIB)
+        {
+            break;
         }
     }
     _destroy_stream(stream);
