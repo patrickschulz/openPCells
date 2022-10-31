@@ -1,7 +1,6 @@
 #include "lrouter_route.h"
 
 #include "lrouter_net.h"
-#include "lrouter_queue.h"
 #include "lrouter_min_heap.h"
 #include "lrouter_field.h"
 
@@ -401,7 +400,7 @@ void route(struct net *net, struct field* field)
         int pathpoint_size = vector_size(pathpoints);
         int issued_threads = 0;
         _reset_thread_dates(tdates, num_cpus);
-        _print_net(net);
+        //_print_net(net);
         int min_routing_cost = INT_MAX;
 
         for(int i = 0; i < pathpoint_size; i++)
@@ -480,11 +479,6 @@ void route(struct net *net, struct field* field)
 
     _mark_as_route(field, pathpoints);
     net_mark_as_routed(net);
-    printf("pre make deltas\n");
-    net_print_deltas(net);
-    printf("post make deltas\n");
     net_make_deltas(net);
-    //net_reverse_deltas(net);
-    net_print_deltas(net);
 }
 

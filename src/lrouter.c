@@ -10,12 +10,13 @@
 #include "lrouter_route.h"
 #include "lrouter_field.h"
 #include "lrouter_moves.h"
-#include "ldebug.h"
 
 #include "vector.h"
 
 #define EXCLUDE 1
 #define CELL_PORT_LAYER 0
+#define DRAW 1
+#define NODRAW 0
 
 #define UABSDIFF(v1, v2) (v1 > v2 ? v1 - v2 : v2 - v1)
 #define MANHATTAN_DIST(pos1, pos2) (UABSDIFF(pos1->x, pos2->x) +\
@@ -158,10 +159,10 @@ static void _create_routing_stack_data(lua_State *L, struct net *net)
         {
             if(i != 0)
             {
-                moves_create_via(L, -1);
+                moves_create_via(L, -1, DRAW);
                 lua_rawseti(L, -2, table_pos + 1);
                 table_pos++;
-
+                   
                 lua_newtable(L);
             }
             const struct position *pos =
@@ -174,7 +175,7 @@ static void _create_routing_stack_data(lua_State *L, struct net *net)
 
             /* FIXME: via after first anchor */
             lua_newtable(L);
-            moves_create_via(L, 1);
+            moves_create_via(L, 1, NODRAW);
 
         }
         else if(point->x)
@@ -187,7 +188,7 @@ static void _create_routing_stack_data(lua_State *L, struct net *net)
         }
         else
         {
-            moves_create_via(L, -1 * point->z);
+            moves_create_via(L, -1 * point->z, DRAW);
         }
 
         lua_rawseti(L, -2, table_pos + 1);
@@ -198,6 +199,7 @@ static void _create_routing_stack_data(lua_State *L, struct net *net)
 int lrouter_route(lua_State* L)
 {
     puts("started routing\n");
+    
     struct netcollection* nc = _initialize(L);
     const size_t field_height = lua_tointeger(L, 4);
     const size_t field_width = lua_tointeger(L, 3);
@@ -212,8 +214,9 @@ int lrouter_route(lua_State* L)
 
     /* table for all nets */
     lua_newtable(L);
+    unsigned int num_nets = vector_size(nc->nets);
 
-    for(unsigned int i = 0; i < vector_size(nc->nets); ++i)
+    for(unsigned int i = 0; i < num_nets; ++i)
     {
         nets_fill_ports(nc->nets, field);
         struct net* net = vector_get(nc->nets, i);
@@ -225,14 +228,16 @@ int lrouter_route(lua_State* L)
             _create_routing_stack_data(L, net);
             lua_rawseti(L, -2, routed_count + 1);
             routed_count++;
+
+            printf("routed %s: %i/%i", net_get_name(net), i, num_nets);
         }
         else
         {
             printf("couldnt route %s\n", net_get_name(net));
         }
     }
-    field_print(field, 0);
-    getchar();
+    //jfield_print(field, 0);
+    //getchar();
     lua_pushinteger(L, routed_count);
 
     field_destroy(field);

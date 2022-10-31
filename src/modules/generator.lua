@@ -40,7 +40,7 @@ local function _write_module(rows, routes, numinnerroutes, pnumtracks, nnumtrack
                     for _, moves in ipairs(route) do
                         local entry = {}
                         for k, v in pairs(moves) do
-                            if k == "where" then
+                            if k == "where" or k == "nodraw" then
                                 table.insert(entry, string.format("%s = %s", k, v))
                             else
                                 table.insert(entry, string.format("%s = %q", k, v))

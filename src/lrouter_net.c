@@ -1,5 +1,4 @@
 #include "lrouter_net.h"
-#include "lrouter_queue.h"
 
 #include "util.h"
 #include "vector.h"
@@ -299,15 +298,15 @@ void net_make_deltas(struct net *net)
     struct rpoint *point;
     if(next->x)
     {
-        point = point_new(xsteps, 0, 0, PATH);
+        point = point_new(xsteps + next->x, 0, 0, PATH);
     }
     else if(next->y)
     {
-        point = point_new(0, ysteps, 0, PATH);
+        point = point_new(0, ysteps + next->y, 0, PATH);
     }
     else if(next->z)
     {
-        point = point_new(0, 0, zsteps, PATH);
+        point = point_new(0, 0, zsteps + next->z, PATH);
     }
     vector_append(new_deltas, point);
 

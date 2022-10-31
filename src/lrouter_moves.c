@@ -21,12 +21,18 @@ void moves_create_port(lua_State *L, const char *name, const char *port)
 
 }
 
-void moves_create_via(lua_State *L, int z)
+void moves_create_via(lua_State *L, int z, int is_draw)
 {
     lua_pushstring(L, "via");
     lua_setfield(L, -2, "type");
     lua_pushinteger(L, z);
     lua_setfield(L, -2, "z");
+
+    if (!is_draw)
+    {
+        lua_pushstring(L, "true");
+        lua_setfield(L, -2, "nodraw");
+    }
 }
 
 void moves_create_delta(lua_State *L, dir_t dir, int dist)
