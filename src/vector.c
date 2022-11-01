@@ -233,6 +233,24 @@ void vector_reverse(struct vector* vector)
     }
 }
 
+int vector_find_flat(const struct vector* vector, const void* p)
+{
+    int found = 0;
+    struct vector_const_iterator* it = vector_const_iterator_create(vector);
+    while(vector_const_iterator_is_valid(it))
+    {
+        const void* e = vector_const_iterator_get(it);
+        if(e == p)
+        {
+            found = 1;
+            break;
+        }
+        vector_const_iterator_next(it);
+    }
+    vector_const_iterator_destroy(it);
+    return found;
+}
+
 struct const_vector {
     const void** elements;
     size_t size;
