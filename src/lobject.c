@@ -234,7 +234,7 @@ int lobject_add_child(lua_State* L)
 {
     struct lobject* cell = lobject_check(L, 1);
     struct lobject* child = lobject_check(L, 2);
-    const char* name = lua_tostring(L, 3);
+    const char* name = luaL_checkstring(L, 3);
     struct object* proxy = object_add_child(cell->object, child->object, name);
     lobject_adapt(L, proxy);
     lobject_disown(child); // memory is now handled by cell

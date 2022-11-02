@@ -119,7 +119,7 @@ This is done with the corresponding arguments to \luainline{geometry.rectangle} 
 \luafilelisting[widthgobble = 4, firstline = 17, lastline = 31]{code/momcap.lua}
 We create two arrays of fingers, one for the \enquote{upper plate}, one for the \enquote{lower plate}. All fingers have the same width, height and pitch. For the
 upper plate, we use one more finger, the placement in \luainline{geometry.rectangle} automatically arranges them centered, so that this \enquote{just works}.  The
-\param{ypitch} for \luainline{geometry.rectangle} is \num{0}, which is ok since we only have a \param{yrep} of \num{1}.
+ypitch for \luainline{geometry.rectangle} is \num{0}, which is ok since we only have a yrep of \num{1}.
 
 The rails connecting the fingers are created in a similar manner:
 \luafilelisting[widthgobble = 4, firstline = 32, lastline = 40]{code/momcap.lua}
@@ -364,16 +364,64 @@ Furthermore, it draws some metals and vias (not shown in figure \ref{fig:transis
     \label{tab:transistor}
 \end{table}
 
+\cleardoublepage
+
 \section{API Documentation}
+
 \subsection{geometry Module}
-\begin{apifunc}{geometry.rectangle(layer, width, height, xshift, yshift, xrep, yrep, xpitch, ypitch)}
-    Create a rectangular shape with a width of \param{width} and a height of \param{height} in the layer-purpose-pair \param{layer} (usually a generic). The function
-    returns an object.
-\end{apifunc}
-\begin{apifunc}{geometry.multiple(obj, xrep, yrep, xpitch, ypitch)}
-    Creates a rectangular array (mosaic) of an object with \param{xrep} repetitions in x and \param{yrep} repetitions in y. \param{xpitch} and \param{ypitch} are the
-    center-to-center space in x and y direction. The entire array gets centered. The function returns the merged objects.
-\end{apifunc}
+
+\begin{APIfunc}{rectangle(cell, layer, width, height, xshift, yshift, xrep, yrep, xpitch, ypitch)}
+    Create a rectangular shape with the given width and height.
+    \begin{APIparameters}
+        \parameter{cell}{object}
+            Object in which the rectangle is created;
+        \parameter{layer}{generic}
+            Layer of the generated rectangle;
+        \parameter{width}{integer}
+            Width of the rectangle. Must be even.;
+        \parameter{height}{integer}
+            Height of the rectangle. Must be even.;
+        \parameterdefault{xshift}{0}{integer}
+            Optional shift in x direction.;
+        \parameterdefault{yshift}{0}{integer}
+            Optional shift in y direction.;
+        \parameterdefault{xrep}{1}{integer}
+            Optional number of repetitions in x direction.
+            Rectangles are shifted so that an equal number is left and right.;
+        \parameterdefault{yrep}{1}{integer}
+            Optional number of repetitions in y direction.
+            Rectangles are shifted so that an equal number is left and right.;
+        \parameterdefault{xpitch}{0}{integer}
+            Optional pitch in x direction, used for repetition in x.;
+        \parameterdefault{ypitch}{0}{integer}
+            Optional pitch in y direction, used for repetition in y.;
+    \end{APIparameters}
+\end{APIfunc}
+
+\begin{APIfunc}{rectanglebltr(cell, layer, bl, tr, xrep, yrep, xpitch, ypitch)}
+    Create a rectangular shape defined by the bottom-left and the top-right corner.
+    \begin{APIparameters}
+        \parameter{cell}{object}
+            Object in which the rectangle is created;
+        \parameter{layer}{generic}
+            Layer of the generated rectangle;
+        \parameter{bl}{point}
+            Bottom-left (bl) point of the rectangle;
+        \parameter{tr}{point}
+            Top-right (tl) point of the rectangle;
+        \parameterdefault{xrep}{1}{integer}
+            Optional number of repetitions in x direction.
+            Rectangles are shifted so that an equal number is left and right.;
+        \parameterdefault{yrep}{1}{integer}
+            Optional number of repetitions in y direction.
+            Rectangles are shifted so that an equal number is left and right.;
+        \parameterdefault{xpitch}{0}{integer}
+            Optional pitch in x direction, used for repetition in x.;
+        \parameterdefault{ypitch}{0}{integer}
+            Optional pitch in y direction, used for repetition in y.;
+    \end{APIparameters}
+\end{APIfunc}
+
 \subsection{Object Module}
 \subsection{Shape Module}
 \subsection{Pointarray Module}

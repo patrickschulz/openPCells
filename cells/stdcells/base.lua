@@ -28,6 +28,8 @@ function parameters()
         { "psdpowerheight(PMOS Source/Drain Contact Height)",           0 },
         { "nsdpowerheight(NMOS Source/Drain Contact Height)",           0 },
         { "drawtopbotwelltaps",                                         true },
+        { "topbotwelltapwidth",                                         tech.get_dimension("Minimum M1 Width") },
+        { "topbotwelltapspace",                                         tech.get_dimension("Minimum M1 Space") },
         { "dummycontheight(Dummy Gate Contact Height)",                 tech.get_dimension("Minimum M1 Width") },
         { "drawdummygcut(Draw Dummy Gate Cut)",                         false },
         { "compact(Compact Layout)",                                    true }

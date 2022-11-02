@@ -21,6 +21,8 @@
 % tables
 \usepackage{booktabs}
 
+\usepackage{enumitem}
+
 \usepackage{listings}
 \lstset{
     breaklines = true,
@@ -37,13 +39,25 @@
     emph = {
         layout,
         parameters,
-        pointarray,
-        path,
+        % rectangle module
         geometry, 
         geometry.rectangle, 
-        geometry.multiple, 
+        rectangle, 
+        geometry.rectanglebltr, 
+        rectanglebltr, 
+        geometry.rectanglepoints, 
+        rectanglepoints, 
         geometry.path, 
+        path, 
         geometry.via, 
+        via, 
+        geometry.viabltr, 
+        viabltr, 
+        geometry.contact, 
+        contact, 
+        geometry.contactbltr, 
+        contactbltr, 
+        % pcell module
         pcell.reference_cell, 
         pcell.setup, 
         pcell.process_args, 
@@ -97,15 +111,17 @@
 \makeatother
 % -------------------------------------------------------------------------------------------------------------
 \newcommand{\shellinline}[1]{\lstinline!#1!}
-%\lstnewenvironment{shellcode}{\lstset{language=bash, keywordstyle = \relax, commentstyle = \relax, stringstyle = \relax, identifierstyle = \relax, breakautoindent = false}}{}
 \lstnewenvironment{shellcode}{\lstset{keywordstyle = \relax, commentstyle = \relax, stringstyle = \relax, identifierstyle = \relax, breakautoindent = false}}{}
 \newcommand{\luainline}[1]{\lstinline!#1!}
 \lstnewenvironment{lualisting}{}{}
 \newcommand{\luafilelisting}[2][]{\lstinputlisting[#1]{#2}}
-%\newmintedfile[lualisting]{lua}{autogobble, fontsize = \small}
+
 % API documentation commands
-\newcommand{\param}[1]{\luainline{#1}}
-\newenvironment{apifunc}[1]{\par\hspace*{-2em}\luainline{#1}\leftskip=2em\par}{\par}
+\newenvironment{APIfunc}[1]{\par\hspace*{-2em}\luainline{#1}\leftskip=2em\par}{\par}
+%\newenvironment{APIparameters}[0]{\begin{description}[font=\mdseries\ttfamily]}{\end{description}}
+\newenvironment{APIparameters}[0]{\par\noindent{}Parameters:\scriptsize\par\noindent\begin{tabular}{llp{0.5\linewidth}} Parameter & Type &
+Explanation\\\midrule}{\end{tabular}} \def\parameter #1#2#3;{\texttt{#1} & #2 & #3 \\}
+\def\parameterdefault #1#2#3#4;{\texttt{#1} (default #2) & #3 & #4 \\}
 
 \usepackage{siunitx}
 \usepackage{csquotes}

@@ -18,7 +18,7 @@ SYSCFLAGS=
 SYSLDFLAGS=
 SYSLIBS=
 
-OPCOBJ:=main.functions.o main.cell.o main.gds.o main.verilog.o cmdoptions.o util.o lua_util.o vector.o union.o postprocess.o point.o technology.o transformationmatrix.o shape.o object.o geometry.o geometry_triangulate.o hashmap.o tagged_value.o lgenerics.o lgeometry.o ldir.o lpoint.o graphics.o lobject.o pcell.o filesystem.o lplacer.o lplacer_common.o lplacer_rand.o lplacer_nonoverlapping.o lplacer_classic.o lrouter.o lrouter_net.o lrouter_queue.o lrouter_moves.o lrouter_min_heap.o lrouter_field.o lrouter_route.o gdsparser.o ldebug.o export.o export_writer.o export_common.o gdsexport.o info.o
+OPCOBJ:= cmdoptions.o export_common.o export.o export_writer.o filesystem.o gdsexport.o gdsparser.o geometry.o geometry_triangulate.o graphics.o hashmap.o info.o ldebug.o ldir.o lgenerics.o lgeometry.o lobject.o lplacer_classic.o lplacer_common.o lplacer_nonoverlapping.o lplacer.o lplacer_rand.o lpoint.o lrouter_field.o lrouter_min_heap.o lrouter_moves.o lrouter_net.o lrouter.o lrouter_queue.o lrouter_route.o lua_util.o main.api_help.o main.cell.o main.functions.o main.gds.o main.verilog.o object.o pcell.o point.o postprocess.o shape.o tagged_value.o technology.o transformationmatrix.o union.o util.o vector.o
 
 .PHONY: default
 default:
@@ -236,6 +236,7 @@ main.o: main.c lua/lprefix.h lua/lua.h lua/luaconf.h lua/lauxlib.h \
  scriptmanager.h modulemanager.h pcell.h lplacer.h lrouter.h filesystem.h \
  hashmap.h main.functions.h main.cell.h main.gds.h main.verilog.h \
  cmdoptions_def.c
+main.api_help.o: main.api_help.c main.api_help.h terminal_colors.h
 main.cell.o: main.cell.c main.cell.h hashmap.h cmdoptions.h vector.h \
  lua/lauxlib.h lua/luaconf.h lua/lua.h lpoint.h lua/lua.h point.h \
  lgeometry.h lgenerics.h ldir.h lobject.h object.h transformationmatrix.h \

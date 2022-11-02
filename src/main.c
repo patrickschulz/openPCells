@@ -1,32 +1,33 @@
 #include "lua/lprefix.h"
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <sys/types.h>
-#include <unistd.h>
+#include <ctype.h>
 #include <errno.h>
 #include <math.h>
-#include <ctype.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
+#include <sys/types.h>
+#include <unistd.h>
 
 #include "lua/lua.h"
-#include "lua/lauxlib.h"
 #include "lua/lualib.h"
+#include "lua/lauxlib.h"
 
 #include "cmdoptions.h"
-#include "util.h"
-#include "lua_util.h"
 #include "config.h"
-#include "scriptmanager.h"
-#include "modulemanager.h"
-#include "pcell.h"
-#include "lplacer.h"
-#include "lrouter.h"
 #include "filesystem.h"
 #include "hashmap.h"
+#include "lplacer.h"
+#include "lrouter.h"
+#include "lua_util.h"
+#include "modulemanager.h"
+#include "pcell.h"
+#include "scriptmanager.h"
+#include "util.h"
 
-#include "main.functions.h"
+#include "main.api_help.h"
 #include "main.cell.h"
+#include "main.functions.h"
 #include "main.gds.h"
 #include "main.verilog.h"
 
@@ -168,6 +169,13 @@ int main(int argc, const char* const * argv)
         pfd_f = fopen(stderrto, "w");
         int pfd = fileno(pfd_f);
         dup2(pfd, STDERR_FILENO);
+    }
+
+    if(cmdoptions_was_provided_long(cmdoptions, "api-help"))
+    {
+        const char* funcname = cmdoptions_get_argument_long(cmdoptions, "api-help");
+        main_API_help(funcname);
+        goto DESTROY_CMDOPTIONS;
     }
 
     if(cmdoptions_was_provided_long(cmdoptions, "import-verilog"))

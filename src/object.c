@@ -224,21 +224,7 @@ struct object* object_add_child(struct object* cell, struct object* child, const
         cell->references = vector_create(8, object_destroy);
     }
     vector_append(cell->children, proxy);
-    // check if child is already stored
-    int found = 0;
-    struct vector_const_iterator* it = vector_const_iterator_create(cell->references);
-    while(vector_const_iterator_is_valid(it))
-    {
-        const struct object* ref = vector_const_iterator_get(it);
-        if(ref == child)
-        {
-            found = 1;
-            break;
-        }
-        vector_const_iterator_next(it);
-    }
-    vector_const_iterator_destroy(it);
-    if(!found)
+    if(!vector_find_flat(cell->references, child))
     {
         vector_append(cell->references, child);
     }
