@@ -2,7 +2,7 @@
 This project provides a layout generator for parametric cells (PCells) for use in analog/digital integrated circuit design.
 It offers a framework for developing these pcells in a technology- and tool-independent way, so that cell re-use is greatly enhanced.
 The cells are described in an intermediate format, which allows them to be converted to an actual technology node and file format.
-Cell descriptions are implemented in [lua](lua.org) and can therefore incorporate any common programming constructs such as conditional statements and loops.
+Cell descriptions are implemented in [lua](https://www.lua.org) and can therefore incorporate any common programming constructs such as conditional statements and loops.
 The project already provides a few implementations of basic cells widely used in integrated circuit design.
 Among others there are elementary cells for mosfets and passive devices such as inductors and capacitors but also more complex cells such as
 inverters, current mirrors, ring oscillators, guard rings, metal grids etc.
