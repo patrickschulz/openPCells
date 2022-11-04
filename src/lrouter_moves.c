@@ -28,7 +28,7 @@ void moves_create_via(lua_State *L, int z, int is_draw)
     lua_pushinteger(L, z);
     lua_setfield(L, -2, "z");
 
-    if (!is_draw)
+    if (is_draw)
     {
         lua_pushstring(L, "true");
         lua_setfield(L, -2, "nodraw");

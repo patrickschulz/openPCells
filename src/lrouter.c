@@ -229,7 +229,7 @@ int lrouter_route(lua_State* L)
             lua_rawseti(L, -2, routed_count + 1);
             routed_count++;
 
-            printf("routed %s: %i/%i", net_get_name(net), i, num_nets);
+            printf("routed %s: %i/%i\n", net_get_name(net), i + 1, num_nets);
         }
         else
         {

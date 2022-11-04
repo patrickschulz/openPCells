@@ -51,6 +51,7 @@ void net_append_position(struct net *net, struct position *position);
 void net_remove_position(struct net *net, unsigned int i);
 
 void net_append_delta(struct net *net, struct rpoint *delta);
+struct rpoint *net_copy_delta(struct net *net, int i);
 
 struct position* net_create_position(const char *instance, const char *port,
 				     unsigned int x, unsigned int y,

@@ -1,4 +1,4 @@
-local module = "serial_ctrl"
+local module = "multinet"
 local exporttype = "gds"
 
 local netlist = verilog.read_parse_file(string.format("%s.v", module))
