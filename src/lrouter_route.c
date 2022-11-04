@@ -312,7 +312,6 @@ static int _curr_min_routing_cost_index(struct thread_data *tdata,
     int min_i = INT_MAX;
     for(int i = 0; i < issued_threads; i++)
     {
-        //	printf("looking at %i\n", tdata[i].routing_cost);
         /* skip routing to "itself" again */
         if(tdata[i].routing_cost == 0)
         {
@@ -325,7 +324,6 @@ static int _curr_min_routing_cost_index(struct thread_data *tdata,
             min_i = i;
         }
     }
-    //printf("curr_min_routing_cost_index %i\n", min_i);
     return min_i;
 }
 
@@ -344,53 +342,51 @@ static struct thread_data *_init_thread_dates(int num_cpus)
     return tdates;
 }
 
-static void _reset_thread_dates(struct thread_data *tdates, int num_cpus)
-{
-    for(int i = 0; i < num_cpus; i++)
-    {
-        tdates[i].field = NULL;
-        tdates[i].startpos = net_create_position("NOINST", "NOPORT", 0, 0, 0);
-        tdates[i].endpos = net_create_position("NOINST", "NOPORT", 0, 0, 0);
-        tdates[i].routing_cost = INT_MAX;
-    }
-}
-
-static void _destroy_thread_date(struct thread_data *tdates, int i)
-{
-    if(tdates[i].startpos != NULL)
-    {
-        net_destroy_position(tdates[i].startpos); 
-    }
-
-    if(tdates[i].endpos != NULL)
-    {
-        net_destroy_position(tdates[i].endpos); 
-    }
-    if(tdates[i].field != NULL)
-    {
-        field_destroy(tdates[i].field);
-    }
-}
-
-static void _free_and_reset_data(void *data)
-{
-    if(data != NULL)
-    {
-        free(data);
-        data = NULL;
-    }
-}
-
 static void _destroy_thread_dates(struct thread_data *tdates, int num_cpus)
 {
     printf("calling destroy tdates with %i\n", num_cpus);
     for(int i = 0; i < num_cpus; i++)
     {
-        net_destroy_position(tdates[i].startpos);
-        net_destroy_position(tdates[i].endpos);
-        field_destroy(tdates[i].field);
+        if(tdates[i].startpos != NULL)
+        {
+            net_destroy_position(tdates[i].startpos);
+        }
+        if(tdates[i].startpos != NULL)
+        {
+            net_destroy_position(tdates[i].endpos);
+        }
+        if(tdates[i].field != NULL)
+        {
+            field_destroy(tdates[i].field);
+        }
     }
     free(tdates);
+}
+
+static void _reset_thread_dates(struct thread_data *tdates, int num_cpus)
+{
+    for(int i = 0; i < num_cpus; i++)
+    {
+        if(tdates[i].startpos != NULL)
+        {
+            net_destroy_position(tdates[i].startpos);
+        }
+        if(tdates[i].startpos != NULL)
+        {
+            net_destroy_position(tdates[i].endpos);
+        }
+        if(tdates[i].field != NULL)
+        {
+            field_destroy(tdates[i].field);
+        }
+    }
+    for(int i = 0; i < num_cpus; i++)
+    {
+        tdates[i].field = NULL;
+        tdates[i].startpos = NULL;
+        tdates[i].endpos = NULL;
+        tdates[i].routing_cost = INT_MAX;
+    }
 }
 
 pthread_t *_init_thids(int num_cpus)
@@ -424,8 +420,8 @@ void route(struct net *net, struct field* field)
     int *port_indices = _init_port_indices(num_cpus);
 
     struct position *startpos = NULL;
-    struct position *minimum_endpos = NULL;
-    struct position *minimum_startpos = NULL;
+    struct position minimum_endpos;
+    struct position minimum_startpos;
 
     struct vector *pathpoints = vector_create(1, free);
 
@@ -440,11 +436,11 @@ void route(struct net *net, struct field* field)
      * repeat until all ports are reached
      */
     struct net *net_backup = net_copy(net);
-    struct thread_data *tdates = NULL;
+    
+    struct thread_data *tdates = _init_thread_dates(num_cpus);
 
     while(net_get_size(net) > 1)
     {
-        tdates = _init_thread_dates(num_cpus);
         printf("netsize %i\n", net_get_size(net));
         int pathpoint_size = vector_size(pathpoints);
         int issued_threads = 0;
@@ -462,7 +458,9 @@ void route(struct net *net, struct field* field)
 
             for(int j = 1; j < net_size && issued_threads < NUM_CPUS(); j++)
             {
-                struct field *field_backup = field_copy(field);
+                struct field *field_backup = NULL; 
+                field_backup = field_copy(field);
+
                 struct position *endpos =
                     net_copy_position(net_get_position(net, j));
                 
@@ -495,20 +493,8 @@ void route(struct net *net, struct field* field)
                         tdates[min_i].routing_cost < min_routing_cost)
                 {
                     min_routing_cost = tdates[min_i].routing_cost;
-                    
-                    if(minimum_startpos == NULL)
-                    {
-                        free(minimum_startpos);
-                        minimum_startpos = NULL;
-                    }
-                    minimum_startpos = net_copy_position(tdates[min_i].startpos);
-
-                    if(minimum_endpos == NULL)
-                    {
-                        free(minimum_endpos);
-                        minimum_endpos = NULL;
-                    }
-                    minimum_endpos = net_copy_position(tdates[min_i].endpos);
+                    minimum_startpos = *tdates[min_i].startpos;
+                    minimum_endpos = *tdates[min_i].endpos;
                     min_port_index = port_indices[min_i];
                 }
                 issued_threads = 0;
@@ -520,16 +506,11 @@ void route(struct net *net, struct field* field)
             break;
         }
         /* look for path again to prepare the field for the backtrace */
-        _find_path(field, minimum_startpos, minimum_endpos);
-        _backtrace(field, net, minimum_startpos, minimum_endpos, pathpoints);
-
-        free(minimum_startpos);
-        free(minimum_endpos);
-
+        _find_path(field, &minimum_startpos, &minimum_endpos);
+        _backtrace(field, net, &minimum_startpos, &minimum_endpos, pathpoints);
         net_remove_position(net, min_port_index);
         field_reset(field);
     }
-    _destroy_thread_dates(tdates, num_cpus);
     net_restore_positions(net, net_backup);
     net_destroy(net_backup);
     free(thread_ids);
