@@ -233,13 +233,53 @@ As example a layout that uses a sub-cell 1000 times it only has to store 1000 ha
 A layout that makes proper use of hierarchy can me multiple magnitudes faster in processing than a flat version.
 
 Each child has a reference it points to, which is created automatically by adding a child to a cell.
-We can see a simple example of this in \texttt{analog/ringoscillator.lua}:
+As an example, let's create the following hierarchy:
+\begin{center}
+    \begin{tikzpicture}
+        [
+            cell/.style = {draw, rectangle, very thick, align = center},
+            %on grid,
+            node distance = 0.5cm and 0.5cm
+        ]
+        \node[cell] (toplevel) {Toplevel\\\emph{Toplevel}};
+        \node[cell, below = of toplevel] (sub) {Sub\\\emph{Sub}};
+        \node[cell, below left = of sub] (subsub1) {SubSub\\\emph{SubSub1}};
+        \node[cell, below right = of sub] (subsub2) {SubSub\\\emph{SubSub2}};
+        \draw[very thick] (toplevel) -- (sub);
+        \draw[very thick] (sub) -- (subsub1);
+        \draw[very thick] (sub) -- (subsub2);
+    \end{tikzpicture}
+\end{center}
+The upright name shows the name of the cell (which can be re-used), the italic name is the instance name (this has to be unique).
+In this example, the top-level cell instantiates another cell (sub), which in turn instantiates two other cells (subsub).
+In order to create this hierarchy in code, we have to do the following steps:
+First we create all cells (which are called \emph{references}):
+\luafilelisting[firstline = 1, lastline = 3]{code/hierarchy_example.lua}
+After that, we simply add the respective cells as children:
+\luafilelisting[firstline = 4, lastline = 8]{code/hierarchy_example.lua}
+It is important not to confuse the cell names here.
+All functions that create proper cells (objects) such as \luainline{pcell.create_layout} or \luainline{object.create} must be supplied with a name for that cell.
+Functions for adding children to objects (currently the object methods \luainline{add_child} and \luainline{add_child_array}) take an optional parameter for the instance name\footnote{This instance name is not supported by all exports. For example, GDSII has no notion of an instance name}.
+If this name is not given, an automatically generated name will be used.
+
+We can see a simple example of proper instance naming in \texttt{analog/ringoscillator.lua}.
+Here, \luainline{string.format} is used to generate unique instance names for the individual inverters of a ring oscillator.
+First, the inverter reference (the actual cell) is created.
+This inverter is a CMOS structure with some additional wires, so the basic structure of the inverter is based on \luainline{basic/cmos}.
+For brevity, the additional drawings etc. are not shown here.
+\luafilelisting[widthgobble = 4, firstline = 93, lastline = 97]{../../../cells/analog/ringoscillator.lua}
+Then the inverter reference (which is only generated once) can be \emph{instantiated} multiple times, which happens within a loop in this case:
 \luafilelisting[widthgobble = 4, firstline = 110, lastline = 116]{../../../cells/analog/ringoscillator.lua}
 The above example creates a number of inverters (depending on the parameter \luainline{numinv}).
-To add a child, \luainline{add_child} is used, which expects a full object as reference and an instance name\footnote{This instance name is not
-supported by all exports. For example, GDSII has no notion of an instance name}.
+To add a child, \luainline{add_child} is used, which expects a full object as reference and an instance name.
 Here, the single reference is instantiated multiple times, therefore the instance name is modified in every call.
 Additionally, the cells are left-right aligned to build a proper layout.
+
+In the above ring oscillator example, the return value of \luainline{add_child} is stored in a table.
+The return value of \luainline{add_child} is a so-called \emph{proxy object}.
+This proxy object behaves like a regular object that it can be moved, rotated and its anchors can be queried (as can be seen in the example).
+These operations only operate on small data structures and a very lightweight in general.
+It is usually a good idea to put repeated layout structures in sub-cells for them to be re-used, as this very likely leads to a smaller and faster-processed layout.
 
 \section{Cell Scripts}
 The previous section discussed the use of pcell definitions based on the functions \luainline{parameters} and \luainline{layout}.
