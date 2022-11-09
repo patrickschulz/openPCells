@@ -156,3 +156,23 @@ void main_API_help(const char* funcname)
     }
 }
 
+void main_API_search(const char* name)
+{
+    const char* names[] = {
+        "geometry.rectangle",
+        "geometry.rectanglebltr",
+        "geometry.via",
+        "geometry.viabltr",
+        "geometry.contact",
+        "geometry.contactbltr",
+    };
+    for(size_t i = 0; i < sizeof(names) / sizeof(names[0]); ++i)
+    {
+        const char* found = strstr(names[i], name);
+        if(found)
+        {
+            puts(names[i]);
+        }
+    }
+}
+
