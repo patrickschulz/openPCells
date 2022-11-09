@@ -65,7 +65,7 @@ void main_API_help(const char* funcname)
         puts("                           xshift, yshift,");
         puts("                           xrep, yrep, xpitch, ypitch");
         puts("                          )");
-        puts("Create a rectangular shape width the given width and height in cell");
+        puts("Create a rectangular shape with the given width and height in cell");
         struct parameter parameters[] = {
             { "cell",   "object",             "Object in which the rectangle is created" },
             { "layer",  "generic",            "Layer of the generated rectangular shape" },
@@ -77,6 +77,76 @@ void main_API_help(const char* funcname)
             { "yrep",   "integer, default 1", "Optional number of repetitions in y direction. The Rectangles are shifted so that an equal number is above and below" },
             { "xpitch", "integer, default 0", "Optional pitch in x direction, used for repetition in x" },
             { "ypitch", "integer, default 0", "Optional pitch in y direction, used for repetition in y" }
+        };
+        _print_parameters(parameters, sizeof(parameters) / sizeof(parameters[0]));
+    }
+    else if(_is_func(funcname, "rectanglebltr", "geometry"))
+    {
+        puts("Syntax: geometry.rectanglebltr(cell, layer,");
+        puts("                               bl, tr,");
+        puts("                               xrep, yrep, xpitch, ypitch");
+        puts("                              )");
+        puts("Create a rectangular shape with the given corner points in cell");
+        struct parameter parameters[] = {
+            { "cell",   "object",             "Object in which the rectangle is created" },
+            { "layer",  "generic",            "Layer of the generated rectangular shape" },
+            { "bl",     "point",              "Bottom-left point of the generated rectangular shape" },
+            { "tr",     "point",              "Top-right point of the generated rectangular shape" },
+            { "xrep",   "integer, default 1", "Optional number of repetitions in x direction. The Rectangles are shifted so that an equal number is above and below" },
+            { "yrep",   "integer, default 1", "Optional number of repetitions in y direction. The Rectangles are shifted so that an equal number is above and below" },
+            { "xpitch", "integer, default 0", "Optional pitch in x direction, used for repetition in x" },
+            { "ypitch", "integer, default 0", "Optional pitch in y direction, used for repetition in y" }
+        };
+        _print_parameters(parameters, sizeof(parameters) / sizeof(parameters[0]));
+    }
+    else if(_is_func(funcname, "contact", "geometry"))
+    {
+        puts("Syntax: geometry.contact(cell, layer,");
+        puts("                         bl, tr,");
+        puts("                         xrep, yrep, xpitch, ypitch");
+        puts("                        )");
+        puts("Create contacts in a rectangular area with the given width and height in cell");
+        struct parameter parameters[] = {
+            { "cell",   "object",             "Object in which the rectangle is created" },
+            { "layer",  "string",             "Identifier of the contact type. Possible values: 'gate', 'active', 'sourcedrain'" },
+            { "width",  "integer",            "Width of the generated rectangular shape" },
+            { "height", "integer",            "Height of the generated rectangular shape" },
+            { "xshift", "integer, default 0", "Optional shift in x direction" },
+            { "yshift", "integer, default 0", "Optional shift in y direction" },
+            { "xrep",   "integer, default 1", "Optional number of repetitions in x direction. The Rectangles are shifted so that an equal number is above and below" },
+            { "yrep",   "integer, default 1", "Optional number of repetitions in y direction. The Rectangles are shifted so that an equal number is above and below" },
+            { "xpitch", "integer, default 0", "Optional pitch in x direction, used for repetition in x" },
+            { "ypitch", "integer, default 0", "Optional pitch in y direction, used for repetition in y" }
+        };
+        _print_parameters(parameters, sizeof(parameters) / sizeof(parameters[0]));
+    }
+    else if(_is_func(funcname, "contactbltr", "geometry"))
+    {
+        puts("Syntax: geometry.contactbltr(cell, layer,");
+        puts("                             bl, tr,");
+        puts("                             xrep, yrep, xpitch, ypitch");
+        puts("                            )");
+        puts("Create contacts in a rectangular area with the given corner points in cell");
+        struct parameter parameters[] = {
+            { "cell",   "object",             "Object in which the rectangle is created" },
+            { "layer",  "string",             "Identifier of the contact type. Possible values: 'gate', 'active', 'sourcedrain'" },
+            { "bl",     "point",              "Bottom-left point of the generated rectangular shape" },
+            { "tr",     "point",              "Top-right point of the generated rectangular shape" },
+            { "xrep",   "integer, default 1", "Optional number of repetitions in x direction. The Rectangles are shifted so that an equal number is above and below" },
+            { "yrep",   "integer, default 1", "Optional number of repetitions in y direction. The Rectangles are shifted so that an equal number is above and below" },
+            { "xpitch", "integer, default 0", "Optional pitch in x direction, used for repetition in x" },
+            { "ypitch", "integer, default 0", "Optional pitch in y direction, used for repetition in y" }
+        };
+        _print_parameters(parameters, sizeof(parameters) / sizeof(parameters[0]));
+    }
+    else if(_is_func(funcname, "add_child", "object"))
+    {
+        puts("Syntax: object.add_child(cell, child, instname)");
+        puts("Add a child object (instance) to the given cell");
+        struct parameter parameters[] = {
+            { "cell",      "object", "Object to which the child is added" },
+            { "child",     "object", "Child to add" },
+            { "instaname", "string", "Instance name (not used by all exports)" },
         };
         _print_parameters(parameters, sizeof(parameters) / sizeof(parameters[0]));
     }
