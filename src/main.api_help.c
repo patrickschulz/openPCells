@@ -629,45 +629,6 @@ struct vector* _initialize_api_entries(void)
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
-    /* pcell.inherit_parameter */
-    {
-        struct parameter parameters[] = {
-
-        };
-        vector_append(entries, _make_api_entry(
-            "inherit_parameter",
-            "pcell",
-            "", // FIXME: inherit_parameter
-            parameters,
-            sizeof(parameters) / sizeof(parameters[0])
-        ));
-    }
-    /* pcell.inherit_parameter_as */
-    {
-        struct parameter parameters[] = {
-
-        };
-        vector_append(entries, _make_api_entry(
-            "inherit_parameter_as",
-            "pcell",
-            "", // FIXME: inherit_parameter_as
-            parameters,
-            sizeof(parameters) / sizeof(parameters[0])
-        ));
-    }
-    /* pcell.inherit_all_parameters */
-    {
-        struct parameter parameters[] = {
-
-        };
-        vector_append(entries, _make_api_entry(
-            "inherit_all_parameters",
-            "pcell",
-            "", // FIXME: inherit_all_parameters
-            parameters,
-            sizeof(parameters) / sizeof(parameters[0])
-        ));
-    }
     /* pcell.get_parameters */
     {
         struct parameter parameters[] = {
