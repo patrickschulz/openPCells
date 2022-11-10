@@ -1,7 +1,7 @@
 function parameters()
     pcell.add_parameters(
         { "pwidth", 2 * tech.get_dimension("Minimum Gate Width") },
-        { "nwidth", 2 * tech.get_dimension("Minimum Gate Width") },
+        { "nwidth", 2 * tech.get_dimension("Minimum Gate Width") }
     )
 end
 
