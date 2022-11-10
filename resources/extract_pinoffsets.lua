@@ -33,13 +33,13 @@ pcell.push_overwrites("stdcells/base", {
     nnumtracks = 3,
 })
 
-local toplevel = object.create()
+local toplevel = object.create("opctoplevel")
 local lastanchor
 
 local lines = {}
 table.insert(lines, "return {")
 for i, cellname in ipairs(celllist) do
-    local cell = pcell.create_layout(string.format("stdcells/%s", cellname))
+    local cell = pcell.create_layout(string.format("stdcells/%s", cellname), cellname)
     local child = toplevel:add_child(cell, cellname)
     child:move_anchor_y("bottom", lastanchor)
     lastanchor = child:get_anchor("top")
