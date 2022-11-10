@@ -17,3 +17,7 @@ clean:
 	@$(MAKE) -C src clean
 	rm -f opc
 	rm -f opc.1
+
+.PHONY: fixmes
+fixmes:
+	@grep --recursive FIXME src
