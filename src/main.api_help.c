@@ -5,6 +5,7 @@
 #include <string.h>
 
 #include "terminal_colors.h"
+#include "vector.h"
 
 static int _is_func(const char* tocheck, const char* func, const char* module)
 {
@@ -19,6 +20,13 @@ struct parameter {
     const char* text;
 };
 
+struct api_entry {
+    const char* funcname;
+    const char* modulename;
+    const char* info;
+    struct vector* parameters;
+};
+
 #define _switch_color(color) fputs(color, stdout)
 
 static void _reset(void)
@@ -26,46 +34,74 @@ static void _reset(void)
     _switch_color(COLOR_NORMAL);
 }
 
-static void _print_parameter(struct parameter parameter, int namewidth, int typewidth)
+static void _print_parameter(const struct parameter* parameter, int namewidth, int typewidth)
 {
     fputs("    ", stdout);
     _switch_color(COLOR_BLUE_BOLD);
-    printf("%*s" COLOR_NORMAL, namewidth, parameter.name);
+    printf("%*s" COLOR_NORMAL, namewidth, parameter->name);
     _reset();
     _switch_color(COLOR_GREEN_BOLD);
-    printf(" (%*s)", typewidth, parameter.type);
+    printf(" (%*s)", typewidth, parameter->type);
     _reset();
-    printf(": %s\n", parameter.text);
+    printf(": %s\n", parameter->text);
 }
 
-static void _print_parameters(const struct parameter* parameters, size_t len)
+static void _print_parameters(const struct vector* parameters)
 {
     int namewidth = 0;
     int typewidth = 0;
-    for(size_t i = 0; i < len; ++i)
+    struct vector_const_iterator* it = vector_const_iterator_create(parameters);
+    while(vector_const_iterator_is_valid(it))
     {
-        int nw = strlen(parameters[i].name);
+        const struct parameter* param = vector_const_iterator_get(it);
+        int nw = strlen(param->name);
         if(nw > namewidth) { namewidth = nw; }
-        int tw = strlen(parameters[i].type);
+        int tw = strlen(param->type);
         if(tw > typewidth) { typewidth = tw; }
+        vector_const_iterator_next(it);
     }
+    vector_const_iterator_destroy(it);
+
     puts("Parameters:");
-    for(size_t i = 0; i < len; ++i)
+    it = vector_const_iterator_create(parameters);
+    while(vector_const_iterator_is_valid(it))
     {
-        _print_parameter(parameters[i], namewidth, typewidth);
+        const struct parameter* param = vector_const_iterator_get(it);
+        _print_parameter(param, namewidth, typewidth);
+        vector_const_iterator_next(it);
     }
+    vector_const_iterator_destroy(it);
+
 }
 
-void main_API_help(const char* funcname)
+struct api_entry* _make_api_entry(const char* funcname, const char* modulename, const char* info, struct parameter* parameters, size_t len)
 {
-    if(_is_func(funcname, "rectangle", "geometry"))
+    struct api_entry* entry = malloc(sizeof(*entry));
+    entry->funcname = funcname;
+    entry->modulename = modulename;
+    entry->info = info;
+    entry->parameters = vector_create(len, NULL);
+    for(size_t i = 0; i < len; ++i)
     {
-        puts("Syntax: geometry.rectangle(cell, layer,");
-        puts("                           width, height,");
-        puts("                           xshift, yshift,");
-        puts("                           xrep, yrep, xpitch, ypitch");
-        puts("                          )");
-        puts("Create a rectangular shape with the given width and height in cell");
+        vector_append(entry->parameters, &parameters[i]);
+    }
+    return entry;
+}
+
+void _destroy_api_entry(void* v)
+{
+    struct api_entry* entry = v;
+    vector_destroy(entry->parameters);
+    free(entry);
+}
+
+struct vector* _initialize_api_entries(void)
+{
+    /* initialize entries */
+    struct vector* entries = vector_create(32, _destroy_api_entry);
+
+    /* geometry.rectangle */
+    {
         struct parameter parameters[] = {
             { "cell",   "object",             "Object in which the rectangle is created" },
             { "layer",  "generic",            "Layer of the generated rectangular shape" },
@@ -78,15 +114,16 @@ void main_API_help(const char* funcname)
             { "xpitch", "integer, default 0", "Optional pitch in x direction, used for repetition in x" },
             { "ypitch", "integer, default 0", "Optional pitch in y direction, used for repetition in y" }
         };
-        _print_parameters(parameters, sizeof(parameters) / sizeof(parameters[0]));
+        vector_append(entries, _make_api_entry(
+            "rectangle",
+            "geometry",
+            "Create a rectangular shape with the given width and height in cell",
+            parameters,
+            sizeof(parameters) / sizeof(parameters[0])
+        ));
     }
-    else if(_is_func(funcname, "rectanglebltr", "geometry"))
+    /* geometry.rectanglebltr */
     {
-        puts("Syntax: geometry.rectanglebltr(cell, layer,");
-        puts("                               bl, tr,");
-        puts("                               xrep, yrep, xpitch, ypitch");
-        puts("                              )");
-        puts("Create a rectangular shape with the given corner points in cell");
         struct parameter parameters[] = {
             { "cell",   "object",             "Object in which the rectangle is created" },
             { "layer",  "generic",            "Layer of the generated rectangular shape" },
@@ -97,15 +134,16 @@ void main_API_help(const char* funcname)
             { "xpitch", "integer, default 0", "Optional pitch in x direction, used for repetition in x" },
             { "ypitch", "integer, default 0", "Optional pitch in y direction, used for repetition in y" }
         };
-        _print_parameters(parameters, sizeof(parameters) / sizeof(parameters[0]));
+        vector_append(entries, _make_api_entry(
+            "rectanglebltr",
+            "geometry",
+            "Create a rectangular shape with the given corner points in cell",
+            parameters,
+            sizeof(parameters) / sizeof(parameters[0])
+        ));
     }
-    else if(_is_func(funcname, "contact", "geometry"))
+    /* geometry.contact */
     {
-        puts("Syntax: geometry.contact(cell, layer,");
-        puts("                         bl, tr,");
-        puts("                         xrep, yrep, xpitch, ypitch");
-        puts("                        )");
-        puts("Create contacts in a rectangular area with the given width and height in cell");
         struct parameter parameters[] = {
             { "cell",   "object",             "Object in which the rectangle is created" },
             { "layer",  "string",             "Identifier of the contact type. Possible values: 'gate', 'active', 'sourcedrain'" },
@@ -118,15 +156,16 @@ void main_API_help(const char* funcname)
             { "xpitch", "integer, default 0", "Optional pitch in x direction, used for repetition in x" },
             { "ypitch", "integer, default 0", "Optional pitch in y direction, used for repetition in y" }
         };
-        _print_parameters(parameters, sizeof(parameters) / sizeof(parameters[0]));
+        vector_append(entries, _make_api_entry(
+            "contact",
+            "geometry",
+            "Create contacts in a rectangular area with the given width and height in cell",
+            parameters,
+            sizeof(parameters) / sizeof(parameters[0])
+        ));
     }
-    else if(_is_func(funcname, "contactbltr", "geometry"))
+    /* geometry.contactbltr */
     {
-        puts("Syntax: geometry.contactbltr(cell, layer,");
-        puts("                             bl, tr,");
-        puts("                             xrep, yrep, xpitch, ypitch");
-        puts("                            )");
-        puts("Create contacts in a rectangular area with the given corner points in cell");
         struct parameter parameters[] = {
             { "cell",   "object",             "Object in which the rectangle is created" },
             { "layer",  "string",             "Identifier of the contact type. Possible values: 'gate', 'active', 'sourcedrain'" },
@@ -137,42 +176,89 @@ void main_API_help(const char* funcname)
             { "xpitch", "integer, default 0", "Optional pitch in x direction, used for repetition in x" },
             { "ypitch", "integer, default 0", "Optional pitch in y direction, used for repetition in y" }
         };
-        _print_parameters(parameters, sizeof(parameters) / sizeof(parameters[0]));
+        vector_append(entries, _make_api_entry(
+            "contactbltr",
+            "geometry",
+            "Create contacts in a rectangular area with the given corner points in cell",
+            parameters,
+            sizeof(parameters) / sizeof(parameters[0])
+        ));
     }
-    else if(_is_func(funcname, "add_child", "object"))
+    /* object.add_child */
     {
-        puts("Syntax: object.add_child(cell, child, instname)");
-        puts("Add a child object (instance) to the given cell");
         struct parameter parameters[] = {
             { "cell",      "object", "Object to which the child is added" },
             { "child",     "object", "Child to add" },
             { "instaname", "string", "Instance name (not used by all exports)" },
         };
-        _print_parameters(parameters, sizeof(parameters) / sizeof(parameters[0]));
+        vector_append(entries, _make_api_entry(
+            "add_child",
+            "object",
+            "Add a child object (instance) to the given cell",
+            parameters,
+            sizeof(parameters) / sizeof(parameters[0])
+        ));
     }
-    else
+    return entries;
+}
+
+void main_API_help(const char* funcname)
+{
+    struct vector* entries = _initialize_api_entries();
+
+    /* search and print API info */
+    struct vector_const_iterator* it = vector_const_iterator_create(entries);
+    while(vector_const_iterator_is_valid(it))
     {
-        puts("Sorry, --API-help is in a very alpha stage and not many functions are documented.");
+        const struct api_entry* entry = vector_const_iterator_get(it);
+        if(_is_func(funcname, entry->funcname, entry->modulename))
+        {
+            size_t funclen = strlen(entry->funcname) + strlen(entry->modulename) + 10;
+            printf("Syntax: %s.%s(\n", entry->funcname, entry->modulename);
+            struct vector_const_iterator* pit = vector_const_iterator_create(entry->parameters);
+            while(vector_const_iterator_is_valid(pit))
+            {
+                const struct parameter* param = vector_const_iterator_get(pit);
+                for(size_t i = 0; i < funclen; ++i)
+                {
+                    putchar(' ');
+                }
+                printf("%s\n", param->name);
+                vector_const_iterator_next(pit);
+            }
+            vector_const_iterator_destroy(pit);
+            for(size_t i = 0; i < funclen; ++i)
+            {
+                putchar(' ');
+            }
+            printf("%s\n", ")");
+            printf("%s\n", entry->info);
+            _print_parameters(entry->parameters);
+            return;
+        }
+        vector_const_iterator_next(it);
     }
+    vector_const_iterator_destroy(it);
+
+    /* nothing found */
+    printf("Sorry, --API-help is in a very alpha stage, there was no entry for '%s' found\n", funcname);
 }
 
 void main_API_search(const char* name)
 {
-    const char* names[] = {
-        "geometry.rectangle",
-        "geometry.rectanglebltr",
-        "geometry.via",
-        "geometry.viabltr",
-        "geometry.contact",
-        "geometry.contactbltr",
-    };
-    for(size_t i = 0; i < sizeof(names) / sizeof(names[0]); ++i)
+    struct vector* entries = _initialize_api_entries();
+    struct vector_const_iterator* it = vector_const_iterator_create(entries);
+    while(vector_const_iterator_is_valid(it))
     {
-        const char* found = strstr(names[i], name);
-        if(found)
+        const struct api_entry* entry = vector_const_iterator_get(it);
+        const char* ffound = strstr(entry->funcname, name);
+        const char* mfound = strstr(entry->modulename, name);
+        if(ffound || mfound)
         {
-            puts(names[i]);
+            printf("%s.%s\n", entry->modulename, entry->funcname);
         }
+        vector_const_iterator_next(it);
     }
+    vector_const_iterator_destroy(it);
 }
 
