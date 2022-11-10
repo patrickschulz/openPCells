@@ -122,6 +122,7 @@ struct vector* _initialize_api_entries(void)
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
+
     /* geometry.rectanglebltr */
     {
         struct parameter parameters[] = {
@@ -142,10 +143,166 @@ struct vector* _initialize_api_entries(void)
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
-    /* geometry.contact */
+
+    /* geometry.rectanglepoints */
     {
         struct parameter parameters[] = {
             { "cell",   "object",             "Object in which the rectangle is created" },
+            { "layer",  "generic",            "Layer of the generated rectangular shape" },
+            { "pt1",    "point",              "First corner point of the generated rectangular shape" },
+            { "pt2",    "point",              "Second corner point of the generated rectangular shape" },
+            { "xrep",   "integer, default 1", "Optional number of repetitions in x direction. The Rectangles are shifted so that an equal number is above and below" },
+            { "yrep",   "integer, default 1", "Optional number of repetitions in y direction. The Rectangles are shifted so that an equal number is above and below" },
+            { "xpitch", "integer, default 0", "Optional pitch in x direction, used for repetition in x" },
+            { "ypitch", "integer, default 0", "Optional pitch in y direction, used for repetition in y" }
+        };
+        vector_append(entries, _make_api_entry(
+            "rectanglepoints",
+            "geometry",
+            "Create a rectangular shape with the given corner points in cell. Similar to geometry.rectanglebltr, but any of the corner points can be given in any order",
+            parameters,
+            sizeof(parameters) / sizeof(parameters[0])
+        ));
+    }
+
+    /* geometry.polygon */
+    {
+        struct parameter parameters[] = {
+            { "cell",   "object",             "Object in which the polygon is created" },
+            { "layer",  "generic",            "Layer of the generated rectangular shape" },
+            { "pts",    "pointlist",          "List of points that make up the polygon" },
+        };
+        vector_append(entries, _make_api_entry(
+            "polygon",
+            "geometry",
+            "Create a polygon shape with the given points in cell",
+            parameters,
+            sizeof(parameters) / sizeof(parameters[0])
+        ));
+    }
+
+    /* geometry.path */
+    {
+        struct parameter parameters[] = {
+            { "cell",   "object",    "Object in which the path is created" },
+            { "layer",  "generic",   "Layer of the generated rectangular shape" },
+            { "pts",    "pointlist", "List of points where the path passes through" },
+            { "width",  "integer",   "width of the path. Must be even" }
+        };
+        vector_append(entries, _make_api_entry(
+            "path",
+            "geometry",
+            "Create a path shape with the given points and width in cell",
+            parameters,
+            sizeof(parameters) / sizeof(parameters[0])
+        ));
+    }
+
+    /* geometry.path_manhatten */
+    {
+        struct parameter parameters[] = {
+            { "cell",   "object",    "Object in which the path is created" },
+            { "layer",  "generic",   "Layer of the generated rectangular shape" },
+            { "pts",    "pointlist", "List of points where the path passes through" },
+            { "width",  "integer",   "width of the path. Must be even" }
+        };
+        vector_append(entries, _make_api_entry(
+            "path_manhatten",
+            "geometry",
+            "Create a manhatten path shape with the given points and width in cell. This only allows vertical or horizontal movements",
+            parameters,
+            sizeof(parameters) / sizeof(parameters[0])
+        ));
+    }
+
+    /* geometry.path_cshape */
+    {
+        struct parameter parameters[] = {
+            { "cell",     "object",    "Object in which the path is created" },
+            { "layer",    "generic",   "Layer of the generated rectangular shape" },
+            { "ptstart",  "point",     "Start point of the path" },
+            { "ptend",    "point",     "End point of the path" },
+            { "ptoffset", "point",     "Offset point" },
+            { "width",    "integer",   "width of the path. Must be even" }
+        };
+        vector_append(entries, _make_api_entry(
+            "path_cshape",
+            "geometry",
+            "Create a path shape that starts and ends at the start and end point, respectively and passes through the offset point. Only the x-coordinate of the offset point is taken, creating a shape resembling a (possibly inverter) 'C'",
+            parameters,
+            sizeof(parameters) / sizeof(parameters[0])
+        ));
+    }
+
+    /* geometry.path_ushape */
+    {
+        struct parameter parameters[] = {
+            { "cell",     "object",    "Object in which the path is created" },
+            { "layer",    "generic",   "Layer of the generated rectangular shape" },
+            { "ptstart",  "point",     "Start point of the path" },
+            { "ptend",    "point",     "End point of the path" },
+            { "ptoffset", "point",     "Offset point" },
+            { "width",    "integer",   "width of the path. Must be even" }
+        };
+        vector_append(entries, _make_api_entry(
+            "path_ushape",
+            "geometry",
+            "Create a path shape that starts and ends at the start and end point, respectively and passes through the offset point. Only the y-coordinate of the offset point is taken, creating a shape resembling a (possibly inverter) 'U'",
+            parameters,
+            sizeof(parameters) / sizeof(parameters[0])
+        ));
+    }
+
+    /* geometry.via */
+    {
+        struct parameter parameters[] = {
+            { "cell",       "object",             "Object in which the via is created" },
+            { "firstmetal", "integer",            "Number of the first metal. Negative values are possible" },
+            { "lastmetal",  "integer",            "Number of the last metal. Negative values are possible" },
+            { "width",      "integer",            "Width of the generated rectangular shape" },
+            { "height",     "integer",            "Height of the generated rectangular shape" },
+            { "xshift",     "integer, default 0", "Optional shift in x direction" },
+            { "yshift",     "integer, default 0", "Optional shift in y direction" },
+            { "xrep",       "integer, default 1", "Optional number of repetitions in x direction. The Rectangles are shifted so that an equal number is above and below" },
+            { "yrep",       "integer, default 1", "Optional number of repetitions in y direction. The Rectangles are shifted so that an equal number is above and below" },
+            { "xpitch",     "integer, default 0", "Optional pitch in x direction, used for repetition in x" },
+            { "ypitch",     "integer, default 0", "Optional pitch in y direction, used for repetition in y" }
+        };
+        vector_append(entries, _make_api_entry(
+            "via",
+            "geometry",
+            "Create via (single or stack) in a rectangular area with the given width and height in cell",
+            parameters,
+            sizeof(parameters) / sizeof(parameters[0])
+        ));
+    }
+
+    /* geometry.viabltr */
+    {
+        struct parameter parameters[] = {
+            { "cell",       "object",             "Object in which the via is created" },
+            { "firstmetal", "integer",            "Number of the first metal. Negative values are possible" },
+            { "lastmetal",  "integer",            "Number of the last metal. Negative values are possible" },
+            { "bl",         "point",              "Bottom-left point of the generated rectangular shape" },
+            { "tr",         "point",              "Top-right point of the generated rectangular shape" },
+            { "xrep",       "integer, default 1", "Optional number of repetitions in x direction. The Rectangles are shifted so that an equal number is above and below" },
+            { "yrep",       "integer, default 1", "Optional number of repetitions in y direction. The Rectangles are shifted so that an equal number is above and below" },
+            { "xpitch",     "integer, default 0", "Optional pitch in x direction, used for repetition in x" },
+            { "ypitch",     "integer, default 0", "Optional pitch in y direction, used for repetition in y" }
+        };
+        vector_append(entries, _make_api_entry(
+            "viabltr",
+            "geometry",
+            "Create vias (single or stack) in a rectangular area with the given corner points in cell",
+            parameters,
+            sizeof(parameters) / sizeof(parameters[0])
+        ));
+    }
+
+    /* geometry.contact */
+    {
+        struct parameter parameters[] = {
+            { "cell",   "object",             "Object in which the contact is created" },
             { "layer",  "string",             "Identifier of the contact type. Possible values: 'gate', 'active', 'sourcedrain'" },
             { "width",  "integer",            "Width of the generated rectangular shape" },
             { "height", "integer",            "Height of the generated rectangular shape" },
@@ -164,10 +321,11 @@ struct vector* _initialize_api_entries(void)
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
+
     /* geometry.contactbltr */
     {
         struct parameter parameters[] = {
-            { "cell",   "object",             "Object in which the rectangle is created" },
+            { "cell",   "object",             "Object in which the contact is created" },
             { "layer",  "string",             "Identifier of the contact type. Possible values: 'gate', 'active', 'sourcedrain'" },
             { "bl",     "point",              "Bottom-left point of the generated rectangular shape" },
             { "tr",     "point",              "Top-right point of the generated rectangular shape" },
@@ -184,6 +342,127 @@ struct vector* _initialize_api_entries(void)
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
+
+    /* geometry.contactbare */
+    {
+        struct parameter parameters[] = {
+            { "cell",   "object",             "Object in which the contact is created" },
+            { "layer",  "string",             "Identifier of the contact type. Possible values: 'gate', 'active', 'sourcedrain'" },
+            { "width",  "integer",            "Width of the generated rectangular shape" },
+            { "height", "integer",            "Height of the generated rectangular shape" },
+            { "xshift", "integer, default 0", "Optional shift in x direction" },
+            { "yshift", "integer, default 0", "Optional shift in y direction" },
+            { "xrep",   "integer, default 1", "Optional number of repetitions in x direction. The Rectangles are shifted so that an equal number is above and below" },
+            { "yrep",   "integer, default 1", "Optional number of repetitions in y direction. The Rectangles are shifted so that an equal number is above and below" },
+            { "xpitch", "integer, default 0", "Optional pitch in x direction, used for repetition in x" },
+            { "ypitch", "integer, default 0", "Optional pitch in y direction, used for repetition in y" }
+        };
+        vector_append(entries, _make_api_entry(
+            "contactbare",
+            "geometry",
+            "Create contacts in a rectangular area with the given width and height in cell. This function creates 'bare' contacts, so only the cut layers, no surrouning metals or semi-conductor layers",
+            parameters,
+            sizeof(parameters) / sizeof(parameters[0])
+        ));
+    }
+
+    /* geometry.contactbarebltr */
+    {
+        struct parameter parameters[] = {
+            { "cell",   "object",             "Object in which the contact is created" },
+            { "layer",  "string",             "Identifier of the contact type. Possible values: 'gate', 'active', 'sourcedrain'" },
+            { "bl",     "point",              "Bottom-left point of the generated rectangular shape" },
+            { "tr",     "point",              "Top-right point of the generated rectangular shape" },
+            { "xrep",   "integer, default 1", "Optional number of repetitions in x direction. The Rectangles are shifted so that an equal number is above and below" },
+            { "yrep",   "integer, default 1", "Optional number of repetitions in y direction. The Rectangles are shifted so that an equal number is above and below" },
+            { "xpitch", "integer, default 0", "Optional pitch in x direction, used for repetition in x" },
+            { "ypitch", "integer, default 0", "Optional pitch in y direction, used for repetition in y" }
+        };
+        vector_append(entries, _make_api_entry(
+            "contactbarebltr",
+            "geometry",
+            "Create contacts in a rectangular area with the given corner points in cell. This function creates 'bare' contacts, so only the cut layers, no surrouning metals or semi-conductor layers",
+            parameters,
+            sizeof(parameters) / sizeof(parameters[0])
+        ));
+    }
+
+    /* geometry.cross */
+    {
+        struct parameter parameters[] = {
+            { "cell",      "object",  "Object in which the cross is created" },
+            { "layer",     "generic", "Layer of the generated cross shape" },
+            { "width",     "integer", "Width of the generated cross shape" },
+            { "height",    "integer", "Height of the generated cross shape" },
+            { "crosssize", "integer", "Cross size of the generated cross shape (the 'width' of the rectangles making up the cross)" },
+        };
+        vector_append(entries, _make_api_entry(
+            "cross",
+            "geometry",
+            "Create a cross shape in the given cell. The cross is made up by two overlapping rectangles in horizontal and in vertical direction.",
+            parameters,
+            sizeof(parameters) / sizeof(parameters[0])
+        ));
+    }
+
+    /* geometry.unequal_ring */
+    {
+        struct parameter parameters[] = {
+            { "cell",            "object",  "Object in which the ring is created" },
+            { "layer",           "generic", "Layer of the generated ring shape" },
+            { "width",           "integer", "Width of the generated ring shape" },
+            { "height",          "integer", "Height of the generated ring shape" },
+            { "leftringwidth",   "integer", "Left ring width of the generated ring shape (the 'width' of the path making up the left part of the ring)" },
+            { "rightringwidth",  "integer", "Right ring width of the generated ring shape (the 'width' of the path making up the right part of the ring)" },
+            { "topringwidth",    "integer", "Top ring width of the generated ring shape (the 'width' of the path making up the top part of the ring)" },
+            { "bottomringwidth", "integer", "Bottom ring width of the generated ring shape (the 'width' of the path making up the bottom part of the ring)" },
+        };
+        vector_append(entries, _make_api_entry(
+            "unequal_ring",
+            "geometry",
+            "Create a ring shape with unequal ring widhts in the given cell",
+            parameters,
+            sizeof(parameters) / sizeof(parameters[0])
+        ));
+    }
+
+    /* geometry.ring */
+    {
+        struct parameter parameters[] = {
+            { "cell",      "object",  "Object in which the ring is created" },
+            { "layer",     "generic", "Layer of the generated ring shape" },
+            { "width",     "integer", "Width of the generated ring shape" },
+            { "height",    "integer", "Height of the generated ring shape" },
+            { "ringwidth", "integer", "Ring width of the generated ring shape (the 'width' of the path making up the ring)" },
+        };
+        vector_append(entries, _make_api_entry(
+            "ring",
+            "geometry",
+            "Create a ring shape width equal ring widths in the given cell. Like geometry.unequal_ring, but all widths are the same",
+            parameters,
+            sizeof(parameters) / sizeof(parameters[0])
+        ));
+    }
+
+    /* geometry.curve */
+    {
+        struct parameter parameters[] = {
+            { "cell",      "object",                   "Object in which the ring is created" },
+            { "layer",     "generic",                  "Layer of the generated ring shape" },
+            { "origin",    "point",                    "Start point of the curve" },
+            { "segments",  "table",                    "Table of curve segments " }, // FIXME: more details on curve segments
+            { "grid",      "integer",                  "Grid for rasterization of the curve" },
+            { "allow45",   "boolean, default false",   "Start point of the curve" },
+        };
+        vector_append(entries, _make_api_entry(
+            "curve",
+            "geometry",
+            "Create a curve shape width in the given cell",
+            parameters,
+            sizeof(parameters) / sizeof(parameters[0])
+        ));
+    }
+
     /* object.add_child */
     {
         struct parameter parameters[] = {
@@ -199,6 +478,7 @@ struct vector* _initialize_api_entries(void)
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
+
     return entries;
 }
 
