@@ -177,6 +177,12 @@ int main(int argc, const char* const * argv)
         main_API_help(funcname);
         goto DESTROY_CMDOPTIONS;
     }
+    if(cmdoptions_was_provided_long(cmdoptions, "api-search"))
+    {
+        const char* funcname = cmdoptions_get_argument_long(cmdoptions, "api-search");
+        main_API_search(funcname);
+        goto DESTROY_CMDOPTIONS;
+    }
 
     if(cmdoptions_was_provided_long(cmdoptions, "import-verilog"))
     {

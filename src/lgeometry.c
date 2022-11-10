@@ -413,7 +413,9 @@ static int lgeometry_contactbltr(lua_State* L)
     );
     if(!res)
     {
-        lua_pushstring(L, "geometry.contactbltr: could not fit via");
+        const point_t* blp = lpoint_get(bl);
+        const point_t* trp = lpoint_get(tr);
+        lua_pushfstring(L, "geometry.contactbltr: could not fit via (width = %d, height = %d)", trp->x - blp->x, trp->y - blp->y);
         lua_error(L);
     }
     return 0;
