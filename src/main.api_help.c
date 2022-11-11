@@ -162,6 +162,32 @@ static int _get_type_width(const struct parameter* parameter)
     return 0; // make the compiler happy
 }
 
+static const char* _get_param_color(const struct parameter* parameter)
+{
+    switch(parameter->type)
+    {
+        case VARARGS:
+            return API_HELP_TYPE_VARARGS;
+        case BOOLEAN:
+            return API_HELP_TYPE_BOOLEAN;
+        case TABLE:
+            return API_HELP_TYPE_TABLE;
+        case STRING:
+            return API_HELP_TYPE_STRING;
+        case OBJECT:
+            return API_HELP_TYPE_OBJECT;
+        case GENERICS:
+            return API_HELP_TYPE_GENERICS;
+        case INTEGER:
+            return API_HELP_TYPE_INTEGER;
+        case POINT:
+            return API_HELP_TYPE_POINT;
+        case POINTLIST:
+            return API_HELP_TYPE_POINT;
+    }
+    return COLOR_NORMAL; // make the compiler happy
+}
+
 static void _print_parameter(const struct parameter* parameter, int namewidth, int typewidth)
 {
     // name
@@ -179,33 +205,34 @@ static void _print_parameter(const struct parameter* parameter, int namewidth, i
     switch(parameter->type)
     {
         case VARARGS:
-            fputs(API_HELP_TYPE_VARARGS "..." COLOR_NORMAL, stdout);
+            fputs(API_HELP_TYPE_VARARGS "...", stdout);
             break;
         case BOOLEAN:
-            fputs(API_HELP_TYPE_BOOLEAN "boolean" COLOR_NORMAL, stdout);
+            fputs(API_HELP_TYPE_BOOLEAN "boolean", stdout);
             break;
         case TABLE:
-            fputs(API_HELP_TYPE_TABLE "table" COLOR_NORMAL, stdout);
+            fputs(API_HELP_TYPE_TABLE "table", stdout);
             break;
         case STRING:
-            fputs(API_HELP_TYPE_STRING "string" COLOR_NORMAL, stdout);
+            fputs(API_HELP_TYPE_STRING "string", stdout);
             break;
         case OBJECT:
-            fputs(API_HELP_TYPE_OBJECT "object" COLOR_NORMAL, stdout);
+            fputs(API_HELP_TYPE_OBJECT "object", stdout);
             break;
         case GENERICS:
-            fputs(API_HELP_TYPE_GENERICS "generics" COLOR_NORMAL, stdout);
+            fputs(API_HELP_TYPE_GENERICS "generics", stdout);
             break;
         case INTEGER:
-            fputs(API_HELP_TYPE_INTEGER "integer" COLOR_NORMAL, stdout);
+            fputs(API_HELP_TYPE_INTEGER "integer", stdout);
             break;
         case POINT:
-            fputs(API_HELP_TYPE_POINT "point" COLOR_NORMAL, stdout);
+            fputs(API_HELP_TYPE_POINT "point", stdout);
             break;
         case POINTLIST:
-            fputs(API_HELP_TYPE_POINT "pointlist" COLOR_NORMAL, stdout);
+            fputs(API_HELP_TYPE_POINT "pointlist", stdout);
             break;
     }
+    fputs(COLOR_NORMAL, stdout);
     putchar(')');
 
     // FIXME: default values
@@ -321,6 +348,7 @@ void _print_with_newlines_and_offset(const char* str, unsigned int offset)
 
 void _print_api_entry(const struct api_entry* entry)
 {
+    // function name
     putchar('\n');
     fputs("Syntax: ", stdout);
     if(entry->module != MODULE_NONE)
@@ -328,10 +356,15 @@ void _print_api_entry(const struct api_entry* entry)
         printf("%s.", _stringify_module(entry->module));
     }
     printf("%s(", entry->funcname);
+
+    // argument list
     for(size_t i = 0; i < vector_size(entry->parameters); ++i)
     {
         const struct parameter* param = vector_get_const(entry->parameters, i);
+
+        fputs(_get_param_color(param), stdout);
         printf("%s", param->name);
+        fputs(COLOR_NORMAL, stdout);
         if(i < vector_size(entry->parameters) - 1)
         {
             putchar(',');
@@ -339,12 +372,19 @@ void _print_api_entry(const struct api_entry* entry)
         }
     }
 
-    printf("%s\n\n", ")");
+    fputs(")\n\n", stdout);
+    
+    // function info
     printf("%s\n\n", entry->info);
+
+    // function example
     fputs("Example: ", stdout);
     _print_with_newlines_and_offset(entry->example, 9); // 9: strlen("Example: ")
+                                                        //
     putchar('\n');
     putchar('\n');
+
+    // detailed parameter list
     _print_parameters(entry->parameters);
 }
 
@@ -380,14 +420,14 @@ struct vector* _initialize_api_entries(void)
     /* geometry.rectanglebltr */
     {
         struct parameter parameters[] = {
-            { "cell",   OBJECT, NULL,             "Object in which the rectangle is created" },
-            { "layer",  GENERICS, NULL,            "Layer of the generated rectangular shape" },
-            { "bl",     POINT, NULL,                "Bottom-left point of the generated rectangular shape" },
-            { "tr",     POINT, NULL,                "Top-right point of the generated rectangular shape" },
-            { "xrep",   INTEGER, "1", "Optional number of repetitions in x direction. The Rectangles are shifted so that an equal number is above and below" },
-            { "yrep",   INTEGER, "1", "Optional number of repetitions in y direction. The Rectangles are shifted so that an equal number is above and below" },
-            { "xpitch", INTEGER, "0", "Optional pitch in x direction, used for repetition in x" },
-            { "ypitch", INTEGER, "0", "Optional pitch in y direction, used for repetition in y" }
+            { "cell",   OBJECT,     NULL,   "Object in which the rectangle is created" },
+            { "layer",  GENERICS,   NULL,   "Layer of the generated rectangular shape" },
+            { "bl",     POINT,      NULL,   "Bottom-left point of the generated rectangular shape" },
+            { "tr",     POINT,      NULL,   "Top-right point of the generated rectangular shape" },
+            { "xrep",   INTEGER,    "1",    "Optional number of repetitions in x direction. The Rectangles are shifted so that an equal number is above and below" },
+            { "yrep",   INTEGER,    "1",    "Optional number of repetitions in y direction. The Rectangles are shifted so that an equal number is above and below" },
+            { "xpitch", INTEGER,    "0",    "Optional pitch in x direction, used for repetition in x" },
+            { "ypitch", INTEGER,    "0",    "Optional pitch in y direction, used for repetition in y" }
         };
         vector_append(entries, _make_api_entry(
             "rectanglebltr",
@@ -402,14 +442,14 @@ struct vector* _initialize_api_entries(void)
     /* geometry.rectanglepoints */
     {
         struct parameter parameters[] = {
-            { "cell",   OBJECT, NULL,             "Object in which the rectangle is created" },
-            { "layer",  GENERICS, NULL,            "Layer of the generated rectangular shape" },
-            { "pt1",    POINT, NULL,                "First corner point of the generated rectangular shape" },
-            { "pt2",    POINT, NULL,                "Second corner point of the generated rectangular shape" },
-            { "xrep",   INTEGER, "1", "Optional number of repetitions in x direction. The Rectangles are shifted so that an equal number is above and below" },
-            { "yrep",   INTEGER, "1", "Optional number of repetitions in y direction. The Rectangles are shifted so that an equal number is above and below" },
-            { "xpitch", INTEGER, "0", "Optional pitch in x direction, used for repetition in x" },
-            { "ypitch", INTEGER, "0", "Optional pitch in y direction, used for repetition in y" }
+            { "cell",   OBJECT,     NULL,   "Object in which the rectangle is created" },
+            { "layer",  GENERICS,   NULL,   "Layer of the generated rectangular shape" },
+            { "pt1",    POINT,      NULL,   "First corner point of the generated rectangular shape" },
+            { "pt2",    POINT,      NULL,   "Second corner point of the generated rectangular shape" },
+            { "xrep",   INTEGER,    "1",    "Optional number of repetitions in x direction. The Rectangles are shifted so that an equal number is above and below" },
+            { "yrep",   INTEGER,    "1",    "Optional number of repetitions in y direction. The Rectangles are shifted so that an equal number is above and below" },
+            { "xpitch", INTEGER,    "0",    "Optional pitch in x direction, used for repetition in x" },
+            { "ypitch", INTEGER,    "0",    "Optional pitch in y direction, used for repetition in y" }
         };
         vector_append(entries, _make_api_entry(
             "rectanglepoints",
