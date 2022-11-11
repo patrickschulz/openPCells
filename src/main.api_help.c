@@ -1,11 +1,18 @@
 #include "main.api_help.h"
 
+#include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include "terminal_colors.h"
 #include "vector.h"
+
+#define API_HELP_COLOR_OBJECT COLOR_RGB(128, 128, 0)
+
+#define API_HELP_TYPE_OBJECT   COLOR_RGB(128, 128, 0) "object" COLOR_NORMAL
+#define API_HELP_TYPE_INTEGER  COLOR_RGB(128, 128, 0) "integer" COLOR_NORMAL
+#define API_HELP_TYPE_GENERICS COLOR_RGB(128, 128, 0) "generics" COLOR_NORMAL
 
 static int _is_func(const char* tocheck, const char* func, const char* module)
 {
@@ -37,22 +44,53 @@ struct api_entry {
     struct vector* parameters;
 };
 
-#define _switch_color(color) fputs(color, stdout)
-
-static void _reset(void)
+static int _pstrlen(const char* str)
 {
-    _switch_color(COLOR_NORMAL);
+    const char* ptr = str;
+    int len = 0;
+    while(*ptr)
+    {
+        if(*ptr == '\033')
+        {
+            while(*ptr != 'm')
+            {
+                ++ptr;
+            }
+            ++ptr; // skip 'm'
+            if(!*ptr)
+            {
+                break;
+            }
+        }
+        ++len;
+        ++ptr;
+    }
+    return len;
+}
+
+static void _print_escaped_string(const char* str, int width)
+{
+    int w = _pstrlen(str);
+    for(int i = 0; i < width - w; ++i)
+    {
+        putchar(' ');
+    }
+    fputs(str, stdout);
 }
 
 static void _print_parameter(const struct parameter* parameter, int namewidth, int typewidth)
 {
+    // name
     fputs("    ", stdout);
-    _switch_color(COLOR_BLUE_BOLD);
-    printf("%*s" COLOR_NORMAL, namewidth, parameter->name);
-    _reset();
-    _switch_color(COLOR_GREEN_BOLD);
-    printf(" (%*s)", typewidth, parameter->type);
-    _reset();
+    _print_escaped_string(parameter->name, namewidth);
+
+    // type
+    putchar(' ');
+    putchar('(');
+    _print_escaped_string(parameter->type, typewidth);
+    putchar(')');
+    
+    // text
     printf(": %s\n", parameter->text);
 }
 
@@ -64,9 +102,9 @@ static void _print_parameters(const struct vector* parameters)
     while(vector_const_iterator_is_valid(it))
     {
         const struct parameter* param = vector_const_iterator_get(it);
-        int nw = strlen(param->name);
+        int nw = _pstrlen(param->name);
         if(nw > namewidth) { namewidth = nw; }
-        int tw = strlen(param->type);
+        int tw = _pstrlen(param->type);
         if(tw > typewidth) { typewidth = tw; }
         vector_const_iterator_next(it);
     }
@@ -197,16 +235,16 @@ struct vector* _initialize_api_entries(void)
     /* geometry.rectangle */
     {
         struct parameter parameters[] = {
-            { "cell",   "object",             "Object in which the rectangle is created" },
-            { "layer",  "generic",            "Layer of the generated rectangular shape" },
-            { "width",  "integer",            "Width of the generated rectangular shape" },
-            { "height", "integer",            "Height of the generated rectangular shape" },
-            { "xshift", "integer, default 0", "Optional shift in x direction" },
-            { "yshift", "integer, default 0", "Optional shift in y direction" },
-            { "xrep",   "integer, default 1", "Optional number of repetitions in x direction. The Rectangles are shifted so that an equal number is above and below" },
-            { "yrep",   "integer, default 1", "Optional number of repetitions in y direction. The Rectangles are shifted so that an equal number is above and below" },
-            { "xpitch", "integer, default 0", "Optional pitch in x direction, used for repetition in x" },
-            { "ypitch", "integer, default 0", "Optional pitch in y direction, used for repetition in y" }
+            { "cell",   API_HELP_TYPE_OBJECT,                "Object in which the rectangle is created" },
+            { "layer",  API_HELP_TYPE_GENERICS,              "Layer of the generated rectangular shape" },
+            { "width",  API_HELP_TYPE_INTEGER,               "Width of the generated rectangular shape" },
+            { "height", API_HELP_TYPE_INTEGER,               "Height of the generated rectangular shape" },
+            { "xshift", API_HELP_TYPE_INTEGER ", default 0", "Optional shift in x direction" },
+            { "yshift", API_HELP_TYPE_INTEGER ", default 0", "Optional shift in y direction" },
+            { "xrep",   API_HELP_TYPE_INTEGER ", default 1", "Optional number of repetitions in x direction. The Rectangles are shifted so that an equal number is above and below" },
+            { "yrep",   API_HELP_TYPE_INTEGER ", default 1", "Optional number of repetitions in y direction. The Rectangles are shifted so that an equal number is above and below" },
+            { "xpitch", API_HELP_TYPE_INTEGER ", default 0", "Optional pitch in x direction, used for repetition in x" },
+            { "ypitch", API_HELP_TYPE_INTEGER ", default 0", "Optional pitch in y direction, used for repetition in y" }
         };
         vector_append(entries, _make_api_entry(
             "rectangle",
@@ -234,7 +272,7 @@ struct vector* _initialize_api_entries(void)
             "rectanglebltr",
             "geometry",
             "Create a rectangular shape with the given corner points in cell",
-            "", // FIXME: example for rectanglebltr
+            "geometry.rectanglebltr(cell, generics.other(\"nwell\"), point.create(-100, -100), point.create(100, 100))\ngeometry.rectanglebltr(cell, generics.metal(1), obj:get_anchor(\"bottomleft\"), obj:get_anchor(\"topright\"))\ngeometry.rectanglebltr(cell, generics.metal(-1), point.create(-100, -100), point.create(100, 100), 20, 2, 400, 1000)\n",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
