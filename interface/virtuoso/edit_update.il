@@ -40,7 +40,7 @@ procedure(OPCUpdateCallback(@key (callopc t) (hierarchical t) (xpath nil))
         OPCCmd = OPCBuildCallCommand(OPCArgs)
         if(callopc
             then
-                if(OPCCall(OPCCmd ?redirect nil)
+                if(OPCCall(OPCCmd)
                     then
                         foreach(shape cv->shapes dbDeleteObject(shape))
                         foreach(inst cv->instances dbDeleteObject(inst))
@@ -73,11 +73,13 @@ procedure(OPCUpdateAsGDS()
             lsprintf("--cellscript %s -f %s --write-children-ports" path OPCSettingsForm->OPCCellFilename->value)
             ?exporttype "gds"
         )
+        /*
         unless(hierarchical
             OPCArgs = lsprintf("%s --flat" OPCArgs)
         )
+        */
         OPCCmd = OPCBuildCallCommand(OPCArgs)
-        OPCCall(OPCCmd ?redirect nil)
+        OPCCall(OPCCmd)
     )
 ) ; procedure
 
