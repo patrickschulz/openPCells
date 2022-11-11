@@ -160,37 +160,31 @@ void _print_with_newlines_and_offset(const char* str, unsigned int offset)
 
 void _print_api_entry(const struct api_entry* entry)
 {
-    size_t funclen;
+    putchar('\n');
     if(entry->modulename)
     {
-        funclen = strlen(entry->funcname) + strlen(entry->modulename) + 10;
-        printf("Syntax: %s.%s(\n", entry->funcname, entry->modulename);
+        printf("Syntax: %s.%s(", entry->funcname, entry->modulename);
     }
     else
     {
-        funclen = strlen(entry->funcname) + 10;
-        printf("Syntax: %s(\n", entry->funcname);
+        printf("Syntax: %s(", entry->funcname);
     }
-    struct vector_const_iterator* pit = vector_const_iterator_create(entry->parameters);
-    while(vector_const_iterator_is_valid(pit))
+    for(size_t i = 0; i < vector_size(entry->parameters); ++i)
     {
-        const struct parameter* param = vector_const_iterator_get(pit);
-        for(size_t i = 0; i < funclen; ++i)
+        const struct parameter* param = vector_get_const(entry->parameters, i);
+        printf("%s", param->name);
+        if(i < vector_size(entry->parameters) - 1)
         {
+            putchar(',');
             putchar(' ');
         }
-        printf("%s\n", param->name);
-        vector_const_iterator_next(pit);
     }
-    vector_const_iterator_destroy(pit);
-    for(size_t i = 0; i < funclen; ++i)
-    {
-        putchar(' ');
-    }
-    printf("%s\n", ")");
-    printf("%s\n", entry->info);
+
+    printf("%s\n\n", ")");
+    printf("%s\n\n", entry->info);
     fputs("Example: ", stdout);
     _print_with_newlines_and_offset(entry->example, 9); // 9: strlen("Example: ")
+    putchar('\n');
     putchar('\n');
     _print_parameters(entry->parameters);
 }
@@ -601,13 +595,13 @@ struct vector* _initialize_api_entries(void)
     /* set */
     {
         struct parameter parameters[] = {
-
+            { "...", "varargs", "variable number of arguments, usually strings or integers" },
         };
         vector_append(entries, _make_api_entry(
             "set",
             NULL,
-            "", // FIXME: set
-            "", // FIXME: example for set
+            "define a set of possible values that a parameter can take. Only useful within a parameter definition of a pcell",
+            "pcell.add_parameters({\n{ \"mostype\", \"nmos\", set = (\"nmos\", \"pmos\") }\n                    })",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
