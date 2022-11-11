@@ -30,9 +30,10 @@ struct parameter {
 };
 
 struct api_entry {
-    const char* funcname;
-    const char* modulename;
-    const char* info;
+    char* funcname;
+    char* modulename;
+    char* info;
+    char* example;
     struct vector* parameters;
 };
 
@@ -101,12 +102,26 @@ void _destroy_parameter(void* v)
     free(parameter);
 }
 
-struct api_entry* _make_api_entry(const char* funcname, const char* modulename, const char* info, struct parameter* parameters, size_t len)
+struct api_entry* _make_api_entry(
+    const char* funcname,
+    const char* modulename,
+    const char* info,
+    const char* example,
+    struct parameter* parameters, size_t len
+)
 {
     struct api_entry* entry = malloc(sizeof(*entry));
-    entry->funcname = funcname;
-    entry->modulename = modulename;
-    entry->info = info;
+    entry->funcname = strdup(funcname);
+    if(modulename)
+    {
+        entry->modulename = strdup(modulename);
+    }
+    else
+    {
+        entry->modulename = NULL;
+    }
+    entry->info = strdup(info);
+    entry->example = strdup(example);
     entry->parameters = vector_create(len, _destroy_parameter);
     for(size_t i = 0; i < len; ++i)
     {
@@ -118,8 +133,29 @@ struct api_entry* _make_api_entry(const char* funcname, const char* modulename, 
 void _destroy_api_entry(void* v)
 {
     struct api_entry* entry = v;
+    free(entry->funcname);
+    free(entry->modulename);
+    free(entry->info);
+    free(entry->example);
     vector_destroy(entry->parameters);
     free(entry);
+}
+
+void _print_with_newlines_and_offset(const char* str, unsigned int offset)
+{
+    const char* ptr = str;
+    while(*ptr)
+    {
+        putchar(*ptr);
+        if(*ptr == '\n')
+        {
+            for(unsigned int i = 0; i < offset; ++i)
+            {
+                putchar(' ');
+            }
+        }
+        ++ptr;
+    }
 }
 
 void _print_api_entry(const struct api_entry* entry)
@@ -153,6 +189,9 @@ void _print_api_entry(const struct api_entry* entry)
     }
     printf("%s\n", ")");
     printf("%s\n", entry->info);
+    fputs("Example: ", stdout);
+    _print_with_newlines_and_offset(entry->example, 9); // 9: strlen("Example: ")
+    putchar('\n');
     _print_parameters(entry->parameters);
 }
 
@@ -179,6 +218,7 @@ struct vector* _initialize_api_entries(void)
             "rectangle",
             "geometry",
             "Create a rectangular shape with the given width and height in cell",
+            "geometry.rectangle(cell, generics.metal(1), 100, 100)\ngeometry.rectangle(cell, generics.other(\"gate\"), 100, 100, 0, 0, 20, 1, 200, 0)",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -200,6 +240,7 @@ struct vector* _initialize_api_entries(void)
             "rectanglebltr",
             "geometry",
             "Create a rectangular shape with the given corner points in cell",
+            "", // FIXME: example for rectanglebltr
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -221,6 +262,7 @@ struct vector* _initialize_api_entries(void)
             "rectanglepoints",
             "geometry",
             "Create a rectangular shape with the given corner points in cell. Similar to geometry.rectanglebltr, but any of the corner points can be given in any order",
+            "", // FIXME: example for rectanglepoints
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -237,6 +279,7 @@ struct vector* _initialize_api_entries(void)
             "polygon",
             "geometry",
             "Create a polygon shape with the given points in cell",
+            "", // FIXME: example for polygon
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -254,6 +297,7 @@ struct vector* _initialize_api_entries(void)
             "path",
             "geometry",
             "Create a path shape with the given points and width in cell",
+            "", // FIXME: example for path
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -271,6 +315,7 @@ struct vector* _initialize_api_entries(void)
             "path_manhatten",
             "geometry",
             "Create a manhatten path shape with the given points and width in cell. This only allows vertical or horizontal movements",
+            "", // FIXME: example for path_manhatten
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -290,6 +335,7 @@ struct vector* _initialize_api_entries(void)
             "path_cshape",
             "geometry",
             "Create a path shape that starts and ends at the start and end point, respectively and passes through the offset point. Only the x-coordinate of the offset point is taken, creating a shape resembling a (possibly inverter) 'C'",
+            "", // FIXME: example for path_cshape
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -309,6 +355,7 @@ struct vector* _initialize_api_entries(void)
             "path_ushape",
             "geometry",
             "Create a path shape that starts and ends at the start and end point, respectively and passes through the offset point. Only the y-coordinate of the offset point is taken, creating a shape resembling a (possibly inverter) 'U'",
+            "", // FIXME: example for path_ushape
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -333,6 +380,7 @@ struct vector* _initialize_api_entries(void)
             "via",
             "geometry",
             "Create via (single or stack) in a rectangular area with the given width and height in cell",
+            "", // FIXME: example for via
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -355,6 +403,7 @@ struct vector* _initialize_api_entries(void)
             "viabltr",
             "geometry",
             "Create vias (single or stack) in a rectangular area with the given corner points in cell",
+            "", // FIXME: example for viabltr
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -378,6 +427,7 @@ struct vector* _initialize_api_entries(void)
             "contact",
             "geometry",
             "Create contacts in a rectangular area with the given width and height in cell",
+            "", // FIXME: example for contact
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -399,6 +449,7 @@ struct vector* _initialize_api_entries(void)
             "contactbltr",
             "geometry",
             "Create contacts in a rectangular area with the given corner points in cell",
+            "", // FIXME: example for contactbltr
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -422,6 +473,7 @@ struct vector* _initialize_api_entries(void)
             "contactbare",
             "geometry",
             "Create contacts in a rectangular area with the given width and height in cell. This function creates 'bare' contacts, so only the cut layers, no surrouning metals or semi-conductor layers",
+            "", // FIXME: example for contactbare
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -443,6 +495,7 @@ struct vector* _initialize_api_entries(void)
             "contactbarebltr",
             "geometry",
             "Create contacts in a rectangular area with the given corner points in cell. This function creates 'bare' contacts, so only the cut layers, no surrouning metals or semi-conductor layers",
+            "", // FIXME: example for contactbarebltr
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -461,6 +514,7 @@ struct vector* _initialize_api_entries(void)
             "cross",
             "geometry",
             "Create a cross shape in the given cell. The cross is made up by two overlapping rectangles in horizontal and in vertical direction.",
+            "", // FIXME: example for cross
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -482,6 +536,7 @@ struct vector* _initialize_api_entries(void)
             "unequal_ring",
             "geometry",
             "Create a ring shape with unequal ring widhts in the given cell",
+            "", // FIXME: example for unequal_ring
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -500,6 +555,7 @@ struct vector* _initialize_api_entries(void)
             "ring",
             "geometry",
             "Create a ring shape width equal ring widths in the given cell. Like geometry.unequal_ring, but all widths are the same",
+            "", // FIXME: example for ring
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -519,6 +575,7 @@ struct vector* _initialize_api_entries(void)
             "curve",
             "geometry",
             "Create a curve shape width in the given cell",
+            "", // FIXME: example for curve
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -535,6 +592,7 @@ struct vector* _initialize_api_entries(void)
             "add_child",
             "object",
             "Add a child object (instance) to the given cell",
+            "", // FIXME: example for add_child
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -549,6 +607,7 @@ struct vector* _initialize_api_entries(void)
             "set",
             NULL,
             "", // FIXME: set
+            "", // FIXME: example for set
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -562,6 +621,7 @@ struct vector* _initialize_api_entries(void)
             "interval",
             NULL,
             "", // FIXME: interval
+            "", // FIXME: example for interval
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -575,6 +635,7 @@ struct vector* _initialize_api_entries(void)
             "even",
             NULL,
             "", // FIXME: even
+            "", // FIXME: example for even
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -588,6 +649,7 @@ struct vector* _initialize_api_entries(void)
             "odd",
             NULL,
             "", // FIXME: odd
+            "", // FIXME: example for odd
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -601,6 +663,7 @@ struct vector* _initialize_api_entries(void)
             "positive",
             NULL,
             "", // FIXME: positive
+            "", // FIXME: example for positive
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -614,6 +677,7 @@ struct vector* _initialize_api_entries(void)
             "multiple",
             NULL,
             "", // FIXME: multiple
+            "", // FIXME: example for multiple
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -627,6 +691,7 @@ struct vector* _initialize_api_entries(void)
             "inf",
             NULL,
             "", // FIXME: inf
+            "", // FIXME: example for inf
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -640,6 +705,7 @@ struct vector* _initialize_api_entries(void)
             "set_property",
             "pcell",
             "", // FIXME: set_property
+            "", // FIXME: example for set_property
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -653,6 +719,7 @@ struct vector* _initialize_api_entries(void)
             "add_parameter",
             "pcell",
             "", // FIXME: add_parameter
+            "", // FIXME: example for add_parameter
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -666,6 +733,7 @@ struct vector* _initialize_api_entries(void)
             "add_parameters",
             "pcell",
             "", // FIXME: add_parameters
+            "", // FIXME: example for add_parameters
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -679,6 +747,7 @@ struct vector* _initialize_api_entries(void)
             "reference_cell",
             "pcell",
             "", // FIXME: reference_cell
+            "", // FIXME: example for reference_cell
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -692,6 +761,7 @@ struct vector* _initialize_api_entries(void)
             "get_parameters",
             "pcell",
             "", // FIXME: get_parameters
+            "", // FIXME: example for get_parameters
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -705,6 +775,7 @@ struct vector* _initialize_api_entries(void)
             "push_overwrites",
             "pcell",
             "", // FIXME: push_overwrites
+            "", // FIXME: example for push_overwrites
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -718,6 +789,7 @@ struct vector* _initialize_api_entries(void)
             "pop_overwrites",
             "pcell",
             "", // FIXME: pop_overwrites
+            "", // FIXME: example for pop_overwrites
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -731,6 +803,7 @@ struct vector* _initialize_api_entries(void)
             "check_expression",
             "pcell",
             "", // FIXME: check_expression
+            "", // FIXME: example for check_expression
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -744,6 +817,7 @@ struct vector* _initialize_api_entries(void)
             "clone_parameters",
             "pcell",
             "", // FIXME: clone_parameters
+            "", // FIXME: example for clone_parameters
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -757,6 +831,7 @@ struct vector* _initialize_api_entries(void)
             "clone_matching_parameters",
             "pcell",
             "", // FIXME: clone_matching_parameters
+            "", // FIXME: example for clone_matching_parameters
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -764,12 +839,15 @@ struct vector* _initialize_api_entries(void)
     /* pcell.create_layout */
     {
         struct parameter parameters[] = {
-
+            { "cellname",   "string", "cellname of the to-be-generated layout cell in the form libname/cellname" },
+            { "objectname", "string", "name of the to-be-generated object. This name will be used as identifier in exports that support hierarchies (e.g. GDSII, SKILL)" },
+            { "parameters", "table",  "a table with key-value pairs to be used for the layout pcell. The parameter must exist in the pcell, otherwise this triggers an error" }
         };
         vector_append(entries, _make_api_entry(
             "create_layout",
             "pcell",
-            "", // FIXME: create_layout
+            "Create a layout based on a parametric cell",
+            "", // FIXME: example for create_layout
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -783,6 +861,7 @@ struct vector* _initialize_api_entries(void)
             "get_dimension",
             "tech",
             "", // FIXME: get_dimension
+            "", // FIXME: example for get_dimension
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -795,7 +874,8 @@ struct vector* _initialize_api_entries(void)
         vector_append(entries, _make_api_entry(
             "has_layer",
             "tech",
-            "", // FIXME: has_layer
+            "Check if the chosen technology supports a certain layer",
+            "", // FIXME: example for has_layer
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -809,6 +889,7 @@ struct vector* _initialize_api_entries(void)
             "resolve_metal",
             "tech",
             "", // FIXME: resolve_metal
+            "", // FIXME: example for resolve_metal
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -822,6 +903,7 @@ struct vector* _initialize_api_entries(void)
             "create_floorplan_aspectratio",
             "placement",
             "", // FIXME: create_floorplan_aspectratio
+            "", // FIXME: example for create_floorplan_aspectratio
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -835,6 +917,7 @@ struct vector* _initialize_api_entries(void)
             "create_floorplan_fixed_rows",
             "placement",
             "", // FIXME: create_floorplan_fixed_rows
+            "", // FIXME: example for create_floorplan_fixed_rows
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -848,6 +931,7 @@ struct vector* _initialize_api_entries(void)
             "optimize",
             "placement",
             "", // FIXME: optimize
+            "", // FIXME: example for optimize
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -861,6 +945,7 @@ struct vector* _initialize_api_entries(void)
             "manual",
             "placement",
             "", // FIXME: manual
+            "", // FIXME: example for manual
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -874,6 +959,7 @@ struct vector* _initialize_api_entries(void)
             "insert_filler_names",
             "placement",
             "", // FIXME: insert_filler_names
+            "", // FIXME: example for insert_filler_names
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -887,6 +973,7 @@ struct vector* _initialize_api_entries(void)
             "create_reference_rows",
             "placement",
             "", // FIXME: create_reference_rows
+            "", // FIXME: example for create_reference_rows
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -900,6 +987,7 @@ struct vector* _initialize_api_entries(void)
             "format_rows",
             "placement",
             "", // FIXME: format_rows
+            "", // FIXME: example for format_rows
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -913,6 +1001,7 @@ struct vector* _initialize_api_entries(void)
             "regular_rows",
             "placement",
             "", // FIXME: regular_rows
+            "", // FIXME: example for regular_rows
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -926,6 +1015,7 @@ struct vector* _initialize_api_entries(void)
             "digital",
             "placement",
             "", // FIXME: digital
+            "", // FIXME: example for digital
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -939,6 +1029,7 @@ struct vector* _initialize_api_entries(void)
             "rowwise",
             "placement",
             "", // FIXME: rowwise
+            "", // FIXME: example for rowwise
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -952,6 +1043,7 @@ struct vector* _initialize_api_entries(void)
             "legalize",
             "routing",
             "", // FIXME: legalize
+            "", // FIXME: example for legalize
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -965,6 +1057,7 @@ struct vector* _initialize_api_entries(void)
             "route",
             "routing",
             "", // FIXME: route
+            "", // FIXME: example for route
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -978,6 +1071,7 @@ struct vector* _initialize_api_entries(void)
             "lineto,",
             "curve",
             "", // FIXME: lineto,
+            "", // FIXME: example for lineto,
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -991,6 +1085,7 @@ struct vector* _initialize_api_entries(void)
             "arcto,",
             "curve",
             "", // FIXME: arcto,
+            "", // FIXME: example for arcto,
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -1004,6 +1099,7 @@ struct vector* _initialize_api_entries(void)
             "cubicto",
             "curve",
             "", // FIXME: cubicto
+            "", // FIXME: example for cubicto
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -1017,6 +1113,7 @@ struct vector* _initialize_api_entries(void)
             "create",
             "object",
             "", // FIXME: create
+            "", // FIXME: example for create
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -1030,6 +1127,7 @@ struct vector* _initialize_api_entries(void)
             "copy",
             "object",
             "", // FIXME: copy
+            "", // FIXME: example for copy
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -1043,6 +1141,7 @@ struct vector* _initialize_api_entries(void)
             "exchange",
             "object",
             "", // FIXME: exchange
+            "", // FIXME: example for exchange
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -1056,6 +1155,7 @@ struct vector* _initialize_api_entries(void)
             "add_anchor",
             "object",
             "", // FIXME: add_anchor
+            "", // FIXME: example for add_anchor
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -1069,6 +1169,7 @@ struct vector* _initialize_api_entries(void)
             "add_anchor_area",
             "object",
             "", // FIXME: add_anchor_area
+            "", // FIXME: example for add_anchor_area
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -1082,6 +1183,7 @@ struct vector* _initialize_api_entries(void)
             "add_anchor_area_bltr",
             "object",
             "", // FIXME: add_anchor_area_bltr
+            "", // FIXME: example for add_anchor_area_bltr
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -1095,6 +1197,7 @@ struct vector* _initialize_api_entries(void)
             "get_anchor",
             "object",
             "", // FIXME: get_anchor
+            "", // FIXME: example for get_anchor
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -1108,6 +1211,7 @@ struct vector* _initialize_api_entries(void)
             "get_array_anchor",
             "object",
             "", // FIXME: get_array_anchor
+            "", // FIXME: example for get_array_anchor
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -1121,6 +1225,7 @@ struct vector* _initialize_api_entries(void)
             "get_all_regular_anchors",
             "object",
             "", // FIXME: get_all_regular_anchors
+            "", // FIXME: example for get_all_regular_anchors
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -1134,6 +1239,7 @@ struct vector* _initialize_api_entries(void)
             "add_port",
             "object",
             "", // FIXME: add_port
+            "", // FIXME: example for add_port
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -1147,6 +1253,7 @@ struct vector* _initialize_api_entries(void)
             "add_bus_port",
             "object",
             "", // FIXME: add_bus_port
+            "", // FIXME: example for add_bus_port
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -1160,6 +1267,7 @@ struct vector* _initialize_api_entries(void)
             "get_ports",
             "object",
             "", // FIXME: get_ports
+            "", // FIXME: example for get_ports
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -1173,6 +1281,7 @@ struct vector* _initialize_api_entries(void)
             "set_alignment_box",
             "object",
             "", // FIXME: set_alignment_box
+            "", // FIXME: example for set_alignment_box
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -1186,6 +1295,7 @@ struct vector* _initialize_api_entries(void)
             "inherit_alignment_box",
             "object",
             "", // FIXME: inherit_alignment_box
+            "", // FIXME: example for inherit_alignment_box
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -1199,6 +1309,7 @@ struct vector* _initialize_api_entries(void)
             "width_height_alignmentbox",
             "object",
             "", // FIXME: width_height_alignmentbox
+            "", // FIXME: example for width_height_alignmentbox
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -1212,6 +1323,7 @@ struct vector* _initialize_api_entries(void)
             "move_to",
             "object",
             "", // FIXME: move_to
+            "", // FIXME: example for move_to
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -1225,6 +1337,7 @@ struct vector* _initialize_api_entries(void)
             "reset_translation",
             "object",
             "", // FIXME: reset_translation
+            "", // FIXME: example for reset_translation
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -1238,6 +1351,7 @@ struct vector* _initialize_api_entries(void)
             "translate",
             "object",
             "", // FIXME: translate
+            "", // FIXME: example for translate
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -1251,6 +1365,7 @@ struct vector* _initialize_api_entries(void)
             "mirror_at_xaxis",
             "object",
             "", // FIXME: mirror_at_xaxis
+            "", // FIXME: example for mirror_at_xaxis
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -1264,6 +1379,7 @@ struct vector* _initialize_api_entries(void)
             "mirror_at_yaxis",
             "object",
             "", // FIXME: mirror_at_yaxis
+            "", // FIXME: example for mirror_at_yaxis
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -1277,6 +1393,7 @@ struct vector* _initialize_api_entries(void)
             "mirror_at_origin",
             "object",
             "", // FIXME: mirror_at_origin
+            "", // FIXME: example for mirror_at_origin
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -1290,6 +1407,7 @@ struct vector* _initialize_api_entries(void)
             "rotate_90_left",
             "object",
             "", // FIXME: rotate_90_left
+            "", // FIXME: example for rotate_90_left
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -1303,6 +1421,7 @@ struct vector* _initialize_api_entries(void)
             "rotate_90_right",
             "object",
             "", // FIXME: rotate_90_right
+            "", // FIXME: example for rotate_90_right
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -1316,6 +1435,7 @@ struct vector* _initialize_api_entries(void)
             "flipx",
             "object",
             "", // FIXME: flipx
+            "", // FIXME: example for flipx
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -1329,6 +1449,7 @@ struct vector* _initialize_api_entries(void)
             "flipy",
             "object",
             "", // FIXME: flipy
+            "", // FIXME: example for flipy
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -1342,6 +1463,7 @@ struct vector* _initialize_api_entries(void)
             "move_anchor",
             "object",
             "", // FIXME: move_anchor
+            "", // FIXME: example for move_anchor
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -1355,6 +1477,7 @@ struct vector* _initialize_api_entries(void)
             "move_anchor_x",
             "object",
             "", // FIXME: move_anchor_x
+            "", // FIXME: example for move_anchor_x
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -1368,6 +1491,7 @@ struct vector* _initialize_api_entries(void)
             "move_anchor_y",
             "object",
             "", // FIXME: move_anchor_y
+            "", // FIXME: example for move_anchor_y
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -1381,6 +1505,7 @@ struct vector* _initialize_api_entries(void)
             "add_child",
             "object",
             "", // FIXME: add_child
+            "", // FIXME: example for add_child
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -1394,6 +1519,7 @@ struct vector* _initialize_api_entries(void)
             "add_child_array",
             "object",
             "", // FIXME: add_child_array
+            "", // FIXME: example for add_child_array
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -1407,6 +1533,7 @@ struct vector* _initialize_api_entries(void)
             "merge_into_shallow",
             "object",
             "", // FIXME: merge_into_shallow
+            "", // FIXME: example for merge_into_shallow
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -1420,6 +1547,7 @@ struct vector* _initialize_api_entries(void)
             "flatten",
             "object",
             "", // FIXME: flatten
+            "", // FIXME: example for flatten
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -1433,6 +1561,7 @@ struct vector* _initialize_api_entries(void)
             "metal",
             "generics",
             "", // FIXME: metal
+            "", // FIXME: example for metal
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -1446,6 +1575,7 @@ struct vector* _initialize_api_entries(void)
             "metalport",
             "generics",
             "", // FIXME: metalport
+            "", // FIXME: example for metalport
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -1459,6 +1589,7 @@ struct vector* _initialize_api_entries(void)
             "metalexclude",
             "generics",
             "", // FIXME: metalexclude
+            "", // FIXME: example for metalexclude
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -1472,6 +1603,7 @@ struct vector* _initialize_api_entries(void)
             "viacut",
             "generics",
             "", // FIXME: viacut
+            "", // FIXME: example for viacut
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -1485,6 +1617,7 @@ struct vector* _initialize_api_entries(void)
             "contact",
             "generics",
             "", // FIXME: contact
+            "", // FIXME: example for contact
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -1498,6 +1631,7 @@ struct vector* _initialize_api_entries(void)
             "oxide",
             "generics",
             "", // FIXME: oxide
+            "", // FIXME: example for oxide
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -1511,6 +1645,7 @@ struct vector* _initialize_api_entries(void)
             "implant",
             "generics",
             "", // FIXME: implant
+            "", // FIXME: example for implant
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -1524,6 +1659,7 @@ struct vector* _initialize_api_entries(void)
             "vthtype",
             "generics",
             "", // FIXME: vthtype
+            "", // FIXME: example for vthtype
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -1537,6 +1673,7 @@ struct vector* _initialize_api_entries(void)
             "other",
             "generics",
             "", // FIXME: other
+            "", // FIXME: example for other
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -1550,6 +1687,7 @@ struct vector* _initialize_api_entries(void)
             "otherport",
             "generics",
             "", // FIXME: otherport
+            "", // FIXME: example for otherport
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -1563,6 +1701,7 @@ struct vector* _initialize_api_entries(void)
             "special",
             "generics",
             "", // FIXME: special
+            "", // FIXME: example for special
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -1576,6 +1715,7 @@ struct vector* _initialize_api_entries(void)
             "premapped",
             "generics",
             "", // FIXME: premapped
+            "", // FIXME: example for premapped
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -1583,12 +1723,13 @@ struct vector* _initialize_api_entries(void)
     /* point.copy */
     {
         struct parameter parameters[] = {
-
+            { "point", "point", "point which should be copied" }
         };
         vector_append(entries, _make_api_entry(
             "copy",
             "point",
-            "", // FIXME: copy
+            "copy a point. Can be used as module function or as a point method",
+            "local newpt = point.copy(pt)\nlocal newpt = pt:copy()",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -1596,12 +1737,14 @@ struct vector* _initialize_api_entries(void)
     /* point.unwrap */
     {
         struct parameter parameters[] = {
+            { "point", "point", "point which should be unwrapped" }
 
         };
         vector_append(entries, _make_api_entry(
             "unwrap",
             "point",
-            "", // FIXME: unwrap
+            "unwrap: get the x- and y-coordinate from a point. Can be used as module function or as a point method",
+            "local x, y = point.unwrap(pt)\nlocal x, y = pt:unwrap()",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -1609,12 +1752,13 @@ struct vector* _initialize_api_entries(void)
     /* point.getx */
     {
         struct parameter parameters[] = {
-
+            { "point", "point", "point whose x-coordinate should be queried" },
         };
         vector_append(entries, _make_api_entry(
             "getx",
             "point",
-            "", // FIXME: getx
+            "get the x-coordinate from a point. Can be used as module function or as a point method",
+            "local x = point.getx(pt)\nlocal x = pt:getx()",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -1622,12 +1766,13 @@ struct vector* _initialize_api_entries(void)
     /* point.gety */
     {
         struct parameter parameters[] = {
-
+            { "point", "point", "point whose y-coordinate should be queried" },
         };
         vector_append(entries, _make_api_entry(
             "gety",
             "point",
-            "", // FIXME: gety
+            "get the y-coordinate from a point. Can be used as module function or as a point method",
+            "local y = point.gety(pt)\nlocal y = pt:gety()",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -1635,12 +1780,15 @@ struct vector* _initialize_api_entries(void)
     /* point.translate */
     {
         struct parameter parameters[] = {
-
+            { "point", "point", "point to translate" },
+            { "x",     "integer", "x delta by which the point should be translated" },
+            { "y",     "integer", "y delta by which the point should be translated" }
         };
         vector_append(entries, _make_api_entry(
             "translate",
             "point",
-            "", // FIXME: translate
+            "translate a point in x and y. Can be used as module function or as a point method",
+            "point.translate(pt, 100, -20)\npt:translate(100, -20)",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -1648,12 +1796,14 @@ struct vector* _initialize_api_entries(void)
     /* point.create */
     {
         struct parameter parameters[] = {
-
+            { "x", "integer", "x-coordinate of new point" },
+            { "y", "integer", "y-coordinate of new point" }
         };
         vector_append(entries, _make_api_entry(
             "create",
             "point",
-            "", // FIXME: create
+            "create a point from an x- and y-coordinate",
+            "local pt = point.create(0, 0)",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -1661,12 +1811,14 @@ struct vector* _initialize_api_entries(void)
     /* point.combine_12(lhs, rhs) */
     {
         struct parameter parameters[] = {
-
+            { "pt1", "point", "point for the x-coordinate of the new point" },
+            { "pt2", "point", "point for the y-coordinate of the new point" }
         };
         vector_append(entries, _make_api_entry(
             "combine_12",
             "point",
-            "", // FIXME: combine_12
+            "create a new point by combining the coordinates of two other points. The new point is made up by x1 and y2",
+            "local new = point.combine_12(pt1, pt2) -- equivalent to point.create(pt1:getx(), pt2:gety())",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -1674,12 +1826,14 @@ struct vector* _initialize_api_entries(void)
     /* point.combine_21(lhs, rhs) */
     {
         struct parameter parameters[] = {
-
+            { "pt1", "point", "point for the y-coordinate of the new point" },
+            { "pt2", "point", "point for the x-coordinate of the new point" }
         };
         vector_append(entries, _make_api_entry(
             "combine_21",
             "point",
-            "", // FIXME: combine_21
+            "create a new point by combining the coordinates of two other points. The new point is made up by x2 and y1. This function is equivalent to combine_12 with swapped arguments",
+            "local new = point.combine_21(pt1, pt2) -- equivalent to point.create(pt2:getx(), pt1:gety())",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -1687,12 +1841,14 @@ struct vector* _initialize_api_entries(void)
     /* point.combine(lhs, rhs) */
     {
         struct parameter parameters[] = {
-
+            { "pt1", "point", "first point for the new point" },
+            { "pt2", "point", "second point for the new point" }
         };
         vector_append(entries, _make_api_entry(
             "combine",
             "point",
-            "", // FIXME: combine
+            "combine two points into a new one by taking the arithmetic average of their coordinates, that is x = 0.5 * (x1 + x2), y = 0.5 * (y1 + y2)",
+            "local newpt = point.combine(pt1, pt2)",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -1700,12 +1856,14 @@ struct vector* _initialize_api_entries(void)
     /* point.xdistance(lhs, rhs) */
     {
         struct parameter parameters[] = {
-
+            { "pt1", "point", "first point for the distance" },
+            { "pt2", "point", "second point for the distance" }
         };
         vector_append(entries, _make_api_entry(
             "xdistance",
             "point",
-            "", // FIXME: xdistance
+            "calculate the distance in x between two points",
+            "local dx = point.xdistance(pt1, pt2)",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -1713,12 +1871,14 @@ struct vector* _initialize_api_entries(void)
     /* point.ydistance(lhs, rhs) */
     {
         struct parameter parameters[] = {
-
+            { "pt1", "point", "first point for the distance" },
+            { "pt2", "point", "second point for the distance" }
         };
         vector_append(entries, _make_api_entry(
             "ydistance",
             "point",
-            "", // FIXME: ydistance
+            "calculate the distance in y between two points",
+            "local dy = point.xdistance(pt1, pt2)",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -1726,12 +1886,14 @@ struct vector* _initialize_api_entries(void)
     /* point.fix */
     {
         struct parameter parameters[] = {
-
+            { "pt",   "point",   "point to fix to the grid" },
+            { "grid", "integer", "grid on which the coordinates should be fixed" },
         };
         vector_append(entries, _make_api_entry(
             "fix",
             "point",
-            "", // FIXME: fix
+            "fix the x- and y-coordinate from a point on a certain grid, that is 120 would become 100 on a grid of 100. This function behaves like floor(), no rounding is done",
+            "point.create(120, 80):fix(100) -- yields (100, 0)",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -1739,12 +1901,14 @@ struct vector* _initialize_api_entries(void)
     /* point.operator+ */
     {
         struct parameter parameters[] = {
-
+            { "pt1",   "point",   "first point for the sum" },
+            { "pt2",   "point",   "second point for the sum" },
         };
         vector_append(entries, _make_api_entry(
             "operator+",
             "point",
-            "", // FIXME: operator+
+            "sum two points. This is the same as point.combine",
+            "point.create(0, 0) + point.create(100, 0) -- yields (50, 0)",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -1752,12 +1916,14 @@ struct vector* _initialize_api_entries(void)
     /* point.operator- */
     {
         struct parameter parameters[] = {
-
+            { "pt1", "point", "first point for the subtraction (the minuend)" },
+            { "pt2", "point", "second point for the subtraction (the subtrahend)" },
         };
         vector_append(entries, _make_api_entry(
             "operator-",
             "point",
-            "", // FIXME: operator-
+            "create a new point representing the difference of two points",
+            "point.create(0, 100) - point.create(50, 20) -- (-50, 80)",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -1765,12 +1931,14 @@ struct vector* _initialize_api_entries(void)
     /* point.operator.. */
     {
         struct parameter parameters[] = {
-
+            { "pt1", "point", "point for the x-coordinate of the new point" },
+            { "pt2", "point", "point for the y-coordinate of the new point" }
         };
         vector_append(entries, _make_api_entry(
             "operator..",
             "point",
-            "", // FIXME: operator..
+            "combine two points into a new one. Takes the x-coordinate from the first point and the y-coordinate from the second one. Equivalent to point.combine_12(pt1, pt2)",
+            "point.create(0, 100) .. point.create(100, 0) -- (0, 0)",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -1784,6 +1952,7 @@ struct vector* _initialize_api_entries(void)
             "xmirror",
             "util",
             "", // FIXME: xmirror
+            "", // FIXME: example for xmirror
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -1797,6 +1966,7 @@ struct vector* _initialize_api_entries(void)
             "ymirror",
             "util",
             "", // FIXME: ymirror
+            "", // FIXME: example for ymirror
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -1810,6 +1980,7 @@ struct vector* _initialize_api_entries(void)
             "xymirror",
             "util",
             "", // FIXME: xymirror
+            "", // FIXME: example for xymirror
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -1823,6 +1994,7 @@ struct vector* _initialize_api_entries(void)
             "filter_forward",
             "util",
             "", // FIXME: filter_forward
+            "", // FIXME: example for filter_forward
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -1836,6 +2008,7 @@ struct vector* _initialize_api_entries(void)
             "filter_backward",
             "util",
             "", // FIXME: filter_backward
+            "", // FIXME: example for filter_backward
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -1849,6 +2022,7 @@ struct vector* _initialize_api_entries(void)
             "merge_forwards",
             "util",
             "", // FIXME: merge_forwards
+            "", // FIXME: example for merge_forwards
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -1862,6 +2036,7 @@ struct vector* _initialize_api_entries(void)
             "merge_backwards",
             "util",
             "", // FIXME: merge_backwards
+            "", // FIXME: example for merge_backwards
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -1875,6 +2050,7 @@ struct vector* _initialize_api_entries(void)
             "reverse",
             "util",
             "", // FIXME: reverse
+            "", // FIXME: example for reverse
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -1888,6 +2064,7 @@ struct vector* _initialize_api_entries(void)
             "make_insert_xy",
             "util",
             "", // FIXME: make_insert_xy
+            "", // FIXME: example for make_insert_xy
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -1901,6 +2078,7 @@ struct vector* _initialize_api_entries(void)
             "make_insert_pts",
             "util",
             "", // FIXME: make_insert_pts
+            "", // FIXME: example for make_insert_pts
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -1914,6 +2092,7 @@ struct vector* _initialize_api_entries(void)
             "fill_all_with",
             "util",
             "", // FIXME: fill_all_with
+            "", // FIXME: example for fill_all_with
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -1927,6 +2106,7 @@ struct vector* _initialize_api_entries(void)
             "fill_predicate_with",
             "util",
             "", // FIXME: fill_predicate_with
+            "", // FIXME: example for fill_predicate_with
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -1940,6 +2120,7 @@ struct vector* _initialize_api_entries(void)
             "fill_even_with",
             "util",
             "", // FIXME: fill_even_with
+            "", // FIXME: example for fill_even_with
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -1953,6 +2134,7 @@ struct vector* _initialize_api_entries(void)
             "fill_odd_with",
             "util",
             "", // FIXME: fill_odd_with
+            "", // FIXME: example for fill_odd_with
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -1966,6 +2148,7 @@ struct vector* _initialize_api_entries(void)
             "enable",
             NULL,
             "", // FIXME: enable
+            "", // FIXME: example for enable
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -1979,6 +2162,7 @@ struct vector* _initialize_api_entries(void)
             "thisorthat",
             NULL,
             "", // FIXME: thisorthat
+            "", // FIXME: example for thisorthat
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -1992,6 +2176,7 @@ struct vector* _initialize_api_entries(void)
             "evenodddiv",
             NULL,
             "", // FIXME: evenodddiv
+            "", // FIXME: example for evenodddiv
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -2005,6 +2190,7 @@ struct vector* _initialize_api_entries(void)
             "evenodddiv2",
             NULL,
             "", // FIXME: evenodddiv2
+            "", // FIXME: example for evenodddiv2
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -2018,6 +2204,7 @@ struct vector* _initialize_api_entries(void)
             "dprint",
             NULL,
             "", // FIXME: dprint
+            "", // FIXME: example for dprint
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
