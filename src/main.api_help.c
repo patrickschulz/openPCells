@@ -11,7 +11,7 @@
 #define API_HELP_TYPE_VARARGS   COLOR_BOLD COLOR_RGB(0, 0, 0)
 #define API_HELP_TYPE_TABLE     COLOR_BOLD COLOR_RGB(0, 0, 0)
 #define API_HELP_TYPE_BOOLEAN   COLOR_BOLD COLOR_RGB(0, 0, 0)
-#define API_HELP_TYPE_STRING    COLOR_BOLD COLOR_RGB(0, 0, 0)
+#define API_HELP_TYPE_STRING    COLOR_BOLD COLOR_RGB(100, 205, 0)
 #define API_HELP_TYPE_OBJECT    COLOR_BOLD COLOR_RGB(0, 180, 140)
 #define API_HELP_TYPE_INTEGER   COLOR_BOLD COLOR_RGB(230, 0, 120)
 #define API_HELP_TYPE_GENERICS  COLOR_BOLD COLOR_RGB(0, 80, 200)
@@ -769,23 +769,6 @@ struct vector* _initialize_api_entries(void)
             MODULE_GEOMETRY,
             "Create a curve shape width in the given cell",
             "", // FIXME: example for curve
-            parameters,
-            sizeof(parameters) / sizeof(parameters[0])
-        ));
-    }
-
-    /* object.add_child */
-    {
-        struct parameter parameters[] = {
-            { "cell",      OBJECT, NULL, "Object to which the child is added" },
-            { "child",     OBJECT, NULL, "Child to add" },
-            { "instaname", STRING, NULL,   "Instance name (not used by all exports)" },
-        };
-        vector_append(entries, _make_api_entry(
-            "add_child",
-            MODULE_OBJECT,
-            "Add a child object (instance) to the given cell",
-            "", // FIXME: example for add_child
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -1689,30 +1672,40 @@ struct vector* _initialize_api_entries(void)
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
+
     /* object.add_child */
     {
         struct parameter parameters[] = {
-
+            { "cell",      OBJECT, NULL, "Object to which the child is added" },
+            { "child",     OBJECT, NULL, "Child to add" },
+            { "instname",  STRING, NULL,   "Instance name (not used by all exports)" },
         };
         vector_append(entries, _make_api_entry(
             "add_child",
             MODULE_OBJECT,
-            "", // FIXME: add_child
-            "", // FIXME: example for add_child
+            "Add a child object (instance) to the given cell",
+            "local ref = pcell.create_layout(\"basic/mosfet\", \"mosfet\")\ncell:add_child(ref, \"mosinst0\")",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
+
     /* object.add_child_array */
     {
         struct parameter parameters[] = {
-
+            { "cell",      OBJECT,      NULL,   "Object to which the child is added" },
+            { "child",     OBJECT,      NULL,   "Child to add" },
+            { "instname",  STRING,      NULL,   "Instance name (not used by all exports)" },
+            { "xrep",      INTEGER,     NULL,   "Number of repetitions in x direction" },
+            { "yrep",      INTEGER,     NULL,   "Number of repetitions in y direction" },
+            { "xpitch",    INTEGER,     NULL,   "Optional itch in x direction, used for repetition in x. If not given, this parameter is derived from the alignment box" },
+            { "ypitch",    INTEGER,     NULL,   "Optional itch in y direction, used for repetition in y. If not given, this parameter is derived from the alignment box" }
         };
         vector_append(entries, _make_api_entry(
             "add_child_array",
             MODULE_OBJECT,
-            "", // FIXME: add_child_array
-            "", // FIXME: example for add_child_array
+            "Add a child as an arrayed object to the given cell. The child array has xrep * yrep elements, with a pitch of xpitch and ypitch, respectively. The array grows to the upper-left, with the first placed untranslated. The pitch does not have to be explicitly given: If the child has an alignment box, the xpitch and ypitch are deferred from this box, if they are not given in the call. In this case, it is an error if no alignment box is present in child",
+            "--with explicit xpitch and ypitch:\nlocal ref = pcell.create_layout(\"basic/mosfet\", \"mosfet\")\ncell:add_child_array(ref, \"mosinst0\", 8, 1, 200, 0)\n-- with alignment box:\nlocal ref = pcell.create_layout(\"basic/mosfet\", \"mosfet\")\ncell:add_child_array(ref, \"mosinst0\", 8, 1)",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
