@@ -8,6 +8,8 @@
 
 #define COLOR_RGB(r, g, b) "\033[38;2;" #r ";" #g ";" #b "m"
 
+#define COLOR_BOLD         "\033[1m"
+
 #define COLOR_BLACK        "\033[0;30m"
 #define COLOR_BLACK_BOLD   "\033[1;30m"
 #define COLOR_RED          "\033[0;31m"
