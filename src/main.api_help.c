@@ -93,7 +93,7 @@ static const char* _stringify_module(enum module module)
         case MODULE_ROUTING:
             return "routing";
         case MODULE_PLACEMENT:
-            return "PLACEMENT";
+            return "placement";
         case MODULE_POINT:
             return "point";
         case MODULE_UTIL:
@@ -2562,6 +2562,32 @@ void main_API_search(const char* name)
                 _putstr(entry->funcname);
                 putchar('\n');
             }
+        }
+        vector_const_iterator_next(it);
+    }
+    vector_const_iterator_destroy(it);
+    _destroy_api_entries(entries);
+}
+
+void main_API_list(void)
+{
+    struct vector* entries = _initialize_api_entries();
+    struct vector_const_iterator* it = vector_const_iterator_create(entries);
+    while(vector_const_iterator_is_valid(it))
+    {
+        const struct api_entry* entry = vector_const_iterator_get(it);
+        const char* modulename = _stringify_module(entry->module);
+        if(modulename)
+        {
+            _putstr(modulename);
+            putchar('.');
+            _putstr(entry->funcname);
+            putchar('\n');
+        }
+        else
+        {
+            _putstr(entry->funcname);
+            putchar('\n');
         }
         vector_const_iterator_next(it);
     }
