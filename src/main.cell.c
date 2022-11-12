@@ -48,10 +48,6 @@ static lua_State* _create_and_initialize_lua(void)
     // FIXME: these libraries are probably not needed for cell creation (they are used in place & route scripts)
     open_lplacer_lib(L);
     open_lrouter_lib(L);
-
-    // FIXME: probably not needed for cell creation (used in gdsimport)
-    open_gdsparser_lib(L);
-
     return L;
 }
 
