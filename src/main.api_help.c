@@ -126,6 +126,84 @@ static int _pstrlen(const char* str)
     return len;
 }
 
+static const char* _get_color(const char* identifier, size_t len)
+{
+    static const char* identifiers[] = {
+        "RESET",
+        "OBJECT",
+        "INTEGER",
+        "GENERICS",
+        "STRING"
+    };
+    static const char* escape_sequences[] = {
+        "\033[0m",
+        API_HELP_TYPE_OBJECT,
+        API_HELP_TYPE_INTEGER,
+        API_HELP_TYPE_GENERICS,
+        API_HELP_TYPE_STRING
+    };
+    for(size_t i = 0; i < sizeof(identifiers) / sizeof(identifiers[0]); ++i)
+    {
+        if(strncmp(identifier, identifiers[i], len) == 0)
+        {
+            return escape_sequences[i];
+            break;
+        }
+    }
+    return NULL;
+}
+
+static void _append_to_string(char** str, size_t* length, size_t* capacity, char ch)
+{
+    if(*length == *capacity - 1)
+    {
+        *capacity *= 2;
+        char* tmp = realloc(*str, *capacity);
+        *str = tmp;
+    }
+    *(*str + *length) = ch;
+    ++(*length);
+}
+
+static char* _resolve_color_commands(const char* str)
+{
+    size_t capacity = 32;
+    size_t length = 0;
+    char* resolved = malloc(capacity);
+    const char* sptr = str;
+    while(*sptr)
+    {
+        if(*sptr == '$')
+        {
+            const char* cptr = sptr;
+            do {
+                ++sptr;
+            } while(*sptr != '$');
+            const char* sequence = _get_color(cptr + 1, sptr - cptr - 1);
+            if(sequence)
+            {
+                while(*sequence)
+                {
+                    _append_to_string(&resolved, &length, &capacity, *sequence);
+                    ++sequence;
+                }
+            }
+            ++sptr;
+        }
+        _append_to_string(&resolved, &length, &capacity, *sptr);
+        ++sptr;
+    }
+    _append_to_string(&resolved, &length, &capacity, 0);
+    return resolved;
+}
+
+static void _putstr(const char* str)
+{
+    char* resolved = _resolve_color_commands(str);
+    fputs(resolved, stdout);
+    free(resolved);
+}
+
 static void _print_escaped_string(const char* str, int width)
 {
     int w = _pstrlen(str);
@@ -133,31 +211,36 @@ static void _print_escaped_string(const char* str, int width)
     {
         putchar(' ');
     }
-    fputs(str, stdout);
+    _putstr(str);
 }
 
 static int _get_type_width(const struct parameter* parameter)
 {
+    int defshift = 0;
+    if(parameter->default_value)
+    {
+        defshift = 17 + strlen(parameter->default_value);
+    }
     switch(parameter->type)
     {
         case VARARGS:
-            return 3;
+            return defshift + 3;
         case TABLE:
-            return 5;
+            return defshift + 5;
         case STRING:
-            return 6;
+            return defshift + 6;
         case OBJECT:
-            return 6;
+            return defshift + 6;
         case GENERICS:
-            return 8;
+            return defshift + 8;
         case INTEGER:
-            return 7;
+            return defshift + 7;
         case BOOLEAN:
-            return 7;
+            return defshift + 7;
         case POINT:
-            return 5;
+            return defshift + 5;
         case POINTLIST:
-            return 9;
+            return defshift + 9;
     }
     return 0; // make the compiler happy
 }
@@ -191,54 +274,61 @@ static const char* _get_param_color(const struct parameter* parameter)
 static void _print_parameter(const struct parameter* parameter, int namewidth, int typewidth)
 {
     // name
-    fputs("    ", stdout);
+    _putstr("    ");
     _print_escaped_string(parameter->name, namewidth);
 
     // type
     putchar(' ');
     putchar('(');
     int tw = _get_type_width(parameter);
+    switch(parameter->type)
+    {
+        case VARARGS:
+            _putstr(API_HELP_TYPE_VARARGS "...");
+            break;
+        case BOOLEAN:
+            _putstr(API_HELP_TYPE_BOOLEAN "boolean");
+            break;
+        case TABLE:
+            _putstr(API_HELP_TYPE_TABLE "table");
+            break;
+        case STRING:
+            _putstr(API_HELP_TYPE_STRING "string");
+            break;
+        case OBJECT:
+            _putstr(API_HELP_TYPE_OBJECT "object");
+            break;
+        case GENERICS:
+            _putstr(API_HELP_TYPE_GENERICS "generics");
+            break;
+        case INTEGER:
+            _putstr(API_HELP_TYPE_INTEGER "integer");
+            break;
+        case POINT:
+            _putstr(API_HELP_TYPE_POINT "point");
+            break;
+        case POINTLIST:
+            _putstr(API_HELP_TYPE_POINT "pointlist");
+            break;
+    }
+    _putstr(COLOR_NORMAL);
     for(int i = 0; i < typewidth - tw; ++i)
     {
         putchar(' ');
     }
-    switch(parameter->type)
-    {
-        case VARARGS:
-            fputs(API_HELP_TYPE_VARARGS "...", stdout);
-            break;
-        case BOOLEAN:
-            fputs(API_HELP_TYPE_BOOLEAN "boolean", stdout);
-            break;
-        case TABLE:
-            fputs(API_HELP_TYPE_TABLE "table", stdout);
-            break;
-        case STRING:
-            fputs(API_HELP_TYPE_STRING "string", stdout);
-            break;
-        case OBJECT:
-            fputs(API_HELP_TYPE_OBJECT "object", stdout);
-            break;
-        case GENERICS:
-            fputs(API_HELP_TYPE_GENERICS "generics", stdout);
-            break;
-        case INTEGER:
-            fputs(API_HELP_TYPE_INTEGER "integer", stdout);
-            break;
-        case POINT:
-            fputs(API_HELP_TYPE_POINT "point", stdout);
-            break;
-        case POINTLIST:
-            fputs(API_HELP_TYPE_POINT "pointlist", stdout);
-            break;
-    }
-    fputs(COLOR_NORMAL, stdout);
-    putchar(')');
 
-    // FIXME: default values
+    if(parameter->default_value)
+    {
+        _putstr(", default value: ");
+        _putstr(parameter->default_value);
+    }
+    putchar(')');
     
     // text
-    printf(": %s\n", parameter->text);
+    putchar(':');
+    putchar(' ');
+    _putstr(parameter->text);
+    putchar('\n');
 }
 
 static void _print_parameters(const struct vector* parameters)
@@ -257,15 +347,18 @@ static void _print_parameters(const struct vector* parameters)
     }
     vector_const_iterator_destroy(it);
 
-    puts("Parameters:");
-    it = vector_const_iterator_create(parameters);
-    while(vector_const_iterator_is_valid(it))
+    if(vector_size(parameters) > 0)
     {
-        const struct parameter* param = vector_const_iterator_get(it);
-        _print_parameter(param, namewidth, typewidth);
-        vector_const_iterator_next(it);
+        puts("Parameters:");
+        it = vector_const_iterator_create(parameters);
+        while(vector_const_iterator_is_valid(it))
+        {
+            const struct parameter* param = vector_const_iterator_get(it);
+            _print_parameter(param, namewidth, typewidth);
+            vector_const_iterator_next(it);
+        }
+        vector_const_iterator_destroy(it);
     }
-    vector_const_iterator_destroy(it);
 
 }
 
@@ -350,21 +443,23 @@ void _print_api_entry(const struct api_entry* entry)
 {
     // function name
     putchar('\n');
-    fputs("Syntax: ", stdout);
+    _putstr("Syntax: ");
     if(entry->module != MODULE_NONE)
     {
-        printf("%s.", _stringify_module(entry->module));
+        _putstr(_stringify_module(entry->module));
+        putchar('.');
     }
-    printf("%s(", entry->funcname);
+    _putstr(entry->funcname);
+    putchar('(');
 
     // argument list
     for(size_t i = 0; i < vector_size(entry->parameters); ++i)
     {
         const struct parameter* param = vector_get_const(entry->parameters, i);
 
-        fputs(_get_param_color(param), stdout);
-        printf("%s", param->name);
-        fputs(COLOR_NORMAL, stdout);
+        _putstr(_get_param_color(param));
+        _putstr(param->name);
+        _putstr(COLOR_NORMAL);
         if(i < vector_size(entry->parameters) - 1)
         {
             putchar(',');
@@ -372,15 +467,17 @@ void _print_api_entry(const struct api_entry* entry)
         }
     }
 
-    fputs(")\n\n", stdout);
+    _putstr(")");
     
     // function info
-    printf("%s\n\n", entry->info);
+    putchar('\n');
+    putchar('\n');
 
     // function example
-    fputs("Example: ", stdout);
-    _print_with_newlines_and_offset(entry->example, 9); // 9: strlen("Example: ")
-                                                        //
+    _putstr("Example: ");
+    //_print_with_newlines_and_offset(entry->example, 9); // 9: strlen("Example: ")
+    _putstr(entry->example);
+
     putchar('\n');
     putchar('\n');
 
@@ -411,7 +508,7 @@ struct vector* _initialize_api_entries(void)
             "rectangle",
             MODULE_GEOMETRY,
             "Create a rectangular shape with the given width and height in cell",
-            "geometry.rectangle(cell, generics.metal(1), 100, 100)\ngeometry.rectangle(cell, generics.other(\"gate\"), 100, 100, 0, 0, 20, 1, 200, 0)",
+            "geometry.rectangle($OBJECT$cell$RESET$, $GENERICS$generics.metal$RESET$($INTEGER$1$RESET$), $INTEGER$100$RESET$, $INTEGER$100$RESET$)\ngeometry.rectangle($OBJECT$cell$RESET$, $GENERICS$generics.other$RESET$($STRING$\"gate\"$RESET$), $INTEGER$100$RESET$, $INTEGER$100$RESET$, $INTEGER$0$RESET$, $INTEGER$0$RESET$, $INTEGER$20$RESET$, $INTEGER$1$RESET$, $INTEGER$200$RESET$, $INTEGER$0$RESET$)",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -455,7 +552,7 @@ struct vector* _initialize_api_entries(void)
             "rectanglepoints",
             MODULE_GEOMETRY,
             "Create a rectangular shape with the given corner points in cell. Similar to geometry.rectanglebltr, but any of the corner points can be given in any order",
-            "", // FIXME: example for rectanglepoints
+            "geometry.rectanglepoints(cell, generics.metal(1), point.create(100, -100), point(-100, 100))",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -472,7 +569,7 @@ struct vector* _initialize_api_entries(void)
             "polygon",
             MODULE_GEOMETRY,
             "Create a polygon shape with the given points in cell",
-            "", // FIXME: example for polygon
+            "geometry.polygon(cell, generics.metal(1), { point.create(-50, 0), point.create(50, 0), point.create(0, 50))",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -490,7 +587,7 @@ struct vector* _initialize_api_entries(void)
             "path",
             MODULE_GEOMETRY,
             "Create a path shape with the given points and width in cell",
-            "", // FIXME: example for path
+            "geometry.path(cell, generics.metal(1), { point.create(-50, 0), point.create(50, 0), point.create(50, 50))",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -508,7 +605,7 @@ struct vector* _initialize_api_entries(void)
             "path_manhatten",
             MODULE_GEOMETRY,
             "Create a manhatten path shape with the given points and width in cell. This only allows vertical or horizontal movements",
-            "", // FIXME: example for path_manhatten
+            "geometry.path(cell, generics.metal(1), { point.create(-50, 0), point.create(50, 50))",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -528,7 +625,7 @@ struct vector* _initialize_api_entries(void)
             "path_cshape",
             MODULE_GEOMETRY,
             "Create a path shape that starts and ends at the start and end point, respectively and passes through the offset point. Only the x-coordinate of the offset point is taken, creating a shape resembling a (possibly inverter) 'C'",
-            "", // FIXME: example for path_cshape
+            "geometry.path_cshape(cell, generics.metal(1), point.create(-50, 50), point.create(-50, -50), point.create(100, 0))",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -548,7 +645,7 @@ struct vector* _initialize_api_entries(void)
             "path_ushape",
             MODULE_GEOMETRY,
             "Create a path shape that starts and ends at the start and end point, respectively and passes through the offset point. Only the y-coordinate of the offset point is taken, creating a shape resembling a (possibly inverter) 'U'",
-            "", // FIXME: example for path_ushape
+            "geometry.path_ushape(cell, generics.metal(1), point.create(-50, 0), point.create(50, 0), point.create(0, 100))",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -573,7 +670,7 @@ struct vector* _initialize_api_entries(void)
             "via",
             MODULE_GEOMETRY,
             "Create via (single or stack) in a rectangular area with the given width and height in cell",
-            "", // FIXME: example for via
+            "geometry.via(cell, 1, 2, 100, 100)\ngeometry.via(cell, -3, 2, 100, 100, -40, 80, 4, 1, 1000, 0)",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -767,8 +864,8 @@ struct vector* _initialize_api_entries(void)
         vector_append(entries, _make_api_entry(
             "curve",
             MODULE_GEOMETRY,
-            "Create a curve shape width in the given cell",
-            "", // FIXME: example for curve
+            "Create a curve shape width in the given cell. Segments must be added for a curve to be meaningful. See the functions for adding curve segments: curve.lineto, curve.arcto and curve.cubicto",
+            "geometry.curve(cell, generics.metal(-1), _pt(radius * math.cos(math.pi / 180 * angle), radius * math.sin(math.pi / 180 * angle)), {\n curve.arcto(135, 180, cornerradius, false),\n }, grid, allow45)\n geometry.curve(cell, generics.metal(-2), _pt((radius + cornerradius) * math.cos(math.pi / 180 * angle) - cornerradius, (radius + cornerradius) * math.sin(math.pi / 180 * angle)), {\n curve.arcto(180, 135, cornerradius, true),\n }, grid, allow45)",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -1297,13 +1394,13 @@ struct vector* _initialize_api_entries(void)
     /* object.copy */
     {
         struct parameter parameters[] = {
-
+            { "cell", OBJECT, NULL, "Object to copy" }
         };
         vector_append(entries, _make_api_entry(
             "copy",
             MODULE_OBJECT,
-            "", // FIXME: copy
-            "", // FIXME: example for copy
+            "copy an object",
+            "local new = cell:copy()",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -1311,13 +1408,14 @@ struct vector* _initialize_api_entries(void)
     /* object.exchange */
     {
         struct parameter parameters[] = {
-
+            { "cell",       OBJECT, NULL, "Object which should take over the other object" },
+            { "othercell",  OBJECT, NULL, "Object which should be taken over. The object handle must not be used after this operation" }
         };
         vector_append(entries, _make_api_entry(
             "exchange",
             MODULE_OBJECT,
-            "", // FIXME: exchange
-            "", // FIXME: example for exchange
+            "Take over internal state of the other object, effectively making this the main cell. The object handle to 'othercell' must not be used afterwards as this object is destroyed. This function is only really useful in cells that act as a parameter wrapper for other cells (e.g. dffpq -> dff)",
+            "cell:exchange(othercell)",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -1325,13 +1423,15 @@ struct vector* _initialize_api_entries(void)
     /* object.add_anchor */
     {
         struct parameter parameters[] = {
-
+            { "cell",   OBJECT, NULL, "object to which an anchor should be added" },
+            { "name",   STRING, NULL, "name of the anchor" },
+            { "where",  POINT,  NULL, "location of the anchor" }
         };
         vector_append(entries, _make_api_entry(
             "add_anchor",
             MODULE_OBJECT,
-            "", // FIXME: add_anchor
-            "", // FIXME: example for add_anchor
+            "add an anchor to an object",
+            "cell:add_anchor(\"output\", point.create(200, -20))",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -1705,7 +1805,7 @@ struct vector* _initialize_api_entries(void)
             "add_child_array",
             MODULE_OBJECT,
             "Add a child as an arrayed object to the given cell. The child array has xrep * yrep elements, with a pitch of xpitch and ypitch, respectively. The array grows to the upper-left, with the first placed untranslated. The pitch does not have to be explicitly given: If the child has an alignment box, the xpitch and ypitch are deferred from this box, if they are not given in the call. In this case, it is an error if no alignment box is present in child",
-            "--with explicit xpitch and ypitch:\nlocal ref = pcell.create_layout(\"basic/mosfet\", \"mosfet\")\ncell:add_child_array(ref, \"mosinst0\", 8, 1, 200, 0)\n-- with alignment box:\nlocal ref = pcell.create_layout(\"basic/mosfet\", \"mosfet\")\ncell:add_child_array(ref, \"mosinst0\", 8, 1)",
+            "-- with explicit xpitch and ypitch:\nlocal ref = pcell.create_layout(\"basic/mosfet\", \"mosfet\")\ncell:add_child_array(ref, \"mosinst0\", 8, 1, 200, 0)\n-- with alignment box:\nlocal ref = pcell.create_layout(\"basic/mosfet\", \"mosfet\")\ncell:add_child_array(ref, \"mosinst0\", 8, 1)",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -1713,13 +1813,14 @@ struct vector* _initialize_api_entries(void)
     /* object.merge_into_shallow */
     {
         struct parameter parameters[] = {
-
+            { "cell",      OBJECT, NULL, "Object to which the child is added" },
+            { "othercell", OBJECT, NULL, "Other layout cell to be merged into the cell" },
         };
         vector_append(entries, _make_api_entry(
             "merge_into_shallow",
             MODULE_OBJECT,
-            "", // FIXME: merge_into_shallow
-            "", // FIXME: example for merge_into_shallow
+            "add all shapes from othercell to the cell. Only adds the shapes from the parent cell, not from any children (hence 'shallow'). If the entire layout should be added, call flatten() on othercell",
+            "cell:merge_into_shallow(othercell)\ncell:merge_into_shallow(othercell:flatten())",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -1727,13 +1828,13 @@ struct vector* _initialize_api_entries(void)
     /* object.flatten */
     {
         struct parameter parameters[] = {
-
+            { "cell",      OBJECT, NULL, "Object which should be flattened" },
         };
         vector_append(entries, _make_api_entry(
             "flatten",
             MODULE_OBJECT,
-            "", // FIXME: flatten
-            "", // FIXME: example for flatten
+            "resolve the cell by placing all shapes from all children in the parent cell. This operates in-place and modifies the object. Copy the cell if this is unwanted",
+            "cell:flatten()\ncell:copy():flatten()",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -1741,13 +1842,13 @@ struct vector* _initialize_api_entries(void)
     /* generics.metal */
     {
         struct parameter parameters[] = {
-
+            { "index", INTEGER, NULL, "metal index" }
         };
         vector_append(entries, _make_api_entry(
             "metal",
             MODULE_GENERICS,
-            "", // FIXME: metal
-            "", // FIXME: example for metal
+            "create a generic layer representing a metal. Metals are identified by numeric indices, where 1 denotes the first metal, 2 the second one etc. Metals can also be identified by negative indicies, where -1 denotes the top-most metal, -2 the metal below that etc.",
+            "generics.metal(1)\ngenerics.metal(-2)",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -1755,13 +1856,13 @@ struct vector* _initialize_api_entries(void)
     /* generics.metalport */
     {
         struct parameter parameters[] = {
-
+            { "index", INTEGER, NULL, "metal index" }
         };
         vector_append(entries, _make_api_entry(
             "metalport",
             MODULE_GENERICS,
-            "", // FIXME: metalport
-            "", // FIXME: example for metalport
+            "create a generic layer representing a metal port. Metals are identified by numeric indices, where 1 denotes the first metal, 2 the second one etc. Metals can also be identified by negative indicies, where -1 denotes the top-most metal, -2 the metal below that etc.",
+            "generics.metalport(1)\ngenerics.metalport(-2)",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -1769,13 +1870,13 @@ struct vector* _initialize_api_entries(void)
     /* generics.metalexclude */
     {
         struct parameter parameters[] = {
-
+            { "index", INTEGER, NULL, "metal index" }
         };
         vector_append(entries, _make_api_entry(
             "metalexclude",
             MODULE_GENERICS,
-            "", // FIXME: metalexclude
-            "", // FIXME: example for metalexclude
+            "create a generic layer representing a metal exclude where automatic filling is blocked. Metals are identified by numeric indices, where 1 denotes the first metal, 2 the second one etc. Metals can also be identified by negative indicies, where -1 denotes the top-most metal, -2 the metal below that etc.",
+            "generics.metalexclude(1)\ngenerics.metalexclude(-2)",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -1783,13 +1884,14 @@ struct vector* _initialize_api_entries(void)
     /* generics.viacut */
     {
         struct parameter parameters[] = {
-
+            { "m1index", INTEGER, NULL, "first metal index" },
+            { "m2index", INTEGER, NULL, "second metal index" }
         };
         vector_append(entries, _make_api_entry(
             "viacut",
             MODULE_GENERICS,
-            "", // FIXME: viacut
-            "", // FIXME: example for viacut
+            "create a generic layer representing a via cut. This does not calculate the right size for the via cuts. This function is rarely used directly. Via cuts are generated by geometry.via[bltr]. If you are using this function as a user, it is likely you are doing something wrong",
+            "generics.viacut(1, 2)",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -1797,13 +1899,13 @@ struct vector* _initialize_api_entries(void)
     /* generics.contact */
     {
         struct parameter parameters[] = {
-
+            { "region", STRING, NULL, "region which should be contacted. Possible values: \"sourcedrain\", \"gate\" and \"active\"" }
         };
         vector_append(entries, _make_api_entry(
             "contact",
             MODULE_GENERICS,
-            "", // FIXME: contact
-            "", // FIXME: example for contact
+            "create a generic layer representing a contact. This does not calculate the right size for the contact cuts. This function is rarely used directly. Contact cuts are generated by geometry.contact[bltr]. If you are using this function as a user, it is likely you are doing something wrong",
+            "generics.contact(\"gate\")",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -1811,13 +1913,13 @@ struct vector* _initialize_api_entries(void)
     /* generics.oxide */
     {
         struct parameter parameters[] = {
-
+            { "index", INTEGER, NULL, "oxide thickness index. Conventionally starts with 1, but depends on the technology mapping" }
         };
         vector_append(entries, _make_api_entry(
             "oxide",
             MODULE_GENERICS,
-            "", // FIXME: oxide
-            "", // FIXME: example for oxide
+            "create a generic layer representing a marking layer for MOSFET gate oxide thickness (e.g. for core or I/O devices)", // FIXME: oxide
+            "generics.oxide(2)",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -1825,13 +1927,13 @@ struct vector* _initialize_api_entries(void)
     /* generics.implant */
     {
         struct parameter parameters[] = {
-
+            { "polarity", STRING, NULL, "identifier for the type (polarity) of the implant. Can be \"n\" or \"p\"" }
         };
         vector_append(entries, _make_api_entry(
             "implant",
             MODULE_GENERICS,
-            "", // FIXME: implant
-            "", // FIXME: example for implant
+            "Create a generic layer representing MOSFET source/drain implant polarity",
+            "generics.implant(\"n\")",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -1839,13 +1941,13 @@ struct vector* _initialize_api_entries(void)
     /* generics.vthtype */
     {
         struct parameter parameters[] = {
-
+            { "index", INTEGER, NULL, "threshold voltage marking layer index. Conventionally starts with 1, but depends on the technology mapping" }
         };
         vector_append(entries, _make_api_entry(
             "vthtype",
             MODULE_GENERICS,
-            "", // FIXME: vthtype
-            "", // FIXME: example for vthtype
+            "Create a generic layer representing MOSFET source/drain threshold voltage marking layers",
+            "generics.vthtype(2)",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -1853,13 +1955,13 @@ struct vector* _initialize_api_entries(void)
     /* generics.other */
     {
         struct parameter parameters[] = {
-
+            { "identifier", STRING, NULL, "layer identifier" }
         };
         vector_append(entries, _make_api_entry(
             "other",
             MODULE_GENERICS,
-            "", // FIXME: other
-            "", // FIXME: example for other
+            "create a generic layer representing 'something else'. This is for layers that do not need special processing, such as \"gate\"",
+            "generics.other(\"gate\")",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -1867,13 +1969,13 @@ struct vector* _initialize_api_entries(void)
     /* generics.otherport */
     {
         struct parameter parameters[] = {
-
+            { "identifier", STRING, NULL, "layer identifier" }
         };
         vector_append(entries, _make_api_entry(
             "otherport",
             MODULE_GENERICS,
-            "", // FIXME: otherport
-            "", // FIXME: example for otherport
+            "create a generic layer representing a port for 'something else'. This is for layers that do not need special processing, such as \"gate\"",
+            "generics.otherport(\"gate\")",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -1886,8 +1988,8 @@ struct vector* _initialize_api_entries(void)
         vector_append(entries, _make_api_entry(
             "special",
             MODULE_GENERICS,
-            "", // FIXME: special
-            "", // FIXME: example for special
+            "Create a 'special' layer. This is used to mark certain things in layouts (usually for debugging, like anchors or alignment boxes). This is not intended to translate to any meaningful layer for fabrication",
+            "generics.special()",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -1895,13 +1997,14 @@ struct vector* _initialize_api_entries(void)
     /* generics.premapped */
     {
         struct parameter parameters[] = {
-
+            { "name",       STRING, NULL, "layer name. Can be nil" },
+            { "entries",    TABLE,  NULL, "key-value pairs for the entries" },
         };
         vector_append(entries, _make_api_entry(
             "premapped",
             MODULE_GENERICS,
-            "", // FIXME: premapped
-            "", // FIXME: example for premapped
+            "Create a non-generic layer from specific layer data for a certain technology. The entries table should contain one table per supported export. The supplied key-value pairs in this table must match the key-value pairs that are expected by the export",
+            "generics.premapped(\"specialmetal\", { gds = { layer = 32, purpose = 17 }, SKILL = { layer = \"specialmetal\", purpose = \"drawing\" } })",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -2449,11 +2552,15 @@ void main_API_search(const char* name)
         {
             if(modulename)
             {
-                printf("%s.%s\n", modulename, entry->funcname);
+                _putstr(modulename);
+                putchar('.');
+                _putstr(entry->funcname);
+                putchar('\n');
             }
             else
             {
-                printf("%s\n", entry->funcname);
+                _putstr(entry->funcname);
+                putchar('\n');
             }
         }
         vector_const_iterator_next(it);
@@ -2462,3 +2569,4 @@ void main_API_search(const char* name)
     _destroy_api_entries(entries);
 }
 
+// vim: nowrap
