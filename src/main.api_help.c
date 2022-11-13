@@ -9,6 +9,7 @@
 #include "vector.h"
 
 #define API_HELP_TYPE_VARARGS   COLOR_BOLD COLOR_RGB(0, 0, 0)
+#define API_HELP_TYPE_ANY       COLOR_BOLD COLOR_RGB(0, 0, 0)
 #define API_HELP_TYPE_TABLE     COLOR_BOLD COLOR_RGB(0, 0, 0)
 #define API_HELP_TYPE_BOOLEAN   COLOR_BOLD COLOR_RGB(0, 0, 0)
 #define API_HELP_TYPE_STRING    COLOR_BOLD COLOR_RGB(100, 205, 0)
@@ -37,6 +38,7 @@ struct parameter {
     char* name;
     enum {
         VARARGS,
+        ANY,
         TABLE,
         BOOLEAN,
         STRING,
@@ -225,6 +227,8 @@ static int _get_type_width(const struct parameter* parameter)
     {
         case VARARGS:
             return defshift + 3;
+        case ANY:
+            return defshift + 3;
         case TABLE:
             return defshift + 5;
         case STRING:
@@ -251,6 +255,8 @@ static const char* _get_param_color(const struct parameter* parameter)
     {
         case VARARGS:
             return API_HELP_TYPE_VARARGS;
+        case ANY:
+            return API_HELP_TYPE_ANY;
         case BOOLEAN:
             return API_HELP_TYPE_BOOLEAN;
         case TABLE:
@@ -285,6 +291,9 @@ static void _print_parameter(const struct parameter* parameter, int namewidth, i
     {
         case VARARGS:
             _putstr(API_HELP_TYPE_VARARGS "...");
+            break;
+        case ANY:
+            _putstr(API_HELP_TYPE_ANY "any");
             break;
         case BOOLEAN:
             _putstr(API_HELP_TYPE_BOOLEAN "boolean");
@@ -474,7 +483,7 @@ void _print_api_entry(const struct api_entry* entry)
     putchar('\n');
 
     // function example
-    _putstr("Example: ");
+    _putstr("Example:\n");
     //_print_with_newlines_and_offset(entry->example, 9); // 9: strlen("Example: ")
     _putstr(entry->example);
 
@@ -964,13 +973,15 @@ struct vector* _initialize_api_entries(void)
     /* pcell.add_parameter */
     {
         struct parameter parameters[] = {
-
+            { "name",           STRING, NULL, "parameter name" },
+            { "defaultvalue",   ANY,    NULL, "default parameter value (can be any lua type)" },
+            { "opt",            TABLE,  NULL, "options table" }
         };
         vector_append(entries, _make_api_entry(
             "add_parameter",
             MODULE_PCELL,
-            "", // FIXME: add_parameter
-            "", // FIXME: example for add_parameter
+            "add a parameter to a pcell definition. Must be called in parameters(). The parameter options table can contain the following fields: 'argtype': (type of the parameter, usually deduced from the default value), 'posvals': possible parameter values, see functions 'even', 'odd', 'interval', 'positive', 'negative' and 'set'; 'follow': copy the values from the followed parameter to this one if not explicitly specified; 'readonly': make parameter readonly",
+            "function parameters()\n    pcell.add_parameter(\"fingers\", 2, { posvals = even() })\nend",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -978,13 +989,13 @@ struct vector* _initialize_api_entries(void)
     /* pcell.add_parameters */
     {
         struct parameter parameters[] = {
-
+            { "args", VARARGS, NULL, "argument list of single parameter entries" }
         };
         vector_append(entries, _make_api_entry(
             "add_parameters",
             MODULE_PCELL,
-            "", // FIXME: add_parameters
-            "", // FIXME: example for add_parameters
+            "add multiple parameters to a cell. Internally, this calls pcell.add_parameter, so this function is merely a shorthand for multiple calls to pcell.parameter. Hint for the usage: in lua tables, a trailing comma after the last entry is explicitely allowed. However, this is a variable number of arguments for a function call, where the list has to be well-defined. A common error is a trailing comma after the last entry",
+            "function parameters()\n    pcell.add_parameters(\n        { \"fingers\",     2,      posvals = even()              },\n        { \"fingerwidth\", 100,    posvals = positive()          },\n        { \"channeltype\", \"nmos\", posvals = set(\"nmos\", \"pmos\") } -- <--- no comma!\n    )\nend",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
