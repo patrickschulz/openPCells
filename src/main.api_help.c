@@ -693,7 +693,7 @@ struct vector* _initialize_api_entries(void)
             "viabltr",
             MODULE_GEOMETRY,
             "Create vias (single or stack) in a rectangular area with the given corner points in cell",
-            "", // FIXME: example for viabltr
+            "geometry.viabltr(cell, 1, 3, point.create(-100, -20), point.create(100, 4))",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -717,7 +717,7 @@ struct vector* _initialize_api_entries(void)
             "contact",
             MODULE_GEOMETRY,
             "Create contacts in a rectangular area with the given width and height in cell",
-            "", // FIXME: example for contact
+            "geometry.contact(cell, \"sourcedrain\", 40, 500)",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -739,7 +739,7 @@ struct vector* _initialize_api_entries(void)
             "contactbltr",
             MODULE_GEOMETRY,
             "Create contacts in a rectangular area with the given corner points in cell",
-            "", // FIXME: example for contactbltr
+            "geometry.contactbltr(cell, \"sourcedrain\", point.create(-20, -250), point.create(20, 500))",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -763,7 +763,7 @@ struct vector* _initialize_api_entries(void)
             "contactbare",
             MODULE_GEOMETRY,
             "Create contacts in a rectangular area with the given width and height in cell. This function creates 'bare' contacts, so only the cut layers, no surrouning metals or semi-conductor layers",
-            "", // FIXME: example for contactbare
+            "geometry.contactbare(cell, \"sourcedrain\", 40, 500)",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -785,7 +785,7 @@ struct vector* _initialize_api_entries(void)
             "contactbarebltr",
             MODULE_GEOMETRY,
             "Create contacts in a rectangular area with the given corner points in cell. This function creates 'bare' contacts, so only the cut layers, no surrouning metals or semi-conductor layers",
-            "", // FIXME: example for contactbarebltr
+            "geometry.contactbarebltr(cell, \"sourcedrain\", point.create(-20, -250), point.create(20, 500))",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -804,7 +804,7 @@ struct vector* _initialize_api_entries(void)
             "cross",
             MODULE_GEOMETRY,
             "Create a cross shape in the given cell. The cross is made up by two overlapping rectangles in horizontal and in vertical direction.",
-            "", // FIXME: example for cross
+            "geometry.cross(cell, generics.metal(2), 1000, 1000, 100)",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -826,7 +826,7 @@ struct vector* _initialize_api_entries(void)
             "unequal_ring",
             MODULE_GEOMETRY,
             "Create a ring shape with unequal ring widhts in the given cell",
-            "", // FIXME: example for unequal_ring
+            "geometry.ring(cell, generics.other(\"nwell\"), 2000, 2000, 100, 80, 20, 20)",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -845,7 +845,7 @@ struct vector* _initialize_api_entries(void)
             "ring",
             MODULE_GEOMETRY,
             "Create a ring shape width equal ring widths in the given cell. Like geometry.unequal_ring, but all widths are the same",
-            "", // FIXME: example for ring
+            "geometry.ring(cell, generics.other(\"nwell\"), 2000, 2000, 100)",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -854,12 +854,12 @@ struct vector* _initialize_api_entries(void)
     /* geometry.curve */
     {
         struct parameter parameters[] = {
-            { "cell",      OBJECT, NULL,                   "Object in which the ring is created" },
-            { "layer",     GENERICS, NULL,                  "Layer of the generated ring shape" },
-            { "origin",    POINT, NULL,                      "Start point of the curve" },
-            { "segments",  TABLE, NULL,                    "Table of curve segments " }, // FIXME: more details on curve segments
-            { "grid",      INTEGER, NULL,                  "Grid for rasterization of the curve" },
-            { "allow45",   BOOLEAN, "false",   "Start point of the curve" },
+            { "cell",      OBJECT,      NULL,       "Object in which the ring is created" },
+            { "layer",     GENERICS,    NULL,       "Layer of the generated ring shape" },
+            { "origin",    POINT,       NULL,       "Start point of the curve" },
+            { "segments",  TABLE,       NULL,       "Table of curve segments" },
+            { "grid",      INTEGER,     NULL,       "Grid for rasterization of the curve" },
+            { "allow45",   BOOLEAN,     "false",    "Start point of the curve" },
         };
         vector_append(entries, _make_api_entry(
             "curve",
@@ -880,7 +880,7 @@ struct vector* _initialize_api_entries(void)
             "set",
             MODULE_NONE,
             "define a set of possible values that a parameter can take. Only useful within a parameter definition of a pcell",
-            "pcell.add_parameters({\n{ \"mostype\", \"nmos\", set = (\"nmos\", \"pmos\") }\n                    })",
+            "pcell.add_parameters({ { \"mostype\", \"nmos\", posvals = set(\"nmos\", \"pmos\") } })",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -888,83 +888,61 @@ struct vector* _initialize_api_entries(void)
     /* interval */
     {
         struct parameter parameters[] = {
-
+            { "lower", INTEGER, NULL, "lower (inklusive) bound of the interval" },
+            { "upper", INTEGER, NULL, "upper (inklusive) bound of the interval" }
         };
         vector_append(entries, _make_api_entry(
             "interval",
             MODULE_NONE,
-            "", // FIXME: interval
-            "", // FIXME: example for interval
+            "define an interval of possible values that a parameter can take. Only useful within a parameter definition of a pcell",
+            "pcell.add_parameters({ { \"fingers\", 2, posvals = interval = (1, inf) } })",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
     /* even */
     {
-        struct parameter parameters[] = {
-
-        };
+        struct parameter parameters[] = {};
         vector_append(entries, _make_api_entry(
             "even",
             MODULE_NONE,
-            "", // FIXME: even
-            "", // FIXME: example for even
+            "define that a parameter must be even. Only useful within a parameter definition of a pcell",
+            "pcell.add_parameters({ { fingerwidth, 100, posvals = even() } })",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
     /* odd */
     {
-        struct parameter parameters[] = {
-
-        };
+        struct parameter parameters[] = {};
         vector_append(entries, _make_api_entry(
             "odd",
             MODULE_NONE,
-            "", // FIXME: odd
-            "", // FIXME: example for odd
+            "define that a parameter must be odd. Only useful within a parameter definition of a pcell",
+            "pcell.add_parameters({ { fingerwidth, 100, posvals = odd() } })",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
     /* positive */
     {
-        struct parameter parameters[] = {
-
-        };
+        struct parameter parameters[] = {};
         vector_append(entries, _make_api_entry(
             "positive",
             MODULE_NONE,
-            "", // FIXME: positive
-            "", // FIXME: example for positive
+            "define that a parameter must be positive. Only useful within a parameter definition of a pcell",
+            "pcell.add_parameters({ { fingerwidth, 100, posvals = positive() } })",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
-    }
-    /* multiple */
+    }/* negative */
     {
-        struct parameter parameters[] = {
-
-        };
+        struct parameter parameters[] = {};
         vector_append(entries, _make_api_entry(
-            "multiple",
+            "negative",
             MODULE_NONE,
-            "", // FIXME: multiple
-            "", // FIXME: example for multiple
-            parameters,
-            sizeof(parameters) / sizeof(parameters[0])
-        ));
-    }
-    /* inf */
-    {
-        struct parameter parameters[] = {
-
-        };
-        vector_append(entries, _make_api_entry(
-            "inf",
-            MODULE_NONE,
-            "", // FIXME: inf
-            "", // FIXME: example for inf
+            "define that a parameter must be negative. Only useful within a parameter definition of a pcell",
+            "pcell.add_parameters({ { offset, -100, posvals = negative() } })",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -1380,13 +1358,13 @@ struct vector* _initialize_api_entries(void)
     /* object.create */
     {
         struct parameter parameters[] = {
-
+            { "cellname", STRING, NULL, "the name of the layout cell" }
         };
         vector_append(entries, _make_api_entry(
             "create",
             MODULE_OBJECT,
-            "", // FIXME: create
-            "", // FIXME: example for create
+            "create a new object. A name must be given. Hierarchical exports use this name to identify layout cells and no checks for duplication are done. Therefore the user must make sure that every name is unique. Note that this will probably change in the future",
+            "local cell = object.create(\"toplevel\")",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
