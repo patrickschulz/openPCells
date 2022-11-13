@@ -99,7 +99,6 @@ static struct netcollection* _initialize(lua_State* L)
             lua_pop(L, 1);
         }
         _make_nets(name, nets, positions);
-        //vector_destroy(positions, net_destroy_position);
         lua_pop(L, 2);
     }
 
@@ -162,7 +161,7 @@ static void _create_routing_stack_data(lua_State *L, struct net *net)
                 moves_create_via(L, -1, DRAW);
                 lua_rawseti(L, -2, table_pos + 1);
                 table_pos++;
-                   
+
                 lua_newtable(L);
             }
             const struct position *pos =
@@ -199,7 +198,7 @@ static void _create_routing_stack_data(lua_State *L, struct net *net)
 int lrouter_route(lua_State* L)
 {
     puts("started routing\n");
-    
+
     struct netcollection* nc = _initialize(L);
     const size_t field_height = lua_tointeger(L, 4);
     const size_t field_width = lua_tointeger(L, 3);
@@ -208,7 +207,6 @@ int lrouter_route(lua_State* L)
 
     struct field* field = field_init(field_width, field_height, num_layers);
     _fill_blockages(field, nc);
-    //net_sort_nets(nc->nets);
 
     int routed_count = 0;
 
@@ -236,8 +234,8 @@ int lrouter_route(lua_State* L)
             printf("couldnt route %s\n", net_get_name(net));
         }
     }
-    //jfield_print(field, 0);
-    //getchar();
+    field_print(field, 0);
+    getchar();
     lua_pushinteger(L, routed_count);
 
     field_destroy(field);

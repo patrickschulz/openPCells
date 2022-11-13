@@ -64,7 +64,6 @@ void net_sort_nets(struct vector *nets)
 
 struct net *net_copy(struct net *net)
 {
-    printf("copying net %s\n", net->name);
     struct vector *copy_positions = vector_copy(net->positions,
             (void *)net_copy_position);
     struct net *copy = net_create(net->name, NO_SUFFIX, copy_positions);
@@ -92,7 +91,6 @@ struct net* net_create(const char* name, int suffixnum,
         unsigned int dlen = util_num_digits(suffixnum);
         /* + 3: _(), + 1 for terminating zero */
         net->name = malloc(strlen(name) + dlen + 3 + 1);
-        printf(net->name, "%s_(%d)", name, suffixnum);
     }
     else
     {
@@ -119,20 +117,9 @@ int net_get_num_deltas(const struct net *net)
 void net_destroy(void* np)
 {
     struct net* net = np;
-    printf("freeing net net %s\n", net->name);
     free(net->name);
-    for(unsigned int i = 0; i < vector_size(net->positions); i++)
-    {
-        free(vector_get(net->positions, i));
-    }
-    free(net->positions);
-
-    for(unsigned int i = 0; i < vector_size(net->deltas); i++)
-    {
-        free(vector_get(net->deltas, i));
-    }
-    free(net->deltas);
-
+    vector_destroy(net->positions);
+    vector_destroy(net->deltas);
     free(net);
 }
 
@@ -287,9 +274,13 @@ void net_make_deltas(struct net *net)
             zsteps = 0;
 
         }
+
+        free(current);
+        free(next);
     }
 
     /* after loop next pointer is at end of vector */
+    next = net_copy_delta(net, delta_size - 1);
     struct rpoint *point;
     if(next->x)
     {
@@ -307,6 +298,7 @@ void net_make_deltas(struct net *net)
 
     vector_destroy(net->deltas);
     net->deltas = new_deltas;
+    free(next);
 
 }
 
