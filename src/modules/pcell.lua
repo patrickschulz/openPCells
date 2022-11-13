@@ -130,6 +130,10 @@ function paramlib.check_constraints(parameter, value)
             if value <= 0 then
                 moderror(string.format("parameter '%s' (%s) must be positive (exluding zero)", name, value))
             end
+        elseif posvals.type == "negative" then
+            if value >= 0 then
+                moderror(string.format("parameter '%s' (%s) must be negative (exluding zero)", name, value))
+            end
         else
         end
     end
@@ -543,7 +547,7 @@ function state.create_cellenv(state, cellname, ovrenv)
         even = function() return { type = "even" } end,
         odd = function() return { type = "odd" } end,
         positive = function() return { type = "positive" } end,
-        multiple = function(val) return { type = "multiple", value = val } end,
+        negative = function() return { type = "negative" } end,
         inf = math.huge,
         pcell = {
             set_property                    = bindstatecell(set_property),
