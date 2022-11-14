@@ -83,9 +83,6 @@ static int _is_smaller_score(int score, int score_incr, int nextfield)
 static int _find_path(struct field *field, struct position *startpos,
         struct position *endpos)
 {
-    //printf("_find_path from %i, %i, %i to %i, %i, %i\n", startpos->x,
-    //startpos->y, startpos->z, endpos->x, endpos->y, endpos->z);
-
     /* put starting point in min_heap */
     int routing_cost = INT_MAX;
     struct minheap* min_heap = heap_init();
@@ -326,7 +323,7 @@ static int _curr_min_routing_cost_index(struct thread_data *tdata,
 
 static struct thread_data *_init_thread_dates(int num_cpus)
 {
-    printf("NUM CPU %i\n", num_cpus);
+    printf("init thread data NUM CPU %i\n", num_cpus);
     struct thread_data *tdates = malloc(sizeof(*tdates) * num_cpus);
 
     for(int i = 0; i < num_cpus; i++)
@@ -342,6 +339,7 @@ static struct thread_data *_init_thread_dates(int num_cpus)
 
 static void _destroy_thread_dates(struct thread_data *tdates, int num_cpus)
 {
+    printf("destroy thread data NUM CPU %i\n", num_cpus);
     for(int i = 0; i < num_cpus; i++)
     {
         net_destroy_position(tdates[i].startpos);
@@ -466,6 +464,7 @@ void route(struct net *net, struct field* field)
     _mark_as_route(field, pathpoints);
     net_mark_as_routed(net);
     net_make_deltas(net);
+    net_print_deltas(net);
 
     vector_destroy(pathpoints);
     net_destroy(net_backup);
