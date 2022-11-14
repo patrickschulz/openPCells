@@ -148,19 +148,48 @@ function layout(dff, _P)
     local resetshift = _P.enable_reset and 1 or 0
 
     -- easy anchor access functions
-    local gate = function(num) return harness:get_anchor(string.format("G%dcc", num)) end
+    local _gateidx = function(num) return harness:get_anchor(string.format("G%dcc", num)) end
+    local _gatestr = function(identifier)
+        local lut = {
+            clkinv1 = 1,
+            clkinv2 = 3,
+            cinv1EN = 5 + clkshift,
+            cinv1EP = 6 - clkshift,
+            cinv1I = 7,
+            cinv2I = 9,
+            cinv2EP = 10 + clkshift,
+            cinv2EN = 11 - clkshift,
+            inv1 = 12 + setshift + resetshift,
+            tgateEN = 13,
+            tgateEP = 14 - clkshift + setshift + 2 * resetshift,
+            cinv3I = 16 + setshift + 2 * resetshift,
+            cinv3EP = 17 + clkshift + setshift + 2 * resetshift,
+            cinv3EN = 18 - clkshift + setshift + 2 * resetshift,
+            inv2 = 19 + 2 * setshift + 3 * resetshift,
+            outinv1 = 21 + 2 * setshift + 3 * resetshift,
+            outinv2 = 23 + 2 * setshift + 3 * resetshift,
+        }
+        return _gateidx(lut[identifier])
+    end
+    local gate = function(identifier)
+        if type(identifier) == "string" then
+            return _gatestr(identifier)
+        else
+            return _gateidx(identifier)
+        end
+    end
     local sourcedrain = function(fet, pos, num) return harness:get_anchor(string.format("%sSD%d%s", fet, num, pos)) end
 
     local spacing = bp.sdwidth / 2 + bp.routingspace
     -- clock buffer input port landing
     geometry.rectanglebltr(dff, generics.metal(1),
-        gate(1):translate(-xpitch, -bp.routingwidth / 2),
-        gate(1):translate( xpitch - spacing, bp.routingwidth / 2)
+        _gatestr("clkinv1"):translate(-xpitch, -bp.routingwidth / 2),
+        _gatestr("clkinv1"):translate( xpitch - spacing, bp.routingwidth / 2)
     )
     -- clock buffer ~clk via
     geometry.viabltr(dff, 1, 2,
-        gate(3):translate(-xpitch, -bp.routingwidth / 2),
-        gate(3):translate( xpitch - spacing, bp.routingwidth / 2)
+        _gatestr("clkinv2"):translate(-xpitch, -bp.routingwidth / 2),
+        _gatestr("clkinv2"):translate( xpitch - spacing, bp.routingwidth / 2)
     )
     -- clock buffer ~clk drain connections
     geometry.path(dff, generics.metal(1),
@@ -177,45 +206,45 @@ function layout(dff, _P)
 
     -- clk M2 bar
     geometry.viabltr(dff, 1, 2,
-        gate(6 - clkshift):translate((-2 + clkshift) * xpitch, -bp.routingwidth / 2),
-        gate(6 - clkshift):translate(( 2 + clkshift) * xpitch - spacing, bp.routingwidth / 2)
+        _gatestr("cinv1EP"):translate((-2 + clkshift) * xpitch, -bp.routingwidth / 2),
+        _gatestr("cinv1EP"):translate(( 2 + clkshift) * xpitch - spacing, bp.routingwidth / 2)
     )
     geometry.path(dff, generics.metal(2),
-        geometry.path_points_xy(gate(6 - clkshift):translate((-2 + clkshift) * xpitch, 0), {
+        geometry.path_points_xy(_gatestr("cinv1EP"):translate((-2 + clkshift) * xpitch, 0), {
             5 * xpitch,
-            gate(17 + clkshift + setshift + 2 * resetshift):translate(xpitch - spacing, 0)
+            _gatestr("cinv3EP"):translate(xpitch - spacing, 0)
     }), bp.routingwidth)
     -- ~clk M2 bar
     geometry.rectanglebltr(dff, generics.metal(2), 
-        gate(3):translate(-xpitch, -bp.routingwidth / 2),
-        gate(18 - clkshift + setshift + 2 * resetshift):translate(xpitch - spacing, bp.routingwidth / 2)
+        _gatestr("clkinv2"):translate(-xpitch, -bp.routingwidth / 2),
+        _gatestr("cinv3EN"):translate(xpitch - spacing, bp.routingwidth / 2)
     )
 
     -- cinv clk connection
     geometry.rectanglebltr(dff, generics.metal(1),
-        gate(6 - clkshift):translate((-2 + clkshift) * xpitch, -bp.routingwidth / 2),
-        gate(6 - clkshift):translate(( 2 + clkshift) * xpitch - spacing, bp.routingwidth / 2)
+        _gatestr("cinv1EP"):translate((-2 + clkshift) * xpitch, -bp.routingwidth / 2),
+        _gatestr("cinv1EP"):translate(( 2 + clkshift) * xpitch - spacing, bp.routingwidth / 2)
     )
 
     -- cinv ~clk connection
     geometry.viabltr(dff, 1, 2,
-        gate(5 + clkshift):translate((-1 - clkshift) * xpitch + spacing, -bp.routingwidth / 2),
-        gate(5 + clkshift):translate(( 3 - clkshift) * xpitch - spacing, bp.routingwidth / 2)
+        _gatestr("cinv1EN"):translate((-1 - clkshift) * xpitch + spacing, -bp.routingwidth / 2),
+        _gatestr("cinv1EN"):translate(( 3 - clkshift) * xpitch - spacing, bp.routingwidth / 2)
     )
 
     -- D input port landing
     geometry.viabltr(dff, 1, 2,
-        gate(1):translate(-xpitch,           2 * (bp.routingwidth + bp.routingspace) - bp.routingwidth / 2),
-        gate(1):translate( xpitch - spacing, 2 * (bp.routingwidth + bp.routingspace) + bp.routingwidth / 2)
+        _gatestr("clkinv1"):translate(-xpitch,           2 * (bp.routingwidth + bp.routingspace) - bp.routingwidth / 2),
+        _gatestr("clkinv1"):translate( xpitch - spacing, 2 * (bp.routingwidth + bp.routingspace) + bp.routingwidth / 2)
     )
     -- cinv D connection
     geometry.viabltr(dff, 1, 2,
-        gate(7):translate(-3 * xpitch + spacing, -bp.routingwidth / 2),
-        gate(7):translate( 1 * xpitch - spacing, bp.routingwidth / 2)
+        _gatestr("cinv1I"):translate(-3 * xpitch + spacing, -bp.routingwidth / 2),
+        _gatestr("cinv1I"):translate( 1 * xpitch - spacing, bp.routingwidth / 2)
     )
     geometry.rectanglebltr(dff, generics.metal(2), 
-        gate(1):translate(-xpitch, 2 * (bp.routingwidth + bp.routingspace) - bp.routingwidth / 2), 
-        gate(7):translate( 1 * xpitch - spacing, bp.routingwidth / 2)
+        _gatestr("clkinv1"):translate(-xpitch, 2 * (bp.routingwidth + bp.routingspace) - bp.routingwidth / 2), 
+        _gatestr("cinv1I"):translate( 1 * xpitch - spacing, bp.routingwidth / 2)
     )
 
     -- cinv short nmos
@@ -250,38 +279,38 @@ function layout(dff, _P)
 
     -- first latch / transmission gate clk bar vias
     geometry.rectanglebltr(dff, generics.metal(1), 
-        gate(10 + clkshift):translate(0, -bp.routingwidth / 2),
-        gate(14 - clkshift + setshift + 2 * resetshift):translate(0, bp.routingwidth / 2)
+        _gatestr("cinv2EP"):translate(0, -bp.routingwidth / 2),
+        _gatestr("tgateEP"):translate(0, bp.routingwidth / 2)
     )
     geometry.viabltr(dff, 1, 2,
         point.combine(
-            gate(10 + clkshift),
-            gate(14 - clkshift + setshift + 2 * resetshift)
+            _gatestr("cinv2EP"),
+            _gatestr("tgateEP")
         ):translate(-xpitch - bp.glength / 2, -bp.routingwidth / 2),
         point.combine(
-            gate(10 + clkshift),
-            gate(14 - clkshift + setshift + 2 * resetshift)
+            _gatestr("cinv2EP"),
+            _gatestr("tgateEP")
         ):translate( xpitch + bp.glength / 2, bp.routingwidth / 2)
     )
     if not _P.enable_set and not _P.enable_reset then
         geometry.rectanglebltr(dff, generics.metal(1), 
-            gate(11 - clkshift):translate(0, -bp.sdwidth / 2),
+            _gatestr("cinv2EN"):translate(0, -bp.sdwidth / 2),
             gate(13 + clkshift + setshift + 2 * resetshift):translate(0, bp.sdwidth / 2)
         )
         geometry.viabltr(dff, 1, 2,
             point.combine(
-                gate(11 - clkshift),
+                _gatestr("cinv2EN"),
                 gate(13 + clkshift + setshift + 2 * resetshift)
             ):translate(-xpitch - bp.glength / 2, -bp.routingwidth / 2),
             point.combine(
-                gate(11 - clkshift),
+                _gatestr("cinv2EN"),
                 gate(13 + clkshift + setshift + 2 * resetshift)
             ):translate( xpitch + bp.glength / 2, bp.routingwidth / 2)
         )
     else
         geometry.viabltr(dff, 1, 2,
-            gate(11 - clkshift):translate(-bp.glength / 2, -bp.routingwidth / 2),
-            gate(11 - clkshift):translate( bp.glength / 2, bp.routingwidth / 2)
+            _gatestr("cinv2EN"):translate(-bp.glength / 2, -bp.routingwidth / 2),
+            _gatestr("cinv2EN"):translate( bp.glength / 2, bp.routingwidth / 2)
         )
         geometry.viabltr(dff, 1, 2,
             gate(15 + clkshift):translate(-bp.glength / 2, -bp.routingwidth / 2),
@@ -303,7 +332,7 @@ function layout(dff, _P)
 
     -- first latch cinv drain to inv gate
     geometry.path(dff, generics.metal(1),
-        geometry.path_points_xy( gate(12 + setshift + resetshift), {
+        geometry.path_points_xy( _gatestr("inv1"), {
             -xpitch - resetshift / 2 * xpitch,
             (bp.routingwidth + bp.routingspace) / (bp.numinnerroutes % 2 == 0 and 2 or 1),
             sourcedrain("p", "bc", 9)
@@ -369,12 +398,12 @@ function layout(dff, _P)
     -- second latch inverter connect drains to gate of second latch cinv
     geometry.path(dff, generics.metal(1),
         geometry.path_points_xy(sourcedrain("n", "tc", 20 + 2 * setshift + 3 * resetshift):translate(0, -bp.sdwidth / 2), {
-            gate(16 + setshift + 2 * resetshift):translate(0, bp.sdwidth / 2)
+            _gatestr("cinv3I"):translate(0, bp.sdwidth / 2)
     }), bp.sdwidth)
 
     -- second latch cinv drain to inv gate
     geometry.path(dff, generics.metal(1),
-        geometry.path_points_xy( gate(19 + 2 * setshift + 3 * resetshift), {
+        geometry.path_points_xy( _gatestr("inv2"), {
             -xpitch - resetshift / 2 * xpitch,
             (bp.routingwidth + bp.routingspace) / (bp.numinnerroutes % 2 == 0 and 2 or 1),
             sourcedrain("p", "bc", 16 + setshift + 2 * resetshift)
@@ -386,34 +415,34 @@ function layout(dff, _P)
     geometry.path_cshape(dff, generics.metal(1),
         sourcedrain("p", "bc", 20 + 2 * setshift + 3 * resetshift - sdcorrection):translate(0, bp.sdwidth / 2),
         sourcedrain("n", "tc", 20 + 2 * setshift + 3 * resetshift):translate(0, -bp.sdwidth / 2),
-        gate(19 + 2 * setshift + 3 * resetshift):translate(xpitch, 0),
+        _gatestr("inv2"):translate(xpitch, 0),
         bp.sdwidth
     )
 
     -- output inverter connect gate
     geometry.rectanglebltr(dff, generics.metal(1), 
-        gate(21 + 2 * setshift + 3 * resetshift):translate(-xpitch, -bp.sdwidth / 2),
-        gate(21 + 2 * setshift + 3 * resetshift):translate(bp.glength / 2,  bp.sdwidth / 2)
+        _gatestr("outinv1"):translate(-xpitch, -bp.sdwidth / 2),
+        _gatestr("outinv1"):translate(bp.glength / 2,  bp.sdwidth / 2)
     )
 
     -- output Q inverter connect drains
     geometry.path_cshape(dff, generics.metal(1),
         sourcedrain("p", "bc", 22 + 2 * setshift + 3 * resetshift):translate(0, bp.sdwidth / 2),
         sourcedrain("n", "tc", 22 + 2 * setshift + 3 * resetshift):translate(0, -bp.sdwidth / 2),
-        gate(21 + 2 * setshift + 3 * resetshift):translate(xpitch, 0),
+        _gatestr("outinv1"):translate(xpitch, 0),
         bp.sdwidth
     )
 
     -- output QN inverter connect drains and gate
     if _P.enable_QN then
         geometry.rectanglebltr(dff, generics.metal(1), 
-            gate(23 + 2 * setshift + 3 * resetshift):translate(-xpitch, -bp.sdwidth / 2),
-            gate(23 + 2 * setshift + 3 * resetshift):translate(bp.glength / 2,  bp.sdwidth / 2)
+            _gatestr("outinv2"):translate(-xpitch, -bp.sdwidth / 2),
+            _gatestr("outinv2"):translate(bp.glength / 2,  bp.sdwidth / 2)
         )
         geometry.path_cshape(dff, generics.metal(1),
             sourcedrain("p", "bc", 24 + 2 * setshift + 3 * resetshift):translate(0, bp.sdwidth / 2),
             sourcedrain("n", "tc", 24 + 2 * setshift + 3 * resetshift):translate(0, -bp.sdwidth / 2),
-            gate(23 + 2 * setshift + 3 * resetshift):translate(xpitch, 0),
+            _gatestr("outinv2"):translate(xpitch, 0),
             bp.sdwidth
         )
     end
@@ -421,12 +450,12 @@ function layout(dff, _P)
     -- set bar and M1/M2 vias
     if _P.enable_set then
         geometry.rectanglebltr(dff, generics.metal(2),
-            gate(13):translate(0, -bp.routingwidth / 2),
+            _gatestr("tgateEN"):translate(0, -bp.routingwidth / 2),
             gate(22):translate(0, bp.routingwidth / 2)
         )
         geometry.viabltr(dff, 1, 2,
-            gate(13):translate(-xpitch - bp.glength / 2, -bp.routingwidth / 2),
-            gate(13):translate( xpitch + bp.glength / 2, bp.routingwidth / 2)
+            _gatestr("tgateEN"):translate(-xpitch - bp.glength / 2, -bp.routingwidth / 2),
+            _gatestr("tgateEN"):translate( xpitch + bp.glength / 2, bp.routingwidth / 2)
         )
         geometry.viabltr(dff, 1, 2,
             gate(22):translate(-xpitch - bp.glength / 2, -bp.routingwidth / 2),
@@ -453,16 +482,16 @@ function layout(dff, _P)
     -- ports
     dff:add_port("VDD", generics.metalport(1), harness:get_anchor("top"))
     dff:add_port("VSS", generics.metalport(1), harness:get_anchor("bottom"))
-    dff:add_port("CLK", generics.metalport(1), gate(1))
-    dff:add_port("D", generics.metalport(1), gate(1):translate(0, 2 * (bp.routingwidth + bp.routingspace)))
+    dff:add_port("CLK", generics.metalport(1), _gatestr("clkinv1"))
+    dff:add_port("D", generics.metalport(1), _gatestr("clkinv1"):translate(0, 2 * (bp.routingwidth + bp.routingspace)))
     if _P.enable_Q then
-        dff:add_port("Q", generics.metalport(1), gate(21 + 2 * setshift + 3 * resetshift):translate(xpitch, 0))
+        dff:add_port("Q", generics.metalport(1), _gatestr("outinv1"):translate(xpitch, 0))
     end
     if _P.enable_QN then
-        dff:add_port("QN", generics.metalport(1), gate(23 + 2 * setshift + 3 * resetshift):translate(xpitch, 0))
+        dff:add_port("QN", generics.metalport(1), _gatestr("outinv2"):translate(xpitch, 0))
     end
     if _P.enable_set then
-        dff:add_port("SET", generics.metalport(2), point.combine(gate(13), gate(22)))
+        dff:add_port("SET", generics.metalport(2), point.combine(_gatestr("tgateEN"), gate(22)))
     end
     if _P.enable_reset then
         dff:add_port("RST", generics.metalport(2), point.combine(gate(12), gate(21)))
