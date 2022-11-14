@@ -23,7 +23,7 @@ Every cell is defined by a function where all shapes making up the shape are des
 main object and a table with all defined parameters. The name for this function is \luainline{layout()}. Additional functions such as \luainline{parameters()}
 are also understood.
 
-\subsection{Simple Rectangle}
+\subsection{First Example -- Simple Rectangle}
 The first example is a simple rectangle of variable width and height. As mentioned, all the code for the rectangle resides in a function \luainline{layout()}.
 The parameters of the cell are defined in a function \luainline{parameters()}, which is optional in theory, but since we're designing pcells, there is not much point
 of leaving it out. In \luainline{layout()}, we receive the main object and the defined parameters. Here we can modify the object based on the parameters.
@@ -60,20 +60,14 @@ Right now we are just using the \luainline{generics.metal} function, which takes
 \luainline{generics.metal(1)} specifies the first metal (counted from silicon), you can also say something like \luainline{generics.metal(-2)}, where \luainline{-1} is the index of the highest metal.
 Lastly we pass the main object as first argument to the function, which places the rectangle within this object.
 
-%\luainline{merge_into_shallow} is a \emph{method} of objects and needs a little explaining of the object system.
-%As mentioned earlier, every geometry function creates what is called an object.
-%An object is a collection of shapes, where each shape is made up of a layer-purpose-pair and points (which can currently be interpreted as rectangles or polygons).
-%The cell generation systems expects all created shapes to be merged into the main object passed as argument (\luainline{obj} in this case).
-%The function postfix \emph{shallow} is a hint towards cell hierarchies, where cells contain children, which can again have children and so on.
-%Shallow in this case means that we only regard shapes that are in the referenced cell, not in the children.
-
-This cell can now be created by calling the main program with an appropriate export and technology. Note that there's another manual about that, so we won't get
-into any details here. The simplest call would be something like:
+This cell can now be created by calling the main program with an appropriate export and technology.
+Note that there's another manual about that, so we won't get into any details here.
+The simplest call would be something like:
 \begin{shellcode}
     opc --technology opc --export gds --cell simple_rectangle
 \end{shellcode}
 
-\subsection{Array of Rectangles}
+\subsection{Repetition -- Array of Rectangles}
 Now that we know how to create a rectangle, we want to create an entire array, that is a rectangular area made up of several individual rectangles. This could be
 used for example as filling. We will setup the cell exactly as before, we only have to add two new parameters: the repetition and the pitch (we will start with
 quadratic arrays with equal pitch in both directions):
@@ -154,9 +148,47 @@ This is a series of points that describe a line with a certain width.
 To create a path, we have to pass the points to \luainline{geometry.path}, which we will store in a \luainline{table}.
 The cell for the octagonal inductor requries some calculations for the right point positions and uses some helper functions.
 We won't discuss the entire cell here as some issues are not important for general advice on building cells.
-The main purpose is to show how to handle point lists and how to draw paths.
+The main purpose is to show how to handle points, point lists and how to draw paths.
 
-The inductor has the number of turns as a parameter.
+First, some information on points:
+Points are a structure with an x- and a y coordinate.
+They represent absolute locations in the layout and many layout- and object-related take either a pair of x/y coordinates or a point.
+Points are simply created by \luainline{point.create}, which takes two numbers for the coordinates (x comes first).
+The coordinates can be queried:
+\begin{lualisting}
+    local pt = point.create(100, 100) -- create a point
+    local x, y = pt:unwrap() -- get both x and y
+    x = pt:getx() -- get only x
+    y = pt:gety() -- get only y
+\end{lualisting}
+For some layouts, combinations of points are needed, where for instance the x-coordinate of one point should be combined with the y-coordinate of another point.
+There are two ways to achieve this:
+\begin{lualisting}
+    -- newpt == point.create(pt1.x, pt2.y)
+    local newpt = point.combine_12(pt1, pt2)
+    -- newpt == point.create(pt2.x, pt1.y)
+    local newpt = point.combine_21(pt1, pt2)
+\end{lualisting}
+Both functions do the same, they just differ on the order of their arguments.
+Furthermore, some mathematical operators are defined for points:
+\begin{lualisting}
+    local pt1 = point.create(100, 100)
+    local pt2 = point.create(20, -100)
+    print(pt1 + pt2)  -- (60, 0)      -> arithmetic average
+    print(pt1 - pt2)  -- (80, 200)    -> difference
+    print(-pt1)       -- (-100, -100) -> unary minus
+    print(pt1 .. pt2) -- (100, -100)  -> point.combine_12(pt1, pt2)
+\end{lualisting}
+Lastly, there is a shorthand for the scalar distance in either x or y:
+\begin{lualisting}
+    point.xdistance(pt1, pt2)
+    point.ydistance(pt1, pt2)
+\end{lualisting}
+
+\bigskip
+
+Let us get back to the inductor.
+It has the number of turns as a parameter.
 For every turn the points for one half of the turn are calculated, then the path is drawn twice, one time with a mirrored version of the points.
 \luafilelisting[widthgobble = 8, firstline = 30, lastline = 32]{../../../cells/passive/inductor/octagonal.lua}
 The points are stored in the \luainline{table pathpts}, \luainline{util.make_insert_xy} is a helper function, that returns a function that appends/prepends points to an array. It's purpose is to simplify code, one
@@ -221,7 +253,95 @@ The layers where created earlier as
 %does not matter. This is intentional, as this is what is usually needed in layouts and simplifies the pcell code. The other behaviour can always be achieved by
 %appropriate translation.
 
-\subsection{Cell Hierarchies}
+\subsection{Integrating Other Cell Layouts}
+Layouts of integrated circuits can get very complex quite easily.
+The typical way to deal with high complexity is by building individual cell layouts and placing them in the appropriate location.
+Partitioning and hierarchy are good tools to tackle circuit complexity.
+In essence: Divide and conquer.
+Therefore, this section will discuss how to integrate existing cell layouts and how to find the correct location by relative placement.
+But first an introduction to how openPCells represents layouts will be given, as this will be important to understand advanced topics.
+
+\subsubsection{Representation of Hierarchical Layouts}
+In integrated circuits, layouts are in general represented by a mixture of instantiations of other layouts as well as shapes (such as rectangles,
+polygons, paths, etc.).
+Typically, there is a root cell for the layout, which is called top-level.
+The top-level layout then has some shapes as well as instantiations of other layouts, which in turn have shapes and Instantiations of other layouts and so on.
+This is quite similar to a filesystem, where you have a root directory with sub-directories, where every directory can (but not necessarily) contain files that are not directories.
+The following picture shows an example of this:
+\begin{center}
+    \begin{tikzpicture}
+        [
+            cell/.style = {draw, rectangle split, rectangle split parts = 3, very thick, align = center, rectangle split part fill = {white, black!20, black!20}},
+            %on grid,
+            node distance = 0.5cm and 0.5cm
+        ]
+        \node[cell] (toplevel) {Top-Level\nodepart{two}Shapes\nodepart{three}Children};
+        \node[cell, below left = of toplevel] (sub1) {Sub 1\nodepart{two}Shapes\nodepart{three}Children};
+        \node[cell, below right = of toplevel] (sub2) {Sub 2\nodepart{two}Shapes\nodepart{three}Children};
+        \draw[very thick] (toplevel.three west) -| (sub1.north);
+        \draw[very thick] (toplevel.three east) -| (sub2.north);
+    \end{tikzpicture}
+\end{center}
+Every layout cell holds a list of shapes and a list of children (references to other layout cells).
+Furthermore, layout cells can be transformed, that is translated in x and y or rotated, mirrored etc.
+This affects all parts of a cell, so shapes and children are also transformed, which is just what you would expect.
+Object transformation is a very cheap operation, much cheaper than operating on every single shape in a layout.
+This is the reason why layout hierarchies are usually much more efficient to work on than so-called flat layouts.
+How cell hierarchies are created is discussed in section~\ref{sec:hierarchies}.
+In this section we will continue to look at flat layouts but still using other cells.
+
+\subsubsection{Adding Cell Contents}
+For this example, we assume that we have a cell containing some layout in a variable:
+\luafilelisting[firstline = 1, lastline = 2]{code/merge_into_example.lua}
+Now we want to place the contents of \luainline{cell} in \luainline{toplevel}.
+The object method for this is \luainline{merge_into_shallow}.
+This method takes all shapes from a cell, copies them and places them in the cell that called \luainline{merge_into_shallow}.
+In our example, in order to place the contents from \luainline{cell} in \luainline{toplevel}, we do the following:
+\luafilelisting[widthgobble = 4, firstline = 3, lastline = 3]{code/merge_into_example.lua}
+The \emph{shallow} part of the function means that only first-level-hierachy shapes are considered, any children present in this cell are ignored.
+Sometimes it is useful to place the entire hierarchy of this cell. For this, the cell hierarchy has to be resolved (this is called flattening):
+\luafilelisting[widthgobble = 4, firstline = 4, lastline = 4]{code/merge_into_example.lua}
+Note that this changes the cell, as it no longer represents a hierarchy with level greater than 1.
+If this is not wanted, the cell can be copied first:
+\luafilelisting[widthgobble = 4, firstline = 5, lastline = 5]{code/merge_into_example.lua}
+As both \luainline{copy} and \luainline{flatten} are expensive functions, they are not the default.
+This is why there is no \luainline{merge_into} or \luainline{merge_into_deep}.
+If this functionality is required, it can always be recreated by using the appropriate functions.
+
+\subsubsection{Moving Cells}
+Now that we saw how to add cell content to other cells, the question arises how we can place this content at the correct position.
+As an example, let's say we want to build a ring oscillator. Here, $N$ copies of the same inverter are placed.
+The inverter has a certain width so we know how far we have to move it so that it does not overlap with the surrounding inverters.
+For the example, we will place three inverters (of which we will assume that a layout is available):
+\luafilelisting{code/ringoscillator.lua}
+In this example, the original cell is copied three times, since every call to \luainline{translate} changes the internal state of the cell.
+It is possible to do this without intermediate variables and copying:
+\luafilelisting{code/ringoscillator_nocopy.lua}
+Here, \luainline{translate} is called on the original cell, so the movements in x and y accumulate.
+This is better in regards of processing performance, as copies of cells are expensive.
+
+The approach of explicitly translating cells to move them to the right location works, but requires the knowledge of some parameters of the cell.
+Usually these values are known, since the layout of a single inverter was also created in this cell.
+However, for more abstraction it is desirable to describe these kind of layouts in a relative way.
+For this, the cells should know their own width and height, so they could be placed aligned to each other in an automatic way.
+There are two mechanisms in openPCells to help with these placements: anchors and alignment boxes.
+
+\subsubsection{Cell Anchors}
+In order to place cell at certain points without knowing their exact geometry, \emph{anchors} are introduced.
+An anchor is a meaningful/important point of a cell and marks a location where other cells can be attached to or where wires can start/end etc.
+Think of a jigsaw puzzle pieces with their tabs and blanks: Pieces are connected by placing a tab in a blank of another piece.
+To come back to the example of the ring oscillator, we connect the inverters by placing the inputs on the outputs of the previous cells.
+The modified example looks like this:
+\luafilelisting{code/ringoscillator_anchor.lua}
+The required displacement for each inverter is calculated and then applied to \luainline{translate}.
+This is rather cumbersome.
+OpenPCells offers a specialized function for this: \luainline{move_anchor}.
+This takes a layout cell and moves it so that the specified anchor lies at the given location:
+\luafilelisting{code/ringoscillator_move_anchor.lua}
+
+\subsubsection{Alignment Boxes}
+
+\subsection{Cell Hierarchies}\label{sec:hierarchies}
 Layouts of integrated circuits usually make great use of repetition/reuse of cells.
 For instance, a shift register uses the same flip flop over and over again.
 Creating \emph{flat} layouts (that is, layouts without any hierarchies) for these cells can be quite resource-intense
@@ -229,17 +349,57 @@ More shapes have to be calculated by opc and the resulting layout is very likely
 Therefore, opc supports hierachical layouts.
 Instantiations in a cell of other cells/layouts are called \emph{children}.
 They are light-weight handles to full cells and don't contain any flat shapes of their own.
-As example a layout that uses a sub-cell 1000 times it only has to store 1000 handles, but not 1000 versions of the same layout.
+As example a layout that uses a sub-cell 1000 times it only has to store 1000 handles, but not 1000 versions of the same layout.\footnote{More realistically, if the layout allows for that, an arrayed version of the sub-cell is stored.}
 A layout that makes proper use of hierarchy can me multiple magnitudes faster in processing than a flat version.
 
 Each child has a reference it points to, which is created automatically by adding a child to a cell.
-We can see a simple example of this in \texttt{analog/ringoscillator.lua}:
+As an example, let's create the following hierarchy:
+\begin{center}
+    \begin{tikzpicture}
+        [
+            cell/.style = {draw, rectangle, very thick, align = center},
+            %on grid,
+            node distance = 0.5cm and 0.5cm
+        ]
+        \node[cell] (toplevel) {Toplevel\\\emph{Toplevel}};
+        \node[cell, below = of toplevel] (sub) {Sub\\\emph{Sub}};
+        \node[cell, below left = of sub] (subsub1) {SubSub\\\emph{SubSub1}};
+        \node[cell, below right = of sub] (subsub2) {SubSub\\\emph{SubSub2}};
+        \draw[very thick] (toplevel) -- (sub);
+        \draw[very thick] (sub) -- (subsub1);
+        \draw[very thick] (sub) -- (subsub2);
+    \end{tikzpicture}
+\end{center}
+The upright name shows the name of the cell (which can be re-used), the italic name is the instance name (this has to be unique).
+In this example, the top-level cell instantiates another cell (sub), which in turn instantiates two other cells (subsub).
+In order to create this hierarchy in code, we have to do the following steps:
+First we create all cells (which are called \emph{references}):
+\luafilelisting[firstline = 1, lastline = 3]{code/hierarchy_example.lua}
+After that, we simply add the respective cells as children:
+\luafilelisting[firstline = 4, lastline = 8]{code/hierarchy_example.lua}
+It is important not to confuse the cell names here.
+All functions that create proper cells (objects) such as \luainline{pcell.create_layout} or \luainline{object.create} must be supplied with a name for that cell.
+Functions for adding children to objects (currently the object methods \luainline{add_child} and \luainline{add_child_array}) take an optional parameter for the instance name\footnote{This instance name is not supported by all exports. For example, GDSII has no notion of an instance name}.
+If this name is not given, an automatically generated name will be used.
+
+We can see a simple example of proper instance naming in \texttt{analog/ringoscillator.lua}.
+Here, \luainline{string.format} is used to generate unique instance names for the individual inverters of a ring oscillator.
+First, the inverter reference (the actual cell) is created.
+This inverter is a CMOS structure with some additional wires, so the basic structure of the inverter is based on \luainline{basic/cmos}.
+For brevity, the additional drawings etc. are not shown here.
+\luafilelisting[widthgobble = 4, firstline = 93, lastline = 97]{../../../cells/analog/ringoscillator.lua}
+Then the inverter reference (which is only generated once) can be \emph{instantiated} multiple times, which happens within a loop in this case:
 \luafilelisting[widthgobble = 4, firstline = 110, lastline = 116]{../../../cells/analog/ringoscillator.lua}
 The above example creates a number of inverters (depending on the parameter \luainline{numinv}).
-To add a child, \luainline{add_child} is used, which expects a full object as reference and an instance name\footnote{This instance name is not
-supported by all exports. For example, GDSII has no notion of an instance name}.
+To add a child, \luainline{add_child} is used, which expects a full object as reference and an instance name.
 Here, the single reference is instantiated multiple times, therefore the instance name is modified in every call.
 Additionally, the cells are left-right aligned to build a proper layout.
+
+In the above ring oscillator example, the return value of \luainline{add_child} is stored in a table.
+The return value of \luainline{add_child} is a so-called \emph{proxy object}.
+This proxy object behaves like a regular object that it can be moved, rotated and its anchors can be queried (as can be seen in the example).
+These operations only operate on small data structures and a very lightweight in general.
+It is usually a good idea to put repeated layout structures in sub-cells for them to be re-used, as this very likely leads to a smaller and faster-processed layout.
 
 \section{Cell Scripts}
 The previous section discussed the use of pcell definitions based on the functions \luainline{parameters} and \luainline{layout}.

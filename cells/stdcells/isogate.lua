@@ -27,6 +27,8 @@ function layout(gate, _P)
 
     gate:add_anchor("VDD", harness:get_anchor("top"))
     gate:add_anchor("VSS", harness:get_anchor("bottom"))
+    gate:add_port("VDD", generics.metalport(1), harness:get_anchor("top"))
+    gate:add_port("VSS", generics.metalport(1), harness:get_anchor("bottom"))
 
     -- center gate
     gate:translate(xpitch / 2, 0)

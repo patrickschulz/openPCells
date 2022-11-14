@@ -19,12 +19,17 @@ function parameters()
     pcell.reference_cell("stdcells/base")
     pcell.reference_cell("stdcells/harness")
     pcell.reference_cell("stdcells/not_gate")
-    pcell.add_parameter("clockpolarity", "positive", { posvals = set("positive", "negative") })
-    pcell.add_parameter("enable_Q", true)
-    pcell.add_parameter("enable_QN", false)
-    pcell.add_parameter("enable_set", false)
-    pcell.add_parameter("enable_reset", false)
-    pcell.add_parameter("latchspacerdummy", 1)
+    pcell.add_parameters(
+        -- FIXME: add more transistor width control
+        { "pwidth", 2 * tech.get_dimension("Minimum Gate Width") },
+        { "nwidth", 2 * tech.get_dimension("Minimum Gate Width") },
+        { "clockpolarity", "positive", posvals = set("positive", "negative") },
+        { "enable_Q", true },
+        { "enable_QN", false },
+        { "enable_set", false },
+        { "enable_reset", false },
+        { "latchspacerdummy", 1 }
+    )
     pcell.check_expression("not (enable_set and enable_reset)", "sorry, this dff implementation currently does not support simultaneous set and reset pins")
 end
 
@@ -126,14 +131,16 @@ function layout(dff, _P)
     end
 
     -- finish dff gates
-    table.insert(gatecontactpos, 1, "dummy")
-    table.insert(pcontactpos, 1, "power")
-    table.insert(ncontactpos, 1, "power")
+    --table.insert(gatecontactpos, 1, "dummy")
+    --table.insert(pcontactpos, 1, "power")
+    --table.insert(ncontactpos, 1, "power")
     table.insert(gatecontactpos, "dummy")
     table.insert(pcontactpos, "power")
     table.insert(ncontactpos, "power")
 
     local harness = pcell.create_layout("stdcells/harness", "mosfets", {
+        pwidth = _P.pwidth,
+        nwidth = _P.nwidth,
         gatecontactpos = gatecontactpos,
         pcontactpos = pcontactpos,
         ncontactpos = ncontactpos,

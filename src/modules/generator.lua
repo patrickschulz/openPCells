@@ -9,6 +9,8 @@ local function _write_module(rows, routes, numinnerroutes, pnumtracks, nnumtrack
             table.insert(lines, string.format('    pcell.push_overwrites("stdcells/base", { pnumtracks = %i })', pnumtracks))
             table.insert(lines, string.format('    pcell.push_overwrites("stdcells/base", { nnumtracks = %i })', nnumtracks))
             table.insert(lines, string.format('    pcell.push_overwrites("stdcells/base", { numinnerroutes= %i })', numinnerroutes))
+            table.insert(lines, string.format('    pcell.push_overwrites("stdcells/base", { drawtopbotwelltaps = %s })', 'false'))
+    
             table.insert(lines, '    local bp = pcell.get_parameters("stdcells/base")')
             -- placement
             if rows then

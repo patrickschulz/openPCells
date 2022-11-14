@@ -154,7 +154,9 @@ function M.route(cell, routes, width, numinnerroutes, pnumtracks, nnumtracks, xg
                 end
                 local lastpt = pts[#pts]
                 local x, y = lastpt:unwrap()
-                geometry.via(cell, currmetal, targetmetal, width, width, x, y)
+                if not movement.nodraw then
+                    geometry.via(cell, currmetal, targetmetal, width, width, x, y)
+                end
                 _finish_route_path(cell, pts, currmetal, width)
                 pts[1] = lastpt
                 currmetal = targetmetal

@@ -86,6 +86,8 @@ cmdoptions_add_option(cmdoptions, NO_SHORT, "list-no-directories", NO_ARG, "don'
 cmdoptions_add_option(cmdoptions, NO_SHORT, "listcellpaths", NO_ARG, "list cell search paths");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "listtechpaths", NO_ARG, "list technology search paths");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "api-help", SINGLE_ARG, "display help about an API function or module");
+cmdoptions_add_option(cmdoptions, NO_SHORT, "api-search", SINGLE_ARG, "search for an API function or module");
+cmdoptions_add_option(cmdoptions, NO_SHORT, "api-list", NO_ARG, "list all available API functions and/or modules");
 
 /* Utility Functions */
 cmdoptions_add_section(cmdoptions, "Utility functions");

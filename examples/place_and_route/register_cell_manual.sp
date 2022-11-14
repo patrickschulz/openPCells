@@ -1,11 +1,11 @@
-.SUBCKT register_cell chain_in update clk reset enable chain_out bit_out vdd vss
-Xinv enable 05 vdd vss
-Xnand1 chain_in enable vdd vss nand_gate
-Xnand2 chain_out 05 07 vdd vss nand_gate
-Xnand3 06 07 00 vdd vss nand_gate
-Xdff_out update ff_in bit_out reset vdd vss dffprq
-Xdff_buf clk ff_in chain_out vdd vss dffnq
-Xdff_in clk 01 ff_in vdd vss dffpq
+.SUBCKT register_cell chain_in update clk reset enable chain_out bit_out VDD VSS
+Xinv enable 05 VDD VSS
+Xnand1 chain_in enable VDD VSS nand_gate
+Xnand2 chain_out 05 07 VDD VSS nand_gate
+Xnand3 06 07 00 VDD VSS nand_gate
+Xdff_out update ff_in bit_out reset VDD VSS dffprq
+Xdff_buf clk ff_in chain_out VDD VSS dffnq
+Xdff_in clk 01 ff_in VDD VSS dffpq
 .ENDS
 
 .SUBCKT nand_gate A B O VDD VSS SUBSTRATE 

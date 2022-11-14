@@ -147,6 +147,7 @@ static void _create_routing_stack_data(lua_State *L, struct net *net)
     lua_pushstring(L, net_get_name(net));
     lua_setfield(L, -2, "name");
 
+    int is_first_conn = 1;
     int num_deltas = net_get_num_deltas(net);
     int table_pos = 0;
 
@@ -158,11 +159,13 @@ static void _create_routing_stack_data(lua_State *L, struct net *net)
         {
             if(i != 0)
             {
-                moves_create_via(L, -1, DRAW);
+                moves_create_via(L, -1, is_first_conn);
                 lua_rawseti(L, -2, table_pos + 1);
                 table_pos++;
+                printf("first conn at net %s\n", net_get_name(net));
 
                 lua_newtable(L);
+                is_first_conn = 0;
             }
             const struct position *pos =
                 net_get_position_at_point(net, point);
@@ -174,7 +177,7 @@ static void _create_routing_stack_data(lua_State *L, struct net *net)
 
             /* FIXME: via after first anchor */
             lua_newtable(L);
-            moves_create_via(L, 1, NODRAW);
+            moves_create_via(L, 1, DRAW);
 
         }
         else if(point->x)
@@ -187,12 +190,19 @@ static void _create_routing_stack_data(lua_State *L, struct net *net)
         }
         else
         {
-            moves_create_via(L, -1 * point->z, DRAW);
+            moves_create_via(L, point->z, DRAW);
         }
 
         lua_rawseti(L, -2, table_pos + 1);
+
     }
 
+    if(is_first_conn)
+    {
+        lua_newtable(L);
+        moves_create_via(L, -1, is_first_conn);
+        lua_rawseti(L, -2, table_pos + 1);
+    }
 }
 
 int lrouter_route(lua_State* L)
