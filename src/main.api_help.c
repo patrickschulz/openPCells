@@ -1003,13 +1003,13 @@ struct vector* _initialize_api_entries(void)
     /* pcell.reference_cell */
     {
         struct parameter parameters[] = {
-
+            { "cellname", STRING, NULL, "cellname of the cell which should be referenced" }
         };
         vector_append(entries, _make_api_entry(
             "reference_cell",
             MODULE_PCELL,
-            "", // FIXME: reference_cell
-            "", // FIXME: example for reference_cell
+            "reference cell in pcell definitions in order to access its parameters (see pcell.get_parameters)",
+            "function parameters()\n    pcell.reference_cell(\"foo/bar\")\nend",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -1017,13 +1017,13 @@ struct vector* _initialize_api_entries(void)
     /* pcell.get_parameters */
     {
         struct parameter parameters[] = {
-
+            { "cellname", STRING, NULL, "cellname of the cell whose parameters should be queried" }
         };
         vector_append(entries, _make_api_entry(
             "get_parameters",
             MODULE_PCELL,
-            "", // FIXME: get_parameters
-            "", // FIXME: example for get_parameters
+            "access the (updated) parameter values of another cell. In pcell definitions pcell.reference_cell() has to be called for the other cell",
+            "function parameters()\n    pcell.reference_cell(\"foo/bar\")\nend\n\nfunction layout(cell)\n    local bp = pcell.get_parameters(\"foo/bar\")\nend",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -1031,13 +1031,14 @@ struct vector* _initialize_api_entries(void)
     /* pcell.push_overwrites */
     {
         struct parameter parameters[] = {
-
+            { "cellname",   STRING, NULL, "cellname of the to-be-overwritten cell" },
+            { "parameters", TABLE,  NULL, "table with key-value pairs" }
         };
         vector_append(entries, _make_api_entry(
             "push_overwrites",
             MODULE_PCELL,
-            "", // FIXME: push_overwrites
-            "", // FIXME: example for push_overwrites
+            "overwrite parameters of other cells. This works across pcell limits and can be called before pcell layouts are created. This also affects cells that are created in sub-cells. This works like a stack (one stack per cell), so it can be applied multiple times",
+            "pcell.push_overwrite(\"foo/bar\", { key1 = 42, key2 = 100 })",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -1045,13 +1046,13 @@ struct vector* _initialize_api_entries(void)
     /* pcell.pop_overwrites */
     {
         struct parameter parameters[] = {
-
+            { "cellname",   STRING, NULL, "cellname of the overwrite stack" }
         };
         vector_append(entries, _make_api_entry(
             "pop_overwrites",
             MODULE_PCELL,
-            "", // FIXME: pop_overwrites
-            "", // FIXME: example for pop_overwrites
+            "pop one entry of overwrites from the overwrite stack",
+            "pcell.pop_overwrites(\"foo/bar\")",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -1070,34 +1071,32 @@ struct vector* _initialize_api_entries(void)
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
-    /* pcell.clone_parameters */
-    {
-        struct parameter parameters[] = {
-
-        };
-        vector_append(entries, _make_api_entry(
-            "clone_parameters",
-            MODULE_PCELL,
-            "", // FIXME: clone_parameters
-            "", // FIXME: example for clone_parameters
-            parameters,
-            sizeof(parameters) / sizeof(parameters[0])
-        ));
-    }
-    /* pcell.clone_matching_parameters */
-    {
-        struct parameter parameters[] = {
-
-        };
-        vector_append(entries, _make_api_entry(
-            "clone_matching_parameters",
-            MODULE_PCELL,
-            "", // FIXME: clone_matching_parameters
-            "", // FIXME: example for clone_matching_parameters
-            parameters,
-            sizeof(parameters) / sizeof(parameters[0])
-        ));
-    }
+    ///* pcell.clone_parameters */
+    //{
+    //    struct parameter parameters[] = {
+    //    };
+    //    vector_append(entries, _make_api_entry(
+    //        "clone_parameters",
+    //        MODULE_PCELL,
+    //        "", // FIXME: clone_parameters
+    //        "", // FIXME: example for clone_parameters
+    //        parameters,
+    //        sizeof(parameters) / sizeof(parameters[0])
+    //    ));
+    //}
+    ///* pcell.clone_matching_parameters */
+    //{
+    //    struct parameter parameters[] = {
+    //    };
+    //    vector_append(entries, _make_api_entry(
+    //        "clone_matching_parameters",
+    //        MODULE_PCELL,
+    //        "", // FIXME: clone_matching_parameters
+    //        "", // FIXME: example for clone_matching_parameters
+    //        parameters,
+    //        sizeof(parameters) / sizeof(parameters[0])
+    //    ));
+    //}
     /* pcell.create_layout */
     {
         struct parameter parameters[] = {

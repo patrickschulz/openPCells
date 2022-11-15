@@ -562,8 +562,8 @@ function state.create_cellenv(state, cellname, ovrenv)
             pop_overwrites                  = bindstatecell(pop_overwrites),
             check_expression                = bindstatecell(check_expression),
             -- the following functions don't not need cell binding as they are called for other cells
-            clone_parameters                = bindstate(clone_parameters),
-            clone_matching_parameters       = bindstate(clone_matching_parameters),
+            --clone_parameters                = bindstate(clone_parameters),
+            --clone_matching_parameters       = bindstate(clone_matching_parameters),
             create_layout                   = pcell.create_layout
         },
         tech = {
