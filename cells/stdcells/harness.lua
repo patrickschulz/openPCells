@@ -12,6 +12,7 @@ function parameters()
         { "drawrails", true },
         { "drawgatecontacts", true },
         { "gatecontactpos", { "center" }, argtype = "strtable" },
+        { "gatenames", {}, argtype = "strtable" },
         { "shiftgatecontacts", 0 },
         { "pcontactpos", {}, argtype = "strtable" },
         { "ncontactpos", {}, argtype = "strtable" },
@@ -33,7 +34,6 @@ end
 function layout(gate, _P)
     local bp = pcell.get_parameters("stdcells/base")
     local xpitch = bp.gspace + bp.glength
-    local fingers = #_P.gatecontactpos
     -- numtracks + 2 for powerspace calculation: only virtual routes on power bars (no real ones)
     local ppowerspace, npowerspace
     local separation
@@ -69,6 +69,7 @@ function layout(gate, _P)
         gatelength = bp.glength,
         gatespace = bp.gspace,
         gatecontactpos = _P.gatecontactpos,
+        gatenames = _P.gatenames,
         pcontactpos = _P.pcontactpos,
         ncontactpos = _P.ncontactpos,
         powerwidth = bp.powerwidth,
