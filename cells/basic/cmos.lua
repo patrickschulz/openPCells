@@ -37,6 +37,7 @@ function parameters()
         { "outergstwidth(Outer Gate Strap Metal Width)",  tech.get_dimension("Minimum M1 Width") },
         { "outergstspace(Outer Gate Strap Metal Space)",  tech.get_dimension("Minimum M1 Space") },
         { "gatecontactpos", { "center" }, argtype = "strtable" },
+        { "gatenames", {}, argtype = "strtable" },
         { "shiftgatecontacts", 0 },
         { "pcontactpos", {}, argtype = "strtable" },
         { "ncontactpos", {}, argtype = "strtable" },
@@ -82,6 +83,11 @@ function layout(cmos, _P)
         end
     end
     local outergateshift = outergatepresent and _P.outergstspace + _P.gstwidth or 0
+
+    -- check if gate names are valid
+    if (#_P.gatenames > 0) and (#_P.gatenames ~= #_P.gatecontactpos) then
+        moderror(string.format("basic/cmos: number of entries in 'gatenames' must match 'gatecontactpos' (got %d, must be %d)", #_P.gatenames, #_P.gatecontactpos))
+    end
 
     if _P.drawtransistors then
         -- common transistor options
@@ -265,6 +271,9 @@ function layout(cmos, _P)
             end
             if not ignore then
                 cmos:add_anchor_area(string.format("G%d", i), _P.gatelength, yheight, x, y + yshift)
+                if (#_P.gatenames > 0) then
+                    cmos:add_anchor_area(_P.gatenames[i], _P.gatelength, yheight, x, y + yshift)
+                end
                 geometry.contactbltr(
                     cmos, "gate", 
                     point.create(x - _P.gatelength / 2, y + yshift - yheight / 2),
