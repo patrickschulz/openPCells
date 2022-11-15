@@ -52,7 +52,7 @@ function layout(grid, _P)
 
     -- vias
     if _P.drawvias then
-        local viaref = object.create()
+        local viaref = object.create("_via")
         geometry.viabltr(viaref, _P.metalh, _P.metalv,
             point.create(0,          0),
             point.create(_P.mvwidth, _P.mhwidth)
