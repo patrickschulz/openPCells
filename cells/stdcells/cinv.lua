@@ -236,21 +236,21 @@ function layout(gate, _P)
 
     -- ports
     if _P.splitenables then
-        gate:add_port("I", generics.metal(1), harness:get_anchor("G4cc"))
-        gate:add_port("EP", generics.metal(1), harness:get_anchor("G3cc"))
-        gate:add_port("EN", generics.metal(1), harness:get_anchor("G2cc"))
+        gate:add_port("I", generics.metalport(1), harness:get_anchor("G4cc"))
+        gate:add_port("EP", generics.metalport(1), harness:get_anchor("G3cc"))
+        gate:add_port("EN", generics.metalport(1), harness:get_anchor("G2cc"))
     else
         if _P.swapinputs then
-            gate:add_port("I", generics.metal(1), harness:get_anchor("G3cc"))
-            gate:add_port("EP", generics.metal(1), harness:get_anchor("Gupper2cc"))
-            gate:add_port("EN", generics.metal(1), harness:get_anchor("Glower2cc"))
+            gate:add_port("I", generics.metalport(1), harness:get_anchor("G3cc"))
+            gate:add_port("EP", generics.metalport(1), harness:get_anchor("Gupper2cc"))
+            gate:add_port("EN", generics.metalport(1), harness:get_anchor("Glower2cc"))
         else
-            gate:add_port("I", generics.metal(1), harness:get_anchor("G2cc"))
-            gate:add_port("EP", generics.metal(1), harness:get_anchor("Gupper3cc"))
-            gate:add_port("EN", generics.metal(1), harness:get_anchor("Glower3cc"))
+            gate:add_port("I", generics.metalport(1), harness:get_anchor("G2cc"))
+            gate:add_port("EP", generics.metalport(1), harness:get_anchor("Gupper3cc"))
+            gate:add_port("EN", generics.metalport(1), harness:get_anchor("Glower3cc"))
         end
     end
-    gate:add_port("O", generics.metal(1), point.create(_P.fingers * xpitch + _P.shiftoutput, 0))
-    gate:add_port("VDD", generics.metal(1), harness:get_anchor("top"))
-    gate:add_port("VSS", generics.metal(1),  harness:get_anchor("bottom"))
+    gate:add_port("O", generics.metalport(1), point.create(_P.fingers * xpitch + _P.shiftoutput, 0))
+    gate:add_port("VDD", generics.metalport(1), harness:get_anchor("top"))
+    gate:add_port("VSS", generics.metalport(1),  harness:get_anchor("bottom"))
 end

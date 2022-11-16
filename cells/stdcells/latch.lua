@@ -77,7 +77,7 @@ function layout(gate, _P)
     --]]
 
     -- ports
-    gate:add_port("D", generics.metal(1), inv:get_anchor("I"))
-    gate:add_port("VDD", generics.metal(1), inv:get_anchor("VDD"))
-    gate:add_port("VSS", generics.metal(1), inv:get_anchor("VSS"))
+    gate:add_port("D", generics.metalport(1), inv:get_anchor("I"))
+    gate:add_port("VDD", generics.metalport(1), inv:get_anchor("VDD"))
+    gate:add_port("VSS", generics.metalport(1), inv:get_anchor("VSS"))
 end

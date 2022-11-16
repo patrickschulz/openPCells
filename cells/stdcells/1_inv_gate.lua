@@ -44,9 +44,9 @@ function layout(gate, _P)
     gate:inherit_alignment_box(invref)
 
     -- ports
-    gate:add_port("A", generics.metal(1), subgateref:get_anchor("A"))
-    gate:add_port("B", generics.metal(1), subgateref:get_anchor("B"))
-    gate:add_port("O", generics.metal(1), invref:get_anchor("O"))
-    gate:add_port("VDD", generics.metal(1), subgateref:get_anchor("VDD"))
-    gate:add_port("VSS", generics.metal(1), subgateref:get_anchor("VSS"))
+    gate:add_port("A", generics.metalport(1), subgateref:get_anchor("A"))
+    gate:add_port("B", generics.metalport(1), subgateref:get_anchor("B"))
+    gate:add_port("O", generics.metalport(1), invref:get_anchor("O"))
+    gate:add_port("VDD", generics.metalport(1), subgateref:get_anchor("VDD"))
+    gate:add_port("VSS", generics.metalport(1), subgateref:get_anchor("VSS"))
 end
