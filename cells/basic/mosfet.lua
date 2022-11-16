@@ -56,6 +56,14 @@ function parameters()
         { "drawdrainvia(Draw Drain Via)",                              false },
         { "conndrainmetal(Drain Connection Metal)",                        1 },
         { "conndraininline(Connect Drain Inline of Transistor)",       false },
+        { "drawextrasourcestrap(Draw Extra Source Strap)",             false },
+        { "extrasourcestrapwidth(Width of Extra Source Strap)",        tech.get_dimension("Minimum M1 Width"), argtype = "integer" },
+        { "extrasourcestrapspace(Space of Extra Source Strap)",        tech.get_dimension("Minimum M1 Space"), argtype = "integer" },
+        { "extrasourcestrapmetal(Metal Layer for Extra Source Strap)",     1 },
+        { "drawextradrainstrap(Draw Extra Drain Strap)",               false },
+        { "extradrainstrapwidth(Width of Extra Drain Strap)",          tech.get_dimension("Minimum M1 Width"), argtype = "integer" },
+        { "extradrainstrapspace(Space of Extra Drain Strap)",          tech.get_dimension("Minimum M1 Space"), argtype = "integer" },
+        { "extradrainstrapmetal(Metal Layer for Extra Drain Strap)",       1 },
         { "drawtopactivedummy",                                        false },
         { "topactivedummywidth",                                          80 },
         { "topactivedummysep",                                            80 },
@@ -545,6 +553,38 @@ function layout(transistor, _P)
                 -shift, yoffset
             )
         end
+    end
+
+    -- extra source/drain straps (unconnected, useful for arrays)
+    if _P.drawextrasourcestrap then
+        local invert = _P.connectsourceinverse and -1 or 1
+        local width = (2 * math.floor(_P.fingers / 2) + (_P.extendsourceconnection and 1 or 0)) * gatepitch + _P.sdwidth
+        local height = _P.extrasourcestrapwidth
+        local yoffset = invert * ysign * (_P.fwidth + _P.extrasourcestrapwidth + 2 * _P.extrasourcestrapspace) / 2
+        geometry.rectangle(transistor, generics.metal(_P.extrasourcestrapmetal),
+            width, height,
+            shift, yoffset
+        )
+        -- anchors
+        transistor:add_anchor_area("extrasourcestrap", 
+            width, height,
+            shift, yoffset
+        )
+    end
+    if _P.drawextradrainstrap then
+        local invert = _P.connectdraininverse and -1 or 1
+        local width = (2 * math.floor(_P.fingers / 2) + (_P.extenddrainconnection and 1 or 0)) * gatepitch + _P.sdwidth
+        local height = _P.extradrainstrapwidth
+        local yoffset = invert * ysign * (_P.fwidth + _P.extradrainstrapwidth + 2 * _P.extradrainstrapspace) / 2
+        geometry.rectangle(transistor, generics.metal(_P.extradrainstrapmetal),
+            width, height,
+            shift, yoffset
+        )
+        -- anchors
+        transistor:add_anchor_area("extradrainstrap", 
+            width, height,
+            shift, yoffset
+        )
     end
 
     -- anchors for source drain active regions
