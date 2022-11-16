@@ -959,13 +959,14 @@ struct vector* _initialize_api_entries(void)
     /* pcell.set_property */
     {
         struct parameter parameters[] = {
-
+            { "property", STRING, NULL, "property to set" },
+            { "value",    ANY,    NULL, "value of the property" }
         };
         vector_append(entries, _make_api_entry(
             "set_property",
             MODULE_PCELL,
-            "", // FIXME: set_property
-            "", // FIXME: example for set_property
+            "set a property of a pcell. Not many properties are supported currently, so this function is very rarely used. The base cell of the standard cell library uses it to be hidden, but that's the only current use",
+            "function config()\n    pcell.set_property(\"hidden\", true)\nend",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -1060,13 +1061,14 @@ struct vector* _initialize_api_entries(void)
     /* pcell.check_expression */
     {
         struct parameter parameters[] = {
-
+            { "expression", STRING, NULL, "expression to check" },
+            { "message",    STRING, NULL, "custom message which is displayed if the expression could not be satisfied" }
         };
         vector_append(entries, _make_api_entry(
             "check_expression",
             MODULE_PCELL,
-            "", // FIXME: check_expression
-            "", // FIXME: example for check_expression
+            "check valid parameter values with expressions. If parameter values depend on some other parameter or the posval function of parameter definitions do not offer enough flexibility, parameters can be checked with arbitrary lua expressions. This function must be called in parameters()",
+            "function parameters()\n    pcell.add_parameters({\n        { \"width\", 100 },\n        { \"height\", 200 },\n    })\n    pcell.check_expression(\"(height / width) % 2 == 0\", \"quotionent of height and width must be even\")\nend",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -1108,7 +1110,7 @@ struct vector* _initialize_api_entries(void)
             "create_layout",
             MODULE_PCELL,
             "Create a layout based on a parametric cell",
-            "", // FIXME: example for create_layout
+            "pcell.create_layout(\"stdcells/not_gate\", \"not_gate\", { pwidth = 600 })",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -1427,13 +1429,18 @@ struct vector* _initialize_api_entries(void)
     /* object.add_anchor_area */
     {
         struct parameter parameters[] = {
-
+            { "cell",   OBJECT,  NULL, "object to which an anchor should be added" },
+            { "name",   STRING,  NULL, "name of the anchor" },
+            { "width",  INTEGER, NULL, "width of the rectangular area" },
+            { "height", INTEGER, NULL, "height of the rectangular area" },
+            { "xshift", INTEGER, NULL, "shift the area by 'xshift'" },
+            { "yshift", INTEGER, NULL, "shift the area by 'yshift'" }
         };
         vector_append(entries, _make_api_entry(
             "add_anchor_area",
             MODULE_OBJECT,
-            "", // FIXME: add_anchor_area
-            "", // FIXME: example for add_anchor_area
+            "add a so-called 'area anchor', which defines all relevant anchors in a rectangular area: bottom-left, bottom-center, bottom-right, center-left, center-center, center-right, top-left, top-center, top-right (bl, bc, br, cl, cc, cr, tl, tc, tr)", // FIXME: add_anchor_area
+            "cell:add_anchor_area(\"source\", 100, 500, 0, 0)",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -1441,13 +1448,17 @@ struct vector* _initialize_api_entries(void)
     /* object.add_anchor_area_bltr */
     {
         struct parameter parameters[] = {
+            { "cell",   OBJECT,  NULL, "object to which an anchor should be added" },
+            { "name",   STRING,  NULL, "name of the anchor" },
+            { "bl",     INTEGER, NULL, "bottom-left point of the rectangular area" },
+            { "tr",     INTEGER, NULL, "bottom-left point of the rectangular area" }
 
         };
         vector_append(entries, _make_api_entry(
             "add_anchor_area_bltr",
             MODULE_OBJECT,
-            "", // FIXME: add_anchor_area_bltr
-            "", // FIXME: example for add_anchor_area_bltr
+            "Similar to add_anchor_area, but takes to lower-left and upper-right corner points of the rectangular area",
+            "cell:add_anchor_area(\"source\", point.create(-100, -20), point.create(100, 20))",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
