@@ -23,6 +23,8 @@ function parameters()
         { "topgatestrspace(Top Gate Strap Space)",                     tech.get_dimension("Minimum M1 Space"), argtype = "integer" },
         { "topgatemetal(Top Gate Strap Metal)",                            1 },
         { "topgateextendhalfspace(Top Gate Strap Extend Half Space)",  false },
+        { "drawtopgatevia(Draw Top Gate Via)",                         false },
+        { "topgateviatarget(Metal Target of Top Gate Via)",                2 },
         { "drawbotgate(Draw Bottom Gate Contact)",                     false },
         { "drawbotgatestrap(Draw Bot Gate Strap)",                     false, follow = "drawbotgate" },
         { "botgatecompsd(Compensate for Source/Drain Connection)",      true },
@@ -30,6 +32,8 @@ function parameters()
         { "botgatestrspace(Bottom Gate Strap Space)",                  tech.get_dimension("Minimum M1 Space"), argtype = "integer" },
         { "botgatemetal(Bottom Gate Strap Metal)",                         1 },
         { "botgateextendhalfspace(Bottom Gate Strap Extend Half Space)",  false },
+        { "drawbotgatevia(Draw Bot Gate Via)",                         false },
+        { "botgateviatarget(Metal Target of Bot Gate Via)",                2 },
         { "drawtopgcut(Draw Top Gate Cut)",                            false },
         { "drawbotgcut(Draw Bottom Gate Cut)",                         false },
         { "topgcutoffset(Top Gate Cut Y Offset)",                          0 },
@@ -42,12 +46,14 @@ function parameters()
         { "drainalign(Drain Alignement)",                            "top", posvals = set("top", "bottom") },
         { "drawsourcevia(Draw Source Via)",                            false },
         { "connectsource(Connect Source)",                             false },
+        { "connectsourceboth(Connect Source on Both Sides)",           false },
         { "connsourcewidth(Source Rails Metal Width)",               tech.get_dimension("Minimum M1 Width"), argtype = "integer" },
         { "connsourcespace(Source Rails Metal Space)",               tech.get_dimension("Minimum M1 Width"), argtype = "integer" },
         { "connsourcemetal(Source Connection Metal)",                      1 },
         { "connsourceinline(Connect Source Inline of Transistor)",     false },
         { "connectsourceinverse(Invert Source Strap Locations)",       false },
         { "connectdrain(Connect Drain)",                               false },
+        { "connectdrainboth(Connect Drain on Both Sides)",             false },
         { "conndrainwidth(Drain Rails Metal Width)",               tech.get_dimension("Minimum M1 Width"), argtype = "integer" },
         { "conndrainspace(Drain Rails Metal Space)",               tech.get_dimension("Minimum M1 Width"), argtype = "integer" },
         { "extendsourceconnection(Extend Source Connection)",          false },
@@ -379,6 +385,13 @@ function layout(transistor, _P)
             point.create( _P.gatelength / 2, _P.topgatestrwidth + _P.fwidth / 2 + _P.topgatestrspace + enable(topgatecompsd, drainshift)),
             _P.fingers, 1, gatepitch, 0
         )
+        if _P.drawtopgatevia then
+            geometry.viabltr(transistor, 1, _P.topgateviatarget,
+                point.create(-_P.gatelength / 2,                      _P.fwidth / 2 + _P.topgatestrspace + enable(topgatecompsd, drainshift)),
+                point.create( _P.gatelength / 2, _P.topgatestrwidth + _P.fwidth / 2 + _P.topgatestrspace + enable(topgatecompsd, drainshift)),
+                _P.fingers, 1, gatepitch, 0
+            )
+        end
         for i = 1, _P.fingers do
             transistor:add_anchor_area(string.format("topgate%d", i), 
                 _P.gatelength,
@@ -406,6 +419,13 @@ function layout(transistor, _P)
             point.create( _P.gatelength / 2,                     - _P.fwidth / 2 - _P.botgatestrspace - enable(botgatecompsd, sourceshift)),
             _P.fingers, 1, gatepitch, 0
         )
+        if _P.drawbotgatevia then
+            geometry.viabltr(transistor, 1, _P.botgateviatarget,
+                point.create(-_P.gatelength / 2, -_P.botgatestrwidth - _P.fwidth / 2 - _P.botgatestrspace - enable(botgatecompsd, sourceshift)),
+                point.create( _P.gatelength / 2,                     - _P.fwidth / 2 - _P.botgatestrspace - enable(botgatecompsd, sourceshift)),
+                _P.fingers, 1, gatepitch, 0
+            )
+        end
         for i = 1, _P.fingers do
             transistor:add_anchor_area(string.format("botgate%d", i), 
                 _P.gatelength,
@@ -519,6 +539,27 @@ function layout(transistor, _P)
                 point.create(shift + _P.sdwidth / 2, invert * ysign * (_P.fwidth / 2 + _P.connsourcespace)),
                 math.floor(_P.fingers / 2) + 1, 1, 2 * gatepitch, 0
             )
+            if _P.connectsourceboth then
+                geometry.rectangle(transistor, generics.metal(_P.connsourcemetal),
+                    width, height,
+                    shift, -yoffset
+                )
+                geometry.rectanglepoints(transistor, generics.metal(_P.connsourcemetal), 
+                    point.create(shift - _P.sdwidth / 2, -invert * ysign * _P.fwidth / 2),
+                    point.create(shift + _P.sdwidth / 2, -invert * ysign * (_P.fwidth / 2 + _P.connsourcespace)),
+                    math.floor(_P.fingers / 2) + 1, 1, 2 * gatepitch, 0
+                )
+                transistor:add_anchor_area("sourcestrap1", 
+                    (math.floor((_P.fingers - 1) / 2) + 1) * gatepitch + _P.sdwidth,
+                    _P.connsourcewidth,
+                    shift, yoffset
+                )
+                transistor:add_anchor_area("sourcestrap2", 
+                    (math.floor((_P.fingers - 1) / 2) + 1) * gatepitch + _P.sdwidth,
+                    _P.connsourcewidth,
+                    shift, -yoffset
+                )
+            end
             -- anchors
             transistor:add_anchor_area("sourcestrap", 
                 width, height,
@@ -546,6 +587,27 @@ function layout(transistor, _P)
                 point.create(-shift + _P.sdwidth / 2, -invert * ysign * (_P.fwidth / 2 + _P.conndrainspace)),
                 math.floor((_P.fingers - 1) / 2) + 1, 1, 2 * gatepitch, 0
             )
+            if _P.connectdrainboth then
+                geometry.rectangle(transistor, generics.metal(_P.conndrainmetal),
+                    width, height,
+                    -shift, -yoffset
+                )
+                geometry.rectanglepoints(transistor, generics.metal(_P.conndrainmetal), 
+                    point.create(-shift - _P.sdwidth / 2, invert * ysign * _P.fwidth / 2),
+                    point.create(-shift + _P.sdwidth / 2, invert * ysign * (_P.fwidth / 2 + _P.conndrainspace)),
+                    math.floor((_P.fingers - 1) / 2) + 1, 1, 2 * gatepitch, 0
+                )
+                transistor:add_anchor_area("drainstrap1", 
+                    (math.floor((_P.fingers - 1) / 2) + 1) * gatepitch + _P.sdwidth,
+                    _P.conndrainwidth,
+                    -shift, yoffset
+                )
+                transistor:add_anchor_area("drainstrap2", 
+                    (math.floor((_P.fingers - 1) / 2) + 1) * gatepitch + _P.sdwidth,
+                    _P.conndrainwidth,
+                    -shift, -yoffset
+                )
+            end
             -- anchors
             transistor:add_anchor_area("drainstrap", 
                 (math.floor((_P.fingers - 1) / 2) + 1) * gatepitch + _P.sdwidth,
@@ -561,6 +623,10 @@ function layout(transistor, _P)
         local width = (2 * math.floor(_P.fingers / 2) + (_P.extendsourceconnection and 1 or 0)) * gatepitch + _P.sdwidth
         local height = _P.extrasourcestrapwidth
         local yoffset = invert * ysign * (_P.fwidth + _P.extrasourcestrapwidth + 2 * _P.extrasourcestrapspace) / 2
+        geometry.rectangle(transistor, generics.metal(_P.extrasourcestrapmetal),
+            width, height,
+            shift, yoffset
+        )
         geometry.rectangle(transistor, generics.metal(_P.extrasourcestrapmetal),
             width, height,
             shift, yoffset
