@@ -644,12 +644,12 @@ function layout(transistor, _P)
         local yoffset = invert * ysign * (_P.fwidth + _P.extradrainstrapwidth + 2 * _P.extradrainstrapspace) / 2
         geometry.rectangle(transistor, generics.metal(_P.extradrainstrapmetal),
             width, height,
-            shift, yoffset
+            shift, -yoffset
         )
         -- anchors
         transistor:add_anchor_area("extradrainstrap", 
             width, height,
-            shift, yoffset
+            shift, -yoffset
         )
     end
 
