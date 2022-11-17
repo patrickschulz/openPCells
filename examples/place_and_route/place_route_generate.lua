@@ -33,6 +33,12 @@ local rows = placement.optimize(instances, nets, floorplan)
 --local rows = placement.manual(instances, plan)
 placement.insert_filler_names(rows, floorplan.floorplan_width)
 
+for i in ipairs(rows) do
+    table.insert(rows[i], 1, {reference = "isogate", instance = string.format("hackfill_%i", i), width = 1})
+end
+floorplan.floorplan_width = floorplan.floorplan_width + 1
+
+
 -- this value can be (at least in theory) changed in the generated layout, but the router assumes this many tracks
 -- this means that reducing this value CAN work, but only increasing it will work certainly
 local pnumtracks = 4
