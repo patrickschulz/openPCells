@@ -275,14 +275,10 @@ void object_add_anchor(struct object* cell, const char* name, coordinate_t x, co
 
 void object_add_anchor_suffix(struct object* cell, const char* base, const char* suffix, coordinate_t x, coordinate_t y)
 {
-    if(!cell->anchors)
-    {
-        cell->anchors = hashmap_create();
-    }
     size_t len = strlen(base) + strlen(suffix);
     char* name = malloc(len + 1);
     snprintf(name, len + 1, "%s%s", base, suffix);
-    hashmap_insert(cell->anchors, name, point_create(x, y));
+    object_add_anchor(cell, name, x, y);
     free(name);
 }
 
