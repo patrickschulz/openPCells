@@ -118,11 +118,11 @@ function layout(gate, _P)
         anchor("G13cc"):translate( bp.glength / 2,  bp.routingwidth / 2)
     ))
     if _P.enable_reset then
-        gate:add_port("RST", generics.metal(1), anchor("G16cc"):translate(-xpitch / 2, 0))
+        gate:add_port("RST", generics.metalport(1), anchor("G16cc"):translate(-xpitch / 2, 0))
     end
-    gate:add_port("D", generics.metal(1), anchor("G1cc"):translate(0, yinvert * 2 * (bp.routingwidth + bp.routingspace)))
-    gate:add_port("CLK", generics.metal(1), anchor("G1cc"))
-    gate:add_port("VDD", generics.metal(1), anchor("top"))
-    gate:add_port("VSS", generics.metal(1), anchor("bottom"))
+    gate:add_port("D", generics.metalport(1), anchor("G1cc"):translate(0, yinvert * 2 * (bp.routingwidth + bp.routingspace)))
+    gate:add_port("CLK", generics.metalport(1), anchor("G1cc"))
+    gate:add_port("VDD", generics.metalport(1), anchor("top"))
+    gate:add_port("VSS", generics.metalport(1), anchor("bottom"))
     --]]
 end

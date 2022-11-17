@@ -75,11 +75,11 @@ function layout(gate, _P)
     gate:inherit_alignment_box(gate3)
 
     -- draw ports
-    gate:add_port("A1", generics.metal(1), gate1:get_anchor("A"))
-    gate:add_port("A2", generics.metal(1), gate1:get_anchor("B"))
-    gate:add_port("B1", generics.metal(1), gate2:get_anchor("A"))
-    gate:add_port("B2", generics.metal(1), gate2:get_anchor("B"))
-    gate:add_port("O", generics.metal(1), gate3:get_anchor("O"))
-    gate:add_port("VDD", generics.metal(1), isogate:get_anchor("VDD"))
-    gate:add_port("VSS", generics.metal(1), isogate:get_anchor("VSS"))
+    gate:add_port("A1", generics.metalport(1), gate1:get_anchor("A"))
+    gate:add_port("A2", generics.metalport(1), gate1:get_anchor("B"))
+    gate:add_port("B1", generics.metalport(1), gate2:get_anchor("A"))
+    gate:add_port("B2", generics.metalport(1), gate2:get_anchor("B"))
+    gate:add_port("O", generics.metalport(1), gate3:get_anchor("O"))
+    gate:add_port("VDD", generics.metalport(1), isogate:get_anchor("VDD"))
+    gate:add_port("VSS", generics.metalport(1), isogate:get_anchor("VSS"))
 end
