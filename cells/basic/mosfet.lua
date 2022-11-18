@@ -62,6 +62,7 @@ function parameters()
         { "drawdrainvia(Draw Drain Via)",                              false },
         { "conndrainmetal(Drain Connection Metal)",                        1 },
         { "conndraininline(Connect Drain Inline of Transistor)",       false },
+        { "diodeconnected(Diode Connected Transistor)",                false },
         { "drawextrasourcestrap(Draw Extra Source Strap)",             false },
         { "extrasourcestrapwidth(Width of Extra Source Strap)",        tech.get_dimension("Minimum M1 Width"), argtype = "integer" },
         { "extrasourcestrapspace(Space of Extra Source Strap)",        tech.get_dimension("Minimum M1 Space"), argtype = "integer" },
@@ -512,6 +513,26 @@ function layout(transistor, _P)
                     _P.drainsize,
                     -2 * shift + (-_P.fingers / 2 + (i - 1)) * gatepitch,
                     drainoffset
+                )
+            end
+        end
+    end
+
+    -- diode connected
+    if _P.diodeconnected then
+        for i = 1, _P.fingers do
+            if _P.drawtopgatestrap then
+                geometry.rectanglebltr(transistor, generics.metal(1),
+                    transistor:get_anchor(string.format("sourcedrain%dtl", i)),
+                    transistor:get_anchor(string.format("sourcedrain%dtr", i)) ..
+                    transistor:get_anchor(string.format("topgatestrapbr", i))
+                )
+            end
+            if _P.drawtopgatestrap then
+                geometry.rectanglebltr(transistor, generics.metal(1),
+                    transistor:get_anchor(string.format("sourcedrain%dbl", i)) ..
+                    transistor:get_anchor(string.format("botgatestraptl", i)),
+                    transistor:get_anchor(string.format("sourcedrain%dbr", i))
                 )
             end
         end
