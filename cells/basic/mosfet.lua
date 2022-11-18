@@ -571,13 +571,11 @@ function layout(transistor, _P)
                     math.floor(_P.fingers / 2) + 1, 1, 2 * gatepitch, 0
                 )
                 transistor:add_anchor_area("sourcestrap1", 
-                    (math.floor((_P.fingers - 1) / 2) + 1) * gatepitch + _P.sdwidth,
-                    _P.connsourcewidth,
+                    width, height,
                     shift, yoffset
                 )
                 transistor:add_anchor_area("sourcestrap2", 
-                    (math.floor((_P.fingers - 1) / 2) + 1) * gatepitch + _P.sdwidth,
-                    _P.connsourcewidth,
+                    width, height,
                     shift, -yoffset
                 )
             end
@@ -619,20 +617,17 @@ function layout(transistor, _P)
                     math.floor((_P.fingers - 1) / 2) + 1, 1, 2 * gatepitch, 0
                 )
                 transistor:add_anchor_area("drainstrap1", 
-                    (math.floor((_P.fingers - 1) / 2) + 1) * gatepitch + _P.sdwidth,
-                    _P.conndrainwidth,
+                    width, height,
                     -shift, yoffset
                 )
                 transistor:add_anchor_area("drainstrap2", 
-                    (math.floor((_P.fingers - 1) / 2) + 1) * gatepitch + _P.sdwidth,
-                    _P.conndrainwidth,
+                    width, height,
                     -shift, -yoffset
                 )
             end
             -- anchors
             transistor:add_anchor_area("drainstrap", 
-                (math.floor((_P.fingers - 1) / 2) + 1) * gatepitch + _P.sdwidth,
-                _P.conndrainwidth,
+                width, height,
                 -shift, yoffset
             )
         end
