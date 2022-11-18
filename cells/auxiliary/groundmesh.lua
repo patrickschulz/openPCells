@@ -2,29 +2,30 @@ function parameters()
     pcell.add_parameters(
         { "flavour", "ground" },
         { "cellsize", 10000 },
-        { "topmetal", 8 },
         { "captopmetal", 7 },
         { "gridstartmetal", 9 },
         { "gridtopmetal", 10 },
-        { "metalwidth", { 600, 600, 1200, 1200, 1200, 1200, 1200, 1000 } }
+        { "guardringwidth", 500 },
+        { "metalwidth", { 800, 800, 1200, 1200, 1200, 1200, 1200, 1000 } }
     )
 end
 
 function layout(mesh, _P)
     local rwidth = 600
+    local foffset = 100
+    local fwidth = 50
+    local fspace = 50
     for i = 1, _P.captopmetal do
-        geometry.ring(mesh, generics.metal(i), _P.cellsize - _P.metalwidth[i], _P.cellsize - _P.metalwidth[i], _P.metalwidth[i])
-        local foffset = 100
-        local fwidth = 50
-        local fspace = 50
-        local nfingers = math.floor((_P.cellsize - 2 * _P.metalwidth[i]) / (2 * (fwidth + fspace))) - 5
+        geometry.ring(mesh, generics.metal(i), _P.cellsize, _P.cellsize, _P.metalwidth[i])
+        local nfingers = 2 * math.floor((_P.cellsize - 2 * _P.metalwidth[i]) / (2 * (fwidth + fspace))) - 10
         local topcap = pcell.create_layout("passive/capacitor/mom", "topcap", {
             firstmetal = i, lastmetal = i, 
             fingers = nfingers,
-            fwidth = fwidth, fspace = fspace,
+            fwidth = fwidth,
+            fspace = fspace,
             foffset = foffset,
             rwidth = rwidth, 
-            fheight = _P.cellsize / 2 - rwidth / 2 - _P.metalwidth[i] - foffset
+            fheight = _P.cellsize / 2 - rwidth / 2 - _P.metalwidth[i] - 2 * foffset
         })
         local botcap = topcap:copy()
         topcap:move_anchor("minus")
@@ -34,15 +35,15 @@ function layout(mesh, _P)
         mesh:merge_into_shallow(botcap)
         -- inner rail via
         if i > 1 then
-            geometry.via(mesh, i - 1, i, (2 * nfingers + 1) * (fwidth + fspace), rwidth)
+            geometry.via(mesh, i - 1, i, (nfingers + 1) * (fwidth + fspace), rwidth)
         end
         -- outer rail via
         if i > 1 then
             local mwidth = math.min(_P.metalwidth[i - 1], _P.metalwidth[i])
             geometry.via(mesh, i - 1, i, mwidth, _P.cellsize - 2 * mwidth, -_P.cellsize / 2 + mwidth / 2, 0)
             geometry.via(mesh, i - 1, i, mwidth, _P.cellsize - 2 * mwidth, _P.cellsize / 2 - mwidth / 2, 0)
-            geometry.via(mesh, i - 1, i, _P.cellsize - 2 * mwidth, mwidth, 0, -_P.cellsize / 2 + mwidth / 2, 0)
-            geometry.via(mesh, i - 1, i, _P.cellsize - 2 * mwidth, mwidth, 0, _P.cellsize / 2 - mwidth / 2, 0)
+            geometry.via(mesh, i - 1, i, _P.cellsize - 2 * mwidth, mwidth, 0, -_P.cellsize / 2 + mwidth / 2)
+            geometry.via(mesh, i - 1, i, _P.cellsize - 2 * mwidth, mwidth, 0, _P.cellsize / 2 - mwidth / 2)
         end
     end
     -- connection between top lower metal and intermediate metal
@@ -69,7 +70,9 @@ function layout(mesh, _P)
     -- guard ring
     mesh:merge_into_shallow(pcell.create_layout("auxiliary/guardring", "guardring", { 
         contype = "p", 
-        width = _P.cellsize - _P.metalwidth[1], height = _P.cellsize - _P.metalwidth[1], 
-        ringwidth = _P.metalwidth[1] 
+        holewidth = _P.cellsize - 2 * _P.guardringwidth,
+        holeheight = _P.cellsize - 2 * _P.guardringwidth,
+        ringwidth = _P.guardringwidth,
+        fit = true
     }))
 end
