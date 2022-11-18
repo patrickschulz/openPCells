@@ -141,6 +141,7 @@ static void _prepare_cellpaths(struct vector* cellpaths_to_prepend, struct vecto
 void main_list_cell_parameters(struct cmdoptions* cmdoptions, struct hashmap* config)
 {
     // FIXME: this probably loads too many C modules
+    // FIXME: load dummy technology if not technology was given
     lua_State* L = _create_and_initialize_lua();
 
     module_load_aux(L);
