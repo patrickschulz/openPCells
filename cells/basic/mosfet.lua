@@ -520,7 +520,7 @@ function layout(transistor, _P)
 
     -- diode connected
     if _P.diodeconnected then
-        for i = 1, _P.fingers do
+        for i = 1, _P.fingers, 2 do
             if _P.drawtopgatestrap then
                 geometry.rectanglebltr(transistor, generics.metal(1),
                     transistor:get_anchor(string.format("sourcedrain%dtl", i)),
