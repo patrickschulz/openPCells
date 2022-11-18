@@ -467,6 +467,9 @@ local function push_overwrites(state, cellname, othercell, cellargs)
             error(string.format("trying to access parameters of unreferenced cell (%s from %s)", othercell, cellname))
         end
     end
+    if type(cellargs) ~= "table" then
+        error(string.format("pcell.push_overwrites: 'cellargs' must be a table (got: %s)", type(cellargs)))
+    end
     local backup = _process_input_parameters(state, othercell, cellargs, true) -- true: overwrite
     if not state.backupstacks[othercell] then
         state.backupstacks[othercell] = stack.create()
