@@ -795,6 +795,20 @@ struct shape* object_get_transformed_shape(struct object* cell, size_t idx)
     return shape;
 }
 
+static void _rasterize_curves(struct shape* shape)
+{
+    if(!shape_is_curve(shape))
+    {
+        return;
+    }
+    shape_rasterize_curve_inline(shape);
+}
+
+void object_rasterize_curves(struct object* cell)
+{
+    object_foreach_shapes(cell, _rasterize_curves);
+}
+
 const struct transformationmatrix* object_get_transformation_matrix(const struct object* cell)
 {
     return cell->trans;

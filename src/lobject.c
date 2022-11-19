@@ -458,6 +458,13 @@ int lobject_flatten(lua_State* L)
     return 1;
 }
 
+int lobject_rasterize_curves(lua_State* L)
+{
+    struct lobject* cell = lobject_check(L, 1);
+    object_rasterize_curves(cell->object);
+    return 0;
+}
+
 int open_lobject_lib(lua_State* L)
 {
     // create metatable for objects
@@ -498,6 +505,7 @@ int open_lobject_lib(lua_State* L)
         { "add_child_array",            lobject_add_child_array             },
         { "merge_into_shallow",         lobject_merge_into_shallow          },
         { "flatten",                    lobject_flatten                     },
+        { "rasterize_curves",           lobject_rasterize_curves            },
         { "__gc",                       lobject_destroy                     },
         { NULL,                         NULL                                }
     };

@@ -23,6 +23,7 @@ void object_foreach_shapes(struct object* cell, void (*func)(struct shape*));
 size_t object_get_shapes_size(const struct object* cell);
 struct shape* object_get_shape(struct object* cell, size_t idx);
 struct shape* object_get_transformed_shape(struct object* cell, size_t idx);
+void object_rasterize_curves(struct object* cell);
 
 // children
 struct object* object_add_child(struct object* cell, struct object* child, const char* name);
