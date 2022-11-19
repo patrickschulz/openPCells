@@ -18,6 +18,7 @@ struct port {
     const struct generics* layer;
     int isbusport;
     int busindex;
+    double sizehint;
 };
 
 struct object {
@@ -169,10 +170,7 @@ void object_destroy(void* cellv)
     }
 
     // name
-    if(cell->name)
-    {
-        free(cell->name);
-    }
+    free(cell->name);
 
     // transformation matrix
     transformationmatrix_destroy(cell->trans);
@@ -185,6 +183,12 @@ void object_destroy(void* cellv)
 
     // object itself
     free(cell);
+}
+
+void object_set_name(struct object* cell, const char* name)
+{
+    free(cell->name);
+    cell->name = strdup(name);
 }
 
 void object_add_raw_shape(struct object* cell, struct shape* S)
@@ -251,6 +255,14 @@ void object_merge_into_shallow(struct object* cell, const struct object* other)
             struct shape* shape = shape_copy(vector_get(other->shapes, i));
             object_add_shape(cell, shape);
             shape_apply_transformation(shape, other->trans);
+        }
+    }
+    if(other->children)
+    {
+        for(unsigned int i = 0; i < vector_size(other->children); ++i)
+        {
+            struct object* child = vector_get(other->children, i);
+            // FIXME: add children
         }
     }
 }
@@ -504,7 +516,7 @@ void _port_destroy(void* p)
     free(port);
 }
 
-static void _add_port(struct object* cell, const char* name, const char* anchorname, const struct generics* layer, coordinate_t x, coordinate_t y, int isbusport, int busindex, int storeanchor)
+static void _add_port(struct object* cell, const char* name, const char* anchorname, const struct generics* layer, coordinate_t x, coordinate_t y, int isbusport, int busindex, int storeanchor, double sizehint)
 {
     if(!generics_is_empty(layer))
     {
@@ -519,6 +531,7 @@ static void _add_port(struct object* cell, const char* name, const char* anchorn
         port->busindex = busindex;
         port->name = malloc(strlen(name) + 1);
         strcpy(port->name, name);
+        port->sizehint = sizehint;
         vector_append(cell->ports, port);
     }
     if(storeanchor)
@@ -527,12 +540,12 @@ static void _add_port(struct object* cell, const char* name, const char* anchorn
     }
 }
 
-void object_add_port(struct object* cell, const char* name, const struct generics* layer, const point_t* where, int storeanchor)
+void object_add_port(struct object* cell, const char* name, const struct generics* layer, const point_t* where, int storeanchor, double sizehint)
 {
-    _add_port(cell, name, name, layer, where->x, where->y, 0, 0, storeanchor);
+    _add_port(cell, name, name, layer, where->x, where->y, 0, 0, storeanchor, sizehint);
 }
 
-void object_add_bus_port(struct object* cell, const char* name, const struct generics* layer, const point_t* where, int startindex, int endindex, unsigned int xpitch, unsigned int ypitch, int storeanchor)
+void object_add_bus_port(struct object* cell, const char* name, const struct generics* layer, const point_t* where, int startindex, int endindex, unsigned int xpitch, unsigned int ypitch, int storeanchor, double sizehint)
 {
     int shift = 0;
     if(startindex < endindex)
@@ -543,7 +556,7 @@ void object_add_bus_port(struct object* cell, const char* name, const struct gen
             unsigned int len = strlen(name) + digits; // + 1 for underscore
             char* anchorname = malloc(len + 1);
             snprintf(anchorname, len + 1, "%s%*d", name, digits, i);
-            _add_port(cell, name, anchorname, layer, where->x + shift * xpitch, where->y + shift * ypitch, 1, i, storeanchor);
+            _add_port(cell, name, anchorname, layer, where->x + shift * xpitch, where->y + shift * ypitch, 1, i, storeanchor, sizehint);
             free(anchorname);
             ++shift;
         }
@@ -556,7 +569,7 @@ void object_add_bus_port(struct object* cell, const char* name, const struct gen
             unsigned int len = strlen(name) + digits; // + 1 for underscore
             char* anchorname = malloc(len + 1);
             snprintf(anchorname, len + 1, "%s%*d", name, digits, i);
-            _add_port(cell, name, anchorname, layer, where->x + shift * xpitch, where->y + shift * ypitch, 1, i, storeanchor);
+            _add_port(cell, name, anchorname, layer, where->x + shift * xpitch, where->y + shift * ypitch, 1, i, storeanchor, sizehint);
             free(anchorname);
             ++shift;
         }
@@ -984,7 +997,7 @@ void object_flatten_inline(struct object* cell, int flattenports)
                     coordinate_t y = port->where->y;
                     transformationmatrix_apply_transformation_xy(child->trans, &x, &y);
                     transformationmatrix_apply_transformation_xy(flat->trans, &x, &y);
-                    _add_port(cell, port->name, NULL, port->layer, x, y, port->isbusport, port->busindex, 0); // 0: !storeanchor
+                    _add_port(cell, port->name, NULL, port->layer, x, y, port->isbusport, port->busindex, 0, port->sizehint); // 0: !storeanchor
                 }
             }
             object_destroy(flat);
@@ -1187,7 +1200,7 @@ void port_iterator_next(struct port_iterator* it)
     it->index += 1;
 }
 
-void port_iterator_get(struct port_iterator* it, const char** portname, const point_t** portwhere, const struct generics** portlayer, int* portisbusport, int* portbusindex)
+void port_iterator_get(struct port_iterator* it, const char** portname, const point_t** portwhere, const struct generics** portlayer, int* portisbusport, int* portbusindex, double* sizehint)
 {
     const struct port* port = vector_get_const(it->ports, it->index);
     if(portname) { *portname = port->name; }
@@ -1195,6 +1208,7 @@ void port_iterator_get(struct port_iterator* it, const char** portname, const po
     if(portlayer) { *portlayer = port->layer; }
     if(portisbusport) { *portisbusport = port->isbusport; }
     if(portbusindex) { *portbusindex = port->busindex; }
+    if(sizehint) { *sizehint = port->sizehint; }
 }
 
 void port_iterator_destroy(struct port_iterator* it)

@@ -12,6 +12,7 @@ struct object;
 struct object* object_create(const char* name);
 struct object* object_copy(const struct object*);
 void object_destroy(void* cell);
+void object_set_name(struct object* cell, const char* name);
 
 // shape handling
 void object_add_raw_shape(struct object* cell, struct shape* S);
@@ -38,8 +39,8 @@ point_t* object_get_array_anchor(const struct object* cell, int xindex, int yind
 const struct hashmap* object_get_all_regular_anchors(const struct object* cell);
 
 // ports
-void object_add_port(struct object* cell, const char* name, const struct generics* layer, const point_t* where, int storeanchor);
-void object_add_bus_port(struct object* cell, const char* name, const struct generics* layer, const point_t* where, int startindex, int endindex, unsigned int xpitch, unsigned int ypitch, int storeanchor);
+void object_add_port(struct object* cell, const char* name, const struct generics* layer, const point_t* where, int storeanchor, double sizehint);
+void object_add_bus_port(struct object* cell, const char* name, const struct generics* layer, const point_t* where, int startindex, int endindex, unsigned int xpitch, unsigned int ypitch, int storeanchor, double sizehint);
 const struct vector* object_get_ports(const struct object* cell);
 
 // alignment box and bounding box
@@ -108,7 +109,7 @@ struct port_iterator;
 struct port_iterator* object_create_port_iterator(const struct object* cell);
 int port_iterator_is_valid(struct port_iterator* it);
 void port_iterator_next(struct port_iterator* it);
-void port_iterator_get(struct port_iterator* it, const char** portname, const point_t** portwhere, const struct generics** portlayer, int* portisbusport, int* portbusindex);
+void port_iterator_get(struct port_iterator* it, const char** portname, const point_t** portwhere, const struct generics** portlayer, int* portisbusport, int* portbusindex, double* sizehint);
 void port_iterator_destroy(struct port_iterator* it);
 
 #endif // OPC_OBJECT_H

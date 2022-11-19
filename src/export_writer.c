@@ -597,7 +597,7 @@ static int _write_children(struct export_writer* writer, const struct object* ce
     return 1;
 }
 
-static int _write_port(struct export_writer* writer, const char* name, const struct hashmap* layerdata, point_t* where)
+static int _write_port(struct export_writer* writer, const char* name, const struct hashmap* layerdata, point_t* where, double sizehint)
 {
     if(writer->islua)
     {
@@ -614,7 +614,7 @@ static int _write_port(struct export_writer* writer, const char* name, const str
     }
     else
     {
-        writer->funcs->write_port(writer->data, name, layerdata, where->x, where->y);
+        writer->funcs->write_port(writer->data, name, layerdata, where->x, where->y, sizehint);
         return 1;
     }
 }
@@ -629,7 +629,8 @@ static int _write_ports(struct export_writer* writer, const struct object* cell,
         const struct generics* portlayer;
         int portisbusport;
         int portbusindex;
-        port_iterator_get(it, &portname, &portwhere, &portlayer, &portisbusport, &portbusindex);
+        double sizehint;
+        port_iterator_get(it, &portname, &portwhere, &portlayer, &portisbusport, &portbusindex, &sizehint);
         point_t where = { .x = portwhere->x, .y = portwhere->y };
         object_transform_point(cell, &where);
         const struct hashmap* layerdata = generics_get_first_layer_data(portlayer);
@@ -642,7 +643,7 @@ static int _write_ports(struct export_writer* writer, const struct object* cell,
             snprintf(busportname, len + 1, "%s%c%d%c", portname, leftdelim, portbusindex, rightdelim);
             name = busportname;
         }
-        _write_port(writer, name, layerdata, &where);
+        _write_port(writer, name, layerdata, &where, sizehint);
         if(busportname)
         {
             free(busportname);
