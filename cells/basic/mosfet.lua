@@ -531,7 +531,7 @@ function layout(transistor, _P)
 
     -- diode connected
     if _P.diodeconnected then
-        for i = 2, _P.fingers, 2 do
+        for i = 2, _P.fingers + 1, 2 do
             if _P.drawtopgatestrap then
                 geometry.rectanglebltr(transistor, generics.metal(1),
                     transistor:get_anchor(string.format("sourcedrain%dtl", i)),
@@ -736,9 +736,11 @@ function layout(transistor, _P)
     transistor:add_anchor("sourcedrainrighttr", transistor:get_anchor(string.format("sourcedrainactive%dtr", _P.fingers + 1)))
 
     -- short transistor
-    geometry.rectanglepath(transistor, generics.metal(1),
-        transistor:get_anchor("sourcedrainleftcc"),
-        transistor:get_anchor("sourcedrainrightcc"),
-        _P.sdwidth
-    )
+    if _P.shortdevice then
+        geometry.rectanglepath(transistor, generics.metal(1),
+            transistor:get_anchor("sourcedrainleftcc"),
+            transistor:get_anchor("sourcedrainrightcc"),
+            _P.sdwidth
+        )
+    end
 end
