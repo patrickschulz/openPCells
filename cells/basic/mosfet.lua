@@ -71,6 +71,7 @@ function parameters()
         { "extradrainstrapwidth(Width of Extra Drain Strap)",          tech.get_dimension("Minimum M1 Width"), argtype = "integer" },
         { "extradrainstrapspace(Space of Extra Drain Strap)",          tech.get_dimension("Minimum M1 Space"), argtype = "integer" },
         { "extradrainstrapmetal(Metal Layer for Extra Drain Strap)",       1 },
+        { "shortdevice(Short Transistor)",                             false },
         { "drawtopactivedummy",                                        false },
         { "topactivedummywidth",                                          80 },
         { "topactivedummysep",                                            80 },
@@ -723,4 +724,11 @@ function layout(transistor, _P)
     transistor:add_anchor("sourcedrainrightbr", transistor:get_anchor(string.format("sourcedrainactive%dbr", _P.fingers + 1)))
     transistor:add_anchor("sourcedrainrightcr", transistor:get_anchor(string.format("sourcedrainactive%dcr", _P.fingers + 1)))
     transistor:add_anchor("sourcedrainrighttr", transistor:get_anchor(string.format("sourcedrainactive%dtr", _P.fingers + 1)))
+
+    -- short transistor
+    geometry.rectanglepath(transistor, generics.metal(1),
+        transistor:get_anchor("sourcedrainleftcc"),
+        transistor:get_anchor("sourcedrainrightcc"),
+        _P.sdwidth
+    )
 end
