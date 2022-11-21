@@ -539,7 +539,7 @@ function layout(transistor, _P)
                     transistor:get_anchor(string.format("topgatestrapbr", i))
                 )
             end
-            if _P.drawtopgatestrap then
+            if _P.drawbotgatestrap then
                 geometry.rectanglebltr(transistor, generics.metal(1),
                     transistor:get_anchor(string.format("sourcedrain%dbl", i)) ..
                     transistor:get_anchor(string.format("botgatestraptl", i)),
