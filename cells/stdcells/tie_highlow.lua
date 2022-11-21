@@ -23,7 +23,7 @@ function layout(cell, _P)
         pcontactpos = contactpos,
         ncontactpos = contactpos,
     })
-    cell:merge_into_shallow(harness)
+    cell:merge_into(harness)
     cell:inherit_alignment_box(harness)
 
     -- gate strap

@@ -9,7 +9,7 @@ function layout(toplevel)
     local inverter3 = inverter:copy()
         :move_anchor("input", inverter2:get_anchor("output"))
     -- merge inverters into toplevel
-    toplevel:merge_into_shallow(inverter1)
-    toplevel:merge_into_shallow(inverter2)
-    toplevel:merge_into_shallow(inverter3)
+    toplevel:merge_into(inverter1)
+    toplevel:merge_into(inverter2)
+    toplevel:merge_into(inverter3)
 end

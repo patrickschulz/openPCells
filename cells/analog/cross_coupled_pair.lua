@@ -23,14 +23,14 @@ function layout(ccp, _P)
 
     -- create center dummy
     local dummy = pcell.create_layout("basic/mosfet", "dummymosfet", { fingers = _P.centerdummies, drawtopgate = false, drawdrainvia = false })
-    ccp:merge_into_shallow(dummy)
+    ccp:merge_into(dummy)
 
     local left = pcell.create_layout("basic/mosfet", "leftmosfet")
     left:move_anchor("sourcedrainmiddlecenterright", dummy:get_anchor("sourcedrainmiddlecenterleft"))
     local right = pcell.create_layout("basic/mosfet", "rightmosfet")
     right:move_anchor("sourcedrainmiddlecenterleft", dummy:get_anchor("sourcedrainmiddlecenterright"))
-    ccp:merge_into_shallow(left)
-    ccp:merge_into_shallow(right)
+    ccp:merge_into(left)
+    ccp:merge_into(right)
 
     pcell.pop_overwrites("basic/mosfet")
 

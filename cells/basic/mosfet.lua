@@ -328,14 +328,14 @@ function layout(transistor, _P)
     )
     -- well taps
     if _P.drawtopwelltap then
-        transistor:merge_into_shallow(pcell.create_layout("auxiliary/welltap", "topwelltap", {
+        transistor:merge_into(pcell.create_layout("auxiliary/welltap", "topwelltap", {
             contype = _P.flippedwell and (_P.channeltype == "nmos" and "n" or "p") or (_P.channeltype == "nmos" and "p" or "n"),
             width = activewidth + _P.topwelltapextendleft + _P.topwelltapextendright,
             height = _P.topwelltapwidth,
         }):translate((_P.topwelltapextendright - _P.topwelltapextendleft) / 2, _P.fwidth / 2 + drainshift + topgateshift + _P.topwelltapspace + _P.topwelltapwidth / 2))
     end
     if _P.drawbotwelltap then
-        transistor:merge_into_shallow(pcell.create_layout("auxiliary/welltap", "botwelltap", {
+        transistor:merge_into(pcell.create_layout("auxiliary/welltap", "botwelltap", {
             contype = _P.flippedwell and (_P.channeltype == "nmos" and "n" or "p") or (_P.channeltype == "nmos" and "p" or "n"),
             width = activewidth + _P.botwelltapextendleft + _P.botwelltapextendright,
             height = _P.botwelltapwidth,
@@ -365,7 +365,7 @@ function layout(transistor, _P)
             - enable(botgatecompsd, sourceshift)
         ) / 2
         guardring:translate(0, yshift)
-        transistor:merge_into_shallow(guardring)
+        transistor:merge_into(guardring)
         transistor:add_anchor_area_bltr("guardring",
             guardring:get_anchor("bottomleft"):translate(-_P.guardringwidth / 2, -_P.guardringwidth / 2),
             guardring:get_anchor("topright"):translate(_P.guardringwidth / 2, _P.guardringwidth / 2)

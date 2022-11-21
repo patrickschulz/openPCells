@@ -294,10 +294,11 @@ In this section we will continue to look at flat layouts but still using other c
 For this example, we assume that we have a cell containing some layout in a variable:
 \luafilelisting[firstline = 1, lastline = 2]{code/merge_into_example.lua}
 Now we want to place the contents of \luainline{cell} in \luainline{toplevel}.
-The object method for this is \luainline{merge_into_shallow}.
-This method takes all shapes from a cell, copies them and places them in the cell that called \luainline{merge_into_shallow}.
+The object method for this is \luainline{merge_into}.
+This method takes all shapes from a cell, copies them and places them in the cell that called \luainline{merge_into}.
 In our example, in order to place the contents from \luainline{cell} in \luainline{toplevel}, we do the following:
 \luafilelisting[widthgobble = 4, firstline = 3, lastline = 3]{code/merge_into_example.lua}
+% FIXME: merge_into is now longer shallow
 The \emph{shallow} part of the function means that only first-level-hierachy shapes are considered, any children present in this cell are ignored.
 Sometimes it is useful to place the entire hierarchy of this cell. For this, the cell hierarchy has to be resolved (this is called flattening):
 \luafilelisting[widthgobble = 4, firstline = 4, lastline = 4]{code/merge_into_example.lua}

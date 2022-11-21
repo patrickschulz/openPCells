@@ -176,6 +176,6 @@ function layout(cell, _P)
                 dprint(string.format("unhandled command: %s", entry.command))
             end
         end
-        cell:merge_into_shallow(geometry.polygon(generics.metal(_P.metal), pts))
+        cell:merge_into(geometry.polygon(generics.metal(_P.metal), pts))
     end
 end

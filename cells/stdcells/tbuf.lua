@@ -12,15 +12,15 @@ function layout(gate, _P)
 
     -- inverter
     local inv = pcell.create_layout("stdcells/not_gate", "inv", { inputpos = "lower", fingers = _P.ifingers })
-    gate:merge_into_shallow(inv)
+    gate:merge_into(inv)
 
     local isogate = pcell.create_layout("stdcells/isogate", "isogate")
     isogate:move_anchor("left", inv:get_anchor("right"))
-    gate:merge_into_shallow(isogate)
+    gate:merge_into(isogate)
 
     -- clocked inverter
     local cinv = pcell.create_layout("stdcells/cinv", "cinv", { fingers = _P.ofingers }):move_anchor("left", isogate:get_anchor("right"))
-    gate:merge_into_shallow(cinv)
+    gate:merge_into(cinv)
 
     -- connections
     geometry.path(gate, generics.metal(1), 

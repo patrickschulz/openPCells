@@ -53,7 +53,7 @@ function layout(gate, _P)
         pcontactpos = pcontactpos,
         ncontactpos = ncontactpos,
     })
-    gate:merge_into_shallow(harness)
+    gate:merge_into(harness)
 
     local anchor = function(str, suffix) return harness:get_anchor(string.format("%s%s", str, suffix or "")) end
 
@@ -81,14 +81,14 @@ function layout(gate, _P)
     )
 
     --[[
-    gate:merge_into_shallow(geometry.path(generics.metal(1), 
+    gate:merge_into(geometry.path(generics.metal(1), 
         geometry.path_points_xy(anchor("pSDi8"):translate(0, bp.sdwidth / 2), {
             anchor("G1cc"),
             0,
             anchor("nSDi8"):translate(0, -bp.sdwidth / 2)
         }),
     bp.sdwidth))
-    gate:merge_into_shallow(geometry.path(generics.metal(1), 
+    gate:merge_into(geometry.path(generics.metal(1), 
         geometry.path_points_yx(anchor("pSDo12"), {
             -bp.pwidth + bp.sdwidth / 2,
             anchor("G13cc"),
@@ -96,24 +96,24 @@ function layout(gate, _P)
             anchor("nSDc13")
         }),
     bp.sdwidth))
-    gate:merge_into_shallow(geometry.rectanglebltr(generics.metal(1), 
+    gate:merge_into(geometry.rectanglebltr(generics.metal(1), 
         anchor("pSDc10"):translate(0, -bp.sdwidth / 2),
         anchor("pSDc11"):translate(0, bp.sdwidth / 2)
     ))
-    gate:merge_into_shallow(geometry.rectanglebltr(generics.metal(1), 
+    gate:merge_into(geometry.rectanglebltr(generics.metal(1), 
         anchor("nSDc11"):translate(0, -bp.sdwidth / 2),
         anchor("nSDc12"):translate(0, bp.sdwidth / 2)
     ))
-    gate:merge_into_shallow(geometry.path(generics.metal(2), 
+    gate:merge_into(geometry.path(generics.metal(2), 
         geometry.path_points_yx(anchor("G13cc"), {
             anchor("G9cc"),
         }),
     bp.sdwidth))
-    gate:merge_into_shallow(geometry.rectanglebltr(generics.via(1, 2), 
+    gate:merge_into(geometry.rectanglebltr(generics.via(1, 2), 
         anchor("G9cc"):translate(-bp.glength / 2, -bp.routingwidth / 2),
         anchor("G9cc"):translate( bp.glength / 2,  bp.routingwidth / 2)
     ))
-    gate:merge_into_shallow(geometry.rectanglebltr(generics.via(1, 2), 
+    gate:merge_into(geometry.rectanglebltr(generics.via(1, 2), 
         anchor("G13cc"):translate(-bp.glength / 2, -bp.routingwidth / 2),
         anchor("G13cc"):translate( bp.glength / 2,  bp.routingwidth / 2)
     ))

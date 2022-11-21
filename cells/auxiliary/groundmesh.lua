@@ -31,8 +31,8 @@ function layout(mesh, _P)
         topcap:move_anchor("minus")
         botcap:move_anchor("plus")
         botcap:flipy()
-        mesh:merge_into_shallow(topcap)
-        mesh:merge_into_shallow(botcap)
+        mesh:merge_into(topcap)
+        mesh:merge_into(botcap)
         -- inner rail via
         if i > 1 then
             geometry.via(mesh, i - 1, i, (nfingers + 1) * (fwidth + fspace), rwidth)
@@ -68,7 +68,7 @@ function layout(mesh, _P)
         rotate = not rotate
     end
     -- guard ring
-    mesh:merge_into_shallow(pcell.create_layout("auxiliary/guardring", "guardring", { 
+    mesh:merge_into(pcell.create_layout("auxiliary/guardring", "guardring", { 
         contype = "p", 
         holewidth = _P.cellsize - 2 * _P.guardringwidth,
         holeheight = _P.cellsize - 2 * _P.guardringwidth,

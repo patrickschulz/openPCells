@@ -41,7 +41,7 @@ function layout(gate, _P)
         pcontactpos = { "power", "inner", "power", "inner", "power", "outer", "outer", "outer", "full", nil,     "power", "power" },
         ncontactpos = { "power", "inner", "power", "inner", "power", "power", nil,     "outer", "full", "outer", "outer", "power" },
     })
-    gate:merge_into_shallow(harness)
+    gate:merge_into(harness)
     gate:inherit_alignment_box(harness)
 
     -- short pmos

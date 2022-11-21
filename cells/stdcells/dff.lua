@@ -142,7 +142,7 @@ function layout(dff, _P)
         pcontactpos = pcontactpos,
         ncontactpos = ncontactpos,
     })
-    dff:merge_into_shallow(harness)
+    dff:merge_into(harness)
 
     local setshift = _P.enable_set and 2 or 0
     local resetshift = _P.enable_reset and 1 or 0

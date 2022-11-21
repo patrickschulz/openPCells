@@ -1805,17 +1805,17 @@ struct vector* _initialize_api_entries(void)
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
-    /* object.merge_into_shallow */
+    /* object.merge_into */
     {
         struct parameter parameters[] = {
             { "cell",      OBJECT, NULL, "Object to which the child is added" },
             { "othercell", OBJECT, NULL, "Other layout cell to be merged into the cell" },
         };
         vector_append(entries, _make_api_entry(
-            "merge_into_shallow",
+            "merge_into",
             MODULE_OBJECT,
-            "add all shapes from othercell to the cell. Only adds the shapes from the parent cell, not from any children (hence 'shallow'). If the entire layout should be added, call flatten() on othercell",
-            "cell:merge_into_shallow(othercell)\ncell:merge_into_shallow(othercell:flatten())",
+            "add all shapes and children from othercell to the cell -> 'dissolve' othercell in cell",
+            "cell:merge_into(othercell)\ncell:merge_into(othercell:flatten())",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));

@@ -174,7 +174,7 @@ function geometry.crossing(cell, layer1, layer2, width, tl, br, mode)
     local obj = object.create()
     _crossing(obj, layer1, layer2, width, dxy, ext, direction, mode)
     obj:translate(0, tly - dxy / 2)
-    cell:merge_into_shallow(obj)
+    cell:merge_into(obj)
 end
 --]]
 

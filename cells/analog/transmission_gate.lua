@@ -66,8 +66,8 @@ function layout(tgate, _P)
     pmos:translate(0, _P.sdwidth / 2 + _P.guardringwidth / 2 + _P.powerspace)
     nmos:move_anchor_y("top")
     nmos:translate(0, -_P.sdwidth / 2 - _P.guardringwidth / 2 - _P.powerspace)
-    tgate:merge_into_shallow(pmos)
-    tgate:merge_into_shallow(nmos)
+    tgate:merge_into(pmos)
+    tgate:merge_into(nmos)
 
     -- additional rails between guard rings
     geometry.rectanglebltr(tgate, generics.metal(1),

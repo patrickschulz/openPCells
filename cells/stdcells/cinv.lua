@@ -94,7 +94,7 @@ function layout(gate, _P)
         pcontactpos = pcontactpos,
         ncontactpos = ncontactpos,
     })
-    gate:merge_into_shallow(harness)
+    gate:merge_into(harness)
     gate:inherit_alignment_box(harness)
 
     -- gate straps

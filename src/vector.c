@@ -235,20 +235,17 @@ void vector_reverse(struct vector* vector)
 
 int vector_find_flat(const struct vector* vector, const void* p)
 {
-    int found = 0;
-    struct vector_const_iterator* it = vector_const_iterator_create(vector);
-    while(vector_const_iterator_is_valid(it))
+    int index = -1;
+    for(size_t i = 0; i < vector->size; ++i)
     {
-        const void* e = vector_const_iterator_get(it);
+        const void* e = vector->elements[i];
         if(e == p)
         {
-            found = 1;
+            index = i;
             break;
         }
-        vector_const_iterator_next(it);
     }
-    vector_const_iterator_destroy(it);
-    return found;
+    return index;
 }
 
 struct const_vector {
@@ -322,6 +319,21 @@ void const_vector_remove(struct const_vector* const_vector, size_t index)
         const_vector->elements[i - 1] = const_vector->elements[i];
     }
     --const_vector->size;
+}
+
+int const_vector_find_flat(const struct const_vector* vector, const void* p)
+{
+    int index = -1;
+    for(size_t i = 0; i < vector->size; ++i)
+    {
+        const void* e = vector->elements[i];
+        if(e == p)
+        {
+            index = i;
+            break;
+        }
+    }
+    return index;
 }
 
 struct const_vector_iterator

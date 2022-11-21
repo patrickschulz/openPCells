@@ -48,6 +48,7 @@ void const_vector_set(struct const_vector* const_vector, size_t i, const void* e
 void const_vector_append(struct const_vector* const_vector, const void* element);
 void const_vector_prepend(struct const_vector* const_vector, const void* element);
 void const_vector_remove(struct const_vector* const_vector, size_t index);
+int const_vector_find_flat(const struct const_vector* vector, const void* p);
 
 struct const_vector_iterator;
 struct const_vector_iterator* const_vector_iterator_create(const struct const_vector* vector);

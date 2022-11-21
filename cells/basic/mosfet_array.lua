@@ -33,11 +33,11 @@ function layout(array, _P)
     for i = 1, #indices do
         local offset = (i - 1) - (2 * #indices - 1) / 2
         local ttype = ttypes[indices[i]]
-        array:merge_into_shallow(
+        array:merge_into(
             pcell.create_layout("basic/mosfet", "right", ttype)
             :translate( offset * gatepitch, 0)
         )
-        array:merge_into_shallow(
+        array:merge_into(
             pcell.create_layout("basic/mosfet", "left", ttype)
             :translate(-offset * gatepitch, 0)
         )

@@ -8,6 +8,7 @@ struct transformationmatrix;
 struct transformationmatrix* transformationmatrix_create(void);
 void transformationmatrix_destroy(struct transformationmatrix* matrix);
 void transformationmatrix_identity(struct transformationmatrix* matrix);
+void transformationmatrix_chain_inline(struct transformationmatrix* lhs, const struct transformationmatrix* rhs);
 struct transformationmatrix* transformationmatrix_chain(const struct transformationmatrix* lhs, const struct transformationmatrix* rhs);
 struct transformationmatrix* transformationmatrix_copy(const struct transformationmatrix* old);
 struct transformationmatrix* transformationmatrix_invert(const struct transformationmatrix* old);

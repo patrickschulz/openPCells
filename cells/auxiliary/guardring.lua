@@ -41,7 +41,7 @@ function layout(guardring, _P)
     if aux.any_of("top", _P.drawsegments) then
         if _P.fit then
             for i = 1, xrep + 2 do
-                guardring:merge_into_shallow(contactbase:move_to((i - xrep / 2 - 1.5) * _P.ringwidth, (holeheight + _P.ringwidth) / 2))
+                guardring:merge_into(contactbase:move_to((i - xrep / 2 - 1.5) * _P.ringwidth, (holeheight + _P.ringwidth) / 2))
             end
         else
             geometry.contactbarebltr(guardring, "active",
@@ -77,7 +77,7 @@ function layout(guardring, _P)
     if aux.any_of("bottom", _P.drawsegments) then
         if _P.fit then
             for i = 1, xrep + 2 do
-                guardring:merge_into_shallow(contactbase:move_to((i - xrep / 2 - 1.5) * _P.ringwidth, -(holeheight + _P.ringwidth) / 2))
+                guardring:merge_into(contactbase:move_to((i - xrep / 2 - 1.5) * _P.ringwidth, -(holeheight + _P.ringwidth) / 2))
             end
         else
             geometry.contactbarebltr(guardring, "active",
@@ -113,7 +113,7 @@ function layout(guardring, _P)
     if aux.any_of("left", _P.drawsegments) then
         if _P.fit then
             for i = 1, yrep + 2 do
-                guardring:merge_into_shallow(contactbase:move_to(-(holewidth + _P.ringwidth) / 2, (i - yrep / 2 - 1.5) * _P.ringwidth))
+                guardring:merge_into(contactbase:move_to(-(holewidth + _P.ringwidth) / 2, (i - yrep / 2 - 1.5) * _P.ringwidth))
             end
         else
             geometry.contactbarebltr(guardring, "active",
@@ -149,7 +149,7 @@ function layout(guardring, _P)
     if aux.any_of("right", _P.drawsegments) then
         if _P.fit then
             for i = 1, yrep + 2 do
-                guardring:merge_into_shallow(contactbase:move_to((holewidth + _P.ringwidth) / 2, (i - yrep / 2 - 1.5) * _P.ringwidth))
+                guardring:merge_into(contactbase:move_to((holewidth + _P.ringwidth) / 2, (i - yrep / 2 - 1.5) * _P.ringwidth))
             end
         else
             geometry.contactbarebltr(guardring, "active",

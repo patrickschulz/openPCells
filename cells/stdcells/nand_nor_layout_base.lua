@@ -65,7 +65,7 @@ function layout(gate, _P)
         pwidth = _P.pwidth,
         nwidth = _P.nwidth,
     })
-    gate:merge_into_shallow(harness)
+    gate:merge_into(harness)
     gate:inherit_alignment_box(harness)
 
     -- gate straps

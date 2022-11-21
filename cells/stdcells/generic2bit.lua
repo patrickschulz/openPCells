@@ -51,32 +51,32 @@ function layout(gate, _P)
         pcontactpos = _P.gatetype == "nand" and pcontacts or ncontacts,
         ncontactpos = _P.gatetype == "nand" and ncontacts or pcontacts,
     })
-    gate:merge_into_shallow(harness)
+    gate:merge_into(harness)
     gate:inherit_alignment_box(harness)
 
     -- gate straps
     if _P.fingers > 1 then
         if _P.fingers % 2 == 0 then
-            gate:merge_into_shallow(geometry.path(generics.metal(1), 
+            gate:merge_into(geometry.path(generics.metal(1), 
                 {
                     harness:get_anchor("G2"),
                     harness:get_anchor(string.format("G%d", 2 * _P.fingers - 1))
                 }, bp.routingwidth
             ))
-            gate:merge_into_shallow(geometry.path(generics.metal(1), 
+            gate:merge_into(geometry.path(generics.metal(1), 
                 {
                     harness:get_anchor("G1"),
                     harness:get_anchor(string.format("G%d", 2 * _P.fingers))
                 }, bp.routingwidth
             ))
         else
-            gate:merge_into_shallow(geometry.path(generics.metal(1), 
+            gate:merge_into(geometry.path(generics.metal(1), 
                 {
                     harness:get_anchor("G2"),
                     harness:get_anchor(string.format("G%d", 2 * _P.fingers))
                 }, bp.routingwidth
             ))
-            gate:merge_into_shallow(geometry.path(generics.metal(1), 
+            gate:merge_into(geometry.path(generics.metal(1), 
                 {
                     harness:get_anchor("G1"),
                     harness:get_anchor(string.format("G%d", 2 * _P.fingers - 1))
@@ -84,13 +84,13 @@ function layout(gate, _P)
             ))
         end
     else
-        gate:merge_into_shallow(geometry.path(generics.metal(1), 
+        gate:merge_into(geometry.path(generics.metal(1), 
             {
                 harness:get_anchor("G2"):translate(xpitch - bp.sdwidth / 2 - bp.routingspace, 0),
                 (harness:get_anchor("G1") .. harness:get_anchor("G2")):translate(-xpitch + bp.sdwidth / 2 + bp.routingspace, 0),
             }, bp.routingwidth
         ))
-        gate:merge_into_shallow(geometry.path(generics.metal(1), 
+        gate:merge_into(geometry.path(generics.metal(1), 
             {
                 harness:get_anchor("G1"):translate(-xpitch + bp.sdwidth / 2 + bp.routingspace, 0),
                 (harness:get_anchor("G2") .. harness:get_anchor("G1")):translate(xpitch - bp.sdwidth / 2 - bp.routingspace, 0),
@@ -106,7 +106,7 @@ function layout(gate, _P)
         0, -- toggle xy
         harness:get_anchor(string.format("%sSDi2", _P.gatetype == "nand" and "p" or "n")):translate(0, yinvert * bp.sdwidth / 2),
     }
-    gate:merge_into_shallow(geometry.path(generics.metal(1), geometry.path_points_xy(
+    gate:merge_into(geometry.path(generics.metal(1), geometry.path_points_xy(
         startpt, connpts),
         bp.sdwidth)
     )

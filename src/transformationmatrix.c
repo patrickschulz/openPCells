@@ -38,6 +38,22 @@ void transformationmatrix_identity(struct transformationmatrix* matrix)
     M(matrix, 5) = 0;
 }
 
+void transformationmatrix_chain_inline(struct transformationmatrix* lhs, const struct transformationmatrix* rhs)
+{
+    coordinate_t c0 = M(lhs, 0) * M(rhs, 0) + M(lhs, 1) * M(rhs, 3);
+    coordinate_t c1 = M(lhs, 0) * M(rhs, 1) + M(lhs, 1) * M(rhs, 4);
+    coordinate_t c2 = M(lhs, 0) * M(rhs, 2) + M(lhs, 1) * M(rhs, 5) + M(lhs, 2);
+    coordinate_t c3 = M(lhs, 3) * M(rhs, 0) + M(lhs, 4) * M(rhs, 3);
+    coordinate_t c4 = M(lhs, 3) * M(rhs, 1) + M(lhs, 4) * M(rhs, 4);
+    coordinate_t c5 = M(lhs, 3) * M(rhs, 2) + M(lhs, 4) * M(rhs, 5) + M(lhs, 5);
+    M(lhs, 0) = c0;
+    M(lhs, 1) = c1;
+    M(lhs, 2) = c2;
+    M(lhs, 3) = c3;
+    M(lhs, 4) = c4;
+    M(lhs, 5) = c5;
+}
+
 struct transformationmatrix* transformationmatrix_chain(const struct transformationmatrix* lhs, const struct transformationmatrix* rhs)
 {
     struct transformationmatrix* matrix = transformationmatrix_create();

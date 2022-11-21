@@ -41,6 +41,6 @@ function layout(gate, _P)
         drawrightstopgate = not _P.leftnotright,
         rightpolylines = rightpolylines,
     })
-    gate:merge_into_shallow(harness)
+    gate:merge_into(harness)
     gate:inherit_alignment_box(harness)
 end

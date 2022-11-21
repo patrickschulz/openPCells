@@ -8,19 +8,19 @@ function layout(gate, _P)
 
     -- clock inverter/buffer
     local clockbuf = pcell.create_layout("stdcells/buf", "clockbuf")
-    gate:merge_into_shallow(clockbuf)
+    gate:merge_into(clockbuf)
 
     -- first clocked inverter
     local cinv1 = pcell.create_layout("stdcells/cinv", "cinv1"):move_anchor("left", clockbuf:get_anchor("right"))
-    gate:merge_into_shallow(cinv1)
+    gate:merge_into(cinv1)
 
     -- intermediate inverter
     local inv = pcell.create_layout("stdcells/not_gate", "inv"):move_anchor("left", cinv1:get_anchor("right"))
-    gate:merge_into_shallow(inv)
+    gate:merge_into(inv)
     
     -- second clocked inverter
     local cinv2 = pcell.create_layout("stdcells/cinv", "cinv2"):move_anchor("left", inv:get_anchor("right"))
-    gate:merge_into_shallow(cinv2)
+    gate:merge_into(cinv2)
 
     -- draw connections
     geometry.path(gate, generics.metal(2), 
@@ -45,35 +45,35 @@ function layout(gate, _P)
         cinv2:get_anchor("EN")
     }, bp.sdwidth)
     --[[
-    gate:merge_into_shallow(geometry.rectangle(generics.via(1, 2), bp.glength, bp.sdwidth):translate(cinv2:get_anchor("EN")))
-    gate:merge_into_shallow(geometry.path(generics.metal(1), {
+    gate:merge_into(geometry.rectangle(generics.via(1, 2), bp.glength, bp.sdwidth):translate(cinv2:get_anchor("EN")))
+    gate:merge_into(geometry.path(generics.metal(1), {
         cinv1:get_anchor("EN"),
         cinv1:get_anchor("EN"):translate((bp.glength + bp.gspace) / 2, 0),
         point.combine_12(cinv1:get_anchor("EN"):translate((bp.glength + bp.gspace) / 2, 0), cinv2:get_anchor("EP")),
     }, bp.sdwidth))
-    gate:merge_into_shallow(geometry.path(generics.metal(2), {
+    gate:merge_into(geometry.path(generics.metal(2), {
         point.combine_12(cinv1:get_anchor("EN"):translate((bp.glength + bp.gspace) / 2, 0), cinv2:get_anchor("EP")),
         cinv2:get_anchor("EP"),
     }, bp.sdwidth))
-    gate:merge_into_shallow(geometry.rectangle(
+    gate:merge_into(geometry.rectangle(
         generics.via(1, 2), bp.sdwidth, bp.sdwidth
     ):translate(point.combine_12(cinv1:get_anchor("EN"):translate((bp.glength + bp.gspace) / 2, 0), cinv2:get_anchor("EP"))))
-    gate:merge_into_shallow(geometry.rectangle(generics.via(1, 2), bp.glength, bp.sdwidth):translate(cinv2:get_anchor("EP")))
+    gate:merge_into(geometry.rectangle(generics.via(1, 2), bp.glength, bp.sdwidth):translate(cinv2:get_anchor("EP")))
 
-    gate:merge_into_shallow(geometry.path(generics.metal(1), {
+    gate:merge_into(geometry.path(generics.metal(1), {
         cinv1:get_anchor("O"),
         inv:get_anchor("I")
     }, bp.sdwidth))
-    gate:merge_into_shallow(geometry.path(generics.metal(1), {
+    gate:merge_into(geometry.path(generics.metal(1), {
         inv:get_anchor("O"),
         cinv2:get_anchor("EP")
     }, bp.sdwidth))
-    gate:merge_into_shallow(geometry.path(generics.metal(2), {
+    gate:merge_into(geometry.path(generics.metal(2), {
         cinv2:get_anchor("O"),
         inv:get_anchor("I")
     }, bp.sdwidth))
-    gate:merge_into_shallow(geometry.rectangle(generics.via(1, 2), bp.sdwidth, bp.sdwidth):translate(cinv2:get_anchor("O")))
-    gate:merge_into_shallow(geometry.rectangle(generics.via(1, 2), bp.glength, bp.sdwidth):translate(inv:get_anchor("I")))
+    gate:merge_into(geometry.rectangle(generics.via(1, 2), bp.sdwidth, bp.sdwidth):translate(cinv2:get_anchor("O")))
+    gate:merge_into(geometry.rectangle(generics.via(1, 2), bp.glength, bp.sdwidth):translate(inv:get_anchor("I")))
     --]]
 
     -- ports
