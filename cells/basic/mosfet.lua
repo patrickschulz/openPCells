@@ -240,6 +240,11 @@ function layout(transistor, _P)
                 point.create( gatepitch / 2 - (_P.fingers + 1) / 2 * gatepitch, -_P.fwidth / 2 - gateaddbot + _P.cutheight / 2 + _P.botgcutoffset)
             )
         end
+        transistor:add_anchor_area_bltr(
+            "leftstopgate",
+            point.create(-_P.gatelength / 2 - (_P.fingers + 1) / 2 * gatepitch, -_P.fwidth / 2 - gateaddbot - enable(_P.drawbotgate and botgatecompsd, sourceshift)),
+            point.create( _P.gatelength / 2 - (_P.fingers + 1) / 2 * gatepitch,  _P.fwidth / 2 + gateaddtop + enable(_P.drawtopgate and topgatecompsd, drainshift))
+        )
     end
     if _P.drawrightstopgate then
         geometry.rectanglebltr(transistor,
@@ -267,6 +272,11 @@ function layout(transistor, _P)
                 point.create( gatepitch / 2 + (_P.fingers + 1) / 2 * gatepitch, -_P.fwidth / 2 - gateaddbot + _P.cutheight / 2 + _P.botgcutoffset)
             )
         end
+        transistor:add_anchor_area_bltr(
+            "rightstopgate",
+            point.create(-_P.gatelength / 2 + (_P.fingers + 1) / 2 * gatepitch, -_P.fwidth / 2 - gateaddbot - enable(_P.drawbotgate and botgatecompsd, sourceshift)),
+            point.create( _P.gatelength / 2 + (_P.fingers + 1) / 2 * gatepitch,  _P.fwidth / 2 + gateaddtop + enable(_P.drawtopgate and topgatecompsd, drainshift))
+        )
     end
 
     -- active
