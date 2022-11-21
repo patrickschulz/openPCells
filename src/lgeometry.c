@@ -163,6 +163,26 @@ static int lgeometry_path(lua_State* L)
     return 0;
 }
 
+static int lgeometry_rectanglepath(lua_State* L)
+{
+    struct lobject* cell = lobject_check(L, 1);
+    struct generics* layer = _check_generics(L, 2);
+    struct lpoint* pt1 = lpoint_checkpoint(L, 3);
+    struct lpoint* pt2 = lpoint_checkpoint(L, 4);
+    coordinate_t width = lua_tointeger(L, 5);
+
+    int bgnext = 0;
+    int endext = 0;
+    _get_path_extension(L, 6, &bgnext, &endext);
+
+    const point_t* points[2] = {
+        lpoint_get(pt1),
+        lpoint_get(pt2),
+    };
+    geometry_path(lobject_get(cell), layer, points, 2, width, bgnext, endext);
+    return 0;
+}
+
 static int lgeometry_path_manhatten(lua_State* L)
 {
     struct lobject* cell = lobject_check(L, 1);
@@ -785,6 +805,7 @@ int open_lgeometry_lib(lua_State* L)
         { "rectanglebltr",      lgeometry_rectanglebltr     },
         { "rectangle",          lgeometry_rectangle         },
         { "rectanglepoints",    lgeometry_rectanglepoints   },
+        { "rectanglepath",      lgeometry_rectanglepath     },
         { "polygon",            lgeometry_polygon           },
         { "path",               lgeometry_path              },
         { "path_manhatten",     lgeometry_path_manhatten    },
