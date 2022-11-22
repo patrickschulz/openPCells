@@ -60,7 +60,7 @@ function M.write_spice_netlist(filename, netlist)
             for _, connection in ipairs(instance.connections) do
                 table.insert(connections, string.format("%s=%s", connection.port, connection.net))
             end
-            file:write(string.format("    %s %s $PINS %s VDD=VDD VSS=VSS BULK_N=BULK_N BULK_P=BULK_P\n", instance.name, instance.reference, table.concat(connections, " ")))
+            file:write(string.format("    X%s %s $PINS %s VDD=VDD VSS=VSS BULK_N=BULK_N BULK_P=BULK_P\n", instance.name, instance.reference, table.concat(connections, " ")))
         end
         file:write(".ENDS\n")
     end
