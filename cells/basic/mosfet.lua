@@ -47,14 +47,15 @@ function parameters()
         { "drawsourcevia(Draw Source Via)",                            false },
         { "connectsource(Connect Source)",                             false },
         { "connectsourceboth(Connect Source on Both Sides)",           false },
-        { "connsourcewidth(Source Rails Metal Width)",               tech.get_dimension("Minimum M1 Width"), argtype = "integer" },
+        { "connsourcewidth(Source Rails Metal Width)",               tech.get_dimension("Minimum M1 Width"), argtype = "integer", follow = "sdwidth" },
         { "connsourcespace(Source Rails Metal Space)",               tech.get_dimension("Minimum M1 Width"), argtype = "integer" },
         { "connsourcemetal(Source Connection Metal)",                      1 },
         { "connsourceinline(Connect Source Inline of Transistor)",     false },
+        { "inlinesourceoffset(Inline Source Connection Offset)",           0 },
         { "connectsourceinverse(Invert Source Strap Locations)",       false },
         { "connectdrain(Connect Drain)",                               false },
         { "connectdrainboth(Connect Drain on Both Sides)",             false },
-        { "conndrainwidth(Drain Rails Metal Width)",               tech.get_dimension("Minimum M1 Width"), argtype = "integer" },
+        { "conndrainwidth(Drain Rails Metal Width)",               tech.get_dimension("Minimum M1 Width"), argtype = "integer", follow = "sdwidth" },
         { "conndrainspace(Drain Rails Metal Space)",               tech.get_dimension("Minimum M1 Width"), argtype = "integer" },
         { "extendsourceconnection(Extend Source Connection)",          false },
         { "extenddrainconnection(Extend Drain Connection)",            false },
@@ -62,6 +63,7 @@ function parameters()
         { "drawdrainvia(Draw Drain Via)",                              false },
         { "conndrainmetal(Drain Connection Metal)",                        1 },
         { "conndraininline(Connect Drain Inline of Transistor)",       false },
+        { "inlinedrainoffset(Inline Drain Connection Offset)",             0 },
         { "diodeconnected(Diode Connected Transistor)",                false },
         { "drawextrasourcestrap(Draw Extra Source Strap)",             false },
         { "extrasourcestrapwidth(Width of Extra Source Strap)",        tech.get_dimension("Minimum M1 Width"), argtype = "integer" },
@@ -115,7 +117,8 @@ function parameters()
         { "drawstopgatetopgcut",                                           false },
         { "drawstopgatebotgcut",                                           false },
         { "leftpolylines",                                                 {} },
-        { "rightpolylines",                                                {} }
+        { "rightpolylines",                                                {} },
+        { "drawrotationmarker",                                            false }
     )
 end
 
@@ -390,6 +393,21 @@ function layout(transistor, _P)
         point.create( activewidth / 2 + _P.extendoxideright, _P.fwidth / 2 + gateaddtop + enable(_P.cliptop, _P.extendoxidetop))
     )
 
+    -- rotation marker
+    if _P.drawrotationmarker then
+        geometry.rectanglebltr(transistor,
+            generics.other("rotationmarker"),
+            point.create(
+                -activewidth / 2 - virtualactiveleftext  - _P.extendvthleft,
+                -_P.fwidth / 2 - gateaddbot - enable(not _P.clipbot, _P.extendvthbot)
+            ),
+            point.create(
+                activewidth / 2 + virtualactiverightext + _P.extendvthright,
+                _P.fwidth / 2 + gateaddtop + enable(not _P.cliptop, _P.extendvthtop)
+            )
+        )
+    end
+
     -- gate contacts
     if _P.drawtopgate then
         geometry.contactbltr(transistor, "gate", 
@@ -555,7 +573,11 @@ function layout(transistor, _P)
         local invert = _P.connectsourceinverse and -1 or 1
         if _P.connsourceinline then
             geometry.rectangle(transistor, generics.metal(_P.connsourcemetal),
-                _P.fingers * gatepitch + _P.sdwidth, _P.connsourcewidth
+                _P.fingers * gatepitch + _P.sdwidth, _P.connsourcewidth, 0, sourceoffset + _P.inlinesourceoffset
+            )
+            transistor:add_anchor_area("sourcestrap", 
+                _P.fingers * gatepitch + _P.sdwidth, _P.connsourcewidth,
+                0, sourceoffset + _P.inlinesourceoffset
             )
         else
             -- FIXME: extendsourceconnection is not perfect, it draws too much
@@ -601,7 +623,11 @@ function layout(transistor, _P)
         local invert = _P.connectdraininverse and -1 or 1
         if _P.conndraininline then
             geometry.rectangle(transistor, generics.metal(_P.conndrainmetal),
-                (_P.fingers - 2) * gatepitch + _P.sdwidth, _P.conndrainwidth
+                (_P.fingers - 2) * gatepitch + _P.sdwidth, _P.conndrainwidth, 0, drainoffset + _P.inlinedrainoffset
+            )
+            transistor:add_anchor_area("drainstrap", 
+                (_P.fingers - 2) * gatepitch + _P.sdwidth, _P.conndrainwidth,
+                0, drainoffset + _P.inlinedrainoffset
             )
         else
             -- FIXME: extenddrainconnection is not perfect, it draws too much
