@@ -1,4 +1,4 @@
-local module = "register_cell"
+local module = "command_reg"
 local exporttype = "gds"
 
 local netlist = verilog.read_parse_file(string.format("%s.v", module))
@@ -17,8 +17,8 @@ local ignorednets = {
 }
 local instances, nets = verilogprocessor.collect_nets_cells(netlist, cellinfo, ignorednets)
 
-local utilization = 0.3
-local numrows = 5
+local utilization = 0.6
+local numrows = 3
 local floorplan = placement.create_floorplan_fixed_rows(instances, utilization, numrows)
 local rows = placement.optimize(instances, nets, floorplan)
 --local plan = {
@@ -37,7 +37,6 @@ for i in ipairs(rows) do
     table.insert(rows[i], 1, {reference = "isogate", instance = string.format("hackfill_%i", i), width = 1})
 end
 floorplan.floorplan_width = floorplan.floorplan_width + 1
-
 
 -- this value can be (at least in theory) changed in the generated layout, but the router assumes this many tracks
 -- this means that reducing this value CAN work, but only increasing it will work certainly
