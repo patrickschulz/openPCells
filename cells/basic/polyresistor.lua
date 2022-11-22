@@ -77,9 +77,10 @@ function layout(res, _P)
     end
 
     -- alignment box
+    -- FIXME: should not depend on extension
     res:set_alignment_box(
-        point.create(-(_P.nxfingers - 1) * xpitch / 2 - xpitch / 2, -polyheight / 2 + _P.extension / 2),
-        point.create( (_P.nxfingers - 1) * xpitch / 2 + xpitch / 2,  polyheight / 2 - _P.extension / 2)
+        point.create(-(_P.nxfingers - 1) * xpitch / 2 - xpitch / 2, -polyheight / 2 + _P.extension / 1),
+        point.create( (_P.nxfingers - 1) * xpitch / 2 + xpitch / 2,  polyheight / 2 - _P.extension / 1)
     )
 
     -- ports and anchors
