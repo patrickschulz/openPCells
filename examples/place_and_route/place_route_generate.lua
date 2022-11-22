@@ -3,6 +3,8 @@ local exporttype = "gds"
 
 local netlist = verilog.read_parse_file(string.format("%s.v", module))
 
+verilogprocessor.write_spice_netlist(string.format("%s_netlist.sp", module), netlist)
+
 verilog.filter_excluded_nets(netlist, { "reset", "clk", "update" })
 
 local cellinfo = verilogprocessor.read_cellinfo_from_file("cellinfo.lua")

@@ -48,4 +48,23 @@ function M.collect_nets_cells(netlist, cellinfo, ignorednets)
     return instances, nets
 end
 
+function M.write_spice_netlist(filename, netlist)
+    local file = io.open(filename, "w")
+    if not file then
+        error(string.format("verilogprocessor.write_spice_netlist: could not open file '%s'", filename))
+    end
+    for module in netlist:modules() do
+        file:write(string.format(".SUBCKT %s %s\n", module.name, table.concat(module.ports, " ")))
+        for instance in module:instances() do
+            local connections = {}
+            for _, connection in ipairs(instance.connections) do
+                table.insert(connections, string.format("%s=%s", connection.port, connection.net))
+            end
+            file:write(string.format("    %s %s $PINS %s VDD=VDD VSS=VSS BULK_N=BULK_N BULK_P=BULK_P\n", instance.name, instance.reference, table.concat(connections, " ")))
+        end
+        file:write(".ENDS\n")
+    end
+    file:close()
+end
+
 return M
