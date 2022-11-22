@@ -11,7 +11,7 @@ function parameters()
         { "Spadopeningheight(Height of S-Pad Opening)",  44000 },
         { "Gpadwidth(Width of G-Pad)",                   60000 },
         { "Gpadheight(Height of G-Pad)",                 80000 },
-        { "Gpadopeningwidth(Width of G-Pad Opening)",    60000 },
+        { "Gpadopeningwidth(Width of G-Pad Opening)",    50000 },
         { "Gpadopeningheight(Height of G-Pad Opening)",  70000 },
         { "Ppadwidth(Width of P-Pad)",                   60000 },
         { "Ppadheight(Height of P-Pad)",                 80000 },

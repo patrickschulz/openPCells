@@ -3,7 +3,7 @@ local exporttype = "gds"
 
 local netlist = verilog.read_parse_file(string.format("%s.v", module))
 
---verilog.filter_excluded_nets(netlist, { "reset", "clk", "update" })
+verilogprocessor.write_spice_netlist(string.format("%s_netlist.sp", module), netlist)
 
 local cellinfo = verilogprocessor.read_cellinfo_from_file("cellinfo.lua")
 local ignorednets = {

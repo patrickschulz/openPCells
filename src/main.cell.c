@@ -141,6 +141,7 @@ static void _prepare_cellpaths(struct vector* cellpaths_to_prepend, struct vecto
 void main_list_cell_parameters(struct cmdoptions* cmdoptions, struct hashmap* config)
 {
     // FIXME: this probably loads too many C modules
+    // FIXME: load dummy technology if not technology was given
     lua_State* L = _create_and_initialize_lua();
 
     module_load_aux(L);
@@ -416,7 +417,7 @@ static void _draw_anchors(struct object* toplevel, struct cmdoptions* cmdoptions
             point_t* pt = object_get_anchor(toplevel, *anchornames);
             if(pt)
             {
-                object_add_port(toplevel, *anchornames, generics_create_special(techstate), pt, 0); // 0: don't store anchor
+                object_add_port(toplevel, *anchornames, generics_create_special(techstate), pt, 0, 0.1); // 0: don't store anchor
                 point_destroy(pt);
             }
             else
@@ -434,7 +435,7 @@ static void _draw_anchors(struct object* toplevel, struct cmdoptions* cmdoptions
         {
             const char* key = hashmap_const_iterator_key(iterator);
             const point_t* anchor = hashmap_const_iterator_value(iterator);
-            object_add_port(toplevel, key, generics_create_special(techstate), anchor, 0); // 0: don't store anchor
+            object_add_port(toplevel, key, generics_create_special(techstate), anchor, 0, 0.1); // 0: don't store anchor
             hashmap_const_iterator_next(iterator);
         }
         hashmap_const_iterator_destroy(iterator);

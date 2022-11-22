@@ -21,7 +21,7 @@ function layout(gate, _P)
         drawtransistors = false,
         drawgatecontacts = false,
     })
-    gate:merge_into_shallow(harness)
+    gate:merge_into(harness)
     gate:inherit_alignment_box(harness)
 
     local separation = bp.numinnerroutes * bp.routingwidth + (bp.numinnerroutes + 1) * bp.routingspace

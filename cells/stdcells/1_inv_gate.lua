@@ -19,11 +19,11 @@ function layout(gate, _P)
         pwidth = _P.pwidth,
         nwidth = _P.nwidth,
     })
-    gate:merge_into_shallow(subgateref)
+    gate:merge_into(subgateref)
 
     --local isogateref = pcell.create_layout("stdcells/isogate", "isogate")
     --isogateref:move_anchor("left", subgateref:get_anchor("right"))
-    --gate:merge_into_shallow(isogateref)
+    --gate:merge_into(isogateref)
 
     local invref = pcell.create_layout("stdcells/not_gate", "inv", {
         fingers = _P.notfingers,
@@ -32,7 +32,7 @@ function layout(gate, _P)
         nwidth = _P.nwidth,
     })
     invref:move_anchor("left", subgateref:get_anchor("right"))
-    gate:merge_into_shallow(invref)
+    gate:merge_into(invref)
 
     -- draw connection
     geometry.path(gate, generics.metal(1), {

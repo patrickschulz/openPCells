@@ -269,6 +269,13 @@ static char* _find_lua_export(const struct const_vector* searchpaths, const char
 
 int export_write_toplevel(struct object* toplevel, struct export_state* state)
 {
+    if(object_is_pseudo(toplevel))
+    {
+        // FIXME: why can't the toplevel object be pseudo?
+        puts("export: toplevel is a pseudo object");
+        return 0;
+    }
+
     if(object_is_empty(toplevel))
     {
         puts("export: toplevel is empty");

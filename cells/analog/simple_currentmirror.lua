@@ -86,7 +86,7 @@ function layout(cell, _P)
         psdheight = _P.pfingerwidth - 120,
         nsdheight = _P.nfingerwidth - 120,
     })
-    cell:merge_into_shallow(array)
+    cell:merge_into(array)
 
     -- ** draw gate straps **
     -- output diode

@@ -10,19 +10,22 @@ struct object;
 
 // object construction/destruction
 struct object* object_create(const char* name);
+struct object* object_create_pseudo(void);
 struct object* object_copy(const struct object*);
 void object_destroy(void* cell);
+void object_set_name(struct object* cell, const char* name);
 
 // shape handling
 void object_add_raw_shape(struct object* cell, struct shape* S);
 void object_add_shape(struct object* cell, struct shape* S);
 struct shape* object_disown_shape(struct object* cell, size_t i);
 void object_remove_shape(struct object* cell, size_t i);
-void object_merge_into_shallow(struct object* cell, const struct object* other);
+void object_merge_into(struct object* cell, const struct object* other);
 void object_foreach_shapes(struct object* cell, void (*func)(struct shape*));
 size_t object_get_shapes_size(const struct object* cell);
 struct shape* object_get_shape(struct object* cell, size_t idx);
 struct shape* object_get_transformed_shape(struct object* cell, size_t idx);
+void object_rasterize_curves(struct object* cell);
 
 // children
 struct object* object_add_child(struct object* cell, struct object* child, const char* name);
@@ -37,8 +40,8 @@ point_t* object_get_array_anchor(const struct object* cell, int xindex, int yind
 const struct hashmap* object_get_all_regular_anchors(const struct object* cell);
 
 // ports
-void object_add_port(struct object* cell, const char* name, const struct generics* layer, const point_t* where, int storeanchor);
-void object_add_bus_port(struct object* cell, const char* name, const struct generics* layer, const point_t* where, int startindex, int endindex, unsigned int xpitch, unsigned int ypitch, int storeanchor);
+void object_add_port(struct object* cell, const char* name, const struct generics* layer, const point_t* where, int storeanchor, double sizehint);
+void object_add_bus_port(struct object* cell, const char* name, const struct generics* layer, const point_t* where, int startindex, int endindex, unsigned int xpitch, unsigned int ypitch, int storeanchor, double sizehint);
 const struct vector* object_get_ports(const struct object* cell);
 
 // alignment box and bounding box
@@ -65,8 +68,10 @@ int object_move_anchor_y(struct object* cell, const char* name, coordinate_t y);
 void object_scale(struct object* cell, double factor);
 void object_apply_transformation(struct object* cell);
 void object_transform_point(const struct object* cell, point_t* pt);
+void object_apply_other_transformation(struct object* cell, const struct transformationmatrix* trans);
 
 // object info
+int object_is_pseudo(const struct object* cell);
 int object_has_shapes(const struct object* cell);
 int object_has_children(const struct object* cell);
 int object_has_ports(const struct object* cell);
@@ -102,12 +107,20 @@ void child_iterator_next(struct child_iterator* it);
 const struct object* child_iterator_get(struct child_iterator* it);
 void child_iterator_destroy(struct child_iterator* it);
 
+// reference iterator
+struct reference_iterator;
+struct reference_iterator* object_create_reference_iterator(const struct object* cell);
+int reference_iterator_is_valid(struct reference_iterator* it);
+void reference_iterator_next(struct reference_iterator* it);
+const struct object* reference_iterator_get(struct reference_iterator* it);
+void reference_iterator_destroy(struct reference_iterator* it);
+
 // port iterator
 struct port_iterator;
 struct port_iterator* object_create_port_iterator(const struct object* cell);
 int port_iterator_is_valid(struct port_iterator* it);
 void port_iterator_next(struct port_iterator* it);
-void port_iterator_get(struct port_iterator* it, const char** portname, const point_t** portwhere, const struct generics** portlayer, int* portisbusport, int* portbusindex);
+void port_iterator_get(struct port_iterator* it, const char** portname, const point_t** portwhere, const struct generics** portlayer, int* portisbusport, int* portbusindex, double* sizehint);
 void port_iterator_destroy(struct port_iterator* it);
 
 #endif // OPC_OBJECT_H

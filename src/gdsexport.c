@@ -640,7 +640,7 @@ static void _write_cell_array(struct export_data* data, const char* identifier, 
     _write_ENDEL(data);
 }
 
-static void _write_port(struct export_data* data, const char* name, const struct hashmap* layer, coordinate_t x, coordinate_t y)
+static void _write_port(struct export_data* data, const char* name, const struct hashmap* layer, coordinate_t x, coordinate_t y, double sizehint)
 {
     _write_layer(data, RECORDTYPE_TEXT, RECORDTYPE_TEXTTYPE, layer);
 
@@ -655,7 +655,14 @@ static void _write_port(struct export_data* data, const char* name, const struct
     export_data_append_byte(data, RECORDTYPE_MAG);
     export_data_append_byte(data, DATATYPE_EIGHT_BYTE_REAL);
     char sizedata[8];
-    _number_to_gdsfloat(0.1, 8, sizedata);
+    if(sizehint > 0.0)
+    {
+        _number_to_gdsfloat(sizehint, 8, sizedata);
+    }
+    else
+    {
+        _number_to_gdsfloat(0.1, 8, sizedata);
+    }
     for(unsigned int i = 0; i < 8; ++i)
     {
         export_data_append_byte(data, sizedata[i]);

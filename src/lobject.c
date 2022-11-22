@@ -31,6 +31,14 @@ int lobject_create(lua_State* L)
     return 1;
 }
 
+int lobject_create_pseudo(lua_State* L)
+{
+    struct lobject* cell = _create(L);
+    cell->object = object_create_pseudo();
+    cell->destroy = 1;
+    return 1;
+}
+
 struct lobject* lobject_check(lua_State* L, int idx)
 {
     return luaL_checkudata(L, idx, LOBJECTMODULE);
@@ -236,6 +244,11 @@ int lobject_add_child(lua_State* L)
     struct lobject* child = lobject_check(L, 2);
     const char* name = luaL_checkstring(L, 3);
     struct object* proxy = object_add_child(cell->object, child->object, name);
+    if(!proxy)
+    {
+        lua_pushstring(L, "object.add_child: can't add pseudo objects");
+        lua_error(L);
+    }
     lobject_adapt(L, proxy);
     lobject_disown(child); // memory is now handled by cell
     return 1;
@@ -267,6 +280,11 @@ int lobject_add_child_array(lua_State* L)
         ypitch = luaL_checkinteger(L, 7);
     }
     struct object* proxy = object_add_child_array(cell->object, child->object, name, xrep, yrep, xpitch, ypitch);
+    if(!proxy)
+    {
+        lua_pushstring(L, "object.add_child_array: can't add pseudo objects");
+        lua_error(L);
+    }
     lobject_adapt(L, proxy);
     lobject_disown(child); // memory is now handled by cell
     return 1;
@@ -291,11 +309,11 @@ int lobject_width_height_alignmentbox(lua_State* L)
     return 2;
 }
 
-static int lobject_merge_into_shallow(lua_State* L)
+static int lobject_merge_into(lua_State* L)
 {
     struct lobject* cell = lobject_check(L, 1);
     struct lobject* other = lobject_check(L, 2);
-    object_merge_into_shallow(cell->object, other->object);
+    object_merge_into(cell->object, other->object);
     return 0;
 }
 
@@ -391,7 +409,8 @@ int lobject_add_port(lua_State* L)
     const char* name = luaL_checkstring(L, 2);
     struct generics* layer = lua_touserdata(L, 3);
     struct lpoint* lpoint = lpoint_checkpoint(L, 4);
-    object_add_port(cell->object, name, layer, lpoint_get(lpoint), 1); // 1: store anchor
+    double sizehint = luaL_optnumber(L, 5, 0.0);
+    object_add_port(cell->object, name, layer, lpoint_get(lpoint), 1, sizehint); // 1: store anchor
     return 0;
 }
 
@@ -405,7 +424,8 @@ int lobject_add_bus_port(lua_State* L)
     int endindex = lua_tointeger(L, 6);
     unsigned int xpitch = lua_tointeger(L, 7);
     unsigned int ypitch = lua_tointeger(L, 8);
-    object_add_bus_port(cell->object, name, layer, lpoint_get(lpoint), startindex, endindex, xpitch, ypitch, 1); // 1: store anchor
+    double sizehint = luaL_optnumber(L, 9, 0.0);
+    object_add_bus_port(cell->object, name, layer, lpoint_get(lpoint), startindex, endindex, xpitch, ypitch, 1, sizehint); // 1: store anchor
     return 0;
 }
 
@@ -419,7 +439,7 @@ int lobject_get_ports(lua_State* L)
     {
         const char* portname;
         const point_t* portwhere;
-        port_iterator_get(it, &portname, &portwhere, NULL, NULL, NULL);
+        port_iterator_get(it, &portname, &portwhere, NULL, NULL, NULL, NULL);
         lua_newtable(L);
         lua_pushstring(L, portname);
         lua_setfield(L, -2, "name");
@@ -458,6 +478,13 @@ int lobject_flatten(lua_State* L)
     return 1;
 }
 
+int lobject_rasterize_curves(lua_State* L)
+{
+    struct lobject* cell = lobject_check(L, 1);
+    object_rasterize_curves(cell->object);
+    return 0;
+}
+
 int open_lobject_lib(lua_State* L)
 {
     // create metatable for objects
@@ -467,6 +494,7 @@ int open_lobject_lib(lua_State* L)
     static const luaL_Reg metafuncs[] =
     {
         { "create",                     lobject_create                      },
+        { "create_pseudo",              lobject_create_pseudo               },
         { "copy",                       lobject_copy                        },
         { "exchange",                   lobject_exchange                    },
         { "add_anchor",                 lobject_add_anchor                  },
@@ -496,8 +524,9 @@ int open_lobject_lib(lua_State* L)
         { "move_anchor_y",              lobject_move_anchor_y               },
         { "add_child",                  lobject_add_child                   },
         { "add_child_array",            lobject_add_child_array             },
-        { "merge_into_shallow",         lobject_merge_into_shallow          },
+        { "merge_into",                 lobject_merge_into                  },
         { "flatten",                    lobject_flatten                     },
+        { "rasterize_curves",           lobject_rasterize_curves            },
         { "__gc",                       lobject_destroy                     },
         { NULL,                         NULL                                }
     };

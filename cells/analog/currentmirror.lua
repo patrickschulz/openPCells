@@ -16,8 +16,8 @@ function layout(currentmirror, _P)
     local mirror = pcell.create_layout("basic/mosfet", "mirror", { fingers = _P.ofingers })
     diode:move_anchor("sourcedrainmiddlecenterright")
     mirror:move_anchor("sourcedrainmiddlecenterleft")
-    currentmirror:merge_into_shallow(diode)
-    currentmirror:merge_into_shallow(mirror)
+    currentmirror:merge_into(diode)
+    currentmirror:merge_into(mirror)
     pcell.pop_overwrites("basic/mosfet")
 
     -- gate connection

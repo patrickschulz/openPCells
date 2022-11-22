@@ -25,7 +25,7 @@ function layout(gate, _P)
         pcontactpos = contactpos,
         ncontactpos = contactpos,
     })
-    gate:merge_into_shallow(harness)
+    gate:merge_into(harness)
     gate:inherit_alignment_box(harness)
 
     -- gate straps
@@ -64,10 +64,10 @@ function layout(gate, _P)
     end
 
     -- ports
-    gate:add_port("I", generics.metal(1), point.create(-_P.fingers * xpitch / 2 - _P.shiftinput, 0))
-    gate:add_port("O", generics.metal(1), point.create(_P.fingers * xpitch / 2 + _P.shiftoutput, 0))
-    gate:add_port("EP", generics.metal(1), harness:get_anchor("Gupper1cc"))
-    gate:add_port("EN", generics.metal(1), harness:get_anchor("Glower1cc"))
-    gate:add_port("VDD", generics.metal(1), harness:get_anchor("top"))
-    gate:add_port("VSS", generics.metal(1), harness:get_anchor("bottom"))
+    gate:add_port("I", generics.metalport(1), point.create(-_P.fingers * xpitch / 2 - _P.shiftinput, 0))
+    gate:add_port("O", generics.metalport(1), point.create(_P.fingers * xpitch / 2 + _P.shiftoutput, 0))
+    gate:add_port("EP", generics.metalport(1), harness:get_anchor("Gupper1cc"))
+    gate:add_port("EN", generics.metalport(1), harness:get_anchor("Glower1cc"))
+    gate:add_port("VDD", generics.metalport(1), harness:get_anchor("top"))
+    gate:add_port("VSS", generics.metalport(1), harness:get_anchor("bottom"))
 end

@@ -14,7 +14,7 @@ function layout(toplevel)
     -- copy and translate inverter3
     local inverter3 = inverter:copy():translate(output2 - input3)
     -- merge inverters into toplevel
-    toplevel:merge_into_shallow(inverter1)
-    toplevel:merge_into_shallow(inverter2)
-    toplevel:merge_into_shallow(inverter3)
+    toplevel:merge_into(inverter1)
+    toplevel:merge_into(inverter2)
+    toplevel:merge_into(inverter3)
 end

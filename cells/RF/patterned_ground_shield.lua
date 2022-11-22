@@ -21,12 +21,12 @@ function layout(shield, _P)
 
     -- assemble half layout
     local half = object.create("half")
-    half:merge_into_shallow(quarter)
-    half:merge_into_shallow(quarter:mirror_at_yaxis())
+    half:merge_into(quarter)
+    half:merge_into(quarter:mirror_at_yaxis())
 
     -- assemble full layout
-    shield:merge_into_shallow(half)
-    shield:merge_into_shallow(half:rotate_90_left())
-    shield:merge_into_shallow(half:rotate_90_left())
-    shield:merge_into_shallow(half:rotate_90_left())
+    shield:merge_into(half)
+    shield:merge_into(half:rotate_90_left())
+    shield:merge_into(half:rotate_90_left())
+    shield:merge_into(half:rotate_90_left())
 end

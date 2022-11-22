@@ -163,6 +163,26 @@ static int lgeometry_path(lua_State* L)
     return 0;
 }
 
+static int lgeometry_rectanglepath(lua_State* L)
+{
+    struct lobject* cell = lobject_check(L, 1);
+    struct generics* layer = _check_generics(L, 2);
+    struct lpoint* pt1 = lpoint_checkpoint(L, 3);
+    struct lpoint* pt2 = lpoint_checkpoint(L, 4);
+    coordinate_t width = lua_tointeger(L, 5);
+
+    int bgnext = 0;
+    int endext = 0;
+    _get_path_extension(L, 6, &bgnext, &endext);
+
+    const point_t* points[2] = {
+        lpoint_get(pt1),
+        lpoint_get(pt2),
+    };
+    geometry_path(lobject_get(cell), layer, points, 2, width, bgnext, endext);
+    return 0;
+}
+
 static int lgeometry_path_manhatten(lua_State* L)
 {
     struct lobject* cell = lobject_check(L, 1);
@@ -655,6 +675,75 @@ static int lgeometry_curve(lua_State* L)
     return 0;
 }
 
+static int lgeometry_curve_rasterized(lua_State* L)
+{
+    struct lobject* lobject = lobject_check(L, 1);
+    struct generics* layer = _check_generics(L, 2);
+    struct lpoint* origin = lpoint_checkpoint(L, 3);
+    unsigned int grid = luaL_checkinteger(L, 5);
+    int allow45 = lua_toboolean(L, 6);
+    struct shape* S = shape_create_curve(layer, lpoint_get(origin)->x, lpoint_get(origin)->y, grid, allow45);
+
+    lua_len(L, 4);
+    size_t len = lua_tointeger(L, -1);
+    lua_pop(L, 1);
+
+    for(unsigned int i = 1; i <= len; ++i)
+    {
+        lua_rawgeti(L, 4, i);
+        lua_getfield(L, -1, "type");
+        const char* type = lua_tostring(L, -1);
+        if(strcmp(type, "lineto") == 0)
+        {
+            lua_getfield(L, -2, "pt");
+            struct lpoint* pt = lpoint_checkpoint(L, -1);
+            shape_curve_add_line_segment(S, lpoint_get(pt));
+            lua_pop(L, 1); // pop points
+        }
+        else if(strcmp(type, "arcto") == 0)
+        {
+            lua_getfield(L, -2, "startangle");
+            double startangle = lua_tonumber(L, -1);
+            lua_getfield(L, -3, "endangle");
+            double endangle = lua_tonumber(L, -1);
+            lua_getfield(L, -4, "radius");
+            coordinate_t radius = lua_tointeger(L, -1);
+            lua_getfield(L, -5, "clockwise");
+            int clockwise = lua_toboolean(L, -1);
+            shape_curve_add_arc_segment(S, startangle, endangle, radius, clockwise);
+            lua_pop(L, 3); // pop points
+        }
+        else if(strcmp(type, "cubicto") == 0)
+        {
+            lua_getfield(L, -2, "cpt1");
+            struct lpoint* lcpt1 = lpoint_checkpoint(L, -1);
+            const point_t* cpt1 = lpoint_get(lcpt1);
+            lua_pop(L, 1);
+            lua_getfield(L, -2, "cpt2");
+            struct lpoint* lcpt2 = lpoint_checkpoint(L, -1);
+            const point_t* cpt2 = lpoint_get(lcpt2);
+            lua_pop(L, 1);
+            lua_getfield(L, -2, "endpt");
+            struct lpoint* lendpt = lpoint_checkpoint(L, -1);
+            const point_t* endpt = lpoint_get(lendpt);
+            lua_pop(L, 1);
+            shape_curve_add_cubic_bezier_segment(S, cpt1, cpt2, endpt);
+        }
+        else
+        {
+            lua_pushfstring(L, "unknown curve segment: %s", type);
+            lua_error(L);
+        }
+        lua_pop(L, 1); // pop type
+        lua_pop(L, 1); // pop segment
+    }
+
+    shape_rasterize_curve_inline(S);
+
+    object_add_shape(lobject_get(lobject), S);
+    return 0;
+}
+
 static int lcurve_lineto(lua_State* L)
 {
     if(lua_gettop(L) == 1)
@@ -713,25 +802,27 @@ int open_lgeometry_lib(lua_State* L)
     lua_newtable(L);
     static const luaL_Reg modfuncs[] =
     {
-        { "rectanglebltr",   lgeometry_rectanglebltr   },
-        { "rectangle",       lgeometry_rectangle       },
-        { "rectanglepoints", lgeometry_rectanglepoints },
-        { "polygon",         lgeometry_polygon         },
-        { "path",            lgeometry_path            },
-        { "path_manhatten",  lgeometry_path_manhatten  },
-        { "path_cshape",     lgeometry_path_cshape     },
-        { "path_ushape",     lgeometry_path_ushape     },
-        { "viabltr",         lgeometry_viabltr         },
-        { "via",             lgeometry_via             },
-        { "contactbltr",     lgeometry_contactbltr     },
-        { "contact",         lgeometry_contact         },
-        { "contactbarebltr", lgeometry_contactbarebltr },
-        { "contactbare",     lgeometry_contactbare     },
-        { "cross",           lgeometry_cross           },
-        { "ring",            lgeometry_ring            },
-        { "unequal_ring",    lgeometry_unequal_ring    },
-        { "curve",           lgeometry_curve           },
-        { NULL,              NULL                      }
+        { "rectanglebltr",      lgeometry_rectanglebltr     },
+        { "rectangle",          lgeometry_rectangle         },
+        { "rectanglepoints",    lgeometry_rectanglepoints   },
+        { "rectanglepath",      lgeometry_rectanglepath     },
+        { "polygon",            lgeometry_polygon           },
+        { "path",               lgeometry_path              },
+        { "path_manhatten",     lgeometry_path_manhatten    },
+        { "path_cshape",        lgeometry_path_cshape       },
+        { "path_ushape",        lgeometry_path_ushape       },
+        { "viabltr",            lgeometry_viabltr           },
+        { "via",                lgeometry_via               },
+        { "contactbltr",        lgeometry_contactbltr       },
+        { "contact",            lgeometry_contact           },
+        { "contactbarebltr",    lgeometry_contactbarebltr   },
+        { "contactbare",        lgeometry_contactbare       },
+        { "cross",              lgeometry_cross             },
+        { "ring",               lgeometry_ring              },
+        { "unequal_ring",       lgeometry_unequal_ring      },
+        { "curve",              lgeometry_curve             },
+        { "curve_rasterized",   lgeometry_curve_rasterized  },
+        { NULL,                 NULL                        }
     };
     luaL_setfuncs(L, modfuncs, 0);
 

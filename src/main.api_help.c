@@ -10,6 +10,7 @@
 
 #define API_HELP_TYPE_VARARGS   COLOR_BOLD COLOR_RGB(0, 0, 0)
 #define API_HELP_TYPE_ANY       COLOR_BOLD COLOR_RGB(0, 0, 0)
+#define API_HELP_TYPE_FUNCTION  COLOR_BOLD COLOR_RGB(0, 0, 0)
 #define API_HELP_TYPE_TABLE     COLOR_BOLD COLOR_RGB(0, 0, 0)
 #define API_HELP_TYPE_BOOLEAN   COLOR_BOLD COLOR_RGB(0, 0, 0)
 #define API_HELP_TYPE_STRING    COLOR_BOLD COLOR_RGB(100, 205, 0)
@@ -39,6 +40,7 @@ struct parameter {
     enum {
         VARARGS,
         ANY,
+        FUNCTION,
         TABLE,
         BOOLEAN,
         STRING,
@@ -229,6 +231,8 @@ static int _get_type_width(const struct parameter* parameter)
             return defshift + 3;
         case ANY:
             return defshift + 3;
+        case FUNCTION:
+            return defshift + 8;
         case TABLE:
             return defshift + 5;
         case STRING:
@@ -257,6 +261,8 @@ static const char* _get_param_color(const struct parameter* parameter)
             return API_HELP_TYPE_VARARGS;
         case ANY:
             return API_HELP_TYPE_ANY;
+        case FUNCTION:
+            return API_HELP_TYPE_FUNCTION;
         case BOOLEAN:
             return API_HELP_TYPE_BOOLEAN;
         case TABLE:
@@ -294,6 +300,9 @@ static void _print_parameter(const struct parameter* parameter, int namewidth, i
             break;
         case ANY:
             _putstr(API_HELP_TYPE_ANY "any");
+            break;
+        case FUNCTION:
+            _putstr(API_HELP_TYPE_FUNCTION "function");
             break;
         case BOOLEAN:
             _putstr(API_HELP_TYPE_BOOLEAN "boolean");
@@ -959,13 +968,14 @@ struct vector* _initialize_api_entries(void)
     /* pcell.set_property */
     {
         struct parameter parameters[] = {
-
+            { "property", STRING, NULL, "property to set" },
+            { "value",    ANY,    NULL, "value of the property" }
         };
         vector_append(entries, _make_api_entry(
             "set_property",
             MODULE_PCELL,
-            "", // FIXME: set_property
-            "", // FIXME: example for set_property
+            "set a property of a pcell. Not many properties are supported currently, so this function is very rarely used. The base cell of the standard cell library uses it to be hidden, but that's the only current use",
+            "function config()\n    pcell.set_property(\"hidden\", true)\nend",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -1060,43 +1070,18 @@ struct vector* _initialize_api_entries(void)
     /* pcell.check_expression */
     {
         struct parameter parameters[] = {
-
+            { "expression", STRING, NULL, "expression to check" },
+            { "message",    STRING, NULL, "custom message which is displayed if the expression could not be satisfied" }
         };
         vector_append(entries, _make_api_entry(
             "check_expression",
             MODULE_PCELL,
-            "", // FIXME: check_expression
-            "", // FIXME: example for check_expression
+            "check valid parameter values with expressions. If parameter values depend on some other parameter or the posval function of parameter definitions do not offer enough flexibility, parameters can be checked with arbitrary lua expressions. This function must be called in parameters()",
+            "function parameters()\n    pcell.add_parameters({\n        { \"width\", 100 },\n        { \"height\", 200 },\n    })\n    pcell.check_expression(\"(height / width) % 2 == 0\", \"quotionent of height and width must be even\")\nend",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
-    ///* pcell.clone_parameters */
-    //{
-    //    struct parameter parameters[] = {
-    //    };
-    //    vector_append(entries, _make_api_entry(
-    //        "clone_parameters",
-    //        MODULE_PCELL,
-    //        "", // FIXME: clone_parameters
-    //        "", // FIXME: example for clone_parameters
-    //        parameters,
-    //        sizeof(parameters) / sizeof(parameters[0])
-    //    ));
-    //}
-    ///* pcell.clone_matching_parameters */
-    //{
-    //    struct parameter parameters[] = {
-    //    };
-    //    vector_append(entries, _make_api_entry(
-    //        "clone_matching_parameters",
-    //        MODULE_PCELL,
-    //        "", // FIXME: clone_matching_parameters
-    //        "", // FIXME: example for clone_matching_parameters
-    //        parameters,
-    //        sizeof(parameters) / sizeof(parameters[0])
-    //    ));
-    //}
     /* pcell.create_layout */
     {
         struct parameter parameters[] = {
@@ -1108,7 +1093,7 @@ struct vector* _initialize_api_entries(void)
             "create_layout",
             MODULE_PCELL,
             "Create a layout based on a parametric cell",
-            "", // FIXME: example for create_layout
+            "pcell.create_layout(\"stdcells/not_gate\", \"not_gate\", { pwidth = 600 })",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -1116,13 +1101,13 @@ struct vector* _initialize_api_entries(void)
     /* tech.get_dimension */
     {
         struct parameter parameters[] = {
-
+            { "property", STRING, NULL, "technology property name" }
         };
         vector_append(entries, _make_api_entry(
             "get_dimension",
             MODULE_TECH,
-            "", // FIXME: get_dimension
-            "", // FIXME: example for get_dimension
+            "Get critical technology dimensions such as minimum metal width. Predominantly used in pcell parameter definitions, but not necessarily restricted to that. There is a small set of technology properties that are used in the standard opc cells, but there is currently no proper definitions of the supported fields. See basic/mosfet and basic/cmos for examples",
+            "function parameters()\n    pcell.add_parameters({ {\"width\", tech.get_dimension(\"Minimum M1 Width\") } })\nend",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -1130,13 +1115,13 @@ struct vector* _initialize_api_entries(void)
     /* tech.has_layer */
     {
         struct parameter parameters[] = {
-
+            { "layer", GENERICS, NULL, "generic layer which should be checked" }
         };
         vector_append(entries, _make_api_entry(
             "has_layer",
             MODULE_TECH,
             "Check if the chosen technology supports a certain layer",
-            "", // FIXME: example for has_layer
+            "if tech.has_layer(generics.other(\"gatecut\")) then\n    -- do something with gatecuts\nend",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -1144,18 +1129,18 @@ struct vector* _initialize_api_entries(void)
     /* tech.resolve_metal */
     {
         struct parameter parameters[] = {
-
+            { "index", INTEGER, NULL, "metal index to be resolved" }
         };
         vector_append(entries, _make_api_entry(
             "resolve_metal",
             MODULE_TECH,
-            "", // FIXME: resolve_metal
-            "", // FIXME: example for resolve_metal
+            "resolve negative metal indices to their 'real' value (e.g. in a metal stack with five metals -1 becomes 5, -3 becomes 3). This function does not do anything if the index is positive",
+            "local metalindex = tech.resolve_metal(-2)",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
-    /* placement.create_floorplan_aspectratio */
+    /* placement.create_floorplan_aspectratio */ // FIXME: create_floorplan_aspectratio
     {
         struct parameter parameters[] = {
 
@@ -1163,13 +1148,13 @@ struct vector* _initialize_api_entries(void)
         vector_append(entries, _make_api_entry(
             "create_floorplan_aspectratio",
             MODULE_PLACEMENT,
-            "", // FIXME: create_floorplan_aspectratio
-            "", // FIXME: example for create_floorplan_aspectratio
+            "",
+            "",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
-    /* placement.create_floorplan_fixed_rows */
+    /* placement.create_floorplan_fixed_rows */ // FIXME: create_floorplan_fixed_rows
     {
         struct parameter parameters[] = {
 
@@ -1177,13 +1162,13 @@ struct vector* _initialize_api_entries(void)
         vector_append(entries, _make_api_entry(
             "create_floorplan_fixed_rows",
             MODULE_PLACEMENT,
-            "", // FIXME: create_floorplan_fixed_rows
-            "", // FIXME: example for create_floorplan_fixed_rows
+            "",
+            "",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
-    /* placement.optimize */
+    /* placement.optimize */ // FIXME: optimize
     {
         struct parameter parameters[] = {
 
@@ -1191,13 +1176,13 @@ struct vector* _initialize_api_entries(void)
         vector_append(entries, _make_api_entry(
             "optimize",
             MODULE_PLACEMENT,
-            "", // FIXME: optimize
-            "", // FIXME: example for optimize
+            "",
+            "",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
-    /* placement.manual */
+    /* placement.manual */ // FIXME: manual
     {
         struct parameter parameters[] = {
 
@@ -1205,13 +1190,13 @@ struct vector* _initialize_api_entries(void)
         vector_append(entries, _make_api_entry(
             "manual",
             MODULE_PLACEMENT,
-            "", // FIXME: manual
-            "", // FIXME: example for manual
+            "",
+            "",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
-    /* placement.insert_filler_names */
+    /* placement.insert_filler_names */ // FIXME: insert_filler_names
     {
         struct parameter parameters[] = {
 
@@ -1219,13 +1204,13 @@ struct vector* _initialize_api_entries(void)
         vector_append(entries, _make_api_entry(
             "insert_filler_names",
             MODULE_PLACEMENT,
-            "", // FIXME: insert_filler_names
-            "", // FIXME: example for insert_filler_names
+            "",
+            "",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
-    /* placement.create_reference_rows */
+    /* placement.create_reference_rows */ // FIXME: create_reference_rows
     {
         struct parameter parameters[] = {
 
@@ -1233,13 +1218,13 @@ struct vector* _initialize_api_entries(void)
         vector_append(entries, _make_api_entry(
             "create_reference_rows",
             MODULE_PLACEMENT,
-            "", // FIXME: create_reference_rows
-            "", // FIXME: example for create_reference_rows
+            "",
+            "",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
-    /* placement.format_rows */
+    /* placement.format_rows */ // FIXME: format_rows
     {
         struct parameter parameters[] = {
 
@@ -1247,13 +1232,13 @@ struct vector* _initialize_api_entries(void)
         vector_append(entries, _make_api_entry(
             "format_rows",
             MODULE_PLACEMENT,
-            "", // FIXME: format_rows
-            "", // FIXME: example for format_rows
+            "",
+            "",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
-    /* placement.regular_rows */
+    /* placement.regular_rows */ // FIXME: regular_rows
     {
         struct parameter parameters[] = {
 
@@ -1261,13 +1246,13 @@ struct vector* _initialize_api_entries(void)
         vector_append(entries, _make_api_entry(
             "regular_rows",
             MODULE_PLACEMENT,
-            "", // FIXME: regular_rows
-            "", // FIXME: example for regular_rows
+            "",
+            "",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
-    /* placement.digital */
+    /* placement.digital */ // FIXME: digital
     {
         struct parameter parameters[] = {
 
@@ -1275,13 +1260,13 @@ struct vector* _initialize_api_entries(void)
         vector_append(entries, _make_api_entry(
             "digital",
             MODULE_PLACEMENT,
-            "", // FIXME: digital
-            "", // FIXME: example for digital
+            "",
+            "",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
-    /* placement.rowwise */
+    /* placement.rowwise */ // FIXME: rowwise
     {
         struct parameter parameters[] = {
 
@@ -1289,13 +1274,13 @@ struct vector* _initialize_api_entries(void)
         vector_append(entries, _make_api_entry(
             "rowwise",
             MODULE_PLACEMENT,
-            "", // FIXME: rowwise
-            "", // FIXME: example for rowwise
+            "",
+            "",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
-    /* routing.legalize */
+    /* routing.legalize */ // FIXME: legalize
     {
         struct parameter parameters[] = {
 
@@ -1303,13 +1288,13 @@ struct vector* _initialize_api_entries(void)
         vector_append(entries, _make_api_entry(
             "legalize",
             MODULE_ROUTING,
-            "", // FIXME: legalize
-            "", // FIXME: example for legalize
+            "",
+            "",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
-    /* routing.route */
+    /* routing.route */ // FIXME: route
     {
         struct parameter parameters[] = {
 
@@ -1317,13 +1302,13 @@ struct vector* _initialize_api_entries(void)
         vector_append(entries, _make_api_entry(
             "route",
             MODULE_ROUTING,
-            "", // FIXME: route
-            "", // FIXME: example for route
+            "",
+            "",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
-    /* curve.lineto, */
+    /* curve.lineto, */ // FIXME: lineto,
     {
         struct parameter parameters[] = {
 
@@ -1331,13 +1316,13 @@ struct vector* _initialize_api_entries(void)
         vector_append(entries, _make_api_entry(
             "lineto,",
             MODULE_CURVE,
-            "", // FIXME: lineto,
-            "", // FIXME: example for lineto,
+            "",
+            "",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
-    /* curve.arcto, */
+    /* curve.arcto, */ // FIXME: arcto,
     {
         struct parameter parameters[] = {
 
@@ -1345,13 +1330,13 @@ struct vector* _initialize_api_entries(void)
         vector_append(entries, _make_api_entry(
             "arcto,",
             MODULE_CURVE,
-            "", // FIXME: arcto,
-            "", // FIXME: example for arcto,
+            "",
+            "",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
-    /* curve.cubicto */
+    /* curve.cubicto */ // FIXME: cubicto
     {
         struct parameter parameters[] = {
 
@@ -1359,8 +1344,8 @@ struct vector* _initialize_api_entries(void)
         vector_append(entries, _make_api_entry(
             "cubicto",
             MODULE_CURVE,
-            "", // FIXME: cubicto
-            "", // FIXME: example for cubicto
+            "",
+            "",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -1427,13 +1412,18 @@ struct vector* _initialize_api_entries(void)
     /* object.add_anchor_area */
     {
         struct parameter parameters[] = {
-
+            { "cell",   OBJECT,  NULL, "object to which an anchor should be added" },
+            { "name",   STRING,  NULL, "name of the anchor" },
+            { "width",  INTEGER, NULL, "width of the rectangular area" },
+            { "height", INTEGER, NULL, "height of the rectangular area" },
+            { "xshift", INTEGER, NULL, "shift the area by 'xshift'" },
+            { "yshift", INTEGER, NULL, "shift the area by 'yshift'" }
         };
         vector_append(entries, _make_api_entry(
             "add_anchor_area",
             MODULE_OBJECT,
-            "", // FIXME: add_anchor_area
-            "", // FIXME: example for add_anchor_area
+            "add a so-called 'area anchor', which defines all relevant anchors in a rectangular area: bottom-left, bottom-center, bottom-right, center-left, center-center, center-right, top-left, top-center, top-right (bl, bc, br, cl, cc, cr, tl, tc, tr)",
+            "cell:add_anchor_area(\"source\", 100, 500, 0, 0)",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -1441,13 +1431,17 @@ struct vector* _initialize_api_entries(void)
     /* object.add_anchor_area_bltr */
     {
         struct parameter parameters[] = {
+            { "cell",   OBJECT,  NULL, "object to which an anchor should be added" },
+            { "name",   STRING,  NULL, "name of the anchor" },
+            { "bl",     POINT,   NULL, "bottom-left point of the rectangular area" },
+            { "tr",     POINT,   NULL, "bottom-left point of the rectangular area" }
 
         };
         vector_append(entries, _make_api_entry(
             "add_anchor_area_bltr",
             MODULE_OBJECT,
-            "", // FIXME: add_anchor_area_bltr
-            "", // FIXME: example for add_anchor_area_bltr
+            "Similar to add_anchor_area, but takes to lower-left and upper-right corner points of the rectangular area",
+            "cell:add_anchor_area(\"source\", point.create(-100, -20), point.create(100, 20))",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -1455,13 +1449,14 @@ struct vector* _initialize_api_entries(void)
     /* object.get_anchor */
     {
         struct parameter parameters[] = {
-
+            { "cell",       OBJECT, NULL, "object to get an anchor from" },
+            { "anchorname", STRING, NULL, "name of the anchor" }
         };
         vector_append(entries, _make_api_entry(
             "get_anchor",
             MODULE_OBJECT,
-            "", // FIXME: get_anchor
-            "", // FIXME: example for get_anchor
+            "Retrieve an anchor from a cell. This function returns a point that contains the position of the defined anchor, corrected by the cell transformation. A non-existing anchor is an error",
+            "cell:get_anchor(\"sourcedrain1bl\")",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -1469,13 +1464,16 @@ struct vector* _initialize_api_entries(void)
     /* object.get_array_anchor */
     {
         struct parameter parameters[] = {
-
+            { "cell",       OBJECT,  NULL, "object to get an anchor from" },
+            { "xindex",     INTEGER, NULL, "x-index" },
+            { "yindex",     INTEGER, NULL, "y-index" },
+            { "anchorname", STRING,  NULL, "name of the anchor" }
         };
         vector_append(entries, _make_api_entry(
             "get_array_anchor",
             MODULE_OBJECT,
-            "", // FIXME: get_array_anchor
-            "", // FIXME: example for get_array_anchor
+            "Like object.get_anchor, but works on child arrays. The first two argument are the x- and the y-index (starting at 1, 1). Accessing an array anchor of a non-array object is an error",
+            "local ref = object.create(\"ref\")\nlocal array = cell:add_child_array(ref, \"refarray\", 20, 2, 100, 1000)\nlocal anchor = array:get_array_anchor(4, 1, \"sourcedrain1bl\")",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -1483,13 +1481,13 @@ struct vector* _initialize_api_entries(void)
     /* object.get_all_regular_anchors */
     {
         struct parameter parameters[] = {
-
+            { "cell", OBJECT,  NULL, "object to get all anchors from" },
         };
         vector_append(entries, _make_api_entry(
             "get_all_regular_anchors",
             MODULE_OBJECT,
-            "", // FIXME: get_all_regular_anchors
-            "", // FIXME: example for get_all_regular_anchors
+            "return a table which contains key-value pairs with all regular anchors of a cell. The key is the anchorname, the value the corresponding point. Regular anchors are anchors not related to an alignment box but created by add_anchor, add_anchor_area and add_anchor_area_bltr",
+            "local anchors = cell:get_all_regular_anchors()",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -1497,13 +1495,16 @@ struct vector* _initialize_api_entries(void)
     /* object.add_port */
     {
         struct parameter parameters[] = {
-
+            { "cell",   OBJECT,   NULL, "object to which a port should be added" },
+            { "name",   STRING,   NULL, "name of the port" },
+            { "layer",  GENERICS, NULL, "layer of the port" },
+            { "where",  POINT,    NULL, "location of the port" }
         };
         vector_append(entries, _make_api_entry(
             "add_port",
             MODULE_OBJECT,
-            "", // FIXME: add_port
-            "", // FIXME: example for add_port
+            "add a port to a cell. Works like add_anchor, but additionally a layer is expected",
+            "cell:add_port(\"vdd\", generics.metalport(2), point.create(100, 0))",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -1511,13 +1512,20 @@ struct vector* _initialize_api_entries(void)
     /* object.add_bus_port */
     {
         struct parameter parameters[] = {
-
+            { "cell",       OBJECT,     NULL, "object to which a port should be added" },
+            { "name",       STRING,     NULL, "base name of the port" },
+            { "layer",      GENERICS,   NULL, "layer of the port" },
+            { "where",      POINT,      NULL, "location of the port" },
+            { "startindex", INTEGER,    NULL, "start index of the bus port" },
+            { "endindex",   INTEGER,    NULL, "end index of the bus port" },
+            { "xpitch",     INTEGER,    NULL, "pitch in x direction" },
+            { "ypitch",     INTEGER,    NULL, "pitch in y direction" }
         };
         vector_append(entries, _make_api_entry(
             "add_bus_port",
             MODULE_OBJECT,
-            "", // FIXME: add_bus_port
-            "", // FIXME: example for add_bus_port
+            "add a bus port (multiple ports like vout[0:4]) to a cell. The port expression is portname[startindex:endindex] and portname[i] is placed at 'where' with an offset of ((i - 1) * xpitch, (i - 1) * ypitch)",
+            "cell:add_bus_port(\"vout\", generics.metalport(4), point.create(200, 0), 0, 4, 200, 0)",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -1525,13 +1533,13 @@ struct vector* _initialize_api_entries(void)
     /* object.get_ports */
     {
         struct parameter parameters[] = {
-
+            { "cell", OBJECT, NULL, "object to get the ports from" }
         };
         vector_append(entries, _make_api_entry(
             "get_ports",
             MODULE_OBJECT,
-            "", // FIXME: get_ports
-            "", // FIXME: example for get_ports
+            "return a table which contains key-value pairs with all ports of a cell. The key is the portname, the value the corresponding point.",
+            "local ports = cell:get_ports()",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -1539,13 +1547,15 @@ struct vector* _initialize_api_entries(void)
     /* object.set_alignment_box */
     {
         struct parameter parameters[] = {
-
+            { "cell",   OBJECT, NULL, "cell to add the alignment box to" },
+            { "bl",     POINT,  NULL, "bottom-left corner of alignment box" },
+            { "tr",     POINT,  NULL, "top-right corner of alignment box" }
         };
         vector_append(entries, _make_api_entry(
             "set_alignment_box",
             MODULE_OBJECT,
-            "", // FIXME: set_alignment_box
-            "", // FIXME: example for set_alignment_box
+            "set the alignment box of an object. Overwrites any previous existing alignment boxes",
+            "cell:set_alignment_box(point.create(-100, -100), point.create(100, 100))",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -1553,13 +1563,14 @@ struct vector* _initialize_api_entries(void)
     /* object.inherit_alignment_box */
     {
         struct parameter parameters[] = {
-
+            { "cell",       OBJECT, NULL, "cell to add the alignment box to" },
+            { "othercell",  OBJECT, NULL, "cell to inherit the alignment box from" }
         };
         vector_append(entries, _make_api_entry(
             "inherit_alignment_box",
             MODULE_OBJECT,
-            "", // FIXME: inherit_alignment_box
-            "", // FIXME: example for inherit_alignment_box
+            "inherit the alignment box from another cell. This EXPANDS the current alignment box, if any is present. This means that this function can be called multiple times with different objects to establish an overall alignment box",
+            "cell:inherit_alignment_box(someothercell)\ncell:inherit_alignment_box(anothercell)",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -1567,13 +1578,13 @@ struct vector* _initialize_api_entries(void)
     /* object.width_height_alignmentbox */
     {
         struct parameter parameters[] = {
-
+            { "cell",       OBJECT, NULL, "cell to compute width and height" }
         };
         vector_append(entries, _make_api_entry(
             "width_height_alignmentbox",
             MODULE_OBJECT,
-            "", // FIXME: width_height_alignmentbox
-            "", // FIXME: example for width_height_alignmentbox
+            "get the width and the height of the alignment box. A non-existing alignment box triggers an error",
+            "local width, height = cell:width_height_alignmentbox()",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -1581,13 +1592,15 @@ struct vector* _initialize_api_entries(void)
     /* object.move_to */
     {
         struct parameter parameters[] = {
-
+            { "cell",   OBJECT,     NULL, "cell to be moved" },
+            { "x",      INTEGER,    NULL, "x coordinate (can be a point, in this case x and y are taken from this point)" },
+            { "y",      INTEGER,    NULL, "y coordinate" }
         };
         vector_append(entries, _make_api_entry(
             "move_to",
             MODULE_OBJECT,
-            "", // FIXME: move_to
-            "", // FIXME: example for move_to
+            "move the cell to the specified coordinates (absolute movement). If x is a point, x and y are taken from this point",
+            "cell:move_to(100, 200)",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -1595,13 +1608,13 @@ struct vector* _initialize_api_entries(void)
     /* object.reset_translation */
     {
         struct parameter parameters[] = {
-
+            { "cell",   OBJECT,     NULL, "cell to be resetted" },
         };
         vector_append(entries, _make_api_entry(
             "reset_translation",
             MODULE_OBJECT,
-            "", // FIXME: reset_translation
-            "", // FIXME: example for reset_translation
+            "reset all previous translations (transformations are kept)",
+            "cell:reset_translation()",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -1609,111 +1622,99 @@ struct vector* _initialize_api_entries(void)
     /* object.translate */
     {
         struct parameter parameters[] = {
-
+            { "cell",   OBJECT,     NULL, "cell to be translated" },
+            { "x",      INTEGER,    NULL, "x offset (can be a point, in this case x and y are taken from this point)" },
+            { "y",      INTEGER,    NULL, "y offset" }
         };
         vector_append(entries, _make_api_entry(
             "translate",
             MODULE_OBJECT,
-            "", // FIXME: translate
-            "", // FIXME: example for translate
+            "translate the cell by the specified offsets (relative movement). If x is a point, x and y are taken from this point",
+            "cell:translate(100, 200)",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
     /* object.mirror_at_xaxis */
     {
-        struct parameter parameters[] = {
-
-        };
+        struct parameter parameters[] = {};
         vector_append(entries, _make_api_entry(
             "mirror_at_xaxis",
             MODULE_OBJECT,
-            "", // FIXME: mirror_at_xaxis
-            "", // FIXME: example for mirror_at_xaxis
+            "mirror the entire object at the x axis",
+            "cell:mirror_at_xaxis()",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
     /* object.mirror_at_yaxis */
     {
-        struct parameter parameters[] = {
-
-        };
+        struct parameter parameters[] = {};
         vector_append(entries, _make_api_entry(
             "mirror_at_yaxis",
             MODULE_OBJECT,
-            "", // FIXME: mirror_at_yaxis
-            "", // FIXME: example for mirror_at_yaxis
+            "mirror the entire object at the y axis",
+            "cell:mirror_at_yaxis()",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
     /* object.mirror_at_origin */
     {
-        struct parameter parameters[] = {
-
-        };
+        struct parameter parameters[] = {};
         vector_append(entries, _make_api_entry(
             "mirror_at_origin",
             MODULE_OBJECT,
-            "", // FIXME: mirror_at_origin
-            "", // FIXME: example for mirror_at_origin
+            "mirror the entire object at the origin",
+            "cell:mirror_at_origin()",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
     /* object.rotate_90_left */
     {
-        struct parameter parameters[] = {
-
-        };
+        struct parameter parameters[] = {};
         vector_append(entries, _make_api_entry(
             "rotate_90_left",
             MODULE_OBJECT,
-            "", // FIXME: rotate_90_left
-            "", // FIXME: example for rotate_90_left
+            "rotate the entire object 90 degrees counter-clockwise with respect to the origin",
+            "cell:rotate_90_left()",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
     /* object.rotate_90_right */
     {
-        struct parameter parameters[] = {
-
-        };
+        struct parameter parameters[] = {};
         vector_append(entries, _make_api_entry(
             "rotate_90_right",
             MODULE_OBJECT,
-            "", // FIXME: rotate_90_right
-            "", // FIXME: example for rotate_90_right
+            "rotate the entire object 90 degrees clockwise with respect to the origin",
+            "cell:rotate_90_right()",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
     /* object.flipx */
     {
-        struct parameter parameters[] = {
-
-        };
+        struct parameter parameters[] = {};
         vector_append(entries, _make_api_entry(
             "flipx",
             MODULE_OBJECT,
-            "", // FIXME: flipx
-            "", // FIXME: example for flipx
+            "flip the entire object in x direction. This is similar to mirror_at_yaxis (note the x vs. y), but is done in-place. The object is translated so that it is still in its original location. Works best on objects with an alignment box, since this is used to calculate the required translation. On other objects, this operation can be time-consuming as an accurate bounding box has to be computed. It is recommended not to use this function on objects without an alignment box because the result is not always ideal",
+            "cell:flipx()",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
     /* object.flipy */
     {
-        struct parameter parameters[] = {
-
-        };
+        struct parameter parameters[] = {};
         vector_append(entries, _make_api_entry(
             "flipy",
             MODULE_OBJECT,
-            "", // FIXME: flipy
-            "", // FIXME: example for flipy
+            "flip the entire object in y direction. This is similar to mirror_at_xaxis (note the y vs. x), but is done in-place. The object is translated so that it is still in its original location. Works best on objects with an alignment box, since this is used to calculate the required translation. On other objects, this operation can be time-consuming as an accurate bounding box has to be computed. It is recommended not to use this function on objects without an alignment box because the result is not always ideal",
+            "cell:flipy()",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -1721,13 +1722,15 @@ struct vector* _initialize_api_entries(void)
     /* object.move_anchor */
     {
         struct parameter parameters[] = {
-
+            { "cell",       OBJECT, NULL,                   "cell which should be moved" },
+            { "anchorname", STRING, NULL,                   "anchor name as reference" },
+            { "target",     POINT,  "point.create(0, 0)",   "target to move the anchor to. Defaults to the origin" }
         };
         vector_append(entries, _make_api_entry(
             "move_anchor",
             MODULE_OBJECT,
-            "", // FIXME: move_anchor
-            "", // FIXME: example for move_anchor
+            "translate (move) the object so that its referenced anchor lies on the target. If called without a target, the anchor is moved to (0, 0)",
+            "cell:move_anchor(\"gate\") -- move to origin\nmosfet:move_anchor(\"leftsourcedrain\", othermosfet:get_anchor(\"rightsourcedrain\")) -- align two mosfets",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -1735,13 +1738,15 @@ struct vector* _initialize_api_entries(void)
     /* object.move_anchor_x */
     {
         struct parameter parameters[] = {
-
+            { "cell",       OBJECT, NULL,                   "cell which should be moved" },
+            { "anchorname", STRING, NULL,                   "anchor name as reference" },
+            { "target",     POINT,  "point.create(0, 0)",   "target to move the anchor to. Defaults to the origin" }
         };
         vector_append(entries, _make_api_entry(
             "move_anchor_x",
             MODULE_OBJECT,
-            "", // FIXME: move_anchor_x
-            "", // FIXME: example for move_anchor_x
+            "equal to object.move_anchor, but only changes the x coordinate",
+            "cell:move_anchor_x(\"gate\", point.create(100, 0))",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -1749,13 +1754,15 @@ struct vector* _initialize_api_entries(void)
     /* object.move_anchor_y */
     {
         struct parameter parameters[] = {
-
+            { "cell",       OBJECT, NULL,                   "cell which should be moved" },
+            { "anchorname", STRING, NULL,                   "anchor name as reference" },
+            { "target",     POINT,  "point.create(0, 0)",   "target to move the anchor to. Defaults to the origin" }
         };
         vector_append(entries, _make_api_entry(
             "move_anchor_y",
             MODULE_OBJECT,
-            "", // FIXME: move_anchor_y
-            "", // FIXME: example for move_anchor_y
+            "equal to object.move_anchor, but only changes the y coordinate",
+            "cell:move_anchor_y(\"gate\", point.create(100, 0))",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -1798,17 +1805,17 @@ struct vector* _initialize_api_entries(void)
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
-    /* object.merge_into_shallow */
+    /* object.merge_into */
     {
         struct parameter parameters[] = {
             { "cell",      OBJECT, NULL, "Object to which the child is added" },
             { "othercell", OBJECT, NULL, "Other layout cell to be merged into the cell" },
         };
         vector_append(entries, _make_api_entry(
-            "merge_into_shallow",
+            "merge_into",
             MODULE_OBJECT,
-            "add all shapes from othercell to the cell. Only adds the shapes from the parent cell, not from any children (hence 'shallow'). If the entire layout should be added, call flatten() on othercell",
-            "cell:merge_into_shallow(othercell)\ncell:merge_into_shallow(othercell:flatten())",
+            "add all shapes and children from othercell to the cell -> 'dissolve' othercell in cell",
+            "cell:merge_into(othercell)\ncell:merge_into(othercell:flatten())",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -1906,7 +1913,7 @@ struct vector* _initialize_api_entries(void)
         vector_append(entries, _make_api_entry(
             "oxide",
             MODULE_GENERICS,
-            "create a generic layer representing a marking layer for MOSFET gate oxide thickness (e.g. for core or I/O devices)", // FIXME: oxide
+            "create a generic layer representing a marking layer for MOSFET gate oxide thickness (e.g. for core or I/O devices)",
             "generics.oxide(2)",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
@@ -2220,7 +2227,7 @@ struct vector* _initialize_api_entries(void)
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
-    /* util.xmirror(pts, xcenter) */
+    /* util.xmirror(pts, xcenter) */ // FIXME: xmirror
     {
         struct parameter parameters[] = {
 
@@ -2228,13 +2235,13 @@ struct vector* _initialize_api_entries(void)
         vector_append(entries, _make_api_entry(
             "xmirror",
             MODULE_UTIL,
-            "", // FIXME: xmirror
-            "", // FIXME: example for xmirror
+            "",
+            "",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
-    /* util.ymirror(pts, ycenter) */
+    /* util.ymirror(pts, ycenter) */ // FIXME: ymirror
     {
         struct parameter parameters[] = {
 
@@ -2242,13 +2249,13 @@ struct vector* _initialize_api_entries(void)
         vector_append(entries, _make_api_entry(
             "ymirror",
             MODULE_UTIL,
-            "", // FIXME: ymirror
-            "", // FIXME: example for ymirror
+            "",
+            "",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
-    /* util.xymirror(pts, xcenter, ycenter) */
+    /* util.xymirror(pts, xcenter, ycenter) */ // FIXME: xymirror
     {
         struct parameter parameters[] = {
 
@@ -2256,13 +2263,13 @@ struct vector* _initialize_api_entries(void)
         vector_append(entries, _make_api_entry(
             "xymirror",
             MODULE_UTIL,
-            "", // FIXME: xymirror
-            "", // FIXME: example for xymirror
+            "",
+            "",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
-    /* util.filter_forward(pts, fun) */
+    /* util.filter_forward(pts, fun) */ // FIXME: filter_forward
     {
         struct parameter parameters[] = {
 
@@ -2270,13 +2277,13 @@ struct vector* _initialize_api_entries(void)
         vector_append(entries, _make_api_entry(
             "filter_forward",
             MODULE_UTIL,
-            "", // FIXME: filter_forward
-            "", // FIXME: example for filter_forward
+            "",
+            "",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
-    /* util.filter_backward(pts, fun) */
+    /* util.filter_backward(pts, fun) */ // FIXME: filter_backward
     {
         struct parameter parameters[] = {
 
@@ -2284,13 +2291,13 @@ struct vector* _initialize_api_entries(void)
         vector_append(entries, _make_api_entry(
             "filter_backward",
             MODULE_UTIL,
-            "", // FIXME: filter_backward
-            "", // FIXME: example for filter_backward
+            "",
+            "",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
-    /* util.merge_forwards(pts, pts2) */
+    /* util.merge_forwards(pts, pts2) */ // FIXME: merge_forwards
     {
         struct parameter parameters[] = {
 
@@ -2298,13 +2305,13 @@ struct vector* _initialize_api_entries(void)
         vector_append(entries, _make_api_entry(
             "merge_forwards",
             MODULE_UTIL,
-            "", // FIXME: merge_forwards
-            "", // FIXME: example for merge_forwards
+            "",
+            "",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
-    /* util.merge_backwards(pts, pts2) */
+    /* util.merge_backwards(pts, pts2) */ // FIXME: merge_backwards
     {
         struct parameter parameters[] = {
 
@@ -2312,13 +2319,13 @@ struct vector* _initialize_api_entries(void)
         vector_append(entries, _make_api_entry(
             "merge_backwards",
             MODULE_UTIL,
-            "", // FIXME: merge_backwards
-            "", // FIXME: example for merge_backwards
+            "",
+            "",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
-    /* util.reverse(pts) */
+    /* util.reverse(pts) */ // FIXME: reverse
     {
         struct parameter parameters[] = {
 
@@ -2326,13 +2333,13 @@ struct vector* _initialize_api_entries(void)
         vector_append(entries, _make_api_entry(
             "reverse",
             MODULE_UTIL,
-            "", // FIXME: reverse
-            "", // FIXME: example for reverse
+            "",
+            "",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
-    /* util.make_insert_xy(pts, idx) */
+    /* util.make_insert_xy(pts, idx) */ // FIXME: make_insert_xy
     {
         struct parameter parameters[] = {
 
@@ -2340,13 +2347,13 @@ struct vector* _initialize_api_entries(void)
         vector_append(entries, _make_api_entry(
             "make_insert_xy",
             MODULE_UTIL,
-            "", // FIXME: make_insert_xy
-            "", // FIXME: example for make_insert_xy
+            "",
+            "",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
-    /* util.make_insert_pts(pts, idx) */
+    /* util.make_insert_pts(pts, idx) */ // FIXME: make_insert_pts
     {
         struct parameter parameters[] = {
 
@@ -2354,8 +2361,8 @@ struct vector* _initialize_api_entries(void)
         vector_append(entries, _make_api_entry(
             "make_insert_pts",
             MODULE_UTIL,
-            "", // FIXME: make_insert_pts
-            "", // FIXME: example for make_insert_pts
+            "",
+            "",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -2363,13 +2370,14 @@ struct vector* _initialize_api_entries(void)
     /* util.fill_all_with(num, filler) */
     {
         struct parameter parameters[] = {
-
+            { "num",    INTEGER, NULL, "number of repetitions" },
+            { "filler", ANY,     NULL, "value which should be repeated. Can be anything, but probably most useful with strings or numbers" }
         };
         vector_append(entries, _make_api_entry(
             "fill_all_with",
             MODULE_UTIL,
-            "", // FIXME: fill_all_with
-            "", // FIXME: example for fill_all_with
+            "create an array-like table with one entry repeated N times. This is useful, for example, for specifying gate contacts for basic/cmos",
+            "local gatecontactpos = util.fill_even_with(4, \"center\") -- { \"center\", \"center\", \"center\", \"center\" }",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -2377,13 +2385,16 @@ struct vector* _initialize_api_entries(void)
     /* util.fill_predicate_with(num, filler, predicate, other) */
     {
         struct parameter parameters[] = {
-
+            { "num",        INTEGER,    NULL, "number of repetitions" },
+            { "filler",     ANY,        NULL, "value which should be repeated at even numbers. Can be anything, but probably most useful with strings or numbers" },
+            { "predicate",  FUNCTION,   NULL, "predicate which is called with every index" },
+            { "other",      ANY,        NULL, "value which should be repeated at odd numbers. Can be anything, but probably most useful with strings or numbers" }
         };
         vector_append(entries, _make_api_entry(
             "fill_predicate_with",
             MODULE_UTIL,
-            "", // FIXME: fill_predicate_with
-            "", // FIXME: example for fill_predicate_with
+            "create an array-like table with two entries (total number of entries is N). This function (compared to fill_all_with, fill_odd_with and fill_even_with) allows for more complex patterns. To do this, a predicate (a function) is called on every index. If the predicate is true, the first entry is inserted, otherwise the second one. This function is useful, for example, for specifying gate contacts for basic/cmos. Counting starts at 1, so the first entry will be 'other'",
+            "local contactpos = util.fill_predicate_with(8, \"power\", function(i) return i % 4 == 0 end, \"outer\")",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -2391,13 +2402,15 @@ struct vector* _initialize_api_entries(void)
     /* util.fill_even_with(num, filler, other) */
     {
         struct parameter parameters[] = {
-
+            { "num",    INTEGER, NULL, "number of repetitions" },
+            { "filler", ANY,     NULL, "value which should be repeated at even numbers. Can be anything, but probably most useful with strings or numbers" },
+            { "other",  ANY,     NULL, "value which should be repeated at odd numbers. Can be anything, but probably most useful with strings or numbers" }
         };
         vector_append(entries, _make_api_entry(
             "fill_even_with",
             MODULE_UTIL,
-            "", // FIXME: fill_even_with
-            "", // FIXME: example for fill_even_with
+            "create an array-like table with two entries repeated N / 2 times, alternating. This is useful, for example, for specifying gate contacts for basic/cmos. Counting starts at 1, so the first entry will be 'other'",
+            "local gatecontactpos = util.fill_even_with(4, \"center\", \"upper\") -- { \"upper\", \"center\", \"upper\", \"center\" }",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -2405,18 +2418,20 @@ struct vector* _initialize_api_entries(void)
     /* util.fill_odd_with(num, filler, other) */
     {
         struct parameter parameters[] = {
-
+            { "num",    INTEGER, NULL, "number of repetitions" },
+            { "filler", ANY,     NULL, "value which should be repeated at odd numbers. Can be anything, but probably most useful with strings or numbers" },
+            { "other",  ANY,     NULL, "value which should be repeated at even numbers. Can be anything, but probably most useful with strings or numbers" }
         };
         vector_append(entries, _make_api_entry(
             "fill_odd_with",
             MODULE_UTIL,
-            "", // FIXME: fill_odd_with
-            "", // FIXME: example for fill_odd_with
+            "create an array-like table with two entries repeated N / 2 times, alternating. This is useful, for example, for specifying gate contacts for basic/cmos. Counting starts at 1, so the first entry will be 'filler'",
+            "local gatecontactpos = util.fill_odd_with(4, \"center\", \"upper\") -- { \"center\", \"upper\", \"center\", \"upper\" }",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
-    /* enable */
+    /* enable */ // FIXME: enable
     {
         struct parameter parameters[] = {
 
@@ -2424,13 +2439,13 @@ struct vector* _initialize_api_entries(void)
         vector_append(entries, _make_api_entry(
             "enable",
             MODULE_NONE,
-            "", // FIXME: enable
-            "", // FIXME: example for enable
+            "",
+            "",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
-    /* thisorthat */
+    /* thisorthat */ // FIXME: thisorthat
     {
         struct parameter parameters[] = {
 
@@ -2438,13 +2453,13 @@ struct vector* _initialize_api_entries(void)
         vector_append(entries, _make_api_entry(
             "thisorthat",
             MODULE_NONE,
-            "", // FIXME: thisorthat
-            "", // FIXME: example for thisorthat
+            "",
+            "",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
-    /* evenodddiv */
+    /* evenodddiv */ // FIXME: evenodddiv
     {
         struct parameter parameters[] = {
 
@@ -2452,13 +2467,13 @@ struct vector* _initialize_api_entries(void)
         vector_append(entries, _make_api_entry(
             "evenodddiv",
             MODULE_NONE,
-            "", // FIXME: evenodddiv
-            "", // FIXME: example for evenodddiv
+            "",
+            "",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
-    /* evenodddiv2 */
+    /* evenodddiv2 */ // FIXME: evenodddiv2
     {
         struct parameter parameters[] = {
 
@@ -2466,8 +2481,8 @@ struct vector* _initialize_api_entries(void)
         vector_append(entries, _make_api_entry(
             "evenodddiv2",
             MODULE_NONE,
-            "", // FIXME: evenodddiv2
-            "", // FIXME: example for evenodddiv2
+            "",
+            "",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -2475,13 +2490,13 @@ struct vector* _initialize_api_entries(void)
     /* dprint */
     {
         struct parameter parameters[] = {
-
+            { "...", VARARGS, NULL, "variable arguments that should be printed" }
         };
         vector_append(entries, _make_api_entry(
             "dprint",
             MODULE_NONE,
-            "", // FIXME: dprint
-            "", // FIXME: example for dprint
+            "debug print. Works like regular print (which is not available in pcell definitions). Only prints something when opc is called with --enable-dprint",
+            "dprint(_P.fingers)",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));

@@ -141,7 +141,7 @@ function layout(oscillator, _P)
         extension = 50,
     })
     pwelltap:move_anchor("bottomleft", inverters[1]:get_anchor("PRpll"))
-    oscillator:merge_into_shallow(pwelltap)
+    oscillator:merge_into(pwelltap)
     local nwelltap = pcell.create_layout("auxiliary/welltap", "nwelltap", {
         contype = "p",
         width = width,
@@ -149,7 +149,7 @@ function layout(oscillator, _P)
         extension = 50,
     })
     nwelltap:move_anchor("topleft", inverters[1]:get_anchor("PRnul"))
-    oscillator:merge_into_shallow(nwelltap)
+    oscillator:merge_into(nwelltap)
 
     --[[
     -- place guardring
