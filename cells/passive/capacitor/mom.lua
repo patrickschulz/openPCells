@@ -10,6 +10,7 @@ function parameters()
         { "firstmetal(Start Metal)",    1 },
         { "lastmetal(End Metal)",       2 },
         { "alternatingpolarity",     true },
+        { "flippolarity",           false },
         { "flat",                    true },
         { "drawvia",                 true }
     )
@@ -25,7 +26,7 @@ function layout(momcap, _P)
         for i = firstmetal, lastmetal do
             local xreptop, xrepbot = evenodddiv2(_P.fingers)
             local xshift = (_P.fingers % 2 == 0) and pitch / 2 or 0
-            local ysign = (_P.alternatingpolarity and (i % 2 == 0)) and 1 or -1
+            local ysign = (_P.alternatingpolarity and ((i - firstmetal) % 2 == (_P.flippolarity and 1 or 0))) and 1 or -1
             geometry.rectanglebltr(
                 momcap, generics.metal(i),
                 point.create(-xshift - _P.fwidth / 2, -_P.fheight / 2 - _P.foffset / 2 + ysign * _P.foffset / 2),
