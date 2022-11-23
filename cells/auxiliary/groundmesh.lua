@@ -1,78 +1,173 @@
 function parameters()
     pcell.add_parameters(
-        { "flavour", "ground" },
+        { "flavour", "cap", posvals = set("ground", "cap") },
         { "cellsize", 10000 },
-        { "captopmetal", 7 },
-        { "gridstartmetal", 9 },
-        { "gridtopmetal", 10 },
+        { "meshmetals", { 1, 2, 3, 4, 5, 6, 7, 8 } },
+        { "gridmetals", { 9, 10 } },
+        { "interconnectmetal", 8 },
         { "guardringwidth", 500 },
-        { "metalwidth", { 800, 800, 1200, 1200, 1200, 1200, 1200, 1000 } }
+        { "drawleft", true },
+        { "drawright", true },
+        { "drawtop", true },
+        { "drawbottom", true },
+        { "connecttopmetal", true },
+        { "metalwidths", { 500, 500, 800, 800, 800, 800, 1000, 1000, 5000, 5000 } },
+        { "needmultiplepatterning", { true, true, false, false, false, false, false, false } }
     )
 end
 
 function layout(mesh, _P)
-    local rwidth = 600
+    -- guard ring
+    if aux.find(_P.meshmetals, 1) then
+        mesh:merge_into(pcell.create_layout("auxiliary/guardring", "guardring", {
+            contype = "p",
+            holewidth = _P.cellsize - 2 * _P.guardringwidth,
+            holeheight = _P.cellsize - 2 * _P.guardringwidth,
+            ringwidth = _P.guardringwidth,
+            fit = true
+        }))
+    end
+
+    -- mesh metals
+    for i = 1, #_P.meshmetals do
+        geometry.ring(mesh, generics.metal(_P.meshmetals[i]), _P.cellsize, _P.cellsize, _P.metalwidths[i])
+        if i < #_P.meshmetals then
+            if _P.meshmetals[i + 1] - _P.meshmetals[i] == 1 then
+                local mwidth = math.min(_P.metalwidths[i], _P.metalwidths[i + 1])
+                geometry.via(mesh, _P.meshmetals[i], _P.meshmetals[i] + 1,
+                    mwidth, _P.cellsize,
+                    -_P.cellsize / 2 + mwidth / 2, 0,
+                    1, 1, 0, 0,
+                    { equal_pitch = true }
+                )
+                geometry.via(mesh, _P.meshmetals[i], _P.meshmetals[i] + 1,
+                    mwidth, _P.cellsize,
+                    _P.cellsize / 2 - mwidth / 2, 0,
+                    1, 1, 0, 0,
+                    { equal_pitch = true }
+                )
+                geometry.via(mesh, _P.meshmetals[i], _P.meshmetals[i] + 1,
+                    _P.cellsize, mwidth,
+                    0, -_P.cellsize / 2 + mwidth / 2,
+                    1, 1, 0, 0,
+                    { equal_pitch = true }
+                )
+                geometry.via(mesh, _P.meshmetals[i], _P.meshmetals[i] + 1,
+                    _P.cellsize, mwidth,
+                    0,  _P.cellsize / 2 - mwidth / 2,
+                    1, 1, 0, 0,
+                    { equal_pitch = true }
+                )
+            end
+        end
+        -- fill exclude
+        geometry.rectangle(mesh, generics.metalexclude(_P.meshmetals[i]), _P.cellsize, _P.cellsize)
+    end
+
+    -- grid metals
+    for i = 1, #_P.gridmetals do
+        local metal = _P.gridmetals[i]
+        local width = _P.metalwidths[i + #_P.meshmetals]
+        if _P.drawright then
+            geometry.rectangle(mesh, generics.metal(metal), width, width, width / 2, 0)
+        end
+        if _P.drawleft then
+            geometry.rectangle(mesh, generics.metal(metal), width, width, -width / 2, 0)
+        end
+        if _P.drawtop then
+            geometry.rectangle(mesh, generics.metal(metal), width, width, 0, width / 2)
+        end
+        if _P.drawbottom then
+            geometry.rectangle(mesh, generics.metal(metal), width, width, 0, -width / 2)
+        end
+        if (i < #_P.gridmetals) and (_P.gridmetals[i + 1] - _P.gridmetals[i] == 1) then
+            local mwidth = math.min(_P.metalwidths[i + #_P.meshmetals], _P.metalwidths[i + 1 + #_P.meshmetals])
+            geometry.via(mesh, _P.gridmetals[i], _P.gridmetals[i] + 1, mwidth, mwidth)
+        end
+        -- fill exclude
+        geometry.rectangle(mesh, generics.metalexclude(_P.gridmetals[i]), _P.cellsize, _P.cellsize)
+    end
+
+    -- connect to top metal
+    if _P.connecttopmetal then
+        geometry.via(mesh, _P.gridmetals[#_P.gridmetals], _P.gridmetals[#_P.gridmetals] + 1, _P.metalwidths[#_P.metalwidths], _P.metalwidths[#_P.metalwidths])
+    end
+
     local foffset = 100
     local fwidth = 50
     local fspace = 50
-    for i = 1, _P.captopmetal do
-        geometry.ring(mesh, generics.metal(i), _P.cellsize, _P.cellsize, _P.metalwidth[i])
-        local nfingers = 2 * math.floor((_P.cellsize - 2 * _P.metalwidth[i]) / (2 * (fwidth + fspace))) - 10
-        local topcap = pcell.create_layout("passive/capacitor/mom", "topcap", {
-            firstmetal = i, lastmetal = i, 
-            fingers = nfingers,
-            fwidth = fwidth,
-            fspace = fspace,
-            foffset = foffset,
-            rwidth = rwidth, 
-            fheight = _P.cellsize / 2 - rwidth / 2 - _P.metalwidth[i] - 2 * foffset
-        })
-        local botcap = topcap:copy()
-        topcap:move_anchor("minus")
-        botcap:move_anchor("plus")
-        botcap:flipy()
-        mesh:merge_into(topcap)
-        mesh:merge_into(botcap)
-        -- inner rail via
-        if i > 1 then
-            geometry.via(mesh, i - 1, i, (nfingers + 1) * (fwidth + fspace), rwidth)
+    local flippolarity = true
+    if _P.flavour == "cap" then
+        for i = 1, #_P.meshmetals do
+            if _P.meshmetals[i] == _P.interconnectmetal then
+                break
+            end
+            local nfingers = 2 * math.floor((_P.cellsize - 2 * _P.metalwidths[i]) / (2 * (fwidth + fspace))) - 10
+            local topcap = pcell.create_layout("passive/capacitor/mom", "topcap", {
+                firstmetal = _P.meshmetals[i], lastmetal = _P.meshmetals[i],
+                fingers = nfingers,
+                fwidth = fwidth,
+                fspace = fspace,
+                foffset = foffset,
+                rwidth = _P.metalwidths[i],
+                fheight = _P.cellsize / 2 - _P.metalwidths[i] / 2 - _P.metalwidths[i] - 2 * foffset,
+                alternatingpolarity = alternatingpolarity,
+                flippolarity = flippolarity,
+            })
+            flippolarity = not flippolarity
+            local botcap = topcap:copy()
+            topcap:move_anchor("minus")
+            botcap:move_anchor("plus")
+            botcap:flipy()
+            mesh:merge_into(topcap)
+            mesh:merge_into(botcap)
+            -- inner rail via
+            if i < #_P.meshmetals then
+                if _P.meshmetals[i + 1] - _P.meshmetals[i] == 1 then
+                    local nfingersnext = 2 * math.floor((_P.cellsize - 2 * _P.metalwidths[i + 1]) / (2 * (fwidth + fspace))) - 10
+                    local viawidth = (math.min(nfingers, nfingersnext) + 1) * (fwidth + fspace)
+                    local viaheight = math.min(_P.metalwidths[i], _P.metalwidths[i + 1])
+                    geometry.via(mesh, _P.meshmetals[i], _P.meshmetals[i] + 1, viawidth, viaheight)
+                end
+            end
         end
-        -- outer rail via
-        if i > 1 then
-            local mwidth = math.min(_P.metalwidth[i - 1], _P.metalwidth[i])
-            geometry.via(mesh, i - 1, i, mwidth, _P.cellsize - 2 * mwidth, -_P.cellsize / 2 + mwidth / 2, 0)
-            geometry.via(mesh, i - 1, i, mwidth, _P.cellsize - 2 * mwidth, _P.cellsize / 2 - mwidth / 2, 0)
-            geometry.via(mesh, i - 1, i, _P.cellsize - 2 * mwidth, mwidth, 0, -_P.cellsize / 2 + mwidth / 2)
-            geometry.via(mesh, i - 1, i, _P.cellsize - 2 * mwidth, mwidth, 0, _P.cellsize / 2 - mwidth / 2)
+        -- connect cap to grid
+        geometry.via(mesh, _P.interconnectmetal, _P.interconnectmetal + 1, _P.metalwidths[#_P.meshmetals + 2], _P.metalwidths[#_P.meshmetals + 2])
+    else -- flavour == "ground"
+        for i = 1, #_P.meshmetals do
+            if _P.needmultiplepatterning[i] then
+                local density = 0.5
+                local numlines = math.floor(density * (_P.cellsize - 2 * _P.metalwidths[i]) / _P.metalwidths[i])
+                if numlines % 2 == 0 then
+                    numlines = numlines - 1
+                end
+                for j = 1, numlines do
+                    geometry.rectangle(mesh, generics.metal(_P.meshmetals[i]),
+                        _P.cellsize - 4 * _P.metalwidths[i], _P.metalwidths[i],
+                        0, (j - (numlines + 1) / 2) * _P.cellsize / (numlines + 1)
+                    )
+                end
+            else
+                geometry.rectangle(mesh, generics.metal(_P.meshmetals[i]), _P.metalwidths[i], _P.cellsize)
+                geometry.rectangle(mesh, generics.metal(_P.meshmetals[i]), _P.cellsize, _P.metalwidths[i])
+            end
         end
+        -- connect mesh to grid
+        geometry.via(mesh, _P.interconnectmetal, _P.interconnectmetal + 1, _P.cellsize / 4, _P.metalwidths[#_P.meshmetals + 2], -_P.cellsize / 2 + _P.cellsize / 8, 0)
+        geometry.via(mesh, _P.interconnectmetal, _P.interconnectmetal + 1, _P.cellsize / 4, _P.metalwidths[#_P.meshmetals + 2],  _P.cellsize / 2 - _P.cellsize / 8, 0)
+        geometry.via(mesh, _P.interconnectmetal, _P.interconnectmetal + 1, _P.metalwidths[#_P.meshmetals + 2], _P.cellsize / 4, 0, -_P.cellsize / 2 + _P.cellsize / 8)
+        geometry.via(mesh, _P.interconnectmetal, _P.interconnectmetal + 1, _P.metalwidths[#_P.meshmetals + 2], _P.cellsize / 4, 0,  _P.cellsize / 2 - _P.cellsize / 8)
     end
-    -- connection between top lower metal and intermediate metal
-    local mwidth = math.min(_P.metalwidth[_P.gridstartmetal - 2], _P.metalwidth[_P.gridstartmetal - 1])
-    geometry.via(mesh, _P.gridstartmetal - 2, _P.gridstartmetal - 1, mwidth, _P.cellsize - 2 * mwidth, -_P.cellsize / 2 + mwidth / 2, 0)
-    geometry.via(mesh, _P.gridstartmetal - 2, _P.gridstartmetal - 1, mwidth, _P.cellsize - 2 * mwidth, _P.cellsize / 2 - mwidth / 2, 0)
-    geometry.via(mesh, _P.gridstartmetal - 2, _P.gridstartmetal - 1, _P.cellsize - 2 * mwidth, mwidth, 0, -_P.cellsize / 2 + mwidth / 2, 0)
-    geometry.via(mesh, _P.gridstartmetal - 2, _P.gridstartmetal - 1, _P.cellsize - 2 * mwidth, mwidth, 0, _P.cellsize / 2 - mwidth / 2, 0)
-    geometry.via(mesh, _P.gridstartmetal - 2, _P.gridstartmetal - 1, _P.cellsize / 2, rwidth)
-    -- top metal grid
-    geometry.ring(mesh, generics.metal(_P.gridstartmetal - 1), 
-        _P.cellsize - _P.metalwidth[_P.gridstartmetal - 1], _P.cellsize - _P.metalwidth[_P.gridstartmetal - 1], _P.metalwidth[_P.gridstartmetal - 1])
-    geometry.rectangle(mesh, generics.metal(_P.gridstartmetal - 1), _P.cellsize / 2, _P.cellsize / 2)
-    geometry.via(mesh, _P.gridstartmetal - 1, _P.gridtopmetal, _P.cellsize / 2, _P.cellsize / 2)
-    local rotate = false
-    for i = _P.gridstartmetal, _P.gridtopmetal do
-        if rotate then
-            geometry.rectangle(mesh, generics.metal(i), _P.cellsize / 2, _P.cellsize)
-        else
-            geometry.rectangle(mesh, generics.metal(i), _P.cellsize, _P.cellsize / 2)
-        end
-        rotate = not rotate
-    end
-    -- guard ring
-    mesh:merge_into(pcell.create_layout("auxiliary/guardring", "guardring", { 
-        contype = "p", 
-        holewidth = _P.cellsize - 2 * _P.guardringwidth,
-        holeheight = _P.cellsize - 2 * _P.guardringwidth,
-        ringwidth = _P.guardringwidth,
-        fit = true
-    }))
+
+    -- FIXME: this should depend on parameters
+    mesh:add_anchor_area_bltr(
+        "gridcenter",
+        point.create(-2500, -2500),
+        point.create( 2500,  2500)
+    )
+
+    mesh:set_alignment_box(
+        point.create(-_P.cellsize / 2, -_P.cellsize / 2),
+        point.create( _P.cellsize / 2,  _P.cellsize / 2)
+    )
 end
