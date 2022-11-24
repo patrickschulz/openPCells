@@ -16,6 +16,8 @@ function parameters()
         { "gbotext(Gate Bottom Extension)",                            tech.get_dimension("Minimum Gate Extension") },
         { "cliptop(Clip Top Marker Layers)",                           false },
         { "clipbot(Clip Bottom Marker Layers)",                        false },
+        { "endleftwithgate(End Left Side With Gate)",                  false },
+        { "endrightwithgate(End Right Side With Gate)",                false },
         { "drawtopgate(Draw Top Gate Contact)",                        false },
         { "topgatecompsd(Compensate for Source/Drain Connection)",      true },
         { "drawtopgatestrap(Draw Top Gate Strap)",                     false, follow = "drawtopgate" },
@@ -50,6 +52,7 @@ function parameters()
         { "connsourcewidth(Source Rails Metal Width)",               tech.get_dimension("Minimum M1 Width"), argtype = "integer", follow = "sdwidth" },
         { "connsourcespace(Source Rails Metal Space)",               tech.get_dimension("Minimum M1 Width"), argtype = "integer" },
         { "connsourcemetal(Source Connection Metal)",                      1 },
+        { "sourceviametal(Source Via Metal)",                          false, follow = "connsourcemetal" },
         { "connsourceinline(Connect Source Inline of Transistor)",     false },
         { "inlinesourceoffset(Inline Source Connection Offset)",           0 },
         { "connectsourceinverse(Invert Source Strap Locations)",       false },
@@ -62,6 +65,7 @@ function parameters()
         { "connectdraininverse(Invert Drain Strap Locations)",         false },
         { "drawdrainvia(Draw Drain Via)",                              false },
         { "conndrainmetal(Drain Connection Metal)",                        1 },
+        { "drainviametal(Drain Via Metal)",                            false, follow = "conndrainmetal" },
         { "conndraininline(Connect Drain Inline of Transistor)",       false },
         { "inlinedrainoffset(Inline Drain Connection Offset)",             0 },
         { "diodeconnected(Diode Connected Transistor)",                false },
@@ -179,10 +183,15 @@ function layout(transistor, _P)
         end
 
         -- gates
+        local leftgateadd = _P.endleftwithgate and 1 or 0
+        local rightgateadd = _P.endrightwithgate and 1 or 0
+        local gateshift = (rightgateadd - leftgateadd) * gatepitch / 2
+        lowerpt:translate(gateshift, 0)
+        higherpt:translate(gateshift, 0)
         geometry.rectanglebltr(transistor, 
             generics.other("gate"),
             lowerpt, higherpt,
-            _P.fingers, 1, gatepitch, 0
+            _P.fingers + leftgateadd + rightgateadd, 1, gatepitch, 0
         )
 
         -- gate marker
@@ -501,9 +510,9 @@ function layout(transistor, _P)
                 shift, sourceoffset,
                 math.floor(_P.fingers / 2) + 1, 1, 2 * gatepitch, 0
             )
-            if _P.drawsourcevia and _P.connsourcemetal > 1 then
+            if _P.drawsourcevia and _P.sourceviametal > 1 then
                 geometry.via(transistor,
-                    1, _P.connsourcemetal,
+                    1, _P.sourceviametal,
                     _P.sdwidth, _P.sourcesize,
                     shift, sourceoffset,
                     math.floor(_P.fingers / 2) + 1, 1, 2 * gatepitch, 0
@@ -527,9 +536,9 @@ function layout(transistor, _P)
                 -shift, drainoffset,
                 math.floor((_P.fingers - 1) / 2) + 1, 1, 2 * gatepitch, 0
             )
-            if _P.drawdrainvia and _P.conndrainmetal > 1 then
+            if _P.drawdrainvia and _P.drainviametal > 1 then
                 geometry.via(transistor,
-                    1, _P.conndrainmetal,
+                    1, _P.drainviametal,
                     _P.sdwidth, _P.drainsize,
                     -shift, drainoffset,
                     math.floor((_P.fingers - 1) / 2) + 1, 1, 2 * gatepitch, 0
