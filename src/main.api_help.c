@@ -16,6 +16,7 @@
 #define API_HELP_TYPE_STRING    COLOR_BOLD COLOR_RGB(100, 205, 0)
 #define API_HELP_TYPE_OBJECT    COLOR_BOLD COLOR_RGB(0, 180, 140)
 #define API_HELP_TYPE_INTEGER   COLOR_BOLD COLOR_RGB(230, 0, 120)
+#define API_HELP_TYPE_NUMBER    COLOR_BOLD COLOR_RGB(230, 0, 120)
 #define API_HELP_TYPE_GENERICS  COLOR_BOLD COLOR_RGB(0, 80, 200)
 #define API_HELP_TYPE_POINT     COLOR_BOLD COLOR_RGB(255, 128, 0)
 
@@ -47,6 +48,7 @@ struct parameter {
         OBJECT,
         GENERICS,
         INTEGER,
+        NUMBER,
         POINT,
         POINTLIST
     } type;
@@ -136,6 +138,7 @@ static const char* _get_color(const char* identifier, size_t len)
         "RESET",
         "OBJECT",
         "INTEGER",
+        "NUMBER",
         "GENERICS",
         "STRING"
     };
@@ -143,6 +146,7 @@ static const char* _get_color(const char* identifier, size_t len)
         "\033[0m",
         API_HELP_TYPE_OBJECT,
         API_HELP_TYPE_INTEGER,
+        API_HELP_TYPE_NUMBER,
         API_HELP_TYPE_GENERICS,
         API_HELP_TYPE_STRING
     };
@@ -241,6 +245,8 @@ static int _get_type_width(const struct parameter* parameter)
             return defshift + 6;
         case GENERICS:
             return defshift + 8;
+        case NUMBER:
+            return defshift + 6;
         case INTEGER:
             return defshift + 7;
         case BOOLEAN:
@@ -273,6 +279,8 @@ static const char* _get_param_color(const struct parameter* parameter)
             return API_HELP_TYPE_OBJECT;
         case GENERICS:
             return API_HELP_TYPE_GENERICS;
+        case NUMBER:
+            return API_HELP_TYPE_NUMBER;
         case INTEGER:
             return API_HELP_TYPE_INTEGER;
         case POINT:
@@ -318,6 +326,9 @@ static void _print_parameter(const struct parameter* parameter, int namewidth, i
             break;
         case GENERICS:
             _putstr(API_HELP_TYPE_GENERICS "generics");
+            break;
+        case NUMBER:
+            _putstr(API_HELP_TYPE_NUMBER "number");
             break;
         case INTEGER:
             _putstr(API_HELP_TYPE_INTEGER "integer");
@@ -367,7 +378,11 @@ static void _print_parameters(const struct vector* parameters)
 
     if(vector_size(parameters) > 0)
     {
-        puts("Parameters:");
+        terminal_set_bold();
+        terminal_set_color_RGB(255, 0, 185);
+        _putstr("Parameters:");
+        terminal_reset_color();
+        putchar('\n');
         it = vector_const_iterator_create(parameters);
         while(vector_const_iterator_is_valid(it))
         {
@@ -461,7 +476,10 @@ void _print_api_entry(const struct api_entry* entry)
 {
     // function name
     putchar('\n');
+    terminal_set_bold();
+    terminal_set_color_RGB(255, 0, 185);
     _putstr("Syntax: ");
+    terminal_reset_color();
     if(entry->module != MODULE_NONE)
     {
         _putstr(_stringify_module(entry->module));
@@ -491,16 +509,22 @@ void _print_api_entry(const struct api_entry* entry)
     putchar('\n');
     putchar('\n');
 
+    // detailed parameter list
+    _print_parameters(entry->parameters);
+
+    putchar('\n');
+
     // function example
-    _putstr("Example:\n");
+    terminal_set_bold();
+    terminal_set_color_RGB(255, 0, 185);
+    _putstr("Example: ");
+    terminal_reset_color();
+    putchar('\n');
+    // FIXME: make _print_with_newlines_and_offset color-aware
     //_print_with_newlines_and_offset(entry->example, 9); // 9: strlen("Example: ")
     _putstr(entry->example);
 
     putchar('\n');
-    putchar('\n');
-
-    // detailed parameter list
-    _print_parameters(entry->parameters);
 }
 
 struct vector* _initialize_api_entries(void)
@@ -1140,61 +1164,67 @@ struct vector* _initialize_api_entries(void)
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
-    /* placement.create_floorplan_aspectratio */ // FIXME: create_floorplan_aspectratio
+    /* placement.create_floorplan_aspectratio */
     {
         struct parameter parameters[] = {
-
+            { "instances",      TABLE,      NULL,   "instances table" },
+            { "utilization",    NUMBER,     NULL,   "utilization factor, must be between 0 and 1" },
+            { "aspectration",   NUMBER,     NULL,   "aspectratio (width / height) of the floorplan" }
         };
         vector_append(entries, _make_api_entry(
             "create_floorplan_aspectratio",
             MODULE_PLACEMENT,
-            "",
-            "",
+            "create a floorplan configuration based on utilization and an aspectratio. The 'instances' table is the result of parsing and processing verilog netlists. This function is intended to be called in a place-and-route-script for --import-verilog",
+            "local floorplan = placement.create_floorplan_aspectratio(instances, 0.8, 2 / 1)",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
-    /* placement.create_floorplan_fixed_rows */ // FIXME: create_floorplan_fixed_rows
+    /* placement.create_floorplan_fixed_rows */
     {
         struct parameter parameters[] = {
-
+            { "instances",      TABLE,      NULL,   "instances table" },
+            { "utilization",    NUMBER,     NULL,   "utilization factor, must be between 0 and 1" },
+            { "rows",           INTEGER,    NULL,   "number of rows" }
         };
         vector_append(entries, _make_api_entry(
             "create_floorplan_fixed_rows",
             MODULE_PLACEMENT,
-            "",
-            "",
+            "create a floorplan configuration based on utilization and a fixed number of rows. The 'instances' table is the result of parsing and processing verilog netlists. This function is intended to be called in a place-and-route-script for --import-verilog",
+            "local floorplan = placement.create_floorplan_fixed_rows(instances, 0.8, 20)",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
-    /* placement.optimize */ // FIXME: optimize
+    /* placement.optimize */
     {
         struct parameter parameters[] = {
-
+            { "instances",      TABLE,      NULL,   "instances table" },
+            { "nets",           TABLE,      NULL,   "nets table" },
+            { "floorplan",      TABLE,      NULL,   "floorplan configuration" }
         };
         vector_append(entries, _make_api_entry(
             "optimize",
             MODULE_PLACEMENT,
-            "",
-            "",
+            "minimize wire length by optimizing the placement of the instances by a simulated annealing algorithm. This function returns a table with the rows and columns of the placement of the instances. It is intended to be called in a place-and-route-script for --import-verilog",
+            "local rows = placement.optimize(instances, nets, floorplan)",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
-    /* placement.manual */ // FIXME: manual
+    /* placement.manual */
     {
         struct parameter parameters[] = {
-
+            { "instances",      TABLE,      NULL,   "instances table" },
+            { "plan",           TABLE,      NULL,   "row-column table" }
         };
         vector_append(entries, _make_api_entry(
             "manual",
             MODULE_PLACEMENT,
-            "",
-            "",
+            "create a placement of instances manually. This function expects a row-column table with all instance names. Thus the instance names must match the ones found in the instances table (from the verilog netlist). This function then updates all required references in the row-column table, that are needed for further processing (e.g. routing). This function is useful for small designs, especially in a hierarchical flow",
+            "local plan = {\n    { \"inv\", \"nand1\", \"dff_out\" },\n    { \"nand2\", \"dff_buf\" },\n    { \"nand3\", \"dff_in\" },\n}\nlocal rows = placement.manual(instances, plan)\n",
             parameters,
-            sizeof(parameters) / sizeof(parameters[0])
-        ));
+            sizeof(parameters) / sizeof(parameters[0])));
     }
     /* placement.insert_filler_names */ // FIXME: insert_filler_names
     {
@@ -2227,44 +2257,48 @@ struct vector* _initialize_api_entries(void)
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
-    /* util.xmirror(pts, xcenter) */ // FIXME: xmirror
+    /* util.xmirror(pts, xcenter) */
     {
         struct parameter parameters[] = {
-
+            { "pts",        POINTLIST,  NULL,   "list of points" },
+            { "xcenter",    INTEGER,    "0",    "mirror center" }
         };
         vector_append(entries, _make_api_entry(
             "xmirror",
             MODULE_UTIL,
-            "",
-            "",
+            "create a copy of the points in pts (a table) with all x-coordinates mirrored with respect to xcenter",
+            "local pts = { point.create(10, 0), point.create(20, 0) }\nutil.xmirror(pts, 0) -- { (-10, 0), (-20, 0) }",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
-    /* util.ymirror(pts, ycenter) */ // FIXME: ymirror
+    /* util.ymirror(pts, ycenter) */
     {
         struct parameter parameters[] = {
-
+            { "pts",        POINTLIST,  NULL,   "list of points" },
+            { "ycenter",    INTEGER,    "0",    "mirror center" }
         };
         vector_append(entries, _make_api_entry(
             "ymirror",
             MODULE_UTIL,
-            "",
-            "",
+            "create a copy of the points in pts (a table) with all y-coordinates mirrored with respect to ycenter",
+            "local pts = { point.create(0, 10), point.create(0, 20) }\nutil.ymirror(pts, 0) -- { (0, -10), (0, -20) }",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
-    /* util.xymirror(pts, xcenter, ycenter) */ // FIXME: xymirror
+    /* util.xymirror(pts, xcenter, ycenter) */
     {
         struct parameter parameters[] = {
-
+            { "pts",        POINTLIST,  NULL,   "list of points" },
+            { "xcenter",    INTEGER,    "0",    "mirror center x-coordinate" },
+            { "ycenter",    INTEGER,    "0",    "mirror center y-coordinate" }
         };
         vector_append(entries, _make_api_entry(
             "xymirror",
             MODULE_UTIL,
-            "",
-            "",
+            "create a copy of the points in pts (a table) with all x- and y-coordinates mirrored with respect to xcenter and ycenter, respectively",
+            "local pts = { point.create(10, 10), point.create(20, 20) }\nutil.ymirror(pts, 0, 0) -- { (-10, -10), (-20, -20) }",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));

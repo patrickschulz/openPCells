@@ -28,4 +28,8 @@
 #define COLOR_WHITE_BOLD   "\033[1;37m"
 #define COLOR_NORMAL       "\033[0m"
 
+void terminal_set_color_RGB(unsigned char R, unsigned char G, unsigned char B);
+void terminal_set_bold(void);
+void terminal_reset_color(void);
+
 #endif /* OPC_TERMINAL_COLORS_H */
