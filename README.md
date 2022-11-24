@@ -68,6 +68,7 @@ OpenPCells provides an already quite rich set of command line options, which inf
 Furthermore, it can also import GDSII-streams and create an opc-own representation of an entire library.
 See `--read-GDS` for this.
 All command line options are documented with `--help` and a few basic examples for usage are given at the end.
+Help for API functions is provided by `--api-list` (list all available API functions), `--api-search` (search for matching function names) and `api-help` (display detailed help about a specific function).
 
 # Building and Installation
 Building this project is fairly simple, as the sole dependency is a C compiler.
