@@ -9,7 +9,7 @@ function parameters()
 end
 
 function layout(gate, _P)
-    local subgate = pcell.create_layout("stdcells/1_inv_gate", "subgate", {
+    local subgate = pcell.create_layout("stdcells/1_inv_gate", "and_gate", {
         subgate = "nand_gate",
         subgatefingers = _P.nandfingers,
         notfingers = _P.notfingers,
