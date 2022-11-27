@@ -156,8 +156,8 @@ function layout(cell, _P)
     for column = 1, _P.columns do
         geometry.rectanglebltr(
             cell, generics.metal(10),
-            point.create(-2500 + (column - 1) * _P.cellsize,  2500),
-            point.create( 2500 + (column - 1) * _P.cellsize, -2500 + (_P.rows - 1) * _P.cellsize)
+            point.create(-2500 + (column - 1) * _P.cellsize, -2500),
+            point.create( 2500 + (column - 1) * _P.cellsize,  2500 + (_P.rows - 1) * _P.cellsize)
         )
         for row = 1, _P.rows do
             if _P.drawleft or column > 1 then
@@ -193,8 +193,8 @@ function layout(cell, _P)
     for row = 1, _P.rows do
         geometry.rectanglebltr(
             cell, generics.metal(9),
-            point.create( 2500, -2500 + (row - 1) * _P.cellsize),
-            point.create(-2500 + (_P.columns - 1) * _P.cellsize, 2500 + (row - 1) * _P.cellsize)
+            point.create(-2500, -2500 + (row - 1) * _P.cellsize),
+            point.create( 2500 + (_P.columns - 1) * _P.cellsize, 2500 + (row - 1) * _P.cellsize)
         )
     end
 end
