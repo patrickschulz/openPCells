@@ -153,10 +153,18 @@ function layout(mesh, _P)
             end
         end
         -- connect mesh to grid
-        geometry.via(mesh, _P.interconnectmetal, _P.interconnectmetal + 1, _P.cellsize / 4, _P.metalwidths[#_P.meshmetals + 2], -_P.cellsize / 2 + _P.cellsize / 8, 0)
-        geometry.via(mesh, _P.interconnectmetal, _P.interconnectmetal + 1, _P.cellsize / 4, _P.metalwidths[#_P.meshmetals + 2],  _P.cellsize / 2 - _P.cellsize / 8, 0)
-        geometry.via(mesh, _P.interconnectmetal, _P.interconnectmetal + 1, _P.metalwidths[#_P.meshmetals + 2], _P.cellsize / 4, 0, -_P.cellsize / 2 + _P.cellsize / 8)
-        geometry.via(mesh, _P.interconnectmetal, _P.interconnectmetal + 1, _P.metalwidths[#_P.meshmetals + 2], _P.cellsize / 4, 0,  _P.cellsize / 2 - _P.cellsize / 8)
+        if _P.drawleft then
+            geometry.via(mesh, _P.interconnectmetal, _P.interconnectmetal + 1, _P.cellsize / 4, _P.metalwidths[#_P.meshmetals + 2], -_P.cellsize / 2 + _P.cellsize / 8, 0)
+        end
+        if _P.drawright then
+            geometry.via(mesh, _P.interconnectmetal, _P.interconnectmetal + 1, _P.cellsize / 4, _P.metalwidths[#_P.meshmetals + 2],  _P.cellsize / 2 - _P.cellsize / 8, 0)
+        end
+        if _P.drawbottom then
+            geometry.via(mesh, _P.interconnectmetal, _P.interconnectmetal + 1, _P.metalwidths[#_P.meshmetals + 2], _P.cellsize / 4, 0, -_P.cellsize / 2 + _P.cellsize / 8)
+        end
+        if _P.drawtop then
+            geometry.via(mesh, _P.interconnectmetal, _P.interconnectmetal + 1, _P.metalwidths[#_P.meshmetals + 2], _P.cellsize / 4, 0,  _P.cellsize / 2 - _P.cellsize / 8)
+        end
     end
 
     -- FIXME: this should depend on parameters
