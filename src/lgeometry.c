@@ -144,7 +144,17 @@ static int lgeometry_path(lua_State* L)
     lua_len(L, 3);
     size_t len = lua_tointeger(L, -1);
     lua_pop(L, 1);
-    coordinate_t width = lua_tointeger(L, 4);
+    coordinate_t width = luaL_checkinteger(L, 4);
+    if(width == 0)
+    {
+        lua_pushstring(L, "geometry.path: width can't be zero");
+        lua_error(L);
+    }
+    if(width % 2 != 0)
+    {
+        lua_pushfstring(L, "geometry.path: width is odd (%d)", width);
+        lua_error(L);
+    }
 
     int bgnext = 0;
     int endext = 0;
