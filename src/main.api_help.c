@@ -1226,16 +1226,17 @@ struct vector* _initialize_api_entries(void)
             parameters,
             sizeof(parameters) / sizeof(parameters[0])));
     }
-    /* placement.insert_filler_names */ // FIXME: insert_filler_names
+    /* placement.insert_filler_names */
     {
         struct parameter parameters[] = {
-
+            { "rows",   TABLE,      NULL,   "placement rows table" },
+            { "width",  INTEGER,    NULL,   "width as multiple of transistor gates. Must be equal to or larger than every row" }
         };
         vector_append(entries, _make_api_entry(
             "insert_filler_names",
             MODULE_PLACEMENT,
-            "",
-            "",
+            "equalize placement rows by inserting fillers in every row. The method tries to equalize spacing between cells. This function is intended to be called in a place-and-route-script for --import-verilog",
+            "placement.insert_filler_names(rows, 200)",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -2331,72 +2332,76 @@ struct vector* _initialize_api_entries(void)
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
-    /* util.merge_forwards(pts, pts2) */ // FIXME: merge_forwards
+    /* util.merge_forwards(pts, pts2) */
     {
         struct parameter parameters[] = {
-
+            { "pts",    POINTLIST,  NULL,   "point array to append to" },
+            { "pts2",   POINTLIST,  NULL,   "point array to append from" }
         };
         vector_append(entries, _make_api_entry(
             "merge_forwards",
             MODULE_UTIL,
-            "",
-            "",
+            "append all points from pts2 to pts1. Iterate pts2 forward. Operates in-place, thus pts is modified",
+            "util.merge_forward(pts, pts2)",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
-    /* util.merge_backwards(pts, pts2) */ // FIXME: merge_backwards
+    /* util.merge_backwards(pts, pts2) */
     {
         struct parameter parameters[] = {
-
+            { "pts",    POINTLIST,  NULL,   "point array to append to" },
+            { "pts2",   POINTLIST,  NULL,   "point array to append from" }
         };
         vector_append(entries, _make_api_entry(
             "merge_backwards",
             MODULE_UTIL,
-            "",
-            "",
+            "append all points from pts2 to pts1. Iterate pts2 backwards. Operates in-place, thus pts is modified",
+            "util.merge_backward(pts, pts2)",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
-    /* util.reverse(pts) */ // FIXME: reverse
+    /* util.reverse(pts) */
     {
         struct parameter parameters[] = {
-
+            { "pts",    POINTLIST,  NULL,   "point array" }
         };
         vector_append(entries, _make_api_entry(
             "reverse",
             MODULE_UTIL,
-            "",
-            "",
+            "create a copy of the point array with the order of points reversed",
+            "local reversed = util.reverse(pts)",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
-    /* util.make_insert_xy(pts, idx) */ // FIXME: make_insert_xy
+    /* util.make_insert_xy(pts, idx) */
     {
         struct parameter parameters[] = {
-
+            { "pts",    POINTLIST,  NULL,   "point array" },
+            { "index",  INTEGER,    "nil",  "optional index" }
         };
         vector_append(entries, _make_api_entry(
             "make_insert_xy",
             MODULE_UTIL,
-            "",
-            "",
+            "create a function that inserts points into a point array. XY mode, thus points are given as two coordinates. If an index is given, insert at that position. Mostly useful with 1 as an index or not index at all (append)",
+            "local pts = {}\nlocal _append = util.make_insert_xy(pts)\n_append(0, 0)\n_append(100, 0)\n_append(100, 100)\n_append(0, 100)",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
-    /* util.make_insert_pts(pts, idx) */ // FIXME: make_insert_pts
+    /* util.make_insert_pts(pts, idx) */
     {
         struct parameter parameters[] = {
-
+            { "pts",    POINTLIST,  NULL,   "point array" },
+            { "index",  INTEGER,    "nil",  "optional index" }
         };
         vector_append(entries, _make_api_entry(
             "make_insert_pts",
             MODULE_UTIL,
-            "",
-            "",
+            "create a function that inserts points into a point array. Point mode, thus points are given as single points. If an index is given, insert at that position. Mostly useful with 1 as an index or not index at all (append)",
+            "local pts = {}\nlocal _append = util.make_insert_pts(pts)\n_append(point.create(0, 0))\n_append(point.create(100, 0))\n_append(point.create(100, 100))\n_append(point.create(0, 100))",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -2465,58 +2470,31 @@ struct vector* _initialize_api_entries(void)
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
-    /* enable */ // FIXME: enable
+    /* enable */
     {
         struct parameter parameters[] = {
-
+            { "bool",   BOOLEAN,    NULL,   "boolean for enable/disable" },
+            { "value",  NUMBER,     "1",    "value to be enabled/disabled" }
         };
         vector_append(entries, _make_api_entry(
             "enable",
             MODULE_NONE,
-            "",
-            "",
+            "multiply a value with 1 or 0, depending on a boolean parameter. Essentially val * (bool and 1 or 0)",
+            "enable(_P.drawguardring, _P.guardringspace)",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
-    /* thisorthat */ // FIXME: thisorthat
+    /* evenodddiv2 */
     {
         struct parameter parameters[] = {
-
-        };
-        vector_append(entries, _make_api_entry(
-            "thisorthat",
-            MODULE_NONE,
-            "",
-            "",
-            parameters,
-            sizeof(parameters) / sizeof(parameters[0])
-        ));
-    }
-    /* evenodddiv */ // FIXME: evenodddiv
-    {
-        struct parameter parameters[] = {
-
-        };
-        vector_append(entries, _make_api_entry(
-            "evenodddiv",
-            MODULE_NONE,
-            "",
-            "",
-            parameters,
-            sizeof(parameters) / sizeof(parameters[0])
-        ));
-    }
-    /* evenodddiv2 */ // FIXME: evenodddiv2
-    {
-        struct parameter parameters[] = {
-
+            { "value",  INTEGER,    NULL,   "value to divide" }
         };
         vector_append(entries, _make_api_entry(
             "evenodddiv2",
             MODULE_NONE,
-            "",
-            "",
+            "divide a value by 2. If it is odd, return floor(val / 2) and ceil(val / 2), otherwise return val / 2",
+            "local low, high = evenodddiv2(13) -- return 6 and 7",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
