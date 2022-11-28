@@ -380,8 +380,8 @@ int lplacer_place_classic(lua_State* L)
 {
     struct RanState rstate;
     srand(time(NULL));
-    randseed(&rstate, rand(), rand());
-    //randseed(&rstate, 127, 42);
+    //randseed(&rstate, rand(), rand());
+    randseed(&rstate, 1, 23);
 
     struct floorplan* floorplan = placer_create_floorplan(L);
 

@@ -147,6 +147,8 @@ static void _create_routing_stack_data(lua_State *L, struct net *net)
     lua_pushstring(L, net_get_name(net));
     lua_setfield(L, -2, "name");
 
+    /* ports start at metal 1 */
+    int curr_metal = 1;
     int is_first_conn = 1;
     int num_deltas = net_get_num_deltas(net);
     int table_pos = 0;
@@ -159,12 +161,16 @@ static void _create_routing_stack_data(lua_State *L, struct net *net)
         {
             if(i != 0)
             {
-                moves_create_via(L, -1, is_first_conn);
-                lua_rawseti(L, -2, table_pos + 1);
-                table_pos++;
-                printf("first conn at net %s\n", net_get_name(net));
+                while(curr_metal > 1)
+                {
+                    moves_create_via(L, -1, is_first_conn);
+                    lua_rawseti(L, -2, table_pos + 1);
+                    table_pos++;
+                    curr_metal--;
+                    lua_newtable(L);
 
-                lua_newtable(L);
+                }
+
                 is_first_conn = 0;
             }
             const struct position *pos =
@@ -178,6 +184,7 @@ static void _create_routing_stack_data(lua_State *L, struct net *net)
             /* FIXME: via after first anchor */
             lua_newtable(L);
             moves_create_via(L, 1, DRAW);
+            curr_metal++;
 
         }
         else if(point->x)
@@ -190,6 +197,7 @@ static void _create_routing_stack_data(lua_State *L, struct net *net)
         }
         else
         {
+            curr_metal += point->z;
             moves_create_via(L, point->z, DRAW);
         }
 
@@ -210,9 +218,9 @@ int lrouter_route(lua_State* L)
     puts("started routing\n");
 
     struct netcollection* nc = _initialize(L);
-    const size_t field_height = lua_tointeger(L, 4);
-    const size_t field_width = lua_tointeger(L, 3);
-    printf("field width %zu, field height %zu\n", field_height, field_width);
+    const size_t field_height = lua_tointeger(L, 4) + 1;
+    const size_t field_width = lua_tointeger(L, 3) + 1;
+    printf("field width %zu, field height %zu\n", field_width, field_height);
     const size_t num_layers = 5;
 
     struct field* field = field_init(field_width, field_height, num_layers);
@@ -244,8 +252,6 @@ int lrouter_route(lua_State* L)
             printf("couldnt route %s\n", net_get_name(net));
         }
     }
-    field_print(field, 0);
-    getchar();
     lua_pushinteger(L, routed_count);
 
     field_destroy(field);

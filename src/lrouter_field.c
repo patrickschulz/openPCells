@@ -256,7 +256,8 @@ void field_create_blockage(struct field* field, struct rpoint* start,
         }
     }
 
-    for(int i = 0; i < len; i++)
+    int i;
+    for(i = 0; i < len + 1; i++)
     {
         *_get(field, start->x + i * xincr, start->y + i * yincr,
 	      start->z - LOWEST_ROUTING_METAL) = BLOCKAGE;

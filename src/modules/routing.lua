@@ -30,8 +30,8 @@ local function _prepare_routing_nets(nets, rows, numinnerroutes, pnumtracks, nnu
                             table.insert(netpositions[i].positions, {
                                 instance = column.instance,
                                 port = n.port,
-                                x = curwidth + offset.x + 1,
-                                y = (r - 1) * (nnumtracks + pnumtracks + numinnerroutes) + flip * offset.y + ((nnumtracks + pnumtracks + numinnerroutes) - 1) / 2 + (r - 1),
+                                x = math.floor(curwidth + offset.x + 1),
+                                y = math.floor((r - 1) * (nnumtracks + pnumtracks + numinnerroutes) + flip * offset.y + ((nnumtracks + pnumtracks + numinnerroutes) - 1) / 2 + (r - 1)),
                                 row = r
                             })
                             -- calc blockage coordinates

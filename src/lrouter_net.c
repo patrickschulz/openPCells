@@ -151,15 +151,6 @@ void nets_fill_ports(struct vector* nets, struct field* field)
     }
 }
 
-void net_fill_ports(struct net* net, struct field* field)
-{
-    for(int j = 0; j < net_get_size(net); j++)
-    {
-        struct position *pos = vector_get(net->positions, j);
-        field_set(field, pos->x, pos->y, pos->z, PORT);
-    }
-}
-
 void net_append_position(struct net *net, struct position *position)
 {
     vector_append(net->positions, position);
@@ -243,7 +234,10 @@ void net_make_deltas(struct net *net)
             struct rpoint *point = point_new(xsteps - current->x,
                     ysteps - current->y,
                     zsteps - current->z, PATH);
-            vector_append(new_deltas, point);
+            if(!(point->x == 0 && point->y == 0 && point->z == 0))
+            {
+                vector_append(new_deltas, point);
+            }
 
             struct rpoint *port = point_new(current->x, current->y,
                     current->z, PORT);
@@ -267,7 +261,7 @@ void net_make_deltas(struct net *net)
             ysteps = 0;
 
         }
-        else if (current->z && !next->z)
+        else if (current->z)
         {
             struct rpoint *point = point_new(0, 0, zsteps, PATH);
             vector_append(new_deltas, point);
