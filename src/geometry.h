@@ -53,7 +53,8 @@ int geometry_viabltr(
     int metal1, int metal2,
     const point_t* bl, const point_t* tr,
     ucoordinate_t xrep, ucoordinate_t yrep, ucoordinate_t xpitch, ucoordinate_t ypitch,
-    int xcont, int ycont
+    int xcont, int ycont,
+    int equal_pitch
 );
 
 int geometry_via(
@@ -64,7 +65,8 @@ int geometry_via(
     coordinate_t xshift, coordinate_t yshift,
     ucoordinate_t xrep, ucoordinate_t yrep,
     ucoordinate_t xpitch, ucoordinate_t ypitch,
-    int xcont, int ycont
+    int xcont, int ycont,
+    int equal_pitch
 );
 
 int geometry_contactbltr(
@@ -74,7 +76,8 @@ int geometry_contactbltr(
     const point_t* bl, const point_t* tr,
     ucoordinate_t xrep, ucoordinate_t yrep,
     ucoordinate_t xpitch, ucoordinate_t ypitch,
-    int xcont, int ycont
+    int xcont, int ycont,
+    int equal_pitch
 );
 
 int geometry_contact(
@@ -85,7 +88,8 @@ int geometry_contact(
     coordinate_t xshift, coordinate_t yshift,
     ucoordinate_t xrep, ucoordinate_t yrep,
     ucoordinate_t xpitch, ucoordinate_t ypitch,
-    int xcont, int ycont
+    int xcont, int ycont,
+    int equal_pitch
 );
 
 int geometry_contactbarebltr(
@@ -95,7 +99,8 @@ int geometry_contactbarebltr(
     const point_t* bl, const point_t* tr,
     ucoordinate_t xrep, ucoordinate_t yrep,
     ucoordinate_t xpitch, ucoordinate_t ypitch,
-    int xcont, int ycont
+    int xcont, int ycont,
+    int equal_pitch
 );
 
 int geometry_contactbare(
@@ -106,7 +111,8 @@ int geometry_contactbare(
     coordinate_t xshift, coordinate_t yshift,
     ucoordinate_t xrep, ucoordinate_t yrep,
     ucoordinate_t xpitch, ucoordinate_t ypitch,
-    int xcont, int ycont
+    int xcont, int ycont,
+    int equal_pitch
 );
 
 void geometry_cross(struct object* cell, const struct generics* layer, ucoordinate_t width, ucoordinate_t height, ucoordinate_t crosssize);

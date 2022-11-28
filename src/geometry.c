@@ -315,8 +315,6 @@ void geometry_any_angle_path(struct object* cell, const struct generics* layer, 
     vector_destroy(points);
 }
 
-typedef void (*via_strategy) (ucoordinate_t size, unsigned int cutsize, unsigned int space, int encl, unsigned int* rep_result, unsigned int* space_result);
-
 static void _fit_via(ucoordinate_t size, unsigned int cutsize, unsigned int space, int encl, unsigned int* rep_result, unsigned int* space_result)
 {
     *rep_result = (size + space - 2 * encl) / (cutsize + space);
@@ -349,20 +347,63 @@ static void _continuous_via(ucoordinate_t size, unsigned int cutsize, unsigned i
     }
 }
 
-static struct via_definition* _get_rectangular_arrayzation(ucoordinate_t regionwidth, ucoordinate_t regionheight, struct via_definition** definitions, struct via_definition* fallback, unsigned int* xrep_ptr, unsigned int* yrep_ptr, unsigned int* xpitch_ptr, unsigned int* ypitch_ptr, int xcont, int ycont)
+static void _equal_pitch_via(
+    ucoordinate_t width, ucoordinate_t height,
+    unsigned int cutsize, unsigned int space, int encl,
+    unsigned int* xrep_result, unsigned int* yrep_result,
+    unsigned int* xspace_result, unsigned int* yspace_result
+)
 {
-    via_strategy xstrat = _fit_via;
-    via_strategy ystrat = _fit_via;
-    if(xcont)
+    (void)encl; // FIXME
+    int Nxres = 0;
+    int Nyres = 0;
+    for(unsigned int Nx = 1; Nx < UINT_MAX; ++Nx)
     {
-        xstrat = _continuous_via;
+        if(width % Nx == 0)
+        {
+            int Sx = width / Nx - cutsize;
+            if(Sx < (int)space) // FIXME: remove this cast
+            {
+                break;
+            }
+            if(Sx % 2 == 0)
+            {
+                for(unsigned int Ny = 1; Ny < UINT_MAX; ++Ny)
+                {
+                    if(height % Ny == 0)
+                    {
+                        int Sy = height / Ny - cutsize;
+                        if(Sy < (int)space) // FIXME: remove this cast
+                        {
+                            break;
+                        }
+                        if(Sy % 2 == 0)
+                        {
+                            if(Sx == Sy)
+                            {
+                                Nxres = Nx;
+                                Nyres = Ny;
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
-    if(ycont)
+    *xrep_result = Nxres;
+    *yrep_result = Nyres;
+    if(Nxres > 0)
     {
-        ystrat = _continuous_via;
+        *xspace_result = width / Nxres - cutsize;
     }
+    if(Nyres > 0)
+    {
+        *yspace_result = height / Nyres - cutsize;
+    }
+}
 
-    //local idx
+static struct via_definition* _get_rectangular_arrayzation(ucoordinate_t regionwidth, ucoordinate_t regionheight, struct via_definition** definitions, struct via_definition* fallback, unsigned int* xrep_ptr, unsigned int* yrep_ptr, unsigned int* xpitch_ptr, unsigned int* ypitch_ptr, int xcont, int ycont, int equal_pitch)
+{
     unsigned int lastarea = 0;
     unsigned int xrep = 0;
     unsigned int xspace = 0;
@@ -377,8 +418,34 @@ static struct via_definition* _get_rectangular_arrayzation(ucoordinate_t regionw
         unsigned int _xspace = 0;
         unsigned int _yrep = 0;
         unsigned int _yspace = 0;
-        xstrat(regionwidth, entry->width, entry->xspace, entry->xenclosure, &_xrep, &_xspace);
-        ystrat(regionheight, entry->height, entry->yspace, entry->yenclosure, &_yrep, &_yspace);
+        if(equal_pitch)
+        {
+            if(entry->width == entry->height) // only square vias can be equal pitch
+            {
+                int space = entry->xspace > entry->yspace ? entry->xspace : entry->yspace;
+                int enclosure = entry->xenclosure > entry->yenclosure ? entry->xenclosure : entry->yenclosure;
+                _equal_pitch_via(regionwidth, regionheight, entry->width, space, enclosure, &_xrep, &_yrep, &_xspace, &_yspace);
+            }
+        }
+        else
+        {
+            if(xcont)
+            {
+                _continuous_via(regionwidth, entry->width, entry->xspace, entry->xenclosure, &_xrep, &_xspace);
+            }
+            else
+            {
+                _fit_via(regionwidth, entry->width, entry->xspace, entry->xenclosure, &_xrep, &_xspace);
+            }
+            if(ycont)
+            {
+                _continuous_via(regionheight, entry->height, entry->yspace, entry->yenclosure, &_yrep, &_yspace);
+            }
+            else
+            {
+                _fit_via(regionheight, entry->height, entry->yspace, entry->yenclosure, &_yrep, &_yspace);
+            }
+        }
         if(_xrep > 0 && _yrep > 0)
         {
             unsigned int area = (_xrep + _yrep) * entry->width * entry->height;
@@ -424,6 +491,7 @@ static int _via_contact_bltr(
     ucoordinate_t xrep, ucoordinate_t yrep,
     ucoordinate_t xpitch, ucoordinate_t ypitch,
     int xcont, int ycont,
+    int equal_pitch,
     int makearray
 )
 {
@@ -432,7 +500,7 @@ static int _via_contact_bltr(
         ucoordinate_t width = trx - blx;
         ucoordinate_t height = try - bly;
         unsigned int viaxrep, viayrep, viaxpitch, viaypitch;
-        struct via_definition* entry = _get_rectangular_arrayzation(width, height, viadefs, fallback, &viaxrep, &viayrep, &viaxpitch, &viaypitch, xcont, ycont);
+        struct via_definition* entry = _get_rectangular_arrayzation(width, height, viadefs, fallback, &viaxrep, &viayrep, &viaxpitch, &viaypitch, xcont, ycont, equal_pitch);
         if(!entry)
         {
             return 0;
@@ -474,7 +542,8 @@ static int _viabltr(
     coordinate_t blx, coordinate_t bly, coordinate_t trx, coordinate_t try,
     ucoordinate_t xrep, ucoordinate_t yrep,
     ucoordinate_t xpitch, ucoordinate_t ypitch,
-    int xcont, int ycont
+    int xcont, int ycont,
+    int equal_pitch
 )
 {
     metal1 = technology_resolve_metal(techstate, metal1);
@@ -502,20 +571,21 @@ static int _viabltr(
             blx, bly, trx, try,
             xrep, yrep, xpitch, ypitch,
             xcont, ycont,
+            equal_pitch,
             technology_is_create_via_arrays(techstate)
         );
     }
     return ret;
 }
 
-int geometry_viabltr(struct object* cell, struct technology_state* techstate, int metal1, int metal2, const point_t* bl, const point_t* tr, ucoordinate_t xrep, ucoordinate_t yrep, ucoordinate_t xpitch, ucoordinate_t ypitch, int xcont, int ycont)
+int geometry_viabltr(struct object* cell, struct technology_state* techstate, int metal1, int metal2, const point_t* bl, const point_t* tr, ucoordinate_t xrep, ucoordinate_t yrep, ucoordinate_t xpitch, ucoordinate_t ypitch, int xcont, int ycont, int equal_pitch)
 {
-    return _viabltr(cell, techstate, metal1, metal2, bl->x, bl->y, tr->x, tr->y, xrep, yrep, xpitch, ypitch, xcont, ycont);
+    return _viabltr(cell, techstate, metal1, metal2, bl->x, bl->y, tr->x, tr->y, xrep, yrep, xpitch, ypitch, xcont, ycont, equal_pitch);
 }
 
-int geometry_via(struct object* cell, struct technology_state* techstate, int metal1, int metal2, ucoordinate_t width, ucoordinate_t height, coordinate_t xshift, coordinate_t yshift, ucoordinate_t xrep, ucoordinate_t yrep, ucoordinate_t xpitch, ucoordinate_t ypitch, int xcont, int ycont)
+int geometry_via(struct object* cell, struct technology_state* techstate, int metal1, int metal2, ucoordinate_t width, ucoordinate_t height, coordinate_t xshift, coordinate_t yshift, ucoordinate_t xrep, ucoordinate_t yrep, ucoordinate_t xpitch, ucoordinate_t ypitch, int xcont, int ycont, int equal_pitch)
 {
-    return _viabltr(cell, techstate, metal1, metal2, -(coordinate_t)width / 2 + xshift, -(coordinate_t)height / 2 + yshift, width / 2 + xshift, height / 2 + yshift, xrep, yrep, xpitch, ypitch, xcont, ycont);
+    return _viabltr(cell, techstate, metal1, metal2, -(coordinate_t)width / 2 + xshift, -(coordinate_t)height / 2 + yshift, width / 2 + xshift, height / 2 + yshift, xrep, yrep, xpitch, ypitch, xcont, ycont, equal_pitch);
 }
 
 static int _contactbltr(
@@ -525,7 +595,8 @@ static int _contactbltr(
     coordinate_t blx, coordinate_t bly, coordinate_t trx, coordinate_t try,
     ucoordinate_t xrep, ucoordinate_t yrep,
     ucoordinate_t xpitch, ucoordinate_t ypitch,
-    int xcont, int ycont
+    int xcont, int ycont,
+    int equal_pitch
 )
 {
     struct via_definition** viadefs = technology_get_contact_definitions(techstate, region);
@@ -542,6 +613,7 @@ static int _contactbltr(
         blx, bly, trx, try,
         xrep, yrep, xpitch, ypitch,
         xcont, ycont,
+        equal_pitch,
         technology_is_create_via_arrays(techstate)
     );
 }
@@ -553,7 +625,8 @@ static int _contactbarebltr(
     coordinate_t blx, coordinate_t bly, coordinate_t trx, coordinate_t try,
     ucoordinate_t xrep, ucoordinate_t yrep,
     ucoordinate_t xpitch, ucoordinate_t ypitch,
-    int xcont, int ycont
+    int xcont, int ycont,
+    int equal_pitch
 )
 {
     struct via_definition** viadefs = technology_get_contact_definitions(techstate, region);
@@ -569,6 +642,7 @@ static int _contactbarebltr(
         blx, bly, trx, try,
         xrep, yrep, xpitch, ypitch,
         xcont, ycont,
+        equal_pitch,
         technology_is_create_via_arrays(techstate)
     );
 }
@@ -580,7 +654,8 @@ int geometry_contactbltr(
     const point_t* bl, const point_t* tr,
     ucoordinate_t xrep, ucoordinate_t yrep,
     ucoordinate_t xpitch, ucoordinate_t ypitch,
-    int xcont, int ycont
+    int xcont, int ycont,
+    int equal_pitch
 )
 {
     return _contactbltr(
@@ -590,7 +665,8 @@ int geometry_contactbltr(
         bl->x, bl->y, tr->x, tr->y,
         xrep, yrep,
         xpitch, ypitch,
-        xcont, ycont
+        xcont, ycont,
+        equal_pitch
     );
 }
 
@@ -602,7 +678,8 @@ int geometry_contact(
     coordinate_t xshift, coordinate_t yshift,
     ucoordinate_t xrep, ucoordinate_t yrep,
     ucoordinate_t xpitch, ucoordinate_t ypitch,
-    int xcont, int ycont
+    int xcont, int ycont,
+    int equal_pitch
 )
 {
     return _contactbltr(
@@ -613,7 +690,8 @@ int geometry_contact(
         width / 2 + xshift, height / 2 + yshift,
         xrep, yrep,
         xpitch, ypitch,
-        xcont, ycont
+        xcont, ycont,
+        equal_pitch
     );
 }
 
@@ -624,7 +702,8 @@ int geometry_contactbarebltr(
     const point_t* bl, const point_t* tr,
     ucoordinate_t xrep, ucoordinate_t yrep,
     ucoordinate_t xpitch, ucoordinate_t ypitch,
-    int xcont, int ycont
+    int xcont, int ycont,
+    int equal_pitch
 )
 {
     return _contactbarebltr(
@@ -634,7 +713,8 @@ int geometry_contactbarebltr(
         bl->x, bl->y, tr->x, tr->y,
         xrep, yrep,
         xpitch, ypitch,
-        xcont, ycont
+        xcont, ycont,
+        equal_pitch
     );
 }
 
@@ -646,7 +726,8 @@ int geometry_contactbare(
     coordinate_t xshift, coordinate_t yshift,
     ucoordinate_t xrep, ucoordinate_t yrep,
     ucoordinate_t xpitch, ucoordinate_t ypitch,
-    int xcont, int ycont
+    int xcont, int ycont,
+    int equal_pitch
 )
 {
     return _contactbarebltr(
@@ -657,7 +738,8 @@ int geometry_contactbare(
         width / 2 + xshift, height / 2 + yshift,
         xrep, yrep,
         xpitch, ypitch,
-        xcont, ycont
+        xcont, ycont,
+        equal_pitch
     );
 }
 
