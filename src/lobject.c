@@ -240,6 +240,11 @@ int lobject_move_anchor_y(lua_State* L)
 
 int lobject_add_child(lua_State* L)
 {
+    if(lua_gettop(L) > 3)
+    {
+        lua_pushstring(L, "object.add_child: called with more than three arguments. Did you mean to call object.add_child_array instead?");
+        lua_error(L);
+    }
     struct lobject* cell = lobject_check(L, 1);
     struct lobject* child = lobject_check(L, 2);
     const char* name = luaL_checkstring(L, 3);
@@ -541,3 +546,4 @@ int open_lobject_lib(lua_State* L)
 
     return 0;
 }
+
