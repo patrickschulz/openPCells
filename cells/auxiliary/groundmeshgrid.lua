@@ -32,39 +32,34 @@ function layout(cell, _P)
     end
 
     -- mesh metals
-    for i = 1, #_P.meshmetals do
-        geometry.ring(baseref, generics.metal(_P.meshmetals[i]), _P.cellsize, _P.cellsize, _P.metalwidths[i])
-        if i < #_P.meshmetals then
-            if _P.meshmetals[i + 1] - _P.meshmetals[i] == 1 then
-                local mwidth = math.min(_P.metalwidths[i], _P.metalwidths[i + 1])
-                geometry.via(baseref, _P.meshmetals[i], _P.meshmetals[i] + 1,
-                    mwidth, _P.cellsize,
-                    -_P.cellsize / 2 + mwidth / 2, 0,
-                    1, 1, 0, 0,
-                    { equal_pitch = true }
-                )
-                geometry.via(baseref, _P.meshmetals[i], _P.meshmetals[i] + 1,
-                    mwidth, _P.cellsize,
-                    _P.cellsize / 2 - mwidth / 2, 0,
-                    1, 1, 0, 0,
-                    { equal_pitch = true }
-                )
-                geometry.via(baseref, _P.meshmetals[i], _P.meshmetals[i] + 1,
-                    _P.cellsize, mwidth,
-                    0, -_P.cellsize / 2 + mwidth / 2,
-                    1, 1, 0, 0,
-                    { equal_pitch = true }
-                )
-                geometry.via(baseref, _P.meshmetals[i], _P.meshmetals[i] + 1,
-                    _P.cellsize, mwidth,
-                    0,  _P.cellsize / 2 - mwidth / 2,
-                    1, 1, 0, 0,
-                    { equal_pitch = true }
-                )
-            end
+    for i = 1, #_P.meshmetals - 1 do
+        if _P.meshmetals[i + 1] - _P.meshmetals[i] == 1 then
+            local mwidth = math.min(_P.metalwidths[i], _P.metalwidths[i + 1])
+            geometry.via(baseref, _P.meshmetals[i], _P.meshmetals[i] + 1,
+                mwidth, _P.cellsize,
+                -_P.cellsize / 2 + mwidth / 2, 0,
+                1, 1, 0, 0,
+                { equal_pitch = true }
+            )
+            geometry.via(baseref, _P.meshmetals[i], _P.meshmetals[i] + 1,
+                mwidth, _P.cellsize,
+                _P.cellsize / 2 - mwidth / 2, 0,
+                1, 1, 0, 0,
+                { equal_pitch = true }
+            )
+            geometry.via(baseref, _P.meshmetals[i], _P.meshmetals[i] + 1,
+                _P.cellsize, mwidth,
+                0, -_P.cellsize / 2 + mwidth / 2,
+                1, 1, 0, 0,
+                { equal_pitch = true }
+            )
+            geometry.via(baseref, _P.meshmetals[i], _P.meshmetals[i] + 1,
+                _P.cellsize, mwidth,
+                0,  _P.cellsize / 2 - mwidth / 2,
+                1, 1, 0, 0,
+                { equal_pitch = true }
+            )
         end
-        -- fill exclude
-        geometry.rectangle(baseref, generics.metalexclude(_P.meshmetals[i]), _P.cellsize, _P.cellsize)
     end
 
     -- grid metals
@@ -126,31 +121,51 @@ function layout(cell, _P)
         geometry.via(baseref, _P.interconnectmetal, _P.interconnectmetal + 1, _P.metalwidths[#_P.meshmetals + 2], _P.metalwidths[#_P.meshmetals + 2])
     else -- flavour == "ground"
         for i = 1, #_P.meshmetals do
-            if _P.needmultiplepatterning[i] then
-                local density = 0.5
-                local numlines = math.floor(density * (_P.cellsize - 2 * _P.metalwidths[i]) / _P.metalwidths[i])
-                if numlines % 2 == 0 then
-                    numlines = numlines - 1
-                end
-                for j = 1, numlines do
-                    geometry.rectangle(baseref, generics.metal(_P.meshmetals[i]),
-                        _P.cellsize - 4 * _P.metalwidths[i], _P.metalwidths[i],
-                        0, (j - (numlines + 1) / 2) * _P.cellsize / (numlines + 1)
-                    )
+            if _P.meshmetals[i] ~= _P.interconnectmetal then
+                if _P.needmultiplepatterning[i] then
+                    local density = 0.5
+                    local numlines = math.floor(density * (_P.cellsize - 2 * _P.metalwidths[i]) / _P.metalwidths[i])
+                    if numlines % 2 == 0 then
+                        numlines = numlines - 1
+                    end
+                    for j = 1, numlines do
+                        geometry.rectangle(baseref, generics.metal(_P.meshmetals[i]),
+                            _P.cellsize - 4 * _P.metalwidths[i], _P.metalwidths[i],
+                            0, (j - (numlines + 1) / 2) * _P.cellsize / (numlines + 1)
+                        )
+                    end
+                else
+                    geometry.rectangle(baseref, generics.metal(_P.meshmetals[i]), _P.metalwidths[i], _P.cellsize)
+                    geometry.rectangle(baseref, generics.metal(_P.meshmetals[i]), _P.cellsize, _P.metalwidths[i])
                 end
             else
-                geometry.rectangle(baseref, generics.metal(_P.meshmetals[i]), _P.metalwidths[i], _P.cellsize)
-                geometry.rectangle(baseref, generics.metal(_P.meshmetals[i]), _P.cellsize, _P.metalwidths[i])
+                geometry.ring(baseref, generics.metal(_P.interconnectmetal), _P.cellsize, _P.cellsize, _P.cellsize / 4)
+            end
+        end
+
+        -- connect mesh to grid
+        for column = 1, _P.columns do
+            for row = 1, _P.rows do
+                if _P.drawleft or column > 1 then
+                    geometry.via(cell,
+                        _P.interconnectmetal, _P.interconnectmetal + 1,
+                        _P.cellsize / 4, _P.metalwidths[#_P.meshmetals + 2],
+                        -_P.cellsize / 2 + _P.cellsize / 8 + (column - 1) * _P.cellsize, (row - 1) * _P.cellsize
+                    )
+                end
+                if _P.drawright or column < _P.columns then
+                    geometry.via(cell,
+                        _P.interconnectmetal, _P.interconnectmetal + 1,
+                        _P.cellsize / 4, _P.metalwidths[#_P.meshmetals + 2],
+                        _P.cellsize / 2 - _P.cellsize / 8 + (column - 1) * _P.cellsize, (row - 1) * _P.cellsize
+                    )
+                end
             end
         end
     end
 
-    baseref:set_alignment_box(
-        point.create(-_P.cellsize / 2, -_P.cellsize / 2),
-        point.create( _P.cellsize / 2,  _P.cellsize / 2)
-    )
-
-    local base = cell:add_child_array(baseref, "base", _P.columns, _P.rows)
+    -- place base array
+    local base = cell:add_child_array(baseref, "base", _P.columns, _P.rows, _P.cellsize, _P.cellsize)
 
     -- draw grid metal lines
     for column = 1, _P.columns do
@@ -159,36 +174,6 @@ function layout(cell, _P)
             point.create(-2500 + (column - 1) * _P.cellsize, -2500),
             point.create( 2500 + (column - 1) * _P.cellsize,  2500 + (_P.rows - 1) * _P.cellsize)
         )
-        for row = 1, _P.rows do
-            if _P.drawleft or column > 1 then
-                geometry.via(cell,
-                    _P.interconnectmetal, _P.interconnectmetal + 1,
-                    _P.cellsize / 4, _P.metalwidths[#_P.meshmetals + 2],
-                    -_P.cellsize / 2 + _P.cellsize / 8 + (column - 1) * _P.cellsize, (row - 1) * _P.cellsize
-                )
-            end
-            if _P.drawright or column < _P.columns then
-                geometry.via(cell,
-                    _P.interconnectmetal, _P.interconnectmetal + 1,
-                    _P.cellsize / 4, _P.metalwidths[#_P.meshmetals + 2],
-                    _P.cellsize / 2 - _P.cellsize / 8 + (column - 1) * _P.cellsize, (row - 1) * _P.cellsize
-                )
-            end
-            if _P.drawtop or row < _P.rows then
-                geometry.via(cell,
-                    _P.interconnectmetal, _P.interconnectmetal + 1,
-                    _P.metalwidths[#_P.meshmetals + 2], _P.cellsize / 4,
-                    0 + (column - 1) * _P.cellsize,  _P.cellsize / 2 - _P.cellsize / 8 + (row - 1) * _P.cellsize
-                )
-            end
-            if _P.drawbottom or row > 1 then
-                geometry.via(cell,
-                    _P.interconnectmetal, _P.interconnectmetal + 1,
-                    _P.metalwidths[#_P.meshmetals + 2], _P.cellsize / 4,
-                    0 + (column - 1) * _P.cellsize, -_P.cellsize / 2 + _P.cellsize / 8 + (row - 1) * _P.cellsize
-                )
-            end
-        end
     end
     for row = 1, _P.rows do
         geometry.rectanglebltr(
@@ -196,5 +181,10 @@ function layout(cell, _P)
             point.create(-2500, -2500 + (row - 1) * _P.cellsize),
             point.create( 2500 + (_P.columns - 1) * _P.cellsize, 2500 + (row - 1) * _P.cellsize)
         )
+    end
+
+    -- metal fill exclude
+    for i = 1, tech.resolve_metal(-1) do
+        geometry.rectangle(baseref, generics.metalexclude(i), _P.cellsize, _P.cellsize)
     end
 end
