@@ -13,7 +13,7 @@ function parameters()
         { "drawright", true },
         { "drawtop", true },
         { "drawbottom", true },
-        { "connecttopmetal", true },
+        { "connecttopmetal", false },
         { "metalwidths", { 500, 500, 800, 800, 800, 800, 1000, 1000, 5000, 5000 } },
         { "needmultiplepatterning", { true, true, false, false, false, false, false, false } }
     )
