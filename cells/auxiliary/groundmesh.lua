@@ -1,6 +1,6 @@
 function parameters()
     pcell.add_parameters(
-        { "flavour", "cap", posvals = set("ground", "cap") },
+        { "flavour", "cap", posvals = set("ground", "cap", "none") },
         { "cellsize", 10000 },
         { "meshmetals", { 1, 2, 3, 4, 5, 6, 7, 8 } },
         { "gridmetals", { 9, 10 } },
@@ -70,21 +70,25 @@ function layout(mesh, _P)
     end
 
     -- grid metals
+    local leftright = true
     if _P.drawgrid then
         for i = 1, #_P.gridmetals do
             local metal = _P.gridmetals[i]
             local width = _P.metalwidths[i + #_P.meshmetals]
-            if _P.drawright then
-                geometry.rectangle(mesh, generics.metal(metal), width, width, width / 2, 0)
-            end
-            if _P.drawleft then
-                geometry.rectangle(mesh, generics.metal(metal), width, width, -width / 2, 0)
-            end
-            if _P.drawtop then
-                geometry.rectangle(mesh, generics.metal(metal), width, width, 0, width / 2)
-            end
-            if _P.drawbottom then
-                geometry.rectangle(mesh, generics.metal(metal), width, width, 0, -width / 2)
+            if leftright then
+                if _P.drawright then
+                    geometry.rectangle(mesh, generics.metal(metal), width, width, width / 2, 0)
+                end
+                if _P.drawleft then
+                    geometry.rectangle(mesh, generics.metal(metal), width, width, -width / 2, 0)
+                end
+            else
+                if _P.drawtop then
+                    geometry.rectangle(mesh, generics.metal(metal), width, width, 0, width / 2)
+                end
+                if _P.drawbottom then
+                    geometry.rectangle(mesh, generics.metal(metal), width, width, 0, -width / 2)
+                end
             end
             if (i < #_P.gridmetals) and (_P.gridmetals[i + 1] - _P.gridmetals[i] == 1) then
                 local mwidth = math.min(_P.metalwidths[i + #_P.meshmetals], _P.metalwidths[i + 1 + #_P.meshmetals])
@@ -92,6 +96,7 @@ function layout(mesh, _P)
             end
             -- fill exclude
             geometry.rectangle(mesh, generics.metalexclude(_P.gridmetals[i]), _P.cellsize, _P.cellsize)
+            leftright = not leftright
         end
         -- connect to top metal
         if _P.connecttopmetal then
@@ -141,7 +146,7 @@ function layout(mesh, _P)
         if _P.drawgrid then
             geometry.via(mesh, _P.interconnectmetal, _P.interconnectmetal + 1, _P.metalwidths[#_P.meshmetals + 2], _P.metalwidths[#_P.meshmetals + 2])
         end
-    else -- flavour == "ground"
+    elseif flavour == "ground" then
         for i = 1, #_P.meshmetals do
             if _P.needmultiplepatterning[i] then
                 local density = 0.5
@@ -175,6 +180,8 @@ function layout(mesh, _P)
                 geometry.via(mesh, _P.interconnectmetal, _P.interconnectmetal + 1, _P.metalwidths[#_P.meshmetals + 2], _P.cellsize / 4, 0,  _P.cellsize / 2 - _P.cellsize / 8)
             end
         end
+    else
+        -- do nothing for "none"
     end
 
     -- FIXME: this should depend on parameters
