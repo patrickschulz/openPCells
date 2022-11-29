@@ -43,16 +43,20 @@ function parameters()
         { "cutheight",                                                  tech.get_dimension("Minimum Gate Cut Height", "Minimum Gate YSpace"), posvals = even() },
         { "drawsourcedrain(Draw Source/Drain Contacts)",              "both", posvals = set("both", "source", "drain", "none") },
         { "sourcesize(Source Size)",                                  tech.get_dimension("Minimum Gate Width"), argtype = "integer", follow = "fwidth" },
+        { "sourceviasize(Source Via Size)",                           tech.get_dimension("Minimum Gate Width"), argtype = "integer", follow = "sourcesize" },
         { "drainsize(Drain Size)",                                    tech.get_dimension("Minimum Gate Width"), argtype = "integer", follow = "fwidth" },
+        { "drainviasize(Drain Via Size)",                             tech.get_dimension("Minimum Gate Width"), argtype = "integer", follow = "drainsize" },
         { "sourcealign(Source Alignement)",                          "bottom", posvals = set("top", "bottom") },
+        { "sourceviaalign(Source Via Alignement)",                   "bottom", posvals = set("top", "bottom"), follow = "sourcealign" },
         { "drainalign(Drain Alignement)",                            "top", posvals = set("top", "bottom") },
+        { "drainviaalign(Drain Via Alignement)",                     "top", posvals = set("top", "bottom"), follow = "drainalign" },
         { "drawsourcevia(Draw Source Via)",                            false },
         { "connectsource(Connect Source)",                             false },
         { "connectsourceboth(Connect Source on Both Sides)",           false },
         { "connsourcewidth(Source Rails Metal Width)",               tech.get_dimension("Minimum M1 Width"), argtype = "integer", follow = "sdwidth" },
         { "connsourcespace(Source Rails Metal Space)",               tech.get_dimension("Minimum M1 Width"), argtype = "integer" },
         { "connsourcemetal(Source Connection Metal)",                      1 },
-        { "sourceviametal(Source Via Metal)",                          false, follow = "connsourcemetal" },
+        { "sourceviametal(Source Via Metal)",                              1, follow = "connsourcemetal" },
         { "connsourceinline(Connect Source Inline of Transistor)",     false },
         { "inlinesourceoffset(Inline Source Connection Offset)",           0 },
         { "connectsourceinverse(Invert Source Strap Locations)",       false },
@@ -65,7 +69,7 @@ function parameters()
         { "connectdraininverse(Invert Drain Strap Locations)",         false },
         { "drawdrainvia(Draw Drain Via)",                              false },
         { "conndrainmetal(Drain Connection Metal)",                        1 },
-        { "drainviametal(Drain Via Metal)",                            false, follow = "conndrainmetal" },
+        { "drainviametal(Drain Via Metal)",                                1, follow = "conndrainmetal" },
         { "conndraininline(Connect Drain Inline of Transistor)",       false },
         { "inlinedrainoffset(Inline Drain Connection Offset)",             0 },
         { "diodeconnected(Diode Connected Transistor)",                false },
@@ -494,11 +498,23 @@ function layout(transistor, _P)
     elseif _P.sourcealign == "bottom" then
         sourceoffset = (-_P.fwidth + _P.sourcesize) / 2
     end
+    local sourceviaoffset = 0
+    if _P.sourceviaalign == "top" then
+        sourceviaoffset = (_P.fwidth - _P.sourceviasize) / 2
+    elseif _P.sourceviaalign == "bottom" then
+        sourceviaoffset = (-_P.fwidth + _P.sourceviasize) / 2
+    end
     local drainoffset = 0
     if _P.drainalign == "top" then
         drainoffset = (_P.fwidth - _P.drainsize) / 2
     elseif _P.drainalign == "bottom" then
         drainoffset = (-_P.fwidth + _P.drainsize) / 2
+    end
+    local drainviaoffset = 0
+    if _P.drainviaalign == "top" then
+        drainviaoffset = (_P.fwidth - _P.drainviasize) / 2
+    elseif _P.drainviaalign == "bottom" then
+        drainviaoffset = (-_P.fwidth + _P.drainviasize) / 2
     end
     local shift = _P.fingers % 2 == 1 and gatepitch / 2 or 0
     if _P.drawsourcedrain ~= "none" then
@@ -513,8 +529,8 @@ function layout(transistor, _P)
             if _P.drawsourcevia and _P.sourceviametal > 1 then
                 geometry.via(transistor,
                     1, _P.sourceviametal,
-                    _P.sdwidth, _P.sourcesize,
-                    shift, sourceoffset,
+                    _P.sdwidth, _P.sourceviasize,
+                    shift, sourceviaoffset,
                     math.floor(_P.fingers / 2) + 1, 1, 2 * gatepitch, 0
                 )
             end
@@ -539,8 +555,8 @@ function layout(transistor, _P)
             if _P.drawdrainvia and _P.drainviametal > 1 then
                 geometry.via(transistor,
                     1, _P.drainviametal,
-                    _P.sdwidth, _P.drainsize,
-                    -shift, drainoffset,
+                    _P.sdwidth, _P.drainviasize,
+                    -shift, drainviaoffset,
                     math.floor((_P.fingers - 1) / 2) + 1, 1, 2 * gatepitch, 0
                 )
             end
