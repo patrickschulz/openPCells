@@ -162,13 +162,16 @@ function parammeta.add(self, name, value, argtype, posvals, readonly)
         func      = funcobject.identity(value),
         argtype   = argtype,
         posvals   = posvals,
-        followers = {},
+        followers = nil,
         readonly  = not not readonly,
     }
     if not self.values[pname] or self.overwrite then
         self.values[pname] = new
         table.insert(self.names, pname)
         if self.follow then
+            if not self.values[self.follow].followers then
+                self.values[self.follow].followers = {}
+            end
             self.values[self.follow].followers[pname] = true
         end
         return true
@@ -343,7 +346,26 @@ local function _check_parameter_expressions(state, cellname, parameters)
     return failures
 end
 
+local function _handle_followers(P, handled, cellparams, followers, value, isexplicit)
+    for follower in pairs(followers) do
+        if not (handled[follower] or cellparams[follower].overwritten) or isexplicit then
+            P[follower] = value
+            handled[follower] = true
+        end
+        if cellparams[follower].followers then
+            _handle_followers(P, handled, cellparams, cellparams[follower].followers, value, isexplicit)
+        end
+    end
+end
+
 local function _get_parameters(state, cellname, othercellname, cellargs)
+    -- FIXME: parameter handling is much too complex
+    --        the approach with the function that gets called for every parameter
+    --        is nonsense. There might be some use in that, but in the end I don't
+    --        understand this code anymore. Better approach: just iterate over the given
+    --        cell arguments and update the parameters of the cells. This has to handle
+    --        followers, but not more
+
     local othercell = _get_cell(state, othercellname)
     local cellparams = othercell.parameters:get_values()
     cellargs = cellargs or {}
@@ -365,23 +387,22 @@ local function _get_parameters(state, cellname, othercellname, cellargs)
     local P = {}
     local handled = {}
     for name, entry in pairs(cellparams) do
+        local isexplicit = rawget(cellargs, name) ~= nil
+        local value = entry.func()
         if not handled[name] then
-            P[name] = entry.func()
+            P[name] = value
         end
-        if rawget(cellargs, name) ~= nil then
-            P[name] = entry.func()
+        if isexplicit then -- always overwrite if a parameter is explicitly modified
+            P[name] = value
             handled[name] = true
         end
-        for follower in pairs(entry.followers) do
-            if not (handled[follower] or cellparams[follower].overwritten) then
-                P[follower] = entry.func()
-                handled[follower] = true
-            end
+        if entry.followers then
+            _handle_followers(P, handled, cellparams, entry.followers, value, isexplicit)
         end
     end
 
     -- install meta method for non-existing parameters as safety check
-    -- this avoids arithmetic-with-nil-errors
+    -- this avoids arithmetic-with-nil-errors and raises an error instead
     setmetatable(P, {
         __index = function(_, k)
             error(string.format("trying to access undefined parameter value '%s'", k))
