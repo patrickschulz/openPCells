@@ -64,8 +64,8 @@ function parameters()
         { "connectdrainboth(Connect Drain on Both Sides)",             false },
         { "conndrainwidth(Drain Rails Metal Width)",               tech.get_dimension("Minimum M1 Width"), argtype = "integer", follow = "sdwidth" },
         { "conndrainspace(Drain Rails Metal Space)",               tech.get_dimension("Minimum M1 Width"), argtype = "integer" },
-        { "extendsourceconnection(Extend Source Connection)",          false },
-        { "extenddrainconnection(Extend Drain Connection)",            false },
+        { "extendsourcestrap(Extend Source Strap)",                        0 },
+        { "extenddrainstrap(Extend Drain Strap)",                          0 },
         { "connectdraininverse(Invert Drain Strap Locations)",         false },
         { "drawdrainvia(Draw Drain Via)",                              false },
         { "conndrainmetal(Drain Connection Metal)",                        1 },
@@ -605,8 +605,7 @@ function layout(transistor, _P)
                 0, sourceoffset + _P.inlinesourceoffset
             )
         else
-            -- FIXME: extendsourceconnection is not perfect, it draws too much
-            local width = (2 * math.floor(_P.fingers / 2) + (_P.extendsourceconnection and 1 or 0)) * gatepitch + _P.sdwidth
+            local width = (2 * math.floor(_P.fingers / 2)) * gatepitch + 2 * _P.extendsourcestrap + _P.sdwidth
             local height = _P.connsourcewidth
             local yoffset = invert * ysign * (_P.fwidth + _P.connsourcewidth + 2 * _P.connsourcespace) / 2
             geometry.rectangle(transistor, generics.metal(_P.connsourcemetal),
@@ -655,8 +654,7 @@ function layout(transistor, _P)
                 0, drainoffset + _P.inlinedrainoffset
             )
         else
-            -- FIXME: extenddrainconnection is not perfect, it draws too much
-            local width = (2 * math.floor((_P.fingers - 1) / 2) + (_P.extenddrainconnection and 1 or 0)) * gatepitch + _P.sdwidth
+            local width = 2 * math.floor((_P.fingers - 1) / 2) * gatepitch + _P.extenddrainstrap + _P.sdwidth
             local height = _P.conndrainwidth
             local yoffset = -invert * ysign * (_P.fwidth + _P.conndrainwidth + 2 * _P.conndrainspace) / 2
             geometry.rectangle(transistor, generics.metal(_P.conndrainmetal),
@@ -698,7 +696,7 @@ function layout(transistor, _P)
     -- extra source/drain straps (unconnected, useful for arrays)
     if _P.drawextrasourcestrap then
         local invert = _P.connectsourceinverse and -1 or 1
-        local width = (2 * math.floor(_P.fingers / 2) + (_P.extendsourceconnection and 1 or 0)) * gatepitch + _P.sdwidth
+        local width = 2 * math.floor(_P.fingers / 2) * gatepitch + 2 * _P.extendsourcestrap + _P.sdwidth
         local height = _P.extrasourcestrapwidth
         local yoffset = invert * ysign * (_P.fwidth + _P.extrasourcestrapwidth + 2 * _P.extrasourcestrapspace) / 2
         geometry.rectangle(transistor, generics.metal(_P.extrasourcestrapmetal),
@@ -717,7 +715,7 @@ function layout(transistor, _P)
     end
     if _P.drawextradrainstrap then
         local invert = _P.connectdraininverse and -1 or 1
-        local width = (2 * math.floor(_P.fingers / 2) + (_P.extenddrainconnection and 1 or 0)) * gatepitch + _P.sdwidth
+        local width = 2 * math.floor(_P.fingers / 2) * gatepitch + _P.extenddrainstrap + _P.sdwidth
         local height = _P.extradrainstrapwidth
         local yoffset = invert * ysign * (_P.fwidth + _P.extradrainstrapwidth + 2 * _P.extradrainstrapspace) / 2
         geometry.rectangle(transistor, generics.metal(_P.extradrainstrapmetal),
