@@ -1227,44 +1227,30 @@ struct vector* _initialize_api_entries(void)
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
-    /* placement.create_reference_rows */ // FIXME: create_reference_rows
+    /* placement.create_reference_rows */
     {
         struct parameter parameters[] = {
-
+            { "cellnames",  TABLE,      NULL,   "row placement table with cellnames" },
+            { "xpitch",     INTEGER,    NULL,   "minimum cell pitch in x direction" }
         };
         vector_append(entries, _make_api_entry(
             "create_reference_rows",
             MODULE_PLACEMENT,
-            "",
-            "",
-            parameters,
-            sizeof(parameters) / sizeof(parameters[0])
-        ));
-    }
-    /* placement.format_rows */ // FIXME: format_rows
-    {
-        struct parameter parameters[] = {
-
-        };
-        vector_append(entries, _make_api_entry(
-            "format_rows",
-            MODULE_PLACEMENT,
-            "",
-            "",
-            parameters,
-            sizeof(parameters) / sizeof(parameters[0])
-        ));
-    }
-    /* placement.regular_rows */ // FIXME: regular_rows
-    {
-        struct parameter parameters[] = {
-
-        };
-        vector_append(entries, _make_api_entry(
-            "regular_rows",
-            MODULE_PLACEMENT,
-            "",
-            "",
+            "prepare a row placement table for further placement functions by parsing a definition given in 'cellnames'."
+            "This table contains the individual rows of the placment, which every row consiting of individual cells."
+            "Cell entries can either be given by just the name of the standard cell (the 'reference') or the instance name ('instance') and the reference name ('reference')",
+            "-- un-named mode:\n"
+            "local rows = placement.create_reference_rows({\n"
+            "    { \"inv\", \"nand1\", \"dff_out\" },\n"
+            "    { \"nand2\", \"dff_buf\" },\n"
+            "    { \"nand3\", \"dff_in\" },\n"
+            "})\n\n"
+            "-- named mode:\n"
+            "local rows = placement.create_reference_rows({\n"
+            "    { { name = \"inv0\", reference = \"not_gate\" }, { name = \"nand1\", reference = \"nand_gate\" }, { name = \"dff_out\", reference = \"dffpq\" } },\n"
+            "    { { name = \"nand2\", reference = \"nand_gate\" }, { name = \"dff_buf\", reference = \"dffpq\" } },\n"
+            "    { { name = \"nand3\", reference = \"nand_gate\" }, { name = \"dff_in\", reference = \"dffpq\" } },\n"
+            "})",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
