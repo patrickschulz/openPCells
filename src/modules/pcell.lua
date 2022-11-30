@@ -400,8 +400,11 @@ end
 
 local function _resolve_cellname(state, cellname)
     local libpart, cellpart = string.match(cellname, "([^/]+)/(.+)")
-    if libpart == "." then -- implicit library
-        libpart = state.currentlibname
+    if libpart == "." then -- relative library
+        if not state.libnamestacks:peek() then
+            error("top-level cell can't have a relative library")
+        end
+        libpart = state.libnamestacks:top()
     end
     return string.format("%s/%s", libpart, cellpart)
 end
@@ -410,7 +413,7 @@ end
 -- only the public functions use this state as upvalue to conceal it from the user
 -- all local implementing functions get state as first parameter
 local state = {
-    currentlibname = nil,
+    libnamestacks = stack.create(),
     loadedcells = {},
     cellrefs = {},
     debug = false,
@@ -552,12 +555,12 @@ function pcell.evaluate_parameters(cellname, cellargs)
 end
 
 local function _create_layout_internal(cellname, name, cellargs, env)
-    -- parse cellname into library part and cell part
     local libpart, cellpart = string.match(cellname, "([^/]+)/(.+)")
-    if libpart ~= "." then -- relative library
-        state.currentlibname = libpart
+    local explicitlib = false
+    if libpart ~= "." then -- explicit library
+        explicitlib = true
+        state.libnamestacks:push(libpart)
     end
-    -- update cellname (needed if a relative library was used)
     cellname = _resolve_cellname(state, cellname)
 
     local cell = _get_cell(state, cellname)
@@ -567,6 +570,9 @@ local function _create_layout_internal(cellname, name, cellargs, env)
     local parameters = _get_parameters(state, cellname, cellargs) -- cellname needs to be passed twice
     local obj = object.create(name)
     cell.funcs.layout(obj, parameters, env)
+    if explicitlib then
+        state.libnamestacks:pop()
+    end
     return obj
 end
 
