@@ -128,7 +128,7 @@ function parammeta.get_values(self)
 end
 
 function parammeta.get_followers(self)
-    return self.followers
+    return aux.clone_shallow(self.followers)
 end
 
 function parammeta.get_names(self)
