@@ -1,19 +1,3 @@
---[[
-This file is part of the openPCells project.
-
-This module provides the pcell functionality:
-    - functions for cell parameterization
-    - parameter inheritance and binding (cell hierarchies)
-    - layout generation
-    - parameter summary
-
-Implementation note:
-    Every parameter stores a function return its value, which is only
-    evaluated when it is needed: at the moment of shape creation.
-    This more complex approach (compared to just storing the values)
-    allows for easy binding and inheritance of parameters.
---]]
-
 -- submodules
 
 -- start of evaluator module
@@ -67,39 +51,11 @@ local paramlib = {}
 local parammeta = {}
 parammeta.__index = parammeta
 
--- start of funcobject module
-local funcobject = {}
-
-local funcobjectmeta = {}
-funcobjectmeta.__call = function(self, ...) return self.func(...) end
-funcobjectmeta.__index = funcobjectmeta
-
-function funcobject.create(func)
-    local self = { func = func }
-    setmetatable(self, funcobjectmeta)
-    return self
-end
-
-function funcobject.identity(value)
-    return funcobject.create(function()
-        return value
-    end)
-end
-
-function funcobjectmeta.replace(self, func)
-    self.func = func
-end
-
-function funcobjectmeta.get(self)
-    return self.func
-end
--- end of funcobject module
-
 function paramlib.create_directory()
     local self = {
         names = {},
         values = {},
-        overwrite = false
+        followers = {},
     }
     setmetatable(self, parammeta)
     return self
@@ -145,38 +101,21 @@ function paramlib.check_readonly(parameter)
     end
 end
 
-function parammeta.set_overwrite(self, overwrite)
-    self.overwrite = overwrite
-end
-
-function parammeta.set_follow(self, follow)
-    self.follow = follow
-end
-
-function parammeta.add(self, name, value, argtype, posvals, readonly)
+function parammeta.add(self, name, value, argtype, posvals, follow, readonly)
     local pname, dname = string.match(name, "^([^(]+)%(([^)]+)%)")
     if not pname then pname = name end -- no display name
     local new = {
         name      = pname,
         display   = dname,
-        func      = funcobject.identity(value),
+        value     = value,
         argtype   = argtype,
         posvals   = posvals,
-        followers = nil,
         readonly  = not not readonly,
     }
-    if not self.values[pname] or self.overwrite then
-        self.values[pname] = new
-        table.insert(self.names, pname)
-        if self.follow then
-            if not self.values[self.follow].followers then
-                self.values[self.follow].followers = {}
-            end
-            self.values[self.follow].followers[pname] = true
-        end
-        return true
-    else
-        return false
+    self.values[pname] = new
+    table.insert(self.names, pname)
+    if follow then
+        self.followers[pname] = follow
     end
 end
 
@@ -188,10 +127,13 @@ function parammeta.get_values(self)
     return self.values
 end
 
+function parammeta.get_followers(self)
+    return self.followers
+end
+
 function parammeta.get_names(self)
     return self.names
 end
---]]
 -- end of parameter module
 
 local function _load_cell(state, cellname, env)
@@ -242,9 +184,9 @@ local function _add_cell(state, cellname, funcs, nocallparams)
         funcs       = funcs,
         parameters  = paramlib.create_directory(),
         properties  = {},
-        references  = {
-            [cellname] = true -- a cell can always refer to its own parameters
-        },
+        name        = cellname,
+        overwrites  = {},
+        expressions = {},
     }
     rawset(state.loadedcells, cellname, cell)
     if funcs.parameters and not nocallparams then
@@ -268,137 +210,137 @@ local function _get_cell(state, cellname, nocallparams)
     return rawget(state.loadedcells, cellname)
 end
 
-local function _add_parameter(state, cellname, name, value, argtype, posvals, follow, overwrite, readonly)
+local function _add_parameter(state, cell, name, value, argtype, posvals, follow, readonly)
     argtype = argtype or type(value)
-    local cell = _get_cell(state, cellname)
-    cell.parameters:set_overwrite(overwrite)
-    cell.parameters:set_follow(follow)
-    return cell.parameters:add(name, value, argtype, posvals, readonly)
+    cell.parameters:add(name, value, argtype, posvals, follow, readonly)
 end
 
-local function _set_parameter_function(state, cellname, name, value, backup, overwrite)
-    local cell = _get_cell(state, cellname)
+local function _set_parameter_function(state, cell, name, value, backup, overwrite)
     local p = cell.parameters:get(name)
     if not p then
-        error(string.format("argument '%s' has no matching parameter in cell '%s', maybe it was spelled wrong?", name, cellname))
+        error(string.format("argument '%s' has no matching parameter in cell '%s', maybe it was spelled wrong?", name, cell.name))
     end
     if overwrite then
         p.overwritten = true
     end
+
+    -- run checks
     paramlib.check_constraints(p, value)
     paramlib.check_readonly(p)
-    -- store old function for restoration
-    backup[name] = p.func:get()
-    -- important: use :replace(), don't create a new function object.
-    -- Otherwise parameter binding does not work, because bound parameters link to the original function object
-    -- FIXME: parameter binding is deprecated/does not exist any more. Is this comment/method still needed?
-    p.func:replace(function() return value end)
-end
 
-local function _split_input_arguments(cellargs)
-    local t = {}
-    for name, value in pairs(cellargs) do
-        local parent, arg = string.match(name, "^([^.]+)%.(.+)$")
-        if not parent then
-            arg = name
-        end
-        table.insert(t, { parent = parent, name = arg, value = value })
-    end
-    return t
+    -- store old function for restoration
+    backup[name] = p.value
+
+    -- update value
+    p.value = value
 end
 
 local function _process_input_parameters(state, cellname, cellargs, overwrite)
     local backup = {}
-    if cellargs then
-        local args = _split_input_arguments(cellargs)
-        for _, arg in ipairs(args) do
-            if arg.parent then
-                _set_parameter_function(state, arg.parent, arg.name, arg.value, {}, overwrite)
-            else
-                if cellname then -- can be called without a cellname to update only parent parameters
-                    _set_parameter_function(state, cellname, arg.name, arg.value, backup, overwrite)
-                end
-            end
+    for name, value in pairs(cellargs) do
+        -- split name if in  'parent/parameter'
+        local parent, arg = string.match(name, "^([^.]+)%.(.+)$")
+        if parent then
+            local cell = _get_cell(state, parent)
+            _set_parameter_function(state, cell, arg, value, {}, overwrite)
+        else -- can be called without a cellname to update only parent parameters
+            local cell = _get_cell(state, cellname)
+            _set_parameter_function(state, cell, name, value, backup, overwrite)
         end
     end
     return backup
 end
 
-local function _check_parameter_expressions(state, cellname, parameters)
+local function _check_parameter_expressions(cell, parameters)
     local failures = {}
-    if state.expressions[cellname] then
-        for _, expr in ipairs(state.expressions[cellname]) do
-            local chunk, msg = load("return " .. expr.expression, "parameterexpression", "t", parameters)
-            if not chunk then
-                print(msg)
-                return
-            end
-            local check = chunk()
-            if not check then
-                if expr.message then
-                    table.insert(failures, expr.message)
-                else
-                    table.insert(failures, expr.expression)
-                end
+    for _, expr in ipairs(cell.expressions) do
+        local chunk, msg = load("return " .. expr.expression, "parameterexpression", "t", parameters)
+        if not chunk then
+            print(msg)
+            return
+        end
+        local check = chunk()
+        if not check then
+            if expr.message then
+                table.insert(failures, expr.message)
+            else
+                table.insert(failures, expr.expression)
             end
         end
     end
     return failures
 end
 
-local function _handle_followers(P, handled, cellparams, followers, value, isexplicit)
-    for follower in pairs(followers) do
-        if not (handled[follower] or cellparams[follower].overwritten) or isexplicit then
-            P[follower] = value
-            handled[follower] = true
-        end
-        if cellparams[follower].followers then
-            _handle_followers(P, handled, cellparams, cellparams[follower].followers, value, isexplicit)
-        end
-    end
-end
+local function _get_parameters(state, cellname, cellargs)
+    local cell = _get_cell(state, cellname)
+    local cellparams = cell.parameters:get_values()
 
-local function _get_parameters(state, cellname, othercellname, cellargs)
-    -- FIXME: parameter handling is much too complex
-    --        the approach with the function that gets called for every parameter
-    --        is nonsense. There might be some use in that, but in the end I don't
-    --        understand this code anymore. Better approach: just iterate over the given
-    --        cell arguments and update the parameters of the cells. This has to handle
-    --        followers, but not more
-
-    local othercell = _get_cell(state, othercellname)
-    local cellparams = othercell.parameters:get_values()
-    cellargs = cellargs or {}
-
-    local backup
-    if cellname then -- is nil when called from a cellscript; perform no reference check in this case
-        local cell = _get_cell(state, cellname)
-        if not cell.references[othercellname] then
-            error(string.format("trying to access parameters of unreferenced cell (%s from %s)", othercellname, cellname))
-        end
-        backup = _process_input_parameters(state, cellname, cellargs)
-    end
-
-    -- store parameters in user-readable table
-    -- FIXME: this is somewhat confusing, this should be easier
-    -- What the following loop does, is to copy all processed parameter values to a new table
-    -- This also handles follower parameters, which makes stuff ugly, since we need to check that user-provided 
-    -- parameters are not overwritten. Should not be this hard
+    -- assemble arguments for the cell layout function
+    -- order of processing is:
+    --  (1) default values
+    --  (2) overwrites
+    --  (3) cell arguments
+    --  (4) handle followers
+    --  (5) run parameter checks
+    --  (6) check cell expressions
+    -- this ensures that values explicitly-given parameter values have priority,
+    -- while overwrites (from push_overwrites) only overwrite default values
+    -- follower parameters are updated AFTER explicit cell arguments, but must check
+    -- that given arguments are not overwritten
     local P = {}
-    local handled = {}
+
+    -- (1) fill with default values
     for name, entry in pairs(cellparams) do
-        local isexplicit = rawget(cellargs, name) ~= nil
-        local value = entry.func()
-        if not handled[name] then
+        P[name] = entry.value
+    end
+
+    -- (2) process overwrites
+    for _, overwrites in pairs(cell.overwrites) do
+        for name, value in pairs(overwrites) do
             P[name] = value
         end
-        if isexplicit then -- always overwrite if a parameter is explicitly modified
+    end
+
+    -- (3) process input parameters
+    local explicit = {}
+    if cellargs then
+        for name, value in pairs(cellargs) do
+            assert(P[name] ~= nil,
+                string.format("argument '%s' has no matching parameter in cell '%s', maybe it was spelled wrong?", name, cellname))
             P[name] = value
-            handled[name] = true
+            explicit[name] = true
         end
-        if entry.followers then
-            _handle_followers(P, handled, cellparams, entry.followers, value, isexplicit)
+    end
+
+    -- (4) handle followers
+    local followers = cell.parameters:get_followers()
+    local ordered = {}
+    repeat
+        for name, target in pairs(followers) do
+            if not followers[target] then
+                table.insert(ordered, { name = name, target = target })
+                followers[name] = nil
+            end
         end
+    until not next(followers)
+    for _, entry in ipairs(ordered) do
+        if not explicit[entry.name] then -- don't overwrite explicitly-given parameters
+            P[entry.name] = P[entry.target]
+        end
+    end
+
+    -- (5) run parameter checks
+    for name, entry in pairs(cellparams) do
+        paramlib.check_constraints(entry, P[name])
+    end
+
+    -- (6) check cell expressions
+    local failures = _check_parameter_expressions(cell, P)
+    if #failures > 0 then
+        for _, failure in ipairs(failures) do
+            print(failure)
+        end
+        error(string.format("could not satisfy parameter expression for cell '%s'", cellname), 0)
     end
 
     -- install meta method for non-existing parameters as safety check
@@ -409,25 +351,7 @@ local function _get_parameters(state, cellname, othercellname, cellargs)
         end,
     })
 
-    local failures = _check_parameter_expressions(state, othercellname, P)
-    if #failures > 0 then
-        for _, failure in ipairs(failures) do
-            print(failure)
-        end
-        error(string.format("could not satisfy parameter expression for cell '%s'", cellname), 0)
-    end
-
-    return P, backup
-end
-
-local function _restore_parameters(state, cellname, backup)
-    local cell = _get_cell(state, cellname)
-    local cellparams = cell.parameters:get_values()
-    -- restore old functions
-    for name, func in pairs(backup) do
-        cellparams[name].func:replace(func)
-        cellparams[name].overwritten = nil
-    end
+    return P
 end
 
 local function set_property(state, cellname, property, value)
@@ -437,100 +361,47 @@ end
 
 local function add_parameter(state, cellname, name, value, opt)
     opt = opt or {}
-    _add_parameter(state, cellname, name, value, opt.argtype, opt.posvals, opt.follow, opt.readonly)
+    local cell = _get_cell(state, cellname)
+    _add_parameter(state, cell, name, value, opt.argtype, opt.posvals, opt.follow, opt.readonly)
 end
 
 local function add_parameters(state, cellname, ...)
+    local cell = _get_cell(state, cellname)
     for _, parameter in ipairs({ ... }) do
         local name, value = parameter[1], parameter[2]
         _add_parameter(
             state,
-            cellname,
+            cell,
             name, value,
-            parameter.argtype, parameter.posvals, parameter.follow, nil, parameter.readonly
+            parameter.argtype, parameter.posvals, parameter.follow, parameter.readonly
         )
     end
 end
 
-local function reference_cell(state, cellname, othercell)
+local function push_overwrites(state, cellname, cellargs)
+    assert(type(cellname) == "string", "push_overwrites: cellname must be a string")
+    assert(type(cellargs) == "table", string.format("pcell.push_overwrites: 'cellargs' must be a table (got: %s)", type(cellargs)))
     local cell = _get_cell(state, cellname)
-    cell.references[othercell] = true
-    -- load the referenced cell, needed for 'constraints'
-    _get_cell(state, othercell)
+    table.insert(cell.overwrites, cellargs)
 end
 
-local function inherit_parameter_as(state, cellname, name, othercell, othername)
-    local othercell = _get_cell(state, othercell)
-    local param = othercell.parameters:get(othername)
-    if param.display then
-        name = string.format("%s(%s)", othername, param.display)
-    end
-    --_add_parameter(state, cellname, name, param.func(), param.argtype, param.posvals)
-end
-
-local function inherit_parameter(state, cellname, othercell, othername)
-    inherit_parameter_as(state, cellname, othername, othercell, othername)
-end
-
-local function inherit_all_parameters(state, cellname, othercell)
-    local inherited = _get_cell(state, othercell)
-    local parameters = {}
-    for _, name in ipairs(inherited.parameters:get_names()) do
-        inherit_parameter(state, cellname, othercell, name)
-    end
-end
-
-local function push_overwrites(state, cellname, othercell, cellargs)
-    if cellname then -- is nil when called from a cellscript; perform no reference check in this case
-        assert(type(cellname) == "string", "push_overwrites: cellname must be a string")
-        local cell = _get_cell(state, cellname)
-        if not cell.references[othercell] then
-            error(string.format("trying to access parameters of unreferenced cell (%s from %s)", othercell, cellname))
-        end
-    end
-    if type(cellargs) ~= "table" then
-        error(string.format("pcell.push_overwrites: 'cellargs' must be a table (got: %s)", type(cellargs)))
-    end
-    local backup = _process_input_parameters(state, othercell, cellargs, true) -- true: overwrite
-    if not state.backupstacks[othercell] then
-        state.backupstacks[othercell] = stack.create()
-    end
-    state.backupstacks[othercell]:push(backup)
-end
-
-local function pop_overwrites(state, cellname, othercell)
-    if (not state.backupstacks[othercell]) or (not state.backupstacks[othercell]:peek()) then
-        error(string.format("trying to restore default parameters for '%s', but there where no previous overwrites", othercell))
-    end
-    _restore_parameters(state, othercell, state.backupstacks[othercell]:top())
-    state.backupstacks[othercell]:pop()
-end
-
-local function clone_parameters(state, P, predicate)
-    assert(P, "pcell.clone_parameters: no parameters given")
-    return aux.clone_shallow(P, predicate)
-end
-
-local function clone_matching_parameters(state, cellname, P)
-    assert(cellname, "pcell.clone_matching_parameters: no cellname given")
+local function pop_overwrites(state, cellname)
     local cell = _get_cell(state, cellname)
-    local predicate = function(k, v)
-        return not not cell.parameters:get(k)
+    if #cell.overwrites == 0 then
+        error(string.format("trying to restore default parameters for '%s', but there where no previous overwrites", cellname))
     end
-    return clone_parameters(state, P, predicate)
+    table.remove(cell.overwrites)
 end
 
 local function check_expression(state, cellname, expression, message)
-    if not state.expressions[cellname] then
-        state.expressions[cellname] = {}
-    end
-    table.insert(state.expressions[cellname], { expression = expression, message = message })
+    local cell = _get_cell(state, cellname)
+    table.insert(cell.expressions, { expression = expression, message = message })
 end
 
 local function _resolve_cellname(state, cellname)
     local libpart, cellpart = string.match(cellname, "([^/]+)/(.+)")
     if libpart == "." then -- implicit library
-        libpart = state.libnamestacks:top()
+        libpart = state.currentlibname
     end
     return string.format("%s/%s", libpart, cellpart)
 end
@@ -539,11 +410,9 @@ end
 -- only the public functions use this state as upvalue to conceal it from the user
 -- all local implementing functions get state as first parameter
 local state = {
-    libnamestacks = stack.create(),
+    currentlibname = nil,
     loadedcells = {},
-    backupstacks = {},
     cellrefs = {},
-    expressions = {},
     debug = false,
 }
 
@@ -577,17 +446,11 @@ function state.create_cellenv(state, cellname, ovrenv)
             set_property                    = bindstatecell(set_property),
             add_parameter                   = bindstatecell(add_parameter),
             add_parameters                  = bindstatecell(add_parameters),
-            reference_cell                  = bindstatecell(reference_cell),
-            inherit_parameter               = bindstatecell(inherit_parameter),
-            inherit_parameter_as            = bindstatecell(inherit_parameter_as),
-            inherit_all_parameters          = bindstatecell(inherit_all_parameters),
-            get_parameters                  = bindstatecell(_get_parameters),
-            push_overwrites                 = bindstatecell(push_overwrites),
-            pop_overwrites                  = bindstatecell(pop_overwrites),
             check_expression                = bindstatecell(check_expression),
             -- the following functions don't not need cell binding as they are called for other cells
-            --clone_parameters                = bindstate(clone_parameters),
-            --clone_matching_parameters       = bindstate(clone_matching_parameters),
+            get_parameters                  = bindstate(_get_parameters),
+            push_overwrites                 = bindstate(push_overwrites),
+            pop_overwrites                  = bindstate(pop_overwrites),
             create_layout                   = pcell.create_layout
         },
         tech = {
@@ -635,7 +498,7 @@ end
 
 -- Public functions
 function pcell.get_parameters(othercell, cellargs)
-    return _get_parameters(state, nil, othercell, cellargs)
+    return _get_parameters(state, othercell, cellargs)
 end
 
 function pcell.add_cell(cellname, funcs)
@@ -650,18 +513,6 @@ function pcell.enable_dprint(d)
     state.enabledprint = d
 end
 
-local function _find_cell_traceback()
-    local level = 2
-    while true do
-        local d = debug.getinfo(level, "Slnt")
-        if not d then break end
-        if string.match(d.source, "^@cell") then
-            return { source = d.source, line = d.currentline }
-        end
-        level = level + 1
-    end
-end
-
 function pcell.update_other_cell_parameters(cellargs)
     for name, arg in pairs(cellargs) do
         -- call with cellname == nil, only update parent parameters
@@ -669,59 +520,53 @@ function pcell.update_other_cell_parameters(cellargs)
     end
 end
 
-function pcell.push_overwrites(othercell, cellargs)
-    push_overwrites(state, nil, othercell, cellargs)
+function pcell.push_overwrites(cellname, cellargs)
+    push_overwrites(state, cellname, cellargs)
 end
 
-function pcell.pop_overwrites(othercell)
-    pop_overwrites(state, nil, othercell)
+function pcell.pop_overwrites(cellname)
+    pop_overwrites(state, cellname)
 end
 
 function pcell.evaluate_parameters(cellname, cellargs)
     local parameters = {}
-    local args = _split_input_arguments(cellargs)
-    for _, arg in ipairs(args) do
-        local cell = _get_cell(state, arg.parent or cellname)
-        local p = cell.parameters:get(arg.name)
+    for name, value in pairs(cellargs) do
+        -- split name if in  'parent/parameter'
+        local parent, arg = string.match(name, "^([^.]+)%.(.+)$")
+        if parent then
+            name = arg
+        end
+
+        local cell = _get_cell(state, parent or cellname)
+        local p = cell.parameters:get(name)
         if not p then
-            error(string.format("argument '%s' has no matching parameter in cell '%s', maybe it was spelled wrong?", name, arg.parent or cellname))
+            error(string.format("argument '%s' has no matching parameter in cell '%s', maybe it was spelled wrong?", name, parent or cellname))
         end
-        local index = arg.name
-        if arg.parent then
-            index = string.format("%s.%s", arg.parent, arg.name)
+        local index = name
+        if parent then
+            index = string.format("%s.%s", parent, name)
         end
-        parameters[index] = evaluator(arg.value, p.argtype)
+        parameters[index] = evaluator(value, p.argtype)
     end
     return parameters
 end
 
 local function _create_layout_internal(cellname, name, cellargs, env)
-    if state.debug then 
-        local status = _find_cell_traceback()
-        if not status then -- main call to create_layout 
-            print(string.format("creating layout of cell '%s' (main call)", cellname))
-        else
-            print(string.format("creating layout of cell '%s' in %s:%d", cellname, status.source, status.line))
-        end
-    end
+    -- parse cellname into library part and cell part
     local libpart, cellpart = string.match(cellname, "([^/]+)/(.+)")
-    local explicitlib = false
-    if libpart ~= "." then -- explicit library
-        explicitlib = true
-        state.libnamestacks:push(libpart)
+    if libpart ~= "." then -- relative library
+        state.currentlibname = libpart
     end
+    -- update cellname (needed if a relative library was used)
     cellname = _resolve_cellname(state, cellname)
+
     local cell = _get_cell(state, cellname)
     if not cell.funcs.layout then
         error(string.format("cell '%s' has no layout definition", cellname))
     end
-    local parameters, backup = _get_parameters(state, cellname, cellname, cellargs) -- cellname needs to be passed twice
-    _restore_parameters(state, cellname, backup)
+    local parameters = _get_parameters(state, cellname, cellargs) -- cellname needs to be passed twice
     local obj = object.create(name)
     cell.funcs.layout(obj, parameters, env)
-    if explicitlib then
-        state.libnamestacks:pop()
-    end
     return obj
 end
 
@@ -797,7 +642,7 @@ end
 local function _collect_parameters(cell, ptype, parent, str)
     for _, name in ipairs(cell.parameters:get_names()) do
         local v = cell.parameters:get(name)
-        local val = v.func()
+        local val = v.value
         if type(val) == "table" and not val.isgenerictechparameter then
             val = table.concat(val, ",")
             if val == "" then val = " " end
@@ -858,8 +703,7 @@ function pcell.parameters(cellname, cellargs, generictech)
     end
 
     local cell = _get_cell(state, cellname)
-    local parameters, backup = _get_parameters(state, cellname, cellname, cellargs, true) -- cellname needs to be passed twice
-    --_restore_parameters(state, cellname, backup) -- FIXME?
+    local parameters = _get_parameters(state, cellname, cellargs, true) -- cellname needs to be passed twice
     local str = {}
     _collect_parameters(cell, "N", cellname, str)
 
@@ -877,15 +721,6 @@ function pcell.parameters(cellname, cellargs, generictech)
         --    return
         --end
 
-    --[[
-    -- display referenced parameters
-    for othercellname in pairs(cell.references) do
-        if othercellname ~= cellname then
-            local othercell = _get_cell(state, othercellname)
-            _collect_parameters(othercell, "R", othercellname, str) -- 'referenced' parameter
-        end
-    end
-    --]]
     _override_cell_environment(nil)
     return str
 end
