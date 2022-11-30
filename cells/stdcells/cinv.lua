@@ -1,6 +1,4 @@
 function parameters()
-    pcell.reference_cell("basic/mosfet")
-    pcell.reference_cell("stdcells/base")
     pcell.add_parameters(
         { "fingers", 1 },
         { "splitenables", false },

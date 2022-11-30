@@ -1,7 +1,3 @@
-function config()
-    pcell.reference_cell("basic/mosfet")
-end
-
 function parameters()
     pcell.add_parameters(
         { "oxidetype(Oxide Type)",                             1 },
@@ -101,8 +97,14 @@ function layout(cmos, _P)
             drawactive = _P.drawactive,
             cutheight = _P.cutheight,
         })
-        local n_ext = math.max(_P.npowerspace + _P.powerwidth + outergateshift, math.max(_P.gateext, _P.cutheight / 2, _P.dummycontheight / 2))
-        local p_ext = math.max(_P.ppowerspace + _P.powerwidth + outergateshift, math.max(_P.gateext, _P.cutheight / 2, _P.dummycontheight / 2))
+        local n_ext, p_ext
+        if aux.any_of("dummy", _P.gatecontactpos) then
+            n_ext = math.max(_P.npowerspace + outergateshift + _P.gateext + math.max(_P.cutheight / 2, _P.dummycontheight))
+            p_ext = math.max(_P.ppowerspace + outergateshift + _P.gateext + math.max(_P.cutheight / 2, _P.dummycontheight))
+        else
+            n_ext = math.max(outergateshift, math.max(_P.gateext, _P.cutheight / 2, _P.dummycontheight / 2))
+            p_ext = math.max(outergateshift, math.max(_P.gateext, _P.cutheight / 2, _P.dummycontheight / 2))
+        end
 
         -- pmos
         local popt = {

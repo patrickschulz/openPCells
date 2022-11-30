@@ -15,7 +15,6 @@ function parameters()
         { "nmosvthtype", 1 },
         { "pmosvthtype", 1 }
     )
-    pcell.reference_cell("basic/mosfet")
 end
 
 function layout(tgate, _P)

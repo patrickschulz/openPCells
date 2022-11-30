@@ -1,7 +1,4 @@
 function parameters()
-    pcell.reference_cell("basic/mosfet")
-    pcell.reference_cell("stdcells/base")
-    pcell.reference_cell("stdcells/harness")
     pcell.add_parameters(
         { "glengths", { 40, 40, 40, 40, 40 }, { argtype = "strtable" } },
         { "gspaces", { 90, 90, 90, 90, 90 }, { argtype = "strtable" } },

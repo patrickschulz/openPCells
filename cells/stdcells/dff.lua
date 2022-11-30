@@ -16,9 +16,6 @@
 --]]
 
 function parameters()
-    pcell.reference_cell("stdcells/base")
-    pcell.reference_cell("stdcells/harness")
-    pcell.reference_cell("stdcells/not_gate")
     pcell.add_parameters(
         -- FIXME: add more transistor width control
         { "pwidth", 2 * tech.get_dimension("Minimum Gate Width") },

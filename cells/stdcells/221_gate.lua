@@ -10,8 +10,6 @@
         B2 ---- GATE2
 ]] -- 
 function parameters() 
-    pcell.reference_cell("stdcells/base") 
-    pcell.reference_cell("stdcells/harness") 
     pcell.add_parameter("flipconnection", false)
     pcell.add_parameters(
         { "gate1", "or_gate" },

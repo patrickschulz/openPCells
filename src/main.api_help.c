@@ -1034,20 +1034,6 @@ struct vector* _initialize_api_entries(void)
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
-    /* pcell.reference_cell */
-    {
-        struct parameter parameters[] = {
-            { "cellname", STRING, NULL, "cellname of the cell which should be referenced" }
-        };
-        vector_append(entries, _make_api_entry(
-            "reference_cell",
-            MODULE_PCELL,
-            "reference cell in pcell definitions in order to access its parameters (see pcell.get_parameters)",
-            "function parameters()\n    pcell.reference_cell(\"foo/bar\")\nend",
-            parameters,
-            sizeof(parameters) / sizeof(parameters[0])
-        ));
-    }
     /* pcell.get_parameters */
     {
         struct parameter parameters[] = {
@@ -1056,8 +1042,8 @@ struct vector* _initialize_api_entries(void)
         vector_append(entries, _make_api_entry(
             "get_parameters",
             MODULE_PCELL,
-            "access the (updated) parameter values of another cell. In pcell definitions pcell.reference_cell() has to be called for the other cell",
-            "function parameters()\n    pcell.reference_cell(\"foo/bar\")\nend\n\nfunction layout(cell)\n    local bp = pcell.get_parameters(\"foo/bar\")\nend",
+            "access the (updated) parameter values of another cell",
+            "function parameters()\n    end\n\nfunction layout(cell)\n    local bp = pcell.get_parameters(\"foo/bar\")\nend",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));

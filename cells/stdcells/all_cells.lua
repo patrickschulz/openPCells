@@ -1,6 +1,3 @@
-function parameters()
-end
-
 function layout(main, _P)
     local _1_inv_gate_ref = pcell.create_layout("stdcells/1_inv_gate", "1_inv_gate")
     main:add_child(_1_inv_gate_ref, "1_inv_gate")

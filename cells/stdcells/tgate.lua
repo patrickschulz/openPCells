@@ -1,5 +1,4 @@
 function parameters()
-    pcell.reference_cell("stdcells/base")
     pcell.add_parameter("fingers", 1)
     pcell.add_parameter("shiftinput", 0)
     pcell.add_parameter("shiftoutput", 0)

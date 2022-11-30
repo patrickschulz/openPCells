@@ -31,7 +31,6 @@
 --]]
 
 function parameters()
-    pcell.reference_cell("basic/mosfet")
     pcell.add_parameters(
         { "gatelength", tech.get_dimension("Minimum Gate Length") },
         { "gatespace", tech.get_dimension("Minimum Gate XSpace") },

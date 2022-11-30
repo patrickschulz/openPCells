@@ -26,8 +26,6 @@
 --]]
 
 function parameters()
-    pcell.reference_cell("stdcells/base")
-    pcell.reference_cell("stdcells/harness")
     pcell.add_parameter("fingers", 1, { posvals = set(1) })
     pcell.add_parameter("shiftoutput", 0)
 end

@@ -1,5 +1,4 @@
 function config()
-    pcell.reference_cell("stdcells/base")
     pcell.set_property("hidden", true)
 end
 

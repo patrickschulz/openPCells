@@ -5,7 +5,6 @@ function parameters()
         { "nwidth", 2 * tech.get_dimension("Minimum Gate Width") },
         { "fingers", 4, posvals = even() }
     )
-    pcell.reference_cell("stdcells/base")
 end
 
 function layout(cell, _P)

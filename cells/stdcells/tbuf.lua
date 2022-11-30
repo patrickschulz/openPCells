@@ -1,6 +1,4 @@
 function parameters()
-    pcell.reference_cell("stdcells/base")
-    pcell.reference_cell("stdcells/harness")
     pcell.add_parameters(
         { "ifingers", 1 },
         { "ofingers", 1 }

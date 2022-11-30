@@ -1,5 +1,4 @@
 function parameters()
-    pcell.reference_cell("stdcells/base")
     pcell.add_parameter("fingers", 1)
     pcell.add_parameter("pwidth", 2 * tech.get_dimension("Minimum Gate Width"))
     pcell.add_parameter("nwidth", 2 * tech.get_dimension("Minimum Gate Width"))

@@ -1,5 +1,4 @@
 function parameters()
-    pcell.reference_cell("stdcells/base")
     pcell.add_parameters(
         { "norfingers", 1 },
         { "notfingers", 1 },

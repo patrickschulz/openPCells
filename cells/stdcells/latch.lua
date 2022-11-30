@@ -1,8 +1,3 @@
-function parameters()
-    pcell.reference_cell("stdcells/base")
-    pcell.reference_cell("stdcells/harness")
-end
-
 function layout(gate, _P)
     local bp = pcell.get_parameters("stdcells/base")
 

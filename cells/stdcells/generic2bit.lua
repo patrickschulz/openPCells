@@ -1,5 +1,4 @@
 function parameters()
-    pcell.reference_cell("stdcells/base")
     pcell.add_parameters(
         { "fingers",                 1 },
         { "bitpattern", { 1, 1, 1, 0 } },

@@ -6,8 +6,6 @@ B2 ----- GATE1 --- GATE2
 B1 ----- GATE1
 ]]
 function parameters() 
-    pcell.reference_cell("stdcells/base") 
-    pcell.reference_cell("stdcells/harness") 
     pcell.add_parameters(
         { "gate1", "nand_gate" },
         { "gate2", "nor_gate" }

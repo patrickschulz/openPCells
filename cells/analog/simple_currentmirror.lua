@@ -17,8 +17,6 @@
   VSS -----------------*--------------------------------
 --]]
 function parameters()
-    pcell.reference_cell("basic/mosfet")
-    pcell.reference_cell("basic/cmos")
     pcell.add_parameters(
         { "inputpolarity", "n", posvals = set("n", "p") },
         { "outputdiodefingers",    4, posvals = even() },

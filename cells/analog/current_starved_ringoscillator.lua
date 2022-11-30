@@ -73,8 +73,6 @@
                                
 --]]
 function parameters()
-    pcell.reference_cell("basic/mosfet")
-    pcell.reference_cell("basic/cmos")
     pcell.add_parameters(
         { "invfingers",            2, posvals = even() },
         { "numinv",                3, posvals = odd() },

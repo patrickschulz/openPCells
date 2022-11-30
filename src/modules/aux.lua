@@ -20,7 +20,7 @@ end
 function aux.clone_shallow(t, predicate)
     local new = {}
     predicate = predicate or function() return true end
-    for k, v in pairs(new) do
+    for k, v in pairs(t) do
         if predicate(k, v) then
             new[k] = v
         end
