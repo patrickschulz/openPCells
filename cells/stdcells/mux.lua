@@ -1,7 +1,3 @@
-function parameters()
-    pcell.reference_cell("stdcells/base")
-end
-
 function layout(gate, _P)
     local bp = pcell.get_parameters("stdcells/base")
     local xpitch = bp.gspace + bp.glength

@@ -1,10 +1,3 @@
-function parameters()
-    pcell.reference_cell("stdcells/base")
-    pcell.reference_cell("stdcells/not_gate")
-    pcell.reference_cell("stdcells/nor_gate")
-    pcell.reference_cell("stdcells/nand_gate")
-end
-
 function layout(toplevel)
     local cellnames = {
         {

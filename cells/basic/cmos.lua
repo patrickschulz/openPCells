@@ -1,7 +1,3 @@
-function config()
-    pcell.reference_cell("basic/mosfet")
-end
-
 function parameters()
     pcell.add_parameters(
         { "oxidetype(Oxide Type)",                             1 },

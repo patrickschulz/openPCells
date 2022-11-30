@@ -19,7 +19,6 @@ could go with a different approach.
 --]]
 
 function parameters()
-    pcell.reference_cell("stdcells/base")
     pcell.add_parameters(
         { "numcolumns(Number of Columns)", 2 },
         { "numrows(Number of Rows)", 2 }

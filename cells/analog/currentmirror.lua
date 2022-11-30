@@ -1,5 +1,4 @@
 function parameters()
-    pcell.reference_cell("basic/mosfet")
     pcell.add_parameters(
         { "ifingers", 4 },
         { "ofingers", 4 },

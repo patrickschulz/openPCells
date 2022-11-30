@@ -1,6 +1,5 @@
 function parameters()
     pcell.add_parameters({ "fingers(Number of Fingers)", { 4, 4 }, argtype = "numtable" })
-    pcell.reference_cell("basic/mosfet")
 end
 
 function layout(array, _P)

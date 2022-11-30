@@ -32,7 +32,6 @@
     All transistors with 'invfingers' fingers
 --]]
 function parameters()
-    pcell.reference_cell("basic/cmos")
     pcell.add_parameters(
         { "invfingers", 4, posvals = even() },
         { "numinv", 3, posvals = odd() },

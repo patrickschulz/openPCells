@@ -1,5 +1,4 @@
 function parameters()
-    pcell.reference_cell("stdcells/base")
     pcell.add_parameters(
         { "numinv(Number of Inverters)", 4 },
         { "fingers(Number of Fingers for each Inverter)", 2 }

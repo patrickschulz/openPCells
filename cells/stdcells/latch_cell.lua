@@ -1,7 +1,4 @@
 function parameters()
-    pcell.reference_cell("stdcells/base")
-    pcell.reference_cell("stdcells/harness")
-    pcell.reference_cell("stdcells/not_gate")
     pcell.add_parameter("clockpolarity", "positive", { posvals = set("positive", "negative") })
     pcell.add_parameter("enableQ", true)
     pcell.add_parameter("enableQN", false)

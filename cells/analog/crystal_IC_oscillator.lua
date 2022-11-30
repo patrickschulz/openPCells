@@ -1,5 +1,4 @@
 function parameters()
-    pcell.reference_cell("basic/mosfet")
     pcell.add_parameters(
         { "invfingers", 4 },
         { "resfingers", 50 }
