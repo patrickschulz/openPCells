@@ -215,42 +215,6 @@ local function _add_parameter(state, cell, name, value, argtype, posvals, follow
     cell.parameters:add(name, value, argtype, posvals, follow, readonly)
 end
 
-local function _set_parameter_function(state, cell, name, value, backup, overwrite)
-    local p = cell.parameters:get(name)
-    if not p then
-        error(string.format("argument '%s' has no matching parameter in cell '%s', maybe it was spelled wrong?", name, cell.name))
-    end
-    if overwrite then
-        p.overwritten = true
-    end
-
-    -- run checks
-    paramlib.check_constraints(p, value)
-    paramlib.check_readonly(p)
-
-    -- store old function for restoration
-    backup[name] = p.value
-
-    -- update value
-    p.value = value
-end
-
-local function _process_input_parameters(state, cellname, cellargs, overwrite)
-    local backup = {}
-    for name, value in pairs(cellargs) do
-        -- split name if in  'parent/parameter'
-        local parent, arg = string.match(name, "^([^.]+)%.(.+)$")
-        if parent then
-            local cell = _get_cell(state, parent)
-            _set_parameter_function(state, cell, arg, value, {}, overwrite)
-        else -- can be called without a cellname to update only parent parameters
-            local cell = _get_cell(state, cellname)
-            _set_parameter_function(state, cell, name, value, backup, overwrite)
-        end
-    end
-    return backup
-end
-
 local function _check_parameter_expressions(cell, parameters)
     local failures = {}
     for _, expr in ipairs(cell.expressions) do
@@ -378,14 +342,14 @@ local function add_parameters(state, cellname, ...)
     end
 end
 
-local function push_overwrites(state, cellname, cellargs)
+local function _push_overwrites(state, cellname, cellargs)
     assert(type(cellname) == "string", "push_overwrites: cellname must be a string")
     assert(type(cellargs) == "table", string.format("pcell.push_overwrites: 'cellargs' must be a table (got: %s)", type(cellargs)))
     local cell = _get_cell(state, cellname)
     table.insert(cell.overwrites, cellargs)
 end
 
-local function pop_overwrites(state, cellname)
+local function _pop_overwrites(state, cellname)
     local cell = _get_cell(state, cellname)
     if #cell.overwrites == 0 then
         error(string.format("trying to restore default parameters for '%s', but there where no previous overwrites", cellname))
@@ -452,8 +416,8 @@ function state.create_cellenv(state, cellname, ovrenv)
             check_expression                = bindstatecell(check_expression),
             -- the following functions don't not need cell binding as they are called for other cells
             get_parameters                  = bindstate(_get_parameters),
-            push_overwrites                 = bindstate(push_overwrites),
-            pop_overwrites                  = bindstate(pop_overwrites),
+            push_overwrites                 = bindstate(_push_overwrites),
+            pop_overwrites                  = bindstate(_pop_overwrites),
             create_layout                   = pcell.create_layout
         },
         tech = {
@@ -516,19 +480,12 @@ function pcell.enable_dprint(d)
     state.enabledprint = d
 end
 
-function pcell.update_other_cell_parameters(cellargs)
-    for name, arg in pairs(cellargs) do
-        -- call with cellname == nil, only update parent parameters
-        _process_input_parameters(state, nil, cellargs, false) -- false: overwrite
-    end
-end
-
 function pcell.push_overwrites(cellname, cellargs)
-    push_overwrites(state, cellname, cellargs)
+    _push_overwrites(state, cellname, cellargs)
 end
 
 function pcell.pop_overwrites(cellname)
-    pop_overwrites(state, cellname)
+    _pop_overwrites(state, cellname)
 end
 
 function pcell.evaluate_parameters(cellname, cellargs)
@@ -607,10 +564,7 @@ function pcell.create_layout_env(cellname, name, cellargs, env)
     return obj
 end
 
-function pcell.create_layout_from_script(scriptpath, cellargs)
-    if cellargs then
-        pcell.update_other_cell_parameters(cellargs)
-    end
+function pcell.create_layout_from_script(scriptpath)
     local reader = _get_reader(scriptpath)
     if reader then
         local env = _ENV
