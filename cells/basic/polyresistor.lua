@@ -54,11 +54,13 @@ function layout(res, _P)
     -- connections
     local xpitch = _P.width + _P.xspace
     if _P.conntype == "parallel" then
-        geometry.rectanglebltr(res, generics.metal(1), 
-            point.create(-(_P.nxfingers - 1) * xpitch / 2 - _P.width / 2, -_P.contactheight / 2),
-            point.create( (_P.nxfingers - 1) * xpitch / 2 + _P.width / 2,  _P.contactheight / 2),
-            1, 2, 0, _P.length + _P.extension
-        )
+        if _P.nxfingers > 1 then
+            geometry.rectanglebltr(res, generics.metal(1), 
+                point.create(-(_P.nxfingers - 1) * xpitch / 2 - _P.width / 2, -_P.contactheight / 2),
+                point.create( (_P.nxfingers - 1) * xpitch / 2 + _P.width / 2,  _P.contactheight / 2),
+                1, 2, 0, _P.length + _P.extension
+            )
+        end
     else
         for i = 1, _P.nxfingers - 1 do
             if i % 2 == 1 then
@@ -77,15 +79,20 @@ function layout(res, _P)
     end
 
     -- alignment box
-    -- FIXME: should not depend on extension
     res:set_alignment_box(
-        point.create(-(_P.nxfingers - 1) * xpitch / 2 - xpitch / 2, -polyheight / 2 + _P.extension / 1),
-        point.create( (_P.nxfingers - 1) * xpitch / 2 + xpitch / 2,  polyheight / 2 - _P.extension / 1)
+        point.create(-(_P.nxfingers - 1) * xpitch / 2 - xpitch / 2, -(_P.nyfingers * _P.length + _P.nyfingers * _P.yspace) / 2),
+        point.create( (_P.nxfingers - 1) * xpitch / 2 + xpitch / 2,  (_P.nyfingers * _P.length + _P.nyfingers * _P.yspace) / 2) 
     )
 
     -- ports and anchors
-    res:add_anchor("plus", res:get_anchor("top"))
-    res:add_anchor("minus", res:get_anchor("bottom"))
+    res:add_anchor_area_bltr("plus",
+        point.create(-_P.width / 2, -_P.contactheight / 2 + _P.length / 2 + _P.yspace / 2),
+        point.create( _P.width / 2,  _P.contactheight / 2 + _P.length / 2 + _P.yspace / 2)
+    )
+    res:add_anchor_area_bltr("minus",
+        point.create(-_P.width / 2, -_P.contactheight / 2 - _P.length / 2 - _P.yspace / 2),
+        point.create( _P.width / 2,  _P.contactheight / 2 - _P.length / 2 - _P.yspace / 2)
+    )
     res:add_anchor("topcontactleft", res:get_anchor("topleft"):translate(_P.xspace / 2, 0))
     res:add_anchor("topcontactright", res:get_anchor("topright"):translate(-_P.xspace / 2, 0))
     res:add_anchor("bottomcontactleft", res:get_anchor("bottomleft"):translate(_P.xspace / 2, 0))
