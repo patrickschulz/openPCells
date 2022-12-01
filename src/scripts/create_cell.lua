@@ -32,10 +32,13 @@ for k, v in pairs(parameters) do
 end
 
 -- create cell
+-- FIXME: create_layout_from_script does not take any cellargs
+--        either put all cellargs-related processing in the 'else' clause and do proper error checking
+--        or allow cellargs for cellscripts (not sure if useful)
 pcell.enable_debug(args.debugcell)
 pcell.enable_dprint(args.enabledprint)
 if args.isscript then
-    local cell = pcell.create_layout_from_script(args.cell, cellargs)
+    local cell = pcell.create_layout_from_script(args.cell)
     return cell
 else
     local cell = pcell.create_layout_env(args.cell, args.toplevelname, cellargs, args.cellenv)

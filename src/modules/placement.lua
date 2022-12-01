@@ -228,38 +228,13 @@ function M.create_reference_rows(cellnames, xpitch)
     return names
 end
 
-function M.format_rows(cellnames)
-    local rows = {}
-    for row, entries in ipairs(cellnames) do
-        rows[row] = {}
-        for column, entry in ipairs(entries) do
-            rows[row][column] = { 
-                instance = string.format("I_%d_%d", row, column),
-                reference = entry,
-            }
-        end
-    end
-    return rows
-end
-
-function M.regular_rows(cellname, numrows, numcolumns)
-    local rows = {}
-    for row = 1, numrows do
-        rows[row] = {}
-        for col = 1, numcolumns do
-            rows[row][col] = { reference = cellname, instance = string.format("cell_%d_%d", row, col) }
-        end
-    end
-    return rows
-end
-
 function M.digital(parent, rows, width, startpt, startanchor, flipfirst, growdirection, noflip)
     -- calculate row widths
     local rowwidths = {}
     for row, entries in ipairs(rows) do
         rowwidths[row] = 0
-        for column, cellname in ipairs(entries) do
-            local cellwidth = cellname.width
+        for column, entry in ipairs(entries) do
+            local cellwidth = entry.width
             rowwidths[row] = rowwidths[row] + cellwidth
         end
         -- check for too wide rows

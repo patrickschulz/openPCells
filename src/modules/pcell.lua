@@ -31,7 +31,7 @@ local function _eval_tostrtable(arg)
     return t
 end
 
-local function evaluator(arg, argtype)
+local function _evaluator(arg, argtype)
     local evaluators = {
         number   = tonumber,
         integer  = _eval_tointeger,
@@ -184,7 +184,6 @@ local function _add_cell(state, cellname, funcs, nocallparams)
         funcs       = funcs,
         parameters  = paramlib.create_directory(),
         properties  = {},
-        name        = cellname,
         overwrites  = {},
         expressions = {},
     }
@@ -210,45 +209,9 @@ local function _get_cell(state, cellname, nocallparams)
     return rawget(state.loadedcells, cellname)
 end
 
-local function _add_parameter(state, cell, name, value, argtype, posvals, follow, readonly)
+local function _add_parameter_internal(cell, name, value, argtype, posvals, follow, readonly)
     argtype = argtype or type(value)
     cell.parameters:add(name, value, argtype, posvals, follow, readonly)
-end
-
-local function _set_parameter_function(state, cell, name, value, backup, overwrite)
-    local p = cell.parameters:get(name)
-    if not p then
-        error(string.format("argument '%s' has no matching parameter in cell '%s', maybe it was spelled wrong?", name, cell.name))
-    end
-    if overwrite then
-        p.overwritten = true
-    end
-
-    -- run checks
-    paramlib.check_constraints(p, value)
-    paramlib.check_readonly(p)
-
-    -- store old function for restoration
-    backup[name] = p.value
-
-    -- update value
-    p.value = value
-end
-
-local function _process_input_parameters(state, cellname, cellargs, overwrite)
-    local backup = {}
-    for name, value in pairs(cellargs) do
-        -- split name if in  'parent/parameter'
-        local parent, arg = string.match(name, "^([^.]+)%.(.+)$")
-        if parent then
-            local cell = _get_cell(state, parent)
-            _set_parameter_function(state, cell, arg, value, {}, overwrite)
-        else -- can be called without a cellname to update only parent parameters
-            local cell = _get_cell(state, cellname)
-            _set_parameter_function(state, cell, name, value, backup, overwrite)
-        end
-    end
-    return backup
 end
 
 local function _check_parameter_expressions(cell, parameters)
@@ -276,17 +239,6 @@ local function _get_parameters(state, cellname, cellargs)
     local cellparams = cell.parameters:get_values()
 
     -- assemble arguments for the cell layout function
-    -- order of processing is:
-    --  (1) default values
-    --  (2) overwrites
-    --  (3) cell arguments
-    --  (4) handle followers
-    --  (5) run parameter checks
-    --  (6) check cell expressions
-    -- this ensures that values explicitly-given parameter values have priority,
-    -- while overwrites (from push_overwrites) only overwrite default values
-    -- follower parameters are updated AFTER explicit cell arguments, but must check
-    -- that given arguments are not overwritten
     local P = {}
 
     -- (1) fill with default values
@@ -354,23 +306,22 @@ local function _get_parameters(state, cellname, cellargs)
     return P
 end
 
-local function set_property(state, cellname, property, value)
+local function _set_property(state, cellname, property, value)
     local cell = _get_cell(state, cellname)
     cell.properties[property] = value
 end
 
-local function add_parameter(state, cellname, name, value, opt)
+local function _add_parameter(state, cellname, name, value, opt)
     opt = opt or {}
     local cell = _get_cell(state, cellname)
-    _add_parameter(state, cell, name, value, opt.argtype, opt.posvals, opt.follow, opt.readonly)
+    _add_parameter_internal(cell, name, value, opt.argtype, opt.posvals, opt.follow, opt.readonly)
 end
 
-local function add_parameters(state, cellname, ...)
+local function _add_parameters(state, cellname, ...)
     local cell = _get_cell(state, cellname)
     for _, parameter in ipairs({ ... }) do
         local name, value = parameter[1], parameter[2]
-        _add_parameter(
-            state,
+        _add_parameter_internal(
             cell,
             name, value,
             parameter.argtype, parameter.posvals, parameter.follow, parameter.readonly
@@ -378,14 +329,14 @@ local function add_parameters(state, cellname, ...)
     end
 end
 
-local function push_overwrites(state, cellname, cellargs)
+local function _push_overwrites(state, cellname, cellargs)
     assert(type(cellname) == "string", "push_overwrites: cellname must be a string")
     assert(type(cellargs) == "table", string.format("pcell.push_overwrites: 'cellargs' must be a table (got: %s)", type(cellargs)))
     local cell = _get_cell(state, cellname)
     table.insert(cell.overwrites, cellargs)
 end
 
-local function pop_overwrites(state, cellname)
+local function _pop_overwrites(state, cellname)
     local cell = _get_cell(state, cellname)
     if #cell.overwrites == 0 then
         error(string.format("trying to restore default parameters for '%s', but there where no previous overwrites", cellname))
@@ -393,7 +344,7 @@ local function pop_overwrites(state, cellname)
     table.remove(cell.overwrites)
 end
 
-local function check_expression(state, cellname, expression, message)
+local function _check_expression(state, cellname, expression, message)
     local cell = _get_cell(state, cellname)
     table.insert(cell.expressions, { expression = expression, message = message })
 end
@@ -446,14 +397,14 @@ function state.create_cellenv(state, cellname, ovrenv)
         negative = function() return { type = "negative" } end,
         inf = math.huge,
         pcell = {
-            set_property                    = bindstatecell(set_property),
-            add_parameter                   = bindstatecell(add_parameter),
-            add_parameters                  = bindstatecell(add_parameters),
-            check_expression                = bindstatecell(check_expression),
+            set_property                    = bindstatecell(_set_property),
+            add_parameter                   = bindstatecell(_add_parameter),
+            add_parameters                  = bindstatecell(_add_parameters),
+            check_expression                = bindstatecell(_check_expression),
             -- the following functions don't not need cell binding as they are called for other cells
             get_parameters                  = bindstate(_get_parameters),
-            push_overwrites                 = bindstate(push_overwrites),
-            pop_overwrites                  = bindstate(pop_overwrites),
+            push_overwrites                 = bindstate(_push_overwrites),
+            pop_overwrites                  = bindstate(_pop_overwrites),
             create_layout                   = pcell.create_layout
         },
         tech = {
@@ -516,19 +467,12 @@ function pcell.enable_dprint(d)
     state.enabledprint = d
 end
 
-function pcell.update_other_cell_parameters(cellargs)
-    for name, arg in pairs(cellargs) do
-        -- call with cellname == nil, only update parent parameters
-        _process_input_parameters(state, nil, cellargs, false) -- false: overwrite
-    end
-end
-
 function pcell.push_overwrites(cellname, cellargs)
-    push_overwrites(state, cellname, cellargs)
+    _push_overwrites(state, cellname, cellargs)
 end
 
 function pcell.pop_overwrites(cellname)
-    pop_overwrites(state, cellname)
+    _pop_overwrites(state, cellname)
 end
 
 function pcell.evaluate_parameters(cellname, cellargs)
@@ -549,7 +493,7 @@ function pcell.evaluate_parameters(cellname, cellargs)
         if parent then
             index = string.format("%s.%s", parent, name)
         end
-        parameters[index] = evaluator(value, p.argtype)
+        parameters[index] = _evaluator(value, p.argtype)
     end
     return parameters
 end
@@ -607,10 +551,7 @@ function pcell.create_layout_env(cellname, name, cellargs, env)
     return obj
 end
 
-function pcell.create_layout_from_script(scriptpath, cellargs)
-    if cellargs then
-        pcell.update_other_cell_parameters(cellargs)
-    end
+function pcell.create_layout_from_script(scriptpath)
     local reader = _get_reader(scriptpath)
     if reader then
         local env = _ENV
