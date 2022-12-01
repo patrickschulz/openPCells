@@ -31,7 +31,7 @@ local function _eval_tostrtable(arg)
     return t
 end
 
-local function evaluator(arg, argtype)
+local function _evaluator(arg, argtype)
     local evaluators = {
         number   = tonumber,
         integer  = _eval_tointeger,
@@ -184,7 +184,6 @@ local function _add_cell(state, cellname, funcs, nocallparams)
         funcs       = funcs,
         parameters  = paramlib.create_directory(),
         properties  = {},
-        name        = cellname,
         overwrites  = {},
         expressions = {},
     }
@@ -210,7 +209,7 @@ local function _get_cell(state, cellname, nocallparams)
     return rawget(state.loadedcells, cellname)
 end
 
-local function _add_parameter(state, cell, name, value, argtype, posvals, follow, readonly)
+local function _add_parameter_internal(cell, name, value, argtype, posvals, follow, readonly)
     argtype = argtype or type(value)
     cell.parameters:add(name, value, argtype, posvals, follow, readonly)
 end
@@ -240,17 +239,6 @@ local function _get_parameters(state, cellname, cellargs)
     local cellparams = cell.parameters:get_values()
 
     -- assemble arguments for the cell layout function
-    -- order of processing is:
-    --  (1) default values
-    --  (2) overwrites
-    --  (3) cell arguments
-    --  (4) handle followers
-    --  (5) run parameter checks
-    --  (6) check cell expressions
-    -- this ensures that values explicitly-given parameter values have priority,
-    -- while overwrites (from push_overwrites) only overwrite default values
-    -- follower parameters are updated AFTER explicit cell arguments, but must check
-    -- that given arguments are not overwritten
     local P = {}
 
     -- (1) fill with default values
@@ -318,23 +306,22 @@ local function _get_parameters(state, cellname, cellargs)
     return P
 end
 
-local function set_property(state, cellname, property, value)
+local function _set_property(state, cellname, property, value)
     local cell = _get_cell(state, cellname)
     cell.properties[property] = value
 end
 
-local function add_parameter(state, cellname, name, value, opt)
+local function _add_parameter(state, cellname, name, value, opt)
     opt = opt or {}
     local cell = _get_cell(state, cellname)
-    _add_parameter(state, cell, name, value, opt.argtype, opt.posvals, opt.follow, opt.readonly)
+    _add_parameter_internal(cell, name, value, opt.argtype, opt.posvals, opt.follow, opt.readonly)
 end
 
-local function add_parameters(state, cellname, ...)
+local function _add_parameters(state, cellname, ...)
     local cell = _get_cell(state, cellname)
     for _, parameter in ipairs({ ... }) do
         local name, value = parameter[1], parameter[2]
-        _add_parameter(
-            state,
+        _add_parameter_internal(
             cell,
             name, value,
             parameter.argtype, parameter.posvals, parameter.follow, parameter.readonly
@@ -357,7 +344,7 @@ local function _pop_overwrites(state, cellname)
     table.remove(cell.overwrites)
 end
 
-local function check_expression(state, cellname, expression, message)
+local function _check_expression(state, cellname, expression, message)
     local cell = _get_cell(state, cellname)
     table.insert(cell.expressions, { expression = expression, message = message })
 end
@@ -410,10 +397,10 @@ function state.create_cellenv(state, cellname, ovrenv)
         negative = function() return { type = "negative" } end,
         inf = math.huge,
         pcell = {
-            set_property                    = bindstatecell(set_property),
-            add_parameter                   = bindstatecell(add_parameter),
-            add_parameters                  = bindstatecell(add_parameters),
-            check_expression                = bindstatecell(check_expression),
+            set_property                    = bindstatecell(_set_property),
+            add_parameter                   = bindstatecell(_add_parameter),
+            add_parameters                  = bindstatecell(_add_parameters),
+            check_expression                = bindstatecell(_check_expression),
             -- the following functions don't not need cell binding as they are called for other cells
             get_parameters                  = bindstate(_get_parameters),
             push_overwrites                 = bindstate(_push_overwrites),
@@ -506,7 +493,7 @@ function pcell.evaluate_parameters(cellname, cellargs)
         if parent then
             index = string.format("%s.%s", parent, name)
         end
-        parameters[index] = evaluator(value, p.argtype)
+        parameters[index] = _evaluator(value, p.argtype)
     end
     return parameters
 end
