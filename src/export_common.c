@@ -121,7 +121,7 @@ void export_data_append_two_bytes_unchecked(struct export_data* data, int16_t da
     {
         byte1 += 256;
     }
-    datum = datum - (byte1 << 8);
+    datum = datum - ((uint16_t)byte1 << 8);
     int8_t byte2 = datum;
     data->data[data->length + 0] = byte1;
     data->data[data->length + 1] = byte2;
@@ -135,11 +135,11 @@ void export_data_append_four_bytes_unchecked(struct export_data* data, int32_t d
     {
         byte1 += 256;
     }
-    datum = datum - (byte1 << 24);
+    datum = datum - ((uint32_t)byte1 << 24);
     int8_t byte2 = datum >> 16;
-    datum = datum - (byte2 << 16);
+    datum = datum - ((uint32_t)byte2 << 16);
     int8_t byte3 = datum >> 8;
-    datum = datum - (byte3 << 8);
+    datum = datum - ((uint32_t)byte3 << 8);
     int8_t byte4 = datum;
     data->data[data->length + 0] = byte1;
     data->data[data->length + 1] = byte2;
