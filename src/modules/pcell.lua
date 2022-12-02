@@ -5,7 +5,7 @@ local function _eval_identity(arg) return arg end
 
 local function _eval_toboolean(arg)
     assert(
-        string.match(arg, "true") or string.match(arg, "false"), 
+        string.match(arg, "true") or string.match(arg, "false"),
         string.format("_eval_toboolean: argument must be 'true' or 'false' (is '%s')", arg)
     )
     return arg == "true" and true or false
@@ -53,7 +53,6 @@ parammeta.__index = parammeta
 
 function paramlib.create_directory()
     local self = {
-        names = {},
         values = {},
         followers = {},
     }
@@ -112,27 +111,22 @@ function parammeta.add(self, name, value, argtype, posvals, follow, readonly)
         posvals   = posvals,
         readonly  = not not readonly,
     }
-    self.values[pname] = new
-    table.insert(self.names, pname)
+    table.insert(self.values, new)
     if follow then
         self.followers[pname] = follow
     end
 end
 
 function parammeta.get(self, name)
-    return self.values[name]
-end
-
-function parammeta.get_values(self)
-    return self.values
+    for _, entry in ipairs(self.values) do
+        if entry.name == name then
+            return entry
+        end
+    end
 end
 
 function parammeta.get_followers(self)
     return aux.clone_shallow(self.followers)
-end
-
-function parammeta.get_names(self)
-    return self.names
 end
 -- end of parameter module
 
@@ -156,7 +150,7 @@ local function _load_cell(state, cellname, env)
         env
     )
     -- check if only allowed values are defined
-    for funcname in pairs(env) do 
+    for funcname in pairs(env) do
         if not aux.any_of(function(v) return v == funcname end, { "config", "parameters", "layout" }) then
             moderror(string.format("pcell: all defined toplevel values must be one of 'parameters', 'layout' or 'config'. Illegal name: '%s'", funcname))
         end
@@ -236,14 +230,14 @@ end
 
 local function _get_parameters(state, cellname, cellargs)
     local cell = _get_cell(state, cellname)
-    local cellparams = cell.parameters:get_values()
+    local cellparams = cell.parameters.values
 
     -- assemble arguments for the cell layout function
     local P = {}
 
     -- (1) fill with default values
-    for name, entry in pairs(cellparams) do
-        P[name] = entry.value
+    for _, entry in pairs(cellparams) do
+        P[entry.name] = entry.value
     end
 
     -- (2) process overwrites
@@ -282,8 +276,8 @@ local function _get_parameters(state, cellname, cellargs)
     end
 
     -- (5) run parameter checks
-    for name, entry in pairs(cellparams) do
-        paramlib.check_constraints(entry, P[name])
+    for _, entry in pairs(cellparams) do
+        paramlib.check_constraints(entry, P[entry.name])
     end
 
     -- (6) check cell expressions
@@ -587,9 +581,8 @@ function pcell.constraints(cellname)
 end
 
 local function _collect_parameters(cell, ptype, parent, str)
-    for _, name in ipairs(cell.parameters:get_names()) do
-        local v = cell.parameters:get(name)
-        local val = v.value
+    for _, entry in ipairs(cell.parameters.values) do
+        local val = entry.value
         if type(val) == "table" and not val.isgenerictechparameter then
             val = table.concat(val, ",")
             if val == "" then val = " " end
@@ -597,15 +590,15 @@ local function _collect_parameters(cell, ptype, parent, str)
             val = tostring(val)
         end
         local ptype = ptype
-        table.insert(str, { 
-            parent = parent, 
-            name = name, 
-            display = v.display, 
-            value = val, 
-            ptype = ptype, 
-            argtype = tostring(v.argtype), 
-            readonly = v.readonly,
-            posvals = v.posvals 
+        table.insert(str, {
+            parent = parent,
+            name = entry.name,
+            display = entry.display,
+            value = val,
+            ptype = ptype,
+            argtype = tostring(entry.argtype),
+            readonly = entry.readonly,
+            posvals = entry.posvals
         })
     end
 end
@@ -614,36 +607,36 @@ function pcell.parameters(cellname, cellargs, generictech)
     if generictech then
         local meta = {}
         meta.__add = function(lhs, rhs)
-            return setmetatable({ 
+            return setmetatable({
                 str = string.format("%s + %s", tostring(lhs), tostring(rhs)),
-                isgenerictechparameter = true, 
+                isgenerictechparameter = true,
             }, meta)
         end
         meta.__sub = function(lhs, rhs)
-            return setmetatable({ 
+            return setmetatable({
                 str = string.format("%s - %s", tostring(lhs), tostring(rhs)),
-                isgenerictechparameter = true, 
+                isgenerictechparameter = true,
             }, meta)
         end
         meta.__mul = function(lhs, rhs)
-            return setmetatable({ 
+            return setmetatable({
                 str = string.format("%s * %s", tostring(lhs), tostring(rhs)),
-                isgenerictechparameter = true, 
+                isgenerictechparameter = true,
             }, meta)
         end
         meta.__div = function(lhs, rhs)
-            return setmetatable({ 
+            return setmetatable({
                 str = string.format("%s / %s", tostring(lhs), tostring(rhs)),
-                isgenerictechparameter = true, 
+                isgenerictechparameter = true,
             }, meta)
         end
         meta.__tostring = function(self)
             return self.str
         end
         local t = {
-            get_dimension = function(name) return setmetatable({ 
+            get_dimension = function(name) return setmetatable({
                 str = string.format('tech.get_dimension("%s")', name),
-                isgenerictechparameter = true, 
+                isgenerictechparameter = true,
             }, meta) end,
         }
         _override_cell_environment("tech", t)
@@ -709,23 +702,22 @@ function pcell.check(cellname)
     end
 
     -- check cell parameters
-    for _, name in ipairs(cell.parameters:get_names()) do
-        local parameter = cell.parameters:get(name)
+    for _, parameter in ipairs(cell.parameters.values) do
         if parameter.argtype == "number" or parameter.argtype == "integer" then
             if not parameter.posvals then
-                _perform_cell_check(cellname, name, { 1, 2 })
+                _perform_cell_check(cellname, parameter.name, { 1, 2 })
             elseif parameter.posvals.type == "even" then
-                _perform_cell_check(cellname, name, { 2 })
+                _perform_cell_check(cellname, parameter.name, { 2 })
             elseif parameter.posvals.type == "odd" then
-                _perform_cell_check(cellname, name, { 1 })
+                _perform_cell_check(cellname, parameter.name, { 1 })
             elseif parameter.posvals.type == "set" then
-                _perform_cell_check(cellname, name, parameter.posvals.values)
+                _perform_cell_check(cellname, parameter.name, parameter.posvals.values)
             elseif parameter.posvals.type == "interval" then
                 local values = { parameter.posvals.values.lower, parameter.posvals.values.upper }
                 if parameter.posvals.values.upper == math.huge then
                     values[2] = 1000
                 end
-                _perform_cell_check(cellname, name, values)
+                _perform_cell_check(cellname, parameter.name, values)
             end
         end
     end
