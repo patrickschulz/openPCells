@@ -746,7 +746,8 @@ struct vector* _initialize_api_entries(void)
             "    100, -- move 100 to the right\n"
             "    100, -- move 200 upwards\n"
             "      0, -- don't move, but switch direction\n"
-            "    point.create(300, 300) -- move to (300, 300), first in y-direction, than in x-direction"
+            "    point.create(300, 300) -- move to (300, 300), first in y-direction, than in x-direction\n"
+            "    }), 100)"
             ,
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
@@ -771,7 +772,8 @@ struct vector* _initialize_api_entries(void)
             "    100, -- move 100 to the right\n"
             "    100, -- move 200 upwards\n"
             "      0, -- don't move, but switch direction\n"
-            "    point.create(300, 300) -- move to (300, 300), first in y-direction, than in x-direction"
+            "    point.create(300, 300) -- move to (300, 300), first in y-direction, than in x-direction\n"
+            "    }), 100)"
             ,
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
