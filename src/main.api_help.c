@@ -652,16 +652,51 @@ struct vector* _initialize_api_entries(void)
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
-
+    /* geometry.path_2x */
+    {
+        struct parameter parameters[] = {
+            { "cell",     OBJECT,   NULL,   "Object in which the path is created" },
+            { "layer",    GENERICS, NULL,   "Layer of the generated rectangular shape" },
+            { "ptstart",  POINT,    NULL,   "Start point of the path" },
+            { "ptend",    POINT,    NULL,   "End point of the path" },
+            { "width",    INTEGER,  NULL,   "width of the path. Must be even" }
+        };
+        vector_append(entries, _make_api_entry(
+            "path_2x",
+            MODULE_GEOMETRY,
+            "Create a path that starts at ptstart and ends at ptend by moving first in x direction, then in y-direction (similar to an 'L')",
+            "geometry.path_2x(cell, generics.metal(2), point.create(0, 0), point.create(200, 200))",
+            parameters,
+            sizeof(parameters) / sizeof(parameters[0])
+        ));
+    }
+    /* geometry.path_2y */
+    {
+        struct parameter parameters[] = {
+            { "cell",     OBJECT,   NULL,   "Object in which the path is created" },
+            { "layer",    GENERICS, NULL,   "Layer of the generated rectangular shape" },
+            { "ptstart",  POINT,    NULL,   "Start point of the path" },
+            { "ptend",    POINT,    NULL,   "End point of the path" },
+            { "width",    INTEGER,  NULL,   "width of the path. Must be even" }
+        };
+        vector_append(entries, _make_api_entry(
+            "path_2y",
+            MODULE_GEOMETRY,
+            "Create a path that starts at ptstart and ends at ptend by moving first in y direction, then in x-direction (similar to an 'T')",
+            "geometry.path_2y(cell, generics.metal(2), point.create(0, 0), point.create(200, 200))",
+            parameters,
+            sizeof(parameters) / sizeof(parameters[0])
+        ));
+    }
     /* geometry.path_cshape */
     {
         struct parameter parameters[] = {
-            { "cell",     OBJECT, NULL,    "Object in which the path is created" },
+            { "cell",     OBJECT,   NULL,   "Object in which the path is created" },
             { "layer",    GENERICS, NULL,   "Layer of the generated rectangular shape" },
-            { "ptstart",  POINT, NULL,       "Start point of the path" },
-            { "ptend",    POINT, NULL,       "End point of the path" },
-            { "ptoffset", POINT, NULL,       "Offset point" },
-            { "width",    INTEGER, NULL,   "width of the path. Must be even" }
+            { "ptstart",  POINT,    NULL,   "Start point of the path" },
+            { "ptend",    POINT,    NULL,   "End point of the path" },
+            { "ptoffset", POINT,    NULL,   "Offset point" },
+            { "width",    INTEGER,  NULL,   "width of the path. Must be even" }
         };
         vector_append(entries, _make_api_entry(
             "path_cshape",
@@ -676,12 +711,12 @@ struct vector* _initialize_api_entries(void)
     /* geometry.path_ushape */
     {
         struct parameter parameters[] = {
-            { "cell",     OBJECT, NULL,    "Object in which the path is created" },
+            { "cell",     OBJECT,   NULL,   "Object in which the path is created" },
             { "layer",    GENERICS, NULL,   "Layer of the generated rectangular shape" },
-            { "ptstart",  POINT, NULL,       "Start point of the path" },
-            { "ptend",    POINT, NULL,       "End point of the path" },
-            { "ptoffset", POINT, NULL,       "Offset point" },
-            { "width",    INTEGER, NULL,   "width of the path. Must be even" }
+            { "ptstart",  POINT,    NULL,   "Start point of the path" },
+            { "ptend",    POINT,    NULL,   "End point of the path" },
+            { "ptoffset", POINT,    NULL,   "Offset point" },
+            { "width",    INTEGER,  NULL,   "width of the path. Must be even" }
         };
         vector_append(entries, _make_api_entry(
             "path_ushape",
@@ -692,21 +727,71 @@ struct vector* _initialize_api_entries(void)
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
+    /* geometry.path_points_xy */
+    {
+        struct parameter parameters[] = {
+            { "ptstart",    POINT,      NULL,   "Start point of the path" },
+            { "pts",        POINTLIST,  NULL,   "List of points or scalars" }
+        };
+        vector_append(entries, _make_api_entry(
+            "path_points_xy",
+            MODULE_GEOMETRY,
+            "Create a point list for use in geometry.path that contains only horizontal and vertical movements based on a list of points or scalars.\n"
+            "This function only creates the resulting list of points, no shapes by itself.\n"
+            "A movement can be a point, in which case two resulting movements are created: first x, than y (or vice versa, depending on the current state).\n"
+            "A scalar movement moves relatively by that amount (in x or y, again depending on the state)\n"
+            "This function does the same as geometry.path_points_yx, but starts in x-direction"
+            ,
+            "geometry.path(cell, generics.metal(2), geometry.path_points_xy(point.create(0, 0), {\n"
+            "    100, -- move 100 to the right\n"
+            "    100, -- move 200 upwards\n"
+            "      0, -- don't move, but switch direction\n"
+            "    point.create(300, 300) -- move to (300, 300), first in y-direction, than in x-direction"
+            ,
+            parameters,
+            sizeof(parameters) / sizeof(parameters[0])
+        ));
+    }
+    /* geometry.path_points_yx */
+    {
+        struct parameter parameters[] = {
+            { "ptstart",    POINT,      NULL,   "Start point of the path" },
+            { "pts",        POINTLIST,  NULL,   "List of points or scalars" }
+        };
+        vector_append(entries, _make_api_entry(
+            "path_points_yx",
+            MODULE_GEOMETRY,
+            "Create a point list for use in geometry.path that contains only horizontal and vertical movements based on a list of points or scalars.\n"
+            "This function only creates the resulting list of points, no shapes by itself.\n"
+            "A movement can be a point, in which case two resulting movements are created: first x, than y (or vice versa, depending on the current state).\n"
+            "A scalar movement moves relatively by that amount (in x or y, again depending on the state)\n"
+            "This function does the same as geometry.path_points_xy, but starts in y-direction"
+            ,
+            "geometry.path(cell, generics.metal(2), geometry.path_points_yx(point.create(0, 0), {\n"
+            "    100, -- move 100 to the right\n"
+            "    100, -- move 200 upwards\n"
+            "      0, -- don't move, but switch direction\n"
+            "    point.create(300, 300) -- move to (300, 300), first in y-direction, than in x-direction"
+            ,
+            parameters,
+            sizeof(parameters) / sizeof(parameters[0])
+        ));
+    }
 
     /* geometry.via */
     {
         struct parameter parameters[] = {
-            { "cell",       OBJECT, NULL,             "Object in which the via is created" },
-            { "firstmetal", INTEGER, NULL,            "Number of the first metal. Negative values are possible" },
-            { "lastmetal",  INTEGER, NULL,            "Number of the last metal. Negative values are possible" },
-            { "width",      INTEGER, NULL,            "Width of the generated rectangular shape" },
-            { "height",     INTEGER, NULL,            "Height of the generated rectangular shape" },
-            { "xshift",     INTEGER, "0", "Optional shift in x direction" },
-            { "yshift",     INTEGER, "0", "Optional shift in y direction" },
-            { "xrep",       INTEGER, "1", "Optional number of repetitions in x direction. The Rectangles are shifted so that an equal number is above and below" },
-            { "yrep",       INTEGER, "1", "Optional number of repetitions in y direction. The Rectangles are shifted so that an equal number is above and below" },
-            { "xpitch",     INTEGER, "0", "Optional pitch in x direction, used for repetition in x" },
-            { "ypitch",     INTEGER, "0", "Optional pitch in y direction, used for repetition in y" }
+            { "cell",       OBJECT,     NULL,   "Object in which the via is created" },
+            { "firstmetal", INTEGER,    NULL,   "Number of the first metal. Negative values are possible" },
+            { "lastmetal",  INTEGER,    NULL,   "Number of the last metal. Negative values are possible" },
+            { "width",      INTEGER,    NULL,   "Width of the generated rectangular shape" },
+            { "height",     INTEGER,    NULL,   "Height of the generated rectangular shape" },
+            { "xshift",     INTEGER,    "0",    "Optional shift in x direction" },
+            { "yshift",     INTEGER,    "0",    "Optional shift in y direction" },
+            { "xrep",       INTEGER,    "1",    "Optional number of repetitions in x direction. The Rectangles are shifted so that an equal number is above and below" },
+            { "yrep",       INTEGER,    "1",    "Optional number of repetitions in y direction. The Rectangles are shifted so that an equal number is above and below" },
+            { "xpitch",     INTEGER,    "0",    "Optional pitch in x direction, used for repetition in x" },
+            { "ypitch",     INTEGER,    "0",    "Optional pitch in y direction, used for repetition in y" }
         };
         vector_append(entries, _make_api_entry(
             "via",
