@@ -210,18 +210,20 @@ function layout(transistor, _P)
     end
 
     -- mosfet marker
-    if _P.mosfetmarkeralignatsourcedrain then
-        geometry.rectanglebltr(transistor,
-            generics.other(string.format("mosfetmarker%d", _P.mosfetmarker)),
-            point.create(-_P.fingers / 2 * gatepitch, -_P.fwidth / 2),
-            point.create( _P.fingers / 2 * gatepitch,  _P.fwidth / 2)
-        )
-    else
-        geometry.rectanglebltr(transistor,
-            generics.other(string.format("mosfetmarker%d", _P.mosfetmarker)),
-            point.create(-_P.fingers / 2 * gatepitch + _P.gatespace / 2, -_P.fwidth / 2),
-            point.create( _P.fingers / 2 * gatepitch - _P.gatespace / 2,  _P.fwidth / 2)
-        )
+    if _P.fingers > 0 then
+        if _P.mosfetmarkeralignatsourcedrain then
+            geometry.rectanglebltr(transistor,
+                generics.other(string.format("mosfetmarker%d", _P.mosfetmarker)),
+                point.create(-_P.fingers / 2 * gatepitch, -_P.fwidth / 2),
+                point.create( _P.fingers / 2 * gatepitch,  _P.fwidth / 2)
+            )
+        else
+            geometry.rectanglebltr(transistor,
+                generics.other(string.format("mosfetmarker%d", _P.mosfetmarker)),
+                point.create(-_P.fingers / 2 * gatepitch + _P.gatespace / 2, -_P.fwidth / 2),
+                point.create( _P.fingers / 2 * gatepitch - _P.gatespace / 2,  _P.fwidth / 2)
+            )
+        end
     end
 
     -- left and right polylines
