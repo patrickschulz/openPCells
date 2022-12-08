@@ -91,6 +91,7 @@ function parameters()
         { "botactivedummywidth",                                          80 },
         { "botactivedummysep",                                            80 },
         { "drawactive",                                                 true },
+        { "lvsmarker",                                                     1 },
         { "extendoxidetop",                                                0 },
         { "extendoxidebot",                                                0 },
         { "extendoxideleft",                                               0 },
@@ -111,6 +112,10 @@ function parameters()
         { "extendwellbot",                                                 0 },
         { "extendwellleft",                                                0 },
         { "extendwellright",                                               0 },
+        { "extendlvsmarkertop",                                            0 },
+        { "extendlvsmarkerbot",                                            0 },
+        { "extendlvsmarkerleft",                                           0 },
+        { "extendlvsmarkerright",                                          0 },
         { "drawtopwelltap",                                            false },
         { "topwelltapwidth",                                           tech.get_dimension("Minimum M1 Width") },
         { "topwelltapspace",                                           tech.get_dimension("Minimum M1 Space") },
@@ -440,6 +445,13 @@ function layout(transistor, _P)
             )
         )
     end
+
+    -- lvs marker
+    geometry.rectanglebltr(transistor,
+        generics.other(string.format("lvsmarker%d", _P.lvsmarker)),
+        point.create(-activewidth / 2 - _P.extendlvsmarkerleft, -_P.fwidth / 2 - gateaddbot - enable(_P.clipbot, _P.extendlvsmarkerbot)),
+        point.create( activewidth / 2 + _P.extendlvsmarkerright, _P.fwidth / 2 + gateaddtop + enable(_P.cliptop, _P.extendlvsmarkertop))
+    )
 
     -- gate contacts
     if _P.drawtopgate then
