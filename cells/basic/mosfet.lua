@@ -107,6 +107,10 @@ function parameters()
         { "extendwellbot",                                                 0 },
         { "extendwellleft",                                                0 },
         { "extendwellright",                                               0 },
+        { "extendwelltop",                                                 0 },
+        { "extendwellbot",                                                 0 },
+        { "extendwellleft",                                                0 },
+        { "extendwellright",                                               0 },
         { "drawtopwelltap",                                            false },
         { "topwelltapwidth",                                           tech.get_dimension("Minimum M1 Width") },
         { "topwelltapspace",                                           tech.get_dimension("Minimum M1 Space") },
@@ -138,9 +142,6 @@ function layout(transistor, _P)
         _P.fingers * gatepitch + _P.sdwidth + 2 * _P.actext
         or
         (_P.fingers + 1) * gatepitch
-
-    local virtualactiveleftext = enable(_P.drawleftstopgate, gatepitch) + #_P.leftpolylines * gatepitch
-    local virtualactiverightext = enable(_P.drawrightstopgate, gatepitch) + #_P.rightpolylines * gatepitch
 
     local topgateshift = enable(_P.drawtopgate, _P.topgatestrspace + _P.topgatestrwidth)
     local botgateshift = enable(_P.drawbotgate, _P.botgatestrspace + _P.botgatestrwidth)
@@ -335,11 +336,11 @@ function layout(transistor, _P)
     geometry.rectanglebltr(transistor,
         generics.vthtype(_P.channeltype, _P.vthtype),
         point.create(
-            -activewidth / 2 - virtualactiveleftext  - _P.extendvthleft,
+            -activewidth / 2 - _P.extendvthleft,
             -_P.fwidth / 2 - gateaddbot - enable(not _P.clipbot, _P.extendvthbot)
         ),
         point.create(
-            activewidth / 2 + virtualactiverightext + _P.extendvthright,
+            activewidth / 2 + _P.extendvthright,
             _P.fwidth / 2 + gateaddtop + enable(not _P.cliptop, _P.extendvthtop)
         )
     )
@@ -348,11 +349,11 @@ function layout(transistor, _P)
     geometry.rectanglebltr(transistor,
         generics.implant(_P.channeltype),
         point.create(
-            -activewidth / 2 - virtualactiveleftext  - _P.extendimplantleft,
+            -activewidth / 2 - _P.extendimplantleft,
             -_P.fwidth / 2 - gateaddbot - enable(not _P.clipbot, _P.extendimplantbot)
         ),
         point.create(
-            activewidth / 2 + virtualactiverightext + _P.extendimplantright,
+            activewidth / 2 + _P.extendimplantright,
             _P.fwidth / 2 + gateaddtop + enable(not _P.cliptop, _P.extendimplanttop)
         )
     )
@@ -364,11 +365,11 @@ function layout(transistor, _P)
             (_P.channeltype == "nmos" and "pwell" or "nwell")
         ),
         point.create(
-            -activewidth / 2 - virtualactiveleftext - _P.extendwellleft,
+            -activewidth / 2 - _P.extendwellleft,
             -_P.fwidth / 2 - math.max(gateaddbot, enable(_P.drawbotwelltap, _P.botwelltapspace + _P.botwelltapwidth)) - _P.extendwellbot
         ),
         point.create(
-            activewidth / 2 + virtualactiverightext + _P.extendwellright,
+            activewidth / 2 + _P.extendwellright,
             _P.fwidth / 2 + math.max(gateaddtop, enable(_P.drawtopwelltap, _P.topwelltapspace + _P.topwelltapwidth)) + _P.extendwelltop
         )
     )
@@ -430,11 +431,11 @@ function layout(transistor, _P)
         geometry.rectanglebltr(transistor,
             generics.other("rotationmarker"),
             point.create(
-                -activewidth / 2 - virtualactiveleftext  - _P.extendvthleft,
+                -activewidth / 2 - _P.extendvthleft,
                 -_P.fwidth / 2 - gateaddbot - enable(not _P.clipbot, _P.extendvthbot)
             ),
             point.create(
-                activewidth / 2 + virtualactiverightext + _P.extendvthright,
+                activewidth / 2 + _P.extendvthright,
                 _P.fwidth / 2 + gateaddtop + enable(not _P.cliptop, _P.extendvthtop)
             )
         )
