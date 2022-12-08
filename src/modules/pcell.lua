@@ -245,6 +245,8 @@ local function _get_parameters(state, cellname, cellargs)
     for i = #cell.overwrites, 1, -1 do -- pseudo-stack, iterate from the back
         local overwrites = cell.overwrites[i]
         for name, value in pairs(overwrites) do
+            assert(P[name] ~= nil,
+                string.format("argument '%s' has no matching parameter in cell '%s', maybe it was spelled wrong? This parameter was overwritten with push_overwrite", name, cellname))
             P[name] = value
             explicit[name] = true
         end
