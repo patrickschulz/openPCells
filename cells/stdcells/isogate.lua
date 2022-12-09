@@ -12,9 +12,9 @@ function layout(gate, _P)
     local xpitch = bp.gspace + bp.glength
 
     local harness = pcell.create_layout("stdcells/harness", "mosfets", {
-        gatecontactpos = { "dummy" }, 
-        pcontactpos = { "unused", "unused" }, 
-        ncontactpos = { "unused", "unused" }, 
+        gatecontactpos = { "dummy" },
+        pcontactpos = { "power", "power" },
+        ncontactpos = { "power", "power" },
         pwidth = _P.pwidth,
         nwidth = _P.nwidth,
         drawdummyactivecontacts = false,
@@ -25,6 +25,8 @@ function layout(gate, _P)
 
     gate:add_anchor("VDD", harness:get_anchor("top"))
     gate:add_anchor("VSS", harness:get_anchor("bottom"))
+    gate:add_port("VDD", generics.metalport(1), harness:get_anchor("top"))
+    gate:add_port("VSS", generics.metalport(1), harness:get_anchor("bottom"))
 
     -- center gate
     gate:translate(xpitch / 2, 0)

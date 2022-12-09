@@ -128,6 +128,9 @@ function layout(dff, _P)
     end
 
     -- finish dff gates
+    --table.insert(gatecontactpos, 1, "dummy")
+    --table.insert(pcontactpos, 1, "power")
+    --table.insert(ncontactpos, 1, "power")
     table.insert(gatecontactpos, "dummy")
     table.insert(pcontactpos, "power")
     table.insert(ncontactpos, "power")

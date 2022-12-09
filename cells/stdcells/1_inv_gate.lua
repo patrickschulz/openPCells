@@ -1,6 +1,6 @@
 function parameters()
     pcell.add_parameters(
-        { "subgate", "nand_gate", posvals = set("nand_gate", "nor_gate") },
+        { "subgate", "nand_gate", posvals = set("nand_gate", "nor_gate", "xor_gate") },
         { "subgatefingers", 1 },
         { "notfingers", 1 },
         { "pwidth", 2 * tech.get_dimension("Minimum Gate Width") },
