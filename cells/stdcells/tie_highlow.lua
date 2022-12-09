@@ -3,7 +3,7 @@ function parameters()
         { "high", true },
         { "pwidth", 2 * tech.get_dimension("Minimum Gate Width") },
         { "nwidth", 2 * tech.get_dimension("Minimum Gate Width") },
-        { "fingers", 4, posvals = even() }
+        { "fingers", 2, posvals = even() }
     )
 end
 
@@ -32,32 +32,48 @@ function layout(cell, _P)
         harness:get_anchor(string.format("G%dtr", _P.fingers))
     )
 
-    -- connect drain to gate
+    -- output strap
+    local invert = _P.high and 1 or -1
+    geometry.rectanglebltr(
+        cell, generics.metal(1),
+        harness:get_anchor(string.format("G%dbl", 1)):translate(0, invert * (bp.routingwidth + bp.routingspace)),
+        harness:get_anchor(string.format("G%dtr", _P.fingers)):translate(0, invert * (bp.routingwidth + bp.routingspace))
+    )
+
+    -- connect drains to gate
     local where = _P.high and "n" or "p"
     for i = 2, _P.fingers, 2 do
-        geometry.path(
-            cell, generics.metal(1),
-            {
-                harness:get_anchor(string.format("%sSDi%d", where, i)),
-                harness:get_anchor(string.format("%sSDi%d", where, i)) ..  harness:get_anchor(string.format("G%dbc", 1))
-            },
-            bp.sdwidth
-        )
+        if _P.high then
+            geometry.rectanglebltr(cell, generics.metal(1),
+                harness:get_anchor(string.format("nSD%dtl", i)),
+                harness:get_anchor(string.format("nSD%dtr", i)) .. harness:get_anchor("G1bl")
+            )
+        else
+            geometry.rectanglebltr(cell, generics.metal(1),
+                harness:get_anchor(string.format("pSD%dbl", i)) .. harness:get_anchor("G1tl"),
+                harness:get_anchor(string.format("pSD%dbr", i))
+            )
+        end
     end
 
-    if _P.fingers > 2 then
-        local where = _P.high and "p" or "n"
-        geometry.path(cell, generics.metal(1),
-            {
-                harness:get_anchor(string.format("%sSDi%d", where, 2)):translate(0, (_P.high and 1 or -1) * bp.sdwidth / 2),
-                harness:get_anchor(string.format("%sSDi%d", where, _P.fingers)):translate(0, (_P.high and 1 or -1) * bp.sdwidth / 2)
-            },
-            bp.sdwidth
-        )
+    -- connect drains to output
+    local where = _P.high and "n" or "p"
+    for i = 2, _P.fingers, 2 do
+        if _P.high then
+            geometry.rectanglebltr(cell, generics.metal(1),
+                harness:get_anchor(string.format("pSD%dbl", i)):translate(0, -bp.routingspace),
+                harness:get_anchor(string.format("pSD%dbr", i))
+            )
+        else
+            geometry.rectanglebltr(cell, generics.metal(1),
+                harness:get_anchor(string.format("nSD%dtl", i)),
+                harness:get_anchor(string.format("nSD%dtr", i)):translate(0, bp.routingspace)
+            )
+        end
     end
 
     -- ports
-    cell:add_port("O", generics.metalport(1), harness:get_anchor(string.format("%sSDi%d", _P.high and "p" or "n", _P.fingers)):translate(0, (_P.high and 1 or -1) * bp.sdwidth / 2))
+    cell:add_port("O", generics.metalport(1), harness:get_anchor(string.format("%sSD%dcc", _P.high and "p" or "n", _P.fingers)):translate(0, (_P.high and 1 or -1) * bp.sdwidth / 2))
     cell:add_port("VDD", generics.metalport(1), harness:get_anchor("top"))
     cell:add_port("VSS", generics.metalport(1), harness:get_anchor("bottom"))
 end

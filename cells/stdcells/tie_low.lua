@@ -2,7 +2,7 @@ function parameters()
     pcell.add_parameters(
         { "pwidth", 2 * tech.get_dimension("Minimum Gate Width") },
         { "nwidth", 2 * tech.get_dimension("Minimum Gate Width") },
-        { "fingers", 4, posvals = even() }
+        { "fingers", 2, posvals = even() }
     )
 end
 
