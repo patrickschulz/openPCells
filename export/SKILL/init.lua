@@ -207,11 +207,11 @@ function M.write_path(layer, pts, width, extension)
     table.insert(__content, table.concat(c))
 end
 
-function M.write_port(name, layer, where)
+function M.write_port(name, layer, where, sizehint)
     local fmt = _get_shape_fmt("Label")
     local c = {}
     _prepare_shape_for_group(c)
-    table.insert(c, string.format(fmt, string.format('%s %s "%s" "centerCenter" "R0" "roman" %f', _format_lpp(layer), _format_point(where, ":"), name, __labelsize)))
+    table.insert(c, string.format(fmt, string.format('%s %s "%s" "centerCenter" "R0" "roman" %f', _format_lpp(layer), _format_point(where, ":"), name, sizehint or __labelsize)))
     _finish_shape_for_group(c)
     _ensure_legal_limit()
     table.insert(__content, table.concat(c))

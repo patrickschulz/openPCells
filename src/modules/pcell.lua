@@ -241,14 +241,18 @@ local function _get_parameters(state, cellname, cellargs)
     end
 
     -- (2) process overwrites
-    for _, overwrites in pairs(cell.overwrites) do
+    local explicit = {}
+    for i = #cell.overwrites, 1, -1 do -- pseudo-stack, iterate from the back
+        local overwrites = cell.overwrites[i]
         for name, value in pairs(overwrites) do
+            assert(P[name] ~= nil,
+                string.format("argument '%s' has no matching parameter in cell '%s', maybe it was spelled wrong? This parameter was overwritten with push_overwrite", name, cellname))
             P[name] = value
+            explicit[name] = true
         end
     end
 
     -- (3) process input parameters
-    local explicit = {}
     if cellargs then
         for name, value in pairs(cellargs) do
             assert(P[name] ~= nil,
@@ -505,7 +509,7 @@ local function _create_layout_internal(cellname, name, cellargs, env)
     if not cell.funcs.layout then
         error(string.format("cell '%s' has no layout definition", cellname))
     end
-    local parameters = _get_parameters(state, cellname, cellargs) -- cellname needs to be passed twice
+    local parameters = _get_parameters(state, cellname, cellargs)
     local obj = object.create(name)
     cell.funcs.layout(obj, parameters, env)
     if explicitlib then

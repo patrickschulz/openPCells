@@ -17,7 +17,8 @@ function parameters()
         { "fillwellholeoffsetright",                         0 },
         { "drawdeepwell",                                false },
         { "deepwelloffset",                                  0 },
-        { "fit",                                         false }
+        { "fit",                                         false },
+        { "fixextensions",                                true }
     )
 end
 
@@ -25,6 +26,8 @@ function layout(guardring, _P)
     local contactbase
     local xrep, yrep
     local holewidth, holeheight
+    local extfixx = 0
+    local extfixy = 0
     if _P.fit then
         xrep = math.ceil(_P.holewidth / _P.ringwidth)
         yrep = math.ceil(_P.holeheight / _P.ringwidth)
@@ -32,6 +35,10 @@ function layout(guardring, _P)
         holeheight = _P.ringwidth * yrep
         contactbase = object.create("_contact")
         geometry.contactbare(contactbase, "active", _P.ringwidth, _P.ringwidth, 0, 0, 1, 1, 0, 0, { xcontinuous = true, ycontinuous = true })
+        if _P.fixextensions then
+            extfixx = holewidth - _P.holewidth
+            extfixy = holeheight - _P.holeheight
+        end
     else
         holewidth = _P.holewidth
         holeheight = _P.holeheight
@@ -66,12 +73,12 @@ function layout(guardring, _P)
             point.create( holewidth / 2 + _P.ringwidth, holeheight / 2 + _P.ringwidth)
         )
         geometry.rectanglebltr(guardring, generics.implant(_P.contype),
-            point.create(-holewidth / 2 - _P.ringwidth - _P.implantextension, holeheight / 2 - _P.implantextension),
-            point.create( holewidth / 2 + _P.ringwidth + _P.implantextension, holeheight / 2 + _P.ringwidth + _P.implantextension)
+            point.create(-holewidth / 2 - _P.ringwidth - _P.implantextension - extfixx / 2, holeheight / 2 - _P.implantextension - extfixy / 2),
+            point.create( holewidth / 2 + _P.ringwidth + _P.implantextension + extfixx / 2, holeheight / 2 + _P.ringwidth + _P.implantextension + extfixy / 2)
         )
         geometry.rectanglebltr(guardring, generics.other("soiopen"),
-            point.create(-holewidth / 2 - _P.ringwidth - _P.soiopenextension, holeheight / 2 - _P.soiopenextension),
-            point.create( holewidth / 2 + _P.ringwidth + _P.soiopenextension, holeheight / 2 + _P.ringwidth + _P.soiopenextension)
+            point.create(-holewidth / 2 - _P.ringwidth - _P.soiopenextension - extfixx / 2, holeheight / 2 - _P.soiopenextension - extfixy / 2),
+            point.create( holewidth / 2 + _P.ringwidth + _P.soiopenextension + extfixx / 2, holeheight / 2 + _P.ringwidth + _P.soiopenextension + extfixy / 2)
         )
     end
     if aux.any_of("bottom", _P.drawsegments) then
@@ -102,12 +109,12 @@ function layout(guardring, _P)
             point.create( holewidth / 2 + _P.ringwidth, -holeheight / 2)
         )
         geometry.rectanglebltr(guardring, generics.implant(_P.contype),
-            point.create(-holewidth / 2 - _P.ringwidth - _P.implantextension, -holeheight / 2 - _P.implantextension - _P.ringwidth),
-            point.create( holewidth / 2 + _P.ringwidth + _P.implantextension, -holeheight / 2 + _P.implantextension)
+            point.create(-holewidth / 2 - _P.ringwidth - _P.implantextension - extfixx / 2, -holeheight / 2 - _P.implantextension - _P.ringwidth - extfixy / 2),
+            point.create( holewidth / 2 + _P.ringwidth + _P.implantextension + extfixx / 2, -holeheight / 2 + _P.implantextension + extfixy / 2)
         )
         geometry.rectanglebltr(guardring, generics.other("soiopen"),
-            point.create(-holewidth / 2 - _P.ringwidth - _P.soiopenextension, -holeheight / 2 - _P.ringwidth - _P.soiopenextension),
-            point.create( holewidth / 2 + _P.ringwidth + _P.soiopenextension, -holeheight / 2 + _P.soiopenextension)
+            point.create(-holewidth / 2 - _P.ringwidth - _P.soiopenextension - extfixx / 2, -holeheight / 2 - _P.ringwidth - _P.soiopenextension - extfixy / 2),
+            point.create( holewidth / 2 + _P.ringwidth + _P.soiopenextension + extfixx / 2, -holeheight / 2 + _P.soiopenextension + extfixy / 2)
         )
     end
     if aux.any_of("left", _P.drawsegments) then
@@ -138,12 +145,12 @@ function layout(guardring, _P)
             point.create(-holewidth / 2,  holeheight / 2 + _P.ringwidth)
         )
         geometry.rectanglebltr(guardring, generics.implant(_P.contype),
-            point.create(-holewidth / 2 - _P.implantextension - _P.ringwidth, -holeheight / 2 - _P.implantextension - _P.ringwidth),
-            point.create(-holewidth / 2 + _P.implantextension,  holeheight / 2 + _P.implantextension + _P.ringwidth)
+            point.create(-holewidth / 2 - _P.implantextension - _P.ringwidth - extfixx / 2, -holeheight / 2 - _P.implantextension - _P.ringwidth - extfixy / 2),
+            point.create(-holewidth / 2 + _P.implantextension + extfixx / 2,  holeheight / 2 + _P.implantextension + _P.ringwidth + extfixy / 2)
         )
         geometry.rectanglebltr(guardring, generics.other("soiopen"),
-            point.create(-holewidth / 2 - _P.soiopenextension - _P.ringwidth, -holeheight / 2 - _P.soiopenextension - _P.ringwidth),
-            point.create(-holewidth / 2 + _P.soiopenextension,  holeheight / 2 + _P.soiopenextension + _P.ringwidth)
+            point.create(-holewidth / 2 - _P.soiopenextension - extfixx / 2 - _P.ringwidth, -holeheight / 2 - _P.soiopenextension - extfixy / 2 - _P.ringwidth),
+            point.create(-holewidth / 2 + _P.soiopenextension + extfixx / 2,  holeheight / 2 + _P.soiopenextension + extfixy / 2 + _P.ringwidth)
         )
     end
     if aux.any_of("right", _P.drawsegments) then
@@ -174,12 +181,12 @@ function layout(guardring, _P)
             point.create( holewidth / 2 + _P.ringwidth,  holeheight / 2 + _P.ringwidth)
         )
         geometry.rectanglebltr(guardring, generics.implant(_P.contype),
-            point.create( holewidth / 2 - _P.implantextension, -holeheight / 2 - _P.implantextension - _P.ringwidth),
-            point.create( holewidth / 2 + _P.implantextension + _P.ringwidth,  holeheight / 2 + _P.implantextension + _P.ringwidth)
+            point.create( holewidth / 2 - _P.implantextension - extfixx / 2, -holeheight / 2 - _P.implantextension - _P.ringwidth - extfixy / 2),
+            point.create( holewidth / 2 + _P.implantextension + extfixx / 2 + _P.ringwidth,  holeheight / 2 + _P.implantextension + _P.ringwidth + extfixy / 2)
         )
         geometry.rectanglebltr(guardring, generics.other("soiopen"),
-            point.create( holewidth / 2 - _P.soiopenextension, -holeheight / 2 - _P.soiopenextension - _P.ringwidth),
-            point.create( holewidth / 2 + _P.soiopenextension + _P.ringwidth,  holeheight / 2 + _P.soiopenextension + _P.ringwidth)
+            point.create( holewidth / 2 - _P.soiopenextension - extfixx / 2, -holeheight / 2 - _P.soiopenextension - extfixy / 2 - _P.ringwidth),
+            point.create( holewidth / 2 + _P.soiopenextension + extfixx / 2 + _P.ringwidth,  holeheight / 2 + _P.soiopenextension + extfixy / 2 + _P.ringwidth)
         )
     end
 

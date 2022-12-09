@@ -621,7 +621,15 @@ static int _write_port(struct export_writer* writer, const char* name, const str
         lua_pushstring(writer->L, name);
         _push_layer(writer->L, layerdata);
         _push_point(writer->L, where);
-        int lret = lua_pcall(writer->L, 3, 0, 0);
+        if(sizehint > 0.0)
+        {
+            lua_pushnumber(writer->L, sizehint);
+        }
+        else
+        {
+            lua_pushnil(writer->L);
+        }
+        int lret = lua_pcall(writer->L, 4, 0, 0);
         if(lret != LUA_OK)
         {
             return 0;
