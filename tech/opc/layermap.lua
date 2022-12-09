@@ -319,15 +319,20 @@ return {
             svg = { color = "ccffff", order = 1 },
         }
     },
+    gatecut = {
+        name = "gatecut",
+        layer = {
+            gds = { layer = 27, purpose = 0 },
+        }
+    },
     -- unused layers
-    soiopen = {},
     oxide1 = {},
     gatemarker1 = {},
     vthtypen1 = {},
     vthtypep1 = {},
     pwell = {},
     deeppwell = {},
-    gatecut = {},
+    soiopen = {},
     tuckgatemarker = {},
     padopening = {},
     polyres = {},
