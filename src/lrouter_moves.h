@@ -14,8 +14,9 @@ typedef enum { X_DIR, Y_DIR } dir_t;
  *        lua_rawseti(L, -2, 2);
  */
 
-void moves_create_anchor(lua_State *L, const char *name, const char *anchor);
-void moves_create_via(lua_State *L, int z);
+void moves_create_port(lua_State *L, const char *name, const char *port);
+void moves_create_via(lua_State *L, int z, int is_draw);
 void moves_create_delta(lua_State *L, dir_t dir, int dist);
+void moves_create_shift(lua_State *L, int x, int y);
 
 #endif //LROUTER_MOVES_H

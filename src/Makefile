@@ -5,7 +5,7 @@ CC= gcc
 # FIXME: set environment in appropriate targets
 #CFLAGS= -std=gnu99 -O3 -Wall -Wextra -Wstrict-prototypes $(SYSCFLAGS) $(MYCFLAGS)
 # for debugging purposes
-CFLAGS= -std=gnu99 -Og -g -Wall -Wextra -Wstrict-prototypes $(SYSCFLAGS) $(MYCFLAGS)
+CFLAGS= -std=gnu99 -O0 -g -Wall -Wextra -Wstrict-prototypes -pthread $(SYSCFLAGS) $(MYCFLAGS)
 LDFLAGS= $(SYSLDFLAGS) $(MYLDFLAGS)
 LIBS= -lm $(SYSLIBS) $(MYLIBS)
 

@@ -10,7 +10,7 @@ struct field {
     size_t width;
     size_t height;
     size_t num_layers;
-    int* content;
+    int *content;
 };
 
 void black(void)
@@ -58,11 +58,29 @@ void normal(void)
     fputs("\033[0m", stdout);
 }
 
+struct field *field_copy(struct field *field)
+{
+    struct field *new = field_init(field->width, field->height,
+				   field->num_layers);
+    memcpy(new->content, field->content, field->width *
+	   field->height * field->num_layers * sizeof(*field->content));
+    return new;
+}
+
+void field_restore(struct field *original, struct field *copy)
+{
+    memcpy(original->content, copy->content, original->width *
+	   original->height * original->num_layers *
+	   sizeof(*original->content));
+}
+
 void field_reset(struct field* field)
 {
     for(size_t i = 0; i < field->width * field->height * field->num_layers; i++)
     {
-        if(field->content[i] != PATH && field->content[i] != PORT && field->content[i] != VIA && field->content[i] != BLOCKAGE)
+        if(field->content[i] != PATH && field->content[i] != PORT
+	   && field->content[i] != VIA &&
+	   field->content[i] != BLOCKAGE)
         {
             field->content[i] = UNVISITED;
         }
@@ -76,32 +94,36 @@ struct field* field_init(size_t width, size_t height, size_t num_layers)
     field->height = height;
     field->num_layers = num_layers;
     field->content = calloc(width * height * num_layers, sizeof(*field->content));
+
     memset(field->content, UNVISITED, width * height * num_layers * sizeof(*field->content));
+
     return field;
 }
 
 void field_destroy(struct field* field)
 {
+    if(field == NULL)
+    {
+	return;
+    }
     free(field->content);
     free(field);
 }
 
 static int* _get(struct field* field, size_t x, size_t y, size_t z)
 {
-    return &field->content[x + y * field->width + z * field->width * field->height];
+    return &field->
+	    content[x + y * field->width + z * field->width * field->height];
 }
 
 static int _get_const(const struct field* field, size_t x, size_t y, size_t z)
 {
-    return field->content[x + y * field->width + z * field->width * field->height];
+    return field->
+	    content[x + y * field->width + z * field->width * field->height];
 }
 
 void field_print(struct field* field, int layer)
 {
-    //for(size_t i = 0; i < field->width; ++i)
-    //{
-    //    fputs("=====", stdout);
-    //}
     printf("layer %u\n", layer);
     for(size_t i = 0; i < field->height; ++i)
     {
@@ -129,7 +151,7 @@ void field_print(struct field* field, int layer)
                     normal();
                     break;
             }
-            printf("%4i", value);
+            printf("%3i", value);
         }
         putchar('\n');
     }
@@ -166,7 +188,8 @@ size_t field_get_num_layers(struct field* field)
     return field->num_layers;
 }
 
-int field_is_field_point(const struct field* field, size_t x, size_t y, size_t z)
+int field_is_field_point(const struct field* field, size_t x, size_t y,
+			 size_t z)
 {
     return (x < field->width && y < field->height && z < field->num_layers);
 }
@@ -199,7 +222,8 @@ void field_unprint(size_t size)
     }
 }
 
-void field_create_blockage(struct field* field, struct rpoint* start, struct rpoint* end)
+void field_create_blockage(struct field* field, struct rpoint* start,
+			   struct rpoint* end)
 {
     int len = 0;
     int xincr = 0;
@@ -232,9 +256,16 @@ void field_create_blockage(struct field* field, struct rpoint* start, struct rpo
         }
     }
 
-    for(int i = 0; i < len; i++)
+    int i;
+    for(i = 0; i < len + 1; i++)
     {
-        *_get(field, start->x + i * xincr, start->y + i * yincr, start->z - LOWEST_ROUTING_METAL) = BLOCKAGE;
+        *_get(field, start->x + i * xincr, start->y + i * yincr,
+	      start->z - LOWEST_ROUTING_METAL) = BLOCKAGE;
     }
+}
+
+int point_get_score(struct rpoint *point)
+{
+    return point->score;
 }
 

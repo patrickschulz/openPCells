@@ -43,6 +43,12 @@ struct rollback {
     unsigned int y2;
 };
 
+static inline unsigned int calculate_half_perimeter_wirelength(struct net *net)
+{
+    unsigned int hpwl = (net->xmax - net->xmin) + (net->ymax - net->ymin);
+    return hpwl;
+}
+
 static unsigned int calculate_total_wirelength(struct block* block)
 {
     unsigned int total_wirelength = 0;
@@ -234,7 +240,7 @@ void m1(struct cell* a, struct rollback* r, struct floorplan* floorplan, struct 
     cell_place_random(a, floorplan, rstate);
 }
 
-void m2(struct cell* a, struct cell* b, struct rollback* r)
+void swap_cells(struct cell* a, struct cell* b, struct rollback* r)
 {
     r->c1 = a;
     r->x1 = a->pos_x;
@@ -250,77 +256,88 @@ void m2(struct cell* a, struct cell* b, struct rollback* r)
     b->pos_y = r->y1;
 }
 
+
+int _is_wirelength_decreasing_over_last_temps(unsigned int *wirelengths, unsigned int num, 
+        double max_deviation_factor)
+{
+    unsigned int wirelength = wirelengths[0];
+    float max_deviation = wirelength * max_deviation_factor;
+
+    for(unsigned int i = 0; i < num; i++)
+    {
+        if(wirelengths[i] > wirelength + max_deviation || 
+                wirelengths[i] < wirelength - max_deviation)
+        {
+            return 0;
+        }
+    }
+    return 1;
+}
+
+#define START_TEMPERATURE 50000.0
+#define FROZEN_TEMPERATURE 10
+
 static void _simulated_annealing(struct RanState* rstate, struct block* block, struct floorplan* floorplan, double coolingfactor, size_t moves_per_cell_per_temp, int verbose)
 {
-    (void) verbose;
+    (void) calculate_row_width_penalty;
+    (void) floorplan;
+    int frozen = 0;
 
-    double temperature = 5000.0;
-    double end_temperature = 0.01;
-    unsigned int needed_steps = (unsigned int) log(temperature / end_temperature) / log(1.0 / coolingfactor) + 1;
-    unsigned int steps = 1;
-    unsigned int percentage_divisor = 10;
-    unsigned int percentage = 0;
-    unsigned int last_total_penalty = UINT_MAX;
-    while(temperature > end_temperature)
+    unsigned int last_wirelength = UINT_MAX;
+    unsigned int new_wirelength = UINT_MAX;
+    int delta = UINT_MAX;
+
+    if (verbose) 
+    {
+        puts("temperature, oldlen, newlen, iteration\n");
+    }
+    
+    unsigned int iterations = 0;
+    double temperature = START_TEMPERATURE;
+    while(!frozen)
     {
         for(size_t move_ctr = 0; move_ctr < moves_per_cell_per_temp * block->num_cells; move_ctr++)
         {
             struct rollback rollback;
 
-            if(random_choice(rstate, 0.25))
+            last_wirelength = calculate_total_wirelength(block);
+            swap_cells(random_cell(block, rstate), random_cell(block, rstate), &rollback);
+            _update_net_positions(block);
+
+            new_wirelength = calculate_total_wirelength(block);
+            delta = (int)new_wirelength - (int)last_wirelength;
+
+            if(delta > 0)
             {
-                m2(random_cell(block, rstate), random_cell(block, rstate), &rollback);
-            }
+                if(random_choice(rstate, exp(-(delta) / temperature)))
+                {
+                    if(verbose)
+                    {
+                        printf("%f, %u, %u, %u\n", temperature, last_wirelength, new_wirelength, iterations);
+                    }
+                    last_wirelength = new_wirelength;    
+                }
+                else
+                {
+                    undo(&rollback);
+                }
+            } 
             else
             {
-                m1(random_cell(block, rstate), &rollback, floorplan, rstate);
-            }
-
-            _update_net_positions(block);
-            unsigned int total_wirelength = calculate_total_wirelength(block);
-            unsigned int too_wide_penalty = calculate_row_width_penalty(block, floorplan);
-
-            unsigned int total_penalty = total_wirelength + 100 * too_wide_penalty;
-            printf("temperature: %f\n", temperature);
-            printf("last penalty / current penalty: %d / %d\n", last_total_penalty, total_penalty);
-
-            /*
-            if(move_ctr == 0 && verbose)
-            {
-                report_status(temperature, block, floorplan);
-            }
-            */
-
-            if(move_ctr == 0)
-            {
-                if(steps * 100 / needed_steps >= percentage)
+                if(verbose)
                 {
-                    printf("placement %2d %% done\n", percentage);
-                    percentage += percentage_divisor;
+                    printf("%f, %u, %u, %u\n", temperature, last_wirelength, new_wirelength, iterations);
                 }
+                last_wirelength = new_wirelength;    
             }
-
-            if(total_penalty > last_total_penalty)
-            {
-                undo(&rollback);
-                //if(random_choice(rstate, exp(-(total_penalty - last_total_penalty) / temperature)))
-                //{
-                //    // accept
-                //    last_total_penalty = total_penalty;    
-                //}
-                //else
-                //{
-                //    undo(&rollback);
-                //}
-            }
-            else // last_total_penalty >= total_penalty
-            {
-                // accept
-                last_total_penalty = total_penalty;
-            }
+            iterations++;
         }
-        ++steps;
         temperature = temperature * coolingfactor;
+
+        if(temperature <= FROZEN_TEMPERATURE)
+        {
+            frozen = 1;
+        }
     }
 }
 
@@ -364,7 +381,7 @@ int lplacer_place_classic(lua_State* L)
     struct RanState rstate;
     srand(time(NULL));
     //randseed(&rstate, rand(), rand());
-    randseed(&rstate, 127, 42);
+    randseed(&rstate, 1, 23);
 
     struct floorplan* floorplan = placer_create_floorplan(L);
 
@@ -372,7 +389,7 @@ int lplacer_place_classic(lua_State* L)
 
     lua_getfield(L, 3, "movespercell");
     //const size_t moves_per_cell_per_temp = lua_tointeger(L, -1);
-    const size_t moves_per_cell_per_temp = 1;
+    const size_t moves_per_cell_per_temp = 100;
     lua_pop(L, 1);
 
     lua_getfield(L, 3, "coolingfactor");
@@ -381,14 +398,14 @@ int lplacer_place_classic(lua_State* L)
     lua_pop(L, 1);
 
     lua_getfield(L, 3, "report");
-    const int verbose = lua_toboolean(L, -1);
+    int verb = lua_toboolean(L, -1);
     lua_pop(L, 1);
 
     (void)coolingfactor;
     (void)moves_per_cell_per_temp;
-    (void)verbose;
-    (void)_simulated_annealing;
-    //_simulated_annealing(&rstate, block, floorplan, coolingfactor, moves_per_cell_per_temp, verbose);
+    (void)verb;
+    const int verbose = 0;
+    _simulated_annealing(&rstate, block, floorplan, coolingfactor, moves_per_cell_per_temp, verbose);
 
     placer_create_lua_result(L, block, get_cell_in_row_index, floorplan);
 
