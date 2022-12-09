@@ -247,6 +247,12 @@ struct via_definition** _read_via(lua_State* L)
         lua_getfield(L, -1, "yenclosure");
         viadef->yenclosure = lua_tointeger(L, -1);
         lua_pop(L, 1);
+        lua_getfield(L, -1, "maxwidth");
+        viadef->maxwidth = luaL_optinteger(L, -1, UINT_MAX);
+        lua_pop(L, 1);
+        lua_getfield(L, -1, "maxheight");
+        viadef->maxheight = luaL_optinteger(L, -1, UINT_MAX);
+        lua_pop(L, 1);
 
         lua_pop(L, 1);
         viadefs[i - 1] = viadef;

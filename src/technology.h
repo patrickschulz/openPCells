@@ -25,6 +25,8 @@ struct via_definition {
     unsigned int yspace;
     int xenclosure;
     int yenclosure;
+    unsigned int maxwidth;
+    unsigned int maxheight;
 };
 
 struct technology_state* technology_initialize(void);

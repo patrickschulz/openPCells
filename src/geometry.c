@@ -414,6 +414,16 @@ static struct via_definition* _get_rectangular_arrayzation(ucoordinate_t regionw
     while(*viadef)
     {
         struct via_definition* entry = *viadef;
+        if(regionwidth > entry->maxwidth)
+        {
+            ++viadef;
+            continue;
+        }
+        if(regionheight > entry->maxheight)
+        {
+            ++viadef;
+            continue;
+        }
         unsigned int _xrep = 0;
         unsigned int _xspace = 0;
         unsigned int _yrep = 0;
