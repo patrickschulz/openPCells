@@ -37,7 +37,7 @@ module register_cell(chain_in, update, clk, reset, enable, chain_out, bit_out);
     .CLK(update),
     .D(ff_in),
     .Q(bit_out),
-    .RESET(reset)
+    .RST(reset)
   );
   dffnq dff_buf (
     .CLK(clk),
@@ -46,7 +46,7 @@ module register_cell(chain_in, update, clk, reset, enable, chain_out, bit_out);
   );
   dffpq dff_in (
     .CLK(clk),
-    .D(_00_),
+    .D(_01_),
     .Q(ff_in)
   );
 endmodule
