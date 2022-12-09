@@ -2,9 +2,6 @@ local M = {}
 
 local function _write_module(rows, routes, numinnerroutes, pnumtracks, nnumtracks)
     local lines = {}
-    table.insert(lines, 'function parameters()')
-        table.insert(lines, '    pcell.reference_cell("stdcells/base")')
-        table.insert(lines, 'end')
         table.insert(lines, 'function layout(toplevel)')
             table.insert(lines, string.format('    pcell.push_overwrites("stdcells/base", { pnumtracks = %i })', pnumtracks))
             table.insert(lines, string.format('    pcell.push_overwrites("stdcells/base", { nnumtracks = %i })', nnumtracks))
