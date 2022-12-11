@@ -175,11 +175,11 @@ function layout(cmos, _P)
             end
             local shift = (i - 1) * gatepitch
             local nfet = pcell.create_layout("basic/mosfet", "nfet", nopt)
-            nfet:move_anchor("topgate")
+            nfet:move_anchor("gate1tc")
             nfet:translate(shift, 0)
             cmos:merge_into(nfet)
             local pfet = pcell.create_layout("basic/mosfet", "pfet", popt)
-            pfet:move_anchor("botgate")
+            pfet:move_anchor("gate1bc")
             pfet:translate(shift, 0)
             cmos:merge_into(pfet)
         end
