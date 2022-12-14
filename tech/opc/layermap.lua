@@ -323,6 +323,7 @@ return {
         name = "gatecut",
         layer = {
             gds = { layer = 27, purpose = 0 },
+            svg = { color = "8000ff", order = 1 },
         }
     },
     -- unused layers
@@ -330,6 +331,8 @@ return {
     gatemarker1 = {},
     vthtypen1 = {},
     vthtypep1 = {},
+    mosfetmarker1 = {},
+    lvsmarker1 = {},
     pwell = {},
     deeppwell = {},
     soiopen = {},
