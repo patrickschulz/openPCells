@@ -2,7 +2,6 @@
 
 #include <ctype.h>
 #include <errno.h>
-#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -13,6 +12,7 @@
 #include "lua/lualib.h"
 #include "lua/lauxlib.h"
 
+#include "math.h"
 #include "cmdoptions.h"
 #include "config.h"
 #include "filesystem.h"
@@ -67,7 +67,7 @@ static int _load_config(struct hashmap* config)
             while(lua_next(L, -2) != 0)
             {
                 const char* path = lua_tostring(L, -1);
-                vector_append(techpaths, strdup(path));
+                vector_append(techpaths, util_strdup(path));
                 lua_pop(L, 1);
             }
         }
@@ -85,7 +85,7 @@ static int _load_config(struct hashmap* config)
             while(lua_next(L, -2) != 0)
             {
                 const char* path = lua_tostring(L, -1);
-                vector_append(prepend_cellpaths, strdup(path));
+                vector_append(prepend_cellpaths, util_strdup(path));
                 lua_pop(L, 1);
             }
         }
@@ -102,7 +102,7 @@ static int _load_config(struct hashmap* config)
             while(lua_next(L, -2) != 0)
             {
                 const char* path = lua_tostring(L, -1);
-                vector_append(append_cellpaths, strdup(path));
+                vector_append(append_cellpaths, util_strdup(path));
                 lua_pop(L, 1);
             }
         }
@@ -220,7 +220,7 @@ int main(int argc, const char* const * argv)
     if(cmdoptions_was_provided_long(cmdoptions, "disable-gatecut"))
     {
         struct vector* ignoredlayers = hashmap_get(config, "ignoredlayers");
-        vector_append(ignoredlayers, strdup("gatecut"));
+        vector_append(ignoredlayers, util_strdup("gatecut"));
     }
 
     // show gds data
@@ -284,7 +284,7 @@ int main(int argc, const char* const * argv)
             const char** arg = cmdoptions_get_argument_long(cmdoptions, "prepend-cellpath");
             while(*arg)
             {
-                vector_append(cellpaths_to_prepend, strdup(*arg));
+                vector_append(cellpaths_to_prepend, util_strdup(*arg));
                 ++arg;
             }
         }
@@ -294,7 +294,7 @@ int main(int argc, const char* const * argv)
             const char** arg = cmdoptions_get_argument_long(cmdoptions, "cellpath");
             while(*arg)
             {
-                vector_append(cellpaths_to_append, strdup(*arg));
+                vector_append(cellpaths_to_append, util_strdup(*arg));
                 ++arg;
             }
         }
@@ -303,7 +303,7 @@ int main(int argc, const char* const * argv)
             const char** arg = cmdoptions_get_argument_long(cmdoptions, "append-cellpath");
             while(*arg)
             {
-                vector_append(cellpaths_to_append, strdup(*arg));
+                vector_append(cellpaths_to_append, util_strdup(*arg));
                 ++arg;
             }
         }
@@ -312,7 +312,7 @@ int main(int argc, const char* const * argv)
             struct vector* config_cellpaths_to_prepend = hashmap_get(config, "prepend_cellpaths");
             for(unsigned int i = 0; i < vector_size(config_cellpaths_to_prepend); ++i)
             {
-                vector_append(cellpaths_to_prepend, strdup((const char*)vector_get(config_cellpaths_to_prepend, i)));
+                vector_append(cellpaths_to_prepend, util_strdup((const char*)vector_get(config_cellpaths_to_prepend, i)));
             }
         }
         if(hashmap_exists(config, "prepend_cellpaths"))
@@ -320,10 +320,10 @@ int main(int argc, const char* const * argv)
             struct vector* config_cellpaths_to_append = hashmap_get(config, "append_cellpaths");
             for(unsigned int i = 0; i < vector_size(config_cellpaths_to_append); ++i)
             {
-                vector_append(cellpaths_to_append, strdup((const char*)vector_get(config_cellpaths_to_append, i)));
+                vector_append(cellpaths_to_append, util_strdup((const char*)vector_get(config_cellpaths_to_append, i)));
             }
         }
-        vector_append(cellpaths_to_append, strdup(OPC_HOME "/cells"));
+        vector_append(cellpaths_to_append, util_strdup(OPC_HOME "/cells"));
         struct pcell_state* pcell_state = pcell_initialize_state(cellpaths_to_prepend, cellpaths_to_append);
         vector_destroy(cellpaths_to_prepend);
         vector_destroy(cellpaths_to_append);

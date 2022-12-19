@@ -113,10 +113,6 @@ function modinfo(msg)
     print(msg)
 end
 
---function moderror(msg)
---    local traceback = envlib.get("debug")
---    error({ msg = msg, traceback = traceback }, 0)
---end
 function moderror(msg)
     error(msg, 0)
 end

@@ -6,7 +6,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include <math.h>
 
 #include "export_common.h"
 #include "export_writer.h"
@@ -81,7 +80,7 @@ static void _get_exportname(const char* exportname, struct const_vector* searchp
 {
     if(!util_split_string(exportname, ':', exportlayername_ptr, exportname_ptr)) // export layers were not specified
     {
-        *exportname_ptr = strdup(exportname);
+        *exportname_ptr = util_strdup(exportname);
         char* exportlayername_from_function = export_get_export_layername(searchpaths, *exportname_ptr);
         if(exportlayername_from_function)
         {
@@ -89,7 +88,7 @@ static void _get_exportname(const char* exportname, struct const_vector* searchp
         }
         else
         {
-            *exportlayername_ptr = strdup(exportname);
+            *exportlayername_ptr = util_strdup(exportname);
         }
     }
 }
@@ -129,7 +128,7 @@ char* export_get_export_layername(struct const_vector* searchpaths, const char* 
         char* techexport = NULL;
         if(funcs->get_techexport)
         {
-            techexport = strdup(funcs->get_techexport());
+            techexport = util_strdup(funcs->get_techexport());
         }
         export_destroy_functions(funcs);
         return techexport;
@@ -171,7 +170,7 @@ char* export_get_export_layername(struct const_vector* searchpaths, const char* 
                         }
                         else
                         {
-                            char* s = strdup(lua_tostring(L, -1));
+                            char* s = util_strdup(lua_tostring(L, -1));
                             lua_close(L);
                             return s;
                         }
@@ -292,7 +291,7 @@ int export_write_toplevel(struct object* toplevel, struct export_state* state)
         struct export_writer* writer = export_writer_create_C(funcs, data);
         export_writer_write_toplevel(writer, toplevel, state->writechildrenports, state->leftdelim, state->rightdelim);
         export_writer_destroy(writer);
-        extension = strdup(funcs->get_extension());
+        extension = util_strdup(funcs->get_extension());
         status = EXPORT_STATUS_SUCCESS;
     }
     else // lua-defined exports
@@ -373,7 +372,7 @@ int export_write_toplevel(struct object* toplevel, struct export_state* state)
                 lua_close(L);
                 return 0;
             }
-            extension = strdup(lua_tostring(L, -1));
+            extension = util_strdup(lua_tostring(L, -1));
             lua_pop(L, 1); // pop extension
             status = EXPORT_STATUS_SUCCESS;
             lua_close(L);

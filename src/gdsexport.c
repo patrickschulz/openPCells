@@ -2,8 +2,8 @@
 
 #include <string.h>
 #include <stdint.h>
-#include <math.h> // modf
 
+#include "math.h" // modf
 #include "tagged_value.h"
 
 #define RECORDTYPE_HEADER       0x00

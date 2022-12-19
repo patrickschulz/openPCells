@@ -45,12 +45,12 @@ void pcell_destroy_state(struct pcell_state* pcell_state)
 
 void pcell_prepend_cellpath(struct pcell_state* pcell_state, const char* path)
 {
-    vector_prepend(pcell_state->cellpaths, strdup(path));
+    vector_prepend(pcell_state->cellpaths, util_strdup(path));
 }
 
 void pcell_append_cellpath(struct pcell_state* pcell_state, const char* path)
 {
-    vector_append(pcell_state->cellpaths, strdup(path));
+    vector_append(pcell_state->cellpaths, util_strdup(path));
 }
 
 void pcell_list_cellpaths(const struct pcell_state* pcell_state)
@@ -64,11 +64,6 @@ void pcell_list_cellpaths(const struct pcell_state* pcell_state)
 void pcell_list_cells(const struct pcell_state* pcell_state, const char* listformat)
 {
     lua_State* L = util_create_basic_lua_state();
-    module_load_support(L);
-    if(!lua_isnil(L, -1))
-    {
-        lua_setglobal(L, "support");
-    }
     module_load_aux(L);
     if(!lua_isnil(L, -1))
     {

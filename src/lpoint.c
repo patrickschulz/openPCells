@@ -1,11 +1,11 @@
 #include "lpoint.h"
 
-#include <math.h>
 #include <string.h>
 
 #include "lua/lua.h"
 #include "lua/lauxlib.h"
 
+#include "math.h"
 #include "point.h"
 
 struct lpoint {

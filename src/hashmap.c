@@ -4,6 +4,8 @@
 #include <string.h>
 #include <stdint.h>
 
+#include "util.h"
+
 struct hashmap_entry {
     char* key;
     void* value;
@@ -109,7 +111,7 @@ void hashmap_insert(struct hashmap* map, const char* key, void* value)
     struct hashmap_entry* entry = _find(map, key);
     if(!entry->key) // entry does not exist
     {
-        entry->key = strdup(key);
+        entry->key = util_strdup(key);
     }
     entry->value = value;
     map->size += 1;

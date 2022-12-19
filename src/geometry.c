@@ -2,8 +2,9 @@
 
 #include <stdlib.h>
 #include <stddef.h>
-#include <math.h>
 #include <stdio.h>
+
+#include "math.h"
 
 static void _multiple_xy(struct object* cell, struct shape* base, ucoordinate_t xrep, ucoordinate_t yrep, ucoordinate_t xpitch, ucoordinate_t ypitch)
 {

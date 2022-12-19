@@ -3,6 +3,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
+#include <string.h>
+#include <stdlib.h>
+#include <stdio.h>
 
 unsigned int util_num_digits(unsigned int n)
 {
@@ -28,7 +31,7 @@ int util_match_string(const char* str, const char* match)
             ++cmp;
             ++src;
         }
-        if(!*cmp) // match found
+        if(!*cmp) /* match found */
         {
             return 1;
         }
@@ -87,3 +90,21 @@ int util_file_exists(const char* path)
         return 1;
     }
 }
+
+char* util_strdup(const char* str)
+{
+    char* dup = malloc(strlen(str) + 1);
+    strcpy(dup, str);
+    return dup;
+}
+
+char* util_concat_path(const char* prefix, const char* suffix)
+{
+    size_t prefixlen = strlen(prefix);
+    size_t suffixlen = strlen(suffix);
+    size_t fulllen = prefixlen + suffixlen + 1; /* +1: '/' */
+    char* fullpath = malloc(fulllen + 1);
+    snprintf(fullpath, fulllen + 1, "%s/%s", prefix, suffix);
+    return fullpath;
+}
+

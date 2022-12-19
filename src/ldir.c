@@ -3,20 +3,23 @@
 
 #include <dirent.h>
 #include <sys/stat.h>
+#include <stdlib.h>
+
+#include "util.h"
 
 int ldir_walk(lua_State* L)
 {
-    const char* path = lua_tostring(L, -1);
-    if(!path)
+    const char* basepath = lua_tostring(L, -1);
+    if(!basepath)
     {
         lua_pushstring(L, "walkdir: path is nil");
         lua_error(L);
     }
     lua_newtable(L);
-    DIR* dir = opendir(path);
+    DIR* dir = opendir(basepath);
     if(!dir)
     {
-        lua_pushfstring(L, "walkdir: could not open directory '%s'", path);
+        lua_pushfstring(L, "walkdir: could not open directory '%s'", basepath);
         lua_error(L);
     }
     int i = 1;
@@ -27,42 +30,42 @@ int ldir_walk(lua_State* L)
         {
             break;
         }
-        lua_newtable(L);
-        lua_pushliteral(L, "name");
-        lua_pushstring(L, entry->d_name);
-        lua_settable(L, -3);
-        lua_pushliteral(L, "type");
-        switch(entry->d_type)
-        {
-            case DT_BLK:
-                lua_pushliteral(L, "blockdev");
-                break;
-            case DT_CHR:
-                lua_pushliteral(L, "characterdev");
-                break;
-            case DT_DIR:
-                lua_pushliteral(L, "directory");
-                break;
-            case DT_FIFO:
-                lua_pushliteral(L, "fifo");
-                break;
-            case DT_LNK:
-                lua_pushliteral(L, "link");
-                break;
-            case DT_REG:
-                lua_pushliteral(L, "regular");
-                break;
-            case DT_SOCK:
-                lua_pushliteral(L, "sock");
-                break;
-            case DT_UNKNOWN:
-                lua_pushliteral(L, "unknown");
-                break;
-        }
-        lua_settable(L, -3);
 
-        lua_rawseti(L, -2, i);
-        ++i;
+        // get type of file, ignore everything except regular files and directories
+        char* fullpath = util_concat_path(basepath, entry->d_name);
+        struct stat statbuf;
+        int ret = stat(fullpath, &statbuf);
+        if(ret == -1)
+        {
+            printf("ldir error with '%s'\n", fullpath);
+            perror("");
+        }
+        const char* type = NULL;
+        if(S_ISREG(statbuf.st_mode))
+        {
+            if(util_match_string(fullpath, ".lua")) // ignore non-lua files
+            {
+                type = "regular";
+            }
+        }
+        else if(S_ISDIR(statbuf.st_mode))
+        {
+            type = "directory";
+        }
+
+        if(type)
+        {
+            lua_newtable(L);
+            lua_pushliteral(L, "name");
+            lua_pushstring(L, entry->d_name);
+            lua_settable(L, -3);
+            lua_pushliteral(L, "type");
+            lua_pushstring(L, type);
+            lua_settable(L, -3);
+            lua_rawseti(L, -2, i);
+            ++i;
+        }
+        free(fullpath);
     }
     closedir(dir);
     return 1;

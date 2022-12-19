@@ -3,17 +3,18 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
-#include <math.h>
 #include <string.h>
 #include <assert.h>
 
 #include "lua/lauxlib.h"
 
+#include "math.h"
 #include "filesystem.h"
 #include "vector.h"
 #include "point.h"
 #include "hashmap.h"
 #include "lua_util.h"
+#include "util.h"
 
 enum datatypes
 {
@@ -735,7 +736,7 @@ struct vector* gdsparser_create_layermap(const char* filename)
         lua_getfield(L, -1, "map");
         if(!lua_isnil(L, -1))
         {
-            layermapping->map = strdup(lua_tostring(L, -1));
+            layermapping->map = util_strdup(lua_tostring(L, -1));
         }
         lua_pop(L, 1);
 
@@ -751,7 +752,7 @@ struct vector* gdsparser_create_layermap(const char* filename)
             {
                 lua_rawgeti(L, -1, j);
                 const char* mapping = lua_tostring(L, -1);
-                layermapping->mappings[j - 1] = strdup(mapping);
+                layermapping->mappings[j - 1] = util_strdup(mapping);
                 lua_pop(L, 1);
             }
         }

@@ -2,8 +2,8 @@
 
 #include <stdlib.h>
 #include <stdio.h>
-#include <math.h>
 
+#include "math.h"
 #include "point.h"
 #include "graphics.h"
 #include "geometry.h"

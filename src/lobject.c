@@ -116,6 +116,12 @@ static int lobject_reset_translation(lua_State* L)
 
 static int lobject_translate(lua_State* L)
 {
+    int n = lua_gettop(L);
+    if(n != 3)
+    {
+        lua_pushstring(L, "object.translate: expected three arguments, got %d");
+        lua_error(L);
+    }
     struct lobject* cell = lobject_check(L, 1);
     coordinate_t x = lua_tointeger(L, 2);
     coordinate_t y = lua_tointeger(L, 3);

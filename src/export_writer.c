@@ -2,7 +2,6 @@
 
 #include <stdlib.h>
 #include <string.h>
-#include <math.h>
 #include <assert.h>
 
 #include "tagged_value.h"
@@ -293,7 +292,7 @@ static char* _concat_namecontext(const char* namecontext, const char* appendix)
     }
     else
     {
-        newcontext = strdup(appendix);
+        newcontext = util_strdup(appendix);
     }
     return newcontext;
 }
@@ -846,7 +845,7 @@ static int _write_cell_hierarchy_with_namecontext(struct export_writer* writer, 
         }
         else
         {
-            newnamecontext = strdup(name);
+            newnamecontext = util_strdup(name);
         }
         _write_cell_hierarchy_with_namecontext(writer, reference, newnamecontext, write_ports, leftdelim, rightdelim);
         int ret = _write_cell(writer, reference, namecontext, 0, write_ports, leftdelim, rightdelim); // 0: cell is not toplevel

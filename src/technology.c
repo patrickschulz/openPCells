@@ -35,7 +35,7 @@ struct technology_state {
 
 void technology_add_techpath(struct technology_state* techstate, const char* path)
 {
-    vector_append(techstate->techpaths, strdup(path));
+    vector_append(techstate->techpaths, util_strdup(path));
 }
 
 static int ltechnology_list_techpaths(lua_State* L)
@@ -96,7 +96,7 @@ static int _is_ignored_layer(const char* layername, const struct const_vector* i
 static struct generics_entry* _create_entry(const char* name)
 {
     struct generics_entry* entry = malloc(sizeof(*entry));
-    entry->exportname = strdup(name);
+    entry->exportname = util_strdup(name);
     entry->data = hashmap_create();
     return entry;
 }
@@ -131,7 +131,7 @@ static struct generics* _create_empty_layer(const char* name)
 {
     struct generics* layer = malloc(sizeof(*layer));
     memset(layer, 0, sizeof(*layer));
-    layer->name = strdup(name);
+    layer->name = util_strdup(name);
     return layer;
 }
 
@@ -311,7 +311,7 @@ int technology_load_viadefinitions(struct technology_state* techstate, const cha
     lua_pushnil(L);
     while(lua_next(L, -2) != 0)
     {
-        char* vianame = strdup(lua_tostring(L, -2));
+        char* vianame = util_strdup(lua_tostring(L, -2));
         struct via_definition** viadefs = _read_via(L);
         struct via_definition* fallback = _read_via_fallback(L);
         _insert_via(techstate, vianame, viadefs, fallback);

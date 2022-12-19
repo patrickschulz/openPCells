@@ -5,11 +5,11 @@
 #include <time.h>
 #include <limits.h>
 #include <stdint.h>
-#include <math.h>
 
 #include "lplacer_common.h"
 #include "lplacer_rand.h"
 
+#include "math.h"
 #include "hashmap.h"
 #include "util.h"
 

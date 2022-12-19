@@ -3,9 +3,9 @@ PROGNAME=opc
 CC= gcc
 # for production purposes
 # FIXME: set environment in appropriate targets
-#CFLAGS= -std=gnu99 -O3 -Wall -Wextra -Wstrict-prototypes $(SYSCFLAGS) $(MYCFLAGS)
+#CFLAGS= -std=c99 -O3 -Wall -Wextra -Werror=implicit-function-declaration -Werror=int-conversion -Wstrict-prototypes -pthread $(SYSCFLAGS) $(MYCFLAGS)
 # for debugging purposes
-CFLAGS= -std=gnu99 -O0 -g -Wall -Wextra -Wstrict-prototypes -pthread $(SYSCFLAGS) $(MYCFLAGS)
+CFLAGS= -std=c99 -O0 -g -Wall -Wextra -Werror=implicit-function-declaration -Werror=int-conversion -Wstrict-prototypes -pthread $(SYSCFLAGS) $(MYCFLAGS)
 LDFLAGS= $(SYSLDFLAGS) $(MYLDFLAGS)
 LIBS= -lm $(SYSLIBS) $(MYLIBS)
 
@@ -66,7 +66,6 @@ modulemanager.c: embed_compiled_lua_file modules/*.lua
 	@echo '#include <stddef.h>' >> modulemanager.c
 	@echo '#include "main.functions.h"' >> modulemanager.c
 	./embed_compiled_lua_file --module modules/aux.lua module_load aux modulemanager.c
-	./embed_compiled_lua_file --module modules/envlib.lua module_load envlib modulemanager.c
 	./embed_compiled_lua_file --module modules/gdsparser.lua module_load gdsparser modulemanager.c
 	./embed_compiled_lua_file --module modules/generator.lua module_load generator modulemanager.c
 	./embed_compiled_lua_file --module modules/geometry.lua module_load geometry modulemanager.c
@@ -78,7 +77,6 @@ modulemanager.c: embed_compiled_lua_file modules/*.lua
 	./embed_compiled_lua_file --module modules/point.lua module_load point modulemanager.c
 	./embed_compiled_lua_file --module modules/routing.lua module_load routing modulemanager.c
 	./embed_compiled_lua_file --module modules/stack.lua module_load stack modulemanager.c
-	./embed_compiled_lua_file --module modules/support.lua module_load support modulemanager.c
 	./embed_compiled_lua_file --module modules/util.lua module_load util modulemanager.c
 	./embed_compiled_lua_file --module modules/verilog.lua module_load verilog modulemanager.c
 	./embed_compiled_lua_file --module modules/verilogprocessor.lua module_load verilogprocessor modulemanager.c
@@ -88,7 +86,6 @@ modulemanager.h:
 	@echo '#define OPC_MODULEMANAGER_H' >> modulemanager.h
 	@echo '#include "lua/lua.h"' >> modulemanager.h
 	@echo 'int module_load_aux(lua_State* L);' >> modulemanager.h
-	@echo 'int module_load_envlib(lua_State* L);' >> modulemanager.h
 	@echo 'int module_load_gdsparser(lua_State* L);' >> modulemanager.h
 	@echo 'int module_load_generator(lua_State* L);' >> modulemanager.h
 	@echo 'int module_load_geometry(lua_State* L);' >> modulemanager.h
@@ -100,7 +97,6 @@ modulemanager.h:
 	@echo 'int module_load_point(lua_State* L);' >> modulemanager.h
 	@echo 'int module_load_routing(lua_State* L);' >> modulemanager.h
 	@echo 'int module_load_stack(lua_State* L);' >> modulemanager.h
-	@echo 'int module_load_support(lua_State* L);' >> modulemanager.h
 	@echo 'int module_load_util(lua_State* L);' >> modulemanager.h
 	@echo 'int module_load_verilog(lua_State* L);' >> modulemanager.h
 	@echo 'int module_load_verilogprocessor(lua_State* L);' >> modulemanager.h

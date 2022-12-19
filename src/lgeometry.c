@@ -484,7 +484,7 @@ static int lgeometry_contactbltr(lua_State* L)
     {
         const point_t* blp = lpoint_get(bl);
         const point_t* trp = lpoint_get(tr);
-        lua_pushfstring(L, "geometry.contactbltr: could not fit via (width = %d, height = %d)", trp->x - blp->x, trp->y - blp->y);
+        lua_pushfstring(L, "geometry.contactbltr: could not fit contact from %s to metal 1 (width = %d, height = %d)", region, trp->x - blp->x, trp->y - blp->y);
         lua_error(L);
     }
     return 0;
@@ -522,7 +522,7 @@ static int lgeometry_contact(lua_State* L)
     );
     if(!res)
     {
-        lua_pushstring(L, "geometry.contact: could not fit via");
+        lua_pushfstring(L, "geometry.contact: could not fit contact from %s to metal 1. Area: (%d, %d) and (%d, %d)", region, xshift - width / 2, yshift - height / 2, xshift + width / 2, yshift + height / 2);
         lua_error(L);
     }
     return 0;
@@ -558,7 +558,7 @@ static int lgeometry_contactbarebltr(lua_State* L)
     );
     if(!res)
     {
-        lua_pushstring(L, "geometry.contactbarebltr: could not fit via");
+        lua_pushfstring(L, "geometry.contactbarebltr: could not fit contact from %s to metal 1. Area: (%d, %d) and (%d, %d)", region, lpoint_get(bl)->x, lpoint_get(bl)->y, lpoint_get(tr)->x, lpoint_get(tr)->y);
         lua_error(L);
     }
     return 0;
@@ -596,7 +596,7 @@ static int lgeometry_contactbare(lua_State* L)
     );
     if(!res)
     {
-        lua_pushstring(L, "geometry.contactbare: could not fit via");
+        lua_pushfstring(L, "geometry.contactbare: could not fit contact from %s to metal 1. Area: (%d, %d) and (%d, %d)", region, xshift - width / 2, yshift - height / 2, xshift + width / 2, yshift + height / 2);
         lua_error(L);
     }
     return 0;

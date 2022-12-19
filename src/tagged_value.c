@@ -3,6 +3,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "util.h"
+
 struct tagged_value {
     //void* value;
     union {
@@ -33,7 +35,7 @@ struct tagged_value* tagged_value_create_integer(int i)
 struct tagged_value* tagged_value_create_string(const char* str)
 {
     struct tagged_value* value = _create(STRING);
-    value->str = strdup(str);
+    value->str = util_strdup(str);
     return value;
 }
 

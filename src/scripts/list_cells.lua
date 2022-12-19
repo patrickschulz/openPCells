@@ -1,3 +1,21 @@
+local function _collect_cells_tree(path)
+    local children = {}
+    for _, entry in ipairs(dir.walk(path)) do
+        if entry.name:sub(1, 1) ~= "." then
+            local elem = { name = entry.name }
+            if entry.type == "directory" then
+                elem.children = _collect_cells_tree(string.format("%s/%s", path, entry.name))
+            end
+            table.insert(children, elem)
+        end
+    end
+    return children
+end
+
+local function _dirtree(path)
+    return { name = path, children = _collect_cells_tree(path) }
+end
+
 local function _traverse_tree(tree)
     if tree.children then
         local elements = {}
@@ -16,10 +34,11 @@ local function _traverse_tree(tree)
         return { { tree.name } }
     end
 end
+
 local cells = {}
 for _, path in ipairs(args.cellpaths) do
     local baseinfo = {}
-    local tree = support.dirtree(path)
+    local tree = _dirtree(path)
     for _, base in ipairs(tree.children) do
         local cellinfo = {}
         for _, info in ipairs(_traverse_tree(base)) do
@@ -56,3 +75,26 @@ for _, path in ipairs(cells) do
     io.write(postpathstr)
 end
 io.write(postfmt)
+
+--[[ FIXME: much simpler approach, but does not support arbitrary formatting. Adapt.
+local function _list_cells(path, indent)
+    local indentstr = string.rep("  ", indent)
+    local files = dir.walk(path)
+    for _, file in ipairs(files) do
+        if file.type == "directory" then
+            if file.name ~= "." and file.name ~= ".." then
+                print(string.format("%s%s", indentstr, file.name))
+                local subpath = string.format("%s/%s", path, file.name)
+                _list_cells(subpath, indent + 1)
+            end
+        else
+            local name = string.sub(file.name, 1, -5) -- strip '.lua'
+            print(string.format("%s%s", indentstr, name))
+        end
+    end
+end
+
+for _, path in ipairs(args.cellpaths) do
+    _list_cells(path, 0)
+end
+--]]

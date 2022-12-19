@@ -6,6 +6,7 @@
 #include <string.h>
 
 #include "terminal_colors.h"
+#include "util.h"
 #include "vector.h"
 
 #define API_HELP_TYPE_VARARGS   COLOR_BOLD COLOR_RGB(0, 0, 0)
@@ -398,17 +399,17 @@ static void _print_parameters(const struct vector* parameters)
 struct parameter* _copy_parameter(const struct parameter* param)
 {
     struct parameter* new = malloc(sizeof(*new));
-    new->name = strdup(param->name);
+    new->name = util_strdup(param->name);
     new->type = param->type;
     if(param->default_value)
     {
-        new->default_value = strdup(param->default_value);
+        new->default_value = util_strdup(param->default_value);
     }
     else
     {
         new->default_value = NULL;
     }
-    new->text = strdup(param->text);
+    new->text = util_strdup(param->text);
     return new;
 }
 
@@ -433,10 +434,10 @@ struct api_entry* _make_api_entry(
 )
 {
     struct api_entry* entry = malloc(sizeof(*entry));
-    entry->funcname = strdup(funcname);
+    entry->funcname = util_strdup(funcname);
     entry->module = module;
-    entry->info = strdup(info);
-    entry->example = strdup(example);
+    entry->info = util_strdup(info);
+    entry->example = util_strdup(example);
     entry->parameters = vector_create(len, _destroy_parameter);
     for(size_t i = 0; i < len; ++i)
     {
