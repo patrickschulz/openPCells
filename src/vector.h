@@ -1,5 +1,5 @@
-#ifndef OPC_LVECTOR_H
-#define OPC_LVECTOR_H
+#ifndef OPC_VECTOR_H
+#define OPC_VECTOR_H
 
 #include <stddef.h>
 
@@ -58,4 +58,4 @@ const void* const_vector_iterator_get(struct const_vector_iterator* iterator);
 void const_vector_iterator_next(struct const_vector_iterator* iterator);
 void const_vector_iterator_destroy(struct const_vector_iterator* iterator);
 
-#endif // OPC_LVECTOR_H
+#endif // OPC_VECTOR_H
