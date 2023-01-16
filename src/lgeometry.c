@@ -141,6 +141,11 @@ static int lgeometry_path(lua_State* L)
 {
     struct lobject* cell = lobject_check(L, 1);
     struct generics* layer = _check_generics(L, 2);
+    if(!lua_istable(L, 3))
+    {
+        lua_pushstring(L, "geometry.path: list of points (third argument) is not a table");
+        lua_error(L);
+    }
     lua_len(L, 3);
     size_t len = lua_tointeger(L, -1);
     lua_pop(L, 1);

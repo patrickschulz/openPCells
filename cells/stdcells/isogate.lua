@@ -3,8 +3,8 @@ function config()
 end
 
 function parameters()
-    pcell.add_parameter("pwidth", 2 * tech.get_dimension("Minimum Gate Width"))
-    pcell.add_parameter("nwidth", 2 * tech.get_dimension("Minimum Gate Width"))
+    pcell.add_parameter("pwidth", 2 * technology.get_dimension("Minimum Gate Width"))
+    pcell.add_parameter("nwidth", 2 * technology.get_dimension("Minimum Gate Width"))
 end
 
 function layout(gate, _P)

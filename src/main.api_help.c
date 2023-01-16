@@ -1597,20 +1597,6 @@ struct vector* _initialize_api_entries(void)
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
-    /* object.get_all_regular_anchors */
-    {
-        struct parameter parameters[] = {
-            { "cell", OBJECT,  NULL, "object to get all anchors from" },
-        };
-        vector_append(entries, _make_api_entry(
-            "get_all_regular_anchors",
-            MODULE_OBJECT,
-            "return a table which contains key-value pairs with all regular anchors of a cell. The key is the anchorname, the value the corresponding point. Regular anchors are anchors not related to an alignment box but created by add_anchor, add_anchor_area and add_anchor_area_bltr",
-            "local anchors = cell:get_all_regular_anchors()",
-            parameters,
-            sizeof(parameters) / sizeof(parameters[0])
-        ));
-    }
     /* object.add_port */
     {
         struct parameter parameters[] = {

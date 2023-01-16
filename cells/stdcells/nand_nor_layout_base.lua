@@ -6,8 +6,8 @@ function parameters()
     pcell.add_parameters(
         { "fingers",       1 },
         { "gatetype", "nand" },
-        { "pwidth", 2 * tech.get_dimension("Minimum Gate Width") },
-        { "nwidth", 2 * tech.get_dimension("Minimum Gate Width") },
+        { "pwidth", 2 * technology.get_dimension("Minimum Gate Width") },
+        { "nwidth", 2 * technology.get_dimension("Minimum Gate Width") },
         { "swapinputs", false },
         { "shiftoutput", 0 }
     )

@@ -815,3 +815,31 @@ void geometry_ring(struct object* cell, const struct generics* layer, ucoordinat
     geometry_unequal_ring(cell, layer, outerwidth, outerheight, ringwidth, ringwidth, ringwidth, ringwidth);
 }
 
+void geometry_unequal_ring_pts(
+    struct object* cell,
+    const struct generics* layer,
+    const point_t* outerbl, const point_t* outertr,
+    const point_t* innerbl, const point_t* innertr
+)
+{
+    struct shape* S = shape_create_polygon(layer, 13);
+    shape_append(S, outerbl->x, outerbl->y);
+    shape_append(S, outertr->x, outerbl->y);
+    shape_append(S, outertr->x, outertr->y);
+    shape_append(S, outerbl->x, outertr->y);
+    shape_append(S, outerbl->x, innerbl->y);
+    shape_append(S, innerbl->x, innerbl->y);
+    shape_append(S, innerbl->x, innertr->y);
+    shape_append(S, innertr->x, innertr->y);
+    shape_append(S, innertr->x, innerbl->y);
+    shape_append(S, outerbl->x, innerbl->y);
+    shape_append(S, outerbl->x, outerbl->y); // close polygon
+    if(!shape_is_empty(S))
+    {
+        object_add_shape(cell, S);
+    }
+    else
+    {
+        shape_destroy(S);
+    }
+}

@@ -9,19 +9,29 @@ function parameters()
 end
 
 function layout(currentmirror, _P)
-    local tp = pcell.get_parameters("basic/mosfet")
-    pcell.push_overwrites("basic/mosfet", { fwidth=300, gatelength = 60, drawtopgate = true, connectsource = true })
-    local diode = pcell.create_layout("basic/mosfet", "diode", { fingers = _P.ifingers, connectdrain = true })
-    local mirror = pcell.create_layout("basic/mosfet", "mirror", { fingers = _P.ofingers })
-    diode:move_anchor("sourcedrainmiddlecenterright")
-    mirror:move_anchor("sourcedrainmiddlecenterleft")
+    pcell.push_overwrites("basic/mosfet", {
+        fwidth = 500,
+        connectsource = true,
+        connsourcewidth = 200,
+        connsourcespace = 100,
+        drawtopgate = true,
+        drawtopgatestrap = true,
+        topgatecompsd = false,
+    })
+    local diode = pcell.create_layout("basic/mosfet", "diode", {
+        fingers = _P.ifingers,
+        diodeconnected = true,
+    })
+    local source = pcell.create_layout("basic/mosfet", "source", {
+        fingers = _P.ofingers,
+        conndrainmetal = 2,
+        drawdrainvia = true,
+        connectdrain = true,
+    })
+    diode:move_anchor("sourcedrainrightbl")
+    source:move_anchor("sourcedrainleftbl")
     currentmirror:merge_into(diode)
-    currentmirror:merge_into(mirror)
-    pcell.pop_overwrites("basic/mosfet")
+    currentmirror:merge_into(source)
 
-    -- gate connection
-    geometry.path(currentmirror, generics.metal(2), {
-        diode:get_anchor("lefttopgate"),
-        mirror:get_anchor("righttopgate"),
-    }, tp.topgatestrwidth)
+    geometry.rectanglebltr(currentmirror, generics.metal(1), diode:get_anchor("topgate1bl"), source:get_anchor(string.format("topgate%dtr", _P.ofingers)))
 end

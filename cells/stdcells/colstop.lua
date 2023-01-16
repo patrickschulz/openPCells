@@ -1,8 +1,8 @@
 function parameters()
     pcell.add_parameter("fingers", 1)
     pcell.add_parameter("leftnotright", true)
-    pcell.add_parameter("pwidth", 2 * tech.get_dimension("Minimum Gate Width"))
-    pcell.add_parameter("nwidth", 2 * tech.get_dimension("Minimum Gate Width"))
+    pcell.add_parameter("pwidth", 2 * technology.get_dimension("Minimum Gate Width"))
+    pcell.add_parameter("nwidth", 2 * technology.get_dimension("Minimum Gate Width"))
 end
 
 function layout(gate, _P)

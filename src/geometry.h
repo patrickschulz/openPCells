@@ -127,6 +127,13 @@ void geometry_unequal_ring(
     ucoordinate_t topwidth, ucoordinate_t bottomwidth
 );
 
+void geometry_unequal_ring_pts(
+    struct object* cell,
+    const struct generics* layer,
+    const point_t* outerbl, const point_t* outertr,
+    const point_t* innerbl, const point_t* innertr
+);
+
 struct shape* geometry_path_to_polygon(const struct generics* layer, point_t** points, size_t numpoints, ucoordinate_t width, int miterjoin);
 
 struct vector* geometry_triangulate_polygon(const struct vector* points);

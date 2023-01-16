@@ -19,8 +19,8 @@ end
 function layout(momcap, _P)
     local pitch = _P.fwidth + _P.fspace
 
-    local firstmetal = tech.resolve_metal(_P.firstmetal)
-    local lastmetal = tech.resolve_metal(_P.lastmetal)
+    local firstmetal = technology.resolve_metal(_P.firstmetal)
+    local lastmetal = technology.resolve_metal(_P.lastmetal)
 
     if _P.flat then
         for i = firstmetal, lastmetal do

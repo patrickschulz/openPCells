@@ -15,19 +15,51 @@
           clk                 ~clk          ~clk            clk
 --]]
 
+--[[
+    List of gates (from left to right):
+        (1) clockbuffer input
+        (2) clockbuffer dummy
+        (3) clockbuffer intermediate
+        (4) dummy separation between clockbuffer and start of flip-flop
+        (5) clocked inverter nmos
+        (6) clocked inverter pmos
+        (7) clocked inverter input
+        (8) dummy separation between clocked inverter and first latch (possible more than one)
+        (9) first latch clocked inverter input
+        (10) first latch clocked inverter pmos
+        (11) first latch clocked inverter nmos
+        (12) first latch inverter input
+        (13) transmission gate nmos
+        (14) transmission gate pmos
+        (15) separation dummy between transmission gate and second latch
+        (16) second latch clocked inverter input
+        (17) second latch clocked inverter pmos
+        (18) second latch clocked inverter nmos
+        (19) second latch inverter input
+        (20) separation dummy between end of flip-flop and output buffer
+        (21) output buffer input
+        (22) last dummy gate to finish output buffer
+--]]
+
 function parameters()
     pcell.add_parameters(
-        -- FIXME: add more transistor width control
-        { "pwidth", 2 * tech.get_dimension("Minimum Gate Width") },
-        { "nwidth", 2 * tech.get_dimension("Minimum Gate Width") },
+        -- FIXME: add more transistor finger width control
+        { "pwidth", 2 * technology.get_dimension("Minimum Gate Width") },
+        { "nwidth", 2 * technology.get_dimension("Minimum Gate Width") },
         { "clockpolarity", "positive", posvals = set("positive", "negative") },
         { "enable_Q", true },
         { "enable_QN", false },
         { "enable_set", false },
         { "enable_reset", false },
-        { "latchspacerdummy", 1 }
+        { "latchseparationdummies", 1 }
     )
-    pcell.check_expression("not (enable_set and enable_reset)", "sorry, this dff implementation currently does not support simultaneous set and reset pins")
+end
+
+function check(_P)
+    if _P.enable_set and _P.enable_reset then
+        return nil, "sorry, this dff implementation currently does not support simultaneous set and reset pins"
+    end
+    return true
 end
 
 function layout(dff, _P)
@@ -36,6 +68,88 @@ function layout(dff, _P)
     local xpitch = bp.gspace + bp.glength
     local yrpitch = bp.routingwidth + bp.routingspace
 
+    local gatedef = {
+        clockbuf = {
+            { name = "input1",  position = "lower" },
+            {                   position = "dummy" },
+            { name = "input2",  position = "lower" },
+        },
+        cinv = {
+            { name = "nmos",  position = "lower",  },
+            { name = "pmos",  position = "center", },
+            { name = "input", position = "upper"   },
+        },
+        latch1 = {
+            { name = "cinvinput", position = "lower",  },
+            { name = "pmos",      position = "lower",  },
+            { name = "nmos",      position = "center", },
+            { name = "invinput",  position = "upper"   },
+        },
+        tgate = {
+            { name = "nmos", position = "center" },
+            { name = "pmos", position = "lower"  },
+        },
+        latch2 = {
+            { name = "cinvinput", position = "lower",  },
+            { name = "pmos",      position = "center",  },
+            { name = "nmos",      position = "lower", },
+            { name = "invinput",  position = "upper"   },
+        },
+        buffer = {
+            { name = "input", position = "center" },
+        }
+    }
+
+    local gatecontactpos = {}
+    local gatenames = {}
+    local index = 1
+    local subcircuit = "clockbuf"
+    for _, entry in ipairs(gatedef[subcircuit]) do
+        gatecontactpos[index] = entry.position
+        gatenames[string.format("%s%s", subcircuit, entry.name)] = index
+        index = index + 1
+    end
+    gatecontactpos[index] = "dummy"
+    index = index + 1
+    subcircuit = "cinv"
+    for _, entry in ipairs(gatedef[subcircuit]) do
+        gatecontactpos[index] = entry.position
+        gatenames[string.format("%s%s", subcircuit, entry.name)] = index
+        index = index + 1
+    end
+    gatecontactpos[index] = "dummy"
+    index = index + 1
+    subcircuit = "latch1"
+    for _, entry in ipairs(gatedef[subcircuit]) do
+        gatecontactpos[index] = entry.position
+        gatenames[string.format("%s%s", subcircuit, entry.name)] = index
+        index = index + 1
+    end
+    subcircuit = "tgate"
+    for _, entry in ipairs(gatedef[subcircuit]) do
+        gatecontactpos[index] = entry.position
+        gatenames[string.format("%s%s", subcircuit, entry.name)] = index
+        index = index + 1
+    end
+    gatecontactpos[index] = "dummy"
+    index = index + 1
+    subcircuit = "latch2"
+    for _, entry in ipairs(gatedef[subcircuit]) do
+        gatecontactpos[index] = entry.position
+        gatenames[string.format("%s%s", subcircuit, entry.name)] = index
+        index = index + 1
+    end
+    gatecontactpos[index] = "dummy"
+    index = index + 1
+    subcircuit = "buffer"
+    for _, entry in ipairs(gatedef[subcircuit]) do
+        gatecontactpos[index] = entry.position
+        gatenames[string.format("%s%s", subcircuit, entry.name)] = index
+        index = index + 1
+    end
+    gatecontactpos[index] = "dummy"
+    index = index + 1
+    --[[
     local gatepos = "center"
     if _P.enable_set or _P.enable_reset then
         gatepos = "upper"
@@ -53,7 +167,9 @@ function layout(dff, _P)
         "dummy",
         "center",                           -- output inverter
     }
+    --]]
     local clkshift = _P.clockpolarity == "positive" and 0 or 1
+    --[[
     if _P.clockpolarity == "negative" then
         gatecontactpos[5] = "center"
         gatecontactpos[6] = "lower"
@@ -64,9 +180,10 @@ function layout(dff, _P)
         gatecontactpos[17] = "lower"
         gatecontactpos[18] = gatepos
     end
+    --]]
     local pcontactpos = {
         "power", "inner", "power", "inner",      -- clock buffer
-        "power", "power", nil, "outer",          -- cinv 
+        "power", "power", nil, "outer",          -- cinv
         "outer", nil, "power", "power", "inner", -- first latch
         "inner", "outer",                        -- transmission gate
         "outer", nil, "power", "power", "inner", -- first latch
@@ -74,7 +191,7 @@ function layout(dff, _P)
     }
     local ncontactpos = {
         "power", "inner", "power", "inner",          -- clock buffer
-        "power", "outer", "outer", "outer",          -- cinv 
+        "power", "outer", "outer", "outer",          -- cinv
         "outer", "outer", "outer", "power", "inner", -- first latch
         "outer", "outer",                            -- transmission gate
         "outer", "outer", "outer", "power", "inner", -- first latch
@@ -150,26 +267,7 @@ function layout(dff, _P)
     -- easy anchor access functions
     local _gateidx = function(num) return harness:get_anchor(string.format("G%dcc", num)) end
     local _gatestr = function(identifier)
-        local lut = {
-            clkinv1 = 1,
-            clkinv2 = 3,
-            cinv1EN = 5 + clkshift,
-            cinv1EP = 6 - clkshift,
-            cinv1I = 7,
-            cinv2I = 9,
-            cinv2EP = 10 + clkshift,
-            cinv2EN = 11 - clkshift,
-            inv1 = 12 + setshift + resetshift,
-            tgateEN = 13,
-            tgateEP = 14 - clkshift + setshift + 2 * resetshift,
-            cinv3I = 16 + setshift + 2 * resetshift,
-            cinv3EP = 17 + clkshift + setshift + 2 * resetshift,
-            cinv3EN = 18 - clkshift + setshift + 2 * resetshift,
-            inv2 = 19 + 2 * setshift + 3 * resetshift,
-            outinv1 = 21 + 2 * setshift + 3 * resetshift,
-            outinv2 = 23 + 2 * setshift + 3 * resetshift,
-        }
-        return _gateidx(lut[identifier])
+        return _gateidx(gatenames[identifier])
     end
     local gate = function(identifier)
         if type(identifier) == "string" then
@@ -183,13 +281,13 @@ function layout(dff, _P)
     local spacing = bp.sdwidth / 2 + bp.routingspace
     -- clock buffer input port landing
     geometry.rectanglebltr(dff, generics.metal(1),
-        _gatestr("clkinv1"):translate(-xpitch, -bp.routingwidth / 2),
-        _gatestr("clkinv1"):translate( xpitch - spacing, bp.routingwidth / 2)
+        _gatestr("clockbufinput1"):translate(-xpitch, -bp.routingwidth / 2),
+        _gatestr("clockbufinput1"):translate( xpitch - spacing, bp.routingwidth / 2)
     )
     -- clock buffer ~clk via
     geometry.viabltr(dff, 1, 2,
-        _gatestr("clkinv2"):translate(-xpitch, -bp.routingwidth / 2),
-        _gatestr("clkinv2"):translate( xpitch - spacing, bp.routingwidth / 2)
+        _gatestr("clockbufinput2"):translate(-xpitch, -bp.routingwidth / 2),
+        _gatestr("clockbufinput2"):translate( xpitch - spacing, bp.routingwidth / 2)
     )
     -- clock buffer ~clk drain connections
     geometry.path(dff, generics.metal(1),
@@ -206,32 +304,33 @@ function layout(dff, _P)
 
     -- clk M2 bar
     geometry.viabltr(dff, 1, 2,
-        _gatestr("cinv1EP"):translate((-2 + clkshift) * xpitch, -bp.routingwidth / 2),
-        _gatestr("cinv1EP"):translate(( 2 + clkshift) * xpitch - spacing, bp.routingwidth / 2)
+        _gatestr("cinvpmos"):translate((-2 + clkshift) * xpitch, -bp.routingwidth / 2),
+        _gatestr("cinvpmos"):translate(( 2 + clkshift) * xpitch - spacing, bp.routingwidth / 2)
     )
     geometry.path(dff, generics.metal(2),
-        geometry.path_points_xy(_gatestr("cinv1EP"):translate((-2 + clkshift) * xpitch, 0), {
+        geometry.path_points_xy(_gatestr("cinvpmos"):translate((-2 + clkshift) * xpitch, 0), {
             5 * xpitch,
-            _gatestr("cinv3EP"):translate(xpitch - spacing, 0)
+            _gatestr("latch2pmos"):translate(xpitch - spacing, 0)
     }), bp.routingwidth)
     -- ~clk M2 bar
-    geometry.rectanglebltr(dff, generics.metal(2), 
-        _gatestr("clkinv2"):translate(-xpitch, -bp.routingwidth / 2),
-        _gatestr("cinv3EN"):translate(xpitch - spacing, bp.routingwidth / 2)
+    geometry.rectanglebltr(dff, generics.metal(2),
+        _gatestr("clockbufinput2"):translate(-xpitch, -bp.routingwidth / 2),
+        _gatestr("latch2nmos"):translate(xpitch - spacing, bp.routingwidth / 2)
     )
 
     -- cinv clk connection
     geometry.rectanglebltr(dff, generics.metal(1),
-        _gatestr("cinv1EP"):translate((-2 + clkshift) * xpitch, -bp.routingwidth / 2),
-        _gatestr("cinv1EP"):translate(( 2 + clkshift) * xpitch - spacing, bp.routingwidth / 2)
+        _gatestr("cinvpmos"):translate((-2 + clkshift) * xpitch, -bp.routingwidth / 2),
+        _gatestr("cinvpmos"):translate(( 2 + clkshift) * xpitch - spacing, bp.routingwidth / 2)
     )
 
     -- cinv ~clk connection
     geometry.viabltr(dff, 1, 2,
-        _gatestr("cinv1EN"):translate((-1 - clkshift) * xpitch + spacing, -bp.routingwidth / 2),
-        _gatestr("cinv1EN"):translate(( 3 - clkshift) * xpitch - spacing, bp.routingwidth / 2)
+        _gatestr("cinvnmos"):translate((-1 - clkshift) * xpitch + spacing, -bp.routingwidth / 2),
+        _gatestr("cinvnmos"):translate(( 3 - clkshift) * xpitch - spacing, bp.routingwidth / 2)
     )
 
+    --[==[
     -- D input port landing
     geometry.viabltr(dff, 1, 2,
         _gatestr("clkinv1"):translate(-xpitch,           2 * (bp.routingwidth + bp.routingspace) - bp.routingwidth / 2),
@@ -242,43 +341,43 @@ function layout(dff, _P)
         _gatestr("cinv1I"):translate(-3 * xpitch + spacing, -bp.routingwidth / 2),
         _gatestr("cinv1I"):translate( 1 * xpitch - spacing, bp.routingwidth / 2)
     )
-    geometry.rectanglebltr(dff, generics.metal(2), 
-        _gatestr("clkinv1"):translate(-xpitch, 2 * (bp.routingwidth + bp.routingspace) - bp.routingwidth / 2), 
+    geometry.rectanglebltr(dff, generics.metal(2),
+        _gatestr("clkinv1"):translate(-xpitch, 2 * (bp.routingwidth + bp.routingspace) - bp.routingwidth / 2),
         _gatestr("cinv1I"):translate( 1 * xpitch - spacing, bp.routingwidth / 2)
     )
 
     -- cinv short nmos
-    geometry.rectanglebltr(dff, generics.metal(1), 
+    geometry.rectanglebltr(dff, generics.metal(1),
         sourcedrain("n", "cc", 6):translate(0, -bp.sdwidth / 2),
         sourcedrain("n", "cc", 7):translate(0, bp.sdwidth / 2)
     )
 
     -- short dummy between cinv and first latch cinv
-    geometry.rectanglebltr(dff, generics.metal(1), 
+    geometry.rectanglebltr(dff, generics.metal(1),
         sourcedrain("p", "cc", 8):translate(0, -bp.sdwidth / 2),
         sourcedrain("p", "cc", 9):translate(0, bp.sdwidth / 2)
     )
-    geometry.rectanglebltr(dff, generics.metal(1), 
+    geometry.rectanglebltr(dff, generics.metal(1),
         sourcedrain("n", "cc", 8):translate(0, -bp.sdwidth / 2),
         sourcedrain("n", "cc", 9):translate(0, bp.sdwidth / 2)
     )
 
     -- short nmos in first latch (set layout)
     if _P.enable_set then
-        geometry.rectanglebltr(dff, generics.metal(1), 
+        geometry.rectanglebltr(dff, generics.metal(1),
             sourcedrain("n", "cc", 12):translate(0, -bp.sdwidth / 2),
             sourcedrain("n", "cc", 13):translate(0, bp.sdwidth / 2)
         )
     end
 
     -- connect first latch cinv drains
-    geometry.rectanglebltr(dff, generics.metal(1), 
+    geometry.rectanglebltr(dff, generics.metal(1),
         sourcedrain("n", "cc", 9):translate(-bp.sdwidth / 2, 0),
         sourcedrain("p", "cc", 9):translate( bp.sdwidth / 2, 0)
     )
 
     -- first latch / transmission gate clk bar vias
-    geometry.rectanglebltr(dff, generics.metal(1), 
+    geometry.rectanglebltr(dff, generics.metal(1),
         _gatestr("cinv2EP"):translate(0, -bp.routingwidth / 2),
         _gatestr("tgateEP"):translate(0, bp.routingwidth / 2)
     )
@@ -293,18 +392,18 @@ function layout(dff, _P)
         ):translate( xpitch + bp.glength / 2, bp.routingwidth / 2)
     )
     if not _P.enable_set and not _P.enable_reset then
-        geometry.rectanglebltr(dff, generics.metal(1), 
+        geometry.rectanglepoints(dff, generics.metal(1),
             _gatestr("cinv2EN"):translate(0, -bp.sdwidth / 2),
-            gate(13 + clkshift + setshift + 2 * resetshift):translate(0, bp.sdwidth / 2)
+            _gatestr("tgateEN"):translate(0, bp.sdwidth / 2)
         )
         geometry.viabltr(dff, 1, 2,
             point.combine(
                 _gatestr("cinv2EN"),
-                gate(13 + clkshift + setshift + 2 * resetshift)
+                _gatestr("tgateEN")
             ):translate(-xpitch - bp.glength / 2, -bp.routingwidth / 2),
             point.combine(
                 _gatestr("cinv2EN"),
-                gate(13 + clkshift + setshift + 2 * resetshift)
+                _gatestr("tgateEN")
             ):translate( xpitch + bp.glength / 2, bp.routingwidth / 2)
         )
     else
@@ -319,7 +418,7 @@ function layout(dff, _P)
     end
 
     -- first latch short nmos or pmos
-    geometry.rectanglebltr(dff, generics.metal(1), 
+    geometry.rectanglebltr(dff, generics.metal(1),
         sourcedrain("n", "cc", 10):translate(0, -bp.routingwidth / 2),
         sourcedrain("n", "cc", 11):translate(0, bp.routingwidth / 2)
     )
@@ -327,7 +426,7 @@ function layout(dff, _P)
     -- first latch inverter connect drains to gate of first latch cinv
     geometry.path(dff, generics.metal(1),
         geometry.path_points_xy(sourcedrain("n", "tc", 13 + setshift + resetshift):translate(0, -bp.sdwidth / 2), {
-            gate(9):translate(0, bp.sdwidth / 2)
+            _gatestr("cinv2I"):translate(0, bp.sdwidth / 2)
     }), bp.sdwidth)
 
     -- first latch cinv drain to inv gate
@@ -344,53 +443,53 @@ function layout(dff, _P)
     geometry.path_cshape(dff, generics.metal(1),
         sourcedrain("p", "bc", 13 + setshift + resetshift - sdcorrection):translate(0, bp.sdwidth / 2),
         sourcedrain("n", "tc", 13 + setshift + resetshift):translate(0, -bp.sdwidth / 2),
-        gate(14 + setshift + 2 * resetshift):translate(xpitch, 0),
+        _gatestr("dummy1"),
         bp.sdwidth
     )
 
     -- short transistors in transmission gate
     -- pmos does not need to be shorted, this is done while connecting nmos/pmos drains of the latch inverter
-    geometry.rectanglebltr(dff, generics.metal(1), 
+    geometry.rectanglebltr(dff, generics.metal(1),
         sourcedrain("n", "cc", 14 + setshift + 2 * resetshift):translate(0, -bp.sdwidth / 2),
         sourcedrain("n", "cc", 15 + setshift + 2 * resetshift):translate(0, bp.sdwidth / 2)
     )
 
     -- short dummy between cinv and second latch cinv
-    geometry.rectanglebltr(dff, generics.metal(1), 
+    geometry.rectanglebltr(dff, generics.metal(1),
         sourcedrain("p", "cc", 15 + setshift + 2 * resetshift):translate(0, -bp.sdwidth / 2),
         sourcedrain("p", "cc", 16 + setshift + 2 * resetshift):translate(0, bp.sdwidth / 2)
     )
-    geometry.rectanglebltr(dff, generics.metal(1), 
+    geometry.rectanglebltr(dff, generics.metal(1),
         sourcedrain("n", "cc", 15 + setshift + 2 * resetshift):translate(0, -bp.sdwidth / 2),
         sourcedrain("n", "cc", 16 + setshift + 2 * resetshift):translate(0, bp.sdwidth / 2)
     )
 
     -- short nmos in second latch (set layout)
     if _P.enable_set then
-        geometry.rectanglebltr(dff, generics.metal(1), 
+        geometry.rectanglebltr(dff, generics.metal(1),
             sourcedrain("n", "cc", 21 + resetshift):translate(0, -bp.sdwidth / 2),
             sourcedrain("n", "cc", 22 + resetshift):translate(0, bp.sdwidth / 2)
         )
     end
 
     -- connect second latch cinv / transmission gate drains
-    geometry.rectanglebltr(dff, generics.metal(1), 
+    geometry.rectanglebltr(dff, generics.metal(1),
         sourcedrain("n", "cc", 16 + setshift + 2 * resetshift):translate(-bp.sdwidth / 2, 0),
         sourcedrain("p", "cc", 16 + setshift + 2 * resetshift):translate( bp.sdwidth / 2, 0)
     )
 
     -- second latch clk bar vias
     geometry.viabltr(dff, 1, 2,
-        gate(17 + setshift + 2 * resetshift):translate((clkshift - 1) * xpitch - bp.glength / 2, -bp.routingwidth / 2),
-        gate(17 + setshift + 2 * resetshift):translate((clkshift + 1) * xpitch + bp.glength / 2, bp.routingwidth / 2)
+        _gatestr("cinv3I"):translate(1 * xpitch - bp.glength / 2, -bp.routingwidth / 2),
+        _gatestr("cinv3I"):translate(3 * xpitch + bp.glength / 2, bp.routingwidth / 2)
     )
     geometry.viabltr(dff, 1, 2,
-        gate(18 + setshift + 2 * resetshift):translate((-clkshift - 1) * xpitch - bp.glength / 2, -bp.routingwidth / 2),
-        gate(18 + setshift + 2 * resetshift):translate((-clkshift + 1) * xpitch + bp.glength / 2, bp.routingwidth / 2)
+        _gatestr("cinv3I"):translate(1 * xpitch - bp.glength / 2, yrpitch - bp.routingwidth / 2),
+        _gatestr("cinv3I"):translate(3 * xpitch + bp.glength / 2, yrpitch + bp.routingwidth / 2)
     )
 
     -- second latch short nmos or pmos
-    geometry.rectanglebltr(dff, generics.metal(1), 
+    geometry.rectanglebltr(dff, generics.metal(1),
         sourcedrain("n", "cc", 17 + setshift + 2 * resetshift):translate(0, -bp.sdwidth / 2),
         sourcedrain("n", "cc", 18 + setshift + 2 * resetshift):translate(0, bp.sdwidth / 2)
     )
@@ -420,7 +519,7 @@ function layout(dff, _P)
     )
 
     -- output inverter connect gate
-    geometry.rectanglebltr(dff, generics.metal(1), 
+    geometry.rectanglebltr(dff, generics.metal(1),
         _gatestr("outinv1"):translate(-xpitch, -bp.sdwidth / 2),
         _gatestr("outinv1"):translate(bp.glength / 2,  bp.sdwidth / 2)
     )
@@ -435,7 +534,7 @@ function layout(dff, _P)
 
     -- output QN inverter connect drains and gate
     if _P.enable_QN then
-        geometry.rectanglebltr(dff, generics.metal(1), 
+        geometry.rectanglebltr(dff, generics.metal(1),
             _gatestr("outinv2"):translate(-xpitch, -bp.sdwidth / 2),
             _gatestr("outinv2"):translate(bp.glength / 2,  bp.sdwidth / 2)
         )
@@ -447,10 +546,12 @@ function layout(dff, _P)
         )
     end
 
+    --[[
     -- set bar and M1/M2 vias
     if _P.enable_set then
         geometry.rectanglebltr(dff, generics.metal(2),
-            _gatestr("tgateEN"):translate(0, -bp.routingwidth / 2),
+            --_gatestr("tgateEN"):translate(0, -bp.routingwidth / 2),
+            gate(13):translate(0, -bp.routingwidth / 2),
             gate(22):translate(0, bp.routingwidth / 2)
         )
         geometry.viabltr(dff, 1, 2,
@@ -478,6 +579,7 @@ function layout(dff, _P)
             gate(21):translate( xpitch + bp.glength / 2, bp.routingwidth / 2)
         )
     end
+    --]]
 
     -- ports
     dff:add_port("VDD", generics.metalport(1), harness:get_anchor("top"))
@@ -498,5 +600,6 @@ function layout(dff, _P)
     end
 
     -- alignment box
+    --]==]
     dff:inherit_alignment_box(harness)
 end

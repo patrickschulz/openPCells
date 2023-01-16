@@ -2,8 +2,8 @@ function parameters()
     pcell.add_parameters(
         { "norfingers", 1 },
         { "notfingers", 1 },
-        { "pwidth", 2 * tech.get_dimension("Minimum Gate Width") },
-        { "nwidth", 2 * tech.get_dimension("Minimum Gate Width") }
+        { "pwidth", 2 * technology.get_dimension("Minimum Gate Width") },
+        { "nwidth", 2 * technology.get_dimension("Minimum Gate Width") }
     )
 end
 

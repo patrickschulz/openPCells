@@ -19,8 +19,16 @@ function parameters()
         { "flatvias", true },
         { "flipvias", false }
     )
-    pcell.check_expression("(not centergrid) or ((mhlines % 2 == 1) and (mhwidth % 2 == 0)) or ((mhlines % 2 == 0) and (mhspace % 2 == 0))")
-    pcell.check_expression("(not centergrid) or ((mvlines % 2 == 1) and (mvwidth % 2 == 0)) or ((mvlines % 2 == 0) and (mvspace % 2 == 0))")
+end
+
+function check(_P)
+    if not ((not _P.centergrid) or ((_P.mhlines % 2 == 1) and (_P.mhwidth % 2 == 0)) or ((_P.mhlines % 2 == 0) and (_P.mhspace % 2 == 0))) then
+        return nil, "with 'centergrid': number of lines must be odd and width must be even or number of lines must be even and space must be even (horizontal)"
+    end
+    if not ((not _P.centergrid) or ((_P.mvlines % 2 == 1) and (_P.mvwidth % 2 == 0)) or ((_P.mvlines % 2 == 0) and (_P.mvspace % 2 == 0))) then
+        return nil, "with 'centergrid': number of lines must be odd and width must be even or number of lines must be even and space must be even (vertical)"
+    end
+    return true
 end
 
 function layout(grid, _P)

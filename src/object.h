@@ -32,12 +32,39 @@ struct object* object_add_child(struct object* cell, struct object* child, const
 struct object* object_add_child_array(struct object* cell, struct object* child, const char* name, unsigned int xrep, unsigned int yrep, unsigned int xpitch, unsigned int ypitch);
 
 // anchors
-void object_add_anchor(struct object* cell, const char* name, coordinate_t x, coordinate_t y);
-void object_add_anchor_area(struct object* cell, const char* base, coordinate_t width, coordinate_t height, coordinate_t xshift, coordinate_t yshift);
-void object_add_anchor_area_bltr(struct object* cell, const char* base, const point_t* bl, const point_t* tr);
+int object_add_anchor(struct object* cell, const char* name, coordinate_t x, coordinate_t y);
+int object_add_anchor_area(struct object* cell, const char* base, coordinate_t width, coordinate_t height, coordinate_t xshift, coordinate_t yshift);
+int object_add_anchor_area_bltr(struct object* cell, const char* base, const point_t* bl, const point_t* tr);
 point_t* object_get_anchor(const struct object* cell, const char* name);
+point_t* object_get_area_anchor(const struct object* cell, const char* base);
 point_t* object_get_array_anchor(const struct object* cell, int xindex, int yindex, const char* name);
+point_t* object_get_area_anchor(const struct object* cell, const char* base);
+point_t* object_get_alignmentbox_anchor_outerbl(const struct object* cell);
+point_t* object_get_alignmentbox_anchor_outertr(const struct object* cell);
+point_t* object_get_alignmentbox_anchor_innerbl(const struct object* cell);
+point_t* object_get_alignmentbox_anchor_innertr(const struct object* cell);
 const struct hashmap* object_get_all_regular_anchors(const struct object* cell);
+
+// abutment and alignment
+int object_abut_right(struct object* cell, const struct object* other);
+int object_abut_left(struct object* cell, const struct object* other);
+int object_abut_top(struct object* cell, const struct object* other);
+int object_abut_bottom(struct object* cell, const struct object* other);
+int object_align_right(struct object* cell, const struct object* other);
+int object_align_left(struct object* cell, const struct object* other);
+int object_align_top(struct object* cell, const struct object* other);
+int object_align_bottom(struct object* cell, const struct object* other);
+
+// anchor alignment
+int object_abut_area_anchor_right(struct object* cell, const char* anchorname, const struct object* other, const char* otheranchorname);
+int object_abut_area_anchor_left(struct object* cell, const char* anchorname, const struct object* other, const char* otheranchorname);
+int object_abut_area_anchor_top(struct object* cell, const char* anchorname, const struct object* other, const char* otheranchorname);
+int object_abut_area_anchor_bottom(struct object* cell, const char* anchorname, const struct object* other, const char* otheranchorname);
+int object_align_area_anchor(struct object* cell, const char* anchorname, const struct object* other, const char* otheranchorname);
+int object_align_area_anchor_left(struct object* cell, const char* anchorname, const struct object* other, const char* otheranchorname);
+int object_align_area_anchor_right(struct object* cell, const char* anchorname, const struct object* other, const char* otheranchorname);
+int object_align_area_anchor_top(struct object* cell, const char* anchorname, const struct object* other, const char* otheranchorname);
+int object_align_area_anchor_bottom(struct object* cell, const char* anchorname, const struct object* other, const char* otheranchorname);
 
 // ports
 void object_add_port(struct object* cell, const char* name, const struct generics* layer, const point_t* where, int storeanchor, double sizehint);
@@ -45,10 +72,21 @@ void object_add_bus_port(struct object* cell, const char* name, const struct gen
 const struct vector* object_get_ports(const struct object* cell);
 
 // alignment box and bounding box
-void object_set_alignment_box(struct object* cell, coordinate_t blx, coordinate_t bly, coordinate_t trx, coordinate_t try);
+void object_set_alignment_box(
+    struct object* cell,
+    coordinate_t outerblx, coordinate_t outerbly,
+    coordinate_t outertrx, coordinate_t outertry,
+    coordinate_t innerblx, coordinate_t innerbly,
+    coordinate_t innertrx, coordinate_t innertry
+);
 void object_inherit_alignment_box(struct object* cell, const struct object* other);
-int object_get_alignment_box_corners(const struct object* cell, coordinate_t* blx, coordinate_t* bly, coordinate_t* trx, coordinate_t* try);
+int object_get_alignment_box_corners(
+    const struct object* cell,
+    coordinate_t* outerblx, coordinate_t* outerbly, coordinate_t* outertrx, coordinate_t* outertry,
+    coordinate_t* innerblx, coordinate_t* innerbly, coordinate_t* innertrx, coordinate_t* innertry
+);
 void object_get_minmax_xy(const struct object* cell, coordinate_t* minxp, coordinate_t* minyp, coordinate_t* maxxp, coordinate_t* maxyp);
+void object_width_height_alignmentbox(const struct object* cell, ucoordinate_t* width, ucoordinate_t* height);
 
 // transformations
 const struct transformationmatrix* object_get_transformation_matrix(const struct object* cell);
@@ -71,12 +109,16 @@ void object_transform_point(const struct object* cell, point_t* pt);
 void object_apply_other_transformation(struct object* cell, const struct transformationmatrix* trans);
 
 // object info
+int object_is_proxy(const struct object* cell);
 int object_is_pseudo(const struct object* cell);
 int object_has_shapes(const struct object* cell);
 int object_has_children(const struct object* cell);
 int object_has_ports(const struct object* cell);
 int object_is_empty(const struct object* cell);
 int object_is_child_array(const struct object* cell);
+int object_has_anchor(const struct object* cell, const char* anchorname);
+int object_has_area_anchor(const struct object* cell, const char* anchorname);
+int object_has_alignmentbox(const struct object* cell);
 const char* object_get_name(const struct object* cell);
 const char* object_get_child_reference_name(const struct object* child);
 

@@ -1,17 +1,17 @@
 function parameters()
     pcell.add_parameters(
-        { "glength", tech.get_dimension("Minimum Gate Length") },
-        { "gspace", tech.get_dimension("Minimum Gate Space") },
+        { "glength", technology.get_dimension("Minimum Gate Length") },
+        { "gspace", technology.get_dimension("Minimum Gate Space") },
         { "fingers", 2 },
-        { "pwidth", 2 * tech.get_dimension("Minimum Gate Width") },
-        { "nwidth", 2 * tech.get_dimension("Minimum Gate Width") },
-        { "gstwidth", tech.get_dimension("Minimum M1 Width") },
-        { "gstspace", tech.get_dimension("Minimum M1 Space") },
-        { "sdwidth", tech.get_dimension("Minimum M1 Width") },
-        { "powerspace", tech.get_dimension("Minimum M1 Space") },
+        { "pwidth", 2 * technology.get_dimension("Minimum Gate Width") },
+        { "nwidth", 2 * technology.get_dimension("Minimum Gate Width") },
+        { "gstwidth", technology.get_dimension("Minimum M1 Width") },
+        { "gstspace", technology.get_dimension("Minimum M1 Space") },
+        { "sdwidth", technology.get_dimension("Minimum M1 Width") },
+        { "powerspace", technology.get_dimension("Minimum M1 Space") },
         { "nmosflippedwell", false },
         { "pmosflippedwell", false },
-        { "guardringwidth", tech.get_dimension("Minimum M1 Width") },
+        { "guardringwidth", technology.get_dimension("Minimum M1 Width") },
         { "nmosvthtype", 1 },
         { "pmosvthtype", 1 }
     )

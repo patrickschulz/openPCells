@@ -184,7 +184,7 @@ function layout(cell, _P)
     end
 
     -- metal fill exclude
-    for i = 1, tech.resolve_metal(-1) do
+    for i = 1, technology.resolve_metal(-1) do
         geometry.rectangle(baseref, generics.metalexclude(i), _P.cellsize, _P.cellsize)
     end
 end

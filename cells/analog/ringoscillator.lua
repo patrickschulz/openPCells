@@ -36,15 +36,15 @@ function parameters()
         { "invfingers", 4, posvals = even() },
         { "numinv", 3, posvals = odd() },
         { "invdummies", 1 },
-        { "glength",             tech.get_dimension("Minimum Gate Length") },
-        { "gspace",              tech.get_dimension("Minimum Gate Space") },
-        { "pfingerwidth",        2 * tech.get_dimension("Minimum Gate Width") },
-        { "nfingerwidth",        2 * tech.get_dimension("Minimum Gate Width") },
-        { "gstwidth",             tech.get_dimension("Minimum M1 Width") },
-        { "gstspace",             tech.get_dimension("Minimum M1 Space") },
-        { "sdwidth",              tech.get_dimension("Minimum M1 Width") },
-        { "powerwidth",          3 * tech.get_dimension("Minimum M1 Width") },
-        { "powerspace",          3 * tech.get_dimension("Minimum M1 Space") }
+        { "glength",             technology.get_dimension("Minimum Gate Length") },
+        { "gspace",              technology.get_dimension("Minimum Gate Space") },
+        { "pfingerwidth",        2 * technology.get_dimension("Minimum Gate Width") },
+        { "nfingerwidth",        2 * technology.get_dimension("Minimum Gate Width") },
+        { "gstwidth",             technology.get_dimension("Minimum M1 Width") },
+        { "gstspace",             technology.get_dimension("Minimum M1 Space") },
+        { "sdwidth",              technology.get_dimension("Minimum M1 Width") },
+        { "powerwidth",          3 * technology.get_dimension("Minimum M1 Width") },
+        { "powerspace",          3 * technology.get_dimension("Minimum M1 Space") }
     )
 end
 
