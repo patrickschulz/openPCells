@@ -337,13 +337,13 @@ void object_add_anchor_suffix(struct object* cell, const char* base, const char*
 static void _add_anchor_area_bltr(struct object* cell, const char* base, coordinate_t blx, coordinate_t bly, coordinate_t trx, coordinate_t try)
 {
     object_add_anchor_suffix(cell, base, "bl", blx, bly);
-    //object_add_anchor_suffix(cell, base, "cl", blx, (bly + try) / 2);
+    object_add_anchor_suffix(cell, base, "cl", blx, (bly + try) / 2);
     object_add_anchor_suffix(cell, base, "tl", blx, try);
-    //object_add_anchor_suffix(cell, base, "bc", (blx + trx) / 2, bly);
-    //object_add_anchor_suffix(cell, base, "cc", (blx + trx) / 2, (bly + try) / 2);
-    //object_add_anchor_suffix(cell, base, "tc", (blx + trx) / 2, try);
+    object_add_anchor_suffix(cell, base, "bc", (blx + trx) / 2, bly);
+    object_add_anchor_suffix(cell, base, "cc", (blx + trx) / 2, (bly + try) / 2);
+    object_add_anchor_suffix(cell, base, "tc", (blx + trx) / 2, try);
     object_add_anchor_suffix(cell, base, "br", trx, bly);
-    //object_add_anchor_suffix(cell, base, "cr", trx, (bly + try) / 2);
+    object_add_anchor_suffix(cell, base, "cr", trx, (bly + try) / 2);
     object_add_anchor_suffix(cell, base, "tr", trx, try);
 }
 
