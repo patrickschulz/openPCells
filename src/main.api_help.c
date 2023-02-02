@@ -1528,7 +1528,7 @@ struct vector* _initialize_api_entries(void)
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
-    /* object.add_anchor_area */
+    /* object.add_area_anchor */
     {
         struct parameter parameters[] = {
             { "cell",   OBJECT,  NULL, "object to which an anchor should be added" },
@@ -1539,15 +1539,15 @@ struct vector* _initialize_api_entries(void)
             { "yshift", INTEGER, NULL, "shift the area by 'yshift'" }
         };
         vector_append(entries, _make_api_entry(
-            "add_anchor_area",
+            "add_area_anchor",
             MODULE_OBJECT,
             "add a so-called 'area anchor', which defines all relevant anchors in a rectangular area: bottom-left, bottom-center, bottom-right, center-left, center-center, center-right, top-left, top-center, top-right (bl, bc, br, cl, cc, cr, tl, tc, tr)",
-            "cell:add_anchor_area(\"source\", 100, 500, 0, 0)",
+            "cell:add_area_anchor(\"source\", 100, 500, 0, 0)",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
-    /* object.add_anchor_area_bltr */
+    /* object.add_area_anchor_bltr */
     {
         struct parameter parameters[] = {
             { "cell",   OBJECT,  NULL, "object to which an anchor should be added" },
@@ -1557,10 +1557,10 @@ struct vector* _initialize_api_entries(void)
 
         };
         vector_append(entries, _make_api_entry(
-            "add_anchor_area_bltr",
+            "add_area_anchor_bltr",
             MODULE_OBJECT,
-            "Similar to add_anchor_area, but takes to lower-left and upper-right corner points of the rectangular area",
-            "cell:add_anchor_area(\"source\", point.create(-100, -20), point.create(100, 20))",
+            "Similar to add_area_anchor, but takes to lower-left and upper-right corner points of the rectangular area",
+            "cell:add_area_anchor(\"source\", point.create(-100, -20), point.create(100, 20))",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
