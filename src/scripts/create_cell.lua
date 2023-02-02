@@ -23,12 +23,26 @@ end
 
 -- process input (cmdline) parameters
 local toevaluate = {}
+local toevaluateparent = {}
 for k, v in string.gmatch(table.concat(args.cellargs, " "), "([%w_/.]+)%s*=%s*(%S+)") do
-    toevaluate[k] = v
+    if string.match(k, "%.") then
+        local parent, param = string.match(k, "(%w+%/%w+)%.(.+)")
+        if not toevaluateparent[parent] then
+            toevaluateparent[parent] = {}
+        end
+        toevaluateparent[parent][param] = v
+    else
+        toevaluate[k] = v
+    end
 end
 local parameters = pcell.evaluate_parameters(args.cell, toevaluate)
 for k, v in pairs(parameters) do
     cellargs[k] = v
+end
+
+for parent, paramstrings in pairs(toevaluateparent) do
+    local parameters = pcell.evaluate_parameters(parent, paramstrings)
+    pcell.push_overwrites(parent, parameters)
 end
 
 -- create cell
@@ -37,10 +51,15 @@ end
 --        or allow cellargs for cellscripts (not sure if useful)
 pcell.enable_debug(args.debugcell)
 pcell.enable_dprint(args.enabledprint)
+local cell
 if args.isscript then
-    local cell = pcell.create_layout_from_script(args.cell)
-    return cell
+    cell = pcell.create_layout_from_script(args.cell)
 else
-    local cell = pcell.create_layout_env(args.cell, args.toplevelname, cellargs, args.cellenv)
-    return cell
+    cell = pcell.create_layout_env(args.cell, args.toplevelname, cellargs, args.cellenv)
 end
+
+for parent in pairs(toevaluateparent) do
+    pcell.pop_overwrites(parent)
+end
+
+return cell
