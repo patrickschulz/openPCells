@@ -189,11 +189,6 @@ end
 ---------------------------------------------------------------------------------
 --                         In-cell layout functions                            --
 ---------------------------------------------------------------------------------
-local function _get_cell_width(reference, xpitch)
-    local width = reference:width_height_alignmentbox()
-    return width / xpitch
-end
-
 function M.create_reference_rows(cellnames, xpitch)
     if not cellnames or type(cellnames) ~= "table" then
         moderror("placement.create_reference_rows: table for 'cellnames' (first argument) expected")
@@ -221,7 +216,7 @@ function M.create_reference_rows(cellnames, xpitch)
             names[row][column] = { 
                 instance = instance,
                 reference = references[cellname],
-                width = _get_cell_width(references[cellname], xpitch)
+                width = references[cellname]:width_height_alignmentbox() / xpitch
             }
         end
     end
