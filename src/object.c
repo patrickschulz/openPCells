@@ -35,7 +35,7 @@ struct anchor {
     int is_area;
 };
 
-struct anchor* _anchor_create_regular(coordinate_t x, coordinate_t y)
+static struct anchor* _anchor_create_regular(coordinate_t x, coordinate_t y)
 {
     struct anchor* anchor = malloc(sizeof(*anchor));
     anchor->is_area = 0;
@@ -43,7 +43,7 @@ struct anchor* _anchor_create_regular(coordinate_t x, coordinate_t y)
     return anchor;
 }
 
-struct anchor* _anchor_create_area(coordinate_t blx, coordinate_t bly, coordinate_t trx, coordinate_t try)
+static struct anchor* _anchor_create_area(coordinate_t blx, coordinate_t bly, coordinate_t trx, coordinate_t try)
 {
     struct anchor* anchor = malloc(sizeof(*anchor));
     anchor->is_area = 1;
@@ -52,7 +52,7 @@ struct anchor* _anchor_create_area(coordinate_t blx, coordinate_t bly, coordinat
     return anchor;
 }
 
-struct anchor* _anchor_copy(const struct anchor* anchor)
+static struct anchor* _anchor_copy(const struct anchor* anchor)
 {
     struct anchor* new = malloc(sizeof(*new));
     new->is_area = anchor->is_area;
@@ -68,7 +68,7 @@ struct anchor* _anchor_copy(const struct anchor* anchor)
     return new;
 }
 
-void _anchor_destroy(void* v)
+static void _anchor_destroy(void* v)
 {
     struct anchor* anchor = v;
     if(anchor->is_area)
@@ -83,7 +83,7 @@ void _anchor_destroy(void* v)
     free(anchor);
 }
 
-int _anchor_is_area(const struct anchor* anchor)
+static int _anchor_is_area(const struct anchor* anchor)
 {
     return anchor->is_area;
 }
@@ -153,7 +153,7 @@ static struct object* _create_proxy(const char* name, const struct object* refer
     struct object* obj = _create(name);
     obj->reference = reference;
     obj->isproxy = 1;
-    // don't need a transformation matrix as it is created by add_child
+    // does not need a transformation matrix as it is created by add_child
     obj->isarray = 0;
     obj->xrep = 1;
     obj->yrep = 1;
@@ -380,7 +380,7 @@ void object_merge_into(struct object* cell, const struct object* other)
     }
 }
 
-int _add_anchor(struct object* cell, const char* name, struct anchor* anchor)
+static int _add_anchor(struct object* cell, const char* name, struct anchor* anchor)
 {
     if(!cell->anchors)
     {
@@ -408,17 +408,7 @@ int object_add_anchor(struct object* cell, const char* name, coordinate_t x, coo
     return ret;
 }
 
-void _add_anchor_suffix(struct object* cell, const char* base, const char* suffix, coordinate_t x, coordinate_t y)
-{
-    size_t len = strlen(base) + strlen(suffix);
-    char* name = malloc(len + 1);
-    snprintf(name, len + 1, "%s%s", base, suffix);
-    object_add_anchor(cell, name, x, y);
-    free(name);
-}
-
-// FIXME: area anchors should be handled like the alignment box, that is the order of anchors should not be changed when mirroring, rotating or flipping
-static int _add_anchor_area_bltr(struct object* cell, const char* base, coordinate_t blx, coordinate_t bly, coordinate_t trx, coordinate_t try)
+static int _add_area_anchor_bltr(struct object* cell, const char* base, coordinate_t blx, coordinate_t bly, coordinate_t trx, coordinate_t try)
 {
     struct anchor* anchor = _anchor_create_area(blx, bly, trx, try);
     int ret = _add_anchor(cell, base, anchor);
@@ -427,27 +417,16 @@ static int _add_anchor_area_bltr(struct object* cell, const char* base, coordina
         _anchor_destroy(anchor);
     }
     return ret;
-    //_add_anchor_suffix(cell, base, "bl", blx, bly);
-    //_add_anchor_suffix(cell, base, "tl", blx, try);
-    //_add_anchor_suffix(cell, base, "br", trx, bly);
-    //_add_anchor_suffix(cell, base, "tr", trx, try);
-
-    ///* left this here for cell debugging, this will be removed in the near future */
-    //_add_anchor_suffix(cell, base, "cl", blx, (bly + try) / 2);
-    //_add_anchor_suffix(cell, base, "bc", (blx + trx) / 2, bly);
-    //_add_anchor_suffix(cell, base, "cc", (blx + trx) / 2, (bly + try) / 2);
-    //_add_anchor_suffix(cell, base, "tc", (blx + trx) / 2, try);
-    //_add_anchor_suffix(cell, base, "cr", trx, (bly + try) / 2);
 }
 
-int object_add_anchor_area(struct object* cell, const char* base, coordinate_t width, coordinate_t height, coordinate_t xshift, coordinate_t yshift)
+int object_add_area_anchor(struct object* cell, const char* base, coordinate_t width, coordinate_t height, coordinate_t xshift, coordinate_t yshift)
 {
-    return _add_anchor_area_bltr(cell, base, xshift - width / 2, yshift - height / 2, xshift + width / 2, yshift + height / 2);
+    return _add_area_anchor_bltr(cell, base, xshift - width / 2, yshift - height / 2, xshift + width / 2, yshift + height / 2);
 }
 
-int object_add_anchor_area_bltr(struct object* cell, const char* base, const point_t* bl, const point_t* tr)
+int object_add_area_anchor_bltr(struct object* cell, const char* base, const point_t* bl, const point_t* tr)
 {
-    return _add_anchor_area_bltr(cell, base, bl->x, bl->y, tr->x, tr->y);
+    return _add_area_anchor_bltr(cell, base, bl->x, bl->y, tr->x, tr->y);
 }
 
 static point_t* _get_regular_anchor(const struct object* cell, const char* name)
@@ -948,7 +927,7 @@ int object_align_area_anchor_bottom(struct object* cell, const char* anchorname,
     return 1;
 }
 
-void _port_destroy(void* p)
+static void _port_destroy(void* p)
 {
     struct port* port = p;
     point_destroy(port->where);

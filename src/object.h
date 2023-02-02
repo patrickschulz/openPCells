@@ -33,8 +33,8 @@ struct object* object_add_child_array(struct object* cell, struct object* child,
 
 // anchors
 int object_add_anchor(struct object* cell, const char* name, coordinate_t x, coordinate_t y);
-int object_add_anchor_area(struct object* cell, const char* base, coordinate_t width, coordinate_t height, coordinate_t xshift, coordinate_t yshift);
-int object_add_anchor_area_bltr(struct object* cell, const char* base, const point_t* bl, const point_t* tr);
+int object_add_area_anchor(struct object* cell, const char* base, coordinate_t width, coordinate_t height, coordinate_t xshift, coordinate_t yshift);
+int object_add_area_anchor_bltr(struct object* cell, const char* base, const point_t* bl, const point_t* tr);
 point_t* object_get_anchor(const struct object* cell, const char* name);
 point_t* object_get_area_anchor(const struct object* cell, const char* base);
 point_t* object_get_array_anchor(const struct object* cell, int xindex, int yindex, const char* name);
