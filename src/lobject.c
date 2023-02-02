@@ -372,19 +372,16 @@ int lobject_add_child_array(lua_State* L)
 int lobject_width_height_alignmentbox(lua_State* L)
 {
     struct lobject* cell = lobject_check(L, 1);
-    point_t* bl = object_get_anchor(cell->object, "bottomleft");
-    point_t* tr = object_get_anchor(cell->object, "topright");
-    if(!bl || !tr)
+    if(!object_has_alignmentbox(cell->object))
     {
         lua_pushstring(L, "object.width_height_alignmentbox: cell has no alignmentbox");
         lua_error(L);
     }
-    unsigned int width = tr->x - bl->x;
-    unsigned int height = tr->y - bl->y;
+    ucoordinate_t width;
+    ucoordinate_t height;
+    object_width_height_alignmentbox(cell->object, &width, &height);
     lua_pushinteger(L, width);
     lua_pushinteger(L, height);
-    point_destroy(bl);
-    point_destroy(tr);
     return 2;
 }
 
@@ -410,7 +407,7 @@ int lobject_add_anchor(lua_State* L)
     return 0;
 }
 
-int lobject_add_anchor_area(lua_State* L)
+int lobject_add_area_anchor(lua_State* L)
 {
     struct lobject* cell = lobject_check(L, 1);
     const char* base = luaL_checkstring(L, 2);
@@ -418,17 +415,17 @@ int lobject_add_anchor_area(lua_State* L)
     coordinate_t height = luaL_checkinteger(L, 4);
     coordinate_t xshift = luaL_checkinteger(L, 5);
     coordinate_t yshift = luaL_checkinteger(L, 6);
-    object_add_anchor_area(cell->object, base, width, height, xshift, yshift);
+    object_add_area_anchor(cell->object, base, width, height, xshift, yshift);
     return 0;
 }
 
-int lobject_add_anchor_area_bltr(lua_State* L)
+int lobject_add_area_anchor_bltr(lua_State* L)
 {
     struct lobject* cell = lobject_check(L, 1);
     const char* base = luaL_checkstring(L, 2);
     struct lpoint* bl = lpoint_checkpoint(L, 3);
     struct lpoint* tr = lpoint_checkpoint(L, 4);
-    object_add_anchor_area_bltr(cell->object, base, lpoint_get(bl), lpoint_get(tr));
+    object_add_area_anchor_bltr(cell->object, base, lpoint_get(bl), lpoint_get(tr));
     return 0;
 }
 
@@ -635,8 +632,8 @@ int open_lobject_lib(lua_State* L)
         { "copy",                       lobject_copy                        },
         { "exchange",                   lobject_exchange                    },
         { "add_anchor",                 lobject_add_anchor                  },
-        { "add_anchor_area",            lobject_add_anchor_area             },
-        { "add_anchor_area_bltr",       lobject_add_anchor_area_bltr        },
+        { "add_area_anchor",            lobject_add_area_anchor             },
+        { "add_area_anchor_bltr",       lobject_add_area_anchor_bltr        },
         { "get_anchor",                 lobject_get_anchor                  },
         { "get_area_anchor",            lobject_get_area_anchor             },
         { "get_array_anchor",           lobject_get_array_anchor            },
