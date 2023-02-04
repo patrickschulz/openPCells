@@ -13,5 +13,7 @@ function layout(gate, _P)
         nwidth = _P.nwidth,
         shiftoutput = _P.shiftoutput
     })
+    local name = gate:get_name()
     gate:exchange(base)
+    gate:set_name(name)
 end
