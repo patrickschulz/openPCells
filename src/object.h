@@ -13,6 +13,7 @@ struct object* object_create(const char* name);
 struct object* object_create_pseudo(void);
 struct object* object_copy(const struct object*);
 void object_destroy(void* cell);
+const char* object_get_name(const struct object* cell);
 void object_set_name(struct object* cell, const char* name);
 
 // shape handling

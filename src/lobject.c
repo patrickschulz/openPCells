@@ -87,6 +87,22 @@ static int lobject_exchange(lua_State* L)
     return 1;
 }
 
+static int lobject_get_name(lua_State* L)
+{
+    struct lobject* cell = lobject_check(L, 1);
+    const char* name = object_get_name(cell->object);
+    lua_pushstring(L, name);
+    return 1;
+}
+
+static int lobject_set_name(lua_State* L)
+{
+    struct lobject* cell = lobject_check(L, 1);
+    const char* name = luaL_checkstring(L, 2);
+    object_set_name(cell->object, name);
+    return 1;
+}
+
 static int lobject_destroy(lua_State* L)
 {
     struct lobject* cell = lobject_check(L, 1);
@@ -631,6 +647,8 @@ int open_lobject_lib(lua_State* L)
         { "create_pseudo",              lobject_create_pseudo               },
         { "copy",                       lobject_copy                        },
         { "exchange",                   lobject_exchange                    },
+        { "get_name",                   lobject_get_name                    },
+        { "set_name",                   lobject_set_name                    },
         { "add_anchor",                 lobject_add_anchor                  },
         { "add_area_anchor",            lobject_add_area_anchor             },
         { "add_area_anchor_bltr",       lobject_add_area_anchor_bltr        },
