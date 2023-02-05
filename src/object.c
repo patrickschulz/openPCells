@@ -749,8 +749,8 @@ int object_align_right(struct object* cell, const struct object* other)
 {
     coordinate_t* alb1 = _get_transformed_alignment_box(cell);
     coordinate_t* alb2 = _get_transformed_alignment_box(other);
-    coordinate_t x1 = _alignmentbox_get_innertrx(alb1);
-    coordinate_t x2 = _alignmentbox_get_outerblx(alb2);
+    coordinate_t x1 = _alignmentbox_get_innerblx(alb1);
+    coordinate_t x2 = _alignmentbox_get_outertrx(alb2);
     object_translate(cell, x2 - x1, 0);
     free(alb1);
     free(alb2);
@@ -773,7 +773,7 @@ int object_align_top(struct object* cell, const struct object* other)
 {
     coordinate_t* alb1 = _get_transformed_alignment_box(cell);
     coordinate_t* alb2 = _get_transformed_alignment_box(other);
-    coordinate_t y1 = _alignmentbox_get_outertry(alb1);
+    coordinate_t y1 = _alignmentbox_get_innerbly(alb1);
     coordinate_t y2 = _alignmentbox_get_outertry(alb2);
     object_translate(cell, 0, y2 - y1);
     free(alb1);
@@ -782,6 +782,54 @@ int object_align_top(struct object* cell, const struct object* other)
 }
 
 int object_align_bottom(struct object* cell, const struct object* other)
+{
+    coordinate_t* alb1 = _get_transformed_alignment_box(cell);
+    coordinate_t* alb2 = _get_transformed_alignment_box(other);
+    coordinate_t y1 = _alignmentbox_get_innertry(alb1);
+    coordinate_t y2 = _alignmentbox_get_outerbly(alb2);
+    object_translate(cell, 0, y2 - y1);
+    free(alb1);
+    free(alb2);
+    return 1;
+}
+
+int object_overlap_right(struct object* cell, const struct object* other)
+{
+    coordinate_t* alb1 = _get_transformed_alignment_box(cell);
+    coordinate_t* alb2 = _get_transformed_alignment_box(other);
+    coordinate_t x1 = _alignmentbox_get_outertrx(alb1);
+    coordinate_t x2 = _alignmentbox_get_outertrx(alb2);
+    object_translate(cell, x2 - x1, 0);
+    free(alb1);
+    free(alb2);
+    return 1;
+}
+
+int object_overlap_left(struct object* cell, const struct object* other)
+{
+    coordinate_t* alb1 = _get_transformed_alignment_box(cell);
+    coordinate_t* alb2 = _get_transformed_alignment_box(other);
+    coordinate_t x1 = _alignmentbox_get_outerblx(alb1);
+    coordinate_t x2 = _alignmentbox_get_outerblx(alb2);
+    object_translate(cell, x2 - x1, 0);
+    free(alb1);
+    free(alb2);
+    return 1;
+}
+
+int object_overlap_top(struct object* cell, const struct object* other)
+{
+    coordinate_t* alb1 = _get_transformed_alignment_box(cell);
+    coordinate_t* alb2 = _get_transformed_alignment_box(other);
+    coordinate_t y1 = _alignmentbox_get_outertry(alb1);
+    coordinate_t y2 = _alignmentbox_get_outertry(alb2);
+    object_translate(cell, 0, y2 - y1);
+    free(alb1);
+    free(alb2);
+    return 1;
+}
+
+int object_overlap_bottom(struct object* cell, const struct object* other)
 {
     coordinate_t* alb1 = _get_transformed_alignment_box(cell);
     coordinate_t* alb2 = _get_transformed_alignment_box(other);
@@ -1076,6 +1124,16 @@ void object_reset_translation(struct object* cell)
 void object_translate(struct object* cell, coordinate_t x, coordinate_t y)
 {
     transformationmatrix_translate(cell->trans, x, y);
+}
+
+void object_translate_x(struct object* cell, coordinate_t x)
+{
+    transformationmatrix_translate(cell->trans, x, 0);
+}
+
+void object_translate_y(struct object* cell, coordinate_t y)
+{
+    transformationmatrix_translate(cell->trans, 0, y);
 }
 
 void object_mirror_at_xaxis(struct object* cell)

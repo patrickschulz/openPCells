@@ -55,6 +55,10 @@ int object_align_right(struct object* cell, const struct object* other);
 int object_align_left(struct object* cell, const struct object* other);
 int object_align_top(struct object* cell, const struct object* other);
 int object_align_bottom(struct object* cell, const struct object* other);
+int object_overlap_right(struct object* cell, const struct object* other);
+int object_overlap_left(struct object* cell, const struct object* other);
+int object_overlap_top(struct object* cell, const struct object* other);
+int object_overlap_bottom(struct object* cell, const struct object* other);
 
 // anchor alignment
 int object_abut_area_anchor_right(struct object* cell, const char* anchorname, const struct object* other, const char* otheranchorname);
@@ -94,6 +98,8 @@ const struct transformationmatrix* object_get_transformation_matrix(const struct
 void object_move_to(struct object* cell, coordinate_t x, coordinate_t y);
 void object_reset_translation(struct object* cell);
 void object_translate(struct object* cell, coordinate_t x, coordinate_t y);
+void object_translate_x(struct object* cell, coordinate_t x);
+void object_translate_y(struct object* cell, coordinate_t y);
 void object_mirror_at_xaxis(struct object* cell);
 void object_mirror_at_yaxis(struct object* cell);
 void object_mirror_at_origin(struct object* cell);

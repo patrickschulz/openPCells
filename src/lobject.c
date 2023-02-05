@@ -157,6 +157,24 @@ static int lobject_translate(lua_State* L)
     return 1;
 }
 
+static int lobject_translate_x(lua_State* L)
+{
+    struct lobject* cell = lobject_check(L, 1);
+    coordinate_t x = lua_tointeger(L, 2);
+    object_translate_x(cell->object, x);
+    lua_rotate(L, 1, 1);
+    return 1;
+}
+
+static int lobject_translate_y(lua_State* L)
+{
+    struct lobject* cell = lobject_check(L, 1);
+    coordinate_t y = lua_tointeger(L, 2);
+    object_translate_y(cell->object, y);
+    lua_rotate(L, 1, 1);
+    return 1;
+}
+
 int lobject_mirror_at_xaxis(lua_State* L)
 {
     struct lobject* cell = lobject_check(L, 1);
@@ -298,6 +316,10 @@ _gen_fun_abut_align(align_left)
 _gen_fun_abut_align(align_right)
 _gen_fun_abut_align(align_top)
 _gen_fun_abut_align(align_bottom)
+_gen_fun_abut_align(overlap_left)
+_gen_fun_abut_align(overlap_right)
+_gen_fun_abut_align(overlap_top)
+_gen_fun_abut_align(overlap_bottom)
 
 #define _gen_fun_abut_align_area_anchor(what) \
 int lobject_ ##what (lua_State* L) \
@@ -665,6 +687,8 @@ int open_lobject_lib(lua_State* L)
         { "move_to",                    lobject_move_to                     },
         { "reset_translation",          lobject_reset_translation           },
         { "translate",                  lobject_translate                   },
+        { "translate_x",                lobject_translate_x                 },
+        { "translate_y",                lobject_translate_y                 },
         { "mirror_at_xaxis",            lobject_mirror_at_xaxis             },
         { "mirror_at_yaxis",            lobject_mirror_at_yaxis             },
         { "mirror_at_origin",           lobject_mirror_at_origin            },
@@ -683,6 +707,10 @@ int open_lobject_lib(lua_State* L)
         { "align_right",                lobject_align_right                 },
         { "align_top",                  lobject_align_top                   },
         { "align_bottom",               lobject_align_bottom                },
+        { "overlap_left",               lobject_overlap_left                },
+        { "overlap_right",              lobject_overlap_right               },
+        { "overlap_top",                lobject_overlap_top                 },
+        { "overlap_bottom",             lobject_overlap_bottom              },
         { "abut_area_anchor_left",      lobject_abut_area_anchor_left       },
         { "abut_area_anchor_right",     lobject_abut_area_anchor_right      },
         { "abut_area_anchor_top",       lobject_abut_area_anchor_top        },
