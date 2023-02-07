@@ -223,6 +223,11 @@ struct object* object_copy(const struct object* cell)
             {
                 vector_append(new->children, object_copy(vector_get(cell->children, i)));
             }
+            new->references = vector_create(vector_size(cell->references), object_destroy);
+            for(unsigned int i = 0; i < vector_size(cell->references); ++i)
+            {
+                vector_append(new->references, object_copy(vector_get(cell->references, i)));
+            }
         }
     }
     return new;
@@ -321,6 +326,7 @@ struct object* object_add_child(struct object* cell, struct object* child, const
         cell->references = vector_create(OBJECT_DEFAULT_REFERENCES_SIZE, object_destroy);
     }
     vector_append(cell->children, proxy);
+    /* store owning reference to original child object */
     if(vector_find_flat(cell->references, child) == -1)
     {
         vector_append(cell->references, child);
@@ -906,6 +912,8 @@ int object_area_anchors_fit(const struct object* cell, const char* anchorname, c
     coordinate_t bly2 = _area_anchor_get_bly(pts2);
     coordinate_t trx2 = _area_anchor_get_trx(pts2);
     coordinate_t try2 = _area_anchor_get_try(pts2);
+    free(pts1);
+    free(pts2);
     return ((trx1 - blx1) == (trx2 - blx2)) && ((try1 - bly1) == (try2 - bly2));
 }
 

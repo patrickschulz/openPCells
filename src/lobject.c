@@ -1,5 +1,7 @@
 #include "lobject.h"
 
+#include <stdlib.h>
+
 #include "lua/lauxlib.h"
 
 #include "lpoint.h"
@@ -49,10 +51,19 @@ struct lobject* lobject_check_soft(lua_State* L, int idx)
   return luaL_testudata(L, idx, LOBJECTMODULE);
 }
 
-struct lobject* lobject_adapt(lua_State* L, struct object* object)
+struct lobject* lobject_adapt_owning(lua_State* L, struct object* object)
 {
     struct lobject* cell = _create(L);
     cell->object = object;
+    cell->destroy = 1;
+    return cell;
+}
+
+struct lobject* lobject_adapt_non_owning(lua_State* L, struct object* object)
+{
+    struct lobject* cell = _create(L);
+    cell->object = object;
+    cell->destroy = 0;
     return cell;
 }
 
@@ -368,7 +379,7 @@ int lobject_add_child(lua_State* L)
         lua_pushstring(L, "object.add_child: can't add pseudo objects");
         lua_error(L);
     }
-    lobject_adapt(L, proxy);
+    lobject_adapt_non_owning(L, proxy);
     lobject_disown(child); // memory is now handled by cell
     return 1;
 }
@@ -402,7 +413,7 @@ int lobject_add_child_array(lua_State* L)
         lua_pushstring(L, "object.add_child_array: can't add pseudo objects");
         lua_error(L);
     }
-    lobject_adapt(L, proxy);
+    lobject_adapt_non_owning(L, proxy);
     lobject_disown(child); // memory is now handled by cell
     return 1;
 }
@@ -500,6 +511,7 @@ int lobject_get_area_anchor(lua_State* L)
         lua_setfield(L, -2, "tr");
         lpoint_create_internal(L, pts[0].x, pts[1].y);
         lua_setfield(L, -2, "tl");
+        free(pts);
     }
     else
     {
@@ -646,7 +658,7 @@ int lobject_flatten(lua_State* L)
 {
     struct lobject* cell = lobject_check(L, 1);
     struct object* obj = object_flatten(cell->object, 0); // 0: !flattenports
-    lobject_adapt(L, obj);
+    lobject_adapt_owning(L, obj);
     return 1;
 }
 
