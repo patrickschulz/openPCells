@@ -93,6 +93,7 @@ static int lobject_exchange(lua_State* L)
     struct lobject* other = lobject_check(L, 2);
     struct object* old = cell->object;
     cell->object = other->object;
+    object_set_name(cell->object, object_get_name(old));
     other->destroy = 0;
     object_destroy(old);
     return 1;
