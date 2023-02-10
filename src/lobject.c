@@ -33,7 +33,7 @@ int lobject_create(lua_State* L)
     return 1;
 }
 
-int lobject_create_pseudo(lua_State* L)
+static int lobject_create_pseudo(lua_State* L)
 {
     struct lobject* cell = _create(L);
     cell->object = object_create_pseudo();
@@ -187,56 +187,56 @@ static int lobject_translate_y(lua_State* L)
     return 1;
 }
 
-int lobject_mirror_at_xaxis(lua_State* L)
+static int lobject_mirror_at_xaxis(lua_State* L)
 {
     struct lobject* cell = lobject_check(L, 1);
     object_mirror_at_xaxis(cell->object);
     return 1;
 }
 
-int lobject_mirror_at_yaxis(lua_State* L)
+static int lobject_mirror_at_yaxis(lua_State* L)
 {
     struct lobject* cell = lobject_check(L, 1);
     object_mirror_at_yaxis(cell->object);
     return 1;
 }
 
-int lobject_mirror_at_origin(lua_State* L)
+static int lobject_mirror_at_origin(lua_State* L)
 {
     struct lobject* cell = lobject_check(L, 1);
     object_mirror_at_origin(cell->object);
     return 1;
 }
 
-int lobject_rotate_90_left(lua_State* L)
+static int lobject_rotate_90_left(lua_State* L)
 {
     struct lobject* cell = lobject_check(L, 1);
     object_rotate_90_left(cell->object);
     return 1;
 }
 
-int lobject_rotate_90_right(lua_State* L)
+static int lobject_rotate_90_right(lua_State* L)
 {
     struct lobject* cell = lobject_check(L, 1);
     object_rotate_90_right(cell->object);
     return 1;
 }
 
-int lobject_flipx(lua_State* L)
+static int lobject_flipx(lua_State* L)
 {
     struct lobject* cell = lobject_check(L, 1);
     object_flipx(cell->object);
     return 1;
 }
 
-int lobject_flipy(lua_State* L)
+static int lobject_flipy(lua_State* L)
 {
     struct lobject* cell = lobject_check(L, 1);
     object_flipy(cell->object);
     return 1;
 }
 
-int lobject_move_anchor(lua_State* L)
+static int lobject_move_anchor(lua_State* L)
 {
     int numstack = lua_gettop(L);
     struct lobject* cell = lobject_check(L, 1);
@@ -259,7 +259,7 @@ int lobject_move_anchor(lua_State* L)
     return 1;
 }
 
-int lobject_move_anchor_x(lua_State* L)
+static int lobject_move_anchor_x(lua_State* L)
 {
     int numstack = lua_gettop(L);
     struct lobject* cell = lobject_check(L, 1);
@@ -280,7 +280,7 @@ int lobject_move_anchor_x(lua_State* L)
     return 1;
 }
 
-int lobject_move_anchor_y(lua_State* L)
+static int lobject_move_anchor_y(lua_State* L)
 {
     int numstack = lua_gettop(L);
     struct lobject* cell = lobject_check(L, 1);
@@ -302,7 +302,7 @@ int lobject_move_anchor_y(lua_State* L)
 }
 
 #define _gen_fun_abut_align(what) \
-int lobject_ ##what (lua_State* L) \
+static int lobject_ ##what (lua_State* L) \
 { \
     struct lobject* cell = lobject_check(L, 1); \
     if(!object_has_alignmentbox(cell->object)) \
@@ -334,7 +334,7 @@ _gen_fun_abut_align(overlap_top)
 _gen_fun_abut_align(overlap_bottom)
 
 #define _gen_fun_abut_align_area_anchor(what) \
-int lobject_ ##what (lua_State* L) \
+static int lobject_ ##what (lua_State* L) \
 { \
     struct lobject* cell = lobject_check(L, 1); \
     const char* anchorname = luaL_checkstring(L, 2); \
@@ -364,7 +364,7 @@ _gen_fun_abut_align_area_anchor(align_area_anchor_right)
 _gen_fun_abut_align_area_anchor(align_area_anchor_top)
 _gen_fun_abut_align_area_anchor(align_area_anchor_bottom)
 
-int lobject_add_child(lua_State* L)
+static int lobject_add_child(lua_State* L)
 {
     if(lua_gettop(L) > 3)
     {
@@ -385,7 +385,7 @@ int lobject_add_child(lua_State* L)
     return 1;
 }
 
-int lobject_add_child_array(lua_State* L)
+static int lobject_add_child_array(lua_State* L)
 {
     struct lobject* cell = lobject_check(L, 1);
     struct lobject* child = lobject_check(L, 2);
@@ -419,7 +419,7 @@ int lobject_add_child_array(lua_State* L)
     return 1;
 }
 
-int lobject_width_height_alignmentbox(lua_State* L)
+static int lobject_width_height_alignmentbox(lua_State* L)
 {
     struct lobject* cell = lobject_check(L, 1);
     if(!object_has_alignmentbox(cell->object))
@@ -443,7 +443,7 @@ static int lobject_merge_into(lua_State* L)
     return 0;
 }
 
-int lobject_add_anchor(lua_State* L)
+static int lobject_add_anchor(lua_State* L)
 {
     struct lobject* cell = lobject_check(L, 1);
     const char* name = lua_tostring(L, 2);
@@ -457,7 +457,7 @@ int lobject_add_anchor(lua_State* L)
     return 0;
 }
 
-int lobject_add_area_anchor(lua_State* L)
+static int lobject_add_area_anchor(lua_State* L)
 {
     struct lobject* cell = lobject_check(L, 1);
     const char* base = luaL_checkstring(L, 2);
@@ -469,7 +469,7 @@ int lobject_add_area_anchor(lua_State* L)
     return 0;
 }
 
-int lobject_add_area_anchor_bltr(lua_State* L)
+static int lobject_add_area_anchor_bltr(lua_State* L)
 {
     struct lobject* cell = lobject_check(L, 1);
     const char* base = luaL_checkstring(L, 2);
@@ -479,7 +479,7 @@ int lobject_add_area_anchor_bltr(lua_State* L)
     return 0;
 }
 
-int lobject_get_anchor(lua_State* L)
+static int lobject_get_anchor(lua_State* L)
 {
     struct lobject* cell = lobject_check(L, 1);
     const char* name = lua_tostring(L, 2);
@@ -496,8 +496,22 @@ int lobject_get_anchor(lua_State* L)
     return 1;
 }
 
-int lobject_get_area_anchor(lua_State* L)
+static int _area_anchor_index_func(lua_State* L)
 {
+    const char* key = lua_tostring(L, 2);
+    lua_pushfstring(L, "get_area_anchor: trying to access undefined anchor '%s'", key);
+    lua_error(L);
+    return 0;
+}
+
+static int lobject_get_area_anchor(lua_State* L)
+{
+    if(luaL_newmetatable(L, "areaanchor"))
+    {
+        lua_pushcfunction(L, _area_anchor_index_func);
+        lua_setfield(L, -2, "__index");
+    }
+    lua_pop(L, 1); // pop meta table
     struct lobject* cell = lobject_check(L, 1);
     const char* base = lua_tostring(L, 2);
     point_t* pts = object_get_area_anchor(cell->object, base);
@@ -513,6 +527,7 @@ int lobject_get_area_anchor(lua_State* L)
         lpoint_create_internal(L, pts[0].x, pts[1].y);
         lua_setfield(L, -2, "tl");
         free(pts);
+        luaL_setmetatable(L, "areaanchor");
     }
     else
     {
@@ -522,7 +537,7 @@ int lobject_get_area_anchor(lua_State* L)
     return 1;
 }
 
-int lobject_get_array_anchor(lua_State* L)
+static int lobject_get_array_anchor(lua_State* L)
 {
     struct lobject* cell = lobject_check(L, 1);
     int xindex = luaL_checkinteger(L, 2);
@@ -541,7 +556,7 @@ int lobject_get_array_anchor(lua_State* L)
     return 1;
 }
 
-int lobject_get_all_regular_anchors(lua_State* L)
+static int lobject_get_all_regular_anchors(lua_State* L)
 {
     struct lobject* cell = lobject_check(L, 1);
     const struct hashmap* anchors = object_get_all_regular_anchors(cell->object);
@@ -560,7 +575,7 @@ int lobject_get_all_regular_anchors(lua_State* L)
     return 1;
 }
 
-int lobject_add_port(lua_State* L)
+static int lobject_add_port(lua_State* L)
 {
     struct lobject* cell = lobject_check(L, 1);
     const char* name = luaL_checkstring(L, 2);
@@ -571,7 +586,7 @@ int lobject_add_port(lua_State* L)
     return 0;
 }
 
-int lobject_add_bus_port(lua_State* L)
+static int lobject_add_bus_port(lua_State* L)
 {
     struct lobject* cell = lobject_check(L, 1);
     const char* name = luaL_checkstring(L, 2);
@@ -586,7 +601,7 @@ int lobject_add_bus_port(lua_State* L)
     return 0;
 }
 
-int lobject_get_ports(lua_State* L)
+static int lobject_get_ports(lua_State* L)
 {
     struct lobject* cell = lobject_check(L, 1);
     lua_newtable(L);
@@ -610,7 +625,7 @@ int lobject_get_ports(lua_State* L)
     return 1;
 }
 
-int lobject_set_alignment_box(lua_State* L)
+static int lobject_set_alignment_box(lua_State* L)
 {
     struct lobject* cell = lobject_check(L, 1);
     if(lua_gettop(L) == 3)
@@ -647,7 +662,7 @@ int lobject_set_alignment_box(lua_State* L)
     return 0;
 }
 
-int lobject_inherit_alignment_box(lua_State* L)
+static int lobject_inherit_alignment_box(lua_State* L)
 {
     struct lobject* cell = lobject_check(L, 1);
     struct lobject* other = lobject_check(L, 2);
@@ -655,7 +670,7 @@ int lobject_inherit_alignment_box(lua_State* L)
     return 0;
 }
 
-int lobject_flatten(lua_State* L)
+static int lobject_flatten(lua_State* L)
 {
     struct lobject* cell = lobject_check(L, 1);
     struct object* obj = object_flatten(cell->object, 0); // 0: !flattenports
@@ -663,7 +678,7 @@ int lobject_flatten(lua_State* L)
     return 1;
 }
 
-int lobject_rasterize_curves(lua_State* L)
+static int lobject_rasterize_curves(lua_State* L)
 {
     struct lobject* cell = lobject_check(L, 1);
     object_rasterize_curves(cell->object);
