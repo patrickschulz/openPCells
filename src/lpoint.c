@@ -121,12 +121,30 @@ static int lpoint_gety(lua_State* L)
 
 static int lpoint_translate(lua_State* L)
 {
-    struct lpoint* p = luaL_checkudata(L, -3, LPOINTMETA);
-    coordinate_t x = lpoint_checkcoordinate(L, -2);
-    coordinate_t y = lpoint_checkcoordinate(L, -1);
+    struct lpoint* p = luaL_checkudata(L, 1, LPOINTMETA);
+    coordinate_t x = lpoint_checkcoordinate(L, 2);
+    coordinate_t y = lpoint_checkcoordinate(L, 3);
     p->point->x += x;
     p->point->y += y;
     lua_rotate(L, -3, 2);
+    return 1;
+}
+
+static int lpoint_translate_x(lua_State* L)
+{
+    struct lpoint* p = luaL_checkudata(L, 1, LPOINTMETA);
+    coordinate_t x = lpoint_checkcoordinate(L, 2);
+    p->point->x += x;
+    lua_rotate(L, 1, 1);
+    return 1;
+}
+
+static int lpoint_translate_y(lua_State* L)
+{
+    struct lpoint* p = luaL_checkudata(L, 1, LPOINTMETA);
+    coordinate_t y = lpoint_checkcoordinate(L, 2);
+    p->point->y += y;
+    lua_rotate(L, 1, 1);
     return 1;
 }
 
@@ -153,14 +171,16 @@ int open_lpoint_lib(lua_State* L)
 {
     static const luaL_Reg metafuncs[] =
     {
-        { "copy",      lpoint_copy      },
-        { "unwrap",    lpoint_unwrap    },
-        { "getx",      lpoint_getx      },
-        { "gety",      lpoint_gety      },
-        { "translate", lpoint_translate },
-        { "__eq",      lpoint_equal     },
-        { "__gc",      lpoint_destroy   },
-        { NULL,     NULL          }
+        { "copy",        lpoint_copy        },
+        { "unwrap",      lpoint_unwrap      },
+        { "getx",        lpoint_getx        },
+        { "gety",        lpoint_gety        },
+        { "translate",   lpoint_translate   },
+        { "translate_x", lpoint_translate_x },
+        { "translate_y", lpoint_translate_y },
+        { "__eq",        lpoint_equal       },
+        { "__gc",        lpoint_destroy     },
+        { NULL,          NULL               }
     };
     // create metatable for points
     luaL_newmetatable(L, LPOINTMETA);
