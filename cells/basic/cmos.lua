@@ -53,6 +53,7 @@ function parameters()
         { "drawpmoswelltap(Draw pMOS Well Tap)", false },
         { "pmoswelltapspace(pMOS Well Tap Space)", technology.get_dimension("Minimum M1 Space") },
         { "pmoswelltapwidth(pMOS Well Tap Width)", technology.get_dimension("Minimum M1 Width") },
+        { "welltapcontinuouscontact(Well Tap Draw Continuous Contacts)", true },
         { "welltapextendleft", 0 },
         { "welltapextendright", 0 },
         { "drawactivedummy", false },
@@ -220,23 +221,22 @@ function layout(cmos, _P)
     end
 
     -- well taps (can't use the mosfet pcell well taps, as only single fingers are instantiated)
-    -- FIXME: this does not fit well with different gates
-    local welltapwidth = fingers * gatepitch + _P.welltapextendleft + _P.welltapextendright
+    local welltapwidth = rightpdrainarea.tr:getx() - leftpdrainarea.tl:getx()
     if _P.drawpmoswelltap then
         cmos:merge_into(pcell.create_layout("auxiliary/welltap", "pmoswelltap", {
             contype = _P.pmosflippedwell and "p" or "n",
             width = welltapwidth,
             height = _P.pmoswelltapwidth,
-            xcontinuous = true
-        }):translate(gatepitch / 2 + (_P.welltapextendright - _P.welltapextendleft) / 2 + welltapwidth / 2 - gatepitch, _P.separation / 2 + _P.pwidth + _P.ppowerspace + _P.powerwidth + _P.pmoswelltapspace + _P.pmoswelltapwidth / 2))
+            xcontinuous = _P.welltapcontinuouscontact
+        }):translate(leftpdrainarea.tl:getx(), _P.nwidth + _P.separation + _P.pwidth + _P.ppowerspace + _P.powerwidth + _P.pmoswelltapspace))
     end
     if _P.drawnmoswelltap then
         cmos:merge_into(pcell.create_layout("auxiliary/welltap", "nmoswelltap", {
             contype = _P.nmosflippedwell and "n" or "p",
             width = welltapwidth,
             height = _P.nmoswelltapwidth,
-            xcontinuous = true
-        }):translate(gatepitch / 2 + (_P.welltapextendright - _P.welltapextendleft) / 2 + welltapwidth / 2 - gatepitch, -_P.separation / 2 - _P.nwidth - _P.npowerspace - _P.powerwidth - _P.nmoswelltapspace - _P.nmoswelltapwidth / 2))
+            xcontinuous = _P.welltapcontinuouscontact
+        }):translate(leftpdrainarea.tl:getx(), -_P.nmoswelltapwidth - _P.npowerspace - _P.powerwidth - _P.nmoswelltapspace))
     end
 
     -- draw gate contacts
@@ -280,18 +280,17 @@ function layout(cmos, _P)
                     point.create(x + _P.gatelength, y + _P.cutheight / 2)
                 )
             elseif _P.gatecontactpos[i] == "outer" then
-                y = 0
                 yshift = (_P.pwidth - _P.nwidth) / 2 + (_P.ppowerspace - _P.npowerspace) / 2
                 yheight = _P.dummycontheight
                 yrep = 2 
                 ypitch = _P.separation + _P.pwidth + _P.nwidth + _P.ppowerspace + _P.npowerspace + 2 * _P.powerwidth + 2 * _P.outergstspace + _P.gstwidth
                 cmos:add_area_anchor_bltr(string.format("Gp%d", i),
-                    point.create(x, _P.separation / 2 + _P.pwidth + _P.outergstspace + _P.outergstwidth / 2 + _P.powerwidth + _P.ppowerspace - _P.gstwidth / 2),
-                    point.create(x + _P.gatelength, _P.separation / 2 + _P.pwidth + _P.outergstspace + _P.outergstwidth / 2 + _P.powerwidth + _P.ppowerspace + _P.gstwidth / 2)
+                    point.create(x, y + yshift - yheight / 2 + 0 * ypitch - ypitch / 2),
+                    point.create(x + _P.gatelength, y + yshift + yheight / 2 + 0 * ypitch - ypitch / 2)
                 )
                 cmos:add_area_anchor_bltr(string.format("Gn%d", i),
-                    point.create(x, -_P.separation / 2 - _P.nwidth - _P.outergstspace - _P.outergstwidth / 2 - _P.powerwidth - _P.npowerspace - _P.gstwidth / 2),
-                    point.create(x + _P.gatelength, -_P.separation / 2 - _P.nwidth - _P.outergstspace - _P.outergstwidth / 2 - _P.powerwidth - _P.npowerspace + _P.gstwidth / 2)
+                    point.create(x, y + yshift - yheight / 2 + 1 * ypitch - ypitch / 2),
+                    point.create(x + _P.gatelength, y + yshift + yheight / 2 + 1 * ypitch - ypitch / 2)
                 )
                 geometry.rectanglebltr(cmos, generics.other("gatecut"), 
                     point.create(x, -_P.cutheight / 2),
@@ -313,7 +312,6 @@ function layout(cmos, _P)
                         point.create(x + _P.gatelength, y + yshift + yheight / 2)
                     )
                 end
-                dprint(yrep, yheight)
                 geometry.contactbltr(
                     cmos, "gate", 
                     point.create(x, y + yshift - yheight / 2),
