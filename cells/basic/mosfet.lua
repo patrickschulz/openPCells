@@ -331,6 +331,12 @@ function layout(transistor, _P)
     -- FIXME: probably wrong without endleftwithgate == true and endrightwithgate == true
     local leftpolyoffset = gateblx - gatepitch
     for _, polyline in ipairs(_P.leftpolylines) do
+        if not polyline.length then
+            cellerror("basic/mosfet: leftpolyline entry does not have a 'length' field")
+        end
+        if not polyline.space then
+            cellerror("basic/mosfet: leftpolyline entry does not have a 'space' field")
+        end
         geometry.rectanglebltr(transistor,
             generics.other("gate"),
             point.create(leftpolyoffset - polyline.space - polyline.length, gatebly),
@@ -340,6 +346,12 @@ function layout(transistor, _P)
     end
     local rightpolyoffset = gatetrx + _P.fingers * gatepitch
     for _, polyline in ipairs(_P.rightpolylines) do
+        if not polyline.length then
+            cellerror("basic/mosfet: rightpolyline entry does not have a 'length' field")
+        end
+        if not polyline.space then
+            cellerror("basic/mosfet: rightpolyline entry does not have a 'space' field")
+        end
         geometry.rectanglebltr(transistor,
             generics.other("gate"),
             point.create(rightpolyoffset + polyline.space, gatebly),
