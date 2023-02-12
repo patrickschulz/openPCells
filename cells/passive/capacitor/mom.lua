@@ -82,11 +82,11 @@ function layout(momcap, _P)
 
     momcap:add_anchor("plus", point.create(0,   _P.foffset + _P.fheight / 2 + _P.rwidth / 2))
     momcap:add_anchor("minus", point.create(0, -_P.foffset - _P.fheight / 2 - _P.rwidth / 2))
-    momcap:add_anchor_area("plus", 
+    momcap:add_area_anchor("plus",
         (_P.fingers + 1) * (_P.fwidth + _P.fspace) + 2 * _P.rext, _P.rwidth,
         0, _P.foffset + _P.fheight / 2 + _P.rwidth / 2
     )
-    momcap:add_anchor_area("minus", 
+    momcap:add_area_anchor("minus",
         (_P.fingers + 1) * (_P.fwidth + _P.fspace) + 2 * _P.rext, _P.rwidth,
         0, -_P.foffset - _P.fheight / 2 - _P.rwidth / 2
     )
