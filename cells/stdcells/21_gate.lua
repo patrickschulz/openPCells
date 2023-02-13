@@ -20,7 +20,7 @@ function layout(gate, _P)
 
     local gate2ref = pcell.create_layout(string.format("stdcells/%s", _P.gate2), "gate2")
     local gate2 = gate:add_child(gate2ref, "gate2")
-    gate2:move_anchor("left", gate1:get_anchor("right"))
+    gate2:align_left(gate1)
 
     gate:inherit_alignment_box(gate1)
     gate:inherit_alignment_box(gate2)

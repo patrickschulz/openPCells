@@ -16,9 +16,9 @@ function layout(gate, _P)
     gate:inherit_alignment_box(harness)
 
     -- ports
-    gate:add_port("A", generics.metalport(1), harness:get_anchor("G1cc"))
-    gate:add_port("B", generics.metalport(1), harness:get_anchor("G1cc"))
+    gate:add_port("A", generics.metalport(1), harness:get_area_anchor("G1").bl)
+    gate:add_port("B", generics.metalport(1), harness:get_area_anchor("G1").bl)
     gate:add_port("O", generics.metalport(1), point.create((3 + 1) * xpitch / 2, 0))
-    gate:add_port("VDD", generics.metalport(1), harness:get_anchor("top"))
-    gate:add_port("VSS", generics.metalport(1), harness:get_anchor("bottom"))
+    gate:add_port("VDD", generics.metalport(1), harness:get_area_anchor("PRp").bl)
+    gate:add_port("VSS", generics.metalport(1), harness:get_area_anchor("PRn").bl)
 end

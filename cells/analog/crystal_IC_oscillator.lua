@@ -23,6 +23,4 @@ function layout(oscillator, _P)
 
     local moscore = oscillator:add_child(cmosref, "moscore")
     local polyres = oscillator:add_child(resref, "resistor")
-    polyres:move_anchor("left", moscore:get_anchor("right"))
-    polyres:translate((40 + 90) / 2, 0)
 end

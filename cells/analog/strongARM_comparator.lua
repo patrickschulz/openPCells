@@ -521,7 +521,7 @@ function layout(comparator, _P)
     if _P.clockdummyfingers > 0 then
         clockdummy = clockdummyref
         halfref:merge_into(clockdummy)
-        clock:align_right(clockdummy)
+        clock:align_left(clockdummy)
         halfref:merge_into(clock)
     else -- FIXME: this is currently broken
         halfref:merge_into(clock)

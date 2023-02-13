@@ -341,6 +341,21 @@ function layout(cmos, _P)
             cmos:get_area_anchor("PRn").tr:translate(0, -(_P.powerwidth - _P.cutheight) / 2)
         )
     end
+    -- add always-available gate anchors for all three positions (lower, upper, center)
+    -- the x coordinate does not make any sense, these anchors are just for y alignment
+    local basey = firstgatearea.tl:gety() + _P.shiftgatecontacts
+    cmos:add_area_anchor_bltr("Gcenterbase",
+        point.create(0, basey - _P.gstwidth / 2),
+        point.create(0, basey + _P.gstwidth / 2)
+    )
+    cmos:add_area_anchor_bltr("Gupperbase",
+        point.create(0, basey + _P.gatecontactsplitshift / 2 - _P.gstwidth / 2),
+        point.create(0, basey + _P.gatecontactsplitshift / 2 + _P.gstwidth / 2)
+    )
+    cmos:add_area_anchor_bltr("Glowerbase",
+        point.create(0, basey - _P.gatecontactsplitshift / 2 - _P.gstwidth / 2),
+        point.create(0, basey - _P.gatecontactsplitshift / 2 + _P.gstwidth / 2)
+    )
 
     -- draw source/drain contacts
     local pcontactheight = (_P.psdheight > 0) and _P.psdheight or aux.make_even(_P.pwidth / 2)

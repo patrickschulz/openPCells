@@ -17,7 +17,7 @@ function layout(gate, _P)
     local leftpolylines = {}
     local rightpolylines = {}
     for i = 1, _P.fingers do
-        local entry = { bp.glength, bp.gspace }
+        local entry = { length = bp.glength, space = bp.gspace }
         if _P.leftnotright then
             leftpolylines[i] = entry
         else

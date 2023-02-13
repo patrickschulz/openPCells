@@ -16,7 +16,7 @@ function layout(ccp, _P)
         topgatestrwidth = _P.connwidth,
         topgatemetal = 4,
         drawdrainvia = true,
-        conndrainmetal = 4,
+        connectdrainmetal = 4,
         connectsource = true
     })
 
@@ -25,18 +25,18 @@ function layout(ccp, _P)
     ccp:merge_into(dummy)
 
     local left = pcell.create_layout("basic/mosfet", "leftmosfet")
-    left:move_anchor("sourcedrainmiddlecenterright", dummy:get_anchor("sourcedrainmiddlecenterleft"))
+    left:align_left(dummy)
     local right = pcell.create_layout("basic/mosfet", "rightmosfet")
-    right:move_anchor("sourcedrainmiddlecenterleft", dummy:get_anchor("sourcedrainmiddlecenterright"))
+    right:align_right(dummy)
     ccp:merge_into(left)
     ccp:merge_into(right)
 
     pcell.pop_overwrites("basic/mosfet")
 
-    local leftgate = left:get_anchor("topgatestrapright")
-    local rightgate = right:get_anchor("topgatestrapleft"):copy():translate(0, -200)
-    geometry.crossing(
-        ccp, generics.metal(_P.connmetal), generics.metal(_P.connmetal - 1),
-        _P.connwidth, leftgate, rightgate, "rectangular-separated", 200
-    )
+    local leftgate = left:get_area_anchor("topgatestrap").bl
+    local rightgate = right:get_area_anchor("topgatestrap").bl:translate(0, -200)
+    --geometry.crossing(
+    --    ccp, generics.metal(_P.connmetal), generics.metal(_P.connmetal - 1),
+    --    _P.connwidth, leftgate, rightgate, "rectangular-separated", 200
+    --)
 end

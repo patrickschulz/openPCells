@@ -16,7 +16,7 @@ function parameters()
         { "gstwidth(Gate Metal Width)",                                 technology.get_dimension("Minimum M1 Width") },
         { "powerwidth(Power Rail Metal Width)",                         technology.get_dimension("Minimum M1 Width") },
         { "powerspace(Power Rail Space)",                               technology.get_dimension("Minimum M1 Space") },
-        { "separation(nMOS/pMOS Separation)",                           0 },
+        { "separation(nMOS/pMOS Separation)",                           100 },
         { "drawleftdummy",  false },
         { "drawrightdummy",  false },
         { "outputmetal", 2, posvals = interval(2, inf) },
@@ -73,34 +73,34 @@ function layout(inverter, _P)
         if _P.gatemetal > 1 then
             geometry.viabltr(
                 inverter, 1, _P.gatemetal,
-                cmos:get_anchor(string.format("G%dbl", 1 + dummyoffset)),
-                cmos:get_anchor(string.format("G%dtr", _P.fingers + dummyoffset))
+                cmos:get_area_anchor(string.format("G%d", 1 + dummyoffset)).bl,
+                cmos:get_area_anchor(string.format("G%d", _P.fingers + dummyoffset)).tr
             )
         else
             geometry.rectanglebltr(
                 inverter, generics.metal(1),
-                cmos:get_anchor(string.format("G%dbl", 1 + dummyoffset)),
-                cmos:get_anchor(string.format("G%dtr", _P.fingers + dummyoffset))
+                cmos:get_area_anchor(string.format("G%d", 1 + dummyoffset)).bl,
+                cmos:get_area_anchor(string.format("G%d", _P.fingers + dummyoffset)).tr
             )
         end
     end
 
     -- signal transistors drain connections
     geometry.path_cshape(inverter, generics.metal(_P.outputmetal),
-        cmos:get_anchor(string.format("pSD%dbr", 2 + dummyoffset)):translate(0, _P.sdwidth / 2),
-        cmos:get_anchor(string.format("nSD%dtr", 2 + dummyoffset)):translate(0, -_P.sdwidth / 2),
-        cmos:get_anchor(string.format("G%dcc", _P.fingers + dummyoffset)):translate(xpitch + _P.shiftoutput, 0),
+        cmos:get_area_anchor(string.format("pSD%d", 2 + dummyoffset)).br:translate(0, _P.sdwidth / 2),
+        cmos:get_area_anchor(string.format("nSD%d", 2 + dummyoffset)).tr:translate(0, -_P.sdwidth / 2),
+        cmos:get_area_anchor(string.format("G%d", _P.fingers + dummyoffset)).bl:translate(xpitch + _P.shiftoutput, 0),
         _P.sdwidth
     )
 
     for i = 2, _P.fingers + 1, 2 do
         geometry.viabltr(inverter, 1, _P.outputmetal,
-            cmos:get_anchor(string.format("pSD%dbl", i + dummyoffset)),
-            cmos:get_anchor(string.format("pSD%dtr", i + dummyoffset))
+            cmos:get_area_anchor(string.format("pSD%d", i + dummyoffset)).bl,
+            cmos:get_area_anchor(string.format("pSD%d", i + dummyoffset)).tr
         )
         geometry.viabltr(inverter, 1, _P.outputmetal,
-            cmos:get_anchor(string.format("nSD%dbl", i + dummyoffset)),
-            cmos:get_anchor(string.format("nSD%dtr", i + dummyoffset))
+            cmos:get_area_anchor(string.format("nSD%d", i + dummyoffset)).bl,
+            cmos:get_area_anchor(string.format("nSD%d", i + dummyoffset)).tr
         )
     end
 

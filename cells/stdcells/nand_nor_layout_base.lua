@@ -109,20 +109,23 @@ function layout(gate, _P)
 
     -- drain connection
     local yinvert = _P.gatetype == "nand" and 1 or -1
-    local startpt = harness:get_area_anchor(string.format("%sSD3", _P.gatetype == "nand" and "n" or "p"))[string.format("%sr", _P.gatetype == "nand" and "t" or "b")]:translate(0, -yinvert * bp.sdwidth / 2)
-    local connpts = {
-        harness:get_area_anchor(string.format("G%d", 2 * _P.fingers)).bl:translate(xpitch + _P.shiftoutput, 0),
-        0, -- toggle xy
-        harness:get_area_anchor(string.format("%sSD2", _P.gatetype == "nand" and "p" or "n"))[string.format("%sr", _P.gatetype == "nand" and "b" or "t")]:translate(0, yinvert * bp.sdwidth / 2),
-    }
-    geometry.path(gate, generics.metal(1), geometry.path_points_xy(
-        startpt, connpts),
+    local startpt, endpt
+    local connpt = harness:get_area_anchor(string.format("G%d", 2 * _P.fingers)).bl:translate(xpitch + _P.shiftoutput, 0)
+    if _P.gatetype == "nand" then
+        startpt = harness:get_area_anchor("nSD3").tr:translate(0, -yinvert * bp.sdwidth / 2)
+        endpt = harness:get_area_anchor("pSD2").br:translate(0, yinvert * bp.sdwidth / 2)
+    else
+        startpt = harness:get_area_anchor("pSD3").br:translate(0, -yinvert * bp.sdwidth / 2)
+        endpt = harness:get_area_anchor(string.format("%sSD2", "n")).tr:translate(0, yinvert * bp.sdwidth / 2)
+    end
+    geometry.path_cshape(gate, generics.metal(1),
+        startpt, endpt, connpt,
         bp.sdwidth
     )
 
     gate:add_port("A", generics.metalport(1), harness:get_area_anchor("G1").bl)
     gate:add_port("B", generics.metalport(1), harness:get_area_anchor("G2").bl)
-    gate:add_port("O", generics.metalport(1), (harness:get_area_anchor(string.format("G%d", 2 * _P.fingers)).bl .. point.create(0, 0)):translate(xpitch + _P.shiftoutput, 0))
+    gate:add_port("O", generics.metalport(1), harness:get_area_anchor("G3").bl)
     gate:add_port("VDD", generics.metalport(1), harness:get_area_anchor("PRp").bl)
     gate:add_port("VSS", generics.metalport(1), harness:get_area_anchor("PRn").bl)
 end

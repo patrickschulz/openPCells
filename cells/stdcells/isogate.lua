@@ -23,10 +23,8 @@ function layout(gate, _P)
 
     gate:inherit_alignment_box(harness)
 
-    gate:add_anchor("VDD", harness:get_anchor("top"))
-    gate:add_anchor("VSS", harness:get_anchor("bottom"))
-    gate:add_port("VDD", generics.metalport(1), harness:get_anchor("top"))
-    gate:add_port("VSS", generics.metalport(1), harness:get_anchor("bottom"))
+    gate:add_port("VDD", generics.metalport(1), harness:get_area_anchor("PRp").bl)
+    gate:add_port("VSS", generics.metalport(1), harness:get_area_anchor("PRn").bl)
 
     -- center gate
     gate:translate(xpitch / 2, 0)

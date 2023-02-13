@@ -19,24 +19,20 @@ function layout(gate, _P)
     })
     gate:merge_into(subgateref)
 
-    --local isogateref = pcell.create_layout("stdcells/isogate", "isogate")
-    --isogateref:move_anchor("left", subgateref:get_anchor("right"))
-    --gate:merge_into(isogateref)
-
     local invref = pcell.create_layout("stdcells/not_gate", "inv", {
         fingers = _P.notfingers,
         shiftoutput = xpitch / 2,
         pwidth = _P.pwidth,
         nwidth = _P.nwidth,
     })
-    invref:move_anchor("left", subgateref:get_anchor("right"))
+    invref:align_right(subgateref)
     gate:merge_into(invref)
 
     -- draw connection
-    geometry.path(gate, generics.metal(1), {
+    geometry.rectanglebltr(gate, generics.metal(1),
         subgateref:get_anchor("O"),
-        invref:get_anchor("I"):translate(xpitch - bp.sdwidth / 2 - bp.routingspace, 0)
-    }, bp.routingwidth)
+        invref:get_anchor("I"):translate(xpitch - bp.sdwidth / 2 - bp.routingspace, bp.routingwidth)
+    )
 
     gate:inherit_alignment_box(subgateref)
     gate:inherit_alignment_box(invref)

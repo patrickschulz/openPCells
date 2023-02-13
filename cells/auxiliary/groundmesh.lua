@@ -185,7 +185,7 @@ function layout(mesh, _P)
     end
 
     -- FIXME: this should depend on parameters
-    mesh:add_anchor_area_bltr(
+    mesh:add_area_anchor_bltr(
         "gridcenter",
         point.create(-2500, -2500),
         point.create( 2500,  2500)

@@ -20,7 +20,8 @@ function layout(gate, _P)
         fingers = _P.ofingers, 
         shiftinput = _P.shiftinput2, 
         shiftoutput = bp.glength / 2 + bp.gspace / 2 
-    }):move_anchor("left", iinv:get_anchor("right"))
+    })
+    oinv:align_right(iinv)
     gate:merge_into(iinv)
     gate:merge_into(oinv)
 
@@ -31,18 +32,13 @@ function layout(gate, _P)
         oinv:get_anchor("I"),
     }), bp.sdwidth)
 
-    gate:set_alignment_box(
-        iinv:get_anchor("bottomleft"),
-        oinv:get_anchor("topright")
-    )
+    gate:inherit_alignment_box(iinv)
+    gate:inherit_alignment_box(oinv)
 
     -- anchors
     gate:add_anchor("in", iinv:get_anchor("I"))
     gate:add_anchor("iout", iinv:get_anchor("O"))
     gate:add_anchor("bout", oinv:get_anchor("O"))
-
-    gate:add_anchor("OTR", oinv:get_anchor("OTRc"))
-    gate:add_anchor("OBR", oinv:get_anchor("OBRc"))
 
     -- ports
     gate:add_port("I", generics.metalport(1), iinv:get_anchor("I"))

@@ -111,8 +111,8 @@ function layout(tgate, _P)
         pmos:get_anchor("guardringtr"):translate(0, _P.powerspace + _P.sdwidth / 2)
     )
 
-    tgate:add_anchor_area_bltr("clkp", pmos:get_anchor("topgatestrapbl"), pmos:get_anchor("topgatestraptr"))
-    tgate:add_anchor_area_bltr("clkn", nmos:get_anchor("botgatestrapbl"), nmos:get_anchor("botgatestraptr"))
+    tgate:add_area_anchor_bltr("clkp", pmos:get_anchor("topgatestrapbl"), pmos:get_anchor("topgatestraptr"))
+    tgate:add_area_anchor_bltr("clkn", nmos:get_anchor("botgatestrapbl"), nmos:get_anchor("botgatestraptr"))
     tgate:add_port("input", generics.metalport(1), (pmos:get_anchor("sourcestrapcl") + nmos:get_anchor("sourcestrapcl")):translate(-inputconnoffset, 0))
     tgate:add_port("output", generics.metalport(1), (pmos:get_anchor("drainstrapcc") + nmos:get_anchor("drainstrapcc")))
 end
