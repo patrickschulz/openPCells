@@ -215,7 +215,7 @@ local function _get_parameters(state, cellname, cellargs)
     local P = {}
 
     -- (1) fill with default values
-    for _, entry in pairs(cellparams) do
+    for _, entry in ipairs(cellparams) do
         P[entry.name] = entry.value
     end
 
@@ -259,7 +259,7 @@ local function _get_parameters(state, cellname, cellargs)
     end
 
     -- (5) run parameter checks
-    for _, entry in pairs(cellparams) do
+    for _, entry in ipairs(cellparams) do
         paramlib.check_constraints(entry, P[entry.name])
     end
 
@@ -300,7 +300,20 @@ end
 local function _push_overwrites(state, cellname, cellargs)
     assert(type(cellname) == "string", "push_overwrites: cellname must be a string")
     assert(type(cellargs) == "table", string.format("pcell.push_overwrites: 'cellargs' must be a table (got: %s)", type(cellargs)))
+
     local cell = _get_cell(state, cellname)
+
+    -- check if overwritten parameter exists
+    local cellparams = cell.parameters.values
+    local P = {}
+    for _, entry in ipairs(cellparams) do
+        P[entry.name] = true
+    end
+    for name in pairs(cellargs) do
+        assert(P[name] ~= nil, string.format("trying to overwrite parameter '%s', which does not exist in cell '%s'", name, cellname))
+    end
+
+    -- install overwrite
     table.insert(cell.overwrites, cellargs)
 end
 
