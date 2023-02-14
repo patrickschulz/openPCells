@@ -362,22 +362,22 @@ static void _equal_pitch_via(
     {
         if(width % Nx == 0)
         {
-            int Sx = width / Nx - cutsize;
-            if(Sx < (int)space) // FIXME: remove this cast
+            if((width / Nx) < (space + cutsize))
             {
                 break;
             }
+            unsigned int Sx = width / Nx - cutsize; // guaranteed to be non-negative
             if(Sx % 2 == 0)
             {
                 for(unsigned int Ny = 1; Ny < UINT_MAX; ++Ny)
                 {
                     if(height % Ny == 0)
                     {
-                        int Sy = height / Ny - cutsize;
-                        if(Sy < (int)space) // FIXME: remove this cast
+                        if((height / Ny) < (space + cutsize))
                         {
                             break;
                         }
+                        unsigned int Sy = height / Ny - cutsize; // guaranteed to be non-negative
                         if(Sy % 2 == 0)
                         {
                             if(Sx == Sy)
