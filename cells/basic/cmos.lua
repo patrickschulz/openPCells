@@ -378,7 +378,7 @@ function layout(cmos, _P)
         elseif _P.pcontactpos[i] == "full" or _P.pcontactpos[i] == "fullpower" then
             y = y - _P.pwidth
             yheight = _P.pwidth
-        elseif not _P.pcontactpos[i] or _P.pcontactpos[i] == "unused" then
+        elseif _P.pcontactpos[i] == "none" then
             ignore = true
         else
             moderror(string.format("unknown source/drain contact position (p): [%d] = '%s'", i, _P.pcontactpos[i]))

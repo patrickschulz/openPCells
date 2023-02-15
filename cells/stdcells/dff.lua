@@ -1,44 +1,18 @@
 --[[
                              |\                            |\
                              | \ Inverter                  | \ Inverter
-                        |----|  O----|                |----|  O----|
+                        |----|  o----|                |----|  o----|
          |\ Clocked     |    | /     |                |    | /     |       |\
          | \ Inverter   |    |/      |        /       |    |/      |       | \
-    D o--|  O-----------*            *-------o -------*            *-------|  O----o Q
+    D o--|  o-----------*            *-------o -------*            *-------|  o----o Q
          | /            |      /|    |  Transmission  |      /|    |       | /
          |/             |     / |    |      Gate      |     / |    |       |/
-                        |----O  |----|                |----O  |----|
+                        |----o  |----|                |----o  |----|
                               \ | Clocked                   \ | Clocked
                                \| Inverter                   \| Inverter
 
 
           clk                 ~clk          ~clk            clk
---]]
-
---[[
-    List of gates (from left to right):
-        (1) clockbuffer input
-        (2) clockbuffer dummy
-        (3) clockbuffer intermediate
-        (4) dummy separation between clockbuffer and start of flip-flop
-        (5) clocked inverter nmos
-        (6) clocked inverter pmos
-        (7) clocked inverter input
-        (8) dummy separation between clocked inverter and first latch (possible more than one)
-        (9) first latch clocked inverter input
-        (10) first latch clocked inverter pmos
-        (11) first latch clocked inverter nmos
-        (12) first latch inverter input
-        (13) transmission gate nmos
-        (14) transmission gate pmos
-        (15) separation dummy between transmission gate and second latch
-        (16) second latch clocked inverter input
-        (17) second latch clocked inverter pmos
-        (18) second latch clocked inverter nmos
-        (19) second latch inverter input
-        (20) separation dummy between end of flip-flop and output buffer
-        (21) output buffer input
-        (22) last dummy gate to finish output buffer
 --]]
 
 function parameters()
@@ -51,13 +25,24 @@ function parameters()
         { "enable_QN", false },
         { "enable_set", false },
         { "enable_reset", false },
-        { "latchseparationdummies", 1 }
+        { "cinvlatch1separationdummies", 1 },
+        { "tgatelatch2separationdummies", 1 },
+        { "latch2outbufseparationdummies", 1 }
     )
 end
 
 function check(_P)
     if _P.enable_set and _P.enable_reset then
         return nil, "sorry, this dff implementation currently does not support simultaneous set and reset pins"
+    end
+    if _P.cinvlatch1separationdummies < 1 then
+        return nil, "there must be at least one finger as separation dummy between the clocked inverter and the first latch"
+    end
+    if _P.tgatelatch2separationdummies < 1 then
+        return nil, "there must be at least one finger as separation dummy between the latches and surrounding sub-circuits"
+    end
+    if _P.latch2outbufseparationdummies < 1 then
+        return nil, "there must be at least one finger as separation dummy between the latches and surrounding sub-circuits"
     end
     return true
 end
@@ -72,60 +57,89 @@ function layout(dff, _P)
     -- this is used to assign names to gates and source/drain regions
     -- this makes it easy to add gates in-between, for instance for a reset functionality
     -- the p/n-contact is placed *left* of a gate contact
-    local subcircuits = {
-        {
-            name = "clockbuf",
-            entries = {
-                { name = "input1", gate = "lower", pcontact = "power", ncontact = "power", },
-                { name = "dummy1", gate = "dummy", pcontact = "inner", ncontact = "inner", },
-                { name = "input2", gate = "lower", pcontact = "power", ncontact = "power", },
-                { name = "dummy2", gate = "dummy", pcontact = "inner", ncontact = "inner", },
-            }
+    local scdef = {
+        clockbuf = {
+            { name = "input1", gate = "lower", pcontact = "power", ncontact = "power", },
+            { name = "dummy1", gate = "dummy", pcontact = "inner", ncontact = "inner", },
+            { name = "input2", gate = "lower", pcontact = "power", ncontact = "power", },
+            { name = "dummy2", gate = "dummy", pcontact = "inner", ncontact = "inner", },
         },
-        {
-            name = "cinv",
-            entries = {
-                { name = "nmos",  gate = _P.clockpolarity == "positive" and "lower" or "center", pcontact = "power", ncontact = "power", },
-                { name = "pmos",  gate = _P.clockpolarity == "positive" and "center" or "lower", pcontact = "power", ncontact = "outer", },
-                { name = "input", gate = "upper",  pcontact = nil,     ncontact = "outer", },
-                { name = "dummy", gate = "dummy",  pcontact = "outer", ncontact = "outer", },
-            }
+        cinv = {
+            { name = "nmos",   gate = _P.clockpolarity == "positive" and "lower" or "center", pcontact = "power", ncontact = "power", },
+            { name = "pmos",   gate = _P.clockpolarity == "positive" and "center" or "lower", pcontact = "power", ncontact = "outer", },
+            { name = "input",  gate = "upper",  pcontact = "none",  ncontact = "outer", },
+            { name = "dummy1", gate = "dummy",  pcontact = "outer", ncontact = "outer", },
         },
-        {
-            name = "latch1",
-            entries = {
-                { name = "cinvinput", gate = "lower",  pcontact = "outer", ncontact = "outer", },
-                { name = "pmos",      gate = "lower",  pcontact = nil,     ncontact = "outer", },
-                { name = "nmos",      gate = "center", pcontact = "power", ncontact = "outer", },
-                { name = "invinput",  gate = "upper",  pcontact = "power", ncontact = "power", },
-            }
+        latch1 = {
+            { name = "cinvinput", gate = "lower", pcontact = "outer", ncontact = "outer", },
+            { name = "pmos",      gate = _P.clockpolarity == "positive" and "lower" or "center", pcontact = "none",  ncontact = "outer", },
+            { name = "nmos",      gate = _P.clockpolarity == "positive" and "center" or "lower", pcontact = "power", ncontact = "outer", },
+            { name = "invinput",  gate = "upper",  pcontact = "power", ncontact = "power", },
         },
-        {
-            name = "tgate",
-            entries = {
-                { name = "nmos",  gate = "center", pcontact = "inner", ncontact = "inner", },
-                { name = "pmos",  gate = "lower",  pcontact = "inner", ncontact = "outer", },
-                { name = "dummy", gate = "dummy",  pcontact = "outer", ncontact = "outer", },
-            }
+        tgate = {
+            { name = "nmos",   gate = _P.clockpolarity == "positive" and "center" or "lower", pcontact = "inner", ncontact = "inner", },
+            { name = "pmos",   gate = _P.clockpolarity == "positive" and "lower" or "center", pcontact = "inner", ncontact = "outer", },
+            { name = "dummy1", gate = "dummy",  pcontact = "outer", ncontact = "outer", },
         },
-        {
-            name = "latch2",
-            entries = {
-                { name = "cinvinput", gate = "lower",  pcontact = "outer", ncontact = "outer", },
-                { name = "pmos",      gate = "center", pcontact = nil,     ncontact = "outer", },
-                { name = "nmos",      gate = "lower",  pcontact = "power", ncontact = "outer", },
-                { name = "invinput",  gate = "upper",  pcontact = "power", ncontact = "power", },
-                { name = "dummy",     gate = "dummy",  pcontact = "inner", ncontact = "inner", },
-            }
+        latch2 = {
+            { name = "cinvinput", gate = "lower",  pcontact = "outer", ncontact = "outer", },
+            { name = "pmos",      gate = _P.clockpolarity == "positive" and "center" or "lower", pcontact = "none",  ncontact = "outer", },
+            { name = "nmos",      gate = _P.clockpolarity == "positive" and "lower" or "center", pcontact = "power", ncontact = "outer", },
+            { name = "invinput",  gate = "upper",  pcontact = "power", ncontact = "power", },
+            { name = "dummy1",    gate = "dummy",  pcontact = "inner", ncontact = "inner", },
         },
-        {
-            name = "buffer",
-            entries = {
-                { name = "input", gate = "center", pcontact = "power", ncontact = "power", },
-                { name = "dummy", gate = "dummy",  pcontact = "inner", ncontact = "inner", },
-            }
+        buffer = {
+            { name = "input", gate = "center", pcontact = "power", ncontact = "power", },
+            { name = "dummy", gate = "dummy",  pcontact = "inner", ncontact = "inner", },
         },
     }
+
+    -- modify subcircuits template (reset, set, etc.)
+    for i = 1, _P.cinvlatch1separationdummies - 1 do
+        local entry = {
+            name = string.format("dummy%d", i + 1),
+            gate = "dummy",
+            pcontact = "outer",
+            ncontact = "outer",
+        }
+        table.insert(scdef.cinv, entry)
+    end
+    for i = 1, _P.tgatelatch2separationdummies - 1 do
+        local entry = {
+            name = string.format("dummy%d", i + 1),
+            gate = "dummy",
+            pcontact = "outer",
+            ncontact = "outer",
+        }
+        table.insert(scdef.tgate, entry)
+    end
+    for i = 1, _P.latch2outbufseparationdummies - 1 do
+        local entry = {
+            name = string.format("dummy%d", i + 1),
+            gate = "dummy",
+            pcontact = "outer",
+            ncontact = "outer",
+        }
+        table.insert(scdef.latch2, entry)
+    end
+
+    -- put subcircuits in the right order
+    local scorder = {
+        "clockbuf",
+        "cinv",
+        "latch1",
+        "tgate",
+        "latch2",
+        "buffer",
+    }
+    local subcircuits = {}
+    for _, scname in ipairs(scorder) do
+        local entry = {
+            name = scname,
+            entries = scdef[scname]
+        }
+        table.insert(subcircuits, entry)
+    end
 
     -- parse subcircuit definition and create gate/drain/source positions for basic/cmos
     local gatecontactpos = {}
@@ -175,6 +189,11 @@ function layout(dff, _P)
         return harness:get_area_anchor(string.format("%sSD%d", fet, indexmap[identifier] + 1))
     end
 
+    -- general base anchors for y-alignment
+    local gcenterbase = harness:get_area_anchor("Gcenterbase")
+    local glowerbase = harness:get_area_anchor("Glowerbase")
+    local gupperbase = harness:get_area_anchor("Gupperbase")
+
     local spacing = bp.sdwidth / 2 + bp.routingspace
 
     -- clock buffer input port landing
@@ -207,21 +226,20 @@ function layout(dff, _P)
         gate("cinvpmos").bl:translate(-1 * xpitch, 0),
         gate("cinvpmos").tl:translate( 2 * xpitch - spacing, 0)
     )
-    geometry.rectanglepoints(dff, generics.metal(2),
-        gate("cinvpmos").bl:translate_x(-2 * xpitch),
-        gate("latch2pmos").tl:translate_x(xpitch - spacing)
+    geometry.rectanglebltr(dff, generics.metal(2),
+        (gate("cinvpmos").bl .. gcenterbase.bl):translate_x(-2 * xpitch),
+        gate("latch2cinvinput").tr:translate(3 * xpitch + bp.glength / 2, yrpitch)
     )
     -- ~clk M2 bar
     geometry.rectanglebltr(dff, generics.metal(2),
-        gate("clockbufinput2").bl:translate_x(-xpitch),
-        gate("latch2nmos").tl:translate_x(xpitch - spacing)
+        (gate("clockbufinput2").bl .. glowerbase.bl):translate_x(-xpitch),
+        gate("latch2cinvinput").tr:translate_x(3 * xpitch + bp.glength / 2)
     )
 
     -- cinv clk connection
-    -- FIXME: clockpolarity
     geometry.rectanglebltr(dff, generics.metal(1),
         gate("clockbufdummy2").bl .. harness:get_area_anchor("Gcenterbase").bl,
-        (gate("cinvdummy").bl .. harness:get_area_anchor("Gcenterbase").tl):translate_x(-spacing)
+        (gate("cinvdummy1").bl .. harness:get_area_anchor("Gcenterbase").tl):translate_x(-spacing)
     )
 
     -- cinv ~clk connection
@@ -253,12 +271,12 @@ function layout(dff, _P)
 
     -- short dummy between cinv and first latch cinv
     geometry.rectanglebltr(dff, generics.metal(1),
-        sourcedrainleft("p", "cinvdummy").tr:translate_y(-bp.sdwidth),
-        sourcedrainright("p", "cinvdummy").tl
+        sourcedrainleft("p", "cinvdummy1").tr:translate_y(-bp.sdwidth),
+        sourcedrainright("p", string.format("cinvdummy%d", _P.cinvlatch1separationdummies)).tl
     )
     geometry.rectanglebltr(dff, generics.metal(1),
-        sourcedrainleft("n", "cinvdummy").br,
-        sourcedrainright("n", "cinvdummy").bl:translate_y(bp.sdwidth)
+        sourcedrainleft("n", "cinvdummy1").br,
+        sourcedrainright("n", string.format("cinvdummy%d", _P.cinvlatch1separationdummies)).bl:translate_y(bp.sdwidth)
     )
 
     -- short nmos in first latch (set layout)
@@ -271,17 +289,13 @@ function layout(dff, _P)
     end
 
     -- connect first latch cinv drains
-    --geometry.rectanglebltr(dff, generics.metal(1),
-    --    sourcedrain("n", "cc", 9):translate(-bp.sdwidth / 2, 0),
-    --    sourcedrain("p", "cc", 9):translate( bp.sdwidth / 2, 0)
-    --)
     geometry.rectanglebltr(dff, generics.metal(1),
-        sourcedrainleft("n", "latch1cinvinput").tl,
-        sourcedrainleft("p", "latch1cinvinput").br
+        sourcedrainright("n", string.format("cinvdummy%d", math.ceil(_P.cinvlatch1separationdummies / 2))).tl,
+        sourcedrainright("p", string.format("cinvdummy%d", math.ceil(_P.cinvlatch1separationdummies / 2))).br
     )
 
     -- first latch / transmission gate clk bar vias
-    geometry.rectanglepoints(dff, generics.metal(1),
+    geometry.rectanglebltr(dff, generics.metal(1),
         gate("latch1pmos").br,
         gate("tgatepmos").tl
     )
@@ -296,7 +310,7 @@ function layout(dff, _P)
         ):translate_x( xpitch + bp.glength / 2)
     )
     if not _P.enable_set and not _P.enable_reset then
-        geometry.rectanglepoints(dff, generics.metal(1),
+        geometry.rectanglebltr(dff, generics.metal(1),
             gate("latch1nmos").br,
             gate("tgatenmos").tl
         )
@@ -340,7 +354,7 @@ function layout(dff, _P)
         geometry.path_points_xy(gate("latch1invinput").bl:translate_y(bp.sdwidth / 2), {
             -xpitch,
             (bp.routingwidth + bp.routingspace) / (bp.numinnerroutes % 2 == 0 and 2 or 1),
-            sourcedrainright("p", "cinvdummy").bl:translate_x(bp.sdwidth / 2)
+            sourcedrainright("p", "cinvdummy1").bl:translate_x(bp.sdwidth / 2)
     }), bp.sdwidth)
 
     -- first latch inverter connect drains
@@ -349,26 +363,31 @@ function layout(dff, _P)
     geometry.path_cshape(dff, generics.metal(1),
         sourcedrainleft("p", "tgatenmos").br:translate_y( bp.sdwidth / 2),
         sourcedrainleft("n", "tgatenmos").tr:translate_y(-bp.sdwidth / 2),
-        gate("tgatedummy").bl:translate_x(bp.sdwidth / 2),
+        gate(string.format("tgatedummy%d", 1)).bl:translate_x(bp.sdwidth / 2),
         bp.sdwidth
     )
 
     -- short transistors in transmission gate
-    -- pmos does not need to be shorted, this is done while connecting nmos/pmos drains of the latch inverter
     geometry.rectanglebltr(dff, generics.metal(1),
         sourcedrainleft("n", "tgatepmos").bl,
-        sourcedrainright("n", "tgatedummy").bl:translate_y(bp.sdwidth)
+        sourcedrainright("n", string.format("tgatedummy%d", _P.tgatelatch2separationdummies)).bl:translate_y(bp.sdwidth)
     )
+    if _P.tgatelatch2separationdummies > 2 then
+        --geometry.rectanglebltr(dff, generics.metal(3),
+        --    sourcedrainright("p", "tgatedummy1").br,
+        --    sourcedrainleft("p", string.format("tgatedummy%d", _P.tgatelatch2separationdummies)).bl:translate_y(bp.sdwidth)
+        --)
+    end
 
     -- short dummy between cinv and second latch cinv
     geometry.rectanglebltr(dff, generics.metal(1),
-        sourcedrainleft("p", "tgatedummy").tl:translate_y(-bp.sdwidth),
-        sourcedrainright("p", "tgatedummy").tl
+        sourcedrainleft("p", "tgatedummy1").tl:translate_y(-bp.sdwidth),
+        sourcedrainright("p", string.format("tgatedummy%d", _P.tgatelatch2separationdummies)).tl
     )
 
     -- short nmos in second latch (set layout)
     if _P.enable_set then
-        geometry.rectanglebltr(dff, generics.metal(1),
+        geometry.rectanglebltr(dff, generics.metal(3),
             sourcedrain("n", "cc", 21 + resetshift):translate(0, -bp.sdwidth / 2),
             sourcedrain("n", "cc", 22 + resetshift):translate(0, bp.sdwidth / 2)
         )
@@ -376,8 +395,8 @@ function layout(dff, _P)
 
     -- connect second latch cinv / transmission gate drains
     geometry.rectanglebltr(dff, generics.metal(1),
-        sourcedrainright("n", "tgatedummy").tl,
-        sourcedrainright("p", "tgatedummy").br
+        sourcedrainright("n", string.format("tgatedummy%d", math.ceil(_P.tgatelatch2separationdummies / 2))).tl,
+        sourcedrainright("p", string.format("tgatedummy%d", math.ceil(_P.tgatelatch2separationdummies / 2))).br
     )
 
     -- second latch clk bar vias
@@ -407,7 +426,7 @@ function layout(dff, _P)
         geometry.path_points_xy(gate("latch2invinput").bl:translate_y(bp.sdwidth / 2), {
             -xpitch,
             (bp.routingwidth + bp.routingspace) / (bp.numinnerroutes % 2 == 0 and 2 or 1),
-            sourcedrainright("p", "tgatedummy").bl:translate_x(bp.sdwidth / 2)
+            sourcedrainright("p", string.format("tgatedummy%d", _P.tgatelatch2separationdummies)).bl:translate_x(bp.sdwidth / 2)
     }), bp.sdwidth)
 
     -- second latch inverter connect drains
