@@ -11,6 +11,13 @@ struct lobject {
     int destroy;
 };
 
+static int lobject_tostring(lua_State* L)
+{
+    struct lobject* cell = lobject_check(L, 1);
+    lua_pushfstring(L, "object: '%s' (%p)", object_get_name(cell->object), cell->object);
+    return 1;
+}
+
 static struct lobject* _create(lua_State* L)
 {
     struct lobject* cell = lua_newuserdata(L, sizeof(*cell));
@@ -754,6 +761,7 @@ int open_lobject_lib(lua_State* L)
         { "flatten",                    lobject_flatten                     },
         { "rasterize_curves",           lobject_rasterize_curves            },
         { "__gc",                       lobject_destroy                     },
+        { "__tostring",                 lobject_tostring                    },
         { NULL,                         NULL                                }
     };
     luaL_setfuncs(L, metafuncs, 0);
