@@ -1335,9 +1335,17 @@ static int _read_structure(const char* importname, struct stream* stream, const 
                 return 0;
             }
         }
+        else if(record->recordtype == PROPATTR)
+        {
+            // FIXME: handle record
+        }
         else if(record->recordtype == PROPVALUE)
         {
             // FIXME: handle record
+        }
+        else if(record->recordtype == ENDEL)
+        {
+            break;
         }
         else // wrong record
         {
