@@ -393,7 +393,6 @@ static void _print_parameters(const struct vector* parameters)
         }
         vector_const_iterator_destroy(it);
     }
-
 }
 
 struct parameter* _copy_parameter(const struct parameter* param)
@@ -507,6 +506,8 @@ void _print_api_entry(const struct api_entry* entry)
     _putstr(")");
     
     // function info
+    putchar('\n');
+    _putstr(entry->info);
     putchar('\n');
     putchar('\n');
 
@@ -2522,7 +2523,7 @@ struct vector* _initialize_api_entries(void)
         vector_append(entries, _make_api_entry(
             "fill_even_with",
             MODULE_UTIL,
-            "create an array-like table with two entries repeated N / 2 times, alternating. This is useful, for example, for specifying gate contacts for basic/cmos. Counting starts at 1, so the first entry will be 'other'",
+            "create an array-like table with two entries repeated N / 2 times, alternating. Counting starts at 1. This is useful, for example, for specifying gate contacts for basic/cmos. Counting starts at 1, so the first entry will be 'other'",
             "local gatecontactpos = util.fill_even_with(4, \"center\", \"upper\") -- { \"upper\", \"center\", \"upper\", \"center\" }",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
@@ -2538,7 +2539,7 @@ struct vector* _initialize_api_entries(void)
         vector_append(entries, _make_api_entry(
             "fill_odd_with",
             MODULE_UTIL,
-            "create an array-like table with two entries repeated N / 2 times, alternating. This is useful, for example, for specifying gate contacts for basic/cmos. Counting starts at 1, so the first entry will be 'filler'",
+            "create an array-like table with two entries repeated N / 2 times, alternating. Counting starts at 1. This is useful, for example, for specifying gate contacts for basic/cmos. Counting starts at 1, so the first entry will be 'filler'",
             "local gatecontactpos = util.fill_odd_with(4, \"center\", \"upper\") -- { \"center\", \"upper\", \"center\", \"upper\" }",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
