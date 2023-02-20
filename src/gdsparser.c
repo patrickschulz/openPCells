@@ -812,12 +812,14 @@ static void _write_layers(FILE* cellfile, int16_t layer, int16_t purpose, const 
         fputs(" }", cellfile);
         if(layermap)
         {
+            int foundmapping = 0;
             struct vector_const_iterator* it = vector_const_iterator_create(layermap);
             while(vector_const_iterator_is_valid(it))
             {
                 const struct layermapping* mapping = vector_const_iterator_get(it);
                 if(layer == mapping->layer && purpose == mapping->purpose)
                 {
+                    foundmapping = 1;
                     for(unsigned int i = 0; i < mapping->num; ++i)
                     {
                         fprintf(cellfile, ", %s", mapping->mappings[i]);
@@ -826,6 +828,10 @@ static void _write_layers(FILE* cellfile, int16_t layer, int16_t purpose, const 
                 vector_const_iterator_next(it);
             }
             vector_const_iterator_destroy(it);
+            if(!foundmapping)
+            {
+                fprintf(stderr, "read GDS: layermap is present, but no mapping was found for layer (%d, %d)\n", layer, purpose);
+            }
         }
         fputs(" })", cellfile);
     }
