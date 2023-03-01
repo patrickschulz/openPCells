@@ -20,7 +20,8 @@ local __counter = 0
 local __maxletlimit = 65536
 local __istoplevel = false
 function M.set_options(opt)
-    for i = 1, #opt do
+    local i = 1
+    while i < #opt do
         local arg = opt[i]
         if arg == "-L" or arg == "--label-size" then
             if i < #opt then
@@ -29,29 +30,28 @@ function M.set_options(opt)
                 error("SKILL export: --label-size: argument expected")
             end
             i = i + 1
-        end
-        if arg == "-g" or arg == "--group" then
+        elseif arg == "-g" or arg == "--group" then
             __group = true
-        end
-        if arg == "-n" or arg == "--group-name" then
+        elseif arg == "-n" or arg == "--group-name" then
             if i < #opt then
                 __groupname = opt[i + 1]
             else
                 error("SKILL export: --group-name: argument expected")
             end
             i = i + 1
-        end
-        if arg == "--no-let-splits" then
+        elseif arg == "--no-let-splits" then
             __splitlets = false
-        end
-        if arg == "--max-let-splits" then
+        elseif arg == "--max-let-splits" then
             if i < #opt then
                 __maxletlimit = tonumber(opt[i + 1])
             else
                 error("SKILL export: --max-let-splits: argument expected")
             end
             i = i + 1
+        else
+            error(string.format("SKILL export: unknown option '%s'", arg))
         end
+        i = i + 1
     end
 end
 
@@ -147,6 +147,7 @@ end
 local function _ensure_legal_limit()
     if __splitlets then
         __counter = __counter + 1
+        --print(__counter, __maxletlimit)
         if __counter > __maxletlimit then
             _close_let()
             _start_let()
