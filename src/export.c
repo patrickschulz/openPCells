@@ -14,6 +14,8 @@
 #include "gdsexport.h"
 #include "filesystem.h"
 
+#include "ldebug.h"
+
 #define EXPORT_STATUS_SUCCESS 0
 #define EXPORT_STATUS_NOTFOUND 1
 #define EXPORT_STATUS_LOADERROR 2
@@ -349,11 +351,18 @@ int export_write_toplevel(struct object* toplevel, struct export_state* state)
                     }
                     ++opt;
                 }
-                _call_or_pop_nil(L, 1);
+                ret = _call_or_pop_nil(L, 1);
+                if(ret != LUA_OK)
+                {
+                    const char* msg = lua_tostring(L, -1);
+                    fprintf(stderr, "error while setting up options for lua export: %s\n", msg);
+                    lua_close(L);
+                    return 0;
+                }
             }
 
             struct export_writer* writer = export_writer_create_lua(L, data);
-            int ret = export_writer_write_toplevel(writer, toplevel, state->writechildrenports, state->leftdelim, state->rightdelim);
+            ret = export_writer_write_toplevel(writer, toplevel, state->writechildrenports, state->leftdelim, state->rightdelim);
             export_writer_destroy(writer);
             if(!ret)
             {
