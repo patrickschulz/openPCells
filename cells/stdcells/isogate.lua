@@ -3,8 +3,8 @@ function config()
 end
 
 function parameters()
-    pcell.add_parameter("pwidth", 2 * technology.get_dimension("Minimum Gate Width"))
-    pcell.add_parameter("nwidth", 2 * technology.get_dimension("Minimum Gate Width"))
+    pcell.add_parameter("pwidthoffset", 0)
+    pcell.add_parameter("nwidthoffset", 0)
 end
 
 function layout(gate, _P)
@@ -15,8 +15,8 @@ function layout(gate, _P)
         gatecontactpos = { "dummy" },
         pcontactpos = { "power", "power" },
         ncontactpos = { "power", "power" },
-        pwidth = _P.pwidth,
-        nwidth = _P.nwidth,
+        pwidthoffset = _P.pwidthoffset,
+        nwidthoffset = _P.nwidthoffset,
         drawdummyactivecontacts = false,
     })
     gate:merge_into(harness)

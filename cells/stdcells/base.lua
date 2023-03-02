@@ -4,6 +4,8 @@ end
 
 function parameters()
     pcell.add_parameters(
+        { "basepwidth(pMOS Finger Width)",                              2 * technology.get_dimension("Minimum Gate Width") },
+        { "basenwidth(nMOS Finger Width)",                              2 * technology.get_dimension("Minimum Gate Width") },
         { "oxidetype(Oxide Type)",                                      1 },
         { "gatemarker(Gate Marker Index)",                              1 },
         { "pvthtype(PMOS Threshold Voltage Type) ",                     1 },
@@ -17,11 +19,9 @@ function parameters()
         { "routingspace(Routing Metal Space)",                          technology.get_dimension("Minimum M1 Space") },
         { "pnumtracks(Number of PMOS Routing Tracks)",                  3 },
         { "nnumtracks(Number of NMOS Routing Tracks)",                  3 },
-        { "numinnerroutes(Number of inner M1 routes)",                  3 }, -- if you use complex gates (xor, dff), this must be (at least) 3
+        { "numinnerroutes(Number of inner M1 routes)",                  3 }, -- the current implementations expects this to be 3 always, so don't change this
         { "powerwidth(Power Rail Metal Width)",                         technology.get_dimension("Minimum M1 Width") },
         { "powerspace(Power Rail Space)",                               technology.get_dimension("Minimum M1 Space") },
-        { "separation(nMOS/pMOS Separation)",                           0 },
-        { "spacesepautocalc(Calculate Power Rail Space/Separation)",    true },
         { "gateext(Gate Extension)",                                    0 },
         { "psdheight(PMOS Source/Drain Contact Height)",                0 },
         { "nsdheight(NMOS Source/Drain Contact Height)",                0 },

@@ -18,8 +18,8 @@
 function parameters()
     pcell.add_parameters(
         -- FIXME: add more transistor finger width control
-        { "pwidth", 2 * technology.get_dimension("Minimum Gate Width") },
-        { "nwidth", 2 * technology.get_dimension("Minimum Gate Width") },
+        { "pwidthoffset", 0 },
+        { "nwidthoffset", 0 },
         { "clockpolarity", "positive", posvals = set("positive", "negative") },
         { "enable_Q", true },
         { "enable_QN", false },
@@ -161,38 +161,38 @@ function layout(dff, _P)
     table.insert(ncontactpos, "power")
 
     local harness = pcell.create_layout("stdcells/harness", "mosfets", {
-        pwidth = _P.pwidth,
-        nwidth = _P.nwidth,
+        pwidthoffset = _P.pwidthoffset,
+        nwidthoffset = _P.nwidthoffset,
         gatecontactpos = gatecontactpos,
         pcontactpos = pcontactpos,
         ncontactpos = ncontactpos,
     })
-    dff:merge_into(harness)
+    dff:exchange(harness)
 
     -- easy anchor access functions
     local gate = function(identifier)
         if not indexmap[identifier] then
             cellerror(string.format("did not find gate anchor entry '%s'", identifier))
         end
-        return harness:get_area_anchor(string.format("G%d", indexmap[identifier]))
+        return dff:get_area_anchor(string.format("G%d", indexmap[identifier]))
     end
     local sourcedrainleft = function(fet, identifier)
         if not indexmap[identifier] then
             cellerror(string.format("did not find source/drain anchor entry '%s'", identifier))
         end
-        return harness:get_area_anchor(string.format("%sSD%d", fet, indexmap[identifier]))
+        return dff:get_area_anchor(string.format("%sSD%d", fet, indexmap[identifier]))
     end
     local sourcedrainright = function(fet, identifier)
         if not indexmap[identifier] then
             cellerror(string.format("did not find source/drain anchor entry '%s'", identifier))
         end
-        return harness:get_area_anchor(string.format("%sSD%d", fet, indexmap[identifier] + 1))
+        return dff:get_area_anchor(string.format("%sSD%d", fet, indexmap[identifier] + 1))
     end
 
     -- general base anchors for y-alignment
-    local gcenterbase = harness:get_area_anchor("Gcenterbase")
-    local glowerbase = harness:get_area_anchor("Glowerbase")
-    local gupperbase = harness:get_area_anchor("Gupperbase")
+    local gcenterbase = dff:get_area_anchor("Gcenterbase")
+    local glowerbase = dff:get_area_anchor("Glowerbase")
+    local gupperbase = dff:get_area_anchor("Gupperbase")
 
     local spacing = bp.sdwidth / 2 + bp.routingspace
 
@@ -238,8 +238,8 @@ function layout(dff, _P)
 
     -- cinv clk connection
     geometry.rectanglebltr(dff, generics.metal(1),
-        gate("clockbufdummy2").bl .. harness:get_area_anchor("Gcenterbase").bl,
-        (gate("cinvdummy1").bl .. harness:get_area_anchor("Gcenterbase").tl):translate_x(-spacing)
+        gate("clockbufdummy2").bl .. dff:get_area_anchor("Gcenterbase").bl,
+        (gate("cinvdummy1").bl .. dff:get_area_anchor("Gcenterbase").tl):translate_x(-spacing)
     )
 
     -- cinv ~clk connection
@@ -486,23 +486,23 @@ function layout(dff, _P)
 
     -- reset bar and M1/M2 vias
     if _P.enable_reset then
-        geometry.rectanglebltr(dff, generics.metal(2),
-            gate(12):translate(0, -bp.routingwidth / 2),
-            gate(21):translate(0, bp.routingwidth / 2)
-        )
-        geometry.viabltr(dff, 1, 2,
-            gate(12):translate(-xpitch - bp.glength / 2, -bp.routingwidth / 2),
-            gate(12):translate( xpitch + bp.glength / 2, bp.routingwidth / 2)
-        )
-        geometry.viabltr(dff, 1, 2,
-            gate(21):translate(-xpitch - bp.glength / 2, -bp.routingwidth / 2),
-            gate(21):translate( xpitch + bp.glength / 2, bp.routingwidth / 2)
-        )
+        --geometry.rectanglebltr(dff, generics.metal(2),
+        --    gate(12):translate(0, -bp.routingwidth / 2),
+        --    gate(21):translate(0, bp.routingwidth / 2)
+        --)
+        --geometry.viabltr(dff, 1, 2,
+        --    gate(12):translate(-xpitch - bp.glength / 2, -bp.routingwidth / 2),
+        --    gate(12):translate( xpitch + bp.glength / 2, bp.routingwidth / 2)
+        --)
+        --geometry.viabltr(dff, 1, 2,
+        --    gate(21):translate(-xpitch - bp.glength / 2, -bp.routingwidth / 2),
+        --    gate(21):translate( xpitch + bp.glength / 2, bp.routingwidth / 2)
+        --)
     end
 
     -- ports
-    dff:add_port("VDD", generics.metalport(1), harness:get_area_anchor("PRp").bl)
-    dff:add_port("VSS", generics.metalport(1), harness:get_area_anchor("PRn").bl)
+    dff:add_port("VDD", generics.metalport(1), dff:get_area_anchor("PRp").bl)
+    dff:add_port("VSS", generics.metalport(1), dff:get_area_anchor("PRn").bl)
     dff:add_port("CLK", generics.metalport(1), gate("clockbufinput1").bl)
     dff:add_port("D", generics.metalport(1), gate("clockbufinput1").bl:translate_y(2 * (bp.routingwidth + bp.routingspace)))
     if _P.enable_Q then
@@ -515,9 +515,6 @@ function layout(dff, _P)
         dff:add_port("SET", generics.metalport(2), point.combine(gate("tgateEN"), gate(22)))
     end
     if _P.enable_reset then
-        dff:add_port("RST", generics.metalport(2), point.combine(gate(12), gate(21)))
+        --dff:add_port("RST", generics.metalport(2), point.combine(gate(12), gate(21)))
     end
-
-    -- alignment box
-    dff:inherit_alignment_box(harness)
 end

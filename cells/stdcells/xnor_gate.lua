@@ -83,14 +83,14 @@ function layout(gate, _P)
 
     -- inverter B
     local invb = pcell.create_layout("stdcells/not_gate", "invb", { inputpos = "upper" })
-    invb:align_left(gate)
+    invb:abut_left(gate)
     gate:merge_into(invb)
     gate:inherit_alignment_box(invb)
 
     -- inverter A
     pcell.push_overwrites("stdcells/base", { compact = false })
     local inva = pcell.create_layout("stdcells/not_gate", "inva", { inputpos = "lower", shiftoutput = xpitch / 2 })
-    inva:align_left(invb)
+    inva:abut_left(invb)
     gate:merge_into(inva)
     gate:inherit_alignment_box(inva)
     pcell.pop_overwrites("stdcells/base")

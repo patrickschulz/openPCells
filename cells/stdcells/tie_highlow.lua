@@ -1,8 +1,8 @@
 function parameters()
     pcell.add_parameters(
         { "high", true },
-        { "pwidth", 2 * technology.get_dimension("Minimum Gate Width") },
-        { "nwidth", 2 * technology.get_dimension("Minimum Gate Width") },
+        { "pwidthoffset", 0 },
+        { "nwidthoffset", 0 },
         { "fingers", 2, posvals = even() }
     )
 end
@@ -16,8 +16,8 @@ function layout(cell, _P)
 
     local contactpos = util.fill_even_with(_P.fingers + 1, "inner", "power")
     local harness = pcell.create_layout("stdcells/harness", "mosfets", {
-        pwidth = _P.pwidth,
-        nwidth = _P.nwidth,
+        pwidthoffset = _P.pwidthoffset,
+        nwidthoffset = _P.nwidthoffset,
         gatecontactpos = gatecontactpos,
         pcontactpos = contactpos,
         ncontactpos = contactpos,

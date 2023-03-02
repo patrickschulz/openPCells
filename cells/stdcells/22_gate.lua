@@ -29,20 +29,20 @@ function layout(gate, _P)
     local gate1 = gate:add_child(gate1ref, "gate1")
 
     local isogate1 = gate:add_child(isogateref, "isogate1")
-    isogate1:align_right(gate1)
+    isogate1:abut_right(gate1)
 
     -- gate 2
     local gate2ref = pcell.create_layout(string.format("stdcells/%s", _P.gate2), "gate2")
     local gate2 = gate:add_child(gate2ref, "gate2")
-    gate2:align_right(isogate1)
+    gate2:abut_right(isogate1)
 
     local isogate2 = gate:add_child(isogateref, "isogate2")
-    isogate2:align_right(gate2)
+    isogate2:abut_right(gate2)
 
     -- gate 3
     local gate3ref = pcell.create_layout(string.format("stdcells/%s", _P.gate3), "gate3")
     local gate3 = gate:add_child(gate3ref, "gate3")
-    gate3:align_right(isogate2)
+    gate3:abut_right(isogate2)
 
     -- draw connections
     geometry.path(gate, generics.metal(2), 

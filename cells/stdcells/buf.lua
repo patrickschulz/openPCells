@@ -21,7 +21,7 @@ function layout(gate, _P)
         shiftinput = _P.shiftinput2, 
         shiftoutput = bp.glength / 2 + bp.gspace / 2 
     })
-    oinv:align_right(iinv)
+    oinv:abut_right(iinv)
     gate:merge_into(iinv)
     gate:merge_into(oinv)
 

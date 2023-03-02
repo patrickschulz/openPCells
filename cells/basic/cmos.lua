@@ -8,9 +8,9 @@ function parameters()
         { "nmosflippedwell(NMOS Flipped Well)",             false },
         { "pwidth(PMOS Finger Width)",                         technology.get_dimension("Minimum Gate Width"), posvals = even() },
         { "nwidth(NMOS Finger Width)",                         technology.get_dimension("Minimum Gate Width"), posvals = even() },
-        { "separation(Separation Between Active Regions)",     technology.get_dimension("Minimum Active Space"), posvals = even() },
-        { "gatelength(Gate Length)",                           technology.get_dimension("Minimum Gate Length"), argtype = "integer", posvals = even() },
-        { "gatespace(Gate Spacing)",                           technology.get_dimension("Minimum Gate XSpace"), argtype = "integer", posvals = even() },
+        { "separation(Separation Between Active Regions)",     technology.get_dimension("Minimum Active Space") },
+        { "gatelength(Gate Length)",                           technology.get_dimension("Minimum Gate Length"), argtype = "integer" },
+        { "gatespace(Gate Spacing)",                           technology.get_dimension("Minimum Gate XSpace"), argtype = "integer" },
         { "sdwidth(Source/Drain Metal Width)",                 technology.get_dimension("Minimum M1 Width"), posvals = even() },
         { "gstwidth(Gate Strap Metal Width)",                  technology.get_dimension("Minimum M1 Width") },
         { "gstspace(Gate Strap Metal Space)",                  technology.get_dimension("Minimum M1 Space") },
@@ -18,12 +18,14 @@ function parameters()
         { "powerwidth(Power Rail Metal Width)",                technology.get_dimension("Minimum M1 Width") },
         { "npowerspace(NMOS Power Rail Space)",                technology.get_dimension("Minimum M1 Space"), posvals = positive() },
         { "ppowerspace(PMOS Power Rail Space)",                technology.get_dimension("Minimum M1 Space"), posvals = positive() },
-        { "gateext(Gate Extension)",                           0 },
+        { "pgateext(pMOS Gate Extension)",                     0 },
+        { "ngateext(nMOS Gate Extension)",                     0 },
         { "psdheight(PMOS Source/Drain Contact Height)",       0 },
         { "nsdheight(NMOS Source/Drain Contact Height)",       0 },
         { "psdpowerheight(PMOS Source/Drain Contact Height)",  0 },
         { "nsdpowerheight(NMOS Source/Drain Contact Height)",  0 },
-        { "cutheight",                                         technology.get_dimension("Minimum Gate Cut Height", "Minimum Gate YSpace"), posvals = even() },
+        { "cutwidth",                                          0, follow = "gatespace" }, -- FIXME: allow expressions for follower parameters
+        { "cutheight",                                         technology.get_dimension("Minimum Gate Cut Height", "Minimum Gate YSpace") },
         { "compact(Compact Layout)",                           true },
         { "connectoutput",                                     true },
         { "drawtransistors", true },
@@ -66,20 +68,44 @@ function parameters()
     )
 end
 
+function check(_P)
+    -- check separation
+    if (3 * _P.gstwidth + 4 * _P.gstspace) > _P.separation then
+        return false, "can't fit all gate straps into the separation between nmos and pmos"
+    end
+    -- FIXME: this check is not necessary, but the current implementation is broken if this condition is met
+    if (3 * _P.gstwidth + 4 * _P.gstspace) ~= _P.separation then
+        return false, string.format("the separation between nmos and pmos must have the exact size to fit three rows of gate contacts (%d vs. %d)", 3 * _P.gstwidth + 4 * _P.gstspace, _P.separation)
+    end
+    -- check number of gate and source/drain contacts
+    if #_P.pcontactpos ~= #_P.ncontactpos then
+        return false, "the number of the source/drain contacts must be equal for nmos and pmos"
+    end
+    if (#_P.gatecontactpos + 1) ~= #_P.ncontactpos then
+        return false, "the number of the source/drain contacts must match the gate contacts (+1)"
+    end
+    -- check if gate cut width and gatelength match
+    if (_P.gatelength % 2) ~= (_P.cutwidth % 2) then
+        return false, "gatelength and cutwidth must both be either odd or even"
+    end
+    -- check if gate cut height and separation match
+    if (_P.separation % 2) ~= (_P.cutheight % 2) then
+        return false, "separation and cutheight must both be either odd or even"
+    end
+    return true
+end
+
 function layout(cmos, _P)
     local gatepitch = _P.gatespace + _P.gatelength
     local fingers = #_P.gatecontactpos
 
     -- check if outer gates are drawn
-    local outergatepresent = false
+    local outergateshift = 0
     if _P.drawgatecontacts then
-        for i = 1, fingers do
-            if _P.gatecontactpos[i] == "outer" then
-                outergatepresent = true
-            end
+        if aux.any_of("outer", _P.gatecontactpos) then
+            outergateshift = _P.outergateshift + _P.gstwidth
         end
     end
-    local outergateshift = outergatepresent and _P.outergstspace + _P.gstwidth or 0
 
     -- check if gate names are valid
     if (#_P.gatenames > 0) and (#_P.gatenames ~= #_P.gatecontactpos) then
@@ -102,14 +128,6 @@ function layout(cmos, _P)
             topgcutwidth = _P.cutheight,
             botgcutwidth = _P.cutheight,
         })
-        local n_ext, p_ext
-        if aux.any_of("dummy", _P.gatecontactpos) then
-            n_ext = math.max(_P.npowerspace + outergateshift + _P.gateext + math.max(_P.cutheight / 2, _P.dummycontheight))
-            p_ext = math.max(_P.ppowerspace + outergateshift + _P.gateext + math.max(_P.cutheight / 2, _P.dummycontheight))
-        else
-            n_ext = math.max(outergateshift, math.max(_P.gateext, _P.cutheight / 2, _P.dummycontheight / 2))
-            p_ext = math.max(outergateshift, math.max(_P.gateext, _P.cutheight / 2, _P.dummycontheight / 2))
-        end
 
         -- pmos
         local popt = {
@@ -118,7 +136,7 @@ function layout(cmos, _P)
             flippedwell = _P.pmosflippedwell,
             fwidth = _P.pwidth,
             gbotext = _P.separation / 2,
-            gtopext = p_ext,
+            gtopext = _P.pgateext,
             topgcutspace = -_P.powerwidth / 2,
             clipbot = true,
             drawtopactivedummy = _P.drawactivedummy,
@@ -132,7 +150,7 @@ function layout(cmos, _P)
             flippedwell = _P.nmosflippedwell,
             fwidth = _P.nwidth,
             gtopext = _P.separation / 2,
-            gbotext = n_ext,
+            gbotext = _P.ngateext,
             botgcutspace = _P.powerwidth / 2,
             cliptop = true,
             drawbotgcut = false,
@@ -242,82 +260,103 @@ function layout(cmos, _P)
     -- draw gate contacts
     if _P.drawgatecontacts then
         for i = 1, fingers do
+            local entries = {}
             local x = firstgatearea.bl:getx() + (i - 1) * gatepitch
-            local y = firstgatearea.tl:gety() + _P.shiftgatecontacts
-            local yshift = 0
-            local yheight = _P.gstwidth
-            local yrep = 1
-            local ypitch = 0
-            local ignore = false
+            local y = leftndrainarea.tl:gety() + _P.shiftgatecontacts
             if _P.gatecontactpos[i] == "center" then -- do nothing
+                table.insert(entries, {
+                    yheight = _P.gstwidth,
+                    yshift = 2 * _P.gstspace + _P.gstwidth,
+                    index = i,
+                })
             elseif _P.gatecontactpos[i] == "upper" then
-                yshift = _P.gatecontactsplitshift / 2
+                table.insert(entries, {
+                    yshift = 3 * _P.gstspace + 2 * _P.gstwidth,
+                    yheight = _P.gstwidth,
+                    index = i,
+                })
             elseif _P.gatecontactpos[i] == "lower" then
-                yshift = -_P.gatecontactsplitshift / 2
+                table.insert(entries, {
+                    yshift = 1 * _P.gstspace,
+                    yheight = _P.gstwidth,
+                    index = i,
+                })
             elseif _P.gatecontactpos[i] == "split" then
-                yrep = 2
-                ypitch = _P.gatecontactsplitshift
-                cmos:add_area_anchor_bltr(string.format("Gupper%d", i), 
-                    point.create(x, y + _P.gatecontactsplitshift / 2 - _P.gstwidth / 2),
-                    point.create(x + _P.gatelength, y + _P.gatecontactsplitshift / 2 + _P.gstwidth / 2)
-                )
-                cmos:add_area_anchor_bltr(string.format("Glower%d", i), 
-                    point.create(x, y - _P.gatecontactsplitshift / 2 - _P.gstwidth / 2),
-                    point.create(x + _P.gatelength, y - _P.gatecontactsplitshift / 2 + _P.gstwidth / 2)
-                )
+                table.insert(entries, {
+                    yshift = 3 * _P.gstspace + 2 * _P.gstwidth,
+                    yheight = _P.gstwidth,
+                    index = i,
+                    prefix = "upper",
+                })
+                table.insert(entries, {
+                    yshift = 1 * _P.gstspace,
+                    yheight = _P.gstwidth,
+                    index = i,
+                    prefix = "lower",
+                })
+                local cutxshift = (_P.gatelength - _P.cutwidth) / 2
+                local cutyshift = (_P.separation - _P.cutheight) / 2
                 geometry.rectanglebltr(cmos, generics.other("gatecut"), 
-                    point.create(x, -_P.cutheight / 2),
-                    point.create(x + gatepitch, _P.cutheight / 2)
+                    point.create(x + cutxshift,               y + cutyshift),
+                    point.create(x + cutxshift + _P.cutwidth, y + cutyshift + _P.cutheight)
                 )
             elseif _P.gatecontactpos[i] == "dummy" then
-                y = y - _P.shiftgatecontacts
-                yshift = (_P.pwidth - _P.nwidth) / 2 + (_P.ppowerspace - _P.npowerspace) / 2
-                yheight = _P.dummycontheight
-                yrep = 2 
-                ypitch = _P.separation + _P.pwidth + _P.nwidth + _P.ppowerspace + _P.npowerspace + _P.powerwidth + 2 * _P.dummycontshift
+                table.insert(entries, {
+                    yshift = -_P.nwidth - _P.npowerspace - _P.dummycontheight,
+                    yheight = _P.dummycontheight,
+                    index = i,
+                })
+                table.insert(entries, {
+                    yshift = _P.separation + _P.pwidth + _P.ppowerspace,
+                    yheight = _P.dummycontheight,
+                    index = i,
+                })
+                local cutxshift = (_P.gatelength - _P.cutwidth) / 2
+                local cutyshift = (_P.separation - _P.cutheight) / 2
                 geometry.rectanglebltr(cmos, generics.other("gatecut"), 
-                    point.create(x, y - _P.cutheight / 2),
-                    point.create(x + _P.gatelength, y + _P.cutheight / 2)
+                    point.create(x + cutxshift,               y + cutyshift),
+                    point.create(x + cutxshift + _P.cutwidth, y + cutyshift + _P.cutheight)
                 )
             elseif _P.gatecontactpos[i] == "outer" then
-                yshift = (_P.pwidth - _P.nwidth) / 2 + (_P.ppowerspace - _P.npowerspace) / 2
-                yheight = _P.dummycontheight
-                yrep = 2 
-                ypitch = _P.separation + _P.pwidth + _P.nwidth + _P.ppowerspace + _P.npowerspace + 2 * _P.powerwidth + 2 * _P.outergstspace + _P.gstwidth
-                cmos:add_area_anchor_bltr(string.format("Gp%d", i),
-                    point.create(x, y + yshift - yheight / 2 + 0 * ypitch - ypitch / 2),
-                    point.create(x + _P.gatelength, y + yshift + yheight / 2 + 0 * ypitch - ypitch / 2)
-                )
-                cmos:add_area_anchor_bltr(string.format("Gn%d", i),
-                    point.create(x, y + yshift - yheight / 2 + 1 * ypitch - ypitch / 2),
-                    point.create(x + _P.gatelength, y + yshift + yheight / 2 + 1 * ypitch - ypitch / 2)
-                )
+                table.insert(entries, {
+                    yshift = _P.separation + _P.pwidth + _P.outergstspace,
+                    yheight = _P.outergstwidth,
+                    index = i,
+                    prefix = "p",
+                })
+                table.insert(entries, {
+                    yshift = -_P.nwidth - _P.outergstspace - _P.outergstwidth,
+                    yheight = _P.outergstwidth,
+                    index = i,
+                    prefix = "n",
+                })
+                local cutxshift = (_P.gatelength - _P.cutwidth) / 2
+                local cutyshift = (_P.separation - _P.cutheight) / 2
                 geometry.rectanglebltr(cmos, generics.other("gatecut"), 
-                    point.create(x, -_P.cutheight / 2),
-                    point.create(x + gatepitch,  _P.cutheight / 2)
+                    point.create(x + cutxshift,               y + cutyshift),
+                    point.create(x + cutxshift + _P.cutwidth, y + cutyshift + _P.cutheight)
                 )
             elseif _P.gatecontactpos[i] == "unused" then
-                ignore = true
+                -- do nothing
             else
                 moderror(string.format("unknown gate contact position: [%d] = '%s'", i, _P.gatecontactpos[i]))
             end
-            if not ignore then
-                cmos:add_area_anchor_bltr(string.format("G%d", i),
-                    point.create(x, y + yshift - yheight / 2),
-                    point.create(x + _P.gatelength, y + yshift + yheight / 2)
-                )
+            for _, entry in ipairs(entries) do
+                local yshift = entry.yshift or 0
+                local yheight = entry.yheight
+                local index = entry.index
+                local gnames = { string.format("G%s%d", prefix or "", index) }
                 if _P.gatenames[i] then
-                    cmos:add_area_anchor_bltr(_P.gatenames[i],
-                        point.create(x, y + yshift - yheight / 2),
-                        point.create(x + _P.gatelength, y + yshift + yheight / 2)
-                    )
+                    table.insert(gnames, _P.gatenames[i])
                 end
-                geometry.contactbltr(
-                    cmos, "gate", 
-                    point.create(x, y + yshift - yheight / 2),
-                    point.create(x + _P.gatelength, y + yshift + yheight / 2),
-                    1, yrep, 0, ypitch
-                )
+                local bl = point.create(x,                 y + yshift)
+                local tr = point.create(x + _P.gatelength, y + yshift + yheight)
+                -- add anchors
+                for _, gatename in ipairs(gnames) do
+                    cmos:add_area_anchor_bltr(gatename, bl, tr)
+                end
+                -- create contact
+                geometry.contactbltr(cmos, "gate", bl, tr)
             end
             if _P.gatecontactpos[i] ~= "dummy" then
                 if _P.drawgcut and not _P.drawgcuteverywhere then
@@ -343,18 +382,18 @@ function layout(cmos, _P)
     end
     -- add always-available gate anchors for all three positions (lower, upper, center)
     -- the x coordinate does not make any sense, these anchors are just for y alignment
-    local basey = firstgatearea.tl:gety() + _P.shiftgatecontacts
+    local basey = leftndrainarea.tl:gety() + _P.shiftgatecontacts
+    cmos:add_area_anchor_bltr("Glowerbase",
+        point.create(0, basey + 1 * _P.gstspace + 0 * _P.gstwidth),
+        point.create(0, basey + 1 * _P.gstspace + 1 * _P.gstwidth)
+    )
     cmos:add_area_anchor_bltr("Gcenterbase",
-        point.create(0, basey - _P.gstwidth / 2),
-        point.create(0, basey + _P.gstwidth / 2)
+        point.create(0, basey + 2 * _P.gstspace + 1 * _P.gstwidth),
+        point.create(0, basey + 2 * _P.gstspace + 2 * _P.gstwidth)
     )
     cmos:add_area_anchor_bltr("Gupperbase",
-        point.create(0, basey + _P.gatecontactsplitshift / 2 - _P.gstwidth / 2),
-        point.create(0, basey + _P.gatecontactsplitshift / 2 + _P.gstwidth / 2)
-    )
-    cmos:add_area_anchor_bltr("Glowerbase",
-        point.create(0, basey - _P.gatecontactsplitshift / 2 - _P.gstwidth / 2),
-        point.create(0, basey - _P.gatecontactsplitshift / 2 + _P.gstwidth / 2)
+        point.create(0, basey + 3 * _P.gstspace + 2 * _P.gstwidth),
+        point.create(0, basey + 3 * _P.gstspace + 3 * _P.gstwidth)
     )
 
     -- draw source/drain contacts
@@ -418,7 +457,7 @@ function layout(cmos, _P)
                 yheight = ncontactheight
             elseif _P.ncontactpos[i] == "full" or _P.ncontactpos[i] == "fullpower" then
                 yheight = _P.nwidth
-            elseif not _P.ncontactpos[i] or _P.ncontactpos[i] == "unused" then
+            elseif not _P.ncontactpos[i] or _P.ncontactpos[i] == "none" then
                 ignore = true
             else
                 moderror(string.format("unknown source/drain contact position (p): [%d] = '%s'", i, _P.ncontactpos[i]))

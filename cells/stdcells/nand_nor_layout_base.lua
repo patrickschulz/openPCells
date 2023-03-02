@@ -6,8 +6,8 @@ function parameters()
     pcell.add_parameters(
         { "fingers",       1 },
         { "gatetype", "nand" },
-        { "pwidth", 2 * technology.get_dimension("Minimum Gate Width") },
-        { "nwidth", 2 * technology.get_dimension("Minimum Gate Width") },
+        { "pwidthoffset", 0 },
+        { "nwidthoffset", 0 },
         { "swapinputs", false },
         { "shiftoutput", 0 }
     )
@@ -47,7 +47,7 @@ function layout(gate, _P)
         elseif i % 4 == 3 then
             ncontacts[i] = "inner"
         else
-            ncontacts[i] = "unused"
+            ncontacts[i] = "none"
         end
     end
 
@@ -61,8 +61,8 @@ function layout(gate, _P)
         gatecontactpos = gatecontactpos,
         pcontactpos = _P.gatetype == "nand" and pcontacts or ncontacts,
         ncontactpos = _P.gatetype == "nand" and ncontacts or pcontacts,
-        pwidth = _P.pwidth,
-        nwidth = _P.nwidth,
+        pwidthoffset = _P.pwidthoffset,
+        nwidthoffset = _P.nwidthoffset,
     })
     gate:merge_into(harness)
     gate:inherit_alignment_box(harness)

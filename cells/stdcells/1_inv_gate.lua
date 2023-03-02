@@ -3,8 +3,8 @@ function parameters()
         { "subgate", "nand_gate", posvals = set("nand_gate", "nor_gate", "xor_gate") },
         { "subgatefingers", 1 },
         { "notfingers", 1 },
-        { "pwidth", 2 * technology.get_dimension("Minimum Gate Width") },
-        { "nwidth", 2 * technology.get_dimension("Minimum Gate Width") }
+        { "pwidthoffset", 0 },
+        { "nwidthoffset", 0 }
     )
 end
 
@@ -14,23 +14,23 @@ function layout(gate, _P)
 
     local subgateref = pcell.create_layout(string.format("stdcells/%s", _P.subgate), "subgate", {
         fingers = _P.subgatefingers,
-        pwidth = _P.pwidth,
-        nwidth = _P.nwidth,
+        pwidthoffset = _P.pwidthoffset,
+        nwidthoffset = _P.nwidthoffset,
     })
     gate:merge_into(subgateref)
 
     local invref = pcell.create_layout("stdcells/not_gate", "inv", {
         fingers = _P.notfingers,
         shiftoutput = xpitch / 2,
-        pwidth = _P.pwidth,
-        nwidth = _P.nwidth,
+        pwidthoffset = _P.pwidthoffset,
+        nwidthoffset = _P.nwidthoffset,
     })
-    invref:align_right(subgateref)
+    invref:abut_right(subgateref)
     gate:merge_into(invref)
 
     -- draw connection
     geometry.rectanglebltr(gate, generics.metal(1),
-        subgateref:get_anchor("O"),
+        subgateref:get_anchor("O") .. invref:get_anchor("I"):translate(xpitch - bp.sdwidth / 2 - bp.routingspace, 0),
         invref:get_anchor("I"):translate(xpitch - bp.sdwidth / 2 - bp.routingspace, bp.routingwidth)
     )
 

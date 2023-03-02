@@ -10,11 +10,11 @@ function layout(gate, _P)
     gate:inherit_alignment_box(andgate)
 
     local isogate = pcell.create_layout("stdcells/isogate", "isogate")
-    isogate:align_right(andgate)
+    isogate:abut_right(andgate)
     gate:merge_into(isogate:copy())
 
     local xorgate = pcell.create_layout("stdcells/xor_gate", "xorgate")
-    xorgate:align_right(isogate)
+    xorgate:abut_right(isogate)
     gate:merge_into(xorgate)
     gate:inherit_alignment_box(xorgate)
 

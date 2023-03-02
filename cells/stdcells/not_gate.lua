@@ -1,7 +1,7 @@
 function parameters()
     pcell.add_parameter("fingers", 1)
-    pcell.add_parameter("pwidth", 2 * technology.get_dimension("Minimum Gate Width"))
-    pcell.add_parameter("nwidth", 2 * technology.get_dimension("Minimum Gate Width"))
+    pcell.add_parameter("pwidthoffset", 0)
+    pcell.add_parameter("nwidthoffset", 0)
     pcell.add_parameter("shiftinput", 0)
     pcell.add_parameter("inputpos", "center", { posvals = set("center", "lower", "upper") })
     pcell.add_parameter("shiftoutput", 0)
@@ -33,8 +33,8 @@ function layout(gate, _P)
         table.insert(contactpos, "power")
     end
     local harness = pcell.create_layout("stdcells/harness", "mosfets", {
-        pwidth = _P.pwidth,
-        nwidth = _P.nwidth,
+        pwidthoffset = _P.pwidthoffset,
+        nwidthoffset = _P.nwidthoffset,
         shiftgatecontacts = _P.shiftinput,
         gatecontactpos = gatecontactpos,
         pcontactpos = contactpos,
