@@ -5,8 +5,7 @@
 #include "lua/lua.h"
 #include "lua/lauxlib.h"
 
-struct buffer
-{
+struct buffer {
     char* data;
     size_t capacity;
     size_t length;
@@ -38,7 +37,7 @@ static void _append_to_buffer(struct buffer* buffer, char ch)
     buffer->length += 1;
 }
 
-int _writer(lua_State* L, const void* p, size_t sz, void* ud)
+static int _writer(lua_State* L, const void* p, size_t sz, void* ud)
 {
     (void)L;
     struct buffer* buffer = ud;
@@ -47,6 +46,35 @@ int _writer(lua_State* L, const void* p, size_t sz, void* ud)
         _append_to_buffer(buffer, ((char*)p)[i]);
     }
     return 0;
+}
+
+static void _write_module_data_string(FILE* file, struct buffer* buffer)
+{
+    fputs("\"", file);
+    for(size_t i = 0; i < buffer->length; ++i)
+    {
+        fprintf(file, "\\%03hho", buffer->data[i]);
+    }
+    fputs("\";\n", file);
+}
+
+static void _write_module_data_array(FILE* file, struct buffer* buffer)
+{
+    fputs("{", file);
+    for(size_t i = 0; i < buffer->length; ++i)
+    {
+        if(i % 16 == 0)
+        {
+            fputs("\n    ", file);
+        }
+        fprintf(file, "0x%02hhx", buffer->data[i]);
+        if(i != buffer->length - 1)
+        {
+            fputc(',', file);
+            fputc(' ', file);
+        }
+    }
+    fputs("\n};\n", file);
 }
 
 int main(int argc, char** argv)
@@ -78,21 +106,12 @@ int main(int argc, char** argv)
 
     // export to C representation
     FILE* cfile = fopen(target, "a");
-    fprintf(cfile, "unsigned char %s_data[] = {", base);
-    for(size_t i = 0; i < buffer->length; ++i)
-    {
-        if(i % 16 == 0)
-        {
-            fputs("\n    ", cfile);
-        }
-        fprintf(cfile, "0x%02hhx", buffer->data[i]);
-        if(i != buffer->length - 1)
-        {
-            fputc(',', cfile);
-            fputc(' ', cfile);
-        }
-    }
-    fputs("\n};\n", cfile);
+    fprintf(cfile, "unsigned char %s_data[] = ", base);
+    // can use either function, _string gives only one (very long) line, _array is like a C hexdump
+    (void)_write_module_data_array;
+    (void)_write_module_data_string;
+    _write_module_data_array(cfile, buffer);
+    //_write_module_data_string(cfile, buffer);
     fprintf(cfile, "size_t %s_data_len = %ld;\n", base, buffer->length);
 	fprintf(cfile, "int %s_%s(lua_State* L)", prefix, base);
 	fputs("\n{\n", cfile);
