@@ -14,8 +14,6 @@
 #include "gdsexport.h"
 #include "filesystem.h"
 
-#include "ldebug.h"
-
 #define EXPORT_STATUS_SUCCESS 0
 #define EXPORT_STATUS_NOTFOUND 1
 #define EXPORT_STATUS_LOADERROR 2
