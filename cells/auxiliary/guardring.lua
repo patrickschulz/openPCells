@@ -34,7 +34,11 @@ function layout(guardring, _P)
         holewidth = _P.ringwidth * xrep
         holeheight = _P.ringwidth * yrep
         contactbase = object.create("_contact")
-        geometry.contactbare(contactbase, "active", _P.ringwidth, _P.ringwidth, 0, 0, 1, 1, 0, 0, { xcontinuous = true, ycontinuous = true })
+        geometry.contactbarebltr(contactbase, "active",
+            point.create(0, 0),
+            point.create(_P.ringwidth, _P.ringwidth),
+            1, 1, 0, 0, { xcontinuous = true, ycontinuous = true }
+        )
         if _P.fixextensions then
             extfixx = holewidth - _P.holewidth
             extfixy = holeheight - _P.holeheight
@@ -48,7 +52,7 @@ function layout(guardring, _P)
     if aux.any_of("top", _P.drawsegments) then
         if _P.fit then
             for i = 1, xrep + 2 do
-                guardring:merge_into(contactbase:move_to((i - xrep / 2 - 1.5) * _P.ringwidth, (holeheight + _P.ringwidth) / 2))
+                guardring:merge_into(contactbase:move_to((i - 2) * _P.ringwidth, holeheight))
             end
         else
             geometry.contactbarebltr(guardring, "active",
@@ -88,7 +92,7 @@ function layout(guardring, _P)
     if aux.any_of("bottom", _P.drawsegments) then
         if _P.fit then
             for i = 1, xrep + 2 do
-                guardring:merge_into(contactbase:move_to((i - xrep / 2 - 1.5) * _P.ringwidth, -(holeheight + _P.ringwidth) / 2))
+                guardring:merge_into(contactbase:move_to((i - 2) * _P.ringwidth, -_P.ringwidth))
             end
         else
             geometry.contactbarebltr(guardring, "active",
@@ -128,7 +132,7 @@ function layout(guardring, _P)
     if aux.any_of("left", _P.drawsegments) then
         if _P.fit then
             for i = 1, yrep + 2 do
-                guardring:merge_into(contactbase:move_to(-(holewidth + _P.ringwidth) / 2, (i - yrep / 2 - 1.5) * _P.ringwidth))
+                guardring:merge_into(contactbase:move_to(-_P.ringwidth, (i - 2) * _P.ringwidth))
             end
         else
             geometry.contactbarebltr(guardring, "active",
@@ -168,7 +172,7 @@ function layout(guardring, _P)
     if aux.any_of("right", _P.drawsegments) then
         if _P.fit then
             for i = 1, yrep + 2 do
-                guardring:merge_into(contactbase:move_to((holewidth + _P.ringwidth) / 2, (i - yrep / 2 - 1.5) * _P.ringwidth))
+                guardring:merge_into(contactbase:move_to(holewidth, (i - 2) * _P.ringwidth))
             end
         else
             geometry.contactbarebltr(guardring, "active",
