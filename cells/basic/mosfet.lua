@@ -397,6 +397,10 @@ function layout(transistor, _P)
             point.create(gateblx - gatepitch, bly),
             point.create(gatetrx - gatepitch, try)
         )
+        transistor:add_area_anchor_bltr("leftstopgate",
+            point.create(gateblx - gatepitch, bly),
+            point.create(gatetrx - gatepitch, try)
+        )
     end
 
     if _P.drawrightstopgate then
@@ -432,6 +436,10 @@ function layout(transistor, _P)
         end
         geometry.rectanglebltr(transistor,
             generics.other("diffusionbreakgate"),
+            point.create(gateblx + _P.fingers * gatepitch, bly),
+            point.create(gatetrx + _P.fingers * gatepitch, try)
+        )
+        transistor:add_area_anchor_bltr("rightstopgate",
             point.create(gateblx + _P.fingers * gatepitch, bly),
             point.create(gatetrx + _P.fingers * gatepitch, try)
         )
