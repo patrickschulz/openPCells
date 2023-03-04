@@ -843,3 +843,4 @@ void geometry_unequal_ring_pts(
         shape_destroy(S);
     }
 }
+

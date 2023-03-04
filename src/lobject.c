@@ -243,68 +243,13 @@ static int lobject_flipy(lua_State* L)
     return 1;
 }
 
-static int lobject_move_anchor(lua_State* L)
+static int lobject_move_point(lua_State* L)
 {
-    int numstack = lua_gettop(L);
     struct lobject* cell = lobject_check(L, 1);
-    const char* name = lua_tostring(L, 2);
-    coordinate_t x = 0;
-    coordinate_t y = 0;
-    if(lua_gettop(L) > 2 && !lua_isnil(L, 3))
-    {
-        struct lpoint* lpoint = lpoint_checkpoint(L, 3);
-        x = lpoint_get(lpoint)->x;
-        y = lpoint_get(lpoint)->y;
-    }
-    int ret = object_move_anchor(cell->object, name, x, y);
-    if(!ret)
-    {
-        lua_pushfstring(L, "move_anchor: could not access anchor '%s'", name);
-        lua_error(L);
-    }
-    lua_rotate(L, 1, numstack - 1);
-    return 1;
-}
-
-static int lobject_move_anchor_x(lua_State* L)
-{
-    int numstack = lua_gettop(L);
-    struct lobject* cell = lobject_check(L, 1);
-    const char* name = lua_tostring(L, 2);
-    coordinate_t x = 0;
-    if(lua_gettop(L) > 2 && !lua_isnil(L, 3))
-    {
-        struct lpoint* lpoint = lpoint_checkpoint(L, 3);
-        x = lpoint_get(lpoint)->x;
-    }
-    int ret = object_move_anchor_x(cell->object, name, x);
-    if(!ret)
-    {
-        lua_pushfstring(L, "move_anchor_x: could not access anchor '%s'", name);
-        lua_error(L);
-    }
-    lua_rotate(L, 1, numstack - 1);
-    return 1;
-}
-
-static int lobject_move_anchor_y(lua_State* L)
-{
-    int numstack = lua_gettop(L);
-    struct lobject* cell = lobject_check(L, 1);
-    const char* name = lua_tostring(L, 2);
-    coordinate_t y = 0;
-    if(lua_gettop(L) > 2 && !lua_isnil(L, 3))
-    {
-        struct lpoint* lpoint = lpoint_checkpoint(L, 3);
-        y = lpoint_get(lpoint)->y;
-    }
-    int ret = object_move_anchor_y(cell->object, name, y);
-    if(!ret)
-    {
-        lua_pushfstring(L, "move_anchor_y: could not access anchor '%s'", name);
-        lua_error(L);
-    }
-    lua_rotate(L, 1, numstack - 1);
+    struct lpoint* source = lpoint_checkpoint(L, 2);
+    struct lpoint* target = lpoint_checkpoint(L, 3);
+    object_move_point(cell->object, lpoint_get(source), lpoint_get(target));
+    lua_rotate(L, 1, 2);
     return 1;
 }
 
@@ -461,18 +406,6 @@ static int lobject_add_anchor(lua_State* L)
         lua_pushstring(L, "object.add_anchor: could not add anchor as it already exists");
         lua_error(L);
     }
-    return 0;
-}
-
-static int lobject_add_area_anchor(lua_State* L)
-{
-    struct lobject* cell = lobject_check(L, 1);
-    const char* base = luaL_checkstring(L, 2);
-    coordinate_t width = luaL_checkinteger(L, 3);
-    coordinate_t height = luaL_checkinteger(L, 4);
-    coordinate_t xshift = luaL_checkinteger(L, 5);
-    coordinate_t yshift = luaL_checkinteger(L, 6);
-    object_add_area_anchor(cell->object, base, width, height, xshift, yshift);
     return 0;
 }
 
@@ -716,7 +649,6 @@ int open_lobject_lib(lua_State* L)
         { "get_name",                   lobject_get_name                    },
         { "set_name",                   lobject_set_name                    },
         { "add_anchor",                 lobject_add_anchor                  },
-        { "add_area_anchor",            lobject_add_area_anchor             },
         { "add_area_anchor_bltr",       lobject_add_area_anchor_bltr        },
         { "inherit_area_anchor",        lobject_inherit_area_anchor         },
         { "get_anchor",                 lobject_get_anchor                  },
@@ -741,9 +673,7 @@ int open_lobject_lib(lua_State* L)
         { "rotate_90_right",            lobject_rotate_90_right             },
         { "flipx",                      lobject_flipx                       },
         { "flipy",                      lobject_flipy                       },
-        { "move_anchor",                lobject_move_anchor                 },
-        { "move_anchor_x",              lobject_move_anchor_x               },
-        { "move_anchor_y",              lobject_move_anchor_y               },
+        { "move_point",                 lobject_move_point                  },
         { "abut_left",                  lobject_abut_left                   },
         { "abut_right",                 lobject_abut_right                  },
         { "abut_top",                   lobject_abut_top                    },

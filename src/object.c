@@ -425,11 +425,6 @@ static int _add_area_anchor_bltr(struct object* cell, const char* base, coordina
     return ret;
 }
 
-int object_add_area_anchor(struct object* cell, const char* base, coordinate_t width, coordinate_t height, coordinate_t xshift, coordinate_t yshift)
-{
-    return _add_area_anchor_bltr(cell, base, xshift - width / 2, yshift - height / 2, xshift + width / 2, yshift + height / 2);
-}
-
 int object_add_area_anchor_bltr(struct object* cell, const char* base, const point_t* bl, const point_t* tr)
 {
     return _add_area_anchor_bltr(cell, base, bl->x, bl->y, tr->x, tr->y);
@@ -1200,58 +1195,9 @@ void object_apply_other_transformation(struct object* cell, const struct transfo
     transformationmatrix_chain_inline(cell->trans, trans);
 }
 
-static int _get_move_anchor_translation(const struct object* cell, const char* name, coordinate_t wx, coordinate_t wy, coordinate_t* dx, coordinate_t* dy)
+int object_move_point(struct object* cell, const point_t* source, const point_t* target)
 {
-    point_t* anchor = object_get_anchor(cell, name);
-    if(anchor)
-    {
-        *dx = wx - anchor->x;
-        *dy = wy - anchor->y;
-        point_destroy(anchor);
-        return 1;
-    }
-    else
-    {
-        return 0;
-    }
-}
-
-int object_move_anchor(struct object* cell, const char* name, coordinate_t x, coordinate_t y)
-{
-    coordinate_t dx = 0;
-    coordinate_t dy = 0;
-    int ret = _get_move_anchor_translation(cell, name, x, y, &dx, &dy);
-    if(!ret)
-    {
-        return 0;
-    }
-    object_translate(cell, dx, dy);
-    return 1;
-}
-
-int object_move_anchor_x(struct object* cell, const char* name, coordinate_t x)
-{
-    coordinate_t dx = 0;
-    coordinate_t dy = 0; // not used
-    int ret = _get_move_anchor_translation(cell, name, x, 0, &dx, &dy);
-    if(!ret)
-    {
-        return 0;
-    }
-    object_translate(cell, dx, 0);
-    return 1;
-}
-
-int object_move_anchor_y(struct object* cell, const char* name, coordinate_t y)
-{
-    coordinate_t dx = 0; // not used
-    coordinate_t dy = 0;
-    int ret = _get_move_anchor_translation(cell, name, 0, y, &dx, &dy);
-    if(!ret)
-    {
-        return 0;
-    }
-    object_translate(cell, 0, dy);
+    object_translate(cell, target->x - source->x, target->y - source->y);
     return 1;
 }
 

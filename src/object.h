@@ -34,7 +34,6 @@ struct object* object_add_child_array(struct object* cell, struct object* child,
 
 // anchors
 int object_add_anchor(struct object* cell, const char* name, coordinate_t x, coordinate_t y);
-int object_add_area_anchor(struct object* cell, const char* base, coordinate_t width, coordinate_t height, coordinate_t xshift, coordinate_t yshift);
 int object_add_area_anchor_bltr(struct object* cell, const char* base, const point_t* bl, const point_t* tr);
 int object_inherit_area_anchor(struct object* cell, const struct object* other, const char* name);
 point_t* object_get_anchor(const struct object* cell, const char* name);
@@ -108,9 +107,7 @@ void object_rotate_90_left(struct object* cell);
 void object_rotate_90_right(struct object* cell);
 void object_flipx(struct object* cell);
 void object_flipy(struct object* cell);
-int object_move_anchor(struct object* cell, const char* name, coordinate_t x, coordinate_t y);
-int object_move_anchor_x(struct object* cell, const char* name, coordinate_t x);
-int object_move_anchor_y(struct object* cell, const char* name, coordinate_t y);
+int object_move_point(struct object* cell, const point_t* source, const point_t* target);
 void object_scale(struct object* cell, double factor);
 void object_apply_transformation(struct object* cell);
 void object_transform_point(const struct object* cell, point_t* pt);

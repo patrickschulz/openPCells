@@ -643,6 +643,18 @@ static int lgeometry_unequal_ring(lua_State* L)
     return 0;
 }
 
+static int lgeometry_unequal_ring_pts(lua_State* L)
+{
+    struct lobject* cell = lobject_check(L, 1);
+    struct generics* layer = _check_generics(L, 2);
+    struct lpoint* outerbl = lpoint_checkpoint(L, 3);
+    struct lpoint* outertr = lpoint_checkpoint(L, 4);
+    struct lpoint* innerbl = lpoint_checkpoint(L, 5);
+    struct lpoint* innertr = lpoint_checkpoint(L, 6);
+    geometry_unequal_ring_pts(lobject_get(cell), layer, lpoint_get(outerbl), lpoint_get(outertr), lpoint_get(innerbl), lpoint_get(innertr));
+    return 0;
+}
+
 static int lgeometry_curve(lua_State* L)
 {
     struct lobject* lobject = lobject_check(L, 1);
@@ -857,6 +869,7 @@ int open_lgeometry_lib(lua_State* L)
         { "cross",              lgeometry_cross             },
         { "ring",               lgeometry_ring              },
         { "unequal_ring",       lgeometry_unequal_ring      },
+        { "unequal_ring_pts",   lgeometry_unequal_ring_pts  },
         { "curve",              lgeometry_curve             },
         { "curve_rasterized",   lgeometry_curve_rasterized  },
         { NULL,                 NULL                        }
