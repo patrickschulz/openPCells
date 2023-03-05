@@ -11,7 +11,7 @@ function parameters()
         { "lastmetal(End Metal)",       2 },
         { "alternatingpolarity",     true },
         { "flippolarity",           false },
-        { "flat",                    true },
+        --{ "flat",                    true },
         { "drawvia",                 true }
     )
 end
@@ -21,77 +21,61 @@ function layout(momcap, _P)
 
     local firstmetal = technology.resolve_metal(_P.firstmetal)
     local lastmetal = technology.resolve_metal(_P.lastmetal)
-
-    if _P.flat then
-        for i = firstmetal, lastmetal do
-            local xreptop, xrepbot = evenodddiv2(_P.fingers)
-            local xshift = (_P.fingers % 2 == 0) and pitch / 2 or 0
-            local ysign = (_P.alternatingpolarity and ((i - firstmetal) % 2 == (_P.flippolarity and 1 or 0))) and 1 or -1
-            geometry.rectanglebltr(
-                momcap, generics.metal(i),
-                point.create(-xshift - _P.fwidth / 2, -_P.fheight / 2 - _P.foffset / 2 + ysign * _P.foffset / 2),
-                point.create(-xshift + _P.fwidth / 2,  _P.fheight / 2 + _P.foffset / 2 + ysign * _P.foffset / 2),
-                xreptop, 1, 2 * pitch, 0
-            )
-            geometry.rectanglebltr(
-                momcap, generics.metal(i),
-                point.create(xshift - _P.fwidth / 2, -_P.fheight / 2 - _P.foffset / 2 - ysign * _P.foffset / 2),
-                point.create(xshift + _P.fwidth / 2,  _P.fheight / 2 + _P.foffset / 2 - ysign * _P.foffset / 2),
-                xrepbot, 1, 2 * pitch, 0
-            )
-        end
+    for m = firstmetal, lastmetal do
         -- rails
-        for i = firstmetal, lastmetal do
+        geometry.rectanglebltr(
+            momcap, generics.metal(m),
+            point.create(-_P.rext, 0),
+            point.create(_P.fingers * _P.fwidth + (_P.fingers - 1) * _P.fspace + _P.rext, _P.rwidth)
+        )
+        geometry.rectanglebltr(
+            momcap, generics.metal(m),
+            point.create(-_P.rext, _P.fheight + _P.foffset),
+            point.create(_P.fingers * _P.fwidth + (_P.fingers - 1) * _P.fspace + _P.rext, _P.fheight + _P.foffset + _P.rwidth)
+        )
+        -- fingers
+        for f = 1, _P.fingers do
+            local xshift = (f - 1) * pitch
+            local polarity = 0
+            if _P.alternatingpolarity then
+                polarity = (m - firstmetal) % 2
+            end
+            local yshift = (f % 2 == polarity) and 0 or _P.foffset
             geometry.rectanglebltr(
-                momcap, generics.metal(i),
-                point.create(-_P.fingers * (_P.fwidth + _P.fspace) / 2 - _P.rext, -_P.rwidth / 2),
-                point.create( _P.fingers * (_P.fwidth + _P.fspace) / 2 + _P.rext,  _P.rwidth / 2),
-                1, 2, 0, 2 * _P.foffset + _P.fheight + _P.rwidth
+                momcap, generics.metal(m),
+                point.create(xshift, _P.rwidth + yshift),
+                point.create(xshift + _P.fwidth, _P.fheight + yshift)
             )
         end
-        -- vias
-        if _P.drawvia then
-            if firstmetal ~= lastmetal then
-                geometry.viabltr(
-                    momcap, firstmetal, lastmetal,
-                    point.create(-(_P.fingers + 1) * (_P.fwidth + _P.fspace) / 2 - _P.rext, -_P.rwidth / 2),
-                    point.create( (_P.fingers + 1) * (_P.fwidth + _P.fspace) / 2 + _P.rext,  _P.rwidth / 2),
-                    1, 2, 0, 2 * _P.foffset + _P.fheight + _P.rwidth
-                ) -- FIXME: make via continuous
-            end
+    end
+    if _P.drawvia then
+        if firstmetal ~= lastmetal then
+            -- FIXME: support continuous vias
+            geometry.viabltr(
+                momcap, firstmetal, lastmetal,
+                point.create(-_P.rext, 0),
+                point.create(_P.fingers * _P.fwidth + (_P.fingers - 1) * _P.fspace + _P.rext, _P.rwidth)
+            )
+            geometry.viabltr(
+                momcap, firstmetal, lastmetal,
+                point.create(-_P.rext, _P.fheight + _P.foffset),
+                point.create(_P.fingers * _P.fwidth + (_P.fingers - 1) * _P.fspace + _P.rext, _P.fheight + _P.foffset + _P.rwidth)
+            )
         end
-    else
-        local fingerref = object.create()
-        for i = firstmetal, lastmetal do
-            geometry.rectangle(fingerref, generics.metal(i), _P.fwidth, _P.fheight + _P.foffset)
-        end
-        if _P.drawvia then
-            if firstmetal ~= lastmetal then
-                local viaref = object.create()
-                geometry.viabltr(
-                    viaref, firstmetal, lastmetal,
-                    point.create(-(_P.fwidth + _P.fspace) / 2 - _P.rext, _P.foffset / 2 - _P.rwidth / 2),
-                    point.create( (_P.fwidth + _P.fspace) / 2 + _P.rext, _P.foffset / 2 + _P.rwidth / 2),
-                    1, 2, 0, 2 * _P.foffset + _P.fheight + _P.rwidth
-                ) -- FIXME: make via continuous
-            end
-        end
-        momcap:add_child_array(fingername, "finger1", _P.fingers + 1, 1, 2 * pitch, 0):flipy():translate(-_P.fingers * pitch, -_P.foffset / 2)
-        momcap:add_child_array(fingername, "finger2", _P.fingers, 1, 2 * pitch, 0):translate(-_P.fingers * pitch + pitch, -_P.foffset / 2)
     end
 
-    momcap:add_anchor("plus", point.create(0,   _P.foffset + _P.fheight / 2 + _P.rwidth / 2))
-    momcap:add_anchor("minus", point.create(0, -_P.foffset - _P.fheight / 2 - _P.rwidth / 2))
-    momcap:add_area_anchor("plus",
-        (_P.fingers + 1) * (_P.fwidth + _P.fspace) + 2 * _P.rext, _P.rwidth,
-        0, _P.foffset + _P.fheight / 2 + _P.rwidth / 2
+    momcap:add_area_anchor_bltr("upperrail",
+        point.create(-_P.rext, _P.fheight + _P.foffset),
+        point.create(_P.fingers * _P.fwidth + (_P.fingers - 1) * _P.fspace + _P.rext, _P.fheight + _P.foffset + _P.rwidth)
     )
-    momcap:add_area_anchor("minus",
-        (_P.fingers + 1) * (_P.fwidth + _P.fspace) + 2 * _P.rext, _P.rwidth,
-        0, -_P.foffset - _P.fheight / 2 - _P.rwidth / 2
+    momcap:add_area_anchor_bltr("lowerrail",
+        point.create(-_P.rext, 0),
+        point.create(_P.fingers * _P.fwidth + (_P.fingers - 1) * _P.fspace + _P.rext, _P.rwidth)
     )
     momcap:set_alignment_box(
-        point.create(-_P.fingers * (_P.fwidth + _P.fspace) / 2 - _P.rext, -_P.foffset - _P.fheight / 2 - _P.rwidth / 2),
-        point.create( _P.fingers * (_P.fwidth + _P.fspace) / 2 + _P.rext,  _P.foffset + _P.fheight / 2 + _P.rwidth / 2)
+        point.create(-_P.rext, 0),
+        point.create(_P.fingers * _P.fwidth + (_P.fingers - 1) * _P.fspace + _P.rext, _P.fheight + _P.foffset + _P.rwidth),
+        point.create(-_P.rext, _P.rwidth),
+        point.create(_P.fingers * _P.fwidth + (_P.fingers - 1) * _P.fspace + _P.rext, _P.fheight + _P.foffset)
     )
 end
