@@ -934,14 +934,13 @@ function layout(transistor, _P)
     end
 
     -- special anchors for easier left/right alignment
-    -- this is a little different than the anchors provided by the alignment box
     transistor:add_area_anchor_bltr(
-        "sourcedrainleft",
+        "sourcedrainactiveleft",
         transistor:get_area_anchor("sourcedrainactive1").bl,
         transistor:get_area_anchor("sourcedrainactive1").tr
     )
     transistor:add_area_anchor_bltr(
-        "sourcedrainright",
+        "sourcedrainactiveright",
         transistor:get_area_anchor(string.format("sourcedrainactive%d", _P.fingers + 1)).bl,
         transistor:get_area_anchor(string.format("sourcedrainactive%d", _P.fingers + 1)).tr
     )
