@@ -155,7 +155,7 @@ end
 
 function check(_P)
     if _P.actext < (_P.gatespace + _P.sdwidth) / 2 then
-        return nil, "'actext' must be large enough to include outer source contacts"
+        return nil, string.format("'actext' must be large enough to include outer source contacts (actext >= (gatespace + sdwidth) / 2) (actext: %d, gatespace: %d, sdwidth: %d)", _P.actext, _P.gatespace, _P.sdwidth)
     end
     if (_P.gatespace % 2) ~= (_P.sdwidth % 2) then
         return nil, "gatespace and sdwidth must both be even or odd"
