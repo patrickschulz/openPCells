@@ -41,53 +41,52 @@ static void _check_rectangle_points(lua_State* L, struct lpoint* bl, struct lpoi
     }
 }
 
+static void _check_numargs(lua_State* L, int numargs, const char* funcname)
+{
+    int top = lua_gettop(L);
+    if(top != numargs)
+    {
+        lua_pushfstring(L, "%s: expected %d arguments, got %d", funcname, numargs, top);
+        lua_error(L);
+    }
+}
+
+static void _check_numargs_set(lua_State* L, int numargs1, int numargs2, const char* funcname)
+{
+    int top = lua_gettop(L);
+    if(top != numargs1 || top != numargs2)
+    {
+        lua_pushfstring(L, "%s: expected %d or %d arguments, got %d", funcname, numargs1, numargs2, top);
+        lua_error(L);
+    }
+}
+
 static int lgeometry_rectanglebltr(lua_State* L)
 {
+    _check_numargs(L, 4, "geometry.rectanglebltr");
     struct lobject* cell = lobject_check(L, 1);
     struct generics* layer = _check_generics(L, 2);
     struct lpoint* bl = lpoint_checkpoint(L, 3);
     struct lpoint* tr = lpoint_checkpoint(L, 4);
     _check_rectangle_points(L, bl, tr, "geometry.rectanglebltr");
-    ucoordinate_t xrep = luaL_optinteger(L, 5, 1);
-    ucoordinate_t yrep = luaL_optinteger(L, 6, 1);
-    ucoordinate_t xpitch = luaL_optinteger(L, 7, 0);
-    ucoordinate_t ypitch = luaL_optinteger(L, 8, 0);
-    geometry_rectanglebltr(lobject_get(cell), layer, lpoint_get(bl), lpoint_get(tr), xrep, yrep, xpitch, ypitch);
-    return 0;
-}
-
-static int lgeometry_rectangle(lua_State* L)
-{
-    struct lobject* cell = lobject_check(L, 1);
-    struct generics* layer = _check_generics(L, 2);
-    coordinate_t width = lua_tointeger(L, 3);
-    coordinate_t height = lua_tointeger(L, 4);
-    coordinate_t xshift = luaL_optinteger(L, 5, 0);
-    coordinate_t yshift = luaL_optinteger(L, 6, 0);
-    ucoordinate_t xrep = luaL_optinteger(L, 7, 1);
-    ucoordinate_t yrep = luaL_optinteger(L, 8, 1);
-    ucoordinate_t xpitch = luaL_optinteger(L, 9, 0);
-    ucoordinate_t ypitch = luaL_optinteger(L, 10, 0);
-    geometry_rectangle(lobject_get(cell), layer, width, height, xshift, yshift, xrep, yrep, xpitch, ypitch);
+    geometry_rectanglebltr(lobject_get(cell), layer, lpoint_get(bl), lpoint_get(tr));
     return 0;
 }
 
 static int lgeometry_rectanglepoints(lua_State* L)
 {
+    _check_numargs(L, 4, "geometry.rectanglepoints");
     struct lobject* cell = lobject_check(L, 1);
     struct generics* layer = _check_generics(L, 2);
     struct lpoint* pt1 = lpoint_checkpoint(L, 3);
     struct lpoint* pt2 = lpoint_checkpoint(L, 4);
-    ucoordinate_t xrep = luaL_optinteger(L, 5, 1);
-    ucoordinate_t yrep = luaL_optinteger(L, 6, 1);
-    ucoordinate_t xpitch = luaL_optinteger(L, 7, 0);
-    ucoordinate_t ypitch = luaL_optinteger(L, 8, 0);
-    geometry_rectanglepoints(lobject_get(cell), layer, lpoint_get(pt1), lpoint_get(pt2), xrep, yrep, xpitch, ypitch);
+    geometry_rectanglepoints(lobject_get(cell), layer, lpoint_get(pt1), lpoint_get(pt2));
     return 0;
 }
 
 static int lgeometry_polygon(lua_State* L)
 {
+    _check_numargs(L, 3, "geometry.polygon");
     struct lobject* cell = lobject_check(L, 1);
     struct generics* layer = _check_generics(L, 2);
     lua_len(L, 3);
@@ -139,6 +138,7 @@ void _get_path_extension(lua_State* L, int idx, int* bgnext, int* endext)
 
 static int lgeometry_path(lua_State* L)
 {
+    _check_numargs_set(L, 4, 5, "geometry.path");
     struct lobject* cell = lobject_check(L, 1);
     struct generics* layer = _check_generics(L, 2);
     if(!lua_istable(L, 3))
@@ -180,6 +180,7 @@ static int lgeometry_path(lua_State* L)
 
 static int lgeometry_rectanglepath(lua_State* L)
 {
+    _check_numargs_set(L, 5, 6, "geometry.rectanglepath");
     struct lobject* cell = lobject_check(L, 1);
     struct generics* layer = _check_generics(L, 2);
     struct lpoint* pt1 = lpoint_checkpoint(L, 3);
@@ -850,7 +851,6 @@ int open_lgeometry_lib(lua_State* L)
     static const luaL_Reg modfuncs[] =
     {
         { "rectanglebltr",      lgeometry_rectanglebltr     },
-        { "rectangle",          lgeometry_rectangle         },
         { "rectanglepoints",    lgeometry_rectanglepoints   },
         { "rectanglepath",      lgeometry_rectanglepath     },
         { "polygon",            lgeometry_polygon           },

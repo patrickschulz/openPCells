@@ -26,40 +26,44 @@ static void _multiple_xy(struct object* cell, struct shape* base, ucoordinate_t 
     }
 }
 
-static void _rectanglebltr(struct object* cell, const struct generics* layer, coordinate_t blx, coordinate_t bly, coordinate_t trx, coordinate_t try, ucoordinate_t xrep, ucoordinate_t yrep, ucoordinate_t xpitch, ucoordinate_t ypitch)
+static void _rectanglebltr_multiple(struct object* cell, const struct generics* layer, coordinate_t blx, coordinate_t bly, coordinate_t trx, coordinate_t try, ucoordinate_t xrep, ucoordinate_t yrep, ucoordinate_t xpitch, ucoordinate_t ypitch)
 {
     struct shape* S = shape_create_rectangle(layer, blx, bly, trx, try);
     _multiple_xy(cell, S, xrep, yrep, xpitch, ypitch);
     shape_destroy(S);
 }
 
-void geometry_rectanglebltr(struct object* cell, const struct generics* layer, const point_t* bl, const point_t* tr, ucoordinate_t xrep, ucoordinate_t yrep, ucoordinate_t xpitch, ucoordinate_t ypitch)
+static void _rectanglebltr(struct object* cell, const struct generics* layer, coordinate_t blx, coordinate_t bly, coordinate_t trx, coordinate_t try)
 {
-    _rectanglebltr(cell, layer, bl->x, bl->y, tr->x, tr->y, xrep, yrep, xpitch, ypitch);
+    struct shape* S = shape_create_rectangle(layer, blx, bly, trx, try);
+    if(!shape_is_empty(S))
+    {
+        object_add_shape(cell, S);
+    }
 }
 
-void geometry_rectangle(struct object* cell, const struct generics* layer, coordinate_t width, coordinate_t height, coordinate_t xshift, coordinate_t yshift, ucoordinate_t xrep, ucoordinate_t yrep, ucoordinate_t xpitch, ucoordinate_t ypitch)
+void geometry_rectanglebltr(struct object* cell, const struct generics* layer, const point_t* bl, const point_t* tr)
 {
-    _rectanglebltr(cell, layer, -width / 2 + xshift, -height / 2 + yshift, width / 2 + xshift, height / 2 + yshift, xrep, yrep, xpitch, ypitch);
+    _rectanglebltr(cell, layer, bl->x, bl->y, tr->x, tr->y);
 }
 
-void geometry_rectanglepoints(struct object* cell, const struct generics* layer, const point_t* pt1, const point_t* pt2, ucoordinate_t xrep, ucoordinate_t yrep, ucoordinate_t xpitch, ucoordinate_t ypitch)
+void geometry_rectanglepoints(struct object* cell, const struct generics* layer, const point_t* pt1, const point_t* pt2)
 {
     if(pt1->x <= pt2->x && pt1->y <= pt2->y)
     {
-        _rectanglebltr(cell, layer, pt1->x, pt1->y, pt2->x, pt2->y, xrep, yrep, xpitch, ypitch);
+        _rectanglebltr(cell, layer, pt1->x, pt1->y, pt2->x, pt2->y);
     }
     else if(pt1->x <= pt2->x && pt1->y  > pt2->y)
     {
-        _rectanglebltr(cell, layer, pt1->x, pt2->y, pt2->x, pt1->y, xrep, yrep, xpitch, ypitch);
+        _rectanglebltr(cell, layer, pt1->x, pt2->y, pt2->x, pt1->y);
     }
     else if(pt1->x  > pt2->x && pt1->y <= pt2->y)
     {
-        _rectanglebltr(cell, layer, pt2->x, pt1->y, pt1->x, pt2->y, xrep, yrep, xpitch, ypitch);
+        _rectanglebltr(cell, layer, pt2->x, pt1->y, pt1->x, pt2->y);
     }
     else if(pt1->x  > pt2->x && pt1->y  > pt2->y)
     {
-        _rectanglebltr(cell, layer, pt2->x, pt2->y, pt1->x, pt1->y, xrep, yrep, xpitch, ypitch);
+        _rectanglebltr(cell, layer, pt2->x, pt2->y, pt1->x, pt1->y);
     }
 }
 
@@ -520,7 +524,7 @@ static int _via_contact_bltr(
         {
             for(unsigned int y = 1; y <= yrep; ++y)
             {
-                _rectanglebltr(cell, 
+                _rectanglebltr_multiple(cell, 
                     cutlayer, 
                     (x - 1) * xpitch - (xrep - 1) * xpitch / 2 + (blx + trx) / 2 - entry->width / 2,
                     (y - 1) * ypitch - (yrep - 1) * ypitch / 2 + (bly + try) / 2 - entry->height / 2,
@@ -533,15 +537,15 @@ static int _via_contact_bltr(
     }
     else
     {
-        _rectanglebltr(cell, cutlayer, blx, bly, trx, try, xrep, yrep, xpitch, ypitch);
+        _rectanglebltr_multiple(cell, cutlayer, blx, bly, trx, try, xrep, yrep, xpitch, ypitch);
     }
     if(surrounding1)
     {
-        _rectanglebltr(cell, surrounding1, blx, bly, trx, try, xrep, yrep, xpitch, ypitch);
+        _rectanglebltr_multiple(cell, surrounding1, blx, bly, trx, try, xrep, yrep, xpitch, ypitch);
     }
     if(surrounding2)
     {
-        _rectanglebltr(cell, surrounding2, blx, bly, trx, try, xrep, yrep, xpitch, ypitch);
+        _rectanglebltr_multiple(cell, surrounding2, blx, bly, trx, try, xrep, yrep, xpitch, ypitch);
     }
     return 1;
 }

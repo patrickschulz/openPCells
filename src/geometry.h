@@ -11,26 +11,13 @@
 void geometry_rectanglebltr(
     struct object* cell,
     const struct generics* layer,
-    const point_t* bl, const point_t* tr,
-    ucoordinate_t xrep, ucoordinate_t yrep,
-    ucoordinate_t xpitch, ucoordinate_t ypitch
+    const point_t* bl, const point_t* tr
 );
 
 void geometry_rectanglepoints(
     struct object* cell,
     const struct generics* layer,
-    const point_t* bl, const point_t* tr,
-    ucoordinate_t xrep, ucoordinate_t yrep,
-    ucoordinate_t xpitch, ucoordinate_t ypitch
-);
-
-void geometry_rectangle(
-    struct object* cell,
-    const struct generics* layer,
-    coordinate_t width, coordinate_t height,
-    coordinate_t xshift, coordinate_t yshift,
-    ucoordinate_t xrep, ucoordinate_t yrep,
-    ucoordinate_t xpitch, ucoordinate_t ypitch
+    const point_t* bl, const point_t* tr
 );
 
 void geometry_polygon(
