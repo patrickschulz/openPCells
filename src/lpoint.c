@@ -13,14 +13,14 @@ struct lpoint {
     int destroy;
 };
 
-coordinate_t lpoint_checkcoordinate(lua_State* L, int idx)
+coordinate_t lpoint_checkcoordinate(lua_State* L, int idx, const char* coordinate)
 {
     int isnum;
     lua_Integer d = lua_tointegerx(L, idx, &isnum);
     if(!isnum) 
     {
         lua_Number num = lua_tonumber(L, idx);
-        lua_pushfstring(L, "non-integer number (%f) generated", num);
+        lua_pushfstring(L, "point module: non-integer number (%f) received for %s", num, coordinate);
         lua_error(L);
     }
     return d;
@@ -55,8 +55,8 @@ struct lpoint* lpoint_takeover_point(lua_State* L, point_t* pt)
 
 int lpoint_create(lua_State* L)
 {
-    coordinate_t x = lpoint_checkcoordinate(L, -2);
-    coordinate_t y = lpoint_checkcoordinate(L, -1);
+    coordinate_t x = lpoint_checkcoordinate(L, -2, "x");
+    coordinate_t y = lpoint_checkcoordinate(L, -1, "y");
     lua_pop(L, 2);
     lpoint_create_internal(L, x, y);
     return 1;
@@ -90,8 +90,8 @@ const point_t* lpoint_get(const struct lpoint* pt)
 static int lpoint_update(lua_State* L)
 {
     struct lpoint* p = luaL_checkudata(L, -3, LPOINTMETA);
-    coordinate_t x = lpoint_checkcoordinate(L, -2);
-    coordinate_t y = lpoint_checkcoordinate(L, -1);
+    coordinate_t x = lpoint_checkcoordinate(L, -2, "x");
+    coordinate_t y = lpoint_checkcoordinate(L, -1, "y");
     p->point->x = x;
     p->point->y = y;
     return 0;
@@ -122,8 +122,8 @@ static int lpoint_gety(lua_State* L)
 static int lpoint_translate(lua_State* L)
 {
     struct lpoint* p = luaL_checkudata(L, 1, LPOINTMETA);
-    coordinate_t x = lpoint_checkcoordinate(L, 2);
-    coordinate_t y = lpoint_checkcoordinate(L, 3);
+    coordinate_t x = lpoint_checkcoordinate(L, 2, "x");
+    coordinate_t y = lpoint_checkcoordinate(L, 3, "y");
     p->point->x += x;
     p->point->y += y;
     lua_rotate(L, -3, 2);
@@ -133,7 +133,7 @@ static int lpoint_translate(lua_State* L)
 static int lpoint_translate_x(lua_State* L)
 {
     struct lpoint* p = luaL_checkudata(L, 1, LPOINTMETA);
-    coordinate_t x = lpoint_checkcoordinate(L, 2);
+    coordinate_t x = lpoint_checkcoordinate(L, 2, "x");
     p->point->x += x;
     lua_rotate(L, 1, 1);
     return 1;
@@ -142,7 +142,7 @@ static int lpoint_translate_x(lua_State* L)
 static int lpoint_translate_y(lua_State* L)
 {
     struct lpoint* p = luaL_checkudata(L, 1, LPOINTMETA);
-    coordinate_t y = lpoint_checkcoordinate(L, 2);
+    coordinate_t y = lpoint_checkcoordinate(L, 2, "y");
     p->point->y += y;
     lua_rotate(L, 1, 1);
     return 1;

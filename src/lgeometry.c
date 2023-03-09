@@ -807,8 +807,8 @@ static int lcurve_lineto(lua_State* L)
         lua_newtable(L);
         lua_pushstring(L, "lineto");
         lua_setfield(L, -2, "type");
-        coordinate_t x = lpoint_checkcoordinate(L, 1);
-        coordinate_t y = lpoint_checkcoordinate(L, 2);
+        coordinate_t x = lpoint_checkcoordinate(L, 1, "x");
+        coordinate_t y = lpoint_checkcoordinate(L, 2, "y");
         lpoint_create_internal(L, x, y);
         lua_setfield(L, -2, "pt");
     }
