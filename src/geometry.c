@@ -40,6 +40,10 @@ static void _rectanglebltr(struct object* cell, const struct generics* layer, co
     {
         object_add_shape(cell, S);
     }
+    else
+    {
+        shape_destroy(S);
+    }
 }
 
 void geometry_rectanglebltr(struct object* cell, const struct generics* layer, const point_t* bl, const point_t* tr)
