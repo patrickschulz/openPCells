@@ -52,8 +52,8 @@ Of course it is possible to \enquote{unpack} the parameters, storing them in ind
 \luafilelisting[widthgobble = 0, firstline = 10, lastline = 10]{code/simple_rectangle.lua}
 
 Now that we have all the layout parameters, we can already create the rectangle:
-\luafilelisting[widthgobble = 4, firstline = 12, lastline = 12]{code/simple_rectangle.lua}
-There is a lot going on here: We use the \luainline{geometry.rectangle} function to create a rectangle with with and height (third and fourth argument).
+\luafilelisting[widthgobble = 4, firstline = 12, lastline = 17]{code/simple_rectangle.lua}
+There is a lot going on here: We use the \luainline{geometry.rectanglebltr} function to create a rectangle with two corner points (bottom-left, bl and top-right, tr).
 Since we are creating shapes of IC geometry, we have to specify a layer.
 But we also want to create technology-independent pcells, so there is a generics system for layers.
 Right now we are just using the \luainline{generics.metal} function, which takes a single number as argument.
@@ -67,37 +67,19 @@ The simplest call would be something like:
     opc --technology opc --export gds --cell simple_rectangle
 \end{shellcode}
 
-\subsection{Repetition -- Array of Rectangles}
-Now that we know how to create a rectangle, we want to create an entire array, that is a rectangular area made up of several individual rectangles. This could be
-used for example as filling. We will setup the cell exactly as before, we only have to add two new parameters: the repetition and the pitch (we will start with
-quadratic arrays with equal pitch in both directions):
-\luafilelisting[firstline = 1, lastline = 8]{code/rectangle_array.lua}
-The default arguments are \num{200} for the pitch and \num{10} for the number of repetitions, which creates a ten-by-ten array of rectangles with a spacing of
-\num{100} and a width and height of \num{100}. Again, remember that we work in nanometers here.
-
-For the repetition we could use a loop to create the individual rectangles, but we also have to move them to their correct position.
-The \luainline{geometry.rectangle} function takes a shift in x and y direction as fifth and sixth argument.
-We have to calculate the correct offset, which results in:
-\luafilelisting[widthgobble = 4, firstline = 12, lastline = 21]{code/rectangle_array.lua}
-This loop is cumbersome as it has to be set up and furthermore the calculation of the offset for the rectangles is done by hand.
-The function \luainline{geometry.rectangle} already can do what we need, as it can take the repetition and pitch in x and y as additional arguments.
-This places repeated copies of a template rectangle (with width and height) with their center in the origin.
-The full interface of \luainline{geometry.rectangle} is:
-With it, we can replace the whole loop construct with:
-\luafilelisting[widthgobble = 4, firstline = 24, lastline = 28]{code/rectangle_array.lua}
-With this, the whole cell looks like this:
-\luafilelisting{code/rectangle_array.lua}
-Now you already now how to create simple rectangles and rectangle arrays with generic layers.
+Now you already now how to create simple rectangles with generic layers.
 As integrated circuits are mostly made up of rectangles, one can already built a surprising amount of pcells.
 However, we have to discuss how we can create layers other than metals, vias and shapes with more complex outlines than rectangles.
-We will talk about that in the remaining cell tutorials.
+Furthermore, to reduce complexity hierarchical layout design is also important.
+We will talk about these topics in the remaining cell tutorials.
 
 \subsection{Metal-Oxide-Metal Capacitors}
 Many technologies don't have so-called metal-insulator-metal capacitors (mimcaps), so the standard way to implement capacitors is be using interdigitated metals.
 Let's do that. As before, we set up the pcell. Useful parameters are the number of fingers, the width and height of the fingers and the spacing in between.
 Furthermore, we shift one collection of fingers (one plate) up and the other down to separate them and connect them together.
-Lastly, we also specify the width of the connecting rails and the used metals:
-\luafilelisting[firstline = 1, lastline = 12]{code/momcap.lua}
+Lastly, we also specify the width of the connecting rails and the used metals.
+The shown cell is a simplified version of the actual momcap implementation in opc:
+\luafilelisting[firstline = 1, lastline = 13]{code/momcap.lua}
 The parameter definition also shows how you can use better names for displaying: Simply write them in parantheses.
 When listing the defined parameters of a cell, the display names are used, but within the cell the regular names are significant.
 The parameters are stored in a lua table and can be accessed in two ways:
@@ -106,33 +88,36 @@ Usually, the first way is easier, but it requires the parameter name to be a val
 Names like \luainline{foo-bar} (with a hyphen) are not valid identifiers.
 In this case, the second way would have to be used.
 
-In \luainline{layout()} we  loop over all metals to draw the fingers.
-We don't have to create every finger separately, with \luainline{geometry.rectangle} and the multiple capabilities this becomes very simple.
-Since the upper and lower fingers are one-off and \luainline{geometry.rectangle} centeres all objects, we only have to move them a little bit up/down.
-This is done with the corresponding arguments to \luainline{geometry.rectangle} (note that \luainline{//} denotes floor division in lua):
-\luafilelisting[widthgobble = 4, firstline = 17, lastline = 31]{code/momcap.lua}
-We create two arrays of fingers, one for the \enquote{upper plate}, one for the \enquote{lower plate}. All fingers have the same width, height and pitch. For the
-upper plate, we use one more finger, the placement in \luainline{geometry.rectangle} automatically arranges them centered, so that this \enquote{just works}.  The
-ypitch for \luainline{geometry.rectangle} is \num{0}, which is ok since we only have a yrep of \num{1}.
-
-The rails connecting the fingers are created in a similar manner:
-\luafilelisting[widthgobble = 4, firstline = 32, lastline = 40]{code/momcap.lua}
+In \luainline{layout()} first the metals are resolved.
+This makes sure that only positive integers are used (for instance, with a metal stack of five metals, the index -2 is resolved to 4).
+This is done in order to have properly-defined values for the following for-loop iterating over all metals.
+\luafilelisting[widthgobble = 4, firstline = 18, lastline = 19]{code/momcap.lua}
+Then we can set up the loop:
+\luafilelisting[widthgobble = 4, firstline = 20, lastline = 20]{code/momcap.lua}
+At first, we create the rails (upper and lower):
+\luafilelisting[widthgobble = 4, firstline = 22, lastline = 31]{code/momcap.lua}
+Then we create the fingers separately.
+A second loop represents the fingers.
+Every finger has to be moved right, every second finger has to be moved up:
+\luafilelisting[widthgobble = 4, firstline = 33, lastline = 41]{code/momcap.lua}
 
 What remains is the drawing of the vias between the metals.
-For this we introduce a new \luainline{geometry} function: \luainline{geometry.via}.
+For this we introduce a new \luainline{geometry} function: \luainline{geometry.viabltr}.
 It takes a rectangular area and creates individual cuts as well as surrounding metals.
 There has to be some technology translation for this (proper layer generation as well as calculating the proper geometry of the cuts).
 The details on this are not important for this discussion.
 It is covered more in-depth in the technology translation manual.
 For this case it is enough to know that an appropriate and manufacturable amount of via cuts is placed within this rectangular area.
-Since the region is a rectangular, \luainline{geometry.via} takes almost the same arguments as \luainline{geometry.rectangle}.
+Since the region is a rectangular, \luainline{geometry.viabltr} takes almost the same arguments as \luainline{geometry.rectanglebltr}.
 Only the metal layer is changed into two indices for the first and the last metal of the stack.
-This means that \luainline{geometry.via} does \emph{not} expect a generic layer as input.
+This means that \luainline{geometry.viabltr} does \emph{not} expect a generic layer as input.
 All layer creation is done by the function itself.
 Furthermore, we don't have to specify the individual vias between each layer in the stack, this is resolved later by the technology translation.
 For the capacitor, the vias are placed in the rails:
-\luafilelisting[widthgobble = 4, firstline = 42, lastline = 49]{code/momcap.lua}
-With this the pcell is finished.
+\luafilelisting[widthgobble = 4, firstline = 43, lastline = 54]{code/momcap.lua}
+
+With this the pcell is almost finished, the remaining code defines so-called \emph{anchors}, which are used for relative positioning.
+These will be discussed further down this document and therefore are skipped in this section.
 A cell similar to this is bundled in this release of openPCells (\texttt{cells/passive/capacitor/mom.lua}).
 A few optimizations and additional parameters are added, but the here shown implementation is the basic structure of this capacitor.
 

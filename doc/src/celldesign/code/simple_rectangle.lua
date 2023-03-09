@@ -9,5 +9,10 @@ end
 -- define layout
 function layout(obj, _P)
     -- create the shape and add it to the main object
-    geometry.rectangle(obj, generics.metal(1), _P.width, _P.height)
+    geometry.rectanglebltr(
+        obj,
+        generics.metal(1),
+        point.create(0, 0),
+        point.create(_P.width, _P.height)
+    )
 end
