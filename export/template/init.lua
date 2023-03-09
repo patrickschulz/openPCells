@@ -92,7 +92,7 @@ end
 -- how to write a path
 -- if not present, the shape will be converted accordingly
 -- (to a single rectangle if possible, otherwise to a polygon)
-function M.write_path(layer, pts, width)
+function M.write_path(layer, pts, width, extension)
 end
 
 -- * optional *
@@ -106,8 +106,8 @@ function M.write_cell_array(identifier, x, y, orientation, xrep, yrep, xpitch, y
 end
 
 -- * optional *
--- how to write a named for layout topology data (e.g. LVS)
-function M.write_port(name, layer, where)
+-- how to write a port/label for layout topology data (e.g. LVS)
+function M.write_port(name, layer, where, sizehint)
 end
 
 return M
