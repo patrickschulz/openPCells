@@ -12,7 +12,13 @@ function parameters()
         { "alternatingpolarity",     true },
         { "flippolarity",           false },
         --{ "flat",                    true },
-        { "drawvia",                 true }
+        { "drawvia",                 true },
+        { "drawfill",               false },
+        { "fillmetals",                {} },
+        { "fillwidth",                100 },
+        { "fillheight",               100 },
+        { "fillxspace",               100 },
+        { "fillyspace",               100 }
     )
 end
 
@@ -30,8 +36,8 @@ function layout(momcap, _P)
         )
         geometry.rectanglebltr(
             momcap, generics.metal(m),
-            point.create(-_P.rext, _P.fheight + _P.foffset),
-            point.create(_P.fingers * _P.fwidth + (_P.fingers - 1) * _P.fspace + _P.rext, _P.fheight + _P.foffset + _P.rwidth)
+            point.create(-_P.rext, _P.fheight + 2 * _P.foffset + _P.rwidth),
+            point.create(_P.fingers * _P.fwidth + (_P.fingers - 1) * _P.fspace + _P.rext, _P.fheight + 2 * _P.foffset + 2 * _P.rwidth)
         )
         -- fingers
         for f = 1, _P.fingers do
@@ -44,7 +50,7 @@ function layout(momcap, _P)
             geometry.rectanglebltr(
                 momcap, generics.metal(m),
                 point.create(xshift, _P.rwidth + yshift),
-                point.create(xshift + _P.fwidth, _P.fheight + yshift)
+                point.create(xshift + _P.fwidth, _P.fheight + 2 * _P.foffset + yshift)
             )
         end
     end
@@ -58,15 +64,36 @@ function layout(momcap, _P)
             )
             geometry.viabltr(
                 momcap, firstmetal, lastmetal,
-                point.create(-_P.rext, _P.fheight + _P.foffset),
-                point.create(_P.fingers * _P.fwidth + (_P.fingers - 1) * _P.fspace + _P.rext, _P.fheight + _P.foffset + _P.rwidth)
+                point.create(-_P.rext, _P.fheight + 2 * _P.foffset + _P.rwidth),
+                point.create(_P.fingers * _P.fwidth + (_P.fingers - 1) * _P.fspace + _P.rext, _P.fheight + 2 * _P.foffset + 2 * _P.rwidth)
+            )
+        end
+    end
+
+    if _P.drawfill then
+        local xpitch = _P.fillwidth + _P.fillxspace
+        local ypitch = _P.fillheight + _P.fillyspace
+        local totalwidth = 2 * _P.rext + _P.fingers * _P.fwidth + (_P.fingers - 1) * _P.fspace
+        local totalheight = 2 * _P.rwidth + _P.fheight + 2 * _P.foffset
+        local xrep = (totalwidth + _P.fillxspace) // xpitch
+        local yrep = (totalheight + _P.fillyspace) // ypitch
+        local xshift = (totalwidth - xrep * _P.fillwidth - (xrep - 1) * _P.fillxspace) / 2
+        local yshift = (totalheight - yrep * _P.fillheight - (yrep - 1) * _P.fillyspace) / 2
+        for _, m in ipairs(_P.fillmetals) do
+            geometry.rectanglearray(
+                momcap, generics.metal(m),
+                _P.fillwidth, _P.fillheight,
+                xshift, yshift,
+                xrep, yrep,
+                _P.fillwidth + _P.fillxspace,
+                _P.fillheight + _P.fillyspace
             )
         end
     end
 
     momcap:add_area_anchor_bltr("upperrail",
-        point.create(-_P.rext, _P.fheight + _P.foffset),
-        point.create(_P.fingers * _P.fwidth + (_P.fingers - 1) * _P.fspace + _P.rext, _P.fheight + _P.foffset + _P.rwidth)
+        point.create(-_P.rext, _P.fheight + _P.foffset + _P.rwidth),
+        point.create(_P.fingers * _P.fwidth + (_P.fingers - 1) * _P.fspace + _P.rext, _P.fheight + _P.foffset + 2 * _P.rwidth)
     )
     momcap:add_area_anchor_bltr("lowerrail",
         point.create(-_P.rext, 0),
