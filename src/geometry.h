@@ -20,6 +20,15 @@ void geometry_rectanglepoints(
     const point_t* bl, const point_t* tr
 );
 
+void geometry_rectanglearray(
+    struct object* cell,
+    const struct generics* layer,
+    coordinate_t width, coordinate_t height,
+    coordinate_t xshift, coordinate_t yshift,
+    unsigned int xrep, unsigned int yrep,
+    ucoordinate_t xpitch, ucoordinate_t ypitch
+);
+
 void geometry_polygon(
     struct object* cell,
     const struct generics* layer,

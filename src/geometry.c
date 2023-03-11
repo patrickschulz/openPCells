@@ -71,6 +71,26 @@ void geometry_rectanglepoints(struct object* cell, const struct generics* layer,
     }
 }
 
+void geometry_rectanglearray(
+    struct object* cell,
+    const struct generics* layer,
+    coordinate_t width, coordinate_t height,
+    coordinate_t xshift, coordinate_t yshift,
+    unsigned int xrep, unsigned int yrep,
+    ucoordinate_t xpitch, ucoordinate_t ypitch
+)
+{
+    for(unsigned int xi = 1; xi <= xrep; ++xi)
+    {
+        for(unsigned int yi = 1; yi <= yrep; ++yi)
+        {
+            coordinate_t x = xshift + (xi - 1) * xpitch;
+            coordinate_t y = yshift + (yi - 1) * ypitch;
+            _rectanglebltr(cell, layer, x, y, x + width, y + width);
+        }
+    }
+}
+
 void geometry_polygon(struct object* cell, const struct generics* layer, const point_t** points, size_t len)
 {
     if(len == 0) // don't add empty polygons

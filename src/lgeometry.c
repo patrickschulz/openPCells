@@ -84,6 +84,23 @@ static int lgeometry_rectanglepoints(lua_State* L)
     return 0;
 }
 
+static int lgeometry_rectanglearray(lua_State* L)
+{
+    _check_numargs(L, 10, "geometry.rectanglearray");
+    struct lobject* cell = lobject_check(L, 1);
+    struct generics* layer = _check_generics(L, 2);
+    coordinate_t width = lpoint_checkcoordinate(L, 3, "width");
+    coordinate_t height = lpoint_checkcoordinate(L, 4, "height");
+    coordinate_t xshift = lpoint_checkcoordinate(L, 5, "xshift");
+    coordinate_t yshift = lpoint_checkcoordinate(L, 6, "yshift");
+    unsigned int xrep = luaL_checkinteger(L, 7);
+    unsigned int yrep = luaL_checkinteger(L, 8);
+    coordinate_t xpitch = lpoint_checkcoordinate(L, 9, "xpitch");
+    coordinate_t ypitch = lpoint_checkcoordinate(L, 10, "ypitch");
+    geometry_rectanglearray(lobject_get(cell), layer, width, height, xshift, yshift, xrep, yrep, xpitch, ypitch);
+    return 0;
+}
+
 static int lgeometry_polygon(lua_State* L)
 {
     _check_numargs(L, 3, "geometry.polygon");
@@ -852,6 +869,7 @@ int open_lgeometry_lib(lua_State* L)
     {
         { "rectanglebltr",      lgeometry_rectanglebltr     },
         { "rectanglepoints",    lgeometry_rectanglepoints   },
+        { "rectanglearray",     lgeometry_rectanglearray    },
         { "rectanglepath",      lgeometry_rectanglepath     },
         { "polygon",            lgeometry_polygon           },
         { "path",               lgeometry_path              },
