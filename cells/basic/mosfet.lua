@@ -70,7 +70,6 @@ function parameters()
         { "sourceviametal(Source Via Metal)",                              1, follow = "connectsourcemetal" },
         { "connectsourceinline(Connect Source Inline of Transistor)",     false },
         { "connectsourceinlineoffset(Offset for Inline Source Connection)",   0 },
-        { "inlinesourceoffset(Inline Source Connection Offset)",           0 },
         { "connectsourceinverse(Invert Source Strap Locations)",       false },
         { "connectdrain(Connect Drain)",                               false },
         { "connectdrainboth(Connect Drain on Both Sides)",             false },
@@ -84,7 +83,6 @@ function parameters()
         { "drainviametal(Drain Via Metal)",                                1, follow = "connectdrainmetal" },
         { "connectdraininline(Connect Drain Inline of Transistor)",       false },
         { "connectdraininlineoffset(Offset for Inline Drain Connection)",     0 },
-        { "inlinedrainoffset(Inline Drain Connection Offset)",             0 },
         { "diodeconnected(Diode Connected Transistor)",                false },
         { "drawextrabotstrap(Draw Extra Bottom Strap)",             false },
         { "extrabotstrapwidth(Width of Extra Bottom Strap)",        technology.get_dimension("Minimum M1 Width"), argtype = "integer" },
@@ -903,7 +901,7 @@ function layout(transistor, _P)
 
     -- short transistor
     -- FIXME: find better options to draw this
-    --        the main problem proper alignment in cases involving odd parameters for sdwidth and sourcesize
+    --        the main problem is proper alignment in cases involving odd parameters for sdwidth and sourcesize
     if _P.shortdevice then
         geometry.rectanglebltr(transistor, generics.metal(1),
             transistor:get_area_anchor("sourcedrain1").br:translate(0, _P.sourcesize // 2),
