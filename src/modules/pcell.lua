@@ -407,6 +407,18 @@ function state.create_cellenv(state, cellname, ovrenv)
         marker = marker,
         transformationmatrix = transformationmatrix,
         dprint = function(...) if state.enabledprint then print(...) end end,
+        dmarker = function(cell, location)
+            if state.enabledprint then
+                geometry.rectanglebltr(cell, generics.special(),
+                    location:copy():translate(-10, -100),
+                    location:copy():translate(10, 100)
+                )
+                geometry.rectanglebltr(cell, generics.special(),
+                    location:copy():translate(-100, -10),
+                    location:copy():translate(100, 10)
+                )
+            end
+        end,
         moderror = moderror,
         tonumber = tonumber,
         type = type,
