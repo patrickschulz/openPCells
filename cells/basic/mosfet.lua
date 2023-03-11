@@ -130,6 +130,10 @@ function parameters()
         { "extendlvsmarkerbot",                                            0 },
         { "extendlvsmarkerleft",                                           0 },
         { "extendlvsmarkerright",                                          0 },
+        { "extendrotationmarkertop",                                       0 },
+        { "extendrotationmarkerbot",                                       0 },
+        { "extendrotationmarkerleft",                                      0 },
+        { "extendrotationmarkerright",                                     0 },
         { "drawtopwelltap",                                            false },
         { "topwelltapwidth",                                           technology.get_dimension("Minimum M1 Width") },
         { "topwelltapspace",                                           technology.get_dimension("Minimum M1 Space") },
@@ -196,19 +200,19 @@ function layout(transistor, _P)
 
     -- active
     if _P.drawactive then
-        geometry.rectanglebltr(transistor, generics.other("active"), 
-            point.create(0, 0), 
+        geometry.rectanglebltr(transistor, generics.other("active"),
+            point.create(0, 0),
             point.create(activewidth + leftactext + rightactext, _P.fwidth)
         )
         if _P.drawtopactivedummy then
-            geometry.rectanglebltr(transistor, generics.other("active"), 
-                point.create(0, _P.fwidth + _P.topactivedummysep), 
+            geometry.rectanglebltr(transistor, generics.other("active"),
+                point.create(0, _P.fwidth + _P.topactivedummysep),
                 point.create(activewidth + leftactext + rightactext, _P.fwidth + _P.topactivedummysep + _P.topactivedummywidth)
             )
         end
         if _P.drawbotactivedummy then
-            geometry.rectanglebltr(transistor, generics.other("active"), 
-                point.create(0, -_P.botactivedummysep - _P.botactivedummywidth), 
+            geometry.rectanglebltr(transistor, generics.other("active"),
+                point.create(0, -_P.botactivedummysep - _P.botactivedummywidth),
                 point.create(activewidth + leftactext + rightactext, -_P.botactivedummysep)
             )
         end
@@ -485,19 +489,14 @@ function layout(transistor, _P)
     )
 
     -- rotation marker
-    --if _P.drawrotationmarker then
-    --    geometry.rectanglebltr(transistor,
-    --        generics.other("rotationmarker"),
-    --        point.create(
-    --            -activewidth / 2 - _P.extendvthleft,
-    --            -_P.fwidth / 2 - gateaddbot - enable(not _P.clipbot, _P.extendvthbot)
-    --        ),
-    --        point.create(
-    --            activewidth / 2 + _P.extendvthright,
-    --            _P.fwidth / 2 + gateaddtop + enable(not _P.cliptop, _P.extendvthtop)
-    --        )
-    --    )
-    --end
+    if _P.drawrotationmarker then
+        geometry.rectanglebltr(transistor,
+            generics.other("rotationmarker"),
+            point.create(-_P.extendrotationmarkerleft, -_P.extendrotationmarkerbot),
+            point.create(activewidth + leftactext + rightactext + _P.extendrotationmarkerright, _P.fwidth + _P.extendrotationmarkertop)
+        )
+
+    end
 
     -- lvs marker
     geometry.rectanglebltr(transistor,
@@ -697,7 +696,7 @@ function layout(transistor, _P)
             local bly
             if _P.channeltype == "nmos" then
                 if _P.connectsourceinverse then
-                    bly = _P.sourcesize - _P.connectsourcewidth - _P.connectsourceinlineoffset
+                    bly = _P.fwidth - _P.connectsourcewidth - _P.connectsourceinlineoffset
                 else
                     bly = _P.connectsourceinlineoffset
                 end
@@ -705,7 +704,7 @@ function layout(transistor, _P)
                 if _P.connectsourceinverse then
                     bly = _P.connectsourceinlineoffset
                 else
-                    bly = _P.sourcesize - _P.connectsourcewidth - _P.connectsourceinlineoffset
+                    bly = _P.fwidth - _P.connectsourcewidth - _P.connectsourceinlineoffset
                 end
             end
             geometry.rectanglebltr(transistor, generics.metal(_P.connectsourcemetal),
@@ -794,11 +793,11 @@ function layout(transistor, _P)
                 if _P.connectdraininverse then
                     bly = _P.connectdraininlineoffset
                 else
-                    bly = _P.drainsize - _P.connectdrainwidth - _P.connectdraininlineoffset
+                    bly = _P.fwidth - _P.connectdrainwidth - _P.connectdraininlineoffset
                 end
             else
                 if _P.connectdraininverse then
-                    bly = _P.drainsize - _P.connectdrainwidth - _P.connectdraininlineoffset
+                    bly = _P.fwidth - _P.connectdrainwidth - _P.connectdraininlineoffset
                 else
                     bly = _P.connectdraininlineoffset
                 end
@@ -926,9 +925,9 @@ function layout(transistor, _P)
         transistor:inherit_alignment_box(guardring)
     else
         transistor:set_alignment_box(
-            point.create(leftactext - (_P.gatespace + _P.sdwidth) / 2, 0), 
+            point.create(leftactext - (_P.gatespace + _P.sdwidth) / 2, 0),
             point.create(leftactext - (_P.gatespace + _P.sdwidth) / 2 + (_P.fingers + 1 - 1) * gatepitch, _P.fwidth),
-            point.create(leftactext - (_P.gatespace + _P.sdwidth) / 2 + _P.sdwidth, 0), 
+            point.create(leftactext - (_P.gatespace + _P.sdwidth) / 2 + _P.sdwidth, 0),
             point.create(leftactext - (_P.gatespace + _P.sdwidth) / 2 + (_P.fingers + 1 - 1) * gatepitch + _P.sdwidth, _P.fwidth)
         )
     end
