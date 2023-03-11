@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdint.h>
+#include <stdio.h>
 
 #include "util.h"
 
@@ -149,7 +150,6 @@ struct hashmap_iterator* hashmap_iterator_create(struct hashmap* map)
     {
         return iterator;
     }
-    hashmap_iterator_next(iterator);
     while((iterator->index < iterator->hashmap->capacity) && (!(iterator->hashmap->entries + iterator->index)->key))
     {
         ++iterator->index;
@@ -200,7 +200,6 @@ struct hashmap_const_iterator* hashmap_const_iterator_create(const struct hashma
     {
         return iterator;
     }
-    hashmap_const_iterator_next(iterator);
     while((iterator->index < iterator->hashmap->capacity) && (!(iterator->hashmap->entries + iterator->index)->key))
     {
         ++iterator->index;
