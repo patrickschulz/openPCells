@@ -92,8 +92,8 @@ function layout(momcap, _P)
     end
 
     momcap:add_area_anchor_bltr("upperrail",
-        point.create(-_P.rext, _P.fheight + _P.foffset + _P.rwidth),
-        point.create(_P.fingers * _P.fwidth + (_P.fingers - 1) * _P.fspace + _P.rext, _P.fheight + _P.foffset + 2 * _P.rwidth)
+        point.create(-_P.rext, _P.fheight + 2 * _P.foffset + _P.rwidth),
+        point.create(_P.fingers * _P.fwidth + (_P.fingers - 1) * _P.fspace + _P.rext, _P.fheight + 2 * _P.foffset + 2 * _P.rwidth)
     )
     momcap:add_area_anchor_bltr("lowerrail",
         point.create(-_P.rext, 0),
