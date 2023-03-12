@@ -507,6 +507,7 @@ point_t* object_get_anchor(const struct object* cell, const char* name)
     return NULL;
 }
 
+// FIXME: handle arrays
 point_t* object_get_area_anchor(const struct object* cell, const char* base)
 {
     const struct object* obj = cell;
