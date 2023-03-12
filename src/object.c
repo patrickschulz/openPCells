@@ -1471,6 +1471,18 @@ const char* object_get_child_reference_name(const struct object* child)
     return child->reference->name;
 }
 
+coordinate_t object_get_area_anchor_width(const struct object* cell, const char* anchorname)
+{
+    point_t* anchor = object_get_area_anchor(cell, anchorname);
+    return anchor[1].x - anchor[0].x;
+}
+
+coordinate_t object_get_area_anchor_height(const struct object* cell, const char* anchorname)
+{
+    point_t* anchor = object_get_area_anchor(cell, anchorname);
+    return anchor[1].y - anchor[0].y;
+}
+
 void object_flatten_inline(struct object* cell, int flattenports)
 {
     // add shapes and flatten children (recursive)

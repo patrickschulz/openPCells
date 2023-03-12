@@ -127,6 +127,9 @@ int object_has_alignmentbox(const struct object* cell);
 const char* object_get_name(const struct object* cell);
 const char* object_get_child_reference_name(const struct object* child);
 
+coordinate_t object_get_area_anchor_width(const struct object* cell, const char* anchorname);
+coordinate_t object_get_area_anchor_height(const struct object* cell, const char* anchorname);
+
 void object_flatten_inline(struct object* cell, int flattenports);
 struct object* object_flatten(const struct object* cell, int flattenports);
 
