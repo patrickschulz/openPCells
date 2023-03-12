@@ -18,7 +18,9 @@ function parameters()
         { "fillwidth",                100 },
         { "fillheight",               100 },
         { "fillxspace",               100 },
-        { "fillyspace",               100 }
+        { "fillyspace",               100 },
+        { "fillxextend",                0 },
+        { "fillyextend",                0 }
     )
 end
 
@@ -73,8 +75,8 @@ function layout(momcap, _P)
     if _P.drawfill then
         local xpitch = _P.fillwidth + _P.fillxspace
         local ypitch = _P.fillheight + _P.fillyspace
-        local totalwidth = 2 * _P.rext + _P.fingers * _P.fwidth + (_P.fingers - 1) * _P.fspace
-        local totalheight = 2 * _P.rwidth + _P.fheight + 2 * _P.foffset
+        local totalwidth = 2 * _P.rext + _P.fingers * _P.fwidth + (_P.fingers - 1) * _P.fspace + 2 * _P.fillxextend
+        local totalheight = 2 * _P.rwidth + _P.fheight + 2 * _P.foffset + 2 * _P.fillyextend
         local xrep = (totalwidth + _P.fillxspace) // xpitch
         local yrep = (totalheight + _P.fillyspace) // ypitch
         local xshift = (totalwidth - xrep * _P.fillwidth - (xrep - 1) * _P.fillxspace) / 2
@@ -83,7 +85,7 @@ function layout(momcap, _P)
             geometry.rectanglearray(
                 momcap, generics.metal(m),
                 _P.fillwidth, _P.fillheight,
-                xshift, yshift,
+                xshift - _P.rext - _P.fillxextend, yshift - _P.fillyextend,
                 xrep, yrep,
                 _P.fillwidth + _P.fillxspace,
                 _P.fillheight + _P.fillyspace
