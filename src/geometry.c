@@ -86,7 +86,7 @@ void geometry_rectanglearray(
         {
             coordinate_t x = xshift + (xi - 1) * xpitch;
             coordinate_t y = yshift + (yi - 1) * ypitch;
-            _rectanglebltr(cell, layer, x, y, x + width, y + width);
+            _rectanglebltr(cell, layer, x, y, x + width, y + height);
         }
     }
 }
