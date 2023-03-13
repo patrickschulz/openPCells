@@ -544,6 +544,11 @@ point_t* object_get_area_anchor(const struct object* cell, const char* base)
             pts[0].y = bly;
             pts[1].x = trx;
             pts[1].y = try;
+            if(object_is_child_array(cell))
+            {
+                pts[1].x += (cell->xrep - 1) * cell->xpitch;
+                pts[1].y += (cell->yrep - 1) * cell->ypitch;
+            }
             return pts;
         }
     }
@@ -552,7 +557,7 @@ point_t* object_get_area_anchor(const struct object* cell, const char* base)
 
 point_t* object_get_array_anchor(const struct object* cell, int xindex, int yindex, const char* name)
 {
-    if(!cell->isarray)
+    if(!object_is_child_array(cell))
     {
         return NULL;
     }
@@ -602,6 +607,15 @@ static void _fix_alignmentbox_order(coordinate_t* alignmentbox)
     _check_coordinates(alignmentbox, 7, 3);
 }
 
+#define _alignmentbox_get_outerblx(b) b[0]
+#define _alignmentbox_get_outerbly(b) b[1]
+#define _alignmentbox_get_outertrx(b) b[2]
+#define _alignmentbox_get_outertry(b) b[3]
+#define _alignmentbox_get_innerblx(b) b[4]
+#define _alignmentbox_get_innerbly(b) b[5]
+#define _alignmentbox_get_innertrx(b) b[6]
+#define _alignmentbox_get_innertry(b) b[7]
+
 static coordinate_t* _get_transformed_alignment_box(const struct object* cell)
 {
     struct transformationmatrix* trans1 = cell->trans;
@@ -630,17 +644,15 @@ static coordinate_t* _get_transformed_alignment_box(const struct object* cell)
         }
     }
     _fix_alignmentbox_order(alignmentbox);
+    if(object_is_child_array(cell))
+    {
+        _alignmentbox_get_innertrx(alignmentbox) += (cell->xrep - 1) * cell->xpitch;
+        _alignmentbox_get_innertry(alignmentbox) += (cell->yrep - 1) * cell->ypitch;
+        _alignmentbox_get_outertrx(alignmentbox) += (cell->xrep - 1) * cell->xpitch;
+        _alignmentbox_get_outertry(alignmentbox) += (cell->yrep - 1) * cell->ypitch;
+    }
     return alignmentbox;
 }
-
-#define _alignmentbox_get_outerblx(b) b[0]
-#define _alignmentbox_get_outerbly(b) b[1]
-#define _alignmentbox_get_outertrx(b) b[2]
-#define _alignmentbox_get_outertry(b) b[3]
-#define _alignmentbox_get_innerblx(b) b[4]
-#define _alignmentbox_get_innerbly(b) b[5]
-#define _alignmentbox_get_innertrx(b) b[6]
-#define _alignmentbox_get_innertry(b) b[7]
 
 point_t* object_get_alignmentbox_anchor_outerbl(const struct object* cell)
 {
@@ -1437,7 +1449,7 @@ int object_is_empty(const struct object* cell)
 
 int object_is_child_array(const struct object* cell)
 {
-    return cell->isarray;
+    return cell->isproxy && cell->isarray;
 }
 
 int object_has_anchor(const struct object* cell, const char* anchorname)
@@ -1529,7 +1541,6 @@ void object_flatten_inline(struct object* cell, int flattenports)
             }
             object_destroy(flat);
         }
-        // FIXME: destroy children
         vector_destroy(cell->children);
         cell->children = NULL;
         vector_destroy(cell->references);
