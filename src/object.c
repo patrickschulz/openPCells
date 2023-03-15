@@ -833,54 +833,6 @@ int object_align_bottom(struct object* cell, const struct object* other)
     return 1;
 }
 
-int object_overlap_right(struct object* cell, const struct object* other)
-{
-    coordinate_t* alb1 = _get_transformed_alignment_box(cell);
-    coordinate_t* alb2 = _get_transformed_alignment_box(other);
-    coordinate_t x1 = _alignmentbox_get_outertrx(alb1);
-    coordinate_t x2 = _alignmentbox_get_outertrx(alb2);
-    object_translate(cell, x2 - x1, 0);
-    free(alb1);
-    free(alb2);
-    return 1;
-}
-
-int object_overlap_left(struct object* cell, const struct object* other)
-{
-    coordinate_t* alb1 = _get_transformed_alignment_box(cell);
-    coordinate_t* alb2 = _get_transformed_alignment_box(other);
-    coordinate_t x1 = _alignmentbox_get_outerblx(alb1);
-    coordinate_t x2 = _alignmentbox_get_outerblx(alb2);
-    object_translate(cell, x2 - x1, 0);
-    free(alb1);
-    free(alb2);
-    return 1;
-}
-
-int object_overlap_top(struct object* cell, const struct object* other)
-{
-    coordinate_t* alb1 = _get_transformed_alignment_box(cell);
-    coordinate_t* alb2 = _get_transformed_alignment_box(other);
-    coordinate_t y1 = _alignmentbox_get_outertry(alb1);
-    coordinate_t y2 = _alignmentbox_get_outertry(alb2);
-    object_translate(cell, 0, y2 - y1);
-    free(alb1);
-    free(alb2);
-    return 1;
-}
-
-int object_overlap_bottom(struct object* cell, const struct object* other)
-{
-    coordinate_t* alb1 = _get_transformed_alignment_box(cell);
-    coordinate_t* alb2 = _get_transformed_alignment_box(other);
-    coordinate_t y1 = _alignmentbox_get_outerbly(alb1);
-    coordinate_t y2 = _alignmentbox_get_outerbly(alb2);
-    object_translate(cell, 0, y2 - y1);
-    free(alb1);
-    free(alb2);
-    return 1;
-}
-
 #define _area_anchor_get_blx(pts) pts[0].x
 #define _area_anchor_get_bly(pts) pts[0].y
 #define _area_anchor_get_trx(pts) pts[1].x
