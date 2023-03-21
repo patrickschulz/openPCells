@@ -34,6 +34,7 @@ function parameters()
         { "drawgatecontacts", true },
         { "outergstwidth(Outer Gate Strap Metal Width)",  technology.get_dimension("Minimum M1 Width") },
         { "outergstspace(Outer Gate Strap Metal Space)",  technology.get_dimension("Minimum M1 Space") },
+        { "outergateshift(Outer Gate Strap Metal Shift)",  0 },
         { "gatecontactpos", { "center" }, argtype = "strtable" },
         { "gatenames", {}, argtype = "strtable" },
         { "shiftgatecontacts", 0 },
@@ -199,13 +200,13 @@ function layout(cmos, _P)
             cmos:merge_into(pfet)
             -- save anchors for later use
             if i == 1 then
-                leftndrainarea = nfet:get_area_anchor("sourcedrainleft")
-                leftpdrainarea = pfet:get_area_anchor("sourcedrainleft")
+                leftndrainarea = nfet:get_area_anchor("sourcedrainactiveleft")
+                leftpdrainarea = pfet:get_area_anchor("sourcedrainactiveleft")
                 firstgatearea = nfet:get_area_anchor("gate1")
             end
             if i == fingers then
-                rightndrainarea = nfet:get_area_anchor("sourcedrainright")
-                rightpdrainarea = pfet:get_area_anchor("sourcedrainright")
+                rightndrainarea = nfet:get_area_anchor("sourcedrainactiveright")
+                rightpdrainarea = pfet:get_area_anchor("sourcedrainactiveright")
             end
         end
         nopt.drawtopgcut = true
@@ -345,7 +346,7 @@ function layout(cmos, _P)
                 local yshift = entry.yshift or 0
                 local yheight = entry.yheight
                 local index = entry.index
-                local gnames = { string.format("G%s%d", prefix or "", index) }
+                local gnames = { string.format("G%s%d", entry.prefix or "", index) }
                 if _P.gatenames[i] then
                     table.insert(gnames, _P.gatenames[i])
                 end
@@ -417,7 +418,7 @@ function layout(cmos, _P)
         elseif _P.pcontactpos[i] == "full" or _P.pcontactpos[i] == "fullpower" then
             y = y - _P.pwidth
             yheight = _P.pwidth
-        elseif _P.pcontactpos[i] == "none" then
+        elseif _P.pcontactpos[i] == "unused" then
             ignore = true
         else
             moderror(string.format("unknown source/drain contact position (p): [%d] = '%s'", i, _P.pcontactpos[i]))
@@ -457,7 +458,7 @@ function layout(cmos, _P)
                 yheight = ncontactheight
             elseif _P.ncontactpos[i] == "full" or _P.ncontactpos[i] == "fullpower" then
                 yheight = _P.nwidth
-            elseif not _P.ncontactpos[i] or _P.ncontactpos[i] == "none" then
+            elseif not _P.ncontactpos[i] or _P.ncontactpos[i] == "unused" then
                 ignore = true
             else
                 moderror(string.format("unknown source/drain contact position (p): [%d] = '%s'", i, _P.ncontactpos[i]))

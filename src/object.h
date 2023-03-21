@@ -55,10 +55,6 @@ int object_align_right(struct object* cell, const struct object* other);
 int object_align_left(struct object* cell, const struct object* other);
 int object_align_top(struct object* cell, const struct object* other);
 int object_align_bottom(struct object* cell, const struct object* other);
-int object_overlap_right(struct object* cell, const struct object* other);
-int object_overlap_left(struct object* cell, const struct object* other);
-int object_overlap_top(struct object* cell, const struct object* other);
-int object_overlap_bottom(struct object* cell, const struct object* other);
 
 // anchor alignment
 int object_abut_area_anchor_right(struct object* cell, const char* anchorname, const struct object* other, const char* otheranchorname);

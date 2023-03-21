@@ -54,7 +54,7 @@ static void _check_numargs(lua_State* L, int numargs, const char* funcname)
 static void _check_numargs_set(lua_State* L, int numargs1, int numargs2, const char* funcname)
 {
     int top = lua_gettop(L);
-    if(top != numargs1 || top != numargs2)
+    if(top != numargs1 && top != numargs2)
     {
         lua_pushfstring(L, "%s: expected %d or %d arguments, got %d", funcname, numargs1, numargs2, top);
         lua_error(L);
