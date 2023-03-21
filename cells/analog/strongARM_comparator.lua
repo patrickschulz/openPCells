@@ -521,7 +521,7 @@ function layout(comparator, _P)
     if _P.clockdummyfingers > 0 then
         clockdummy = clockdummyref
         halfref:merge_into(clockdummy)
-        clock:align_left(clockdummy)
+        clock:abut_left(clockdummy)
         halfref:merge_into(clock)
     else -- FIXME: this is currently broken
         halfref:merge_into(clock)
@@ -543,7 +543,7 @@ function layout(comparator, _P)
             string.format("gate%d", (_P.inputdummyfingers + 1) / 2)
         )
     end
-    input:align_area_anchor_left("sourcedrainright", inputdummy, "sourcedrainleft")
+    input:align_area_anchor_left("sourcedrainactiveright", inputdummy, "sourcedrainactiveleft")
     input:align_area_anchor_top("gate1", inputdummy, "gate1")
     halfref:merge_into(inputdummy)
     halfref:merge_into(input)
@@ -562,7 +562,7 @@ function layout(comparator, _P)
             string.format("gate%d", (_P.inputdummyfingers + 1) / 2)
         )
     end
-    nmosinv:align_area_anchor_left("sourcedrainright", nmosdummy, "sourcedrainleft")
+    nmosinv:align_area_anchor_left("sourcedrainactiveright", nmosdummy, "sourcedrainactiveleft")
     nmosinv:align_area_anchor_top("gate1", nmosdummy, "gate1")
     halfref:merge_into(nmosdummy)
     halfref:merge_into(nmosinv)
@@ -571,9 +571,9 @@ function layout(comparator, _P)
     pmosinv:abut_area_anchor_top("gate1", nmosinv, "gate1")
     pmosinv:align_area_anchor_left("gate1", nmosinv, "gate1")
     pmosinv:translate(0, -_P.invgstrapwidth / 2) -- compensate for displacement due to gate strap (FIXME: should be fixed in basic/mosfet?)
-    pmosdummy:align_area_anchor("sourcedrainleft", pmosinv, "sourcedrainright")
-    pmosreset1:align_area_anchor("sourcedrainright", pmosinv, "sourcedrainleft")
-    pmosreset2:align_area_anchor("sourcedrainright", pmosreset1, "sourcedrainleft")
+    pmosdummy:align_area_anchor("sourcedrainactiveleft", pmosinv, "sourcedrainactiveright")
+    pmosreset1:align_area_anchor("sourcedrainactiveright", pmosinv, "sourcedrainactiveleft")
+    pmosreset2:align_area_anchor("sourcedrainactiveright", pmosreset1, "sourcedrainactiveleft")
     halfref:merge_into(pmosdummy)
     halfref:merge_into(pmosinv)
     halfref:merge_into(pmosreset1)
@@ -581,55 +581,55 @@ function layout(comparator, _P)
 
     -- place nmos buffer + latch
     if _P.drawoutputbuffer then
-        nmosbufspacer:align_area_anchor("sourcedrainright", nmosinv, "sourcedrainleft")
+        nmosbufspacer:align_area_anchor("sourcedrainactiveright", nmosinv, "sourcedrainactiveleft")
         halfref:merge_into(nmosbufspacer)
-        nmosbuf:align_area_anchor("sourcedrainright", nmosbufspacer, "sourcedrainleft")
+        nmosbuf:align_area_anchor("sourcedrainactiveright", nmosbufspacer, "sourcedrainactiveleft")
         halfref:merge_into(nmosbuf)
-        nmosrslatch1:align_area_anchor("sourcedrainright", nmosbuf, "sourcedrainleft")
+        nmosrslatch1:align_area_anchor("sourcedrainactiveright", nmosbuf, "sourcedrainactiveleft")
     end
     if _P.drawoutputlatch then
         halfref:merge_into(nmosrslatch1)
-        nmosrslatch2:align_area_anchor("sourcedrainright", nmosrslatch1, "sourcedrainleft")
+        nmosrslatch2:align_area_anchor("sourcedrainactiveright", nmosrslatch1, "sourcedrainactiveleft")
         halfref:merge_into(nmosrslatch2)
     end
 
     -- place pmos buffer + latch
     if _P.drawoutputbuffer then
-        pmosbuf:align_area_anchor("sourcedrainright", pmosreset2, "sourcedrainleft")
+        pmosbuf:align_area_anchor("sourcedrainactiveright", pmosreset2, "sourcedrainactiveleft")
         halfref:merge_into(pmosbuf)
-        pmosrslatch1:align_area_anchor("sourcedrainright", pmosbuf, "sourcedrainleft")
+        pmosrslatch1:align_area_anchor("sourcedrainactiveright", pmosbuf, "sourcedrainactiveleft")
     end
     if _P.drawoutputlatch then
         halfref:merge_into(pmosrslatch1)
-        pmosrslatch2:align_area_anchor("sourcedrainright", pmosrslatch1, "sourcedrainleft")
+        pmosrslatch2:align_area_anchor("sourcedrainactiveright", pmosrslatch1, "sourcedrainactiveleft")
         halfref:merge_into(pmosrslatch2)
     end
 
     -- fill up clock row
-    clockfill:align_area_anchor("sourcedrainright", clock, "sourcedrainleft")
+    clockfill:align_area_anchor("sourcedrainactiveright", clock, "sourcedrainactiveleft")
     halfref:merge_into(clockfill)
 
     -- fill up input row
-    inputfill:align_area_anchor("sourcedrainright", input, "sourcedrainleft")
+    inputfill:align_area_anchor("sourcedrainactiveright", input, "sourcedrainactiveleft")
     halfref:merge_into(inputfill)
 
     -- fill up nmos inv row
     if _P.drawoutputlatch then
-        nmosinvfill:align_area_anchor("sourcedrainright", nmosrslatch2, "sourcedrainleft")
+        nmosinvfill:align_area_anchor("sourcedrainactiveright", nmosrslatch2, "sourcedrainactiveleft")
     elseif _P.drawoutputbuffer then
-        nmosinvfill:align_area_anchor("sourcedrainright", nmosbuf, "sourcedrainleft")
+        nmosinvfill:align_area_anchor("sourcedrainactiveright", nmosbuf, "sourcedrainactiveleft")
     else
-        nmosinvfill:align_area_anchor("sourcedrainright", nmosinv, "sourcedrainleft")
+        nmosinvfill:align_area_anchor("sourcedrainactiveright", nmosinv, "sourcedrainactiveleft")
     end
     halfref:merge_into(nmosinvfill)
 
     -- fill up input row
     if _P.drawoutputlatch then
-        pmosinvfill:align_area_anchor("sourcedrainright", pmosrslatch2, "sourcedrainleft")
+        pmosinvfill:align_area_anchor("sourcedrainactiveright", pmosrslatch2, "sourcedrainactiveleft")
     elseif _P.drawoutputbuffer then
-        pmosinvfill:align_area_anchor("sourcedrainright", pmosbuf, "sourcedrainleft")
+        pmosinvfill:align_area_anchor("sourcedrainactiveright", pmosbuf, "sourcedrainactiveleft")
     else
-        pmosinvfill:align_area_anchor("sourcedrainright", pmosreset2, "sourcedrainleft")
+        pmosinvfill:align_area_anchor("sourcedrainactiveright", pmosreset2, "sourcedrainactiveleft")
     end
     halfref:merge_into(pmosinvfill)
 
@@ -728,7 +728,7 @@ function layout(comparator, _P)
     -- 'shortdevice' can't be used on these as the inner source is shared with the input transistors
     if _P.connectdummiesinline then
         geometry.rectanglebltr(halfref, generics.metal(1),
-            inputfill:get_area_anchor("sourcedrainleft").br,
+            inputfill:get_area_anchor("sourcedrainactiveleft").br,
             inputfill:get_area_anchor(string.format("sourcedrain%d", (maxfingers - inputrowfingers) / 2)).bl:translate(0, _P.sdwidth)
         )
     else
@@ -744,7 +744,7 @@ function layout(comparator, _P)
     -- 'shortdevice' can't be used on these as the inner source is shared with the inverter transistors
     if _P.connectdummiesinline then
         geometry.rectanglebltr(halfref, generics.metal(1),
-            nmosinvfill:get_area_anchor("sourcedrainleft").br,
+            nmosinvfill:get_area_anchor("sourcedrainactiveleft").br,
             nmosinvfill:get_area_anchor(string.format("sourcedrain%d", (maxfingers - invnfingers) / 2)).bl:translate(0, _P.sdwidth)
         )
     else
