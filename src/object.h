@@ -39,7 +39,7 @@ int object_inherit_area_anchor(struct object* cell, const struct object* other, 
 point_t* object_get_anchor(const struct object* cell, const char* name);
 point_t* object_get_area_anchor(const struct object* cell, const char* base);
 point_t* object_get_array_anchor(const struct object* cell, int xindex, int yindex, const char* name);
-point_t* object_get_area_anchor(const struct object* cell, const char* base);
+point_t* object_get_array_area_anchor(const struct object* cell, int xindex, int yindex, const char* name);
 point_t* object_get_alignmentbox_anchor_outerbl(const struct object* cell);
 point_t* object_get_alignmentbox_anchor_outertr(const struct object* cell);
 point_t* object_get_alignmentbox_anchor_innerbl(const struct object* cell);

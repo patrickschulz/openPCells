@@ -507,7 +507,6 @@ point_t* object_get_anchor(const struct object* cell, const char* name)
     return NULL;
 }
 
-// FIXME: handle arrays
 point_t* object_get_area_anchor(const struct object* cell, const char* base)
 {
     const struct object* obj = cell;
@@ -544,11 +543,6 @@ point_t* object_get_area_anchor(const struct object* cell, const char* base)
             pts[0].y = bly;
             pts[1].x = trx;
             pts[1].y = try;
-            if(object_is_child_array(cell))
-            {
-                pts[1].x += (cell->xrep - 1) * cell->xpitch;
-                pts[1].y += (cell->yrep - 1) * cell->ypitch;
-            }
             return pts;
         }
     }
@@ -570,14 +564,68 @@ point_t* object_get_array_anchor(const struct object* cell, int xindex, int yind
     {
         yindex = cell->yrep + yindex + 1;
     }
-    point_t* pt = _get_regular_anchor(cell, name);
+    point_t* pt = object_get_anchor(cell, name);
     if(pt)
     {
-        _transform_to_global_coordinates(cell, pt);
         point_translate(pt, cell->xpitch * (xindex - 1), cell->ypitch * (yindex - 1));
-        return pt;
     }
     // no anchor found
+    return NULL;
+}
+
+point_t* object_get_array_area_anchor(const struct object* cell, int xindex, int yindex, const char* base)
+{
+    if(!object_is_child_array(cell))
+    {
+        return NULL;
+    }
+    // resolve negative indices
+    if(xindex < 0)
+    {
+        xindex = cell->xrep + xindex + 1;
+    }
+    if(yindex < 0)
+    {
+        yindex = cell->yrep + yindex + 1;
+    }
+
+    const struct object* obj = cell->reference;
+    if(obj->anchors)
+    {
+        if(hashmap_exists(obj->anchors, base) && _anchor_is_area(hashmap_get(obj->anchors, base)))
+        {
+            struct anchor* anchor = hashmap_get(obj->anchors, base);
+            coordinate_t blx = anchor->bl->x;
+            coordinate_t bly = anchor->bl->y;
+            coordinate_t trx = anchor->tr->x;
+            coordinate_t try = anchor->tr->y;
+            _transform_to_global_coordinates_xy(cell, &blx, &bly);
+            _transform_to_global_coordinates_xy(cell, &trx, &try);
+            if(blx > trx)
+            {
+                coordinate_t tmp = blx;
+                blx = trx;
+                trx = tmp;
+            }
+            if(bly > try)
+            {
+                coordinate_t tmp = bly;
+                bly = try;
+                try = tmp;
+            }
+            point_t* pts = malloc(2 * sizeof(*pts));
+            pts[0].x = blx;
+            pts[0].y = bly;
+            pts[1].x = trx;
+            pts[1].y = try;
+            // translate for array
+            pts[0].x += xindex * cell->xpitch;
+            pts[0].y += yindex * cell->ypitch;
+            pts[1].x += xindex * cell->xpitch;
+            pts[1].y += yindex * cell->ypitch;
+            return pts;
+        }
+    }
     return NULL;
 }
 

@@ -501,6 +501,35 @@ static int lobject_get_array_anchor(lua_State* L)
     return 1;
 }
 
+static int lobject_get_array_area_anchor(lua_State* L)
+{
+    struct lobject* cell = lobject_check(L, 1);
+    int xindex = luaL_checkinteger(L, 2);
+    int yindex = luaL_checkinteger(L, 3);
+    const char* base = lua_tostring(L, 4);
+    point_t* pts = object_get_array_area_anchor(lobject_get(cell), xindex - 1, yindex - 1, base);
+    if(pts)
+    {
+        lua_newtable(L);
+        lpoint_create_internal(L, pts[0].x, pts[0].y);
+        lua_setfield(L, -2, "bl");
+        lpoint_create_internal(L, pts[1].x, pts[0].y);
+        lua_setfield(L, -2, "br");
+        lpoint_create_internal(L, pts[1].x, pts[1].y);
+        lua_setfield(L, -2, "tr");
+        lpoint_create_internal(L, pts[0].x, pts[1].y);
+        lua_setfield(L, -2, "tl");
+        free(pts);
+        luaL_setmetatable(L, "areaanchor");
+    }
+    else
+    {
+        lua_pushfstring(L, "trying to access undefined area anchor '%s'", base);
+        lua_error(L);
+    }
+    return 1;
+}
+
 static int lobject_get_all_regular_anchors(lua_State* L)
 {
     struct lobject* cell = lobject_check(L, 1);
@@ -678,6 +707,7 @@ int open_lobject_lib(lua_State* L)
         { "get_anchor",                 lobject_get_anchor                  },
         { "get_area_anchor",            lobject_get_area_anchor             },
         { "get_array_anchor",           lobject_get_array_anchor            },
+        { "get_array_area_anchor",      lobject_get_array_area_anchor       },
         { "get_all_regular_anchors",    lobject_get_all_regular_anchors     },
         { "add_port",                   lobject_add_port                    },
         { "add_bus_port",               lobject_add_bus_port                },
