@@ -52,7 +52,7 @@ function layout(momcap, _P)
             geometry.rectanglebltr(
                 momcap, generics.metal(m),
                 point.create(xshift, _P.rwidth + yshift),
-                point.create(xshift + _P.fwidth, _P.fheight + 2 * _P.foffset + yshift)
+                point.create(xshift + _P.fwidth, _P.rwidth + yshift + _P.fheight + _P.foffset)
             )
         end
     end
