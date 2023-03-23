@@ -43,6 +43,14 @@ void geometry_path(
     ucoordinate_t bgnext, ucoordinate_t endext
 );
 
+void geometry_path_polygon(
+    struct object* cell,
+    const struct generics* layer,
+    const point_t** points, size_t len,
+    ucoordinate_t width,
+    ucoordinate_t bgnext, ucoordinate_t endext
+);
+
 int geometry_viabltr(
     struct object* cell,
     struct technology_state* techstate,

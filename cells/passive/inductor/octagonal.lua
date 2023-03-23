@@ -53,8 +53,8 @@ function layout(inductor, _P)
             append( pitch / 2, -sign * (radius + pitch))
             append( pitch / 2 + _scale_tanpi8(_P.width / 2), -sign * (radius + pitch))
             append( (_scale_tanpi8(_P.radius) + pitch / 2) / 2, -sign * (radius + pitch))
-            geometry.path(inductor, mainmetal, uppts, _P.width, true)
-            geometry.path(inductor, auxmetal, util.xmirror(uppts), _P.width, true)
+            geometry.path_polygon(inductor, mainmetal, uppts, _P.width, true)
+            geometry.path_polygon(inductor, auxmetal, util.xmirror(uppts), _P.width, true)
             -- place vias
             geometry.viabltr(inductor, _P.metalnum, _P.metalnum - 1, 
                 point.create(-_P.width / 2 - (_scale_tanpi8(_P.radius) + pitch / 2) / 2, -_P.width / 2 - sign * (radius + pitch)),
@@ -86,7 +86,7 @@ function layout(inductor, _P)
             end
         end
 
-        geometry.path(inductor, mainmetal, pathpts, _P.width, true)
-        geometry.path(inductor, mainmetal, util.xmirror(pathpts), _P.width, true)
+        geometry.path_polygon(inductor, mainmetal, pathpts, _P.width, true)
+        geometry.path_polygon(inductor, mainmetal, util.xmirror(pathpts), _P.width, true)
     end
 end

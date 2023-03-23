@@ -402,6 +402,48 @@ static int lgeometry_path_ushape(lua_State* L)
     return 0;
 }
 
+static int lgeometry_path_polygon(lua_State* L)
+{
+    _check_numargs_set(L, 4, 5, "geometry.path");
+    struct lobject* cell = lobject_check(L, 1);
+    struct generics* layer = _check_generics(L, 2);
+    if(!lua_istable(L, 3))
+    {
+        lua_pushstring(L, "geometry.path: list of points (third argument) is not a table");
+        lua_error(L);
+    }
+    lua_len(L, 3);
+    size_t len = lua_tointeger(L, -1);
+    lua_pop(L, 1);
+    coordinate_t width = luaL_checkinteger(L, 4);
+    if(width == 0)
+    {
+        lua_pushstring(L, "geometry.path: width can't be zero");
+        lua_error(L);
+    }
+    if(width % 2 != 0)
+    {
+        lua_pushfstring(L, "geometry.path: width is odd (%d)", width);
+        lua_error(L);
+    }
+
+    int bgnext = 0;
+    int endext = 0;
+    _get_path_extension(L, 5, &bgnext, &endext);
+
+    const point_t** points = calloc(len, sizeof(*points));
+    for(unsigned int i = 1; i <= len; ++i)
+    {
+        lua_rawgeti(L, 3, i);
+        struct lpoint* pt = lpoint_checkpoint(L, -1);
+        points[i - 1] = lpoint_get(pt);
+        lua_pop(L, 1);
+    }
+    geometry_path_polygon(lobject_get(cell), layer, points, len, width, bgnext, endext);
+    free(points);
+    return 0;
+}
+
 void _get_viacontact_properties(lua_State* L, int idx, int* xcont, int* ycont, int* equal_pitch)
 {
     if(lua_type(L, idx) == LUA_TTABLE)
@@ -878,6 +920,7 @@ int open_lgeometry_lib(lua_State* L)
         { "path_2y",            lgeometry_path_2y           },
         { "path_cshape",        lgeometry_path_cshape       },
         { "path_ushape",        lgeometry_path_ushape       },
+        { "path_polygon",       lgeometry_path_polygon      },
         { "viabltr",            lgeometry_viabltr           },
         { "via",                lgeometry_via               },
         { "contactbltr",        lgeometry_contactbltr       },

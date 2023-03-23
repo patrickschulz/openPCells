@@ -130,6 +130,24 @@ void geometry_path(struct object* cell, const struct generics* layer, const poin
     }
 }
 
+void geometry_path_polygon(struct object* cell, const struct generics* layer, const point_t** points, size_t len, ucoordinate_t width, ucoordinate_t bgnext, ucoordinate_t endext)
+{
+    struct shape* S = shape_create_path(layer, len, width, bgnext, endext);
+    for(unsigned int i = 0; i < len; ++i)
+    {
+        shape_append(S, points[i]->x, points[i]->y);
+    }
+    if(!shape_is_empty(S))
+    {
+        shape_resolve_path_inline(S);
+        object_add_shape(cell, S);
+    }
+    else
+    {
+        shape_destroy(S);
+    }
+}
+
 static void _shift_line(const point_t* pt1, const point_t* pt2, ucoordinate_t width, point_t** spt1, point_t** spt2, unsigned int grid)
 {
     double angle = atan2(pt2->y - pt1->y, pt2->x - pt1->x) - M_PI / 2;
