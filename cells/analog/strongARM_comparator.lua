@@ -61,7 +61,6 @@ function parameters()
         { "invdummyfingers", 1 },
         { "resetfingers", 2 },
         { "inputclocksdspace", technology.get_dimension("Minimum M1 Space") },
-        { "invgstrapwidth", technology.get_dimension("Minimum M1 Width") },
         { "invskip", 200 },
         { "resetgatestrapwidth", technology.get_dimension("Minimum M1 Width") },
         { "resetgatestrapspace", technology.get_dimension("Minimum M1 Space") },
@@ -282,8 +281,8 @@ function layout(comparator, _P)
         flippedwell = _P.nfetflippedwell,
         vthtype = _P.nfetvthtype,
         drawtopgate = true,
-        topgatestrwidth = _P.invgstrapwidth,
-        topgatestrspace = separation - _P.invgstrapwidth / 2,
+        topgatestrwidth = _P.latchgatewidth,
+        topgatestrspace = separation - _P.latchgatewidth / 2,
         fingers = _P.latchfingers,
         fwidth = _P.latchnfwidth,
         connectsource = true,
@@ -294,10 +293,10 @@ function layout(comparator, _P)
         connectdrain = true,
         connectdrainmetal = _P.crossingswitchmetal and 3 or 2,
         drawdrainvia = true,
-        connectdrainwidth = _P.invgstrapwidth,
+        connectdrainwidth = _P.latchgatewidth,
         connectdrainspace = _P.latchgatespace,
-        extendimplanttop = -_P.invgstrapwidth / 2,
-        extendvthtop = -_P.invgstrapwidth / 2,
+        extendimplanttop = -_P.latchgatewidth / 2,
+        extendvthtop = -_P.latchgatewidth / 2,
         drawbotgcut = true
     })
     local nmosinvfill = pcell.create_layout("basic/mosfet", "nmosinvfill", {
@@ -329,7 +328,7 @@ function layout(comparator, _P)
         connectdrain = true,
         connectdrainmetal = _P.crossingswitchmetal and 3 or 2,
         drawdrainvia = true,
-        connectdrainwidth = _P.invgstrapwidth,
+        connectdrainwidth = _P.latchgatewidth,
         connectdrainspace = _P.latchgatespace,
         gtopext = 2 * _P.powerspace + _P.powerwidth,
         extendimplanttop = 100, -- FIXME
@@ -393,8 +392,8 @@ function layout(comparator, _P)
         connectsourcespace = _P.powerspace,
         connectdrain = true,
         connectdrainmetal = 3,
-        --connectdrainwidth = _P.invgstrapwidth,
-        --connectdrainspace = separation - _P.invgstrapwidth / 2,
+        --connectdrainwidth = _P.latchgatewidth,
+        --connectdrainspace = separation - _P.latchgatewidth / 2,
         drawdrainvia = true,
         clipbot = true,
         extendimplanttop = 100, -- FIXME
@@ -418,8 +417,8 @@ function layout(comparator, _P)
             flippedwell = _P.nfetflippedwell,
             vthtype = _P.nfetvthtype,
             drawtopgate = true,
-            topgatestrwidth = _P.invgstrapwidth,
-            topgatestrspace = separation - _P.invgstrapwidth / 2,
+            topgatestrwidth = _P.latchgatewidth,
+            topgatestrspace = separation - _P.latchgatewidth / 2,
             fingers = _P.bufferfingers,
             fwidth = _P.latchnfwidth,
             connectsource = true,
@@ -456,8 +455,8 @@ function layout(comparator, _P)
             flippedwell = _P.nfetflippedwell,
             vthtype = _P.nfetvthtype,
             drawtopgate = true,
-            topgatestrwidth = _P.invgstrapwidth,
-            topgatestrspace = separation - _P.invgstrapwidth / 2,
+            topgatestrwidth = _P.latchgatewidth,
+            topgatestrspace = separation - _P.latchgatewidth / 2,
             fingers = rslatchfingers,
             fwidth = _P.latchnfwidth,
             --drawsourcedrain = "drain", -- optional, but less regular
@@ -468,8 +467,8 @@ function layout(comparator, _P)
             flippedwell = _P.nfetflippedwell,
             vthtype = _P.nfetvthtype,
             drawtopgate = true,
-            topgatestrwidth = _P.invgstrapwidth,
-            topgatestrspace = separation - _P.invgstrapwidth / 2,
+            topgatestrwidth = _P.latchgatewidth,
+            topgatestrspace = separation - _P.latchgatewidth / 2,
             fingers = rslatchfingers,
             fwidth = _P.latchnfwidth,
             connectsource = true,
@@ -570,7 +569,7 @@ function layout(comparator, _P)
     -- place pmos inverter + reset row
     pmosinv:abut_area_anchor_top("gate1", nmosinv, "gate1")
     pmosinv:align_area_anchor_left("gate1", nmosinv, "gate1")
-    pmosinv:translate(0, -_P.invgstrapwidth / 2) -- compensate for displacement due to gate strap (FIXME: should be fixed in basic/mosfet?)
+    pmosinv:translate(0, -_P.latchgatewidth / 2) -- compensate for displacement due to gate strap (FIXME: should be fixed in basic/mosfet?)
     pmosdummy:align_area_anchor("sourcedrainactiveleft", pmosinv, "sourcedrainactiveright")
     pmosreset1:align_area_anchor("sourcedrainactiveright", pmosinv, "sourcedrainactiveleft")
     pmosreset2:align_area_anchor("sourcedrainactiveright", pmosreset1, "sourcedrainactiveleft")
