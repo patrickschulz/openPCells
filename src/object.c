@@ -1513,8 +1513,8 @@ void object_flatten_inline(struct object* cell, int flattenports)
                 {
                     struct shape* S = object_disown_shape(flat, size - 1);
                     --size;
-                    shape_apply_transformation(S, child->trans);
                     shape_apply_transformation(S, flat->trans);
+                    shape_apply_transformation(S, child->trans);
                     for(unsigned int ix = 1; ix <= child->xrep; ++ix)
                     {
                         for(unsigned int iy = 1; iy <= child->yrep; ++iy)
