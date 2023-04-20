@@ -270,7 +270,7 @@ static int lobject_ ##what (lua_State* L) \
     } \
     object_ ##what (lobject_get(cell), lobject_get(other)); \
     return 1; \
-} \
+}
 
 _gen_fun_abut_align(abut_left)
 _gen_fun_abut_align(abut_right)
