@@ -59,6 +59,7 @@ int technology_resolve_premapped_layers(struct technology_state* techstate, cons
 // layer creation interface
 const struct generics* generics_create_metal(struct technology_state* techstate, int num);
 const struct generics* generics_create_metalport(struct technology_state* techstate, int num);
+const struct generics* generics_create_metalfill(struct technology_state* techstate, int num);
 const struct generics* generics_create_metalexclude(struct technology_state* techstate, int num);
 const struct generics* generics_create_viacut(struct technology_state* techstate, int metal1, int metal2);
 const struct generics* generics_create_contact(struct technology_state* techstate, const char* region);

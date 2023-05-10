@@ -750,6 +750,17 @@ const struct generics* generics_create_metalport(struct technology_state* techst
     return layer;
 }
 
+const struct generics* generics_create_metalfill(struct technology_state* techstate, int num)
+{
+    num = technology_resolve_metal(techstate, num);
+    size_t len = 1 + util_num_digits(num) + 4; // M + %d + fill
+    char* layername = malloc(len + 1);
+    snprintf(layername, len + 1, "M%dfill", num);
+    const struct generics* layer = _get_or_create_layer(techstate, layername);
+    free(layername);
+    return layer;
+}
+
 const struct generics* generics_create_metalexclude(struct technology_state* techstate, int num)
 {
     num = technology_resolve_metal(techstate, num);
