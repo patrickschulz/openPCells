@@ -488,30 +488,29 @@ static int lgeometry_viabltr(lua_State* L)
     return 0;
 }
 
-static int lgeometry_via(lua_State* L)
+static int lgeometry_viabltr_continuous(lua_State* L)
 {
     struct lobject* cell = lobject_check(L, 1);
     int metal1 = luaL_checkinteger(L, 2);
     int metal2 = luaL_checkinteger(L, 3);
-    ucoordinate_t width = luaL_checkinteger(L, 4);
-    ucoordinate_t height = luaL_checkinteger(L, 5);
-    coordinate_t xshift = luaL_optinteger(L, 6, 0);
-    coordinate_t yshift = luaL_optinteger(L, 7, 0);
-    ucoordinate_t xrep = luaL_optinteger(L, 8, 1);
-    ucoordinate_t yrep = luaL_optinteger(L, 9, 1);
-    ucoordinate_t xpitch = luaL_optinteger(L, 10, 0);
-    ucoordinate_t ypitch = luaL_optinteger(L, 11, 0);
-    int xcont = 0;
-    int ycont = 0;
+    struct lpoint* bl = lpoint_checkpoint(L, 4);
+    struct lpoint* tr = lpoint_checkpoint(L, 5);
+    _check_rectangle_points(L, bl, tr, "geometry.viabltr");
+    ucoordinate_t xrep = luaL_optinteger(L, 6, 1);
+    ucoordinate_t yrep = luaL_optinteger(L, 7, 1);
+    ucoordinate_t xpitch = luaL_optinteger(L, 8, 0);
+    ucoordinate_t ypitch = luaL_optinteger(L, 9, 0);
+    int xcont = 1;
+    int ycont = 1;
     int equal_pitch = 0;
-    _get_viacontact_properties(L, 12, &xcont, &ycont, &equal_pitch);
+    //_get_viacontact_properties(L, 10, &xcont, &ycont, &equal_pitch);
     lua_getfield(L, LUA_REGISTRYINDEX, "techstate");
     struct technology_state* techstate = lua_touserdata(L, -1);
     lua_pop(L, 1); // pop techstate
-    int res = geometry_via(lobject_get(cell), techstate, metal1, metal2, width, height, xshift, yshift, xrep, yrep, xpitch, ypitch, xcont, ycont, equal_pitch);
+    int res = geometry_viabltr(lobject_get(cell), techstate, metal1, metal2, lpoint_get(bl), lpoint_get(tr), xrep, yrep, xpitch, ypitch, xcont, ycont, equal_pitch);
     if(!res)
     {
-        lua_pushfstring(L, "geometry.via: could not fit via from metal %d to metal %d. Area: (%d, %d) and (%d, %d)", metal1, metal2, xshift - width / 2, yshift - height / 2, xshift + width / 2, yshift + height / 2);
+        lua_pushfstring(L, "geometry.viabltr: could not fit via from metal %d to metal %d. Area: (%d, %d) and (%d, %d)", metal1, metal2, lpoint_get(bl)->x, lpoint_get(bl)->y, lpoint_get(tr)->x, lpoint_get(tr)->y);
         lua_error(L);
     }
     return 0;
@@ -555,44 +554,6 @@ static int lgeometry_contactbltr(lua_State* L)
     return 0;
 }
 
-static int lgeometry_contact(lua_State* L)
-{
-    struct lobject* cell = lobject_check(L, 1);
-    const char* region = luaL_checkstring(L, 2);
-    ucoordinate_t width = luaL_checkinteger(L, 3);
-    ucoordinate_t height = luaL_checkinteger(L, 4);
-    coordinate_t xshift = luaL_optinteger(L, 5, 0);
-    coordinate_t yshift = luaL_optinteger(L, 6, 0);
-    ucoordinate_t xrep = luaL_optinteger(L, 7, 1);
-    ucoordinate_t yrep = luaL_optinteger(L, 8, 1);
-    ucoordinate_t xpitch = luaL_optinteger(L, 9, 0);
-    ucoordinate_t ypitch = luaL_optinteger(L, 10, 0);
-    int xcont = 0;
-    int ycont = 0;
-    int equal_pitch = 0;
-    _get_viacontact_properties(L, 11, &xcont, &ycont, &equal_pitch);
-    lua_getfield(L, LUA_REGISTRYINDEX, "techstate");
-    struct technology_state* techstate = lua_touserdata(L, -1);
-    lua_pop(L, 1); // pop techstate
-    int res = geometry_contact(
-        lobject_get(cell),
-        techstate,
-        region,
-        width, height,
-        xshift, yshift,
-        xrep, yrep,
-        xpitch, ypitch,
-        xcont, ycont,
-        equal_pitch
-    );
-    if(!res)
-    {
-        lua_pushfstring(L, "geometry.contact: could not fit contact from %s to metal 1. Area: (%d, %d) and (%d, %d)", region, xshift - width / 2, yshift - height / 2, xshift + width / 2, yshift + height / 2);
-        lua_error(L);
-    }
-    return 0;
-}
-
 static int lgeometry_contactbarebltr(lua_State* L)
 {
     struct lobject* cell = lobject_check(L, 1);
@@ -624,44 +585,6 @@ static int lgeometry_contactbarebltr(lua_State* L)
     if(!res)
     {
         lua_pushfstring(L, "geometry.contactbarebltr: could not fit contact from %s to metal 1. Area: (%d, %d) and (%d, %d)", region, lpoint_get(bl)->x, lpoint_get(bl)->y, lpoint_get(tr)->x, lpoint_get(tr)->y);
-        lua_error(L);
-    }
-    return 0;
-}
-
-static int lgeometry_contactbare(lua_State* L)
-{
-    struct lobject* cell = lobject_check(L, 1);
-    const char* region = luaL_checkstring(L, 2);
-    ucoordinate_t width = luaL_checkinteger(L, 3);
-    ucoordinate_t height = luaL_checkinteger(L, 4);
-    coordinate_t xshift = luaL_optinteger(L, 5, 0);
-    coordinate_t yshift = luaL_optinteger(L, 6, 0);
-    ucoordinate_t xrep = luaL_optinteger(L, 7, 1);
-    ucoordinate_t yrep = luaL_optinteger(L, 8, 1);
-    ucoordinate_t xpitch = luaL_optinteger(L, 9, 0);
-    ucoordinate_t ypitch = luaL_optinteger(L, 10, 0);
-    int xcont = 0;
-    int ycont = 0;
-    int equal_pitch;
-    _get_viacontact_properties(L, 11, &xcont, &ycont, &equal_pitch);
-    lua_getfield(L, LUA_REGISTRYINDEX, "techstate");
-    struct technology_state* techstate = lua_touserdata(L, -1);
-    lua_pop(L, 1); // pop techstate
-    int res = geometry_contactbare(
-        lobject_get(cell),
-        techstate,
-        region,
-        width, height,
-        xshift, yshift,
-        xrep, yrep,
-        xpitch, ypitch,
-        xcont, ycont,
-        equal_pitch
-    );
-    if(!res)
-    {
-        lua_pushfstring(L, "geometry.contactbare: could not fit contact from %s to metal 1. Area: (%d, %d) and (%d, %d)", region, xshift - width / 2, yshift - height / 2, xshift + width / 2, yshift + height / 2);
         lua_error(L);
     }
     return 0;
@@ -909,31 +832,29 @@ int open_lgeometry_lib(lua_State* L)
     lua_newtable(L);
     static const luaL_Reg modfuncs[] =
     {
-        { "rectanglebltr",      lgeometry_rectanglebltr     },
-        { "rectanglepoints",    lgeometry_rectanglepoints   },
-        { "rectanglearray",     lgeometry_rectanglearray    },
-        { "rectanglepath",      lgeometry_rectanglepath     },
-        { "polygon",            lgeometry_polygon           },
-        { "path",               lgeometry_path              },
-        { "path_manhatten",     lgeometry_path_manhatten    },
-        { "path_2x",            lgeometry_path_2x           },
-        { "path_2y",            lgeometry_path_2y           },
-        { "path_cshape",        lgeometry_path_cshape       },
-        { "path_ushape",        lgeometry_path_ushape       },
-        { "path_polygon",       lgeometry_path_polygon      },
-        { "viabltr",            lgeometry_viabltr           },
-        { "via",                lgeometry_via               },
-        { "contactbltr",        lgeometry_contactbltr       },
-        { "contact",            lgeometry_contact           },
-        { "contactbarebltr",    lgeometry_contactbarebltr   },
-        { "contactbare",        lgeometry_contactbare       },
-        { "cross",              lgeometry_cross             },
-        { "ring",               lgeometry_ring              },
-        { "unequal_ring",       lgeometry_unequal_ring      },
-        { "unequal_ring_pts",   lgeometry_unequal_ring_pts  },
-        { "curve",              lgeometry_curve             },
-        { "curve_rasterized",   lgeometry_curve_rasterized  },
-        { NULL,                 NULL                        }
+        { "rectanglebltr",      lgeometry_rectanglebltr         },
+        { "rectanglepoints",    lgeometry_rectanglepoints       },
+        { "rectanglearray",     lgeometry_rectanglearray        },
+        { "rectanglepath",      lgeometry_rectanglepath         },
+        { "polygon",            lgeometry_polygon               },
+        { "path",               lgeometry_path                  },
+        { "path_manhatten",     lgeometry_path_manhatten        },
+        { "path_2x",            lgeometry_path_2x               },
+        { "path_2y",            lgeometry_path_2y               },
+        { "path_cshape",        lgeometry_path_cshape           },
+        { "path_ushape",        lgeometry_path_ushape           },
+        { "path_polygon",       lgeometry_path_polygon          },
+        { "viabltr",            lgeometry_viabltr               },
+        { "viabltr_continuous", lgeometry_viabltr_continuous    },
+        { "contactbltr",        lgeometry_contactbltr           },
+        { "contactbarebltr",    lgeometry_contactbarebltr       },
+        { "cross",              lgeometry_cross                 },
+        { "ring",               lgeometry_ring                  },
+        { "unequal_ring",       lgeometry_unequal_ring          },
+        { "unequal_ring_pts",   lgeometry_unequal_ring_pts      },
+        { "curve",              lgeometry_curve                 },
+        { "curve_rasterized",   lgeometry_curve_rasterized      },
+        { NULL,                 NULL                            }
     };
     luaL_setfuncs(L, modfuncs, 0);
 
