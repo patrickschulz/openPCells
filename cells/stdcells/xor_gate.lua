@@ -36,8 +36,8 @@ function layout(gate, _P)
     local harness = pcell.create_layout("stdcells/harness", "mosfets", { 
         drawgatecontacts = true,
         gatecontactpos = { "lower", "dummy", "dummy", "upper", "lower", "center", "center", "dummy", "upper", "center", "lower" },
-        pcontactpos = { "power", "inner", "power", "inner", "power", "outer", "outer", "outer", "full", "none", "power", "power" },
-        ncontactpos = { "power", "inner", "power", "inner", "power", "power", "none", "outer", "full", "outer", "outer", "power" },
+        pcontactpos = { "power", "inner", "power", "inner", "power", "outer", "outer", "outer", "full", "unused", "power", "power" },
+        ncontactpos = { "power", "inner", "power", "inner", "power", "power", "unused", "outer", "full", "outer", "outer", "power" },
     })
     gate:merge_into(harness)
     gate:inherit_alignment_box(harness)

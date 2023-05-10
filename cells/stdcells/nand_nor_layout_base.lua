@@ -47,7 +47,7 @@ function layout(gate, _P)
         elseif i % 4 == 3 then
             ncontacts[i] = "inner"
         else
-            ncontacts[i] = "none"
+            ncontacts[i] = "unused"
         end
     end
 

@@ -1,4 +1,10 @@
-local module = "command_reg"
+if not args[1] then
+    error("no target given")
+end
+
+print(args)
+
+local module = args[1]
 local exporttype = "gds"
 
 local netlist = verilog.read_parse_file(string.format("%s.v", module))

@@ -67,12 +67,12 @@ function layout(dff, _P)
         cinv = {
             { name = "nmos",   gate = _P.clockpolarity == "positive" and "lower" or "center", pcontact = "power", ncontact = "power", },
             { name = "pmos",   gate = _P.clockpolarity == "positive" and "center" or "lower", pcontact = "power", ncontact = "outer", },
-            { name = "input",  gate = "upper",  pcontact = "none",  ncontact = "outer", },
+            { name = "input",  gate = "upper",  pcontact = "unused",  ncontact = "outer", },
             { name = "dummy1", gate = "dummy",  pcontact = "outer", ncontact = "outer", },
         },
         latch1 = {
             { name = "cinvinput", gate = "lower", pcontact = "outer", ncontact = "outer", },
-            { name = "pmos",      gate = _P.clockpolarity == "positive" and "lower" or "center", pcontact = "none",  ncontact = "outer", },
+            { name = "pmos",      gate = _P.clockpolarity == "positive" and "lower" or "center", pcontact = "unused",  ncontact = "outer", },
             { name = "nmos",      gate = _P.clockpolarity == "positive" and "center" or "lower", pcontact = "power", ncontact = "outer", },
             { name = "invinput",  gate = "upper",  pcontact = "power", ncontact = "power", },
         },
@@ -83,7 +83,7 @@ function layout(dff, _P)
         },
         latch2 = {
             { name = "cinvinput", gate = "lower",  pcontact = "outer", ncontact = "outer", },
-            { name = "pmos",      gate = _P.clockpolarity == "positive" and "center" or "lower", pcontact = "none",  ncontact = "outer", },
+            { name = "pmos",      gate = _P.clockpolarity == "positive" and "center" or "lower", pcontact = "unused",  ncontact = "outer", },
             { name = "nmos",      gate = _P.clockpolarity == "positive" and "lower" or "center", pcontact = "power", ncontact = "outer", },
             { name = "invinput",  gate = "upper",  pcontact = "power", ncontact = "power", },
             { name = "dummy1",    gate = "dummy",  pcontact = "inner", ncontact = "inner", },

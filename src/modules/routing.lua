@@ -155,7 +155,10 @@ function M.route(cell, routes, width, numinnerroutes, pnumtracks, nnumtracks, xg
                 local lastpt = pts[#pts]
                 local x, y = lastpt:unwrap()
                 if not movement.nodraw then
-                    geometry.via(cell, currmetal, targetmetal, width, width, x, y)
+                    geometry.viabltr(cell, currmetal, targetmetal, 
+                        point.create(x - width / 2, y - width / 2),
+                        point.create(x + width / 2, y + width / 2)
+                    )
                 end
                 _finish_route_path(cell, pts, currmetal, width)
                 pts[1] = lastpt

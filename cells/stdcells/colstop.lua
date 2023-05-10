@@ -10,9 +10,9 @@ function layout(gate, _P)
     local gatecontactpos = { "dummy" }
     local sdcontacts
     if _P.leftnotright then
-        sdcontacts = { "power", "none" }
+        sdcontacts = { "power", "unused" }
     else
-        sdcontacts = { "none", "power" }
+        sdcontacts = { "unused", "power" }
     end
     local leftpolylines = {}
     local rightpolylines = {}
