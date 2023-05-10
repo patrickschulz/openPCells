@@ -277,8 +277,8 @@ function layout(transistor, _P)
     end
     transistor:add_area_anchor_bltr(
         "leftgate",
-        point.create(gateblx + (0 - 1) * gatepitch, gatebly),
-        point.create(gatetrx + (0 - 1) * gatepitch, gatetry)
+        point.create(gateblx + (1 - 1) * gatepitch, gatebly),
+        point.create(gatetrx + (1 - 1) * gatepitch, gatetry)
     )
     transistor:add_area_anchor_bltr(
         "rightgate",
