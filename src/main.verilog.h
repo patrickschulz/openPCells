@@ -1,6 +1,8 @@
 #ifndef OPC_MAIN_VERILOG_H
 #define OPC_MAIN_VERILOG_H
 
-void main_verilog_import(const char* filename);
+#include "vector.h"
+
+void main_verilog_import(const char* filename, const struct vector* args);
 
 #endif // OPC_MAIN_VERILOG_H

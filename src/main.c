@@ -193,7 +193,8 @@ int main(int argc, const char* const * argv)
     if(cmdoptions_was_provided_long(cmdoptions, "import-verilog"))
     {
         const char* scriptname = cmdoptions_get_argument_long(cmdoptions, "import-verilog");
-        main_verilog_import(scriptname);
+        const struct vector* args = cmdoptions_get_positional_parameters(cmdoptions);
+        main_verilog_import(scriptname, args);
         goto DESTROY_CMDOPTIONS;
     }
 
