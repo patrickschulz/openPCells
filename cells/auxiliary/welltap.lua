@@ -42,6 +42,12 @@ function layout(welltap, _P)
         point.create(_P.width + _P.extension, _P.height + _P.extension)
     )
 
+    welltap:add_area_anchor_bltr(
+        "boundary",
+        point.create(0, 0),
+        point.create(_P.width, _P.height)
+    )
+
     -- alignment box
     welltap:set_alignment_box(
         point.create(0, 0),
