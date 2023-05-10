@@ -500,8 +500,8 @@ static int lgeometry_viabltr_xcontinuous(lua_State* L)
     ucoordinate_t yrep = luaL_optinteger(L, 7, 1);
     ucoordinate_t xpitch = luaL_optinteger(L, 8, 0);
     ucoordinate_t ypitch = luaL_optinteger(L, 9, 0);
-    int xcont = 0;
-    int ycont = 1;
+    int xcont = 1;
+    int ycont = 0;
     int equal_pitch = 0;
     //_get_viacontact_properties(L, 10, &xcont, &ycont, &equal_pitch);
     lua_getfield(L, LUA_REGISTRYINDEX, "techstate");
@@ -528,8 +528,8 @@ static int lgeometry_viabltr_ycontinuous(lua_State* L)
     ucoordinate_t yrep = luaL_optinteger(L, 7, 1);
     ucoordinate_t xpitch = luaL_optinteger(L, 8, 0);
     ucoordinate_t ypitch = luaL_optinteger(L, 9, 0);
-    int xcont = 1;
-    int ycont = 0;
+    int xcont = 0;
+    int ycont = 1;
     int equal_pitch = 0;
     //_get_viacontact_properties(L, 10, &xcont, &ycont, &equal_pitch);
     lua_getfield(L, LUA_REGISTRYINDEX, "techstate");
