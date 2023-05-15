@@ -20,7 +20,7 @@ local buff1ingers = 4
 local buff2ingers = 2
 
 -- cap_array parameters
-local bits = 6
+local bits = 8
 local rwidth = 100
 
 -- cap array up
@@ -28,6 +28,6 @@ local cap_array_up = pcell.create_layout("SAR_ADC/cap_array", "cap_array_up", {
     bits = bits,
     rwidth = rwidth
 })
-cell:merge_into_shallow(cap_array_up:flatten())
+cell:merge_into(cap_array_up)
 
 return cell
