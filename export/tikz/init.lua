@@ -16,12 +16,16 @@ local __resizebox = false
 local __externaldisable
 local __baseunit = 1
 local __expressionscale = false
+local __prepend = {}
 
 function M.set_options(opt)
     for i = 1, #opt do
         local arg = opt[i]
         if arg == "-b" or arg == "--black-outline" then
             __outlineblack = true
+        end
+        if arg == "-o" or arg == "--no-outline" then
+            __nooutline = true
         end
         if arg == "-S" or arg == "--standalone" then
             __standalone = true
@@ -49,6 +53,14 @@ function M.set_options(opt)
         if arg == "-x" or arg == "--disable-externalize" then
             __externaldisable = true
         end
+        if arg == "--prepend" then
+            if i < #opt then
+                table.insert(__prepend, opt[i + 1])
+            else
+                error("tikz export: --prepend: argument expected")
+            end
+            i = i + 1
+        end
         if arg == "-c" or arg == "--color" then
             if i < #opt then
                 __color = opt[i + 1]
@@ -69,6 +81,9 @@ local __content = {}
 function M.finalize()
     local t = {}
     for _, entry in ipairs(__header) do
+        table.insert(t, entry)
+    end
+    for _, entry in ipairs(__prepend) do
         table.insert(t, entry)
     end
     for _, entry in ipairs(__before) do
@@ -139,6 +154,7 @@ local function intlog10(num)
 end
 
 local function _format_number(num)
+    --[[ FIXME: this code has some issues (probably when __baseunit is not a power of ten)
     local fmt
     if __expressionscale then
         fmt = string.format("%%s%%u.%%0%uu * \\opclayoutscale", intlog10(__baseunit))
@@ -150,9 +166,15 @@ local function _format_number(num)
         sign = "-"
         num = -num
     end
-    local ipart = num // __baseunit;
-    local fpart = num - __baseunit * ipart;
+    local ipart = num // __baseunit
+    local fpart = num - __baseunit * ipart
     return string.format(fmt, sign, ipart, fpart)
+    --]]
+    if __expressionscale then
+        return string.format("%f * \\opclayoutscale", num / __baseunit)
+    else
+        return string.format("%f", num / __baseunit)
+    end
 end
 
 local function _format_point(pt)
@@ -200,7 +222,7 @@ local function _get_layer_style(layer)
     else
         if layer.pattern then
             return string.format("draw = %s, pattern = crosshatch, pattern color = %s", _get_outline_color(color), color)
-        elseif layer.nooutline then
+        elseif layer.nooutline or __nooutline then
             return string.format("fill = %s", color)
         else
             return string.format("fill = %s, draw = %s", color, _get_outline_color(color))
