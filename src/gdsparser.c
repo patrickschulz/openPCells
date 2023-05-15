@@ -1004,7 +1004,7 @@ static void _write_cellref(FILE* cellfile, const char* importname, const struct 
 {
     if(!hashmap_exists(references, cellref->name))
     {
-        fprintf(cellfile, "    ref = pcell.create_layout(\"%s/%s\")\n", importname, cellref->name);
+        fprintf(cellfile, "    ref = pcell.create_layout(\"%s/%s\", \"%s\")\n", importname, cellref->name, cellref->name); // FIXME: gds has no instance names, is this a problem?
         hashmap_insert(references, cellref->name, NULL); // use hashmap as set (value == NULL)
     }
     if(cellref->xrep > 1 || cellref->yrep > 1)
@@ -1013,7 +1013,7 @@ static void _write_cellref(FILE* cellfile, const char* importname, const struct 
     }
     else
     {
-        fprintf(cellfile, "    child = cell:add_child(name, \"%s\")\n", cellref->name);
+        fprintf(cellfile, "    child = cell:add_child(ref, \"%s\")\n", cellref->name);
     }
     if(cellref->transformation && cellref->transformation[0] == 1)
     {
