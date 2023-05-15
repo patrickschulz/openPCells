@@ -1794,6 +1794,38 @@ struct vector* _initialize_api_entries(void)
         ));
     }
 
+    /* object.translate_x */
+    {
+        struct parameter parameters[] = {
+            { "cell",   OBJECT,     NULL, "cell to be translated" },
+            { "x",      INTEGER,    NULL, "x offset" }
+        };
+        vector_append(entries, _make_api_entry(
+            "translate_x",
+            MODULE_OBJECT,
+            "translate the cell by the specified x offset (relative movement).",
+            "cell:translate(100)",
+            parameters,
+            sizeof(parameters) / sizeof(parameters[0])
+        ));
+    }
+
+    /* object.translate_y */
+    {
+        struct parameter parameters[] = {
+            { "cell",   OBJECT,     NULL, "cell to be translated" },
+            { "y",      INTEGER,    NULL, "y offset" }
+        };
+        vector_append(entries, _make_api_entry(
+            "translate_y",
+            MODULE_OBJECT,
+            "translate the cell by the specified y offset (relative movement).",
+            "cell:translate(100)",
+            parameters,
+            sizeof(parameters) / sizeof(parameters[0])
+        ));
+    }
+
     /* object.mirror_at_xaxis */
     {
         struct parameter parameters[] = {};
@@ -2226,6 +2258,38 @@ struct vector* _initialize_api_entries(void)
             MODULE_POINT,
             "translate a point in x and y. Can be used as module function or as a point method",
             "point.translate(pt, 100, -20)\npt:translate(100, -20)",
+            parameters,
+            sizeof(parameters) / sizeof(parameters[0])
+        ));
+    }
+
+    /* point.translate_x */
+    {
+        struct parameter parameters[] = {
+            { "point", POINT, NULL,   "point to translate" },
+            { "x",     INTEGER, NULL, "x delta by which the point should be translated" }
+        };
+        vector_append(entries, _make_api_entry(
+            "translate_x",
+            MODULE_POINT,
+            "translate a point in x. Can be used as module function or as a point method",
+            "point.translate(pt, 100)\npt:translate(100)",
+            parameters,
+            sizeof(parameters) / sizeof(parameters[0])
+        ));
+    }
+
+    /* point.translate_y */
+    {
+        struct parameter parameters[] = {
+            { "point", POINT, NULL,   "point to translate" },
+            { "y",     INTEGER, NULL, "y delta by which the point should be translated" }
+        };
+        vector_append(entries, _make_api_entry(
+            "translate_y",
+            MODULE_POINT,
+            "translate a point in y. Can be used as module function or as a point method",
+            "point.translate(pt, 100)\npt:translate(100)",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
