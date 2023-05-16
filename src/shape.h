@@ -54,8 +54,6 @@ int shape_foreach_curve_segments(const struct shape* shape, void* blob, line_seg
 int shape_get_curve_origin(const struct shape* shape, const point_t** origin);
 int shape_get_transformed_curve_origin(const struct shape* shape, const struct transformationmatrix* trans, point_t* origin);
 
-int shape_is_empty(const struct shape* shape);
-
 // transformations
 void shape_translate(struct shape* shape, coordinate_t dx, coordinate_t dy);
 void shape_apply_transformation(struct shape* shape, const struct transformationmatrix* trans);

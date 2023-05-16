@@ -8,42 +8,40 @@
 
 static void _multiple_xy(struct object* cell, struct shape* base, ucoordinate_t xrep, ucoordinate_t yrep, ucoordinate_t xpitch, ucoordinate_t ypitch)
 {
-    if(!shape_is_empty(base))
+    for(unsigned int x = 1; x <= xrep; ++x)
     {
-        for(unsigned int x = 1; x <= xrep; ++x)
+        for(unsigned int y = 1; y <= yrep; ++y)
         {
-            for(unsigned int y = 1; y <= yrep; ++y)
-            {
-                struct shape* S = shape_copy(base);
-                shape_translate(
-                    S, 
-                    (x - 1) * xpitch - (xrep - 1) * xpitch / 2,
-                    (y - 1) * ypitch - (yrep - 1) * ypitch / 2
-                );
-                object_add_shape(cell, S);
-            }
+            struct shape* S = shape_copy(base);
+            shape_translate(
+                S, 
+                (x - 1) * xpitch - (xrep - 1) * xpitch / 2,
+                (y - 1) * ypitch - (yrep - 1) * ypitch / 2
+            );
+            object_add_shape(cell, S);
         }
     }
 }
 
 static void _rectanglebltr_multiple(struct object* cell, const struct generics* layer, coordinate_t blx, coordinate_t bly, coordinate_t trx, coordinate_t try, ucoordinate_t xrep, ucoordinate_t yrep, ucoordinate_t xpitch, ucoordinate_t ypitch)
 {
+    if(generics_is_empty(layer))
+    {
+        return;
+    }
     struct shape* S = shape_create_rectangle(layer, blx, bly, trx, try);
     _multiple_xy(cell, S, xrep, yrep, xpitch, ypitch);
-    shape_destroy(S);
+    shape_destroy(S); // _multiple_xy copies all shapes, one remains unowned
 }
 
 static void _rectanglebltr(struct object* cell, const struct generics* layer, coordinate_t blx, coordinate_t bly, coordinate_t trx, coordinate_t try)
 {
+    if(generics_is_empty(layer))
+    {
+        return;
+    }
     struct shape* S = shape_create_rectangle(layer, blx, bly, trx, try);
-    if(!shape_is_empty(S))
-    {
-        object_add_shape(cell, S);
-    }
-    else
-    {
-        shape_destroy(S);
-    }
+    object_add_shape(cell, S);
 }
 
 void geometry_rectanglebltr(struct object* cell, const struct generics* layer, const point_t* bl, const point_t* tr)
@@ -97,55 +95,46 @@ void geometry_polygon(struct object* cell, const struct generics* layer, const p
     {
         return;
     }
+    if(generics_is_empty(layer))
+    {
+        return;
+    }
     struct shape* S = shape_create_polygon(layer, len);
     for(unsigned int i = 0; i < len; ++i)
     {
         shape_append(S, points[i]->x, points[i]->y);
     }
-    if(!shape_is_empty(S))
-    {
-        shape_cleanup(S);
-        object_add_shape(cell, S);
-    }
-    else
-    {
-        shape_destroy(S);
-    }
+    shape_cleanup(S);
+    object_add_shape(cell, S);
 }
 
 void geometry_path(struct object* cell, const struct generics* layer, const point_t** points, size_t len, ucoordinate_t width, ucoordinate_t bgnext, ucoordinate_t endext)
 {
+    if(generics_is_empty(layer))
+    {
+        return;
+    }
     struct shape* S = shape_create_path(layer, len, width, bgnext, endext);
     for(unsigned int i = 0; i < len; ++i)
     {
         shape_append(S, points[i]->x, points[i]->y);
     }
-    if(!shape_is_empty(S))
-    {
-        object_add_shape(cell, S);
-    }
-    else
-    {
-        shape_destroy(S);
-    }
+    object_add_shape(cell, S);
 }
 
 void geometry_path_polygon(struct object* cell, const struct generics* layer, const point_t** points, size_t len, ucoordinate_t width, ucoordinate_t bgnext, ucoordinate_t endext)
 {
+    if(generics_is_empty(layer))
+    {
+        return;
+    }
     struct shape* S = shape_create_path(layer, len, width, bgnext, endext);
     for(unsigned int i = 0; i < len; ++i)
     {
         shape_append(S, points[i]->x, points[i]->y);
     }
-    if(!shape_is_empty(S))
-    {
-        shape_resolve_path_inline(S);
-        object_add_shape(cell, S);
-    }
-    else
-    {
-        shape_destroy(S);
-    }
+    shape_resolve_path_inline(S);
+    object_add_shape(cell, S);
 }
 
 static void _shift_line(const point_t* pt1, const point_t* pt2, ucoordinate_t width, point_t** spt1, point_t** spt2, unsigned int grid)
@@ -802,6 +791,10 @@ int geometry_contactbare(
 
 void geometry_cross(struct object* cell, const struct generics* layer, ucoordinate_t width, ucoordinate_t height, ucoordinate_t crosssize)
 {
+    if(generics_is_empty(layer))
+    {
+        return;
+    }
     struct shape* S = shape_create_polygon(layer, 13);
     shape_append(S,     -width / 2, -crosssize / 2);
     shape_append(S,     -width / 2,  crosssize / 2);
@@ -816,18 +809,15 @@ void geometry_cross(struct object* cell, const struct generics* layer, ucoordina
     shape_append(S, -crosssize / 2,    -height / 2);
     shape_append(S, -crosssize / 2, -crosssize / 2);
     shape_append(S,     -width / 2, -crosssize / 2); // close polygon
-    if(!shape_is_empty(S))
-    {
-        object_add_shape(cell, S);
-    }
-    else
-    {
-        shape_destroy(S);
-    }
+    object_add_shape(cell, S);
 }
 
 void geometry_unequal_ring(struct object* cell, const struct generics* layer, ucoordinate_t outerwidth, ucoordinate_t outerheight, ucoordinate_t leftwidth, ucoordinate_t rightwidth, ucoordinate_t topwidth, ucoordinate_t bottomwidth)
 {
+    if(generics_is_empty(layer))
+    {
+        return;
+    }
     coordinate_t w = outerwidth;
     coordinate_t h = outerheight;
     coordinate_t lw = leftwidth;
@@ -846,14 +836,7 @@ void geometry_unequal_ring(struct object* cell, const struct generics* layer, uc
     shape_append(S,  (w / 2 - rw), -(h / 2 - bw));
     shape_append(S, -(w / 2), -(h / 2 - bw));
     shape_append(S, -(w / 2), -(h / 2)); // close polygon
-    if(!shape_is_empty(S))
-    {
-        object_add_shape(cell, S);
-    }
-    else
-    {
-        shape_destroy(S);
-    }
+    object_add_shape(cell, S);
 }
 
 void geometry_ring(struct object* cell, const struct generics* layer, ucoordinate_t outerwidth, ucoordinate_t outerheight, ucoordinate_t ringwidth)
@@ -868,6 +851,10 @@ void geometry_unequal_ring_pts(
     const point_t* innerbl, const point_t* innertr
 )
 {
+    if(generics_is_empty(layer))
+    {
+        return;
+    }
     struct shape* S = shape_create_polygon(layer, 13);
     shape_append(S, outerbl->x, outerbl->y);
     shape_append(S, outertr->x, outerbl->y);
@@ -880,13 +867,6 @@ void geometry_unequal_ring_pts(
     shape_append(S, innertr->x, innerbl->y);
     shape_append(S, outerbl->x, innerbl->y);
     shape_append(S, outerbl->x, outerbl->y); // close polygon
-    if(!shape_is_empty(S))
-    {
-        object_add_shape(cell, S);
-    }
-    else
-    {
-        shape_destroy(S);
-    }
+    object_add_shape(cell, S);
 }
 
