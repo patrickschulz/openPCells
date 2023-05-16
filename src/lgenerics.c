@@ -218,17 +218,6 @@ static int lgenerics_create_premapped(lua_State* L)
     return 1;
 }
 
-static int lgenerics_resolve_premapped_layers(lua_State* L)
-{
-    lua_getfield(L, LUA_REGISTRYINDEX, "techstate");
-    struct technology_state* techstate = lua_touserdata(L, -1);
-    lua_pop(L, 1); // pop techstate
-    const char* exportname = luaL_checkstring(L, 1);
-    int ret = technology_resolve_premapped_layers(techstate, exportname);
-    lua_pushboolean(L, ret);
-    return 1;
-}
-
 int open_lgenerics_lib(lua_State* L)
 {
     lua_newtable(L);
@@ -247,12 +236,10 @@ int open_lgenerics_lib(lua_State* L)
         { "otherport",                lgenerics_create_otherport         },
         { "special",                  lgenerics_create_special           },
         { "premapped",                lgenerics_create_premapped         },
-        { "resolve_premapped_layers", lgenerics_resolve_premapped_layers },
         { NULL,                       NULL                               }
     };
     luaL_setfuncs(L, modfuncs, 0);
     lua_setglobal(L, LGENERICSMODULE);
-
     return 0;
 }
 
