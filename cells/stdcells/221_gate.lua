@@ -31,29 +31,29 @@ function layout(gate, _P)
     local gate1ref = pcell.create_layout(string.format("stdcells/%s", _P.gate1), "gate1")
     local gate1 = gate:add_child(gate1ref, "gate1")
 
-    isogate = gate:add_child(isoname, "isogate1")
-    isogate:move_anchor("left", gate1:get_anchor("right"))
+    local isogate1 = gate:add_child(isogateref, "isogate1")
+    isogate1:abut_right(gate1)
 
     -- gate 3
     local gate3ref = pcell.create_layout(string.format("stdcells/%s", _P.gate3), "gate3")
     local gate3 = gate:add_child(gate3ref, "gate3")
-    gate3:move_anchor("left", isogate:get_anchor("right"))
+    gate3:abut_right(isogate1)
 
-    isogate = gate:add_child(isoname, "isogate2")
-    isogate:move_anchor("left", gate3:get_anchor("right"))
+    local isogate2 = gate:add_child(isogateref, "isogate2")
+    isogate2:abut_right(gate3)
 
     -- gate 2
     local gate2ref = pcell.create_layout(string.format("stdcells/%s", _P.gate2), "gate2")
     local gate2 = gate:add_child(gate2ref, "gate2")
-    gate2:move_anchor("left", isogate:get_anchor("right"))
+    gate2:abut_right(isogate2)
 
-    isogate = gate:add_child(isoname, "isogate3")
-    isogate:move_anchor("left", gate2:get_anchor("right"))
+    local isogate3 = gate:add_child(isogateref, "isogate3")
+    isogate3:abut_right(gate2)
 
     -- gate 4
     local gate4ref = pcell.create_layout(string.format("stdcells/%s", _P.gate4), "gate4")
     local gate4 = gate:add_child(gate4ref, "gate4")
-    gate4:move_anchor("left", isogate:get_anchor("right"))
+    gate4:abut_right(isogate3)
 
     -- draw connections
     geometry.path(gate, generics.metal(1), 
@@ -90,6 +90,6 @@ function layout(gate, _P)
     gate:add_port("C1", generics.metalport(1), gate1:get_anchor("A"))
     gate:add_port("C2", generics.metalport(1), gate1:get_anchor("B"))
     gate:add_port("O", generics.metalport(1), gate4:get_anchor("O"))
-    gate:add_port("VDD", generics.metalport(1), isogate:get_anchor("VDD"))
-    gate:add_port("VSS", generics.metalport(1), isogate:get_anchor("VSS"))
+    gate:add_port("VDD", generics.metalport(1), isogate1:get_anchor("VDD"))
+    gate:add_port("VSS", generics.metalport(1), isogate1:get_anchor("VSS"))
 end

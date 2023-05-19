@@ -6,11 +6,13 @@ function parameters()
 end
 
 function layout(chain, _P)
-    pcell.push_overwrites("stdcells/base", { leftdummies = 0, rightdummies = 0 })
-    local anchor = point.create(0, 0)
+    local inverters = {}
     for i = 1, _P.numinv do
-        local inv = pcell.create_layout("stdcells/not_gate", string.format("inv_%d", i), { fingers = _P.fingers }):move_anchor("left", anchor)
-        anchor = inv:get_anchor("right")
+        local inv = pcell.create_layout("stdcells/not_gate", string.format("inv_%d", i), { fingers = _P.fingers })
+        table.insert(inverters, inv)
+        if i > 1 then
+            inv:align_right(inv, inverters[i - 1])
+        end
         chain:merge_into(inv)
     end
 end

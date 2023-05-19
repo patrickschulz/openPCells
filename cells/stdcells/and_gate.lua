@@ -2,8 +2,8 @@ function parameters()
     pcell.add_parameters(
         { "nandfingers", 1 },
         { "notfingers", 1 },
-        { "pwidth", 2 * tech.get_dimension("Minimum Gate Width") },
-        { "nwidth", 2 * tech.get_dimension("Minimum Gate Width") }
+        { "pwidthoffset", 0 },
+        { "nwidthoffset", 0 }
     )
 end
 
@@ -12,8 +12,8 @@ function layout(gate, _P)
         subgate = "nand_gate",
         subgatefingers = _P.nandfingers,
         notfingers = _P.notfingers,
-        pwidth = _P.pwidth,
-        nwidth = _P.nwidth
+        pwidthoffset = _P.pwidthoffset,
+        nwidthoffset = _P.nwidthoffset
     })
     gate:exchange(subgate)
 end

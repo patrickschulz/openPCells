@@ -151,8 +151,8 @@ local function _load_cell(state, cellname, env)
     )
     -- check if only allowed values are defined
     for funcname in pairs(env) do
-        if not aux.any_of(function(v) return v == funcname end, { "config", "parameters", "layout" }) then
-            moderror(string.format("pcell: all defined toplevel values must be one of 'parameters', 'layout' or 'config'. Illegal name: '%s'", funcname))
+        if not aux.any_of(function(v) return v == funcname end, { "config", "parameters", "layout", "check" }) then
+            moderror(string.format("pcell: all defined toplevel values must be one of 'parameters', 'layout', 'check' or 'config'. Illegal name: '%s'", funcname))
         end
     end
     return env
@@ -179,7 +179,6 @@ local function _add_cell(state, cellname, funcs, nocallparams)
         parameters  = paramlib.create_directory(),
         properties  = {},
         overwrites  = {},
-        expressions = {},
     }
     rawset(state.loadedcells, cellname, cell)
     if funcs.parameters and not nocallparams then
@@ -208,26 +207,6 @@ local function _add_parameter_internal(cell, name, value, argtype, posvals, foll
     cell.parameters:add(name, value, argtype, posvals, follow, readonly)
 end
 
-local function _check_parameter_expressions(cell, parameters)
-    local failures = {}
-    for _, expr in ipairs(cell.expressions) do
-        local chunk, msg = load("return " .. expr.expression, "parameterexpression", "t", parameters)
-        if not chunk then
-            print(msg)
-            return
-        end
-        local check = chunk()
-        if not check then
-            if expr.message then
-                table.insert(failures, expr.message)
-            else
-                table.insert(failures, expr.expression)
-            end
-        end
-    end
-    return failures
-end
-
 local function _get_parameters(state, cellname, cellargs)
     local cell = _get_cell(state, cellname)
     local cellparams = cell.parameters.values
@@ -236,7 +215,7 @@ local function _get_parameters(state, cellname, cellargs)
     local P = {}
 
     -- (1) fill with default values
-    for _, entry in pairs(cellparams) do
+    for _, entry in ipairs(cellparams) do
         P[entry.name] = entry.value
     end
 
@@ -280,17 +259,8 @@ local function _get_parameters(state, cellname, cellargs)
     end
 
     -- (5) run parameter checks
-    for _, entry in pairs(cellparams) do
+    for _, entry in ipairs(cellparams) do
         paramlib.check_constraints(entry, P[entry.name])
-    end
-
-    -- (6) check cell expressions
-    local failures = _check_parameter_expressions(cell, P)
-    if #failures > 0 then
-        for _, failure in ipairs(failures) do
-            print(failure)
-        end
-        error(string.format("could not satisfy parameter expression for cell '%s'", cellname), 0)
     end
 
     -- install meta method for non-existing parameters as safety check
@@ -330,7 +300,20 @@ end
 local function _push_overwrites(state, cellname, cellargs)
     assert(type(cellname) == "string", "push_overwrites: cellname must be a string")
     assert(type(cellargs) == "table", string.format("pcell.push_overwrites: 'cellargs' must be a table (got: %s)", type(cellargs)))
+
     local cell = _get_cell(state, cellname)
+
+    -- check if overwritten parameter exists
+    local cellparams = cell.parameters.values
+    local P = {}
+    for _, entry in ipairs(cellparams) do
+        P[entry.name] = true
+    end
+    for name in pairs(cellargs) do
+        assert(P[name] ~= nil, string.format("trying to overwrite parameter '%s', which does not exist in cell '%s'", name, cellname))
+    end
+
+    -- install overwrite
     table.insert(cell.overwrites, cellargs)
 end
 
@@ -340,11 +323,6 @@ local function _pop_overwrites(state, cellname)
         error(string.format("trying to restore default parameters for '%s', but there where no previous overwrites", cellname))
     end
     table.remove(cell.overwrites)
-end
-
-local function _check_expression(state, cellname, expression, message)
-    local cell = _get_cell(state, cellname)
-    table.insert(cell.expressions, { expression = expression, message = message })
 end
 
 local function _resolve_cellname(state, cellname)
@@ -398,14 +376,13 @@ function state.create_cellenv(state, cellname, ovrenv)
             set_property                    = bindstatecell(_set_property),
             add_parameter                   = bindstatecell(_add_parameter),
             add_parameters                  = bindstatecell(_add_parameters),
-            check_expression                = bindstatecell(_check_expression),
             -- the following functions don't not need cell binding as they are called for other cells
             get_parameters                  = bindstate(_get_parameters),
             push_overwrites                 = bindstate(_push_overwrites),
             pop_overwrites                  = bindstate(_pop_overwrites),
             create_layout                   = pcell.create_layout
         },
-        tech = {
+        technology = {
             get_dimension = technology.get_dimension,
             has_layer = technology.has_layer,
             resolve_metal = technology.resolve_metal
@@ -430,6 +407,18 @@ function state.create_cellenv(state, cellname, ovrenv)
         marker = marker,
         transformationmatrix = transformationmatrix,
         dprint = function(...) if state.enabledprint then print(...) end end,
+        dmarker = function(cell, location)
+            if state.enabledprint then
+                geometry.rectanglebltr(cell, generics.special(),
+                    location:copy():translate(-10, -100),
+                    location:copy():translate(10, 100)
+                )
+                geometry.rectanglebltr(cell, generics.special(),
+                    location:copy():translate(-100, -10),
+                    location:copy():translate(100, 10)
+                )
+            end
+        end,
         moderror = moderror,
         tonumber = tonumber,
         type = type,
@@ -498,6 +487,9 @@ end
 
 local function _create_layout_internal(cellname, name, cellargs, env)
     local libpart, cellpart = string.match(cellname, "([^/]+)/(.+)")
+    if not libpart then
+        error(string.format("pcell.create_layout: malformed cellname. Expected library/cell, got '%s'", cellname))
+    end
     local explicitlib = false
     if libpart ~= "." then -- explicit library
         explicitlib = true
@@ -509,7 +501,17 @@ local function _create_layout_internal(cellname, name, cellargs, env)
     if not cell.funcs.layout then
         error(string.format("cell '%s' has no layout definition", cellname))
     end
+
     local parameters = _get_parameters(state, cellname, cellargs)
+
+    -- check parameters
+    if cell.funcs.check then
+        local ret, msg = cell.funcs.check(parameters)
+        if not ret then
+            moderror(string.format("parameter check for cell '%s' failed: %s", cellname, msg))
+        end
+    end
+
     local obj = object.create(name)
     cell.funcs.layout(obj, parameters, env)
     if explicitlib then
@@ -520,11 +522,11 @@ end
 
 local _globalenv
 function pcell.create_layout(cellname, name, cellargs, ...)
-    if not cellname then
-        error("pcell.create_layout: expected cellname as first argument")
+    if not cellname or type(cellname) ~= "string" then
+        error("pcell.create_layout: expected cellname (a string) as first argument")
     end
-    if not name then
-        error("pcell.create_layout: expected object name as second argument")
+    if not name or type(name) ~= "string" then
+        error("pcell.create_layout: expected object name (a string) as second argument")
     end
     if select("#", ...) > 0 then
         error("pcell.create_layout was called with more three two arguments. If you wanted to pass an environment, use pcell.create_layout_env")
@@ -533,11 +535,11 @@ function pcell.create_layout(cellname, name, cellargs, ...)
 end
 
 function pcell.create_layout_env(cellname, name, cellargs, env)
-    if not cellname then
+    if not cellname or type(cellname) ~= "string" then
         error("pcell.create_layout_env: expected cellname as first argument")
     end
-    if not cellname then
-        error("pcell.create_layout_env: expetect object name as second argument")
+    if not name or type(name) ~= "string" then
+        error("pcell.create_layout_env: expected object name (a string) as second argument")
     end
     -- cellargs can be nil
     if not env then
@@ -549,17 +551,22 @@ function pcell.create_layout_env(cellname, name, cellargs, env)
     return obj
 end
 
-function pcell.create_layout_from_script(scriptpath)
+function pcell.create_layout_from_script(scriptpath, args)
     local reader = _get_reader(scriptpath)
     if reader then
         local env = _ENV
         local path, name = aux.split_path(scriptpath)
         env._CURRENT_SCRIPT_PATH = path
         env._CURRENT_SCRIPT_NAME = name
+        -- save args and then replace them
+        local savedargs = env.args
+        env.args = args
+        -- run script
         local cell = _dofile(reader, string.format("@%s", scriptpath), nil, env)
         if not cell then
             error(string.format("cellscript '%s' did not return an object", scriptpath))
         end
+        env.args = savedargs
         return cell
     else
         error(string.format("cellscript '%s' could not be opened", scriptpath))

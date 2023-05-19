@@ -1,17 +1,17 @@
 function parameters()
     pcell.add_parameters(
-        { "glength", tech.get_dimension("Minimum Gate Length") },
-        { "gspace", tech.get_dimension("Minimum Gate Space") },
+        { "glength", technology.get_dimension("Minimum Gate Length") },
+        { "gspace", technology.get_dimension("Minimum Gate Space") },
         { "fingers", 2 },
-        { "pwidth", 2 * tech.get_dimension("Minimum Gate Width") },
-        { "nwidth", 2 * tech.get_dimension("Minimum Gate Width") },
-        { "gstwidth", tech.get_dimension("Minimum M1 Width") },
-        { "gstspace", tech.get_dimension("Minimum M1 Space") },
-        { "sdwidth", tech.get_dimension("Minimum M1 Width") },
-        { "powerspace", tech.get_dimension("Minimum M1 Space") },
+        { "pwidth", 2 * technology.get_dimension("Minimum Gate Width") },
+        { "nwidth", 2 * technology.get_dimension("Minimum Gate Width") },
+        { "gstwidth", technology.get_dimension("Minimum M1 Width") },
+        { "gstspace", technology.get_dimension("Minimum M1 Space") },
+        { "sdwidth", technology.get_dimension("Minimum M1 Width") },
+        { "powerspace", technology.get_dimension("Minimum M1 Space") },
         { "nmosflippedwell", false },
         { "pmosflippedwell", false },
-        { "guardringwidth", tech.get_dimension("Minimum M1 Width") },
+        { "guardringwidth", technology.get_dimension("Minimum M1 Width") },
         { "nmosvthtype", 1 },
         { "pmosvthtype", 1 }
     )
@@ -111,8 +111,8 @@ function layout(tgate, _P)
         pmos:get_anchor("guardringtr"):translate(0, _P.powerspace + _P.sdwidth / 2)
     )
 
-    tgate:add_anchor_area_bltr("clkp", pmos:get_anchor("topgatestrapbl"), pmos:get_anchor("topgatestraptr"))
-    tgate:add_anchor_area_bltr("clkn", nmos:get_anchor("botgatestrapbl"), nmos:get_anchor("botgatestraptr"))
+    tgate:add_area_anchor_bltr("clkp", pmos:get_anchor("topgatestrapbl"), pmos:get_anchor("topgatestraptr"))
+    tgate:add_area_anchor_bltr("clkn", nmos:get_anchor("botgatestrapbl"), nmos:get_anchor("botgatestraptr"))
     tgate:add_port("input", generics.metalport(1), (pmos:get_anchor("sourcestrapcl") + nmos:get_anchor("sourcestrapcl")):translate(-inputconnoffset, 0))
     tgate:add_port("output", generics.metalport(1), (pmos:get_anchor("drainstrapcc") + nmos:get_anchor("drainstrapcc")))
 end

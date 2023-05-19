@@ -5,7 +5,7 @@ CC= gcc
 # FIXME: set environment in appropriate targets
 #CFLAGS= -std=c99 -O3 -Wall -Wextra -Werror=implicit-function-declaration -Werror=int-conversion -Wstrict-prototypes -pthread $(SYSCFLAGS) $(MYCFLAGS)
 # for debugging purposes
-CFLAGS= -std=c99 -O0 -g -Wall -Wextra -Werror=implicit-function-declaration -Werror=int-conversion -Wstrict-prototypes -pthread $(SYSCFLAGS) $(MYCFLAGS)
+CFLAGS= -std=c99 -O0 -g -Wall -Wextra -Werror=return-type -Werror=implicit-function-declaration -Werror=int-conversion -Werror=discarded-qualifiers -Wstrict-prototypes -pthread $(SYSCFLAGS) $(MYCFLAGS)
 LDFLAGS= $(SYSLDFLAGS) $(MYLDFLAGS)
 LIBS= -lm $(SYSLIBS) $(MYLIBS)
 

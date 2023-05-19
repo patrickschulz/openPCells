@@ -74,23 +74,84 @@ function M.legalize(nets, rows, numinnerroutes, pnumtracks, nnumtracks, floorpla
     return routednets
 end
 
-local function _finish_route_path(cell, pts, currmetal, width)
-    if #pts > 1 and (pts[1] ~= pts[2]) then
-        geometry.path(cell, generics.metal(currmetal), pts, width)
+local function _finish_route_path(state)
+    if #state.current.pts > 1 and (state.current.pts[1] ~= state.current.pts[2]) then
+        geometry.path(state.cell, generics.metal(state.current.metal), state.current.pts, state.width)
     end
     -- clear pts
-    for i = 1, #pts do
-        pts[i] = nil
+    for i = 1, #state.current.pts do
+        state.current.pts[i] = nil
     end
 end
 
-local function _insert_or_update(cell, currmetal, pts, x, y, width, draw)
-    if draw then
-        table.insert(pts, point.create(x, y))
-    else
-        _finish_route_path(cell, pts, currmetal, width)
-        pts[1] = point.create(x, y)
+local function _insert_or_update(state, x, y)
+    if state.current.movement.nodraw then
+        _finish_route_path(state)
     end
+    table.insert(state.current.pts, point.create(x, y))
+end
+
+local function _do_point(state)
+    local x, y = state.current.movement.where:unwrap()
+    _insert_or_update(state, x, y)
+end
+
+local function _do_delta(state)
+    if state.current.movement.x and state.current.movement.y then
+        error("routing delta movement must not specify both x and y")
+    end
+    local lastpt = state.current.pts[#state.current.pts]
+    local x, y = lastpt:unwrap()
+    x = x + state.grid.x * (state.current.movement.x or 0)
+    y = y + state.grid.y * (state.current.movement.y or 0)
+    _insert_or_update(state, x, y)
+end
+
+local function _do_rowshift(state)
+    local lastpt = state.current.pts[#state.current.pts]
+    local x, y = lastpt:unwrap()
+    local yoffset = (state.nnumtracks + state.numinnerroutes / 2) * state.grid.y
+    local rowheight = state.grid.y * (state.pnumtracks + state.nnumtracks + state.numinnerroutes + 1)
+    local currentrow = math.ceil((y + yoffset) / rowheight)
+    local updown = state.current.movement.rows < 0 and -1 or 1
+    local steps = math.abs(state.current.movement.rows)
+    local target = y
+    while steps > 1 do
+        target = target + updown * state.grid.y * 2 * (state.pnumtracks + 1 + state.nnumtracks + state.numinnerroutes)
+        steps = steps - 2
+    end
+    if steps > 0 then
+        local shift
+        if ((currentrow % 2 == 0) and (updown < 0)) or ((currentrow % 2 == 1) and (updown > 0)) then
+            shift = state.pnumtracks
+        else
+            shift = state.nnumtracks
+        end
+        target = target + state.grid.y * updown * (2 * shift + 1 + state.numinnerroutes)
+    end
+    target = target + state.grid.y * (state.current.movement.offset or 0)
+    _insert_or_update(state, x, target)
+end
+
+local function _do_via(state)
+    local targetmetal
+    if state.current.movement.z then
+        targetmetal = state.current.metal + state.current.movement.z
+    else
+        targetmetal = state.current.movement.metal
+    end
+    local lastpt = state.current.pts[#state.current.pts]
+    local x, y = lastpt:unwrap()
+    if not state.current.movement.nodraw then
+        -- FIXME: should not be width / 2, but this is impossible with the current path-based router
+        geometry.viabltr(state.cell, state.current.metal, targetmetal, 
+            point.create(x - state.width / 2, y - state.width / 2),
+            point.create(x + state.width / 2, y + state.width / 2)
+        )
+    end
+    _finish_route_path(state)
+    state.current.pts[1] = lastpt
+    state.current.metal = targetmetal
 end
 
 function M.route(cell, routes, width, numinnerroutes, pnumtracks, nnumtracks, xgrid, ygrid)
@@ -100,72 +161,42 @@ function M.route(cell, routes, width, numinnerroutes, pnumtracks, nnumtracks, xg
     if not ygrid then
         moderror("routing.route: 'ygrid' must be given")
     end
+    local state = {
+        cell = cell,
+        numinnerroutes = numinnerroutes,
+        pnumtracks = pnumtracks,
+        nnumtracks = nnumtracks,
+        grid = {
+            x = xgrid,
+            y = ygrid,
+        },
+        width = width,
+    }
     for r, route in ipairs(routes) do
         if not (route[1].type == "anchor" or route[1].type == "point") then
             moderror(string.format("routing.route: route #%d: first movement needs to be of type 'anchor' or 'point'", r))
         end
-        local startpt = route[1].where
-        local pts = { startpt }
-        local currmetal = route.startmetal or 1
+        state.current = {
+            startpt = route[1].where,
+            pts = { route[1].where },
+            metal = route.startmetal or 1
+        }
         for i = 2, #route do
-            local movement = route[i]
-            if movement.type == "point" then
-                local x, y = movement.where:unwrap()
-                _insert_or_update(cell, currmetal, pts, x, y, width, not movement.nodraw)
-            elseif movement.type == "delta" then
-                if movement.x and movement.y then
-                    error("routing delta movement must not specify both x and y")
-                end
-                local lastpt = pts[#pts]
-                local x, y = lastpt:unwrap()
-                x = x + xgrid * (movement.x or 0)
-                y = y + ygrid * (movement.y or 0)
-                _insert_or_update(cell, currmetal, pts, x, y, width, not movement.nodraw)
-            elseif movement.type == "rowshift" then
-                local lastpt = pts[#pts]
-                local x, y = lastpt:unwrap()
-                local yoffset = (nnumtracks + numinnerroutes / 2) * ygrid
-                local rowheight = ygrid * (pnumtracks + nnumtracks + numinnerroutes + 1)
-                local currentrow = math.ceil((y + yoffset) / rowheight)
-                local updown = movement.rows < 0 and -1 or 1
-                local steps = math.abs(movement.rows)
-                local target = y
-                while steps > 1 do
-                    target = target + updown * ygrid * 2 * (pnumtracks + 1 + nnumtracks + numinnerroutes)
-                    steps = steps - 2
-                end
-                if steps > 0 then
-                    local shift
-                    if ((currentrow % 2 == 0) and (updown < 0)) or ((currentrow % 2 == 1) and (updown > 0)) then
-                        shift = pnumtracks
-                    else
-                        shift = nnumtracks
-                    end
-                    target = target + ygrid * updown * (2 * shift + 1 + numinnerroutes)
-                end
-                target = target + ygrid * (movement.offset or 0)
-                _insert_or_update(cell, currmetal, pts, x, target, width, not movement.nodraw)
-            elseif movement.type == "via" then
-                local targetmetal
-                if movement.z then
-                    targetmetal = currmetal + movement.z
-                else
-                    targetmetal = movement.metal
-                end
-                local lastpt = pts[#pts]
-                local x, y = lastpt:unwrap()
-                if not movement.nodraw then
-                    geometry.via(cell, currmetal, targetmetal, width, width, x, y)
-                end
-                _finish_route_path(cell, pts, currmetal, width)
-                pts[1] = lastpt
-                currmetal = targetmetal
+            state.current.movement = route[i]
+            if state.current.movement.type == "point" then
+                _do_point(state)
+            elseif state.current.movement.type == "delta" then
+                _do_delta(state)
+            elseif state.current.movement.type == "rowshift" then
+                _do_rowshift(state)
+            elseif state.current.movement.type == "via" then
+                _do_via(state)
             else
-                error(string.format("routing.route: unknown movement type '%s'", movement.type))
+                error(string.format("routing.route: unknown movement type '%s'", state.current.movement.type))
             end
         end
         -- draw remaining points
-        _finish_route_path(cell, pts, currmetal, width)
+        _finish_route_path(state)
     end
 end
 

@@ -29,12 +29,14 @@ cmdoptions_add_option(cmdoptions, NO_SHORT, "write-children-ports", NO_ARG, "exp
 cmdoptions_add_option(cmdoptions, NO_SHORT, "append-cellpath", MULTI_ARGS, "append searchpath for cells (can be used multiple times: --append-cellpath foo --append-cellpath bar)");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "prepend-cellpath", MULTI_ARGS, "prepend searchpath for cells (can be used multiple times: --prepend-cellpath foo --prepend-cellpath bar)");
 cmdoptions_add_alias(cmdoptions, "append-cellpath", NO_SHORT, "cellpath", "synonym for --append-cellpath");
-cmdoptions_add_option(cmdoptions, NO_SHORT, "filter-layers", MULTI_ARGS, "filter layers to be generated. Any layer (in generic notation) in this list will not be generated. This option can be called multiple times. The effect of this options is also controlled by --filter-list. This filter is installed BEFORE technology translation, so the layers must be specified in generic notation (e.g. M1 or contactsourcedrain).");
+cmdoptions_add_option(cmdoptions, NO_SHORT, "filter-layer", MULTI_ARGS, "filter layers to be generated. Any layer (in generic notation) in this list will not be generated. This option can be called multiple times. The effect of this options is also controlled by --filter-list. This filter is installed BEFORE technology translation, so the layers must be specified in generic notation (e.g. M1 or contactsourcedrain).");
 cmdoptions_add_option_default(cmdoptions, NO_SHORT, "filter-list", SINGLE_ARG, "exclude", "set filter list type (include or exclude, default exclude)");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "export-filter", MULTI_ARGS, "filter exported data. Possible values: rectangle, polygon, reference, link. This option can be called multiple times. The effect of this options is also controlled by --export-filter-list.");
 cmdoptions_add_option_default(cmdoptions, NO_SHORT, "export-filter-list", SINGLE_ARG, "exclude", "set export filter list type (include or exclude, default exclude)");
+cmdoptions_add_option(cmdoptions, NO_SHORT, "ignore-layer", MULTI_ARGS, "ignore layers to be generated. Any layer (in generic notation) in this list will not be generated. This option can be called multiple times.");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "ignore-missing-layers", NO_ARG, "ignore missing layers in the technology translation. Layers that are not present in the layermap file are handled as if their values was '{}'");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "ignore-missing-export", NO_ARG, "ignore layers with missing exports in the technology translation");
+cmdoptions_add_option(cmdoptions, NO_SHORT, "ignore-premapped-layers", NO_ARG, "ignore premapped layers (they are handled as if their value was '{}')");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "disable-gatecut", NO_ARG, "disable gatecut (only useful for technologies that support gate cuts)");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "merge-rectangles", NO_ARG, "merge rectangles");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "resolve-paths", NO_ARG, "resolve paths to rectangles and polygons");
@@ -77,7 +79,7 @@ cmdoptions_add_option(cmdoptions, NO_SHORT, "techfile-assistant", NO_ARG, "start
 /* Info Functions */
 cmdoptions_add_section(cmdoptions, "Info functions");
 cmdoptions_add_option(cmdoptions, 'P', "parameters", NO_ARG, "display available cell parameters and exit (requires --cell)");
-cmdoptions_add_option(cmdoptions, NO_SHORT, "parameters-format", SINGLE_ARG, "format for listing parameters. The following formats are recognized: %t: parameter type, %n: parameter name, %d: parameter display name, %v: parameter value, %a: parameter argument type, %r: parameter is read-only (true/false), %p: parent cell. The default is %n (%d) %v");
+cmdoptions_add_option(cmdoptions, NO_SHORT, "parameters-format", SINGLE_ARG, "format for listing parameters. The following formats are recognized: %t: parameter type, %n: parameter name, %d: parameter display name, %v: parameter value, %a: parameter argument type, %r: parameter is read-only (true/false), %p: parent cell. The default is %n %v");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "constraints", NO_ARG, "show required technology parameter (requires --cell and --technology)");
 cmdoptions_add_option(cmdoptions, 'L', "list", NO_ARG, "list available cells");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "list-format", SINGLE_ARG, "format for listing cells. The following format is recognized: prefmt:postfmt:prepathfmt:postpathfmt:prebasefmt:postbasefmt:cellfmt. Format strings can be empty, the delimiting ':' has to be present. A (useless) basic format could be '::::::'. The default is '::%p\\n::  %b\\n::    %c\\n'. A possible format for creating a nested list (e.g. for SKILL) would be 'list(\\n:)\\n:::list(\"%b\" list(:))\\n:\"%c\"'");

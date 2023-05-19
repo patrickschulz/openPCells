@@ -54,10 +54,11 @@ int util_split_string(const char* src, char delim, char** first, char** second)
     if(*ptr)
     {
         *first = malloc(ptr - src + 1);
-        strncpy(*first, src, ptr - src);
+        memcpy(*first, src, ptr - src);
         (*first)[ptr - src] = 0;
         *second = malloc(strlen(src) - (ptr - src + 1) + 1);
-        strncpy(*second, ptr + 1, strlen(src) - (ptr - src + 1) + 1);
+        memcpy(*second, ptr + 1, strlen(src) - (ptr - src + 1) + 1);
+        (*second)[strlen(src) - (ptr - src + 1) + 1] = 0;
         return 1;
     }
     else

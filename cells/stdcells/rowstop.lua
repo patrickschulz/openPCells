@@ -32,7 +32,6 @@ function layout(gate, _P)
         if i > 1 then
             shift = shift + gl + _P.gspaces[i] - (_P.glengths[i] - _P.glengths[i - 1]) / 2
         end
-        dprint(i, correction)
         -- gates
         geometry.rectanglebltr(
             gate, generics.other("gate"), 

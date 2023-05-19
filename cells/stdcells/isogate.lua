@@ -3,8 +3,8 @@ function config()
 end
 
 function parameters()
-    pcell.add_parameter("pwidth", 2 * tech.get_dimension("Minimum Gate Width"))
-    pcell.add_parameter("nwidth", 2 * tech.get_dimension("Minimum Gate Width"))
+    pcell.add_parameter("pwidthoffset", 0)
+    pcell.add_parameter("nwidthoffset", 0)
 end
 
 function layout(gate, _P)
@@ -15,18 +15,16 @@ function layout(gate, _P)
         gatecontactpos = { "dummy" },
         pcontactpos = { "power", "power" },
         ncontactpos = { "power", "power" },
-        pwidth = _P.pwidth,
-        nwidth = _P.nwidth,
+        pwidthoffset = _P.pwidthoffset,
+        nwidthoffset = _P.nwidthoffset,
         drawdummyactivecontacts = false,
     })
     gate:merge_into(harness)
 
     gate:inherit_alignment_box(harness)
 
-    gate:add_anchor("VDD", harness:get_anchor("top"))
-    gate:add_anchor("VSS", harness:get_anchor("bottom"))
-    gate:add_port("VDD", generics.metalport(1), harness:get_anchor("top"))
-    gate:add_port("VSS", generics.metalport(1), harness:get_anchor("bottom"))
+    gate:add_port("VDD", generics.metalport(1), harness:get_area_anchor("PRp").bl)
+    gate:add_port("VSS", generics.metalport(1), harness:get_area_anchor("PRn").bl)
 
     -- center gate
     gate:translate(xpitch / 2, 0)

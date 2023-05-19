@@ -1,8 +1,8 @@
 function parameters()
     pcell.add_parameter("fingers", 1)
     pcell.add_parameter("leftnotright", true)
-    pcell.add_parameter("pwidth", 2 * tech.get_dimension("Minimum Gate Width"))
-    pcell.add_parameter("nwidth", 2 * tech.get_dimension("Minimum Gate Width"))
+    pcell.add_parameter("pwidthoffset", 0)
+    pcell.add_parameter("nwidthoffset", 0)
 end
 
 function layout(gate, _P)
@@ -17,7 +17,7 @@ function layout(gate, _P)
     local leftpolylines = {}
     local rightpolylines = {}
     for i = 1, _P.fingers do
-        local entry = { bp.glength, bp.gspace }
+        local entry = { length = bp.glength, space = bp.gspace }
         if _P.leftnotright then
             leftpolylines[i] = entry
         else
@@ -28,8 +28,8 @@ function layout(gate, _P)
         gatecontactpos = gatecontactpos,
         pcontactpos = sdcontacts,
         ncontactpos = sdcontacts,
-        pwidth = _P.pwidth,
-        nwidth = _P.nwidth,
+        pwidthoffset = _P.pwidthoffset,
+        nwidthoffset = _P.nwidthoffset,
         drawactive = false,
         drawgatecontacts = false,
         drawtopgcut = false,

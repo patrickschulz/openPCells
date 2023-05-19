@@ -42,6 +42,22 @@ static int lgenerics_create_metalport(lua_State* L)
     return 1;
 }
 
+static int lgenerics_create_metalfill(lua_State* L)
+{
+    int num = luaL_checkinteger(L, 1);
+    lua_getfield(L, LUA_REGISTRYINDEX, "techstate");
+    struct technology_state* techstate = lua_touserdata(L, -1);
+    lua_pop(L, 1); // pop techstate
+    const struct generics* layer = generics_create_metalfill(techstate, num);
+    if(!layer)
+    {
+        lua_pushfstring(L, "generics: got NULL layer: generics.metalfill(%d)\nif this layer is not needed, set it to {}", num);
+        lua_error(L);
+    }
+    _push_layer(L, layer);
+    return 1;
+}
+
 static int lgenerics_create_metalexclude(lua_State* L)
 {
     int num = luaL_checkinteger(L, 1);
@@ -202,17 +218,6 @@ static int lgenerics_create_premapped(lua_State* L)
     return 1;
 }
 
-static int lgenerics_resolve_premapped_layers(lua_State* L)
-{
-    lua_getfield(L, LUA_REGISTRYINDEX, "techstate");
-    struct technology_state* techstate = lua_touserdata(L, -1);
-    lua_pop(L, 1); // pop techstate
-    const char* exportname = luaL_checkstring(L, 1);
-    int ret = technology_resolve_premapped_layers(techstate, exportname);
-    lua_pushboolean(L, ret);
-    return 1;
-}
-
 int open_lgenerics_lib(lua_State* L)
 {
     lua_newtable(L);
@@ -220,6 +225,7 @@ int open_lgenerics_lib(lua_State* L)
     {
         { "metal",                    lgenerics_create_metal             },
         { "metalport",                lgenerics_create_metalport         },
+        { "metalfill",                lgenerics_create_metalfill         },
         { "metalexclude",             lgenerics_create_metalexclude      },
         { "viacut",                   lgenerics_create_viacut            },
         { "contact",                  lgenerics_create_contact           },
@@ -230,12 +236,10 @@ int open_lgenerics_lib(lua_State* L)
         { "otherport",                lgenerics_create_otherport         },
         { "special",                  lgenerics_create_special           },
         { "premapped",                lgenerics_create_premapped         },
-        { "resolve_premapped_layers", lgenerics_resolve_premapped_layers },
         { NULL,                       NULL                               }
     };
     luaL_setfuncs(L, modfuncs, 0);
     lua_setglobal(L, LGENERICSMODULE);
-
     return 0;
 }
 

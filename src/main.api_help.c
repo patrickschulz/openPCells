@@ -393,7 +393,6 @@ static void _print_parameters(const struct vector* parameters)
         }
         vector_const_iterator_destroy(it);
     }
-
 }
 
 struct parameter* _copy_parameter(const struct parameter* param)
@@ -507,6 +506,8 @@ void _print_api_entry(const struct api_entry* entry)
     _putstr(")");
     
     // function info
+    putchar('\n');
+    _putstr(entry->info);
     putchar('\n');
     putchar('\n');
 
@@ -653,6 +654,7 @@ struct vector* _initialize_api_entries(void)
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
+
     /* geometry.path_2x */
     {
         struct parameter parameters[] = {
@@ -671,6 +673,7 @@ struct vector* _initialize_api_entries(void)
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
+
     /* geometry.path_2y */
     {
         struct parameter parameters[] = {
@@ -689,6 +692,7 @@ struct vector* _initialize_api_entries(void)
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
+
     /* geometry.path_cshape */
     {
         struct parameter parameters[] = {
@@ -728,6 +732,7 @@ struct vector* _initialize_api_entries(void)
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
+
     /* geometry.path_points_xy */
     {
         struct parameter parameters[] = {
@@ -754,6 +759,7 @@ struct vector* _initialize_api_entries(void)
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
+
     /* geometry.path_points_yx */
     {
         struct parameter parameters[] = {
@@ -1015,6 +1021,7 @@ struct vector* _initialize_api_entries(void)
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
+
     /* interval */
     {
         struct parameter parameters[] = {
@@ -1030,6 +1037,7 @@ struct vector* _initialize_api_entries(void)
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
+
     /* even */
     {
         struct parameter parameters[] = {};
@@ -1042,6 +1050,7 @@ struct vector* _initialize_api_entries(void)
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
+
     /* odd */
     {
         struct parameter parameters[] = {};
@@ -1054,6 +1063,7 @@ struct vector* _initialize_api_entries(void)
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
+
     /* positive */
     {
         struct parameter parameters[] = {};
@@ -1065,7 +1075,9 @@ struct vector* _initialize_api_entries(void)
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
-    }/* negative */
+    }
+
+    /* negative */
     {
         struct parameter parameters[] = {};
         vector_append(entries, _make_api_entry(
@@ -1077,6 +1089,7 @@ struct vector* _initialize_api_entries(void)
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
+
     /* pcell.set_property */
     {
         struct parameter parameters[] = {
@@ -1092,6 +1105,7 @@ struct vector* _initialize_api_entries(void)
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
+
     /* pcell.add_parameter */
     {
         struct parameter parameters[] = {
@@ -1108,6 +1122,7 @@ struct vector* _initialize_api_entries(void)
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
+
     /* pcell.add_parameters */
     {
         struct parameter parameters[] = {
@@ -1122,6 +1137,7 @@ struct vector* _initialize_api_entries(void)
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
+
     /* pcell.get_parameters */
     {
         struct parameter parameters[] = {
@@ -1136,6 +1152,7 @@ struct vector* _initialize_api_entries(void)
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
+
     /* pcell.push_overwrites */
     {
         struct parameter parameters[] = {
@@ -1151,6 +1168,7 @@ struct vector* _initialize_api_entries(void)
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
+
     /* pcell.pop_overwrites */
     {
         struct parameter parameters[] = {
@@ -1165,6 +1183,7 @@ struct vector* _initialize_api_entries(void)
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
+
     /* pcell.check_expression */
     {
         struct parameter parameters[] = {
@@ -1180,6 +1199,7 @@ struct vector* _initialize_api_entries(void)
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
+
     /* pcell.create_layout */
     {
         struct parameter parameters[] = {
@@ -1196,6 +1216,7 @@ struct vector* _initialize_api_entries(void)
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
+
     /* tech.get_dimension */
     {
         struct parameter parameters[] = {
@@ -1210,6 +1231,7 @@ struct vector* _initialize_api_entries(void)
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
+
     /* tech.has_layer */
     {
         struct parameter parameters[] = {
@@ -1224,6 +1246,7 @@ struct vector* _initialize_api_entries(void)
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
+
     /* tech.resolve_metal */
     {
         struct parameter parameters[] = {
@@ -1238,6 +1261,7 @@ struct vector* _initialize_api_entries(void)
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
+
     /* placement.create_floorplan_aspectratio */
     {
         struct parameter parameters[] = {
@@ -1254,6 +1278,7 @@ struct vector* _initialize_api_entries(void)
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
+
     /* placement.create_floorplan_fixed_rows */
     {
         struct parameter parameters[] = {
@@ -1270,6 +1295,7 @@ struct vector* _initialize_api_entries(void)
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
+
     /* placement.optimize */
     {
         struct parameter parameters[] = {
@@ -1286,6 +1312,7 @@ struct vector* _initialize_api_entries(void)
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
+
     /* placement.manual */
     {
         struct parameter parameters[] = {
@@ -1300,6 +1327,7 @@ struct vector* _initialize_api_entries(void)
             parameters,
             sizeof(parameters) / sizeof(parameters[0])));
     }
+
     /* placement.insert_filler_names */
     {
         struct parameter parameters[] = {
@@ -1319,6 +1347,7 @@ struct vector* _initialize_api_entries(void)
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
+
     /* placement.create_reference_rows */
     {
         struct parameter parameters[] = {
@@ -1351,6 +1380,7 @@ struct vector* _initialize_api_entries(void)
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
+
     /* placement.digital */ // FIXME: digital
     {
         struct parameter parameters[] = {
@@ -1365,6 +1395,7 @@ struct vector* _initialize_api_entries(void)
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
+
     /* placement.rowwise */ // FIXME: rowwise
     {
         struct parameter parameters[] = {
@@ -1379,6 +1410,7 @@ struct vector* _initialize_api_entries(void)
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
+
     /* routing.legalize */ // FIXME: legalize
     {
         struct parameter parameters[] = {
@@ -1393,6 +1425,7 @@ struct vector* _initialize_api_entries(void)
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
+
     /* routing.route */ // FIXME: route
     {
         struct parameter parameters[] = {
@@ -1407,6 +1440,7 @@ struct vector* _initialize_api_entries(void)
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
+
     /* curve.lineto, */
     {
         struct parameter parameters[] = {
@@ -1426,6 +1460,7 @@ struct vector* _initialize_api_entries(void)
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
+
     /* curve.arcto, */
     {
         struct parameter parameters[] = {
@@ -1448,6 +1483,7 @@ struct vector* _initialize_api_entries(void)
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
+
     /* curve.cubicto */
     {
         struct parameter parameters[] = {
@@ -1469,6 +1505,7 @@ struct vector* _initialize_api_entries(void)
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
+
     /* object.create */
     {
         struct parameter parameters[] = {
@@ -1483,6 +1520,7 @@ struct vector* _initialize_api_entries(void)
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
+
     /* object.copy */
     {
         struct parameter parameters[] = {
@@ -1497,6 +1535,7 @@ struct vector* _initialize_api_entries(void)
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
+
     /* object.exchange */
     {
         struct parameter parameters[] = {
@@ -1512,6 +1551,7 @@ struct vector* _initialize_api_entries(void)
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
+
     /* object.add_anchor */
     {
         struct parameter parameters[] = {
@@ -1528,7 +1568,8 @@ struct vector* _initialize_api_entries(void)
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
-    /* object.add_anchor_area */
+
+    /* object.add_area_anchor */
     {
         struct parameter parameters[] = {
             { "cell",   OBJECT,  NULL, "object to which an anchor should be added" },
@@ -1539,15 +1580,16 @@ struct vector* _initialize_api_entries(void)
             { "yshift", INTEGER, NULL, "shift the area by 'yshift'" }
         };
         vector_append(entries, _make_api_entry(
-            "add_anchor_area",
+            "add_area_anchor",
             MODULE_OBJECT,
             "add a so-called 'area anchor', which defines all relevant anchors in a rectangular area: bottom-left, bottom-center, bottom-right, center-left, center-center, center-right, top-left, top-center, top-right (bl, bc, br, cl, cc, cr, tl, tc, tr)",
-            "cell:add_anchor_area(\"source\", 100, 500, 0, 0)",
+            "cell:add_area_anchor(\"source\", 100, 500, 0, 0)",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
-    /* object.add_anchor_area_bltr */
+
+    /* object.add_area_anchor_bltr */
     {
         struct parameter parameters[] = {
             { "cell",   OBJECT,  NULL, "object to which an anchor should be added" },
@@ -1557,14 +1599,15 @@ struct vector* _initialize_api_entries(void)
 
         };
         vector_append(entries, _make_api_entry(
-            "add_anchor_area_bltr",
+            "add_area_anchor_bltr",
             MODULE_OBJECT,
-            "Similar to add_anchor_area, but takes to lower-left and upper-right corner points of the rectangular area",
-            "cell:add_anchor_area(\"source\", point.create(-100, -20), point.create(100, 20))",
+            "Similar to add_area_anchor, but takes to lower-left and upper-right corner points of the rectangular area",
+            "cell:add_area_anchor(\"source\", point.create(-100, -20), point.create(100, 20))",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
+
     /* object.get_anchor */
     {
         struct parameter parameters[] = {
@@ -1580,6 +1623,7 @@ struct vector* _initialize_api_entries(void)
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
+
     /* object.get_array_anchor */
     {
         struct parameter parameters[] = {
@@ -1597,20 +1641,7 @@ struct vector* _initialize_api_entries(void)
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
-    /* object.get_all_regular_anchors */
-    {
-        struct parameter parameters[] = {
-            { "cell", OBJECT,  NULL, "object to get all anchors from" },
-        };
-        vector_append(entries, _make_api_entry(
-            "get_all_regular_anchors",
-            MODULE_OBJECT,
-            "return a table which contains key-value pairs with all regular anchors of a cell. The key is the anchorname, the value the corresponding point. Regular anchors are anchors not related to an alignment box but created by add_anchor, add_anchor_area and add_anchor_area_bltr",
-            "local anchors = cell:get_all_regular_anchors()",
-            parameters,
-            sizeof(parameters) / sizeof(parameters[0])
-        ));
-    }
+
     /* object.add_port */
     {
         struct parameter parameters[] = {
@@ -1628,6 +1659,7 @@ struct vector* _initialize_api_entries(void)
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
+
     /* object.add_bus_port */
     {
         struct parameter parameters[] = {
@@ -1649,6 +1681,7 @@ struct vector* _initialize_api_entries(void)
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
+
     /* object.get_ports */
     {
         struct parameter parameters[] = {
@@ -1663,6 +1696,7 @@ struct vector* _initialize_api_entries(void)
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
+
     /* object.set_alignment_box */
     {
         struct parameter parameters[] = {
@@ -1679,6 +1713,7 @@ struct vector* _initialize_api_entries(void)
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
+
     /* object.inherit_alignment_box */
     {
         struct parameter parameters[] = {
@@ -1694,6 +1729,7 @@ struct vector* _initialize_api_entries(void)
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
+
     /* object.width_height_alignmentbox */
     {
         struct parameter parameters[] = {
@@ -1708,6 +1744,7 @@ struct vector* _initialize_api_entries(void)
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
+
     /* object.move_to */
     {
         struct parameter parameters[] = {
@@ -1724,6 +1761,7 @@ struct vector* _initialize_api_entries(void)
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
+
     /* object.reset_translation */
     {
         struct parameter parameters[] = {
@@ -1738,6 +1776,7 @@ struct vector* _initialize_api_entries(void)
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
+
     /* object.translate */
     {
         struct parameter parameters[] = {
@@ -1754,6 +1793,39 @@ struct vector* _initialize_api_entries(void)
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
+
+    /* object.translate_x */
+    {
+        struct parameter parameters[] = {
+            { "cell",   OBJECT,     NULL, "cell to be translated" },
+            { "x",      INTEGER,    NULL, "x offset" }
+        };
+        vector_append(entries, _make_api_entry(
+            "translate_x",
+            MODULE_OBJECT,
+            "translate the cell by the specified x offset (relative movement).",
+            "cell:translate(100)",
+            parameters,
+            sizeof(parameters) / sizeof(parameters[0])
+        ));
+    }
+
+    /* object.translate_y */
+    {
+        struct parameter parameters[] = {
+            { "cell",   OBJECT,     NULL, "cell to be translated" },
+            { "y",      INTEGER,    NULL, "y offset" }
+        };
+        vector_append(entries, _make_api_entry(
+            "translate_y",
+            MODULE_OBJECT,
+            "translate the cell by the specified y offset (relative movement).",
+            "cell:translate(100)",
+            parameters,
+            sizeof(parameters) / sizeof(parameters[0])
+        ));
+    }
+
     /* object.mirror_at_xaxis */
     {
         struct parameter parameters[] = {};
@@ -1766,6 +1838,7 @@ struct vector* _initialize_api_entries(void)
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
+
     /* object.mirror_at_yaxis */
     {
         struct parameter parameters[] = {};
@@ -1778,6 +1851,7 @@ struct vector* _initialize_api_entries(void)
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
+
     /* object.mirror_at_origin */
     {
         struct parameter parameters[] = {};
@@ -1790,6 +1864,7 @@ struct vector* _initialize_api_entries(void)
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
+
     /* object.rotate_90_left */
     {
         struct parameter parameters[] = {};
@@ -1802,6 +1877,7 @@ struct vector* _initialize_api_entries(void)
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
+
     /* object.rotate_90_right */
     {
         struct parameter parameters[] = {};
@@ -1814,6 +1890,7 @@ struct vector* _initialize_api_entries(void)
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
+
     /* object.flipx */
     {
         struct parameter parameters[] = {};
@@ -1826,6 +1903,7 @@ struct vector* _initialize_api_entries(void)
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
+
     /* object.flipy */
     {
         struct parameter parameters[] = {};
@@ -1838,50 +1916,19 @@ struct vector* _initialize_api_entries(void)
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
-    /* object.move_anchor */
+
+    /* object.move_point */
     {
         struct parameter parameters[] = {
-            { "cell",       OBJECT, NULL,                   "cell which should be moved" },
-            { "anchorname", STRING, NULL,                   "anchor name as reference" },
-            { "target",     POINT,  "point.create(0, 0)",   "target to move the anchor to. Defaults to the origin" }
+            { "cell",       OBJECT, NULL,   "cell which should be moved" },
+            { "source",     POINT,  NULL,   "source point" },
+            { "target",     POINT,  NULL,   "target point" }
         };
         vector_append(entries, _make_api_entry(
-            "move_anchor",
+            "move_point",
             MODULE_OBJECT,
-            "translate (move) the object so that its referenced anchor lies on the target. If called without a target, the anchor is moved to (0, 0)",
-            "cell:move_anchor(\"gate\") -- move to origin\nmosfet:move_anchor(\"leftsourcedrain\", othermosfet:get_anchor(\"rightsourcedrain\")) -- align two mosfets",
-            parameters,
-            sizeof(parameters) / sizeof(parameters[0])
-        ));
-    }
-    /* object.move_anchor_x */
-    {
-        struct parameter parameters[] = {
-            { "cell",       OBJECT, NULL,                   "cell which should be moved" },
-            { "anchorname", STRING, NULL,                   "anchor name as reference" },
-            { "target",     POINT,  "point.create(0, 0)",   "target to move the anchor to. Defaults to the origin" }
-        };
-        vector_append(entries, _make_api_entry(
-            "move_anchor_x",
-            MODULE_OBJECT,
-            "equal to object.move_anchor, but only changes the x coordinate",
-            "cell:move_anchor_x(\"gate\", point.create(100, 0))",
-            parameters,
-            sizeof(parameters) / sizeof(parameters[0])
-        ));
-    }
-    /* object.move_anchor_y */
-    {
-        struct parameter parameters[] = {
-            { "cell",       OBJECT, NULL,                   "cell which should be moved" },
-            { "anchorname", STRING, NULL,                   "anchor name as reference" },
-            { "target",     POINT,  "point.create(0, 0)",   "target to move the anchor to. Defaults to the origin" }
-        };
-        vector_append(entries, _make_api_entry(
-            "move_anchor_y",
-            MODULE_OBJECT,
-            "equal to object.move_anchor, but only changes the y coordinate",
-            "cell:move_anchor_y(\"gate\", point.create(100, 0))",
+            "translate (move) the object so that the source point lies on the target. Usually the source point is an anchor of the object, but that is not a necessity. The points are just references for the delta vector and can be any points.",
+            "cell:move_point(cell:get_area_anchor(\"gate\").bl, point.create(0, 0)) -- move to origin\nmosfet:move_point(mosfet:get_area_anchor(\"leftsourcedrain\").bl, othermosfet:get_area_anchor(\"rightsourcedrain\").bl) -- align two mosfets",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -1924,6 +1971,7 @@ struct vector* _initialize_api_entries(void)
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
+
     /* object.merge_into */
     {
         struct parameter parameters[] = {
@@ -1939,6 +1987,7 @@ struct vector* _initialize_api_entries(void)
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
+
     /* object.flatten */
     {
         struct parameter parameters[] = {
@@ -1953,6 +2002,7 @@ struct vector* _initialize_api_entries(void)
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
+
     /* generics.metal */
     {
         struct parameter parameters[] = {
@@ -1967,6 +2017,7 @@ struct vector* _initialize_api_entries(void)
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
+
     /* generics.metalport */
     {
         struct parameter parameters[] = {
@@ -1981,6 +2032,7 @@ struct vector* _initialize_api_entries(void)
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
+
     /* generics.metalexclude */
     {
         struct parameter parameters[] = {
@@ -1995,6 +2047,7 @@ struct vector* _initialize_api_entries(void)
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
+
     /* generics.viacut */
     {
         struct parameter parameters[] = {
@@ -2010,6 +2063,7 @@ struct vector* _initialize_api_entries(void)
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
+
     /* generics.contact */
     {
         struct parameter parameters[] = {
@@ -2024,6 +2078,7 @@ struct vector* _initialize_api_entries(void)
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
+
     /* generics.oxide */
     {
         struct parameter parameters[] = {
@@ -2038,6 +2093,7 @@ struct vector* _initialize_api_entries(void)
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
+
     /* generics.implant */
     {
         struct parameter parameters[] = {
@@ -2052,6 +2108,7 @@ struct vector* _initialize_api_entries(void)
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
+
     /* generics.vthtype */
     {
         struct parameter parameters[] = {
@@ -2066,6 +2123,7 @@ struct vector* _initialize_api_entries(void)
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
+
     /* generics.other */
     {
         struct parameter parameters[] = {
@@ -2080,6 +2138,7 @@ struct vector* _initialize_api_entries(void)
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
+
     /* generics.otherport */
     {
         struct parameter parameters[] = {
@@ -2094,6 +2153,7 @@ struct vector* _initialize_api_entries(void)
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
+
     /* generics.special */
     {
         struct parameter parameters[] = {
@@ -2108,6 +2168,7 @@ struct vector* _initialize_api_entries(void)
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
+
     /* generics.premapped */
     {
         struct parameter parameters[] = {
@@ -2123,6 +2184,7 @@ struct vector* _initialize_api_entries(void)
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
+
     /* point.copy */
     {
         struct parameter parameters[] = {
@@ -2137,6 +2199,7 @@ struct vector* _initialize_api_entries(void)
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
+
     /* point.unwrap */
     {
         struct parameter parameters[] = {
@@ -2152,6 +2215,7 @@ struct vector* _initialize_api_entries(void)
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
+
     /* point.getx */
     {
         struct parameter parameters[] = {
@@ -2166,6 +2230,7 @@ struct vector* _initialize_api_entries(void)
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
+
     /* point.gety */
     {
         struct parameter parameters[] = {
@@ -2180,6 +2245,7 @@ struct vector* _initialize_api_entries(void)
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
+
     /* point.translate */
     {
         struct parameter parameters[] = {
@@ -2196,6 +2262,39 @@ struct vector* _initialize_api_entries(void)
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
+
+    /* point.translate_x */
+    {
+        struct parameter parameters[] = {
+            { "point", POINT, NULL,   "point to translate" },
+            { "x",     INTEGER, NULL, "x delta by which the point should be translated" }
+        };
+        vector_append(entries, _make_api_entry(
+            "translate_x",
+            MODULE_POINT,
+            "translate a point in x. Can be used as module function or as a point method",
+            "point.translate(pt, 100)\npt:translate(100)",
+            parameters,
+            sizeof(parameters) / sizeof(parameters[0])
+        ));
+    }
+
+    /* point.translate_y */
+    {
+        struct parameter parameters[] = {
+            { "point", POINT, NULL,   "point to translate" },
+            { "y",     INTEGER, NULL, "y delta by which the point should be translated" }
+        };
+        vector_append(entries, _make_api_entry(
+            "translate_y",
+            MODULE_POINT,
+            "translate a point in y. Can be used as module function or as a point method",
+            "point.translate(pt, 100)\npt:translate(100)",
+            parameters,
+            sizeof(parameters) / sizeof(parameters[0])
+        ));
+    }
+
     /* point.create */
     {
         struct parameter parameters[] = {
@@ -2211,6 +2310,7 @@ struct vector* _initialize_api_entries(void)
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
+
     /* point.combine_12(lhs, rhs) */
     {
         struct parameter parameters[] = {
@@ -2226,6 +2326,7 @@ struct vector* _initialize_api_entries(void)
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
+
     /* point.combine_21(lhs, rhs) */
     {
         struct parameter parameters[] = {
@@ -2241,6 +2342,7 @@ struct vector* _initialize_api_entries(void)
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
+
     /* point.combine(lhs, rhs) */
     {
         struct parameter parameters[] = {
@@ -2256,6 +2358,7 @@ struct vector* _initialize_api_entries(void)
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
+
     /* point.xdistance(lhs, rhs) */
     {
         struct parameter parameters[] = {
@@ -2271,6 +2374,7 @@ struct vector* _initialize_api_entries(void)
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
+
     /* point.ydistance(lhs, rhs) */
     {
         struct parameter parameters[] = {
@@ -2286,6 +2390,7 @@ struct vector* _initialize_api_entries(void)
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
+
     /* point.fix */
     {
         struct parameter parameters[] = {
@@ -2301,6 +2406,7 @@ struct vector* _initialize_api_entries(void)
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
+
     /* point.operator+ */
     {
         struct parameter parameters[] = {
@@ -2316,6 +2422,7 @@ struct vector* _initialize_api_entries(void)
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
+
     /* point.operator- */
     {
         struct parameter parameters[] = {
@@ -2331,6 +2438,7 @@ struct vector* _initialize_api_entries(void)
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
+
     /* point.operator.. */
     {
         struct parameter parameters[] = {
@@ -2346,6 +2454,7 @@ struct vector* _initialize_api_entries(void)
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
+
     /* util.xmirror(pts, xcenter) */
     {
         struct parameter parameters[] = {
@@ -2361,6 +2470,7 @@ struct vector* _initialize_api_entries(void)
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
+
     /* util.ymirror(pts, ycenter) */
     {
         struct parameter parameters[] = {
@@ -2376,6 +2486,7 @@ struct vector* _initialize_api_entries(void)
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
+
     /* util.xymirror(pts, xcenter, ycenter) */
     {
         struct parameter parameters[] = {
@@ -2392,6 +2503,7 @@ struct vector* _initialize_api_entries(void)
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
+
     /* util.filter_forward(pts, fun) */ // FIXME: filter_forward
     {
         struct parameter parameters[] = {
@@ -2406,6 +2518,7 @@ struct vector* _initialize_api_entries(void)
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
+
     /* util.filter_backward(pts, fun) */ // FIXME: filter_backward
     {
         struct parameter parameters[] = {
@@ -2420,6 +2533,7 @@ struct vector* _initialize_api_entries(void)
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
+
     /* util.merge_forwards(pts, pts2) */
     {
         struct parameter parameters[] = {
@@ -2435,6 +2549,7 @@ struct vector* _initialize_api_entries(void)
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
+
     /* util.merge_backwards(pts, pts2) */
     {
         struct parameter parameters[] = {
@@ -2450,6 +2565,7 @@ struct vector* _initialize_api_entries(void)
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
+
     /* util.reverse(pts) */
     {
         struct parameter parameters[] = {
@@ -2464,6 +2580,7 @@ struct vector* _initialize_api_entries(void)
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
+
     /* util.make_insert_xy(pts, idx) */
     {
         struct parameter parameters[] = {
@@ -2479,6 +2596,7 @@ struct vector* _initialize_api_entries(void)
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
+
     /* util.make_insert_pts(pts, idx) */
     {
         struct parameter parameters[] = {
@@ -2494,6 +2612,7 @@ struct vector* _initialize_api_entries(void)
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
+
     /* util.fill_all_with(num, filler) */
     {
         struct parameter parameters[] = {
@@ -2509,6 +2628,7 @@ struct vector* _initialize_api_entries(void)
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
+
     /* util.fill_predicate_with(num, filler, predicate, other) */
     {
         struct parameter parameters[] = {
@@ -2526,6 +2646,7 @@ struct vector* _initialize_api_entries(void)
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
+
     /* util.fill_even_with(num, filler, other) */
     {
         struct parameter parameters[] = {
@@ -2536,12 +2657,13 @@ struct vector* _initialize_api_entries(void)
         vector_append(entries, _make_api_entry(
             "fill_even_with",
             MODULE_UTIL,
-            "create an array-like table with two entries repeated N / 2 times, alternating. This is useful, for example, for specifying gate contacts for basic/cmos. Counting starts at 1, so the first entry will be 'other'",
+            "create an array-like table with two entries repeated N / 2 times, alternating. Counting starts at 1. This is useful, for example, for specifying gate contacts for basic/cmos. Counting starts at 1, so the first entry will be 'other'",
             "local gatecontactpos = util.fill_even_with(4, \"center\", \"upper\") -- { \"upper\", \"center\", \"upper\", \"center\" }",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
+
     /* util.fill_odd_with(num, filler, other) */
     {
         struct parameter parameters[] = {
@@ -2552,12 +2674,13 @@ struct vector* _initialize_api_entries(void)
         vector_append(entries, _make_api_entry(
             "fill_odd_with",
             MODULE_UTIL,
-            "create an array-like table with two entries repeated N / 2 times, alternating. This is useful, for example, for specifying gate contacts for basic/cmos. Counting starts at 1, so the first entry will be 'filler'",
+            "create an array-like table with two entries repeated N / 2 times, alternating. Counting starts at 1. This is useful, for example, for specifying gate contacts for basic/cmos. Counting starts at 1, so the first entry will be 'filler'",
             "local gatecontactpos = util.fill_odd_with(4, \"center\", \"upper\") -- { \"center\", \"upper\", \"center\", \"upper\" }",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
+
     /* enable */
     {
         struct parameter parameters[] = {
@@ -2573,6 +2696,7 @@ struct vector* _initialize_api_entries(void)
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
+
     /* evenodddiv2 */
     {
         struct parameter parameters[] = {
@@ -2587,6 +2711,7 @@ struct vector* _initialize_api_entries(void)
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
+
     /* dprint */
     {
         struct parameter parameters[] = {

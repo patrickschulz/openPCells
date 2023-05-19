@@ -1,3 +1,5 @@
+# NOTE: don't build in parallel (-j), as this created race conditions and might lead to weird errors
+
 opc: src/*.c src/*.h src/scripts/*.lua src/modules/*.lua src/lua/*.c src/lua/*.h
 	@echo '/* This file is auto-generated. Do not edit it. */' > src/config.h
 	@echo '#define OPC_HOME "$(CURDIR)"' >> src/config.h

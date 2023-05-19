@@ -580,11 +580,6 @@ int shape_get_transformed_curve_origin(const struct shape* shape, const struct t
     return 1;
 }
 
-int shape_is_empty(const struct shape* shape)
-{
-    return generics_is_empty(shape->layer);
-}
-
 void shape_translate(struct shape* shape, coordinate_t dx, coordinate_t dy)
 {
     switch(shape->type)

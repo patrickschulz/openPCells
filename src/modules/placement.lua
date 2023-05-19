@@ -189,11 +189,6 @@ end
 ---------------------------------------------------------------------------------
 --                         In-cell layout functions                            --
 ---------------------------------------------------------------------------------
-local function _get_cell_width(reference, xpitch)
-    local width = reference:width_height_alignmentbox()
-    return width / xpitch
-end
-
 function M.create_reference_rows(cellnames, xpitch)
     if not cellnames or type(cellnames) ~= "table" then
         moderror("placement.create_reference_rows: table for 'cellnames' (first argument) expected")
@@ -221,14 +216,14 @@ function M.create_reference_rows(cellnames, xpitch)
             names[row][column] = { 
                 instance = instance,
                 reference = references[cellname],
-                width = _get_cell_width(references[cellname], xpitch)
+                width = references[cellname]:width_height_alignmentbox() / xpitch
             }
         end
     end
     return names
 end
 
-function M.digital(parent, rows, width, startpt, startanchor, flipfirst, growdirection, noflip)
+function M.digital(parent, rows, width, flipfirst, noflip)
     -- calculate row widths
     local rowwidths = {}
     for row, entries in ipairs(rows) do
@@ -287,12 +282,10 @@ function M.digital(parent, rows, width, startpt, startanchor, flipfirst, growdir
         end
     end
 
-    return M.rowwise(parent, rows, startpt, startanchor, flipfirst, growdirection, noflip)
+    return M.rowwise(parent, rows, flipfirst, noflip)
 end
 
-function M.rowwise(parent, cellnames, startpt, startanchor, flipfirst, growdirection, noflip)
-    startpt = startpt or point.create(0, 0)
-    growdirection = growdirection or "upright"
+function M.rowwise(parent, cellnames, flipfirst, noflip)
     local cells = {}
     local references = {}
 
@@ -307,33 +300,14 @@ function M.rowwise(parent, cellnames, startpt, startanchor, flipfirst, growdirec
             -- position cell
             if column == 1 then
                 if row == 1 then -- first cell
-                    if startanchor then
-                        cell:move_anchor(startanchor, startpt)
-                    else
-                        cell:translate(startpt)
-                    end
                 else
-                    if string.match(growdirection, "up") then
-                        if string.match(growdirection, "right") then
-                            cell:move_anchor("bottomleft", lastborder:get_anchor("topleft"))
-                        else
-                            cell:move_anchor("bottomright", lastborder:get_anchor("topright"))
-                        end
-                    else
-                        if string.match(growdirection, "right") then
-                            cell:move_anchor("topleft", lastborder:get_anchor("bottomleft"))
-                        else
-                            cell:move_anchor("topright", lastborder:get_anchor("bottomright"))
-                        end
-                    end
+                    cell:align_left(lastborder)
+                    cell:abut_top(lastborder)
                 end
                 lastborder = cell
             else
-                if string.match(growdirection, "left") then
-                    cell:move_anchor("right", last:get_anchor("left"))
-                else
-                    cell:move_anchor("left", last:get_anchor("right"))
-                end
+                cell:align_bottom(last)
+                cell:abut_right(last)
             end
 
             -- store cell link (numeric and by name)
@@ -358,27 +332,8 @@ function M.rowwise(parent, cellnames, startpt, startanchor, flipfirst, growdirec
     end
 
     -- update parent alignment box
-    if growdirection == "upright" then
-        parent:set_alignment_box(
-            cells[1][1]:get_anchor("bottomleft"),
-            cells[#cells][#cells[#cells]]:get_anchor("topright")
-        )
-    elseif growdirection == "upleft" then
-        parent:set_alignment_box(
-            cells[1][1]:get_anchor("bottomright"),
-            cells[#cells][#cells[#cells]]:get_anchor("topleft")
-        )
-    elseif growdirection == "downright" then
-        parent:set_alignment_box(
-            cells[1][1]:get_anchor("topleft"),
-            cells[#cells][#cells[#cells]]:get_anchor("bottomright")
-        )
-    elseif growdirection == "downleft" then
-        parent:set_alignment_box(
-            cells[1][1]:get_anchor("topright"),
-            cells[#cells][#cells[#cells]]:get_anchor("bottomleft")
-        )
-    end
+    parent:inherit_alignment_box(cells[1][1])
+    parent:inherit_alignment_box(cells[#cells][#cells[#cells]])
 
     return cells
 end

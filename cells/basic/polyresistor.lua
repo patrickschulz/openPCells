@@ -85,16 +85,12 @@ function layout(res, _P)
     )
 
     -- ports and anchors
-    res:add_anchor_area_bltr("plus",
+    res:add_area_anchor_bltr("plus",
         point.create(-_P.width / 2, -_P.contactheight / 2 + _P.length / 2 + _P.yspace / 2),
         point.create( _P.width / 2,  _P.contactheight / 2 + _P.length / 2 + _P.yspace / 2)
     )
-    res:add_anchor_area_bltr("minus",
+    res:add_area_anchor_bltr("minus",
         point.create(-_P.width / 2, -_P.contactheight / 2 - _P.length / 2 - _P.yspace / 2),
         point.create( _P.width / 2,  _P.contactheight / 2 - _P.length / 2 - _P.yspace / 2)
     )
-    res:add_anchor("topcontactleft", res:get_anchor("topleft"):translate(_P.xspace / 2, 0))
-    res:add_anchor("topcontactright", res:get_anchor("topright"):translate(-_P.xspace / 2, 0))
-    res:add_anchor("bottomcontactleft", res:get_anchor("bottomleft"):translate(_P.xspace / 2, 0))
-    res:add_anchor("bottomcontactright", res:get_anchor("bottomright"):translate(-_P.xspace / 2, 0))
 end

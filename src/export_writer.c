@@ -838,6 +838,7 @@ static int _write_cell_hierarchy_with_namecontext(struct export_writer* writer, 
         const struct object* reference = reference_iterator_get(ref_it);
         const char* name = object_get_name(reference);
         char* newnamecontext;
+        // FIXME: save already-exportet reference names, as there can be duplicates
         if(namecontext)
         {
             newnamecontext = malloc(strlen(namecontext) + strlen(name) + 1 + 1); // + 1 for underscore

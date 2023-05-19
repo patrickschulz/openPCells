@@ -8,79 +8,93 @@ function parameters()
         { "mosfetmarkeralignatsourcedrain(Align MOSFET Marker at Source/Drain)",  false },
         { "flippedwell(Flipped Well)",                                 false },
         { "fingers(Number of Fingers)",                                  1, argtype = "integer", posvals = interval(0, inf) },
-        { "fwidth(Finger Width)",                                      tech.get_dimension("Minimum Gate Width"), argtype = "integer", posvals = even() },
-        { "gatelength(Gate Length)",                                   tech.get_dimension("Minimum Gate Length"), argtype = "integer", posvals = even() },
-        { "gatespace(Gate Spacing)",                                   tech.get_dimension("Minimum Gate XSpace"), argtype = "integer", posvals = even() },
+        { "fwidth(Finger Width)",                                      technology.get_dimension("Minimum Gate Width"), argtype = "integer" },
+        { "gatelength(Gate Length)",                                   technology.get_dimension("Minimum Gate Length"), argtype = "integer" },
+        { "gatespace(Gate Spacing)",                                   technology.get_dimension("Minimum Gate XSpace"), argtype = "integer" },
         { "actext(Active Extension)",                                     30 },
-        { "specifyactext(Specify Active Extension)",                   false },
-        { "sdwidth(Source/Drain Metal Width)",                         tech.get_dimension("Minimum M1 Width"), argtype = "integer", posvals = even() },
-        { "gtopext(Gate Top Extension)",                               tech.get_dimension("Minimum Gate Extension") },
-        { "gbotext(Gate Bottom Extension)",                            tech.get_dimension("Minimum Gate Extension") },
+        { "sdwidth(Source/Drain Metal Width)",                         technology.get_dimension("Minimum M1 Width"), argtype = "integer" },
+        { "gtopext(Gate Top Extension)",                               technology.get_dimension("Minimum Gate Extension") },
+        { "gbotext(Gate Bottom Extension)",                            technology.get_dimension("Minimum Gate Extension") },
         { "cliptop(Clip Top Marker Layers)",                           false },
         { "clipbot(Clip Bottom Marker Layers)",                        false },
-        { "endleftwithgate(End Left Side With Gate)",                  false },
-        { "endrightwithgate(End Right Side With Gate)",                false },
+        { "drawleftstopgate(Draw Left Stop Gate)",                     false },
+        { "drawrightstopgate(Draw Right Stop Gate)",                   false },
+        { "endleftwithgate(End Left Side With Gate)",                  false, follow = "drawleftstopgate" },
+        { "endrightwithgate(End Right Side With Gate)",                false, follow = "drawrightstopgate" },
         { "drawtopgate(Draw Top Gate Contact)",                        false },
         { "drawtopgatestrap(Draw Top Gate Strap)",                     false, follow = "drawtopgate" },
-        { "topgatestrwidth(Top Gate Strap Width)",                     tech.get_dimension("Minimum M1 Width"), argtype = "integer", posvals = even() },
-        { "topgatestrspace(Top Gate Strap Space)",                     tech.get_dimension("Minimum M1 Space"), argtype = "integer" },
+        { "topgatestrwidth(Top Gate Strap Width)",                     technology.get_dimension("Minimum M1 Width"), argtype = "integer", posvals = even() },
+        { "topgatestrapextendleft(Top Gate Strap Extend Left)",            0 },
+        { "topgatestrapextendright(Top Gate Strap Extend Right)",          0 },
+        { "topgatestrspace(Top Gate Strap Space)",                     technology.get_dimension("Minimum M1 Space"), argtype = "integer" },
         { "topgatemetal(Top Gate Strap Metal)",                            1 },
-        { "topgateextendhalfspace(Top Gate Strap Extend Half Space)",  false },
         { "drawtopgatevia(Draw Top Gate Via)",                         false },
         { "topgateviatarget(Metal Target of Top Gate Via)",                2 },
         { "drawbotgate(Draw Bottom Gate Contact)",                     false },
         { "drawbotgatestrap(Draw Bot Gate Strap)",                     false, follow = "drawbotgate" },
-        { "botgatestrwidth(Bottom Gate Strap Width)",                  tech.get_dimension("Minimum M1 Width"), argtype = "integer", posvals = even() },
-        { "botgatestrspace(Bottom Gate Strap Space)",                  tech.get_dimension("Minimum M1 Space"), argtype = "integer" },
+        { "botgatestrwidth(Bottom Gate Strap Width)",                  technology.get_dimension("Minimum M1 Width"), argtype = "integer", posvals = even() },
+        { "botgatestrspace(Bottom Gate Strap Space)",                  technology.get_dimension("Minimum M1 Space"), argtype = "integer" },
+        { "botgatestrapextendleft(Bottom Gate Strap Extend Left)",         0 },
+        { "botgatestrapextendright(Bottom Gate Strap Extend Right)",       0 },
         { "botgatemetal(Bottom Gate Strap Metal)",                         1 },
-        { "botgateextendhalfspace(Bottom Gate Strap Extend Half Space)",  false },
         { "drawbotgatevia(Draw Bot Gate Via)",                         false },
         { "botgateviatarget(Metal Target of Bot Gate Via)",                2 },
         { "drawtopgcut(Draw Top Gate Cut)",                            false },
-        { "drawbotgcut(Draw Bottom Gate Cut)",                         false },
-        { "topgcutoffset(Top Gate Cut Y Offset)",                          0 },
-        { "botgcutoffset(Bottom Gate Cut Y Offset)",                       0 },
-        { "cutheight",                                                  tech.get_dimension("Minimum Gate Cut Height", "Minimum Gate YSpace"), posvals = even() },
+        { "topgcutwidth(Top Gate Cut Y Width)",                            technology.get_dimension("Minimum Gate Cut Height", "Minimum Gate YSpace") },
+        { "topgcutspace(Top Gate Cut Y Space)",                            0 },
+        { "topgcutleftext(Top Gate Cut Left Extension)",                   0 },
+        { "topgcutrightext(Top Gate Cut Right Extension)",                 0 },
+        { "drawbotgcut(Draw Bottom Gate Cut)",                            false },
+        { "botgcutwidth(Bottom Gate Cut Y Width)",                         technology.get_dimension("Minimum Gate Cut Height", "Minimum Gate YSpace") },
+        { "botgcutspace(Bottom Gate Cut Y Space)",                         0 },
+        { "botgcutleftext(Bottom Gate Cut Left Extension)",                0 },
+        { "botgcutrightext(Bottom Gate Cut Right Extension)",              0 },
+        { "simulatemissinggatecut",                                       false },
         { "drawsourcedrain(Draw Source/Drain Contacts)",              "both", posvals = set("both", "source", "drain", "none") },
-        { "sourcesize(Source Size)",                                  tech.get_dimension("Minimum Gate Width"), argtype = "integer", follow = "fwidth" },
-        { "sourceviasize(Source Via Size)",                           tech.get_dimension("Minimum Gate Width"), argtype = "integer", follow = "sourcesize" },
-        { "drainsize(Drain Size)",                                    tech.get_dimension("Minimum Gate Width"), argtype = "integer", follow = "fwidth" },
-        { "drainviasize(Drain Via Size)",                             tech.get_dimension("Minimum Gate Width"), argtype = "integer", follow = "drainsize" },
+        { "sourcesize(Source Size)",                                  technology.get_dimension("Minimum Gate Width"), argtype = "integer", follow = "fwidth" },
+        { "sourceviasize(Source Via Size)",                           technology.get_dimension("Minimum Gate Width"), argtype = "integer", follow = "sourcesize" },
+        { "drainsize(Drain Size)",                                    technology.get_dimension("Minimum Gate Width"), argtype = "integer", follow = "fwidth" },
+        { "drainviasize(Drain Via Size)",                             technology.get_dimension("Minimum Gate Width"), argtype = "integer", follow = "drainsize" },
         { "sourcealign(Source Alignement)",                          "bottom", posvals = set("top", "bottom") },
         { "sourceviaalign(Source Via Alignement)",                   "bottom", posvals = set("top", "bottom"), follow = "sourcealign" },
         { "drainalign(Drain Alignement)",                            "top", posvals = set("top", "bottom") },
         { "drainviaalign(Drain Via Alignement)",                     "top", posvals = set("top", "bottom"), follow = "drainalign" },
-        { "drawsourcevia(Draw Source Via)",                            false },
+        { "drawsourcevia(Draw Source Via)",                            true },
         { "connectsource(Connect Source)",                             false },
         { "connectsourceboth(Connect Source on Both Sides)",           false },
-        { "connsourcewidth(Source Rails Metal Width)",               tech.get_dimension("Minimum M1 Width"), argtype = "integer", follow = "sdwidth" },
-        { "connsourcespace(Source Rails Metal Space)",               tech.get_dimension("Minimum M1 Width"), argtype = "integer" },
-        { "connsourcemetal(Source Connection Metal)",                      1 },
-        { "sourceviametal(Source Via Metal)",                              1, follow = "connsourcemetal" },
-        { "connsourceinline(Connect Source Inline of Transistor)",     false },
-        { "inlinesourceoffset(Inline Source Connection Offset)",           0 },
+        { "connectsourcewidth(Source Rails Metal Width)",               technology.get_dimension("Minimum M1 Width"), argtype = "integer", follow = "sdwidth" },
+        { "connectsourcespace(Source Rails Metal Space)",               technology.get_dimension("Minimum M1 Width"), argtype = "integer" },
+        { "connectsourceleftext(Source Rails Metal Left Extension)",    0 },
+        { "connectsourcerightext(Source Rails Metal Right Extension)",  0 },
+        { "connectsourcemetal(Source Connection Metal)",                      1 },
+        { "sourceviametal(Source Via Metal)",                              1, follow = "connectsourcemetal" },
+        { "connectsourceinline(Connect Source Inline of Transistor)",     false },
+        { "connectsourceinlineoffset(Offset for Inline Source Connection)",   0 },
         { "connectsourceinverse(Invert Source Strap Locations)",       false },
         { "connectdrain(Connect Drain)",                               false },
         { "connectdrainboth(Connect Drain on Both Sides)",             false },
-        { "conndrainwidth(Drain Rails Metal Width)",               tech.get_dimension("Minimum M1 Width"), argtype = "integer", follow = "sdwidth" },
-        { "conndrainspace(Drain Rails Metal Space)",               tech.get_dimension("Minimum M1 Width"), argtype = "integer" },
-        { "extendsourcestrap(Extend Source Strap)",                        0 },
-        { "extenddrainstrap(Extend Drain Strap)",                          0 },
+        { "connectdrainwidth(Drain Rails Metal Width)",               technology.get_dimension("Minimum M1 Width"), argtype = "integer", follow = "sdwidth" },
+        { "connectdrainspace(Drain Rails Metal Space)",               technology.get_dimension("Minimum M1 Width"), argtype = "integer" },
+        { "connectdrainleftext(Drain Rails Metal Left Extension)",      0 },
+        { "connectdrainrightext(Drain Rails Metal Right Extension)",    0 },
         { "connectdraininverse(Invert Drain Strap Locations)",         false },
-        { "drawdrainvia(Draw Drain Via)",                              false },
-        { "conndrainmetal(Drain Connection Metal)",                        1 },
-        { "drainviametal(Drain Via Metal)",                                1, follow = "conndrainmetal" },
-        { "conndraininline(Connect Drain Inline of Transistor)",       false },
-        { "inlinedrainoffset(Inline Drain Connection Offset)",             0 },
+        { "drawdrainvia(Draw Drain Via)",                              true },
+        { "connectdrainmetal(Drain Connection Metal)",                        1 },
+        { "drainviametal(Drain Via Metal)",                                1, follow = "connectdrainmetal" },
+        { "connectdraininline(Connect Drain Inline of Transistor)",       false },
+        { "connectdraininlineoffset(Offset for Inline Drain Connection)",     0 },
         { "diodeconnected(Diode Connected Transistor)",                false },
-        { "drawextrasourcestrap(Draw Extra Source Strap)",             false },
-        { "extrasourcestrapwidth(Width of Extra Source Strap)",        tech.get_dimension("Minimum M1 Width"), argtype = "integer" },
-        { "extrasourcestrapspace(Space of Extra Source Strap)",        tech.get_dimension("Minimum M1 Space"), argtype = "integer" },
-        { "extrasourcestrapmetal(Metal Layer for Extra Source Strap)",     1 },
-        { "drawextradrainstrap(Draw Extra Drain Strap)",               false },
-        { "extradrainstrapwidth(Width of Extra Drain Strap)",          tech.get_dimension("Minimum M1 Width"), argtype = "integer" },
-        { "extradrainstrapspace(Space of Extra Drain Strap)",          tech.get_dimension("Minimum M1 Space"), argtype = "integer" },
-        { "extradrainstrapmetal(Metal Layer for Extra Drain Strap)",       1 },
+        { "drawextrabotstrap(Draw Extra Bottom Strap)",             false },
+        { "extrabotstrapwidth(Width of Extra Bottom Strap)",        technology.get_dimension("Minimum M1 Width"), argtype = "integer" },
+        { "extrabotstrapspace(Space of Extra Bottom Strap)",        technology.get_dimension("Minimum M1 Space"), argtype = "integer" },
+        { "extrabotstrapmetal(Metal Layer for Extra Bottom Strap)",     1 },
+        { "extrabotstrapleftalign(Left Alignment for Extra Bottom Strap)", 1 },
+        { "extrabotstraprightalign(Right Alignment for Extra Bottom Strap)", 1, follow = "fingers" },
+        { "drawextratopstrap(Draw Extra Top Strap)",               false },
+        { "extratopstrapwidth(Width of Extra Top Strap)",          technology.get_dimension("Minimum M1 Width"), argtype = "integer" },
+        { "extratopstrapspace(Space of Extra Top Strap)",          technology.get_dimension("Minimum M1 Space"), argtype = "integer" },
+        { "extratopstrapmetal(Metal Layer for Extra Top Strap)",       1 },
+        { "extratopstrapalign(Alignment for Extra Top Strap)",         "source", posvals = set("source", "drain") },
         { "shortdevice(Short Transistor)",                             false },
         { "drawtopactivedummy",                                        false },
         { "topactivedummywidth",                                          80 },
@@ -114,23 +128,25 @@ function parameters()
         { "extendlvsmarkerbot",                                            0 },
         { "extendlvsmarkerleft",                                           0 },
         { "extendlvsmarkerright",                                          0 },
+        { "extendrotationmarkertop",                                       0 },
+        { "extendrotationmarkerbot",                                       0 },
+        { "extendrotationmarkerleft",                                      0 },
+        { "extendrotationmarkerright",                                     0 },
         { "drawtopwelltap",                                            false },
-        { "topwelltapwidth",                                           tech.get_dimension("Minimum M1 Width") },
-        { "topwelltapspace",                                           tech.get_dimension("Minimum M1 Space") },
+        { "topwelltapwidth",                                           technology.get_dimension("Minimum M1 Width") },
+        { "topwelltapspace",                                           technology.get_dimension("Minimum M1 Space") },
         { "topwelltapextendleft",                                          0 },
         { "topwelltapextendright",                                         0 },
         { "drawbotwelltap",                                            false },
         { "drawguardring",                                             false },
-        { "guardringwidth",                                            tech.get_dimension("Minimum M1 Width") },
+        { "guardringwidth",                                            technology.get_dimension("Minimum M1 Width") },
         { "guardringxsep",                                             0 },
         { "guardringysep",                                             0 },
         { "guardringsegments",                                         { "left", "right", "top", "bottom" } },
-        { "botwelltapwidth",                                           tech.get_dimension("Minimum M1 Width") },
-        { "botwelltapspace",                                           tech.get_dimension("Minimum M1 Space") },
+        { "botwelltapwidth",                                           technology.get_dimension("Minimum M1 Width") },
+        { "botwelltapspace",                                           technology.get_dimension("Minimum M1 Space") },
         { "botwelltapextendleft",                                          0 },
         { "botwelltapextendright",                                         0 },
-        { "drawleftstopgate",                                              false },
-        { "drawrightstopgate",                                             false },
         { "drawstopgatetopgcut",                                           false },
         { "drawstopgatebotgcut",                                           false },
         { "leftpolylines",                                                 {} },
@@ -139,216 +155,318 @@ function parameters()
     )
 end
 
+function check(_P)
+    if _P.actext < (_P.gatespace + _P.sdwidth) / 2 then
+        return nil, string.format("'actext' must be large enough to include outer source contacts (actext >= (gatespace + sdwidth) / 2) (actext: %d, gatespace: %d, sdwidth: %d)", _P.actext, _P.gatespace, _P.sdwidth)
+    end
+    if (_P.gatespace % 2) ~= (_P.sdwidth % 2) then
+        return nil, "gatespace and sdwidth must both be even or odd"
+    end
+    if not (not _P.endleftwithgate or (_P.gatelength % 2 == 0)) then
+        return nil, "gatelength must be even when endleftwithgate is true"
+    end
+    if not (not _P.endrightwithgate or (_P.gatelength % 2 == 0)) then
+        return nil, "gatelength must be even when endrightwithgate is true"
+    end
+    return true
+end
+
 function layout(transistor, _P)
     local gatepitch = _P.gatelength + _P.gatespace
-    local activewidth = _P.specifyactext and
-        _P.fingers * gatepitch + _P.sdwidth + 2 * _P.actext
-        or
-        (_P.fingers + 1) * gatepitch
+    local leftactext = _P.actext
+    if _P.endleftwithgate then
+        leftactext = _P.gatespace + _P.gatelength / 2
+    end
+    local rightactext = _P.actext
+    if _P.endrightwithgate then
+        rightactext = _P.gatespace + _P.gatelength / 2
+    end
+    local activewidth = _P.fingers * _P.gatelength + (_P.fingers - 1) * _P.gatespace
 
     local topgateshift = enable(_P.drawtopgate, _P.topgatestrspace + _P.topgatestrwidth)
     local botgateshift = enable(_P.drawbotgate, _P.botgatestrspace + _P.botgatestrwidth)
     local gateaddtop = math.max(_P.gtopext, topgateshift)
     local gateaddbot = math.max(_P.gbotext, botgateshift)
 
-    local drainshift = enable(_P.connectdrain, _P.conndrainwidth + _P.conndrainspace)
-    local sourceshift = enable(_P.connectsource, _P.connsourcewidth + _P.connsourcespace)
+    local drainshift = enable(_P.connectdrain, _P.connectdrainwidth + _P.connectdrainspace)
+    local sourceshift = enable(_P.connectsource, _P.connectsourcewidth + _P.connectsourcespace)
     if _P.channeltype == "pmos" then
         drainshift, sourceshift = sourceshift, drainshift
     end
 
-    local hasgatecut = tech.has_layer(generics.other("gatecut"))
+    local hasgatecut = not _P.simulatemissinggatecut and technology.has_layer(generics.other("gatecut"))
 
-    local cutext = _P.gatespace / 2
-    local cutwidth = _P.fingers * _P.gatelength + (_P.fingers - 1) * _P.gatespace + 2 * cutext
-    if _P.fingers > 0 then
-        local lowerpt = point.create(-_P.gatelength / 2, -_P.fwidth / 2 - gateaddbot)
-        local higherpt = point.create( _P.gatelength / 2,  _P.fwidth / 2 + gateaddtop)
-        if hasgatecut then
-            -- gate cut
-            if _P.drawtopgcut then
-                geometry.rectanglebltr(transistor,
-                    generics.other("gatecut"),
-                    point.create(-cutwidth / 2, _P.fwidth / 2 + gateaddtop - _P.cutheight / 2 + _P.topgcutoffset),
-                    point.create( cutwidth / 2, _P.fwidth / 2 + gateaddtop + _P.cutheight / 2 + _P.topgcutoffset)
-                )
-            end
-            if _P.drawbotgcut then
-                geometry.rectanglebltr(transistor,
-                    generics.other("gatecut"),
-                    point.create(-cutwidth / 2, -_P.fwidth / 2 - gateaddbot - _P.cutheight / 2 + _P.botgcutoffset),
-                    point.create( cutwidth / 2, -_P.fwidth / 2 - gateaddbot + _P.cutheight / 2 + _P.botgcutoffset)
-                )
-            end
-        else -- not hasgatecut
-            if _P.drawtopgcut then
-                higherpt:translate(0, -_P.cutheight / 2 + _P.topgcutoffset)
-            end
-            if _P.drawbotgcut then
-                lowerpt:translate(0, _P.cutheight / 2 + _P.botgcutoffset)
-            end
-        end
-
-        -- gates
-        local leftgateadd = _P.endleftwithgate and 1 or 0
-        local rightgateadd = _P.endrightwithgate and 1 or 0
-        local gateshift = (rightgateadd - leftgateadd) * gatepitch / 2
-        lowerpt:translate(gateshift, 0)
-        higherpt:translate(gateshift, 0)
-        geometry.rectanglebltr(transistor,
-            generics.other("gate"),
-            lowerpt, higherpt,
-            _P.fingers + leftgateadd + rightgateadd, 1, gatepitch, 0
+    -- active
+    if _P.drawactive then
+        geometry.rectanglebltr(transistor, generics.other("active"),
+            point.create(0, 0),
+            point.create(activewidth + leftactext + rightactext, _P.fwidth)
         )
-        -- generic always-available gate anchors
-        for i = 1, _P.fingers do
-            transistor:add_anchor_area_bltr(
-                string.format("gate%d", i),
-                lowerpt:copy():translate((i - (_P.fingers + 1) / 2) * gatepitch, 0), higherpt:copy():translate((i - (_P.fingers + 1) / 2) * gatepitch, 0)
+        if _P.drawtopactivedummy then
+            geometry.rectanglebltr(transistor, generics.other("active"),
+                point.create(0, _P.fwidth + _P.topactivedummysep),
+                point.create(activewidth + leftactext + rightactext, _P.fwidth + _P.topactivedummysep + _P.topactivedummywidth)
             )
         end
+        if _P.drawbotactivedummy then
+            geometry.rectanglebltr(transistor, generics.other("active"),
+                point.create(0, -_P.botactivedummysep - _P.botactivedummywidth),
+                point.create(activewidth + leftactext + rightactext, -_P.botactivedummysep)
+            )
+        end
+    end
 
-        -- gate marker
+    -- gates
+    -- base coordinates of a gate
+    -- needed throughout the cell by various drawings
+    local gateblx = leftactext
+    local gatebly = -gateaddbot
+    local gatetrx = _P.gatelength + leftactext
+    local gatetry = _P.fwidth + gateaddtop
+
+    if hasgatecut then
+        -- gate cut
+        if _P.drawtopgcut then
+            geometry.rectanglebltr(transistor,
+                generics.other("gatecut"),
+                point.create(
+                    gateblx - _P.topgcutleftext,
+                    _P.fwidth + _P.topgcutspace
+                ),
+                point.create(
+                    gatetrx + (_P.fingers - 1) * gatepitch + _P.topgcutrightext,
+                    _P.fwidth + _P.topgcutspace + _P.topgcutwidth
+                )
+            )
+        end
+        if _P.drawbotgcut then
+            geometry.rectanglebltr(transistor,
+                generics.other("gatecut"),
+                point.create(
+                    gateblx - _P.botgcutleftext,
+                    -_P.botgcutspace - _P.botgcutwidth
+                ),
+                point.create(
+                    gatetrx + (_P.fingers - 1) * gatepitch + _P.botgcutrightext,
+                    -_P.botgcutspace
+                )
+            )
+        end
+    else -- not hasgatecut
+        if _P.drawtopgcut then
+            gatetry = _P.fwidth + _P.topgcutspace
+        end
+        if _P.drawbotgcut then
+            gatebly = -_P.botgcutspace
+        end
+    end
+
+    -- main gates
+    for i = 1, _P.fingers do
+        geometry.rectanglebltr(transistor,
+            generics.other("gate"),
+            point.create(gateblx + (i - 1) * gatepitch, gatebly),
+            point.create(gatetrx + (i - 1) * gatepitch, gatetry)
+        )
+        -- generic always-available gate anchors
+        transistor:add_area_anchor_bltr(
+            string.format("gate%d", i),
+            point.create(gateblx + (i - 1) * gatepitch, gatebly),
+            point.create(gatetrx + (i - 1) * gatepitch, gatetry)
+        )
+    end
+    transistor:add_area_anchor_bltr(
+        "leftgate",
+        point.create(gateblx + (1 - 1) * gatepitch, gatebly),
+        point.create(gatetrx + (1 - 1) * gatepitch, gatetry)
+    )
+    transistor:add_area_anchor_bltr(
+        "rightgate",
+        point.create(gateblx + (_P.fingers - 1) * gatepitch, gatebly),
+        point.create(gatetrx + (_P.fingers - 1) * gatepitch, gatetry)
+    )
+
+    -- gate marker
+    for i = 1, _P.fingers do
         geometry.rectanglebltr(transistor,
             generics.other(string.format("gatemarker%d", _P.gatemarker)),
-            point.create(-_P.gatelength / 2, -_P.fwidth / 2),
-            point.create( _P.gatelength / 2,  _P.fwidth / 2),
-            _P.fingers, 1, gatepitch, 0
+            point.create(gateblx + (i - 1) * gatepitch, gatebly),
+            point.create(gatetrx + (i - 1) * gatepitch, gatetry)
+        )
+    end
+
+    -- left/right gates
+    if _P.endleftwithgate then
+        geometry.rectanglebltr(transistor,
+            generics.other("gate"),
+            point.create(gateblx - gatepitch, gatebly),
+            point.create(gatetrx - gatepitch, gatetry)
+        )
+        transistor:add_area_anchor_bltr(
+            "endleftgate",
+            point.create(gateblx - gatepitch, gatebly),
+            point.create(gatetrx - gatepitch, gatetry)
+        )
+    end
+    if _P.endrightwithgate then
+        geometry.rectanglebltr(transistor,
+            generics.other("gate"),
+            point.create(gateblx + _P.fingers * gatepitch, gatebly),
+            point.create(gatetrx + _P.fingers * gatepitch, gatetry)
+        )
+        transistor:add_area_anchor_bltr(
+            "endrightgate",
+            point.create(gateblx + _P.fingers * gatepitch, gatebly),
+            point.create(gatetrx + _P.fingers * gatepitch, gatetry)
         )
     end
 
     -- mosfet marker
+    -- FIXME: check proper alignment after source/drain contacts are placed
     if _P.fingers > 0 then
         if _P.mosfetmarkeralignatsourcedrain then
             geometry.rectanglebltr(transistor,
                 generics.other(string.format("mosfetmarker%d", _P.mosfetmarker)),
-                point.create(-_P.fingers / 2 * gatepitch, -_P.fwidth / 2),
-                point.create( _P.fingers / 2 * gatepitch,  _P.fwidth / 2)
+                point.create(0, 0),
+                point.create(_P.fingers * gatepitch, _P.fwidth)
             )
         else
             geometry.rectanglebltr(transistor,
                 generics.other(string.format("mosfetmarker%d", _P.mosfetmarker)),
-                point.create(-_P.fingers / 2 * gatepitch + _P.gatespace / 2, -_P.fwidth / 2),
-                point.create( _P.fingers / 2 * gatepitch - _P.gatespace / 2,  _P.fwidth / 2)
+                point.create(leftactext, 0),
+                point.create(leftactext + _P.fingers * gatepitch - _P.gatespace,  _P.fwidth)
             )
         end
     end
 
     -- left and right polylines
-    local leftpolyoffset = (_P.fingers + 1) * gatepitch / 2 + _P.gatelength
-    for i = 1, #_P.leftpolylines do
-        local polyline = _P.leftpolylines[i]
+    -- FIXME: probably wrong without endleftwithgate == true and endrightwithgate == true
+    local leftpolyoffset = gateblx - gatepitch
+    for _, polyline in ipairs(_P.leftpolylines) do
+        if not polyline.length then
+            cellerror("basic/mosfet: leftpolyline entry does not have a 'length' field")
+        end
+        if not polyline.space then
+            cellerror("basic/mosfet: leftpolyline entry does not have a 'space' field")
+        end
         geometry.rectanglebltr(transistor,
             generics.other("gate"),
-            point.create(-polyline[1] / 2 - polyline[2] - leftpolyoffset, -_P.fwidth / 2 - gateaddbot),
-            point.create( polyline[1] / 2 - polyline[2] - leftpolyoffset,  _P.fwidth / 2 + gateaddtop)
+            point.create(leftpolyoffset - polyline.space - polyline.length, gatebly),
+            point.create(leftpolyoffset - polyline.space, gatetry)
         )
-        leftpolyoffset = leftpolyoffset + polyline[1] + polyline[2]
+        leftpolyoffset = leftpolyoffset - polyline.length - polyline.space
     end
-    local rightpolyoffset = (_P.fingers + 1) * gatepitch / 2 + _P.gatelength
-    for i = 1, #_P.rightpolylines do
-        local polyline = _P.rightpolylines[i]
+    local rightpolyoffset = gatetrx + _P.fingers * gatepitch
+    for _, polyline in ipairs(_P.rightpolylines) do
+        if not polyline.length then
+            cellerror("basic/mosfet: rightpolyline entry does not have a 'length' field")
+        end
+        if not polyline.space then
+            cellerror("basic/mosfet: rightpolyline entry does not have a 'space' field")
+        end
         geometry.rectanglebltr(transistor,
             generics.other("gate"),
-            point.create(-polyline[1] / 2 + polyline[2] + rightpolyoffset, -_P.fwidth / 2 - gateaddbot),
-            point.create( polyline[1] / 2 + polyline[2] + rightpolyoffset,  _P.fwidth / 2 + gateaddtop)
+            point.create(rightpolyoffset + polyline.space, gatebly),
+            point.create(rightpolyoffset + polyline.space + polyline.length, gatetry)
         )
-        rightpolyoffset = rightpolyoffset + polyline[1] + polyline[2]
+        rightpolyoffset = rightpolyoffset + polyline.length + polyline.space
     end
 
     -- stop gates
     if _P.drawleftstopgate then
-        geometry.rectanglebltr(transistor,
-            generics.other("gate"),
-            point.create(-_P.gatelength / 2 - (_P.fingers + 1) / 2 * gatepitch, -_P.fwidth / 2 - gateaddbot),
-            point.create( _P.gatelength / 2 - (_P.fingers + 1) / 2 * gatepitch,  _P.fwidth / 2 + gateaddtop)
-        )
-        geometry.rectanglebltr(transistor,
-            generics.other("diffusionbreakgate"),
-            point.create(-_P.gatelength / 2 - (_P.fingers + 1) / 2 * gatepitch, -_P.fwidth / 2 - gateaddbot + enable(_P.drawstopgatebotgcut, _P.cutheight / 2)),
-            point.create( _P.gatelength / 2 - (_P.fingers + 1) / 2 * gatepitch,  _P.fwidth / 2 + gateaddtop - enable(_P.drawstopgatetopgcut, _P.cutheight / 2))
-        )
-        -- gate cut
+        local bly = gatebly
+        local try = gatetry
         if _P.drawstopgatetopgcut then
+            try = _P.fwidth + _P.topgcutspace
             geometry.rectanglebltr(transistor,
                 generics.other("gatecut"),
-                point.create(-gatepitch / 2 - (_P.fingers + 1) / 2 * gatepitch, _P.fwidth / 2 + gateaddtop - _P.cutheight / 2 + _P.topgcutoffset),
-                point.create( gatepitch / 2 - (_P.fingers + 1) / 2 * gatepitch, _P.fwidth / 2 + gateaddtop + _P.cutheight / 2 + _P.topgcutoffset)
+                point.create(
+                    gateblx - gatepitch - _P.topgcutleftext,
+                    _P.fwidth + _P.topgcutspace
+                ),
+                point.create(
+                    gatetrx - gatepitch + _P.topgcutrightext,
+                    _P.fwidth + _P.topgcutspace + _P.topgcutwidth
+                )
             )
         end
         if _P.drawstopgatebotgcut then
+            bly = -_P.botgcutspace
             geometry.rectanglebltr(transistor,
                 generics.other("gatecut"),
-                point.create(-gatepitch / 2 - (_P.fingers + 1) / 2 * gatepitch, -_P.fwidth / 2 - gateaddbot - _P.cutheight / 2 + _P.botgcutoffset),
-                point.create( gatepitch / 2 - (_P.fingers + 1) / 2 * gatepitch, -_P.fwidth / 2 - gateaddbot + _P.cutheight / 2 + _P.botgcutoffset)
+                point.create(
+                    gateblx - gatepitch - _P.botgcutleftext,
+                    -_P.botgcutspace - _P.botgcutwidth
+                ),
+                point.create(
+                    gatetrx - gatepitch + _P.botgcutrightext,
+                    -_P.botgcutspace
+                )
             )
         end
-        transistor:add_anchor_area_bltr(
-            "leftstopgate",
-            point.create(-_P.gatelength / 2 - (_P.fingers + 1) / 2 * gatepitch, -_P.fwidth / 2 - gateaddbot),
-            point.create( _P.gatelength / 2 - (_P.fingers + 1) / 2 * gatepitch,  _P.fwidth / 2 + gateaddtop)
-        )
-    end
-    if _P.drawrightstopgate then
-        geometry.rectanglebltr(transistor,
-            generics.other("gate"),
-            point.create(-_P.gatelength / 2 + (_P.fingers + 1) / 2 * gatepitch, -_P.fwidth / 2 - gateaddbot),
-            point.create( _P.gatelength / 2 + (_P.fingers + 1) / 2 * gatepitch,  _P.fwidth / 2 + gateaddtop)
-        )
         geometry.rectanglebltr(transistor,
             generics.other("diffusionbreakgate"),
-            point.create(-_P.gatelength / 2 + (_P.fingers + 1) / 2 * gatepitch, -_P.fwidth / 2 - gateaddbot + enable(_P.drawstopgatebotgcut, _P.cutheight / 2)),
-            point.create( _P.gatelength / 2 + (_P.fingers + 1) / 2 * gatepitch,  _P.fwidth / 2 + gateaddtop - enable(_P.drawstopgatetopgcut, _P.cutheight / 2))
+            point.create(gateblx - gatepitch, bly),
+            point.create(gatetrx - gatepitch, try)
         )
-        -- gate cut
-        if _P.drawstopgatetopgcut then
-            geometry.rectanglebltr(transistor,
-                generics.other("gatecut"),
-                point.create(-gatepitch / 2 + (_P.fingers + 1) / 2 * gatepitch, _P.fwidth / 2 + gateaddtop - _P.cutheight / 2 + _P.topgcutoffset),
-                point.create( gatepitch / 2 + (_P.fingers + 1) / 2 * gatepitch, _P.fwidth / 2 + gateaddtop + _P.cutheight / 2 + _P.topgcutoffset)
-            )
-        end
-        if _P.drawstopgatebotgcut then
-            geometry.rectanglebltr(transistor,
-                generics.other("gatecut"),
-                point.create(-gatepitch / 2 + (_P.fingers + 1) / 2 * gatepitch, -_P.fwidth / 2 - gateaddbot - _P.cutheight / 2 + _P.botgcutoffset),
-                point.create( gatepitch / 2 + (_P.fingers + 1) / 2 * gatepitch, -_P.fwidth / 2 - gateaddbot + _P.cutheight / 2 + _P.botgcutoffset)
-            )
-        end
-        transistor:add_anchor_area_bltr(
-            "rightstopgate",
-            point.create(-_P.gatelength / 2 + (_P.fingers + 1) / 2 * gatepitch, -_P.fwidth / 2 - gateaddbot),
-            point.create( _P.gatelength / 2 + (_P.fingers + 1) / 2 * gatepitch,  _P.fwidth / 2 + gateaddtop)
+        transistor:add_area_anchor_bltr("leftstopgate",
+            point.create(gateblx - gatepitch, bly),
+            point.create(gatetrx - gatepitch, try)
         )
     end
 
-    -- active
-    if _P.drawactive then
-        geometry.rectangle(transistor, generics.other("active"), activewidth, _P.fwidth)
-        if _P.drawtopactivedummy then
-            geometry.rectanglebltr(transistor, generics.other("active"),
-                point.create(-activewidth / 2,                           _P.fwidth / 2 + _P.topactivedummysep),
-                point.create( activewidth / 2,  _P.topactivedummywidth + _P.fwidth / 2 + _P.topactivedummysep)
+    if _P.drawrightstopgate then
+        local bly = gatebly
+        local try = gatetry
+        if _P.drawstopgatetopgcut then
+            try = _P.fwidth + _P.topgcutspace
+            geometry.rectanglebltr(transistor,
+                generics.other("gatecut"),
+                point.create(
+                    gateblx + _P.fingers * gatepitch - _P.topgcutleftext,
+                    _P.fwidth + _P.topgcutspace
+                ),
+                point.create(
+                    gatetrx + _P.fingers * gatepitch + _P.topgcutrightext,
+                    _P.fwidth + _P.topgcutspace + _P.topgcutwidth
+                )
             )
         end
-        if _P.drawbotactivedummy then
-            geometry.rectanglebltr(transistor, generics.other("active"),
-                point.create(-activewidth / 2, -_P.botactivedummywidth -_P.fwidth / 2 - _P.botactivedummysep),
-                point.create( activewidth / 2,  -_P.fwidth / 2 - _P.botactivedummysep)
+        if _P.drawstopgatebotgcut then
+            bly = -_P.botgcutspace
+            geometry.rectanglebltr(transistor,
+                generics.other("gatecut"),
+                point.create(
+                    gateblx + _P.fingers * gatepitch - _P.botgcutleftext,
+                    -_P.botgcutspace - _P.botgcutwidth
+                ),
+                point.create(
+                    gatetrx + _P.fingers * gatepitch + _P.botgcutrightext,
+                    -_P.botgcutspace
+                )
             )
         end
+        geometry.rectanglebltr(transistor,
+            generics.other("diffusionbreakgate"),
+            point.create(gateblx + _P.fingers * gatepitch, bly),
+            point.create(gatetrx + _P.fingers * gatepitch, try)
+        )
+        transistor:add_area_anchor_bltr("rightstopgate",
+            point.create(gateblx + _P.fingers * gatepitch, bly),
+            point.create(gatetrx + _P.fingers * gatepitch, try)
+        )
     end
 
     -- threshold voltage
     geometry.rectanglebltr(transistor,
         generics.vthtype(_P.channeltype, _P.vthtype),
         point.create(
-            -activewidth / 2 - _P.extendvthleft,
-            -_P.fwidth / 2 - gateaddbot - enable(not _P.clipbot, _P.extendvthbot)
+            -_P.extendvthleft,
+            gatebly - _P.extendvthbot
         ),
         point.create(
-            activewidth / 2 + _P.extendvthright,
-            _P.fwidth / 2 + gateaddtop + enable(not _P.cliptop, _P.extendvthtop)
+            activewidth + leftactext + rightactext + _P.extendvthright,
+            gatetry + _P.extendvthtop
         )
     )
 
@@ -356,12 +474,48 @@ function layout(transistor, _P)
     geometry.rectanglebltr(transistor,
         generics.implant(_P.channeltype),
         point.create(
-            -activewidth / 2 - _P.extendimplantleft,
-            -_P.fwidth / 2 - gateaddbot - enable(not _P.clipbot, _P.extendimplantbot)
+            -_P.extendimplantleft,
+            gatebly - _P.extendimplantbot
         ),
         point.create(
-            activewidth / 2 + _P.extendimplantright,
-            _P.fwidth / 2 + gateaddtop + enable(not _P.cliptop, _P.extendimplanttop)
+            activewidth + leftactext + rightactext + _P.extendimplantright,
+            gatetry + _P.extendimplanttop
+        )
+    )
+
+    -- oxide thickness
+    geometry.rectanglebltr(transistor,
+        generics.oxide(_P.oxidetype),
+        point.create(
+            -_P.extendoxideleft,
+            gatebly - _P.extendoxidebot
+        ),
+        point.create(
+            activewidth + leftactext + rightactext + _P.extendoxideright,
+            gatetry + _P.extendoxidetop
+        )
+    )
+
+    -- rotation marker
+    if _P.drawrotationmarker then
+        geometry.rectanglebltr(transistor,
+            generics.other("rotationmarker"),
+            point.create(-_P.extendrotationmarkerleft, -_P.extendrotationmarkerbot),
+            point.create(activewidth + leftactext + rightactext + _P.extendrotationmarkerright, _P.fwidth + _P.extendrotationmarkertop)
+        )
+
+    end
+
+    -- lvs marker
+    geometry.rectanglebltr(transistor,
+        generics.other(string.format("lvsmarker%d", _P.lvsmarker)),
+        point.create(
+            -_P.extendlvsmarkerleft,
+            gatebly - _P.extendlvsmarkerbot
+        ),
+        point.create(
+            activewidth + leftactext + rightactext + _P.extendlvsmarkerright,
+            gatetry + _P.extendlvsmarkertop
         )
     )
 
@@ -372,12 +526,12 @@ function layout(transistor, _P)
             (_P.channeltype == "nmos" and "pwell" or "nwell")
         ),
         point.create(
-            -activewidth / 2 - _P.extendwellleft,
-            -_P.fwidth / 2 - math.max(gateaddbot, enable(_P.drawbotwelltap, _P.botwelltapspace + _P.botwelltapwidth)) - _P.extendwellbot
+            -_P.extendwellleft,
+            -math.max(_P.extendwellbot, enable(_P.drawbotwelltap, _P.botwelltapspace + _P.botwelltapwidth))
         ),
         point.create(
-            activewidth / 2 + _P.extendwellright,
-            _P.fwidth / 2 + math.max(gateaddtop, enable(_P.drawtopwelltap, _P.topwelltapspace + _P.topwelltapwidth)) + _P.extendwelltop
+            activewidth + leftactext + rightactext + _P.extendwellright,
+            _P.fwidth + math.max(_P.extendwelltop, enable(_P.drawtopwelltap, _P.topwelltapspace + _P.topwelltapwidth))
         )
     )
     -- well taps
@@ -386,14 +540,20 @@ function layout(transistor, _P)
             contype = _P.flippedwell and (_P.channeltype == "nmos" and "n" or "p") or (_P.channeltype == "nmos" and "p" or "n"),
             width = activewidth + _P.topwelltapextendleft + _P.topwelltapextendright,
             height = _P.topwelltapwidth,
-        }):translate((_P.topwelltapextendright - _P.topwelltapextendleft) / 2, _P.fwidth / 2 + drainshift + topgateshift + _P.topwelltapspace + _P.topwelltapwidth / 2))
+        }):translate(
+            (_P.topwelltapextendright - _P.topwelltapextendleft) / 2,
+            _P.fwidth + _P.topwelltapspace
+        ))
     end
     if _P.drawbotwelltap then
         transistor:merge_into(pcell.create_layout("auxiliary/welltap", "botwelltap", {
             contype = _P.flippedwell and (_P.channeltype == "nmos" and "n" or "p") or (_P.channeltype == "nmos" and "p" or "n"),
             width = activewidth + _P.botwelltapextendleft + _P.botwelltapextendright,
             height = _P.botwelltapwidth,
-        }):translate((_P.botwelltapextendright - _P.botwelltapextendleft) / 2, -_P.fwidth / 2 - drainshift - botgateshift - _P.botwelltapspace - _P.botwelltapwidth / 2))
+        }):translate(
+            (_P.topwelltapextendright - _P.topwelltapextendleft) / 2,
+            _P.fwidth + _P.topwelltapspace
+        ))
     end
 
     local guardring -- variable needs to be visible for alignment box setting
@@ -401,203 +561,117 @@ function layout(transistor, _P)
         guardring = pcell.create_layout("auxiliary/guardring", "guardring", {
             contype = _P.flippedwell and (_P.channeltype == "nmos" and "n" or "p") or (_P.channeltype == "nmos" and "p" or "n"),
             ringwidth = _P.guardringwidth,
-            holewidth = activewidth + 2 * _P.guardringxsep,
-            holeheight =
-                _P.fwidth
-                + enable(_P.drawtopgate, _P.topgatestrwidth + _P.topgatestrspace)
-                + enable(_P.drawbotgate, _P.botgatestrwidth + _P.botgatestrspace)
-                + 2 * _P.guardringysep,
+            holewidth = activewidth + leftactext + rightactext + 2 * _P.guardringxsep,
+            holeheight = _P.fwidth + 2 * _P.guardringysep,
             fillwell = true,
             drawsegments = _P.guardringsegments
         })
-        local yshift = (
-              enable(_P.drawtopgate, _P.topgatestrwidth + _P.topgatestrspace)
-            - enable(_P.drawbotgate, _P.botgatestrwidth + _P.botgatestrspace)
-        ) / 2
-        guardring:translate(0, yshift)
+        guardring:translate(-_P.guardringxsep, -_P.guardringysep)
         transistor:merge_into(guardring)
-        transistor:add_anchor_area_bltr("guardring",
-            guardring:get_anchor("bottomleft"):translate(-_P.guardringwidth / 2, -_P.guardringwidth / 2),
-            guardring:get_anchor("topright"):translate(_P.guardringwidth / 2, _P.guardringwidth / 2)
+        transistor:add_area_anchor_bltr("guardring",
+            guardring:get_area_anchor("outerboundary").bl,
+            guardring:get_area_anchor("outerboundary").tr
         )
     end
-
-    -- oxide thickness
-    geometry.rectanglebltr(transistor,
-        generics.oxide(_P.oxidetype),
-        point.create(-activewidth / 2 - _P.extendoxideleft, -_P.fwidth / 2 - gateaddbot - enable(_P.clipbot, _P.extendoxidebot)),
-        point.create( activewidth / 2 + _P.extendoxideright, _P.fwidth / 2 + gateaddtop + enable(_P.cliptop, _P.extendoxidetop))
-    )
-
-    -- rotation marker
-    if _P.drawrotationmarker then
-        geometry.rectanglebltr(transistor,
-            generics.other("rotationmarker"),
-            point.create(
-                -activewidth / 2 - _P.extendvthleft,
-                -_P.fwidth / 2 - gateaddbot - enable(not _P.clipbot, _P.extendvthbot)
-            ),
-            point.create(
-                activewidth / 2 + _P.extendvthright,
-                _P.fwidth / 2 + gateaddtop + enable(not _P.cliptop, _P.extendvthtop)
-            )
-        )
-    end
-
-    -- lvs marker
-    geometry.rectanglebltr(transistor,
-        generics.other(string.format("lvsmarker%d", _P.lvsmarker)),
-        point.create(-activewidth / 2 - _P.extendlvsmarkerleft, -_P.fwidth / 2 - gateaddbot - enable(_P.clipbot, _P.extendlvsmarkerbot)),
-        point.create( activewidth / 2 + _P.extendlvsmarkerright, _P.fwidth / 2 + gateaddtop + enable(_P.cliptop, _P.extendlvsmarkertop))
-    )
 
     -- gate contacts
     if _P.drawtopgate then
-        geometry.contactbltr(transistor, "gate",
-            point.create(-_P.gatelength / 2,                      _P.fwidth / 2 + _P.topgatestrspace),
-            point.create( _P.gatelength / 2, _P.topgatestrwidth + _P.fwidth / 2 + _P.topgatestrspace),
-            _P.fingers, 1, gatepitch, 0
-        )
-        if _P.drawtopgatevia then
-            geometry.viabltr(transistor, 1, _P.topgateviatarget,
-                point.create(-_P.gatelength / 2,                      _P.fwidth / 2 + _P.topgatestrspace),
-                point.create( _P.gatelength / 2, _P.topgatestrwidth + _P.fwidth / 2 + _P.topgatestrspace),
-                _P.fingers, 1, gatepitch, 0
+        for i = 1, _P.fingers do
+            geometry.contactbltr(transistor,
+                "gate",
+                point.create(gateblx + (i - 1) * gatepitch, _P.fwidth + _P.topgatestrspace),
+                point.create(gatetrx + (i - 1) * gatepitch, _P.fwidth + _P.topgatestrspace + _P.topgatestrwidth)
+            )
+            transistor:add_area_anchor_bltr(string.format("topgate%d", i),
+                point.create(gateblx + (i - 1) * gatepitch, _P.fwidth + _P.topgatestrspace),
+                point.create(gatetrx + (i - 1) * gatepitch, _P.fwidth + _P.topgatestrspace + _P.topgatestrwidth)
             )
         end
-        for i = 1, _P.fingers do
-            transistor:add_anchor_area(string.format("topgate%d", i),
-                _P.gatelength,
-                _P.topgatestrwidth,
-                (i - 1) * gatepitch - (_P.fingers - 1) * gatepitch / 2,
-                _P.fwidth / 2 + _P.topgatestrspace + _P.topgatestrwidth / 2
+        if _P.drawtopgatevia then
+            geometry.viabltr(transistor, 1, _P.topgateviatarget,
+                point.create(gateblx + (i - 1) * gatepitch, _P.fwidth + _P.topgatestrspace),
+                point.create(gatetrx + (i - 1) * gatepitch, _P.fwidth + _P.topgatestrspace + _P.topgatestrwidth)
             )
         end
     end
     if _P.drawtopgatestrap then
-        local extend = _P.topgateextendhalfspace and _P.gatespace or 0
-        local width = _P.fingers * _P.gatelength + (_P.fingers - 1) * _P.gatespace + extend
-        local height = _P.topgatestrwidth
-        local xshift = 0
-        local yshift = _P.fwidth / 2 + _P.topgatestrspace + _P.topgatestrwidth / 2
-        geometry.rectangle(transistor, generics.metal(1), width, height, xshift, yshift)
-        transistor:add_anchor_area("topgatestrap", width, height, xshift, yshift)
+        local bl = point.create(gateblx + (1 - 1) * gatepitch - _P.topgatestrapextendleft, _P.fwidth + _P.topgatestrspace)
+        local tr = point.create(gatetrx + (_P.fingers - 1) * gatepitch + _P.topgatestrapextendright, _P.fwidth + _P.topgatestrspace + _P.topgatestrwidth)
+        geometry.rectanglebltr(transistor, generics.metal(1), bl, tr)
+        transistor:add_area_anchor_bltr("topgatestrap", bl, tr)
         if _P.topgatemetal > 1 then
-            geometry.via(transistor, 1, _P.topgatemetal, width, height, xshift, yshift)
+            geometry.viabltr(transistor, 1, _P.topgatemetal, bl, tr)
         end
     end
     if _P.drawbotgate then
-        geometry.contactbltr(transistor, "gate",
-            point.create(-_P.gatelength / 2, -_P.botgatestrwidth - _P.fwidth / 2 - _P.botgatestrspace),
-            point.create( _P.gatelength / 2,                     - _P.fwidth / 2 - _P.botgatestrspace),
-            _P.fingers, 1, gatepitch, 0
-        )
-        if _P.drawbotgatevia then
-            geometry.viabltr(transistor, 1, _P.botgateviatarget,
-                point.create(-_P.gatelength / 2, -_P.botgatestrwidth - _P.fwidth / 2 - _P.botgatestrspace),
-                point.create( _P.gatelength / 2,                     - _P.fwidth / 2 - _P.botgatestrspace),
-                _P.fingers, 1, gatepitch, 0
+        for i = 1, _P.fingers do
+            geometry.contactbltr(transistor,
+                "gate",
+                point.create(gateblx + (i - 1) * gatepitch, -_P.botgatestrspace - _P.botgatestrwidth),
+                point.create(gatetrx + (i - 1) * gatepitch, -_P.botgatestrspace)
+            )
+            transistor:add_area_anchor_bltr(string.format("botgate%d", i),
+                point.create(gateblx + (i - 1) * gatepitch, -_P.botgatestrspace - _P.botgatestrwidth),
+                point.create(gatetrx + (i - 1) * gatepitch, -_P.botgatestrspace)
             )
         end
-        for i = 1, _P.fingers do
-            transistor:add_anchor_area(string.format("botgate%d", i),
-                _P.gatelength,
-                _P.botgatestrwidth,
-                (i - 1) * gatepitch - (_P.fingers - 1) * gatepitch / 2,
-                -_P.fwidth / 2 - _P.botgatestrspace - _P.botgatestrwidth / 2
+        if _P.drawbotgatevia then
+            geometry.viabltr(transistor, 1, _P.botgateviatarget,
+                point.create(gateblx + (i - 1) * gatepitch, -_P.botgatestrspace - _P.botgatestrwidth),
+                point.create(gatetrx + (i - 1) * gatepitch, -_P.botgatestrspace)
             )
         end
     end
     if _P.drawbotgatestrap then
-        local extend = _P.botgateextendhalfspace and _P.gatespace or 0
-        local width = _P.fingers * _P.gatelength + (_P.fingers - 1) * _P.gatespace + extend
-        local height = _P.botgatestrwidth
-        local xshift = 0
-        local yshift = -_P.fwidth / 2 - _P.botgatestrspace - _P.botgatestrwidth / 2
-        geometry.rectangle(transistor, generics.metal(1), width, height, xshift, yshift)
-        transistor:add_anchor_area("botgatestrap", width, height, xshift, yshift)
+        local bl = point.create(gateblx + (1 - 1) * gatepitch - _P.botgatestrapextendleft, -_P.botgatestrspace - _P.botgatestrwidth)
+        local tr = point.create(gatetrx + (_P.fingers - 1) * gatepitch + _P.botgatestrapextendright, -_P.botgatestrspace)
+        geometry.rectanglebltr(transistor, generics.metal(1), bl, tr)
+        transistor:add_area_anchor_bltr("botgatestrap", bl, tr)
         if _P.botgatemetal > 1 then
-            geometry.via(transistor, 1, _P.botgatemetal, width, height, xshift, yshift)
+            geometry.viabltr(transistor, 1, _P.botgatemetal, bl, tr)
         end
     end
 
     -- source/drain contacts and vias
-    local sourceoffset = 0
-    if _P.sourcealign == "top" then
-        sourceoffset = (_P.fwidth - _P.sourcesize) / 2
-    elseif _P.sourcealign == "bottom" then
-        sourceoffset = (-_P.fwidth + _P.sourcesize) / 2
-    end
-    local sourceviaoffset = 0
-    if _P.sourceviaalign == "top" then
-        sourceviaoffset = (_P.fwidth - _P.sourceviasize) / 2
-    elseif _P.sourceviaalign == "bottom" then
-        sourceviaoffset = (-_P.fwidth + _P.sourceviasize) / 2
-    end
-    local drainoffset = 0
-    if _P.drainalign == "top" then
-        drainoffset = (_P.fwidth - _P.drainsize) / 2
-    elseif _P.drainalign == "bottom" then
-        drainoffset = (-_P.fwidth + _P.drainsize) / 2
-    end
-    local drainviaoffset = 0
-    if _P.drainviaalign == "top" then
-        drainviaoffset = (_P.fwidth - _P.drainviasize) / 2
-    elseif _P.drainviaalign == "bottom" then
-        drainviaoffset = (-_P.fwidth + _P.drainviasize) / 2
-    end
-    local shift = _P.fingers % 2 == 1 and gatepitch / 2 or 0
+    local sourceoffset = _P.sourcealign == "top" and _P.fwidth - _P.sourcesize or 0
+    local sourceviaoffset = _P.sourceviaalign == "top" and _P.sourcesize - _P.sourceviasize or 0
+    local drainoffset = _P.drainalign == "top" and _P.fwidth - _P.drainsize or 0
+    local drainviaoffset = _P.drainviaalign == "top" and _P.drainsize - _P.drainviasize or 0
     if _P.drawsourcedrain ~= "none" then
         -- source
         if _P.drawsourcedrain == "both" or _P.drawsourcedrain == "source" then
-            geometry.contact(transistor,
-                "sourcedrain",
-                _P.sdwidth, _P.sourcesize,
-                shift, sourceoffset,
-                math.floor(_P.fingers / 2) + 1, 1, 2 * gatepitch, 0
-            )
-            if _P.drawsourcevia and _P.sourceviametal > 1 then
-                geometry.via(transistor,
-                    1, _P.sourceviametal,
-                    _P.sdwidth, _P.sourceviasize,
-                    shift, sourceviaoffset,
-                    math.floor(_P.fingers / 2) + 1, 1, 2 * gatepitch, 0
-                )
-            end
-            -- anchors
-            for i = 1, 2 * (math.floor(_P.fingers / 2) + 1), 2 do
-                transistor:add_anchor_area(string.format("sourcedrain%d", i),
-                    _P.sdwidth,
-                    _P.sourcesize,
-                    2 * shift + (-_P.fingers / 2 + (i - 1)) * gatepitch,
-                    sourceoffset
-                )
+            for i = 1, _P.fingers + 1, 2 do
+                local shift = leftactext - (_P.gatespace + _P.sdwidth) / 2 + (i - 1) * gatepitch
+                local bl = point.create(shift, sourceoffset)
+                local tr = point.create(shift + _P.sdwidth, sourceoffset + _P.sourcesize)
+                geometry.contactbltr(transistor, "sourcedrain", bl, tr)
+                if _P.drawsourcevia and _P.sourceviametal > 1 then
+                    geometry.viabltr(transistor, 1, _P.sourceviametal,
+                        point.create(shift, sourceviaoffset),
+                        point.create(shift + _P.sdwidth, sourceviaoffset + _P.sourceviasize)
+                    )
+                end
+                -- anchors
+                transistor:add_area_anchor_bltr(string.format("sourcedrain%d", i), bl, tr)
+                transistor:add_area_anchor_bltr(string.format("sourcedrain%d", i - _P.fingers - 2), bl, tr)
             end
         end
         -- drain
         if _P.drawsourcedrain == "both" or _P.drawsourcedrain == "drain" then
-            geometry.contact(transistor,
-                "sourcedrain",
-                _P.sdwidth, _P.drainsize,
-                -shift, drainoffset,
-                math.floor((_P.fingers - 1) / 2) + 1, 1, 2 * gatepitch, 0
-            )
-            if _P.drawdrainvia and _P.drainviametal > 1 then
-                geometry.via(transistor,
-                    1, _P.drainviametal,
-                    _P.sdwidth, _P.drainviasize,
-                    -shift, drainviaoffset,
-                    math.floor((_P.fingers - 1) / 2) + 1, 1, 2 * gatepitch, 0
-                )
-            end
-            -- anchors
-            for i = 2, 2 * (math.floor((_P.fingers - 1) / 2) + 1), 2 do
-                transistor:add_anchor_area(string.format("sourcedrain%d", i),
-                    _P.sdwidth,
-                    _P.drainsize,
-                    -2 * shift + (-_P.fingers / 2 + (i - 1)) * gatepitch,
-                    drainoffset
-                )
+            for i = 2, _P.fingers + 1, 2 do
+                local shift = leftactext - (_P.gatespace + _P.sdwidth) / 2 + (i - 1) * gatepitch
+                local bl = point.create(shift, drainoffset)
+                local tr = point.create(shift + _P.sdwidth, drainoffset + _P.drainsize)
+                geometry.contactbltr(transistor, "sourcedrain", bl, tr)
+                if _P.drawdrainvia and _P.drainviametal > 1 then
+                    geometry.viabltr(transistor, 1, _P.drainviametal,
+                        point.create(shift, drainviaoffset),
+                        point.create(shift + _P.sdwidth, drainviaoffset + _P.drainviasize)
+                    )
+                end
+                -- anchors
+                transistor:add_area_anchor_bltr(string.format("sourcedrain%d", i), bl, tr)
+                transistor:add_area_anchor_bltr(string.format("sourcedrain%d", i - _P.fingers - 2), bl, tr)
             end
         end
     end
@@ -607,207 +681,274 @@ function layout(transistor, _P)
         for i = 2, _P.fingers + 1, 2 do
             if _P.drawtopgatestrap then
                 geometry.rectanglebltr(transistor, generics.metal(1),
-                    transistor:get_anchor(string.format("sourcedrain%dtl", i)),
-                    transistor:get_anchor(string.format("sourcedrain%dtr", i)) ..
-                    transistor:get_anchor(string.format("topgatestrapbr", i))
+                    transistor:get_area_anchor(string.format("sourcedrain%d", i)).tl,
+                    transistor:get_area_anchor(string.format("sourcedrain%d", i)).tr ..
+                    transistor:get_area_anchor(string.format("topgatestrap", i)).br
                 )
             end
             if _P.drawbotgatestrap then
                 geometry.rectanglebltr(transistor, generics.metal(1),
-                    transistor:get_anchor(string.format("sourcedrain%dbl", i)) ..
-                    transistor:get_anchor(string.format("botgatestraptl", i)),
-                    transistor:get_anchor(string.format("sourcedrain%dbr", i))
+                    transistor:get_area_anchor(string.format("sourcedrain%d", i)).bl ..
+                    transistor:get_area_anchor(string.format("botgatestrap", i)).tl,
+                    transistor:get_area_anchor(string.format("sourcedrain%d", i)).br
                 )
             end
         end
     end
 
-    -- source/drain connections
-    local ysign = (_P.channeltype == "nmos" and -1 or 1)
+    -- source connections
     if _P.connectsource then
-        local invert = _P.connectsourceinverse and -1 or 1
-        if _P.connsourceinline then
-            geometry.rectangle(transistor, generics.metal(_P.connsourcemetal),
-                _P.fingers * gatepitch + _P.sdwidth, _P.connsourcewidth, 0, sourceoffset + _P.inlinesourceoffset
+        local blx = leftactext - (_P.gatespace + _P.sdwidth) / 2
+        local trx = blx + 2 * (_P.fingers // 2) * gatepitch + _P.sdwidth
+        if _P.connectsourceinline then
+            local bly
+            if _P.channeltype == "nmos" then
+                if _P.connectsourceinverse then
+                    bly = _P.fwidth - _P.connectsourcewidth - _P.connectsourceinlineoffset
+                else
+                    bly = _P.connectsourceinlineoffset
+                end
+            else
+                if _P.connectsourceinverse then
+                    bly = _P.connectsourceinlineoffset
+                else
+                    bly = _P.fwidth - _P.connectsourcewidth - _P.connectsourceinlineoffset
+                end
+            end
+            geometry.rectanglebltr(transistor, generics.metal(_P.connectsourcemetal),
+                point.create(blx - _P.connectsourceleftext, bly),
+                point.create(trx + _P.connectsourcerightext, bly + _P.connectsourcewidth)
             )
-            transistor:add_anchor_area("sourcestrap",
-                _P.fingers * gatepitch + _P.sdwidth, _P.connsourcewidth,
-                0, sourceoffset + _P.inlinesourceoffset
+            transistor:add_area_anchor_bltr("sourcestrap",
+                point.create(blx - _P.connectsourceleftext, bly),
+                point.create(trx + _P.connectsourcerightext, bly + _P.connectsourcewidth)
             )
         else
-            local width = (2 * math.floor(_P.fingers / 2)) * gatepitch + 2 * _P.extendsourcestrap + _P.sdwidth
-            local height = _P.connsourcewidth
-            local yoffset = invert * ysign * (_P.fwidth + _P.connsourcewidth + 2 * _P.connsourcespace) / 2
-            geometry.rectangle(transistor, generics.metal(_P.connsourcemetal),
-                width, height,
-                shift, yoffset
+            local bly1, bly2
+            if _P.channeltype == "nmos" then
+                if _P.connectsourceinverse then
+                    bly1 = _P.fwidth + _P.connectsourcespace
+                    bly2 = -_P.connectsourcespace - _P.connectsourcewidth
+                else
+                    bly1 = -_P.connectsourcespace - _P.connectsourcewidth
+                    bly2 = _P.fwidth + _P.connectsourcespace
+                end
+            else
+                if _P.connectsourceinverse then
+                    bly1 = -_P.connectsourcespace - _P.connectsourcewidth
+                    bly2 = _P.fwidth + _P.connectsourcespace
+                else
+                    bly1 = _P.fwidth + _P.connectsourcespace
+                    bly2 = -_P.connectsourcespace - _P.connectsourcewidth
+                end
+            end
+            -- main strap
+            geometry.rectanglebltr(transistor, generics.metal(_P.connectsourcemetal),
+                point.create(blx - _P.connectsourceleftext, bly1),
+                point.create(trx + _P.connectsourcerightext, bly1 + _P.connectsourcewidth)
             )
-            geometry.rectanglepoints(transistor, generics.metal(_P.connsourcemetal),
-                point.create(shift - _P.sdwidth / 2, invert * ysign * _P.fwidth / 2),
-                point.create(shift + _P.sdwidth / 2, invert * ysign * (_P.fwidth / 2 + _P.connsourcespace)),
-                math.floor(_P.fingers / 2) + 1, 1, 2 * gatepitch, 0
+            -- main anchor
+            transistor:add_area_anchor_bltr("sourcestrap",
+                point.create(blx - _P.connectsourceleftext, bly1),
+                point.create(trx + _P.connectsourcerightext, bly1 + _P.connectsourcewidth)
             )
             if _P.connectsourceboth then
-                geometry.rectangle(transistor, generics.metal(_P.connsourcemetal),
-                    width, height,
-                    shift, -yoffset
+                -- other strap
+                geometry.rectanglebltr(transistor, generics.metal(_P.connectsourcemetal),
+                    point.create(blx - _P.connectsourceleftext, bly2),
+                    point.create(trx + _P.connectsourcerightext, bly2 + _P.connectsourcewidth)
                 )
-                geometry.rectanglepoints(transistor, generics.metal(_P.connsourcemetal),
-                    point.create(shift - _P.sdwidth / 2, -invert * ysign * _P.fwidth / 2),
-                    point.create(shift + _P.sdwidth / 2, -invert * ysign * (_P.fwidth / 2 + _P.connsourcespace)),
-                    math.floor(_P.fingers / 2) + 1, 1, 2 * gatepitch, 0
-                )
-                transistor:add_anchor_area("sourcestrap1",
-                    width, height,
-                    shift, yoffset
-                )
-                transistor:add_anchor_area("sourcestrap2",
-                    width, height,
-                    shift, -yoffset
+                -- other anchor
+                transistor:add_area_anchor_bltr("othersourcestrap",
+                    point.create(blx - _P.connectsourceleftext, bly2),
+                    point.create(trx + _P.connectsourcerightext, bly2 + _P.connectsourcewidth)
                 )
             end
-            -- anchors
-            transistor:add_anchor_area("sourcestrap",
-                width, height,
-                shift, yoffset
-            )
+            -- connections to strap
+            local sourceinvert = (_P.channeltype == "pmos")
+            if _P.connectsourceinverse then
+                sourceinvert = not sourceinvert
+            end
+            for i = 1, _P.fingers + 1, 2 do
+                local shift = leftactext - (_P.gatespace + _P.sdwidth) / 2 + (i - 1) * gatepitch
+                if not sourceinvert or _P.connectsourceboth then
+                    geometry.rectanglebltr(transistor, generics.metal(_P.connectsourcemetal),
+                        point.create(shift, -_P.connectsourcespace),
+                        point.create(shift + _P.sdwidth, sourceoffset)
+                    )
+                end
+                if sourceinvert or _P.connectsourceboth then
+                    geometry.rectanglebltr(transistor, generics.metal(_P.connectsourcemetal),
+                        point.create(shift, sourceoffset + _P.sourcesize),
+                        point.create(shift + _P.sdwidth, _P.fwidth + _P.connectsourcespace)
+                    )
+                end
+            end
         end
     end
+
+    -- drain connections
+    local draininvert = (channeltype == "pmos")
+    if _P.connectdraininverse then
+        draininvert = not draininvert
+    end
     if _P.connectdrain then
-        local invert = _P.connectdraininverse and -1 or 1
-        if _P.conndraininline then
-            geometry.rectangle(transistor, generics.metal(_P.conndrainmetal),
-                (_P.fingers - 2) * gatepitch + _P.sdwidth, _P.conndrainwidth, 0, drainoffset + _P.inlinedrainoffset
+        local blx = leftactext - (_P.gatespace + _P.sdwidth) / 2 + (2 - 1) * gatepitch
+        local trx = leftactext - (_P.gatespace + _P.sdwidth) / 2 + (2 * ((_P.fingers + 1) // 2) - 1) * gatepitch + _P.sdwidth
+        if _P.connectdraininline then
+            local bly
+            if _P.channeltype == "nmos" then
+                if _P.connectdraininverse then
+                    bly = _P.connectdraininlineoffset
+                else
+                    bly = _P.fwidth - _P.connectdrainwidth - _P.connectdraininlineoffset
+                end
+            else
+                if _P.connectdraininverse then
+                    bly = _P.fwidth - _P.connectdrainwidth - _P.connectdraininlineoffset
+                else
+                    bly = _P.connectdraininlineoffset
+                end
+            end
+            geometry.rectanglebltr(transistor, generics.metal(_P.connectdrainmetal),
+                point.create(blx - _P.connectdrainleftext, bly),
+                point.create(trx + _P.connectdrainrightext, bly + _P.connectdrainwidth)
             )
-            transistor:add_anchor_area("drainstrap",
-                (_P.fingers - 2) * gatepitch + _P.sdwidth, _P.conndrainwidth,
-                0, drainoffset + _P.inlinedrainoffset
+            transistor:add_area_anchor_bltr("drainstrap",
+                point.create(blx - _P.connectdrainleftext, bly),
+                point.create(trx + _P.connectdrainrightext, bly + _P.connectdrainwidth)
             )
         else
-            local width = 2 * math.floor((_P.fingers - 1) / 2) * gatepitch + _P.extenddrainstrap + _P.sdwidth
-            local height = _P.conndrainwidth
-            local yoffset = -invert * ysign * (_P.fwidth + _P.conndrainwidth + 2 * _P.conndrainspace) / 2
-            geometry.rectangle(transistor, generics.metal(_P.conndrainmetal),
-                width, height,
-                -shift, yoffset
+            local bly1, bly2
+            if _P.channeltype == "nmos" then
+                if _P.connectdraininverse then
+                    bly1 = -_P.connectdrainspace - _P.connectdrainwidth
+                    bly2 = _P.fwidth + _P.connectdrainspace
+                else
+                    bly1 = _P.fwidth + _P.connectdrainspace
+                    bly2 = -_P.connectdrainspace - _P.connectdrainwidth
+                end
+            else
+                if _P.connectdraininverse then
+                    bly1 = _P.fwidth + _P.connectdrainspace
+                    bly2 = -_P.connectdrainspace - _P.connectdrainwidth
+                else
+                    bly1 = -_P.connectdrainspace - _P.connectdrainwidth
+                    bly2 = _P.fwidth + _P.connectdrainspace
+                end
+            end
+            -- main strap
+            geometry.rectanglebltr(transistor, generics.metal(_P.connectdrainmetal),
+                point.create(blx - _P.connectdrainleftext, bly1),
+                point.create(trx + _P.connectdrainrightext, bly1 + _P.connectdrainwidth)
             )
-            geometry.rectanglepoints(transistor, generics.metal(_P.conndrainmetal),
-                point.create(-shift - _P.sdwidth / 2, -invert * ysign * _P.fwidth / 2),
-                point.create(-shift + _P.sdwidth / 2, -invert * ysign * (_P.fwidth / 2 + _P.conndrainspace)),
-                math.floor((_P.fingers - 1) / 2) + 1, 1, 2 * gatepitch, 0
+            -- main anchor
+            transistor:add_area_anchor_bltr("drainstrap",
+                point.create(blx - _P.connectdrainleftext, bly1),
+                point.create(trx + _P.connectdrainrightext, bly1 + _P.connectdrainwidth)
             )
             if _P.connectdrainboth then
-                geometry.rectangle(transistor, generics.metal(_P.conndrainmetal),
-                    width, height,
-                    -shift, -yoffset
+                -- other strap
+                geometry.rectanglebltr(transistor, generics.metal(_P.connectdrainmetal),
+                    point.create(blx - _P.connectdrainleftext, bly2),
+                    point.create(trx + _P.connectdrainrightext, bly2 + _P.connectdrainwidth)
                 )
-                geometry.rectanglepoints(transistor, generics.metal(_P.conndrainmetal),
-                    point.create(-shift - _P.sdwidth / 2, invert * ysign * _P.fwidth / 2),
-                    point.create(-shift + _P.sdwidth / 2, invert * ysign * (_P.fwidth / 2 + _P.conndrainspace)),
-                    math.floor((_P.fingers - 1) / 2) + 1, 1, 2 * gatepitch, 0
-                )
-                transistor:add_anchor_area("drainstrap1",
-                    width, height,
-                    -shift, yoffset
-                )
-                transistor:add_anchor_area("drainstrap2",
-                    width, height,
-                    -shift, -yoffset
+                -- other anchor
+                transistor:add_area_anchor_bltr("otherdrainstrap",
+                    point.create(blx - _P.connectdrainleftext, bly2),
+                    point.create(trx + _P.connectdrainrightext, bly2 + _P.connectdrainwidth)
                 )
             end
-            -- anchors
-            transistor:add_anchor_area("drainstrap",
-                width, height,
-                -shift, yoffset
-            )
+            -- connections to strap
+            local draininvert = (_P.channeltype == "pmos")
+            if _P.connectdraininverse then
+                draininvert = not draininvert
+            end
+            for i = 2, _P.fingers + 1, 2 do
+                local shift = leftactext - (_P.gatespace + _P.sdwidth) / 2 + (i - 1) * gatepitch
+                if not draininvert or _P.connectdrainboth then
+                    geometry.rectanglebltr(transistor, generics.metal(_P.connectdrainmetal),
+                        point.create(shift, drainoffset + _P.drainsize),
+                        point.create(shift + _P.sdwidth, _P.fwidth + _P.connectdrainspace)
+                    )
+                end
+                if draininvert or _P.connectdrainboth then
+                    geometry.rectanglebltr(transistor, generics.metal(_P.connectdrainmetal),
+                        point.create(shift, -_P.connectdrainspace),
+                        point.create(shift + _P.sdwidth, drainoffset)
+                    )
+                end
+            end
         end
     end
 
     -- extra source/drain straps (unconnected, useful for arrays)
-    if _P.drawextrasourcestrap then
-        local invert = _P.connectsourceinverse and -1 or 1
-        local width = 2 * math.floor(_P.fingers / 2) * gatepitch + 2 * _P.extendsourcestrap + _P.sdwidth
-        local height = _P.extrasourcestrapwidth
-        local yoffset = invert * ysign * (_P.fwidth + _P.extrasourcestrapwidth + 2 * _P.extrasourcestrapspace) / 2
-        geometry.rectangle(transistor, generics.metal(_P.extrasourcestrapmetal),
-            width, height,
-            shift, yoffset
-        )
-        geometry.rectangle(transistor, generics.metal(_P.extrasourcestrapmetal),
-            width, height,
-            shift, yoffset
+    if _P.drawextrabotstrap then
+        local blx = leftactext - (_P.gatespace + _P.sdwidth) / 2 + (_P.extrabotstrapleftalign - 1) * gatepitch
+        local trx = blx + 2 * (_P.fingers // 2) * gatepitch + (_P.extrabotstraprightalign - _P.fingers) * gatepitch + _P.sdwidth
+        geometry.rectanglebltr(transistor, generics.metal(_P.extrabotstrapmetal),
+            point.create(blx, -_P.extrabotstrapspace - _P.extrabotstrapwidth),
+            point.create(trx, -_P.extrabotstrapspace)
         )
         -- anchors
-        transistor:add_anchor_area("extrasourcestrap",
-            width, height,
-            shift, yoffset
+        transistor:add_area_anchor_bltr("extrabotstrap",
+            point.create(blx, -_P.extrabotstrapspace - _P.extrabotstrapwidth),
+            point.create(trx, -_P.extrabotstrapspace)
         )
     end
-    if _P.drawextradrainstrap then
-        local invert = _P.connectdraininverse and -1 or 1
-        local width = 2 * math.floor(_P.fingers / 2) * gatepitch + _P.extenddrainstrap + _P.sdwidth
-        local height = _P.extradrainstrapwidth
-        local yoffset = invert * ysign * (_P.fwidth + _P.extradrainstrapwidth + 2 * _P.extradrainstrapspace) / 2
-        geometry.rectangle(transistor, generics.metal(_P.extradrainstrapmetal),
-            width, height,
-            shift, -yoffset
+    if _P.drawextratopstrap then
+        local align = _P.extratopstrapalign == "source" and 0 or 1
+        geometry.rectanglebltr(transistor, generics.metal(_P.extratopstrapmetal),
+            point.create(align * gatepitch, _P.fwidth + _P.extratopstrapspace),
+            point.create((_P.fingers - align) * gatepitch + _P.sdwidth, _P.fwidth + _P.extratopstrapspace + _P.extratopstrapwidth)
         )
         -- anchors
-        transistor:add_anchor_area("extradrainstrap",
-            width, height,
-            shift, -yoffset
+        transistor:add_area_anchor_bltr("extratopstrap",
+            point.create(align * gatepitch, _P.fwidth + _P.extratopstrapspace),
+            point.create((_P.fingers - align) * gatepitch + _P.sdwidth, _P.fwidth + _P.extratopstrapspace + _P.extratopstrapwidth)
         )
     end
 
     -- short transistor
+    -- FIXME: find better options to draw this
+    --        the main problem is proper alignment in cases involving odd parameters for sdwidth and sourcesize
     if _P.shortdevice then
-        geometry.rectanglepath(transistor, generics.metal(1),
-            transistor:get_anchor("sourcedrain1cc"),
-            transistor:get_anchor(string.format("sourcedrain%dcc", _P.fingers + 1)),
-            _P.sdwidth
+        geometry.rectanglebltr(transistor, generics.metal(1),
+            transistor:get_area_anchor("sourcedrain1").br:translate(0, _P.sourcesize // 2),
+            transistor:get_area_anchor(string.format("sourcedrain%d", _P.fingers + 1)).bl:translate(0, _P.sourcesize // 2 + _P.sdwidth)
         )
     end
 
     -- anchors for source drain active regions
     for i = 1, _P.fingers + 1 do
-        transistor:add_anchor_area(string.format("sourcedrainactive%d", i),
-            _P.sdwidth, _P.fwidth,
-            -shift + (-math.floor(_P.fingers / 2) + (i - 1)) * gatepitch, 0
+        local shift = leftactext - (_P.gatespace + _P.sdwidth) / 2 + (i - 1) * gatepitch
+        transistor:add_area_anchor_bltr(string.format("sourcedrainactive%d", i),
+            point.create(shift, 0),
+            point.create(shift + _P.sdwidth, _P.fwidth)
         )
     end
 
-    -- alignmentbox (FIXME, perhaps a simpler one is better)
+    -- alignmentbox
     if _P.drawguardring then
         transistor:inherit_alignment_box(guardring)
     else
-        local y1 =  _P.fwidth / 2 + math.max(_P.gtopext, _P.topgatestrspace + _P.topgatestrwidth / 2)
-        local y2 = -_P.fwidth / 2 - math.max(_P.gbotext, _P.botgatestrspace + _P.botgatestrwidth / 2)
-        if _P.connectsource and not _P.connsourceinline then
-            y1 = ysign * (_P.fwidth + _P.connsourcewidth + 2 * _P.connsourcespace) / 2
-        end
-        if _P.connectdrain and not _P.conndraininline then
-            y2 = -ysign * (_P.fwidth + _P.conndrainwidth + 2 * _P.conndrainspace) / 2
-        end
         transistor:set_alignment_box(
-            point.create(
-                -_P.fingers / 2 * gatepitch,
-                math.min(y1, y2)
-            ),
-            point.create(
-                _P.fingers / 2 * gatepitch,
-                math.max(y1, y2)
-            )
+            point.create(leftactext - (_P.gatespace + _P.sdwidth) / 2, 0),
+            point.create(leftactext - (_P.gatespace + _P.sdwidth) / 2 + (_P.fingers + 1 - 1) * gatepitch, _P.fwidth),
+            point.create(leftactext - (_P.gatespace + _P.sdwidth) / 2 + _P.sdwidth, 0),
+            point.create(leftactext - (_P.gatespace + _P.sdwidth) / 2 + (_P.fingers + 1 - 1) * gatepitch + _P.sdwidth, _P.fwidth)
         )
     end
 
-    transistor:add_anchor_area_bltr(
-        "sourcedrainleft",
-        transistor:get_anchor("sourcedrainactive1bl"),
-        transistor:get_anchor("sourcedrainactive1tr")
+    -- special anchors for easier left/right alignment
+    transistor:add_area_anchor_bltr(
+        "sourcedrainactiveleft",
+        transistor:get_area_anchor("sourcedrainactive1").bl,
+        transistor:get_area_anchor("sourcedrainactive1").tr
     )
-    transistor:add_anchor_area_bltr(
-        "sourcedrainright",
-        transistor:get_anchor(string.format("sourcedrainactive%dbl", _P.fingers + 1)),
-        transistor:get_anchor(string.format("sourcedrainactive%dtr", _P.fingers + 1))
+    transistor:add_area_anchor_bltr(
+        "sourcedrainactiveright",
+        transistor:get_area_anchor(string.format("sourcedrainactive%d", _P.fingers + 1)).bl,
+        transistor:get_area_anchor(string.format("sourcedrainactive%d", _P.fingers + 1)).tr
     )
 end

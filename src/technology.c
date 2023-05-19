@@ -28,9 +28,11 @@ struct technology_state {
     struct hashmap* constraints;
     struct vector* techpaths; // stores strings
     int create_via_arrays;
+    int ignore_premapped;
 
     struct hashmap* layermap;
     struct vector* extra_layers; // stores struct generics*, extra premapped layers
+    struct generics* empty_layer; // store one empty layer which is reused by all ignored layers
 };
 
 void technology_add_techpath(struct technology_state* techstate, const char* path)
@@ -620,8 +622,10 @@ struct technology_state* technology_initialize(void)
     techstate->constraints = hashmap_create();
     techstate->techpaths = vector_create(32, free);
     techstate->create_via_arrays = 1;
+    techstate->ignore_premapped = 0;
     techstate->layermap = hashmap_create();
     techstate->extra_layers = vector_create(1024, _destroy_layer);
+    techstate->empty_layer = _create_empty_layer("_EMPTY_");
     return techstate;
 }
 
@@ -650,6 +654,16 @@ void technology_disable_via_arrayzation(struct technology_state* techstate)
 int technology_is_create_via_arrays(const struct technology_state* techstate)
 {
     return techstate->create_via_arrays;
+}
+
+void technology_ignore_premapped_layers(struct technology_state* techstate)
+{
+    techstate->ignore_premapped = 1;
+}
+
+int technology_is_ignore_premapped_layers(const struct technology_state* techstate)
+{
+    return techstate->ignore_premapped;
 }
 
 static int ltechnology_get_dimension(lua_State* L)
@@ -750,6 +764,17 @@ const struct generics* generics_create_metalport(struct technology_state* techst
     return layer;
 }
 
+const struct generics* generics_create_metalfill(struct technology_state* techstate, int num)
+{
+    num = technology_resolve_metal(techstate, num);
+    size_t len = 1 + util_num_digits(num) + 4; // M + %d + fill
+    char* layername = malloc(len + 1);
+    snprintf(layername, len + 1, "M%dfill", num);
+    const struct generics* layer = _get_or_create_layer(techstate, layername);
+    free(layername);
+    return layer;
+}
+
 const struct generics* generics_create_metalexclude(struct technology_state* techstate, int num)
 {
     num = technology_resolve_metal(techstate, num);
@@ -843,8 +868,16 @@ const struct generics* generics_create_special(struct technology_state* techstat
 
 const struct generics* generics_create_layer_from_lua(struct technology_state* techstate, const char* layername, lua_State* L)
 {
-    struct generics* layer = _make_layer_from_lua(layername, L);
-    vector_append(techstate->extra_layers, layer);
+    struct generics* layer;
+    if(techstate->ignore_premapped)
+    {
+        layer = techstate->empty_layer;
+    }
+    else
+    {
+        layer = _make_layer_from_lua(layername, L);
+        vector_append(techstate->extra_layers, layer);
+    }
     return layer;
 }
 

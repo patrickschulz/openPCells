@@ -49,7 +49,6 @@ function layout(memory, _P)
     for i = 1, _P.numlanes do
         lanes[i] = memory:add_child(laneref, string.format("lane_%d", i))
         if i % 2 == 0 then 
-            dprint("flipy")
             lanes[i]:flipy()
         end
         if i > 1 then

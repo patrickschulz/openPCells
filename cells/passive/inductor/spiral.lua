@@ -33,7 +33,6 @@ function layout(inductor, _P)
         append(x, y)
         --addr = addr + pitch / 2
         --addr = addr + pitch / 10
-        dprint(addr)
         local dx = addr * math.cos(dir)
         local dy = addr * math.sin(dir)
         x = fix_to_grid(x + dx, _P.grid)

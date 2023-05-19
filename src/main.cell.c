@@ -370,18 +370,27 @@ static void _scale(struct object* toplevel, struct cmdoptions* cmdoptions)
     }
 }
 
+static void _draw_alignmentbox_single(struct object* cell, struct technology_state* techstate)
+{
+    if(object_has_alignmentbox(cell))
+    {
+        point_t* outerbl = object_get_alignmentbox_anchor_outerbl(cell);
+        point_t* outertr = object_get_alignmentbox_anchor_outertr(cell);
+        point_t* innerbl = object_get_alignmentbox_anchor_innerbl(cell);
+        point_t* innertr = object_get_alignmentbox_anchor_innertr(cell);
+        geometry_unequal_ring_pts(cell, generics_create_special(techstate), outerbl, outertr, innerbl, innertr);
+        point_destroy(outerbl);
+        point_destroy(outertr);
+        point_destroy(innerbl);
+        point_destroy(innertr);
+    }
+}
+
 static void _draw_alignmentboxes(struct object* toplevel, struct cmdoptions* cmdoptions, struct technology_state* techstate)
 {
     if(cmdoptions_was_provided_long(cmdoptions, "draw-alignmentbox") || cmdoptions_was_provided_long(cmdoptions, "draw-all-alignmentboxes"))
     {
-        point_t* bl = object_get_anchor(toplevel, "bottomleft");
-        point_t* tr = object_get_anchor(toplevel, "topright");
-        if(bl && tr)
-        {
-            geometry_rectanglebltr(toplevel, generics_create_special(techstate), bl, tr, 1, 1, 0, 0);
-            point_destroy(bl);
-            point_destroy(tr);
-        }
+        _draw_alignmentbox_single(toplevel, techstate);
     }
     if(cmdoptions_was_provided_long(cmdoptions, "draw-all-alignmentboxes"))
     {
@@ -390,14 +399,7 @@ static void _draw_alignmentboxes(struct object* toplevel, struct cmdoptions* cmd
         while(vector_iterator_is_valid(it))
         {
             struct object* ref = vector_iterator_get(it);
-            point_t* bl = object_get_anchor(ref, "bottomleft");
-            point_t* tr = object_get_anchor(ref, "topright");
-            if(bl && tr)
-            {
-                geometry_rectanglebltr(ref, generics_create_special(techstate), bl, tr, 1, 1, 0, 0);
-                point_destroy(bl);
-                point_destroy(tr);
-            }
+            _draw_alignmentbox_single(ref, techstate);
             vector_iterator_next(it);
         }
         vector_iterator_destroy(it);
@@ -442,9 +444,9 @@ static void _draw_anchors(struct object* toplevel, struct cmdoptions* cmdoptions
 
 static void _filter_layers(struct object* toplevel, struct cmdoptions* cmdoptions)
 {
-    if(cmdoptions_was_provided_long(cmdoptions, "filter-layers"))
+    if(cmdoptions_was_provided_long(cmdoptions, "filter-layer"))
     {
-        const char** layernames = cmdoptions_get_argument_long(cmdoptions, "filter-layers");
+        const char** layernames = cmdoptions_get_argument_long(cmdoptions, "filter-layer");
         if(cmdoptions_was_provided_long(cmdoptions, "filter-list") &&
                 strcmp(cmdoptions_get_argument_long(cmdoptions, "filter-list"), "include") == 0)
         {
@@ -589,6 +591,10 @@ int main_create_and_export_cell(struct cmdoptions* cmdoptions, struct hashmap* c
     if(cmdoptions_was_provided_long(cmdoptions, "disable-via-arrayzation"))
     {
         technology_disable_via_arrayzation(techstate);
+    }
+    if(cmdoptions_was_provided_long(cmdoptions, "ignore-premapped-layers"))
+    {
+        technology_ignore_premapped_layers(techstate);
     }
 
     // pcell state

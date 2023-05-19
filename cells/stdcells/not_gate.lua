@@ -1,7 +1,7 @@
 function parameters()
     pcell.add_parameter("fingers", 1)
-    pcell.add_parameter("pwidth", 2 * tech.get_dimension("Minimum Gate Width"))
-    pcell.add_parameter("nwidth", 2 * tech.get_dimension("Minimum Gate Width"))
+    pcell.add_parameter("pwidthoffset", 0)
+    pcell.add_parameter("nwidthoffset", 0)
     pcell.add_parameter("shiftinput", 0)
     pcell.add_parameter("inputpos", "center", { posvals = set("center", "lower", "upper") })
     pcell.add_parameter("shiftoutput", 0)
@@ -33,8 +33,8 @@ function layout(gate, _P)
         table.insert(contactpos, "power")
     end
     local harness = pcell.create_layout("stdcells/harness", "mosfets", {
-        pwidth = _P.pwidth,
-        nwidth = _P.nwidth,
+        pwidthoffset = _P.pwidthoffset,
+        nwidthoffset = _P.nwidthoffset,
         shiftgatecontacts = _P.shiftinput,
         gatecontactpos = gatecontactpos,
         pcontactpos = contactpos,
@@ -47,50 +47,30 @@ function layout(gate, _P)
     if _P.fingers > 1 then
         geometry.rectanglebltr(
             gate, generics.metal(1),
-            harness:get_anchor("G1bl"),
-            harness:get_anchor(string.format("G%dtr", _P.fingers))
+            harness:get_area_anchor("G1").bl,
+            harness:get_area_anchor(string.format("G%d", _P.fingers)).tr
         )
     end
 
     -- signal transistors drain connections
     if _P.connectoutput then
-        geometry.path(gate, generics.metal(1),
-            geometry.path_points_xy(harness:get_anchor(string.format("pSD%dbr", 2)):translate(0, bp.sdwidth / 2),
-            {
-                harness:get_anchor(string.format("G%dcc", _P.fingers)):translate(xpitch + _P.shiftoutput, 0),
-                0, -- toggle xy
-                harness:get_anchor(string.format("nSD%dtr", 2)):translate(0, -bp.sdwidth / 2),
-            }),
-            bp.sdwidth,
-            true
+        geometry.path_cshape(gate, generics.metal(1),
+            harness:get_area_anchor(string.format("pSD%d", 2)).br:translate(0, bp.sdwidth / 2),
+            harness:get_area_anchor(string.format("nSD%d", 2)).tr:translate(0, -bp.sdwidth / 2),
+            harness:get_area_anchor(string.format("G%d", _P.fingers)).bl:translate(xpitch + _P.shiftoutput, 0),
+            bp.sdwidth
         )
     end
 
-    -- anchors (Out Top/Bottom Left/Right center/inner/outer)
-    --          ^      ^           ^               ^
-    --    e.g.  O      T           L               c    -> OTLc
-    gate:add_anchor("OTLc", harness:get_anchor(string.format("pSD%dcc", 1)))
-    gate:add_anchor("OBLc", harness:get_anchor(string.format("nSD%dcc", 1)))
-    gate:add_anchor("OTRc", harness:get_anchor(string.format("pSD%dcc", _P.fingers + 1)))
-    gate:add_anchor("OBRc", harness:get_anchor(string.format("nSD%dcc", _P.fingers + 1)))
-    gate:add_anchor("OTLi", harness:get_anchor(string.format("pSD%dbc", 1)))
-    gate:add_anchor("OBLi", harness:get_anchor(string.format("nSD%dtc", 1)))
-    gate:add_anchor("OTRi", harness:get_anchor(string.format("pSD%dbc", _P.fingers + 1)))
-    gate:add_anchor("OBRi", harness:get_anchor(string.format("nSD%dtc", _P.fingers + 1)))
-    gate:add_anchor("OTLo", harness:get_anchor(string.format("pSD%dtc", 1)))
-    gate:add_anchor("OBLo", harness:get_anchor(string.format("nSD%dbc", 1)))
-    gate:add_anchor("OTRo", harness:get_anchor(string.format("pSD%dtc", _P.fingers + 1)))
-    gate:add_anchor("OBRo", harness:get_anchor(string.format("nSD%dbc", _P.fingers + 1)))
-
     -- ports
     if _P.swapoddcorrectiongate then
-        gate:add_port("I", generics.metalport(1), harness:get_anchor("G2cc"))
+        gate:add_port("I", generics.metalport(1), harness:get_area_anchor("G2").bl)
     else
-        gate:add_port("I", generics.metalport(1), harness:get_anchor("G1cc"))
+        gate:add_port("I", generics.metalport(1), harness:get_area_anchor("G1").bl)
     end
     --if _P.connectoutput then
-        gate:add_port("O", generics.metalport(1), harness:get_anchor(string.format("G%dcc", _P.fingers)):translate(xpitch + _P.shiftoutput, 0))
+        gate:add_port("O", generics.metalport(1), harness:get_area_anchor(string.format("G%d", _P.fingers)).bl:translate(xpitch + _P.shiftoutput, 0))
     --end
-    gate:add_port("VDD", generics.metalport(1), harness:get_anchor("top"))
-    gate:add_port("VSS", generics.metalport(1), harness:get_anchor("bottom"))
+    gate:add_port("VDD", generics.metalport(1), harness:get_area_anchor("PRp").bl)
+    gate:add_port("VSS", generics.metalport(1), harness:get_area_anchor("PRn").bl)
 end

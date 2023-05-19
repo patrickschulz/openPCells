@@ -9,7 +9,9 @@
 #define min(a, b) ((a) < (b) ? (a) : (b))
 #define max(a, b) ((a) > (b) ? (a) : (b))
 
+#define OBJECT_DEFAULT_SHAPES_SIZE 32
 #define OBJECT_DEFAULT_CHILDREN_SIZE 16
+#define OBJECT_DEFAULT_REFERENCES_SIZE 8
 #define OBJECT_DEFAULT_PORT_SIZE 16
 
 struct port {
@@ -21,12 +23,77 @@ struct port {
     double sizehint;
 };
 
+struct anchor {
+    union {
+        /* regular anchors have one point, area anchors two */
+        point_t* where;
+        struct {
+            point_t* bl;
+            point_t* tr;
+        };
+    };
+    int is_area;
+};
+
+static struct anchor* _anchor_create_regular(coordinate_t x, coordinate_t y)
+{
+    struct anchor* anchor = malloc(sizeof(*anchor));
+    anchor->is_area = 0;
+    anchor->where = point_create(x, y);
+    return anchor;
+}
+
+static struct anchor* _anchor_create_area(coordinate_t blx, coordinate_t bly, coordinate_t trx, coordinate_t try)
+{
+    struct anchor* anchor = malloc(sizeof(*anchor));
+    anchor->is_area = 1;
+    anchor->bl = point_create(blx, bly);
+    anchor->tr = point_create(trx, try);
+    return anchor;
+}
+
+static struct anchor* _anchor_copy(const struct anchor* anchor)
+{
+    struct anchor* new = malloc(sizeof(*new));
+    new->is_area = anchor->is_area;
+    if(anchor->is_area)
+    {
+        new->bl = point_copy(anchor->bl);
+        new->tr = point_copy(anchor->tr);
+    }
+    else
+    {
+        new->where = point_copy(anchor->where);
+    }
+    return new;
+}
+
+static void _anchor_destroy(void* v)
+{
+    struct anchor* anchor = v;
+    if(anchor->is_area)
+    {
+        point_destroy(anchor->bl);
+        point_destroy(anchor->tr);
+    }
+    else
+    {
+        point_destroy(anchor->where);
+    }
+    free(anchor);
+}
+
+static int _anchor_is_area(const struct anchor* anchor)
+{
+    return anchor->is_area;
+}
+
 struct object {
     char* name;
     int isproxy;
     struct transformationmatrix* trans;
 
-    union{
+    union {
         // proxy objects (light handles to children)
         struct {
             const struct object* reference;
@@ -43,7 +110,7 @@ struct object {
             struct hashmap* anchors;
             struct vector* children; // stores struct object*
             struct vector* references; // stores struct object*
-            coordinate_t* alignmentbox; // NULL or contains four coordinates: blx, blx, trx, try
+            coordinate_t* alignmentbox; // NULL or contains eight coordinates: blx, blx, trx, try for both outer (first) and inner (second)
         };
     };
 };
@@ -86,7 +153,7 @@ static struct object* _create_proxy(const char* name, const struct object* refer
     struct object* obj = _create(name);
     obj->reference = reference;
     obj->isproxy = 1;
-    // don't need a transformation matrix as it is created by add_child
+    // does not need a transformation matrix as it is created by add_child
     obj->isarray = 0;
     obj->xrep = 1;
     obj->yrep = 1;
@@ -124,7 +191,13 @@ struct object* object_copy(const struct object* cell)
         // alignmentbox
         if(cell->alignmentbox)
         {
-            object_set_alignment_box(new, cell->alignmentbox[0], cell->alignmentbox[1], cell->alignmentbox[2], cell->alignmentbox[3]);
+            object_set_alignment_box(
+                new,
+                cell->alignmentbox[0], cell->alignmentbox[1],
+                cell->alignmentbox[2], cell->alignmentbox[3],
+                cell->alignmentbox[4], cell->alignmentbox[5],
+                cell->alignmentbox[6], cell->alignmentbox[7]
+            );
         }
 
         // anchors
@@ -135,8 +208,8 @@ struct object* object_copy(const struct object* cell)
             while(hashmap_const_iterator_is_valid(it))
             {
                 const char* key = hashmap_const_iterator_key(it);
-                const point_t* pt = hashmap_const_iterator_value(it);
-                hashmap_insert(new->anchors, key, point_copy(pt));
+                const struct anchor* anchor = hashmap_const_iterator_value(it);
+                hashmap_insert(new->anchors, key, _anchor_copy(anchor));
                 hashmap_const_iterator_next(it);
             }
             hashmap_const_iterator_destroy(it);
@@ -149,6 +222,11 @@ struct object* object_copy(const struct object* cell)
             for(unsigned int i = 0; i < vector_size(cell->children); ++i)
             {
                 vector_append(new->children, object_copy(vector_get(cell->children, i)));
+            }
+            new->references = vector_create(vector_size(cell->references), object_destroy);
+            for(unsigned int i = 0; i < vector_size(cell->references); ++i)
+            {
+                vector_append(new->references, object_copy(vector_get(cell->references, i)));
             }
         }
     }
@@ -176,7 +254,7 @@ void object_destroy(void* cellv)
         // anchors
         if(cell->anchors)
         {
-            hashmap_destroy(cell->anchors, point_destroy);
+            hashmap_destroy(cell->anchors, _anchor_destroy);
         }
 
         if(cell->ports)
@@ -211,7 +289,7 @@ void object_add_raw_shape(struct object* cell, struct shape* S)
 {
     if(!cell->shapes)
     {
-        cell->shapes = vector_create(32, shape_destroy);
+        cell->shapes = vector_create(OBJECT_DEFAULT_SHAPES_SIZE, shape_destroy);
     }
     vector_append(cell->shapes, S);
 }
@@ -245,9 +323,10 @@ struct object* object_add_child(struct object* cell, struct object* child, const
     if(!cell->children)
     {
         cell->children = vector_create(OBJECT_DEFAULT_CHILDREN_SIZE, object_destroy);
-        cell->references = vector_create(8, object_destroy);
+        cell->references = vector_create(OBJECT_DEFAULT_REFERENCES_SIZE, object_destroy);
     }
     vector_append(cell->children, proxy);
+    /* store owning reference to original child object */
     if(vector_find_flat(cell->references, child) == -1)
     {
         vector_append(cell->references, child);
@@ -288,8 +367,8 @@ void object_merge_into(struct object* cell, const struct object* other)
         // * the references must be only copied once, otherwise all children reference different objects
         // * the data structure of struct object does not allow for finding all children of one references in a simple manner, therefore the
         //   following code is a bit convoluted
-        struct const_vector* used_cell_references = const_vector_create(8);
-        struct vector* new_cell_references = vector_create(8, NULL); // non-owning vector, but non-constant elements are needed
+        struct const_vector* used_cell_references = const_vector_create(OBJECT_DEFAULT_REFERENCES_SIZE);
+        struct vector* new_cell_references = vector_create(OBJECT_DEFAULT_REFERENCES_SIZE, NULL); // non-owning vector, but non-constant elements are needed
         for(size_t i = 0; i < vector_size(other->children); ++i)
         {
             const struct object* child = vector_get_const(other->children, i);
@@ -307,7 +386,7 @@ void object_merge_into(struct object* cell, const struct object* other)
     }
 }
 
-void object_add_anchor(struct object* cell, const char* name, coordinate_t x, coordinate_t y)
+static int _add_anchor(struct object* cell, const char* name, struct anchor* anchor)
 {
     if(!cell->anchors)
     {
@@ -315,123 +394,66 @@ void object_add_anchor(struct object* cell, const char* name, coordinate_t x, co
     }
     if(hashmap_exists(cell->anchors, name))
     {
-        point_t* pt = hashmap_get(cell->anchors, name);
-        pt->x = x;
-        pt->y = y;
+        return 0;
     }
     else
     {
-        hashmap_insert(cell->anchors, name, point_create(x, y));
+        hashmap_insert(cell->anchors, name, anchor);
     }
+    return 1;
 }
 
-void object_add_anchor_suffix(struct object* cell, const char* base, const char* suffix, coordinate_t x, coordinate_t y)
+int object_add_anchor(struct object* cell, const char* name, coordinate_t x, coordinate_t y)
 {
-    size_t len = strlen(base) + strlen(suffix);
-    char* name = malloc(len + 1);
-    snprintf(name, len + 1, "%s%s", base, suffix);
-    object_add_anchor(cell, name, x, y);
-    free(name);
+    struct anchor* anchor = _anchor_create_regular(x, y);
+    int ret = _add_anchor(cell, name, anchor);
+    if(!ret)
+    {
+        _anchor_destroy(anchor);
+    }
+    return ret;
 }
 
-static void _add_anchor_area_bltr(struct object* cell, const char* base, coordinate_t blx, coordinate_t bly, coordinate_t trx, coordinate_t try)
+static int _add_area_anchor_bltr(struct object* cell, const char* base, coordinate_t blx, coordinate_t bly, coordinate_t trx, coordinate_t try)
 {
-    object_add_anchor_suffix(cell, base, "bl", blx, bly);
-    object_add_anchor_suffix(cell, base, "cl", blx, (bly + try) / 2);
-    object_add_anchor_suffix(cell, base, "tl", blx, try);
-    object_add_anchor_suffix(cell, base, "bc", (blx + trx) / 2, bly);
-    object_add_anchor_suffix(cell, base, "cc", (blx + trx) / 2, (bly + try) / 2);
-    object_add_anchor_suffix(cell, base, "tc", (blx + trx) / 2, try);
-    object_add_anchor_suffix(cell, base, "br", trx, bly);
-    object_add_anchor_suffix(cell, base, "cr", trx, (bly + try) / 2);
-    object_add_anchor_suffix(cell, base, "tr", trx, try);
+    struct anchor* anchor = _anchor_create_area(blx, bly, trx, try);
+    int ret = _add_anchor(cell, base, anchor);
+    if(!ret)
+    {
+        _anchor_destroy(anchor);
+    }
+    return ret;
 }
 
-void object_add_anchor_area(struct object* cell, const char* base, coordinate_t width, coordinate_t height, coordinate_t xshift, coordinate_t yshift)
+int object_add_area_anchor_bltr(struct object* cell, const char* base, const point_t* bl, const point_t* tr)
 {
-    _add_anchor_area_bltr(cell, base, xshift - width / 2, yshift - height / 2, xshift + width / 2, yshift + height / 2);
+    return _add_area_anchor_bltr(cell, base, bl->x, bl->y, tr->x, tr->y);
 }
 
-void object_add_anchor_area_bltr(struct object* cell, const char* base, const point_t* bl, const point_t* tr)
+int object_inherit_area_anchor(struct object* cell, const struct object* other, const char* name)
 {
-    _add_anchor_area_bltr(cell, base, bl->x, bl->y, tr->x, tr->y);
-}
+    if(cell->isproxy)
+    {
+        return 0;
+    }
 
-static point_t* _get_special_anchor(const struct object* cell, const char* name, const struct transformationmatrix* trans1, const struct transformationmatrix* trans2)
-{
-    if(!cell->alignmentbox)
+    const struct object* obj = other;
+    if(other->isproxy)
     {
-        return NULL;
+        obj = other->reference;
     }
-    coordinate_t blx = cell->alignmentbox[0];
-    coordinate_t bly = cell->alignmentbox[1];
-    coordinate_t trx = cell->alignmentbox[2];
-    coordinate_t try = cell->alignmentbox[3];
-    transformationmatrix_apply_transformation_xy(trans1, &blx, &bly);
-    transformationmatrix_apply_transformation_xy(trans1, &trx, &try);
-    if(trans2)
+    if(obj->anchors)
     {
-        transformationmatrix_apply_transformation_xy(trans2, &blx, &bly);
-        transformationmatrix_apply_transformation_xy(trans2, &trx, &try);
+        if(hashmap_exists(obj->anchors, name))
+        {
+            struct anchor* anchor = hashmap_get(obj->anchors, name);
+            if(_anchor_is_area(anchor))
+            {
+                return _add_area_anchor_bltr(cell, name, anchor->bl->x, anchor->bl->y, anchor->tr->x, anchor->tr->y);
+            }
+        }
     }
-    if(blx > trx)
-    {
-        coordinate_t tmp = blx;
-        blx = trx;
-        trx = tmp;
-    }
-    if(bly > try)
-    {
-        coordinate_t tmp = bly;
-        bly = try;
-        try = tmp;
-    }
-    coordinate_t x, y;
-    if(strcmp(name, "left") == 0)
-    {
-        x = blx;
-        y = (bly + try) / 2;
-    }
-    else if(strcmp(name, "right") == 0)
-    {
-        x = trx;
-        y = (bly + try) / 2;
-    }
-    else if(strcmp(name, "top") == 0)
-    {
-        x = (blx + trx) / 2;
-        y = try;
-    }
-    else if(strcmp(name, "bottom") == 0)
-    {
-        x = (blx + trx) / 2;
-        y = bly;
-    }
-    else if(strcmp(name, "bottomleft") == 0)
-    {
-        x = blx;
-        y = bly;
-    }
-    else if(strcmp(name, "bottomright") == 0)
-    {
-        x = trx;
-        y = bly;
-    }
-    else if(strcmp(name, "topleft") == 0)
-    {
-        x = blx;
-        y = try;
-    }
-    else if(strcmp(name, "topright") == 0)
-    {
-        x = trx;
-        y = try;
-    }
-    else
-    {
-        return NULL;
-    }
-    return point_create(x, y);
+    return 0;
 }
 
 static point_t* _get_regular_anchor(const struct object* cell, const char* name)
@@ -445,54 +467,94 @@ static point_t* _get_regular_anchor(const struct object* cell, const char* name)
     {
         if(hashmap_exists(obj->anchors, name))
         {
-            return point_copy((point_t*) hashmap_get(obj->anchors, name));
+            struct anchor* anchor = hashmap_get(obj->anchors, name);
+            if(!_anchor_is_area(anchor))
+            {
+                return point_copy(anchor->where);
+            }
+            else
+            {
+                return NULL;
+            }
         }
     }
     return NULL;
 }
 
+static void _transform_to_global_coordinates_xy(const struct object* cell, coordinate_t* x, coordinate_t* y)
+{
+    transformationmatrix_apply_transformation_xy(cell->trans, x, y);
+    if(object_is_proxy(cell))
+    {
+        transformationmatrix_apply_transformation_xy(cell->reference->trans, x, y);
+    }
+}
+
+static void _transform_to_global_coordinates(const struct object* cell, point_t* pt)
+{
+    _transform_to_global_coordinates_xy(cell, &pt->x, &pt->y);
+}
+
 point_t* object_get_anchor(const struct object* cell, const char* name)
 {
-    struct transformationmatrix* trans1 = cell->trans;
-    struct transformationmatrix* trans2 = NULL;
-    const struct object* obj = cell;
-    if(cell->isproxy)
-    {
-        obj = cell->reference;
-        trans2 = obj->trans;
-    }
-    point_t* pt = NULL;
-    pt = _get_special_anchor(obj, name, trans1, trans2);
+    point_t* pt = _get_regular_anchor(cell, name);
     if(pt)
     {
+        _transform_to_global_coordinates(cell, pt);
         return pt;
-    }
-    else
-    {
-        pt = _get_regular_anchor(obj, name);
-        if(pt)
-        {
-            transformationmatrix_apply_transformation(obj->trans, pt);
-            if(cell->isproxy)
-            {
-                transformationmatrix_apply_transformation(cell->trans, pt);
-            }
-            return pt;
-        }
     }
     // no anchor found
     return NULL;
 }
 
+point_t* object_get_area_anchor(const struct object* cell, const char* base)
+{
+    const struct object* obj = cell;
+    if(cell->isproxy)
+    {
+        obj = cell->reference;
+    }
+
+    if(obj->anchors)
+    {
+        if(hashmap_exists(obj->anchors, base) && _anchor_is_area(hashmap_get(obj->anchors, base)))
+        {
+            struct anchor* anchor = hashmap_get(obj->anchors, base);
+            coordinate_t blx = anchor->bl->x;
+            coordinate_t bly = anchor->bl->y;
+            coordinate_t trx = anchor->tr->x;
+            coordinate_t try = anchor->tr->y;
+            _transform_to_global_coordinates_xy(cell, &blx, &bly);
+            _transform_to_global_coordinates_xy(cell, &trx, &try);
+            if(blx > trx)
+            {
+                coordinate_t tmp = blx;
+                blx = trx;
+                trx = tmp;
+            }
+            if(bly > try)
+            {
+                coordinate_t tmp = bly;
+                bly = try;
+                try = tmp;
+            }
+            point_t* pts = malloc(2 * sizeof(*pts));
+            pts[0].x = blx;
+            pts[0].y = bly;
+            pts[1].x = trx;
+            pts[1].y = try;
+            return pts;
+        }
+    }
+    return NULL;
+}
+
 point_t* object_get_array_anchor(const struct object* cell, int xindex, int yindex, const char* name)
 {
-    if(!cell->isarray)
+    if(!object_is_child_array(cell))
     {
         return NULL;
     }
-    struct transformationmatrix* trans1 = cell->trans;
-    struct transformationmatrix* trans2 = cell->reference->trans;
-    const struct object* obj = cell->reference;
     // resolve negative indices
     if(xindex < 0)
     {
@@ -502,33 +564,183 @@ point_t* object_get_array_anchor(const struct object* cell, int xindex, int yind
     {
         yindex = cell->yrep + yindex + 1;
     }
-    point_t* pt = NULL;
-    pt = _get_special_anchor(obj, name, trans1, trans2);
+    point_t* pt = object_get_anchor(cell, name);
     if(pt)
     {
         point_translate(pt, cell->xpitch * (xindex - 1), cell->ypitch * (yindex - 1));
-        return pt;
-    }
-    else
-    {
-        pt = _get_regular_anchor(obj, name);
-        if(pt)
-        {
-            transformationmatrix_apply_transformation(obj->trans, pt);
-            if(cell->isproxy)
-            {
-                transformationmatrix_apply_transformation(cell->trans, pt);
-            }
-            point_translate(pt, cell->xpitch * (xindex - 1), cell->ypitch * (yindex - 1));
-            return pt;
-        }
     }
     // no anchor found
     return NULL;
 }
 
+point_t* object_get_array_area_anchor(const struct object* cell, int xindex, int yindex, const char* base)
+{
+    if(!object_is_child_array(cell))
+    {
+        return NULL;
+    }
+    // resolve negative indices
+    if(xindex < 0)
+    {
+        xindex = cell->xrep + xindex + 1;
+    }
+    if(yindex < 0)
+    {
+        yindex = cell->yrep + yindex + 1;
+    }
+
+    const struct object* obj = cell->reference;
+    if(obj->anchors)
+    {
+        if(hashmap_exists(obj->anchors, base) && _anchor_is_area(hashmap_get(obj->anchors, base)))
+        {
+            struct anchor* anchor = hashmap_get(obj->anchors, base);
+            coordinate_t blx = anchor->bl->x;
+            coordinate_t bly = anchor->bl->y;
+            coordinate_t trx = anchor->tr->x;
+            coordinate_t try = anchor->tr->y;
+            _transform_to_global_coordinates_xy(cell, &blx, &bly);
+            _transform_to_global_coordinates_xy(cell, &trx, &try);
+            if(blx > trx)
+            {
+                coordinate_t tmp = blx;
+                blx = trx;
+                trx = tmp;
+            }
+            if(bly > try)
+            {
+                coordinate_t tmp = bly;
+                bly = try;
+                try = tmp;
+            }
+            point_t* pts = malloc(2 * sizeof(*pts));
+            pts[0].x = blx;
+            pts[0].y = bly;
+            pts[1].x = trx;
+            pts[1].y = try;
+            // translate for array
+            pts[0].x += xindex * cell->xpitch;
+            pts[0].y += yindex * cell->ypitch;
+            pts[1].x += xindex * cell->xpitch;
+            pts[1].y += yindex * cell->ypitch;
+            return pts;
+        }
+    }
+    return NULL;
+}
+
+static void _check_coordinates(coordinate_t* alignmentbox, size_t idx1, size_t idx2)
+{
+    if(alignmentbox[idx1] > alignmentbox[idx2])
+    {
+        coordinate_t tmp = alignmentbox[idx1];
+        alignmentbox[idx1] = alignmentbox[idx2];
+        alignmentbox[idx2] = tmp;
+    }
+}
+
+static void _fix_alignmentbox_order(coordinate_t* alignmentbox)
+{
+    _check_coordinates(alignmentbox, 0, 2);
+    _check_coordinates(alignmentbox, 0, 4);
+    _check_coordinates(alignmentbox, 0, 6);
+    _check_coordinates(alignmentbox, 4, 2);
+    _check_coordinates(alignmentbox, 4, 6);
+    _check_coordinates(alignmentbox, 6, 2);
+    _check_coordinates(alignmentbox, 1, 3);
+    _check_coordinates(alignmentbox, 1, 5);
+    _check_coordinates(alignmentbox, 1, 7);
+    _check_coordinates(alignmentbox, 5, 3);
+    _check_coordinates(alignmentbox, 5, 7);
+    _check_coordinates(alignmentbox, 7, 3);
+}
+
+#define _alignmentbox_get_outerblx(b) b[0]
+#define _alignmentbox_get_outerbly(b) b[1]
+#define _alignmentbox_get_outertrx(b) b[2]
+#define _alignmentbox_get_outertry(b) b[3]
+#define _alignmentbox_get_innerblx(b) b[4]
+#define _alignmentbox_get_innerbly(b) b[5]
+#define _alignmentbox_get_innertrx(b) b[6]
+#define _alignmentbox_get_innertry(b) b[7]
+
+static coordinate_t* _get_transformed_alignment_box(const struct object* cell)
+{
+    struct transformationmatrix* trans1 = cell->trans;
+    struct transformationmatrix* trans2 = NULL;
+    const struct object* obj = cell;
+    if(cell->isproxy)
+    {
+        obj = cell->reference;
+        trans2 = obj->trans;
+    }
+    if(!obj->alignmentbox)
+    {
+        return NULL;
+    }
+    coordinate_t* alignmentbox = calloc(8, sizeof(coordinate_t));
+    memcpy(alignmentbox, obj->alignmentbox, 8 * sizeof(coordinate_t));
+    for(unsigned int i = 0; i < 4; ++i)
+    {
+        transformationmatrix_apply_transformation_xy(trans1, alignmentbox + 0 + i * 2, alignmentbox + 1 + i * 2);
+    }
+    if(trans2)
+    {
+        for(unsigned int i = 0; i < 4; ++i)
+        {
+            transformationmatrix_apply_transformation_xy(trans2, alignmentbox + 0 + i * 2, alignmentbox + 1 + i * 2);
+        }
+    }
+    _fix_alignmentbox_order(alignmentbox);
+    if(object_is_child_array(cell))
+    {
+        _alignmentbox_get_innertrx(alignmentbox) += (cell->xrep - 1) * cell->xpitch;
+        _alignmentbox_get_innertry(alignmentbox) += (cell->yrep - 1) * cell->ypitch;
+        _alignmentbox_get_outertrx(alignmentbox) += (cell->xrep - 1) * cell->xpitch;
+        _alignmentbox_get_outertry(alignmentbox) += (cell->yrep - 1) * cell->ypitch;
+    }
+    return alignmentbox;
+}
+
+point_t* object_get_alignmentbox_anchor_outerbl(const struct object* cell)
+{
+    coordinate_t* ab = _get_transformed_alignment_box(cell);
+    coordinate_t x = _alignmentbox_get_outerblx(ab);
+    coordinate_t y = _alignmentbox_get_outerbly(ab);
+    free(ab);
+    return point_create(x, y);
+}
+
+point_t* object_get_alignmentbox_anchor_outertr(const struct object* cell)
+{
+    coordinate_t* ab = _get_transformed_alignment_box(cell);
+    coordinate_t x = _alignmentbox_get_outertrx(ab);
+    coordinate_t y = _alignmentbox_get_outertry(ab);
+    free(ab);
+    return point_create(x, y);
+}
+
+point_t* object_get_alignmentbox_anchor_innerbl(const struct object* cell)
+{
+    coordinate_t* ab = _get_transformed_alignment_box(cell);
+    coordinate_t x = _alignmentbox_get_innerblx(ab);
+    coordinate_t y = _alignmentbox_get_innerbly(ab);
+    free(ab);
+    return point_create(x, y);
+}
+
+point_t* object_get_alignmentbox_anchor_innertr(const struct object* cell)
+{
+    coordinate_t* ab = _get_transformed_alignment_box(cell);
+    coordinate_t x = _alignmentbox_get_innertrx(ab);
+    coordinate_t y = _alignmentbox_get_innertry(ab);
+    free(ab);
+    return point_create(x, y);
+}
+
 const struct hashmap* object_get_all_regular_anchors(const struct object* cell)
 {
+    struct hashmap* anchors = hashmap_create();
     const struct object* obj = cell;
     if(cell->isproxy)
     {
@@ -536,12 +748,276 @@ const struct hashmap* object_get_all_regular_anchors(const struct object* cell)
     }
     if(obj->anchors)
     {
+        struct hashmap_const_iterator* it = hashmap_const_iterator_create(obj->anchors);
+        while(hashmap_const_iterator_is_valid(it))
+        {
+            const char* key = hashmap_const_iterator_key(it);
+            const struct anchor* anchor = hashmap_const_iterator_value(it);
+            if(_anchor_is_area(anchor))
+            {
+                size_t len = strlen(key);
+                char* name = malloc(len + 2 + 1);
+                strcpy(name, key);
+                const point_t* bl = anchor->bl;
+                const point_t* tr = anchor->tr;
+                name[len + 0] = 'b';
+                name[len + 1] = 'l';
+                hashmap_insert(anchors, name, point_create(bl->x, bl->y));
+                name[len + 0] = 'b';
+                name[len + 1] = 'r';
+                hashmap_insert(anchors, name, point_create(tr->x, bl->y));
+                name[len + 0] = 't';
+                name[len + 1] = 'l';
+                hashmap_insert(anchors, name, point_create(bl->x, tr->y));
+                name[len + 0] = 't';
+                name[len + 1] = 'r';
+                hashmap_insert(anchors, name, point_create(tr->x, tr->y));
+            }
+            else
+            {
+                hashmap_insert(anchors, key, point_copy(anchor->where));
+            }
+            hashmap_const_iterator_next(it);
+        }
+        hashmap_const_iterator_destroy(it);
         return obj->anchors;
     }
     return NULL;
 }
 
-void _port_destroy(void* p)
+int object_abut_right(struct object* cell, const struct object* other)
+{
+    coordinate_t* alb1 = _get_transformed_alignment_box(cell);
+    coordinate_t* alb2 = _get_transformed_alignment_box(other);
+    coordinate_t x1 = _alignmentbox_get_outerblx(alb1);
+    coordinate_t x2 = _alignmentbox_get_innertrx(alb2);
+    object_translate(cell, x2 - x1, 0);
+    free(alb1);
+    free(alb2);
+    return 1;
+}
+
+int object_abut_left(struct object* cell, const struct object* other)
+{
+    coordinate_t* alb1 = _get_transformed_alignment_box(cell);
+    coordinate_t* alb2 = _get_transformed_alignment_box(other);
+    coordinate_t x1 = _alignmentbox_get_outertrx(alb1);
+    coordinate_t x2 = _alignmentbox_get_innerblx(alb2);
+    object_translate(cell, x2 - x1, 0);
+    free(alb1);
+    free(alb2);
+    return 1;
+}
+
+int object_abut_top(struct object* cell, const struct object* other)
+{
+    coordinate_t* alb1 = _get_transformed_alignment_box(cell);
+    coordinate_t* alb2 = _get_transformed_alignment_box(other);
+    coordinate_t y1 = _alignmentbox_get_outerbly(alb1);
+    coordinate_t y2 = _alignmentbox_get_innertry(alb2);
+    object_translate(cell, 0, y2 - y1);
+    free(alb1);
+    free(alb2);
+    return 1;
+}
+
+int object_abut_bottom(struct object* cell, const struct object* other)
+{
+    coordinate_t* alb1 = _get_transformed_alignment_box(cell);
+    coordinate_t* alb2 = _get_transformed_alignment_box(other);
+    coordinate_t y1 = _alignmentbox_get_outertry(alb1);
+    coordinate_t y2 = _alignmentbox_get_innerbly(alb2);
+    object_translate(cell, 0, y2 - y1);
+    free(alb1);
+    free(alb2);
+    return 1;
+}
+
+int object_align_right(struct object* cell, const struct object* other)
+{
+    coordinate_t* alb1 = _get_transformed_alignment_box(cell);
+    coordinate_t* alb2 = _get_transformed_alignment_box(other);
+    coordinate_t x1 = _alignmentbox_get_outertrx(alb1);
+    coordinate_t x2 = _alignmentbox_get_outertrx(alb2);
+    object_translate(cell, x2 - x1, 0);
+    free(alb1);
+    free(alb2);
+    return 1;
+}
+
+int object_align_left(struct object* cell, const struct object* other)
+{
+    coordinate_t* alb1 = _get_transformed_alignment_box(cell);
+    coordinate_t* alb2 = _get_transformed_alignment_box(other);
+    coordinate_t x1 = _alignmentbox_get_outerblx(alb1);
+    coordinate_t x2 = _alignmentbox_get_outerblx(alb2);
+    object_translate(cell, x2 - x1, 0);
+    free(alb1);
+    free(alb2);
+    return 1;
+}
+
+int object_align_top(struct object* cell, const struct object* other)
+{
+    coordinate_t* alb1 = _get_transformed_alignment_box(cell);
+    coordinate_t* alb2 = _get_transformed_alignment_box(other);
+    coordinate_t y1 = _alignmentbox_get_outertry(alb1);
+    coordinate_t y2 = _alignmentbox_get_outertry(alb2);
+    object_translate(cell, 0, y2 - y1);
+    free(alb1);
+    free(alb2);
+    return 1;
+}
+
+int object_align_bottom(struct object* cell, const struct object* other)
+{
+    coordinate_t* alb1 = _get_transformed_alignment_box(cell);
+    coordinate_t* alb2 = _get_transformed_alignment_box(other);
+    coordinate_t y1 = _alignmentbox_get_outerbly(alb1);
+    coordinate_t y2 = _alignmentbox_get_outerbly(alb2);
+    object_translate(cell, 0, y2 - y1);
+    free(alb1);
+    free(alb2);
+    return 1;
+}
+
+#define _area_anchor_get_blx(pts) pts[0].x
+#define _area_anchor_get_bly(pts) pts[0].y
+#define _area_anchor_get_trx(pts) pts[1].x
+#define _area_anchor_get_try(pts) pts[1].y
+
+int object_abut_area_anchor_right(struct object* cell, const char* anchorname, const struct object* other, const char* otheranchorname)
+{
+    point_t* pts1 = object_get_area_anchor(cell, anchorname);
+    point_t* pts2 = object_get_area_anchor(other, otheranchorname);
+    coordinate_t blx1 = _area_anchor_get_trx(pts1);
+    coordinate_t trx2 = _area_anchor_get_blx(pts2);
+    object_translate(cell, trx2 - blx1, 0);
+    free(pts1);
+    free(pts2);
+    return 1;
+}
+
+int object_abut_area_anchor_left(struct object* cell, const char* anchorname, const struct object* other, const char* otheranchorname)
+{
+    point_t* pts1 = object_get_area_anchor(cell, anchorname);
+    point_t* pts2 = object_get_area_anchor(other, otheranchorname);
+    coordinate_t trx1 = _area_anchor_get_trx(pts1);
+    coordinate_t blx2 = _area_anchor_get_blx(pts2);
+    object_translate(cell, blx2 - trx1, 0);
+    free(pts1);
+    free(pts2);
+    return 1;
+}
+
+int object_abut_area_anchor_top(struct object* cell, const char* anchorname, const struct object* other, const char* otheranchorname)
+{
+    point_t* pts1 = object_get_area_anchor(cell, anchorname);
+    point_t* pts2 = object_get_area_anchor(other, otheranchorname);
+    coordinate_t bly1 = _area_anchor_get_bly(pts1);
+    coordinate_t try2 = _area_anchor_get_try(pts2);
+    object_translate(cell, 0, try2 - bly1);
+    free(pts1);
+    free(pts2);
+    return 1;
+}
+
+int object_abut_area_anchor_bottom(struct object* cell, const char* anchorname, const struct object* other, const char* otheranchorname)
+{
+    point_t* pts1 = object_get_area_anchor(cell, anchorname);
+    point_t* pts2 = object_get_area_anchor(other, otheranchorname);
+    coordinate_t try1 = _area_anchor_get_try(pts1);
+    coordinate_t bly2 = _area_anchor_get_bly(pts2);
+    object_translate(cell, 0, bly2 - try1);
+    free(pts1);
+    free(pts2);
+    return 1;
+}
+
+int object_area_anchors_fit(const struct object* cell, const char* anchorname, const struct object* other, const char* otheranchorname)
+{
+    point_t* pts1 = object_get_area_anchor(cell, anchorname);
+    point_t* pts2 = object_get_area_anchor(other, otheranchorname);
+    coordinate_t blx1 = _area_anchor_get_blx(pts1);
+    coordinate_t bly1 = _area_anchor_get_bly(pts1);
+    coordinate_t trx1 = _area_anchor_get_trx(pts1);
+    coordinate_t try1 = _area_anchor_get_try(pts1);
+    coordinate_t blx2 = _area_anchor_get_blx(pts2);
+    coordinate_t bly2 = _area_anchor_get_bly(pts2);
+    coordinate_t trx2 = _area_anchor_get_trx(pts2);
+    coordinate_t try2 = _area_anchor_get_try(pts2);
+    free(pts1);
+    free(pts2);
+    return ((trx1 - blx1) == (trx2 - blx2)) && ((try1 - bly1) == (try2 - bly2));
+}
+
+int object_align_area_anchor(struct object* cell, const char* anchorname, const struct object* other, const char* otheranchorname)
+{
+    if(!object_area_anchors_fit(cell, anchorname, other, otheranchorname))
+    {
+        return 0;
+    }
+    point_t* pts1 = object_get_area_anchor(cell, anchorname);
+    point_t* pts2 = object_get_area_anchor(other, otheranchorname);
+    coordinate_t blx1 = _area_anchor_get_blx(pts1);
+    coordinate_t bly1 = _area_anchor_get_bly(pts1);
+    coordinate_t blx2 = _area_anchor_get_blx(pts2);
+    coordinate_t bly2 = _area_anchor_get_bly(pts2);
+    object_translate(cell, blx2 - blx1, bly2 - bly1);
+    free(pts1);
+    free(pts2);
+    return 1;
+}
+
+int object_align_area_anchor_left(struct object* cell, const char* anchorname, const struct object* other, const char* otheranchorname)
+{
+    point_t* pts1 = object_get_area_anchor(cell, anchorname);
+    point_t* pts2 = object_get_area_anchor(other, otheranchorname);
+    coordinate_t blx1 = _area_anchor_get_blx(pts1);
+    coordinate_t blx2 = _area_anchor_get_blx(pts2);
+    object_translate(cell, blx2 - blx1, 0);
+    free(pts1);
+    free(pts2);
+    return 1;
+}
+
+int object_align_area_anchor_right(struct object* cell, const char* anchorname, const struct object* other, const char* otheranchorname)
+{
+    point_t* pts1 = object_get_area_anchor(cell, anchorname);
+    point_t* pts2 = object_get_area_anchor(other, otheranchorname);
+    coordinate_t blx1 = _area_anchor_get_blx(pts1);
+    coordinate_t blx2 = _area_anchor_get_blx(pts2);
+    object_translate(cell, blx2 - blx1, 0);
+    free(pts1);
+    free(pts2);
+    return 1;
+}
+
+int object_align_area_anchor_top(struct object* cell, const char* anchorname, const struct object* other, const char* otheranchorname)
+{
+    point_t* pts1 = object_get_area_anchor(cell, anchorname);
+    point_t* pts2 = object_get_area_anchor(other, otheranchorname);
+    coordinate_t bly1 = _area_anchor_get_bly(pts1);
+    coordinate_t bly2 = _area_anchor_get_bly(pts2);
+    object_translate(cell, 0, bly2 - bly1);
+    free(pts1);
+    free(pts2);
+    return 1;
+}
+
+int object_align_area_anchor_bottom(struct object* cell, const char* anchorname, const struct object* other, const char* otheranchorname)
+{
+    point_t* pts1 = object_get_area_anchor(cell, anchorname);
+    point_t* pts2 = object_get_area_anchor(other, otheranchorname);
+    coordinate_t bly1 = _area_anchor_get_bly(pts1);
+    coordinate_t bly2 = _area_anchor_get_bly(pts2);
+    object_translate(cell, 0, bly2 - bly1);
+    free(pts1);
+    free(pts2);
+    return 1;
+}
+
+static void _port_destroy(void* p)
 {
     struct port* port = p;
     point_destroy(port->where);
@@ -614,56 +1090,67 @@ const struct vector* object_get_ports(const struct object* cell)
     return cell->ports;
 }
 
-void object_set_alignment_box(struct object* cell, coordinate_t blx, coordinate_t bly, coordinate_t trx, coordinate_t try)
+void object_set_alignment_box(
+    struct object* cell,
+    coordinate_t outerblx, coordinate_t outerbly,
+    coordinate_t outertrx, coordinate_t outertry,
+    coordinate_t innerblx, coordinate_t innerbly,
+    coordinate_t innertrx, coordinate_t innertry
+)
 {
     if(!cell->alignmentbox)
     {
-        cell->alignmentbox = calloc(4, sizeof(coordinate_t));
+        cell->alignmentbox = calloc(8, sizeof(coordinate_t));
     }
-    cell->alignmentbox[0] = blx;
-    cell->alignmentbox[1] = bly;
-    cell->alignmentbox[2] = trx;
-    cell->alignmentbox[3] = try;
+    cell->alignmentbox[0] = outerblx;
+    cell->alignmentbox[1] = outerbly;
+    cell->alignmentbox[2] = outertrx;
+    cell->alignmentbox[3] = outertry;
+    cell->alignmentbox[4] = innerblx;
+    cell->alignmentbox[5] = innerbly;
+    cell->alignmentbox[6] = innertrx;
+    cell->alignmentbox[7] = innertry;
 }
 
+// FIXME: this does not account for transformations, at least not really
 void object_inherit_alignment_box(struct object* cell, const struct object* other)
 {
-    point_t* bl = object_get_anchor(other, "bottomleft");
-    point_t* tr = object_get_anchor(other, "topright");
-    if(bl && tr)
+    point_t* outerbl = object_get_alignmentbox_anchor_outerbl(other);
+    point_t* outertr = object_get_alignmentbox_anchor_outertr(other);
+    point_t* innerbl = object_get_alignmentbox_anchor_innerbl(other);
+    point_t* innertr = object_get_alignmentbox_anchor_innertr(other);
+    coordinate_t outerblx = outerbl->x;
+    coordinate_t outerbly = outerbl->y;
+    coordinate_t outertrx = outertr->x;
+    coordinate_t outertry = outertr->y;
+    coordinate_t innerblx = innerbl->x;
+    coordinate_t innerbly = innerbl->y;
+    coordinate_t innertrx = innertr->x;
+    coordinate_t innertry = innertr->y;
+    if(cell->alignmentbox)
     {
-        coordinate_t blx = bl->x;
-        coordinate_t bly = bl->y;
-        coordinate_t trx = tr->x;
-        coordinate_t try = tr->y;
-        if(cell->alignmentbox)
-        {
-            coordinate_t sblx = cell->alignmentbox[0];
-            coordinate_t sbly = cell->alignmentbox[1];
-            coordinate_t strx = cell->alignmentbox[2];
-            coordinate_t stry = cell->alignmentbox[3];
-            blx = min(blx, sblx);
-            bly = min(bly, sbly);
-            trx = max(trx, strx);
-            try = max(try, stry);
-        }
-        object_set_alignment_box(cell, blx, bly, trx, try);
-        point_destroy(bl);
-        point_destroy(tr);
+        coordinate_t souterblx = cell->alignmentbox[0];
+        coordinate_t souterbly = cell->alignmentbox[1];
+        coordinate_t soutertrx = cell->alignmentbox[2];
+        coordinate_t soutertry = cell->alignmentbox[3];
+        coordinate_t sinnerblx = cell->alignmentbox[4];
+        coordinate_t sinnerbly = cell->alignmentbox[5];
+        coordinate_t sinnertrx = cell->alignmentbox[6];
+        coordinate_t sinnertry = cell->alignmentbox[7];
+        outerblx = min(outerblx, souterblx);
+        outerbly = min(outerbly, souterbly);
+        outertrx = max(outertrx, soutertrx);
+        outertry = max(outertry, soutertry);
+        innerblx = min(innerblx, sinnerblx);
+        innerbly = min(innerbly, sinnerbly);
+        innertrx = max(innertrx, sinnertrx);
+        innertry = max(innertry, sinnertry);
     }
-}
-
-int object_get_alignment_box_corners(const struct object* cell, coordinate_t* blx, coordinate_t* bly, coordinate_t* trx, coordinate_t* try)
-{
-    if(!cell->alignmentbox)
-    {
-        return 0;
-    }
-    *blx = cell->alignmentbox[0];
-    *bly = cell->alignmentbox[1];
-    *trx = cell->alignmentbox[2];
-    *try = cell->alignmentbox[3];
-    return 1;
+    object_set_alignment_box(cell, outerblx, outerbly, outertrx, outertry, innerblx, innerbly, innertrx, innertry);
+    point_destroy(outerbl);
+    point_destroy(outertr);
+    point_destroy(innerbl);
+    point_destroy(innertr);
 }
 
 void object_move_to(struct object* cell, coordinate_t x, coordinate_t y)
@@ -679,6 +1166,16 @@ void object_reset_translation(struct object* cell)
 void object_translate(struct object* cell, coordinate_t x, coordinate_t y)
 {
     transformationmatrix_translate(cell->trans, x, y);
+}
+
+void object_translate_x(struct object* cell, coordinate_t x)
+{
+    transformationmatrix_translate(cell->trans, x, 0);
+}
+
+void object_translate_y(struct object* cell, coordinate_t y)
+{
+    transformationmatrix_translate(cell->trans, 0, y);
 }
 
 void object_mirror_at_xaxis(struct object* cell)
@@ -711,58 +1208,9 @@ void object_apply_other_transformation(struct object* cell, const struct transfo
     transformationmatrix_chain_inline(cell->trans, trans);
 }
 
-static int _get_move_anchor_translation(const struct object* cell, const char* name, coordinate_t wx, coordinate_t wy, coordinate_t* dx, coordinate_t* dy)
+int object_move_point(struct object* cell, const point_t* source, const point_t* target)
 {
-    point_t* anchor = object_get_anchor(cell, name);
-    if(anchor)
-    {
-        *dx = wx - anchor->x;
-        *dy = wy - anchor->y;
-        point_destroy(anchor);
-        return 1;
-    }
-    else
-    {
-        return 0;
-    }
-}
-
-int object_move_anchor(struct object* cell, const char* name, coordinate_t x, coordinate_t y)
-{
-    coordinate_t dx = 0;
-    coordinate_t dy = 0;
-    int ret = _get_move_anchor_translation(cell, name, x, y, &dx, &dy);
-    if(!ret)
-    {
-        return 0;
-    }
-    object_translate(cell, dx, dy);
-    return 1;
-}
-
-int object_move_anchor_x(struct object* cell, const char* name, coordinate_t x)
-{
-    coordinate_t dx = 0;
-    coordinate_t dy = 0; // not used
-    int ret = _get_move_anchor_translation(cell, name, x, 0, &dx, &dy);
-    if(!ret)
-    {
-        return 0;
-    }
-    object_translate(cell, dx, 0);
-    return 1;
-}
-
-int object_move_anchor_y(struct object* cell, const char* name, coordinate_t y)
-{
-    coordinate_t dx = 0; // not used
-    coordinate_t dy = 0;
-    int ret = _get_move_anchor_translation(cell, name, 0, y, &dx, &dy);
-    if(!ret)
-    {
-        return 0;
-    }
-    object_translate(cell, 0, dy);
+    object_translate(cell, target->x - source->x, target->y - source->y);
     return 1;
 }
 
@@ -813,6 +1261,14 @@ void object_get_minmax_xy(const struct object* cell, coordinate_t* minxp, coordi
     *minyp = miny;
     *maxyp = maxy;
 }
+
+void object_width_height_alignmentbox(const struct object* cell, ucoordinate_t* width, ucoordinate_t* height)
+{
+    coordinate_t* ab = _get_transformed_alignment_box(cell);
+    *width = _alignmentbox_get_outertrx(ab) - _alignmentbox_get_outerblx(ab);
+    *height = _alignmentbox_get_outertry(ab) - _alignmentbox_get_outerbly(ab);
+}
+
 void object_foreach_shapes(struct object* cell, void (*func)(struct shape*))
 {
     for(unsigned int i = 0; i < vector_size(cell->shapes); ++i)
@@ -873,6 +1329,7 @@ static void _get_transformation_correction(const struct object* cell, coordinate
         obj = cell->reference;
     }
     coordinate_t blx, bly, trx, try;
+    // FIXME: fix for alignmentbox with eight coordinates
     if(obj->alignmentbox)
     {
         blx = obj->alignmentbox[0];
@@ -965,6 +1422,11 @@ int object_is_pseudo(const struct object* cell)
     return cell->name == NULL;
 }
 
+int object_is_proxy(const struct object* cell)
+{
+    return cell->isproxy;
+}
+
 int object_has_shapes(const struct object* cell)
 {
     return cell->shapes ? !vector_empty(cell->shapes) : 0;
@@ -987,7 +1449,29 @@ int object_is_empty(const struct object* cell)
 
 int object_is_child_array(const struct object* cell)
 {
-    return cell->isarray;
+    return cell->isproxy && cell->isarray;
+}
+
+int object_has_anchor(const struct object* cell, const char* anchorname)
+{
+    return hashmap_exists(cell->anchors, anchorname);
+}
+
+int object_has_area_anchor(const struct object* cell, const char* anchorname)
+{
+    return hashmap_exists(cell->anchors, anchorname);
+}
+
+int object_has_alignmentbox(const struct object* cell)
+{
+    if(object_is_proxy(cell))
+    {
+        return cell->reference->alignmentbox != NULL;
+    }
+    else
+    {
+        return cell->alignmentbox != NULL;
+    }
 }
 
 const char* object_get_name(const struct object* cell)
@@ -998,6 +1482,18 @@ const char* object_get_name(const struct object* cell)
 const char* object_get_child_reference_name(const struct object* child)
 {
     return child->reference->name;
+}
+
+coordinate_t object_get_area_anchor_width(const struct object* cell, const char* anchorname)
+{
+    point_t* anchor = object_get_area_anchor(cell, anchorname);
+    return anchor[1].x - anchor[0].x;
+}
+
+coordinate_t object_get_area_anchor_height(const struct object* cell, const char* anchorname)
+{
+    point_t* anchor = object_get_area_anchor(cell, anchorname);
+    return anchor[1].y - anchor[0].y;
 }
 
 void object_flatten_inline(struct object* cell, int flattenports)
@@ -1017,8 +1513,8 @@ void object_flatten_inline(struct object* cell, int flattenports)
                 {
                     struct shape* S = object_disown_shape(flat, size - 1);
                     --size;
-                    shape_apply_transformation(S, child->trans);
                     shape_apply_transformation(S, flat->trans);
+                    shape_apply_transformation(S, child->trans);
                     for(unsigned int ix = 1; ix <= child->xrep; ++ix)
                     {
                         for(unsigned int iy = 1; iy <= child->yrep; ++iy)
@@ -1045,10 +1541,11 @@ void object_flatten_inline(struct object* cell, int flattenports)
             }
             object_destroy(flat);
         }
-        // FIXME: destroy children
-        //vector_destroy(cell->children);
+        vector_destroy(cell->children);
+        cell->children = NULL;
+        vector_destroy(cell->references);
+        cell->references = NULL;
     }
-    cell->children = NULL;
 }
 
 struct object* object_flatten(const struct object* cell, int flattenports)

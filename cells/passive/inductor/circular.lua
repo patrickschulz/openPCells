@@ -14,9 +14,19 @@ function parameters()
         { "metalnum(Conductor Metal)",     -1, "integer" },
         { "allow45(Allow Angles with 45 Degrees)",  true }
     )
-    pcell.check_expression("width % grid == 0", "width must fit on grid")
-    pcell.check_expression("radius % grid == 0", "radius must fit on grid")
-    pcell.check_expression("(-0.5 * separation - cornerradius) % grid == 0", "can't fit points on grid with this separation and cornerradius")
+end
+
+function check(_P)
+    if not (_P.width % _P.grid == 0) then
+        return false, "width must fit on grid"
+    end
+    if not (_P.radius % _P.grid == 0) then
+        return false, "radius must fit on grid"
+    end
+    if not ((-0.5 * _P.separation - _P.cornerradius) % _P.grid == 0) then
+        return false, "can't fit points on grid with this separation and cornerradius"
+    end
+    return true
 end
 
 function layout(inductor, _P)
