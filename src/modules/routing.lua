@@ -89,7 +89,6 @@ local function _insert_or_update(state, x, y)
         _finish_route_path(state)
     end
     table.insert(state.current.pts, point.create(x, y))
-    --table.insert(state.current.pts, point.create(x + state.width / 2, y + state.width / 2))
 end
 
 local function _do_point(state)
@@ -144,9 +143,10 @@ local function _do_via(state)
     local lastpt = state.current.pts[#state.current.pts]
     local x, y = lastpt:unwrap()
     if not state.current.movement.nodraw then
+        -- FIXME: should not be width / 2, but this is impossible with the current path-based router
         geometry.viabltr(state.cell, state.current.metal, targetmetal, 
-            point.create(x, y),
-            point.create(x + state.width, y + state.width)
+            point.create(x - state.width / 2, y - state.width / 2),
+            point.create(x + state.width / 2, y + state.width / 2)
         )
     end
     _finish_route_path(state)

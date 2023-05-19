@@ -3,16 +3,11 @@
 
 #include "lrouter_moves.h"
 
-#define STRLEN 50
-
 void moves_create_port(lua_State *L, const char *name, const char *port)
 {
-    char where_string [STRLEN];
-    snprintf(where_string, STRLEN, "cells[\"%s\"]:get_anchor(\"%s\")", name,
-            port);
-    lua_pushstring(L, where_string);
-    lua_setfield(L, -2, "where");
+    lua_pushfstring(L, "cells[\"%s\"]:get_anchor(\"%s\"):translate(bp.routingwidth / 2, bp.routingwidth / 2)", name, port);
 
+    lua_setfield(L, -2, "where");
 
     lua_pushstring(L, "true");
     lua_setfield(L, -2, "nodraw");
