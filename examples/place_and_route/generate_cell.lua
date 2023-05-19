@@ -3,6 +3,8 @@ pcell.push_overwrites("basic/mosfet", { actext = 250 })
 pcell.push_overwrites("stdcells/base", {
     glength = 100,
     gspace = 150,
+    basepwidth = 500,
+    basenwidth = 500,
     sdwidth = 60,
     pnumtracks = 4,
     nnumtracks = 4,
