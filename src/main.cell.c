@@ -444,9 +444,9 @@ static void _draw_anchors(struct object* toplevel, struct cmdoptions* cmdoptions
 
 static void _filter_layers(struct object* toplevel, struct cmdoptions* cmdoptions)
 {
-    if(cmdoptions_was_provided_long(cmdoptions, "filter-layers"))
+    if(cmdoptions_was_provided_long(cmdoptions, "filter-layer"))
     {
-        const char** layernames = cmdoptions_get_argument_long(cmdoptions, "filter-layers");
+        const char** layernames = cmdoptions_get_argument_long(cmdoptions, "filter-layer");
         if(cmdoptions_was_provided_long(cmdoptions, "filter-list") &&
                 strcmp(cmdoptions_get_argument_long(cmdoptions, "filter-list"), "include") == 0)
         {
