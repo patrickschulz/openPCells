@@ -487,6 +487,9 @@ end
 
 local function _create_layout_internal(cellname, name, cellargs, env)
     local libpart, cellpart = string.match(cellname, "([^/]+)/(.+)")
+    if not libpart then
+        error(string.format("pcell.create_layout: malformed cellname. Expected library/cell, got '%s'", cellname))
+    end
     local explicitlib = false
     if libpart ~= "." then -- explicit library
         explicitlib = true
@@ -548,17 +551,22 @@ function pcell.create_layout_env(cellname, name, cellargs, env)
     return obj
 end
 
-function pcell.create_layout_from_script(scriptpath)
+function pcell.create_layout_from_script(scriptpath, args)
     local reader = _get_reader(scriptpath)
     if reader then
         local env = _ENV
         local path, name = aux.split_path(scriptpath)
         env._CURRENT_SCRIPT_PATH = path
         env._CURRENT_SCRIPT_NAME = name
+        -- save args and then replace them
+        local savedargs = env.args
+        env.args = args
+        -- run script
         local cell = _dofile(reader, string.format("@%s", scriptpath), nil, env)
         if not cell then
             error(string.format("cellscript '%s' did not return an object", scriptpath))
         end
+        env.args = savedargs
         return cell
     else
         error(string.format("cellscript '%s' could not be opened", scriptpath))
