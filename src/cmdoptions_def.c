@@ -33,6 +33,7 @@ cmdoptions_add_option(cmdoptions, NO_SHORT, "filter-layer", MULTI_ARGS, "filter 
 cmdoptions_add_option_default(cmdoptions, NO_SHORT, "filter-list", SINGLE_ARG, "exclude", "set filter list type (include or exclude, default exclude)");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "export-filter", MULTI_ARGS, "filter exported data. Possible values: rectangle, polygon, reference, link. This option can be called multiple times. The effect of this options is also controlled by --export-filter-list.");
 cmdoptions_add_option_default(cmdoptions, NO_SHORT, "export-filter-list", SINGLE_ARG, "exclude", "set export filter list type (include or exclude, default exclude)");
+cmdoptions_add_option(cmdoptions, NO_SHORT, "ignore-layer", MULTI_ARGS, "ignore layers to be generated. Any layer (in generic notation) in this list will not be generated. This option can be called multiple times.");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "ignore-missing-layers", NO_ARG, "ignore missing layers in the technology translation. Layers that are not present in the layermap file are handled as if their values was '{}'");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "ignore-missing-export", NO_ARG, "ignore layers with missing exports in the technology translation");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "ignore-premapped-layers", NO_ARG, "ignore premapped layers (they are handled as if their value was '{}')");
