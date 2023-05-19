@@ -212,7 +212,11 @@ local function _get_layer_style(layer)
                 colorname = string.format("layoutcolor%d", numcolors + 1)
                 numcolors = numcolors + 1
             end
-            table.insert(__header, string.format("\\definecolor{%s}{HTML}{%s}", colorname, layer.color))
+            local r, g, b = string.match(layer.color, "rgb%s*%(%s*(%d+)%s*,%s*(%d+)%s*,%s*(%d+)%s*%)")
+            if r then
+                table.insert(__header, string.format("\\definecolor{%s}{RGB}{%s,%s,%s}", colorname, r, g, b))
+            else
+            end
             colors[layer.color] = colorname
         end
         color = colors[layer.color]
