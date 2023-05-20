@@ -442,43 +442,6 @@ static void _draw_anchors(struct object* toplevel, struct cmdoptions* cmdoptions
     }
 }
 
-static void _filter_layers(struct object* toplevel, struct cmdoptions* cmdoptions)
-{
-    if(cmdoptions_was_provided_long(cmdoptions, "filter-layer"))
-    {
-        const char** layernames = cmdoptions_get_argument_long(cmdoptions, "filter-layer");
-        if(cmdoptions_was_provided_long(cmdoptions, "filter-list") &&
-                strcmp(cmdoptions_get_argument_long(cmdoptions, "filter-list"), "include") == 0)
-        {
-            postprocess_filter_include(toplevel, layernames);
-            struct vector* references = object_collect_references_mutable(toplevel);
-            struct vector_iterator* it = vector_iterator_create(references);
-            while(vector_iterator_is_valid(it))
-            {
-                struct object* ref = vector_iterator_get(it);
-                postprocess_filter_include(ref, layernames);
-                vector_iterator_next(it);
-            }
-            vector_iterator_destroy(it);
-            vector_destroy(references);
-        }
-        else
-        {
-            postprocess_filter_exclude(toplevel, layernames);
-            struct vector* references = object_collect_references_mutable(toplevel);
-            struct vector_iterator* it = vector_iterator_create(references);
-            while(vector_iterator_is_valid(it))
-            {
-                struct object* ref = vector_iterator_get(it);
-                postprocess_filter_exclude(ref, layernames);
-                vector_iterator_next(it);
-            }
-            vector_iterator_destroy(it);
-            vector_destroy(references);
-        }
-    }
-}
-
 static void _merge_rectangles(struct object* toplevel, struct cmdoptions* cmdoptions, struct technology_state* techstate)
 {
     if(cmdoptions_was_provided_long(cmdoptions, "merge-rectangles"))
@@ -664,7 +627,6 @@ int main_create_and_export_cell(struct cmdoptions* cmdoptions, struct hashmap* c
         }
 
         // post-processing
-        _filter_layers(toplevel, cmdoptions);
         _merge_rectangles(toplevel, cmdoptions, techstate);
 
         // resolve paths
