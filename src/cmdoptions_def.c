@@ -100,11 +100,10 @@ cmdoptions_add_option(cmdoptions, NO_SHORT, "show-gds-data-raw", NO_ARG, "also p
 /* Diagnostic Functions */
 cmdoptions_add_section(cmdoptions, "Diagnostic functions");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "show-cellinfo", NO_ARG, "show some cell information: shape count, used layers, etc.");
-cmdoptions_add_option(cmdoptions, NO_SHORT, "profile", NO_ARG, "collect and display profiling data (this significantly increases run time, be patient while profiling larger cells)");
 cmdoptions_add_option(cmdoptions, 'V', "verbose", NO_ARG, "enable verbose output");
 cmdoptions_add_option(cmdoptions, 'D', "debug", NO_ARG, "enable debugging output");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "check", NO_ARG, "check cell code and parameter variations. Strict checking, e.g. if a cell parameter can not work with odd values, specify the parameter as even()");
-cmdoptions_add_option(cmdoptions, NO_SHORT, "check-technology", NO_ARG, "check technology layer map and config. (not implemented)");
+//cmdoptions_add_option(cmdoptions, NO_SHORT, "check-technology", NO_ARG, "check technology layer map and config. (not implemented)");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "noexport", NO_ARG, "disable all export functions. This is different from --dryrun, which calls the export translation, but does not write any files. Both options are mostly related to profiling, if exporting should be profiled --dryrun must be used");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "dryrun", NO_ARG, "perform all calculations, but don't actually write any files. This is useful for profiling, where the program should run normally but should not produce any output");
 cmdoptions_add_option(cmdoptions, 'v', "version", NO_ARG, "display version");
