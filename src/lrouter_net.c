@@ -8,20 +8,15 @@
 #include <stdbool.h>
 #include <time.h>
 
-#define BETWEEN(value, min, max) (value < max && value > min)
-
 struct net {
     char *name;
     unsigned int ranking;
     struct vector *positions;
-    int num_positions;
     int routed;
     struct vector *deltas;
 };
 
-struct position* net_create_position(const char *instance, const char *port,
-        unsigned int x, unsigned int y,
-        unsigned int z)
+struct position* net_create_position(const char *instance, const char *port, unsigned int x, unsigned int y, unsigned int z)
 {
     struct position* pos = malloc(sizeof(*pos));
     pos->instance = malloc(strlen(instance) + 1);
@@ -36,10 +31,10 @@ struct position* net_create_position(const char *instance, const char *port,
     return pos;
 }
 
-struct position* net_copy_position(struct position* pos)
+void* net_copy_position(const void* vp)
 {
-    struct position* new = net_create_position(pos->instance, pos->port,
-            pos->x, pos->y, pos->z);
+    const struct position* pos = vp;
+    struct position* new = net_create_position(pos->instance, pos->port, pos->x, pos->y, pos->z);
     return new;
 }
 
@@ -51,10 +46,13 @@ void net_destroy_position(void *pp)
     free(pos);
 }
 
-static int cmp_func(void const *a, void const *b)
+static int cmp_func(void const *av, void const *bv)
 {
-    return (*((struct net**)b))->num_positions -
-        ((*(struct net**)a))->num_positions;
+    const struct net* a = av;
+    const struct net* b = bv;
+    int numa = vector_size(a->positions);
+    int numb = vector_size(b->positions);
+    return numb - numa;
 }
 
 void net_sort_nets(struct vector *nets)
@@ -62,10 +60,9 @@ void net_sort_nets(struct vector *nets)
     vector_sort(nets, cmp_func);
 }
 
-struct net *net_copy(struct net *net)
+struct net *net_copy(const struct net *net)
 {
-    struct vector *copy_positions = vector_copy(net->positions,
-            (void *)net_copy_position);
+    struct vector *copy_positions = vector_copy(net->positions, net_copy_position);
     struct net *copy = net_create(net->name, NO_SUFFIX, copy_positions);
     copy->routed = net->routed;
     return copy;
@@ -74,15 +71,12 @@ struct net *net_copy(struct net *net)
 void net_restore_positions(struct net *original, struct net *copy)
 {
     vector_destroy(original->positions);
-    struct vector *restoredpos = vector_copy(copy->positions,
-            (void *)net_copy_position);
+    struct vector *restoredpos = vector_copy(copy->positions, net_copy_position);
 
     original->positions = restoredpos;
-    original->num_positions = copy->num_positions;
 }
 
-struct net* net_create(const char* name, int suffixnum,
-        struct vector *positions)
+struct net* net_create(const char* name, int suffixnum, struct vector *positions)
 {
     struct net* net = malloc(sizeof(*net));
     memset(net, 0, sizeof(*net));
@@ -99,14 +93,13 @@ struct net* net_create(const char* name, int suffixnum,
     }
     net->deltas = vector_create(1, free);
     net->positions = positions;
-    net->num_positions = vector_size(positions);
     net->routed = 0;
     return net;
 }
 
 int net_get_size(const struct net *net)
 {
-    return net->num_positions;
+    return vector_size(net->positions);
 }
 
 int net_get_num_deltas(const struct net *net)
@@ -154,7 +147,6 @@ void nets_fill_ports(struct vector* nets, struct field* field)
 void net_append_position(struct net *net, struct position *position)
 {
     vector_append(net->positions, position);
-    net->num_positions++;
 }
 
 void net_append_delta(struct net *net, struct rpoint *delta)
@@ -172,16 +164,15 @@ struct rpoint *net_copy_delta(struct net *net, int i)
 void net_remove_position(struct net *net, unsigned int i)
 {
     vector_remove(net->positions, i, net_destroy_position);
-    net->num_positions--;
 }
 
-struct position *net_get_position(struct net *net, unsigned int i)
+const struct position *net_get_position(const struct net *net, size_t i)
 {
     if(i > vector_size(net->positions))
     {
         return NULL;
     }
-    return vector_get(net->positions, i);
+    return vector_get_const(net->positions, i);
 }
 
 void net_print_deltas(struct net *net)
@@ -293,7 +284,6 @@ void net_make_deltas(struct net *net)
     vector_destroy(net->deltas);
     net->deltas = new_deltas;
     free(next);
-
 }
 
 void net_reverse_deltas(struct net *net)
@@ -308,30 +298,24 @@ void net_reverse_deltas(struct net *net)
 
 struct rpoint *net_get_delta(struct net *net, unsigned int i)
 {
-    if(i > vector_size(net->deltas))
-    {
-        return NULL;
-    }
     return vector_get(net->deltas, i);
 }
 
 struct position *net_point_to_position(struct rpoint *point)
 {
-    struct position *pos = net_create_position("NOINST", "NOPORT",
-            point->x, point->y, point->z);
+    struct position *pos = net_create_position("NOINST", "NOPORT", point->x, point->y, point->z);
     return pos;
 }
 
-struct position *net_get_position_at_point(struct net *net,
-        struct rpoint *point)
+const struct position *net_get_position_at_point(const struct net *net, struct rpoint *point)
 {
-    struct position *pos = NULL;
-    for(int i = 0; i < net->num_positions; i++)
+    const struct position *pos = NULL;
+    for(size_t i = 0; i < vector_size(net->positions); i++)
     {
-        struct position *temppos = net_get_position(net, i);
+        const struct position *temppos = net_get_position(net, i);
 
-        if(temppos->x == point->x && temppos->y == point->y &&
-                temppos->y == point->y)
+        //if(temppos->x == point->x && temppos->y == point->y && temppos->y == point->y) // <- used to be this, but this does not make any sense
+        if(temppos->x == point->x && temppos->y == point->y && temppos->z == point->z)
         {
             pos = temppos;
         }
@@ -349,7 +333,7 @@ const char *net_position_get_port(const struct position *pos)
     return pos->port;
 }
 
-struct rpoint *net_position_to_point(struct position *pos)
+struct rpoint *net_position_to_point(const struct position *pos)
 {
     struct rpoint *point = point_new(pos->x, pos->y, pos->z, UNVISITED);
     return point;

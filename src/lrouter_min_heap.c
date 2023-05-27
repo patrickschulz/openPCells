@@ -111,7 +111,8 @@ struct rpoint *heap_get_point(struct minheap *hp)
     if(hp->size)
     {
         struct rpoint* point = hp->elem[0].point;
-        hp->elem[0] = hp->elem[--(hp->size)];
+        --hp->size;
+        hp->elem[0] = hp->elem[hp->size];
         hp->elem = realloc(hp->elem, hp->size * sizeof(struct node));
         heapify(hp, 0);
         return point;

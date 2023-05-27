@@ -15,7 +15,6 @@
 
 #define EXCLUDE 1
 #define CELL_PORT_LAYER 0
-#define DRAW 1
 #define NODRAW 0
 
 #define UABSDIFF(v1, v2) (v1 > v2 ? v1 - v2 : v2 - v1)
@@ -42,8 +41,7 @@ static struct rpoint* _create_point(lua_State *L)
     return point_new(x, y, z, 0);
 }
 
-static void _make_nets(const char* name, struct vector* nets,
-        struct vector* positions)
+static void _make_and_append_net(const char* name, struct vector* nets, struct vector* positions)
 {
     struct net *net = net_create(name, NO_SUFFIX, positions);
     vector_append(nets, net);
@@ -98,7 +96,7 @@ static struct netcollection* _initialize(lua_State* L)
             vector_append(positions, pos);
             lua_pop(L, 1);
         }
-        _make_nets(name, nets, positions);
+        _make_and_append_net(name, nets, positions);
         lua_pop(L, 2);
     }
 
@@ -143,49 +141,45 @@ static void _fill_blockages(struct field* field, struct netcollection *nc)
 
 static void _create_routing_stack_data(lua_State *L, struct net *net)
 {
-    lua_newtable(L);
+    lua_newtable(L); // table for a single net
     lua_pushstring(L, net_get_name(net));
     lua_setfield(L, -2, "name");
 
-    /* ports start at metal 1 */
-    int curr_metal = 1;
+    // FIXME: currently ports start at metal 1, but that should be in the port info
+    int curr_metal = 1; // FIXME: = get_port_metal() or something like that
     int is_first_conn = 1;
     int num_deltas = net_get_num_deltas(net);
-    int table_pos = 0;
+    int table_pos = 1;
 
-    for(int i = 0; i < num_deltas; i++, table_pos++)
+    for(int i = 0; i < num_deltas; i++)
     {
-        lua_newtable(L);
         struct rpoint *point = net_get_delta(net, i);
         if(point_get_score(point) == PORT)
         {
             if(i != 0)
             {
-                while(curr_metal > 1)
+                if(is_first_conn)
                 {
-                    moves_create_via(L, -1, is_first_conn);
-                    lua_rawseti(L, -2, table_pos + 1);
-                    table_pos++;
-                    curr_metal--;
-                    lua_newtable(L);
-
+                    moves_create_via(L, 1 - curr_metal);
                 }
-
+                else
+                {
+                    moves_create_via_nodraw(L, 1 - curr_metal);
+                }
+                lua_rawseti(L, -2, table_pos);
+                table_pos++;
+                curr_metal = 1;
                 is_first_conn = 0;
             }
-            const struct position *pos =
-                net_get_position_at_point(net, point);
+            const struct position *pos = net_get_position_at_point(net, point);
 
-            moves_create_port(L, net_position_get_inst(pos),
-                    net_position_get_port(pos));
-            lua_rawseti(L, -2, table_pos + 1);
+            moves_create_port(L, net_position_get_inst(pos), net_position_get_port(pos));
+            lua_rawseti(L, -2, table_pos);
             table_pos++;
 
             /* FIXME: via after first anchor */
-            lua_newtable(L);
-            moves_create_via(L, 1, DRAW);
+            moves_create_via(L, 1);
             curr_metal++;
-
         }
         else if(point->x)
         {
@@ -198,40 +192,34 @@ static void _create_routing_stack_data(lua_State *L, struct net *net)
         else
         {
             curr_metal += point->z;
-            moves_create_via(L, point->z, DRAW);
+            moves_create_via(L, point->z);
         }
-
-        lua_rawseti(L, -2, table_pos + 1);
-
+        lua_rawseti(L, -2, table_pos);
+        ++table_pos;
     }
 
     if(is_first_conn)
     {
-        lua_newtable(L);
-        moves_create_via(L, -1, is_first_conn);
-        lua_rawseti(L, -2, table_pos + 1);
+        moves_create_via(L, -1);
+        lua_rawseti(L, -2, table_pos);
     }
 }
 
 int lrouter_route(lua_State* L)
 {
-    puts("started routing\n");
-
     struct netcollection* nc = _initialize(L);
     const size_t field_height = lua_tointeger(L, 4) + 1;
     const size_t field_width = lua_tointeger(L, 3) + 1;
-    printf("field width %zu, field height %zu\n", field_width, field_height);
     const size_t num_layers = 5;
 
     struct field* field = field_init(field_width, field_height, num_layers);
     _fill_blockages(field, nc);
 
-    int routed_count = 0;
-
     /* table for all nets */
     lua_newtable(L);
     unsigned int num_nets = vector_size(nc->nets);
 
+    int routed_count = 0;
     for(unsigned int i = 0; i < num_nets; ++i)
     {
         nets_fill_ports(nc->nets, field);
@@ -244,28 +232,46 @@ int lrouter_route(lua_State* L)
             _create_routing_stack_data(L, net);
             lua_rawseti(L, -2, routed_count + 1);
             routed_count++;
-
-            printf("routed %s: %i/%i\n", net_get_name(net), i + 1, num_nets);
         }
         else
         {
-            printf("couldnt route %s\n", net_get_name(net));
+            // FIXME: abort?
         }
     }
-    lua_pushinteger(L, routed_count);
 
     field_destroy(field);
     vector_destroy(nc->nets);
     vector_destroy(nc->blockages);
     free(nc);
-    puts("finished routing\n");
-    return 2;
+    return 1;
 }
+
+//int lrouter_init(lua_State* L)
+//{
+//    struct netcollection* nc = _initialize(L);
+//
+//    /* table for all nets */
+//    lua_newtable(L);
+//    unsigned int num_nets = vector_size(nc->nets);
+//
+//    for(unsigned int i = 0; i < num_nets; ++i)
+//    {
+//        struct net* net = vector_get(nc->nets, i);
+//        _create_routing_stack_data(L, net);
+//        lua_rawseti(L, -2, i + 1);
+//    }
+//
+//    vector_destroy(nc->nets);
+//    vector_destroy(nc->blockages);
+//    free(nc);
+//    return 1;
+//}
 
 int open_lrouter_lib(lua_State* L)
 {
     static const luaL_Reg modfuncs[] =
     {
+        //{ "init",  lrouter_init  },
         { "route", lrouter_route },
         { NULL,    NULL          }
     };

@@ -3,43 +3,44 @@
 
 #include "lrouter_moves.h"
 
+static void _create(lua_State* L, const char* type)
+{
+    lua_newtable(L);
+    lua_pushstring(L, type);
+    lua_setfield(L, -2, "type");
+}
+
 void moves_create_port(lua_State *L, const char *name, const char *port)
 {
+    _create(L, "point");
     lua_pushfstring(L, "cells[\"%s\"]:get_anchor(\"%s\"):translate(bp.routingwidth / 2, bp.routingwidth / 2)", name, port);
-
     lua_setfield(L, -2, "where");
-
-    lua_pushstring(L, "true");
+    lua_pushboolean(L, 1);
     lua_setfield(L, -2, "nodraw");
-    
-    lua_pushstring(L, "point");
-    lua_setfield(L, -2, "type");
-
 }
 
-void moves_create_via(lua_State *L, int z, int is_draw)
+void moves_create_via(lua_State *L, int z)
 {
-    lua_pushstring(L, "via");
-    lua_setfield(L, -2, "type");
+    _create(L, "via");
     lua_pushinteger(L, z);
     lua_setfield(L, -2, "z");
-
-    if (!is_draw)
-    {
-        lua_pushstring(L, "true");
-        lua_setfield(L, -2, "nodraw");
-    }
-    else
-    {
-        lua_pushstring(L, "false");
-        lua_setfield(L, -2, "nodraw");
-    }
+    lua_pushboolean(L, 0);
+    lua_setfield(L, -2, "nodraw");
 }
+
+void moves_create_via_nodraw(lua_State *L, int z)
+{
+    _create(L, "via");
+    lua_pushinteger(L, z);
+    lua_setfield(L, -2, "z");
+    lua_pushboolean(L, 1);
+    lua_setfield(L, -2, "nodraw");
+}
+
 
 void moves_create_delta(lua_State *L, dir_t dir, int dist)
 {
-    lua_pushstring(L, "delta");
-    lua_setfield(L, -2, "type");
+    _create(L, "delta");
     lua_pushinteger(L, -dist);
     if(dir == X_DIR)
     {
@@ -53,12 +54,10 @@ void moves_create_delta(lua_State *L, dir_t dir, int dist)
 
 void moves_create_shift(lua_State *L, int x, int y)
 {
-    lua_pushstring(L, "shift");
-    lua_setfield(L, -2, "type");
-
+    _create(L, "shift");
     lua_pushinteger(L, x);
     lua_setfield(L, -2, "x");
-
     lua_pushinteger(L, y);
     lua_setfield(L, -2, "y");
 }
+

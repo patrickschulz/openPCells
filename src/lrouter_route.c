@@ -80,8 +80,7 @@ static int _is_smaller_score(int score, int score_incr, int nextfield)
     return (score + score_incr) < nextfield;
 }
 
-static int _find_path(struct field *field, struct position *startpos,
-        struct position *endpos)
+static int _find_path(struct field *field, struct position *startpos, struct position *endpos)
 {
     /* put starting point in min_heap */
     int routing_cost = INT_MAX;
@@ -155,22 +154,16 @@ static int _has_same_coords(struct rpoint *point, struct position *pos)
     return (point->x == pos->x && point->y == pos->y && point->z == pos->z);
 }
 
-static void _backtrace(struct field *field, struct net *net,
-        struct position *startpos, struct position *endpos,
-        struct vector *pathpoints)
+void _backtrace(struct field *field, struct net *net, struct position *startpos, struct position *endpos, struct vector *pathpoints)
 {
     struct rpoint current = { .x = endpos->x, .y = endpos->y, .z = endpos->z };
-    struct rpoint oldpoint = {.x = UINT_MAX, .y = UINT_MAX, .z = UINT_MAX,
-        .score = INT_MAX};
+    struct rpoint oldpoint = {.x = UINT_MAX, .y = UINT_MAX, .z = UINT_MAX, .score = INT_MAX};
 
     int xdiff = 0, ydiff = 0, zdiff = 0;
 
-    do
-    {
+    do {
         int score = field_get(field, current.x, current.y, current.z);
-        struct rpoint nextpoints[] = { [0  ... NUM_DIRECTIONS - 1] =
-            {.x = UINT_MAX, .y = UINT_MAX, .z = UINT_MAX,
-                .score = INT_MAX}};
+        struct rpoint nextpoints[] = { [0  ... NUM_DIRECTIONS - 1] = {.x = UINT_MAX, .y = UINT_MAX, .z = UINT_MAX, .score = INT_MAX}};
 
         /* circle around every point + check layer above and below store possible points in array */
         for(int i = 0; i < NUM_DIRECTIONS; i++)
@@ -200,8 +193,7 @@ static void _backtrace(struct field *field, struct net *net,
                 (((score - nextfield) == WRONG_DIR_COST) && is_wrong_dir) ||
                 (((score - nextfield) == STEP_COST) && !is_wrong_dir);
 
-            if(is_reachable && nextfield < score &&
-                    nextfield < nextpoints[i].score)
+            if(is_reachable && nextfield < score && nextfield < nextpoints[i].score)
             {
                 nextpoints[i] = next;
                 nextpoints[i].score = nextfield;
@@ -228,13 +220,11 @@ static void _backtrace(struct field *field, struct net *net,
 
         if(nextpoint.z != current.z)
         {
-            vector_append(pathpoints, point_new(current.x, current.y,
-                        current.z, VIA));
+            vector_append(pathpoints, point_new(current.x, current.y, current.z, VIA));
         }
         else
         {
-            vector_append(pathpoints, point_new(current.x, current.y,
-                        current.z, PATH));
+            vector_append(pathpoints, point_new(current.x, current.y, current.z, PATH));
         }
 
         /* put diffs into delta vector for lua part */
@@ -264,12 +254,10 @@ static void _backtrace(struct field *field, struct net *net,
         current.y = nextpoint.y;
         current.z = nextpoint.z;
     }
-    while(!(current.x == startpos->x && current.y == startpos->y &&
-                current.z == startpos->z));
+    while(!(current.x == startpos->x && current.y == startpos->y && current.z == startpos->z));
 }
 
-struct thread_data
-{
+struct thread_data {
     struct field *field;
     struct position *startpos;
     struct position *endpos;
@@ -280,8 +268,7 @@ struct thread_data
 void *_find_path_thread(void *args)
 {
     struct thread_data *tdata = (struct thread_data *)args;
-    tdata->routing_cost = _find_path(tdata->field, tdata->startpos,
-            tdata->endpos);
+    tdata->routing_cost = _find_path(tdata->field, tdata->startpos, tdata->endpos);
     pthread_exit(NULL);
 }
 
@@ -351,8 +338,12 @@ pthread_t *_init_thids(int num_cpus)
     return malloc(sizeof(pthread_t) * num_cpus);
 }
 
-static void _fill_thread_date(struct thread_data *tdate, struct field *field,
-        struct position *startpos, struct position *endpos, int port_index)
+static void _fill_thread_date(
+    struct thread_data *tdate,
+    struct field *field,
+    const struct position *startpos,
+    const struct position *endpos, int port_index
+)
 {
     tdate->field = field_copy(field);
     tdate->startpos = net_copy_position(startpos);
@@ -362,7 +353,7 @@ static void _fill_thread_date(struct thread_data *tdate, struct field *field,
 
 void route(struct net *net, struct field* field)
 {
-    printf("\n\nrouting %s\n", net_get_name(net));
+    //printf("\n\nrouting %s\n", net_get_name(net));
 
     int num_cpus = NUM_CPUS();
     int min_port_index = INT_MAX;
@@ -393,7 +384,7 @@ void route(struct net *net, struct field* field)
     {
         tdates = _init_thread_dates(num_cpus);
 
-        printf("netsize %i\n", net_get_size(net));
+        //printf("netsize %i\n", net_get_size(net));
         int pathpoint_size = vector_size(pathpoints);
         int issued_threads = 0;
         int min_routing_cost = INT_MAX;
@@ -409,11 +400,9 @@ void route(struct net *net, struct field* field)
 
             for(int j = 1; j < net_size && issued_threads < NUM_CPUS(); j++)
             {
-                struct position *endpos = net_get_position(net, j);
-                _fill_thread_date(&tdates[issued_threads], field, startpos,
-                        endpos, j);
-                pthread_create(&thread_ids[issued_threads], NULL,
-                        _find_path_thread, &tdates[issued_threads]);
+                const struct position *endpos = net_get_position(net, j);
+                _fill_thread_date(&tdates[issued_threads], field, startpos, endpos, j);
+                pthread_create(&thread_ids[issued_threads], NULL, _find_path_thread, &tdates[issued_threads]);
                 issued_threads++;
             }
 
@@ -421,19 +410,16 @@ void route(struct net *net, struct field* field)
              * join all threads if maximum of threads has been reached
              * or there are no more loop iterations
              */
-            if(issued_threads == (NUM_CPUS()) ||
-                    i == (pathpoint_size - 1))
+            if(issued_threads == (NUM_CPUS()) || i == (pathpoint_size - 1))
             {
                 for(int z = 0; z < issued_threads; z++)
                 {
                     pthread_join(thread_ids[z], NULL);
                 }
 
-                int min_i = _curr_min_routing_cost_index(tdates,
-                        issued_threads);
+                int min_i = _curr_min_routing_cost_index(tdates, issued_threads);
 
-                if(min_i < num_cpus &&
-                        tdates[min_i].routing_cost < min_routing_cost)
+                if(min_i < num_cpus && tdates[min_i].routing_cost < min_routing_cost)
                 {
                     min_routing_cost = tdates[min_i].routing_cost;
                     minimum_startpos = *tdates[min_i].startpos;
@@ -447,7 +433,8 @@ void route(struct net *net, struct field* field)
         }
         if(min_routing_cost == INT_MAX)
         {
-            printf("not routable\n");
+            // FIXME: this is a critical error and should abort the entire routing process
+            //printf("not routable\n");
             break;
         }
         /* look for path again to prepare the field for the backtrace */
