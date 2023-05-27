@@ -10,6 +10,6 @@
  * returns the length of the route it found
  * -1 if it couldnt find a route
  */
-void route(struct net *net, struct field* field);
+struct vector* route(struct net *net, struct field* field);
 
 #endif // LROUTER_ROUTE_H

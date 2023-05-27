@@ -13,7 +13,6 @@ struct net {
     unsigned int ranking;
     struct vector *positions;
     int routed;
-    struct vector *deltas;
 };
 
 struct position* net_create_position(const char *instance, const char *port, unsigned int x, unsigned int y, unsigned int z)
@@ -91,7 +90,6 @@ struct net* net_create(const char* name, int suffixnum, struct vector *positions
         net->name = malloc(strlen(name) + 1);
         strcpy(net->name, name);
     }
-    net->deltas = vector_create(1, free);
     net->positions = positions;
     net->routed = 0;
     return net;
@@ -102,17 +100,11 @@ int net_get_size(const struct net *net)
     return vector_size(net->positions);
 }
 
-int net_get_num_deltas(const struct net *net)
-{
-    return vector_size(net->deltas);
-}
-
 void net_destroy(void* np)
 {
     struct net* net = np;
     free(net->name);
     vector_destroy(net->positions);
-    vector_destroy(net->deltas);
     free(net);
 }
 
@@ -149,15 +141,10 @@ void net_append_position(struct net *net, struct position *position)
     vector_append(net->positions, position);
 }
 
-void net_append_delta(struct net *net, struct rpoint *delta)
-{
-    vector_append(net->deltas, delta);
-}
-
-struct rpoint *net_copy_delta(struct net *net, int i)
+static struct rpoint *net_copy_delta(struct vector* deltas, int i)
 {
     struct rpoint *point = malloc(sizeof(*point));
-    *point = *net_get_delta(net, i);
+    *point = *((struct rpoint*)vector_get(deltas, i));
     return point;
 }
 
@@ -175,32 +162,9 @@ const struct position *net_get_position(const struct net *net, size_t i)
     return vector_get_const(net->positions, i);
 }
 
-void net_print_deltas(struct net *net)
+struct vector* net_make_deltas(struct vector* deltas)
 {
-    if(net->deltas == NULL)
-    {
-        return;
-    }
-
-    for(unsigned int i = 0; i < vector_size(net->deltas); i++)
-    {
-        struct rpoint *point = net_get_delta(net, i);
-        if(point->score == PORT)
-        {
-            printf("delta %i: %i %i %i PORT\n", i, point->x, point->y,
-                    point->z);
-        }
-        else
-        {
-            printf("delta %i: %i %i %i PATH\n", i, point->x, point->y,
-                    point->z);
-        }
-    }
-}
-
-void net_make_deltas(struct net *net)
-{
-    unsigned int delta_size = vector_size(net->deltas);
+    unsigned int delta_size = vector_size(deltas);
     int xsteps = 0, ysteps = 0, zsteps = 0;
 
     struct rpoint *current;
@@ -209,12 +173,12 @@ void net_make_deltas(struct net *net)
     struct vector *new_deltas = vector_create(1, free);
 
     /* get the port were starting from */
-    vector_append(new_deltas, net_copy_delta(net, 0));
+    vector_append(new_deltas, net_copy_delta(deltas, 0));
 
     for(unsigned int i = 1; i < (delta_size - 1); i++)
     {
-        current = net_copy_delta(net, i);
-        next = net_copy_delta(net, i + 1);
+        current = net_copy_delta(deltas, i);
+        next = net_copy_delta(deltas, i + 1);
 
         xsteps += current->x;
         ysteps += current->y;
@@ -265,7 +229,7 @@ void net_make_deltas(struct net *net)
     }
 
     /* after loop next pointer is at end of vector */
-    next = net_copy_delta(net, delta_size - 1);
+    next = net_copy_delta(deltas, delta_size - 1);
     struct rpoint *point;
     if(next->x)
     {
@@ -281,24 +245,8 @@ void net_make_deltas(struct net *net)
     }
     vector_append(new_deltas, point);
 
-    vector_destroy(net->deltas);
-    net->deltas = new_deltas;
     free(next);
-}
-
-void net_reverse_deltas(struct net *net)
-{
-    unsigned int delta_size = vector_size(net->deltas);
-    for(unsigned int i = 0, j = (delta_size - 1);
-            i < (delta_size / 2); i++, j--)
-    {
-        vector_swap(net->deltas, i, j);
-    }
-}
-
-struct rpoint *net_get_delta(struct net *net, unsigned int i)
-{
-    return vector_get(net->deltas, i);
+    return new_deltas;
 }
 
 struct position *net_point_to_position(struct rpoint *point)
@@ -307,13 +255,14 @@ struct position *net_point_to_position(struct rpoint *point)
     return pos;
 }
 
-const struct position *net_get_position_at_point(const struct net *net, struct rpoint *point)
+const struct position *net_get_position_at_point(const struct net *net, const struct rpoint *point)
 {
     const struct position *pos = NULL;
     for(size_t i = 0; i < vector_size(net->positions); i++)
     {
         const struct position *temppos = net_get_position(net, i);
 
+        // FIXME:
         //if(temppos->x == point->x && temppos->y == point->y && temppos->y == point->y) // <- used to be this, but this does not make any sense
         if(temppos->x == point->x && temppos->y == point->y && temppos->z == point->z)
         {
@@ -338,3 +287,4 @@ struct rpoint *net_position_to_point(const struct position *pos)
     struct rpoint *point = point_new(pos->x, pos->y, pos->z, UNVISITED);
     return point;
 }
+

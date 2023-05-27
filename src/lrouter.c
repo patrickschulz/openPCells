@@ -70,9 +70,9 @@ static struct position* _create_net_position(lua_State* L)
 
 static struct netcollection* _initialize(lua_State* L)
 {
+    /* nets */
     size_t num_nets = lua_rawlen(L, 1);
     struct vector* nets = vector_create(num_nets, net_destroy);
-    /* nets */
     for(size_t i = 1; i < num_nets + 1; i++)
     {
         lua_geti(L, 1, i);
@@ -101,6 +101,7 @@ static struct netcollection* _initialize(lua_State* L)
     }
 
     /* blockages */
+    // FIXME: the destructor for blockages looks wrong
     size_t num_blockages = lua_rawlen(L, 2);
     struct vector* blockages = vector_create(num_blockages, free);
     for(size_t i = 1; i <= num_blockages; i++)
@@ -131,7 +132,6 @@ static void _fill_blockages(struct field* field, struct netcollection *nc)
         struct vector* deltas = vector_get(nc->blockages, i);
         for(size_t j = 0; j < vector_size(deltas) - 1; j++)
         {
-
             struct rpoint* start = vector_get(deltas, j);
             struct rpoint* end = vector_get(deltas, j + 1);
             field_create_blockage(field, start, end);
@@ -139,21 +139,21 @@ static void _fill_blockages(struct field* field, struct netcollection *nc)
     }
 }
 
-static void _create_routing_stack_data(lua_State *L, struct net *net)
+static void _create_routing_stack_data(lua_State *L, const char* name, const struct net *net, const struct vector* deltas)
 {
     lua_newtable(L); // table for a single net
-    lua_pushstring(L, net_get_name(net));
+    lua_pushstring(L, name);
     lua_setfield(L, -2, "name");
 
     // FIXME: currently ports start at metal 1, but that should be in the port info
     int curr_metal = 1; // FIXME: = get_port_metal() or something like that
     int is_first_conn = 1;
-    int num_deltas = net_get_num_deltas(net);
     int table_pos = 1;
 
-    for(int i = 0; i < num_deltas; i++)
+    for(size_t i = 0; i < vector_size(deltas); i++)
     {
-        struct rpoint *point = net_get_delta(net, i);
+        //const struct rpoint *point = net_get_delta(net, i);
+        const struct rpoint *point = vector_get_const(deltas, i);
         if(point_get_score(point) == PORT)
         {
             if(i != 0)
@@ -224,12 +224,13 @@ int lrouter_route(lua_State* L)
     {
         nets_fill_ports(nc->nets, field);
         struct net* net = vector_get(nc->nets, i);
-        route(net, field);
+        struct vector* deltas = route(net, field);
         nets_fill_ports(nc->nets, field);
 
         if(net_is_routed(net))
         {
-            _create_routing_stack_data(L, net);
+            const char* name = net_get_name(net);
+            _create_routing_stack_data(L, name, net, deltas);
             lua_rawseti(L, -2, routed_count + 1);
             routed_count++;
         }

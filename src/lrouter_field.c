@@ -264,7 +264,7 @@ void field_create_blockage(struct field* field, struct rpoint* start,
     }
 }
 
-int point_get_score(struct rpoint *point)
+int point_get_score(const struct rpoint *point)
 {
     return point->score;
 }

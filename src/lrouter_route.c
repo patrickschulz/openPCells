@@ -154,7 +154,7 @@ static int _has_same_coords(struct rpoint *point, struct position *pos)
     return (point->x == pos->x && point->y == pos->y && point->z == pos->z);
 }
 
-void _backtrace(struct field *field, struct net *net, struct position *startpos, struct position *endpos, struct vector *pathpoints)
+void _backtrace(struct field *field, struct position *startpos, struct position *endpos, struct vector *pathpoints, struct vector* deltas)
 {
     struct rpoint current = { .x = endpos->x, .y = endpos->y, .z = endpos->z };
     struct rpoint oldpoint = {.x = UINT_MAX, .y = UINT_MAX, .z = UINT_MAX, .score = INT_MAX};
@@ -240,11 +240,13 @@ void _backtrace(struct field *field, struct net *net, struct position *startpos,
         if(_has_same_coords(&current, endpos))
         {
             diff_point = point_new(endpos->x, endpos->y, endpos->z, PORT);
-            net_append_delta(net, diff_point);
+            //net_append_delta(net, diff_point);
+            vector_append(deltas, diff_point);
         }
 
         diff_point = point_new(xdiff, ydiff, zdiff, PATH);
-        net_append_delta(net, diff_point);
+        //net_append_delta(net, diff_point);
+        vector_append(deltas, diff_point);
 
         oldpoint.x = current.x;
         oldpoint.x = current.y;
@@ -351,7 +353,7 @@ static void _fill_thread_date(
     tdate->port_index = port_index;
 }
 
-void route(struct net *net, struct field* field)
+struct vector* route(struct net *net, struct field* field)
 {
     //printf("\n\nrouting %s\n", net_get_name(net));
 
@@ -380,6 +382,7 @@ void route(struct net *net, struct field* field)
     
     struct thread_data *tdates;
 
+    struct vector* deltas = vector_create(1, free);
     while(net_get_size(net) > 1)
     {
         tdates = _init_thread_dates(num_cpus);
@@ -439,7 +442,7 @@ void route(struct net *net, struct field* field)
         }
         /* look for path again to prepare the field for the backtrace */
         _find_path(field, &minimum_startpos, &minimum_endpos);
-        _backtrace(field, net, &minimum_startpos, &minimum_endpos, pathpoints);
+        _backtrace(field, &minimum_startpos, &minimum_endpos, pathpoints, deltas);
 
         net_remove_position(net, min_port_index);
         field_reset(field);
@@ -448,11 +451,13 @@ void route(struct net *net, struct field* field)
 
     _mark_as_route(field, pathpoints);
     net_mark_as_routed(net);
-    net_make_deltas(net);
+    struct vector* new_deltas = net_make_deltas(deltas);
 
     vector_destroy(pathpoints);
     net_destroy(net_backup);
     free(thread_ids);
     free(tdates);
+
+    return new_deltas;
 }
 

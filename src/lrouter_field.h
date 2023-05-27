@@ -27,7 +27,7 @@ void field_create_blockage(struct field* field, struct rpoint* start,
 			   struct rpoint* end);
 
 struct rpoint *point_new(int x, int y, int z, unsigned int score);
-int point_get_score(struct rpoint *point);
+int point_get_score(const struct rpoint *point);
 
 size_t field_get_width(struct field* field);
 size_t field_get_height(struct field* field);
