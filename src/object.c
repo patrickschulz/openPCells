@@ -302,14 +302,13 @@ void object_add_shape(struct object* cell, struct shape* S)
 
 struct shape* object_disown_shape(struct object* cell, size_t idx)
 {
-    struct shape* shape = vector_get(cell->shapes, idx);
-    vector_remove(cell->shapes, idx, NULL);
+    struct shape* shape = vector_disown_element(cell->shapes, idx);
     return shape;
 }
 
 void object_remove_shape(struct object* cell, size_t idx)
 {
-    vector_remove(cell->shapes, idx, shape_destroy);
+    vector_remove(cell->shapes, idx);
 }
 
 struct object* object_add_child(struct object* cell, struct object* child, const char* name)

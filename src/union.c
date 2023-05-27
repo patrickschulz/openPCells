@@ -155,7 +155,7 @@ size_t union_rectangle_all(struct vector* rectangles)
         {
             vector_set(rectangles, i, result);
             shape_destroy(rect1);
-            vector_remove(rectangles, j, (void (*)(void*))shape_destroy);
+            vector_remove(rectangles, j);
             // restart iteration
             i = 0;
             j = 1;

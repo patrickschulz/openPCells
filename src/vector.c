@@ -106,6 +106,17 @@ void* vector_disown_content(struct vector* vector)
     return content;
 }
 
+void* vector_disown_element(struct vector* vector, size_t index)
+{
+    void* element = vector->elements[index];
+    for(size_t i = index + 1; i < vector->size; ++i)
+    {
+        vector->elements[i - 1] = vector->elements[i];
+    }
+    --vector->size;
+    return element;
+}
+
 void vector_set(struct vector* vector, size_t i, void* element)
 {
     vector->elements[i] = element;
@@ -132,11 +143,11 @@ void vector_prepend(struct vector* vector, void* element)
     vector->size += 1;
 }
 
-void vector_remove(struct vector* vector, size_t index, void (*destructor)(void*))
+void vector_remove(struct vector* vector, size_t index)
 {
-    if(destructor)
+    if(vector->destructor)
     {
-        destructor(vector->elements[index]);
+        vector->destructor(vector->elements[index]);
     }
     for(size_t i = index + 1; i < vector->size; ++i)
     {

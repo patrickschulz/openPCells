@@ -156,7 +156,7 @@ static void _remove_superfluous_points(struct vector* pts)
         point_t* pt3 = vector_get(pts, index + 2);
         if(_collinear(pt1, pt2, pt3))
         {
-            vector_remove(pts, index + 1, point_destroy);
+            vector_remove(pts, index + 1);
         }
         else
         {
@@ -169,7 +169,7 @@ static void _remove_superfluous_points(struct vector* pts)
         point_t* lastpt = vector_get(pts, vector_size(pts) - 1);
         if(firstpt->x == lastpt->x && firstpt->y == lastpt->y)
         {
-            vector_remove(pts, vector_size(pts) - 1, point_destroy);
+            vector_remove(pts, vector_size(pts) - 1);
         }
     }
 }

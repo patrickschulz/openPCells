@@ -355,8 +355,6 @@ static void _fill_thread_date(
 
 struct vector* route(struct net *net, struct field* field)
 {
-    //printf("\n\nrouting %s\n", net_get_name(net));
-
     int num_cpus = NUM_CPUS();
     int min_port_index = INT_MAX;
 

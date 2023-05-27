@@ -150,7 +150,7 @@ static struct rpoint *net_copy_delta(struct vector* deltas, int i)
 
 void net_remove_position(struct net *net, unsigned int i)
 {
-    vector_remove(net->positions, i, net_destroy_position);
+    vector_remove(net->positions, i);
 }
 
 const struct position *net_get_position(const struct net *net, size_t i)
