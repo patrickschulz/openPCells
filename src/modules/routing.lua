@@ -1,7 +1,7 @@
 local M = {}
 
-local function _get_blockages(instances, reference)
-    for i, instance in ipairs(instances) do
+local function _get_blockages(circuit, reference)
+    for i, instance in ipairs(circuit.instances) do
         if instance.reference == reference then
             return instance.blockages
         end
@@ -9,10 +9,10 @@ local function _get_blockages(instances, reference)
     return nil
 end
 
-local function _prepare_routing_nets(nets, rows, numinnerroutes, pnumtracks, nnumtracks, instances)
+local function _prepare_routing_nets(circuit, rows, numinnerroutes, pnumtracks, nnumtracks)
     local netpositions = {}
     local blockages = {}
-    for i, net in ipairs(nets) do
+    for i, net in ipairs(circuit.nets) do
         for r, row in ipairs(rows) do
             local curwidth = 0
             for c, column in ipairs(row) do
@@ -35,7 +35,7 @@ local function _prepare_routing_nets(nets, rows, numinnerroutes, pnumtracks, nnu
                                 row = r
                             })
                             -- calc blockage coordinates
-                            local blockblockages = _get_blockages(instances, column.reference)
+                            local blockblockages = _get_blockages(circuit, column.reference)
                             if blockblockages then
                                 for h, blockageroute in ipairs(blockblockages) do
                                     route = {}
@@ -59,18 +59,25 @@ local function _prepare_routing_nets(nets, rows, numinnerroutes, pnumtracks, nnu
             end
         end
     end
+
+    -- remove nets with only one port
+    for i = #netpositions, 1, -1 do
+        local pos = netpositions[i]
+        if #pos.positions < 2 then
+            table.remove(netpositions, i)
+        end
+    end
     return netpositions, blockages
 end
 
-function M.legalize(nets, rows, numinnerroutes, pnumtracks, nnumtracks, floorplan, instances)
-    local netpositions, blockages = _prepare_routing_nets(nets, rows, numinnerroutes, pnumtracks, nnumtracks, instances)
+function M.legalize(circuit, rows, numinnerroutes, pnumtracks, nnumtracks, floorplan)
+    local netpositions, blockages = _prepare_routing_nets(circuit, rows, numinnerroutes, pnumtracks, nnumtracks)
     -- call router here
     -- per full row insert one powerrail (except for the first row)
     local height = floorplan.floorplan_height * (pnumtracks + nnumtracks + numinnerroutes)
     height = height + math.floor(height / (pnumtracks + nnumtracks + numinnerroutes)) - 1
-    print(floorplan.floorplan_height)
 
-    local routednets, numroutednets = router.route(netpositions, blockages, floorplan.floorplan_width, height)
+    local routednets = router.route(netpositions, blockages, floorplan.floorplan_width, height)
     return routednets
 end
 

@@ -78,12 +78,12 @@ function M.create_floorplan_aspectratio(instances, utilization, aspectratio)
     return options
 end
 
-function M.create_floorplan_fixed_rows(instances, utilization, numrows)
+function M.create_floorplan_fixed_rows(circuit, utilization, numrows)
     -- placer options
-    if #instances < numrows then
-        moderror(string.format("placement.create_floorplan_fixed_rows: number of rows (%d) must not be larger than number of instances (%d)", numrows, #instances))
+    if #circuit.instances < numrows then
+        moderror(string.format("placement.create_floorplan_fixed_rows: number of rows (%d) must not be larger than number of instances (%d)", numrows, #circuit.instances))
     end
-    local required_min_width, total_width = _get_geometry(instances)
+    local required_min_width, total_width = _get_geometry(circuit.instances)
     local options = _create_options(numrows, required_min_width, total_width, utilization) -- aspectratio not used
     return options
 end
@@ -96,19 +96,19 @@ function _sanitize_rows(rows)
     end
 end
 
-function M.optimize(instances, nets, floorplan)
-    local rows = placer.place_simulated_annealing(instances, nets, floorplan)
+function M.optimize(circuit, floorplan)
+    local rows = placer.place_simulated_annealing(circuit.instances, circuit.nets, floorplan)
     _sanitize_rows(rows) -- removes empty rows
     return rows
 end
 
-function M.manual(instances, names)
+function M.manual(circuit, names)
     local rows = {}
     local processed = {}
     for _, rownames in ipairs(names) do
         local row = {}
         for _, name in ipairs(rownames) do
-            for _, inst in ipairs(instances) do
+            for _, inst in ipairs(circuit.instances) do
                 if inst.instance == name then
                     processed[name] = true
                     table.insert(row, inst)

@@ -8,6 +8,14 @@ This module provides a collection of geometry-related helper functions such as:
 
 local M = {}
 
+function M.sum(t)
+    local sum = 0
+    for _, e in ipairs(t) do
+        sum = sum + e
+    end
+    return sum
+end
+
 function M.xmirror(pts, xcenter)
     local mirrored = {}
     xcenter = xcenter or 0

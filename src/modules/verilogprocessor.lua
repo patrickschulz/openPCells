@@ -45,7 +45,10 @@ function M.collect_nets_cells(netlist, cellinfo, ignorednets)
             })
         end
     end
-    return instances, nets
+    return {
+        instances = instances,
+        nets = nets
+    }
 end
 
 function M.write_spice_netlist(filename, netlist)
