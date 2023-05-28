@@ -31,8 +31,9 @@ struct vector* vector_create(size_t capacity, void (*destructor)(void*))
     return vector;
 }
 
-void vector_destroy(struct vector* vector)
+void vector_destroy(void* v)
 {
+    struct vector* vector = v;
     if(vector->destructor)
     {
         for(size_t i = 0; i < vector->size; ++i)
