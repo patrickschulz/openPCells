@@ -643,6 +643,8 @@ void technology_destroy(struct technology_state* techstate)
     hashmap_destroy(techstate->layermap, NULL);
     vector_destroy(techstate->extra_layers); // (externally) premapped layers are owned by the layer map
 
+    _destroy_layer(techstate->empty_layer);
+
     free(techstate);
 }
 
