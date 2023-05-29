@@ -103,7 +103,7 @@ static struct netcollection* _initialize(lua_State* L)
     /* blockages */
     // FIXME: the destructor for blockages looks wrong
     size_t num_blockages = lua_rawlen(L, 2);
-    struct vector* blockages = vector_create(num_blockages, free);
+    struct vector* blockages = vector_create(num_blockages, vector_destroy);
     for(size_t i = 1; i <= num_blockages; i++)
     {
         lua_geti(L, 2, i);
@@ -238,6 +238,7 @@ int lrouter_route(lua_State* L)
         {
             // FIXME: abort?
         }
+        vector_destroy(deltas);
     }
 
     field_destroy(field);
