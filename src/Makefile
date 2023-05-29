@@ -1,11 +1,12 @@
 PROGNAME=opc
 
 CC= gcc
-# for production purposes
-# FIXME: set environment in appropriate targets
-#CFLAGS= -std=c99 -O3 -Wall -Wextra -Werror=implicit-function-declaration -Werror=int-conversion -Wstrict-prototypes -pthread $(SYSCFLAGS) $(MYCFLAGS)
-# for debugging purposes
-CFLAGS= -std=c99 -O0 -g -Wall -Wextra -Werror=return-type -Werror=implicit-function-declaration -Werror=int-conversion -Werror=discarded-qualifiers -Wstrict-prototypes -pthread $(SYSCFLAGS) $(MYCFLAGS)
+
+CFLAGS= -std=c99 -O3 -Wall -Wextra -Werror=implicit-function-declaration -Werror=int-conversion -Wstrict-prototypes -pthread
+ifeq ($(DEBUG), 1)
+    CFLAGS= -std=c99 -O0 -g -fsanitize=address -fsanitize=leak -fsanitize=undefined -Wall -Wextra -Werror=return-type -Werror=implicit-function-declaration -Werror=int-conversion -Werror=discarded-qualifiers -Wstrict-prototypes -pthread
+endif
+
 LDFLAGS= $(SYSLDFLAGS) $(MYLDFLAGS)
 LIBS= -lm $(SYSLIBS) $(MYLIBS)
 
@@ -13,10 +14,6 @@ AR= ar rcu
 RANLIB= ranlib
 RM= rm -f
 UNAME= uname
-
-SYSCFLAGS=
-SYSLDFLAGS=
-SYSLIBS=
 
 OPCOBJ:= cmdoptions.o export_common.o export.o export_writer.o filesystem.o gdsexport.o gdsparser.o geometry.o geometry_triangulate.o graphics.o hashmap.o info.o ldebug.o ldir.o lgenerics.o lgeometry.o lobject.o lplacer_classic.o lplacer_common.o lplacer_nonoverlapping.o lplacer.o lplacer_rand.o lpoint.o lrouter_field.o lrouter_min_heap.o lrouter_moves.o lrouter_net.o lrouter.o lrouter_queue.o lrouter_route.o lua_util.o main.api_help.o main.cell.o main.functions.o main.gds.o main.verilog.o object.o pcell.o point.o postprocess.o shape.o tagged_value.o technology.o terminal_colors.o transformationmatrix.o union.o util.o vector.o
 
