@@ -249,7 +249,7 @@ struct vector* net_make_deltas(struct vector* deltas)
     return new_deltas;
 }
 
-struct position *net_point_to_position(struct rpoint *point)
+struct position *net_point_to_position(const struct rpoint *point)
 {
     struct position *pos = net_create_position("NOINST", "NOPORT", point->x, point->y, point->z);
     return pos;
