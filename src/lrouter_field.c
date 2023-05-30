@@ -96,9 +96,9 @@ size_t field_get_num_layers(struct field* field)
     return field->num_layers;
 }
 
-int field_is_field_point(const struct field* field, size_t x, size_t y, size_t z)
+int field_is_field_point(const struct field* field, struct rpoint pt)
 {
-    return x < field->width && y < field->height && z < field->num_layers;
+    return pt.x < field->width && pt.y < field->height && pt.z < field->num_layers;
 }
 
 int field_is_visitable(const struct field* field, size_t x, size_t y, size_t z)
