@@ -125,7 +125,8 @@ static int _load_config(struct hashmap* config)
 
 void _print_general_info(void)
 {
-    puts("This is the openPCell layout generator.");
+    printf("This is the openPCell layout generator (opc), version %u.%u.%u.\n", OPC_VERSION_MAJOR, OPC_VERSION_MINOR, OPC_VERSION_REVISION);
+    puts("Copyright 2020-2023 Patrick Kurth");
     puts("To generate a layout, you need to pass the technology, the export type and a cellname.");
     puts("Example:");
     puts("         opc --technology opc --export gds --cell stdcells/not_gate");
@@ -160,7 +161,7 @@ int main(int argc, const char* const * argv)
     if(cmdoptions_was_provided_long(cmdoptions, "version"))
     {
         printf("openPCells (opc) %u.%u.%u\n", OPC_VERSION_MAJOR, OPC_VERSION_MINOR, OPC_VERSION_REVISION);
-        puts("Copyright 2020-2022 Patrick Kurth");
+        puts("Copyright 2020-2023 Patrick Kurth");
         goto DESTROY_CMDOPTIONS;
     }
     FILE* pfd_f = NULL;
