@@ -274,6 +274,11 @@ function layout(transistor, _P)
             point.create(gateblx + (i - 1) * gatepitch, gatebly),
             point.create(gatetrx + (i - 1) * gatepitch, gatetry)
         )
+        transistor:add_area_anchor_bltr(
+            string.format("gate-%d", i),
+            point.create(gateblx + (_P.fingers - i) * gatepitch, gatebly),
+            point.create(gatetrx + (_P.fingers - i) * gatepitch, gatetry)
+        )
     end
     transistor:add_area_anchor_bltr(
         "leftgate",
