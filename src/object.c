@@ -1266,6 +1266,7 @@ void object_width_height_alignmentbox(const struct object* cell, ucoordinate_t* 
     coordinate_t* ab = _get_transformed_alignment_box(cell);
     *width = _alignmentbox_get_outertrx(ab) - _alignmentbox_get_outerblx(ab);
     *height = _alignmentbox_get_outertry(ab) - _alignmentbox_get_outerbly(ab);
+    free(ab);
 }
 
 void object_foreach_shapes(struct object* cell, void (*func)(struct shape*))

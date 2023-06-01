@@ -27,6 +27,15 @@ static struct buffer* _create_buffer(void)
     return buffer;
 }
 
+static void _destroy_buffer(struct buffer* buffer)
+{
+    if(buffer->data)
+    {
+        free(buffer->data);
+    }
+    free(buffer);
+}
+
 static void _append_to_buffer(struct buffer* buffer, char ch)
 {
     while(buffer->length + 1 > buffer->capacity)
@@ -125,6 +134,7 @@ int main(int argc, char** argv)
     }
 	fputs("\n}\n", cfile);
     fclose(cfile);
+    _destroy_buffer(buffer);
 
     return 0;
 }

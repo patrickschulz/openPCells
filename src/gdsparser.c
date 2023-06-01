@@ -858,6 +858,7 @@ int _check_lpp(int16_t layer, int16_t purpose, const struct vector* ignorelpp)
 
 static int _read_TEXT(struct stream* stream, char** str, int16_t* layer, int16_t* purpose, point_t* origin, double* angle, int** transformation)
 {
+    int readlayer = 0;
     while(1)
     {
         struct record* record = _get_next_record(stream);
@@ -878,6 +879,7 @@ static int _read_TEXT(struct stream* stream, char** str, int16_t* layer, int16_t
             int16_t* pdata = _parse_two_byte_integer(record->data, 2);
             *layer = *pdata;
             free(pdata);
+            readlayer = 1;
         }
         else if(record->recordtype == TEXTTYPE)
         {
@@ -916,7 +918,7 @@ static int _read_TEXT(struct stream* stream, char** str, int16_t* layer, int16_t
             return 0;
         }
     }
-    return 1;
+    return readlayer;
 }
 
 static struct cellref* _read_SREF_AREF(struct stream* stream, int isAREF)
@@ -1048,6 +1050,7 @@ static void _write_cellref(FILE* cellfile, const char* importname, const struct 
 
 static int _read_BOUNDARY(struct stream* stream, int16_t* layer, int16_t* purpose, coordinate_t** points, size_t* size)
 {
+    int readlayer = 0;
     while(1)
     {
         struct record* record = _get_next_record(stream);
@@ -1068,6 +1071,7 @@ static int _read_BOUNDARY(struct stream* stream, int16_t* layer, int16_t* purpos
             int16_t* pdata = _parse_two_byte_integer(record->data, 2);
             *layer = *pdata;
             free(pdata);
+            readlayer = 1;
         }
         else if(record->recordtype == DATATYPE)
         {
@@ -1098,7 +1102,7 @@ static int _read_BOUNDARY(struct stream* stream, int16_t* layer, int16_t* purpos
             return 0;
         }
     }
-    return 1;
+    return readlayer;
 }
 
 //static void _write_BOUNDARY(FILE* cellfile, int16_t layer, int16_t purpose, const struct vector* points, const struct vector* gdslayermap)
@@ -1143,6 +1147,7 @@ static void _write_BOUNDARY(FILE* cellfile, int16_t layer, int16_t purpose, cons
 
 static int _read_PATH(struct stream* stream, int16_t* layer, int16_t* purpose, struct vector** points, coordinate_t* width)
 {
+    int readlayer = 0;
     while(1)
     {
         struct record* record = _get_next_record(stream);
@@ -1163,6 +1168,7 @@ static int _read_PATH(struct stream* stream, int16_t* layer, int16_t* purpose, s
             int16_t* pdata = _parse_two_byte_integer(record->data, 2);
             *layer = *pdata;
             free(pdata);
+            readlayer = 1;
         }
         else if(record->recordtype == DATATYPE)
         {
@@ -1202,7 +1208,7 @@ static int _read_PATH(struct stream* stream, int16_t* layer, int16_t* purpose, s
             return 0;
         }
     }
-    return 1;
+    return readlayer;
 }
 
 static void _write_PATH(FILE* cellfile, int16_t layer, int16_t purpose, const struct vector* points, coordinate_t width, const struct vector* gdslayermap)
@@ -1265,7 +1271,6 @@ static int _read_structure(const char* importname, struct stream* stream, const 
             {
                 _write_BOUNDARY(cellfile, layer, purpose, points, numpoints, gdslayermap);
             }
-            free(points);
             // alignment box
             if(ablayer && abpurpose && layer == *ablayer && purpose == *abpurpose)
             {
@@ -1273,6 +1278,7 @@ static int _read_structure(const char* importname, struct stream* stream, const 
                 _rectangle_coordinates(points, &abblx, &abbly, &abtrx, &abtry);
                 fprintf(cellfile, "    cell:set_alignment_box(point.create(%lld, %lld), point.create(%lld, %lld))\n", abblx, abbly, abtrx, abtry);
             }
+            free(points);
         }
         else if(record->recordtype == BOX)
         {
@@ -1300,7 +1306,11 @@ static int _read_structure(const char* importname, struct stream* stream, const 
             char* str;
             double angle = 0.0;
             int* transformation = NULL;
-            _read_TEXT(stream, &str, &layer, &purpose, &origin, &angle, &transformation);
+            int success = _read_TEXT(stream, &str, &layer, &purpose, &origin, &angle, &transformation);
+            if(!success)
+            {
+                return 0;
+            }
             if(_check_lpp(layer, purpose, ignorelpp))
             {
                 fprintf(cellfile, "    cell:add_port(\"%s\", ", str);

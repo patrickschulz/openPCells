@@ -15,8 +15,8 @@
 #define POSITIVE(val) (val > 0)
 #define NUM_DIRECTIONS 6
 
-#define NUM_CPUS() (get_nprocs())
-//#define NUM_CPUS() (2)
+//#define NUM_CPUS() (get_nprocs())
+#define NUM_CPUS() (1)
 
 #define STEP_COST 2
 #define VIA_COST 63
@@ -31,19 +31,19 @@ static inline struct rpoint _min_next_point(const struct rpoint *nextpoints)
     struct rpoint min_point = { .score = INT_MAX };
     for(int i = 0; i < NUM_DIRECTIONS; i++)
     {
-        min_point = (nextpoints[i].score < min_point.score) ?
-            nextpoints[i] : min_point;
+        min_point = (nextpoints[i].score < min_point.score) ? nextpoints[i] : min_point;
     }
     return min_point;
 }
 
-static int _next_field_position(int i, const struct rpoint* current,
-        struct rpoint* next)
+static struct rpoint _next_field_position(int i, const struct rpoint* current)
 {
-    next->x = current->x + xincr[i];
-    next->y = current->y + yincr[i];
-    next->z = current->z + zincr[i];
-    return 1;
+    struct rpoint next = {
+        .x = current->x + xincr[i],
+        .y = current->y + yincr[i],
+        .z = current->z + zincr[i]
+    };
+    return next;
 }
 
 static int _get_cost_increment(struct rpoint current, struct rpoint next)
@@ -68,33 +68,34 @@ static int _is_unvisited(int nextfield)
     return nextfield == UNVISITED;
 }
 
-static int _is_final_port(int nextfield, struct rpoint next,
-        struct position* endpos)
-{
-    return nextfield == PORT && next.x == endpos->x && next.y == endpos->y &&
-        next.z == endpos->z;
-}
-
 static int _is_smaller_score(int score, int score_incr, int nextfield)
 {
     return (score + score_incr) < nextfield;
 }
 
-static int _find_path(struct field *field, struct position *startpos, struct position *endpos)
+static int _has_same_coords(const struct rpoint *point, const struct position *pos)
+{
+    return (point->x == pos->x && point->y == pos->y && point->z == pos->z);
+}
+
+static int _is_final_port(int nextfield, struct rpoint next, const struct position* endpos)
+{
+    return nextfield == PORT && _has_same_coords(&next, endpos);
+}
+
+static int _find_path(struct field *field, const struct position *startpos, const struct position *endpos)
 {
     /* put starting point in min_heap */
     int routing_cost = INT_MAX;
     struct minheap* min_heap = heap_init();
     heap_insert_point(min_heap, startpos->x, startpos->y, startpos->z, 0);
 
-    struct rpoint current = { .x = startpos->x, .y = startpos->y,
-        .z = startpos->z };
+    struct rpoint current = { .x = startpos->x, .y = startpos->y, .z = startpos->z };
 
     field_set(field, startpos->x, startpos->y, startpos->z, 0);
 
     /* do as long as there are points to be marked or endpoint is reached */
-    while(!(current.x == endpos->x && current.y == endpos->y &&
-                current.z == endpos->z))
+    while(!_has_same_coords(&current, endpos))
     {
         /* get next point from heap */
         struct rpoint* point_ptr = heap_get_point(min_heap);
@@ -110,13 +111,9 @@ static int _find_path(struct field *field, struct position *startpos, struct pos
         /* circle around every point */
         for(int i = 0; i < NUM_DIRECTIONS; i++)
         {
-            struct rpoint next;
-            if(!_next_field_position(i, &current, &next))
-            {
-                continue;
-            }
+            struct rpoint next = _next_field_position(i, &current);
 
-            if(!field_is_field_point(field, next.x, next.y, next.z))
+            if(!field_is_field_point(field, next))
             {
                 continue;
             }
@@ -132,8 +129,7 @@ static int _find_path(struct field *field, struct position *startpos, struct pos
             {
                 routing_cost = score + score_incr;
                 field_set(field, next.x, next.y, next.z, routing_cost);
-                heap_insert_point(min_heap, next.x, next.y, next.z,
-                        routing_cost);
+                heap_insert_point(min_heap, next.x, next.y, next.z, routing_cost);
             }
         }
 
@@ -147,11 +143,6 @@ static int _find_path(struct field *field, struct position *startpos, struct pos
     }
     heap_destroy(min_heap);
     return routing_cost;
-}
-
-static int _has_same_coords(struct rpoint *point, struct position *pos)
-{
-    return (point->x == pos->x && point->y == pos->y && point->z == pos->z);
 }
 
 void _backtrace(struct field *field, struct position *startpos, struct position *endpos, struct vector *pathpoints, struct vector* deltas)
@@ -168,12 +159,9 @@ void _backtrace(struct field *field, struct position *startpos, struct position 
         /* circle around every point + check layer above and below store possible points in array */
         for(int i = 0; i < NUM_DIRECTIONS; i++)
         {
-            struct rpoint next;
-            next.x = current.x + xincr[i];
-            next.y = current.y + yincr[i];
-            next.z = current.z + zincr[i];
+            struct rpoint next = _next_field_position(i, &current);
 
-            if(!field_is_field_point(field, next.x, next.y, next.z))
+            if(!field_is_field_point(field, next))
             {
                 continue;
             }
@@ -185,8 +173,7 @@ void _backtrace(struct field *field, struct position *startpos, struct position 
                 continue;
             }
 
-            int is_wrong_dir = (yincr[i] && EVEN(current.z)) ||
-                (xincr[i] && !EVEN(current.z));
+            int is_wrong_dir = (yincr[i] && EVEN(current.z)) || (xincr[i] && !EVEN(current.z));
 
             int is_reachable =
                 ((score - nextfield) == VIA_COST) ||
@@ -240,12 +227,10 @@ void _backtrace(struct field *field, struct position *startpos, struct position 
         if(_has_same_coords(&current, endpos))
         {
             diff_point = point_new(endpos->x, endpos->y, endpos->z, PORT);
-            //net_append_delta(net, diff_point);
             vector_append(deltas, diff_point);
         }
 
         diff_point = point_new(xdiff, ydiff, zdiff, PATH);
-        //net_append_delta(net, diff_point);
         vector_append(deltas, diff_point);
 
         oldpoint.x = current.x;
@@ -288,8 +273,7 @@ void _mark_as_route(struct field *field, struct vector *pathpoints)
     }
 }
 
-static int _curr_min_routing_cost_index(struct thread_data *tdata,
-        int issued_threads)
+static const struct thread_data* _curr_min_routing_cost_index(struct thread_data *tdata, int issued_threads)
 {
     int min_cost = INT_MAX;
     int min_i = INT_MAX;
@@ -307,7 +291,14 @@ static int _curr_min_routing_cost_index(struct thread_data *tdata,
             min_i = i;
         }
     }
-    return min_i;
+    if(min_i != INT_MAX)
+    {
+        return tdata + min_i;
+    }
+    else
+    {
+        return NULL;
+    }
 }
 
 static struct thread_data *_init_thread_dates(int num_cpus)
@@ -353,14 +344,10 @@ static void _fill_thread_date(
     tdate->port_index = port_index;
 }
 
-struct vector* route(struct net *net, struct field* field)
+static struct vector* _route_single_threaded(struct net *net, struct field* field)
 {
-    int num_cpus = NUM_CPUS();
     int min_port_index = INT_MAX;
 
-    pthread_t *thread_ids = _init_thids(num_cpus);
-
-    struct position *startpos = NULL;
     struct position minimum_endpos;
     struct position minimum_startpos;
 
@@ -377,7 +364,87 @@ struct vector* route(struct net *net, struct field* field)
      * repeat until all ports are reached
      */
     struct net *net_backup = net_copy(net);
-    
+
+    struct vector* deltas = vector_create(1, free);
+    while(net_get_size(net) > 1)
+    {
+        printf("net size: %d\n", net_get_size(net));
+        struct position* startpos = NULL;
+        int port_index = 1;
+
+        int pathpoint_size = vector_size(pathpoints);
+        int min_routing_cost = INT_MAX;
+
+        for(int i = 0; i < pathpoint_size; i++)
+        {
+            /*
+             * get the next starting point from the list and check for the
+             * cheapest way to reach any of the end ports (single-threaded)
+             */
+            startpos = net_point_to_position(vector_get_const(pathpoints, i));
+
+            const struct position *endpos = net_get_position(net, port_index);
+            int routing_cost = _find_path(field, startpos, endpos);
+
+            if(routing_cost < min_routing_cost)
+            {
+                min_routing_cost = routing_cost;
+                minimum_startpos = *startpos;
+                minimum_endpos = *endpos;
+                min_port_index = port_index;
+            }
+            net_destroy_position(startpos);
+        }
+        if(min_routing_cost == INT_MAX)
+        {
+            // FIXME: this is a critical error and should abort the entire routing process
+            printf("%s\n", "not routable");
+            break;
+        }
+        /* look for path again to prepare the field for the backtrace */
+        _find_path(field, &minimum_startpos, &minimum_endpos);
+        _backtrace(field, &minimum_startpos, &minimum_endpos, pathpoints, deltas);
+
+        net_remove_position(net, min_port_index);
+        field_reset(field);
+    }
+    net_restore_positions(net, net_backup);
+
+    _mark_as_route(field, pathpoints);
+    net_mark_as_routed(net);
+    struct vector* new_deltas = net_make_deltas(deltas);
+    vector_destroy(deltas);
+
+    vector_destroy(pathpoints);
+    net_destroy(net_backup);
+
+    return new_deltas;
+}
+
+static struct vector* _route_multi_threaded(struct net *net, struct field* field)
+{
+    int num_cpus = NUM_CPUS();
+    int min_port_index = INT_MAX;
+
+    struct position minimum_endpos;
+    struct position minimum_startpos;
+
+    pthread_t *thread_ids = _init_thids(num_cpus);
+
+    struct vector *pathpoints = vector_create(1, free);
+
+    /* append first port of net to position vector */
+    vector_append(pathpoints, net_position_to_point(net_get_position(net, 0)));
+
+    /*
+     * for every possible point do a route search,
+     * get the next point with the lowest routing cost,
+     * backtrace and add the new backtrace points to the
+     * possible points vector
+     * repeat until all ports are reached
+     */
+    struct net *net_backup = net_copy(net);
+
     struct thread_data *tdates;
 
     struct vector* deltas = vector_create(1, free);
@@ -385,7 +452,6 @@ struct vector* route(struct net *net, struct field* field)
     {
         tdates = _init_thread_dates(num_cpus);
 
-        //printf("netsize %i\n", net_get_size(net));
         int pathpoint_size = vector_size(pathpoints);
         int issued_threads = 0;
         int min_routing_cost = INT_MAX;
@@ -394,9 +460,9 @@ struct vector* route(struct net *net, struct field* field)
         {
             /*
              * get the next starting point from the list and check for the
-             * cheapest way to reach any of the end ports (multithreaded)
+             * cheapest way to reach any of the end ports (multi-threaded)
              */
-            startpos = net_point_to_position(vector_get(pathpoints, i));
+            struct position* startpos = net_point_to_position(vector_get_const(pathpoints, i));
             int net_size = net_get_size(net);
 
             for(int j = 1; j < net_size && issued_threads < NUM_CPUS(); j++)
@@ -418,14 +484,17 @@ struct vector* route(struct net *net, struct field* field)
                     pthread_join(thread_ids[z], NULL);
                 }
 
-                int min_i = _curr_min_routing_cost_index(tdates, issued_threads);
+                const struct thread_data* minthread = _curr_min_routing_cost_index(tdates, issued_threads);
 
-                if(min_i < num_cpus && tdates[min_i].routing_cost < min_routing_cost)
+                if(minthread) // routing not possible, could catch this error here
                 {
-                    min_routing_cost = tdates[min_i].routing_cost;
-                    minimum_startpos = *tdates[min_i].startpos;
-                    minimum_endpos = *tdates[min_i].endpos;
-                    min_port_index = tdates[min_i].port_index;
+                    if(minthread->routing_cost < min_routing_cost)
+                    {
+                        min_routing_cost = minthread->routing_cost;
+                        minimum_startpos = *minthread->startpos;
+                        minimum_endpos = *minthread->endpos;
+                        min_port_index = minthread->port_index;
+                    }
                 }
                 _destroy_thread_dates(tdates, issued_threads);
                 issued_threads = 0;
@@ -457,5 +526,12 @@ struct vector* route(struct net *net, struct field* field)
     free(tdates);
 
     return new_deltas;
+}
+
+struct vector* route(struct net *net, struct field* field)
+{
+    printf("routing net '%s'\n", net_get_name(net));
+    //return _route_multi_threaded(net, field);
+    return _route_single_threaded(net, field);
 }
 
