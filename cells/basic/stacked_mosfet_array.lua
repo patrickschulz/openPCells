@@ -42,6 +42,9 @@ function check(_P)
             return false, string.format("row %d does not have a threshold voltage type", rownum)
         end
         for devicenum, device in ipairs(row.devices) do
+            if not device.name then
+                return false, string.format("device %d in row %d does not have a name", devicenum, rownum)
+            end
             if device.connectsource then
                 if not device.connectsourcewidth then
                     return false, string.format("device %d in row %d specified connectsource = true, but did not provide the strap width (connectsourcewidth)", devicenum, rownum)
@@ -163,6 +166,16 @@ function layout(cell, _P)
                                     rowheights[rownum] + row.width + device.connectsourcespace + device.connectsourcewidth
                                 )
                             )
+                            cell:add_area_anchor_bltr(string.format("%ssourcestrap", device.name),
+                                point.create(
+                                    _P.gatelength + (_P.gatespace - _P.sdwidth) / 2 - _P.sdwidth + currentfingers * (_P.gatelength + _P.gatespace) + _P.sdwidth,
+                                    rowheights[rownum] + row.width + device.connectsourcespace
+                                ),
+                                point.create(
+                                    _P.gatelength + (_P.gatespace - _P.sdwidth) / 2 + _P.sdwidth + (currentfingers + device.fingers) * (_P.gatelength + _P.gatespace),
+                                    rowheights[rownum] + row.width + device.connectsourcespace + device.connectsourcewidth
+                                )
+                            )
                         else
                             -- wires
                             geometry.rectanglebltr(cell, generics.metal(device.sourcemetal or 1),
@@ -177,6 +190,16 @@ function layout(cell, _P)
                             )
                             -- strap
                             geometry.rectanglebltr(cell, generics.metal(device.sourcemetal or 1),
+                                point.create(
+                                    _P.gatelength + (_P.gatespace - _P.sdwidth) / 2 - _P.sdwidth + currentfingers * (_P.gatelength + _P.gatespace) + _P.sdwidth,
+                                    rowheights[rownum] - device.connectsourcespace - device.connectsourcewidth
+                                ),
+                                point.create(
+                                    _P.gatelength + (_P.gatespace - _P.sdwidth) / 2 + _P.sdwidth + (currentfingers + device.fingers) * (_P.gatelength + _P.gatespace),
+                                    rowheights[rownum] - device.connectsourcespace
+                                )
+                            )
+                            cell:add_area_anchor_bltr(string.format("%ssourcestrap", device.name),
                                 point.create(
                                     _P.gatelength + (_P.gatespace - _P.sdwidth) / 2 - _P.sdwidth + currentfingers * (_P.gatelength + _P.gatespace) + _P.sdwidth,
                                     rowheights[rownum] - device.connectsourcespace - device.connectsourcewidth
@@ -219,6 +242,16 @@ function layout(cell, _P)
                                     rowheights[rownum] - device.connectdrainspace
                                 )
                             )
+                            cell:add_area_anchor_bltr(string.format("%sdrainstrap", device.name),
+                                point.create(
+                                    (currentfingers + 1) * (_P.gatelength + _P.gatespace) + _P.gatelength + (_P.gatespace - _P.sdwidth) / 2,
+                                    rowheights[rownum] - device.connectdrainspace - device.connectdrainwidth
+                                ),
+                                point.create(
+                                    (currentfingers + device.fingers) * (_P.gatelength + _P.gatespace) - (_P.gatespace - _P.sdwidth) / 2,
+                                    rowheights[rownum] - device.connectdrainspace
+                                )
+                            )
                         else
                             -- wires
                             geometry.rectanglebltr(cell, generics.metal(device.drainmetal),
@@ -233,6 +266,16 @@ function layout(cell, _P)
                             )
                             -- strap
                             geometry.rectanglebltr(cell, generics.metal(device.drainmetal or 1),
+                                point.create(
+                                    (currentfingers + 1) * (_P.gatelength + _P.gatespace) + _P.gatelength + (_P.gatespace - _P.sdwidth) / 2,
+                                    rowheights[rownum] + row.width + device.connectdrainspace
+                                ),
+                                point.create(
+                                    (currentfingers + device.fingers) * (_P.gatelength + _P.gatespace) - (_P.gatespace - _P.sdwidth) / 2,
+                                    rowheights[rownum] + row.width + device.connectdrainspace + device.connectdrainwidth
+                                )
+                            )
+                            cell:add_area_anchor_bltr(string.format("%sdrainstrap", device.name),
                                 point.create(
                                     (currentfingers + 1) * (_P.gatelength + _P.gatespace) + _P.gatelength + (_P.gatespace - _P.sdwidth) / 2,
                                     rowheights[rownum] + row.width + device.connectdrainspace
@@ -272,6 +315,16 @@ function layout(cell, _P)
                         rowheights[rownum] + row.width + device.topgatetrack * (_P.gatestrapwidth + _P.gatestrapspace)
                     )
                 )
+                cell:add_area_anchor_bltr(string.format("%stopgate", device.name),
+                    point.create(
+                        xpitch + currentfingers * (_P.gatelength + _P.gatespace),
+                        rowheights[rownum] + row.width + _P.gatestrapspace + (device.topgatetrack - 1) * (_P.gatestrapwidth + _P.gatestrapspace)
+                    ),
+                    point.create(
+                        xpitch + (currentfingers + device.fingers) * (_P.gatelength + _P.gatespace) - _P.gatespace,
+                        rowheights[rownum] + row.width + device.topgatetrack * (_P.gatestrapwidth + _P.gatestrapspace)
+                    )
+                )
             end
 
             -- bottom gate
@@ -289,6 +342,16 @@ function layout(cell, _P)
                     )
                 end
                 geometry.rectanglebltr(cell, generics.metal(1),
+                    point.create(
+                        xpitch + currentfingers * (_P.gatelength + _P.gatespace),
+                        rowheights[rownum] - separation + _P.gatestrapspace + (device.botgatetrack - 1) * (_P.gatestrapwidth + _P.gatestrapspace)
+                    ),
+                    point.create(
+                        xpitch + (currentfingers + device.fingers) * (_P.gatelength + _P.gatespace) - _P.gatespace,
+                        rowheights[rownum] - separation + device.botgatetrack * (_P.gatestrapwidth + _P.gatestrapspace)
+                    )
+                )
+                cell:add_area_anchor_bltr(string.format("%stopgate", device.name),
                     point.create(
                         xpitch + currentfingers * (_P.gatelength + _P.gatespace),
                         rowheights[rownum] - separation + _P.gatestrapspace + (device.botgatetrack - 1) * (_P.gatestrapwidth + _P.gatestrapspace)
