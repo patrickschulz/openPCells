@@ -2,13 +2,13 @@ function parameters()
     pcell.add_parameters(
         { "gatelength", 40 },
         { "gatespace", 100 },
-        { "gatetracks", 3 },
         { "rows", {} },
         { "sdwidth", 60 },
         { "gatestrapwidth", 60 },
         { "gatestrapspace", 60 },
         { "powerwidth", 200 },
-        { "powerspace", 200 }
+        { "powerspace", 200 },
+        { "separation", 0 }
     )
 end
 
@@ -22,6 +22,12 @@ function check(_P)
             end
             if device.fingers <= 0 then
                 return false, string.format("device %d in row %d has zero or negative amount of fingers (%d)", devicenum, rownum, device.fingers)
+            end
+            if not math.tointeger(device.fingers) then
+                return false, string.format("device %d in row %d has a non-integer number of fingers (%f). This is currently not supported", devicenum, rownum, device.fingers)
+            end
+            if device.fingers % 2 ~= 0 then
+                return false, string.format("device %d in row %d has an odd number of fingers (%d). This is currently not supported", devicenum, rownum, device.fingers)
             end
             f = f + device.fingers
         end
@@ -61,15 +67,28 @@ function check(_P)
                     return false, string.format("device %d in row %d specified connectdrain = true, but did not provide the strap spacing (connectdrainspace)", devicenum, rownum)
                 end
             end
+            if device.drawtopgate then
+                if not device.topgatewidth then
+                    return false, string.format("device %d in row %d specified drawtopgate = true, but did not provide the strap width (topgatewidth)", devicenum, rownum)
+                end
+                if not device.topgatespace then
+                    return false, string.format("device %d in row %d specified drawtopgate = true, but did not provide the strap spacing (topgatespace)", devicenum, rownum)
+                end
+            end
+            if device.drawbotgate then
+                if not device.botgatewidth then
+                    return false, string.format("device %d in row %d specified drawbotgate = true, but did not provide the strap width (botgatewidth)", devicenum, rownum)
+                end
+                if not device.botgatespace then
+                    return false, string.format("device %d in row %d specified drawbotgate = true, but did not provide the strap spacing (botgatespace)", devicenum, rownum)
+                end
+            end
         end
     end
     return true
 end
 
 function layout(cell, _P)
-    local sourcestrapwidth = 80
-    -- derived parameters
-    local separation = _P.gatetracks * _P.gatestrapwidth + (_P.gatetracks + 1) * _P.gatestrapspace
 
     local totalfingers = 0
     for _, row in ipairs(_P.rows) do
@@ -86,7 +105,7 @@ function layout(cell, _P)
     for _, row in ipairs(_P.rows) do
         totalheight = totalheight + row.width
     end
-    totalheight = totalheight + (#_P.rows - 1) * separation
+    totalheight = totalheight + (#_P.rows - 1) * _P.separation
 
     -- cumulative row heights
     local rowheights = {}
@@ -95,7 +114,7 @@ function layout(cell, _P)
         if i == 1 then
             rowheights[i] = 0
         end
-        rowheights[i + 1] = rowheights[i] + row.width + separation
+        rowheights[i + 1] = rowheights[i] + row.width + _P.separation
     end
 
     local xpitch = _P.gatelength + _P.gatespace
@@ -117,14 +136,14 @@ function layout(cell, _P)
 
         -- channeltype
         geometry.rectanglebltr(cell, generics.implant(row.channeltype),
-            point.create(0, rowheights[rownum] - separation / 2),
-            point.create(totalwidth, rowheights[rownum] + row.width + separation / 2)
+            point.create(0, rowheights[rownum] - _P.separation / 2),
+            point.create(totalwidth, rowheights[rownum] + row.width + _P.separation / 2)
         )
 
         -- vthtype
         geometry.rectanglebltr(cell, generics.vthtype(row.channeltype, row.vthtype),
-            point.create(0, rowheights[rownum] - separation / 2),
-            point.create(totalwidth, rowheights[rownum] + row.width + separation / 2)
+            point.create(0, rowheights[rownum] - _P.separation / 2),
+            point.create(totalwidth, rowheights[rownum] + row.width + _P.separation / 2)
         )
 
         -- source/drain contacts
@@ -132,8 +151,24 @@ function layout(cell, _P)
         for _, device in ipairs(row.devices) do
             for finger = 1, device.fingers + 1 do
                 geometry.contactbltr(cell, "sourcedrain",
-                    point.create(_P.gatelength + (_P.gatespace - _P.sdwidth) / 2 + (currentfingers + finger - 1) * (_P.gatelength + _P.gatespace), rowheights[rownum]),
-                    point.create(_P.gatelength + (_P.gatespace - _P.sdwidth) / 2 + (currentfingers + finger - 1) * (_P.gatelength + _P.gatespace) + _P.sdwidth, rowheights[rownum] + row.width)
+                    point.create(
+                        _P.gatelength + (_P.gatespace - _P.sdwidth) / 2 + (currentfingers + finger - 1) * (_P.gatelength + _P.gatespace),
+                        rowheights[rownum]
+                    ),
+                    point.create(
+                        _P.gatelength + (_P.gatespace - _P.sdwidth) / 2 + (currentfingers + finger - 1) * (_P.gatelength + _P.gatespace) + _P.sdwidth,
+                        rowheights[rownum] + row.width
+                    )
+                )
+                cell:add_area_anchor_bltr(string.format("%ssourcedrain%d", device.name, finger),
+                    point.create(
+                        _P.gatelength + (_P.gatespace - _P.sdwidth) / 2 + (currentfingers + finger - 1) * (_P.gatelength + _P.gatespace),
+                        rowheights[rownum]
+                    ),
+                    point.create(
+                        _P.gatelength + (_P.gatespace - _P.sdwidth) / 2 + (currentfingers + finger - 1) * (_P.gatelength + _P.gatespace) + _P.sdwidth,
+                        rowheights[rownum] + row.width
+                    )
                 )
                 if finger % 2 == 1 then
                     if device.sourcemetal and device.sourcemetal > 1 then
@@ -221,7 +256,7 @@ function layout(cell, _P)
                     if device.connectdrain then
                         if device.connectdraininverse then
                             -- wires
-                            geometry.rectanglebltr(cell, generics.metal(device.drainmetal),
+                            geometry.rectanglebltr(cell, generics.metal(device.drainmetal or 1),
                                 point.create(
                                     _P.gatelength + (_P.gatespace - _P.sdwidth) / 2 + (currentfingers + finger - 1) * (_P.gatelength + _P.gatespace),
                                     rowheights[rownum] - device.connectdrainspace
@@ -254,7 +289,7 @@ function layout(cell, _P)
                             )
                         else
                             -- wires
-                            geometry.rectanglebltr(cell, generics.metal(device.drainmetal),
+                            geometry.rectanglebltr(cell, generics.metal(device.drainmetal or 1),
                                 point.create(
                                     _P.gatelength + (_P.gatespace - _P.sdwidth) / 2 + (currentfingers + finger - 1) * (_P.gatelength + _P.gatespace),
                                     rowheights[rownum] + row.width
@@ -297,32 +332,32 @@ function layout(cell, _P)
                     geometry.contactbltr(cell, "gate",
                         point.create(
                             xpitch + (currentfingers + i - 1) * (_P.gatelength + _P.gatespace),
-                            rowheights[rownum] + row.width + _P.gatestrapspace + (device.topgatetrack - 1) * (_P.gatestrapwidth + _P.gatestrapspace)
+                            rowheights[rownum] + row.width + device.topgatespace
                         ),
                         point.create(
                             xpitch + (currentfingers + i - 1) * (_P.gatelength + _P.gatespace) + _P.gatelength,
-                            rowheights[rownum] + row.width + device.topgatetrack * (_P.gatestrapwidth + _P.gatestrapspace)
+                            rowheights[rownum] + row.width + device.topgatespace + device.topgatewidth
                         )
                     )
                 end
                 geometry.rectanglebltr(cell, generics.metal(1),
                     point.create(
                         xpitch + currentfingers * (_P.gatelength + _P.gatespace),
-                        rowheights[rownum] + row.width + _P.gatestrapspace + (device.topgatetrack - 1) * (_P.gatestrapwidth + _P.gatestrapspace)
+                        rowheights[rownum] + row.width + device.topgatespace
                     ),
                     point.create(
                         xpitch + (currentfingers + device.fingers) * (_P.gatelength + _P.gatespace) - _P.gatespace,
-                        rowheights[rownum] + row.width + device.topgatetrack * (_P.gatestrapwidth + _P.gatestrapspace)
+                        rowheights[rownum] + row.width + device.topgatespace + device.topgatewidth
                     )
                 )
                 cell:add_area_anchor_bltr(string.format("%stopgate", device.name),
                     point.create(
                         xpitch + currentfingers * (_P.gatelength + _P.gatespace),
-                        rowheights[rownum] + row.width + _P.gatestrapspace + (device.topgatetrack - 1) * (_P.gatestrapwidth + _P.gatestrapspace)
+                        rowheights[rownum] + row.width + device.topgatespace
                     ),
                     point.create(
                         xpitch + (currentfingers + device.fingers) * (_P.gatelength + _P.gatespace) - _P.gatespace,
-                        rowheights[rownum] + row.width + device.topgatetrack * (_P.gatestrapwidth + _P.gatestrapspace)
+                        rowheights[rownum] + row.width + device.topgatespace + device.topgatewidth
                     )
                 )
             end
@@ -333,32 +368,32 @@ function layout(cell, _P)
                     geometry.contactbltr(cell, "gate",
                         point.create(
                             xpitch + (currentfingers + i - 1) * (_P.gatelength + _P.gatespace),
-                            rowheights[rownum] - separation + _P.gatestrapspace + (device.botgatetrack - 1) * (_P.gatestrapwidth + _P.gatestrapspace)
+                            rowheights[rownum] - device.botgatespace - device.botgatewidth
                         ),
                         point.create(
                             xpitch + (currentfingers + i - 1) * (_P.gatelength + _P.gatespace) + _P.gatelength,
-                            rowheights[rownum] - separation + device.botgatetrack * (_P.gatestrapwidth + _P.gatestrapspace)
+                            rowheights[rownum] - device.botgatespace
                         )
                     )
                 end
                 geometry.rectanglebltr(cell, generics.metal(1),
                     point.create(
                         xpitch + currentfingers * (_P.gatelength + _P.gatespace),
-                        rowheights[rownum] - separation + _P.gatestrapspace + (device.botgatetrack - 1) * (_P.gatestrapwidth + _P.gatestrapspace)
+                        rowheights[rownum] - device.botgatespace - device.botgatewidth
                     ),
                     point.create(
                         xpitch + (currentfingers + device.fingers) * (_P.gatelength + _P.gatespace) - _P.gatespace,
-                        rowheights[rownum] - separation + device.botgatetrack * (_P.gatestrapwidth + _P.gatestrapspace)
+                        rowheights[rownum] - device.botgatespace
                     )
                 )
                 cell:add_area_anchor_bltr(string.format("%stopgate", device.name),
                     point.create(
                         xpitch + currentfingers * (_P.gatelength + _P.gatespace),
-                        rowheights[rownum] - separation + _P.gatestrapspace + (device.botgatetrack - 1) * (_P.gatestrapwidth + _P.gatestrapspace)
+                        rowheights[rownum] - device.botgatespace - device.botgatewidth
                     ),
                     point.create(
                         xpitch + (currentfingers + device.fingers) * (_P.gatelength + _P.gatespace) - _P.gatespace,
-                        rowheights[rownum] - separation + device.botgatetrack * (_P.gatestrapwidth + _P.gatestrapspace)
+                        rowheights[rownum] - device.botgatespace
                     )
                 )
             end
@@ -368,11 +403,11 @@ function layout(cell, _P)
                 geometry.rectanglebltr(cell, generics.other("gatecut"),
                     point.create(
                         xpitch + currentfingers * (_P.gatelength + _P.gatespace),
-                        rowheights[rownum] + row.width + _P.gatestrapspace + (device.topgatecuttrack - 1) * (_P.gatestrapwidth + _P.gatestrapspace)
+                        rowheights[rownum] + row.width + device.topgatecutspace
                     ),
                     point.create(
                         xpitch + (currentfingers + device.fingers) * (_P.gatelength + _P.gatespace) - _P.gatespace,
-                        rowheights[rownum] + row.width + device.topgatecuttrack * (_P.gatestrapwidth + _P.gatestrapspace)
+                        rowheights[rownum] + row.width + device.topgatecutspace + device.topgatecutwidth
                     )
                 )
             end
@@ -382,11 +417,11 @@ function layout(cell, _P)
                 geometry.rectanglebltr(cell, generics.other("gatecut"),
                     point.create(
                         xpitch + currentfingers * (_P.gatelength + _P.gatespace),
-                        rowheights[rownum] - separation + _P.gatestrapspace + (device.botgatecuttrack - 1) * (_P.gatestrapwidth + _P.gatestrapspace)
+                        rowheights[rownum] - _P.separation - device.botgatecutspace - device.botgatecutwidth
                     ),
                     point.create(
                         xpitch + (currentfingers + device.fingers) * (_P.gatelength + _P.gatespace) - _P.gatespace,
-                        rowheights[rownum] - separation + device.botgatecuttrack * (_P.gatestrapwidth + _P.gatestrapspace)
+                        rowheights[rownum] - _P.separation - device.botgatecutspace
                     )
                 )
             end
@@ -404,5 +439,26 @@ function layout(cell, _P)
     geometry.rectanglebltr(cell, generics.metal(1),
         point.create(0, totalheight + _P.powerspace),
         point.create(totalwidth, totalheight + _P.powerspace + _P.powerwidth)
+    )
+
+    -- alignment box
+    -- FIXME: better align at the power rails
+    cell:set_alignment_box(
+        point.create(
+            _P.gatelength + (_P.gatespace - _P.sdwidth) / 2,
+            0
+        ),
+        point.create(
+            _P.gatelength + (_P.gatespace - _P.sdwidth) / 2 + totalfingers * (_P.gatelength + _P.gatespace) + _P.sdwidth,
+            rowheights[#_P.rows] + _P.rows[#_P.rows].width
+        ),
+        point.create(
+            _P.gatelength + (_P.gatespace - _P.sdwidth) / 2 + _P.sdwidth,
+            0
+        ),
+        point.create(
+            _P.gatelength + (_P.gatespace - _P.sdwidth) / 2 + totalfingers * (_P.gatelength + _P.gatespace),
+            rowheights[#_P.rows] + _P.rows[#_P.rows].width
+        )
     )
 end
