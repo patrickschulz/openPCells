@@ -1569,26 +1569,6 @@ struct vector* _initialize_api_entries(void)
         ));
     }
 
-    /* object.add_area_anchor */
-    {
-        struct parameter parameters[] = {
-            { "cell",   OBJECT,  NULL, "object to which an anchor should be added" },
-            { "name",   STRING,  NULL, "name of the anchor" },
-            { "width",  INTEGER, NULL, "width of the rectangular area" },
-            { "height", INTEGER, NULL, "height of the rectangular area" },
-            { "xshift", INTEGER, NULL, "shift the area by 'xshift'" },
-            { "yshift", INTEGER, NULL, "shift the area by 'yshift'" }
-        };
-        vector_append(entries, _make_api_entry(
-            "add_area_anchor",
-            MODULE_OBJECT,
-            "add a so-called 'area anchor', which defines all relevant anchors in a rectangular area: bottom-left, bottom-center, bottom-right, center-left, center-center, center-right, top-left, top-center, top-right (bl, bc, br, cl, cc, cr, tl, tc, tr)",
-            "cell:add_area_anchor(\"source\", 100, 500, 0, 0)",
-            parameters,
-            sizeof(parameters) / sizeof(parameters[0])
-        ));
-    }
-
     /* object.add_area_anchor_bltr */
     {
         struct parameter parameters[] = {
