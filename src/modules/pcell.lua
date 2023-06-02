@@ -508,7 +508,11 @@ local function _create_layout_internal(cellname, name, cellargs, env)
     if cell.funcs.check then
         local ret, msg = cell.funcs.check(parameters)
         if not ret then
-            moderror(string.format("parameter check for cell '%s' failed: %s", cellname, msg))
+            if not msg then
+                moderror(string.format("parameter check for cell '%s' failed, but no message was returned. If present, the 'check' function has to return true on success", cellname))
+            else
+                moderror(string.format("parameter check for cell '%s' failed: %s", cellname, msg))
+            end
         end
     end
 
