@@ -1,5 +1,10 @@
 function parameters()
     pcell.add_parameters(
+        { "gatelength", technology.get_dimension("Minimum Gate Length"), argtype = "integer" },
+        { "gatespace", technology.get_dimension("Minimum Gate XSpace"), argtype = "integer" },
+        { "sdwidth", technology.get_dimension("Minimum M1 Width") },
+        { "gatestrapwidth", technology.get_dimension("Minimum M1 Width") },
+        { "gatestrapspace", technology.get_dimension("Minimum M1 Space") },
         { "clockfingers", 40 },
         { "nmosclockfingerwidth", 500 },
         { "pmosclockfingerwidth", 500 },
@@ -12,6 +17,11 @@ end
 
 function layout(divider, _P)
     local latch1 = pcell.create_layout("analog/c2mos_latch", "latch1", {
+        gatelength = _P.gatelength,
+        gatespace = _P.gatespace,
+        sdwidth = _P.sdwidth,
+        gatestrapwidth = _P.gatestrapwidth,
+        gatestrapspace = _P.gatestrapspace,
         clockfingers = _P.clockfingers,
         nmosclockfingerwidth = _P.nmosclockfingerwidth,
         pmosclockfingerwidth = _P.pmosclockfingerwidth,

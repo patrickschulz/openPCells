@@ -28,10 +28,16 @@
 
 function parameters()
     pcell.add_parameters(
+        { "gatelength", technology.get_dimension("Minimum Gate Length"), argtype = "integer" },
+        { "gatespace", technology.get_dimension("Minimum Gate XSpace"), argtype = "integer" },
+        { "sdwidth", technology.get_dimension("Minimum M1 Width") },
+        { "gatestrapwidth", technology.get_dimension("Minimum M1 Width") },
+        { "gatestrapspace", technology.get_dimension("Minimum M1 Space") },
         { "clockfingers", 40 },
         { "inputfingers", 32 },
         { "sepfingers", 2 },
         { "latchfingers", 6 },
+        { "outerdummies", 2 },
         { "nmosclockfingerwidth", 500 },
         { "pmosclockfingerwidth", 500 },
         { "nmosinputfingerwidth", 500 },
@@ -49,6 +55,11 @@ end
 function layout(latch, _P)
     local clockdummyfingers = (2 * _P.inputfingers + 3 * _P.sepfingers + 2 * _P.latchfingers - _P.clockfingers) / 2
     local core = pcell.create_layout("basic/stacked_mosfet_array", "latch", {
+        gatelength = _P.gatelength,
+        gatespace = _P.gatespace,
+        sdwidth = _P.sdwidth,
+        gatestrapwidth = _P.gatestrapwidth,
+        gatestrapspace = _P.gatestrapspace,
         separation = 420,
         powerwidth = 200,
         powerspace = 300,
@@ -58,6 +69,17 @@ function layout(latch, _P)
                 channeltype = "nmos",
                 vthtype = 1,
                 devices = {
+                    {
+                        name = "outerclockndummyleft",
+                        fingers = _P.outerdummies,
+                        connectsource = true,
+                        connectsourcespace = 300,
+                        connectsourcewidth = 200,
+                        connectdrain = true,
+                        connectdraininverse = true,
+                        connectdrainspace = 300,
+                        connectdrainwidth = 200,
+                    },
                     {
                         name = "clockndummyleftleft",
                         fingers = (_P.inputfingers - _P.clockfingers / 2) / 2,
@@ -141,6 +163,17 @@ function layout(latch, _P)
                         connectdrainspace = 300,
                         connectdrainwidth = 200,
                     },
+                    {
+                        name = "outerclockndummyright",
+                        fingers = _P.outerdummies,
+                        connectsource = true,
+                        connectsourcespace = 300,
+                        connectsourcewidth = 200,
+                        connectdrain = true,
+                        connectdraininverse = true,
+                        connectdrainspace = 300,
+                        connectdrainwidth = 200,
+                    },
                 },
             },
             {
@@ -148,6 +181,10 @@ function layout(latch, _P)
                 channeltype = "nmos",
                 vthtype = 1,
                 devices = {
+                    {
+                        name = "outerinputndummyleft",
+                        fingers = _P.outerdummies,
+                    },
                     {
                         name = "ninleft",
                         fingers = _P.inputfingers,
@@ -212,6 +249,10 @@ function layout(latch, _P)
                         connectdrainspace = 170,
                         drainmetal = 4,
                     },
+                    {
+                        name = "outerinputndummyright",
+                        fingers = _P.outerdummies,
+                    },
                 },
             },
             {
@@ -219,6 +260,10 @@ function layout(latch, _P)
                 channeltype = "pmos",
                 vthtype = 1,
                 devices = {
+                    {
+                        name = "outerinputpdummyleft",
+                        fingers = _P.outerdummies,
+                    },
                     {
                         name = "pinleft",
                         fingers = _P.inputfingers,
@@ -277,6 +322,10 @@ function layout(latch, _P)
                         connectdrainspace = 170,
                         drainmetal = 4,
                     },
+                    {
+                        name = "outerinputpdummyright",
+                        fingers = _P.outerdummies,
+                    },
                 },
             },
             {
@@ -284,6 +333,17 @@ function layout(latch, _P)
                 channeltype = "pmos",
                 vthtype = 1,
                 devices = {
+                    {
+                        name = "outerclockpdummyleft",
+                        fingers = _P.outerdummies,
+                        connectsource = true,
+                        connectsourceinverse = true,
+                        connectsourcespace = 300,
+                        connectsourcewidth = 200,
+                        connectdrain = true,
+                        connectdrainspace = 300,
+                        connectdrainwidth = 200,
+                    },
                     {
                         name = "clockpdummyleftleft",
                         fingers = (_P.inputfingers - _P.clockfingers / 2) / 2,
@@ -363,6 +423,17 @@ function layout(latch, _P)
                     {
                         name = "clockpdummyrightright",
                         fingers = (_P.inputfingers - _P.clockfingers / 2) / 2,
+                        connectsource = true,
+                        connectsourceinverse = true,
+                        connectsourcespace = 300,
+                        connectsourcewidth = 200,
+                        connectdrain = true,
+                        connectdrainspace = 300,
+                        connectdrainwidth = 200,
+                    },
+                    {
+                        name = "outerclockpdummyright",
+                        fingers = _P.outerdummies,
                         connectsource = true,
                         connectsourceinverse = true,
                         connectsourcespace = 300,

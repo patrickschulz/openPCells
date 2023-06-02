@@ -1,11 +1,11 @@
 function parameters()
     pcell.add_parameters(
-        { "gatelength", 40 },
-        { "gatespace", 100 },
+        { "gatelength", technology.get_dimension("Minimum Gate Length"), argtype = "integer" },
+        { "gatespace", technology.get_dimension("Minimum Gate XSpace"), argtype = "integer" },
         { "rows", {} },
-        { "sdwidth", 60 },
-        { "gatestrapwidth", 60 },
-        { "gatestrapspace", 60 },
+        { "sdwidth", technology.get_dimension("Minimum M1 Width") },
+        { "gatestrapwidth", technology.get_dimension("Minimum M1 Width") },
+        { "gatestrapspace", technology.get_dimension("Minimum M1 Space") },
         { "powerwidth", 200 },
         { "powerspace", 200 },
         { "separation", 0 }
