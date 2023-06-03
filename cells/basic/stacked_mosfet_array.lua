@@ -2,12 +2,14 @@ function parameters()
     pcell.add_parameters(
         { "gatelength", technology.get_dimension("Minimum Gate Length"), argtype = "integer" },
         { "gatespace", technology.get_dimension("Minimum Gate XSpace"), argtype = "integer" },
+        { "gatestopextension", 0 },
+        { "gatesbotextension", 0 },
         { "rows", {} },
         { "sdwidth", technology.get_dimension("Minimum M1 Width") },
         { "gatestrapwidth", technology.get_dimension("Minimum M1 Width") },
         { "gatestrapspace", technology.get_dimension("Minimum M1 Space") },
-        { "powerwidth", 200 },
-        { "powerspace", 200 },
+        { "powerwidth", technology.get_dimension("Minimum M1 Width") },
+        { "powerspace", technology.get_dimension("Minimum M1 Space") },
         { "separation", 0 }
     )
 end
@@ -138,8 +140,8 @@ function layout(cell, _P)
     -- gates
     for i = 1, totalfingers do
         geometry.rectanglebltr(cell, generics.other("gate"),
-            point.create(i * (_P.gatelength + _P.gatespace), 0),
-            point.create(i * (_P.gatelength + _P.gatespace) + _P.gatelength, totalheight)
+            point.create(i * (_P.gatelength + _P.gatespace), -_P.gatesbotextension),
+            point.create(i * (_P.gatelength + _P.gatespace) + _P.gatelength, totalheight + _P.gatestopextension)
         )
     end
 

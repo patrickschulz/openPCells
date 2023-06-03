@@ -11,7 +11,9 @@ function parameters()
         { "nmosinputfingerwidth", 500 },
         { "pmosinputfingerwidth", 500 },
         { "inputfingers", 32 },
-        { "sepfingers", 2 }
+        { "sepfingers", 2 },
+        { "powerwidth", technology.get_dimension("Minimum M1 Width") },
+        { "powerspace", technology.get_dimension("Minimum M1 Space") }
     )
 end
 
@@ -29,6 +31,8 @@ function layout(divider, _P)
         pmosinputfingerwidth = _P.pmosinputfingerwidth,
         inputfingers = _P.inputfingers,
         sepfingers = _P.sepfingers,
+        powerwidth = _P.powerwidth,
+        powerspace = _P.powerspace,
     })
     local latch2 = latch1:copy()
     latch2:mirror_at_yaxis()
@@ -37,4 +41,7 @@ function layout(divider, _P)
     divider:merge_into(latch2)
     divider:inherit_alignment_box(latch1)
     divider:inherit_alignment_box(latch2)
+
+    -- ports
+    divider:add_port("clkp", generics.metalport(1), latch1:get_anchor("clkp"))
 end
