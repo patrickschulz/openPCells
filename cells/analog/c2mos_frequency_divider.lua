@@ -31,6 +31,7 @@ function layout(divider, _P)
         sepfingers = _P.sepfingers,
     })
     local latch2 = latch1:copy()
+    latch2:mirror_at_yaxis()
     latch2:abut_right(latch1)
     divider:merge_into(latch1)
     divider:merge_into(latch2)

@@ -53,6 +53,7 @@ function check(_P)
 end
 
 function layout(latch, _P)
+    local xpitch = _P.gatelength + _P.gatespace
     local clockdummyfingers = (2 * _P.inputfingers + 3 * _P.sepfingers + 2 * _P.latchfingers - _P.clockfingers) / 2
     local core = pcell.create_layout("basic/stacked_mosfet_array", "latch", {
         gatelength = _P.gatelength,
@@ -90,6 +91,9 @@ function layout(latch, _P)
                         connectdraininverse = true,
                         connectdrainspace = 300,
                         connectdrainwidth = 200,
+                        drawtopgatecut = true,
+                        topgatecutwidth = 80,
+                        topgatecutspace = 170,
                     },
                     {
                         name = "clocknleft",
@@ -104,6 +108,9 @@ function layout(latch, _P)
                         connectsource = true,
                         connectsourcewidth = 200,
                         connectsourcespace = 300,
+                        drawtopgatecut = true,
+                        topgatecutwidth = 80,
+                        topgatecutspace = 170,
                     },
                     {
                         name = "clockndummyleftright",
@@ -115,6 +122,9 @@ function layout(latch, _P)
                         connectdraininverse = true,
                         connectdrainspace = 300,
                         connectdrainwidth = 200,
+                        drawtopgatecut = true,
+                        topgatecutwidth = 80,
+                        topgatecutspace = 170,
                     },
                     {
                         name = "clockndummymiddle",
@@ -126,6 +136,9 @@ function layout(latch, _P)
                         connectdraininverse = true,
                         connectdrainspace = 300,
                         connectdrainwidth = 200,
+                        drawtopgatecut = true,
+                        topgatecutwidth = 80,
+                        topgatecutspace = 170,
                     },
                     {
                         name = "clockndummyrightleft",
@@ -137,6 +150,9 @@ function layout(latch, _P)
                         connectdraininverse = true,
                         connectdrainspace = 300,
                         connectdrainwidth = 200,
+                        drawtopgatecut = true,
+                        topgatecutwidth = 80,
+                        topgatecutspace = 170,
                     },
                     {
                         name = "clocknright",
@@ -151,6 +167,9 @@ function layout(latch, _P)
                         connectsource = true,
                         connectsourcewidth = 200,
                         connectsourcespace = 300,
+                        drawtopgatecut = true,
+                        topgatecutwidth = 80,
+                        topgatecutspace = 170,
                     },
                     {
                         name = "clockndummyrightright",
@@ -162,6 +181,9 @@ function layout(latch, _P)
                         connectdraininverse = true,
                         connectdrainspace = 300,
                         connectdrainwidth = 200,
+                        drawtopgatecut = true,
+                        topgatecutwidth = 80,
+                        topgatecutspace = 170,
                     },
                     {
                         name = "outerclockndummyright",
@@ -196,8 +218,8 @@ function layout(latch, _P)
                         connectsourcespace = 170,
                         sourcemetal = 3,
                         connectdrain = true,
-                        connectdrainwidth = 80,
-                        connectdrainspace = 170,
+                        connectdrainwidth = 60,
+                        connectdrainspace = 180,
                         drainmetal = 4,
                     },
                     {
@@ -211,7 +233,7 @@ function layout(latch, _P)
                         topgatewidth = 60,
                         topgatespace = 60,
                         connectdrain = true,
-                        drainmetal = 3,
+                        drainmetal = 4,
                         connectdrainwidth = 60,
                         connectdrainspace = 300,
                     },
@@ -226,7 +248,7 @@ function layout(latch, _P)
                         topgatewidth = 60,
                         topgatespace = 300,
                         connectdrain = true,
-                        drainmetal = 3,
+                        drainmetal = 4,
                         connectdrainwidth = 60,
                         connectdrainspace = 60,
                     },
@@ -245,8 +267,8 @@ function layout(latch, _P)
                         connectsourcespace = 170,
                         sourcemetal = 3,
                         connectdrain = true,
-                        connectdrainwidth = 80,
-                        connectdrainspace = 170,
+                        connectdrainwidth = 60,
+                        connectdrainspace = 180,
                         drainmetal = 4,
                     },
                     {
@@ -274,8 +296,8 @@ function layout(latch, _P)
                         sourcemetal = 3,
                         connectdrain = true,
                         connectdraininverse = true,
-                        connectdrainwidth = 80,
-                        connectdrainspace = 170,
+                        connectdrainwidth = 60,
+                        connectdrainspace = 180,
                         drainmetal = 4,
                     },
                     {
@@ -287,7 +309,7 @@ function layout(latch, _P)
                         fingers = _P.latchfingers,
                         connectdrain = true,
                         connectdraininverse = true,
-                        drainmetal = 3,
+                        drainmetal = 4,
                         connectdrainwidth = 60,
                         connectdrainspace = 60,
                     },
@@ -300,7 +322,7 @@ function layout(latch, _P)
                         fingers = _P.latchfingers,
                         connectdrain = true,
                         connectdraininverse = true,
-                        drainmetal = 3,
+                        drainmetal = 4,
                         connectdrainwidth = 60,
                         connectdrainspace = 300,
                     },
@@ -318,8 +340,8 @@ function layout(latch, _P)
                         sourcemetal = 3,
                         connectdrain = true,
                         connectdraininverse = true,
-                        connectdrainwidth = 80,
-                        connectdrainspace = 170,
+                        connectdrainwidth = 60,
+                        connectdrainspace = 180,
                         drainmetal = 4,
                     },
                     {
@@ -354,6 +376,9 @@ function layout(latch, _P)
                         connectdrain = true,
                         connectdrainspace = 300,
                         connectdrainwidth = 200,
+                        drawbotgatecut = true,
+                        botgatecutwidth = 80,
+                        botgatecutspace = 170,
                     },
                     {
                         name = "clockpleft",
@@ -370,6 +395,9 @@ function layout(latch, _P)
                         connectsourceinverse = true,
                         connectsourcewidth = 200,
                         connectsourcespace = 300,
+                        drawbotgatecut = true,
+                        botgatecutwidth = 80,
+                        botgatecutspace = 170,
                     },
                     {
                         name = "clockpdummyleftright",
@@ -381,6 +409,9 @@ function layout(latch, _P)
                         connectdrain = true,
                         connectdrainspace = 300,
                         connectdrainwidth = 200,
+                        drawbotgatecut = true,
+                        botgatecutwidth = 80,
+                        botgatecutspace = 170,
                     },
                     {
                         name = "clockpdummymiddle",
@@ -392,6 +423,9 @@ function layout(latch, _P)
                         connectdrain = true,
                         connectdrainspace = 300,
                         connectdrainwidth = 200,
+                        drawbotgatecut = true,
+                        botgatecutwidth = 80,
+                        botgatecutspace = 170,
                     },
                     {
                         name = "clockpdummyrightleft",
@@ -403,6 +437,9 @@ function layout(latch, _P)
                         connectdrain = true,
                         connectdrainspace = 300,
                         connectdrainwidth = 200,
+                        drawbotgatecut = true,
+                        botgatecutwidth = 80,
+                        botgatecutspace = 170,
                     },
                     {
                         name = "clockpright",
@@ -419,6 +456,9 @@ function layout(latch, _P)
                         connectsourceinverse = true,
                         connectsourcewidth = 200,
                         connectsourcespace = 300,
+                        drawbotgatecut = true,
+                        botgatecutwidth = 80,
+                        botgatecutspace = 170,
                     },
                     {
                         name = "clockpdummyrightright",
@@ -430,6 +470,9 @@ function layout(latch, _P)
                         connectdrain = true,
                         connectdrainspace = 300,
                         connectdrainwidth = 200,
+                        drawbotgatecut = true,
+                        botgatecutwidth = 80,
+                        botgatecutspace = 170,
                     },
                     {
                         name = "outerclockpdummyright",
@@ -448,11 +491,11 @@ function layout(latch, _P)
     })
 
     -- latch cross-coupling
-    geometry.viabltr(core, 1, 3,
+    geometry.viabltr(core, 1, 4,
         core:get_area_anchor("nlatchleftdrainstrap").bl,
         core:get_area_anchor("nlatchleftdrainstrap").tr
     )
-    geometry.viabltr(core, 1, 3,
+    geometry.viabltr(core, 1, 4,
         core:get_area_anchor("nlatchrightdrainstrap").bl,
         core:get_area_anchor("nlatchrightdrainstrap").tr
     )
@@ -484,6 +527,28 @@ function layout(latch, _P)
             core:get_area_anchor(string.format("platchrightsourcedrain%d", i)).tr:translate_y(420)
         )
     end
+
+    -- connect voutp and voutn
+    geometry.polygon(core, generics.metal(4), {
+        core:get_area_anchor("ninleftdrainstrap").br,
+        core:get_area_anchor("ninleftdrainstrap").br:translate_x(2 * xpitch + 30),
+        (core:get_area_anchor("ninleftdrainstrap").br .. core:get_area_anchor("nlatchleftdrainstrap").bl):translate_x(2 * xpitch + 30),
+        core:get_area_anchor("nlatchleftdrainstrap").bl,
+        core:get_area_anchor("nlatchleftdrainstrap").tl,
+        (core:get_area_anchor("ninleftdrainstrap").tr .. core:get_area_anchor("nlatchleftdrainstrap").tl):translate_x(2 * xpitch - 30),
+        core:get_area_anchor("ninleftdrainstrap").tr:translate_x(2 * xpitch - 30),
+        core:get_area_anchor("ninleftdrainstrap").tr,
+    })
+    geometry.polygon(core, generics.metal(4), {
+        core:get_area_anchor("nlatchrightdrainstrap").br,
+        (core:get_area_anchor("ninrightdrainstrap").bl .. core:get_area_anchor("nlatchrightdrainstrap").br):translate_x(-2 * xpitch + 30),
+        core:get_area_anchor("ninrightdrainstrap").bl:translate_x(-2 * xpitch + 30),
+        core:get_area_anchor("ninrightdrainstrap").bl,
+        core:get_area_anchor("ninrightdrainstrap").tl,
+        core:get_area_anchor("ninrightdrainstrap").tl:translate_x(-2 * xpitch - 30),
+        (core:get_area_anchor("ninrightdrainstrap").tl .. core:get_area_anchor("nlatchrightdrainstrap").tr):translate_x(-2 * xpitch - 30),
+        core:get_area_anchor("nlatchrightdrainstrap").tr,
+    })
 
     latch:merge_into(core)
 

@@ -83,6 +83,22 @@ function check(_P)
                     return false, string.format("device %d in row %d specified drawbotgate = true, but did not provide the strap spacing (botgatespace)", devicenum, rownum)
                 end
             end
+            if device.drawtopgatecut then
+                if not device.topgatecutwidth then
+                    return false, string.format("device %d in row %d specified drawtopgatecut = true, but did not provide the cut width (topgatecutwidth)", devicenum, rownum)
+                end
+                if not device.topgatecutspace then
+                    return false, string.format("device %d in row %d specified drawtopgatecut = true, but did not provide the cut spacing (topgatecutspace)", devicenum, rownum)
+                end
+            end
+            if device.drawbotgatecut then
+                if not device.botgatecutwidth then
+                    return false, string.format("device %d in row %d specified drawbotgatecut = true, but did not provide the cut width (botgatecutwidth)", devicenum, rownum)
+                end
+                if not device.botgatecutspace then
+                    return false, string.format("device %d in row %d specified drawbotgatecut = true, but did not provide the cut spacing (botgatecutspace)", devicenum, rownum)
+                end
+            end
         end
     end
     return true
@@ -417,11 +433,11 @@ function layout(cell, _P)
                 geometry.rectanglebltr(cell, generics.other("gatecut"),
                     point.create(
                         xpitch + currentfingers * (_P.gatelength + _P.gatespace),
-                        rowheights[rownum] - _P.separation - device.botgatecutspace - device.botgatecutwidth
+                        rowheights[rownum] - device.botgatecutspace - device.botgatecutwidth
                     ),
                     point.create(
                         xpitch + (currentfingers + device.fingers) * (_P.gatelength + _P.gatespace) - _P.gatespace,
-                        rowheights[rownum] - _P.separation - device.botgatecutspace
+                        rowheights[rownum] - device.botgatecutspace
                     )
                 )
             end
