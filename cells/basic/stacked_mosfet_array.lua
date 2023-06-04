@@ -10,7 +10,13 @@ function parameters()
         { "gatestrapspace", technology.get_dimension("Minimum M1 Space") },
         { "powerwidth", technology.get_dimension("Minimum M1 Width") },
         { "powerspace", technology.get_dimension("Minimum M1 Space") },
-        { "separation", 0 }
+        { "separation", 0 },
+        { "drawtopgatecut", false },
+        { "topgatecutwidth", 0 },
+        { "topgatecutspace", 0 },
+        { "drawbotgatecut", false },
+        { "botgatecutwidth", 0 },
+        { "botgatecutspace", 0 }
     )
 end
 
@@ -459,24 +465,36 @@ function layout(cell, _P)
         point.create(totalwidth, totalheight + _P.powerspace + _P.powerwidth)
     )
 
+    if _P.drawtopgatecut then
+        geometry.rectanglebltr(cell, generics.other("gatecut"),
+            point.create(0, totalheight + _P.powerspace + (_P.powerwidth - _P.topgatecutwidth) / 2),
+            point.create(totalwidth, totalheight + _P.powerspace + (_P.powerwidth + _P.topgatecutwidth) / 2)
+        )
+    end
+    if _P.drawbotgatecut then
+        geometry.rectanglebltr(cell, generics.other("gatecut"),
+            point.create(0, -_P.powerspace - (_P.powerwidth + _P.botgatecutwidth) / 2),
+            point.create(totalwidth, -_P.powerspace - (_P.powerwidth - _P.botgatecutwidth) / 2)
+        )
+    end
+
     -- alignment box
-    -- FIXME: better align at the power rails
     cell:set_alignment_box(
         point.create(
             _P.gatelength + (_P.gatespace - _P.sdwidth) / 2,
-            0
+            -_P.powerwidth - _P.powerspace
         ),
         point.create(
             _P.gatelength + (_P.gatespace - _P.sdwidth) / 2 + totalfingers * (_P.gatelength + _P.gatespace) + _P.sdwidth,
-            rowheights[#_P.rows] + _P.rows[#_P.rows].width
+            totalheight + _P.powerspace + _P.powerwidth
         ),
         point.create(
             _P.gatelength + (_P.gatespace - _P.sdwidth) / 2 + _P.sdwidth,
-            0
+            -_P.powerspace
         ),
         point.create(
             _P.gatelength + (_P.gatespace - _P.sdwidth) / 2 + totalfingers * (_P.gatelength + _P.gatespace),
-            rowheights[#_P.rows] + _P.rows[#_P.rows].width
+            totalheight + _P.powerspace
         )
     )
 end

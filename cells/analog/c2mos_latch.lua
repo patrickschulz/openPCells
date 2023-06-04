@@ -49,8 +49,11 @@ function parameters()
 end
 
 function check(_P)
-    if _P.clockfingers % 4 ~= 0 then
+    if _P.clockfingers % 2 ~= 0 then
         return false, string.format("clockfingers must be divisible by 4 (got: %d)", _P.clockfingers)
+    end
+    if (_P.inputfingers % 2) ~= ((_P.clockfingers / 2) % 2) then
+        return false, string.format("inputfingers must be even if clockfingers / 2 is even and vice versa (odd/odd) (inputfingers = %d, clockfingers / 2 = %d)", _P.inputfingers, _P.clockfingers / 2)
     end
     return true
 end
@@ -413,6 +416,9 @@ function layout(latch, _P)
                     drawtopgate = true,
                     topgatewidth = _P.dummygatecontactwidth,
                     topgatespace = _P.powerspace,
+                    drawtopgatecut = true,
+                    topgatecutwidth = 60,
+                    topgatecutspace = _P.powerspace + (_P.powerwidth - 60) / 2,
                 },
             },
         },
@@ -526,12 +532,16 @@ function layout(latch, _P)
         sdwidth = _P.sdwidth,
         gatestrapwidth = _P.gatestrapwidth,
         gatestrapspace = _P.gatestrapspace,
-        gatestopextension = _P.powerspace + _P.dummygatecontactwidth,
-        gatesbotextension = _P.powerspace + _P.dummygatecontactwidth,
+        gatestopextension = _P.powerspace + _P.powerwidth / 2,
+        gatesbotextension = _P.powerspace + _P.powerwidth / 2,
         separation = separation,
         powerwidth = _P.powerwidth,
         powerspace = _P.powerspace,
         rows = rowdefinition,
+        drawtopgatecut = true,
+        topgatecutwidth = 60,
+        drawbotgatecut = true,
+        botgatecutwidth = 60,
     })
 
 

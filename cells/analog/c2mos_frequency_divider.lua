@@ -39,8 +39,17 @@ function layout(divider, _P)
         powerspace = _P.powerspace,
     })
     local latch2 = latch1:copy()
-    latch2:mirror_at_yaxis()
-    latch2:abut_right(latch1)
+
+    -- horizontal placement
+    --latch2:mirror_at_yaxis()
+    --latch2:abut_right(latch1)
+    --latch2:align_top(latch1)
+
+    -- vertical placement
+    latch2:mirror_at_xaxis()
+    latch2:abut_top(latch1)
+    latch2:align_left(latch1)
+
     divider:merge_into(latch1)
     divider:merge_into(latch2)
     divider:inherit_alignment_box(latch1)
