@@ -174,6 +174,16 @@ function layout(cell, _P)
         local currentfingers = 0
         for _, device in ipairs(row.devices) do
             for finger = 1, device.fingers + 1 do
+                cell:add_area_anchor_bltr(string.format("%ssourcedrainactive%d", device.name, finger),
+                    point.create(
+                        _P.gatelength + (_P.gatespace - _P.sdwidth) / 2 + (currentfingers + finger - 1) * (_P.gatelength + _P.gatespace),
+                        rowheights[rownum]
+                    ),
+                    point.create(
+                        _P.gatelength + (_P.gatespace - _P.sdwidth) / 2 + (currentfingers + finger - 1) * (_P.gatelength + _P.gatespace) + _P.sdwidth,
+                        rowheights[rownum] + row.width
+                    )
+                )
                 if finger % 2 == 1 then -- source
                     geometry.contactbltr(cell, "sourcedrain",
                         point.create(
@@ -474,6 +484,14 @@ function layout(cell, _P)
         point.create(totalwidth, -_P.powerspace)
     )
     geometry.rectanglebltr(cell, generics.metal(1),
+        point.create(0, totalheight + _P.powerspace),
+        point.create(totalwidth, totalheight + _P.powerspace + _P.powerwidth)
+    )
+    cell:add_area_anchor_bltr("lowerpowerrail",
+        point.create(0, -_P.powerwidth - _P.powerspace),
+        point.create(totalwidth, -_P.powerspace)
+    )
+    cell:add_area_anchor_bltr("upperpowerrail",
         point.create(0, totalheight + _P.powerspace),
         point.create(totalwidth, totalheight + _P.powerspace + _P.powerwidth)
     )

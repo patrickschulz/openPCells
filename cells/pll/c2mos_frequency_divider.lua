@@ -1,7 +1,47 @@
+--[[
+        Latch implementation:
+  VDD ───────────────────────────────────────┬──────────────────────────────────┬───────────────────┐
+                                             │                                  │                   │
+                                         ║───┘                                  │                   │
+                                       ─o║                                      │                   │
+                                         ║───┐                                  │                   │
+                                             │                                  │                   │
+                                   ┌─────────┴─────────┐                        │                   │
+                                   │                   │                        └───║           ║───┘
+                               ║───┘                   └───║                        ║o──┐   ┌──o║
+                      Dp o────o║                           ║o────o Dn           ┌───║   │   │   ║───┐
+                               ║───┐                   ┌───║                    │       │   │       │
+                                   │                   │               voutp ───┼───────────┤       │
+                                   ├── voutp   voutn ──┤                        │       │   │       │
+                                   │                   │                        │       ├───────────┼───── voutn
+                               ║───┘                   └───║                    │       │   │       │
+                      Dp o─────║                           ║o────o Dn           └───║   │   │   ║───┘
+                               ║───┐                   ┌───║                        ║───┘   └───║
+                                   │                   │                        ┌───║           ║───┐
+                                   └─────────┬─────────┘                        │                   │
+                                             │                                  │                   │
+                                         ║───┘                                  │                   │
+                               vclk o────║                                      │                   │
+                                         ║───┐                                  │                   │
+                                             │                                  │                   │
+  VSS ───────────────────────────────────────┴──────────────────────────────────┴───────────────────┘
+
+
+        Divider implementation:
+                                   ┌─────────────┐             ┌─────────────┐
+          inversrion here --> ~B ──┤             ├── A     A ──┤             ├── B
+                               B ──┤             ├── ~A   ~A ──┤             ├── ~B
+                                   │    Latch    │             │    Latch    │
+                             inp ──┤             │       inn ──┤             │
+                             inn ──┤             │       inp ──┤             │
+                                   └─────────────┘             └─────────────┘
+--]]
+
 function parameters()
     pcell.add_parameters(
         { "gatelength", technology.get_dimension("Minimum Gate Length"), argtype = "integer" },
         { "gatespace", technology.get_dimension("Minimum Gate XSpace"), argtype = "integer" },
+        { "separation", 0 },
         { "sdwidth", technology.get_dimension("Minimum M1 Width") },
         { "gatestrapwidth", technology.get_dimension("Minimum M1 Width") },
         { "gatestrapspace", technology.get_dimension("Minimum M1 Space") },
@@ -17,7 +57,8 @@ function parameters()
         { "pmosinputfingerwidth", 500 },
         { "powerwidth", technology.get_dimension("Minimum M1 Width") },
         { "powerspace", technology.get_dimension("Minimum M1 Space") },
-        { "dummygatecontactwidth", technology.get_dimension("Minimum M1 Width") }
+        { "dummygatecontactwidth", technology.get_dimension("Minimum M1 Width") },
+        { "clockviaextension", 0 }
     )
 end
 
@@ -56,7 +97,7 @@ end
 function layout(divider, _P)
     local xpitch = _P.gatelength + _P.gatespace
     local equalizationdummies = (_P.inputfingers - _P.clockfingers / 2) / 2
-    local separation = 420
+    local middledummyfingers = 2 * _P.latchoutersepfingers + _P.latchinnersepfingers + 2 * _P.latchfingers
     local rowdefinition = { -- without equalization dummies, these are added next
         {
             width = _P.nmosclockfingerwidth,
@@ -66,8 +107,8 @@ function layout(divider, _P)
                 {
                     name = "outerclockndummyleft",
                     fingers = _P.outerdummies,
-                    sourcesize = _P.nmosclockfingerwidth / 2,
-                    drainsize = _P.nmosclockfingerwidth / 2,
+                    --sourcesize = _P.nmosclockfingerwidth / 2,
+                    --drainsize = _P.nmosclockfingerwidth / 2,
                     connectsource = true,
                     connectsourcespace = _P.powerspace,
                     connectsourcewidth = _P.powerwidth,
@@ -98,9 +139,9 @@ function layout(divider, _P)
                 },
                 {
                     name = "clockndummymiddle",
-                    fingers = 2 * _P.latchoutersepfingers + _P.latchinnersepfingers + 2 * _P.latchfingers,
-                    sourcesize = _P.nmosclockfingerwidth / 2,
-                    drainsize = _P.nmosclockfingerwidth / 2,
+                    fingers = middledummyfingers,
+                    --sourcesize = _P.nmosclockfingerwidth / 2,
+                    --drainsize = _P.nmosclockfingerwidth / 2,
                     connectsource = true,
                     connectsourcespace = _P.powerspace,
                     connectsourcewidth = _P.powerwidth,
@@ -135,8 +176,8 @@ function layout(divider, _P)
                 {
                     name = "outerclockndummyright",
                     fingers = _P.outerdummies,
-                    sourcesize = _P.nmosclockfingerwidth / 2,
-                    drainsize = _P.nmosclockfingerwidth / 2,
+                    --sourcesize = _P.nmosclockfingerwidth / 2,
+                    --drainsize = _P.nmosclockfingerwidth / 2,
                     connectsource = true,
                     connectsourcespace = _P.powerspace,
                     connectsourcewidth = _P.powerwidth,
@@ -348,7 +389,7 @@ function layout(divider, _P)
                 },
                 {
                     name = "clockpdummymiddle",
-                    fingers = 2 * _P.latchoutersepfingers + _P.latchinnersepfingers + 2 * _P.latchfingers,
+                    fingers = middledummyfingers,
                     connectsource = true,
                     connectsourceinverse = true,
                     connectsourcespace = _P.powerspace,
@@ -405,8 +446,8 @@ function layout(divider, _P)
 
     local equalizationdummyntemplate = {
         fingers = equalizationdummies,
-        sourcesize = _P.nmosclockfingerwidth / 2,
-        drainsize = _P.nmosclockfingerwidth / 2,
+        --sourcesize = _P.nmosclockfingerwidth / 2,
+        --drainsize = _P.nmosclockfingerwidth / 2,
         connectsource = true,
         connectsourcespace = _P.powerspace,
         connectsourcewidth = _P.powerwidth,
@@ -424,8 +465,8 @@ function layout(divider, _P)
     }
     local equalizationdummyptemplate = {
         fingers = equalizationdummies,
-        sourcesize = _P.nmosclockfingerwidth / 2,
-        drainsize = _P.nmosclockfingerwidth / 2,
+        --sourcesize = _P.nmosclockfingerwidth / 2,
+        --drainsize = _P.nmosclockfingerwidth / 2,
         connectsource = true,
         connectsourceinverse = true,
         connectsourcespace = _P.powerspace,
@@ -517,7 +558,7 @@ function layout(divider, _P)
         gatestrapspace = _P.gatestrapspace,
         gatestopextension = _P.powerspace + _P.powerwidth / 2,
         gatesbotextension = _P.powerspace + _P.powerwidth / 2,
-        separation = separation,
+        separation = _P.separation,
         powerwidth = _P.powerwidth,
         powerspace = _P.powerspace,
         rows = rowdefinition,
@@ -549,20 +590,20 @@ function layout(divider, _P)
     -- latch source connections
     for i = 1, _P.latchfingers + 1, 2 do
         geometry.rectanglebltr(latch, generics.metal(1),
-            latch:get_area_anchor(string.format("nlatchleftsourcedrain%d", i)).bl:translate_y(-separation),
+            latch:get_area_anchor(string.format("nlatchleftsourcedrain%d", i)).bl:translate_y(-_P.separation),
             latch:get_area_anchor(string.format("nlatchleftsourcedrain%d", i)).br
         )
         geometry.rectanglebltr(latch, generics.metal(1),
-            latch:get_area_anchor(string.format("nlatchrightsourcedrain%d", i)).bl:translate_y(-separation),
+            latch:get_area_anchor(string.format("nlatchrightsourcedrain%d", i)).bl:translate_y(-_P.separation),
             latch:get_area_anchor(string.format("nlatchrightsourcedrain%d", i)).br
         )
         geometry.rectanglebltr(latch, generics.metal(1),
             latch:get_area_anchor(string.format("platchleftsourcedrain%d", i)).tl,
-            latch:get_area_anchor(string.format("platchleftsourcedrain%d", i)).tr:translate_y(separation)
+            latch:get_area_anchor(string.format("platchleftsourcedrain%d", i)).tr:translate_y(_P.separation)
         )
         geometry.rectanglebltr(latch, generics.metal(1),
             latch:get_area_anchor(string.format("platchrightsourcedrain%d", i)).tl,
-            latch:get_area_anchor(string.format("platchrightsourcedrain%d", i)).tr:translate_y(separation)
+            latch:get_area_anchor(string.format("platchrightsourcedrain%d", i)).tr:translate_y(_P.separation)
         )
     end
 
@@ -570,18 +611,18 @@ function layout(divider, _P)
     for i = 1, _P.outerdummies do
         geometry.rectanglebltr(latch, generics.metal(1),
             latch:get_area_anchor(string.format("outerclockndummyleftsourcedrain%d", i)).tl,
-            latch:get_area_anchor(string.format("outerclockndummyleftsourcedrain%d", i)).tr:translate_y(separation)
+            latch:get_area_anchor(string.format("outerclockndummyleftsourcedrain%d", i)).tr:translate_y(_P.separation)
         )
         geometry.rectanglebltr(latch, generics.metal(1),
             latch:get_area_anchor(string.format("outerclockndummyrightsourcedrain%d", i + 1)).tl,
-            latch:get_area_anchor(string.format("outerclockndummyrightsourcedrain%d", i + 1)).tr:translate_y(separation)
+            latch:get_area_anchor(string.format("outerclockndummyrightsourcedrain%d", i + 1)).tr:translate_y(_P.separation)
         )
         geometry.rectanglebltr(latch, generics.metal(1),
-            latch:get_area_anchor(string.format("outerclockpdummyleftsourcedrain%d", i)).bl:translate_y(-separation),
+            latch:get_area_anchor(string.format("outerclockpdummyleftsourcedrain%d", i)).bl:translate_y(-_P.separation),
             latch:get_area_anchor(string.format("outerclockpdummyleftsourcedrain%d", i)).br
         )
         geometry.rectanglebltr(latch, generics.metal(1),
-            latch:get_area_anchor(string.format("outerclockpdummyrightsourcedrain%d", i + 1)).bl:translate_y(-separation),
+            latch:get_area_anchor(string.format("outerclockpdummyrightsourcedrain%d", i + 1)).bl:translate_y(-_P.separation),
             latch:get_area_anchor(string.format("outerclockpdummyrightsourcedrain%d", i + 1)).br
         )
     end
@@ -608,13 +649,13 @@ function layout(divider, _P)
         latch:get_area_anchor("nlatchrightdrainstrap").tr,
     })
 
-    -- clock ports (not conneted)
+    -- clock anchors
     latch:add_area_anchor_bltr("clknleft", latch:get_area_anchor("clocknlefttopgate").bl, latch:get_area_anchor("clocknlefttopgate").tr)
     latch:add_area_anchor_bltr("clknright", latch:get_area_anchor("clockplefttopgate").bl, latch:get_area_anchor("clockplefttopgate").tr)
     latch:add_area_anchor_bltr("clkpleft", latch:get_area_anchor("clocknrighttopgate").bl, latch:get_area_anchor("clocknrighttopgate").tr)
     latch:add_area_anchor_bltr("clkpright", latch:get_area_anchor("clockprighttopgate").bl, latch:get_area_anchor("clockprighttopgate").tr)
 
-    -- input ports
+    -- input anchors
     latch:add_area_anchor_bltr("inp", latch:get_area_anchor("ninlefttopgate").bl, latch:get_area_anchor("ninlefttopgate").tr)
     latch:add_area_anchor_bltr("inn", latch:get_area_anchor("ninrighttopgate").bl, latch:get_area_anchor("ninrighttopgate").tr)
 
@@ -626,6 +667,70 @@ function layout(divider, _P)
     latch2:align_left(latch1)
     divider:merge_into(latch1)
     divider:merge_into(latch2)
+
+    -- internal connections between latches
+
+    -- input lines
+    geometry.rectanglebltr(divider, generics.metal(8),
+        latch1:get_area_anchor(string.format("clockndummymiddlesourcedrain%d", 3)).bl .. latch1:get_area_anchor("lowerpowerrail").bl,
+        latch2:get_area_anchor(string.format("clockndummymiddlesourcedrain%d", _P.latchoutersepfingers - 1)).tr .. latch2:get_area_anchor("lowerpowerrail").tr
+    )
+    geometry.rectanglebltr(divider, generics.metal(8),
+        latch2:get_area_anchor(string.format("clockndummymiddlesourcedrain%d", middledummyfingers - (_P.latchoutersepfingers - 1) + 2)).tl .. latch1:get_area_anchor("lowerpowerrail").bl,
+        latch1:get_area_anchor(string.format("clockndummymiddlesourcedrain%d", middledummyfingers - 3 + 2)).br .. latch2:get_area_anchor("lowerpowerrail").tr
+    )
+
+    -- latch1 clock p
+    geometry.viabltr(divider, 7, 8,
+        latch1:get_area_anchor(string.format("clockndummymiddlesourcedrain%d", 3)).bl:translate_y(-_P.clockviaextension),
+        latch1:get_area_anchor(string.format("clockndummymiddlesourcedrain%d", _P.latchoutersepfingers - 1)).tr:translate_y(_P.clockviaextension)
+    )
+    geometry.rectanglebltr(divider, generics.metal(2),
+        latch1:get_area_anchor("clocknlefttopgate").br,
+        latch1:get_area_anchor(string.format("clockndummymiddlesourcedrain%d", _P.latchoutersepfingers - 1)).tr .. latch1:get_area_anchor("clocknlefttopgate").tr
+    )
+    geometry.rectanglebltr(divider, generics.metal(2),
+        latch1:get_area_anchor(string.format("clockndummymiddlesourcedrain%d", _P.latchoutersepfingers - 1)).tr .. latch1:get_area_anchor("clocknrighttopgate").br,
+        latch1:get_area_anchor("clocknrighttopgate").tl
+    )
+    geometry.viabltr(divider, 2, 7,
+        latch1:get_area_anchor(string.format("clockndummymiddlesourcedrain%d", 3)).tl:translate_y(_P.clockviaextension) .. latch1:get_area_anchor("clocknlefttopgate").br,
+        latch1:get_area_anchor(string.format("clockndummymiddlesourcedrain%d", _P.latchoutersepfingers - 1)).tr .. latch1:get_area_anchor("clocknlefttopgate").tr
+    )
+    geometry.viabltr(divider, 1, 2,
+        latch1:get_area_anchor("clocknlefttopgate").bl,
+        latch1:get_area_anchor("clocknlefttopgate").tr
+    )
+    geometry.viabltr(divider, 1, 2,
+        latch1:get_area_anchor("clocknrighttopgate").bl,
+        latch1:get_area_anchor("clocknrighttopgate").tr
+    )
+
+    -- latch1 clock n
+    geometry.viabltr(divider, 7, 8,
+        latch1:get_area_anchor(string.format("clockpdummymiddlesourcedrain%d", middledummyfingers - (_P.latchoutersepfingers - 1) + 2)).bl:translate_y(-_P.clockviaextension),
+        latch1:get_area_anchor(string.format("clockpdummymiddlesourcedrain%d", middledummyfingers - 3 + 2)).tr:translate_y(_P.clockviaextension)
+    )
+    geometry.rectanglebltr(divider, generics.metal(2),
+        latch1:get_area_anchor(string.format("clockpdummymiddlesourcedrain%d", middledummyfingers - 3 + 2)).tr .. latch1:get_area_anchor("clockprighttopgate").br,
+        latch1:get_area_anchor("clockprighttopgate").tr
+    )
+    geometry.rectanglebltr(divider, generics.metal(2),
+        latch1:get_area_anchor("clocknlefttopgate").br,
+        latch1:get_area_anchor(string.format("clockndummymiddlesourcedrain%d", middledummyfingers - (_P.latchoutersepfingers - 1) + 2)).tr .. latch1:get_area_anchor("clocknlefttopgate").tr
+    )
+    --geometry.viabltr(divider, 2, 7,
+    --    latch1:get_area_anchor(string.format("clockndummymiddlesourcedrain%d", 3)).tl:translate_y(_P.clockviaextension) .. latch1:get_area_anchor("clocknlefttopgate").br,
+    --    latch1:get_area_anchor(string.format("clockndummymiddlesourcedrain%d", _P.latchoutersepfingers - 1)).tr .. latch1:get_area_anchor("clocknlefttopgate").tr
+    --)
+    --geometry.viabltr(divider, 1, 2,
+    --    latch1:get_area_anchor("clocknlefttopgate").bl,
+    --    latch1:get_area_anchor("clocknlefttopgate").tr
+    --)
+    --geometry.viabltr(divider, 1, 2,
+    --    latch1:get_area_anchor("clocknrighttopgate").bl,
+    --    latch1:get_area_anchor("clocknrighttopgate").tr
+    --)
 
     -- alignment box
     divider:inherit_alignment_box(latch1)
