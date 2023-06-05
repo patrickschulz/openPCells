@@ -93,6 +93,7 @@ function layout(latch, _P)
                 {
                     name = "outerclockndummyleft",
                     fingers = _P.outerdummies,
+                    sourcesize = _P.nmosclockfingerwidth / 2,
                     connectsource = true,
                     connectsourcespace = _P.powerspace,
                     connectsourcewidth = _P.powerwidth,
@@ -124,6 +125,7 @@ function layout(latch, _P)
                 {
                     name = "clockndummymiddle",
                     fingers = 3 * _P.sepfingers + 2 * _P.latchfingers,
+                    sourcesize = _P.nmosclockfingerwidth / 2,
                     connectsource = true,
                     connectsourcespace = _P.powerspace,
                     connectsourcewidth = _P.powerwidth,
@@ -158,6 +160,7 @@ function layout(latch, _P)
                 {
                     name = "outerclockndummyright",
                     fingers = _P.outerdummies,
+                    sourcesize = _P.nmosclockfingerwidth / 2,
                     connectsource = true,
                     connectsourcespace = _P.powerspace,
                     connectsourcewidth = _P.powerwidth,
@@ -426,6 +429,7 @@ function layout(latch, _P)
 
     local equalizationdummyntemplate = {
         fingers = equalizationdummies,
+        sourcesize = _P.nmosclockfingerwidth / 2,
         connectsource = true,
         connectsourcespace = _P.powerspace,
         connectsourcewidth = _P.powerwidth,
@@ -443,6 +447,7 @@ function layout(latch, _P)
     }
     local equalizationdummyptemplate = {
         fingers = equalizationdummies,
+        sourcesize = _P.nmosclockfingerwidth / 2,
         connectsource = true,
         connectsourceinverse = true,
         connectsourcespace = _P.powerspace,
@@ -628,6 +633,13 @@ function layout(latch, _P)
     latch:merge_into(core)
     latch:inherit_alignment_box(core)
 
-    -- ports
-    latch:add_port("clkp", generics.metalport(1), core:get_area_anchor("clocknlefttopgate").bl)
+    -- clock ports (not conneted)
+    latch:add_port("clkpleft", generics.metalport(1), core:get_area_anchor("clocknlefttopgate").bl)
+    latch:add_port("clknleft", generics.metalport(1), core:get_area_anchor("clockplefttopgate").bl)
+    latch:add_port("clkpright", generics.metalport(1), core:get_area_anchor("clocknrighttopgate").bl)
+    latch:add_port("clknright", generics.metalport(1), core:get_area_anchor("clockprighttopgate").bl)
+
+    -- input ports
+    latch:add_port("inp", generics.metalport(1), core:get_area_anchor("ninlefttopgate").bl)
+    latch:add_port("inn", generics.metalport(1), core:get_area_anchor("ninrighttopgate").bl)
 end

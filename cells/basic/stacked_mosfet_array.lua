@@ -174,16 +174,29 @@ function layout(cell, _P)
         local currentfingers = 0
         for _, device in ipairs(row.devices) do
             for finger = 1, device.fingers + 1 do
-                geometry.contactbltr(cell, "sourcedrain",
-                    point.create(
-                        _P.gatelength + (_P.gatespace - _P.sdwidth) / 2 + (currentfingers + finger - 1) * (_P.gatelength + _P.gatespace),
-                        rowheights[rownum]
-                    ),
-                    point.create(
-                        _P.gatelength + (_P.gatespace - _P.sdwidth) / 2 + (currentfingers + finger - 1) * (_P.gatelength + _P.gatespace) + _P.sdwidth,
-                        rowheights[rownum] + row.width
+                if finger % 2 == 1 then -- source
+                    geometry.contactbltr(cell, "sourcedrain",
+                        point.create(
+                            _P.gatelength + (_P.gatespace - _P.sdwidth) / 2 + (currentfingers + finger - 1) * (_P.gatelength + _P.gatespace),
+                            rowheights[rownum]
+                        ),
+                        point.create(
+                            _P.gatelength + (_P.gatespace - _P.sdwidth) / 2 + (currentfingers + finger - 1) * (_P.gatelength + _P.gatespace) + _P.sdwidth,
+                            rowheights[rownum] + (device.sourcesize or row.width)
+                        )
                     )
-                )
+                else -- drain
+                    geometry.contactbltr(cell, "sourcedrain",
+                        point.create(
+                            _P.gatelength + (_P.gatespace - _P.sdwidth) / 2 + (currentfingers + finger - 1) * (_P.gatelength + _P.gatespace),
+                            rowheights[rownum]
+                        ),
+                        point.create(
+                            _P.gatelength + (_P.gatespace - _P.sdwidth) / 2 + (currentfingers + finger - 1) * (_P.gatelength + _P.gatespace) + _P.sdwidth,
+                            rowheights[rownum] + (device.drainsize or row.width)
+                        )
+                    )
+                end
                 cell:add_area_anchor_bltr(string.format("%ssourcedrain%d", device.name, finger),
                     point.create(
                         _P.gatelength + (_P.gatespace - _P.sdwidth) / 2 + (currentfingers + finger - 1) * (_P.gatelength + _P.gatespace),

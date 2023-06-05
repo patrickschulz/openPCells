@@ -55,6 +55,13 @@ function layout(divider, _P)
     divider:inherit_alignment_box(latch1)
     divider:inherit_alignment_box(latch2)
 
-    -- ports
-    divider:add_port("clkp", generics.metalport(1), latch1:get_anchor("clkp"))
+    -- clock ports
+    divider:add_port("clkp", generics.metalport(1), latch1:get_anchor("clkpleft"))
+    divider:add_port("clkp", generics.metalport(1), latch2:get_anchor("clknleft"))
+    divider:add_port("clkn", generics.metalport(1), latch1:get_anchor("clknleft"))
+    divider:add_port("clkn", generics.metalport(1), latch2:get_anchor("clkpleft"))
+    divider:add_port("clkp", generics.metalport(1), latch1:get_anchor("clkpright"))
+    divider:add_port("clkp", generics.metalport(1), latch2:get_anchor("clknright"))
+    divider:add_port("clkn", generics.metalport(1), latch1:get_anchor("clknright"))
+    divider:add_port("clkn", generics.metalport(1), latch2:get_anchor("clkpright"))
 end
