@@ -387,16 +387,29 @@ function layout(cell, _P)
                         )
                     )
                 end
-                geometry.rectanglebltr(cell, generics.metal(1),
-                    point.create(
-                        xpitch + currentfingers * (_P.gatelength + _P.gatespace),
-                        rowheights[rownum] + row.width + device.topgatespace
-                    ),
-                    point.create(
-                        xpitch + (currentfingers + device.fingers) * (_P.gatelength + _P.gatespace) - _P.gatespace,
-                        rowheights[rownum] + row.width + device.topgatespace + device.topgatewidth
+                if device.topgatemetal and device.topgatemetal > 1 then
+                    geometry.viabltr(cell, 1, device.topgatemetal,
+                        point.create(
+                            xpitch + currentfingers * (_P.gatelength + _P.gatespace),
+                            rowheights[rownum] + row.width + device.topgatespace
+                        ),
+                        point.create(
+                            xpitch + (currentfingers + device.fingers) * (_P.gatelength + _P.gatespace) - _P.gatespace,
+                            rowheights[rownum] + row.width + device.topgatespace + device.topgatewidth
+                        )
                     )
-                )
+                else
+                    geometry.rectanglebltr(cell, generics.metal(1),
+                        point.create(
+                            xpitch + currentfingers * (_P.gatelength + _P.gatespace),
+                            rowheights[rownum] + row.width + device.topgatespace
+                        ),
+                        point.create(
+                            xpitch + (currentfingers + device.fingers) * (_P.gatelength + _P.gatespace) - _P.gatespace,
+                            rowheights[rownum] + row.width + device.topgatespace + device.topgatewidth
+                        )
+                    )
+                end
                 cell:add_area_anchor_bltr(string.format("%stopgate", device.name),
                     point.create(
                         xpitch + currentfingers * (_P.gatelength + _P.gatespace),
@@ -423,16 +436,29 @@ function layout(cell, _P)
                         )
                     )
                 end
-                geometry.rectanglebltr(cell, generics.metal(1),
-                    point.create(
-                        xpitch + currentfingers * (_P.gatelength + _P.gatespace),
-                        rowheights[rownum] - device.botgatespace - device.botgatewidth
-                    ),
-                    point.create(
-                        xpitch + (currentfingers + device.fingers) * (_P.gatelength + _P.gatespace) - _P.gatespace,
-                        rowheights[rownum] - device.botgatespace
+                if device.botgatemetal and device.botgatemetal > 1 then
+                    geometry.viabltr(cell, 1, device.botgatemetal,
+                        point.create(
+                            xpitch + currentfingers * (_P.gatelength + _P.gatespace),
+                            rowheights[rownum] - device.botgatespace - device.botgatewidth
+                        ),
+                        point.create(
+                            xpitch + (currentfingers + device.fingers) * (_P.gatelength + _P.gatespace) - _P.gatespace,
+                            rowheights[rownum] - device.botgatespace
+                        )
                     )
-                )
+                else
+                    geometry.rectanglebltr(cell, generics.metal(1),
+                        point.create(
+                            xpitch + currentfingers * (_P.gatelength + _P.gatespace),
+                            rowheights[rownum] - device.botgatespace - device.botgatewidth
+                        ),
+                        point.create(
+                            xpitch + (currentfingers + device.fingers) * (_P.gatelength + _P.gatespace) - _P.gatespace,
+                            rowheights[rownum] - device.botgatespace
+                        )
+                    )
+                end
                 cell:add_area_anchor_bltr(string.format("%stopgate", device.name),
                     point.create(
                         xpitch + currentfingers * (_P.gatelength + _P.gatespace),

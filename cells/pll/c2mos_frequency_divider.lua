@@ -39,6 +39,7 @@
 
 function parameters()
     pcell.add_parameters(
+        { "divisionfactor", 1 }, -- as power-of-two (e.g. 1 -> division by 2, 3 -> division by 8)
         { "gatelength", technology.get_dimension("Minimum Gate Length"), argtype = "integer" },
         { "gatespace", technology.get_dimension("Minimum Gate XSpace"), argtype = "integer" },
         { "separation", 0 },
@@ -126,6 +127,7 @@ function layout(divider, _P)
                     drawtopgate = true,
                     topgatewidth = 60,
                     topgatespace = 60,
+                    topgatemetal = 2,
                     connectdrain = true,
                     connectdrainwidth = 80,
                     connectdrainspace = 170,
@@ -162,6 +164,7 @@ function layout(divider, _P)
                     drawtopgate = true,
                     topgatewidth = 60,
                     topgatespace = 60,
+                    topgatemetal = 2,
                     connectdrain = true,
                     connectdrainwidth = 80,
                     connectdrainspace = 170,
@@ -374,6 +377,7 @@ function layout(divider, _P)
                     drawbotgate = true,
                     botgatewidth = 60,
                     botgatespace = 60,
+                    botgatemetal = 2,
                     connectdrain = true,
                     connectdraininverse = true,
                     connectdrainwidth = 80,
@@ -410,6 +414,7 @@ function layout(divider, _P)
                     drawbotgate = true,
                     botgatewidth = 60,
                     botgatespace = 60,
+                    botgatemetal = 2,
                     connectdrain = true,
                     connectdraininverse = true,
                     connectdrainwidth = 80,
@@ -660,89 +665,73 @@ function layout(divider, _P)
     latch:add_area_anchor_bltr("inn", latch:get_area_anchor("ninrighttopgate").bl, latch:get_area_anchor("ninrighttopgate").tr)
 
     -- placement
-    local latch1 = latch:copy()
-    local latch2 = latch:copy()
-    latch2:mirror_at_xaxis()
-    latch2:abut_top(latch1)
-    latch2:align_left(latch1)
-    divider:merge_into(latch1)
-    divider:merge_into(latch2)
+    local numlatches = 2^_P.divisionfactor
+    local latches = {}
+    for i = 1, numlatches do
+        latches[i] = latch:copy()
+        if i % 2 == 0 then
+            latches[i]:mirror_at_xaxis()
+        end
+        if i > 1 then
+            latches[i]:abut_top(latches[i - 1])
+            latches[i]:align_left(latches[i - 1])
+        end
+        divider:merge_into(latches[i])
+        divider:inherit_alignment_box(latches[i])
+    end
 
     -- internal connections between latches
 
     -- input lines
     geometry.rectanglebltr(divider, generics.metal(8),
-        latch1:get_area_anchor(string.format("clockndummymiddlesourcedrain%d", 3)).bl .. latch1:get_area_anchor("lowerpowerrail").bl,
-        latch2:get_area_anchor(string.format("clockndummymiddlesourcedrain%d", _P.latchoutersepfingers - 1)).tr .. latch2:get_area_anchor("lowerpowerrail").tr
+        latches[1]:get_area_anchor(string.format("clockndummymiddlesourcedrain%d", 3)).bl .. latches[1]:get_area_anchor("lowerpowerrail").bl,
+        latches[numlatches]:get_area_anchor(string.format("clockndummymiddlesourcedrain%d", _P.latchoutersepfingers - 1)).tr .. latches[numlatches]:get_area_anchor("lowerpowerrail").tr
     )
     geometry.rectanglebltr(divider, generics.metal(8),
-        latch2:get_area_anchor(string.format("clockndummymiddlesourcedrain%d", middledummyfingers - (_P.latchoutersepfingers - 1) + 2)).tl .. latch1:get_area_anchor("lowerpowerrail").bl,
-        latch1:get_area_anchor(string.format("clockndummymiddlesourcedrain%d", middledummyfingers - 3 + 2)).br .. latch2:get_area_anchor("lowerpowerrail").tr
+        latches[numlatches]:get_area_anchor(string.format("clockndummymiddlesourcedrain%d", middledummyfingers - (_P.latchoutersepfingers - 1) + 2)).tl .. latches[1]:get_area_anchor("lowerpowerrail").bl,
+        latches[1]:get_area_anchor(string.format("clockndummymiddlesourcedrain%d", middledummyfingers - 3 + 2)).br .. latches[numlatches]:get_area_anchor("lowerpowerrail").tr
     )
 
-    -- latch1 clock p
-    geometry.viabltr(divider, 7, 8,
-        latch1:get_area_anchor(string.format("clockndummymiddlesourcedrain%d", 3)).bl:translate_y(-_P.clockviaextension),
-        latch1:get_area_anchor(string.format("clockndummymiddlesourcedrain%d", _P.latchoutersepfingers - 1)).tr:translate_y(_P.clockviaextension)
-    )
-    geometry.rectanglebltr(divider, generics.metal(2),
-        latch1:get_area_anchor("clocknlefttopgate").br,
-        latch1:get_area_anchor(string.format("clockndummymiddlesourcedrain%d", _P.latchoutersepfingers - 1)).tr .. latch1:get_area_anchor("clocknlefttopgate").tr
-    )
-    geometry.rectanglebltr(divider, generics.metal(2),
-        latch1:get_area_anchor(string.format("clockndummymiddlesourcedrain%d", _P.latchoutersepfingers - 1)).tr .. latch1:get_area_anchor("clocknrighttopgate").br,
-        latch1:get_area_anchor("clocknrighttopgate").tl
-    )
-    geometry.viabltr(divider, 2, 7,
-        latch1:get_area_anchor(string.format("clockndummymiddlesourcedrain%d", 3)).tl:translate_y(_P.clockviaextension) .. latch1:get_area_anchor("clocknlefttopgate").br,
-        latch1:get_area_anchor(string.format("clockndummymiddlesourcedrain%d", _P.latchoutersepfingers - 1)).tr .. latch1:get_area_anchor("clocknlefttopgate").tr
-    )
-    geometry.viabltr(divider, 1, 2,
-        latch1:get_area_anchor("clocknlefttopgate").bl,
-        latch1:get_area_anchor("clocknlefttopgate").tr
-    )
-    geometry.viabltr(divider, 1, 2,
-        latch1:get_area_anchor("clocknrighttopgate").bl,
-        latch1:get_area_anchor("clocknrighttopgate").tr
-    )
-
-    -- latch1 clock n
-    geometry.viabltr(divider, 7, 8,
-        latch1:get_area_anchor(string.format("clockpdummymiddlesourcedrain%d", middledummyfingers - (_P.latchoutersepfingers - 1) + 2)).bl:translate_y(-_P.clockviaextension),
-        latch1:get_area_anchor(string.format("clockpdummymiddlesourcedrain%d", middledummyfingers - 3 + 2)).tr:translate_y(_P.clockviaextension)
-    )
-    geometry.rectanglebltr(divider, generics.metal(2),
-        latch1:get_area_anchor(string.format("clockpdummymiddlesourcedrain%d", middledummyfingers - 3 + 2)).tr .. latch1:get_area_anchor("clockprighttopgate").br,
-        latch1:get_area_anchor("clockprighttopgate").tr
-    )
-    geometry.rectanglebltr(divider, generics.metal(2),
-        latch1:get_area_anchor("clocknlefttopgate").br,
-        latch1:get_area_anchor(string.format("clockndummymiddlesourcedrain%d", middledummyfingers - (_P.latchoutersepfingers - 1) + 2)).tr .. latch1:get_area_anchor("clocknlefttopgate").tr
-    )
-    --geometry.viabltr(divider, 2, 7,
-    --    latch1:get_area_anchor(string.format("clockndummymiddlesourcedrain%d", 3)).tl:translate_y(_P.clockviaextension) .. latch1:get_area_anchor("clocknlefttopgate").br,
-    --    latch1:get_area_anchor(string.format("clockndummymiddlesourcedrain%d", _P.latchoutersepfingers - 1)).tr .. latch1:get_area_anchor("clocknlefttopgate").tr
-    --)
-    --geometry.viabltr(divider, 1, 2,
-    --    latch1:get_area_anchor("clocknlefttopgate").bl,
-    --    latch1:get_area_anchor("clocknlefttopgate").tr
-    --)
-    --geometry.viabltr(divider, 1, 2,
-    --    latch1:get_area_anchor("clocknrighttopgate").bl,
-    --    latch1:get_area_anchor("clocknrighttopgate").tr
-    --)
-
-    -- alignment box
-    divider:inherit_alignment_box(latch1)
-    divider:inherit_alignment_box(latch2)
+    -- input gate connections
+    for i = 1, numlatches do
+        local clockpidentifier
+        local clocknidentifier
+        if i % 2 == 0 then
+            clockpidentifier = "p"
+            clocknidentifier = "n"
+        else
+            clockpidentifier = "n"
+            clocknidentifier = "p"
+        end
+        -- clockp
+        geometry.viabltr(divider, 7, 8,
+            latches[i]:get_area_anchor(string.format("clock%sdummymiddlesourcedrain%d", clockpidentifier, 3)).bl:translate_y(-_P.clockviaextension),
+            latches[i]:get_area_anchor(string.format("clock%sdummymiddlesourcedrain%d", clockpidentifier, _P.latchoutersepfingers - 1)).tr:translate_y(_P.clockviaextension)
+        )
+        geometry.viabltr(divider, 2, 7,
+            latches[i]:get_area_anchor(string.format("clock%sdummymiddlesourcedrain%d", clockpidentifier, 3)).tl:translate_y(_P.clockviaextension) .. latches[i]:get_area_anchor(string.format("clock%slefttopgate", clockpidentifier)).br,
+            latches[i]:get_area_anchor(string.format("clock%sdummymiddlesourcedrain%d", clockpidentifier, _P.latchoutersepfingers - 1)).tr .. latches[i]:get_area_anchor(string.format("clock%slefttopgate", clockpidentifier)).tr
+        )
+        geometry.rectanglebltr(divider, generics.metal(2),
+            latches[i]:get_area_anchor(string.format("clock%slefttopgate", clockpidentifier)).br,
+            latches[i]:get_area_anchor(string.format("clock%srighttopgate", clockpidentifier)).tl
+        )
+        -- clockn
+        geometry.viabltr(divider, 7, 8,
+            latches[i]:get_area_anchor(string.format("clock%sdummymiddlesourcedrain%d", clocknidentifier, middledummyfingers - (_P.latchoutersepfingers - 1) + 2)).bl:translate_y(-_P.clockviaextension),
+            latches[i]:get_area_anchor(string.format("clock%sdummymiddlesourcedrain%d", clocknidentifier, middledummyfingers - 3 + 2)).tr:translate_y(_P.clockviaextension)
+        )
+        geometry.viabltr(divider, 2, 7,
+            latches[i]:get_area_anchor(string.format("clock%sdummymiddlesourcedrain%d", clocknidentifier, middledummyfingers - (_P.latchoutersepfingers - 1) + 2)).bl:translate_y(-_P.clockviaextension) .. latches[i]:get_area_anchor(string.format("clock%slefttopgate", clocknidentifier)).br,
+            latches[i]:get_area_anchor(string.format("clock%sdummymiddlesourcedrain%d", clocknidentifier, middledummyfingers - 3 + 2)).tr:translate_y(_P.clockviaextension) .. latches[i]:get_area_anchor(string.format("clock%slefttopgate", clocknidentifier)).tr
+        )
+        geometry.rectanglebltr(divider, generics.metal(2),
+            latches[i]:get_area_anchor(string.format("clock%slefttopgate", clocknidentifier)).bl,
+            latches[i]:get_area_anchor(string.format("clock%srighttopgate", clocknidentifier)).tr
+        )
+    end
 
     -- clock ports
-    divider:add_port("clkp", generics.metalport(1), latch1:get_area_anchor("clkpleft").bl)
-    divider:add_port("clkp", generics.metalport(1), latch2:get_area_anchor("clknleft").bl)
-    divider:add_port("clkn", generics.metalport(1), latch1:get_area_anchor("clknleft").bl)
-    divider:add_port("clkn", generics.metalport(1), latch2:get_area_anchor("clkpleft").bl)
-    divider:add_port("clkp", generics.metalport(1), latch1:get_area_anchor("clkpright").bl)
-    divider:add_port("clkp", generics.metalport(1), latch2:get_area_anchor("clknright").bl)
-    divider:add_port("clkn", generics.metalport(1), latch1:get_area_anchor("clknright").bl)
-    divider:add_port("clkn", generics.metalport(1), latch2:get_area_anchor("clkpright").bl)
+    divider:add_port("clkp", generics.metalport(8), latches[1]:get_area_anchor(string.format("clockndummymiddlesourcedrain%d", 3)).bl .. latches[1]:get_area_anchor("lowerpowerrail").bl)
+    divider:add_port("clkn", generics.metalport(8), latches[2]:get_area_anchor(string.format("clockndummymiddlesourcedrain%d", middledummyfingers - (_P.latchoutersepfingers - 1) + 2)).tl .. latches[1]:get_area_anchor("lowerpowerrail").bl)
 end
