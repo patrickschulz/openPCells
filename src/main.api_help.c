@@ -2737,7 +2737,7 @@ void main_API_help(const char* funcname)
 
     if(!found)
     {
-        printf("Sorry, --API-help is in a very alpha stage, there was no entry for '%s' found\n", funcname);
+        printf("no help entry for '%s' was found (use --api-search to find help entries)\n", funcname);
     }
     _destroy_api_entries(entries);
 }
