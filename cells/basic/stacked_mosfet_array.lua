@@ -16,7 +16,20 @@ function parameters()
         { "topgatecutspace", 0 },
         { "drawbotgatecut", false },
         { "botgatecutwidth", 0 },
-        { "botgatecutspace", 0 }
+        { "botgatecutspace", 0 },
+        { "drawleftstopgate", false },
+        { "drawrightstopgate", false },
+        { "stopgatecutwidth", 0 },
+        { "implantleftextension", 0 },
+        { "implantrightextension", 0 },
+        { "implanttopextension", 0 },
+        { "implantbotextension", 0 },
+        { "vthtypeleftextension", 0 },
+        { "vthtyperightextension", 0 },
+        { "vthtypetopextension", 0 },
+        { "vthtypebotextension", 0 },
+        { "leftpolylines", {} },
+        { "rightpolylines", {} }
     )
 end
 
@@ -151,23 +164,85 @@ function layout(cell, _P)
         )
     end
 
+    if _P.drawleftstopgate then
+        geometry.rectanglebltr(cell, generics.other("gate"),
+            point.create(0, -_P.gatesbotextension),
+            point.create(_P.gatelength, totalheight + _P.gatestopextension)
+        )
+        for rownum, row in ipairs(_P.rows) do
+            geometry.rectanglebltr(cell, generics.other("diffusionbreakgate"),
+                point.create(0, rowheights[rownum] - (_P.separation - _P.stopgatecutwidth) / 2),
+                point.create(_P.gatelength, rowheights[rownum] + row.width + (_P.separation - _P.stopgatecutwidth) / 2)
+            )
+            geometry.rectanglebltr(cell, generics.other("gatecut"),
+                point.create(
+                    -_P.gatespace / 2,
+                    rowheights[rownum] + row.width + (_P.separation - _P.stopgatecutwidth) / 2
+                ),
+                point.create(
+                    _P.gatelength + _P.gatespace / 2,
+                    rowheights[rownum] + row.width + (_P.separation + _P.stopgatecutwidth) / 2
+                )
+            )
+        end
+    end
+
+    if _P.drawrightstopgate then
+        geometry.rectanglebltr(cell, generics.other("gate"),
+            point.create((totalfingers + 1) * (_P.gatelength + _P.gatespace), -_P.gatesbotextension),
+            point.create((totalfingers + 1) * (_P.gatelength + _P.gatespace) + _P.gatelength, totalheight + _P.gatestopextension)
+        )
+        for rownum, row in ipairs(_P.rows) do
+            geometry.rectanglebltr(cell, generics.other("diffusionbreakgate"),
+                point.create((totalfingers + 1) * (_P.gatelength + _P.gatespace), rowheights[rownum] - (_P.separation - _P.stopgatecutwidth) / 2),
+                point.create((totalfingers + 1) * (_P.gatelength + _P.gatespace) + _P.gatelength, rowheights[rownum] + row.width + (_P.separation - _P.stopgatecutwidth) / 2)
+            )
+            geometry.rectanglebltr(cell, generics.other("gatecut"),
+                point.create(
+                    (totalfingers + 1) * (_P.gatelength + _P.gatespace) - _P.gatespace / 2,
+                    rowheights[rownum] + row.width + (_P.separation - _P.stopgatecutwidth) / 2
+                ),
+                point.create(
+                    (totalfingers + 1) * (_P.gatelength + _P.gatespace) + _P.gatelength + _P.gatespace / 2,
+                    rowheights[rownum] + row.width + (_P.separation + _P.stopgatecutwidth) / 2
+                )
+            )
+        end
+    end
+
     for rownum, row in ipairs(_P.rows) do
         -- active regions
         geometry.rectanglebltr(cell, generics.other("active"),
-            point.create(0, rowheights[rownum]),
-            point.create(totalwidth, rowheights[rownum] + row.width)
+            point.create(_P.gatelength / 2, rowheights[rownum]),
+            point.create(totalwidth - _P.gatelength / 2, rowheights[rownum] + row.width)
         )
 
         -- channeltype
+        local implanttopext = 0
+        local implantbotext = 0
+        if rownum == 1 then
+            implantbotext = _P.implantbotextension
+        end
+        if rownum == #_P.rows then
+            implanttopext = _P.implanttopextension
+        end
         geometry.rectanglebltr(cell, generics.implant(row.channeltype),
-            point.create(0, rowheights[rownum] - _P.separation / 2),
-            point.create(totalwidth, rowheights[rownum] + row.width + _P.separation / 2)
+            point.create(-_P.implantleftextension, rowheights[rownum] - _P.separation / 2 - implantbotext),
+            point.create(totalwidth + _P.implantrightextension, rowheights[rownum] + row.width + _P.separation / 2 + implanttopext)
         )
 
         -- vthtype
+        local vthtypetopext = 0
+        local vthtypebotext = 0
+        if rownum == 1 then
+            vthtypebotext = _P.vthtypebotextension
+        end
+        if rownum == #_P.rows then
+            vthtypetopext = _P.vthtypetopextension
+        end
         geometry.rectanglebltr(cell, generics.vthtype(row.channeltype, row.vthtype),
-            point.create(0, rowheights[rownum] - _P.separation / 2),
-            point.create(totalwidth, rowheights[rownum] + row.width + _P.separation / 2)
+            point.create(-_P.vthtypeleftextension, rowheights[rownum] - _P.separation / 2 - vthtypebotext),
+            point.create(totalwidth + _P.vthtyperightextension, rowheights[rownum] + row.width + _P.separation / 2 + vthtypetopext)
         )
 
         -- source/drain contacts
@@ -390,33 +465,33 @@ function layout(cell, _P)
                 if device.topgatemetal and device.topgatemetal > 1 then
                     geometry.viabltr(cell, 1, device.topgatemetal,
                         point.create(
-                            xpitch + currentfingers * (_P.gatelength + _P.gatespace),
+                            xpitch + currentfingers * (_P.gatelength + _P.gatespace) - (device.topgateleftextension or 0),
                             rowheights[rownum] + row.width + device.topgatespace
                         ),
                         point.create(
-                            xpitch + (currentfingers + device.fingers) * (_P.gatelength + _P.gatespace) - _P.gatespace,
+                            xpitch + (currentfingers + device.fingers) * (_P.gatelength + _P.gatespace) - _P.gatespace + (device.topgaterightextension or 0),
                             rowheights[rownum] + row.width + device.topgatespace + device.topgatewidth
                         )
                     )
                 else
                     geometry.rectanglebltr(cell, generics.metal(1),
                         point.create(
-                            xpitch + currentfingers * (_P.gatelength + _P.gatespace),
+                            xpitch + currentfingers * (_P.gatelength + _P.gatespace) - (device.topgateleftextension or 0),
                             rowheights[rownum] + row.width + device.topgatespace
                         ),
                         point.create(
-                            xpitch + (currentfingers + device.fingers) * (_P.gatelength + _P.gatespace) - _P.gatespace,
+                            xpitch + (currentfingers + device.fingers) * (_P.gatelength + _P.gatespace) - _P.gatespace + (device.topgaterightextension or 0),
                             rowheights[rownum] + row.width + device.topgatespace + device.topgatewidth
                         )
                     )
                 end
                 cell:add_area_anchor_bltr(string.format("%stopgate", device.name),
                     point.create(
-                        xpitch + currentfingers * (_P.gatelength + _P.gatespace),
+                        xpitch + currentfingers * (_P.gatelength + _P.gatespace) - (device.topgateleftextension or 0),
                         rowheights[rownum] + row.width + device.topgatespace
                     ),
                     point.create(
-                        xpitch + (currentfingers + device.fingers) * (_P.gatelength + _P.gatespace) - _P.gatespace,
+                        xpitch + (currentfingers + device.fingers) * (_P.gatelength + _P.gatespace) - _P.gatespace + (device.topgaterightextension or 0),
                         rowheights[rownum] + row.width + device.topgatespace + device.topgatewidth
                     )
                 )
@@ -439,33 +514,33 @@ function layout(cell, _P)
                 if device.botgatemetal and device.botgatemetal > 1 then
                     geometry.viabltr(cell, 1, device.botgatemetal,
                         point.create(
-                            xpitch + currentfingers * (_P.gatelength + _P.gatespace),
+                            xpitch + currentfingers * (_P.gatelength + _P.gatespace) - (device.botgateleftextension or 0),
                             rowheights[rownum] - device.botgatespace - device.botgatewidth
                         ),
                         point.create(
-                            xpitch + (currentfingers + device.fingers) * (_P.gatelength + _P.gatespace) - _P.gatespace,
+                            xpitch + (currentfingers + device.fingers) * (_P.gatelength + _P.gatespace) - _P.gatespace + (device.botgaterightextension or 0),
                             rowheights[rownum] - device.botgatespace
                         )
                     )
                 else
                     geometry.rectanglebltr(cell, generics.metal(1),
                         point.create(
-                            xpitch + currentfingers * (_P.gatelength + _P.gatespace),
+                            xpitch + currentfingers * (_P.gatelength + _P.gatespace) - (device.botgateleftextension or 0),
                             rowheights[rownum] - device.botgatespace - device.botgatewidth
                         ),
                         point.create(
-                            xpitch + (currentfingers + device.fingers) * (_P.gatelength + _P.gatespace) - _P.gatespace,
+                            xpitch + (currentfingers + device.fingers) * (_P.gatelength + _P.gatespace) - _P.gatespace + (device.botgaterightextension or 0),
                             rowheights[rownum] - device.botgatespace
                         )
                     )
                 end
                 cell:add_area_anchor_bltr(string.format("%stopgate", device.name),
                     point.create(
-                        xpitch + currentfingers * (_P.gatelength + _P.gatespace),
+                        xpitch + currentfingers * (_P.gatelength + _P.gatespace) - (device.botgateleftextension or 0),
                         rowheights[rownum] - device.botgatespace - device.botgatewidth
                     ),
                     point.create(
-                        xpitch + (currentfingers + device.fingers) * (_P.gatelength + _P.gatespace) - _P.gatespace,
+                        xpitch + (currentfingers + device.fingers) * (_P.gatelength + _P.gatespace) - _P.gatespace + (device.botgaterightextension or 0),
                         rowheights[rownum] - device.botgatespace
                     )
                 )
@@ -475,11 +550,11 @@ function layout(cell, _P)
             if device.drawtopgatecut then
                 geometry.rectanglebltr(cell, generics.other("gatecut"),
                     point.create(
-                        xpitch + currentfingers * (_P.gatelength + _P.gatespace),
+                        xpitch + currentfingers * (_P.gatelength + _P.gatespace) - _P.gatespace / 2,
                         rowheights[rownum] + row.width + device.topgatecutspace
                     ),
                     point.create(
-                        xpitch + (currentfingers + device.fingers) * (_P.gatelength + _P.gatespace) - _P.gatespace,
+                        xpitch + (currentfingers + device.fingers) * (_P.gatelength + _P.gatespace) - _P.gatespace + _P.gatespace / 2,
                         rowheights[rownum] + row.width + device.topgatecutspace + device.topgatecutwidth
                     )
                 )
@@ -489,11 +564,11 @@ function layout(cell, _P)
             if device.drawbotgatecut then
                 geometry.rectanglebltr(cell, generics.other("gatecut"),
                     point.create(
-                        xpitch + currentfingers * (_P.gatelength + _P.gatespace),
+                        xpitch + currentfingers * (_P.gatelength + _P.gatespace) - _P.gatespace / 2,
                         rowheights[rownum] - device.botgatecutspace - device.botgatecutwidth
                     ),
                     point.create(
-                        xpitch + (currentfingers + device.fingers) * (_P.gatelength + _P.gatespace) - _P.gatespace,
+                        xpitch + (currentfingers + device.fingers) * (_P.gatelength + _P.gatespace) - _P.gatespace + _P.gatespace / 2,
                         rowheights[rownum] - device.botgatecutspace
                     )
                 )
@@ -524,15 +599,45 @@ function layout(cell, _P)
 
     if _P.drawtopgatecut then
         geometry.rectanglebltr(cell, generics.other("gatecut"),
-            point.create(0, totalheight + _P.powerspace + (_P.powerwidth - _P.topgatecutwidth) / 2),
-            point.create(totalwidth, totalheight + _P.powerspace + (_P.powerwidth + _P.topgatecutwidth) / 2)
+            point.create(-_P.gatespace / 2, totalheight + _P.powerspace + (_P.powerwidth - _P.topgatecutwidth) / 2),
+            point.create(totalwidth + _P.gatespace / 2, totalheight + _P.powerspace + (_P.powerwidth + _P.topgatecutwidth) / 2)
         )
     end
     if _P.drawbotgatecut then
         geometry.rectanglebltr(cell, generics.other("gatecut"),
-            point.create(0, -_P.powerspace - (_P.powerwidth + _P.botgatecutwidth) / 2),
-            point.create(totalwidth, -_P.powerspace - (_P.powerwidth - _P.botgatecutwidth) / 2)
+            point.create(-_P.gatespace / 2, -_P.powerspace - (_P.powerwidth + _P.botgatecutwidth) / 2),
+            point.create(totalwidth + _P.gatespace / 2, -_P.powerspace - (_P.powerwidth - _P.botgatecutwidth) / 2)
         )
+    end
+
+    -- left and right polylines
+    local leftpolyoffset = 0 * (_P.gatelength + _P.gatespace)
+    for _, polyline in ipairs(_P.leftpolylines) do
+        if not polyline.length then
+            cellerror("basic/stacked_mosfet_array: leftpolyline entry does not have a 'length' field")
+        end
+        if not polyline.space then
+            cellerror("basic/stacked_mosfet_array: leftpolyline entry does not have a 'space' field")
+        end
+        geometry.rectanglebltr(cell, generics.other("gate"),
+            point.create(leftpolyoffset - polyline.space - polyline.length, -_P.gatesbotextension),
+            point.create(leftpolyoffset - polyline.space, totalheight + _P.gatestopextension)
+        )
+        leftpolyoffset = leftpolyoffset - polyline.length - polyline.space
+    end
+    local rightpolyoffset = (totalfingers + 1) * (_P.gatelength + _P.gatespace) + _P.gatelength
+    for _, polyline in ipairs(_P.rightpolylines) do
+        if not polyline.length then
+            cellerror("basic/mosfet: rightpolyline entry does not have a 'length' field")
+        end
+        if not polyline.space then
+            cellerror("basic/mosfet: rightpolyline entry does not have a 'space' field")
+        end
+        geometry.rectanglebltr(cell, generics.other("gate"),
+            point.create(rightpolyoffset + polyline.space, -_P.gatesbotextension),
+            point.create(rightpolyoffset + polyline.space + polyline.length, totalheight + _P.gatestopextension)
+        )
+        rightpolyoffset = rightpolyoffset + polyline.length + polyline.space
     end
 
     -- alignment box
