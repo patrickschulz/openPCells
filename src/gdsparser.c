@@ -864,6 +864,7 @@ static int _read_TEXT(struct stream* stream, char** str, int16_t* layer, int16_t
         struct record* record = _get_next_record(stream);
         if(!record)
         {
+            puts("gdsparser: end of stream while reading TEXT");
             return 0;
         }
         else if(record->recordtype == ELFLAGS)
@@ -913,8 +914,13 @@ static int _read_TEXT(struct stream* stream, char** str, int16_t* layer, int16_t
         {
             *str = _parse_string(record->data, record->length - 4);
         }
+        else if(record->recordtype == ENDEL)
+        {
+            break;
+        }
         else // wrong record
         {
+            fprintf(stderr, "malformed TEXT, got unexpected record '%s' (#%zd)\n", recordnames[record->recordtype], stream->index);
             return 0;
         }
     }
@@ -1056,6 +1062,7 @@ static int _read_BOUNDARY(struct stream* stream, int16_t* layer, int16_t* purpos
         struct record* record = _get_next_record(stream);
         if(!record)
         {
+            puts("gdsparser: end of stream while reading BOUNDARY");
             return 0;
         }
         if(record->recordtype == ELFLAGS)
@@ -1153,6 +1160,7 @@ static int _read_PATH(struct stream* stream, int16_t* layer, int16_t* purpose, s
         struct record* record = _get_next_record(stream);
         if(!record)
         {
+            puts("gdsparser: end of stream while reading PATH");
             return 0;
         }
         if(record->recordtype == ELFLAGS)
@@ -1233,6 +1241,7 @@ static int _read_structure(const char* importname, struct stream* stream, const 
         struct record* record = _get_next_record(stream);
         if(!record)
         {
+            puts("gdsparser: end of stream while reading structure");
             return 0;
         }
         if(record->recordtype == STRNAME)
@@ -1398,6 +1407,7 @@ int gdsparser_read_stream(const char* filename, const char* importname, const st
         struct record* record = _get_next_record(stream);
         if(!record)
         {
+            puts("gdsparser: end of stream before ENDLIB");
             _destroy_stream(stream);
             return 0;
         }
@@ -1414,6 +1424,7 @@ int gdsparser_read_stream(const char* filename, const char* importname, const st
         {
             if(!_read_structure(importname, stream, gdslayermap, ignorelpp, ablayer, abpurpose))
             {
+                puts("gdsparser: error while reading structure");
                 _destroy_stream(stream);
                 return 0;
             }
