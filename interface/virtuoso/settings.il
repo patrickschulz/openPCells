@@ -63,7 +63,7 @@ procedure(OPCCreateSettingsForm()
             hiCreateRadioField(
                 ?name 'OPCSettingsGroup
                 ?choices list("true" "false")
-                ?value "true"
+                ?value "false"
                 ?prompt "Group Created Shapes"
             )
             hiCreateStringField(
