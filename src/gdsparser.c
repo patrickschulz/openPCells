@@ -656,7 +656,7 @@ struct cellref {
     double angle;
 };
 
-int _check_rectangle(const coordinate_t* points)
+static int _check_rectangle(const coordinate_t* points)
 {
     return ((points[1] == points[3])  &&
             (points[2] == points[4])  &&
