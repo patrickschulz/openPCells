@@ -184,6 +184,16 @@ function layout(cell, _P)
                     rowheights[rownum] + row.width + (_P.separation + _P.stopgatecutwidth) / 2
                 )
             )
+            geometry.rectanglebltr(cell, generics.other("gatecut"),
+                point.create(
+                    -_P.gatespace / 2,
+                    rowheights[rownum] - (_P.separation + _P.stopgatecutwidth) / 2
+                ),
+                point.create(
+                    _P.gatelength + _P.gatespace / 2,
+                    rowheights[rownum] - (_P.separation - _P.stopgatecutwidth) / 2
+                )
+            )
         end
     end
 
@@ -205,6 +215,16 @@ function layout(cell, _P)
                 point.create(
                     (totalfingers + 1) * (_P.gatelength + _P.gatespace) + _P.gatelength + _P.gatespace / 2,
                     rowheights[rownum] + row.width + (_P.separation + _P.stopgatecutwidth) / 2
+                )
+            )
+            geometry.rectanglebltr(cell, generics.other("gatecut"),
+                point.create(
+                    (totalfingers + 1) * (_P.gatelength + _P.gatespace) - _P.gatespace / 2,
+                    rowheights[rownum] - (_P.separation + _P.stopgatecutwidth) / 2
+                ),
+                point.create(
+                    (totalfingers + 1) * (_P.gatelength + _P.gatespace) + _P.gatelength + _P.gatespace / 2,
+                    rowheights[rownum] - (_P.separation - _P.stopgatecutwidth) / 2
                 )
             )
         end
@@ -259,26 +279,35 @@ function layout(cell, _P)
                         rowheights[rownum] + row.width
                     )
                 )
+                local sourcebasey
+                local drainbasey
+                if row.channeltype == "nmos" then
+                    sourcebasey = rowheights[rownum]
+                    drainbasey = rowheights[rownum] + row.width - (device.drainsize or row.width)
+                else
+                    drainbasey = rowheights[rownum]
+                    sourcebasey = rowheights[rownum] + row.width - (device.sourcesize or row.width)
+                end
                 if finger % 2 == 1 then -- source
                     geometry.contactbltr(cell, "sourcedrain",
                         point.create(
                             _P.gatelength + (_P.gatespace - _P.sdwidth) / 2 + (currentfingers + finger - 1) * (_P.gatelength + _P.gatespace),
-                            rowheights[rownum]
+                            sourcebasey
                         ),
                         point.create(
                             _P.gatelength + (_P.gatespace - _P.sdwidth) / 2 + (currentfingers + finger - 1) * (_P.gatelength + _P.gatespace) + _P.sdwidth,
-                            rowheights[rownum] + (device.sourcesize or row.width)
+                            sourcebasey + (device.sourcesize or row.width)
                         )
                     )
                 else -- drain
                     geometry.contactbltr(cell, "sourcedrain",
                         point.create(
                             _P.gatelength + (_P.gatespace - _P.sdwidth) / 2 + (currentfingers + finger - 1) * (_P.gatelength + _P.gatespace),
-                            rowheights[rownum]
+                            drainbasey
                         ),
                         point.create(
                             _P.gatelength + (_P.gatespace - _P.sdwidth) / 2 + (currentfingers + finger - 1) * (_P.gatelength + _P.gatespace) + _P.sdwidth,
-                            rowheights[rownum] + (device.drainsize or row.width)
+                            drainbasey + (device.drainsize or row.width)
                         )
                     )
                 end
@@ -292,15 +321,47 @@ function layout(cell, _P)
                         rowheights[rownum] + row.width
                     )
                 )
-                if finger % 2 == 1 then
+                -- source/drain connections and vias
+                local sourceviabasey
+                local drainviabasey
+                if row.channeltype == "nmos" then
+                    if device.connectsourceinverse then
+                        sourceviabasey = rowheights[rownum] + row.width - (device.sourceviasize or row.width)
+                    else
+                        sourceviabasey = rowheights[rownum]
+                    end
+                    if device.connectdraininverse then
+                        drainviabasey = rowheights[rownum]
+                    else
+                        drainviabasey = rowheights[rownum] + row.width - (device.drainviasize or row.width)
+                    end
+                else
+                    if device.connectsourceinverse then
+                        sourceviabasey = rowheights[rownum]
+                    else
+                        sourceviabasey = rowheights[rownum] + row.width - (device.sourceviasize or row.width)
+                    end
+                    if device.connectdraininverse then
+                        drainviabasey = rowheights[rownum] + row.width - (device.drainviasize or row.width)
+                    else
+                        drainviabasey = rowheights[rownum]
+                    end
+                end
+                if finger % 2 == 1 then -- source
                     if device.sourcemetal and device.sourcemetal > 1 then
                         geometry.viabltr(cell, 1, device.sourcemetal,
-                            point.create(_P.gatelength + (_P.gatespace - _P.sdwidth) / 2 + (currentfingers + finger - 1) * (_P.gatelength + _P.gatespace), rowheights[rownum]),
-                            point.create(_P.gatelength + (_P.gatespace - _P.sdwidth) / 2 + (currentfingers + finger - 1) * (_P.gatelength + _P.gatespace) + _P.sdwidth, rowheights[rownum] + row.width)
+                            point.create(
+                                _P.gatelength + (_P.gatespace - _P.sdwidth) / 2 + (currentfingers + finger - 1) * (_P.gatelength + _P.gatespace),
+                                sourceviabasey
+                            ),
+                            point.create(
+                                _P.gatelength + (_P.gatespace - _P.sdwidth) / 2 + (currentfingers + finger - 1) * (_P.gatelength + _P.gatespace) + _P.sdwidth,
+                                sourceviabasey + (device.sourceviasize or row.width)
+                            )
                         )
                     end
                     if device.connectsource then
-                        if device.connectsourceinverse then
+                        if (row.channeltype == "pmos" and not device.connectsourceinverse) or (row.channeltype == "nmos" and device.connectsourceinverse) then
                             -- wires
                             geometry.rectanglebltr(cell, generics.metal(device.sourcemetal or 1),
                                 point.create(
@@ -371,12 +432,18 @@ function layout(cell, _P)
                 else
                     if device.drainmetal and device.drainmetal > 1 then
                         geometry.viabltr(cell, 1, device.drainmetal,
-                            point.create(_P.gatelength + (_P.gatespace - _P.sdwidth) / 2 + (currentfingers + finger - 1) * (_P.gatelength + _P.gatespace), rowheights[rownum]),
-                            point.create(_P.gatelength + (_P.gatespace - _P.sdwidth) / 2 + (currentfingers + finger - 1) * (_P.gatelength + _P.gatespace) + _P.sdwidth, rowheights[rownum] + row.width)
+                            point.create(
+                                _P.gatelength + (_P.gatespace - _P.sdwidth) / 2 + (currentfingers + finger - 1) * (_P.gatelength + _P.gatespace),
+                                drainviabasey
+                            ),
+                            point.create(
+                                _P.gatelength + (_P.gatespace - _P.sdwidth) / 2 + (currentfingers + finger - 1) * (_P.gatelength + _P.gatespace) + _P.sdwidth,
+                                drainviabasey + (device.drainviasize or row.width)
+                            )
                         )
                     end
                     if device.connectdrain then
-                        if device.connectdraininverse then
+                        if (row.channeltype == "pmos" and not device.connectdraininverse) or (row.channeltype == "nmos" and device.connectdraininverse) then
                             -- wires
                             geometry.rectanglebltr(cell, generics.metal(device.drainmetal or 1),
                                 point.create(
