@@ -118,6 +118,7 @@ function layout(divider, _P)
     local xpitch = _P.gatelength + _P.gatespace
     local equalizationdummies = (_P.inputfingers - _P.clockfingers / 2) / 2
     local middledummyfingers = 2 * _P.latchoutersepfingers + _P.latchinnersepfingers + 2 * _P.latchfingers
+
     local rowdefinition = { -- without equalization dummies, these are added next
         { -- first nmos row (clock)
             width = _P.nmosclockfingerwidth,
@@ -177,9 +178,6 @@ function layout(divider, _P)
                     connectdrainspace = _P.powerspace,
                     connectdrainwidth = _P.powerwidth,
                     drainmetal = 2,
-                    drawtopgatecut = true,
-                    topgatecutwidth = _P.gatecutwidth,
-                    topgatecutspace = (_P.separation - _P.gatecutwidth) / 2,
                     drawbotgate = true,
                     botgatewidth = _P.dummygatecontactwidth,
                     botgatespace = _P.powerspace + (_P.powerwidth - _P.dummygatecontactwidth) / 2,
@@ -261,6 +259,9 @@ function layout(divider, _P)
                 {
                     name = "ninputseparation1",
                     fingers = _P.latchoutersepfingers,
+                    drawtopgatecut = true,
+                    topgatecutwidth = _P.gatecutwidth,
+                    topgatecutspace = (_P.separation - _P.gatecutwidth) / 2,
                 },
                 {
                     name = "nlatchleft",
@@ -274,10 +275,16 @@ function layout(divider, _P)
                     drainmetal = 4,
                     connectdrainwidth = 60,
                     connectdrainspace = 300,
+                    drawbotgatecut = true,
+                    botgatecutwidth = _P.gatecutwidth,
+                    botgatecutspace = (_P.separation - _P.gatecutwidth) / 2,
                 },
                 {
                     name = "ninputseparation2",
                     fingers = _P.latchinnersepfingers,
+                    drawtopgatecut = true,
+                    topgatecutwidth = _P.gatecutwidth,
+                    topgatecutspace = (_P.separation - _P.gatecutwidth) / 2,
                 },
                 {
                     name = "nlatchright",
@@ -291,10 +298,16 @@ function layout(divider, _P)
                     drainmetal = 4,
                     connectdrainwidth = 60,
                     connectdrainspace = 60,
+                    drawbotgatecut = true,
+                    botgatecutwidth = _P.gatecutwidth,
+                    botgatecutspace = (_P.separation - _P.gatecutwidth) / 2,
                 },
                 {
                     name = "ninputseparation3",
                     fingers = _P.latchoutersepfingers,
+                    drawtopgatecut = true,
+                    topgatecutwidth = _P.gatecutwidth,
+                    topgatecutspace = (_P.separation - _P.gatecutwidth) / 2,
                 },
                 {
                     name = "ninright",
@@ -350,6 +363,9 @@ function layout(divider, _P)
                 {
                     name = "pinputseparation1",
                     fingers = _P.latchoutersepfingers,
+                    drawbotgatecut = true,
+                    botgatecutwidth = _P.gatecutwidth,
+                    botgatecutspace = (_P.separation - _P.gatecutwidth) / 2,
                 },
                 {
                     name = "platchleft",
@@ -358,10 +374,16 @@ function layout(divider, _P)
                     drainmetal = 4,
                     connectdrainwidth = 60,
                     connectdrainspace = 60,
+                    drawtopgatecut = true,
+                    topgatecutwidth = _P.gatecutwidth,
+                    topgatecutspace = (_P.separation - _P.gatecutwidth) / 2,
                 },
                 {
                     name = "pinputseparation2",
                     fingers = _P.latchinnersepfingers,
+                    drawbotgatecut = true,
+                    botgatecutwidth = _P.gatecutwidth,
+                    botgatecutspace = (_P.separation - _P.gatecutwidth) / 2,
                 },
                 {
                     name = "platchright",
@@ -370,10 +392,16 @@ function layout(divider, _P)
                     drainmetal = 4,
                     connectdrainwidth = 60,
                     connectdrainspace = 300,
+                    drawtopgatecut = true,
+                    topgatecutwidth = _P.gatecutwidth,
+                    topgatecutspace = (_P.separation - _P.gatecutwidth) / 2,
                 },
                 {
                     name = "pinputseparation3",
                     fingers = _P.latchoutersepfingers,
+                    drawbotgatecut = true,
+                    botgatecutwidth = _P.gatecutwidth,
+                    botgatecutspace = (_P.separation - _P.gatecutwidth) / 2,
                 },
                 {
                     name = "pinright",
@@ -450,9 +478,6 @@ function layout(divider, _P)
                     connectdrainwidth = _P.powerwidth,
                     connectdraininverse = true,
                     drainmetal = 2,
-                    drawbotgatecut = true,
-                    botgatecutwidth = _P.gatecutwidth,
-                    botgatecutspace = (_P.separation - _P.gatecutwidth) / 2,
                     drawtopgate = true,
                     topgatewidth = _P.dummygatecontactwidth,
                     topgatespace = _P.powerspace + (_P.powerwidth - _P.dummygatecontactwidth) / 2,
@@ -758,7 +783,16 @@ function layout(divider, _P)
         divider:inherit_alignment_box(latches[i])
     end
 
+    -- connect left and right parts of latch
+    for i = 1, numlatches do
+        geometry.rectanglebltr(divider, generics.metal(3),
+            latches[i]:get_area_anchor("clocknleftdrainstrap").br,
+            latches[i]:get_area_anchor("clocknrightdrainstrap").tl
+        )
+    end
+
     -- internal connections between latches
+    -- FIXME
 
     -- input lines
     geometry.rectanglebltr(divider, generics.metal(8),
@@ -810,6 +844,16 @@ function layout(divider, _P)
     end
 
     -- clock ports
-    divider:add_port("clkp", generics.metalport(8), latches[1]:get_area_anchor(string.format("clockndummymiddlesourcedrain%d", 3)).bl .. latches[1]:get_area_anchor("lowerpowerrail").bl)
-    divider:add_port("clkn", generics.metalport(8), latches[2]:get_area_anchor(string.format("clockndummymiddlesourcedrain%d", middledummyfingers - (_P.latchoutersepfingers - 1) + 2)).tl .. latches[1]:get_area_anchor("lowerpowerrail").bl)
+    divider:add_port("inp", generics.metalport(8), latches[1]:get_area_anchor(string.format("clockndummymiddlesourcedrain%d", 3)).bl .. latches[1]:get_area_anchor("lowerpowerrail").bl)
+    divider:add_port("inn", generics.metalport(8), latches[2]:get_area_anchor(string.format("clockndummymiddlesourcedrain%d", middledummyfingers - (_P.latchoutersepfingers - 1) + 2)).tl .. latches[1]:get_area_anchor("lowerpowerrail").bl)
+
+    -- power ports
+    for i = 1, numlatches do
+        divider:add_port("vss", generics.metalport(1), latches[i]:get_area_anchor("lowerpowerrail").bl)
+        divider:add_port("vdd", generics.metalport(1), latches[i]:get_area_anchor("upperpowerrail").bl)
+    end
+
+    -- output ports
+    divider:add_port("outp", generics.metalport(4), latches[numlatches]:get_area_anchor("nlatchleftsourcedrain2").tl)
+    divider:add_port("outn", generics.metalport(4), latches[numlatches]:get_area_anchor("nlatchrightsourcedrain2").tl)
 end
