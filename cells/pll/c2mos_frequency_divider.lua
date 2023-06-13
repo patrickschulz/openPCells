@@ -597,7 +597,7 @@ function layout(divider, _P)
         local entry = aux.clone_shallow(equalizationdummyptemplate)
         entry.name = "clockpdummyrightright",
         _insert_after(rowdefinition, "clockpright", entry)
-    else -- insert dummies in input rows
+    elseif equalizationdummies < 0 then -- insert dummies in input rows
         equalizationdummyntemplate.fingers = -equalizationdummyntemplate.fingers
         equalizationdummyptemplate.fingers = -equalizationdummyptemplate.fingers
         local entry = aux.clone_shallow(equalizationdummyntemplate)
