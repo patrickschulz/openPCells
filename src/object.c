@@ -1452,14 +1452,26 @@ int object_is_child_array(const struct object* cell)
     return cell->isproxy && cell->isarray;
 }
 
+static int _has_anchor(const struct object* cell, const char* anchorname)
+{
+    if(cell->isproxy)
+    {
+        return hashmap_exists(cell->reference->anchors, anchorname);
+    }
+    else
+    {
+        return hashmap_exists(cell->anchors, anchorname);
+    }
+}
+
 int object_has_anchor(const struct object* cell, const char* anchorname)
 {
-    return hashmap_exists(cell->anchors, anchorname);
+    return _has_anchor(cell, anchorname);
 }
 
 int object_has_area_anchor(const struct object* cell, const char* anchorname)
 {
-    return hashmap_exists(cell->anchors, anchorname);
+    return _has_anchor(cell, anchorname);
 }
 
 int object_has_alignmentbox(const struct object* cell)
