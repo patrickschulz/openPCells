@@ -666,7 +666,6 @@ function layout(divider, _P)
         rightpolylines = _P.rightpolylines,
     })
 
-
     -- latch cross-coupling
     geometry.viabltr(latch, 1, 4,
         latch:get_area_anchor("nlatchleftdrainstrap").bl,
