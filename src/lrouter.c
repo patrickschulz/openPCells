@@ -98,20 +98,21 @@ static struct netcollection* _initialize(lua_State* L)
 
     /* blockages */
     // FIXME: the destructor for blockages looks wrong
+    //          edit: it is not, but a dedicated function would be better, semantically
     size_t num_blockages = lua_rawlen(L, 2);
     struct vector* blockages = vector_create(num_blockages, vector_destroy);
     for(size_t i = 1; i <= num_blockages; i++)
     {
         lua_geti(L, 2, i);
         size_t route_size = lua_rawlen(L, -1);
-        struct vector* deltas = vector_create(route_size, free);
+        struct vector* blockage = vector_create(route_size, free);
         for(size_t j = 1; j <= route_size; j++)
         {
             lua_geti(L, -1, j);
-            vector_append(deltas, _create_point(L));
+            vector_append(blockage, _create_point(L));
             lua_pop(L, 1);
         }
-        vector_append(blockages, deltas);
+        vector_append(blockages, blockage);
         lua_pop(L, 1);
     }
 
@@ -125,11 +126,11 @@ static void _fill_blockages(struct field* field, struct netcollection *nc)
 {
     for(size_t i = 0; i < vector_size(nc->blockages); i++)
     {
-        struct vector* deltas = vector_get(nc->blockages, i);
-        for(size_t j = 0; j < vector_size(deltas) - 1; j++)
+        struct vector* blockage = vector_get(nc->blockages, i);
+        for(size_t j = 0; j < vector_size(blockage) - 1; j++)
         {
-            struct rpoint* start = vector_get(deltas, j);
-            struct rpoint* end = vector_get(deltas, j + 1);
+            struct rpoint* start = vector_get(blockage, j);
+            struct rpoint* end = vector_get(blockage, j + 1);
             field_create_blockage(field, start, end);
         }
     }
