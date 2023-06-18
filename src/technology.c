@@ -547,7 +547,7 @@ static int _resolve_layer(struct generics* layer, const char* exportname)
         }
         if(!found)
         {
-            printf("no layer data for export type '%s' found (layer: %s)\n", exportname, layer->name);
+            printf("no layer data for export type '%s' found (layer: %s, has %zd entries)\n", exportname, layer->name, vector_size(layer->entries));
             return 0;
         }
 
