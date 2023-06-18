@@ -150,11 +150,9 @@ void _backtrace(struct field *field, struct position *startpos, struct position 
     struct rpoint current = { .x = endpos->x, .y = endpos->y, .z = endpos->z };
     struct rpoint oldpoint = {.x = UINT_MAX, .y = UINT_MAX, .z = UINT_MAX, .score = INT_MAX};
 
-    int xdiff = 0, ydiff = 0, zdiff = 0;
-
     do {
         int score = field_get(field, current.x, current.y, current.z);
-        struct rpoint nextpoints[] = { [0  ... NUM_DIRECTIONS - 1] = {.x = UINT_MAX, .y = UINT_MAX, .z = UINT_MAX, .score = INT_MAX}};
+        struct rpoint nextpoints[] = { [0 ... NUM_DIRECTIONS - 1] = {.x = UINT_MAX, .y = UINT_MAX, .z = UINT_MAX, .score = INT_MAX}};
 
         /* circle around every point + check layer above and below store possible points in array */
         for(int i = 0; i < NUM_DIRECTIONS; i++)
@@ -215,9 +213,9 @@ void _backtrace(struct field *field, struct position *startpos, struct position 
         }
 
         /* put diffs into delta vector for lua part */
-        xdiff = ((int)nextpoint.x - (int)current.x);
-        ydiff = ((int)nextpoint.y - (int)current.y);
-        zdiff = ((int)nextpoint.z - (int)current.z);
+        int xdiff = ((int)nextpoint.x - (int)current.x);
+        int ydiff = ((int)nextpoint.y - (int)current.y);
+        int zdiff = ((int)nextpoint.z - (int)current.z);
 
         struct rpoint *diff_point;
         /*
