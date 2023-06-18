@@ -77,7 +77,9 @@ function M.legalize(circuit, rows, numinnerroutes, pnumtracks, nnumtracks, floor
     local height = floorplan.floorplan_height * (pnumtracks + nnumtracks + numinnerroutes)
     height = height + math.floor(height / (pnumtracks + nnumtracks + numinnerroutes)) - 1
 
-    local routednets = router.route(netpositions, blockages, floorplan.floorplan_width, height)
+    local routerstate = router.initialize(netpositions, blockages, floorplan.floorplan_width, height)
+    router.route(routerstate)
+    local routednets = router.resolve_routes(routerstate)
     return routednets
 end
 

@@ -2,9 +2,6 @@
 #include "lua/lauxlib.h"
 
 #include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
-#include <stdbool.h>
 
 #include "lrouter_net.h"
 #include "lrouter_route.h"
@@ -13,18 +10,17 @@
 
 #include "vector.h"
 
-#define EXCLUDE 1
 #define CELL_PORT_LAYER 0
-#define NODRAW 0
-
-#define UABSDIFF(v1, v2) (v1 > v2 ? v1 - v2 : v2 - v1)
-#define MANHATTAN_DIST(pos1, pos2) (UABSDIFF(pos1->x, pos2->x) +\
-        UABSDIFF(pos1->y, pos2->y))
-#define CEIL(x1, x2) (x1/x2 + (x1 % x2 != 0))
 
 struct netcollection {
     struct vector* nets;
     struct vector* blockages; /* stores vector* of struct rpoint* */
+};
+
+struct routerstate {
+    struct netcollection* nc;
+    struct field* field;
+    struct vector* deltas;
 };
 
 static struct rpoint* _create_point(lua_State *L)
@@ -205,7 +201,7 @@ static void _create_routing_stack_data(lua_State *L, const char* name, const str
     }
 }
 
-int lrouter_route(lua_State* L)
+int lrouter_initialize(lua_State* L)
 {
     struct netcollection* nc = _initialize(L);
     const size_t field_height = lua_tointeger(L, 4) + 1;
@@ -215,17 +211,47 @@ int lrouter_route(lua_State* L)
     struct field* field = field_init(field_width, field_height, num_layers);
     _fill_blockages(field, nc);
 
+    struct routerstate* state = malloc(sizeof(*state));
+    state->nc = nc;
+    state->field = field;
+
+    lua_pushlightuserdata(L, state);
+    return 1;
+}
+
+int lrouter_route(lua_State* L)
+{
+    struct routerstate* state = lua_touserdata(L, 1);
+
+    unsigned int num_nets = vector_size(state->nc->nets);
+
+    state->deltas = vector_create(num_nets, vector_destroy);
+
+    for(unsigned int i = 0; i < num_nets; ++i)
+    {
+        nets_fill_ports(state->nc->nets, state->field);
+        struct net* net = vector_get(state->nc->nets, i);
+        struct vector* deltas = route(net, state->field);
+        vector_append(state->deltas, deltas);
+        nets_fill_ports(state->nc->nets, state->field);
+    }
+
+    return 0;
+}
+
+int lrouter_resolve_routes(lua_State* L)
+{
+    struct routerstate* state = lua_touserdata(L, 1);
+
     /* table for all nets */
     lua_newtable(L);
-    unsigned int num_nets = vector_size(nc->nets);
+    unsigned int num_nets = vector_size(state->nc->nets);
 
     int routed_count = 0;
     for(unsigned int i = 0; i < num_nets; ++i)
     {
-        nets_fill_ports(nc->nets, field);
-        struct net* net = vector_get(nc->nets, i);
-        struct vector* deltas = route(net, field);
-        nets_fill_ports(nc->nets, field);
+        struct net* net = vector_get(state->nc->nets, i);
+        struct vector* deltas = vector_get(state->deltas, i);
 
         if(net_is_routed(net))
         {
@@ -238,44 +264,19 @@ int lrouter_route(lua_State* L)
         {
             // FIXME: abort?
         }
-        vector_destroy(deltas);
     }
 
-    field_destroy(field);
-    vector_destroy(nc->nets);
-    vector_destroy(nc->blockages);
-    free(nc);
     return 1;
 }
-
-//int lrouter_init(lua_State* L)
-//{
-//    struct netcollection* nc = _initialize(L);
-//
-//    /* table for all nets */
-//    lua_newtable(L);
-//    unsigned int num_nets = vector_size(nc->nets);
-//
-//    for(unsigned int i = 0; i < num_nets; ++i)
-//    {
-//        struct net* net = vector_get(nc->nets, i);
-//        _create_routing_stack_data(L, net);
-//        lua_rawseti(L, -2, i + 1);
-//    }
-//
-//    vector_destroy(nc->nets);
-//    vector_destroy(nc->blockages);
-//    free(nc);
-//    return 1;
-//}
 
 int open_lrouter_lib(lua_State* L)
 {
     static const luaL_Reg modfuncs[] =
     {
-        //{ "init",  lrouter_init  },
-        { "route", lrouter_route },
-        { NULL,    NULL          }
+        { "initialize",     lrouter_initialize      },
+        { "route",          lrouter_route           },
+        { "resolve_routes", lrouter_resolve_routes  },
+        { NULL,             NULL                    }
     };
     lua_newtable(L);
     luaL_setfuncs(L, modfuncs, 0);

@@ -114,7 +114,7 @@ void field_set(struct field* field, size_t x, size_t y, size_t z, int what)
 
 int field_get(struct field* field, size_t x, size_t y, size_t z)
 {
-    return *_get(field, x, y, z);
+    return _get_const(field, x, y, z);
 }
 
 void field_create_blockage(struct field* field, struct rpoint* start, struct rpoint* end)
