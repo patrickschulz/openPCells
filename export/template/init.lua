@@ -97,7 +97,7 @@ end
 
 -- * optional *
 -- how to write a cell reference (a child in opc terminology). Needed for hierarchies
-function M.write_cell_reference(identifier, x, y, orientation)
+function M.write_cell_reference(identifier, instname, x, y, orientation)
 end
 
 -- * optional *

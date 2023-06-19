@@ -252,7 +252,7 @@ static int _write_child_array(struct export_writer* writer, const char* identifi
     }
 }
 
-static int _write_child_single(struct export_writer* writer, const char* refname, const point_t* origin, const struct transformationmatrix* trans, unsigned int xrep, unsigned int yrep, unsigned int xpitch, unsigned int ypitch)
+static int _write_child_single(struct export_writer* writer, const char* refname, const char* instname, const point_t* origin, const struct transformationmatrix* trans, unsigned int xrep, unsigned int yrep, unsigned int xpitch, unsigned int ypitch)
 {
     for(unsigned int ix = 1; ix <= xrep; ++ix)
     {
@@ -264,10 +264,11 @@ static int _write_child_single(struct export_writer* writer, const char* refname
             {
                 lua_getfield(writer->L, -1, "write_cell_reference");
                 lua_pushstring(writer->L, refname);
+                lua_pushstring(writer->L, instname);
                 lua_pushinteger(writer->L, x);
                 lua_pushinteger(writer->L, y);
                 _push_trans(writer->L, trans);
-                int lret = lua_pcall(writer->L, 4, 0, 0);
+                int lret = lua_pcall(writer->L, 5, 0, 0);
                 if(lret != LUA_OK)
                 {
                     return 0;
@@ -275,7 +276,7 @@ static int _write_child_single(struct export_writer* writer, const char* refname
             }
             else // C
             {
-                writer->funcs->write_cell_reference(writer->data, refname, x, y, trans);
+                writer->funcs->write_cell_reference(writer->data, refname, instname, x, y, trans);
             }
         }
     }
@@ -302,6 +303,7 @@ static int _write_child(struct export_writer* writer, const struct object* child
     unsigned int xrep = object_get_child_xrep(child);
     unsigned int yrep = object_get_child_yrep(child);
     char* refname = _concat_namecontext(namecontext, object_get_child_reference_name(child));
+    const char* instname = object_get_name(child);
     const struct transformationmatrix* trans = object_get_transformation_matrix(child);
     unsigned int xpitch = object_get_child_xpitch(child);
     unsigned int ypitch = object_get_child_ypitch(child);
@@ -312,7 +314,7 @@ static int _write_child(struct export_writer* writer, const struct object* child
     }
     else
     {
-        _write_child_single(writer, refname, origin, trans, xrep, yrep, xpitch, ypitch);
+        _write_child_single(writer, refname, instname, origin, trans, xrep, yrep, xpitch, ypitch);
     }
     free(refname);
     return 1;

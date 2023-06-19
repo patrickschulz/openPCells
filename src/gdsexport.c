@@ -554,8 +554,9 @@ static void _write_strans_angle(struct export_data* data, const struct transform
     }
 }
 
-static void _write_cell_reference(struct export_data* data, const char* identifier, coordinate_t x, coordinate_t y, const struct transformationmatrix* trans)
+static void _write_cell_reference(struct export_data* data, const char* identifier, const char* instname, coordinate_t x, coordinate_t y, const struct transformationmatrix* trans)
 {
+    (void) instname; // GDSII does not support instance names
     // SREF
     _write_length_short(data, 4);
     export_data_append_byte(data, RECORDTYPE_SREF);

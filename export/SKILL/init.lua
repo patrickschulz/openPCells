@@ -232,7 +232,7 @@ function M.at_end_cell(istoplevel)
     _close_let()
 end
 
-function M.write_cell_reference(identifier, x, y, orientation)
+function M.write_cell_reference(identifier, instname, x, y, orientation)
     local orientstr
     if orientation[1] >= 0 and orientation[5] >= 0 then
         if orientation[2] < 0 then
@@ -252,7 +252,11 @@ function M.write_cell_reference(identifier, x, y, orientation)
 
     local c = {}
     _prepare_shape_for_group(c)
-    table.insert(c, string.format(fmt, string.format('libname "%s" "layout" nil %s "%s"', identifier, _format_xy(x, y, ":"), orientstr)))
+    if instname then
+        table.insert(c, string.format(fmt, string.format('libname "%s" "layout" nil %s "%s"', identifier, _format_xy(x, y, ":"), orientstr)))
+    else
+        table.insert(c, string.format(fmt, string.format('libname "%s" "layout" "%s" %s "%s"', identifier, instname, _format_xy(x, y, ":"), orientstr)))
+    end
     _finish_shape_for_group(c)
     _ensure_legal_limit()
     table.insert(__content, table.concat(c))

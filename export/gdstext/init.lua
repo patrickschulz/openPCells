@@ -259,7 +259,7 @@ function M.write_path(layer, pts, width, extension)
     _write_record(recordtypes.ENDEL, datatypes.NONE)
 end
 
-function M.write_cell_reference(identifier, x, y, orientation)
+function M.write_cell_reference(identifier, instname, x, y, orientation)
     _write_record(recordtypes.SREF, datatypes.NONE)
     _write_record(recordtypes.SNAME, datatypes.ASCII_STRING, identifier)
     if orientation == "fx" then
