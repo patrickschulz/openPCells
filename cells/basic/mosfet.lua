@@ -158,11 +158,6 @@ function parameters()
 end
 
 function check(_P)
-    if not (_P.endleftwithgate and _P.endrightwithgate) then
-        if _P.actext < (_P.gatespace + _P.sdwidth) / 2 then
-            return nil, string.format("'actext' must be large enough to include outer source contacts (actext >= (gatespace + sdwidth) / 2) (actext: %d, gatespace: %d, sdwidth: %d)", _P.actext, _P.gatespace, _P.sdwidth)
-        end
-    end
     if (_P.gatespace % 2) ~= (_P.sdwidth % 2) then
         return nil, "gatespace and sdwidth must both be even or odd"
     end
@@ -177,13 +172,13 @@ end
 
 function layout(transistor, _P)
     local gatepitch = _P.gatelength + _P.gatespace
-    local leftactext = _P.actext
-    if _P.endleftwithgate then
-        leftactext = _P.gatespace + _P.gatelength / 2
+    local leftactext = (_P.gatespace + _P.sdwidth) / 2
+    if not _P.endleftwithgate then
+        leftactext = leftactext + _P.actext
     end
-    local rightactext = _P.actext
-    if _P.endrightwithgate then
-        rightactext = _P.gatespace + _P.gatelength / 2
+    local rightactext = (_P.gatespace + _P.sdwidth) / 2
+    if not _P.endrightwithgate then
+        rightactext = rightactext + _P.actext
     end
     local activewidth = _P.fingers * _P.gatelength + (_P.fingers - 1) * _P.gatespace + _P.leftfloatingdummies * gatepitch + _P.rightfloatingdummies * gatepitch
 
