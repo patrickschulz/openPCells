@@ -279,7 +279,7 @@ function M.write_cell_reference(identifier, instname, x, y, orientation)
     _write_record(recordtypes.ENDEL, datatypes.NONE)
 end
 
-function M.write_cell_array(identifier, x, y, orientation, xrep, yrep, xpitch, ypitch)
+function M.write_cell_array(identifier, instbasename, x, y, orientation, xrep, yrep, xpitch, ypitch)
     _write_record(recordtypes.AREF, datatypes.NONE)
     _write_record(recordtypes.SNAME, datatypes.ASCII_STRING, identifier)
     if orientation == "fx" then

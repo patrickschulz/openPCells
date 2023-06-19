@@ -102,7 +102,7 @@ end
 
 -- * optional *
 -- how to write an array of cell reference
-function M.write_cell_array(identifier, x, y, orientation, xrep, yrep, xpitch, ypitch)
+function M.write_cell_array(identifier, instbasename, x, y, orientation, xrep, yrep, xpitch, ypitch)
 end
 
 -- * optional *

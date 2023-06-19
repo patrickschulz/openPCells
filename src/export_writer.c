@@ -228,12 +228,13 @@ static int _has_curve_support(struct export_writer* writer)
     return 0;
 }
 
-static int _write_child_array(struct export_writer* writer, const char* identifier, const point_t* origin, const struct transformationmatrix* trans, unsigned int xrep, unsigned int yrep, unsigned int xpitch, unsigned int ypitch)
+static int _write_child_array(struct export_writer* writer, const char* identifier, const char* instbasename, const point_t* origin, const struct transformationmatrix* trans, unsigned int xrep, unsigned int yrep, unsigned int xpitch, unsigned int ypitch)
 {
     if(writer->islua)
     {
         lua_getfield(writer->L, -1, "write_cell_array");
         lua_pushstring(writer->L, identifier);
+        lua_pushstring(writer->L, instbasename);
         lua_pushinteger(writer->L, origin->x);
         lua_pushinteger(writer->L, origin->y);
         _push_trans(writer->L, trans);
@@ -247,7 +248,7 @@ static int _write_child_array(struct export_writer* writer, const char* identifi
     }
     else // C
     {
-        writer->funcs->write_cell_array(writer->data, identifier, origin->x, origin->y, trans, xrep, yrep, xpitch, ypitch);
+        writer->funcs->write_cell_array(writer->data, identifier, instbasename, origin->x, origin->y, trans, xrep, yrep, xpitch, ypitch);
         return 1;
     }
 }
@@ -310,7 +311,7 @@ static int _write_child(struct export_writer* writer, const struct object* child
     // FIXME: error checking
     if(object_is_child_array(child) && _has_write_cell_array(writer))
     {
-        _write_child_array(writer, refname, origin, trans, xrep, yrep, xpitch, ypitch);
+        _write_child_array(writer, refname, instname, origin, trans, xrep, yrep, xpitch, ypitch);
     }
     else
     {
