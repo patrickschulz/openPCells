@@ -253,7 +253,7 @@ static int _write_child_array(struct export_writer* writer, const char* identifi
     }
 }
 
-static int _write_child_single(struct export_writer* writer, const char* refname, const char* instname, const point_t* origin, const struct transformationmatrix* trans, unsigned int xrep, unsigned int yrep, unsigned int xpitch, unsigned int ypitch)
+static int _write_child_manual_array(struct export_writer* writer, const char* refname, const char* instname, const point_t* origin, const struct transformationmatrix* trans, unsigned int xrep, unsigned int yrep, unsigned int xpitch, unsigned int ypitch)
 {
     for(unsigned int ix = 1; ix <= xrep; ++ix)
     {
@@ -265,7 +265,7 @@ static int _write_child_single(struct export_writer* writer, const char* refname
             {
                 lua_getfield(writer->L, -1, "write_cell_reference");
                 lua_pushstring(writer->L, refname);
-                lua_pushstring(writer->L, instname); // FIXME: handle cases where xrep > 1 or yrep > 1
+                lua_pushfstring(writer->L, "%s_%d_%d", instname, ix, iy);
                 lua_pushinteger(writer->L, x);
                 lua_pushinteger(writer->L, y);
                 _push_trans(writer->L, trans);
@@ -280,6 +280,29 @@ static int _write_child_single(struct export_writer* writer, const char* refname
                 writer->funcs->write_cell_reference(writer->data, refname, instname, x, y, trans);
             }
         }
+    }
+    return 1;
+}
+
+static int _write_child_single(struct export_writer* writer, const char* refname, const char* instname, const point_t* origin, const struct transformationmatrix* trans)
+{
+    if(writer->islua)
+    {
+        lua_getfield(writer->L, -1, "write_cell_reference");
+        lua_pushstring(writer->L, refname);
+        lua_pushstring(writer->L, instname);
+        lua_pushinteger(writer->L, origin->x);
+        lua_pushinteger(writer->L, origin->y);
+        _push_trans(writer->L, trans);
+        int lret = lua_pcall(writer->L, 5, 0, 0);
+        if(lret != LUA_OK)
+        {
+            return 0;
+        }
+    }
+    else // C
+    {
+        writer->funcs->write_cell_reference(writer->data, refname, instname, origin->x, origin->y, trans);
     }
     return 1;
 }
@@ -315,7 +338,16 @@ static int _write_child(struct export_writer* writer, const struct object* child
     }
     else
     {
-        _write_child_single(writer, refname, instname, origin, trans, xrep, yrep, xpitch, ypitch);
+        // this check is necessary for pretty-printing of singular instance names (e.g. avoid names like 'instance_1_1' when there is only one)
+        if(xrep > 1 && yrep > 1)
+        {
+            _write_child_manual_array(writer, refname, instname, origin, trans, xrep, yrep, xpitch, ypitch);
+        }
+        else
+        {
+
+            _write_child_single(writer, refname, instname, origin, trans);
+        }
     }
     free(refname);
     return 1;
