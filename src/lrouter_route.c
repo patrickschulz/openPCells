@@ -443,12 +443,11 @@ static struct vector* _route_multi_threaded(struct net *net, struct field* field
      */
     struct net *net_backup = net_copy(net);
 
-    struct thread_data *tdates;
 
     struct vector* deltas = vector_create(1, free);
     while(net_get_size(net) > 1)
     {
-        tdates = _init_thread_dates(num_cpus);
+        struct thread_data *tdates = _init_thread_dates(num_cpus);
 
         int pathpoint_size = vector_size(pathpoints);
         int issued_threads = 0;
@@ -521,7 +520,6 @@ static struct vector* _route_multi_threaded(struct net *net, struct field* field
     vector_destroy(pathpoints);
     net_destroy(net_backup);
     free(thread_ids);
-    free(tdates);
 
     return new_deltas;
 }
@@ -529,7 +527,7 @@ static struct vector* _route_multi_threaded(struct net *net, struct field* field
 struct vector* route(struct net *net, struct field* field)
 {
     printf("routing net '%s'\n", net_get_name(net));
-    //return _route_multi_threaded(net, field);
-    return _route_single_threaded(net, field);
+    return _route_multi_threaded(net, field);
+    //return _route_single_threaded(net, field);
 }
 
