@@ -57,7 +57,7 @@ function check(_P)
     local fingersperrow = rowfingers[1]
     for i = 2, #rowfingers do
         if fingersperrow ~= rowfingers[i] then
-            return false, string.format("rows don't have the same number of fingers (first row has %d fingers, %d. row has %d fingers", fingersperrow, i, rowfingers[i])
+            return false, string.format("rows don't have the same number of fingers (first row has %d fingers, %d. row has %d fingers)", fingersperrow, i, rowfingers[i])
         end
     end
 
