@@ -61,6 +61,7 @@ function check(_P)
         end
     end
 
+    local names = {}
     for rownum, row in ipairs(_P.rows) do
         if not row.channeltype then
             return false, string.format("row %d does not have a channeltype", rownum)
@@ -71,6 +72,11 @@ function check(_P)
         for devicenum, device in ipairs(row.devices) do
             if not device.name then
                 return false, string.format("device %d in row %d does not have a name", devicenum, rownum)
+            else
+                if names[device.name] then
+                    return false, string.format("device %d in row %d does not have a unique name ('%s')", devicenum, rownum, device.name)
+                end
+                names[device.name] = true
             end
             if device.connectsource then
                 if not device.connectsourcewidth then
