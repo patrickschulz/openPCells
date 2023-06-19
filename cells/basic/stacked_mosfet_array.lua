@@ -647,6 +647,39 @@ function layout(cell, _P)
                 )
             end
 
+            -- diode-connected
+            if device.diodeconnected then
+                if device.drawtopgate then
+                    for finger = 2, device.fingers + 1, 2 do
+                        geometry.rectanglebltr(cell, generics.metal(1),
+                            point.create(
+                                _P.gatelength + (_P.gatespace - _P.sdwidth) / 2 + (currentfingers + finger - 1) * (_P.gatelength + _P.gatespace),
+                                rowheights[rownum] + row.width
+                            ),
+                            point.create(
+                                _P.gatelength + (_P.gatespace - _P.sdwidth) / 2 + (currentfingers + finger - 1) * (_P.gatelength + _P.gatespace) + _P.sdwidth,
+                                rowheights[rownum] + row.width + device.topgatespace
+                            )
+                        )
+                    end
+                end
+                if device.drawbotgate then
+                    for finger = 2, device.fingers + 1, 2 do
+                        geometry.rectanglebltr(cell, generics.metal(1),
+                            point.create(
+                                _P.gatelength + (_P.gatespace - _P.sdwidth) / 2 + (currentfingers + finger - 1) * (_P.gatelength + _P.gatespace),
+                                rowheights[rownum] - device.botgatespace
+                            ),
+                            point.create(
+                                _P.gatelength + (_P.gatespace - _P.sdwidth) / 2 + (currentfingers + finger - 1) * (_P.gatelength + _P.gatespace) + _P.sdwidth,
+                                rowheights[rownum]
+                            )
+                        )
+                    end
+                end
+            end
+
+
             -- update fingers
             currentfingers = currentfingers + device.fingers
         end
@@ -670,6 +703,7 @@ function layout(cell, _P)
         point.create(totalwidth, totalheight + _P.powerspace + _P.powerwidth)
     )
 
+    -- top/bottom gate cut
     if _P.drawtopgatecut then
         geometry.rectanglebltr(cell, generics.other("gatecut"),
             point.create(-_P.gatespace / 2, totalheight + _P.powerspace + (_P.powerwidth - _P.topgatecutwidth) / 2),
