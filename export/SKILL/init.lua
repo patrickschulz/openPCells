@@ -253,9 +253,9 @@ function M.write_cell_reference(identifier, instname, x, y, orientation)
     local c = {}
     _prepare_shape_for_group(c)
     if instname then
-        table.insert(c, string.format(fmt, string.format('libname "%s" "layout" nil %s "%s"', identifier, _format_xy(x, y, ":"), orientstr)))
-    else
         table.insert(c, string.format(fmt, string.format('libname "%s" "layout" "%s" %s "%s"', identifier, instname, _format_xy(x, y, ":"), orientstr)))
+    else
+        table.insert(c, string.format(fmt, string.format('libname "%s" "layout" nil %s "%s"', identifier, _format_xy(x, y, ":"), orientstr)))
     end
     _finish_shape_for_group(c)
     _ensure_legal_limit()

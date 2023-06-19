@@ -264,7 +264,7 @@ static int _write_child_single(struct export_writer* writer, const char* refname
             {
                 lua_getfield(writer->L, -1, "write_cell_reference");
                 lua_pushstring(writer->L, refname);
-                lua_pushstring(writer->L, instname);
+                lua_pushstring(writer->L, instname); // FIXME: handle cases where xrep > 1 or yrep > 1
                 lua_pushinteger(writer->L, x);
                 lua_pushinteger(writer->L, y);
                 _push_trans(writer->L, trans);
