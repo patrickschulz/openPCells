@@ -407,6 +407,11 @@ static int lobject_add_anchor(lua_State* L)
 
 static int lobject_add_area_anchor_bltr(lua_State* L)
 {
+    if(lua_gettop(L) != 4)
+    {
+        lua_pushfstring(L, "object.add_area_anchor_bltr: expected four arguments, got %d", lua_gettop(L));
+        lua_error(L);
+    }
     struct lobject* cell = lobject_check(L, 1);
     const char* base = luaL_checkstring(L, 2);
     struct lpoint* bl = lpoint_checkpoint(L, 3);
