@@ -603,9 +603,11 @@ function layout(transistor, _P)
         guardring:move_point(guardring:get_anchor("innerbottomleft"), point.create(0, 0))
         guardring:translate(-_P.guardringxsep, -_P.guardringysep)
         transistor:merge_into(guardring)
-        transistor:add_area_anchor_bltr("guardring",
+        transistor:add_area_anchor_bltr("outerguardring",
             guardring:get_anchor("outerbottomleft"),
-            guardring:get_anchor("outertopright"),
+            guardring:get_anchor("outertopright")
+        )
+        transistor:add_area_anchor_bltr("innerguardring",
             guardring:get_anchor("innerbottomleft"),
             guardring:get_anchor("innertopright")
         )
