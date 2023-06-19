@@ -1217,6 +1217,24 @@ struct vector* _initialize_api_entries(void)
         ));
     }
 
+    /* pcell.create_layout_env */
+    {
+        struct parameter parameters[] = {
+            { "cellname",   STRING, NULL,   "cellname of the to-be-generated layout cell in the form libname/cellname" },
+            { "objectname", STRING, NULL,   "name of the to-be-generated object. This name will be used as identifier in exports that support hierarchies (e.g. GDSII, SKILL)" },
+            { "parameters", TABLE, NULL,  "a table with key-value pairs to be used for the layout pcell. The parameter must exist in the pcell, otherwise this triggers an error" },
+            { "environment", TABLE, NULL,  "a table containing the environment for all cells called from this cell. The content of the environment can contain anything and is defined by the cells. It is useful in order to pass a set of common options to multiple cells" }
+        };
+        vector_append(entries, _make_api_entry(
+            "create_layout_env",
+            MODULE_PCELL,
+            "Create a layout based on a parametric cell with a given cell environment",
+            "pcell.create_layout_env(\"libname/cellname\", \"toplevel\", args, env)",
+            parameters,
+            sizeof(parameters) / sizeof(parameters[0])
+        ));
+    }
+
     /* tech.get_dimension */
     {
         struct parameter parameters[] = {
