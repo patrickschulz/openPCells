@@ -4,12 +4,10 @@
 typedef enum { X_DIR, Y_DIR } dir_t;
 
 /*
- * all move functions must be preceded with a newtable function and be pushed
- * into a bigger table (e.g. with all the moves) in the end
- * to be put in a table around it to complete the whole route
+ * all move functions must be pushed into a bigger table (e.g. with all the moves)
+ * in the end to be put in a table around it to complete the whole route
  * e.g.:
  *
- *        lua_newtable(L);
  *        moves_create_via(L, -2);
  *        lua_rawseti(L, -2, 2);
  */
