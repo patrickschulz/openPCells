@@ -186,16 +186,13 @@ struct vector* net_make_deltas(struct vector* deltas)
 
         if(current->score == PORT)
         {
-            struct rpoint *point = point_new(xsteps - current->x,
-                    ysteps - current->y,
-                    zsteps - current->z, PATH);
+            struct rpoint *point = point_new(xsteps - current->x, ysteps - current->y, zsteps - current->z, PATH);
             if(!(point->x == 0 && point->y == 0 && point->z == 0))
             {
                 vector_append(new_deltas, point);
             }
 
-            struct rpoint *port = point_new(current->x, current->y,
-                    current->z, PORT);
+            struct rpoint *port = point_new(current->x, current->y, current->z, PORT);
             vector_append(new_deltas, port);
             xsteps = 0;
             ysteps = 0;
