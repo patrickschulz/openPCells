@@ -203,37 +203,34 @@ void _backtrace(struct field *field, struct position *startpos, struct position 
 
         struct rpoint nextpoint = _min_next_point(nextpoints);
 
-        if(nextpoint.z != current.z)
-        {
-            vector_append(pathpoints, point_new(current.x, current.y, current.z, VIA));
-        }
-        else
-        {
-            vector_append(pathpoints, point_new(current.x, current.y, current.z, PATH));
-        }
+        vector_append(pathpoints, point_new(current.x, current.y, current.z, nextpoint.z == current.z ? PATH: VIA));
 
-        /* put diffs into delta vector for lua part */
-        int xdiff = ((int)nextpoint.x - (int)current.x);
-        int ydiff = ((int)nextpoint.y - (int)current.y);
-        int zdiff = ((int)nextpoint.z - (int)current.z);
-
-        struct rpoint *diff_point;
         /*
          * put endport of backtrace with absolute positions
          * into list of deltas to make the data transfer to lua easier
          */
         if(_has_same_coords(&current, endpos))
         {
-            diff_point = point_new(endpos->x, endpos->y, endpos->z, PORT);
-            vector_append(deltas, diff_point);
+            struct rpoint* end_point = point_new(endpos->x, endpos->y, endpos->z, PORT);
+            vector_append(deltas, end_point);
         }
 
-        diff_point = point_new(xdiff, ydiff, zdiff, PATH);
+        /* put diffs into delta vector for lua part */
+        struct rpoint* diff_point = point_new(
+            (int)nextpoint.x - (int)current.x,
+            (int)nextpoint.y - (int)current.y,
+            (int)nextpoint.z - (int)current.z,
+            PATH
+        );
         vector_append(deltas, diff_point);
 
+        //oldpoint.x = current.x;
+        //oldpoint.x = current.y;
+        //oldpoint.x = current.z;
+        // changed to this, but I'm not sure what the original intention was
         oldpoint.x = current.x;
-        oldpoint.x = current.y;
-        oldpoint.x = current.z;
+        oldpoint.y = current.y;
+        oldpoint.z = current.z;
 
         current.x = nextpoint.x;
         current.y = nextpoint.y;
@@ -257,11 +254,11 @@ void *_find_path_thread(void *args)
     pthread_exit(NULL);
 }
 
-void _mark_as_route(struct field *field, struct vector *pathpoints)
+void _mark_as_route(struct field *field, const struct vector *pathpoints)
 {
     for(unsigned int i = 0; i < vector_size(pathpoints); i++)
     {
-        struct rpoint *point = vector_get(pathpoints, i);
+        const struct rpoint *point = vector_get_const(pathpoints, i);
         int value = point_get_score(point);
 
         if(value == PATH || value == PORT || value == VIA)
@@ -346,9 +343,6 @@ static struct vector* _route_single_threaded(struct net *net, struct field* fiel
 {
     int min_port_index = INT_MAX;
 
-    struct position minimum_endpos;
-    struct position minimum_startpos;
-
     struct vector *pathpoints = vector_create(1, free);
 
     /* append first port of net to position vector */
@@ -372,6 +366,9 @@ static struct vector* _route_single_threaded(struct net *net, struct field* fiel
 
         int pathpoint_size = vector_size(pathpoints);
         int min_routing_cost = INT_MAX;
+
+        struct position minimum_endpos;
+        struct position minimum_startpos;
 
         for(int i = 0; i < pathpoint_size; i++)
         {
@@ -442,7 +439,6 @@ static struct vector* _route_multi_threaded(struct net *net, struct field* field
      * repeat until all ports are reached
      */
     struct net *net_backup = net_copy(net);
-
 
     struct vector* deltas = vector_create(1, free);
     while(net_get_size(net) > 1)
