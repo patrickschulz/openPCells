@@ -680,7 +680,6 @@ function layout(cell, _P)
                 end
             end
 
-
             -- update fingers
             currentfingers = currentfingers + device.fingers
         end
