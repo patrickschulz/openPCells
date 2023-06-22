@@ -115,6 +115,11 @@ int main(int argc, char** argv)
 
     // export to C representation
     FILE* cfile = fopen(target, "a");
+    if(!cfile)
+    {
+        fprintf(stderr, "could not open file '%s' for writing\n", target);
+        return 1;
+    }
     fprintf(cfile, "unsigned char %s_data[] = ", base);
     // can use either function, _string gives only one (very long) line, _array is like a C hexdump
     (void)_write_module_data_array;

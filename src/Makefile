@@ -4,7 +4,7 @@ CC= gcc
 
 CFLAGS= -std=c99 -O3 -Wall -Wextra -Wstrict-prototypes -pthread
 ifeq ($(DEBUG), 1)
-    CFLAGS= -std=c99 -O0 -g -fsanitize=address -fsanitize=leak -fsanitize=undefined -Wall -Wextra -Werror=return-type -Werror=implicit-function-declaration -Werror=int-conversion -Werror=discarded-qualifiers -Wstrict-prototypes -pthread
+    CFLAGS= -std=c99 -O0 -g -Werror -fanalyzer -fsanitize=address -fsanitize=leak -fsanitize=undefined -Wall -Wextra -Werror=return-type -Werror=implicit-function-declaration -Werror=int-conversion -Werror=discarded-qualifiers -Wstrict-prototypes -pthread
 endif
 
 LDFLAGS= $(SYSLDFLAGS) $(MYLDFLAGS)
