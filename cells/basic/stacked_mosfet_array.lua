@@ -88,12 +88,28 @@ function check(_P)
                     return false, string.format("device %d in row %d specified connectsource = true, but did not provide the strap spacing (connectsourcespace)", devicenum, rownum)
                 end
             end
+            if device.connectextrasource then
+                if not device.connectextrasourcewidth then
+                    return false, string.format("device %d in row %d specified connectextrasource = true, but did not provide the strap width (connectextrasourcewidth)", devicenum, rownum)
+                end
+                if not device.connectextrasourcespace then
+                    return false, string.format("device %d in row %d specified connectextrasource = true, but did not provide the strap spacing (connectextrasourcespace)", devicenum, rownum)
+                end
+            end
             if device.connectdrain then
                 if not device.connectdrainwidth then
                     return false, string.format("device %d in row %d specified connectdrain = true, but did not provide the strap width (connectdrainwidth)", devicenum, rownum)
                 end
                 if not device.connectdrainspace then
                     return false, string.format("device %d in row %d specified connectdrain = true, but did not provide the strap spacing (connectdrainspace)", devicenum, rownum)
+                end
+            end
+            if device.connectextradrain then
+                if not device.connectextradrainwidth then
+                    return false, string.format("device %d in row %d specified connectextradrain = true, but did not provide the strap width (connectextradrainwidth)", devicenum, rownum)
+                end
+                if not device.connectextradrainspace then
+                    return false, string.format("device %d in row %d specified connectextradrain = true, but did not provide the strap spacing (connectextradrainspace)", devicenum, rownum)
                 end
             end
             if device.drawtopgate then
