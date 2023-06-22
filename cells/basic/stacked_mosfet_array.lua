@@ -2,6 +2,7 @@ function parameters()
     pcell.add_parameters(
         { "gatelength", technology.get_dimension("Minimum Gate Length"), argtype = "integer" },
         { "gatespace", technology.get_dimension("Minimum Gate XSpace"), argtype = "integer" },
+        { "splitgates", false },
         { "gatestopextension", 0 },
         { "gatesbotextension", 0 },
         { "rows", {} },
@@ -164,76 +165,141 @@ function layout(cell, _P)
     local xpitch = _P.gatelength + _P.gatespace
 
     -- gates
-    for i = 1, totalfingers do
-        geometry.rectanglebltr(cell, generics.other("gate"),
-            point.create(i * (_P.gatelength + _P.gatespace), -_P.gatesbotextension),
-            point.create(i * (_P.gatelength + _P.gatespace) + _P.gatelength, totalheight + _P.gatestopextension)
-        )
-    end
-
-    if _P.drawleftstopgate then
-        geometry.rectanglebltr(cell, generics.other("gate"),
-            point.create(0, -_P.gatesbotextension),
-            point.create(_P.gatelength, totalheight + _P.gatestopextension)
-        )
+    if _P.splitgates then
+        -- FIXME: add gate top and bottom extensions
         for rownum, row in ipairs(_P.rows) do
-            geometry.rectanglebltr(cell, generics.other("diffusionbreakgate"),
-                point.create(0, rowheights[rownum] - (_P.separation - _P.stopgatecutwidth) / 2),
-                point.create(_P.gatelength, rowheights[rownum] + row.width + (_P.separation - _P.stopgatecutwidth) / 2)
-            )
-            geometry.rectanglebltr(cell, generics.other("gatecut"),
-                point.create(
-                    -_P.gatespace / 2,
-                    rowheights[rownum] + row.width + (_P.separation - _P.stopgatecutwidth) / 2
-                ),
-                point.create(
-                    _P.gatelength + _P.gatespace / 2,
-                    rowheights[rownum] + row.width + (_P.separation + _P.stopgatecutwidth) / 2
+            local currentfingers = 0
+            for devicenum, device in ipairs(row.devices) do
+                for finger = 1, device.fingers do
+                    geometry.rectanglebltr(cell, generics.other("gate"),
+                        point.create(
+                            (finger + currentfingers) * (_P.gatelength + _P.gatespace),
+                            rowheights[rownum] - ((rownum == 1) and _P.gatesbotextension or row.gatebotextension or 0)
+                        ),
+                        point.create(
+                            (finger + currentfingers) * (_P.gatelength + _P.gatespace) + _P.gatelength,
+                            rowheights[rownum] + row.width + ((rownum == #_P.rows) and _P.gatestopextension or row.gatetopextension or 0)
+                        )
+                    )
+                end
+                -- update fingers
+                currentfingers = currentfingers + device.fingers
+            end
+            if _P.drawleftstopgate then
+                geometry.rectanglebltr(cell, generics.other("gate"),
+                    point.create(
+                        0,
+                        rowheights[rownum] - ((rownum == 1) and _P.gatesbotextension or row.gatebotextension or 0)
+                    ),
+                    point.create(
+                        _P.gatelength,
+                        rowheights[rownum] + row.width + ((rownum == #_P.rows) and _P.gatestopextension or row.gatetopextension or 0)
+                    )
                 )
-            )
-            geometry.rectanglebltr(cell, generics.other("gatecut"),
-                point.create(
-                    -_P.gatespace / 2,
-                    rowheights[rownum] - (_P.separation + _P.stopgatecutwidth) / 2
-                ),
-                point.create(
-                    _P.gatelength + _P.gatespace / 2,
-                    rowheights[rownum] - (_P.separation - _P.stopgatecutwidth) / 2
+                geometry.rectanglebltr(cell, generics.other("diffusionbreakgate"),
+                    point.create(
+                        0,
+                        rowheights[rownum] - ((rownum == 1) and _P.gatesbotextension or row.gatebotextension or 0)
+                    ),
+                    point.create(
+                        _P.gatelength,
+                        rowheights[rownum] + row.width + ((rownum == #_P.rows) and _P.gatestopextension or row.gatetopextension or 0)
+                    )
                 )
+            end
+            if _P.drawrightstopgate then
+                geometry.rectanglebltr(cell, generics.other("gate"),
+                    point.create(
+                        (totalfingers + 1) * (_P.gatelength + _P.gatespace),
+                        rowheights[rownum] - ((rownum == 1) and _P.gatesbotextension or row.gatebotextension or 0)
+                    ),
+                    point.create(
+                        (totalfingers + 1) * (_P.gatelength + _P.gatespace) + _P.gatelength,
+                        rowheights[rownum] + row.width + ((rownum == #_P.rows) and _P.gatestopextension or row.gatetopextension or 0)
+                    )
+                )
+                geometry.rectanglebltr(cell, generics.other("diffusionbreakgate"),
+                    point.create(
+                        (totalfingers + 1) * (_P.gatelength + _P.gatespace),
+                        rowheights[rownum] - ((rownum == 1) and _P.gatesbotextension or row.gatebotextension or 0)
+                    ),
+                    point.create(
+                        (totalfingers + 1) * (_P.gatelength + _P.gatespace) + _P.gatelength,
+                        rowheights[rownum] + row.width + ((rownum == #_P.rows) and _P.gatestopextension or row.gatetopextension or 0)
+                    )
+                )
+            end
+        end
+    else
+        for finger = 1, totalfingers do
+            geometry.rectanglebltr(cell, generics.other("gate"),
+                point.create(finger * (_P.gatelength + _P.gatespace), -_P.gatesbotextension),
+                point.create(finger * (_P.gatelength + _P.gatespace) + _P.gatelength, totalheight + _P.gatestopextension)
             )
         end
-    end
-
-    if _P.drawrightstopgate then
-        geometry.rectanglebltr(cell, generics.other("gate"),
-            point.create((totalfingers + 1) * (_P.gatelength + _P.gatespace), -_P.gatesbotextension),
-            point.create((totalfingers + 1) * (_P.gatelength + _P.gatespace) + _P.gatelength, totalheight + _P.gatestopextension)
-        )
-        for rownum, row in ipairs(_P.rows) do
-            geometry.rectanglebltr(cell, generics.other("diffusionbreakgate"),
-                point.create((totalfingers + 1) * (_P.gatelength + _P.gatespace), rowheights[rownum] - (_P.separation - _P.stopgatecutwidth) / 2),
-                point.create((totalfingers + 1) * (_P.gatelength + _P.gatespace) + _P.gatelength, rowheights[rownum] + row.width + (_P.separation - _P.stopgatecutwidth) / 2)
+        if _P.drawleftstopgate then
+            geometry.rectanglebltr(cell, generics.other("gate"),
+                point.create(0, -_P.gatesbotextension),
+                point.create(_P.gatelength, totalheight + _P.gatestopextension)
             )
-            geometry.rectanglebltr(cell, generics.other("gatecut"),
-                point.create(
-                    (totalfingers + 1) * (_P.gatelength + _P.gatespace) - _P.gatespace / 2,
-                    rowheights[rownum] + row.width + (_P.separation - _P.stopgatecutwidth) / 2
-                ),
-                point.create(
-                    (totalfingers + 1) * (_P.gatelength + _P.gatespace) + _P.gatelength + _P.gatespace / 2,
-                    rowheights[rownum] + row.width + (_P.separation + _P.stopgatecutwidth) / 2
+            for rownum, row in ipairs(_P.rows) do
+                geometry.rectanglebltr(cell, generics.other("diffusionbreakgate"),
+                    point.create(0, rowheights[rownum] - (_P.separation - _P.stopgatecutwidth) / 2),
+                    point.create(_P.gatelength, rowheights[rownum] + row.width + (_P.separation - _P.stopgatecutwidth) / 2)
                 )
-            )
-            geometry.rectanglebltr(cell, generics.other("gatecut"),
-                point.create(
-                    (totalfingers + 1) * (_P.gatelength + _P.gatespace) - _P.gatespace / 2,
-                    rowheights[rownum] - (_P.separation + _P.stopgatecutwidth) / 2
-                ),
-                point.create(
-                    (totalfingers + 1) * (_P.gatelength + _P.gatespace) + _P.gatelength + _P.gatespace / 2,
-                    rowheights[rownum] - (_P.separation - _P.stopgatecutwidth) / 2
+                geometry.rectanglebltr(cell, generics.other("gatecut"),
+                    point.create(
+                        -_P.gatespace / 2,
+                        rowheights[rownum] + row.width + (_P.separation - _P.stopgatecutwidth) / 2
+                    ),
+                    point.create(
+                        _P.gatelength + _P.gatespace / 2,
+                        rowheights[rownum] + row.width + (_P.separation + _P.stopgatecutwidth) / 2
+                    )
                 )
+                geometry.rectanglebltr(cell, generics.other("gatecut"),
+                    point.create(
+                        -_P.gatespace / 2,
+                        rowheights[rownum] - (_P.separation + _P.stopgatecutwidth) / 2
+                    ),
+                    point.create(
+                        _P.gatelength + _P.gatespace / 2,
+                        rowheights[rownum] - (_P.separation - _P.stopgatecutwidth) / 2
+                    )
+                )
+            end
+        end
+        if _P.drawrightstopgate then
+            geometry.rectanglebltr(cell, generics.other("gate"),
+                point.create((totalfingers + 1) * (_P.gatelength + _P.gatespace), -_P.gatesbotextension),
+                point.create((totalfingers + 1) * (_P.gatelength + _P.gatespace) + _P.gatelength, totalheight + _P.gatestopextension)
             )
+            for rownum, row in ipairs(_P.rows) do
+                geometry.rectanglebltr(cell, generics.other("diffusionbreakgate"),
+                    point.create((totalfingers + 1) * (_P.gatelength + _P.gatespace), rowheights[rownum] - (_P.separation - _P.stopgatecutwidth) / 2),
+                    point.create((totalfingers + 1) * (_P.gatelength + _P.gatespace) + _P.gatelength, rowheights[rownum] + row.width + (_P.separation - _P.stopgatecutwidth) / 2)
+                )
+                geometry.rectanglebltr(cell, generics.other("gatecut"),
+                    point.create(
+                        (totalfingers + 1) * (_P.gatelength + _P.gatespace) - _P.gatespace / 2,
+                        rowheights[rownum] + row.width + (_P.separation - _P.stopgatecutwidth) / 2
+                    ),
+                    point.create(
+                        (totalfingers + 1) * (_P.gatelength + _P.gatespace) + _P.gatelength + _P.gatespace / 2,
+                        rowheights[rownum] + row.width + (_P.separation + _P.stopgatecutwidth) / 2
+                    )
+                )
+                geometry.rectanglebltr(cell, generics.other("gatecut"),
+                    point.create(
+                        (totalfingers + 1) * (_P.gatelength + _P.gatespace) - _P.gatespace / 2,
+                        rowheights[rownum] - (_P.separation + _P.stopgatecutwidth) / 2
+                    ),
+                    point.create(
+                        (totalfingers + 1) * (_P.gatelength + _P.gatespace) + _P.gatelength + _P.gatespace / 2,
+                        rowheights[rownum] - (_P.separation - _P.stopgatecutwidth) / 2
+                    )
+                )
+            end
         end
     end
 
