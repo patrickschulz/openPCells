@@ -11,7 +11,7 @@ function parameters()
         { "fwidth(Finger Width)",                                      technology.get_dimension("Minimum Gate Width"), argtype = "integer" },
         { "gatelength(Gate Length)",                                   technology.get_dimension("Minimum Gate Length"), argtype = "integer" },
         { "gatespace(Gate Spacing)",                                   technology.get_dimension("Minimum Gate XSpace"), argtype = "integer" },
-        { "actext(Active Extension)",                                     30 },
+        { "actext(Active Extension)",                                  0 },
         { "sdwidth(Source/Drain Metal Width)",                         technology.get_dimension("Minimum M1 Width"), argtype = "integer" },
         { "gtopext(Gate Top Extension)",                               technology.get_dimension("Minimum Gate Extension") },
         { "gbotext(Gate Bottom Extension)",                            technology.get_dimension("Minimum Gate Extension") },
@@ -172,13 +172,17 @@ end
 
 function layout(transistor, _P)
     local gatepitch = _P.gatelength + _P.gatespace
-    local leftactext = (_P.gatespace + _P.sdwidth) / 2
-    if not _P.endleftwithgate then
-        leftactext = leftactext + _P.actext
+    local leftactext
+    if _P.endleftwithgate then
+        leftactext = _P.gatespace + _P.gatelength / 2
+    else
+        leftactext = (_P.gatespace + _P.sdwidth) / 2 + _P.actext
     end
-    local rightactext = (_P.gatespace + _P.sdwidth) / 2
-    if not _P.endrightwithgate then
-        rightactext = rightactext + _P.actext
+    local rightactext
+    if _P.endrightwithgate then
+        rightactext = _P.gatespace + _P.gatelength / 2
+    else
+        rightactext = (_P.gatespace + _P.sdwidth) / 2 + _P.actext
     end
     local activewidth = _P.fingers * _P.gatelength + (_P.fingers - 1) * _P.gatespace + _P.leftfloatingdummies * gatepitch + _P.rightfloatingdummies * gatepitch
 
