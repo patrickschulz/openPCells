@@ -272,9 +272,9 @@ function layout(cell, _P)
             point.create(totalwidth + _P.vthtyperightextension, rowheights[rownum] + row.width + _P.separation / 2 + vthtypetopext)
         )
 
-        -- source/drain contacts
         local currentfingers = 0
         for _, device in ipairs(row.devices) do
+            -- source/drain contacts
             for finger = 1, device.fingers + 1 do
                 cell:add_area_anchor_bltr(string.format("%ssourcedrainactive%d", device.name, finger),
                     point.create(
@@ -367,9 +367,9 @@ function layout(cell, _P)
                             )
                         )
                     end
+                    -- source wires
                     if device.connectsource then
                         if (row.channeltype == "pmos" and not device.connectsourceinverse) or (row.channeltype == "nmos" and device.connectsourceinverse) then
-                            -- wires
                             geometry.rectanglebltr(cell, generics.metal(device.sourcemetal or 1),
                                 point.create(
                                     _P.gatelength + (_P.gatespace - _P.sdwidth) / 2 + (currentfingers + finger - 1) * (_P.gatelength + _P.gatespace),
@@ -380,29 +380,7 @@ function layout(cell, _P)
                                     rowheights[rownum] + row.width + device.connectsourcespace
                                 )
                             )
-                            -- strap
-                            geometry.rectanglebltr(cell, generics.metal(device.sourcemetal or 1),
-                                point.create(
-                                    _P.gatelength + (_P.gatespace - _P.sdwidth) / 2 - _P.sdwidth + currentfingers * (_P.gatelength + _P.gatespace) + _P.sdwidth,
-                                    rowheights[rownum] + row.width + device.connectsourcespace
-                                ),
-                                point.create(
-                                    _P.gatelength + (_P.gatespace - _P.sdwidth) / 2 + _P.sdwidth + (currentfingers + device.fingers) * (_P.gatelength + _P.gatespace),
-                                    rowheights[rownum] + row.width + device.connectsourcespace + device.connectsourcewidth
-                                )
-                            )
-                            cell:add_area_anchor_bltr(string.format("%ssourcestrap", device.name),
-                                point.create(
-                                    _P.gatelength + (_P.gatespace - _P.sdwidth) / 2 - _P.sdwidth + currentfingers * (_P.gatelength + _P.gatespace) + _P.sdwidth,
-                                    rowheights[rownum] + row.width + device.connectsourcespace
-                                ),
-                                point.create(
-                                    _P.gatelength + (_P.gatespace - _P.sdwidth) / 2 + _P.sdwidth + (currentfingers + device.fingers) * (_P.gatelength + _P.gatespace),
-                                    rowheights[rownum] + row.width + device.connectsourcespace + device.connectsourcewidth
-                                )
-                            )
                         else
-                            -- wires
                             geometry.rectanglebltr(cell, generics.metal(device.sourcemetal or 1),
                                 point.create(
                                     _P.gatelength + (_P.gatespace - _P.sdwidth) / 2 + (currentfingers + finger - 1) * (_P.gatelength + _P.gatespace),
@@ -413,25 +391,29 @@ function layout(cell, _P)
                                     rowheights[rownum]
                                 )
                             )
-                            -- strap
+                        end
+                    end
+                    if device.connectextrasource then
+                        if (row.channeltype == "nmos" and not device.connectsourceinverse) or (row.channeltype == "pmos" and device.connectsourceinverse) then
                             geometry.rectanglebltr(cell, generics.metal(device.sourcemetal or 1),
                                 point.create(
-                                    _P.gatelength + (_P.gatespace - _P.sdwidth) / 2 - _P.sdwidth + currentfingers * (_P.gatelength + _P.gatespace) + _P.sdwidth,
-                                    rowheights[rownum] - device.connectsourcespace - device.connectsourcewidth
+                                    _P.gatelength + (_P.gatespace - _P.sdwidth) / 2 + (currentfingers + finger - 1) * (_P.gatelength + _P.gatespace),
+                                    rowheights[rownum] + row.width
                                 ),
                                 point.create(
-                                    _P.gatelength + (_P.gatespace - _P.sdwidth) / 2 + _P.sdwidth + (currentfingers + device.fingers) * (_P.gatelength + _P.gatespace),
-                                    rowheights[rownum] - device.connectsourcespace
+                                    _P.gatelength + (_P.gatespace - _P.sdwidth) / 2 + (currentfingers + finger - 1) * (_P.gatelength + _P.gatespace) + _P.sdwidth,
+                                    rowheights[rownum] + row.width + device.connectextrasourcespace
                                 )
                             )
-                            cell:add_area_anchor_bltr(string.format("%ssourcestrap", device.name),
+                        else
+                            geometry.rectanglebltr(cell, generics.metal(device.sourcemetal or 1),
                                 point.create(
-                                    _P.gatelength + (_P.gatespace - _P.sdwidth) / 2 - _P.sdwidth + currentfingers * (_P.gatelength + _P.gatespace) + _P.sdwidth,
-                                    rowheights[rownum] - device.connectsourcespace - device.connectsourcewidth
+                                    _P.gatelength + (_P.gatespace - _P.sdwidth) / 2 + (currentfingers + finger - 1) * (_P.gatelength + _P.gatespace),
+                                    rowheights[rownum] - device.connectextrasourcespace
                                 ),
                                 point.create(
-                                    _P.gatelength + (_P.gatespace - _P.sdwidth) / 2 + _P.sdwidth + (currentfingers + device.fingers) * (_P.gatelength + _P.gatespace),
-                                    rowheights[rownum] - device.connectsourcespace
+                                    _P.gatelength + (_P.gatespace - _P.sdwidth) / 2 + (currentfingers + finger - 1) * (_P.gatelength + _P.gatespace) + _P.sdwidth,
+                                    rowheights[rownum]
                                 )
                             )
                         end
@@ -449,9 +431,9 @@ function layout(cell, _P)
                             )
                         )
                     end
+                    -- drain wires
                     if device.connectdrain then
                         if (row.channeltype == "pmos" and not device.connectdraininverse) or (row.channeltype == "nmos" and device.connectdraininverse) then
-                            -- wires
                             geometry.rectanglebltr(cell, generics.metal(device.drainmetal or 1),
                                 point.create(
                                     _P.gatelength + (_P.gatespace - _P.sdwidth) / 2 + (currentfingers + finger - 1) * (_P.gatelength + _P.gatespace),
@@ -462,29 +444,7 @@ function layout(cell, _P)
                                     rowheights[rownum]
                                 )
                             )
-                            -- strap
-                            geometry.rectanglebltr(cell, generics.metal(device.drainmetal or 1),
-                                point.create(
-                                    (currentfingers + 1) * (_P.gatelength + _P.gatespace) + _P.gatelength + (_P.gatespace - _P.sdwidth) / 2,
-                                    rowheights[rownum] - device.connectdrainspace - device.connectdrainwidth
-                                ),
-                                point.create(
-                                    (currentfingers + device.fingers) * (_P.gatelength + _P.gatespace) - (_P.gatespace - _P.sdwidth) / 2,
-                                    rowheights[rownum] - device.connectdrainspace
-                                )
-                            )
-                            cell:add_area_anchor_bltr(string.format("%sdrainstrap", device.name),
-                                point.create(
-                                    (currentfingers + 1) * (_P.gatelength + _P.gatespace) + _P.gatelength + (_P.gatespace - _P.sdwidth) / 2,
-                                    rowheights[rownum] - device.connectdrainspace - device.connectdrainwidth
-                                ),
-                                point.create(
-                                    (currentfingers + device.fingers) * (_P.gatelength + _P.gatespace) - (_P.gatespace - _P.sdwidth) / 2,
-                                    rowheights[rownum] - device.connectdrainspace
-                                )
-                            )
                         else
-                            -- wires
                             geometry.rectanglebltr(cell, generics.metal(device.drainmetal or 1),
                                 point.create(
                                     _P.gatelength + (_P.gatespace - _P.sdwidth) / 2 + (currentfingers + finger - 1) * (_P.gatelength + _P.gatespace),
@@ -495,29 +455,217 @@ function layout(cell, _P)
                                     rowheights[rownum] + row.width + device.connectdrainspace
                                 )
                             )
-                            -- strap
+                        end
+                    end
+                    if device.connectextradrain then
+                        if (row.channeltype == "nmos" and not device.connectdraininverse) or (row.channeltype == "pmos" and device.connectdraininverse) then
                             geometry.rectanglebltr(cell, generics.metal(device.drainmetal or 1),
                                 point.create(
-                                    (currentfingers + 1) * (_P.gatelength + _P.gatespace) + _P.gatelength + (_P.gatespace - _P.sdwidth) / 2,
-                                    rowheights[rownum] + row.width + device.connectdrainspace
+                                    _P.gatelength + (_P.gatespace - _P.sdwidth) / 2 + (currentfingers + finger - 1) * (_P.gatelength + _P.gatespace),
+                                    rowheights[rownum] - device.connectextradrainspace
                                 ),
                                 point.create(
-                                    (currentfingers + device.fingers) * (_P.gatelength + _P.gatespace) - (_P.gatespace - _P.sdwidth) / 2,
-                                    rowheights[rownum] + row.width + device.connectdrainspace + device.connectdrainwidth
+                                    _P.gatelength + (_P.gatespace - _P.sdwidth) / 2 + (currentfingers + finger - 1) * (_P.gatelength + _P.gatespace) + _P.sdwidth,
+                                    rowheights[rownum]
                                 )
                             )
-                            cell:add_area_anchor_bltr(string.format("%sdrainstrap", device.name),
+                        else
+                            geometry.rectanglebltr(cell, generics.metal(device.drainmetal or 1),
                                 point.create(
-                                    (currentfingers + 1) * (_P.gatelength + _P.gatespace) + _P.gatelength + (_P.gatespace - _P.sdwidth) / 2,
-                                    rowheights[rownum] + row.width + device.connectdrainspace
+                                    _P.gatelength + (_P.gatespace - _P.sdwidth) / 2 + (currentfingers + finger - 1) * (_P.gatelength + _P.gatespace),
+                                    rowheights[rownum] + row.width
                                 ),
                                 point.create(
-                                    (currentfingers + device.fingers) * (_P.gatelength + _P.gatespace) - (_P.gatespace - _P.sdwidth) / 2,
-                                    rowheights[rownum] + row.width + device.connectdrainspace + device.connectdrainwidth
+                                    _P.gatelength + (_P.gatespace - _P.sdwidth) / 2 + (currentfingers + finger - 1) * (_P.gatelength + _P.gatespace) + _P.sdwidth,
+                                    rowheights[rownum] + row.width + device.connectextradrainspace
                                 )
                             )
                         end
                     end
+                end
+            end
+
+            -- source/drain straps
+            if device.connectsource then
+                if (row.channeltype == "pmos" and not device.connectsourceinverse) or (row.channeltype == "nmos" and device.connectsourceinverse) then
+                    geometry.rectanglebltr(cell, generics.metal(device.sourcemetal or 1),
+                        point.create(
+                            _P.gatelength + (_P.gatespace - _P.sdwidth) / 2 - _P.sdwidth + currentfingers * (_P.gatelength + _P.gatespace) + _P.sdwidth,
+                            rowheights[rownum] + row.width + device.connectsourcespace
+                        ),
+                        point.create(
+                            _P.gatelength + (_P.gatespace - _P.sdwidth) / 2 + _P.sdwidth + (currentfingers + device.fingers) * (_P.gatelength + _P.gatespace),
+                            rowheights[rownum] + row.width + device.connectsourcespace + device.connectsourcewidth
+                        )
+                    )
+                    cell:add_area_anchor_bltr(string.format("%ssourcestrap", device.name),
+                        point.create(
+                            _P.gatelength + (_P.gatespace - _P.sdwidth) / 2 - _P.sdwidth + currentfingers * (_P.gatelength + _P.gatespace) + _P.sdwidth,
+                            rowheights[rownum] + row.width + device.connectsourcespace
+                        ),
+                        point.create(
+                            _P.gatelength + (_P.gatespace - _P.sdwidth) / 2 + _P.sdwidth + (currentfingers + device.fingers) * (_P.gatelength + _P.gatespace),
+                            rowheights[rownum] + row.width + device.connectsourcespace + device.connectsourcewidth
+                        )
+                    )
+                else
+                    geometry.rectanglebltr(cell, generics.metal(device.sourcemetal or 1),
+                        point.create(
+                            _P.gatelength + (_P.gatespace - _P.sdwidth) / 2 - _P.sdwidth + currentfingers * (_P.gatelength + _P.gatespace) + _P.sdwidth,
+                            rowheights[rownum] - device.connectsourcespace - device.connectsourcewidth
+                        ),
+                        point.create(
+                            _P.gatelength + (_P.gatespace - _P.sdwidth) / 2 + _P.sdwidth + (currentfingers + device.fingers) * (_P.gatelength + _P.gatespace),
+                            rowheights[rownum] - device.connectsourcespace
+                        )
+                    )
+                    cell:add_area_anchor_bltr(string.format("%ssourcestrap", device.name),
+                        point.create(
+                            _P.gatelength + (_P.gatespace - _P.sdwidth) / 2 - _P.sdwidth + currentfingers * (_P.gatelength + _P.gatespace) + _P.sdwidth,
+                            rowheights[rownum] - device.connectsourcespace - device.connectsourcewidth
+                        ),
+                        point.create(
+                            _P.gatelength + (_P.gatespace - _P.sdwidth) / 2 + _P.sdwidth + (currentfingers + device.fingers) * (_P.gatelength + _P.gatespace),
+                            rowheights[rownum] - device.connectsourcespace
+                        )
+                    )
+                end
+            end
+            if device.connectdrain then
+                if (row.channeltype == "pmos" and not device.connectdraininverse) or (row.channeltype == "nmos" and device.connectdraininverse) then
+                    geometry.rectanglebltr(cell, generics.metal(device.drainmetal or 1),
+                        point.create(
+                            (currentfingers + 1) * (_P.gatelength + _P.gatespace) + _P.gatelength + (_P.gatespace - _P.sdwidth) / 2,
+                            rowheights[rownum] - device.connectdrainspace - device.connectdrainwidth
+                        ),
+                        point.create(
+                            (currentfingers + device.fingers) * (_P.gatelength + _P.gatespace) - (_P.gatespace - _P.sdwidth) / 2,
+                            rowheights[rownum] - device.connectdrainspace
+                        )
+                    )
+                    cell:add_area_anchor_bltr(string.format("%sdrainstrap", device.name),
+                        point.create(
+                            (currentfingers + 1) * (_P.gatelength + _P.gatespace) + _P.gatelength + (_P.gatespace - _P.sdwidth) / 2,
+                            rowheights[rownum] - device.connectdrainspace - device.connectdrainwidth
+                        ),
+                        point.create(
+                            (currentfingers + device.fingers) * (_P.gatelength + _P.gatespace) - (_P.gatespace - _P.sdwidth) / 2,
+                            rowheights[rownum] - device.connectdrainspace
+                        )
+                    )
+                else
+                    geometry.rectanglebltr(cell, generics.metal(device.drainmetal or 1),
+                        point.create(
+                            (currentfingers + 1) * (_P.gatelength + _P.gatespace) + _P.gatelength + (_P.gatespace - _P.sdwidth) / 2,
+                            rowheights[rownum] + row.width + device.connectdrainspace
+                        ),
+                        point.create(
+                            (currentfingers + device.fingers) * (_P.gatelength + _P.gatespace) - (_P.gatespace - _P.sdwidth) / 2,
+                            rowheights[rownum] + row.width + device.connectdrainspace + device.connectdrainwidth
+                        )
+                    )
+                    cell:add_area_anchor_bltr(string.format("%sdrainstrap", device.name),
+                        point.create(
+                            (currentfingers + 1) * (_P.gatelength + _P.gatespace) + _P.gatelength + (_P.gatespace - _P.sdwidth) / 2,
+                            rowheights[rownum] + row.width + device.connectdrainspace
+                        ),
+                        point.create(
+                            (currentfingers + device.fingers) * (_P.gatelength + _P.gatespace) - (_P.gatespace - _P.sdwidth) / 2,
+                            rowheights[rownum] + row.width + device.connectdrainspace + device.connectdrainwidth
+                        )
+                    )
+                end
+            end
+
+            -- extra source/drain straps
+            if device.connectextrasource then
+                if (row.channeltype == "nmos" and not device.connectsourceinverse) or (row.channeltype == "pmos" and device.connectsourceinverse) then
+                    geometry.rectanglebltr(cell, generics.metal(device.sourcemetal or 1),
+                        point.create(
+                            _P.gatelength + (_P.gatespace - _P.sdwidth) / 2 - _P.sdwidth + currentfingers * (_P.gatelength + _P.gatespace) + _P.sdwidth,
+                            rowheights[rownum] + row.width + device.connectextrasourcespace
+                        ),
+                        point.create(
+                            _P.gatelength + (_P.gatespace - _P.sdwidth) / 2 + _P.sdwidth + (currentfingers + device.fingers) * (_P.gatelength + _P.gatespace),
+                            rowheights[rownum] + row.width + device.connectextrasourcespace + device.connectextrasourcewidth
+                        )
+                    )
+                    cell:add_area_anchor_bltr(string.format("%sextrasourcestrap", device.name),
+                        point.create(
+                            _P.gatelength + (_P.gatespace - _P.sdwidth) / 2 - _P.sdwidth + currentfingers * (_P.gatelength + _P.gatespace) + _P.sdwidth,
+                            rowheights[rownum] + row.width + device.connectextrasourcespace
+                        ),
+                        point.create(
+                            _P.gatelength + (_P.gatespace - _P.sdwidth) / 2 + _P.sdwidth + (currentfingers + device.fingers) * (_P.gatelength + _P.gatespace),
+                            rowheights[rownum] + row.width + device.connectextrasourcespace + device.connectextrasourcewidth
+                        )
+                    )
+                else
+                    geometry.rectanglebltr(cell, generics.metal(device.sourcemetal or 1),
+                        point.create(
+                            _P.gatelength + (_P.gatespace - _P.sdwidth) / 2 - _P.sdwidth + currentfingers * (_P.gatelength + _P.gatespace) + _P.sdwidth,
+                            rowheights[rownum] - device.connectextrasourcespace - device.connectextrasourcewidth
+                        ),
+                        point.create(
+                            _P.gatelength + (_P.gatespace - _P.sdwidth) / 2 + _P.sdwidth + (currentfingers + device.fingers) * (_P.gatelength + _P.gatespace),
+                            rowheights[rownum] - device.connectextrasourcespace
+                        )
+                    )
+                    cell:add_area_anchor_bltr(string.format("%sextrasourcestrap", device.name),
+                        point.create(
+                            _P.gatelength + (_P.gatespace - _P.sdwidth) / 2 - _P.sdwidth + currentfingers * (_P.gatelength + _P.gatespace) + _P.sdwidth,
+                            rowheights[rownum] - device.connectextrasourcespace - device.connectextrasourcewidth
+                        ),
+                        point.create(
+                            _P.gatelength + (_P.gatespace - _P.sdwidth) / 2 + _P.sdwidth + (currentfingers + device.fingers) * (_P.gatelength + _P.gatespace),
+                            rowheights[rownum] - device.connectextrasourcespace
+                        )
+                    )
+                end
+            end
+            if device.connectextradrain then
+                if (row.channeltype == "nmos" and not device.connectdraininverse) or (row.channeltype == "pmos" and device.connectdraininverse) then
+                    geometry.rectanglebltr(cell, generics.metal(device.drainmetal or 1),
+                        point.create(
+                            (currentfingers + 1) * (_P.gatelength + _P.gatespace) + _P.gatelength + (_P.gatespace - _P.sdwidth) / 2,
+                            rowheights[rownum] - device.connectextradrainspace - device.connectextradrainwidth
+                        ),
+                        point.create(
+                            (currentfingers + device.fingers) * (_P.gatelength + _P.gatespace) - (_P.gatespace - _P.sdwidth) / 2,
+                            rowheights[rownum] - device.connectextradrainspace
+                        )
+                    )
+                    cell:add_area_anchor_bltr(string.format("%sextradrainstrap", device.name),
+                        point.create(
+                            (currentfingers + 1) * (_P.gatelength + _P.gatespace) + _P.gatelength + (_P.gatespace - _P.sdwidth) / 2,
+                            rowheights[rownum] - device.connectextradrainspace - device.connectextradrainwidth
+                        ),
+                        point.create(
+                            (currentfingers + device.fingers) * (_P.gatelength + _P.gatespace) - (_P.gatespace - _P.sdwidth) / 2,
+                            rowheights[rownum] - device.connectextradrainspace
+                        )
+                    )
+                else
+                    geometry.rectanglebltr(cell, generics.metal(device.extradrainmetal or 1),
+                        point.create(
+                            (currentfingers + 1) * (_P.gatelength + _P.gatespace) + _P.gatelength + (_P.gatespace - _P.sdwidth) / 2,
+                            rowheights[rownum] + row.width + device.connectextradrainspace
+                        ),
+                        point.create(
+                            (currentfingers + device.fingers) * (_P.gatelength + _P.gatespace) - (_P.gatespace - _P.sdwidth) / 2,
+                            rowheights[rownum] + row.width + device.connectextradrainspace + device.connectextradrainwidth
+                        )
+                    )
+                    cell:add_area_anchor_bltr(string.format("%sextradrainstrap", device.name),
+                        point.create(
+                            (currentfingers + 1) * (_P.gatelength + _P.gatespace) + _P.gatelength + (_P.gatespace - _P.sdwidth) / 2,
+                            rowheights[rownum] + row.width + device.connectextradrainspace
+                        ),
+                        point.create(
+                            (currentfingers + device.fingers) * (_P.gatelength + _P.gatespace) - (_P.gatespace - _P.sdwidth) / 2,
+                            rowheights[rownum] + row.width + device.connectextradrainspace + device.connectextradrainwidth
+                        )
+                    )
                 end
             end
 
