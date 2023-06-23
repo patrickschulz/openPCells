@@ -728,7 +728,7 @@ function layout(cell, _P)
                         )
                     )
                 else
-                    geometry.rectanglebltr(cell, generics.metal(device.extradrainmetal or 1),
+                    geometry.rectanglebltr(cell, generics.metal(device.drainmetal or 1),
                         point.create(
                             (currentfingers + 1) * (_P.gatelength + _P.gatespace) + _P.gatelength + (_P.gatespace - _P.sdwidth) / 2,
                             rowheights[rownum] + row.width + device.connectextradrainspace
