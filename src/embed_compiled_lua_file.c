@@ -21,6 +21,10 @@ static void _resize_buffer(struct buffer* buffer, size_t capacity)
 static struct buffer* _create_buffer(void)
 {
     struct buffer* buffer = malloc(sizeof(*buffer));
+    if(!buffer)
+    {
+        return NULL;
+    }
     buffer->data = NULL;
     buffer->length = 0;
     _resize_buffer(buffer, 1024);
@@ -110,6 +114,11 @@ int main(int argc, char** argv)
         return 1;
     }
     struct buffer* buffer = _create_buffer();
+    if(!buffer)
+    {
+        fprintf(stderr, "%s\n", "memory allocation failed");
+        return 1;
+    }
     lua_dump(L, _writer, buffer, 0);
     lua_close(L);
 
