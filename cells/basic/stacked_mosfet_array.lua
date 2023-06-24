@@ -437,7 +437,7 @@ function layout(cell, _P)
                     end
                 end
                 if finger % 2 == 1 then -- source
-                    if device.sourcemetal and device.sourcemetal > 1 then
+                    if device.drawsourcevia and device.sourcemetal and device.sourcemetal > 1 then
                         geometry.viabltr(cell, 1, device.sourcemetal,
                             point.create(
                                 _P.gatelength + (_P.gatespace - _P.sdwidth) / 2 + (currentfingers + finger - 1) * (_P.gatelength + _P.gatespace),
@@ -501,7 +501,7 @@ function layout(cell, _P)
                         end
                     end
                 else
-                    if device.drainmetal and device.drainmetal > 1 then
+                    if device.drawdrainvia and device.drainmetal and device.drainmetal > 1 then
                         geometry.viabltr(cell, 1, device.drainmetal,
                             point.create(
                                 _P.gatelength + (_P.gatespace - _P.sdwidth) / 2 + (currentfingers + finger - 1) * (_P.gatelength + _P.gatespace),
