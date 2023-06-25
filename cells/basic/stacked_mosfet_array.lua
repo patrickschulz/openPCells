@@ -838,7 +838,7 @@ function layout(cell, _P)
                         )
                     )
                 end
-                cell:add_area_anchor_bltr(string.format("%stopgate", device.name),
+                cell:add_area_anchor_bltr(string.format("%sbotgate", device.name),
                     point.create(
                         xpitch + currentfingers * (_P.gatelength + _P.gatespace) - (device.botgateleftextension or 0),
                         rowheights[rownum] - device.botgatespace - device.botgatewidth
