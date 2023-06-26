@@ -20,24 +20,30 @@ end
 function layout(res, _P)
     local polyheight = _P.nyfingers * _P.length + (_P.nyfingers - 1) * _P.yspace + 2 * _P.extension
     -- poly strips
-    geometry.rectangle(
-        res, generics.other("gate"),
-        _P.width, polyheight, 0, 0,
-        _P.nxfingers + 2 * _P.dummies + 2 * _P.nonresdummies, 1, _P.width + _P.xspace, 0
-    )
+    for x = 1, _P.nxfingers + 2 * _P.dummies + 2 * _P.nonresdummies do
+        geometry.rectanglebltr(
+            res, generics.other("gate"),
+            point.create((x - 1) * (_P.width + _P.xspace), 0),
+            point.create((x - 1) * (_P.width + _P.xspace) + _P.width, polyheight)
+        )
+    end
     -- contacts
-    geometry.contactbltr(res, "gate", 
-        point.create(-_P.width / 2, -_P.contactheight / 2),
-        point.create( _P.width / 2,  _P.contactheight / 2),
-        _P.nxfingers, _P.nyfingers + 1, _P.width + _P.xspace, _P.length + _P.yspace
-    )
+    for x = 1, _P.nxfingers do
+        for y = 1, _P.nyfingers + 1 do
+            geometry.contactbltr(res, "gate", 
+                point.create((x - 1) * (_P.width + _P.xspace), (y - 1) * (_P.length + _P.yspace)),
+                point.create((x - 1) * (_P.width + _P.xspace) + _P.width, (y - 1) * (_P.length + _P.yspace) + _P.contactheight)
+            )
+        end
+    end
     -- poly marker layer
-    geometry.rectangle(res, generics.other("polyres"),
-        (_P.nxfingers + 2 * _P.dummies) * (_P.width + _P.xspace) - _P.xspace + 2 * _P.markextension,
-        _P.length,
-        0, 0,
-        1, _P.nyfingers, 0, _P.length + _P.yspace
-    )
+    for y = 1, _P.nyfingers do
+        geometry.rectanglebltr(res, generics.other("polyresistormarker"),
+            point.create(0, (y - 1) * (_P.length + _P.yspace)),
+            point.create(2 * (_P.nxfingers + 2 * _P.dummies) * (_P.width + _P.xspace) - 2 * _P.xspace + 4 * _P.markextension + _P.width, (y - 1) * (_P.length + _P.yspace) + _P.length)
+        )
+    end
+    --[[
     -- implant and LVS marker layer
     geometry.rectangle(res, generics.other("nres"),
         (_P.nxfingers + 2 * _P.dummies + 2 * _P.nonresdummies) * (_P.width + _P.xspace) + 2 * _P.extraextension,
@@ -93,4 +99,5 @@ function layout(res, _P)
         point.create(-_P.width / 2, -_P.contactheight / 2 - _P.length / 2 - _P.yspace / 2),
         point.create( _P.width / 2,  _P.contactheight / 2 - _P.length / 2 - _P.yspace / 2)
     )
+    --]]
 end

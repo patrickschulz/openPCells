@@ -909,19 +909,18 @@ function layout(transistor, _P)
             end
             for i = 2, _P.fingers + 1, 2 do
                 local shift = leftactext - (_P.gatespace + _P.sdwidth) / 2 + (i - 1) * gatepitch
-                local drainconnoffset = _P.connectdrainmetal > 1 and drainviaoffset or drainoffset
+                local conndrainoffset = _P.connectdrainmetal > 1 and drainviaoffset or drainoffset
+                local conndraintop = _P.connectdrainmetal > 1 and _P.drainviasize or _P.drainsize
                 if not draininvert or _P.connectdrainboth then
-                    if drainconnoffset + _P.drainviasize < _P.fwidth + _P.connectdrainspace then
-                        geometry.rectanglebltr(transistor, generics.metal(_P.connectdrainmetal),
-                            point.create(shift, drainconnoffset + _P.drainviasize),
-                            point.create(shift + _P.sdwidth, _P.fwidth + _P.connectdrainspace)
-                        )
-                    end
+                    geometry.rectanglebltr(transistor, generics.metal(_P.connectdrainmetal),
+                        point.create(shift, conndrainoffset + conndraintop),
+                        point.create(shift + _P.sdwidth, _P.fwidth + _P.connectdrainspace)
+                    )
                 end
                 if draininvert or _P.connectdrainboth then
                     geometry.rectanglebltr(transistor, generics.metal(_P.connectdrainmetal),
                         point.create(shift, -_P.connectdrainspace),
-                        point.create(shift + _P.sdwidth, drainconnoffset)
+                        point.create(shift + _P.sdwidth, conndrainoffset)
                     )
                 end
             end
