@@ -259,7 +259,15 @@ static int lobject_ ##what (lua_State* L) \
     struct lobject* cell = lobject_check(L, 1); \
     if(!object_has_alignmentbox(lobject_get(cell))) \
     { \
-        lua_pushstring(L, "object." #what ": first object does not have an alignment box"); \
+        const char* name = object_get_name(lobject_get(cell)); \
+        if(name) \
+        { \
+            lua_pushfstring(L, "object." #what ": first object ('%s') does not have an alignment box", name); \
+        } \
+        else \
+        { \
+            lua_pushstring(L, "object." #what ": first object does not have an alignment box"); \
+        } \
         lua_error(L); \
     } \
     struct lobject* other = lobject_check(L, 2); \
@@ -288,7 +296,15 @@ static int lobject_ ##what (lua_State* L) \
     const char* anchorname = luaL_checkstring(L, 2); \
     if(!object_has_area_anchor(lobject_get(cell), anchorname)) \
     { \
-        lua_pushfstring(L, "object." #what ": first object does not have an anchor '%s'", anchorname); \
+        const char* name = object_get_name(lobject_get(cell)); \
+        if(name) \
+        { \
+            lua_pushfstring(L, "object." #what ": first object ('%s') does not have an anchor '%s'", name, anchorname); \
+        } \
+        else \
+        { \
+            lua_pushfstring(L, "object." #what ": first object does not have an anchor '%s'", anchorname); \
+        } \
         lua_error(L); \
     } \
     struct lobject* other = lobject_check(L, 3); \
