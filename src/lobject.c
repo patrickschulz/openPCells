@@ -623,6 +623,11 @@ static int lobject_get_ports(lua_State* L)
 static int lobject_set_alignment_box(lua_State* L)
 {
     struct lobject* cell = lobject_check(L, 1);
+    if(object_has_alignmentbox(lobject_get(cell)))
+    {
+        lua_pushstring(L, "object.set_alignment_box: object already has an alignment box");
+        lua_error(L);
+    }
     if(lua_gettop(L) == 3)
     {
         struct lpoint* bl = lpoint_checkpoint(L, 2);
