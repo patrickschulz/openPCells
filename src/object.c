@@ -1456,10 +1456,18 @@ static int _has_anchor(const struct object* cell, const char* anchorname)
 {
     if(cell->isproxy)
     {
+        if(!cell->reference->anchors)
+        {
+            return 0;
+        }
         return hashmap_exists(cell->reference->anchors, anchorname);
     }
     else
     {
+        if(!cell->anchors)
+        {
+            return 0;
+        }
         return hashmap_exists(cell->anchors, anchorname);
     }
 }
