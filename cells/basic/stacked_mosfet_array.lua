@@ -12,6 +12,8 @@ function parameters()
         { "powermetal", 1 },
         { "powerwidth", technology.get_dimension("Minimum M1 Width") },
         { "powerspace", technology.get_dimension("Minimum M1 Space") },
+        { "drawtoppowerrail", true },
+        { "drawbotpowerrail", true },
         { "separation", 0 },
         { "drawtopgatecut", false },
         { "topgatecutwidth", 0 },
@@ -915,25 +917,33 @@ function layout(cell, _P)
         end
     end
 
-    -- power bars
+    -- power rails
     if _P.powermetal > 1 then
-        geometry.viabltr(cell, 1, _P.powermetal,
-            point.create(0, -_P.powerwidth - _P.powerspace),
-            point.create(totalwidth, -_P.powerspace)
-        )
-        geometry.viabltr(cell, 1, _P.powermetal,
-            point.create(0, totalheight + _P.powerspace),
-            point.create(totalwidth, totalheight + _P.powerspace + _P.powerwidth)
-        )
+        if _P.drawtoppowerrail then
+            geometry.viabltr(cell, 1, _P.powermetal,
+                point.create(0, -_P.powerwidth - _P.powerspace),
+                point.create(totalwidth, -_P.powerspace)
+            )
+        end
+        if _P.drawbotpowerrail then
+            geometry.viabltr(cell, 1, _P.powermetal,
+                point.create(0, totalheight + _P.powerspace),
+                point.create(totalwidth, totalheight + _P.powerspace + _P.powerwidth)
+            )
+        end
     else
-        geometry.rectanglebltr(cell, generics.metal(1),
-            point.create(0, -_P.powerwidth - _P.powerspace),
-            point.create(totalwidth, -_P.powerspace)
-        )
-        geometry.rectanglebltr(cell, generics.metal(1),
-            point.create(0, totalheight + _P.powerspace),
-            point.create(totalwidth, totalheight + _P.powerspace + _P.powerwidth)
-        )
+        if _P.drawtoppowerrail then
+            geometry.rectanglebltr(cell, generics.metal(1),
+                point.create(0, -_P.powerwidth - _P.powerspace),
+                point.create(totalwidth, -_P.powerspace)
+            )
+        end
+        if _P.drawbotpowerrail then
+            geometry.rectanglebltr(cell, generics.metal(1),
+                point.create(0, totalheight + _P.powerspace),
+                point.create(totalwidth, totalheight + _P.powerspace + _P.powerwidth)
+            )
+        end
     end
     cell:add_area_anchor_bltr("lowerpowerrail",
         point.create(0, -_P.powerwidth - _P.powerspace),
