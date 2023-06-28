@@ -1152,6 +1152,27 @@ void object_inherit_alignment_box(struct object* cell, const struct object* othe
     point_destroy(innertr);
 }
 
+int object_extend_alignment_box(struct object* cell,
+    coordinate_t extouterblx, coordinate_t extouterbly,
+    coordinate_t extoutertrx, coordinate_t extoutertry,
+    coordinate_t extinnerblx, coordinate_t extinnerbly,
+    coordinate_t extinnertrx, coordinate_t extinnertry)
+{
+    if(!cell->alignmentbox)
+    {
+        return 0;
+    }
+    cell->alignmentbox[0] += extouterblx;
+    cell->alignmentbox[1] += extouterbly;
+    cell->alignmentbox[2] += extoutertrx;
+    cell->alignmentbox[3] += extoutertry;
+    cell->alignmentbox[4] += extinnerblx;
+    cell->alignmentbox[5] += extinnerbly;
+    cell->alignmentbox[6] += extinnertrx;
+    cell->alignmentbox[7] += extinnertry;
+    return 1;
+}
+
 void object_move_to(struct object* cell, coordinate_t x, coordinate_t y)
 {
     transformationmatrix_move_to(cell->trans, x, y);
