@@ -740,7 +740,7 @@ function layout(transistor, _P)
     end
 
     -- source connections
-    if _P.connectsource then
+    if _P.connectsource and _P.fingers > 0 then
         local blx = leftactext - (_P.gatespace + _P.sdwidth) / 2
         local trx = blx + 2 * (_P.fingers // 2) * gatepitch + _P.sdwidth
         if _P.connectsourceinline then
@@ -835,7 +835,7 @@ function layout(transistor, _P)
     if _P.connectdraininverse then
         draininvert = not draininvert
     end
-    if _P.connectdrain then
+    if _P.connectdrain and _P.fingers > 0 then
         local blx = leftactext - (_P.gatespace + _P.sdwidth) / 2 + (2 - 1) * gatepitch
         local trx = leftactext - (_P.gatespace + _P.sdwidth) / 2 + (2 * ((_P.fingers + 1) // 2) - 1) * gatepitch + _P.sdwidth
         if _P.connectdraininline then
