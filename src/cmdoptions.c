@@ -63,6 +63,11 @@ static void _destroy_option(void* ptr)
             _destroy_argument(option->argument, option->numargs);
         }
     }
+    else /* SECTION */
+    {
+        struct section* section = entry->value;
+        free(section->name);
+    }
     free(entry->value);
     free(ptr);
 }
@@ -106,7 +111,7 @@ void cmdoptions_exit(struct cmdoptions* options, int exitcode)
 void cmdoptions_add_section(struct cmdoptions* options, const char* name)
 {
     struct section* section = malloc(sizeof(*section));
-    section->name = name;
+    section->name = util_strdup(name);
     struct entry* entry = malloc(sizeof(*entry));
     entry->what = SECTION;
     entry->value = section;
@@ -585,7 +590,7 @@ int cmdoptions_parse(struct cmdoptions* options, int argc, const char* const * a
                     struct option* option = cmdoptions_get_option_short(options, shortopt);
                     if(!option)
                     {
-                        printf("unknown command line option: '--%s'\n", longopt);
+                        printf("unknown command line option: '--%c'\n", shortopt);
                         return 0;
                     }
                     else
