@@ -44,6 +44,10 @@ function layout(grid, _P)
                 point.create(xoffset - _P.mhextl,                                          (i - 1) * ypitch + yoffset),
                 point.create(xoffset + _P.mhextr + _P.mvlines * (_P.mvwidth + _P.mvspace), (i - 1) * ypitch + yoffset + _P.mhwidth)
             )
+            grid:add_area_anchor_bltr(string.format("h%d", i),
+                point.create(xoffset - _P.mhextl,                                          (i - 1) * ypitch + yoffset),
+                point.create(xoffset + _P.mhextr + _P.mvlines * (_P.mvwidth + _P.mvspace), (i - 1) * ypitch + yoffset + _P.mhwidth)
+            )
         end
     end
     for i = 1, _P.mvlines do
@@ -52,6 +56,10 @@ function layout(grid, _P)
         if _P.drawmetalv then
             geometry.rectanglebltr(
                 grid, generics.metal(_P.metalv),
+                point.create((i - 1) * xpitch + xoffset,              yoffset - _P.mvextb),
+                point.create((i - 1) * xpitch + xoffset + _P.mvwidth, yoffset + _P.mvextt + _P.mhlines * (_P.mhwidth + _P.mhspace))
+            )
+            grid:add_area_anchor_bltr(string.format("v%d", i),
                 point.create((i - 1) * xpitch + xoffset,              yoffset - _P.mvextb),
                 point.create((i - 1) * xpitch + xoffset + _P.mvwidth, yoffset + _P.mvextt + _P.mhlines * (_P.mhwidth + _P.mhspace))
             )
@@ -87,6 +95,14 @@ function layout(grid, _P)
             end
         end
     end
+
+    -- anchors
+    local xoffset = _P.centergrid and (-_P.mvlines * xpitch / 2 + _P.mvspace / 2) or math.floor(_P.mvspace / 2)
+    local yoffset = _P.centergrid and (-_P.mhlines * ypitch / 2) or 0
+    grid:add_anchor("lowerleftv",
+        point.create(xoffset,              yoffset - _P.mvextb),
+        point.create(xoffset + _P.mvwidth, yoffset + _P.mvextt + _P.mhlines * (_P.mhwidth + _P.mhspace))
+    )
 
     -- alignment box
     if _P.centergrid then
