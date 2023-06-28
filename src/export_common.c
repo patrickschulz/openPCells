@@ -34,52 +34,25 @@ void export_destroy_data(struct export_data* data)
 
 void export_data_append_nullbyte(struct export_data* data)
 {
-    export_data_ensure_additional_capacity(data, 1);
-    data->data[data->length] = 0;
-    data->length += 1;
+    export_data_append_byte(data, 0);
 }
 
 void export_data_append_byte(struct export_data* data, unsigned char byte)
 {
     export_data_ensure_additional_capacity(data, 1);
-    data->data[data->length] = byte;
-    data->length += 1;
+    export_data_append_byte_unchecked(data, byte);
 }
 
-void export_data_append_two_bytes(struct export_data* data, int16_t datum)
+void export_data_append_two_bytes(struct export_data* data, uint16_t datum)
 {
     export_data_ensure_additional_capacity(data, 2);
-    int8_t byte1 = datum >> 8;
-    if(datum < 0)
-    {
-        byte1 += 256;
-    }
-    datum = datum - (byte1 << 8);
-    int8_t byte2 = datum;
-    data->data[data->length + 0] = byte1;
-    data->data[data->length + 1] = byte2;
-    data->length += 2;
+    export_data_append_two_bytes_unchecked(data, datum);
 }
 
-void export_data_append_four_bytes(struct export_data* data, int32_t datum)
+void export_data_append_four_bytes(struct export_data* data, uint32_t datum)
 {
     export_data_ensure_additional_capacity(data, 4);
-    int8_t byte1 = datum >> 24;
-    if(datum < 0)
-    {
-        byte1 += 256;
-    }
-    datum = datum - (byte1 << 24);
-    int8_t byte2 = datum >> 16;
-    datum = datum - (byte2 << 16);
-    int8_t byte3 = datum >> 8;
-    datum = datum - (byte3 << 8);
-    int8_t byte4 = datum;
-    data->data[data->length + 0] = byte1;
-    data->data[data->length + 1] = byte2;
-    data->data[data->length + 2] = byte3;
-    data->data[data->length + 3] = byte4;
-    data->length += 4;
+    export_data_append_four_bytes_unchecked(data, datum);
 }
 
 void export_data_append_string(struct export_data* data, const char* str, size_t length)
@@ -114,33 +87,25 @@ void export_data_append_byte_unchecked(struct export_data* data, unsigned char b
     data->length += 1;
 }
 
-void export_data_append_two_bytes_unchecked(struct export_data* data, int16_t datum)
+void export_data_append_two_bytes_unchecked(struct export_data* data, uint16_t datum)
 {
-    int8_t byte1 = datum >> 8;
-    if(datum < 0)
-    {
-        byte1 += 256;
-    }
+    uint8_t byte1 = datum >> 8;
     datum = datum - ((uint16_t)byte1 << 8);
-    int8_t byte2 = datum;
+    uint8_t byte2 = datum;
     data->data[data->length + 0] = byte1;
     data->data[data->length + 1] = byte2;
     data->length += 2;
 }
 
-void export_data_append_four_bytes_unchecked(struct export_data* data, int32_t datum)
+void export_data_append_four_bytes_unchecked(struct export_data* data, uint32_t datum)
 {
-    int8_t byte1 = datum >> 24;
-    if(datum < 0)
-    {
-        byte1 += 256;
-    }
+    uint8_t byte1 = datum >> 24;
     datum = datum - ((uint32_t)byte1 << 24);
-    int8_t byte2 = datum >> 16;
+    uint8_t byte2 = datum >> 16;
     datum = datum - ((uint32_t)byte2 << 16);
-    int8_t byte3 = datum >> 8;
+    uint8_t byte3 = datum >> 8;
     datum = datum - ((uint32_t)byte3 << 8);
-    int8_t byte4 = datum;
+    uint8_t byte4 = datum;
     data->data[data->length + 0] = byte1;
     data->data[data->length + 1] = byte2;
     data->data[data->length + 2] = byte3;
@@ -170,3 +135,4 @@ void export_destroy_functions(struct export_functions* funcs)
 {
     free(funcs);
 }
+
