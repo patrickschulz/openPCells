@@ -11,24 +11,25 @@
 
 #include "util.h"
 
-struct option
-{
+struct option {
     char short_identifier;
     const char* long_identifier;
     int numargs;
-    void* argument; // is char* for once-only options, char** (with NULL terminator) for multiple options
+    void* argument; /* is char* for once-only options, char** (with NULL terminator) for multiple options */
     int was_provided;
     const char* help;
     struct option* aliased;
 };
 
-struct section
-{
-    const char* name;
+struct section {
+    char* name;
 };
 
-struct cmdoptions
-{
+struct entry {
+    void* value; /* struct option* or struct section* */
+    enum { SECTION, OPTION } what;
+};
+struct cmdoptions {
     struct vector* entries;
     struct vector* positional_parameters;
     struct const_vector* prehelpmsg;
@@ -36,13 +37,22 @@ struct cmdoptions
     int force_narrow_mode;
 };
 
-struct entry
-{
-    void* value;
-    enum { SECTION, OPTION } what;
-};
 
-void _destroy_option(void* ptr)
+static void _destroy_argument(void* argument, int numargs)
+{
+    if(numargs & MULTI_ARGS)
+    {
+        char** p = argument;
+        while(*p)
+        {
+            free(*p);
+            ++p;
+        }
+    }
+    free(argument);
+}
+
+static void _destroy_option(void* ptr)
 {
     struct entry* entry = ptr;
     if(entry->what == OPTION)
@@ -50,16 +60,7 @@ void _destroy_option(void* ptr)
         struct option* option = entry->value;
         if(option->argument)
         {
-            if(option->numargs & MULTI_ARGS)
-            {
-                char** p = option->argument;
-                while(*p)
-                {
-                    free(*p);
-                    ++p;
-                }
-            }
-            free(option->argument);
+            _destroy_argument(option->argument, option->numargs);
         }
     }
     free(entry->value);
@@ -485,6 +486,21 @@ int _store_argument(struct option* option, int* iptr, int argc, const char* cons
                 }
                 else
                 {
+                    if(!option->was_provided) /* default argument */
+                    {
+                        /* FIXME: this if-branch is currently untested and might result in memory access errors */
+                        char** p = option->argument;
+                        while(*p)
+                        {
+                            free(*p);
+                            ++p;
+                        }
+                        /* start new with only terminator */
+                        free(option->argument);
+                        char** new = malloc(sizeof(*new));
+                        new[0] = NULL;
+                        option->argument = new;
+                    }
                     char** ptr = option->argument;
                     while(*ptr) { ++ptr; }
                     int len = ptr - (char**)option->argument;
@@ -500,10 +516,14 @@ int _store_argument(struct option* option, int* iptr, int argc, const char* cons
             }
             else // SINGLE_ARG option
             {
+                if(option->argument && !option->was_provided) /* default argument */
+                {
+                    free(option->argument);
+                }
                 option->argument = util_strdup(argv[*iptr + 1]);
             }
         }
-        else // argument required, but not entries in argv left
+        else /* argument required, but not entries in argv left */
         {
             if(option->long_identifier)
             {
@@ -548,14 +568,15 @@ int cmdoptions_parse(struct cmdoptions* options, int argc, const char* const * a
                     {
                         printf("option '%s' is only allowed once\n", longopt);
                     }
-                    option->was_provided = 1;
                     if(!_store_argument(option, &i, argc, argv))
                     {
                         return 0;
                     }
+                    /* was_provided is checked in _store_argument, so this has to come after the _store_argument call */
+                    option->was_provided = 1;
                 }
             }
-            else // short option
+            else /* short option */
             {
                 const char* ch = arg + 1;
                 while(*ch)
@@ -564,14 +585,15 @@ int cmdoptions_parse(struct cmdoptions* options, int argc, const char* const * a
                     struct option* option = cmdoptions_get_option_short(options, shortopt);
                     if(!option)
                     {
-                        //printf("unknown command line option: '--%s'\n", longopt);
-                        //return 0;
+                        printf("unknown command line option: '--%s'\n", longopt);
+                        return 0;
                     }
                     else
                     {
                         if(option->was_provided && !(option->numargs & MULTI_ARGS))
                         {
                             printf("option '%c' is only allowed once\n", shortopt);
+                            return 0;
                         }
                         option->was_provided = 1;
                         if(!_store_argument(option, &i, argc, argv))
@@ -583,7 +605,7 @@ int cmdoptions_parse(struct cmdoptions* options, int argc, const char* const * a
                 }
             }
         }
-        else // positional parameter
+        else /* positional parameter */
         {
             vector_append(options->positional_parameters, util_strdup(arg));
         }
