@@ -21,6 +21,7 @@ int ldir_walk(lua_State* L)
     {
         lua_pushfstring(L, "walkdir: could not open directory '%s'", basepath);
         lua_error(L);
+        return 0; // never executed, but keeps gcc's -fanalyzer happy
     }
     int i = 1;
     while(1)
