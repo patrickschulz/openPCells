@@ -412,6 +412,16 @@ function layout(cell, _P)
                         rowheights[rownum] + row.width
                     )
                 )
+                cell:add_area_anchor_bltr(string.format("%ssourcedrain-%d", device.name, finger),
+                    point.create(
+                        _P.gatelength + (_P.gatespace - _P.sdwidth) / 2 + (currentfingers + device.fingers - finger + 1) * (_P.gatelength + _P.gatespace),
+                        rowheights[rownum]
+                    ),
+                    point.create(
+                        _P.gatelength + (_P.gatespace - _P.sdwidth) / 2 + (currentfingers + device.fingers - finger + 1) * (_P.gatelength + _P.gatespace) + _P.sdwidth,
+                        rowheights[rownum] + row.width
+                    )
+                )
                 -- source/drain connections and vias
                 local sourceviabasey
                 local drainviabasey
