@@ -24,8 +24,8 @@ function parameters()
         { "drawtopgate(Draw Top Gate Contact)",                        false },
         { "drawtopgatestrap(Draw Top Gate Strap)",                     false, follow = "drawtopgate" },
         { "topgatewidth(Top Gate Width)",                     technology.get_dimension("Minimum M1 Width"), argtype = "integer", posvals = even() },
-        { "topgateextendleft(Top Gate Extend Left)",            0 },
-        { "topgateextendright(Top Gate Extend Right)",          0 },
+        { "topgateleftextension(Top Gate Left Extension)",            0 },
+        { "topgaterightextension(Top Gate Right Extension)",          0 },
         { "topgatespace(Top Gate Space)",                     technology.get_dimension("Minimum M1 Space"), argtype = "integer" },
         { "topgatemetal(Top Gate Strap Metal)",                            1 },
         { "drawtopgatevia(Draw Top Gate Via)",                         false },
@@ -34,8 +34,8 @@ function parameters()
         { "drawbotgatestrap(Draw Bot Gate Strap)",                     false, follow = "drawbotgate" },
         { "botgatewidth(Bottom Gate Width)",                  technology.get_dimension("Minimum M1 Width"), argtype = "integer", posvals = even() },
         { "botgatespace(Bottom Gate Space)",                  technology.get_dimension("Minimum M1 Space"), argtype = "integer" },
-        { "botgateextendleft(Bottom Gate Strap Extend Left)",         0 },
-        { "botgateextendright(Bottom Gate Strap Extend Right)",       0 },
+        { "botgateleftextension(Bottom Gate Left Extension)",         0 },
+        { "botgaterightextension(Bottom Gate Right Extension)",       0 },
         { "botgatemetal(Bottom Gate Strap Metal)",                         1 },
         { "drawbotgatevia(Draw Bot Gate Via)",                         false },
         { "botgateviatarget(Metal Target of Bot Gate Via)",                2 },
@@ -638,8 +638,8 @@ function layout(transistor, _P)
         end
     end
     if _P.fingers > 0 and _P.drawtopgatestrap then
-        local bl = point.create(gateblx + (1 - 1) * gatepitch - _P.topgateextendleft, _P.fwidth + _P.topgatespace)
-        local tr = point.create(gatetrx + (_P.fingers - 1) * gatepitch + _P.topgateextendright, _P.fwidth + _P.topgatespace + _P.topgatewidth)
+        local bl = point.create(gateblx + (1 - 1) * gatepitch - _P.topgateleftextension, _P.fwidth + _P.topgatespace)
+        local tr = point.create(gatetrx + (_P.fingers - 1) * gatepitch + _P.topgaterightextension, _P.fwidth + _P.topgatespace + _P.topgatewidth)
         geometry.rectanglebltr(transistor, generics.metal(1), bl, tr)
         transistor:add_area_anchor_bltr("topgatestrap", bl, tr)
         if _P.topgatemetal > 1 then
@@ -666,8 +666,8 @@ function layout(transistor, _P)
         end
     end
     if _P.fingers > 0 and _P.drawbotgatestrap then
-        local bl = point.create(gateblx + (1 - 1) * gatepitch - _P.botgateextendleft, -_P.botgatespace - _P.botgatewidth)
-        local tr = point.create(gatetrx + (_P.fingers - 1) * gatepitch + _P.botgateextendright, -_P.botgatespace)
+        local bl = point.create(gateblx + (1 - 1) * gatepitch - _P.botgateleftextension, -_P.botgatespace - _P.botgatewidth)
+        local tr = point.create(gatetrx + (_P.fingers - 1) * gatepitch + _P.botgaterightextension, -_P.botgatespace)
         geometry.rectanglebltr(transistor, generics.metal(1), bl, tr)
         transistor:add_area_anchor_bltr("botgatestrap", bl, tr)
         if _P.botgatemetal > 1 then
