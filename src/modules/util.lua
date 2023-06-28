@@ -271,4 +271,12 @@ function M.fill_odd_with(num, filler, other)
     return M.fill_predicate_with(num, filler, function(i) return i % 2 == 1 end, other)
 end
 
+function M.add_options(base, t)
+    local new = aux.clone_shallow(base)
+    for k, v in pairs(t) do
+        new[k] = v
+    end
+    return new
+end
+
 return M
