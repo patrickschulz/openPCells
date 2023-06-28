@@ -29,7 +29,7 @@ function parameters()
         { "topgatespace(Top Gate Space)",                     technology.get_dimension("Minimum M1 Space"), argtype = "integer" },
         { "topgatemetal(Top Gate Strap Metal)",                            1 },
         { "drawtopgatevia(Draw Top Gate Via)",                         false },
-        { "topgateviatarget(Metal Target of Top Gate Via)",                2 },
+        { "topgatecontinuousvia(Top Gate Continuous Via)",             false },
         { "drawbotgate(Draw Bottom Gate Contact)",                     false },
         { "drawbotgatestrap(Draw Bot Gate Strap)",                     false, follow = "drawbotgate" },
         { "botgatewidth(Bottom Gate Width)",                  technology.get_dimension("Minimum M1 Width"), argtype = "integer", posvals = even() },
@@ -38,6 +38,7 @@ function parameters()
         { "botgaterightextension(Bottom Gate Right Extension)",       0 },
         { "botgatemetal(Bottom Gate Strap Metal)",                         1 },
         { "drawbotgatevia(Draw Bot Gate Via)",                         false },
+        { "botgatecontinuousvia(Bot Gate Continuous Via)",             false },
         { "botgateviatarget(Metal Target of Bot Gate Via)",                2 },
         { "drawtopgcut(Draw Top Gate Cut)",                            false },
         { "topgcutwidth(Top Gate Cut Y Width)",                            technology.get_dimension("Minimum Gate Cut Height", "Minimum Gate YSpace") },
@@ -630,20 +631,18 @@ function layout(transistor, _P)
                 point.create(gatetrx + (i - 1) * gatepitch, _P.fwidth + _P.topgatespace + _P.topgatewidth)
             )
         end
-        if _P.drawtopgatevia then
-            geometry.viabltr(transistor, 1, _P.topgateviatarget,
-                point.create(gateblx + (i - 1) * gatepitch, _P.fwidth + _P.topgatespace),
-                point.create(gatetrx + (i - 1) * gatepitch, _P.fwidth + _P.topgatespace + _P.topgatewidth)
-            )
-        end
     end
     if _P.fingers > 0 and _P.drawtopgatestrap then
         local bl = point.create(gateblx + (1 - 1) * gatepitch - _P.topgateleftextension, _P.fwidth + _P.topgatespace)
         local tr = point.create(gatetrx + (_P.fingers - 1) * gatepitch + _P.topgaterightextension, _P.fwidth + _P.topgatespace + _P.topgatewidth)
         geometry.rectanglebltr(transistor, generics.metal(1), bl, tr)
         transistor:add_area_anchor_bltr("topgatestrap", bl, tr)
-        if _P.topgatemetal > 1 then
-            geometry.viabltr(transistor, 1, _P.topgatemetal, bl, tr)
+        if _P.drawtopgatevia and _P.topgatemetal > 1 then
+            if _P.topgatecontinuousvia then
+                geometry.viabltr_xcontinuous(transistor, 1, _P.topgatemetal, bl, tr)
+            else
+                geometry.viabltr(transistor, 1, _P.topgatemetal, bl, tr)
+            end
         end
     end
     if _P.drawbotgate then
@@ -658,20 +657,18 @@ function layout(transistor, _P)
                 point.create(gatetrx + (i - 1) * gatepitch, -_P.botgatespace)
             )
         end
-        if _P.drawbotgatevia then
-            geometry.viabltr(transistor, 1, _P.botgateviatarget,
-                point.create(gateblx + (i - 1) * gatepitch, -_P.botgatespace - _P.botgatewidth),
-                point.create(gatetrx + (i - 1) * gatepitch, -_P.botgatespace)
-            )
-        end
     end
     if _P.fingers > 0 and _P.drawbotgatestrap then
         local bl = point.create(gateblx + (1 - 1) * gatepitch - _P.botgateleftextension, -_P.botgatespace - _P.botgatewidth)
         local tr = point.create(gatetrx + (_P.fingers - 1) * gatepitch + _P.botgaterightextension, -_P.botgatespace)
         geometry.rectanglebltr(transistor, generics.metal(1), bl, tr)
         transistor:add_area_anchor_bltr("botgatestrap", bl, tr)
-        if _P.botgatemetal > 1 then
-            geometry.viabltr(transistor, 1, _P.botgatemetal, bl, tr)
+        if _P.drawbotgatevia and _P.botgatemetal > 1 then
+            if _P.botgatecontinuousvia then
+                geometry.viabltr_xcontinuous(transistor, 1, _P.botgatemetal, bl, tr)
+            else
+                geometry.viabltr(transistor, 1, _P.botgatemetal, bl, tr)
+            end
         end
     end
 
