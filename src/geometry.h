@@ -56,19 +56,6 @@ int geometry_viabltr(
     struct technology_state* techstate,
     int metal1, int metal2,
     const point_t* bl, const point_t* tr,
-    ucoordinate_t xrep, ucoordinate_t yrep, ucoordinate_t xpitch, ucoordinate_t ypitch,
-    int xcont, int ycont,
-    int equal_pitch
-);
-
-int geometry_via(
-    struct object* cell,
-    struct technology_state* techstate,
-    int metal1, int metal2,
-    ucoordinate_t width, ucoordinate_t height,
-    coordinate_t xshift, coordinate_t yshift,
-    ucoordinate_t xrep, ucoordinate_t yrep,
-    ucoordinate_t xpitch, ucoordinate_t ypitch,
     int xcont, int ycont,
     int equal_pitch
 );
@@ -78,20 +65,6 @@ int geometry_contactbltr(
     struct technology_state* techstate,
     const char* region,
     const point_t* bl, const point_t* tr,
-    ucoordinate_t xrep, ucoordinate_t yrep,
-    ucoordinate_t xpitch, ucoordinate_t ypitch,
-    int xcont, int ycont,
-    int equal_pitch
-);
-
-int geometry_contact(
-    struct object* cell,
-    struct technology_state* techstate,
-    const char* region,
-    ucoordinate_t width, ucoordinate_t height,
-    coordinate_t xshift, coordinate_t yshift,
-    ucoordinate_t xrep, ucoordinate_t yrep,
-    ucoordinate_t xpitch, ucoordinate_t ypitch,
     int xcont, int ycont,
     int equal_pitch
 );
@@ -101,20 +74,6 @@ int geometry_contactbarebltr(
     struct technology_state* techstate,
     const char* region,
     const point_t* bl, const point_t* tr,
-    ucoordinate_t xrep, ucoordinate_t yrep,
-    ucoordinate_t xpitch, ucoordinate_t ypitch,
-    int xcont, int ycont,
-    int equal_pitch
-);
-
-int geometry_contactbare(
-    struct object* cell,
-    struct technology_state* techstate,
-    const char* region,
-    ucoordinate_t width, ucoordinate_t height,
-    coordinate_t xshift, coordinate_t yshift,
-    ucoordinate_t xrep, ucoordinate_t yrep,
-    ucoordinate_t xpitch, ucoordinate_t ypitch,
     int xcont, int ycont,
     int equal_pitch
 );

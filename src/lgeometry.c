@@ -462,24 +462,21 @@ void _get_viacontact_properties(lua_State* L, int idx, int* xcont, int* ycont, i
 
 static int lgeometry_viabltr(lua_State* L)
 {
+    _check_numargs_set(L, 5, 6, "geometry.viabltr");
     struct lobject* cell = lobject_check(L, 1);
     int metal1 = luaL_checkinteger(L, 2);
     int metal2 = luaL_checkinteger(L, 3);
     struct lpoint* bl = lpoint_checkpoint(L, 4);
     struct lpoint* tr = lpoint_checkpoint(L, 5);
     _check_rectangle_points(L, bl, tr, "geometry.viabltr");
-    ucoordinate_t xrep = luaL_optinteger(L, 6, 1);
-    ucoordinate_t yrep = luaL_optinteger(L, 7, 1);
-    ucoordinate_t xpitch = luaL_optinteger(L, 8, 0);
-    ucoordinate_t ypitch = luaL_optinteger(L, 9, 0);
     int xcont = 0;
     int ycont = 0;
     int equal_pitch = 0;
-    _get_viacontact_properties(L, 10, &xcont, &ycont, &equal_pitch);
+    _get_viacontact_properties(L, 6, &xcont, &ycont, &equal_pitch);
     lua_getfield(L, LUA_REGISTRYINDEX, "techstate");
     struct technology_state* techstate = lua_touserdata(L, -1);
     lua_pop(L, 1); // pop techstate
-    int res = geometry_viabltr(lobject_get(cell), techstate, metal1, metal2, lpoint_get(bl), lpoint_get(tr), xrep, yrep, xpitch, ypitch, xcont, ycont, equal_pitch);
+    int res = geometry_viabltr(lobject_get(cell), techstate, metal1, metal2, lpoint_get(bl), lpoint_get(tr), xcont, ycont, equal_pitch);
     if(!res)
     {
         lua_pushfstring(L, "geometry.viabltr: could not fit via from metal %d to metal %d. Area: (%d, %d) and (%d, %d)", metal1, metal2, lpoint_get(bl)->x, lpoint_get(bl)->y, lpoint_get(tr)->x, lpoint_get(tr)->y);
@@ -490,24 +487,20 @@ static int lgeometry_viabltr(lua_State* L)
 
 static int lgeometry_viabltr_xcontinuous(lua_State* L)
 {
+    _check_numargs_set(L, 5, 6, "geometry.viabltr_xcontinuous");
     struct lobject* cell = lobject_check(L, 1);
     int metal1 = luaL_checkinteger(L, 2);
     int metal2 = luaL_checkinteger(L, 3);
     struct lpoint* bl = lpoint_checkpoint(L, 4);
     struct lpoint* tr = lpoint_checkpoint(L, 5);
     _check_rectangle_points(L, bl, tr, "geometry.viabltr");
-    ucoordinate_t xrep = luaL_optinteger(L, 6, 1);
-    ucoordinate_t yrep = luaL_optinteger(L, 7, 1);
-    ucoordinate_t xpitch = luaL_optinteger(L, 8, 0);
-    ucoordinate_t ypitch = luaL_optinteger(L, 9, 0);
     int xcont = 1;
     int ycont = 0;
     int equal_pitch = 0;
-    //_get_viacontact_properties(L, 10, &xcont, &ycont, &equal_pitch);
     lua_getfield(L, LUA_REGISTRYINDEX, "techstate");
     struct technology_state* techstate = lua_touserdata(L, -1);
     lua_pop(L, 1); // pop techstate
-    int res = geometry_viabltr(lobject_get(cell), techstate, metal1, metal2, lpoint_get(bl), lpoint_get(tr), xrep, yrep, xpitch, ypitch, xcont, ycont, equal_pitch);
+    int res = geometry_viabltr(lobject_get(cell), techstate, metal1, metal2, lpoint_get(bl), lpoint_get(tr), xcont, ycont, equal_pitch);
     if(!res)
     {
         lua_pushfstring(L, "geometry.viabltr: could not fit via from metal %d to metal %d. Area: (%d, %d) and (%d, %d)", metal1, metal2, lpoint_get(bl)->x, lpoint_get(bl)->y, lpoint_get(tr)->x, lpoint_get(tr)->y);
@@ -524,10 +517,6 @@ static int lgeometry_viabltr_ycontinuous(lua_State* L)
     struct lpoint* bl = lpoint_checkpoint(L, 4);
     struct lpoint* tr = lpoint_checkpoint(L, 5);
     _check_rectangle_points(L, bl, tr, "geometry.viabltr");
-    ucoordinate_t xrep = luaL_optinteger(L, 6, 1);
-    ucoordinate_t yrep = luaL_optinteger(L, 7, 1);
-    ucoordinate_t xpitch = luaL_optinteger(L, 8, 0);
-    ucoordinate_t ypitch = luaL_optinteger(L, 9, 0);
     int xcont = 0;
     int ycont = 1;
     int equal_pitch = 0;
@@ -535,7 +524,7 @@ static int lgeometry_viabltr_ycontinuous(lua_State* L)
     lua_getfield(L, LUA_REGISTRYINDEX, "techstate");
     struct technology_state* techstate = lua_touserdata(L, -1);
     lua_pop(L, 1); // pop techstate
-    int res = geometry_viabltr(lobject_get(cell), techstate, metal1, metal2, lpoint_get(bl), lpoint_get(tr), xrep, yrep, xpitch, ypitch, xcont, ycont, equal_pitch);
+    int res = geometry_viabltr(lobject_get(cell), techstate, metal1, metal2, lpoint_get(bl), lpoint_get(tr), xcont, ycont, equal_pitch);
     if(!res)
     {
         lua_pushfstring(L, "geometry.viabltr: could not fit via from metal %d to metal %d. Area: (%d, %d) and (%d, %d)", metal1, metal2, lpoint_get(bl)->x, lpoint_get(bl)->y, lpoint_get(tr)->x, lpoint_get(tr)->y);
@@ -552,10 +541,6 @@ static int lgeometry_viabltr_continuous(lua_State* L)
     struct lpoint* bl = lpoint_checkpoint(L, 4);
     struct lpoint* tr = lpoint_checkpoint(L, 5);
     _check_rectangle_points(L, bl, tr, "geometry.viabltr");
-    ucoordinate_t xrep = luaL_optinteger(L, 6, 1);
-    ucoordinate_t yrep = luaL_optinteger(L, 7, 1);
-    ucoordinate_t xpitch = luaL_optinteger(L, 8, 0);
-    ucoordinate_t ypitch = luaL_optinteger(L, 9, 0);
     int xcont = 1;
     int ycont = 1;
     int equal_pitch = 0;
@@ -563,7 +548,7 @@ static int lgeometry_viabltr_continuous(lua_State* L)
     lua_getfield(L, LUA_REGISTRYINDEX, "techstate");
     struct technology_state* techstate = lua_touserdata(L, -1);
     lua_pop(L, 1); // pop techstate
-    int res = geometry_viabltr(lobject_get(cell), techstate, metal1, metal2, lpoint_get(bl), lpoint_get(tr), xrep, yrep, xpitch, ypitch, xcont, ycont, equal_pitch);
+    int res = geometry_viabltr(lobject_get(cell), techstate, metal1, metal2, lpoint_get(bl), lpoint_get(tr), xcont, ycont, equal_pitch);
     if(!res)
     {
         lua_pushfstring(L, "geometry.viabltr: could not fit via from metal %d to metal %d. Area: (%d, %d) and (%d, %d)", metal1, metal2, lpoint_get(bl)->x, lpoint_get(bl)->y, lpoint_get(tr)->x, lpoint_get(tr)->y);
@@ -579,10 +564,6 @@ static int lgeometry_contactbltr(lua_State* L)
     struct lpoint* bl = lpoint_checkpoint(L, 3);
     struct lpoint* tr = lpoint_checkpoint(L, 4);
     _check_rectangle_points(L, bl, tr, "geometry.contactbltr");
-    ucoordinate_t xrep = luaL_optinteger(L, 5, 1);
-    ucoordinate_t yrep = luaL_optinteger(L, 6, 1);
-    ucoordinate_t xpitch = luaL_optinteger(L, 7, 0);
-    ucoordinate_t ypitch = luaL_optinteger(L, 8, 0);
     int xcont = 0;
     int ycont = 0;
     int equal_pitch = 0;
@@ -595,8 +576,6 @@ static int lgeometry_contactbltr(lua_State* L)
         techstate,
         region,
         lpoint_get(bl), lpoint_get(tr),
-        xrep, yrep,
-        xpitch, ypitch,
         xcont, ycont,
         equal_pitch
     );
@@ -617,10 +596,6 @@ static int lgeometry_contactbarebltr(lua_State* L)
     struct lpoint* bl = lpoint_checkpoint(L, 3);
     struct lpoint* tr = lpoint_checkpoint(L, 4);
     _check_rectangle_points(L, bl, tr, "geometry.contactbarebltr");
-    ucoordinate_t xrep = luaL_optinteger(L, 5, 1);
-    ucoordinate_t yrep = luaL_optinteger(L, 6, 1);
-    ucoordinate_t xpitch = luaL_optinteger(L, 7, 0);
-    ucoordinate_t ypitch = luaL_optinteger(L, 8, 0);
     int xcont = 0;
     int ycont = 0;
     int equal_pitch = 0;
@@ -633,8 +608,6 @@ static int lgeometry_contactbarebltr(lua_State* L)
         techstate,
         region,
         lpoint_get(bl), lpoint_get(tr),
-        xrep, yrep,
-        xpitch, ypitch,
         xcont, ycont,
         equal_pitch
     );
