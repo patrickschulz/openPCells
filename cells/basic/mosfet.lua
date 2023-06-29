@@ -992,7 +992,7 @@ function layout(transistor, _P)
             point.create(trx, _P.fwidth + _P.extratopstrapspace + _P.extratopstrapwidth)
         )
         -- anchors
-        transistor:add_area_anchor_bltr("extrabotstrap",
+        transistor:add_area_anchor_bltr("extratopstrap",
             point.create(blx, _P.fwidth + _P.extratopstrapspace),
             point.create(trx, _P.fwidth + _P.extratopstrapspace + _P.extratopstrapwidth)
         )
