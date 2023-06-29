@@ -497,8 +497,18 @@ static int lobject_get_area_anchor(lua_State* L)
     }
     else
     {
-        lua_pushfstring(L, "trying to access undefined area anchor '%s'", base);
-        lua_error(L);
+        const char* name = object_get_name(lobject_get(cell));
+        if(name)
+        {
+            const char* name = object_get_name(lobject_get(cell));
+            lua_pushfstring(L, "trying to access undefined area anchor '%s' in object '%s'", base, name);
+            lua_error(L);
+        }
+        else
+        {
+            lua_pushfstring(L, "trying to access undefined area anchor '%s'", base);
+            lua_error(L);
+        }
     }
     return 1;
 }
