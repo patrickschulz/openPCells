@@ -445,6 +445,16 @@ static int lobject_inherit_area_anchor(lua_State* L)
     return 0;
 }
 
+static int lobject_inherit_area_anchor_as(lua_State* L)
+{
+    struct lobject* cell = lobject_check(L, 1);
+    struct lobject* other = lobject_check(L, 2);
+    const char* name = luaL_checkstring(L, 3);
+    const char* newname = luaL_checkstring(L, 4);
+    object_inherit_area_anchor_as(lobject_get(cell), lobject_get(other), name, newname);
+    return 0;
+}
+
 static int lobject_get_anchor(lua_State* L)
 {
     struct lobject* cell = lobject_check(L, 1);
@@ -786,6 +796,7 @@ int open_lobject_lib(lua_State* L)
         { "add_anchor",                 lobject_add_anchor                  },
         { "add_area_anchor_bltr",       lobject_add_area_anchor_bltr        },
         { "inherit_area_anchor",        lobject_inherit_area_anchor         },
+        { "inherit_area_anchor_as",     lobject_inherit_area_anchor_as      },
         { "get_anchor",                 lobject_get_anchor                  },
         { "get_area_anchor",            lobject_get_area_anchor             },
         { "get_array_anchor",           lobject_get_array_anchor            },

@@ -431,26 +431,19 @@ int object_add_area_anchor_bltr(struct object* cell, const char* base, const poi
 
 int object_inherit_area_anchor(struct object* cell, const struct object* other, const char* name)
 {
+    return object_inherit_area_anchor_as(cell, other, name, name);
+}
+
+int object_inherit_area_anchor_as(struct object* cell, const struct object* other, const char* name, const char* newname)
+{
     if(cell->isproxy)
     {
         return 0;
     }
-
-    const struct object* obj = other;
-    if(other->isproxy)
+    point_t* anchor = object_get_area_anchor(other, name);
+    if(anchor)
     {
-        obj = other->reference;
-    }
-    if(obj->anchors)
-    {
-        if(hashmap_exists(obj->anchors, name))
-        {
-            struct anchor* anchor = hashmap_get(obj->anchors, name);
-            if(_anchor_is_area(anchor))
-            {
-                return _add_area_anchor_bltr(cell, name, anchor->bl->x, anchor->bl->y, anchor->tr->x, anchor->tr->y);
-            }
-        }
+        object_add_area_anchor_bltr(cell, newname, anchor + 0, anchor + 1);
     }
     return 0;
 }
