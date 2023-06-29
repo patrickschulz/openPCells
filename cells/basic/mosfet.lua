@@ -64,6 +64,7 @@ function parameters()
         { "drawfirstsourcevia(Draw First Source Via)",                            true },
         { "drawlastsourcevia(Draw Last Source Via)",                            true },
         { "connectsource(Connect Source)",                             false },
+        { "drawsourcestrap(Draw Source Strap)",                        false, follow = "connectsource" },
         { "connectsourceboth(Connect Source on Both Sides)",           false },
         { "connectsourcewidth(Source Rails Metal Width)",               technology.get_dimension("Minimum M1 Width"), argtype = "integer", follow = "sdwidth" },
         { "connectsourcespace(Source Rails Metal Space)",               technology.get_dimension("Minimum M1 Width"), argtype = "integer" },
@@ -75,6 +76,7 @@ function parameters()
         { "connectsourceinlineoffset(Offset for Inline Source Connection)",   0 },
         { "connectsourceinverse(Invert Source Strap Locations)",       false },
         { "connectdrain(Connect Drain)",                               false },
+        { "drawdrainstrap(Draw Drain Strap)",                          false, follow = "connectdrain" },
         { "connectdrainboth(Connect Drain on Both Sides)",             false },
         { "connectdrainwidth(Drain Rails Metal Width)",               technology.get_dimension("Minimum M1 Width"), argtype = "integer", follow = "sdwidth" },
         { "connectdrainspace(Drain Rails Metal Space)",               technology.get_dimension("Minimum M1 Width"), argtype = "integer" },
@@ -790,22 +792,26 @@ function layout(transistor, _P)
                     bly2 = -_P.connectsourcespace - _P.connectsourcewidth
                 end
             end
-            -- main strap
-            geometry.rectanglebltr(transistor, generics.metal(_P.sourcemetal),
-                point.create(blx - _P.connectsourceleftext, bly1),
-                point.create(trx + _P.connectsourcerightext, bly1 + _P.connectsourcewidth)
-            )
+            if _P.drawsourcestrap then
+                -- main strap
+                geometry.rectanglebltr(transistor, generics.metal(_P.sourcemetal),
+                    point.create(blx - _P.connectsourceleftext, bly1),
+                    point.create(trx + _P.connectsourcerightext, bly1 + _P.connectsourcewidth)
+                )
+                if _P.connectsourceboth then
+                    -- other strap
+                    geometry.rectanglebltr(transistor, generics.metal(_P.sourcemetal),
+                        point.create(blx - _P.connectsourceleftext, bly2),
+                        point.create(trx + _P.connectsourcerightext, bly2 + _P.connectsourcewidth)
+                    )
+                end
+            end
             -- main anchor
             transistor:add_area_anchor_bltr("sourcestrap",
                 point.create(blx - _P.connectsourceleftext, bly1),
                 point.create(trx + _P.connectsourcerightext, bly1 + _P.connectsourcewidth)
             )
             if _P.connectsourceboth then
-                -- other strap
-                geometry.rectanglebltr(transistor, generics.metal(_P.sourcemetal),
-                    point.create(blx - _P.connectsourceleftext, bly2),
-                    point.create(trx + _P.connectsourcerightext, bly2 + _P.connectsourcewidth)
-                )
                 -- other anchor
                 transistor:add_area_anchor_bltr("othersourcestrap",
                     point.create(blx - _P.connectsourceleftext, bly2),
@@ -889,23 +895,27 @@ function layout(transistor, _P)
                     bly2 = _P.fwidth + _P.connectdrainspace
                 end
             end
-            -- main strap
-            geometry.rectanglebltr(transistor, generics.metal(_P.drainmetal),
-                point.create(blx - _P.connectdrainleftext, bly1),
-                point.create(trx + _P.connectdrainrightext, bly1 + _P.connectdrainwidth)
-            )
+            if _P.drawdrainstrap then
+                -- main strap
+                geometry.rectanglebltr(transistor, generics.metal(_P.drainmetal),
+                    point.create(blx - _P.connectdrainleftext, bly1),
+                    point.create(trx + _P.connectdrainrightext, bly1 + _P.connectdrainwidth)
+                )
+                if _P.connectdrainboth then
+                    -- other strap
+                    geometry.rectanglebltr(transistor, generics.metal(_P.drainmetal),
+                        point.create(blx - _P.connectdrainleftext, bly2),
+                        point.create(trx + _P.connectdrainrightext, bly2 + _P.connectdrainwidth)
+                    )
+                end
+            end
             -- main anchor
             transistor:add_area_anchor_bltr("drainstrap",
                 point.create(blx - _P.connectdrainleftext, bly1),
                 point.create(trx + _P.connectdrainrightext, bly1 + _P.connectdrainwidth)
             )
+            -- other anchor
             if _P.connectdrainboth then
-                -- other strap
-                geometry.rectanglebltr(transistor, generics.metal(_P.drainmetal),
-                    point.create(blx - _P.connectdrainleftext, bly2),
-                    point.create(trx + _P.connectdrainrightext, bly2 + _P.connectdrainwidth)
-                )
-                -- other anchor
                 transistor:add_area_anchor_bltr("otherdrainstrap",
                     point.create(blx - _P.connectdrainleftext, bly2),
                     point.create(trx + _P.connectdrainrightext, bly2 + _P.connectdrainwidth)
