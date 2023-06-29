@@ -73,11 +73,14 @@ done
 # create Makefile.install
 echo ".PHONY: install" > Makefile.install
 echo "install: opc opc.1" >> Makefile.install
-echo "	install -m 755 -D opc ${BIN_PATH}/opc" >> Makefile.install
-echo "	install -m 644 -D cells ${CELL_PATH}/cells" >> Makefile.install
-echo "	install -m 644 -D tech ${TECH}/tech" >> Makefile.install
-echo "	install -m 644 -D export ${EXPORT_PATH}/export" >> Makefile.install
-echo "	install -m 644 -D opc.1 ${MAN_PATH}/opc.1" >> Makefile.install
+echo "	install -m 755 -D opc \${DESTDIR}${BIN_PATH}/opc" >> Makefile.install
+echo "	install -m 644 -D opc.1 \${DESTDIR}${MAN_PATH}/opc.1" >> Makefile.install
+echo "	mkdir -p \${DESTDIR}${CELL_PATH}" >> Makefile.install
+echo "	cp -R cells \${DESTDIR}${CELL_PATH}" >> Makefile.install
+echo "	mkdir -p \${DESTDIR}${TECH_PATH}" >> Makefile.install
+echo "	cp -R tech \${DESTDIR}${TECH_PATH}" >> Makefile.install
+echo "	mkdir -p \${DESTDIR}${EXPORT_PATH}" >> Makefile.install
+echo "	cp -R export \${DESTDIR}${EXPORT_PATH}" >> Makefile.install
 echo -en '\n' >> Makefile.install
 
 # create config.h
