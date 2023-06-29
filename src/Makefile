@@ -105,7 +105,6 @@ embed_compiled_lua_file: embed_compiled_lua_file.c lua/liblua.a
 .PHONY: clean
 clean:
 	rm -f $(PROGNAME)
-	rm -f config.h
 	rm -f embed_compiled_lua_file
 	rm -f generate_manpage
 	rm -f modulemanager.h modulemanager.c

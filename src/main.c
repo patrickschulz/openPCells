@@ -268,7 +268,7 @@ int main(int argc, const char* const * argv)
 
     if(cmdoptions_was_provided_long(cmdoptions, "listtechpaths"))
     {
-        printf("%s\n", OPC_HOME "/tech");
+        printf("%s\n", OPC_TECH_PATH "/tech");
         const char** arg = cmdoptions_get_argument_long(cmdoptions, "techpath");
         while(arg && *arg)
         {
@@ -335,7 +335,7 @@ int main(int argc, const char* const * argv)
                 vector_append(cellpaths_to_append, util_strdup((const char*)vector_get(config_cellpaths_to_append, i)));
             }
         }
-        vector_append(cellpaths_to_append, util_strdup(OPC_HOME "/cells"));
+        vector_append(cellpaths_to_append, util_strdup(OPC_CELL_PATH "/cells"));
         struct pcell_state* pcell_state = pcell_initialize_state(cellpaths_to_prepend, cellpaths_to_append);
         vector_destroy(cellpaths_to_prepend);
         vector_destroy(cellpaths_to_append);

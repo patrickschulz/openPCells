@@ -1,4 +1,5 @@
 # main programs and generated code files
+Makefile.install
 opc
 !tech/opc
 src/embed_compiled_lua_file

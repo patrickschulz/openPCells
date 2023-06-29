@@ -135,7 +135,7 @@ static void _prepare_cellpaths(struct vector* cellpaths_to_prepend, struct vecto
             vector_append(cellpaths_to_append, util_strdup(vector_get(config_append_cellpaths, i)));
         }
     }
-    vector_append(cellpaths_to_append, util_strdup(OPC_HOME "/cells"));
+    vector_append(cellpaths_to_append, util_strdup(OPC_CELL_PATH "/cells"));
 }
 
 void main_list_cell_parameters(struct cmdoptions* cmdoptions, struct hashmap* config)
@@ -150,7 +150,7 @@ void main_list_cell_parameters(struct cmdoptions* cmdoptions, struct hashmap* co
     module_load_load(L);
 
     struct vector* techpaths = hashmap_get(config, "techpaths");
-    vector_append(techpaths, util_strdup(OPC_HOME "/tech"));
+    vector_append(techpaths, util_strdup(OPC_TECH_PATH "/tech"));
     if(cmdoptions_was_provided_long(cmdoptions, "techpath"))
     {
         const char** arg = cmdoptions_get_argument_long(cmdoptions, "techpath");
@@ -533,7 +533,7 @@ int main_create_and_export_cell(struct cmdoptions* cmdoptions, struct hashmap* c
 {
     int retval = 1;
     struct vector* techpaths = hashmap_get(config, "techpaths");
-    vector_append(techpaths, util_strdup(OPC_HOME "/tech"));
+    vector_append(techpaths, util_strdup(OPC_TECH_PATH "/tech"));
     if(cmdoptions_was_provided_long(cmdoptions, "techpath"))
     {
         const char** arg = cmdoptions_get_argument_long(cmdoptions, "techpath");
@@ -644,7 +644,7 @@ int main_create_and_export_cell(struct cmdoptions* cmdoptions, struct hashmap* c
             struct export_state* export_state = export_create_state();
 
             // add export search paths. FIXME: add --exportpath cmd option
-            export_add_searchpath(export_state, OPC_HOME "/export");
+            export_add_searchpath(export_state, OPC_EXPORT_PATH "/export");
 
             // basename
             export_set_basename(export_state, cmdoptions_get_argument_long(cmdoptions, "filename"));

@@ -22,7 +22,7 @@ In both languages only a handfull of functions have to be implemented to start w
 See the [documentation](./doc/export.pdf) for more information on this topic.
 
 The building of the tool is intended to be as simple as possible: it has no dependencies except for a C compiler.
-For installation there is currently no direct support for the classic `make && make install`, but the setup of the tool still allows for easy system-wide installation.
+For installation there is support for the classic `./configure.sh && make && sudo make install`, but the setup of the tool also allows for easy local installation.
 For more instructions on building and installation, see the section about [building and installation](#building-and-installation).
 
 # Basic Usage
@@ -73,17 +73,24 @@ Help for API functions is provided by `--api-list` (list all available API funct
 # Building and Installation
 Building this project is fairly simple, as the sole dependency is a C compiler.
 It was tested with various gcc versions >= 11.1.0, but should work with other compilers too.
-Currently, the build is set up to create a stand-alone executable, which knows how to load the needed shared libraries (project-owned) by itself.
-This means that it is easy for a user without any root privileges to install opc:
-Just leave it where you compiled it (this is important) and point your PATH to the directory or create an alias or call opc with its absolute path.
-A more sophisticated installation for instance installation to `/usr` using a dedicated package manager is currently not supported in an easy way (though it is possible of course).
+The build and install process installs all required files in standard paths (/usr/bin, /usr/share), but these paths can be configured.
+It is also possible to install it locally, which does not require any root privileges.
+Short-cut configure options exist to make this process easy.
+With this you can just leave everything where you built it and point your PATH to the directory or create an alias or call opc with its absolute path.
 
-That all said, building is just
+Building and installing system-wide:
 
+    ./configure.sh
     make
+    sudo make install
+
+Building and installing locally:
+
+    ./configure --all-load-paths-local
+    make
+    # no installation
 
 This uses gcc as compiler, if you have any specific needs, the compiler can be adapted in `src/Makefile`.
-The build process is currently a little rough, but it should work for now.
 
 # Integration in EDA Tools
 OpenPCells can be integrated quite simply in EDA tools that provide an API for adding menus, calling external programs and reading files.
