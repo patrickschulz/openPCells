@@ -65,6 +65,7 @@ function parameters()
         { "drawlastsourcevia(Draw Last Source Via)",                            true },
         { "connectsource(Connect Source)",                             false },
         { "drawsourcestrap(Draw Source Strap)",                        false, follow = "connectsource" },
+        { "drawsourceconnections(Draw Source Connections)",            false, follow = "connectsource" },
         { "connectsourceboth(Connect Source on Both Sides)",           false },
         { "connectsourcewidth(Source Rails Metal Width)",               technology.get_dimension("Minimum M1 Width"), argtype = "integer", follow = "sdwidth" },
         { "connectsourcespace(Source Rails Metal Space)",               technology.get_dimension("Minimum M1 Width"), argtype = "integer" },
@@ -77,6 +78,7 @@ function parameters()
         { "connectsourceinverse(Invert Source Strap Locations)",       false },
         { "connectdrain(Connect Drain)",                               false },
         { "drawdrainstrap(Draw Drain Strap)",                          false, follow = "connectdrain" },
+        { "drawdrainconnections(Draw Drain Connections)",              false, follow = "connectdrain" },
         { "connectdrainboth(Connect Drain on Both Sides)",             false },
         { "connectdrainwidth(Drain Rails Metal Width)",               technology.get_dimension("Minimum M1 Width"), argtype = "integer", follow = "sdwidth" },
         { "connectdrainspace(Drain Rails Metal Space)",               technology.get_dimension("Minimum M1 Width"), argtype = "integer" },
@@ -753,7 +755,35 @@ function layout(transistor, _P)
     end
 
     -- source connections
-    if _P.connectsource and _P.fingers > 0 then
+    if _P.drawsourceconnections then
+        -- connections to strap
+        local sourceinvert = (_P.channeltype == "pmos")
+        if _P.connectsourceinverse then
+            sourceinvert = not sourceinvert
+        end
+        for i = 1, _P.fingers + 1, 2 do
+            local shift = leftactext - (_P.gatespace + _P.sdwidth) / 2 + (i - 1) * gatepitch
+            if not sourceinvert or _P.connectsourceboth then
+               if not (i == 1 and not _P.drawfirstsourcevia or i == _P.fingers + 1 and not _P.drawlastsourcevia) then
+                   geometry.rectanglebltr(transistor, generics.metal(_P.sourcemetal),
+                       point.create(shift, -_P.connectsourcespace),
+                       point.create(shift + _P.sdwidth, sourceoffset)
+                   )
+                end
+            end
+            if sourceinvert or _P.connectsourceboth then
+               if not (i == 1 and not _P.drawfirstsourcevia or i == _P.fingers + 1 and not _P.drawlastsourcevia) then
+                    geometry.rectanglebltr(transistor, generics.metal(_P.sourcemetal),
+                        point.create(shift, sourceoffset + _P.sourcesize),
+                        point.create(shift + _P.sdwidth, _P.fwidth + _P.connectsourcespace)
+                    )
+                end
+            end
+        end
+    end
+
+    -- source strap
+    if _P.fingers > 0 then
         local blx = leftactext - (_P.gatespace + _P.sdwidth) / 2
         local trx = blx + 2 * (_P.fingers // 2) * gatepitch + _P.sdwidth
         if _P.connectsourceinline then
@@ -771,10 +801,12 @@ function layout(transistor, _P)
                     bly = _P.fwidth - _P.connectsourcewidth - _P.connectsourceinlineoffset
                 end
             end
-            geometry.rectanglebltr(transistor, generics.metal(_P.sourcemetal),
-                point.create(blx - _P.connectsourceleftext, bly),
-                point.create(trx + _P.connectsourcerightext, bly + _P.connectsourcewidth)
-            )
+            if _P.drawsourcestrap then
+                geometry.rectanglebltr(transistor, generics.metal(_P.sourcemetal),
+                    point.create(blx - _P.connectsourceleftext, bly),
+                    point.create(trx + _P.connectsourcerightext, bly + _P.connectsourcewidth)
+                )
+            end
             transistor:add_area_anchor_bltr("sourcestrap",
                 point.create(blx - _P.connectsourceleftext, bly),
                 point.create(trx + _P.connectsourcerightext, bly + _P.connectsourcewidth)
@@ -798,8 +830,8 @@ function layout(transistor, _P)
                     bly2 = -_P.connectsourcespace - _P.connectsourcewidth
                 end
             end
+            -- main strap
             if _P.drawsourcestrap then
-                -- main strap
                 geometry.rectanglebltr(transistor, generics.metal(_P.sourcemetal),
                     point.create(blx - _P.connectsourceleftext, bly1),
                     point.create(trx + _P.connectsourcerightext, bly1 + _P.connectsourcewidth)
@@ -824,30 +856,6 @@ function layout(transistor, _P)
                     point.create(trx + _P.connectsourcerightext, bly2 + _P.connectsourcewidth)
                 )
             end
-            -- connections to strap
-            local sourceinvert = (_P.channeltype == "pmos")
-            if _P.connectsourceinverse then
-                sourceinvert = not sourceinvert
-            end
-            for i = 1, _P.fingers + 1, 2 do
-                local shift = leftactext - (_P.gatespace + _P.sdwidth) / 2 + (i - 1) * gatepitch
-                if not sourceinvert or _P.connectsourceboth then
-                   if not (i == 1 and not _P.drawfirstsourcevia or i == _P.fingers + 1 and not _P.drawlastsourcevia) then
-                       geometry.rectanglebltr(transistor, generics.metal(_P.sourcemetal),
-                           point.create(shift, -_P.connectsourcespace),
-                           point.create(shift + _P.sdwidth, sourceoffset)
-                       )
-                    end
-                end
-                if sourceinvert or _P.connectsourceboth then
-                   if not (i == 1 and not _P.drawfirstsourcevia or i == _P.fingers + 1 and not _P.drawlastsourcevia) then
-                        geometry.rectanglebltr(transistor, generics.metal(_P.sourcemetal),
-                            point.create(shift, sourceoffset + _P.sourcesize),
-                            point.create(shift + _P.sdwidth, _P.fwidth + _P.connectsourcespace)
-                        )
-                    end
-                end
-            end
         end
     end
 
@@ -856,7 +864,37 @@ function layout(transistor, _P)
     if _P.connectdraininverse then
         draininvert = not draininvert
     end
-    if _P.connectdrain and _P.fingers > 0 then
+    if _P.drawdrainconnections then
+        -- connections to strap
+        local draininvert = (_P.channeltype == "pmos")
+        if _P.connectdraininverse then
+            draininvert = not draininvert
+        end
+        for i = 2, _P.fingers + 1, 2 do
+            local shift = leftactext - (_P.gatespace + _P.sdwidth) / 2 + (i - 1) * gatepitch
+            local conndrainoffset = _P.drainmetal > 1 and drainviaoffset or drainoffset
+            local conndraintop = _P.drainmetal > 1 and _P.drainviasize or _P.drainsize
+            if not draininvert or _P.connectdrainboth then
+               if not (i == 2 and not _P.drawfirstdrainvia or i == _P.fingers + 1 and not _P.drawlastdrainvia) then
+                    geometry.rectanglebltr(transistor, generics.metal(_P.drainmetal),
+                        point.create(shift, conndrainoffset + conndraintop),
+                        point.create(shift + _P.sdwidth, _P.fwidth + _P.connectdrainspace)
+                    )
+                end
+            end
+            if draininvert or _P.connectdrainboth then
+               if not (i == 2 and not _P.drawfirstdrainvia or i == _P.fingers + 1 and not _P.drawlastdrainvia) then
+                    geometry.rectanglebltr(transistor, generics.metal(_P.drainmetal),
+                        point.create(shift, -_P.connectdrainspace),
+                        point.create(shift + _P.sdwidth, conndrainoffset)
+                    )
+                end
+            end
+        end
+    end
+
+    -- drain strap
+    if _P.fingers > 0 then
         local blx = leftactext - (_P.gatespace + _P.sdwidth) / 2 + (2 - 1) * gatepitch
         local trx = leftactext - (_P.gatespace + _P.sdwidth) / 2 + (2 * ((_P.fingers + 1) // 2) - 1) * gatepitch + _P.sdwidth
         if _P.connectdraininline then
@@ -874,10 +912,12 @@ function layout(transistor, _P)
                     bly = _P.connectdraininlineoffset
                 end
             end
-            geometry.rectanglebltr(transistor, generics.metal(_P.drainmetal),
-                point.create(blx - _P.connectdrainleftext, bly),
-                point.create(trx + _P.connectdrainrightext, bly + _P.connectdrainwidth)
-            )
+            if _P.drawdrainstrap then
+                geometry.rectanglebltr(transistor, generics.metal(_P.drainmetal),
+                    point.create(blx - _P.connectdrainleftext, bly),
+                    point.create(trx + _P.connectdrainrightext, bly + _P.connectdrainwidth)
+                )
+            end
             transistor:add_area_anchor_bltr("drainstrap",
                 point.create(blx - _P.connectdrainleftext, bly),
                 point.create(trx + _P.connectdrainrightext, bly + _P.connectdrainwidth)
@@ -926,32 +966,6 @@ function layout(transistor, _P)
                     point.create(blx - _P.connectdrainleftext, bly2),
                     point.create(trx + _P.connectdrainrightext, bly2 + _P.connectdrainwidth)
                 )
-            end
-            -- connections to strap
-            local draininvert = (_P.channeltype == "pmos")
-            if _P.connectdraininverse then
-                draininvert = not draininvert
-            end
-            for i = 2, _P.fingers + 1, 2 do
-                local shift = leftactext - (_P.gatespace + _P.sdwidth) / 2 + (i - 1) * gatepitch
-                local conndrainoffset = _P.drainmetal > 1 and drainviaoffset or drainoffset
-                local conndraintop = _P.drainmetal > 1 and _P.drainviasize or _P.drainsize
-                if not draininvert or _P.connectdrainboth then
-                   if not (i == 2 and not _P.drawfirstdrainvia or i == _P.fingers + 1 and not _P.drawlastdrainvia) then
-                        geometry.rectanglebltr(transistor, generics.metal(_P.drainmetal),
-                            point.create(shift, conndrainoffset + conndraintop),
-                            point.create(shift + _P.sdwidth, _P.fwidth + _P.connectdrainspace)
-                        )
-                    end
-                end
-                if draininvert or _P.connectdrainboth then
-                   if not (i == 2 and not _P.drawfirstdrainvia or i == _P.fingers + 1 and not _P.drawlastdrainvia) then
-                        geometry.rectanglebltr(transistor, generics.metal(_P.drainmetal),
-                            point.create(shift, -_P.connectdrainspace),
-                            point.create(shift + _P.sdwidth, conndrainoffset)
-                        )
-                    end
-                end
             end
         end
     end
