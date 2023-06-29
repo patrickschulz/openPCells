@@ -101,7 +101,8 @@ function parameters()
         { "extratopstrapwidth(Width of Extra Top Strap)",          technology.get_dimension("Minimum M1 Width"), argtype = "integer" },
         { "extratopstrapspace(Space of Extra Top Strap)",          technology.get_dimension("Minimum M1 Space"), argtype = "integer" },
         { "extratopstrapmetal(Metal Layer for Extra Top Strap)",       1 },
-        { "extratopstrapalign(Alignment for Extra Top Strap)",         "source", posvals = set("source", "drain") },
+        { "extratopstrapleftalign(Left Alignment for Extra Top Strap)", 1 },
+        { "extratopstraprightalign(Right Alignment for Extra Top Strap)", 1, follow = "fingers" },
         { "shortdevice(Short Transistor)",                             false },
         { "drawtopactivedummy",                                        false },
         { "topactivedummywidth",                                          80 },
@@ -965,15 +966,16 @@ function layout(transistor, _P)
         )
     end
     if _P.drawextratopstrap then
-        local align = _P.extratopstrapalign == "source" and 0 or 1
-        geometry.rectanglebltr(transistor, generics.metal(_P.extratopstrapmetal),
-            point.create(align * gatepitch, _P.fwidth + _P.extratopstrapspace),
-            point.create((_P.fingers - align) * gatepitch + _P.sdwidth, _P.fwidth + _P.extratopstrapspace + _P.extratopstrapwidth)
+        local blx = leftactext - (_P.gatespace + _P.sdwidth) / 2 + (_P.extrabotstrapleftalign - 1) * gatepitch
+        local trx = blx + 2 * (_P.fingers // 2) * gatepitch + (_P.extrabotstraprightalign - _P.fingers) * gatepitch + _P.sdwidth
+        geometry.rectanglebltr(transistor, generics.metal(_P.extrabotstrapmetal),
+            point.create(blx, _P.fwidth + _P.extratopstrapspace),
+            point.create(trx, _P.fwidth + _P.extratopstrapspace + _P.extratopstrapwidth)
         )
         -- anchors
-        transistor:add_area_anchor_bltr("extratopstrap",
-            point.create(align * gatepitch, _P.fwidth + _P.extratopstrapspace),
-            point.create((_P.fingers - align) * gatepitch + _P.sdwidth, _P.fwidth + _P.extratopstrapspace + _P.extratopstrapwidth)
+        transistor:add_area_anchor_bltr("extrabotstrap",
+            point.create(blx, _P.fwidth + _P.extratopstrapspace),
+            point.create(trx, _P.fwidth + _P.extratopstrapspace + _P.extratopstrapwidth)
         )
     end
 
