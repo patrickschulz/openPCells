@@ -3001,6 +3001,22 @@ struct vector* _initialize_api_entries(void)
         ));
     }
 
+    /* util.ratio_split_even(value, ratio) */
+    {
+        struct parameter parameters[] = {
+            { "value",  INTEGER,    NULL, "value for division" },
+            { "ratio",  NUMBER,     NULL, "target ratio of the two result values" },
+        };
+        vector_append(entries, _make_api_entry(
+            "ratio_split_even",
+            MODULE_UTIL,
+            "create two values that sum up to the input value and have the specified ratio. The values are adjusted so that both of them are even, slightly changing the ratio. The input value must be even",
+            "local pitch = 100\nlocal width, space = util.ratio_split_even(pitch, 2) -- results in 68 and 32, the actual ratio then is 2.125",
+            parameters,
+            sizeof(parameters) / sizeof(parameters[0])
+        ));
+    }
+
     /* enable */
     {
         struct parameter parameters[] = {

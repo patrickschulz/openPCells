@@ -279,4 +279,13 @@ function M.add_options(base, t)
     return new
 end
 
+function M.ratio_split_even(value, ratio)
+    local second = value // (ratio + 1)
+    if second % 2 == 1 then
+        second = second - 1
+    end
+    local first = value - second
+    return first, second
+end
+
 return M
