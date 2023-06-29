@@ -104,6 +104,8 @@ function parameters()
         { "extratopstrapleftalign(Left Alignment for Extra Top Strap)", 1 },
         { "extratopstraprightalign(Right Alignment for Extra Top Strap)", 1, follow = "fingers" },
         { "shortdevice(Short Transistor)",                             false },
+        { "shortdeviceleftoffset(Short Transistor Left Offset)",       0 },
+        { "shortdevicerightoffset(Short Transistor Right Offset)",     0 },
         { "drawtopactivedummy",                                        false },
         { "topactivedummywidth",                                          80 },
         { "topactivedummysep",                                            80 },
@@ -984,8 +986,8 @@ function layout(transistor, _P)
     --        the main problem is proper alignment in cases involving odd parameters for sdwidth and sourcesize
     if _P.shortdevice then
         geometry.rectanglebltr(transistor, generics.metal(1),
-            transistor:get_area_anchor("sourcedrain1").br:translate(0, _P.sourcesize // 2),
-            transistor:get_area_anchor(string.format("sourcedrain%d", _P.fingers + 1)).bl:translate(0, _P.sourcesize // 2 + _P.sdwidth)
+            transistor:get_area_anchor(string.format("sourcedrain%d", 1 + _P.shortdeviceleftoffset)).br:translate(0, _P.sourcesize // 2),
+            transistor:get_area_anchor(string.format("sourcedrain%d", _P.fingers + 1 - _P.shortdevicerightoffset)).bl:translate(0, _P.sourcesize // 2 + _P.sdwidth)
         )
     end
 
