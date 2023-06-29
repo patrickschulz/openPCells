@@ -113,7 +113,7 @@ function layout(grid, _P)
     else
         grid:set_alignment_box(
             point.create(0, 0),
-            point.create(_P.mvlines * (_P.mvwidth + _P.mvspace), _P.mhwidth * (_P.mhwidth + _P.mhspace))
+            point.create(_P.mvlines * (_P.mvwidth + _P.mvspace), _P.mhlines * (_P.mhwidth + _P.mhspace))
         )
     end
 end
