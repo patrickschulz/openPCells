@@ -1615,8 +1615,24 @@ struct vector* _initialize_api_entries(void)
         vector_append(entries, _make_api_entry(
             "get_anchor",
             MODULE_OBJECT,
-            "Retrieve an anchor from a cell. This function returns a point that contains the position of the defined anchor, corrected by the cell transformation. A non-existing anchor is an error",
+            "Retrieve an anchor from a cell. This function returns a point that contains the position of the specified anchor, corrected by the cell transformation. A non-existing anchor is an error",
             "cell:get_anchor(\"sourcedrain1bl\")",
+            parameters,
+            sizeof(parameters) / sizeof(parameters[0])
+        ));
+    }
+
+    /* object.get_area_anchor */
+    {
+        struct parameter parameters[] = {
+            { "cell",       OBJECT, NULL, "object to get an anchor from" },
+            { "anchorname", STRING, NULL, "name of the anchor" }
+        };
+        vector_append(entries, _make_api_entry(
+            "get_anchor",
+            MODULE_OBJECT,
+            "Retrieve an area anchor from a cell. This function returns a table containing two points (bl (bottom-left) and tr (top-right)) that contain the position of the specified area anchor, corrected by the cell transformation. A non-existing anchor is an error",
+            "cell:get_area_anchor(\"sourcedrain1\").bl",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -1819,6 +1835,296 @@ struct vector* _initialize_api_entries(void)
             MODULE_OBJECT,
             "translate the cell by the specified y offset (relative movement).",
             "cell:translate(100)",
+            parameters,
+            sizeof(parameters) / sizeof(parameters[0])
+        ));
+    }
+
+    /* object.abut_left */
+    {
+        struct parameter parameters[] = {
+            { "cell",           OBJECT,     NULL, "cell to be abutted" },
+            { "targercell",     OBJECT,     NULL, "abutment target cell" },
+        };
+        vector_append(entries, _make_api_entry(
+            "abut_left",
+            MODULE_OBJECT,
+            "translate the cell so that its alignment box is abutted to the left of the alignment box of the specified target cell. This only changes the y coordinate",
+            "cell:abut_left(othercell)",
+            parameters,
+            sizeof(parameters) / sizeof(parameters[0])
+        ));
+    }
+
+    /* object.abut_right */
+    {
+        struct parameter parameters[] = {
+            { "cell",           OBJECT,     NULL, "cell to be abutted" },
+            { "targercell",     OBJECT,     NULL, "abutment target cell" },
+        };
+        vector_append(entries, _make_api_entry(
+            "abut_right",
+            MODULE_OBJECT,
+            "translate the cell so that its alignment box is abutted to the right of the alignment box of the specified target cell. This only changes the y coordinate",
+            "cell:abut_right(othercell)",
+            parameters,
+            sizeof(parameters) / sizeof(parameters[0])
+        ));
+    }
+
+    /* object.abut_top */
+    {
+        struct parameter parameters[] = {
+            { "cell",           OBJECT,     NULL, "cell to be abutted" },
+            { "targercell",     OBJECT,     NULL, "abutment target cell" },
+        };
+        vector_append(entries, _make_api_entry(
+            "abut_top",
+            MODULE_OBJECT,
+            "translate the cell so that its alignment box is abutted to the top of the alignment box of the specified target cell. This only changes the y coordinate",
+            "cell:abut_top(othercell)",
+            parameters,
+            sizeof(parameters) / sizeof(parameters[0])
+        ));
+    }
+
+    /* object.abut_bottom */
+    {
+        struct parameter parameters[] = {
+            { "cell",           OBJECT,     NULL, "cell to be abutted" },
+            { "targercell",     OBJECT,     NULL, "abutment target cell" },
+        };
+        vector_append(entries, _make_api_entry(
+            "abut_bottom",
+            MODULE_OBJECT,
+            "translate the cell so that its alignment box is abutted to the bottom of the alignment box of the specified target cell. This only changes the y coordinate",
+            "cell:abut_bottom(othercell)",
+            parameters,
+            sizeof(parameters) / sizeof(parameters[0])
+        ));
+    }
+
+    /* object.align_left */
+    {
+        struct parameter parameters[] = {
+            { "cell",           OBJECT,     NULL, "cell to be aligned" },
+            { "targercell",     OBJECT,     NULL, "alignment target cell" },
+        };
+        vector_append(entries, _make_api_entry(
+            "align_left",
+            MODULE_OBJECT,
+            "translate the cell so that its alignment box is aligned to the left of the alignment box of the specified target cell. This only changes the x coordinate",
+            "cell:align_left(othercell)",
+            parameters,
+            sizeof(parameters) / sizeof(parameters[0])
+        ));
+    }
+
+    /* object.align_right */
+    {
+        struct parameter parameters[] = {
+            { "cell",           OBJECT,     NULL, "cell to be aligned" },
+            { "targercell",     OBJECT,     NULL, "alignment target cell" },
+        };
+        vector_append(entries, _make_api_entry(
+            "align_right",
+            MODULE_OBJECT,
+            "translate the cell so that its alignment box is aligned to the right of the alignment box of the specified target cell. This only changes the x coordinate",
+            "cell:align_right(othercell)",
+            parameters,
+            sizeof(parameters) / sizeof(parameters[0])
+        ));
+    }
+
+    /* object.align_top */
+    {
+        struct parameter parameters[] = {
+            { "cell",           OBJECT,     NULL, "cell to be aligned" },
+            { "targercell",     OBJECT,     NULL, "alignment target cell" },
+        };
+        vector_append(entries, _make_api_entry(
+            "align_top",
+            MODULE_OBJECT,
+            "translate the cell so that its alignment box is aligned to the top of the alignment box of the specified target cell. This only changes the y coordinate",
+            "cell:align_top(othercell)",
+            parameters,
+            sizeof(parameters) / sizeof(parameters[0])
+        ));
+    }
+
+    /* object.align_bottom */
+    {
+        struct parameter parameters[] = {
+            { "cell",           OBJECT,     NULL, "cell to be aligned" },
+            { "targercell",     OBJECT,     NULL, "alignment target cell" },
+        };
+        vector_append(entries, _make_api_entry(
+            "align_bottom",
+            MODULE_OBJECT,
+            "translate the cell so that its alignment box is aligned to the bottom of the alignment box of the specified target cell. This only changes the y coordinate",
+            "cell:align_bottom(othercell)",
+            parameters,
+            sizeof(parameters) / sizeof(parameters[0])
+        ));
+    }
+
+    /* object.abut_area_anchor_left */
+    {
+        struct parameter parameters[] = {
+            { "cell",               OBJECT,     NULL, "cell to be moved" },
+            { "anchorname",         STRING,     NULL, "abutment anchor" },
+            { "targercell",         OBJECT,     NULL, "alignment target cell" },
+            { "targetanchorname",   STRING,     NULL, "target abutment anchor" },
+        };
+        vector_append(entries, _make_api_entry(
+            "abut_area_anchor_left",
+            MODULE_OBJECT,
+            "translate the cell so that the specified area anchor is abutted to the left of the target area anchor of the specified target cell. This only changes the x coordinate",
+            "cell:abut_area_anchor_left(\"leftsourcedrain\", othercell, \"rightsourcedrain\")",
+            parameters,
+            sizeof(parameters) / sizeof(parameters[0])
+        ));
+    }
+
+    /* object.abut_area_anchor_right */
+    {
+        struct parameter parameters[] = {
+            { "cell",               OBJECT,     NULL, "cell to be moved" },
+            { "anchorname",         STRING,     NULL, "abutment anchor" },
+            { "targercell",         OBJECT,     NULL, "alignment target cell" },
+            { "targetanchorname",   STRING,     NULL, "target abutment anchor" },
+        };
+        vector_append(entries, _make_api_entry(
+            "abut_area_anchor_right",
+            MODULE_OBJECT,
+            "translate the cell so that the specified area anchor is abutted to the right of the target area anchor of the specified target cell. This only changes the x coordinate",
+            "cell:abut_area_anchor_right(\"rightsourcedrain\", othercell, \"leftsourcedrain\")",
+            parameters,
+            sizeof(parameters) / sizeof(parameters[0])
+        ));
+    }
+
+    /* object.abut_area_anchor_top */
+    {
+        struct parameter parameters[] = {
+            { "cell",               OBJECT,     NULL, "cell to be moved" },
+            { "anchorname",         STRING,     NULL, "abutment anchor" },
+            { "targercell",         OBJECT,     NULL, "alignment target cell" },
+            { "targetanchorname",   STRING,     NULL, "target abutment anchor" },
+        };
+        vector_append(entries, _make_api_entry(
+            "abut_area_anchor_top",
+            MODULE_OBJECT,
+            "translate the cell so that the specified area anchor is abutted to the top of the target area anchor of the specified target cell. This only changes the y coordinate",
+            "cell:abut_area_anchor_top(\"botgatestrap\", othercell, \"topgatestrap\")",
+            parameters,
+            sizeof(parameters) / sizeof(parameters[0])
+        ));
+    }
+
+    /* object.abut_area_anchor_bottom */
+    {
+        struct parameter parameters[] = {
+            { "cell",               OBJECT,     NULL, "cell to be moved" },
+            { "anchorname",         STRING,     NULL, "abutment anchor" },
+            { "targercell",         OBJECT,     NULL, "alignment target cell" },
+            { "targetanchorname",   STRING,     NULL, "target abutment anchor" },
+        };
+        vector_append(entries, _make_api_entry(
+            "abut_area_anchor_bottom",
+            MODULE_OBJECT,
+            "translate the cell so that the specified area anchor is abutted to the bottom of the target area anchor of the specified target cell. This only changes the y coordinate",
+            "cell:abut_area_anchor_bottom(\"topgatestrap\", othercell, \"botgatestrap\")",
+            parameters,
+            sizeof(parameters) / sizeof(parameters[0])
+        ));
+    }
+
+    /* object.align_area_anchor*/
+    {
+        struct parameter parameters[] = {
+            { "cell",               OBJECT,     NULL, "cell to be moved" },
+            { "anchorname",         STRING,     NULL, "alignment anchor" },
+            { "targercell",         OBJECT,     NULL, "alignment target cell" },
+            { "targetanchorname",   STRING,     NULL, "target alignment anchor" },
+        };
+        vector_append(entries, _make_api_entry(
+            "align_area_anchor",
+            MODULE_OBJECT,
+            "translate the cell so that the specified area anchor is aligned to the target area anchor of the specified target cell. This changes both the x and the y coordinate",
+            "cell:align_area_anchor(\"leftsourcedrain\", othercell, \"rightsourcedrain\")",
+            parameters,
+            sizeof(parameters) / sizeof(parameters[0])
+        ));
+    }
+
+    /* object.align_area_anchor_left */
+    {
+        struct parameter parameters[] = {
+            { "cell",               OBJECT,     NULL, "cell to be moved" },
+            { "anchorname",         STRING,     NULL, "alignment anchor" },
+            { "targercell",         OBJECT,     NULL, "alignment target cell" },
+            { "targetanchorname",   STRING,     NULL, "target alignment anchor" },
+        };
+        vector_append(entries, _make_api_entry(
+            "align_area_anchor_left",
+            MODULE_OBJECT,
+            "translate the cell so that the specified area anchor is aligned to the left of the target area anchor of the specified target cell. This only changes the x coordinate",
+            "cell:align_area_anchor_left(\"leftsourcedrain\", othercell, \"rightsourcedrain\")",
+            parameters,
+            sizeof(parameters) / sizeof(parameters[0])
+        ));
+    }
+
+    /* object.align_area_anchor_right */
+    {
+        struct parameter parameters[] = {
+            { "cell",               OBJECT,     NULL, "cell to be moved" },
+            { "anchorname",         STRING,     NULL, "alignment anchor" },
+            { "targercell",         OBJECT,     NULL, "alignment target cell" },
+            { "targetanchorname",   STRING,     NULL, "target alignment anchor" },
+        };
+        vector_append(entries, _make_api_entry(
+            "align_area_anchor_right",
+            MODULE_OBJECT,
+            "translate the cell so that the specified area anchor is aligned to the right of the target area anchor of the specified target cell. This only changes the x coordinate",
+            "cell:align_area_anchor_right(\"rightsourcedrain\", othercell, \"leftsourcedrain\")",
+            parameters,
+            sizeof(parameters) / sizeof(parameters[0])
+        ));
+    }
+
+    /* object.align_area_anchor_top */
+    {
+        struct parameter parameters[] = {
+            { "cell",               OBJECT,     NULL, "cell to be moved" },
+            { "anchorname",         STRING,     NULL, "alignment anchor" },
+            { "targercell",         OBJECT,     NULL, "alignment target cell" },
+            { "targetanchorname",   STRING,     NULL, "target alignment anchor" },
+        };
+        vector_append(entries, _make_api_entry(
+            "align_area_anchor_top",
+            MODULE_OBJECT,
+            "translate the cell so that the specified area anchor is aligned to the top of the target area anchor of the specified target cell. This only changes the y coordinate",
+            "cell:align_area_anchor_top(\"botgatestrap\", othercell, \"topgatestrap\")",
+            parameters,
+            sizeof(parameters) / sizeof(parameters[0])
+        ));
+    }
+
+    /* object.align_area_anchor_bottom */
+    {
+        struct parameter parameters[] = {
+            { "cell",               OBJECT,     NULL, "cell to be moved" },
+            { "anchorname",         STRING,     NULL, "alignment anchor" },
+            { "targercell",         OBJECT,     NULL, "alignment target cell" },
+            { "targetanchorname",   STRING,     NULL, "target alignment anchor" },
+        };
+        vector_append(entries, _make_api_entry(
+            "align_area_anchor_bottom",
+            MODULE_OBJECT,
+            "translate the cell so that the specified area anchor is aligned to the bottom of the target area anchor of the specified target cell. This only changes the y coordinate",
+            "cell:align_area_anchor_bottom(\"topgatestrap\", othercell, \"botgatestrap\")",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -2674,6 +2980,22 @@ struct vector* _initialize_api_entries(void)
             MODULE_UTIL,
             "create an array-like table with two entries repeated N / 2 times, alternating. Counting starts at 1. This is useful, for example, for specifying gate contacts for basic/cmos. Counting starts at 1, so the first entry will be 'filler'",
             "local gatecontactpos = util.fill_odd_with(4, \"center\", \"upper\") -- { \"center\", \"upper\", \"center\", \"upper\" }",
+            parameters,
+            sizeof(parameters) / sizeof(parameters[0])
+        ));
+    }
+
+    /* util.add_options(baseoptions, additional) */
+    {
+        struct parameter parameters[] = {
+            { "baseoptions",        TABLE,      NULL, "base options" },
+            { "additionaloptions",  TABLE,      NULL, "additional options" },
+        };
+        vector_append(entries, _make_api_entry(
+            "add_options",
+            MODULE_UTIL,
+            "create a copy of the baseoptions table and add all key-value pairs found in additionaloptions. This function clones baseoptions so the original is not altered. This copy is flat, so only the first-level elements are copied (e.g. tables will reference the same object). This function is useful to modify a set of base options for several devices such as mosfets, which only differ in a few options",
+            "local baseoptions = ...\nlocal fet = pcell.create_layout(\"basic/mosfet\", \"fet\", util.add_options(baseoptions, { gatelength = 100 }))",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
