@@ -171,6 +171,9 @@ function check(_P)
     if (_P.gatespace % 2) ~= (_P.sdwidth % 2) then
         return nil, "gatespace and sdwidth must both be even or odd"
     end
+    if _P.shortdevice and ((_P.sourcesize % 2) ~= (_P.sdwidth % 2)) then
+        return nil, "gatespace and sdwidth must both be even or odd when shortdevice is true"
+    end
     if not (not _P.endleftwithgate or (_P.gatelength % 2 == 0)) then
         return nil, "gatelength must be even when endleftwithgate is true"
     end
@@ -982,12 +985,10 @@ function layout(transistor, _P)
     end
 
     -- short transistor
-    -- FIXME: find better options to draw this
-    --        the main problem is proper alignment in cases involving odd parameters for sdwidth and sourcesize
     if _P.shortdevice then
         geometry.rectanglebltr(transistor, generics.metal(1),
-            transistor:get_area_anchor(string.format("sourcedrain%d", 1 + _P.shortdeviceleftoffset)).br:translate(0, _P.sourcesize // 2),
-            transistor:get_area_anchor(string.format("sourcedrain%d", _P.fingers + 1 - _P.shortdevicerightoffset)).bl:translate(0, _P.sourcesize // 2 + _P.sdwidth)
+            transistor:get_area_anchor(string.format("sourcedrain%d", 1 + _P.shortdeviceleftoffset)).br:translate(0, (_P.sourcesize - _P.sdwidth) / 2),
+            transistor:get_area_anchor(string.format("sourcedrain%d", _P.fingers + 1 - _P.shortdevicerightoffset)).bl:translate(0, (_P.sourcesize + _P.sdwidth) / 2)
         )
     end
 
