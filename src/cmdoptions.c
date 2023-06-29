@@ -590,7 +590,7 @@ int cmdoptions_parse(struct cmdoptions* options, int argc, const char* const * a
                     struct option* option = cmdoptions_get_option_short(options, shortopt);
                     if(!option)
                     {
-                        printf("unknown command line option: '--%c'\n", shortopt);
+                        printf("unknown command line option: '-%c'\n", shortopt);
                         return 0;
                     }
                     else
