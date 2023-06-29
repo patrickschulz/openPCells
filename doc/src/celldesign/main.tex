@@ -34,9 +34,10 @@ Let's walk through this line-by-line (sort of). First, we declare the function f
 \luafilelisting[firstline = 2, lastline = 2]{code/simple_rectangle.lua}
 In the function, we add the parameters, here we use the width and the height of the rectangle:
 \luafilelisting[widthgobble=4, firstline = 3, lastline = 6]{code/simple_rectangle.lua}
-We can add as many parameters as we like (\luainline{pcell.add_parameters()} accepts any number of arguments). For every argument, the first entry in the table is
-the name of the parameter, the second entry is the default value. This is the simplest form, we can supply more information for finer control. We will see some
-examples of this later on.
+We can add as many parameters as we like (\luainline{pcell.add_parameters()} accepts any number of arguments).
+For every argument, the first entry in the table is the name of the parameter, the second entry is the default value.
+This is the simplest form, we can supply more information for finer control.
+We will see some examples of this later on.
 
 The default value for both parameters is 100, which is a \emph{size}, meaning it has a unit. Physical/geometrical parameters like width or height are specified
 in nanometers.\footnote{Well, this is not entirely sure. Only integers are allowed and the base unit is assumed to be nanometer. This is also
@@ -62,10 +63,11 @@ Lastly we pass the main object as first argument to the function, which places t
 
 This cell can now be created by calling the main program with an appropriate export and technology.
 Note that there's another manual about that, so we won't get into any details here.
-The simplest call would be something like:
+The simplest call would be something like
 \begin{shellcode}
-    opc --technology opc --export gds --cell simple_rectangle
+    opc --technology opc --export gds --cell library/simple_rectangle
 \end{shellcode}
+where \shellinline{library} is a folder where the cell is placed in and lies in the cell search path.
 
 Now you already now how to create simple rectangles with generic layers.
 As integrated circuits are mostly made up of rectangles, one can already built a surprising amount of pcells.
@@ -193,51 +195,6 @@ default, so \luainline{true} is specified for a miter-join.
 The layers where created earlier as
 \luafilelisting[widthgobble = 4, firstline = 20, lastline = 21]{../../../cells/passive/inductor/octagonal.lua}
 
-%\subsection{References and Inheritance}
-%In order to be able to build larger layouts, it is very useful to re-use cells in hierarchies (for instance, a current mirror is made up of several transistors).
-%It would be a good decision to build everything from scratch.
-%Therefore, openPCells offers some basic support for such things.
-%We will look at logic gates to illustrate the different options.
-%All gates are built from transistors, so we will assume for now that there is a cell to place one.
-%Furthermore, digital designs mostly (always?) use a few geometry parameters for all cells, such as the gate length.
-%It makes sense to store this in one place so we can redefine it for all cells in a hierarchy, if we want to change that.
-%In the supplied logic cell family (\texttt{cells/stdcells}), this is handled by the \texttt{stdcells/base} cell.
-%It is a abstract cell, that is, it does not define a layout function, so it can't be called.
-%But it does store the relevant parameters, which get referenced by the top cells (and temporarily changed).
-%Other cells then access the parameters, for instance \texttt{stdcells/not\_gate.lua}:
-%\luafilelisting[firstline = 1, lastline = 11]{../../../cells/stdcells/not_gate.lua}
-%This cell has only has a small number of parameters but uses the supplied parameters of \texttt{stdcells/base.lua} for the layout function. The parameters are used
-%implicitly by creating other cells that reference these parameters, and explicitly by accessing them with \luainline{pcell.get_parameters}. In order to do this,
-%a cell has to reference that cell with \luainline{pcell.reference_cell}. The referenced parameters reflect the current values, that is if a top cell instantiates the
-%inverter, it can overwrite the values of referenced parameters, affecting all sub cells. This is achieved by calling \luainline{pcell.push_overwrites}, which can
-%be seen in \texttt{stdcells/1\_inv\_gate.lua} (basic cell for and/or):
-%\luafilelisting[widthgobble = 4, firstline = 13, lastline = 13]{../../../cells/stdcells/1_inv_gate.lua}
-%Cells that need to prevent parameters being changed from the toplevel have to include guards against that, which is exactly what can be seen in the previous
-%listing. The overwrites are stack-based, so the last \luainline{push_overwrites} counts. In \texttt{stdcells/1\_inv\_gate.lua}, rightdummies can not be changed from
-%outside anymore.
-%\subsection{Translation, Object Placement and the Alignment Box}
-%We already saw the \luainline{translate} object method to move objects. For more complex layouts, a better method exists. Cells can have anchors, that is, points
-%at certain places in the layout which can be referenced. You can ask for the location of an anchor from an object (\luainline{get_anchor}) and you can move a
-%cell so that the specified anchor lies at a certain point (\luainline{move_anchor}). Let's see an example:
-%\luafilelisting[widthgobble = 8, firstline = 62, lastline = 64]{../../../cells/stdcells/harness.lua}
-%The used anchors have to be present in the specific cell, and it is up to the designer of that cell to provide the needed anchors.
-%
-%Of course do anchors move if an object is moved, but they also move if the cell is flipped/mirror/rotated etc. This ensures that the anchors are always at the
-%right place in the layout. However, in certain cases, the opposite behaviour is useful: If you want to, say, place two digital standard cells next to each other,
-%you can use appropriate anchors for left and right (for instance at the leftmost and rightmost source/drain) and align them at these points. This works fine
-%until a cell is mirrored at the y-axis. Then the anchor left becomes right and the other way around. This means that cells generating such layouts need to handle
-%flipped/rotated/mirrored cells differently, which is a nuisance. There is a special set of anchors for exactly this problem: the alignment box. This box is also
-%defined by the cell designer and in effect it provides the special anchors left, right, top, bottom and sensible combinations of those (e.g. topleft, NOT
-%leftright). The alignment box undergoes translation, but not rotation/flipping/mirroring. This allows the following (from \texttt{stdcells/dff.lua}):
-%\luafilelisting[widthgobble = 4, firstline = 75, lastline = 78]{../../../cells/stdcells/dff.lua}
-%Notice the calls in the last two lines, where the cell gets flipped in x direction (mirrored at the y axis) but still the left anchor is used for alignment (the
-%cell is placed right of the isogate).
-%
-%The above example shows another important fact about object transformation: Translation is always applied last (after rotation/flipping/mirroring). This is
-%contrary to many other graphical programs, where for instance rotation is applied with the origin is center. In opc, the order of the transformation statements
-%does not matter. This is intentional, as this is what is usually needed in layouts and simplifies the pcell code. The other behaviour can always be achieved by
-%appropriate translation.
-
 \subsection{Integrating Other Cell Layouts}
 Layouts of integrated circuits can get very complex quite easily.
 The typical way to deal with high complexity is by building individual cell layouts and placing them in the appropriate location.
@@ -312,16 +269,63 @@ The modified example looks like this:
 \luafilelisting{code/ringoscillator_anchor.lua}
 The required displacement for each inverter is calculated and then applied to \luainline{translate}.
 This is rather cumbersome.
-OpenPCells offers a specialized function for this: \luainline{move_anchor}.
+OpenPCells offers a specialized function for this: \luainline{move_point}.
 This takes a layout cell and moves it so that the specified anchor lies at the given location:
-\luafilelisting{code/ringoscillator_move_anchor.lua}
+\luafilelisting{code/ringoscillator_move_point.lua}
+The function \luainline{move_point} takes arbitrary points as arguments.
+Essentially, it moves the specified cell by the difference of the two points.
+The interface is a bit akward, because moving cells by their own anchors (a common use case) requires typing out the object name twice.
+This is due to the generic nature of \luainline{move_point}.
+A more specialized and powerful approach is provided by \emph{area anchors}, as demonstrated in the next section.
+
+\subsubsection{Area Anchors}
+An area anchor is similar to a regular anchor, but it makes up a rectangular area (defined by the bottom-left and the top-right).
+These anchors can be queried just like regular anchors (but with \luainline{get_area_anchor} instead of \luainline{get_anchor}).
+Their two main properties and advantages over regular anchors are that they never change their orientation and cells can be abutted/aligned in various ways with them.
+
+To clarify on the point of orientation:
+Imagine a rectangular area was made up of two regular anchors.
+Once the object containing these anchors is rotated by, say, 90 degrees, the bottom-left anchor is no longer the bottom left.
+Flipping an object for instance reverses the order of these anchors.
+Area anchors on the other hand always describe, as the name implies, areas.
+Therefore it does not matter which orientation the respective object has, the bottom-left anchor will always be bottom-left.
+This enables much simpler approaches, as cell code does not need to keep track of which object is rotated and which one is not.
+
+The second advantage of area anchors are the various abutment/alignment methods for objects.
+For instance, the \shellinline{basic/mosfet} cell defines area anchors for every source/drain region.
+Two devices can be simply abutted by calling
+\begin{lualisting}
+    mosfet1:align_area_anchor("sourcedrain1", mosfet2, "sourcedrain-1")
+\end{lualisting}
+This places \luainline{mosfet1} left of \luainline{mosfet2} (as source/drain regions are counted positive beginning from the left and negative beginning from the right).
+Without area anchors, the call would look like this:
+\begin{lualisting}
+    mosfet1:move_point(mosfet1:get_anchor("sourcedrain1bl"), mosfet2:get_anchor("sourcedrain-1bl"))
+\end{lualisting}
+But this code would break if one of the devices was flipped (for instance to place a gate contact on the top and one on the bottom).
 
 \subsubsection{Alignment Boxes}
+Alignment boxes are tighly connected to area anchors.
+They provide the same concept but in a simpler and less flexible way.
+Every cell has at most one alignment box.
+With this, it can be aligned/abutted to other cells.
+This makes the most sense for compatible cells (like mosfets and other mosfets).
+
+The above example of abutting two mosfets with area anchors can be re-written as:
+\begin{lualisting}
+    mosfet1:abut_right(mosfet2)
+    mosfet1:align_top(mosfet2)
+\end{lualisting}
+This requires two calls, as every abut/align function with alignment boxes only changes either the x- or the y-coordinate.
+However, it is anchor-agnostic and therefore does not require any anchors names for the alignment.
+This also allows writing code that just assembles blocks of layout cells without knowing any anchor names.
+This code then works for any cells that has an alignment box.
+This kind of code actually exists in the placement module, which is mainly intended for digital layout.
 
 \subsection{Cell Hierarchies}\label{sec:hierarchies}
 Layouts of integrated circuits usually make great use of repetition/reuse of cells.
 For instance, a shift register uses the same flip flop over and over again.
-Creating \emph{flat} layouts (that is, layouts without any hierarchies) for these cells can be quite resource-intense
+Creating \emph{flat} layouts (that is, layouts without any hierarchies) for these cells can be quite resource-intense.
 More shapes have to be calculated by opc and the resulting layout is very likely to be larger in file size than a hierarchical one.
 Therefore, opc supports hierachical layouts.
 Instantiations in a cell of other cells/layouts are called \emph{children}.
@@ -505,37 +509,13 @@ Furthermore, it draws some metals and vias (not shown in figure \ref{fig:transis
 
 \section{API Documentation}
 
+The following section documents all available API functions for layout creation and manipulation.
+At the current time, it is far from complete.
+More up-to-date API documentation can be found by using opc directly with the command-line options \shellinline{--api-search}, \shellinline{--api-list} and \shellinline{--api-help}.
+
 \subsection{geometry Module}
 
-\begin{APIfunc}{rectangle(cell, layer, width, height, xshift, yshift, xrep, yrep, xpitch, ypitch)}
-    Create a rectangular shape with the given width and height.
-    \begin{APIparameters}
-        \parameter{cell}{object}
-            Object in which the rectangle is created;
-        \parameter{layer}{generic}
-            Layer of the generated rectangle;
-        \parameter{width}{integer}
-            Width of the rectangle. Must be even.;
-        \parameter{height}{integer}
-            Height of the rectangle. Must be even.;
-        \parameterdefault{xshift}{0}{integer}
-            Optional shift in x direction.;
-        \parameterdefault{yshift}{0}{integer}
-            Optional shift in y direction.;
-        \parameterdefault{xrep}{1}{integer}
-            Optional number of repetitions in x direction.
-            Rectangles are shifted so that an equal number is left and right.;
-        \parameterdefault{yrep}{1}{integer}
-            Optional number of repetitions in y direction.
-            Rectangles are shifted so that an equal number is left and right.;
-        \parameterdefault{xpitch}{0}{integer}
-            Optional pitch in x direction, used for repetition in x.;
-        \parameterdefault{ypitch}{0}{integer}
-            Optional pitch in y direction, used for repetition in y.;
-    \end{APIparameters}
-\end{APIfunc}
-
-\begin{APIfunc}{rectanglebltr(cell, layer, bl, tr, xrep, yrep, xpitch, ypitch)}
+\begin{APIfunc}{rectanglebltr(cell, layer, bl, tr)}
     Create a rectangular shape defined by the bottom-left and the top-right corner.
     \begin{APIparameters}
         \parameter{cell}{object}
@@ -546,16 +526,6 @@ Furthermore, it draws some metals and vias (not shown in figure \ref{fig:transis
             Bottom-left (bl) point of the rectangle;
         \parameter{tr}{point}
             Top-right (tl) point of the rectangle;
-        \parameterdefault{xrep}{1}{integer}
-            Optional number of repetitions in x direction.
-            Rectangles are shifted so that an equal number is left and right.;
-        \parameterdefault{yrep}{1}{integer}
-            Optional number of repetitions in y direction.
-            Rectangles are shifted so that an equal number is left and right.;
-        \parameterdefault{xpitch}{0}{integer}
-            Optional pitch in x direction, used for repetition in x.;
-        \parameterdefault{ypitch}{0}{integer}
-            Optional pitch in y direction, used for repetition in y.;
     \end{APIparameters}
 \end{APIfunc}
 

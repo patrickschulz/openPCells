@@ -26,8 +26,8 @@ function layout(momcap, _P)
         )
         geometry.rectanglebltr(
             momcap, generics.metal(m),
-            point.create(-_P.rext, _P.fheight + _P.foffset),
-            point.create(_P.fingers * _P.fwidth + (_P.fingers - 1) * _P.fspace + _P.rext, _P.fheight + _P.foffset + _P.rwidth)
+            point.create(-_P.rext, _P.fheight + 2 * _P.foffset + _P.rwidth),
+            point.create(_P.fingers * _P.fwidth + (_P.fingers - 1) * _P.fspace + _P.rext, _P.fheight + 2 * _P.foffset + 2 * _P.rwidth)
         )
         -- fingers
         for f = 1, _P.fingers do
@@ -36,7 +36,7 @@ function layout(momcap, _P)
             geometry.rectanglebltr(
                 momcap, generics.metal(m),
                 point.create(xshift, _P.rwidth + yshift),
-                point.create(xshift + _P.fwidth, _P.fheight + yshift)
+                point.create(xshift + _P.fwidth, _P.rwidth + yshift + _P.fheight + _P.foffset)
             )
         end
     end
@@ -48,14 +48,14 @@ function layout(momcap, _P)
         )
         geometry.viabltr(
             momcap, firstmetal, lastmetal,
-            point.create(-_P.rext, _P.fheight + _P.foffset),
-            point.create(_P.fingers * _P.fwidth + (_P.fingers - 1) * _P.fspace + _P.rext, _P.fheight + _P.foffset + _P.rwidth)
+            point.create(-_P.rext, _P.fheight + 2 * _P.foffset + _P.rwidth),
+            point.create(_P.fingers * _P.fwidth + (_P.fingers - 1) * _P.fspace + _P.rext, _P.fheight + 2 * _P.foffset + 2 * _P.rwidth)
         )
     end
 
     momcap:add_area_anchor_bltr("upperrail",
-        point.create(-_P.rext, _P.fheight + _P.foffset),
-        point.create(_P.fingers * _P.fwidth + (_P.fingers - 1) * _P.fspace + _P.rext, _P.fheight + _P.foffset + _P.rwidth)
+        point.create(-_P.rext, _P.fheight + 2 * _P.foffset + _P.rwidth),
+        point.create(_P.fingers * _P.fwidth + (_P.fingers - 1) * _P.fspace + _P.rext, _P.fheight + 2 * _P.foffset + 2 * _P.rwidth)
     )
     momcap:add_area_anchor_bltr("lowerrail",
         point.create(-_P.rext, 0),

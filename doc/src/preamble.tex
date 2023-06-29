@@ -24,7 +24,17 @@
 \usepackage{enumitem}
 
 \usepackage{listings}
-\lstset{
+\lstdefinestyle{shellstyle}{
+    breaklines = true,
+    breakautoindent = false,
+    backgroundcolor = \color{black!10!white},
+    basicstyle = \small\ttfamily,
+    showstringspaces = false,
+    tabsize = 4,
+    gobble = 4,
+    belowskip=-0.2\baselineskip
+}
+\lstdefinestyle{luastyle}{
     breaklines = true,
     %breakatwhitespace = true,
     language=[5.3]Lua,
@@ -126,11 +136,11 @@
 }
 \makeatother
 % -------------------------------------------------------------------------------------------------------------
-\newcommand{\shellinline}[1]{\lstinline!#1!}
-\lstnewenvironment{shellcode}{\lstset{keywordstyle = \relax, commentstyle = \relax, stringstyle = \relax, identifierstyle = \relax, breakautoindent = false}}{}
-\newcommand{\luainline}[1]{\lstinline!#1!}
-\lstnewenvironment{lualisting}{}{}
-\newcommand{\luafilelisting}[2][]{\lstinputlisting[#1]{#2}}
+\newcommand{\shellinline}[1]{\lstinline[style = shellstyle]!#1!}
+\lstnewenvironment{shellcode}{\lstset{style = shellstyle}}{}
+\newcommand{\luainline}[1]{\lstinline[style = luastyle]!#1!}
+\lstnewenvironment{lualisting}{\lstset{style = luastyle}}{}
+\newcommand{\luafilelisting}[2][]{\lstinputlisting[style = luastyle, #1]{#2}}
 
 % API documentation commands
 \newenvironment{APIfunc}[1]{\par\hspace*{-2em}\luainline{#1}\leftskip=2em\par}{\par}
@@ -143,4 +153,3 @@ Explanation\\\midrule}{\end{tabular}} \def\parameter #1#2#3;{\texttt{#1} & #2 & 
 \usepackage{csquotes}
 
 \frenchspacing
-

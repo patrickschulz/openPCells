@@ -3,6 +3,7 @@
 \title{OpenPCells}
 \subtitle{User Guide}
 \author{Patrick Kurth}
+\date{2023-06-29}
 
 \begin{document}
 
@@ -25,9 +26,13 @@ If you did not do this yet, clone the repository:
 \end{shellcode}
 Go to the repository and create the main program:
 \begin{shellcode}
+    > ./configure --all-load-paths-local
     > make
 \end{shellcode}
-The project supplies a lua interpreter (the official code with some modifications) that simplify compatibility problems and path setup issues.
+This sets up the loading of all shared files and compiles the executable.
+The option \shellinline{--all-load-paths-local} creates an executable that can be directly used from this directory without any further installation.
+This option assumes that the shared files (cells, export and tech) are not moved after compiling.
+For a quick start, this is the best option.
 
 Now run the program:
 \begin{shellcode}
@@ -35,22 +40,23 @@ Now run the program:
 \end{shellcode}
 You should see the following message:
 \begin{shellcode}
-    This is the openPCell layout generator.
+    This is the openPCell layout generator (opc), version 0.2.0.
+    Copyright 2020-2023 Patrick Kurth
     To generate a layout, you need to pass the technology, the export type and a cellname.
     Example:
              opc --technology opc --export gds --cell stdcells/not_gate
 
     You can find out more about the available command line options by running 'opc -h'.
 \end{shellcode}
-This indicates that everything is working fine. Due to the non-standard interpreter, the paths for the toolchain are already set. You should be able to call
-\shellinline{opc} from any path (of course by using the full name including path or modifying your shell PATH variable accordingly).
+This indicates that everything is working fine.
+You should be able to call \shellinline{opc} from any path (of course by using the full name including path or modifying your shell PATH variable accordingly).
 
 Now call the program from a different location with all the needed data: technology, export and cell.
-Since technology files are usually under non-dislosure agreements, openPCells comes with a generic technology (opc) which can be used to test the
-setup.
+Since technology files are usually under non-dislosure agreements, openPCells comes with a generic technology (opc) which can be used to test the setup.
 However, this is a non-physical technology, so for real work you will have to write technology files yourself, which is not too hard.
-See the guide about writing technology files.
-Let's call the program: \begin{shellcode}
+See the guide about writing technology files for this (techfiles.pdf).
+Let's call the program:
+\begin{shellcode}
     opc --technology opc --export gds --cell basic/mosfet
 \end{shellcode}
 or
@@ -62,7 +68,7 @@ Further current available export are SVG, magic, tikz and a debugging export.
 
 This already concludes the quick start.
 For next steps, have a look in \shellinline{cells/} to see how the pcells are implemented.
-Furthermore, \shellinline{tech/} contains the technology files: opc, skywater130, freePDK45 and a template (which is a little bit outdated, take opc as template).
+Furthermore, \shellinline{tech/} contains the technology files: opc, skywater130 (currently out-dated), freePDK45 (also out-dated) and a template as a starting point for custom technology files.
 The documentation is split in several files, this document is a general user guide containing broad information about \enquote{everything}.
 For a detailed guide on how to write cell generators, see celldesign.pdf.
 The procedure of writing technology files is described in techfiles.pdf.
@@ -103,9 +109,16 @@ A framework for writing tool interfaces is provided as well as templates for tec
 The project comes with a set of predefined cells which are actively maintained and developed.
 
 \section{Installation}
-The OpenPCells project aims to have zero dependencies (besides a C compiler) by writing all modules from scratch and including a lua interpreter. Therefore a
-simple \shellinline{make} should be enough to build the project. The main Makefile is partly based on the Makefile from the lua project and tries to figure out
-the platform it is running on. There is no reason why this project should not also run on systems where lua runs on, but it is only tested for linux.
+The OpenPCells project aims to have zero dependencies (besides a C compiler) by writing all modules from scratch and including a lua interpreter.
+Therefore a simple
+\begin{shellcode}
+    > ./configure
+    > make
+    > make install
+\end{shellcode}
+should be enough to build the project.
+The main Makefile is partly based on the Makefile from the lua project and tries to figure out the platform it is running on.
+There is no reason why this project should not also run on systems where lua runs on, but it is only tested for linux.
 
 \subsection{Virtuoso}
 The virtuoso interface consists of two parts: an export module to create .il files to be loaded in virtuoso as well as a menu that helps creating a menu and
@@ -116,9 +129,8 @@ installs a trigger). The best option is to put the following line in your \shell
 \end{shellcode}
 Of course you need to adapt the path.
 
-Now open a layout view, there should be a new menu at the end of the available menus (right) called OpenPCells. If not, check your log window and write me an
-email.
+Now open a layout view, there should be a new menu at the end of the available menus (right) called OpenPCells.
+If not, check your log window and write me an e-mail.
 
 \end{document}
-
 % vim: ft=tex
