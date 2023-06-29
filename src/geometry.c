@@ -532,7 +532,7 @@ static struct via_definition* _get_rectangular_arrayzation(ucoordinate_t regionw
 static int _via_contact_bltr(
     struct object* cell,
     struct via_definition** viadefs, struct via_definition* fallback,
-    const struct generics* cutlayer, const struct generics* surrounding1, const struct generics* surrounding2,
+    const struct generics* cutlayer,
     coordinate_t blx, coordinate_t bly, coordinate_t trx, coordinate_t try,
     int xcont, int ycont,
     int equal_pitch,
@@ -561,14 +561,6 @@ static int _via_contact_bltr(
     else
     {
         _rectanglebltr(cell, cutlayer, blx, bly, trx, try);
-    }
-    if(surrounding1)
-    {
-        _rectanglebltr(cell, surrounding1, blx, bly, trx, try);
-    }
-    if(surrounding2)
-    {
-        _rectanglebltr(cell, surrounding2, blx, bly, trx, try);
     }
     return 1;
 }
@@ -602,13 +594,15 @@ static int _viabltr(
         ret = ret && _via_contact_bltr(cell,
             viadefs, fallback,
             generics_create_viacut(techstate, i, i + 1),
-            generics_create_metal(techstate, i),
-            generics_create_metal(techstate, i + 1),
             blx, bly, trx, try,
             xcont, ycont,
             equal_pitch,
             technology_is_create_via_arrays(techstate)
         );
+    }
+    for(int i = metal1; i <= metal2; ++i)
+    {
+        _rectanglebltr(cell, generics_create_metal(techstate, i), blx, bly, trx, try);
     }
     return ret;
 }
@@ -633,16 +627,17 @@ static int _contactbltr(
     {
         return 0;
     }
-    return _via_contact_bltr(cell,
+    int ret = 1;
+    ret = ret && _via_contact_bltr(cell,
         viadefs, fallback,
         generics_create_contact(techstate, region),
-        generics_create_metal(techstate, 1),
-        NULL,
         blx, bly, trx, try,
         xcont, ycont,
         equal_pitch,
         technology_is_create_via_arrays(techstate)
     );
+    _rectanglebltr(cell, generics_create_metal(techstate, 1), blx, bly, trx, try);
+    return ret;
 }
 
 static int _contactbarebltr(
@@ -660,15 +655,16 @@ static int _contactbarebltr(
     {
         return 0;
     }
-    return _via_contact_bltr(cell,
+    int ret = 1;
+    ret = ret && _via_contact_bltr(cell,
         viadefs, fallback,
         generics_create_contact(techstate, region),
-        NULL, NULL,
         blx, bly, trx, try,
         xcont, ycont,
         equal_pitch,
         technology_is_create_via_arrays(techstate)
     );
+    return ret;
 }
 
 int geometry_contactbltr(
