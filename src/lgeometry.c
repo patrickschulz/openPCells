@@ -259,6 +259,112 @@ static int lgeometry_path_manhatten(lua_State* L)
     return 0;
 }
 
+static int lgeometry_rectanglelines_vertical(lua_State* L)
+{
+    _check_numargs(L, 6, "geometry.rectanglevlines");
+    struct lobject* cell = lobject_check(L, 1);
+    struct generics* layer = _check_generics(L, 2);
+    struct lpoint* pt1 = lpoint_checkpoint(L, 3);
+    struct lpoint* pt2 = lpoint_checkpoint(L, 4);
+    int numlines = lua_tointeger(L, 5);
+    double ratio = lua_tonumber(L, 6);
+
+    if(numlines <= 0)
+    {
+        lua_pushfstring(L, "geometry.rectanglevlines: number of lines must be greater than zero (got %d)", numlines);
+        lua_error(L);
+    }
+
+    if(ratio <= 0)
+    {
+        lua_pushfstring(L, "geometry.rectanglevlines: ratio must be greater than zero (got %f)", ratio);
+        lua_error(L);
+    }
+
+    const point_t* bl = lpoint_get(pt1);
+    const point_t* tr = lpoint_get(pt2);
+
+    ucoordinate_t totalwidth = point_xdifference(tr, bl);
+    // ensure that the width and the space of the lines is even
+    unsigned int correction = 0;
+    while(totalwidth % ((ucoordinate_t)(numlines * 4 * (ratio + 1))) != 0)
+    {
+        --totalwidth;
+        ++correction;
+    }
+
+    ucoordinate_t height = point_ydifference(tr, bl);
+    ucoordinate_t pitch = totalwidth / numlines;
+    ucoordinate_t space = pitch / (ratio + 1);
+    ucoordinate_t width = pitch - space;
+
+    coordinate_t offset = (correction + space) / 2;
+
+    geometry_rectanglearray(
+        lobject_get(cell),
+        layer,
+        width, height,
+        bl->x + offset, bl->y,  // xshift, yshift
+        numlines, 1,            // xrep, yrep
+        pitch, 0                // xpitch, ypitch
+    );
+
+    return 0;
+}
+
+static int lgeometry_rectanglelines_horizontal(lua_State* L)
+{
+    _check_numargs(L, 6, "geometry.rectanglehlines");
+    struct lobject* cell = lobject_check(L, 1);
+    struct generics* layer = _check_generics(L, 2);
+    struct lpoint* pt1 = lpoint_checkpoint(L, 3);
+    struct lpoint* pt2 = lpoint_checkpoint(L, 4);
+    int numlines = lua_tointeger(L, 5);
+    double ratio = lua_tonumber(L, 6);
+
+    if(numlines <= 0)
+    {
+        lua_pushfstring(L, "geometry.rectanglehlines: number of lines must be greater than zero (got %d)", numlines);
+        lua_error(L);
+    }
+
+    if(ratio <= 0)
+    {
+        lua_pushfstring(L, "geometry.rectanglehlines: ratio must be greater than zero (got %f)", ratio);
+        lua_error(L);
+    }
+
+    const point_t* bl = lpoint_get(pt1);
+    const point_t* tr = lpoint_get(pt2);
+
+    ucoordinate_t totalheight = point_ydifference(tr, bl);
+    // ensure that the width and the space of the lines is even
+    unsigned int correction = 0;
+    while(totalheight % ((ucoordinate_t)(numlines * 4 * (ratio + 1))) != 0)
+    {
+        --totalheight;
+        ++correction;
+    }
+
+    ucoordinate_t width = point_xdifference(tr, bl);
+    ucoordinate_t pitch = totalheight / numlines;
+    ucoordinate_t space = pitch / (ratio + 1);
+    ucoordinate_t height = pitch - space;
+
+    coordinate_t offset = (correction + space) / 2;
+
+    geometry_rectanglearray(
+        lobject_get(cell),
+        layer,
+        width, height,
+        bl->x, bl->y + offset,  // xshift, yshift
+        1, numlines,            // xrep, yrep
+        0, pitch                // xpitch, ypitch
+    );
+
+    return 0;
+}
+
 /*
 static int lgeometry_path_3x(lua_State* L)
 {
@@ -861,31 +967,33 @@ int open_lgeometry_lib(lua_State* L)
     lua_newtable(L);
     static const luaL_Reg modfuncs[] =
     {
-        { "rectanglebltr",          lgeometry_rectanglebltr         },
-        { "rectanglepoints",        lgeometry_rectanglepoints       },
-        { "rectanglearray",         lgeometry_rectanglearray        },
-        { "rectanglepath",          lgeometry_rectanglepath         },
-        { "polygon",                lgeometry_polygon               },
-        { "path",                   lgeometry_path                  },
-        { "path_manhatten",         lgeometry_path_manhatten        },
-        { "path_2x",                lgeometry_path_2x               },
-        { "path_2y",                lgeometry_path_2y               },
-        { "path_cshape",            lgeometry_path_cshape           },
-        { "path_ushape",            lgeometry_path_ushape           },
-        { "path_polygon",           lgeometry_path_polygon          },
-        { "viabltr",                lgeometry_viabltr               },
-        { "viabltr_xcontinuous",    lgeometry_viabltr_xcontinuous   },
-        { "viabltr_ycontinuous",    lgeometry_viabltr_ycontinuous   },
-        { "viabltr_continuous",     lgeometry_viabltr_continuous    },
-        { "contactbltr",            lgeometry_contactbltr           },
-        { "contactbarebltr",        lgeometry_contactbarebltr       },
-        { "cross",                  lgeometry_cross                 },
-        { "ring",                   lgeometry_ring                  },
-        { "unequal_ring",           lgeometry_unequal_ring          },
-        { "unequal_ring_pts",       lgeometry_unequal_ring_pts      },
-        { "curve",                  lgeometry_curve                 },
-        { "curve_rasterized",       lgeometry_curve_rasterized      },
-        { NULL,                     NULL                            }
+        { "rectanglebltr",          lgeometry_rectanglebltr                 },
+        { "rectanglepoints",        lgeometry_rectanglepoints               },
+        { "rectanglearray",         lgeometry_rectanglearray                },
+        { "rectanglepath",          lgeometry_rectanglepath                 },
+        { "rectanglevlines",        lgeometry_rectanglelines_vertical       },
+        { "rectanglehlines",        lgeometry_rectanglelines_horizontal     },
+        { "polygon",                lgeometry_polygon                       },
+        { "path",                   lgeometry_path                          },
+        { "path_manhatten",         lgeometry_path_manhatten                },
+        { "path_2x",                lgeometry_path_2x                       },
+        { "path_2y",                lgeometry_path_2y                       },
+        { "path_cshape",            lgeometry_path_cshape                   },
+        { "path_ushape",            lgeometry_path_ushape                   },
+        { "path_polygon",           lgeometry_path_polygon                  },
+        { "viabltr",                lgeometry_viabltr                       },
+        { "viabltr_xcontinuous",    lgeometry_viabltr_xcontinuous           },
+        { "viabltr_ycontinuous",    lgeometry_viabltr_ycontinuous           },
+        { "viabltr_continuous",     lgeometry_viabltr_continuous            },
+        { "contactbltr",            lgeometry_contactbltr                   },
+        { "contactbarebltr",        lgeometry_contactbarebltr               },
+        { "cross",                  lgeometry_cross                         },
+        { "ring",                   lgeometry_ring                          },
+        { "unequal_ring",           lgeometry_unequal_ring                  },
+        { "unequal_ring_pts",       lgeometry_unequal_ring_pts              },
+        { "curve",                  lgeometry_curve                         },
+        { "curve_rasterized",       lgeometry_curve_rasterized              },
+        { NULL,                     NULL                                    }
     };
     luaL_setfuncs(L, modfuncs, 0);
 
