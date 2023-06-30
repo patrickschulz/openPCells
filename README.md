@@ -66,7 +66,7 @@ Paths to additional cells can be given with
 
 OpenPCells provides an already quite rich set of command line options, which influence how layouts are generated.
 Furthermore, it can also import GDSII-streams and create an opc-own representation of an entire library.
-See `--read-GDS` for this.
+See `--read-gds` for this.
 All command line options are documented with `--help` and a few basic examples for usage are given at the end.
 Help for API functions is provided by `--api-list` (list all available API functions), `--api-search` (search for matching function names) and `api-help` (display detailed help about a specific function).
 
@@ -111,7 +111,6 @@ virtuoso or execute the four lines in that order in your CIW to activate the men
 ---
 
 [^1]: Technically, the here displayed images are png files, but these are conversion results from the generated SVG. A binary image format with compression like png is more complex than an SVG Furthermore it is not vital (but desirable) to this project, therefore there is currently no implementation of it.
-
 
 <!---
 vim: tw=150
