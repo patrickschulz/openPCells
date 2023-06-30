@@ -440,8 +440,13 @@ static int lobject_inherit_area_anchor(lua_State* L)
 {
     struct lobject* cell = lobject_check(L, 1);
     struct lobject* other = lobject_check(L, 2);
-    const char* name = luaL_checkstring(L, 3);
-    object_inherit_area_anchor(lobject_get(cell), lobject_get(other), name);
+    const char* anchorname = luaL_checkstring(L, 3);
+    if(!object_has_area_anchor(lobject_get(other), anchorname))
+    {
+        lua_pushfstring(L, "object.get_area_anchor_width: object does not have an area anchor '%s'", anchorname);
+        lua_error(L);
+    }
+    object_inherit_area_anchor(lobject_get(cell), lobject_get(other), anchorname);
     return 0;
 }
 
@@ -449,9 +454,14 @@ static int lobject_inherit_area_anchor_as(lua_State* L)
 {
     struct lobject* cell = lobject_check(L, 1);
     struct lobject* other = lobject_check(L, 2);
-    const char* name = luaL_checkstring(L, 3);
-    const char* newname = luaL_checkstring(L, 4);
-    object_inherit_area_anchor_as(lobject_get(cell), lobject_get(other), name, newname);
+    const char* anchorname = luaL_checkstring(L, 3);
+    const char* newanchorname = luaL_checkstring(L, 4);
+    if(!object_has_area_anchor(lobject_get(other), anchorname))
+    {
+        lua_pushfstring(L, "object.get_area_anchor_width: object does not have an area anchor '%s'", anchorname);
+        lua_error(L);
+    }
+    object_inherit_area_anchor_as(lobject_get(cell), lobject_get(other), anchorname, newanchorname);
     return 0;
 }
 
