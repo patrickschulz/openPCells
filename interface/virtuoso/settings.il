@@ -85,7 +85,7 @@ procedure(OPCCreateSettingsForm()
             )
             hiCreateIntField(
                 ?name 'OPCSettingsMaxLetSplits
-                ?value 65536
+                ?value 65534
                 ?prompt "Maximum Values in a 'let' Statement"
             )
             hiCreateRadioField(
