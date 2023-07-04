@@ -764,19 +764,23 @@ function layout(transistor, _P)
         for i = 1, _P.fingers + 1, 2 do
             local shift = leftactext - (_P.gatespace + _P.sdwidth) / 2 + (i - 1) * gatepitch
             if not sourceinvert or _P.connectsourceboth then
-               if not (i == 1 and not _P.drawfirstsourcevia or i == _P.fingers + 1 and not _P.drawlastsourcevia) then
-                   geometry.rectanglebltr(transistor, generics.metal(_P.sourcemetal),
-                       point.create(shift, -_P.connectsourcespace),
-                       point.create(shift + _P.sdwidth, sourceoffset)
-                   )
+                if -_P.connectsourcespace < sourceoffset then -- don't draw connections if they are malformed
+                    if not (i == 1 and not _P.drawfirstsourcevia or i == _P.fingers + 1 and not _P.drawlastsourcevia) then
+                        geometry.rectanglebltr(transistor, generics.metal(_P.sourcemetal),
+                            point.create(shift, -_P.connectsourcespace),
+                            point.create(shift + _P.sdwidth, sourceoffset)
+                        )
+                    end
                 end
             end
             if sourceinvert or _P.connectsourceboth then
-               if not (i == 1 and not _P.drawfirstsourcevia or i == _P.fingers + 1 and not _P.drawlastsourcevia) then
-                    geometry.rectanglebltr(transistor, generics.metal(_P.sourcemetal),
-                        point.create(shift, sourceoffset + _P.sourcesize),
-                        point.create(shift + _P.sdwidth, _P.fwidth + _P.connectsourcespace)
-                    )
+                if sourceoffset + _P.sourcesize < _P.fwidth + _P.connectsourcespace then -- don't draw connections if they are malformed
+                    if not (i == 1 and not _P.drawfirstsourcevia or i == _P.fingers + 1 and not _P.drawlastsourcevia) then
+                        geometry.rectanglebltr(transistor, generics.metal(_P.sourcemetal),
+                            point.create(shift, sourceoffset + _P.sourcesize),
+                            point.create(shift + _P.sdwidth, _P.fwidth + _P.connectsourcespace)
+                        )
+                    end
                 end
             end
         end
@@ -875,19 +879,23 @@ function layout(transistor, _P)
             local conndrainoffset = _P.drainmetal > 1 and drainviaoffset or drainoffset
             local conndraintop = _P.drainmetal > 1 and _P.drainviasize or _P.drainsize
             if not draininvert or _P.connectdrainboth then
-               if not (i == 2 and not _P.drawfirstdrainvia or i == _P.fingers + 1 and not _P.drawlastdrainvia) then
-                    geometry.rectanglebltr(transistor, generics.metal(_P.drainmetal),
-                        point.create(shift, conndrainoffset + conndraintop),
-                        point.create(shift + _P.sdwidth, _P.fwidth + _P.connectdrainspace)
-                    )
+                if conndrainoffset + conndraintop < _P.fwidth + _P.connectdrainspace then -- don't draw connections if they are malformed
+                   if not (i == 2 and not _P.drawfirstdrainvia or i == _P.fingers + 1 and not _P.drawlastdrainvia) then
+                        geometry.rectanglebltr(transistor, generics.metal(_P.drainmetal),
+                            point.create(shift, conndrainoffset + conndraintop),
+                            point.create(shift + _P.sdwidth, _P.fwidth + _P.connectdrainspace)
+                        )
+                    end
                 end
             end
             if draininvert or _P.connectdrainboth then
-               if not (i == 2 and not _P.drawfirstdrainvia or i == _P.fingers + 1 and not _P.drawlastdrainvia) then
-                    geometry.rectanglebltr(transistor, generics.metal(_P.drainmetal),
-                        point.create(shift, -_P.connectdrainspace),
-                        point.create(shift + _P.sdwidth, conndrainoffset)
-                    )
+                if -_P.connectdrainspace < conndrainoffset then -- don't draw connections if they are malformed
+                    if not (i == 2 and not _P.drawfirstdrainvia or i == _P.fingers + 1 and not _P.drawlastdrainvia) then
+                        geometry.rectanglebltr(transistor, generics.metal(_P.drainmetal),
+                            point.create(shift, -_P.connectdrainspace),
+                            point.create(shift + _P.sdwidth, conndrainoffset)
+                        )
+                    end
                 end
             end
         end
