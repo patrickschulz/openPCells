@@ -444,6 +444,7 @@ int object_inherit_area_anchor_as(struct object* cell, const struct object* othe
     if(anchor)
     {
         object_add_area_anchor_bltr(cell, newname, anchor + 0, anchor + 1);
+        free(anchor);
     }
     return 0;
 }
