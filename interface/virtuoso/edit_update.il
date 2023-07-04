@@ -42,9 +42,6 @@ procedure(OPCUpdateCallback(@key (callopc t) (hierarchical t) (xpath nil))
             then
                 if(OPCCall(OPCCmd)
                     then
-                        foreach(shape cv->shapes dbDeleteObject(shape))
-                        foreach(inst cv->instances dbDeleteObject(inst))
-                        foreach(via cv->vias dbDeleteObject(via))
                         success = t
                     else
                         success = nil
@@ -54,6 +51,9 @@ procedure(OPCUpdateCallback(@key (callopc t) (hierarchical t) (xpath nil))
                 success = t
         )
         when(success
+            foreach(shape cv->shapes dbDeleteObject(shape))
+            foreach(inst cv->instances dbDeleteObject(inst))
+            foreach(via cv->vias dbDeleteObject(via))
             load(lsprintf("%s.il" OPCSettingsForm->OPCCellFilename->value))
             OPCCleanUp(lsprintf("%s.il" OPCSettingsForm->OPCCellFilename->value))
         )
