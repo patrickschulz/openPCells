@@ -7,6 +7,8 @@
 #include "tagged_value.h"
 #include "util.h"
 
+#include "ldebug.h"
+
 struct export_writer {
     union {
         lua_State* L;
@@ -239,7 +241,7 @@ static int _write_child_array(struct export_writer* writer, const char* identifi
         lua_pushinteger(writer->L, origin->y);
         _push_trans(writer->L, trans);
         _push_rep_pitch(writer->L, xrep, yrep, xpitch, ypitch);
-        int lret = lua_pcall(writer->L, 8, 0, 0);
+        int lret = lua_pcall(writer->L, 9, 0, 0);
         if(lret != LUA_OK)
         {
             return 0;
@@ -902,6 +904,7 @@ int export_writer_write_toplevel(struct export_writer* writer, const struct obje
     if(_has_initialize(writer))
     {
         ret = _initialize(writer, toplevel);
+        fputs("export_write_write_toplevel: could not initialize export\n", stderr);
     }
     if(!ret)
     {
