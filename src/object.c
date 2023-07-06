@@ -962,7 +962,7 @@ int object_align_area_anchor(struct object* cell, const char* anchorname, const 
     return 1;
 }
 
-int object_align_area_anchor_left(struct object* cell, const char* anchorname, const struct object* other, const char* otheranchorname)
+int object_align_area_anchor_x(struct object* cell, const char* anchorname, const struct object* other, const char* otheranchorname)
 {
     point_t* pts1 = object_get_area_anchor(cell, anchorname);
     point_t* pts2 = object_get_area_anchor(other, otheranchorname);
@@ -974,31 +974,7 @@ int object_align_area_anchor_left(struct object* cell, const char* anchorname, c
     return 1;
 }
 
-int object_align_area_anchor_right(struct object* cell, const char* anchorname, const struct object* other, const char* otheranchorname)
-{
-    point_t* pts1 = object_get_area_anchor(cell, anchorname);
-    point_t* pts2 = object_get_area_anchor(other, otheranchorname);
-    coordinate_t blx1 = _area_anchor_get_blx(pts1);
-    coordinate_t blx2 = _area_anchor_get_blx(pts2);
-    object_translate(cell, blx2 - blx1, 0);
-    free(pts1);
-    free(pts2);
-    return 1;
-}
-
-int object_align_area_anchor_top(struct object* cell, const char* anchorname, const struct object* other, const char* otheranchorname)
-{
-    point_t* pts1 = object_get_area_anchor(cell, anchorname);
-    point_t* pts2 = object_get_area_anchor(other, otheranchorname);
-    coordinate_t bly1 = _area_anchor_get_bly(pts1);
-    coordinate_t bly2 = _area_anchor_get_bly(pts2);
-    object_translate(cell, 0, bly2 - bly1);
-    free(pts1);
-    free(pts2);
-    return 1;
-}
-
-int object_align_area_anchor_bottom(struct object* cell, const char* anchorname, const struct object* other, const char* otheranchorname)
+int object_align_area_anchor_y(struct object* cell, const char* anchorname, const struct object* other, const char* otheranchorname)
 {
     point_t* pts1 = object_get_area_anchor(cell, anchorname);
     point_t* pts2 = object_get_area_anchor(other, otheranchorname);

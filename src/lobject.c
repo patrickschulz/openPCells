@@ -322,11 +322,41 @@ _gen_fun_abut_align_area_anchor(abut_area_anchor_left)
 _gen_fun_abut_align_area_anchor(abut_area_anchor_right)
 _gen_fun_abut_align_area_anchor(abut_area_anchor_top)
 _gen_fun_abut_align_area_anchor(abut_area_anchor_bottom)
-_gen_fun_abut_align_area_anchor(align_area_anchor)
-_gen_fun_abut_align_area_anchor(align_area_anchor_left)
-_gen_fun_abut_align_area_anchor(align_area_anchor_right)
-_gen_fun_abut_align_area_anchor(align_area_anchor_top)
-_gen_fun_abut_align_area_anchor(align_area_anchor_bottom)
+_gen_fun_abut_align_area_anchor(align_area_anchor_x)
+_gen_fun_abut_align_area_anchor(align_area_anchor_y)
+
+static int lobject_align_area_anchor(lua_State* L)
+{
+    struct lobject* cell = lobject_check(L, 1);
+    const char* anchorname = luaL_checkstring(L, 2);
+    if(!object_has_area_anchor(lobject_get(cell), anchorname))
+    {
+        const char* name = object_get_name(lobject_get(cell));
+        if(name)
+        {
+            lua_pushfstring(L, "object.align_area_anchor: first object ('%s') does not have an anchor '%s'", name, anchorname);
+        }
+        else
+        {
+            lua_pushfstring(L, "object.align_area_anchor: first object does not have an anchor '%s'", anchorname);
+        }
+        lua_error(L);
+    }
+    struct lobject* other = lobject_check(L, 3);
+    const char* otheranchorname = luaL_checkstring(L, 4);
+    if(!object_has_area_anchor(lobject_get(other), otheranchorname))
+    {
+        lua_pushfstring(L, "object.align_area_anchor: second object does not have an anchor '%s'", otheranchorname);
+        lua_error(L);
+    }
+    if(!object_area_anchors_fit(lobject_get(cell), anchorname, lobject_get(other), otheranchorname))
+    {
+        lua_pushstring(L, "object.align_area_anchor: area anchors do not fit (have the same size)");
+        lua_error(L);
+    }
+    object_align_area_anchor(lobject_get(cell), anchorname, lobject_get(other), otheranchorname);
+    return 1;
+}
 
 static int lobject_add_child(lua_State* L)
 {
@@ -845,10 +875,8 @@ int open_lobject_lib(lua_State* L)
         { "abut_area_anchor_top",       lobject_abut_area_anchor_top        },
         { "abut_area_anchor_bottom",    lobject_abut_area_anchor_bottom     },
         { "align_area_anchor",          lobject_align_area_anchor           },
-        { "align_area_anchor_left",     lobject_align_area_anchor_left      },
-        { "align_area_anchor_right",    lobject_align_area_anchor_right     },
-        { "align_area_anchor_top",      lobject_align_area_anchor_top       },
-        { "align_area_anchor_bottom",   lobject_align_area_anchor_bottom    },
+        { "align_area_anchor_x",        lobject_align_area_anchor_x         },
+        { "align_area_anchor_y",        lobject_align_area_anchor_y         },
         { "add_child",                  lobject_add_child                   },
         { "add_child_array",            lobject_add_child_array             },
         { "merge_into",                 lobject_merge_into                  },

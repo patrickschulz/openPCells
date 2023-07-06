@@ -62,11 +62,10 @@ int object_abut_area_anchor_right(struct object* cell, const char* anchorname, c
 int object_abut_area_anchor_left(struct object* cell, const char* anchorname, const struct object* other, const char* otheranchorname);
 int object_abut_area_anchor_top(struct object* cell, const char* anchorname, const struct object* other, const char* otheranchorname);
 int object_abut_area_anchor_bottom(struct object* cell, const char* anchorname, const struct object* other, const char* otheranchorname);
+int object_area_anchors_fit(const struct object* cell, const char* anchorname, const struct object* other, const char* otheranchorname);
 int object_align_area_anchor(struct object* cell, const char* anchorname, const struct object* other, const char* otheranchorname);
-int object_align_area_anchor_left(struct object* cell, const char* anchorname, const struct object* other, const char* otheranchorname);
-int object_align_area_anchor_right(struct object* cell, const char* anchorname, const struct object* other, const char* otheranchorname);
-int object_align_area_anchor_top(struct object* cell, const char* anchorname, const struct object* other, const char* otheranchorname);
-int object_align_area_anchor_bottom(struct object* cell, const char* anchorname, const struct object* other, const char* otheranchorname);
+int object_align_area_anchor_x(struct object* cell, const char* anchorname, const struct object* other, const char* otheranchorname);
+int object_align_area_anchor_y(struct object* cell, const char* anchorname, const struct object* other, const char* otheranchorname);
 
 // ports
 void object_add_port(struct object* cell, const char* name, const struct generics* layer, const point_t* where, int storeanchor, double sizehint);
