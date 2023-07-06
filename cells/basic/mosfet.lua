@@ -15,6 +15,8 @@ function parameters()
         { "sdwidth(Source/Drain Metal Width)",                         technology.get_dimension("Minimum M1 Width"), argtype = "integer" },
         { "gtopext(Gate Top Extension)",                               technology.get_dimension("Minimum Gate Extension") },
         { "gbotext(Gate Bottom Extension)",                            technology.get_dimension("Minimum Gate Extension") },
+        { "gtopextadd(Gate Additional Top Extension)",                 0 },
+        { "gbotextadd(Gate Additional Bottom Extension)",              0 },
         { "cliptop(Clip Top Marker Layers)",                           false },
         { "clipbot(Clip Bottom Marker Layers)",                        false },
         { "drawleftstopgate(Draw Left Stop Gate)",                     false },
@@ -203,8 +205,8 @@ function layout(transistor, _P)
 
     local topgateshift = enable(_P.drawtopgate, _P.topgatespace + _P.topgatewidth)
     local botgateshift = enable(_P.drawbotgate, _P.botgatespace + _P.botgatewidth)
-    local gateaddtop = math.max(_P.gtopext, topgateshift)
-    local gateaddbot = math.max(_P.gbotext, botgateshift)
+    local gateaddtop = math.max(_P.gtopext, topgateshift) + _P.gtopextadd
+    local gateaddbot = math.max(_P.gbotext, botgateshift) + _P.gbotextadd
 
     local drainshift = enable(_P.connectdrain, _P.connectdrainwidth + _P.connectdrainspace)
     local sourceshift = enable(_P.connectsource, _P.connectsourcewidth + _P.connectsourcespace)
@@ -688,9 +690,9 @@ function layout(transistor, _P)
 
     -- source/drain contacts and vias
     local sourceoffset = _P.sourcealign == "top" and _P.fwidth - _P.sourcesize or 0
-    local sourceviaoffset = _P.sourceviaalign == "top" and _P.sourcesize - _P.sourceviasize or 0
+    local sourceviaoffset = _P.sourceviaalign == "top" and _P.fwidth - _P.sourceviasize or 0
     local drainoffset = _P.drainalign == "top" and _P.fwidth - _P.drainsize or 0
-    local drainviaoffset = _P.drainviaalign == "top" and _P.drainsize - _P.drainviasize or 0
+    local drainviaoffset = _P.drainviaalign == "top" and _P.fwidth - _P.drainviasize or 0
     if _P.drawsourcedrain ~= "none" then
         -- source
         if _P.drawsourcedrain == "both" or _P.drawsourcedrain == "source" then
@@ -755,7 +757,7 @@ function layout(transistor, _P)
     end
 
     -- source connections
-    if _P.drawsourceconnections then
+    if _P.drawsourceconnections and not _P.connectsourceinline then
         -- connections to strap
         local sourceinvert = (_P.channeltype == "pmos")
         if _P.connectsourceinverse then
@@ -868,7 +870,7 @@ function layout(transistor, _P)
     if _P.connectdraininverse then
         draininvert = not draininvert
     end
-    if _P.drawdrainconnections then
+    if _P.drawdrainconnections and not _P.connectdraininline then
         -- connections to strap
         local draininvert = (_P.channeltype == "pmos")
         if _P.connectdraininverse then
