@@ -25,6 +25,7 @@ struct export_state {
     const char* basename;
     char leftdelim, rightdelim;
     const char* const * exportoptions;
+    int expand_namecontext;
     int writechildrenports;
 };
 
@@ -33,6 +34,7 @@ struct export_state* export_create_state(void)
     struct export_state* state = malloc(sizeof(*state));
     memset(state, 0, sizeof(*state));
     state->searchpaths = const_vector_create(1);
+    state->expand_namecontext = 1;
     return state;
 }
 
@@ -63,6 +65,11 @@ void export_set_basename(struct export_state* state, const char* basename)
 void export_set_export_options(struct export_state* state, const char** exportoptions)
 {
     state->exportoptions = exportoptions;
+}
+
+void export_set_namecontext_expansion(struct export_state* state, int expand)
+{
+    state->expand_namecontext = expand;
 }
 
 void export_set_write_children_ports(struct export_state* state, int writechildrenports)
@@ -289,7 +296,7 @@ int export_write_toplevel(struct object* toplevel, struct export_state* state)
     if(funcs) // C-defined exports
     {
         struct export_writer* writer = export_writer_create_C(funcs, data);
-        export_writer_write_toplevel(writer, toplevel, state->writechildrenports, state->leftdelim, state->rightdelim);
+        export_writer_write_toplevel(writer, toplevel, state->expand_namecontext, state->writechildrenports, state->leftdelim, state->rightdelim);
         export_writer_destroy(writer);
         extension = util_strdup(funcs->get_extension());
         status = EXPORT_STATUS_SUCCESS;
@@ -360,7 +367,7 @@ int export_write_toplevel(struct object* toplevel, struct export_state* state)
             }
 
             struct export_writer* writer = export_writer_create_lua(L, data);
-            ret = export_writer_write_toplevel(writer, toplevel, state->writechildrenports, state->leftdelim, state->rightdelim);
+            ret = export_writer_write_toplevel(writer, toplevel, state->expand_namecontext, state->writechildrenports, state->leftdelim, state->rightdelim);
             export_writer_destroy(writer);
             if(!ret)
             {

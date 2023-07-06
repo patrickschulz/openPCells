@@ -324,11 +324,11 @@ static char* _concat_namecontext(const char* namecontext, const char* appendix)
     return newcontext;
 }
 
-static int _write_child(struct export_writer* writer, const struct object* child, const point_t* origin, const char* namecontext)
+static int _write_child(struct export_writer* writer, const struct object* child, const point_t* origin, const char* namecontext, int expand_namecontext)
 {
     unsigned int xrep = object_get_child_xrep(child);
     unsigned int yrep = object_get_child_yrep(child);
-    char* refname = _concat_namecontext(namecontext, object_get_child_reference_name(child));
+    char* refname = _concat_namecontext(expand_namecontext ? namecontext : NULL, object_get_child_reference_name(child));
     const char* instname = object_get_name(child);
     const struct transformationmatrix* trans = object_get_transformation_matrix(child);
     unsigned int xpitch = object_get_child_xpitch(child);
@@ -633,7 +633,7 @@ static int _write_shapes(struct export_writer* writer, const struct object* cell
     return ret;
 }
 
-static int _write_children(struct export_writer* writer, const struct object* cell, const char* namecontext)
+static int _write_children(struct export_writer* writer, const struct object* cell, const char* namecontext, int expand_namecontext)
 {
     struct child_iterator* it = object_create_child_iterator(cell);
     while(child_iterator_is_valid(it))
@@ -642,7 +642,7 @@ static int _write_children(struct export_writer* writer, const struct object* ce
         point_t origin = { .x = 0, .y = 0 };
         object_transform_point(child, &origin);
         object_transform_point(cell, &origin);
-        _write_child(writer, child, &origin, namecontext);
+        _write_child(writer, child, &origin, namecontext, expand_namecontext);
         child_iterator_next(it);
     }
     child_iterator_destroy(it);
@@ -714,7 +714,7 @@ static int _write_ports(struct export_writer* writer, const struct object* cell,
     return 1;
 }
 
-static int _write_cell_elements(struct export_writer* writer, const struct object* cell, const char* namecontext, int write_ports, char leftdelim, char rightdelim)
+static int _write_cell_elements(struct export_writer* writer, const struct object* cell, const char* namecontext, int expand_namecontext, int write_ports, char leftdelim, char rightdelim)
 {
     /* shapes */
     int ret = _write_shapes(writer, cell);
@@ -732,7 +732,7 @@ static int _write_cell_elements(struct export_writer* writer, const struct objec
         newnamecontext = _concat_namecontext(namecontext, object_get_name(cell));
     }
     */
-    ret = _write_children(writer, cell, newnamecontext);
+    ret = _write_children(writer, cell, newnamecontext, expand_namecontext);
     free(newnamecontext);
     if(!ret)
     {
@@ -769,10 +769,10 @@ static int _call_or_pop_nil(lua_State* L, int numargs)
     }
 }
 
-static int _write_cell(struct export_writer* writer, const struct object* cell, const char* namecontext, int istoplevel, int write_ports, char leftdelim, char rightdelim)
+static int _write_cell(struct export_writer* writer, const struct object* cell, const char* namecontext, int expand_namecontext, int istoplevel, int write_ports, char leftdelim, char rightdelim)
 {
     // FIXME: split up function calls to at_begin, at_end and write_cell_elements in order to have more abstraction from lua/C
-    char* name = _concat_namecontext(namecontext, object_get_name(cell));
+    char* name = _concat_namecontext(expand_namecontext ? namecontext : NULL, object_get_name(cell));
     if(writer->islua)
     {
         lua_getfield(writer->L, -1, "at_begin_cell");
@@ -784,7 +784,7 @@ static int _write_cell(struct export_writer* writer, const struct object* cell, 
             free(name);
             return 0;
         }
-        ret = _write_cell_elements(writer, cell, namecontext, write_ports, leftdelim, rightdelim);
+        ret = _write_cell_elements(writer, cell, namecontext, expand_namecontext, write_ports, leftdelim, rightdelim);
         if(!ret)
         {
             free(name);
@@ -797,7 +797,7 @@ static int _write_cell(struct export_writer* writer, const struct object* cell, 
     else // C
     {
         writer->funcs->at_begin_cell(writer->data, name);
-        _write_cell_elements(writer, cell, namecontext, write_ports, leftdelim, rightdelim);
+        _write_cell_elements(writer, cell, namecontext, expand_namecontext, write_ports, leftdelim, rightdelim);
         writer->funcs->at_end_cell(writer->data);
     }
     free(name);
@@ -867,7 +867,7 @@ static int _write_at_end(struct export_writer* writer)
     }
 }
 
-static int _write_cell_hierarchy_with_namecontext(struct export_writer* writer, const struct object* cell, const char* namecontext, int write_ports, char leftdelim, char rightdelim)
+static int _write_cell_hierarchy_with_namecontext(struct export_writer* writer, const struct object* cell, const char* namecontext, int expand_namecontext, int write_ports, char leftdelim, char rightdelim)
 {
     struct reference_iterator* ref_it = object_create_reference_iterator(cell);
     while(reference_iterator_is_valid(ref_it))
@@ -885,8 +885,8 @@ static int _write_cell_hierarchy_with_namecontext(struct export_writer* writer, 
         {
             newnamecontext = util_strdup(name);
         }
-        _write_cell_hierarchy_with_namecontext(writer, reference, newnamecontext, write_ports, leftdelim, rightdelim);
-        int ret = _write_cell(writer, reference, namecontext, 0, write_ports, leftdelim, rightdelim); // 0: cell is not toplevel
+        _write_cell_hierarchy_with_namecontext(writer, reference, newnamecontext, expand_namecontext, write_ports, leftdelim, rightdelim);
+        int ret = _write_cell(writer, reference, namecontext, expand_namecontext, 0, write_ports, leftdelim, rightdelim); // 0: cell is not toplevel
         if(!ret)
         {
             return 0;
@@ -898,7 +898,7 @@ static int _write_cell_hierarchy_with_namecontext(struct export_writer* writer, 
     return 1;
 }
 
-int export_writer_write_toplevel(struct export_writer* writer, const struct object* toplevel, int writechildrenports, char leftdelim, char rightdelim)
+int export_writer_write_toplevel(struct export_writer* writer, const struct object* toplevel, int expand_namecontext, int writechildrenports, char leftdelim, char rightdelim)
 {
     int ret = 1;
     if(_has_initialize(writer))
@@ -927,9 +927,9 @@ int export_writer_write_toplevel(struct export_writer* writer, const struct obje
         return 0;
     }
 
-    _write_cell_hierarchy_with_namecontext(writer, toplevel, object_get_name(toplevel), writechildrenports, leftdelim, rightdelim);
+    _write_cell_hierarchy_with_namecontext(writer, toplevel, object_get_name(toplevel), expand_namecontext, writechildrenports, leftdelim, rightdelim);
 
-    ret = _write_cell(writer, toplevel, NULL, 1, 1, leftdelim, rightdelim); // NULL: no name context; first 1: istoplevel, second 1: write_ports
+    ret = _write_cell(writer, toplevel, NULL, expand_namecontext, 1, 1, leftdelim, rightdelim); // NULL: no name context; first 1: istoplevel, second 1: write_ports
     if(!ret)
     {
         // FIXME: proper cleanup

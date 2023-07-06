@@ -652,6 +652,9 @@ int main_create_and_export_cell(struct cmdoptions* cmdoptions, struct hashmap* c
             // export options
             export_set_export_options(export_state, cmdoptions_get_argument_long(cmdoptions, "export-options"));
 
+            // expand namecontexts
+            export_set_namecontext_expansion(export_state, !cmdoptions_was_provided_long(cmdoptions, "no-expand-namecontexts"));
+
             // write children ports
             export_set_write_children_ports(export_state, cmdoptions_was_provided_long(cmdoptions, "write-children-ports"));
 
