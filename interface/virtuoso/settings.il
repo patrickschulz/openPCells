@@ -37,6 +37,12 @@ procedure(OPCCreateSettingsForm()
                 ?prompt "Additional Command Line Arguments"
             )
             hiCreateRadioField(
+                ?name 'OPCSettingsExpandNamecontexts
+                ?choices list("true" "false")
+                ?value "true"
+                ?prompt "Expand Name Contexts"
+            )
+            hiCreateRadioField(
                 ?name 'OPCSettingsDrawAlignmentbox
                 ?choices list("true" "false")
                 ?value "false"

@@ -14,6 +14,9 @@ procedure(OPCPrepareArgsForCellCreation(args @key (newgroup nil) (exporttype "SK
                 OPCArgs = lsprintf("%s -X -g -X '-n %s'" OPCArgs OPCSettingsForm->OPCSettingsGroupname->value)
         )
     )
+    when(OPCSettingsForm->OPCSettingsExpandNamecontexts->value == "false"
+        OPCArgs = lsprintf("%s --no-expand-namecontexts" OPCArgs)
+    )
     when(OPCSettingsForm->OPCSettingsDrawAlignmentbox->value == "true"
         OPCArgs = lsprintf("%s --draw-alignmentbox" OPCArgs)
     )
