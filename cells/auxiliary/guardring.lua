@@ -9,7 +9,7 @@ function parameters()
         { "wellextension",                                  50 },
         { "soiopenextension",                               50 },
         { "implantextension",                               50 },
-        { "fillimplant",                                  true },
+        { "fillimplant",                                 false },
         { "fillwell",                                     true },
         { "fillwelldrawhole",                            false },
         { "fillwellholeoffsettop",                           0 },
