@@ -748,9 +748,9 @@ function layout(divider, _P)
 
     -- clock anchors
     latch:add_area_anchor_bltr("clknleft", latch:get_area_anchor("clocknlefttopgate").bl, latch:get_area_anchor("clocknlefttopgate").tr)
-    latch:add_area_anchor_bltr("clknright", latch:get_area_anchor("clockplefttopgate").bl, latch:get_area_anchor("clockplefttopgate").tr)
+    latch:add_area_anchor_bltr("clknright", latch:get_area_anchor("clockpleftbotgate").bl, latch:get_area_anchor("clockpleftbotgate").tr)
     latch:add_area_anchor_bltr("clkpleft", latch:get_area_anchor("clocknrighttopgate").bl, latch:get_area_anchor("clocknrighttopgate").tr)
-    latch:add_area_anchor_bltr("clkpright", latch:get_area_anchor("clockprighttopgate").bl, latch:get_area_anchor("clockprighttopgate").tr)
+    latch:add_area_anchor_bltr("clkpright", latch:get_area_anchor("clockprightbotgate").bl, latch:get_area_anchor("clockprightbotgate").tr)
 
     -- input anchors
     latch:add_area_anchor_bltr("inp", latch:get_area_anchor("ninlefttopgate").bl, latch:get_area_anchor("ninlefttopgate").tr)
@@ -807,12 +807,18 @@ function layout(divider, _P)
     for i = 1, numlatches do
         local clockpidentifier
         local clocknidentifier
+        local ptarget
+        local ntarget
         if i % 2 == 0 then
             clockpidentifier = "p"
             clocknidentifier = "n"
+            ptarget = "bot"
+            ntarget = "top"
         else
             clockpidentifier = "n"
             clocknidentifier = "p"
+            ptarget = "top"
+            ntarget = "bot"
         end
         -- clockp
         geometry.viabltr(divider, 7, 8,
@@ -820,12 +826,12 @@ function layout(divider, _P)
             latches[i]:get_area_anchor(string.format("clock%sdummymiddlesourcedrain%d", clockpidentifier, _P.latchoutersepfingers - 1)).tr:translate_y(_P.clockviaextension)
         )
         geometry.viabltr(divider, 2, 7,
-            latches[i]:get_area_anchor(string.format("clock%sdummymiddlesourcedrain%d", clockpidentifier, 3)).tl:translate_y(_P.clockviaextension) .. latches[i]:get_area_anchor(string.format("clock%slefttopgate", clockpidentifier)).br,
-            latches[i]:get_area_anchor(string.format("clock%sdummymiddlesourcedrain%d", clockpidentifier, _P.latchoutersepfingers - 1)).tr .. latches[i]:get_area_anchor(string.format("clock%slefttopgate", clockpidentifier)).tr
+            latches[i]:get_area_anchor(string.format("clock%sdummymiddlesourcedrain%d", clockpidentifier, 3)).tl:translate_y(_P.clockviaextension) .. latches[i]:get_area_anchor(string.format("clock%sleft%sgate", clockpidentifier, ptarget)).br,
+            latches[i]:get_area_anchor(string.format("clock%sdummymiddlesourcedrain%d", clockpidentifier, _P.latchoutersepfingers - 1)).tr .. latches[i]:get_area_anchor(string.format("clock%sleft%sgate", clockpidentifier, ptarget)).tr
         )
         geometry.rectanglebltr(divider, generics.metal(2),
-            latches[i]:get_area_anchor(string.format("clock%slefttopgate", clockpidentifier)).br,
-            latches[i]:get_area_anchor(string.format("clock%srighttopgate", clockpidentifier)).tl
+            latches[i]:get_area_anchor(string.format("clock%sleft%sgate", clockpidentifier, ptarget)).br,
+            latches[i]:get_area_anchor(string.format("clock%sright%sgate", clockpidentifier, ptarget)).tl
         )
         -- clockn
         geometry.viabltr(divider, 7, 8,
@@ -833,12 +839,12 @@ function layout(divider, _P)
             latches[i]:get_area_anchor(string.format("clock%sdummymiddlesourcedrain%d", clocknidentifier, middledummyfingers - 3 + 2)).tr:translate_y(_P.clockviaextension)
         )
         geometry.viabltr(divider, 2, 7,
-            latches[i]:get_area_anchor(string.format("clock%sdummymiddlesourcedrain%d", clocknidentifier, middledummyfingers - (_P.latchoutersepfingers - 1) + 2)).bl:translate_y(-_P.clockviaextension) .. latches[i]:get_area_anchor(string.format("clock%slefttopgate", clocknidentifier)).br,
-            latches[i]:get_area_anchor(string.format("clock%sdummymiddlesourcedrain%d", clocknidentifier, middledummyfingers - 3 + 2)).tr:translate_y(_P.clockviaextension) .. latches[i]:get_area_anchor(string.format("clock%slefttopgate", clocknidentifier)).tr
+            latches[i]:get_area_anchor(string.format("clock%sdummymiddlesourcedrain%d", clocknidentifier, middledummyfingers - (_P.latchoutersepfingers - 1) + 2)).bl:translate_y(-_P.clockviaextension) .. latches[i]:get_area_anchor(string.format("clock%sleft%sgate", clocknidentifier, ntarget)).br,
+            latches[i]:get_area_anchor(string.format("clock%sdummymiddlesourcedrain%d", clocknidentifier, middledummyfingers - 3 + 2)).tr:translate_y(_P.clockviaextension) .. latches[i]:get_area_anchor(string.format("clock%sleft%sgate", clocknidentifier, ntarget)).tr
         )
         geometry.rectanglebltr(divider, generics.metal(2),
-            latches[i]:get_area_anchor(string.format("clock%slefttopgate", clocknidentifier)).bl,
-            latches[i]:get_area_anchor(string.format("clock%srighttopgate", clocknidentifier)).tr
+            latches[i]:get_area_anchor(string.format("clock%sleft%sgate", clocknidentifier, ntarget)).bl,
+            latches[i]:get_area_anchor(string.format("clock%sright%sgate", clocknidentifier, ntarget)).tr
         )
     end
 
