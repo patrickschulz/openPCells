@@ -447,6 +447,7 @@ static int lgdsparser_read_raw_stream(lua_State* L)
 
         lua_rawseti(L, -2, i + 1);
     }
+    _destroy_stream(stream);
     return 1;
 }
 
