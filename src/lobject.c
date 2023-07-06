@@ -514,8 +514,18 @@ static int lobject_get_anchor(lua_State* L)
 
 static int _area_anchor_index_func(lua_State* L)
 {
+    lua_getfield(L, 1, "_name");
+    const char* name = lua_tostring(L, -1);
+    lua_pop(L, 1);
     const char* key = lua_tostring(L, 2);
-    lua_pushfstring(L, "get_area_anchor: trying to access undefined anchor '%s'", key);
+    if(name)
+    {
+        lua_pushfstring(L, "area anchor '%s': trying to access undefined sub-anchor '%s'. Possible sub-anchors are bl, br, tl and tr", name, key);
+    }
+    else
+    {
+        lua_pushfstring(L, "area anchor: trying to access undefined sub-anchor '%s'. Possible sub-anchors are bl, br, tl and tr", key);
+    }
     lua_error(L);
     return 0;
 }
@@ -534,6 +544,8 @@ static int lobject_get_area_anchor(lua_State* L)
     if(pts)
     {
         lua_newtable(L);
+        lua_pushstring(L, base);
+        lua_setfield(L, -2, "_name");
         lpoint_create_internal(L, pts[0].x, pts[0].y);
         lua_setfield(L, -2, "bl");
         lpoint_create_internal(L, pts[1].x, pts[0].y);
