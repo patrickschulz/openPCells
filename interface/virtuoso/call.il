@@ -17,6 +17,9 @@ procedure(OPCPrepareArgsForCellCreation(args @key (newgroup nil) (exporttype "SK
     when(OPCSettingsForm->OPCSettingsExpandNamecontexts->value == "false"
         OPCArgs = lsprintf("%s --no-expand-namecontexts" OPCArgs)
     )
+    when(OPCSettingsForm->OPCSettingsWriteChildrenPorts->value == "true"
+        OPCArgs = lsprintf("%s --write-children-ports" OPCArgs)
+    )
     when(OPCSettingsForm->OPCSettingsDrawAlignmentbox->value == "true"
         OPCArgs = lsprintf("%s --draw-alignmentbox" OPCArgs)
     )

@@ -33,7 +33,7 @@ procedure(OPCUpdateCallback(@key (callopc t) (hierarchical t) (xpath nil))
             else
                 path = lsprintf("%s/%s/layout/layout.lua" libPath cellName)
         )
-        OPCArgs = OPCPrepareArgsForCellCreation(lsprintf("--cellscript %s -f %s --write-children-ports" path OPCSettingsForm->OPCCellFilename->value))
+        OPCArgs = OPCPrepareArgsForCellCreation(lsprintf("--cellscript %s -f %s" path OPCSettingsForm->OPCCellFilename->value))
         unless(hierarchical
             OPCArgs = lsprintf("%s --flat" OPCArgs)
         )
@@ -70,7 +70,7 @@ procedure(OPCUpdateAsGDS()
             OPCArgs OPCCmd success
         )
         OPCArgs = OPCPrepareArgsForCellCreation(
-            lsprintf("--cellscript %s -f %s --write-children-ports" path OPCSettingsForm->OPCCellFilename->value)
+            lsprintf("--cellscript %s -f %s" path OPCSettingsForm->OPCCellFilename->value)
             ?exporttype "gds"
         )
         /*

@@ -43,6 +43,12 @@ procedure(OPCCreateSettingsForm()
                 ?prompt "Expand Name Contexts"
             )
             hiCreateRadioField(
+                ?name 'OPCSettingsWriteChildrenPorts
+                ?choices list("true" "false")
+                ?value "false"
+                ?prompt "Write Ports of Children"
+            )
+            hiCreateRadioField(
                 ?name 'OPCSettingsDrawAlignmentbox
                 ?choices list("true" "false")
                 ?value "false"
