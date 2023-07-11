@@ -476,11 +476,11 @@ static point_t* _get_regular_anchor(const struct object* cell, const char* name)
 
 static void _transform_to_global_coordinates_xy(const struct object* cell, coordinate_t* x, coordinate_t* y)
 {
-    transformationmatrix_apply_transformation_xy(cell->trans, x, y);
     if(object_is_proxy(cell))
     {
         transformationmatrix_apply_transformation_xy(cell->reference->trans, x, y);
     }
+    transformationmatrix_apply_transformation_xy(cell->trans, x, y);
 }
 
 static void _transform_to_global_coordinates(const struct object* cell, point_t* pt)
