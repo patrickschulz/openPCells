@@ -114,6 +114,9 @@ echo -en '\n' >> Makefile.install
 
 # create config.h
 echo "/* This file is auto-generated. Do not edit it. */" > src/config.h
+echo "#ifndef OPC_CONFIG_H" >> src/config.h
+echo "#define OPC_CONFIG_H" >> src/config.h
 echo "#define OPC_CELL_PATH \"${CELL_PATH}\"" >> src/config.h
 echo "#define OPC_TECH_PATH \"${TECH_PATH}\"" >> src/config.h
 echo "#define OPC_EXPORT_PATH \"${EXPORT_PATH}\"" >> src/config.h
+echo "#endif /* OPC_CONFIG_H */" >> src/config.h
