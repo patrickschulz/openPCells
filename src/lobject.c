@@ -451,6 +451,22 @@ static int lobject_add_anchor(lua_State* L)
     return 0;
 }
 
+static void _check_rectangle_points(lua_State* L, struct lpoint* bl, struct lpoint* tr, const char* context)
+{
+    if(lpoint_get(bl)->x > lpoint_get(tr)->x || lpoint_get(bl)->y > lpoint_get(tr)->y)
+    {
+        if(context)
+        {
+            lua_pushfstring(L, "%s: rectangle points are not in order: (%d, %d) and (%d, %d)", context, lpoint_get(bl)->x, lpoint_get(bl)->y, lpoint_get(tr)->x, lpoint_get(tr)->y);
+        }
+        else
+        {
+            lua_pushfstring(L, "rectangle points are not in order: (%d, %d) and (%d, %d)", lpoint_get(bl)->x, lpoint_get(bl)->y, lpoint_get(tr)->x, lpoint_get(tr)->y);
+        }
+        lua_error(L);
+    }
+}
+
 static int lobject_add_area_anchor_bltr(lua_State* L)
 {
     if(lua_gettop(L) != 4)
@@ -462,6 +478,7 @@ static int lobject_add_area_anchor_bltr(lua_State* L)
     const char* base = luaL_checkstring(L, 2);
     struct lpoint* bl = lpoint_checkpoint(L, 3);
     struct lpoint* tr = lpoint_checkpoint(L, 4);
+    _check_rectangle_points(L, bl, tr, "object.add_area_anchor_bltr");
     object_add_area_anchor_bltr(lobject_get(cell), base, lpoint_get(bl), lpoint_get(tr));
     return 0;
 }
