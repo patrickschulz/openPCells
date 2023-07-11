@@ -89,7 +89,7 @@ while [[ $# -gt 0 ]]; do
         echo "--all-load-paths-local    use this for a local installation. Sets all load paths (cells, technology files and export definitions) to the current directory"
         echo "--bin-path                set install path for the executable (default: ${BIN_PATH})"
         echo "--executable-name         set name of the executable (default: ${EXE_NAME})"
-        echo "--man-path                set instal path for the man page (default: ${MAN_PATH})"
+        echo "--man-path                set install path for the man page (default: ${MAN_PATH})"
         echo "--help                    display this help message"
         shift
         ;;
