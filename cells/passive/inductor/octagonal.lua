@@ -89,4 +89,32 @@ function layout(inductor, _P)
         geometry.path_polygon(inductor, mainmetal, pathpts, _P.width, true)
         geometry.path_polygon(inductor, mainmetal, util.xmirror(pathpts), _P.width, true)
     end
+
+    -- input lines anchors
+    local lastradius = _P.radius + (_P.turns - 1) * pitch
+    local lastr = _scale_tanpi8(lastradius)
+    if _P.extsep / 2 + _P.width > lastr + _scale_tanpi8(_P.width / 2) then
+        -- FIXME
+        --inductor:add_area_anchor_bltr("leftline",
+        --    point.create(-(_P.extsep + _P.width) / 2, -lastr - lastradius + (_P.extsep + _P.width) / 2),
+        --    point.create(-(_P.extsep + _P.width) / 2, -lastr - lastradius + (_P.extsep + _P.width) / 2 - _P.extension)
+        --)
+    else
+        inductor:add_area_anchor_bltr("leftline",
+            point.create(-_P.extsep / 2 - _P.width, -(lastradius + _P.extension)),
+            point.create(-_P.extsep / 2, -lastradius - _P.width / 2)
+        )
+    end
+    if _P.extsep / 2 + _P.width > lastr + _scale_tanpi8(_P.width / 2) then
+        -- FIXME
+        --inductor:add_area_anchor_bltr("rightline",
+        --    point.create( (_P.extsep + _P.width) / 2, -lastr - lastradius + (_P.extsep + _P.width) / 2),
+        --    point.create( (_P.extsep + _P.width) / 2, -lastr - lastradius + (_P.extsep + _P.width) / 2 - _P.extension)
+        --)
+    else
+        inductor:add_area_anchor_bltr("rightline",
+            point.create( _P.extsep / 2, -(lastradius + _P.extension)),
+            point.create( _P.extsep / 2 + _P.width, -lastradius - _P.width / 2)
+        )
+    end
 end
