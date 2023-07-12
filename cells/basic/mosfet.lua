@@ -54,6 +54,7 @@ function parameters()
         { "botgcutrightext(Bottom Gate Cut Right Extension)",              0 },
         { "simulatemissinggatecut",                                       false },
         { "drawsourcedrain(Draw Source/Drain Contacts)",              "both", posvals = set("both", "source", "drain", "none") },
+        { "excludesourcedraincontacts(Exclude Source/Drain Contacts)",   {}, argtype = "table" },
         { "sourcesize(Source Size)",                                  technology.get_dimension("Minimum Gate Width"), argtype = "integer", follow = "fwidth" },
         { "sourceviasize(Source Via Size)",                           technology.get_dimension("Minimum Gate Width"), argtype = "integer", follow = "sourcesize" },
         { "drainsize(Drain Size)",                                    technology.get_dimension("Minimum Gate Width"), argtype = "integer", follow = "fwidth" },
@@ -704,7 +705,9 @@ function layout(transistor, _P)
                 local shift = gateblx - (_P.gatespace + _P.sdwidth) / 2 + (i - 1) * gatepitch
                 local bl = point.create(shift, sourceoffset)
                 local tr = point.create(shift + _P.sdwidth, sourceoffset + _P.sourcesize)
-                geometry.contactbltr(transistor, "sourcedrain", bl, tr)
+                if not aux.any_of(i, _P.excludesourcedraincontacts) then
+                    geometry.contactbltr(transistor, "sourcedrain", bl, tr)
+                end
                 if _P.drawsourcevia and _P.sourceviametal > 1 and
                    not (i == 1 and not _P.drawfirstsourcevia or
                     i == _P.fingers + 1 and not _P.drawlastsourcevia) then
@@ -724,7 +727,9 @@ function layout(transistor, _P)
                 local shift = gateblx - (_P.gatespace + _P.sdwidth) / 2 + (i - 1) * gatepitch
                 local bl = point.create(shift, drainoffset)
                 local tr = point.create(shift + _P.sdwidth, drainoffset + _P.drainsize)
-                geometry.contactbltr(transistor, "sourcedrain", bl, tr)
+                if not aux.any_of(i, _P.excludesourcedraincontacts) then
+                    geometry.contactbltr(transistor, "sourcedrain", bl, tr)
+                end
                 if _P.drawdrainvia and _P.drainviametal > 1 and
                    not (i == 2 and not _P.drawfirstdrainvia or
                     i == _P.fingers + 1 and not _P.drawlastdrainvia) then
