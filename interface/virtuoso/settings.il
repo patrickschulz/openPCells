@@ -39,7 +39,7 @@ procedure(OPCCreateSettingsForm()
             hiCreateRadioField(
                 ?name 'OPCSettingsExpandNamecontexts
                 ?choices list("true" "false")
-                ?value "true"
+                ?value "false"
                 ?prompt "Expand Name Contexts"
             )
             hiCreateRadioField(
