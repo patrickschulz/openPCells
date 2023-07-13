@@ -253,6 +253,26 @@ static int lobject_move_point(lua_State* L)
     return 1;
 }
 
+static int lobject_move_point_x(lua_State* L)
+{
+    struct lobject* cell = lobject_check(L, 1);
+    struct lpoint* source = lpoint_checkpoint(L, 2);
+    struct lpoint* target = lpoint_checkpoint(L, 3);
+    object_move_point_x(lobject_get(cell), lpoint_get(source), lpoint_get(target));
+    lua_rotate(L, 1, 2);
+    return 1;
+}
+
+static int lobject_move_point_y(lua_State* L)
+{
+    struct lobject* cell = lobject_check(L, 1);
+    struct lpoint* source = lpoint_checkpoint(L, 2);
+    struct lpoint* target = lpoint_checkpoint(L, 3);
+    object_move_point_y(lobject_get(cell), lpoint_get(source), lpoint_get(target));
+    lua_rotate(L, 1, 2);
+    return 1;
+}
+
 #define _gen_fun_abut_align(what) \
 static int lobject_ ##what (lua_State* L) \
 { \
@@ -324,6 +344,8 @@ _gen_fun_abut_align_area_anchor(abut_area_anchor_top)
 _gen_fun_abut_align_area_anchor(abut_area_anchor_bottom)
 _gen_fun_abut_align_area_anchor(align_area_anchor_x)
 _gen_fun_abut_align_area_anchor(align_area_anchor_y)
+_gen_fun_abut_align_area_anchor(align_area_anchor_top)
+_gen_fun_abut_align_area_anchor(align_area_anchor_bottom)
 
 static int lobject_align_area_anchor(lua_State* L)
 {
@@ -891,6 +913,8 @@ int open_lobject_lib(lua_State* L)
         { "flipx",                      lobject_flipx                       },
         { "flipy",                      lobject_flipy                       },
         { "move_point",                 lobject_move_point                  },
+        { "move_point_x",               lobject_move_point_x                },
+        { "move_point_y",               lobject_move_point_y                },
         { "abut_left",                  lobject_abut_left                   },
         { "abut_right",                 lobject_abut_right                  },
         { "abut_top",                   lobject_abut_top                    },
@@ -906,6 +930,8 @@ int open_lobject_lib(lua_State* L)
         { "align_area_anchor",          lobject_align_area_anchor           },
         { "align_area_anchor_x",        lobject_align_area_anchor_x         },
         { "align_area_anchor_y",        lobject_align_area_anchor_y         },
+        { "align_area_anchor_top",      lobject_align_area_anchor_top       },
+        { "align_area_anchor_bottom",   lobject_align_area_anchor_bottom    },
         { "add_child",                  lobject_add_child                   },
         { "add_child_array",            lobject_add_child_array             },
         { "merge_into",                 lobject_merge_into                  },

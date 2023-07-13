@@ -66,6 +66,8 @@ int object_area_anchors_fit(const struct object* cell, const char* anchorname, c
 int object_align_area_anchor(struct object* cell, const char* anchorname, const struct object* other, const char* otheranchorname);
 int object_align_area_anchor_x(struct object* cell, const char* anchorname, const struct object* other, const char* otheranchorname);
 int object_align_area_anchor_y(struct object* cell, const char* anchorname, const struct object* other, const char* otheranchorname);
+int object_align_area_anchor_top(struct object* cell, const char* anchorname, const struct object* other, const char* otheranchorname);
+int object_align_area_anchor_bottom(struct object* cell, const char* anchorname, const struct object* other, const char* otheranchorname);
 
 // ports
 void object_add_port(struct object* cell, const char* name, const struct generics* layer, const point_t* where, int storeanchor, double sizehint);
@@ -110,6 +112,8 @@ void object_rotate_90_right(struct object* cell);
 void object_flipx(struct object* cell);
 void object_flipy(struct object* cell);
 int object_move_point(struct object* cell, const point_t* source, const point_t* target);
+int object_move_point_x(struct object* cell, const point_t* source, const point_t* target);
+int object_move_point_y(struct object* cell, const point_t* source, const point_t* target);
 void object_scale(struct object* cell, double factor);
 void object_apply_transformation(struct object* cell);
 void object_transform_point(const struct object* cell, point_t* pt);

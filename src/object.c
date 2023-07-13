@@ -986,6 +986,30 @@ int object_align_area_anchor_y(struct object* cell, const char* anchorname, cons
     return 1;
 }
 
+int object_align_area_anchor_top(struct object* cell, const char* anchorname, const struct object* other, const char* otheranchorname)
+{
+    point_t* pts1 = object_get_area_anchor(cell, anchorname);
+    point_t* pts2 = object_get_area_anchor(other, otheranchorname);
+    coordinate_t try1 = _area_anchor_get_try(pts1);
+    coordinate_t try2 = _area_anchor_get_try(pts2);
+    object_translate(cell, 0, try2 - try1);
+    free(pts1);
+    free(pts2);
+    return 1;
+}
+
+int object_align_area_anchor_bottom(struct object* cell, const char* anchorname, const struct object* other, const char* otheranchorname)
+{
+    point_t* pts1 = object_get_area_anchor(cell, anchorname);
+    point_t* pts2 = object_get_area_anchor(other, otheranchorname);
+    coordinate_t bly1 = _area_anchor_get_bly(pts1);
+    coordinate_t bly2 = _area_anchor_get_bly(pts2);
+    object_translate(cell, 0, bly2 - bly1);
+    free(pts1);
+    free(pts2);
+    return 1;
+}
+
 static void _port_destroy(void* p)
 {
     struct port* port = p;
@@ -1201,6 +1225,18 @@ void object_apply_other_transformation(struct object* cell, const struct transfo
 int object_move_point(struct object* cell, const point_t* source, const point_t* target)
 {
     object_translate(cell, target->x - source->x, target->y - source->y);
+    return 1;
+}
+
+int object_move_point_x(struct object* cell, const point_t* source, const point_t* target)
+{
+    object_translate(cell, target->x - source->x, 0);
+    return 1;
+}
+
+int object_move_point_y(struct object* cell, const point_t* source, const point_t* target)
+{
+    object_translate(cell, 0, target->y - source->y);
     return 1;
 }
 
