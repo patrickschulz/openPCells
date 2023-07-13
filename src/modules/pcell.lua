@@ -560,8 +560,8 @@ function pcell.create_layout_from_script(scriptpath, args)
     if reader then
         local env = _ENV
         local path, name = aux.split_path(scriptpath)
-        env._CURRENT_SCRIPT_PATH = path
-        env._CURRENT_SCRIPT_NAME = name
+        env.CURRENT_SCRIPT_PATH = path
+        env.CURRENT_SCRIPT_NAME = name
         -- save args and then replace them
         local savedargs = env.args
         env.args = args
