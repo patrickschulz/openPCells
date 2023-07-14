@@ -6,7 +6,9 @@ function parameters()
         { "separation(Line Separation)",            6000 },
         { "extension(Line Extension)",             40000 },
         { "extsep(Extension Separation)",           6000 },
-        { "metalnum(Conductor Metal)",     -1, "integer" }
+        { "metalnum(Conductor Metal)",     -1, "integer" },
+        { "drawlvsresistor(Draw LVS Resistor)",    false },
+        { "lvsreswidth(LVS Resistor Width)",        1000 }
     )
 end
 
@@ -90,9 +92,22 @@ function layout(inductor, _P)
         geometry.path_polygon(inductor, mainmetal, util.xmirror(pathpts), _P.width, true)
     end
 
-    -- input lines anchors
     local lastradius = _P.radius + (_P.turns - 1) * pitch
     local lastr = _scale_tanpi8(lastradius)
+
+    -- LVS resistor
+    if _P.drawlvsresistor then
+        geometry.rectanglebltr(inductor, generics.other(string.format("M%dlvsresistor", technology.resolve_metal(_P.metalnum))),
+            point.create(-_P.extsep / 2 - _P.width, -lastradius - _P.width / 2 - _P.lvsreswidth),
+            point.create(-_P.extsep / 2, -lastradius - _P.width / 2)
+        )
+        geometry.rectanglebltr(inductor, generics.other(string.format("M%dlvsresistor", technology.resolve_metal(_P.metalnum))),
+            point.create( _P.extsep / 2, -lastradius - _P.width / 2 - _P.lvsreswidth),
+            point.create( _P.extsep / 2 + _P.width, -lastradius - _P.width / 2)
+        )
+    end
+
+    -- input lines anchors
     if _P.extsep / 2 + _P.width > lastr + _scale_tanpi8(_P.width / 2) then
         -- FIXME
         --inductor:add_area_anchor_bltr("leftline",
