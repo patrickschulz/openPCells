@@ -343,6 +343,8 @@ _gen_fun_abut_align_area_anchor(abut_area_anchor_right)
 _gen_fun_abut_align_area_anchor(abut_area_anchor_top)
 _gen_fun_abut_align_area_anchor(abut_area_anchor_bottom)
 _gen_fun_abut_align_area_anchor(align_area_anchor_x)
+_gen_fun_abut_align_area_anchor(align_area_anchor_left)
+_gen_fun_abut_align_area_anchor(align_area_anchor_right)
 _gen_fun_abut_align_area_anchor(align_area_anchor_y)
 _gen_fun_abut_align_area_anchor(align_area_anchor_top)
 _gen_fun_abut_align_area_anchor(align_area_anchor_bottom)
@@ -929,6 +931,8 @@ int open_lobject_lib(lua_State* L)
         { "abut_area_anchor_bottom",    lobject_abut_area_anchor_bottom     },
         { "align_area_anchor",          lobject_align_area_anchor           },
         { "align_area_anchor_x",        lobject_align_area_anchor_x         },
+        { "align_area_anchor_left",     lobject_align_area_anchor_left      },
+        { "align_area_anchor_right",    lobject_align_area_anchor_right     },
         { "align_area_anchor_y",        lobject_align_area_anchor_y         },
         { "align_area_anchor_top",      lobject_align_area_anchor_top       },
         { "align_area_anchor_bottom",   lobject_align_area_anchor_bottom    },
