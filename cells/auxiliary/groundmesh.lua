@@ -22,13 +22,18 @@ end
 function layout(mesh, _P)
     -- guard ring
     if _P.drawguardring and aux.find(_P.meshmetals, 1) then
-        mesh:merge_into(pcell.create_layout("auxiliary/guardring", "guardring", {
+        local guardring = pcell.create_layout("auxiliary/guardring", "guardring", {
             contype = "p",
             holewidth = _P.cellsize - 2 * _P.guardringwidth,
             holeheight = _P.cellsize - 2 * _P.guardringwidth,
             ringwidth = _P.guardringwidth,
             fit = true
-        }))
+        })
+        guardring:move_point(
+            guardring:get_anchor("innerbottomleft"),
+            point.create(-_P.cellsize / 2 + _P.metalwidths[1], -_P.cellsize / 2 + _P.metalwidths[1])
+        )
+        mesh:merge_into(guardring)
     end
 
     -- mesh metals
@@ -38,34 +43,33 @@ function layout(mesh, _P)
             if i < #_P.meshmetals then
                 if _P.meshmetals[i + 1] - _P.meshmetals[i] == 1 then
                     local mwidth = math.min(_P.metalwidths[i], _P.metalwidths[i + 1])
-                    geometry.via(mesh, _P.meshmetals[i], _P.meshmetals[i] + 1,
-                        mwidth, _P.cellsize,
-                        -_P.cellsize / 2 + mwidth / 2, 0,
-                        1, 1, 0, 0,
+                    geometry.viabltr(mesh, _P.meshmetals[i], _P.meshmetals[i] + 1,
+                        point.create(-mwidth / 2 + mwidth / 2 - _P.cellsize / 2, -_P.cellsize / 2),
+                        point.create( mwidth / 2 + mwidth / 2 - _P.cellsize / 2,  _P.cellsize / 2),
                         { equal_pitch = true }
                     )
-                    geometry.via(mesh, _P.meshmetals[i], _P.meshmetals[i] + 1,
-                        mwidth, _P.cellsize,
-                        _P.cellsize / 2 - mwidth / 2, 0,
-                        1, 1, 0, 0,
+                    geometry.viabltr(mesh, _P.meshmetals[i], _P.meshmetals[i] + 1,
+                        point.create(-mwidth / 2 - mwidth / 2 + _P.cellsize / 2, -_P.cellsize / 2),
+                        point.create( mwidth / 2 - mwidth / 2 + _P.cellsize / 2,  _P.cellsize / 2),
                         { equal_pitch = true }
                     )
-                    geometry.via(mesh, _P.meshmetals[i], _P.meshmetals[i] + 1,
-                        _P.cellsize, mwidth,
-                        0, -_P.cellsize / 2 + mwidth / 2,
-                        1, 1, 0, 0,
+                    geometry.viabltr(mesh, _P.meshmetals[i], _P.meshmetals[i] + 1,
+                        point.create(-_P.cellsize / 2, -mwidth / 2 + mwidth / 2 - _P.cellsize / 2),
+                        point.create( _P.cellsize / 2,  mwidth / 2 + mwidth / 2 - _P.cellsize / 2),
                         { equal_pitch = true }
                     )
-                    geometry.via(mesh, _P.meshmetals[i], _P.meshmetals[i] + 1,
-                        _P.cellsize, mwidth,
-                        0,  _P.cellsize / 2 - mwidth / 2,
-                        1, 1, 0, 0,
+                    geometry.viabltr(mesh, _P.meshmetals[i], _P.meshmetals[i] + 1,
+                        point.create(-_P.cellsize / 2, -mwidth / 2 - mwidth / 2 + _P.cellsize / 2),
+                        point.create( _P.cellsize / 2,  mwidth / 2 - mwidth / 2 + _P.cellsize / 2),
                         { equal_pitch = true }
                     )
                 end
             end
             -- fill exclude
-            geometry.rectangle(mesh, generics.metalexclude(_P.meshmetals[i]), _P.cellsize, _P.cellsize)
+            geometry.rectanglebltr(mesh, generics.metalexclude(_P.meshmetals[i]),
+                point.create(-_P.cellsize / 2, -_P.cellsize / 2),
+                point.create( _P.cellsize / 2,  _P.cellsize / 2)
+            )
         end
     end
 
@@ -77,25 +81,43 @@ function layout(mesh, _P)
             local width = _P.metalwidths[i + #_P.meshmetals]
             if leftright then
                 if _P.drawright then
-                    geometry.rectangle(mesh, generics.metal(metal), width, width, width / 2, 0)
+                    geometry.rectanglebltr(mesh, generics.metal(metal),
+                        point.create(0, -width / 2),
+                        point.create(width, width / 2)
+                    )
                 end
                 if _P.drawleft then
-                    geometry.rectangle(mesh, generics.metal(metal), width, width, -width / 2, 0)
+                    geometry.rectanglebltr(mesh, generics.metal(metal),
+                        point.create(-width, -width / 2),
+                        point.create(0, width / 2)
+                    )
                 end
             else
                 if _P.drawtop then
-                    geometry.rectangle(mesh, generics.metal(metal), width, width, 0, width / 2)
+                    geometry.rectanglebltr(mesh, generics.metal(metal),
+                        point.create(-width / 2, 0),
+                        point.create( width / 2, width)
+                    )
                 end
                 if _P.drawbottom then
-                    geometry.rectangle(mesh, generics.metal(metal), width, width, 0, -width / 2)
+                    geometry.rectanglebltr(mesh, generics.metal(metal),
+                        point.create(-width / 2, -width),
+                        point.create( width / 2, 0)
+                    )
                 end
             end
             if (i < #_P.gridmetals) and (_P.gridmetals[i + 1] - _P.gridmetals[i] == 1) then
                 local mwidth = math.min(_P.metalwidths[i + #_P.meshmetals], _P.metalwidths[i + 1 + #_P.meshmetals])
-                geometry.via(mesh, _P.gridmetals[i], _P.gridmetals[i] + 1, mwidth, mwidth)
+                geometry.viabltr(mesh, _P.gridmetals[i], _P.gridmetals[i] + 1,
+                    point.create(-mwidth / 2, -mwidth / 2),
+                    point.create( mwidth / 2,  mwidth / 2)
+                )
             end
             -- fill exclude
-            geometry.rectangle(mesh, generics.metalexclude(_P.gridmetals[i]), _P.cellsize, _P.cellsize)
+            geometry.rectanglebltr(mesh, generics.metalexclude(_P.gridmetals[i]),
+                point.create(-_P.cellsize / 2, -_P.cellsize / 2),
+                point.create( _P.cellsize / 2,  _P.cellsize / 2)
+            )
             leftright = not leftright
         end
         -- connect to top metal
@@ -104,6 +126,7 @@ function layout(mesh, _P)
         end
     end
 
+    --[[
     local foffset = 100
     local fwidth = 50
     local fspace = 50
@@ -183,6 +206,7 @@ function layout(mesh, _P)
     else
         -- do nothing for "none"
     end
+    --]]
 
     -- FIXME: this should depend on parameters
     mesh:add_area_anchor_bltr(

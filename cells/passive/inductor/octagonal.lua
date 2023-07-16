@@ -132,4 +132,32 @@ function layout(inductor, _P)
             point.create( _P.extsep / 2 + _P.width, -lastradius - _P.width / 2)
         )
     end
+
+    -- boundary
+    local sign = (_P.turns % 2 == 0) and 1 or -1
+
+    local outerradius = _P.radius + _P.turns * pitch
+    local outerr = _scale_tanpi8(outerradius)
+    sign = -sign
+
+    local outerpathpts = {}
+    local outerappend = util.make_insert_xy(outerpathpts)
+
+    outerappend(-outerr + _scale_tanpi8(_P.width / 2),  sign * outerradius)
+    outerappend(-outerr,  sign * outerradius)
+    outerappend(-outerradius,  sign * outerr)
+    outerappend(-outerradius, -sign * outerr)
+    outerappend(-outerr, -sign * outerradius)
+    outerappend(-outerr + _scale_tanpi8(_P.width / 2), -sign * outerradius)
+
+    outerappend( outerr + _scale_tanpi8(_P.width / 2), -sign * outerradius)
+    outerappend( outerr, -sign * outerradius)
+    outerappend( outerradius, -sign * outerr)
+    outerappend( outerradius,  sign * outerr)
+    outerappend( outerr,  sign * outerradius)
+    --outerappend( outerr + _scale_tanpi8(_P.width / 2),  sign * outerradius)
+
+    inductor:set_boundary(
+        outerpathpts
+    )
 end
