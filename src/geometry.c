@@ -571,7 +571,8 @@ static int _viabltr(
     int metal1, int metal2,
     coordinate_t blx, coordinate_t bly, coordinate_t trx, coordinate_t try,
     int xcont, int ycont,
-    int equal_pitch
+    int equal_pitch,
+    int bare
 )
 {
     metal1 = technology_resolve_metal(techstate, metal1);
@@ -600,16 +601,26 @@ static int _viabltr(
             technology_is_create_via_arrays(techstate)
         );
     }
-    for(int i = metal1; i <= metal2; ++i)
+    if(!bare)
     {
-        _rectanglebltr(cell, generics_create_metal(techstate, i), blx, bly, trx, try);
+        for(int i = metal1; i <= metal2; ++i)
+        {
+            _rectanglebltr(cell, generics_create_metal(techstate, i), blx, bly, trx, try);
+        }
     }
     return ret;
 }
 
 int geometry_viabltr(struct object* cell, struct technology_state* techstate, int metal1, int metal2, const point_t* bl, const point_t* tr, int xcont, int ycont, int equal_pitch)
 {
-    return _viabltr(cell, techstate, metal1, metal2, bl->x, bl->y, tr->x, tr->y, xcont, ycont, equal_pitch);
+    int bare = 0;
+    return _viabltr(cell, techstate, metal1, metal2, bl->x, bl->y, tr->x, tr->y, xcont, ycont, equal_pitch, bare);
+}
+
+int geometry_viabarebltr(struct object* cell, struct technology_state* techstate, int metal1, int metal2, const point_t* bl, const point_t* tr, int xcont, int ycont, int equal_pitch)
+{
+    int bare = 1;
+    return _viabltr(cell, techstate, metal1, metal2, bl->x, bl->y, tr->x, tr->y, xcont, ycont, equal_pitch, bare);
 }
 
 static int _contactbltr(

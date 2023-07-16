@@ -60,6 +60,15 @@ int geometry_viabltr(
     int equal_pitch
 );
 
+int geometry_viabarebltr(
+    struct object* cell,
+    struct technology_state* techstate,
+    int metal1, int metal2,
+    const point_t* bl, const point_t* tr,
+    int xcont, int ycont,
+    int equal_pitch
+);
+
 int geometry_contactbltr(
     struct object* cell,
     struct technology_state* techstate,

@@ -2,6 +2,7 @@ function parameters()
     pcell.add_parameters(
         { "contype",                                       "p" },
         { "topmetal",                                        1 },
+        { "drawmetal",                                    true },
         { "holewidth",                                    5000 },
         { "holeheight",                                   5000 },
         { "ringwidth",                                     200 },
@@ -66,14 +67,16 @@ function layout(guardring, _P)
                 point.create(holewidth, holeheight + _P.ringwidth)
             )
         end
-        for i = 1, topmetal do
-            geometry.rectanglebltr(guardring, generics.metal(i),
-                point.create(-_P.ringwidth, holeheight),
-                point.create(holewidth + _P.ringwidth, holeheight + _P.ringwidth)
-            )
+        if _P.drawmetal then
+            for i = 1, topmetal do
+                geometry.rectanglebltr(guardring, generics.metal(i),
+                    point.create(-_P.ringwidth, holeheight),
+                    point.create(holewidth + _P.ringwidth, holeheight + _P.ringwidth)
+                )
+            end
         end
         if topmetal ~= 1 then
-            geometry.viabltr(guardring, 1, topmetal,
+            geometry.viabarebltr(guardring, 1, topmetal,
                 point.create(0, holeheight),
                 point.create(holewidth, holeheight + _P.ringwidth)
             )
@@ -109,14 +112,16 @@ function layout(guardring, _P)
                 point.create(holewidth, 0)
             )
         end
-        for i = 1, topmetal do
-            geometry.rectanglebltr(guardring, generics.metal(i),
-                point.create(-_P.ringwidth, -_P.ringwidth),
-                point.create(holewidth + _P.ringwidth, 0)
-            )
+        if _P.drawmetal then
+            for i = 1, topmetal do
+                geometry.rectanglebltr(guardring, generics.metal(i),
+                    point.create(-_P.ringwidth, -_P.ringwidth),
+                    point.create(holewidth + _P.ringwidth, 0)
+                )
+            end
         end
         if topmetal ~= 1 then
-            geometry.viabltr(guardring, 1, topmetal,
+            geometry.viabarebltr(guardring, 1, topmetal,
                 point.create(0, -_P.ringwidth),
                 point.create(holewidth, 0)
             )
@@ -151,14 +156,16 @@ function layout(guardring, _P)
                 point.create(0,  holeheight)
             )
         end
-        for i = 1, topmetal do
-            geometry.rectanglebltr(guardring, generics.metal(i),
-                point.create(-_P.ringwidth, -_P.ringwidth),
-                point.create(0,  holeheight + _P.ringwidth)
-            )
+        if _P.drawmetal then
+            for i = 1, topmetal do
+                geometry.rectanglebltr(guardring, generics.metal(i),
+                    point.create(-_P.ringwidth, -_P.ringwidth),
+                    point.create(0,  holeheight + _P.ringwidth)
+                )
+            end
         end
         if topmetal ~= 1 then
-            geometry.viabltr(guardring, 1, topmetal,
+            geometry.viabarebltr(guardring, 1, topmetal,
                 point.create(-_P.ringwidth, 0),
                 point.create(0,  holeheight)
             )
@@ -193,14 +200,16 @@ function layout(guardring, _P)
                 point.create(holewidth + _P.ringwidth, holeheight)
             )
         end
-        for i = 1, topmetal do
-            geometry.rectanglebltr(guardring, generics.metal(1),
-                point.create(holewidth, -_P.ringwidth),
-                point.create(holewidth + _P.ringwidth, holeheight + _P.ringwidth)
-            )
+        if _P.drawmetal then
+            for i = 1, topmetal do
+                geometry.rectanglebltr(guardring, generics.metal(1),
+                    point.create(holewidth, -_P.ringwidth),
+                    point.create(holewidth + _P.ringwidth, holeheight + _P.ringwidth)
+                )
+            end
         end
         if topmetal ~= 1 then
-            geometry.viabltr(guardring, 1, topmetal,
+            geometry.viabarebltr(guardring, 1, topmetal,
                 point.create(holewidth, 0),
                 point.create(holewidth + _P.ringwidth,  holeheight)
             )
