@@ -394,7 +394,7 @@ function _is_point_in_polygon(x, y, polygon)
     return inside and 1 or -1
 end
 
-function M.place_within_boundary(toplevel, cell, targetarea, excludes)
+function M.place_within_boundary(toplevel, cell, basename, targetarea, excludes)
     local width, height = cell:width_height_alignmentbox()
     local xpitch = width
     local ypitch = height
@@ -446,8 +446,9 @@ function M.place_within_boundary(toplevel, cell, targetarea, excludes)
         x = x + xpitch
     end
 
+    local i = 1
     for _, origin in ipairs(meshorigins) do
-        local child = toplevel:add_child(cell, "foobar")
+        local child = toplevel:add_child(cell, string.format("%s_%d", basename, i))
         child:move_point(point.create(0, 0), point.create(origin.x, origin.y))
     end
 end
