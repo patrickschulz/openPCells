@@ -126,7 +126,6 @@ function layout(mesh, _P)
         end
     end
 
-    --[[
     local foffset = 100
     local fwidth = 50
     local fspace = 50
@@ -136,7 +135,8 @@ function layout(mesh, _P)
             if _P.meshmetals[i] == _P.interconnectmetal then
                 break
             end
-            local nfingers = 2 * math.floor((_P.cellsize - 2 * _P.metalwidths[i]) / (2 * (fwidth + fspace))) - 10
+            local capspace = 500
+            local nfingers = 2 * math.floor((_P.cellsize - 2 * _P.metalwidths[i] - capspace) / (2 * (fwidth + fspace)))
             local topcap = pcell.create_layout("passive/capacitor/mom", "topcap", {
                 firstmetal = _P.meshmetals[i], lastmetal = _P.meshmetals[i],
                 fingers = nfingers,
@@ -150,8 +150,10 @@ function layout(mesh, _P)
             })
             flippolarity = not flippolarity
             local botcap = topcap:copy()
-            topcap:move_anchor("minus")
-            botcap:move_anchor("plus")
+            topcap:move_point(topcap:get_area_anchor("lowerrail").bl,
+                point.create(-(_P.cellsize - 2 * _P.metalwidths[i] - capspace) / 2, -_P.metalwidths[i] / 2))
+            botcap:move_point(botcap:get_area_anchor("upperrail").bl,
+                point.create(-(_P.cellsize - 2 * _P.metalwidths[i] - capspace) / 2,  _P.metalwidths[i] / 2))
             botcap:flipy()
             mesh:merge_into(topcap)
             mesh:merge_into(botcap)
@@ -161,13 +163,19 @@ function layout(mesh, _P)
                     local nfingersnext = 2 * math.floor((_P.cellsize - 2 * _P.metalwidths[i + 1]) / (2 * (fwidth + fspace))) - 10
                     local viawidth = (math.min(nfingers, nfingersnext) + 1) * (fwidth + fspace)
                     local viaheight = math.min(_P.metalwidths[i], _P.metalwidths[i + 1])
-                    geometry.via(mesh, _P.meshmetals[i], _P.meshmetals[i] + 1, viawidth, viaheight)
+                    geometry.viabltr(mesh, _P.meshmetals[i], _P.meshmetals[i] + 1,
+                        point.create(-viawidth / 2, -viaheight / 2),
+                        point.create( viawidth / 2,  viaheight / 2)
+                    )
                 end
             end
         end
         -- connect cap to grid
         if _P.drawgrid then
-            geometry.via(mesh, _P.interconnectmetal, _P.interconnectmetal + 1, _P.metalwidths[#_P.meshmetals + 2], _P.metalwidths[#_P.meshmetals + 2])
+            geometry.viabltr(mesh, _P.interconnectmetal, _P.interconnectmetal + 1,
+                point.create(-_P.metalwidths[#_P.meshmetals + 2] / 2, -_P.metalwidths[#_P.meshmetals + 2] / 2),
+                point.create( _P.metalwidths[#_P.meshmetals + 2] / 2,  _P.metalwidths[#_P.meshmetals + 2] / 2)
+            )
         end
     elseif flavour == "ground" then
         for i = 1, #_P.meshmetals do
@@ -206,7 +214,6 @@ function layout(mesh, _P)
     else
         -- do nothing for "none"
     end
-    --]]
 
     -- FIXME: this should depend on parameters
     mesh:add_area_anchor_bltr(
