@@ -758,12 +758,12 @@ coordinate_t shape_get_height(const struct shape* shape)
 void shape_get_width_height(const struct shape* shape, coordinate_t* widthp, coordinate_t* heightp)
 {
     coordinate_t minx, miny, maxx, maxy;
-    shape_get_minmax_xy(shape, NULL, &minx, &miny, &maxx, &maxy);
+    shape_get_minmax_xy(shape, &minx, &miny, &maxx, &maxy);
     *widthp = maxx - minx;
     *heightp = maxy - miny;
 }
 
-void shape_get_minmax_xy(const struct shape* shape, const struct transformationmatrix* trans, coordinate_t* minxp, coordinate_t* minyp, coordinate_t* maxxp, coordinate_t* maxyp)
+void shape_get_minmax_xy(const struct shape* shape, coordinate_t* minxp, coordinate_t* minyp, coordinate_t* maxxp, coordinate_t* maxyp)
 {
     point_t* min = point_create_maximum();
     point_t* max = point_create_minimum();
@@ -774,11 +774,6 @@ void shape_get_minmax_xy(const struct shape* shape, const struct transformationm
             struct rectangle* rectangle = shape->content;
             point_t bl = *rectangle->bl;
             point_t tr = *rectangle->tr;
-            if(trans)
-            {
-                transformationmatrix_apply_transformation(trans, &bl);
-                transformationmatrix_apply_transformation(trans, &tr);
-            }
             point_update_minimum(&min, &bl);
             point_update_maximum(&max, &tr);
             break;
@@ -791,10 +786,6 @@ void shape_get_minmax_xy(const struct shape* shape, const struct transformationm
             {
                 point_t* ptr = vector_get(polygon->points, i);
                 point_t pt = *ptr;
-                if(trans)
-                {
-                    transformationmatrix_apply_transformation(trans, &pt);
-                }
                 point_update_minimum(&min, &pt);
                 point_update_maximum(&max, &pt);
             }
@@ -807,10 +798,6 @@ void shape_get_minmax_xy(const struct shape* shape, const struct transformationm
             {
                 point_t* ptr = vector_get(path->points, i);
                 point_t pt = *ptr;
-                if(trans)
-                {
-                    transformationmatrix_apply_transformation(trans, &pt);
-                }
                 point_update_minimum(&min, &pt);
                 point_update_maximum(&max, &pt);
             }

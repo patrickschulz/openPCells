@@ -338,4 +338,118 @@ function M.rowwise(parent, cellnames, flipfirst, noflip)
     return cells
 end
 
+--[[
+local function _is_point_in_polygon(x, y, points)
+    local j = #points
+    local c = false
+    for i = 1, #points do
+        local xi = points[i]:getx()
+        local yi = points[i]:gety()
+        local xj = points[j]:getx()
+        local yj = points[j]:gety()
+        if ((yi > y) ~= (yj > y)) and (x < xi + (xj - xi) * (y - yi) / (yj - yi)) then
+            c = not c
+        end
+        j = i
+    end
+    return c
+end
+--]]
+
+function _is_point_in_polygon(x, y, polygon)
+    local _between = function(p, a, b)
+        return p >= a and p <= b or p <= a and p >= b
+    end
+    local inside = false
+    local i = #polygon
+    local j = 1
+    while j <= #polygon do
+        ::continue::
+        local A = polygon[i]
+        local B = polygon[j]
+        -- corner cases
+        if (x == A:getx() and y == A:gety() or x == B:getx() and y == B:gety()) then
+            return 0
+        end
+        if (A:gety() == B:gety() and y == A:gety() and _between(x, A:getx(), B:getx())) then
+            return 0
+        end
+        if (_between(y, A:gety(), B:gety())) then -- if P inside the vertical range
+            -- filter out "ray pass vertex" problem by treating the line a little lower
+            if (y == A:gety() and B:gety() >= A:gety() or y == B:gety() and A:gety() >= B:gety()) then
+                goto continue
+            end
+            -- calc cross product `PA X PB`, P lays on left side of AB if c > 0 
+            local c = (A:getx() - x) * (B:gety() - y) - (B:getx() - x) * (A:gety() - y)
+            if c == 0 then
+                return 0
+            end
+            if (A:gety() < B:gety()) == (c > 0) then 
+                inside = not inside
+            end
+        end
+        i = j
+        j = j + 1
+    end
+    return inside and 1 or -1
+end
+
+function M.place_within_boundary(toplevel, cell, targetarea, excludes)
+    local width, height = cell:width_height_alignmentbox()
+    local xpitch = width
+    local ypitch = height
+
+    local points = {}
+    local minx = math.huge;
+    local maxx = -math.huge;
+    local miny = math.huge;
+    local maxy = -math.huge;
+    for i = 1, #targetarea do
+        local pt = targetarea[i]
+        -- round to multiple of the pitch
+        x = xpitch * math.floor(pt:getx() / xpitch)
+        y = ypitch * math.floor(pt:gety() / ypitch)
+        points[i] = point.create(x, y)
+        if points[i]:getx() < minx then
+            minx = points[i]:getx()
+        end
+        if points[i]:getx() > maxx then
+            maxx = points[i]:getx()
+        end
+        if points[i]:gety() < miny then
+            miny = points[i]:gety()
+        end
+        if points[i]:gety() > maxy then
+            maxy = points[i]:gety()
+        end
+    end
+
+    local meshorigins = {}
+    local x = minx + xpitch / 2
+    while x < maxx do
+        local y = miny + ypitch / 2
+        while y < maxy do
+            local insert = _is_point_in_polygon(x, y, points) ~= -1
+            for _, exclude in ipairs(excludes) do
+                if _is_point_in_polygon(x + width / 2, y + height / 2, exclude) ~= -1 or
+                   _is_point_in_polygon(x - width / 2, y + height / 2, exclude) ~= -1 or
+                   _is_point_in_polygon(x + width / 2, y - height / 2, exclude) ~= -1 or
+                   _is_point_in_polygon(x - width / 2, y - height / 2, exclude) ~= -1 then
+                    insert = false
+                end
+            end
+            if insert then
+                table.insert(meshorigins, { x = x, y = y })
+            end
+            y = y + ypitch
+        end
+        x = x + xpitch
+    end
+
+    for _, origin in ipairs(meshorigins) do
+        local child = toplevel:add_child(cell, "foobar")
+        child:move_point(point.create(0, 0), point.create(origin.x, origin.y))
+    end
+end
+
 return M

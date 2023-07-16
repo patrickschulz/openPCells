@@ -71,6 +71,12 @@ int object_align_area_anchor_y(struct object* cell, const char* anchorname, cons
 int object_align_area_anchor_top(struct object* cell, const char* anchorname, const struct object* other, const char* otheranchorname);
 int object_align_area_anchor_bottom(struct object* cell, const char* anchorname, const struct object* other, const char* otheranchorname);
 
+// boundary
+int object_has_boundary(const struct object* cell);
+void object_set_boundary(struct object* cell, struct vector* boundary);
+void object_inherit_boundary(struct object* cell, const struct object* othercell);
+struct vector* object_get_boundary(const struct object* cell);
+
 // ports
 void object_add_port(struct object* cell, const char* name, const struct generics* layer, const point_t* where, int storeanchor, double sizehint);
 void object_add_bus_port(struct object* cell, const char* name, const struct generics* layer, const point_t* where, int startindex, int endindex, unsigned int xpitch, unsigned int ypitch, int storeanchor, double sizehint);

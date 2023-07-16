@@ -62,7 +62,7 @@ void shape_apply_inverse_transformation(struct shape* shape, const struct transf
 coordinate_t shape_get_width(const struct shape* shape);
 coordinate_t shape_get_height(const struct shape* shape);
 void shape_get_width_height(const struct shape* shape, coordinate_t* width, coordinate_t* height);
-void shape_get_minmax_xy(const struct shape* shape, const struct transformationmatrix* trans, coordinate_t* minxp, coordinate_t* minyp, coordinate_t* maxxp, coordinate_t* maxyp);
+void shape_get_minmax_xy(const struct shape* shape, coordinate_t* minxp, coordinate_t* minyp, coordinate_t* maxxp, coordinate_t* maxyp);
 
 // curve segments
 void shape_curve_add_line_segment(struct shape* shape, const point_t* pt);

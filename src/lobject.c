@@ -872,6 +872,51 @@ static int lobject_get_area_anchor_height(lua_State* L)
     return 1;
 }
 
+static int lobject_set_boundary(lua_State* L)
+{
+    struct lobject* cell = lobject_check(L, 1);
+    lua_len(L, 2);
+    size_t len = lua_tointeger(L, -1);
+    lua_pop(L, 1);
+    struct vector* boundary = vector_create(4, point_destroy);
+    for(unsigned int i = 1; i <= len; ++i)
+    {
+        lua_rawgeti(L, 2, i);
+        struct lpoint* pt = lpoint_checkpoint(L, -1);
+        vector_append(boundary, point_copy(lpoint_get(pt)));
+        lua_pop(L, 1);
+    }
+    object_set_boundary(lobject_get(cell), boundary);
+    return 0;
+}
+
+static int lobject_inherit_boundary(lua_State* L)
+{
+    struct lobject* cell = lobject_check(L, 1);
+    struct lobject* other = lobject_check(L, 2);
+    object_inherit_boundary(lobject_get(cell), lobject_get(other));
+    return 0;
+}
+
+static int lobject_get_boundary(lua_State* L)
+{
+    struct lobject* cell = lobject_check(L, 1);
+    struct vector* boundary = object_get_boundary(lobject_get(cell));
+    lua_newtable(L);
+    int i = 1;
+    struct vector_iterator* it = vector_iterator_create(boundary);
+    while(vector_iterator_is_valid(it))
+    {
+        const point_t* pt = vector_iterator_get(it);
+        lpoint_create_internal(L, pt->x, pt->y);
+        lua_rawseti(L, -2, i);
+        vector_iterator_next(it);
+        ++i;
+    }
+    vector_iterator_destroy(it);
+    return 1;
+}
+
 int open_lobject_lib(lua_State* L)
 {
     // create metatable for objects
@@ -943,6 +988,9 @@ int open_lobject_lib(lua_State* L)
         { "rasterize_curves",           lobject_rasterize_curves            },
         { "get_area_anchor_width",      lobject_get_area_anchor_width       },
         { "get_area_anchor_height",     lobject_get_area_anchor_height      },
+        { "set_boundary",               lobject_set_boundary                },
+        { "inherit_boundary",           lobject_inherit_boundary            },
+        { "get_boundary",               lobject_get_boundary                },
         { "__gc",                       lobject_destroy                     },
         { "__tostring",                 lobject_tostring                    },
         { NULL,                         NULL                                }

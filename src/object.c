@@ -111,6 +111,7 @@ struct object {
             struct vector* children; // stores struct object*
             struct vector* references; // stores struct object*
             coordinate_t* alignmentbox; // NULL or contains eight coordinates: blx, blx, trx, try for both outer (first) and inner (second)
+            struct vector* boundary; // a polygon, stores point_t*
         };
     };
 };
@@ -1034,6 +1035,91 @@ int object_align_area_anchor_bottom(struct object* cell, const char* anchorname,
     return 1;
 }
 
+int object_has_boundary(const struct object* cell)
+{
+    return cell->boundary ? 1 : 0;
+}
+
+void object_set_boundary(struct object* cell, struct vector* boundary)
+{
+    cell->boundary = boundary;
+}
+
+void object_inherit_boundary(struct object* cell, const struct object* othercell)
+{
+    cell->boundary = vector_create(4, point_destroy);
+    struct vector_const_iterator* it = vector_const_iterator_create(othercell->boundary);
+    while(vector_const_iterator_is_valid(it))
+    {
+        const point_t* pt = vector_const_iterator_get(it);
+        point_t* newpt = point_copy(pt);
+        transformationmatrix_apply_transformation(othercell->trans, newpt);
+        transformationmatrix_apply_inverse_transformation(cell->trans, newpt);
+        vector_append(cell->boundary, newpt);
+        vector_const_iterator_next(it);
+    }
+    vector_const_iterator_destroy(it);
+}
+
+struct vector* object_get_boundary(const struct object* cell)
+{
+    struct vector* boundary = vector_create(4, point_destroy);
+    if(cell->isproxy)
+    {
+        if(cell->reference->boundary)
+        {
+            struct vector_const_iterator* it = vector_const_iterator_create(cell->reference->boundary);
+            while(vector_const_iterator_is_valid(it))
+            {
+                const point_t* pt = vector_const_iterator_get(it);
+                point_t* newpt = point_copy(pt);
+                transformationmatrix_apply_transformation(cell->reference->trans, newpt);
+                transformationmatrix_apply_transformation(cell->trans, newpt);
+                vector_append(boundary, newpt);
+                vector_const_iterator_next(it);
+            }
+            vector_const_iterator_destroy(it);
+        }
+        else
+        {
+            coordinate_t blx, bly, trx, try;
+            object_get_minmax_xy(cell->reference, &blx, &bly, &trx, &try);
+            transformationmatrix_apply_transformation_xy(cell->trans, &blx, &bly);
+            transformationmatrix_apply_transformation_xy(cell->trans, &trx, &try);
+            vector_append(boundary, point_create(blx, bly));
+            vector_append(boundary, point_create(trx, bly));
+            vector_append(boundary, point_create(trx, try));
+            vector_append(boundary, point_create(blx, try));
+        }
+    }
+    else
+    {
+        if(cell->boundary)
+        {
+            struct vector_const_iterator* it = vector_const_iterator_create(cell->boundary);
+            while(vector_const_iterator_is_valid(it))
+            {
+                const point_t* pt = vector_const_iterator_get(it);
+                point_t* newpt = point_copy(pt);
+                transformationmatrix_apply_transformation(cell->trans, newpt);
+                vector_append(boundary, newpt);
+                vector_const_iterator_next(it);
+            }
+            vector_const_iterator_destroy(it);
+        }
+        else
+        {
+            coordinate_t blx, bly, trx, try;
+            object_get_minmax_xy(cell, &blx, &bly, &trx, &try);
+            vector_append(boundary, point_create(blx, bly));
+            vector_append(boundary, point_create(trx, bly));
+            vector_append(boundary, point_create(trx, try));
+            vector_append(boundary, point_create(blx, try));
+        }
+    }
+    return boundary;
+}
+
 static void _port_destroy(void* p)
 {
     struct port* port = p;
@@ -1284,7 +1370,9 @@ void object_get_minmax_xy(const struct object* cell, coordinate_t* minxp, coordi
             coordinate_t _maxx;
             coordinate_t _miny;
             coordinate_t _maxy;
-            shape_get_minmax_xy(S, cell->trans, &_minx, &_miny, &_maxx, &_maxy);
+            shape_get_minmax_xy(S, &_minx, &_miny, &_maxx, &_maxy);
+            transformationmatrix_apply_transformation_xy(cell->trans, &_minx, &_miny);
+            transformationmatrix_apply_transformation_xy(cell->trans, &_maxx, &_maxy);
             minx = min(minx, _minx);
             maxx = max(maxx, _maxx);
             miny = min(miny, _miny);
@@ -1299,7 +1387,7 @@ void object_get_minmax_xy(const struct object* cell, coordinate_t* minxp, coordi
             const struct object* obj = child->reference;
             coordinate_t minx_, maxx_, miny_, maxy_;
             object_get_minmax_xy(obj, &minx_, &miny_, &maxx_, &maxy_);
-            // FIXME: transformation?
+            // FIXME: transformation? -> should be handled by recursive call, but check this! (construct a cell with the right transformations)
             minx = min(minx, minx_);
             maxx = max(maxx, maxx_);
             miny = min(miny, miny_);
