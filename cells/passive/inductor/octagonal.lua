@@ -1,14 +1,15 @@
 function parameters()
     pcell.add_parameters(
-        { "radius(Radius)",                        40000 },
-        { "turns(Number of Turns)",                    3 },
-        { "width(Width)",                           6000 },
-        { "separation(Line Separation)",            6000 },
-        { "extension(Line Extension)",             40000 },
-        { "extsep(Extension Separation)",           6000 },
-        { "metalnum(Conductor Metal)",     -1, "integer" },
-        { "drawlvsresistor(Draw LVS Resistor)",    false },
-        { "lvsreswidth(LVS Resistor Width)",        1000 }
+        { "radius(Radius)",                          40000 },
+        { "turns(Number of Turns)",                      3 },
+        { "width(Width)",                             6000 },
+        { "separation(Line Separation)",              6000 },
+        { "extension(Line Extension)",               40000 },
+        { "extsep(Extension Separation)",             6000 },
+        { "metalnum(Conductor Metal)",     -1,   "integer" },
+        { "drawlvsresistor(Draw LVS Resistor)",      false },
+        { "lvsreswidth(LVS Resistor Width)",          1000 },
+        { "boundaryfactor(Increase Boundary Factor)",  0.5 }
     )
 end
 
@@ -58,11 +59,11 @@ function layout(inductor, _P)
             geometry.path_polygon(inductor, mainmetal, uppts, _P.width, true)
             geometry.path_polygon(inductor, auxmetal, util.xmirror(uppts), _P.width, true)
             -- place vias
-            geometry.viabltr(inductor, _P.metalnum, _P.metalnum - 1, 
+            geometry.viabltr(inductor, _P.metalnum, _P.metalnum - 1,
                 point.create(-_P.width / 2 - (_scale_tanpi8(_P.radius) + pitch / 2) / 2, -_P.width / 2 - sign * (radius + pitch)),
                 point.create( _P.width / 2 - (_scale_tanpi8(_P.radius) + pitch / 2) / 2,  _P.width / 2 - sign * (radius + pitch))
             )
-            geometry.viabltr(inductor, _P.metalnum, _P.metalnum - 1, 
+            geometry.viabltr(inductor, _P.metalnum, _P.metalnum - 1,
                 point.create(-_P.width / 2 + (_scale_tanpi8(_P.radius) + pitch / 2) / 2, -_P.width / 2 - sign * radius),
                 point.create( _P.width / 2 + (_scale_tanpi8(_P.radius) + pitch / 2) / 2,  _P.width / 2 - sign * radius)
             )
@@ -136,7 +137,7 @@ function layout(inductor, _P)
     -- boundary
     local sign = (_P.turns % 2 == 0) and 1 or -1
 
-    local outerradius = _P.radius + _P.turns * pitch
+    local outerradius = _P.radius + (_P.turns - 1 + _P.boundaryfactor) * pitch
     local outerr = _scale_tanpi8(outerradius)
     sign = -sign
 
