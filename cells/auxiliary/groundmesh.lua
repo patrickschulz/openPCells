@@ -174,7 +174,7 @@ function layout(mesh, _P)
                 local density = 0.5
                 local numlines = math.floor(density * (_P.cellsize - 2 * _P.metalwidths[i]) / _P.metalwidths[i])
                 if numlines % 2 == 0 then
-                    numlines = numlines - 1
+                    numlines = numlines - 1 -- make sure there is an odd number of lines (double patterning)
                 end
                 for j = 1, numlines do
                     geometry.rectanglebltr(mesh, generics.metal(_P.meshmetals[i]),
