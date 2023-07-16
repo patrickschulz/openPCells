@@ -450,6 +450,7 @@ function M.place_within_boundary(toplevel, cell, basename, targetarea, excludes)
     for _, origin in ipairs(meshorigins) do
         local child = toplevel:add_child(cell, string.format("%s_%d", basename, i))
         child:move_point(point.create(0, 0), point.create(origin.x, origin.y))
+        i = i + 1
     end
 end
 
