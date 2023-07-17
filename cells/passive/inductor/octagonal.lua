@@ -9,7 +9,8 @@ function parameters()
         { "metalnum(Conductor Metal)",     -1,   "integer" },
         { "drawlvsresistor(Draw LVS Resistor)",      false },
         { "lvsreswidth(LVS Resistor Width)",          1000 },
-        { "boundaryfactor(Increase Boundary Factor)",  0.5 }
+        { "boundaryfactor(Increase Boundary Factor)",  0.5 },
+        { "breaklines(Break Conductor Lines)",       false }
     )
 end
 
@@ -70,7 +71,7 @@ function layout(inductor, _P)
         end
 
         -- draw inner connection between left and right
-        if i == 1 then
+        if i == 1 and not _P.breaklines then
             prepend(0, sign * radius)
         end
 
