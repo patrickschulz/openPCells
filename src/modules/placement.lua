@@ -407,8 +407,10 @@ function M.place_within_boundary(toplevel, cell, basename, targetarea, excludes)
     for i = 1, #targetarea do
         local pt = targetarea[i]
         -- round to multiple of the pitch
-        x = xpitch * math.floor(pt:getx() / xpitch)
-        y = ypitch * math.floor(pt:gety() / ypitch)
+        --local x = xpitch * math.floor(pt:getx() / xpitch)
+        --local y = ypitch * math.floor(pt:gety() / ypitch)
+        local x = pt:getx()
+        local y = pt:gety()
         points[i] = point.create(x, y)
         if points[i]:getx() < minx then
             minx = points[i]:getx()
