@@ -153,6 +153,7 @@ function parameters()
         { "extendrotationmarkerbot",                                       0, follow = "extendallbot" },
         { "extendrotationmarkerleft",                                      0, follow = "extendallleft" },
         { "extendrotationmarkerright",                                     0, follow = "extendallright" },
+        { "drawwell",                                                  true },
         { "drawtopwelltap",                                            false },
         { "topwelltapwidth",                                           technology.get_dimension("Minimum M1 Width") },
         { "topwelltapspace",                                           technology.get_dimension("Minimum M1 Space") },
@@ -580,20 +581,22 @@ function layout(transistor, _P)
     )
 
     -- well
-    geometry.rectanglebltr(transistor,
-        generics.other(_P.flippedwell and
-            (_P.channeltype == "nmos" and "nwell" or "pwell") or
-            (_P.channeltype == "nmos" and "pwell" or "nwell")
-        ),
-        point.create(
-            -_P.extendwellleft,
-            -math.max(_P.extendwellbot, enable(_P.drawbotwelltap, _P.botwelltapspace + _P.botwelltapwidth))
-        ),
-        point.create(
-            activewidth + leftactext + rightactext + _P.extendwellright,
-            _P.fwidth + math.max(_P.extendwelltop, enable(_P.drawtopwelltap, _P.topwelltapspace + _P.topwelltapwidth))
+    if _P.drawwell then
+        geometry.rectanglebltr(transistor,
+            generics.other(_P.flippedwell and
+                (_P.channeltype == "nmos" and "nwell" or "pwell") or
+                (_P.channeltype == "nmos" and "pwell" or "nwell")
+            ),
+            point.create(
+                -_P.extendwellleft,
+                -math.max(_P.extendwellbot, enable(_P.drawbotwelltap, _P.botwelltapspace + _P.botwelltapwidth))
+            ),
+            point.create(
+                activewidth + leftactext + rightactext + _P.extendwellright,
+                _P.fwidth + math.max(_P.extendwelltop, enable(_P.drawtopwelltap, _P.topwelltapspace + _P.topwelltapwidth))
+            )
         )
-    )
+    end
     -- well taps
     if _P.drawtopwelltap then
         transistor:merge_into(pcell.create_layout("auxiliary/welltap", "topwelltap", {
