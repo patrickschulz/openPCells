@@ -931,8 +931,8 @@ static int lobject_set_boundary_rectangular(lua_State* L)
         struct lpoint* tr = lpoint_checkpoint(L, 3);
         vector_append(boundary, point_create(lpoint_get(bl)->x, lpoint_get(bl)->y));
         vector_append(boundary, point_create(lpoint_get(tr)->x, lpoint_get(bl)->y));
-        vector_append(boundary, point_create(lpoint_get(bl)->x, lpoint_get(tr)->y));
         vector_append(boundary, point_create(lpoint_get(tr)->x, lpoint_get(tr)->y));
+        vector_append(boundary, point_create(lpoint_get(bl)->x, lpoint_get(tr)->y));
         object_set_boundary(lobject_get(cell), boundary);
     }
     else
