@@ -86,7 +86,8 @@ function layout(inductor, _P)
                 append(-(_P.extsep + _P.width) / 2, -r - radius + (_P.extsep + _P.width) / 2 - _P.extension)
             else
                 append(-(_P.extsep + _P.width) / 2, -radius)
-                append(-(_P.extsep + _P.width) / 2, -(radius + _P.extension))
+                append(-(_P.extsep + _P.width) / 2, -(radius + _P.width / 2))
+                append(-(_P.extsep + _P.width) / 2, -(radius + _P.width / 2 + _P.extension))
             end
         end
 
@@ -118,7 +119,7 @@ function layout(inductor, _P)
         --)
     else
         inductor:add_area_anchor_bltr("leftline",
-            point.create(-_P.extsep / 2 - _P.width, -(lastradius + _P.extension)),
+            point.create(-_P.extsep / 2 - _P.width, -(lastradius + _P.width / 2 + _P.extension)),
             point.create(-_P.extsep / 2, -lastradius - _P.width / 2)
         )
     end
@@ -130,7 +131,7 @@ function layout(inductor, _P)
         --)
     else
         inductor:add_area_anchor_bltr("rightline",
-            point.create( _P.extsep / 2, -(lastradius + _P.extension)),
+            point.create( _P.extsep / 2, -(lastradius + _P.width / 2 + _P.extension)),
             point.create( _P.extsep / 2 + _P.width, -lastradius - _P.width / 2)
         )
     end
