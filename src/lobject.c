@@ -890,6 +890,28 @@ static int lobject_set_boundary(lua_State* L)
     return 0;
 }
 
+static int lobject_set_boundary_rectangular(lua_State* L)
+{
+    struct lobject* cell = lobject_check(L, 1);
+    if(lua_gettop(L) == 3)
+    {
+        struct vector* boundary = vector_create(4, point_destroy);
+        struct lpoint* bl = lpoint_checkpoint(L, 2);
+        struct lpoint* tr = lpoint_checkpoint(L, 3);
+        vector_append(boundary, point_create(lpoint_get(bl)->x, lpoint_get(bl)->y));
+        vector_append(boundary, point_create(lpoint_get(tr)->x, lpoint_get(tr)->y));
+        vector_append(boundary, point_create(lpoint_get(bl)->x, lpoint_get(bl)->y));
+        vector_append(boundary, point_create(lpoint_get(tr)->x, lpoint_get(tr)->y));
+        object_set_boundary(lobject_get(cell), boundary);
+    }
+    else
+    {
+        lua_pushfstring(L, "object.set_boundary_rectangular: expected 2 points or 4 points, got %d", lua_gettop(L) - 1);
+        lua_error(L);
+    }
+    return 0;
+}
+
 static int lobject_inherit_boundary(lua_State* L)
 {
     struct lobject* cell = lobject_check(L, 1);
@@ -989,6 +1011,7 @@ int open_lobject_lib(lua_State* L)
         { "get_area_anchor_width",      lobject_get_area_anchor_width       },
         { "get_area_anchor_height",     lobject_get_area_anchor_height      },
         { "set_boundary",               lobject_set_boundary                },
+        { "set_boundary_rectangular",   lobject_set_boundary_rectangular    },
         { "inherit_boundary",           lobject_inherit_boundary            },
         { "get_boundary",               lobject_get_boundary                },
         { "__gc",                       lobject_destroy                     },
