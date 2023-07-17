@@ -59,6 +59,14 @@ function point.ydistance(lhs, rhs)
     return lhs:gety() - rhs:gety()
 end
 
+function point.xdistance_abs(lhs, rhs)
+    return math.abs(lhs:getx() - rhs:getx())
+end
+
+function point.ydistance_abs(lhs, rhs)
+    return math.abs(lhs:gety() - rhs:gety())
+end
+
 function is_point(obj)
     if not obj then
         error("is_point expects expects one argument")
