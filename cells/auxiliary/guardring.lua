@@ -257,6 +257,10 @@ function layout(guardring, _P)
             point.create(holewidth - _P.wellextension, holeheight - _P.wellextension)
         )
     end
+    guardring:add_area_anchor_bltr("outerwell",
+        point.create(-_P.ringwidth - _P.wellextension, -_P.ringwidth - _P.wellextension),
+        point.create(holewidth + _P.ringwidth + _P.wellextension, holeheight + _P.ringwidth + _P.wellextension)
+    )
     -- draw deep n/p-well
     if _P.drawdeepwell then
         geometry.rectanglebltr(guardring, generics.other(string.format("deep%swell", _P.contype)),
@@ -264,6 +268,10 @@ function layout(guardring, _P)
             point.create(holewidth + _P.ringwidth + _P.wellextension - _P.deepwelloffset, holeheight + _P.ringwidth + _P.wellextension - _P.deepwelloffset)
         )
     end
+    guardring:add_area_anchor_bltr("outerdeepwell",
+        point.create(-_P.ringwidth - _P.wellextension + _P.deepwelloffset, -_P.ringwidth - _P.wellextension + _P.deepwelloffset),
+        point.create(holewidth + _P.ringwidth + _P.wellextension - _P.deepwelloffset, holeheight + _P.ringwidth + _P.wellextension - _P.deepwelloffset)
+    )
 
     if _P.fillimplant then
         geometry.rectanglebltr(guardring, generics.implant(_P.contype),
