@@ -352,10 +352,11 @@ local function _is_point_in_polygon(x, y, points)
         end
         j = i
     end
-    return c
+    return c and 1 or -1
 end
 --]]
 
+---[[
 function _is_point_in_polygon(x, y, polygon)
     local _between = function(p, a, b)
         return p >= a and p <= b or p <= a and p >= b
@@ -364,7 +365,6 @@ function _is_point_in_polygon(x, y, polygon)
     local i = #polygon
     local j = 1
     while j <= #polygon do
-        ::continue::
         local A = polygon[i]
         local B = polygon[j]
         -- corner cases
@@ -388,11 +388,13 @@ function _is_point_in_polygon(x, y, polygon)
                 inside = not inside
             end
         end
+        ::continue::
         i = j
         j = j + 1
     end
     return inside and 1 or -1
 end
+--]]
 
 function M.place_within_boundary(toplevel, cell, basename, targetarea, excludes)
     local width, height = cell:width_height_alignmentbox()
@@ -433,10 +435,16 @@ function M.place_within_boundary(toplevel, cell, basename, targetarea, excludes)
         while y < maxy do
             local insert = _is_point_in_polygon(x, y, points) ~= -1
             for _, exclude in ipairs(excludes) do
-                if _is_point_in_polygon(x + width / 2, y + height / 2, exclude) ~= -1 or
-                   _is_point_in_polygon(x - width / 2, y + height / 2, exclude) ~= -1 or
-                   _is_point_in_polygon(x + width / 2, y - height / 2, exclude) ~= -1 or
-                   _is_point_in_polygon(x - width / 2, y - height / 2, exclude) ~= -1 then
+                -- FIXME: this needs a proper polygon intersection test
+                if _is_point_in_polygon(x            , y             , exclude) == 1 or
+                   _is_point_in_polygon(x + width / 2, y             , exclude) == 1 or
+                   _is_point_in_polygon(x - width / 2, y             , exclude) == 1 or
+                   _is_point_in_polygon(x            , y + height / 2, exclude) == 1 or
+                   _is_point_in_polygon(x            , y - height / 2, exclude) == 1 or
+                   _is_point_in_polygon(x + width / 2, y + height / 2, exclude) == 1 or
+                   _is_point_in_polygon(x - width / 2, y + height / 2, exclude) == 1 or
+                   _is_point_in_polygon(x + width / 2, y - height / 2, exclude) == 1 or
+                   _is_point_in_polygon(x - width / 2, y - height / 2, exclude) == 1 then
                     insert = false
                 end
             end
