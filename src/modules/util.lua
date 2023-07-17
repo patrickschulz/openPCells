@@ -16,6 +16,51 @@ function M.sum(t)
     return sum
 end
 
+function M.polygon_xmin(pts)
+    local min = math.huge
+    for i, pt in ipairs(pts) do
+        local x = pt:getx()
+        if x < min then
+            min = x
+        end
+    end
+    return min
+end
+
+function M.polygon_ymin(pts)
+    local min = math.huge
+    for i, pt in ipairs(pts) do
+        local y = pt:gety()
+        if y < min then
+            min = y
+        end
+    end
+    return min
+end
+
+function M.polygon_xmax(pts)
+    local max = -math.huge
+    for i, pt in ipairs(pts) do
+        local x = pt:getx()
+        if x > max then
+            max = x
+        end
+    end
+    return max
+end
+
+function M.polygon_ymax(pts)
+    local max = -math.huge
+    for i, pt in ipairs(pts) do
+        local y = pt:gety()
+        if y > max then
+            max = y
+        end
+    end
+    return max
+end
+
+
 function M.xmirror(pts, xcenter)
     local mirrored = {}
     xcenter = xcenter or 0
