@@ -1403,8 +1403,8 @@ void object_get_minmax_xy(const struct object* cell, coordinate_t* minxp, coordi
 void object_width_height_alignmentbox(const struct object* cell, ucoordinate_t* width, ucoordinate_t* height)
 {
     coordinate_t* ab = _get_transformed_alignment_box(cell);
-    *width = _alignmentbox_get_outertrx(ab) - _alignmentbox_get_outerblx(ab);
-    *height = _alignmentbox_get_outertry(ab) - _alignmentbox_get_outerbly(ab);
+    *width = _alignmentbox_get_outertrx(ab) - _alignmentbox_get_innerblx(ab);
+    *height = _alignmentbox_get_outertry(ab) - _alignmentbox_get_innerbly(ab);
     free(ab);
 }
 
