@@ -936,6 +936,7 @@ static int lobject_get_boundary(lua_State* L)
         ++i;
     }
     vector_iterator_destroy(it);
+    vector_destroy(boundary);
     return 1;
 }
 

@@ -262,6 +262,18 @@ void object_destroy(void* cellv)
         {
             vector_destroy(cell->ports);
         }
+
+        // alignmentbox
+        if(cell->alignmentbox)
+        {
+            free(cell->alignmentbox);
+        }
+
+        // alignmentbox
+        if(cell->boundary)
+        {
+            vector_destroy(cell->boundary);
+        }
     }
 
     // name
@@ -269,12 +281,6 @@ void object_destroy(void* cellv)
 
     // transformation matrix
     transformationmatrix_destroy(cell->trans);
-
-    // alignmentbox
-    if(cell->alignmentbox)
-    {
-        free(cell->alignmentbox);
-    }
 
     // object itself
     free(cell);
