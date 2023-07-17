@@ -9,7 +9,7 @@ function parameters()
         { "metalnum(Conductor Metal)",     -1,   "integer" },
         { "drawlvsresistor(Draw LVS Resistor)",      false },
         { "lvsreswidth(LVS Resistor Width)",          1000 },
-        { "boundaryfactor(Increase Boundary Factor)",  0.5 },
+        { "boundaryextension(Boundary Extension)",    3000 },
         { "breaklines(Break Conductor Lines)",       false }
     )
 end
@@ -136,30 +136,31 @@ function layout(inductor, _P)
         )
     end
 
+    -- alignment box
+    inductor:set_alignment_box(
+        point.create(-_P.radius + (_P.turns - 1) * pitch - _P.width / 2, -_P.radius + (_P.turns - 1) * pitch - _P.width / 2),
+        point.create( _P.radius + (_P.turns - 1) * pitch + _P.width / 2,  _P.radius + (_P.turns - 1) * pitch + _P.width / 2)
+    )
+
     -- boundary
-    local sign = (_P.turns % 2 == 0) and 1 or -1
-
-    local outerradius = _P.radius + (_P.turns - 1 + _P.boundaryfactor) * pitch
+    local outerradius = _P.radius + (_P.turns - 1) * pitch + _P.width / 2 + _P.boundaryextension
     local outerr = _scale_tanpi8(outerradius)
-    sign = -sign
-
     local outerpathpts = {}
     local outerappend = util.make_insert_xy(outerpathpts)
-
-    outerappend(-outerr + _scale_tanpi8(_P.width / 2),  sign * outerradius)
-    outerappend(-outerr,  sign * outerradius)
-    outerappend(-outerradius,  sign * outerr)
-    outerappend(-outerradius, -sign * outerr)
-    outerappend(-outerr, -sign * outerradius)
-    outerappend(-outerr + _scale_tanpi8(_P.width / 2), -sign * outerradius)
-
-    outerappend( outerr + _scale_tanpi8(_P.width / 2), -sign * outerradius)
-    outerappend( outerr, -sign * outerradius)
-    outerappend( outerradius, -sign * outerr)
-    outerappend( outerradius,  sign * outerr)
-    outerappend( outerr,  sign * outerradius)
-    --outerappend( outerr + _scale_tanpi8(_P.width / 2),  sign * outerradius)
-
+    -- left
+    outerappend(-outerr + _scale_tanpi8(_P.width / 2),  outerradius)
+    outerappend(-outerr,  outerradius)
+    outerappend(-outerradius,  outerr)
+    outerappend(-outerradius, -outerr)
+    outerappend(-outerr, -outerradius)
+    outerappend(-outerr + _scale_tanpi8(_P.width / 2), -outerradius)
+    -- right
+    outerappend( outerr + _scale_tanpi8(_P.width / 2), -outerradius)
+    outerappend( outerr, -outerradius)
+    outerappend( outerradius, -outerr)
+    outerappend( outerradius,  outerr)
+    outerappend( outerr,  outerradius)
+    --outerappend( outerr + _scale_tanpi8(_P.width / 2),  outerradius)
     inductor:set_boundary(
         outerpathpts
     )
