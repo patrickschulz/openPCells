@@ -309,6 +309,32 @@ _gen_fun_abut_align(align_right)
 _gen_fun_abut_align(align_top)
 _gen_fun_abut_align(align_bottom)
 
+#define _gen_fun_align_origin(what) \
+static int lobject_ ##what (lua_State* L) \
+{ \
+    struct lobject* cell = lobject_check(L, 1); \
+    if(!object_has_alignmentbox(lobject_get(cell))) \
+    { \
+        const char* name = object_get_name(lobject_get(cell)); \
+        if(name) \
+        { \
+            lua_pushfstring(L, "object." #what ": first object ('%s') does not have an alignment box", name); \
+        } \
+        else \
+        { \
+            lua_pushstring(L, "object." #what ": first object does not have an alignment box"); \
+        } \
+        lua_error(L); \
+    } \
+    object_ ##what (lobject_get(cell)); \
+    return 1; \
+}
+
+_gen_fun_align_origin(align_left_origin)
+_gen_fun_align_origin(align_right_origin)
+_gen_fun_align_origin(align_top_origin)
+_gen_fun_align_origin(align_bottom_origin)
+
 #define _gen_fun_abut_align_area_anchor(what) \
 static int lobject_ ##what (lua_State* L) \
 { \
@@ -993,6 +1019,10 @@ int open_lobject_lib(lua_State* L)
         { "align_right",                lobject_align_right                 },
         { "align_top",                  lobject_align_top                   },
         { "align_bottom",               lobject_align_bottom                },
+        { "align_left_origin",          lobject_align_left_origin           },
+        { "align_right_origin",         lobject_align_right_origin          },
+        { "align_top_origin",           lobject_align_top_origin            },
+        { "align_bottom_origin",        lobject_align_bottom_origin         },
         { "abut_area_anchor_left",      lobject_abut_area_anchor_left       },
         { "abut_area_anchor_right",     lobject_abut_area_anchor_right      },
         { "abut_area_anchor_top",       lobject_abut_area_anchor_top        },

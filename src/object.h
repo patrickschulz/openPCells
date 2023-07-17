@@ -56,6 +56,10 @@ int object_align_right(struct object* cell, const struct object* other);
 int object_align_left(struct object* cell, const struct object* other);
 int object_align_top(struct object* cell, const struct object* other);
 int object_align_bottom(struct object* cell, const struct object* other);
+int object_align_right_origin(struct object* cell);
+int object_align_left_origin(struct object* cell);
+int object_align_top_origin(struct object* cell);
+int object_align_bottom_origin(struct object* cell);
 
 // anchor alignment
 int object_abut_area_anchor_right(struct object* cell, const char* anchorname, const struct object* other, const char* otheranchorname);
