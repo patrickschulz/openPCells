@@ -296,4 +296,10 @@ function layout(guardring, _P)
         point.create(0, 0),
         point.create(holewidth, holeheight)
     )
+    guardring:set_boundary({
+        point.create(-_P.ringwidth, -_P.ringwidth),
+        point.create(holewidth + _P.ringwidth, -_P.ringwidth),
+        point.create(holewidth + _P.ringwidth, holeheight + _P.ringwidth),
+        point.create(-_P.ringwidth, holeheight + _P.ringwidth),
+    })
 end
