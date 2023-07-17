@@ -272,7 +272,6 @@ void _make_unique_points(point_t** points, size_t* numpoints)
     {
         if((points[i]->x == points[i - 1]->x) && (points[i]->y == points[i - 1]->y))
         {
-            point_destroy(points[i]);
             for(unsigned int j = 0; j < *numpoints - i - 1; ++j)
             {
                 points[i + j] = points[i + j + 1];
