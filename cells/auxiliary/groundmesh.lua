@@ -230,14 +230,12 @@ function layout(mesh, _P)
         -- do nothing for "none"
     end
 
-    -- FIXME: this should depend on parameters
-    mesh:add_area_anchor_bltr(
-        "gridcenter",
-        point.create(-2500, -2500),
-        point.create( 2500,  2500)
+    mesh:set_alignment_box(
+        point.create(-_P.cellsize / 2, -_P.cellsize / 2),
+        point.create( _P.cellsize / 2,  _P.cellsize / 2)
     )
 
-    mesh:set_alignment_box(
+    mesh:set_boundary_rectangular(
         point.create(-_P.cellsize / 2, -_P.cellsize / 2),
         point.create( _P.cellsize / 2,  _P.cellsize / 2)
     )
