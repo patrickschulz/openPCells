@@ -805,6 +805,11 @@ static int lobject_inherit_alignment_box(lua_State* L)
 {
     struct lobject* cell = lobject_check(L, 1);
     struct lobject* other = lobject_check(L, 2);
+    if(!object_has_alignmentbox(lobject_get(other)))
+    {
+        lua_pushstring(L, "object.inherit_alignment_box: othercell has no alignmentbox");
+        lua_error(L);
+    }
     object_inherit_alignment_box(lobject_get(cell), lobject_get(other));
     return 0;
 }
