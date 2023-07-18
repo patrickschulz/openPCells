@@ -138,7 +138,7 @@ function layout(inductor, _P)
 
     -- alignment box
     inductor:set_alignment_box(
-        point.create(-_P.radius + (_P.turns - 1) * pitch - _P.width / 2, -_P.radius + (_P.turns - 1) * pitch - _P.width / 2),
+        point.create(-_P.radius + (_P.turns - 1) * pitch - _P.width / 2, -_P.radius + (_P.turns - 1) * pitch - _P.width / 2 - _P.extension),
         point.create( _P.radius + (_P.turns - 1) * pitch + _P.width / 2,  _P.radius + (_P.turns - 1) * pitch + _P.width / 2)
     )
 
