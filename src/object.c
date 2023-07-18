@@ -383,7 +383,7 @@ void object_merge_into(struct object* cell, const struct object* other)
             {
                 const_vector_append(used_cell_references, child->reference);
                 vector_append(new_cell_references, object_copy(child->reference));
-                index = 0;
+                index = vector_size(new_cell_references) - 1;
             }
             struct object* newchild = object_add_child(cell, vector_get(new_cell_references, index), child->name);
             object_apply_other_transformation(newchild, child->trans);
