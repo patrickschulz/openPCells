@@ -380,7 +380,8 @@ function state.create_cellenv(state, cellname, ovrenv)
             get_parameters                  = bindstate(_get_parameters),
             push_overwrites                 = bindstate(_push_overwrites),
             pop_overwrites                  = bindstate(_pop_overwrites),
-            create_layout                   = pcell.create_layout
+            create_layout                   = pcell.create_layout,
+            create_layout_env               = pcell.create_layout_env,
         },
         technology = {
             get_dimension = technology.get_dimension,
