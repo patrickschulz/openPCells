@@ -14,7 +14,7 @@ function parameters()
         { "drawtop", true },
         { "drawbottom", true },
         { "connecttopmetal", false },
-        { "metalwidths", { 500, 500, 800, 800, 800, 800, 1000, 1000, 5000, 5000 } },
+        { "metalwidths", { 500, 500, 800, 800, 800, 800, 1000, 2500, 5000, 5000 } },
         { "needmultiplepatterning", { true, true, false, false, false, false, false, false } }
     )
 end
@@ -111,7 +111,10 @@ function layout(mesh, _P)
         end
         -- connect to top metal
         if _P.connecttopmetal then
-            geometry.via(mesh, _P.gridmetals[#_P.gridmetals], _P.gridmetals[#_P.gridmetals] + 1, _P.metalwidths[#_P.metalwidths], _P.metalwidths[#_P.metalwidths])
+            geometry.viabltr(mesh, _P.gridmetals[#_P.gridmetals], _P.gridmetals[#_P.gridmetals] + 1,
+                point.create(-_P.metalwidths[#_P.metalwidths] / 2, -_P.metalwidths[#_P.metalwidths] / 2),
+                point.create( _P.metalwidths[#_P.metalwidths] / 2,  _P.metalwidths[#_P.metalwidths] / 2)
+            )
         end
     end
 
@@ -189,14 +192,16 @@ function layout(mesh, _P)
                     )
                 end
             else
-                geometry.rectanglebltr(mesh, generics.metal(_P.meshmetals[i]),
-                    point.create(-_P.metalwidths[i] / 2, -_P.cellsize / 2),
-                    point.create( _P.metalwidths[i] / 2,  _P.cellsize / 2)
-                )
-                geometry.rectanglebltr(mesh, generics.metal(_P.meshmetals[i]),
-                    point.create(-_P.cellsize / 2, -_P.metalwidths[i] / 2),
-                    point.create( _P.cellsize / 2,  _P.metalwidths[i] / 2)
-                )
+                if i ~= _P.interconnectmetal then
+                    geometry.rectanglebltr(mesh, generics.metal(_P.meshmetals[i]),
+                        point.create(-_P.metalwidths[i] / 2, -_P.cellsize / 2),
+                        point.create( _P.metalwidths[i] / 2,  _P.cellsize / 2)
+                    )
+                    geometry.rectanglebltr(mesh, generics.metal(_P.meshmetals[i]),
+                        point.create(-_P.cellsize / 2, -_P.metalwidths[i] / 2),
+                        point.create( _P.cellsize / 2,  _P.metalwidths[i] / 2)
+                    )
+                end
             end
         end
         -- connect mesh to grid
@@ -213,17 +218,34 @@ function layout(mesh, _P)
                     point.create(_P.cellsize / 2,  _P.metalwidths[#_P.meshmetals + 2] / 2)
                 )
             end
-            if _P.drawbottom then
-                geometry.viabltr(mesh, _P.interconnectmetal, _P.interconnectmetal + 1,
-                    point.create(-_P.metalwidths[#_P.meshmetals + 2] / 2, _P.cellsize / 2 - _P.cellsize / 4),
-                    point.create(_P.metalwidths[#_P.meshmetals + 2] / 2, _P.cellsize / 2)
-                )
-            end
-            if _P.drawtop then
-                geometry.viabltr(mesh, _P.interconnectmetal, _P.interconnectmetal + 1,
-                    point.create(-_P.metalwidths[#_P.meshmetals + 2] / 2, -_P.cellsize / 2),
-                    point.create(_P.metalwidths[#_P.meshmetals + 2] / 2,  -_P.cellsize / 2 + _P.cellsize / 4)
-                )
+            local leftright = true
+            for i = 1, #_P.gridmetals do
+                local metal = _P.gridmetals[i]
+                if leftright and _P.drawleft then
+                    geometry.rectanglebltr(mesh, generics.metal(metal),
+                        point.create(-_P.cellsize / 2, -_P.metalwidths[metal] / 2),
+                        point.create(-_P.cellsize / 2 + _P.cellsize / 4,  _P.metalwidths[metal] / 2)
+                    )
+                end
+                if leftright and _P.drawright then
+                    geometry.rectanglebltr(mesh, generics.metal(metal),
+                        point.create(_P.cellsize / 2 - _P.cellsize / 4, -_P.metalwidths[metal] / 2),
+                        point.create(_P.cellsize / 2,  _P.metalwidths[metal] / 2)
+                    )
+                end
+                if not leftright and _P.drawbottom then
+                    geometry.rectanglebltr(mesh, generics.metal(metal),
+                        point.create(-_P.metalwidths[metal] / 2, _P.cellsize / 2 - _P.cellsize / 4),
+                        point.create(_P.metalwidths[metal] / 2, _P.cellsize / 2)
+                    )
+                end
+                if not leftright and _P.drawtop then
+                    geometry.rectanglebltr(mesh, generics.metal(metal),
+                        point.create(-_P.metalwidths[metal] / 2, -_P.cellsize / 2),
+                        point.create(_P.metalwidths[metal] / 2,  -_P.cellsize / 2 + _P.cellsize / 4)
+                    )
+                end
+                leftright = not leftright
             end
         end
     else
