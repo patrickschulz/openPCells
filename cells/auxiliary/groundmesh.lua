@@ -15,7 +15,10 @@ function parameters()
         { "drawbottom", true },
         { "connecttopmetal", false },
         { "metalwidths", { 500, 500, 800, 800, 800, 800, 1000, 2500, 5000, 5000 } },
-        { "needmultiplepatterning", { true, true, false, false, false, false, false, false } }
+        { "needmultiplepatterning", { true, true, false, false, false, false, false, false } },
+        { "wellextension", 0 },
+        { "implantextension", 0 },
+        { "soiopenextension", 0 }
     )
 end
 
@@ -29,6 +32,9 @@ function layout(mesh, _P)
             ringwidth = _P.guardringwidth,
             fit = true,
             drawmetal = false,
+            wellextension = _P.wellextension,
+            implantextension = _P.implantextension,
+            soiopenextension = _P.soiopenextension,
         })
         guardring:move_point(
             guardring:get_anchor("innerbottomleft"),
