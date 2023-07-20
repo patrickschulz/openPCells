@@ -456,12 +456,15 @@ function M.place_within_boundary(toplevel, cell, basename, targetarea, excludes)
         x = x + xpitch
     end
 
+    local children = {}
     local i = 1
     for _, origin in ipairs(meshorigins) do
         local child = toplevel:add_child(cell, string.format("%s_%d", basename, i))
         child:move_point(point.create(0, 0), point.create(origin.x, origin.y))
+        table.insert(children, child)
         i = i + 1
     end
+    return children
 end
 
 return M
