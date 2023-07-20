@@ -1,16 +1,17 @@
 function parameters()
     pcell.add_parameters(
-        { "radius(Radius)",                          40000 },
-        { "turns(Number of Turns)",                      3 },
-        { "width(Width)",                             6000 },
-        { "separation(Line Separation)",              6000 },
-        { "extension(Line Extension)",               40000 },
-        { "extsep(Extension Separation)",             6000 },
-        { "metalnum(Conductor Metal)",     -1,   "integer" },
-        { "drawlvsresistor(Draw LVS Resistor)",      false },
-        { "lvsreswidth(LVS Resistor Width)",          1000 },
-        { "boundaryextension(Boundary Extension)",    3000 },
-        { "breaklines(Break Conductor Lines)",       false }
+        { "radius(Radius)",                            40000 },
+        { "turns(Number of Turns)",                        3 },
+        { "width(Width)",                               6000 },
+        { "separation(Line Separation)",                6000 },
+        { "extension(Line Extension)",                 40000 },
+        { "extsep(Extension Separation)",               6000 },
+        { "metalnum(Conductor Metal)",     -1,     "integer" },
+        { "drawlvsresistor(Draw LVS Resistor)",        false },
+        { "lvsreswidth(LVS Resistor Width)",            1000 },
+        { "boundaryextension(Boundary Extension)",      3000 },
+        { "rectangularboundary(Rectangular Boundary)", false },
+        { "breaklines(Break Conductor Lines)",         false }
     )
 end
 
@@ -143,25 +144,32 @@ function layout(inductor, _P)
     )
 
     -- boundary
-    local outerradius = _P.radius + (_P.turns - 1) * pitch + _P.width / 2 + _P.boundaryextension
-    local outerr = _scale_tanpi8(outerradius)
-    local outerpathpts = {}
-    local outerappend = util.make_insert_xy(outerpathpts)
-    -- left
-    outerappend(-outerr + _scale_tanpi8(_P.width / 2),  outerradius)
-    outerappend(-outerr,  outerradius)
-    outerappend(-outerradius,  outerr)
-    outerappend(-outerradius, -outerr)
-    outerappend(-outerr, -outerradius)
-    outerappend(-outerr + _scale_tanpi8(_P.width / 2), -outerradius)
-    -- right
-    outerappend( outerr + _scale_tanpi8(_P.width / 2), -outerradius)
-    outerappend( outerr, -outerradius)
-    outerappend( outerradius, -outerr)
-    outerappend( outerradius,  outerr)
-    outerappend( outerr,  outerradius)
-    --outerappend( outerr + _scale_tanpi8(_P.width / 2),  outerradius)
-    inductor:set_boundary(
-        outerpathpts
-    )
+    if _P.rectangularboundary then
+        inductor:set_boundary_rectangular(
+            point.create(-_P.radius + (_P.turns - 1) * pitch - _P.width / 2 - _P.boundaryextension, -_P.radius + (_P.turns - 1) * pitch - _P.width / 2 - _P.boundaryextension),
+            point.create( _P.radius + (_P.turns - 1) * pitch + _P.width / 2 + _P.boundaryextension,  _P.radius + (_P.turns - 1) * pitch + _P.width / 2 + _P.boundaryextension)
+        )
+    else
+        local outerradius = _P.radius + (_P.turns - 1) * pitch + _P.width / 2 + _P.boundaryextension
+        local outerr = _scale_tanpi8(outerradius)
+        local outerpathpts = {}
+        local outerappend = util.make_insert_xy(outerpathpts)
+        -- left
+        outerappend(-outerr + _scale_tanpi8(_P.width / 2),  outerradius)
+        outerappend(-outerr,  outerradius)
+        outerappend(-outerradius,  outerr)
+        outerappend(-outerradius, -outerr)
+        outerappend(-outerr, -outerradius)
+        outerappend(-outerr + _scale_tanpi8(_P.width / 2), -outerradius)
+        -- right
+        outerappend( outerr + _scale_tanpi8(_P.width / 2), -outerradius)
+        outerappend( outerr, -outerradius)
+        outerappend( outerradius, -outerr)
+        outerappend( outerradius,  outerr)
+        outerappend( outerr,  outerradius)
+        --outerappend( outerr + _scale_tanpi8(_P.width / 2),  outerradius)
+        inductor:set_boundary(
+            outerpathpts
+        )
+    end
 end
