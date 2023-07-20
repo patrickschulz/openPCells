@@ -5,6 +5,7 @@
 #include "lua/lauxlib.h"
 
 #include "lpoint.h"
+#include "lcheck.h"
 
 struct lobject {
     struct object* object;
@@ -663,10 +664,11 @@ static int lobject_get_array_anchor(lua_State* L)
 
 static int lobject_get_array_area_anchor(lua_State* L)
 {
+    lcheck_check_numargs(L, 4, "object.get_array_area_anchor");
     struct lobject* cell = lobject_check(L, 1);
     int xindex = luaL_checkinteger(L, 2);
     int yindex = luaL_checkinteger(L, 3);
-    const char* base = lua_tostring(L, 4);
+    const char* base = luaL_checkstring(L, 4);
     point_t* pts = object_get_array_area_anchor(lobject_get(cell), xindex - 1, yindex - 1, base);
     if(pts)
     {

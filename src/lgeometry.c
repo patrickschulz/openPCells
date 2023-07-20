@@ -8,6 +8,7 @@
 #include "lobject.h"
 #include "lpoint.h"
 #include "graphics.h"
+#include "lcheck.h"
 
 static void* _check_generics(lua_State* L, int idx)
 {
@@ -41,29 +42,9 @@ static void _check_rectangle_points(lua_State* L, struct lpoint* bl, struct lpoi
     }
 }
 
-static void _check_numargs(lua_State* L, int numargs, const char* funcname)
-{
-    int top = lua_gettop(L);
-    if(top != numargs)
-    {
-        lua_pushfstring(L, "%s: expected %d arguments, got %d", funcname, numargs, top);
-        lua_error(L);
-    }
-}
-
-static void _check_numargs_set(lua_State* L, int numargs1, int numargs2, const char* funcname)
-{
-    int top = lua_gettop(L);
-    if(top != numargs1 && top != numargs2)
-    {
-        lua_pushfstring(L, "%s: expected %d or %d arguments, got %d", funcname, numargs1, numargs2, top);
-        lua_error(L);
-    }
-}
-
 static int lgeometry_rectanglebltr(lua_State* L)
 {
-    _check_numargs(L, 4, "geometry.rectanglebltr");
+    lcheck_check_numargs(L, 4, "geometry.rectanglebltr");
     struct lobject* cell = lobject_check(L, 1);
     struct generics* layer = _check_generics(L, 2);
     struct lpoint* bl = lpoint_checkpoint(L, 3);
@@ -75,7 +56,7 @@ static int lgeometry_rectanglebltr(lua_State* L)
 
 static int lgeometry_rectanglepoints(lua_State* L)
 {
-    _check_numargs(L, 4, "geometry.rectanglepoints");
+    lcheck_check_numargs(L, 4, "geometry.rectanglepoints");
     struct lobject* cell = lobject_check(L, 1);
     struct generics* layer = _check_generics(L, 2);
     struct lpoint* pt1 = lpoint_checkpoint(L, 3);
@@ -86,7 +67,7 @@ static int lgeometry_rectanglepoints(lua_State* L)
 
 static int lgeometry_rectanglearray(lua_State* L)
 {
-    _check_numargs(L, 10, "geometry.rectanglearray");
+    lcheck_check_numargs(L, 10, "geometry.rectanglearray");
     struct lobject* cell = lobject_check(L, 1);
     struct generics* layer = _check_generics(L, 2);
     coordinate_t width = lpoint_checkcoordinate(L, 3, "width");
@@ -103,7 +84,7 @@ static int lgeometry_rectanglearray(lua_State* L)
 
 static int lgeometry_polygon(lua_State* L)
 {
-    _check_numargs(L, 3, "geometry.polygon");
+    lcheck_check_numargs(L, 3, "geometry.polygon");
     struct lobject* cell = lobject_check(L, 1);
     struct generics* layer = _check_generics(L, 2);
     lua_len(L, 3);
@@ -155,7 +136,7 @@ void _get_path_extension(lua_State* L, int idx, int* bgnext, int* endext)
 
 static int lgeometry_path(lua_State* L)
 {
-    _check_numargs_set(L, 4, 5, "geometry.path");
+    lcheck_check_numargs_set(L, 4, 5, "geometry.path");
     struct lobject* cell = lobject_check(L, 1);
     struct generics* layer = _check_generics(L, 2);
     if(!lua_istable(L, 3))
@@ -197,7 +178,7 @@ static int lgeometry_path(lua_State* L)
 
 static int lgeometry_rectanglepath(lua_State* L)
 {
-    _check_numargs_set(L, 5, 6, "geometry.rectanglepath");
+    lcheck_check_numargs_set(L, 5, 6, "geometry.rectanglepath");
     struct lobject* cell = lobject_check(L, 1);
     struct generics* layer = _check_generics(L, 2);
     struct lpoint* pt1 = lpoint_checkpoint(L, 3);
@@ -261,7 +242,7 @@ static int lgeometry_path_manhatten(lua_State* L)
 
 static int lgeometry_rectanglelines_vertical(lua_State* L)
 {
-    _check_numargs(L, 6, "geometry.rectanglevlines");
+    lcheck_check_numargs(L, 6, "geometry.rectanglevlines");
     struct lobject* cell = lobject_check(L, 1);
     struct generics* layer = _check_generics(L, 2);
     struct lpoint* pt1 = lpoint_checkpoint(L, 3);
@@ -314,7 +295,7 @@ static int lgeometry_rectanglelines_vertical(lua_State* L)
 
 static int lgeometry_rectanglelines_horizontal(lua_State* L)
 {
-    _check_numargs(L, 6, "geometry.rectanglehlines");
+    lcheck_check_numargs(L, 6, "geometry.rectanglehlines");
     struct lobject* cell = lobject_check(L, 1);
     struct generics* layer = _check_generics(L, 2);
     struct lpoint* pt1 = lpoint_checkpoint(L, 3);
@@ -386,7 +367,7 @@ static int _is_point_in_polygon(coordinate_t x, coordinate_t y, point_t** points
 
 static int lgeometry_rectangle_fill_in_boundary(lua_State* L)
 {
-    _check_numargs(L, 7, "geometry.rectangle_fill_in_boundary");
+    lcheck_check_numargs(L, 7, "geometry.rectangle_fill_in_boundary");
 
     struct lobject* cell = lobject_check(L, 1);
     struct generics* layer = _check_generics(L, 2);
@@ -617,7 +598,7 @@ static int lgeometry_path_ushape(lua_State* L)
 
 static int lgeometry_path_polygon(lua_State* L)
 {
-    _check_numargs_set(L, 4, 5, "geometry.path");
+    lcheck_check_numargs_set(L, 4, 5, "geometry.path");
     struct lobject* cell = lobject_check(L, 1);
     struct generics* layer = _check_generics(L, 2);
     if(!lua_istable(L, 3))
@@ -675,7 +656,7 @@ void _get_viacontact_properties(lua_State* L, int idx, int* xcont, int* ycont, i
 
 static int lgeometry_viabltr(lua_State* L)
 {
-    _check_numargs_set(L, 5, 6, "geometry.viabltr");
+    lcheck_check_numargs_set(L, 5, 6, "geometry.viabltr");
     struct lobject* cell = lobject_check(L, 1);
     int metal1 = luaL_checkinteger(L, 2);
     int metal2 = luaL_checkinteger(L, 3);
@@ -700,7 +681,7 @@ static int lgeometry_viabltr(lua_State* L)
 
 static int lgeometry_viabarebltr(lua_State* L)
 {
-    _check_numargs_set(L, 5, 6, "geometry.viabarebltr");
+    lcheck_check_numargs_set(L, 5, 6, "geometry.viabarebltr");
     struct lobject* cell = lobject_check(L, 1);
     int metal1 = luaL_checkinteger(L, 2);
     int metal2 = luaL_checkinteger(L, 3);
@@ -725,7 +706,7 @@ static int lgeometry_viabarebltr(lua_State* L)
 
 static int lgeometry_viabltr_xcontinuous(lua_State* L)
 {
-    _check_numargs_set(L, 5, 6, "geometry.viabltr_xcontinuous");
+    lcheck_check_numargs_set(L, 5, 6, "geometry.viabltr_xcontinuous");
     struct lobject* cell = lobject_check(L, 1);
     int metal1 = luaL_checkinteger(L, 2);
     int metal2 = luaL_checkinteger(L, 3);
