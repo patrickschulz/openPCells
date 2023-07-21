@@ -534,30 +534,6 @@ struct vector* _initialize_api_entries(void)
     /* initialize entries */
     struct vector* entries = vector_create(32, _destroy_api_entry);
 
-    /* geometry.rectangle */
-    {
-        struct parameter parameters[] = {
-            { "cell",   OBJECT,   NULL, "Object in which the rectangle is created" },
-            { "layer",  GENERICS, NULL, "Layer of the generated rectangular shape" },
-            { "width",  INTEGER,  NULL, "Width of the generated rectangular shape" },
-            { "height", INTEGER,  NULL, "Height of the generated rectangular shape" },
-            { "xshift", INTEGER,  "0",  "Optional shift in x direction" },
-            { "yshift", INTEGER,  "0",  "Optional shift in y direction" },
-            { "xrep",   INTEGER,  "0",  "Optional number of repetitions in x direction. The Rectangles are shifted so that an equal number is above and below" },
-            { "yrep",   INTEGER,  "0",  "Optional number of repetitions in y direction. The Rectangles are shifted so that an equal number is above and below" },
-            { "xpitch", INTEGER,  "0",  "Optional pitch in x direction, used for repetition in x" },
-            { "ypitch", INTEGER,  "0",  "Optional pitch in y direction, used for repetition in y" }
-        };
-        vector_append(entries, _make_api_entry(
-            "rectangle",
-            MODULE_GEOMETRY,
-            "Create a rectangular shape with the given width and height in cell",
-            "geometry.rectangle($OBJECT$cell$RESET$, $GENERICS$generics.metal$RESET$($INTEGER$1$RESET$), $INTEGER$100$RESET$, $INTEGER$100$RESET$)\ngeometry.rectangle($OBJECT$cell$RESET$, $GENERICS$generics.other$RESET$($STRING$\"gate\"$RESET$), $INTEGER$100$RESET$, $INTEGER$100$RESET$, $INTEGER$0$RESET$, $INTEGER$0$RESET$, $INTEGER$20$RESET$, $INTEGER$1$RESET$, $INTEGER$200$RESET$, $INTEGER$0$RESET$)",
-            parameters,
-            sizeof(parameters) / sizeof(parameters[0])
-        ));
-    }
-
     /* geometry.rectanglebltr */
     {
         struct parameter parameters[] = {
@@ -565,16 +541,12 @@ struct vector* _initialize_api_entries(void)
             { "layer",  GENERICS,   NULL,   "Layer of the generated rectangular shape" },
             { "bl",     POINT,      NULL,   "Bottom-left point of the generated rectangular shape" },
             { "tr",     POINT,      NULL,   "Top-right point of the generated rectangular shape" },
-            { "xrep",   INTEGER,    "1",    "Optional number of repetitions in x direction. The Rectangles are shifted so that an equal number is above and below" },
-            { "yrep",   INTEGER,    "1",    "Optional number of repetitions in y direction. The Rectangles are shifted so that an equal number is above and below" },
-            { "xpitch", INTEGER,    "0",    "Optional pitch in x direction, used for repetition in x" },
-            { "ypitch", INTEGER,    "0",    "Optional pitch in y direction, used for repetition in y" }
         };
         vector_append(entries, _make_api_entry(
             "rectanglebltr",
             MODULE_GEOMETRY,
             "Create a rectangular shape with the given corner points in cell",
-            "geometry.rectanglebltr(cell, generics.other(\"nwell\"), point.create(-100, -100), point.create(100, 100))\ngeometry.rectanglebltr(cell, generics.metal(1), obj:get_anchor(\"bottomleft\"), obj:get_anchor(\"topright\"))\ngeometry.rectanglebltr(cell, generics.metal(-1), point.create(-100, -100), point.create(100, 100), 20, 2, 400, 1000)\n",
+            "geometry.rectanglebltr(cell, generics.other(\"nwell\"), point.create(-100, -100), point.create(100, 100))\ngeometry.rectanglebltr(cell, generics.metal(1), obj:get_anchor(\"bottomleft\"), obj:get_anchor(\"topright\"))\ngeometry.rectanglebltr(cell, generics.metal(-1), point.create(-100, -100), point.create(100, 100))\n",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -586,11 +558,52 @@ struct vector* _initialize_api_entries(void)
             { "cell",   OBJECT,     NULL,   "Object in which the rectangle is created" },
             { "layer",  GENERICS,   NULL,   "Layer of the generated rectangular shape" },
             { "pt1",    POINT,      NULL,   "First corner point of the generated rectangular shape" },
-            { "pt2",    POINT,      NULL,   "Second corner point of the generated rectangular shape" },
-            { "xrep",   INTEGER,    "1",    "Optional number of repetitions in x direction. The Rectangles are shifted so that an equal number is above and below" },
-            { "yrep",   INTEGER,    "1",    "Optional number of repetitions in y direction. The Rectangles are shifted so that an equal number is above and below" },
-            { "xpitch", INTEGER,    "0",    "Optional pitch in x direction, used for repetition in x" },
-            { "ypitch", INTEGER,    "0",    "Optional pitch in y direction, used for repetition in y" }
+            { "pt2",    POINT,      NULL,   "Second corner point of the generated rectangular shape" }
+        };
+        vector_append(entries, _make_api_entry(
+            "rectanglepoints",
+            MODULE_GEOMETRY,
+            "Create a rectangular shape with the given corner points in cell. Similar to geometry.rectanglebltr, but any of the corner points can be given in any order",
+            "geometry.rectanglepoints(cell, generics.metal(1), point.create(100, -100), point(-100, 100))",
+            parameters,
+            sizeof(parameters) / sizeof(parameters[0])
+        ));
+    }
+
+    /* geometry.rectanglearray */
+    {
+        struct parameter parameters[] = {
+            { "cell",   OBJECT,     NULL,   "Object in which the rectangle is created" },
+            { "layer",  GENERICS,   NULL,   "Layer of the generated rectangular shape" },
+            { "width",  INTEGER     NULL,   "Width of the generated rectangular shape" },
+            { "height", INTEGER     NULL,   "Height of the generated rectangular shape" },
+            { "xshift", INTEGER,    NULL,   "Number of repetitions in x direction. The Rectangles are shifted so that an equal number is above and below" },
+            { "yshift", INTEGER,    NULL,   "Number of repetitions in y direction. The Rectangles are shifted so that an equal number is above and below" },
+            { "xrep",   INTEGER,    NULL,   "Number of repetitions in x direction. The Rectangles are shifted so that an equal number is above and below" },
+            { "yrep",   INTEGER,    NULL,   "Number of repetitions in y direction. The Rectangles are shifted so that an equal number is above and below" },
+            { "xpitch", INTEGER,    NULL,   "Pitch in x direction, used for repetition in x" },
+            { "ypitch", INTEGER,    NULL,   "Pitch in y direction, used for repetition in y" }
+        };
+        vector_append(entries, _make_api_entry(
+            "rectanglearray",
+            MODULE_GEOMETRY,
+            "Create an array of rectangles with the given width, height, repetition and pitch in cell",
+            "geometry.rectanglebltr(cell, generics.other(\"nwell\"), 100, 100, 0, 0, 10, 20, 200, 200)",
+            parameters,
+            sizeof(parameters) / sizeof(parameters[0])
+        ));
+    }
+
+    /* FIXME: geometry.rectanglepath */
+    /* geometry.rectanglevlines */
+    /* geometry.rectanglehlines */
+    /* geometry.rectangle_fill_in_boundary */
+    {
+        struct parameter parameters[] = {
+            { "cell",   OBJECT,     NULL,   "Object in which the rectangle is created" },
+            { "layer",  GENERICS,   NULL,   "Layer of the generated rectangular shape" },
+            { "pt1",    POINT,      NULL,   "First corner point of the generated rectangular shape" },
+            { "pt2",    POINT,      NULL,   "Second corner point of the generated rectangular shape" }
         };
         vector_append(entries, _make_api_entry(
             "rectanglepoints",
