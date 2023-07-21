@@ -282,8 +282,9 @@ struct const_vector* const_vector_create(size_t capacity)
     return const_vector;
 }
 
-void const_vector_destroy(struct const_vector* const_vector)
+void const_vector_destroy(void* v)
 {
+    struct const_vector* const_vector = v;
     free(const_vector->elements);
     free(const_vector);
 }

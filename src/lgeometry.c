@@ -346,16 +346,18 @@ static int lgeometry_rectanglelines_horizontal(lua_State* L)
     return 0;
 }
 
-static int _is_point_in_polygon(coordinate_t x, coordinate_t y, point_t** points, size_t len)
+static int _is_point_in_polygon(coordinate_t x, coordinate_t y, struct const_vector* points)
 {
-    size_t j = len - 1;
+    size_t j = const_vector_size(points) - 1;
     int c = 0;
-    for(size_t i = 0; i < len; ++i)
+    for(size_t i = 0; i < const_vector_size(points); ++i)
     {
-        coordinate_t xi = points[i]->x;
-        coordinate_t yi = points[i]->y;
-        coordinate_t xj = points[j]->x;
-        coordinate_t yj = points[j]->y;
+        const point_t* pti = const_vector_get(points, i);
+        const point_t* ptj = const_vector_get(points, j);
+        coordinate_t xi = pti->x;
+        coordinate_t yi = pti->y;
+        coordinate_t xj = ptj->x;
+        coordinate_t yj = ptj->y;
         if(((yi > y) != (yj > y)) && (x < xi + (xj - xi) * (y - yi) / (yj - yi)))
         {
             c = !c;
@@ -365,21 +367,60 @@ static int _is_point_in_polygon(coordinate_t x, coordinate_t y, point_t** points
     return c;
 }
 
+static int _is_not_in_excludes(coordinate_t x, coordinate_t y, struct vector* excludes)
+{
+    int is_in_exclude = 0;
+    for(size_t i = 0; i < vector_size(excludes); ++i)
+    {
+        struct const_vector* exclude = vector_get(excludes, i);
+        is_in_exclude = is_in_exclude || _is_point_in_polygon(x, y, exclude);
+    }
+    return !is_in_exclude;
+}
+
 static int lgeometry_rectangle_fill_in_boundary(lua_State* L)
 {
-    lcheck_check_numargs(L, 7, "geometry.rectangle_fill_in_boundary");
+    lcheck_check_numargs_set(L, 7, 8, "geometry.rectangle_fill_in_boundary");
 
     struct lobject* cell = lobject_check(L, 1);
     struct generics* layer = _check_generics(L, 2);
 
-    ucoordinate_t width = luaL_checkinteger(L, 3);
-    ucoordinate_t height = luaL_checkinteger(L, 4);
-    ucoordinate_t xpitch = luaL_checkinteger(L, 5);
-    ucoordinate_t ypitch = luaL_checkinteger(L, 6);
+    coordinate_t width = luaL_checkinteger(L, 3);
+    coordinate_t height = luaL_checkinteger(L, 4);
+    coordinate_t xpitch = luaL_checkinteger(L, 5);
+    coordinate_t ypitch = luaL_checkinteger(L, 6);
 
+    // store exludes
+    struct vector* excludes = vector_create(4, const_vector_destroy); // stores vectors of points
+    if(lua_istable(L, 8))
+    {
+        lua_len(L, 8);
+        size_t numexcludes = lua_tointeger(L, -1);
+        lua_pop(L, 1);
+        for(unsigned int i = 1; i <= numexcludes; ++i)
+        {
+            lua_rawgeti(L, 8, i); // get exclude polygon
+            lua_len(L, -1);
+            size_t numexcludepoints = lua_tointeger(L, -1);
+            lua_pop(L, 1);
+            struct const_vector* exclude = const_vector_create(numexcludepoints);
+            for(unsigned int j = 1; j <= numexcludepoints; ++j)
+            {
+                lua_rawgeti(L, -1, j);
+                const struct lpoint* pt = lpoint_checkpoint(L, -1);
+                const_vector_append(exclude, lpoint_get(pt));
+                lua_pop(L, 1);
+            }
+            vector_append(excludes, exclude);
+            lua_pop(L, 1);
+        }
+    }
+
+    // store points and find minimum/maximum coordinates
     lua_len(L, 7);
     size_t len = lua_tointeger(L, -1);
-    point_t** points = calloc(len, sizeof(*points));
+    lua_pop(L, 1);
+    struct const_vector* points = const_vector_create(len);
     coordinate_t minx = COORDINATE_MAX;
     coordinate_t maxx = COORDINATE_MIN;
     coordinate_t miny = COORDINATE_MAX;
@@ -387,51 +428,60 @@ static int lgeometry_rectangle_fill_in_boundary(lua_State* L)
     for(unsigned int i = 1; i <= len; ++i)
     {
         lua_rawgeti(L, 7, i);
-        struct lpoint* pt = lpoint_checkpoint(L, -1);
-        points[i - 1] = point_copy(lpoint_get(pt));
-        // round to multiple of the pitch
-        points[i - 1]->x = xpitch * (points[i - 1]->x / xpitch);
-        points[i - 1]->y = ypitch * (points[i - 1]->y / ypitch);
+        struct lpoint* lpoint = lpoint_checkpoint(L, -1);
+        const point_t* pt = lpoint_get(lpoint);
+        if(pt->x < minx)
+        {
+            minx = pt->x;
+        }
+        if(pt->x > maxx)
+        {
+            maxx = pt->x;
+        }
+        if(pt->y < miny)
+        {
+            miny = pt->y;
+        }
+        if(pt->y > maxy)
+        {
+            maxy = pt->y;
+        }
+        const_vector_append(points, pt);
         lua_pop(L, 1);
-        if(points[i - 1]->x < minx)
-        {
-            minx = points[i - 1]->x;
-        }
-        if(points[i - 1]->x > maxx)
-        {
-            maxx = points[i - 1]->x;
-        }
-        if(points[i - 1]->y < miny)
-        {
-            miny = points[i - 1]->y;
-        }
-        if(points[i - 1]->y > maxy)
-        {
-            maxy = points[i - 1]->y;
-        }
     }
 
-    struct vector* meshorigins = vector_create(128, point_destroy);
-    coordinate_t x = minx + xpitch / 2;
-    while(x < maxx)
+    // round to multiple of the pitch
+    minx = xpitch * (minx / xpitch);
+    miny = xpitch * (miny / ypitch);
+    maxx = xpitch * (maxx / xpitch);
+    maxy = xpitch * (maxy / ypitch);
+
+    // calculate x and y shifts (relies on integer mathematics)
+    int xshift = (maxx - minx) - ((maxx - minx) / (xpitch)) * xpitch;
+    unsigned int maxyrep = (maxy - miny) / (ypitch) + 1;
+    int yshift = (maxy - miny) - (maxyrep - 1) * ypitch;
+
+    struct vector* origins = vector_create(128, point_destroy);
+    coordinate_t x = minx;
+    while(x <= maxx)
     {
-        coordinate_t y = miny + ypitch / 2;
-        while(y < maxy)
+        coordinate_t y = miny;
+        while(y <= maxy)
         {
-            if(_is_point_in_polygon(x, y, points, len))
+            if(_is_point_in_polygon(x, y, points))
             {
-                vector_append(meshorigins, point_create(x, y));
+                if(_is_not_in_excludes(x, y, excludes))
+                {
+                    vector_append(origins, point_create(x + xshift, y + yshift));
+                }
             }
             y = y + ypitch;
         }
         x = x + xpitch;
     }
-    for(size_t i = 0; i < len; ++i)
-    {
-        point_destroy(points[i]);
-    }
-    free(points);
-    struct vector_iterator* it = vector_iterator_create(meshorigins);
+    const_vector_destroy(points);
+    vector_destroy(excludes);
+    struct vector_iterator* it = vector_iterator_create(origins);
     while(vector_iterator_is_valid(it))
     {
         const point_t* origin = vector_iterator_get(it);
@@ -448,7 +498,7 @@ static int lgeometry_rectangle_fill_in_boundary(lua_State* L)
     }
     vector_iterator_destroy(it);
 
-    vector_destroy(meshorigins);
+    vector_destroy(origins);
 
     return 0;
 }

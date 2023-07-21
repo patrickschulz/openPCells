@@ -43,7 +43,7 @@ void vector_const_iterator_destroy(struct vector_const_iterator* iterator);
 
 struct const_vector;
 struct const_vector* const_vector_create(size_t capacity);
-void const_vector_destroy(struct const_vector* const_vector);
+void const_vector_destroy(void* const_vector);
 size_t const_vector_size(const struct const_vector* const_vector);
 const void* const_vector_get(const struct const_vector* const_vector, size_t i);
 void const_vector_set(struct const_vector* const_vector, size_t i, const void* element);

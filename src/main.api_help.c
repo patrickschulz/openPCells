@@ -575,8 +575,8 @@ struct vector* _initialize_api_entries(void)
         struct parameter parameters[] = {
             { "cell",   OBJECT,     NULL,   "Object in which the rectangle is created" },
             { "layer",  GENERICS,   NULL,   "Layer of the generated rectangular shape" },
-            { "width",  INTEGER     NULL,   "Width of the generated rectangular shape" },
-            { "height", INTEGER     NULL,   "Height of the generated rectangular shape" },
+            { "width",  INTEGER,    NULL,   "Width of the generated rectangular shape" },
+            { "height", INTEGER,    NULL,   "Height of the generated rectangular shape" },
             { "xshift", INTEGER,    NULL,   "Number of repetitions in x direction. The Rectangles are shifted so that an equal number is above and below" },
             { "yshift", INTEGER,    NULL,   "Number of repetitions in y direction. The Rectangles are shifted so that an equal number is above and below" },
             { "xrep",   INTEGER,    NULL,   "Number of repetitions in x direction. The Rectangles are shifted so that an equal number is above and below" },
@@ -596,20 +596,61 @@ struct vector* _initialize_api_entries(void)
 
     /* FIXME: geometry.rectanglepath */
     /* geometry.rectanglevlines */
+    {
+        struct parameter parameters[] = {
+            { "cell",       OBJECT,     NULL,   "Object in which the rectangle is created" },
+            { "layer",      GENERICS,   NULL,   "Layer of the generated rectangular shape" },
+            { "pt1",        POINT,      NULL,   "First corner point of the target area" },
+            { "pt2",        POINT,      NULL,   "Second corner point of the target area" },
+            { "numlines",   INTEGER,    NULL,   "Number of lines to be generated" },
+            { "ratio",      NUMBER,     NULL,   "Ratio between width and spacing of lines" }
+        };
+        vector_append(entries, _make_api_entry(
+            "rectanglevlines",
+            MODULE_GEOMETRY,
+            "Fill a rectangular area with vertical lines with a given ratio between width and spacing",
+            "geometry.rectanglevlines(cell, generics.metal(1), point.create(100, -100), point(-100, 100), 8, 1)",
+            parameters,
+            sizeof(parameters) / sizeof(parameters[0])
+        ));
+    }
+
     /* geometry.rectanglehlines */
+    {
+        struct parameter parameters[] = {
+            { "cell",       OBJECT,     NULL,   "Object in which the rectangle is created" },
+            { "layer",      GENERICS,   NULL,   "Layer of the generated rectangular shape" },
+            { "pt1",        POINT,      NULL,   "First corner point of the target area" },
+            { "pt2",        POINT,      NULL,   "Second corner point of the target area" },
+            { "numlines",   INTEGER,    NULL,   "Number of lines to be generated" },
+            { "ratio",      NUMBER,     NULL,   "Ratio between width and spacing of lines" }
+        };
+        vector_append(entries, _make_api_entry(
+            "rectanglehlines",
+            MODULE_GEOMETRY,
+            "Fill a rectangular area with horizontal lines with a given ratio between width and spacing",
+            "geometry.rectanglehlines(cell, generics.metal(1), point.create(100, -100), point(-100, 100), 8, 1)",
+            parameters,
+            sizeof(parameters) / sizeof(parameters[0])
+        ));
+    }
+
     /* geometry.rectangle_fill_in_boundary */
     {
         struct parameter parameters[] = {
-            { "cell",   OBJECT,     NULL,   "Object in which the rectangle is created" },
-            { "layer",  GENERICS,   NULL,   "Layer of the generated rectangular shape" },
-            { "pt1",    POINT,      NULL,   "First corner point of the generated rectangular shape" },
-            { "pt2",    POINT,      NULL,   "Second corner point of the generated rectangular shape" }
+            { "cell",       OBJECT,     NULL,   "Object in which the rectangle is created" },
+            { "layer",      GENERICS,   NULL,   "Layer of the generated rectangular shape" },
+            { "width",      INTEGER,    NULL,   "Width of the rectangles" },
+            { "height",     INTEGER,    NULL,   "Height of the rectangles" },
+            { "xpitch",     INTEGER,    NULL,   "Pitch in x-direction" },
+            { "ypitch",     INTEGER,    NULL,   "Pitch in y-direction" },
+            { "boundary",   POINTLIST,  NULL,   "List of points defining fill boundary (a polygon)" },
         };
         vector_append(entries, _make_api_entry(
             "rectanglepoints",
             MODULE_GEOMETRY,
-            "Create a rectangular shape with the given corner points in cell. Similar to geometry.rectanglebltr, but any of the corner points can be given in any order",
-            "geometry.rectanglepoints(cell, generics.metal(1), point.create(100, -100), point(-100, 100))",
+            "Fill a given boundary (a polygon) with rectangles of a given width and height",
+            "geometry.rectangle_fill_in_boundary(cell, generics.metal(1), 100, 100, 200, 200, { point.create(-10000, -10000), point.create(10000, -10000), point.create(10000, 10000), point.create(-10000, 10000) })",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
