@@ -26,6 +26,23 @@ static int lgenerics_create_metal(lua_State* L)
     return 1;
 }
 
+static int lgenerics_create_mptmetal(lua_State* L)
+{
+    int num = luaL_checkinteger(L, 1);
+    int mask = luaL_checkinteger(L, 2);
+    lua_getfield(L, LUA_REGISTRYINDEX, "techstate");
+    struct technology_state* techstate = lua_touserdata(L, -1);
+    lua_pop(L, 1); // pop techstate
+    const struct generics* layer = generics_create_mptmetal(techstate, num, mask);
+    if(!layer)
+    {
+        lua_pushfstring(L, "generics: got NULL layer: generics.mptmetal(%d, %d)\nif this layer is not needed, set it to {}", num, mask);
+        lua_error(L);
+    }
+    _push_layer(L, layer);
+    return 1;
+}
+
 static int lgenerics_create_metalport(lua_State* L)
 {
     int num = luaL_checkinteger(L, 1);
@@ -224,6 +241,7 @@ int open_lgenerics_lib(lua_State* L)
     static const luaL_Reg modfuncs[] =
     {
         { "metal",                    lgenerics_create_metal             },
+        { "mptmetal",                 lgenerics_create_mptmetal          },
         { "metalport",                lgenerics_create_metalport         },
         { "metalfill",                lgenerics_create_metalfill         },
         { "metalexclude",             lgenerics_create_metalexclude      },

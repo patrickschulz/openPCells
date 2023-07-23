@@ -762,6 +762,17 @@ const struct generics* generics_create_metal(struct technology_state* techstate,
     return layer;
 }
 
+const struct generics* generics_create_mptmetal(struct technology_state* techstate, int num, int mask)
+{
+    num = technology_resolve_metal(techstate, num);
+    size_t len = 1 + util_num_digits(num) + 1 + util_num_digits(mask);
+    char* layername = malloc(len + 1);
+    snprintf(layername, len + 1, "M%d_%d", num, mask);
+    const struct generics* layer = _get_or_create_layer(techstate, layername);
+    free(layername);
+    return layer;
+}
+
 const struct generics* generics_create_metalport(struct technology_state* techstate, int num)
 {
     num = technology_resolve_metal(techstate, num);
