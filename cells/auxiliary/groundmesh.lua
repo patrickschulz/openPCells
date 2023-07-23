@@ -14,6 +14,7 @@ function parameters()
         { "drawtop", true },
         { "drawbottom", true },
         { "connecttopmetal", false },
+        { "drawtopmetal", false },
         { "metalwidths", { 500, 500, 800, 800, 800, 800, 1000, 2500, 5000, 5000 } },
         { "needmultiplepatterning", { true, true, false, false, false, false, false, false } },
         { "wellextension", 0 },
@@ -120,6 +121,12 @@ function layout(mesh, _P)
             geometry.viabltr(mesh, _P.gridmetals[#_P.gridmetals], _P.gridmetals[#_P.gridmetals] + 1,
                 point.create(-_P.metalwidths[#_P.metalwidths] / 2, -_P.metalwidths[#_P.metalwidths] / 2),
                 point.create( _P.metalwidths[#_P.metalwidths] / 2,  _P.metalwidths[#_P.metalwidths] / 2)
+            )
+        end
+        if _P.drawtopmetal then
+            geometry.rectanglebltr(mesh, generics.metal(-1),
+                point.create(-_P.cellsize / 2, -_P.cellsize / 2),
+                point.create( _P.cellsize / 2,  _P.cellsize / 2)
             )
         end
     end
