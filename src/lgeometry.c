@@ -346,25 +346,52 @@ static int lgeometry_rectanglelines_horizontal(lua_State* L)
     return 0;
 }
 
+static int _between(coordinate_t p, coordinate_t a, coordinate_t b)
+{
+    return ((p >= a) && (p <= b)) || ((p <= a) && (p >= b));
+}
+
 static int _is_point_in_polygon(coordinate_t x, coordinate_t y, struct const_vector* points)
 {
-    size_t j = const_vector_size(points) - 1;
-    int c = 0;
-    for(size_t i = 0; i < const_vector_size(points); ++i)
+    int inside = 0;
+    size_t i = const_vector_size(points) - 1;
+    size_t j = 0;
+    while(j < const_vector_size(points))
     {
-        const point_t* pti = const_vector_get(points, i);
-        const point_t* ptj = const_vector_get(points, j);
-        coordinate_t xi = pti->x;
-        coordinate_t yi = pti->y;
-        coordinate_t xj = ptj->x;
-        coordinate_t yj = ptj->y;
-        if(((yi > y) != (yj > y)) && (x < xi + (xj - xi) * (y - yi) / (yj - yi)))
+        const point_t* A = const_vector_get(points, i);
+        const point_t* B = const_vector_get(points, j);
+        // corner cases
+        if(((x == A->x) && (y == A->y)) || ((x == B->x) && (y == B->y)))
         {
-            c = !c;
+            return 0;
         }
-        j = i;
+        if(A->y == B->y && y == A->y && _between(x, A->x, B->x))
+        {
+            return 0;
+        }
+        if(_between(y, A->y, B->y)) // if P inside the vertical range
+        {
+            // filter out "ray pass vertex" problem by treating the line a little lower
+            if(((y == A->y) && (B->y >= A->y)) || ((y == B->y) && (A->y >= B->y)))
+            {
+                goto IS_POINT_IN_POLYGON_CONTINUE;
+            }
+            // calc cross product `PA X PB`, P lays on left side of AB if c > 0 
+            coordinate_t c = (A->x - x) * (B->y - y) - (B->x - x) * (A->y - y);
+            if(c == 0)
+            {
+                return 0;
+            }
+            if((A->y < B->y) == (c > 0))
+            {
+                inside = !inside;
+            }
+        }
+        IS_POINT_IN_POLYGON_CONTINUE:
+        i = j;
+        j = j + 1;
     }
-    return c;
+    return inside ? 1 : -1;
 }
 
 static int _is_not_in_excludes(coordinate_t x, coordinate_t y, struct vector* excludes)
@@ -373,14 +400,14 @@ static int _is_not_in_excludes(coordinate_t x, coordinate_t y, struct vector* ex
     for(size_t i = 0; i < vector_size(excludes); ++i)
     {
         struct const_vector* exclude = vector_get(excludes, i);
-        is_in_exclude = is_in_exclude || _is_point_in_polygon(x, y, exclude);
+        is_in_exclude = is_in_exclude || (_is_point_in_polygon(x, y, exclude) > -1);
     }
     return !is_in_exclude;
 }
 
 static int lgeometry_rectangle_fill_in_boundary(lua_State* L)
 {
-    lcheck_check_numargs_set(L, 7, 8, "geometry.rectangle_fill_in_boundary");
+    lcheck_check_numargs_set(L, 9, 10, "geometry.rectangle_fill_in_boundary");
 
     struct lobject* cell = lobject_check(L, 1);
     struct generics* layer = _check_generics(L, 2);
@@ -389,17 +416,19 @@ static int lgeometry_rectangle_fill_in_boundary(lua_State* L)
     coordinate_t height = luaL_checkinteger(L, 4);
     coordinate_t xpitch = luaL_checkinteger(L, 5);
     coordinate_t ypitch = luaL_checkinteger(L, 6);
+    coordinate_t xstartshift = luaL_checkinteger(L, 7);
+    coordinate_t ystartshift = luaL_checkinteger(L, 8);
 
     // store exludes
     struct vector* excludes = vector_create(4, const_vector_destroy); // stores vectors of points
-    if(lua_istable(L, 8))
+    if(lua_istable(L, 10))
     {
-        lua_len(L, 8);
+        lua_len(L, 10);
         size_t numexcludes = lua_tointeger(L, -1);
         lua_pop(L, 1);
         for(unsigned int i = 1; i <= numexcludes; ++i)
         {
-            lua_rawgeti(L, 8, i); // get exclude polygon
+            lua_rawgeti(L, 10, i); // get exclude polygon
             lua_len(L, -1);
             size_t numexcludepoints = lua_tointeger(L, -1);
             lua_pop(L, 1);
@@ -417,7 +446,7 @@ static int lgeometry_rectangle_fill_in_boundary(lua_State* L)
     }
 
     // store points and find minimum/maximum coordinates
-    lua_len(L, 7);
+    lua_len(L, 9);
     size_t len = lua_tointeger(L, -1);
     lua_pop(L, 1);
     struct const_vector* points = const_vector_create(len);
@@ -427,7 +456,7 @@ static int lgeometry_rectangle_fill_in_boundary(lua_State* L)
     coordinate_t maxy = COORDINATE_MIN;
     for(unsigned int i = 1; i <= len; ++i)
     {
-        lua_rawgeti(L, 7, i);
+        lua_rawgeti(L, 9, i);
         struct lpoint* lpoint = lpoint_checkpoint(L, -1);
         const point_t* pt = lpoint_get(lpoint);
         if(pt->x < minx)
@@ -458,17 +487,16 @@ static int lgeometry_rectangle_fill_in_boundary(lua_State* L)
 
     // calculate x and y shifts (relies on integer mathematics)
     int xshift = (maxx - minx) - ((maxx - minx) / (xpitch)) * xpitch;
-    unsigned int maxyrep = (maxy - miny) / (ypitch) + 1;
-    int yshift = (maxy - miny) - (maxyrep - 1) * ypitch;
+    int yshift = (maxy - miny) - ((maxy - miny) / (ypitch)) * ypitch;
 
     struct vector* origins = vector_create(128, point_destroy);
-    coordinate_t x = minx;
+    coordinate_t x = minx + xstartshift;
     while(x <= maxx)
     {
-        coordinate_t y = miny;
+        coordinate_t y = miny + ystartshift;
         while(y <= maxy)
         {
-            if(_is_point_in_polygon(x, y, points))
+            if(_is_point_in_polygon(x, y, points) != -1)
             {
                 if(_is_not_in_excludes(x, y, excludes))
                 {
