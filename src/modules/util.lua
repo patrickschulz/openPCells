@@ -60,6 +60,14 @@ function M.polygon_ymax(pts)
     return max
 end
 
+function M.rectangle_to_polygon(bl, tr)
+    return {
+        point.create(bl:getx(), bl:gety()),
+        point.create(tr:getx(), bl:gety()),
+        point.create(tr:getx(), tr:gety()),
+        point.create(bl:getx(), tr:gety()),
+    }
+end
 
 function M.xmirror(pts, xcenter)
     local mirrored = {}
