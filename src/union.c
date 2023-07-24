@@ -37,9 +37,11 @@ static enum order rect_order(coordinate_t bl1, coordinate_t tr1, coordinate_t bl
 
 struct shape* rectangle_union(struct shape* rect1, struct shape* rect2)
 {
-    point_t *bl1, *tr1;
+    const point_t *bl1;
+    const point_t *tr1;
     shape_get_rectangle_points(rect1, &bl1, &tr1);
-    point_t *bl2, *tr2;
+    const point_t *bl2;
+    const point_t *tr2;
     shape_get_rectangle_points(rect2, &bl2, &tr2);
     enum order xorder = rect_order(bl1->x, tr1->x, bl2->x, tr2->x);
     enum order yorder = rect_order(bl1->y, tr1->y, bl2->y, tr2->y);

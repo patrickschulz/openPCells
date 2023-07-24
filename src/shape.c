@@ -9,9 +9,12 @@
 #include "geometry.h"
 
 struct rectangle {
-    point_t* bl;
-    point_t* tr;
+    point_t content [2];
 };
+
+// macros, because this simplifies const-correctness
+#define _bl(rect) (rect->content + 0)
+#define _tr(rect) (rect->content + 1)
 
 struct polygon {
     struct vector* points;
@@ -78,8 +81,10 @@ struct shape* shape_create_rectangle(const struct generics* layer, coordinate_t 
 {
     struct shape* shape = _create_shape(RECTANGLE, layer);
     struct rectangle* rectangle = malloc(sizeof(*rectangle));
-    rectangle->bl = point_create(blx, bly);
-    rectangle->tr = point_create(trx, try);
+    _bl(rectangle)->x = blx;
+    _bl(rectangle)->y = bly;
+    _tr(rectangle)->x = trx;
+    _tr(rectangle)->y = try;
     shape->content = rectangle;
     return shape;
 }
@@ -219,7 +224,12 @@ void* shape_copy(const void* v)
         case RECTANGLE:
         {
             struct rectangle* rectangle = self->content;
-            new = shape_create_rectangle(self->layer, rectangle->bl->x, rectangle->bl->y, rectangle->tr->x, rectangle->tr->y);
+            new = shape_create_rectangle(self->layer,
+                _bl(rectangle)->x,
+                _bl(rectangle)->y,
+                _tr(rectangle)->x,
+                _tr(rectangle)->y
+            );
             break;
         }
         case POLYGON:
@@ -292,9 +302,7 @@ void shape_destroy(void* v)
     {
         case RECTANGLE:
         {
-            struct rectangle* rectangle = shape->content;
-            point_destroy(rectangle->bl);
-            point_destroy(rectangle->tr);
+            // nothing to do
             break;
         }
         case POLYGON:
@@ -381,15 +389,15 @@ const void* shape_get_content(const struct shape* shape)
     return shape->content;
 }
 
-int shape_get_rectangle_points(struct shape* shape, point_t** bl, point_t** tr)
+int shape_get_rectangle_points(struct shape* shape, const point_t** bl, const point_t** tr)
 {
     if(shape->type != RECTANGLE)
     {
         return 0;
     }
     struct rectangle* rectangle = shape->content;
-    *bl = rectangle->bl;
-    *tr = rectangle->tr;
+    *bl = _bl(rectangle);
+    *tr = _tr(rectangle);
     return 1;
 }
 
@@ -400,8 +408,8 @@ int shape_get_transformed_rectangle_points(const struct shape* shape, const stru
         return 0;
     }
     const struct rectangle* rectangle = shape->content;
-    *bl = *rectangle->bl;
-    *tr = *rectangle->tr;
+    *bl = *_bl(rectangle);
+    *tr = *_tr(rectangle);
     transformationmatrix_apply_transformation(trans, bl);
     transformationmatrix_apply_transformation(trans, tr);
     return 1;
@@ -587,8 +595,8 @@ void shape_translate(struct shape* shape, coordinate_t dx, coordinate_t dy)
         case RECTANGLE:
         {
             struct rectangle* rectangle = shape->content;
-            point_translate(rectangle->bl, dx, dy);
-            point_translate(rectangle->tr, dx, dy);
+            point_translate(_bl(rectangle), dx, dy);
+            point_translate(_tr(rectangle), dx, dy);
             break;
         }
         case POLYGON:
@@ -648,8 +656,8 @@ static void _correct_rectangle_point_order(struct shape* shape)
     {
         struct rectangle* rectangle = shape->content;
         // order of points matter, check if bottom left is still bottom left
-        point_t* bl = rectangle->bl;
-        point_t* tr = rectangle->bl;
+        point_t* bl = _bl(rectangle);
+        point_t* tr = _tr(rectangle);
         if(bl->x > tr->x)
         {
             coordinate_t tmp = bl->x;
@@ -672,8 +680,8 @@ void shape_apply_transformation(struct shape* shape, const struct transformation
         case RECTANGLE:
         {
             struct rectangle* rectangle = shape->content;
-            transformationmatrix_apply_transformation(trans, rectangle->bl);
-            transformationmatrix_apply_transformation(trans, rectangle->tr);
+            transformationmatrix_apply_transformation(trans, _bl(rectangle));
+            transformationmatrix_apply_transformation(trans, _tr(rectangle));
             break;
         }
         case POLYGON:
@@ -709,8 +717,8 @@ void shape_apply_inverse_transformation(struct shape* shape, const struct transf
         case RECTANGLE:
         {
             struct rectangle* rectangle = shape->content;
-            transformationmatrix_apply_inverse_transformation(trans, rectangle->bl);
-            transformationmatrix_apply_inverse_transformation(trans, rectangle->tr);
+            transformationmatrix_apply_inverse_transformation(trans, _bl(rectangle));
+            transformationmatrix_apply_inverse_transformation(trans, _tr(rectangle));
             break;
         }
         case POLYGON:
@@ -772,8 +780,8 @@ void shape_get_minmax_xy(const struct shape* shape, coordinate_t* minxp, coordin
         case RECTANGLE:
         {
             struct rectangle* rectangle = shape->content;
-            point_t bl = *rectangle->bl;
-            point_t tr = *rectangle->tr;
+            point_t bl = *_bl(rectangle);
+            point_t tr = *_tr(rectangle);
             point_update_minimum(&min, &bl);
             point_update_maximum(&max, &tr);
             break;
@@ -820,8 +828,8 @@ int shape_get_center(const struct shape* shape, coordinate_t* x, coordinate_t* y
         return 0;
     }
     struct rectangle* rectangle = shape->content;
-    point_t* bl = rectangle->bl;
-    point_t* tr = rectangle->tr;
+    const point_t* bl = _bl(rectangle);
+    const point_t* tr = _tr(rectangle);
     *x = (bl->x + tr->x) / 2;
     *y = (bl->y + tr->y) / 2;
     return 1;
@@ -834,8 +842,8 @@ void shape_resize_lrtb(struct shape* shape, coordinate_t left, coordinate_t righ
         return;
     }
     struct rectangle* rectangle = shape->content;
-    point_t* bl = rectangle->bl;
-    point_t* tr = rectangle->tr;
+    point_t* bl = _bl(rectangle);
+    point_t* tr = _tr(rectangle);
     point_translate(bl, -left, -bottom);
     point_translate(tr, right, top);
 }

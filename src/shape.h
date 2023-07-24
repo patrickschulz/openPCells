@@ -36,7 +36,7 @@ int shape_is_curve(const struct shape* shape);
 const void* shape_get_content(const struct shape* shape);
 
 // rectangle access functions
-int shape_get_rectangle_points(struct shape* shape, point_t** blp, point_t** trp);
+int shape_get_rectangle_points(struct shape* shape, const point_t** blp, const point_t** trp);
 int shape_get_transformed_rectangle_points(const struct shape* shape, const struct transformationmatrix* trans, point_t* blp, point_t* trp);
 
 // polygon (including triangulated) access functions
