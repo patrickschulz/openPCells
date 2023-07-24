@@ -248,7 +248,6 @@ static struct object* _create_cell(
 
     // load main modules
     module_load_aux(L);
-    module_load_geometry(L);
     module_load_globals(L);
     module_load_graphics(L);
     module_load_load(L);
