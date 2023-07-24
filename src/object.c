@@ -20,7 +20,7 @@ struct port {
     const struct generics* layer;
     int isbusport;
     int busindex;
-    double sizehint;
+    unsigned int sizehint;
 };
 
 struct anchor {
@@ -1170,7 +1170,7 @@ static void _port_destroy(void* p)
     free(port);
 }
 
-static void _add_port(struct object* cell, const char* name, const char* anchorname, const struct generics* layer, coordinate_t x, coordinate_t y, int isbusport, int busindex, int storeanchor, double sizehint)
+static void _add_port(struct object* cell, const char* name, const char* anchorname, const struct generics* layer, coordinate_t x, coordinate_t y, int isbusport, int busindex, int storeanchor, unsigned int sizehint)
 {
     if(!generics_is_empty(layer))
     {
@@ -1194,12 +1194,12 @@ static void _add_port(struct object* cell, const char* name, const char* anchorn
     }
 }
 
-void object_add_port(struct object* cell, const char* name, const struct generics* layer, const point_t* where, int storeanchor, double sizehint)
+void object_add_port(struct object* cell, const char* name, const struct generics* layer, const point_t* where, int storeanchor, unsigned int sizehint)
 {
     _add_port(cell, name, name, layer, where->x, where->y, 0, 0, storeanchor, sizehint);
 }
 
-void object_add_bus_port(struct object* cell, const char* name, const struct generics* layer, const point_t* where, int startindex, int endindex, unsigned int xpitch, unsigned int ypitch, int storeanchor, double sizehint)
+void object_add_bus_port(struct object* cell, const char* name, const struct generics* layer, const point_t* where, int startindex, int endindex, unsigned int xpitch, unsigned int ypitch, int storeanchor, unsigned int sizehint)
 {
     int shift = 0;
     if(startindex < endindex)
@@ -1986,7 +1986,7 @@ void port_iterator_next(struct port_iterator* it)
     it->index += 1;
 }
 
-void port_iterator_get(struct port_iterator* it, const char** portname, const point_t** portwhere, const struct generics** portlayer, int* portisbusport, int* portbusindex, double* sizehint)
+void port_iterator_get(struct port_iterator* it, const char** portname, const point_t** portwhere, const struct generics** portlayer, int* portisbusport, int* portbusindex, unsigned int* sizehint)
 {
     const struct port* port = vector_get_const(it->ports, it->index);
     if(portname) { *portname = port->name; }

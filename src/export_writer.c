@@ -649,7 +649,7 @@ static int _write_children(struct export_writer* writer, const struct object* ce
     return 1;
 }
 
-static int _write_port(struct export_writer* writer, const char* name, const struct hashmap* layerdata, point_t* where, double sizehint)
+static int _write_port(struct export_writer* writer, const char* name, const struct hashmap* layerdata, point_t* where, unsigned int sizehint)
 {
     if(writer->islua)
     {
@@ -657,9 +657,9 @@ static int _write_port(struct export_writer* writer, const char* name, const str
         lua_pushstring(writer->L, name);
         _push_layer(writer->L, layerdata);
         _push_point(writer->L, where);
-        if(sizehint > 0.0)
+        if(sizehint > 0)
         {
-            lua_pushnumber(writer->L, sizehint);
+            lua_pushinteger(writer->L, sizehint);
         }
         else
         {
@@ -689,7 +689,7 @@ static int _write_ports(struct export_writer* writer, const struct object* cell,
         const struct generics* portlayer;
         int portisbusport;
         int portbusindex;
-        double sizehint;
+        unsigned int sizehint;
         port_iterator_get(it, &portname, &portwhere, &portlayer, &portisbusport, &portbusindex, &sizehint);
         point_t where = { .x = portwhere->x, .y = portwhere->y };
         object_transform_point(cell, &where);
