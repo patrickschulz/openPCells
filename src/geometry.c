@@ -44,6 +44,16 @@ static void _rectanglebltr(struct object* cell, const struct generics* layer, co
     object_add_shape(cell, S);
 }
 
+void geometry_rectanglebltrxy(struct object* cell, const struct generics* layer, coordinate_t blx, coordinate_t bly, coordinate_t trx, coordinate_t try)
+{
+    if(generics_is_empty(layer))
+    {
+        return;
+    }
+    struct shape* S = shape_create_rectangle(layer, blx, bly, trx, try);
+    object_add_shape(cell, S);
+}
+
 void geometry_rectanglebltr(struct object* cell, const struct generics* layer, const point_t* bl, const point_t* tr)
 {
     _rectanglebltr(cell, layer, bl->x, bl->y, tr->x, tr->y);

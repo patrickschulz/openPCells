@@ -8,6 +8,13 @@
 #include "shape.h"
 #include "point.h"
 
+void geometry_rectanglebltrxy(
+    struct object* cell,
+    const struct generics* layer,
+    coordinate_t blx, coordinate_t bly,
+    coordinate_t trx, coordinate_t try
+);
+
 void geometry_rectanglebltr(
     struct object* cell,
     const struct generics* layer,

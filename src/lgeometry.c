@@ -419,7 +419,7 @@ static int lgeometry_rectangle_fill_in_boundary(lua_State* L)
     coordinate_t xstartshift = luaL_checkinteger(L, 7);
     coordinate_t ystartshift = luaL_checkinteger(L, 8);
 
-    // store exludes
+    // store excludes
     struct vector* excludes = vector_create(4, const_vector_destroy); // stores vectors of points
     if(lua_istable(L, 10))
     {
@@ -489,7 +489,7 @@ static int lgeometry_rectangle_fill_in_boundary(lua_State* L)
     int xshift = (maxx - minx) - ((maxx - minx) / (xpitch)) * xpitch;
     int yshift = (maxy - miny) - ((maxy - miny) / (ypitch)) * ypitch;
 
-    struct vector* origins = vector_create(128, point_destroy);
+    // place rectangles
     coordinate_t x = minx + xstartshift;
     while(x <= maxx)
     {
@@ -500,7 +500,12 @@ static int lgeometry_rectangle_fill_in_boundary(lua_State* L)
             {
                 if(_is_not_in_excludes(x, y, excludes))
                 {
-                    vector_append(origins, point_create(x + xshift, y + yshift));
+                    geometry_rectanglebltrxy(
+                        lobject_get(cell),
+                        layer,
+                        x + xshift - width / 2, y + yshift - height / 2,
+                        x + xshift + width / 2, y + yshift + height / 2
+                    );
                 }
             }
             y = y + ypitch;
@@ -509,25 +514,6 @@ static int lgeometry_rectangle_fill_in_boundary(lua_State* L)
     }
     const_vector_destroy(points);
     vector_destroy(excludes);
-    struct vector_iterator* it = vector_iterator_create(origins);
-    while(vector_iterator_is_valid(it))
-    {
-        const point_t* origin = vector_iterator_get(it);
-        point_t* bl = point_copy(origin);
-        bl->x -= width / 2;
-        bl->y -= height / 2;
-        point_t* tr = point_copy(origin);
-        tr->x += width / 2;
-        tr->y += height / 2;
-        geometry_rectanglebltr(lobject_get(cell), layer, bl, tr);
-        point_destroy(bl);
-        point_destroy(tr);
-        vector_iterator_next(it);
-    }
-    vector_iterator_destroy(it);
-
-    vector_destroy(origins);
-
     return 0;
 }
 
