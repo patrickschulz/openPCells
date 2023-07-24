@@ -65,7 +65,6 @@ modulemanager.c: embed_compiled_lua_file modules/*.lua
 	./embed_compiled_lua_file --module modules/aux.lua module_load aux modulemanager.c
 	./embed_compiled_lua_file --module modules/gdsparser.lua module_load gdsparser modulemanager.c
 	./embed_compiled_lua_file --module modules/generator.lua module_load generator modulemanager.c
-	./embed_compiled_lua_file --module modules/geometry.lua module_load geometry modulemanager.c
 	./embed_compiled_lua_file --module modules/globals.lua module_load globals modulemanager.c
 	./embed_compiled_lua_file --module modules/graphics.lua module_load graphics modulemanager.c
 	./embed_compiled_lua_file --module modules/load.lua module_load load modulemanager.c
