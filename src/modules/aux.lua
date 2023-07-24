@@ -80,10 +80,6 @@ function aux.sum(t)
     return res
 end
 
-function aux.round(num)
-    return num >= 0 and math.floor(num + 0.5) or math.ceil(num - 0.5)
-end
-
 function aux.make_even(num)
     if num % 2 == 0 then
         return num
