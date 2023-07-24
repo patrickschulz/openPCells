@@ -428,7 +428,7 @@ function M.place_within_boundary(toplevel, cell, basename, targetarea, excludes)
         end
     end
 
-    local meshorigins = {}
+    local origins = {}
     local x = minx + xpitch / 2
     while x < maxx do
         local y = miny + ypitch / 2
@@ -449,7 +449,7 @@ function M.place_within_boundary(toplevel, cell, basename, targetarea, excludes)
                 end
             end
             if insert then
-                table.insert(meshorigins, { x = x, y = y })
+                table.insert(origins, { x = x, y = y })
             end
             y = y + ypitch
         end
@@ -458,12 +458,26 @@ function M.place_within_boundary(toplevel, cell, basename, targetarea, excludes)
 
     local children = {}
     local i = 1
-    for _, origin in ipairs(meshorigins) do
+    for _, origin in ipairs(origins) do
         local child = toplevel:add_child(cell, string.format("%s_%d", basename, i))
         child:move_point(point.create(0, 0), point.create(origin.x, origin.y))
         table.insert(children, child)
         i = i + 1
     end
+    return children
+end
+
+function M.place_within_rectangular_boundary(toplevel, cell, basename, targetbl, targettr)
+    local xpitch, ypitch = cell:width_height_alignmentbox()
+
+    local fillwidth = targettr:getx() - targetbl:getx()
+    local fillheight = targettr:gety() - targetbl:gety()
+
+    local xrep = fillwidth // xpitch
+    local yrep = fillheight // ypitch
+
+    local children = toplevel:add_child_array(cell, basename, xrep, yrep)
+    children:translate(-(xrep - 1) * xpitch / 2, -(yrep - 1) * ypitch / 2)
     return children
 end
 
