@@ -224,6 +224,7 @@ static int check_next2 (LexState *ls, const char *set) {
 **
 ** The caller might have already read an initial dot.
 */
+#ifndef OPC_LUA_NO_FLOATING_POINT
 static int read_numeral (LexState *ls, SemInfo *seminfo) {
   TValue obj;
   const char *expo = "Ee";
@@ -254,6 +255,35 @@ static int read_numeral (LexState *ls, SemInfo *seminfo) {
     return TK_FLT;
   }
 }
+#else
+static int read_numeral (LexState *ls, SemInfo *seminfo) {
+  TValue obj;
+  int first = ls->current;
+  lua_assert(lisdigit(ls->current));
+  save_and_next(ls);
+  if (first == '0' && check_next2(ls, "xX"))  /* hexadecimal? */
+  {}
+  for (;;) {
+    if (lisxdigit(ls->current))  /* '%x|%.' */
+      save_and_next(ls);
+    else break;
+  }
+  if (lislalpha(ls->current))  /* is numeral touching a letter? */
+    save_and_next(ls);  /* force an error */
+  save(ls, '\0');
+  if (luaO_str2num(luaZ_buffer(ls->buff), &obj) == 0)  /* format error? */
+    lexerror(ls, "malformed number", TK_FLT);
+  if (ttisinteger(&obj)) {
+    seminfo->i = ivalue(&obj);
+    return TK_INT;
+  }
+  else {
+    lua_assert(ttisfloat(&obj));
+    seminfo->r = fltvalue(&obj);
+    return TK_FLT;
+  }
+}
+#endif
 
 
 /*
@@ -526,8 +556,9 @@ static int llex (LexState *ls, SemInfo *seminfo) {
             return TK_DOTS;   /* '...' */
           else return TK_CONCAT;   /* '..' */
         }
-        else if (!lisdigit(ls->current)) return '.';
-        else return read_numeral(ls, seminfo);
+        else return '.';
+        //else if (!lisdigit(ls->current)) return '.';
+        //else return read_numeral(ls, seminfo);
       }
       case '0': case '1': case '2': case '3': case '4':
       case '5': case '6': case '7': case '8': case '9': {
