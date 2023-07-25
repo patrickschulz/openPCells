@@ -841,43 +841,14 @@ struct vector* _initialize_api_entries(void)
         ));
     }
 
-    /* geometry.via */
+    /* geometry.viabltr */
     {
         struct parameter parameters[] = {
             { "cell",       OBJECT,     NULL,   "Object in which the via is created" },
             { "firstmetal", INTEGER,    NULL,   "Number of the first metal. Negative values are possible" },
             { "lastmetal",  INTEGER,    NULL,   "Number of the last metal. Negative values are possible" },
-            { "width",      INTEGER,    NULL,   "Width of the generated rectangular shape" },
-            { "height",     INTEGER,    NULL,   "Height of the generated rectangular shape" },
-            { "xshift",     INTEGER,    "0",    "Optional shift in x direction" },
-            { "yshift",     INTEGER,    "0",    "Optional shift in y direction" },
-            { "xrep",       INTEGER,    "1",    "Optional number of repetitions in x direction. The Rectangles are shifted so that an equal number is above and below" },
-            { "yrep",       INTEGER,    "1",    "Optional number of repetitions in y direction. The Rectangles are shifted so that an equal number is above and below" },
-            { "xpitch",     INTEGER,    "0",    "Optional pitch in x direction, used for repetition in x" },
-            { "ypitch",     INTEGER,    "0",    "Optional pitch in y direction, used for repetition in y" }
-        };
-        vector_append(entries, _make_api_entry(
-            "via",
-            MODULE_GEOMETRY,
-            "Create via (single or stack) in a rectangular area with the given width and height in cell",
-            "geometry.via(cell, 1, 2, 100, 100)\ngeometry.via(cell, -3, 2, 100, 100, -40, 80, 4, 1, 1000, 0)",
-            parameters,
-            sizeof(parameters) / sizeof(parameters[0])
-        ));
-    }
-
-    /* geometry.viabltr */
-    {
-        struct parameter parameters[] = {
-            { "cell",       OBJECT, NULL,             "Object in which the via is created" },
-            { "firstmetal", INTEGER, NULL,            "Number of the first metal. Negative values are possible" },
-            { "lastmetal",  INTEGER, NULL,            "Number of the last metal. Negative values are possible" },
-            { "bl",         POINT, NULL,                "Bottom-left point of the generated rectangular shape" },
-            { "tr",         POINT, NULL,                "Top-right point of the generated rectangular shape" },
-            { "xrep",       INTEGER, "1", "Optional number of repetitions in x direction. The Rectangles are shifted so that an equal number is above and below" },
-            { "yrep",       INTEGER, "1", "Optional number of repetitions in y direction. The Rectangles are shifted so that an equal number is above and below" },
-            { "xpitch",     INTEGER, "0", "Optional pitch in x direction, used for repetition in x" },
-            { "ypitch",     INTEGER, "0", "Optional pitch in y direction, used for repetition in y" }
+            { "bl",         POINT,      NULL,   "Bottom-left point of the generated rectangular shape" },
+            { "tr",         POINT,      NULL,   "Top-right point of the generated rectangular shape" }
         };
         vector_append(entries, _make_api_entry(
             "viabltr",
@@ -889,25 +860,77 @@ struct vector* _initialize_api_entries(void)
         ));
     }
 
-    /* geometry.contact */
+    /* geometry.viabarebltr */
     {
         struct parameter parameters[] = {
-            { "cell",   OBJECT, NULL,             "Object in which the contact is created" },
-            { "layer",  STRING, NULL,               "Identifier of the contact type. Possible values: 'gate', 'active', 'sourcedrain'" },
-            { "width",  INTEGER, NULL,            "Width of the generated rectangular shape" },
-            { "height", INTEGER, NULL,            "Height of the generated rectangular shape" },
-            { "xshift", INTEGER, "0", "Optional shift in x direction" },
-            { "yshift", INTEGER, "0", "Optional shift in y direction" },
-            { "xrep",   INTEGER, "1", "Optional number of repetitions in x direction. The Rectangles are shifted so that an equal number is above and below" },
-            { "yrep",   INTEGER, "1", "Optional number of repetitions in y direction. The Rectangles are shifted so that an equal number is above and below" },
-            { "xpitch", INTEGER, "0", "Optional pitch in x direction, used for repetition in x" },
-            { "ypitch", INTEGER, "0", "Optional pitch in y direction, used for repetition in y" }
+            { "cell",       OBJECT,     NULL,   "Object in which the via is created" },
+            { "firstmetal", INTEGER,    NULL,   "Number of the first metal. Negative values are possible" },
+            { "lastmetal",  INTEGER,    NULL,   "Number of the last metal. Negative values are possible" },
+            { "bl",         POINT,      NULL,   "Bottom-left point of the generated rectangular shape" },
+            { "tr",         POINT,      NULL,   "Top-right point of the generated rectangular shape" }
         };
         vector_append(entries, _make_api_entry(
-            "contact",
+            "viabarebltr",
             MODULE_GEOMETRY,
-            "Create contacts in a rectangular area with the given width and height in cell",
-            "geometry.contact(cell, \"sourcedrain\", 40, 500)",
+            "Create vias (single or stack) in a rectangular area with the given corner points in cell. This function is like viabltr, but no metals are drawn",
+            "geometry.viabarebltr(cell, 1, 3, point.create(-100, -20), point.create(100, 4))",
+            parameters,
+            sizeof(parameters) / sizeof(parameters[0])
+        ));
+    }
+
+    /* geometry.viabltr_xcontinuous */
+    {
+        struct parameter parameters[] = {
+            { "cell",       OBJECT,     NULL,   "Object in which the via is created" },
+            { "firstmetal", INTEGER,    NULL,   "Number of the first metal. Negative values are possible" },
+            { "lastmetal",  INTEGER,    NULL,   "Number of the last metal. Negative values are possible" },
+            { "bl",         POINT,      NULL,   "Bottom-left point of the generated rectangular shape" },
+            { "tr",         POINT,      NULL,   "Top-right point of the generated rectangular shape" }
+        };
+        vector_append(entries, _make_api_entry(
+            "viabltr_xcontinuous",
+            MODULE_GEOMETRY,
+            "Create vias (single or stack) in a rectangular area with the given corner points in cell. This function creates vias that can be abutted in x-direction. For this, the space between cuts and the surroundings are equalized",
+            "geometry.viabltr_xcontinuous(cell, 1, 3, point.create(-100, -20), point.create(100, 4))",
+            parameters,
+            sizeof(parameters) / sizeof(parameters[0])
+        ));
+    }
+
+    /* geometry.viabltr_ycontinuous */
+    {
+        struct parameter parameters[] = {
+            { "cell",       OBJECT,     NULL,   "Object in which the via is created" },
+            { "firstmetal", INTEGER,    NULL,   "Number of the first metal. Negative values are possible" },
+            { "lastmetal",  INTEGER,    NULL,   "Number of the last metal. Negative values are possible" },
+            { "bl",         POINT,      NULL,   "Bottom-left point of the generated rectangular shape" },
+            { "tr",         POINT,      NULL,   "Top-right point of the generated rectangular shape" }
+        };
+        vector_append(entries, _make_api_entry(
+            "viabltr_ycontinuous",
+            MODULE_GEOMETRY,
+            "Create vias (single or stack) in a rectangular area with the given corner points in cell. This function creates vias that can be abutted in y-direction. For this, the space between cuts and the surroundings are equalized",
+            "geometry.viabltr_ycontinuous(cell, 1, 3, point.create(-100, -20), point.create(100, 4))",
+            parameters,
+            sizeof(parameters) / sizeof(parameters[0])
+        ));
+    }
+
+    /* geometry.viabltr_continuous */
+    {
+        struct parameter parameters[] = {
+            { "cell",       OBJECT,     NULL,   "Object in which the via is created" },
+            { "firstmetal", INTEGER,    NULL,   "Number of the first metal. Negative values are possible" },
+            { "lastmetal",  INTEGER,    NULL,   "Number of the last metal. Negative values are possible" },
+            { "bl",         POINT,      NULL,   "Bottom-left point of the generated rectangular shape" },
+            { "tr",         POINT,      NULL,   "Top-right point of the generated rectangular shape" }
+        };
+        vector_append(entries, _make_api_entry(
+            "viabltr_continuous",
+            MODULE_GEOMETRY,
+            "Create vias (single or stack) in a rectangular area with the given corner points in cell. This function creates vias that can be abutted in both x- and y-direction. For this, the space between cuts and the surroundings are equalized",
+            "geometry.viabltr_continuous(cell, 1, 3, point.create(-100, -20), point.create(100, 4))",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -916,14 +939,10 @@ struct vector* _initialize_api_entries(void)
     /* geometry.contactbltr */
     {
         struct parameter parameters[] = {
-            { "cell",   OBJECT, NULL,             "Object in which the contact is created" },
-            { "layer",  STRING, NULL,               "Identifier of the contact type. Possible values: 'gate', 'active', 'sourcedrain'" },
-            { "bl",     POINT, NULL,                "Bottom-left point of the generated rectangular shape" },
-            { "tr",     POINT, NULL,                "Top-right point of the generated rectangular shape" },
-            { "xrep",   INTEGER, "1", "Optional number of repetitions in x direction. The Rectangles are shifted so that an equal number is above and below" },
-            { "yrep",   INTEGER, "1", "Optional number of repetitions in y direction. The Rectangles are shifted so that an equal number is above and below" },
-            { "xpitch", INTEGER, "0", "Optional pitch in x direction, used for repetition in x" },
-            { "ypitch", INTEGER, "0", "Optional pitch in y direction, used for repetition in y" }
+            { "cell",   OBJECT,     NULL,   "Object in which the contact is created" },
+            { "layer",  STRING,     NULL,   "Identifier of the contact type. Possible values: 'gate', 'active', 'sourcedrain'" },
+            { "bl",     POINT,      NULL,   "Bottom-left point of the generated rectangular shape" },
+            { "tr",     POINT,      NULL,   "Top-right point of the generated rectangular shape" }
         };
         vector_append(entries, _make_api_entry(
             "contactbltr",
@@ -935,41 +954,13 @@ struct vector* _initialize_api_entries(void)
         ));
     }
 
-    /* geometry.contactbare */
-    {
-        struct parameter parameters[] = {
-            { "cell",   OBJECT, NULL,             "Object in which the contact is created" },
-            { "layer",  STRING, NULL,               "Identifier of the contact type. Possible values: 'gate', 'active', 'sourcedrain'" },
-            { "width",  INTEGER, NULL,            "Width of the generated rectangular shape" },
-            { "height", INTEGER, NULL,            "Height of the generated rectangular shape" },
-            { "xshift", INTEGER, "0", "Optional shift in x direction" },
-            { "yshift", INTEGER, "0", "Optional shift in y direction" },
-            { "xrep",   INTEGER, "1", "Optional number of repetitions in x direction. The Rectangles are shifted so that an equal number is above and below" },
-            { "yrep",   INTEGER, "1", "Optional number of repetitions in y direction. The Rectangles are shifted so that an equal number is above and below" },
-            { "xpitch", INTEGER, "0", "Optional pitch in x direction, used for repetition in x" },
-            { "ypitch", INTEGER, "0", "Optional pitch in y direction, used for repetition in y" }
-        };
-        vector_append(entries, _make_api_entry(
-            "contactbare",
-            MODULE_GEOMETRY,
-            "Create contacts in a rectangular area with the given width and height in cell. This function creates 'bare' contacts, so only the cut layers, no surrouning metals or semi-conductor layers",
-            "geometry.contactbare(cell, \"sourcedrain\", 40, 500)",
-            parameters,
-            sizeof(parameters) / sizeof(parameters[0])
-        ));
-    }
-
     /* geometry.contactbarebltr */
     {
         struct parameter parameters[] = {
-            { "cell",   OBJECT, NULL,             "Object in which the contact is created" },
-            { "layer",  STRING, NULL,               "Identifier of the contact type. Possible values: 'gate', 'active', 'sourcedrain'" },
-            { "bl",     POINT, NULL,                "Bottom-left point of the generated rectangular shape" },
-            { "tr",     POINT, NULL,                "Top-right point of the generated rectangular shape" },
-            { "xrep",   INTEGER, "1", "Optional number of repetitions in x direction. The Rectangles are shifted so that an equal number is above and below" },
-            { "yrep",   INTEGER, "1", "Optional number of repetitions in y direction. The Rectangles are shifted so that an equal number is above and below" },
-            { "xpitch", INTEGER, "0", "Optional pitch in x direction, used for repetition in x" },
-            { "ypitch", INTEGER, "0", "Optional pitch in y direction, used for repetition in y" }
+            { "cell",   OBJECT,     NULL,   "Object in which the contact is created" },
+            { "layer",  STRING,     NULL,   "Identifier of the contact type. Possible values: 'gate', 'active', 'sourcedrain'" },
+            { "bl",     POINT,      NULL,   "Bottom-left point of the generated rectangular shape" },
+            { "tr",     POINT,      NULL,   "Top-right point of the generated rectangular shape" }
         };
         vector_append(entries, _make_api_entry(
             "contactbarebltr",
@@ -984,11 +975,11 @@ struct vector* _initialize_api_entries(void)
     /* geometry.cross */
     {
         struct parameter parameters[] = {
-            { "cell",      OBJECT, NULL,  "Object in which the cross is created" },
-            { "layer",     GENERICS, NULL, "Layer of the generated cross shape" },
-            { "width",     INTEGER, NULL, "Width of the generated cross shape" },
-            { "height",    INTEGER, NULL, "Height of the generated cross shape" },
-            { "crosssize", INTEGER, NULL, "Cross size of the generated cross shape (the 'width' of the rectangles making up the cross)" },
+            { "cell",      OBJECT,      NULL,   "Object in which the cross is created" },
+            { "layer",     GENERICS,    NULL,   "Layer of the generated cross shape" },
+            { "width",     INTEGER,     NULL,   "Width of the generated cross shape" },
+            { "height",    INTEGER,     NULL,   "Height of the generated cross shape" },
+            { "crosssize", INTEGER,     NULL,   "Cross size of the generated cross shape (the 'width' of the rectangles making up the cross)" },
         };
         vector_append(entries, _make_api_entry(
             "cross",
@@ -1003,14 +994,14 @@ struct vector* _initialize_api_entries(void)
     /* geometry.unequal_ring */
     {
         struct parameter parameters[] = {
-            { "cell",            OBJECT, NULL,  "Object in which the ring is created" },
-            { "layer",           GENERICS, NULL, "Layer of the generated ring shape" },
-            { "width",           INTEGER, NULL, "Width of the generated ring shape" },
-            { "height",          INTEGER, NULL, "Height of the generated ring shape" },
-            { "leftringwidth",   INTEGER, NULL, "Left ring width of the generated ring shape (the 'width' of the path making up the left part of the ring)" },
-            { "rightringwidth",  INTEGER, NULL, "Right ring width of the generated ring shape (the 'width' of the path making up the right part of the ring)" },
-            { "topringwidth",    INTEGER, NULL, "Top ring width of the generated ring shape (the 'width' of the path making up the top part of the ring)" },
-            { "bottomringwidth", INTEGER, NULL, "Bottom ring width of the generated ring shape (the 'width' of the path making up the bottom part of the ring)" },
+            { "cell",            OBJECT,    NULL, "Object in which the ring is created" },
+            { "layer",           GENERICS,  NULL, "Layer of the generated ring shape" },
+            { "width",           INTEGER,   NULL, "Width of the generated ring shape" },
+            { "height",          INTEGER,   NULL, "Height of the generated ring shape" },
+            { "leftringwidth",   INTEGER,   NULL, "Left ring width of the generated ring shape (the 'width' of the path making up the left part of the ring)" },
+            { "rightringwidth",  INTEGER,   NULL, "Right ring width of the generated ring shape (the 'width' of the path making up the right part of the ring)" },
+            { "topringwidth",    INTEGER,   NULL, "Top ring width of the generated ring shape (the 'width' of the path making up the top part of the ring)" },
+            { "bottomringwidth", INTEGER,   NULL, "Bottom ring width of the generated ring shape (the 'width' of the path making up the bottom part of the ring)" },
         };
         vector_append(entries, _make_api_entry(
             "unequal_ring",
@@ -1025,11 +1016,11 @@ struct vector* _initialize_api_entries(void)
     /* geometry.ring */
     {
         struct parameter parameters[] = {
-            { "cell",      OBJECT, NULL,  "Object in which the ring is created" },
-            { "layer",     GENERICS, NULL, "Layer of the generated ring shape" },
-            { "width",     INTEGER, NULL, "Width of the generated ring shape" },
-            { "height",    INTEGER, NULL, "Height of the generated ring shape" },
-            { "ringwidth", INTEGER, NULL, "Ring width of the generated ring shape (the 'width' of the path making up the ring)" },
+            { "cell",      OBJECT,      NULL, "Object in which the ring is created" },
+            { "layer",     GENERICS,    NULL, "Layer of the generated ring shape" },
+            { "width",     INTEGER,     NULL, "Width of the generated ring shape" },
+            { "height",    INTEGER,     NULL, "Height of the generated ring shape" },
+            { "ringwidth", INTEGER,     NULL, "Ring width of the generated ring shape (the 'width' of the path making up the ring)" },
         };
         vector_append(entries, _make_api_entry(
             "ring",
