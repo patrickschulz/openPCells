@@ -14,16 +14,10 @@ static void* _check_generics(lua_State* L, int idx)
 {
     if(lua_type(L, idx) != LUA_TLIGHTUSERDATA)
     {
-        lua_pushfstring(L, "expected light userdata at argument #%d, got %s\n", idx, lua_typename(L, lua_type(L, idx)));
+        lua_pushfstring(L, "expected a generic layer at argument #%d, got %s", idx, lua_typename(L, lua_type(L, idx)));
         lua_error(L);
     }
-    void *p = lua_touserdata(L, idx);
-    if(!p)
-    {
-        lua_pushfstring(L, "expected generic layer at argument #%d, got NULL\n", idx);
-        lua_error(L);
-    }
-    return p;
+    return lua_touserdata(L, idx);
 }
 
 static void _check_rectangle_points(lua_State* L, struct lpoint* bl, struct lpoint* tr, const char* context)
