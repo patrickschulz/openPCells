@@ -331,6 +331,10 @@ static int lobject_ ##what (lua_State* L) \
     return 1; \
 }
 
+_gen_fun_align_origin(abut_left_origin)
+_gen_fun_align_origin(abut_right_origin)
+_gen_fun_align_origin(abut_top_origin)
+_gen_fun_align_origin(abut_bottom_origin)
 _gen_fun_align_origin(align_left_origin)
 _gen_fun_align_origin(align_right_origin)
 _gen_fun_align_origin(align_top_origin)
@@ -1022,6 +1026,10 @@ int open_lobject_lib(lua_State* L)
         { "abut_right",                 lobject_abut_right                  },
         { "abut_top",                   lobject_abut_top                    },
         { "abut_bottom",                lobject_abut_bottom                 },
+        { "abut_left_origin",           lobject_abut_left_origin            },
+        { "abut_right_origin",          lobject_abut_right_origin           },
+        { "abut_top_origin",            lobject_abut_top_origin             },
+        { "abut_bottom_origin",         lobject_abut_bottom_origin          },
         { "align_left",                 lobject_align_left                  },
         { "align_right",                lobject_align_right                 },
         { "align_top",                  lobject_align_top                   },
