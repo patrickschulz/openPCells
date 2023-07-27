@@ -72,7 +72,7 @@ Help for API functions is provided by `--api-list` (list all available API funct
 
 # Building and Installation
 Building this project is fairly simple, as the sole dependency is a C compiler.
-It was tested with various gcc versions >= 11.1.0, but should work with other compilers too.
+It was tested with various gcc versions >= 11.1.0 and 4.7.x, but should work with other compilers too.
 The build and install process installs all required files in standard paths (/usr/bin, /usr/share), but these paths can be configured.
 It is also possible to install it locally, which does not require any root privileges.
 Short-cut configure options exist to make this process easy.
@@ -91,6 +91,10 @@ Building and installing locally:
     # no installation
 
 This uses gcc as compiler, if you have any specific needs, the compiler can be adapted in `src/Makefile`.
+
+Please note that if you don't 'install' opc (by copying it into the proper location), you should use `--all-load-path-locals`.
+This configures the load paths so that opc can be called with the absolute path (or an alias). If you don't plan to install opc properly, you should
+use the second shown build method ('Building and installing locally').
 
 # Integration in EDA Tools
 OpenPCells can be integrated quite simply in EDA tools that provide an API for adding menus, calling external programs and reading files.
