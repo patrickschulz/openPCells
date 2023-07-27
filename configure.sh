@@ -99,18 +99,37 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-# create Makefile.install
-echo ".PHONY: install" > Makefile.install
-echo "install: opc opc.1" >> Makefile.install
-echo "	install -m 755 -D opc \${DESTDIR}${BIN_PATH}/${EXE_NAME}" >> Makefile.install
-echo "	install -m 644 -D opc.1 \${DESTDIR}${MAN_PATH}/${EXE_NAME}.1" >> Makefile.install
-echo "	mkdir -p \${DESTDIR}${CELL_PATH}" >> Makefile.install
-echo "	cp -R cells \${DESTDIR}${CELL_PATH}" >> Makefile.install
-echo "	mkdir -p \${DESTDIR}${TECH_PATH}" >> Makefile.install
-echo "	cp -R tech \${DESTDIR}${TECH_PATH}" >> Makefile.install
-echo "	mkdir -p \${DESTDIR}${EXPORT_PATH}" >> Makefile.install
-echo "	cp -R export \${DESTDIR}${EXPORT_PATH}" >> Makefile.install
-echo -en '\n' >> Makefile.install
+# create Makefile
+echo "opc: src/config.h src/*.c src/*.h src/scripts/*.lua src/modules/*.lua src/lua/*.c src/lua/*.h" > Makefile
+echo "	@\$(MAKE) -C src default" >> Makefile
+echo "	@mv src/opc ." >> Makefile
+echo -en '\n' >> Makefile
+echo "opc.1: src/cmdoptions_def.c" >> Makefile
+echo "	@\$(MAKE) -C src opc.1" >> Makefile
+echo "	mv src/opc.1 ." >> Makefile
+echo -en '\n' >> Makefile
+echo ".PHONY: install" >> Makefile
+echo "install: opc opc.1" >> Makefile
+echo "	install -m 755 -D opc \${DESTDIR}${BIN_PATH}/${EXE_NAME}" >> Makefile
+echo "	install -m 644 -D opc.1 \${DESTDIR}${MAN_PATH}/${EXE_NAME}.1" >> Makefile
+echo "	mkdir -p \${DESTDIR}${CELL_PATH}" >> Makefile
+echo "	cp -R cells \${DESTDIR}${CELL_PATH}" >> Makefile
+echo "	mkdir -p \${DESTDIR}${TECH_PATH}" >> Makefile
+echo "	cp -R tech \${DESTDIR}${TECH_PATH}" >> Makefile
+echo "	mkdir -p \${DESTDIR}${EXPORT_PATH}" >> Makefile
+echo "	cp -R export \${DESTDIR}${EXPORT_PATH}" >> Makefile
+echo -en '\n' >> Makefile
+echo ".PHONY: doc" >> Makefile
+echo "doc:" >> Makefile
+echo "	@\$(MAKE) -C doc full" >> Makefile
+echo -en '\n' >> Makefile
+echo ".PHONY: clean" >> Makefile
+echo "clean:" >> Makefile
+echo "	@\$(MAKE) -C src clean" >> Makefile
+echo "	rm -f src/config.h" >> Makefile
+echo "	rm -f opc" >> Makefile
+echo "	rm -f opc.1" >> Makefile
+echo "	rm -f Makefile" >> Makefile
 
 # create config.h
 echo "/* This file is auto-generated. Do not edit it. */" > src/config.h
