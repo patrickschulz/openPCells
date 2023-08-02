@@ -292,6 +292,8 @@ int export_write_toplevel(struct object* toplevel, struct export_state* state)
     char* extension;
     int status = EXPORT_STATUS_NOTFOUND;
 
+    int ret = 1;
+
     struct export_functions* funcs = _get_export_functions(state->exportname);
     if(funcs) // C-defined exports
     {
@@ -305,13 +307,14 @@ int export_write_toplevel(struct object* toplevel, struct export_state* state)
     {
         char* exportfilename = _find_lua_export(state->searchpaths, state->exportname);
         lua_State* L = util_create_basic_lua_state();
-        int ret = luaL_dofile(L, exportfilename);
+        ret = luaL_dofile(L, exportfilename);
         free(exportfilename);
         if(ret != LUA_OK)
         {
             status = EXPORT_STATUS_LOADERROR;
             lua_close(L);
-            return ret;
+            ret = 0;
+            goto EXPORT_CLEANUP;
         }
         if(lua_type(L, -1) == LUA_TTABLE)
         {
@@ -321,7 +324,8 @@ int export_write_toplevel(struct object* toplevel, struct export_state* state)
                 fprintf(stderr, "export '%s' must define at least the functions 'get_extension', 'write_rectangle', 'write_polygon' (or 'write_triangle') and 'finalize'\n", state->exportname);
                 status = EXPORT_STATUS_LOADERROR;
                 lua_close(L);
-                return ret;
+                ret = 0;
+                goto EXPORT_CLEANUP;
             }
 
             // parse and set export cmd options
@@ -362,7 +366,8 @@ int export_write_toplevel(struct object* toplevel, struct export_state* state)
                     const char* msg = lua_tostring(L, -1);
                     fprintf(stderr, "error while setting up options for lua export: %s\n", msg);
                     lua_close(L);
-                    return 0;
+                    ret = 0;
+                    goto EXPORT_CLEANUP;
                 }
             }
 
@@ -374,7 +379,8 @@ int export_write_toplevel(struct object* toplevel, struct export_state* state)
                 const char* msg = lua_tostring(L, -1);
                 fprintf(stderr, "error while calling lua export: %s\n", msg);
                 lua_close(L);
-                return 0;
+                ret = 0;
+                goto EXPORT_CLEANUP;
             }
 
             lua_getfield(L, -1, "get_extension");
@@ -384,7 +390,8 @@ int export_write_toplevel(struct object* toplevel, struct export_state* state)
                 const char* msg = lua_tostring(L, -1);
                 fprintf(stderr, "error while calling lua export: %s\n", msg);
                 lua_close(L);
-                return 0;
+                ret = 0;
+                goto EXPORT_CLEANUP;
             }
             extension = util_strdup(lua_tostring(L, -1));
             lua_pop(L, 1); // pop extension
@@ -414,19 +421,24 @@ int export_write_toplevel(struct object* toplevel, struct export_state* state)
             free(extension);
             free(filename);
         }
-        export_destroy_data(data);
         export_destroy_functions(funcs);
-        return 1;
+        ret = 1;
+        goto EXPORT_CLEANUP;
     }
     else if(status == EXPORT_STATUS_NOTFOUND)
     {
         printf("could not find export '%s'\n", state->exportname);
-        return 0;
+        ret = 0;
+        goto EXPORT_CLEANUP;
     }
     else // EXPORT_STATUS_LOADERROR
     {
         puts("error while loading export");
-        return 0;
+        ret = 0;
+        goto EXPORT_CLEANUP;
     }
+EXPORT_CLEANUP:
+    export_destroy_data(data);
+    return ret;
 }
 

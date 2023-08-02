@@ -683,6 +683,7 @@ int main_create_and_export_cell(struct cmdoptions* cmdoptions, struct hashmap* c
                 );
                 if(!export_result)
                 {
+                    export_destroy_state(export_state);
                     retval = 0;
                     goto DESTROY_OBJECT;
                 }

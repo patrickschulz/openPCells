@@ -150,6 +150,7 @@ static int _has_initialize(struct export_writer* writer)
     }
     return 0;
 }
+
 static int _has_write_cell_reference(struct export_writer* writer)
 {
     if(writer->islua)
@@ -230,6 +231,24 @@ static int _has_curve_support(struct export_writer* writer)
     return 0;
 }
 
+static int _pcall(lua_State* L, int nargs, int nresults, const char* str)
+{
+    int lret = lua_pcall(L, nargs, nresults, 0);
+    if(lret != LUA_OK)
+    {
+        const char* msg = lua_tostring(L, -1);
+        char* copy = util_strdup(msg);
+        lua_pop(L, 1);
+        lua_pushfstring(L, "%s (%s)", copy, str);
+        free(copy);
+        return 0;
+    }
+    else
+    {
+        return 1;
+    }
+}
+
 static int _write_child_array(struct export_writer* writer, const char* identifier, const char* instbasename, const point_t* origin, const struct transformationmatrix* trans, unsigned int xrep, unsigned int yrep, unsigned int xpitch, unsigned int ypitch)
 {
     if(writer->islua)
@@ -241,8 +260,8 @@ static int _write_child_array(struct export_writer* writer, const char* identifi
         lua_pushinteger(writer->L, origin->y);
         _push_trans(writer->L, trans);
         _push_rep_pitch(writer->L, xrep, yrep, xpitch, ypitch);
-        int lret = lua_pcall(writer->L, 9, 0, 0);
-        if(lret != LUA_OK)
+        int ret = _pcall(writer->L, 9, 0, "write_cell_array");
+        if(!ret)
         {
             return 0;
         }
@@ -271,8 +290,8 @@ static int _write_child_manual_array(struct export_writer* writer, const char* r
                 lua_pushinteger(writer->L, x);
                 lua_pushinteger(writer->L, y);
                 _push_trans(writer->L, trans);
-                int lret = lua_pcall(writer->L, 5, 0, 0);
-                if(lret != LUA_OK)
+                int ret = _pcall(writer->L, 5, 0, "write_cell_reference");
+                if(!ret)
                 {
                     return 0;
                 }
@@ -296,8 +315,8 @@ static int _write_child_single(struct export_writer* writer, const char* refname
         lua_pushinteger(writer->L, origin->x);
         lua_pushinteger(writer->L, origin->y);
         _push_trans(writer->L, trans);
-        int lret = lua_pcall(writer->L, 5, 0, 0);
-        if(lret != LUA_OK)
+        int ret = _pcall(writer->L, 5, 0, "write_cell_reference");
+        if(!ret)
         {
             return 0;
         }
@@ -336,19 +355,30 @@ static int _write_child(struct export_writer* writer, const struct object* child
     // FIXME: error checking
     if(object_is_child_array(child) && _has_write_cell_array(writer))
     {
-        _write_child_array(writer, refname, instname, origin, trans, xrep, yrep, xpitch, ypitch);
+        int ret = _write_child_array(writer, refname, instname, origin, trans, xrep, yrep, xpitch, ypitch);
+        if(!ret)
+        {
+            return 0;
+        }
     }
     else
     {
         // this check is necessary for pretty-printing of singular instance names (e.g. avoid names like 'instance_1_1' when there is only one)
         if(xrep > 1 && yrep > 1)
         {
-            _write_child_manual_array(writer, refname, instname, origin, trans, xrep, yrep, xpitch, ypitch);
+            int ret = _write_child_manual_array(writer, refname, instname, origin, trans, xrep, yrep, xpitch, ypitch);
+            if(!ret)
+            {
+                return 0;
+            }
         }
         else
         {
-
-            _write_child_single(writer, refname, instname, origin, trans);
+            int ret = _write_child_single(writer, refname, instname, origin, trans);
+            if(!ret)
+            {
+                return 0;
+            }
         }
     }
     free(refname);
@@ -367,8 +397,8 @@ static int _write_cell_shape_rectangle(struct export_writer* writer, const struc
         _push_layer(writer->L, layerdata);
         _push_point(writer->L, &bl);
         _push_point(writer->L, &tr);
-        int lret = lua_pcall(writer->L, 3, 0, 0);
-        if(lret != LUA_OK)
+        int ret = _pcall(writer->L, 3, 0, "write_rectangle");
+        if(!ret)
         {
             return 0;
         }
@@ -388,8 +418,8 @@ static int _write_polygon(struct export_writer* writer, const struct hashmap* la
         lua_getfield(writer->L, -1, "write_polygon");
         _push_layer(writer->L, layerdata);
         _push_points(writer->L, points);
-        int lret = lua_pcall(writer->L, 2, 0, 0);
-        if(lret != LUA_OK)
+        int ret = _pcall(writer->L, 2, 0, "write_polygon");
+        if(!ret)
         {
             return 0;
         }
@@ -432,11 +462,10 @@ static int _write_cell_shape_triangulated_polygon(struct export_writer* writer, 
                 _push_point(writer->L, pt1);
                 _push_point(writer->L, pt2);
                 _push_point(writer->L, pt3);
-                int lret = lua_pcall(writer->L, 4, 0, 0);
-                if(lret != LUA_OK)
+                ret = _pcall(writer->L, 4, 0, "write_triangle");
+                if(!ret)
                 {
-                    ret = 0;
-                    break;
+                    goto WRITE_CELL_SHAPE_TRIANGULATED_POLYGON_CLEANUP;
                 }
             }
             else // C
@@ -454,6 +483,7 @@ static int _write_cell_shape_triangulated_polygon(struct export_writer* writer, 
             vector_destroy(tripts);
         }
     }
+WRITE_CELL_SHAPE_TRIANGULATED_POLYGON_CLEANUP:
     vector_destroy(points);
     return ret;
 }
@@ -481,10 +511,9 @@ static int _write_cell_shape_path(struct export_writer* writer, const struct sha
             lua_rawseti(writer->L, -2, 1);
             lua_pushinteger(writer->L, extension[0]);
             lua_rawseti(writer->L, -2, 2);
-            int lret = lua_pcall(writer->L, 4, 0, 0);
-            if(lret != LUA_OK)
+            ret = _pcall(writer->L, 4, 0, "write_path");
+            if(!ret)
             {
-                ret = 0;
                 goto WRITE_CELL_SHAPE_PATH_CLEANUP;
             }
         }
@@ -510,8 +539,8 @@ static int _line_segment(const point_t* pt, void* writerv)
     struct export_writer* writer = writerv;
     lua_getfield(writer->L, -1, "curve_add_line_segment");
     _push_point(writer->L, pt);
-    int lret = lua_pcall(writer->L, 1, 0, 0);
-    if(lret != LUA_OK)
+    int ret = _pcall(writer->L, 1, 0, "curve_add_line_segment");
+    if(!ret)
     {
         return 0;
     }
@@ -525,8 +554,8 @@ static int _arc_segment(double startangle, double endangle, coordinate_t radius,
     lua_pushnumber(writer->L, endangle);
     lua_pushinteger(writer->L, radius);
     lua_pushboolean(writer->L, clockwise);
-    int lret = lua_pcall(writer->L, 4, 0, 0);
-    if(lret != LUA_OK)
+    int ret = _pcall(writer->L, 4, 0, "curve_add_arc_segment");
+    if(!ret)
     {
         return 0;
     }
@@ -540,8 +569,8 @@ static int _cubic_bezier_segment(const point_t* cpt1, const point_t* cpt2, const
     _push_point(writer->L, cpt1);
     _push_point(writer->L, cpt2);
     _push_point(writer->L, endpt);
-    int lret = lua_pcall(writer->L, 3, 0, 0);
-    if(lret != LUA_OK)
+    int ret = _pcall(writer->L, 3, 0, "curve_add_cubic_bezier_segment");
+    if(!ret)
     {
         return 0;
     }
@@ -560,19 +589,19 @@ static int _write_cell_shape_curve(struct export_writer* writer, const struct sh
             lua_getfield(writer->L, -1, "setup_curve");
             _push_layer(writer->L, layerdata);
             _push_point(writer->L, &origin);
-            int lret = lua_pcall(writer->L, 2, 0, 0);
-            if(lret != LUA_OK)
+            int ret = _pcall(writer->L, 2, 0, "setup_curve");
+            if(!ret)
             {
                 return 0;
             }
-            int ret = shape_foreach_curve_segments(shape, writer, _line_segment, _arc_segment, _cubic_bezier_segment);
+            ret = shape_foreach_curve_segments(shape, writer, _line_segment, _arc_segment, _cubic_bezier_segment);
             if(!ret)
             {
                 return 0;
             }
             lua_getfield(writer->L, -1, "close_curve");
-            lret = lua_pcall(writer->L, 0, 0, 0);
-            if(lret != LUA_OK)
+            ret = _pcall(writer->L, 0, 0, "close_curve");
+            if(!ret)
             {
                 return 0;
             }
@@ -665,8 +694,8 @@ static int _write_port(struct export_writer* writer, const char* name, const str
         {
             lua_pushnil(writer->L);
         }
-        int lret = lua_pcall(writer->L, 4, 0, 0);
-        if(lret != LUA_OK)
+        int ret = _pcall(writer->L, 4, 0, "write_port");
+        if(!ret)
         {
             return 0;
         }
@@ -781,6 +810,7 @@ static int _write_cell(struct export_writer* writer, const struct object* cell, 
         int ret = _call_or_pop_nil(writer->L, 2);
         if(!ret)
         {
+            //_append_to_error_msg(writer->L, " (at_begin_cell)");
             free(name);
             return 0;
         }
@@ -792,7 +822,13 @@ static int _write_cell(struct export_writer* writer, const struct object* cell, 
         }
         lua_getfield(writer->L, -1, "at_end_cell");
         lua_pushboolean(writer->L, istoplevel);
-        _call_or_pop_nil(writer->L, 1);
+        ret = _call_or_pop_nil(writer->L, 1);
+        if(!ret)
+        {
+            //_append_to_error_msg(writer->L, " (at_end_cell)");
+            free(name);
+            return 0;
+        }
     }
     else // C
     {
@@ -815,7 +851,7 @@ static int _initialize(struct export_writer* writer, const struct object* object
         lua_pushinteger(writer->L, maxx);
         lua_pushinteger(writer->L, miny);
         lua_pushinteger(writer->L, maxy);
-        int ret = _call_or_pop_nil(writer->L, 4);
+        int ret = _pcall(writer->L, 4, 0, "initialize");
         if(!ret)
         {
             return 0;
@@ -951,9 +987,14 @@ int export_writer_write_toplevel(struct export_writer* writer, const struct obje
     if(writer->islua)
     {
         lua_getfield(writer->L, -1, "finalize");
-        int lret = lua_pcall(writer->L, 0, 1, 0);
-        if(lret != LUA_OK)
+        ret = _pcall(writer->L, 0, 1, "finalize");
+        if(!ret)
         {
+            return 0;
+        }
+        if(lua_type(writer->L, -1) != LUA_TSTRING)
+        {
+            lua_pushstring(writer->L, "finalize() did not return a string");
             return 0;
         }
         size_t datalen;
