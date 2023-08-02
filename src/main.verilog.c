@@ -69,3 +69,4 @@ void main_verilog_import(const char* scriptname, const struct vector* args)
     main_call_lua_program(L, scriptname);
     lua_close(L);
 }
+
