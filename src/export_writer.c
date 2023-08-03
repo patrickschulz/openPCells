@@ -711,6 +711,7 @@ static int _write_port(struct export_writer* writer, const char* name, const str
 static int _write_ports(struct export_writer* writer, const struct object* cell, char leftdelim, char rightdelim)
 {
     struct port_iterator* it = object_create_port_iterator(cell);
+    int ret;
     while(port_iterator_is_valid(it))
     {
         const char* portname;
@@ -732,15 +733,19 @@ static int _write_ports(struct export_writer* writer, const struct object* cell,
             snprintf(busportname, len + 1, "%s%c%d%c", portname, leftdelim, portbusindex, rightdelim);
             name = busportname;
         }
-        _write_port(writer, name, layerdata, &where, sizehint);
+        ret = _write_port(writer, name, layerdata, &where, sizehint);
         if(busportname)
         {
             free(busportname);
         }
+        if(!ret)
+        {
+            break;
+        }
         port_iterator_next(it);
     }
     port_iterator_destroy(it);
-    return 1;
+    return ret;
 }
 
 static int _write_cell_elements(struct export_writer* writer, const struct object* cell, const char* namecontext, int expand_namecontext, int write_ports, char leftdelim, char rightdelim)
