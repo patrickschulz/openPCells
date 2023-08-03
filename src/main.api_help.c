@@ -638,18 +638,21 @@ struct vector* _initialize_api_entries(void)
     /* geometry.rectangle_fill_in_boundary */
     {
         struct parameter parameters[] = {
-            { "cell",       OBJECT,     NULL,   "Object in which the rectangle is created" },
-            { "layer",      GENERICS,   NULL,   "Layer of the generated rectangular shape" },
-            { "width",      INTEGER,    NULL,   "Width of the rectangles" },
-            { "height",     INTEGER,    NULL,   "Height of the rectangles" },
-            { "xpitch",     INTEGER,    NULL,   "Pitch in x-direction" },
-            { "ypitch",     INTEGER,    NULL,   "Pitch in y-direction" },
-            { "boundary",   POINTLIST,  NULL,   "List of points defining fill boundary (a polygon)" },
+            { "cell",           OBJECT,     NULL,   "Object in which the rectangle is created" },
+            { "layer",          GENERICS,   NULL,   "Layer of the generated rectangular shape" },
+            { "width",          INTEGER,    NULL,   "Width of the rectangles" },
+            { "height",         INTEGER,    NULL,   "Height of the rectangles" },
+            { "xpitch",         INTEGER,    NULL,   "Pitch in x-direction" },
+            { "ypitch",         INTEGER,    NULL,   "Pitch in y-direction" },
+            { "xstartshift",    INTEGER,    NULL,   "Shift the start of the rectangle placment algorithm in x-direction" },
+            { "ystartshift",    INTEGER,    NULL,   "Shift the start of the rectangle placment algorithm in y-direction" },
+            { "boundary",       POINTLIST,  NULL,   "List of points defining fill boundary (a polygon)" },
+            { "excludes",       TABLE,      NULL,   "Collection of excludes (polygons)" }
         };
         vector_append(entries, _make_api_entry(
-            "rectanglepoints",
+            "rectangle_fill_in_boundary",
             MODULE_GEOMETRY,
-            "Fill a given boundary (a polygon) with rectangles of a given width and height",
+            "Fill a given boundary (a polygon) with rectangles of a given width and height. If given, the rectangles are not placed in the regions defined by the exclude rectangles. The excludes table should contain polygons",
             "geometry.rectangle_fill_in_boundary(cell, generics.metal(1), 100, 100, 200, 200, { point.create(-10000, -10000), point.create(10000, -10000), point.create(10000, 10000), point.create(-10000, 10000) })",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
