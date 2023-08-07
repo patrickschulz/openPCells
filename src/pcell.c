@@ -127,12 +127,23 @@ static int lpcell_get_cell_filename(lua_State* L)
     return 0;
 }
 
+static int lpcell_append_cellpath(lua_State* L)
+{
+    lua_getfield(L, LUA_REGISTRYINDEX, "pcellstate");
+    struct pcell_state* pcell_state = lua_touserdata(L, -1);
+    lua_pop(L, 1); // pop pcell state
+    const char* path = luaL_checkstring(L, 1);
+    vector_append(pcell_state->cellpaths, util_strdup(path));
+    return 0;
+}
+
 int open_lpcell_lib(lua_State* L)
 {
     lua_newtable(L);
     static const luaL_Reg modfuncs[] =
     {
         { "get_cell_filename",       lpcell_get_cell_filename       },
+        { "append_cellpath",         lpcell_append_cellpath         },
         { NULL,                      NULL                           }
     };
     luaL_setfuncs(L, modfuncs, 0);
