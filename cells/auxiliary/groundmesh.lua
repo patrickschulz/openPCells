@@ -20,6 +20,7 @@ function parameters()
         { "wellextension", 0 },
         { "implantextension", 0 },
         { "soiopenextension", 0 },
+        { "drawfillexcludes", true },
         { "drawasplane", false }
     )
 end
@@ -42,10 +43,12 @@ function layout(mesh, _P)
                 end
             end
             -- fill exclude
-            geometry.rectanglebltr(mesh, generics.metalexclude(_P.meshmetals[i]),
-                point.create(-_P.cellsize / 2, -_P.cellsize / 2),
-                point.create( _P.cellsize / 2,  _P.cellsize / 2)
-            )
+            if _P.drawfillexcludes then
+                geometry.rectanglebltr(mesh, generics.metalexclude(_P.meshmetals[i]),
+                    point.create(-_P.cellsize / 2, -_P.cellsize / 2),
+                    point.create( _P.cellsize / 2,  _P.cellsize / 2)
+                )
+            end
         end
         -- grid metals
         for i = 1, #_P.gridmetals do
@@ -60,10 +63,12 @@ function layout(mesh, _P)
                 )
             end
             -- fill exclude
-            geometry.rectanglebltr(mesh, generics.metalexclude(_P.gridmetals[i]),
-                point.create(-_P.cellsize / 2, -_P.cellsize / 2),
-                point.create( _P.cellsize / 2,  _P.cellsize / 2)
-            )
+            if _P.drawfillexcludes then
+                geometry.rectanglebltr(mesh, generics.metalexclude(_P.gridmetals[i]),
+                    point.create(-_P.cellsize / 2, -_P.cellsize / 2),
+                    point.create( _P.cellsize / 2,  _P.cellsize / 2)
+                )
+            end
         end
         geometry.rectanglebltr(mesh, generics.viacut(_P.interconnectmetal, _P.interconnectmetal + 1),
             point.create(-_P.cellsize / 2, -_P.cellsize / 2),
@@ -120,10 +125,12 @@ function layout(mesh, _P)
                     end
                 end
                 -- fill exclude
-                geometry.rectanglebltr(mesh, generics.metalexclude(_P.meshmetals[i]),
-                    point.create(-_P.cellsize / 2, -_P.cellsize / 2),
-                    point.create( _P.cellsize / 2,  _P.cellsize / 2)
-                )
+                if _P.drawfillexcludes then
+                    geometry.rectanglebltr(mesh, generics.metalexclude(_P.meshmetals[i]),
+                        point.create(-_P.cellsize / 2, -_P.cellsize / 2),
+                        point.create( _P.cellsize / 2,  _P.cellsize / 2)
+                    )
+                end
             end
         end
 
@@ -156,10 +163,12 @@ function layout(mesh, _P)
                     )
                 end
                 -- fill exclude
-                geometry.rectanglebltr(mesh, generics.metalexclude(_P.gridmetals[i]),
-                    point.create(-_P.cellsize / 2, -_P.cellsize / 2),
-                    point.create( _P.cellsize / 2,  _P.cellsize / 2)
-                )
+                if _P.drawfillexcludes then
+                    geometry.rectanglebltr(mesh, generics.metalexclude(_P.gridmetals[i]),
+                        point.create(-_P.cellsize / 2, -_P.cellsize / 2),
+                        point.create( _P.cellsize / 2,  _P.cellsize / 2)
+                    )
+                end
                 leftright = not leftright
             end
             -- connect to top metal
