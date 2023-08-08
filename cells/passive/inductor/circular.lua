@@ -10,10 +10,20 @@ function parameters()
         { "width(Width)",                           6000 },
         { "separation(Line Separation)",            6000 },
         { "extension(Line Extension)",             40000 },
+        { "extsep(Extension Separation)",           6000 },
         { "grid(Grid)",                              200 },
         { "metalnum(Conductor Metal)",     -1, "integer" },
-        { "allow45(Allow Angles with 45 Degrees)",  true }
+        { "allow45(Allow Angles with 45 Degrees)",  true },
+        { "drawlvsresistor(Draw LVS Resistor)",        false },
+        { "lvsreswidth(LVS Resistor Width)",            1000 },
+        { "boundaryextension(Boundary Extension)",      3000 },
+        { "rectangularboundary(Rectangular Boundary)", false },
+        { "breaklines(Break Conductor Lines)",         false }
     )
+end
+
+local function _scale_tanpi8(num)
+    return math.floor(num * 5741 / 13860) -- rational approximation of tan(pi / 8)
 end
 
 function check(_P)
@@ -46,13 +56,16 @@ function layout(inductor, _P)
 
     -- inner part
     local inner = {}
+    table.insert(inner, point.create(_P.separation / 2, -_P.radius - _P.extension))
     util.merge_forwards(inner, util.filter_backward(auxinner, function(pt) return pt:getx() < xminner end))
     util.merge_forwards(inner, util.filter_forward(maininner, function(pt) return pt:getx() >= xminner end))
     util.merge_backwards(inner, util.ymirror(maininner))
     util.merge_backwards(inner, util.xmirror(inner))
+    table.insert(inner, point.create(-_P.separation / 2, -_P.radius - _P.extension))
 
     -- outer part
     local outer = {}
+    table.insert(outer, point.create(_P.separation / 2 + _P.width, -_P.radius - _P.extension))
     util.merge_forwards(outer, util.filter_backward(auxouter, function(pt) return pt:getx() < xmouter end))
     util.merge_forwards(outer, util.filter_forward(mainouter, function(pt) return pt:getx() >= xmouter end))
     util.merge_backwards(outer, util.ymirror(mainouter))
@@ -65,4 +78,51 @@ function layout(inductor, _P)
 
     -- create polygon
     geometry.polygon(inductor, generics.metal(_P.metalnum), pts)
+
+    -- input lines anchors
+    local lastradius = _P.radius
+    inductor:add_area_anchor_bltr("leftline",
+        point.create(-_P.extsep / 2 - _P.width, -(lastradius + _P.width / 2 + _P.extension)),
+        point.create(-_P.extsep / 2, -lastradius - _P.width / 2)
+    )
+    inductor:add_area_anchor_bltr("rightline",
+        point.create( _P.extsep / 2, -(lastradius + _P.width / 2 + _P.extension)),
+        point.create( _P.extsep / 2 + _P.width, -lastradius - _P.width / 2)
+    )
+
+    -- alignment box
+    inductor:set_alignment_box(
+        point.create(-_P.radius - _P.width / 2, -_P.radius - _P.width / 2 - _P.extension),
+        point.create( _P.radius + _P.width / 2,  _P.radius + _P.width / 2)
+    )
+
+    -- boundary
+    if _P.rectangularboundary then
+        inductor:set_boundary_rectangular(
+            point.create(-_P.radius - _P.width / 2 - _P.boundaryextension, -_P.radius - _P.width / 2 - _P.boundaryextension),
+            point.create( _P.radius + _P.width / 2 + _P.boundaryextension,  _P.radius + _P.width / 2 + _P.boundaryextension)
+        )
+    else
+        local outerradius = _P.radius + _P.width / 2 + _P.boundaryextension
+        local outerr = _scale_tanpi8(outerradius)
+        local outerpathpts = {}
+        local outerappend = util.make_insert_xy(outerpathpts)
+        -- left
+        outerappend(-outerr + _scale_tanpi8(_P.width / 2),  outerradius)
+        outerappend(-outerr,  outerradius)
+        outerappend(-outerradius,  outerr)
+        outerappend(-outerradius, -outerr)
+        outerappend(-outerr, -outerradius)
+        outerappend(-outerr + _scale_tanpi8(_P.width / 2), -outerradius)
+        -- right
+        outerappend( outerr + _scale_tanpi8(_P.width / 2), -outerradius)
+        outerappend( outerr, -outerradius)
+        outerappend( outerradius, -outerr)
+        outerappend( outerradius,  outerr)
+        outerappend( outerr,  outerradius)
+        --outerappend( outerr + _scale_tanpi8(_P.width / 2),  outerradius)
+        inductor:set_boundary(
+            outerpathpts
+        )
+    end
 end
