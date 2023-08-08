@@ -5,20 +5,22 @@ The inductor is defined by two radii, one for the main loop and the second one f
 --]]
 function parameters()
     pcell.add_parameters(
-        { "radius(Radius)",                        40000 },
-        { "cornerradius(Corner Radius)",           14000 },
-        { "width(Width)",                           6000 },
-        { "separation(Line Separation)",            6000 },
-        { "extension(Line Extension)",             40000 },
-        { "extsep(Extension Separation)",           6000 },
-        { "grid(Grid)",                              200 },
-        { "metalnum(Conductor Metal)",     -1, "integer" },
-        { "allow45(Allow Angles with 45 Degrees)",  true },
-        { "drawlvsresistor(Draw LVS Resistor)",        false },
-        { "lvsreswidth(LVS Resistor Width)",            1000 },
-        { "boundaryextension(Boundary Extension)",      3000 },
-        { "rectangularboundary(Rectangular Boundary)", false },
-        { "breaklines(Break Conductor Lines)",         false }
+        { "radius(Radius)",                                         40000 },
+        { "cornerradius(Corner Radius)",                            14000 },
+        { "width(Width)",                                            6000 },
+        { "separation(Line Separation)",                             6000 },
+        { "extension(Line Extension)",                              40000 },
+        { "extsep(Extension Separation)",                            6000 },
+        { "grid(Grid)",                                               200 },
+        { "metalnum(Conductor Metal)",     -1,                  "integer" },
+        { "allow45(Allow Angles with 45 Degrees)",                   true },
+        { "drawlvsresistor(Draw LVS Resistor)",                     false },
+        { "lvsreswidth(LVS Resistor Width)",                         1000 },
+        { "boundaryouterextension(Boundary Outer Extension)",        3000 },
+        { "boundaryinnerextension(Boundary Inner Extension)",        3000 },
+        { "fillboundary(Fill Boundary)",                             true },
+        { "rectangularboundary(Rectangular Boundary)",              false },
+        { "breaklines(Break Conductor Lines)",                      false }
     )
 end
 
@@ -99,12 +101,14 @@ function layout(inductor, _P)
     -- boundary
     if _P.rectangularboundary then
         inductor:set_boundary_rectangular(
-            point.create(-_P.radius - _P.width / 2 - _P.boundaryextension, -_P.radius - _P.width / 2 - _P.boundaryextension),
-            point.create( _P.radius + _P.width / 2 + _P.boundaryextension,  _P.radius + _P.width / 2 + _P.boundaryextension)
+            point.create(-_P.radius - _P.width / 2 - _P.boundaryouterextension, -_P.radius - _P.width / 2 - _P.boundaryouterextension),
+            point.create( _P.radius + _P.width / 2 + _P.boundaryouterextension,  _P.radius + _P.width / 2 + _P.boundaryouterextension)
         )
     else
-        local outerradius = _P.radius + _P.width / 2 + _P.boundaryextension
+        local outerradius = _P.radius + _P.width / 2 + _P.boundaryouterextension
         local outerr = _scale_tanpi8(outerradius)
+        local innerradius = _P.radius - _P.width / 2 - _P.boundaryinnerextension
+        local innerr = _scale_tanpi8(innerradius)
         local outerpathpts = {}
         local outerappend = util.make_insert_xy(outerpathpts)
         -- left
@@ -114,15 +118,30 @@ function layout(inductor, _P)
         outerappend(-outerradius, -outerr)
         outerappend(-outerr, -outerradius)
         outerappend(-outerr + _scale_tanpi8(_P.width / 2), -outerradius)
+        if not _P.fillboundary then
+            outerappend(0, -outerradius)
+            outerappend(0, -innerradius)
+            outerappend(-innerr + _scale_tanpi8(_P.width / 2), -innerradius)
+            outerappend(-innerr, -innerradius)
+            outerappend(-innerradius, -innerr)
+            outerappend(-innerradius,  innerr)
+            outerappend(-innerr,  innerradius)
+        end
         -- right
+        if not _P.fillboundary then
+            outerappend( innerr,  innerradius)
+            outerappend( innerradius,  innerr)
+            outerappend( innerradius, -innerr)
+            outerappend( innerr, -innerradius)
+            outerappend(0, -innerradius)
+            outerappend(0, -outerradius)
+        end
         outerappend( outerr + _scale_tanpi8(_P.width / 2), -outerradius)
         outerappend( outerr, -outerradius)
         outerappend( outerradius, -outerr)
         outerappend( outerradius,  outerr)
         outerappend( outerr,  outerradius)
         --outerappend( outerr + _scale_tanpi8(_P.width / 2),  outerradius)
-        inductor:set_boundary(
-            outerpathpts
-        )
+        inductor:set_boundary(outerpathpts)
     end
 end
