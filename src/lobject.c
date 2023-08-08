@@ -874,6 +874,13 @@ static int lobject_flatten(lua_State* L)
     return 1;
 }
 
+static int lobject_flatten_inline(lua_State* L)
+{
+    struct lobject* cell = lobject_check(L, 1);
+    object_flatten_inline(lobject_get(cell), 0);
+    return 1;
+}
+
 static int lobject_rasterize_curves(lua_State* L)
 {
     struct lobject* cell = lobject_check(L, 1);
@@ -1053,6 +1060,7 @@ int open_lobject_lib(lua_State* L)
         { "add_child_array",            lobject_add_child_array             },
         { "merge_into",                 lobject_merge_into                  },
         { "flatten",                    lobject_flatten                     },
+        { "flatten_inline",             lobject_flatten_inline              },
         { "rasterize_curves",           lobject_rasterize_curves            },
         { "get_area_anchor_width",      lobject_get_area_anchor_width       },
         { "get_area_anchor_height",     lobject_get_area_anchor_height      },
