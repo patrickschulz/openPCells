@@ -1,22 +1,23 @@
 function parameters()
     pcell.add_parameters(
-        { "turns(Number of Turns)",                                     3 },
-        { "radius(Radius)",                                         40000 },
-        { "cornerradius(Corner Radius)",                            14000 },
-        { "width(Width)",                                            6000 },
-        { "separation(Line Separation)",                             6000 },
-        { "extension(Line Extension)",                              40000 },
-        { "extsep(Extension Separation)",                            6000 },
-        { "grid(Grid)",                                               200 },
-        { "metalnum(Conductor Metal)",     -1,                  "integer" },
-        { "allow45(Allow Angles with 45 Degrees)",                   true },
-        { "drawlvsresistor(Draw LVS Resistor)",                     false },
-        { "lvsreswidth(LVS Resistor Width)",                         1000 },
-        { "boundaryouterextension(Boundary Outer Extension)",        3000 },
-        { "boundaryinnerextension(Boundary Inner Extension)",        3000 },
-        { "fillboundary(Fill Boundary)",                             true },
-        { "rectangularboundary(Rectangular Boundary)",              false },
-        { "breaklines(Break Conductor Lines)",                      false }
+        { "turns(Number of Turns)",                                           3 },
+        { "radius(Radius)",                                               40000 },
+        { "cornerradius(Corner Radius)",                                  14000 },
+        { "width(Width)",                                                  6000 },
+        { "separation(Line Separation)",                                   6000 },
+        { "extension(Line Extension)",                                    40000 },
+        { "extsep(Extension Separation)",                                  6000 },
+        { "grid(Grid)",                                                     200 },
+        { "metalnum(Conductor Metal)",     -1,                        "integer" },
+        { "allow45(Allow Angles with 45 Degrees)",                         true },
+        { "drawlvsresistor(Draw LVS Resistor)",                           false },
+        { "lvsreswidth(LVS Resistor Width)",                               1000 },
+        { "boundaryouterextension(Boundary Outer Extension)",              3000 },
+        { "boundaryinnerextension(Boundary Inner Extension)",              3000 },
+        { "fillboundary(Fill Boundary)",                                   true },
+        { "rectangularboundary(Rectangular Boundary)",                    false },
+        { "breaklines(Break Conductor Lines)",                            false },
+        { "includeextensioninboundary(Include Extension in Boundary)",      true }
     )
 end
 
@@ -168,30 +169,38 @@ function layout(inductor, _P)
         outerappend(-outerradius, -outerr)
         outerappend(-outerr, -outerradius)
         outerappend(-outerr + _scale_tanpi8(_P.width / 2), -outerradius)
-        if not _P.fillboundary then
-            outerappend(0, -outerradius)
-            outerappend(0, -innerradius)
-            outerappend(-innerr + _scale_tanpi8(_P.width / 2), -innerradius)
-            outerappend(-innerr, -innerradius)
-            outerappend(-innerradius, -innerr)
-            outerappend(-innerradius,  innerr)
-            outerappend(-innerr,  innerradius)
+        if _P.includeextensioninboundary then -- FIXME: if separation is large, the point order could be wrong
+            outerappend(-_P.separation / 2 - _P.width - _P.boundaryouterextension, -outerradius)
+            outerappend(-_P.separation / 2 - _P.width - _P.boundaryouterextension, -outerradius - _P.extension)
         end
-        -- right
-        if not _P.fillboundary then
-            outerappend( innerr,  innerradius)
-            outerappend( innerradius,  innerr)
-            outerappend( innerradius, -innerr)
-            outerappend( innerr, -innerradius)
-            outerappend(0, -innerradius)
-            outerappend(0, -outerradius)
+        --if not _P.fillboundary then
+        --    outerappend(0, -outerradius)
+        --    outerappend(0, -innerradius)
+        --    outerappend(-innerr + _scale_tanpi8(_P.width / 2), -innerradius)
+        --    outerappend(-innerr, -innerradius)
+        --    outerappend(-innerradius, -innerr)
+        --    outerappend(-innerradius,  innerr)
+        --    outerappend(-innerr,  innerradius)
+        --end
+        ---- right
+        --if not _P.fillboundary then
+        --    outerappend( innerr,  innerradius)
+        --    outerappend( innerradius,  innerr)
+        --    outerappend( innerradius, -innerr)
+        --    outerappend( innerr, -innerradius)
+        --    outerappend(0, -innerradius)
+        --    outerappend(0, -outerradius)
+        --end
+        if _P.includeextensioninboundary then -- FIXME: if separation is large, the point order could be wrong
+            outerappend( _P.separation / 2 + _P.width + _P.boundaryouterextension, -outerradius - _P.extension)
+            outerappend( _P.separation / 2 + _P.width + _P.boundaryouterextension, -outerradius)
         end
-        outerappend( outerr + _scale_tanpi8(_P.width / 2), -outerradius)
+        outerappend( outerr - _scale_tanpi8(_P.width / 2), -outerradius)
         outerappend( outerr, -outerradius)
         outerappend( outerradius, -outerr)
         outerappend( outerradius,  outerr)
         outerappend( outerr,  outerradius)
-        --outerappend( outerr + _scale_tanpi8(_P.width / 2),  outerradius)
+        outerappend( outerr - _scale_tanpi8(_P.width / 2),  outerradius)
         inductor:set_boundary(outerpathpts)
     end
 end
