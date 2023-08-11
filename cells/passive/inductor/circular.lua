@@ -38,6 +38,9 @@ function check(_P)
     if not ((-0.5 * _P.separation - _P.cornerradius) % _P.grid == 0) then
         return false, "can't fit points on grid with this separation and cornerradius"
     end
+    if (-_P.grid * math.floor(math.sqrt((_P.radius - _P.width / 2 + _P.cornerradius)^2 - (0.5 * _P.separation + _P.cornerradius)^2) / _P.grid)) < -_P.radius - _P.width / 2 - _P.extension then
+        return false, "extension must be large enough to ensure that the rectangular feed lines don't intersect with the circular connectors"
+    end
     return true
 end
 
@@ -58,16 +61,16 @@ function layout(inductor, _P)
 
     -- inner part
     local inner = {}
-    table.insert(inner, point.create(_P.separation / 2, -_P.radius - _P.extension))
+    table.insert(inner, point.create(_P.separation / 2, -_P.radius - _P.width / 2 - _P.extension))
     util.merge_forwards(inner, util.filter_backward(auxinner, function(pt) return pt:getx() < xminner end))
     util.merge_forwards(inner, util.filter_forward(maininner, function(pt) return pt:getx() >= xminner end))
     util.merge_backwards(inner, util.ymirror(maininner))
     util.merge_backwards(inner, util.xmirror(inner))
-    table.insert(inner, point.create(-_P.separation / 2, -_P.radius - _P.extension))
+    table.insert(inner, point.create(-_P.separation / 2, -_P.radius - _P.width / 2 - _P.extension))
 
     -- outer part
     local outer = {}
-    table.insert(outer, point.create(_P.separation / 2 + _P.width, -_P.radius - _P.extension))
+    table.insert(outer, point.create(_P.separation / 2 + _P.width, -_P.radius - _P.width / 2 - _P.extension))
     util.merge_forwards(outer, util.filter_backward(auxouter, function(pt) return pt:getx() < xmouter end))
     util.merge_forwards(outer, util.filter_forward(mainouter, function(pt) return pt:getx() >= xmouter end))
     util.merge_backwards(outer, util.ymirror(mainouter))
