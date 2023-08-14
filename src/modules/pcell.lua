@@ -536,7 +536,7 @@ function pcell.create_layout(cellname, name, cellargs, ...)
     if select("#", ...) > 0 then
         error("pcell.create_layout was called with more three two arguments. If you wanted to pass an environment, use pcell.create_layout_env")
     end
-    return _create_layout_internal(cellname, name, cellargs, _globalenv)
+    return _create_layout_internal(cellname, name, cellargs)
 end
 
 function pcell.create_layout_env(cellname, name, cellargs, env)
@@ -550,9 +550,10 @@ function pcell.create_layout_env(cellname, name, cellargs, env)
     if not env then
         error("pcell.create_layout_env: expected environment as fourth argument")
     end
+    local oldenv = _globalenv
     _globalenv = env
     local obj = _create_layout_internal(cellname, name, cellargs, _globalenv)
-    _globalenv = nil
+    _globalenv = oldenv
     return obj
 end
 
