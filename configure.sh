@@ -91,7 +91,7 @@ while [[ $# -gt 0 ]]; do
         echo "--executable-name         set name of the executable (default: ${EXE_NAME})"
         echo "--man-path                set install path for the man page (default: ${MAN_PATH})"
         echo "--help                    display this help message"
-        shift
+        exit
         ;;
     *)
         echo "unknown option $1" 1>&2; exit 1
