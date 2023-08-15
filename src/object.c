@@ -1220,7 +1220,14 @@ struct vector* object_get_boundary(const struct object* cell)
 
 int object_has_layer_boundary(const struct object* cell, const struct generics* layer)
 {
-    return hashmap_exists(cell->layer_boundaries, (const char*)layer);
+    if(cell->layer_boundaries)
+    {
+        return hashmap_exists(cell->layer_boundaries, (const char*)layer);
+    }
+    else
+    {
+        return 0;
+    }
 }
 
 struct vector* object_get_layer_boundary(const struct object* cell, const struct generics* layer)
