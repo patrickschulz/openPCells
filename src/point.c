@@ -22,6 +22,16 @@ void* point_copy(const void* v)
     return new;
 }
 
+coordinate_t point_getx(const point_t* pt)
+{
+    return pt->x;
+}
+
+coordinate_t point_gety(const point_t* pt)
+{
+    return pt->y;
+}
+
 void point_translate(point_t* pt, coordinate_t x, coordinate_t y)
 {
     pt->x += x;

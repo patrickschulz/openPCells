@@ -6,24 +6,26 @@
 
 #include "lua/lauxlib.h"
 
-#include "lpoint.h"
-#include "lgeometry.h"
-#include "lgenerics.h"
-#include "ldir.h"
-#include "lobject.h"
-#include "filesystem.h"
-#include "lplacer.h"
-#include "lrouter.h"
-#include "gdsparser.h"
-#include "technology.h"
-#include "util.h"
-#include "lua_util.h"
 #include "export.h"
-#include "info.h"
-#include "postprocess.h"
+#include "filesystem.h"
+#include "gdsparser.h"
 #include "geometry.h"
 #include "hashmap.h"
+#include "info.h"
 #include "pcell.h"
+#include "postprocess.h"
+#include "technology.h"
+#include "util.h"
+
+#include "ldir.h"
+#include "lgenerics.h"
+#include "lgeometry.h"
+#include "lobject.h"
+#include "lplacement.h"
+#include "lplacer.h"
+#include "lpoint.h"
+#include "lrouter.h"
+#include "lua_util.h"
 
 #include "config.h"
 
@@ -45,6 +47,7 @@ static lua_State* _create_and_initialize_lua(void)
     open_ltechnology_lib(L);
     open_lpcell_lib(L);
     open_lobject_lib(L);
+    open_lplacement_lib(L);
     // FIXME: these libraries are probably not needed for cell creation (they are used in place & route scripts)
     open_lplacer_lib(L);
     open_lrouter_lib(L);

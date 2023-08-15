@@ -20,6 +20,9 @@ point_t* point_create(coordinate_t x, coordinate_t y);
 void point_destroy(void* pt); // void*, otherwise we get a warning while destroying vectors
 void* point_copy(const void* pt);
 
+coordinate_t point_getx(const point_t* pt);
+coordinate_t point_gety(const point_t* pt);
+
 void point_translate(point_t* pt, coordinate_t x, coordinate_t y);
 
 // min/max calculations

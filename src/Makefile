@@ -18,7 +18,7 @@ RANLIB= ranlib
 RM= rm -f
 UNAME= uname
 
-OPCOBJ:= cmdoptions.o export_common.o export.o export_writer.o filesystem.o gdsexport.o gdsparser.o geometry.o geometry_triangulate.o graphics.o hashmap.o info.o lcheck.o ldebug.o ldir.o lgenerics.o lgeometry.o lobject.o lplacer_classic.o lplacer_common.o lplacer_nonoverlapping.o lplacer.o lplacer_rand.o lpoint.o lrouter_field.o lrouter_min_heap.o lrouter_moves.o lrouter_net.o lrouter.o lrouter_queue.o lrouter_route.o lua_util.o main.api_help.o main.cell.o main.functions.o main.gds.o main.verilog.o object.o pcell.o point.o postprocess.o shape.o tagged_value.o technology.o terminal_colors.o transformationmatrix.o union.o util.o vector.o
+OPCOBJ:= cmdoptions.o export_common.o export.o export_writer.o filesystem.o gdsexport.o gdsparser.o geometry.o geometry_triangulate.o graphics.o hashmap.o info.o lcheck.o ldebug.o ldir.o lgenerics.o lgeometry.o lobject.o lplacer_classic.o lplacer_common.o lplacer_nonoverlapping.o lplacement.o lplacer.o lplacer_rand.o lpoint.o lrouter_field.o lrouter_min_heap.o lrouter_moves.o lrouter_net.o lrouter.o lrouter_queue.o lrouter_route.o lua_util.o main.api_help.o main.cell.o main.functions.o main.gds.o main.verilog.o placement.o object.o pcell.o point.o postprocess.o shape.o tagged_value.o technology.o terminal_colors.o transformationmatrix.o union.o util.o vector.o
 
 .PHONY: default
 default:
@@ -201,6 +201,9 @@ lgeometry.o: lgeometry.c lgeometry.h lua/lua.h lua/luaconf.h \
 lobject.o: lobject.c lobject.h lua/lua.h lua/luaconf.h object.h \
  transformationmatrix.h point.h shape.h technology.h vector.h hashmap.h \
  lua/lauxlib.h lua/lua.h lpoint.h
+lplacement.o: lplacement.c lplacement.h lua/lua.h lua/luaconf.h \
+ placement.h object.h transformationmatrix.h point.h shape.h technology.h \
+ vector.h hashmap.h
 lplacer.o: lplacer.c lua/lua.h lua/luaconf.h lua/lauxlib.h lua/lua.h \
  lplacer_nonoverlapping.h lplacer_classic.h
 lplacer_classic.o: lplacer_classic.c lplacer_classic.h lua/lua.h \
@@ -245,6 +248,7 @@ main.verilog.o: main.verilog.c lua/lua.h lua/luaconf.h lua/lauxlib.h \
  lrouter.h main.functions.h
 object.o: object.c object.h transformationmatrix.h point.h shape.h \
  technology.h lua/lua.h lua/luaconf.h vector.h hashmap.h util.h
+placement.o: placement.c
 pcell.o: pcell.c pcell.h lua/lua.h lua/luaconf.h vector.h lua/lauxlib.h \
  lua/lua.h util.h lua_util.h lobject.h object.h transformationmatrix.h \
  point.h shape.h technology.h hashmap.h ldir.h scriptmanager.h \
