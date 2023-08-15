@@ -719,7 +719,7 @@ static int lobject_add_port(lua_State* L)
 {
     struct lobject* cell = lobject_check(L, 1);
     const char* name = luaL_checkstring(L, 2);
-    struct generics* layer = lua_touserdata(L, 3);
+    const struct generics* layer = lua_touserdata(L, 3);
     struct lpoint* lpoint = lpoint_checkpoint(L, 4);
     double sizehint = luaL_optnumber(L, 5, 0.0);
     object_add_port(lobject_get(cell), name, layer, lpoint_get(lpoint), 1, sizehint); // 1: store anchor
@@ -730,7 +730,7 @@ static int lobject_add_bus_port(lua_State* L)
 {
     struct lobject* cell = lobject_check(L, 1);
     const char* name = luaL_checkstring(L, 2);
-    struct generics* layer = lua_touserdata(L, 3);
+    const struct generics* layer = lua_touserdata(L, 3);
     struct lpoint* lpoint = lpoint_checkpoint(L, 4);
     int startindex = lua_tointeger(L, 5);
     int endindex = lua_tointeger(L, 6);
@@ -956,6 +956,48 @@ static int lobject_set_boundary_rectangular(lua_State* L)
     return 0;
 }
 
+static int lobject_set_layer_boundary(lua_State* L)
+{
+    struct lobject* cell = lobject_check(L, 1);
+    const struct generics* layer = lua_touserdata(L, 2);
+    lua_len(L, 3);
+    size_t len = lua_tointeger(L, -1);
+    lua_pop(L, 1);
+    struct vector* boundary = vector_create(4, point_destroy);
+    for(unsigned int i = 1; i <= len; ++i)
+    {
+        lua_rawgeti(L, 3, i);
+        struct lpoint* pt = lpoint_checkpoint(L, -1);
+        vector_append(boundary, point_copy(lpoint_get(pt)));
+        lua_pop(L, 1);
+    }
+    object_set_layer_boundary(lobject_get(cell), layer, boundary);
+    return 0;
+}
+
+static int lobject_set_layer_boundary_rectangular(lua_State* L)
+{
+    struct lobject* cell = lobject_check(L, 1);
+    const struct generics* layer = lua_touserdata(L, 2);
+    if(lua_gettop(L) == 4)
+    {
+        struct vector* boundary = vector_create(4, point_destroy);
+        struct lpoint* bl = lpoint_checkpoint(L, 3);
+        struct lpoint* tr = lpoint_checkpoint(L, 4);
+        vector_append(boundary, point_create(lpoint_get(bl)->x, lpoint_get(bl)->y));
+        vector_append(boundary, point_create(lpoint_get(tr)->x, lpoint_get(bl)->y));
+        vector_append(boundary, point_create(lpoint_get(tr)->x, lpoint_get(tr)->y));
+        vector_append(boundary, point_create(lpoint_get(bl)->x, lpoint_get(tr)->y));
+        object_set_layer_boundary(lobject_get(cell), layer, boundary);
+    }
+    else
+    {
+        lua_pushfstring(L, "object.set_boundary_rectangular: expected 2 points or 4 points, got %d", lua_gettop(L) - 1);
+        lua_error(L);
+    }
+    return 0;
+}
+
 static int lobject_inherit_boundary(lua_State* L)
 {
     struct lobject* cell = lobject_check(L, 1);
@@ -964,10 +1006,46 @@ static int lobject_inherit_boundary(lua_State* L)
     return 0;
 }
 
+static int lobject_has_boundary(lua_State* L)
+{
+    struct lobject* cell = lobject_check(L, 1);
+    lua_pushboolean(L, object_has_boundary(lobject_get(cell)));
+    return 1;
+}
+
 static int lobject_get_boundary(lua_State* L)
 {
     struct lobject* cell = lobject_check(L, 1);
     struct vector* boundary = object_get_boundary(lobject_get(cell));
+    lua_newtable(L);
+    int i = 1;
+    struct vector_iterator* it = vector_iterator_create(boundary);
+    while(vector_iterator_is_valid(it))
+    {
+        const point_t* pt = vector_iterator_get(it);
+        lpoint_create_internal(L, pt->x, pt->y);
+        lua_rawseti(L, -2, i);
+        vector_iterator_next(it);
+        ++i;
+    }
+    vector_iterator_destroy(it);
+    vector_destroy(boundary);
+    return 1;
+}
+
+static int lobject_has_layer_boundary(lua_State* L)
+{
+    struct lobject* cell = lobject_check(L, 1);
+    const struct generics* layer = lua_touserdata(L, 2);
+    lua_pushboolean(L, object_has_layer_boundary(lobject_get(cell), layer));
+    return 1;
+}
+
+static int lobject_get_layer_boundary(lua_State* L)
+{
+    struct lobject* cell = lobject_check(L, 1);
+    const struct generics* layer = lua_touserdata(L, 2);
+    struct vector* boundary = object_get_layer_boundary(lobject_get(cell), layer);
     lua_newtable(L);
     int i = 1;
     struct vector_iterator* it = vector_iterator_create(boundary);
@@ -992,85 +1070,90 @@ int open_lobject_lib(lua_State* L)
     // set methods
     static const luaL_Reg metafuncs[] =
     {
-        { "create",                     lobject_create                      },
-        { "create_pseudo",              lobject_create_pseudo               },
-        { "copy",                       lobject_copy                        },
-        { "exchange",                   lobject_exchange                    },
-        { "get_name",                   lobject_get_name                    },
-        { "set_name",                   lobject_set_name                    },
-        { "add_anchor",                 lobject_add_anchor                  },
-        { "add_area_anchor_bltr",       lobject_add_area_anchor_bltr        },
-        { "inherit_area_anchor",        lobject_inherit_area_anchor         },
-        { "inherit_area_anchor_as",     lobject_inherit_area_anchor_as      },
-        { "get_anchor",                 lobject_get_anchor                  },
-        { "get_area_anchor",            lobject_get_area_anchor             },
-        { "get_array_anchor",           lobject_get_array_anchor            },
-        { "get_array_area_anchor",      lobject_get_array_area_anchor       },
-        { "get_all_regular_anchors",    lobject_get_all_regular_anchors     },
-        { "add_port",                   lobject_add_port                    },
-        { "add_bus_port",               lobject_add_bus_port                },
-        { "get_ports",                  lobject_get_ports                   },
-        { "set_alignment_box",          lobject_set_alignment_box           },
-        { "inherit_alignment_box",      lobject_inherit_alignment_box       },
-        { "extend_alignment_box",       lobject_extend_alignment_box        },
-        { "width_height_alignmentbox",  lobject_width_height_alignmentbox   },
-        { "move_to",                    lobject_move_to                     },
-        { "reset_translation",          lobject_reset_translation           },
-        { "translate",                  lobject_translate                   },
-        { "translate_x",                lobject_translate_x                 },
-        { "translate_y",                lobject_translate_y                 },
-        { "mirror_at_xaxis",            lobject_mirror_at_xaxis             },
-        { "mirror_at_yaxis",            lobject_mirror_at_yaxis             },
-        { "mirror_at_origin",           lobject_mirror_at_origin            },
-        { "rotate_90_left",             lobject_rotate_90_left              },
-        { "rotate_90_right",            lobject_rotate_90_right             },
-        { "flipx",                      lobject_flipx                       },
-        { "flipy",                      lobject_flipy                       },
-        { "move_point",                 lobject_move_point                  },
-        { "move_point_x",               lobject_move_point_x                },
-        { "move_point_y",               lobject_move_point_y                },
-        { "abut_left",                  lobject_abut_left                   },
-        { "abut_right",                 lobject_abut_right                  },
-        { "abut_top",                   lobject_abut_top                    },
-        { "abut_bottom",                lobject_abut_bottom                 },
-        { "abut_left_origin",           lobject_abut_left_origin            },
-        { "abut_right_origin",          lobject_abut_right_origin           },
-        { "abut_top_origin",            lobject_abut_top_origin             },
-        { "abut_bottom_origin",         lobject_abut_bottom_origin          },
-        { "align_left",                 lobject_align_left                  },
-        { "align_right",                lobject_align_right                 },
-        { "align_top",                  lobject_align_top                   },
-        { "align_bottom",               lobject_align_bottom                },
-        { "align_left_origin",          lobject_align_left_origin           },
-        { "align_right_origin",         lobject_align_right_origin          },
-        { "align_top_origin",           lobject_align_top_origin            },
-        { "align_bottom_origin",        lobject_align_bottom_origin         },
-        { "abut_area_anchor_left",      lobject_abut_area_anchor_left       },
-        { "abut_area_anchor_right",     lobject_abut_area_anchor_right      },
-        { "abut_area_anchor_top",       lobject_abut_area_anchor_top        },
-        { "abut_area_anchor_bottom",    lobject_abut_area_anchor_bottom     },
-        { "align_area_anchor",          lobject_align_area_anchor           },
-        { "align_area_anchor_x",        lobject_align_area_anchor_x         },
-        { "align_area_anchor_left",     lobject_align_area_anchor_left      },
-        { "align_area_anchor_right",    lobject_align_area_anchor_right     },
-        { "align_area_anchor_y",        lobject_align_area_anchor_y         },
-        { "align_area_anchor_top",      lobject_align_area_anchor_top       },
-        { "align_area_anchor_bottom",   lobject_align_area_anchor_bottom    },
-        { "add_child",                  lobject_add_child                   },
-        { "add_child_array",            lobject_add_child_array             },
-        { "merge_into",                 lobject_merge_into                  },
-        { "flatten",                    lobject_flatten                     },
-        { "flatten_inline",             lobject_flatten_inline              },
-        { "rasterize_curves",           lobject_rasterize_curves            },
-        { "get_area_anchor_width",      lobject_get_area_anchor_width       },
-        { "get_area_anchor_height",     lobject_get_area_anchor_height      },
-        { "set_boundary",               lobject_set_boundary                },
-        { "set_boundary_rectangular",   lobject_set_boundary_rectangular    },
-        { "inherit_boundary",           lobject_inherit_boundary            },
-        { "get_boundary",               lobject_get_boundary                },
-        { "__gc",                       lobject_destroy                     },
-        { "__tostring",                 lobject_tostring                    },
-        { NULL,                         NULL                                }
+        { "create",                             lobject_create                              },
+        { "create_pseudo",                      lobject_create_pseudo                       },
+        { "copy",                               lobject_copy                                },
+        { "exchange",                           lobject_exchange                            },
+        { "get_name",                           lobject_get_name                            },
+        { "set_name",                           lobject_set_name                            },
+        { "add_anchor",                         lobject_add_anchor                          },
+        { "add_area_anchor_bltr",               lobject_add_area_anchor_bltr                },
+        { "inherit_area_anchor",                lobject_inherit_area_anchor                 },
+        { "inherit_area_anchor_as",             lobject_inherit_area_anchor_as              },
+        { "get_anchor",                         lobject_get_anchor                          },
+        { "get_area_anchor",                    lobject_get_area_anchor                     },
+        { "get_array_anchor",                   lobject_get_array_anchor                    },
+        { "get_array_area_anchor",              lobject_get_array_area_anchor               },
+        { "get_all_regular_anchors",            lobject_get_all_regular_anchors             },
+        { "add_port",                           lobject_add_port                            },
+        { "add_bus_port",                       lobject_add_bus_port                        },
+        { "get_ports",                          lobject_get_ports                           },
+        { "set_alignment_box",                  lobject_set_alignment_box                   },
+        { "inherit_alignment_box",              lobject_inherit_alignment_box               },
+        { "extend_alignment_box",               lobject_extend_alignment_box                },
+        { "width_height_alignmentbox",          lobject_width_height_alignmentbox           },
+        { "move_to",                            lobject_move_to                             },
+        { "reset_translation",                  lobject_reset_translation                   },
+        { "translate",                          lobject_translate                           },
+        { "translate_x",                        lobject_translate_x                         },
+        { "translate_y",                        lobject_translate_y                         },
+        { "mirror_at_xaxis",                    lobject_mirror_at_xaxis                     },
+        { "mirror_at_yaxis",                    lobject_mirror_at_yaxis                     },
+        { "mirror_at_origin",                   lobject_mirror_at_origin                    },
+        { "rotate_90_left",                     lobject_rotate_90_left                      },
+        { "rotate_90_right",                    lobject_rotate_90_right                     },
+        { "flipx",                              lobject_flipx                               },
+        { "flipy",                              lobject_flipy                               },
+        { "move_point",                         lobject_move_point                          },
+        { "move_point_x",                       lobject_move_point_x                        },
+        { "move_point_y",                       lobject_move_point_y                        },
+        { "abut_left",                          lobject_abut_left                           },
+        { "abut_right",                         lobject_abut_right                          },
+        { "abut_top",                           lobject_abut_top                            },
+        { "abut_bottom",                        lobject_abut_bottom                         },
+        { "abut_left_origin",                   lobject_abut_left_origin                    },
+        { "abut_right_origin",                  lobject_abut_right_origin                   },
+        { "abut_top_origin",                    lobject_abut_top_origin                     },
+        { "abut_bottom_origin",                 lobject_abut_bottom_origin                  },
+        { "align_left",                         lobject_align_left                          },
+        { "align_right",                        lobject_align_right                         },
+        { "align_top",                          lobject_align_top                           },
+        { "align_bottom",                       lobject_align_bottom                        },
+        { "align_left_origin",                  lobject_align_left_origin                   },
+        { "align_right_origin",                 lobject_align_right_origin                  },
+        { "align_top_origin",                   lobject_align_top_origin                    },
+        { "align_bottom_origin",                lobject_align_bottom_origin                 },
+        { "abut_area_anchor_left",              lobject_abut_area_anchor_left               },
+        { "abut_area_anchor_right",             lobject_abut_area_anchor_right              },
+        { "abut_area_anchor_top",               lobject_abut_area_anchor_top                },
+        { "abut_area_anchor_bottom",            lobject_abut_area_anchor_bottom             },
+        { "align_area_anchor",                  lobject_align_area_anchor                   },
+        { "align_area_anchor_x",                lobject_align_area_anchor_x                 },
+        { "align_area_anchor_left",             lobject_align_area_anchor_left              },
+        { "align_area_anchor_right",            lobject_align_area_anchor_right             },
+        { "align_area_anchor_y",                lobject_align_area_anchor_y                 },
+        { "align_area_anchor_top",              lobject_align_area_anchor_top               },
+        { "align_area_anchor_bottom",           lobject_align_area_anchor_bottom            },
+        { "add_child",                          lobject_add_child                           },
+        { "add_child_array",                    lobject_add_child_array                     },
+        { "merge_into",                         lobject_merge_into                          },
+        { "flatten",                            lobject_flatten                             },
+        { "flatten_inline",                     lobject_flatten_inline                      },
+        { "rasterize_curves",                   lobject_rasterize_curves                    },
+        { "get_area_anchor_width",              lobject_get_area_anchor_width               },
+        { "get_area_anchor_height",             lobject_get_area_anchor_height              },
+        { "set_boundary",                       lobject_set_boundary                        },
+        { "set_boundary_rectangular",           lobject_set_boundary_rectangular            },
+        { "set_layer_boundary",                 lobject_set_layer_boundary                  },
+        { "set_layer_boundary_rectangular",     lobject_set_layer_boundary_rectangular      },
+        { "inherit_boundary",                   lobject_inherit_boundary                    },
+        { "has_boundary",                       lobject_has_boundary                        },
+        { "get_boundary",                       lobject_get_boundary                        },
+        { "has_layer_boundary",                 lobject_has_layer_boundary                  },
+        { "get_layer_boundary",                 lobject_get_layer_boundary                  },
+        { "__gc",                               lobject_destroy                             },
+        { "__tostring",                         lobject_tostring                            },
+        { NULL,                                 NULL                                        }
     };
     luaL_setfuncs(L, metafuncs, 0);
 
