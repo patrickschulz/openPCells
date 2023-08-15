@@ -98,7 +98,7 @@ function layout(mesh, _P)
         -- mesh metals
         if _P.drawmesh then
             for i = 1, #_P.meshmetals do
-                geometry.ring(mesh, generics.metal(_P.meshmetals[i]), _P.cellsize, _P.cellsize, _P.metalwidths[i])
+                geometry.ring(mesh, generics.metal(_P.meshmetals[i]), point.create(0, 0), _P.cellsize, _P.cellsize, _P.metalwidths[i])
                 if i < #_P.meshmetals then
                     if _P.meshmetals[i + 1] - _P.meshmetals[i] == 1 then
                         local mwidth = math.min(_P.metalwidths[i], _P.metalwidths[i + 1])
