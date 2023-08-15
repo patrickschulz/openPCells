@@ -1,26 +1,16 @@
-#include "lua/lprefix.h"
-
-#include <ctype.h>
-#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/types.h>
 #include <unistd.h>
 
 #include "lua/lua.h"
-#include "lua/lualib.h"
 #include "lua/lauxlib.h"
 
-#include "math.h"
 #include "cmdoptions.h"
 #include "config.h"
 #include "filesystem.h"
 #include "hashmap.h"
-#include "lplacer.h"
-#include "lrouter.h"
 #include "lua_util.h"
-#include "modulemanager.h"
 #include "pcell.h"
 #include "scriptmanager.h"
 #include "util.h"
