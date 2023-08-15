@@ -468,6 +468,74 @@ function M.place_within_boundary(toplevel, cell, basename, targetarea, excludes)
     return children
 end
 
+function M.place_within_boundary_merge(toplevel, cell, targetarea, excludes)
+    local width, height = cell:width_height_alignmentbox()
+    local xpitch = width
+    local ypitch = height
+
+    local points = {}
+    local minx = math.huge;
+    local maxx = -math.huge;
+    local miny = math.huge;
+    local maxy = -math.huge;
+    for i = 1, #targetarea do
+        local pt = targetarea[i]
+        -- round to multiple of the pitch
+        --local x = xpitch * math.floor(pt:getx() / xpitch)
+        --local y = ypitch * math.floor(pt:gety() / ypitch)
+        local x = pt:getx()
+        local y = pt:gety()
+        points[i] = point.create(x, y)
+        if points[i]:getx() < minx then
+            minx = points[i]:getx()
+        end
+        if points[i]:getx() > maxx then
+            maxx = points[i]:getx()
+        end
+        if points[i]:gety() < miny then
+            miny = points[i]:gety()
+        end
+        if points[i]:gety() > maxy then
+            maxy = points[i]:gety()
+        end
+    end
+
+    local origins = {}
+    local x = minx + xpitch / 2
+    while x < maxx do
+        local y = miny + ypitch / 2
+        while y < maxy do
+            local insert = _is_point_in_polygon(x, y, points) ~= -1
+            if excludes then
+                for _, exclude in ipairs(excludes) do
+                    -- FIXME: this needs a proper polygon intersection test
+                    if _is_point_in_polygon(x            , y             , exclude) == 1 or
+                       _is_point_in_polygon(x + width / 2, y             , exclude) == 1 or
+                       _is_point_in_polygon(x - width / 2, y             , exclude) == 1 or
+                       _is_point_in_polygon(x            , y + height / 2, exclude) == 1 or
+                       _is_point_in_polygon(x            , y - height / 2, exclude) == 1 or
+                       _is_point_in_polygon(x + width / 2, y + height / 2, exclude) == 1 or
+                       _is_point_in_polygon(x - width / 2, y + height / 2, exclude) == 1 or
+                       _is_point_in_polygon(x + width / 2, y - height / 2, exclude) == 1 or
+                       _is_point_in_polygon(x - width / 2, y - height / 2, exclude) == 1 then
+                        insert = false
+                    end
+                end
+            end
+            if insert then
+                table.insert(origins, { x = x, y = y })
+            end
+            y = y + ypitch
+        end
+        x = x + xpitch
+    end
+
+    for _, origin in ipairs(origins) do
+        cell:move_to(point.create(origin.x, origin.y))
+        toplevel:merge_into(cell)
+    end
+end
+
 function M.place_within_rectangular_boundary(toplevel, cell, basename, targetbl, targettr)
     local xpitch, ypitch = cell:width_height_alignmentbox()
 
