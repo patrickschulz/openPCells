@@ -132,6 +132,7 @@ void object_rotate_90_right(struct object* cell);
 void object_flipx(struct object* cell);
 void object_flipy(struct object* cell);
 int object_move_point(struct object* cell, const point_t* source, const point_t* target);
+int object_move_point_to_origin(struct object* cell, const point_t* target);
 int object_move_point_x(struct object* cell, const point_t* source, const point_t* target);
 int object_move_point_y(struct object* cell, const point_t* source, const point_t* target);
 void object_scale(struct object* cell, double factor);
