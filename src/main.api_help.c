@@ -994,11 +994,32 @@ struct vector* _initialize_api_entries(void)
         ));
     }
 
+    /* geometry.unequal_ring_pts */
+    {
+        struct parameter parameters[] = {
+            { "cell",       OBJECT,    NULL, "Object in which the ring is created" },
+            { "layer",      GENERICS,  NULL, "Layer of the generated ring shape" },
+            { "outerbl",    POINT,     NULL, "Outer lower-left corner of the generated ring shape" },
+            { "outertr",    POINT,     NULL, "Outer upper-right corner of the generated ring shape" },
+            { "innerbl",    POINT,     NULL, "Inner lower-left corner of the generated ring shape" },
+            { "innertr",    POINT,     NULL, "Inner upper-right corner of the generated ring shape" },
+        };
+        vector_append(entries, _make_api_entry(
+            "unequal_ring_pts",
+            MODULE_GEOMETRY,
+            "Create a ring shape with unequal ring widths in the given cell, defined by the corner points",
+            "geometry.ring(cell, generics.other(\"nwell\"), point.create(-1000, -1000), point.create(1000, 1000), point.create(-800, -800), point.create(800, 800))",
+            parameters,
+            sizeof(parameters) / sizeof(parameters[0])
+        ));
+    }
+
     /* geometry.unequal_ring */
     {
         struct parameter parameters[] = {
             { "cell",            OBJECT,    NULL, "Object in which the ring is created" },
             { "layer",           GENERICS,  NULL, "Layer of the generated ring shape" },
+            { "center",          POINT,     NULL, "Center of the generated ring shape" },
             { "width",           INTEGER,   NULL, "Width of the generated ring shape" },
             { "height",          INTEGER,   NULL, "Height of the generated ring shape" },
             { "leftringwidth",   INTEGER,   NULL, "Left ring width of the generated ring shape (the 'width' of the path making up the left part of the ring)" },
@@ -1009,8 +1030,8 @@ struct vector* _initialize_api_entries(void)
         vector_append(entries, _make_api_entry(
             "unequal_ring",
             MODULE_GEOMETRY,
-            "Create a ring shape with unequal ring widhts in the given cell",
-            "geometry.ring(cell, generics.other(\"nwell\"), 2000, 2000, 100, 80, 20, 20)",
+            "Create a ring shape with unequal ring widths in the given cell",
+            "geometry.ring(cell, generics.other(\"nwell\"), point.create(0, 0), 2000, 2000, 100, 80, 20, 20)",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -1021,6 +1042,7 @@ struct vector* _initialize_api_entries(void)
         struct parameter parameters[] = {
             { "cell",      OBJECT,      NULL, "Object in which the ring is created" },
             { "layer",     GENERICS,    NULL, "Layer of the generated ring shape" },
+            { "center",    POINT,       NULL, "Center of the generated ring shape" },
             { "width",     INTEGER,     NULL, "Width of the generated ring shape" },
             { "height",    INTEGER,     NULL, "Height of the generated ring shape" },
             { "ringwidth", INTEGER,     NULL, "Ring width of the generated ring shape (the 'width' of the path making up the ring)" },
@@ -1029,7 +1051,7 @@ struct vector* _initialize_api_entries(void)
             "ring",
             MODULE_GEOMETRY,
             "Create a ring shape width equal ring widths in the given cell. Like geometry.unequal_ring, but all widths are the same",
-            "geometry.ring(cell, generics.other(\"nwell\"), 2000, 2000, 100)",
+            "geometry.ring(cell, generics.other(\"nwell\"), point.create(0, 0), 2000, 2000, 100)",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));

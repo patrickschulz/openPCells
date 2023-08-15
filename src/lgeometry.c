@@ -1060,10 +1060,11 @@ static int lgeometry_ring(lua_State* L)
 {
     struct lobject* cell = lobject_check(L, 1);
     struct generics* layer = _check_generics(L, 2);
-    ucoordinate_t width = luaL_checkinteger(L, 3);
-    ucoordinate_t height = luaL_checkinteger(L, 4);
-    ucoordinate_t ringwidth = luaL_checkinteger(L, 5);
-    geometry_ring(lobject_get(cell), layer, width, height, ringwidth);
+    struct lpoint* center = lpoint_checkpoint(L, 3);
+    ucoordinate_t width = luaL_checkinteger(L, 4);
+    ucoordinate_t height = luaL_checkinteger(L, 5);
+    ucoordinate_t ringwidth = luaL_checkinteger(L, 6);
+    geometry_ring(lobject_get(cell), layer, lpoint_get(center)->x, lpoint_get(center)->y, width, height, ringwidth);
     return 0;
 }
 
@@ -1071,13 +1072,14 @@ static int lgeometry_unequal_ring(lua_State* L)
 {
     struct lobject* cell = lobject_check(L, 1);
     struct generics* layer = _check_generics(L, 2);
-    ucoordinate_t width = luaL_checkinteger(L, 3);
-    ucoordinate_t height = luaL_checkinteger(L, 4);
-    ucoordinate_t leftwidth = luaL_checkinteger(L, 5);
-    ucoordinate_t rightwidth = luaL_checkinteger(L, 6);
-    ucoordinate_t topwidth = luaL_checkinteger(L, 7);
-    ucoordinate_t bottomwidth = luaL_checkinteger(L, 8);
-    geometry_unequal_ring(lobject_get(cell), layer, width, height, leftwidth, rightwidth, topwidth, bottomwidth);
+    struct lpoint* center = lpoint_checkpoint(L, 3);
+    ucoordinate_t width = luaL_checkinteger(L, 4);
+    ucoordinate_t height = luaL_checkinteger(L, 5);
+    ucoordinate_t leftwidth = luaL_checkinteger(L, 6);
+    ucoordinate_t rightwidth = luaL_checkinteger(L, 7);
+    ucoordinate_t topwidth = luaL_checkinteger(L, 8);
+    ucoordinate_t bottomwidth = luaL_checkinteger(L, 9);
+    geometry_unequal_ring(lobject_get(cell), layer, lpoint_get(center)->x, lpoint_get(center)->y, width, height, leftwidth, rightwidth, topwidth, bottomwidth);
     return 0;
 }
 

@@ -96,11 +96,12 @@ int geometry_contactbarebltr(
 
 void geometry_cross(struct object* cell, const struct generics* layer, ucoordinate_t width, ucoordinate_t height, ucoordinate_t crosssize);
 
-void geometry_ring(struct object* cell, const struct generics* layer, ucoordinate_t width, ucoordinate_t height, ucoordinate_t ringwidth);
+void geometry_ring(struct object* cell, const struct generics* layer, coordinate_t x0, coordinate_t y0, ucoordinate_t width, ucoordinate_t height, ucoordinate_t ringwidth);
 
 void geometry_unequal_ring(
     struct object* cell,
     const struct generics* layer,
+    coordinate_t x0, coordinate_t y0,
     ucoordinate_t width, ucoordinate_t height,
     ucoordinate_t leftwidth, ucoordinate_t rightwidth,
     ucoordinate_t topwidth, ucoordinate_t bottomwidth
