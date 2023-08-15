@@ -205,6 +205,21 @@ static int lgenerics_create_otherport(lua_State* L)
     return 1;
 }
 
+static int lgenerics_create_outline(lua_State* L)
+{
+    lua_getfield(L, LUA_REGISTRYINDEX, "techstate");
+    struct technology_state* techstate = lua_touserdata(L, -1);
+    lua_pop(L, 1); // pop techstate
+    const struct generics* layer = generics_create_outline(techstate);
+    if(!layer)
+    {
+        lua_pushstring(L, "generics: got NULL layer: generics.outline()\nif this layer is not needed, set it to {}");
+        lua_error(L);
+    }
+    _push_layer(L, layer);
+    return 1;
+}
+
 static int lgenerics_create_special(lua_State* L)
 {
     lua_getfield(L, LUA_REGISTRYINDEX, "techstate");
@@ -252,6 +267,7 @@ int open_lgenerics_lib(lua_State* L)
         { "vthtype",                  lgenerics_create_vthtype           },
         { "other",                    lgenerics_create_other             },
         { "otherport",                lgenerics_create_otherport         },
+        { "outline",                  lgenerics_create_outline           },
         { "special",                  lgenerics_create_special           },
         { "premapped",                lgenerics_create_premapped         },
         { NULL,                       NULL                               }

@@ -880,6 +880,12 @@ const struct generics* generics_create_otherport(struct technology_state* techst
     return layer;
 }
 
+const struct generics* generics_create_outline(struct technology_state* techstate)
+{
+    const struct generics* layer = _get_or_create_layer(techstate, "outline");
+    return layer;
+}
+
 const struct generics* generics_create_special(struct technology_state* techstate)
 {
     const struct generics* layer = _get_or_create_layer(techstate, "special");

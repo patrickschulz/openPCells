@@ -70,7 +70,7 @@ const struct generics* generics_create_implant(struct technology_state* techstat
 const struct generics* generics_create_vthtype(struct technology_state* techstate, char channeltype, int vthtype);
 const struct generics* generics_create_other(struct technology_state* techstate, const char* str);
 const struct generics* generics_create_otherport(struct technology_state* techstate, const char* str);
-const struct generics* generics_create_special(struct technology_state* techstate);
+const struct generics* generics_create_outline(struct technology_state* techstate);
 const struct generics* generics_create_special(struct technology_state* techstate);
 const struct generics* generics_create_layer_from_lua(struct technology_state* techstate, const char* layername, lua_State* L);
 
