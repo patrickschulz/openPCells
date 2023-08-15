@@ -213,7 +213,7 @@ function M.create_reference_rows(cellnames, xpitch)
             if not references[cellname] then
                 references[cellname] = pcell.create_layout(string.format("stdcells/%s", cellname), cellname, args)
             end
-            names[row][column] = { 
+            names[row][column] = {
                 instance = instance,
                 reference = references[cellname],
                 width = references[cellname]:width_height_alignmentbox() / xpitch
@@ -379,12 +379,12 @@ function _is_point_in_polygon(x, y, polygon)
             if (y == A:gety() and B:gety() >= A:gety() or y == B:gety() and A:gety() >= B:gety()) then
                 goto continue
             end
-            -- calc cross product `PA X PB`, P lays on left side of AB if c > 0 
+            -- calc cross product `PA X PB`, P lays on left side of AB if c > 0
             local c = (A:getx() - x) * (B:gety() - y) - (B:getx() - x) * (A:gety() - y)
             if c == 0 then
                 return 0
             end
-            if (A:gety() < B:gety()) == (c > 0) then 
+            if (A:gety() < B:gety()) == (c > 0) then
                 inside = not inside
             end
         end
@@ -434,18 +434,20 @@ function M.place_within_boundary(toplevel, cell, basename, targetarea, excludes)
         local y = miny + ypitch / 2
         while y < maxy do
             local insert = _is_point_in_polygon(x, y, points) ~= -1
-            for _, exclude in ipairs(excludes) do
-                -- FIXME: this needs a proper polygon intersection test
-                if _is_point_in_polygon(x            , y             , exclude) == 1 or
-                   _is_point_in_polygon(x + width / 2, y             , exclude) == 1 or
-                   _is_point_in_polygon(x - width / 2, y             , exclude) == 1 or
-                   _is_point_in_polygon(x            , y + height / 2, exclude) == 1 or
-                   _is_point_in_polygon(x            , y - height / 2, exclude) == 1 or
-                   _is_point_in_polygon(x + width / 2, y + height / 2, exclude) == 1 or
-                   _is_point_in_polygon(x - width / 2, y + height / 2, exclude) == 1 or
-                   _is_point_in_polygon(x + width / 2, y - height / 2, exclude) == 1 or
-                   _is_point_in_polygon(x - width / 2, y - height / 2, exclude) == 1 then
-                    insert = false
+            if excludes then
+                for _, exclude in ipairs(excludes) do
+                    -- FIXME: this needs a proper polygon intersection test
+                    if _is_point_in_polygon(x            , y             , exclude) == 1 or
+                       _is_point_in_polygon(x + width / 2, y             , exclude) == 1 or
+                       _is_point_in_polygon(x - width / 2, y             , exclude) == 1 or
+                       _is_point_in_polygon(x            , y + height / 2, exclude) == 1 or
+                       _is_point_in_polygon(x            , y - height / 2, exclude) == 1 or
+                       _is_point_in_polygon(x + width / 2, y + height / 2, exclude) == 1 or
+                       _is_point_in_polygon(x - width / 2, y + height / 2, exclude) == 1 or
+                       _is_point_in_polygon(x + width / 2, y - height / 2, exclude) == 1 or
+                       _is_point_in_polygon(x - width / 2, y - height / 2, exclude) == 1 then
+                        insert = false
+                    end
                 end
             end
             if insert then
@@ -457,8 +459,7 @@ function M.place_within_boundary(toplevel, cell, basename, targetarea, excludes)
     end
 
     local children = {}
-    local i = 1
-    for _, origin in ipairs(origins) do
+    for i, origin in ipairs(origins) do
         local child = toplevel:add_child(cell, string.format("%s_%d", basename, i))
         child:move_point(point.create(0, 0), point.create(origin.x, origin.y))
         table.insert(children, child)
