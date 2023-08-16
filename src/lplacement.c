@@ -118,6 +118,25 @@ int lplacement_place_within_boundary_merge(lua_State* L)
     return 0;
 }
 
+int lplacement_place_within_rectangular_boundary(lua_State* L)
+{
+    struct lobject* toplevel = lobject_check(L, 1);
+    struct lobject* cell = lobject_check(L, 2);
+    const char* basename = luaL_checkstring(L, 3);
+    struct lpoint* bl = lpoint_checkpoint(L, 4);
+    struct lpoint* tr = lpoint_checkpoint(L, 5);
+
+    struct object* children = placement_place_within_rectangular_boundary(
+        lobject_get(toplevel),
+        lobject_get(cell),
+        basename,
+        lpoint_get(bl), lpoint_get(tr)
+    );
+    lobject_disown(cell); // memory is now handled by cell
+    lobject_adapt_non_owning(L, children);
+    return 1;
+}
+
 int open_lplacement_lib(lua_State* L)
 {
     // create metatable for placement module
@@ -126,9 +145,10 @@ int open_lplacement_lib(lua_State* L)
     // set methods
     static const luaL_Reg metafuncs[] =
     {
-        { "place_within_boundary",          lplacement_place_within_boundary       },
-        { "place_within_boundary_merge",    lplacement_place_within_boundary_merge },
-        { NULL,                             NULL                                   }
+        { "place_within_boundary",                  lplacement_place_within_boundary             },
+        { "place_within_boundary_merge",            lplacement_place_within_boundary_merge       },
+        { "place_within_rectangular_boundary",      lplacement_place_within_rectangular_boundary },
+        { NULL,                                     NULL                                         }
     };
     luaL_setfuncs(L, metafuncs, 0);
 
@@ -136,3 +156,4 @@ int open_lplacement_lib(lua_State* L)
 
     return 0;
 }
+

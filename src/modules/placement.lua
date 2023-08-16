@@ -339,19 +339,5 @@ function M.rowwise(parent, cellnames, flipfirst, noflip)
     return cells
 end
 
-function M.place_within_rectangular_boundary(toplevel, cell, basename, targetbl, targettr)
-    local xpitch, ypitch = cell:width_height_alignmentbox()
-
-    local fillwidth = targettr:getx() - targetbl:getx()
-    local fillheight = targettr:gety() - targetbl:gety()
-
-    local xrep = fillwidth // xpitch
-    local yrep = fillheight // ypitch
-
-    local children = toplevel:add_child_array(cell, basename, xrep, yrep)
-    children:translate(-(xrep - 1) * xpitch / 2, -(yrep - 1) * ypitch / 2)
-    return children
-end
-
 --return M
 return nil

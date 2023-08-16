@@ -172,3 +172,19 @@ void placement_place_within_boundary_merge(struct object* toplevel, struct objec
     vector_destroy(origins);
 }
 
+struct object* placement_place_within_rectangular_boundary(struct object* toplevel, struct object* cell, const char* basename, const point_t* targetbl, const point_t* targettr)
+{
+    coordinate_t xpitch, ypitch;
+    object_width_height_alignmentbox(cell, &xpitch, &ypitch);
+
+    coordinate_t fillwidth = point_getx(targettr) - point_getx(targetbl);
+    coordinate_t fillheight = point_gety(targettr) - point_gety(targetbl);
+
+    coordinate_t xrep = fillwidth / xpitch;
+    coordinate_t yrep = fillheight / ypitch;
+
+    struct object* children = object_add_child_array(toplevel, cell, basename, xrep, yrep, xpitch, ypitch);
+    object_translate(children, -(xrep - 1) * xpitch / 2, -(yrep - 1) * ypitch / 2);
+    return children;
+}
+
