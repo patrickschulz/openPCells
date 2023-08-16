@@ -2,60 +2,53 @@
 
 #include "lua/lauxlib.h"
 
-#include "ldebug.h"
 #include "lobject.h"
 #include "lpoint.h"
+#include "lutil.h"
 
 #include "placement.h"
+
+static void _create_target_exclude_vectors(lua_State* L, struct const_vector** targetarea, struct vector** excludes, int idx)
+{
+    *targetarea = lutil_create_const_point_vector(L, idx);
+    *excludes = NULL;
+    if(lua_istable(L, idx + 1))
+    {
+        lua_len(L, idx + 1);
+        size_t excludes_len = lua_tointeger(L, -1);
+        lua_pop(L, 1);
+        *excludes = vector_create(32, const_vector_destroy);
+        for(size_t i = 1; i <= excludes_len; ++i)
+        {
+            lua_rawgeti(L, idx + 1, i);
+            struct const_vector* exclude = lutil_create_const_point_vector(L, -1);
+            vector_append(*excludes, exclude);
+            lua_pop(L, 1);
+        }
+    }
+}
+
+static void _cleanup_target_exclude_vector(struct const_vector* targetarea, struct vector* excludes)
+{
+    const_vector_destroy(targetarea);
+    if(excludes)
+    {
+        vector_destroy(excludes);
+    }
+}
 
 int lplacement_place_within_boundary(lua_State* L)
 {
     struct lobject* toplevel = lobject_check(L, 1);
     struct lobject* cell = lobject_check(L, 2);
     const char* basename = luaL_checkstring(L, 3);
-    lua_len(L, 4);
-    size_t len = lua_tointeger(L, -1);
-    lua_pop(L, 1);
-    struct vector* targetarea = vector_create(32, point_destroy);
-    for(size_t i = 1; i <= len; ++i)
-    {
-        lua_rawgeti(L, 4, i);
-        struct lpoint* pt = lpoint_checkpoint(L, -1);
-        vector_append(targetarea, point_copy(lpoint_get(pt)));
-        lua_pop(L, 1);
-    }
 
-    struct vector* excludes = NULL;
-    if(lua_gettop(L) > 4)
-    {
-        lua_len(L, 5);
-        size_t excludes_len = lua_tointeger(L, -1);
-        lua_pop(L, 1);
-        excludes = vector_create(32, vector_destroy);
-        for(size_t i = 1; i <= excludes_len; ++i)
-        {
-            lua_rawgeti(L, 5, i);
-            lua_len(L, -1);
-            size_t exclude_len = lua_tointeger(L, -1);
-            lua_pop(L, 1);
-            struct vector* exclude = vector_create(32, point_destroy);
-            for(size_t j = 1; j <= exclude_len; ++j)
-            {
-                lua_rawgeti(L, -1, j);
-                struct lpoint* pt = lpoint_checkpoint(L, -1);
-                vector_append(exclude, point_copy(lpoint_get(pt)));
-                lua_pop(L, 1);
-            }
-            vector_append(excludes, exclude);
-            lua_pop(L, 1);
-        }
-    }
+    struct const_vector* targetarea;
+    struct vector* excludes;
+    _create_target_exclude_vectors(L, &targetarea, &excludes, 4);
+
     struct vector* children = placement_place_within_boundary(lobject_get(toplevel), lobject_get(cell), basename, targetarea, excludes);
-    vector_destroy(targetarea);
-    if(excludes)
-    {
-        vector_destroy(excludes);
-    }
+    _cleanup_target_exclude_vector(targetarea, excludes);
     lobject_disown(cell); // memory is now handled by cell
     lua_newtable(L);
     for(size_t i = 0; i < vector_size(children); ++i)
@@ -72,49 +65,13 @@ int lplacement_place_within_boundary_merge(lua_State* L)
 {
     struct lobject* toplevel = lobject_check(L, 1);
     struct lobject* cell = lobject_check(L, 2);
-    lua_len(L, 3);
-    size_t len = lua_tointeger(L, -1);
-    lua_pop(L, 1);
-    struct vector* targetarea = vector_create(32, point_destroy);
-    for(size_t i = 1; i <= len; ++i)
-    {
-        lua_rawgeti(L, 3, i);
-        struct lpoint* pt = lpoint_checkpoint(L, -1);
-        vector_append(targetarea, point_copy(lpoint_get(pt)));
-        lua_pop(L, 1);
-    }
 
-    struct vector* excludes = NULL;
-    if(lua_gettop(L) > 3)
-    {
-        lua_len(L, 4);
-        size_t excludes_len = lua_tointeger(L, -1);
-        lua_pop(L, 1);
-        excludes = vector_create(32, vector_destroy);
-        for(size_t i = 1; i <= excludes_len; ++i)
-        {
-            lua_rawgeti(L, 4, i);
-            lua_len(L, -1);
-            size_t exclude_len = lua_tointeger(L, -1);
-            lua_pop(L, 1);
-            struct vector* exclude = vector_create(32, point_destroy);
-            for(size_t j = 1; j <= exclude_len; ++j)
-            {
-                lua_rawgeti(L, -1, j);
-                struct lpoint* pt = lpoint_checkpoint(L, -1);
-                vector_append(exclude, point_copy(lpoint_get(pt)));
-                lua_pop(L, 1);
-            }
-            vector_append(excludes, exclude);
-            lua_pop(L, 1);
-        }
-    }
+    struct const_vector* targetarea;
+    struct vector* excludes;
+    _create_target_exclude_vectors(L, &targetarea, &excludes, 3);
+
     placement_place_within_boundary_merge(lobject_get(toplevel), lobject_get(cell), targetarea, excludes);
-    vector_destroy(targetarea);
-    if(excludes)
-    {
-        vector_destroy(excludes);
-    }
+    _cleanup_target_exclude_vector(targetarea, excludes);
     return 0;
 }
 
