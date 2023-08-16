@@ -78,10 +78,10 @@ struct vector* placement_calculate_origins(
 
     struct vector* origins = vector_create(32, point_destroy);
     coordinate_t x = minx + xstartshift + xshift;
-    while(x < maxx)
+    while(x <= maxx)
     {
         coordinate_t y = miny + ystartshift + yshift;
-        while(y < maxy)
+        while(y <= maxy)
         {
             int insert = layout_util_is_point_in_polygon(x, y, targetarea) != -1;
             if(excludes && _is_in_excludes(x, y, width, height, excludes))
