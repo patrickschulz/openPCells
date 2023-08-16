@@ -510,7 +510,7 @@ static int lgeometry_rectangle_fill_in_boundary(lua_State* L)
     int idx = 9;
     struct const_vector* targetarea = lutil_create_const_point_vector(L, idx);
     struct vector* excludes = NULL;
-    if(lua_gettop(L) > idx)
+    if(lua_istable(L, idx + 1))
     {
         lua_len(L, idx + 1);
         size_t excludes_len = lua_tointeger(L, -1);
