@@ -1154,7 +1154,14 @@ void object_inherit_boundary(struct object* cell, const struct object* othercell
 
 int object_has_boundary(const struct object* cell)
 {
-    return cell->boundary ? 1 : 0;
+    if(cell->isproxy)
+    {
+        return cell->reference->boundary ? 1 : 0;
+    }
+    else
+    {
+        return cell->boundary ? 1 : 0;
+    }
 }
 
 struct vector* object_get_boundary(const struct object* cell)
@@ -1220,13 +1227,27 @@ struct vector* object_get_boundary(const struct object* cell)
 
 int object_has_layer_boundary(const struct object* cell, const struct generics* layer)
 {
-    if(cell->layer_boundaries)
+    if(cell->isproxy)
     {
-        return hashmap_exists(cell->layer_boundaries, (const char*)layer);
+        if(cell->reference->layer_boundaries)
+        {
+            return hashmap_exists(cell->reference->layer_boundaries, (const char*)layer);
+        }
+        else
+        {
+            return 0;
+        }
     }
     else
     {
-        return 0;
+        if(cell->layer_boundaries)
+        {
+            return hashmap_exists(cell->layer_boundaries, (const char*)layer);
+        }
+        else
+        {
+            return 0;
+        }
     }
 }
 
