@@ -1264,7 +1264,7 @@ struct vector* object_get_layer_boundary(const struct object* cell, const struct
     }
     else
     {
-        struct vector* cellboundary = hashmap_get(cell->reference->layer_boundaries, (const char*)layer);
+        struct vector* cellboundary = hashmap_get(cell->layer_boundaries, (const char*)layer);
         if(cellboundary)
         {
             struct vector_const_iterator* it = vector_const_iterator_create(cellboundary);
