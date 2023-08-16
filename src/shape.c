@@ -16,7 +16,7 @@ struct rectangle {
 #define _bl(rect) (rect->content + 0)
 #define _tr(rect) (rect->content + 1)
 
-struct polygon {
+struct polygon_shape {
     struct vector* points;
 };
 
@@ -92,7 +92,7 @@ struct shape* shape_create_rectangle(const struct generics* layer, coordinate_t 
 struct shape* shape_create_polygon(const struct generics* layer, size_t capacity)
 {
     struct shape* shape = _create_shape(POLYGON, layer);
-    struct polygon* polygon = malloc(sizeof(*polygon));
+    struct polygon_shape* polygon = malloc(sizeof(*polygon));
     polygon->points = vector_create(capacity, point_destroy);
     shape->content = polygon;
     return shape;
@@ -204,7 +204,7 @@ void shape_cleanup(struct shape* shape)
 {
     if(shape->type == POLYGON)
     {
-        struct polygon* polygon = shape->content;
+        struct polygon_shape* polygon = shape->content;
         _remove_superfluous_points(polygon->points);
         _check_counterclockwise(polygon->points);
     }
@@ -235,9 +235,9 @@ void* shape_copy(const void* v)
         case POLYGON:
         case TRIANGULATED_POLYGON:
         {
-            struct polygon* polygon = self->content;
+            struct polygon_shape* polygon = self->content;
             new = shape_create_polygon(self->layer, vector_capacity(polygon->points));
-            struct polygon* np = new->content;
+            struct polygon_shape* np = new->content;
             for(unsigned int i = 0; i < vector_size(polygon->points); ++i)
             {
                 vector_append(np->points, point_copy(vector_get(polygon->points, i)));
@@ -308,7 +308,7 @@ void shape_destroy(void* v)
         case POLYGON:
         case TRIANGULATED_POLYGON:
         {
-            struct polygon* polygon = shape->content;
+            struct polygon_shape* polygon = shape->content;
             vector_destroy(polygon->points);
             break;
         }
@@ -334,7 +334,7 @@ static void _append_unconditionally(struct shape* shape, coordinate_t x, coordin
 {
     if(shape->type == POLYGON)
     {
-        struct polygon* polygon = shape->content;
+        struct polygon_shape* polygon = shape->content;
         vector_append(polygon->points, point_create(x, y));
     }
     if(shape->type == PATH)
@@ -421,7 +421,7 @@ int shape_get_polygon_points(struct shape* shape, struct vector** points)
     {
         return 0;
     }
-    struct polygon* polygon = shape->content;
+    struct polygon_shape* polygon = shape->content;
     *points = polygon->points;
     return 1;
 }
@@ -432,7 +432,7 @@ int shape_get_transformed_polygon_points(const struct shape* shape, const struct
     {
         return 0;
     }
-    struct polygon* polygon = shape->content;
+    struct polygon_shape* polygon = shape->content;
     struct vector_const_iterator* it = vector_const_iterator_create(polygon->points);
     while(vector_const_iterator_is_valid(it))
     {
@@ -602,7 +602,7 @@ void shape_translate(struct shape* shape, coordinate_t dx, coordinate_t dy)
         case POLYGON:
         case TRIANGULATED_POLYGON:
         {
-            struct polygon* polygon = shape->content;
+            struct polygon_shape* polygon = shape->content;
             for(unsigned int i = 0; i < vector_size(polygon->points); ++i)
             {
                 point_t* pt = vector_get(polygon->points, i);
@@ -687,7 +687,7 @@ void shape_apply_transformation(struct shape* shape, const struct transformation
         case POLYGON:
         case TRIANGULATED_POLYGON:
         {
-            struct polygon* polygon = shape->content;
+            struct polygon_shape* polygon = shape->content;
             for(unsigned int i = 0; i < vector_size(polygon->points); ++i)
             {
                 point_t* pt = vector_get(polygon->points, i);
@@ -724,7 +724,7 @@ void shape_apply_inverse_transformation(struct shape* shape, const struct transf
         case POLYGON:
         case TRIANGULATED_POLYGON:
         {
-            struct polygon* polygon = shape->content;
+            struct polygon_shape* polygon = shape->content;
             for(unsigned int i = 0; i < vector_size(polygon->points); ++i)
             {
                 point_t* pt = vector_get(polygon->points, i);
@@ -789,7 +789,7 @@ void shape_get_minmax_xy(const struct shape* shape, coordinate_t* minxp, coordin
         case POLYGON:
         case TRIANGULATED_POLYGON:
         {
-            struct polygon* polygon = shape->content;
+            struct polygon_shape* polygon = shape->content;
             for(unsigned int i = 0; i < vector_size(polygon->points); ++i)
             {
                 point_t* ptr = vector_get(polygon->points, i);
@@ -1007,7 +1007,7 @@ void shape_rasterize_curve_inline(struct shape* shape)
 
     _check_acute_angles(rastered_points);
 
-    struct polygon* polygon = malloc(sizeof(*polygon));
+    struct polygon_shape* polygon = malloc(sizeof(*polygon));
     polygon->points = rastered_points;
     shape->type = POLYGON;
     shape->content = polygon;
@@ -1032,7 +1032,7 @@ void shape_triangulate_polygon_inline(struct shape* shape)
     {
         return;
     }
-    struct polygon* polygon = shape->content;
+    struct polygon_shape* polygon = shape->content;
     struct vector* result = geometry_triangulate_polygon(polygon->points);
     if(!result)
     {
@@ -1051,8 +1051,8 @@ struct shape* shape_triangulate_polygon(const struct shape* shape)
         return NULL;
     }
     struct shape* new = shape_copy(shape);
-    struct vector* result = geometry_triangulate_polygon(((struct polygon*)shape->content)->points);
-    ((struct polygon*)shape->content)->points = result;
+    struct vector* result = geometry_triangulate_polygon(((struct polygon_shape*)shape->content)->points);
+    ((struct polygon_shape*)shape->content)->points = result;
     new->type = TRIANGULATED_POLYGON;
     return new;
 }

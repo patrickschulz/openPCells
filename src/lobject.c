@@ -973,7 +973,7 @@ static int lobject_set_boundary_rectangular(lua_State* L)
     return 0;
 }
 
-static int lobject_set_layer_boundary(lua_State* L)
+static int lobject_add_layer_boundary(lua_State* L)
 {
     struct lobject* cell = lobject_check(L, 1);
     const struct generics* layer = lua_touserdata(L, 2);
@@ -988,11 +988,11 @@ static int lobject_set_layer_boundary(lua_State* L)
         vector_append(boundary, point_copy(lpoint_get(pt)));
         lua_pop(L, 1);
     }
-    object_set_layer_boundary(lobject_get(cell), layer, boundary);
+    object_add_layer_boundary(lobject_get(cell), layer, boundary);
     return 0;
 }
 
-static int lobject_set_layer_boundary_rectangular(lua_State* L)
+static int lobject_add_layer_boundary_rectangular(lua_State* L)
 {
     struct lobject* cell = lobject_check(L, 1);
     const struct generics* layer = lua_touserdata(L, 2);
@@ -1005,7 +1005,7 @@ static int lobject_set_layer_boundary_rectangular(lua_State* L)
         vector_append(boundary, point_create(lpoint_get(tr)->x, lpoint_get(bl)->y));
         vector_append(boundary, point_create(lpoint_get(tr)->x, lpoint_get(tr)->y));
         vector_append(boundary, point_create(lpoint_get(bl)->x, lpoint_get(tr)->y));
-        object_set_layer_boundary(lobject_get(cell), layer, boundary);
+        object_add_layer_boundary(lobject_get(cell), layer, boundary);
     }
     else
     {
@@ -1062,20 +1062,31 @@ static int lobject_get_layer_boundary(lua_State* L)
 {
     struct lobject* cell = lobject_check(L, 1);
     const struct generics* layer = lua_touserdata(L, 2);
-    struct vector* boundary = object_get_layer_boundary(lobject_get(cell), layer);
+    struct polygon* boundary = object_get_layer_boundary(lobject_get(cell), layer);
     lua_newtable(L);
+    struct polygon_iterator* pit = polygon_iterator_create(boundary);
     int i = 1;
-    struct vector_iterator* it = vector_iterator_create(boundary);
-    while(vector_iterator_is_valid(it))
+    while(polygon_iterator_is_valid(pit))
     {
-        const point_t* pt = vector_iterator_get(it);
-        lpoint_create_internal(L, pt->x, pt->y);
+        struct vector* single_boundary = polygon_iterator_get(pit);
+        struct vector_iterator* it = vector_iterator_create(single_boundary);
+        lua_newtable(L);
+        int j = 1;
+        while(vector_iterator_is_valid(it))
+        {
+            const point_t* pt = vector_iterator_get(it);
+            lpoint_create_internal(L, pt->x, pt->y);
+            lua_rawseti(L, -2, j);
+            vector_iterator_next(it);
+            ++j;
+        }
+        vector_iterator_destroy(it);
         lua_rawseti(L, -2, i);
-        vector_iterator_next(it);
         ++i;
+        polygon_iterator_next(pit);
     }
-    vector_iterator_destroy(it);
-    vector_destroy(boundary);
+    polygon_iterator_destroy(pit);
+    polygon_destroy(boundary);
     return 1;
 }
 
@@ -1161,8 +1172,8 @@ int open_lobject_lib(lua_State* L)
         { "get_area_anchor_height",             lobject_get_area_anchor_height              },
         { "set_boundary",                       lobject_set_boundary                        },
         { "set_boundary_rectangular",           lobject_set_boundary_rectangular            },
-        { "set_layer_boundary",                 lobject_set_layer_boundary                  },
-        { "set_layer_boundary_rectangular",     lobject_set_layer_boundary_rectangular      },
+        { "add_layer_boundary",                 lobject_add_layer_boundary                  },
+        { "add_layer_boundary_rectangular",     lobject_add_layer_boundary_rectangular      },
         { "inherit_boundary",                   lobject_inherit_boundary                    },
         { "has_boundary",                       lobject_has_boundary                        },
         { "get_boundary",                       lobject_get_boundary                        },
