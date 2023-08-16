@@ -54,7 +54,7 @@ POINT_IN_POLYGON_CONTINUE:
     return inside ? 1 : -1;
 }
 
-struct vector* placement_place_within_boundary(struct object* toplevel, struct object* cell, const char* basename, const struct vector* targetarea, const struct vector* excludes)
+static struct vector* _calculate_origins(const struct object* cell, const struct vector* targetarea, const struct vector* excludes)
 {
     ucoordinate_t width, height;
     object_width_height_alignmentbox(cell, &width, &height);
@@ -130,7 +130,12 @@ struct vector* placement_place_within_boundary(struct object* toplevel, struct o
         }
         x = x + xpitch;
     }
+    return origins;
+}
 
+struct vector* placement_place_within_boundary(struct object* toplevel, struct object* cell, const char* basename, const struct vector* targetarea, const struct vector* excludes)
+{
+    struct vector* origins = _calculate_origins(cell, targetarea, excludes);
     struct vector* children = vector_create(vector_size(origins), NULL);
     struct vector_const_iterator* origin_it = vector_const_iterator_create(origins);
     int i = 1;
@@ -154,81 +159,7 @@ struct vector* placement_place_within_boundary(struct object* toplevel, struct o
 
 void placement_place_within_boundary_merge(struct object* toplevel, struct object* cell, const struct vector* targetarea, const struct vector* excludes)
 {
-    ucoordinate_t width, height;
-    object_width_height_alignmentbox(cell, &width, &height);
-    ucoordinate_t xpitch = width;
-    ucoordinate_t ypitch = height;
-
-    coordinate_t minx = COORDINATE_MAX;
-    coordinate_t maxx = COORDINATE_MIN;
-    coordinate_t miny = COORDINATE_MAX;
-    coordinate_t maxy = COORDINATE_MIN;
-    struct vector_const_iterator* it = vector_const_iterator_create(targetarea);
-    while(vector_const_iterator_is_valid(it))
-    {
-        const point_t* pt = vector_const_iterator_get(it);
-        coordinate_t x = point_getx(pt);
-        coordinate_t y = point_gety(pt);
-        if(x < minx)
-        {
-            minx = x;
-        }
-        if(x > maxx)
-        {
-            maxx = x;
-        }
-        if(y < miny)
-        {
-            miny = y;
-        }
-        if(y > maxy)
-        {
-            maxy = y;
-        }
-        vector_const_iterator_next(it);
-    }
-    vector_const_iterator_destroy(it);
-
-    struct vector* origins = vector_create(32, point_destroy);
-    coordinate_t x = minx + xpitch / 2;
-    while(x < maxx)
-    {
-        coordinate_t y = miny + ypitch / 2;
-        while(y < maxy)
-        {
-            int insert = _is_point_in_polygon(x, y, targetarea) != -1;
-            if(excludes)
-            {
-                struct vector_const_iterator* exclude_it = vector_const_iterator_create(excludes);
-                while(vector_const_iterator_is_valid(exclude_it))
-                {
-                    const struct vector* exclude = vector_const_iterator_get(exclude_it);
-                    // FIXME: this needs a proper polygon intersection test
-                    if(_is_point_in_polygon(x            , y             , exclude) == 1 ||
-                       _is_point_in_polygon(x + width / 2, y             , exclude) == 1 ||
-                       _is_point_in_polygon(x - width / 2, y             , exclude) == 1 ||
-                       _is_point_in_polygon(x            , y + height / 2, exclude) == 1 ||
-                       _is_point_in_polygon(x            , y - height / 2, exclude) == 1 ||
-                       _is_point_in_polygon(x + width / 2, y + height / 2, exclude) == 1 ||
-                       _is_point_in_polygon(x - width / 2, y + height / 2, exclude) == 1 ||
-                       _is_point_in_polygon(x + width / 2, y - height / 2, exclude) == 1 ||
-                       _is_point_in_polygon(x - width / 2, y - height / 2, exclude) == 1)
-                    {
-                        insert = 0;
-                    }
-                    vector_const_iterator_next(exclude_it);
-                }
-                vector_const_iterator_destroy(exclude_it);
-            }
-            if(insert)
-            {
-                vector_append(origins, point_create(x, y));
-            }
-            y = y + ypitch;
-        }
-        x = x + xpitch;
-    }
-
+    struct vector* origins = _calculate_origins(cell, targetarea, excludes);
     struct vector_const_iterator* origin_it = vector_const_iterator_create(origins);
     while(vector_const_iterator_is_valid(origin_it))
     {
