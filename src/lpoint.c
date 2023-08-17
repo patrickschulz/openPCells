@@ -13,6 +13,9 @@ struct lpoint {
     int destroy;
 };
 
+#define _x(pt) point_getx(lpoint_get(pt))
+#define _y(pt) point_gety(lpoint_get(pt))
+
 coordinate_t lpoint_checkcoordinate(lua_State* L, int idx, const char* coordinate)
 {
     int isnum;
@@ -64,7 +67,7 @@ int lpoint_create(lua_State* L)
 
 static int lpoint_destroy(lua_State* L)
 {
-    struct lpoint* p = luaL_checkudata(L, -1, LPOINTMETA);
+    struct lpoint* p = lpoint_checkpoint(L, -1);
     if(p->destroy)
     {
         point_destroy(p->point);
@@ -74,7 +77,7 @@ static int lpoint_destroy(lua_State* L)
 
 int lpoint_copy(lua_State* L)
 {
-    struct lpoint* p = luaL_checkudata(L, -1, LPOINTMETA);
+    struct lpoint* p = lpoint_checkpoint(L, -1);
     struct lpoint* new = lua_newuserdata(L, sizeof(*new));
     luaL_setmetatable(L, LPOINTMETA);
     new->point = point_create(p->point->x, p->point->y);
@@ -87,19 +90,9 @@ const point_t* lpoint_get(const struct lpoint* pt)
     return pt->point;
 }
 
-static int lpoint_update(lua_State* L)
-{
-    struct lpoint* p = luaL_checkudata(L, -3, LPOINTMETA);
-    coordinate_t x = lpoint_checkcoordinate(L, -2, "x");
-    coordinate_t y = lpoint_checkcoordinate(L, -1, "y");
-    p->point->x = x;
-    p->point->y = y;
-    return 0;
-}
-
 static int lpoint_unwrap(lua_State* L)
 {
-    struct lpoint* p = luaL_checkudata(L, -1, LPOINTMETA);
+    struct lpoint* p = lpoint_checkpoint(L, -1);
     lua_pushinteger(L, p->point->x);
     lua_pushinteger(L, p->point->y);
     return 2;
@@ -107,21 +100,21 @@ static int lpoint_unwrap(lua_State* L)
 
 static int lpoint_getx(lua_State* L)
 {
-    struct lpoint* p = luaL_checkudata(L, -1, LPOINTMETA);
+    struct lpoint* p = lpoint_checkpoint(L, -1);
     lua_pushinteger(L, p->point->x);
     return 1;
 }
 
 static int lpoint_gety(lua_State* L)
 {
-    struct lpoint* p = luaL_checkudata(L, -1, LPOINTMETA);
+    struct lpoint* p = lpoint_checkpoint(L, -1);
     lua_pushinteger(L, p->point->y);
     return 1;
 }
 
 static int lpoint_translate(lua_State* L)
 {
-    struct lpoint* p = luaL_checkudata(L, 1, LPOINTMETA);
+    struct lpoint* p = lpoint_checkpoint(L, 1);
     coordinate_t x = lpoint_checkcoordinate(L, 2, "x");
     coordinate_t y = lpoint_checkcoordinate(L, 3, "y");
     p->point->x += x;
@@ -132,7 +125,7 @@ static int lpoint_translate(lua_State* L)
 
 static int lpoint_translate_x(lua_State* L)
 {
-    struct lpoint* p = luaL_checkudata(L, 1, LPOINTMETA);
+    struct lpoint* p = lpoint_checkpoint(L, 1);
     coordinate_t x = lpoint_checkcoordinate(L, 2, "x");
     p->point->x += x;
     lua_rotate(L, 1, 1);
@@ -141,30 +134,205 @@ static int lpoint_translate_x(lua_State* L)
 
 static int lpoint_translate_y(lua_State* L)
 {
-    struct lpoint* p = luaL_checkudata(L, 1, LPOINTMETA);
+    struct lpoint* p = lpoint_checkpoint(L, 1);
     coordinate_t y = lpoint_checkcoordinate(L, 2, "y");
     p->point->y += y;
     lua_rotate(L, 1, 1);
     return 1;
 }
 
+static int lpoint_fix(lua_State* L)
+{
+    struct lpoint* self = lpoint_checkpoint(L, 1);
+    int grid = luaL_checkinteger(L, 2);
+    point_t* pt = self->point;
+    pt->x = grid * (pt->x / grid);
+    pt->y = grid * (pt->y / grid);
+    return 0;
+}
+
+static int lpoint_combine_12(lua_State* L)
+{
+    struct lpoint* lhs = lpoint_checkpoint(L, 1);
+    struct lpoint* rhs = lpoint_checkpoint(L, 2);
+    lpoint_create_internal(L,
+        _x(lhs),
+        _y(rhs)
+    );
+    return 1;
+}
+
+static int lpoint_combine_21(lua_State* L)
+{
+    struct lpoint* lhs = lpoint_checkpoint(L, 1);
+    struct lpoint* rhs = lpoint_checkpoint(L, 2);
+    lpoint_create_internal(L,
+        _x(rhs),
+        _y(lhs)
+    );
+    return 1;
+}
+
+static int lpoint_combine(lua_State* L)
+{
+    struct lpoint* lhs = lpoint_checkpoint(L, 1);
+    struct lpoint* rhs = lpoint_checkpoint(L, 2);
+    lpoint_create_internal(L,
+        (_x(lhs) + _x(rhs)) / 2,
+        (_y(lhs) + _y(rhs)) / 2
+    );
+    return 1;
+}
+
+static int lpoint_xaverage(lua_State* L)
+{
+    struct lpoint* lhs = lpoint_checkpoint(L, 1);
+    struct lpoint* rhs = lpoint_checkpoint(L, 2);
+    lua_pushinteger(L, (_x(lhs) + _x(rhs)) / 2);
+    return 1;
+}
+
+static int lpoint_yaverage(lua_State* L)
+{
+    struct lpoint* lhs = lpoint_checkpoint(L, 1);
+    struct lpoint* rhs = lpoint_checkpoint(L, 2);
+    lua_pushinteger(L, (_y(lhs) + _y(rhs)) / 2);
+    return 1;
+}
+
+static int lpoint_xdistance(lua_State* L)
+{
+    struct lpoint* lhs = lpoint_checkpoint(L, 1);
+    struct lpoint* rhs = lpoint_checkpoint(L, 2);
+    lua_pushinteger(L, (_x(lhs) - _x(rhs)));
+    return 1;
+}
+
+static int lpoint_ydistance(lua_State* L)
+{
+    struct lpoint* lhs = lpoint_checkpoint(L, 1);
+    struct lpoint* rhs = lpoint_checkpoint(L, 2);
+    lua_pushinteger(L, (_y(lhs) - _y(rhs)));
+    return 1;
+}
+
+static int lpoint_xdistance_abs(lua_State* L)
+{
+    struct lpoint* lhs = lpoint_checkpoint(L, 1);
+    struct lpoint* rhs = lpoint_checkpoint(L, 2);
+    if(_x(lhs) < _x(rhs))
+    {
+        lua_pushinteger(L, (_x(rhs) - _x(lhs)));
+    }
+    else
+    {
+        lua_pushinteger(L, (_x(lhs) - _x(rhs)));
+    }
+    return 1;
+}
+
+static int lpoint_ydistance_abs(lua_State* L)
+{
+    struct lpoint* lhs = lpoint_checkpoint(L, 1);
+    struct lpoint* rhs = lpoint_checkpoint(L, 2);
+    if(_y(lhs) < _y(rhs))
+    {
+        lua_pushinteger(L, (_y(rhs) - _y(lhs)));
+    }
+    else
+    {
+        lua_pushinteger(L, (_y(lhs) - _y(rhs)));
+    }
+    return 1;
+}
+
+
 static int lpoint_equal(lua_State* L)
 {
-    struct lpoint* lhs = luaL_checkudata(L, -2, LPOINTMETA);
-    struct lpoint* rhs = luaL_checkudata(L, -1, LPOINTMETA);
+    struct lpoint* lhs = lpoint_checkpoint(L, -2);
+    struct lpoint* rhs = lpoint_checkpoint(L, -1);
     lua_pushboolean(L, lhs->point->x == rhs->point->x && lhs->point->y == rhs->point->y);
     return 1;
 }
 
-static int lpoint_getmetatable(lua_State* L)
+static int lpoint_sub(lua_State* L)
 {
-    luaL_getmetatable(L, LPOINTMETA);
+    struct lpoint* lhs = lpoint_checkpoint(L, 1);
+    struct lpoint* rhs = lpoint_checkpoint(L, 2);
+    lpoint_create_internal(L,
+        point_getx(lpoint_get(lhs)) - point_getx(lpoint_get(rhs)),
+        point_gety(lpoint_get(lhs)) - point_gety(lpoint_get(rhs))
+    );
+    return 1;
+}
+
+static int lpoint_unary_minus(lua_State* L)
+{
+    struct lpoint* self = lpoint_checkpoint(L, 1);
+    lpoint_create_internal(L,
+        -point_getx(lpoint_get(self)),
+        -point_gety(lpoint_get(self))
+    );
+    return 1;
+}
+
+static int lpoint_concat(lua_State* L)
+{
+    struct lpoint* lhs = lpoint_checkpoint(L, 1);
+    struct lpoint* rhs = lpoint_checkpoint(L, 2);
+    lpoint_create_internal(L,
+        point_getx(lpoint_get(lhs)),
+        point_gety(lpoint_get(rhs))
+    );
     return 1;
 }
 
 struct lpoint* lpoint_checkpoint(lua_State* L, int idx)
 {
     return luaL_checkudata(L, idx, LPOINTMETA);
+}
+
+static int lpoint_tostring(lua_State* L)
+{
+    struct lpoint* self = lpoint_checkpoint(L, 1);
+    const point_t* pt = lpoint_get(self);
+    char buf[256];
+    //char* buf = malloc(len + 1);
+    sprintf(buf, "point: (%lld, %lld)", point_getx(pt), point_gety(pt));
+    lua_pushstring(L, buf);
+    //free(buf);
+    return 1;
+}
+
+static int lpoint_is_point(lua_State* L)
+{
+    if(lua_gettop(L) != 1)
+    {
+        lua_pushstring(L, "point.is_point expects expects one argument");
+        lua_error(L);
+    }
+    if(lua_type(L, 1) != LUA_TUSERDATA)
+    {
+        lua_pushboolean(L, 0);
+        return 1;
+    }
+    lua_getmetatable(L, 1);
+    if(lua_isnil(L, -1))
+    {
+        lua_pop(L, 1);
+        lua_pushboolean(L, 0);
+        return 1;
+    }
+    luaL_getmetatable(L, LPOINTMETA);
+    int equal = lua_compare(L, -1, -2, LUA_OPEQ);
+    if(equal)
+    {
+        lua_pushboolean(L, 1);
+        return 1;
+    }
+    lua_pop(L, 2);
+    lua_pushboolean(L, 0);
+    return 1;
 }
 
 int open_lpoint_lib(lua_State* L)
@@ -178,8 +346,13 @@ int open_lpoint_lib(lua_State* L)
         { "translate",   lpoint_translate   },
         { "translate_x", lpoint_translate_x },
         { "translate_y", lpoint_translate_y },
+        { "fix",         lpoint_fix         },
         { "__eq",        lpoint_equal       },
         { "__gc",        lpoint_destroy     },
+        { "__tostring",  lpoint_tostring    },
+        { "__sub",       lpoint_sub         },
+        { "__unm",       lpoint_unary_minus },
+        { "__concat",    lpoint_concat      },
         { NULL,          NULL               }
     };
     // create metatable for points
@@ -197,10 +370,18 @@ int open_lpoint_lib(lua_State* L)
 
     static const luaL_Reg modfuncs[] =
     {
-        { "create",        lpoint_create       },
-        { "_update",       lpoint_update       },
-        { "_getmetatable", lpoint_getmetatable },
-        { NULL,            NULL                }
+        { "create",         lpoint_create           },
+        { "is_point",       lpoint_is_point         },
+        { "combine_12",     lpoint_combine_12       },
+        { "combine_21",     lpoint_combine_21       },
+        { "combine",        lpoint_combine          },
+        { "xaverage",       lpoint_xaverage         },
+        { "yaverage",       lpoint_yaverage         },
+        { "xdistance",      lpoint_xdistance        },
+        { "ydistance",      lpoint_ydistance        },
+        { "xdistance_abs",  lpoint_xdistance_abs    },
+        { "ydistance_abs",  lpoint_ydistance_abs    },
+        { NULL,             NULL                    }
     };
     lua_newtable(L);
     luaL_setfuncs(L, modfuncs, 0);
