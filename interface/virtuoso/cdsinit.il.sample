@@ -4,6 +4,13 @@
 ; so if you call opc like this: opc --technology tech42 ...
 ; then OPCTech should be "tech42"
 OPCTech = "tech42"
+; for this to work you also need to make sure that opc can find the technology files
+; the easiest way to do this is to add the location to the config file at ~/.opcconfig.lua:
+; return {
+;     techpaths = {
+;         "/path/to/technology_files"
+;     }
+; }
 
 ; the installation DIRECTORY of openPCells has to be given:
 OPCPath = "/path/to/opc"
