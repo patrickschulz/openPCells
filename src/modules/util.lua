@@ -170,22 +170,6 @@ function M.check_grid(grid, ...)
     end
 end
 
-function M.is_point_in_polygon(pt, pts)
-    local j = #pts
-    local c = false
-    local x, y = pt:unwrap()
-    for i = 1, #pts do
-        local xi, yi = pts[i]:unwrap()
-        local xj, yj = pts[j]:unwrap()
-        if ((yi > y) ~= (yj > y)) and (x < xi + (xj - xi) * (y - yi) / (yj - yi))
-            then
-            c = not(c)
-        end
-        j = i
-    end
-    return c
-end
-
 function M.intersection(s1, s2, c1, c2)
     local s1x, s1y = s1:unwrap()
     local s2x, s2y = s2:unwrap()
