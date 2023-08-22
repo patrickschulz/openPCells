@@ -6,12 +6,16 @@ procedure(OPCConvertPtsToNanometer(pts)
 	mapcar(lambda( (pt) fix(xCoord(pt) * 1000):fix(yCoord(pt) * 1000)) pts)
 )
 
+procedure(OPCFormatLayer(layer purpose)
+    lsprintf("generics.premapped(nil, { SKILL = { layer = \"%s\", purpose = \"%s\" } })" layer purpose)
+)
+
 procedure(OPCWriteRectangle(file layer purpose bBox)
 	let(
 		(
 		)
-        fprintf(file "geometry.rectanglebltr(cell, generics.premapped(nil, { SKILL = { layer = \"%s\", purpose = \"%s\" } }), point.create(%d, %d), point.create(%d, %d))\n", 
-            layer purpose xCoord(car(bBox)) yCoord(car(bBox)) xCoord(cadr(bBox)) yCoord(cadr(bBox))
+        fprintf(file "geometry.rectanglebltr(cell, %s, point.create(%d, %d), point.create(%d, %d))\n", 
+            OPCFormatLayer(layer purpose) xCoord(car(bBox)) yCoord(car(bBox)) xCoord(cadr(bBox)) yCoord(cadr(bBox))
         )
 	)
 )
@@ -20,8 +24,8 @@ procedure(OPCWritePolygon(file layer purpose pts)
 	let(
 		(
 		)
-        fprintf(file "geometry.polygon(cell, generics.premapped(nil, { SKILL = { layer = \"%s\", purpose = \"%s\" } }), { %s })\n"
-            layer purpose 
+        fprintf(file "geometry.polygon(cell, %s, { %s })\n"
+            OPCFormatLayer(layer purpose)
             buildString(mapcar(lambda( (pt) lsprintf("point.create(%d, %d)" xCoord(pt) yCoord(pt))) pts) ", ")
         )
 	)
@@ -31,9 +35,9 @@ procedure(OPCWriteLabel(file layer purpose name pt)
 	let(
 		(
 		)
-        fprintf(file "cell:add_port(\"%s\", generics.premapped(nil, { SKILL = { layer = \"%s\", purpose = \"%s\" } }), point.create(%d, %d))\n"
+        fprintf(file "cell:add_port(\"%s\", %s, point.create(%d, %d))\n"
             name
-            layer purpose 
+            OPCFormatLayer(layer purpose)
             xCoord(pt) yCoord(pt)
         )
 	)
