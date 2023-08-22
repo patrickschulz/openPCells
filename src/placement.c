@@ -34,6 +34,39 @@ static int _is_in_excludes(coordinate_t x, coordinate_t y, coordinate_t width, c
     return is_in_exclude;
 }
 
+static void _get_minmax(const struct const_vector* targetarea, coordinate_t* minx, coordinate_t* miny, coordinate_t* maxx, coordinate_t* maxy)
+{
+    *minx = COORDINATE_MAX;
+    *maxx = COORDINATE_MIN;
+    *miny = COORDINATE_MAX;
+    *maxy = COORDINATE_MIN;
+    struct const_vector_iterator* it = const_vector_iterator_create(targetarea);
+    while(const_vector_iterator_is_valid(it))
+    {
+        const point_t* pt = const_vector_iterator_get(it);
+        coordinate_t x = point_getx(pt);
+        coordinate_t y = point_gety(pt);
+        if(x < *minx)
+        {
+            *minx = x;
+        }
+        if(x > *maxx)
+        {
+            *maxx = x;
+        }
+        if(y < *miny)
+        {
+            *miny = y;
+        }
+        if(y > *maxy)
+        {
+            *maxy = y;
+        }
+        const_vector_iterator_next(it);
+    }
+    const_vector_iterator_destroy(it);
+}
+
 struct vector* placement_calculate_origins(
     ucoordinate_t width, ucoordinate_t height,
     ucoordinate_t xpitch, ucoordinate_t ypitch,
@@ -42,45 +75,18 @@ struct vector* placement_calculate_origins(
     const struct vector* excludes
 )
 {
-    coordinate_t minx = COORDINATE_MAX;
-    coordinate_t maxx = COORDINATE_MIN;
-    coordinate_t miny = COORDINATE_MAX;
-    coordinate_t maxy = COORDINATE_MIN;
-    struct const_vector_iterator* it = const_vector_iterator_create(targetarea);
-    while(const_vector_iterator_is_valid(it))
-    {
-        const point_t* pt = const_vector_iterator_get(it);
-        coordinate_t x = point_getx(pt);
-        coordinate_t y = point_gety(pt);
-        if(x < minx)
-        {
-            minx = x;
-        }
-        if(x > maxx)
-        {
-            maxx = x;
-        }
-        if(y < miny)
-        {
-            miny = y;
-        }
-        if(y > maxy)
-        {
-            maxy = y;
-        }
-        const_vector_iterator_next(it);
-    }
-    const_vector_iterator_destroy(it);
+    coordinate_t minx, maxx, miny, maxy;
+    _get_minmax(targetarea, &minx, &miny, &maxx, &maxy);
 
     // calculate x and y shifts (relies on integer mathematics)
     int xshift = ((maxx - minx) - ((maxx - minx) / (xpitch)) * xpitch) / 2;
     int yshift = ((maxy - miny) - ((maxy - miny) / (ypitch)) * ypitch) / 2;
 
     struct vector* origins = vector_create(32, point_destroy);
-    coordinate_t x = minx + xstartshift + xshift;
+    coordinate_t x = minx + ((xstartshift + xshift) % xpitch);
     while(x <= maxx)
     {
-        coordinate_t y = miny + ystartshift + yshift;
+        coordinate_t y = miny + ((ystartshift + yshift) % ypitch);
         while(y <= maxy)
         {
             int insert = layout_util_is_point_in_polygon(x, y, targetarea) != -1;
