@@ -80,10 +80,10 @@ local __content = {}
 
 function M.finalize()
     local t = {}
-    for _, entry in ipairs(__header) do
+    for _, entry in ipairs(__prepend) do
         table.insert(t, entry)
     end
-    for _, entry in ipairs(__prepend) do
+    for _, entry in ipairs(__header) do
         table.insert(t, entry)
     end
     for _, entry in ipairs(__before) do
