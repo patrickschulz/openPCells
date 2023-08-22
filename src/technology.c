@@ -21,6 +21,11 @@ struct generics {
     struct vector* entries; // stores struct generics_entry*
 };
 
+struct mpentry { // entry for multiple patterning
+    int metal;
+    int number;
+};
+
 struct technology_state {
     struct vector* layertable; // stores struct generics*
     struct vector* viatable; // stores struct viaentry*
@@ -78,6 +83,7 @@ static char* _get_tech_filename(struct technology_state* techstate, const char* 
 
 static int _is_ignored_layer(const char* layername, const struct const_vector* ignoredlayers)
 {
+    int ret = 0;
     if(ignoredlayers)
     {
         struct const_vector_iterator* it = const_vector_iterator_create(ignoredlayers);
@@ -86,13 +92,13 @@ static int _is_ignored_layer(const char* layername, const struct const_vector* i
             const char* name = const_vector_iterator_get(it);
             if(strcmp(layername, name) == 0)
             {
-                return 1;
+                ret = 1;
             }
             const_vector_iterator_next(it);
         }
         const_vector_iterator_destroy(it);
     }
-    return 0;
+    return ret;
 }
 
 static struct generics_entry* _create_entry(const char* name)
@@ -320,7 +326,7 @@ int technology_load_viadefinitions(struct technology_state* techstate, const cha
         lua_pop(L, 1); // pop value, keep key for next iteration
     }
     lua_close(L);
-    return 0;
+    return 1;
 }
 
 int technology_load_config(struct technology_state* techstate, const char* name)
@@ -333,11 +339,42 @@ int technology_load_config(struct technology_state* techstate, const char* name)
         lua_close(L);
         return 0;
     }
+
+    // number of metals
     lua_getfield(L, -1, "metals");
     techstate->config->metals = lua_tointeger(L, -1);
-    lua_pop(L, 1); // pop config table
+    lua_pop(L, 1); // pop metals
+
+    // multiple patterning
+    lua_getfield(L, -1, "multiple_patterning");
+    techstate->config->multiple_patterning_metals = vector_create(1, free);
+    if(lua_istable(L, -1))
+    {
+        lua_len(L, -1);
+        size_t len = lua_tointeger(L, -1);
+        lua_pop(L, 1); // pop len
+        for(size_t i = 1; i <= len; ++i)
+        {
+            lua_rawgeti(L, -1, i);
+            if(!lua_istable(L, -1))
+            {
+                puts("error while loading technology config: multiple_patterning is not a table");
+                return 0;
+            }
+            struct mpentry* entry = malloc(sizeof(*entry));
+            lua_getfield(L, -1, "metal");
+            entry->metal = lua_tointeger(L, -1);
+            lua_pop(L, 1); // pop metal
+            lua_getfield(L, -1, "number");
+            entry->number = lua_tointeger(L, -1);
+            lua_pop(L, 1); // pop number
+            lua_pop(L, 1); // pop entry
+            vector_append(techstate->config->multiple_patterning_metals, entry);
+        }
+    }
+    lua_pop(L, 1); // pop multiple_patterning
     lua_close(L);
-    return 0;
+    return 1;
 }
 
 int technology_load_constraints(struct technology_state* techstate, const char* name)
@@ -397,8 +434,13 @@ int technology_load(struct technology_state* techstate, const char* techname, co
         free(configname);
         return 0;
     }
-    technology_load_config(techstate, configname);
+    ret = technology_load_config(techstate, configname);
     free(configname);
+    if(!ret)
+    {
+        puts("technology: errrors while loading technology config file");
+        return 0;
+    }
 
     char* constraintsname = _get_tech_filename(techstate, techname, "constraints");
     if(!constraintsname)
@@ -518,7 +560,7 @@ struct via_definition* technology_get_contact_fallback(struct technology_state* 
     return fallback;
 }
 
-int technology_resolve_metal(struct technology_state* techstate, int metalnum)
+int technology_resolve_metal(const struct technology_state* techstate, int metalnum)
 {
     if(metalnum < 0)
     {
@@ -528,6 +570,42 @@ int technology_resolve_metal(struct technology_state* techstate, int metalnum)
     {
         return metalnum;
     }
+}
+
+int technology_has_multiple_patterning(const struct technology_state* techstate, int metalnum)
+{
+    int ret = 0;
+    int m = technology_resolve_metal(techstate, metalnum);
+    struct vector_iterator* it = vector_iterator_create(techstate->config->multiple_patterning_metals);
+    while(vector_iterator_is_valid(it))
+    {
+        struct mpentry* entry = vector_iterator_get(it);
+        if(entry->metal == m)
+        {
+            ret = 1;
+        }
+        vector_iterator_next(it);
+    }
+    vector_iterator_destroy(it);
+    return ret;
+}
+
+int technology_multiple_patterning_number(const struct technology_state* techstate, int metalnum)
+{
+    int number = 0;
+    int m = technology_resolve_metal(techstate, metalnum);
+    struct vector_iterator* it = vector_iterator_create(techstate->config->multiple_patterning_metals);
+    while(vector_iterator_is_valid(it))
+    {
+        struct mpentry* entry = vector_iterator_get(it);
+        if(entry->metal == m)
+        {
+            number = entry->number;
+        }
+        vector_iterator_next(it);
+    }
+    vector_iterator_destroy(it);
+    return number;
 }
 
 static int _resolve_layer(struct generics* layer, const char* exportname)
@@ -641,6 +719,7 @@ void technology_destroy(struct technology_state* techstate)
     vector_destroy(techstate->layertable);
     vector_destroy(techstate->viatable);
 
+    vector_destroy(techstate->config->multiple_patterning_metals);
     free(techstate->config);
 
     hashmap_destroy(techstate->constraints, tagged_value_destroy);
@@ -720,16 +799,40 @@ static int ltechnology_resolve_metal(lua_State* L)
     return 1;
 }
 
+static int ltechnology_has_multiple_patterning(lua_State* L)
+{
+    lua_getfield(L, LUA_REGISTRYINDEX, "techstate");
+    struct technology_state* techstate = lua_touserdata(L, -1);
+    lua_pop(L, 1); // pop techstate
+    int metal = luaL_checkinteger(L, 1);
+    int hasmp = technology_has_multiple_patterning(techstate, metal);
+    lua_pushboolean(L, hasmp);
+    return 1;
+}
+
+static int ltechnology_multiple_patterning_number(lua_State* L)
+{
+    lua_getfield(L, LUA_REGISTRYINDEX, "techstate");
+    struct technology_state* techstate = lua_touserdata(L, -1);
+    lua_pop(L, 1); // pop techstate
+    int metal = luaL_checkinteger(L, 1);
+    int num = technology_multiple_patterning_number(techstate, metal);
+    lua_pushinteger(L, num);
+    return 1;
+}
+
 int open_ltechnology_lib(lua_State* L)
 {
     lua_newtable(L);
     static const luaL_Reg modfuncs[] =
     {
-        { "list_techpaths", ltechnology_list_techpaths },
-        { "get_dimension",  ltechnology_get_dimension  },
-        { "has_layer",      ltechnology_has_layer      },
-        { "resolve_metal",  ltechnology_resolve_metal  },
-        { NULL,             NULL                       }
+        { "list_techpaths",                 ltechnology_list_techpaths              },
+        { "get_dimension",                  ltechnology_get_dimension               },
+        { "has_layer",                      ltechnology_has_layer                   },
+        { "resolve_metal",                  ltechnology_resolve_metal               },
+        { "has_multiple_patterning",        ltechnology_has_multiple_patterning     },
+        { "multiple_patterning_number",     ltechnology_multiple_patterning_number  },
+        { NULL,                             NULL                                    }
     };
     luaL_setfuncs(L, modfuncs, 0);
     lua_setglobal(L, "technology");
@@ -790,6 +893,17 @@ const struct generics* generics_create_metalfill(struct technology_state* techst
     size_t len = 1 + util_num_digits(num) + 4; // M + %d + fill
     char* layername = malloc(len + 1);
     snprintf(layername, len + 1, "M%dfill", num);
+    const struct generics* layer = _get_or_create_layer(techstate, layername);
+    free(layername);
+    return layer;
+}
+
+const struct generics* generics_create_mptmetalfill(struct technology_state* techstate, int num, int mask)
+{
+    num = technology_resolve_metal(techstate, num);
+    size_t len = 1 + util_num_digits(num) + 1 + util_num_digits(mask) + 4; // M + %d + fill
+    char* layername = malloc(len + 1);
+    snprintf(layername, len + 1, "M%d_%dfill", num, mask);
     const struct generics* layer = _get_or_create_layer(techstate, layername);
     free(layername);
     return layer;

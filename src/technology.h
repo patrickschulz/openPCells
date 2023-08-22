@@ -16,6 +16,7 @@ struct layer_iterator;
 struct technology_config {
     unsigned int metals;
     unsigned int grid;
+    struct vector* multiple_patterning_metals;
 };
 
 struct via_definition {
@@ -40,7 +41,8 @@ int technology_is_create_via_arrays(const struct technology_state* techstate);
 void technology_ignore_premapped_layers(struct technology_state* techstate);
 
 struct generics* technology_get_layer(struct technology_state* state, const char* layername);
-int technology_resolve_metal(struct technology_state* state, int metalnum);
+int technology_resolve_metal(const struct technology_state* state, int metalnum);
+int technology_has_multiple_patterning(const struct technology_state* state, int metalnum);
 struct via_definition** technology_get_via_definitions(struct technology_state* state, int metal1, int metal2);
 struct via_definition* technology_get_via_fallback(struct technology_state* state, int metal1, int metal2);
 struct via_definition** technology_get_contact_definitions(struct technology_state* state, const char* region);
@@ -62,6 +64,7 @@ const struct generics* generics_create_metal(struct technology_state* techstate,
 const struct generics* generics_create_mptmetal(struct technology_state* techstate, int num, int mask);
 const struct generics* generics_create_metalport(struct technology_state* techstate, int num);
 const struct generics* generics_create_metalfill(struct technology_state* techstate, int num);
+const struct generics* generics_create_mptmetalfill(struct technology_state* techstate, int num, int mask);
 const struct generics* generics_create_metalexclude(struct technology_state* techstate, int num);
 const struct generics* generics_create_viacut(struct technology_state* techstate, int metal1, int metal2);
 const struct generics* generics_create_contact(struct technology_state* techstate, const char* region);

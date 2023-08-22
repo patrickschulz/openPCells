@@ -386,7 +386,9 @@ function state.create_cellenv(state, cellname, ovrenv)
         technology = {
             get_dimension = technology.get_dimension,
             has_layer = technology.has_layer,
-            resolve_metal = technology.resolve_metal
+            resolve_metal = technology.resolve_metal,
+            has_multiple_patterning = technology.has_multiple_patterning,
+            multiple_patterning_number = technology.multiple_patterning_number,
         },
         placement = placement,
         routing = routing,
