@@ -13,9 +13,8 @@ struct technology_state;
 struct generics;
 struct layer_iterator;
 
-struct technology_config;
-
-struct via_definition {
+struct via_definition { // FIXME: this is in the header file because the geometry module uses this.
+                        // But the via strategies could be implemented within the technology module, making this private
     unsigned int width;
     unsigned int height;
     unsigned int xspace;
