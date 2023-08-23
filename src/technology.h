@@ -13,11 +13,7 @@ struct technology_state;
 struct generics;
 struct layer_iterator;
 
-struct technology_config {
-    unsigned int metals;
-    unsigned int grid;
-    struct vector* multiple_patterning_metals;
-};
+struct technology_config;
 
 struct via_definition {
     unsigned int width;

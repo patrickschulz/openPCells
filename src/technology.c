@@ -21,6 +21,12 @@ struct generics {
     struct vector* entries; // stores struct generics_entry*
 };
 
+struct technology_config {
+    unsigned int metals;
+    unsigned int grid;
+    struct vector* multiple_patterning_metals;
+};
+
 struct mpentry { // entry for multiple patterning
     int metal;
     int number;
