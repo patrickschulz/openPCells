@@ -183,6 +183,9 @@ function check(_P)
     if (_P.gatespace % 2) ~= (_P.sdwidth % 2) then
         return nil, "gatespace and sdwidth must both be even or odd"
     end
+    if (_P.sdmetalwidth % 2) ~= (_P.sdwidth % 2) then
+        return nil, string.format("sdmetalwidth and sdwidth must both be even or odd (%d vs %d)", _P.sdmetalwidth, _P.sdwidth)
+    end
     if _P.sdviawidth < _P.sdwidth then
         return nil, "sdviawidth must not be smaller than sdwidth"
     end
