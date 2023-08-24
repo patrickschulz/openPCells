@@ -220,7 +220,13 @@ function layout(mesh, _P)
                 mesh:merge_into(botcap)
                 -- inner rail via
                 if i < #_P.meshmetals then
-                    if _P.meshmetals[i + 1] - _P.meshmetals[i] == 1 then
+                    if _P.meshmetals[i + 1] == _P.interconnectmetal then
+                        local viaheight = math.min(_P.metalwidths[i], _P.metalwidths[i + 1])
+                        geometry.viabltr(mesh, _P.interconnectmetal - 1, _P.interconnectmetal,
+                            point.create(-_P.metalwidths[#_P.meshmetals + 2] / 2, -viaheight / 2),
+                            point.create( _P.metalwidths[#_P.meshmetals + 2] / 2,  viaheight / 2)
+                        )
+                    elseif _P.meshmetals[i + 1] - _P.meshmetals[i] == 1 then
                         local nfingersnext = 2 * math.floor((_P.cellsize - 2 * _P.metalwidths[i + 1] - capspace) / (2 * (fwidth + fspace)))
                         local capwidthnext = nfingersnext * fwidth + (nfingersnext - 1) * fspace
                         local viawidth = math.min(capwidth, capwidthnext)
