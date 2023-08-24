@@ -3,9 +3,6 @@ This module provides two methodologies:
  * functions around importing verilog netlists and creating a cell placement (top part)
  * functions around creating actual layouts, to be used within cell definitions (lower part)
 --]]
---local M = {}
-local M = placement
-
 ---------------------------------------------------------------------------------
 --                             Placement functions                             --
 ---------------------------------------------------------------------------------
@@ -72,14 +69,14 @@ local function _create_options(fixedrows, required_min_width, total_width, utili
     return options
 end
 
-function M.create_floorplan_aspectratio(instances, utilization, aspectratio)
+function placement.create_floorplan_aspectratio(instances, utilization, aspectratio)
     -- placer options
     local required_min_width, total_width = _get_geometry(instances)
     local options = _create_options(nil, required_min_width, total_width, utilization, aspectratio)
     return options
 end
 
-function M.create_floorplan_fixed_rows(circuit, utilization, numrows)
+function placement.create_floorplan_fixed_rows(circuit, utilization, numrows)
     -- placer options
     if #circuit.instances < numrows then
         moderror(string.format("placement.create_floorplan_fixed_rows: number of rows (%d) must not be larger than number of instances (%d)", numrows, #circuit.instances))
@@ -97,13 +94,13 @@ function _sanitize_rows(rows)
     end
 end
 
-function M.optimize(circuit, floorplan)
+function placement.optimize(circuit, floorplan)
     local rows = placer.place_simulated_annealing(circuit.instances, circuit.nets, floorplan)
     _sanitize_rows(rows) -- removes empty rows
     return rows
 end
 
-function M.manual(circuit, names)
+function placement.manual(circuit, names)
     local rows = {}
     local processed = {}
     for _, rownames in ipairs(names) do
@@ -129,7 +126,7 @@ function M.manual(circuit, names)
     return rows
 end
 
-function M.insert_filler_names(rows, width)
+function placement.insert_filler_names(rows, width)
     -- calculate row widths
     local rowwidths = {}
     for row, entries in ipairs(rows) do
@@ -190,7 +187,7 @@ end
 ---------------------------------------------------------------------------------
 --                         In-cell layout functions                            --
 ---------------------------------------------------------------------------------
-function M.create_reference_rows(cellnames, xpitch)
+function placement.create_reference_rows(cellnames, xpitch)
     if not cellnames or type(cellnames) ~= "table" then
         moderror("placement.create_reference_rows: table for 'cellnames' (first argument) expected")
     end
@@ -224,7 +221,7 @@ function M.create_reference_rows(cellnames, xpitch)
     return names
 end
 
-function M.digital(parent, rows, width, flipfirst, noflip)
+function placement.digital(parent, rows, width, flipfirst, noflip)
     -- calculate row widths
     local rowwidths = {}
     for row, entries in ipairs(rows) do
@@ -283,10 +280,10 @@ function M.digital(parent, rows, width, flipfirst, noflip)
         end
     end
 
-    return M.rowwise(parent, rows, flipfirst, noflip)
+    return placement.rowwise(parent, rows, flipfirst, noflip)
 end
 
-function M.rowwise(parent, cellnames, flipfirst, noflip)
+function placement.rowwise(parent, cellnames, flipfirst, noflip)
     local cells = {}
     local references = {}
 
@@ -338,6 +335,3 @@ function M.rowwise(parent, cellnames, flipfirst, noflip)
 
     return cells
 end
-
---return M
-return nil
