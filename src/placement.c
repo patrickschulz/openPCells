@@ -7,6 +7,20 @@
 #include "layout_util.h"
 #include "util.h"
 
+static int _is_in_targetarea(coordinate_t x, coordinate_t y, coordinate_t width, coordinate_t height, const struct const_vector* targetarea)
+{
+    // FIXME: this needs a proper polygon intersection test
+    return (layout_util_is_point_in_polygon(x            , y             , targetarea) == 1) &&
+           (layout_util_is_point_in_polygon(x + width / 2, y             , targetarea) >= 0) &&
+           (layout_util_is_point_in_polygon(x - width / 2, y             , targetarea) >= 0) &&
+           (layout_util_is_point_in_polygon(x            , y + height / 2, targetarea) >= 0) &&
+           (layout_util_is_point_in_polygon(x            , y - height / 2, targetarea) >= 0) &&
+           (layout_util_is_point_in_polygon(x + width / 2, y + height / 2, targetarea) >= 0) &&
+           (layout_util_is_point_in_polygon(x - width / 2, y + height / 2, targetarea) >= 0) &&
+           (layout_util_is_point_in_polygon(x + width / 2, y - height / 2, targetarea) >= 0) &&
+           (layout_util_is_point_in_polygon(x - width / 2, y - height / 2, targetarea) >= 0);
+}
+
 static int _is_in_excludes(coordinate_t x, coordinate_t y, coordinate_t width, coordinate_t height, const struct vector* excludes)
 {
     int is_in_exclude = 0;
@@ -89,7 +103,7 @@ struct vector* placement_calculate_origins(
         coordinate_t y = miny + ((ystartshift + yshift) % ypitch);
         while(y <= maxy)
         {
-            int insert = layout_util_is_point_in_polygon(x, y, targetarea) != -1;
+            int insert = _is_in_targetarea(x, y, width, height, targetarea);
             if(excludes && _is_in_excludes(x, y, width, height, excludes))
             {
                 insert = 0;
