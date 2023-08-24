@@ -1,185 +1,193 @@
 function parameters()
     pcell.add_parameters(
-        { "channeltype(Channel Type)",                              "nmos", posvals = set("nmos", "pmos") },
-        { "oxidetype(Oxide Thickness Type)",                             1, argtype = "integer", posvals = interval(1, inf) },
-        { "vthtype(Threshold Voltage Type)",                             1, argtype = "integer", posvals = interval(1, inf) },
-        { "gatemarker(Gate Marking Layer Index)",                        1, argtype = "integer", posvals = interval(1, inf) },
-        { "mosfetmarker(MOSFET Marking Layer Index)",                    1, argtype = "integer", posvals = interval(1, inf) },
-        { "mosfetmarkeralignatsourcedrain(Align MOSFET Marker at Source/Drain)",  false },
-        { "flippedwell(Flipped Well)",                                 false },
-        { "fingers(Number of Fingers)",                                  1, argtype = "integer", posvals = interval(0, inf) },
-        { "fwidth(Finger Width)",                                      technology.get_dimension("Minimum Gate Width"), argtype = "integer" },
-        { "gatelength(Gate Length)",                                   technology.get_dimension("Minimum Gate Length"), argtype = "integer" },
-        { "gatespace(Gate Spacing)",                                   technology.get_dimension("Minimum Gate XSpace"), argtype = "integer" },
-        { "actext(Active Extension)",                                  0 },
-        { "sdwidth(Source/Drain Metal Width)",                         technology.get_dimension("Minimum M1 Width"), argtype = "integer" },
-        { "gtopext(Gate Top Extension)",                               technology.get_dimension("Minimum Gate Extension") },
-        { "gbotext(Gate Bottom Extension)",                            technology.get_dimension("Minimum Gate Extension") },
-        { "gtopextadd(Gate Additional Top Extension)",                 0 },
-        { "gbotextadd(Gate Additional Bottom Extension)",              0 },
-        { "cliptop(Clip Top Marker Layers)",                           false },
-        { "clipbot(Clip Bottom Marker Layers)",                        false },
-        { "drawleftstopgate(Draw Left Stop Gate)",                     false },
-        { "drawrightstopgate(Draw Right Stop Gate)",                   false },
-        { "endleftwithgate(End Left Side With Gate)",                  false, follow = "drawleftstopgate" },
-        { "endrightwithgate(End Right Side With Gate)",                false, follow = "drawrightstopgate" },
-        { "drawtopgate(Draw Top Gate Contact)",                        false },
-        { "drawtopgatestrap(Draw Top Gate Strap)",                     false, follow = "drawtopgate" },
-        { "topgatewidth(Top Gate Width)",                     technology.get_dimension("Minimum M1 Width"), argtype = "integer", posvals = even() },
-        { "topgateleftextension(Top Gate Left Extension)",            0 },
-        { "topgaterightextension(Top Gate Right Extension)",          0 },
-        { "topgatespace(Top Gate Space)",                     technology.get_dimension("Minimum M1 Space"), argtype = "integer" },
-        { "topgatemetal(Top Gate Strap Metal)",                            1 },
-        { "drawtopgatevia(Draw Top Gate Via)",                         false },
-        { "topgatecontinuousvia(Top Gate Continuous Via)",             false },
-        { "drawbotgate(Draw Bottom Gate Contact)",                     false },
-        { "drawbotgatestrap(Draw Bot Gate Strap)",                     false, follow = "drawbotgate" },
-        { "botgatewidth(Bottom Gate Width)",                  technology.get_dimension("Minimum M1 Width"), argtype = "integer", posvals = even() },
-        { "botgatespace(Bottom Gate Space)",                  technology.get_dimension("Minimum M1 Space"), argtype = "integer" },
-        { "botgateleftextension(Bottom Gate Left Extension)",         0 },
-        { "botgaterightextension(Bottom Gate Right Extension)",       0 },
-        { "botgatemetal(Bottom Gate Strap Metal)",                         1 },
-        { "drawbotgatevia(Draw Bot Gate Via)",                         false },
-        { "botgatecontinuousvia(Bot Gate Continuous Via)",             false },
-        { "botgateviatarget(Metal Target of Bot Gate Via)",                2 },
-        { "drawtopgcut(Draw Top Gate Cut)",                            false },
-        { "topgcutwidth(Top Gate Cut Y Width)",                            technology.get_dimension("Minimum Gate Cut Height", "Minimum Gate YSpace") },
-        { "topgcutspace(Top Gate Cut Y Space)",                            0 },
-        { "topgcutleftext(Top Gate Cut Left Extension)",                   0 },
-        { "topgcutrightext(Top Gate Cut Right Extension)",                 0 },
-        { "drawbotgcut(Draw Bottom Gate Cut)",                            false },
-        { "botgcutwidth(Bottom Gate Cut Y Width)",                         technology.get_dimension("Minimum Gate Cut Height", "Minimum Gate YSpace") },
-        { "botgcutspace(Bottom Gate Cut Y Space)",                         0 },
-        { "botgcutleftext(Bottom Gate Cut Left Extension)",                0 },
-        { "botgcutrightext(Bottom Gate Cut Right Extension)",              0 },
-        { "simulatemissinggatecut",                                       false },
-        { "drawsourcedrain(Draw Source/Drain Contacts)",              "both", posvals = set("both", "source", "drain", "none") },
-        { "excludesourcedraincontacts(Exclude Source/Drain Contacts)",   {}, argtype = "table" },
-        { "sourcesize(Source Size)",                                  technology.get_dimension("Minimum Gate Width"), argtype = "integer", follow = "fwidth" },
-        { "sourceviasize(Source Via Size)",                           technology.get_dimension("Minimum Gate Width"), argtype = "integer", follow = "sourcesize" },
-        { "drainsize(Drain Size)",                                    technology.get_dimension("Minimum Gate Width"), argtype = "integer", follow = "fwidth" },
-        { "drainviasize(Drain Via Size)",                             technology.get_dimension("Minimum Gate Width"), argtype = "integer", follow = "drainsize" },
-        { "sourcealign(Source Alignement)",                          "bottom", posvals = set("top", "bottom") },
-        { "sourceviaalign(Source Via Alignement)",                   "bottom", posvals = set("top", "bottom"), follow = "sourcealign" },
-        { "drainalign(Drain Alignement)",                            "top", posvals = set("top", "bottom") },
-        { "drainviaalign(Drain Via Alignement)",                     "top", posvals = set("top", "bottom"), follow = "drainalign" },
-        { "drawsourcevia(Draw Source Via)",                            true },
-        { "drawfirstsourcevia(Draw First Source Via)",                            true },
+        { "channeltype(Channel Type)",                                          "nmos", posvals = set("nmos", "pmos") },
+        { "oxidetype(Oxide Thickness Type)",                                    1, argtype = "integer", posvals = interval(1, inf) },
+        { "vthtype(Threshold Voltage Type)",                                    1, argtype = "integer", posvals = interval(1, inf) },
+        { "gatemarker(Gate Marking Layer Index)",                               1, argtype = "integer", posvals = interval(1, inf) },
+        { "mosfetmarker(MOSFET Marking Layer Index)",                           1, argtype = "integer", posvals = interval(1, inf) },
+        { "mosfetmarkeralignatsourcedrain(Align MOSFET Marker at Source/Drai    n)",  false },
+        { "flippedwell(Flipped Well)",                                          false },
+        { "fingers(Number of Fingers)",                                         1, argtype = "integer", posvals = interval(0, inf) },
+        { "fwidth(Finger Width)",                                               technology.get_dimension("Minimum Gate Width"), argtype = "integer" },
+        { "gatelength(Gate Length)",                                            technology.get_dimension("Minimum Gate Length"), argtype = "integer" },
+        { "gatespace(Gate Spacing)",                                            technology.get_dimension("Minimum Gate XSpace"), argtype = "integer" },
+        { "actext(Active Extension)",                                           0 },
+        { "sdwidth(Source/Drain Contact Width)",                                technology.get_dimension("Minimum M1 Width"), argtype = "integer" }, -- FIXME: rename
+        { "sdviawidth(Source/Drain Metal Width for Vias)",                      technology.get_dimension("Minimum M1 Width"), argtype = "integer", follow = "sdwidth" },
+        { "sdmetalwidth(Source/Drain Metal Width)",                             technology.get_dimension("Minimum M1 Width"), argtype = "integer", follow = "sdviawidth" },
+        { "gtopext(Gate Top Extension)",                                        technology.get_dimension("Minimum Gate Extension") },
+        { "gbotext(Gate Bottom Extension)",                                     technology.get_dimension("Minimum Gate Extension") },
+        { "gtopextadd(Gate Additional Top Extension)",                          0 },
+        { "gbotextadd(Gate Additional Bottom Extension)",                       0 },
+        { "cliptop(Clip Top Marker Layers)",                                    false },
+        { "clipbot(Clip Bottom Marker Layers)",                                 false },
+        { "drawleftstopgate(Draw Left Stop Gate)",                              false },
+        { "drawrightstopgate(Draw Right Stop Gate)",                            false },
+        { "endleftwithgate(End Left Side With Gate)",                           false, follow = "drawleftstopgate" },
+        { "endrightwithgate(End Right Side With Gate)",                         false, follow = "drawrightstopgate" },
+        { "drawtopgate(Draw Top Gate Contact)",                                 false },
+        { "drawtopgatestrap(Draw Top Gate Strap)",                              false, follow = "drawtopgate" },
+        { "topgatewidth(Top Gate Width)",                                       technology.get_dimension("Minimum M1 Width"), argtype = "integer", posvals = even() },
+        { "topgateleftextension(Top Gate Left Extension)",                      0 },
+        { "topgaterightextension(Top Gate Right Extension)",                    0 },
+        { "topgatespace(Top Gate Space)",                                       technology.get_dimension("Minimum M1 Space"), argtype = "integer" },
+        { "topgatemetal(Top Gate Strap Metal)",                                 1 },
+        { "drawtopgatevia(Draw Top Gate Via)",                                  false },
+        { "topgatecontinuousvia(Top Gate Continuous Via)",                      false },
+        { "drawbotgate(Draw Bottom Gate Contact)",                              false },
+        { "drawbotgatestrap(Draw Bot Gate Strap)",                              false, follow = "drawbotgate" },
+        { "botgatewidth(Bottom Gate Width)",                                    technology.get_dimension("Minimum M1 Width"), argtype = "integer", posvals = even() },
+        { "botgatespace(Bottom Gate Space)",                                    technology.get_dimension("Minimum M1 Space"), argtype = "integer" },
+        { "botgateleftextension(Bottom Gate Left Extension)",                   0 },
+        { "botgaterightextension(Bottom Gate Right Extension)",                 0 },
+        { "botgatemetal(Bottom Gate Strap Metal)",                              1 },
+        { "drawbotgatevia(Draw Bot Gate Via)",                                  false },
+        { "botgatecontinuousvia(Bot Gate Continuous Via)",                      false },
+        { "botgateviatarget(Metal Target of Bot Gate Via)",                     2 },
+        { "drawtopgcut(Draw Top Gate Cut)",                                     false },
+        { "topgcutwidth(Top Gate Cut Y Width)",                                 technology.get_dimension("Minimum Gate Cut Height", "Minimum Gate YSpace") },
+        { "topgcutspace(Top Gate Cut Y Space)",                                 0 },
+        { "topgcutleftext(Top Gate Cut Left Extension)",                        0 },
+        { "topgcutrightext(Top Gate Cut Right Extension)",                      0 },
+        { "drawbotgcut(Draw Bottom Gate Cut)",                                  false },
+        { "botgcutwidth(Bottom Gate Cut Y Width)",                              technology.get_dimension("Minimum Gate Cut Height", "Minimum Gate YSpace") },
+        { "botgcutspace(Bottom Gate Cut Y Space)",                              0 },
+        { "botgcutleftext(Bottom Gate Cut Left Extension)",                     0 },
+        { "botgcutrightext(Bottom Gate Cut Right Extension)",                   0 },
+        { "simulatemissinggatecut",                                             false },
+        { "drawsourcedrain(Draw Source/Drain Contacts)",                        "both", posvals = set("both", "source", "drain", "none") },
+        { "excludesourcedraincontacts(Exclude Source/Drain Contacts)",          {}, argtype = "table" },
+        { "sourcesize(Source Size)",                                            technology.get_dimension("Minimum Gate Width"), argtype = "integer", follow = "fwidth" },
+        { "sourceviasize(Source Via Size)",                                     technology.get_dimension("Minimum Gate Width"), argtype = "integer", follow = "sourcesize" },
+        { "drainsize(Drain Size)",                                              technology.get_dimension("Minimum Gate Width"), argtype = "integer", follow = "fwidth" },
+        { "drainviasize(Drain Via Size)",                                       technology.get_dimension("Minimum Gate Width"), argtype = "integer", follow = "drainsize" },
+        { "sourcealign(Source Alignement)",                                     "bottom", posvals = set("top", "bottom") },
+        { "sourceviaalign(Source Via Alignement)",                              "bottom", posvals = set("top", "bottom"), follow = "sourcealign" },
+        { "drainalign(Drain Alignement)",                                       "top", posvals = set("top", "bottom") },
+        { "drainviaalign(Drain Via Alignement)",                                "top", posvals = set("top", "bottom"), follow = "drainalign" },
+        { "drawsourcevia(Draw Source Via)",                                     true },
+        { "drawfirstsourcevia(Draw First Source Via)",                          true },
         { "drawlastsourcevia(Draw Last Source Via)",                            true },
-        { "connectsource(Connect Source)",                             false },
-        { "drawsourcestrap(Draw Source Strap)",                        false, follow = "connectsource" },
-        { "drawsourceconnections(Draw Source Connections)",            false, follow = "connectsource" },
-        { "connectsourceboth(Connect Source on Both Sides)",           false },
-        { "connectsourcewidth(Source Rails Metal Width)",               technology.get_dimension("Minimum M1 Width"), argtype = "integer", follow = "sdwidth" },
-        { "connectsourcespace(Source Rails Metal Space)",               technology.get_dimension("Minimum M1 Width"), argtype = "integer" },
-        { "connectsourceleftext(Source Rails Metal Left Extension)",    0 },
-        { "connectsourcerightext(Source Rails Metal Right Extension)",  0 },
-        { "sourcemetal(Source Connection Metal)",                      1 },
-        { "sourceviametal(Source Via Metal)",                              1, follow = "sourcemetal" },
-        { "connectsourceinline(Connect Source Inline of Transistor)",     false },
-        { "connectsourceinlineoffset(Offset for Inline Source Connection)",   0 },
-        { "connectsourceinverse(Invert Source Strap Locations)",       false },
-        { "connectdrain(Connect Drain)",                               false },
-        { "drawdrainstrap(Draw Drain Strap)",                          false, follow = "connectdrain" },
-        { "drawdrainconnections(Draw Drain Connections)",              false, follow = "connectdrain" },
-        { "connectdrainboth(Connect Drain on Both Sides)",             false },
-        { "connectdrainwidth(Drain Rails Metal Width)",               technology.get_dimension("Minimum M1 Width"), argtype = "integer", follow = "sdwidth" },
-        { "connectdrainspace(Drain Rails Metal Space)",               technology.get_dimension("Minimum M1 Width"), argtype = "integer" },
-        { "connectdrainleftext(Drain Rails Metal Left Extension)",      0 },
-        { "connectdrainrightext(Drain Rails Metal Right Extension)",    0 },
-        { "connectdraininverse(Invert Drain Strap Locations)",         false },
-        { "drawdrainvia(Draw Drain Via)",                              true },
+        { "connectsource(Connect Source)",                                      false },
+        { "drawsourcestrap(Draw Source Strap)",                                 false, follow = "connectsource" },
+        { "drawsourceconnections(Draw Source Connections)",                     false, follow = "connectsource" },
+        { "connectsourceboth(Connect Source on Both Sides)",                    false },
+        { "connectsourcewidth(Source Rails Metal Width)",                       technology.get_dimension("Minimum M1 Width"), argtype = "integer", follow = "sdwidth" },
+        { "connectsourcespace(Source Rails Metal Space)",                       technology.get_dimension("Minimum M1 Width"), argtype = "integer" },
+        { "connectsourceleftext(Source Rails Metal Left Extension)",            0 },
+        { "connectsourcerightext(Source Rails Metal Right Extension)",          0 },
+        { "sourcemetal(Source Connection Metal)",                               1 },
+        { "sourceviametal(Source Via Metal)",                                   1, follow = "sourcemetal" },
+        { "connectsourceinline(Connect Source Inline of Transistor)",           false },
+        { "connectsourceinlineoffset(Offset for Inline Source Connection)",     0 },
+        { "connectsourceinverse(Invert Source Strap Locations)",                false },
+        { "connectdrain(Connect Drain)",                                        false },
+        { "drawdrainstrap(Draw Drain Strap)",                                   false, follow = "connectdrain" },
+        { "drawdrainconnections(Draw Drain Connections)",                       false, follow = "connectdrain" },
+        { "connectdrainboth(Connect Drain on Both Sides)",                      false },
+        { "connectdrainwidth(Drain Rails Metal Width)",                         technology.get_dimension("Minimum M1 Width"), argtype = "integer", follow = "sdwidth" },
+        { "connectdrainspace(Drain Rails Metal Space)",                         technology.get_dimension("Minimum M1 Width"), argtype = "integer" },
+        { "connectdrainleftext(Drain Rails Metal Left Extension)",              0 },
+        { "connectdrainrightext(Drain Rails Metal Right Extension)",            0 },
+        { "connectdraininverse(Invert Drain Strap Locations)",                  false },
+        { "drawdrainvia(Draw Drain Via)",                                       true },
         { "drawfirstdrainvia(Draw First Drain Via)",                            true },
-        { "drawlastdrainvia(Draw Last Drain Via)",                            true },
-        { "drainmetal(Drain Connection Metal)",                        1 },
-        { "drainviametal(Drain Via Metal)",                                1, follow = "drainmetal" },
-        { "connectdraininline(Connect Drain Inline of Transistor)",       false },
-        { "connectdraininlineoffset(Offset for Inline Drain Connection)",     0 },
-        { "diodeconnected(Diode Connected Transistor)",                false },
-        { "drawextrabotstrap(Draw Extra Bottom Strap)",             false },
-        { "extrabotstrapwidth(Width of Extra Bottom Strap)",        technology.get_dimension("Minimum M1 Width"), argtype = "integer" },
-        { "extrabotstrapspace(Space of Extra Bottom Strap)",        technology.get_dimension("Minimum M1 Space"), argtype = "integer" },
-        { "extrabotstrapmetal(Metal Layer for Extra Bottom Strap)",     1 },
-        { "extrabotstrapleftalign(Left Alignment for Extra Bottom Strap)", 1 },
-        { "extrabotstraprightalign(Right Alignment for Extra Bottom Strap)", 1, follow = "fingers" },
-        { "drawextratopstrap(Draw Extra Top Strap)",               false },
-        { "extratopstrapwidth(Width of Extra Top Strap)",          technology.get_dimension("Minimum M1 Width"), argtype = "integer" },
-        { "extratopstrapspace(Space of Extra Top Strap)",          technology.get_dimension("Minimum M1 Space"), argtype = "integer" },
-        { "extratopstrapmetal(Metal Layer for Extra Top Strap)",       1 },
-        { "extratopstrapleftalign(Left Alignment for Extra Top Strap)", 1 },
-        { "extratopstraprightalign(Right Alignment for Extra Top Strap)", 1, follow = "fingers" },
-        { "shortdevice(Short Transistor)",                             false },
-        { "shortdeviceleftoffset(Short Transistor Left Offset)",       0 },
-        { "shortdevicerightoffset(Short Transistor Right Offset)",     0 },
-        { "drawtopactivedummy",                                        false },
-        { "topactivedummywidth",                                          80 },
-        { "topactivedummysep",                                            80 },
-        { "drawbotactivedummy",                                        false },
-        { "botactivedummywidth",                                          80 },
-        { "botactivedummysep",                                            80 },
-        { "leftfloatingdummies",                                           0 },
-        { "rightfloatingdummies",                                          0 },
-        { "drawactive",                                                 true },
-        { "lvsmarker",                                                     1 },
-        { "extendalltop",                                                  0 },
-        { "extendallbot",                                                  0 },
-        { "extendallleft",                                                 0 },
-        { "extendallright",                                                0 },
-        { "extendoxidetop",                                                0, follow = "extendalltop" },
-        { "extendoxidebot",                                                0, follow = "extendallbot" },
-        { "extendoxideleft",                                               0, follow = "extendallleft" },
-        { "extendoxideright",                                              0, follow = "extendallright" },
-        { "extendvthtop",                                                  0, follow = "extendalltop" },
-        { "extendvthbot",                                                  0, follow = "extendallbot" },
-        { "extendvthleft",                                                 0, follow = "extendallleft" },
-        { "extendvthright",                                                0, follow = "extendallright" },
-        { "extendimplanttop",                                              0, follow = "extendalltop" },
-        { "extendimplantbot",                                              0, follow = "extendallbot" },
-        { "extendimplantleft",                                             0, follow = "extendallleft" },
-        { "extendimplantright",                                            0, follow = "extendallright" },
-        { "extendwelltop",                                                 0, follow = "extendalltop" },
-        { "extendwellbot",                                                 0, follow = "extendallbot" },
-        { "extendwellleft",                                                0, follow = "extendallleft" },
-        { "extendwellright",                                               0, follow = "extendallright" },
-        { "extendwelltop",                                                 0, follow = "extendalltop" },
-        { "extendwellbot",                                                 0, follow = "extendallbot" },
-        { "extendwellleft",                                                0, follow = "extendallleft" },
-        { "extendwellright",                                               0, follow = "extendallright" },
-        { "extendlvsmarkertop",                                            0, follow = "extendalltop" },
-        { "extendlvsmarkerbot",                                            0, follow = "extendallbot" },
-        { "extendlvsmarkerleft",                                           0, follow = "extendallleft" },
-        { "extendlvsmarkerright",                                          0, follow = "extendallright" },
-        { "extendrotationmarkertop",                                       0, follow = "extendalltop" },
-        { "extendrotationmarkerbot",                                       0, follow = "extendallbot" },
-        { "extendrotationmarkerleft",                                      0, follow = "extendallleft" },
-        { "extendrotationmarkerright",                                     0, follow = "extendallright" },
-        { "drawwell",                                                  true },
-        { "drawtopwelltap",                                            false },
-        { "topwelltapwidth",                                           technology.get_dimension("Minimum M1 Width") },
-        { "topwelltapspace",                                           technology.get_dimension("Minimum M1 Space") },
-        { "topwelltapextendleft",                                          0 },
-        { "topwelltapextendright",                                         0 },
-        { "drawbotwelltap",                                            false },
-        { "drawguardring",                                             false },
-        { "guardringwidth",                                            technology.get_dimension("Minimum M1 Width") },
-        { "guardringxsep",                                             0 },
-        { "guardringysep",                                             0 },
-        { "guardringsegments",                                         { "left", "right", "top", "bottom" } },
-        { "botwelltapwidth",                                           technology.get_dimension("Minimum M1 Width") },
-        { "botwelltapspace",                                           technology.get_dimension("Minimum M1 Space") },
-        { "botwelltapextendleft",                                          0 },
-        { "botwelltapextendright",                                         0 },
-        { "drawstopgatetopgcut",                                           false },
-        { "drawstopgatebotgcut",                                           false },
-        { "leftpolylines",                                                 {} },
-        { "rightpolylines",                                                {} },
-        { "drawrotationmarker",                                            false }
+        { "drawlastdrainvia(Draw Last Drain Via)",                              true },
+        { "drainmetal(Drain Connection Metal)",                                 1 },
+        { "drainviametal(Drain Via Metal)",                                     1, follow = "drainmetal" },
+        { "connectdraininline(Connect Drain Inline of Transistor)",             false },
+        { "connectdraininlineoffset(Offset for Inline Drain Connection)",       0 },
+        { "diodeconnected(Diode Connected Transistor)",                         false },
+        { "drawextrabotstrap(Draw Extra Bottom Strap)",                         false },
+        { "extrabotstrapwidth(Width of Extra Bottom Strap)",                    technology.get_dimension("Minimum M1 Width"), argtype = "integer" },
+        { "extrabotstrapspace(Space of Extra Bottom Strap)",                    technology.get_dimension("Minimum M1 Space"), argtype = "integer" },
+        { "extrabotstrapmetal(Metal Layer for Extra Bottom Strap)",             1 },
+        { "extrabotstrapleftalign(Left Alignment for Extra Bottom Strap)",      1 },
+        { "extrabotstraprightalign(Right Alignment for Extra Bottom Strap)",    1, follow = "fingers" },
+        { "drawextratopstrap(Draw Extra Top Strap)",                            false },
+        { "extratopstrapwidth(Width of Extra Top Strap)",                       technology.get_dimension("Minimum M1 Width"), argtype = "integer" },
+        { "extratopstrapspace(Space of Extra Top Strap)",                       technology.get_dimension("Minimum M1 Space"), argtype = "integer" },
+        { "extratopstrapmetal(Metal Layer for Extra Top Strap)",                1 },
+        { "extratopstrapleftalign(Left Alignment for Extra Top Strap)",         1 },
+        { "extratopstraprightalign(Right Alignment for Extra Top Strap)",       1, follow = "fingers" },
+        { "shortdevice(Short Transistor)",                                      false },
+        { "shortdeviceleftoffset(Short Transistor Left Offset)",                0 },
+        { "shortdevicerightoffset(Short Transistor Right Offset)",              0 },
+        { "drawtopactivedummy",                                                 false },
+        { "topactivedummywidth",                                                80 },
+        { "topactivedummysep",                                                  80 },
+        { "drawbotactivedummy",                                                 false },
+        { "botactivedummywidth",                                                80 },
+        { "botactivedummysep",                                                  80 },
+        { "leftfloatingdummies",                                                0 },
+        { "rightfloatingdummies",                                               0 },
+        { "drawactive",                                                         true },
+        { "lvsmarker",                                                          1 },
+        { "extendalltop",                                                       0 },
+        { "extendallbot",                                                       0 },
+        { "extendallleft",                                                      0 },
+        { "extendallright",                                                     0 },
+        { "extendoxidetop",                                                     0, follow = "extendalltop" },
+        { "extendoxidebot",                                                     0, follow = "extendallbot" },
+        { "extendoxideleft",                                                    0, follow = "extendallleft" },
+        { "extendoxideright",                                                   0, follow = "extendallright" },
+        { "extendvthtop",                                                       0, follow = "extendalltop" },
+        { "extendvthbot",                                                       0, follow = "extendallbot" },
+        { "extendvthleft",                                                      0, follow = "extendallleft" },
+        { "extendvthright",                                                     0, follow = "extendallright" },
+        { "extendimplanttop",                                                   0, follow = "extendalltop" },
+        { "extendimplantbot",                                                   0, follow = "extendallbot" },
+        { "extendimplantleft",                                                  0, follow = "extendallleft" },
+        { "extendimplantright",                                                 0, follow = "extendallright" },
+        { "extendwelltop",                                                      0, follow = "extendalltop" },
+        { "extendwellbot",                                                      0, follow = "extendallbot" },
+        { "extendwellleft",                                                     0, follow = "extendallleft" },
+        { "extendwellright",                                                    0, follow = "extendallright" },
+        { "extendwelltop",                                                      0, follow = "extendalltop" },
+        { "extendwellbot",                                                      0, follow = "extendallbot" },
+        { "extendwellleft",                                                     0, follow = "extendallleft" },
+        { "extendwellright",                                                    0, follow = "extendallright" },
+        { "extendlvsmarkertop",                                                 0, follow = "extendalltop" },
+        { "extendlvsmarkerbot",                                                 0, follow = "extendallbot" },
+        { "extendlvsmarkerleft",                                                0, follow = "extendallleft" },
+        { "extendlvsmarkerright",                                               0, follow = "extendallright" },
+        { "extendrotationmarkertop",                                            0, follow = "extendalltop" },
+        { "extendrotationmarkerbot",                                            0, follow = "extendallbot" },
+        { "extendrotationmarkerleft",                                           0, follow = "extendallleft" },
+        { "extendrotationmarkerright",                                          0, follow = "extendallright" },
+        { "drawwell",                                                           true },
+        { "drawtopwelltap",                                                     false },
+        { "topwelltapwidth",                                                    technology.get_dimension("Minimum M1 Width") },
+        { "topwelltapspace",                                                    technology.get_dimension("Minimum M1 Space") },
+        { "topwelltapextendleft",                                               0 },
+        { "topwelltapextendright",                                              0 },
+        { "drawbotwelltap",                                                     false },
+        { "drawguardring",                                                      false },
+        { "guardringwidth",                                                     technology.get_dimension("Minimum M1 Width") },
+        { "guardringxsep",                                                      0 },
+        { "guardringysep",                                                      0 },
+        { "guardringsegments",                                                  { "left", "right", "top", "bottom" } },
+        { "botwelltapwidth",                                                    technology.get_dimension("Minimum M1 Width") },
+        { "botwelltapspace",                                                    technology.get_dimension("Minimum M1 Space") },
+        { "botwelltapextendleft",                                               0 },
+        { "botwelltapextendright",                                              0 },
+        { "drawstopgatetopgcut",                                                false },
+        { "drawstopgatebotgcut",                                                false },
+        { "leftpolylines",                                                      {} },
+        { "rightpolylines",                                                     {} },
+        { "drawrotationmarker",                                                 false }
     )
 end
 
 function check(_P)
     if (_P.gatespace % 2) ~= (_P.sdwidth % 2) then
         return nil, "gatespace and sdwidth must both be even or odd"
+    end
+    if _P.sdviawidth < _P.sdwidth then
+        return nil, "sdviawidth must not be smaller than sdwidth"
+    end
+    if _P.sdmetalwidth < _P.sdviawidth then
+        return nil, "sdmetalwidth must not be smaller than sdviawidth"
     end
     if _P.shortdevice and ((_P.sourcesize % 2) ~= (_P.sdwidth % 2)) then
         return nil, "gatespace and sdwidth must both be even or odd when shortdevice is true"
@@ -696,6 +704,9 @@ function layout(transistor, _P)
         end
     end
 
+    local sdviashift = (_P.sdviawidth - _P.sdwidth) / 2
+    local sdmetalshift = (_P.sdmetalwidth - _P.sdwidth) / 2
+
     -- source/drain contacts and vias
     local sourceoffset = _P.sourcealign == "top" and _P.fwidth - _P.sourcesize or 0
     local sourceviaoffset = _P.sourceviaalign == "top" and _P.fwidth - _P.sourceviasize or 0
@@ -709,19 +720,33 @@ function layout(transistor, _P)
                 local bl = point.create(shift, sourceoffset)
                 local tr = point.create(shift + _P.sdwidth, sourceoffset + _P.sourcesize)
                 if not aux.any_of(i, _P.excludesourcedraincontacts) then
-                    geometry.contactbltr(transistor, "sourcedrain", bl, tr)
+                    geometry.contactbarebltr(transistor, "sourcedrain", bl, tr)
                 end
                 if _P.drawsourcevia and _P.sourceviametal > 1 and
                    not (i == 1 and not _P.drawfirstsourcevia or
                     i == _P.fingers + 1 and not _P.drawlastsourcevia) then
-                    geometry.viabltr(transistor, 1, _P.sourceviametal,
-                        point.create(shift, sourceviaoffset),
-                        point.create(shift + _P.sdwidth, sourceviaoffset + _P.sourceviasize)
+                    geometry.viabarebltr(transistor, 1, _P.sourceviametal,
+                        point.create(shift - sdviashift, sourceviaoffset),
+                        point.create(shift + _P.sdviawidth - sdviashift, sourceviaoffset + _P.sourceviasize)
+                    )
+                end
+                for metal = 1, _P.sourceviametal do
+                    geometry.rectanglebltr(transistor, generics.metal(metal),
+                        point.create(shift - sdmetalshift, sourceviaoffset),
+                        point.create(shift + _P.sdmetalwidth - sdmetalshift, sourceviaoffset + _P.sourceviasize)
                     )
                 end
                 -- anchors
                 transistor:add_area_anchor_bltr(string.format("sourcedrain%d", i), bl, tr)
                 transistor:add_area_anchor_bltr(string.format("sourcedrain%d", i - _P.fingers - 2), bl, tr)
+                transistor:add_area_anchor_bltr(string.format("sourcedrainmetal%d", i),
+                    point.create(shift - sdmetalshift, sourceviaoffset),
+                    point.create(shift + _P.sdmetalwidth - sdmetalshift, sourceviaoffset + _P.sourceviasize)
+                )
+                transistor:add_area_anchor_bltr(string.format("sourcedrainmetal%d", i - _P.fingers - 2),
+                    point.create(shift - sdmetalshift, sourceviaoffset),
+                    point.create(shift + _P.sdmetalwidth - sdmetalshift, sourceviaoffset + _P.sourceviasize)
+                )
             end
         end
         -- drain
@@ -731,19 +756,33 @@ function layout(transistor, _P)
                 local bl = point.create(shift, drainoffset)
                 local tr = point.create(shift + _P.sdwidth, drainoffset + _P.drainsize)
                 if not aux.any_of(i, _P.excludesourcedraincontacts) then
-                    geometry.contactbltr(transistor, "sourcedrain", bl, tr)
+                    geometry.contactbarebltr(transistor, "sourcedrain", bl, tr)
                 end
                 if _P.drawdrainvia and _P.drainviametal > 1 and
                    not (i == 2 and not _P.drawfirstdrainvia or
                     i == _P.fingers + 1 and not _P.drawlastdrainvia) then
-                    geometry.viabltr(transistor, 1, _P.drainviametal,
-                        point.create(shift, drainviaoffset),
-                        point.create(shift + _P.sdwidth, drainviaoffset + _P.drainviasize)
+                    geometry.viabarebltr(transistor, 1, _P.drainviametal,
+                        point.create(shift - sdviashift, drainviaoffset),
+                        point.create(shift + _P.sdviawidth - sdviashift, drainviaoffset + _P.drainviasize)
+                    )
+                end
+                for metal = 1, _P.drainviametal do
+                    geometry.rectanglebltr(transistor, generics.metal(metal),
+                        point.create(shift - sdmetalshift, drainviaoffset),
+                        point.create(shift + _P.sdmetalwidth - sdmetalshift, drainviaoffset + _P.drainviasize)
                     )
                 end
                 -- anchors
                 transistor:add_area_anchor_bltr(string.format("sourcedrain%d", i), bl, tr)
                 transistor:add_area_anchor_bltr(string.format("sourcedrain%d", i - _P.fingers - 2), bl, tr)
+                transistor:add_area_anchor_bltr(string.format("sourcedrainmetal%d", i),
+                point.create(shift - sdmetalshift, drainviaoffset),
+                point.create(shift + _P.sdmetalwidth - sdmetalshift, drainviaoffset + _P.drainviasize)
+            )
+                transistor:add_area_anchor_bltr(string.format("sourcedrainmetal%d", i - _P.fingers - 2),
+                    point.create(shift - sdmetalshift, drainviaoffset),
+                    point.create(shift + _P.sdmetalwidth - sdmetalshift, drainviaoffset + _P.drainviasize)
+                )
             end
         end
     end
@@ -753,16 +792,16 @@ function layout(transistor, _P)
         for i = 2, _P.fingers + 1, 2 do
             if _P.drawtopgatestrap then
                 geometry.rectanglebltr(transistor, generics.metal(1),
-                    transistor:get_area_anchor(string.format("sourcedrain%d", i)).tl,
-                    transistor:get_area_anchor(string.format("sourcedrain%d", i)).tr ..
+                    transistor:get_area_anchor(string.format("sourcedrain%d", i)).tl:translate_x(-sdmetalshift),
+                    transistor:get_area_anchor(string.format("sourcedrain%d", i)).tr:translate_x(sdmetalshift) ..
                     transistor:get_area_anchor(string.format("topgatestrap", i)).br
                 )
             end
             if _P.drawbotgatestrap then
                 geometry.rectanglebltr(transistor, generics.metal(1),
-                    transistor:get_area_anchor(string.format("sourcedrain%d", i)).bl ..
+                    transistor:get_area_anchor(string.format("sourcedrain%d", i)).bl:translate_x(-sdmetalshift) ..
                     transistor:get_area_anchor(string.format("botgatestrap", i)).tl,
-                    transistor:get_area_anchor(string.format("sourcedrain%d", i)).br
+                    transistor:get_area_anchor(string.format("sourcedrain%d", i)).br:translate_x(sdmetalshift)
                 )
             end
         end
@@ -776,13 +815,13 @@ function layout(transistor, _P)
             sourceinvert = not sourceinvert
         end
         for i = 1, _P.fingers + 1, 2 do
-            local shift = leftactext - (_P.gatespace + _P.sdwidth) / 2 + (i - 1) * gatepitch
+            local shift = leftactext - (_P.gatespace + _P.sdwidth) / 2 + (i - 1) * gatepitch - sdmetalshift
             if not sourceinvert or _P.connectsourceboth then
                 if -_P.connectsourcespace < sourceoffset then -- don't draw connections if they are malformed
                     if not (i == 1 and not _P.drawfirstsourcevia or i == _P.fingers + 1 and not _P.drawlastsourcevia) then
                         geometry.rectanglebltr(transistor, generics.metal(_P.sourcemetal),
                             point.create(shift, -_P.connectsourcespace),
-                            point.create(shift + _P.sdwidth, sourceoffset)
+                            point.create(shift + _P.sdmetalwidth, sourceoffset)
                         )
                     end
                 end
@@ -792,7 +831,7 @@ function layout(transistor, _P)
                     if not (i == 1 and not _P.drawfirstsourcevia or i == _P.fingers + 1 and not _P.drawlastsourcevia) then
                         geometry.rectanglebltr(transistor, generics.metal(_P.sourcemetal),
                             point.create(shift, sourceoffset + _P.sourcesize),
-                            point.create(shift + _P.sdwidth, _P.fwidth + _P.connectsourcespace)
+                            point.create(shift + _P.sdmetalwidth, _P.fwidth + _P.connectsourcespace)
                         )
                     end
                 end
@@ -889,7 +928,7 @@ function layout(transistor, _P)
             draininvert = not draininvert
         end
         for i = 2, _P.fingers + 1, 2 do
-            local shift = leftactext - (_P.gatespace + _P.sdwidth) / 2 + (i - 1) * gatepitch
+            local shift = leftactext - (_P.gatespace + _P.sdwidth) / 2 + (i - 1) * gatepitch - sdmetalshift
             local conndrainoffset = _P.drainmetal > 1 and drainviaoffset or drainoffset
             local conndraintop = _P.drainmetal > 1 and _P.drainviasize or _P.drainsize
             if not draininvert or _P.connectdrainboth then
@@ -897,7 +936,7 @@ function layout(transistor, _P)
                    if not (i == 2 and not _P.drawfirstdrainvia or i == _P.fingers + 1 and not _P.drawlastdrainvia) then
                         geometry.rectanglebltr(transistor, generics.metal(_P.drainmetal),
                             point.create(shift, conndrainoffset + conndraintop),
-                            point.create(shift + _P.sdwidth, _P.fwidth + _P.connectdrainspace)
+                            point.create(shift + _P.sdmetalwidth, _P.fwidth + _P.connectdrainspace)
                         )
                     end
                 end
@@ -907,7 +946,7 @@ function layout(transistor, _P)
                     if not (i == 2 and not _P.drawfirstdrainvia or i == _P.fingers + 1 and not _P.drawlastdrainvia) then
                         geometry.rectanglebltr(transistor, generics.metal(_P.drainmetal),
                             point.create(shift, -_P.connectdrainspace),
-                            point.create(shift + _P.sdwidth, conndrainoffset)
+                            point.create(shift + _P.sdmetalwidth, conndrainoffset)
                         )
                     end
                 end
@@ -917,8 +956,8 @@ function layout(transistor, _P)
 
     -- drain strap
     if _P.fingers > 0 then
-        local blx = leftactext - (_P.gatespace + _P.sdwidth) / 2 + (2 - 1) * gatepitch
-        local trx = leftactext - (_P.gatespace + _P.sdwidth) / 2 + (2 * ((_P.fingers + 1) // 2) - 1) * gatepitch + _P.sdwidth
+        local blx = leftactext - (_P.gatespace + _P.sdmetalwidth) / 2 + (2 - 1) * gatepitch
+        local trx = leftactext - (_P.gatespace + _P.sdmetalwidth) / 2 + (2 * ((_P.fingers + 1) // 2) - 1) * gatepitch + _P.sdmetalwidth
         if _P.connectdraininline then
             local bly
             if _P.channeltype == "nmos" then
