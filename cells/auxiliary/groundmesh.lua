@@ -16,6 +16,7 @@ function parameters()
         { "connecttopmetal", false },
         { "drawtopmetal", false },
         { "metalwidths", { 500, 500, 800, 800, 800, 800, 1000, 2500, 5000, 5000 } },
+        { "capspace", { 500, 500, 500, 500, 500, 500, 500 } },
         { "needmultiplepatterning", { true, true, false, false, false, false, false, false } },
         { "wellextension", 0 },
         { "implantextension", 0 },
@@ -195,8 +196,7 @@ function layout(mesh, _P)
                 if _P.meshmetals[i] == _P.interconnectmetal then
                     break
                 end
-                local capspace = 500
-                local nfingers = 2 * math.floor((_P.cellsize - 2 * _P.metalwidths[i] - capspace) / (2 * (fwidth + fspace)))
+                local nfingers = 2 * math.floor((_P.cellsize - 2 * _P.metalwidths[i] - 2 * _P.capspace[i]) / (2 * (fwidth + fspace)))
                 local capwidth = nfingers * fwidth + (nfingers - 1) * fspace
                 local topcap = pcell.create_layout("passive/capacitor/mom", "topcap", {
                     firstmetal = _P.meshmetals[i], lastmetal = _P.meshmetals[i],
@@ -227,7 +227,7 @@ function layout(mesh, _P)
                             point.create( _P.metalwidths[#_P.meshmetals + 2] / 2,  viaheight / 2)
                         )
                     elseif _P.meshmetals[i + 1] - _P.meshmetals[i] == 1 then
-                        local nfingersnext = 2 * math.floor((_P.cellsize - 2 * _P.metalwidths[i + 1] - capspace) / (2 * (fwidth + fspace)))
+                        local nfingersnext = 2 * math.floor((_P.cellsize - 2 * _P.metalwidths[i + 1] - 2 * _P.capspace[i]) / (2 * (fwidth + fspace)))
                         local capwidthnext = nfingersnext * fwidth + (nfingersnext - 1) * fspace
                         local viawidth = math.min(capwidth, capwidthnext)
                         local viaheight = math.min(_P.metalwidths[i], _P.metalwidths[i + 1])
