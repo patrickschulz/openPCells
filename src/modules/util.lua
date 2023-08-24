@@ -60,12 +60,12 @@ function M.polygon_ymax(pts)
     return max
 end
 
-function M.rectangle_to_polygon(bl, tr)
+function M.rectangle_to_polygon(bl, tr, leftext, rightext, bottomext, topext)
     return {
-        point.create(bl:getx(), bl:gety()),
-        point.create(tr:getx(), bl:gety()),
-        point.create(tr:getx(), tr:gety()),
-        point.create(bl:getx(), tr:gety()),
+        point.create(bl:getx() - (leftext  or 0), bl:gety() - (bottomext or 0)),
+        point.create(tr:getx() + (rightext or 0), bl:gety() - (bottomext or 0)),
+        point.create(tr:getx() + (rightext or 0), tr:gety() + (topext    or 0)),
+        point.create(bl:getx() - (leftext  or 0), tr:gety() + (topext    or 0)),
     }
 end
 
