@@ -3118,6 +3118,38 @@ struct vector* _initialize_api_entries(void)
         ));
     }
 
+    /* divevenup */
+    {
+        struct parameter parameters[] = {
+            { "value",  INTEGER,    NULL,   "value to divide" },
+            { "div",    INTEGER,    NULL,   "divisor" }
+        };
+        vector_append(entries, _make_api_entry(
+            "divevenup",
+            MODULE_NONE,
+            "approximately divide a value by the divisor, so that the result is even. If this can't be achieved with the original value, increment it until it works",
+            "local result = divevenup(6, 2) -- returns 4",
+            parameters,
+            sizeof(parameters) / sizeof(parameters[0])
+        ));
+    }
+
+    /* divevendown */
+    {
+        struct parameter parameters[] = {
+            { "value",  INTEGER,    NULL,   "value to divide" },
+            { "div",    INTEGER,    NULL,   "divisor" }
+        };
+        vector_append(entries, _make_api_entry(
+            "divevendown",
+            MODULE_NONE,
+            "approximately divide a value by the divisor, so that the result is even. If this can't be achieved with the original value, decrement it until it works",
+            "local result = divevendown(6, 2) -- returns 2",
+            parameters,
+            sizeof(parameters) / sizeof(parameters[0])
+        ));
+    }
+
     /* dprint */
     {
         struct parameter parameters[] = {
