@@ -730,7 +730,11 @@ function layout(transistor, _P)
                         point.create(shift + _P.sdviawidth - sdviashift, sourceviaoffset + _P.sourceviasize)
                     )
                 end
-                for metal = 1, _P.sourceviametal do
+                geometry.rectanglebltr(transistor, generics.metal(1),
+                    point.create(shift - sdmetalshift, sourceoffset),
+                    point.create(shift + _P.sdmetalwidth - sdmetalshift, sourceoffset + _P.sourcesize)
+                )
+                for metal = 2, _P.sourceviametal do
                     geometry.rectanglebltr(transistor, generics.metal(metal),
                         point.create(shift - sdmetalshift, sourceviaoffset),
                         point.create(shift + _P.sdmetalwidth - sdmetalshift, sourceviaoffset + _P.sourceviasize)
@@ -766,7 +770,11 @@ function layout(transistor, _P)
                         point.create(shift + _P.sdviawidth - sdviashift, drainviaoffset + _P.drainviasize)
                     )
                 end
-                for metal = 1, _P.drainviametal do
+                geometry.rectanglebltr(transistor, generics.metal(metal),
+                    point.create(shift - sdmetalshift, drainoffset),
+                    point.create(shift + _P.sdmetalwidth - sdmetalshift, drainoffset + _P.drainsize)
+                )
+                for metal = 2, _P.drainviametal do
                     geometry.rectanglebltr(transistor, generics.metal(metal),
                         point.create(shift - sdmetalshift, drainviaoffset),
                         point.create(shift + _P.sdmetalwidth - sdmetalshift, drainviaoffset + _P.drainviasize)
