@@ -770,7 +770,7 @@ function layout(transistor, _P)
                         point.create(shift + _P.sdviawidth - sdviashift, drainviaoffset + _P.drainviasize)
                     )
                 end
-                geometry.rectanglebltr(transistor, generics.metal(metal),
+                geometry.rectanglebltr(transistor, generics.metal(1),
                     point.create(shift - sdmetalshift, drainoffset),
                     point.create(shift + _P.sdmetalwidth - sdmetalshift, drainoffset + _P.drainsize)
                 )
