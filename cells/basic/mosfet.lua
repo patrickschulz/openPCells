@@ -852,8 +852,8 @@ function layout(transistor, _P)
 
     -- source strap
     if _P.fingers > 0 then
-        local blx = leftactext - (_P.gatespace + _P.sdwidth) / 2
-        local trx = blx + 2 * (_P.fingers // 2) * gatepitch + _P.sdwidth
+        local blx = leftactext - (_P.gatespace + _P.sdmetalwidth) / 2
+        local trx = blx + 2 * (_P.fingers // 2) * gatepitch + _P.sdmetalwidth
         if _P.connectsourceinline then
             local bly
             if _P.channeltype == "nmos" then
@@ -1044,8 +1044,8 @@ function layout(transistor, _P)
 
     -- extra source/drain straps (unconnected, useful for arrays)
     if _P.drawextrabotstrap then
-        local blx = leftactext - (_P.gatespace + _P.sdwidth) / 2 + (_P.extrabotstrapleftalign - 1) * gatepitch
-        local trx = blx + 2 * (_P.fingers // 2) * gatepitch + (_P.extrabotstraprightalign - _P.fingers) * gatepitch + _P.sdwidth
+        local blx = leftactext - (_P.gatespace + _P.sdmetalwidth) / 2 + (_P.extrabotstrapleftalign - 1) * gatepitch
+        local trx = blx + 2 * (_P.fingers // 2) * gatepitch + (_P.extrabotstraprightalign - _P.fingers) * gatepitch + _P.sdmetalwidth
         geometry.rectanglebltr(transistor, generics.metal(_P.extrabotstrapmetal),
             point.create(blx, -_P.extrabotstrapspace - _P.extrabotstrapwidth),
             point.create(trx, -_P.extrabotstrapspace)
@@ -1057,8 +1057,8 @@ function layout(transistor, _P)
         )
     end
     if _P.drawextratopstrap then
-        local blx = leftactext - (_P.gatespace + _P.sdwidth) / 2 + (_P.extrabotstrapleftalign - 1) * gatepitch
-        local trx = blx + 2 * (_P.fingers // 2) * gatepitch + (_P.extrabotstraprightalign - _P.fingers) * gatepitch + _P.sdwidth
+        local blx = leftactext - (_P.gatespace + _P.sdmetalwidth) / 2 + (_P.extrabotstrapleftalign - 1) * gatepitch
+        local trx = blx + 2 * (_P.fingers // 2) * gatepitch + (_P.extrabotstraprightalign - _P.fingers) * gatepitch + _P.sdmetalwidth
         geometry.rectanglebltr(transistor, generics.metal(_P.extrabotstrapmetal),
             point.create(blx, _P.fwidth + _P.extratopstrapspace),
             point.create(trx, _P.fwidth + _P.extratopstrapspace + _P.extratopstrapwidth)
