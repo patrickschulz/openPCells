@@ -120,6 +120,10 @@ struct object {
 static struct object* _create(const char* name)
 {
     struct object* obj = malloc(sizeof(*obj));
+    if(!obj)
+    {
+        return NULL;
+    }
     memset(obj, 0, sizeof(*obj));
     if(name)
     {
@@ -167,6 +171,10 @@ static struct object* _create_proxy(const char* name, const struct object* refer
 struct object* object_copy(const struct object* cell)
 {
     struct object* new = _create(cell->name);
+    if(!new)
+    {
+        return NULL;
+    }
     new->isproxy = cell->isproxy;
 
     // trans

@@ -334,6 +334,10 @@ static char* _concat_namecontext(const char* namecontext, const char* appendix)
     if(namecontext)
     {
         newcontext = malloc(strlen(namecontext) + strlen(appendix) + 1 + 1); // + 1 for underscore
+        if(!newcontext)
+        {
+            return NULL;
+        }
         sprintf(newcontext, "%s_%s", namecontext, appendix);
     }
     else
@@ -358,6 +362,7 @@ static int _write_child(struct export_writer* writer, const struct object* child
         int ret = _write_child_array(writer, refname, instname, origin, trans, xrep, yrep, xpitch, ypitch);
         if(!ret)
         {
+            free(refname);
             return 0;
         }
     }
@@ -369,6 +374,7 @@ static int _write_child(struct export_writer* writer, const struct object* child
             int ret = _write_child_manual_array(writer, refname, instname, origin, trans, xrep, yrep, xpitch, ypitch);
             if(!ret)
             {
+                free(refname);
                 return 0;
             }
         }
@@ -377,6 +383,7 @@ static int _write_child(struct export_writer* writer, const struct object* child
             int ret = _write_child_single(writer, refname, instname, origin, trans);
             if(!ret)
             {
+                free(refname);
                 return 0;
             }
         }
@@ -711,7 +718,7 @@ static int _write_port(struct export_writer* writer, const char* name, const str
 static int _write_ports(struct export_writer* writer, const struct object* cell, char leftdelim, char rightdelim)
 {
     struct port_iterator* it = object_create_port_iterator(cell);
-    int ret;
+    int ret = 1;
     while(port_iterator_is_valid(it))
     {
         const char* portname;
@@ -920,6 +927,11 @@ static int _write_cell_hierarchy_with_namecontext(struct export_writer* writer, 
         if(namecontext)
         {
             newnamecontext = malloc(strlen(namecontext) + strlen(name) + 1 + 1); // + 1 for underscore
+            if(!newnamecontext)
+            {
+                reference_iterator_destroy(ref_it);
+                return 0;
+            }
             sprintf(newnamecontext, "%s_%s", namecontext, name);
         }
         else

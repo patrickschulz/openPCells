@@ -144,6 +144,10 @@ static void _insert_lpp_pairs(lua_State* L, struct hashmap* map)
 static struct generics* _create_empty_layer(const char* name)
 {
     struct generics* layer = malloc(sizeof(*layer));
+    if(!layer)
+    {
+        return 0;
+    }
     memset(layer, 0, sizeof(*layer));
     layer->name = util_strdup(name);
     return layer;
@@ -160,6 +164,10 @@ static void _destroy_entry(void* entryv)
 static struct generics* _create_premapped_layer(const char* name, size_t size)
 {
     struct generics* layer = _create_empty_layer(name);
+    if(!layer)
+    {
+        return NULL;
+    }
     layer->entries = vector_create(size, _destroy_entry);
     return layer;
 }
@@ -184,6 +192,10 @@ static struct generics* _make_layer_from_lua(const char* layername, lua_State* L
         }
 
         layer = _create_premapped_layer(layername, num);
+        if(!layer)
+        {
+            return NULL;
+        }
         lua_pushnil(L);
         while (lua_next(L, -2) != 0)
         {
