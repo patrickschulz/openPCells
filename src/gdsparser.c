@@ -261,6 +261,10 @@ static double* _parse_eight_byte_real(uint8_t* data, size_t length)
 static char* _parse_string(uint8_t* data, size_t length)
 {
     char* string = malloc(length + 1);
+    if(!string)
+    {
+        return NULL;
+    }
     strncpy(string, (const char*) data, length);
     string[length] = 0;
     return string;
@@ -1243,20 +1247,38 @@ static int _read_structure(const char* importname, struct stream* stream, const 
         if(!record)
         {
             puts("gdsparser: end of stream while reading structure");
+            if(cellfile)
+            {
+                fclose(cellfile);
+            }
             return 0;
         }
         if(record->recordtype == STRNAME)
         {
+            if(cellfile)
+            {
+                puts("spurious STRNAME in structure (already read the structure name)");
+                fclose(cellfile);
+                return 0;
+            }
             char* cellname = _parse_string(record->data, record->length - 4);
+            if(!cellname)
+            {
+                return 0;
+            }
             size_t len = strlen(importname) + strlen(importname) + strlen(cellname) + 6; // +2: 2 * '/' + ".lua"
             char* path = malloc(len + 1);
             snprintf(path, len + 1, "%s/%s/%s.lua", importname, importname, cellname);
             cellfile = fopen(path, "w");
+            free(cellname);
+            free(path);
+            if(!cellfile)
+            {
+                return 0;
+            }
             fputs("function parameters() end\n", cellfile);
             fputs("function layout(cell)\n", cellfile);
             fputs("    local ref, name, child\n", cellfile);
-            free(cellname);
-            free(path);
         }
         else if(record->recordtype == STRCLASS)
         {
@@ -1268,6 +1290,11 @@ static int _read_structure(const char* importname, struct stream* stream, const 
         }
         else if(record->recordtype == BOUNDARY)
         {
+            if(!cellfile)
+            {
+                puts("gdsparser: found BOUNDARY, but outside of structure");
+                return 0;
+            }
             int16_t layer, purpose;
             //struct vector* points = NULL;
             coordinate_t* points = NULL;
@@ -1275,6 +1302,7 @@ static int _read_structure(const char* importname, struct stream* stream, const 
             if(!_read_BOUNDARY(stream, &layer, &purpose, &points, &numpoints))
             {
                 free(points);
+                fclose(cellfile);
                 return 0;
             }
             if(_check_lpp(layer, purpose, ignorelpp))
@@ -1296,11 +1324,17 @@ static int _read_structure(const char* importname, struct stream* stream, const 
         }
         else if(record->recordtype == PATH)
         {
+            if(!cellfile)
+            {
+                puts("gdsparser: found PATH, but outside of structure");
+                return 0;
+            }
             int16_t layer, purpose;
             struct vector* points = NULL;
             coordinate_t width;
             if(!_read_PATH(stream, &layer, &purpose, &points, &width))
             {
+                fclose(cellfile);
                 return 0;
             }
             if(_check_lpp(layer, purpose, ignorelpp))
@@ -1311,6 +1345,11 @@ static int _read_structure(const char* importname, struct stream* stream, const 
         }
         else if(record->recordtype == TEXT)
         {
+            if(!cellfile)
+            {
+                puts("gdsparser: found TEXT, but outside of structure");
+                return 0;
+            }
             int16_t layer, purpose;
             point_t origin;
             char* str;
@@ -1319,6 +1358,7 @@ static int _read_structure(const char* importname, struct stream* stream, const 
             int success = _read_TEXT(stream, &str, &layer, &purpose, &origin, &angle, &transformation);
             if(!success)
             {
+                fclose(cellfile);
                 return 0;
             }
             if(_check_lpp(layer, purpose, ignorelpp))
@@ -1337,6 +1377,11 @@ static int _read_structure(const char* importname, struct stream* stream, const 
         }
         else if(record->recordtype == SREF)
         {
+            if(!cellfile)
+            {
+                puts("gdsparser: found SREF, but outside of structure");
+                return 0;
+            }
             struct cellref* cellref = _read_SREF(stream);
             if(cellref)
             {
@@ -1345,11 +1390,17 @@ static int _read_structure(const char* importname, struct stream* stream, const 
             }
             else
             {
+                fclose(cellfile);
                 return 0;
             }
         }
         else if(record->recordtype == AREF)
         {
+            if(!cellfile)
+            {
+                puts("gdsparser: found AREF, but outside of structure");
+                return 0;
+            }
             struct cellref* cellref = _read_AREF(stream);
             if(cellref)
             {
@@ -1358,6 +1409,7 @@ static int _read_structure(const char* importname, struct stream* stream, const 
             }
             else
             {
+                fclose(cellfile);
                 return 0;
             }
         }
@@ -1376,10 +1428,19 @@ static int _read_structure(const char* importname, struct stream* stream, const 
         else // wrong record
         {
             printf("structure: unexpected record '%s' (#%zd)\n", recordnames[record->recordtype], stream->index - 2);
+            if(cellfile)
+            {
+                fclose(cellfile);
+            }
             return 0;
         }
     }
     hashmap_destroy(references, NULL);
+    if(!cellfile)
+    {
+        puts("gdsparser: malformed structure");
+        return 0;
+    }
     fputs("end", cellfile); // close layout function
     fclose(cellfile);
     return 1;
