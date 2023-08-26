@@ -109,6 +109,28 @@ function check_object(arg, msg)
     _check_argument(arg, "object", msg)
 end
 
+function evenodddiv2(num)
+    if num % 2 == 0 then
+        return num / 2, num / 2
+    else
+        return num // 2, num // 2 + 1
+    end
+end
+
+function divevendown(num, div)
+    while (num / div % 2) ~= 0 do
+        num = num - 1
+    end
+    return num / div
+end
+
+function divevenup(num, div)
+    while (num / div % 2) ~= 0 do
+        num = num + 1
+    end
+    return num / div
+end
+
 function modinfo(msg)
     print(msg)
 end
