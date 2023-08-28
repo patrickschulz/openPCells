@@ -7,6 +7,7 @@ function parameters()
         { "interconnectmetal", 8 },
         { "guardringwidth", 500 },
         { "drawguardring", true },
+        { "drawmoscap", true },
         { "moscapgatelength", 250 },
         { "moscapgatespace", 250 },
         { "moscapxspace", 250 },
@@ -203,44 +204,57 @@ function layout(mesh, _P)
         local fspace = 50
         local flippolarity = true
         if _P.flavour == "cap" then
-            local capfingers = 2 * math.floor((_P.cellsize - 2 * _P.metalwidths[1] - 2 * _P.moscapxspace) / (2 * (_P.moscapgatelength + _P.moscapgatespace)))
-            local moscap = pcell.create_layout("basic/mosfet", "moscap", {
-                fingers = capfingers,
-                fwidth = (_P.cellsize - 3 * _P.metalwidths[1]) / 2 - 2 * _P.moscapyspace,
-                gatelength = _P.moscapgatelength,
-                gatespace = _P.moscapgatespace,
-                drawbotgate = true,
-                botgatewidth = _P.metalwidths[1],
-                botgatespace = _P.moscapyspace,
-                sdwidth = 100,
-                sourcemetal = 2,
-                drainmetal = 2,
-                connectsource = true,
-                connectsourceinverse = true,
-                connectdrain = true,
-                connectsourcewidth = _P.metalwidths[1],
-                connectdrainwidth = _P.metalwidths[1],
-                connectsourcespace = _P.moscapyspace,
-                connectdrainspace = _P.moscapyspace,
-                channeltype = _P.moscapchanneltype,
-                vthtype = _P.moscapvthtype,
-                oxidetype = _P.moscapoxidetype,
-                gatemarker = _P.moscapgatemarker,
-                mosfetmarker = _P.moscapmosfetmarker,
-                extendalltop = _P.extendmoscapmarkery,
-                extendallbot = _P.extendmoscapmarkery,
-                extendallleft = _P.extendmoscapmarkerx,
-                extendallright = _P.extendmoscapmarkerx,
-            })
-            moscap:move_point(
-                point.combine(
-                    moscap:get_area_anchor("botgatestrap").bl,
-                    moscap:get_area_anchor("botgatestrap").br
-                ),
-                point.create(0, -_P.metalwidths[1] / 2))
-            mesh:merge_into(moscap)
-            moscap:mirror_at_xaxis() -- FIXME: depends on absolute placement
-            mesh:merge_into(moscap)
+            if _P.drawmoscap then
+                -- fill excludes
+                if _P.drawfillexcludes then
+                    geometry.rectanglebltr(mesh, generics.other("activeexclude"),
+                        point.create(-_P.cellsize / 2, -_P.cellsize / 2),
+                        point.create( _P.cellsize / 2,  _P.cellsize / 2)
+                    )
+                    geometry.rectanglebltr(mesh, generics.other("gateexclude"),
+                        point.create(-_P.cellsize / 2, -_P.cellsize / 2),
+                        point.create( _P.cellsize / 2,  _P.cellsize / 2)
+                    )
+                end
+                local capfingers = 2 * math.floor((_P.cellsize - 2 * _P.metalwidths[1] - 2 * _P.moscapxspace) / (2 * (_P.moscapgatelength + _P.moscapgatespace)))
+                local moscap = pcell.create_layout("basic/mosfet", "moscap", {
+                    fingers = capfingers,
+                    fwidth = (_P.cellsize - 3 * _P.metalwidths[1]) / 2 - 2 * _P.moscapyspace,
+                    gatelength = _P.moscapgatelength,
+                    gatespace = _P.moscapgatespace,
+                    drawbotgate = true,
+                    botgatewidth = _P.metalwidths[1],
+                    botgatespace = _P.moscapyspace,
+                    sdwidth = 100,
+                    sourcemetal = 2,
+                    drainmetal = 2,
+                    connectsource = true,
+                    connectsourceinverse = true,
+                    connectdrain = true,
+                    connectsourcewidth = _P.metalwidths[1],
+                    connectdrainwidth = _P.metalwidths[1],
+                    connectsourcespace = _P.moscapyspace,
+                    connectdrainspace = _P.moscapyspace,
+                    channeltype = _P.moscapchanneltype,
+                    vthtype = _P.moscapvthtype,
+                    oxidetype = _P.moscapoxidetype,
+                    gatemarker = _P.moscapgatemarker,
+                    mosfetmarker = _P.moscapmosfetmarker,
+                    extendalltop = _P.extendmoscapmarkery,
+                    extendallbot = _P.extendmoscapmarkery,
+                    extendallleft = _P.extendmoscapmarkerx,
+                    extendallright = _P.extendmoscapmarkerx,
+                })
+                moscap:move_point(
+                    point.combine(
+                        moscap:get_area_anchor("botgatestrap").bl,
+                        moscap:get_area_anchor("botgatestrap").br
+                    ),
+                    point.create(0, -_P.metalwidths[1] / 2))
+                mesh:merge_into(moscap)
+                moscap:mirror_at_xaxis() -- FIXME: depends on absolute placement
+                mesh:merge_into(moscap)
+            end
             for i = 1, #_P.meshmetals do
                 if _P.meshmetals[i] == _P.interconnectmetal then
                     break
