@@ -16,6 +16,8 @@ function parameters()
         { "moscapoxidetype", 1 },
         { "moscapgatemarker", 1 },
         { "moscapmosfetmarker", 1 },
+        { "extendmoscapmarkerx", 0 },
+        { "extendmoscapmarkery", 0 },
         { "drawmesh", true },
         { "drawgrid", true },
         { "drawleft", true },
@@ -225,6 +227,10 @@ function layout(mesh, _P)
                 oxidetype = _P.moscapoxidetype,
                 gatemarker = _P.moscapgatemarker,
                 mosfetmarker = _P.moscapmosfetmarker,
+                extendalltop = _P.extendmoscapmarkery,
+                extendallbot = _P.extendmoscapmarkery,
+                extendallleft = _P.extendmoscapmarkerx,
+                extendallright = _P.extendmoscapmarkerx,
             })
             moscap:move_point(
                 point.combine(
