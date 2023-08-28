@@ -28,6 +28,45 @@ local function _scale_tanpi8(num)
     return math.floor(num * 5741 / 13860) -- rational approximation of tan(pi / 8)
 end
 
+local function _get_outline(radius, width, cornerradius, extension, separation, grid, allow45)
+    -- calculate center of auxiliary circle
+    local xc = 0.5 * separation + cornerradius
+    local yc = -grid * math.floor(math.sqrt((radius - width / 2 + cornerradius)^2 - xc^2) / grid)
+
+    -- circle points
+    local maininner = graphics.quartercircle(4, point.create(0, 0), radius - width / 2, grid, allow45)
+    local auxinner  = graphics.quartercircle(2, point.create(xc, yc), cornerradius, grid, allow45)
+    local mainouter = graphics.quartercircle(4, point.create(0, 0), radius + width / 2, grid, allow45)
+    local auxouter  = graphics.quartercircle(2, point.create(xc, yc), cornerradius - width, grid, allow45)
+
+    -- meeting points
+    local xminner = xc * (radius - width / 2) / (cornerradius + radius - width / 2)
+    local xmouter = xc * (radius + width / 2) / (cornerradius + radius - width / 2)
+
+    -- inner part
+    local inner = {}
+    table.insert(inner, point.create(separation / 2, -radius - width / 2 - extension))
+    util.merge_forwards(inner, util.filter_backward(auxinner, function(pt) return pt:getx() < xminner end))
+    util.merge_forwards(inner, util.filter_forward(maininner, function(pt) return pt:getx() >= xminner end))
+    util.merge_backwards(inner, util.ymirror(maininner))
+    util.merge_backwards(inner, util.xmirror(inner))
+    table.insert(inner, point.create(-separation / 2, -radius - width / 2 - extension))
+
+    -- outer part
+    local outer = {}
+    table.insert(outer, point.create(separation / 2 + width, -radius - width / 2 - extension))
+    util.merge_forwards(outer, util.filter_backward(auxouter, function(pt) return pt:getx() < xmouter end))
+    util.merge_forwards(outer, util.filter_forward(mainouter, function(pt) return pt:getx() >= xmouter end))
+    util.merge_backwards(outer, util.ymirror(mainouter))
+    util.merge_backwards(outer, util.xmirror(outer))
+
+    -- assemble points
+    local pts = {}
+    util.merge_forwards(pts, outer)
+    util.merge_backwards(pts, inner)
+    return pts
+end
+
 function check(_P)
     if not (_P.width % _P.grid == 0) then
         return false, "width must fit on grid"
@@ -45,41 +84,7 @@ function check(_P)
 end
 
 function layout(inductor, _P)
-    -- calculate center of auxiliary circle
-    local xc = 0.5 * _P.separation + _P.cornerradius
-    local yc = -_P.grid * math.floor(math.sqrt((_P.radius - _P.width / 2 + _P.cornerradius)^2 - xc^2) / _P.grid)
-
-    -- circle points
-    local maininner = graphics.quartercircle(4, point.create(0, 0), _P.radius - _P.width / 2, _P.grid, _P.allow45)
-    local auxinner  = graphics.quartercircle(2, point.create(xc, yc), _P.cornerradius, _P.grid, _P.allow45)
-    local mainouter = graphics.quartercircle(4, point.create(0, 0), _P.radius + _P.width / 2, _P.grid, _P.allow45)
-    local auxouter  = graphics.quartercircle(2, point.create(xc, yc), _P.cornerradius - _P.width, _P.grid, _P.allow45)
-
-    -- meeting points
-    local xminner = xc * (_P.radius - _P.width / 2) / (_P.cornerradius + _P.radius - _P.width / 2)
-    local xmouter = xc * (_P.radius + _P.width / 2) / (_P.cornerradius + _P.radius - _P.width / 2)
-
-    -- inner part
-    local inner = {}
-    table.insert(inner, point.create(_P.separation / 2, -_P.radius - _P.width / 2 - _P.extension))
-    util.merge_forwards(inner, util.filter_backward(auxinner, function(pt) return pt:getx() < xminner end))
-    util.merge_forwards(inner, util.filter_forward(maininner, function(pt) return pt:getx() >= xminner end))
-    util.merge_backwards(inner, util.ymirror(maininner))
-    util.merge_backwards(inner, util.xmirror(inner))
-    table.insert(inner, point.create(-_P.separation / 2, -_P.radius - _P.width / 2 - _P.extension))
-
-    -- outer part
-    local outer = {}
-    table.insert(outer, point.create(_P.separation / 2 + _P.width, -_P.radius - _P.width / 2 - _P.extension))
-    util.merge_forwards(outer, util.filter_backward(auxouter, function(pt) return pt:getx() < xmouter end))
-    util.merge_forwards(outer, util.filter_forward(mainouter, function(pt) return pt:getx() >= xmouter end))
-    util.merge_backwards(outer, util.ymirror(mainouter))
-    util.merge_backwards(outer, util.xmirror(outer))
-
-    -- assemble points
-    local pts = {}
-    util.merge_forwards(pts, outer)
-    util.merge_backwards(pts, inner)
+    local pts = _get_outline(_P.radius, _P.width, _P.cornerradius, _P.extension, _P.separation, _P.grid, _P.allow45)
 
     -- create polygon
     geometry.polygon(inductor, generics.metal(_P.metalnum), pts)
@@ -144,7 +149,14 @@ function layout(inductor, _P)
         outerappend( outerradius, -outerr)
         outerappend( outerradius,  outerr)
         outerappend( outerr,  outerradius)
-        --outerappend( outerr + _scale_tanpi8(_P.width / 2),  outerradius)
+        outerappend( outerr + _scale_tanpi8(_P.width / 2),  outerradius)
         inductor:set_boundary(outerpathpts)
     end
+    -- add layer boundaries
+    local innerlayerboundary = graphics.coarse_circle(_P.radius - _P.width / 2 - _P.boundaryinnerextension, -math.pi / 2, 32)
+    local outerlayerboundary = graphics.coarse_circle(_P.radius + _P.width / 2 + _P.boundaryouterextension, -math.pi / 2, 32)
+    local layerboundary = {}
+    util.merge_forwards(layerboundary, innerlayerboundary)
+    util.merge_backwards(layerboundary, outerlayerboundary)
+    inductor:add_layer_boundary(generics.metal(_P.metalnum), layerboundary)
 end
