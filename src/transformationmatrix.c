@@ -17,7 +17,7 @@ struct transformationmatrix {
 
 #define M(matrix, idx) matrix->coefficients[idx]
 
-struct transformationmatrix* transformationmatrix_create()
+struct transformationmatrix* transformationmatrix_create(void)
 {
     struct transformationmatrix* matrix = malloc(sizeof(*matrix));
     return matrix;
