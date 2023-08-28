@@ -7,6 +7,15 @@ function parameters()
         { "interconnectmetal", 8 },
         { "guardringwidth", 500 },
         { "drawguardring", true },
+        { "moscapgatelength", 250 },
+        { "moscapgatespace", 250 },
+        { "moscapxspace", 250 },
+        { "moscapyspace", 250 },
+        { "moscapvthtype", 1 },
+        { "moscapchanneltype", "nmos" },
+        { "moscapoxidetype", 1 },
+        { "moscapgatemarker", 1 },
+        { "moscapmosfetmarker", 1 },
         { "drawmesh", true },
         { "drawgrid", true },
         { "drawleft", true },
@@ -192,32 +201,68 @@ function layout(mesh, _P)
         local fspace = 50
         local flippolarity = true
         if _P.flavour == "cap" then
+            local capfingers = 2 * math.floor((_P.cellsize - 2 * _P.metalwidths[1] - 2 * _P.moscapxspace) / (2 * (_P.moscapgatelength + _P.moscapgatespace)))
+            local moscap = pcell.create_layout("basic/mosfet", "moscap", {
+                fingers = capfingers,
+                fwidth = (_P.cellsize - 3 * _P.metalwidths[1]) / 2 - 2 * _P.moscapyspace,
+                gatelength = _P.moscapgatelength,
+                gatespace = _P.moscapgatespace,
+                drawbotgate = true,
+                botgatewidth = _P.metalwidths[1],
+                botgatespace = _P.moscapyspace,
+                sdwidth = 100,
+                sourcemetal = 2,
+                drainmetal = 2,
+                connectsource = true,
+                connectsourceinverse = true,
+                connectdrain = true,
+                connectsourcewidth = _P.metalwidths[1],
+                connectdrainwidth = _P.metalwidths[1],
+                connectsourcespace = _P.moscapyspace,
+                connectdrainspace = _P.moscapyspace,
+                channeltype = _P.moscapchanneltype,
+                vthtype = _P.moscapvthtype,
+                oxidetype = _P.moscapoxidetype,
+                gatemarker = _P.moscapgatemarker,
+                mosfetmarker = _P.moscapmosfetmarker,
+            })
+            moscap:move_point(
+                point.combine(
+                    moscap:get_area_anchor("botgatestrap").bl,
+                    moscap:get_area_anchor("botgatestrap").br
+                ),
+                point.create(0, -_P.metalwidths[1] / 2))
+            mesh:merge_into(moscap)
+            moscap:mirror_at_xaxis() -- FIXME: depends on absolute placement
+            mesh:merge_into(moscap)
             for i = 1, #_P.meshmetals do
                 if _P.meshmetals[i] == _P.interconnectmetal then
                     break
                 end
                 local nfingers = 2 * math.floor((_P.cellsize - 2 * _P.metalwidths[i] - 2 * _P.capspace[i]) / (2 * (fwidth + fspace)))
                 local capwidth = nfingers * fwidth + (nfingers - 1) * fspace
-                local topcap = pcell.create_layout("passive/capacitor/mom", "topcap", {
-                    firstmetal = _P.meshmetals[i], lastmetal = _P.meshmetals[i],
-                    fingers = nfingers,
-                    fwidth = fwidth,
-                    fspace = fspace,
-                    foffset = foffset,
-                    rwidth = _P.metalwidths[i],
-                    fheight = _P.cellsize / 2 - _P.metalwidths[i] / 2 - _P.metalwidths[i] - 2 * foffset,
-                    alternatingpolarity = alternatingpolarity,
-                    flippolarity = flippolarity,
-                })
-                flippolarity = not flippolarity
-                local botcap = topcap:copy()
-                topcap:move_point(topcap:get_area_anchor("lowerrail").bl,
-                    point.create(-capwidth / 2, -_P.metalwidths[i] / 2))
-                botcap:flipy()
-                botcap:move_point(botcap:get_area_anchor("lowerrail").tl,
-                    point.create(-capwidth / 2,  _P.metalwidths[i] / 2))
-                mesh:merge_into(topcap)
-                mesh:merge_into(botcap)
+                if not (_P.meshmetals[i] == 1 or _P.meshmetals[i] == 2) then
+                    local topcap = pcell.create_layout("passive/capacitor/mom", "topcap", {
+                        firstmetal = _P.meshmetals[i], lastmetal = _P.meshmetals[i],
+                        fingers = nfingers,
+                        fwidth = fwidth,
+                        fspace = fspace,
+                        foffset = foffset,
+                        rwidth = _P.metalwidths[i],
+                        fheight = _P.cellsize / 2 - _P.metalwidths[i] / 2 - _P.metalwidths[i] - 2 * foffset,
+                        alternatingpolarity = alternatingpolarity,
+                        flippolarity = flippolarity,
+                    })
+                    flippolarity = not flippolarity
+                    local botcap = topcap:copy()
+                    topcap:move_point(topcap:get_area_anchor("lowerrail").bl,
+                        point.create(-capwidth / 2, -_P.metalwidths[i] / 2))
+                    botcap:flipy()
+                    botcap:move_point(botcap:get_area_anchor("lowerrail").tl,
+                        point.create(-capwidth / 2,  _P.metalwidths[i] / 2))
+                    mesh:merge_into(topcap)
+                    mesh:merge_into(botcap)
+                end
                 -- inner rail via
                 if i < #_P.meshmetals then
                     if _P.meshmetals[i + 1] == _P.interconnectmetal then
