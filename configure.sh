@@ -130,9 +130,12 @@ echo -en '\n' >> Makefile
 echo ".PHONY: clean" >> Makefile
 echo "clean:" >> Makefile
 echo "	@\$(MAKE) -C src clean" >> Makefile
-echo "	rm -f src/config.h" >> Makefile
 echo "	rm -f opc" >> Makefile
 echo "	rm -f opc.1" >> Makefile
+echo -en '\n' >> Makefile
+echo ".PHONY: cleanall" >> Makefile
+echo "cleanall: clean" >> Makefile
+echo "	rm -f src/config.h" >> Makefile
 echo "	rm -f Makefile" >> Makefile
 
 # create config.h
