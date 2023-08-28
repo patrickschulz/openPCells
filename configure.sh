@@ -108,6 +108,10 @@ echo "opc.1: src/cmdoptions_def.c" >> Makefile
 echo "	@\$(MAKE) -C src opc.1" >> Makefile
 echo "	mv src/opc.1 ." >> Makefile
 echo -en '\n' >> Makefile
+echo ".PHONY: lint" >> Makefile
+echo "lint:" >> Makefile
+echo "	@\$(MAKE) -C src lint" >> Makefile
+echo -en '\n' >> Makefile
 echo ".PHONY: install" >> Makefile
 echo "install: opc opc.1" >> Makefile
 echo "	install -m 755 -D opc \${DESTDIR}${BIN_PATH}/${EXE_NAME}" >> Makefile
