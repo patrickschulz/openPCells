@@ -1,21 +1,6 @@
-# Makefile for building Lua
-# See ../doc/readme.html for installation and customization instructions.
-
-# == CHANGE THE SETTINGS BELOW TO SUIT YOUR ENVIRONMENT =======================
-
-# Your platform. See PLATS for possible values.
-PLAT= guess
-
-CC= gcc -std=c99
-CFLAGS= -O3 -Wall -Wextra -Wstrict-prototypes -pthread -DLUA_USE_LINUX
-LDFLAGS=
-LIBS= -lm -Wl,-E -ldl
-
 AR= ar rcu
 RANLIB= ranlib
 RM= rm -f
-
-# == END OF USER SETTINGS -- NO NEED TO CHANGE ANYTHING BELOW THIS LINE =======
 
 LUA_A=	liblua.a
 CORE_O=	lapi.o lcode.o lctype.o ldebug.o ldo.o ldump.o lfunc.o lgc.o llex.o lmem.o lobject.o lopcodes.o lparser.o lstate.o lstring.o ltable.o ltm.o lundump.o lvm.o lzio.o
