@@ -2,22 +2,16 @@ AR= ar rcu
 RANLIB= ranlib
 RM= rm -f
 
-LUA_A=	liblua.a
 CORE_O=	lapi.o lcode.o lctype.o ldebug.o ldo.o ldump.o lfunc.o lgc.o llex.o lmem.o lobject.o lopcodes.o lparser.o lstate.o lstring.o ltable.o ltm.o lundump.o lvm.o lzio.o
 LIB_O=	lauxlib.o lbaselib.o lcorolib.o ldblib.o liolib.o lmathlib.o loadlib.o loslib.o lstrlib.o ltablib.o linit.o
-BASE_O= $(CORE_O) $(LIB_O)
 
-ALL_O= $(BASE_O) $(LUA_O) $(LUAC_O)
-ALL_T= $(LUA_A) $(LUA_T) $(LUAC_T)
-
-$(LUA_A): $(BASE_O)
-	$(AR) $@ $(BASE_O)
+liblua.a: $(CORE_O) $(LIB_O)
+	$(AR) $@ $(CORE_O) $(LIB_O)
 	$(RANLIB) $@
 
 clean:
-	$(RM) $(ALL_T) $(ALL_O)
+	$(RM) liblua.a $(CORE_O) $(LIB_O)
 
-# DO NOT DELETE
 lapi.o: lapi.c lprefix.h lua.h luaconf.h lapi.h llimits.h lstate.h \
  lobject.h ltm.h lzio.h lmem.h ldebug.h ldo.h lfunc.h lgc.h lstring.h \
  ltable.h lundump.h lvm.h
@@ -81,4 +75,3 @@ lvm.o: lvm.c lprefix.h lua.h luaconf.h ldebug.h lstate.h lobject.h \
 lzio.o: lzio.c lprefix.h lua.h luaconf.h llimits.h lmem.h lstate.h \
  lobject.h ltm.h lzio.h
 
-# (end of Makefile)
