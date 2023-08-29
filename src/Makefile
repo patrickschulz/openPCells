@@ -5,10 +5,10 @@ export CC
 
 CFLAGS=-std=c99 -O3 -Wall -Wextra -Wstrict-prototypes -pthread -DLUA_USE_LINUX
 ifeq ($(DEBUG), 1)
-    CFLAGS=-std=c99 -O0 -g -Wall -Wextra -Wstrict-prototypes -pthread
+    CFLAGS=-std=c99 -O0 -g -Wall -Wextra -Wstrict-prototypes -pthread -DLUA_USE_LINUX
 endif
 ifeq ($(DEBUGANALYZE), 1)
-    CFLAGS=-std=c99 -O0 -g -fanalyzer -fsanitize=address -fsanitize=address -fsanitize=leak -fsanitize=undefined -Wall -Wextra -Werror=return-type -Werror=implicit-function-declaration -Werror=int-conversion -Werror=discarded-qualifiers -Wstrict-prototypes -pthread
+    CFLAGS=-std=c99 -O0 -g -fanalyzer -fsanitize=address -fsanitize=address -fsanitize=leak -fsanitize=undefined -Wall -Wextra -Werror=return-type -Werror=implicit-function-declaration -Werror=int-conversion -Werror=discarded-qualifiers -Wstrict-prototypes -pthread -DLUA_USE_LINUX
 endif
 export CFLAGS
 
