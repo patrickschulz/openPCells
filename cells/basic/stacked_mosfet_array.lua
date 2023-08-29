@@ -151,9 +151,13 @@ function check(_P)
     return true
 end
 
-local function _select_parameter(devparam, rowparam)
+local function _select_parameter(devparam, rowparam, cellparam)
     if devparam == nil then
-        return rowparam
+        if rowparam == nil then
+            return cellparam
+        else
+            return rowparam
+        end
     else
         return devparam
     end
@@ -170,14 +174,19 @@ function layout(cell, _P)
                 gatespace = row.gatespace,
                 fwidth = row.width,
                 fingers = device.fingers,
+                sdwidth = _select_parameter(device.sdwidth, row.sdwidth, _P.sdwidth),
                 connectsource = _select_parameter(device.connectsource, row.connectsource),
                 connectsourceinverse = _select_parameter(device.connectsourceinverse, row.connectsourceinverse),
+                connectsourceboth = _select_parameter(device.connectsourceboth, row.connectsourceboth),
                 connectsourcewidth = _select_parameter(device.connectsourcewidth, row.connectsourcewidth),
                 connectsourcespace = _select_parameter(device.connectsourcespace, row.connectsourcespace),
+                sourcemetal = _select_parameter(device.sourcemetal, row.sourcemetal),
                 connectdrain = _select_parameter(device.connectdrain, row.connectdrain),
                 connectdraininverse = _select_parameter(device.connectdraininverse, row.connectdraininverse),
+                connectdrainboth = _select_parameter(device.connectdrainboth, row.connectdrainboth),
                 connectdrainwidth = _select_parameter(device.connectdrainwidth, row.connectdrainwidth),
                 connectdrainspace = _select_parameter(device.connectdrainspace, row.connectdrainspace),
+                drainmetal = _select_parameter(device.drainmetal, row.drainmetal),
                 drawtopgate = device.drawtopgate,
                 topgatewidth = device.topgatewidth,
                 topgatespace = device.topgatespace,
