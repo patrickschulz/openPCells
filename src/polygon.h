@@ -6,8 +6,10 @@
 struct polygon;
 
 struct polygon* polygon_create(void);
+struct polygon* polygon_create_empty(void);
 void polygon_destroy(void* p);
 void polygon_add(struct polygon* polygon, struct vector* simple_polygon);
+int polygon_is_empty(const struct polygon* polygon);
 
 struct polygon_iterator;
 struct polygon_iterator* polygon_iterator_create(struct polygon* polygon);

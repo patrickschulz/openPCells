@@ -83,6 +83,7 @@ int object_align_area_anchor_bottom(struct object* cell, const char* anchorname,
 // boundary
 int object_has_boundary(const struct object* cell);
 void object_set_boundary(struct object* cell, struct vector* boundary);
+void object_set_empty_layer_boundary(struct object* cell, const struct generics* layer);
 void object_add_layer_boundary(struct object* cell, const struct generics* layer, struct vector* new);
 void object_inherit_boundary(struct object* cell, const struct object* othercell);
 int object_has_boundary(const struct object* cell);

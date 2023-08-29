@@ -16,10 +16,20 @@ struct polygon* polygon_create(void)
     return polygon;
 }
 
+struct polygon* polygon_create_empty(void)
+{
+    struct polygon* polygon = malloc(sizeof(*polygon));
+    polygon->simple_polygons = NULL;
+    return polygon;
+}
+
 void polygon_destroy(void* p)
 {
     struct polygon* polygon = p;
-    vector_destroy(polygon->simple_polygons);
+    if(polygon->simple_polygons)
+    {
+        vector_destroy(polygon->simple_polygons);
+    }
     free(polygon);
 }
 
@@ -28,7 +38,10 @@ void polygon_add(struct polygon* polygon, struct vector* simple_polygon)
     vector_append(polygon->simple_polygons, simple_polygon);
 }
 
-void polygon_add(struct polygon* polygon, struct vector* simple_polygon);
+int polygon_is_empty(const struct polygon* polygon)
+{
+    return polygon->simple_polygons == NULL;
+}
 
 struct polygon_iterator {
     struct vector_iterator* iterator;

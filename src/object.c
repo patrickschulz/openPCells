@@ -1146,6 +1146,21 @@ void object_set_layer_boundary(struct object* cell, const struct generics* layer
 }
 */
 
+void object_set_empty_layer_boundary(struct object* cell, const struct generics* layer)
+{
+    if(!cell->layer_boundaries)
+    {
+        cell->layer_boundaries = hashmap_create();
+    }
+    if(hashmap_exists(cell->layer_boundaries, (const char*)layer))
+    {
+        struct polygon* boundary = hashmap_get(cell->layer_boundaries, (const char*)layer);
+        polygon_destroy(boundary);
+    }
+    struct polygon* boundary = polygon_create_empty();
+    hashmap_insert(cell->layer_boundaries, (const char*)layer, boundary);
+}
+
 void object_add_layer_boundary(struct object* cell, const struct generics* layer, struct vector* new)
 {
     if(!cell->layer_boundaries)
@@ -1278,12 +1293,16 @@ int object_has_layer_boundary(const struct object* cell, const struct generics* 
 
 struct polygon* object_get_layer_boundary(const struct object* cell, const struct generics* layer)
 {
-    struct polygon* boundary = polygon_create();
     if(cell->isproxy)
     {
         struct polygon* cellboundary = hashmap_get(cell->reference->layer_boundaries, (const char*)layer);
         if(cellboundary)
         {
+            if(polygon_is_empty(cellboundary))
+            {
+                return polygon_create_empty();
+            }
+            struct polygon* boundary = polygon_create();
             struct polygon_const_iterator* pit = polygon_const_iterator_create(cellboundary);
             while(polygon_const_iterator_is_valid(pit))
             {
@@ -1303,9 +1322,11 @@ struct polygon* object_get_layer_boundary(const struct object* cell, const struc
                 polygon_const_iterator_next(pit);
             }
             polygon_const_iterator_destroy(pit);
+            return boundary;
         }
         else
         {
+            struct polygon* boundary = polygon_create();
             coordinate_t blx, bly, trx, try;
             object_get_minmax_xy(cell->reference, &blx, &bly, &trx, &try);
             transformationmatrix_apply_transformation_xy(cell->trans, &blx, &bly);
@@ -1316,6 +1337,7 @@ struct polygon* object_get_layer_boundary(const struct object* cell, const struc
             vector_append(single_boundary, point_create(trx, try));
             vector_append(single_boundary, point_create(blx, try));
             polygon_add(boundary, single_boundary);
+            return boundary;
         }
     }
     else
@@ -1323,6 +1345,11 @@ struct polygon* object_get_layer_boundary(const struct object* cell, const struc
         struct polygon* cellboundary = hashmap_get(cell->layer_boundaries, (const char*)layer);
         if(cellboundary)
         {
+            if(polygon_is_empty(cellboundary))
+            {
+                return polygon_create_empty();
+            }
+            struct polygon* boundary = polygon_create();
             struct polygon_const_iterator* pit = polygon_const_iterator_create(cellboundary);
             while(polygon_const_iterator_is_valid(pit))
             {
@@ -1342,9 +1369,11 @@ struct polygon* object_get_layer_boundary(const struct object* cell, const struc
                 polygon_const_iterator_next(pit);
             }
             polygon_const_iterator_destroy(pit);
+            return boundary;
         }
         else
         {
+            struct polygon* boundary = polygon_create();
             coordinate_t blx, bly, trx, try;
             object_get_minmax_xy(cell, &blx, &bly, &trx, &try);
             struct vector* single_boundary = vector_create(4, point_destroy);
@@ -1353,9 +1382,9 @@ struct polygon* object_get_layer_boundary(const struct object* cell, const struc
             vector_append(single_boundary, point_create(trx, try));
             vector_append(single_boundary, point_create(blx, try));
             polygon_add(boundary, single_boundary);
+            return boundary;
         }
     }
-    return boundary;
 }
 
 static void _port_destroy(void* p)

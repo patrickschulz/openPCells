@@ -7,6 +7,10 @@ static int _between(coordinate_t p, coordinate_t a, coordinate_t b)
 
 int layout_util_is_point_in_polygon(coordinate_t x, coordinate_t y, const struct const_vector* polygon)
 {
+    if(polygon_is_empty(polygon))
+    {
+        return -1;
+    }
     int inside = 0;
     size_t i = const_vector_size(polygon) - 1;
     size_t j = 0;
