@@ -151,15 +151,15 @@ function check(_P)
     return true
 end
 
-local function _select_parameter(devparam, rowparam, cellparam)
-    if devparam == nil then
-        if rowparam == nil then
-            return cellparam
+local function _select_parameter(name, devparam, rowparam, cellparam)
+    if devparam[name] == nil then
+        if rowparam[name] == nil then
+            return cellparam and cellparam[name]
         else
-            return rowparam
+            return rowparam[name]
         end
     else
-        return devparam
+        return devparam[name]
     end
 end
 
@@ -174,26 +174,26 @@ function layout(cell, _P)
                 gatespace = row.gatespace,
                 fwidth = row.width,
                 fingers = device.fingers,
-                sdwidth = _select_parameter(device.sdwidth, row.sdwidth, _P.sdwidth),
-                connectsource = _select_parameter(device.connectsource, row.connectsource),
-                connectsourceinverse = _select_parameter(device.connectsourceinverse, row.connectsourceinverse),
-                connectsourceboth = _select_parameter(device.connectsourceboth, row.connectsourceboth),
-                connectsourcewidth = _select_parameter(device.connectsourcewidth, row.connectsourcewidth),
-                connectsourcespace = _select_parameter(device.connectsourcespace, row.connectsourcespace),
-                sourcemetal = _select_parameter(device.sourcemetal, row.sourcemetal),
-                connectdrain = _select_parameter(device.connectdrain, row.connectdrain),
-                connectdraininverse = _select_parameter(device.connectdraininverse, row.connectdraininverse),
-                connectdrainboth = _select_parameter(device.connectdrainboth, row.connectdrainboth),
-                connectdrainwidth = _select_parameter(device.connectdrainwidth, row.connectdrainwidth),
-                connectdrainspace = _select_parameter(device.connectdrainspace, row.connectdrainspace),
-                drainmetal = _select_parameter(device.drainmetal, row.drainmetal),
-                drawtopgate = device.drawtopgate,
-                topgatewidth = device.topgatewidth,
-                topgatespace = device.topgatespace,
-                drawbotgate = device.drawbotgate,
-                botgatewidth = device.botgatewidth,
-                botgatespace = device.botgatespace,
-                diodeconnected = device.diodeconnected,
+                sdwidth = _select_parameter("sdwidth", device, row, _P),
+                connectsource = _select_parameter("connectsource", device, row),
+                connectsourceinverse = _select_parameter("connectsourceinverse", device, row),
+                connectsourceboth = _select_parameter("connectsourceboth", device, row),
+                connectsourcewidth = _select_parameter("connectsourcewidth", device, row),
+                connectsourcespace = _select_parameter("connectsourcespace", device, row),
+                sourcemetal = _select_parameter("sourcemetal", device, row),
+                connectdrain = _select_parameter("connectdrain", device, row),
+                connectdraininverse = _select_parameter("connectdraininverse", device, row),
+                connectdrainboth = _select_parameter("connectdrainboth", device, row),
+                connectdrainwidth = _select_parameter("connectdrainwidth", device, row),
+                connectdrainspace = _select_parameter("connectdrainspace", device, row),
+                drainmetal = _select_parameter("drainmetal", device, row),
+                drawtopgate = _select_parameter("drawtopgate", device, row),
+                topgatewidth = _select_parameter("topgatewidth", device, row),
+                topgatespace = _select_parameter("topgatespace", device, row),
+                drawbotgate = _select_parameter("drawbotgate", device, row),
+                botgatewidth = _select_parameter("botgatewidth", device, row),
+                botgatespace = _select_parameter("botgatespace", device, row),
+                diodeconnected = _select_parameter("diodeconnected", device, row),
             })
             if not lastmosfet then -- first mosfet in row
                 mosfet:move_point(mosfet:get_area_anchor("active").bl, lastpoint)
