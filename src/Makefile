@@ -8,7 +8,7 @@ ifeq ($(DEBUG), 1)
     CFLAGS=-std=c99 -O0 -g -Wall -Wextra -Wstrict-prototypes -pthread
 endif
 ifeq ($(DEBUGANALYZE), 1)
-    CFLAGS=-std=c99 -O0 -g -fanalyzer -Wno-analyzer-deref-before-check -fsanitize=address -fsanitize=leak -fsanitize=undefined -Wall -Wextra -Werror=return-type -Werror=implicit-function-declaration -Werror=int-conversion -Werror=discarded-qualifiers -Wstrict-prototypes -pthread
+    CFLAGS=-std=c99 -O0 -g -fanalyzer -fsanitize=address -fsanitize=address -fsanitize=leak -fsanitize=undefined -Wall -Wextra -Werror=return-type -Werror=implicit-function-declaration -Werror=int-conversion -Werror=discarded-qualifiers -Wstrict-prototypes -pthread
 endif
 export CFLAGS
 
