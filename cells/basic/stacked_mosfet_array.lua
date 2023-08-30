@@ -174,6 +174,8 @@ function layout(cell, _P)
                 gatespace = row.gatespace,
                 fwidth = row.width,
                 fingers = device.fingers,
+                gtopext = _select_parameter("gtopext", device, row),
+                gbotext = _select_parameter("gbotext", device, row),
                 sdwidth = _select_parameter("sdwidth", device, row, _P),
                 connectsource = _select_parameter("connectsource", device, row),
                 connectsourceinverse = _select_parameter("connectsourceinverse", device, row),
