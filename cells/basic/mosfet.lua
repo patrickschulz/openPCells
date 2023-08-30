@@ -76,6 +76,10 @@ function parameters()
         { "connectsourcespace(Source Rails Metal Space)",                           technology.get_dimension("Minimum M1 Width"), argtype = "integer" },
         { "connectsourceleftext(Source Rails Metal Left Extension)",                0 },
         { "connectsourcerightext(Source Rails Metal Right Extension)",              0 },
+        { "connectsourceotherwidth(Other Source Rails Metal Width)",                technology.get_dimension("Minimum M1 Width"), argtype = "integer", follow = "connectsourcewidth" },
+        { "connectsourceotherspace(Other Source Rails Metal Space)",                technology.get_dimension("Minimum M1 Width"), argtype = "integer", follow = "connectsourcespace" },
+        { "connectsourceotherleftext(Other Source Rails Metal Left Extension)",     0, follow = "connectsourceleftext", },
+        { "connectsourceotherrightext(Other Source Rails Metal Right Extension)",   0, follow = "connectsourcerightext", },
         { "sourcemetal(Source Connection Metal)",                                   1 },
         { "sourceviametal(Source Via Metal)",                                       1, follow = "sourcemetal" },
         { "connectsourceinline(Connect Source Inline of Transistor)",               false },
@@ -90,6 +94,10 @@ function parameters()
         { "connectdrainleftext(Drain Rails Metal Left Extension)",                  0 },
         { "connectdrainrightext(Drain Rails Metal Right Extension)",                0 },
         { "connectdraininverse(Invert Drain Strap Locations)",                      false },
+        { "connectdrainotherwidth(Other Drain Rails Metal Width)",                  technology.get_dimension("Minimum M1 Width"), argtype = "integer", follow = "connectdrainwidth" },
+        { "connectdrainotherspace(Other Drain Rails Metal Space)",                  technology.get_dimension("Minimum M1 Width"), argtype = "integer", follow = "connectdrainspace" },
+        { "connectdrainotherleftext(Other Drain Rails Metal Left Extension)",       0, follow = "connectdrainleftext" },
+        { "connectdrainotherrightext(Other Drain Rails Metal Right Extension)",     0, follow = "connectdrainrightext" },
         { "drawdrainvia(Draw Drain Via)",                                           true },
         { "drawfirstdrainvia(Draw First Drain Via)",                                true },
         { "drawlastdrainvia(Draw Last Drain Via)",                                  true },
@@ -827,7 +835,26 @@ function layout(transistor, _P)
         end
         for i = 1, _P.fingers + 1, 2 do
             local shift = leftactext - (_P.gatespace + _P.sdwidth) / 2 + (i - 1) * gatepitch - sdmetalshift
-            if not sourceinvert or _P.connectsourceboth then
+            if sourceinvert then
+                if sourceoffset + _P.sourcesize < _P.fwidth + _P.connectsourcespace then -- don't draw connections if they are malformed
+                    if not (i == 1 and not _P.drawfirstsourcevia or i == _P.fingers + 1 and not _P.drawlastsourcevia) then
+                        geometry.rectanglebltr(transistor, generics.metal(_P.sourcemetal),
+                            point.create(shift, sourceoffset + _P.sourcesize),
+                            point.create(shift + _P.sdmetalwidth, _P.fwidth + _P.connectsourcespace)
+                        )
+                    end
+                end
+                if _P.connectsourceboth then
+                    if -_P.connectsourceotherspace < sourceoffset then -- don't draw connections if they are malformed
+                        if not (i == 1 and not _P.drawfirstsourcevia or i == _P.fingers + 1 and not _P.drawlastsourcevia) then
+                            geometry.rectanglebltr(transistor, generics.metal(_P.sourcemetal),
+                                point.create(shift, -_P.connectsourceotherspace),
+                                point.create(shift + _P.sdmetalwidth, sourceoffset)
+                            )
+                        end
+                    end
+                end
+            else
                 if -_P.connectsourcespace < sourceoffset then -- don't draw connections if they are malformed
                     if not (i == 1 and not _P.drawfirstsourcevia or i == _P.fingers + 1 and not _P.drawlastsourcevia) then
                         geometry.rectanglebltr(transistor, generics.metal(_P.sourcemetal),
@@ -836,14 +863,14 @@ function layout(transistor, _P)
                         )
                     end
                 end
-            end
-            if sourceinvert or _P.connectsourceboth then
-                if sourceoffset + _P.sourcesize < _P.fwidth + _P.connectsourcespace then -- don't draw connections if they are malformed
-                    if not (i == 1 and not _P.drawfirstsourcevia or i == _P.fingers + 1 and not _P.drawlastsourcevia) then
-                        geometry.rectanglebltr(transistor, generics.metal(_P.sourcemetal),
-                            point.create(shift, sourceoffset + _P.sourcesize),
-                            point.create(shift + _P.sdmetalwidth, _P.fwidth + _P.connectsourcespace)
-                        )
+                if _P.connectsourceboth then
+                    if sourceoffset + _P.sourcesize < _P.fwidth + _P.connectsourceotherspace then -- don't draw connections if they are malformed
+                        if not (i == 1 and not _P.drawfirstsourcevia or i == _P.fingers + 1 and not _P.drawlastsourcevia) then
+                            geometry.rectanglebltr(transistor, generics.metal(_P.sourcemetal),
+                                point.create(shift, sourceoffset + _P.sourcesize),
+                                point.create(shift + _P.sdmetalwidth, _P.fwidth + _P.connectsourceotherspace)
+                            )
+                        end
                     end
                 end
             end
@@ -884,18 +911,18 @@ function layout(transistor, _P)
             if _P.channeltype == "nmos" then
                 if _P.connectsourceinverse then
                     bly1 = _P.fwidth + _P.connectsourcespace
-                    bly2 = -_P.connectsourcespace - _P.connectsourcewidth
+                    bly2 = -_P.connectsourceotherspace - _P.connectsourceotherwidth
                 else
                     bly1 = -_P.connectsourcespace - _P.connectsourcewidth
-                    bly2 = _P.fwidth + _P.connectsourcespace
+                    bly2 = _P.fwidth + _P.connectsourceotherspace
                 end
             else
                 if _P.connectsourceinverse then
                     bly1 = -_P.connectsourcespace - _P.connectsourcewidth
-                    bly2 = _P.fwidth + _P.connectsourcespace
+                    bly2 = _P.fwidth + _P.connectsourceotherspace
                 else
                     bly1 = _P.fwidth + _P.connectsourcespace
-                    bly2 = -_P.connectsourcespace - _P.connectsourcewidth
+                    bly2 = -_P.connectsourceotherspace - _P.connectsourceotherwidth
                 end
             end
             -- main strap
@@ -907,8 +934,8 @@ function layout(transistor, _P)
                 if _P.connectsourceboth then
                     -- other strap
                     geometry.rectanglebltr(transistor, generics.metal(_P.sourcemetal),
-                        point.create(blx - _P.connectsourceleftext, bly2),
-                        point.create(trx + _P.connectsourcerightext, bly2 + _P.connectsourcewidth)
+                        point.create(blx - _P.connectsourceotherleftext, bly2),
+                        point.create(trx + _P.connectsourceotherrightext, bly2 + _P.connectsourceotherwidth)
                     )
                 end
             end
@@ -920,8 +947,8 @@ function layout(transistor, _P)
             if _P.connectsourceboth then
                 -- other anchor
                 transistor:add_area_anchor_bltr("othersourcestrap",
-                    point.create(blx - _P.connectsourceleftext, bly2),
-                    point.create(trx + _P.connectsourcerightext, bly2 + _P.connectsourcewidth)
+                    point.create(blx - _P.connectsourceotherleftext, bly2),
+                    point.create(trx + _P.connectsourceotherrightext, bly2 + _P.connectsourceotherwidth)
                 )
             end
         end
@@ -942,7 +969,26 @@ function layout(transistor, _P)
             local shift = leftactext - (_P.gatespace + _P.sdwidth) / 2 + (i - 1) * gatepitch - sdmetalshift
             local conndrainoffset = _P.drainmetal > 1 and drainviaoffset or drainoffset
             local conndraintop = _P.drainmetal > 1 and _P.drainviasize or _P.drainsize
-            if not draininvert or _P.connectdrainboth then
+            if draininvert then
+                if -_P.connectdrainspace < conndrainoffset then -- don't draw connections if they are malformed
+                    if not (i == 2 and not _P.drawfirstdrainvia or i == _P.fingers + 1 and not _P.drawlastdrainvia) then
+                        geometry.rectanglebltr(transistor, generics.metal(_P.drainmetal),
+                            point.create(shift, -_P.connectdrainspace),
+                            point.create(shift + _P.sdmetalwidth, conndrainoffset)
+                        )
+                    end
+                end
+                if _P.connectdrainboth then
+                    if conndrainoffset + conndraintop < _P.fwidth + _P.connectdrainotherspace then -- don't draw connections if they are malformed
+                       if not (i == 2 and not _P.drawfirstdrainvia or i == _P.fingers + 1 and not _P.drawlastdrainvia) then
+                            geometry.rectanglebltr(transistor, generics.metal(_P.drainmetal),
+                                point.create(shift, conndrainoffset + conndraintop),
+                                point.create(shift + _P.sdmetalwidth, _P.fwidth + _P.connectdrainotherspace)
+                            )
+                        end
+                    end
+                end
+            else
                 if conndrainoffset + conndraintop < _P.fwidth + _P.connectdrainspace then -- don't draw connections if they are malformed
                    if not (i == 2 and not _P.drawfirstdrainvia or i == _P.fingers + 1 and not _P.drawlastdrainvia) then
                         geometry.rectanglebltr(transistor, generics.metal(_P.drainmetal),
@@ -951,14 +997,14 @@ function layout(transistor, _P)
                         )
                     end
                 end
-            end
-            if draininvert or _P.connectdrainboth then
-                if -_P.connectdrainspace < conndrainoffset then -- don't draw connections if they are malformed
-                    if not (i == 2 and not _P.drawfirstdrainvia or i == _P.fingers + 1 and not _P.drawlastdrainvia) then
-                        geometry.rectanglebltr(transistor, generics.metal(_P.drainmetal),
-                            point.create(shift, -_P.connectdrainspace),
-                            point.create(shift + _P.sdmetalwidth, conndrainoffset)
-                        )
+                if _P.connectdrainboth then
+                    if -_P.connectdrainotherspace < conndrainoffset then -- don't draw connections if they are malformed
+                        if not (i == 2 and not _P.drawfirstdrainvia or i == _P.fingers + 1 and not _P.drawlastdrainvia) then
+                            geometry.rectanglebltr(transistor, generics.metal(_P.drainmetal),
+                                point.create(shift, -_P.connectdrainotherspace),
+                                point.create(shift + _P.sdmetalwidth, conndrainoffset)
+                            )
+                        end
                     end
                 end
             end
@@ -999,18 +1045,18 @@ function layout(transistor, _P)
             if _P.channeltype == "nmos" then
                 if _P.connectdraininverse then
                     bly1 = -_P.connectdrainspace - _P.connectdrainwidth
-                    bly2 = _P.fwidth + _P.connectdrainspace
+                    bly2 = _P.fwidth + _P.connectdrainotherspace
                 else
                     bly1 = _P.fwidth + _P.connectdrainspace
-                    bly2 = -_P.connectdrainspace - _P.connectdrainwidth
+                    bly2 = -_P.connectdrainotherspace - _P.connectdrainotherwidth
                 end
             else
                 if _P.connectdraininverse then
                     bly1 = _P.fwidth + _P.connectdrainspace
-                    bly2 = -_P.connectdrainspace - _P.connectdrainwidth
+                    bly2 = -_P.connectdrainotherspace - _P.connectdrainotherwidth
                 else
                     bly1 = -_P.connectdrainspace - _P.connectdrainwidth
-                    bly2 = _P.fwidth + _P.connectdrainspace
+                    bly2 = _P.fwidth + _P.connectdrainotherspace
                 end
             end
             if _P.drawdrainstrap then
@@ -1022,8 +1068,8 @@ function layout(transistor, _P)
                 if _P.connectdrainboth then
                     -- other strap
                     geometry.rectanglebltr(transistor, generics.metal(_P.drainmetal),
-                        point.create(blx - _P.connectdrainleftext, bly2),
-                        point.create(trx + _P.connectdrainrightext, bly2 + _P.connectdrainwidth)
+                        point.create(blx - _P.connectdrainotherleftext, bly2),
+                        point.create(trx + _P.connectdrainotherrightext, bly2 + _P.connectdrainotherwidth)
                     )
                 end
             end
@@ -1035,8 +1081,8 @@ function layout(transistor, _P)
             -- other anchor
             if _P.connectdrainboth then
                 transistor:add_area_anchor_bltr("otherdrainstrap",
-                    point.create(blx - _P.connectdrainleftext, bly2),
-                    point.create(trx + _P.connectdrainrightext, bly2 + _P.connectdrainwidth)
+                    point.create(blx - _P.connectdrainotherleftext, bly2),
+                    point.create(trx + _P.connectdrainotherrightext, bly2 + _P.connectdrainotherwidth)
                 )
             end
         end
