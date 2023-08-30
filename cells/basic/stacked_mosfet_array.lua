@@ -206,12 +206,9 @@ function layout(cell, _P)
             end
             lastmosfet = mosfet
             cell:merge_into(mosfet)
+            cell:inherit_alignment_box(mosfet)
         end
         lastpoint:translate_y(_P.separation)
         lastmosfet = nil
     end
-    cell:set_alignment_box(
-        point.create(0, 0),
-        point.create(0, 0)
-    )
 end
