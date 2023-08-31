@@ -736,6 +736,65 @@ static int lgeometry_path_polygon(lua_State* L)
     return 0;
 }
 
+static int lgeometry_path_points_xy(lua_State* L)
+{
+    struct lpoint* startpt = lpoint_checkpoint(L, 1);
+
+    lua_len(L, 2);
+    size_t len = lua_tointeger(L, -1);
+    lua_pop(L, 1);
+    int xnoty = 1;
+    coordinate_t lastx = point_getx(lpoint_get(startpt));
+    coordinate_t lasty = point_gety(lpoint_get(startpt));
+    lua_newtable(L);
+    lpoint_create_internal(L, lastx, lasty);
+    lua_rawseti(L, -2, 1);
+    size_t idx = 1;
+    for(size_t i = 1; i <= len; ++i)
+    {
+        lua_rawgeti(L, 2, i);
+        if(lpoint_is_point(L, -1))
+        {
+            struct lpoint* pt = lpoint_checkpoint(L, 1);
+            coordinate_t x = point_getx(lpoint_get(pt));
+            coordinate_t y = point_gety(lpoint_get(pt));
+            if(xnoty)
+            {
+                lpoint_create_internal(L, x, lasty);
+                lua_rawseti(L, -2, idx);
+                idx += 1;
+            }
+            else
+            {
+                lpoint_create_internal(L, lastx, y);
+                lua_rawseti(L, -2, idx);
+                idx += 1;
+            }
+            lastx = x;
+            lasty = y;
+            xnoty = !xnoty;
+        }
+        else
+        {
+            coordinate_t mov = lua_tointeger(L, -1);
+            if(xnoty)
+            {
+                lastx = lastx + mov;
+            }
+            else
+            {
+                lasty = lasty + mov;
+            }
+        }
+        lua_pop(L, 1);
+        lpoint_create_internal(L, lastx, lasty);
+        lua_rawseti(L, -1, idx);
+        idx += 1;
+        xnoty = !xnoty;
+    }
+    return 1;
+}
+
 void _get_viacontact_properties(lua_State* L, int idx, int* xcont, int* ycont, int* equal_pitch)
 {
     if(lua_type(L, idx) == LUA_TTABLE)
@@ -1199,6 +1258,7 @@ int open_lgeometry_lib(lua_State* L)
         { "path_cshape",                                lgeometry_path_cshape                                       },
         { "path_ushape",                                lgeometry_path_ushape                                       },
         { "path_polygon",                               lgeometry_path_polygon                                      },
+        { "path_points_xy",                             lgeometry_path_points_xy                                    },
         { "viabltr",                                    lgeometry_viabltr                                           },
         { "viabarebltr",                                lgeometry_viabarebltr                                       },
         { "viabltr_xcontinuous",                        lgeometry_viabltr_xcontinuous                               },

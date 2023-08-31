@@ -18,6 +18,7 @@ int lpoint_copy(lua_State* L);
 const point_t* lpoint_get(const struct lpoint* pt);
 coordinate_t lpoint_checkcoordinate(lua_State* L, int idx, const char* coordinate);
 struct lpoint* lpoint_checkpoint(lua_State* L, int idx);
+int lpoint_is_point(lua_State* L, int idx);
 
 int open_lpoint_lib(lua_State* L);
 

@@ -304,19 +304,14 @@ static int lpoint_tostring(lua_State* L)
     return 1;
 }
 
-static int lpoint_is_point(lua_State* L)
+int lpoint_is_point(lua_State* L, int idx)
 {
-    if(lua_gettop(L) != 1)
-    {
-        lua_pushstring(L, "point.is_point expects expects one argument");
-        lua_error(L);
-    }
-    if(lua_type(L, 1) != LUA_TUSERDATA)
+    if(lua_type(L, idx) != LUA_TUSERDATA)
     {
         lua_pushboolean(L, 0);
         return 1;
     }
-    lua_getmetatable(L, 1);
+    lua_getmetatable(L, idx);
     if(lua_isnil(L, -1))
     {
         lua_pop(L, 1);
@@ -333,6 +328,16 @@ static int lpoint_is_point(lua_State* L)
     lua_pop(L, 2);
     lua_pushboolean(L, 0);
     return 1;
+}
+
+static int lpoint_is_point_lua(lua_State* L)
+{
+    if(lua_gettop(L) != 1)
+    {
+        lua_pushstring(L, "point.is_point expects expects one argument");
+        lua_error(L);
+    }
+    return lpoint_is_point(L, 1);
 }
 
 int open_lpoint_lib(lua_State* L)
@@ -371,7 +376,7 @@ int open_lpoint_lib(lua_State* L)
     static const luaL_Reg modfuncs[] =
     {
         { "create",         lpoint_create           },
-        { "is_point",       lpoint_is_point         },
+        { "is_point",       lpoint_is_point_lua     },
         { "combine_12",     lpoint_combine_12       },
         { "combine_21",     lpoint_combine_21       },
         { "combine",        lpoint_combine          },
