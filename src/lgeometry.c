@@ -736,14 +736,12 @@ static int lgeometry_path_polygon(lua_State* L)
     return 0;
 }
 
-static int lgeometry_path_points_xy(lua_State* L)
+static void _path_points(lua_State* L, int xnoty)
 {
     struct lpoint* startpt = lpoint_checkpoint(L, 1);
-
     lua_len(L, 2);
     size_t len = lua_tointeger(L, -1);
     lua_pop(L, 1);
-    int xnoty = 1;
     coordinate_t lastx = point_getx(lpoint_get(startpt));
     coordinate_t lasty = point_gety(lpoint_get(startpt));
     lua_newtable(L);
@@ -792,6 +790,19 @@ static int lgeometry_path_points_xy(lua_State* L)
         idx += 1;
         xnoty = !xnoty;
     }
+}
+
+static int lgeometry_path_points_xy(lua_State* L)
+{
+    int xnoty = 1;
+    _path_points(L, xnoty);
+    return 1;
+}
+
+static int lgeometry_path_points_yx(lua_State* L)
+{
+    int xnoty = 0;
+    _path_points(L, xnoty);
     return 1;
 }
 
@@ -1259,6 +1270,7 @@ int open_lgeometry_lib(lua_State* L)
         { "path_ushape",                                lgeometry_path_ushape                                       },
         { "path_polygon",                               lgeometry_path_polygon                                      },
         { "path_points_xy",                             lgeometry_path_points_xy                                    },
+        { "path_points_yx",                             lgeometry_path_points_yx                                    },
         { "viabltr",                                    lgeometry_viabltr                                           },
         { "viabarebltr",                                lgeometry_viabarebltr                                       },
         { "viabltr_xcontinuous",                        lgeometry_viabltr_xcontinuous                               },
