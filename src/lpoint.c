@@ -308,26 +308,22 @@ int lpoint_is_point(lua_State* L, int idx)
 {
     if(lua_type(L, idx) != LUA_TUSERDATA)
     {
-        lua_pushboolean(L, 0);
-        return 1;
+        return 0;
     }
     lua_getmetatable(L, idx);
     if(lua_isnil(L, -1))
     {
         lua_pop(L, 1);
-        lua_pushboolean(L, 0);
-        return 1;
+        return 0;
     }
     luaL_getmetatable(L, LPOINTMETA);
     int equal = lua_compare(L, -1, -2, LUA_OPEQ);
+    lua_pop(L, 2);
     if(equal)
     {
-        lua_pushboolean(L, 1);
         return 1;
     }
-    lua_pop(L, 2);
-    lua_pushboolean(L, 0);
-    return 1;
+    return 0;
 }
 
 static int lpoint_is_point_lua(lua_State* L)
@@ -337,7 +333,9 @@ static int lpoint_is_point_lua(lua_State* L)
         lua_pushstring(L, "point.is_point expects expects one argument");
         lua_error(L);
     }
-    return lpoint_is_point(L, 1);
+    int islpoint = lpoint_is_point(L, 1);
+    lua_pushboolean(L, islpoint);
+    return 1;
 }
 
 int open_lpoint_lib(lua_State* L)

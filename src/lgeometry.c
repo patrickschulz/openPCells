@@ -755,19 +755,19 @@ static int lgeometry_path_points_xy(lua_State* L)
         lua_rawgeti(L, 2, i);
         if(lpoint_is_point(L, -1))
         {
-            struct lpoint* pt = lpoint_checkpoint(L, 1);
+            struct lpoint* pt = lpoint_checkpoint(L, -1);
             coordinate_t x = point_getx(lpoint_get(pt));
             coordinate_t y = point_gety(lpoint_get(pt));
             if(xnoty)
             {
                 lpoint_create_internal(L, x, lasty);
-                lua_rawseti(L, -2, idx);
+                lua_rawseti(L, -3, idx);
                 idx += 1;
             }
             else
             {
                 lpoint_create_internal(L, lastx, y);
-                lua_rawseti(L, -2, idx);
+                lua_rawseti(L, -3, idx);
                 idx += 1;
             }
             lastx = x;
@@ -788,7 +788,7 @@ static int lgeometry_path_points_xy(lua_State* L)
         }
         lua_pop(L, 1);
         lpoint_create_internal(L, lastx, lasty);
-        lua_rawseti(L, -1, idx);
+        lua_rawseti(L, -2, idx);
         idx += 1;
         xnoty = !xnoty;
     }
