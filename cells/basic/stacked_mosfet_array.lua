@@ -167,7 +167,8 @@ function layout(cell, _P)
     local lastpoint = point.create(0, 0)
     local lastmosfet = nil
     for rownum, row in ipairs(_P.rows) do
-        for _, device in ipairs(row.devices) do
+        local activebl, activetr
+        for devnum, device in ipairs(row.devices) do
             local mosfet = pcell.create_layout("basic/mosfet", device.name, {
                 channeltype = row.channeltype,
                 gatelength = row.gatelength,
@@ -211,7 +212,15 @@ function layout(cell, _P)
             lastmosfet = mosfet
             cell:merge_into(mosfet)
             cell:inherit_alignment_box(mosfet)
+            cell:inherit_all_anchors_with_prefix(mosfet, device.name .. "_")
+            if devnum == 1 then
+                activebl = mosfet:get_area_anchor("active").bl
+            end
+            if devnum == #row.devices then
+                activetr = mosfet:get_area_anchor("active").tr
+            end
         end
+        cell:add_area_anchor_bltr(string.format("active_%d", rownum), activebl, activetr)
         lastpoint:translate_y(_P.separation)
         lastmosfet = nil
     end

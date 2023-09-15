@@ -473,6 +473,57 @@ int object_inherit_area_anchor_as(struct object* cell, const struct object* othe
     return 0;
 }
 
+int object_inherit_anchor(struct object* cell, const struct object* other, const char* name)
+{
+    return object_inherit_anchor_as(cell, other, name, name);
+}
+
+int object_inherit_anchor_as(struct object* cell, const struct object* other, const char* name, const char* newname)
+{
+    if(cell->isproxy)
+    {
+        return 0;
+    }
+    point_t* anchor = object_get_anchor(other, name);
+    if(anchor)
+    {
+        object_add_anchor(cell, newname, point_getx(anchor), point_gety(anchor));
+        free(anchor);
+    }
+    return 0;
+}
+
+int object_inherit_all_anchors_with_prefix(struct object* cell, const struct object* other, const char* prefix)
+{
+    const struct object* obj = other;
+    if(other->isproxy)
+    {
+        obj = other->reference;
+    }
+    if(obj->anchors)
+    {
+        struct hashmap_const_iterator* it = hashmap_const_iterator_create(obj->anchors);
+        while(hashmap_const_iterator_is_valid(it))
+        {
+            const char* key = hashmap_const_iterator_key(it);
+            const struct anchor* anchor = hashmap_const_iterator_value(it);
+            char* newanchorname = malloc(strlen(prefix) + strlen(key) + 1);
+            sprintf(newanchorname, "%s%s", prefix, key);
+            if(_anchor_is_area(anchor))
+            {
+                object_inherit_area_anchor_as(cell, obj, key, newanchorname);
+            }
+            else
+            {
+                object_inherit_anchor_as(cell, obj, key, newanchorname);
+            }
+            free(newanchorname);
+            hashmap_const_iterator_next(it);
+        }
+        hashmap_const_iterator_destroy(it);
+    }
+}
+
 static point_t* _get_regular_anchor(const struct object* cell, const char* name)
 {
     const struct object* obj = cell;
