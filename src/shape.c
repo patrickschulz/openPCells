@@ -841,19 +841,6 @@ int shape_get_center(const struct shape* shape, coordinate_t* x, coordinate_t* y
     return 1;
 }
 
-void shape_resize_lrtb(struct shape* shape, coordinate_t left, coordinate_t right, coordinate_t top, coordinate_t bottom)
-{
-    if(shape->type != RECTANGLE) // FIXME: support other types
-    {
-        return;
-    }
-    struct rectangle* rectangle = shape->content;
-    point_t* bl = _bl(rectangle);
-    point_t* tr = _tr(rectangle);
-    point_translate(bl, -left, -bottom);
-    point_translate(tr, right, top);
-}
-
 static int _check_grid(const point_t* pt, unsigned int grid)
 {
     if((pt->x % grid) != 0)
