@@ -811,7 +811,13 @@ void shape_get_minmax_xy(const struct shape* shape, coordinate_t* minxp, coordin
             }
             break;
         }
-        //case CURVE: break;
+        case CURVE:
+        {
+            struct shape* polygon = shape_rasterize_curve(shape);
+            shape_get_minmax_xy(polygon, &min->x, &min->y, &max->x, &max->y);
+            shape_destroy(polygon);
+            break;
+        }
     }
     *minxp = min->x;
     *minyp = min->y;
