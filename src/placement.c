@@ -123,6 +123,10 @@ static struct object* _place_child(struct object* toplevel, struct object* cell,
 {
     size_t len = strlen(basename) + 1 + util_num_digits(i);
     char* name = malloc(len + 1);
+    if(!name)
+    {
+        return NULL;
+    }
     sprintf(name, "%s_%d", basename, i);
     struct object* child = object_add_child(toplevel, cell, name);
     object_move_point_to_origin(child, origin);

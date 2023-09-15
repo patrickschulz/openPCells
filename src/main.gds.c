@@ -62,6 +62,11 @@ void main_gds_read(struct cmdoptions* cmdoptions)
         {
             size_t len = strlen(readgds) - 4;
             importlibname = malloc(len + 1);
+            if(!importlibname)
+            {
+                fputs("memory allocation error\n", stderr);
+                return;
+            }
             strncpy(importlibname, readgds, len);
             importlibname[len] = 0;
             must_free = 1;

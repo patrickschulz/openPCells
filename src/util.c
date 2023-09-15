@@ -71,6 +71,10 @@ void util_append_string(char* target, const char* str)
 {
     size_t len = strlen(target) + strlen(str);
     char* tmp = realloc(target, len + 1);
+    if(!tmp)
+    {
+        return;
+    }
     target = tmp;
     strcat(target, str);
 }
@@ -95,6 +99,10 @@ int util_file_exists(const char* path)
 char* util_strdup(const char* str)
 {
     char* dup = malloc(strlen(str) + 1);
+    if(!dup)
+    {
+        return NULL;
+    }
     strcpy(dup, str);
     return dup;
 }

@@ -32,6 +32,10 @@ struct export_state {
 struct export_state* export_create_state(void)
 {
     struct export_state* state = malloc(sizeof(*state));
+    if(!state)
+    {
+        return NULL;
+    }
     memset(state, 0, sizeof(*state));
     state->searchpaths = const_vector_create(1);
     state->expand_namecontext = 1;

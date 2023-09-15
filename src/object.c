@@ -493,7 +493,7 @@ int object_inherit_anchor_as(struct object* cell, const struct object* other, co
     return 0;
 }
 
-int object_inherit_all_anchors_with_prefix(struct object* cell, const struct object* other, const char* prefix)
+void object_inherit_all_anchors_with_prefix(struct object* cell, const struct object* other, const char* prefix)
 {
     const struct object* obj = other;
     if(other->isproxy)

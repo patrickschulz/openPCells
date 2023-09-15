@@ -1237,7 +1237,7 @@ static void _write_PATH(FILE* cellfile, int16_t layer, int16_t purpose, const st
     fprintf(cellfile, "}, %lld)\n", width);
 }
 
-static int _read_structure(const char* importname, struct stream* stream, const struct vector* gdslayermap, const struct vector* ignorelpp, int16_t* ablayer, int16_t* abpurpose)
+static int _read_structure(const char* libname, const char* importname, struct stream* stream, const struct vector* gdslayermap, const struct vector* ignorelpp, int16_t* ablayer, int16_t* abpurpose)
 {
     FILE* cellfile = NULL;
     struct hashmap* references = hashmap_create();
@@ -1266,9 +1266,9 @@ static int _read_structure(const char* importname, struct stream* stream, const 
             {
                 return 0;
             }
-            size_t len = strlen(importname) + strlen(importname) + strlen(cellname) + 6; // +2: 2 * '/' + ".lua"
+            size_t len = strlen(libname) + strlen(importname) + strlen(cellname) + 6; // +2: 2 * '/' + ".lua"
             char* path = malloc(len + 1);
-            snprintf(path, len + 1, "%s/%s/%s.lua", importname, importname, cellname);
+            snprintf(path, len + 1, "%s/%s/%s.lua", libname, importname, cellname);
             cellfile = fopen(path, "w");
             free(cellname);
             free(path);
@@ -1446,18 +1446,18 @@ static int _read_structure(const char* importname, struct stream* stream, const 
     return 1;
 }
 
-static void _create_libdir(const char* importname)
+static void _create_libdir(const char* libname, const char* importname)
 {
-    size_t len = strlen(importname) + strlen(importname) + 1; // +1: '/'
+    size_t len = strlen(libname) + strlen(importname) + 1; // +1: '/'
     char* path = malloc(len + 1);
-    snprintf(path, len + 1, "%s/%s", importname, importname);
+    snprintf(path, len + 1, "%s/%s", libname, importname);
     filesystem_mkdir(path);
     free(path);
 }
 
 int gdsparser_read_stream(const char* filename, const char* importname, const struct vector* gdslayermap, const struct vector* ignorelpp, int16_t* ablayer, int16_t* abpurpose)
 {
-    const char* libname;
+    const char* libname = NULL;
     struct stream* stream = _read_raw_stream(filename);
     if(!stream)
     {
@@ -1480,11 +1480,17 @@ int gdsparser_read_stream(const char* filename, const char* importname, const st
             {
                 importname = libname;
             }
-            _create_libdir(importname);
+            _create_libdir(libname, importname);
         }
         else if(record->recordtype == BGNSTR)
         {
-            if(!_read_structure(importname, stream, gdslayermap, ignorelpp, ablayer, abpurpose))
+            if(!libname)
+            {
+                puts("gdsparser: GDSII stream does not start with a LIBNAME entry");
+                _destroy_stream(stream);
+                return 0;
+            }
+            if(!_read_structure(libname, importname, stream, gdslayermap, ignorelpp, ablayer, abpurpose))
             {
                 puts("gdsparser: error while reading structure");
                 _destroy_stream(stream);
@@ -1493,6 +1499,12 @@ int gdsparser_read_stream(const char* filename, const char* importname, const st
         }
         else if(record->recordtype == ENDLIB)
         {
+            if(!libname)
+            {
+                puts("gdsparser: GDSII stream does not start with a LIBNAME entry");
+                _destroy_stream(stream);
+                return 0;
+            }
             break;
         }
     }
