@@ -938,10 +938,12 @@ struct shape* shape_resolve_path(const struct shape* shape)
     return new;
 }
 
+/*
 static void _check_acute_angles(struct vector* points)
 {
 
 }
+*/
 
 void shape_rasterize_curve_inline(struct shape* shape)
 {
@@ -1005,7 +1007,7 @@ void shape_rasterize_curve_inline(struct shape* shape)
     vector_destroy(curve->segments);
     free(curve);
 
-    _check_acute_angles(rastered_points);
+    //_check_acute_angles(rastered_points);
 
     struct polygon_shape* polygon = malloc(sizeof(*polygon));
     polygon->points = rastered_points;
