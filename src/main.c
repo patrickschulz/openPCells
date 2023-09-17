@@ -137,6 +137,7 @@ int main(int argc, const char* const * argv)
 
     // create and parse command line options
     struct cmdoptions* cmdoptions = cmdoptions_create();
+    cmdoptions_disable_narrow_mode(cmdoptions);
     #include "cmdoptions_def.c" // yes, I did that
     if(!cmdoptions_parse(cmdoptions, argc, argv))
     {
@@ -184,7 +185,8 @@ int main(int argc, const char* const * argv)
     if(cmdoptions_was_provided_long(cmdoptions, "import-verilog"))
     {
         const char* scriptname = cmdoptions_get_argument_long(cmdoptions, "import-verilog");
-        const struct vector* args = cmdoptions_get_positional_parameters(cmdoptions);
+        const char** ptr = cmdoptions_get_positional_parameters(cmdoptions);
+        const struct vector* args = vector_adapt_from_pointer_array((void**)ptr);
         main_verilog_import(scriptname, args);
         goto DESTROY_CMDOPTIONS;
     }
@@ -217,7 +219,7 @@ int main(int argc, const char* const * argv)
     if(cmdoptions_was_provided_long(cmdoptions, "ignore-layer"))
     {
         struct vector* ignoredlayers = hashmap_get(config, "ignoredlayers");
-        const char** layernames = cmdoptions_get_argument_long(cmdoptions, "ignore-layer");
+        const char* const* layernames = cmdoptions_get_argument_long(cmdoptions, "ignore-layer");
         while(*layernames)
         {
             vector_append(ignoredlayers, util_strdup(*layernames));
@@ -259,7 +261,7 @@ int main(int argc, const char* const * argv)
     if(cmdoptions_was_provided_long(cmdoptions, "listtechpaths"))
     {
         printf("%s\n", OPC_TECH_PATH "/tech");
-        const char** arg = cmdoptions_get_argument_long(cmdoptions, "techpath");
+        const char* const* arg = cmdoptions_get_argument_long(cmdoptions, "techpath");
         while(arg && *arg)
         {
             printf("%s\n", *arg);
@@ -283,7 +285,7 @@ int main(int argc, const char* const * argv)
         struct vector* cellpaths_to_prepend = vector_create(8, free);
         if(cmdoptions_was_provided_long(cmdoptions, "prepend-cellpath"))
         {
-            const char** arg = cmdoptions_get_argument_long(cmdoptions, "prepend-cellpath");
+            const char* const* arg = cmdoptions_get_argument_long(cmdoptions, "prepend-cellpath");
             while(*arg)
             {
                 vector_append(cellpaths_to_prepend, util_strdup(*arg));
@@ -293,7 +295,7 @@ int main(int argc, const char* const * argv)
         struct vector* cellpaths_to_append = vector_create(8, free);
         if(cmdoptions_was_provided_long(cmdoptions, "cellpath"))
         {
-            const char** arg = cmdoptions_get_argument_long(cmdoptions, "cellpath");
+            const char* const* arg = cmdoptions_get_argument_long(cmdoptions, "cellpath");
             while(*arg)
             {
                 vector_append(cellpaths_to_append, util_strdup(*arg));
@@ -302,7 +304,7 @@ int main(int argc, const char* const * argv)
         }
         if(cmdoptions_was_provided_long(cmdoptions, "append-cellpath"))
         {
-            const char** arg = cmdoptions_get_argument_long(cmdoptions, "append-cellpath");
+            const char* const* arg = cmdoptions_get_argument_long(cmdoptions, "append-cellpath");
             while(*arg)
             {
                 vector_append(cellpaths_to_append, util_strdup(*arg));

@@ -5,6 +5,7 @@
 
 struct vector;
 struct vector* vector_create(size_t capacity, void (*destructor)(void*));
+struct vector* vector_adapt_from_pointer_array(void**);
 void vector_destroy(void* vector);
 struct vector* vector_copy(struct vector* vector, void* (*copy)(const void*));
 void vector_reserve(struct vector* vector, size_t additional_capacity);

@@ -106,7 +106,7 @@ static void _prepare_cellpaths(struct vector* cellpaths_to_prepend, struct vecto
 
     if(cmdoptions_was_provided_long(cmdoptions, "prepend-cellpath"))
     {
-        const char** arg = cmdoptions_get_argument_long(cmdoptions, "prepend-cellpath");
+        const char* const* arg = cmdoptions_get_argument_long(cmdoptions, "prepend-cellpath");
         while(*arg)
         {
             vector_append(cellpaths_to_prepend, util_strdup(*arg));
@@ -115,7 +115,7 @@ static void _prepare_cellpaths(struct vector* cellpaths_to_prepend, struct vecto
     }
     if(cmdoptions_was_provided_long(cmdoptions, "append-cellpath"))
     {
-        const char** arg = cmdoptions_get_argument_long(cmdoptions, "append-cellpath");
+        const char* const* arg = cmdoptions_get_argument_long(cmdoptions, "append-cellpath");
         while(*arg)
         {
             vector_append(cellpaths_to_append, util_strdup(*arg));
@@ -156,7 +156,7 @@ void main_list_cell_parameters(struct cmdoptions* cmdoptions, struct hashmap* co
     vector_append(techpaths, util_strdup(OPC_TECH_PATH "/tech"));
     if(cmdoptions_was_provided_long(cmdoptions, "techpath"))
     {
-        const char** arg = cmdoptions_get_argument_long(cmdoptions, "techpath");
+        const char* const* arg = cmdoptions_get_argument_long(cmdoptions, "techpath");
         while(*arg)
         {
             vector_append(techpaths, util_strdup(*arg));
@@ -412,7 +412,7 @@ static void _draw_anchors(struct object* toplevel, struct cmdoptions* cmdoptions
 {
     if(cmdoptions_was_provided_long(cmdoptions, "draw-anchor"))
     {
-        const char** anchornames = cmdoptions_get_argument_long(cmdoptions, "draw-anchor");
+        const char* const* anchornames = cmdoptions_get_argument_long(cmdoptions, "draw-anchor");
         while(*anchornames)
         {
             point_t* pt = object_get_anchor(toplevel, *anchornames);
@@ -537,7 +537,7 @@ int main_create_and_export_cell(struct cmdoptions* cmdoptions, struct hashmap* c
     vector_append(techpaths, util_strdup(OPC_TECH_PATH "/tech"));
     if(cmdoptions_was_provided_long(cmdoptions, "techpath"))
     {
-        const char** arg = cmdoptions_get_argument_long(cmdoptions, "techpath");
+        const char* const* arg = cmdoptions_get_argument_long(cmdoptions, "techpath");
         while(*arg)
         {
             vector_append(techpaths, util_strdup(*arg));
@@ -574,7 +574,8 @@ int main_create_and_export_cell(struct cmdoptions* cmdoptions, struct hashmap* c
         retval = 0;
         goto DESTROY_TECHNOLOGY;
     }
-    struct vector* cellargs = cmdoptions_get_positional_parameters(cmdoptions);
+    const char** ptr = cmdoptions_get_positional_parameters(cmdoptions);
+    struct vector* cellargs = vector_adapt_from_pointer_array((void**)ptr);
     const char* cellname;
     if(iscellscript)
     {

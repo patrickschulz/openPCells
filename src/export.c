@@ -66,7 +66,7 @@ void export_set_basename(struct export_state* state, const char* basename)
     state->basename = basename;
 }
 
-void export_set_export_options(struct export_state* state, const char** exportoptions)
+void export_set_export_options(struct export_state* state, const char* const* exportoptions)
 {
     state->exportoptions = exportoptions;
 }

@@ -31,6 +31,18 @@ struct vector* vector_create(size_t capacity, void (*destructor)(void*))
     return vector;
 }
 
+struct vector* vector_adapt_from_pointer_array(void** ptrarray)
+{
+    struct vector* vector = vector_create(8, NULL);
+    void** ptr = ptrarray;
+    while(*ptr)
+    {
+        vector_append(vector, *ptr);
+        ++ptr;
+    }
+    return vector;
+}
+
 void vector_destroy(void* v)
 {
     struct vector* vector = v;

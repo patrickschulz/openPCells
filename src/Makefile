@@ -3,12 +3,14 @@ PROGNAME=opc
 CC=gcc
 export CC
 
-CFLAGS=-std=c99 -O3 -Wall -Wextra -Wstrict-prototypes -pthread -DLUA_USE_LINUX
+PPFLAGS=-DLUA_USE_LINUX -DCMDOPTIONS_ENABLE_TERM_WIDTH
+
+CFLAGS=-std=c99 -O3 -Wall -Wextra -Wstrict-prototypes -pthread $(PPFLAGS)
 ifeq ($(DEBUG), 1)
-    CFLAGS=-std=c99 -O0 -g -Wall -Wextra -Wstrict-prototypes -pthread -DLUA_USE_LINUX
+    CFLAGS=-std=c99 -O0 -g -Wall -Wextra -Wstrict-prototypes -pthread $(PPFLAGS)
 endif
 ifeq ($(DEBUGANALYZE), 1)
-    CFLAGS=-std=c99 -O0 -g -fanalyzer -fsanitize=address -fsanitize=address -fsanitize=leak -fsanitize=undefined -Wall -Wextra -Werror=return-type -Werror=implicit-function-declaration -Werror=int-conversion -Wno-analyzer-deref-before-check -Werror=discarded-qualifiers -Wstrict-prototypes -pthread -DLUA_USE_LINUX
+    CFLAGS=-std=c99 -O0 -g -fanalyzer -fsanitize=address -fsanitize=address -fsanitize=leak -fsanitize=undefined -Wall -Wextra -Werror=return-type -Werror=implicit-function-declaration -Werror=int-conversion -Wno-analyzer-deref-before-check -Werror=discarded-qualifiers -Wstrict-prototypes -pthread $(PPFLAGS)
 endif
 export CFLAGS
 

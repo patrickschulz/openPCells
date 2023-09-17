@@ -50,7 +50,7 @@ void main_gds_read(struct cmdoptions* cmdoptions)
 {
     const char* readgds = cmdoptions_get_argument_long(cmdoptions, "read-gds");
     int gdsusestreamlibname = cmdoptions_was_provided_long(cmdoptions, "gds-use-libname");
-    char* importlibname = cmdoptions_get_argument_long(cmdoptions, "import-libname");
+    char* importlibname = (char*)cmdoptions_get_argument_long(cmdoptions, "import-libname");
     int must_free = 0;
     if(!importlibname)
     {
@@ -77,7 +77,7 @@ void main_gds_read(struct cmdoptions* cmdoptions)
     struct vector* ignorelpp = vector_create(1, free);
     if(cmdoptions_was_provided_long(cmdoptions, "gds-ignore-lpp"))
     {
-        const char** lppstrs = cmdoptions_get_argument_long(cmdoptions, "gds-ignore-lpp");
+        const char* const* lppstrs = cmdoptions_get_argument_long(cmdoptions, "gds-ignore-lpp");
         while(*lppstrs)
         {
             const char* lppstr = *lppstrs;
