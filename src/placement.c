@@ -147,8 +147,7 @@ struct vector* placement_place_within_boundary(struct object* toplevel, struct o
 
 void placement_place_within_boundary_merge(struct object* toplevel, struct object* cell, const struct simple_polygon* targetarea, const struct polygon* excludes)
 {
-    // FIXME: should be ucoordinate
-    coordinate_t width, height;
+    ucoordinate_t width, height;
     object_width_height_alignmentbox(cell, &width, &height);
     struct vector* origins = placement_calculate_origins(width, height, width, height, width / 2, height / 2, targetarea, excludes);
     struct vector_const_iterator* origin_it = vector_const_iterator_create(origins);
@@ -165,8 +164,7 @@ void placement_place_within_boundary_merge(struct object* toplevel, struct objec
 
 struct object* placement_place_within_rectangular_boundary(struct object* toplevel, struct object* cell, const char* basename, const point_t* targetbl, const point_t* targettr)
 {
-    // FIXME: should be ucoordinate, but this raises an error with the gcc analyzer regarding signed integer overflow. Not sure why and debugging is tedious
-    coordinate_t xpitch, ypitch;
+    ucoordinate_t xpitch, ypitch;
     object_width_height_alignmentbox(cell, &xpitch, &ypitch);
     coordinate_t fillwidth = point_getx(targettr) - point_getx(targetbl);
     coordinate_t fillheight = point_gety(targettr) - point_gety(targetbl);
