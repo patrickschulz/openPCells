@@ -173,7 +173,11 @@ struct object* placement_place_within_rectangular_boundary(struct object* toplev
     coordinate_t xrep = fillwidth / xpitch;
     coordinate_t yrep = fillheight / ypitch;
     struct object* children = object_add_child_array(toplevel, cell, basename, xrep, yrep, xpitch, ypitch);
-    object_translate(children, -(xrep - 1) * xpitch / 2, -(yrep - 1) * ypitch / 2);
+    object_translate(
+        children,
+        (point_getx(targetbl) + point_getx(targettr)) / 2 - (xrep - 1) * xpitch / 2,
+        (point_gety(targetbl) + point_gety(targettr)) / 2 - (yrep - 1) * ypitch / 2
+    );
     return children;
 }
 
