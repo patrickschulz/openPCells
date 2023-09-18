@@ -997,12 +997,12 @@ static int lobject_add_layer_boundary(lua_State* L)
     lua_len(L, 3);
     size_t len = lua_tointeger(L, -1);
     lua_pop(L, 1);
-    struct vector* boundary = vector_create(4, point_destroy);
+    struct simple_polygon* boundary = simple_polygon_create();
     for(unsigned int i = 1; i <= len; ++i)
     {
         lua_rawgeti(L, 3, i);
         struct lpoint* pt = lpoint_checkpoint(L, -1);
-        vector_append(boundary, point_copy(lpoint_get(pt)));
+        simple_polygon_append(boundary, point_copy(lpoint_get(pt)));
         lua_pop(L, 1);
     }
     object_add_layer_boundary(lobject_get(cell), layer, boundary);
@@ -1015,13 +1015,13 @@ static int lobject_add_layer_boundary_rectangular(lua_State* L)
     const struct generics* layer = lua_touserdata(L, 2);
     if(lua_gettop(L) == 4)
     {
-        struct vector* boundary = vector_create(4, point_destroy);
+        struct simple_polygon* boundary = simple_polygon_create();
         struct lpoint* bl = lpoint_checkpoint(L, 3);
         struct lpoint* tr = lpoint_checkpoint(L, 4);
-        vector_append(boundary, point_create(lpoint_get(bl)->x, lpoint_get(bl)->y));
-        vector_append(boundary, point_create(lpoint_get(tr)->x, lpoint_get(bl)->y));
-        vector_append(boundary, point_create(lpoint_get(tr)->x, lpoint_get(tr)->y));
-        vector_append(boundary, point_create(lpoint_get(bl)->x, lpoint_get(tr)->y));
+        simple_polygon_append(boundary, point_create(lpoint_get(bl)->x, lpoint_get(bl)->y));
+        simple_polygon_append(boundary, point_create(lpoint_get(tr)->x, lpoint_get(bl)->y));
+        simple_polygon_append(boundary, point_create(lpoint_get(tr)->x, lpoint_get(tr)->y));
+        simple_polygon_append(boundary, point_create(lpoint_get(bl)->x, lpoint_get(tr)->y));
         object_add_layer_boundary(lobject_get(cell), layer, boundary);
     }
     else
@@ -1090,19 +1090,19 @@ static int lobject_get_layer_boundary(lua_State* L)
     int i = 1;
     while(polygon_iterator_is_valid(pit))
     {
-        struct vector* single_boundary = polygon_iterator_get(pit);
-        struct vector_iterator* it = vector_iterator_create(single_boundary);
+        struct simple_polygon* single_boundary = polygon_iterator_get(pit);
+        struct simple_polygon_iterator* it = simple_polygon_iterator_create(single_boundary);
         lua_newtable(L);
         int j = 1;
-        while(vector_iterator_is_valid(it))
+        while(simple_polygon_iterator_is_valid(it))
         {
-            const point_t* pt = vector_iterator_get(it);
+            const point_t* pt = simple_polygon_iterator_get(it);
             lpoint_create_internal(L, pt->x, pt->y);
             lua_rawseti(L, -2, j);
-            vector_iterator_next(it);
+            simple_polygon_iterator_next(it);
             ++j;
         }
-        vector_iterator_destroy(it);
+        simple_polygon_iterator_destroy(it);
         lua_rawseti(L, -2, i);
         ++i;
         polygon_iterator_next(pit);

@@ -3,8 +3,8 @@
 
 #include "lua/lua.h"
 
-#include "vector.h"
+#include "polygon.h"
 
-struct const_vector* lutil_create_const_point_vector(lua_State* L, int idx);
+struct simple_polygon* lutil_create_simple_polygon(lua_State* L, int idx);
 
 #endif /* OPC_LUTIL_H */

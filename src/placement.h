@@ -2,29 +2,30 @@
 #define OPC_PLACEMENT_H
 
 #include "object.h"
+#include "polygon.h"
 #include "vector.h"
 
 struct vector* placement_calculate_origins(
     ucoordinate_t width, ucoordinate_t height,
     ucoordinate_t xpitch, ucoordinate_t ypitch,
     coordinate_t xstartshift, coordinate_t ystartshift,
-    const struct const_vector* targetarea,
-    const struct vector* excludes
+    const struct simple_polygon* targetarea,
+    const struct polygon* excludes
 );
 
 struct vector* placement_place_within_boundary(
     struct object* toplevel,
     struct object* cell,
     const char* basename,
-    const struct const_vector* targetarea,
-    const struct vector* excludes
+    const struct simple_polygon* targetarea,
+    const struct polygon* excludes
 );
 
 void placement_place_within_boundary_merge(
     struct object* toplevel,
     struct object* cell,
-    const struct const_vector* targetarea,
-    const struct vector* excludes
+    const struct simple_polygon* targetarea,
+    const struct polygon* excludes
 );
 
 struct object* placement_place_within_rectangular_boundary(

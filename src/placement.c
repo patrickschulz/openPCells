@@ -4,60 +4,50 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "layout_util.h"
 #include "util.h"
 
-static int _is_in_targetarea(coordinate_t x, coordinate_t y, coordinate_t width, coordinate_t height, const struct const_vector* targetarea)
+static int _is_in_targetarea(coordinate_t x, coordinate_t y, coordinate_t width, coordinate_t height, const struct simple_polygon* targetarea)
 {
     // FIXME: this needs a proper polygon intersection test
-    return (layout_util_is_point_in_polygon(x            , y             , targetarea) == 1) &&
-           (layout_util_is_point_in_polygon(x + width / 2, y             , targetarea) >= 0) &&
-           (layout_util_is_point_in_polygon(x - width / 2, y             , targetarea) >= 0) &&
-           (layout_util_is_point_in_polygon(x            , y + height / 2, targetarea) >= 0) &&
-           (layout_util_is_point_in_polygon(x            , y - height / 2, targetarea) >= 0) &&
-           (layout_util_is_point_in_polygon(x + width / 2, y + height / 2, targetarea) >= 0) &&
-           (layout_util_is_point_in_polygon(x - width / 2, y + height / 2, targetarea) >= 0) &&
-           (layout_util_is_point_in_polygon(x + width / 2, y - height / 2, targetarea) >= 0) &&
-           (layout_util_is_point_in_polygon(x - width / 2, y - height / 2, targetarea) >= 0);
+    return (polygon_is_point_in_simple_polygon(targetarea, x            , y             ) == 1) &&
+           (polygon_is_point_in_simple_polygon(targetarea, x + width / 2, y             ) >= 0) &&
+           (polygon_is_point_in_simple_polygon(targetarea, x - width / 2, y             ) >= 0) &&
+           (polygon_is_point_in_simple_polygon(targetarea, x            , y + height / 2) >= 0) &&
+           (polygon_is_point_in_simple_polygon(targetarea, x            , y - height / 2) >= 0) &&
+           (polygon_is_point_in_simple_polygon(targetarea, x + width / 2, y + height / 2) >= 0) &&
+           (polygon_is_point_in_simple_polygon(targetarea, x - width / 2, y + height / 2) >= 0) &&
+           (polygon_is_point_in_simple_polygon(targetarea, x + width / 2, y - height / 2) >= 0) &&
+           (polygon_is_point_in_simple_polygon(targetarea, x - width / 2, y - height / 2) >= 0);
 }
 
-static int _is_in_excludes(coordinate_t x, coordinate_t y, coordinate_t width, coordinate_t height, const struct vector* excludes)
+static int _is_in_excludes(coordinate_t x, coordinate_t y, coordinate_t width, coordinate_t height, const struct polygon* excludes)
 {
-    int is_in_exclude = 0;
-    struct vector_const_iterator* exclude_it = vector_const_iterator_create(excludes);
-    while(vector_const_iterator_is_valid(exclude_it))
+    // FIXME: this needs a proper polygon intersection test
+    if(polygon_is_point_in_polygon(excludes, x            , y             ) == 1 ||
+       polygon_is_point_in_polygon(excludes, x + width / 2, y             ) == 1 ||
+       polygon_is_point_in_polygon(excludes, x - width / 2, y             ) == 1 ||
+       polygon_is_point_in_polygon(excludes, x            , y + height / 2) == 1 ||
+       polygon_is_point_in_polygon(excludes, x            , y - height / 2) == 1 ||
+       polygon_is_point_in_polygon(excludes, x + width / 2, y + height / 2) == 1 ||
+       polygon_is_point_in_polygon(excludes, x - width / 2, y + height / 2) == 1 ||
+       polygon_is_point_in_polygon(excludes, x + width / 2, y - height / 2) == 1 ||
+       polygon_is_point_in_polygon(excludes, x - width / 2, y - height / 2) == 1)
     {
-        const struct const_vector* exclude = vector_const_iterator_get(exclude_it);
-        // FIXME: this needs a proper polygon intersection test
-        if(layout_util_is_point_in_polygon(x            , y             , exclude) == 1 ||
-                layout_util_is_point_in_polygon(x + width / 2, y             , exclude) == 1 ||
-                layout_util_is_point_in_polygon(x - width / 2, y             , exclude) == 1 ||
-                layout_util_is_point_in_polygon(x            , y + height / 2, exclude) == 1 ||
-                layout_util_is_point_in_polygon(x            , y - height / 2, exclude) == 1 ||
-                layout_util_is_point_in_polygon(x + width / 2, y + height / 2, exclude) == 1 ||
-                layout_util_is_point_in_polygon(x - width / 2, y + height / 2, exclude) == 1 ||
-                layout_util_is_point_in_polygon(x + width / 2, y - height / 2, exclude) == 1 ||
-                layout_util_is_point_in_polygon(x - width / 2, y - height / 2, exclude) == 1)
-        {
-            is_in_exclude = 1;
-            break;
-        }
-        vector_const_iterator_next(exclude_it);
+        return 1;
     }
-    vector_const_iterator_destroy(exclude_it);
-    return is_in_exclude;
+    return 0;
 }
 
-static void _get_minmax(const struct const_vector* targetarea, coordinate_t* minx, coordinate_t* miny, coordinate_t* maxx, coordinate_t* maxy)
+static void _get_minmax(const struct simple_polygon* targetarea, coordinate_t* minx, coordinate_t* miny, coordinate_t* maxx, coordinate_t* maxy)
 {
     *minx = COORDINATE_MAX;
     *maxx = COORDINATE_MIN;
     *miny = COORDINATE_MAX;
     *maxy = COORDINATE_MIN;
-    struct const_vector_iterator* it = const_vector_iterator_create(targetarea);
-    while(const_vector_iterator_is_valid(it))
+    struct simple_polygon_const_iterator* it = simple_polygon_const_iterator_create(targetarea);
+    while(simple_polygon_const_iterator_is_valid(it))
     {
-        const point_t* pt = const_vector_iterator_get(it);
+        const point_t* pt = simple_polygon_const_iterator_get(it);
         coordinate_t x = point_getx(pt);
         coordinate_t y = point_gety(pt);
         if(x < *minx)
@@ -76,17 +66,17 @@ static void _get_minmax(const struct const_vector* targetarea, coordinate_t* min
         {
             *maxy = y;
         }
-        const_vector_iterator_next(it);
+        simple_polygon_const_iterator_next(it);
     }
-    const_vector_iterator_destroy(it);
+    simple_polygon_const_iterator_destroy(it);
 }
 
 struct vector* placement_calculate_origins(
     ucoordinate_t width, ucoordinate_t height,
     ucoordinate_t xpitch, ucoordinate_t ypitch,
     coordinate_t xstartshift, coordinate_t ystartshift,
-    const struct const_vector* targetarea,
-    const struct vector* excludes
+    const struct simple_polygon* targetarea,
+    const struct polygon* excludes
 )
 {
     coordinate_t minx, maxx, miny, maxy;
@@ -134,7 +124,7 @@ static struct object* _place_child(struct object* toplevel, struct object* cell,
     return child;
 }
 
-struct vector* placement_place_within_boundary(struct object* toplevel, struct object* cell, const char* basename, const struct const_vector* targetarea, const struct vector* excludes)
+struct vector* placement_place_within_boundary(struct object* toplevel, struct object* cell, const char* basename, const struct simple_polygon* targetarea, const struct polygon* excludes)
 {
     ucoordinate_t width, height;
     object_width_height_alignmentbox(cell, &width, &height);
@@ -155,7 +145,7 @@ struct vector* placement_place_within_boundary(struct object* toplevel, struct o
     return children;
 }
 
-void placement_place_within_boundary_merge(struct object* toplevel, struct object* cell, const struct const_vector* targetarea, const struct vector* excludes)
+void placement_place_within_boundary_merge(struct object* toplevel, struct object* cell, const struct simple_polygon* targetarea, const struct polygon* excludes)
 {
     // FIXME: should be ucoordinate
     coordinate_t width, height;

@@ -8,32 +8,32 @@
 
 #include "placement.h"
 
-static void _create_target_exclude_vectors(lua_State* L, struct const_vector** targetarea, struct vector** excludes, int idx)
+void lplacement_create_target_exclude_vectors(lua_State* L, struct simple_polygon** targetarea, struct polygon** excludes, int idx)
 {
-    *targetarea = lutil_create_const_point_vector(L, idx);
+    *targetarea = lutil_create_simple_polygon(L, idx);
     *excludes = NULL;
     if(lua_istable(L, idx + 1))
     {
         lua_len(L, idx + 1);
         size_t excludes_len = lua_tointeger(L, -1);
         lua_pop(L, 1);
-        *excludes = vector_create(32, const_vector_destroy);
+        *excludes = polygon_create();
         for(size_t i = 1; i <= excludes_len; ++i)
         {
             lua_rawgeti(L, idx + 1, i);
-            struct const_vector* exclude = lutil_create_const_point_vector(L, -1);
-            vector_append(*excludes, exclude);
+            struct simple_polygon* exclude = lutil_create_simple_polygon(L, -1);
+            polygon_add(*excludes, exclude);
             lua_pop(L, 1);
         }
     }
 }
 
-static void _cleanup_target_exclude_vector(struct const_vector* targetarea, struct vector* excludes)
+static void _cleanup_target_exclude_vector(struct simple_polygon* targetarea, struct polygon* excludes)
 {
-    const_vector_destroy(targetarea);
+    simple_polygon_destroy(targetarea);
     if(excludes)
     {
-        vector_destroy(excludes);
+        polygon_destroy(excludes);
     }
 }
 
@@ -43,9 +43,9 @@ int lplacement_place_within_boundary(lua_State* L)
     struct lobject* cell = lobject_check(L, 2);
     const char* basename = luaL_checkstring(L, 3);
 
-    struct const_vector* targetarea;
-    struct vector* excludes;
-    _create_target_exclude_vectors(L, &targetarea, &excludes, 4);
+    struct simple_polygon* targetarea;
+    struct polygon* excludes;
+    lplacement_create_target_exclude_vectors(L, &targetarea, &excludes, 4);
 
     struct vector* children = placement_place_within_boundary(lobject_get(toplevel), lobject_get(cell), basename, targetarea, excludes);
     _cleanup_target_exclude_vector(targetarea, excludes);
@@ -66,9 +66,9 @@ int lplacement_place_within_boundary_merge(lua_State* L)
     struct lobject* toplevel = lobject_check(L, 1);
     struct lobject* cell = lobject_check(L, 2);
 
-    struct const_vector* targetarea;
-    struct vector* excludes;
-    _create_target_exclude_vectors(L, &targetarea, &excludes, 3);
+    struct simple_polygon* targetarea;
+    struct polygon* excludes;
+    lplacement_create_target_exclude_vectors(L, &targetarea, &excludes, 3);
 
     placement_place_within_boundary_merge(lobject_get(toplevel), lobject_get(cell), targetarea, excludes);
     _cleanup_target_exclude_vector(targetarea, excludes);

@@ -6,9 +6,9 @@
 
 #include "geometry.h"
 #include "graphics.h"
-#include "layout_util.h"
 #include "lcheck.h"
 #include "lobject.h"
+#include "lplacement.h"
 #include "lpoint.h"
 #include "lutil.h"
 #include "placement.h"
@@ -507,28 +507,14 @@ static int lgeometry_rectangle_fill_in_boundary(lua_State* L)
     coordinate_t ystartshift = luaL_checkinteger(L, 8);
 
     // read target area and excludes
-    int idx = 9;
-    struct const_vector* targetarea = lutil_create_const_point_vector(L, idx);
-    struct vector* excludes = NULL;
-    if(lua_istable(L, idx + 1))
-    {
-        lua_len(L, idx + 1);
-        size_t excludes_len = lua_tointeger(L, -1);
-        lua_pop(L, 1);
-        excludes = vector_create(32, const_vector_destroy);
-        for(size_t i = 1; i <= excludes_len; ++i)
-        {
-            lua_rawgeti(L, idx + 1, i);
-            struct const_vector* exclude = lutil_create_const_point_vector(L, -1);
-            vector_append(excludes, exclude);
-            lua_pop(L, 1);
-        }
-    }
+    struct simple_polygon* targetarea;
+    struct polygon* excludes;
+    lplacement_create_target_exclude_vectors(L, &targetarea, &excludes, 9);
 
     // calculate origins
     struct vector* origins = placement_calculate_origins(width, height, xpitch, ypitch, xstartshift, ystartshift, targetarea, excludes);
 
-    const_vector_destroy(targetarea);
+    simple_polygon_destroy(targetarea);
     if(excludes)
     {
         vector_destroy(excludes);

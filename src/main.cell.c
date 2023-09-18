@@ -608,6 +608,7 @@ int main_create_and_export_cell(struct cmdoptions* cmdoptions, struct hashmap* c
     const char* cellenvfilename = cmdoptions_get_argument_long(cmdoptions, "cell-environment");
     const char* name = cmdoptions_get_argument_long(cmdoptions, "cellname");
     struct object* toplevel = _create_cell(cellname, name, iscellscript, cellargs, techstate, pcell_state, enabledprint, pfilenames, cellenvfilename);
+    vector_destroy(cellargs);
     const_vector_destroy(pfilenames);
     if(toplevel)
     {
