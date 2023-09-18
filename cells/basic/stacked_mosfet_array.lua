@@ -70,9 +70,6 @@ function check(_P)
         if not row.channeltype then
             return false, string.format("row %d does not have a channeltype", rownum)
         end
-        if not row.vthtype then
-            return false, string.format("row %d does not have a threshold voltage type", rownum)
-        end
         for devicenum, device in ipairs(row.devices) do
             if not device.name then
                 return false, string.format("device %d in row %d does not have a name", devicenum, rownum)
@@ -81,70 +78,6 @@ function check(_P)
                     return false, string.format("device %d in row %d does not have a unique name ('%s')", devicenum, rownum, device.name)
                 end
                 names[device.name] = true
-            end
-            if device.connectsource then
-                if not device.connectsourcewidth then
-                    return false, string.format("device %d in row %d specified connectsource = true, but did not provide the strap width (connectsourcewidth)", devicenum, rownum)
-                end
-                if not device.connectsourcespace then
-                    return false, string.format("device %d in row %d specified connectsource = true, but did not provide the strap spacing (connectsourcespace)", devicenum, rownum)
-                end
-            end
-            if device.connectextrasource then
-                if not device.connectextrasourcewidth then
-                    return false, string.format("device %d in row %d specified connectextrasource = true, but did not provide the strap width (connectextrasourcewidth)", devicenum, rownum)
-                end
-                if not device.connectextrasourcespace then
-                    return false, string.format("device %d in row %d specified connectextrasource = true, but did not provide the strap spacing (connectextrasourcespace)", devicenum, rownum)
-                end
-            end
-            if device.connectdrain then
-                if not device.connectdrainwidth then
-                    return false, string.format("device %d in row %d specified connectdrain = true, but did not provide the strap width (connectdrainwidth)", devicenum, rownum)
-                end
-                if not device.connectdrainspace then
-                    return false, string.format("device %d in row %d specified connectdrain = true, but did not provide the strap spacing (connectdrainspace)", devicenum, rownum)
-                end
-            end
-            if device.connectextradrain then
-                if not device.connectextradrainwidth then
-                    return false, string.format("device %d in row %d specified connectextradrain = true, but did not provide the strap width (connectextradrainwidth)", devicenum, rownum)
-                end
-                if not device.connectextradrainspace then
-                    return false, string.format("device %d in row %d specified connectextradrain = true, but did not provide the strap spacing (connectextradrainspace)", devicenum, rownum)
-                end
-            end
-            if device.drawtopgate then
-                if not device.topgatewidth then
-                    return false, string.format("device %d in row %d specified drawtopgate = true, but did not provide the strap width (topgatewidth)", devicenum, rownum)
-                end
-                if not device.topgatespace then
-                    return false, string.format("device %d in row %d specified drawtopgate = true, but did not provide the strap spacing (topgatespace)", devicenum, rownum)
-                end
-            end
-            if device.drawbotgate then
-                if not device.botgatewidth then
-                    return false, string.format("device %d in row %d specified drawbotgate = true, but did not provide the strap width (botgatewidth)", devicenum, rownum)
-                end
-                if not device.botgatespace then
-                    return false, string.format("device %d in row %d specified drawbotgate = true, but did not provide the strap spacing (botgatespace)", devicenum, rownum)
-                end
-            end
-            if device.drawtopgatecut then
-                if not device.topgatecutwidth then
-                    return false, string.format("device %d in row %d specified drawtopgatecut = true, but did not provide the cut width (topgatecutwidth)", devicenum, rownum)
-                end
-                if not device.topgatecutspace then
-                    return false, string.format("device %d in row %d specified drawtopgatecut = true, but did not provide the cut spacing (topgatecutspace)", devicenum, rownum)
-                end
-            end
-            if device.drawbotgatecut then
-                if not device.botgatecutwidth then
-                    return false, string.format("device %d in row %d specified drawbotgatecut = true, but did not provide the cut width (botgatecutwidth)", devicenum, rownum)
-                end
-                if not device.botgatecutspace then
-                    return false, string.format("device %d in row %d specified drawbotgatecut = true, but did not provide the cut spacing (botgatecutspace)", devicenum, rownum)
-                end
             end
         end
     end
@@ -201,6 +134,9 @@ function layout(cell, _P)
                 botgatewidth = _select_parameter("botgatewidth", device, row),
                 botgatespace = _select_parameter("botgatespace", device, row),
                 diodeconnected = _select_parameter("diodeconnected", device, row),
+                shortdevice = _select_parameter("shortdevice", device, row),
+                shortdeviceleftoffset = _select_parameter("shortdeviceleftoffset", device, row),
+                shortdevicerightoffset = _select_parameter("shortdevicerightoffset", device, row),
             })
             if not lastmosfet then -- first mosfet in row
                 mosfet:move_point(mosfet:get_area_anchor("active").bl, lastpoint)
