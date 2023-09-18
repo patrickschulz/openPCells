@@ -2,6 +2,7 @@
 
 #include "lua/lauxlib.h"
 
+#include "lcheck.h"
 #include "lobject.h"
 #include "lpoint.h"
 #include "lutil.h"
@@ -39,6 +40,7 @@ static void _cleanup_target_exclude_vector(struct simple_polygon* targetarea, st
 
 int lplacement_place_within_boundary(lua_State* L)
 {
+    lcheck_check_numargs_set(L, 4, 5, "placement.place_within_boundary");
     struct lobject* toplevel = lobject_check(L, 1);
     struct lobject* cell = lobject_check(L, 2);
     const char* basename = luaL_checkstring(L, 3);
@@ -63,6 +65,7 @@ int lplacement_place_within_boundary(lua_State* L)
 
 int lplacement_place_within_boundary_merge(lua_State* L)
 {
+    lcheck_check_numargs(L, 3, "placement.place_within_boundary_merge");
     struct lobject* toplevel = lobject_check(L, 1);
     struct lobject* cell = lobject_check(L, 2);
 
@@ -77,6 +80,7 @@ int lplacement_place_within_boundary_merge(lua_State* L)
 
 int lplacement_place_within_rectangular_boundary(lua_State* L)
 {
+    lcheck_check_numargs(L, 5, "placement.place_within_rectangular_boundary");
     struct lobject* toplevel = lobject_check(L, 1);
     struct lobject* cell = lobject_check(L, 2);
     const char* basename = luaL_checkstring(L, 3);
