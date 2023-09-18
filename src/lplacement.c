@@ -65,7 +65,7 @@ int lplacement_place_within_boundary(lua_State* L)
 
 int lplacement_place_within_boundary_merge(lua_State* L)
 {
-    lcheck_check_numargs(L, 3, "placement.place_within_boundary_merge");
+    lcheck_check_numargs_set(L, 3, 4, "placement.place_within_boundary_merge");
     struct lobject* toplevel = lobject_check(L, 1);
     struct lobject* cell = lobject_check(L, 2);
 
