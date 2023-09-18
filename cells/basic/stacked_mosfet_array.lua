@@ -104,6 +104,7 @@ function layout(cell, _P)
         for devnum, device in ipairs(row.devices) do
             local mosfet = pcell.create_layout("basic/mosfet", device.name, {
                 channeltype = row.channeltype,
+                flippedwell = row.flippedwell,
                 gatelength = row.gatelength,
                 gatespace = row.gatespace,
                 fwidth = row.width,
@@ -116,6 +117,8 @@ function layout(cell, _P)
                 connectsourceboth = _select_parameter("connectsourceboth", device, row),
                 connectsourcewidth = _select_parameter("connectsourcewidth", device, row),
                 connectsourcespace = _select_parameter("connectsourcespace", device, row),
+                connectsourceleftext = _select_parameter("connectsourceleftext", device, row),
+                connectsourcerightext = _select_parameter("connectsourcerightext", device, row),
                 connectsourceotherwidth = _select_parameter("connectsourceotherwidth", device, row),
                 connectsourceotherspace = _select_parameter("connectsourceotherspace", device, row),
                 sourcemetal = _select_parameter("sourcemetal", device, row),
@@ -124,6 +127,8 @@ function layout(cell, _P)
                 connectdrainboth = _select_parameter("connectdrainboth", device, row),
                 connectdrainwidth = _select_parameter("connectdrainwidth", device, row),
                 connectdrainspace = _select_parameter("connectdrainspace", device, row),
+                connectdrainleftext = _select_parameter("connectdrainleftext", device, row),
+                connectdrainrightext = _select_parameter("connectdrainrightext", device, row),
                 connectdrainotherwidth = _select_parameter("connectdrainotherwidth", device, row),
                 connectdrainotherspace = _select_parameter("connectdrainotherspace", device, row),
                 drainmetal = _select_parameter("drainmetal", device, row),
