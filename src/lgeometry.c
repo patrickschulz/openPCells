@@ -517,7 +517,7 @@ static int lgeometry_rectangle_fill_in_boundary(lua_State* L)
     simple_polygon_destroy(targetarea);
     if(excludes)
     {
-        vector_destroy(excludes);
+        polygon_destroy(excludes);
     }
 
     struct vector_const_iterator* origin_it = vector_const_iterator_create(origins);
