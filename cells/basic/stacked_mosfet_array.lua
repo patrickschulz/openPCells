@@ -72,13 +72,6 @@ function layout(cell, _P)
     for rownum, row in ipairs(_P.rows) do
         local activebl, activetr
         for devnum, device in ipairs(row.devices) do
-            dprint(device.name)
-            for k, v in pairs(device) do
-                dprint(k, v)
-            end
-            dprint()
-            dprint(_select_parameter("connectdrain", device, row), row.connectdrain, device.connectdrain)
-            dprint()
             local mosfet = pcell.create_layout("basic/mosfet", device.name, {
                 channeltype = row.channeltype,
                 implantalignwithactive = row.implantalignwithactive,
