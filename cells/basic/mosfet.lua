@@ -1,8 +1,11 @@
 function parameters()
     pcell.add_parameters(
         { "channeltype(Channel Type)",                                              "nmos", posvals = set("nmos", "pmos") },
+        { "implantalignwithactive",                                                 false },
         { "oxidetype(Oxide Thickness Type)",                                        1, argtype = "integer", posvals = interval(1, inf) },
+        { "oxidetypealignwithactive",                                               false },
         { "vthtype(Threshold Voltage Type)",                                        1, argtype = "integer", posvals = interval(1, inf) },
+        { "vthtypealignwithactive",                                                 false },
         { "gatemarker(Gate Marking Layer Index)",                                   1, argtype = "integer", posvals = interval(1, inf) },
         { "mosfetmarker(MOSFET Marking Layer Index)",                               1, argtype = "integer", posvals = interval(1, inf) },
         { "mosfetmarkeralignatsourcedrain(Align MOSFET Marker at Source/Drain)",    false },
@@ -131,6 +134,7 @@ function parameters()
         { "rightfloatingdummies",                                                   0 },
         { "drawactive",                                                             true },
         { "lvsmarker",                                                              1 },
+        { "lvsmarkeralignwithactive",                                               false },
         { "extendalltop",                                                           0 },
         { "extendallbot",                                                           0 },
         { "extendallleft",                                                          0 },
@@ -214,18 +218,24 @@ end
 
 function layout(transistor, _P)
     local gatepitch = _P.gatelength + _P.gatespace
-    local leftactext
-    if _P.endleftwithgate then
-        leftactext = _P.gatespace + _P.gatelength / 2
-    else
-        leftactext = (_P.gatespace + _P.sdwidth) / 2 + _P.actext
-    end
-    local rightactext
-    if _P.endrightwithgate then
-        rightactext = _P.gatespace + _P.gatelength / 2
-    else
-        rightactext = (_P.gatespace + _P.sdwidth) / 2 + _P.actext
-    end
+    --local leftactext
+    --if _P.endleftwithgate then
+    --    leftactext = _P.gatespace + _P.gatelength / 2
+    --else
+    --    leftactext = (_P.gatespace + _P.sdwidth) / 2 + _P.actext
+    --end
+    --local rightactext
+    --if _P.endrightwithgate then
+    --    rightactext = _P.gatespace + _P.gatelength / 2
+    --else
+    --    rightactext = (_P.gatespace + _P.sdwidth) / 2 + _P.actext
+    --end
+    local leftactauxext = _P.endleftwithgate and 0 or 0
+    local rightactauxext = _P.endleftwithgate and 0 or 0
+    local leftactext = (_P.gatespace + _P.sdwidth) / 2 + _P.actext
+    local rightactext = (_P.gatespace + _P.sdwidth) / 2 + _P.actext
+    local leftactauxext = _P.endleftwithgate and _P.gatelength / 2 - _P.sdwidth / 2 + _P.gatespace / 2 or 0
+    local rightactauxext = _P.endrightwithgate and _P.gatelength / 2 - _P.sdwidth / 2 + _P.gatespace / 2 or 0
     local activewidth = _P.fingers * _P.gatelength + (_P.fingers - 1) * _P.gatespace + _P.leftfloatingdummies * gatepitch + _P.rightfloatingdummies * gatepitch
 
     local topgateshift = enable(_P.drawtopgate, _P.topgatespace + _P.topgatewidth)
@@ -244,23 +254,23 @@ function layout(transistor, _P)
     -- active
     if _P.drawactive then
         geometry.rectanglebltr(transistor, generics.other("active"),
-            point.create(0, 0),
-            point.create(activewidth + leftactext + rightactext, _P.fwidth)
+            point.create(-leftactauxext, 0),
+            point.create(activewidth + leftactext + rightactext + rightactauxext, _P.fwidth)
         )
         transistor:add_area_anchor_bltr("active",
-            point.create(0, 0),
-            point.create(activewidth + leftactext + rightactext, _P.fwidth)
+            point.create(-leftactauxext, 0),
+            point.create(activewidth + leftactext + rightactext + rightactauxext, _P.fwidth)
         )
         if _P.drawtopactivedummy then
             geometry.rectanglebltr(transistor, generics.other("active"),
-                point.create(0, _P.fwidth + _P.topactivedummysep),
-                point.create(activewidth + leftactext + rightactext, _P.fwidth + _P.topactivedummysep + _P.topactivedummywidth)
+                point.create(-leftactauxext, _P.fwidth + _P.topactivedummysep),
+                point.create(activewidth + leftactext + rightactext + rightactauxext, _P.fwidth + _P.topactivedummysep + _P.topactivedummywidth)
             )
         end
         if _P.drawbotactivedummy then
             geometry.rectanglebltr(transistor, generics.other("active"),
-                point.create(0, -_P.botactivedummysep - _P.botactivedummywidth),
-                point.create(activewidth + leftactext + rightactext, -_P.botactivedummysep)
+                point.create(-leftactauxext, -_P.botactivedummysep - _P.botactivedummywidth),
+                point.create(activewidth + leftactext + rightactext + rightactauxext, -_P.botactivedummysep)
             )
         end
     end
@@ -538,66 +548,122 @@ function layout(transistor, _P)
     end
 
     -- threshold voltage
-    geometry.rectanglebltr(transistor,
-        generics.vthtype(_P.channeltype, _P.vthtype),
-        point.create(
-            -_P.extendvthleft,
-            gatebly - _P.extendvthbot
-        ),
-        point.create(
-            activewidth + leftactext + rightactext + _P.extendvthright,
-            gatetry + _P.extendvthtop
+    if _P.vthtypealignwithactive then
+        geometry.rectanglebltr(transistor,
+            generics.vthtype(_P.channeltype, _P.vthtype),
+            point.create(
+                -leftactauxext - _P.extendvthleft,
+                -_P.extendvthbot
+            ),
+            point.create(
+                activewidth + leftactext + rightactext + rightactauxext + _P.extendvthright,
+                _P.fwidth + _P.extendvthtop
+            )
         )
-    )
+    else
+        geometry.rectanglebltr(transistor,
+            generics.vthtype(_P.channeltype, _P.vthtype),
+            point.create(
+                -leftactauxext - _P.extendvthleft,
+                gatebly - _P.extendvthbot
+            ),
+            point.create(
+                activewidth + leftactext + rightactext + rightactauxext + _P.extendvthright,
+                gatetry + _P.extendvthtop
+            )
+        )
+    end
 
     -- implant
-    geometry.rectanglebltr(transistor,
-        generics.implant(_P.channeltype),
-        point.create(
-            -_P.extendimplantleft,
-            gatebly - _P.extendimplantbot
-        ),
-        point.create(
-            activewidth + leftactext + rightactext + _P.extendimplantright,
-            gatetry + _P.extendimplanttop
+    if _P.implantalignwithactive then
+        geometry.rectanglebltr(transistor,
+            generics.implant(_P.channeltype),
+            point.create(
+                -leftactauxext - _P.extendimplantleft,
+                -_P.extendimplantbot
+            ),
+            point.create(
+                activewidth + leftactext + rightactext + rightactauxext + _P.extendimplantright,
+                _P.fwidth + _P.extendimplanttop
+            )
         )
-    )
+    else
+        geometry.rectanglebltr(transistor,
+            generics.implant(_P.channeltype),
+            point.create(
+                -leftactauxext - _P.extendimplantleft,
+                gatebly - _P.extendimplantbot
+            ),
+            point.create(
+                activewidth + leftactext + rightactext + rightactauxext + _P.extendimplantright,
+                gatetry + _P.extendimplanttop
+            )
+        )
+    end
 
     -- oxide thickness
-    geometry.rectanglebltr(transistor,
-        generics.oxide(_P.oxidetype),
-        point.create(
-            -_P.extendoxideleft,
-            gatebly - _P.extendoxidebot
-        ),
-        point.create(
-            activewidth + leftactext + rightactext + _P.extendoxideright,
-            gatetry + _P.extendoxidetop
+    if _P.oxidetypealignwithactive then
+        geometry.rectanglebltr(transistor,
+            generics.oxide(_P.oxidetype),
+            point.create(
+                -leftactauxext - _P.extendoxideleft,
+                -_P.extendoxidebot
+            ),
+            point.create(
+                activewidth + leftactext + rightactext + rightactauxext + _P.extendoxideright,
+                _P.fwidth + _P.extendoxidetop
+            )
         )
-    )
+    else
+        geometry.rectanglebltr(transistor,
+            generics.oxide(_P.oxidetype),
+            point.create(
+                -leftactauxext - _P.extendoxideleft,
+                gatebly - _P.extendoxidebot
+            ),
+            point.create(
+                activewidth + leftactext + rightactext + rightactauxext + _P.extendoxideright,
+                gatetry + _P.extendoxidetop
+            )
+        )
+    end
 
     -- rotation marker
     if _P.drawrotationmarker then
         geometry.rectanglebltr(transistor,
             generics.other("rotationmarker"),
-            point.create(-_P.extendrotationmarkerleft, -_P.extendrotationmarkerbot),
-            point.create(activewidth + leftactext + rightactext + _P.extendrotationmarkerright, _P.fwidth + _P.extendrotationmarkertop)
+            point.create(-leftactauxext - _P.extendrotationmarkerleft, -_P.extendrotationmarkerbot),
+            point.create(activewidth + leftactext + rightactext + rightactauxext + _P.extendrotationmarkerright, _P.fwidth + _P.extendrotationmarkertop)
         )
 
     end
 
     -- lvs marker
-    geometry.rectanglebltr(transistor,
-        generics.other(string.format("lvsmarker%d", _P.lvsmarker)),
-        point.create(
-            -_P.extendlvsmarkerleft,
-            gatebly - _P.extendlvsmarkerbot
-        ),
-        point.create(
-            activewidth + leftactext + rightactext + _P.extendlvsmarkerright,
-            gatetry + _P.extendlvsmarkertop
+    if _P.lvsmarkeralignwithactive then
+        geometry.rectanglebltr(transistor,
+            generics.other(string.format("lvsmarker%d", _P.lvsmarker)),
+            point.create(
+                -leftactauxext - _P.extendlvsleft,
+                -_P.extendlvsbot
+            ),
+            point.create(
+                activewidth + leftactext + rightactext + rightactauxext + _P.extendlvsright,
+                _P.fwidth + _P.extendlvstop
+            )
         )
-    )
+    else
+        geometry.rectanglebltr(transistor,
+            generics.other(string.format("lvsmarker%d", _P.lvsmarker)),
+            point.create(
+                -leftactauxext - _P.extendlvsmarkerleft,
+                gatebly - _P.extendlvsmarkerbot
+            ),
+            point.create(
+                activewidth + leftactext + rightactext + rightactauxext + _P.extendlvsmarkerright,
+                gatetry + _P.extendlvsmarkertop
+            )
+        )
+    end
 
     -- well
     if _P.drawwell then
@@ -607,11 +673,11 @@ function layout(transistor, _P)
                 (_P.channeltype == "nmos" and "pwell" or "nwell")
             ),
             point.create(
-                -_P.extendwellleft,
+                -leftactauxext - _P.extendwellleft,
                 -math.max(_P.extendwellbot, enable(_P.drawbotwelltap, _P.botwelltapspace + _P.botwelltapwidth))
             ),
             point.create(
-                activewidth + leftactext + rightactext + _P.extendwellright,
+                activewidth + leftactext + rightactext + rightactauxext + _P.extendwellright,
                 _P.fwidth + math.max(_P.extendwelltop, enable(_P.drawtopwelltap, _P.topwelltapspace + _P.topwelltapwidth))
             )
         )
@@ -643,12 +709,12 @@ function layout(transistor, _P)
         guardring = pcell.create_layout("auxiliary/guardring", "guardring", {
             contype = _P.flippedwell and (_P.channeltype == "nmos" and "n" or "p") or (_P.channeltype == "nmos" and "p" or "n"),
             ringwidth = _P.guardringwidth,
-            holewidth = activewidth + leftactext + rightactext + 2 * _P.guardringxsep,
+            holewidth = activewidth + leftactauxext + leftactext + rightactext + rightactauxext + 2 * _P.guardringxsep,
             holeheight = _P.fwidth + 2 * _P.guardringysep,
             fillwell = true,
             drawsegments = _P.guardringsegments
         })
-        guardring:move_point(guardring:get_anchor("innerbottomleft"), point.create(0, 0))
+        guardring:move_point(guardring:get_anchor("innerbottomleft"), point.create(-leftactauxext, 0))
         guardring:translate(-_P.guardringxsep, -_P.guardringysep)
         transistor:merge_into(guardring)
         transistor:add_area_anchor_bltr("outerguardring",
