@@ -124,6 +124,9 @@ function parameters()
         { "shortdevice(Short Transistor)",                                          false },
         { "shortdeviceleftoffset(Short Transistor Left Offset)",                    0 },
         { "shortdevicerightoffset(Short Transistor Right Offset)",                  0 },
+        { "shortlocation",                                                          "inline", posvals = set("inline", "top", "bottom") },
+        { "shortspace",                                                             technology.get_dimension("Minimum M1 Space") },
+        { "shortwidth",                                                             technology.get_dimension("Minimum M1 Width") },
         { "drawtopactivedummy",                                                     false },
         { "topactivedummywidth",                                                    80 },
         { "topactivedummysep",                                                      80 },
@@ -1184,10 +1187,36 @@ function layout(transistor, _P)
 
     -- short transistor
     if _P.shortdevice then
-        geometry.rectanglebltr(transistor, generics.metal(1),
-            transistor:get_area_anchor(string.format("sourcedrain%d", 1 + _P.shortdeviceleftoffset)).br:translate(0, (_P.sourcesize - _P.sdwidth) / 2),
-            transistor:get_area_anchor(string.format("sourcedrain%d", _P.fingers + 1 - _P.shortdevicerightoffset)).bl:translate(0, (_P.sourcesize + _P.sdwidth) / 2)
-        )
+        if _P.shortlocation == "inline" then
+            geometry.rectanglebltr(transistor, generics.metal(1),
+                transistor:get_area_anchor(string.format("sourcedrain%d", 1 + _P.shortdeviceleftoffset)).br:translate(0, (_P.sourcesize - _P.sdwidth) / 2),
+                transistor:get_area_anchor(string.format("sourcedrain%d", _P.fingers + 1 - _P.shortdevicerightoffset)).bl:translate(0, (_P.sourcesize + _P.sdwidth) / 2)
+            )
+        elseif _P.shortlocation == "top" then
+            geometry.rectanglebltr(transistor, generics.metal(1),
+                transistor:get_area_anchor(string.format("sourcedrain%d", 1 + _P.shortdeviceleftoffset)).tl:translate_y(_P.shortspace),
+                transistor:get_area_anchor(string.format("sourcedrain%d", _P.fingers + 1 - _P.shortdevicerightoffset)).tr:translate_y(_P.shortspace + _P.shortwidth)
+            )
+            for i = 1 + _P.shortdeviceleftoffset, _P.fingers - _P.shortdevicerightoffset + 1 do
+                geometry.rectanglebltr(transistor, generics.metal(1),
+                    transistor:get_area_anchor(string.format("sourcedrain%d", i)).tl,
+                    transistor:get_area_anchor(string.format("sourcedrain%d", i)).tr:translate_y(_P.shortspace)
+                )
+            end
+        elseif _P.shortlocation == "bottom" then
+            geometry.rectanglebltr(transistor, generics.metal(1),
+                transistor:get_area_anchor(string.format("sourcedrain%d", 1 + _P.shortdeviceleftoffset)).bl:translate_y(-_P.shortspace - _P.shortwidth),
+                transistor:get_area_anchor(string.format("sourcedrain%d", _P.fingers + 1 - _P.shortdevicerightoffset)).br:translate_y(-_P.shortspace)
+            )
+            for i = 1 + _P.shortdeviceleftoffset, _P.fingers - _P.shortdevicerightoffset + 1 do
+                geometry.rectanglebltr(transistor, generics.metal(1),
+                    transistor:get_area_anchor(string.format("sourcedrain%d", i)).bl:translate_y(-_P.shortspace),
+                    transistor:get_area_anchor(string.format("sourcedrain%d", i)).br
+                )
+            end
+        else
+            -- can not happen
+        end
     end
 
     -- anchors for source drain active regions
