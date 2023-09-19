@@ -504,7 +504,7 @@ static struct via_definition* _get_rectangular_arrayzation(ucoordinate_t regionw
         if(_xrep > 0 && _yrep > 0)
         {
             unsigned int area = (_xrep + _yrep) * entry->width * entry->height;
-            if(!result || area > lastarea)
+            if(!result || (area > lastarea) || ((area == lastarea) && ((_xrep * _yrep) > (xrep * yrep))))
             {
                 result = entry;
                 lastarea = area;
