@@ -174,6 +174,7 @@ static void _append_to_string(char** str, size_t* length, size_t* capacity, char
     ++(*length);
 }
 
+// FIXME: is this even really used any more?
 static char* _resolve_color_commands(const char* str)
 {
     size_t capacity = 32;
