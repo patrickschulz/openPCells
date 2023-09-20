@@ -10,12 +10,12 @@ static void _create(lua_State* L, const char* type)
     lua_setfield(L, -2, "type");
 }
 
-void moves_create_port(lua_State *L, const char *name, const char *port)
+void moves_create_port(lua_State *L, const char *name, const char *port, int nodraw)
 {
     _create(L, "point");
     lua_pushfstring(L, "cells[\"%s\"]:get_anchor(\"%s\"):translate(bp.routingwidth / 2, bp.routingwidth / 2)", name, port);
     lua_setfield(L, -2, "where");
-    lua_pushboolean(L, 1);
+    lua_pushboolean(L, nodraw);
     lua_setfield(L, -2, "nodraw");
 }
 

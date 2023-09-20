@@ -30,7 +30,9 @@ int net_is_routed(const struct net* net);
 
 const char* net_get_name(const struct net* net);
 int net_get_size(const struct net* net);
+size_t net_get_endpoints_size(const struct net* net);
 const struct position *net_get_position(const struct net *net, size_t i);
+const struct position *net_get_endpoint(const struct net *net, size_t i);
 struct vector* net_make_deltas(struct vector* deltas);
 
 /*

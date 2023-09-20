@@ -6,12 +6,13 @@
 
 #include "lua/lauxlib.h"
 
-#include "util.h"
-#include "lua_util.h"
-#include "modulemanager.h"
 #include "filesystem.h"
+#include "lplacement.h"
 #include "lplacer.h"
 #include "lrouter.h"
+#include "lua_util.h"
+#include "modulemanager.h"
+#include "util.h"
 
 #include "main.functions.h"
 
@@ -39,6 +40,7 @@ void main_verilog_import(const char* scriptname, const struct vector* args)
         lua_setglobal(L, "verilogprocessor");
     }
     open_lplacer_lib(L);
+    open_lplacement_lib(L);
     module_load_placement(L);
     if(!lua_isnil(L, -1))
     {

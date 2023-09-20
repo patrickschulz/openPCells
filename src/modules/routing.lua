@@ -70,6 +70,18 @@ local function _prepare_routing_nets(circuit, rows, numinnerroutes, pnumtracks, 
     return netpositions, blockages
 end
 
+function M.basic(circuit, rows, numinnerroutes, pnumtracks, nnumtracks, floorplan)
+    local netpositions, blockages = _prepare_routing_nets(circuit, rows, numinnerroutes, pnumtracks, nnumtracks)
+    -- call router here
+    -- per full row insert one powerrail (except for the first row)
+    local height = floorplan.floorplan_height * (pnumtracks + nnumtracks + numinnerroutes)
+    height = height + math.floor(height / (pnumtracks + nnumtracks + numinnerroutes)) - 1
+
+    local routerstate = router.initialize(netpositions, blockages, floorplan.floorplan_width, height)
+    local routednets = router.resolve_routes(routerstate)
+    return routednets
+end
+
 function M.legalize(circuit, rows, numinnerroutes, pnumtracks, nnumtracks, floorplan)
     local netpositions, blockages = _prepare_routing_nets(circuit, rows, numinnerroutes, pnumtracks, nnumtracks)
     -- call router here

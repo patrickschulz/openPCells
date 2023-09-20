@@ -75,7 +75,8 @@ static struct netcollection* _initialize(lua_State* L)
 
         lua_getfield(L, -1, "name");
         const char *name = lua_tostring(L, -1);
-        lua_pop(L, 1);
+        lua_pop(L, 1); // FIXME: while this is probably fine since the string is in the table,
+                       // the lua specificatino DOES NOT GUARANTEE that the pointer is valid after its removal from the stack
 
         lua_getfield(L, -1, "positions");
         size_t size = lua_rawlen(L, -1);
@@ -136,7 +137,20 @@ static void _fill_blockages(struct field* field, struct netcollection *nc)
     }
 }
 
-static void _create_routing_stack_data(lua_State *L, const char* name, const struct net *net, const struct vector* deltas)
+static void _create_routing_stack_data(lua_State *L, const char* name, const struct net *net)
+{
+    lua_newtable(L); // table for a single net
+    lua_pushstring(L, name);
+    lua_setfield(L, -2, "name");
+    for(size_t i = 0; i < net_get_endpoints_size(net); ++i)
+    {
+        const struct position* endpoint = net_get_endpoint(net, i);
+        moves_create_port(L, net_position_get_inst(endpoint), net_position_get_port(endpoint), 0); // 0: nodraw
+        lua_rawseti(L, -2, i + 1);
+    }
+}
+
+static void _create_routing_stack_data_with_deltas(lua_State *L, const char* name, const struct net *net, const struct vector* deltas)
 {
     lua_newtable(L); // table for a single net
     lua_pushstring(L, name);
@@ -170,7 +184,7 @@ static void _create_routing_stack_data(lua_State *L, const char* name, const str
             }
             const struct position *pos = net_get_position_at_point(net, point);
 
-            moves_create_port(L, net_position_get_inst(pos), net_position_get_port(pos));
+            moves_create_port(L, net_position_get_inst(pos), net_position_get_port(pos), 1); // 1: nodraw
             lua_rawseti(L, -2, table_pos);
             table_pos++;
 
@@ -248,23 +262,24 @@ int lrouter_resolve_routes(lua_State* L)
     lua_newtable(L);
     unsigned int num_nets = vector_size(state->nc->nets);
 
-    int routed_count = 0;
+    int index = 1;
     for(unsigned int i = 0; i < num_nets; ++i)
     {
         struct net* net = vector_get(state->nc->nets, i);
-        struct vector* deltas = vector_get(state->deltas, i);
 
+        const char* name = net_get_name(net);
         if(net_is_routed(net))
         {
-            const char* name = net_get_name(net);
-            _create_routing_stack_data(L, name, net, deltas);
-            lua_rawseti(L, -2, routed_count + 1);
-            routed_count++;
+            struct vector* deltas = vector_get(state->deltas, i);
+            _create_routing_stack_data_with_deltas(L, name, net, deltas);
+            lua_rawseti(L, -2, index);
         }
         else
         {
-            // FIXME: abort?
+            _create_routing_stack_data(L, name, net);
+            lua_rawseti(L, -2, index);
         }
+        ++index;
     }
 
     return 1;

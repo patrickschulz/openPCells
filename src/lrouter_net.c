@@ -11,6 +11,7 @@
 struct net {
     char *name;
     unsigned int ranking;
+    struct vector *endpoints;
     struct vector *positions;
     int routed;
 };
@@ -91,6 +92,7 @@ struct net* net_create(const char* name, int suffixnum, struct vector *positions
         strcpy(net->name, name);
     }
     net->positions = positions;
+    net->endpoints = vector_copy(positions, net_copy_position);
     net->routed = 0;
     return net;
 }
@@ -98,6 +100,11 @@ struct net* net_create(const char* name, int suffixnum, struct vector *positions
 int net_get_size(const struct net *net)
 {
     return vector_size(net->positions);
+}
+
+size_t net_get_endpoints_size(const struct net *net)
+{
+    return vector_size(net->endpoints);
 }
 
 void net_destroy(void* np)
@@ -160,6 +167,15 @@ const struct position *net_get_position(const struct net *net, size_t i)
         return NULL;
     }
     return vector_get_const(net->positions, i);
+}
+
+const struct position *net_get_endpoint(const struct net *net, size_t i)
+{
+    if(i > vector_size(net->endpoints))
+    {
+        return NULL;
+    }
+    return vector_get_const(net->endpoints, i);
 }
 
 struct vector* net_make_deltas(struct vector* deltas)

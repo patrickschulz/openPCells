@@ -47,7 +47,7 @@ local pnumtracks = 4
 local nnumtracks = 4
 local numinnertracks = 3
 
-local routes = routing.legalize(circuit, rows, numinnertracks, pnumtracks, nnumtracks, floorplan)
+local routes = routing.basic(circuit, rows, numinnertracks, pnumtracks, nnumtracks, floorplan)
 
 local filename = generator.get_cell_filename("verilogimport", "verilogimport", module)
 print(string.format("writing to file '%s'", filename))
