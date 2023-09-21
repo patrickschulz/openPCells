@@ -10,11 +10,13 @@ local netlist = verilog.read_parse_file(string.format("%s.v", module))
 verilogprocessor.write_spice_netlist(string.format("%s_netlist.sp", module), netlist)
 
 local cellinfo = verilogprocessor.read_cellinfo_from_file("cellinfo.lua")
-local ignorednets = {} -- insert names of nets that should be ignored
+local ignorednets = { -- insert names of nets that should be ignored
+    "clk",
+}
 local circuit = verilogprocessor.collect_nets_cells(netlist, cellinfo, ignorednets)
 
 local utilization = 0.6
-local numrows = 2
+local numrows = 12
 local floorplan = placement.create_floorplan_fixed_rows(circuit, utilization, numrows)
 local rows = placement.optimize(circuit, floorplan)
 --local plan = {

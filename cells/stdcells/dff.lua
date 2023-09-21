@@ -515,6 +515,6 @@ function layout(dff, _P)
         dff:add_port("SET", generics.metalport(2), point.combine(gate("tgateEN"), gate(22)))
     end
     if _P.enable_reset then
-        --dff:add_port("RST", generics.metalport(2), point.combine(gate(12), gate(21)))
+        dff:add_port("RST", generics.metalport(2), gate("clockbufinput1").bl)
     end
 end
