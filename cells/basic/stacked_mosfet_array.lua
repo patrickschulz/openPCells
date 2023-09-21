@@ -11,6 +11,9 @@ function check(_P)
     local rowfingers = {}
     for rownum, row in ipairs(_P.rows) do
         local f = 0
+        if not row.devices or #row.devices == 0 then
+            return false, string.format("row %d defines no devices", rownum)
+        end
         for devicenum, device in ipairs(row.devices) do
             if not device.fingers then
                 return false, string.format("device %d in row %d has no finger specification", devicenum, rownum)
