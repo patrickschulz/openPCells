@@ -196,25 +196,28 @@ end
 
 function check(_P)
     if (_P.gatespace % 2) ~= (_P.sdwidth % 2) then
-        return nil, "gatespace and sdwidth must both be even or odd"
+        return false, "gatespace and sdwidth must both be even or odd"
     end
     if (_P.sdmetalwidth % 2) ~= (_P.sdwidth % 2) then
-        return nil, string.format("sdmetalwidth and sdwidth must both be even or odd (%d vs %d)", _P.sdmetalwidth, _P.sdwidth)
+        return false, string.format("sdmetalwidth and sdwidth must both be even or odd (%d vs %d)", _P.sdmetalwidth, _P.sdwidth)
     end
     if _P.sdviawidth < _P.sdwidth then
-        return nil, "sdviawidth must not be smaller than sdwidth"
+        return false, "sdviawidth must not be smaller than sdwidth"
     end
     if _P.sdmetalwidth < _P.sdviawidth then
-        return nil, "sdmetalwidth must not be smaller than sdviawidth"
+        return false, "sdmetalwidth must not be smaller than sdviawidth"
     end
     if _P.shortdevice and ((_P.sourcesize % 2) ~= (_P.sdwidth % 2)) then
-        return nil, "gatespace and sdwidth must both be even or odd when shortdevice is true"
+        return false, "gatespace and sdwidth must both be even or odd when shortdevice is true"
     end
     if not (not _P.endleftwithgate or (_P.gatelength % 2 == 0)) then
-        return nil, "gatelength must be even when endleftwithgate is true"
+        return false, "gatelength must be even when endleftwithgate is true"
     end
     if not (not _P.endrightwithgate or (_P.gatelength % 2 == 0)) then
-        return nil, "gatelength must be even when endrightwithgate is true"
+        return false, "gatelength must be even when endrightwithgate is true"
+    end
+    if _P.fingers - _P.shortdevicerightoffset - _P.shortdeviceleftoffset <= 0 then
+        return false, "can't short device with zero fingers and non-zero short offsets"
     end
     return true
 end
