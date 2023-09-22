@@ -266,7 +266,7 @@ function layout(cell, _P)
                 drawrotationmarker = _select_parameter("drawrotationmarker", device, row),
             })
             if not status then -- call failed, but show detailed error here
-                cellerror(string.format("could not create device %d in row %d: %s", devnum, rownum, mosfet))
+                cellerror(string.format("could not create device %d in row %d (\"%s\"): %s", devnum, rownum, device.name, mosfet))
             end
             if not lastmosfet then -- first mosfet in row
                 if _P.alignmosfetsatactive then
