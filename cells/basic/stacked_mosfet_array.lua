@@ -22,7 +22,7 @@ function check(_P)
                 return false, string.format("device %d in row %d has zero or negative amount of fingers (%d)", devicenum, rownum, device.fingers)
             end
             if not math.tointeger(device.fingers) then
-                return false, string.format("device %d in row %d has a non-integer number of fingers (%f). This is currently not supported", devicenum, rownum, device.fingers)
+                return false, string.format("device %d in row %d has a non-integer number of fingers (%f)", devicenum, rownum, device.fingers)
             end
             f = f + device.fingers
         end
