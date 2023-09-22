@@ -429,6 +429,7 @@ function state.create_cellenv(state, cellname, ovrenv)
         type = type,
         ipairs = ipairs,
         pairs = pairs,
+        pcall = pcall,
         cellerror = moderror,
         io = { open = function(filename) return io.open(filename, "r") end }
     }
