@@ -563,6 +563,80 @@ static void _transform_to_global_coordinates(const struct object* cell, point_t*
     _transform_to_global_coordinates_xy(cell, &pt->x, &pt->y);
 }
 
+static void _check_coordinates(coordinate_t* alignmentbox, size_t idx1, size_t idx2)
+{
+    if(alignmentbox[idx1] > alignmentbox[idx2])
+    {
+        coordinate_t tmp = alignmentbox[idx1];
+        alignmentbox[idx1] = alignmentbox[idx2];
+        alignmentbox[idx2] = tmp;
+    }
+}
+
+static void _fix_alignmentbox_order(coordinate_t* alignmentbox)
+{
+    _check_coordinates(alignmentbox, 0, 2);
+    _check_coordinates(alignmentbox, 0, 4);
+    _check_coordinates(alignmentbox, 0, 6);
+    _check_coordinates(alignmentbox, 4, 2);
+    _check_coordinates(alignmentbox, 4, 6);
+    _check_coordinates(alignmentbox, 6, 2);
+    _check_coordinates(alignmentbox, 1, 3);
+    _check_coordinates(alignmentbox, 1, 5);
+    _check_coordinates(alignmentbox, 1, 7);
+    _check_coordinates(alignmentbox, 5, 3);
+    _check_coordinates(alignmentbox, 5, 7);
+    _check_coordinates(alignmentbox, 7, 3);
+}
+
+#define _alignmentbox_get_outerblx(b) b[0]
+#define _alignmentbox_get_outerbly(b) b[1]
+#define _alignmentbox_get_outertrx(b) b[2]
+#define _alignmentbox_get_outertry(b) b[3]
+#define _alignmentbox_get_innerblx(b) b[4]
+#define _alignmentbox_get_innerbly(b) b[5]
+#define _alignmentbox_get_innertrx(b) b[6]
+#define _alignmentbox_get_innertry(b) b[7]
+
+static coordinate_t* _get_transformed_alignment_box(const struct object* cell)
+{
+    struct transformationmatrix* trans1 = cell->trans;
+    struct transformationmatrix* trans2 = NULL;
+    const struct object* obj = cell;
+    if(cell->isproxy)
+    {
+        obj = cell->reference;
+        trans2 = obj->trans;
+    }
+    if(!obj->alignmentbox)
+    {
+        return NULL;
+    }
+    coordinate_t* alignmentbox = calloc(8, sizeof(coordinate_t));
+    memcpy(alignmentbox, obj->alignmentbox, 8 * sizeof(coordinate_t));
+    for(unsigned int i = 0; i < 4; ++i)
+    {
+        transformationmatrix_apply_transformation_xy(trans1, alignmentbox + 0 + i * 2, alignmentbox + 1 + i * 2);
+    }
+    if(trans2)
+    {
+        for(unsigned int i = 0; i < 4; ++i)
+        {
+            transformationmatrix_apply_transformation_xy(trans2, alignmentbox + 0 + i * 2, alignmentbox + 1 + i * 2);
+        }
+    }
+    _fix_alignmentbox_order(alignmentbox);
+    if(object_is_child_array(cell))
+    {
+        _alignmentbox_get_innertrx(alignmentbox) += (cell->xrep - 1) * cell->xpitch;
+        _alignmentbox_get_innertry(alignmentbox) += (cell->yrep - 1) * cell->ypitch;
+        _alignmentbox_get_outertrx(alignmentbox) += (cell->xrep - 1) * cell->xpitch;
+        _alignmentbox_get_outertry(alignmentbox) += (cell->yrep - 1) * cell->ypitch;
+    }
+    return alignmentbox;
+}
+
+
 point_t* object_get_anchor(const struct object* cell, const char* name)
 {
     point_t* pt = _get_regular_anchor(cell, name);
@@ -573,6 +647,57 @@ point_t* object_get_anchor(const struct object* cell, const char* name)
     }
     // no anchor found
     return NULL;
+}
+
+point_t* object_get_alignment_anchor(const struct object* cell, const char* name)
+{
+    coordinate_t* ab = _get_transformed_alignment_box(cell);
+    coordinate_t x, y;
+    if(strcmp(name, "outerbl") == 0)
+    {
+        x = _alignmentbox_get_outerblx(ab);
+        y = _alignmentbox_get_outerbly(ab);
+    }
+    else if(strcmp(name, "outerbr") == 0)
+    {
+        x = _alignmentbox_get_outertrx(ab);
+        y = _alignmentbox_get_outerbly(ab);
+    }
+    else if(strcmp(name, "outertl") == 0)
+    {
+        x = _alignmentbox_get_outerblx(ab);
+        y = _alignmentbox_get_outertry(ab);
+    }
+    else if(strcmp(name, "outertr") == 0)
+    {
+        x = _alignmentbox_get_outertrx(ab);
+        y = _alignmentbox_get_outertry(ab);
+    }
+    else if(strcmp(name, "innerbl") == 0)
+    {
+        x = _alignmentbox_get_innerblx(ab);
+        y = _alignmentbox_get_innerbly(ab);
+    }
+    else if(strcmp(name, "innerbr") == 0)
+    {
+        x = _alignmentbox_get_innertrx(ab);
+        y = _alignmentbox_get_innerbly(ab);
+    }
+    else if(strcmp(name, "innertl") == 0)
+    {
+        x = _alignmentbox_get_innerblx(ab);
+        y = _alignmentbox_get_innertry(ab);
+    }
+    else if(strcmp(name, "innertr") == 0)
+    {
+        x = _alignmentbox_get_innerblx(ab);
+        y = _alignmentbox_get_innertry(ab);
+    }
+    else
+    {
+        return NULL;
+    }
+    return point_create(x, y);
 }
 
 point_t* object_get_area_anchor(const struct object* cell, const char* base)
@@ -695,79 +820,6 @@ point_t* object_get_array_area_anchor(const struct object* cell, int xindex, int
         }
     }
     return NULL;
-}
-
-static void _check_coordinates(coordinate_t* alignmentbox, size_t idx1, size_t idx2)
-{
-    if(alignmentbox[idx1] > alignmentbox[idx2])
-    {
-        coordinate_t tmp = alignmentbox[idx1];
-        alignmentbox[idx1] = alignmentbox[idx2];
-        alignmentbox[idx2] = tmp;
-    }
-}
-
-static void _fix_alignmentbox_order(coordinate_t* alignmentbox)
-{
-    _check_coordinates(alignmentbox, 0, 2);
-    _check_coordinates(alignmentbox, 0, 4);
-    _check_coordinates(alignmentbox, 0, 6);
-    _check_coordinates(alignmentbox, 4, 2);
-    _check_coordinates(alignmentbox, 4, 6);
-    _check_coordinates(alignmentbox, 6, 2);
-    _check_coordinates(alignmentbox, 1, 3);
-    _check_coordinates(alignmentbox, 1, 5);
-    _check_coordinates(alignmentbox, 1, 7);
-    _check_coordinates(alignmentbox, 5, 3);
-    _check_coordinates(alignmentbox, 5, 7);
-    _check_coordinates(alignmentbox, 7, 3);
-}
-
-#define _alignmentbox_get_outerblx(b) b[0]
-#define _alignmentbox_get_outerbly(b) b[1]
-#define _alignmentbox_get_outertrx(b) b[2]
-#define _alignmentbox_get_outertry(b) b[3]
-#define _alignmentbox_get_innerblx(b) b[4]
-#define _alignmentbox_get_innerbly(b) b[5]
-#define _alignmentbox_get_innertrx(b) b[6]
-#define _alignmentbox_get_innertry(b) b[7]
-
-static coordinate_t* _get_transformed_alignment_box(const struct object* cell)
-{
-    struct transformationmatrix* trans1 = cell->trans;
-    struct transformationmatrix* trans2 = NULL;
-    const struct object* obj = cell;
-    if(cell->isproxy)
-    {
-        obj = cell->reference;
-        trans2 = obj->trans;
-    }
-    if(!obj->alignmentbox)
-    {
-        return NULL;
-    }
-    coordinate_t* alignmentbox = calloc(8, sizeof(coordinate_t));
-    memcpy(alignmentbox, obj->alignmentbox, 8 * sizeof(coordinate_t));
-    for(unsigned int i = 0; i < 4; ++i)
-    {
-        transformationmatrix_apply_transformation_xy(trans1, alignmentbox + 0 + i * 2, alignmentbox + 1 + i * 2);
-    }
-    if(trans2)
-    {
-        for(unsigned int i = 0; i < 4; ++i)
-        {
-            transformationmatrix_apply_transformation_xy(trans2, alignmentbox + 0 + i * 2, alignmentbox + 1 + i * 2);
-        }
-    }
-    _fix_alignmentbox_order(alignmentbox);
-    if(object_is_child_array(cell))
-    {
-        _alignmentbox_get_innertrx(alignmentbox) += (cell->xrep - 1) * cell->xpitch;
-        _alignmentbox_get_innertry(alignmentbox) += (cell->yrep - 1) * cell->ypitch;
-        _alignmentbox_get_outertrx(alignmentbox) += (cell->xrep - 1) * cell->xpitch;
-        _alignmentbox_get_outertry(alignmentbox) += (cell->yrep - 1) * cell->ypitch;
-    }
-    return alignmentbox;
 }
 
 point_t* object_get_alignmentbox_anchor_outerbl(const struct object* cell)

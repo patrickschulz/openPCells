@@ -610,6 +610,29 @@ static int lobject_get_anchor(lua_State* L)
     return 1;
 }
 
+static int lobject_get_alignment_anchor(lua_State* L)
+{
+    struct lobject* cell = lobject_check(L, 1);
+    if(!object_has_alignmentbox(lobject_get(cell)))
+    {
+        lua_pushstring(L, "object.get_alignment_anchor: object has no alignment box");
+        lua_error(L);
+    }
+    const char* name = lua_tostring(L, 2);
+    // FIXME: check that name is a valid identifier
+    point_t* point = object_get_alignment_anchor(lobject_get(cell), name);
+    if(point)
+    {
+        lpoint_takeover_point(L, point);
+    }
+    else
+    {
+        lua_pushfstring(L, "trying to access undefined alignment anchor '%s'", name);
+        lua_error(L);
+    }
+    return 1;
+}
+
 static int _area_anchor_index_func(lua_State* L)
 {
     lua_getfield(L, 1, "_name");
@@ -1144,6 +1167,7 @@ int open_lobject_lib(lua_State* L)
         { "inherit_area_anchor_as",                 lobject_inherit_area_anchor_as              },
         { "inherit_all_anchors_with_prefix",        lobject_inherit_all_anchors_with_prefix     },
         { "get_anchor",                             lobject_get_anchor                          },
+        { "get_alignment_anchor",                   lobject_get_alignment_anchor                },
         { "get_area_anchor",                        lobject_get_area_anchor                     },
         { "get_array_anchor",                       lobject_get_array_anchor                    },
         { "get_array_area_anchor",                  lobject_get_array_area_anchor               },

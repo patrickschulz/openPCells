@@ -42,6 +42,7 @@ int object_inherit_area_anchor(struct object* cell, const struct object* other, 
 int object_inherit_area_anchor_as(struct object* cell, const struct object* other, const char* name, const char* newname);
 void object_inherit_all_anchors_with_prefix(struct object* cell, const struct object* other, const char* prefix);
 point_t* object_get_anchor(const struct object* cell, const char* name);
+point_t* object_get_alignment_anchor(const struct object* cell, const char* name);
 point_t* object_get_area_anchor(const struct object* cell, const char* base);
 point_t* object_get_array_anchor(const struct object* cell, int xindex, int yindex, const char* name);
 point_t* object_get_array_area_anchor(const struct object* cell, int xindex, int yindex, const char* name);
