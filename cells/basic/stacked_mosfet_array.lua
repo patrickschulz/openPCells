@@ -24,9 +24,6 @@ function check(_P)
             if not math.tointeger(device.fingers) then
                 return false, string.format("device %d in row %d has a non-integer number of fingers (%f). This is currently not supported", devicenum, rownum, device.fingers)
             end
-            if device.fingers % 2 ~= 0 then
-                return false, string.format("device %d in row %d has an odd number of fingers (%d). This is currently not supported", devicenum, rownum, device.fingers)
-            end
             f = f + device.fingers
         end
         rowfingers[rownum] = f
