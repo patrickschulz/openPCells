@@ -52,9 +52,10 @@ function aux.shuffle(t)
   return t
 end
 
-function aux.gcd(a, b)
+local gcd2
+_gcd2 = function(a, b)
 	if b ~= 0 then
-		return aux.gcd(b, a % b)
+		return _gcd2(b, a % b)
 	else
 		return a
 	end
@@ -65,11 +66,15 @@ function aux.tabgcd(t)
     for i = 1, #t do
         for j = 1, #t do
             if i ~= j then
-                gcd = math.min(gcd, aux.gcd(t[i], t[j]))
+                gcd = math.min(gcd, _gcd2(t[i], t[j]))
             end
         end
     end
     return gcd
+end
+
+function aux.gcd(...)
+    return aux.tabgcd({...})
 end
 
 function aux.sum(t)
