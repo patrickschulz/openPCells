@@ -791,6 +791,18 @@ static int lobject_get_ports(lua_State* L)
     return 1;
 }
 
+static int lobject_clear_alignment_box(lua_State* L)
+{
+    struct lobject* cell = lobject_check(L, 1);
+    if(!object_has_alignmentbox(lobject_get(cell)))
+    {
+        lua_pushstring(L, "object.clear_alignment_box: object has no alignment box");
+        lua_error(L);
+    }
+    object_clear_alignment_box(lobject_get(cell));
+    return 0;
+}
+
 static int lobject_set_alignment_box(lua_State* L)
 {
     struct lobject* cell = lobject_check(L, 1);
@@ -1139,6 +1151,7 @@ int open_lobject_lib(lua_State* L)
         { "add_port",                               lobject_add_port                            },
         { "add_bus_port",                           lobject_add_bus_port                        },
         { "get_ports",                              lobject_get_ports                           },
+        { "clear_alignment_box",                    lobject_clear_alignment_box                 },
         { "set_alignment_box",                      lobject_set_alignment_box                   },
         { "inherit_alignment_box",                  lobject_inherit_alignment_box               },
         { "extend_alignment_box",                   lobject_extend_alignment_box                },

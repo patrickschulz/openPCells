@@ -100,6 +100,7 @@ void object_add_bus_port(struct object* cell, const char* name, const struct gen
 const struct vector* object_get_ports(const struct object* cell);
 
 // alignment box and bounding box
+void object_clear_alignment_box(struct object* cell);
 void object_set_alignment_box(
     struct object* cell,
     coordinate_t outerblx, coordinate_t outerbly,

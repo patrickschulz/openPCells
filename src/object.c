@@ -1511,6 +1511,12 @@ const struct vector* object_get_ports(const struct object* cell)
     return cell->ports;
 }
 
+void object_clear_alignment_box(struct object* cell)
+{
+    free(cell->alignmentbox);
+    cell->alignmentbox = NULL;
+}
+
 void object_set_alignment_box(
     struct object* cell,
     coordinate_t outerblx, coordinate_t outerbly,
