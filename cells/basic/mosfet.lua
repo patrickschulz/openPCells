@@ -217,6 +217,7 @@ function check(_P)
         return false, "gatelength must be even when endrightwithgate is true"
     end
     if
+        _P.shortdevice and
         (_P.shortdeviceleftoffset > 0 or _P.shortdevicerightoffset > 0) and
         (_P.fingers - _P.shortdevicerightoffset - _P.shortdeviceleftoffset <= 0) then
         return false, "can't short device with zero fingers and non-zero short offsets"
