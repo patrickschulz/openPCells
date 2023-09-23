@@ -695,8 +695,10 @@ point_t* object_get_alignment_anchor(const struct object* cell, const char* name
     }
     else
     {
+        free(ab);
         return NULL;
     }
+    free(ab);
     return point_create(x, y);
 }
 
