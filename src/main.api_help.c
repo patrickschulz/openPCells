@@ -1727,6 +1727,24 @@ struct vector* _initialize_api_entries(void)
         ));
     }
 
+    /* object.get_array_area_anchor */
+    {
+        struct parameter parameters[] = {
+            { "cell",       OBJECT,  NULL, "object to get an anchor from" },
+            { "xindex",     INTEGER, NULL, "x-index" },
+            { "yindex",     INTEGER, NULL, "y-index" },
+            { "anchorname", STRING,  NULL, "name of the anchor" }
+        };
+        vector_append(entries, _make_api_entry(
+            "get_array_area_anchor",
+            MODULE_OBJECT,
+            "Like object.get_area_anchor, but works on child arrays. The first two argument are the x- and the y-index (starting at 1, 1). Accessing an array anchor of a non-array object is an error",
+            "local ref = object.create(\"ref\")\nlocal array = cell:add_child_array(ref, \"refarray\", 20, 2, 100, 1000)\nlocal anchor = array:get_array_area_anchor(4, 1, \"sourcedrain1bl\")",
+            parameters,
+            sizeof(parameters) / sizeof(parameters[0])
+        ));
+    }
+
     /* object.add_port */
     {
         struct parameter parameters[] = {
