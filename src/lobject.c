@@ -766,6 +766,7 @@ static int lobject_get_all_regular_anchors(lua_State* L)
 
 static int lobject_add_port(lua_State* L)
 {
+    lcheck_check_numargs_set(L, 4, 5, "object.add_port");
     struct lobject* cell = lobject_check(L, 1);
     const char* name = luaL_checkstring(L, 2);
     const struct generics* layer = lua_touserdata(L, 3);
