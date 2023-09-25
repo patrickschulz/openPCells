@@ -111,138 +111,153 @@ function layout(cell, _P)
     for _, path in ipairs(paths) do 
         local entries = parse_svg_path(path.xarg.d)
         local pts = {}
-        local lastx, lasty = 0, 0
+        local lastx = 0
+        local lasty = 0
 
         local origin
         local curvecontent = {}
         for i, entry in ipairs(entries) do
             if i == 1  then
-                if entry.command ~= "M" then
-                    cellerror("SVG path does not start with 'M'")
+                if entry.command == "M" then
+                    for i = 1, #entry - (2 - 1), 2 do
+                        local x = _get_coord(entry, i)
+                        local y = _get_coord(entry, i + 1)
+                        lastx = x
+                        lasty = -y
+                    end
+                elseif entry.command == "m" then
+                    for i = 1, #entry - (2 - 1), 2 do
+                        local x = _get_coord(entry, i)
+                        local y = _get_coord(entry, i + 1)
+                        lastx = lastx + x
+                        lasty = lasty - y
+                    end
+                else
+                    cellerror("SVG path does not start with 'M' or 'm'")
                 end
-                origin = point.create(_get_coord(entry, 1), _get_coord(entry, 2))
-            end
-
-            if entry.command == "M" then
-                for i = 1, #entry - (2 - 1), 2 do
-                    local x = _get_coord(entry, i)
-                    local y = _get_coord(entry, i + 1)
-                    lastx = x
-                    lasty = -y
+                origin = point.create(lastx, lasty)
+            else -- i ~= 1
+                if entry.command == "M" then
+                    for i = 1, #entry - (2 - 1), 2 do
+                        local x = _get_coord(entry, i)
+                        local y = _get_coord(entry, i + 1)
+                        lastx = x
+                        lasty = -y
+                    end
+                elseif entry.command == "m" then
+                    for i = 1, #entry - (2 - 1), 2 do
+                        local x = _get_coord(entry, i)
+                        local y = _get_coord(entry, i + 1)
+                        lastx = lastx + x
+                        lasty = lasty - y
+                    end
+                elseif entry.command == "l" then
+                    for i = 1, #entry - (2 - 1), 2 do
+                        local x = _get_coord(entry, i)
+                        local y = _get_coord(entry, i + 1)
+                        local segment = curve.lineto(point.create(lastx + x, lasty - y))
+                        table.insert(curvecontent, segment)
+                        lastx = lastx + x
+                        lasty = lasty - y
+                    end
+                elseif entry.command == "L" then
+                    for i = 1, #entry - (2 - 1), 2 do
+                        local x = _get_coord(entry, i)
+                        local y = _get_coord(entry, i + 1)
+                        local segment = curve.lineto(point.create(x, -y))
+                        table.insert(curvecontent, segment)
+                        lastx = lastx + x
+                        lasty = lasty - y
+                    end
+                elseif entry.command == "h" then
+                    for i = 1, #entry, 1 do
+                        local x = _get_coord(entry, i)
+                        local segment = curve.lineto(point.create(lastx + x, -y))
+                        table.insert(curvecontent, segment)
+                        lastx = lastx + x
+                        lasty = lasty
+                    end
+                elseif entry.command == "H" then
+                    for i = 1, #entry, 1 do
+                        local x = _get_coord(entry, i)
+                        local segment = curve.lineto(point.create(x, lasty))
+                        table.insert(curvecontent, segment)
+                        lastx = lastx + x
+                        lasty = lasty
+                    end
+                elseif entry.command == "v" then
+                    for i = 1, #entry, 1 do
+                        local y = _get_coord(entry, i)
+                        local segment = curve.lineto(pts, point.create(lastx, lasty - y))
+                        table.insert(curvecontent, segment)
+                        lastx = lastx
+                        lasty = lasty - y
+                    end
+                elseif entry.command == "V" then
+                    for i = 1, #entry, 1 do
+                        local y = _get_coord(entry, i)
+                        local segment = curve.lineto(pts, point.create(y, lasty - y))
+                        table.insert(curvecontent, segment)
+                        lastx = lastx
+                        lasty = lasty - y
+                    end
+                elseif entry.command == "c" then
+                    for i = 1, #entry - 5, 6 do
+                        local x = _get_coord(entry, i + 4)
+                        local y = _get_coord(entry, i + 5)
+                        local segment = curve.cubicto(
+                            point.create(lastx + _get_coord(entry, i - 1 + 1), lasty - _get_coord(entry, i - 1 + 2)),
+                            point.create(lastx + _get_coord(entry, i - 1 + 3), lasty - _get_coord(entry, i - 1 + 4)),
+                            point.create(lastx + x, lasty - y)
+                        )
+                        table.insert(curvecontent, segment)
+                        lastx = lastx + x
+                        lasty = lasty - y
+                    end
+                elseif entry.command == "C" then
+                    for i = 1, #entry - 5, 6 do
+                        local x = _get_coord(entry, i + 4)
+                        local y = _get_coord(entry, i + 5)
+                        local segment = curve.cubicto(
+                            point.create(_get_coord(entry, i - 1 + 1), -_get_coord(entry, i - 1 + 2)),
+                            point.create(_get_coord(entry, i - 1 + 3), -_get_coord(entry, i - 1 + 4)),
+                            point.create(lastx + x, lasty - y)
+                        )
+                        table.insert(curvecontent, segment)
+                        lastx = lastx + x
+                        lasty = lasty - y
+                    end
+                elseif entry.command == "s" then -- copy of "c", but unsure if this is correct
+                    for i = 1, #entry - 5, 6 do
+                        local segment = curve.cubicto(
+                            point.create(lastx + _get_coord(entry, i - 1 + 1), lasty - _get_coord(entry, i - 1 + 2)),
+                            point.create(lastx + _get_coord(entry, i - 1 + 3), lasty - _get_coord(entry, i - 1 + 4)),
+                            point.create(lastx + _get_coord(entry, i - 1 + 5), lasty - _get_coord(entry, i - 1 + 6))
+                        )
+                        table.insert(curvecontent, segment)
+                        local x = _get_coord(entry, i + 4)
+                        local y = _get_coord(entry, i + 5)
+                        lastx = lastx + x
+                        lasty = lasty - y
+                    end
+                elseif entry.command == "S" then -- copy of "C", but unsure if this is correct
+                    for i = 1, #entry - 5, 6 do
+                        local segment = curve.cubicto(
+                            point.create(_get_coord(entry, i - 1 + 1), -_get_coord(entry, i - 1 + 2)),
+                            point.create(_get_coord(entry, i - 1 + 3), -_get_coord(entry, i - 1 + 4)),
+                            point.create(_get_coord(entry, i - 1 + 5), -_get_coord(entry, i - 1 + 6))
+                        )
+                        table.insert(curvecontent, segment)
+                        local x = _get_coord(entry, i + 4)
+                        local y = _get_coord(entry, i + 5)
+                        lastx = lastx + x
+                        lasty = lasty - y
+                    end
+                elseif entry.command == "z" then
+                    -- finished, do nothing
+                else
+                    cellerror(string.format("unhandled command: %s", entry.command))
                 end
-            elseif entry.command == "m" then
-                for i = 1, #entry - (2 - 1), 2 do
-                    local x = _get_coord(entry, i)
-                    local y = _get_coord(entry, i + 1)
-                    lastx = lastx + x
-                    lasty = lasty - y
-                end
-            elseif entry.command == "l" then
-                for i = 1, #entry - (2 - 1), 2 do
-                    local x = _get_coord(entry, i)
-                    local y = _get_coord(entry, i + 1)
-                    local segment = curve.lineto(point.create(lastx + x, lasty - y))
-                    table.insert(curvecontent, segment)
-                    lastx = lastx + x
-                    lasty = lasty - y
-                end
-            elseif entry.command == "L" then
-                for i = 1, #entry - (2 - 1), 2 do
-                    local x = _get_coord(entry, i)
-                    local y = _get_coord(entry, i + 1)
-                    local segment = curve.lineto(point.create(x, -y))
-                    table.insert(curvecontent, segment)
-                    lastx = lastx + x
-                    lasty = lasty - y
-                end
-            elseif entry.command == "h" then
-                for i = 1, #entry, 1 do
-                    local x = _get_coord(entry, i)
-                    local segment = curve.lineto(point.create(lastx + x, -y))
-                    table.insert(curvecontent, segment)
-                    lastx = lastx + x
-                    lasty = lasty
-                end
-            elseif entry.command == "H" then
-                for i = 1, #entry, 1 do
-                    local x = _get_coord(entry, i)
-                    local segment = curve.lineto(point.create(x, lasty))
-                    table.insert(curvecontent, segment)
-                    lastx = lastx + x
-                    lasty = lasty
-                end
-            elseif entry.command == "v" then
-                for i = 1, #entry, 1 do
-                    local y = _get_coord(entry, i)
-                    local segment = curve.lineto(pts, point.create(lastx, lasty - y))
-                    table.insert(curvecontent, segment)
-                    lastx = lastx
-                    lasty = lasty - y
-                end
-            elseif entry.command == "V" then
-                for i = 1, #entry, 1 do
-                    local y = _get_coord(entry, i)
-                    local segment = curve.lineto(pts, point.create(y, lasty - y))
-                    table.insert(curvecontent, segment)
-                    lastx = lastx
-                    lasty = lasty - y
-                end
-            elseif entry.command == "c" then
-                for i = 1, #entry - 5, 6 do
-	                local segment = curve.cubicto(
-                        point.create(lastx + _get_coord(entry, i - 1 + 1), lasty - _get_coord(entry, i - 1 + 2)),
-                        point.create(lastx + _get_coord(entry, i - 1 + 3), lasty - _get_coord(entry, i - 1 + 4)),
-                        point.create(lastx + _get_coord(entry, i - 1 + 5), lasty - _get_coord(entry, i - 1 + 6))
-                    )
-                    table.insert(curvecontent, segment)
-                    local x = _get_coord(entry, i + 4)
-                    local y = _get_coord(entry, i + 5)
-                    lastx = lastx + x
-                    lasty = lasty - y
-                end
-            elseif entry.command == "C" then
-                for i = 1, #entry - 5, 6 do
-	                local segment = curve.cubicto(
-                        point.create(_get_coord(entry, i - 1 + 1), -_get_coord(entry, i - 1 + 2)),
-                        point.create(_get_coord(entry, i - 1 + 3), -_get_coord(entry, i - 1 + 4)),
-                        point.create(_get_coord(entry, i - 1 + 5), -_get_coord(entry, i - 1 + 6))
-                    )
-                    table.insert(curvecontent, segment)
-                    local x = _get_coord(entry, i + 4)
-                    local y = _get_coord(entry, i + 5)
-                    lastx = lastx + x
-                    lasty = lasty - y
-                end
-            elseif entry.command == "s" then -- copy of "c", but unsure if this is correct
-                for i = 1, #entry - 5, 6 do
-	                local segment = curve.cubicto(
-                        point.create(lastx + _get_coord(entry, i - 1 + 1), lasty - _get_coord(entry, i - 1 + 2)),
-                        point.create(lastx + _get_coord(entry, i - 1 + 3), lasty - _get_coord(entry, i - 1 + 4)),
-                        point.create(lastx + _get_coord(entry, i - 1 + 5), lasty - _get_coord(entry, i - 1 + 6))
-                    )
-                    table.insert(curvecontent, segment)
-                    local x = _get_coord(entry, i + 4)
-                    local y = _get_coord(entry, i + 5)
-                    lastx = lastx + x
-                    lasty = lasty - y
-                end
-            elseif entry.command == "S" then -- copy of "C", but unsure if this is correct
-                for i = 1, #entry - 5, 6 do
-	                local segment = curve.cubicto(
-                        point.create(_get_coord(entry, i - 1 + 1), -_get_coord(entry, i - 1 + 2)),
-                        point.create(_get_coord(entry, i - 1 + 3), -_get_coord(entry, i - 1 + 4)),
-                        point.create(_get_coord(entry, i - 1 + 5), -_get_coord(entry, i - 1 + 6))
-                    )
-                    table.insert(curvecontent, segment)
-                    local x = _get_coord(entry, i + 4)
-                    local y = _get_coord(entry, i + 5)
-                    lastx = lastx + x
-                    lasty = lasty - y
-                end
-            elseif entry.command == "z" then
-                -- finished, do nothing
-            else
-                cellerror(string.format("unhandled command: %s", entry.command))
             end
         end
         geometry.curve(cell, generics.metal(_P.metal), origin, curvecontent, _P.grid, _P.allow45)
