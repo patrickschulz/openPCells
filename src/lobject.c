@@ -186,8 +186,8 @@ static int lobject_translate(lua_State* L)
     }
     else
     {
-        coordinate_t x = lua_tointeger(L, 2);
-        coordinate_t y = lua_tointeger(L, 3);
+        coordinate_t x = luaL_checkinteger(L, 2);
+        coordinate_t y = luaL_checkinteger(L, 3);
         object_translate(lobject_get(cell), x, y);
         lua_rotate(L, 1, 2);
     }
