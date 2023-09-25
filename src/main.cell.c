@@ -259,6 +259,7 @@ static struct object* _create_cell(
     module_load_placement(L);
     module_load_routing(L);
     module_load_util(L);
+    module_load_layouthelpers(L);
 
     // assemble cell arguments
     lua_newtable(L);

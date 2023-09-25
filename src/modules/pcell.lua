@@ -402,6 +402,7 @@ function state.create_cellenv(state, cellname, ovrenv)
         point = point,
         util = util,
         aux = aux,
+        layouthelpers = layouthelpers,
         math = math,
         enable = function(bool, val) return (bool and 1 or 0) * (val or 1) end,
         evenodddiv2 = function(num) if num % 2 == 0 then return num / 2, num / 2 else return num // 2, num // 2 + 1 end end,

@@ -58,6 +58,7 @@ modulemanager.c: embed_compiled_lua_file modules/*.lua
 	./embed_compiled_lua_file --module modules/generator.lua module_load generator modulemanager.c
 	./embed_compiled_lua_file --module modules/globals.lua module_load globals modulemanager.c
 	./embed_compiled_lua_file --module modules/graphics.lua module_load graphics modulemanager.c
+	./embed_compiled_lua_file --module modules/layouthelpers.lua module_load layouthelpers modulemanager.c
 	./embed_compiled_lua_file --module modules/load.lua module_load load modulemanager.c
 	./embed_compiled_lua_file --module modules/pcell.lua module_load pcell modulemanager.c
 	./embed_compiled_lua_file --module modules/placement.lua module_load placement modulemanager.c
@@ -77,6 +78,7 @@ modulemanager.h:
 	@echo 'int module_load_geometry(lua_State* L);' >> modulemanager.h
 	@echo 'int module_load_globals(lua_State* L);' >> modulemanager.h
 	@echo 'int module_load_graphics(lua_State* L);' >> modulemanager.h
+	@echo 'int module_load_layouthelpers(lua_State* L);' >> modulemanager.h
 	@echo 'int module_load_load(lua_State* L);' >> modulemanager.h
 	@echo 'int module_load_pcell(lua_State* L);' >> modulemanager.h
 	@echo 'int module_load_placement(lua_State* L);' >> modulemanager.h
