@@ -6,7 +6,6 @@
 
 #include "util.h"
 #include "lua_util.h"
-#include "lobject.h"
 #include "ldir.h"
 
 #include "scriptmanager.h"

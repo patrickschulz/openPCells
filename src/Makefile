@@ -66,7 +66,7 @@ modulemanager.c: embed_compiled_lua_file modules/*.lua
 	./embed_compiled_lua_file --module modules/verilog.lua module_load verilog modulemanager.c
 	./embed_compiled_lua_file --module modules/verilogprocessor.lua module_load verilogprocessor modulemanager.c
 
-modulemanager.h:
+modulemanager.h: modules/*.lua
 	@echo '#ifndef OPC_MODULEMANAGER_H' > modulemanager.h
 	@echo '#define OPC_MODULEMANAGER_H' >> modulemanager.h
 	@echo '#include "lua/lua.h"' >> modulemanager.h
@@ -202,8 +202,8 @@ main.verilog.o: main.verilog.c main.verilog.h vector.h lua/lua.h \
 object.o: object.c object.h hashmap.h polygon.h vector.h shape.h point.h \
  transformationmatrix.h technology.h lua/lua.h lua/luaconf.h util.h
 pcell.o: pcell.c pcell.h lua/lua.h lua/luaconf.h vector.h lua/lauxlib.h \
- lua/lua.h util.h lua_util.h lobject.h object.h hashmap.h polygon.h \
- shape.h point.h transformationmatrix.h technology.h ldir.h \
+ lua/lua.h util.h lua_util.h object.h hashmap.h polygon.h shape.h \
+ point.h transformationmatrix.h technology.h ldir.h \
  scriptmanager.h modulemanager.h
 placement.o: placement.c placement.h object.h hashmap.h polygon.h \
  vector.h shape.h point.h transformationmatrix.h technology.h lua/lua.h \
