@@ -14,7 +14,7 @@ function parameters()
         { "fillwell",                                     true },
         { "fillwelldrawhole",                            false },
         { "fillwellholeoffsettop",                           0 },
-        { "fillwellholeoffsetbottom",                           0 },
+        { "fillwellholeoffsetbottom",                        0 },
         { "fillwellholeoffsetleft",                          0 },
         { "fillwellholeoffsetright",                         0 },
         { "drawdeepwell",                                false },
@@ -241,7 +241,7 @@ function layout(guardring, _P)
                 point.create(-_P.ringwidth - _P.wellextension, -_P.ringwidth - _P.wellextension),
                 point.create(holewidth + _P.ringwidth + _P.wellextension, holeheight + _P.ringwidth + _P.wellextension),
                 point.create(_P.wellextension + _P.fillwellholeoffsetleft, _P.wellextension + _P.fillwellholeoffsetbottom),
-                point.create(holewidth - _P.wellextension + _P.fillwellholeoffsetright, holeheight - _P.wellextension + _P.fillwellholeoffsettop)
+                point.create(holewidth - _P.wellextension - _P.fillwellholeoffsetright, holeheight - _P.wellextension - _P.fillwellholeoffsettop)
             )
         else
             geometry.rectanglebltr(guardring, generics.other(string.format("%swell", _P.contype)),
