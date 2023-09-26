@@ -1833,6 +1833,29 @@ struct vector* _initialize_api_entries(void)
         ));
     }
 
+    /* object.extend_alignment_box */
+    {
+        struct parameter parameters[] = {
+            { "cell",           OBJECT,     NULL,   "cell to add the alignment box to" },
+            { "extouterblx",    INTEGER,    NULL,   "extension of outer-left coordinate" },
+            { "extouterbly",    INTEGER,    NULL,   "extension of outer-bottom coordinate" },
+            { "extoutertrx",    INTEGER,    NULL,   "extension of outer-right coordinate" },
+            { "extoutertry",    INTEGER,    NULL,   "extension of outer-top coordinate" },
+            { "extinnerblx",    INTEGER,    NULL,   "extension of inner-left coordinate" },
+            { "extinnerbly",    INTEGER,    NULL,   "extension of inner-bottom coordinate" },
+            { "extinnertrx",    INTEGER,    NULL,   "extension of inner-right coordinate" },
+            { "extinnertry",    INTEGER,    NULL,   "extension of inner-top coordinate" }
+        };
+        vector_append(entries, _make_api_entry(
+            "extend_alignment_box",
+            MODULE_OBJECT,
+            "extend an existing object alignment box. Takes eight values for the extension of the four corner points making up the alignment box",
+            "cell:extend_alignment_box(-100, -100, 100, 100, 0, 0, 0, 0)",
+            parameters,
+            sizeof(parameters) / sizeof(parameters[0])
+        ));
+    }
+
     /* object.width_height_alignmentbox */
     {
         struct parameter parameters[] = {
@@ -3223,6 +3246,7 @@ void main_API_search(const char* name)
 {
     struct vector* entries = _initialize_api_entries();
     struct vector_const_iterator* it = vector_const_iterator_create(entries);
+    unsigned int found = 0;
     while(vector_const_iterator_is_valid(it))
     {
         const struct api_entry* entry = vector_const_iterator_get(it);
@@ -3235,6 +3259,7 @@ void main_API_search(const char* name)
         }
         if(ffound || mfound)
         {
+            ++found;
             if(modulename)
             {
                 _putstr(modulename);
@@ -3252,6 +3277,10 @@ void main_API_search(const char* name)
     }
     vector_const_iterator_destroy(it);
     _destroy_api_entries(entries);
+    if(found == 0)
+    {
+        puts("no entries found");
+    }
 }
 
 void main_API_list(void)
