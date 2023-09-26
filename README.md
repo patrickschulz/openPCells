@@ -30,7 +30,7 @@ After building opc, layouts can be generated either from pcell definition (`--ce
 Besides a cell/cellscript, a technology node (`--technology`) and an export type (`--export`) must be provided.
 The project supplies generic technology files ('opc'), so you can directly test the setup.
 Common required export formats are also available.
-Currently, the most important and sophisticated export type is the GDSII (`--export` gds), but for this introduction the SVG format will be used to directly show the generated layouts [^1].
+Currently, the most important and sophisticated export type is the GDSII (`--export gds`), but for this introduction the SVG format will be used to directly show the generated layouts [^1].
 Since IC layouts are not suitable to be viewed as a flat images, these representations only give an overview and are not meant to show the actual circuit layouts.
 Positional command line arguments (that is, arguments without `-` or `--`) are taken as key-value pairs for cell parameters:
 
