@@ -6,6 +6,7 @@
 OPCTech = "tech42"
 ; for this to work you also need to make sure that opc can find the technology files
 ; the easiest way to do this is to add the location to the config file at ~/.opcconfig.lua:
+; please note that the path to the parent directory of the technology files, not the actual directory
 ; return {
 ;     techpaths = {
 ;         "/path/to/technology_files"
