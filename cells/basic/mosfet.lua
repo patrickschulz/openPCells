@@ -47,16 +47,16 @@ function parameters()
         { "drawbotgatevia(Draw Bot Gate Via)",                                      false },
         { "botgatecontinuousvia(Bot Gate Continuous Via)",                          false },
         { "botgateviatarget(Metal Target of Bot Gate Via)",                         2 },
-        { "drawtopgcut(Draw Top Gate Cut)",                                         false },
-        { "topgcutwidth(Top Gate Cut Y Width)",                                     technology.get_dimension("Minimum Gate Cut Height", "Minimum Gate YSpace") },
-        { "topgcutspace(Top Gate Cut Y Space)",                                     0 },
-        { "topgcutleftext(Top Gate Cut Left Extension)",                            0 },
-        { "topgcutrightext(Top Gate Cut Right Extension)",                          0 },
-        { "drawbotgcut(Draw Bottom Gate Cut)",                                      false },
-        { "botgcutwidth(Bottom Gate Cut Y Width)",                                  technology.get_dimension("Minimum Gate Cut Height", "Minimum Gate YSpace") },
-        { "botgcutspace(Bottom Gate Cut Y Space)",                                  0 },
-        { "botgcutleftext(Bottom Gate Cut Left Extension)",                         0 },
-        { "botgcutrightext(Bottom Gate Cut Right Extension)",                       0 },
+        { "drawtopgatecut(Draw Top Gate Cut)",                                         false },
+        { "topgatecutwidth(Top Gate Cut Y Width)",                                     technology.get_dimension("Minimum Gate Cut Height", "Minimum Gate YSpace") },
+        { "topgatecutspace(Top Gate Cut Y Space)",                                     0 },
+        { "topgatecutleftext(Top Gate Cut Left Extension)",                            0 },
+        { "topgatecutrightext(Top Gate Cut Right Extension)",                          0 },
+        { "drawbotgatecut(Draw Bottom Gate Cut)",                                      false },
+        { "botgatecutwidth(Bottom Gate Cut Y Width)",                                  technology.get_dimension("Minimum Gate Cut Height", "Minimum Gate YSpace") },
+        { "botgatecutspace(Bottom Gate Cut Y Space)",                                  0 },
+        { "botgatecutleftext(Bottom Gate Cut Left Extension)",                         0 },
+        { "botgatecutrightext(Bottom Gate Cut Right Extension)",                       0 },
         { "simulatemissinggatecut",                                                 false },
         { "drawsourcedrain(Draw Source/Drain Contacts)",                            "both", posvals = set("both", "source", "drain", "none") },
         { "excludesourcedraincontacts(Exclude Source/Drain Contacts)",              {}, argtype = "table" },
@@ -186,8 +186,8 @@ function parameters()
         { "botwelltapspace",                                                        technology.get_dimension("Minimum M1 Space") },
         { "botwelltapextendleft",                                                   0 },
         { "botwelltapextendright",                                                  0 },
-        { "drawstopgatetopgcut",                                                    false },
-        { "drawstopgatebotgcut",                                                    false },
+        { "drawstopgatetopgatecut",                                                    false },
+        { "drawstopgatebotgatecut",                                                    false },
         { "leftpolylines",                                                          {} },
         { "rightpolylines",                                                         {} },
         { "drawrotationmarker",                                                     false }
@@ -294,38 +294,38 @@ function layout(transistor, _P)
 
     if hasgatecut then
         -- gate cut
-        if _P.drawtopgcut then
+        if _P.drawtopgatecut then
             geometry.rectanglebltr(transistor,
                 generics.other("gatecut"),
                 point.create(
-                    gateblx - _P.topgcutleftext,
-                    _P.fwidth + _P.topgcutspace
+                    gateblx - _P.topgatecutleftext,
+                    _P.fwidth + _P.topgatecutspace
                 ),
                 point.create(
-                    gatetrx + (_P.fingers - 1) * gatepitch + _P.topgcutrightext,
-                    _P.fwidth + _P.topgcutspace + _P.topgcutwidth
+                    gatetrx + (_P.fingers - 1) * gatepitch + _P.topgatecutrightext,
+                    _P.fwidth + _P.topgatecutspace + _P.topgatecutwidth
                 )
             )
         end
-        if _P.drawbotgcut then
+        if _P.drawbotgatecut then
             geometry.rectanglebltr(transistor,
                 generics.other("gatecut"),
                 point.create(
-                    gateblx - _P.botgcutleftext,
-                    -_P.botgcutspace - _P.botgcutwidth
+                    gateblx - _P.botgatecutleftext,
+                    -_P.botgatecutspace - _P.botgatecutwidth
                 ),
                 point.create(
-                    gatetrx + (_P.fingers - 1) * gatepitch + _P.botgcutrightext,
-                    -_P.botgcutspace
+                    gatetrx + (_P.fingers - 1) * gatepitch + _P.botgatecutrightext,
+                    -_P.botgatecutspace
                 )
             )
         end
     else -- not hasgatecut
-        if _P.drawtopgcut then
-            gatetry = _P.fwidth + _P.topgcutspace
+        if _P.drawtopgatecut then
+            gatetry = _P.fwidth + _P.topgatecutspace
         end
-        if _P.drawbotgcut then
-            gatebly = -_P.botgcutspace
+        if _P.drawbotgatecut then
+            gatebly = -_P.botgatecutspace
         end
     end
 
@@ -449,31 +449,31 @@ function layout(transistor, _P)
     if _P.drawleftstopgate then
         local bly = gatebly
         local try = gatetry
-        if _P.drawstopgatetopgcut then
-            try = _P.fwidth + _P.topgcutspace
+        if _P.drawstopgatetopgatecut then
+            try = _P.fwidth + _P.topgatecutspace
             geometry.rectanglebltr(transistor,
                 generics.other("gatecut"),
                 point.create(
-                    gateblx - (_P.leftfloatingdummies + 1) * gatepitch - _P.topgcutleftext,
-                    _P.fwidth + _P.topgcutspace
+                    gateblx - (_P.leftfloatingdummies + 1) * gatepitch - _P.topgatecutleftext,
+                    _P.fwidth + _P.topgatecutspace
                 ),
                 point.create(
-                    gatetrx - (_P.leftfloatingdummies + 1) * gatepitch + _P.topgcutrightext,
-                    _P.fwidth + _P.topgcutspace + _P.topgcutwidth
+                    gatetrx - (_P.leftfloatingdummies + 1) * gatepitch + _P.topgatecutrightext,
+                    _P.fwidth + _P.topgatecutspace + _P.topgatecutwidth
                 )
             )
         end
-        if _P.drawstopgatebotgcut then
-            bly = -_P.botgcutspace
+        if _P.drawstopgatebotgatecut then
+            bly = -_P.botgatecutspace
             geometry.rectanglebltr(transistor,
                 generics.other("gatecut"),
                 point.create(
-                    gateblx - (_P.leftfloatingdummies + 1) * gatepitch - _P.botgcutleftext,
-                    -_P.botgcutspace - _P.botgcutwidth
+                    gateblx - (_P.leftfloatingdummies + 1) * gatepitch - _P.botgatecutleftext,
+                    -_P.botgatecutspace - _P.botgatecutwidth
                 ),
                 point.create(
-                    gatetrx - (_P.leftfloatingdummies + 1) * gatepitch + _P.botgcutrightext,
-                    -_P.botgcutspace
+                    gatetrx - (_P.leftfloatingdummies + 1) * gatepitch + _P.botgatecutrightext,
+                    -_P.botgatecutspace
                 )
             )
         end
@@ -491,31 +491,31 @@ function layout(transistor, _P)
     if _P.drawrightstopgate then
         local bly = gatebly
         local try = gatetry
-        if _P.drawstopgatetopgcut then
-            try = _P.fwidth + _P.topgcutspace
+        if _P.drawstopgatetopgatecut then
+            try = _P.fwidth + _P.topgatecutspace
             geometry.rectanglebltr(transistor,
                 generics.other("gatecut"),
                 point.create(
-                    gateblx + (_P.fingers + _P.rightfloatingdummies) * gatepitch - _P.topgcutleftext,
-                    _P.fwidth + _P.topgcutspace
+                    gateblx + (_P.fingers + _P.rightfloatingdummies) * gatepitch - _P.topgatecutleftext,
+                    _P.fwidth + _P.topgatecutspace
                 ),
                 point.create(
-                    gatetrx + (_P.fingers + _P.rightfloatingdummies) * gatepitch + _P.topgcutrightext,
-                    _P.fwidth + _P.topgcutspace + _P.topgcutwidth
+                    gatetrx + (_P.fingers + _P.rightfloatingdummies) * gatepitch + _P.topgatecutrightext,
+                    _P.fwidth + _P.topgatecutspace + _P.topgatecutwidth
                 )
             )
         end
-        if _P.drawstopgatebotgcut then
-            bly = -_P.botgcutspace
+        if _P.drawstopgatebotgatecut then
+            bly = -_P.botgatecutspace
             geometry.rectanglebltr(transistor,
                 generics.other("gatecut"),
                 point.create(
-                    gateblx + (_P.fingers + _P.rightfloatingdummies) * gatepitch - _P.botgcutleftext,
-                    -_P.botgcutspace - _P.botgcutwidth
+                    gateblx + (_P.fingers + _P.rightfloatingdummies) * gatepitch - _P.botgatecutleftext,
+                    -_P.botgatecutspace - _P.botgatecutwidth
                 ),
                 point.create(
-                    gatetrx + (_P.fingers + _P.rightfloatingdummies) * gatepitch + _P.botgcutrightext,
-                    -_P.botgcutspace
+                    gatetrx + (_P.fingers + _P.rightfloatingdummies) * gatepitch + _P.botgatecutrightext,
+                    -_P.botgatecutspace
                 )
             )
         end
@@ -652,12 +652,12 @@ function layout(transistor, _P)
         geometry.rectanglebltr(transistor,
             generics.other(string.format("lvsmarker%d", _P.lvsmarker)),
             point.create(
-                -leftactauxext - _P.extendlvsleft,
-                -_P.extendlvsbot
+                -leftactauxext - _P.extendlvsmarkerleft,
+                -_P.extendlvsmarkerbot
             ),
             point.create(
-                activewidth + leftactext + rightactext + rightactauxext + _P.extendlvsright,
-                _P.fwidth + _P.extendlvstop
+                activewidth + leftactext + rightactext + rightactauxext + _P.extendlvsmarkerright,
+                _P.fwidth + _P.extendlvsmarkertop
             )
         )
     else
