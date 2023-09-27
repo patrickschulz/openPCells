@@ -88,22 +88,37 @@ struct stream {
     size_t index;
 };
 
+static void _destroy_stream(struct stream* stream)
+{
+    for(unsigned int i = 0; i < stream->numrecords; ++i)
+    {
+        free(stream->records[i].data);
+    }
+    free(stream->records);
+    free(stream);
+}
+
 static struct record* _get_next_record(struct stream* stream)
 {
+    if(stream->index >= stream->numrecords)
+    {
+        return NULL;
+    }
     ++stream->index;
     return stream->records + stream->index - 1;
 }
 
-static struct stream* _read_raw_stream(const char* filename)
+static int _read_raw_stream_noerror(const char* filename, struct stream** stream, long* errorbyte)
 {
     FILE* file = fopen(filename, "r");
     if(!file)
     {
-        return NULL;
+        return 0;
     }
     size_t numrecords = 0;
     size_t capacity = 10;
     struct record* records = calloc(capacity, sizeof(*records));
+    int ret = 1;
     while(1)
     {
         if(numrecords + 1 > capacity)
@@ -114,10 +129,9 @@ static struct stream* _read_raw_stream(const char* filename)
         }
         if(!_read_record(file, &records[numrecords]))
         {
-            fprintf(stderr, "gdsparser: stream abort before ENDLIB (at byte %ld)\n", ftell(file));
-            fclose(file);
-            free(records);
-            return NULL;
+            ret = 0;
+            *errorbyte = ftell(file);
+            break;
         }
         ++numrecords;
         if(records[numrecords - 1].recordtype == ENDLIB)
@@ -126,21 +140,25 @@ static struct stream* _read_raw_stream(const char* filename)
         }
     }
     fclose(file);
-    struct stream* stream = malloc(sizeof(struct stream));
-    stream->records = records;
-    stream->numrecords = numrecords;
-    stream->index = 0;
-    return stream;
+    (*stream) = malloc(sizeof(struct stream));
+    (*stream)->records = records;
+    (*stream)->numrecords = numrecords;
+    (*stream)->index = 0;
+    return ret;
 }
 
-static void _destroy_stream(struct stream* stream)
+static struct stream* _read_raw_stream(const char* filename)
 {
-    for(unsigned int i = 0; i < stream->numrecords; ++i)
+    struct stream* stream = NULL;
+    long errorbyte = 0;
+    int status = _read_raw_stream_noerror(filename, &stream, &errorbyte);
+    if(!status)
     {
-        free(stream->records[i].data);
+        fprintf(stderr, "gdsparser: stream abort before ENDLIB (at byte %ld)\n", errorbyte);
+        _destroy_stream(stream);
+        return NULL;
     }
-    free(stream->records);
-    free(stream);
+    return stream;
 }
 
 static int* _parse_bit_array(uint8_t* data)
@@ -457,11 +475,14 @@ static int lgdsparser_read_raw_stream(lua_State* L)
 
 int gdsparser_show_records(const char* filename, int raw)
 {
-    struct stream* stream = _read_raw_stream(filename);
-    if(!stream)
+    struct stream* stream = NULL;
+    long errorbyte = 0;
+    int status = _read_raw_stream_noerror(filename, &stream, &errorbyte);
+    if(!status)
     {
-        return 0;
+        printf("show GDSII records: stream abort before ENDLIB (at byte %ld)\nstream is malformed (showing all valid records up to now):", errorbyte);
     }
+
     unsigned int indent = 0;
     while(1)
     {
