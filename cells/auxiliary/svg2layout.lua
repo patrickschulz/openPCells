@@ -13,7 +13,12 @@ local function collect(s)
     local ni, c, label, xarg, empty
     local i, j = 1, 1
     while true do
+        local ci, cj = string.find(s, "<!%-%-.-%-%->", i)
         ni, j, c, label, xarg, empty = string.find(s, "<(%/?)([%w:]+)(.-)(%/?)>", i)
+        if ci and ci < ni then -- comment
+            i = cj + 1
+            goto continue
+        end
         if not ni then break end
         local text = string.sub(s, i, ni - 1)
         if not string.find(text, "^%s*$") then
@@ -36,6 +41,7 @@ local function collect(s)
             table.insert(top, toclose)
         end
         i = j + 1
+        ::continue::
     end
     local text = string.sub(s, i)
     if not string.find(text, "^%s*$") then
