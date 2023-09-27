@@ -129,6 +129,7 @@ function layout(cell, _P)
 
         local origin
         local curvecontent = {}
+        local nextcpt = nil -- for s/S and t/T segments
         for i, entry in ipairs(entries) do
             if entry.command == "M" then
                 local x = _get_coord(entry, 1)
@@ -175,8 +176,8 @@ function layout(cell, _P)
                     local y = _get_coord(entry, i + 1)
                     local segment = curve.lineto(point.create(xi * x, yi * y))
                     table.insert(curvecontent, segment)
-                    lastx = lastx + xi * x
-                    lasty = lasty + yi * y
+                    lastx = xi * x
+                    lasty = yi * y
                 end
             elseif entry.command == "h" then
                 for i = 1, #entry, 1 do
@@ -191,7 +192,7 @@ function layout(cell, _P)
                     local x = _get_coord(entry, i)
                     local segment = curve.lineto(point.create(xi * x, lasty))
                     table.insert(curvecontent, segment)
-                    lastx = lastx + xi * x
+                    lastx = xi * x
                     lasty = lasty
                 end
             elseif entry.command == "v" then
@@ -208,7 +209,7 @@ function layout(cell, _P)
                     local segment = curve.lineto(point.create(lastx, lasty + yi *  y))
                     table.insert(curvecontent, segment)
                     lastx = lastx
-                    lasty = lasty + yi * y
+                    lasty = yi * y
                 end
             elseif entry.command == "c" then
                 for i = 1, #entry - 5, 6 do
@@ -220,8 +221,11 @@ function layout(cell, _P)
                         point.create(lastx + xi * x, lasty + yi * y)
                     )
                     table.insert(curvecontent, segment)
+                    local cpt2x = lastx + xi * _get_coord(entry, i - 1 + 3)
+                    local cpt2y = lasty + yi * _get_coord(entry, i - 1 + 4)
                     lastx = lastx + xi * x
                     lasty = lasty + yi * y
+                    nextcpt = point.create(lastx - (cpt2x - lastx), lasty - (cpt2y - lasty))
                 end
             elseif entry.command == "C" then
                 for i = 1, #entry - 5, 6 do
@@ -233,34 +237,37 @@ function layout(cell, _P)
                         point.create(xi * x, yi * y)
                     )
                     table.insert(curvecontent, segment)
-                    lastx = lastx + x
-                    lasty = lasty - y
+                    lastx = xi * x
+                    lasty = yi * y
+                    local cpt2x = xi * _get_coord(entry, i - 1 + 3)
+                    local cpt2y = yi * _get_coord(entry, i - 1 + 4)
+                    nextcpt = point.create(lastx - (cpt2x - lastx), lasty - (cpt2y - lasty))
                 end
-            elseif entry.command == "s" then -- copy of "c", but unsure if this is correct
-                for i = 1, #entry - 5, 6 do
+            elseif entry.command == "s" then
+                for i = 1, #entry - 3, 4 do
                     local segment = curve.cubicto(
+                        nextcpt,
                         point.create(lastx + xi * _get_coord(entry, i - 1 + 1), lasty + yi * _get_coord(entry, i - 1 + 2)),
-                        point.create(lastx + xi * _get_coord(entry, i - 1 + 3), lasty + yi * _get_coord(entry, i - 1 + 4)),
-                        point.create(lastx + xi * _get_coord(entry, i - 1 + 5), lasty + yi * _get_coord(entry, i - 1 + 6))
+                        point.create(lastx + xi * _get_coord(entry, i - 1 + 3), lasty + yi * _get_coord(entry, i - 1 + 4))
                     )
                     table.insert(curvecontent, segment)
-                    local x = _get_coord(entry, i + 4)
-                    local y = _get_coord(entry, i + 5)
+                    local x = _get_coord(entry, i + 2)
+                    local y = _get_coord(entry, i + 3)
                     lastx = lastx + xi * x
                     lasty = lasty + yi * y
                 end
             elseif entry.command == "S" then -- copy of "C", but unsure if this is correct
-                for i = 1, #entry - 5, 6 do
+                for i = 1, #entry - 3, 4 do
                     local segment = curve.cubicto(
+                        nextcpt,
                         point.create(xi * _get_coord(entry, i - 1 + 1), yi * _get_coord(entry, i - 1 + 2)),
-                        point.create(xi * _get_coord(entry, i - 1 + 3), yi * _get_coord(entry, i - 1 + 4)),
-                        point.create(xi * _get_coord(entry, i - 1 + 5), yi * _get_coord(entry, i - 1 + 6))
+                        point.create(xi * _get_coord(entry, i - 1 + 3), yi * _get_coord(entry, i - 1 + 4))
                     )
                     table.insert(curvecontent, segment)
-                    local x = _get_coord(entry, i + 4)
-                    local y = _get_coord(entry, i + 5)
-                    lastx = lastx + xi * x
-                    lasty = lasty + yi * y
+                    local x = _get_coord(entry, i + 2)
+                    local y = _get_coord(entry, i + 3)
+                    lastx = xi * x
+                    lasty = yi * y
                 end
             elseif entry.command == "z" then
                 -- finished, do nothing
