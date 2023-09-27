@@ -134,11 +134,36 @@ static void _destroy_segment(void* v)
     free(segment);
 }
 
+static int _check_grid(const point_t* pt, unsigned int grid)
+{
+    if((pt->x % grid) != 0)
+    {
+        return 0;
+    }
+    if((pt->y % grid) != 0)
+    {
+        return 0;
+    }
+    return 1;
+}
+
+static void _fix_grid(point_t* pt, unsigned int grid)
+{
+    pt->x = (pt->x / grid) * grid;
+    pt->y = (pt->y / grid) * grid;
+}
+
 struct shape* shape_create_curve(const struct generics* layer, coordinate_t x, coordinate_t y, unsigned int grid, int allow45)
 {
     struct shape* shape = _create_shape(CURVE, layer);
     struct curve* curve = malloc(sizeof(*curve));
     curve->origin = point_create(x, y);
+    if(!_check_grid(curve->origin, grid))
+    {
+        fprintf(stderr, "curve origin (%lld, %lld) is not on grid (%d) and will be corrected to ", curve->origin->x, curve->origin->y, grid);
+        _fix_grid(curve->origin, grid);
+        fprintf(stderr, "(%lld, %lld)\n", curve->origin->x, curve->origin->y);
+    }
     curve->segments = vector_create(8, _destroy_segment);
     curve->grid = grid;
     curve->allow45 = allow45;
@@ -841,19 +866,6 @@ int shape_get_center(const struct shape* shape, coordinate_t* x, coordinate_t* y
     return 1;
 }
 
-static int _check_grid(const point_t* pt, unsigned int grid)
-{
-    if((pt->x % grid) != 0)
-    {
-        return 0;
-    }
-    if((pt->y % grid) != 0)
-    {
-        return 0;
-    }
-    return 1;
-}
-
 void shape_curve_add_line_segment(struct shape* shape, const point_t* pt)
 {
     if(shape->type != CURVE)
@@ -861,14 +873,16 @@ void shape_curve_add_line_segment(struct shape* shape, const point_t* pt)
         return;
     }
     struct curve* curve = shape->content;
-    if(!_check_grid(pt, curve->grid))
-    {
-        fprintf(stderr, "add curve line segment: point (%lld, %lld) is not on grid (%d)\n", pt->x, pt->y, curve->grid);
-        return;
-    }
     struct curve_segment* segment = malloc(sizeof(*segment));
     segment->type = LINE_SEGMENT;
     segment->pt = point_copy(pt);
+    if(!_check_grid(segment->pt, curve->grid))
+    {
+        fprintf(stderr, "add curve line segment: point (%lld, %lld) is not on grid (%d) and will be corrected to ", segment->pt->x, segment->pt->y, curve->grid);
+        _fix_grid(segment->pt, curve->grid);
+        fprintf(stderr, "(%lld, %lld)\n", segment->pt->x, segment->pt->y);
+        return;
+    }
     vector_append(curve->segments, segment);
 }
 
@@ -898,8 +912,26 @@ void shape_curve_add_cubic_bezier_segment(struct shape* shape, const point_t* cp
     struct curve_segment* segment = malloc(sizeof(*segment));
     segment->type = CUBIC_BEZIER_SEGMENT;
     segment->cpt1 = point_copy(cpt1);
+    if(!_check_grid(segment->cpt1, curve->grid))
+    {
+        fprintf(stderr, "add curve cubic bezier segment: control point 1 (%lld, %lld) is not on grid (%d) and will be corrected to ", segment->cpt1->x, segment->cpt1->y, curve->grid);
+        _fix_grid(segment->cpt1, curve->grid);
+        fprintf(stderr, "(%lld, %lld)\n", segment->cpt1->x, segment->cpt1->y);
+    }
     segment->cpt2 = point_copy(cpt2);
+    if(!_check_grid(segment->cpt2, curve->grid))
+    {
+        fprintf(stderr, "add curve cubic bezier segment: control point 2 (%lld, %lld) is not on grid (%d) and will be corrected to ", segment->cpt2->x, segment->cpt2->y, curve->grid);
+        _fix_grid(segment->cpt2, curve->grid);
+        fprintf(stderr, "(%lld, %lld)\n", segment->cpt2->x, segment->cpt2->y);
+    }
     segment->endpt = point_copy(endpt);
+    if(!_check_grid(segment->endpt, curve->grid))
+    {
+        fprintf(stderr, "add curve cubic bezier segment: end point (%lld, %lld) is not on grid (%d) and will be corrected to ", segment->endpt->x, segment->endpt->y, curve->grid);
+        _fix_grid(segment->endpt, curve->grid);
+        fprintf(stderr, "(%lld, %lld)\n", segment->endpt->x, segment->endpt->y);
+    }
     vector_append(curve->segments, segment);
 }
 
