@@ -571,6 +571,26 @@ struct vector* _initialize_api_entries(void)
         ));
     }
 
+    /* geometry.rectanglepath */
+    {
+        struct parameter parameters[] = {
+            { "cell",       OBJECT,     NULL,   "Object in which the rectangle is created" },
+            { "layer",      GENERICS,   NULL,   "Layer of the generated rectangular shape" },
+            { "pt1",        POINT,      NULL,   "First path point of the generated rectangular shape" },
+            { "pt2",        POINT,      NULL,   "Second path point of the generated rectangular shape" },
+            { "width",      INTEGER,    NULL,   "Width of the path-like shape" },
+            { "extension",  TABLE,      NULL,   "optional table argument containing the start/end extensions" }
+        };
+        vector_append(entries, _make_api_entry(
+            "rectanglepath",
+            MODULE_GEOMETRY,
+            "Create a rectangular shape that is defined by its path-like endpoints. This function behaves like geometry.path, but takes only two points, not a list of points. This function likely will be removed in the future, use geometry.rectanglebltr or geometry.rectanglepoints",
+            "geometry.rectanglepath(cell, generics.metal(1), point.create(-100, 0), point(100, 0), 50)",
+            parameters,
+            sizeof(parameters) / sizeof(parameters[0])
+        ));
+    }
+
     /* geometry.rectanglearray */
     {
         struct parameter parameters[] = {
@@ -595,7 +615,6 @@ struct vector* _initialize_api_entries(void)
         ));
     }
 
-    /* FIXME: geometry.rectanglepath */
     /* geometry.rectanglevlines */
     {
         struct parameter parameters[] = {
@@ -683,7 +702,8 @@ struct vector* _initialize_api_entries(void)
             { "cell",   OBJECT, NULL,    "Object in which the path is created" },
             { "layer",  GENERICS, NULL,   "Layer of the generated rectangular shape" },
             { "pts",    POINTLIST, NULL, "List of points where the path passes through" },
-            { "width",  INTEGER, NULL,   "width of the path. Must be even" }
+            { "width",  INTEGER, NULL,   "width of the path. Must be even" },
+            { "extension",  TABLE,      NULL,   "optional table argument containing the start/end extensions" }
         };
         vector_append(entries, _make_api_entry(
             "path",
@@ -701,7 +721,8 @@ struct vector* _initialize_api_entries(void)
             { "cell",   OBJECT, NULL,    "Object in which the path is created" },
             { "layer",  GENERICS, NULL,   "Layer of the generated rectangular shape" },
             { "pts",    POINTLIST, NULL, "List of points where the path passes through" },
-            { "width",  INTEGER, NULL,   "width of the path. Must be even" }
+            { "width",  INTEGER, NULL,   "width of the path. Must be even" },
+            { "extension",  TABLE,      NULL,   "optional table argument containing the start/end extensions" }
         };
         vector_append(entries, _make_api_entry(
             "path_manhatten",
@@ -2920,31 +2941,33 @@ struct vector* _initialize_api_entries(void)
         ));
     }
 
-    /* util.filter_forward(pts, fun) */ // FIXME: filter_forward
+    /* util.filter_forward(pts, fun) */
     {
         struct parameter parameters[] = {
-
+            { "pts",    POINTLIST,  NULL,   "point array to append to" },
+            { "fun",    FUNCTION,   NULL,   "filter function" }
         };
         vector_append(entries, _make_api_entry(
             "filter_forward",
             MODULE_UTIL,
-            "",
-            "",
+            "iterate forward through the list of points and create a new list with points that match the predicate. The predicate function is called with every point.",
+            "local pts = { ... }\nlocal predicate = function(pt) return pt:getx() > 0 end\nlocal newpts = util.filter_forward(pts, predicate)",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
 
-    /* util.filter_backward(pts, fun) */ // FIXME: filter_backward
+    /* util.filter_backward(pts, fun) */
     {
         struct parameter parameters[] = {
-
+            { "pts",    POINTLIST,  NULL,   "point array to append to" },
+            { "fun",    FUNCTION,   NULL,   "filter function" }
         };
         vector_append(entries, _make_api_entry(
             "filter_backward",
             MODULE_UTIL,
-            "",
-            "",
+            "iterate backward through the list of points and create a new list with points that match the predicate. The predicate function is called with every point.",
+            "local pts = { ... }\nlocal predicate = function(pt) return pt:getx() > 0 end\nlocal newpts = util.filter_backward(pts, predicate)",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
