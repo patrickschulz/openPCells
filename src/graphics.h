@@ -6,7 +6,7 @@
 #include "point.h"
 #include "vector.h"
 
-void graphics_rasterize_line_segment(point_t* startpt, point_t* endpt, unsigned int grid, int allow45, struct vector* result);
+void graphics_rasterize_line_segment(const point_t* startpt, const point_t* endpt, unsigned int grid, int allow45, struct vector* result);
 void graphics_rasterize_arc_segment(point_t* startpt, double startangle, double endangle, coordinate_t radius, int clockwise, unsigned int grid, int allow45, struct vector* result);
 void graphics_rasterize_cubic_bezier_segment(const point_t* startpt, const point_t* cpt1, const point_t* cpt2, const point_t* endpt, unsigned int grid, int allow45, struct vector* result);
 

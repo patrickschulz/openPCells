@@ -84,7 +84,7 @@ void graphics_rasterize_cubic_bezier_segment(const point_t* startpt, const point
 
 #define iabs(x) ((x) < 0 ? -(x) : (x))
 
-void graphics_rasterize_line_segment(point_t* startpt, point_t* endpt, unsigned int grid, int allow45, struct vector* result)
+void graphics_rasterize_line_segment(const point_t* startpt, const point_t* endpt, unsigned int grid, int allow45, struct vector* result)
 {
     coordinate_t x1 = startpt->x;
     coordinate_t y1 = startpt->y;
