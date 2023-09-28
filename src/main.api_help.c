@@ -1714,6 +1714,22 @@ struct vector* _initialize_api_entries(void)
         ));
     }
 
+    /* object.get_alignment_anchor */
+    {
+        struct parameter parameters[] = {
+            { "cell",       OBJECT, NULL, "object to get an anchor from" },
+            { "anchorname", STRING, NULL, "name of the alignment anchor" }
+        };
+        vector_append(entries, _make_api_entry(
+            "get_alignment_anchor",
+            MODULE_OBJECT,
+            "Retrieve an alignemtn anchor from a cell. These anchors are the defining points of the alignment box. Valid anchor names are 'outerbl', 'outerbr', 'outertl', 'outertr', 'innerbl', 'innerbr', 'innertl' and 'innertr'. This function returns a point that contains the position of the specified anchor, corrected by the cell transformation. A non-existing anchor is an error",
+            "cell:get_alignment_anchor(\"outerbl\")",
+            parameters,
+            sizeof(parameters) / sizeof(parameters[0])
+        ));
+    }
+
     /* object.get_area_anchor */
     {
         struct parameter parameters[] = {
