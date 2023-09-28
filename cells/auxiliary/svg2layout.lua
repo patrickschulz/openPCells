@@ -127,15 +127,18 @@ function layout(cell, _P)
         local x0 = 0
         local y0 = 0
 
-        local origin
+        local new = true
         local curvecontent = {}
         local nextcpt = nil -- for s/S and t/T segments
         for i, entry in ipairs(entries) do
             if entry.command == "M" then
                 local x = _get_coord(entry, 1)
                 local y = _get_coord(entry, 2)
-                x0 = xi * x
-                y0 = yi * y
+                if new then
+                    x0 = xi * x
+                    y0 = yi * y
+                    new = false
+                end
                 lastx = xi * x
                 lasty = yi * y
                 for i = 3, #entry - (2 - 1), 2 do
@@ -149,8 +152,11 @@ function layout(cell, _P)
             elseif entry.command == "m" then
                 local x = _get_coord(entry, 1)
                 local y = _get_coord(entry, 2)
-                x0 = lastx + xi * x
-                y0 = lasty + yi * y
+                if new then
+                    x0 = lastx + xi * x
+                    y0 = lasty + yi * y
+                    new = false
+                end
                 lastx = lastx + xi * x
                 lasty = lasty + yi * y
                 for i = 3, #entry - (2 - 1), 2 do
@@ -182,7 +188,7 @@ function layout(cell, _P)
             elseif entry.command == "h" then
                 for i = 1, #entry, 1 do
                     local x = _get_coord(entry, i)
-                    local segment = curve.lineto(point.create(lastx + xi * x, yi * y))
+                    local segment = curve.lineto(point.create(lastx + xi * x, lasty))
                     table.insert(curvecontent, segment)
                     lastx = lastx + xi * x
                     lasty = lasty
@@ -198,7 +204,7 @@ function layout(cell, _P)
             elseif entry.command == "v" then
                 for i = 1, #entry, 1 do
                     local y = _get_coord(entry, i)
-                    local segment = curve.lineto(point.create(lastx, lasty + yi *  y))
+                    local segment = curve.lineto(point.create(lastx, lasty + yi * y))
                     table.insert(curvecontent, segment)
                     lastx = lastx
                     lasty = lasty + yi *  y
@@ -206,7 +212,7 @@ function layout(cell, _P)
             elseif entry.command == "V" then
                 for i = 1, #entry, 1 do
                     local y = _get_coord(entry, i)
-                    local segment = curve.lineto(point.create(lastx, lasty + yi *  y))
+                    local segment = curve.lineto(point.create(lastx, yi * y))
                     table.insert(curvecontent, segment)
                     lastx = lastx
                     lasty = yi * y
@@ -269,12 +275,17 @@ function layout(cell, _P)
                     lastx = xi * x
                     lasty = yi * y
                 end
-            elseif entry.command == "z" then
-                -- finished, do nothing
+            elseif entry.command == "z" or entry.command == "Z" then
+                -- finished
+                geometry.curve(cell, generics.metal(_P.metal), point.create(x0, y0), curvecontent, _P.grid, _P.allow45)
+                curvecontent = {}
+                nextcpt = nil
+                new = true
+                lastx = x0
+                lasty = y0
             else
                 cellerror(string.format("unhandled command: %s", entry.command))
             end
         end
-        geometry.curve(cell, generics.metal(_P.metal), point.create(x0, y0), curvecontent, _P.grid, _P.allow45)
     end
 end
