@@ -5,6 +5,7 @@
 
 #include "math.h" // modf
 #include "tagged_value.h"
+#include "geometry.h"
 
 #define RECORDTYPE_HEADER       0x00
 #define RECORDTYPE_BGNLIB       0x01
@@ -359,6 +360,29 @@ static void _write_polygon(struct export_data* data, const struct hashmap* layer
     _write_ENDEL(data);
 }
 
+static void _write_polygon_wrapper(struct export_data* data, const struct hashmap* layer, const struct vector* points)
+{
+    if(4 + 4 * 2 * vector_size(points) > 65536)
+    //if(vector_size(points) > 200) // GDSII specification only allows 200 points for a polygon at maximum
+    {
+        struct vector* triangulated_points = geometry_triangulate_polygon(points);
+        for(unsigned int i = 0; i < vector_size(triangulated_points) - 2; i += 3)
+        {
+            struct vector* tripts = vector_create(3, NULL);
+            vector_append(tripts, vector_get(triangulated_points, i));
+            vector_append(tripts, vector_get(triangulated_points, i + 1));
+            vector_append(tripts, vector_get(triangulated_points, i + 2));
+            _write_polygon(data, layer, tripts);
+            vector_destroy(tripts);
+        }
+        vector_destroy(triangulated_points);
+    }
+    else
+    {
+        _write_polygon(data, layer, points);
+    }
+}
+
 static void _write_path(struct export_data* data, const struct hashmap* layer, const struct vector* points, ucoordinate_t width, const coordinate_t* extension)
 {
     _write_layer(data, RECORDTYPE_PATH, RECORDTYPE_DATATYPE, layer);
@@ -706,7 +730,7 @@ struct export_functions* gdsexport_get_export_functions(void)
     funcs->at_begin_cell = _at_begin_cell;
     funcs->at_end_cell = _at_end_cell;
     funcs->write_rectangle = _write_rectangle;
-    funcs->write_polygon = _write_polygon;
+    funcs->write_polygon = _write_polygon_wrapper;
     funcs->write_path = _write_path;
     funcs->write_cell_reference = _write_cell_reference;
     funcs->write_cell_array = _write_cell_array;
