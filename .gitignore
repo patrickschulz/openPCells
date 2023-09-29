@@ -14,6 +14,8 @@ opc.1
 
 # generated layouts and helpers
 openPCells.*
+pineapple.gds
+talentandsweat.gds
 openPCells_extracted.cir
 pfile.lua
 verilogimport
