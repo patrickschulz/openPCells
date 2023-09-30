@@ -2387,6 +2387,39 @@ struct vector* _initialize_api_entries(void)
         ));
     }
 
+    /* object.move_point_x */
+    {
+        struct parameter parameters[] = {
+            { "cell",       OBJECT, NULL,   "cell which should be moved" },
+            { "source",     POINT,  NULL,   "source point" },
+            { "target",     POINT,  NULL,   "target point" }
+        };
+        vector_append(entries, _make_api_entry(
+            "move_point_x",
+            MODULE_OBJECT,
+            "translate (move) the object so that the x-coorindate of the source point lies on the x-coordinate target. Usually the source point is an anchor of the object, but that is not a necessity. The points are just references for the delta vector and can be any points.",
+            "cell:move_point_x(cell:get_area_anchor(\"gate\").bl, point.create(0, 0)) -- move the x-coordinate of the origin\nmosfet:move_point_x(mosfet:get_area_anchor(\"leftsourcedrain\").bl, othermosfet:get_area_anchor(\"rightsourcedrain\").bl) -- align the x-coordinate of two mosfets",
+            parameters,
+            sizeof(parameters) / sizeof(parameters[0])
+        ));
+    }
+
+    /* object.move_point_y */
+    {
+        struct parameter parameters[] = {
+            { "cell",       OBJECT, NULL,   "cell which should be moved" },
+            { "source",     POINT,  NULL,   "source point" },
+            { "target",     POINT,  NULL,   "target point" }
+        };
+        vector_append(entries, _make_api_entry(
+            "move_point_y",
+            MODULE_OBJECT,
+            "translate (move) the object so that the y-coorindate of the source point lies on the y-coordinate target. Usually the source point is an anchor of the object, but that is not a necessity. The points are just references for the delta vector and can be any points.",
+            "cell:move_point_y(cell:get_area_anchor(\"gate\").bl, point.create(0, 0)) -- move the y-coordinate of the origin\nmosfet:move_point_y(mosfet:get_area_anchor(\"leftsourcedrain\").bl, othermosfet:get_area_anchor(\"rightsourcedrain\").bl) -- align the y-coordinate of two mosfets",
+            parameters,
+            sizeof(parameters) / sizeof(parameters[0])
+        ));
+    }
     /* object.add_child */
     {
         struct parameter parameters[] = {
