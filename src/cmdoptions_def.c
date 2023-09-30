@@ -77,7 +77,7 @@ cmdoptions_add_option(cmdoptions, NO_SHORT, "techfile-assistant", NO_ARG, "start
 
 /* Info Functions */
 cmdoptions_add_section(cmdoptions, "Info functions");
-cmdoptions_add_option(cmdoptions, 'P', "parameters", NO_ARG, "display available cell parameters and exit (requires --cell)");
+cmdoptions_add_option(cmdoptions, 'P', "parameters", SINGLE_ARG, "display available cell parameters for the given cellname and exit. If the cell uses the technology module to get default values, proper values will be only reported if also a technology is given with --technology. Otherwise, all technology.get_dimenstion functions will return 0");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "parameters-format", SINGLE_ARG, "format for listing parameters. The following formats are recognized: %t: parameter type, %n: parameter name, %d: parameter display name, %v: parameter value, %a: parameter argument type, %r: parameter is read-only (true/false), %p: parent cell. The default is %n %v");
 cmdoptions_add_option(cmdoptions, NO_SHORT, "constraints", NO_ARG, "show required technology parameter (requires --cell and --technology)");
 cmdoptions_add_option(cmdoptions, 'L', "list", NO_ARG, "list available cells");

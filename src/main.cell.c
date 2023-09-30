@@ -186,7 +186,7 @@ void main_list_cell_parameters(struct cmdoptions* cmdoptions, struct hashmap* co
 
     // assemble cell arguments
     lua_newtable(L);
-    const char* cellname = cmdoptions_get_argument_long(cmdoptions, "cell");
+    const char* cellname = cmdoptions_get_argument_long(cmdoptions, "parameters");
     lua_pushstring(L, cellname);
     lua_setfield(L, -2, "cell");
     const char* parametersformat = cmdoptions_get_argument_long(cmdoptions, "parameters-format");

@@ -781,12 +781,20 @@ static int ltechnology_get_dimension(lua_State* L)
         lua_getfield(L, LUA_REGISTRYINDEX, "techstate");
         struct technology_state* techstate = lua_touserdata(L, -1);
         lua_pop(L, 1); // pop techstate
-        if(hashmap_exists(techstate->constraints, dimension))
+        if(!techstate)
         {
-            struct tagged_value* v = hashmap_get(techstate->constraints, dimension);
-            int value = tagged_value_get_integer(v);
-            lua_pushinteger(L, value);
+            lua_pushinteger(L, 0);
             return 1;
+        }
+        else
+        {
+            if(hashmap_exists(techstate->constraints, dimension))
+            {
+                struct tagged_value* v = hashmap_get(techstate->constraints, dimension);
+                int value = tagged_value_get_integer(v);
+                lua_pushinteger(L, value);
+                return 1;
+            }
         }
     }
     // FIXME: this looks ugly for multiple arguments
