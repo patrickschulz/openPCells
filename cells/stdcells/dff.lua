@@ -2,7 +2,7 @@
                              |\                            |\
                              | \ Inverter                  | \ Inverter
                         |----|  o----|                |----|  o----|
-         |\ Clocked     |    | /     |                |    | /     |       |\
+         |\  Clocked    |    | /     |                |    | /     |       |\
          | \ Inverter   |    |/      |        /       |    |/      |       | \
     D o--|  o-----------*            *-------o -------*            *-------|  o----o Q
          | /            |      /|    |  Transmission  |      /|    |       | /
@@ -359,7 +359,6 @@ function layout(dff, _P)
 
     -- first latch inverter connect drains
     -- (this also connects the drain of the pmos set transistor)
-    local sdcorrection = _P.enable_reset and 1 or 0
     geometry.path_cshape(dff, generics.metal(1),
         sourcedrainleft("p", "tgatenmos").br:translate_y( bp.sdwidth / 2),
         sourcedrainleft("n", "tgatenmos").tr:translate_y(-bp.sdwidth / 2),
@@ -387,10 +386,10 @@ function layout(dff, _P)
 
     -- short nmos in second latch (set layout)
     if _P.enable_set then
-        geometry.rectanglebltr(dff, generics.metal(3),
-            sourcedrain("n", "cc", 21 + resetshift):translate(0, -bp.sdwidth / 2),
-            sourcedrain("n", "cc", 22 + resetshift):translate(0, bp.sdwidth / 2)
-        )
+        --geometry.rectanglebltr(dff, generics.metal(3),
+        --    sourcedrain("n", "cc", 21 + resetshift):translate(0, -bp.sdwidth / 2),
+        --    sourcedrain("n", "cc", 22 + resetshift):translate(0, bp.sdwidth / 2)
+        --)
     end
 
     -- connect second latch cinv / transmission gate drains
@@ -431,7 +430,6 @@ function layout(dff, _P)
 
     -- second latch inverter connect drains
     -- (this also connects the drain of the pmos set transistor)
-    local sdcorrection = _P.enable_reset and 1 or 0
     geometry.path_cshape(dff, generics.metal(1),
         sourcedrainright("p", "latch2invinput").br:translate_y( bp.sdwidth / 2),
         sourcedrainright("n", "latch2invinput").tr:translate_y(-bp.sdwidth / 2),
@@ -469,19 +467,19 @@ function layout(dff, _P)
 
     -- set bar and M1/M2 vias
     if _P.enable_set then
-        geometry.rectanglebltr(dff, generics.metal(2),
-            --gate("tgateEN"):translate(0, -bp.routingwidth / 2),
-            gate(13):translate(0, -bp.routingwidth / 2),
-            gate(22):translate(0, bp.routingwidth / 2)
-        )
-        geometry.viabltr(dff, 1, 2,
-            gate("tgateEN"):translate(-xpitch - bp.glength / 2, -bp.routingwidth / 2),
-            gate("tgateEN"):translate( xpitch + bp.glength / 2, bp.routingwidth / 2)
-        )
-        geometry.viabltr(dff, 1, 2,
-            gate(22):translate(-xpitch - bp.glength / 2, -bp.routingwidth / 2),
-            gate(22):translate( xpitch + bp.glength / 2, bp.routingwidth / 2)
-        )
+        --geometry.rectanglebltr(dff, generics.metal(2),
+        --    --gate("tgateEN"):translate(0, -bp.routingwidth / 2),
+        --    gate(13):translate(0, -bp.routingwidth / 2),
+        --    gate(22):translate(0, bp.routingwidth / 2)
+        --)
+        --geometry.viabltr(dff, 1, 2,
+        --    gate("tgateEN"):translate(-xpitch - bp.glength / 2, -bp.routingwidth / 2),
+        --    gate("tgateEN"):translate( xpitch + bp.glength / 2, bp.routingwidth / 2)
+        --)
+        --geometry.viabltr(dff, 1, 2,
+        --    gate(22):translate(-xpitch - bp.glength / 2, -bp.routingwidth / 2),
+        --    gate(22):translate( xpitch + bp.glength / 2, bp.routingwidth / 2)
+        --)
     end
 
     -- reset bar and M1/M2 vias
@@ -512,7 +510,7 @@ function layout(dff, _P)
         dff:add_port("QN", generics.metalport(1), gate("outinv2"):translate(xpitch, 0))
     end
     if _P.enable_set then
-        dff:add_port("SET", generics.metalport(2), point.combine(gate("tgateEN"), gate(22)))
+        --dff:add_port("SET", generics.metalport(2), point.combine(gate("tgateEN"), gate(22)))
     end
     if _P.enable_reset then
         dff:add_port("RST", generics.metalport(2), gate("clockbufinput1").bl)

@@ -75,8 +75,8 @@ function layout(gate, _P)
         leftpolylines = _P.leftpolylines,
         drawrightstopgate = _P.drawrightstopgate,
         rightpolylines = _P.rightpolylines,
-        drawgcut = true,
-        drawgcuteverywhere = true,
+        drawgatecut = true,
+        drawgatecuteverywhere = true,
     })
     gate:exchange(cmos)
     for i = 1, bp.numinnerroutes do

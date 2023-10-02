@@ -46,8 +46,8 @@ function parameters()
         { "shiftncontactsouter", 0 },
         { "drawdummygatecontacts", true },
         { "drawdummyactivecontacts", true },
-        { "drawgcut", false },
-        { "drawgcuteverywhere", false },
+        { "drawgatecut", false },
+        { "drawgatecuteverywhere", false },
         { "dummycontheight(Dummy Gate Contact Height)",        technology.get_dimension("Minimum M1 Width") },
         { "dummycontshift(Dummy Gate Shift)",                  0 },
         { "drawnmoswelltap(Draw nMOS Well Tap)", false },
@@ -126,8 +126,8 @@ function layout(cmos, _P)
             gatemarker = _P.gatemarker,
             drawsourcedrain = "none",
             drawactive = _P.drawactive,
-            topgcutwidth = _P.cutheight,
-            botgcutwidth = _P.cutheight,
+            topgatecutwidth = _P.cutheight,
+            botgatecutwidth = _P.cutheight,
         })
 
         -- pmos
@@ -138,7 +138,7 @@ function layout(cmos, _P)
             fwidth = _P.pwidth,
             gbotext = _P.separation / 2,
             gtopext = _P.pgateext,
-            topgcutspace = -_P.powerwidth / 2,
+            topgatecutspace = -_P.powerwidth / 2,
             clipbot = true,
             drawtopactivedummy = _P.drawactivedummy,
             topactivedummywidth = _P.activedummywidth,
@@ -152,9 +152,9 @@ function layout(cmos, _P)
             fwidth = _P.nwidth,
             gtopext = _P.separation / 2,
             gbotext = _P.ngateext,
-            botgcutspace = _P.powerwidth / 2,
+            botgatecutspace = _P.powerwidth / 2,
             cliptop = true,
-            drawbotgcut = false,
+            drawbotgatecut = false,
             drawbotactivedummy = _P.drawactivedummy,
             botactivedummywidth = _P.activedummywidth,
             botactivedummysep = _P.activedummysep,
@@ -167,11 +167,11 @@ function layout(cmos, _P)
                 popt.leftpolylines = _P.leftpolylines
                 if _P.drawleftstopgate then
                     nopt.drawleftstopgate = true
-                    nopt.drawstopgatetopgcut = true
-                    nopt.drawstopgatebotgcut = false
+                    nopt.drawstopgatetopgatecut = true
+                    nopt.drawstopgatebotgatecut = false
                     popt.drawleftstopgate = true
-                    popt.drawstopgatetopgcut = false
-                    popt.drawstopgatebotgcut = true
+                    popt.drawstopgatetopgatecut = false
+                    popt.drawstopgatebotgatecut = true
                 end
             end
             if i == fingers then
@@ -179,11 +179,11 @@ function layout(cmos, _P)
                 popt.rightpolylines = _P.rightpolylines
                 if _P.drawrightstopgate then
                     nopt.drawrightstopgate = true
-                    nopt.drawstopgatetopgcut = true
-                    nopt.drawstopgatebotgcut = false
+                    nopt.drawstopgatetopgatecut = true
+                    nopt.drawstopgatebotgatecut = false
                     popt.drawrightstopgate = true
-                    popt.drawstopgatetopgcut = false
-                    popt.drawstopgatebotgcut = true
+                    popt.drawstopgatetopgatecut = false
+                    popt.drawstopgatebotgatecut = true
                 end
             end
             local shift = (i - 1) * gatepitch
@@ -209,8 +209,8 @@ function layout(cmos, _P)
                 rightpdrainarea = pfet:get_area_anchor("sourcedrainactiveright")
             end
         end
-        nopt.drawtopgcut = true
-        popt.drawbotgcut = true
+        nopt.drawtopgatecut = true
+        popt.drawbotgatecut = true
         -- pop general transistor settings
         pcell.pop_overwrites("basic/mosfet")
     end
@@ -360,7 +360,7 @@ function layout(cmos, _P)
                 geometry.contactbltr(cmos, "gate", bl, tr)
             end
             if _P.gatecontactpos[i] ~= "dummy" then
-                if _P.drawgcut and not _P.drawgcuteverywhere then
+                if _P.drawgatecut and not _P.drawgatecuteverywhere then
                 geometry.rectanglebltr(
                     cmos, generics.other("gatecut"),
                     point.create(x, (_P.pwidth - _P.nwidth) / 2 + (_P.ppowerspace - _P.npowerspace) / 2 - _P.cutheight / 2),
@@ -371,7 +371,7 @@ function layout(cmos, _P)
             end
         end
     end
-    if _P.drawgcut and _P.drawgcuteverywhere then
+    if _P.drawgatecut and _P.drawgatecuteverywhere then
         geometry.rectanglebltr(cmos, generics.other("gatecut"),
             cmos:get_area_anchor("PRp").bl:translate(0, (_P.powerwidth - _P.cutheight) / 2),
             cmos:get_area_anchor("PRp").br:translate(0, (_P.powerwidth - _P.cutheight) / 2 + _P.cutheight)
