@@ -13,6 +13,8 @@ function parameters()
         { "flippolarity",           false },
         --{ "flat",                    true },
         { "drawvia",                 true },
+        { "viaxcontinuous",         false },
+        { "viaycontinuous",         false },
         { "drawfill",               false },
         { "fillmetals",                {} },
         { "fillwidth",                100 },
@@ -26,6 +28,17 @@ end
 
 function layout(momcap, _P)
     local pitch = _P.fwidth + _P.fspace
+
+    local viafunc
+    if not _P.viaxcontinuous and not _P.viaycontinuous then
+        viafunc = geometry.viabltr
+    elseif _P.viaxcontinuous and not _P.viaycontinuous then
+        viafunc = geometry.viabltr_xcontinuous
+    elseif not _P.viaxcontinuous and _P.viaycontinuous then
+        viafunc = geometry.viabltr_ycontinuous
+    else
+        viafunc = geometry.viabltr_continuous
+    end
 
     local firstmetal = technology.resolve_metal(_P.firstmetal)
     local lastmetal = technology.resolve_metal(_P.lastmetal)
@@ -59,12 +72,12 @@ function layout(momcap, _P)
     if _P.drawvia then
         if firstmetal ~= lastmetal then
             -- FIXME: support continuous vias
-            geometry.viabltr(
+            viafunc(
                 momcap, firstmetal, lastmetal,
                 point.create(-_P.rext, 0),
                 point.create(_P.fingers * _P.fwidth + (_P.fingers - 1) * _P.fspace + _P.rext, _P.rwidth)
             )
-            geometry.viabltr(
+            viafunc(
                 momcap, firstmetal, lastmetal,
                 point.create(-_P.rext, _P.fheight + 2 * _P.foffset + _P.rwidth),
                 point.create(_P.fingers * _P.fwidth + (_P.fingers - 1) * _P.fspace + _P.rext, _P.fheight + 2 * _P.foffset + 2 * _P.rwidth)
