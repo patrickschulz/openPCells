@@ -562,7 +562,7 @@ static int lobject_inherit_area_anchor(lua_State* L)
     const char* anchorname = luaL_checkstring(L, 3);
     if(!object_has_area_anchor(lobject_get(other), anchorname))
     {
-        lua_pushfstring(L, "object.get_area_anchor_width: object does not have an area anchor '%s'", anchorname);
+        lua_pushfstring(L, "object.inherit_area_anchor: object does not have an area anchor '%s'", anchorname);
         lua_error(L);
     }
     object_inherit_area_anchor(lobject_get(cell), lobject_get(other), anchorname);
@@ -577,7 +577,7 @@ static int lobject_inherit_area_anchor_as(lua_State* L)
     const char* newanchorname = luaL_checkstring(L, 4);
     if(!object_has_area_anchor(lobject_get(other), anchorname))
     {
-        lua_pushfstring(L, "object.get_area_anchor_width: object does not have an area anchor '%s'", anchorname);
+        lua_pushfstring(L, "object.inherit_area_anchor_as: object does not have an area anchor '%s'", anchorname);
         lua_error(L);
     }
     object_inherit_area_anchor_as(lobject_get(cell), lobject_get(other), anchorname, newanchorname);
@@ -883,6 +883,52 @@ static int lobject_inherit_alignment_box(lua_State* L)
 }
 
 static int lobject_extend_alignment_box(lua_State* L)
+{
+    struct lobject* cell = lobject_check(L, 1);
+    coordinate_t extouterblx = 0;
+    coordinate_t extouterbly = 0;
+    coordinate_t extoutertrx = 0;
+    coordinate_t extoutertry = 0;
+    coordinate_t extinnerblx = 0;
+    coordinate_t extinnerbly = 0;
+    coordinate_t extinnertrx = 0;
+    coordinate_t extinnertry = 0;
+    if(lua_gettop(L) == 9)
+    {
+        extouterblx = lua_tointeger(L, 2);
+        extouterbly = lua_tointeger(L, 3);
+        extoutertrx = lua_tointeger(L, 4);
+        extoutertry = lua_tointeger(L, 5);
+        extinnerblx = lua_tointeger(L, 6);
+        extinnerbly = lua_tointeger(L, 7);
+        extinnertrx = lua_tointeger(L, 8);
+        extinnertry = lua_tointeger(L, 9);
+    }
+    else
+    {
+        lua_pushfstring(L, "object.extend_alignment_box: expected nine arguments, got %d", lua_gettop(L));
+        lua_error(L);
+    }
+    if(!object_has_alignmentbox(lobject_get(cell)))
+    {
+        lua_pushstring(L, "object.extend_alignment_box: cell has no alignmentbox");
+        lua_error(L);
+    }
+    object_extend_alignment_box(
+        lobject_get(cell),
+        extouterblx,
+        extouterbly,
+        extoutertrx,
+        extoutertry,
+        extinnerblx,
+        extinnerbly,
+        extinnertrx,
+        extinnertry
+    );
+    return 0;
+}
+
+static int lobject_extend_alignment_box_x_symmetrical(lua_State* L)
 {
     struct lobject* cell = lobject_check(L, 1);
     coordinate_t extouterblx = 0;
