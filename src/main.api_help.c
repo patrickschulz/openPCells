@@ -1870,6 +1870,57 @@ struct vector* _initialize_api_entries(void)
         ));
     }
 
+    /* object.inherit_area_anchor */
+    {
+        struct parameter parameters[] = {
+            { "cell",       OBJECT, NULL, "cell to add the anchor to" },
+            { "othercell",  OBJECT, NULL, "cell to inherit the anchor from" },
+            { "anchorname", STRING, NULL, "anchor name of the to-be-inherited anchor" }
+        };
+        vector_append(entries, _make_api_entry(
+            "inherit_area_anchor",
+            MODULE_OBJECT,
+            "inherit an area anchor from another cell.",
+            "cell:inherit_area_anchor(someothercell, \"anchor\")",
+            parameters,
+            sizeof(parameters) / sizeof(parameters[0])
+        ));
+    }
+
+    /* object.inherit_area_anchor_as */
+    {
+        struct parameter parameters[] = {
+            { "cell",       OBJECT, NULL, "cell to add the anchor to" },
+            { "othercell",  OBJECT, NULL, "cell to inherit the anchor from" },
+            { "anchorname", STRING, NULL, "anchor name of the to-be-inherited anchor" },
+            { "newname",    STRING, NULL, "new name of the inherited anchor" }
+        };
+        vector_append(entries, _make_api_entry(
+            "inherit_area_anchor_as",
+            MODULE_OBJECT,
+            "inherit an area anchor from another cell under a different name.",
+            "cell:inherit_area_anchor(someothercell, \"anchor\", \"newname\")",
+            parameters,
+            sizeof(parameters) / sizeof(parameters[0])
+        ));
+    }
+
+    /* object.inherit_boundary */
+    {
+        struct parameter parameters[] = {
+            { "cell",       OBJECT, NULL, "cell to add the boundar to" },
+            { "othercell",  OBJECT, NULL, "cell to inherit the boundary from" }
+        };
+        vector_append(entries, _make_api_entry(
+            "inherit_boundary",
+            MODULE_OBJECT,
+            "inherit the boundary from another cell.",
+            "cell:inherit_boundary(someothercell)",
+            parameters,
+            sizeof(parameters) / sizeof(parameters[0])
+        ));
+    }
+
     /* object.extend_alignment_box */
     {
         struct parameter parameters[] = {
