@@ -1,8 +1,8 @@
-local cell = object.create("talentandsweat")
+local cell = object.create("gilfoyle")
 
 cell:merge_into(pcell.create_layout("auxiliary/svg2layout", "_svg", {
-    filename = "talentandsweat.svg",
-    scale = 120,
+    filename = "gilfoyle.svg",
+    scale = 10,
     grid = 1,
     allow45 = true,
     inverty = true,
