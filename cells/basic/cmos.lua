@@ -12,6 +12,7 @@ function parameters()
         { "gatelength(Gate Length)",                           technology.get_dimension("Minimum Gate Length"), argtype = "integer" },
         { "gatespace(Gate Spacing)",                           technology.get_dimension("Minimum Gate XSpace"), argtype = "integer" },
         { "sdwidth(Source/Drain Metal Width)",                 technology.get_dimension("Minimum M1 Width"), posvals = even() },
+        { "innergatestraps(Number of Inner Gate Straps)",      3 },
         { "gstwidth(Gate Strap Metal Width)",                  technology.get_dimension("Minimum M1 Width") },
         { "gstspace(Gate Strap Metal Space)",                  technology.get_dimension("Minimum M1 Space") },
         { "gatecontactsplitshift(Gate Contact Split Shift)",   technology.get_dimension("Minimum M1 Width") + technology.get_dimension("Minimum M1 Space") },
@@ -71,12 +72,12 @@ end
 
 function check(_P)
     -- check separation
-    if (3 * _P.gstwidth + 4 * _P.gstspace) > _P.separation then
-        return false, "can't fit all gate straps into the separation between nmos and pmos"
+    if (_P.innergatestraps * _P.gstwidth + (_P.innergatestraps + 1) * _P.gstspace) > _P.separation then
+        return false, string.format("can't fit all gate straps into the separation between nmos and pmos: %d > %d", _P.innergatestraps * _P.gstwidth + (_P.innergatestraps + 1) * _P.gstspace, _P.separation)
     end
     -- FIXME: this check is not necessary, but the current implementation is broken if this condition is met
-    if (3 * _P.gstwidth + 4 * _P.gstspace) ~= _P.separation then
-        return false, string.format("the separation between nmos and pmos must have the exact size to fit three rows of gate contacts (%d vs. %d)", 3 * _P.gstwidth + 4 * _P.gstspace, _P.separation)
+    if (_P.innergatestraps * _P.gstwidth + (_P.innergatestraps + 1) * _P.gstspace) ~= _P.separation then
+        return false, string.format("the separation between nmos and pmos must have the exact size to fit three rows of gate contacts (%d vs. %d)", _P.innergatestraps * _P.gstwidth + (_P.innergatestraps + 1) * _P.gstspace, _P.separation)
     end
     -- check number of gate and source/drain contacts
     if #_P.pcontactpos ~= #_P.ncontactpos then
@@ -267,12 +268,17 @@ function layout(cmos, _P)
             if _P.gatecontactpos[i] == "center" then -- do nothing
                 table.insert(entries, {
                     yheight = _P.gstwidth,
-                    yshift = 2 * _P.gstspace + _P.gstwidth,
+                    --yshift = (_P.innergatestraps - 1) * _P.gstspace + (_P.innergatestraps - 2) * _P.gstwidth,
+                    yshift = _P.gstspace,
                     index = i,
                 })
-            elseif _P.gatecontactpos[i] == "upper" then
+            elseif string.match(_P.gatecontactpos[i], "upper") then
+                local index = string.match(_P.gatecontactpos[i], "upper(%d+)")
+                if not index then
+                    moderror(string.format("bad gate contact position format: [%d] = '%s' (should be 'upperNUMBER')", i, _P.gatecontactpos[i]))
+                end
                 table.insert(entries, {
-                    yshift = 3 * _P.gstspace + 2 * _P.gstwidth,
+                    yshift = _P.innergatestraps * _P.gstspace + (_P.innergatestraps - 1) * _P.gstwidth,
                     yheight = _P.gstwidth,
                     index = i,
                 })
