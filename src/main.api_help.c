@@ -2941,6 +2941,23 @@ struct vector* _initialize_api_entries(void)
         ));
     }
 
+    /* FIXME: aux.clone_shallow */
+    /* FIXME: aux.find */
+    /* FIXME: aux.find_predicate */
+    /* FIXME: aux.shuffle */
+    /* FIXME: aux.tabgcd */
+    /* FIXME: aux.gcd */
+    /* FIXME: aux.sum */
+    /* FIXME: aux.make_even */
+    /* FIXME: aux.any_of */
+    /* FIXME: aux.all_of */
+    /* FIXME: aux.assert_one_of */
+    /* FIXME: aux.strgsplit */
+    /* FIXME: aux.strsplit */
+    /* FIXME: aux.tprint */
+    /* FIXME: aux.pop_top_directory */
+    /* FIXME: aux.split_path */
+
     /* util.xmirror(pts, xcenter) */
     {
         struct parameter parameters[] = {
