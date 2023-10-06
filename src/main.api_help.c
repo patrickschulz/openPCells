@@ -1737,7 +1737,7 @@ struct vector* _initialize_api_entries(void)
             { "anchorname", STRING, NULL, "name of the anchor" }
         };
         vector_append(entries, _make_api_entry(
-            "get_anchor",
+            "get_area_anchor",
             MODULE_OBJECT,
             "Retrieve an area anchor from a cell. This function returns a table containing two points (bl (bottom-left) and tr (top-right)) that contain the position of the specified area anchor, corrected by the cell transformation. A non-existing anchor is an error",
             "cell:get_area_anchor(\"sourcedrain1\").bl",
