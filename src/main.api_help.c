@@ -1870,6 +1870,57 @@ struct vector* _initialize_api_entries(void)
         ));
     }
 
+    /* object.inherit_area_anchor */
+    {
+        struct parameter parameters[] = {
+            { "cell",       OBJECT, NULL, "cell to add the anchor to" },
+            { "othercell",  OBJECT, NULL, "cell to inherit the anchor from" },
+            { "anchorname", STRING, NULL, "anchor name of the to-be-inherited anchor" }
+        };
+        vector_append(entries, _make_api_entry(
+            "inherit_area_anchor",
+            MODULE_OBJECT,
+            "inherit an area anchor from another cell.",
+            "cell:inherit_area_anchor(someothercell, \"anchor\")",
+            parameters,
+            sizeof(parameters) / sizeof(parameters[0])
+        ));
+    }
+
+    /* object.inherit_area_anchor_as */
+    {
+        struct parameter parameters[] = {
+            { "cell",       OBJECT, NULL, "cell to add the anchor to" },
+            { "othercell",  OBJECT, NULL, "cell to inherit the anchor from" },
+            { "anchorname", STRING, NULL, "anchor name of the to-be-inherited anchor" },
+            { "newname",    STRING, NULL, "new name of the inherited anchor" }
+        };
+        vector_append(entries, _make_api_entry(
+            "inherit_area_anchor_as",
+            MODULE_OBJECT,
+            "inherit an area anchor from another cell under a different name.",
+            "cell:inherit_area_anchor(someothercell, \"anchor\", \"newname\")",
+            parameters,
+            sizeof(parameters) / sizeof(parameters[0])
+        ));
+    }
+
+    /* object.inherit_boundary */
+    {
+        struct parameter parameters[] = {
+            { "cell",       OBJECT, NULL, "cell to add the boundar to" },
+            { "othercell",  OBJECT, NULL, "cell to inherit the boundary from" }
+        };
+        vector_append(entries, _make_api_entry(
+            "inherit_boundary",
+            MODULE_OBJECT,
+            "inherit the boundary from another cell.",
+            "cell:inherit_boundary(someothercell)",
+            parameters,
+            sizeof(parameters) / sizeof(parameters[0])
+        ));
+    }
+
     /* object.extend_alignment_box */
     {
         struct parameter parameters[] = {
@@ -2430,7 +2481,7 @@ struct vector* _initialize_api_entries(void)
         vector_append(entries, _make_api_entry(
             "add_child",
             MODULE_OBJECT,
-            "Add a child object (instance) to the given cell",
+            "Add a child object (instance) to the given cell. This make 'cell' the parent of the child (it manages its memory). This means that you should not use the original child object any more after this call (unless it is object.add_child or object.add_child_array)",
             "local ref = pcell.create_layout(\"basic/mosfet\", \"mosfet\")\ncell:add_child(ref, \"mosinst0\")",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
@@ -2451,7 +2502,7 @@ struct vector* _initialize_api_entries(void)
         vector_append(entries, _make_api_entry(
             "add_child_array",
             MODULE_OBJECT,
-            "Add a child as an arrayed object to the given cell. The child array has xrep * yrep elements, with a pitch of xpitch and ypitch, respectively. The array grows to the upper-left, with the first placed untranslated. The pitch does not have to be explicitly given: If the child has an alignment box, the xpitch and ypitch are deferred from this box, if they are not given in the call. In this case, it is an error if no alignment box is present in child",
+            "Add a child as an arrayed object to the given cell. The child array has xrep * yrep elements, with a pitch of xpitch and ypitch, respectively. The array grows to the upper-left, with the first placed untranslated. The pitch does not have to be explicitly given: If the child has an alignment box, the xpitch and ypitch are deferred from this box, if they are not given in the call. In this case, it is an error if no alignment box is present in child. As with object.add_child: don't use the original child object after this call unless it is object.add_child or object.add_child_array",
             "-- with explicit xpitch and ypitch:\nlocal ref = pcell.create_layout(\"basic/mosfet\", \"mosfet\")\ncell:add_child_array(ref, \"mosinst0\", 8, 1, 200, 0)\n-- with alignment box:\nlocal ref = pcell.create_layout(\"basic/mosfet\", \"mosfet\")\ncell:add_child_array(ref, \"mosinst0\", 8, 1)",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
@@ -2940,6 +2991,23 @@ struct vector* _initialize_api_entries(void)
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
+
+    /* FIXME: aux.clone_shallow */
+    /* FIXME: aux.find */
+    /* FIXME: aux.find_predicate */
+    /* FIXME: aux.shuffle */
+    /* FIXME: aux.tabgcd */
+    /* FIXME: aux.gcd */
+    /* FIXME: aux.sum */
+    /* FIXME: aux.make_even */
+    /* FIXME: aux.any_of */
+    /* FIXME: aux.all_of */
+    /* FIXME: aux.assert_one_of */
+    /* FIXME: aux.strgsplit */
+    /* FIXME: aux.strsplit */
+    /* FIXME: aux.tprint */
+    /* FIXME: aux.pop_top_directory */
+    /* FIXME: aux.split_path */
 
     /* util.xmirror(pts, xcenter) */
     {

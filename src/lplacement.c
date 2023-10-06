@@ -49,9 +49,10 @@ int lplacement_place_within_boundary(lua_State* L)
     struct polygon* excludes;
     lplacement_create_target_exclude_vectors(L, &targetarea, &excludes, 4);
 
-    struct vector* children = placement_place_within_boundary(lobject_get(toplevel), lobject_get(cell), basename, targetarea, excludes);
+    struct vector* children = placement_place_within_boundary(lobject_get(L, toplevel), lobject_get_unchecked(cell), basename, targetarea, excludes);
     _cleanup_target_exclude_vector(targetarea, excludes);
     lobject_disown(cell); // memory is now handled by cell
+    lobject_mark_as_unusable(cell);
     lua_newtable(L);
     for(size_t i = 0; i < vector_size(children); ++i)
     {
@@ -73,7 +74,7 @@ int lplacement_place_within_boundary_merge(lua_State* L)
     struct polygon* excludes;
     lplacement_create_target_exclude_vectors(L, &targetarea, &excludes, 3);
 
-    placement_place_within_boundary_merge(lobject_get(toplevel), lobject_get(cell), targetarea, excludes);
+    placement_place_within_boundary_merge(lobject_get(L, toplevel), lobject_get_unchecked(cell), targetarea, excludes);
     _cleanup_target_exclude_vector(targetarea, excludes);
     return 0;
 }
@@ -88,12 +89,13 @@ int lplacement_place_within_rectangular_boundary(lua_State* L)
     struct lpoint* tr = lpoint_checkpoint(L, 5);
 
     struct object* children = placement_place_within_rectangular_boundary(
-        lobject_get(toplevel),
-        lobject_get(cell),
+        lobject_get(L, toplevel),
+        lobject_get_unchecked(cell),
         basename,
         lpoint_get(bl), lpoint_get(tr)
     );
     lobject_disown(cell); // memory is now handled by cell
+    lobject_mark_as_unusable(cell);
     lobject_adapt_non_owning(L, children);
     return 1;
 }

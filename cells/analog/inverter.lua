@@ -1,33 +1,34 @@
 function parameters()
     pcell.add_parameters(
-        { "fingers(Number of Fingers)",                                 2 },
-        { "pwidth", 2 * technology.get_dimension("Minimum Gate Width") },
-        { "nwidth", 2 * technology.get_dimension("Minimum Gate Width") },
-        { "oxidetype(Oxide Type)",                                      1 },
-        { "gatemarker(Gate Marker Index)",                              1 },
-        { "pvthtype(PMOS Threshold Voltage Type) ",                     1 },
-        { "nvthtype(NMOS Threshold Voltage Type)",                      1 },
-        { "pmosflippedwell(PMOS Flipped Well) ",                        false },
-        { "nmosflippedwell(NMOS Flipped Well)",                         false },
-        { "glength(Gate Length)",                                       technology.get_dimension("Minimum Gate Length") },
-        { "gspace(Gate Spacing)",                                       technology.get_dimension("Minimum Gate XSpace") },
-        { "gatemetal",                                                  1 },
-        { "sdwidth(Source/Drain Metal Width)",                          technology.get_dimension("Minimum M1 Width"), posvals = even() },
-        { "gstwidth(Gate Metal Width)",                                 technology.get_dimension("Minimum M1 Width") },
-        { "powerwidth(Power Rail Metal Width)",                         technology.get_dimension("Minimum M1 Width") },
-        { "powerspace(Power Rail Space)",                               technology.get_dimension("Minimum M1 Space") },
-        { "separation(nMOS/pMOS Separation)",                           100 },
-        { "drawleftdummy",  false },
-        { "drawrightdummy",  false },
-        { "outputmetal", 2, posvals = interval(2, inf) },
-        { "dummycontheight", technology.get_dimension("Minimum M1 Width"), follow = "powerwidth" },
-        { "shiftoutput", 0 },
-        { "dummycontshift", 0 }
+        { "fingers(Number of Fingers)",                 2 },
+        { "pwidth",                                     2 * technology.get_dimension("Minimum Gate Width") },
+        { "nwidth",                                     2 * technology.get_dimension("Minimum Gate Width") },
+        { "oxidetype(Oxide Type)",                      1 },
+        { "gatemarker(Gate Marker Index)",              1 },
+        { "pvthtype(PMOS Threshold Voltage Type) ",     1 },
+        { "nvthtype(NMOS Threshold Voltage Type)",      1 },
+        { "pmosflippedwell(PMOS Flipped Well) ",        false },
+        { "nmosflippedwell(NMOS Flipped Well)",         false },
+        { "gatelength(Gate Length)",                    technology.get_dimension("Minimum Gate Length") },
+        { "gatespace(Gate Spacing)",                    technology.get_dimension("Minimum Gate XSpace") },
+        { "gatemetal",                                  1 },
+        { "sdwidth(Source/Drain Metal Width)",          technology.get_dimension("Minimum M1 Width"), posvals = even() },
+        { "gatestrapwidth(Gate Metal Width)",           technology.get_dimension("Minimum M1 Width") },
+        { "gatestrapspace(Gate Metal Space)",           technology.get_dimension("Minimum M1 Width") },
+        { "powerwidth(Power Rail Metal Width)",         technology.get_dimension("Minimum M1 Width") },
+        { "powerspace(Power Rail Space)",               technology.get_dimension("Minimum M1 Space") },
+        { "separation(nMOS/pMOS Separation)",           100 },
+        { "drawleftdummy",                              false },
+        { "drawrightdummy",                             false },
+        { "outputmetal",                                2, posvals = interval(2, inf) },
+        { "dummycontheight",                            technology.get_dimension("Minimum M1 Width"), follow = "powerwidth" },
+        { "shiftoutput",                                0 },
+        { "dummycontshift",                             0 }
     )
 end
 
 function layout(inverter, _P)
-    local xpitch = _P.gspace + _P.glength
+    local xpitch = _P.gatespace + _P.gatelength
 
     local gatecontactpos = util.fill_all_with(_P.fingers, "center")
     local contactpos = util.fill_odd_with(_P.fingers + 1, "fullpower", "full")
@@ -47,8 +48,8 @@ function layout(inverter, _P)
         nmosflippedwell = _P.nmosflippedwell,
         oxidetype = _P.oxidetype,
         gatemarker = _P.gatemarker,
-        gatelength = _P.glength,
-        gatespace = _P.gspace,
+        gatelength = _P.gatelength,
+        gatespace = _P.gatespace,
         gatecontactpos = gatecontactpos,
         pcontactpos = contactpos,
         ncontactpos = contactpos,
@@ -57,7 +58,9 @@ function layout(inverter, _P)
         ppowerspace = _P.powerspace,
         pwidth = _P.pwidth,
         nwidth = _P.nwidth,
-        gstwidth = _P.gstwidth,
+        innergatestraps = 1,
+        gstwidth = _P.gatestrapwidth,
+        gstspace = _P.gatestrapspace,
         sdwidth = _P.sdwidth,
         separation = _P.separation,
         dummycontheight = _P.dummycontheight,

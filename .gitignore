@@ -16,6 +16,7 @@ opc.1
 openPCells.*
 pineapple.gds
 talentandsweat.gds
+gilfoyle.gds
 openPCells_extracted.cir
 pfile.lua
 verilogimport

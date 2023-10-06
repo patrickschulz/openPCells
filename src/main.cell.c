@@ -321,7 +321,8 @@ static struct object* _create_cell(
         lua_close(L);
         return NULL;
     }
-    struct object* toplevel = lobject_disown(lobject);
+    struct object* toplevel = lobject_get_unchecked(lobject);
+    lobject_disown(lobject);
 
     lua_close(L);
 
