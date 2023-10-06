@@ -2018,7 +2018,7 @@ struct vector* _initialize_api_entries(void)
             "translate_x",
             MODULE_OBJECT,
             "translate the cell by the specified x offset (relative movement).",
-            "cell:translate(100)",
+            "cell:translate_x(100)",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
@@ -2034,7 +2034,7 @@ struct vector* _initialize_api_entries(void)
             "translate_y",
             MODULE_OBJECT,
             "translate the cell by the specified y offset (relative movement).",
-            "cell:translate(100)",
+            "cell:translate_y(100)",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
