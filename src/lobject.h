@@ -13,8 +13,11 @@ struct lobject* lobject_check(lua_State* L, int idx);
 struct lobject* lobject_check_soft(lua_State* L, int idx);
 struct lobject* lobject_adapt_owning(lua_State* L, struct object* cell);
 struct lobject* lobject_adapt_non_owning(lua_State* L, struct object* cell);
-struct object* lobject_get(struct lobject* lobject);
-struct object* lobject_disown(struct lobject* lobject);
+struct object* lobject_get_unchecked(struct lobject* lobject);
+struct object* lobject_get(lua_State* L, struct lobject* lobject);
+const struct object* lobject_get_const(struct lobject* lobject);
+void lobject_disown(struct lobject* lobject);
+void lobject_mark_as_unusable(struct lobject* lobject);
 
 int open_lobject_lib(lua_State* L);
 
