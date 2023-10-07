@@ -90,6 +90,9 @@ modulemanager.h: modules/*.lua
 embed_compiled_lua_file: embed_compiled_lua_file.c lua/liblua.a
 	$(CC) $(CFLAGS) embed_compiled_lua_file.c lua/liblua.a -o embed_compiled_lua_file -lm
 
+create_latex_API_doc: create_latex_API_doc.c main.api_help.c main.api_help.h vector.c vector.h util.c util.h terminal_colors.c terminal_colors.h
+	$(CC) $(CFLAGS) create_latex_API_doc.c main.api_help.c vector.c util.c terminal_colors.c -o create_latex_API_doc
+
 .PHONY: clean
 clean:
 	rm -f lua/liblua.a $(LUA_CORE_O) $(LUA_LIB_O)

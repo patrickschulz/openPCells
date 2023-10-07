@@ -396,7 +396,7 @@ static void _print_parameters(const struct vector* parameters)
     }
 }
 
-struct parameter* _copy_parameter(const struct parameter* param)
+static struct parameter* _copy_parameter(const struct parameter* param)
 {
     struct parameter* new = malloc(sizeof(*new));
     new->name = util_strdup(param->name);
@@ -413,7 +413,7 @@ struct parameter* _copy_parameter(const struct parameter* param)
     return new;
 }
 
-void _destroy_parameter(void* v)
+static void _destroy_parameter(void* v)
 {
     struct parameter* parameter = v;
     free(parameter->name);
@@ -425,7 +425,7 @@ void _destroy_parameter(void* v)
     free(parameter);
 }
 
-struct api_entry* _make_api_entry(
+static struct api_entry* _make_api_entry(
     const char* funcname,
     enum module module,
     const char* info,
@@ -446,7 +446,7 @@ struct api_entry* _make_api_entry(
     return entry;
 }
 
-void _destroy_api_entry(void* v)
+static void _destroy_api_entry(void* v)
 {
     struct api_entry* entry = v;
     free(entry->funcname);
@@ -456,7 +456,7 @@ void _destroy_api_entry(void* v)
     free(entry);
 }
 
-void _print_with_newlines_and_offset(const char* str, unsigned int offset)
+static void _print_with_newlines_and_offset(const char* str, unsigned int offset)
 {
     const char* ptr = str;
     while(*ptr)
@@ -473,7 +473,7 @@ void _print_with_newlines_and_offset(const char* str, unsigned int offset)
     }
 }
 
-void _print_api_entry(const struct api_entry* entry)
+static void _print_api_entry(const struct api_entry* entry)
 {
     // function name
     putchar('\n');
@@ -530,7 +530,7 @@ void _print_api_entry(const struct api_entry* entry)
     putchar('\n');
 }
 
-struct vector* _initialize_api_entries(void)
+static struct vector* _initialize_api_entries(void)
 {
     /* initialize entries */
     struct vector* entries = vector_create(32, _destroy_api_entry);
@@ -3350,7 +3350,7 @@ struct vector* _initialize_api_entries(void)
     return entries;
 }
 
-void _destroy_api_entries(struct vector* entries)
+static void _destroy_api_entries(struct vector* entries)
 {
     vector_destroy(entries);
 }
@@ -3443,6 +3443,141 @@ void main_API_list(void)
             _putstr(entry->funcname);
             putchar('\n');
         }
+        vector_const_iterator_next(it);
+    }
+    vector_const_iterator_destroy(it);
+    _destroy_api_entries(entries);
+}
+
+static void _create_latex_entry(const struct api_entry* entry)
+{
+    if(entry->module != MODULE_NONE)
+    {
+        printf("\\begin{APIfunc}{%s.%s(", _stringify_module(entry->module), entry->funcname);
+    }
+    else
+    {
+        printf("\\begin{APIfunc}{%s(", entry->funcname);
+    }
+    for(size_t i = 0; i < vector_size(entry->parameters); ++i)
+    {
+        const struct parameter* param = vector_get_const(entry->parameters, i);
+        printf("%s", param->name);
+        if(i < vector_size(entry->parameters) - 1)
+        {
+            putchar(',');
+            putchar(' ');
+        }
+    }
+    printf("%s\n", ")}");
+
+//    Create a rectangular shape defined by the bottom-left and the top-right corner.
+//    \begin{APIparameters}
+//        \parameter{cell}{object}
+//            Object in which the rectangle is created;
+//        \parameter{layer}{generic}
+//            Layer of the generated rectangle;
+//        \parameter{bl}{point}
+//            Bottom-left (bl) point of the rectangle;
+//        \parameter{tr}{point}
+//            Top-right (tl) point of the rectangle;
+//    \end{APIparameters}
+
+    // function info
+    printf("    %s\n", entry->info);
+
+    // detailed parameter list
+    struct vector_const_iterator* it = vector_const_iterator_create(entry->parameters);
+    puts("    \\begin{APIparameters}");
+    while(vector_const_iterator_is_valid(it))
+    {
+        const struct parameter* parameter = vector_const_iterator_get(it);
+        {
+            // name
+            printf("        \\parameter{%s}{", parameter->name);
+
+            // type
+            switch(parameter->type)
+            {
+                case VARARGS:
+                    fputs("...", stdout);
+                    break;
+                case ANY:
+                    fputs("any", stdout);
+                    break;
+                case FUNCTION:
+                    fputs("function", stdout);
+                    break;
+                case BOOLEAN:
+                    fputs("boolean", stdout);
+                    break;
+                case TABLE:
+                    fputs("table", stdout);
+                    break;
+                case STRING:
+                    fputs("string", stdout);
+                    break;
+                case OBJECT:
+                    fputs("object", stdout);
+                    break;
+                case GENERICS:
+                    fputs("generics", stdout);
+                    break;
+                case NUMBER:
+                    fputs("number", stdout);
+                    break;
+                case INTEGER:
+                    fputs("integer", stdout);
+                    break;
+                case POINT:
+                    fputs("point", stdout);
+                    break;
+                case POINTLIST:
+                    fputs("pointlist", stdout);
+                    break;
+            }
+            puts("}");
+
+            /*
+            if(parameter->default_value)
+            {
+                _putstr(", default value: ");
+                _putstr(parameter->default_value);
+            }
+            putchar(')');
+            */
+            
+            // text
+            printf("            %s", parameter->text);
+            putchar(';');
+            putchar('\n');
+        }
+        vector_const_iterator_next(it);
+    }
+    vector_const_iterator_destroy(it);
+    puts("    \\end{APIparameters}");
+
+    //// function example
+    //terminal_set_bold();
+    //terminal_set_color_RGB(255, 0, 185);
+    //_putstr("Example: ");
+    //terminal_reset_color();
+    //putchar('\n');
+    //// FIXME: make _print_with_newlines_and_offset color-aware
+    ////_print_with_newlines_and_offset(entry->example, 9); // 9: strlen("Example: ")
+    //_putstr(entry->example);
+
+    fputs("\\end{APIfunc}\n", stdout);
+}
+
+void main_API_create_latex_doc(void)
+{
+    struct vector* entries = _initialize_api_entries();
+    struct vector_const_iterator* it = vector_const_iterator_create(entries);
+    while(vector_const_iterator_is_valid(it))
+    {
+        const struct api_entry* entry = vector_const_iterator_get(it);
+        _create_latex_entry(entry);
         vector_const_iterator_next(it);
     }
     vector_const_iterator_destroy(it);

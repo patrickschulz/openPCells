@@ -3,6 +3,7 @@ Makefile
 opc
 !tech/opc
 src/embed_compiled_lua_file
+src/create_latex_API_doc
 src/config.h
 src/modulemanager.c
 src/modulemanager.h

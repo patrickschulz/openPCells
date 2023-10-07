@@ -4,5 +4,6 @@
 void main_API_help(const char* funcname);
 void main_API_search(const char* name);
 void main_API_list(void);
+void main_API_create_latex_doc(void);
 
 #endif // OPC_MAIN_API_H
