@@ -30,6 +30,7 @@ struct shape* object_get_transformed_shape(struct object* cell, size_t idx);
 void object_rasterize_curves(struct object* cell);
 
 // children
+struct object* object_create_handle(struct object* cell, struct object* reference);
 struct object* object_add_child(struct object* cell, struct object* child, const char* name);
 struct object* object_add_child_array(struct object* cell, struct object* child, const char* name, unsigned int xrep, unsigned int yrep, unsigned int xpitch, unsigned int ypitch);
 

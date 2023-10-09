@@ -452,6 +452,17 @@ static int lobject_align_area_anchor(lua_State* L)
     return 1;
 }
 
+static int lobject_create_object_handle(lua_State* L)
+{
+    struct lobject* cell = lobject_check(L, 1);
+    struct lobject* reference = lobject_check(L, 2);
+    struct object* handle = object_create_handle(lobject_get(L, cell), lobject_get(L, reference));
+    lobject_adapt_non_owning(L, handle);
+    lobject_disown(reference); // memory is now handled by cell
+    lobject_mark_as_unusable(reference);
+    return 1;
+}
+
 static int lobject_add_child(lua_State* L)
 {
     if(lua_gettop(L) > 3)
@@ -1315,6 +1326,7 @@ int open_lobject_lib(lua_State* L)
         { "align_area_anchor_y",                    lobject_align_area_anchor_y                 },
         { "align_area_anchor_top",                  lobject_align_area_anchor_top               },
         { "align_area_anchor_bottom",               lobject_align_area_anchor_bottom            },
+        { "create_object_handle",                   lobject_create_object_handle                },
         { "add_child",                              lobject_add_child                           },
         { "add_child_array",                        lobject_add_child_array                     },
         { "merge_into",                             lobject_merge_into                          },

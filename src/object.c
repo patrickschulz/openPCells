@@ -91,6 +91,7 @@ static int _anchor_is_area(const struct anchor* anchor)
 struct object {
     char* name;
     int isproxy;
+    int ismanaged;
     struct transformationmatrix* trans;
 
     union {
@@ -133,6 +134,7 @@ static struct object* _create(const char* name)
     {
         obj->name = NULL;
     }
+    obj->ismanaged = 0;
     return obj;
 }
 
@@ -335,6 +337,23 @@ void object_remove_shape(struct object* cell, size_t idx)
     vector_remove(cell->shapes, idx);
 }
 
+struct object* object_create_handle(struct object* cell, struct object* reference)
+{
+    if(object_is_pseudo(reference)) // can't add pseudo objects
+    {
+        return NULL;
+    }
+    if(!cell->children)
+    {
+        cell->children = vector_create(OBJECT_DEFAULT_CHILDREN_SIZE, object_destroy);
+        cell->references = vector_create(OBJECT_DEFAULT_REFERENCES_SIZE, object_destroy);
+    }
+    /* store owning reference to original reference object */
+    vector_append(cell->references, reference);
+    reference->ismanaged = 1;
+    return reference;
+}
+
 struct object* object_add_child(struct object* cell, struct object* child, const char* name)
 {
     if(object_is_pseudo(child)) // can't add pseudo objects
@@ -349,10 +368,13 @@ struct object* object_add_child(struct object* cell, struct object* child, const
         cell->references = vector_create(OBJECT_DEFAULT_REFERENCES_SIZE, object_destroy);
     }
     vector_append(cell->children, proxy);
-    /* store owning reference to original child object */
-    if(vector_find_flat(cell->references, child) == -1)
+    /* store owning reference to original child object (if it is not already managed by another object) */
+    if(!child->ismanaged)
     {
-        vector_append(cell->references, child);
+        if(vector_find_flat(cell->references, child) == -1)
+        {
+            vector_append(cell->references, child);
+        }
     }
     return proxy;
 }
