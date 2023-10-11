@@ -980,7 +980,7 @@ static int lobject_extend_alignment_box_x_symmetrical(lua_State* L)
     }
     if(!object_has_alignmentbox(lobject_get_const(cell)))
     {
-        lua_pushstring(L, "object.extend_alignment_box: cell has no alignmentbox");
+        lua_pushstring(L, "object.extend_alignment_box_x_symmetrical: cell has no alignmentbox");
         lua_error(L);
     }
     object_extend_alignment_box(
@@ -1007,12 +1007,12 @@ static int lobject_extend_alignment_box_y_symmetrical(lua_State* L)
     }
     else
     {
-        lua_pushfstring(L, "object.extend_alignment_boy_x_symmetrical: expected two arguments, got %d", lua_gettop(L));
+        lua_pushfstring(L, "object.extend_alignment_boy_y_symmetrical: expected two arguments, got %d", lua_gettop(L));
         lua_error(L);
     }
     if(!object_has_alignmentbox(lobject_get_const(cell)))
     {
-        lua_pushstring(L, "object.extend_alignment_box: cell has no alignmentbox");
+        lua_pushstring(L, "object.extend_alignment_box_y_symmetrical: cell has no alignmentbox");
         lua_error(L);
     }
     object_extend_alignment_box(
