@@ -1707,7 +1707,7 @@ static struct vector* _initialize_api_entries(void)
         vector_append(entries, _make_api_entry(
             "get_anchor",
             MODULE_OBJECT,
-            "Retrieve an anchor from a cell. This function returns a point that contains the position of the specified anchor, corrected by the cell transformation. A non-existing anchor is an error",
+            "Retrieve an anchor from a cell. This function returns a point that contains the position of the specified anchor, corrected by the cell transformation. Retrieving non-existing anchor raises an error.",
             "cell:get_anchor(\"sourcedrain1bl\")",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
