@@ -97,8 +97,8 @@ int object_has_layer_boundary(const struct object* cell, const struct generics* 
 struct polygon* object_get_layer_boundary(const struct object* cell, const struct generics* layer);
 
 // ports
-void object_add_port(struct object* cell, const char* name, const struct generics* layer, const point_t* where, int storeanchor, unsigned int sizehint);
-void object_add_bus_port(struct object* cell, const char* name, const struct generics* layer, const point_t* where, int startindex, int endindex, unsigned int xpitch, unsigned int ypitch, int storeanchor, unsigned int sizehint);
+void object_add_port(struct object* cell, const char* name, const struct generics* layer, const point_t* where, unsigned int sizehint);
+void object_add_bus_port(struct object* cell, const char* name, const struct generics* layer, const point_t* where, int startindex, int endindex, unsigned int xpitch, unsigned int ypitch, unsigned int sizehint);
 const struct vector* object_get_ports(const struct object* cell);
 
 // alignment box and bounding box
