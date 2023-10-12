@@ -17,13 +17,13 @@ function check(_P)
         end
         for devicenum, device in ipairs(row.devices) do
             if not device.fingers then
-                return false, string.format("device %d in row %d has no finger specification", devicenum, rownum)
+                return false, string.format("device %d in row %d (\"%s\") has no finger specification", devicenum, rownum, device.name)
             end
             if device.fingers <= 0 then
-                return false, string.format("device %d in row %d has zero or negative amount of fingers (%d)", devicenum, rownum, device.fingers)
+                return false, string.format("device %d in row %d (\"%s\") has zero or negative amount of fingers (%d)", devicenum, rownum, device.name, device.fingers)
             end
             if not math.tointeger(device.fingers) then
-                return false, string.format("device %d in row %d has a non-integer number of fingers (%f)", devicenum, rownum, device.fingers)
+                return false, string.format("device %d in row %d (\"%s\") has a non-integer number of fingers (%f)", devicenum, rownum, device.name, device.fingers)
             end
             f = f + device.fingers
         end
