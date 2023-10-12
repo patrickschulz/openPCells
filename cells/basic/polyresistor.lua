@@ -185,14 +185,12 @@ function layout(resistor, _P)
     )
 
     -- ports and anchors
-    -- FIXME: not updated after changes
     resistor:add_area_anchor_bltr("plus",
-        point.create(-_P.width / 2, -_P.contactheight / 2 + _P.length / 2 + _P.yspace / 2),
-        point.create( _P.width / 2,  _P.contactheight / 2 + _P.length / 2 + _P.yspace / 2)
+        resistor:get_area_anchor(string.format("contact_%d_%d", 1, _P.nyfingers + 1)).bl,
+        resistor:get_area_anchor(string.format("contact_%d_%d", _P.nxfingers, _P.nyfingers + 1)).tr
     )
     resistor:add_area_anchor_bltr("minus",
-        point.create(-_P.width / 2, -_P.contactheight / 2 - _P.length / 2 - _P.yspace / 2),
-        point.create( _P.width / 2,  _P.contactheight / 2 - _P.length / 2 - _P.yspace / 2)
+        resistor:get_area_anchor(string.format("contact_%d_%d", 1, 1)).bl,
+        resistor:get_area_anchor(string.format("contact_%d_%d", _P.nxfingers, 1)).tr
     )
-    --]]
 end
