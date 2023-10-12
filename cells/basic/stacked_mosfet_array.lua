@@ -67,6 +67,14 @@ local function _select_parameter(name, devparam, rowparam, cellparam)
     end
 end
 
+local function _select_switch(switch, a, b)
+    if switch then
+        return a
+    else
+        return b
+    end
+end
+
 function layout(cell, _P)
     local lastpoint = point.create(0, 0)
     local lastmosfet = nil
@@ -93,8 +101,8 @@ function layout(cell, _P)
                     sdwidth = _select_parameter("sdwidth", device, row, _P),
                     sdviawidth = _select_parameter("sdviawidth", device, row),
                     sdmetalwidth = _select_parameter("sdmetalwidth", device, row),
-                    gtopext = _P.splitgates and _select_parameter("gtopext", device, row) or _P.separation / 2,
-                    gbotext = _P.splitgates and _select_parameter("gbotext", device, row) or _P.separation / 2,
+                    gtopext = _select_switch(_P.splitgates, _select_parameter("gtopext", device, row), _P.separation / 2),
+                    gbotext = _select_switch(_P.splitgates, _select_parameter("gbotext", device, row), _P.separation / 2),
                     gtopextadd = _select_parameter("gtopextadd", device, row),
                     gbotextadd = _select_parameter("gbotextadd", device, row),
                     cliptop = _select_parameter("cliptop", device, row),
@@ -213,36 +221,32 @@ function layout(cell, _P)
                     drawactive = _select_parameter("drawactive", device, row),
                     lvsmarker = _select_parameter("lvsmarker", device, row),
                     lvsmarkeralignwithactive = not _P.splitgates or _select_parameter("lvsmarkeralignwithactive", device, row),
-                    extendalltop = _P.splitgates and _select_parameter("extendalltop", device, row) or _P.separation / 2,
-                    extendallbot = _P.splitgates and _select_parameter("extendallbot", device, row) or _P.separation / 2,
+                    extendalltop = _select_switch(_P.splitgates, _select_parameter("extendalltop", device, row), _P.separation / 2),
+                    extendallbot = _select_switch(_P.splitgates, _select_parameter("extendallbot", device, row), _P.separation / 2),
                     extendallleft = _select_parameter("extendallleft", device, row),
                     extendallright = _select_parameter("extendallright", device, row),
-                    extendoxidetop = _P.splitgates and _select_parameter("extendoxidetop", device, row) or _P.separation / 2,
-                    extendoxidebot = _P.splitgates and _select_parameter("extendoxidebot", device, row) or _P.separation / 2,
+                    extendoxidetop = _select_switch(_P.splitgates, _select_parameter("extendoxidetop", device, row), _P.separation / 2),
+                    extendoxidebot = _select_switch(_P.splitgates, _select_parameter("extendoxidebot", device, row), _P.separation / 2),
                     extendoxideleft = _select_parameter("extendoxideleft", device, row),
                     extendoxideright = _select_parameter("extendoxideright", device, row),
-                    extendvthtop = _P.splitgates and _select_parameter("extendvthtop", device, row) or _P.separation / 2,
-                    extendvthbot = _P.splitgates and _select_parameter("extendvthbot", device, row) or _P.separation / 2,
+                    extendvthtop = _select_switch(_P.splitgates, _select_parameter("extendvthtop", device, row), _P.separation / 2),
+                    extendvthbot = _select_switch(_P.splitgates, _select_parameter("extendvthbot", device, row), _P.separation / 2),
                     extendvthleft = _select_parameter("extendvthleft", device, row),
                     extendvthright = _select_parameter("extendvthright", device, row),
-                    extendimplanttop = _P.splitgates and _select_parameter("extendimplanttop", device, row) or _P.separation / 2,
-                    extendimplantbot = _P.splitgates and _select_parameter("extendimplantbot", device, row) or _P.separation / 2,
+                    extendimplanttop = _select_switch(_P.splitgates, _select_parameter("extendimplanttop", device, row), _P.separation / 2),
+                    extendimplantbot = _select_switch(_P.splitgates, _select_parameter("extendimplantbot", device, row), _P.separation / 2),
                     extendimplantleft = _select_parameter("extendimplantleft", device, row),
                     extendimplantright = _select_parameter("extendimplantright", device, row),
-                    extendwelltop = _P.splitgates and _select_parameter("extendwelltop", device, row) or _P.separation / 2,
-                    extendwellbot = _P.splitgates and _select_parameter("extendwellbot", device, row) or _P.separation / 2,
+                    extendwelltop = _select_switch(_P.splitgates, _select_parameter("extendwelltop", device, row), _P.separation / 2),
+                    extendwellbot = _select_switch(_P.splitgates, _select_parameter("extendwellbot", device, row), _P.separation / 2),
                     extendwellleft = _select_parameter("extendwellleft", device, row),
                     extendwellright = _select_parameter("extendwellright", device, row),
-                    extendwelltop = _P.splitgates and _select_parameter("extendwelltop", device, row) or _P.separation / 2,
-                    extendwellbot = _P.splitgates and _select_parameter("extendwellbot", device, row) or _P.separation / 2,
-                    extendwellleft = _select_parameter("extendwellleft", device, row),
-                    extendwellright = _select_parameter("extendwellright", device, row),
-                    extendlvsmarkertop = _P.splitgates and _select_parameter("extendlvsmarkertop", device, row) or _P.separation / 2,
-                    extendlvsmarkerbot = _P.splitgates and _select_parameter("extendlvsmarkerbot", device, row) or _P.separation / 2,
+                    extendlvsmarkertop = _select_switch(_P.splitgates, _select_parameter("extendlvsmarkertop", device, row), _P.separation / 2),
+                    extendlvsmarkerbot = _select_switch(_P.splitgates, _select_parameter("extendlvsmarkerbot", device, row), _P.separation / 2),
                     extendlvsmarkerleft = _select_parameter("extendlvsmarkerleft", device, row),
                     extendlvsmarkerright = _select_parameter("extendlvsmarkerright", device, row),
-                    extendrotationmarkertop = _P.splitgates and _select_parameter("extendrotationmarkertop", device, row) or _P.separation / 2,
-                    extendrotationmarkerbot = _P.splitgates and _select_parameter("extendrotationmarkerbot", device, row) or _P.separation / 2,
+                    extendrotationmarkertop = _select_switch(_P.splitgates, _select_parameter("extendrotationmarkertop", device, row), _P.separation / 2),
+                    extendrotationmarkerbot = _select_switch(_P.splitgates, _select_parameter("extendrotationmarkerbot", device, row), _P.separation / 2),
                     extendrotationmarkerleft = _select_parameter("extendrotationmarkerleft", device, row),
                     extendrotationmarkerright = _select_parameter("extendrotationmarkerright", device, row),
                     drawwell = _select_parameter("drawwell", device, row),
