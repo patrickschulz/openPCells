@@ -100,7 +100,7 @@ function paramlib.check_readonly(parameter)
     end
 end
 
-function parammeta.add(self, name, value, argtype, posvals, follow, readonly)
+function parammeta.add(self, name, value, argtype, posvals, info, follow, readonly)
     local pname, dname = string.match(name, "^([^(]+)%(([^)]+)%)")
     if not pname then pname = name end -- no display name
     local new = {
@@ -109,6 +109,7 @@ function parammeta.add(self, name, value, argtype, posvals, follow, readonly)
         value     = value,
         argtype   = argtype,
         posvals   = posvals,
+        info      = info,
         readonly  = not not readonly,
     }
     table.insert(self.values, new)
@@ -204,7 +205,7 @@ end
 
 local function _add_parameter_internal(cell, name, value, argtype, posvals, info, follow, readonly)
     argtype = argtype or type(value)
-    cell.parameters:add(name, value, argtype, posvals, follow, readonly)
+    cell.parameters:add(name, value, argtype, posvals, info, follow, readonly)
 end
 
 local function _get_parameters(state, cellname, cellargs)
@@ -620,6 +621,7 @@ local function _collect_parameters(cell, ptype, parent, str)
             value = val,
             ptype = ptype,
             argtype = tostring(entry.argtype),
+            info = entry.info,
             readonly = entry.readonly,
             posvals = entry.posvals
         })
@@ -666,10 +668,10 @@ function pcell.parameters(cellname, cellargs, generictech)
     end
 
     local cell = _get_cell(state, cellname)
-    local parameters = _get_parameters(state, cellname, cellargs, true) -- cellname needs to be passed twice
+    --local parameters = _get_parameters(state, cellname, cellargs, true) -- cellname needs to be passed twice
     local str = {}
     _collect_parameters(cell, "N", cellname, str)
-
+    
     -- FIXME: implement parameter collection from layout functions
     -- execute the 'layout' function without creating any layouts to collect all used parameters
     -- this is required in order to get the actual transparent parameters of subcells
