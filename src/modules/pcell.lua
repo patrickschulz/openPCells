@@ -202,7 +202,7 @@ local function _get_cell(state, cellname, nocallparams)
     return rawget(state.loadedcells, cellname)
 end
 
-local function _add_parameter_internal(cell, name, value, argtype, posvals, follow, readonly)
+local function _add_parameter_internal(cell, name, value, argtype, posvals, info, follow, readonly)
     argtype = argtype or type(value)
     cell.parameters:add(name, value, argtype, posvals, follow, readonly)
 end
@@ -282,7 +282,7 @@ end
 local function _add_parameter(state, cellname, name, value, opt)
     opt = opt or {}
     local cell = _get_cell(state, cellname)
-    _add_parameter_internal(cell, name, value, opt.argtype, opt.posvals, opt.follow, opt.readonly)
+    _add_parameter_internal(cell, name, value, opt.argtype, opt.posvals, opt.info, opt.follow, opt.readonly)
 end
 
 local function _add_parameters(state, cellname, ...)
@@ -292,7 +292,7 @@ local function _add_parameters(state, cellname, ...)
         _add_parameter_internal(
             cell,
             name, value,
-            parameter.argtype, parameter.posvals, parameter.follow, parameter.readonly
+            parameter.argtype, parameter.posvals, parameter.info, parameter.follow, parameter.readonly
         )
     end
 end

@@ -1,6 +1,6 @@
 function parameters()
     pcell.add_parameters(
-        { "channeltype(Channel Type)",                                              "nmos", posvals = set("nmos", "pmos") },
+        { "channeltype(Channel Type)",                                              "nmos", posvals = set("nmos", "pmos"), info = "polarity of the mosfet. Can be either 'nmos' or 'pmos'." },
         { "implantalignwithactive",                                                 false },
         { "oxidetype(Oxide Thickness Type)",                                        1, argtype = "integer", posvals = interval(1, inf) },
         { "oxidetypealignwithactive",                                               false },
