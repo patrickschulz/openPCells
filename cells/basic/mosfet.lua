@@ -16,21 +16,19 @@ function parameters()
         { "gatelength(Gate Length)",                                                technology.get_dimension("Minimum Gate Length"), argtype = "integer", info = "drawn gate length (channel length)" },
         { "gatespace(Gate Spacing)",                                                technology.get_dimension("Minimum Gate XSpace"), argtype = "integer", info = "gate space between the polysilicon lines" },
         { "actext(Active Extension)",                                               0, info = "left/right active extension. This is added to the calculated width of the active regions, dependent on the number of gates, the finger widths, gate spacing and left/right dummy devices" },
-        { "sdwidth(Source/Drain Contact Width)",                                    technology.get_dimension("Minimum M1 Width"), argtype = "integer", info = "width of the source/drain metals. Currently, all metals are drawn in the same width, which can be an issue for higher metals as vias might not fit. If this is the case the vias have to be drawn manually. This might change in the future." }, -- FIXME: rename
-        { "sdviawidth(Source/Drain Metal Width for Vias)",                          technology.get_dimension("Minimum M1 Width"), argtype = "integer", follow = "sdwidth" },
-        { "sdmetalwidth(Source/Drain Metal Width)",                                 technology.get_dimension("Minimum M1 Width"), argtype = "integer", follow = "sdviawidth" },
-        { "gtopext(Gate Top Extension)",                                            technology.get_dimension("Minimum Gate Extension") },
-        { "gbotext(Gate Bottom Extension)",                                         technology.get_dimension("Minimum Gate Extension") },
-        { "gtopextadd(Gate Additional Top Extension)",                              0 },
-        { "gbotextadd(Gate Additional Bottom Extension)",                           0 },
-        { "cliptop(Clip Top Marker Layers)",                                        false },
-        { "clipbot(Clip Bottom Marker Layers)",                                     false },
-        { "drawleftstopgate(Draw Left Stop Gate)",                                  false },
-        { "drawrightstopgate(Draw Right Stop Gate)",                                false },
-        { "endleftwithgate(End Left Side With Gate)",                               false, follow = "drawleftstopgate" },
-        { "endrightwithgate(End Right Side With Gate)",                             false, follow = "drawrightstopgate" },
-        { "drawtopgate(Draw Top Gate Contact)",                                     false },
-        { "drawtopgatestrap(Draw Top Gate Strap)",                                  false, follow = "drawtopgate" },
+        { "sdwidth(Source/Drain Contact Width)",                                    technology.get_dimension("Minimum M1 Width"), argtype = "integer", info = "width of the source/drain contact regions. Currently, all metals are drawn in the same width, which can be an issue for higher metals as vias might not fit. If this is the case the vias have to be drawn manually. This might change in the future." }, -- FIXME: rename
+        { "sdviawidth(Source/Drain Metal Width for Vias)",                          technology.get_dimension("Minimum M1 Width"), argtype = "integer", follow = "sdwidth", info  = "width of the source/drain via regions. Currently, all vias are drawn in the same width, which can be an issue for higher metals as vias might not fit. If this is the case the vias have to be drawn manually. This might change in the future. This parameter follows 'sdwidth'." },
+        { "sdmetalwidth(Source/Drain Metal Width)",                                 technology.get_dimension("Minimum M1 Width"), argtype = "integer", follow = "sdviawidth", info = "width of the source/drain metals. This parameter follows 'sdwidth'." },
+        { "gtopext(Gate Top Extension)",                                            technology.get_dimension("Minimum Gate Extension"), info = "top gate extension. This extension depends on the automatically calculated gate extensions (which depend for instance on gate contacts). This means that if 'gtopext' is smaller than the automatic extensions, the layout is not changed at all." },
+        { "gbotext(Gate Bot Extension)",                                            technology.get_dimension("Minimum Gate Extension"), info = "bot gate extension. This extension depends on the automatically calculated gate extensions (which depend for instance on gate contacts). This means that if 'gbotext' is smaller than the automatic extensions, the layout is not changed at all." },
+        { "gtopextadd(Gate Additional Top Extension)",                              0, info = "Unconditional gate top extension (similar to 'gtopext', but always extends)." },
+        { "gbotextadd(Gate Additional Bottom Extension)",                           0, info = "Unconditional gate bot extension (similar to 'gbotext', but always extends)." },
+        { "drawleftstopgate(Draw Left Stop Gate)",                                  false, info = "draw a gate where one half of it covers the active region, the other does not (left side). This gate is covered with the layer 'diffusionbreakgate'. This is required in some technologies for short-length devices" },
+        { "drawrightjstopgate(Draw Left Stop Gate)",                                  false, info = "draw a gate where one half of it covers the active region, the other does not (right side). This gate is covered with the layer 'diffusionbreakgate'. This is required in some technologies for short-length devices" },
+        { "endleftwithgate(End Left Side With Gate)",                               false, follow = "drawleftstopgate", info = "align the left end of the active region so that only half of the left-most gate covers the active region. Follows 'drawleftstopgate'". },
+        { "endrightwithgate(End Left Side With Gate)",                               false, follow = "drawrightstopgate", info = "align the right end of the active region so that only half of the right-most gate covers the active region. Follows 'drawrightstopgate'". },
+        { "drawtopgate(Draw Top Gate Contact)",                                     false, info = "draw gate contacts on the upper side of the active region. The contact region width is the gate length, the height is 'topgatewidth'. The space to the active region is 'topgatespace'." },
+        { "drawtopgatestrap(Draw Top Gate Strap)",                                  false, follow = "drawtopgate", info = "Connect all top gate contacts by a metal strap. Follows 'drawtopgate'." },
         { "topgatewidth(Top Gate Width)",                                           technology.get_dimension("Minimum M1 Width"), argtype = "integer", posvals = even() },
         { "topgateleftextension(Top Gate Left Extension)",                          0 },
         { "topgaterightextension(Top Gate Right Extension)",                        0 },
@@ -240,8 +238,6 @@ function layout(transistor, _P)
     --else
     --    rightactext = (_P.gatespace + _P.sdwidth) / 2 + _P.actext
     --end
-    local leftactauxext = _P.endleftwithgate and 0 or 0
-    local rightactauxext = _P.endleftwithgate and 0 or 0
     local leftactext = (_P.gatespace + _P.sdwidth) / 2 + _P.actext
     local rightactext = (_P.gatespace + _P.sdwidth) / 2 + _P.actext
     local leftactauxext = _P.endleftwithgate and _P.gatelength / 2 - _P.sdwidth / 2 + _P.gatespace / 2 or 0
