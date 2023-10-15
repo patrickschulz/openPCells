@@ -197,7 +197,26 @@ void main_list_cell_parameters(struct cmdoptions* cmdoptions, struct hashmap* co
     }
     lua_pushboolean(L, techname ? 0 : 1);
     lua_setfield(L, -2, "generictech");
+    const char** ptr = cmdoptions_get_positional_parameters(cmdoptions);
+    size_t numposargs = 0;
+    lua_newtable(L);
+    while(*ptr)
+    {
+        lua_pushstring(L, *ptr);
+        lua_rawseti(L, -2, numposargs + 1);
+        ++numposargs;
+        ++ptr;
+    }
+    if(numposargs > 0)
+    {
+        lua_setfield(L, -2, "parameternames");
+    }
+    else
+    {
+        lua_pop(L, 1);
+    }
     lua_setglobal(L, "args");
+
 
     int retval = script_call_list_parameters(L);
     if(retval != LUA_OK)
