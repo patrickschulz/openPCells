@@ -29,44 +29,44 @@ function parameters()
         { "endrightwithgate(End Left Side With Gate)",                               false, follow = "drawrightstopgate", info = "align the right end of the active region so that only half of the right-most gate covers the active region. Follows 'drawrightstopgate'." },
         { "drawtopgate(Draw Top Gate Contact)",                                     false, info = "draw gate contacts on the upper side of the active region. The contact region width is the gate length, the height is 'topgatewidth'. The space to the active region is 'topgatespace'." },
         { "drawtopgatestrap(Draw Top Gate Strap)",                                  false, follow = "drawtopgate", info = "Connect all top gate contacts by a metal strap. Follows 'drawtopgate'." },
-        { "topgatewidth(Top Gate Width)",                                           technology.get_dimension("Minimum M1 Width"), argtype = "integer", posvals = even() },
-        { "topgateleftextension(Top Gate Left Extension)",                          0 },
-        { "topgaterightextension(Top Gate Right Extension)",                        0 },
-        { "topgatespace(Top Gate Space)",                                           technology.get_dimension("Minimum M1 Space"), argtype = "integer" },
-        { "topgatemetal(Top Gate Strap Metal)",                                     1 },
-        { "drawtopgatevia(Draw Top Gate Via)",                                      false },
-        { "topgatecontinuousvia(Top Gate Continuous Via)",                          false },
-        { "drawbotgate(Draw Bottom Gate Contact)",                                  false },
-        { "drawbotgatestrap(Draw Bot Gate Strap)",                                  false, follow = "drawbotgate" },
-        { "botgatewidth(Bottom Gate Width)",                                        technology.get_dimension("Minimum M1 Width"), argtype = "integer", posvals = even() },
-        { "botgatespace(Bottom Gate Space)",                                        technology.get_dimension("Minimum M1 Space"), argtype = "integer" },
-        { "botgateleftextension(Bottom Gate Left Extension)",                       0 },
-        { "botgaterightextension(Bottom Gate Right Extension)",                     0 },
-        { "botgatemetal(Bottom Gate Strap Metal)",                                  1 },
-        { "drawbotgatevia(Draw Bot Gate Via)",                                      false },
-        { "botgatecontinuousvia(Bot Gate Continuous Via)",                          false },
-        { "botgateviatarget(Metal Target of Bot Gate Via)",                         2 },
-        { "drawtopgatecut(Draw Top Gate Cut)",                                         false },
-        { "topgatecutwidth(Top Gate Cut Y Width)",                                     technology.get_dimension("Minimum Gate Cut Height", "Minimum Gate YSpace") },
-        { "topgatecutspace(Top Gate Cut Y Space)",                                     0 },
-        { "topgatecutleftext(Top Gate Cut Left Extension)",                            0 },
-        { "topgatecutrightext(Top Gate Cut Right Extension)",                          0 },
-        { "drawbotgatecut(Draw Bottom Gate Cut)",                                      false },
-        { "botgatecutwidth(Bottom Gate Cut Y Width)",                                  technology.get_dimension("Minimum Gate Cut Height", "Minimum Gate YSpace") },
-        { "botgatecutspace(Bottom Gate Cut Y Space)",                                  0 },
-        { "botgatecutleftext(Bottom Gate Cut Left Extension)",                         0 },
-        { "botgatecutrightext(Bottom Gate Cut Right Extension)",                       0 },
-        { "simulatemissinggatecut",                                                 false },
-        { "drawsourcedrain(Draw Source/Drain Contacts)",                            "both", posvals = set("both", "source", "drain", "none") },
-        { "excludesourcedraincontacts(Exclude Source/Drain Contacts)",              {}, argtype = "table" },
-        { "sourcesize(Source Size)",                                                technology.get_dimension("Minimum Gate Width"), argtype = "integer", follow = "fwidth" },
-        { "sourceviasize(Source Via Size)",                                         technology.get_dimension("Minimum Gate Width"), argtype = "integer", follow = "sourcesize" },
-        { "drainsize(Drain Size)",                                                  technology.get_dimension("Minimum Gate Width"), argtype = "integer", follow = "fwidth" },
-        { "drainviasize(Drain Via Size)",                                           technology.get_dimension("Minimum Gate Width"), argtype = "integer", follow = "drainsize" },
-        { "sourcealign(Source Alignement)",                                         "bottom", posvals = set("top", "bottom") },
-        { "sourceviaalign(Source Via Alignement)",                                  "bottom", posvals = set("top", "bottom"), follow = "sourcealign" },
-        { "drainalign(Drain Alignement)",                                           "top", posvals = set("top", "bottom") },
-        { "drainviaalign(Drain Via Alignement)",                                    "top", posvals = set("top", "bottom"), follow = "drainalign" },
+        { "topgatewidth(Top Gate Width)",                                           technology.get_dimension("Minimum M1 Width"), argtype = "integer", info = "Width of the metal strap connecting all top gate contacts." },
+        { "topgateleftextension(Top Gate Left Extension)",                          0, info "Left extension of top gate metal strap. Positive values extend the strap on the left side beyond (to the left) of the gate, negative values in the opposite direction (but this is likely to cause an DRC error). So while negative values are possible, they are probably not useful." },
+        { "topgaterightextension(Top Gate Right Extension)",                        0, info "Right extension of top gate metal strap. Positive values extend the strap on the right side beyond (to the right) of the gate, negative values in the opposite direction (but this is likely to cause an DRC error). So while negative values are possible, they are probably not useful." },
+        { "topgatespace(Top Gate Space)",                                           technology.get_dimension("Minimum M1 Space"), argtype = "integer", info = "Space between the active region and the lower edge of the top gate contacts/metal strap" },
+        { "topgatemetal(Top Gate Strap Metal)",                                     1, info = "Metal index (can be negative) of the top gate metal straps. If this is higher than 1 and 'drawtopgatevia' is true, vias are drawn." },
+        { "drawtopgatevia(Draw Top Gate Via)",                                      false, info = "Enable the drawing of vias on the top gate metal strap. This only makes a difference if 'topgatemetal' is higher than 1." },
+        { "topgatecontinuousvia(Top Gate Continuous Via)",                          false, info = "Make the drawn via of the top gate metal strap a continuous via." },
+        { "drawbotgate(Draw Bottom Gate Contact)",                                  false, info = "draw gate contacts on the upper side of the active region. The contact region width is the gate length, the height is 'topgatewidth'. The space to the active region is 'topgatespace'." },
+        { "drawbotgatestrap(Draw Bottom Gate Strap)",                               false, follow = "drawbotgate" },
+        { "botgatewidth(Bottom Gate Width)",                                        technology.get_dimension("Minimum M1 Width"), argtype = "integer", info = "Width of the metal strap connecting all bottom gate contacts." },
+        { "botgateleftextension(Bottom Gate Left Extension)",                       0, info "Left extension of bottom gate metal strap. Positive values extend the strap on the left side beyond (to the left) of the gate, negative values in the opposite direction (but this is likely to cause an DRC error). So while negative values are possible, they are probably not useful." },
+        { "botgaterightextension(Bottom Gate Right Extension)",                     0, info "Right extension of bottom gate metal strap. Positive values extend the strap on the right side beyond (to the right) of the gate, negative values in the opposite direction (but this is likely to cause an DRC error). So while negative values are possible, they are probably not useful." },
+        { "botgatespace(Bottom Gate Space)",                                        technology.get_dimension("Minimum M1 Space"), argtype = "integer", info = "Space between the active region and the lower edge of the bottom gate contacts/metal strap" },
+        { "botgatemetal(Bottom Gate Strap Metal)",                                  1, info = "Metal index (can be negative) of the bottom gate metal straps. If this is higher than 1 and 'drawbotgatevia' is true, vias are drawn." },
+        { "drawbotgatevia(Draw Bottom Gate Via)",                                   false, info = "Enable the drawing of vias on the bottom gate metal strap. This only makes a difference if 'botgatemetal' is higher than 1." },
+        { "botgatecontinuousvia(Bottom Gate Continuous Via)",                       false, info = "Make the drawn via of the bottom gate metal strap a continuous via." },
+        { "drawtopgatecut(Draw Top Gate Cut)",                                      false, info = "Draw a gate cut rectangle above the active region (the 'top' gates)." },
+        { "topgatecutwidth(Top Gate Cut Y Width)",                                  technology.get_dimension("Minimum Gate Cut Height", "Minimum Gate YSpace"), info = "Width of the top gate cut." },
+        { "topgatecutspace(Top Gate Cut Y Space)",                                  0, info = "Space between the active region and the top gate cut." },
+        { "topgatecutleftext(Top Gate Cut Left Extension)",                         0, info = "Left extension of the top gate cut. Without extension, the gate cut covers the underlying gate in x-direction exactly." },
+        { "topgatecutrightext(Top Gate Cut Right Extension)",                       0, info = "Right extension of the top gate cut. Without extension, the gate cut covers the underlying gate in x-direction exactly." },
+        { "drawbotgatecut(Draw Top Gate Cut)",                                      false, info = "Draw a gate cut rectangle above the active region (the 'bottom' gates)." },
+        { "botgatecutwidth(Top Gate Cut Y Width)",                                  technology.get_dimension("Minimum Gate Cut Height", "Minimum Gate YSpace"), info = "Width of the bottom gate cut." },
+        { "botgatecutspace(Top Gate Cut Y Space)",                                  0, info = "Space between the active region and the bottom gate cut." },
+        { "botgatecutleftext(Top Gate Cut Left Extension)",                         0, info = "Left extension of the bottom gate cut. Without extension, the gate cut covers the underlying gate in x-direction exactly." },
+        { "botgatecutrightext(Top Gate Cut Right Extension)",                       0, info = "Right extension of the bottom gate cut. Without extension, the gate cut covers the underlying gate in x-direction exactly." },
+        { "simulatemissinggatecut",                                                 false, info = "Draw the gates with gate cuts as if the technology had no gate cuts (this splits the gates). This is only useful for technologies that support gate cuts." },
+        { "drawsourcedrain(Draw Source/Drain Contacts)",                            "both", posvals = set("both", "source", "drain", "none"), info = "Control which source/drain contacts are drawn. The possible values are 'both' (source and drain), 'source', 'drain' or 'none'. More fine-grained control can be obtained by the parameter 'excludesourcedraincontacts'." },
+        { "excludesourcedraincontacts(Exclude Source/Drain Contacts)",              {}, argtype = "table", "Define which source/drain contacts get drawn. Set 'drawsourcedrain' to 'both' to use this effectively. The argument to this parameter should be a table with numeric indices. The source/drain regions are enumerated with the left-most starting at 1." },
+        { "sourcesize(Source Size)",                                                technology.get_dimension("Minimum Gate Width"), argtype = "integer", follow = "fwidth", info = "Size of the source contact regions. This parameter follows 'fwidth', so per default the contact regions have the width of a transistor finger. For 'sourcesize', only values between 0 and 'fwidth' are allowed. If the size is smaller than 'fwidth', the source contact alignment ('sourcealign') is relevant." },
+        { "sourceviasize(Source Via Size)",                                         technology.get_dimension("Minimum Gate Width"), argtype = "integer", follow = "sourcesize", info = "Same as 'sourcesize', but for source vias." },
+        { "drainsize(Drain Size)",                                                  technology.get_dimension("Minimum Gate Width"), argtype = "integer", follow = "fwidth", info = "Size of the drain contact regions. This parameter follows 'fwidth', so per default the contact regions have the width of a transistor finger. For 'drainsize', only values between 0 and 'fwidth' are allowed., If the size is smaller than 'fwidth', the drain contact alignment ('drainalign') is relevant." },
+        { "drainviasize(Drain Via Size)",                                           technology.get_dimension("Minimum Gate Width"), argtype = "integer", follow = "drainsize", info = "Same as 'drainsize', but for drain vias." },
+        { "sourcealign(Source Alignment)",                                          "bottom", posvals = set("top", "bottom"), info = "Alignment of the source contacts. Only relevant when source contacts are smaller than 'fwidth' (see 'sourcesize'). Possible values: 'top' (source contacts grow down from the top into the active region) and 'bottom' (source contact grow up from the bottom into the active region). Typically, one sets 'sourcesize' and 'drainsize' to smaller values than 'fwidth' and uses opposite settings for 'sourcealign' and 'drainalign'." },
+        { "sourceviaalign(Source Via Alignment)",                                   "bottom", posvals = set("top", "bottom"), follow = "sourcealign" },
+        { "drainalign(Drain Alignment)",                                            "top", posvals = set("top", "bottom"), info = "Same as 'sourcealign' for source vias." },
+        { "drainalign(Drain Alignment)",                                            "bottom", posvals = set("top", "bottom"), info = "Alignment of the drain contacts. Only relevant when drain contacts are smaller than 'fwidth' (see 'drainsize'). Possible values: 'top' (drain contacts grow down from the top into the active region) and 'bottom' (drain contact grow up from the bottom into the active region). Typically, one sets 'sourcesize' and 'drainsize' to smaller values than 'fwidth' and uses opposite settings for 'sourcealign' and 'drainalign'." },
+        { "drainviaalign(Drain Via Alignment)",                                     "top", posvals = set("top", "bottom"), follow = "drainalign", info = "Same as 'drainalign' for drain vias." },
         { "drawsourcevia(Draw Source Via)",                                         true },
         { "drawfirstsourcevia(Draw First Source Via)",                              true },
         { "drawlastsourcevia(Draw Last Source Via)",                                true },
@@ -205,6 +205,18 @@ function check(_P)
     end
     if _P.sdmetalwidth < _P.sdviawidth then
         return false, "sdmetalwidth must not be smaller than sdviawidth"
+    end
+    if _P.sourcesize < 0 then
+        return false, string.format("sourcesize (%d) can not be negative or larger than 'fwidth' (%d)", _P.sourcesize, _P.fwidth)
+    end
+    if _P.drainsize < 0 then
+        return false, string.format("drainsize (%d) can not be negative or larger than 'fwidth' (%d)", _P.drainsize, _P.fwidth)
+    end
+    if _P.sourceviasize < 0 then
+        return false, string.format("sourceviasize (%d) can not be negative or larger than 'fwidth' (%d)", _P.sourceviasize, _P.fwidth)
+    end
+    if _P.drainviasize < 0 then
+        return false, string.format("drainviasize (%d) can not be negative or larger than 'fwidth' (%d)", _P.drainviasize, _P.fwidth)
     end
     if _P.shortdevice and ((_P.sourcesize % 2) ~= (_P.sdwidth % 2)) then
         return false, "gatespace and sdwidth must both be even or odd when shortdevice is true"
