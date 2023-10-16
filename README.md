@@ -7,7 +7,7 @@ The project already provides a few implementations of basic cells widely used in
 Among others there are elementary cells for mosfets and passive devices such as inductors and capacitors but also more complex cells such as
 inverters, current mirrors, ring oscillators, guard rings, metal grids etc.
 For digital designs, a set of standard cells exists (various types of d-flipflops and basic gates as nand, nor, and, or, etc.).
-Furthermore, it is possible to generate entire chip layouts, leveraging parameterization and programming concepts, introducing a powerfull tool for integrated circuit design.
+Furthermore, it is possible to generate entire chip layouts, leveraging parameterization and programming concepts, introducing a powerful tool for integrated circuit design.
 
 In order to generate actual layouts for existing technology nodes, a *technology translation* has to be performed.
 This translation is controlled by the technology layermap, which is fairly simple to write and can be built iteratively (it only has to include what
@@ -109,12 +109,12 @@ In order to load it need to include these lines in your `.cdsinit`:
 
 This will install a menu in layout editor called `openPCells` at the last place before the `help` menu in the layout editor. You have to restart
 virtuoso or execute the four lines in that order in your CIW to activate the menu. It is important that the variables `OPCTech`, `OPCPath` and
-`OPCExec` are defined, so don't think you can skip these and hard-code the path. There is an example file that you can modify and load in your
+`OPCExec` are defined, so don't skip these and hard-code the path. There is an example file that you can modify and load in your
 `.cdsinit` in `interface/virtuoso/cdsinit.il.sample`
 
 ---
 
-[^1]: Technically, the here displayed images are png files, but these are conversion results from the generated SVG. A binary image format with compression like png is more complex than an SVG Furthermore it is not vital (but desirable) to this project, therefore there is currently no implementation of it.
+[^1]: Technically, the here displayed images are png files, but these are conversion results from the generated SVG. A binary image format with compression like png is more complex than an SVG. Furthermore it is not vital (but desirable) to this project, therefore there is currently no implementation of it.
 
 <!---
 vim: tw=150
