@@ -44,8 +44,9 @@ in nanometers.\footnote{Well, this is not entirely sure. Only integers are allow
 currently reflected for example in the GDSII export, where the scaling is done approriately. However, it is planned that this will change in the
 future, making the base unit in opc arbitrary.}
 
-This is all for the \luainline{parameters()} function, so let's move on to \luainline{layout()}. This functions takes two arguments: the main object that will be
-placed in the layout and the table with parameters for the cell (which already includes any parsed arguments given before the cell creation).
+This is all for the \luainline{parameters()} function, so let's move on to \luainline{layout()}.
+This functions takes two arguments: the main object that will be placed in the layout and the table with parameters for the cell (which already includes any parsed arguments given before the cell creation).
+\footnote{Note that the \luainline{layout()}-function actually supports three parameters, but one is not important for this discussion.}
 
 We can name them in any way that pleases us, the common name used in all standard cells distributed by this project is \luainline{_P} (as hommage to the global
 environment \luainline{_G} in lua).
@@ -63,11 +64,18 @@ Lastly we pass the main object as first argument to the function, which places t
 
 This cell can now be created by calling the main program with an appropriate export and technology.
 Note that there's another manual about that, so we won't get into any details here.
-The simplest call would be something like
+The simplest call would be something like (please omit the backslashed in case you type that on one line. The call did not fit one line in this document.)
 \begin{shellcode}
-    opc --technology opc --export gds --cell library/simple_rectangle
+    opc \
+        --technology opc \
+        --export gds \
+        --cell library/simple_rectangle \
+        --cellpath .
 \end{shellcode}
-where \shellinline{library} is a folder where the cell is placed in and lies in the cell search path.
+where \shellinline{library} is a folder where the cell is placed in and is in the current working directoy.
+The cell search path has to modified in this example (\shellinline{--cellpath .}), which adds the current working directory to the list of searched paths.
+OpenPCells comes with pre-defined cells with known paths, but custom-made cells can be added by manipulating the search path.
+This can be done in a more permanent and convenient way with the configuration file, but that is not covered here.
 
 Now you already now how to create simple rectangles with generic layers.
 As integrated circuits are mostly made up of rectangles, one can already built a surprising amount of pcells.
@@ -76,7 +84,7 @@ Furthermore, to reduce complexity hierarchical layout design is also important.
 We will talk about these topics in the remaining cell tutorials.
 
 \subsection{Metal-Oxide-Metal Capacitors}
-Many technologies don't have so-called metal-insulator-metal capacitors (mimcaps), so the standard way to implement capacitors is be using interdigitated metals.
+Many technologies don't have so-called metal-insulator-metal capacitors (mimcaps), so the standard way to implement capacitors is by using interdigitated metals.
 Let's do that. As before, we set up the pcell. Useful parameters are the number of fingers, the width and height of the fingers and the spacing in between.
 Furthermore, we shift one collection of fingers (one plate) up and the other down to separate them and connect them together.
 Lastly, we also specify the width of the connecting rails and the used metals.
