@@ -424,7 +424,7 @@ function layout(transistor, _P)
     -- left and right polylines
     -- FIXME: probably wrong without endleftwithgate == true and endrightwithgate == true
     local leftpolyoffset = gateblx - gatepitch
-    for _, polyline in ipairs(_P.leftpolylines) do
+    for i, polyline in ipairs(_P.leftpolylines) do
         if not polyline.length then
             cellerror("basic/mosfet: leftpolyline entry does not have a 'length' field")
         end
@@ -436,10 +436,15 @@ function layout(transistor, _P)
             point.create(leftpolyoffset - polyline.space - polyline.length, gatebly),
             point.create(leftpolyoffset - polyline.space, gatetry)
         )
+        transistor:add_area_anchor_bltr(
+            string.format("leftpolyline%d", i),
+            point.create(leftpolyoffset - polyline.space - polyline.length, gatebly),
+            point.create(leftpolyoffset - polyline.space, gatetry)
+        )
         leftpolyoffset = leftpolyoffset - polyline.length - polyline.space
     end
     local rightpolyoffset = gatetrx + _P.fingers * gatepitch
-    for _, polyline in ipairs(_P.rightpolylines) do
+    for i, polyline in ipairs(_P.rightpolylines) do
         if not polyline.length then
             cellerror("basic/mosfet: rightpolyline entry does not have a 'length' field")
         end
@@ -448,6 +453,11 @@ function layout(transistor, _P)
         end
         geometry.rectanglebltr(transistor,
             generics.other("gate"),
+            point.create(rightpolyoffset + polyline.space, gatebly),
+            point.create(rightpolyoffset + polyline.space + polyline.length, gatetry)
+        )
+        transistor:add_area_anchor_bltr(
+            string.format("rightpolyline%d", i),
             point.create(rightpolyoffset + polyline.space, gatebly),
             point.create(rightpolyoffset + polyline.space + polyline.length, gatetry)
         )
