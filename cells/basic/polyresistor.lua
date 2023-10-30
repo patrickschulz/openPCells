@@ -23,7 +23,7 @@ function parameters()
         { "extendlvsmarkerx", 0 },
         { "extendlvsmarkery", 0 },
         { "conntype", "parallel", posvals = set("parallel", "series") },
-        { "drawrotationmarker", false },
+        { "drawrotationmarker", false }
     )
 end
 
