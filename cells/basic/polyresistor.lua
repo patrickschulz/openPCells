@@ -22,7 +22,8 @@ function parameters()
         { "extendwelly", 0 },
         { "extendlvsmarkerx", 0 },
         { "extendlvsmarkery", 0 },
-        { "conntype", "parallel", posvals = set("parallel", "series") }
+        { "conntype", "parallel", posvals = set("parallel", "series") },
+        { "drawrotationmarker", false },
     )
 end
 
@@ -161,6 +162,13 @@ function layout(resistor, _P)
         point.create((1 - 1) * (_P.width + _P.xspace) - _P.extendlvsmarkerx, -_P.extendlvsmarkery),
         point.create((_P.nxfingers + 2 * _P.dummies + 2 * _P.nonresdummies - 1) * (_P.width + _P.xspace) + _P.width + _P.extendlvsmarkerx, polyheight + _P.extendlvsmarkery)
     )
+    -- LVS marker layer
+    if _P.drawrotationmarker then
+        geometry.rectanglebltr(resistor, generics.other("rotationmarker"),
+            point.create((1 - 1) * (_P.width + _P.xspace) - _P.extendlvsmarkerx, -_P.extendlvsmarkery),
+            point.create((_P.nxfingers + 2 * _P.dummies + 2 * _P.nonresdummies - 1) * (_P.width + _P.xspace) + _P.width + _P.extendlvsmarkerx, polyheight + _P.extendlvsmarkery)
+        )
+    end
 
     -- connections
     local xpitch = _P.width + _P.xspace
