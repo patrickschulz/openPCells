@@ -362,7 +362,7 @@ void geometry_any_angle_path(struct object* cell, const struct generics* layer, 
 
 static void _fit_via(ucoordinate_t size, unsigned int cutsize, unsigned int space, int encl, unsigned int* rep_result, unsigned int* space_result)
 {
-    *rep_result = (size + space - 2 * encl) / (cutsize + space);
+    *rep_result = ((int)size + (int)space - 2 * encl) / ((int)cutsize + (int)space);
     *space_result = space;
 }
 
