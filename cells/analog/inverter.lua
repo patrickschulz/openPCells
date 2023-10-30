@@ -17,7 +17,6 @@ function parameters()
         { "gatestrapspace(Gate Metal Space)",           technology.get_dimension("Minimum M1 Width") },
         { "powerwidth(Power Rail Metal Width)",         technology.get_dimension("Minimum M1 Width") },
         { "powerspace(Power Rail Space)",               technology.get_dimension("Minimum M1 Space") },
-        { "separation(nMOS/pMOS Separation)",           100 },
         { "drawleftdummy",                              false },
         { "drawrightdummy",                             false },
         { "outputmetal",                                2, posvals = interval(2, inf) },
@@ -62,7 +61,7 @@ function layout(inverter, _P)
         gstwidth = _P.gatestrapwidth,
         gstspace = _P.gatestrapspace,
         sdwidth = _P.sdwidth,
-        separation = _P.separation,
+        separation = _P.gatestrapwidth + 2 * _P.gatestrapspace,
         dummycontheight = _P.dummycontheight,
         dummycontshift = _P.dummycontshift,
     })
