@@ -653,7 +653,6 @@ function layout(transistor, _P)
             point.create(-leftactauxext - _P.extendrotationmarkerleft, -_P.extendrotationmarkerbot),
             point.create(activewidth + leftactext + rightactext + rightactauxext + _P.extendrotationmarkerright, _P.fwidth + _P.extendrotationmarkertop)
         )
-
     end
 
     -- lvs marker
