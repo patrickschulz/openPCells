@@ -437,6 +437,10 @@ function layout(cmos, _P)
                 point.create(x, y),
                 point.create(x + _P.sdwidth, y + yheight)
             )
+            cmos:add_area_anchor_bltr(string.format("pSD%d", i - fingers - 2),
+                point.create(x, y),
+                point.create(x + _P.sdwidth, y + yheight)
+            )
         end
 
         -- connect source/drain region to power bar
@@ -474,6 +478,10 @@ function layout(cmos, _P)
                     point.create(x + _P.sdwidth, y + yheight)
                 )
                 cmos:add_area_anchor_bltr(string.format("nSD%d", i),
+                    point.create(x, y),
+                    point.create(x + _P.sdwidth, y + yheight)
+                )
+                cmos:add_area_anchor_bltr(string.format("nSD%d", i - fingers - 2),
                     point.create(x, y),
                     point.create(x + _P.sdwidth, y + yheight)
                 )
