@@ -1,5 +1,19 @@
 local M = {}
 
+function M.place_welltap(cell, bl, tr, options)
+    local welltap = pcell.create_layout(
+        "auxiliary/welltap",
+        "_welltap",
+        util.add_options(options or {}, {
+            width = point.xdistance_abs(bl, tr),
+            height = point.ydistance_abs(bl, tr),
+        })
+    )
+    welltap:move_point(welltap:get_area_anchor("boundary").bl, bl)
+    cell:merge_into(welltap)
+    cell:inherit_alignment_box(welltap)
+end
+
 function M.place_guardring(cell, bl, tr, xspace, yspace, options)
     local guardring = pcell.create_layout(
         "auxiliary/guardring",
