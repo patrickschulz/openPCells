@@ -240,8 +240,8 @@ function layout(guardring, _P)
             geometry.unequal_ring_pts(guardring, generics.other(string.format("%swell", _P.contype)),
                 point.create(-_P.ringwidth - _P.wellextension, -_P.ringwidth - _P.wellextension),
                 point.create(holewidth + _P.ringwidth + _P.wellextension, holeheight + _P.ringwidth + _P.wellextension),
-                point.create(_P.wellextension + _P.fillwellholeoffsetleft, _P.wellextension + _P.fillwellholeoffsetbottom),
-                point.create(holewidth - _P.wellextension - _P.fillwellholeoffsetright, holeheight - _P.wellextension - _P.fillwellholeoffsettop)
+                point.create(_P.fillwellholeoffsetleft, _P.fillwellholeoffsetbottom),
+                point.create(holewidth - _P.fillwellholeoffsetright, holeheight - _P.fillwellholeoffsettop)
             )
         else
             geometry.rectanglebltr(guardring, generics.other(string.format("%swell", _P.contype)),
