@@ -768,8 +768,46 @@ static struct vector* _initialize_api_entries(void)
         vector_append(entries, _make_api_entry(
             "path_2y",
             MODULE_GEOMETRY,
-            "Create a path that starts at ptstart and ends at ptend by moving first in y direction, then in x-direction (similar to an 'T')",
+            "Create a path that starts at ptstart and ends at ptend by moving first in y direction, then in x-direction (similar to an capital greek gamma)",
             "geometry.path_2y(cell, generics.metal(2), point.create(0, 0), point.create(200, 200))",
+            parameters,
+            sizeof(parameters) / sizeof(parameters[0])
+        ));
+    }
+
+    /* geometry.path_3x */
+    {
+        struct parameter parameters[] = {
+            { "cell",     OBJECT,   NULL,   "Object in which the path is created" },
+            { "layer",    GENERICS, NULL,   "Layer of the generated rectangular shape" },
+            { "ptstart",  POINT,    NULL,   "Start point of the path" },
+            { "ptend",    POINT,    NULL,   "End point of the path" },
+            { "width",    INTEGER,  NULL,   "width of the path. Must be even" }
+        };
+        vector_append(entries, _make_api_entry(
+            "path_3x",
+            MODULE_GEOMETRY,
+            "Create a path that starts at ptstart and ends at ptend by moving first in x direction, then in y-direction. Different from path_2x this make a bend in the middle between the start and the end point",
+            "geometry.path_3x(cell, generics.metal(2), point.create(0, 0), point.create(200, 200))",
+            parameters,
+            sizeof(parameters) / sizeof(parameters[0])
+        ));
+    }
+
+    /* geometry.path_3y */
+    {
+        struct parameter parameters[] = {
+            { "cell",     OBJECT,   NULL,   "Object in which the path is created" },
+            { "layer",    GENERICS, NULL,   "Layer of the generated rectangular shape" },
+            { "ptstart",  POINT,    NULL,   "Start point of the path" },
+            { "ptend",    POINT,    NULL,   "End point of the path" },
+            { "width",    INTEGER,  NULL,   "width of the path. Must be even" }
+        };
+        vector_append(entries, _make_api_entry(
+            "path_3y",
+            MODULE_GEOMETRY,
+            "Create a path that starts at ptstart and ends at ptend by moving first in y direction, then in x-direction. Different from path_2y this makes a bend in the middle between the start and the end point",
+            "geometry.path_3y(cell, generics.metal(2), point.create(0, 0), point.create(200, 200))",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
