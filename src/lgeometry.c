@@ -626,6 +626,56 @@ static int lgeometry_path_2y(lua_State* L)
     return 0;
 }
 
+static int lgeometry_path_3x(lua_State* L)
+{
+    struct lobject* cell = lobject_check(L, 1);
+    struct generics* layer = _check_generics(L, 2);
+    struct lpoint* ptstart = lpoint_checkpoint(L, 3);
+    struct lpoint* ptend = lpoint_checkpoint(L, 4);
+    coordinate_t width = luaL_checkinteger(L, 5);
+
+    int bgnext = 0;
+    int endext = 0;
+    _get_path_extension(L, 6, &bgnext, &endext);
+
+    point_t* pts1 = point_create((lpoint_get(ptstart)->x + lpoint_get(ptend)->x) / 2, lpoint_get(ptstart)->y);
+    point_t* pts2 = point_create((lpoint_get(ptstart)->x + lpoint_get(ptend)->x) / 2, lpoint_get(ptend)->y);
+    const point_t* points[4];
+    points[0] = lpoint_get(ptstart);
+    points[1] = pts1;
+    points[2] = pts2;
+    points[3] = lpoint_get(ptend);
+    geometry_path(lobject_get(L, cell), layer, points, 4, width, bgnext, endext);
+    point_destroy(pts1);
+    point_destroy(pts2);
+    return 0;
+}
+
+static int lgeometry_path_3y(lua_State* L)
+{
+    struct lobject* cell = lobject_check(L, 1);
+    struct generics* layer = _check_generics(L, 2);
+    struct lpoint* ptstart = lpoint_checkpoint(L, 3);
+    struct lpoint* ptend = lpoint_checkpoint(L, 4);
+    coordinate_t width = luaL_checkinteger(L, 5);
+
+    int bgnext = 0;
+    int endext = 0;
+    _get_path_extension(L, 6, &bgnext, &endext);
+
+    point_t* pts1 = point_create(lpoint_get(ptstart)->x, (lpoint_get(ptstart)->y + lpoint_get(ptend)->y) / 2);
+    point_t* pts2 = point_create(lpoint_get(ptend)->x, (lpoint_get(ptstart)->y + lpoint_get(ptend)->y) / 2);
+    const point_t* points[4];
+    points[0] = lpoint_get(ptstart);
+    points[1] = pts1;
+    points[2] = pts2;
+    points[3] = lpoint_get(ptend);
+    geometry_path(lobject_get(L, cell), layer, points, 4, width, bgnext, endext);
+    point_destroy(pts1);
+    point_destroy(pts2);
+    return 0;
+}
+
 static int lgeometry_path_cshape(lua_State* L)
 {
     struct lobject* cell = lobject_check(L, 1);
@@ -1252,6 +1302,8 @@ int open_lgeometry_lib(lua_State* L)
         { "path_manhatten",                             lgeometry_path_manhatten                                    },
         { "path_2x",                                    lgeometry_path_2x                                           },
         { "path_2y",                                    lgeometry_path_2y                                           },
+        { "path_3x",                                    lgeometry_path_3x                                           },
+        { "path_3y",                                    lgeometry_path_3y                                           },
         { "path_cshape",                                lgeometry_path_cshape                                       },
         { "path_ushape",                                lgeometry_path_ushape                                       },
         { "path_polygon",                               lgeometry_path_polygon                                      },
