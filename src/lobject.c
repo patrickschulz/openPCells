@@ -562,7 +562,7 @@ static int lobject_add_anchor(lua_State* L)
     int ret = object_add_anchor(lobject_get(L, cell), name, lpoint_get(lpoint)->x, lpoint_get(lpoint)->y);
     if(!ret)
     {
-        lua_pushstring(L, "object.add_anchor: could not add anchor as it already exists");
+        lua_pushfstring(L, "object.add_anchor: could not add anchor '%s' as it already exists", name);
         lua_error(L);
     }
     return 0;

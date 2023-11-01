@@ -281,6 +281,9 @@ local function _set_property(state, cellname, property, value)
 end
 
 local function _add_parameter(state, cellname, name, value, opt)
+    if not name then
+        error("pcell.add_parameter: no parameter name given")
+    end
     opt = opt or {}
     local cell = _get_cell(state, cellname)
     _add_parameter_internal(cell, name, value, opt.argtype, opt.posvals, opt.info, opt.follow, opt.readonly)
@@ -288,8 +291,11 @@ end
 
 local function _add_parameters(state, cellname, ...)
     local cell = _get_cell(state, cellname)
-    for _, parameter in ipairs({ ... }) do
+    for i, parameter in ipairs({ ... }) do
         local name, value = parameter[1], parameter[2]
+        if not name then
+            error(string.format("pcell.add_parameters: no parameter name given (entry %d)", i))
+        end
         _add_parameter_internal(
             cell,
             name, value,
