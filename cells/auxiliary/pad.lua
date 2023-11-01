@@ -29,23 +29,24 @@ function layout(pad, _P)
         xshift = (_P.orientation == "vertical") and -_P.padheight / 2 or 0
         yshift = (_P.orientation == "horizontal") and _P.padheight / 2 or 0
     end
+    -- pads are centered around (0, 0), as they are so big that they will never have odd dimensions
     if _P.orientation == "horizontal" then
         pad:add_area_anchor_bltr("boundary",
-            point.create(xshift, yshift),
-            point.create(xshift + _P.padwidth, yshift + _P.padheight)
+            point.create(xshift - _P.padwidth / 2, yshift - _P.padheight / 2),
+            point.create(xshift + _P.padwidth / 2, yshift + _P.padheight / 2)
         )
         pad:add_area_anchor_bltr("padopeningboundary",
-            point.create(xshift + _P.padopeningxoffset, yshift + _P.padopeningyoffset),
-            point.create(xshift + _P.padwidth - _P.padopeningxoffset, yshift + _P.padheight - _P.padopeningyoffset)
+            point.create(xshift - _P.padwidth / 2 + _P.padopeningxoffset, yshift - _P.padheight / 2 + _P.padopeningyoffset),
+            point.create(xshift + _P.padwidth / 2 - _P.padopeningxoffset, yshift + _P.padheight / 2 - _P.padopeningyoffset)
         )
     else -- vertical
         pad:add_area_anchor_bltr("boundary",
-            point.create(xshift, yshift),
-            point.create(xshift + _P.padheight, yshift + _P.padwidth)
+            point.create(xshift - _P.padheight / 2, yshift - _P.padwidth / 2),
+            point.create(xshift + _P.padheight / 2, yshift + _P.padwidth / 2)
         )
         pad:add_area_anchor_bltr("padopeningboundary",
-            point.create(xshift + _P.padopeningyoffset, yshift + _P.padopeningxoffset),
-            point.create(xshift + _P.padheight - _P.padopeningyoffset, yshift + _P.padwidth - _P.padopeningxoffset)
+            point.create(xshift - _P.padheight / 2 + _P.padopeningyoffset, yshift - _P.padwidth / 2 + _P.padopeningxoffset),
+            point.create(xshift + _P.padheight / 2 - _P.padopeningyoffset, yshift + _P.padwidth / 2 - _P.padopeningxoffset)
         )
     end
     geometry.rectanglebltr(pad, generics.metal(-1),
