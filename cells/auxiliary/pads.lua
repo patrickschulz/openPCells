@@ -1,6 +1,7 @@
 function parameters()
     pcell.add_parameters(
         { "padconfig(Pad Configuration; G, S or P)",      { "P", "P", "P" }, argtype = "strtable" },
+        { "padnames(Pad Names)",                          { "a", "b", "c" }, argtype = "strtable" },
         { "Spadwidth(Width of S-Pad)",                   50000 },
         { "Spadheight(Height of S-Pad)",                 54000 },
         { "Spadopeningwidth(Width of S-Pad Opening)",    40000 },
@@ -14,8 +15,8 @@ function parameters()
         { "Ppadopeningwidth(Width of P-Pad Opening)",    50000 },
         { "Ppadopeningheight(Height of P-Pad Opening)",  70000 },
         { "padpitch(Pitch between Pads)",               100000 },
-        { "orientation(Pad Orientation)",         "horizontal", posvals = set("horizontal", "vertical") },
-        { "alignment(Pad Alignment)",                 "center", posvals = set("center", "top/left", "bottom/right") }
+        { "orientation(Pad Orientation)",               "horizontal", posvals = set("horizontal", "vertical") },
+        { "alignment(Pad Alignment)",                   "center", posvals = set("center", "top/left", "bottom/right") }
     )
 end
 
@@ -54,14 +55,6 @@ function layout(pads, _P)
 
     local numpads = #_P.padconfig
     for i, padtype in ipairs(_P.padconfig) do
-        local pad
-        if padtype == "S" then
-            pad = pads:add_child(Spad, "Spad")
-        elseif padtype == "G" then
-            pad = pads:add_child(Gpad, "Gpad")
-        else
-            pad = pads:add_child(Ppad, "Ppad")
-        end
         local x, y
         if _P.orientation == "horizontal" then
             if _P.alignment == "top/left" then
@@ -76,7 +69,25 @@ function layout(pads, _P)
             x = 0
             y = (i - 1) * _P.padpitch - (numpads - 1) * _P.padpitch / 2
         end
+        local pad
+        if padtype == "S" then
+            pad = Spad:copy()
+        elseif padtype == "G" then
+            pad = Gpad:copy()
+        else
+            pad = Ppad:copy()
+        end
         pad:translate(x, y)
-        pads:add_anchor(string.format("pad_%d", i), pad:get_anchor("center"))
+        pads:merge_into(pad)
+        pads:inherit_area_anchor_as(pad, "boundary", string.format("padboundary_%i", i))
+        pads:inherit_area_anchor_as(pad, "boundary", string.format("padboundary_%s", _P.padnames[i]))
+        pads:add_port(
+            string.format("%s", _P.padnames[i]),
+            generics.metalport(-1),
+            point.combine(
+                pad:get_area_anchor("boundary").bl,
+                pad:get_area_anchor("boundary").tr
+            )
+        )
     end
 end

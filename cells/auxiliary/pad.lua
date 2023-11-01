@@ -9,6 +9,16 @@ function parameters()
     )
 end
 
+function check(_P)
+    if _P.padopeningwidth > _P.padwidth then
+        return false, string.format("padopeningwidth can't be larger than padwidth (%d vs %d)", _P.padopeningwidth, _P.padwidth)
+    end
+    if _P.padopeningheight > _P.padheight then
+        return false, string.format("padopeningheight can't be larger than padheight (%d vs %d)", _P.padopeningheight, _P.padheight)
+    end
+    return true
+end
+
 function layout(pad, _P)
     local metal, marker
     local xshift, yshift = 0, 0
@@ -20,11 +30,30 @@ function layout(pad, _P)
         yshift = (_P.orientation == "horizontal") and _P.padheight / 2 or 0
     end
     if _P.orientation == "horizontal" then
-        geometry.rectangle(pad, generics.metal(-1), _P.padwidth, _P.padheight, xshift, yshift)
-        geometry.rectangle(pad, generics.other("padopening"), _P.padopeningwidth, _P.padopeningheight, xshift, yshift)
+        pad:add_area_anchor_bltr("boundary",
+            point.create(xshift, yshift),
+            point.create(xshift + _P.padwidth, yshift + _P.padheight)
+        )
+        pad:add_area_anchor_bltr("padopeningboundary",
+            point.create(xshift + (_P.padwidth - _P.padopeningwidth) / 2, yshift + (_P.padheight - _P.padopeningheight) / 2),
+            point.create(xshift + (_P.padwidth - _P.padopeningwidth) / 2 + _P.padopeningwidth, yshift + (_P.padheight - _P.padopeningheight) / 2 + _P.padopeningheight)
+        )
     else -- vertical
-        geometry.rectangle(pad, generics.metal(-1), _P.padheight, _P.padwidth, xshift, yshift)
-        geometry.rectangle(pad, generics.other("padopening"), _P.padopeningheight, _P.padopeningwidth, xshift, yshift)
+        pad:add_area_anchor_bltr("boundary",
+            point.create(xshift, yshift),
+            point.create(xshift + _P.padheight, yshift + _P.padwidth)
+        )
+        pad:add_area_anchor_bltr("padopeningboundary",
+            point.create(xshift + (_P.padheight - _P.padopeningheight) / 2, yshift + (_P.padwidth - _P.padopeningwidth) / 2),
+            point.create(xshift + (_P.padheight - _P.padopeningheight) / 2 + _P.padopeningheight, yshift + (_P.padwidth - _P.padopeningwidth) / 2 + _P.padopeningwidth)
+        )
     end
-    pad:add_anchor("center", point.create(0, 0))
+    geometry.rectanglebltr(pad, generics.metal(-1),
+        pad:get_area_anchor("boundary").bl,
+        pad:get_area_anchor("boundary").tr
+    )
+    geometry.rectanglebltr(pad, generics.other("padopening"),
+        pad:get_area_anchor("padopeningboundary").bl,
+        pad:get_area_anchor("padopeningboundary").tr
+    )
 end
