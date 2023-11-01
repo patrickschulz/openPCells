@@ -431,6 +431,54 @@ void object_merge_into(struct object* cell, const struct object* other)
     }
 }
 
+void object_merge_into_with_ports(struct object* cell, const struct object* other)
+{
+    if(other->shapes)
+    {
+        for(unsigned int i = 0; i < vector_size(other->shapes); ++i)
+        {
+            struct shape* shape = shape_copy(vector_get(other->shapes, i));
+            object_add_shape(cell, shape);
+            shape_apply_transformation(shape, other->trans);
+        }
+    }
+    if(other->children)
+    {
+        // * add_child expects an object that will be owned by the cell
+        // * this means that the references must be copied
+        // * the references must be only copied once, otherwise all children reference different objects
+        // * the data structure of struct object does not allow for finding all children of one references in a simple manner, therefore the
+        //   following code is a bit convoluted
+        struct const_vector* used_cell_references = const_vector_create(OBJECT_DEFAULT_REFERENCES_SIZE);
+        struct vector* new_cell_references = vector_create(OBJECT_DEFAULT_REFERENCES_SIZE, NULL); // non-owning vector, but non-constant elements are needed
+        for(size_t i = 0; i < vector_size(other->children); ++i)
+        {
+            const struct object* child = vector_get_const(other->children, i);
+            int index = const_vector_find_flat(used_cell_references, child->reference);
+            if(index == -1)
+            {
+                const_vector_append(used_cell_references, child->reference);
+                vector_append(new_cell_references, object_copy(child->reference));
+                index = vector_size(new_cell_references) - 1;
+            }
+            struct object* newchild = object_add_child(cell, vector_get(new_cell_references, index), child->name);
+            object_apply_other_transformation(newchild, child->trans);
+            // FIXME: transformation
+        }
+    }
+    if(other->ports)
+    {
+        for(unsigned int i = 0; i < vector_size(other->ports); ++i)
+        {
+            struct port* port = vector_get(other->ports, i);
+            object_add_port(cell, port->name, port->layer, port->where, port->sizehint);
+            struct port* newport = vector_get(cell->ports, vector_size(cell->ports) - 1);
+            transformationmatrix_apply_inverse_transformation(cell->trans, newport->where);
+            transformationmatrix_apply_transformation(other->trans, newport->where);
+        }
+    }
+}
+
 static int _add_anchor(struct object* cell, const char* name, struct anchor* anchor)
 {
     if(!cell->anchors)

@@ -23,6 +23,7 @@ void object_add_shape(struct object* cell, struct shape* S);
 struct shape* object_disown_shape(struct object* cell, size_t i);
 void object_remove_shape(struct object* cell, size_t i);
 void object_merge_into(struct object* cell, const struct object* other);
+void object_merge_into_with_ports(struct object* cell, const struct object* other);
 void object_foreach_shapes(struct object* cell, void (*func)(struct shape*));
 size_t object_get_shapes_size(const struct object* cell);
 struct shape* object_get_shape(struct object* cell, size_t idx);

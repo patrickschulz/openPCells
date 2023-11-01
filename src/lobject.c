@@ -546,6 +546,14 @@ static int lobject_merge_into(lua_State* L)
     return 0;
 }
 
+static int lobject_merge_into_with_ports(lua_State* L)
+{
+    struct lobject* cell = lobject_check(L, 1);
+    struct lobject* other = lobject_check(L, 2);
+    object_merge_into_with_ports(lobject_get(L, cell), lobject_get_const(other));
+    return 0;
+}
+
 static int lobject_add_anchor(lua_State* L)
 {
     struct lobject* cell = lobject_check(L, 1);
@@ -1330,6 +1338,7 @@ int open_lobject_lib(lua_State* L)
         { "add_child",                              lobject_add_child                           },
         { "add_child_array",                        lobject_add_child_array                     },
         { "merge_into",                             lobject_merge_into                          },
+        { "merge_into_with_ports",                  lobject_merge_into_with_ports               },
         { "flatten",                                lobject_flatten                             },
         { "flatten_inline",                         lobject_flatten_inline                      },
         { "rasterize_curves",                       lobject_rasterize_curves                    },
