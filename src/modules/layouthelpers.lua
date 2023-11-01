@@ -29,8 +29,7 @@ function M.place_guardring(cell, bl, tr, xspace, yspace, options)
     cell:inherit_alignment_box(guardring)
 end
 
-function M.place_guardring_with_hole(cell, bl, tr, holebl, holetr, xspace, yspace, options)
-    local welloffset = 100
+function M.place_guardring_with_hole(cell, bl, tr, holebl, holetr, xspace, yspace, welloffset, options)
     local guardring = pcell.create_layout(
         "auxiliary/guardring",
         "_guardring",
