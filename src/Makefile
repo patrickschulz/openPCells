@@ -73,7 +73,6 @@ modulemanager.h: modules/*.lua
 	@echo 'int module_load_aux(lua_State* L);' >> modulemanager.h
 	@echo 'int module_load_gdsparser(lua_State* L);' >> modulemanager.h
 	@echo 'int module_load_generator(lua_State* L);' >> modulemanager.h
-	@echo 'int module_load_geometry(lua_State* L);' >> modulemanager.h
 	@echo 'int module_load_globals(lua_State* L);' >> modulemanager.h
 	@echo 'int module_load_graphics(lua_State* L);' >> modulemanager.h
 	@echo 'int module_load_layouthelpers(lua_State* L);' >> modulemanager.h
