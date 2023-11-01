@@ -4,16 +4,16 @@ function parameters()
         { "padnames(Pad Names)",                          { "a", "b", "c" }, argtype = "strtable" },
         { "Spadwidth(Width of S-Pad)",                   50000 },
         { "Spadheight(Height of S-Pad)",                 54000 },
-        { "Spadopeningwidth(Width of S-Pad Opening)",    40000 },
-        { "Spadopeningheight(Height of S-Pad Opening)",  44000 },
+        { "Spadopeningxoffset(x-Offset of S-Pad Opening)",    5000 },
+        { "Spadopeningyoffset(y-Offset of S-Pad Opening)",  5000 },
         { "Gpadwidth(Width of G-Pad)",                   60000 },
         { "Gpadheight(Height of G-Pad)",                 80000 },
-        { "Gpadopeningwidth(Width of G-Pad Opening)",    50000 },
-        { "Gpadopeningheight(Height of G-Pad Opening)",  70000 },
+        { "Gpadopeningxoffset(x-Offset of G-Pad Opening)",    5000 },
+        { "Gpadopeningyoffset(y-Offset of G-Pad Opening)",  5000 },
         { "Ppadwidth(Width of P-Pad)",                   60000 },
         { "Ppadheight(Height of P-Pad)",                 80000 },
-        { "Ppadopeningwidth(Width of P-Pad Opening)",    50000 },
-        { "Ppadopeningheight(Height of P-Pad Opening)",  70000 },
+        { "Ppadopeningxoffset(x-Offset of P-Pad Opening)",    5000 },
+        { "Ppadopeningyoffset(y-Offset of P-Pad Opening)",  5000 },
         { "padpitch(Pitch between Pads)",               100000 },
         { "orientation(Pad Orientation)",               "horizontal", posvals = set("horizontal", "vertical") },
         { "alignment(Pad Alignment)",                   "center", posvals = set("center", "top/left", "bottom/right") }
@@ -28,8 +28,8 @@ function layout(pads, _P)
     pcell.push_overwrites("auxiliary/pad", { 
         padwidth = _P.Spadwidth, 
         padheight = _P.Spadheight, 
-        padopeningwidth = _P.Spadopeningwidth, 
-        padopeningheight = _P.Spadopeningheight,
+        padopeningxoffset = _P.Spadopeningxoffset, 
+        padopeningyoffset = _P.Spadopeningyoffset,
     })
     local Spad = pcell.create_layout("auxiliary/pad", "Spad")
     pcell.pop_overwrites("auxiliary/pad")
@@ -37,8 +37,8 @@ function layout(pads, _P)
     pcell.push_overwrites("auxiliary/pad", { 
         padwidth = _P.Gpadwidth, 
         padheight = _P.Gpadheight, 
-        padopeningwidth = _P.Gpadopeningwidth, 
-        padopeningheight = _P.Gpadopeningheight,
+        padopeningxoffset = _P.Gpadopeningxoffset, 
+        padopeningyoffset = _P.Gpadopeningyoffset,
     })
     local Gpad = pcell.create_layout("auxiliary/pad", "Gpad")
     pcell.pop_overwrites("auxiliary/pad")
@@ -46,8 +46,8 @@ function layout(pads, _P)
     pcell.push_overwrites("auxiliary/pad", { 
         padwidth = _P.Ppadwidth, 
         padheight = _P.Ppadheight, 
-        padopeningwidth = _P.Ppadopeningwidth, 
-        padopeningheight = _P.Ppadopeningheight,
+        padopeningxoffset = _P.Ppadopeningxoffset, 
+        padopeningyoffset = _P.Ppadopeningyoffset,
     })
     local Ppad = pcell.create_layout("auxiliary/pad", "Ppad")
     pcell.pop_overwrites("auxiliary/pad")
@@ -87,7 +87,8 @@ function layout(pads, _P)
             point.combine(
                 pad:get_area_anchor("boundary").bl,
                 pad:get_area_anchor("boundary").tr
-            )
+            ),
+            20000
         )
     end
 end

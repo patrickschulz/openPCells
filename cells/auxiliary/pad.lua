@@ -1,20 +1,20 @@
 function parameters()
     pcell.add_parameters(
-        { "padwidth(Width of Pad)",                   60000 },
-        { "padheight(Height of Pad)",                 80000 },
-        { "padopeningwidth(Width of Pad Opening)",    50000 },
-        { "padopeningheight(Height of Pad Opening)",  70000 },
-        { "orientation(Pad Orientation)",         "horizontal", posvals = set("horizontal", "vertical") },
-        { "alignment(Pad Alignment)",                 "center", posvals = set("center", "top/left", "bottom/right") }
+        { "padwidth(Width of Pad)",                         60000 },
+        { "padheight(Height of Pad)",                       80000 },
+        { "padopeningxoffset(x-Offset of Pad Opening)",      5000 },
+        { "padopeningyoffset(y-Offset of Pad Opening)",      5000 },
+        { "orientation(Pad Orientation)",                   "horizontal", posvals = set("horizontal", "vertical") },
+        { "alignment(Pad Alignment)",                       "center", posvals = set("center", "top/left", "bottom/right") }
     )
 end
 
 function check(_P)
-    if _P.padopeningwidth > _P.padwidth then
-        return false, string.format("padopeningwidth can't be larger than padwidth (%d vs %d)", _P.padopeningwidth, _P.padwidth)
+    if _P.padopeningxoffset < 0 then
+        return false, "padopeningxoffset must be positive or 0"
     end
-    if _P.padopeningheight > _P.padheight then
-        return false, string.format("padopeningheight can't be larger than padheight (%d vs %d)", _P.padopeningheight, _P.padheight)
+    if _P.padopeningyoffset < 0 then
+        return false, "padopeningyoffset must be positive or 0"
     end
     return true
 end
@@ -35,8 +35,8 @@ function layout(pad, _P)
             point.create(xshift + _P.padwidth, yshift + _P.padheight)
         )
         pad:add_area_anchor_bltr("padopeningboundary",
-            point.create(xshift + (_P.padwidth - _P.padopeningwidth) / 2, yshift + (_P.padheight - _P.padopeningheight) / 2),
-            point.create(xshift + (_P.padwidth - _P.padopeningwidth) / 2 + _P.padopeningwidth, yshift + (_P.padheight - _P.padopeningheight) / 2 + _P.padopeningheight)
+            point.create(xshift + _P.padopeningxoffset, yshift + _P.padopeningyoffset),
+            point.create(xshift + _P.padwidth - _P.padopeningxoffset, yshift + _P.padheight - _P.padopeningyoffset)
         )
     else -- vertical
         pad:add_area_anchor_bltr("boundary",
@@ -44,8 +44,8 @@ function layout(pad, _P)
             point.create(xshift + _P.padheight, yshift + _P.padwidth)
         )
         pad:add_area_anchor_bltr("padopeningboundary",
-            point.create(xshift + (_P.padheight - _P.padopeningheight) / 2, yshift + (_P.padwidth - _P.padopeningwidth) / 2),
-            point.create(xshift + (_P.padheight - _P.padopeningheight) / 2 + _P.padopeningheight, yshift + (_P.padwidth - _P.padopeningwidth) / 2 + _P.padopeningwidth)
+            point.create(xshift + _P.padopeningyoffset, yshift + _P.padopeningxoffset),
+            point.create(xshift + _P.padheight - _P.padopeningyoffset, yshift + _P.padwidth - _P.padopeningxoffset)
         )
     end
     geometry.rectanglebltr(pad, generics.metal(-1),
