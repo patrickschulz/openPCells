@@ -1570,7 +1570,7 @@ static void _port_destroy(void* p)
     free(port);
 }
 
-static void _add_port(struct object* cell, const char* name, const char* anchorname, const struct generics* layer, coordinate_t x, coordinate_t y, int isbusport, int busindex, unsigned int sizehint)
+static void _add_port(struct object* cell, const char* name, const struct generics* layer, coordinate_t x, coordinate_t y, int isbusport, int busindex, unsigned int sizehint)
 {
     if(!generics_is_empty(layer))
     {
@@ -1592,7 +1592,7 @@ static void _add_port(struct object* cell, const char* name, const char* anchorn
 
 void object_add_port(struct object* cell, const char* name, const struct generics* layer, const point_t* where, unsigned int sizehint)
 {
-    _add_port(cell, name, name, layer, where->x, where->y, 0, 0, sizehint);
+    _add_port(cell, name, layer, where->x, where->y, 0, 0, sizehint);
 }
 
 void object_add_bus_port(struct object* cell, const char* name, const struct generics* layer, const point_t* where, int startindex, int endindex, unsigned int xpitch, unsigned int ypitch, unsigned int sizehint)
@@ -1602,12 +1602,7 @@ void object_add_bus_port(struct object* cell, const char* name, const struct gen
     {
         for(int i = startindex; i <= endindex; ++i)
         {
-            unsigned int digits = util_num_digits(i);
-            unsigned int len = strlen(name) + digits; // + 1 for underscore
-            char* anchorname = malloc(len + 1);
-            snprintf(anchorname, len + 1, "%s%*d", name, digits, i);
-            _add_port(cell, name, anchorname, layer, where->x + shift * xpitch, where->y + shift * ypitch, 1, i, sizehint);
-            free(anchorname);
+            _add_port(cell, name, layer, where->x + shift * xpitch, where->y + shift * ypitch, 1, i, sizehint);
             ++shift;
         }
     }
@@ -1615,12 +1610,7 @@ void object_add_bus_port(struct object* cell, const char* name, const struct gen
     {
         for(int i = startindex; i >= endindex; --i)
         {
-            unsigned int digits = util_num_digits(i);
-            unsigned int len = strlen(name) + digits; // + 1 for underscore
-            char* anchorname = malloc(len + 1);
-            snprintf(anchorname, len + 1, "%s%*d", name, digits, i);
-            _add_port(cell, name, anchorname, layer, where->x + shift * xpitch, where->y + shift * ypitch, 1, i, sizehint);
-            free(anchorname);
+            _add_port(cell, name, layer, where->x + shift * xpitch, where->y + shift * ypitch, 1, i, sizehint);
             ++shift;
         }
     }
@@ -2149,7 +2139,7 @@ void object_flatten_inline(struct object* cell, int flattenports)
                     coordinate_t y = port->where->y;
                     transformationmatrix_apply_transformation_xy(child->trans, &x, &y);
                     transformationmatrix_apply_transformation_xy(flat->trans, &x, &y);
-                    _add_port(cell, port->name, NULL, port->layer, x, y, port->isbusport, port->busindex, port->sizehint);
+                    _add_port(cell, port->name, port->layer, x, y, port->isbusport, port->busindex, port->sizehint);
                 }
             }
             object_destroy(flat);
