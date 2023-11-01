@@ -733,7 +733,7 @@ static void _path_points(lua_State* L, int xnoty)
     lua_newtable(L);
     lpoint_create_internal(L, lastx, lasty);
     lua_rawseti(L, -2, 1);
-    size_t idx = 1;
+    size_t idx = 2;
     for(size_t i = 1; i <= len; ++i)
     {
         lua_rawgeti(L, 2, i);
