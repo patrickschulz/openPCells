@@ -844,6 +844,14 @@ point_t* object_get_array_area_anchor(const struct object* cell, int xindex, int
     {
         return NULL;
     }
+    if(xindex > (int)cell->xrep)
+    {
+        return NULL;
+    }
+    if(yindex > (int)cell->yrep)
+    {
+        return NULL;
+    }
     // resolve negative indices
     if(xindex < 0)
     {
