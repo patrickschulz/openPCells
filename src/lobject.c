@@ -784,7 +784,7 @@ static int lobject_get_array_area_anchor(lua_State* L)
     }
     else
     {
-        lua_pushfstring(L, "trying to access undefined area anchor '%s'", base);
+        lua_pushfstring(L, "trying to access undefined array area anchor '%s (%d, %d)'", base, xindex, yindex);
         lua_error(L);
     }
     return 1;
