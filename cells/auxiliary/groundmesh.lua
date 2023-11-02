@@ -187,7 +187,7 @@ function layout(mesh, _P)
             end
             -- connect to top metal
             if _P.connecttopmetal then
-                geometry.viabltr(mesh, _P.gridmetals[#_P.gridmetals], _P.gridmetals[#_P.gridmetals] + 1,
+                geometry.viabarebltr(mesh, _P.gridmetals[#_P.gridmetals], _P.gridmetals[#_P.gridmetals] + 1,
                     point.create(-_P.metalwidths[#_P.metalwidths] / 2, -_P.metalwidths[#_P.metalwidths] / 2),
                     point.create( _P.metalwidths[#_P.metalwidths] / 2,  _P.metalwidths[#_P.metalwidths] / 2)
                 )
@@ -290,7 +290,7 @@ function layout(mesh, _P)
                 if i < #_P.meshmetals then
                     if _P.meshmetals[i + 1] == _P.interconnectmetal then
                         local viaheight = math.min(_P.metalwidths[i], _P.metalwidths[i + 1])
-                        geometry.viabltr(mesh, _P.interconnectmetal - 1, _P.interconnectmetal,
+                        geometry.viabarebltr(mesh, _P.interconnectmetal - 1, _P.interconnectmetal,
                             point.create(-_P.metalwidths[#_P.meshmetals + 2] / 2, -viaheight / 2),
                             point.create( _P.metalwidths[#_P.meshmetals + 2] / 2,  viaheight / 2)
                         )
@@ -299,7 +299,7 @@ function layout(mesh, _P)
                         local capwidthnext = nfingersnext * fwidth + (nfingersnext - 1) * fspace
                         local viawidth = math.min(capwidth, capwidthnext)
                         local viaheight = math.min(_P.metalwidths[i], _P.metalwidths[i + 1])
-                        geometry.viabltr(mesh, _P.meshmetals[i], _P.meshmetals[i] + 1,
+                        geometry.viabarebltr(mesh, _P.meshmetals[i], _P.meshmetals[i] + 1,
                             point.create(-viawidth / 2, -viaheight / 2),
                             point.create( viawidth / 2,  viaheight / 2)
                         )
@@ -308,7 +308,11 @@ function layout(mesh, _P)
             end
             -- connect cap to grid
             if _P.drawgrid then
-                geometry.viabltr(mesh, _P.interconnectmetal, _P.interconnectmetal + 1,
+                geometry.rectanglebltr(mesh, generics.metal(_P.interconnectmetal),
+                    point.create(-_P.metalwidths[#_P.meshmetals + 2] / 2, -_P.metalwidths[#_P.meshmetals + 2] / 2),
+                    point.create( _P.metalwidths[#_P.meshmetals + 2] / 2,  _P.metalwidths[#_P.meshmetals + 2] / 2)
+                )
+                geometry.viabarebltr(mesh, _P.interconnectmetal, _P.interconnectmetal + 1,
                     point.create(-_P.metalwidths[#_P.meshmetals + 2] / 2, -_P.metalwidths[#_P.meshmetals + 2] / 2),
                     point.create( _P.metalwidths[#_P.meshmetals + 2] / 2,  _P.metalwidths[#_P.meshmetals + 2] / 2)
                 )
@@ -394,6 +398,11 @@ function layout(mesh, _P)
             -- do nothing for "none"
         end
     end -- drawasplane
+
+    mesh:add_area_anchor_bltr("outerboundary",
+        point.create(-_P.cellsize / 2, -_P.cellsize / 2),
+        point.create( _P.cellsize / 2,  _P.cellsize / 2)
+    )
 
     mesh:set_alignment_box(
         point.create(-_P.cellsize / 2, -_P.cellsize / 2),
