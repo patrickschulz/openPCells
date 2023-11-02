@@ -18,7 +18,7 @@ struct lpoint {
 
 coordinate_t lpoint_checkcoordinate(lua_State* L, int idx, const char* coordinate)
 {
-    if(lua_isnil(L, idx))
+    if(lua_isnil(L, idx) || lua_isnone(L, idx))
     {
         lua_pushfstring(L, "point module: nil number received for %s", coordinate);
         lua_error(L);
