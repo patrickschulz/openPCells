@@ -760,7 +760,7 @@ point_t* object_get_alignment_anchor(const struct object* cell, const char* name
     }
     else if(strcmp(name, "innertr") == 0)
     {
-        x = _alignmentbox_get_innerblx(ab);
+        x = _alignmentbox_get_innertrx(ab);
         y = _alignmentbox_get_innertry(ab);
     }
     else
