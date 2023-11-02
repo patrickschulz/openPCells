@@ -1002,6 +1002,63 @@ static struct vector* _initialize_api_entries(void)
         ));
     }
 
+    /* geometry.viabarebltr_xcontinuous */
+    {
+        struct parameter parameters[] = {
+            { "cell",       OBJECT,     NULL,   "Object in which the via is created" },
+            { "firstmetal", INTEGER,    NULL,   "Number of the first metal. Negative values are possible" },
+            { "lastmetal",  INTEGER,    NULL,   "Number of the last metal. Negative values are possible" },
+            { "bl",         POINT,      NULL,   "Bottom-left point of the generated rectangular shape" },
+            { "tr",         POINT,      NULL,   "Top-right point of the generated rectangular shape" }
+        };
+        vector_append(entries, _make_api_entry(
+            "viabarebltr_xcontinuous",
+            MODULE_GEOMETRY,
+            "Create vias (single or stack) in a rectangular area with the given corner points in cell. This function creates vias that can be abutted in x-direction. For this, the space between cuts and the surroundings are equalized. This function is like viabltr_xcontinuous, but no metals are drawn",
+            "geometry.viabltr_xcontinuous(cell, 1, 3, point.create(-100, -20), point.create(100, 4))",
+            parameters,
+            sizeof(parameters) / sizeof(parameters[0])
+        ));
+    }
+
+    /* geometry.viabarebltr_ycontinuous */
+    {
+        struct parameter parameters[] = {
+            { "cell",       OBJECT,     NULL,   "Object in which the via is created" },
+            { "firstmetal", INTEGER,    NULL,   "Number of the first metal. Negative values are possible" },
+            { "lastmetal",  INTEGER,    NULL,   "Number of the last metal. Negative values are possible" },
+            { "bl",         POINT,      NULL,   "Bottom-left point of the generated rectangular shape" },
+            { "tr",         POINT,      NULL,   "Top-right point of the generated rectangular shape" }
+        };
+        vector_append(entries, _make_api_entry(
+            "viabarebltr_ycontinuous",
+            MODULE_GEOMETRY,
+            "Create vias (single or stack) in a rectangular area with the given corner points in cell. This function creates vias that can be abutted in y-direction. For this, the space between cuts and the surroundings are equalized. This function is like viabltr_ycontinuous, but no metals are drawn",
+            "geometry.viabltr_ycontinuous(cell, 1, 3, point.create(-100, -20), point.create(100, 4))",
+            parameters,
+            sizeof(parameters) / sizeof(parameters[0])
+        ));
+    }
+
+    /* geometry.viabarebltr_continuous */
+    {
+        struct parameter parameters[] = {
+            { "cell",       OBJECT,     NULL,   "Object in which the via is created" },
+            { "firstmetal", INTEGER,    NULL,   "Number of the first metal. Negative values are possible" },
+            { "lastmetal",  INTEGER,    NULL,   "Number of the last metal. Negative values are possible" },
+            { "bl",         POINT,      NULL,   "Bottom-left point of the generated rectangular shape" },
+            { "tr",         POINT,      NULL,   "Top-right point of the generated rectangular shape" }
+        };
+        vector_append(entries, _make_api_entry(
+            "viabarebltr_continuous",
+            MODULE_GEOMETRY,
+            "Create vias (single or stack) in a rectangular area with the given corner points in cell. This function creates vias that can be abutted in both x- and y-direction. For this, the space between cuts and the surroundings are equalized. This function is like viabltr_continuous, but no metals are drawn",
+            "geometry.viabltr_continuous(cell, 1, 3, point.create(-100, -20), point.create(100, 4))",
+            parameters,
+            sizeof(parameters) / sizeof(parameters[0])
+        ));
+    }
+
     /* geometry.contactbltr */
     {
         struct parameter parameters[] = {
