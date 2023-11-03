@@ -618,6 +618,30 @@ static struct vector* _initialize_api_entries(void)
         ));
     }
 
+    /* geometry.slotted_rectangle */
+    {
+        struct parameter parameters[] = {
+            { "cell",           OBJECT,     NULL,   "Object in which the rectangle is created" },
+            { "layer",          GENERICS,   NULL,   "Layer of the generated rectangular shape" },
+            { "bl",             POINT,      NULL,   "bottom-left point of rectangular area" },
+            { "tr",             POINT,      NULL,   "top-right point of rectangular area" },
+            { "slotwidth",      INTEGER,    NULL,   "Width of the created slots (space in x-direction between the shapes)" },
+            { "slotheight",     INTEGER,    NULL,   "Height of the created slots (space in y-direction between the shapes)" },
+            { "slotxspace",     INTEGER,    NULL,   "Width of the regions between the slots" },
+            { "slotxspace",     INTEGER,    NULL,   "Height of the regions between the slots" },
+            { "slotedgexspace", INTEGER,    NULL,   "Minimum width of the edge regions (they can be larger than this value)" },
+            { "slotedgeyspace", INTEGER,    NULL,   "Minimum height of the edge regions (they can be larger than this value)" }
+        };
+        vector_append(entries, _make_api_entry(
+            "slotted_rectangle",
+            MODULE_GEOMETRY,
+            "Create a rectangle with slotting",
+            "geometry.slotted_rectangle(cell, generics.other(\"nwell\"), point.create(-200, -2000), point.create(200, 2000), 50, 50, 50, 50, 100, 100)",
+            parameters,
+            sizeof(parameters) / sizeof(parameters[0])
+        ));
+    }
+
     /* geometry.rectanglevlines */
     {
         struct parameter parameters[] = {
