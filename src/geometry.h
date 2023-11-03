@@ -36,6 +36,15 @@ void geometry_rectanglearray(
     ucoordinate_t xpitch, ucoordinate_t ypitch
 );
 
+void geometry_slotted_rectangle(
+    struct object* cell,
+    const struct generics* layer,
+    const point_t* bl, const point_t* tr,
+    coordinate_t slotwidth, coordinate_t slotheight,
+    coordinate_t slotxspace, coordinate_t slotyspace,
+    coordinate_t slotminedgexspace, coordinate_t slotminedgeyspace
+);
+
 void geometry_polygon(
     struct object* cell,
     const struct generics* layer,

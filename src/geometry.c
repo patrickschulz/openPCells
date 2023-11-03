@@ -99,6 +99,57 @@ void geometry_rectanglearray(
     }
 }
 
+void geometry_slotted_rectangle(
+    struct object* cell,
+    const struct generics* layer,
+    const point_t* bl, const point_t* tr,
+    coordinate_t slotwidth, coordinate_t slotheight,
+    coordinate_t slotxspace, coordinate_t slotyspace,
+    coordinate_t slotminedgexspace, coordinate_t slotminedgeyspace
+)
+{
+    coordinate_t regionwidth = tr->x - bl->x;
+    coordinate_t regionheight = tr->y - bl->y;
+    unsigned int xrep = 0;
+    coordinate_t slotedgexspace = 0;
+    for(unsigned int _xrep = 0; _xrep < 500; ++_xrep)
+    {
+        coordinate_t _slotedgexspace = (regionwidth - (_xrep + 1) * slotwidth - _xrep * slotxspace) / 2;
+        if(_slotedgexspace < slotminedgexspace)
+        {
+            break;
+        }
+        xrep = _xrep;
+        slotedgexspace = _slotedgexspace;
+    }
+    unsigned int yrep = 0;
+    coordinate_t slotedgeyspace = 0;
+    for(unsigned int _yrep = 0; _yrep < 500; ++_yrep)
+    {
+        coordinate_t _slotedgeyspace = (regionheight - (_yrep + 1) * slotheight - _yrep * slotyspace) / 2;
+        if(_slotedgeyspace < slotminedgeyspace)
+        {
+            break;
+        }
+        yrep = _yrep;
+        slotedgeyspace = _slotedgeyspace;
+    }
+    _rectanglebltr(cell, layer, bl->x, bl->y, bl->x + slotedgexspace, tr->y);
+    _rectanglebltr(cell, layer, tr->x - slotedgexspace, bl->y, tr->x, tr->y);
+    for(unsigned int xi = 0; xi < xrep; ++xi)
+    {
+        coordinate_t xshift = xi * (slotxspace + slotwidth) + slotedgexspace + slotwidth;
+        _rectanglebltr(cell, layer, bl->x + xshift, bl->y, bl->x + xshift + slotxspace, tr->y);
+    }
+    _rectanglebltr(cell, layer, bl->x, bl->y, tr->x, bl->y + slotedgeyspace);
+    _rectanglebltr(cell, layer, bl->x, tr->y - slotedgeyspace, tr->x, tr->y);
+    for(unsigned int yi = 0; yi < yrep; ++yi)
+    {
+        coordinate_t yshift = yi * (slotyspace + slotheight) + slotedgeyspace + slotheight;
+        _rectanglebltr(cell, layer, bl->x, bl->y + yshift, tr->x, bl->y + yshift + slotyspace);
+    }
+}
+
 void geometry_polygon(struct object* cell, const struct generics* layer, const point_t** points, size_t len)
 {
     if(len == 0) // don't add empty polygons

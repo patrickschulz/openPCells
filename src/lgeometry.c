@@ -79,6 +79,30 @@ static int lgeometry_rectanglearray(lua_State* L)
     return 0;
 }
 
+static int lgeometry_slotted_rectangle(lua_State* L)
+{
+    lcheck_check_numargs(L, 10, "geometry.slotted_rectangle");
+    struct lobject* cell = lobject_check(L, 1);
+    struct generics* layer = _check_generics(L, 2);
+    struct lpoint* pt1 = lpoint_checkpoint(L, 3);
+    struct lpoint* pt2 = lpoint_checkpoint(L, 4);
+    coordinate_t slotwidth = lpoint_checkcoordinate(L, 5, "slotwidth");
+    coordinate_t slotheight = lpoint_checkcoordinate(L, 6, "slotheight");
+    coordinate_t slotxspace = lpoint_checkcoordinate(L, 7, "slotxspace");
+    coordinate_t slotyspace = lpoint_checkcoordinate(L, 8, "slotyspace");
+    coordinate_t slotminedgexspace = lpoint_checkcoordinate(L, 9, "slotedgexspace");
+    coordinate_t slotminedgeyspace = lpoint_checkcoordinate(L, 10, "slotedgeyspace");
+    geometry_slotted_rectangle(
+        lobject_get(L, cell),
+        layer,
+        lpoint_get(pt1), lpoint_get(pt2),
+        slotwidth, slotheight,
+        slotxspace, slotyspace,
+        slotminedgexspace, slotminedgeyspace
+    );
+    return 0;
+}
+
 static int lgeometry_polygon(lua_State* L)
 {
     lcheck_check_numargs(L, 3, "geometry.polygon");
@@ -1365,6 +1389,7 @@ int open_lgeometry_lib(lua_State* L)
         { "rectanglebltr",                              lgeometry_rectanglebltr                                     },
         { "rectanglepoints",                            lgeometry_rectanglepoints                                   },
         { "rectanglearray",                             lgeometry_rectanglearray                                    },
+        { "slotted_rectangle",                          lgeometry_slotted_rectangle                                 },
         { "rectanglepath",                              lgeometry_rectanglepath                                     },
         { "rectanglevlines",                            lgeometry_rectanglelines_vertical                           },
         { "rectanglevlines_settings",                   lgeometry_rectanglelines_vertical_settings                  },
