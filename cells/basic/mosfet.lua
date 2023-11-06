@@ -689,24 +689,25 @@ function layout(transistor, _P)
     end
 
     -- well
+    local wellbl = point.create(
+        -leftactauxext - _P.extendwellleft,
+        -math.max(_P.extendwellbot, enable(_P.drawbotwelltap, _P.botwelltapspace + _P.botwelltapwidth))
+    )
+    local welltr = point.create(
+        activewidth + leftactext + rightactext + rightactauxext + _P.extendwellright,
+        _P.fwidth + math.max(_P.extendwelltop, enable(_P.drawtopwelltap, _P.topwelltapspace + _P.topwelltapwidth))
+    )
     if _P.drawwell then
-        local bl = point.create(
-            -leftactauxext - _P.extendwellleft,
-            -math.max(_P.extendwellbot, enable(_P.drawbotwelltap, _P.botwelltapspace + _P.botwelltapwidth))
-        )
-        local tr = point.create(
-            activewidth + leftactext + rightactext + rightactauxext + _P.extendwellright,
-            _P.fwidth + math.max(_P.extendwelltop, enable(_P.drawtopwelltap, _P.topwelltapspace + _P.topwelltapwidth))
-        )
         geometry.rectanglebltr(transistor,
             generics.other(_P.flippedwell and
                 (_P.channeltype == "nmos" and "nwell" or "pwell") or
                 (_P.channeltype == "nmos" and "pwell" or "nwell")
             ),
-            bl, tr
+            wellbl, welltr
         )
-        transistor:add_area_anchor_bltr("well", bl, tr)
     end
+    transistor:add_area_anchor_bltr("well", wellbl, welltr)
+
     -- well taps
     if _P.drawtopwelltap then
         transistor:merge_into(pcell.create_layout("auxiliary/welltap", "topwelltap", {
