@@ -159,8 +159,8 @@ function layout(resistor, _P)
     end
     -- LVS marker layer
     geometry.rectanglebltr(resistor, generics.other("polyresistorlvsmarker"),
-        point.create((1 - 1) * (_P.width + _P.xspace) - _P.extendlvsmarkerx, -_P.extendlvsmarkery),
-        point.create((_P.nxfingers + 2 * _P.dummies + 2 * _P.nonresdummies - 1) * (_P.width + _P.xspace) + _P.width + _P.extendlvsmarkerx, polyheight + _P.extendlvsmarkery)
+        point.create((1 + _P.nonresdummies - 1) * (_P.width + _P.xspace) - _P.extendlvsmarkerx, -_P.extendlvsmarkery),
+        point.create((_P.nxfingers + 2 * _P.dummies + _P.nonresdummies - 1) * (_P.width + _P.xspace) + _P.width + _P.extendlvsmarkerx, polyheight + _P.extendlvsmarkery)
     )
     -- LVS marker layer
     if _P.drawrotationmarker then
