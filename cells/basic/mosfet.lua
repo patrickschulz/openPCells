@@ -193,6 +193,8 @@ function parameters()
         { "guardringxsep",                                                          0 },
         { "guardringysep",                                                          0 },
         { "guardringsegments",                                                      { "left", "right", "top", "bottom" } },
+        { "guardringfillimplant",                                                   false },
+        { "guardringfillwell",   ,                                                  false },
         { "botwelltapwidth",                                                        technology.get_dimension("Minimum M1 Width") },
         { "botwelltapspace",                                                        technology.get_dimension("Minimum M1 Space") },
         { "botwelltapextendleft",                                                   0 },
@@ -735,7 +737,9 @@ function layout(transistor, _P)
             holewidth = activewidth + leftactauxext + leftactext + rightactext + rightactauxext + 2 * _P.guardringxsep,
             holeheight = _P.fwidth + 2 * _P.guardringysep,
             fillwell = true,
-            drawsegments = _P.guardringsegments
+            drawsegments = _P.guardringsegments,
+            fillwell = _P.guardringfillwell,
+            fillimplant = _P.guardringfillimplant,
         })
         guardring:move_point(guardring:get_anchor("innerbottomleft"), point.create(-leftactauxext, 0))
         guardring:translate(-_P.guardringxsep, -_P.guardringysep)
