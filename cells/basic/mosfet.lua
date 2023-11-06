@@ -591,18 +591,18 @@ function layout(transistor, _P)
     geometry.rectanglebltr(transistor,
         generics.vthtype(_P.channeltype, _P.vthtype),
         point.create(
-            vthtypealignleftwidthactive and
+            _P.vthtypealignleftwithactive and
                 -leftactauxext - _P.extendvthleft or
                 -leftactauxext - _P.extendvthleft,
-            vthtypealignbottomwidthactive and
+            _P.vthtypealignbottomwithactive and
                 -_P.extendvthbot or
                 gatebly - _P.extendvthbot
         ),
         point.create(
-            vthtypealignrightwithactive and
+            _P.vthtypealignrightwithactive and
                 activewidth + leftactext + rightactext + rightactauxext + _P.extendvthright or
                 activewidth + leftactext + rightactext + rightactauxext + _P.extendvthright,
-            vthtypealigntopwithactive and
+            _P.vthtypealigntopwithactive and
                 _P.fwidth + _P.extendvthtop or
                 gatetry + _P.extendvthtop
         )
@@ -612,18 +612,18 @@ function layout(transistor, _P)
     geometry.rectanglebltr(transistor,
         generics.implant(_P.channeltype),
         point.create(
-            implantalignleftwithactive and
+            _P.implantalignleftwithactive and
                 -leftactauxext - _P.extendimplantleft or
                 -leftactauxext - _P.extendimplantleft,
-            implantalignbottomwithactive and
+            _P.implantalignbottomwithactive and
                 -_P.extendimplantbot or
                 gatebly - _P.extendimplantbot
         ),
         point.create(
-            implantalignrightwithactive and
+            _P.implantalignrightwithactive and
                 activewidth + leftactext + rightactext + rightactauxext + _P.extendimplantright or
                 activewidth + leftactext + rightactext + rightactauxext + _P.extendimplantright,
-            implantaligntopwithactive and
+            _P.implantaligntopwithactive and
                 _P.fwidth + _P.extendimplanttop or
                 gatetry + _P.extendimplanttop
         )
@@ -633,18 +633,18 @@ function layout(transistor, _P)
     geometry.rectanglebltr(transistor,
         generics.oxide(_P.oxidetype),
         point.create(
-            oxidetypealignleftwithactive and
+            _P.oxidetypealignleftwithactive and
                 -leftactauxext - _P.extendoxideleft or
                 -leftactauxext - _P.extendoxideleft,
-            oxidetypealignbottomwithactive and
+            _P.oxidetypealignbottomwithactive and
                 -_P.extendoxidebot or
                 gatebly - _P.extendoxidebot
         ),
         point.create(
-            oxidetypealignrightwithactive and
+            _P.oxidetypealignrightwithactive and
                 activewidth + leftactext + rightactext + rightactauxext + _P.extendoxideright or
                 activewidth + leftactext + rightactext + rightactauxext + _P.extendoxideright,
-            oxidetypealigntopwithactive and
+            _P.oxidetypealigntopwithactive and
                 _P.fwidth + _P.extendoxidetop or
                 gatetry + _P.extendoxidetop
         )
