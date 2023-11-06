@@ -56,11 +56,11 @@ function layout(resistor, _P)
         if _P.yspace > 0 then
             for y = 1, _P.nyfingers do
                 local yshift = (y - 1) * (_P.length + _P.contactheight + 2 * _P.extension + 2 * _P.yspace)
-                geometry.contactbltr(resistor, "gate", 
+                geometry.contactbltr(resistor, "poly", 
                     point.create((x + _P.dummies + _P.nonresdummies - 1) * (_P.width + _P.xspace), yshift),
                     point.create((x + _P.dummies + _P.nonresdummies - 1) * (_P.width + _P.xspace) + _P.width, yshift + _P.contactheight)
                 )
-                geometry.contactbltr(resistor, "gate", 
+                geometry.contactbltr(resistor, "poly", 
                     point.create((x + _P.dummies + _P.nonresdummies - 1) * (_P.width + _P.xspace), yshift + _P.length + _P.contactheight + 2 * _P.extension),
                     point.create((x + _P.dummies + _P.nonresdummies - 1) * (_P.width + _P.xspace) + _P.width, yshift + _P.length + _P.contactheight + 2 * _P.extension + _P.contactheight)
                 )
@@ -76,7 +76,7 @@ function layout(resistor, _P)
         else
             for y = 1, _P.nyfingers + 1 do
                 local yshift = (y - 1) * (_P.length + _P.contactheight + 2 * _P.extension)
-                geometry.contactbltr(resistor, "gate", 
+                geometry.contactbltr(resistor, "poly", 
                     point.create((x + _P.dummies + _P.nonresdummies - 1) * (_P.width + _P.xspace), yshift),
                     point.create((x + _P.dummies + _P.nonresdummies - 1) * (_P.width + _P.xspace) + _P.width, yshift + _P.contactheight)
                 )
@@ -93,19 +93,19 @@ function layout(resistor, _P)
             if _P.yspace > 0 then
                 for y = 1, _P.nyfingers do
                     local yshift = (y - 1) * (_P.length + _P.contactheight + 2 * _P.extension + 2 * _P.yspace)
-                    geometry.contactbltr(resistor, "gate", 
+                    geometry.contactbltr(resistor, "poly", 
                         point.create((x + _P.nonresdummies - 1) * (_P.width + _P.xspace), yshift),
                         point.create((x + _P.nonresdummies - 1) * (_P.width + _P.xspace) + _P.width, yshift + _P.contactheight)
                     )
-                    geometry.contactbltr(resistor, "gate", 
+                    geometry.contactbltr(resistor, "poly", 
                         point.create((x + _P.nonresdummies - 1) * (_P.width + _P.xspace), yshift + _P.length + _P.contactheight + 2 * _P.extension),
                         point.create((x + _P.nonresdummies - 1) * (_P.width + _P.xspace) + _P.width, yshift + _P.length + _P.contactheight + 2 * _P.extension + _P.contactheight)
                     )
-                    geometry.contactbltr(resistor, "gate", 
+                    geometry.contactbltr(resistor, "poly", 
                         point.create((x + _P.dummies + _P.nonresdummies + _P.nxfingers - 1) * (_P.width + _P.xspace), yshift),
                         point.create((x + _P.dummies + _P.nonresdummies + _P.nxfingers - 1) * (_P.width + _P.xspace) + _P.width, yshift + _P.contactheight)
                     )
-                    geometry.contactbltr(resistor, "gate", 
+                    geometry.contactbltr(resistor, "poly", 
                         point.create((x + _P.dummies + _P.nonresdummies + _P.nxfingers - 1) * (_P.width + _P.xspace), yshift + _P.length + _P.contactheight + 2 * _P.extension),
                         point.create((x + _P.dummies + _P.nonresdummies + _P.nxfingers - 1) * (_P.width + _P.xspace) + _P.width, yshift + _P.length + _P.contactheight + 2 * _P.extension + _P.contactheight)
                     )
@@ -113,11 +113,11 @@ function layout(resistor, _P)
             else
                 for y = 1, _P.nyfingers + 1 do
                     local yshift = (y - 1) * (_P.length + _P.contactheight + 2 * _P.extension)
-                    geometry.contactbltr(resistor, "gate", 
+                    geometry.contactbltr(resistor, "poly", 
                         point.create((x + _P.nonresdummies - 1) * (_P.width + _P.xspace), yshift),
                         point.create((x + _P.nonresdummies - 1) * (_P.width + _P.xspace) + _P.width, yshift + _P.contactheight)
                     )
-                    geometry.contactbltr(resistor, "gate", 
+                    geometry.contactbltr(resistor, "poly", 
                         point.create((x + _P.nonresdummies + _P.dummies + _P.nxfingers - 1) * (_P.width + _P.xspace), yshift),
                         point.create((x + _P.nonresdummies + _P.dummies + _P.nxfingers - 1) * (_P.width + _P.xspace) + _P.width, yshift + _P.contactheight)
                     )
