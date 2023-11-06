@@ -14,6 +14,9 @@ procedure(OPCPrepareArgsForCellCreation(args @key (newgroup nil) (exporttype "SK
                 OPCArgs = lsprintf("%s -X -g -X '-n %s'" OPCArgs OPCSettingsForm->OPCSettingsGroupname->value)
         )
     )
+    when(OPCSettingsForm->OPCSettingsEnableFallbackVias->value == "true"
+        OPCArgs = lsprintf("%s --enable-fallback-vias" OPCArgs)
+    )
     when(OPCSettingsForm->OPCSettingsExpandNamecontexts->value == "false"
         OPCArgs = lsprintf("%s --no-expand-namecontexts" OPCArgs)
     )

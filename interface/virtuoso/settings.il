@@ -31,10 +31,11 @@ procedure(OPCCreateSettingsForm()
                 ?defValue 0.1
                 ?prompt "Size of Created Labels"
             )
-            hiCreateStringField(
-                ?name 'OPCSettingsCmdAdditionalArgs
-                ?value ""
-                ?prompt "Additional Command Line Arguments"
+            hiCreateRadioField(
+                ?name 'OPCSettingsEnableFallbackVias
+                ?choices list("true" "false")
+                ?value "false"
+                ?prompt "Enable Fallback Vias"
             )
             hiCreateRadioField(
                 ?name 'OPCSettingsExpandNamecontexts
@@ -61,16 +62,21 @@ procedure(OPCCreateSettingsForm()
                 ?prompt "Draw All Alignment Boxes"
             )
             hiCreateRadioField(
-                ?name 'OPCSettingsLog
-                ?choices list("true" "false")
-                ?value "false"
-                ?prompt "Log opc calls to CIW"
-            )
-            hiCreateRadioField(
                 ?name 'OPCSettingsMerge
                 ?choices list("true" "false")
                 ?value "false"
                 ?prompt "Merge Rectangles (can take a long time)"
+            )
+            hiCreateStringField(
+                ?name 'OPCSettingsCmdAdditionalArgs
+                ?value ""
+                ?prompt "Additional Command Line Arguments"
+            )
+            hiCreateRadioField(
+                ?name 'OPCSettingsLog
+                ?choices list("true" "false")
+                ?value "false"
+                ?prompt "Log opc calls to CIW"
             )
             hiCreateRadioField(
                 ?name 'OPCSettingsGroup
