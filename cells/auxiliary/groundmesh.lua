@@ -290,7 +290,7 @@ function layout(mesh, _P)
                 if i < #_P.meshmetals then
                     if _P.meshmetals[i + 1] == _P.interconnectmetal then
                         local viaheight = math.min(_P.metalwidths[i], _P.metalwidths[i + 1])
-                        geometry.viabarebltr(mesh, _P.interconnectmetal - 1, _P.interconnectmetal,
+                        geometry.viabltr(mesh, _P.interconnectmetal - 1, _P.interconnectmetal,
                             point.create(-_P.metalwidths[#_P.meshmetals + 2] / 2, -viaheight / 2),
                             point.create( _P.metalwidths[#_P.meshmetals + 2] / 2,  viaheight / 2)
                         )
@@ -299,7 +299,7 @@ function layout(mesh, _P)
                         local capwidthnext = nfingersnext * fwidth + (nfingersnext - 1) * fspace
                         local viawidth = math.min(capwidth, capwidthnext)
                         local viaheight = math.min(_P.metalwidths[i], _P.metalwidths[i + 1])
-                        geometry.viabarebltr(mesh, _P.meshmetals[i], _P.meshmetals[i] + 1,
+                        geometry.viabltr(mesh, _P.meshmetals[i], _P.meshmetals[i] + 1,
                             point.create(-viawidth / 2, -viaheight / 2),
                             point.create( viawidth / 2,  viaheight / 2)
                         )
