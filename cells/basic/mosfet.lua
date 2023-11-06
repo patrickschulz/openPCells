@@ -36,7 +36,7 @@ function parameters()
         { "gtopextadd(Gate Additional Top Extension)",                              0, info = "Unconditional gate top extension (similar to 'gtopext', but always extends)." },
         { "gbotextadd(Gate Additional Bottom Extension)",                           0, info = "Unconditional gate bot extension (similar to 'gbotext', but always extends)." },
         { "drawleftstopgate(Draw Left Stop Gate)",                                  false, info = "draw a gate where one half of it covers the active region, the other does not (left side). This gate is covered with the layer 'diffusionbreakgate'. This is required in some technologies for short-length devices" },
-        { "drawrightstopgate(Draw Left Stop Gate)",                                false, info = "draw a gate where one half of it covers the active region, the other does not (right side). This gate is covered with the layer 'diffusionbreakgate'. This is required in some technologies for short-length devices" },
+        { "drawrightstopgate(Draw Left Stop Gate)",                                 false, info = "draw a gate where one half of it covers the active region, the other does not (right side). This gate is covered with the layer 'diffusionbreakgate'. This is required in some technologies for short-length devices" },
         { "endleftwithgate(End Left Side With Gate)",                               false, follow = "drawleftstopgate", info = "align the left end of the active region so that only half of the left-most gate covers the active region. Follows 'drawleftstopgate'." },
         { "endrightwithgate(End Right Side With Gate)",                             false, follow = "drawrightstopgate", info = "align the right end of the active region so that only half of the right-most gate covers the active region. Follows 'drawrightstopgate'." },
         { "drawtopgate(Draw Top Gate Contact)",                                     false, info = "draw gate contacts on the upper side of the active region. The contact region width is the gate length, the height is 'topgatewidth'. The space to the active region is 'topgatespace'." },
@@ -150,31 +150,31 @@ function parameters()
         { "lvsmarker",                                                              1 },
         { "lvsmarkeralignwithactive",                                               false },
         { "extendalltop",                                                           0 },
-        { "extendallbot",                                                           0 },
+        { "extendallbottom",                                                        0 },
         { "extendallleft",                                                          0 },
         { "extendallright",                                                         0 },
         { "extendoxidetop",                                                         0, follow = "extendalltop" },
-        { "extendoxidebot",                                                         0, follow = "extendallbot" },
+        { "extendoxidebottom",                                                      0, follow = "extendallbottom" },
         { "extendoxideleft",                                                        0, follow = "extendallleft" },
         { "extendoxideright",                                                       0, follow = "extendallright" },
-        { "extendvthtop",                                                           0, follow = "extendalltop" },
-        { "extendvthbot",                                                           0, follow = "extendallbot" },
-        { "extendvthleft",                                                          0, follow = "extendallleft" },
-        { "extendvthright",                                                         0, follow = "extendallright" },
+        { "extendvthtypetop",                                                       0, follow = "extendalltop" },
+        { "extendvthtypebottom",                                                    0, follow = "extendallbottom" },
+        { "extendvthtypeleft",                                                      0, follow = "extendallleft" },
+        { "extendvthtyperight",                                                     0, follow = "extendallright" },
         { "extendimplanttop",                                                       0, follow = "extendalltop" },
-        { "extendimplantbot",                                                       0, follow = "extendallbot" },
+        { "extendimplantbottom",                                                    0, follow = "extendallbottom" },
         { "extendimplantleft",                                                      0, follow = "extendallleft" },
         { "extendimplantright",                                                     0, follow = "extendallright" },
         { "extendwelltop",                                                          0, follow = "extendalltop" },
-        { "extendwellbot",                                                          0, follow = "extendallbot" },
+        { "extendwellbottom",                                                       0, follow = "extendallbottom" },
         { "extendwellleft",                                                         0, follow = "extendallleft" },
         { "extendwellright",                                                        0, follow = "extendallright" },
         { "extendlvsmarkertop",                                                     0, follow = "extendalltop" },
-        { "extendlvsmarkerbot",                                                     0, follow = "extendallbot" },
+        { "extendlvsmarkerbottom",                                                  0, follow = "extendallbottom" },
         { "extendlvsmarkerleft",                                                    0, follow = "extendallleft" },
         { "extendlvsmarkerright",                                                   0, follow = "extendallright" },
         { "extendrotationmarkertop",                                                0, follow = "extendalltop" },
-        { "extendrotationmarkerbot",                                                0, follow = "extendallbot" },
+        { "extendrotationmarkerbottom",                                             0, follow = "extendallbottom" },
         { "extendrotationmarkerleft",                                               0, follow = "extendallleft" },
         { "extendrotationmarkerright",                                              0, follow = "extendallright" },
         { "drawwell",                                                               true },
@@ -590,19 +590,19 @@ function layout(transistor, _P)
         generics.vthtype(_P.channeltype, _P.vthtype),
         point.create(
             _P.vthtypealignleftwithactive and
-                -leftactauxext - _P.extendvthleft or
-                -leftactauxext - _P.extendvthleft,
+                -leftactauxext - _P.extendvthtypeleft or
+                -leftactauxext - _P.extendvthtypeleft,
             _P.vthtypealignbottomwithactive and
-                -_P.extendvthbot or
-                gatebly - _P.extendvthbot
+                -_P.extendvthtypebottom or
+                gatebly - _P.extendvthtypebottom
         ),
         point.create(
             _P.vthtypealignrightwithactive and
-                activewidth + leftactext + rightactext + rightactauxext + _P.extendvthright or
-                activewidth + leftactext + rightactext + rightactauxext + _P.extendvthright,
+                activewidth + leftactext + rightactext + rightactauxext + _P.extendvthtyperight or
+                activewidth + leftactext + rightactext + rightactauxext + _P.extendvthtyperight,
             _P.vthtypealigntopwithactive and
-                _P.fwidth + _P.extendvthtop or
-                gatetry + _P.extendvthtop
+                _P.fwidth + _P.extendvthtypetop or
+                gatetry + _P.extendvthtypetop
         )
     )
 
@@ -614,8 +614,8 @@ function layout(transistor, _P)
                 -leftactauxext - _P.extendimplantleft or
                 -leftactauxext - _P.extendimplantleft,
             _P.implantalignbottomwithactive and
-                -_P.extendimplantbot or
-                gatebly - _P.extendimplantbot
+                -_P.extendimplantbottom or
+                gatebly - _P.extendimplantbottom
         ),
         point.create(
             _P.implantalignrightwithactive and
@@ -635,8 +635,8 @@ function layout(transistor, _P)
                 -leftactauxext - _P.extendoxideleft or
                 -leftactauxext - _P.extendoxideleft,
             _P.oxidetypealignbottomwithactive and
-                -_P.extendoxidebot or
-                gatebly - _P.extendoxidebot
+                -_P.extendoxidebottom or
+                gatebly - _P.extendoxidebottom
         ),
         point.create(
             _P.oxidetypealignrightwithactive and
@@ -652,7 +652,7 @@ function layout(transistor, _P)
     if _P.drawrotationmarker then
         geometry.rectanglebltr(transistor,
             generics.other("rotationmarker"),
-            point.create(-leftactauxext - _P.extendrotationmarkerleft, -_P.extendrotationmarkerbot),
+            point.create(-leftactauxext - _P.extendrotationmarkerleft, -_P.extendrotationmarkerbottom),
             point.create(activewidth + leftactext + rightactext + rightactauxext + _P.extendrotationmarkerright, _P.fwidth + _P.extendrotationmarkertop)
         )
     end
@@ -663,7 +663,7 @@ function layout(transistor, _P)
             generics.other(string.format("lvsmarker%d", _P.lvsmarker)),
             point.create(
                 -leftactauxext - _P.extendlvsmarkerleft,
-                -_P.extendlvsmarkerbot
+                -_P.extendlvsmarkerbottom
             ),
             point.create(
                 activewidth + leftactext + rightactext + rightactauxext + _P.extendlvsmarkerright,
@@ -675,7 +675,7 @@ function layout(transistor, _P)
             generics.other(string.format("lvsmarker%d", _P.lvsmarker)),
             point.create(
                 -leftactauxext - _P.extendlvsmarkerleft,
-                gatebly - _P.extendlvsmarkerbot
+                gatebly - _P.extendlvsmarkerbottom
             ),
             point.create(
                 activewidth + leftactext + rightactext + rightactauxext + _P.extendlvsmarkerright,
@@ -687,7 +687,7 @@ function layout(transistor, _P)
     -- well
     local wellbl = point.create(
         -leftactauxext - _P.extendwellleft,
-        -math.max(_P.extendwellbot, enable(_P.drawbotwelltap, _P.botwelltapspace + _P.botwelltapwidth))
+        -math.max(_P.extendwellbottom, enable(_P.drawbotwelltap, _P.botwelltapspace + _P.botwelltapwidth))
     )
     local welltr = point.create(
         activewidth + leftactext + rightactext + rightactauxext + _P.extendwellright,
