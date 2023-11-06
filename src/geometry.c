@@ -498,7 +498,7 @@ static void _equal_pitch_via(
     }
 }
 
-static struct via_definition* _get_rectangular_arrayzation(ucoordinate_t regionwidth, ucoordinate_t regionheight, struct via_definition** definitions, struct via_definition* fallback, unsigned int* xrep_ptr, unsigned int* yrep_ptr, unsigned int* xpitch_ptr, unsigned int* ypitch_ptr, int xcont, int ycont, int equal_pitch)
+static struct via_definition* _get_rectangular_arrayzation(ucoordinate_t regionwidth, ucoordinate_t regionheight, struct via_definition** definitions, struct via_definition* fallback, unsigned int* xrep_ptr, unsigned int* yrep_ptr, unsigned int* xpitch_ptr, unsigned int* ypitch_ptr, int xcont, int ycont, int equal_pitch, coordinate_t widthclass)
 {
     unsigned int lastarea = 0;
     unsigned int xrep = 0;
@@ -510,6 +510,12 @@ static struct via_definition* _get_rectangular_arrayzation(ucoordinate_t regionw
     while(*viadef)
     {
         struct via_definition* entry = *viadef;
+        if(widthclass > 0 && ((widthclass > entry->maxwidth) || (widthclass > entry->maxheight)))
+        {
+            printf("skipping due to widthclass (%lld)\n", widthclass);
+            ++viadef;
+            continue;
+        }
         if(regionwidth > entry->maxwidth)
         {
             ++viadef;
@@ -597,6 +603,7 @@ static int _via_contact_bltr(
     coordinate_t blx, coordinate_t bly, coordinate_t trx, coordinate_t try,
     int xcont, int ycont,
     int equal_pitch,
+    coordinate_t widthclass,
     int makearray
 )
 {
@@ -605,7 +612,7 @@ static int _via_contact_bltr(
         ucoordinate_t width = trx - blx;
         ucoordinate_t height = try - bly;
         unsigned int viaxrep, viayrep, viaxpitch, viaypitch;
-        struct via_definition* entry = _get_rectangular_arrayzation(width, height, viadefs, fallback, &viaxrep, &viayrep, &viaxpitch, &viaypitch, xcont, ycont, equal_pitch);
+        struct via_definition* entry = _get_rectangular_arrayzation(width, height, viadefs, fallback, &viaxrep, &viayrep, &viaxpitch, &viaypitch, xcont, ycont, equal_pitch, widthclass);
         if(!entry)
         {
             return 0;
@@ -633,7 +640,8 @@ static int _viabltr(
     coordinate_t blx, coordinate_t bly, coordinate_t trx, coordinate_t try,
     int xcont, int ycont,
     int equal_pitch,
-    int bare
+    int bare,
+    coordinate_t widthclass
 )
 {
     metal1 = technology_resolve_metal(techstate, metal1);
@@ -659,6 +667,7 @@ static int _viabltr(
             blx, bly, trx, try,
             xcont, ycont,
             equal_pitch,
+            widthclass,
             technology_is_create_via_arrays(techstate)
         );
     }
@@ -672,16 +681,16 @@ static int _viabltr(
     return ret;
 }
 
-int geometry_viabltr(struct object* cell, struct technology_state* techstate, int metal1, int metal2, const point_t* bl, const point_t* tr, int xcont, int ycont, int equal_pitch)
+int geometry_viabltr(struct object* cell, struct technology_state* techstate, int metal1, int metal2, const point_t* bl, const point_t* tr, int xcont, int ycont, int equal_pitch, coordinate_t widthclass)
 {
     int bare = 0;
-    return _viabltr(cell, techstate, metal1, metal2, bl->x, bl->y, tr->x, tr->y, xcont, ycont, equal_pitch, bare);
+    return _viabltr(cell, techstate, metal1, metal2, bl->x, bl->y, tr->x, tr->y, xcont, ycont, equal_pitch, bare, widthclass);
 }
 
-int geometry_viabarebltr(struct object* cell, struct technology_state* techstate, int metal1, int metal2, const point_t* bl, const point_t* tr, int xcont, int ycont, int equal_pitch)
+int geometry_viabarebltr(struct object* cell, struct technology_state* techstate, int metal1, int metal2, const point_t* bl, const point_t* tr, int xcont, int ycont, int equal_pitch, coordinate_t widthclass)
 {
     int bare = 1;
-    return _viabltr(cell, techstate, metal1, metal2, bl->x, bl->y, tr->x, tr->y, xcont, ycont, equal_pitch, bare);
+    return _viabltr(cell, techstate, metal1, metal2, bl->x, bl->y, tr->x, tr->y, xcont, ycont, equal_pitch, bare, widthclass);
 }
 
 static int _contactbltr(
@@ -690,7 +699,8 @@ static int _contactbltr(
     const char* region,
     coordinate_t blx, coordinate_t bly, coordinate_t trx, coordinate_t try,
     int xcont, int ycont,
-    int equal_pitch
+    int equal_pitch,
+    coordinate_t widthclass
 )
 {
     struct via_definition** viadefs = technology_get_contact_definitions(techstate, region);
@@ -706,6 +716,7 @@ static int _contactbltr(
         blx, bly, trx, try,
         xcont, ycont,
         equal_pitch,
+        widthclass,
         technology_is_create_via_arrays(techstate)
     );
     _rectanglebltr(cell, generics_create_metal(techstate, 1), blx, bly, trx, try);
@@ -718,7 +729,8 @@ static int _contactbarebltr(
     const char* region,
     coordinate_t blx, coordinate_t bly, coordinate_t trx, coordinate_t try,
     int xcont, int ycont,
-    int equal_pitch
+    int equal_pitch,
+    coordinate_t widthclass
 )
 {
     struct via_definition** viadefs = technology_get_contact_definitions(techstate, region);
@@ -734,6 +746,7 @@ static int _contactbarebltr(
         blx, bly, trx, try,
         xcont, ycont,
         equal_pitch,
+        widthclass,
         technology_is_create_via_arrays(techstate)
     );
     return ret;
@@ -745,7 +758,8 @@ int geometry_contactbltr(
     const char* region,
     const point_t* bl, const point_t* tr,
     int xcont, int ycont,
-    int equal_pitch
+    int equal_pitch,
+    coordinate_t widthclass
 )
 {
     return _contactbltr(
@@ -754,7 +768,8 @@ int geometry_contactbltr(
         region,
         bl->x, bl->y, tr->x, tr->y,
         xcont, ycont,
-        equal_pitch
+        equal_pitch,
+        widthclass
     );
 }
 
@@ -764,7 +779,8 @@ int geometry_contactbarebltr(
     const char* region,
     const point_t* bl, const point_t* tr,
     int xcont, int ycont,
-    int equal_pitch
+    int equal_pitch,
+    coordinate_t widthclass
 )
 {
     return _contactbarebltr(
@@ -773,7 +789,8 @@ int geometry_contactbarebltr(
         region,
         bl->x, bl->y, tr->x, tr->y,
         xcont, ycont,
-        equal_pitch
+        equal_pitch,
+        widthclass
     );
 }
 

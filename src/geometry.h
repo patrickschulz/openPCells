@@ -73,7 +73,8 @@ int geometry_viabltr(
     int metal1, int metal2,
     const point_t* bl, const point_t* tr,
     int xcont, int ycont,
-    int equal_pitch
+    int equal_pitch,
+    coordinate_t widthclass
 );
 
 int geometry_viabarebltr(
@@ -82,7 +83,8 @@ int geometry_viabarebltr(
     int metal1, int metal2,
     const point_t* bl, const point_t* tr,
     int xcont, int ycont,
-    int equal_pitch
+    int equal_pitch,
+    coordinate_t widthclass
 );
 
 int geometry_contactbltr(
@@ -91,7 +93,8 @@ int geometry_contactbltr(
     const char* region,
     const point_t* bl, const point_t* tr,
     int xcont, int ycont,
-    int equal_pitch
+    int equal_pitch,
+    coordinate_t widthclass
 );
 
 int geometry_contactbarebltr(
@@ -100,7 +103,8 @@ int geometry_contactbarebltr(
     const char* region,
     const point_t* bl, const point_t* tr,
     int xcont, int ycont,
-    int equal_pitch
+    int equal_pitch,
+    coordinate_t widthclass
 );
 
 void geometry_cross(struct object* cell, const struct generics* layer, ucoordinate_t width, ucoordinate_t height, ucoordinate_t crosssize);
