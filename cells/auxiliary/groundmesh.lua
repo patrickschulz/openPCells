@@ -244,7 +244,7 @@ function layout(mesh, _P)
                     gatemarker = _P.moscapgatemarker,
                     mosfetmarker = _P.moscapmosfetmarker,
                     extendalltop = _P.extendmoscapmarkery,
-                    extendallbot = _P.extendmoscapmarkery,
+                    extendallbottom = _P.extendmoscapmarkery,
                     extendallleft = _P.extendmoscapmarkerx,
                     extendallright = _P.extendmoscapmarkerx,
                 })
