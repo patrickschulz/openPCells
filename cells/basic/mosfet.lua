@@ -1,11 +1,24 @@
 function parameters()
     pcell.add_parameters(
         { "channeltype(Channel Type)",                                              "nmos", posvals = set("nmos", "pmos"), info = "polarity of the mosfet. Can be either 'nmos' or 'pmos'." },
-        { "implantalignwithactive",                                                 false, info = "set reference points for implant extensions. If this is false, the implant extensions are autmatically calculated so that the implant covers all gates. With this option enabled, the implant extensions are referenced to the active region. This is useful for having precise control over the implant extensions in mosfet arrays with varying gate heights"  },
+        { "implant(Threshold Voltage Type)",                                        1, argtype = "integer", posvals = interval(1, inf), info = "threshold voltage index of the device. This is a numeric index, starting from 1 (the default). The interpretation of this is up to the technology file" },
+        { "implantalignwithactive",                                                 false, info = "set reference points for implant extensions. If this is false, the implant extensions are autmatically calculated so that the implant covers all gates. With this option enabled, the implant extensions are referenced to the active region. This is useful for having precise control over the implant extensions in mosfet arrays with varying gate heights. This option sets left/right/top/bottom alignment, the dedicated switches can be used for more fine-grained control." },
+        { "implantalignleftwithactive",                                             false, follow = "vthtypealignrightwithactive", info = "set reference point for implant left extensions. If this is false, the implant left extension is autmatically calculated so that the implant covers the left gates. With this option enabled, the implant left extension is referenced to the active region. This is useful for having precise control over the implant extensions in mosfet arrays with varying gate heights" },
+        { "implantalignrightwithactive",                                            false, follow = "vthtypealignrightwithactive", info = "set reference point for implant right extensions. If this is false, the implant right extension is autmatically calculated so that the implant covers the right gates. With this option enabled, the implant right extension is referenced to the active region. This is useful for having precise control over the implant extensions in mosfet arrays with varying gate heights" },
+        { "implantaligntopwithactive",                                              false, follow = "vthtypealignrightwithactive", info = "set reference point for implant top extensions. If this is false, the implant top extension is autmatically calculated so that the implant covers the top part of all gates. With this option enabled, the implant top extension is referenced to the active region. This is useful for having precise control over the implant extensions in mosfet arrays with varying gate heights" },
+        { "implantalignbottomwithactive",                                           false, follow = "vthtypealignrightwithactive", info = "set reference point for implant bottom extensions. If this is false, the implant bottom extension is autmatically calculated so that the implant covers the bottom part of all gates. With this option enabled, the implant bottom extension is referenced to the active region. This is useful for having precise control over the vthtype marker extensions in mosfet arrays with varying gate heights" },
         { "oxidetype(Oxide Thickness Type)",                                        1, argtype = "integer", posvals = interval(1, inf), info = "oxide thickness index of the gate. This is a numeric index, starting from 1 (the default). The interpretation of this is up to the technology file" },
-        { "oxidetypealignwithactive",                                               false, info = "set reference points for oxide thickness marker extensions. If this is false, the oxide thickness marker extensions are autmatically calculated so that the oxide thickness marker covers all gates. With this option enabled, the oxide thickness marker extensions are referenced to the active region. This is useful for having precise control over the oxide thickness marker extensions in mosfet arrays with varying gate heights"  },
+        { "oxidetypealignwithactive",                                               false, info = "set reference points for oxide thickness marker extensions. If this is false, the oxide thickness marker extensions are autmatically calculated so that the oxide thickness marker covers all gates. With this option enabled, the oxide thickness marker extensions are referenced to the active region. This is useful for having precise control over the oxide thickness marker extensions in mosfet arrays with varying gate heights. This option sets left/right/top/bottom alignment, the dedicated switches can be used for more fine-grained control." },
+        { "oxidetypealignleftwithactive",                                           false, follow = "oxidetypealignrightwithactive", info = "set reference point for oxide thickness marker left extensions. If this is false, the oxide thickness marker left extension is autmatically calculated so that the oxide thickness marker covers the left gates. With this option enabled, the oxide thickness marker left extension is referenced to the active region. This is useful for having precise control over the oxide thickness marker extensions in mosfet arrays with varying gate heights" },
+        { "oxidetypealignrightwithactive",                                          false, follow = "oxidetypealignrightwithactive", info = "set reference point for oxide thickness marker right extensions. If this is false, the oxide thickness marker right extension is autmatically calculated so that the oxide thickness marker covers the right gates. With this option enabled, the oxide thickness marker right extension is referenced to the active region. This is useful for having precise control over the oxide thickness marker extensions in mosfet arrays with varying gate heights" },
+        { "oxidetypealigntopwithactive",                                            false, follow = "oxidetypealignrightwithactive", info = "set reference point for oxide thickness marker top extensions. If this is false, the oxide thickness marker top extension is autmatically calculated so that the oxide thickness marker covers the top part of all gates. With this option enabled, the oxide thickness marker top extension is referenced to the active region. This is useful for having precise control over the oxide thickness marker extensions in mosfet arrays with varying gate heights" },
+        { "oxidetypealignbottomwithactive",                                         false, follow = "oxidetypealignrightwithactive", info = "set reference point for oxide thickness marker bottom extensions. If this is false, the oxide thickness marker bottom extension is autmatically calculated so that the oxide thickness marker covers the bottom part of all gates. With this option enabled, the oxide thickness marker bottom extension is referenced to the active region. This is useful for having precise control over the vthtype marker extensions in mosfet arrays with varying gate heights" },
         { "vthtype(Threshold Voltage Type)",                                        1, argtype = "integer", posvals = interval(1, inf), info = "threshold voltage index of the device. This is a numeric index, starting from 1 (the default). The interpretation of this is up to the technology file" },
-        { "vthtypealignwithactive",                                               false, info = "set reference points for vthtype marker extensions. If this is false, the vthtype marker extensions are autmatically calculated so that the vthtype marker covers all gates. With this option enabled, the vthtype marker extensions are referenced to the active region. This is useful for having precise control over the vthtype marker extensions in mosfet arrays with varying gate heights"  },
+        { "vthtypealignwithactive",                                                 false, info = "set reference points for vthtype marker extensions. If this is false, the vthtype marker extensions are autmatically calculated so that the vthtype marker covers all gates. With this option enabled, the vthtype marker extensions are referenced to the active region. This is useful for having precise control over the vthtype marker extensions in mosfet arrays with varying gate heights. This option sets left/right/top/bottom alignment, the dedicated switches can be used for more fine-grained control." },
+        { "vthtypealignleftwithactive",                                             false, follow = "vthtypealignrightwithactive", info = "set reference point for vthtype marker left extensions. If this is false, the vthtype marker left extension is autmatically calculated so that the vthtype marker covers the left gates. With this option enabled, the vthtype marker left extension is referenced to the active region. This is useful for having precise control over the vthtype marker extensions in mosfet arrays with varying gate heights" },
+        { "vthtypealignrightwithactive",                                            false, follow = "vthtypealignrightwithactive", info = "set reference point for vthtype marker right extensions. If this is false, the vthtype marker right extension is autmatically calculated so that the vthtype marker covers the right gates. With this option enabled, the vthtype marker right extension is referenced to the active region. This is useful for having precise control over the vthtype marker extensions in mosfet arrays with varying gate heights" },
+        { "vthtypealigntopwithactive",                                              false, follow = "vthtypealignrightwithactive", info = "set reference point for vthtype marker top extensions. If this is false, the vthtype marker top extension is autmatically calculated so that the vthtype marker covers the top part of all gates. With this option enabled, the vthtype marker top extension is referenced to the active region. This is useful for having precise control over the vthtype marker extensions in mosfet arrays with varying gate heights" },
+        { "vthtypealignbottomwithactive",                                           false, follow = "vthtypealignrightwithactive", info = "set reference point for vthtype marker bottom extensions. If this is false, the vthtype marker bottom extension is autmatically calculated so that the vthtype marker covers the bottom part of all gates. With this option enabled, the vthtype marker bottom extension is referenced to the active region. This is useful for having precise control over the vthtype marker extensions in mosfet arrays with varying gate heights" },
         { "gatemarker(Gate Marking Layer Index)",                                   1, argtype = "integer", posvals = interval(1, inf), info = "special marking layer that covers only the gate (the intersection of poly and the active region). This is a numeric index, starting at 1 (the default). The interpretation is up to the technology, typically the first gate marker should be an empty layer" },
         { "mosfetmarker(MOSFET Marking Layer Index)",                               1, argtype = "integer", posvals = interval(1, inf), info = "special marking layer that covers the active region. This is a numeric index, starting at 1 (the default). The interpretation is up to the technology, typically the first gate marker should be an empty layer" },
         { "mosfetmarkeralignatsourcedrain(Align MOSFET Marker at Source/Drain)",    false, info = "set reference points for mosfetmarker extensions. If this is false, the mosfetmarker extensions are autmatically calculated so that the mosfetmarker covers all gates. With this option enabled, the mosfetmarker extensions are referenced to the active region. This is useful for having precise control over the mosfetmarker extensions in mosfet arrays with varying gate heights"  },
@@ -575,85 +588,67 @@ function layout(transistor, _P)
     end
 
     -- threshold voltage
-    if _P.vthtypealignwithactive then
-        geometry.rectanglebltr(transistor,
-            generics.vthtype(_P.channeltype, _P.vthtype),
-            point.create(
+    geometry.rectanglebltr(transistor,
+        generics.vthtype(_P.channeltype, _P.vthtype),
+        point.create(
+            vthtypealignleftwidthactive and
+                -leftactauxext - _P.extendvthleft or
                 -leftactauxext - _P.extendvthleft,
-                -_P.extendvthbot
-            ),
-            point.create(
-                activewidth + leftactext + rightactext + rightactauxext + _P.extendvthright,
-                _P.fwidth + _P.extendvthtop
-            )
-        )
-    else
-        geometry.rectanglebltr(transistor,
-            generics.vthtype(_P.channeltype, _P.vthtype),
-            point.create(
-                -leftactauxext - _P.extendvthleft,
+            vthtypealignbottomwidthactive and
+                -_P.extendvthbot or
                 gatebly - _P.extendvthbot
-            ),
-            point.create(
+        ),
+        point.create(
+            vthtypealignrightwithactive and
+                activewidth + leftactext + rightactext + rightactauxext + _P.extendvthright or
                 activewidth + leftactext + rightactext + rightactauxext + _P.extendvthright,
+            vthtypealigntopwithactive and
+                _P.fwidth + _P.extendvthtop or
                 gatetry + _P.extendvthtop
-            )
         )
-    end
+    )
 
     -- implant
-    if _P.implantalignwithactive then
-        geometry.rectanglebltr(transistor,
-            generics.implant(_P.channeltype),
-            point.create(
+    geometry.rectanglebltr(transistor,
+        generics.implant(_P.channeltype),
+        point.create(
+            implantalignleftwithactive and
+                -leftactauxext - _P.extendimplantleft or
                 -leftactauxext - _P.extendimplantleft,
-                -_P.extendimplantbot
-            ),
-            point.create(
-                activewidth + leftactext + rightactext + rightactauxext + _P.extendimplantright,
-                _P.fwidth + _P.extendimplanttop
-            )
-        )
-    else
-        geometry.rectanglebltr(transistor,
-            generics.implant(_P.channeltype),
-            point.create(
-                -leftactauxext - _P.extendimplantleft,
+            implantalignbottomwithactive and
+                -_P.extendimplantbot or
                 gatebly - _P.extendimplantbot
-            ),
-            point.create(
+        ),
+        point.create(
+            implantalignrightwithactive and
+                activewidth + leftactext + rightactext + rightactauxext + _P.extendimplantright or
                 activewidth + leftactext + rightactext + rightactauxext + _P.extendimplantright,
+            implantaligntopwithactive and
+                _P.fwidth + _P.extendimplanttop or
                 gatetry + _P.extendimplanttop
-            )
         )
-    end
+    )
 
     -- oxide thickness
-    if _P.oxidetypealignwithactive then
-        geometry.rectanglebltr(transistor,
-            generics.oxide(_P.oxidetype),
-            point.create(
+    geometry.rectanglebltr(transistor,
+        generics.oxide(_P.oxidetype),
+        point.create(
+            oxidetypealignleftwithactive and
+                -leftactauxext - _P.extendoxideleft or
                 -leftactauxext - _P.extendoxideleft,
-                -_P.extendoxidebot
-            ),
-            point.create(
-                activewidth + leftactext + rightactext + rightactauxext + _P.extendoxideright,
-                _P.fwidth + _P.extendoxidetop
-            )
-        )
-    else
-        geometry.rectanglebltr(transistor,
-            generics.oxide(_P.oxidetype),
-            point.create(
-                -leftactauxext - _P.extendoxideleft,
+            oxidetypealignbottomwithactive and
+                -_P.extendoxidebot or
                 gatebly - _P.extendoxidebot
-            ),
-            point.create(
+        ),
+        point.create(
+            oxidetypealignrightwithactive and
+                activewidth + leftactext + rightactext + rightactauxext + _P.extendoxideright or
                 activewidth + leftactext + rightactext + rightactauxext + _P.extendoxideright,
+            oxidetypealigntopwithactive and
+                _P.fwidth + _P.extendoxidetop
                 gatetry + _P.extendoxidetop
-            )
         )
-    end
+    )
 
     -- rotation marker
     if _P.drawrotationmarker then
