@@ -573,6 +573,10 @@ int main_create_and_export_cell(struct cmdoptions* cmdoptions, struct hashmap* c
         retval = 0;
         goto EXIT;
     }
+    if(cmdoptions_was_provided_long(cmdoptions, "enable-fallback-vias"))
+    {
+        technology_enable_fallback_vias(techstate);
+    }
     if(cmdoptions_was_provided_long(cmdoptions, "disable-via-arrayzation"))
     {
         technology_disable_via_arrayzation(techstate);

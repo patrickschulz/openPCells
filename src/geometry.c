@@ -575,6 +575,7 @@ static struct via_definition* _get_rectangular_arrayzation(ucoordinate_t regionw
             *ypitch_ptr = 0;
             *xrep_ptr = 1;
             *yrep_ptr = 1;
+            puts("used fallback via");
             return fallback;
         }
         else

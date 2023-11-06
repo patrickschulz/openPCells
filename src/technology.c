@@ -38,6 +38,7 @@ struct technology_state {
     struct technology_config* config;
     struct hashmap* constraints;
     struct vector* techpaths; // stores strings
+    int create_fallback_vias;
     int create_via_arrays;
     int ignore_premapped;
 
@@ -511,6 +512,10 @@ struct via_definition** technology_get_via_definitions(struct technology_state* 
 
 struct via_definition* technology_get_via_fallback(struct technology_state* techstate, int metal1, int metal2)
 {
+    if(!techstate->create_fallback_vias)
+    {
+        return NULL;
+    }
     size_t len = 3 + 1 + util_num_digits(metal1) + 1 + util_num_digits(metal2); // via + M + %d + M + %d
     char* vianame = malloc(len + 1);
     snprintf(vianame, len + 1, "viaM%dM%d", metal1, metal2);
@@ -724,6 +729,7 @@ struct technology_state* technology_initialize(void)
     techstate->config = malloc(sizeof(*techstate->config));
     techstate->constraints = hashmap_create();
     techstate->techpaths = vector_create(32, free);
+    techstate->create_fallback_vias = 0;
     techstate->create_via_arrays = 1;
     techstate->ignore_premapped = 0;
     techstate->layermap = hashmap_create();
@@ -750,6 +756,11 @@ void technology_destroy(struct technology_state* techstate)
     _destroy_layer(techstate->empty_layer);
 
     free(techstate);
+}
+
+void technology_enable_fallback_vias(struct technology_state* techstate)
+{
+    techstate->create_fallback_vias = 1;
 }
 
 void technology_disable_via_arrayzation(struct technology_state* techstate)
