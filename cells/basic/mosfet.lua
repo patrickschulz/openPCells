@@ -194,7 +194,7 @@ function parameters()
         { "guardringysep",                                                          0 },
         { "guardringsegments",                                                      { "left", "right", "top", "bottom" } },
         { "guardringfillimplant",                                                   false },
-        { "guardringfillwell",   ,                                                  false },
+        { "guardringfillwell",                                                      false },
         { "botwelltapwidth",                                                        technology.get_dimension("Minimum M1 Width") },
         { "botwelltapspace",                                                        technology.get_dimension("Minimum M1 Space") },
         { "botwelltapextendleft",                                                   0 },
