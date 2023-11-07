@@ -14,7 +14,7 @@ function M.place_welltap(cell, bl, tr, options)
     cell:inherit_alignment_box(welltap)
 end
 
-function M.place_guardring(cell, bl, tr, xspace, yspace, options)
+function M.place_guardring(cell, bl, tr, xspace, yspace, anchorprexif, options)
     local guardring = pcell.create_layout(
         "auxiliary/guardring",
         "_guardring",
@@ -27,9 +27,17 @@ function M.place_guardring(cell, bl, tr, xspace, yspace, options)
     guardring:translate(-xspace, -yspace)
     cell:merge_into(guardring)
     cell:inherit_alignment_box(guardring)
+    cell:inherit_anchor_as(guardring, "outerbottomleft",    string.format("%souterbottomleft", anchorprefix))
+    cell:inherit_anchor_as(guardring, "outerbottomright",   string.format("%souterbottomright", anchorprefix))
+    cell:inherit_anchor_as(guardring, "outertopleft",       string.format("%soutertopleft", anchorprefix))
+    cell:inherit_anchor_as(guardring, "outertopright",      string.format("%soutertopright", anchorprefix))
+    cell:inherit_anchor_as(guardring, "innerbottomleft",    string.format("%souterbottomleft", anchorprefix))
+    cell:inherit_anchor_as(guardring, "innerbottomright",   string.format("%souterbottomright", anchorprefix))
+    cell:inherit_anchor_as(guardring, "innertopleft",       string.format("%soutertopleft", anchorprefix))
+    cell:inherit_anchor_as(guardring, "innertopright",      string.format("%soutertopright", anchorprefix))
 end
 
-function M.place_guardring_with_hole(cell, bl, tr, holebl, holetr, xspace, yspace, welloffset, options)
+function M.place_guardring_with_hole(cell, bl, tr, holebl, holetr, xspace, yspace, welloffset, anchorprefix, options)
     local guardring = pcell.create_layout(
         "auxiliary/guardring",
         "_guardring",
@@ -48,6 +56,14 @@ function M.place_guardring_with_hole(cell, bl, tr, holebl, holetr, xspace, yspac
     guardring:translate(-xspace, -yspace)
     cell:merge_into(guardring)
     cell:inherit_alignment_box(guardring)
+    cell:inherit_anchor_as(guardring, "outerbottomleft",    string.format("%souterbottomleft", anchorprefix))
+    cell:inherit_anchor_as(guardring, "outerbottomright",   string.format("%souterbottomright", anchorprefix))
+    cell:inherit_anchor_as(guardring, "outertopleft",       string.format("%soutertopleft", anchorprefix))
+    cell:inherit_anchor_as(guardring, "outertopright",      string.format("%soutertopright", anchorprefix))
+    cell:inherit_anchor_as(guardring, "innerbottomleft",    string.format("%souterbottomleft", anchorprefix))
+    cell:inherit_anchor_as(guardring, "innerbottomright",   string.format("%souterbottomright", anchorprefix))
+    cell:inherit_anchor_as(guardring, "innertopleft",       string.format("%soutertopleft", anchorprefix))
+    cell:inherit_anchor_as(guardring, "innertopright",      string.format("%soutertopright", anchorprefix))
 end
 
 return M
