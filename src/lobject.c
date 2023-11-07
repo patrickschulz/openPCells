@@ -817,7 +817,20 @@ static int lobject_add_port(lua_State* L)
     const struct generics* layer = lua_touserdata(L, 3);
     struct lpoint* lpoint = lpoint_checkpoint(L, 4);
     double sizehint = luaL_optnumber(L, 5, 0.0);
-    object_add_port(lobject_get(L, cell), name, layer, lpoint_get(lpoint), sizehint); // 1: store anchor
+    object_add_port(lobject_get(L, cell), name, layer, lpoint_get(lpoint), sizehint);
+    return 0;
+}
+
+static int lobject_add_port_with_anchor(lua_State* L)
+{
+    lcheck_check_numargs_set(L, 4, 5, "object.add_port_with_anchor");
+    struct lobject* cell = lobject_check(L, 1);
+    const char* name = luaL_checkstring(L, 2);
+    const struct generics* layer = lua_touserdata(L, 3);
+    struct lpoint* lpoint = lpoint_checkpoint(L, 4);
+    double sizehint = luaL_optnumber(L, 5, 0.0);
+    object_add_port(lobject_get(L, cell), name, layer, lpoint_get(lpoint), sizehint);
+    object_add_anchor(lobject_get(L, cell), name, point_getx(lpoint_get(lpoint)), point_gety(lpoint_get(lpoint)));
     return 0;
 }
 
@@ -832,7 +845,7 @@ static int lobject_add_bus_port(lua_State* L)
     unsigned int xpitch = lua_tointeger(L, 7);
     unsigned int ypitch = lua_tointeger(L, 8);
     double sizehint = luaL_optnumber(L, 9, 0.0);
-    object_add_bus_port(lobject_get(L, cell), name, layer, lpoint_get(lpoint), startindex, endindex, xpitch, ypitch, sizehint); // 1: store anchor
+    object_add_bus_port(lobject_get(L, cell), name, layer, lpoint_get(lpoint), startindex, endindex, xpitch, ypitch, sizehint);
     return 0;
 }
 
@@ -1283,6 +1296,7 @@ int open_lobject_lib(lua_State* L)
         { "get_array_area_anchor",                  lobject_get_array_area_anchor               },
         { "get_all_regular_anchors",                lobject_get_all_regular_anchors             },
         { "add_port",                               lobject_add_port                            },
+        { "add_port_with_anchor",                   lobject_add_port_with_anchor                },
         { "add_bus_port",                           lobject_add_bus_port                        },
         { "get_ports",                              lobject_get_ports                           },
         { "clear_alignment_box",                    lobject_clear_alignment_box                 },
