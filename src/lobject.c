@@ -584,6 +584,40 @@ static void _check_rectangle_points(lua_State* L, struct lpoint* bl, struct lpoi
     }
 }
 
+static int lobject_inherit_anchor(lua_State* L)
+{
+    struct lobject* cell = lobject_check(L, 1);
+    struct lobject* other = lobject_check(L, 2);
+    const char* anchorname = luaL_checkstring(L, 3);
+    if(!object_has_anchor(lobject_get_const(other), anchorname))
+    {
+        lua_pushfstring(L, "object.inherit_anchor: object does not have an anchor '%s'", anchorname);
+        lua_error(L);
+    }
+    object_inherit_anchor(lobject_get(L, cell), lobject_get_const(other), anchorname);
+    return 0;
+}
+
+static int lobject_inherit_anchor_as(lua_State* L)
+{
+    struct lobject* cell = lobject_check(L, 1);
+    struct lobject* other = lobject_check(L, 2);
+    const char* anchorname = luaL_checkstring(L, 3);
+    const char* newanchorname = luaL_checkstring(L, 4);
+    if(!object_has_anchor(lobject_get_const(other), anchorname))
+    {
+        lua_pushfstring(L, "object.inherit_anchor_as: object does not have an anchor '%s'", anchorname);
+        lua_error(L);
+    }
+    int ret = object_inherit_anchor_as(lobject_get(L, cell), lobject_get_const(other), anchorname, newanchorname);
+    if(!ret)
+    {
+        lua_pushfstring(L, "object.inherit_anchor_as: could not inherit anchor '%s'", anchorname);
+        lua_error(L);
+    }
+    return 0;
+}
+
 static int lobject_add_area_anchor_bltr(lua_State* L)
 {
     if(lua_gettop(L) != 4)
@@ -1293,6 +1327,8 @@ int open_lobject_lib(lua_State* L)
         { "get_name",                               lobject_get_name                            },
         { "set_name",                               lobject_set_name                            },
         { "add_anchor",                             lobject_add_anchor                          },
+        { "inherit_anchor",                         lobject_inherit_anchor                      },
+        { "inherit_anchor_as",                      lobject_inherit_anchor_as                   },
         { "add_area_anchor_bltr",                   lobject_add_area_anchor_bltr                },
         { "inherit_area_anchor",                    lobject_inherit_area_anchor                 },
         { "inherit_area_anchor_as",                 lobject_inherit_area_anchor_as              },

@@ -540,7 +540,7 @@ int object_inherit_area_anchor_as(struct object* cell, const struct object* othe
         object_add_area_anchor_bltr(cell, newname, anchor + 0, anchor + 1);
         free(anchor);
     }
-    return 0;
+    return 1;
 }
 
 int object_inherit_anchor(struct object* cell, const struct object* other, const char* name)
@@ -560,7 +560,7 @@ int object_inherit_anchor_as(struct object* cell, const struct object* other, co
         object_add_anchor(cell, newname, point_getx(anchor), point_gety(anchor));
         free(anchor);
     }
-    return 0;
+    return 1;
 }
 
 void object_inherit_all_anchors_with_prefix(struct object* cell, const struct object* other, const char* prefix)
