@@ -52,28 +52,28 @@ function layout(inductor, _P)
         -- draw underpass
         if i < _P.turns then
             -- create connection to underpass
-            prepend(-(_scale_tanpi8(_P.radius) + pitch / 2) / 2,  sign * radius)
-            append(-(_scale_tanpi8(_P.radius) + pitch / 2) / 2, -sign * radius)
+            prepend(-_scale_tanpi8(_P.radius / 2) + pitch / 4,  sign * radius)
+            append(-_scale_tanpi8(_P.radius / 2) + pitch / 4, -sign * radius)
             -- create underpass
             local uppts = {}
             -- luacheck: ignore append
             local append = util.make_insert_xy(uppts)
-            append(-(_scale_tanpi8(_P.radius) + pitch / 2) / 2, -sign * radius)
+            append(-(_scale_tanpi8(_P.radius / 2) + pitch / 4), -sign * radius)
             append(-pitch / 2 - _scale_tanpi8(_P.width / 2), -sign * radius)
             append(-pitch / 2, -sign * radius)
             append( pitch / 2, -sign * (radius + pitch))
             append( pitch / 2 + _scale_tanpi8(_P.width / 2), -sign * (radius + pitch))
-            append( (_scale_tanpi8(_P.radius) + pitch / 2) / 2, -sign * (radius + pitch))
+            append( (_scale_tanpi8(_P.radius / 2) + pitch / 4), -sign * (radius + pitch))
             geometry.path_polygon(inductor, mainmetal, uppts, _P.width, true)
             geometry.path_polygon(inductor, auxmetal, util.xmirror(uppts), _P.width, true)
             -- place vias
             geometry.viabltr(inductor, _P.metalnum, _P.metalnum - 1,
-                point.create(-_P.width / 2 - (_scale_tanpi8(_P.radius) + pitch / 2) / 2, -_P.width / 2 - sign * (radius + pitch)),
-                point.create( _P.width / 2 - (_scale_tanpi8(_P.radius) + pitch / 2) / 2,  _P.width / 2 - sign * (radius + pitch))
+                point.create(-_P.width / 2 - (_scale_tanpi8(_P.radius / 2) + pitch / 4), -_P.width / 2 - sign * (radius + pitch)),
+                point.create( _P.width / 2 - (_scale_tanpi8(_P.radius / 2) + pitch / 4),  _P.width / 2 - sign * (radius + pitch))
             )
             geometry.viabltr(inductor, _P.metalnum, _P.metalnum - 1,
-                point.create(-_P.width / 2 + (_scale_tanpi8(_P.radius) + pitch / 2) / 2, -_P.width / 2 - sign * radius),
-                point.create( _P.width / 2 + (_scale_tanpi8(_P.radius) + pitch / 2) / 2,  _P.width / 2 - sign * radius)
+                point.create(-_P.width / 2 + (_scale_tanpi8(_P.radius / 2) + pitch / 4), -_P.width / 2 - sign * radius),
+                point.create( _P.width / 2 + (_scale_tanpi8(_P.radius / 2) + pitch / 4),  _P.width / 2 - sign * radius)
             )
         end
 
@@ -86,7 +86,7 @@ function layout(inductor, _P)
         if i == _P.turns then
             -- create connection to underpass
             if i > 1 then
-                prepend(-(_scale_tanpi8(_P.radius) + pitch / 2) / 2, sign * radius)
+                prepend(-(_scale_tanpi8(_P.radius / 2) + pitch / 4), sign * radius)
             end
             if _P.extsep / 2 + _P.width > r + _scale_tanpi8(_P.width / 2) then
                 append(-(_P.extsep + _P.width) / 2, -r - radius + (_P.extsep + _P.width) / 2)
