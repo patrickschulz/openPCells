@@ -1477,6 +1477,10 @@ struct polygon* object_get_layer_boundary(const struct object* cell, const struc
 {
     if(cell->isproxy)
     {
+        if(!cell->reference->layer_boundaries)
+        {
+            return polygon_create_empty();
+        }
         struct polygon* cellboundary = hashmap_get(cell->reference->layer_boundaries, (const char*)layer);
         if(cellboundary)
         {
@@ -1524,6 +1528,10 @@ struct polygon* object_get_layer_boundary(const struct object* cell, const struc
     }
     else
     {
+        if(!cell->layer_boundaries)
+        {
+            return polygon_create_empty();
+        }
         struct polygon* cellboundary = hashmap_get(cell->layer_boundaries, (const char*)layer);
         if(cellboundary)
         {
