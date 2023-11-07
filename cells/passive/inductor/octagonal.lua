@@ -208,7 +208,9 @@ function layout(inductor, _P)
         local innerlayerboundary = graphics.coarse_circle(1.08239 * (_P.radius - _P.width / 2 - _P.boundaryinnerextension), 8, -math.pi / 8)
         local outerlayerboundary = graphics.coarse_circle(1.08239 * (_P.radius + _P.width / 2 + _P.boundaryouterextension), 8, -math.pi / 8)
         local layerboundary = {}
-        util.merge_forwards(layerboundary, innerlayerboundary)
+        if not _P.fillboundary then
+            util.merge_forwards(layerboundary, innerlayerboundary)
+        end
         util.merge_backwards(layerboundary, outerlayerboundary)
         inductor:add_layer_boundary(generics.metal(_P.metalnum), layerboundary)
     end
