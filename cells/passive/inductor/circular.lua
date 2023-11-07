@@ -77,9 +77,10 @@ function check(_P)
     if not ((-0.5 * _P.separation - _P.cornerradius) % _P.grid == 0) then
         return false, "can't fit points on grid with this separation and cornerradius"
     end
-    if (-_P.grid * math.floor(math.sqrt((_P.radius - _P.width / 2 + _P.cornerradius)^2 - (0.5 * _P.separation + _P.cornerradius)^2) / _P.grid)) < -_P.radius - _P.width / 2 - _P.extension then
-        return false, "extension must be large enough to ensure that the rectangular feed lines don't intersect with the circular connectors"
-    end
+    -- FIXME: this check seems to be broken (caused false-positives)
+    --if (_P.grid * math.floor(math.sqrt((_P.radius - _P.width / 2 + _P.cornerradius)^2 - (0.5 * _P.separation + _P.cornerradius)^2) / _P.grid)) > _P.radius + _P.width / 2 + _P.extension then
+    --    return false, "extension must be large enough to ensure that the rectangular feed lines don't intersect with the circular connectors"
+    --end
     return true
 end
 
