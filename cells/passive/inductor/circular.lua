@@ -154,8 +154,8 @@ function layout(inductor, _P)
         inductor:set_boundary(outerpathpts)
     end
     -- add layer boundaries
-    local innerlayerboundary = graphics.coarse_circle(_P.radius - _P.width / 2 - _P.boundaryinnerextension, -math.pi / 2, 32)
-    local outerlayerboundary = graphics.coarse_circle(_P.radius + _P.width / 2 + _P.boundaryouterextension, -math.pi / 2, 32)
+    local innerlayerboundary = graphics.coarse_circle(_P.radius - _P.width / 2 - _P.boundaryinnerextension, 32, -math.pi / 2)
+    local outerlayerboundary = graphics.coarse_circle(_P.radius + _P.width / 2 + _P.boundaryouterextension, 32, -math.pi / 2)
     local layerboundary = {}
     util.merge_forwards(layerboundary, innerlayerboundary)
     util.merge_backwards(layerboundary, outerlayerboundary)

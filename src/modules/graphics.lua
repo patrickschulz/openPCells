@@ -229,7 +229,8 @@ function graphics.circle(origin, radius, startangle, endangle, grid, allow45)
     return graphics.ellipse(origin, radius, radius, startangle, endangle, grid, allow45)
 end
 
-function graphics.coarse_circle(radius, startangle, numpoints)
+function graphics.coarse_circle(radius, numpoints, startangle)
+    startangle = startangle or 0
     local pts = {}
     for i = 1, numpoints + 1 do
         table.insert(pts, 
