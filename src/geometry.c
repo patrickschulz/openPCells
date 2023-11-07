@@ -59,6 +59,11 @@ void geometry_rectanglebltr(struct object* cell, const struct generics* layer, c
     _rectanglebltr(cell, layer, bl->x, bl->y, tr->x, tr->y);
 }
 
+void geometry_rectangleblwh(struct object* cell, const struct generics* layer, const point_t* bl, coordinate_t width, coordinate_t height)
+{
+    _rectanglebltr(cell, layer, bl->x, bl->y, bl->x + width, bl->y + height);
+}
+
 void geometry_rectanglepoints(struct object* cell, const struct generics* layer, const point_t* pt1, const point_t* pt2)
 {
     if(pt1->x <= pt2->x && pt1->y <= pt2->y)

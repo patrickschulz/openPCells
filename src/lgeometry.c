@@ -51,6 +51,18 @@ static int lgeometry_rectanglebltr(lua_State* L)
     return 0;
 }
 
+static int lgeometry_rectangleblwh(lua_State* L)
+{
+    lcheck_check_numargs(L, 5, "geometry.rectangleblwh");
+    struct lobject* cell = lobject_check(L, 1);
+    struct generics* layer = _check_generics(L, 2);
+    struct lpoint* bl = lpoint_checkpoint(L, 3);
+    coordinate_t width = lpoint_checkcoordinate(L, 4, "width");
+    coordinate_t height = lpoint_checkcoordinate(L, 5, "height");
+    geometry_rectangleblwh(lobject_get(L, cell), layer, lpoint_get(bl), width, height);
+    return 0;
+}
+
 static int lgeometry_rectanglepoints(lua_State* L)
 {
     lcheck_check_numargs(L, 4, "geometry.rectanglepoints");
@@ -1398,6 +1410,7 @@ int open_lgeometry_lib(lua_State* L)
     static const luaL_Reg modfuncs[] =
     {
         { "rectanglebltr",                              lgeometry_rectanglebltr                                     },
+        { "rectangleblwh",                              lgeometry_rectangleblwh                                     },
         { "rectanglepoints",                            lgeometry_rectanglepoints                                   },
         { "rectanglearray",                             lgeometry_rectanglearray                                    },
         { "slotted_rectangle",                          lgeometry_slotted_rectangle                                 },

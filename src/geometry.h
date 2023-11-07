@@ -21,6 +21,13 @@ void geometry_rectanglebltr(
     const point_t* bl, const point_t* tr
 );
 
+void geometry_rectangleblwh(
+    struct object* cell,
+    const struct generics* layer,
+    const point_t* bl,
+    coordinate_t width, coordinate_t height
+);
+
 void geometry_rectanglepoints(
     struct object* cell,
     const struct generics* layer,
