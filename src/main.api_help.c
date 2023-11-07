@@ -556,6 +556,25 @@ static struct vector* _initialize_api_entries(void)
         ));
     }
 
+    /* geometry.rectangleblwh */
+    {
+        struct parameter parameters[] = {
+            { "cell",   OBJECT,     NULL,   "Object in which the rectangle is created" },
+            { "layer",  GENERICS,   NULL,   "Layer of the generated rectangular shape" },
+            { "bl",     POINT,      NULL,   "Bottom-left point of the generated rectangular shape" },
+            { "width",  INTEGER,    NULL,   "Width of the rectangular shape" },
+            { "height", INTEGER,    NULL,   "Height of the rectangular shape" }
+        };
+        vector_append(entries, _make_api_entry(
+            "rectangleblwh",
+            MODULE_GEOMETRY,
+            "Create a rectangular shape with the given bottom-left corner point and the width and height in cell",
+            "geometry.rectangleblwh(cell, generics.other(\"nwell\"), point.create(-100, -100), 200, 200)",
+            parameters,
+            sizeof(parameters) / sizeof(parameters[0])
+        ));
+    }
+
     /* geometry.rectanglepoints */
     {
         struct parameter parameters[] = {
