@@ -940,6 +940,14 @@ static int lobject_inherit_alignment_box(lua_State* L)
     return 0;
 }
 
+static int lobject_alignment_box_include_point(lua_State* L)
+{
+    struct lobject* cell = lobject_check(L, 1);
+    struct lpoint* pt = lpoint_checkpoint(L, 2);
+    object_alignment_box_include_point(lobject_get(L, cell), lpoint_get(pt));
+    return 0;
+}
+
 static int lobject_extend_alignment_box(lua_State* L)
 {
     struct lobject* cell = lobject_check(L, 1);
@@ -1302,6 +1310,7 @@ int open_lobject_lib(lua_State* L)
         { "clear_alignment_box",                    lobject_clear_alignment_box                 },
         { "set_alignment_box",                      lobject_set_alignment_box                   },
         { "inherit_alignment_box",                  lobject_inherit_alignment_box               },
+        { "alignment_box_include_point",            lobject_alignment_box_include_point         },
         { "extend_alignment_box",                   lobject_extend_alignment_box                },
         { "extend_alignment_box_x_symmetrical",     lobject_extend_alignment_box_x_symmetrical  },
         { "extend_alignment_box_y_symmetrical",     lobject_extend_alignment_box_y_symmetrical  },

@@ -706,7 +706,6 @@ static coordinate_t* _get_transformed_alignment_box(const struct object* cell)
     return alignmentbox;
 }
 
-
 point_t* object_get_anchor(const struct object* cell, const char* name)
 {
     point_t* pt = _get_regular_anchor(cell, name);
@@ -1696,6 +1695,42 @@ void object_inherit_alignment_box(struct object* cell, const struct object* othe
     point_destroy(outertr);
     point_destroy(innerbl);
     point_destroy(innertr);
+}
+
+void object_alignment_box_include_point(struct object* cell, const point_t* pt)
+{
+    if(cell->isproxy)
+    {
+        return;
+    }
+    coordinate_t x = point_getx(pt);
+    coordinate_t y = point_gety(pt);
+    transformationmatrix_apply_inverse_transformation_xy(cell->trans, &x, &y);
+    if(cell->alignmentbox)
+    {
+        coordinate_t souterblx = cell->alignmentbox[0];
+        coordinate_t souterbly = cell->alignmentbox[1];
+        coordinate_t soutertrx = cell->alignmentbox[2];
+        coordinate_t soutertry = cell->alignmentbox[3];
+        coordinate_t sinnerblx = cell->alignmentbox[4];
+        coordinate_t sinnerbly = cell->alignmentbox[5];
+        coordinate_t sinnertrx = cell->alignmentbox[6];
+        coordinate_t sinnertry = cell->alignmentbox[7];
+        coordinate_t outerblx = min(point_getx(pt), souterblx);
+        coordinate_t outerbly = min(point_gety(pt), souterbly);
+        coordinate_t outertrx = max(point_getx(pt), soutertrx);
+        coordinate_t outertry = max(point_gety(pt), soutertry);
+        coordinate_t innerblx = min(point_getx(pt), sinnerblx);
+        coordinate_t innerbly = min(point_gety(pt), sinnerbly);
+        coordinate_t innertrx = max(point_getx(pt), sinnertrx);
+        coordinate_t innertry = max(point_gety(pt), sinnertry);
+        object_set_alignment_box(cell, outerblx, outerbly, outertrx, outertry, innerblx, innerbly, innertrx, innertry);
+    }
+    else
+    {
+        puts("using object.alignment_box_include_point on an object without an alignment box. While this could be a sensible operation, it is currently not implemented.");
+        // FIXME
+    }
 }
 
 int object_extend_alignment_box(struct object* cell,

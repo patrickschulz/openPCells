@@ -222,7 +222,17 @@ void transformationmatrix_apply_inverse_transformation(const struct transformati
     pt->y = (-M(matrix, 3) * x +  M(matrix, 0) * y + (-M(matrix, 0) * M(matrix, 5) - M(matrix, 2) * M(matrix, 3))) / det;
 }
 
+void transformationmatrix_apply_inverse_transformation_xy(const struct transformationmatrix* matrix, coordinate_t* ptx, coordinate_t* pty)
+{
+    coordinate_t x = *ptx;
+    coordinate_t y = *pty;
+    coordinate_t det = M(matrix, 4) * M(matrix, 4) - M(matrix, 1) * M(matrix, 3);
+    *ptx = ( M(matrix, 4) * x + -M(matrix, 1) * y + ( M(matrix, 1) * M(matrix, 5) - M(matrix, 2) * M(matrix, 4))) / det;
+    *pty = (-M(matrix, 3) * x +  M(matrix, 0) * y + (-M(matrix, 0) * M(matrix, 5) - M(matrix, 2) * M(matrix, 3))) / det;
+}
+
 const coordinate_t* transformationmatrix_get_coefficients(const struct transformationmatrix* matrix)
 {
     return matrix->coefficients;
 }
+

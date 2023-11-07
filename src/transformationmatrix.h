@@ -28,6 +28,7 @@ void transformationmatrix_apply_transformation(const struct transformationmatrix
 void transformationmatrix_apply_transformation_rot_mirr(const struct transformationmatrix* matrix, point_t* pt);
 void transformationmatrix_apply_transformation_xy(const struct transformationmatrix* matrix, coordinate_t* x, coordinate_t* y);
 void transformationmatrix_apply_inverse_transformation(const struct transformationmatrix* matrix, point_t* pt);
+void transformationmatrix_apply_inverse_transformation_xy(const struct transformationmatrix* matrix, coordinate_t* x, coordinate_t* y);
 const coordinate_t* transformationmatrix_get_coefficients(const struct transformationmatrix* matrix);
 
 #endif /* OPC_TRANSFORMATIONMATRIX_H */
