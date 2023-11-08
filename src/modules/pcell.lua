@@ -114,6 +114,7 @@ function parammeta.add(self, name, value, argtype, posvals, info, follow, readon
     }
     table.insert(self.values, new)
     if follow then
+        -- FIXME: add cycle check
         self.followers[pname] = follow
     end
 end
