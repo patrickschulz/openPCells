@@ -62,7 +62,7 @@ enum module {
     MODULE_OBJECT,
     MODULE_GEOMETRY,
     MODULE_POINT,
-    MODULE_TECH,
+    MODULE_TECHNOLOGY,
     MODULE_GENERICS,
     MODULE_PCELL,
     MODULE_UTIL,
@@ -90,8 +90,8 @@ static const char* _stringify_module(enum module module)
             return "object";
         case MODULE_GEOMETRY:
             return "geometry";
-        case MODULE_TECH:
-            return "tech";
+        case MODULE_TECHNOLOGY:
+            return "technology";
         case MODULE_PCELL:
             return "pcell";
         case MODULE_GENERICS:
@@ -1468,46 +1468,46 @@ static struct vector* _initialize_api_entries(void)
         ));
     }
 
-    /* tech.get_dimension */
+    /* technology.get_dimension */
     {
         struct parameter parameters[] = {
             { "property", STRING, NULL, "technology property name" }
         };
         vector_append(entries, _make_api_entry(
             "get_dimension",
-            MODULE_TECH,
+            MODULE_TECHNOLOGY,
             "Get critical technology dimensions such as minimum metal width. Predominantly used in pcell parameter definitions, but not necessarily restricted to that. There is a small set of technology properties that are used in the standard opc cells, but there is currently no proper definitions of the supported fields. See basic/mosfet and basic/cmos for examples",
-            "function parameters()\n    pcell.add_parameters({ {\"width\", tech.get_dimension(\"Minimum M1 Width\") } })\nend",
+            "function parameters()\n    pcell.add_parameters({ {\"width\", technology.get_dimension(\"Minimum M1 Width\") } })\nend",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
 
-    /* tech.has_layer */
+    /* technology.has_layer */
     {
         struct parameter parameters[] = {
             { "layer", GENERICS, NULL, "generic layer which should be checked" }
         };
         vector_append(entries, _make_api_entry(
             "has_layer",
-            MODULE_TECH,
+            MODULE_TECHNOLOGY,
             "Check if the chosen technology supports a certain layer",
-            "if tech.has_layer(generics.other(\"gatecut\")) then\n    -- do something with gatecuts\nend",
+            "if technology.has_layer(generics.other(\"gatecut\")) then\n    -- do something with gatecuts\nend",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
     }
 
-    /* tech.resolve_metal */
+    /* technology.resolve_metal */
     {
         struct parameter parameters[] = {
             { "index", INTEGER, NULL, "metal index to be resolved" }
         };
         vector_append(entries, _make_api_entry(
             "resolve_metal",
-            MODULE_TECH,
+            MODULE_TECHNOLOGY,
             "resolve negative metal indices to their 'real' value (e.g. in a metal stack with five metals -1 becomes 5, -3 becomes 3). This function does not do anything if the index is positive",
-            "local metalindex = tech.resolve_metal(-2)",
+            "local metalindex = technology.resolve_metal(-2)",
             parameters,
             sizeof(parameters) / sizeof(parameters[0])
         ));
