@@ -738,16 +738,16 @@ function layout(transistor, _P)
             fillwell = _P.guardringfillwell,
             fillimplant = _P.guardringfillimplant,
         })
-        guardring:move_point(guardring:get_anchor("innerbottomleft"), point.create(-leftactauxext, 0))
+        guardring:move_point(guardring:get_area_anchor("innerboundary").bl, point.create(-leftactauxext, 0))
         guardring:translate(-_P.guardringxsep, -_P.guardringysep)
         transistor:merge_into(guardring)
         transistor:add_area_anchor_bltr("outerguardring",
-            guardring:get_anchor("outerbottomleft"),
-            guardring:get_anchor("outertopright")
+            guardring:get_area_anchor("outerboundary").bl,
+            guardring:get_area_anchor("outerboundary").tr
         )
         transistor:add_area_anchor_bltr("innerguardring",
-            guardring:get_anchor("innerbottomleft"),
-            guardring:get_anchor("innertopright")
+            guardring:get_area_anchor("innerboundary").bl,
+            guardring:get_area_anchor("innerboundary").tr
         )
     end
 

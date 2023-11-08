@@ -103,7 +103,7 @@ function layout(mesh, _P)
                 soiopenextension = _P.soiopenextension,
             })
             guardring:move_point(
-                guardring:get_anchor("innerbottomleft"),
+                guardring:get_area_anchor("innerboundary").bl,
                 point.create(-_P.cellsize / 2 + _P.metalwidths[1], -_P.cellsize / 2 + _P.metalwidths[1])
             )
             mesh:merge_into(guardring)

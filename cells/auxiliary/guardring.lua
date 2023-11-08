@@ -281,14 +281,14 @@ function layout(guardring, _P)
     end
 
     -- useful anchors for alignment
-    guardring:add_anchor("innerbottomleft", point.create(0, 0))
-    guardring:add_anchor("innertopleft", point.create(0, holeheight))
-    guardring:add_anchor("innerbottomright", point.create(holewidth, 0))
-    guardring:add_anchor("innertopright", point.create(holewidth, holeheight))
-    guardring:add_anchor("outerbottomleft", point.create(-_P.ringwidth, -_P.ringwidth))
-    guardring:add_anchor("outertopleft", point.create(-_P.ringwidth, holeheight + _P.ringwidth))
-    guardring:add_anchor("outerbottomright", point.create(holewidth + _P.ringwidth, -_P.ringwidth))
-    guardring:add_anchor("outertopright", point.create(holewidth + _P.ringwidth, holeheight + _P.ringwidth))
+    guardring:add_area_anchor_bltr("innerboundary",
+        point.create(0, 0),
+        point.create(holewidth, holeheight)
+    )
+    guardring:add_area_anchor_bltr("outerboundary",
+        point.create(-_P.ringwidth, -_P.ringwidth),
+        point.create(holewidth + _P.ringwidth, holeheight + _P.ringwidth)
+    )
 
     guardring:set_alignment_box(
         point.create(-_P.ringwidth, -_P.ringwidth),
