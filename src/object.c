@@ -1595,6 +1595,7 @@ static void _add_port(struct object* cell, const char* name, const struct generi
         }
         struct port* port = malloc(sizeof(*port));
         port->where = point_create(x, y);
+        transformationmatrix_apply_inverse_transformation(cell->trans, port->where);
         port->layer = layer;
         port->isbusport = isbusport;
         port->busindex = busindex;
