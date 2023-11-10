@@ -573,51 +573,6 @@ static int lgeometry_rectangle_fill_in_boundary(lua_State* L)
     return 0;
 }
 
-/*
-static int lgeometry_path_3x(lua_State* L)
-{
-    struct lobject* cell = lobject_check(L, 1);
-    struct generics* layer = _check_generics(L, 2);
-    lua_len(L, 3);
-    size_t len = lua_tointeger(L, -1);
-    lua_pop(L, 1);
-    coordinate_t width = lua_tointeger(L, 4);
-
-    int bgnext = 0;
-    int endext = 0;
-    _get_path_extension(L, 5, &bgnext, &endext);
-
-    size_t numpoints = 2 * (len - 2) + 3;
-    point_t** points = calloc(numpoints, sizeof(*points));
-
-    lua_rawgeti(L, 3, 1);
-    struct lpoint* pt = lpoint_checkpoint(L, -1);
-    points[0] = point_create(lpoint_get(pt)->x, lpoint_get(pt)->y);
-    //coordinate_t lastx = lpoint_get(pt)->x;
-    coordinate_t lasty = lpoint_get(pt)->y;
-    lua_pop(L, 1);
-
-    for(unsigned int i = 2; i <= len; ++i)
-    {
-        lua_rawgeti(L, 3, i);
-        struct lpoint* pt = lpoint_checkpoint(L, -1);
-        points[2 * (i - 2) + 1] = point_create(lpoint_get(pt)->x, lasty);
-        points[2 * (i - 2) + 2] = point_create(lpoint_get(pt)->x, lpoint_get(pt)->y);
-        //lastx = lpoint_get(pt)->x;
-        lasty = lpoint_get(pt)->y;
-        lua_pop(L, 1);
-    }
-
-    geometry_path(lobject_get(L, cell), layer, points, numpoints, width, bgnext, endext);
-    for(unsigned int i = 0; i < numpoints; ++i)
-    {
-        point_destroy(points[i]);
-    }
-    free(points);
-    return 0;
-}
-*/
-
 static int lgeometry_path_2x(lua_State* L)
 {
     struct lobject* cell = lobject_check(L, 1);
@@ -669,13 +624,14 @@ static int lgeometry_path_3x(lua_State* L)
     struct lpoint* ptstart = lpoint_checkpoint(L, 3);
     struct lpoint* ptend = lpoint_checkpoint(L, 4);
     coordinate_t width = luaL_checkinteger(L, 5);
+    double posfactor = luaL_checknumber(L, 6);
 
     int bgnext = 0;
     int endext = 0;
-    _get_path_extension(L, 6, &bgnext, &endext);
+    _get_path_extension(L, 7, &bgnext, &endext);
 
-    point_t* pts1 = point_create((lpoint_get(ptstart)->x + lpoint_get(ptend)->x) / 2, lpoint_get(ptstart)->y);
-    point_t* pts2 = point_create((lpoint_get(ptstart)->x + lpoint_get(ptend)->x) / 2, lpoint_get(ptend)->y);
+    point_t* pts1 = point_create(lpoint_get(ptstart)->x + (lpoint_get(ptend)->x - lpoint_get(ptstart)->x) * posfactor, lpoint_get(ptstart)->y);
+    point_t* pts2 = point_create(lpoint_get(ptstart)->x + (lpoint_get(ptend)->x - lpoint_get(ptstart)->x) * posfactor, lpoint_get(ptend)->y);
     const point_t* points[4];
     points[0] = lpoint_get(ptstart);
     points[1] = pts1;
@@ -694,13 +650,14 @@ static int lgeometry_path_3y(lua_State* L)
     struct lpoint* ptstart = lpoint_checkpoint(L, 3);
     struct lpoint* ptend = lpoint_checkpoint(L, 4);
     coordinate_t width = luaL_checkinteger(L, 5);
+    double posfactor = luaL_checknumber(L, 6);
 
     int bgnext = 0;
     int endext = 0;
     _get_path_extension(L, 6, &bgnext, &endext);
 
-    point_t* pts1 = point_create(lpoint_get(ptstart)->x, (lpoint_get(ptstart)->y + lpoint_get(ptend)->y) / 2);
-    point_t* pts2 = point_create(lpoint_get(ptend)->x, (lpoint_get(ptstart)->y + lpoint_get(ptend)->y) / 2);
+    point_t* pts1 = point_create(lpoint_get(ptstart)->x, lpoint_get(ptstart)->y + (lpoint_get(ptend)->y - lpoint_get(ptstart)->y) * posfactor);
+    point_t* pts2 = point_create(lpoint_get(ptend)->x, lpoint_get(ptstart)->y + (lpoint_get(ptend)->y - lpoint_get(ptstart)->y) * posfactor);
     const point_t* points[4];
     points[0] = lpoint_get(ptstart);
     points[1] = pts1;
